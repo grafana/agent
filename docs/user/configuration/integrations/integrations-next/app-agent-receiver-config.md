@@ -71,7 +71,7 @@ Full reference of options:
     [- <key>: <string>]
 
   # Timeout duration when sending an entry to Loki, milliseconds
-  [logs_send_timeout: <number> | default = 2000]
+  [logs_send_timeout: <duration> | default = 2s]
 
   # Sourcemap configuration for enabling stack trace transformation to original source locations
   [sourcemaps: <sourcemap_config>]

@@ -24,29 +24,29 @@ type logsInstanceGetter func() (logsInstance, error)
 
 // LogsExporterConfig holds the configuration of the logs exporter
 type LogsExporterConfig struct {
-	SendEntryTimeout int
+	SendEntryTimeout time.Duration
 	GetLogsInstance  logsInstanceGetter
 	Labels           map[string]string
 }
 
 // LogsExporter will send logs & errors to loki
 type LogsExporter struct {
-	getLogsInstance logsInstanceGetter
-	seTimeout       time.Duration
-	logger          kitlog.Logger
-	labels          map[string]string
-	sourceMapStore  SourceMapStore
+	getLogsInstance  logsInstanceGetter
+	sendEntryTimeout time.Duration
+	logger           kitlog.Logger
+	labels           map[string]string
+	sourceMapStore   SourceMapStore
 }
 
 // NewLogsExporter creates a new logs exporter with the given
 // configuration
 func NewLogsExporter(logger kitlog.Logger, conf LogsExporterConfig, sourceMapStore SourceMapStore) appAgentReceiverExporter {
 	return &LogsExporter{
-		logger:          logger,
-		getLogsInstance: conf.GetLogsInstance,
-		seTimeout:       time.Duration(conf.SendEntryTimeout),
-		labels:          conf.Labels,
-		sourceMapStore:  sourceMapStore,
+		logger:           logger,
+		getLogsInstance:  conf.GetLogsInstance,
+		sendEntryTimeout: conf.SendEntryTimeout,
+		labels:           conf.Labels,
+		sourceMapStore:   sourceMapStore,
 	}
 }
 
@@ -102,7 +102,7 @@ func (le *LogsExporter) sendKeyValsToLogsPipeline(kv *KeyVal) error {
 			Timestamp: time.Now(),
 			Line:      string(line),
 		},
-	}, le.seTimeout)
+	}, le.sendEntryTimeout)
 	if !sent {
 		level.Warn(le.logger).Log("msg", "failed to log frontend log event to logs pipeline")
 		return fmt.Errorf("failed to send app event to logs pipeline")

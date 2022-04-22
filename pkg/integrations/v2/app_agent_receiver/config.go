@@ -33,7 +33,7 @@ var DefaultConfig = Config{
 		MaxAllowedPayloadSize: DefaultMaxPayloadSize,
 	},
 	LogsLabels:      map[string]string{},
-	LogsSendTimeout: 2000,
+	LogsSendTimeout: time.Second * 2,
 	SourceMaps: SourceMapConfig{
 		DownloadFromOrigins: []string{"*"},
 		DownloadTimeout:     time.Second,
@@ -79,7 +79,7 @@ type Config struct {
 	TracesInstance  string               `yaml:"traces_instance,omitempty"`
 	LogsInstance    string               `yaml:"logs_instance,omitempty"`
 	LogsLabels      map[string]string    `yaml:"logs_labels,omitempty"`
-	LogsSendTimeout int                  `yaml:"logs_send_timeout,omitempty"`
+	LogsSendTimeout time.Duration        `yaml:"logs_send_timeout,omitempty"`
 	SourceMaps      SourceMapConfig      `yaml:"sourcemaps,omitempty"`
 }
 
