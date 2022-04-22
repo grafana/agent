@@ -28,7 +28,7 @@ Main (unreleased)
 - Grafana Agent Operator: add support for integrations through an `Integration`
   CRD which is discovered by `GrafanaAgent`. (@rfratto)
 
-- (beta) Add app agent receiver integration. This depends on integrations-next being enabled
+- (experimental) Add app agent receiver integration. This depends on integrations-next being enabled
   via the `integrations-next` feature flag. Use `-enable-features=integrations-next` to use
   this integration. (@kpelelis, @domas)
 
