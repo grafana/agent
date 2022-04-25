@@ -15,7 +15,6 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/config/features"
-	"github.com/grafana/agent/pkg/integrations/v2/app_agent_receiver"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/server"
@@ -188,26 +187,6 @@ func (c *Config) Validate(fs *flag.FlagSet) error {
 	}
 
 	c.Metrics.ServiceConfig.APIEnableGetConfiguration = c.EnableConfigEndpoints
-
-	// find every traces instance that is to be used by app agent receiver
-	// and configure it to include a PushReceiver to be able to push traces internally
-	// this cannot happen in unmarshall stage since integrations are not yet unmarshalled
-	if c.Integrations.configV2 != nil {
-		for _, conf := range c.Integrations.configV2.Configs {
-			if conf.Name() != app_agent_receiver.IntegrationName {
-				continue
-			}
-			appAgentReceiverConf := conf.(*app_agent_receiver.Config)
-			if appAgentReceiverConf.TracesInstance == "" {
-				continue
-			}
-			for idx, instanceConf := range c.Traces.Configs {
-				if instanceConf.Name == appAgentReceiverConf.TracesInstance {
-					c.Traces.Configs[idx].PushReceiver = true
-				}
-			}
-		}
-	}
 
 	// Don't validate flags if there's no FlagSet. Used for testing.
 	if fs == nil {
