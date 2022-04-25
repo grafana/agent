@@ -70,7 +70,7 @@ func (le *LogsExporter) Export(ctx context.Context, payload Payload) error {
 
 	// exceptions
 	for _, exception := range payload.Exceptions {
-		transformedException := le.sourceMapStore.TransformException(&exception, payload.Meta.App.Release)
+		transformedException := TransformException(le.sourceMapStore, le.logger, &exception, payload.Meta.App.Release)
 		kv := transformedException.KeyVal()
 		MergeKeyVal(kv, meta)
 		err = le.sendKeyValsToLogsPipeline(kv)

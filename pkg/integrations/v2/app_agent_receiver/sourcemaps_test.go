@@ -100,11 +100,13 @@ func Test_RealSourceMapStore_DownloadSuccess(t *testing.T) {
 		},
 	}
 
-	sourceMapStore := NewSourceMapStore(log.NewNopLogger(), conf, prometheus.NewRegistry(), httpClient, &mockFileService{})
+	logger := log.NewNopLogger()
+
+	sourceMapStore := NewSourceMapStore(logger, conf, prometheus.NewRegistry(), httpClient, &mockFileService{})
 
 	exception := mockException()
 
-	transformed := sourceMapStore.TransformException(exception, "123")
+	transformed := TransformException(sourceMapStore, logger, exception, "123")
 
 	require.Equal(t, []string{"http://localhost:1234/foo.js", "http://localhost:1234/foo.js.map"}, httpClient.requests)
 
@@ -150,11 +152,13 @@ func Test_RealSourceMapStore_DownloadError(t *testing.T) {
 		},
 	}
 
-	sourceMapStore := NewSourceMapStore(log.NewNopLogger(), conf, prometheus.NewRegistry(), httpClient, &mockFileService{})
+	logger := log.NewNopLogger()
+
+	sourceMapStore := NewSourceMapStore(logger, conf, prometheus.NewRegistry(), httpClient, &mockFileService{})
 
 	exception := mockException()
 
-	transformed := sourceMapStore.TransformException(exception, "123")
+	transformed := TransformException(sourceMapStore, logger, exception, "123")
 
 	require.Equal(t, []string{"http://localhost:1234/foo.js"}, httpClient.requests)
 	require.Equal(t, exception, transformed)
@@ -176,7 +180,9 @@ func Test_RealSourceMapStore_DownloadHTTPOriginFiltering(t *testing.T) {
 		},
 	}
 
-	sourceMapStore := NewSourceMapStore(log.NewNopLogger(), conf, prometheus.NewRegistry(), httpClient, &mockFileService{})
+	logger := log.NewNopLogger()
+
+	sourceMapStore := NewSourceMapStore(logger, conf, prometheus.NewRegistry(), httpClient, &mockFileService{})
 
 	exception := &Exception{
 		Stacktrace: &Stacktrace{
@@ -197,7 +203,7 @@ func Test_RealSourceMapStore_DownloadHTTPOriginFiltering(t *testing.T) {
 		},
 	}
 
-	transformed := sourceMapStore.TransformException(exception, "123")
+	transformed := TransformException(sourceMapStore, logger, exception, "123")
 
 	require.Equal(t, []string{"http://bar.com/foo.js", "http://bar.com/foo.js.map"}, httpClient.requests)
 
@@ -247,7 +253,9 @@ func Test_RealSourceMapStore_ReadFromFileSystem(t *testing.T) {
 		},
 	}
 
-	sourceMapStore := NewSourceMapStore(log.NewNopLogger(), conf, prometheus.NewRegistry(), &mockHTTPClient{}, fileService)
+	logger := log.NewNopLogger()
+
+	sourceMapStore := NewSourceMapStore(logger, conf, prometheus.NewRegistry(), &mockHTTPClient{}, fileService)
 
 	exception := &Exception{
 		Stacktrace: &Stacktrace{
@@ -280,7 +288,7 @@ func Test_RealSourceMapStore_ReadFromFileSystem(t *testing.T) {
 		},
 	}
 
-	transformed := sourceMapStore.TransformException(exception, "123")
+	transformed := TransformException(sourceMapStore, logger, exception, "123")
 
 	require.Equal(t, []string{
 		filepath.FromSlash("/var/build/latest/foo.js.map"),
@@ -356,7 +364,9 @@ func Test_RealSourceMapStore_ReadFromFileSystemAndDownload(t *testing.T) {
 		},
 	}
 
-	sourceMapStore := NewSourceMapStore(log.NewNopLogger(), conf, prometheus.NewRegistry(), httpClient, fileService)
+	logger := log.NewNopLogger()
+
+	sourceMapStore := NewSourceMapStore(logger, conf, prometheus.NewRegistry(), httpClient, fileService)
 
 	exception := &Exception{
 		Stacktrace: &Stacktrace{
@@ -377,7 +387,7 @@ func Test_RealSourceMapStore_ReadFromFileSystemAndDownload(t *testing.T) {
 		},
 	}
 
-	transformed := sourceMapStore.TransformException(exception, "123")
+	transformed := TransformException(sourceMapStore, logger, exception, "123")
 
 	require.Equal(t, []string{filepath.FromSlash("/var/build/latest/foo.js.map")}, fileService.stats)
 	require.Equal(t, []string{filepath.FromSlash("/var/build/latest/foo.js.map")}, fileService.reads)
@@ -418,7 +428,9 @@ func Test_RealSourceMapStore_FilepathSanitized(t *testing.T) {
 
 	fileService := &mockFileService{}
 
-	sourceMapStore := NewSourceMapStore(log.NewNopLogger(), conf, prometheus.NewRegistry(), &mockHTTPClient{}, fileService)
+	logger := log.NewNopLogger()
+
+	sourceMapStore := NewSourceMapStore(logger, conf, prometheus.NewRegistry(), &mockHTTPClient{}, fileService)
 
 	exception := &Exception{
 		Stacktrace: &Stacktrace{
@@ -433,7 +445,7 @@ func Test_RealSourceMapStore_FilepathSanitized(t *testing.T) {
 		},
 	}
 
-	transformed := sourceMapStore.TransformException(exception, "123")
+	transformed := TransformException(sourceMapStore, logger, exception, "123")
 
 	require.Equal(t, []string{
 		filepath.FromSlash("/var/build/latest/etc/passwd.map"),
@@ -456,7 +468,9 @@ func Test_RealSourceMapStore_FilepathQueryParamsOmitted(t *testing.T) {
 
 	fileService := &mockFileService{}
 
-	sourceMapStore := NewSourceMapStore(log.NewNopLogger(), conf, prometheus.NewRegistry(), &mockHTTPClient{}, fileService)
+	logger := log.NewNopLogger()
+
+	sourceMapStore := NewSourceMapStore(logger, conf, prometheus.NewRegistry(), &mockHTTPClient{}, fileService)
 
 	exception := &Exception{
 		Stacktrace: &Stacktrace{
@@ -471,7 +485,7 @@ func Test_RealSourceMapStore_FilepathQueryParamsOmitted(t *testing.T) {
 		},
 	}
 
-	transformed := sourceMapStore.TransformException(exception, "123")
+	transformed := TransformException(sourceMapStore, logger, exception, "123")
 
 	require.Equal(t, []string{
 		filepath.FromSlash("/var/build/latest/static/foo.js.map"),

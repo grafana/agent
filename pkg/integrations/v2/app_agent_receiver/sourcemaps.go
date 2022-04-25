@@ -24,8 +24,7 @@ import (
 // SourceMapStore is interface for a sourcemap service capable of transforming
 // minified source locations to original source location
 type SourceMapStore interface {
-	ResolveSourceLocation(frame *Frame, release string) (*Frame, error)
-	TransformException(ex *Exception, release string) *Exception
+	GetSourceMap(sourceURL string, release string) (*SourceMap, error)
 }
 
 type httpClient interface {
@@ -51,7 +50,8 @@ func (s *osFileService) ReadFile(name string) ([]byte, error) {
 
 var reSourceMap = "//[#@]\\s(source(?:Mapping)?URL)=\\s*(?P<url>\\S+)\r?\n?$"
 
-type sourceMap struct {
+// SourceMap is a wrapper for go-sourcemap consumer
+type SourceMap struct {
 	consumer *sourcemap.Consumer
 }
 
@@ -74,7 +74,7 @@ type RealSourceMapStore struct {
 	httpClient    httpClient
 	fileService   fileService
 	config        SourceMapConfig
-	cache         map[string]*sourceMap
+	cache         map[string]*SourceMap
 	fileLocations []*sourcemapFileLocation
 	metrics       *sourceMapMetrics
 }
@@ -127,7 +127,7 @@ func NewSourceMapStore(l log.Logger, config SourceMapConfig, reg prometheus.Regi
 		httpClient:    httpClient,
 		fileService:   fileService,
 		config:        config,
-		cache:         make(map[string]*sourceMap),
+		cache:         make(map[string]*SourceMap),
 		metrics:       metrics,
 		fileLocations: fileLocations,
 	}
@@ -257,7 +257,8 @@ func (store *RealSourceMapStore) getSourceMapContent(sourceURL string, release s
 	return nil, "", nil
 }
 
-func (store *RealSourceMapStore) getSourceMap(sourceURL string, release string) (*sourceMap, error) {
+// GetSourceMap returns sourcemap for a given source url
+func (store *RealSourceMapStore) GetSourceMap(sourceURL string, release string) (*SourceMap, error) {
 	store.Lock()
 	defer store.Unlock()
 
@@ -279,7 +280,7 @@ func (store *RealSourceMapStore) getSourceMap(sourceURL string, release string) 
 			return nil, err
 		}
 		level.Info(store.l).Log("msg", "successfully parsed sourcemap", "url", sourceMapURL, "release", release)
-		smap := &sourceMap{
+		smap := &SourceMap{
 			consumer: consumer,
 		}
 		store.cache[cacheKey] = smap
@@ -290,8 +291,8 @@ func (store *RealSourceMapStore) getSourceMap(sourceURL string, release string) 
 }
 
 // ResolveSourceLocation resolves minified source location to original source location
-func (store *RealSourceMapStore) ResolveSourceLocation(frame *Frame, release string) (*Frame, error) {
-	smap, err := store.getSourceMap(frame.Filename, release)
+func ResolveSourceLocation(store SourceMapStore, frame *Frame, release string) (*Frame, error) {
+	smap, err := store.GetSourceMap(frame.Filename, release)
 	if err != nil {
 		return nil, err
 	}
@@ -317,16 +318,16 @@ func (store *RealSourceMapStore) ResolveSourceLocation(frame *Frame, release str
 }
 
 // TransformException will attempt to resolved all monified source locations in the stacktrace with original source locations
-func (store *RealSourceMapStore) TransformException(ex *Exception, release string) *Exception {
+func TransformException(store SourceMapStore, log log.Logger, ex *Exception, release string) *Exception {
 	if ex.Stacktrace == nil {
 		return ex
 	}
 	frames := []Frame{}
 
 	for _, frame := range ex.Stacktrace.Frames {
-		mappedFrame, err := store.ResolveSourceLocation(&frame, release)
+		mappedFrame, err := ResolveSourceLocation(store, &frame, release)
 		if err != nil {
-			level.Error(store.l).Log("msg", "Error resolving stack trace frame source location", "err", err)
+			level.Error(log).Log("msg", "Error resolving stack trace frame source location", "err", err)
 			frames = append(frames, frame)
 		} else if mappedFrame != nil {
 			frames = append(frames, *mappedFrame)
