@@ -1,5 +1,5 @@
 +++
-title = "SNMP Integration"
+title = "snmp_exporter_config"
 +++
 
 # snmp config
