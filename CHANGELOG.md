@@ -28,7 +28,9 @@ Main (unreleased)
 - Grafana Agent Operator: add support for integrations through an `Integration`
   CRD which is discovered by `GrafanaAgent`. (@rfratto)
 
-- Add new v2 `ebpf` integration. (@tpaschalis)
+- Introduce SNMP exporter integration. (@v-zhuravlev)
+
+- Introduce ebpf exporter v2 integration. (@tpaschalis)
 
 ### Enhancements
 
