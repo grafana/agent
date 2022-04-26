@@ -28,6 +28,8 @@ Main (unreleased)
 - Grafana Agent Operator: add support for integrations through an `Integration`
   CRD which is discovered by `GrafanaAgent`. (@rfratto)
 
+- Introduce SNMP exporter integration. (@v-zhuravlev)
+
 ### Enhancements
 
 - integrations-next: Integrations using autoscrape will now autoscrape metrics
