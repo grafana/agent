@@ -30,6 +30,8 @@ Main (unreleased)
 
 - Introduce SNMP exporter integration. (@v-zhuravlev)
 
+- Introduce ebpf exporter v2 integration. (@tpaschalis)
+
 ### Enhancements
 
 - integrations-next: Integrations using autoscrape will now autoscrape metrics

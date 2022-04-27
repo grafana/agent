@@ -8,6 +8,10 @@ ARG IMAGE_TAG
 RUN echo "deb http://deb.debian.org/debian bullseye-backports main" >> /etc/apt/sources.list
 RUN apt-get update && apt-get install -t bullseye-backports -qy libsystemd-dev
 
+# Add support for bcc bindings required to compile the eBPF integration
+RUN echo "deb [trusted=yes] https://repo.iovisor.org/apt/bionic bionic-nightly main" | tee /etc/apt/sources.list.d/iovisor.list
+RUN apt-get update && apt-get install -qy libbpfcc-dev
+
 RUN make clean && make IMAGE_TAG=${IMAGE_TAG} RELEASE_BUILD=${RELEASE_BUILD} BUILD_IN_CONTAINER=false agent
 
 FROM debian:bullseye-slim

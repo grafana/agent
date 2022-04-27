@@ -29,6 +29,7 @@ import (
 	//
 
 	_ "github.com/grafana/agent/pkg/integrations/v2/agent" // register agent
+	_ "github.com/grafana/agent/pkg/integrations/v2/ebpf"  // register ebpf integration
 	_ "github.com/grafana/agent/pkg/integrations/v2/eventhandler"
 	_ "github.com/grafana/agent/pkg/integrations/v2/snmp_exporter"
 )
