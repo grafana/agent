@@ -37,4 +37,4 @@ The above lead me to wonder if the operator is worth the effort of maintaining a
 
 The first large step we should take is publishing an official Helm chart. It should be usable to deploy the agent with a working config extremely easily, while still allowing fully custom agent config.
 
-The biggest missing features in deprecating the operator would probably be native support for the prometheus operator Monitor crds. We should explore the possibility of having the agent itself watch those types and merge into its own config, or some other method for supporting those (if they are important to our user base).
+The biggest missing features in deprecating the operator would probably be native support for the Prometheus Operator's CRDs. We should explore the possibility of having the agent itself watch those types and merge into its own config, or some other method for supporting those (if they are important to our user base).
