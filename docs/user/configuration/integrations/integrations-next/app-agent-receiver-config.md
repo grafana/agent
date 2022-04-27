@@ -9,7 +9,7 @@ integration. This integration exposes a http endpoint that can receive telemetry
 from the [Grafana Javascript Agent](https://github.com/grafana/grafana-javascript-agent)
 and forward it to logs, traces or metrics backends.
 
-Full reference of options:
+These are the options you have for configuring the app_agent_receiver integration.
 
 ```yaml
   autoscrape:
@@ -80,7 +80,7 @@ Full reference of options:
 ## sourcemap_config
 
 ```yaml
-# Wether agent should attempt to download compiled sources and source maps
+# Whether agent should attempt to download compiled sources and source maps
 [download: <boolean> | default = false]
 
 # List of HTTP origins to download sourcemaps for
@@ -98,7 +98,7 @@ filesystem:
 
 ```yaml
 # Source URL prefix. If a minified source URL matches this prefix,
-# A filepath is constructed by removing the prefix, prepending path below and appending ".map".
+# a filepath is constructed by removing the prefix, prepending path below and appending ".map".
 #
 # Example:
 #
