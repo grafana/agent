@@ -35,6 +35,6 @@ It allows users with existing Prometheus Operator infrastructure to reuse their 
 
 The above lead me to wonder if the operator is worth the effort of maintaining as a seperate app. If our goal is to make deployment of the agent to kubernetes as easy as possible, perhaps we would be better served by providing a happy path to deploying customized manifests directly. 
 
-The first large step we should take is publishing an official helm chart. It should be usable to deploy the agent with a working config extremely easily, while still allowing fully custom agent config.
+The first large step we should take is publishing an official Helm chart. It should be usable to deploy the agent with a working config extremely easily, while still allowing fully custom agent config.
 
 The biggest missing features in deprecating the operator would probably be native support for the prometheus operator Monitor crds. We should explore the possibility of having the agent itself watch those types and merge into its own config, or some other method for supporting those (if they are important to our user base).
