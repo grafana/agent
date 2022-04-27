@@ -22,7 +22,7 @@ The operator is designed to be the easiest way to deploy Grafana Agent to Kubern
 - Prometheus Operator CRDs for PodMonitors, ServiceMonitors, and Probes.
 - Grafana Agent-specific CRDs for declaring agent instances, metrics endpoints and so forth.
 
-It allows users with existing prometheus-operator infrastructure to reuse those monitor resources without needing to redefine scrape configs for the agent.
+It allows users with existing Prometheus Operator infrastructure to reuse their existing CRDs without needing to redefine scrape configs for the agent.
 
 ### Problems with the agent
 
