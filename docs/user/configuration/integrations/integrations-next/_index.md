@@ -78,6 +78,7 @@ integrations:
   [statsd: <statsd_exporter_config>]
   [windows: <windows_exporter_config>]
   [eventhandler: <eventhandler_config>]
+  [snmp: <snmp_exporter_config>]
 
   # Configs for integrations that do support multiple instances. Note that
   # these must be arrays.

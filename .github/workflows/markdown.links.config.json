@@ -8,6 +8,9 @@
     },
     {
       "pattern": "^http://prometheus.k3d.localhost:50080"
+    },
+    {
+      "pattern": "^https://docs.github.com/.*$"
     }
   ]
 }

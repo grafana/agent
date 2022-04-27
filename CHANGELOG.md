@@ -32,6 +32,8 @@ Main (unreleased)
   via the `integrations-next` feature flag. Use `-enable-features=integrations-next` to use
   this integration. (@kpelelis, @domas)
 
+- Introduce SNMP exporter integration. (@v-zhuravlev)
+
 ### Enhancements
 
 - integrations-next: Integrations using autoscrape will now autoscrape metrics
