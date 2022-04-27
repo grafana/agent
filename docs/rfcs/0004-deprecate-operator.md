@@ -29,7 +29,7 @@ It allows users with existing Prometheus Operator infrastructure to reuse their 
 - The agent specific CRDs are similar to, but distinct from the internal agent config types.
 - Operator config is not always up to date with agent config. Major agent features (tracing for example), take additional work to port into the operator crds.
 - Kubernetes operators are less understood by the larger agent squad. Maintenance on the operator is slower than on the agent itself.
-- Documentation must take into account that there are two fully supported ways to deploy and configure the agent. Operator crds are a completely different format than the agent config yaml.
+- Documentation must take into account that there are two fully supported ways to deploy and configure the agent. Operator CRDs are a completely different format than the agent config yaml.
 
 ### Alternatives
 
