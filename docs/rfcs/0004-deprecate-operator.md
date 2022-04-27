@@ -7,13 +7,13 @@
 
 ## Background
 
-The grafana agent operator was created as a convenience for deploying the agent to kubernetes clusters. 
-It does so by introducing custom resources to represent grafana agent instances, metrics and logging backends, as well as
-scrape configs. One problem that comes up consistently is that these CRDs are yet another way to represent the grafana agent config. The operator
+The Grafana Agent Operator was created as a convenience for deploying Grafana Agent to Kubernetes clusters. 
+It does so by introducing custom resources to represent Grafana Agent instances, metrics and logging backends, as well as
+scrape configs. One problem that comes up consistently is that these CRDs are yet another way to represent the Grafana Agent config. The operator
 requires extra maintenance to make new agent features availible to users, and it can get out of sync easily. Without being well understood,
 the operator model can lead to confusion for new users, and make debugging the agent more difficult.
 
-I propose we deprecate the agent-operator, and instead focus on making agent deployments as seamless as possible for users to configure and deploy it directly.
+I propose we deprecate the operator, and instead focus on making agent deployments as seamless as possible for users to configure and deploy it directly.
 
 ### Purpose of the agent
 
