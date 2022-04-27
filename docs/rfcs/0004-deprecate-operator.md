@@ -33,7 +33,7 @@ It allows users with existing Prometheus Operator infrastructure to reuse their 
 
 ### Alternatives
 
-The above lead me to wonder if the operator is worth the effort of maintaining as a seperate app. If our goal is to make deployment of the agent to kubernetes as easy as possible, perhaps we would be better served by providing a happy path to deploying customized manifests directly. 
+The above led me to wonder if the operator is worth the effort of maintaining as a separate app. If our goal is to make deployment of the agent to Kubernetes as easy as possible, perhaps we would be better served by providing a happy path to deploying customized manifests directly. 
 
 The first large step we should take is publishing an official Helm chart. It should be usable to deploy the agent with a working config extremely easily, while still allowing fully custom agent config.
 
