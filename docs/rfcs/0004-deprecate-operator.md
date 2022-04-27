@@ -19,7 +19,7 @@ I propose we deprecate the operator, and instead focus on making agent deploymen
 
 The operator is designed to be the easiest way to deploy Grafana Agent to Kubernetes. It watches two main sets of CRDs:
 
-- Prometheus operator crds for podmonitors, servicemoniters, etc.
+- Prometheus Operator CRDs for PodMonitors, ServiceMonitors, and Probes.
 - Grafana Agent-specific CRDs for declaring agent instances, metrics endpoints and so forth.
 
 It allows users with existing prometheus-operator infrastructure to reuse those monitor resources without needing to redefine scrape configs for the agent.
