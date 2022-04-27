@@ -20,7 +20,7 @@ I propose we deprecate the agent-operator, and instead focus on making agent dep
 The agent-operator is designed to be the easiest way to deploy Grafana Agent to kubernetes. It watches two main sets of CRDs:
 
 - Prometheus operator crds for podmonitors, servicemoniters, etc.
-- Agent specific operators for declaring agent instances, metrics endpoints and so forth.
+- Grafana Agent-specific CRDs for declaring agent instances, metrics endpoints and so forth.
 
 It allows users with existing prometheus-operator infrastructure to reuse those monitor resources without needing to redefine scrape configs for the agent.
 
