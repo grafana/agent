@@ -166,7 +166,7 @@ type HTTPIntegration interface {
 // to expose metrics. See HTTPIntegration for more information about how
 // HTTP works with integrations.
 type MetricsIntegration interface {
-	Integration
+	HTTPIntegration
 
 	// Targets should return the current set of active targets exposed by this
 	// integration. Targets may be called multiple times throughout the lifecycle

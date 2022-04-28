@@ -112,6 +112,9 @@ integrations:
 
   redis_configs:
     [- <redis_exporter_config> ...]
+
+  app_agent_receiver_configs:
+    [- <app_agent_receiver_config>]
 ```
 
 Note that most integrations are no longer configured with the `_exporter` name.
