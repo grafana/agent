@@ -19,7 +19,6 @@ steps:
     image: golangci/golangci-lint:v1.44
     commands:
       - apt-get update -y && apt-get install -y libsystemd-dev
-      - echo "deb [trusted=yes] https://repo.iovisor.org/apt/bionic bionic-nightly main" | tee /etc/apt/sources.list.d/iovisor.list && apt-get update -y && apt-get install -qy libbpfcc-dev
       - make DOCKER_OPTS="" lint
 
 ---
@@ -47,7 +46,6 @@ steps:
         path: /var/run/docker.sock
     commands:
       - apt-get update &&  apt-get install -y rubygems rpm nsis  apt-transport-https ca-certificates curl gnupg lsb-release
-      - echo "deb [trusted=yes] https://repo.iovisor.org/apt/bionic bionic-nightly main" | tee /etc/apt/sources.list.d/iovisor.list && apt-get update -y && apt-get install -qy libbpfcc-dev
       - gem install --no-document fpm
       - rm -r /usr/local/go
       - mkdir -p /usr/local/go/bin
@@ -248,6 +246,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: ad8ffb566ca729e3e82744f5e9484224a37e500cc13f348eada1a66fd194607e
+hmac: b14773ba7e50432dfe90920d442a850f85aed74f1419dd78502b1e76d91cde46
 
 ...
