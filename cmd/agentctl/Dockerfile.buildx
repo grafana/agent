@@ -12,6 +12,10 @@ RUN  rm -rf /usr/local/go                                           \
   && tar -C /usr/local -xzf golang.tar.gz                           \
   && rm golang.tar.gz
 
+# Add support for bcc bindings required to compile the eBPF integration
+RUN echo "deb [trusted=yes] https://repo.iovisor.org/apt/bionic bionic-nightly main" | tee /etc/apt/sources.list.d/iovisor.list
+RUN apt-get update && apt-get install -qy libbpfcc-dev
+
 COPY . /src/agent
 WORKDIR /src/agent
 ARG RELEASE_BUILD=true
