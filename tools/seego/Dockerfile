@@ -11,3 +11,5 @@ RUN  rm -rf /usr/local/go                                           \
   && rm golang.tar.gz
 RUN apt-get update
 RUN apt-get install -y nsis
+RUN echo "deb [trusted=yes] https://repo.iovisor.org/apt/bionic bionic-nightly main" | tee /etc/apt/sources.list.d/iovisor.list && apt-get update -y && apt-get install -qy libbpfcc-dev
+
