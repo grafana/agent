@@ -1729,11 +1729,13 @@ func sortPipelines(cfg *config.Config) {
 		return
 	}
 	var (
-		exp  = tracePipeline.Exporters
-		recv = tracePipeline.Receivers
-		ext  = cfg.Service.Extensions
+		exp         = tracePipeline.Exporters
+		recv        = tracePipeline.Receivers
+		ext         = cfg.Service.Extensions
+		serviceRecv = cfg.Service.Pipelines[config.NewComponentID(config.TracesDataType)].Receivers
 	)
 	sort.Slice(exp, func(i, j int) bool { return exp[i].String() > exp[j].String() })
 	sort.Slice(recv, func(i, j int) bool { return recv[i].String() > recv[j].String() })
 	sort.Slice(ext, func(i, j int) bool { return ext[i].String() > ext[j].String() })
+	sort.Slice(serviceRecv, func(i, j int) bool { return serviceRecv[i].String() > serviceRecv[j].String() })
 }
