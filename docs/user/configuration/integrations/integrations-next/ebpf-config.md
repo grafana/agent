@@ -10,10 +10,10 @@ It is an embedded version of
 that allows the Agent to attach eBPF programs to the host kernel
 and export defined metrics in a Prometheus-compatible format.
 
-As such, this integration comes with the relevant caveats of
-running eBPF programs on your host, like being on a kernel 
-version >4.1, specific kernel flags being enabled, plus 
-superuser access is most usually required.
+As such, this integration is only supported on Linux/AMD64, and
+it comes with the relevant caveats of running eBPF programs 
+on your host, like being on a kernel version >4.1, specific
+kernel flags being enabled, plus having superuser access.
 
 Currently, the exporter only supports `kprobes`, that is
 kernel-space probes.
