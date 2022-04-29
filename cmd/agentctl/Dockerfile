@@ -9,7 +9,6 @@ RUN echo "deb http://deb.debian.org/debian bullseye-backports main" >> /etc/apt/
 RUN apt-get update && apt-get install -t bullseye-backports -qy libsystemd-dev
 
 # Add support for bcc bindings required to compile the eBPF integration
-RUN echo "deb [trusted=yes] https://repo.iovisor.org/apt/bionic bionic-nightly main" | tee /etc/apt/sources.list.d/iovisor.list
 RUN apt-get update && apt-get install -qy libbpfcc-dev
 
 RUN make clean && make IMAGE_TAG=${IMAGE_TAG} RELEASE_BUILD=${RELEASE_BUILD} BUILD_IN_CONTAINER=false agentctl
@@ -17,14 +16,11 @@ RUN make clean && make IMAGE_TAG=${IMAGE_TAG} RELEASE_BUILD=${RELEASE_BUILD} BUI
 FROM debian:bullseye-slim
 
 # Backports repo required to get a libsystemd version 246 or newer which is required to handle journal +ZSTD compression
+# plus the libbpfcc library for running the eBPF integration.
 RUN echo "deb http://deb.debian.org/debian bullseye-backports main" >> /etc/apt/sources.list
 RUN apt-get update && apt-get install -t bullseye-backports -qy libsystemd-dev && \
-  apt-get install -qy tzdata ca-certificates && \
+  apt-get install -qy tzdata ca-certificates libbpfcc && \
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-# Add support for bcc bindings required to run the eBPF integration
-RUN echo "deb [trusted=yes] https://repo.iovisor.org/apt/bionic bionic-nightly main" | tee /etc/apt/sources.list.d/iovisor.list
-RUN apt-get update && apt-get install -qy libbpfcc-dev
 
 COPY --from=build /src/agent/cmd/agentctl/agentctl /bin/agentctl
 
