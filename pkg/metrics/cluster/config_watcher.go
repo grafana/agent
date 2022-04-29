@@ -69,7 +69,9 @@ func newConfigWatcher(log log.Logger, cfg Config, store configstore.Store, im in
 	if err := w.ApplyConfig(cfg); err != nil {
 		return nil, err
 	}
-	go w.run(ctx)
+	// Delay duration, this is to prevent a race condition, see method for details
+	delay := cfg.Lifecycler.HeartbeatPeriod * 3
+	go w.run(ctx, delay)
 	return w, nil
 }
 
@@ -89,9 +91,11 @@ func (w *configWatcher) ApplyConfig(cfg Config) error {
 	return nil
 }
 
-func (w *configWatcher) run(ctx context.Context) {
+func (w *configWatcher) run(ctx context.Context, delay time.Duration) {
 	defer level.Info(w.log).Log("msg", "config watcher run loop exiting")
-
+	// This is due to a race condition between the heartbeat and config ring in a very narrow set of circumstances
+	// https://gist.github.com/mattdurham/c15f27de17a6da97bf2e6a870991c7f2
+	time.Sleep(delay)
 	lastReshard := time.Now()
 
 	for {

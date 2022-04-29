@@ -43,7 +43,11 @@ Main (unreleased)
   network. As a result of this change, the `client_config` field has been
   removed. (@rfratto)
 
--  `extra-scrape-metrics` can now be enabled with the `--enable-features=extra-scrape-metrics` feature flag. See https://prometheus.io/docs/prometheus/2.31/feature_flags/#extra-scrape-metrics for details. (@rlankfo)
+- `extra-scrape-metrics` can now be enabled with the `--enable-features=extra-scrape-metrics` feature flag. See https://prometheus.io/docs/prometheus/2.31/feature_flags/#extra-scrape-metrics for details. (@rlankfo)
+
+### Bugfixes
+
+- Added config watcher delay to prevent race condition in cases where scraping service mode has not gracefully exited. (@mattdurham)
 
 ### Other changes
 
