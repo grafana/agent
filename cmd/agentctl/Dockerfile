@@ -20,11 +20,8 @@ FROM debian:bullseye-slim
 RUN echo "deb http://deb.debian.org/debian bullseye-backports main" >> /etc/apt/sources.list
 RUN apt-get update && apt-get install -t bullseye-backports -qy libsystemd-dev && \
   apt-get install -qy tzdata ca-certificates && \
+  if [ "$(dpkg --print-architure)" = "amd64" ]; then apt-get install libbpfcc; fi && \
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-# Add support for bcc bindings required to run the eBPF integration
-RUN echo "deb [trusted=yes] https://repo.iovisor.org/apt/bionic bionic-nightly main" | tee /etc/apt/sources.list.d/iovisor.list
-RUN apt-get update && apt-get install -qy libbpfcc-dev
 
 COPY --from=build /src/agent/cmd/agentctl/agentctl /bin/agentctl
 
