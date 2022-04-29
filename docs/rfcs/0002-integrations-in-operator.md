@@ -15,7 +15,7 @@ integrations:
 * Integrations that generate metrics (i.e., `node_exporter`)
 * Integrations that generate logs (i.e., `eventhandler`)
 * Integrations that generate other types of telemetry are planned (i.e., an
-  upcoming `app_o11y_receiver`)
+  upcoming `app_agent_receiver`)
 
 Generically, an integration is a specialized telemetry collector for some
 system under observation. For example, a `redis` integration collects telemetry

@@ -38,6 +38,7 @@ import (
 	"github.com/grafana/agent/pkg/traces/automaticloggingprocessor"
 	"github.com/grafana/agent/pkg/traces/noopreceiver"
 	"github.com/grafana/agent/pkg/traces/promsdprocessor"
+	"github.com/grafana/agent/pkg/traces/pushreceiver"
 	"github.com/grafana/agent/pkg/traces/remotewriteexporter"
 	"github.com/grafana/agent/pkg/traces/servicegraphprocessor"
 	"github.com/grafana/agent/pkg/util"
@@ -515,6 +516,11 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 		return nil, errors.New("must have at least one configured receiver")
 	}
 
+	// add a hacky push receiver for when an integration
+	// wants to push traces directly, eg app agent receiver.
+	// it can only accept traces programatically from inside the agent
+	c.Receivers[pushreceiver.TypeStr] = nil
+
 	extensions, err := c.extensions()
 	if err != nil {
 		return nil, err
@@ -741,6 +747,7 @@ func tracingFactories() (component.Factories, error) {
 		opencensusreceiver.NewFactory(),
 		kafkareceiver.NewFactory(),
 		noopreceiver.NewFactory(),
+		pushreceiver.NewFactory(),
 	)
 	if err != nil {
 		return component.Factories{}, err

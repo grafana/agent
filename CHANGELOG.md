@@ -28,7 +28,16 @@ Main (unreleased)
 - Grafana Agent Operator: add support for integrations through an `Integration`
   CRD which is discovered by `GrafanaAgent`. (@rfratto)
 
+- (experimental) Add app agent receiver integration. This depends on integrations-next being enabled
+  via the `integrations-next` feature flag. Use `-enable-features=integrations-next` to use
+  this integration. (@kpelelis, @domas)
+
+- Introduce SNMP exporter integration. (@v-zhuravlev)
+
+- Introduce ebpf exporter v2 integration. (@tpaschalis)
+
 - Add ability to configure agent to report to grafana.com the usage of feature flags (@marctc)
+
 
 ### Enhancements
 

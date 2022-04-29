@@ -3,8 +3,8 @@ package cluster
 import (
 	"fmt"
 	stdlog "log"
+	"net"
 	"os"
-	"runtime"
 	"strings"
 	"testing"
 
@@ -19,11 +19,14 @@ import (
 const examplePort = 8888
 
 func TestConfig_ApplyDefaults(t *testing.T) {
-	advertiseInterfaces := advertise.DefaultInterfaces
-	if runtime.GOOS == "windows" {
-		// Try a few common names for Windows since advertise.DefaultInterfaces is
-		// *nix-only.
-		advertiseInterfaces = []string{"Ethernet", "Ethernet 2", "Ethernet 3"}
+	ifaces, err := net.Interfaces()
+	require.NoError(t, err)
+
+	var advertiseInterfaces []string
+	for _, iface := range ifaces {
+		if iface.Flags != net.FlagLoopback {
+			advertiseInterfaces = append(advertiseInterfaces, iface.Name)
+		}
 	}
 
 	defaultConfig := DefaultGossipConfig

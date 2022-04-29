@@ -73,11 +73,13 @@ integrations:
   # Configs for integrations which do not support multiple instances.
   [agent: <agent_config>]
   [cadvisor: <cadvisor_config>]
+  [ebpf: <ebpf_config>]
   [node_exporter: <node_exporter_config>]
   [process: <process_exporter_config>]
   [statsd: <statsd_exporter_config>]
   [windows: <windows_exporter_config>]
   [eventhandler: <eventhandler_config>]
+  [snmp: <snmp_exporter_config>]
 
   # Configs for integrations that do support multiple instances. Note that
   # these must be arrays.
@@ -110,6 +112,9 @@ integrations:
 
   redis_configs:
     [- <redis_exporter_config> ...]
+
+  app_agent_receiver_configs:
+    [- <app_agent_receiver_config>]
 ```
 
 Note that most integrations are no longer configured with the `_exporter` name.
