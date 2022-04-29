@@ -93,7 +93,7 @@ func (w *configWatcher) ApplyConfig(cfg Config) error {
 
 func (w *configWatcher) run(ctx context.Context, delay time.Duration) {
 	defer level.Info(w.log).Log("msg", "config watcher run loop exiting")
-	// This is due to a race condition between the heartbeat and config ring in a very narrow set of circumstances
+	// This is due to a race condition between the heartbeat and config ring in a  very narrow set of circumstances
 	// https://gist.github.com/mattdurham/c15f27de17a6da97bf2e6a870991c7f2
 	time.Sleep(delay)
 	lastReshard := time.Now()
