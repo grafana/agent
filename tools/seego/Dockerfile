@@ -11,5 +11,3 @@ RUN  rm -rf /usr/local/go                                           \
   && rm golang.tar.gz
 RUN apt-get update
 RUN apt-get install -y nsis
-RUN apt-get install -y libbpfcc-dev
-
