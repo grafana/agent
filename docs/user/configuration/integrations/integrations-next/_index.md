@@ -73,7 +73,6 @@ integrations:
   # Configs for integrations which do not support multiple instances.
   [agent: <agent_config>]
   [cadvisor: <cadvisor_config>]
-  [ebpf: <ebpf_config>]
   [node_exporter: <node_exporter_config>]
   [process: <process_exporter_config>]
   [statsd: <statsd_exporter_config>]
