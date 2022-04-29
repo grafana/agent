@@ -31,6 +31,10 @@ RUN apt-get update && apt-get install -t bullseye-backports -qy libsystemd-dev &
   apt-get install -qy tzdata ca-certificates libsystemd-dev && \
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+# Add support for bcc bindings required to run the eBPF integration
+RUN echo "deb [trusted=yes] https://repo.iovisor.org/apt/bionic bionic-nightly main" | tee /etc/apt/sources.list.d/iovisor.list
+RUN apt-get update && apt-get install -qy libbpfcc-dev
+
 COPY --from=build /src/agent/cmd/agent/agent /bin/agent
 COPY cmd/agent/agent-local-config.yaml /etc/agent/agent.yaml
 
