@@ -28,6 +28,7 @@ var (
 	reportInterval      = 1 * time.Hour
 )
 
+// Reporter holds the cluster information and sends report of usage
 type Reporter struct {
 	logger log.Logger
 	cfg    *config.Config
