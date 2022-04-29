@@ -47,7 +47,10 @@ func NewReporter(logger log.Logger, cfg *config.Config) (*Reporter, error) {
 
 	if cfg.EnableUsageReport {
 		r.Service = services.NewBasicService(nil, r.start, nil)
-		r.Service.StartAsync(context.Background())
+		err := r.Service.StartAsync(context.Background())
+		if err != nil {
+			return nil, err
+		}
 	} else {
 		// builds an empty service
 		r.Service = services.NewBasicService(nil, nil, nil)
@@ -55,16 +58,18 @@ func NewReporter(logger log.Logger, cfg *config.Config) (*Reporter, error) {
 	return r, nil
 }
 
-func (rep *Reporter) init(ctx context.Context) {
+func (rep *Reporter) init(ctx context.Context) error {
 	if fileExists(clusterSeedFileName) {
-		rep.cluster, _ = rep.readSeedFile()
+		seed, err := rep.readSeedFile()
+		rep.cluster = seed
+		return err
 	} else {
 		rep.cluster = &ClusterSeed{
 			UID:               uuid.NewString(),
 			PrometheusVersion: build.GetVersion(),
 			CreatedAt:         time.Now(),
 		}
-		rep.writeSeedFile(*rep.cluster)
+		return rep.writeSeedFile(*rep.cluster)
 	}
 }
 
@@ -98,7 +103,11 @@ func (rep *Reporter) writeSeedFile(seed ClusterSeed) error {
 // start inits the reporter seed and start sending report for every interval
 func (rep *Reporter) start(ctx context.Context) error {
 	level.Info(rep.logger).Log("msg", "running usage stats reporter")
-	rep.init(ctx)
+	err := rep.init(ctx)
+	if err != nil {
+		level.Info(rep.logger).Log("msg", "failed to init seed", "err", err)
+		return err
+	}
 
 	// check every minute if we should report.
 	ticker := time.NewTicker(reportCheckInterval)

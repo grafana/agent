@@ -18,6 +18,7 @@ var (
 	usageStatsURL = "https://stats.grafana.org/agent-usage-report"
 )
 
+// Report is the payload to be sent to stats.grafana.org
 type Report struct {
 	ClusterID string                 `json:"clusterID"`
 	CreatedAt time.Time              `json:"createdAt"`
