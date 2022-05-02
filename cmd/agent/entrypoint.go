@@ -319,7 +319,10 @@ func (ep *Entrypoint) Start() error {
 		srvCancel()
 	})
 
-	if ep.cfg.EnableUsageReport {
+	ep.mut.Lock()
+	cfg := ep.cfg
+	ep.mut.Unlock()
+	if cfg.EnableUsageReport {
 		g.Add(func() error {
 			return ep.reporter.Start(srvContext)
 		}, func(e error) {
