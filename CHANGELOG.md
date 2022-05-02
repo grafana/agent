@@ -36,7 +36,7 @@ Main (unreleased)
 
 - Introduce ebpf exporter v2 integration. (@tpaschalis)
 
-- Add ability to configure agent to report to grafana.com the usage of feature flags (@marctc)
+- Configure the agent to report the use of feature flags to grafana.com. (@marctc)
 
 
 ### Enhancements
