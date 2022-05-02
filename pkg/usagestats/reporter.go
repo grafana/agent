@@ -18,8 +18,8 @@ import (
 )
 
 const (
-	// File name for the cluster seed file.
-	clusterSeedFileName = "cluster_seed.json"
+	// File name for the agent seed file
+	agentSeedFileName = "agent_seed.json"
 )
 
 var (
@@ -27,12 +27,12 @@ var (
 	reportInterval      = 1 * time.Hour
 )
 
-// Reporter holds the cluster information and sends report of usage
+// Reporter holds the agent seed information and sends report of usage
 type Reporter struct {
 	logger log.Logger
 	cfg    *config.Config
 
-	cluster    *ClusterSeed
+	agentSeed  *AgentSeed
 	lastReport time.Time
 }
 
@@ -46,17 +46,17 @@ func NewReporter(logger log.Logger, cfg *config.Config) (*Reporter, error) {
 }
 
 func (rep *Reporter) init(ctx context.Context) error {
-	if fileExists(clusterSeedFileName) {
+	if fileExists(agentSeedFileName) {
 		seed, err := rep.readSeedFile()
-		rep.cluster = seed
+		rep.agentSeed = seed
 		return err
 	}
-	rep.cluster = &ClusterSeed{
+	rep.agentSeed = &AgentSeed{
 		UID:               uuid.NewString(),
 		PrometheusVersion: build.GetVersion(),
 		CreatedAt:         time.Now(),
 	}
-	return rep.writeSeedFile(*rep.cluster)
+	return rep.writeSeedFile(*rep.agentSeed)
 }
 
 func fileExists(path string) bool {
@@ -64,9 +64,9 @@ func fileExists(path string) bool {
 	return !errors.Is(err, os.ErrNotExist)
 }
 
-// readSeedFile reads the cluster seed file
-func (rep *Reporter) readSeedFile() (*ClusterSeed, error) {
-	data, err := ioutil.ReadFile(clusterSeedFileName)
+// readSeedFile reads the agent seed file
+func (rep *Reporter) readSeedFile() (*AgentSeed, error) {
+	data, err := ioutil.ReadFile(agentSeedFileName)
 	if err != nil {
 		return nil, err
 	}
@@ -74,16 +74,16 @@ func (rep *Reporter) readSeedFile() (*ClusterSeed, error) {
 	if err != nil {
 		return nil, err
 	}
-	return seed.(*ClusterSeed), nil
+	return seed.(*AgentSeed), nil
 }
 
-// writeSeedFile writes the cluster seed file
-func (rep *Reporter) writeSeedFile(seed ClusterSeed) error {
+// writeSeedFile writes the agent seed file
+func (rep *Reporter) writeSeedFile(seed AgentSeed) error {
 	data, err := JSONCodec.Encode(seed)
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(clusterSeedFileName, data, 0644)
+	return ioutil.WriteFile(agentSeedFileName, data, 0644)
 }
 
 // Start inits the reporter seed and start sending report for every interval
@@ -100,7 +100,7 @@ func (rep *Reporter) Start(ctx context.Context) error {
 	defer ticker.Stop()
 
 	// find  when to send the next report.
-	next := nextReport(reportInterval, rep.cluster.CreatedAt, time.Now())
+	next := nextReport(reportInterval, rep.agentSeed.CreatedAt, time.Now())
 	if rep.lastReport.IsZero() {
 		// if we never reported assumed it was the last interval.
 		rep.lastReport = next.Add(-reportInterval)
@@ -134,7 +134,7 @@ func (rep *Reporter) reportUsage(ctx context.Context, interval time.Time) error 
 	})
 	var errs multierror.MultiError
 	for backoff.Ongoing() {
-		if err := sendReport(ctx, rep.cluster, interval, rep.getMetrics()); err != nil {
+		if err := sendReport(ctx, rep.agentSeed, interval, rep.getMetrics()); err != nil {
 			level.Info(rep.logger).Log("msg", "failed to send usage report", "retries", backoff.NumRetries(), "err", err)
 			errs.Add(err)
 			backoff.Wait()
@@ -153,7 +153,7 @@ func (rep *Reporter) getMetrics() map[string]interface{} {
 }
 
 // nextReport compute the next report time based on the interval.
-// The interval is based off the creation of the cluster seed to avoid all cluster reporting at the same time.
+// The interval is based off the creation of the agent seed to avoid all agents reporting at the same time.
 func nextReport(interval time.Duration, createdAt, now time.Time) time.Time {
 	// createdAt * (x * interval ) >= now
 	return createdAt.Add(time.Duration(math.Ceil(float64(now.Sub(createdAt))/float64(interval))) * interval)

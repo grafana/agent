@@ -7,8 +7,8 @@ import (
 	prom "github.com/prometheus/prometheus/web/api/v1"
 )
 
-// ClusterSeed identified a unique cluster
-type ClusterSeed struct {
+// AgentSeed identifies a unique agent
+type AgentSeed struct {
 	UID                    string    `json:"UID"`
 	CreatedAt              time.Time `json:"created_at"`
 	prom.PrometheusVersion `json:"version"`
@@ -21,7 +21,7 @@ type jsonCodec struct{}
 
 // Decode decodes a JSON
 func (jsonCodec) Decode(data []byte) (interface{}, error) {
-	var seed ClusterSeed
+	var seed AgentSeed
 	if err := jsoniter.ConfigFastest.Unmarshal(data, &seed); err != nil {
 		return nil, err
 	}

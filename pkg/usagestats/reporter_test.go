@@ -20,12 +20,12 @@ func Test_ReportLoop(t *testing.T) {
 	reportInterval = time.Second
 
 	totalReport := 0
-	clusterIDs := []string{}
+	agentIDs := []string{}
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		var received Report
 		totalReport++
 		require.NoError(t, jsoniter.NewDecoder(r.Body).Decode(&received))
-		clusterIDs = append(clusterIDs, received.ClusterID)
+		agentIDs = append(agentIDs, received.UsageStatsID)
 		rw.WriteHeader(http.StatusOK)
 	}))
 	usageStatsURL = server.URL
@@ -41,8 +41,8 @@ func Test_ReportLoop(t *testing.T) {
 	}()
 	require.Equal(t, context.Canceled, r.Start(ctx))
 	require.GreaterOrEqual(t, totalReport, 5)
-	first := clusterIDs[0]
-	for _, uid := range clusterIDs {
+	first := agentIDs[0]
+	for _, uid := range agentIDs {
 		require.Equal(t, first, uid)
 	}
 	require.Equal(t, first, r.cluster.UID)

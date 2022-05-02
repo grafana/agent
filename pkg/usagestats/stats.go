@@ -20,24 +20,24 @@ var (
 
 // Report is the payload to be sent to stats.grafana.org
 type Report struct {
-	ClusterID string                 `json:"clusterID"`
-	CreatedAt time.Time              `json:"createdAt"`
-	Interval  time.Time              `json:"interval"`
-	Version   string                 `json:"version"`
-	Metrics   map[string]interface{} `json:"metrics"`
-	Os        string                 `json:"os"`
-	Arch      string                 `json:"arch"`
+	UsageStatsID string                 `json:"usageStatsId"`
+	CreatedAt    time.Time              `json:"createdAt"`
+	Interval     time.Time              `json:"interval"`
+	Version      string                 `json:"version"`
+	Metrics      map[string]interface{} `json:"metrics"`
+	Os           string                 `json:"os"`
+	Arch         string                 `json:"arch"`
 }
 
-func sendReport(ctx context.Context, seed *ClusterSeed, interval time.Time, metrics map[string]interface{}) error {
+func sendReport(ctx context.Context, seed *AgentSeed, interval time.Time, metrics map[string]interface{}) error {
 	report := Report{
-		ClusterID: seed.UID,
-		CreatedAt: seed.CreatedAt,
-		Version:   version.Print("agent"),
-		Os:        runtime.GOOS,
-		Arch:      runtime.GOARCH,
-		Interval:  interval,
-		Metrics:   metrics,
+		UsageStatsID: seed.UID,
+		CreatedAt:    seed.CreatedAt,
+		Version:      version.Print("agent"),
+		Os:           runtime.GOOS,
+		Arch:         runtime.GOARCH,
+		Interval:     interval,
+		Metrics:      metrics,
 	}
 	out, err := jsoniter.MarshalIndent(report, "", " ")
 	if err != nil {
