@@ -14,7 +14,6 @@ import (
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/dskit/backoff"
 	"github.com/grafana/dskit/multierror"
-	"github.com/grafana/dskit/services"
 	"github.com/grafana/loki/pkg/util/build"
 )
 
@@ -32,7 +31,6 @@ var (
 type Reporter struct {
 	logger log.Logger
 	cfg    *config.Config
-	services.Service
 
 	cluster    *ClusterSeed
 	lastReport time.Time
@@ -44,17 +42,6 @@ func NewReporter(logger log.Logger, cfg *config.Config) (*Reporter, error) {
 		logger: logger,
 		cfg:    cfg,
 	}
-
-	if cfg.EnableUsageReport {
-		r.Service = services.NewBasicService(nil, r.start, nil)
-		err := r.Service.StartAsync(context.Background())
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		// builds an empty service
-		r.Service = services.NewBasicService(nil, nil, nil)
-	}
 	return r, nil
 }
 
@@ -63,14 +50,14 @@ func (rep *Reporter) init(ctx context.Context) error {
 		seed, err := rep.readSeedFile()
 		rep.cluster = seed
 		return err
-	} else {
-		rep.cluster = &ClusterSeed{
-			UID:               uuid.NewString(),
-			PrometheusVersion: build.GetVersion(),
-			CreatedAt:         time.Now(),
-		}
-		return rep.writeSeedFile(*rep.cluster)
 	}
+	rep.cluster = &ClusterSeed{
+		UID:               uuid.NewString(),
+		PrometheusVersion: build.GetVersion(),
+		CreatedAt:         time.Now(),
+	}
+	return rep.writeSeedFile(*rep.cluster)
+
 }
 
 func fileExists(path string) bool {
@@ -101,7 +88,7 @@ func (rep *Reporter) writeSeedFile(seed ClusterSeed) error {
 }
 
 // start inits the reporter seed and start sending report for every interval
-func (rep *Reporter) start(ctx context.Context) error {
+func (rep *Reporter) Start(ctx context.Context) error {
 	level.Info(rep.logger).Log("msg", "running usage stats reporter")
 	err := rep.init(ctx)
 	if err != nil {

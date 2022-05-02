@@ -266,7 +266,6 @@ func (ep *Entrypoint) Stop() {
 	ep.mut.Lock()
 	defer ep.mut.Unlock()
 
-	ep.reporter.Service.StopAsync()
 	ep.integrations.Stop()
 	ep.lokiLogs.Stop()
 	ep.promMetrics.Stop()
@@ -319,6 +318,14 @@ func (ep *Entrypoint) Start() error {
 	}, func(e error) {
 		srvCancel()
 	})
+
+	if ep.cfg.EnableUsageReport {
+		g.Add(func() error {
+			return ep.reporter.Start(srvContext)
+		}, func(e error) {
+			srvCancel()
+		})
+	}
 
 	go func() {
 		for range notifier {

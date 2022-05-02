@@ -39,7 +39,7 @@ func Test_ReportLoop(t *testing.T) {
 		<-time.After(6 * time.Second)
 		cancel()
 	}()
-	require.Equal(t, context.Canceled, r.start(ctx))
+	require.Equal(t, context.Canceled, r.Start(ctx))
 	require.GreaterOrEqual(t, totalReport, 5)
 	first := clusterIDs[0]
 	for _, uid := range clusterIDs {
