@@ -54,7 +54,7 @@ func sendReport(ctx context.Context, seed *AgentSeed, interval time.Time, metric
 		return err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode/100 != 2 {
+	if resp.StatusCode != http.StatusOK {
 		data, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
