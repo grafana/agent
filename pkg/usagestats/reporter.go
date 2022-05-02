@@ -57,7 +57,6 @@ func (rep *Reporter) init(ctx context.Context) error {
 		CreatedAt:         time.Now(),
 	}
 	return rep.writeSeedFile(*rep.cluster)
-
 }
 
 func fileExists(path string) bool {
@@ -87,7 +86,7 @@ func (rep *Reporter) writeSeedFile(seed ClusterSeed) error {
 	return ioutil.WriteFile(clusterSeedFileName, data, 0644)
 }
 
-// start inits the reporter seed and start sending report for every interval
+// Start inits the reporter seed and start sending report for every interval
 func (rep *Reporter) Start(ctx context.Context) error {
 	level.Info(rep.logger).Log("msg", "running usage stats reporter")
 	err := rep.init(ctx)
