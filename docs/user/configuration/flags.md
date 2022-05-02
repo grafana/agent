@@ -34,7 +34,7 @@ Valid feature names are:
 
 ### Report use of feature flags
 
-Grafana Agent provides the flag `-usage-report` to report the usage of feature flags to grafana.com.
+Grafana Agent provides the flag `-usage-report` to report the use of feature flags to grafana.com.
 This helps to understand which enabled features are being used of your running Agent instance (all data sent is anonymous).
 
 ## Configuration file
