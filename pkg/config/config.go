@@ -408,7 +408,7 @@ func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
 
 	if usageStats {
 		cfg.EnableUsageReport = true
-		cfg.EnabledFeatures = features.GetAllEnabled(fs, allFeatures)
+		cfg.EnabledFeatures = features.GetAllEnabled(fs)
 	}
 
 	// Finally, apply defaults to config that wasn't specified by file or flag
