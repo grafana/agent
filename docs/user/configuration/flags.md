@@ -32,7 +32,7 @@ Valid feature names are:
 * `dynamic-config`: Enable support for [dynamic configuration]({{< relref "./dynamic-config" >}})
 * `extra-scrape-metrics`: When enabled, additional time series  are exposed for each metrics instance scrape. See [Extra scrape metrics](https://prometheus.io/docs/prometheus/latest/feature_flags/#extra-scrape-metrics).
 
-### Report usage of feature flags
+### Report use of feature flags
 
 Grafana Agent provides the flag `-usage-report` to report the usage of feature flags to grafana.com.
 This helps to understand which enabled features are being used of your running Agent instance (all data sent is anonymous).
