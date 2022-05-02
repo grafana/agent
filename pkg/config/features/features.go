@@ -114,7 +114,7 @@ func Validate(fs *flag.FlagSet, deps []Dependency) error {
 }
 
 // GetAllEnabled returns the list of all enabled features
-func GetAllEnabled(fs *flag.FlagSet, ff []Feature) []string {
+func GetAllEnabled(fs *flag.FlagSet) []string {
 	f := fs.Lookup(setFlagName)
 	if f == nil {
 		panic("feature flag not registered to fs")
