@@ -34,14 +34,12 @@ Main (unreleased)
 
 - Introduce SNMP exporter integration. (@v-zhuravlev)
 
-- Introduce ebpf exporter v2 integration. (@tpaschalis)
-
 - Configure the agent to report the use of feature flags to grafana.com. (@marctc)
 
 
 ### Enhancements
 
-- integrations-next: Integrations using autoscrape now auto-scrape metrics.
+- integrations-next: Integrations using will now autoscrape metrics.
   using in-memory connections instead of connecting to themselves over the
   network. As a result of this change, the `client_config` field has been
   removed. (@rfratto)
