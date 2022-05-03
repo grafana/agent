@@ -3,13 +3,13 @@ package usagestats
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"runtime"
 	"time"
 
-	jsoniter "github.com/json-iterator/go"
 	"github.com/prometheus/common/version"
 )
 
@@ -33,13 +33,13 @@ func sendReport(ctx context.Context, seed *AgentSeed, interval time.Time, metric
 	report := Report{
 		UsageStatsID: seed.UID,
 		CreatedAt:    seed.CreatedAt,
-		Version:      version.Print("agent"),
+		Version:      version.Version,
 		Os:           runtime.GOOS,
 		Arch:         runtime.GOARCH,
 		Interval:     interval,
 		Metrics:      metrics,
 	}
-	out, err := jsoniter.MarshalIndent(report, "", " ")
+	out, err := json.MarshalIndent(report, "", " ")
 	if err != nil {
 		return err
 	}

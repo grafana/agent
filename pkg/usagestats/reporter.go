@@ -2,6 +2,7 @@ package usagestats
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"math"
@@ -14,7 +15,7 @@ import (
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/dskit/backoff"
 	"github.com/grafana/dskit/multierror"
-	"github.com/grafana/loki/pkg/util/build"
+	"github.com/prometheus/common/version"
 )
 
 const (
@@ -36,6 +37,13 @@ type Reporter struct {
 	lastReport time.Time
 }
 
+// AgentSeed identifies a unique agent
+type AgentSeed struct {
+	UID       string    `json:"UID"`
+	CreatedAt time.Time `json:"created_at"`
+	Version   string    `json:"version"`
+}
+
 // NewReporter creates a Reporter that will send periodically reports to grafana.com
 func NewReporter(logger log.Logger, cfg *config.Config) (*Reporter, error) {
 	r := &Reporter{
@@ -52,9 +60,9 @@ func (rep *Reporter) init(ctx context.Context) error {
 		return err
 	}
 	rep.agentSeed = &AgentSeed{
-		UID:               uuid.NewString(),
-		PrometheusVersion: build.GetVersion(),
-		CreatedAt:         time.Now(),
+		UID:       uuid.NewString(),
+		Version:   version.Version,
+		CreatedAt: time.Now(),
 	}
 	return rep.writeSeedFile(*rep.agentSeed)
 }
@@ -70,16 +78,17 @@ func (rep *Reporter) readSeedFile() (*AgentSeed, error) {
 	if err != nil {
 		return nil, err
 	}
-	seed, err := JSONCodec.Decode(data)
+	seed := &AgentSeed{}
+	err = json.Unmarshal(data, seed)
 	if err != nil {
 		return nil, err
 	}
-	return seed.(*AgentSeed), nil
+	return seed, nil
 }
 
 // writeSeedFile writes the agent seed file
 func (rep *Reporter) writeSeedFile(seed AgentSeed) error {
-	data, err := JSONCodec.Encode(seed)
+	data, err := json.Marshal(seed)
 	if err != nil {
 		return err
 	}
