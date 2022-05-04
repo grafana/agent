@@ -283,6 +283,9 @@ load_balancing:
       hostname: <string>
       [ port: <int> ]
 
+  # receiver_port is the port the instance will use to receive load balanced traces
+  receiver_port: [ <int> | default = 4318 ]
+
   # Load balancing is done via an otlp exporter.
   # The remaining configuration is common with the remote_write block.
   exporter:
