@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"math"
 	"os"
+	"path/filepath"
+	"runtime"
 	"time"
 
 	"github.com/go-kit/log"
@@ -16,11 +18,6 @@ import (
 	"github.com/grafana/dskit/backoff"
 	"github.com/grafana/dskit/multierror"
 	"github.com/prometheus/common/version"
-)
-
-const (
-	// File name for the agent seed file
-	agentSeedFileName = "agent_seed.json"
 )
 
 var (
@@ -54,8 +51,10 @@ func NewReporter(logger log.Logger, cfg *config.Config) (*Reporter, error) {
 }
 
 func (rep *Reporter) init(ctx context.Context) error {
-	if fileExists(agentSeedFileName) {
-		seed, err := rep.readSeedFile()
+	path := agentSeedFileName()
+
+	if fileExists(path) {
+		seed, err := rep.readSeedFile(path)
 		rep.agentSeed = seed
 		return err
 	}
@@ -64,7 +63,7 @@ func (rep *Reporter) init(ctx context.Context) error {
 		Version:   version.Version,
 		CreatedAt: time.Now(),
 	}
-	return rep.writeSeedFile(*rep.agentSeed)
+	return rep.writeSeedFile(*rep.agentSeed, path)
 }
 
 func fileExists(path string) bool {
@@ -73,8 +72,8 @@ func fileExists(path string) bool {
 }
 
 // readSeedFile reads the agent seed file
-func (rep *Reporter) readSeedFile() (*AgentSeed, error) {
-	data, err := ioutil.ReadFile(agentSeedFileName)
+func (rep *Reporter) readSeedFile(path string) (*AgentSeed, error) {
+	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -87,12 +86,20 @@ func (rep *Reporter) readSeedFile() (*AgentSeed, error) {
 }
 
 // writeSeedFile writes the agent seed file
-func (rep *Reporter) writeSeedFile(seed AgentSeed) error {
+func (rep *Reporter) writeSeedFile(seed AgentSeed, path string) error {
 	data, err := json.Marshal(seed)
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(agentSeedFileName, data, 0644)
+	return ioutil.WriteFile(path, data, 0644)
+}
+
+func agentSeedFileName() string {
+	if runtime.GOOS == "windows" {
+		return filepath.Join(os.Getenv("APPDATA"), "agent_seed.json")
+	}
+	// linux/mac
+	return "/tmp/agent_seed.json"
 }
 
 // Start inits the reporter seed and start sending report for every interval
