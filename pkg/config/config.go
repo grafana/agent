@@ -365,7 +365,7 @@ func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
 	fs.StringVar(&fileType, "config.file.type", "yaml", fmt.Sprintf("Type of file pointed to by -config.file flag. Supported values: %s. %s requires dynamic-config and integrations-next features to be enabled.", strings.Join(fileTypes, ", "), fileTypeDynamic))
 	fs.BoolVar(&printVersion, "version", false, "Print this build's version information")
 	fs.BoolVar(&configExpandEnv, "config.expand-env", false, "Expands ${var} in config according to the values of the environment variables.")
-	fs.BoolVar(&usageStats, "usage-report", false, "When enabled sends usage info of enabled feature flags to Grafana")
+	fs.BoolVar(&usageStats, "usage-report", true, "When enabled sends usage info of enabled feature flags to Grafana")
 	cfg.RegisterFlags(fs)
 
 	features.Register(fs, allFeatures)
