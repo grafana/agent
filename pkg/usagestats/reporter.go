@@ -22,7 +22,7 @@ import (
 
 var (
 	reportCheckInterval = time.Minute
-	reportInterval      = 1 * time.Hour
+	reportInterval      = 4 * time.Hour
 )
 
 // Reporter holds the agent seed information and sends report of usage
