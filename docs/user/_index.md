@@ -74,7 +74,7 @@ semantics of failure detection, and alerts would have to be configured to catch
 agents not reporting in.
 
 For more information on the host filtering mode, see the [operation
-guide]({{< relref "./operation-guide#host-filtering" >}}).
+guide]({{< relref "./operation-guide#host-filtering-beta" >}}).
 
 ### Scraping Service 
 _Scraping Service Mode_ 
