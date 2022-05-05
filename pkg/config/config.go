@@ -354,18 +354,18 @@ func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
 	var (
 		cfg = DefaultConfig
 
-		printVersion    bool
-		file            string
-		fileType        string
-		configExpandEnv bool
-		usageStats      bool
+		printVersion     bool
+		file             string
+		fileType         string
+		configExpandEnv  bool
+		disableReporting bool
 	)
 
 	fs.StringVar(&file, "config.file", "", "configuration file to load")
 	fs.StringVar(&fileType, "config.file.type", "yaml", fmt.Sprintf("Type of file pointed to by -config.file flag. Supported values: %s. %s requires dynamic-config and integrations-next features to be enabled.", strings.Join(fileTypes, ", "), fileTypeDynamic))
-	fs.BoolVar(&printVersion, "version", false, "Print this build's version information")
+	fs.BoolVar(&printVersion, "version", false, "Print this build's version information.")
 	fs.BoolVar(&configExpandEnv, "config.expand-env", false, "Expands ${var} in config according to the values of the environment variables.")
-	fs.BoolVar(&usageStats, "usage-report", true, "When enabled sends usage info of enabled feature flags to Grafana")
+	fs.BoolVar(&disableReporting, "disable-reporting", false, "Disable reporting of enabled feature flags to Grafana.")
 	cfg.RegisterFlags(fs)
 
 	features.Register(fs, allFeatures)
@@ -406,8 +406,9 @@ func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
 		cfg.Metrics.Global.ExtraMetrics = true
 	}
 
-	if usageStats {
-		cfg.EnableUsageReport = true
+	if disableReporting {
+		cfg.EnableUsageReport = false
+	} else {
 		cfg.EnabledFeatures = features.GetAllEnabled(fs)
 	}
 

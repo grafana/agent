@@ -34,9 +34,15 @@ Valid feature names are:
 
 ### Report use of feature flags
 
-Grafana Agent provides the flag `-usage-report` to report the use of feature flags to grafana.com.
-This helps you understand which enabled features are being used as part of your running Grafana Agent instance.
-This option is **enabled** by default. All data sent is anonymous.
+By default, Grafana Agent will send anonymous, but uniquely-identifiable information
+of the enabled feature flags of your running Grafana Agent instance to Grafana Labs.
+These statistics are sent to https://stats.grafana.org/.
+
+Statistics help us better understand how Grafana Agent is used.
+This helps us prioritize features and documentation.
+
+If you would like to disable the reporting, Grafana Agent provides the flag `-disable-reporting`
+to stop the reporting.
 
 ## Configuration file
 
