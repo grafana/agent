@@ -34,6 +34,8 @@ Main (unreleased)
 
 - Introduce SNMP exporter integration. (@v-zhuravlev)
 
+- Introduce SSL exporter integration. (@jamesalbert)
+
 ### Enhancements
 
 - integrations-next: Integrations using autoscrape will now autoscrape metrics
