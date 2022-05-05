@@ -9,6 +9,8 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
+	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
+	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"github.com/grafana/dskit/flagext"
 	"github.com/prometheus/procfs"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -63,7 +65,10 @@ func init() {
 	case "linux":
 		DefaultConfig.FilesystemMountPointsExclude = "^/(dev|proc|run/credentials/.+|sys|var/lib/docker/.+)($|/)"
 		DefaultConfig.FilesystemFSTypesExclude = "^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$"
-	case "freebsd", "netbsd", "openbsd", "darwin":
+	case "darwin":
+		DefaultConfig.FilesystemMountPointsExclude = "^/(dev)($|/)"
+		DefaultConfig.FilesystemFSTypesExclude = "^(autofs|devfs)$"
+	case "freebsd", "netbsd", "openbsd":
 		DefaultConfig.FilesystemMountPointsExclude = "^/(dev)($|/)"
 		DefaultConfig.FilesystemFSTypesExclude = "^devfs$"
 	}
@@ -241,6 +246,7 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeSingleton, metricsutils.Shim)
 }
 
 // MapConfigToNodeExporterFlags takes in a node_exporter Config and converts

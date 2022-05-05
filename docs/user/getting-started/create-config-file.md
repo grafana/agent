@@ -88,7 +88,6 @@ scrape itself without using the integration:
 ```yaml
 server:
   log_level: info
-  http_listen_port: 12345
 
 metrics:
   global:
@@ -134,7 +133,6 @@ Tempo:
 ```yaml
 server:
   log_level: info
-  http_listen_port: 12345
 
 metrics:
   global:

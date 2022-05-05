@@ -46,7 +46,6 @@ datasources:
 
 ```yaml
 server:
-  http_listen_port: 12345
   log_level: debug
 metrics:
   wal_directory: /tmp/grafana-agent-normal
@@ -55,7 +54,7 @@ metrics:
     remote_write:
       - url: https://prometheus-us-central1.grafana.net/api/prom/push
         basic_auth:
-          username: 12345
+          username: xyz
           password: secretpassword
   configs:
     - name: default

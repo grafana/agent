@@ -6,7 +6,7 @@ with:
 
 * [Grafana Cloud](https://grafana.com/products/cloud/)
 * [Grafana Enterprise Stack](https://grafana.com/products/enterprise/)
-* OSS deployments of [Grafana Loki](https://grafana.com/oss/loki/), [Prometheus](https://prometheus.io/), [Cortex](https://cortexmetrics.io/), and [Grafana Tempo](https://grafana.com/oss/tempo/)
+* OSS deployments of [Grafana Loki](https://grafana.com/oss/loki/), [Prometheus](https://prometheus.io/), [Grafana Mimir](https://grafana.com/oss/mimir/), and [Grafana Tempo](https://grafana.com/oss/tempo/)
 
 Users of Prometheus operating at a massive scale (i.e., millions of active
 series) can struggle to run an unsharded singleton Prometheus instance: it becomes a
@@ -47,7 +47,7 @@ trade-offs have been made:
   availability, metrics tracking that node won't be sent for alerting on.
 
 While the Agent can't use recording rules and alerts, `remote_write` systems such
-as Cortex currently support server-side rules and alerts. Note that this trade-off
+as Mimir currently support server-side rules and alerts. Note that this trade-off
 means that reliability of alerts are tied to the reliability of the remote system
 and alerts will be delayed at least by the time it takes for samples to reach
 the remote system.
@@ -78,7 +78,7 @@ tested and iterated on quickly within the Agent. We aim to keep the
 experimental changes to a minimum and upstream changes as soon as possible.
 
 For more context on our vendoring strategy, read our
-[downstream repo maintenance guide](./docs/developer/prometheus-fork.md).
+[downstream repo maintenance guide](./docs/developer/downstream-prometheus.md).
 
 ## Getting Help
 

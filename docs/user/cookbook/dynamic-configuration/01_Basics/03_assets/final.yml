@@ -1,11 +1,11 @@
 server:
-  http_listen_network: ""
-  http_listen_address: ""
+  http_listen_network: "tcp"
+  http_listen_address: "127.0.0.1"
   http_listen_port: 12345
   http_listen_conn_limit: 0
-  grpc_listen_network: ""
-  grpc_listen_address: ""
-  grpc_listen_port: 0
+  grpc_listen_network: "tcp"
+  grpc_listen_address: "127.0.0.1"
+  grpc_listen_port: 12346
   grpc_listen_conn_limit: 0
   http_tls_config:
     cert_file: ""
@@ -224,7 +224,7 @@ integrations:
     systemd_unit_include: .+
     tapestats_ignored_devices: ^$
     vmstat_fields: ^(oom_kill|pgpg|pswp|pg.*fault).*
-  redis_exporter_configs:
+  redis_configs:
   - autoscrape:
       metric_relabel_configs:
       - source_labels:

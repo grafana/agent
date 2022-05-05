@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/prometheus/prometheus/pkg/labels"
-	"github.com/prometheus/prometheus/pkg/timestamp"
+	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/model/timestamp"
 	"github.com/prometheus/prometheus/promql/parser"
+	"github.com/prometheus/prometheus/tsdb/chunks"
 	"github.com/prometheus/prometheus/tsdb/record"
 	"github.com/prometheus/prometheus/tsdb/wal"
 )
@@ -37,11 +38,11 @@ func FindSamples(walDir string, selectorStr string) ([]*SampleStats, error) {
 	}
 
 	var (
-		labelsByRef = make(map[uint64]labels.Labels)
+		labelsByRef = make(map[chunks.HeadSeriesRef]labels.Labels)
 
-		minTSByRef       = make(map[uint64]int64)
-		maxTSByRef       = make(map[uint64]int64)
-		sampleCountByRef = make(map[uint64]int64)
+		minTSByRef       = make(map[chunks.HeadSeriesRef]int64)
+		maxTSByRef       = make(map[chunks.HeadSeriesRef]int64)
+		sampleCountByRef = make(map[chunks.HeadSeriesRef]int64)
 	)
 
 	// get the references matching label selector
@@ -73,7 +74,7 @@ func FindSamples(walDir string, selectorStr string) ([]*SampleStats, error) {
 	return series, nil
 }
 
-func collectSeries(r *wal.Reader, selector labels.Selector, labelsByRef map[uint64]labels.Labels) error {
+func collectSeries(r *wal.Reader, selector labels.Selector, labelsByRef map[chunks.HeadSeriesRef]labels.Labels) error {
 	var dec record.Decoder
 
 	for r.Next() {
@@ -96,7 +97,7 @@ func collectSeries(r *wal.Reader, selector labels.Selector, labelsByRef map[uint
 	return r.Err()
 }
 
-func collectSamples(r *wal.Reader, labelsByRef map[uint64]labels.Labels, minTS, maxTS, sampleCount map[uint64]int64) error {
+func collectSamples(r *wal.Reader, labelsByRef map[chunks.HeadSeriesRef]labels.Labels, minTS, maxTS, sampleCount map[chunks.HeadSeriesRef]int64) error {
 	var dec record.Decoder
 
 	for r.Next() {

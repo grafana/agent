@@ -5,6 +5,8 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
+	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
+	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 )
 
 const name = "cadvisor"
@@ -90,7 +92,7 @@ type Config struct {
 	DockerOnly bool `yaml:"docker_only,omitempty"`
 
 	// Hold on to the logger passed to config.NewIntegration, to be passed to klog, as yet another unsafe global that needs to be set.
-	logger log.Logger
+	logger log.Logger //nolint:unused,structcheck // logger is only used on linux
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
@@ -130,4 +132,5 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeSingleton, metricsutils.Shim)
 }

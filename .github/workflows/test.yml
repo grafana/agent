@@ -8,6 +8,27 @@ jobs:
         platform: [macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Set up Go 1.18
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.18.0
+      id: go
+    - name: Determine Go cache directories
+      id: go-cache
+      run: |
+        echo "::set-output name=go-build::$(go env GOCACHE)"
+        echo "::set-output name=go-mod::$(go env GOMODCACHE)"
+    - name: Restore Go cache
+      uses: actions/cache@v3.0.2
+      with:
+        path: |
+          ${{ steps.go-cache.outputs.go-build }}
+          ${{ steps.go-cache.outputs.go-mod }}
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
     - name: Increase pagefile
       uses: al-cheb/configure-pagefile-action@v1.2
       # Tests on Windows can use a lot of memory, and we need to increase the
@@ -17,14 +38,5 @@ jobs:
           maximum-size: 16GB
           disk-root: "C:"
       if: ${{ matrix.platform == 'windows-latest' }}
-    - name: Set up Go 1.17
-      uses: actions/setup-go@v1
-      with:
-        go-version: 1.17.6
-      id: go
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - name: Build
-      run: make GOFLAGS="-tags=netgo,nodocker" BUILD_IN_CONTAINER=false cmd/agent/agent cmd/agentctl/agentctl cmd/agent-operator/agent-operator
     - name: Test
-      run: make GOFLAGS="-tags=netgo,nodocker" BUILD_IN_CONTAINER=false test
+      run: make DOCKER_OPTS="" GOFLAGS="-tags=netgo,nodocker" BUILD_IN_CONTAINER=false test

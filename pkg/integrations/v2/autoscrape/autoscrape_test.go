@@ -12,8 +12,8 @@ import (
 	"github.com/prometheus/common/model"
 	prom_config "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
-	"github.com/prometheus/prometheus/pkg/exemplar"
-	"github.com/prometheus/prometheus/pkg/labels"
+	"github.com/prometheus/prometheus/model/exemplar"
+	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -28,7 +28,7 @@ func TestAutoscrape(t *testing.T) {
 	wt := util.NewWaitTrigger()
 
 	noop := noOpAppender
-	noop.AppendFunc = func(ref uint64, l labels.Labels, t int64, v float64) (uint64, error) {
+	noop.AppendFunc = func(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, error) {
 		wt.Trigger()
 		return noOpAppender.AppendFunc(ref, l, t, v)
 	}
@@ -39,7 +39,7 @@ func TestAutoscrape(t *testing.T) {
 			return &mockInstance{app: &noop}, nil
 		},
 	}
-	as := NewScraper(util.TestLogger(t), im)
+	as := NewScraper(util.TestLogger(t), im, nil)
 	defer as.Stop()
 
 	err := as.ApplyConfig([]*ScrapeConfig{{
@@ -48,6 +48,7 @@ func TestAutoscrape(t *testing.T) {
 			cfg := prom_config.DefaultScrapeConfig
 			cfg.JobName = t.Name()
 			cfg.ScrapeInterval = model.Duration(time.Second)
+			cfg.ScrapeTimeout = model.Duration(time.Second / 2)
 			cfg.ServiceDiscoveryConfigs = discovery.Configs{
 				discovery.StaticConfig{{
 					Targets: []model.LabelSet{{
@@ -70,29 +71,29 @@ func TestAutoscrape(t *testing.T) {
 
 var globalRef atomic.Uint64
 var noOpAppender = mockAppender{
-	AppendFunc: func(ref uint64, l labels.Labels, t int64, v float64) (uint64, error) {
-		return globalRef.Inc(), nil
+	AppendFunc: func(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, error) {
+		return storage.SeriesRef(globalRef.Inc()), nil
 	},
 	CommitFunc:   func() error { return nil },
 	RollbackFunc: func() error { return nil },
-	AppendExemplarFunc: func(ref uint64, l labels.Labels, e exemplar.Exemplar) (uint64, error) {
-		return globalRef.Inc(), nil
+	AppendExemplarFunc: func(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar) (storage.SeriesRef, error) {
+		return storage.SeriesRef(globalRef.Inc()), nil
 	},
 }
 
 type mockAppender struct {
-	AppendFunc         func(ref uint64, l labels.Labels, t int64, v float64) (uint64, error)
+	AppendFunc         func(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, error)
 	CommitFunc         func() error
 	RollbackFunc       func() error
-	AppendExemplarFunc func(ref uint64, l labels.Labels, e exemplar.Exemplar) (uint64, error)
+	AppendExemplarFunc func(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar) (storage.SeriesRef, error)
 }
 
-func (ma *mockAppender) Append(ref uint64, l labels.Labels, t int64, v float64) (uint64, error) {
+func (ma *mockAppender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, error) {
 	return ma.AppendFunc(ref, l, t, v)
 }
 func (ma *mockAppender) Commit() error   { return ma.CommitFunc() }
 func (ma *mockAppender) Rollback() error { return ma.RollbackFunc() }
-func (ma *mockAppender) AppendExemplar(ref uint64, l labels.Labels, e exemplar.Exemplar) (uint64, error) {
+func (ma *mockAppender) AppendExemplar(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar) (storage.SeriesRef, error) {
 	return ma.AppendExemplarFunc(ref, l, e)
 }
 

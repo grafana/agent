@@ -4,6 +4,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"sort"
@@ -12,8 +13,6 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	// Adds version information
-	_ "github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/client/grafanacloud"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/olekukonko/tablewriter"
@@ -44,6 +43,9 @@ import (
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	kconfig "sigs.k8s.io/controller-runtime/pkg/client/config"
+
+	// Adds version information
+	_ "github.com/grafana/agent/pkg/build"
 )
 
 func main() {
@@ -452,12 +454,13 @@ config that may be used with this agent.`,
 				return fmt.Errorf("--api-key must be provided")
 			}
 
-			cli := grafanacloud.NewClient(nil, apiKey, apiURL)
+			// setting timeout 2x as the default HTTP transport timeout (30s)
+			httpClient := &http.Client{
+				Timeout: time.Minute,
+			}
+			cli := grafanacloud.NewClient(httpClient, apiKey, apiURL)
 
-			ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-			defer cancel()
-
-			cfg, err := cli.AgentConfig(ctx, stackID)
+			cfg, err := cli.AgentConfig(context.Background(), stackID)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "could not retrieve agent cloud config: %s\n", err)
 				os.Exit(1)

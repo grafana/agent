@@ -12,7 +12,6 @@ import (
 	"math"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
 	"time"
 
@@ -25,8 +24,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
-	"github.com/prometheus/prometheus/pkg/relabel"
-	"github.com/prometheus/prometheus/pkg/timestamp"
+	"github.com/prometheus/prometheus/model/relabel"
+	"github.com/prometheus/prometheus/model/timestamp"
 	"github.com/prometheus/prometheus/scrape"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/prometheus/prometheus/storage/remote"
@@ -41,11 +40,6 @@ func init() {
 	// default remote_write send_exemplars to true
 	config.DefaultRemoteWriteConfig.SendExemplars = true
 }
-
-var (
-	remoteWriteMetricName = "queue_highest_sent_timestamp_seconds"
-	managerMtx            sync.Mutex
-)
 
 // Default configuration values
 var (
@@ -250,8 +244,6 @@ type Instance struct {
 
 	reg    prometheus.Registerer
 	newWal walStorageFactory
-
-	vc *MetricValueCollector
 }
 
 // New creates a new Instance with a directory for storing the WAL. The instance
@@ -269,8 +261,6 @@ func New(reg prometheus.Registerer, cfg Config, walDir string, logger log.Logger
 }
 
 func newInstance(cfg Config, reg prometheus.Registerer, logger log.Logger, newWal walStorageFactory) (*Instance, error) {
-	vc := NewMetricValueCollector(prometheus.DefaultGatherer, remoteWriteMetricName)
-
 	hostname, err := Hostname()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get hostname: %w", err)
@@ -279,7 +269,6 @@ func newInstance(cfg Config, reg prometheus.Registerer, logger log.Logger, newWa
 	i := &Instance{
 		cfg:        cfg,
 		logger:     logger,
-		vc:         vc,
 		hostFilter: NewHostFilter(hostname, cfg.HostFilterRelabelConfigs),
 
 		reg:    reg,
@@ -437,7 +426,10 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer, cf
 
 	i.storage = storage.NewFanout(i.logger, i.wal, i.remoteStore)
 
-	scrapeManager := newScrapeManager(log.With(i.logger, "component", "scrape manager"), i.storage)
+	opts := &scrape.Options{
+		ExtraMetrics: cfg.global.ExtraMetrics,
+	}
+	scrapeManager := newScrapeManager(opts, log.With(i.logger, "component", "scrape manager"), i.storage)
 	err = scrapeManager.ApplyConfig(&config.Config{
 		GlobalConfig:  cfg.global.Prometheus,
 		ScrapeConfigs: cfg.ScrapeConfigs,
@@ -710,33 +702,11 @@ func (i *Instance) getRemoteWriteTimestamp() int64 {
 		return timestamp.FromTime(time.Now())
 	}
 
-	lbls := make([]string, len(i.cfg.RemoteWrite))
-	for idx := 0; idx < len(lbls); idx++ {
-		lbls[idx] = i.cfg.RemoteWrite[idx].Name
-	}
-
-	vals, err := i.vc.GetValues("remote_name", lbls...)
-	if err != nil {
-		level.Error(i.logger).Log("msg", "could not get remote write timestamps", "err", err)
+	if i.remoteStore == nil {
+		// Instance still being initialized; start at 0.
 		return 0
 	}
-	if len(vals) == 0 {
-		return 0
-	}
-
-	// We use the lowest value from the metric since we don't want to delete any
-	// segments from the WAL until they've been written by all of the remote_write
-	// configurations.
-	ts := int64(math.MaxInt64)
-	for _, val := range vals {
-		ival := int64(val)
-		if ival < ts {
-			ts = ival
-		}
-	}
-
-	// Convert to the millisecond precision which is used by the WAL
-	return ts * 1000
+	return i.remoteStore.LowestSentTimestamp()
 }
 
 // walStorage is an interface satisfied by wal.Storage, and created for testing.
@@ -780,88 +750,14 @@ func getHash(data interface{}) (string, error) {
 	return hex.EncodeToString(hash[:]), nil
 }
 
-// MetricValueCollector wraps around a Gatherer and provides utilities for
-// pulling metric values from a given metric name and label matchers.
-//
-// This is used by the agent instances to find the most recent timestamp
-// successfully remote_written to for purposes of safely truncating the WAL.
-//
-// MetricValueCollector is only intended for use with Gauges and Counters.
-type MetricValueCollector struct {
-	g     prometheus.Gatherer
-	match string
-}
+var managerMtx sync.Mutex
 
-// NewMetricValueCollector creates a new MetricValueCollector.
-func NewMetricValueCollector(g prometheus.Gatherer, match string) *MetricValueCollector {
-	return &MetricValueCollector{
-		g:     g,
-		match: match,
-	}
-}
-
-// GetValues looks through all the tracked metrics and returns all values
-// for metrics that match some key value pair.
-func (vc *MetricValueCollector) GetValues(label string, labelValues ...string) ([]float64, error) {
-	vals := []float64{}
-
-	families, err := vc.g.Gather()
-	if err != nil {
-		return nil, err
-	}
-
-	for _, family := range families {
-		if !strings.Contains(family.GetName(), vc.match) {
-			continue
-		}
-
-		for _, m := range family.GetMetric() {
-			matches := false
-			for _, l := range m.GetLabel() {
-				if l.GetName() != label {
-					continue
-				}
-
-				v := l.GetValue()
-				for _, match := range labelValues {
-					if match == v {
-						matches = true
-						break
-					}
-				}
-				break
-			}
-			if !matches {
-				continue
-			}
-
-			var value float64
-			if m.Gauge != nil {
-				value = m.Gauge.GetValue()
-			} else if m.Counter != nil {
-				value = m.Counter.GetValue()
-			} else if m.Untyped != nil {
-				value = m.Untyped.GetValue()
-			} else {
-				return nil, errors.New("tracking unexpected metric type")
-			}
-
-			vals = append(vals, value)
-		}
-	}
-
-	return vals, nil
-}
-
-func newScrapeManager(logger log.Logger, app storage.Appendable) *scrape.Manager {
+func newScrapeManager(o *scrape.Options, logger log.Logger, app storage.Appendable) *scrape.Manager {
 	// scrape.NewManager modifies a global variable in Prometheus. To avoid a
 	// data race of modifying that global, we lock a mutex here briefly.
 	managerMtx.Lock()
 	defer managerMtx.Unlock()
-	options := &scrape.Options{
-		ExtraMetrics: false,
-	}
-	return scrape.NewManager(options, logger, app)
+	return scrape.NewManager(o, logger, app)
 }
 
 type runGroupContext struct {

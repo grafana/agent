@@ -29,11 +29,8 @@ if [ "$1" -eq 1 ] ; then
 
     add_to_logging_groups
 
-    if [ ! -d /var/lib/grafana-agent ]; then
-      mkdir -p /var/lib/grafana-agent
-      chown $AGENT_USER:$AGENT_GROUP /var/lib/grafana-agent
-      chmod 770 /var/lib/grafana-agent
-    fi
+    chown $AGENT_USER:$AGENT_GROUP /var/lib/grafana-agent
+    chmod 770 /var/lib/grafana-agent
 
     chmod 640 /etc/grafana-agent.yaml
     chown root:$AGENT_GROUP /etc/grafana-agent.yaml

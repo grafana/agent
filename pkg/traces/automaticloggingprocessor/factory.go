@@ -9,7 +9,6 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/processor/processorhelper"
 )
 
 // TypeStr is the unique identifier for the Automatic Logging processor.
@@ -108,10 +107,10 @@ const (
 
 // NewFactory returns a new factory for the Attributes processor.
 func NewFactory() component.ProcessorFactory {
-	return processorhelper.NewFactory(
+	return component.NewProcessorFactory(
 		TypeStr,
 		createDefaultConfig,
-		processorhelper.WithTraces(createTraceProcessor),
+		component.WithTracesProcessor(createTraceProcessor),
 	)
 }
 

@@ -11,11 +11,12 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/util"
-	"github.com/prometheus/prometheus/pkg/exemplar"
-	"github.com/prometheus/prometheus/pkg/labels"
-	"github.com/prometheus/prometheus/pkg/value"
+	"github.com/prometheus/prometheus/model/exemplar"
+	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/model/value"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/prometheus/prometheus/tsdb"
+	"github.com/prometheus/prometheus/tsdb/chunks"
 	"github.com/prometheus/prometheus/tsdb/record"
 	"github.com/stretchr/testify/require"
 )
@@ -345,7 +346,7 @@ func TestStorage_WriteStalenessMarkers(t *testing.T) {
 	actual := collector.samples
 	sort.Sort(byRefSample(actual))
 
-	staleMap := map[uint64]bool{}
+	staleMap := map[chunks.HeadSeriesRef]bool{}
 	for _, sample := range actual {
 		if _, ok := staleMap[sample.Ref]; !ok {
 			staleMap[sample.Ref] = false
@@ -403,7 +404,7 @@ type series struct {
 	samples   []sample
 	exemplars []exemplar.Exemplar
 
-	ref *uint64
+	ref *storage.SeriesRef
 }
 
 func (s *series) Write(t *testing.T, app storage.Appender) {
@@ -487,7 +488,7 @@ func (s seriesList) ExpectedSamples() []record.RefSample {
 	for _, series := range s {
 		for _, sample := range series.samples {
 			expect = append(expect, record.RefSample{
-				Ref: *series.ref,
+				Ref: chunks.HeadSeriesRef(*series.ref),
 				T:   sample.ts,
 				V:   sample.val,
 			})
@@ -503,7 +504,7 @@ func (s seriesList) ExpectedExemplars() []record.RefExemplar {
 	for _, series := range s {
 		for _, exemplar := range series.exemplars {
 			expect = append(expect, record.RefExemplar{
-				Ref:    *series.ref,
+				Ref:    chunks.HeadSeriesRef(*series.ref),
 				T:      exemplar.Ts,
 				V:      exemplar.Value,
 				Labels: exemplar.Labels,

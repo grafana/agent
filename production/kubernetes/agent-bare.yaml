@@ -17,6 +17,7 @@ rules:
   - services
   - endpoints
   - pods
+  - events
   verbs:
   - get
   - list
@@ -39,18 +40,33 @@ subjects:
   name: grafana-agent
   namespace: ${NAMESPACE}
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: grafana-agent
+  name: grafana-agent
+  namespace: ${NAMESPACE}
+spec:
+  clusterIP: None
+  ports:
+  - name: grafana-agent-http-metrics
+    port: 80
+    targetPort: 80
+  selector:
+    name: grafana-agent
+---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: grafana-agent
   namespace: ${NAMESPACE}
 spec:
-  minReadySeconds: 10
   replicas: 1
-  revisionHistoryLimit: 10
   selector:
     matchLabels:
       name: grafana-agent
+  serviceName: grafana-agent
   template:
     metadata:
       labels:
@@ -59,6 +75,8 @@ spec:
       containers:
       - args:
         - -config.file=/etc/agent/agent.yaml
+        - -enable-features=integrations-next
+        - -server.http.address=0.0.0.0:80
         command:
         - /bin/agent
         env:
@@ -66,13 +84,15 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        image: grafana/agent:v0.23.0
+        image: grafana/agent:v0.24.1
         imagePullPolicy: IfNotPresent
-        name: agent
+        name: grafana-agent
         ports:
-        - containerPort: 12345
+        - containerPort: 80
           name: http-metrics
         volumeMounts:
+        - mountPath: /var/lib/agent
+          name: agent-wal
         - mountPath: /etc/agent
           name: grafana-agent
       serviceAccount: grafana-agent
@@ -80,3 +100,17 @@ spec:
       - configMap:
           name: grafana-agent
         name: grafana-agent
+  updateStrategy:
+    type: RollingUpdate
+  volumeClaimTemplates:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: agent-wal
+      namespace: ${NAMESPACE}
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 5Gi

@@ -15,15 +15,28 @@ import (
 	"github.com/grafana/agent/pkg/util"
 )
 
-// CreateShim creates a shim between the v1.Config and v2.Config. The resulting
-// config is NOT registered.
-func CreateShim(before v1.Config, common common.MetricsConfig) (after v2.UpgradedConfig) {
+// NewNamedShim returns a v2.UpgradeFunc which will upgrade a v1.Config to a
+// v2.Config with a new name.
+func NewNamedShim(newName string) v2.UpgradeFunc {
+	return func(before v1.Config, common common.MetricsConfig) v2.UpgradedConfig {
+		return &configShim{
+			orig:         before,
+			common:       common,
+			nameOverride: newName,
+		}
+	}
+}
+
+// Shim upgrades a v1.Config to a v2.Config. The resulting config is NOT
+// registered. Shim matches the v2.UpgradeFunc type.
+func Shim(before v1.Config, common common.MetricsConfig) (after v2.UpgradedConfig) {
 	return &configShim{orig: before, common: common}
 }
 
 type configShim struct {
-	orig   v1.Config
-	common common.MetricsConfig
+	orig         v1.Config
+	common       common.MetricsConfig
+	nameOverride string
 }
 
 var (
@@ -34,7 +47,12 @@ var (
 
 func (s *configShim) LegacyConfig() (v1.Config, common.MetricsConfig) { return s.orig, s.common }
 
-func (s *configShim) Name() string { return s.orig.Name() }
+func (s *configShim) Name() string {
+	if s.nameOverride != "" {
+		return s.nameOverride
+	}
+	return s.orig.Name()
+}
 
 func (s *configShim) ApplyDefaults(g v2.Globals) error {
 	s.common.ApplyDefaults(g.SubsystemOpts.Metrics.Autoscrape)
@@ -116,7 +134,7 @@ func (s *configShim) NewIntegration(l log.Logger, g v2.Globals) (v2.Integration,
 
 	// Aggregate our converted settings into a v2 integration.
 	return &metricsHandlerIntegration{
-		integrationName: s.orig.Name(),
+		integrationName: s.Name(),
 		instanceID:      id,
 
 		common:  s.common,

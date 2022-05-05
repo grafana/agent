@@ -19,7 +19,7 @@ steps:
     image: golangci/golangci-lint:v1.44
     commands:
       - apt-get update -y && apt-get install -y libsystemd-dev
-      - make lint
+      - make DOCKER_OPTS="" lint
 
 ---
 kind: pipeline
@@ -49,12 +49,13 @@ steps:
       - gem install --no-document fpm
       - rm -r /usr/local/go
       - mkdir -p /usr/local/go/bin
-      - wget -q https://golang.org/dl/go1.17.6.linux-amd64.tar.gz
-      - tar -C /usr/local -xzf go1.17.6.linux-amd64.tar.gz
-      - rm go1.17.6.linux-amd64.tar.gz
+      - wget -q https://golang.org/dl/go1.18.linux-amd64.tar.gz
+      - tar -C /usr/local -xzf go1.18.linux-amd64.tar.gz
+      - rm go1.18.linux-amd64.tar.gz
       - export PATH=$PATH:/usr/local/go/bin
-      - make cmd/agent/agent cmd/agentctl/agentctl cmd/agent-operator/agent-operator tools/crow/grafana-agent-crow tools/smoke/grafana-agent-smoke
-      - make K8S_USE_DOCKER_NETWORK=1 DRONE=true BUILD_IN_CONTAINER=false test
+      - make DOCKER_OPTS="" cmd/agent/agent cmd/agentctl/agentctl cmd/agent-operator/agent-operator tools/crow/grafana-agent-crow tools/smoke/grafana-agent-smoke
+      - make DOCKER_OPTS="" K8S_USE_DOCKER_NETWORK=1 DRONE=true BUILD_IN_CONTAINER=false test
+
 depends_on:
   - Lint
 
@@ -63,32 +64,6 @@ volumes:
    host:
      path: /var/run/docker.sock
 
----
-kind: pipeline
-type: docker
-name: Dist
-platform:
-  os: linux
-  arch: amd64
-trigger:
-  ref:
-    - refs/tags/v*
-
-steps:
-  - name: distribute
-    image: rfratto/seego
-    commands:
-      - apt-get update &&  apt-get install -y rubygems rpm nsis
-      - gem install --no-document fpm
-      - rm -r /usr/local/go
-      - mkdir -p /usr/local/go/bin
-      - wget -q https://golang.org/dl/go1.17.6.linux-amd64.tar.gz
-      - tar -C /usr/local -xzf go1.17.6.linux-amd64.tar.gz
-      - rm go1.17.6.linux-amd64.tar.gz
-      - export PATH=$PATH:/usr/local/go/bin
-      - make DRONE=true BUILD_IN_CONTAINER=false dist
-depends_on:
-  - Test
 ---
 kind: pipeline
 type: docker
@@ -128,11 +103,11 @@ steps:
       - docker buildx create --name multiarch --driver docker-container --use
       - export RELEASE_TAG=${DRONE_TAG}
       - export IMAGE_BRANCH_TAG=${DRONE_BRANCH}
-      - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agent-image
-      - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agentctl-image
-      - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agent-operator-image
-      - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true grafana-agent-crow-image
-      - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agent-smoke-image
+      - make DOCKER_OPTS="" DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agent-image
+      - make DOCKER_OPTS="" DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agentctl-image
+      - make DOCKER_OPTS="" DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agent-operator-image
+      - make DOCKER_OPTS="" DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true grafana-agent-crow-image
+      - make DOCKER_OPTS="" DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agent-smoke-image
       - docker buildx rm multiarch
 
 depends_on:
@@ -225,21 +200,21 @@ steps:
     commands:
       - apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
       - curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
-      - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian buster stable"
+      - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian bullseye stable"
       - apt-get update &&  apt-get install -y rubygems rpm nsis docker-ce docker-ce-cli containerd.io gettext
       - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
       - gem install --no-document fpm
       - rm -r /usr/local/go
       - mkdir -p /usr/local/go/bin
-      - wget -q https://golang.org/dl/go1.17.6.linux-amd64.tar.gz
-      - tar -C /usr/local -xzf go1.17.6.linux-amd64.tar.gz
-      - rm go1.17.6.linux-amd64.tar.gz
+      - wget -q https://golang.org/dl/go1.18.linux-amd64.tar.gz
+      - tar -C /usr/local -xzf go1.18.linux-amd64.tar.gz
+      - rm go1.18.linux-amd64.tar.gz
       - export PATH=$PATH:/usr/local/go/bin
       - GO111MODULE=on go get -u github.com/mitchellh/gox github.com/tcnksm/ghr
       - export PATH="$(go env GOPATH)/bin:$PATH"
-      - make -j4 BUILD_IN_CONTAINER=false RELEASE_BUILD=true RELEASE_TAG=${DRONE_TAG} publish
+      - make -j4 DOCKER_OPTS="" BUILD_IN_CONTAINER=false RELEASE_BUILD=true RELEASE_TAG=${DRONE_TAG} publish
 depends_on:
-  - Dist
+  - Test
 
 volumes:
   - name: docker
@@ -271,6 +246,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: 76ba44a90ab332caf4cd3bc11529e7ea674d4706ab8b4928b17b8c7dcda8abea
+hmac: b14773ba7e50432dfe90920d442a850f85aed74f1419dd78502b1e76d91cde46
 
 ...

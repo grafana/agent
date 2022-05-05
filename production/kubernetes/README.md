@@ -4,7 +4,7 @@ This directory contains Kubernetes manifest templates for rolling out the Agent.
 
 Manifests:
 
-- Metric collection (Deployment): [`agent-bare.yaml`](./agent-bare.yaml)
+- Metric collection (StatefulSet): [`agent-bare.yaml`](./agent-bare.yaml)
 - Log collection (DaemonSet): [`agent-loki.yaml`](./agent-loki.yaml)
 - Trace collection (Deployment): [`agent-traces.yaml`](./agent-traces.yaml)
 

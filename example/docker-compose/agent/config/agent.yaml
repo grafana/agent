@@ -19,7 +19,6 @@
 
 server:
   log_level: debug
-  http_listen_port: 12345
 
 metrics:
   global:
@@ -53,7 +52,7 @@ traces:
   configs:
   - name: default
     remote_write:
-      - endpoint: ${TEMPO_HOST:-localhost:55680}
+      - endpoint: ${TEMPO_HOST:-localhost:4317}
         insecure: true
     receivers:
       jaeger:
@@ -86,59 +85,59 @@ integrations:
   ## node_exporter
   # node_exporter: {}
 
-  ## process_exporter
-  # process_exporter:
+  ## process
+  # process:
   #   process_names:
   #     - name: "{{.Comm}}"
   #       cmdline:
   #       - '.+'
 
-  ## mysqld_exporter (requires docker-compose mysqld_exporter profile)
-  # mysqld_exporter:
-  #   data_source_name: root@(${MYSQL_HOST:-localhost:3306})/
+  ## mysql (requires docker-compose mysql profile)
+  # mysql_configs:
+  # - data_source_name: root@(${MYSQL_HOST:-localhost:3306})/
 
-  ## postgres_exporter (requires docker-compose postgres_exporter profile)
-  # postgres_exporter:
-  #   data_source_names:
-  #     - postgresql://postgres:password@localhost:5432/postgres?sslmode=disable
+  ## postgres (requires docker-compose postgres profile)
+  # postgres_configs:
+  # - data_source_names:
+  #   - postgresql://postgres:password@localhost:5432/postgres?sslmode=disable
 
-  ## redis_exporter (requires docker-compose redis_exporter profile)
-  # redis_exporter:
-  #   redis_addr: ${REDIS_HOST:-localhost:6379}
+  ## redis (requires docker-compose redis profile)
+  # redis_configs:
+  # - redis_addr: ${REDIS_HOST:-localhost:6379}
 
-  ## dnsmasq_exporter (requires docker-compose dnsmasq_exporter profile)
-  # dnsmasq_exporter:
-  #   dnsmasq_address: ${DNSMASQ_HOST:-localhost:30053}
+  ## dnsmasq (requires docker-compose dnsmasq profile)
+  # dnsmasq_configs:
+  # - dnsmasq_address: ${DNSMASQ_HOST:-localhost:30053}
   #   leases_path: /tmp/dnsmasq-leases/dnsmasq.leases
 
-  ## memcached_exporter (requires docker-compose memcached_exporter profile)
-  # memcached_exporter:
-  #   memcached_address: ${MEMCACHED_HOST:-localhost:11211}
+  ## memcached (requires docker-compose memcached profile)
+  # memcached_configs:
+  # - memcached_address: ${MEMCACHED_HOST:-localhost:11211}
   #   timeout: 10s
 
-  ## statsd_exporter
-  # statsd_exporter: {}
+  ## statsd
+  # statsd: {}
 
-  ## consul_exporter (requires docker-compose consul_exporter profile)
-  # consul_exporter:
-  #   server: http://${CONSUL_HOST:-localhost:8500}
+  ## consul (requires docker-compose consul profile)
+  # consul_configs:
+  # - server: http://${CONSUL_HOST:-localhost:8500}
 
-  ## elasticsearch_exporter (requires docker-compose elasticsearch_exporter profile)
-  # elasticsearch_exporter:
-  #   address: http://${ELASTICSEARCH_HOST:-localhost:9200}
+  ## elasticsearch (requires docker-compose elasticsearch profile)
+  # elasticsearch_configs:
+  # - address: http://${ELASTICSEARCH_HOST:-localhost:9200}
 
-  ## kafka_exporter (requires docker-compose kafka_exporter profile)
-  # kafka_exporter:
-  #   kafka_uris: [${KAFKA_HOST:-localhost:9093}]
+  ## kafka (requires docker-compose kafka profile)
+  # kafka_configs:
+  # - kafka_uris: [${KAFKA_HOST:-localhost:9093}]
 
-  ## github_exporter (requires docker-compose github_exporter profile)
-  # github_exporter:
-  #   repositories:
-  #     - grafana/agent
+  ## github (requires docker-compose github profile)
+  # github_configs:
+  # - repositories:
+  #   - grafana/agent
 
-  ## mongodb_exporter (requires docker-compose mongodb_exporter profile)
-  # mongodb_exporter:
-  #   mongodb_uri: mongodb://${MONGODB_HOST:-mongodb:27017}
+  ## mongodb (requires docker-compose mongodb profile)
+  # mongodb_configs:
+  # - mongodb_uri: mongodb://${MONGODB_HOST:-mongodb:27017}
   #   relabel_configs:
   #   - source_labels: [__address__]
   #     target_label: service_name

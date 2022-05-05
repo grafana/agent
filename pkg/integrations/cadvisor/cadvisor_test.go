@@ -1,5 +1,5 @@
-//go:build !nonetwork && !nodocker
-// +build !nonetwork,!nodocker
+//go:build !nonetwork && !nodocker && linux
+// +build !nonetwork,!nodocker,linux
 
 package cadvisor
 

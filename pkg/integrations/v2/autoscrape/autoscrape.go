@@ -9,11 +9,13 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/grafana/agent/pkg/server"
 	"github.com/oklog/run"
+	config_util "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	prom_config "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
-	"github.com/prometheus/prometheus/pkg/relabel"
+	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/prometheus/prometheus/scrape"
 	"github.com/prometheus/prometheus/storage"
 )
@@ -81,11 +83,13 @@ type Scraper struct {
 
 	iscrapersMut sync.RWMutex
 	iscrapers    map[string]*instanceScraper
+	dialerFunc   server.DialContextFunc
 }
 
 // NewScraper creates a new autoscraper. Scraper will run until Stop is called.
-// Instances to send scraped metrics to will be looked up via im.
-func NewScraper(l log.Logger, is InstanceStore) *Scraper {
+// Instances to send scraped metrics to will be looked up via im. Scraping will
+// use the provided dialerFunc to make connections if non-nil.
+func NewScraper(l log.Logger, is InstanceStore, dialerFunc server.DialContextFunc) *Scraper {
 	l = log.With(l, "component", "autoscraper")
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -94,9 +98,10 @@ func NewScraper(l log.Logger, is InstanceStore) *Scraper {
 		ctx:    ctx,
 		cancel: cancel,
 
-		log:       l,
-		is:        is,
-		iscrapers: map[string]*instanceScraper{},
+		log:        l,
+		is:         is,
+		iscrapers:  map[string]*instanceScraper{},
+		dialerFunc: dialerFunc,
 	}
 	return s
 }
@@ -131,7 +136,7 @@ func (s *Scraper) ApplyConfig(jobs []*ScrapeConfig) error {
 	for instance, jobs := range shardedJobs {
 		is, ok := s.iscrapers[instance]
 		if !ok {
-			is = newInstanceScraper(s.ctx, s.log, s.is, instance)
+			is = newInstanceScraper(s.ctx, s.log, s.is, instance, config_util.DialContextFunc(s.dialerFunc))
 			s.iscrapers[instance] = is
 		}
 		if err := is.ApplyConfig(jobs); err != nil {
@@ -196,13 +201,23 @@ func newInstanceScraper(
 	l log.Logger,
 	s InstanceStore,
 	instanceName string,
+	dialerFunc config_util.DialContextFunc,
 ) *instanceScraper {
 
 	ctx, cancel := context.WithCancel(ctx)
 	l = log.With(l, "target_instance", instanceName)
 
-	sd := discovery.NewManager(ctx, l, discovery.Name("autoscraper/"+instanceName))
-	sm := scrape.NewManager(&scrape.Options{}, l, &agentAppender{
+	sdOpts := []func(*discovery.Manager){
+		discovery.Name("autoscraper/" + instanceName),
+		discovery.DialContextFunc(dialerFunc),
+	}
+	sd := discovery.NewManager(ctx, l, sdOpts...)
+	sm := scrape.NewManager(&scrape.Options{
+		HTTPClientOptions: []config_util.HTTPClientOption{
+			// If dialerFunc is nil, scrape.NewManager will use Go's default dialer.
+			config_util.WithDialContextFunc(dialerFunc),
+		},
+	}, l, &agentAppender{
 		inst: instanceName,
 		is:   s,
 	})

@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/grafana/agent/pkg/server"
 	"github.com/grafana/agent/pkg/traces"
 	"github.com/hairyhenderson/go-fsimpl"
 	"github.com/hairyhenderson/go-fsimpl/blobfs"
@@ -20,7 +21,6 @@ import (
 	"github.com/hairyhenderson/gomplate/v3/data"
 	"github.com/hairyhenderson/gomplate/v3/loader"
 	"github.com/hashicorp/go-multierror"
-	"github.com/weaveworks/common/server"
 	"gopkg.in/yaml.v2"
 )
 

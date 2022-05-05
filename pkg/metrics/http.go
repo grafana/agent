@@ -1,7 +1,9 @@
 package metrics
 
 import (
+	"fmt"
 	"net/http"
+	"net/url"
 	"sort"
 	"time"
 
@@ -9,16 +11,22 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/metrics/cluster/configapi"
 	"github.com/prometheus/common/model"
-	"github.com/prometheus/prometheus/pkg/labels"
+	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/scrape"
+	"github.com/prometheus/prometheus/storage/remote"
 )
 
 // WireAPI adds API routes to the provided mux router.
 func (a *Agent) WireAPI(r *mux.Router) {
 	a.cluster.WireAPI(r)
 
+	// Backwards compatible endpoints. Use endpoints with `metrics` prefix instead
 	r.HandleFunc("/agent/api/v1/instances", a.ListInstancesHandler).Methods("GET")
 	r.HandleFunc("/agent/api/v1/targets", a.ListTargetsHandler).Methods("GET")
+
+	r.HandleFunc("/agent/api/v1/metrics/instances", a.ListInstancesHandler).Methods("GET")
+	r.HandleFunc("/agent/api/v1/metrics/targets", a.ListTargetsHandler).Methods("GET")
+	r.HandleFunc("/agent/api/v1/metrics/instance/{instance}/write", a.PushMetricsHandler).Methods("POST")
 }
 
 // ListInstancesHandler writes the set of currently running instances to the http.ResponseWriter.
@@ -124,4 +132,37 @@ type TargetInfo struct {
 	LastScrape       time.Time     `json:"last_scrape"`
 	ScrapeDuration   int64         `json:"scrape_duration_ms"`
 	ScrapeError      string        `json:"scrape_error"`
+}
+
+// PushMetricsHandler provides a way to POST data directly into
+// an instance's WAL.
+func (a *Agent) PushMetricsHandler(w http.ResponseWriter, r *http.Request) {
+	// Get instance name.
+	instanceName, err := getInstanceName(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Get the metrics instance and serve the request.
+	managedInstance, err := a.InstanceManager().GetInstance(instanceName)
+	if err != nil || managedInstance == nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	handler := remote.NewWriteHandler(a.logger, managedInstance)
+	handler.ServeHTTP(w, r)
+}
+
+// getInstanceName uses gorilla/mux's route variables to extract the
+// "instance" variable. If not found, getInstanceName will return an error.
+func getInstanceName(r *http.Request) (string, error) {
+	vars := mux.Vars(r)
+	name := vars["instance"]
+	name, err := url.PathUnescape(name)
+	if err != nil {
+		return "", fmt.Errorf("could not decode instance name: %w", err)
+	}
+	return name, nil
 }

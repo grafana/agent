@@ -27,8 +27,7 @@ func TestClient_AgentConfig(t *testing.T) {
 			"status": "success",
 			"data": {
 				"server": {
-					"http_listen_port": 12345,
-					"http_listen_address" : "127.0.0.1"
+					"log_level": "debug"
 				},
 				"integrations": {
 					"agent": {
@@ -47,8 +46,7 @@ func TestClient_AgentConfig(t *testing.T) {
 
 	expect := `
 server:
-  http_listen_port: 12345
-  http_listen_address: 127.0.0.1
+  log_level: debug
 integrations:
   agent:
     enabled: true

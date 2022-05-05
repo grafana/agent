@@ -9,8 +9,9 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/prometheus/pkg/labels"
-	"github.com/prometheus/prometheus/pkg/timestamp"
+	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/model/timestamp"
+	"github.com/prometheus/prometheus/tsdb/chunks"
 	"github.com/prometheus/prometheus/tsdb/record"
 	"github.com/prometheus/prometheus/tsdb/wal"
 	"github.com/stretchr/testify/require"
@@ -70,8 +71,8 @@ func setupTestWAL(t *testing.T) string {
 
 		series = append(
 			series,
-			record.RefSeries{Ref: uint64(len(series)) + 1, Labels: labels.FromStrings(labelsInitial...)},
-			record.RefSeries{Ref: uint64(len(series)) + 2, Labels: labels.FromStrings(labelsNotInitial...)},
+			record.RefSeries{Ref: chunks.HeadSeriesRef(len(series)) + 1, Labels: labels.FromStrings(labelsInitial...)},
+			record.RefSeries{Ref: chunks.HeadSeriesRef(len(series)) + 2, Labels: labels.FromStrings(labelsNotInitial...)},
 		)
 	}
 	for i := 0; i < 10; i++ {
@@ -91,7 +92,7 @@ func setupTestWAL(t *testing.T) string {
 	require.NoError(t, w.NextSegment())
 
 	// Checkpoint the previous segment.
-	_, err = wal.Checkpoint(l, w, 0, 1, func(_ uint64) bool { return true }, 0)
+	_, err = wal.Checkpoint(l, w, 0, 1, func(_ chunks.HeadSeriesRef) bool { return true }, 0)
 	require.NoError(t, err)
 	require.NoError(t, w.NextSegment())
 
@@ -99,7 +100,7 @@ func setupTestWAL(t *testing.T) string {
 	var samples []record.RefSample
 	for i := 0; i < 20; i++ {
 		samples = append(samples, record.RefSample{
-			Ref: uint64(i + 1),
+			Ref: chunks.HeadSeriesRef(i + 1),
 			T:   int64(i + 1),
 			V:   1,
 		})

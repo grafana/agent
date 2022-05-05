@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
+	"github.com/grafana/agent/pkg/integrations/windows_exporter"
 
 	v2 "github.com/grafana/agent/pkg/integrations/v2"
-	"github.com/grafana/agent/pkg/integrations/windows_exporter"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -88,7 +88,7 @@ log_level: debug
 
 func TestConfigMakerWithExporter(t *testing.T) {
 	configStr := `
-windows_exporter:
+windows:
   enabled_collectors: one,two,three
 `
 	tDir := generatePath(t)
@@ -102,14 +102,14 @@ windows_exporter:
 	cmf := generateLoader(t, loaderCfg)
 	configs, err := cmf.processIntegrations()
 	require.NoError(t, err)
-	assert.Len(t, configs, 1)
+	require.Len(t, configs, 1)
 	wincfg, _ := configs[0].(v2.UpgradedConfig).LegacyConfig()
 	assert.True(t, wincfg.(*windows_exporter.Config).EnabledCollectors == "one,two,three")
 }
 
 func TestConfigMakerWithMultipleExporter(t *testing.T) {
 	configStr := `
-windows_exporter:
+windows:
   enabled_collectors: one,two,three
   instance: testinstance
 node_exporter:
@@ -146,7 +146,7 @@ node_exporter:
 
 func TestLoadingFromS3(t *testing.T) {
 	configStr := `
-windows_exporter:
+windows:
   enabled_collectors: one,two,three
   instance: testinstance
 `
@@ -167,7 +167,7 @@ windows_exporter:
 
 func TestMultiplex(t *testing.T) {
 	configStr := `
-redis_exporter_configs:
+redis_configs:
 - redis_addr: localhost:6379
   autoscrape:
     metric_relabel_configs: 
@@ -195,7 +195,6 @@ redis_exporter_configs:
 func TestAgentAddIntegrations(t *testing.T) {
 	configStr := `
 server:
-  http_listen_port: 8080
   log_level: debug
 metrics:
   wal_directory: /tmp/grafana-agent-normal
@@ -207,7 +206,7 @@ integrations:
   node_exporter: {}
 `
 	addIntegration := `
-windows_exporter: {}
+windows: {}
 `
 	tDir := generatePath(t)
 	writeFile(t, tDir, "agent-1.yml", configStr)
@@ -224,7 +223,7 @@ windows_exporter: {}
 	// Since the normal agent uses deferred parsing this is required to load the integration from agent-1.yml
 	err = cfg.Integrations.setVersion(integrationsVersion2)
 	require.NoError(t, err)
-	assert.True(t, cfg.Server.HTTPListenPort == 8080)
+	assert.True(t, cfg.Server.Flags.HTTP.ListenPort == 12345)
 	assert.True(t, cfg.Server.LogLevel.String() == "debug")
 	assert.True(t, cfg.Metrics.WALDir == "/tmp/grafana-agent-normal")
 	assert.True(t, cfg.Metrics.Global.RemoteWrite[0].URL.String() == "https://www.example.com")
@@ -238,7 +237,6 @@ windows_exporter: {}
 func TestFilterOverrides(t *testing.T) {
 	agentStr := `
 server:
-  http_listen_port: 8080
   log_level: debug
 metrics:
   wal_directory: /tmp/grafana-agent-normal
@@ -247,7 +245,7 @@ metrics:
     remote_write:
     - url: https://www.example.com
 integrations:
-  windows_exporter: {}
+  windows: {}
 `
 	serverStr := `
 http_listen_port: 1111
@@ -313,7 +311,7 @@ configs:
 	err = cfg.Integrations.setVersion(integrationsVersion2)
 	require.NoError(t, err)
 	// Test server override
-	assert.True(t, cfg.Server.HTTPListenPort == 1111)
+	assert.True(t, cfg.Server.Flags.HTTP.ListenPort == 1111)
 	// Test metric
 	assert.True(t, cfg.Metrics.WALDir == "/tmp/grafana-agent-normal")
 	// Test Metric Instances

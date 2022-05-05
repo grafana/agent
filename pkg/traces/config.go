@@ -38,6 +38,7 @@ import (
 	"github.com/grafana/agent/pkg/traces/automaticloggingprocessor"
 	"github.com/grafana/agent/pkg/traces/noopreceiver"
 	"github.com/grafana/agent/pkg/traces/promsdprocessor"
+	"github.com/grafana/agent/pkg/traces/pushreceiver"
 	"github.com/grafana/agent/pkg/traces/remotewriteexporter"
 	"github.com/grafana/agent/pkg/traces/servicegraphprocessor"
 	"github.com/grafana/agent/pkg/util"
@@ -277,7 +278,7 @@ type loadBalancingConfig struct {
 	ReceiverPort string `yaml:"receiver_port"`
 }
 
-// exporterConfig defined the config for a otlp exporter for load balancing
+// exporterConfig defined the config for an otlp exporter for load balancing
 type exporterConfig struct {
 	Compression        string                 `yaml:"compression,omitempty"`
 	Insecure           bool                   `yaml:"insecure,omitempty"`
@@ -304,7 +305,7 @@ func exporter(rwCfg RemoteWriteConfig) (map[string]interface{}, error) {
 	}
 
 	if rwCfg.BasicAuth != nil && rwCfg.Oauth2 != nil {
-		return nil, fmt.Errorf("Only one auth type may be configured per exporter (basic_auth or oauth2)")
+		return nil, fmt.Errorf("only one auth type may be configured per exporter (basic_auth or oauth2)")
 	}
 
 	if rwCfg.BasicAuth != nil {
@@ -323,8 +324,8 @@ func exporter(rwCfg RemoteWriteConfig) (map[string]interface{}, error) {
 	}
 
 	compression := rwCfg.Compression
-	if compression == compressionNone {
-		compression = ""
+	if compression == "" {
+		compression = compressionNone
 	}
 
 	// Default OTLP exporter config awaits an empty headers map. Other exporters
@@ -514,6 +515,11 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 	if len(c.Receivers) == 0 {
 		return nil, errors.New("must have at least one configured receiver")
 	}
+
+	// add a hacky push receiver for when an integration
+	// wants to push traces directly, eg app agent receiver.
+	// it can only accept traces programatically from inside the agent
+	c.Receivers[pushreceiver.TypeStr] = nil
 
 	extensions, err := c.extensions()
 	if err != nil {
@@ -741,6 +747,7 @@ func tracingFactories() (component.Factories, error) {
 		opencensusreceiver.NewFactory(),
 		kafkareceiver.NewFactory(),
 		noopreceiver.NewFactory(),
+		pushreceiver.NewFactory(),
 	)
 	if err != nil {
 		return component.Factories{}, err

@@ -8,7 +8,6 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/processor/processorhelper"
 	"gopkg.in/yaml.v2"
 )
 
@@ -40,10 +39,10 @@ type Config struct {
 
 // NewFactory returns a new factory for the Attributes processor.
 func NewFactory() component.ProcessorFactory {
-	return processorhelper.NewFactory(
+	return component.NewProcessorFactory(
 		TypeStr,
 		createDefaultConfig,
-		processorhelper.WithTraces(createTraceProcessor),
+		component.WithTracesProcessor(createTraceProcessor),
 	)
 }
 

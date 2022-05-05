@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"sync"
 	"time"
+	_ "time/tzdata" // embed timezone data
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -170,13 +171,14 @@ func (i *Instance) ApplyConfig(c *InstanceConfig) error {
 		return nil
 	}
 
+	clientMetrics := client.NewMetrics(i.reg, nil)
 	p, err := promtail.New(config.Config{
 		ServerConfig:    server.Config{Disable: true},
 		ClientConfigs:   c.ClientConfigs,
 		PositionsConfig: c.PositionsConfig,
 		ScrapeConfig:    c.ScrapeConfig,
 		TargetConfig:    c.TargetConfig,
-	}, false, promtail.WithLogger(i.log), promtail.WithRegisterer(i.reg))
+	}, clientMetrics, false, promtail.WithLogger(i.log), promtail.WithRegisterer(i.reg))
 	if err != nil {
 		return fmt.Errorf("unable to create logs instance: %w", err)
 	}

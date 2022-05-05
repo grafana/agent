@@ -6,7 +6,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/exporter/exporterhelper"
 )
 
 const (
@@ -27,10 +26,10 @@ type Config struct {
 
 // NewFactory returns a new factory for the Prometheus remote write processor.
 func NewFactory() component.ExporterFactory {
-	return exporterhelper.NewFactory(
+	return component.NewExporterFactory(
 		TypeStr,
 		createDefaultConfig,
-		exporterhelper.WithMetrics(createMetricsExporter),
+		component.WithMetricsExporter(createMetricsExporter),
 	)
 }
 

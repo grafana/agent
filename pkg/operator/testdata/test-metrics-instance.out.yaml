@@ -31,7 +31,7 @@ spec:
         - --config-envsubst-file=/var/lib/grafana-agent/config/agent.yml
         - --watch-interval=1m
         - --statefulset-ordinal-from-envvar=POD_NAME
-        - --reload-url=http://127.0.0.1:8081/-/reload
+        - --reload-url=http://127.0.0.1:8080/-/reload
         env:
         - name: POD_NAME
           valueFrom:
@@ -48,16 +48,17 @@ spec:
           readOnly: true
         - mountPath: /var/lib/grafana-agent/config
           name: config-out
-        - mountPath: /var/lib/grafana-agent/data
-          name: grafana-agent-example-wal
         - mountPath: /var/lib/grafana-agent/secrets
           name: secrets
           readOnly: true
+        - mountPath: /var/lib/grafana-agent/data
+          name: grafana-agent-example-wal
       - name: grafana-agent
         args:
         - -config.file=/var/lib/grafana-agent/config/agent.yml
         - -config.expand-env=true
-        - -reload-port=8081
+        - -server.http.address=0.0.0.0:8080
+        - -enable-features=integrations-next
         env:
         - name: POD_NAME
           valueFrom:
@@ -83,11 +84,11 @@ spec:
           readOnly: true
         - mountPath: /var/lib/grafana-agent/config
           name: config-out
-        - mountPath: /var/lib/grafana-agent/data
-          name: grafana-agent-example-wal
         - mountPath: /var/lib/grafana-agent/secrets
           name: secrets
           readOnly: true
+        - mountPath: /var/lib/grafana-agent/data
+          name: grafana-agent-example-wal
       serviceAccount: grafana-agent
       serviceAccountName: grafana-agent
       terminationGracePeriodSeconds: 4800

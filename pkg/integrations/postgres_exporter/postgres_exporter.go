@@ -122,7 +122,7 @@ func (c *Config) getDataSourceNames() ([]string, error) {
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.CreateShim)
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.NewNamedShim("postgres"))
 }
 
 // New creates a new postgres_exporter integration. The integration scrapes

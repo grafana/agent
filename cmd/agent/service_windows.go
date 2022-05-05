@@ -11,8 +11,7 @@ import (
 	util_log "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/config"
-	"github.com/grafana/agent/pkg/util"
-	"github.com/weaveworks/common/logging"
+	"github.com/grafana/agent/pkg/server"
 
 	"golang.org/x/sys/windows/svc"
 )
@@ -30,15 +29,9 @@ func (m *AgentService) Execute(args []string, serviceRequests <-chan svc.ChangeR
 	// registry key `Computer\HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Services\<servicename>\ImagePath`
 	// oddly enough args is blank
 
-	var cfgLogger logging.Interface
-
 	reloader := func() (*config.Config, error) {
 		fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-		cfg, err := config.Load(fs, os.Args[1:])
-		if cfg != nil {
-			cfg.Server.Log = cfgLogger
-		}
-		return cfg, err
+		return config.Load(fs, os.Args[1:])
 	}
 	cfg, err := reloader()
 	if err != nil {
@@ -51,13 +44,8 @@ func (m *AgentService) Execute(args []string, serviceRequests <-chan svc.ChangeR
 	changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
 
 	// After this point we can start using go-kit logging.
-	logger := util.NewWindowsEventLogger(&cfg.Server)
+	logger := server.NewWindowsEventLogger(&cfg.Server)
 	util_log.Logger = logger
-
-	// We need to manually set the logger for the first call to reload.
-	// Subsequent reloads will use cfgLogger.
-	cfgLogger = util.GoKitLogger(logger)
-	cfg.Server.Log = cfgLogger
 
 	entrypointExit := make(chan error)
 
@@ -114,5 +102,5 @@ func IsWindowsService() bool {
 // RunService runs the current process as a Windows servce. On non-Windows platforms,
 // this is always a no-op.
 func RunService() error {
-	return svc.Run(util.ServiceName, &AgentService{})
+	return svc.Run(server.ServiceName, &AgentService{})
 }

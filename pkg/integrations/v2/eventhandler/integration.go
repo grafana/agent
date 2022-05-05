@@ -3,6 +3,7 @@ package eventhandler
 import (
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations/v2"
+	"github.com/prometheus/prometheus/model/labels"
 )
 
 // DefaultConfig sets defaults for Config
@@ -36,6 +37,8 @@ type Config struct {
 	FlushInterval int `yaml:"flush_interval,omitempty"`
 	// If you would like to limit events to a given namespace, use this parameter.
 	Namespace string `yaml:"namespace,omitempty"`
+	// Extra labels to append to log lines
+	ExtraLabels labels.Labels `yaml:"extra_labels,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config

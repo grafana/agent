@@ -37,6 +37,9 @@ original subsystem:
 * Integrations that aren't Prometheus exporters may now be added, such as
   integrations that generate logs or traces.
 
+* Autoscrape, when enabled, now works completely in-memory without using the
+  network.
+
 [http_sd_config]: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#http_sd_config
 
 ## Config changes
@@ -67,57 +70,55 @@ integrations:
       [scrape_interval: <duration> | default = <metrics.global.scrape_interval>]
       [scrape_timeout: <duration> | default = <metrics.global.scrape_timeout>]
 
-  # Override settings for agent to self-communivate for autoscrape. This is
-  # currently required if you are using TLS for the agent server. This field is
-  # temporary and will be removed in the near future once autoscrape can work #
-  # without using the network.
-  #
-  # Settings are omitted for brevity, but the schema is from:
-  # https://github.com/prometheus/common/blob/2af6d036253eee1a9a08c6ddf6be6d67537bcdff/config/http_config.go#L177
-  client_config:
-    # <settings omitted>
-
   # Configs for integrations which do not support multiple instances.
   [agent: <agent_config>]
   [cadvisor: <cadvisor_config>]
   [node_exporter: <node_exporter_config>]
-  [process_exporter: <process_exporter_config>]
-  [statsd_exporter: <statsd_exporter_config>]
-  [windows_exporter: <windows_exporter_config>]
+  [process: <process_exporter_config>]
+  [statsd: <statsd_exporter_config>]
+  [windows: <windows_exporter_config>]
   [eventhandler: <eventhandler_config>]
+  [snmp: <snmp_exporter_config>]
 
   # Configs for integrations that do support multiple instances. Note that
   # these must be arrays.
-  consul_exporter_configs:
+  consul_configs:
     [- <consul_exporter_config> ...]
 
-  dnsmasq_exporter_configs:
+  dnsmasq_configs:
     [- <dnsmasq_exporter_config> ...]
 
-  elasticsearch_exporter_configs:
+  elasticsearch_configs:
     [- <elasticsearch_exporter_config> ...]
 
-  github_exporter_configs:
+  github_configs:
     [- <github_exporter_config> ...]
 
-  kafka_exporter_configs:
+  kafka_configs:
     [- <kafka_exporter_config> ...]
 
-  memcached_exporter_configs:
+  memcached_configs:
     [- <memcached_exporter_config> ...]
 
-  mongodb_exporter_configs:
+  mongodb_configs:
     [- <mongodb_exporter_config> ...]
 
-  mysqld_exporter_configs:
+  mysql_configs:
     [- <mysqld_exporter_config> ...]
 
-  postgres_exporter_configs:
+  postgres_configs:
     [- <postgres_exporter_config> ...]
 
-  redis_exporter_configs:
+  redis_configs:
     [- <redis_exporter_config> ...]
+
+  app_agent_receiver_configs:
+    [- <app_agent_receiver_config>]
 ```
+
+Note that most integrations are no longer configured with the `_exporter` name.
+`node_exporter` is the only integration with `_exporter` name due to its
+popularity in the Prometheus ecosystem.
 
 ## Integrations changes
 

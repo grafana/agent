@@ -15,8 +15,8 @@ local service = k.core.v1.service;
 (import './lib/traces.libsonnet') +
 {
   _images:: {
-    agent: 'grafana/agent:v0.23.0',
-    agentctl: 'grafana/agentctl:v0.23.0',
+    agent: 'grafana/agent:v0.24.1',
+    agentctl: 'grafana/agentctl:v0.24.1',
   },
 
   // new creates a new DaemonSet deployment of the grafana-agent. By default,
@@ -59,7 +59,6 @@ local service = k.core.v1.service;
     config:: {
       server: {
         log_level: 'info',
-        http_listen_port: 8080,
       },
     } + (
       if has_metrics_config

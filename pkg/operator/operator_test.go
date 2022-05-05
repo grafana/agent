@@ -34,6 +34,24 @@ func TestMetricsInstance(t *testing.T) {
 	ReconcileTest(ctx, t, inFile, outFile)
 }
 
+func TestCustomMounts(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+	defer cancel()
+
+	inFile := "./testdata/test-custom-mounts.in.yaml"
+	outFile := "./testdata/test-custom-mounts.out.yaml"
+	ReconcileTest(ctx, t, inFile, outFile)
+}
+
+func TestIntegrations(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+	defer cancel()
+
+	inFile := "./testdata/test-integrations.in.yaml"
+	outFile := "./testdata/test-integrations.out.yaml"
+	ReconcileTest(ctx, t, inFile, outFile)
+}
+
 // ReconcileTest deploys a cluster and runs the operator against it locally. It
 // then does the following:
 //
@@ -91,7 +109,9 @@ func ReconcileTest(ctx context.Context, t *testing.T, inFile, outFile string) {
 			var actual unstructured.Unstructured
 			actual.SetGroupVersionKind(expected.GroupVersionKind())
 
-			err := cluster.Client().Get(ctx, client.ObjectKeyFromObject(expected), &actual)
+			objKey := client.ObjectKeyFromObject(expected)
+
+			err := cluster.Client().Get(ctx, objKey, &actual)
 			if err != nil {
 				return fmt.Errorf("failed to get resource: %w", err)
 			}
@@ -108,10 +128,11 @@ func ReconcileTest(ctx context.Context, t *testing.T, inFile, outFile string) {
 
 			err = subset.YAMLAssert(expectedBytes, actualBytes)
 			if err != nil {
-				return fmt.Errorf("assert failed: %w", err)
+				return fmt.Errorf("assert failed for %s: %w", objKey, err)
 			}
 			return nil
 		})
+
 		require.NoError(t, err)
 	}
 }

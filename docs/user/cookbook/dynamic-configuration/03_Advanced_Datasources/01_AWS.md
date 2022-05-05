@@ -10,7 +10,6 @@ Unfortunately there is not a specific docker command but generic examples are be
 
 ```yaml
 server:
-  http_listen_port: 12345
   log_level: debug
 metrics:
   wal_directory: /tmp/grafana-agent-normal
@@ -19,7 +18,7 @@ metrics:
     remote_write:
       - url: https://prometheus-us-central1.grafana.net/api/prom/push
         basic_auth:
-          username: 12345
+          username: xyz
           password: secretpassword
   configs:
     - name: default
@@ -32,7 +31,7 @@ metrics:
         {{ end -}}
 ```
 
-The `aws.EC2Query` command is a new command added for Grafana Agent and takes a string in the [DescribeInstances](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstances.html) format 
+The `aws.EC2Query` command is a new command added for Grafana Agent and takes a string in the [DescribeInstances](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstances.html) format
 
 ## Final
 

@@ -61,10 +61,6 @@ func (c *controller) run(ctx context.Context) {
 			return
 		case newIntegrations := <-c.runIntegrations:
 			pool.Reload(newIntegrations)
-
-			c.mut.Lock()
-			c.integrations = newIntegrations
-			c.mut.Unlock()
 		}
 	}
 }
@@ -105,7 +101,7 @@ func (c *controller) UpdateController(cfg controllerConfig, globals Globals) err
 		singletonSet         = make(map[string]struct{})
 	)
 	for _, cfg := range cfg {
-		t, _ := RegisteredType(cfg.Name())
+		t, _ := RegisteredType(cfg)
 		if t != TypeSingleton {
 			continue
 		}
@@ -196,6 +192,7 @@ NextConfig:
 
 	c.cfg = cfg
 	c.globals = globals
+	c.integrations = integrations
 	return nil
 }
 

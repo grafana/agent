@@ -11,7 +11,7 @@ that implements a full Grafana Agent environment for testing.
 - Kubectl
 - Docker
 - [Tanka >= v0.9.2](https://github.com/grafana/tanka)
-- [k3d >= v4.0.0](https://github.com/rancher/k3d)
+- [k3d >= v4.0.0,<= v5.2.2](https://github.com/rancher/k3d)
 - [jsonnet-bundler >= v0.4.0](https://github.com/jsonnet-bundler/jsonnet-bundler)
 
 ### Getting Started
@@ -25,8 +25,8 @@ Run the following to create your cluster:
 ./scripts/create.bash
 
 # Import images into k3d if they are not available on docker hub
-k3d image import -c agent-k3d grafana/agent:latest
-k3d image import -c agent-k3d grafana/agentctl:latest
+k3d image import -c agent-k3d grafana/agent:main
+k3d image import -c agent-k3d grafana/agentctl:main
 
 # Ensure jsonnet is up to date before applying environment
 jb install
@@ -48,10 +48,17 @@ Smoke Test environment is invoked via `/scripts/smoke-test.bash`
 
 This tool will spin up cluster of Grafana Agent, Cortex, Avalanche, Smoke and [Crow](../../tools/crow/README.md) instances. The Smoke deployment will then periodically kill instances and check for any failed alerts. At the end of the duration (default 3h) it will end the testing.
 
-For users who do not have access to the `us.gcr.io/kubernetes-dev` container registry, you will need to build the Smoke and Crow images locally before running the smoke test.
+For users who do not have access to the `us.gcr.io/kubernetes-dev` container registry, do the following to run the smoke test:
 
+* Build the Smoke and Crow images locally (from the root project directory):
 ```
 make grafana-agent-crow-image agent-smoke-image
+```
+* Run the smoke test using `/scripts/smoke-test.bash` script.
+* `Smoke` and `Crow` pods will fail because the images are not imported into the cluster. Import them running:
+```
+k3d image import -c agent-smoke-test us.gcr.io/kubernetes-dev/grafana/agent-smoke:main
+k3d image import -c agent-smoke-test us.gcr.io/kubernetes-dev/grafana/agent-crow:main
 ```
 
 ### What to look for?

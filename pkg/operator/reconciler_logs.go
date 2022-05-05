@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/operator/assets"
+	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	"github.com/grafana/agent/pkg/operator/clientutil"
 	"github.com/grafana/agent/pkg/operator/config"
 	apps_v1 "k8s.io/api/apps/v1"
@@ -18,19 +18,18 @@ import (
 func (r *reconciler) createLogsConfigurationSecret(
 	ctx context.Context,
 	l log.Logger,
-	d config.Deployment,
-	s assets.SecretStore,
+	d gragent.Deployment,
 ) error {
 
-	return r.createTelemetryConfigurationSecret(ctx, l, d, s, config.LogsType)
+	name := fmt.Sprintf("%s-logs-config", d.Agent.Name)
+	return r.createTelemetryConfigurationSecret(ctx, l, name, d, config.LogsType)
 }
 
 // createLogsDaemonSet creates a DaemonSet for logs.
 func (r *reconciler) createLogsDaemonSet(
 	ctx context.Context,
 	l log.Logger,
-	d config.Deployment,
-	s assets.SecretStore,
+	d gragent.Deployment,
 ) error {
 
 	name := fmt.Sprintf("%s-logs", d.Agent.Name)
@@ -41,6 +40,8 @@ func (r *reconciler) createLogsDaemonSet(
 	key := types.NamespacedName{Namespace: ds.Namespace, Name: ds.Name}
 
 	if len(d.Logs) == 0 {
+		// There's nothing to deploy; delete anything that might've been deployed
+		// from a previous reconcile.
 		var ds apps_v1.DaemonSet
 		return deleteManagedResource(ctx, r.Client, key, &ds)
 	}

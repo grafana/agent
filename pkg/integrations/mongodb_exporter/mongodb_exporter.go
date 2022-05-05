@@ -45,14 +45,14 @@ func (c *Config) NewIntegration(logger log.Logger) (integrations.Integration, er
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.CreateShim)
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.NewNamedShim("mongodb"))
 }
 
 // New creates a new mongodb_exporter integration.
 func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	logrusLogger := NewLogger(logger)
 
-	exp, err := exporter.New(&exporter.Opts{
+	exp := exporter.New(&exporter.Opts{
 		URI:                    string(c.URI),
 		Logger:                 logrusLogger,
 		DisableDefaultRegistry: true,
@@ -63,9 +63,6 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		// configurable in the future.
 		CompatibleMode: true,
 	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create mongodb_exporter: %w", err)
-	}
 
 	return integrations.NewHandlerIntegration(c.Name(), exp.Handler()), nil
 }

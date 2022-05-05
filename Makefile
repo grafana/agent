@@ -8,6 +8,7 @@ SHELL = /usr/bin/env bash
 # Docker image info.
 IMAGE_PREFIX ?= grafana
 IMAGE_BRANCH_TAG ?= main
+DOCKER_OPTS ?= -it
 
 ifeq ($(RELEASE_TAG),)
 IMAGE_TAG ?= $(shell ./tools/image-tag)
@@ -18,9 +19,11 @@ else
 IMAGE_TAG ?= $(RELEASE_TAG)
 
 # If $RELEASE_TAG is from a stable release we want to update :latest instead of
-# a branch.
+# a branch. Otherwise, we want to re-use the versioned tag name.
 ifeq (,$(findstring -rc.,$(RELEASE_TAG)))
 IMAGE_BRANCH_TAG = latest
+else
+IMAGE_BRANCH_TAG = $(RELEASE_TAG)
 endif
 
 endif
@@ -39,12 +42,13 @@ $(if $(filter $(1),linux/amd64),export CGO_ENABLED=1 GOOS=linux GOARCH=amd64, \
 $(if $(filter $(1),linux/arm64),export CGO_ENABLED=1 GOOS=linux GOARCH=arm64, \
 $(if $(filter $(1),linux/arm/v7),export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7, \
 $(if $(filter $(1),linux/arm/v6),export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6, \
+$(if $(filter $(1),linux/ppc64le),export CGO_ENABLED=1 GOOS=linux GOARCH=ppc64le, \
 $(if $(filter $(1),darwin/amd64),export CGO_ENABLED=1 GOOS=darwin  GOARCH=amd64, \
 $(if $(filter $(1),darwin/arm64),export CGO_ENABLED=1 GOOS=darwin GOARCH=arm64, \
 $(if $(filter $(1),windows),export CGO_ENABLED=1 GOOS=windows GOARCH=amd64, \
 $(if $(filter $(1),mipls),export CGO_ENABLED=1 GOOS=linux GOARCH=mipsle, \
 $(if $(filter $(1),freebsd),export CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64, $(error invalid flag $(1))) \
-)))))))))
+))))))))))
 endef
 
 ALL_CGO_BUILD_FLAGS = $(call SetBuildVarsConditional,$(TARGETPLATFORM))
@@ -126,11 +130,11 @@ endif
 
 # seego is used by default when running bare make commands such as `make dist` this uses an image that has all the necessary libraries to cross build
 #	when using drone the docker in docker is more problematic so instead drone uses seego has the base image then calls make running "raw" commands
-seego = docker run --rm -t $(MOD_MOUNT) -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABLED=$$CGO_ENABLED" -e "GOOS=$$GOOS" -e "GOARCH=$$GOARCH" -e "GOARM=$$GOARM" -e "GOMIPS=$$GOMIPS"  grafana/agent/seego
+seego = docker run --init --rm $(DOCKER_OPTS) $(MOD_MOUNT) -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABLED=$$CGO_ENABLED" -e "GOOS=$$GOOS" -e "GOARCH=$$GOARCH" -e "GOARM=$$GOARM" -e "GOMIPS=$$GOMIPS"  grafana/agent/seego
 docker-build = docker build $(DOCKER_BUILD_FLAGS)
 ifeq ($(CROSS_BUILD),true)
 DOCKERFILE = Dockerfile.buildx
-docker-build = docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7 $(DOCKER_BUILD_FLAGS)
+docker-build = docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7,linux/ppc64le $(DOCKER_BUILD_FLAGS)
 endif
 
 # we want to override the default seego behavior. Drone always builds locally inside seego and if build in container is false then use
@@ -149,7 +153,7 @@ crds: build-image/.uptodate
 ifeq ($(BUILD_IN_CONTAINER),true)
 	mkdir -p $(shell pwd)/.pkg
 	mkdir -p $(shell pwd)/.cache
-	docker run -i \
+	docker run --init --rm $(DOCKER_OPTS) \
 		-v $(shell pwd)/.cache:/go/cache \
 		-v $(shell pwd)/.pkg:/go/pkg \
 		-v $(shell pwd):/src/agent \
@@ -173,7 +177,7 @@ touch-protos:
 ifeq ($(BUILD_IN_CONTAINER),true)
 	mkdir -p $(shell pwd)/.pkg
 	mkdir -p $(shell pwd)/.cache
-	docker run -i \
+	docker run --init --rm $(DOCKER_OPTS) \
 		-v $(shell pwd)/.cache:/go/cache \
 		-v $(shell pwd)/.pkg:/go/pkg \
 		-v $(shell pwd):/src/agent \
@@ -287,7 +291,7 @@ dist: dist-agent dist-agentctl dist-packages
 # BEGIN AGENT DIST #
 ####################
 
-dist-agent: seego dist/agent-linux-amd64 dist/agent-linux-arm64 dist/agent-linux-armv6 dist/agent-linux-armv7 dist/agent-darwin-amd64 dist/agent-darwin-arm64 dist/agent-windows-amd64.exe dist/agent-freebsd-amd64 dist/agent-windows-installer.exe
+dist-agent: seego dist/agent-linux-amd64 dist/agent-linux-arm64 dist/agent-linux-armv6 dist/agent-linux-armv7 dist/agent-linux-ppc64le dist/agent-darwin-amd64 dist/agent-darwin-arm64 dist/agent-windows-amd64.exe dist/agent-freebsd-amd64 dist/agent-windows-installer.exe
 dist/agent-linux-amd64: seego
 	$(call SetBuildVarsConditional,linux/amd64) ;      $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
@@ -299,6 +303,9 @@ dist/agent-linux-armv6: seego
 
 dist/agent-linux-armv7: seego
 	$(call SetBuildVarsConditional,linux/arm/v7) ;     $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+
+dist/agent-linux-ppc64le: seego
+	$(call SetBuildVarsConditional,linux/ppc64le) ;    $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
 dist/agent-linux-mipsle: seego
 	$(call SetBuildVarsConditional,linux/mipsle) ;     $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
@@ -317,7 +324,7 @@ dist/agent-windows-installer.exe: dist/agent-windows-amd64.exe
 	cp LICENSE ./packaging/windows
 ifeq ($(BUILD_IN_CONTAINER),true)
 	docker build -t windows_installer ./packaging/windows
-	docker run --rm -t -v "${PWD}:/home" -e VERSION=${RELEASE_TAG} windows_installer
+	docker run --init --rm $(DOCKER_OPTS) -v "${PWD}:/home" -e VERSION=${RELEASE_TAG} windows_installer
 else
 
 	makensis -V4 -DVERSION=${RELEASE_TAG} -DOUT="../../dist/grafana-agent-installer.exe" ./packaging/windows/install_script.nsis
@@ -343,6 +350,9 @@ dist/agentctl-linux-armv6: seego
 
 dist/agentctl-linux-armv7: seego
 	$(call SetBuildVarsConditional,linux/arm/v7);   $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+
+dist/agentctl-linux-ppc64le: seego
+	$(call SetBuildVarsConditional,linux/ppc64le);  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 dist/agentctl-linux-mipsle: seego
 	$(call SetBuildVarsConditional,linux/mipsle);   $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
@@ -395,11 +405,11 @@ dist-packages: dist-packages-amd64 dist-packages-arm64 dist-packages-armv6 dist-
 
 ifeq ($(BUILD_IN_CONTAINER), true)
 
-container_make = docker run --rm \
+container_make = docker run --init --rm $(DOCKER_OPTS) \
 	-v $(shell pwd):/src/agent:delegated \
 	-e RELEASE_TAG=$(RELEASE_TAG) \
 	-e SRC_PATH=/src/agent \
-	-i $(BUILD_IMAGE)
+	$(BUILD_IMAGE)
 
 dist-packages-amd64: enforce-release-tag dist/agent-linux-amd64 dist/agentctl-linux-amd64 build-image/.uptodate
 	$(container_make) $@;
@@ -409,6 +419,8 @@ dist-packages-armv6: enforce-release-tag dist/agent-linux-armv6 dist/agentctl-li
 	$(container_make) $@;
 dist-packages-armv7: enforce-release-tag dist/agent-linux-armv7 dist/agentctl-linux-armv7 build-image/.uptodate
 	$(container_make) $@;
+dist-packages-ppc64le: enforce-release-tag dist/agent-linux-ppc64le dist/agentctl-linux-ppc64le build-image/.uptodate
+	$(container_make) $@;
 
 else
 package_base = ./dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE)
@@ -416,6 +428,7 @@ dist-packages-amd64: $(package_base).amd64.deb $(package_base).amd64.rpm
 dist-packages-arm64: $(package_base).arm64.deb $(package_base).arm64.rpm
 dist-packages-armv6: $(package_base).armv6.deb
 dist-packages-armv7: $(package_base).armv7.deb $(package_base).armv7.rpm
+dist-packages-ppc64le: $(package_base).ppc64el.deb $(package_base).ppc64le.rpm
 
 ENVIRONMENT_FILE_rpm := /etc/sysconfig/grafana-agent
 ENVIRONMENT_FILE_deb := /etc/default/grafana-agent
@@ -431,6 +444,8 @@ define generate_fpm =
 		-t $(1) \
 		--after-install packaging/$(1)/control/postinst \
 		--before-remove packaging/$(1)/control/prerm \
+		--config-files /etc/grafana-agent.yaml \
+		--config-files $(ENVIRONMENT_FILE_$(1)) \
 		--package $(4) \
 			dist/agent-linux-$(3)=/usr/bin/grafana-agent \
 			dist/agentctl-linux-$(3)=/usr/bin/grafana-agentctl \
@@ -449,6 +464,7 @@ RPM_DEPS := $(wildcard packaging/rpm/**/*) packaging/grafana-agent.yaml
 # agent arm64, deb arm64, rpm aarch64
 # agent armv7, deb armhf, rpm armhfp
 # agent armv6, deb armhf, (No RPM for armv6)
+# agent ppc64le, deb ppc64el, rpm ppc64le
 #
 # These targets require the agent/agentctl binaries to have already been built
 # with seego. Since this usually runs inside of a Docker Container, we can't
@@ -461,6 +477,8 @@ $(PACKAGE_PREFIX).armv7.deb: $(DEB_DEPS)
 	$(call generate_fpm,deb,armhf,armv7,$@)
 $(PACKAGE_PREFIX).armv6.deb: $(DEB_DEPS)
 	$(call generate_fpm,deb,armhf,armv6,$@)
+$(PACKAGE_PREFIX).ppc64el.deb: $(DEB_DEPS)
+	$(call generate_fpm,deb,ppc64el,ppc64le,$@)
 
 $(PACKAGE_PREFIX).amd64.rpm: $(RPM_DEPS)
 	$(call generate_fpm,rpm,x86_64,amd64,$@)
@@ -468,15 +486,17 @@ $(PACKAGE_PREFIX).arm64.rpm: $(RPM_DEPS)
 	$(call generate_fpm,rpm,aarch64,arm64,$@)
 $(PACKAGE_PREFIX).armv7.rpm: $(RPM_DEPS)
 	$(call generate_fpm,rpm,armhfp,armv7,$@)
+$(PACKAGE_PREFIX).ppc64le.rpm: $(RPM_DEPS)
+	$(call generate_fpm,rpm,ppc64le,ppc64le,$@)
 
 endif
 
 enforce-release-tag:
 	sh -c '[ -n "${RELEASE_TAG}" ] || (echo \$$RELEASE_TAG environment variable not set; exit 1)'
 
-test-packages: enforce-release-tag seego dist-packages-amd64 packaging/centos-systemd/.uptodate packaging/debian-systemd/.uptodate
-	./tools/test-packages $(IMAGE_PREFIX) $(PACKAGE_VERSION) $(PACKAGE_RELEASE)
-.PHONY: test-package
+test-packages:
+	go test -tags=packaging -p=4 ./packaging
+.PHONY: test-packages
 
 clean-dist:
 	rm -rf dist

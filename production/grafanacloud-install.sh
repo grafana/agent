@@ -50,7 +50,7 @@ PACKAGE_SYSTEM=${PACKAGE_SYSTEM:=}
 #
 # Global constants.
 #
-RELEASE_VERSION="0.23.0"
+RELEASE_VERSION="0.24.1"
 
 RELEASE_URL="https://github.com/grafana/agent/releases/download/v${RELEASE_VERSION}"
 DEB_URL="${RELEASE_URL}/grafana-agent-${RELEASE_VERSION}-1.${ARCH}.deb"
@@ -108,7 +108,7 @@ detect_package_system() {
 
 # install_deb downloads and installs the deb package of the Grafana Agent.
 install_deb() {
-  curl -fsL "${DEB_URL}" -o /tmp/grafana-agent.deb || fatal 'Failed to download package'
+  curl -fL# "${DEB_URL}" -o /tmp/grafana-agent.deb || fatal 'Failed to download package'
   sudo dpkg -i /tmp/grafana-agent.deb
   rm /tmp/grafana-agent.deb
 }

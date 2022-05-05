@@ -201,7 +201,7 @@ min_ready_duration: 0s
 
 	// Apply default values by registering to a fake flag set.
 	var lc ring.LifecyclerConfig
-	lc.RegisterFlagsWithPrefix("", flag.NewFlagSet("", flag.ContinueOnError))
+	lc.RegisterFlagsWithPrefix("", flag.NewFlagSet("", flag.ContinueOnError), log.NewNopLogger())
 
 	err := yaml.Unmarshal([]byte(cfgText), &lc)
 	require.NoError(t, err)

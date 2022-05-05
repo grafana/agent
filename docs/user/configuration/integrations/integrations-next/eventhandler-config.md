@@ -71,13 +71,16 @@ Configuration reference:
 
   ## If you would like to limit events to a given namespace, use this parameter.
   [namespace: <string>]
+
+  ## Configure extra labels to add to log lines
+  extra_labels:
+    { <string>: <string> }
 ```
 
 Sample agent config:
 
 ```yaml
 server:
-  http_listen_port: 12345
   log_level: info
 
 integrations:
@@ -94,58 +97,8 @@ logs:
         password: YOUR_LOKI_API_KEY
       external_labels:
         cluster: "cloud"
-        job: "integrations/kubernetes/eventhandler"
     positions:
       filename: /tmp/positions0.yaml
-  ## The following stanza is optional and used to configure another client to forward
-  ## Agent's logs to Loki in a K8s environment (using the manifests found below)
-  - name: eventhandler_logs
-    clients:
-    - url: https://logs-prod-us-central1.grafana.net/api/prom/push
-      basic_auth:
-        username: YOUR_LOKI_USER
-        password: YOUR_LOKI_API_KEY
-    scrape_configs:
-    - job_name: eventhandler_logs
-      kubernetes_sd_configs:
-        - role: pod
-      pipeline_stages:
-        - docker: {}
-      relabel_configs:
-        - source_labels:
-            - __meta_kubernetes_pod_node_name
-          target_label: __host__
-        - action: keep
-          regex: grafana-agent-eventhandler-*
-          source_labels:
-            - __meta_kubernetes_pod_name
-        - action: labelmap
-          regex: __meta_kubernetes_pod_label_(.+)
-        - action: replace
-          replacement: $1
-          source_labels:
-            - __meta_kubernetes_pod_name
-          target_label: job
-        - action: replace
-          source_labels:
-            - __meta_kubernetes_namespace
-          target_label: namespace
-        - action: replace
-          source_labels:
-            - __meta_kubernetes_pod_name
-          target_label: pod
-        - action: replace
-          source_labels:
-            - __meta_kubernetes_pod_container_name
-          target_label: container
-        - replacement: /var/log/pods/*$1/*.log
-          separator: /
-          source_labels:
-            - __meta_kubernetes_pod_uid
-            - __meta_kubernetes_pod_container_name
-          target_label: __path__
-    positions:
-      filename: /tmp/positions1.yaml
 ```
 
 Be sure to replace the Loki credentials with the appropriate values.
@@ -206,7 +159,6 @@ apiVersion: v1
 data:
   agent.yaml: |
     server:
-      http_listen_port: 12345
       log_level: info
 
     integrations:
@@ -223,56 +175,8 @@ data:
             password: YOUR_LOKI_API_KEY
           external_labels:
             cluster: "cloud"
-            job: "integrations/kubernetes/eventhandler"
         positions:
           filename: /tmp/positions0.yaml
-      - name: eventhandler_logs
-        clients:
-        - url: https://logs-prod-us-central1.grafana.net/api/prom/push
-          basic_auth:
-            username: YOUR_LOKI_USER
-            password: YOUR_LOKI_API_KEY
-        scrape_configs:
-        - job_name: eventhandler_logs
-          kubernetes_sd_configs:
-            - role: pod
-          pipeline_stages:
-            - docker: {}
-          relabel_configs:
-            - source_labels:
-                - __meta_kubernetes_pod_node_name
-              target_label: __host__
-            - action: keep
-              regex: grafana-agent-eventhandler-*
-              source_labels:
-                - __meta_kubernetes_pod_name
-            - action: labelmap
-              regex: __meta_kubernetes_pod_label_(.+)
-            - action: replace
-              replacement: $1
-              source_labels:
-                - __meta_kubernetes_pod_name
-              target_label: job
-            - action: replace
-              source_labels:
-                - __meta_kubernetes_namespace
-              target_label: namespace
-            - action: replace
-              source_labels:
-                - __meta_kubernetes_pod_name
-              target_label: pod
-            - action: replace
-              source_labels:
-                - __meta_kubernetes_pod_container_name
-              target_label: container
-            - replacement: /var/log/pods/*$1/*.log
-              separator: /
-              source_labels:
-                - __meta_kubernetes_pod_uid
-                - __meta_kubernetes_pod_container_name
-              target_label: __path__
-        positions:
-          filename: /tmp/positions1.yaml
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -298,6 +202,7 @@ spec:
         args:
         - -config.file=/etc/agent/agent.yaml
         - -enable-features=integrations-next
+        - -server.http.address=0.0.0.0:12345
         command:
         - /bin/agent
         env:

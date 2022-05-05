@@ -28,7 +28,11 @@ The Windows installer is provided as a [release asset](https://github.com/grafan
 
 #### Binary
 
-We provide precompiled binary executables for the most common operating systems. Choose from the assets below for your matching operating system. Example for the `linux` operating system on `amd64`:
+We provide precompiled binary executables for the most common operating systems. Choose from the assets below for your matching operating system. 
+
+Note: ppc64le builds are currently considered secondary release targets and do not have the same level of support and testing as other platforms.
+
+Example for the `linux` operating system on `amd64`:
 
 ```bash
 # download the binary

@@ -26,7 +26,7 @@ docker run \
   -v "/proc:/host/proc:ro,rslave" \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
-  grafana/agent:v0.23.0 \
+  grafana/agent:v0.24.1 \
   --config.file=/etc/agent-config/agent.yaml
 ```
 
@@ -36,7 +36,6 @@ the `remote_write` settings with settings appropriate for you:
 ```yaml
 server:
   log_level: info
-  http_listen_port: 12345
 
 metrics:
   wal_directory: /tmp/agent
@@ -66,7 +65,7 @@ metadata:
   name: agent
 spec:
   containers:
-  - image: grafana/agent:v0.23.0
+  - image: grafana/agent:v0.24.1
     name: agent
     args:
     - --config.file=/etc/agent-config/agent.yaml

@@ -1,7 +1,10 @@
 package windows_exporter //nolint:golint
+
 import (
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
+	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
+	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 )
 
 // DefaultConfig holds the default settings for the windows_exporter integration.
@@ -14,6 +17,7 @@ var DefaultConfig = Config{
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeSingleton, metricsutils.NewNamedShim("windows"))
 }
 
 // Config controls the windows_exporter integration.

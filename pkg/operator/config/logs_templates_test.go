@@ -476,7 +476,7 @@ func TestPodLogsConfig(t *testing.T) {
 					},
 					Spec: gragent.PodLogsSpec{
 						RelabelConfigs: []*prom_v1.RelabelConfig{{
-							SourceLabels: []string{"input_a", "input_b"},
+							SourceLabels: []prom.LabelName{"input_a", "input_b"},
 							Separator:    ";",
 							TargetLabel:  "target_a",
 							Regex:        "regex",
@@ -556,7 +556,7 @@ func TestLogsConfig(t *testing.T) {
 				"global": &gragent.LogsSubsystemSpec{
 					Clients: []gragent.LogsClientSpec{{URL: "global"}},
 				},
-				"instance": &LogInstance{
+				"instance": &gragent.LogsDeployment{
 					Instance: &gragent.LogsInstance{
 						ObjectMeta: metav1.ObjectMeta{
 							Namespace: "inst",
@@ -585,7 +585,7 @@ func TestLogsConfig(t *testing.T) {
 				"global": &gragent.LogsSubsystemSpec{
 					Clients: []gragent.LogsClientSpec{{URL: "global"}},
 				},
-				"instance": &LogInstance{
+				"instance": &gragent.LogsDeployment{
 					Instance: &gragent.LogsInstance{
 						ObjectMeta: metav1.ObjectMeta{
 							Namespace: "inst",
@@ -614,7 +614,7 @@ func TestLogsConfig(t *testing.T) {
 			input: map[string]interface{}{
 				"agent":  agent,
 				"global": &gragent.LogsSubsystemSpec{},
-				"instance": &LogInstance{
+				"instance": &gragent.LogsDeployment{
 					Instance: &gragent.LogsInstance{
 						ObjectMeta: metav1.ObjectMeta{Namespace: "inst", Name: "default"},
 					},
@@ -665,7 +665,7 @@ func TestLogsConfig(t *testing.T) {
 			input: map[string]interface{}{
 				"agent":  agent,
 				"global": &gragent.LogsSubsystemSpec{},
-				"instance": &LogInstance{
+				"instance": &gragent.LogsDeployment{
 					Instance: &gragent.LogsInstance{
 						ObjectMeta: metav1.ObjectMeta{Namespace: "inst", Name: "default"},
 						Spec: gragent.LogsInstanceSpec{

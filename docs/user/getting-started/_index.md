@@ -26,7 +26,7 @@ See the list of [Community Projects](#community-projects) for the community-driv
 docker run \
   -v /tmp/agent:/etc/agent/data \
   -v /path/to/config.yaml:/etc/agent/agent.yaml \
-  grafana/agent:v0.23.0
+  grafana/agent:v0.24.1
 ```
 
 Replace `/tmp/agent` with the folder you wish to store WAL data in. WAL data is
@@ -40,7 +40,7 @@ to the end of the `docker run` command:
 - `--config.file=path/to/agent.yaml`, replacing the argument with the full path
   to your Agent's YAML configuration file.
 
-- `--prometheus.wal-directory=/tmp/agent/data`, replacing `/tmp/agent/data` with
+- `--metrics.wal-directory=/tmp/agent/data`, replacing `/tmp/agent/data` with
   the directory you wish to use for storing data. Note that `/tmp` may get
   deleted by most operating systems after a reboot.
 

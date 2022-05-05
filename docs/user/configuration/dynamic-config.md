@@ -21,19 +21,23 @@ on what functions are available.
 
 ## Configuration
 
-Location of the dynamic configuration is used via the feature flag `dynamic-config`, then it will use `-config.dynamic-config-path` to
-load the configuration for dynamic configuration.
+Dynamic configuration files can be used by passing `-config.file.type=dynamic
+-enable-features=dynamic-config,integrations-next`. When these flags are
+passed, the file referred to `-config.file` will be loaded as a dynamic
+configuration file.
+
+Dynamic configuration files are YAML which conform the following schema:
 
 ```yaml
-# Sources to pull template values 
-datasources: 
+# Sources to pull template values
+datasources:
   [- <sources_config>]
 
 # Locations to use searching for templates, the system does NOT look into subdirectories. Follows gomplate schema
 # from [gomplate datasources](https://docs.gomplate.ca/datasources/). File and S3/GCP templates are currently supported
-template_paths: 
+template_paths:
   [ - string ]
-  
+
 # Filters allow you to override the default naming convention
 
 agent_filter:            string # defaults to agent-*.yml
@@ -43,14 +47,14 @@ metrics_instance_filter: string # defaults to metrics_instances-*.yml
 integrations_filter:     string # defaults to integrations-*.yml
 logs_filter:             string # defaults to logs-*.yml
 traces_filter:           string # defaults to traces-*.yml
-``` 
+```
 
 ### sources_config
 ```yaml
 # Name of the source to use when templating
 name: string
 
-# Path to datasource using schema from [gomplate datasources](https://docs.gomplate.ca/datasources/) 
+# Path to datasource using schema from [gomplate datasources](https://docs.gomplate.ca/datasources/)
 url: string
 
 ```
@@ -115,7 +119,7 @@ The default filter is `metrics_instances-*.yml`. Any metric instances are append
 
 ### Integrations
 
-The default filter is `integrations-*.yml`, these support more than one file, and multiple integrations can be defined in a file. Do not assume any order of loading for integrations. For any integration that is a singleton, loading multiple of those will result in an error. 
+The default filter is `integrations-*.yml`, these support more than one file, and multiple integrations can be defined in a file. Do not assume any order of loading for integrations. For any integration that is a singleton, loading multiple of those will result in an error.
 
 [Reference]({{< relref "./integrations/" >}})
 
