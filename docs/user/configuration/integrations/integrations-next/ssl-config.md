@@ -11,7 +11,7 @@ which is an embedded version of
 
 ## Quick configuration example
 
-To get started, define SSL targets in Grafana agent's integration block:
+Define SSL targets in Grafana agent's integration block:
 
 ```yaml
 prometheus:
