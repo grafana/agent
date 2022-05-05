@@ -172,12 +172,15 @@ func TestHostFilter_PatchSD(t *testing.T) {
 	honor_timestamps: true
 	metrics_path: /metrics
 	scheme: http
+	enable_http2: true
 	follow_redirects: true
 	kubernetes_sd_configs:
 		- role: service
 		  kubeconfig_file: ""
+		  enable_http2: true
 		  follow_redirects: true
 		- role: pod
+			enable_http2: true
 			follow_redirects: true
 			kubeconfig_file: ""
 			selectors:

@@ -31,6 +31,7 @@ func TestMarshal_UnmarshalConfig_RetainSecrets(t *testing.T) {
 	cfg := `name: test
 scrape_configs:
 - job_name: local_scrape
+  enable_http2: true
   follow_redirects: true
   honor_timestamps: true
   metrics_path: /metrics
@@ -59,6 +60,7 @@ remote_write:
     batch_send_deadline: 5s
     min_backoff: 30ms
     max_backoff: 100ms
+  enable_http2: true
   follow_redirects: true
   metadata_config:
     max_samples_per_send: 500
@@ -84,6 +86,7 @@ func TestMarshal_UnmarshalConfig_ScrubSecrets(t *testing.T) {
 	cfg := `name: test
 scrape_configs:
 - job_name: local_scrape
+  enable_http2: true
   follow_redirects: true
   honor_timestamps: true
   metrics_path: /metrics
@@ -112,6 +115,7 @@ remote_write:
     batch_send_deadline: 5s
     min_backoff: 30ms
     max_backoff: 100ms
+  enable_http2: true
   follow_redirects: true
   metadata_config:
     max_samples_per_send: 500
