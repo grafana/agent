@@ -6,7 +6,7 @@ title = "ssl_exporter_config"
 
 The `ssl` block configures the `ssl` integration,
 which is an embedded version of
-[`ssl_exporter`](https://github.com/ribbybibby/ssl_exporter). This allows collection of SSL certificate metrics from hosts and files.
+[`ssl_exporter`](https://github.com/ribbybibby/ssl_exporter). This enables the collection of SSL certificate metrics from hosts and files.
 
 
 ## Quick configuration example
