@@ -55,7 +55,7 @@ var DefaultConfig = Config{
 	Metrics:               metrics.DefaultConfig,
 	Integrations:          DefaultVersionedIntegrations,
 	EnableConfigEndpoints: false,
-	EnableUsageReport:     false,
+	EnableUsageReport:     true,
 }
 
 // Config contains underlying configurations for the agent
