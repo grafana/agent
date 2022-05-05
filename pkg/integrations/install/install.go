@@ -21,6 +21,7 @@ import (
 	_ "github.com/grafana/agent/pkg/integrations/process_exporter"       // register process_exporter
 	_ "github.com/grafana/agent/pkg/integrations/redis_exporter"         // register redis_exporter
 	_ "github.com/grafana/agent/pkg/integrations/snmp_exporter"          // register snmp_exporter
+	_ "github.com/grafana/agent/pkg/integrations/ssl_exporter"           // register ssl_exporter
 	_ "github.com/grafana/agent/pkg/integrations/statsd_exporter"        // register statsd_exporter
 	_ "github.com/grafana/agent/pkg/integrations/windows_exporter"       // register windows_exporter
 
@@ -32,4 +33,5 @@ import (
 	_ "github.com/grafana/agent/pkg/integrations/v2/app_agent_receiver" // register app_agent_receiver
 	_ "github.com/grafana/agent/pkg/integrations/v2/eventhandler"
 	_ "github.com/grafana/agent/pkg/integrations/v2/snmp_exporter"
+	_ "github.com/grafana/agent/pkg/integrations/v2/ssl_exporter" // register ssl_exporter
 )
