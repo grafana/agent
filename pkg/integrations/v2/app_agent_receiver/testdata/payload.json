@@ -236,6 +236,8 @@
       },
       "user": {
           "username": "domasx2",
+          "id": "123",
+          "email": "geralt@kaermorhen.org",
           "attributes": {
               "foo": "bar"
           }
