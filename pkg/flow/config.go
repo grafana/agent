@@ -1,7 +1,7 @@
 package flow
 
 import (
-	"github.com/grafana/agent/pkg/flow/component"
+	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/config"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"

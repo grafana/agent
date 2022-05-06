@@ -5,7 +5,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/grafana/agent/pkg/flow/component"
+	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/stretchr/testify/require"
 )

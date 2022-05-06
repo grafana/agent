@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/flow/component"
+	"github.com/grafana/agent/component"
 )
 
 func init() {

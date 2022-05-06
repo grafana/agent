@@ -3,7 +3,7 @@ package flow
 import (
 	"testing"
 
-	"github.com/grafana/agent/pkg/flow/component"
+	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/internal/testcomponents"
 	"github.com/grafana/agent/pkg/util"
