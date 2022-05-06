@@ -28,7 +28,7 @@ so some Prometheus features, such as querying, local storage, recording rules,
 and alerts aren't present. `remote_write`, service discovery, and relabeling
 rules are included.
 
-The Grafana Agent has a concept of an "instance", each of which acts as
+The Grafana Agent has a concept of an "instance" each of which acts as
 its own mini Prometheus agent with its own `scrape_configs` section and
 `remote_write` rules. More than one instance is useful when you want to have
 separate configurations that write to two different locations without
