@@ -5,25 +5,25 @@ weight = 1
 
 # Grafana Agent
 
-Grafana Agent collects and forwards telemetry data to the Grafana Stack stack, Grafana Cloud, or Grafana Enterprise, where your data can then be analyzed. You can install Grafana Agent on Kubernetes and Docker, or as a system process for Linux, macOS, and Windows machines.  
+Grafana Agent collects and forwards telemetry data to open source deployments of the LGTM (Loki, Grafana, Tempo, Mimir) Stack, Grafana Cloud, or Grafana Enterprise, where your data can then be analyzed. You can install Grafana Agent on Kubernetes and Docker, or as a system process for Linux, macOS, and Windows machines.  
 
 The Grafana Agent is open source and its source code is available on GitHub at (https://github.com/grafana/agent).
 
 Grafana Agent is for engineers, operators, or administrators who want to collect and forward telemetry data for analysis and on-call alerting. Those operating Grafana Agent must install and configure Grafana Agent to properly collect telemetry data and monitor the health of running agents.
 
-There are other ways of sending metrics, logs and traces to the Grafana Stack or Grafana Cloud or, but there are a few advantages of using the Grafana Agent. These features are outlined below. 
-
 ## Grafana Agent features
+
+There are other ways of sending metrics, logs and traces to the Grafana Stack or Grafana Cloud or, but there are a few advantages of using the Grafana Agent. These features are outlined below.
 
 * Provides a one-stop solution for collecting metrics, logs, and traces
 * Collects out-of-the-box telemetry from popular projects like MySQL through integrations
 * Works seamlessly with the Grafana Stack. Alternatively, metrics can be sent to any Prometheus-compatible endpoint, and traces can be sent to any OTLP-compatible endpoint.  
 * Offers new solutions to help scale metrics collection like host_filtering and sharding 
-* Provides the Grafana Agent Operator, which enables individual teams to manage their own configurations through PodMonitors, ServiceMonitors, and Probes.
+* Provides the Grafana Agent Operator, which enables individual teams to manage their configurations through PodMonitors, ServiceMonitors, and Probes.
 
 ## Metrics
 
-Unlike Prometheus, the Grafana Agent _just_ targets `remote_write`,
+Unlike Prometheus, the Grafana Agent targets `remote_write`,
 so some Prometheus features, such as querying, local storage, recording rules,
 and alerts aren't present. `remote_write`, service discovery, and relabeling
 rules are included.
@@ -31,8 +31,8 @@ rules are included.
 The Grafana Agent has a concept of an "instance", each of which acts as
 its own mini Prometheus agent with their own `scrape_configs` section and
 `remote_write` rules. More than one instance is useful when you want to have
-completely separate configurations that write to two different locations without
-needing to worry about advanced metric relabeling rules. Multiple instances also
+separate configurations that write to two different locations without
+needing to consider advanced metric relabeling rules. Multiple instances also
 come into play for the [Scraping Service Mode]({{< relref "./scraping-service" >}}).
 
 The Grafana Agent for collecting metrics can be deployed in three modes:
@@ -63,26 +63,27 @@ will be silently ignored and not scraped.
 To use _Host Filtering mode_, you set a `host_filter` flag on a specific
 instance inside the Agent's configuration file. When you set this flag, the
 instance only scrapes metrics from targets that are running on the same
-machine as the instance itself. This is extremely useful for migrating to sharded
+machine. This is extremely useful for migrating to sharded
 Prometheus instances in a Kubernetes cluster, where the Agent can be deployed as
 a DaemonSet and distribute memory requirements across multiple nodes.
 
 Note that _Host Filtering_ mode and sharding your instances means that if an
-Agent's metrics are being sent to an alerting system, alerts for that Agent may
+Agent's metrics are being sent to an alerting system, alerts for that Agent might
 not be able to be generated if the entire node has problems. This changes the
 semantics of failure detection, and alerts would have to be configured to catch
 agents not reporting in.
 
-For more information on the host filtering mode, see the [operation
-guide]({{< relref "./operation-guide#host-filtering-beta" >}}).
+
+For more information on the host filtering mode, refer to the [operation
+guide]({{< relref "./operation-guide#host-filtering" >}}).
 
 ### Scraping Service 
 _Scraping Service Mode_ 
 clusters a subset of agents. It acts as a go-between for the drop-in mode
 (which does no automatic sharding) and `host_filter` mode (which forces sharding
 by node). The Scraping Service Mode clusters a set of agents with a set of
-shared configs and distributes the scrape load automatically between them. For
-more information on Scraping Service, see ({{< relref "./scraping-service" >}}).
+shared configurations and distributes the scrape load automatically between them. For
+more information on Scraping Service, see [Scraping Service]({{< relref "./scraping-service" >}}).
 
 ## Logs
 
@@ -97,6 +98,6 @@ developer team.
 Grafana Agent collects traces and forwards them to Tempo using its
 `traces` subsystem. This is done using the upstream [OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector).
 Agent can ingest OpenTelemetry, OpenCensus, Jaeger, Zipkin, or Kafka spans.
-For more information on how to configure, see [receivers]({{< relref "./configuration/traces-config.md" >}}).
+For more information on how to configure, refer to [receivers]({{< relref "./configuration/traces-config.md" >}}).
 The agent is capable of exporting to any OpenTelemetry GRPC compatible system.
 
