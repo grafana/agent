@@ -1369,20 +1369,30 @@ service:
 }
 
 func assertConfigEqual(t *testing.T, cfg1, cfg2 *config.Config) {
-	for cid, receiver := range cfg1.Receivers {
-		assert.Equal(t, receiver, cfg2.Receivers[cid])
+	for cid, receiver1 := range cfg1.Receivers {
+		receiver2, ok := cfg2.Receivers[cid]
+		assert.True(t, ok)
+		assert.Equal(t, receiver1, receiver2)
 	}
-	for cid, exporter := range cfg1.Exporters {
-		assert.Equal(t, exporter, cfg2.Exporters[cid])
+	for cid, exporter1 := range cfg1.Exporters {
+		exporter2, ok := cfg2.Exporters[cid]
+		assert.True(t, ok)
+		assert.Equal(t, exporter1, exporter2)
 	}
-	for cid, processor := range cfg1.Processors {
-		assert.Equal(t, processor, cfg2.Processors[cid])
+	for cid, processor1 := range cfg1.Processors {
+		processor2, ok := cfg2.Processors[cid]
+		assert.True(t, ok)
+		assert.Equal(t, processor1, processor2)
 	}
-	for cid, extensions := range cfg1.Extensions {
-		assert.Equal(t, extensions, cfg2.Extensions[cid])
+	for cid, extension1 := range cfg1.Extensions {
+		extension2, ok := cfg2.Extensions[cid]
+		assert.True(t, ok)
+		assert.Equal(t, extension1, extension2)
 	}
-	for cid, pipeline := range cfg1.Service.Pipelines {
-		assert.Equal(t, pipeline, cfg2.Service.Pipelines[cid])
+	for cid, pipeline1 := range cfg1.Pipelines {
+		pipeline2, ok := cfg2.Pipelines[cid]
+		assert.True(t, ok)
+		assert.Equal(t, pipeline1, pipeline2)
 	}
 	assert.Equal(t, cfg1.Service.Telemetry, cfg2.Service.Telemetry)
 	assert.Equal(t, cfg1.Service.Extensions, cfg2.Service.Extensions)
