@@ -43,7 +43,7 @@ The Grafana Agent for collecting metrics can be deployed in three modes:
 
 ### Prometheus `remote_write` drop-in
 The default deployment mode of the Grafana Agent is a _drop-in_
-replacement for Prometheus `remote_write`. The Agent will act similarly to a
+replacement for Prometheus `remote_write`. The Agent acts similarly to a
 single-process Prometheus, doing service discovery, scraping, and remote
 writing.
 
@@ -57,13 +57,13 @@ machine as the Grafana Agent process.
 2. Checks if the hostname of the agent matches the label value for `__address__`
    service-discovery-specific node labels against the discovered target.
 
-If the filter passes, the target is allowed to be scraped. Otherwise, the target
-will be silently ignored and not scraped.
+If the filter passes, the target is scraped. Otherwise, the target
+is ignored and not scraped.
 
 To use _Host Filtering mode_, you set a `host_filter` flag on a specific
 instance inside the Agent's configuration file. When you set this flag, the
 instance only scrapes metrics from targets that are running on the same
-machine. This is extremely useful for migrating to sharded
+machine. This is useful for migrating to sharded
 Prometheus instances in a Kubernetes cluster, where the Agent can be deployed as
 a DaemonSet and distribute memory requirements across multiple nodes.
 
