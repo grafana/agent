@@ -134,9 +134,7 @@ func (e *remoteWriteExporter) ConsumeMetrics(ctx context.Context, md pdata.Metri
 						continue // Only cumulative metrics are supported
 					}
 					dataPoints := metric.Histogram().DataPoints()
-					if err := e.handleHistogramDataPoints(metric.Name(), dataPoints); err != nil {
-						return fmt.Errorf("failed to process datapoint %s", err)
-					}
+					e.handleHistogramDataPoints(metric.Name(), dataPoints)
 				case pdata.MetricDataTypeSummary:
 					return fmt.Errorf("unsupported datapoint data type %s", metric.DataType())
 				default:
@@ -177,7 +175,7 @@ func (e *remoteWriteExporter) appendNumberDataPoint(dataPoint pdata.NumberDataPo
 	return nil
 }
 
-func (e *remoteWriteExporter) handleHistogramDataPoints(name string, dataPoints pdata.HistogramDataPointSlice) error {
+func (e *remoteWriteExporter) handleHistogramDataPoints(name string, dataPoints pdata.HistogramDataPointSlice) {
 	for ix := 0; ix < dataPoints.Len(); ix++ {
 		dataPoint := dataPoints.At(ix)
 		ts := e.timestamp()
@@ -205,7 +203,6 @@ func (e *remoteWriteExporter) handleHistogramDataPoints(name string, dataPoints 
 		infBucketLabels := e.createLabelSet(name, bucketSuffix, dataPoint.Attributes(), labels.Labels{{Name: leStr, Value: infBucket}})
 		e.appendDatapointForSeries(infBucketLabels, ts, float64(cumulativeCount))
 	}
-	return nil
 }
 
 func (e *remoteWriteExporter) appendDatapointForSeries(l labels.Labels, ts int64, v float64) {
