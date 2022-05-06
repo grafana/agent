@@ -7,7 +7,7 @@ weight = 1
 
 Grafana Agent collects and forwards telemetry data to open source deployments of the LGTM (Loki, Grafana, Tempo, Mimir) Stack, Grafana Cloud, or Grafana Enterprise, where your data can then be analyzed. You can install Grafana Agent on Kubernetes and Docker, or as a system process for Linux, macOS, and Windows machines.  
 
-The Grafana Agent is open source and its source code is available on GitHub at (https://github.com/grafana/agent).
+The Grafana Agent is open source and its source code is available on GitHub at https://github.com/grafana/agent.
 
 Grafana Agent is for engineers, operators, or administrators who want to collect and forward telemetry data for analysis and on-call alerting. Those operating Grafana Agent must install and configure Grafana Agent to properly collect telemetry data and monitor the health of running agents.
 
@@ -23,9 +23,9 @@ There are other ways of sending metrics, logs and traces to the Grafana Stack or
 
 ## Metrics
 
-Unlike Prometheus, the Grafana Agent targets `remote_write`,
+Grafana Agent focuses metrics support around Prometheus' remote_write protocol,
 so some Prometheus features, such as querying, local storage, recording rules,
-and alerts aren't present. `remote_write`, service discovery, and relabeling
+and alerts are not present. `remote_write`, service discovery, and relabeling
 rules are included.
 
 The Grafana Agent has a concept of an "instance" each of which acts as
