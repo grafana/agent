@@ -5,7 +5,7 @@ title = "ssl_exporter_config"
 # ssl config
 
 Use the `ssl` block to configure `ssl` integration.
-'ssl integration' is a embedded version of
+'ssl integration' is an embedded version of
 [`ssl_exporter`](https://github.com/ribbybibby/ssl_exporter). This enables the collection of SSL certificate metrics from hosts and files.
 
 
