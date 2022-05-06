@@ -1363,9 +1363,29 @@ service:
 			sortPipelines(actualConfig)
 			sortPipelines(expectedConfig)
 
-			assert.Equal(t, expectedConfig, actualConfig)
+			assertConfigEqual(t, actualConfig, expectedConfig)
 		})
 	}
+}
+
+func assertConfigEqual(t *testing.T, cfg1, cfg2 *config.Config) {
+	for cid, receiver := range cfg1.Receivers {
+		assert.Equal(t, receiver, cfg2.Receivers[cid])
+	}
+	for cid, exporter := range cfg1.Exporters {
+		assert.Equal(t, exporter, cfg2.Exporters[cid])
+	}
+	for cid, processor := range cfg1.Processors {
+		assert.Equal(t, processor, cfg2.Processors[cid])
+	}
+	for cid, extensions := range cfg1.Extensions {
+		assert.Equal(t, extensions, cfg2.Extensions[cid])
+	}
+	for cid, pipeline := range cfg1.Service.Pipelines {
+		assert.Equal(t, pipeline, cfg2.Service.Pipelines[cid])
+	}
+	assert.Equal(t, cfg1.Service.Telemetry, cfg2.Service.Telemetry)
+	assert.Equal(t, cfg1.Service.Extensions, cfg2.Service.Extensions)
 }
 
 func TestProcessorOrder(t *testing.T) {
