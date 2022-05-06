@@ -24,6 +24,8 @@ type graphContext struct {
 // newGraphContext creates a new graphContext.
 func newGraphContext(parent *hcl.EvalContext) *graphContext {
 	return &graphContext{
+		parent: parent,
+
 		components: make(map[string]*userComponent),
 		configs:    make(map[string]cty.Value),
 		exports:    make(map[string]cty.Value),
