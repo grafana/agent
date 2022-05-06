@@ -25,6 +25,8 @@ type PassthroughConfig struct {
 	Input string `hcl:"input,attr"`
 }
 
+// PassthroughExports describes exported fields for the
+// testcomponents.passthrough component.
 type PassthroughExports struct {
 	Output string `hcl:"output,optional"`
 }
@@ -36,6 +38,7 @@ type Passthrough struct {
 	log  log.Logger
 }
 
+// NewPassthrough creates a new passthrough component.
 func NewPassthrough(o component.Options, cfg PassthroughConfig) (*Passthrough, error) {
 	t := &Passthrough{opts: o, log: o.Logger}
 	if err := t.Update(cfg); err != nil {
@@ -54,7 +57,7 @@ func (t *Passthrough) Run(ctx context.Context) error {
 	return nil
 }
 
-// Run implements Component.
+// Update implements Component.
 func (t *Passthrough) Update(newConfig component.Config) error {
 	c := newConfig.(PassthroughConfig)
 

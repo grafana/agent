@@ -28,7 +28,7 @@ func (ll LogLevel) MarshalText() (text []byte, err error) {
 	return []byte(ll), nil
 }
 
-// MarshalText implements encoding.TextUnmarshaler.
+// UnmarshalText implements encoding.TextUnmarshaler.
 func (ll *LogLevel) UnmarshalText(text []byte) error {
 	switch LogLevel(text) {
 	case "":
@@ -62,7 +62,7 @@ func (ll LogFormat) MarshalText() (text []byte, err error) {
 	return []byte(ll), nil
 }
 
-// MarshalText implements encoding.TextUnmarshaler.
+// UnmarshalText implements encoding.TextUnmarshaler.
 func (ll *LogFormat) UnmarshalText(text []byte) error {
 	switch LogFormat(text) {
 	case "":

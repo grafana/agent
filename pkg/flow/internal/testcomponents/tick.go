@@ -28,6 +28,7 @@ type TickConfig struct {
 	Frequency time.Duration `hcl:"frequency,attr"`
 }
 
+// TickExports describes exported fields for the testcomponents.tick component.
 type TickExports struct {
 	Time time.Time `hcl:"tick_time,optional"`
 }
@@ -42,6 +43,7 @@ type Tick struct {
 	cfg    TickConfig
 }
 
+// NewTick creates a new testcomponents.tick component.
 func NewTick(o component.Options, cfg TickConfig) (*Tick, error) {
 	t := &Tick{opts: o, log: o.Logger}
 	if err := t.Update(cfg); err != nil {
@@ -73,7 +75,7 @@ func (t *Tick) getNextTick() time.Duration {
 	return t.cfg.Frequency
 }
 
-// Run implements Component.
+// Update implements Component.
 func (t *Tick) Update(newConfig component.Config) error {
 	t.cfgMut.Lock()
 	defer t.cfgMut.Unlock()

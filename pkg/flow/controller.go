@@ -155,15 +155,15 @@ func (c *Controller) handleUpdatedComponent(uc *userComponent) {
 	})
 }
 
-// Load synchronizes the state of the controller with the current config file.
-// Components in the graph will be marked as unhealthy if there was an error
-// encountered during Load.
+// LoadFile synchronizes the state of the controller with the current config
+// file. Components in the graph will be marked as unhealthy if there was an
+// error encountered during Load.
 //
 // The controller will only start running components after Load is called once
 // without any configuration errors.
 //
-// Load will return an error value of ctx.Err() or hcl.Diagnostics.
-// hcl.Diagnostics is used to report both warnings and configuration errors.
+// LoadFile will return an error value of hcl.Diagnostics. hcl.Diagnostics is
+// used to report both warnings and configuration errors.
 func (c *Controller) LoadFile(f *File) error {
 	c.graphMut.Lock()
 	defer c.graphMut.Unlock()
@@ -253,6 +253,7 @@ func diagsOrNil(d hcl.Diagnostics) error {
 	return nil
 }
 
+// Close closes the controller and all running components.
 func (c *Controller) Close() error {
 	c.cancel()
 	<-c.exited
