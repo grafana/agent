@@ -1732,12 +1732,18 @@ func sortPipelines(cfg *config.Config) {
 		exp         = tracePipeline.Exporters
 		recv        = tracePipeline.Receivers
 		ext         = cfg.Service.Extensions
+		pipelines   = cfg.Pipelines
 		serviceRecv = cfg.Service.Pipelines[config.NewComponentID(config.TracesDataType)].Receivers
 	)
 	sort.SliceStable(exp, func(i, j int) bool { return exp[i].String() > exp[j].String() })
 	sort.SliceStable(recv, func(i, j int) bool { return recv[i].String() > recv[j].String() })
 	sort.SliceStable(ext, func(i, j int) bool { return ext[i].String() > ext[j].String() })
 	sort.SliceStable(serviceRecv, func(i, j int) bool { return serviceRecv[i].String() > serviceRecv[j].String() })
+	for _, pipeline := range pipelines {
+		sort.SliceStable(pipeline.Exporters, func(i, j int) bool { return pipeline.Exporters[i].String() > pipeline.Exporters[j].String() })
+		sort.SliceStable(pipeline.Receivers, func(i, j int) bool { return pipeline.Receivers[i].String() > pipeline.Receivers[j].String() })
+		sort.SliceStable(pipeline.Processors, func(i, j int) bool { return pipeline.Processors[i].String() > pipeline.Processors[j].String() })
+	}
 }
 
 func assertConfigEqual(t *testing.T, cfg1, cfg2 *config.Config) {
@@ -1763,13 +1769,6 @@ func assertConfigEqual(t *testing.T, cfg1, cfg2 *config.Config) {
 	}
 	for cid, pipeline1 := range cfg1.Pipelines {
 		pipeline2, ok := cfg2.Pipelines[cid]
-		assert.Equal(t, len(pipeline1.Exporters), len(pipeline2.Exporters))
-		sort.SliceStable(pipeline1.Exporters, func(i, j int) bool { return pipeline1.Exporters[i].String() > pipeline1.Exporters[j].String() })
-		sort.SliceStable(pipeline2.Exporters, func(i, j int) bool { return pipeline2.Exporters[i].String() > pipeline2.Exporters[j].String() })
-		sort.SliceStable(pipeline1.Receivers, func(i, j int) bool { return pipeline1.Receivers[i].String() > pipeline1.Receivers[j].String() })
-		sort.SliceStable(pipeline2.Receivers, func(i, j int) bool { return pipeline2.Receivers[i].String() > pipeline2.Receivers[j].String() })
-		sort.SliceStable(pipeline1.Processors, func(i, j int) bool { return pipeline1.Processors[i].String() > pipeline1.Processors[j].String() })
-		sort.SliceStable(pipeline2.Processors, func(i, j int) bool { return pipeline2.Processors[i].String() > pipeline2.Processors[j].String() })
 		assert.True(t, ok)
 		assert.Equal(t, pipeline1, pipeline2)
 	}
