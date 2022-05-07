@@ -97,10 +97,6 @@ Full reference of options:
   [module: <string> | default = "tcp"]
 ```
 
-## About SSL modules
+## About ssl_exporter Modules
 
-SSL module is the set of SSL counters to be scraped together from the specific network device.
-
-SSL modules available can be found in the embedded ssl.yml file [here](https://github.com/grafana/agent/blob/main/pkg/integrations/ssl_exporter/common/ssl.yml). If not specified, `if_mib` module is used.
-
-If you need to use custom SSL modules, you can [generate](https://github.com/prometheus/ssl_exporter#generating-configuration) your own ssl.yml file and specify it using `config_file` parameter.
+Read more about the supported modules at [ribbybibby/ssl_exporter](https://github.com/ribbybibby/ssl_exporter#configuration)
