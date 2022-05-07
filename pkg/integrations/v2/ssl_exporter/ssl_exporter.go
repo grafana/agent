@@ -1,5 +1,5 @@
 // Package ssl_exporter embeds https://github.com/ribbybibby/ssl_exporter/v2
-package ssl_exporter //nolint:golint
+package ssl_exporter
 
 import (
 	"fmt"

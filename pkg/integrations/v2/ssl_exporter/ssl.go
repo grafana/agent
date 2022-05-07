@@ -13,14 +13,14 @@ import (
 	"github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/autoscrape"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
-	ssl_config "github.com/ribbybibby/ssl_exporter/v2/config"
-	"github.com/ribbybibby/ssl_exporter/v2/prober"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
+	ssl_config "github.com/ribbybibby/ssl_exporter/v2/config"
+	"github.com/ribbybibby/ssl_exporter/v2/prober"
 )
 
 type sslHandler struct {
