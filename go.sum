@@ -1523,8 +1523,6 @@ github.com/jackc/pgx v3.2.0+incompatible/go.mod h1:0ZGrqGqkRlliWnWB4zKnWtjbSWbGk
 github.com/jackc/pgx v3.6.0+incompatible/go.mod h1:0ZGrqGqkRlliWnWB4zKnWtjbSWbGkVEFm4TeybAXq+I=
 github.com/jaegertracing/jaeger v1.27.0 h1:gcemni8e+twGuS0dUn3k/zKKalammUPK7mP+jpyM4e4=
 github.com/jaegertracing/jaeger v1.27.0/go.mod h1:2NUmMwXOSOIrx6gwCgBvnK59yVXzQiqBUfD4tGowl2E=
-github.com/jamesalbert/ssl_exporter v1.0.2-0.20220504213900-e099b5ef8010 h1:PoBV+2HZzZLCxRBDWiSX60rCSZpxH42g4G430UgV7Fs=
-github.com/jamesalbert/ssl_exporter v1.0.2-0.20220504213900-e099b5ef8010/go.mod h1:xGx5wAZx6NRegWwhbWYhNfFtewEWI9OjiDGue1O626Q=
 github.com/jarcoal/httpmock v0.0.0-20180424175123-9c70cfe4a1da h1:FjHUJJ7oBW4G/9j1KzlHaXL09LyMVM9rupS39lncbXk=
 github.com/jarcoal/httpmock v0.0.0-20180424175123-9c70cfe4a1da/go.mod h1:ks+b9deReOc7jgqp+e7LuFiCBH6Rm5hL32cLcEAArb4=
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 h1:BQSFePA1RWJOlocH6Fxy8MmwDt+yVQYULKfN0RoTN8A=
@@ -2208,6 +2206,8 @@ github.com/rfratto/go-yaml v0.0.0-20211119180816-77389c3526dc/go.mod h1:rMzeXFmW
 github.com/rgeyer/github-exporter v0.0.0-20210722215637-d0cec2ee0dc8 h1:wNuNGrFzFmZlhrtz1Q8EiK1Ob6yWli8lX7D2AGmSGzE=
 github.com/rgeyer/github-exporter v0.0.0-20210722215637-d0cec2ee0dc8/go.mod h1:6XoOvFDTfk3aqGaOLHLxoWiZNx4zHobApOhKc3oHF/g=
 github.com/rhnvrm/simples3 v0.6.1/go.mod h1:Y+3vYm2V7Y4VijFoJHHTrja6OgPrJ2cBti8dPGkC3sA=
+github.com/ribbybibby/ssl_exporter/v2 v2.4.1 h1:9Wmeh+mGInvZ4/bZoNSVTeQVeFvQ2CfR20luV7/PEIE=
+github.com/ribbybibby/ssl_exporter/v2 v2.4.1/go.mod h1:Ouepox3LTLIiL4jZU24lBL/xHXw5buaErN07bVZSNiI=
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
 github.com/rogpeppe/fastuuid v1.2.0/go.mod h1:jVj6XXZzXRy/MSR5jhDC/2q6DgLz+nrA6LYCDYWNEvQ=
 github.com/rogpeppe/go-internal v1.1.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=

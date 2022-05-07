@@ -111,7 +111,7 @@ require (
 )
 
 require (
-	github.com/jamesalbert/ssl_exporter v1.0.2-0.20220504213900-e099b5ef8010
+    github.com/ribbybibby/ssl_exporter/v2 v2.4.1
 	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8
 )
 

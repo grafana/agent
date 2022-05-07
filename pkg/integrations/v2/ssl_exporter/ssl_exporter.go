@@ -1,4 +1,4 @@
-// Package ssl_exporter embeds https://github.com/ribbybibby/ssl_exporter
+// Package ssl_exporter embeds https://github.com/ribbybibby/ssl_exporter/v2
 package ssl_exporter //nolint:golint
 
 import (
@@ -7,7 +7,7 @@ import (
 	"github.com/go-kit/log"
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/common"
-	ssl_config "github.com/jamesalbert/ssl_exporter/config"
+	ssl_config "github.com/ribbybibby/ssl_exporter/v2/config"
 )
 
 // DefaultConfig holds the default settings for the ssl_exporter integration.

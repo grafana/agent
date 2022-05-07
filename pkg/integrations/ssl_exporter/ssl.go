@@ -7,10 +7,10 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	ssl_config "github.com/jamesalbert/ssl_exporter/config"
-	"github.com/jamesalbert/ssl_exporter/prober"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	ssl_config "github.com/ribbybibby/ssl_exporter/v2/config"
+	"github.com/ribbybibby/ssl_exporter/v2/prober"
 )
 
 type sslHandler struct {

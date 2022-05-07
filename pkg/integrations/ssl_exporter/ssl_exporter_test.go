@@ -1,4 +1,4 @@
-// Package ssl_exporter embeds https://github.com/ribbybibby/ssl_exporter
+// Package ssl_exporter embeds https://github.com/ribbybibby/ssl_exporter/v2
 package ssl_exporter
 
 import (
