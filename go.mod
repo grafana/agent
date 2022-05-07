@@ -14,7 +14,7 @@ require (
 	github.com/github/smimesign v0.2.0
 	github.com/go-kit/log v0.2.0
 	github.com/go-logfmt/logfmt v0.5.1
-	github.com/go-logr/logr v1.2.2
+	github.com/go-logr/logr v1.2.3
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gogo/protobuf v1.3.2
@@ -94,8 +94,8 @@ require (
 	go.uber.org/atomic v1.9.0
 	go.uber.org/multierr v1.8.0
 	go.uber.org/zap v1.21.0
-	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
-	golang.org/x/sys v0.0.0-20220222172238-00053529121e
+	golang.org/x/net v0.0.0-20220425223048-2871e0cb64e4
+	golang.org/x/sys v0.0.0-20220503163025-988cb79eb6c6
 	google.golang.org/grpc v1.44.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.4.0
@@ -103,7 +103,6 @@ require (
 	k8s.io/api v0.24.0
 	k8s.io/apiextensions-apiserver v0.23.5
 	k8s.io/apimachinery v0.24.0
-	k8s.io/client-go v0.24.0
 	k8s.io/klog/v2 v2.60.1
 	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9
 	sigs.k8s.io/controller-runtime v0.11.2
@@ -111,8 +110,9 @@ require (
 )
 
 require (
-    github.com/ribbybibby/ssl_exporter/v2 v2.4.1
-	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8
+	github.com/ribbybibby/ssl_exporter/v2 v2.4.1
+	golang.org/x/time v0.0.0-20220411224347-583f2d630306
+	k8s.io/client-go v1.5.2
 )
 
 require (
@@ -452,9 +452,9 @@ require (
 	gocloud.dev v0.24.0 // indirect
 	golang.org/x/crypto v0.0.0-20220427172511-eb4f295cb31f // indirect
 	golang.org/x/mod v0.5.1 // indirect
-	golang.org/x/oauth2 v0.0.0-20220223155221-ee480838109b // indirect
+	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
+	golang.org/x/term v0.0.0-20220411215600-e5f449aeb171 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/tools v0.1.9 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
@@ -462,7 +462,7 @@ require (
 	google.golang.org/api v0.70.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20220222213610-43724f9ea8cf // indirect
-	google.golang.org/protobuf v1.27.1 // indirect
+	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/Graylog2/go-gelf.v2 v2.0.0-20191017102106-1550ee647df0 // indirect
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect
 	gopkg.in/fsnotify/fsnotify.v1 v1.4.7 // indirect
@@ -477,6 +477,12 @@ require (
 	k8s.io/kube-openapi v0.0.0-20220328201542-3ee0da9b0b42 // indirect
 	sigs.k8s.io/json v0.0.0-20211208200746-9f7c6b3444d2 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect
+)
+
+replace (
+	k8s.io/api => k8s.io/api v0.24.0
+	k8s.io/apimachinery => k8s.io/apimachinery v0.24.0
+	k8s.io/client-go => k8s.io/client-go v0.24.0
 )
 
 // Replace directives from Prometheus
