@@ -2,18 +2,19 @@
 
 Here are some resources to help you run the Grafana Agent:
 
-- [Windows Installation](#windows-installation)
-- [Run the Agent with Docker](#running-the-agent-with-docker)
-- [Run the Agent locally](#running-the-agent-locally)
-- [Use the example Kubernetes configs](#use-the-example-kubernetes-configs)
-- [Grafana Cloud Kubernetes Quickstart Guides](#grafana-cloud-kubernetes-quickstart-guides)
-- [Agent Operator Helm Quickstart](#agent-operator-helm-quickstart-guide)
-- [Build the Agent from Source](#build-the-agent-from-source)
-- [Use our production Tanka configs](#use-our-production-tanka-configs)
+- [Running Grafana Agent](#running-grafana-agent)
+  - [Windows Installation](#windows-installation)
+  - [Running the Agent with Docker](#running-the-agent-with-docker)
+  - [Running the Agent locally](#running-the-agent-locally)
+  - [Use the example Kubernetes configs](#use-the-example-kubernetes-configs)
+  - [Grafana Cloud Kubernetes quickstart guides](#grafana-cloud-kubernetes-quickstart-guides)
+  - [Agent Operator Helm quickstart guide](#agent-operator-helm-quickstart-guide)
+  - [Build the Agent from source](#build-the-agent-from-source)
+  - [Use our production Tanka configs](#use-our-production-tanka-configs)
 
 ## Windows Installation
 
-To run the Windows Installation, download the Windows Installer executable from the [release page](https://github.com/grafana/agent/releases). Then run the installer, this will setup the Agent and run the Agent as a Windows Service. More details can be found in the [Windows Guide](https://grafana.com/docs/agent/latest/getting-started/install-agent-on-windows/)
+To run the Windows Installation, download the Windows Installer executable from the [release page](https://github.com/grafana/agent/releases). Then run the installer, this will setup the Agent and run the Agent as a Windows Service. More details can be found in the [Windows Guide](https://grafana.com/docs/agent/latest/set-up/install-agent-on-windows/)
 
 ## Running the Agent with Docker
 
