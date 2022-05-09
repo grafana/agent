@@ -17,7 +17,7 @@ There are other ways of sending metrics, logs and traces to the LGTM Stack, Graf
 
 * Provides a one-stop solution for collecting metrics, logs, and traces.
 * Collects out-of-the-box telemetry from popular projects like MySQL through integrations
-* Works seamlessly with the Grafana Stack. Alternatively, metrics can be sent to any Prometheus-compatible endpoint, and traces can be sent to any OTLP-compatible endpoint.  
+* Works seamlessly with the LGTM Stack. Alternatively, metrics can be sent to any Prometheus-compatible endpoint, and traces can be sent to any OTLP-compatible endpoint.  
 * Offers new solutions to help scale metrics collection like host_filtering and sharding 
 * Provides the Grafana Agent Operator, which enables individual teams to manage their configurations through PodMonitors, ServiceMonitors, and Probes.
 
