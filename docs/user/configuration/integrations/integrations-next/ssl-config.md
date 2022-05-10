@@ -11,7 +11,7 @@ Use the `ssl` block to configure `ssl` integration.
 
 ## Quick configuration example
 
-Define SSL targets in Grafana agent's integration block:
+Define SSL targets in Grafana Agent's integration block:
 
 ```yaml
 prometheus:
