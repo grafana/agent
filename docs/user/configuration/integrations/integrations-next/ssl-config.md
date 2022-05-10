@@ -90,4 +90,4 @@ Full reference of options:
 
 ## About ssl_exporter Modules
 
-Read more about the supported modules at [ribbybibby/ssl_exporter](https://github.com/ribbybibby/ssl_exporter#configuration)
+Fro more information on the supported modules, refer to [ribbybibby/ssl_exporter](https://github.com/ribbybibby/ssl_exporter#configuration)
