@@ -11,13 +11,13 @@ The Grafana Agent is open source and its source code is available on GitHub at h
 
 Grafana Agent is for engineers, operators, or administrators who want to collect and forward telemetry data for analysis and on-call alerting. Those operating Grafana Agent must install and configure Grafana Agent to properly collect telemetry data and monitor the health of running agents.
 
-## Grafana Agent features
+## Features
 
-There are other ways of sending metrics, logs and traces to the Grafana Stack or Grafana Cloud or, but there are a few advantages of using the Grafana Agent. These features are outlined below.
+There are other ways of sending metrics, logs and traces to the LGTM Stack, Grafana Cloud or Grafana Enterprise, but there are a few advantages of using the Grafana Agent. These features are outlined below.
 
-* Provides a one-stop solution for collecting metrics, logs, and traces
+* Provides a one-stop solution for collecting metrics, logs, and traces.
 * Collects out-of-the-box telemetry from popular projects like MySQL through integrations
-* Works seamlessly with the Grafana Stack. Alternatively, metrics can be sent to any Prometheus-compatible endpoint, and traces can be sent to any OTLP-compatible endpoint.  
+* Works seamlessly with the LGTM Stack. Alternatively, metrics can be sent to any Prometheus-compatible endpoint, and traces can be sent to any OTLP-compatible endpoint.  
 * Offers new solutions to help scale metrics collection like host_filtering and sharding 
 * Provides the Grafana Agent Operator, which enables individual teams to manage their configurations through PodMonitors, ServiceMonitors, and Probes.
 
