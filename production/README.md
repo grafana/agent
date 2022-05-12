@@ -13,7 +13,7 @@ Here are some resources to help you run the Grafana Agent:
 
 ## Windows Installation
 
-To run the Windows Installation, download the Windows Installer executable from the [release page](https://github.com/grafana/agent/releases). Then run the installer, this will setup the Agent and run the Agent as a Windows Service. More details can be found in the [Windows Guide](https://grafana.com/docs/agent/latest/getting-started/install-agent-on-windows/)
+To run the Windows Installation, download the Windows Installer executable from the [release page](https://github.com/grafana/agent/releases). Then run the installer, this will setup the Agent and run the Agent as a Windows Service. More details can be found in the [Windows Guide](https://grafana.com/docs/agent/latest/set-up/install-agent-on-windows/)
 
 ## Running the Agent with Docker
 

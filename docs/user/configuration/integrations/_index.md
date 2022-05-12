@@ -69,8 +69,8 @@ redis_exporter: <redis_exporter_config>
 # Controls the dnsmasq_exporter integration
 dnsmasq_exporter: <dnsmasq_exporter_config>
 
-# Controls the elasticsearch_expoter integration
-elasticsearch_expoter: <elasticsearch_expoter_config>
+# Controls the elasticsearch_exporter integration
+elasticsearch_exporter: <elasticsearch_exporter_config>
 
 # Controls the memcached_exporter integration
 memcached_exporter: <memcached_exporter_config>
@@ -95,6 +95,7 @@ kafka_exporter: <kafka_exporter_config>
 
 # Controls the mongodb_exporter integration
 mongodb_exporter: <mongodb_exporter_config>
+
 # Controls the github_exporter integration
 github_exporter: <github_exporter_config>
 
