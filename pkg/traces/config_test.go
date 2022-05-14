@@ -1363,7 +1363,7 @@ service:
 			sortPipelines(actualConfig)
 			sortPipelines(expectedConfig)
 
-			assertConfigEqual(t, actualConfig, expectedConfig)
+			assert.Equal(t, expectedConfig, actualConfig)
 		})
 	}
 }
@@ -1732,46 +1732,10 @@ func sortPipelines(cfg *config.Config) {
 		exp         = tracePipeline.Exporters
 		recv        = tracePipeline.Receivers
 		ext         = cfg.Service.Extensions
-		pipelines   = cfg.Pipelines
 		serviceRecv = cfg.Service.Pipelines[config.NewComponentID(config.TracesDataType)].Receivers
 	)
-	sort.SliceStable(exp, func(i, j int) bool { return exp[i].String() > exp[j].String() })
-	sort.SliceStable(recv, func(i, j int) bool { return recv[i].String() > recv[j].String() })
-	sort.SliceStable(ext, func(i, j int) bool { return ext[i].String() > ext[j].String() })
-	sort.SliceStable(serviceRecv, func(i, j int) bool { return serviceRecv[i].String() > serviceRecv[j].String() })
-	for _, pipeline := range pipelines {
-		sort.SliceStable(pipeline.Exporters, func(i, j int) bool { return pipeline.Exporters[i].String() > pipeline.Exporters[j].String() })
-		sort.SliceStable(pipeline.Receivers, func(i, j int) bool { return pipeline.Receivers[i].String() > pipeline.Receivers[j].String() })
-		sort.SliceStable(pipeline.Processors, func(i, j int) bool { return pipeline.Processors[i].String() > pipeline.Processors[j].String() })
-	}
-}
-
-func assertConfigEqual(t *testing.T, cfg1, cfg2 *config.Config) {
-	for cid, receiver1 := range cfg1.Receivers {
-		receiver2, ok := cfg2.Receivers[cid]
-		assert.True(t, ok)
-		assert.Equal(t, receiver1, receiver2)
-	}
-	for cid, exporter1 := range cfg1.Exporters {
-		exporter2, ok := cfg2.Exporters[cid]
-		assert.True(t, ok)
-		assert.Equal(t, exporter1, exporter2)
-	}
-	for cid, processor1 := range cfg1.Processors {
-		processor2, ok := cfg2.Processors[cid]
-		assert.True(t, ok)
-		assert.Equal(t, processor1, processor2)
-	}
-	for cid, extension1 := range cfg1.Extensions {
-		extension2, ok := cfg2.Extensions[cid]
-		assert.True(t, ok)
-		assert.Equal(t, extension1, extension2)
-	}
-	for cid, pipeline1 := range cfg1.Pipelines {
-		pipeline2, ok := cfg2.Pipelines[cid]
-		assert.True(t, ok)
-		assert.Equal(t, pipeline1, pipeline2)
-	}
-	assert.Equal(t, cfg1.Service.Telemetry, cfg2.Service.Telemetry)
-	assert.Equal(t, cfg1.Service.Extensions, cfg2.Service.Extensions)
+	sort.Slice(exp, func(i, j int) bool { return exp[i].String() > exp[j].String() })
+	sort.Slice(recv, func(i, j int) bool { return recv[i].String() > recv[j].String() })
+	sort.Slice(ext, func(i, j int) bool { return ext[i].String() > ext[j].String() })
+	sort.Slice(serviceRecv, func(i, j int) bool { return serviceRecv[i].String() > serviceRecv[j].String() })
 }
