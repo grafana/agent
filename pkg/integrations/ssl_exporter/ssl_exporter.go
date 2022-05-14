@@ -2,14 +2,13 @@
 package ssl_exporter
 
 import (
-	"context"
 	"fmt"
-	"net/http"
-	"net/url"
 
 	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/config"
+	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
+	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	ssl_config "github.com/ribbybibby/ssl_exporter/v2/config"
 )
 
@@ -28,8 +27,28 @@ type SSLTarget struct {
 
 // Config controls the ssl_exporter integration.
 type Config struct {
-	ConfigFile string      `yaml:"key_file,omitempty"`
-	SSLTargets []SSLTarget `yaml:"ssl_targets"`
+	IncludeExporterMetrics bool        `yaml:"include_exporter_metrics"`
+	ConfigFile             string      `yaml:"config_file,omitempty"`
+	SSLTargets             []SSLTarget `yaml:"ssl_targets"`
+}
+
+func (c Config) GetExporterOptions(log log.Logger) (*Options, error) {
+	var err error
+	conf := ssl_config.DefaultConfig
+
+	if c.ConfigFile != "" {
+		conf, err = ssl_config.LoadConfig(c.ConfigFile)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load ssl config from file %v: %w", c.ConfigFile, err)
+		}
+	}
+
+	return &Options{
+		Namespace:  c.Name(),
+		SSLTargets: c.SSLTargets,
+		SSLConfig:  conf,
+		log:        log,
+	}, nil
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config.
@@ -42,7 +61,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 // Name returns the name of the integration.
 func (c *Config) Name() string {
-	return "ssl"
+	return "ssl_exporter"
 }
 
 // InstanceKey returns the hostname:port of the agent.
@@ -57,72 +76,34 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.NewNamedShim("ssl"))
 }
 
 // New creates a new ssl_exporter integration. The integration scrapes
 // metrics from ssl certificates
 func New(log log.Logger, c *Config) (integrations.Integration, error) {
-	var modules *ssl_config.Config
 	var err error
+	level.Debug(log).Log("msg", "initializing ssl_exporter", "config", c)
 
-	modules = ssl_config.DefaultConfig
-	if c.ConfigFile != "" {
-		modules, err = ssl_config.LoadConfig(c.ConfigFile)
-		if err != nil {
-			return nil, fmt.Errorf("failed to load ssl config from file %v: %w", c.ConfigFile, err)
-		}
+	exporterConfig, err := c.GetExporterOptions(log)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get exporter config: %w", err)
 	}
 
-	// The `name` and `target` fields are mandatory for the ssl targets are mandatory.
-	// Enforce this check and fail the creation of the integration if they're missing.
 	for _, target := range c.SSLTargets {
 		if target.Name == "" || target.Target == "" {
 			return nil, fmt.Errorf("failed to load ssl_targets; the `name` and `target` fields are mandatory")
 		}
 	}
 
-	sh := &sslHandler{
-		cfg:     c,
-		modules: modules,
-		log:     log,
-	}
-	integration := &Integration{
-		sh: sh,
+	exporter, err := NewSSLExporter(*exporterConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create ssl exporter: %w", err)
 	}
 
-	return integration, nil
-}
-
-// Integration is an integration for ssl_exporter.
-type Integration struct {
-	sh *sslHandler
-}
-
-// MetricsHandler implements Integration.
-func (i *Integration) MetricsHandler() (http.Handler, error) {
-	return i.sh, nil
-}
-
-// Run satisfies Integration.Run.
-func (i *Integration) Run(ctx context.Context) error {
-	// We don't need to do anything here, so we can just wait for the context to
-	// finish.
-	<-ctx.Done()
-	return ctx.Err()
-}
-
-// ScrapeConfigs satisfies Integration.ScrapeConfigs.
-func (i *Integration) ScrapeConfigs() []config.ScrapeConfig {
-	var res []config.ScrapeConfig
-	for _, target := range i.sh.cfg.SSLTargets {
-		queryParams := url.Values{}
-		queryParams.Add("target", target.Target)
-		queryParams.Add("module", target.Module)
-		res = append(res, config.ScrapeConfig{
-			JobName:     i.sh.cfg.Name() + "/" + target.Name,
-			MetricsPath: "/metrics",
-			QueryParams: queryParams,
-		})
-	}
-	return res
+	return integrations.NewCollectorIntegration(
+		c.Name(),
+		integrations.WithCollectors(exporter),
+		integrations.WithExporterMetricsIncluded(c.IncludeExporterMetrics),
+	), nil
 }
