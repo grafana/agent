@@ -3,13 +3,11 @@ package flow
 
 import (
 	"context"
-	"fmt"
 	"sync"
-	"time"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/hashicorp/hcl/v2"
 )
@@ -43,10 +41,10 @@ type Controller struct {
 	graphMut   sync.RWMutex
 	graph      *dag.Graph
 	loadedOnce bool
-	components []*userComponent
+	components []*controller.ComponentNode
 
 	// Callbacks used for testing
-	onComponentChanged func(uc *userComponent)
+	onComponentChanged func(uc *controller.ComponentNode)
 }
 
 // NewController creates and starts a new Flow controller. Call Close to stop
@@ -111,7 +109,7 @@ func (c *Controller) run(ctx context.Context) {
 	}
 }
 
-func (c *Controller) handleUpdatedComponent(uc *userComponent) {
+func (c *Controller) handleUpdatedComponent(uc *controller.ComponentNode) {
 	// handleUpdatedComponent is called when uc's exports get updated.
 	//
 	// NOTE(rfratto): we call StoreComponent here as an optimization since the
@@ -125,17 +123,10 @@ func (c *Controller) handleUpdatedComponent(uc *userComponent) {
 
 	// Walk through all the dependants of uc and re-evaluate their inputs.
 	_ = dag.WalkReverse(c.graph, []dag.Node{uc}, func(dep dag.Node) error {
-		depComponent := dep.(*userComponent)
+		depComponent := dep.(*controller.ComponentNode)
 
 		if err := depComponent.Evaluate(c.cache.Build()); err != nil {
 			level.Warn(c.log).Log("msg", "failed to reevaluate component", "node_id", dep.NodeID(), "err", err)
-
-			depComponent.SetHealth(component.Health{
-				Health:     component.HealthTypeUnhealthy,
-				Message:    fmt.Sprintf("failed to reevaluate config: %s", err),
-				UpdateTime: time.Now(),
-			})
-
 			return nil
 		}
 		if c.onComponentChanged != nil {
@@ -145,12 +136,6 @@ func (c *Controller) handleUpdatedComponent(uc *userComponent) {
 		// Update the cache for our component since its config (probably) just
 		// changed.
 		c.cache.StoreComponent(depComponent, true, false)
-
-		depComponent.SetHealth(component.Health{
-			Health:     component.HealthTypeHealthy,
-			UpdateTime: time.Now(),
-		})
-
 		return nil
 	})
 }
@@ -173,10 +158,10 @@ func (c *Controller) LoadFile(f *File) error {
 	// cautious whether this approach prevents partials from working and refactor
 	// this code as needed.
 
-	componentOpts := userComponentOptions{
+	componentOpts := controller.ComponentOptions{
 		Logger:   c.log,
 		DataPath: c.opts.DataPath,
-		OnStateChange: func(uc *userComponent) {
+		OnExportsChange: func(uc *controller.ComponentNode) {
 			c.updates.Enqueue(uc)
 			if c.onComponentChanged != nil {
 				c.onComponentChanged(uc)
@@ -198,21 +183,15 @@ func (c *Controller) LoadFile(f *File) error {
 	// allComponents, regardless of whether they evaluated properly or not. This
 	// is then passed to our run() goroutine which will decide the subset of
 	// components which can be run.
-	var allComponents []*userComponent
+	var allComponents []*controller.ComponentNode
 
 	_ = dag.WalkTopological(newGraph, newGraph.Leaves(), func(n dag.Node) error {
-		uc := n.(*userComponent)
+		uc := n.(*controller.ComponentNode)
 		allComponents = append(allComponents, uc)
 
 		// If this node wasn't previously ignored we can try to evaluate it. It
 		// should be added to the ignored list if the evaluation failed.
 		if err := uc.Evaluate(c.cache.Build()); err != nil {
-			uc.SetHealth(component.Health{
-				Health:     component.HealthTypeUnhealthy,
-				Message:    fmt.Sprintf("failed to evaluate config: %s", err),
-				UpdateTime: time.Now(),
-			})
-
 			return nil
 		}
 		if c.onComponentChanged != nil {

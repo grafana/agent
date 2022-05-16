@@ -2,12 +2,14 @@ package flow
 
 import (
 	"sync"
+
+	"github.com/grafana/agent/pkg/flow/internal/controller"
 )
 
 // updateQueue is an unordered queue of updated components to be processed.
 type updateQueue struct {
 	mut     sync.Mutex
-	updated map[*userComponent]struct{}
+	updated map[*controller.ComponentNode]struct{}
 
 	updateCh chan struct{}
 }
@@ -15,12 +17,12 @@ type updateQueue struct {
 func newUpdateQueue() *updateQueue {
 	return &updateQueue{
 		updateCh: make(chan struct{}, 1),
-		updated:  make(map[*userComponent]struct{}),
+		updated:  make(map[*controller.ComponentNode]struct{}),
 	}
 }
 
 // Enqueue enqueues a new userComponent.
-func (uq *updateQueue) Enqueue(uc *userComponent) {
+func (uq *updateQueue) Enqueue(uc *controller.ComponentNode) {
 	uq.mut.Lock()
 	uq.updated[uc] = struct{}{}
 	uq.mut.Unlock()
@@ -37,7 +39,7 @@ func (uq *updateQueue) UpdateCh() <-chan struct{} { return uq.updateCh }
 
 // TryDequeue tries to dequeue a userComponent. Returns nil if the queue is
 // empty.
-func (uq *updateQueue) TryDequeue() *userComponent {
+func (uq *updateQueue) TryDequeue() *controller.ComponentNode {
 	uq.mut.Lock()
 	defer uq.mut.Unlock()
 

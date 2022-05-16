@@ -47,7 +47,7 @@ var (
 
 // Supported HealthType values.
 const (
-	HealthTypeUnkown HealthType = iota
+	HealthTypeUnknown HealthType = iota
 	HealthTypeRunning
 	HealthTypeHealthy
 	HealthTypeUnhealthy
@@ -85,7 +85,7 @@ func (ht *HealthType) UnmarshalText(text []byte) error {
 	case "unhealthy":
 		*ht = HealthTypeUnhealthy
 	case "unknown":
-		*ht = HealthTypeUnkown
+		*ht = HealthTypeUnknown
 	case "exited":
 		*ht = HealthTypeExited
 	default:

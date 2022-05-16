@@ -93,9 +93,8 @@ type fakeRunnable struct {
 
 var _ runnable = fakeRunnable{}
 
-func (fr fakeRunnable) NodeID() string             { return fr.ID }
-func (fr fakeRunnable) Get() component.Component   { return fr.Component }
-func (fr fakeRunnable) SetHealth(component.Health) { /* no-op */ }
+func (fr fakeRunnable) NodeID() string                { return fr.ID }
+func (fr fakeRunnable) Run(ctx context.Context) error { return fr.Component.Run(ctx) }
 
 type mockComponent struct {
 	RunFunc    func(ctx context.Context) error

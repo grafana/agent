@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	_ "github.com/grafana/agent/pkg/flow/internal/testcomponents" // Include test components
 	"github.com/hashicorp/hcl/v2"
@@ -131,9 +132,9 @@ func buildGraphFromContent(t *testing.T, prev *dag.Graph, bb []byte) (*dag.Graph
 		t.FailNow()
 	}
 
-	opts := userComponentOptions{
-		Logger:        log.NewNopLogger(),
-		OnStateChange: func(uc *userComponent) { /* no-op */ },
+	opts := controller.ComponentOptions{
+		Logger:          log.NewNopLogger(),
+		OnExportsChange: func(uc *controller.ComponentNode) { /* no-op */ },
 	}
 	return buildGraph(opts, prev, f.Components)
 }

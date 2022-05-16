@@ -2,13 +2,9 @@ package flow
 
 import (
 	"context"
-	"fmt"
 	"sync"
-	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/component"
 )
 
 // The scheduler manages running components.
@@ -53,11 +49,6 @@ func (s *scheduler) Synchronize(rr []runnable) {
 
 	newRunnables := make(map[string]runnable, len(rr))
 	for _, r := range rr {
-		// Ignore runnables which don't have a component.
-		if r.Get() == nil {
-			continue
-		}
-
 		newRunnables[r.NodeID()] = r
 	}
 
@@ -128,8 +119,6 @@ type taskOptions struct {
 }
 
 func newTask(opts taskOptions) *task {
-	log := opts.Logger
-
 	ctx, cancel := context.WithCancel(opts.Context)
 
 	t := &task{
@@ -141,28 +130,7 @@ func newTask(opts taskOptions) *task {
 	go func() {
 		defer opts.OnDone()
 		defer close(t.exited)
-
-		c := opts.Runnable.Get()
-		if c == nil {
-			return
-		}
-
-		err := c.Run(t.ctx)
-
-		var exitMsg string
-		if err != nil {
-			level.Error(log).Log("msg", "component exited with error", "err", err)
-			exitMsg = fmt.Sprintf("component exited with error: %s", err)
-		} else {
-			level.Info(log).Log("msg", "component exited")
-			exitMsg = "component exited normally"
-		}
-
-		opts.Runnable.SetHealth(component.Health{
-			Health:     component.HealthTypeExited,
-			Message:    exitMsg,
-			UpdateTime: time.Now(),
-		})
+		_ = opts.Runnable.Run(t.ctx)
 	}()
 	return t
 }
@@ -174,6 +142,5 @@ func (t *task) Stop() {
 
 type runnable interface {
 	NodeID() string
-	Get() component.Component
-	SetHealth(component.Health)
+	Run(ctx context.Context) error
 }

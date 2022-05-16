@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/rfratto/gohcl"
 	"github.com/zclconf/go-cty/cty"
@@ -16,9 +17,9 @@ type graphContext struct {
 	parent *hcl.EvalContext
 
 	mut        sync.RWMutex
-	components map[string]*userComponent // Component ID -> userComponent
-	configs    map[string]cty.Value      // Component ID -> cty.Value for Config
-	exports    map[string]cty.Value      // Component ID -> cty.Value for Exports
+	components map[string]*controller.ComponentNode // Component ID -> userComponent
+	configs    map[string]cty.Value                 // Component ID -> cty.Value for Config
+	exports    map[string]cty.Value                 // Component ID -> cty.Value for Exports
 }
 
 // newGraphContext creates a new graphContext.
@@ -26,7 +27,7 @@ func newGraphContext(parent *hcl.EvalContext) *graphContext {
 	return &graphContext{
 		parent: parent,
 
-		components: make(map[string]*userComponent),
+		components: make(map[string]*controller.ComponentNode),
 		configs:    make(map[string]cty.Value),
 		exports:    make(map[string]cty.Value),
 	}
@@ -35,11 +36,11 @@ func newGraphContext(parent *hcl.EvalContext) *graphContext {
 // StoreComponent will update the graphContext with a component. updateConfig
 // and updateExports can optionally be set to true to cache that component's
 // current Config and Exports respectively.
-func (gc *graphContext) StoreComponent(uc *userComponent, updateConfig, updateExports bool) {
+func (gc *graphContext) StoreComponent(uc *controller.ComponentNode, updateConfig, updateExports bool) {
 	gc.mut.Lock()
 	defer gc.mut.Unlock()
 
-	componentID := uc.Name().String()
+	componentID := uc.NodeID()
 
 	// Update the components map in case this is the first time we're storing
 	// this component.
@@ -48,7 +49,7 @@ func (gc *graphContext) StoreComponent(uc *userComponent, updateConfig, updateEx
 	if updateConfig {
 		configVal := cty.EmptyObjectVal
 
-		if cfg := uc.CurrentConfig(); cfg != nil {
+		if cfg := uc.Arguments(); cfg != nil {
 			ty, err := gohcl.ImpliedType(cfg)
 			if err != nil {
 				panic(err)
@@ -66,7 +67,7 @@ func (gc *graphContext) StoreComponent(uc *userComponent, updateConfig, updateEx
 	if updateExports {
 		exportsVal := cty.EmptyObjectVal
 
-		if cfg := uc.CurrentExports(); cfg != nil {
+		if cfg := uc.Exports(); cfg != nil {
 			ty, err := gohcl.ImpliedType(cfg)
 			if err != nil {
 				panic(err)
@@ -84,11 +85,11 @@ func (gc *graphContext) StoreComponent(uc *userComponent, updateConfig, updateEx
 
 // RemoveComponent will remove a stored component and its cached values from
 // gc.
-func (gc *graphContext) RemoveComponent(uc *userComponent) {
+func (gc *graphContext) RemoveComponent(uc *controller.ComponentNode) {
 	gc.mut.Lock()
 	defer gc.mut.Unlock()
 
-	componentID := uc.Name().String()
+	componentID := uc.NodeID()
 	delete(gc.components, componentID)
 	delete(gc.configs, componentID)
 	delete(gc.exports, componentID)
@@ -96,8 +97,8 @@ func (gc *graphContext) RemoveComponent(uc *userComponent) {
 
 // RemoveStaleComponents will remove cached values for any component not in
 // expect.
-func (gc *graphContext) RemoveStaleComponents(expect []*userComponent) {
-	expectMap := make(map[string]*userComponent, len(expect))
+func (gc *graphContext) RemoveStaleComponents(expect []*controller.ComponentNode) {
+	expectMap := make(map[string]*controller.ComponentNode, len(expect))
 	for _, uc := range expect {
 		expectMap[uc.NodeID()] = uc
 	}
@@ -151,9 +152,9 @@ func (gc *graphContext) Build() *hcl.EvalContext {
 	ectx.Variables = make(map[string]cty.Value)
 
 	// First, partition components by HCL block name.
-	var componentsByBlockName = make(map[string][]*userComponent)
+	var componentsByBlockName = make(map[string][]*controller.ComponentNode)
 	for _, uc := range gc.components {
-		blockName := uc.Name()[0]
+		blockName := uc.ID()[0]
 		componentsByBlockName[blockName] = append(componentsByBlockName[blockName], uc)
 	}
 
@@ -168,10 +169,10 @@ func (gc *graphContext) Build() *hcl.EvalContext {
 // buildValue recursively converts the set of user components into a single
 // cty.Value. offset is used to determine which element in the
 // userComponentName we're looking at.
-func (gc *graphContext) buildValue(from []*userComponent, offset int) cty.Value {
+func (gc *graphContext) buildValue(from []*controller.ComponentNode, offset int) cty.Value {
 	// We can't recurse anymore; return the node directly.
-	if len(from) == 1 && offset >= len(from[0].Name()) {
-		name := from[0].Name().String()
+	if len(from) == 1 && offset >= len(from[0].ID()) {
+		name := from[0].ID().String()
 
 		cfg, ok := gc.configs[name]
 		if !ok {
@@ -188,9 +189,9 @@ func (gc *graphContext) buildValue(from []*userComponent, offset int) cty.Value 
 	attrs := make(map[string]cty.Value)
 
 	// First, partition the components by their label.
-	var componentsByLabel = make(map[string][]*userComponent)
+	var componentsByLabel = make(map[string][]*controller.ComponentNode)
 	for _, uc := range from {
-		blockName := uc.Name()[offset]
+		blockName := uc.ID()[offset]
 		componentsByLabel[blockName] = append(componentsByLabel[blockName], uc)
 	}
 

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/internal/testcomponents"
 	"github.com/grafana/agent/pkg/util"
@@ -35,8 +36,8 @@ func getFields(t *testing.T, g *dag.Graph, nodeID string) (component.Config, com
 	n := g.GetByID(nodeID)
 	require.NotNil(t, n, "couldn't find node %q in graph", nodeID)
 
-	uc := n.(*userComponent)
-	return uc.CurrentConfig(), uc.CurrentExports()
+	uc := n.(*controller.ComponentNode)
+	return uc.Arguments(), uc.Exports()
 }
 
 func testOptions(t *testing.T) Options {
