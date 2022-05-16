@@ -1,7 +1,9 @@
-+++
-title = "Add custom scrape jobs"
-weight = 400
-+++
+---
+aliases:
+- /docs/agent/latest/operator/add-custom-scrape-jobs/
+title: Add custom scrape jobs
+weight: 400
+---
 
 # Add custom scrape jobs
 

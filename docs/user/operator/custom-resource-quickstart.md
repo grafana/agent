@@ -1,7 +1,9 @@
-+++
-title = "Custom Resource Quickstart"
-weight = 120
-+++
+---
+aliases:
+- /docs/agent/latest/operator/custom-resource-quickstart/
+title: Custom Resource Quickstart
+weight: 120
+---
 # Grafana Agent Operator Custom Resource Quickstart
 
 In this guide you'll learn how to deploy [Agent Operator]({{< relref "./_index.md" >}})'s custom resources into your Kubernetes cluster.

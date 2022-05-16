@@ -1,7 +1,9 @@
-+++
-title = "Operator architecture"
-weight = 300
-+++
+---
+aliases:
+- /docs/agent/latest/operator/architecture/
+title: Operator architecture
+weight: 300
+---
 
 # Operator architecture
 

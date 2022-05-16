@@ -1,6 +1,8 @@
-+++
-title = "consul_exporter_config"
-+++
+---
+aliases:
+- /docs/agent/latest/configuration/integrations/consul-exporter-config/
+title: consul_exporter_config
+---
 
 # consul_exporter_config
 

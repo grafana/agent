@@ -1,6 +1,8 @@
-+++
-draft = "True"
-+++
+---
+aliases:
+- /docs/agent/latest/README/
+draft: "True"
+---
 
 <p align="center"><img src="assets/logo_and_name.png" alt="Grafana Agent logo"></p>
 

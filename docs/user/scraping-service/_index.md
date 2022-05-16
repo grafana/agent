@@ -1,7 +1,9 @@
-+++
-title = "Scraping Service Mode"
-weight = 500
-+++
+---
+aliases:
+- /docs/agent/latest/scraping-service/
+title: Scraping Service Mode
+weight: 500
+---
 
 # Scraping Service Mode (Beta)
 

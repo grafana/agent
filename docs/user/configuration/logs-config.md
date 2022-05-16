@@ -1,8 +1,10 @@
-+++
-title = "logs_config"
-weight = 300
-aliases = ["/docs/agent/latest/configuration/loki-config/"]
-+++
+---
+aliases:
+- /docs/agent/latest/configuration/logs-config/
+- /docs/agent/latest/configuration/loki-config/
+title: logs_config
+weight: 300
+---
 
 # logs_config
 
