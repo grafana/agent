@@ -31,7 +31,7 @@ type Controller struct {
 	opts Options
 
 	updates *updateQueue
-	cache   *graphContext
+	cache   *controller.ValueCache
 	sched   *controller.Scheduler
 
 	cancel       context.CancelFunc
@@ -63,7 +63,7 @@ func newController(o Options) (*Controller, context.Context) {
 		opts: o,
 
 		updates: newUpdateQueue(),
-		cache:   newGraphContext(rootEvalContext),
+		cache:   controller.NewValueCache(),
 		sched:   controller.NewScheduler(),
 
 		cancel:       cancel,
@@ -116,7 +116,7 @@ func (c *Controller) handleUpdatedComponent(uc *controller.ComponentNode) {
 	// OnStateChange callback may get invoked many times before we're ready for
 	// processing it. Waiting to call StoreComponent allows us to minimize the
 	// amount of times we need to convert its Exports to a cty.Value.
-	c.cache.StoreComponent(uc, false, true)
+	c.cache.CacheExports(uc.ID(), uc.Exports())
 
 	c.graphMut.RLock()
 	defer c.graphMut.RUnlock()
@@ -125,7 +125,8 @@ func (c *Controller) handleUpdatedComponent(uc *controller.ComponentNode) {
 	_ = dag.WalkReverse(c.graph, []dag.Node{uc}, func(dep dag.Node) error {
 		depComponent := dep.(*controller.ComponentNode)
 
-		if err := depComponent.Evaluate(c.cache.Build()); err != nil {
+		ectx := c.cache.BuildContext(rootEvalContext)
+		if err := depComponent.Evaluate(ectx); err != nil {
 			level.Warn(c.log).Log("msg", "failed to reevaluate component", "node_id", dep.NodeID(), "err", err)
 			return nil
 		}
@@ -135,7 +136,7 @@ func (c *Controller) handleUpdatedComponent(uc *controller.ComponentNode) {
 
 		// Update the cache for our component since its config (probably) just
 		// changed.
-		c.cache.StoreComponent(depComponent, true, false)
+		c.cache.CacheArguments(uc.ID(), uc.Exports())
 		return nil
 	})
 }
@@ -183,15 +184,20 @@ func (c *Controller) LoadFile(f *File) error {
 	// allComponents, regardless of whether they evaluated properly or not. This
 	// is then passed to our run() goroutine which will decide the subset of
 	// components which can be run.
-	var allComponents []*controller.ComponentNode
+	var (
+		allComponents []*controller.ComponentNode
+		componentIDs  []controller.ComponentID
+	)
 
 	_ = dag.WalkTopological(newGraph, newGraph.Leaves(), func(n dag.Node) error {
 		uc := n.(*controller.ComponentNode)
 		allComponents = append(allComponents, uc)
+		componentIDs = append(componentIDs, uc.ID())
 
 		// If this node wasn't previously ignored we can try to evaluate it. It
 		// should be added to the ignored list if the evaluation failed.
-		if err := uc.Evaluate(c.cache.Build()); err != nil {
+		ectx := c.cache.BuildContext(rootEvalContext)
+		if err := uc.Evaluate(ectx); err != nil {
 			return nil
 		}
 		if c.onComponentChanged != nil {
@@ -200,14 +206,14 @@ func (c *Controller) LoadFile(f *File) error {
 
 		// Update our cache with our evaluated component. We don't update the
 		// Exports because the component isn't running yet.
-		c.cache.StoreComponent(uc, true, false)
+		c.cache.CacheArguments(uc.ID(), uc.Arguments())
 		return nil
 	})
 
 	// Store our new graph and synchronize our cache to remove any components
 	// which have been removed.
 	c.graph = newGraph
-	c.cache.RemoveStaleComponents(allComponents)
+	c.cache.SyncIDs(componentIDs)
 
 	if !c.loadedOnce && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
