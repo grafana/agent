@@ -1,16 +1,19 @@
-package flow
+package controller
 
 import (
 	"context"
+	"fmt"
 	"sync"
-
-	"github.com/go-kit/log"
 )
 
-// The scheduler manages running components.
-type scheduler struct {
-	log log.Logger
+// RunnableNode is any dag.Node which can also be ran.
+type RunnableNode interface {
+	NodeID() string
+	Run(ctx context.Context) error
+}
 
+// Scheduler manages goroutines for graph nodes that should be run.
+type Scheduler struct {
 	ctx     context.Context
 	cancel  context.CancelFunc
 	running sync.WaitGroup
@@ -19,35 +22,34 @@ type scheduler struct {
 	tasks    map[string]*task
 }
 
-// newScheduler creates a new scheduler
-func newScheduler(l log.Logger) *scheduler {
-	if l == nil {
-		l = log.NewNopLogger()
-	}
-
+// NewScheduler creates a new Scheduler. Goroutines for runnable nodes will be
+// managed in the background any time Synchronize is called.
+//
+// Call Close to stop the Scheduler and all running goroutines.
+func NewScheduler() *Scheduler {
 	ctx, cancel := context.WithCancel(context.Background())
-
-	sched := &scheduler{
-		log: l,
-
+	return &Scheduler{
 		ctx:    ctx,
 		cancel: cancel,
 
 		tasks: make(map[string]*task),
 	}
-	return sched
 }
 
-// Synchronize synchronizes the current tasks to those defined by rr.
+// Synchronize synchronizes the running goroutines to those defined by rr.
 //
-// New runnables will be launched as tasks. Runnables already managed by the
-// scheduler will be kept running, while runnables that are no longer present
-// in rr will be removed.
-func (s *scheduler) Synchronize(rr []runnable) {
+// New RunnableNodes will be launched as new goroutines. RunnableNodes already
+// managed by Scheduler will be kept running, while running RunnableNodes that
+// are not in rr will be shut down and removed.
+func (s *Scheduler) Synchronize(rr []RunnableNode) error {
 	s.tasksMut.Lock()
 	defer s.tasksMut.Unlock()
 
-	newRunnables := make(map[string]runnable, len(rr))
+	if s.ctx.Err() != nil {
+		return fmt.Errorf("Scheduler is closed")
+	}
+
+	newRunnables := make(map[string]RunnableNode, len(rr))
 	for _, r := range rr {
 		newRunnables[r.NodeID()] = r
 	}
@@ -79,7 +81,6 @@ func (s *scheduler) Synchronize(rr []runnable) {
 
 		opts := taskOptions{
 			Context:  s.ctx,
-			Logger:   log.With(s.log, "component", id),
 			Runnable: newRunnable,
 			OnDone: func() {
 				defer s.running.Done()
@@ -96,9 +97,12 @@ func (s *scheduler) Synchronize(rr []runnable) {
 
 	// Wait for all stopping runnables to exit.
 	stopping.Wait()
+	return nil
 }
 
-func (s *scheduler) Close() error {
+// Close stops the Scheduler and returns after all running goroutines have
+// exited.
+func (s *Scheduler) Close() error {
 	s.cancel()
 	s.running.Wait()
 	return nil
@@ -113,11 +117,11 @@ type task struct {
 
 type taskOptions struct {
 	Context  context.Context
-	Logger   log.Logger
-	Runnable runnable
+	Runnable RunnableNode
 	OnDone   func()
 }
 
+// newTask creates and starts a new task.
 func newTask(opts taskOptions) *task {
 	ctx, cancel := context.WithCancel(opts.Context)
 
@@ -138,9 +142,4 @@ func newTask(opts taskOptions) *task {
 func (t *task) Stop() {
 	t.cancel()
 	<-t.exited
-}
-
-type runnable interface {
-	NodeID() string
-	Run(ctx context.Context) error
 }

@@ -1,4 +1,4 @@
-package flow
+package controller_test
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/stretchr/testify/require"
 )
 
@@ -24,8 +24,8 @@ func TestScheduler_Synchronize(t *testing.T) {
 			return nil
 		}
 
-		sched := newScheduler(util.TestLogger(t))
-		sched.Synchronize([]runnable{
+		sched := controller.NewScheduler()
+		sched.Synchronize([]controller.RunnableNode{
 			fakeRunnable{ID: "component-a", Component: mockComponent{RunFunc: runFunc}},
 			fakeRunnable{ID: "component-b", Component: mockComponent{RunFunc: runFunc}},
 			fakeRunnable{ID: "component-c", Component: mockComponent{RunFunc: runFunc}},
@@ -46,12 +46,12 @@ func TestScheduler_Synchronize(t *testing.T) {
 			return nil
 		}
 
-		sched := newScheduler(util.TestLogger(t))
+		sched := controller.NewScheduler()
 
 		for i := 0; i < 10; i++ {
 			// If a new runnable is created, runFunc will panic since the WaitGroup
 			// only supports 1 goroutine.
-			sched.Synchronize([]runnable{
+			sched.Synchronize([]controller.RunnableNode{
 				fakeRunnable{ID: "component-a", Component: mockComponent{RunFunc: runFunc}},
 			})
 		}
@@ -72,14 +72,14 @@ func TestScheduler_Synchronize(t *testing.T) {
 			return nil
 		}
 
-		sched := newScheduler(util.TestLogger(t))
+		sched := controller.NewScheduler()
 
-		sched.Synchronize([]runnable{
+		sched.Synchronize([]controller.RunnableNode{
 			fakeRunnable{ID: "component-a", Component: mockComponent{RunFunc: runFunc}},
 		})
 		started.Wait()
 
-		sched.Synchronize([]runnable{})
+		sched.Synchronize([]controller.RunnableNode{})
 
 		finished.Wait()
 		require.NoError(t, sched.Close())
@@ -91,7 +91,7 @@ type fakeRunnable struct {
 	Component component.Component
 }
 
-var _ runnable = fakeRunnable{}
+var _ controller.RunnableNode = fakeRunnable{}
 
 func (fr fakeRunnable) NodeID() string                { return fr.ID }
 func (fr fakeRunnable) Run(ctx context.Context) error { return fr.Component.Run(ctx) }

@@ -32,7 +32,7 @@ type Controller struct {
 
 	updates *updateQueue
 	cache   *graphContext
-	sched   *scheduler
+	sched   *controller.Scheduler
 
 	cancel       context.CancelFunc
 	exited       chan struct{}
@@ -64,7 +64,7 @@ func newController(o Options) (*Controller, context.Context) {
 
 		updates: newUpdateQueue(),
 		cache:   newGraphContext(rootEvalContext),
-		sched:   newScheduler(o.Logger),
+		sched:   controller.NewScheduler(),
 
 		cancel:       cancel,
 		exited:       make(chan struct{}, 1),
@@ -100,7 +100,7 @@ func (c *Controller) run(ctx context.Context) {
 			components := c.components
 			c.graphMut.RUnlock()
 
-			runnables := make([]runnable, 0, len(components))
+			runnables := make([]controller.RunnableNode, 0, len(components))
 			for _, uc := range components {
 				runnables = append(runnables, uc)
 			}
