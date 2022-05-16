@@ -1,7 +1,9 @@
-+++
-title = "integrations_config"
-weight = 500
-+++
+---
+aliases:
+- /docs/agent/latest/configuration/integrations/
+title: integrations_config
+weight: 500
+---
 
 # integrations_config
 

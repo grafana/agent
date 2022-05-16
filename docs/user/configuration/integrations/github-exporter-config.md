@@ -1,6 +1,8 @@
-+++
-title = "github_exporter_config"
-+++
+---
+aliases:
+- /docs/agent/latest/configuration/integrations/github-exporter-config/
+title: github_exporter_config
+---
 
 # github_exporter_config
 

@@ -1,8 +1,10 @@
-+++
-title = "metrics_config"
-weight = 200
-aliases = ["/docs/agent/latest/configuration/prometheus-config/"]
-+++
+---
+aliases:
+- /docs/agent/latest/configuration/metrics-config/
+- /docs/agent/latest/configuration/prometheus-config/
+title: metrics_config
+weight: 200
+---
 
 # metrics_config
 

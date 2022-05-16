@@ -1,6 +1,8 @@
-+++
-title = "node_exporter_config"
-+++
+---
+aliases:
+- /docs/agent/latest/configuration/integrations/node-exporter-config/
+title: node_exporter_config
+---
 
 # node_exporter_config
 

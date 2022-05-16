@@ -1,8 +1,10 @@
-+++
-title = "traces_config"
-weight = 400
-aliases = ["/docs/agent/latest/configuration/tempo-config/"]
-+++
+---
+aliases:
+- /docs/agent/latest/configuration/tempo-config/
+- /docs/agent/latest/configuration/traces-config/
+title: traces_config
+weight: 400
+---
 
 # traces_config
 

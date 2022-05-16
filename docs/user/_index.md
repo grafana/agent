@@ -1,7 +1,9 @@
-+++
-title = "Grafana Agent"
-weight = 1
-+++
+---
+aliases:
+- /docs/agent/latest/
+title: Grafana Agent
+weight: 1
+---
 
 # Grafana Agent
 

@@ -1,7 +1,9 @@
-+++
-title = "dynamic_config"
-weight = 500
-+++
+---
+aliases:
+- /docs/agent/latest/configuration/dynamic-config/
+title: dynamic_config
+weight: 500
+---
 
 # Dynamic Configuration - Experimental
 

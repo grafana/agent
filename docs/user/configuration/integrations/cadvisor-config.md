@@ -1,6 +1,8 @@
-+++
-title = "cadvisor_config"
-+++
+---
+aliases:
+- /docs/agent/latest/configuration/integrations/cadvisor-config/
+title: cadvisor_config
+---
 
 # cadvisor_config
 

@@ -1,6 +1,8 @@
-+++
-title = "postgres_exporter_config"
-+++
+---
+aliases:
+- /docs/agent/latest/configuration/integrations/postgres-exporter-config/
+title: postgres_exporter_config
+---
 
 # postgres_exporter_config
 
