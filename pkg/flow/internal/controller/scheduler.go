@@ -12,7 +12,7 @@ type RunnableNode interface {
 	Run(ctx context.Context) error
 }
 
-// Scheduler manages goroutines for graph nodes that should be run.
+// Scheduler runs components.
 type Scheduler struct {
 	ctx     context.Context
 	cancel  context.CancelFunc
@@ -22,10 +22,10 @@ type Scheduler struct {
 	tasks    map[string]*task
 }
 
-// NewScheduler creates a new Scheduler. Goroutines for runnable nodes will be
-// managed in the background any time Synchronize is called.
+// NewScheduler creates a new Scheduler. Call Synchronize to manage the set of
+// components which are running.
 //
-// Call Close to stop the Scheduler and all running goroutines.
+// Call Close to stop the Scheduler and all running components.
 func NewScheduler() *Scheduler {
 	ctx, cancel := context.WithCancel(context.Background())
 	return &Scheduler{
@@ -36,11 +36,14 @@ func NewScheduler() *Scheduler {
 	}
 }
 
-// Synchronize synchronizes the running goroutines to those defined by rr.
+// Synchronize synchronizes the running components to those defined by rr.
 //
 // New RunnableNodes will be launched as new goroutines. RunnableNodes already
 // managed by Scheduler will be kept running, while running RunnableNodes that
 // are not in rr will be shut down and removed.
+//
+// Existing components will be restarted if they stopped since the previous
+// call to Synchronize.
 func (s *Scheduler) Synchronize(rr []RunnableNode) error {
 	s.tasksMut.Lock()
 	defer s.tasksMut.Unlock()

@@ -10,20 +10,20 @@ import (
 	"github.com/zclconf/go-cty/cty"
 )
 
-// ValueCache caches component arguments and exports evaluated as cty.Values.
+// valueCache caches component arguments and exports evaluated as cty.Values.
 //
-// The current state of ValueCache can then be built into a *hcl.EvalContext
+// The current state of valueCache can then be built into a *hcl.EvalContext
 // for other components to be evaluated.
-type ValueCache struct {
+type valueCache struct {
 	mut        sync.RWMutex
 	components map[string]ComponentID // NodeID -> ComponentID
 	args       map[string]cty.Value   // NodeID -> cty.Value of component arguments
 	exports    map[string]cty.Value   // NodeID -> cty.Value of component exports
 }
 
-// NewValueCache cretes a new ValueCache.
-func NewValueCache() *ValueCache {
-	return &ValueCache{
+// newValueCache cretes a new ValueCache.
+func newValueCache() *valueCache {
+	return &valueCache{
 		components: make(map[string]ComponentID),
 		args:       make(map[string]cty.Value),
 		exports:    make(map[string]cty.Value),
@@ -32,7 +32,7 @@ func NewValueCache() *ValueCache {
 
 // CacheArguments will cache the provided arguments by the given id. args may
 // be nil to store an empty object.
-func (vc *ValueCache) CacheArguments(id ComponentID, args component.Arguments) {
+func (vc *valueCache) CacheArguments(id ComponentID, args component.Arguments) {
 	vc.mut.Lock()
 	defer vc.mut.Unlock()
 
@@ -57,7 +57,7 @@ func (vc *ValueCache) CacheArguments(id ComponentID, args component.Arguments) {
 
 // CacheExports will cache the provided exports using the given id. exports may
 // be nil to store an empty object.
-func (vc *ValueCache) CacheExports(id ComponentID, exports component.Exports) {
+func (vc *valueCache) CacheExports(id ComponentID, exports component.Exports) {
 	vc.mut.Lock()
 	defer vc.mut.Unlock()
 
@@ -83,7 +83,7 @@ func (vc *ValueCache) CacheExports(id ComponentID, exports component.Exports) {
 // SyncIDs will removed any cached values for any Component ID which is not in
 // ids. SyncIDs should be called with the current set of components after the
 // graph is updated.
-func (vc *ValueCache) SyncIDs(ids []ComponentID) {
+func (vc *valueCache) SyncIDs(ids []ComponentID) {
 	expectMap := make(map[string]ComponentID, len(ids))
 	for _, id := range ids {
 		expectMap[id.String()] = id
@@ -105,7 +105,7 @@ func (vc *ValueCache) SyncIDs(ids []ComponentID) {
 // BuildContext builds an hcl.EvalContext based on the current set of cached
 // values. The arguments and exports for the same ID are merged into one
 // object.
-func (vc *ValueCache) BuildContext(parent *hcl.EvalContext) *hcl.EvalContext {
+func (vc *valueCache) BuildContext(parent *hcl.EvalContext) *hcl.EvalContext {
 	var ectx *hcl.EvalContext
 	if parent == nil {
 		ectx = parent.NewChild()
@@ -164,7 +164,7 @@ func (vc *ValueCache) BuildContext(parent *hcl.EvalContext) *hcl.EvalContext {
 // buildValue recursively converts the set of user components into a single
 // cty.Value. offset is used to determine which element in the
 // userComponentName we're looking at.
-func (vc *ValueCache) buildValue(from []ComponentID, offset int) cty.Value {
+func (vc *valueCache) buildValue(from []ComponentID, offset int) cty.Value {
 	// We can't recurse anymore; return the node directly.
 	if len(from) == 1 && offset >= len(from[0]) {
 		name := from[0].String()

@@ -9,7 +9,7 @@ import (
 )
 
 func TestValueCache(t *testing.T) {
-	vc := NewValueCache()
+	vc := newValueCache()
 
 	type fooArgs struct {
 		Something bool `hcl:"something,attr"`

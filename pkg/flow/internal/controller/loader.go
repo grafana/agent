@@ -20,7 +20,7 @@ type Loader struct {
 	mut        sync.RWMutex
 	graph      *dag.Graph
 	components []*ComponentNode
-	cache      *ValueCache
+	cache      *valueCache
 }
 
 // NewLoader creates a new Loader. Components built by the Loader will be built
@@ -31,7 +31,7 @@ func NewLoader(co ComponentOptions) *Loader {
 		componentOpts: co,
 
 		graph: &dag.Graph{},
-		cache: NewValueCache(),
+		cache: newValueCache(),
 	}
 }
 

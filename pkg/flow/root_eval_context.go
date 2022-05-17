@@ -7,6 +7,11 @@ import (
 	"github.com/zclconf/go-cty/cty/function/stdlib"
 )
 
+// rootEvalContext is a set of global variables and functions which will be
+// available to all expressions in HCL.
+//
+// controller.Loader creates a child of this context which includes values for
+// running components.
 var rootEvalContext = &hcl.EvalContext{
 	// NOTE(rfratto): Terraform doesn't delimit multiple words in function names,
 	// but we use snake_case.

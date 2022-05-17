@@ -3,6 +3,9 @@ package controller
 import "sync"
 
 // Queue is an unordered queue of components.
+//
+// Queue is intended for tracking components that have updated their Exports
+// for later reevaluation.
 type Queue struct {
 	mut    sync.Mutex
 	queued map[*ComponentNode]struct{}
