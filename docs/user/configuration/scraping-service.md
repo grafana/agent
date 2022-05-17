@@ -2,7 +2,7 @@
 aliases:
 - /docs/agent/latest/scraping-service/
 title: Scraping Service Mode
-weight: 500
+weight: 600
 ---
 
 # Scraping Service Mode (Beta)
