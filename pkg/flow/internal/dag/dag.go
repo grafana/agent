@@ -35,6 +35,15 @@ func (ns nodeSet) Has(n Node) bool {
 	return ok
 }
 
+// Clone returns a copy of ns.
+func (ns nodeSet) Clone() nodeSet {
+	newSet := make(nodeSet, len(ns))
+	for node := range ns {
+		newSet[node] = struct{}{}
+	}
+	return newSet
+}
+
 // init prepares g for writing.
 func (g *Graph) init() {
 	if g.nodeByID == nil {
@@ -196,4 +205,27 @@ func (g *Graph) Leaves() []Node {
 	}
 
 	return res
+}
+
+// Clone returns a copy of g.
+func (g *Graph) Clone() *Graph {
+	newGraph := &Graph{
+		nodes: g.nodes.Clone(),
+
+		nodeByID: make(map[string]Node, len(g.nodeByID)),
+		outEdges: make(map[Node]nodeSet, len(g.outEdges)),
+		inEdges:  make(map[Node]nodeSet, len(g.outEdges)),
+	}
+
+	for key, value := range g.nodeByID {
+		newGraph.nodeByID[key] = value
+	}
+	for node, set := range g.outEdges {
+		newGraph.outEdges[node] = set.Clone()
+	}
+	for node, set := range g.inEdges {
+		newGraph.inEdges[node] = set.Clone()
+	}
+
+	return newGraph
 }

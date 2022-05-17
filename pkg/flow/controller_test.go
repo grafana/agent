@@ -11,6 +11,27 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var testFile = `
+	log_level  = "debug"
+	log_format = "logfmt"
+
+	testcomponents "tick" "ticker" {
+		frequency = "1s"
+	}
+
+	testcomponents "passthrough" "static" {
+		input = "hello, world!"
+	}
+
+	testcomponents "passthrough" "ticker" {
+		input = testcomponents.tick.ticker.tick_time
+	}
+
+	testcomponents "passthrough" "forwarded" {
+		input = testcomponents.passthrough.ticker.output
+	}
+`
+
 func TestController_LoadFile_Evaluation(t *testing.T) {
 	ctrl, _ := newController(testOptions(t))
 
@@ -21,11 +42,11 @@ func TestController_LoadFile_Evaluation(t *testing.T) {
 
 	err := ctrl.LoadFile(f)
 	require.NoError(t, err)
-	require.Len(t, ctrl.components, 4)
+	require.Len(t, ctrl.loader.Components(), 4)
 
 	// Check the inputs and outputs of things that should be immediately resolved
 	// without having to run the components.
-	in, out := getFields(t, ctrl.graph, "testcomponents.passthrough.static")
+	in, out := getFields(t, ctrl.loader.Graph(), "testcomponents.passthrough.static")
 	require.Equal(t, "hello, world!", in.(testcomponents.PassthroughConfig).Input)
 	require.Equal(t, "hello, world!", out.(testcomponents.PassthroughExports).Output)
 }
