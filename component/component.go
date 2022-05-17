@@ -88,21 +88,3 @@ type Component interface {
 	// An error may be returned if the provided config is invalid.
 	Update(args Arguments) error
 }
-
-// DebugInfoComponent is an optional extension interface for Components that
-// can export debug information.
-//
-// Debug information is exposed to the end user for informational purposes and
-// cannot be referenced in an HCL expression.
-type DebugInfoComponent interface {
-	Component
-
-	// CurrentDebugInfo should return the current debug information of the
-	// component. The returned object must be encodable to HCL. The HCL element
-	// names from debug information are allowed to overlap with the element names
-	// from Arguments and Exports.
-	//
-	// It is valid for the returned type to change between subseqent calls to
-	// CurrentDebugInfo.
-	CurrentDebugInfo() interface{}
-}
