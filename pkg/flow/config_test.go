@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/pkg/flow"
-	"github.com/grafana/agent/pkg/flow/config"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/stretchr/testify/require"
 
@@ -15,9 +14,6 @@ import (
 
 func TestReadFile(t *testing.T) {
 	content := `
-		log_level  = "error"
-		log_format = "json"
-
 		testcomponents "tick" "ticker-a" {
 			frequency = "1s"
 		}
@@ -31,9 +27,6 @@ func TestReadFile(t *testing.T) {
 	require.NotNil(t, f)
 	requireNoDiagErrors(t, f, diags)
 
-	require.Equal(t, config.LogLevelError, f.LogLevel)
-	require.Equal(t, config.LogFormatJSON, f.LogFormat)
-
 	require.Len(t, f.Components, 2)
 	require.Equal(t, "testcomponents.tick.ticker-a", getBlockID(f.Components[0]))
 	require.Equal(t, "testcomponents.passthrough.static", getBlockID(f.Components[1]))
@@ -44,8 +37,6 @@ func TestReadFile_Defaults(t *testing.T) {
 	require.NotNil(t, f)
 	requireNoDiagErrors(t, f, diags)
 
-	require.Equal(t, config.LogLevelDefault, f.LogLevel)
-	require.Equal(t, config.LogFormatDefault, f.LogFormat)
 	require.Len(t, f.Components, 0)
 }
 

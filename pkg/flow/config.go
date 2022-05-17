@@ -2,7 +2,6 @@ package flow
 
 import (
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/flow/config"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/rfratto/gohcl"
@@ -12,11 +11,6 @@ import (
 type File struct {
 	Name string    // File name given to ReadFile.
 	HCL  *hcl.File // Raw HCL file.
-
-	LogLevel  config.LogLevel
-	LogFormat config.LogFormat
-
-	// TODO(rfratto): server block for TLS settings
 
 	// Components holds the list of raw HCL blocks describing components. The
 	// Flow controller can interpret this block.
@@ -46,27 +40,20 @@ func ReadFile(name string, bb []byte) (*File, hcl.Diagnostics) {
 	}
 
 	return &File{
-		Name: name,
-
-		LogLevel:   root.LogLevel,
-		LogFormat:  root.LogFormat,
+		Name:       name,
 		Components: content.Blocks,
-
-		HCL: file,
+		HCL:        file,
 	}, nil
 }
 
 type rootBlock struct {
-	LogLevel  config.LogLevel  `hcl:"log_level,optional"`
-	LogFormat config.LogFormat `hcl:"log_format,optional"`
+	// TODO(rfratto): log level, format
+	// TODO(rfratto): server block for TLS settings
 
 	Remain hcl.Body `hcl:",remain"`
 }
 
-var defaultRootBlock = rootBlock{
-	LogLevel:  config.LogLevelDefault,
-	LogFormat: config.LogFormatDefault,
-}
+var defaultRootBlock = rootBlock{}
 
 var _ gohcl.Decoder = (*rootBlock)(nil)
 

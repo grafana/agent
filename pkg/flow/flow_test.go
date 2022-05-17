@@ -12,9 +12,6 @@ import (
 )
 
 var testFile = `
-	log_level  = "debug"
-	log_format = "logfmt"
-
 	testcomponents "tick" "ticker" {
 		frequency = "1s"
 	}
