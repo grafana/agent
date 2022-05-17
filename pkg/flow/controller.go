@@ -30,9 +30,9 @@ type Controller struct {
 	log  log.Logger
 	opts Options
 
-	updates *updateQueue
-	cache   *controller.ValueCache
-	sched   *controller.Scheduler
+	updateQueue *controller.Queue
+	cache       *controller.ValueCache
+	sched       *controller.Scheduler
 
 	cancel       context.CancelFunc
 	exited       chan struct{}
@@ -62,9 +62,9 @@ func newController(o Options) (*Controller, context.Context) {
 		log:  o.Logger,
 		opts: o,
 
-		updates: newUpdateQueue(),
-		cache:   controller.NewValueCache(),
-		sched:   controller.NewScheduler(),
+		updateQueue: controller.NewQueue(),
+		cache:       controller.NewValueCache(),
+		sched:       controller.NewScheduler(),
 
 		cancel:       cancel,
 		exited:       make(chan struct{}, 1),
@@ -86,8 +86,8 @@ func (c *Controller) run(ctx context.Context) {
 		case <-ctx.Done():
 			return
 
-		case <-c.updates.UpdateCh():
-			updated := c.updates.TryDequeue()
+		case <-c.updateQueue.Chan():
+			updated := c.updateQueue.TryDequeue()
 			if updated != nil {
 				level.Debug(c.log).Log("msg", "handling component with updated state", "node_id", updated.NodeID())
 				c.handleUpdatedComponent(updated)
@@ -163,7 +163,7 @@ func (c *Controller) LoadFile(f *File) error {
 		Logger:   c.log,
 		DataPath: c.opts.DataPath,
 		OnExportsChange: func(uc *controller.ComponentNode) {
-			c.updates.Enqueue(uc)
+			c.updateQueue.Enqueue(uc)
 			if c.onComponentChanged != nil {
 				c.onComponentChanged(uc)
 			}
