@@ -45,20 +45,25 @@ var (
 	_ encoding.TextUnmarshaler = (*HealthType)(nil)
 )
 
-// Supported HealthType values.
 const (
+	// HealthTypeUnknown is the initial health of components, set when they're
+	// first created.
 	HealthTypeUnknown HealthType = iota
-	HealthTypeRunning
+
+	// HealthTypeHealthy represents a component which is working as expected.
 	HealthTypeHealthy
+
+	// HealthTypeUnhealthy represents a component which is not working as
+	// expected.
 	HealthTypeUnhealthy
+
+	// HealthTypeExited represents a component which has stopped running.
 	HealthTypeExited
 )
 
 // String returns the string representation of ht.
 func (ht HealthType) String() string {
 	switch ht {
-	case HealthTypeRunning:
-		return "running"
 	case HealthTypeHealthy:
 		return "health"
 	case HealthTypeUnhealthy:
@@ -78,8 +83,6 @@ func (ht HealthType) MarshalText() (text []byte, err error) {
 // UnmarshalText implments encoding.TextUnmarshaler.
 func (ht *HealthType) UnmarshalText(text []byte) error {
 	switch string(text) {
-	case "running":
-		*ht = HealthTypeRunning
 	case "healthy":
 		*ht = HealthTypeHealthy
 	case "unhealthy":

@@ -193,7 +193,7 @@ func (cn *ComponentNode) UpdateBlock(b *hcl.Block) {
 //
 // Evaluate will return an error if the HCL block cannot be evaluated or if
 // decoding to arguments fails.
-func (cn *ComponentNode) Evaluate(ectx *hcl.EvalContext) error {
+func (cn *ComponentNode) Evaluate(ectx *hcl.EvalContext) (err error) {
 	cn.mut.Lock()
 	defer cn.mut.Unlock()
 
@@ -225,6 +225,12 @@ func (cn *ComponentNode) Evaluate(ectx *hcl.EvalContext) error {
 		}
 		cn.managed = managed
 		cn.args = argsCopy
+
+		cn.setEvalHealth(component.Health{
+			Health:     component.HealthTypeHealthy,
+			Message:    "performed initial evaluation of component",
+			UpdateTime: time.Now(),
+		})
 		return nil
 	}
 
@@ -239,6 +245,12 @@ func (cn *ComponentNode) Evaluate(ectx *hcl.EvalContext) error {
 	}
 
 	cn.args = argsCopy
+
+	cn.setEvalHealth(component.Health{
+		Health:     component.HealthTypeHealthy,
+		Message:    "re-evaluated component",
+		UpdateTime: time.Now(),
+	})
 	return nil
 }
 
@@ -258,7 +270,7 @@ func (cn *ComponentNode) Run(ctx context.Context) error {
 	}
 
 	cn.setRunHealth(component.Health{
-		Health:     component.HealthTypeRunning,
+		Health:     component.HealthTypeHealthy,
 		Message:    "component is running",
 		UpdateTime: time.Now(),
 	})
