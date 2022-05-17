@@ -1,35 +1,35 @@
 // Package component describes the interfaces which Flow components implement.
 //
 // A Flow component is a distinct piece of business logic that accepts inputs
-// (Config) for its configuration and can optionally export a set of outputs
+// (Arguments) for its configuration and can optionally export a set of outputs
 // (Exports).
 //
-// Config and Exports do not need to be static for the lifetime of a component.
-// A component will be given a new Config if the runtime configuration changes.
-// A component may also update its Exports throughout its lifetime, such as a
-// component which outputs the current day of the week.
+// Arguments and Exports do not need to be static for the lifetime of a
+// component. A component will be given a new Config if the runtime
+// configuration changes. A component may also update its Exports throughout
+// its lifetime, such as a component which outputs the current day of the week.
 //
 // Components are built by users with HCL, where they can use HCL expressions
 // to refer to any input or exported field from other components. This allows
 // users to connect components together to declaratively form a pipeline.
 //
-// Defining Config and Exports structs
+// Defining Arguments and Exports structs
 //
-// Config and Exports implemented by new components must be able to be encoded
-// to and from HCL. "hcl" struct field tags are used for encoding; refer to the
-// package documentation of github.com/rfratto/gohcl for a description of how
-// to write these tags.
+// Arguments and Exports implemented by new components must be able to be
+// encoded to and from HCL. "hcl" struct field tags are used for encoding;
+// refer to the package documentation of github.com/rfratto/gohcl for a
+// description of how to write these tags.
 //
-// The set of HCL element names of a given component's Config and Export types
-// must not overlap. Additionally, the following HCL element names are reserved
-// for use by the Flow controller:
+// The set of HCL element names of a given component's Arguments and Exports
+// types must not overlap. Additionally, the following HCL element names are
+// reserved for use by the Flow controller:
 //
 //     * for_each
 //     * enabled
 //     * health
 //     * debug
 //
-// Default values for Config may be provided by implementing gohcl.Decoder.
+// Default values for Arguments may be provided by implementing gohcl.Decoder.
 //
 // Mapping HCL strings to custom types
 //
@@ -53,12 +53,12 @@ package component
 
 import "context"
 
-// A Config contains the input fields for a specific component, which is
+// The Arguments contains the input fields for a specific component, which is
 // unmarshaled from HCL.
 //
 // Refer to the package documentation for details around how to build proper
-// Config implementations.
-type Config interface{}
+// Arguments implementations.
+type Arguments interface{}
 
 // Exports contains the current set of outputs for a specific component, which
 // is then marshaled to HCL.
@@ -86,7 +86,7 @@ type Component interface {
 	// gracefully handle updating its config will still running.
 	//
 	// An error may be returned if the provided config is invalid.
-	Update(newConfig Config) error
+	Update(args Arguments) error
 }
 
 // DebugInfoComponent is an optional extension interface for Components that
@@ -100,7 +100,7 @@ type DebugInfoComponent interface {
 	// CurrentDebugInfo should return the current debug information of the
 	// component. The returned object must be encodable to HCL. The HCL element
 	// names from debug information are allowed to overlap with the element names
-	// from Config and Exports.
+	// from Arguments and Exports.
 	//
 	// It is valid for the returned type to change between subseqent calls to
 	// CurrentDebugInfo.

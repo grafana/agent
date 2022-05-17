@@ -11,11 +11,11 @@ import (
 func init() {
 	component.Register(component.Registration{
 		Name:    "testcomponents.passthrough",
-		Config:  PassthroughConfig{},
+		Args:    PassthroughConfig{},
 		Exports: PassthroughExports{},
 
-		Build: func(o component.Options, c component.Config) (component.Component, error) {
-			return NewPassthrough(o, c.(PassthroughConfig))
+		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
+			return NewPassthrough(opts, args.(PassthroughConfig))
 		},
 	})
 }
@@ -58,8 +58,8 @@ func (t *Passthrough) Run(ctx context.Context) error {
 }
 
 // Update implements Component.
-func (t *Passthrough) Update(newConfig component.Config) error {
-	c := newConfig.(PassthroughConfig)
+func (t *Passthrough) Update(args component.Arguments) error {
+	c := args.(PassthroughConfig)
 
 	level.Info(t.log).Log("msg", "passing through value", "value", c.Input)
 	t.opts.OnStateChange(PassthroughExports{Output: c.Input})

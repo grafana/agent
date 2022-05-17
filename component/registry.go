@@ -88,23 +88,23 @@ type Registration struct {
 	// with different fully-qualified names.
 	Singleton bool
 
-	// An example Config value that the registered component expects to receive
-	// as input. Components should provide the zero value of their config type
-	// here.
-	Config Config
+	// An example Arguments value that the registered component expects to
+	// receive as input. Components should provide the zero value of their
+	// Arguments type here.
+	Args Arguments
 
 	// An example Exports value that the registered component may emit as output.
 	// A component which does not expose exports must leave this set to nil.
 	Exports Exports
 
-	// Build should construct a new component from an initial Config and set of
-	// options.
-	Build func(o Options, c Config) (Component, error)
+	// Build should construct a new component from an initial Arguments and set
+	// of options.
+	Build func(opts Options, args Arguments) (Component, error)
 }
 
-// CloneConfig returns a new zero value of the registered Config type.
-func (r Registration) CloneConfig() Config {
-	return reflect.New(reflect.TypeOf(r.Config)).Interface()
+// CloneArguments returns a new zero value of the registered Arguments type.
+func (r Registration) CloneArguments() Arguments {
+	return reflect.New(reflect.TypeOf(r.Args)).Interface()
 }
 
 // Register registers a component. Register will panic if the name is in use by

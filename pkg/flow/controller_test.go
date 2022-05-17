@@ -30,7 +30,7 @@ func TestController_LoadFile_Evaluation(t *testing.T) {
 	require.Equal(t, "hello, world!", out.(testcomponents.PassthroughExports).Output)
 }
 
-func getFields(t *testing.T, g *dag.Graph, nodeID string) (component.Config, component.Exports) {
+func getFields(t *testing.T, g *dag.Graph, nodeID string) (component.Arguments, component.Exports) {
 	t.Helper()
 
 	n := g.GetByID(nodeID)

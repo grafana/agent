@@ -14,11 +14,11 @@ import (
 func init() {
 	component.Register(component.Registration{
 		Name:    "testcomponents.tick",
-		Config:  TickConfig{},
+		Args:    TickConfig{},
 		Exports: TickExports{},
 
-		Build: func(o component.Options, c component.Config) (component.Component, error) {
-			return NewTick(o, c.(TickConfig))
+		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
+			return NewTick(opts, args.(TickConfig))
 		},
 	})
 }
@@ -76,11 +76,11 @@ func (t *Tick) getNextTick() time.Duration {
 }
 
 // Update implements Component.
-func (t *Tick) Update(newConfig component.Config) error {
+func (t *Tick) Update(args component.Arguments) error {
 	t.cfgMut.Lock()
 	defer t.cfgMut.Unlock()
 
-	cfg := newConfig.(TickConfig)
+	cfg := args.(TickConfig)
 	if cfg.Frequency == 0 {
 		return fmt.Errorf("frequency must not be 0")
 	}

@@ -32,7 +32,7 @@ func NewValueCache() *ValueCache {
 
 // CacheArguments will cache the provided arguments by the given id. args may
 // be nil to store an empty object.
-func (vc *ValueCache) CacheArguments(id ComponentID, args component.Config) {
+func (vc *ValueCache) CacheArguments(id ComponentID, args component.Arguments) {
 	vc.mut.Lock()
 	defer vc.mut.Unlock()
 

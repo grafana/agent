@@ -98,10 +98,10 @@ func (fr fakeRunnable) Run(ctx context.Context) error { return fr.Component.Run(
 
 type mockComponent struct {
 	RunFunc    func(ctx context.Context) error
-	UpdateFunc func(newConfig component.Config) error
+	UpdateFunc func(newConfig component.Arguments) error
 }
 
 var _ component.Component = (*mockComponent)(nil)
 
-func (mc mockComponent) Run(ctx context.Context) error           { return mc.RunFunc(ctx) }
-func (mc mockComponent) Update(newConfig component.Config) error { return mc.UpdateFunc(newConfig) }
+func (mc mockComponent) Run(ctx context.Context) error              { return mc.RunFunc(ctx) }
+func (mc mockComponent) Update(newConfig component.Arguments) error { return mc.UpdateFunc(newConfig) }

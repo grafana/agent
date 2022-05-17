@@ -40,7 +40,7 @@ type ComponentNode struct {
 	mut     sync.RWMutex
 	block   *hcl.Block          // Current HCL block to derive args from
 	managed component.Component // Inner managed component
-	args    component.Config    // Evaluated arguments for the managed component
+	args    component.Arguments // Evaluated arguments for the managed component
 
 	// NOTE(rfratto): health and exports have their own mutex because they may be
 	// set asynchronously while mut is still being held (i.e., when calling Evaluate
@@ -90,7 +90,7 @@ func NewComponentNode(opts ComponentOptions, b *hcl.Block) *ComponentNode {
 		block: b,
 
 		// Prepopulate arguments and exports with their zero values.
-		args:    reg.Config,
+		args:    reg.Args,
 		exports: reg.Exports,
 
 		evalHealth: initHealth,
@@ -165,7 +165,7 @@ func (cn *ComponentNode) Evaluate(ectx *hcl.EvalContext) error {
 	cn.mut.Lock()
 	defer cn.mut.Unlock()
 
-	args := cn.reg.CloneConfig()
+	args := cn.reg.CloneArguments()
 	diags := gohcl.DecodeBody(cn.block.Body, ectx, args)
 	if diags.HasErrors() {
 		cn.setEvalHealth(component.Health{
@@ -252,7 +252,7 @@ func (cn *ComponentNode) Run(ctx context.Context) error {
 }
 
 // Arguments returns the current arguments of the managed component.
-func (cn *ComponentNode) Arguments() component.Config {
+func (cn *ComponentNode) Arguments() component.Arguments {
 	cn.mut.RLock()
 	defer cn.mut.RUnlock()
 	return cn.args

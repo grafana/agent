@@ -24,7 +24,7 @@ import (
 // v must be a struct value and not a pointer. RegisterGoStruct will panic if v
 // is an unexpected type.
 //
-// Config and Exports can then expose the registered Go struct through a
+// Arguments and Exports can then expose the registered Go struct through a
 // pointer to the registered struct type. For example:
 //
 //     type MyCustomStruct struct{ Stream <-chan int }
