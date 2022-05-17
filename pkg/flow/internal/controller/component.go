@@ -193,19 +193,28 @@ func (cn *ComponentNode) UpdateBlock(b *hcl.Block) {
 //
 // Evaluate will return an error if the HCL block cannot be evaluated or if
 // decoding to arguments fails.
-func (cn *ComponentNode) Evaluate(ectx *hcl.EvalContext) (err error) {
+func (cn *ComponentNode) Evaluate(ectx *hcl.EvalContext) error {
+	err := cn.evaluate(ectx)
+
+	switch err {
+	case nil:
+		cn.setEvalHealth(component.HealthTypeHealthy, "component evaluated")
+	default:
+		msg := fmt.Sprintf("component evaluation failed: %s", err)
+		cn.setEvalHealth(component.HealthTypeUnhealthy, msg)
+	}
+
+	return err
+}
+
+func (cn *ComponentNode) evaluate(ectx *hcl.EvalContext) error {
 	cn.mut.Lock()
 	defer cn.mut.Unlock()
 
 	args := cn.reg.CloneArguments()
 	diags := gohcl.DecodeBody(cn.block.Body, ectx, args)
 	if diags.HasErrors() {
-		cn.setEvalHealth(component.Health{
-			Health:     component.HealthTypeUnhealthy,
-			Message:    fmt.Sprintf("failed to decode HCL: %s", diags.Error()),
-			UpdateTime: time.Now(),
-		})
-		return diags
+		return fmt.Errorf("decoding HCL: %w", diags)
 	}
 
 	// args is always a pointer to the args type, so we want to deference it since
@@ -216,41 +225,20 @@ func (cn *ComponentNode) Evaluate(ectx *hcl.EvalContext) (err error) {
 		// We haven't built the managed component successfully yet.
 		managed, err := cn.reg.Build(cn.managedOpts, argsCopy)
 		if err != nil {
-			cn.setEvalHealth(component.Health{
-				Health:     component.HealthTypeUnhealthy,
-				Message:    fmt.Sprintf("failed to build component: %s", err),
-				UpdateTime: time.Now(),
-			})
-			return err
+			return fmt.Errorf("building component: %w", diags)
 		}
 		cn.managed = managed
 		cn.args = argsCopy
 
-		cn.setEvalHealth(component.Health{
-			Health:     component.HealthTypeHealthy,
-			Message:    "performed initial evaluation of component",
-			UpdateTime: time.Now(),
-		})
 		return nil
 	}
 
 	// Update the existing managed component
 	if err := cn.managed.Update(argsCopy); err != nil {
-		cn.setEvalHealth(component.Health{
-			Health:     component.HealthTypeUnhealthy,
-			Message:    fmt.Sprintf("failed to update component: %s", err),
-			UpdateTime: time.Now(),
-		})
-		return err
+		return fmt.Errorf("updating component: %w", err)
 	}
 
 	cn.args = argsCopy
-
-	cn.setEvalHealth(component.Health{
-		Health:     component.HealthTypeHealthy,
-		Message:    "re-evaluated component",
-		UpdateTime: time.Now(),
-	})
 	return nil
 }
 
@@ -269,12 +257,7 @@ func (cn *ComponentNode) Run(ctx context.Context) error {
 		return ErrUnevaluated
 	}
 
-	cn.setRunHealth(component.Health{
-		Health:     component.HealthTypeHealthy,
-		Message:    "component is running",
-		UpdateTime: time.Now(),
-	})
-
+	cn.setRunHealth(component.HealthTypeHealthy, "started component")
 	err := cn.managed.Run(ctx)
 
 	var exitMsg string
@@ -287,13 +270,13 @@ func (cn *ComponentNode) Run(ctx context.Context) error {
 		exitMsg = "component shut down normally"
 	}
 
-	cn.setRunHealth(component.Health{
-		Health:     component.HealthTypeExited,
-		Message:    exitMsg,
-		UpdateTime: time.Now(),
-	})
+	cn.setRunHealth(component.HealthTypeExited, exitMsg)
 	return err
 }
+
+// ErrUnevaluated is returned if ComponentNode.Run is called before a managed
+// component is built.
+var ErrUnevaluated = errors.New("managed component not built")
 
 // Arguments returns the current arguments of the managed component.
 func (cn *ComponentNode) Arguments() component.Arguments {
@@ -369,20 +352,26 @@ func (cn *ComponentNode) CurrentHealth() component.Health {
 
 // setEvalHealth sets the internal health from a call to Evaluate. See Health
 // for information on how overall health is calculated.
-func (cn *ComponentNode) setEvalHealth(h component.Health) {
+func (cn *ComponentNode) setEvalHealth(t component.HealthType, msg string) {
 	cn.healthMut.Lock()
 	defer cn.healthMut.Unlock()
-	cn.evalHealth = h
+
+	cn.evalHealth = component.Health{
+		Health:     t,
+		Message:    msg,
+		UpdateTime: time.Now(),
+	}
 }
 
 // setRunHealth sets the internal health from a call to Run. See Health for
 // information on how overall health is calculated.
-func (cn *ComponentNode) setRunHealth(h component.Health) {
+func (cn *ComponentNode) setRunHealth(t component.HealthType, msg string) {
 	cn.healthMut.Lock()
 	defer cn.healthMut.Unlock()
-	cn.runHealth = h
-}
 
-// ErrUnevaluated is returned if ComponentNode.Run is called before a managed
-// component is built.
-var ErrUnevaluated = errors.New("managed component not built")
+	cn.runHealth = component.Health{
+		Health:     t,
+		Message:    msg,
+		UpdateTime: time.Now(),
+	}
+}

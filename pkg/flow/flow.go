@@ -150,7 +150,10 @@ func (c *Flow) run(ctx context.Context) {
 			for _, uc := range components {
 				runnables = append(runnables, uc)
 			}
-			c.sched.Synchronize(runnables)
+			err := c.sched.Synchronize(runnables)
+			if err != nil {
+				level.Error(c.log).Log("msg", "failed to load components", "err", err)
+			}
 		}
 	}
 }
