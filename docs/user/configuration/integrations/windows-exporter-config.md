@@ -1,6 +1,8 @@
-+++
-title = "windows_exporter_config"
-+++
+---
+aliases:
+- /docs/agent/latest/configuration/integrations/windows-exporter-config/
+title: windows_exporter_config
+---
 
 # windows_exporter_config
 

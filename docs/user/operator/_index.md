@@ -1,7 +1,9 @@
-+++
-title = "Grafana Agent Operator"
-weight = 500
-+++
+---
+aliases:
+- /docs/agent/latest/operator/
+title: Grafana Agent Operator
+weight: 500
+---
 
 # Grafana Agent Operator (Beta)
 

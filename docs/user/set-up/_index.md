@@ -1,7 +1,9 @@
-+++
-title = "Getting started with Grafana Agent"
-weight = 100
-+++
+---
+aliases:
+- /docs/agent/latest/set-up/
+title: Getting started with Grafana Agent
+weight: 100
+---
 
 # Getting started with Grafana Agent
 

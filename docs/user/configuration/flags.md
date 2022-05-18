@@ -1,7 +1,9 @@
-+++
-title  = "Command-line flags"
-weight = 100
-+++
+---
+aliases:
+- /docs/agent/latest/configuration/flags/
+title: Command-line flags
+weight: 100
+---
 
 # Command-line flags
 

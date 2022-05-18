@@ -1,7 +1,9 @@
-+++
-title = "Install Agent on Windows"
-weight = 120
-+++
+---
+aliases:
+- /docs/agent/latest/set-up/install-agent-on-windows/
+title: Install Agent on Windows
+weight: 120
+---
 
 # Install Agent on Windows
 
