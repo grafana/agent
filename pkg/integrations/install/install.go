@@ -7,6 +7,7 @@ import (
 	//
 
 	_ "github.com/grafana/agent/pkg/integrations/agent"                  // register agent
+	_ "github.com/grafana/agent/pkg/integrations/apache_exporter"        // register apache_exporter
 	_ "github.com/grafana/agent/pkg/integrations/cadvisor"               // register cadvisor
 	_ "github.com/grafana/agent/pkg/integrations/consul_exporter"        // register consul_exporter
 	_ "github.com/grafana/agent/pkg/integrations/dnsmasq_exporter"       // register dnsmasq_exporter

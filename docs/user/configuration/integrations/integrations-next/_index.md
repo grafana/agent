@@ -116,6 +116,9 @@ integrations:
 
   app_agent_receiver_configs:
     [- <app_agent_receiver_config>]
+
+  apache_config:
+    [- <apache_config>]
 ```
 
 Note that most integrations are no longer configured with the `_exporter` name.
