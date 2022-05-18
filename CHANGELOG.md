@@ -34,6 +34,8 @@ Main (unreleased)
 
 - Introduce SNMP exporter integration. (@v-zhuravlev)
 
+- Dummy change - test PR workflow validity
+
 ### Enhancements
 
 - integrations-next: Integrations using autoscrape will now autoscrape metrics
