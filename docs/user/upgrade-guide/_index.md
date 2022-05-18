@@ -2,7 +2,7 @@
 aliases:
 - /docs/agent/latest/upgrade-guide/
 title: Upgrade guide
-weight: 200
+weight: 800
 ---
 
 # Upgrade guide
