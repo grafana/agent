@@ -46,7 +46,7 @@ to stop the reporting.
 
 ## Configuration file
 
-* `-config.file`: Path to the configuration file to load. May be an HTTP(s) URL when the `remote-configs` feature is enabled
+* `-config.file`: Path to the configuration file to load. May be an HTTP(s) URL when the `remote-configs` feature is enabled.
 * `-config.file.type`: Type of file which `-config.file` refers to (default `yaml`). Valid values are `yaml` and `dynamic`.
 * `-config.expand-env`: Expand environment variables in the loaded configuration file
 * `-config.enable-read-api`: Enables the `/-/config` and `/agent/api/v1/configs/{name}` API endpoints to print YAML configuration
