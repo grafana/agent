@@ -42,7 +42,6 @@ func (c *Config) Name() string {
 
 // InstanceKey returns the addr of the apache server.
 func (c *Config) InstanceKey(agentKey string) (string, error) {
-
 	u, err := url.Parse(c.ApacheAddr)
 	if err != nil {
 		return "", err
