@@ -45,14 +45,15 @@ Write-Host "Retrieving and updating Grafana agent config"
 $CONFIG_URI = "$GCLOUD_API_URL/stacks/$GCLOUD_STACK_ID/agent_config"
 $AUTH_TOKEN = "Bearer $GCLOUD_API_KEY"
 
-$headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
-$headers.Add("Authorization", $AUTH_TOKEN)
+$headers = @{
+    Authorization = $AUTH_TOKEN
+}
 
 $response = Invoke-WebRequest $CONFIG_URI -Method 'GET' -Headers $headers
 
 $jsonObj = $response | ConvertFrom-Json
 if ($jsonObj.status -eq "success") {
-	Write-Host "Saving and updatig agent configuration file"
+	Write-Host "Saving and updating agent configuration file"
 	$yamlConfig = $jsonObj.data | ConvertTo-Yaml
 	Set-Content -Path ".\agent-config.yaml" -Value ($yamlConfig)
 	Move-Item ".\agent-config.yaml" "C:\Program Files\Grafana Agent\agent-config.yaml" -force
