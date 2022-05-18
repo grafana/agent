@@ -72,7 +72,7 @@ func TestValueCache(t *testing.T) {
 	requireCtyEqual(t, expectBar, res.Variables["bar"])
 }
 
-// requireCtyEqual() requires a and b to be equal.
+// requireCtyEqual requires a and b to be equal.
 func requireCtyEqual(t *testing.T, expect, actual cty.Value) {
 	t.Helper()
 

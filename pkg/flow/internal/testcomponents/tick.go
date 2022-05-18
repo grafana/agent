@@ -86,5 +86,6 @@ func (t *Tick) Update(args component.Arguments) error {
 	}
 
 	level.Info(t.log).Log("msg", "setting tick frequency", "freq", cfg.Frequency)
+	t.cfg = cfg
 	return nil
 }
