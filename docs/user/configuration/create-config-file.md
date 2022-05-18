@@ -2,10 +2,10 @@
 aliases:
 - /docs/agent/latest/set-up/create-config-file/
 title: Create a config file
-weight: 200
+weight: 50
 ---
 
-# Create a config file
+# Create a configuration file
 
 The Grafana Agent supports configuring multiple independent "subsystems." Each
 subsystem helps you collect data for a specific type of telemetry.

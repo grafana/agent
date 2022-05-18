@@ -7,6 +7,8 @@ weight: 1
 
 # Grafana Agent
 
+## Overview
+
 Grafana Agent collects and forwards telemetry data to open source deployments of the LGTM (Loki, Grafana, Tempo, Mimir) Stack, Grafana Cloud, or Grafana Enterprise, where your data can then be analyzed. You can install Grafana Agent on Kubernetes and Docker, or as a system process for Linux, macOS, and Windows machines.  
 
 The Grafana Agent is open source and its source code is available on GitHub at https://github.com/grafana/agent.
