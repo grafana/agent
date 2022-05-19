@@ -117,7 +117,7 @@ integrations:
   app_agent_receiver_configs:
     [- <app_agent_receiver_config>]
 
-  apache_config:
+  apache_configs:
     [- <apache_config>]
 ```
 
