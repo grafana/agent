@@ -1,7 +1,7 @@
 ---
 aliases:
 - /docs/agent/latest/set-up/
-title: Getting started with Grafana Agent
+title: Set up Grafana Agent
 weight: 100
 ---
 
@@ -69,14 +69,6 @@ to the end of the `docker run` command:
 
 Note that using paths on your host machine must be exposed to the Docker
 container through a bind mount for the flags to work properly.
-
-
-
-### Grafana Cloud kubernetes quickstart guides
-
-These guides help you get up and running with the Agent and Grafana Cloud, and include sample ConfigMaps.
-
-You can find them in the [Grafana Cloud documentation](https://grafana.com/docs/grafana-cloud/quickstart/agent-k8s/)
 
 ### Install locally
 

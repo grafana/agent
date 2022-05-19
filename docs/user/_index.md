@@ -11,13 +11,13 @@ weight: 1
 
 Grafana Agent collects and forwards telemetry data to open source deployments of the LGTM (Loki, Grafana, Tempo, Mimir) Stack, Grafana Cloud, or Grafana Enterprise, where your data can then be analyzed. You can install Grafana Agent on Kubernetes and Docker, or as a system process for Linux, macOS, and Windows machines.  
 
-The Grafana Agent is open source and its source code is available on GitHub at https://github.com/grafana/agent.
+Grafana Agent is open source and its source code is available on GitHub at https://github.com/grafana/agent.
 
 Grafana Agent is for engineers, operators, or administrators who want to collect and forward telemetry data for analysis and on-call alerting. Those operating Grafana Agent must install and configure Grafana Agent to properly collect telemetry data and monitor the health of running agents.
 
 ## Features
 
-There are other ways of sending metrics, logs and traces to the LGTM Stack, Grafana Cloud or Grafana Enterprise, but there are a few advantages of using the Grafana Agent. These features are outlined below.
+There are other ways of sending metrics, logs and traces to the LGTM Stack, Grafana Cloud or Grafana Enterprise, but there are a few advantages of using Grafana Agent. These features are outlined below.
 
 * Provides a one-stop solution for collecting metrics, logs, and traces.
 * Collects out-of-the-box telemetry from popular projects like MySQL through integrations
@@ -32,28 +32,28 @@ so some Prometheus features, such as querying, local storage, recording rules,
 and alerts are not present. `remote_write`, service discovery, and relabeling
 rules are included.
 
-The Grafana Agent has a concept of an "instance" each of which acts as
+Grafana Agent has a concept of an "instance" each of which acts as
 its own mini Prometheus agent with its own `scrape_configs` section and
 `remote_write` rules. More than one instance is useful when you want to have
 separate configurations that write to two different locations without
 needing to consider advanced metric relabeling rules. Multiple instances also
 come into play for the [Scraping Service Mode]({{< relref "./scraping-service" >}}).
 
-The Grafana Agent for collecting metrics can be deployed in three modes:
+Grafana Agent for collecting metrics can be deployed in three modes:
 
 - Prometheus `remote_write` drop-in
 - [Host Filtering mode](#host-filtering)
 - [Scraping Service mode]({{< relref "./scraping-service" >}})
 
 ### Prometheus `remote_write` drop-in
-The default deployment mode of the Grafana Agent is a _drop-in_
-replacement for Prometheus `remote_write`. The Agent acts similarly to a
+The default deployment mode of Grafana Agent is a _drop-in_
+replacement for Prometheus `remote_write`. Grafana Agent acts similarly to a
 single-process Prometheus, doing service discovery, scraping, and remote
 writing.
 
 
 ### Host filtering
-Host filtering configures Agents to scrape targets that are running on the same
+Host filtering configures agents to scrape targets that are running on the same
 machine as the Grafana Agent process.
 
 1. Gets the hostname of the agent by the `HOSTNAME` environment variable or
@@ -101,7 +101,7 @@ developer team.
 
 Grafana Agent collects traces and forwards them to Tempo using its
 `traces` subsystem. This is done using the upstream [OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector).
-Agent can ingest OpenTelemetry, OpenCensus, Jaeger, Zipkin, or Kafka spans.
+Grafana Agent can ingest OpenTelemetry, OpenCensus, Jaeger, Zipkin, or Kafka spans.
 For more information on how to configure, refer to [receivers]({{< relref "./configuration/traces-config.md" >}}).
-The agent is capable of exporting to any OpenTelemetry GRPC compatible system.
+The Grafana Agent is also capable of exporting to any OpenTelemetry GRPC compatible system.
 
