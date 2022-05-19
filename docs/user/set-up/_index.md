@@ -39,36 +39,13 @@ For sample configuration files, refer to the Grafana Cloud Kubernetes quick star
 
 Advanced users can use Grafana Agent Operator to deploy the Grafana Agent on Kubernetes.
 
+### Docker
+
+Refer to [Install Grafana Agent on Docker]({{< relref "./install-agent-docker.md" >}})
+
 ### Windows
 
-Use the [Windows Installer]({{< relref "./install-agent-on-windows.md" >}})
-
-### Docker container
-
-```
-docker run \
-  -v /tmp/agent:/etc/agent/data \
-  -v /path/to/config.yaml:/etc/agent/agent.yaml \
-  grafana/agent:v0.24.1
-```
-
-Replace `/tmp/agent` with the folder you wish to store WAL data in. WAL data is
-where metrics are stored before they are sent to Prometheus. Old WAL data is
-cleaned up every hour, and will be used for recovering if the process happens to
-crash.
-
-To override the default flags passed to the container, add the following flags
-to the end of the `docker run` command:
-
-- `--config.file=path/to/agent.yaml`, replacing the argument with the full path
-  to your Agent's YAML configuration file.
-
-- `--metrics.wal-directory=/tmp/agent/data`, replacing `/tmp/agent/data` with
-  the directory you wish to use for storing data. Note that `/tmp` may get
-  deleted by most operating systems after a reboot.
-
-Note that using paths on your host machine must be exposed to the Docker
-container through a bind mount for the flags to work properly.
+Refer to [Install Grafana Agent on Windows]({{< relref "./install-agent-on-windows.md" >}})
 
 ### Install locally
 
