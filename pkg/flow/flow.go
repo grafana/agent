@@ -99,7 +99,7 @@ func newFlow(o Options) (*Flow, context.Context) {
 	var (
 		queue  = controller.NewQueue()
 		sched  = controller.NewScheduler()
-		loader = controller.NewLoader(controller.ComponentOptions{
+		loader = controller.NewLoader(controller.ComponentGlobals{
 			Logger:   o.Logger,
 			DataPath: o.DataPath,
 			OnExportsChange: func(cn *controller.ComponentNode) {

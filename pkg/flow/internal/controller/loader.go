@@ -14,8 +14,8 @@ import (
 
 // The Loader builds and evaluates ComponentNodes from HCL blocks.
 type Loader struct {
-	log           log.Logger
-	componentOpts ComponentOptions
+	log     log.Logger
+	globals ComponentGlobals
 
 	mut        sync.RWMutex
 	graph      *dag.Graph
@@ -25,10 +25,10 @@ type Loader struct {
 
 // NewLoader creates a new Loader. Components built by the Loader will be built
 // with co for their options.
-func NewLoader(co ComponentOptions) *Loader {
+func NewLoader(globals ComponentGlobals) *Loader {
 	return &Loader{
-		log:           co.Logger,
-		componentOpts: co,
+		log:     globals.Logger,
+		globals: globals,
 
 		graph: &dag.Graph{},
 		cache: newValueCache(),
@@ -116,7 +116,7 @@ func (l *Loader) populateGraph(g *dag.Graph, blocks hcl.Blocks) hcl.Diagnostics 
 			c.UpdateBlock(block)
 		} else {
 			// Create a new component
-			c = NewComponentNode(l.componentOpts, block)
+			c = NewComponentNode(l.globals, block)
 		}
 
 		g.Add(c)

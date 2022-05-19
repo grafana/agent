@@ -45,14 +45,14 @@ func TestLoader(t *testing.T) {
 		},
 	}
 
-	opts := controller.ComponentOptions{
+	globals := controller.ComponentGlobals{
 		Logger:          log.NewNopLogger(),
 		DataPath:        t.TempDir(),
 		OnExportsChange: func(cn *controller.ComponentNode) { /* no-op */ },
 	}
 
 	t.Run("New Graph", func(t *testing.T) {
-		l := controller.NewLoader(opts)
+		l := controller.NewLoader(globals)
 		diags := applyFromContent(t, l, []byte(testFile))
 		require.False(t, diags.HasErrors())
 		requireGraph(t, l.Graph(), testGraphDefinition)
@@ -70,7 +70,7 @@ func TestLoader(t *testing.T) {
 				frequency = "1m"
 			}
 		`
-		l := controller.NewLoader(opts)
+		l := controller.NewLoader(globals)
 		diags := applyFromContent(t, l, []byte(startFile))
 		origGraph := l.Graph()
 		require.False(t, diags.HasErrors())
@@ -98,7 +98,7 @@ func TestLoader(t *testing.T) {
 				input = testcomponents.tick.doesnotexist.tick_time
 			}
 		`
-		l := controller.NewLoader(opts)
+		l := controller.NewLoader(globals)
 		diags := applyFromContent(t, l, []byte(invalidFile))
 		require.True(t, diags.HasErrors())
 

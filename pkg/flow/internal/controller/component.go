@@ -49,8 +49,9 @@ func (id ComponentID) Equals(other ComponentID) bool {
 	return true
 }
 
-// ComponentOptions are used by ComponentNode to build managed components.
-type ComponentOptions struct {
+// ComponentGlobals are used by ComponentNodes to build managed components. All
+// ComponentNodes should use the same ComponentGlobals.
+type ComponentGlobals struct {
 	Logger          log.Logger              // Logger shared between all managed components.
 	DataPath        string                  // Shared directory where component data may be stored
 	OnExportsChange func(cn *ComponentNode) // Invoked when the managed component updated its exports
@@ -92,7 +93,7 @@ var (
 
 // NewComponentNode creates a new ComponentNode from an initial hcl.Block. The
 // underlying managed component isn't created until Evaluate is called.
-func NewComponentNode(opts ComponentOptions, b *hcl.Block) *ComponentNode {
+func NewComponentNode(globals ComponentGlobals, b *hcl.Block) *ComponentNode {
 	var (
 		id     = BlockComponentID(b)
 		nodeID = id.String()
@@ -117,7 +118,7 @@ func NewComponentNode(opts ComponentOptions, b *hcl.Block) *ComponentNode {
 		nodeID:          nodeID,
 		reg:             reg,
 		exportsType:     getExportsType(reg),
-		onExportsChange: opts.OnExportsChange,
+		onExportsChange: globals.OnExportsChange,
 
 		block: b,
 
@@ -128,7 +129,7 @@ func NewComponentNode(opts ComponentOptions, b *hcl.Block) *ComponentNode {
 		evalHealth: initHealth,
 		runHealth:  initHealth,
 	}
-	cn.managedOpts = getManagedOptions(opts, cn)
+	cn.managedOpts = getManagedOptions(globals, cn)
 
 	return cn
 }
@@ -148,11 +149,11 @@ func getRegistration(id ComponentID) (component.Registration, bool) {
 	return reg, ok
 }
 
-func getManagedOptions(opts ComponentOptions, cn *ComponentNode) component.Options {
+func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Options {
 	return component.Options{
 		ID:            cn.nodeID,
-		Logger:        log.With(opts.Logger, "component", cn.nodeID),
-		DataPath:      filepath.Join(opts.DataPath, cn.nodeID),
+		Logger:        log.With(globals.Logger, "component", cn.nodeID),
+		DataPath:      filepath.Join(globals.DataPath, cn.nodeID),
 		OnStateChange: cn.setExports,
 	}
 }
