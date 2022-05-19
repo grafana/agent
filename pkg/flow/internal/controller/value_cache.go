@@ -113,37 +113,8 @@ func (vc *valueCache) BuildContext(parent *hcl.EvalContext) *hcl.EvalContext {
 		ectx = &hcl.EvalContext{}
 	}
 
-	// Variables is used to build the mapping of referenceable values.
-	//
-	// For the following HCL config file:
-	//
-	//     foo {
-	//       something = true
-	//     }
-	//
-	//     bar "label_a" {
-	//       number = 12
-	//     }
-	//
-	//     bar "label_b" {
-	//       number = 34
-	//     }
-	//
-	// Variables will be populated to be equivalent to the following JSON object:
-	//
-	//     {
-	//       "foo": {
-	//         "something": true
-	//       },
-	//       "bar": {
-	//         "label_a": {
-	//           "number": 12
-	//         },
-	//         "label_b": {
-	//           "number": 34
-	//         }
-	//       }
-	//     }
+	// Variables is used to build the mapping of referenceable values. See
+	// value_cache_test.go for examples of what the expected output is.
 	ectx.Variables = make(map[string]cty.Value)
 
 	// First, partition components by HCL block name.

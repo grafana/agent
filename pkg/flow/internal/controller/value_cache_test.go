@@ -22,13 +22,13 @@ func TestValueCache(t *testing.T) {
 		Number int `hcl:"number,attr"`
 	}
 
-	// Emulate values the following HCL file:
+	// Emulate values from the following HCL file:
 	//
 	//     foo {
 	//       something = true
 	//
 	//       // Exported fields:
-	//       // something_else = bool
+	//       // something_else = true
 	//     }
 	//
 	//     bar "label_a" {
@@ -37,6 +37,22 @@ func TestValueCache(t *testing.T) {
 	//
 	//     bar "label_b" {
 	//       number = 34
+	//     }
+	//
+	// and expects to generate the equivalent to the following JSON object:
+	//
+	//     {
+	//       "foo": {
+	//         "something": true
+	//       },
+	//       "bar": {
+	//         "label_a": {
+	//           "number": 12
+	//         },
+	//         "label_b": {
+	//           "number": 34
+	//         }
+	//       }
 	//     }
 
 	vc.CacheArguments(ComponentID{"foo"}, fooArgs{Something: true})
