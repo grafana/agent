@@ -62,12 +62,12 @@ type ComponentOptions struct {
 // arguments and exports. ComponentNode manages the arguments for the component
 // from an HCL block.
 type ComponentNode struct {
-	id          ComponentID
-	nodeID      string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
-	reg         component.Registration
-	opts        ComponentOptions
-	managedOpts component.Options
-	exportsType reflect.Type
+	id              ComponentID
+	nodeID          string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
+	reg             component.Registration
+	managedOpts     component.Options
+	exportsType     reflect.Type
+	onExportsChange func(cn *ComponentNode) // Informs controller that we changed our exports
 
 	mut     sync.RWMutex
 	block   *hcl.Block          // Current HCL block to derive args from
@@ -113,11 +113,11 @@ func NewComponentNode(opts ComponentOptions, b *hcl.Block) *ComponentNode {
 	}
 
 	cn := &ComponentNode{
-		id:          id,
-		nodeID:      nodeID,
-		reg:         reg,
-		opts:        opts,
-		exportsType: getExportsType(reg),
+		id:              id,
+		nodeID:          nodeID,
+		reg:             reg,
+		exportsType:     getExportsType(reg),
+		onExportsChange: opts.OnExportsChange,
 
 		block: b,
 
@@ -261,7 +261,7 @@ func (cn *ComponentNode) Run(ctx context.Context) error {
 	err := cn.managed.Run(ctx)
 
 	var exitMsg string
-	log := cn.opts.Logger
+	log := cn.managedOpts.Logger
 	if err != nil {
 		level.Error(log).Log("msg", "component exited with error", "err", err)
 		exitMsg = fmt.Sprintf("component shut down with error: %s", err)
@@ -308,7 +308,7 @@ func (cn *ComponentNode) setExports(e component.Exports) {
 	cn.exportsMut.Unlock()
 
 	// Inform the controller that we have new exports.
-	cn.opts.OnExportsChange(cn)
+	cn.onExportsChange(cn)
 }
 
 // CurrentHealth returns the current health of the ComponentNode.
