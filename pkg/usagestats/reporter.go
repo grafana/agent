@@ -171,6 +171,6 @@ func (rep *Reporter) getMetrics() map[string]interface{} {
 // nextReport compute the next report time based on the interval.
 // The interval is based off the creation of the agent seed to avoid all agents reporting at the same time.
 func nextReport(interval time.Duration, createdAt, now time.Time) time.Time {
-	// createdAt * (x * interval ) >= now
-	return createdAt.Add(time.Duration(math.Ceil(float64(now.Sub(createdAt))/float64(interval))) * interval)
+	duration := math.Ceil(float64(now.Sub(createdAt)) / float64(interval))
+	return createdAt.Add(time.Duration(duration) * interval)
 }
