@@ -8,11 +8,11 @@ weight: 100
 # Set up Grafana Agent
 
 ## Overview
-If this is your first time using the Grafana Agent, use one of the installation options to install the Grafana Agent based on the platform you are using. Alternatively, use the quick start guides to help you with the specifics of sending metrics, logs, and traces to the LGTM (Loki, Grafana, Tempo, Mimir) Stack or Grafana Cloud.
+If this is your first time using Grafana Agent, use one of the installation options to install Grafana Agent based on the platform you are using. Alternatively, use the quick start guides to help you with the specifics of sending metrics, logs, and traces to the LGTM (Loki, Grafana, Tempo, Mimir) Stack or Grafana Cloud.
 
-If you have already installed the Grafana Agent on your machine, you can jump to the Configure Grafana Agent section.
+If you have already installed Grafana Agent on your machine, you can jump to the Configure Grafana Agent section.
 
-To get started with the Grafana Agent Operator, refer to the Operator-specific
+To get started with Grafana Agent Operator, refer to the Operator-specific
 [documentation](../operator/).
 
 ## Installation options
@@ -37,7 +37,7 @@ You can manually modify the Kubernetes manifests by downloading them. These mani
 
 For sample configuration files, refer to the Grafana Cloud Kubernetes quick start guide: https://grafana.com/docs/grafana-cloud/kubernetes/agent-k8s/.
 
-Advanced users can use the Grafana Agent Operator to deploy the Grafana Agent on Kubernetes.
+Advanced users can use Grafana Agent Operator to deploy the Grafana Agent on Kubernetes.
 
 ### Windows
 

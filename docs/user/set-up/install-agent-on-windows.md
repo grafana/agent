@@ -9,7 +9,7 @@ weight: 120
 
 Install Grafana Agent and get it up and running on Windows.
 
-## Steps
+### Steps
 
 1.  Navigate to [Releases](https://github.com/grafana/agent/releases).
    
@@ -58,13 +58,15 @@ If you change the location of the configuration file, ensure you complete the fo
 sc config "Grafana Agent" binpath= "<installed_directory>\agent-windows-amd64.exe -config.file=\"<new_path>\agent-config.yaml\""
 ```
 
-## Uninstall
+## Uninstall Grafana Agent
 
-If the Grafana Agent is installed using the installer, it can be uninstalled via Windows' Remove Programs or `C:\Program Files\Grafana Agent\uninstaller.exe`. Uninstalling the Agent will stop the service and remove it from disk. This will include any configuration files in the installation directory. Grafana Agent can be silently uninstalled by executing `uninstall.exe /S` while running as Administrator.
+If you installed Grafana Agent using the Windows installer, you can uninstall it using Windows' Remove Programs or `C:\Program Files\Grafana Agent\uninstaller.exe`. 
+Uninstalling Grafana Agent will stop the service and remove it from disk. This includes any configuration files in the installation directory. 
+Grafana Agent can also be silently uninstalled by executing `uninstall.exe /S` while running as Administrator.
 
 ## Logs
 
-When Grafana Agent runs as a Windows Service, the Grafana Agent will write logs to Windows Event Logs. When running as executable, Grafana Agent will write to standard out. The logs will be written with the event source name of `Grafana Agent`.
+When Grafana Agent runs as a Windows Service, it writes logs to Windows Event Logs. When running as executable, Grafana Agent will write to standard out. The logs will be written with the event source name of `Grafana Agent`.
 
 ## Pushing Windows logs to Grafana Loki
 
