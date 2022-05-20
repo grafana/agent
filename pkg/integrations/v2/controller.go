@@ -229,7 +229,19 @@ func (c *controller) Handler(prefix string) (http.Handler, error) {
 		}
 
 		// Anything that matches the integrationPrefix should be passed to the handler.
-		r.PathPrefix(iprefix).HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		// The reason these two are separated is if you have two instance names and one is a prefix of another
+		// ie localhost and localhost2, localhost2 will never get called because localhost will always get precedence
+		// add / fixes this, but to keep old behavior we need to ensure /localhost and localhost2 also work, hence
+		// the second handlefunc below this one. https://github.com/grafana/agent/issues/1718
+		r.PathPrefix(iprefix + "/").HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+			if !ci.Running() {
+				http.Error(rw, fmt.Sprintf("%s integration intance %q not running", id.Name, id.Identifier), http.StatusServiceUnavailable)
+				return
+			}
+			handler.ServeHTTP(rw, r)
+		})
+		// Handle calling the iprefix itself
+		r.HandleFunc(iprefix, func(rw http.ResponseWriter, r *http.Request) {
 			if !ci.Running() {
 				http.Error(rw, fmt.Sprintf("%s integration intance %q not running", id.Name, id.Identifier), http.StatusServiceUnavailable)
 				return

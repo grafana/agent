@@ -49,6 +49,8 @@ Main (unreleased)
 
 - Added config watcher delay to prevent race condition in cases where scraping service mode has not gracefully exited. (@mattdurham)
 
+- Resolved issue in v2 integrations where instance names that were substrings of another instance name did not scrape properly (@mattdurham)
+
 ### Other changes
 
 - Update base image of official Docker containers from Debian buster to Debian
