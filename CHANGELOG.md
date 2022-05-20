@@ -64,7 +64,7 @@ v0.24.2 (2022-05-02)
 
 ### Bugfixes
 
-- Added config watcher delay to prevent race condition in cases where scraping service mode has not gracefully exited. (@mattdurham)
+- Added configuration watcher delay to prevent race condition in cases where scraping service mode has not gracefully exited. (@mattdurham)
 
 ### Other changes
 
