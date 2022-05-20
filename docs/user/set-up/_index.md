@@ -49,7 +49,7 @@ Use the [Windows Installer]({{< relref "./install-agent-on-windows.md" >}})
 docker run \
   -v /tmp/agent:/etc/agent/data \
   -v /path/to/config.yaml:/etc/agent/agent.yaml \
-  grafana/agent:v0.24.1
+  grafana/agent:v0.24.2
 ```
 
 Replace `/tmp/agent` with the folder you wish to store WAL data in. WAL data is
