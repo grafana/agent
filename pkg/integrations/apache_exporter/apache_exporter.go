@@ -9,8 +9,6 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/integrations"
-	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
-	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 )
 
 // DefaultConfig holds the default settings for the apache_exporter integration
@@ -56,7 +54,6 @@ func (c *Config) NewIntegration(logger log.Logger) (integrations.Integration, er
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.NewNamedShim("apache"))
 }
 
 func new(logger log.Logger, c *Config) (integrations.Integration, error) {

@@ -29,7 +29,8 @@ import (
 	// v2 integrations
 	//
 
-	_ "github.com/grafana/agent/pkg/integrations/v2/agent"              // register agent
+	_ "github.com/grafana/agent/pkg/integrations/v2/agent" // register agent
+	_ "github.com/grafana/agent/pkg/integrations/v2/apache_exporter"
 	_ "github.com/grafana/agent/pkg/integrations/v2/app_agent_receiver" // register app_agent_receiver
 	_ "github.com/grafana/agent/pkg/integrations/v2/eventhandler"
 	_ "github.com/grafana/agent/pkg/integrations/v2/snmp_exporter"
