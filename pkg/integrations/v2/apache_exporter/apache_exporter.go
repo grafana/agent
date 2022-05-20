@@ -57,7 +57,6 @@ func (c *Config) Name() string {
 
 // InstanceKey returns the addr of the apache server.
 func (c *Config) InstanceKey(agentKey string) (string, error) {
-
 	u, err := url.Parse(c.ApacheAddr)
 	if err != nil {
 		return "", err
@@ -76,12 +75,6 @@ func (c *Config) NewIntegration(logger log.Logger, globals integrations_v2.Globa
 	var metricsCfg common.MetricsConfig
 	metricsCfg.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
 
-	_, err := url.ParseRequestURI(c.ApacheAddr)
-	if err != nil {
-		level.Error(logger).Log("msg", "scrape_uri is invalid", "err", err)
-		return nil, err
-	}
-
 	ah := &apacheHandler{cfg: c, log: logger}
 	h, err := ah.createHandler()
 	if err != nil {
@@ -92,6 +85,11 @@ func (c *Config) NewIntegration(logger log.Logger, globals integrations_v2.Globa
 }
 
 func (ah *apacheHandler) createHandler() (http.HandlerFunc, error) {
+	_, err := url.ParseRequestURI(ah.cfg.ApacheAddr)
+	if err != nil {
+		level.Error(ah.log).Log("msg", "scrape_uri is invalid", "err", err)
+		return nil, err
+	}
 
 	aeExporter := ae.NewExporter(ah.log, &ae.Config{
 		ScrapeURI:    ah.cfg.ApacheAddr,
