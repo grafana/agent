@@ -7,10 +7,12 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/integrations"
-	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
-	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	ssl_config "github.com/ribbybibby/ssl_exporter/v2/config"
 )
+
+func init() {
+	integrations.RegisterIntegration(&Config{})
+}
 
 // DefaultConfig holds the default settings for the ssl_exporter integration.
 var DefaultConfig = Config{
@@ -47,7 +49,7 @@ func (c Config) GetExporterOptions(log log.Logger) (*Options, error) {
 		Namespace:  c.Name(),
 		SSLTargets: c.SSLTargets,
 		SSLConfig:  conf,
-		log:        log,
+		Logger:     log,
 	}, nil
 }
 
@@ -72,11 +74,6 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 // NewIntegration converts the config into an instance of an integration.
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
 	return New(l, c)
-}
-
-func init() {
-	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.NewNamedShim("ssl"))
 }
 
 // New creates a new ssl_exporter integration. The integration scrapes

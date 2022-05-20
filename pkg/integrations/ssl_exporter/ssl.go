@@ -15,7 +15,7 @@ import (
 
 var (
 	namespace  = "ssl"
-	labelOrder = map[string]int{
+	LabelOrder = map[string]int{
 		"prober":     0,
 		"version":    0,
 		"chain_no":   0,
@@ -34,7 +34,7 @@ var (
 		"emails":     8,
 		"ou":         9,
 	}
-	descs = map[string]*prometheus.Desc{
+	Descs = map[string]*prometheus.Desc{
 		"ssl_exporter_probe_success": prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "", "probe_success"),
 			"If the probe was a success",
@@ -149,7 +149,7 @@ type Options struct {
 	Registry    *prometheus.Registry
 	SSLTargets  []SSLTarget
 	SSLConfig   *ssl_config.Config
-	log         log.Logger
+	Logger      log.Logger
 }
 
 func NewSSLExporter(opts Options) (*Exporter, error) {
@@ -175,7 +175,7 @@ func NewSSLExporter(opts Options) (*Exporter, error) {
 }
 
 func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
-	for _, desc := range descs {
+	for _, desc := range Descs {
 		ch <- desc
 	}
 }
@@ -184,7 +184,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	e.Lock()
 	defer e.Unlock()
 
-	logger := e.options.log
+	logger := e.options.Logger
 
 	for _, target := range e.options.SSLTargets {
 		ctx := context.Background()
@@ -232,7 +232,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 		for _, mf := range metricFams {
 			for _, m := range mf.Metric {
 				// get desc from name
-				desc, ok := descs[*mf.Name]
+				desc, ok := Descs[*mf.Name]
 				if !ok {
 					level.Error(logger).Log("msg", fmt.Sprintf("Unknown metric %q", *mf.Name))
 					continue
@@ -240,8 +240,8 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 
 				// ensure label order
 				sort.Slice(m.Label, func(i, j int) bool {
-					iPrec := labelOrder[*m.Label[i].Name]
-					jPrec := labelOrder[*m.Label[j].Name]
+					iPrec := LabelOrder[*m.Label[i].Name]
+					jPrec := LabelOrder[*m.Label[j].Name]
 					return iPrec < jPrec
 				})
 				labelValues := []string{}
