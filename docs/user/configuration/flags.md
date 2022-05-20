@@ -38,7 +38,7 @@ Valid feature names are:
 
 By default, Grafana Agent sends anonymous, but uniquely-identifiable information
 of the enabled feature flags from your running Grafana Agent instance to Grafana Labs.
-These statistics are sent to https://stats.grafana.org/.
+These statistics are sent to `stats.grafana.org`.
 
 Statistics help us better understand how Grafana Agent is used.
 This helps us prioritize features and documentation.
