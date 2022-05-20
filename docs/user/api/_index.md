@@ -1,7 +1,9 @@
-+++
-title = "Grafana Agent API"
-weight = 400
-+++
+---
+aliases:
+- /docs/agent/latest/api/
+title: Grafana Agent API
+weight: 400
+---
 
 # Grafana Agent APIs (Stable)
 

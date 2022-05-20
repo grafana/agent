@@ -41,8 +41,13 @@ Main (unreleased)
   network. As a result of this change, the `client_config` field has been
   removed. (@rfratto)
 
+- Enable `proxy_url` support on `oauth2` for metrics and logs (update **prometheus/common** dependency to `v0.33.0`). (@martin-jaeger-maersk)
+
 - `extra-scrape-metrics` can now be enabled with the `--enable-features=extra-scrape-metrics` feature flag. See https://prometheus.io/docs/prometheus/2.31/feature_flags/#extra-scrape-metrics for details. (@rlankfo)
 
+
+- Resolved issue in v2 integrations where if an instance name was a prefix of another the route handler would fail to
+  match requests on the longer name (@mattdurham)
 
 ### Other changes
 

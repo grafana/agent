@@ -1,6 +1,8 @@
-+++
-title = "elasticsearch_exporter_config"
-+++
+---
+aliases:
+- /docs/agent/latest/configuration/integrations/elasticsearch-exporter-config/
+title: elasticsearch_exporter_config
+---
 
 # elasticsearch_exporter_config
 

@@ -1,7 +1,9 @@
-+++
-title = "Scraping Service Mode"
-weight = 500
-+++
+---
+aliases:
+- /docs/agent/latest/scraping-service/
+title: Scraping Service Mode
+weight: 600
+---
 
 # Scraping Service Mode (Beta)
 
@@ -40,7 +42,7 @@ remote_write:
 
 The full set of supported options for an instance configuration file is
 available in the
-[`metrics-config.md` file]({{< relref "../configuration/metrics-config" >}}).
+[`metrics-config.md` file]({{< relref "metrics-config" >}}).
 
 Having multiple instance configuration files is necessary for sharding; each
 config file is distributed to a particular agent on the cluster based on the

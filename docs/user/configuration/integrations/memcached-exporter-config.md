@@ -1,6 +1,8 @@
-+++
-title = "memcached_exporter_config"
-+++
+---
+aliases:
+- /docs/agent/latest/configuration/integrations/memcached-exporter-config/
+title: memcached_exporter_config
+---
 
 # memcached_exporter_config
 

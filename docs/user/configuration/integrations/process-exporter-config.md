@@ -1,6 +1,8 @@
-+++
-title = "process_exporter_config"
-+++
+---
+aliases:
+- /docs/agent/latest/configuration/integrations/process-exporter-config/
+title: process_exporter_config
+---
 
 # process_exporter_config
 

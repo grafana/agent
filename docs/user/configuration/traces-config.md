@@ -1,8 +1,10 @@
-+++
-title = "traces_config"
-weight = 400
-aliases = ["/docs/agent/latest/configuration/tempo-config/"]
-+++
+---
+aliases:
+- /docs/agent/latest/configuration/tempo-config/
+- /docs/agent/latest/configuration/traces-config/
+title: traces_config
+weight: 400
+---
 
 # traces_config
 
@@ -282,6 +284,9 @@ load_balancing:
     dns:
       hostname: <string>
       [ port: <int> ]
+
+  # receiver_port is the port the instance will use to receive load balanced traces
+  receiver_port: [ <int> | default = 4318 ]
 
   # Load balancing is done via an otlp exporter.
   # The remaining configuration is common with the remote_write block.

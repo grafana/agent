@@ -1,7 +1,9 @@
-+++
-title = "Operation guide"
-weight = 700
-+++
+---
+aliases:
+- /docs/agent/latest/operation-guide/
+title: Operation guide
+weight: 700
+---
 
 # Operation guide
 

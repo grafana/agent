@@ -1,7 +1,9 @@
-+++
-title = "server_config"
-weight = 100
-+++
+---
+aliases:
+- /docs/agent/latest/configuration/server-config/
+title: server_config
+weight: 100
+---
 
 # server_config
 

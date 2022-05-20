@@ -1,6 +1,8 @@
-+++
-title = "statsd_exporter_config"
-+++
+---
+aliases:
+- /docs/agent/latest/configuration/integrations/statsd-exporter-config/
+title: statsd_exporter_config
+---
 
 # statsd_exporter_config
 

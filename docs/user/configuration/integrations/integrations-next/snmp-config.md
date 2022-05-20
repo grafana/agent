@@ -1,6 +1,8 @@
-+++
-title = "snmp_exporter_config"
-+++
+---
+aliases:
+- /docs/agent/latest/configuration/integrations/integrations-next/snmp-config/
+title: snmp_exporter_config
+---
 
 # snmp config
 

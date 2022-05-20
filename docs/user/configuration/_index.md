@@ -1,7 +1,9 @@
-+++
-title = "Configure Grafana Agent"
-weight = 300
-+++
+---
+aliases:
+- /docs/agent/latest/configuration/
+title: Configure Grafana Agent
+weight: 300
+---
 
 # Configure Grafana Agent
 

@@ -1,6 +1,8 @@
-+++
-title = "mysqld_exporter_config"
-+++
+---
+aliases:
+- /docs/agent/latest/configuration/integrations/mysqld-exporter-config/
+title: mysqld_exporter_config
+---
 
 # mysqld_exporter_config
 
