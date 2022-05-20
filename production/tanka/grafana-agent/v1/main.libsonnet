@@ -15,7 +15,7 @@ local service = k.core.v1.service;
 (import './lib/traces.libsonnet') +
 {
   _images:: {
-    agent: 'grafana/agent:v2',
+    agent: 'grafana/agent:v0.24.2',
     agentctl: 'grafana/agentctl:v0.24.2',
   },
 
