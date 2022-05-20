@@ -233,21 +233,16 @@ func (c *controller) Handler(prefix string) (http.Handler, error) {
 		// ie localhost and localhost2, localhost2 will never get called because localhost will always get precedence
 		// add / fixes this, but to keep old behavior we need to ensure /localhost and localhost2 also work, hence
 		// the second handlefunc below this one. https://github.com/grafana/agent/issues/1718
-		r.PathPrefix(iprefix + "/").HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		hfunc := func(rw http.ResponseWriter, r *http.Request) {
 			if !ci.Running() {
 				http.Error(rw, fmt.Sprintf("%s integration intance %q not running", id.Name, id.Identifier), http.StatusServiceUnavailable)
 				return
 			}
 			handler.ServeHTTP(rw, r)
-		})
+		}
+		r.PathPrefix(iprefix + "/").HandlerFunc(hfunc)
 		// Handle calling the iprefix itself
-		r.HandleFunc(iprefix, func(rw http.ResponseWriter, r *http.Request) {
-			if !ci.Running() {
-				http.Error(rw, fmt.Sprintf("%s integration intance %q not running", id.Name, id.Identifier), http.StatusServiceUnavailable)
-				return
-			}
-			handler.ServeHTTP(rw, r)
-		})
+		r.HandleFunc(iprefix, hfunc)
 	})
 	if err != nil {
 		level.Warn(c.logger).Log("msg", "error when iterating over integrations to build HTTP handlers", "err", err)
