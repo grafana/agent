@@ -8,7 +8,7 @@ weight: 100
 # Set up Grafana Agent
 
 ## Overview
-If this is your first time using Grafana Agent, use one of the installation options to install Grafana Agent based on the platform you are using. Alternatively, use the quick start guides to help you with the specifics of sending metrics, logs, and traces to the LGTM (Loki, Grafana, Tempo, Mimir) Stack or Grafana Cloud.
+If this is your first time using Grafana Agent, use one of the installation options to install Grafana Agent based on the platform you are using. Alternatively, use the quick start guides to help you with the specifics of sending metrics, logs, and traces to the Grafana Stack or Grafana Cloud.
 
 If you have already installed Grafana Agent on your machine, you can jump to the Configure Grafana Agent section.
 
@@ -47,28 +47,18 @@ Refer to [Install Grafana Agent on Docker]({{< relref "./install-agent-docker.md
 
 Refer to [Install Grafana Agent on Windows]({{< relref "./install-agent-on-windows.md" >}})
 
-### Install locally
+### Binary
 
-Our [Releases](https://github.com/grafana/agent/releases) page contains
-instructions for downloading static binaries that are published with every release.
-These releases contain the plain binary alongside system packages for Windows,
-Red Hat, and Debian.
+Refer to [Install the Grafana Agent binary]({{< relref "./install-agent-binary.md" >}})
+
+### macOS
+
+Refer to [Install Grafana Agent on macOS]({{< relref "./install-agent-macos.md" >}})
+
+### Grafana Cloud
+
+Use the Grafana Agent [Kubernetes quickstarts](https://grafana.com/docs/grafana-cloud/kubernetes/agent-k8s/) or follow instructions for installing the Grafana Agent in the [Walkthrough](https://grafana.com/docs/grafana-cloud/quickstart/agent_linuxnode/).
 
 ### Tanka
 
-We provide [Tanka](https://tanka.dev) configurations in our [`production/`](https://github.com/grafana/agent/tree/main/production/tanka/grafana-agent) directory.
-
-### Community Projects
-
-Below is a list of community lead projects for working with Grafana Agent. These projects are not maintained or supported by Grafana Labs.
-
-#### Helm (Kubernetes Deployment)
-
-A publically available release of a Grafana Agent Helm chart is maintained [here](https://github.com/DandyDeveloper/charts/tree/master/charts/grafana-agent). Contributions and improvements are welcomed. Full details on rolling out and supported options can be found in the [readme](https://github.com/DandyDeveloper/charts/blob/master/charts/grafana-agent/README.md).
-
-This *does not* require the Grafana Agent Operator to rollout / deploy.
-
-#### Juju (Charmed Operator)
-
-The [grafana-agent-k8s](https://github.com/canonical/grafana-agent-operator) charmed operator runs with [Juju](https://juju.is) the Grafana Agent on Kubernetes.
-The Grafana Agent charmed operator is designed to work with the [Logs, Metrics and Alerts](https://juju.is/docs/lma2) observability stack.
+For more information, refer to the [Tanka](https://tanka.dev) configurations in our [`production/`](https://github.com/grafana/agent/tree/main/production/tanka/grafana-agent) directory.
