@@ -88,12 +88,12 @@ type Flow struct {
 // New creates and starts a new Flow controller. Call Close to stop
 // the controller.
 func New(o Options) *Flow {
-	c, ctx := newFlow(o)
+	c, ctx := NewFlow(o)
 	go c.run(ctx)
 	return c
 }
 
-func newFlow(o Options) (*Flow, context.Context) {
+func NewFlow(o Options) (*Flow, context.Context) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	var (

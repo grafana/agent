@@ -30,7 +30,7 @@ var testFile = `
 `
 
 func TestController_LoadFile_Evaluation(t *testing.T) {
-	ctrl, _ := newFlow(testOptions(t))
+	ctrl, _ := NewFlow(testOptions(t))
 
 	// Use testFile from graph_builder_test.go.
 	f, diags := ReadFile(t.Name(), []byte(testFile))
