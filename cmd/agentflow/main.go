@@ -86,6 +86,7 @@ func run() error {
 
 		r := mux.NewRouter()
 		r.Handle("/metrics", promhttp.Handler())
+		r.Handle("/debug/graph", f.GraphHandler())
 		r.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
 
 		r.HandleFunc("/-/reload", func(w http.ResponseWriter, _ *http.Request) {
