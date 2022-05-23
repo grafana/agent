@@ -19,11 +19,11 @@ func MarshalDOT(g *Graph) []byte {
 	}
 
 	fmt.Fprintf(&buf, "\n\t// Edges:\n")
-	for _, edge := range g.Edges() {
+	for _, edge := range sortedEdges(g.Edges()) {
 		fmt.Fprintf(&buf, "\t%q -> %q\n", edge.From.NodeID(), edge.To.NodeID())
 	}
 
-	fmt.Fprintln(&buf, "}")
+	fmt.Fprintf(&buf, "}")
 	return buf.Bytes()
 }
 
@@ -34,4 +34,27 @@ func sortedNodeNames(nn []Node) []string {
 	}
 	sort.Strings(names)
 	return names
+}
+
+func sortedEdges(edge []Edge) []Edge {
+	res := make([]Edge, len(edge))
+	copy(res, edge)
+
+	sort.Slice(res, func(i, j int) bool {
+		var (
+			fromNodeI = res[i].From.NodeID()
+			fromNodeJ = res[j].From.NodeID()
+
+			toNodeI = res[i].To.NodeID()
+			toNodeJ = res[j].To.NodeID()
+		)
+
+		// Sort first by from nodes, then by to nodes
+		if fromNodeI != fromNodeJ {
+			return fromNodeI < fromNodeJ
+		}
+		return toNodeI < toNodeJ
+	})
+
+	return res
 }

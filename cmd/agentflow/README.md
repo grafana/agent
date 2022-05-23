@@ -39,3 +39,11 @@ with the `-server.http-listen-addr` flag.
 
 [example config file]: ./example-config.flow
 [component package]: ../../component/component.go
+
+## Debug endpoints
+
+### Graph visualization
+
+The `/debug/graph` endpoint will render the state of the Flow controller as a
+DAG. The resulting DAG is a dependency graph of references between nodes and
+not necessarily the flow of data.
