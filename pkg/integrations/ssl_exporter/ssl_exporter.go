@@ -34,7 +34,7 @@ type Config struct {
 	SSLTargets             []SSLTarget `yaml:"ssl_targets"`
 }
 
-func (c Config) GetExporterOptions(log log.Logger) (*Options, error) {
+func (c *Config) GetExporterOptions(log log.Logger) (*Options, error) {
 	var err error
 	conf := ssl_config.DefaultConfig
 
@@ -50,6 +50,7 @@ func (c Config) GetExporterOptions(log log.Logger) (*Options, error) {
 		SSLTargets: c.SSLTargets,
 		SSLConfig:  conf,
 		Logger:     log,
+		Name:       c.Name(),
 	}, nil
 }
 
@@ -93,14 +94,10 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 		}
 	}
 
-	exporter, err := NewSSLExporter(*exporterConfig)
+	exporter, err := NewSSLExporter(*exporterConfig, c.Name())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create ssl exporter: %w", err)
 	}
 
-	return integrations.NewCollectorIntegration(
-		c.Name(),
-		integrations.WithCollectors(exporter),
-		integrations.WithExporterMetricsIncluded(c.IncludeExporterMetrics),
-	), nil
+	return exporter, nil
 }

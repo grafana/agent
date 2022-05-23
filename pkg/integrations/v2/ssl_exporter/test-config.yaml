@@ -1,0 +1,4 @@
+default_module: tcp
+modules:
+  tcp:
+    prober: tcp

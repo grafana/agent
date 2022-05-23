@@ -3,7 +3,6 @@ package ssl_exporter
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -18,10 +17,10 @@ import (
 
 func TestSSLCases(t *testing.T) {
 	tests := []struct {
-		name                   string
-		cfg                    Config
-		expectConstructorError bool
-		expectedMetrics        []string
+		name                       string
+		cfg                        Config
+		expectExporterOptionsError bool
+		expectedMetrics            []string
 	}{
 		// Test that default config results in some metrics that can be parsed by
 		// prometheus.
@@ -41,7 +40,7 @@ func TestSSLCases(t *testing.T) {
 				c.ConfigFile = "/does/not/exist"
 				return c
 			})(),
-			expectConstructorError: true,
+			expectExporterOptionsError: true,
 		},
 		// Test that a custom config file can be parsed and used.
 		{
@@ -58,29 +57,32 @@ func TestSSLCases(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			integration, err := New(logger, &test.cfg)
+			opts, err := test.cfg.GetExporterOptions(logger)
+			if test.expectExporterOptionsError {
+				require.Error(t, err, "expected failure when setting up ssl_exporter")
+				return
+			}
+			integration, err := NewSSLExporter(*opts, &test.cfg)
 
-			if test.expectConstructorError {
+			if test.expectExporterOptionsError {
 				require.Error(t, err, "expected failure when setting up ssl_exporter")
 				return
 			}
 			require.NoError(t, err, "failed to setup ssl_exporter")
 
 			r := mux.NewRouter()
-			handler, err := integration.MetricsHandler()
-			require.NoError(t, err)
-			r.Handle("/metrics", handler)
+
+			r.Handle("/metrics", integration)
 			require.NoError(t, err)
 
 			srv := httptest.NewServer(r)
 			defer srv.Close()
 
-			res, err := http.Get(srv.URL + "/metrics?target=example.com")
+			res, err := http.Get(srv.URL + "/metrics?target=example.com:443")
 			require.NoError(t, err)
 
 			body, err := ioutil.ReadAll(res.Body)
 			require.NoError(t, err)
-			fmt.Printf("%s\n", body)
 
 			foundMetricNames := map[string]bool{}
 			for _, name := range test.expectedMetrics {

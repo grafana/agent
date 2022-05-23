@@ -17,13 +17,16 @@ type Config struct {
 	ConfigFile             string               `yaml:"config_file,omitempty"`
 	SSLTargets             []SSLTarget          `yaml:"ssl_targets"`
 	Common                 common.MetricsConfig `yaml:",inline"`
+
+	globals integrations_v2.Globals
 }
 
 func (c *Config) Name() string {
-	return "ssl"
+	return "ssl_exporter"
 }
 
 func (c *Config) ApplyDefaults(globals integrations_v2.Globals) error {
+	c.globals = globals
 	c.Common.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
 	return nil
 }
@@ -52,6 +55,7 @@ func (c *Config) GetExporterOptions(log log.Logger) (*Options, error) {
 		SSLTargets: c.SSLTargets,
 		SSLConfig:  conf,
 		Logger:     log,
+		Name:       c.Name(),
 	}, nil
 }
 
@@ -70,7 +74,7 @@ func (c *Config) NewIntegration(logger log.Logger, globals integrations_v2.Globa
 		}
 	}
 
-	exporter, err := NewSSLExporter(*exporterConfig)
+	exporter, err := NewSSLExporter(*exporterConfig, c)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create ssl exporter: %w", err)
 	}

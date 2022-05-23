@@ -33,4 +33,5 @@ import (
 	_ "github.com/grafana/agent/pkg/integrations/v2/app_agent_receiver" // register app_agent_receiver
 	_ "github.com/grafana/agent/pkg/integrations/v2/eventhandler"
 	_ "github.com/grafana/agent/pkg/integrations/v2/snmp_exporter"
+	_ "github.com/grafana/agent/pkg/integrations/v2/ssl_exporter"
 )

@@ -3,7 +3,6 @@ package ssl_exporter
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -74,14 +73,11 @@ func TestSSLCases(t *testing.T) {
 
 			srv := httptest.NewServer(r)
 			defer srv.Close()
-
-			res, err := http.Get(srv.URL + "/metrics?target=example.com")
+			res, err := http.Get(srv.URL + "/metrics?target=example.com:443")
 			require.NoError(t, err)
 
 			body, err := ioutil.ReadAll(res.Body)
 			require.NoError(t, err)
-			fmt.Printf("%s\n", body)
-
 			foundMetricNames := map[string]bool{}
 			for _, name := range test.expectedMetrics {
 				foundMetricNames[name] = false

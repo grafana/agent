@@ -3,12 +3,19 @@ package ssl_exporter
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"net/url"
 	"sort"
 	"sync"
+
+	"github.com/prometheus/common/version"
+
+	integration_config "github.com/grafana/agent/pkg/integrations/config"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	ssl_config "github.com/ribbybibby/ssl_exporter/v2/config"
 	"github.com/ribbybibby/ssl_exporter/v2/prober"
 )
@@ -140,6 +147,64 @@ type Exporter struct {
 
 	options   Options
 	namespace string
+	log       log.Logger
+	name      string
+}
+
+func (e *Exporter) MetricsHandler() (http.Handler, error) {
+	return e, nil
+}
+
+func (e *Exporter) ScrapeConfigs() []integration_config.ScrapeConfig {
+	var res []integration_config.ScrapeConfig
+	for _, target := range e.options.SSLTargets {
+		queryParams := url.Values{}
+		queryParams.Add("target", target.Target)
+		res = append(res, integration_config.ScrapeConfig{
+			JobName:     e.name + "/" + target.Name,
+			MetricsPath: "/metrics",
+			QueryParams: queryParams,
+		})
+	}
+	return res
+}
+
+func (e *Exporter) Run(ctx context.Context) error {
+	<-ctx.Done()
+	return ctx.Err()
+}
+
+func (e *Exporter) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	query := request.URL.Query()
+
+	targetName := query.Get("target")
+
+	target := &SSLTarget{
+		Name:   targetName,
+		Target: targetName,
+		Module: e.options.SSLConfig.DefaultModule,
+	}
+	module, found := e.options.SSLConfig.Modules[target.Module]
+	if !found {
+		level.Error(e.log).Log("msg", fmt.Sprintf("Unknown module '%s'", target.Module))
+		return
+	}
+
+	probeFunc, found := prober.Probers[module.Prober]
+	ctx := context.Background()
+	// set high-level metric not collected in the prober
+	registry := prometheus.NewRegistry()
+	registry.MustRegister(e.probeSuccess, e.proberType)
+	registry.MustRegister(version.NewCollector("ssl_exporter"))
+	err := probeFunc(ctx, e.log, target.Target, module, registry)
+	if err != nil {
+		level.Error(e.log).Log("msg", fmt.Sprintf("error probing module '%s'", target.Module))
+		return
+	}
+
+	// Delegate http serving to Prometheus client library, which will call collector.Collect.
+	h := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
+	h.ServeHTTP(writer, request)
 }
 
 type Options struct {
@@ -150,9 +215,10 @@ type Options struct {
 	SSLTargets  []SSLTarget
 	SSLConfig   *ssl_config.Config
 	Logger      log.Logger
+	Name        string
 }
 
-func NewSSLExporter(opts Options) (*Exporter, error) {
+func NewSSLExporter(opts Options, name string) (*Exporter, error) {
 	e := &Exporter{
 		options:   opts,
 		namespace: opts.Namespace,
@@ -169,6 +235,7 @@ func NewSSLExporter(opts Options) (*Exporter, error) {
 			},
 			[]string{"prober"},
 		),
+		log: opts.Logger,
 	}
 
 	return e, nil
@@ -211,6 +278,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 		}
 
 		e.options.Registry = prometheus.NewRegistry()
+		e.options.Registry.MustRegister(version.NewCollector("ssl_exporter"))
 		e.options.Registry.MustRegister(e.probeSuccess, e.proberType)
 		e.proberType.WithLabelValues(module.Prober).Set(1)
 
