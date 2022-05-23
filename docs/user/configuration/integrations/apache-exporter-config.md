@@ -1,19 +1,19 @@
 ---
 aliases:
 - /docs/agent/latest/configuration/integrations/apache-exporter-config/
-title: apache_exporter_config
+title: apache_http_config
 ---
 
-# apache_exporter_config
+# apache_http_config
 
-The `apache_exporter_config` block configures the `apache_exporter` integration,
+The `apache_http_config` block configures the `apache_http` integration,
 which is an embedded version of
 [`apache_exporter`](https://github.com/Lusitaniae/apache_exporter). This allows the collection of Apache [mod_status](https://httpd.apache.org/docs/current/mod/mod_status.html) statistics via HTTP.
 
 Full reference of options:
 
 ```yaml
-  # Enables the apache_exporter integration, allowing the Agent to automatically
+  # Enables the apache_http integration, allowing the Agent to automatically
   # collect metrics for the specified apache http servers.
   [enabled: <boolean> | default = false]
 
@@ -25,9 +25,9 @@ Full reference of options:
   [instance: <string>]
 
   # Automatically collect metrics from this integration. If disabled,
-  # the apache_exporter integration will be run but not scraped and thus not
+  # the apache_http integration will be run but not scraped and thus not
   # remote-written. Metrics for the integration will be exposed at
-  # /integrations/apache_exporter/metrics and can be scraped by an external
+  # /integrations/apache_http/metrics and can be scraped by an external
   # process.
   [scrape_integration: <boolean> | default = <integrations_config.scrape_integrations>]
 

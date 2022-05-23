@@ -1,5 +1,5 @@
-// Package apache_exporter embeds https://github.com/Lusitaniae/apache_exporter
-package apache_exporter //nolint:golint
+// Package apache_http embeds https://github.com/Lusitaniae/apache_exporter
+package apache_http //nolint:golint
 
 import (
 	"fmt"
@@ -16,14 +16,14 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-// DefaultConfig holds the default settings for the apache_exporter integration
+// DefaultConfig holds the default settings for the apache_http integration
 var DefaultConfig = Config{
 	ApacheAddr:         "http://localhost/server-status?auto",
 	ApacheHostOverride: "",
 	ApacheInsecure:     false,
 }
 
-// Config controls the apache_exporter integration.
+// Config controls the apache_http integration.
 type Config struct {
 	ApacheAddr         string               `yaml:"scrape_uri,omitempty"`
 	ApacheHostOverride string               `yaml:"host_override,omitempty"`
@@ -52,7 +52,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 // Name returns the name of the integration this config is for.
 func (c *Config) Name() string {
-	return "apache"
+	return "apache_http"
 }
 
 // InstanceKey returns the addr of the apache server.
@@ -70,7 +70,7 @@ type apacheHandler struct {
 }
 
 // NewIntegration instantiates a new integrations.MetricsIntegration
-// which will handle requests to the apache exporter.
+// which will handle requests to the apache http integration.
 func (c *Config) NewIntegration(logger log.Logger, globals integrations_v2.Globals) (integrations_v2.Integration, error) {
 	var metricsCfg common.MetricsConfig
 	metricsCfg.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)

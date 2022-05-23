@@ -56,8 +56,8 @@ agent:
 #  (Client Auth Type = RequireAndVerifyClientCert || RequireAnyClientCert).
 http_tls_config: <tls_config>
 
-# Controls the apache_exporter integration
-apache_exporter: <apache_exporter_config>
+# Controls the apache_http integration
+apache_http: <apache_http_config>
 
 # Controls the node_exporter integration
 node_exporter: <node_exporter_config>
