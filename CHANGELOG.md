@@ -34,6 +34,9 @@ Main (unreleased)
 
 - Introduce SNMP exporter integration. (@v-zhuravlev)
 
+- Configure the agent to report the use of feature flags to grafana.com. (@marctc)
+
+
 ### Enhancements
 
 - integrations-next: Integrations using autoscrape will now autoscrape metrics

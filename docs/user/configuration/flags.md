@@ -34,9 +34,21 @@ Valid feature names are:
 * `dynamic-config`: Enable support for [dynamic configuration]({{< relref "./dynamic-config" >}})
 * `extra-scrape-metrics`: When enabled, additional time series  are exposed for each metrics instance scrape. See [Extra scrape metrics](https://prometheus.io/docs/prometheus/latest/feature_flags/#extra-scrape-metrics).
 
+### Report use of feature flags
+
+By default, Grafana Agent sends anonymous, but uniquely-identifiable information
+of the enabled feature flags from your running Grafana Agent instance to Grafana Labs.
+These statistics are sent to `stats.grafana.org`.
+
+Statistics help us better understand how Grafana Agent is used.
+This helps us prioritize features and documentation.
+
+If you would like to disable the reporting, Grafana Agent provides the flag `-disable-reporting`
+to stop the reporting.
+
 ## Configuration file
 
-* `-config.file`: Path to the configuration file to load. May be an HTTP(s) URL when the `remote-configs` feature is enabled
+* `-config.file`: Path to the configuration file to load. May be an HTTP(s) URL when the `remote-configs` feature is enabled.
 * `-config.file.type`: Type of file which `-config.file` refers to (default `yaml`). Valid values are `yaml` and `dynamic`.
 * `-config.expand-env`: Expand environment variables in the loaded configuration file
 * `-config.enable-read-api`: Enables the `/-/config` and `/agent/api/v1/configs/{name}` API endpoints to print YAML configuration

@@ -41,7 +41,7 @@ func normalize(f Feature) Feature {
 	return Feature(strings.ToLower(string(f)))
 }
 
-// Enabled retruns true if a feature is enabled. Enable will panic if fs has
+// Enabled returns true if a feature is enabled. Enable will panic if fs has
 // not been passed to Register or name is an unknown feature.
 func Enabled(fs *flag.FlagSet, name Feature) bool {
 	name = normalize(name)
@@ -111,6 +111,23 @@ func Validate(fs *flag.FlagSet, deps []Dependency) error {
 	})
 
 	return err
+}
+
+// GetAllEnabled returns the list of all enabled features
+func GetAllEnabled(fs *flag.FlagSet) []string {
+	f := fs.Lookup(setFlagName)
+	if f == nil {
+		panic("feature flag not registered to fs")
+	}
+	s, ok := f.Value.(*set)
+	if !ok {
+		panic("registered feature flag not appropriate type")
+	}
+	var enabled []string
+	for feature := range s.enabled {
+		enabled = append(enabled, string(feature))
+	}
+	return enabled
 }
 
 // set implements flag.Value and holds the set of enabled features.

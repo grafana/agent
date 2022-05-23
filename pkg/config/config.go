@@ -55,6 +55,7 @@ var DefaultConfig = Config{
 	Metrics:               metrics.DefaultConfig,
 	Integrations:          DefaultVersionedIntegrations,
 	EnableConfigEndpoints: false,
+	EnableUsageReport:     true,
 }
 
 // Config contains underlying configurations for the agent
@@ -74,6 +75,10 @@ type Config struct {
 
 	// Toggle for config endpoint(s)
 	EnableConfigEndpoints bool `yaml:"-"`
+
+	// Report enabled features options
+	EnableUsageReport bool     `yaml:"-"`
+	EnabledFeatures   []string `yaml:"-"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
@@ -334,7 +339,6 @@ func Load(fs *flag.FlagSet, args []string) (*Config, error) {
 			} else if expandArgs {
 				return fmt.Errorf("-config.expand-env can not be used with file type %s", fileTypeDynamic)
 			}
-
 			return LoadDynamicConfiguration(path, expandArgs, c)
 		default:
 			return fmt.Errorf("unknown file type %q. accepted values: %s", fileType, strings.Join(fileTypes, ", "))
@@ -350,17 +354,20 @@ func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
 	var (
 		cfg = DefaultConfig
 
-		printVersion    bool
-		file            string
-		fileType        string
-		configExpandEnv bool
+		printVersion     bool
+		file             string
+		fileType         string
+		configExpandEnv  bool
+		disableReporting bool
 	)
 
 	fs.StringVar(&file, "config.file", "", "configuration file to load")
 	fs.StringVar(&fileType, "config.file.type", "yaml", fmt.Sprintf("Type of file pointed to by -config.file flag. Supported values: %s. %s requires dynamic-config and integrations-next features to be enabled.", strings.Join(fileTypes, ", "), fileTypeDynamic))
-	fs.BoolVar(&printVersion, "version", false, "Print this build's version information")
+	fs.BoolVar(&printVersion, "version", false, "Print this build's version information.")
 	fs.BoolVar(&configExpandEnv, "config.expand-env", false, "Expands ${var} in config according to the values of the environment variables.")
+	fs.BoolVar(&disableReporting, "disable-reporting", false, "Disable reporting of enabled feature flags to Grafana.")
 	cfg.RegisterFlags(fs)
+
 	features.Register(fs, allFeatures)
 
 	if err := fs.Parse(args); err != nil {
@@ -397,6 +404,12 @@ func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
 
 	if features.Enabled(fs, featExtraMetrics) {
 		cfg.Metrics.Global.ExtraMetrics = true
+	}
+
+	if disableReporting {
+		cfg.EnableUsageReport = false
+	} else {
+		cfg.EnabledFeatures = features.GetAllEnabled(fs)
 	}
 
 	// Finally, apply defaults to config that wasn't specified by file or flag
