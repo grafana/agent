@@ -65,7 +65,7 @@ const (
 func (ht HealthType) String() string {
 	switch ht {
 	case HealthTypeHealthy:
-		return "health"
+		return "healthy"
 	case HealthTypeUnhealthy:
 		return "unhealthy"
 	case HealthTypeExited:
