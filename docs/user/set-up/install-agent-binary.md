@@ -20,10 +20,10 @@ ppc64le builds are currently considered secondary release targets and do not hav
    
    This page includes instructions for downloading static binaries that are published with every release. These releases contain binary executables for Windows, Linux and macOS.
 
-2. Scroll down to the **Assets** section.
-3. Download the version that matches your operating system.
-4. Extract the package contents into a directory.
-5. Enter `chmod +x “file name”` in your command line to check that it is executable.
+1. Scroll down to the **Assets** section.
+1. Download the version that matches your operating system.
+1. Extract the package contents into a directory.
+1. Enter `chmod +x “file name”` in your command line to check that it is executable.
 
 
 

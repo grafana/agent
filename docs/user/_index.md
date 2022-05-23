@@ -19,11 +19,11 @@ Grafana Agent is for engineers, operators, or administrators who want to collect
 
 There are other ways of sending metrics, logs and traces to the Grafana Stack, Grafana Cloud or Grafana Enterprise, but there are a few advantages of using Grafana Agent. These features are outlined below.
 
-* Provides a one-stop solution for collecting metrics, logs, and traces.
-* Collects out-of-the-box telemetry from popular projects like MySQL through integrations
-* Works seamlessly with the Grafana Stack. Alternatively, metrics can be sent to any Prometheus-compatible endpoint, and traces can be sent to any OTLP-compatible endpoint.  
-* Offers new solutions to help scale metrics collection like host_filtering and sharding 
-* Provides the Grafana Agent Operator, which enables individual teams to manage their configurations through PodMonitors, ServiceMonitors, and Probes.
+- Provides a one-stop solution for collecting metrics, logs, and traces.
+- Collects out-of-the-box telemetry from popular projects like MySQL through integrations
+- Works seamlessly with the Grafana Stack. Alternatively, metrics can be sent to any Prometheus-compatible endpoint, and traces can be sent to any OTLP-compatible endpoint.  
+- Offers new solutions to help scale metrics collection like host_filtering and sharding 
+- Provides the Grafana Agent Operator, which enables individual teams to manage their configurations through PodMonitors, ServiceMonitors, and Probes.
 
 ## Metrics
 
@@ -58,7 +58,7 @@ machine as the Grafana Agent process.
 
 1. Gets the hostname of the agent by the `HOSTNAME` environment variable or
    through the default.
-2. Checks if the hostname of the agent matches the label value for `__address__`
+1. Checks if the hostname of the agent matches the label value for `__address__`
    service-discovery-specific node labels against the discovered target.
 
 If the filter passes, the target is scraped. Otherwise, the target
