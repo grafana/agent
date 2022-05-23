@@ -15,7 +15,10 @@ configured and wired together by the user.
 Grafana Agent Flow currently uses HCL for its configuration language rather
 than the YAML used by the existing project.
 
-## Runing
+See the package-level comments in the [component package][] for information on
+how to write new components.
+
+## Running
 
 You can run the Grafana Agent Flow prototype from the root of the repository
 with:
@@ -26,8 +29,13 @@ go run ./cmd/agentflow -config.file ./cmd/agentflow/example-config.flow
 
 This starts Grafana Agent Flow with the provided [example config file][].
 
-See the package-level comments in the [component package][] for information on
-how to write new components.
+## Reloading
+
+Agent Flow can reload its config file by sending a `POST` request to
+`/-/reload` against Flow's HTTP server.
+
+The default HTTP server address is `http://127.0.0.1:12345` and can be modified
+with the `-server.http-listen-addr` flag.
 
 [example config file]: ./example-config.flow
 [component package]: ../../component/component.go
