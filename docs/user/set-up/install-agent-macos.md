@@ -15,8 +15,10 @@ Use Homebrew to install the most recent released version of Grafana using the Ho
 
 1. Open a terminal and enter:
    
-   `brew update
-   brew install grafana-agent`
+   ```
+   brew update
+   brew install grafana-agent
+   ```
    
    The brew page downloads and enters the files into:
 - /usr/local/Cellar/grafana-agent/[version] (Homebrew v2)
