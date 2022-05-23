@@ -22,7 +22,7 @@ type Config struct {
 }
 
 func (c *Config) Name() string {
-	return "ssl_exporter"
+	return "ssl"
 }
 
 func (c *Config) ApplyDefaults(globals integrations_v2.Globals) error {
