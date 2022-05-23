@@ -47,3 +47,6 @@ with the `-server.http-listen-addr` flag.
 The `/debug/graph` endpoint will render the state of the Flow controller as a
 DAG. The resulting DAG is a dependency graph of references between nodes and
 not necessarily the flow of data.
+
+Note that similarly to `go tool pprof`'s web interface, Graphviz must be
+installed for this component to work.
