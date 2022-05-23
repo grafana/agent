@@ -44,6 +44,7 @@ Advanced users can use the Grafana Agent Operator to deploy the Grafana Agent on
 
 Refer to [Install Grafana Agent on Docker]({{< relref "./install-agent-docker.md" >}})
 
+
 ### Windows
 
 Refer to [Install Grafana Agent on Windows]({{< relref "./install-agent-on-windows.md" >}})
