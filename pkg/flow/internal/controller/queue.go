@@ -26,7 +26,7 @@ func NewQueue() *Queue {
 func (q *Queue) Enqueue(c *ComponentNode) {
 	q.mut.Lock()
 	defer q.mut.Unlock()
-
+	q.queued[c] = struct{}{}
 	select {
 	case q.updateCh <- struct{}{}:
 	default:
