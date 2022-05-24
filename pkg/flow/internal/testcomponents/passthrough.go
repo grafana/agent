@@ -48,7 +48,8 @@ func NewPassthrough(o component.Options, cfg PassthroughConfig) (*Passthrough, e
 }
 
 var (
-	_ component.Component = (*Passthrough)(nil)
+	_ component.Component      = (*Passthrough)(nil)
+	_ component.DebugComponent = (*Passthrough)(nil)
 )
 
 // Run implements Component.
@@ -64,4 +65,19 @@ func (t *Passthrough) Update(args component.Arguments) error {
 	level.Info(t.log).Log("msg", "passing through value", "value", c.Input)
 	t.opts.OnStateChange(PassthroughExports{Output: c.Input})
 	return nil
+}
+
+// DebugInfo implements DebugComponent.
+func (t *Passthrough) DebugInfo() interface{} {
+	// Useless, but for demonstration purposes shows how to export debug
+	// information. Real components would want to use something interesting here
+	// which allow the user to investigate issues of the internal state of a
+	// component.
+	return passthroughDebugInfo{
+		ComponentVersion: "v0.1-beta.0",
+	}
+}
+
+type passthroughDebugInfo struct {
+	ComponentVersion string `hcl:"component_version"`
 }

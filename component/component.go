@@ -88,3 +88,19 @@ type Component interface {
 	// An error may be returned if the provided config is invalid.
 	Update(args Arguments) error
 }
+
+// DebugComponent is an extension interface for components which can report
+// debugging information upon request.
+type DebugComponent interface {
+	Component
+
+	// DebugInfo returns the current debug information of the component. May
+	// return nil if there is no debug info to currently report. The result of
+	// DebugInfo must be encodable to HCL like Arguments and Exports.
+	//
+	// Values from DebugInfo are not exposed to other components for use in
+	// expressions.
+	//
+	// DebugInfo must be safe for calling concurrently.
+	DebugInfo() interface{}
+}
