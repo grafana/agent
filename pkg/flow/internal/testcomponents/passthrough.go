@@ -67,6 +67,7 @@ func (t *Passthrough) Update(args component.Arguments) error {
 	return nil
 }
 
+// DebugInfo implements DebugComponent.
 func (t *Passthrough) DebugInfo() interface{} {
 	// Useless, but for demonstration purposes shows how to export debug
 	// information. Real components would want to use something interesting here

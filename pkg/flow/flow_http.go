@@ -44,10 +44,10 @@ func (f *Flow) ConfigHandler() http.HandlerFunc {
 }
 
 // configBytes dumps the current state of the flow config as HCL.
-func (c *Flow) configBytes(w io.Writer, debugInfo bool) (n int64, err error) {
+func (f *Flow) configBytes(w io.Writer, debugInfo bool) (n int64, err error) {
 	file := hclwrite.NewFile()
 
-	blocks := c.loader.WriteBlocks(debugInfo)
+	blocks := f.loader.WriteBlocks(debugInfo)
 	for _, block := range blocks {
 		var id controller.ComponentID
 		id = append(id, block.Type())
