@@ -8,6 +8,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/hashicorp/hcl/v2"
+	"github.com/hashicorp/hcl/v2/hclwrite"
 
 	_ "github.com/grafana/agent/pkg/flow/internal/testcomponents" // Include test components
 )
@@ -21,6 +22,7 @@ type Loader struct {
 	graph      *dag.Graph
 	components []*ComponentNode
 	cache      *valueCache
+	blocks     hcl.Blocks // Most recently loaded blocks, used for writing
 }
 
 // NewLoader creates a new Loader. Components built by the Loader will be built
@@ -86,6 +88,7 @@ func (l *Loader) Apply(parentContext *hcl.EvalContext, blocks hcl.Blocks) hcl.Di
 	l.components = components
 	l.graph = &newGraph
 	l.cache.SyncIDs(componentIDs)
+	l.blocks = blocks
 	return diags
 }
 
@@ -151,6 +154,31 @@ func (l *Loader) Graph() *dag.Graph {
 	l.mut.RLock()
 	defer l.mut.RUnlock()
 	return l.graph.Clone()
+}
+
+// WriteBlocks returns a set of evaluated hclwrite blocks for each loaded
+// component. Components are returned in the order they were supplied to
+// Apply (i.e., the original order from the config file) and not topological
+// order.
+//
+// Blocks will include health and debug information if debugInfo is true.
+func (l *Loader) WriteBlocks(debugInfo bool) []*hclwrite.Block {
+	l.mut.RLock()
+	defer l.mut.RUnlock()
+
+	blocks := make([]*hclwrite.Block, 0, len(l.components))
+
+	for _, b := range l.blocks {
+		id := BlockComponentID(b).String()
+		node, _ := l.graph.GetByID(id).(*ComponentNode)
+		if node == nil {
+			continue
+		}
+
+		blocks = append(blocks, WriteComponent(node, debugInfo))
+	}
+
+	return blocks
 }
 
 // Reevaluate reevaluates the arguments for c and any component which directly

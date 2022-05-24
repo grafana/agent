@@ -50,3 +50,12 @@ not necessarily the flow of data.
 
 Note that similarly to `go tool pprof`'s web interface, Graphviz must be
 installed for this component to work.
+
+### Config endpoint
+
+The `/-/config` endpoint will render the state of all components as HCL with
+expressions evaluated.
+
+You may invoke `/-/config?debug=1` to append health information for each
+component along with component-specific debug info (if exposed by the component
+through the DebugComponent interface).

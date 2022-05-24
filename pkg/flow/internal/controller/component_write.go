@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"reflect"
+
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/rfratto/gohcl"
@@ -22,7 +24,9 @@ func WriteComponent(cn *ComponentNode, debugInfo bool) *hclwrite.Block {
 		gohcl.EncodeIntoBody(args, b.Body())
 	}
 
-	if exports := cn.Exports(); exports != nil {
+	// We ignore zero value exports since the zero values for fields don't get
+	// written back out to the user.
+	if exports := cn.Exports(); exports != nil && !exportsZeroValue(exports) {
 		b.Body().AppendUnstructuredTokens(hclwrite.Tokens{
 			{Type: hclsyntax.TokenNewline, Bytes: []byte("\n")},
 			{Type: hclsyntax.TokenComment, Bytes: []byte("// Exported fields:\n")},
@@ -44,4 +48,8 @@ func WriteComponent(cn *ComponentNode, debugInfo bool) *hclwrite.Block {
 	}
 
 	return b
+}
+
+func exportsZeroValue(v interface{}) bool {
+	return reflect.ValueOf(v).IsZero()
 }

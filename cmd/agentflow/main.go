@@ -85,6 +85,7 @@ func run() error {
 		}
 
 		r := mux.NewRouter()
+		r.Handle("/-/config", f.ConfigHandler())
 		r.Handle("/metrics", promhttp.Handler())
 		r.Handle("/debug/graph", f.GraphHandler())
 		r.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
