@@ -11,7 +11,7 @@ weight: 100
 
 If this is your first time using Grafana Agent, use one of the installation options to install Grafana Agent based on the platform you are using. Alternatively, use the quick start guides to help you with the specifics of sending metrics, logs, and traces to the Grafana Stack or Grafana Cloud.
 
-If you have already installed Grafana Agent on your machine, you can jump to the Configure Grafana Agent section.
+If you have already installed Grafana Agent on your machine, you can jump to the [Configure Grafana Agent]({{< relref "../configuration/_index.md" >}}) section.
 
 To get started with Grafana Agent Operator, refer to the Operator-specific
 [documentation](../operator/).
@@ -42,20 +42,20 @@ Advanced users can use the Grafana Agent Operator to deploy the Grafana Agent on
 
 ### Docker
 
-Refer to [Install Grafana Agent on Docker]({{< relref "./install-agent-docker.md" >}})
+Refer to [Install Grafana Agent on Docker]({{< relref "./install-agent-docker.md" >}}).
 
 
 ### Windows
 
-Refer to [Install Grafana Agent on Windows]({{< relref "./install-agent-on-windows.md" >}})
+Refer to [Install Grafana Agent on Windows]({{< relref "./install-agent-on-windows.md" >}}).
 
 ### Binary
 
-Refer to [Install the Grafana Agent binary]({{< relref "./install-agent-binary.md" >}})
+Refer to [Install the Grafana Agent binary]({{< relref "./install-agent-binary.md" >}}).
 
 ### macOS
 
-Refer to [Install Grafana Agent on macOS]({{< relref "./install-agent-macos.md" >}})
+Refer to [Install Grafana Agent on macOS]({{< relref "./install-agent-macos.md" >}}).
 
 ### Grafana Cloud
 
