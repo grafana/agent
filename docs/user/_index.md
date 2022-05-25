@@ -37,13 +37,13 @@ its own mini Prometheus agent with its own `scrape_configs` section and
 `remote_write` rules. More than one instance is useful when you want to have
 separate configurations that write to two different locations without
 needing to consider advanced metric relabeling rules. Multiple instances also
-come into play for the [Scraping Service Mode]({{< relref "./scraping-service" >}}).
+come into play for the [Scraping Service Mode]({{< relref "configuration/scraping-service/" >}}).
 
 Grafana Agent for collecting metrics can be deployed in three modes:
 
 - Prometheus `remote_write` drop-in
 - [Host Filtering mode](#host-filtering)
-- [Scraping Service mode]({{< relref "./scraping-service" >}})
+- [Scraping Service mode]({{< relref "configuration/scraping-service/" >}})
 
 ### Prometheus `remote_write` drop-in
 The default deployment mode of Grafana Agent is a _drop-in_
@@ -87,7 +87,7 @@ clusters a subset of agents. It acts as a go-between for the drop-in mode
 (which does no automatic sharding) and `host_filter` mode (which forces sharding
 by node). The Scraping Service Mode clusters a set of agents with a set of
 shared configurations and distributes the scrape load automatically between them. For
-more information on Scraping Service, see [Scraping Service]({{< relref "./scraping-service" >}}).
+more information on Scraping Service, see [Scraping Service]({{< relref "configuration/scraping-service/" >}}).
 
 ## Logs
 

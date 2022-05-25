@@ -18,7 +18,7 @@ API endpoints are stable unless otherwise noted.
 
 ## Config management API (Beta)
 
-Grafana Agent exposes a config management REST API for managing instance configurations when it is running in [scraping service mode]({{< relref "../scraping-service" >}}).
+Grafana Agent exposes a config management REST API for managing instance configurations when it is running in [scraping service mode]({{< relref "../configuration/scraping-service/" >}}).
 
 (Note that scraping service mode is a requirement for the config management
 API, however this is not a prerequisite for the Agent API or Ready/Healthy API)

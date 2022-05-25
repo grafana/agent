@@ -12,7 +12,7 @@ Install Grafana Agent and get it up and running on Docker.
 ### Before you begin
 
  - Ensure that you have Docker installed.  
- - Ensure that you have created a configuration file. In the case of Docker, you install and run the Grafana Agent with a single command. You therefore need to create a configuration file before running Grafana Agent on Docker. For more information on creating a configuration file, refer to [Create a configuration file]({{< relref "./create-config-file.md" >}}).
+ - Ensure that you have created a configuration file. In the case of Docker, you install and run the Grafana Agent with a single command. You therefore need to create a configuration file before running Grafana Agent on Docker. For more information on creating a configuration file, refer to [Create a configuration file]({{< relref "../configuration/create-config-file/" >}}).
 
 ### Steps
 
