@@ -22,6 +22,8 @@ type Logger struct {
 type Options struct {
 	Level  Level
 	Format Format
+
+	// TODO: log sink parameter (e.g., to use the Windows Event logger)
 }
 
 // New creates a New logger with the default log level and format.
