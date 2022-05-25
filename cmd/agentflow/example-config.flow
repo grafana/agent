@@ -1,1 +1,8 @@
 # TODO: add components here for the example config once components exist.
+
+local "file" "this-file" {
+  # Must be running from the root directory of the repository for this relative
+  # path to work.
+  filename    = "./cmd/agentflow/test-local-file.txt"
+  update_type = "watch"
+}

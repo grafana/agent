@@ -61,7 +61,7 @@ func (a *Arguments) DecodeHCL(body hcl.Body, ctx *hcl.EvalContext) error {
 // Exports holds values which are exported by the local.file component.
 type Exports struct {
 	// Content of the file.
-	Content hcltypes.OptionalSecret `hcl:"content,attr"`
+	Content *hcltypes.OptionalSecret `hcl:"content,attr"`
 }
 
 // Component implements the local.file component.
@@ -155,7 +155,7 @@ func (c *Component) readFile() error {
 	c.latestContent = string(bb)
 
 	c.opts.OnStateChange(Exports{
-		Content: hcltypes.OptionalSecret{
+		Content: &hcltypes.OptionalSecret{
 			Sensitive: c.args.Sensitive,
 			Value:     c.latestContent,
 		},

@@ -49,8 +49,10 @@ func (wd *watchDetector) wait(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case err := <-wd.watcher.Errors:
-			level.Warn(wd.opts.Logger).Log("msg", "got error from fsnotify watcher; treating as file updated event", "err", err)
-			wd.forwardNotification()
+			if err != nil {
+				level.Warn(wd.opts.Logger).Log("msg", "got error from fsnotify watcher; treating as file updated event", "err", err)
+				wd.forwardNotification()
+			}
 		case ev := <-wd.watcher.Events:
 			// We only want events that actually change the file (e.g., ignore chmod)
 			if ev.Op&(fsnotify.Create|fsnotify.Write|fsnotify.Remove|fsnotify.Rename) == 0 {
