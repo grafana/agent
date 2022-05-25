@@ -18,14 +18,6 @@ type Logger struct {
 	l   log.Logger
 }
 
-// Options is a set of options used to construct and configure a Logger.
-type Options struct {
-	Level  Level
-	Format Format
-
-	// TODO: log sink parameter (e.g., to use the Windows Event logger)
-}
-
 // New creates a New logger with the default log level and format.
 func New(w io.Writer, o Options) (*Logger, error) {
 	inner, err := buildLogger(w, o)

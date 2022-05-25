@@ -1,5 +1,7 @@
-log_level  = "debug"
-log_format = "logfmt"
+logging {
+  level  = "debug"
+  format = "logfmt"
+}
 
 local "file" "this-file" {
   # Must be running from the root directory of the repository for this relative

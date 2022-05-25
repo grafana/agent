@@ -13,8 +13,7 @@ type File struct {
 	Name string    // File name given to ReadFile.
 	HCL  *hcl.File // Raw HCL file.
 
-	LogLevel  logging.Level
-	LogFormat logging.Format
+	Logging logging.Options
 
 	// Components holds the list of raw HCL blocks describing components. The
 	// Flow controller can interpret this block.
@@ -43,30 +42,28 @@ func ReadFile(name string, bb []byte) (*File, hcl.Diagnostics) {
 		return nil, diags
 	}
 
+	if root.Logger == nil {
+		defaults := logging.DefaultOptions
+		root.Logger = &defaults
+	}
+
 	return &File{
-		Name: name,
-		HCL:  file,
-
-		LogLevel:  root.LogLevel,
-		LogFormat: root.LogFormat,
-
+		Name:       name,
+		HCL:        file,
+		Logging:    *root.Logger,
 		Components: content.Blocks,
 	}, nil
 }
 
 type rootBlock struct {
-	LogLevel  logging.Level  `hcl:"log_level,optional"`
-	LogFormat logging.Format `hcl:"log_format,optional"`
+	Logger *logging.Options `hcl:"logging,block"`
 
 	// TODO(rfratto): server block for TLS settings
 
 	Remain hcl.Body `hcl:",remain"`
 }
 
-var defaultRootBlock = rootBlock{
-	LogLevel:  logging.LevelDefault,
-	LogFormat: logging.FormatDefault,
-}
+var defaultRootBlock = rootBlock{}
 
 var _ gohcl.Decoder = (*rootBlock)(nil)
 

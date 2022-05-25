@@ -185,10 +185,7 @@ func (c *Flow) LoadFile(f *File) error {
 	c.loadMut.Lock()
 	defer c.loadMut.Unlock()
 
-	err := c.log.Update(logging.Options{
-		Level:  f.LogLevel,
-		Format: f.LogFormat,
-	})
+	err := c.log.Update(f.Logging)
 	if err != nil {
 		return fmt.Errorf("error updating logger: %w", err)
 	}

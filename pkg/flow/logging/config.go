@@ -5,7 +5,33 @@ import (
 	"fmt"
 
 	"github.com/go-kit/log/level"
+	"github.com/hashicorp/hcl/v2"
+	"github.com/rfratto/gohcl"
 )
+
+// Options is a set of options used to construct and configure a Logger.
+type Options struct {
+	Level  Level  `hcl:"level,optional"`
+	Format Format `hcl:"format,optional"`
+
+	// TODO: log sink parameter (e.g., to use the Windows Event logger)
+}
+
+// DefaultOptions holds defaults for creating a Logger.
+var DefaultOptions = Options{
+	Level:  LevelDefault,
+	Format: FormatDefault,
+}
+
+var _ gohcl.Decoder = (*Options)(nil)
+
+// DecodeHCL implements gohcl.Decoder.
+func (o *Options) DecodeHCL(body hcl.Body, ctx *hcl.EvalContext) error {
+	*o = DefaultOptions
+
+	type options Options
+	return gohcl.DecodeBody(body, ctx, (*options)(o))
+}
 
 // Level represents how verbose logging should be.
 type Level string
