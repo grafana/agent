@@ -11,7 +11,6 @@ import (
 	"os/signal"
 	"sync"
 
-	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/flow"
@@ -55,11 +54,12 @@ func run() error {
 		return fmt.Errorf("the -config.file flag is required")
 	}
 
-	l := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
 	f := flow.New(flow.Options{
-		Logger:   l,
-		DataPath: storagePath,
+		LogWriter: os.Stderr,
+		DataPath:  storagePath,
 	})
+
+	l := f.Logger()
 
 	reload := func() error {
 		flowCfg, err := loadFlowFile(configFile)

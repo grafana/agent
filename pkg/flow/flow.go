@@ -47,21 +47,21 @@ package flow
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"sync"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
+	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/hashicorp/hcl/v2"
 )
 
 // Options holds static options for a flow controller.
 type Options struct {
-	// TODO(rfratto): replace Logger below with an io.Writer and have the
-	// Controller manage the logger instead.
-
-	// Optional logger where components will log to.
-	Logger log.Logger
+	// Writer where logs should be sent.
+	LogWriter io.Writer
 
 	// Directory where components can write data. Components will create
 	// subdirectories for component-specific data.
@@ -70,7 +70,7 @@ type Options struct {
 
 // Flow is the Flow system.
 type Flow struct {
-	log  log.Logger
+	log  *logging.Logger
 	opts Options
 
 	updateQueue *controller.Queue
@@ -96,11 +96,22 @@ func New(o Options) *Flow {
 func newFlow(o Options) (*Flow, context.Context) {
 	ctx, cancel := context.WithCancel(context.Background())
 
+	log, err := logging.New(o.LogWriter, logging.Options{
+		// Start with default level/format until we apply a config file that has
+		// more specific settings.
+		Level:  logging.LevelDefault,
+		Format: logging.FormatDefault,
+	})
+	if err != nil {
+		// This shouldn't happen unless there's a bug
+		panic(err)
+	}
+
 	var (
 		queue  = controller.NewQueue()
 		sched  = controller.NewScheduler()
 		loader = controller.NewLoader(controller.ComponentGlobals{
-			Logger:   o.Logger,
+			Logger:   log,
 			DataPath: o.DataPath,
 			OnExportsChange: func(cn *controller.ComponentNode) {
 				// Changed components should be queued for reevaluation.
@@ -110,7 +121,7 @@ func newFlow(o Options) (*Flow, context.Context) {
 	)
 
 	return &Flow{
-		log:  o.Logger,
+		log:  log,
 		opts: o,
 
 		updateQueue: queue,
@@ -158,6 +169,9 @@ func (c *Flow) run(ctx context.Context) {
 	}
 }
 
+// Logger returns the logger used by the Flow controller.
+func (c *Flow) Logger() log.Logger { return c.log }
+
 // LoadFile synchronizes the state of the controller with the current config
 // file. Components in the graph will be marked as unhealthy if there was an
 // error encountered during Load.
@@ -170,6 +184,14 @@ func (c *Flow) run(ctx context.Context) {
 func (c *Flow) LoadFile(f *File) error {
 	c.loadMut.Lock()
 	defer c.loadMut.Unlock()
+
+	err := c.log.Update(logging.Options{
+		Level:  f.LogLevel,
+		Format: f.LogFormat,
+	})
+	if err != nil {
+		return fmt.Errorf("error updating logger: %w", err)
+	}
 
 	diags := c.loader.Apply(rootEvalContext, f.Components)
 	if !c.loadedOnce && diags.HasErrors() {
