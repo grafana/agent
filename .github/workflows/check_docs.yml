@@ -15,3 +15,12 @@ jobs:
         use-verbose-mode: 'yes'
         config-file: '.github/workflows/markdown.links.config.json'
         folder-path: 'docs/,example/,production/'
+
+  build-technical-documentation:
+    runs-on: "ubuntu-latest"
+    steps:
+    - name: "Check out code"
+      uses: "actions/checkout@v3"
+    - name: "Build technical documentation"
+      run: |
+        docker run -v ${PWD}/docs/user:/hugo/content/docs/agent/latest -e HUGO_REFLINKSERRORLEVEL=ERROR --rm grafana/docs-base:latest /bin/bash -c 'make hugo'
