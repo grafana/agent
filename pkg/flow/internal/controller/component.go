@@ -16,6 +16,7 @@ import (
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/rfratto/gohcl"
+	"go.uber.org/atomic"
 )
 
 // ComponentID is a fully-qualified name of a component. Each element in
@@ -74,6 +75,8 @@ type ComponentNode struct {
 	block   *hcl.Block          // Current HCL block to derive args from
 	managed component.Component // Inner managed component
 	args    component.Arguments // Evaluated arguments for the managed component
+
+	doingEval atomic.Bool
 
 	// NOTE(rfratto): health and exports have their own mutex because they may be
 	// set asynchronously while mut is still being held (i.e., when calling Evaluate
@@ -135,7 +138,7 @@ func NewComponentNode(globals ComponentGlobals, b *hcl.Block) *ComponentNode {
 }
 
 func getRegistration(id ComponentID) (component.Registration, bool) {
-	// id is the fully qualfied name of the component, including the custom user
+	// id is the fully qualified name of the component, including the custom user
 	// identifier, if supported by the component. We don't know if the component
 	// we're looking up is a singleton or not, so we have to try the lookup
 	// twice: once with all name fragments in the ID and once without the last
@@ -169,7 +172,8 @@ func getExportsType(reg component.Registration) reflect.Type {
 func (cn *ComponentNode) ID() ComponentID { return cn.id }
 
 // NodeID implements dag.Node and returns the unique ID for this node. The
-// NodeID is the string reprsentation of the component's ID from its HCL block.
+// NodeID is the string representation of the component's ID from its HCL
+// block.
 func (cn *ComponentNode) NodeID() string { return cn.nodeID }
 
 // UpdateBlock updates the HCL block used to construct arguments for the
@@ -212,6 +216,9 @@ func (cn *ComponentNode) evaluate(ectx *hcl.EvalContext) error {
 	cn.mut.Lock()
 	defer cn.mut.Unlock()
 
+	cn.doingEval.Store(true)
+	defer cn.doingEval.Store(false)
+
 	args := cn.reg.CloneArguments()
 	diags := gohcl.DecodeBody(cn.block.Body, ectx, args)
 	if diags.HasErrors() {
@@ -231,6 +238,13 @@ func (cn *ComponentNode) evaluate(ectx *hcl.EvalContext) error {
 		cn.managed = managed
 		cn.args = argsCopy
 
+		return nil
+	}
+
+	if reflect.DeepEqual(cn.args, args) {
+		// Ignore components which haven't changed. This reduces the cost of
+		// calling evaluate for components where evaluation is expensive (e.g., if
+		// re-evaluating requires re-starting some internal logic).
 		return nil
 	}
 
@@ -304,18 +318,42 @@ func (cn *ComponentNode) setExports(e component.Exports) {
 		panic(fmt.Sprintf("Component %s changed Exports types from %T to %T", cn.nodeID, cn.reg.Exports, e))
 	}
 
+	// Some components may aggressively reexport values even though no exposed
+	// state has changed. This may be done for components which always supply
+	// exports whenever their arguments are evaluated without tracking internal
+	// state to see if anything actually changed.
+	//
+	// To avoid needlessly reevaluating components we'll ignore unchanged
+	// exports.
+	var changed bool
+
 	cn.exportsMut.Lock()
-	cn.exports = e
+	if !reflect.DeepEqual(cn.exports, e) {
+		changed = true
+		cn.exports = e
+	}
 	cn.exportsMut.Unlock()
 
-	// Inform the controller that we have new exports.
-	cn.onExportsChange(cn)
+	if cn.doingEval.Load() {
+		// Optimization edge case: some components supply exports when they're
+		// being evaluated.
+		//
+		// Since components that are being evaluated will always cause their
+		// dependencies to also be evaluated, there's no reason to call
+		// onExportsChange here.
+		return
+	}
+
+	if changed {
+		// Inform the controller that we have new exports.
+		cn.onExportsChange(cn)
+	}
 }
 
 // CurrentHealth returns the current health of the ComponentNode.
 //
 // The health of a ComponentNode is tracked from three parts, in descending
-// prescedence order:
+// precedence order:
 //
 //     1. Exited health from a call to Run()
 //     2. Unhealthy status from last call to Evaluate
@@ -326,7 +364,8 @@ func (cn *ComponentNode) CurrentHealth() component.Health {
 	cn.healthMut.RLock()
 	defer cn.healthMut.RUnlock()
 
-	// A component which stopped running takes predence over all other health states
+	// A component which stopped running takes precedence over all other health
+	// states
 	if cn.runHealth.Health == component.HealthTypeExited {
 		return cn.runHealth
 	}

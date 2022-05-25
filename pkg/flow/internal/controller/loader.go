@@ -181,13 +181,14 @@ func (l *Loader) WriteBlocks(debugInfo bool) []*hclwrite.Block {
 	return blocks
 }
 
-// Reevaluate reevaluates the arguments for c and any component which directly
-// or indirectly depends on c.
+// EvaluateDependencies re-evaluates components which depend directly or
+// indirectly on c. EvaluateDependencies should be called whenever a component
+// updates its exports.
 //
 // The provided parentContext can be used to provide global variables and
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
-func (l *Loader) Reevaluate(parentContext *hcl.EvalContext, c *ComponentNode) {
+func (l *Loader) EvaluateDependencies(parentContext *hcl.EvalContext, c *ComponentNode) {
 	l.mut.RLock()
 	defer l.mut.RUnlock()
 
@@ -195,6 +196,12 @@ func (l *Loader) Reevaluate(parentContext *hcl.EvalContext, c *ComponentNode) {
 	l.cache.CacheExports(c.ID(), c.Exports())
 
 	_ = dag.WalkReverse(l.graph, []dag.Node{c}, func(n dag.Node) error {
+		if n == c {
+			// Skip over the starting component; the starting component passed to
+			// EvaluateDependencies had its exports changed and none of its input
+			// arguments will need re-evaluation.
+			return nil
+		}
 		l.evaluate(parentContext, n.(*ComponentNode), true, false)
 		return nil
 	})
