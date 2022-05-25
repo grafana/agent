@@ -1,4 +1,5 @@
 {
+  "retryOn429": true,
   "ignorePatterns": [
     {
       "pattern": "^https://github.com/grafana/agent/pull/XXXX$"
