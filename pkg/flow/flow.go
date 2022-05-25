@@ -139,7 +139,7 @@ func (c *Flow) run(ctx context.Context) {
 			updated := c.updateQueue.TryDequeue()
 			if updated != nil {
 				level.Debug(c.log).Log("msg", "handling component with updated state", "node_id", updated.NodeID())
-				c.loader.Reevaluate(rootEvalContext, updated)
+				c.loader.EvaluateDependencies(rootEvalContext, updated)
 			}
 
 		case <-c.loadFinished:
