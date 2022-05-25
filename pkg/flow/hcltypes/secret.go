@@ -12,8 +12,8 @@ import (
 // Secret holds a sensitive value. Secrets are never displayed to the user when
 // rendering HCL.
 //
-// String values may be implicitly converted to a Secret, but the inverse isn't
-// true: this ensures that it's not possible for a user to accidentally leak a
+// HCL expressions permit implicitly converting string values to a Secret, but
+// not the inverse. This ensures that a user can't accidentally leak a
 // sensitive value.
 type Secret string
 

@@ -13,12 +13,12 @@ import (
 // OptionalSecret holds a potentially sensitive value. When Sensitive is true,
 // Value will be treated as a Secret and its value will be hidden from users.
 //
-// Both Strings and Secrets may be converted into OptionalSecret, which will
-// set the Secret field accordingly.
+// HCL expressions permit converting both Strings and Secrets may be converted
+// into OptionalSecret, which will set the Sensitive field accordingly.
 //
-// OptionalSecret may be converted into a Secret regardless of the value of
-// Sensitive. OptionalSecret may only be converted into a String if Sensitive
-// is false.
+// HCL expressions may also convert OptionalSecret into a Secret regardless of
+// the value of Sensitive. However, OptionalSecret may only be converted into a
+// String if Sensitive is false.
 type OptionalSecret struct {
 	Sensitive bool
 	Value     string
