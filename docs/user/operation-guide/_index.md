@@ -45,7 +45,7 @@ There are three options to horizontally scale your deployment of Grafana Agents:
    from the machines they run on.
 - [Hashmod sharding](#hashmod-sharding) allows you to roughly shard the
    discovered set of targets by using hashmod/keep relabel rules.
-- The [scraping service]({{< relref "../scraping-service" >}}) allows you to cluster Grafana
+- The [scraping service]({{< relref "../configuration/scraping-service/" >}}) allows you to cluster Grafana
    Agents and have them distribute per-tenant configs throughout the cluster.
 
 Each has their own set of tradeoffs:
@@ -80,7 +80,7 @@ Each has their own set of tradeoffs:
     - Smallest load on SD compared to host filtering, as only one Agent is
       responsible for a config.
   - Cons
-    - Centralized configs must discover a [minimal set of targets]({{< relref "../scraping-service#best-practices" >}})
+    - Centralized configs must discover a [minimal set of targets]({{< relref "../configuration/scraping-service#best-practices" >}})
       to distribute evenly.
     - Requires running a separate KV store to store the centralized configs.
     - Managing centralized configs adds operational burden over managing a config
@@ -105,7 +105,7 @@ for scraping other targets that are not running on a cluster node, such as the
 Kubernetes control plane API.
 
 If you want to scale your scrape load without host filtering, you may use the
-[scraping service]({{< relref "../scraping-service" >}}) instead.
+[scraping service]({{< relref "../configuration/scraping-service/" >}}) instead.
 
 The host name of the Agent is determined by reading `$HOSTNAME`. If `$HOSTNAME`
 isn't defined, the Agent will use Go's [os.Hostname](https://golang.org/pkg/os/#Hostname)
@@ -183,7 +183,7 @@ gets sent. Users can easily define two Instances that scrape different subsets
 of metrics and send them to two completely different remote_write systems.
 
 Instances are especially relevant to the [scraping service
-mode]({{< relref "../scraping-service" >}}), where breaking up your scrape configs into
+mode]({{< relref "../configuration/scraping-service/" >}}), where breaking up your scrape configs into
 multiple Instances is required for sharding and balancing scrape load across a
 cluster of Agents.
 
