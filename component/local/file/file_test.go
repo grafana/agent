@@ -3,6 +3,7 @@ package file_test
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -127,10 +128,10 @@ func TestFile_ExistOnLoad(t *testing.T) {
 		PollFrequency: 1 * time.Hour,
 	})
 
-	expectError := fmt.Sprintf("failed to read file: open %s: no such file or directory", testFile)
-
 	err := te.Run(canceledContext())
-	require.EqualError(t, err, expectError)
+
+	var expectErr error = &fs.PathError{}
+	require.ErrorAs(t, err, &expectErr)
 }
 
 // testEnvironment provides an environment for testing the local.file
