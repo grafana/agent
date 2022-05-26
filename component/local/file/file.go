@@ -117,14 +117,14 @@ func (c *Component) Run(ctx context.Context) error {
 	// config file, we may have prematurely destroyed the detector. If no
 	// detector exists, we need to recreate it for Run to work properly.
 	//
+	// We ignore the error (indicating the file has disappeared) so we can allow
+	// the detector to inform us when it comes back.
+	//
 	// TODO(rfratto): this is a design wart, and can hopefully be removed in
 	// future iterations.
 	c.mut.Lock()
-	err := c.configureDetector()
+	_ = c.configureDetector()
 	c.mut.Unlock()
-	if err != nil {
-		return err
-	}
 
 	for {
 		select {
@@ -216,11 +216,13 @@ func (c *Component) configureDetector() error {
 		})
 	case DetectorFSNotify:
 		c.detector, err = newFSNotify(fsNotifyOptions{
-			Logger:   c.opts.Logger,
-			Filename: c.args.Filename,
-			UpdateCh: c.updateChan,
+			Logger:      c.opts.Logger,
+			Filename:    c.args.Filename,
+			UpdateCh:    c.updateChan,
+			RewatchWait: c.args.PollFrequency,
 		})
 	}
+
 	return err
 }
 

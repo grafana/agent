@@ -71,9 +71,10 @@ type fsNotify struct {
 }
 
 type fsNotifyOptions struct {
-	Logger   log.Logger
-	Filename string
-	UpdateCh chan<- struct{} // Where to send detected updates to
+	Logger      log.Logger
+	Filename    string
+	UpdateCh    chan<- struct{} // Where to send detected updates to
+	RewatchWait time.Duration   // How often to try to re-watch the file
 }
 
 // newFSNotify creates a new fsnotify detector which uses filesystem events to
@@ -100,19 +101,35 @@ func newFSNotify(opts fsNotifyOptions) (*fsNotify, error) {
 }
 
 func (fsn *fsNotify) wait(ctx context.Context) {
+	rewatchTick := time.NewTicker(fsn.opts.RewatchWait)
+	defer rewatchTick.Stop()
+
+	var watchRemoved bool
+
 	for {
 		select {
 		case <-ctx.Done():
 			return
+		case <-rewatchTick.C:
+			if watchRemoved {
+				level.Debug(fsn.opts.Logger).Log("msg", "trying to re-watch file", "path", fsn.opts.Filename)
+				if err := fsn.watcher.Add(fsn.opts.Filename); err != nil {
+					level.Warn(fsn.opts.Logger).Log("msg", "failed re-watch file", "path", fsn.opts.Filename, "err", err)
+				} else {
+					level.Info(fsn.opts.Logger).Log("msg", "file watch reestablished", "path", fsn.opts.Filename)
+					watchRemoved = false
+					fsn.forwardNotification()
+				}
+			}
 		case err := <-fsn.watcher.Errors:
 			if err != nil {
 				level.Warn(fsn.opts.Logger).Log("msg", "got error from fsnotify watcher; treating as file updated event", "err", err)
 				fsn.forwardNotification()
 			}
 		case ev := <-fsn.watcher.Events:
-			// We only want events that actually change the file (e.g., ignore chmod)
-			if ev.Op&(fsnotify.Create|fsnotify.Write|fsnotify.Remove|fsnotify.Rename) == 0 {
-				continue
+			if ev.Op == fsnotify.Remove || ev.Op == fsnotify.Rename {
+				// The file was removed.
+				watchRemoved = true
 			}
 			level.Debug(fsn.opts.Logger).Log("msg", "got fsnotify event", "path", ev.Name, "op", ev.Op.String())
 			fsn.forwardNotification()
