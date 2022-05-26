@@ -32,7 +32,7 @@ func TestFile(t *testing.T) {
 func runFileTests(t *testing.T, ut file.Detector) {
 	// In our tests below, we wait some time after making changes to the file to
 	// allow filesystem events to settle.
-	settlePeriod := 100 * time.Millisecond
+	settlePeriod := 250 * time.Millisecond
 
 	newSuiteEnvironment := func(t *testing.T, filename string) *testEnvironment {
 		err := os.WriteFile(filename, []byte("First load!"), 0644)
