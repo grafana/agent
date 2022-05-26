@@ -13,7 +13,7 @@ RUN  rm -rf /usr/local/go                                           \
   && rm golang.tar.gz
 
 # Add support for bcc bindings required to compile the eBPF integration
-RUN apt-get update && apt-get install -qy libbpfcc
+RUN apt-get update && apt-get install -qy libbpfcc-dev
 
 COPY . /src/agent
 WORKDIR /src/agent
