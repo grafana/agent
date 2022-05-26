@@ -112,8 +112,12 @@ require (
 )
 
 require (
+	github.com/google/uuid v1.3.0
+	github.com/grafana/regexp v0.0.0-20220304100321-149c8afcd6cb
 	github.com/hashicorp/hcl/v2 v2.12.0
+	github.com/json-iterator/go v1.1.12
 	github.com/rfratto/gohcl v0.0.0-20220504022736-d5c147f480b8
+	github.com/zclconf/go-cty v1.10.0
 	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8
 )
 
@@ -250,7 +254,6 @@ require (
 	github.com/google/pprof v0.0.0-20220218203455-0368bd9e19a7 // indirect
 	github.com/google/renameio/v2 v2.0.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
-	github.com/google/uuid v1.3.0 // indirect
 	github.com/google/wire v0.5.0 // indirect
 	github.com/googleapis/gax-go/v2 v2.1.1 // indirect
 	github.com/googleapis/gnostic v0.5.5 // indirect
@@ -258,7 +261,6 @@ require (
 	github.com/gosimple/slug v1.12.0 // indirect
 	github.com/gosimple/unidecode v1.0.1 // indirect
 	github.com/gosnmp/gosnmp v1.34.0 // indirect
-	github.com/grafana/regexp v0.0.0-20220304100321-149c8afcd6cb // indirect
 	github.com/grobie/gomemcache v0.0.0-20201204163352-08d7c80fcac6 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	github.com/hairyhenderson/toml v0.4.2-0.20210923231440-40456b8e66cf // indirect
@@ -309,7 +311,6 @@ require (
 	github.com/joyent/triton-go v0.0.0-20180628001255-830d2b111e62 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/jsimonetti/rtnetlink v0.0.0-20211022192332-93da33804786 // indirect
-	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/karrick/godirwalk v1.16.1 // indirect
 	github.com/kevinburke/ssh_config v1.1.0 // indirect
@@ -431,7 +432,6 @@ require (
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
-	github.com/zclconf/go-cty v1.10.0 // indirect
 	github.com/zealic/xignore v0.3.3 // indirect
 	go.etcd.io/bbolt v1.3.6 // indirect
 	go.etcd.io/etcd v3.3.25+incompatible // indirect
