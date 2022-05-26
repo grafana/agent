@@ -5,7 +5,6 @@ go 1.18
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.4.0
 	github.com/Shopify/sarama v1.32.0
-	github.com/cloudflare/ebpf_exporter v1.2.5
 	github.com/cortexproject/cortex v1.11.0
 	github.com/davidmparrott/kafka_exporter/v2 v2.0.1
 	github.com/docker/docker v20.10.14+incompatible
@@ -118,6 +117,8 @@ require (
 	sigs.k8s.io/controller-runtime v0.11.2
 	sigs.k8s.io/yaml v1.3.0
 )
+
+require github.com/cloudflare/ebpf_exporter v1.2.5
 
 require (
 	cloud.google.com/go v0.100.2 // indirect
