@@ -9,7 +9,7 @@ RUN echo "deb http://deb.debian.org/debian bullseye-backports main" >> /etc/apt/
 RUN apt-get update && apt-get install -t bullseye-backports -qy libsystemd-dev
 
 # Add support for bcc bindings required to compile the eBPF integration
-RUN apt-get update && apt-get install -qy libbpfcc
+RUN apt-get update && apt-get install -qy libbpfcc-dev
 
 RUN make clean && make IMAGE_TAG=${IMAGE_TAG} RELEASE_BUILD=${RELEASE_BUILD} BUILD_IN_CONTAINER=false agent
 
