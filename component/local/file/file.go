@@ -32,7 +32,7 @@ type Arguments struct {
 	// Filename indicates the file to watch.
 	Filename string `hcl:"filename,attr"`
 	// Type indicates how to detect changes to the file.
-	Type UpdateType `hcl:"update_type,optional"`
+	Type Detector `hcl:"detector,optional"`
 	// PollFrequency determines the frequency to check for changes when Type is
 	// UpdateTypePoll.
 	PollFrequency time.Duration `hcl:"poll_freqency,optional"`
@@ -44,7 +44,7 @@ type Arguments struct {
 // DefaultArguments provides the default arguments for the local.file
 // component.
 var DefaultArguments = Arguments{
-	Type:          UpdateTypeWatch,
+	Type:          DetectorFSNotify,
 	PollFrequency: time.Minute,
 }
 
@@ -208,14 +208,14 @@ func (c *Component) configureDetector() error {
 	var err error
 
 	switch c.args.Type {
-	case UpdateTypePoll:
-		c.detector, err = newPollingDetector(pollingOptions{
+	case DetectorPoll:
+		c.detector, err = newPoller(pollerOptions{
 			Filename:      c.args.Filename,
 			UpdateCh:      c.updateChan,
 			PollFrequency: c.args.PollFrequency,
 		})
-	case UpdateTypeWatch:
-		c.detector, err = newWatchDetector(watchOptions{
+	case DetectorFSNotify:
+		c.detector, err = newFSNotify(fsNotifyOptions{
 			Logger:   c.opts.Logger,
 			Filename: c.args.Filename,
 			UpdateCh: c.updateChan,

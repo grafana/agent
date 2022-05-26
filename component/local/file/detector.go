@@ -1,0 +1,210 @@
+package file
+
+import (
+	"context"
+	"encoding"
+	"fmt"
+	"os"
+	"time"
+
+	"github.com/fsnotify/fsnotify"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
+)
+
+// Detector is used to specify how changes to the file should be detected.
+type Detector int
+
+const (
+	// DetectorInvalid indicates an invalid UpdateType.
+	DetectorInvalid Detector = iota
+	// DetectorFSNotify uses filesystem events to wait for changes to the file.
+	DetectorFSNotify
+	// DetectorPoll will re-read the file on an interval to detect changes.
+	DetectorPoll
+
+	// DetectorDefault holds the default UpdateType.
+	DetectorDefault = DetectorFSNotify
+)
+
+var (
+	_ encoding.TextMarshaler   = Detector(0)
+	_ encoding.TextUnmarshaler = (*Detector)(nil)
+)
+
+// String returns the string representation of the UpdateType.
+func (ut Detector) String() string {
+	switch ut {
+	case DetectorFSNotify:
+		return "fsnotify"
+	case DetectorPoll:
+		return "poll"
+	default:
+		return fmt.Sprintf("Detector(%d)", ut)
+	}
+}
+
+// MarshalText implements encoding.TextMarshaler.
+func (ut Detector) MarshalText() (text []byte, err error) {
+	return []byte(ut.String()), nil
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (ut *Detector) UnmarshalText(text []byte) error {
+	switch string(text) {
+	case "":
+		*ut = DetectorDefault
+	case "fsnotify":
+		*ut = DetectorFSNotify
+	case "poll":
+		*ut = DetectorPoll
+	default:
+		return fmt.Errorf("unrecognized detector %q, expected fsnotify or poll", string(text))
+	}
+	return nil
+}
+
+type fsNotify struct {
+	opts    fsNotifyOptions
+	watcher *fsnotify.Watcher
+	cancel  context.CancelFunc
+}
+
+type fsNotifyOptions struct {
+	Logger   log.Logger
+	Filename string
+	UpdateCh chan<- struct{} // Where to send detected updates to
+}
+
+// newFSNotify creates a new fsnotify detector which uses filesystem events to
+// detect that a file has changed.
+func newFSNotify(opts fsNotifyOptions) (*fsNotify, error) {
+	w, err := fsnotify.NewWatcher()
+	if err != nil {
+		return nil, err
+	}
+	if err := w.Add(opts.Filename); err != nil {
+		return nil, err
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	wd := &fsNotify{
+		opts:    opts,
+		watcher: w,
+		cancel:  cancel,
+	}
+
+	go wd.wait(ctx)
+	return wd, nil
+}
+
+func (fsn *fsNotify) wait(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case err := <-fsn.watcher.Errors:
+			if err != nil {
+				level.Warn(fsn.opts.Logger).Log("msg", "got error from fsnotify watcher; treating as file updated event", "err", err)
+				fsn.forwardNotification()
+			}
+		case ev := <-fsn.watcher.Events:
+			// We only want events that actually change the file (e.g., ignore chmod)
+			if ev.Op&(fsnotify.Create|fsnotify.Write|fsnotify.Remove|fsnotify.Rename) == 0 {
+				continue
+			}
+			level.Debug(fsn.opts.Logger).Log("msg", "got fsnotify event", "path", ev.Name, "op", ev.Op.String())
+			fsn.forwardNotification()
+		}
+	}
+}
+
+func (fsn *fsNotify) forwardNotification() {
+	select {
+	case fsn.opts.UpdateCh <- struct{}{}:
+	default:
+		// Already queued; no need to queue another event.
+	}
+}
+
+func (fsn *fsNotify) Close() error {
+	fsn.cancel()
+	return fsn.watcher.Close()
+}
+
+type poller struct {
+	opts        pollerOptions
+	lastModTime time.Time
+	cancel      context.CancelFunc
+}
+
+type pollerOptions struct {
+	Filename      string
+	UpdateCh      chan<- struct{} // Where to send detected updates to
+	PollFrequency time.Duration
+}
+
+// newPoller creates a new poll-based file update detector.
+func newPoller(opts pollerOptions) (*poller, error) {
+	fi, err := os.Stat(opts.Filename)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	pw := &poller{
+		opts:        opts,
+		lastModTime: fi.ModTime(),
+		cancel:      cancel,
+	}
+
+	go pw.run(ctx)
+	return pw, nil
+}
+
+func (p *poller) run(ctx context.Context) {
+	t := time.NewTicker(p.opts.PollFrequency)
+	defer t.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-t.C:
+			p.checkFileUpdated()
+		}
+	}
+}
+
+func (p *poller) checkFileUpdated() {
+	fi, err := os.Stat(p.opts.Filename)
+	if err != nil {
+		// We failed to stat the file. We send an event over the channel so that
+		// the component can process the error when it tries to re-read the file.
+
+		select {
+		case p.opts.UpdateCh <- struct{}{}:
+		default:
+			// Event already queued; no need to process more than one.
+		}
+		return
+	}
+
+	if modTime := fi.ModTime(); modTime.After(p.lastModTime) {
+		p.lastModTime = modTime
+
+		select {
+		case p.opts.UpdateCh <- struct{}{}:
+		default:
+			// Event already queued; no need to process more than one.
+		}
+	}
+}
+
+// Close terminates the poller.
+func (p *poller) Close() error {
+	p.cancel()
+	return nil
+}

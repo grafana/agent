@@ -19,17 +19,17 @@ import (
 func TestFile(t *testing.T) {
 	t.Run("Polling change detector", func(t *testing.T) {
 		t.Parallel()
-		runFileTests(t, file.UpdateTypePoll)
+		runFileTests(t, file.DetectorPoll)
 	})
 
 	t.Run("Event change detector", func(t *testing.T) {
 		t.Parallel()
-		runFileTests(t, file.UpdateTypeWatch)
+		runFileTests(t, file.DetectorFSNotify)
 	})
 }
 
 // runFileTests will run a suite of tests with the configured update type.
-func runFileTests(t *testing.T, ut file.UpdateType) {
+func runFileTests(t *testing.T, ut file.Detector) {
 	newSuiteEnvironment := func(t *testing.T, filename string) *testEnvironment {
 		err := os.WriteFile(filename, []byte("First load!"), 0644)
 		require.NoError(t, err)
@@ -60,7 +60,7 @@ func runFileTests(t *testing.T, ut file.UpdateType) {
 		require.NoError(t, te.WaitExports(time.Second))
 
 		require.Equal(t, file.Exports{
-			Content: hcltypes.OptionalSecret{
+			Content: &hcltypes.OptionalSecret{
 				Sensitive: false,
 				Value:     "New content!",
 			},
@@ -79,7 +79,7 @@ func runFileTests(t *testing.T, ut file.UpdateType) {
 
 		require.NoError(t, te.WaitExports(time.Second))
 		require.Equal(t, file.Exports{
-			Content: hcltypes.OptionalSecret{
+			Content: &hcltypes.OptionalSecret{
 				Sensitive: false,
 				Value:     "New content!",
 			},
@@ -96,7 +96,7 @@ func TestFile_ImmediateExports(t *testing.T) {
 
 	te := newTestEnvironment(t, file.Arguments{
 		Filename:      testFile,
-		Type:          file.UpdateTypePoll,
+		Type:          file.DetectorPoll,
 		PollFrequency: 1 * time.Hour,
 	})
 	go func() {
@@ -106,7 +106,7 @@ func TestFile_ImmediateExports(t *testing.T) {
 
 	require.NoError(t, te.WaitExports(time.Second))
 	require.Equal(t, file.Exports{
-		Content: hcltypes.OptionalSecret{
+		Content: &hcltypes.OptionalSecret{
 			Sensitive: false,
 			Value:     "Hello, world!",
 		},
@@ -120,7 +120,7 @@ func TestFile_ExistOnLoad(t *testing.T) {
 
 	te := newTestEnvironment(t, file.Arguments{
 		Filename:      testFile,
-		Type:          file.UpdateTypePoll,
+		Type:          file.DetectorPoll,
 		PollFrequency: 1 * time.Hour,
 	})
 
