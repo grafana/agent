@@ -72,8 +72,6 @@ type apacheHandler struct {
 // NewIntegration instantiates a new integrations.MetricsIntegration
 // which will handle requests to the apache http integration.
 func (c *Config) NewIntegration(logger log.Logger, globals integrations_v2.Globals) (integrations_v2.Integration, error) {
-	var metricsCfg common.MetricsConfig
-	metricsCfg.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
 
 	ah := &apacheHandler{cfg: c, log: logger}
 	h, err := ah.createHandler()
@@ -81,7 +79,7 @@ func (c *Config) NewIntegration(logger log.Logger, globals integrations_v2.Globa
 		return nil, err
 	}
 
-	return metricsutils.NewMetricsHandlerIntegration(logger, c, metricsCfg, globals, h)
+	return metricsutils.NewMetricsHandlerIntegration(logger, c, c.Common, globals, h)
 }
 
 func (ah *apacheHandler) createHandler() (http.HandlerFunc, error) {
