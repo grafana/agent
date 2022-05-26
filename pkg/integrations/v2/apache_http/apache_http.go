@@ -72,7 +72,6 @@ type apacheHandler struct {
 // NewIntegration instantiates a new integrations.MetricsIntegration
 // which will handle requests to the apache http integration.
 func (c *Config) NewIntegration(logger log.Logger, globals integrations_v2.Globals) (integrations_v2.Integration, error) {
-
 	ah := &apacheHandler{cfg: c, log: logger}
 	h, err := ah.createHandler()
 	if err != nil {
