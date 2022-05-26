@@ -18,7 +18,7 @@ steps:
   - name: lint
     image: golangci/golangci-lint:v1.44
     commands:
-      - apt-get update -y && apt-get install -y libsystemd-dev libbpfcc
+      - apt-get update -y && apt-get install -y libsystemd-dev libbpfcc-dev
       - make DOCKER_OPTS="" lint
 
 ---
@@ -45,7 +45,7 @@ steps:
       - name: docker
         path: /var/run/docker.sock
     commands:
-      - apt-get update &&  apt-get install -y rubygems rpm nsis apt-transport-https ca-certificates curl gnupg lsb-release libbpfcc
+      - apt-get update &&  apt-get install -y rubygems rpm nsis apt-transport-https ca-certificates curl gnupg lsb-release libbpfcc-dev
       - gem install --no-document fpm
       - rm -r /usr/local/go
       - mkdir -p /usr/local/go/bin
@@ -246,6 +246,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: 6dc9aa1a60a27d369afde49f3adbd584cdf03f017a1d5f905201b6c45b08fb42
+hmac: 9fed7fe2cdfab3010847ed26d5e6ba46adf046787de0b3ad89b7a3ff7b9b6c62
 
 ...
