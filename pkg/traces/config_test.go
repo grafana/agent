@@ -1359,8 +1359,8 @@ service:
 			expectedConfig, err := cfgUnmarshaler.Unmarshal(configMap, factories)
 			require.NoError(t, err)
 
-			// Exporters/Receivers/Processors as well as in the config's service.Pipelines,
-			// as well as service.Extensions to be in the same order for them to be asserted as equal.
+			// Exporters/Receivers/Processors in the config's service.Pipelines, as well as
+			// service.Extensions have to be in the same order for them to be asserted as equal.
 			sortService(actualConfig)
 			sortService(expectedConfig)
 
