@@ -40,9 +40,13 @@ func runFileTests(t *testing.T, ut file.Detector) {
 		time.Sleep(settlePeriod)
 
 		te := newTestEnvironment(t, file.Arguments{
-			Filename:      filename,
-			Type:          ut,
-			PollFrequency: 10 * time.Millisecond,
+			Filename: filename,
+			Type:     ut,
+
+			// Pick a polling frequency which is fast enough so that tests finish
+			// quickly but not so frequent such that Go struggles to schedule the
+			// goroutines of the tests on slower machines.
+			PollFrequency: 100 * time.Millisecond,
 		})
 		go func() {
 			err := te.Run(context.Background())
