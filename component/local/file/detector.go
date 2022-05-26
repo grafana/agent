@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
@@ -147,9 +146,8 @@ func (fsn *fsNotify) Close() error {
 }
 
 type poller struct {
-	opts        pollerOptions
-	lastModTime time.Time
-	cancel      context.CancelFunc
+	opts   pollerOptions
+	cancel context.CancelFunc
 }
 
 type pollerOptions struct {
@@ -160,17 +158,11 @@ type pollerOptions struct {
 
 // newPoller creates a new poll-based file update detector.
 func newPoller(opts pollerOptions) (*poller, error) {
-	fi, err := os.Stat(opts.Filename)
-	if err != nil {
-		return nil, err
-	}
-
 	ctx, cancel := context.WithCancel(context.Background())
 
 	pw := &poller{
-		opts:        opts,
-		lastModTime: fi.ModTime(),
-		cancel:      cancel,
+		opts:   opts,
+		cancel: cancel,
 	}
 
 	go pw.run(ctx)
@@ -186,33 +178,19 @@ func (p *poller) run(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-t.C:
-			p.checkFileUpdated()
+			// Always tell the component to re-check the file. This avoids situations
+			// where the file changed without changing any of the stats (like modify
+			// time).
+			p.forwardNotification()
 		}
 	}
 }
 
-func (p *poller) checkFileUpdated() {
-	fi, err := os.Stat(p.opts.Filename)
-	if err != nil {
-		// We failed to stat the file. We send an event over the channel so that
-		// the component can process the error when it tries to re-read the file.
-
-		select {
-		case p.opts.UpdateCh <- struct{}{}:
-		default:
-			// Event already queued; no need to process more than one.
-		}
-		return
-	}
-
-	if modTime := fi.ModTime(); modTime.After(p.lastModTime) {
-		p.lastModTime = modTime
-
-		select {
-		case p.opts.UpdateCh <- struct{}{}:
-		default:
-			// Event already queued; no need to process more than one.
-		}
+func (p *poller) forwardNotification() {
+	select {
+	case p.opts.UpdateCh <- struct{}{}:
+	default:
+		// Already queued; no need to queue another event.
 	}
 }
 
