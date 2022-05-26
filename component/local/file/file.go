@@ -209,7 +209,7 @@ func (c *Component) configureDetector() error {
 
 	switch c.args.Type {
 	case DetectorPoll:
-		c.detector, err = newPoller(pollerOptions{
+		c.detector = newPoller(pollerOptions{
 			Filename:      c.args.Filename,
 			UpdateCh:      c.updateChan,
 			PollFrequency: c.args.PollFrequency,

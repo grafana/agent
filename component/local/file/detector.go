@@ -157,7 +157,7 @@ type pollerOptions struct {
 }
 
 // newPoller creates a new poll-based file update detector.
-func newPoller(opts pollerOptions) (*poller, error) {
+func newPoller(opts pollerOptions) *poller {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	pw := &poller{
@@ -166,7 +166,7 @@ func newPoller(opts pollerOptions) (*poller, error) {
 	}
 
 	go pw.run(ctx)
-	return pw, nil
+	return pw
 }
 
 func (p *poller) run(ctx context.Context) {

@@ -18,12 +18,10 @@ import (
 
 func TestFile(t *testing.T) {
 	t.Run("Polling change detector", func(t *testing.T) {
-		t.Parallel()
 		runFileTests(t, file.DetectorPoll)
 	})
 
 	t.Run("Event change detector", func(t *testing.T) {
-		t.Parallel()
 		runFileTests(t, file.DetectorFSNotify)
 	})
 }
@@ -59,8 +57,6 @@ func runFileTests(t *testing.T, ut file.Detector) {
 	}
 
 	t.Run("Updates to files are detected", func(t *testing.T) {
-		t.Parallel()
-
 		testFile := filepath.Join(t.TempDir(), "testfile")
 		te := newSuiteEnvironment(t, testFile)
 
@@ -78,8 +74,6 @@ func runFileTests(t *testing.T, ut file.Detector) {
 	})
 
 	t.Run("Deleted and recreated files are detected", func(t *testing.T) {
-		t.Parallel()
-
 		testFile := filepath.Join(t.TempDir(), "testfile")
 		te := newSuiteEnvironment(t, testFile)
 
