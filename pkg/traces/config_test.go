@@ -1723,10 +1723,10 @@ receivers:
 	assert.Contains(t, otel.Service.Pipelines[config.NewComponentID("traces")].Receivers, config.NewComponentID(pushreceiver.TypeStr))
 }
 
-// sortService is a helper function to lexicographically sort all the elements of a given cfg.Service
+// sortService is a helper function to lexicographically sort all
+// the possibly unsorted elements of a given cfg.Service
 func sortService(cfg *config.Config) {
-	var ext = cfg.Service.Extensions
-	sort.Slice(ext, func(i, j int) bool { return ext[i].String() > ext[j].String() })
+	sort.Slice(cfg.Service.Extensions, func(i, j int) bool { return cfg.Service.Extensions[i].String() > cfg.Service.Extensions[j].String() })
 
 	for _, pipeline := range cfg.Service.Pipelines {
 		sort.Slice(pipeline.Exporters, func(i, j int) bool { return pipeline.Exporters[i].String() > pipeline.Exporters[j].String() })
