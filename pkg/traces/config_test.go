@@ -1359,9 +1359,10 @@ service:
 			expectedConfig, err := cfgUnmarshaler.Unmarshal(configMap, factories)
 			require.NoError(t, err)
 
-			// Exporters and receivers in the config's pipelines need to be in the same order for them to be asserted as equal
-			sortPipelines(actualConfig)
-			sortPipelines(expectedConfig)
+			// Exporters/Receivers/Processors in the config's service.Pipelines, as well as
+			// service.Extensions have to be in the same order for them to be asserted as equal.
+			sortService(actualConfig)
+			sortService(expectedConfig)
 
 			assert.Equal(t, expectedConfig, actualConfig)
 		})
@@ -1722,20 +1723,14 @@ receivers:
 	assert.Contains(t, otel.Service.Pipelines[config.NewComponentID("traces")].Receivers, config.NewComponentID(pushreceiver.TypeStr))
 }
 
-// sortPipelines is a helper function to lexicographically sort a pipeline's exporters
-func sortPipelines(cfg *config.Config) {
-	tracePipeline := cfg.Pipelines[config.NewComponentID(config.TracesDataType)]
-	if tracePipeline == nil {
-		return
+// sortService is a helper function to lexicographically sort all
+// the possibly unsorted elements of a given cfg.Service
+func sortService(cfg *config.Config) {
+	sort.Slice(cfg.Service.Extensions, func(i, j int) bool { return cfg.Service.Extensions[i].String() > cfg.Service.Extensions[j].String() })
+
+	for _, pipeline := range cfg.Service.Pipelines {
+		sort.Slice(pipeline.Exporters, func(i, j int) bool { return pipeline.Exporters[i].String() > pipeline.Exporters[j].String() })
+		sort.Slice(pipeline.Receivers, func(i, j int) bool { return pipeline.Receivers[i].String() > pipeline.Receivers[j].String() })
+		sort.Slice(pipeline.Processors, func(i, j int) bool { return pipeline.Processors[i].String() > pipeline.Processors[j].String() })
 	}
-	var (
-		exp         = tracePipeline.Exporters
-		recv        = tracePipeline.Receivers
-		ext         = cfg.Service.Extensions
-		serviceRecv = cfg.Service.Pipelines[config.NewComponentID(config.TracesDataType)].Receivers
-	)
-	sort.Slice(exp, func(i, j int) bool { return exp[i].String() > exp[j].String() })
-	sort.Slice(recv, func(i, j int) bool { return recv[i].String() > recv[j].String() })
-	sort.Slice(ext, func(i, j int) bool { return ext[i].String() > ext[j].String() })
-	sort.Slice(serviceRecv, func(i, j int) bool { return serviceRecv[i].String() > serviceRecv[j].String() })
 }
