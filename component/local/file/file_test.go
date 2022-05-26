@@ -30,9 +30,14 @@ func TestFile(t *testing.T) {
 
 // runFileTests will run a suite of tests with the configured update type.
 func runFileTests(t *testing.T, ut file.Detector) {
+	// In our tests below, we wait some time after making changes to the file to
+	// allow filesystem events to settle.
+	settlePeriod := 100 * time.Millisecond
+
 	newSuiteEnvironment := func(t *testing.T, filename string) *testEnvironment {
 		err := os.WriteFile(filename, []byte("First load!"), 0644)
 		require.NoError(t, err)
+		time.Sleep(settlePeriod)
 
 		te := newTestEnvironment(t, file.Arguments{
 			Filename:      filename,
@@ -55,10 +60,11 @@ func runFileTests(t *testing.T, ut file.Detector) {
 		testFile := filepath.Join(t.TempDir(), "testfile")
 		te := newSuiteEnvironment(t, testFile)
 
-		// Update the file and make sure we get notified.
+		// Update the file.
 		require.NoError(t, os.WriteFile(testFile, []byte("New content!"), 0644))
-		require.NoError(t, te.WaitExports(time.Second))
+		time.Sleep(settlePeriod)
 
+		require.NoError(t, te.WaitExports(time.Second))
 		require.Equal(t, file.Exports{
 			Content: &hcltypes.OptionalSecret{
 				Sensitive: false,
@@ -76,6 +82,7 @@ func runFileTests(t *testing.T, ut file.Detector) {
 		// Delete the file, then recreate it with new content.
 		require.NoError(t, os.Remove(testFile))
 		require.NoError(t, os.WriteFile(testFile, []byte("New content!"), 0644))
+		time.Sleep(settlePeriod)
 
 		require.NoError(t, te.WaitExports(time.Second))
 		require.Equal(t, file.Exports{
