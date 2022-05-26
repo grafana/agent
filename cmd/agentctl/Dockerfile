@@ -18,9 +18,10 @@ FROM debian:bullseye-slim
 # Backports repo required to get a libsystemd version 246 or newer which is required to handle journal +ZSTD compression
 # plus the libbpfcc library for running the eBPF integration on Linux/AMD64.
 RUN echo "deb http://deb.debian.org/debian bullseye-backports main" >> /etc/apt/sources.list
+RUN echo "deb http://deb.debian.org/debian bullseye-backports main" >> /etc/apt/sources.list
 RUN apt-get update && apt-get install -t bullseye-backports -qy libsystemd-dev && \
   apt-get install -qy tzdata ca-certificates && \
-  if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then apt-get install -qy libbpfcc; fi && \
+  if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then apt-get install libbpfcc; fi && \
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 COPY --from=build /src/agent/cmd/agentctl/agentctl /bin/agentctl
