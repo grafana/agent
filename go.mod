@@ -5,7 +5,6 @@ go 1.18
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.4.0
 	github.com/Shopify/sarama v1.32.0
-	github.com/cloudflare/ebpf_exporter v1.2.5
 	github.com/cortexproject/cortex v1.11.0
 	github.com/davidmparrott/kafka_exporter/v2 v2.0.1
 	github.com/docker/docker v20.10.14+incompatible
@@ -112,6 +111,7 @@ require (
 )
 
 require (
+	github.com/cloudflare/ebpf_exporter v1.2.5
 	github.com/google/uuid v1.3.0
 	github.com/grafana/regexp v0.0.0-20220304100321-149c8afcd6cb
 	github.com/hashicorp/hcl/v2 v2.12.0
