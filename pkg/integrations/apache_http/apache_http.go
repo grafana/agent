@@ -49,14 +49,14 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 
 // NewIntegration converts the config into an integration instance.
 func (c *Config) NewIntegration(logger log.Logger) (integrations.Integration, error) {
-	return new(logger, c)
+	return New(logger, c)
 }
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
 }
 
-func new(logger log.Logger, c *Config) (integrations.Integration, error) {
+func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	conf := &ae.Config{
 		ScrapeURI:    c.ApacheAddr,
 		HostOverride: c.ApacheHostOverride,
