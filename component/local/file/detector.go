@@ -84,7 +84,10 @@ func newFSNotify(opts fsNotifyOptions) (*fsNotify, error) {
 		return nil, err
 	}
 	if err := w.Add(opts.Filename); err != nil {
-		return nil, err
+		// It's possible that the file already got deleted by the time our fsnotify
+		// was created. We'll log the error and wait for our polling fallback for
+		// the file to be recreated.
+		level.Warn(opts.Logger).Log("msg", "failed to watch file", "err", err)
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -116,7 +119,7 @@ func (fsn *fsNotify) wait(ctx context.Context) {
 			// again.
 			err := fsn.watcher.Add(fsn.opts.Filename)
 			if err != nil {
-				level.Warn(fsn.opts.Logger).Log("msg", "failed re-watch file", "path", fsn.opts.Filename, "err", err)
+				level.Warn(fsn.opts.Logger).Log("msg", "failed re-watch file", "err", err)
 			} else {
 				fsn.forwardNotification()
 			}
@@ -126,7 +129,7 @@ func (fsn *fsNotify) wait(ctx context.Context) {
 				fsn.forwardNotification()
 			}
 		case ev := <-fsn.watcher.Events:
-			level.Debug(fsn.opts.Logger).Log("msg", "got fsnotify event", "path", ev.Name, "op", ev.Op.String())
+			level.Debug(fsn.opts.Logger).Log("msg", "got fsnotify event", "op", ev.Op.String())
 			fsn.forwardNotification()
 		}
 	}

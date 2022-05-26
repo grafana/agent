@@ -15,6 +15,13 @@ import (
 	"github.com/rfratto/gohcl"
 )
 
+// waitReadPeriod holds the time to wait before reading a file while the
+// local.file component is running.
+//
+// This prevents local.file from updating too frequently and exporting partial
+// writes.
+const waitReadPeriod time.Duration = 30 * time.Millisecond
+
 func init() {
 	component.Register(component.Registration{
 		Name:    "local.file",
@@ -131,6 +138,9 @@ func (c *Component) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case <-c.updateChan:
+			// Wait a little before reading.
+			time.Sleep(waitReadPeriod)
+
 			// Ignore the error from readFile since errors are also set in the local
 			// health.
 			c.mut.Lock()

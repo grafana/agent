@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"sync"
 	"testing"
 	"time"
@@ -28,14 +29,8 @@ func TestFile(t *testing.T) {
 
 // runFileTests will run a suite of tests with the configured update type.
 func runFileTests(t *testing.T, ut file.Detector) {
-	// In our tests below, we wait some time after making changes to the file to
-	// allow filesystem events to settle.
-	settlePeriod := 250 * time.Millisecond
-
 	newSuiteEnvironment := func(t *testing.T, filename string) *testEnvironment {
-		err := os.WriteFile(filename, []byte("First load!"), 0644)
-		require.NoError(t, err)
-		time.Sleep(settlePeriod)
+		require.NoError(t, os.WriteFile(filename, []byte("First load!"), 0664))
 
 		te := newTestEnvironment(t, file.Arguments{
 			Filename: filename,
@@ -44,7 +39,7 @@ func runFileTests(t *testing.T, ut file.Detector) {
 			// Pick a polling frequency which is fast enough so that tests finish
 			// quickly but not so frequent such that Go struggles to schedule the
 			// goroutines of the tests on slower machines.
-			PollFrequency: 100 * time.Millisecond,
+			PollFrequency: 50 * time.Millisecond,
 		})
 		go func() {
 			err := te.Run(context.Background())
@@ -53,6 +48,12 @@ func runFileTests(t *testing.T, ut file.Detector) {
 
 		// Swallow the initial exports notification.
 		require.NoError(t, te.WaitExports(time.Second))
+		require.Equal(t, file.Exports{
+			Content: &hcltypes.OptionalSecret{
+				Sensitive: false,
+				Value:     "First load!",
+			},
+		}, te.Exports())
 		return te
 	}
 
@@ -61,8 +62,7 @@ func runFileTests(t *testing.T, ut file.Detector) {
 		te := newSuiteEnvironment(t, testFile)
 
 		// Update the file.
-		require.NoError(t, os.WriteFile(testFile, []byte("New content!"), 0644))
-		time.Sleep(settlePeriod)
+		require.NoError(t, os.WriteFile(testFile, []byte("New content!"), 0664))
 
 		require.NoError(t, te.WaitExports(time.Second))
 		require.Equal(t, file.Exports{
@@ -79,8 +79,7 @@ func runFileTests(t *testing.T, ut file.Detector) {
 
 		// Delete the file, then recreate it with new content.
 		require.NoError(t, os.Remove(testFile))
-		require.NoError(t, os.WriteFile(testFile, []byte("New content!"), 0644))
-		time.Sleep(settlePeriod)
+		require.NoError(t, os.WriteFile(testFile, []byte("New content!"), 0664))
 
 		require.NoError(t, te.WaitExports(time.Second))
 		require.Equal(t, file.Exports{
@@ -96,8 +95,7 @@ func runFileTests(t *testing.T, ut file.Detector) {
 // immediately exports the contents of the file.
 func TestFile_ImmediateExports(t *testing.T) {
 	testFile := filepath.Join(t.TempDir(), "testfile")
-	err := os.WriteFile(testFile, []byte("Hello, world!"), 0644)
-	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(testFile, []byte("Hello, world!"), 0664))
 
 	te := newTestEnvironment(t, file.Arguments{
 		Filename:      testFile,
@@ -162,9 +160,16 @@ func newTestEnvironment(t *testing.T, args file.Arguments) *testEnvironment {
 		Logger:   util.TestLogger(t),
 		DataPath: t.TempDir(),
 		OnStateChange: func(e component.Exports) {
+			var changed bool
+
 			te.exportsMut.Lock()
+			changed = !reflect.DeepEqual(te.exports, e.(file.Exports))
 			te.exports = e.(file.Exports)
 			te.exportsMut.Unlock()
+
+			if !changed {
+				return
+			}
 
 			select {
 			case te.exportsCh <- struct{}{}:
