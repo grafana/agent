@@ -17,39 +17,9 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-// Config controls the eBPF integration.
-type Config struct {
-	Programs []ebpf_config.Program `yaml:"programs,omitempty"`
-}
-
 type ebpfHandler struct {
 	cfg *Config
 }
-
-func init() {
-	integrations.Register(&Config{}, integrations.TypeSingleton)
-}
-
-var defaultConfig = Config{
-	Programs: []ebpf_config.Program{},
-}
-
-// UnmarshalYAML implements yaml.Unmarshaler for Config.
-func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*c = defaultConfig
-	type plain Config
-
-	return unmarshal((*plain)(c))
-}
-
-// ApplyDefaults applies globals to the configuration object.
-func (c *Config) ApplyDefaults(globals integrations.Globals) error { return nil }
-
-// Identifier returns a string identifying the current integration.
-func (c *Config) Identifier(globals integrations.Globals) (string, error) { return c.Name(), nil }
-
-// Name returns the integration's name.
-func (c *Config) Name() string { return "ebpf" }
 
 // NewIntegration instantiates a new integrations.MetricsIntegration
 // which will handle requests to the eBPF exporter.
