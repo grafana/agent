@@ -6,8 +6,14 @@ import (
 	ebpf_config "github.com/cloudflare/ebpf_exporter/config"
 )
 
+func init() {
+	integrations.RegisterIntegration(&Config{})
+}
+
 // DefaultConfig for the ebpf_exporter.
-var DefaultConfig = Config{}
+var DefaultConfig = Config{
+	Programs: []ebpf_config.Program{},
+}
 
 // Config controls the eBPF integration.
 type Config struct {
@@ -30,8 +36,4 @@ func (c *Config) Name() string {
 // InstanceKey returns a set identifier for the ebpf_exporter integration.
 func (c *Config) InstanceKey(_ string) (string, error) {
 	return c.Name(), nil
-}
-
-func init() {
-	integrations.RegisterIntegration(&Config{})
 }
