@@ -1,3 +1,10 @@
+---
+aliases:
+- /docs/agent/latest/dynamic-configuration/objects
+title: Templates/Objects
+weight: 220
+---
+
 # 02 Datasources
 
 Datasources can also access objects.

@@ -1,3 +1,10 @@
+---
+aliases:
+- /docs/agent/latest/dynamic-configuration/integrations
+title: Basics/Integrations
+weight: 120
+---
+
 # 03 Integrations
 
 Dynamic configuration requires the use of `integrations-next` feature flag, to allow arrays of integrations. In this we will load integrations of various types. This is all built on the previous examples.

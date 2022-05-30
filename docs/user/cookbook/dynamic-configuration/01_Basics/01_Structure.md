@@ -1,3 +1,10 @@
+---
+aliases:
+- /docs/agent/latest/dynamic-configuration/structure
+title: Basics/Structure
+weight: 100
+---
+
 # 01 Structure
 
 Dynamic Configuration uses a series of files to load templates. This example will show how they all combine together. Running the below command will combine all the templates into the final.yml. Any failure while loading the config will revert to the original config, or if this is the initial load Grafana Agent will quit.

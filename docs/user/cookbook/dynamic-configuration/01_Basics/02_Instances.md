@@ -1,3 +1,10 @@
+---
+aliases:
+- /docs/agent/latest/dynamic-configuration/instances
+title: Basics/Instances
+weight: 110
+---
+
 # 02 Instances
 
 Dynamic configuration allows multiple prometheus instances to be loaded with a parent metric. This uses

@@ -1,3 +1,10 @@
+---
+aliases:
+- /docs/agent/latest/dynamic-configuration/datasources
+title: Templates/Datasources
+weight: 210
+---
+
 # 02 Datasources
 
 Datasources are a powerful concept in gomplate. They allow you to reach out to other files, systems and resources to pull data.

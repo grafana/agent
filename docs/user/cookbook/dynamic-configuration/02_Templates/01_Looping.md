@@ -1,3 +1,10 @@
+---
+aliases:
+- /docs/agent/latest/dynamic-configuration/looping
+title: Templates/Looping
+weight: 200
+---
+
 # 01 Basics of Templating
 
 The templating is based on the excellent [gomplate](https://docs.gomplate.ca/) library. Currently using a custom fork to allow loading gomplate as a library in addition to some new commands. This will NOT try to cover the full range of gomplate, would recommend reading the documentation for full knowledge.

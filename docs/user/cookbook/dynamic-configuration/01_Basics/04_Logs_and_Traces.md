@@ -1,3 +1,9 @@
+---
+aliases:
+- /docs/agent/latest/dynamic-configuration/logs-traces
+title: Basics/Logs-Traces
+weight: 130
+---
 # 04 Logs and Traces
 
 Logs and Traces can also be templated. This is built ontop of the previous examples.
