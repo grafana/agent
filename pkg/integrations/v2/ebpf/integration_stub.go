@@ -9,6 +9,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/v2"
 )
 
+// NewIntegration builds a no-op ebpf-integration for non-Linux systems.
 func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (integrations.Integration, error) {
 	level.Warn(l).Log("msg", "the ebpf integration only works on linux; enabling it on other platforms will do nothing")
 	return integrations.NoOpIntegration, nil
