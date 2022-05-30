@@ -1,7 +1,7 @@
 //go:build !linux || !amd64 || noebpf
 // +build !linux !amd64 noebpf
 
-package ebpf //nolint:golint
+package ebpf
 
 import (
 	"github.com/grafana/agent/pkg/integrations"
