@@ -36,6 +36,7 @@ Main (unreleased)
 
 - Configure the agent to report the use of feature flags to grafana.com. (@marctc)
 
+- Add `--platforms` flag to agentctl cloud-config command. (@tpaschalis)
 
 ### Enhancements
 

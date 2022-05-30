@@ -40,7 +40,7 @@ func TestClient_AgentConfig(t *testing.T) {
 	}))
 
 	cli := NewClient(httpClient, testSecret, "")
-	cfg, err := cli.AgentConfig(context.Background(), testStackID)
+	cfg, err := cli.AgentConfig(context.Background(), testStackID, "")
 	require.NoError(t, err)
 	fmt.Println(cfg)
 
@@ -61,7 +61,7 @@ func TestClient_AgentConfig_Error(t *testing.T) {
 	}))
 
 	cli := NewClient(httpClient, testSecret, "")
-	_, err := cli.AgentConfig(context.Background(), testStackID)
+	_, err := cli.AgentConfig(context.Background(), testStackID, "")
 	require.Error(t, err, "unexpected status code 404")
 }
 
@@ -76,8 +76,45 @@ func TestClient_AgentConfig_ErrorMessage(t *testing.T) {
 	}))
 
 	cli := NewClient(httpClient, testSecret, "")
-	_, err := cli.AgentConfig(context.Background(), testStackID)
+	_, err := cli.AgentConfig(context.Background(), testStackID, "")
 	require.Error(t, err, "request was not successful: Something went wrong")
+}
+
+func TestClient_AgentConfig_PlatformsFlag(t *testing.T) {
+	httpClient := testClient(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "/stacks/"+testStackID+"/agent_config", r.URL.Path)
+		assert.Equal(t, "platforms=foo,bar", r.URL.RawQuery)
+		assert.Equal(t, "Bearer "+testSecret, r.Header.Get("Authorization"))
+
+		_, err := w.Write([]byte(`{
+			"status": "success",
+			"data": {
+				"server": {
+					"log_level": "debug"
+				},
+				"integrations": {
+					"agent": {
+						"enabled": true
+					}
+				}
+			}
+		}`))
+		assert.NoError(t, err)
+	}))
+	cli := NewClient(httpClient, testSecret, "")
+	cfg, err := cli.AgentConfig(context.Background(), testStackID, "foo,bar")
+	require.NoError(t, err)
+	fmt.Println(cfg)
+
+	expect := `
+server:
+  log_level: debug
+integrations:
+  agent:
+    enabled: true
+`
+
+	require.YAMLEq(t, expect, cfg)
 }
 
 func testClient(t *testing.T, handler http.HandlerFunc) *http.Client {
