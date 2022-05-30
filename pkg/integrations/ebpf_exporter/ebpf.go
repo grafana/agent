@@ -17,7 +17,7 @@ func (c *Config) NewIntegration(logger log.Logger) (integrations.Integration, er
 	return New(logger, c)
 }
 
-// New sets up the converts the config into an integration instance.ebpf exporter.
+// New sets up the ebpf exporter.
 func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 
 	exp, err := exporter.New(ebpf_config.Config{Programs: c.Programs})
