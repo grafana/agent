@@ -1,7 +1,7 @@
 //go:build linux && amd64 && !noebpf
 // +build linux,amd64,!noebpf
 
-package ebpf
+package ebpf //nolint:golint
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations"
 )
 
-// New foo
+// New sets up an ebpf exporter from a given config.
 func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 
 	exp, err := exporter.New(ebpf_config.Config{Programs: c.Programs})
@@ -31,7 +31,7 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	), nil
 }
 
-// NewIntegration bar
+// NewIntegration creates a new ebpf_exporter instance.
 func (c *Config) NewIntegration(logger log.Logger) (integrations.Integration, error) {
 	return New(logger, c)
 }
