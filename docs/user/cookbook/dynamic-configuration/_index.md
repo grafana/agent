@@ -15,17 +15,17 @@ As this
 
 The basic section covers
 - The [Structure]({{< relref "./01_Basics/01_Structure.md" >}}) of how agent and server templates are loaded
-- How [Instances]({{< relref "./01_Basics/02_Instances.md" >}}) of metrics and metrics instances are loaded
+- How metrics [Instances]({{< relref "./01_Basics/02_Instances.md" >}}) are loaded
 - How [Integrations]({{< relref "./01_Basics/03_Integrations.md" >}}) are loaded
-- How [Logs and Traces]({{< relref "./01_Basics/04_Logs_and_Traces.md" >}}) of how traces and logs are loaded
+- How [Logs and Traces]({{< relref "./01_Basics/04_Logs_and_Traces.md" >}}) are loaded
 
 ## Templates
 The Templates section includes
 
 - [Looping]({{< relref "./02_Templates/01_Looping.md" >}}) with basic command usage and simple loops
-- [Datasource]({{< relref "./02_Templates/02_Datasources.md" >}}) includes usage of external datastores you can use to pull in data as new data sources.
-- [Datasources and Objects]({{< relref "./02_Templates/03_Datasources_and_Objects.md" >}}) covers the usage of complex json objects
+- [Datasource]({{< relref "./02_Templates/02_Datasources.md" >}}) covers usage of external datastores you can use to pull in data as new data sources.
+- [Datasources and Objects]({{< relref "./02_Templates/03_Datasource_and_Objects.md" >}}) covers the usage of complex json objects
 
 ## Advanced
 The Advanced section includes
-- The [AWS]({{< relref "./03_Advanced_Datasources/01_AWS.md" >}}) example that queries EC2 for instances.
+- The [AWS]({{< relref "./03_Advanced_Datasources/01_AWS.md" >}}) example queries EC2 for instances.

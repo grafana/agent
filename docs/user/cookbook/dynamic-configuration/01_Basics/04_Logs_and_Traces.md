@@ -12,7 +12,7 @@ Logs and Traces can also be templated. This is built ontop of the previous examp
 
 ## Dynamic Configuration
 
-[config.yml](04_config.yml)
+[config.yml](https://github.com/grafana/agent/blob/main/docs/user/cookbook/dynamic-configuration/01_Basics/04_config.yml)
 
 Tells the Grafana Agent where to load files from.
 
@@ -20,7 +20,7 @@ Tells the Grafana Agent where to load files from.
 
 Logs are loaded from a template matching `logs-*.yml`. There can ONLY be 1 template loaded
 
-[logs-1.yml](04_assets/logs-1.yml)
+[logs-1.yml](https://github.com/grafana/agent/blob/main/docs/user/cookbook/dynamic-configuration/01_Basics/04_assets/logs-1.yml)
 
 ```yaml
 configs:
@@ -35,7 +35,7 @@ configs:
             expression: '\\temp\\Logs\\(?P<log_app>.+?)\\'
 ```
 
-[traces.yml](04_assets/traces-1.yml)
+[traces.yml](https://github.com/grafana/agent/blob/main/docs/user/cookbook/dynamic-configuration/01_Basics/04_assets/traces-1.yml)
 
 ```yaml
 configs:
@@ -48,5 +48,5 @@ configs:
 
 ## Final
 
-[final.yml](04_assets/final.yml)
+[final.yml](https://github.com/grafana/agent/blob/main/docs/user/cookbook/dynamic-configuration/01_Basics/04_assets/final.yml)
 
