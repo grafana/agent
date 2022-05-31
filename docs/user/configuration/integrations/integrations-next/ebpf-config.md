@@ -1,10 +1,10 @@
 +++
-title = "ebpf_config"
+title = "ebpf_exporter_config"
 +++
 
-# ebpf_config
+# ebpf_exporter_config
 
-The `ebpf_config` block configures the Agent's eBPF integration.
+The `ebpf_exporter_config` block configures the Agent's eBPF integration.
 It is an embedded version of
 [`ebpf_exporter`](https://github.com/cloudflare/ebpf_exporter)
 that allows the Agent to attach eBPF programs to the host kernel
