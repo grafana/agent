@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	goruntime "runtime"
 	"sort"
 	"strings"
 	"time"
@@ -475,7 +476,7 @@ config that may be used with this agent.`,
 	cmd.Flags().StringVarP(&stackID, "stack", "u", "", "stack ID to get a config for")
 	cmd.Flags().StringVarP(&apiKey, "api-key", "p", "", "API key to authenticate against Grafana Cloud's API with")
 	cmd.Flags().StringVarP(&apiURL, "api-url", "e", "", "Grafana Cloud's API url")
-	cmd.Flags().StringVar(&platforms, "platforms", "", "Platforms/OSes to retrieve configuration for")
+	cmd.Flags().StringVar(&platforms, "platforms", goruntime.GOOS, "comma-separated list of Platforms/OSes")
 	must(cmd.MarkFlagRequired("stack"))
 	must(cmd.MarkFlagRequired("api-key"))
 
