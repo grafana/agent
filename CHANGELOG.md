@@ -36,8 +36,6 @@ Main (unreleased)
 
 - Configure the agent to report the use of feature flags to grafana.com. (@marctc)
 
-- Add `--platforms` flag to agentctl cloud-config command. (@tpaschalis)
-
 ### Enhancements
 
 - integrations-next: Integrations using autoscrape will now autoscrape metrics
