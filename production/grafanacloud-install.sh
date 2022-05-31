@@ -121,7 +121,7 @@ install_rpm() {
 # retrieve_config downloads the config file for the Agent and prints out its
 # contents to stdout.
 retrieve_config() {
-  if ! grafana-agentctl cloud-config -platforms "linux" -u "${GCLOUD_STACK_ID}" -p "${GCLOUD_API_KEY}" -e "${GCLOUD_API_URL}"  2>/dev/null; then
+  if ! grafana-agentctl cloud-config -u "${GCLOUD_STACK_ID}" -p "${GCLOUD_API_KEY}" -e "${GCLOUD_API_URL}" 2>/dev/null; then
     fatal "Failed to retrieve config"
   fi
 }
