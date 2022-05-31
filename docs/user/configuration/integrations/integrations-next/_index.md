@@ -145,7 +145,7 @@ autoscrape:
   # Specifies the metrics instance name to send metrics to.
   [metrics_instance: <string> | default = <integrations.metrics.autoscrape.metrics_instance>]
 
-  # Allows for relabeling labels on the target.
+  # Relabel the autoscrape job.
   relabel_configs:
     [- <relabel_config> ... ]
 
