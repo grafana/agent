@@ -9,8 +9,6 @@ weight: 100
 
 The purpose of this cookbook is to guide you through common scenarios of using dynamic configuration. Each section contains increasingly more complex use cases, but feel free to jump in wherever you feel appropriate.
 
-As this
-
 ## Basics
 
 The basic section covers
