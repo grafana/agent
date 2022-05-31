@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	goruntime "runtime"
 	"sort"
 	"strings"
 	"time"
@@ -431,9 +432,10 @@ func filterAgentOwners(refs []meta_v1.OwnerReference) (filtered []meta_v1.OwnerR
 
 func cloudConfigCmd() *cobra.Command {
 	var (
-		stackID string
-		apiURL  string
-		apiKey  string
+		stackID   string
+		apiURL    string
+		apiKey    string
+		platforms string
 	)
 
 	cmd := &cobra.Command{
@@ -460,7 +462,7 @@ config that may be used with this agent.`,
 			}
 			cli := grafanacloud.NewClient(httpClient, apiKey, apiURL)
 
-			cfg, err := cli.AgentConfig(context.Background(), stackID)
+			cfg, err := cli.AgentConfig(context.Background(), stackID, platforms)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "could not retrieve agent cloud config: %s\n", err)
 				os.Exit(1)
@@ -474,6 +476,7 @@ config that may be used with this agent.`,
 	cmd.Flags().StringVarP(&stackID, "stack", "u", "", "stack ID to get a config for")
 	cmd.Flags().StringVarP(&apiKey, "api-key", "p", "", "API key to authenticate against Grafana Cloud's API with")
 	cmd.Flags().StringVarP(&apiURL, "api-url", "e", "", "Grafana Cloud's API url")
+	cmd.Flags().StringVar(&platforms, "platforms", goruntime.GOOS, "comma-separated list of Platforms/OSes")
 	must(cmd.MarkFlagRequired("stack"))
 	must(cmd.MarkFlagRequired("api-key"))
 

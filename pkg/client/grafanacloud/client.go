@@ -36,12 +36,13 @@ func NewClient(c *http.Client, apiKey, apiURL string) *Client {
 
 // AgentConfig generates a Grafana Agent config from the given stack.
 // The config is returned as a string in YAML form.
-func (c *Client) AgentConfig(ctx context.Context, stackID string) (string, error) {
-	req, err := http.NewRequestWithContext(
-		ctx, "GET",
-		fmt.Sprintf("%s/stacks/%s/agent_config", c.apiURL, stackID),
-		nil,
-	)
+func (c *Client) AgentConfig(ctx context.Context, stackID, platforms string) (string, error) {
+	url := fmt.Sprintf("%s/stacks/%s/agent_config", c.apiURL, stackID)
+	if platforms != "" {
+		url = fmt.Sprintf("%s?platforms=%s", url, platforms)
+	}
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+
 	if err != nil {
 		return "", fmt.Errorf("failed to generate request: %w", err)
 	}
