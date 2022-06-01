@@ -75,13 +75,13 @@ integrations:
   # Configs for integrations which do not support multiple instances.
   [agent: <agent_config>]
   [cadvisor: <cadvisor_config>]
-  [ebpf: <ebpf_exporter_config>]
   [node_exporter: <node_exporter_config>]
   [process: <process_exporter_config>]
   [statsd: <statsd_exporter_config>]
   [windows: <windows_exporter_config>]
   [eventhandler: <eventhandler_config>]
   [snmp: <snmp_exporter_config>]
+  [ebpf: <ebpf_config>]
 
   # Configs for integrations that do support multiple instances. Note that
   # these must be arrays.
