@@ -86,6 +86,7 @@ type Config struct {
 // UnmarshalYAML implements the Unmarshaler interface
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = DefaultConfig
+	c.LogsLabels = make(map[string]string)
 	type plain Config
 	return unmarshal((*plain)(c))
 }
