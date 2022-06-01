@@ -43,9 +43,9 @@ type Arguments struct {
 	// PollFrequency determines the frequency to check for changes when Type is
 	// UpdateTypePoll.
 	PollFrequency time.Duration `hcl:"poll_freqency,optional"`
-	// Secret marks the file as holding a secret value which should not be
+	// IsSecret marks the file as holding a secret value which should not be
 	// displayed to the user.
-	Secret bool `hcl:"secret,optional"`
+	IsSecret bool `hcl:"is_secret,optional"`
 }
 
 // DefaultArguments provides the default arguments for the local.file
@@ -166,7 +166,7 @@ func (c *Component) readFile() error {
 
 	c.opts.OnStateChange(Exports{
 		Content: &hcltypes.OptionalSecret{
-			IsSecret: c.args.Secret,
+			IsSecret: c.args.IsSecret,
 			Value:    c.latestContent,
 		},
 	})

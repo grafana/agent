@@ -28,7 +28,7 @@ Name | Type | Description | Default | Required
 `filename` | `string` | Path of the file on disk to watch | | **yes**
 `detector` | `string` | Which file change detector to use (fsnotify, poll) | `"fsnotify"` | no
 `poll_frequency` | `duration` | How often to poll for file changes | `"1m"` | no
-`secret` | `bool` | Marks the file as [secret][] | `false` | no
+`is_secret` | `bool` | Marks the file as containing a [secret][] | `false` | no
 
 ### File change detectors
 
@@ -66,8 +66,8 @@ Name | Type | Description
 ---- | ---- | -----------
 `content` | `string` or `secret` | The contents of the file from the most recent read
 
-The `content` field will have the `secret` type only if the `secret` argument
-was set to true.
+The `content` field will have the `secret` type only if the `is_secret`
+argument was true.
 
 ## Component health
 
@@ -88,4 +88,4 @@ component.
 
 `local.file` does not expose any component-specific debug metrics.
 
-[secret]: ../secrets.md#secret-argument-in-components
+[secret]: ../secrets.md#is_secret-argument-in-components
