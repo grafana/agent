@@ -7,7 +7,7 @@ weight: 900
 
 ## Cookbook 
 
-The cookbook section aims to provide small guides for more advanced use cases, experimental features, or certain concepts around the Grafana Agent.
+The cookbook section aims to provide small guides for more advanced use cases, experimental features, or certain concepts around Grafana Agent.
 
 You can find all available entries listed below.
 
