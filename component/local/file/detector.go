@@ -65,10 +65,14 @@ func (ut *Detector) UnmarshalText(text []byte) error {
 }
 
 type fsNotify struct {
-	opts       fsNotifyOptions
-	watcherMut sync.Mutex // Needed to prevent race conditions on Windows
+	opts   fsNotifyOptions
+	cancel context.CancelFunc
+
+	// watcherMut is needed to prevent race conditions on Windows. This can be
+	// removed once fsnotify/fsnotify#454 is merged and included in a patch
+	// release.
+	watcherMut sync.Mutex
 	watcher    *fsnotify.Watcher
-	cancel     context.CancelFunc
 }
 
 type fsNotifyOptions struct {
