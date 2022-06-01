@@ -57,7 +57,7 @@ the remote system.
 When using Kubernetes this [link](https://grafana.com/docs/grafana-cloud/quickstart/agent-k8s) offers the best guide.
 
 Other installation methods can be found in our
-[Grafana Agent](./docs/user/set-up/_index.md) documentation.
+[Grafana Agent](https://grafana.com/docs/agent/latest/set-up/) documentation.
 
 More detailed [documentation](./docs/README.md) is provided as part of the
 repository.
