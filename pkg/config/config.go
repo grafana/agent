@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 	"unicode"
@@ -179,6 +180,16 @@ func (c *Config) Validate(fs *flag.FlagSet) error {
 		return err
 	}
 
+	// Need to propagate the listen address to the host and port
+	if c.Server.Flags.GRPC.ListenAddress != "" {
+		addressPort := strings.Split(c.Server.Flags.GRPC.ListenAddress, ":")
+		port, err := strconv.Atoi(addressPort[1])
+		if err != nil {
+			return err
+		}
+		c.Server.Flags.GRPC.ListenPort = port
+		c.Server.Flags.GRPC.ListenHost = addressPort[0]
+	}
 	c.Metrics.ServiceConfig.Lifecycler.ListenPort = c.Server.Flags.GRPC.ListenPort
 
 	if err := c.Integrations.ApplyDefaults(&c.Server, &c.Metrics); err != nil {

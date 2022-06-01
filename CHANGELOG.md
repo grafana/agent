@@ -51,6 +51,11 @@ Main (unreleased)
 - Resolved issue in v2 integrations where if an instance name was a prefix of another the route handler would fail to
   match requests on the longer name (@mattdurham)
 
+
+### Bugfixes
+
+- Scraping service was not honoring the new server grpc flags `server.grpc.address`.  (@mattdurham)
+
 ### Other changes
 
 - Update base image of official Docker containers from Debian buster to Debian
