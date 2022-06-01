@@ -38,7 +38,6 @@ Main (unreleased)
 
 - Introduce eBPF exporter integration. (@tpaschalis)
 
-
 ### Enhancements
 
 - integrations-next: Integrations using autoscrape will now autoscrape metrics
