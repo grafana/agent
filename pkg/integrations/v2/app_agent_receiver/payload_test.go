@@ -42,6 +42,8 @@ func TestUnmarshalPayloadJSON(t *testing.T) {
 		},
 		User: User{
 			Username:   "domasx2",
+			ID:         "123",
+			Email:      "geralt@kaermorhen.org",
 			Attributes: map[string]string{"foo": "bar"},
 		},
 		Session: Session{

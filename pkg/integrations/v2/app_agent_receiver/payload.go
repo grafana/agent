@@ -271,7 +271,7 @@ func (u User) KeyVal() *KeyVal {
 	kv := NewKeyVal()
 	KeyValAdd(kv, "email", u.Email)
 	KeyValAdd(kv, "id", u.ID)
-	KeyValAdd(kv, "username", u.ID)
+	KeyValAdd(kv, "username", u.Username)
 	MergeKeyValWithPrefix(kv, KeyValFromMap(u.Attributes), "attr_")
 	return kv
 }
