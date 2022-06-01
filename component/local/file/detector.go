@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
@@ -64,9 +65,10 @@ func (ut *Detector) UnmarshalText(text []byte) error {
 }
 
 type fsNotify struct {
-	opts    fsNotifyOptions
-	watcher *fsnotify.Watcher
-	cancel  context.CancelFunc
+	opts       fsNotifyOptions
+	watcherMut sync.Mutex // Needed to prevent race conditions on Windows
+	watcher    *fsnotify.Watcher
+	cancel     context.CancelFunc
 }
 
 type fsNotifyOptions struct {
@@ -116,7 +118,10 @@ func (fsn *fsNotify) wait(ctx context.Context) {
 			//
 			// We'll use the poll period to re-establish the watch in case it was
 			// stopped. This is a no-op if the watch is already active.
+			fsn.watcherMut.Lock()
 			err := fsn.watcher.Add(fsn.opts.Filename)
+			fsn.watcherMut.Unlock()
+
 			if err != nil {
 				level.Warn(fsn.opts.Logger).Log("msg", "failed re-watch file", "err", err)
 			}
@@ -142,6 +147,9 @@ func (fsn *fsNotify) wait(ctx context.Context) {
 }
 
 func (fsn *fsNotify) Close() error {
+	fsn.watcherMut.Lock()
+	defer fsn.watcherMut.Unlock()
+
 	fsn.cancel()
 	return fsn.watcher.Close()
 }
