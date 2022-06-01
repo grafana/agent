@@ -146,6 +146,14 @@ autoscrape:
   # Specifies the metrics instance name to send metrics to.
   [metrics_instance: <string> | default = <integrations.metrics.autoscrape.metrics_instance>]
 
+  # Relabel the autoscrape job.
+  relabel_configs:
+    [- <relabel_config> ... ]
+
+  # Relabel metrics coming from the integration.
+  metric_relabel_configs:
+    [ - <relabel_config> ... ]
+
   # Autoscrape interval and timeout.
   [scrape_interval: <duration> | default = <integrations.metrics.autoscrape.scrape_interval>]
   [scrape_timeout: <duration> | default = <integrations.metrics.autoscrape.scrape_timeout>]
