@@ -2,17 +2,15 @@ package ebpf
 
 import (
 	"github.com/grafana/agent/pkg/integrations"
+	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
+	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 
 	ebpf_config "github.com/cloudflare/ebpf_exporter/config"
 )
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
-}
-
-// DefaultConfig for the ebpf_exporter.
-var DefaultConfig = Config{
-	Programs: []ebpf_config.Program{},
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeSingleton, metricsutils.NewNamedShim("ebpf"))
 }
 
 // Config controls the eBPF integration.
@@ -22,7 +20,6 @@ type Config struct {
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config.
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*c = DefaultConfig
 	type plain Config
 
 	return unmarshal((*plain)(c))

@@ -12,6 +12,6 @@ import (
 
 // NewIntegration creates a new ebpf_exporter.
 func (c *Config) NewIntegration(logger log.Logger) (integrations.Integration, error) {
-	level.Warn(logger).Log("msg", "the ebpf integration only works on linux; enabling it on other platforms will do nothing")
+	level.Warn(logger).Log("msg", "the ebpf integration is not available; enabling it will do nothing")
 	return &integrations.StubIntegration{}, nil
 }
