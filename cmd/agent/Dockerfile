@@ -20,7 +20,7 @@ FROM debian:bullseye-slim
 RUN echo "deb http://deb.debian.org/debian bullseye-backports main" >> /etc/apt/sources.list
 RUN apt-get update && apt-get install -t bullseye-backports -qy libsystemd-dev && \
   apt-get install -qy tzdata ca-certificates && \
-  if [ `uname -m` = "x86_64" ]; then apt-get install -qy libbpfcc-dev; fi && \
+  [ `uname -m` = "x86_64" ] && apt-get install -qy libbpfcc-dev && \
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 COPY --from=build /src/agent/cmd/agent/agent /bin/agent
