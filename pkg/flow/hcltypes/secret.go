@@ -29,8 +29,8 @@ func init() {
 			case src.Equals(optionalSecretTy): // Secret -> OptionalSecret
 				return func(v interface{}, _ cty.Path) (cty.Value, error) {
 					return cty.CapsuleVal(optionalSecretTy, &OptionalSecret{
-						Sensitive: true,
-						Value:     string(*v.(*Secret)),
+						IsSecret: true,
+						Value:    string(*v.(*Secret)),
 					}), nil
 				}
 			default:

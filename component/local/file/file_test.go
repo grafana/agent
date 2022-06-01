@@ -48,8 +48,8 @@ func runFileTests(t *testing.T, ut file.Detector) {
 		require.NoError(t, tc.WaitExports(time.Second))
 		require.Equal(t, file.Exports{
 			Content: &hcltypes.OptionalSecret{
-				Sensitive: false,
-				Value:     "First load!",
+				IsSecret: false,
+				Value:    "First load!",
 			},
 		}, tc.Exports())
 		return tc
@@ -65,8 +65,8 @@ func runFileTests(t *testing.T, ut file.Detector) {
 		require.NoError(t, sc.WaitExports(time.Second))
 		require.Equal(t, file.Exports{
 			Content: &hcltypes.OptionalSecret{
-				Sensitive: false,
-				Value:     "New content!",
+				IsSecret: false,
+				Value:    "New content!",
 			},
 		}, sc.Exports())
 	})
@@ -82,8 +82,8 @@ func runFileTests(t *testing.T, ut file.Detector) {
 		require.NoError(t, sc.WaitExports(time.Second))
 		require.Equal(t, file.Exports{
 			Content: &hcltypes.OptionalSecret{
-				Sensitive: false,
-				Value:     "New content!",
+				IsSecret: false,
+				Value:    "New content!",
 			},
 		}, sc.Exports())
 	})
@@ -109,8 +109,8 @@ func TestFile_ImmediateExports(t *testing.T) {
 	require.NoError(t, tc.WaitExports(time.Second))
 	require.Equal(t, file.Exports{
 		Content: &hcltypes.OptionalSecret{
-			Sensitive: false,
-			Value:     "Hello, world!",
+			IsSecret: false,
+			Value:    "Hello, world!",
 		},
 	}, tc.Exports())
 }

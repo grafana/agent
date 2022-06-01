@@ -10,18 +10,18 @@ import (
 	"github.com/zclconf/go-cty/cty"
 )
 
-// OptionalSecret holds a potentially sensitive value. When Sensitive is true,
+// OptionalSecret holds a potentially sensitive value. When IsSecret is true,
 // Value will be treated as a Secret and its value will be hidden from users.
 //
 // HCL expressions permit converting both Strings and Secrets may be converted
-// into OptionalSecret, which will set the Sensitive field accordingly.
+// into OptionalSecret, which will set the IsSecret field accordingly.
 //
 // HCL expressions may also convert OptionalSecret into a Secret regardless of
-// the value of Sensitive. However, OptionalSecret may only be converted into a
-// String if Sensitive is false.
+// the value of IsSecret. However, OptionalSecret may only be converted into a
+// String if IsSecret is false.
 type OptionalSecret struct {
-	Sensitive bool
-	Value     string
+	IsSecret bool
+	Value    string
 }
 
 var optionalSecretTy cty.Type
@@ -33,8 +33,8 @@ func init() {
 			case src.Equals(cty.String): // OptionalSecret -> Secret
 				return func(v interface{}, _ cty.Path) (cty.Value, error) {
 					os := v.(*OptionalSecret)
-					if os.Sensitive {
-						// Only allow conversion to string if the OptionalSecret is non-sensitive.
+					if os.IsSecret {
+						// Only allow conversion to string if the OptionalSecret is not holding a secret.
 						return cty.NilVal, fmt.Errorf("cannot convert secret to string")
 					}
 					return cty.StringVal(os.Value), nil
@@ -55,12 +55,12 @@ func init() {
 			switch {
 			case dst.Equals(cty.String): // String -> OptionalSecret
 				return func(v cty.Value, _ cty.Path) (interface{}, error) {
-					return &OptionalSecret{Sensitive: false, Value: v.AsString()}, nil
+					return &OptionalSecret{IsSecret: false, Value: v.AsString()}, nil
 				}
 			case dst.Equals(secretTy): // Secret -> OptionalSecret
 				return func(v cty.Value, _ cty.Path) (interface{}, error) {
 					secret := v.EncapsulatedValue().(*Secret)
-					return &OptionalSecret{Sensitive: true, Value: string(*secret)}, nil
+					return &OptionalSecret{IsSecret: true, Value: string(*secret)}, nil
 				}
 
 			default:
@@ -74,7 +74,7 @@ func init() {
 				return gohcl.CapsuleTokenExtension(func(v cty.Value) hclwrite.Tokens {
 					os := v.EncapsulatedValue().(*OptionalSecret)
 
-					if os.Sensitive {
+					if os.IsSecret {
 						return hclwrite.Tokens{
 							{Type: hclsyntax.TokenOParen, Bytes: []byte("(")},
 							{Type: hclsyntax.TokenIdent, Bytes: []byte("secret")},
