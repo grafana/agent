@@ -83,7 +83,9 @@ type Component struct {
 	healthMut sync.RWMutex
 	health    component.Health
 
-	updateChan chan struct{}
+	// reloadCh is a buffered channel which is written to when the watched file
+	// should be reloaded by the component.
+	reloadCh chan struct{}
 }
 
 var (
@@ -96,7 +98,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{
 		opts: o,
 
-		updateChan: make(chan struct{}, 1),
+		reloadCh: make(chan struct{}, 1),
 	}
 
 	// Perform an update which will immediately set our exports to the initial
@@ -109,7 +111,6 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
-	// Cleanup on defer.
 	defer func() {
 		c.mut.Lock()
 		defer c.mut.Unlock()
@@ -137,12 +138,11 @@ func (c *Component) Run(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			return nil
-		case <-c.updateChan:
-			// Wait a little before reading.
+		case <-c.reloadCh:
 			time.Sleep(waitReadPeriod)
 
-			// Ignore the error from readFile since errors are also set in the local
-			// health.
+			// We ignore the error here from readFile since readFile will log errors
+			// and also report the error as the health of the component.
 			c.mut.Lock()
 			_ = c.readFile()
 			c.mut.Unlock()
@@ -191,12 +191,15 @@ func (c *Component) Update(args component.Arguments) error {
 	defer c.mut.Unlock()
 	c.args = newArgs
 
-	// Force a re-load of the file outside of the update detection mechanism.
+	// Force an immediate read of the file to report any potential errors early.
 	if err := c.readFile(); err != nil {
 		return fmt.Errorf("failed to read file: %w", err)
 	}
 
-	// Remove the old detector and set up a new one.
+	// Each detector is dedicated to a single file path. We'll naively shut down
+	// the existing detector (if any) before setting up a new one to make sure
+	// the correct file is being watched in case the path changed between calls
+	// to Update.
 	if c.detector != nil {
 		if err := c.detector.Close(); err != nil {
 			level.Error(c.opts.Logger).Log("msg", "failed to shut down old detector", "err", err)
@@ -217,19 +220,28 @@ func (c *Component) configureDetector() error {
 
 	var err error
 
+	reloadFile := func() {
+		select {
+		case c.reloadCh <- struct{}{}:
+		default:
+			// no-op: a reload is already queued so we don't need to queue a second
+			// one.
+		}
+	}
+
 	switch c.args.Type {
 	case DetectorPoll:
 		c.detector = newPoller(pollerOptions{
 			Filename:      c.args.Filename,
-			UpdateCh:      c.updateChan,
+			ReloadFile:    reloadFile,
 			PollFrequency: c.args.PollFrequency,
 		})
 	case DetectorFSNotify:
 		c.detector, err = newFSNotify(fsNotifyOptions{
-			Logger:      c.opts.Logger,
-			Filename:    c.args.Filename,
-			UpdateCh:    c.updateChan,
-			RewatchWait: c.args.PollFrequency,
+			Logger:       c.opts.Logger,
+			Filename:     c.args.Filename,
+			ReloadFile:   reloadFile,
+			PollFreqency: c.args.PollFrequency,
 		})
 	}
 

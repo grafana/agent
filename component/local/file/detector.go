@@ -70,10 +70,10 @@ type fsNotify struct {
 }
 
 type fsNotifyOptions struct {
-	Logger      log.Logger
-	Filename    string
-	UpdateCh    chan<- struct{} // Where to send detected updates to
-	RewatchWait time.Duration   // How often to try to re-watch the file
+	Logger       log.Logger
+	Filename     string
+	ReloadFile   func()        // Callback to request file reload.
+	PollFreqency time.Duration // How often to do fallback polling
 }
 
 // newFSNotify creates a new fsnotify detector which uses filesystem events to
@@ -103,43 +103,41 @@ func newFSNotify(opts fsNotifyOptions) (*fsNotify, error) {
 }
 
 func (fsn *fsNotify) wait(ctx context.Context) {
-	rewatchTick := time.NewTicker(fsn.opts.RewatchWait)
-	defer rewatchTick.Stop()
+	pollTick := time.NewTicker(fsn.opts.PollFreqency)
+	defer pollTick.Stop()
 
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case <-rewatchTick.C:
-			// The fsnotify watcher may have removed our file from the watch list
-			// (i.e., if the file got deleted).
+		case <-pollTick.C:
+			// fsnotify falls back to polling in case the watch stopped (i.e., the
+			// file got deleted) or failed.
 			//
-			// Continually re-adding it to the watcher acts as a fallback polling
-			// mechanism, where we'll eventually rewatch the file once it gets added
-			// again.
+			// We'll use the poll period to re-establish the watch in case it was
+			// stopped. This is a no-op if the watch is already active.
 			err := fsn.watcher.Add(fsn.opts.Filename)
 			if err != nil {
 				level.Warn(fsn.opts.Logger).Log("msg", "failed re-watch file", "err", err)
-			} else {
-				fsn.forwardNotification()
 			}
+
+			fsn.opts.ReloadFile()
+
 		case err := <-fsn.watcher.Errors:
+			// The fsnotify watcher can generate errors for OS-level reasons (watched
+			// failed, failed when closing the file, etc). We don't know if the error
+			// is related to the file, so we always treat it as if the file updated.
+			//
+			// This will force the component to reload the file and report the error
+			// directly to the user via the component health.
 			if err != nil {
 				level.Warn(fsn.opts.Logger).Log("msg", "got error from fsnotify watcher; treating as file updated event", "err", err)
-				fsn.forwardNotification()
+				fsn.opts.ReloadFile()
 			}
 		case ev := <-fsn.watcher.Events:
 			level.Debug(fsn.opts.Logger).Log("msg", "got fsnotify event", "op", ev.Op.String())
-			fsn.forwardNotification()
+			fsn.opts.ReloadFile()
 		}
-	}
-}
-
-func (fsn *fsNotify) forwardNotification() {
-	select {
-	case fsn.opts.UpdateCh <- struct{}{}:
-	default:
-		// Already queued; no need to queue another event.
 	}
 }
 
@@ -155,7 +153,7 @@ type poller struct {
 
 type pollerOptions struct {
 	Filename      string
-	UpdateCh      chan<- struct{} // Where to send detected updates to
+	ReloadFile    func() // Callback to request file reload.
 	PollFrequency time.Duration
 }
 
@@ -184,16 +182,8 @@ func (p *poller) run(ctx context.Context) {
 			// Always tell the component to re-check the file. This avoids situations
 			// where the file changed without changing any of the stats (like modify
 			// time).
-			p.forwardNotification()
+			p.opts.ReloadFile()
 		}
-	}
-}
-
-func (p *poller) forwardNotification() {
-	select {
-	case p.opts.UpdateCh <- struct{}{}:
-	default:
-		// Already queued; no need to queue another event.
 	}
 }
 
