@@ -210,7 +210,8 @@ steps:
       - tar -C /usr/local -xzf go1.18.linux-amd64.tar.gz
       - rm go1.18.linux-amd64.tar.gz
       - export PATH=$PATH:/usr/local/go/bin
-      - GO111MODULE=on go get -u github.com/mitchellh/gox github.com/tcnksm/ghr
+      - go install github.com/tcnksm/ghr@latest
+      - go install github.com/mitchellh/gox@latest
       - export PATH="$(go env GOPATH)/bin:$PATH"
       - make -j4 DOCKER_OPTS="" BUILD_IN_CONTAINER=false RELEASE_BUILD=true RELEASE_TAG=${DRONE_TAG} publish
 depends_on:
@@ -246,6 +247,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: b14773ba7e50432dfe90920d442a850f85aed74f1419dd78502b1e76d91cde46
+hmac: 1f0e740f805d80163698aaf68cdd126f56a5b26ad68d7c2b8dbdc4025e4b85ee
 
 ...
