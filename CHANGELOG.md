@@ -45,7 +45,6 @@ v0.25.0 (2022-06-06)
 
 - Introduce eBPF exporter integration. (@tpaschalis)
 
-
 ### Enhancements
 
 - integrations-next: Integrations using autoscrape will now autoscrape metrics
