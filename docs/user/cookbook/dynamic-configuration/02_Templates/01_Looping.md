@@ -1,7 +1,7 @@
 ---
 aliases:
 - /docs/agent/latest/dynamic-configuration/looping
-title: Templates/Looping
+title: Looping
 weight: 200
 ---
 

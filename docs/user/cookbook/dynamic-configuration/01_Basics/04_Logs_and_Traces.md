@@ -1,7 +1,7 @@
 ---
 aliases:
 - /docs/agent/latest/dynamic-configuration/logs-traces
-title: Basics/Logs-Traces
+title: Logs and Traces
 weight: 130
 ---
 # 04 Logs and Traces

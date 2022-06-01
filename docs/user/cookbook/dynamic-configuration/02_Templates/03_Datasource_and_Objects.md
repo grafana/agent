@@ -1,7 +1,7 @@
 ---
 aliases:
 - /docs/agent/latest/dynamic-configuration/objects
-title: Templates/Objects
+title: Objects
 weight: 220
 ---
 

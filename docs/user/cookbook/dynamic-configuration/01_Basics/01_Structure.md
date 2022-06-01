@@ -1,7 +1,7 @@
 ---
 aliases:
 - /docs/agent/latest/dynamic-configuration/structure
-title: Basics/Structure
+title: Structure
 weight: 100
 ---
 

@@ -1,7 +1,7 @@
 ---
 aliases:
 - /docs/agent/latest/dynamic-configuration/datasources
-title: Templates/Datasources
+title: Datasources
 weight: 210
 ---
 

@@ -1,7 +1,7 @@
 ---
 aliases:
 - /docs/agent/latest/dynamic-configuration/instances
-title: Basics/Instances
+title: Instances
 weight: 110
 ---
 

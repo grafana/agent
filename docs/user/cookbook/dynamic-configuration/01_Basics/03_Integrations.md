@@ -1,7 +1,7 @@
 ---
 aliases:
 - /docs/agent/latest/dynamic-configuration/integrations
-title: Basics/Integrations
+title: Integrations
 weight: 120
 ---
 
