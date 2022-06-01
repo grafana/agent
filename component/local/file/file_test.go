@@ -51,7 +51,7 @@ func runFileTests(t *testing.T, ut file.Detector) {
 				Sensitive: false,
 				Value:     "First load!",
 			},
-		}, tc.Exports().(file.Exports))
+		}, tc.Exports())
 		return tc
 	}
 
@@ -68,7 +68,7 @@ func runFileTests(t *testing.T, ut file.Detector) {
 				Sensitive: false,
 				Value:     "New content!",
 			},
-		}, sc.Exports().(file.Exports))
+		}, sc.Exports())
 	})
 
 	t.Run("Deleted and recreated files are detected", func(t *testing.T) {
@@ -85,7 +85,7 @@ func runFileTests(t *testing.T, ut file.Detector) {
 				Sensitive: false,
 				Value:     "New content!",
 			},
-		}, sc.Exports().(file.Exports))
+		}, sc.Exports())
 	})
 }
 
@@ -112,7 +112,7 @@ func TestFile_ImmediateExports(t *testing.T) {
 			Sensitive: false,
 			Value:     "Hello, world!",
 		},
-	}, tc.Exports().(file.Exports))
+	}, tc.Exports())
 }
 
 // TestFile_ExistOnLoad ensures that the the configured file must exist on the
