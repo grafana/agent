@@ -1,3 +1,7 @@
+---
+draft: true
+---
+
 # Dynamic Configuration Cookbook
 
 The purpose of the cookbook is to guide you through common scenarios of using dynamic configuration. Each folder contains increasingly more complex use cases, but feel free to jump in wherever you feel appropriate.

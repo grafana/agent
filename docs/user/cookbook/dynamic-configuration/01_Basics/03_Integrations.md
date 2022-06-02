@@ -1,3 +1,10 @@
+---
+aliases:
+- /docs/agent/latest/dynamic-configuration/integrations
+title: Integrations
+weight: 120
+---
+
 # 03 Integrations
 
 Dynamic configuration requires the use of `integrations-next` feature flag, to allow arrays of integrations. In this we will load integrations of various types. This is all built on the previous examples.
@@ -6,7 +13,7 @@ Dynamic configuration requires the use of `integrations-next` feature flag, to a
 
 ## Dynamic Configuration
 
-[config.yml](03_config.yml)
+[config.yml](https://github.com/grafana/agent/blob/main/docs/user/cookbook/dynamic-configuration/01_Basics/03_config.yml)
 
 Tells the Grafana Agent where to load files from.
 
@@ -14,7 +21,7 @@ Tells the Grafana Agent where to load files from.
 
 Integrations are loaded from files matching `integrations-*.yml` and are combined together. You can declare for example multiple sets of `redis_configs` across several files.
 
-[integrations-node.yml](03_assets/integrations-node.yml)
+[integrations-node.yml](https://github.com/grafana/agent/blob/main/docs/user/cookbook/dynamic-configuration/01_Basics/03_assets/integrations-node.yml)
 
 Note: You do NOT have to name the above file `integrations-node.yml` with `node`, `integrations-1.yml` would work the same. The name does NOT determine the type of integrations a template can contain and a template can contain integrations of different types.
 
@@ -22,7 +29,7 @@ Note: You do NOT have to name the above file `integrations-node.yml` with `node`
 node_exporter: {}
 ```
 
-[integrations-redis.yml](03_assets/integrations-redis.yml)
+[integrations-redis.yml](https://github.com/grafana/agent/blob/main/docs/user/cookbook/dynamic-configuration/01_Basics/03_assets/integrations-redis.yml)
 
 ```yaml
 redis_configs:
@@ -37,7 +44,7 @@ redis_configs:
 
 ## Final
 
-[final.yml](03_assets/final.yml)
+[final.yml](https://github.com/grafana/agent/blob/main/docs/user/cookbook/dynamic-configuration/01_Basics/03_assets/final.yml)
 
 The final result should have 3 integrations enabled, 1 node_exporter and 2 redis.
 
