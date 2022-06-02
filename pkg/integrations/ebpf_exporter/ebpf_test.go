@@ -3,7 +3,6 @@ package ebpf
 import (
 	"testing"
 
-	"github.com/grafana/agent/pkg/util"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 )
@@ -45,7 +44,6 @@ programs:
 	require.NoError(t, err)
 	require.Len(t, cfg.Programs, 1)
 	require.Equal(t, cfg.Programs[0].Name, "cachestat")
-
-	_, err = cfg.NewIntegration(util.TestLogger(t))
-	require.NoError(t, err)
+	require.Len(t, cfg.Programs[0].Kprobes, 2)
+	require.NotEmpty(t, cfg.Programs[0].Code)
 }
