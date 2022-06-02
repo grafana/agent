@@ -12,7 +12,7 @@ import (
 
 func TestOptionalSecret(t *testing.T) {
 	t.Run("non-sensitive conversion to string is allowed", func(t *testing.T) {
-		input := OptionalSecret{Sensitive: false, Value: "testval"}
+		input := OptionalSecret{IsSecret: false, Value: "testval"}
 
 		result, err := convert.Convert(cty.CapsuleVal(optionalSecretTy, &input), cty.String)
 		require.NoError(t, err)
@@ -20,7 +20,7 @@ func TestOptionalSecret(t *testing.T) {
 	})
 
 	t.Run("sensitive conversion to string is disallowed", func(t *testing.T) {
-		input := OptionalSecret{Sensitive: true, Value: "testval"}
+		input := OptionalSecret{IsSecret: true, Value: "testval"}
 
 		result, err := convert.Convert(cty.CapsuleVal(optionalSecretTy, &input), cty.String)
 		require.EqualError(t, err, "cannot convert secret to string")
@@ -28,7 +28,7 @@ func TestOptionalSecret(t *testing.T) {
 	})
 
 	t.Run("non-sensitive conversion to secret is allowed", func(t *testing.T) {
-		input := OptionalSecret{Sensitive: false, Value: "secretval"}
+		input := OptionalSecret{IsSecret: false, Value: "secretval"}
 
 		result, err := convert.Convert(cty.CapsuleVal(optionalSecretTy, &input), secretTy)
 		require.NoError(t, err)
@@ -36,7 +36,7 @@ func TestOptionalSecret(t *testing.T) {
 	})
 
 	t.Run("sensitive conversion to secret is allowed", func(t *testing.T) {
-		input := OptionalSecret{Sensitive: true, Value: "secretval"}
+		input := OptionalSecret{IsSecret: true, Value: "secretval"}
 
 		result, err := convert.Convert(cty.CapsuleVal(optionalSecretTy, &input), secretTy)
 		require.NoError(t, err)
@@ -50,7 +50,7 @@ func TestOptionalSecret(t *testing.T) {
 		require.NoError(t, err)
 
 		os := result.EncapsulatedValue().(*OptionalSecret)
-		require.False(t, os.Sensitive)
+		require.False(t, os.IsSecret)
 		require.Equal(t, os.Value, input)
 	})
 
@@ -61,7 +61,7 @@ func TestOptionalSecret(t *testing.T) {
 		require.NoError(t, err)
 
 		os := result.EncapsulatedValue().(*OptionalSecret)
-		require.True(t, os.Sensitive)
+		require.True(t, os.IsSecret)
 		require.Equal(t, os.Value, string(input))
 	})
 }
@@ -73,7 +73,7 @@ func TestOptionalSecret_Write(t *testing.T) {
 
 	t.Run("non-sensitive", func(t *testing.T) {
 		b := testBlock{
-			Value: OptionalSecret{Sensitive: false, Value: "not-hidden"},
+			Value: OptionalSecret{IsSecret: false, Value: "not-hidden"},
 		}
 
 		f := hclwrite.NewFile()
@@ -83,7 +83,7 @@ func TestOptionalSecret_Write(t *testing.T) {
 
 	t.Run("sensitive", func(t *testing.T) {
 		b := testBlock{
-			Value: OptionalSecret{Sensitive: true, Value: "hidden"},
+			Value: OptionalSecret{IsSecret: true, Value: "hidden"},
 		}
 
 		f := hclwrite.NewFile()
