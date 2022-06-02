@@ -11,7 +11,7 @@ function(replicas=1, volumeClaims=[]) {
     statefulSet.new(name, replicas, [this.container], volumeClaims) +
     statefulSet.mixin.metadata.withNamespace(namespace) +
     statefulSet.mixin.spec.withServiceName(name) +
-    statefulSet.mixin.spec.template.spec.withServiceAccount(name) +
+    statefulSet.mixin.spec.template.spec.withServiceAccountName(name) +
     (
       if _config.config_hash
       then statefulSet.mixin.spec.template.metadata.withAnnotationsMixin({

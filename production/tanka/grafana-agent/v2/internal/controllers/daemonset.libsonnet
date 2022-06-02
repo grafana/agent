@@ -10,7 +10,7 @@ function() {
   controller:
     daemonSet.new(name, [this.container]) +
     daemonSet.mixin.metadata.withNamespace(namespace) +
-    daemonSet.mixin.spec.template.spec.withServiceAccount(name) +
+    daemonSet.mixin.spec.template.spec.withServiceAccountName(name) +
     (
       if _config.config_hash
       then daemonSet.mixin.spec.template.metadata.withAnnotationsMixin({

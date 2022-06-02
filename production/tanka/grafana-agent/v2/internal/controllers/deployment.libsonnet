@@ -10,7 +10,7 @@ function(replicas=1) {
   controller:
     deployment.new(name, replicas, [this.container]) +
     deployment.mixin.metadata.withNamespace(namespace) +
-    deployment.mixin.spec.template.spec.withServiceAccount(name) +
+    deployment.mixin.spec.template.spec.withServiceAccountName(name) +
     (
       if _config.config_hash
       then deployment.mixin.spec.template.metadata.withAnnotationsMixin({
