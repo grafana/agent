@@ -48,5 +48,4 @@ programs:
 
 	_, err = cfg.NewIntegration(util.TestLogger(t))
 	require.NoError(t, err)
-
 }
