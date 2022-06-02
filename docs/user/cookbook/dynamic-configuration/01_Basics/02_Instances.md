@@ -1,3 +1,10 @@
+---
+aliases:
+- /docs/agent/latest/dynamic-configuration/instances
+title: Instances
+weight: 110
+---
+
 # 02 Instances
 
 Dynamic configuration allows multiple prometheus instances to be loaded with a parent metric. This uses
@@ -7,7 +14,7 @@ the same agent-1 and server-1 yml from 01.
 
 ## Dynamic Configuration
 
-[config.yml](02_config.yml)
+[config.yml](https://github.com/grafana/agent/blob/main/docs/user/cookbook/dynamic-configuration/01_Basics/02_config.yml)
 
 Tells the Grafana Agent where to load files from.
 
@@ -15,7 +22,7 @@ Tells the Grafana Agent where to load files from.
 
 Dynamic Configuration will find the first file matching pattern `metrics-*.yml` and load that as the base. You can only have one metrics template.
 
-[metrics-1.yml](02_assets/metrics-1.yml)
+[metrics-1.yml](https://github.com/grafana/agent/blob/main/docs/user/cookbook/dynamic-configuration/01_Basics/02_assets/metrics-1.yml)
 
 ```yaml
 configs:
@@ -30,7 +37,7 @@ wal_directory: /tmp/grafana-agent-wal
 
 You can have any number of metrics_instances and they are added to any existing metrics instances defined previously.
 
-[metrics_instances-1.yml](02_assets/metrics_instances-1.yml)
+[metrics_instances-1.yml](https://github.com/grafana/agent/blob/main/docs/user/cookbook/dynamic-configuration/01_Basics/02_assets/metrics_instances-1.yml)
 
 ```yaml
 name: instance1
@@ -41,7 +48,7 @@ scrape_configs:
           - localhost:4000
 ```
 
-[metrics_instances-2.yml](02_assets/metrics_instances-2.yml)
+[metrics_instances-2.yml](https://github.com/grafana/agent/blob/main/docs/user/cookbook/dynamic-configuration/01_Basics/02_assets/metrics_instances-2.yml)
 
 ```yaml
 name: instance2
@@ -54,7 +61,7 @@ scrape_configs:
 
 ## Final
 
-[final.yml](01_assets/final.yml)
+[final.yml](https://github.com/grafana/agent/blob/main/docs/user/cookbook/dynamic-configuration/01_Basics/01_assets/final.yml)
 
 In the above you will see the `final.yml` includes all the instance configurations
 - default
