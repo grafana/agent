@@ -1,4 +1,7 @@
+# This provided the basis for Agent Flow, and though not all the concepts/ideas will make it into flow, it is good to have the historical context for why we started down this path. 
+
 # Agent Flow - Agent Utilizing Components 
+
 
 * Date: 2022-03-30
 * Author: Matt Durham (@mattdurham)
