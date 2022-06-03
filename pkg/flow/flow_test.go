@@ -1,13 +1,14 @@
 package flow
 
 import (
+	"os"
 	"testing"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/internal/testcomponents"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/stretchr/testify/require"
 )
 
@@ -59,8 +60,13 @@ func getFields(t *testing.T, g *dag.Graph, nodeID string) (component.Arguments, 
 }
 
 func testOptions(t *testing.T) Options {
+	t.Helper()
+
+	l, err := logging.New(os.Stderr, logging.DefaultOptions)
+	require.NoError(t, err)
+
 	return Options{
-		Logger:   util.TestLogger(t),
+		Logger:   l,
 		DataPath: t.TempDir(),
 	}
 }

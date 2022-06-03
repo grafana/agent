@@ -11,10 +11,10 @@ import (
 	"os/signal"
 	"sync"
 
-	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/flow"
+	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	// Install components
@@ -55,7 +55,11 @@ func run() error {
 		return fmt.Errorf("the -config.file flag is required")
 	}
 
-	l := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
+	l, err := logging.New(os.Stderr, logging.DefaultOptions)
+	if err != nil {
+		return fmt.Errorf("building logger: %w", err)
+	}
+
 	f := flow.New(flow.Options{
 		Logger:   l,
 		DataPath: storagePath,

@@ -47,21 +47,21 @@ package flow
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"sync"
 
-	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
+	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/hashicorp/hcl/v2"
 )
 
 // Options holds static options for a flow controller.
 type Options struct {
-	// TODO(rfratto): replace Logger below with an io.Writer and have the
-	// Controller manage the logger instead.
-
-	// Optional logger where components will log to.
-	Logger log.Logger
+	// Logger for components to use. A no-op logger will be created if this is
+	// nil.
+	Logger *logging.Logger
 
 	// Directory where components can write data. Components will create
 	// subdirectories for component-specific data.
@@ -70,7 +70,7 @@ type Options struct {
 
 // Flow is the Flow system.
 type Flow struct {
-	log  log.Logger
+	log  *logging.Logger
 	opts Options
 
 	updateQueue *controller.Queue
@@ -96,11 +96,21 @@ func New(o Options) *Flow {
 func newFlow(o Options) (*Flow, context.Context) {
 	ctx, cancel := context.WithCancel(context.Background())
 
+	log := o.Logger
+	if log == nil {
+		var err error
+		log, err = logging.New(io.Discard, logging.DefaultOptions)
+		if err != nil {
+			// This shouldn't happen unless there's a bug
+			panic(err)
+		}
+	}
+
 	var (
 		queue  = controller.NewQueue()
 		sched  = controller.NewScheduler()
 		loader = controller.NewLoader(controller.ComponentGlobals{
-			Logger:   o.Logger,
+			Logger:   log,
 			DataPath: o.DataPath,
 			OnExportsChange: func(cn *controller.ComponentNode) {
 				// Changed components should be queued for reevaluation.
@@ -110,7 +120,7 @@ func newFlow(o Options) (*Flow, context.Context) {
 	)
 
 	return &Flow{
-		log:  o.Logger,
+		log:  log,
 		opts: o,
 
 		updateQueue: queue,
@@ -170,6 +180,11 @@ func (c *Flow) run(ctx context.Context) {
 func (c *Flow) LoadFile(f *File) error {
 	c.loadMut.Lock()
 	defer c.loadMut.Unlock()
+
+	err := c.log.Update(f.Logging)
+	if err != nil {
+		return fmt.Errorf("error updating logger: %w", err)
+	}
 
 	diags := c.loader.Apply(rootEvalContext, f.Components)
 	if !c.loadedOnce && diags.HasErrors() {
