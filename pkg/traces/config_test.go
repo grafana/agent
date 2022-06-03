@@ -1335,43 +1335,12 @@ service:
 			name: "OTLP receivers get include_metadata set to true by default",
 			cfg: `
 receivers:
-  otlp:
-    protocols:
-      grpc:
-      http:
-        endpoint: localhost:4318
-remote_write:
-  - endpoint: example.com:12345
-`,
-			expectedConfig: `
-receivers:
-  push_receiver:
-  otlp:
-    protocols:
-      grpc:
-        include_metadata: true
-      http:
-        include_metadata: true
-        endpoint: localhost:4318
-exporters:
   otlp/0:
-    endpoint: example.com:12345
-    compression: gzip
-    retry_on_failure:
-      max_elapsed_time: 60s
-service:
-  pipelines:
-    traces:
-      exporters: ["otlp/0"]
-      processors: []
-      receivers: ["push_receiver", "otlp"]
-`,
-		},
-		{
-			name: "include_metadata respected for OTLP receivers",
-			cfg: `
-receivers:
-  otlp:
+    protocols:
+      grpc:
+      http:
+        endpoint: localhost:4318
+  otlp/1:
     protocols:
       grpc:
         include_metadata: false
@@ -1384,7 +1353,14 @@ remote_write:
 			expectedConfig: `
 receivers:
   push_receiver:
-  otlp:
+  otlp/0:
+    protocols:
+      grpc:
+        include_metadata: true
+      http:
+        include_metadata: true
+        endpoint: localhost:4318
+  otlp/1:
     protocols:
       grpc:
         include_metadata: false
@@ -1402,7 +1378,7 @@ service:
     traces:
       exporters: ["otlp/0"]
       processors: []
-      receivers: ["push_receiver", "otlp"]
+      receivers: ["push_receiver", "otlp/0", "otlp/1"]
 `,
 		},
 	}

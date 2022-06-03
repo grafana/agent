@@ -154,7 +154,7 @@ func (r *ReceiverMap) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	protocols := []string{protocolHTTP, protocolGRPC}
 	// enable include_metadata by default if receiver is OTLP
 	for k := range *r {
-		if k == otlpReceiverName {
+		if strings.HasPrefix(k, otlpReceiverName) {
 			// for http and grpc receivers, include_metadata is set to true by default
 			for _, p := range protocols {
 				if cfg, ok := (*r)[k].(map[interface{}]interface{})["protocols"].(map[interface{}]interface{})[p]; ok {
