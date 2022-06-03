@@ -51,7 +51,6 @@ import (
 	"io"
 	"sync"
 
-	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -60,8 +59,9 @@ import (
 
 // Options holds static options for a flow controller.
 type Options struct {
-	// Writer where logs should be sent.
-	LogWriter io.Writer
+	// Logger for components to use. A no-op logger will be created if this is
+	// nil.
+	Logger *logging.Logger
 
 	// Directory where components can write data. Components will create
 	// subdirectories for component-specific data.
@@ -96,15 +96,14 @@ func New(o Options) *Flow {
 func newFlow(o Options) (*Flow, context.Context) {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	log, err := logging.New(o.LogWriter, logging.Options{
-		// Start with default level/format until we apply a config file that has
-		// more specific settings.
-		Level:  logging.LevelDefault,
-		Format: logging.FormatDefault,
-	})
-	if err != nil {
-		// This shouldn't happen unless there's a bug
-		panic(err)
+	log := o.Logger
+	if log == nil {
+		var err error
+		log, err = logging.New(io.Discard, logging.DefaultOptions)
+		if err != nil {
+			// This shouldn't happen unless there's a bug
+			panic(err)
+		}
 	}
 
 	var (
@@ -168,9 +167,6 @@ func (c *Flow) run(ctx context.Context) {
 		}
 	}
 }
-
-// Logger returns the logger used by the Flow controller.
-func (c *Flow) Logger() log.Logger { return c.log }
 
 // LoadFile synchronizes the state of the controller with the current config
 // file. Components in the graph will be marked as unhealthy if there was an
