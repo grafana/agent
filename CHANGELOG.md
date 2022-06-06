@@ -10,7 +10,7 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
-v0.25.0-rc.0 (2022-06-01)
+v0.25.0 (2022-06-06)
 -------------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
