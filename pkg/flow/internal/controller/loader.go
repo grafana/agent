@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"sync"
 
+	stdlog "log"
+
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
@@ -81,7 +83,9 @@ func (l *Loader) Apply(parentContext *hcl.EvalContext, blocks hcl.Blocks) hcl.Di
 		// We cache both arguments and exports during an initial load in case the
 		// component is new; we want to make sure that all fields are available
 		// before the component updates its exports for the first time.
-		l.evaluate(parentContext, n.(*ComponentNode), true, true)
+		if err := l.evaluate(parentContext, n.(*ComponentNode), true, true); err != nil {
+			stdlog.Fatal(err)
+		}
 		return nil
 	})
 
@@ -209,11 +213,11 @@ func (l *Loader) EvaluateDependencies(parentContext *hcl.EvalContext, c *Compone
 
 // evaluate constructs the final context for c and evalutes it. mut must be
 // held when calling evaluate.
-func (l *Loader) evaluate(parent *hcl.EvalContext, c *ComponentNode, cacheArgs, cacheExports bool) {
+func (l *Loader) evaluate(parent *hcl.EvalContext, c *ComponentNode, cacheArgs, cacheExports bool) error {
 	ectx := l.cache.BuildContext(parent)
 	if err := c.Evaluate(ectx); err != nil {
 		level.Error(l.log).Log("msg", "failed to evaluate component", "component", c.NodeID(), "err", err)
-		return
+		return err
 	}
 	if cacheArgs {
 		l.cache.CacheArguments(c.ID(), c.Arguments())
@@ -221,4 +225,5 @@ func (l *Loader) evaluate(parent *hcl.EvalContext, c *ComponentNode, cacheArgs, 
 	if cacheExports {
 		l.cache.CacheExports(c.ID(), c.Exports())
 	}
+	return nil
 }

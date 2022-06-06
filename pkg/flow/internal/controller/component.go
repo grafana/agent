@@ -233,7 +233,7 @@ func (cn *ComponentNode) evaluate(ectx *hcl.EvalContext) error {
 		// We haven't built the managed component successfully yet.
 		managed, err := cn.reg.Build(cn.managedOpts, argsCopy)
 		if err != nil {
-			return fmt.Errorf("building component: %w", diags)
+			return fmt.Errorf("building component: %s", err)
 		}
 		cn.managed = managed
 		cn.args = argsCopy
