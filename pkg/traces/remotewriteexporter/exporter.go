@@ -30,10 +30,9 @@ const (
 )
 
 type datapoint struct {
-	ts    int64
-	v     float64
-	l     labels.Labels
-	stale bool
+	ts int64
+	v  float64
+	l  labels.Labels
 }
 
 type remoteWriteExporter struct {
@@ -49,6 +48,8 @@ type remoteWriteExporter struct {
 	namespace   string
 
 	seriesMap map[uint64]*datapoint
+	staleTime int64
+	lastFlush int64
 
 	logger log.Logger
 }
@@ -70,6 +71,7 @@ func newRemoteWriteExporter(cfg *Config) (component.MetricsExporter, error) {
 		namespace:    cfg.Namespace,
 		promInstance: cfg.PromInstance,
 		seriesMap:    make(map[uint64]*datapoint),
+		staleTime:    15 * time.Minute.Milliseconds(),
 		logger:       logger,
 	}, nil
 }
@@ -136,9 +138,9 @@ func (e *remoteWriteExporter) ConsumeMetrics(ctx context.Context, md pdata.Metri
 					dataPoints := metric.Histogram().DataPoints()
 					e.handleHistogramDataPoints(metric.Name(), dataPoints)
 				case pdata.MetricDataTypeSummary:
-					return fmt.Errorf("unsupported datapoint data type %s", metric.DataType())
+					return fmt.Errorf("unsupported metric data type %s", metric.DataType())
 				default:
-					return fmt.Errorf("unsupported datapoint data type %s", metric.DataType())
+					return fmt.Errorf("unsupported metric data type %s", metric.DataType())
 				}
 			}
 		}
@@ -152,7 +154,7 @@ func (e *remoteWriteExporter) handleNumberDataPoints(name string, dataPoints pda
 		dataPoint := dataPoints.At(ix)
 		lbls := e.createLabelSet(name, noSuffix, dataPoint.Attributes(), labels.Labels{})
 		if err := e.appendNumberDataPoint(dataPoint, lbls); err != nil {
-			return fmt.Errorf("failed to process datapoint %s", err)
+			return fmt.Errorf("failed to process datapoints %s", err)
 		}
 	}
 	return nil
@@ -216,7 +218,6 @@ func (e *remoteWriteExporter) appendDatapointForSeries(l labels.Labels, ts int64
 		}
 		lastDatapoint.ts = ts
 		lastDatapoint.v = v
-		lastDatapoint.stale = false
 		return
 	}
 
@@ -238,21 +239,33 @@ func (e *remoteWriteExporter) appenderLoop() {
 			}
 			appender := inst.Appender(context.Background())
 
+			now := time.Now().UnixMilli()
+			var staleSeries []uint64
 			for _, dp := range e.seriesMap {
-				if dp.stale {
+				// If the datapoint hasn't been updated since the last loop, don't append it
+				if dp.ts < e.lastFlush {
+					// If the datapoint is older than now - staleTime, it is stale and should be removed.
+					if now-dp.ts > e.staleTime {
+						staleSeries = append(staleSeries, dp.l.Hash())
+					}
 					continue
 				}
 
 				if _, err := appender.Append(0, dp.l, dp.ts, dp.v); err != nil {
 					level.Error(e.logger).Log("msg", "failed to append datapoint", "err", err)
 				}
-
-				dp.stale = true
 			}
 
 			if err := appender.Commit(); err != nil {
 				level.Error(e.logger).Log("msg", "failed to commit appender", "err", err)
 			}
+
+			// Remove stale series
+			for _, hash := range staleSeries {
+				delete(e.seriesMap, hash)
+			}
+
+			e.lastFlush = now
 			e.mtx.Unlock()
 
 		case <-e.closing:
