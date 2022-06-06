@@ -1,3 +1,10 @@
+---
+aliases:
+- /docs/agent/latest/dynamic-configuration/aws
+title: Querying AWS
+weight: 300
+---
+
 # 01 AWS
 
 The AWS datasource assumes that you have appropriate credentials and environment variables set to access AWS resources. The custom fork of gomplate adds a new command to the existing AWS commands.
