@@ -156,13 +156,18 @@ func (r *ReceiverMap) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	for k := range *r {
 		if strings.HasPrefix(k, otlpReceiverName) {
 			// for http and grpc receivers, include_metadata is set to true by default
+			protocolsCfg, ok := (*r)[k].(map[interface{}]interface{})["protocols"].(map[interface{}]interface{})
+			if !ok {
+				return fmt.Errorf("failed to parse OTLP receiver config: %s", k)
+			}
+
 			for _, p := range protocols {
-				if cfg, ok := (*r)[k].(map[interface{}]interface{})["protocols"].(map[interface{}]interface{})[p]; ok {
+				if cfg, ok := protocolsCfg[p]; ok {
 					if cfg == nil {
-						(*r)[k].(map[interface{}]interface{})["protocols"].(map[interface{}]interface{})[p] = map[interface{}]interface{}{"include_metadata": true}
+						protocolsCfg[p] = map[interface{}]interface{}{"include_metadata": true}
 					} else {
 						if _, ok := cfg.(map[interface{}]interface{})["include_metadata"]; !ok {
-							(*r)[k].(map[interface{}]interface{})["protocols"].(map[interface{}]interface{})[p].(map[interface{}]interface{})["include_metadata"] = true
+							protocolsCfg[p].(map[interface{}]interface{})["include_metadata"] = true
 						}
 					}
 				}
