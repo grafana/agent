@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"sync"
 
-	stdlog "log"
-
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
@@ -84,7 +82,12 @@ func (l *Loader) Apply(parentContext *hcl.EvalContext, blocks hcl.Blocks) hcl.Di
 		// component is new; we want to make sure that all fields are available
 		// before the component updates its exports for the first time.
 		if err := l.evaluate(parentContext, n.(*ComponentNode), true, true); err != nil {
-			stdlog.Fatal(err)
+			diags = diags.Append(&hcl.Diagnostic{
+				Severity: hcl.DiagError,
+				Summary:  "Failed to build component",
+				Detail:   err.Error(),
+				Subject:  &n.(*ComponentNode).block.DefRange,
+			})
 		}
 		return nil
 	})
