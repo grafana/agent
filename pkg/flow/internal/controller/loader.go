@@ -209,8 +209,7 @@ func (l *Loader) EvaluateDependencies(parentContext *hcl.EvalContext, c *Compone
 			// arguments will need re-evaluation.
 			return nil
 		}
-		l.evaluate(parentContext, n.(*ComponentNode), true, false)
-		return nil
+		return l.evaluate(parentContext, n.(*ComponentNode), true, false)
 	})
 }
 
