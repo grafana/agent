@@ -10,6 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+## Features
+
+- Introduce Apache HTTP exporter integration. (@v-zhuravlev)
+
 v0.25.0 (2022-06-06)
 -------------------------
 
