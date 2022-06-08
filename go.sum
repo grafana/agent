@@ -847,7 +847,6 @@ github.com/frankban/quicktest v1.14.2 h1:SPb1KFFmM+ybpEjPUhCCkZOM5xlovT5UbrMvWnX
 github.com/frankban/quicktest v1.14.2/go.mod h1:mgiwOwqx65TmIk1wJ6Q7wvnVMocbUorkibMOrVTHZps=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/fsnotify/fsnotify v1.4.9/go.mod h1:znqG4EE+3YCdAaPaxE2ZRY/06pZUdp0tY4IgpuI1SZQ=
-github.com/fsnotify/fsnotify v1.5.1 h1:mZcQUHVQUQWoPXXtuf9yuEXKudkV2sx1E06UadKWpgI=
 github.com/fsnotify/fsnotify v1.5.1/go.mod h1:T3375wBYaZdLLcVNkcVbzGHY7f1l/uK5T5Ai1i3InKU=
 github.com/fsnotify/fsnotify v1.5.4 h1:jRbGcIw6P2Meqdwuo0H1p6JVLbL5DHKAKlYndzMwVZI=
 github.com/fsnotify/fsnotify v1.5.4/go.mod h1:OVB6XrOHzAwXMpEM7uPOzcehqUV2UqJxmVXmkdnm1bU=
@@ -1301,8 +1300,8 @@ github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520 h1:HnF
 github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520/go.mod h1:+HPXgiOV0InDHcZ2jNijL1SOKvo0eEPege5fQA0+ICI=
 github.com/grafana/process-exporter v0.7.3-0.20210106202358-831154072e2a h1:JUnP/laSl2GylHT0+fqAqOZY+7XkLh1mLefLN0n8Mmk=
 github.com/grafana/process-exporter v0.7.3-0.20210106202358-831154072e2a/go.mod h1:RMjrx3Qn8l2pgCD27g45xbko4UDpVVuHC8Cd2YXPtWA=
-github.com/grafana/prometheus v1.8.2-0.20220413182558-6b32d0b957c5 h1:HNAw9TLCE2oCt5tvOQSTs2d6eFik4rYPjGZZOgq4zCQ=
-github.com/grafana/prometheus v1.8.2-0.20220413182558-6b32d0b957c5/go.mod h1:migbGwmKEePaplmYVdzPdztaUixU4oxRYUg/JG9tiDU=
+github.com/grafana/prometheus v1.8.2-0.20220608092419-d18f34407b01 h1:DNxh3MFm2KJQiumpUvWt5sqM63EuSdWmm94SIo3iGNM=
+github.com/grafana/prometheus v1.8.2-0.20220608092419-d18f34407b01/go.mod h1:migbGwmKEePaplmYVdzPdztaUixU4oxRYUg/JG9tiDU=
 github.com/grafana/regexp v0.0.0-20220304095617-2e8d9baf4ac2/go.mod h1:M5qHK+eWfAv8VR/265dIuEpL3fNfeC21tXXp9itM24A=
 github.com/grafana/regexp v0.0.0-20220304100321-149c8afcd6cb h1:wwzNkyaQwcXCzQuKoWz3lwngetmcyg+EhW0fF5lz73M=
 github.com/grafana/regexp v0.0.0-20220304100321-149c8afcd6cb/go.mod h1:M5qHK+eWfAv8VR/265dIuEpL3fNfeC21tXXp9itM24A=
@@ -3037,7 +3036,6 @@ golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e/go.mod h1:oPkhp1MJrh7nUepCBc
 golang.org/x/sys v0.0.0-20220114195835-da31bd327af9/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220128215802-99c3d69c2c27/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220209214540-3681064d5158/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
-golang.org/x/sys v0.0.0-20220222172238-00053529121e h1:AGLQ2aegkB2Y9RY8YdQk+7MDCW9da7YmizIwNIt8NtQ=
 golang.org/x/sys v0.0.0-20220222172238-00053529121e/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220412211240-33da011f77ad h1:ntjMns5wyP/fN65tdBD4g8J5w8n015+iIIs9rtjXkY0=
 golang.org/x/sys v0.0.0-20220412211240-33da011f77ad/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
