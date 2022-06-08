@@ -14,6 +14,8 @@ Main (unreleased)
 
 - Introduce Apache HTTP exporter integration. (@v-zhuravlev)
 
+- Introduce eBPF exporter integration. (@tpaschalis)
+
 v0.25.0 (2022-06-06)
 -------------------------
 
@@ -42,8 +44,6 @@ v0.25.0 (2022-06-06)
 - Introduce SNMP exporter integration. (@v-zhuravlev)
 
 - Configure the agent to report the use of feature flags to grafana.com. (@marctc)
-
-- Introduce eBPF exporter integration. (@tpaschalis)
 
 ### Enhancements
 
