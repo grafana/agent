@@ -9,3 +9,4 @@ local "file" "this-file" {
   filename = "./cmd/agentflow/test-local-file.txt"
   detector = "fsnotify"
 }
+
