@@ -105,7 +105,7 @@ mongodb_exporter: <mongodb_exporter_config>
 github_exporter: <github_exporter_config>
 
 # Controls the ebpf integration
-ebpf: <ebpf__config>
+ebpf: <ebpf_config>
 
 # Automatically collect metrics from enabled integrations. If disabled,
 # integrations will be run but not scraped and thus not remote_written. Metrics
