@@ -14,6 +14,8 @@ Main (unreleased)
 
 - Introduce Apache HTTP exporter integration. (@v-zhuravlev)
 
+- Introduce eBPF exporter integration. (@tpaschalis)
+
 v0.25.0 (2022-06-06)
 -------------------------
 
