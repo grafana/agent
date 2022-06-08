@@ -6,6 +6,7 @@ import (
 	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/intern"
 	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/model/metadata"
 	"github.com/prometheus/prometheus/tsdb/chunks"
 )
 
@@ -14,6 +15,7 @@ type memSeries struct {
 
 	ref    chunks.HeadSeriesRef
 	lset   labels.Labels
+	meta   metadata.Metadata
 	lastTs int64
 
 	// TODO(rfratto): this solution below isn't perfect, and there's still

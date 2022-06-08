@@ -13,6 +13,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/model/metadata"
 	"github.com/prometheus/prometheus/model/timestamp"
 	"github.com/prometheus/prometheus/model/value"
 	"github.com/prometheus/prometheus/storage"
@@ -36,6 +37,7 @@ type storageMetrics struct {
 	totalRemovedSeries     prometheus.Counter
 	totalAppendedSamples   prometheus.Counter
 	totalAppendedExemplars prometheus.Counter
+	totalAppendedMetadata  prometheus.Counter
 }
 
 func newStorageMetrics(r prometheus.Registerer) *storageMetrics {
@@ -69,6 +71,10 @@ func newStorageMetrics(r prometheus.Registerer) *storageMetrics {
 		Name: "agent_wal_exemplars_appended_total",
 		Help: "Total number of exemplars appended to the WAL",
 	})
+	m.totalAppendedMetadata = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "agent_wal_metadata_appended_total",
+		Help: "Total number of metadata appended to the WAL",
+	})
 
 	if r != nil {
 		r.MustRegister(
@@ -78,6 +84,7 @@ func newStorageMetrics(r prometheus.Registerer) *storageMetrics {
 			m.totalRemovedSeries,
 			m.totalAppendedSamples,
 			m.totalAppendedExemplars,
+			m.totalAppendedMetadata,
 		)
 	}
 
@@ -564,6 +571,7 @@ type appender struct {
 	series    []record.RefSeries
 	samples   []record.RefSample
 	exemplars []record.RefExemplar
+	metadata  []record.RefMetadata
 }
 
 func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, error) {
@@ -671,6 +679,39 @@ func (a *appender) AppendExemplar(ref storage.SeriesRef, _ labels.Labels, e exem
 	return storage.SeriesRef(s.ref), nil
 }
 
+func (a *appender) AppendMetadata(ref storage.SeriesRef, lset labels.Labels, meta metadata.Metadata) (storage.SeriesRef, error) {
+	s := a.w.series.getByID(chunks.HeadSeriesRef(ref))
+	if s == nil {
+		s = a.w.series.getByHash(lset.Hash(), lset)
+		if s != nil {
+			ref = storage.SeriesRef(s.ref)
+		}
+	}
+	if s == nil {
+		return 0, fmt.Errorf("unknown series when trying to add metadata with HeadSeriesRef: %d and labels: %s", ref, lset)
+	}
+
+	s.Lock()
+	hasNewMetadata := s.meta != meta
+	s.Unlock()
+
+	if hasNewMetadata {
+		s.Lock()
+		s.meta = meta
+		s.Unlock()
+
+		a.metadata = append(a.metadata, record.RefMetadata{
+			Ref:  s.ref,
+			Type: record.GetMetricType(meta.Type),
+			Unit: meta.Unit,
+			Help: meta.Help,
+		})
+	}
+
+	a.w.metrics.totalAppendedMetadata.Inc()
+	return ref, nil
+}
+
 // Commit submits the collected samples and purges the batch.
 func (a *appender) Commit() error {
 	a.w.walMtx.RLock()
@@ -707,6 +748,14 @@ func (a *appender) Commit() error {
 		buf = buf[:0]
 	}
 
+	if len(a.metadata) > 0 {
+		buf = encoder.Metadata(a.metadata, buf)
+		if err := a.w.wal.Log(buf); err != nil {
+			return err
+		}
+		buf = buf[:0]
+	}
+
 	//nolint:staticcheck
 	a.w.bufPool.Put(buf)
 
@@ -726,6 +775,7 @@ func (a *appender) Rollback() error {
 	a.series = a.series[:0]
 	a.samples = a.samples[:0]
 	a.exemplars = a.exemplars[:0]
+	a.metadata = a.metadata[:0]
 	a.w.appenderPool.Put(a)
 	return nil
 }
