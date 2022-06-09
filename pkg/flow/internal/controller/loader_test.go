@@ -113,6 +113,29 @@ func TestLoader(t *testing.T) {
 			},
 		})
 	})
+
+	t.Run("File has cycles", func(t *testing.T) {
+		invalidFile := `
+			testcomponents "tick" "ticker" {
+				frequency = "1s"
+			}
+
+			testcomponents "passthrough" "static" {
+				input = testcomponents.passthrough.forwarded.output
+			}
+
+			testcomponents "passthrough" "ticker" {
+				input = testcomponents.passthrough.static.output
+			}
+
+			testcomponents "passthrough" "forwarded" {
+				input = testcomponents.passthrough.ticker.output
+			}
+		`
+		l := controller.NewLoader(globals)
+		diags := applyFromContent(t, l, []byte(invalidFile))
+		require.True(t, diags.HasErrors())
+	})
 }
 
 func applyFromContent(t *testing.T, l *controller.Loader, bb []byte) hcl.Diagnostics {
