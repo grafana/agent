@@ -137,14 +137,10 @@ type Component struct {
 
 	mut  sync.Mutex
 	args Arguments
-
-	healthMut sync.RWMutex
-	health    component.Health
 }
 
 var (
-	_ component.Component       = (*Component)(nil)
-	_ component.HealthComponent = (*Component)(nil)
+	_ component.Component = (*Component)(nil)
 )
 
 // New creates a new discovery.transformer component.
@@ -202,12 +198,6 @@ func (c *Component) Update(args component.Arguments) error {
 	return nil
 }
 
-// CurrentHealth implements component.HealthComponent.
-func (c *Component) CurrentHealth() component.Health {
-	c.healthMut.RLock()
-	defer c.healthMut.RUnlock()
-	return c.health
-}
 func hclMapToPromLabels(ls Target) labels.Labels {
 	res := make([]labels.Label, 0, len(ls))
 	for k, v := range ls {
