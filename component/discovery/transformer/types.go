@@ -62,7 +62,7 @@ func (a *Action) UnmarshalText(text []byte) error {
 		*a = Action(text)
 		return nil
 	}
-	return fmt.Errorf("unrecognized action type %s", string(text))
+	return fmt.Errorf("unrecognized action type %q", string(text))
 }
 
 // NewRegexp creates a new anchored Regexp and returns an error if the
@@ -99,7 +99,7 @@ func (re *Regexp) UnmarshalText(text []byte) error {
 		return err
 	}
 
-	re = &Regexp{
+	*re = Regexp{
 		re:       regex,
 		original: string(text),
 	}

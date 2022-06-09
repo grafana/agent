@@ -2,6 +2,7 @@ package transformer
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"sync"
 	"time"
@@ -9,7 +10,6 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/regexp"
 	"github.com/hashicorp/hcl/v2"
-	"github.com/pkg/errors"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/model/labels"
@@ -91,25 +91,25 @@ func (rc *RelabelConfig) DecodeHCL(body hcl.Body, ctx *hcl.EvalContext) error {
 	}
 
 	if rc.Action == "" {
-		return errors.Errorf("relabel action cannot be empty")
+		return fmt.Errorf("relabel action cannot be empty")
 	}
 	if rc.Modulus == 0 && rc.Action == HashMod {
-		return errors.Errorf("relabel configuration for hashmod requires non-zero modulus")
+		return fmt.Errorf("relabel configuration for hashmod requires non-zero modulus")
 	}
 	if (rc.Action == Replace || rc.Action == HashMod || rc.Action == Lowercase || rc.Action == Uppercase) && rc.TargetLabel == "" {
-		return errors.Errorf("relabel configuration for %s action requires 'target_label' value", rc.Action)
+		return fmt.Errorf("relabel configuration for %s action requires 'target_label' value", rc.Action)
 	}
 	if (rc.Action == Replace || rc.Action == Lowercase || rc.Action == Uppercase) && !relabelTarget.MatchString(rc.TargetLabel) {
-		return errors.Errorf("%q is invalid 'target_label' for %s action", rc.TargetLabel, rc.Action)
+		return fmt.Errorf("%q is invalid 'target_label' for %s action", rc.TargetLabel, rc.Action)
 	}
 	if (rc.Action == Lowercase || rc.Action == Uppercase) && rc.Replacement != DefaultRelabelConfig.Replacement {
-		return errors.Errorf("'replacement' can not be set for %s action", rc.Action)
+		return fmt.Errorf("'replacement' can not be set for %s action", rc.Action)
 	}
 	if rc.Action == LabelMap && !relabelTarget.MatchString(rc.Replacement) {
-		return errors.Errorf("%q is invalid 'replacement' for %s action", rc.Replacement, rc.Action)
+		return fmt.Errorf("%q is invalid 'replacement' for %s action", rc.Replacement, rc.Action)
 	}
 	if rc.Action == HashMod && !model.LabelName(rc.TargetLabel).IsValid() {
-		return errors.Errorf("%q is invalid 'target_label' for %s action", rc.TargetLabel, rc.Action)
+		return fmt.Errorf("%q is invalid 'target_label' for %s action", rc.TargetLabel, rc.Action)
 	}
 
 	if rc.Action == LabelDrop || rc.Action == LabelKeep {
@@ -118,7 +118,8 @@ func (rc *RelabelConfig) DecodeHCL(body hcl.Body, ctx *hcl.EvalContext) error {
 			rc.Modulus != DefaultRelabelConfig.Modulus ||
 			rc.Separator != DefaultRelabelConfig.Separator ||
 			rc.Replacement != DefaultRelabelConfig.Replacement {
-			return errors.Errorf("%s action requires only 'regex', and no other fields", rc.Action)
+
+			return fmt.Errorf("%s action requires only 'regex', and no other fields", rc.Action)
 		}
 	}
 
@@ -173,11 +174,7 @@ func (c *Component) Update(args component.Arguments) error {
 	c.args = newArgs
 
 	targets := make([]Target, 0, len(newArgs.Targets))
-	failures := make([]error, 0, len(newArgs.Targets))
-	relabelConfigs, err := hclToPromRelabelConfigs(newArgs.RelabelConfigs)
-	if err != nil {
-		return err
-	}
+	relabelConfigs := hclToPromRelabelConfigs(newArgs.RelabelConfigs)
 
 	for _, t := range newArgs.Targets {
 		var cfg = &config.ScrapeConfig{
@@ -191,7 +188,7 @@ func (c *Component) Update(args component.Arguments) error {
 		}
 		lbls, _, err := scrape.PopulateLabels(hclMapToPromLabels(t), cfg)
 		if err != nil {
-			failures = append(failures, errors.Wrapf(err, "failed to correctly mutate target with labelset: %s", t))
+			c.opts.Logger.Log("msg", "failed to transform target", "err", err)
 		}
 		if lbls != nil {
 			targets = append(targets, promLabelsToHCL(lbls))
@@ -200,12 +197,6 @@ func (c *Component) Update(args component.Arguments) error {
 
 	c.opts.OnStateChange(Exports{
 		OutputTargets: targets,
-	})
-
-	c.setHealth(component.Health{
-		Health:     component.HealthTypeHealthy,
-		Message:    "set output targets",
-		UpdateTime: time.Now(),
 	})
 
 	return nil
@@ -217,13 +208,6 @@ func (c *Component) CurrentHealth() component.Health {
 	defer c.healthMut.RUnlock()
 	return c.health
 }
-
-func (c *Component) setHealth(h component.Health) {
-	c.healthMut.Lock()
-	defer c.healthMut.Unlock()
-	c.health = h
-}
-
 func hclMapToPromLabels(ls Target) labels.Labels {
 	res := make([]labels.Label, 0, len(ls))
 	for k, v := range ls {
@@ -242,7 +226,7 @@ func promLabelsToHCL(ls labels.Labels) Target {
 	return res
 }
 
-func hclToPromRelabelConfigs(rcs []*RelabelConfig) ([]*relabel.Config, error) {
+func hclToPromRelabelConfigs(rcs []*RelabelConfig) []*relabel.Config {
 	res := make([]*relabel.Config, len(rcs))
 	for i, rc := range rcs {
 		sourceLabels := make([]model.LabelName, len(rc.SourceLabels))
@@ -261,5 +245,5 @@ func hclToPromRelabelConfigs(rcs []*RelabelConfig) ([]*relabel.Config, error) {
 		}
 	}
 
-	return res, nil
+	return res
 }
