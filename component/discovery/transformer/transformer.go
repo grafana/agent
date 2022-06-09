@@ -3,18 +3,14 @@ package transformer
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"sync"
-	"time"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/regexp"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/prometheus/common/model"
-	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/relabel"
-	"github.com/prometheus/prometheus/scrape"
 	"github.com/rfratto/gohcl"
 )
 
@@ -32,17 +28,14 @@ func init() {
 
 // Arguments holds values which are used to configure the discovery.transformer component.
 type Arguments struct {
-	// Targets contains the input 'targets' passed by a Service Discovery component.
+	// Targets contains the input 'targets' passed by a service discovery component.
 	Targets []Target `hcl:"targets,optional"`
 
-	// The following values can be used to modify the original target label set.
+	// The relabelling steps to apply to the each target's label set.
 	RelabelConfigs []*RelabelConfig `hcl:"relabel_configs,block"`
-	ScrapeLabels   ScrapeLabels     `hcl:"scrape_labels,optional"`
-	QueryParams    url.Values       `hcl:"query_params,optional"`
 }
 
 // Target refers to a singular HTTP or HTTPS endpoint that will be used for scraping.
-// It mimics github.com/prometheus/prometheus/scrape.Target.
 // Here, we're using a map[string]string instead of labels.Labels; if the label ordering
 // is important, we can change to follow the upstream logic instead.
 // TODO (@tpaschalis) Maybe the target definitions should be part of the
@@ -58,15 +51,6 @@ type RelabelConfig struct {
 	TargetLabel  string   `hcl:"target_label,optional"`
 	Replacement  string   `hcl:"replacement,optional"`
 	Action       Action   `hcl:"action,optional"`
-}
-
-// ScrapeLabels contains values that can be override scrape labels at the time of relabelling.
-type ScrapeLabels struct {
-	JobName     string        `hcl:"job_name,optional"`
-	Interval    time.Duration `hcl:"interval,optional"`
-	Timeout     time.Duration `hcl:"timeout,optional"`
-	MetricsPath string        `hcl:"metrics_path,optional"`
-	Scheme      string        `hcl:"scheme,optional"`
 }
 
 // DefaultRelabelConfig sets the default values of fields when decoding a RelabelConfig block.
@@ -173,18 +157,10 @@ func (c *Component) Update(args component.Arguments) error {
 	relabelConfigs := hclToPromRelabelConfigs(newArgs.RelabelConfigs)
 
 	for _, t := range newArgs.Targets {
-		var cfg = &config.ScrapeConfig{
-			RelabelConfigs: relabelConfigs,
-			Params:         newArgs.QueryParams,
-			JobName:        newArgs.ScrapeLabels.JobName,
-			MetricsPath:    newArgs.ScrapeLabels.MetricsPath,
-			Scheme:         newArgs.ScrapeLabels.Scheme,
-			ScrapeInterval: model.Duration(newArgs.ScrapeLabels.Interval),
-			ScrapeTimeout:  model.Duration(newArgs.ScrapeLabels.Timeout),
-		}
-		lbls, _, err := scrape.PopulateLabels(hclMapToPromLabels(t), cfg)
-		if err != nil {
-			c.opts.Logger.Log("msg", "failed to transform target", "err", err)
+		lset := hclMapToPromLabels(t)
+		lbls, err := c.transformLabelSet(lset, relabelConfigs)
+		if lbls == nil || err != nil {
+			c.opts.Logger.Log("msg", "dropping target with label set", "lset", lset, "error", err)
 		}
 		if lbls != nil {
 			targets = append(targets, promLabelsToHCL(lbls))
@@ -196,6 +172,22 @@ func (c *Component) Update(args component.Arguments) error {
 	})
 
 	return nil
+}
+
+func (c *Component) transformLabelSet(lset labels.Labels, rcs []*relabel.Config) (labels.Labels, error) {
+	lset = relabel.Process(lset, rcs...)
+
+	if v := lset.Get(model.AddressLabel); v == "" {
+		return nil, fmt.Errorf("no __address__ label present after applying relabelling rules")
+	}
+	for _, l := range lset {
+		// Check that all label values are valid, drop the target if not.
+		if !model.LabelValue(l.Value).IsValid() {
+			return nil, fmt.Errorf("the label value %q was not a valid UTF8 string", l.Value)
+		}
+	}
+
+	return lset, nil
 }
 
 func hclMapToPromLabels(ls Target) labels.Labels {
