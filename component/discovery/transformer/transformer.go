@@ -158,12 +158,9 @@ func (c *Component) Update(args component.Arguments) error {
 
 	for _, t := range newArgs.Targets {
 		lset := hclMapToPromLabels(t)
-		lbls, err := c.transformLabelSet(lset, relabelConfigs)
-		if lbls == nil || err != nil {
-			c.opts.Logger.Log("msg", "dropping target with label set", "lset", lset, "error", err)
-		}
-		if lbls != nil {
-			targets = append(targets, promLabelsToHCL(lbls))
+		lset = relabel.Process(lset, relabelConfigs...)
+		if lset != nil {
+			targets = append(targets, promLabelsToHCL(lset))
 		}
 	}
 
@@ -172,22 +169,6 @@ func (c *Component) Update(args component.Arguments) error {
 	})
 
 	return nil
-}
-
-func (c *Component) transformLabelSet(lset labels.Labels, rcs []*relabel.Config) (labels.Labels, error) {
-	lset = relabel.Process(lset, rcs...)
-
-	if v := lset.Get(model.AddressLabel); v == "" {
-		return nil, fmt.Errorf("no __address__ label present after applying relabelling rules")
-	}
-	for _, l := range lset {
-		// Check that all label values are valid, drop the target if not.
-		if !model.LabelValue(l.Value).IsValid() {
-			return nil, fmt.Errorf("the label value %q was not a valid UTF8 string", l.Value)
-		}
-	}
-
-	return lset, nil
 }
 
 func hclMapToPromLabels(ls Target) labels.Labels {
