@@ -14,8 +14,7 @@ type Action string
 // TODO (@tpaschalis) This encapsulation already exists in Prometheus' relabel.Regexp
 // so not sure whether to also move it here for now.
 type Regexp struct {
-	re       *regexp.Regexp
-	original string
+	*regexp.Regexp
 }
 
 // All possible Action values.
@@ -65,19 +64,13 @@ func (a *Action) UnmarshalText(text []byte) error {
 	return fmt.Errorf("unrecognized action type %q", string(text))
 }
 
-// NewRegexp creates a new anchored Regexp and returns an error if the
-// passed-in regular expression does not compile.
-func NewRegexp(s string) (Regexp, error) {
-	regex, err := regexp.Compile("^(?:" + s + ")$")
-	return Regexp{
-		re:       regex,
-		original: s,
-	}, err
+func newRegexp(s string) (Regexp, error) {
+	re, err := regexp.Compile("^(?:" + s + ")$")
+	return Regexp{re}, err
 }
 
-// MustNewRegexp works like NewRegexp, but panics if the regular expression does not compile.
-func MustNewRegexp(s string) Regexp {
-	re, err := NewRegexp(s)
+func mustNewRegexp(s string) Regexp {
+	re, err := newRegexp(s)
 	if err != nil {
 		panic(err)
 	}
@@ -86,8 +79,8 @@ func MustNewRegexp(s string) Regexp {
 
 // MarshalText implements encoding.TextMarshaler for Regexp.
 func (re Regexp) MarshalText() (text []byte, err error) {
-	if re.original != "" {
-		return []byte(re.original), nil
+	if re.String() != "" {
+		return []byte(re.String()), nil
 	}
 	return nil, nil
 }
@@ -99,9 +92,6 @@ func (re *Regexp) UnmarshalText(text []byte) error {
 		return err
 	}
 
-	*re = Regexp{
-		re:       regex,
-		original: string(text),
-	}
+	*re = Regexp{regex}
 	return nil
 }

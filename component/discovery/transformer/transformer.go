@@ -73,7 +73,7 @@ type ScrapeLabels struct {
 var DefaultRelabelConfig = RelabelConfig{
 	Action:      Replace,
 	Separator:   ";",
-	Regex:       MustNewRegexp("(.*)"),
+	Regex:       mustNewRegexp("(.*)"),
 	Replacement: "$1",
 }
 
@@ -241,7 +241,7 @@ func hclToPromRelabelConfigs(rcs []*RelabelConfig) []*relabel.Config {
 			TargetLabel:  rc.TargetLabel,
 			Replacement:  rc.Replacement,
 			Action:       relabel.Action(rc.Action),
-			Regex:        relabel.Regexp{Regexp: rc.Regex.re}, // TODO (@tpaschalis) not super happy with how this turned out, let's check it again.
+			Regex:        relabel.Regexp{Regexp: rc.Regex.Regexp}, // TODO (@tpaschalis) not super happy with how this turned out, let's check it again.
 		}
 	}
 
