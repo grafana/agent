@@ -9,14 +9,6 @@ import (
 // Action is the relabelling action to be performed.
 type Action string
 
-// Regexp encapsulates the Regexp type from Grafana's
-// fork of the Go stdlib regexp package.
-// TODO (@tpaschalis) This encapsulation already exists in Prometheus' relabel.Regexp
-// so not sure whether to also move it here for now.
-type Regexp struct {
-	*regexp.Regexp
-}
-
 // All possible Action values.
 const (
 	Replace   Action = "replace"
@@ -62,6 +54,11 @@ func (a *Action) UnmarshalText(text []byte) error {
 		return nil
 	}
 	return fmt.Errorf("unrecognized action type %q", string(text))
+}
+
+// Regexp encapsulates the Regexp type from Grafana's fork of the Go stdlib regexp package.
+type Regexp struct {
+	*regexp.Regexp
 }
 
 func newRegexp(s string) (Regexp, error) {
