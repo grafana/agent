@@ -84,7 +84,7 @@ require (
 	github.com/prometheus/statsd_exporter v0.22.2
 	github.com/rancher/k3d/v5 v5.2.2
 	github.com/rfratto/ckit v0.0.0-20220401221852-009169323240
-	github.com/rfratto/gohcl v0.0.0-20220504022736-d5c147f480b8
+	github.com/rfratto/gohcl v0.0.0-20220609143238-53312695dc8f
 	github.com/rs/cors v1.8.2
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.4.0
