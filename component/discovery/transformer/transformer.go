@@ -32,7 +32,7 @@ type Arguments struct {
 	Targets []Target `hcl:"targets,optional"`
 
 	// The relabelling steps to apply to the each target's label set.
-	RelabelConfigs []*RelabelConfig `hcl:"relabel_configs,block"`
+	RelabelConfigs []*RelabelConfig `hcl:"relabel_config,block"`
 }
 
 // Target refers to a singular HTTP or HTTPS endpoint that will be used for scraping.
