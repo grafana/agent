@@ -3,7 +3,6 @@ package transformer
 import (
 	"context"
 	"fmt"
-	"sync"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/regexp"
@@ -118,9 +117,6 @@ type Exports struct {
 // Component implements the discovery.transformer component.
 type Component struct {
 	opts component.Options
-
-	mut  sync.Mutex
-	args Arguments
 }
 
 var (
@@ -148,10 +144,6 @@ func (c *Component) Run(ctx context.Context) error {
 // Update implements component.Component.
 func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
-
-	c.mut.Lock()
-	defer c.mut.Unlock()
-	c.args = newArgs
 
 	targets := make([]Target, 0, len(newArgs.Targets))
 	relabelConfigs := hclToPromRelabelConfigs(newArgs.RelabelConfigs)
