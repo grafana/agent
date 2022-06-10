@@ -12,7 +12,6 @@ import (
 )
 
 func TestRelabelConfigApplication(t *testing.T) {
-
 	hclArguments := `
 targets = [ 
     { "__meta_foo" = "foo", "__meta_bar" = "bar", "__address__" = "localhost", "instance" = "one", "app" = "backend", __tmp_a = "tmp" },
