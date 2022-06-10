@@ -45,7 +45,7 @@ components:
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `targets` | `[]map[string]string` | The input targets | | no
-`relabel_config` | `RelabelConfig` | The relabeling steps to apply | `DefaultRelabelConfig` | no
+`relabel_config` | `RelabelConfig` | The relabeling steps to apply | | no
 
 
 ### Targets
@@ -57,30 +57,18 @@ The `relabel_config` block contains the definition of any relabeling rules
 that can be applied to an input target. If you want an overview of how
 relabeling works you can refer to the [Prometheus docs][] or this [blogpost][].
 
-```go
-type RelabelConfig struct {
-	SourceLabels []string `hcl:"source_labels,optional"`
-	Separator    string   `hcl:"separator,optional"`
-	Regex        Regexp   `hcl:"regex,optional"`
-	Modulus      uint64   `hcl:"modulus,optional"`
-	TargetLabel  string   `hcl:"target_label,optional"`
-	Replacement  string   `hcl:"replacement,optional"`
-	Action       Action   `hcl:"action,optional"`
-}
-```
+#### Argument Reference
+The following arguments can be used to configure a `relabel_config` block.
+All arguments are optional and ny omitted fields will take on their default
+values.
 
-### DefaultRelabelConfig
-The `DefaultRelabelConfig` object contains the default values for omitted fields
-when decoding an HCL block to a RelabelConfig struct.
-
-```go
-var DefaultRelabelConfig = RelabelConfig{
-	Action:      Replace,
-	Separator:   ";",
-	Regex:       "(.*)",
-	Replacement: "$1",
-}
-```
+* `source_labels` - The list of labels whose values should be selected. Their content is concatenated using the `separator` and matched against `regex`.
+* `separator` - Used to concatenate the values selected from `source_labels`. Defaults to `;`.
+* `regex` - A valid RE2 expression with support for parenthesized capture groups. Used to match the extracted value from the combination of the `source_label` and `separator` fields or filter labels during the labelkeep/labeldrop/labelmap actions. Defaults to `(.*)`.
+* `modulus` - A positive integer used to calculate the modulus of the hashed source label values.
+* `target_label` - Label to which the resulting value will be written to.
+* `replacement` - The value against which a regex replace is performed, if the regex matched the extracted value. Supports previously captured groups. Defaults to `$1`.
+* `action` - The relabeling action to perform. Defaults to "replace".
 
 ## Exported fields
 
