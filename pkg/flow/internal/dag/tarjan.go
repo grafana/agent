@@ -59,7 +59,6 @@ func (t *tarjan) tarjan(g *Graph, n Node) {
 		// Add current strongly connected component to result
 		t.result = append(t.result, scc)
 	}
-
 }
 
 // visit marks node as visited and pushes to the stack
