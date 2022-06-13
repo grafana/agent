@@ -56,6 +56,9 @@ agent:
 #  (Client Auth Type = RequireAndVerifyClientCert || RequireAnyClientCert).
 http_tls_config: <tls_config>
 
+# Controls the apache_http integration
+apache_http: <apache_http_config>
+
 # Controls the node_exporter integration
 node_exporter: <node_exporter_config>
 
@@ -100,6 +103,9 @@ mongodb_exporter: <mongodb_exporter_config>
 
 # Controls the github_exporter integration
 github_exporter: <github_exporter_config>
+
+# Controls the ebpf integration
+ebpf: <ebpf_config>
 
 # Automatically collect metrics from enabled integrations. If disabled,
 # integrations will be run but not scraped and thus not remote_written. Metrics

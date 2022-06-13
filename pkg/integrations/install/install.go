@@ -7,9 +7,11 @@ import (
 	//
 
 	_ "github.com/grafana/agent/pkg/integrations/agent"                  // register agent
+	_ "github.com/grafana/agent/pkg/integrations/apache_http"            // regisapache_httprter
 	_ "github.com/grafana/agent/pkg/integrations/cadvisor"               // register cadvisor
 	_ "github.com/grafana/agent/pkg/integrations/consul_exporter"        // register consul_exporter
 	_ "github.com/grafana/agent/pkg/integrations/dnsmasq_exporter"       // register dnsmasq_exporter
+	_ "github.com/grafana/agent/pkg/integrations/ebpf_exporter"          // register ebpf_exporter
 	_ "github.com/grafana/agent/pkg/integrations/elasticsearch_exporter" // register elasticsearch_exporter
 	_ "github.com/grafana/agent/pkg/integrations/github_exporter"        // register github_exporter
 	_ "github.com/grafana/agent/pkg/integrations/kafka_exporter"         // register kafka_exporter
@@ -28,7 +30,8 @@ import (
 	// v2 integrations
 	//
 
-	_ "github.com/grafana/agent/pkg/integrations/v2/agent"              // register agent
+	_ "github.com/grafana/agent/pkg/integrations/v2/agent" // register agent
+	_ "github.com/grafana/agent/pkg/integrations/v2/apache_http"
 	_ "github.com/grafana/agent/pkg/integrations/v2/app_agent_receiver" // register app_agent_receiver
 	_ "github.com/grafana/agent/pkg/integrations/v2/eventhandler"
 	_ "github.com/grafana/agent/pkg/integrations/v2/snmp_exporter"

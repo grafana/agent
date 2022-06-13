@@ -81,6 +81,7 @@ integrations:
   [windows: <windows_exporter_config>]
   [eventhandler: <eventhandler_config>]
   [snmp: <snmp_exporter_config>]
+  [ebpf: <ebpf_config>]
 
   # Configs for integrations that do support multiple instances. Note that
   # these must be arrays.
@@ -116,6 +117,9 @@ integrations:
 
   app_agent_receiver_configs:
     [- <app_agent_receiver_config>]
+
+  apache_http_configs:
+    [- <apache_http_config>]
 ```
 
 Note that most integrations are no longer configured with the `_exporter` name.

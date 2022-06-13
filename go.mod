@@ -5,6 +5,7 @@ go 1.18
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.4.0
 	github.com/Shopify/sarama v1.32.0
+	github.com/cloudflare/ebpf_exporter v1.2.5
 	github.com/cortexproject/cortex v1.11.0
 	github.com/davidmparrott/kafka_exporter/v2 v2.0.1
 	github.com/docker/docker v20.10.14+incompatible
@@ -83,7 +84,7 @@ require (
 	github.com/prometheus/statsd_exporter v0.22.2
 	github.com/rancher/k3d/v5 v5.2.2
 	github.com/rfratto/ckit v0.0.0-20220401221852-009169323240
-	github.com/rfratto/gohcl v0.0.0-20220504022736-d5c147f480b8
+	github.com/rfratto/gohcl v0.0.0-20220609143238-53312695dc8f
 	github.com/rs/cors v1.8.2
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.4.0
@@ -139,6 +140,7 @@ require (
 	github.com/Azure/go-autorest/autorest/validation v0.3.1 // indirect
 	github.com/Azure/go-autorest/logger v0.2.1 // indirect
 	github.com/Azure/go-autorest/tracing v0.6.0 // indirect
+	github.com/Lusitaniae/apache_exporter v0.11.1-0.20220518131644-f9522724dab4 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.1.1 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.2 // indirect
@@ -293,6 +295,7 @@ require (
 	github.com/infinityworks/go-common v0.0.0-20170820165359-7f20a140fd37 // indirect
 	github.com/influxdata/go-syslog/v3 v3.0.1-0.20201128200927-a1889d947b48 // indirect
 	github.com/influxdata/telegraf v1.16.3 // indirect
+	github.com/iovisor/gobpf v0.2.0 // indirect
 	github.com/jaegertracing/jaeger v1.31.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
