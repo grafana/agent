@@ -166,10 +166,11 @@ func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string
 		level.Warn(storage.logger).Log("msg", "encountered WAL read error, attempting repair", "err", err)
 
 		var ce *wal.CorruptionErr
-		if errors.As(err, &ce) {
-			if err := w.Repair(ce); err != nil {
-				return nil, fmt.Errorf("repair corrupted WAL: %w", err)
-			}
+		if ok := errors.As(err, &ce); !ok {
+			return nil, err
+		}
+		if err := w.Repair(ce); err != nil {
+			return nil, fmt.Errorf("repair corrupted WAL: %w", err)
 		}
 	}
 
