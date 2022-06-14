@@ -56,7 +56,7 @@ relabel_config {
 
 `
 	expectedExports := transformer.Exports{
-		OutputTargets: []transformer.Target{
+		Output: []transformer.Target{
 			map[string]string{"__address__": "localhost", "app": "backend", "destination": "localhost/one", "meta_bar": "bar", "meta_foo": "foo", "name": "one"},
 		},
 	}

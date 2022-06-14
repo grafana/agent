@@ -111,7 +111,7 @@ func (rc *RelabelConfig) DecodeHCL(body hcl.Body, ctx *hcl.EvalContext) error {
 
 // Exports holds values which are exported by the discovery.transformer component.
 type Exports struct {
-	OutputTargets []Target `hcl:"output_targets,attr"`
+	Output []Target `hcl:"output,attr"`
 }
 
 // Component implements the discovery.transformer component.
@@ -157,7 +157,7 @@ func (c *Component) Update(args component.Arguments) error {
 	}
 
 	c.opts.OnStateChange(Exports{
-		OutputTargets: targets,
+		Output: targets,
 	})
 
 	return nil

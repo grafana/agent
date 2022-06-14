@@ -82,7 +82,7 @@ The following fields are exported and can be referenced by other components:
 
 Name | Type | Description
 ---- | ---- | -----------
-output_targets | list(map(string)) | The set of targets after applying transformations.
+output | list(map(string)) | The set of targets after applying transformations.
 
 ## Component health
 
