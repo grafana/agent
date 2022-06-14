@@ -44,8 +44,8 @@ components:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`targets` | `list(map(string))` | The targets to transform. | | no
-`relabel_config` | `RelabelConfig` | The relabeling steps to apply. | `DefaultRelabelConfig` | no
+targets | list(map(string)) | The targets to transform. | | no
+relabel_config | RelabelConfig | The relabeling steps to apply. | | no
 
 
 ### RelabelConfig
@@ -53,18 +53,18 @@ The `relabel_config` block contains the definition of any relabeling rules
 that can be applied to an input target.
 
 The following arguments can be used to configure a `relabel_config` block.
-All arguments are optional and ny omitted fields will take on their default
+All arguments are optional and any omitted fields will take on their default
 values.
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`source_labels` | list(string) | The list of labels whose values should be selected. Their content is concatenated using the `separator` and matched against `regex`. | | no
-`separator`     | string       |  The separator used to concatenate the values present in `source_labels`. | `;` | no
-`regex`         | string       | A valid RE2 expression with support for parenthesized capture groups. Used to match the extracted value from the combination of the `source_label` and `separator` fields or filter labels during the labelkeep/labeldrop/labelmap actions. | `(.*)` | no
-`modulus`       | uint         | A positive integer used to calculate the modulus of the hashed source label values. | | no
-`target_label`  | string       | Label to which the resulting value will be written to. | | no
-`replacement`   | string       | The value against which a regex replace is performed, if the regex match	ed the extracted value. Supports previously captured groups. | $1 | no
-`action`        | string       | The relabeling action to perform. | "replace" | no
+source_labels | list(string) | The list of labels whose values should be selected. Their content is concatenated using the `separator` and matched against `regex`. | | no
+separator     | string       |  The separator used to concatenate the values present in `source_labels`. | ; | no
+regex         | string       | A valid RE2 expression with support for parenthesized capture groups. Used to match the extracted value from the combination of the `source_label` and `separator` fields or filter labels during the labelkeep/labeldrop/labelmap actions. | `(.*)` | no
+modulus       | uint         | A positive integer used to calculate the modulus of the hashed source label values. | | no
+target_label  | string       | Label to which the resulting value will be written to. | | no
+replacement   | string       | The value against which a regex replace is performed, if the regex match	ed the extracted value. Supports previously captured groups. | $1 | no
+action        | string       | The relabeling action to perform. | replace | no
 
 Here's a list of the available `action`s along with a brief description of their usage.
 
@@ -76,25 +76,13 @@ Here's a list of the available `action`s along with a brief description of their
 * labeldrop - This action matches `regex` against all label names. Any labels that match will be removed from the target's label set.
 * labelkeep - This action matches `regex` against all label names. Any labels that don't match will be removed from the target's label set.
 
-### DefaultRelabelConfig
-
-Any omitted fields will take on their default values. An empty `relabel_config` block will default to the following
-```hcl
-relabel_config {
-  separator    = ";"
-  regex        = "(.*)"
-  replacement  = "$1"
-  action       = "replace"
-}
-```
-
 ## Exported fields
 
 The following fields are exported and can be referenced by other components:
 
 Name | Type | Description
 ---- | ---- | -----------
-`output_targets` | `list(map(string))` | The set of targets after applying transformations.
+output_targets | list(map(string)) | The set of targets after applying transformations.
 
 The number of targets exposed in `output_targets` will be less or equal than
 the number of input targets, as some of them may be dropped by the
