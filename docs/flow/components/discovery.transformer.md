@@ -63,10 +63,10 @@ separator     | string       |  The separator used to concatenate the values pre
 regex         | string       | A valid RE2 expression with support for parenthesized capture groups. Used to match the extracted value from the combination of the `source_label` and `separator` fields or filter labels during the labelkeep/labeldrop/labelmap actions. | `(.*)` | no
 modulus       | uint         | A positive integer used to calculate the modulus of the hashed source label values. | | no
 target_label  | string       | Label to which the resulting value will be written to. | | no
-replacement   | string       | The value against which a regex replace is performed, if the regex match	ed the extracted value. Supports previously captured groups. | $1 | no
+replacement   | string       | The value against which a regex replace is performed, if the regex matched the extracted value. Supports previously captured groups. | $1 | no
 action        | string       | The relabeling action to perform. | replace | no
 
-Here's a list of the available `action`s along with a brief description of their usage.
+Here's a list of the available actions along with a brief description of their usage.
 
 * replace - This action matches `regex` to the concatenated labels. If there's a match, it replaces the content of the `target_label` using the contents of the `replacement` field.
 * keep    - This action only keeps the targets where `regex` matches the string extracted using the `source_labels` and `separator`.
@@ -83,10 +83,6 @@ The following fields are exported and can be referenced by other components:
 Name | Type | Description
 ---- | ---- | -----------
 output_targets | list(map(string)) | The set of targets after applying transformations.
-
-The number of targets exposed in `output_targets` will be less or equal than
-the number of input targets, as some of them may be dropped by the
-relabeling process.
 
 ## Component health
 
