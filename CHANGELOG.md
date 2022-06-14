@@ -10,6 +10,14 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+v0.25.1 (TBD)
+-------------------------
+
+### Bugfixes
+
+- Integer types fail to unmarshal correctly in operator additional scrape configs. (@rlankfo)
+
+
 v0.25.0 (2022-06-06)
 -------------------------
 

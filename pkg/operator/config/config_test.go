@@ -186,6 +186,10 @@ func TestAdditionalScrapeConfigsMetrics(t *testing.T) {
 	- job_name: job
 		kubernetes_sd_configs:
 		- role: node
+	- job_name: ec2
+		ec2_sd_configs:
+		- region: eu-west-1
+		  port: 9100
 	`)
 
 	expect := util.Untab(`
@@ -205,6 +209,10 @@ metrics:
     - job_name: job
       kubernetes_sd_configs:
       - role: node
+    - job_name: ec2
+      ec2_sd_configs:
+      - region: eu-west-1
+        port: 9100
 	`)
 
 	result, err := BuildConfig(&input, MetricsType)
