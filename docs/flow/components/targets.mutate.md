@@ -47,7 +47,7 @@ Name | Type | Description | Default | Required
 targets | list(map(string)) | The targets to mutate. | | **yes**
 
 
-### RelabelConfig
+### `relabel_config` block
 The `relabel_config` block contains the definition of any relabeling rules
 that can be applied to an input target.
 
