@@ -152,6 +152,11 @@ steps:
           "repo_name": "deployment_tools",
           "update_jsonnet_attribute_configs": [
             {
+              "file_path": "ksonnet/environments/kowalski/dev-us-central-0.kowalski-dev/main.jsonnet",
+              "jsonnet_key": "_images.grafana_agent",
+              "jsonnet_value_file": ".image-tag"
+            },
+            {
               "file_path": "ksonnet/environments/platform-observability/waves/agent.libsonnet",
               "jsonnet_key": "dev_canary",
               "jsonnet_value_file": ".image-tag"
@@ -246,6 +251,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: 9fed7fe2cdfab3010847ed26d5e6ba46adf046787de0b3ad89b7a3ff7b9b6c62
+hmac: 964bb500c2fd9d7ed9f56c05c0233eb252b741172de6924ca1c6e1c8582fd883
 
 ...
