@@ -17,6 +17,8 @@ v0.25.1 (TBD)
 
 - Integer types fail to unmarshal correctly in operator additional scrape configs. (@rlankfo)
 
+- Unwrap replayWAL error before attempting corruption repair. (@rlankfo)
+
 
 v0.25.0 (2022-06-06)
 -------------------------
