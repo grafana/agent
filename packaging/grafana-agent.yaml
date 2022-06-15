@@ -1,5 +1,5 @@
 # Sample config for Grafana Agent
-# For a full configuration reference, see: https://github.com/grafana/agent/blob/main/docs/configuration-reference.md.
+# For a full configuration reference, see: https://grafana.com/docs/agent/latest/configuration/.
 server:
   log_level: warn
 
