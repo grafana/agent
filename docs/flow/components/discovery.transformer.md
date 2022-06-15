@@ -76,6 +76,8 @@ Here's a list of the available actions along with a brief description of their u
 * labeldrop - This action matches `regex` against all label names. Any labels that match will be removed from the target's label set.
 * labelkeep - This action matches `regex` against all label names. Any labels that don't match will be removed from the target's label set.
 
+Finally, note that the regex capture groups can be referred to using either the `$1` or `$${1}` notation.
+
 ## Exported fields
 
 The following fields are exported and can be referenced by other components:
