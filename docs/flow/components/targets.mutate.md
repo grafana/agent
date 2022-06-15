@@ -1,21 +1,21 @@
-# discovery.transformer
+# targets.mutate
 
-The `discovery.transformer` component rewrites the label set of the input
+The `targets.mutate` component rewrites the label set of the input
 targets by applying one or more `relabel_config` steps. If no relabeling
 steps are defined, then the input targets will be exported as-is.
 
-The most common use of `discovery.transformer` is to filter Prometheus targets
+The most common use of `targets.mutate` is to filter Prometheus targets
 or standardize the label set that will be passed to a downstream component.
 The `relabel_config` blocks will be applied to the label set of each target in
 order of their appearance in the configuration file.
 
-Multiple `discovery.transformer` components can be specified by giving them
+Multiple `targets.mutate` components can be specified by giving them
 different name labels like "keep-backend-only" in the following example.
 
 ## Example
 
 ```hcl
-discovery "transformer" "keep-backend-only" {
+targets "mutate" "keep-backend-only" {
   targets = [ 
     { "__meta_foo" = "foo", "__address__" = "localhost", "instance" = "one",   "app" = "backend"  },
     { "__meta_bar" = "bar", "__address__" = "localhost", "instance" = "two",   "app" = "database" },
@@ -44,7 +44,7 @@ components:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-targets | list(map(string)) | The targets to transform. | | no
+targets | list(map(string)) | The targets to mutate. | | no
 relabel_config | RelabelConfig | The relabeling steps to apply. | | no
 
 
@@ -84,19 +84,19 @@ The following fields are exported and can be referenced by other components:
 
 Name | Type | Description
 ---- | ---- | -----------
-output | list(map(string)) | The set of targets after applying transformations.
+output | list(map(string)) | The set of targets after applying relabeling.
 
 ## Component health
 
-The `discovery.transformer` component will only be reported as unhealthy when
+The `targets.mutate` component will only be reported as unhealthy when
 given an invalid configuration. In those cases, exported fields will be kept at
 their last healthy values.
 
 ## Debug information
 
-`discovery.transformer` does not expose any component-specific debug information.
+`targets.mutate` does not expose any component-specific debug information.
 
 ### Debug metrics
 
-`discovery.transformer` does not expose any component-specific debug metrics.
+`targets.mutate` does not expose any component-specific debug metrics.
 

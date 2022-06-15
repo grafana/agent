@@ -1,4 +1,4 @@
-package transformer
+package mutate
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "discovery.transformer",
+		Name:    "targets.mutate",
 		Args:    Arguments{},
 		Exports: Exports{},
 
@@ -25,10 +25,10 @@ func init() {
 	})
 }
 
-// Arguments holds values which are used to configure the discovery.transformer component.
+// Arguments holds values which are used to configure the targets.mutate component.
 type Arguments struct {
 	// Targets contains the input 'targets' passed by a service discovery component.
-	Targets []Target `hcl:"targets,optional"`
+	Targets []Target `hcl:"targets"`
 
 	// The relabelling steps to apply to the each target's label set.
 	RelabelConfigs []*RelabelConfig `hcl:"relabel_config,block"`
@@ -109,12 +109,12 @@ func (rc *RelabelConfig) DecodeHCL(body hcl.Body, ctx *hcl.EvalContext) error {
 	return nil
 }
 
-// Exports holds values which are exported by the discovery.transformer component.
+// Exports holds values which are exported by the targets.mutate component.
 type Exports struct {
 	Output []Target `hcl:"output,attr"`
 }
 
-// Component implements the discovery.transformer component.
+// Component implements the targets.mutate component.
 type Component struct {
 	opts component.Options
 }
@@ -123,7 +123,7 @@ var (
 	_ component.Component = (*Component)(nil)
 )
 
-// New creates a new discovery.transformer component.
+// New creates a new targets.mutate component.
 func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{opts: o}
 
@@ -196,7 +196,7 @@ func hclToPromRelabelConfigs(rcs []*RelabelConfig) []*relabel.Config {
 			TargetLabel:  rc.TargetLabel,
 			Replacement:  rc.Replacement,
 			Action:       relabel.Action(rc.Action),
-			Regex:        relabel.Regexp{Regexp: rc.Regex.Regexp}, // TODO (@tpaschalis) not super happy with how this turned out, let's check it again.
+			Regex:        relabel.Regexp{Regexp: rc.Regex.Regexp},
 		}
 	}
 
