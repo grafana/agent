@@ -49,7 +49,7 @@ targets | list(map(string)) | The targets to mutate. | | **yes**
 
 ### `relabel_config` block
 The `relabel_config` block contains the definition of any relabeling rules
-that can be applied to an input target.
+that can be applied to an input target. If more than one `relabel_config` block is defined within `targets.mutate`, the transformations will be applied in-order from top down.
 
 The following arguments can be used to configure a `relabel_config` block.
 All arguments are optional and any omitted fields will take on their default
