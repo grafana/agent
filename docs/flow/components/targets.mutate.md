@@ -44,7 +44,7 @@ components:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-targets | list(map(string)) | The targets to mutate. | | no
+targets | list(map(string)) | The targets to mutate. | | **yes**
 relabel_config | RelabelConfig | The relabeling steps to apply. | | no
 
 
