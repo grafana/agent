@@ -10,7 +10,7 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
-v0.25.1 (TBD)
+v0.25.1 (2022-06-16)
 -------------------------
 
 ### Bugfixes
