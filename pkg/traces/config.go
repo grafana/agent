@@ -58,6 +58,9 @@ const (
 
 	// sampling policies
 	alwaysSamplePolicy = "always_sample"
+
+	// otlp receiver
+	otlpReceiverName = "otlp"
 )
 
 // Config controls the configuration of Traces trace pipelines.
@@ -140,6 +143,40 @@ type InstanceConfig struct {
 // with an unknown set of sensitive information, ReceiverMap will marshal as
 // YAML to the text "<secret>".
 type ReceiverMap map[string]interface{}
+
+// UnmarshalYAML implements yaml.Unmarshaler.
+func (r *ReceiverMap) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	type plain ReceiverMap
+	if err := unmarshal((*plain)(r)); err != nil {
+		return err
+	}
+
+	protocols := []string{protocolHTTP, protocolGRPC}
+	// enable include_metadata by default if receiver is OTLP
+	for k := range *r {
+		if strings.HasPrefix(k, otlpReceiverName) {
+			// for http and grpc receivers, include_metadata is set to true by default
+			protocolsCfg, ok := (*r)[k].(map[interface{}]interface{})["protocols"].(map[interface{}]interface{})
+			if !ok {
+				return fmt.Errorf("failed to parse OTLP receiver config: %s", k)
+			}
+
+			for _, p := range protocols {
+				if cfg, ok := protocolsCfg[p]; ok {
+					if cfg == nil {
+						protocolsCfg[p] = map[interface{}]interface{}{"include_metadata": true}
+					} else {
+						if _, ok := cfg.(map[interface{}]interface{})["include_metadata"]; !ok {
+							protocolsCfg[p].(map[interface{}]interface{})["include_metadata"] = true
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return nil
+}
 
 // MarshalYAML implements yaml.Marshaler.
 func (r ReceiverMap) MarshalYAML() (interface{}, error) {

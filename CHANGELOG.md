@@ -67,6 +67,8 @@ v0.25.0 (2022-06-06)
 - Resolved issue in v2 integrations where if an instance name was a prefix of another the route handler would fail to
   match requests on the longer name (@mattdurham)
 
+- Set `include_metadata` to true by default for OTLP traces receivers (@mapno)
+
 
 ### Bugfixes
 
