@@ -16,6 +16,10 @@ Main (unreleased)
 
 - Introduce eBPF exporter integration. (@tpaschalis)
 
+
+v0.25.1 (2022-06-16)
+-------------------------
+
 ### Bugfixes
 
 - Integer types fail to unmarshal correctly in operator additional scrape configs. (@rlankfo)
