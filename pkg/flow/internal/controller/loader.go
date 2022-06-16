@@ -7,6 +7,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 
@@ -62,6 +63,13 @@ func (l *Loader) Apply(parentContext *hcl.EvalContext, blocks hcl.Blocks) hcl.Di
 
 	wireDiags := l.wireGraphEdges(&newGraph)
 	diags = diags.Extend(wireDiags)
+
+	// Validate graph to detect cycles
+	err := dag.Validate(&newGraph)
+	if err != nil {
+		diags = diags.Extend(multierrToDiags(err))
+		return diags
+	}
 
 	// Perform a transitive reduction of the graph to clean it up.
 	dag.Reduce(&newGraph)
@@ -221,4 +229,17 @@ func (l *Loader) evaluate(parent *hcl.EvalContext, c *ComponentNode, cacheArgs, 
 	if cacheExports {
 		l.cache.CacheExports(c.ID(), c.Exports())
 	}
+}
+
+func multierrToDiags(errors error) hcl.Diagnostics {
+	var diags hcl.Diagnostics
+	for _, err := range errors.(*multierror.Error).Errors {
+		diags = append(diags, &hcl.Diagnostic{
+			Severity: hcl.DiagError,
+			Summary:  err.Error(),
+			Detail:   err.Error(),
+			Subject:  nil,
+		})
+	}
+	return diags
 }
