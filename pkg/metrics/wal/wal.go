@@ -24,6 +24,12 @@ import (
 	"go.uber.org/atomic"
 )
 
+func init() {
+	GlobalRefID = &RefIdSource{
+      ref: atomic.NewUint64(0),
+	}
+}
+
 // ErrWALClosed is an error returned when a WAL operation can't run because the
 // storage has already been closed.
 var ErrWALClosed = fmt.Errorf("WAL storage closed")
@@ -104,33 +110,24 @@ func (m *storageMetrics) Unregister() {
 
 // RefIdSource contains a refid that can be reused across multiple instances
 type RefIdSource struct {
-	refid *atomic.Uint64
+	ref *atomic.Uint64
 }
 
 // Inc increments the refid and returns the new result
 func (r *RefIdSource) Inc() uint64 {
-	return r.refid.Inc()
+	return r.ref.Inc()
 }
 
 func (r *RefIdSource) Load() uint64 {
-	return r.refid.Load()
+	return r.ref.Load()
 }
 
 func (r *RefIdSource) Store(v uint64) {
-	r.refid.Store(v)
+	r.ref.Store(v)
 }
 
-var globalCache *RefIdSource
+var GlobalRefID *RefIdSource
 
-// GetGlobalCache returns a refid source that ensures the refids are globally unique
-func GetGlobalCache() *RefIdSource {
-	if globalCache == nil {
-		globalCache = &RefIdSource{
-			refid: atomic.NewUint64(0),
-		}
-	}
-	return globalCache
-}
 
 // Storage implements storage.Storage, and just writes to the WAL.
 type Storage struct {
@@ -210,7 +207,7 @@ func NewStorageWithRefidSource(logger log.Logger, registerer prometheus.Register
 
 // NewStorage makes a new Storage.
 func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string) (*Storage, error) {
-	return NewStorageWithRefidSource(logger, registerer, path, &RefIdSource{refid: atomic.NewUint64(0)})
+	return NewStorageWithRefidSource(logger, registerer, path, &RefIdSource{ref: atomic.NewUint64(0)})
 }
 
 
