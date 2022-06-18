@@ -102,6 +102,36 @@ func (m *storageMetrics) Unregister() {
 	}
 }
 
+// RefIdSource contains a refid that can be reused across multiple instances
+type RefIdSource struct {
+	refid *atomic.Uint64
+}
+
+// Inc increments the refid and returns the new result
+func (r *RefIdSource) Inc() uint64 {
+	return r.refid.Inc()
+}
+
+func (r *RefIdSource) Load() uint64 {
+	return r.refid.Load()
+}
+
+func (r *RefIdSource) Store(v uint64) {
+	r.refid.Store(v)
+}
+
+var globalCache *RefIdSource
+
+// GetGlobalCache returns a refid source that ensures the refids are globally unique
+func GetGlobalCache() *RefIdSource {
+	if globalCache == nil {
+		globalCache = &RefIdSource{
+			refid: atomic.NewUint64(0),
+		}
+	}
+	return globalCache
+}
+
 // Storage implements storage.Storage, and just writes to the WAL.
 type Storage struct {
 	// Embed Queryable/ChunkQueryable for compatibility, but don't actually implement it.
@@ -122,17 +152,17 @@ type Storage struct {
 	appenderPool sync.Pool
 	bufPool      sync.Pool
 
-	ref    *atomic.Uint64
 	series *stripeSeries
 
 	deletedMtx sync.Mutex
 	deleted    map[chunks.HeadSeriesRef]int // Deleted series, and what WAL segment they must be kept until.
 
 	metrics *storageMetrics
+
+	refIdSource *RefIdSource
 }
 
-// NewStorage makes a new Storage.
-func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string) (*Storage, error) {
+func NewStorageWithRefidSource(logger log.Logger, registerer prometheus.Registerer, path string, refid *RefIdSource) (*Storage, error) {
 	w, err := wal.NewSize(logger, registerer, SubDirectory(path), wal.DefaultSegmentSize, true)
 	if err != nil {
 		return nil, err
@@ -145,7 +175,7 @@ func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string
 		deleted: map[chunks.HeadSeriesRef]int{},
 		series:  newStripeSeries(),
 		metrics: newStorageMetrics(registerer),
-		ref:     atomic.NewUint64(0),
+		refIdSource: refid,
 	}
 
 	storage.bufPool.New = func() interface{} {
@@ -176,6 +206,13 @@ func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string
 
 	return storage, nil
 }
+
+
+// NewStorage makes a new Storage.
+func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string) (*Storage, error) {
+	return NewStorageWithRefidSource(logger, registerer, path, &RefIdSource{refid: atomic.NewUint64(0)})
+}
+
 
 func (w *Storage) replayWAL() error {
 	w.walMtx.RLock()
@@ -302,7 +339,7 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 		}
 	}()
 
-	var biggestRef uint64 = w.ref.Load()
+	var biggestRef = w.refIdSource.Load()
 
 	for d := range decoded {
 		switch v := d.(type) {
@@ -350,7 +387,7 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 		}
 	}
 
-	w.ref.Store(biggestRef)
+	w.refIdSource.Store(biggestRef)
 
 	select {
 	case err := <-errCh:
@@ -624,7 +661,7 @@ func (a *appender) getOrCreate(l labels.Labels) (series *memSeries, created bool
 		return series, false
 	}
 
-	ref := chunks.HeadSeriesRef(a.w.ref.Inc())
+	ref := chunks.HeadSeriesRef(a.w.refIdSource.Inc())
 	series = &memSeries{ref: ref, lset: l}
 	a.w.series.set(l.Hash(), series)
 	return series, true
