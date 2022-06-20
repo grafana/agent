@@ -40,13 +40,13 @@ k3d cluster delete agent-k3d
 
 ## Smoke Test Environment
 
-The smoke test environment is used to validate samples end to end.
+The smoke test environment is used to validate the end-to-end flow of observability signals.
 
 ### Running
 
 Smoke Test environment is invoked via `/scripts/smoke-test.bash`
 
-This tool will spin up cluster of Grafana Agent, Cortex, Avalanche, Smoke and [Crow](../../tools/crow/README.md) instances. The Smoke deployment will then periodically kill instances and check for any failed alerts. At the end of the duration (default 3h) it will end the testing.
+This tool will spin up cluster of Grafana Agent, Cortex, Avalanche, Smoke, [Crow](../../tools/crow/README.md), [Canary](https://grafana.com/docs/loki/latest/operations/loki-canary/) and [Vulture](https://github.com/grafana/tempo/blob/main/README.md#tempo-vulture) instances. The Smoke deployment will then periodically kill instances and check for any failed alerts. At the end of the duration (default 3h) it will end the testing.
 
 For users who do not have access to the `us.gcr.io/kubernetes-dev` container registry, do the following to run the smoke test:
 
@@ -66,7 +66,7 @@ k3d image import -c agent-smoke-test us.gcr.io/kubernetes-dev/grafana/agent-crow
 These alerts are viewable [here](http://prometheus.k3d.localhost:50080/alerts).
 
 Prometheus alerts are triggered:
-- If any Crow instances are not running or Crow samples are not being propagated correctly.
+- If any Crow/Vulture/Canary instances are not running or their samples are not being propagated correctly.
 - If any Grafana Agents are not running or Grafana Agent limits are outside their norm.
 
 NOTE: The alerts might be in pending until the system settles down.
@@ -98,12 +98,24 @@ By default, a k3d cluster will be created running the following instances
 - cortex
 - avalanche - selection of avalanche instances serving traffic
 - smoke - scales avalanche replicas and introduces chaos by deleting agent pods during testing
+- vulture - emits traces and checks if are stored properly
+- tempo
+- canary - emits logs and checks if they're propagated properly
+- loki
 
-Crow instance will check to see if the metrics that were scraped shows up in the prometheus endpoint and then will emit metrics on the success of those metrics. This success/failure result will trigger an alert if it is incorrect.
+Crow, Canary and Vulture instances will check to see if the metrics, logs and traces that were scraped show up correctly in the corresponding Prometheus/Loki/Tempo endpoints and then will emit metrics on the success of those metrics. This success/failure result will trigger an alert if it is incorrect.
 
-### Flow
+### Metrics Flow
 
 ![](./assets/order.png)
+
+### Traces Flow
+
+![](./assets/traces_flow.png)
+
+### Logs Flow
+
+![](./assets/logs_flow.png)
 
 ### Avalanche
 
