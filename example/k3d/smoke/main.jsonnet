@@ -1,5 +1,7 @@
 local monitoring = import './monitoring/main.jsonnet';
 local cortex = import 'cortex/main.libsonnet';
+local loki = import 'loki/main.libsonnet';
+local canary = import 'canary/main.libsonnet';
 local avalanche = import 'grafana-agent/smoke/avalanche/main.libsonnet';
 local crow = import 'grafana-agent/smoke/crow/main.libsonnet';
 local etcd = import 'grafana-agent/smoke/etcd/main.libsonnet';
@@ -9,6 +11,7 @@ local k = import 'ksonnet-util/kausal.libsonnet';
 
 local namespace = k.core.v1.namespace;
 local pvc = k.core.v1.persistentVolumeClaim;
+local statefulSet = k.apps.v1.statefulSet;
 local volumeMount = k.core.v1.volumeMount;
 
 local images = {
@@ -29,11 +32,17 @@ local new_smoke(name) = smoke.new(name, namespace='smoke', config={
   chaosFrequency: '30m',
 });
 
+local new_loki() = loki.new(namespace = 'smoke');
+
+local new_canary() = canary.new(namespace = 'smoke');
 
 local smoke = {
   ns: namespace.new('smoke'),
 
   cortex: cortex.new('smoke'),
+
+  loki: new_loki(),
+  canary: new_canary(),
 
   // Needed to run agent cluster
   etcd: etcd.new('smoke'),
@@ -53,7 +62,51 @@ local smoke = {
     new_crow('crow-cluster', 'cluster="grafana-agent-cluster"'),
   ],
 
-  local metric_instances(crow_name) = [{
+  local logs_instances() = [{
+    name: 'read-canary',
+    clients: [{
+      url: 'http://loki/loki/api/v1/push',
+      basic_auth: {
+        username: '104334',
+        password: 'noauth',
+      },
+      external_labels: {
+        cluster: "grafana-agent",
+      },
+
+    }],
+    scrape_configs: [{
+      job_name: 'read-canary-output',
+      kubernetes_sd_configs: [{ role: 'pod' }],
+      pipeline_stages: [
+        {cri: {}},
+      ],
+      relabel_configs: [{
+        source_labels: ['__meta_kubernetes_namespace'],
+        regex: 'smoke',
+        action: 'keep',
+      },
+      {
+        source_labels: ['__meta_kubernetes_pod_container_name'],
+        regex: 'loki-canary',
+        action: 'keep',
+      }, 
+      {
+        action: 'replace',
+        source_labels: ['__meta_kubernetes_pod_uid', '__meta_kubernetes_pod_container_name'],
+        target_label: '__path__',
+        separator: '/',
+        replacement: '/var/log/pods/*$1/*.log',
+      },
+      {
+        action: 'replace',
+        source_labels: ['__meta_kubernetes_pod_name'],
+        target_label: 'pod',
+      }],
+    }],
+  }],
+
+  local metric_instances(crow_name, canary_name) = [{
     name: 'crow',
     remote_write: [
       {
@@ -95,6 +148,24 @@ local smoke = {
         }, {
           source_labels: ['__meta_kubernetes_pod_container_name'],
           regex: crow_name,
+          action: 'keep',
+        }],
+      },
+      {
+        job_name: 'canary',
+        kubernetes_sd_configs: [{ role: 'pod' }],
+        tls_config: {
+          ca_file: '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt',
+        },
+        bearer_token_file: '/var/run/secrets/kubernetes.io/serviceaccount/token',
+
+        relabel_configs: [{
+          source_labels: ['__meta_kubernetes_namespace'],
+          regex: 'smoke',
+          action: 'keep',
+        }, {
+          source_labels: ['__meta_kubernetes_pod_container_name'],
+          regex: canary_name,
           action: 'keep',
         }],
       },
@@ -160,9 +231,13 @@ local smoke = {
     ) +
     gragent.withVolumeMountsMixin([volumeMount.new('agent-wal', '/var/lib/agent')]) +
     gragent.withService() +
+    gragent.withLogVolumeMounts() +
     gragent.withAgentConfig({
       server: { log_level: 'debug' },
-
+      logs: {
+        positions_directory: "/var/lib/agent/logs-positions",
+        configs: logs_instances(),
+      },
       prometheus: {
         global: {
           scrape_interval: '1m',
@@ -171,7 +246,7 @@ local smoke = {
           },
         },
         wal_directory: '/var/lib/agent/data',
-        configs: metric_instances('crow-single'),
+        configs: metric_instances('crow-single', 'canary'),
       },
     }),
 
@@ -190,6 +265,7 @@ local smoke = {
     ) +
     gragent.withVolumeMountsMixin([volumeMount.new('agent-cluster-wal', '/var/lib/agent')]) +
     gragent.withService() +
+    gragent.withLogVolumeMounts() +
     gragent.withAgentConfig({
       server: { log_level: 'debug' },
 
@@ -229,7 +305,7 @@ local smoke = {
     config={
       image: images.agentctl,
       api: 'http://grafana-agent-cluster.smoke.svc.cluster.local',
-      configs: metric_instances('crow-cluster'),
+      configs: metric_instances('crow-cluster', 'canary'),
     }
   ),
 };
