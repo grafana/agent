@@ -26,7 +26,7 @@ import (
 
 func init() {
 	GlobalRefID = &RefIdSource{
-      ref: atomic.NewUint64(0),
+		ref: atomic.NewUint64(0),
 	}
 }
 
@@ -118,16 +118,18 @@ func (r *RefIdSource) Inc() uint64 {
 	return r.ref.Inc()
 }
 
+// Load returns the current value
 func (r *RefIdSource) Load() uint64 {
 	return r.ref.Load()
 }
 
+// Store sets the valid
 func (r *RefIdSource) Store(v uint64) {
 	r.ref.Store(v)
 }
 
+// GlobalRefID can be used when a singleton is needed to keep all reference ids unique
 var GlobalRefID *RefIdSource
-
 
 // Storage implements storage.Storage, and just writes to the WAL.
 type Storage struct {
@@ -166,12 +168,12 @@ func NewStorageWithRefidSource(logger log.Logger, registerer prometheus.Register
 	}
 
 	storage := &Storage{
-		path:    path,
-		wal:     w,
-		logger:  logger,
-		deleted: map[chunks.HeadSeriesRef]int{},
-		series:  newStripeSeries(),
-		metrics: newStorageMetrics(registerer),
+		path:        path,
+		wal:         w,
+		logger:      logger,
+		deleted:     map[chunks.HeadSeriesRef]int{},
+		series:      newStripeSeries(),
+		metrics:     newStorageMetrics(registerer),
 		refIdSource: refid,
 	}
 
@@ -204,12 +206,10 @@ func NewStorageWithRefidSource(logger log.Logger, registerer prometheus.Register
 	return storage, nil
 }
 
-
 // NewStorage makes a new Storage.
 func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string) (*Storage, error) {
 	return NewStorageWithRefidSource(logger, registerer, path, &RefIdSource{ref: atomic.NewUint64(0)})
 }
-
 
 func (w *Storage) replayWAL() error {
 	w.walMtx.RLock()
