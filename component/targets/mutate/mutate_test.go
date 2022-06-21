@@ -1,10 +1,10 @@
-package transformer_test
+package mutate_test
 
 import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/component/discovery/transformer"
+	"github.com/grafana/agent/component/targets/mutate"
 	"github.com/grafana/agent/pkg/flow/componenttest"
 	"github.com/hashicorp/hcl/v2/hclparse"
 	"github.com/rfratto/gohcl"
@@ -55,8 +55,8 @@ relabel_config {
 }
 
 `
-	expectedExports := transformer.Exports{
-		OutputTargets: []transformer.Target{
+	expectedExports := mutate.Exports{
+		Output: []mutate.Target{
 			map[string]string{"__address__": "localhost", "app": "backend", "destination": "localhost/one", "meta_bar": "bar", "meta_foo": "foo", "name": "one"},
 		},
 	}
@@ -65,11 +65,11 @@ relabel_config {
 	file, diags := parser.ParseHCL([]byte(hclArguments), "agent-config.flow")
 	require.False(t, diags.HasErrors())
 
-	var args transformer.Arguments
+	var args mutate.Arguments
 	diags = gohcl.DecodeBody(file.Body, nil, &args)
 	require.False(t, diags.HasErrors())
 
-	tc, err := componenttest.NewControllerFromID(nil, "discovery.transformer")
+	tc, err := componenttest.NewControllerFromID(nil, "targets.mutate")
 	require.NoError(t, err)
 	go func() {
 		err = tc.Run(componenttest.TestContext(t), args)

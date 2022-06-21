@@ -10,11 +10,22 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
-## Features
+### Features
 
 - Introduce Apache HTTP exporter integration. (@v-zhuravlev)
 
 - Introduce eBPF exporter integration. (@tpaschalis)
+
+
+v0.25.1 (2022-06-16)
+-------------------------
+
+### Bugfixes
+
+- Integer types fail to unmarshal correctly in operator additional scrape configs. (@rlankfo)
+
+- Unwrap replayWAL error before attempting corruption repair. (@rlankfo)
+
 
 v0.25.0 (2022-06-06)
 -------------------------
@@ -59,6 +70,8 @@ v0.25.0 (2022-06-06)
 
 - Resolved issue in v2 integrations where if an instance name was a prefix of another the route handler would fail to
   match requests on the longer name (@mattdurham)
+
+- Set `include_metadata` to true by default for OTLP traces receivers (@mapno)
 
 
 ### Bugfixes
