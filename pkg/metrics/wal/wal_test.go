@@ -239,7 +239,7 @@ func TestStorage_ExistingWAL_RefID(t *testing.T) {
 	require.NoError(t, err)
 	defer require.NoError(t, s.Close())
 
-	require.Equal(t, uint64(len(payload)), s.refIDSource.Load(), "cached ref ID should be equal to the number of series written")
+	require.Equal(t, uint64(len(payload)), s.ref.Load(), "cached ref ID should be equal to the number of series written")
 }
 
 func TestStorage_Truncate(t *testing.T) {
@@ -406,13 +406,13 @@ func TestGlobalReferenceID_UsingGlobal(t *testing.T) {
 	walDir, _ := ioutil.TempDir(os.TempDir(), "wal")
 	defer os.RemoveAll(walDir)
 
-	s, _ := NewStorageWithRefidSource(log.NewNopLogger(), nil, walDir, GlobalRefID)
+	s, _ := NewStorageWithRefIDSource(log.NewNopLogger(), nil, walDir, GlobalRefID)
 	defer s.Close()
 
 	walDir2, _ := ioutil.TempDir(os.TempDir(), "wal")
 	defer os.RemoveAll(walDir2)
 
-	s2, _ := NewStorageWithRefidSource(log.NewNopLogger(), nil, walDir2, GlobalRefID)
+	s2, _ := NewStorageWithRefIDSource(log.NewNopLogger(), nil, walDir2, GlobalRefID)
 	defer s2.Close()
 
 	app1 := s.Appender(context.Background())
