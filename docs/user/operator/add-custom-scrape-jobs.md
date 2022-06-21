@@ -39,7 +39,7 @@ metadata:
 stringData:
   jobs.yaml: |
     - bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
-      job_name: integrations/kubernetes/kubelet
+      job_name: kubelet
       kubernetes_sd_configs:
       - role: node
       relabel_configs:
@@ -62,7 +62,7 @@ stringData:
       tls_config:
         ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
     - bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
-      job_name: integrations/kubernetes/cadvisor
+      job_name: cadvisor
       kubernetes_sd_configs:
       - role: node
       relabel_configs:

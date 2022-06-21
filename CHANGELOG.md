@@ -16,6 +16,10 @@ Main (unreleased)
 
 - Introduce eBPF exporter integration. (@tpaschalis)
 
+### Bugfixes
+
+- Documentation around ServiceMonitor and custom scrape configuration has been updated to match the Grafana Kubernetes dashboards. This might break backwards compatability with Grafana Cloud Kubernetes Integration (but has already been behind a warning sign for a while) (@flokli)
+
 
 v0.25.1 (2022-06-16)
 -------------------------

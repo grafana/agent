@@ -229,14 +229,14 @@ spec:
       regex: kubelet_cgroup_manager_duration_seconds_count|go_goroutines|kubelet_pod_start_duration_seconds_count|kubelet_runtime_operations_total|kubelet_pleg_relist_duration_seconds_bucket|volume_manager_total_volumes|kubelet_volume_stats_capacity_bytes|container_cpu_usage_seconds_total|container_network_transmit_bytes_total|kubelet_runtime_operations_errors_total|container_network_receive_bytes_total|container_memory_swap|container_network_receive_packets_total|container_cpu_cfs_periods_total|container_cpu_cfs_throttled_periods_total|kubelet_running_pod_count|node_namespace_pod_container:container_cpu_usage_seconds_total:sum_rate|container_memory_working_set_bytes|storage_operation_errors_total|kubelet_pleg_relist_duration_seconds_count|kubelet_running_pods|rest_client_request_duration_seconds_bucket|process_resident_memory_bytes|storage_operation_duration_seconds_count|kubelet_running_containers|kubelet_runtime_operations_duration_seconds_bucket|kubelet_node_config_error|kubelet_cgroup_manager_duration_seconds_bucket|kubelet_running_container_count|kubelet_volume_stats_available_bytes|kubelet_volume_stats_inodes|container_memory_rss|kubelet_pod_worker_duration_seconds_count|kubelet_node_name|kubelet_pleg_relist_interval_seconds_bucket|container_network_receive_packets_dropped_total|kubelet_pod_worker_duration_seconds_bucket|container_start_time_seconds|container_network_transmit_packets_dropped_total|process_cpu_seconds_total|storage_operation_duration_seconds_bucket|container_memory_cache|container_network_transmit_packets_total|kubelet_volume_stats_inodes_used|up|rest_client_requests_total
       sourceLabels:
       - __name__
-    - action: replace
-      targetLabel: job
-      replacement: integrations/kubernetes/kubelet
     port: https-metrics
     relabelings:
     - sourceLabels:
       - __metrics_path__
       targetLabel: metrics_path
+    - action: replace
+      targetLabel: job
+      replacement: kubelet
     scheme: https
     tlsConfig:
       insecureSkipVerify: true
@@ -269,15 +269,14 @@ spec:
       regex: kubelet_cgroup_manager_duration_seconds_count|go_goroutines|kubelet_pod_start_duration_seconds_count|kubelet_runtime_operations_total|kubelet_pleg_relist_duration_seconds_bucket|volume_manager_total_volumes|kubelet_volume_stats_capacity_bytes|container_cpu_usage_seconds_total|container_network_transmit_bytes_total|kubelet_runtime_operations_errors_total|container_network_receive_bytes_total|container_memory_swap|container_network_receive_packets_total|container_cpu_cfs_periods_total|container_cpu_cfs_throttled_periods_total|kubelet_running_pod_count|node_namespace_pod_container:container_cpu_usage_seconds_total:sum_rate|container_memory_working_set_bytes|storage_operation_errors_total|kubelet_pleg_relist_duration_seconds_count|kubelet_running_pods|rest_client_request_duration_seconds_bucket|process_resident_memory_bytes|storage_operation_duration_seconds_count|kubelet_running_containers|kubelet_runtime_operations_duration_seconds_bucket|kubelet_node_config_error|kubelet_cgroup_manager_duration_seconds_bucket|kubelet_running_container_count|kubelet_volume_stats_available_bytes|kubelet_volume_stats_inodes|container_memory_rss|kubelet_pod_worker_duration_seconds_count|kubelet_node_name|kubelet_pleg_relist_interval_seconds_bucket|container_network_receive_packets_dropped_total|kubelet_pod_worker_duration_seconds_bucket|container_start_time_seconds|container_network_transmit_packets_dropped_total|process_cpu_seconds_total|storage_operation_duration_seconds_bucket|container_memory_cache|container_network_transmit_packets_total|kubelet_volume_stats_inodes_used|up|rest_client_requests_total
       sourceLabels:
       - __name__
-    - action: replace
-      targetLabel: job
-      replacement: integrations/kubernetes/cadvisor
     path: /metrics/cadvisor
     port: https-metrics
     relabelings:
     - sourceLabels:
       - __metrics_path__
       targetLabel: metrics_path
+    - replacement: cadvisor
+      targetLabel: job
     scheme: https
     tlsConfig:
       insecureSkipVerify: true
@@ -289,7 +288,7 @@ spec:
       app.kubernetes.io/name: kubelet
 ```
 
-These two ServiceMonitors configure Agent to scrape all the Kubelet and cAdvisor endpoints in your Kubernetes cluster (one of each per Node). In addition, it defines a `job` label which you may change (it is preset here for compatibility with Grafana Cloud's Kubernetes integration), and allowlists a core set of Kubernetes metrics to reduce remote metrics usage. If you don't need this allowlist, you may omit it, however note that your metrics usage will increase significantly.
+These two ServiceMonitors configure Agent to scrape all the Kubelet and cAdvisor endpoints in your Kubernetes cluster (one of each per Node). In addition, they define a `job` label, which is `kubelet` and `cadvisor` respectively, to match the label values used in various Grafana Kubernetes Dashboards, and allowlists a core set of Kubernetes metrics to reduce remote metrics usage. If you don't need this allowlist, you may omit it, however note that your metrics usage will increase significantly.
 
  When you're done, Agent should now be shipping Kubelet and cAdvisor metrics to your remote Prometheus endpoint.
 

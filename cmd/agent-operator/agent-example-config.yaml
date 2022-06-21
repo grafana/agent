@@ -184,6 +184,8 @@ spec:
     - sourceLabels:
       - __metrics_path__
       targetLabel: metrics_path
+    - replacement: cadvisor
+      targetLabel: job
     scheme: https
     tlsConfig:
       insecureSkipVerify: true
