@@ -10,6 +10,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/grafana/agent/component/metrics"
+
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
@@ -35,7 +37,7 @@ var (
 	minWALTime           = 5 * time.Minute
 	maxWALTime           = 8 * time.Hour
 	remoteFlushDeadline  = 1 * time.Minute
-	refCache             = wal.NewTraditionalCache()
+	refCache             = wal.GlobalRefID
 )
 
 func init() {
@@ -43,7 +45,7 @@ func init() {
 	config.DefaultRemoteWriteConfig.SendExemplars = true
 
 	component.Register(component.Registration{
-		Name:    "remote_write",
+		Name:    "metrics.remote_write",
 		Args:    RemoteConfig{},
 		Exports: Export{},
 		Build: func(o component.Options, c component.Arguments) (component.Component, error) {
@@ -51,7 +53,6 @@ func init() {
 		},
 	})
 
-	component.RegisterGoStruct("MetricsReceiver", components.MetricsReceiver{})
 }
 
 // RemoteConfig represents the input state of the metrics_forwarder component.
@@ -69,7 +70,7 @@ type RemoteWriteConfig struct {
 }
 
 type Export struct {
-	Receiver *components.MetricsReceiver `hcl:"receiver"`
+	Receiver *metrics.Receiver `hcl:"receiver"`
 }
 
 // BasicAuthConfig is the metrics_forwarder's configuration for authenticating
@@ -83,7 +84,7 @@ type BasicAuthConfig struct {
 type Component struct {
 	log  log.Logger
 	opts component.Options
-	reg  *components.CollectorRegistry
+	reg  *metrics.CollectorRegistry
 
 	walStore    *wal.Storage
 	remoteStore *remote.Storage
@@ -91,17 +92,18 @@ type Component struct {
 
 	mut sync.RWMutex
 	cfg RemoteConfig
+
+	receiver *metrics.Receiver
 }
 
 // NewComponent creates a new metrics_forwarder component.
 func NewComponent(o component.Options, c RemoteConfig) (*Component, error) {
-	reg := components.NewCollectorRegistry()
+	reg := metrics.NewCollectorRegistry()
 
 	// TODO(rfratto): don't hardcode base path
 	walLogger := log.With(o.Logger, "subcomponent", "wal")
 	dataPath := filepath.Join("data-agent", o.ID)
-	// LOOK HERE
-	walStorage, err := wal.NewStorageWithRefCache(walLogger, reg, filepath.Join("data-agent", o.ID), refCache)
+	walStorage, err := wal.NewStorageWithRefIDSource(walLogger, reg, filepath.Join("data-agent", o.ID), refCache)
 	if err != nil {
 		return nil, err
 	}
@@ -118,6 +120,7 @@ func NewComponent(o component.Options, c RemoteConfig) (*Component, error) {
 		remoteStore: remoteStore,
 		storage:     storage.NewFanout(o.Logger, walStorage, remoteStore),
 	}
+	res.receiver = &metrics.Receiver{Receive: res.Receive}
 	if err := res.Update(c); err != nil {
 		return nil, err
 	}
@@ -130,7 +133,7 @@ var _ component.Component = (*Component)(nil)
 
 // Run implements Component.
 func (c *Component) Run(ctx context.Context) error {
-	c.opts.OnStateChange(Export{Receiver: &components.MetricsReceiver{Appendable: c.storage}})
+	c.opts.OnStateChange(Export{Receiver: c.receiver})
 	defer func() {
 		level.Debug(c.log).Log("msg", "closing storage")
 		err := c.storage.Close()
@@ -240,6 +243,20 @@ func (c *Component) Update(newConfig component.Arguments) error {
 
 	c.cfg = cfg
 	return nil
+}
+
+func (c *Component) Receive(ts int64, metrics []metrics.FlowMetric) {
+	app := c.walStore.Appender(context.Background())
+	for _, m := range metrics {
+		_, err := app.Append(m.Ref, m.Labels, ts, m.Value)
+		if err != nil {
+			_ = app.Rollback()
+			//TODO what should we log and behave?
+			level.Error(c.log).Log("err", err, "msg", "error receiving metrics", "component", c.opts.ID)
+			return
+		}
+	}
+	_ = app.Commit()
 }
 
 func toLabels(in map[string]string) labels.Labels {
