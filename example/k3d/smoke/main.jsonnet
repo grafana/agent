@@ -1,7 +1,9 @@
 local monitoring = import './monitoring/main.jsonnet';
 local cortex = import 'cortex/main.libsonnet';
+local tempo = import 'tempo/main.libsonnet';
 local avalanche = import 'grafana-agent/smoke/avalanche/main.libsonnet';
 local crow = import 'grafana-agent/smoke/crow/main.libsonnet';
+local vulture = import 'grafana-agent/smoke/vulture/main.libsonnet';
 local etcd = import 'grafana-agent/smoke/etcd/main.libsonnet';
 local smoke = import 'grafana-agent/smoke/main.libsonnet';
 local gragent = import 'grafana-agent/v2/main.libsonnet';
@@ -35,6 +37,8 @@ local smoke = {
 
   cortex: cortex.new('smoke'),
 
+  tempo: tempo.new('smoke'),
+
   // Needed to run agent cluster
   etcd: etcd.new('smoke'),
 
@@ -52,6 +56,8 @@ local smoke = {
     new_crow('crow-single', 'cluster="grafana-agent"'),
     new_crow('crow-cluster', 'cluster="grafana-agent-cluster"'),
   ],
+
+  vulture: vulture.new(namespace='smoke'),
 
   local metric_instances(crow_name) = [{
     name: 'crow',
