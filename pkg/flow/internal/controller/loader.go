@@ -89,7 +89,14 @@ func (l *Loader) Apply(parentContext *hcl.EvalContext, blocks hcl.Blocks) hcl.Di
 		// We cache both arguments and exports during an initial load in case the
 		// component is new; we want to make sure that all fields are available
 		// before the component updates its exports for the first time.
-		l.evaluate(parentContext, n.(*ComponentNode), true, true)
+		if err := l.evaluate(parentContext, n.(*ComponentNode), true, true); err != nil {
+			diags = diags.Append(&hcl.Diagnostic{
+				Severity: hcl.DiagError,
+				Summary:  "Failed to build component",
+				Detail:   err.Error(),
+				Subject:  &n.(*ComponentNode).block.DefRange,
+			})
+		}
 		return nil
 	})
 
@@ -210,18 +217,18 @@ func (l *Loader) EvaluateDependencies(parentContext *hcl.EvalContext, c *Compone
 			// arguments will need re-evaluation.
 			return nil
 		}
-		l.evaluate(parentContext, n.(*ComponentNode), true, false)
+		_ = l.evaluate(parentContext, n.(*ComponentNode), true, false)
 		return nil
 	})
 }
 
 // evaluate constructs the final context for c and evalutes it. mut must be
 // held when calling evaluate.
-func (l *Loader) evaluate(parent *hcl.EvalContext, c *ComponentNode, cacheArgs, cacheExports bool) {
+func (l *Loader) evaluate(parent *hcl.EvalContext, c *ComponentNode, cacheArgs, cacheExports bool) error {
 	ectx := l.cache.BuildContext(parent)
 	if err := c.Evaluate(ectx); err != nil {
 		level.Error(l.log).Log("msg", "failed to evaluate component", "component", c.NodeID(), "err", err)
-		return
+		return err
 	}
 	if cacheArgs {
 		l.cache.CacheArguments(c.ID(), c.Arguments())
@@ -229,6 +236,7 @@ func (l *Loader) evaluate(parent *hcl.EvalContext, c *ComponentNode, cacheArgs, 
 	if cacheExports {
 		l.cache.CacheExports(c.ID(), c.Exports())
 	}
+	return nil
 }
 
 func multierrToDiags(errors error) hcl.Diagnostics {
