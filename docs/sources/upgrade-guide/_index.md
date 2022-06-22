@@ -14,6 +14,14 @@ releases and how to migrate to newer versions.
 
 These changes will come in a future version.
 
+### Breaking change: Deprecated YAML fields in `server` block removed
+
+The YAML fields which were first [deprecated in the v0.24.0
+release](#deprecation-on-yaml-fields-in-server-block-that-have-flags) have now
+been removed, replaced by equivalent command line flags. Please refer to the
+original deprecation notice for instructions for how to migrate to the command
+line flags.
+
 ## v0.24.0
 
 ### Breaking change: Integrations renamed when `integrations-next` feature flag is used

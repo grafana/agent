@@ -11,7 +11,6 @@ import (
 	"net"
 	"net/http"
 	_ "net/http/pprof" // anonymous import to get the pprof handler registered
-	"reflect"
 	"sync"
 
 	"github.com/go-kit/log"
@@ -41,8 +40,8 @@ type DialContextFunc func(ctx context.Context, network string, addr string) (net
 // Unless instrumentation is disabled in the Servers config, Prometheus metrics
 // will be automatically generated for the server.
 type Server struct {
-	optsMut sync.Mutex
-	opts    Flags
+	flagsMut sync.Mutex
+	flags    Flags
 
 	// Listeners for in-memory connections. These never use TLS.
 	httpMemListener *memconn.Listener
@@ -127,21 +126,18 @@ func newMetrics(r prometheus.Registerer) (*metrics, error) {
 //
 // g is used for collecting metrics from the instrumentation handlers, when
 // enabled. If g is nil, a /metrics endpoint will not be registered.
-func New(l log.Logger, r prometheus.Registerer, g prometheus.Gatherer, cfg Config) (srv *Server, err error) {
-	// TODO(rfratto): make a argument and remove from Config struct in v0.26.0.
-	opts := cfg.Flags
-
+func New(l log.Logger, r prometheus.Registerer, g prometheus.Gatherer, cfg Config, flags Flags) (srv *Server, err error) {
 	if l == nil {
 		l = log.NewNopLogger()
 	}
 	wrappedLogger := GoKitLogger(l)
 
 	switch {
-	case opts.HTTP.InMemoryAddr == "":
+	case flags.HTTP.InMemoryAddr == "":
 		return nil, fmt.Errorf("in memory HTTP address must be configured")
-	case opts.GRPC.InMemoryAddr == "":
+	case flags.GRPC.InMemoryAddr == "":
 		return nil, fmt.Errorf("in memory gRPC address must be configured")
-	case opts.HTTP.InMemoryAddr == opts.GRPC.InMemoryAddr:
+	case flags.HTTP.InMemoryAddr == flags.GRPC.InMemoryAddr:
 		return nil, fmt.Errorf("in memory HTTP and gRPC address must be different")
 	}
 
@@ -151,7 +147,7 @@ func New(l log.Logger, r prometheus.Registerer, g prometheus.Gatherer, cfg Confi
 	}
 
 	// Create listeners first so we can fail early if the port is in use.
-	httpListener, err := newHTTPListener(&opts.HTTP, m)
+	httpListener, err := newHTTPListener(&flags.HTTP, m)
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +156,7 @@ func New(l log.Logger, r prometheus.Registerer, g prometheus.Gatherer, cfg Confi
 			_ = httpListener.Close()
 		}
 	}()
-	grpcListener, err := newGRPCListener(&opts.GRPC, m)
+	grpcListener, err := newGRPCListener(&flags.GRPC, m)
 	if err != nil {
 		return nil, err
 	}
@@ -175,7 +171,7 @@ func New(l log.Logger, r prometheus.Registerer, g prometheus.Gatherer, cfg Confi
 		updateHTTPTLS func(TLSConfig) error
 		updateGRPCTLS func(TLSConfig) error
 	)
-	if opts.HTTP.UseTLS {
+	if flags.HTTP.UseTLS {
 		httpTLSListener, err := newTLSListener(httpListener, cfg.HTTP.TLSConfig, l)
 		if err != nil {
 			return nil, fmt.Errorf("generating HTTP TLS config: %w", err)
@@ -183,7 +179,7 @@ func New(l log.Logger, r prometheus.Registerer, g prometheus.Gatherer, cfg Confi
 		httpListener = httpTLSListener
 		updateHTTPTLS = httpTLSListener.ApplyConfig
 	}
-	if opts.GRPC.UseTLS {
+	if flags.GRPC.UseTLS {
 		grpcTLSListener, err := newTLSListener(grpcListener, cfg.GRPC.TLSConfig, l)
 		if err != nil {
 			return nil, fmt.Errorf("generating GRPC TLS config: %w", err)
@@ -195,12 +191,12 @@ func New(l log.Logger, r prometheus.Registerer, g prometheus.Gatherer, cfg Confi
 	level.Info(l).Log(
 		"msg", "server listening on addresses",
 		"http", httpListener.Addr(), "grpc", grpcListener.Addr(),
-		"http_tls_enabled", opts.HTTP.UseTLS, "grpc_tls_enabled", opts.GRPC.UseTLS,
+		"http_tls_enabled", flags.HTTP.UseTLS, "grpc_tls_enabled", flags.GRPC.UseTLS,
 	)
 
 	// Build servers
-	grpcServer := newGRPCServer(wrappedLogger, &opts.GRPC, m)
-	httpServer, router, err := newHTTPServer(wrappedLogger, g, &opts, m)
+	grpcServer := newGRPCServer(wrappedLogger, &flags.GRPC, m)
+	httpServer, router, err := newHTTPServer(wrappedLogger, g, &flags, m)
 	if err != nil {
 		return nil, err
 	}
@@ -212,9 +208,9 @@ func New(l log.Logger, r prometheus.Registerer, g prometheus.Gatherer, cfg Confi
 	)
 	dialFunc := func(ctx context.Context, network string, address string) (net.Conn, error) {
 		switch address {
-		case opts.HTTP.InMemoryAddr:
+		case flags.HTTP.InMemoryAddr:
 			return httpMemListener.DialContext(ctx)
-		case opts.GRPC.InMemoryAddr:
+		case flags.GRPC.InMemoryAddr:
 			return grpcMemListener.DialContext(ctx)
 		default:
 			return (&net.Dialer{}).DialContext(ctx, network, address)
@@ -222,7 +218,7 @@ func New(l log.Logger, r prometheus.Registerer, g prometheus.Gatherer, cfg Confi
 	}
 
 	return &Server{
-		opts:            opts,
+		flags:           flags,
 		httpListener:    httpListener,
 		grpcListener:    grpcListener,
 		httpMemListener: httpMemListener,
@@ -239,7 +235,7 @@ func New(l log.Logger, r prometheus.Registerer, g prometheus.Gatherer, cfg Confi
 }
 
 func newHTTPListener(opts *HTTPFlags, m *metrics) (net.Listener, error) {
-	httpAddress := opts.GetListenAddress()
+	httpAddress := opts.ListenAddress
 	if httpAddress == "" {
 		return nil, fmt.Errorf("http address not set")
 	}
@@ -257,7 +253,7 @@ func newHTTPListener(opts *HTTPFlags, m *metrics) (net.Listener, error) {
 }
 
 func newGRPCListener(opts *GRPCFlags, m *metrics) (net.Listener, error) {
-	grpcAddress := opts.GetListenAddress()
+	grpcAddress := opts.ListenAddress
 	if grpcAddress == "" {
 		return nil, fmt.Errorf("gRPC address not set")
 	}
@@ -362,14 +358,10 @@ func (s *Server) HTTPAddress() net.Addr { return s.httpListener.Addr() }
 // GRPCAddress returns the GRPC net.Addr of this Server.
 func (s *Server) GRPCAddress() net.Addr { return s.grpcListener.Addr() }
 
-// ApplyConfig applies changes to the Server block. ApplyConfig will fail if
-// the cfg.Flags field has been changed.
-//
-// v0.26.0 will remove YAML support for cfg.Flags and remove it out of the
-// Config struct to simplify dynamic updating.
+// ApplyConfig applies changes to the Server block.
 func (s *Server) ApplyConfig(cfg Config) error {
-	s.optsMut.Lock()
-	defer s.optsMut.Unlock()
+	s.flagsMut.Lock()
+	defer s.flagsMut.Unlock()
 
 	// N.B. LogLevel/LogFormat support dynamic updating but are never used in
 	// *Server, so they're ignored here.
@@ -385,9 +377,6 @@ func (s *Server) ApplyConfig(cfg Config) error {
 		}
 	}
 
-	if !reflect.DeepEqual(s.opts, cfg.Flags) {
-		return fmt.Errorf("cannot dynamically update values for deprecated YAML fields")
-	}
 	return nil
 }
 
@@ -419,7 +408,7 @@ func (s *Server) Run(ctx context.Context) error {
 			}
 			return err
 		}, func(_ error) {
-			ctx, cancel := context.WithTimeout(context.Background(), s.opts.GracefulShutdownTimeout)
+			ctx, cancel := context.WithTimeout(context.Background(), s.flags.GracefulShutdownTimeout)
 			defer cancel()
 			_ = s.HTTPServer.Shutdown(ctx)
 		})

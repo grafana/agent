@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strconv"
 	"strings"
 	"testing"
 	"unicode"
@@ -53,6 +52,7 @@ var (
 var DefaultConfig = Config{
 	// All subsystems with a DefaultConfig should be listed here.
 	Server:                server.DefaultConfig,
+	ServerFlags:           server.DefaultFlags,
 	Metrics:               metrics.DefaultConfig,
 	Integrations:          DefaultVersionedIntegrations,
 	EnableConfigEndpoints: false,
@@ -66,6 +66,9 @@ type Config struct {
 	Integrations VersionedIntegrations `yaml:"integrations,omitempty"`
 	Traces       traces.Config         `yaml:"traces,omitempty"`
 	Logs         *logs.Config          `yaml:"logs,omitempty"`
+
+	// Flag-only fields
+	ServerFlags server.Flags `yaml:"-"`
 
 	// Deprecated fields user has used. Generated during UnmarshalYAML.
 	Deprecations []string `yaml:"-"`
@@ -180,19 +183,14 @@ func (c *Config) Validate(fs *flag.FlagSet) error {
 		return err
 	}
 
-	// Need to propagate the listen address to the host and port
-	if c.Server.Flags.GRPC.ListenAddress != "" {
-		addressPort := strings.Split(c.Server.Flags.GRPC.ListenAddress, ":")
-		port, err := strconv.Atoi(addressPort[1])
-		if err != nil {
-			return err
-		}
-		c.Server.Flags.GRPC.ListenPort = port
-		c.Server.Flags.GRPC.ListenHost = addressPort[0]
+	// Need to propagate the listen address to the host and grpcPort
+	_, grpcPort, err := c.ServerFlags.GRPC.ListenHostPort()
+	if err != nil {
+		return err
 	}
-	c.Metrics.ServiceConfig.Lifecycler.ListenPort = c.Server.Flags.GRPC.ListenPort
+	c.Metrics.ServiceConfig.Lifecycler.ListenPort = grpcPort
 
-	if err := c.Integrations.ApplyDefaults(&c.Server, &c.Metrics); err != nil {
+	if err := c.Integrations.ApplyDefaults(&c.ServerFlags, &c.Metrics); err != nil {
 		return err
 	}
 
@@ -218,7 +216,7 @@ func (c *Config) Validate(fs *flag.FlagSet) error {
 // RegisterFlags registers flags in underlying configs
 func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	c.Metrics.RegisterFlags(f)
-	c.Server.RegisterFlags(f)
+	c.ServerFlags.RegisterFlags(f)
 
 	f.StringVar(&c.BasicAuthUser, "config.url.basic-auth-user", "",
 		"basic auth username for fetching remote config. (requires remote-configs experiment to be enabled")
