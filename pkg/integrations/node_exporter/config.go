@@ -80,7 +80,7 @@ func init() {
 
 // Config controls the node_exporter integration.
 type Config struct {
-	IncludeExporterMetrics bool `yaml:"include_exporter_metrics,omitempty" hcl:"include_exporter_metrics,optional"`
+	IncludeExporterMetrics bool `yaml:"include_exporter_metrics,omitempty"`
 
 	ProcFSPath string `yaml:"procfs_path,omitempty"`
 	SysFSPath  string `yaml:"sysfs_path,omitempty"`
