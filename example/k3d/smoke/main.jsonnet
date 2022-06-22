@@ -12,6 +12,7 @@ local k = import 'ksonnet-util/kausal.libsonnet';
 local namespace = k.core.v1.namespace;
 local pvc = k.core.v1.persistentVolumeClaim;
 local volumeMount = k.core.v1.volumeMount;
+local containerPort = k.core.v1.containerPort;
 
 local images = {
   agent: 'grafana/agent:main',
@@ -166,6 +167,9 @@ local smoke = {
     ) +
     gragent.withVolumeMountsMixin([volumeMount.new('agent-wal', '/var/lib/agent')]) +
     gragent.withService() +
+    gragent.withPortsMixin([
+      containerPort.new('thrift-grpc', 14250) + containerPort.withProtocol('TCP'),
+    ]) +
     gragent.withAgentConfig({
       server: { log_level: 'debug' },
 

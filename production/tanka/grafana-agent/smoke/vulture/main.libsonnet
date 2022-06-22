@@ -17,7 +17,7 @@ local volume = k.core.v1.volume;
     _config+:: {
       image: 'grafana/tempo-vulture:latest',
       replicas: 1,
-      tempoPushUrl: 'http://distributor',
+      tempoPushUrl: 'http://grafana-agent',
       tempoQueryUrl: 'http://query-frontend:%s' % port,
       tempoOrgId: '',
       tempoRetentionDuration: '336h',
