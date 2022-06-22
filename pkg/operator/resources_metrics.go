@@ -112,7 +112,7 @@ func generateMetricsStatefulSet(
 	d = *d.DeepCopy()
 
 	opts := metricsPodTemplateOptions(name, d, shard)
-	templateSpec, selector, err := generatePodTemplate(cfg, name, d, opts)
+	templateSpec, selector, err := generatePodTemplate(cfg, d.Agent.Name, d, opts)
 	if err != nil {
 		return nil, err
 	}
