@@ -1,5 +1,7 @@
 package scraper
 
+// NOTE: This is a placeholder component for scraper for testing of the appendable, it should NOT be considered final
+
 import (
 	"context"
 	"fmt"

@@ -25,7 +25,7 @@ func newScrapeAppendable(receiver []*metrics.Receiver) *scrapeAppendable {
 }
 
 func (s *scrapeAppendable) Append(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, error) {
-	// BIG TODO is that we probably want to move refid creation and caching into this at some point.
+	// BIG TODO is that we probably want to move refid creation and caching into a shared cache between wal and scraper at some point.
 	// 	in the below the refid is never cached by the scrape pool which makes it sad. Its likely this / refid caching should
 	//  should create the refid cache
 	s.mut.Lock()

@@ -1,5 +1,7 @@
 package remotewrite
 
+// NOTE: This is a placeholder component for remote_write for testing of the appendable, it should NOT be considered final
+
 import (
 	"context"
 	"fmt"
