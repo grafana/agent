@@ -147,6 +147,61 @@ local agent_prometheus = import 'grafana-agent/v1/lib/metrics.libsonnet';
           },
         ],
       },
+      {
+        name: 'VultureChecks',
+        rules: [
+          {
+            alert: 'VultureMissing',
+            expr: |||
+              absent(up{container="vulture"})  == 1
+            |||,
+            'for': '5m',
+            annotations: {
+              summary: '{{ $labels.container }} is not running.',
+            },
+          },
+          {
+            alert: 'VultureDown',
+            expr: |||
+              up{job=~"smoke/vulture"} == 0
+            |||,
+            'for': '5m',
+            annotations: {
+              summary: 'Vulture {{ $labels.job }} is down.',
+            },
+          },
+          {
+            alert: 'VultureFlapping',
+            expr: |||
+              avg_over_time(up{job=~"smoke/vulture"}[5m]) < 1
+            |||,
+            'for': '15m',
+            annotations: {
+              summary: 'Vulture {{ $labels.job }} is flapping.',
+            },
+          },
+          {
+            alert: 'VultureNotScraped',
+            expr: |||
+              rate(tempo_vulture_trace_total[1m]) == 0
+            |||,
+            'for': '5m',
+            annotations: {
+              summary: 'Vulture {{ $labels.job }} is not being scraped.',
+            },
+          },
+          {
+            alert: 'VultureFailures',
+            expr: |||
+              (rate(tempo_vulture_error_total[2m]) / rate(tempo_vulture_trace_total[2m])) > 0 
+            |||,
+            'for': '5m',
+            annotations: {
+              summary: 'Vulture {{ $labels.job }} has had failures for at least 5m',
+            },
+          },
+        ],
+      },
     ],
   },
 }
