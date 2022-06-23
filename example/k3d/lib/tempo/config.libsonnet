@@ -19,6 +19,13 @@
           thrift_http: null,
         },
       },
+      otlp: {
+        protocols: {
+          grpc: {
+            endpoint: "0.0.0.0:4317"
+          },
+        },
+      },
     },
     ballast_size_mbs: '1024',
     jaeger_ui: {

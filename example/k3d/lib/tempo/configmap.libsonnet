@@ -21,7 +21,7 @@
       abort_if_cluster_join_fails: false,
       bind_port: 7946,
       join_members: [
-        '%s:7946' % $._config.tempo.headless_service_name,
+        'localhost:7946'
       ],
     },
     storage: {
@@ -37,7 +37,7 @@
     },
     querier: {
       frontend_worker: {
-        frontend_address: 'tempo:9095',
+        frontend_address: 'localhost:9095',
       },
     },
   },

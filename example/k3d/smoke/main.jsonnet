@@ -150,6 +150,50 @@ local smoke = {
         }],
       },
     ],
+  }, {
+    name: 'vulture',
+    remote_write: [
+      {
+        url: 'http://cortex/api/prom/push',
+        write_relabel_configs: [
+          {
+            source_labels: ['__name__'],
+            regex: 'avalanche_.*',
+            action: 'drop',
+          },
+        ],
+      },
+      {
+        url: 'http://smoke-test:19090/api/prom/push',
+        write_relabel_configs: [
+          {
+            source_labels: ['__name__'],
+            regex: 'avalanche_.*',
+            action: 'keep',
+          },
+        ],
+      },
+    ],
+    scrape_configs: [
+      {
+        job_name: 'vulture',
+        kubernetes_sd_configs: [{ role: 'pod' }],
+        tls_config: {
+          ca_file: '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt',
+        },
+        bearer_token_file: '/var/run/secrets/kubernetes.io/serviceaccount/token',
+
+        relabel_configs: [{
+          source_labels: ['__meta_kubernetes_namespace'],
+          regex: 'smoke',
+          action: 'keep',
+        }, {
+          source_labels: ['__meta_kubernetes_pod_container_name'],
+          regex: 'avalanche',
+          action: 'keep',
+        }],
+      },
+    ],
   }],
 
   normal_agent:
@@ -196,7 +240,7 @@ local smoke = {
                 },
                 "remote_write": [
                     {
-                        "endpoint": "tempo:3200",
+                        "endpoint": "tempo:4317",
                         "insecure": true
                     }
                 ],
