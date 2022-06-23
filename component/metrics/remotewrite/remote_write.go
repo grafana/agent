@@ -247,10 +247,12 @@ func (c *Component) Update(newConfig component.Arguments) error {
 	return nil
 }
 
-func (c *Component) Receive(ts int64, metrics []metrics.FlowMetric) {
+func (c *Component) Receive(ts int64, metricArr []*metrics.FlowMetric) {
 	app := c.walStore.Appender(context.Background())
-	for _, m := range metrics {
-		_, err := app.Append(m.Ref, m.Labels, ts, m.Value)
+	for _, m := range metricArr {
+		refId, err := app.Append(storage.SeriesRef(m.GlobalRefID), m.Labels, ts, m.Value)
+		globalID := metrics.GlobalRefMapping.AddLink(c.opts.ID, uint64(refId), m.Labels)
+		m.GlobalRefID = globalID
 		if err != nil {
 			_ = app.Rollback()
 			//TODO what should we log and behave?

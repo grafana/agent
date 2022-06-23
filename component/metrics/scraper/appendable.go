@@ -13,13 +13,13 @@ import (
 
 type scrapeAppendable struct {
 	mut       sync.Mutex
-	buffer    map[int64][]metrics.FlowMetric
+	buffer    map[int64][]*metrics.FlowMetric
 	receivers []*metrics.Receiver
 }
 
 func newScrapeAppendable(receiver []*metrics.Receiver) *scrapeAppendable {
 	return &scrapeAppendable{
-		buffer:    make(map[int64][]metrics.FlowMetric),
+		buffer:    make(map[int64][]*metrics.FlowMetric),
 		receivers: receiver,
 	}
 }
@@ -35,13 +35,17 @@ func (s *scrapeAppendable) Append(ref storage.SeriesRef, l labels.Labels, t int6
 	}
 	_, found := s.buffer[t]
 	if !found {
-		set := make([]metrics.FlowMetric, 0)
+		set := make([]*metrics.FlowMetric, 0)
 		s.buffer[t] = set
 	}
-	s.buffer[t] = append(s.buffer[t], metrics.FlowMetric{
-		Ref:    ref,
-		Labels: l,
-		Value:  v,
+	// If ref is 0 then lets grab a global id
+	if ref == 0 {
+		ref = storage.SeriesRef(metrics.GlobalRefMapping.CreateGlobalRefID(l))
+	}
+	s.buffer[t] = append(s.buffer[t], &metrics.FlowMetric{
+		GlobalRefID: uint64(ref),
+		Labels:      l,
+		Value:       v,
 	})
 	return ref, nil
 }
@@ -63,12 +67,12 @@ func (s *scrapeAppendable) Commit() error {
 			r.Receive(ts, metrics)
 		}
 	}
-	s.buffer = make(map[int64][]metrics.FlowMetric)
+	s.buffer = make(map[int64][]*metrics.FlowMetric)
 	return nil
 }
 
 func (s *scrapeAppendable) Rollback() error {
-	s.buffer = make(map[int64][]metrics.FlowMetric)
+	s.buffer = make(map[int64][]*metrics.FlowMetric)
 	return nil
 }
 
