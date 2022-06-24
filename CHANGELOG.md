@@ -16,6 +16,9 @@ Main (unreleased)
 
 - Introduce eBPF exporter integration. (@tpaschalis)
 
+### Bugfixes
+
+- Relative symlinks for promtail now work as expected. (@RangerCD, @mukerjee)
 
 v0.25.1 (2022-06-16)
 -------------------------
