@@ -18,10 +18,10 @@ local volume = k.core.v1.volume;
       image: 'grafana/tempo-vulture:latest',
       replicas: 1,
       tempoPushUrl: 'http://grafana-agent',
-      tempoQueryUrl: 'http://tempo:9095',
+      tempoQueryUrl: 'http://tempo:3200',
       tempoOrgId: '',
       tempoRetentionDuration: '336h',
-      tempoSearchBackoffDuration: '5s',
+      tempoSearchBackoffDuration: '0s', // disable search
       tempoReadBackoffDuration: '10s',
       tempoWriteBackoffDuration: '10s',
     } + config,
