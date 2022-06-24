@@ -227,26 +227,26 @@ local smoke = {
         wal_directory: '/var/lib/agent/data',
         configs: metric_instances('crow-single'),
       },
-      "traces": {
-        "configs": [
+      traces: {
+        configs: [
             {
-                "name": "vulture",
-                "receivers": {
-                    "jaeger": {
-                        "protocols": {
-                            "grpc": null
+                name: "vulture",
+                receivers: {
+                    jaeger: {
+                        protocols: {
+                            grpc: null
                         }
                     }
                 },
-                "remote_write": [
+                remote_write: [
                     {
-                        "endpoint": "tempo:4317",
-                        "insecure": true
+                        endpoint: "tempo:4317",
+                        insecure: true
                     }
                 ],
-                "batch": {
-                    "timeout": "5s",
-                    "send_batch_size": 100
+                batch: {
+                    timeout: "5s",
+                    send_batch_size: 100
                 }
             }
         ]
