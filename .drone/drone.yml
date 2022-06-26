@@ -157,7 +157,7 @@ steps:
               "jsonnet_value_file": ".image-tag"
             },
             {
-              "file_path": "ksonnet/environments/platform-observability/waves/agent.libsonnet",
+              "file_path": "ksonnet/environments/grafana-agent/waves/agent.libsonnet",
               "jsonnet_key": "dev_canary",
               "jsonnet_value_file": ".image-tag"
             },
@@ -251,6 +251,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: a272ceb77f729c494282cea28ff02ef4492b8d0b728607c9ce153586b8815fd0
+hmac: cda6ffc7bad038f7f7d92c83fc76571b20da11ad4eac2316c10a14f3d1221091
 
 ...
