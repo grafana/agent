@@ -63,7 +63,36 @@ volumes:
  - name: docker
    host:
      path: /var/run/docker.sock
-
+---
+kind: pipeline
+type: docker
+name: Windows-Test
+platform:
+  arch: amd64
+  os: windows
+  version: "1809"
+trigger:
+  event:
+    - push
+    - pull_request
+    - tag
+  ref:
+    - refs/heads/main
+    - refs/pull/*/head
+    - refs/tags/**
+steps:
+  - name: test
+    image: mcr.microsoft.com/windows:1809
+    commands:
+      - powershell wget https://go.dev/dl/go1.18.3.windows-amd64.zip -OutFile ./go.zip
+      - unzip ./go.zip
+      - powershell ~/go/bin/go.exe test ./...
+depends_on:
+  - Lint
+volumes:
+  - host:
+      path: /var/run/docker.sock
+    name: docker
 ---
 kind: pipeline
 type: docker
@@ -76,7 +105,6 @@ trigger:
     - refs/heads/main
     - refs/tags/v*
     - refs/heads/dev.*
-
 steps:
   - name: Build Containers
     image: docker
@@ -251,6 +279,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: cda6ffc7bad038f7f7d92c83fc76571b20da11ad4eac2316c10a14f3d1221091
+hmac: e72b2bfd94192529ec76f1ee4b1bc8c8cf2043156de219d484e5b5e804071a06
 
 ...
