@@ -33,15 +33,6 @@ local volume = k.core.v1.volume;
       }) + 
       configMap.mixin.metadata.withNamespace(namespace),
 
-    query_configmap:
-      configMap.new('tempo-query') +
-      configMap.withData({
-        'tempo-query.yaml': k.util.manifestYaml({
-          backend: 'localhost:%d' % $._config.tempo.port,
-        }),
-      }) + 
-      configMap.mixin.metadata.withNamespace(namespace),
-
     pvc::
       pvc.new() +
       pvc.mixin.spec.resources
@@ -76,20 +67,6 @@ local volume = k.core.v1.volume;
       ]) +
       k.util.resourcesRequests('3', '3Gi') +
       k.util.resourcesLimits('5', '5Gi'),
-
-    query_container::
-      container.new('tempo-query', $._images.tempo_query) +
-      container.withPorts([
-        containerPort.new('jaeger-ui', 16686),
-        containerPort.new('jaeger-metrics', 16687),
-      ]) +
-      container.withArgs([
-        '--query.base-path=' + $._config.jaeger_ui.base_path,
-        '--grpc-storage-plugin.configuration-file=/conf/tempo-query.yaml',
-      ]) +
-      container.withVolumeMounts([
-        volumeMount.new(tempo_query_config_volume, '/conf'),
-      ]),
 
     statefulset:
       statefulset.new('tempo',
