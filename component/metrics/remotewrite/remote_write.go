@@ -102,10 +102,9 @@ type Component struct {
 func NewComponent(o component.Options, c RemoteConfig) (*Component, error) {
 	reg := metrics.NewCollectorRegistry()
 
-	// TODO(rfratto): don't hardcode base path
 	walLogger := log.With(o.Logger, "subcomponent", "wal")
-	dataPath := filepath.Join("data-agent", o.ID)
-	walStorage, err := wal.NewStorageWithRefIDSource(walLogger, reg, filepath.Join("data-agent", o.ID), refCache)
+	dataPath := filepath.Join(o.DataPath, "wal", o.ID)
+	walStorage, err := wal.NewStorageWithRefIDSource(walLogger, reg, dataPath, refCache)
 	if err != nil {
 		return nil, err
 	}
@@ -251,7 +250,7 @@ func (c *Component) Receive(ts int64, metricArr []*metrics.FlowMetric) {
 	app := c.walStore.Appender(context.Background())
 	for _, m := range metricArr {
 		refId, err := app.Append(storage.SeriesRef(m.GlobalRefID), m.Labels, ts, m.Value)
-		globalID := metrics.GlobalRefMapping.AddLink(c.opts.ID, uint64(refId), m.Labels)
+		globalID := metrics.GlobalRefMapping.GetOrAddLink(c.opts.ID, uint64(refId), m.Labels)
 		m.GlobalRefID = globalID
 		if err != nil {
 			_ = app.Rollback()

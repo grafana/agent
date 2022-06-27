@@ -4,6 +4,8 @@ import (
 	"context"
 	"sync"
 
+	"github.com/prometheus/prometheus/model/value"
+
 	"github.com/prometheus/prometheus/model/labels"
 
 	"github.com/grafana/agent/component/metrics"
@@ -25,11 +27,9 @@ func newScrapeAppendable(receiver []*metrics.Receiver) *scrapeAppendable {
 }
 
 func (s *scrapeAppendable) Append(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, error) {
-	// BIG TODO is that we probably want to move refid creation and caching into a shared cache between wal and scraper at some point.
-	// 	in the below the refid is never cached by the scrape pool which makes it sad. Its likely this / refid caching should
-	//  should create the refid cache
 	s.mut.Lock()
 	defer s.mut.Unlock()
+
 	if len(s.receivers) == 0 {
 		return 0, nil
 	}
@@ -41,6 +41,10 @@ func (s *scrapeAppendable) Append(ref storage.SeriesRef, l labels.Labels, t int6
 	// If ref is 0 then lets grab a global id
 	if ref == 0 {
 		ref = storage.SeriesRef(metrics.GlobalRefMapping.CreateGlobalRefID(l))
+	}
+	// If it is stale then we can remove it
+	if value.IsStaleNaN(v) {
+		metrics.GlobalRefMapping.AddStaleMarker(uint64(ref), l)
 	}
 	s.buffer[t] = append(s.buffer[t], &metrics.FlowMetric{
 		GlobalRefID: uint64(ref),

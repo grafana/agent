@@ -2,50 +2,62 @@ package metrics
 
 import (
 	"sync"
+	"time"
 
 	"github.com/prometheus/prometheus/model/labels"
 )
 
+// GlobalRefMapping is used when translating to and from remote writes and the rest of the system (mostly scrapers)
+// normal components except those should in general NOT need this.
 var GlobalRefMapping = &GlobalRefMap{}
 
 func init() {
-	GlobalRefMapping = NewGlobalRefMap()
+	GlobalRefMapping = newGlobalRefMap()
 }
 
+var staleDuration = time.Minute * 10
+
+// GlobalRefMap allows conversion from remote_write refids to global refs ids that everything else can use
 type GlobalRefMap struct {
 	mut                sync.Mutex
 	globalRefID        uint64
-	mappings           map[string]*mapping
+	mappings           map[string]*remoteWriteMapping
 	labelsHashToGlobal map[uint64]uint64
+	staleGlobals       map[uint64]*staleMarker
 }
 
-type mapping struct {
-	RemoteWriteID string
-	localToGlobal map[uint64]uint64
-	globalToLocal map[uint64]uint64
+type staleMarker struct {
+	globalID  uint64
+	lastTs    time.Time
+	labelHash uint64
 }
 
-func NewGlobalRefMap() *GlobalRefMap {
+// newGlobalRefMap creates a refmap for usage, there should ONLY be one of these
+func newGlobalRefMap() *GlobalRefMap {
 	return &GlobalRefMap{
 		globalRefID:        0,
-		mappings:           make(map[string]*mapping),
+		mappings:           make(map[string]*remoteWriteMapping),
 		labelsHashToGlobal: make(map[uint64]uint64),
+		staleGlobals:       make(map[uint64]*staleMarker),
 	}
 }
 
-func (g *GlobalRefMap) AddLink(componentID string, localRefID uint64, l labels.Labels) uint64 {
+// GetOrAddLink is called by a remote_write endpoint component to add mapping and get back the global id.
+func (g *GlobalRefMap) GetOrAddLink(componentID string, localRefID uint64, l labels.Labels) uint64 {
 	g.mut.Lock()
 	defer g.mut.Unlock()
 
+	// If the mapping doesn't exist then we need to create it
 	m, found := g.mappings[componentID]
 	if !found {
-		m = &mapping{
+		m = &remoteWriteMapping{
 			RemoteWriteID: componentID,
 			localToGlobal: make(map[uint64]uint64),
 			globalToLocal: make(map[uint64]uint64),
 		}
 		g.mappings[componentID] = m
 	}
+
 	labelHash := l.Hash()
 	globalID, found := g.labelsHashToGlobal[labelHash]
 	if found {
@@ -60,6 +72,7 @@ func (g *GlobalRefMap) AddLink(componentID string, localRefID uint64, l labels.L
 	return g.globalRefID
 }
 
+// CreateGlobalRefID is used to create a global refid for a labelset
 func (g *GlobalRefMap) CreateGlobalRefID(l labels.Labels) uint64 {
 	g.mut.Lock()
 	defer g.mut.Unlock()
@@ -73,7 +86,8 @@ func (g *GlobalRefMap) CreateGlobalRefID(l labels.Labels) uint64 {
 	return g.globalRefID
 }
 
-func (g *GlobalRefMap) GetGlobal(componentID string, localRefID uint64) uint64 {
+// GetGlobalRefID returns the global refid for a component local combo, or 0 if not found
+func (g *GlobalRefMap) GetGlobalRefID(componentID string, localRefID uint64) uint64 {
 	g.mut.Lock()
 	defer g.mut.Unlock()
 	m, found := g.mappings[componentID]
@@ -84,7 +98,8 @@ func (g *GlobalRefMap) GetGlobal(componentID string, localRefID uint64) uint64 {
 	return global
 }
 
-func (g *GlobalRefMap) GetLocal(componentID string, globalRefID uint64) uint64 {
+// GetLocalRefID returns the local refid for a component global combo, or 0 if not found
+func (g *GlobalRefMap) GetLocalRefID(componentID string, globalRefID uint64) uint64 {
 	g.mut.Lock()
 	defer g.mut.Unlock()
 	m, found := g.mappings[componentID]
@@ -93,4 +108,37 @@ func (g *GlobalRefMap) GetLocal(componentID string, globalRefID uint64) uint64 {
 	}
 	local, _ := m.globalToLocal[globalRefID]
 	return local
+}
+
+func (g *GlobalRefMap) AddStaleMarker(globalRefID uint64, l labels.Labels) {
+	g.mut.Lock()
+	defer g.mut.Unlock()
+	g.staleGlobals[globalRefID] = &staleMarker{
+		lastTs:    time.Now(),
+		labelHash: l.Hash(),
+		globalID:  globalRefID,
+	}
+}
+
+// CheckStaleMarkers is called to garbage collect and items that have grown stale over stale duration (10m)
+func (g *GlobalRefMap) CheckStaleMarkers() {
+	g.mut.Lock()
+	defer g.mut.Unlock()
+	curr := time.Now()
+	idsToBeGCed := make([]*staleMarker, 0)
+	for _, stale := range g.staleGlobals {
+		// If the difference between now and the last time the stale was marked then let it sit
+		if curr.Sub(stale.lastTs) < staleDuration {
+			continue
+		}
+		idsToBeGCed = append(idsToBeGCed, stale)
+	}
+	for _, marker := range idsToBeGCed {
+		delete(g.staleGlobals, marker.globalID)
+		delete(g.labelsHashToGlobal, marker.labelHash)
+		// Delete our mapping keys
+		for _, mapping := range g.mappings {
+			mapping.deleteStaleIDs(marker.globalID)
+		}
+	}
 }
