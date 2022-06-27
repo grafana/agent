@@ -34,9 +34,9 @@ jobs:
       # Tests on Windows can use a lot of memory, and we need to increase the
       # pagefile to compensate.
       with:
-          minimum-size: 32GB
-          maximum-size: 32GB
+          minimum-size: 16GB
+          maximum-size: 16GB
           disk-root: "C:"
       if: ${{ matrix.platform == 'windows-latest' }}
     - name: Test
-      run: make DOCKER_OPTS="" GOFLAGS="-tags=netgo,nodocker" BUILD_IN_CONTAINER=false test
+      run: make DOCKER_OPTS="" GOFLAGS="-tags=netgo,nodocker" BUILD_IN_CONTAINER=false test-windows

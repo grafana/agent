@@ -250,6 +250,13 @@ lint:
 # more without -race for packages that have known race detection issues.
 test:
 	CGO_ENABLED=1 go test $(CGO_FLAGS) -race -cover -coverprofile=cover.out -p=4 ./...
+	test-no-race
+
+test-windows:
+	CGO_ENABLED=1 go test $(CGO_FLAGS) -cover -coverprofile=cover.out -p=4 ./...
+	test-no-race
+
+test-no-race:
 	CGO_ENABLED=1 go test $(CGO_FLAGS) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/logs ./pkg/operator ./pkg/util/k8s
 
 clean:
