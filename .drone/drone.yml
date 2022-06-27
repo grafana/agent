@@ -85,7 +85,7 @@ steps:
     image: mcr.microsoft.com/windows:1809
     commands:
       - powershell wget https://go.dev/dl/go1.18.3.windows-amd64.zip -OutFile ./go.zip
-      - unzip ./go.zip
+      - powershell Expand-Archive -Path '~/go.zip' -DestinationPath '~/go'
       - powershell ~/go/bin/go.exe test ./...
 depends_on:
   - Lint
@@ -279,6 +279,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: e72b2bfd94192529ec76f1ee4b1bc8c8cf2043156de219d484e5b5e804071a06
+hmac: e5e8e036281eaba712dc91da01cf8e062187eb320e7cca7392fc8cb24fac0eff
 
 ...
