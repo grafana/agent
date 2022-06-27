@@ -34,8 +34,8 @@ jobs:
       # Tests on Windows can use a lot of memory, and we need to increase the
       # pagefile to compensate.
       with:
-          minimum-size: 16GB
-          maximum-size: 16GB
+          minimum-size: 32GB
+          maximum-size: 32GB
           disk-root: "C:"
       if: ${{ matrix.platform == 'windows-latest' }}
     - name: Test
