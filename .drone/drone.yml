@@ -86,7 +86,7 @@ steps:
     commands:
       - powershell wget https://go.dev/dl/go1.18.3.windows-amd64.zip -OutFile ./go.zip
       - powershell Expand-Archive -Path './go.zip' -DestinationPath '~/go'
-      - powershell ~/go/bin/go.exe test ./...
+      - powershell ~/go/bin/go.exe test -p 1 ./...
 depends_on:
   - Lint
 volumes:
@@ -279,6 +279,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: 6404cfd065aef90b7f2f743d9e9704be06b4031355702da54ef6084d2e683f8f
+hmac: a961739c1516f0b6516080f96dbfddb9b2338fd968426f2f13c365554030bf3c
 
 ...
