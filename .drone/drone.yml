@@ -82,12 +82,9 @@ trigger:
     - refs/tags/**
 steps:
   - name: test
-    image: mcr.microsoft.com/windows:1809
+    image: grafana/ci-build-windows:0.3.4
     commands:
-      - powershell
-      - wget https://go.dev/dl/go1.18.3.windows-amd64.zip -OutFile ~/go.zip
-      - Expand-Archive -Path '~/go.zip' -DestinationPath '~/go'
-      - ~/go/go/bin/go.exe test -tags="nodocker,nonetwork" -p 1 ./...
+      - go test -tags="nodocker,nonetwork" -p 1 ./...
 depends_on:
   - Lint
 volumes:
@@ -280,6 +277,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: 631e359ac724cbd26f71a05d4b24544f9f5a948b9dc0fbf589e13c68d1887140
+hmac: c7c25266657986274f538566578fdc9a9b4bba45bad7a37b8054ed07ee72d296
 
 ...
