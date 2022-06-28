@@ -249,9 +249,16 @@ func (c *Component) Update(newConfig component.Arguments) error {
 func (c *Component) Receive(ts int64, metricArr []*metrics.FlowMetric) {
 	app := c.walStore.Appender(context.Background())
 	for _, m := range metricArr {
-		refId, err := app.Append(storage.SeriesRef(m.GlobalRefID), m.Labels, ts, m.Value)
-		globalID := metrics.GlobalRefMapping.GetOrAddLink(c.opts.ID, uint64(refId), m.Labels)
-		m.GlobalRefID = globalID
+		// TODO this should all be simplified into one call
+		if m.GlobalRefID == 0 {
+			globalID := metrics.GlobalRefMapping.CreateGlobalRefID(m.Labels)
+			m.GlobalRefID = globalID
+		}
+		localID := metrics.GlobalRefMapping.GetLocalRefID(c.opts.ID, m.GlobalRefID)
+		newLocal, err := app.Append(storage.SeriesRef(localID), m.Labels, ts, m.Value)
+		if localID == 0 {
+			metrics.GlobalRefMapping.GetOrAddLink(c.opts.ID, uint64(newLocal), m.Labels)
+		}
 		if err != nil {
 			_ = app.Rollback()
 			//TODO what should we log and behave?

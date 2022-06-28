@@ -18,8 +18,8 @@ metrics remote_write "default" {
   remote_write {
     url = "https://prometheus-us-central1.grafana.net/api/prom/push"
     basic_auth {
-      username = "23766"
-      password = "eyJrIjoiNDl6UGVLQTAydVc3NEt5eXZNVWpWaUd4QktCQmVTWVAiLCJuIjoiUHJpbWFyeSBLZXkiLCJpZCI6MX0="
+      username = "12345"
+      password = ""
     }
   }
 }
@@ -32,8 +32,8 @@ metrics remote_write "rw2" {
   remote_write {
     url = "https://prometheus-us-central1.grafana.net/api/prom/push"
     basic_auth {
-      username = "23766"
-      password = "eyJrIjoiNDl6UGVLQTAydVc3NEt5eXZNVWpWaUd4QktCQmVTWVAiLCJuIjoiUHJpbWFyeSBLZXkiLCJpZCI6MX0="
+      username = "12345"
+      password = ""
     }
   }
 }

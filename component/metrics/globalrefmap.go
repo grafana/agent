@@ -7,6 +7,8 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 )
 
+// TODO should we convert all these uint64 to seriesref?
+
 // GlobalRefMapping is used when translating to and from remote writes and the rest of the system (mostly scrapers)
 // normal components except those should in general NOT need this.
 var GlobalRefMapping = &GlobalRefMap{}
@@ -61,8 +63,8 @@ func (g *GlobalRefMap) GetOrAddLink(componentID string, localRefID uint64, l lab
 	labelHash := l.Hash()
 	globalID, found := g.labelsHashToGlobal[labelHash]
 	if found {
-		m.localToGlobal[localRefID] = g.globalRefID
-		m.globalToLocal[g.globalRefID] = localRefID
+		m.localToGlobal[localRefID] = globalID
+		m.globalToLocal[globalID] = localRefID
 		return globalID
 	}
 	g.globalRefID++
