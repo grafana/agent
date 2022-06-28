@@ -14,7 +14,8 @@ import (
 )
 
 type scrapeAppendable struct {
-	mut       sync.Mutex
+	mut sync.Mutex
+	// TODO add comment on why using a map when most of the time its only 1
 	buffer    map[int64][]*metrics.FlowMetric
 	receivers []*metrics.Receiver
 }
@@ -62,7 +63,7 @@ func (s *scrapeAppendable) set(receiver []*metrics.Receiver) {
 
 func (s *scrapeAppendable) Commit() error {
 	s.mut.Lock()
-	s.mut.Unlock()
+	defer s.mut.Unlock()
 	for _, r := range s.receivers {
 		for ts, metrics := range s.buffer {
 			if r.Receive == nil {
