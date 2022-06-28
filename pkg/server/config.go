@@ -13,13 +13,6 @@ type Config struct {
 
 	GRPC GRPCConfig `yaml:",inline"`
 	HTTP HTTPConfig `yaml:",inline"`
-
-	// Flags is a DEPRECATED field holding static coniguration options.
-	// It will be removed from YAML and only be exposed by command-line flags in
-	// v0.26.0.
-	//
-	// Updating any field found in Flags will cause updating the Server to fail.
-	Flags Flags `yaml:",inline"`
 }
 
 // UnmarshalYAML unmarshals the server config with defaults applied.
@@ -45,7 +38,6 @@ var (
 	DefaultConfig = Config{
 		GRPC:      DefaultGRPCConfig,
 		HTTP:      DefaultHTTPConfig,
-		Flags:     DefaultFlags,
 		LogLevel:  DefaultLogLevel,
 		LogFormat: DefaultLogFormat,
 	}
@@ -70,8 +62,3 @@ var (
 		return fmt
 	}()
 )
-
-// RegisterFlags registers flags for c to the given FlagSet.
-func (c *Config) RegisterFlags(f *flag.FlagSet) {
-	c.Flags.RegisterFlags(f)
-}

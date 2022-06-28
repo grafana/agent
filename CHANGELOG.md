@@ -10,6 +10,15 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+> **BREAKING CHANGES**: This release has breaking changes. Please read entries
+> carefully and consult the [upgrade guide][] for specific instructions.
+
+### Breaking changes
+
+- Deprecated `server` YAML block fields have now been removed in favor of the
+  command-line flags that replaced them. These fields were originally
+  deprecated in v0.24.0. (@rfratto)
+
 ### Features
 
 - Introduce Apache HTTP exporter integration. (@v-zhuravlev)
@@ -45,7 +54,7 @@ v0.25.0 (2022-06-06)
 
 - Add HTTP endpoints to fetch active instances and targets for the Logs subsystem.
   (@marctc)
-  
+
 - (beta) Add support for using windows certificate store for TLS connections. (@mattdurham)
 
 - Grafana Agent Operator: add support for integrations through an `Integration`

@@ -29,11 +29,13 @@ func main() {
 		fs = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 
 		serverCfg   = server.DefaultConfig
+		serverFlags = server.DefaultFlags
+
 		crowCfg     = crow.DefaultConfig
 		showVersion bool
 	)
 
-	serverCfg.RegisterFlags(fs)
+	serverFlags.RegisterFlags(fs)
 	crowCfg.RegisterFlagsWithPrefix(fs, "crow.")
 	fs.BoolVar(&showVersion, "version", false, "show version")
 
@@ -49,7 +51,7 @@ func main() {
 	l := server.NewLogger(&serverCfg)
 	crowCfg.Log = l
 
-	s, err := server.New(l, prometheus.DefaultRegisterer, prometheus.DefaultGatherer, serverCfg)
+	s, err := server.New(l, prometheus.DefaultRegisterer, prometheus.DefaultGatherer, serverCfg, serverFlags)
 	if err != nil {
 		level.Error(l).Log("msg", "failed to initialize server", "err", err)
 		os.Exit(1)

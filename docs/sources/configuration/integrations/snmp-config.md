@@ -8,7 +8,7 @@ title: snmp_exporter_config
 
 The `snmp` block configures the `snmp` integration,
 which is an embedded version of
-[`snmp_exporter`](https://github.com/prometheus/snmp_exporter). This allows collection of SNMP metrics from the network devices with ease. 
+[`snmp_exporter`](https://github.com/prometheus/snmp_exporter). This allows collection of SNMP metrics from the network devices with ease.
 
 
 ## Quick configuration example
@@ -66,7 +66,7 @@ metrics:
               target_label: __param_target
             - source_labels: [__param_target]
               target_label: instance
-            - replacement: 127.0.0.1:9090 # port must match grafana agent http_listen_port below
+            - replacement: 127.0.0.1:12345 # address must match grafana agent -server.http.address flag
               target_label: __address__
 integrations:
   snmp:
@@ -77,8 +77,6 @@ integrations:
         version: 2
         auth:
           community: secretpassword
-server:
-    http_listen_port: 9090
 ```
 
 
@@ -128,7 +126,7 @@ Full reference of options:
   #
 
   # SNMP configuration file with custom modules.
-  # See https://github.com/prometheus/snmp_exporter#generating-configuration for more details how to generate custom snmp.yml file. 
+  # See https://github.com/prometheus/snmp_exporter#generating-configuration for more details how to generate custom snmp.yml file.
   # If not defined, embedded snmp_exporter default set of modules is used.
   [config_file: <string> | default = ""]
 
@@ -183,9 +181,9 @@ Full reference of options:
     # Which are required depends on the security_level.
     # The equivalent options on NetSNMP commands like snmpbulkwalk
     # and snmpget are also listed. See snmpcmd(1).
-    
+
     # Required if v3 is used, no default. -u option to NetSNMP.
-    [username: <string> | default = "user"] 
+    [username: <string> | default = "user"]
 
     # Defaults to noAuthNoPriv. -l option to NetSNMP.
     # Can be noAuthNoPriv, authNoPriv or authPriv.
@@ -202,13 +200,13 @@ Full reference of options:
     # DES, AES, AES192, or AES256. Defaults to DES. -x option to NetSNMP.
     # Used if security_level is authPriv.
     [priv_protocol: <string> | default = "DES"]
-    
+
     # Has no default. Also known as privKey, -X option to NetSNMP.
     # Required if security_level is authPriv.
     [priv_password: <string> | default = ""]
 
     # Has no default. -n option to NetSNMP.
-    # Required if context is configured on the device.  
+    # Required if context is configured on the device.
     [context_name: <string> | default = ""]
 
 ```

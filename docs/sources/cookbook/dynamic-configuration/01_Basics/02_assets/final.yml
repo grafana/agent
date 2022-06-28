@@ -1,12 +1,4 @@
 server:
-  http_listen_network: ""
-  http_listen_address: ""
-  http_listen_port: 12345
-  http_listen_conn_limit: 0
-  grpc_listen_network: ""
-  grpc_listen_address: ""
-  grpc_listen_port: 12346
-  grpc_listen_conn_limit: 0
   http_tls_config:
     cert_file: ""
     key_file: ""
@@ -27,27 +19,8 @@ server:
     min_version: 0
     max_version: 0
     prefer_server_cipher_suites: false
-  register_instrumentation: false
-  graceful_shutdown_timeout: 0s
-  http_server_read_timeout: 0s
-  http_server_write_timeout: 0s
-  http_server_idle_timeout: 0s
-  grpc_server_max_recv_msg_size: 0
-  grpc_server_max_send_msg_size: 0
-  grpc_server_max_concurrent_streams: 0
-  grpc_server_max_connection_idle: 0s
-  grpc_server_max_connection_age: 0s
-  grpc_server_max_connection_age_grace: 0s
-  grpc_server_keepalive_time: 0s
-  grpc_server_keepalive_timeout: 0s
-  grpc_server_min_time_between_pings: 0s
-  grpc_server_ping_without_stream_allowed: false
   log_format: ""
   log_level: info
-  log_source_ips_enabled: false
-  log_source_ips_header: ""
-  log_source_ips_regex: ""
-  http_path_prefix: ""
 metrics:
   global:
     scrape_interval: 1m

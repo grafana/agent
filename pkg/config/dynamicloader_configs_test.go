@@ -223,7 +223,7 @@ windows: {}
 	// Since the normal agent uses deferred parsing this is required to load the integration from agent-1.yml
 	err = cfg.Integrations.setVersion(integrationsVersion2)
 	require.NoError(t, err)
-	assert.True(t, cfg.Server.Flags.HTTP.ListenPort == 12345)
+	assert.True(t, cfg.ServerFlags.HTTP.ListenAddress == "127.0.0.1:12345")
 	assert.True(t, cfg.Server.LogLevel.String() == "debug")
 	assert.True(t, cfg.Metrics.WALDir == "/tmp/grafana-agent-normal")
 	assert.True(t, cfg.Metrics.Global.RemoteWrite[0].URL.String() == "https://www.example.com")
@@ -248,7 +248,9 @@ integrations:
   windows: {}
 `
 	serverStr := `
-http_listen_port: 1111
+http_tls_config:
+  cert_file: /fake/file.cert
+  key_file: /fake/file.key
 `
 	metricsStr := `
 wal_directory: /tmp/grafana-agent-normal
@@ -311,7 +313,8 @@ configs:
 	err = cfg.Integrations.setVersion(integrationsVersion2)
 	require.NoError(t, err)
 	// Test server override
-	assert.True(t, cfg.Server.Flags.HTTP.ListenPort == 1111)
+	assert.Equal(t, "/fake/file.cert", cfg.Server.HTTP.TLSConfig.TLSCertPath)
+	assert.Equal(t, "/fake/file.key", cfg.Server.HTTP.TLSConfig.TLSKeyPath)
 	// Test metric
 	assert.True(t, cfg.Metrics.WALDir == "/tmp/grafana-agent-normal")
 	// Test Metric Instances
