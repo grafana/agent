@@ -19,7 +19,7 @@ metrics remote_write "default" {
     url = "https://prometheus-us-central1.grafana.net/api/prom/push"
     basic_auth {
       username = "12345"
-      password = ""
+      password = "password"
     }
   }
 }
@@ -33,7 +33,7 @@ metrics remote_write "rw2" {
     url = "https://prometheus-us-central1.grafana.net/api/prom/push"
     basic_auth {
       username = "12345"
-      password = ""
+      password = "password"
     }
   }
 }
