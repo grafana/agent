@@ -1,5 +1,4 @@
 server:
-  http_listen_port: 12345
   log_level: debug
   http_tls_config:
     client_auth_type: RequireAndVerifyClientCert
