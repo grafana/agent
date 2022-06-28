@@ -38,7 +38,7 @@ metrics:
         {{ end -}}
 ```
 
-The `aws.EC2Query` command is a new command added for Grafana Agent and takes a string in the [DescribeInstances](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstances.html) format
+The `aws.EC2Query` command is a new command added for Grafana Agent and takes a string in the [DescribeInstances](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstances.htmlNOTFOUND) format
 
 ## Final
 

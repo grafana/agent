@@ -10,7 +10,7 @@ Grafana Agent is an telemetry collector for sending metrics, logs,
 and trace data to the opinionated Grafana observability stack. It works best
 with:
 
-* [Grafana Cloud](https://grafana.com/products/cloud/)
+* [Grafana Cloud](https://grafana.com/products/cloudNOTFOUND/)
 * [Grafana Enterprise Stack](https://grafana.com/products/enterprise/)
 * OSS deployments of [Grafana Loki](https://grafana.com/oss/loki/), [Prometheus](https://prometheus.io/), [Cortex](https://cortexmetrics.io/), and [Grafana Tempo](https://grafana.com/oss/tempo/)
 

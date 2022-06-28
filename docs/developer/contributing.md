@@ -190,5 +190,5 @@ pull request.
 [good-first-issue]: https://github.com/grafana/agent/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22
 [community-slack]: https://slack.grafana.com/
 [example-config]: ../../cmd/agent/agent-local-config.yaml
-[go-modules]: https://golang.org/cmd/go/#hdr-Modules__module_versions__and_more
+[go-modules]: https://golang.org/cmd/go/NOTFOUND#hdr-Modules__module_versions__and_more
 

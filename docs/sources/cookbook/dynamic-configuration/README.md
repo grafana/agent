@@ -10,7 +10,7 @@ The purpose of the cookbook is to guide you through common scenarios of using dy
 
 [Basics](01_Basics) covers
 - [Structure](01_Basics/01_Structure.md) of how agent and server templates are loaded
-- [Instances](01_Basics/02_Instances.md) of metrics and metrics instances are loaded
+- [Instances](01_Basics/02_Instances.mdNOTFOUND) of metrics and metrics instances are loaded
 - [Integrations](01_Basics/03_Integrations.md) of how integrations are loaded
 - [Logs and Traces](01_Basics/04_Logs_and_Traces.md) of how traces and logs are loaded
 

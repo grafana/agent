@@ -12,7 +12,7 @@ The purpose of this cookbook is to guide you through common scenarios of using d
 ## Basics
 
 The basic section covers
-- The [Structure]({{< relref "./01_Basics/01_Structure.md" >}}) of how agent and server templates are loaded
+- The [Structure]({{< relref "./01_Basics/01_Structure.mdNOTFOUND" >}}) of how agent and server templates are loaded
 - How metrics [Instances]({{< relref "./01_Basics/02_Instances.md" >}}) are loaded
 - How [Integrations]({{< relref "./01_Basics/03_Integrations.md" >}}) are loaded
 - How [Logs and Traces]({{< relref "./01_Basics/04_Logs_and_Traces.md" >}}) are loaded
