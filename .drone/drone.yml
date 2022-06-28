@@ -63,7 +63,30 @@ volumes:
  - name: docker
    host:
      path: /var/run/docker.sock
-
+---
+kind: pipeline
+type: docker
+name: Windows-Test
+platform:
+  arch: amd64
+  os: windows
+  version: "1809"
+trigger:
+  event:
+    - push
+    - pull_request
+    - tag
+  ref:
+    - refs/heads/main
+    - refs/pull/*/head
+    - refs/tags/**
+steps:
+  - name: test
+    image: grafana/ci-build-windows:0.3.4
+    commands:
+      - go test -tags="nodocker,nonetwork" ./...
+depends_on:
+  - Lint
 ---
 kind: pipeline
 type: docker
@@ -76,7 +99,6 @@ trigger:
     - refs/heads/main
     - refs/tags/v*
     - refs/heads/dev.*
-
 steps:
   - name: Build Containers
     image: docker
@@ -251,6 +273,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: cda6ffc7bad038f7f7d92c83fc76571b20da11ad4eac2316c10a14f3d1221091
+hmac: 56508186d2cd2cb71ab0596c9d0210735177404efbf0fdc2e5109727ef39aede
 
 ...
