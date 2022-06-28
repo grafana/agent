@@ -84,9 +84,10 @@ steps:
   - name: test
     image: mcr.microsoft.com/windows:1809
     commands:
-      - powershell wget https://go.dev/dl/go1.18.3.windows-amd64.zip -OutFile ~/go.zip
-      - powershell Expand-Archive -Path '~/go.zip' -DestinationPath '~/go'
-      - powershell ~/go/go/bin/go.exe test -tags="nodocker,nonetwork" -p 1 ./...
+      - powershell
+      - wget https://go.dev/dl/go1.18.3.windows-amd64.zip -OutFile ~/go.zip
+      - Expand-Archive -Path '~/go.zip' -DestinationPath '~/go'
+      - ~/go/go/bin/go.exe test -tags="nodocker,nonetwork" -p 1 ./...
 depends_on:
   - Lint
 volumes:
@@ -279,6 +280,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: 26404623adbc24252ef209c4dbd56d27b1ea268b94bf799c4504fde62eb26423
+hmac: 631e359ac724cbd26f71a05d4b24544f9f5a948b9dc0fbf589e13c68d1887140
 
 ...
