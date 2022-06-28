@@ -58,6 +58,11 @@ steps:
 
 depends_on:
   - Lint
+
+volumes:
+ - name: docker
+   host:
+     path: /var/run/docker.sock
 ---
 kind: pipeline
 type: docker
@@ -82,10 +87,6 @@ steps:
       - go test -tags="nodocker,nonetwork" ./...
 depends_on:
   - Lint
-volumes:
-  - host:
-      path: /var/run/docker.sock
-    name: docker
 ---
 kind: pipeline
 type: docker
@@ -272,6 +273,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: 547ab28a7bc6a447e04daac9157db573a1774c27e02154cd22a496d087bf75b6
+hmac: 56508186d2cd2cb71ab0596c9d0210735177404efbf0fdc2e5109727ef39aede
 
 ...
