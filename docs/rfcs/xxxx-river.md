@@ -21,10 +21,11 @@ interfaces or channels, enabling component developers to easily allow users to
 construct data pipelines using Go APIs without requiring knowledge of the
 underlying implementation.
 
-The initial expressions prototype used [HCL][], which Flow's needs at the time.
-However, our growing dependency on passing around arbitrary Go values started
-to conflict with the limitations of HCL, making HCL increasingly insufficient
-for our specific use case.
+The initial expressions prototype used [HCL][], which initially fit Flow's
+needs during early prototyping. However, the growing dependency on passing
+around arbitrary Go values to build pipelines started to conflict with the
+limitations of HCL, making HCL increasingly insufficient for Flow's specific
+use case.
 
 We examined alternatives to HCL such as YAML, CUE, Jsonnet, Lua, and Go itself.
 Eventually, we determined that the way we use arbitrary Go values in
