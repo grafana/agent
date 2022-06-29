@@ -137,7 +137,7 @@ a library to interoperate with tagged Go structs, it was insufficient for
 passing around arbitrary Go values, requiring me to [fork][gohcl] both
 github.com/hashicorp/hcl/v2/gohcl and github.com/zclconf/go-cty/cty/gocty to
 reduce boilerplate. This fork contains a non-trivial amount of changes that
-would need to be maintained or contributed upstream to be tenable.
+would need to be contributed upstream to be tenable long-term.
 
 Additionally, there is desired functionality that is not supported today in
 HCL/go-cty:
