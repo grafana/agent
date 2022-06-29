@@ -40,10 +40,11 @@ this proposal will focus on the rationale leading to this choice.
 ## Goals
 
 * Minimize learning curve as much as possible to reduce friction
-* Make it easy for developers to consume for Flow components
+* Make it easy for developers to create Flow components which operate with
+  arbitrary Go values (interfaces, channels, etc.)
 * Expose error messages in an easily understandable and actionable way
-* Natively support using Go values of any type
-* Natively support passing around and invoking real Go functions
+* Natively support using Go values of any type in config expressions
+* Natively support passing around and invoking real Go functions in config expressions
 
 The language design will be scoped as small as possible, and new features will
 only be added over time as they are determined to be strictly necessary for
