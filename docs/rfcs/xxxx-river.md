@@ -183,8 +183,9 @@ We will minimize this impact of a new language by:
 
 ## Proposal
 
-River is inspired by HCL. However, some of the syntax used by HCL will be
-changed to make River more easily identifiable as a different language.
+River's syntax is inspired by HCL. However, some of the syntax will be changed
+from HCL to make River more easily identifiable as a different language and
+avoid a situations where users confuse the two.
 
 River focuses on expressions, attributes, and blocks.
 
