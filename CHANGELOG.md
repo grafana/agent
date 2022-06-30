@@ -28,6 +28,7 @@ Main (unreleased)
 ### Bugfixes
 
 - Relative symlinks for promtail now work as expected. (@RangerCD, @mukerjee)
+- Fix rate limiting implementation for the app agent receiver integration. (@domasx2)
 
 v0.25.1 (2022-06-16)
 -------------------------

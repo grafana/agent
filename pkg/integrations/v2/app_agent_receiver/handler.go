@@ -71,7 +71,7 @@ func (ar *AppAgentReceiverHandler) HTTPHandler(logger log.Logger) http.Handler {
 	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Check rate limiting state
 		if ar.config.Server.RateLimiting.Enabled {
-			if rsv := ar.rateLimiter.Reserve(); !rsv.OK() {
+			if ok := ar.rateLimiter.Allow(); !ok {
 				http.Error(w, http.StatusText(http.StatusTooManyRequests), http.StatusTooManyRequests)
 				return
 			}

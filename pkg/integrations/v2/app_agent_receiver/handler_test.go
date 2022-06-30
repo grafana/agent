@@ -299,17 +299,11 @@ func TestRateLimiterNoReject(t *testing.T) {
 }
 
 func TestRateLimiterReject(t *testing.T) {
-	req, err := http.NewRequest("POST", "/collect", bytes.NewBuffer([]byte(PAYLOAD)))
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	conf := &Config{
 		Server: ServerConfig{
 			RateLimiting: RateLimitingConfig{
-				Burstiness: 0,
-				RPS:        0,
+				Burstiness: 2,
+				RPS:        1,
 				Enabled:    true,
 			},
 		},
@@ -318,10 +312,21 @@ func TestRateLimiterReject(t *testing.T) {
 	fr := NewAppAgentReceiverHandler(conf, nil, prometheus.NewRegistry())
 	handler := fr.HTTPHandler(nil)
 
-	rr := httptest.NewRecorder()
+	makeRequest := func() *httptest.ResponseRecorder {
+		req, err := http.NewRequest("POST", "/collect", bytes.NewBuffer([]byte(PAYLOAD)))
+		require.NoError(t, err)
+		rr := httptest.NewRecorder()
+		handler.ServeHTTP(rr, req)
+		return rr
+	}
 
-	handler.ServeHTTP(rr, req)
-	require.Equal(t, http.StatusTooManyRequests, rr.Result().StatusCode)
+	r1 := makeRequest()
+	r2 := makeRequest()
+	r3 := makeRequest()
+
+	require.Equal(t, http.StatusAccepted, r1.Result().StatusCode)
+	require.Equal(t, http.StatusAccepted, r2.Result().StatusCode)
+	require.Equal(t, http.StatusTooManyRequests, r3.Result().StatusCode)
 }
 
 func TestRateLimiterDisabled(t *testing.T) {
