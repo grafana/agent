@@ -2,13 +2,14 @@ package metrics
 
 import (
 	"testing"
+	"time"
 
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/stretchr/testify/require"
 )
 
 func TestAddingMarker(t *testing.T) {
-	mapping := GlobalRefMapping
+	mapping := newGlobalRefMap()
 	l := labels.Labels{}
 	l = append(l, labels.Label{
 		Name:  "__name__",
@@ -21,7 +22,7 @@ func TestAddingMarker(t *testing.T) {
 }
 
 func TestAddingDifferentMarkers(t *testing.T) {
-	mapping := GlobalRefMapping
+	mapping := newGlobalRefMap()
 	l := labels.Labels{}
 	l = append(l, labels.Label{
 		Name:  "__name__",
@@ -39,7 +40,7 @@ func TestAddingDifferentMarkers(t *testing.T) {
 }
 
 func TestAddingLocalMapping(t *testing.T) {
-	mapping := GlobalRefMapping
+	mapping := newGlobalRefMap()
 	l := labels.Labels{}
 	l = append(l, labels.Label{
 		Name:  "__name__",
@@ -57,7 +58,7 @@ func TestAddingLocalMapping(t *testing.T) {
 }
 
 func TestAddingLocalMappings(t *testing.T) {
-	mapping := GlobalRefMapping
+	mapping := newGlobalRefMap()
 	l := labels.Labels{}
 	l = append(l, labels.Label{
 		Name:  "__name__",
@@ -82,7 +83,7 @@ func TestAddingLocalMappings(t *testing.T) {
 }
 
 func TestAddingLocalMappingsWithoutCreatingGlobalUpfront(t *testing.T) {
-	mapping := GlobalRefMapping
+	mapping := newGlobalRefMap()
 	l := labels.Labels{}
 	l = append(l, labels.Label{
 		Name:  "__name__",
@@ -102,4 +103,30 @@ func TestAddingLocalMappingsWithoutCreatingGlobalUpfront(t *testing.T) {
 	require.True(t, mapping.mappings["2"].RemoteWriteID == "2")
 	require.True(t, mapping.mappings["2"].globalToLocal[shouldBeSameGlobalID2] == 1)
 	require.True(t, mapping.mappings["2"].localToGlobal[1] == shouldBeSameGlobalID2)
+}
+
+func TestStaleness(t *testing.T) {
+	mapping := newGlobalRefMap()
+	l := labels.Labels{}
+	l = append(l, labels.Label{
+		Name:  "__name__",
+		Value: "test",
+	})
+	l2 := labels.Labels{}
+	l2 = append(l, labels.Label{
+		Name:  "__name__",
+		Value: "test",
+	})
+
+	global1 := mapping.GetOrAddLink("1", 1, l)
+	_ = mapping.GetOrAddLink("2", 1, l2)
+	mapping.AddStaleMarker(global1, l)
+	require.Len(t, mapping.staleGlobals, 1)
+	require.Len(t, mapping.labelsHashToGlobal, 2)
+	staleDuration = 1 * time.Millisecond
+	time.Sleep(10 * time.Millisecond)
+	mapping.CheckStaleMarkers()
+	require.Len(t, mapping.staleGlobals, 0)
+	require.Len(t, mapping.labelsHashToGlobal, 1)
+
 }

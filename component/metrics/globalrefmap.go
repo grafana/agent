@@ -7,8 +7,6 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 )
 
-// TODO should we convert all these uint64 to seriesref?
-
 // GlobalRefMapping is used when translating to and from remote writes and the rest of the system (mostly scrapers)
 // normal components except those should in general NOT need this.
 var GlobalRefMapping = &GlobalRefMap{}
@@ -17,6 +15,7 @@ func init() {
 	GlobalRefMapping = newGlobalRefMap()
 }
 
+// staleDuration determines how often we should wait after a stale value is received to GC that
 var staleDuration = time.Minute * 10
 
 // GlobalRefMap allows conversion from remote_write refids to global refs ids that everything else can use
@@ -29,9 +28,9 @@ type GlobalRefMap struct {
 }
 
 type staleMarker struct {
-	globalID  uint64
-	lastTs    time.Time
-	labelHash uint64
+	globalID        uint64
+	lastMarkedStale time.Time
+	labelHash       uint64
 }
 
 // newGlobalRefMap creates a refmap for usage, there should ONLY be one of these
@@ -67,6 +66,7 @@ func (g *GlobalRefMap) GetOrAddLink(componentID string, localRefID uint64, l lab
 		m.globalToLocal[globalID] = localRefID
 		return globalID
 	}
+	// We have a value we have never seen before so increment the globalrefid and assign
 	g.globalRefID++
 	g.labelsHashToGlobal[labelHash] = g.globalRefID
 	m.localToGlobal[localRefID] = g.globalRefID
@@ -92,6 +92,7 @@ func (g *GlobalRefMap) CreateGlobalRefID(l labels.Labels) uint64 {
 func (g *GlobalRefMap) GetGlobalRefID(componentID string, localRefID uint64) uint64 {
 	g.mut.Lock()
 	defer g.mut.Unlock()
+
 	m, found := g.mappings[componentID]
 	if !found {
 		return 0
@@ -104,6 +105,7 @@ func (g *GlobalRefMap) GetGlobalRefID(componentID string, localRefID uint64) uin
 func (g *GlobalRefMap) GetLocalRefID(componentID string, globalRefID uint64) uint64 {
 	g.mut.Lock()
 	defer g.mut.Unlock()
+
 	m, found := g.mappings[componentID]
 	if !found {
 		return 0
@@ -115,10 +117,11 @@ func (g *GlobalRefMap) GetLocalRefID(componentID string, globalRefID uint64) uin
 func (g *GlobalRefMap) AddStaleMarker(globalRefID uint64, l labels.Labels) {
 	g.mut.Lock()
 	defer g.mut.Unlock()
+
 	g.staleGlobals[globalRefID] = &staleMarker{
-		lastTs:    time.Now(),
-		labelHash: l.Hash(),
-		globalID:  globalRefID,
+		lastMarkedStale: time.Now(),
+		labelHash:       l.Hash(),
+		globalID:        globalRefID,
 	}
 }
 
@@ -126,11 +129,12 @@ func (g *GlobalRefMap) AddStaleMarker(globalRefID uint64, l labels.Labels) {
 func (g *GlobalRefMap) CheckStaleMarkers() {
 	g.mut.Lock()
 	defer g.mut.Unlock()
+
 	curr := time.Now()
 	idsToBeGCed := make([]*staleMarker, 0)
 	for _, stale := range g.staleGlobals {
-		// If the difference between now and the last time the stale was marked then let it sit
-		if curr.Sub(stale.lastTs) < staleDuration {
+		// If the difference between now and the last time the stale was marked doesnt exceed stale then let it stay
+		if curr.Sub(stale.lastMarkedStale) < staleDuration {
 			continue
 		}
 		idsToBeGCed = append(idsToBeGCed, stale)

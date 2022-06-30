@@ -39,7 +39,6 @@ var (
 	minWALTime           = 5 * time.Minute
 	maxWALTime           = 8 * time.Hour
 	remoteFlushDeadline  = 1 * time.Minute
-	refCache             = wal.GlobalRefID
 )
 
 func init() {
@@ -104,7 +103,7 @@ func NewComponent(o component.Options, c RemoteConfig) (*Component, error) {
 
 	walLogger := log.With(o.Logger, "subcomponent", "wal")
 	dataPath := filepath.Join(o.DataPath, "wal", o.ID)
-	walStorage, err := wal.NewStorageWithRefIDSource(walLogger, reg, dataPath, refCache)
+	walStorage, err := wal.NewStorage(walLogger, reg, dataPath)
 	if err != nil {
 		return nil, err
 	}
@@ -246,6 +245,7 @@ func (c *Component) Update(newConfig component.Arguments) error {
 	return nil
 }
 
+// Receive implements the receiver.receive func that allows an array of metrics to be passed
 func (c *Component) Receive(ts int64, metricArr []*metrics.FlowMetric) {
 	app := c.walStore.Appender(context.Background())
 	for _, m := range metricArr {

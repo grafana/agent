@@ -24,10 +24,6 @@ import (
 	"go.uber.org/atomic"
 )
 
-func init() {
-	GlobalRefID = atomic.NewUint64(0)
-}
-
 // ErrWALClosed is an error returned when a WAL operation can't run because the
 // storage has already been closed.
 var ErrWALClosed = fmt.Errorf("WAL storage closed")
@@ -106,9 +102,6 @@ func (m *storageMetrics) Unregister() {
 	}
 }
 
-// GlobalRefID can be used when a singleton is needed to keep all reference ids unique
-var GlobalRefID *atomic.Uint64
-
 // Storage implements storage.Storage, and just writes to the WAL.
 type Storage struct {
 	// Embed Queryable/ChunkQueryable for compatibility, but don't actually implement it.
@@ -129,18 +122,17 @@ type Storage struct {
 	appenderPool sync.Pool
 	bufPool      sync.Pool
 
+	ref    *atomic.Uint64
 	series *stripeSeries
 
 	deletedMtx sync.Mutex
 	deleted    map[chunks.HeadSeriesRef]int // Deleted series, and what WAL segment they must be kept until.
 
 	metrics *storageMetrics
-
-	ref *atomic.Uint64
 }
 
-// NewStorageWithRefIDSource uses a global refid source instead of local ones
-func NewStorageWithRefIDSource(logger log.Logger, registerer prometheus.Registerer, path string, ref *atomic.Uint64) (*Storage, error) {
+// NewStorage makes a new Storage.
+func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string) (*Storage, error) {
 	w, err := wal.NewSize(logger, registerer, SubDirectory(path), wal.DefaultSegmentSize, true)
 	if err != nil {
 		return nil, err
@@ -153,7 +145,7 @@ func NewStorageWithRefIDSource(logger log.Logger, registerer prometheus.Register
 		deleted: map[chunks.HeadSeriesRef]int{},
 		series:  newStripeSeries(),
 		metrics: newStorageMetrics(registerer),
-		ref:     ref,
+		ref:     atomic.NewUint64(0),
 	}
 
 	storage.bufPool.New = func() interface{} {
@@ -183,11 +175,6 @@ func NewStorageWithRefIDSource(logger log.Logger, registerer prometheus.Register
 	}
 
 	return storage, nil
-}
-
-// NewStorage makes a new Storage.
-func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string) (*Storage, error) {
-	return NewStorageWithRefIDSource(logger, registerer, path, atomic.NewUint64(0))
 }
 
 func (w *Storage) replayWAL() error {
@@ -315,7 +302,7 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 		}
 	}()
 
-	var biggestRef = w.ref.Load()
+	var biggestRef uint64 = w.ref.Load()
 
 	for d := range decoded {
 		switch v := d.(type) {
