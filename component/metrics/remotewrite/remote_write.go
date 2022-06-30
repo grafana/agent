@@ -53,23 +53,23 @@ func init() {
 			return NewComponent(o, c.(RemoteConfig))
 		},
 	})
-
 }
 
 // RemoteConfig represents the input state of the metrics_forwarder component.
 type RemoteConfig struct {
-	ExternalLabels map[string]string    `hcl:"external_labels,optional"`
-	RemoteWrite    []*RemoteWriteConfig `hcl:"remote_write,block"`
+	ExternalLabels map[string]string `hcl:"external_labels,optional"`
+	RemoteWrite    []*Config         `hcl:"remote_write,block"`
 }
 
-// RemoteWriteConfig is the metrics_fowarder's configuration for where to send
+// Config is the metrics_fowarder's configuration for where to send
 // metrics stored in the WAL.
-type RemoteWriteConfig struct {
+type Config struct {
 	Name      string           `hcl:"name,optional"`
 	URL       string           `hcl:"url"`
 	BasicAuth *BasicAuthConfig `hcl:"basic_auth,block"`
 }
 
+// Export is used to assign this to receive metrics
 type Export struct {
 	Receiver *metrics.Receiver `hcl:"receiver"`
 }

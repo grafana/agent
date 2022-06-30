@@ -114,6 +114,7 @@ func (g *GlobalRefMap) GetLocalRefID(componentID string, globalRefID uint64) uin
 	return local
 }
 
+// AddStaleMarker adds a stale marker
 func (g *GlobalRefMap) AddStaleMarker(globalRefID uint64, l labels.Labels) {
 	g.mut.Lock()
 	defer g.mut.Unlock()
@@ -123,6 +124,14 @@ func (g *GlobalRefMap) AddStaleMarker(globalRefID uint64, l labels.Labels) {
 		labelHash:       l.Hash(),
 		globalID:        globalRefID,
 	}
+}
+
+// RemoveStaleMarker removes a stale marker
+func (g *GlobalRefMap) RemoveStaleMarker(globalRefID uint64) {
+	g.mut.Lock()
+	defer g.mut.Unlock()
+
+	delete(g.staleGlobals, globalRefID)
 }
 
 // CheckStaleMarkers is called to garbage collect and items that have grown stale over stale duration (10m)

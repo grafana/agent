@@ -46,6 +46,8 @@ func (s *scrapeAppendable) Append(ref storage.SeriesRef, l labels.Labels, t int6
 	// If it is stale then we can remove it
 	if value.IsStaleNaN(v) {
 		metrics.GlobalRefMapping.AddStaleMarker(uint64(ref), l)
+	} else {
+		metrics.GlobalRefMapping.RemoveStaleMarker(uint64(ref))
 	}
 	s.buffer[t] = append(s.buffer[t], &metrics.FlowMetric{
 		GlobalRefID: uint64(ref),

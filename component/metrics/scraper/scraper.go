@@ -58,19 +58,20 @@ type Config struct {
 	Receivers []*metrics.Receiver `hcl:"receivers"`
 }
 
-var DefaultConfig = Config{
+var defaultConfig = Config{
 	MetricsPath:     "/metrics",
 	Scheme:          "http",
 	HonorLabels:     false,
 	HonorTimestamps: true,
-	ScrapeInterval:  time.Duration(60 * time.Second),
-	ScrapeTimeout:   time.Duration(10 * time.Second),
+	ScrapeInterval:  60 * time.Second,
+	ScrapeTimeout:   10 * time.Second,
 }
 
 var _ gohcl.Decoder = (*Config)(nil)
 
+// DecodeHCL allows the setting of a default configuration
 func (c *Config) DecodeHCL(body hcl.Body, ctx *hcl.EvalContext) error {
-	*c = DefaultConfig
+	*c = defaultConfig
 
 	type config Config
 	return gohcl.DecodeBody(body, ctx, (*config)(c))

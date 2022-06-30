@@ -29,7 +29,7 @@ func TestAddingDifferentMarkers(t *testing.T) {
 		Value: "test",
 	})
 	l2 := labels.Labels{}
-	l2 = append(l, labels.Label{
+	l2 = append(l2, labels.Label{
 		Name:  "__name__",
 		Value: "roar",
 	})
@@ -113,9 +113,9 @@ func TestStaleness(t *testing.T) {
 		Value: "test",
 	})
 	l2 := labels.Labels{}
-	l2 = append(l, labels.Label{
+	l2 = append(l2, labels.Label{
 		Name:  "__name__",
-		Value: "test",
+		Value: "test2",
 	})
 
 	global1 := mapping.GetOrAddLink("1", 1, l)
@@ -128,5 +128,19 @@ func TestStaleness(t *testing.T) {
 	mapping.CheckStaleMarkers()
 	require.Len(t, mapping.staleGlobals, 0)
 	require.Len(t, mapping.labelsHashToGlobal, 1)
+}
 
+func TestRemovingStaleness(t *testing.T) {
+	mapping := newGlobalRefMap()
+	l := labels.Labels{}
+	l = append(l, labels.Label{
+		Name:  "__name__",
+		Value: "test",
+	})
+
+	global1 := mapping.GetOrAddLink("1", 1, l)
+	mapping.AddStaleMarker(global1, l)
+	require.Len(t, mapping.staleGlobals, 1)
+	mapping.RemoveStaleMarker(global1)
+	require.Len(t, mapping.staleGlobals, 0)
 }
