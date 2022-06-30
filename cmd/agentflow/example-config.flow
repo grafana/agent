@@ -10,3 +10,9 @@ local "file" "this-file" {
   detector = "fsnotify"
 }
 
+otel "receiver_otlp" "default" {
+  grpc {}
+  http {}
+
+  output {}
+}
