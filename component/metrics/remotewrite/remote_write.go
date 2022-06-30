@@ -189,13 +189,6 @@ func (c *Component) Run(ctx context.Context) error {
 	}
 }
 
-// getRemoteWriteTimestamp looks up the last successful remote write timestamp.
-// This is passed to wal.Storage for its truncation. If no remote write
-// sections are configured, getRemoteWriteTimestamp returns the current time.
-func (c *Component) getRemoteWriteTimestamp() int64 {
-	return c.remoteStore.LowestSentTimestamp()
-}
-
 // Update implements Component.
 func (c *Component) Update(newConfig component.Arguments) error {
 	cfg := newConfig.(RemoteConfig)

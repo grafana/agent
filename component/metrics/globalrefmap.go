@@ -97,7 +97,7 @@ func (g *GlobalRefMap) GetGlobalRefID(componentID string, localRefID uint64) uin
 	if !found {
 		return 0
 	}
-	global, _ := m.localToGlobal[localRefID]
+	global := m.localToGlobal[localRefID]
 	return global
 }
 
@@ -110,7 +110,7 @@ func (g *GlobalRefMap) GetLocalRefID(componentID string, globalRefID uint64) uin
 	if !found {
 		return 0
 	}
-	local, _ := m.globalToLocal[globalRefID]
+	local := m.globalToLocal[globalRefID]
 	return local
 }
 
