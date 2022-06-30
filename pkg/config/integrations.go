@@ -79,9 +79,9 @@ func (c VersionedIntegrations) IsZero() bool {
 }
 
 // ApplyDefaults applies defaults to the subsystem based on globals.
-func (c *VersionedIntegrations) ApplyDefaults(scfg *server.Config, mcfg *metrics.Config) error {
+func (c *VersionedIntegrations) ApplyDefaults(sflags *server.Flags, mcfg *metrics.Config) error {
 	if c.version != integrationsVersion2 {
-		return c.configV1.ApplyDefaults(scfg, mcfg)
+		return c.configV1.ApplyDefaults(sflags, mcfg)
 	}
 	return c.configV2.ApplyDefaults(mcfg)
 }

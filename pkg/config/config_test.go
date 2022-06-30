@@ -38,7 +38,7 @@ metrics:
 	require.NotEmpty(t, c.Metrics.ServiceConfig.Lifecycler.InfNames)
 	require.NotZero(t, c.Metrics.ServiceConfig.Lifecycler.NumTokens)
 	require.NotZero(t, c.Metrics.ServiceConfig.Lifecycler.HeartbeatPeriod)
-	require.True(t, c.Server.Flags.RegisterInstrumentation)
+	require.True(t, c.ServerFlags.RegisterInstrumentation)
 }
 
 // TestConfig_ConfigAPIFlag makes sure that the read API flag is passed
@@ -451,29 +451,4 @@ func TestLoadDynamicConfigurationExpandError(t *testing.T) {
 	err := LoadDynamicConfiguration("", true, nil)
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "expand var is not supported when using dynamic configuration, use gomplate env instead"))
-}
-
-func TestGRPCListenAddress(t *testing.T) {
-	cfgText := `
-metrics:
-  wal_directory: /tmp
-  scraping_service:
-    enabled: true
-    kvstore:
-      store: consul
-      consul: {}
-    lifecycler:
-      ring:
-        kvstore:
-          store: consul
-          consul: {}
-`
-	var c Config
-	err := LoadBytes([]byte(cfgText), false, &c)
-	require.NoError(t, err)
-	c.Server.Flags.GRPC.ListenAddress = "192.168.1.1:9090"
-	err = c.Validate(nil)
-	require.NoError(t, err)
-	require.Equal(t, 9090, c.Server.Flags.GRPC.ListenPort)
-	require.Equal(t, "192.168.1.1", c.Server.Flags.GRPC.ListenHost)
 }

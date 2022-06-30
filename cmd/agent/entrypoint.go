@@ -55,6 +55,9 @@ type Reloader = func() (*config.Config, error)
 // NewEntrypoint creates a new Entrypoint.
 func NewEntrypoint(logger *server.Logger, cfg *config.Config, reloader Reloader) (*Entrypoint, error) {
 	var (
+		reg      = prometheus.DefaultRegisterer
+		gatherer = prometheus.DefaultGatherer
+
 		ep = &Entrypoint{
 			log:      logger,
 			reloader: reloader,
@@ -62,22 +65,22 @@ func NewEntrypoint(logger *server.Logger, cfg *config.Config, reloader Reloader)
 		err error
 	)
 
-	ep.srv, err = server.New(logger, prometheus.DefaultRegisterer, prometheus.DefaultGatherer, cfg.Server)
+	ep.srv, err = server.New(logger, reg, gatherer, cfg.Server, cfg.ServerFlags)
 	if err != nil {
 		return nil, err
 	}
 
-	ep.promMetrics, err = metrics.New(prometheus.DefaultRegisterer, cfg.Metrics, logger)
+	ep.promMetrics, err = metrics.New(reg, cfg.Metrics, logger)
 	if err != nil {
 		return nil, err
 	}
 
-	ep.lokiLogs, err = logs.New(prometheus.DefaultRegisterer, cfg.Logs, logger)
+	ep.lokiLogs, err = logs.New(reg, cfg.Logs, logger)
 	if err != nil {
 		return nil, err
 	}
 
-	ep.tempoTraces, err = traces.New(ep.lokiLogs, ep.promMetrics.InstanceManager(), prometheus.DefaultRegisterer, cfg.Traces, cfg.Server.LogLevel.Logrus, cfg.Server.LogFormat)
+	ep.tempoTraces, err = traces.New(ep.lokiLogs, ep.promMetrics.InstanceManager(), reg, cfg.Traces, cfg.Server.LogLevel.Logrus, cfg.Server.LogFormat)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +132,7 @@ func (ep *Entrypoint) createIntegrationsGlobals(cfg *config.Config) (config.Inte
 		DialContextFunc: ep.srv.DialContext,
 		AgentBaseURL: &url.URL{
 			Scheme: "http",
-			Host:   cfg.Server.Flags.HTTP.InMemoryAddr,
+			Host:   cfg.ServerFlags.HTTP.InMemoryAddr,
 		},
 	}, nil
 }

@@ -2,81 +2,84 @@ package server
 
 import (
 	"flag"
-	"fmt"
 	"math"
+	"net"
+	"strconv"
 	"time"
 )
 
 // Flags hold static configuration options for a Server.
 type Flags struct {
-	RegisterInstrumentation bool          `yaml:"register_instrumentation"`
-	GracefulShutdownTimeout time.Duration `yaml:"graceful_shutdown_timeout"`
+	RegisterInstrumentation bool
+	GracefulShutdownTimeout time.Duration
 
-	LogSourceIPs       bool   `yaml:"log_source_ips_enabled"`
-	LogSourceIPsHeader string `yaml:"log_source_ips_header"`
-	LogSourceIPsRegex  string `yaml:"log_source_ips_regex"`
+	LogSourceIPs       bool
+	LogSourceIPsHeader string
+	LogSourceIPsRegex  string
 
-	GRPC GRPCFlags `yaml:",inline"`
-	HTTP HTTPFlags `yaml:",inline"`
+	GRPC GRPCFlags
+	HTTP HTTPFlags
 }
 
 // HTTPFlags hold static configuration options for the HTTP server.
 type HTTPFlags struct {
-	UseTLS bool `yaml:"-"`
+	UseTLS bool
 
-	InMemoryAddr string `yaml:"-"`
+	InMemoryAddr string
 
-	ListenNetwork string `yaml:"http_listen_network"`
-	ListenAddress string `yaml:"-"` // host:port, takes precedence over ListenHost:ListenPort
-	ListenHost    string `yaml:"http_listen_address"`
-	ListenPort    int    `yaml:"http_listen_port"`
-	ConnLimit     int    `yaml:"http_listen_conn_limit"`
+	ListenNetwork string
+	ListenAddress string // host:port
+	ConnLimit     int
 
-	ReadTimeout  time.Duration `yaml:"http_server_read_timeout"`
-	WriteTimeout time.Duration `yaml:"http_server_write_timeout"`
-	IdleTimeout  time.Duration `yaml:"http_server_idle_timeout"`
+	ReadTimeout  time.Duration
+	WriteTimeout time.Duration
+	IdleTimeout  time.Duration
 }
 
-// GetListenAddress determines the final ListenAddress, where it is either
-// o.ListenAddress or a combination of o.ListenHost and o.ListenPort.
-func (f HTTPFlags) GetListenAddress() string {
-	if f.ListenAddress != "" {
-		return f.ListenAddress
+// ListenHostPort splits the ListenAddress into a listen host and listen port.
+// Returns an error if the ListenAddress isn't valid.
+func (f HTTPFlags) ListenHostPort() (host string, port int, err error) {
+	var portStr string
+	host, portStr, err = net.SplitHostPort(f.ListenAddress)
+	if err != nil {
+		return
 	}
-	return fmt.Sprintf("%s:%d", f.ListenHost, f.ListenPort)
+	port, err = strconv.Atoi(portStr)
+	return
 }
 
 // GRPCFlags hold static configuration options for the gRPC server.
 type GRPCFlags struct {
-	UseTLS bool `yaml:"-"`
+	UseTLS bool
 
-	InMemoryAddr string `yaml:"-"`
+	InMemoryAddr string
 
-	ListenNetwork string `yaml:"grpc_listen_network"`
-	ListenAddress string `yaml:"-"` // host:port, takes precedence over ListenHost:ListenPort
-	ListenHost    string `yaml:"grpc_listen_address"`
-	ListenPort    int    `yaml:"grpc_listen_port"`
-	ConnLimit     int    `yaml:"grpc_listen_conn_limit"`
+	ListenNetwork string
+	ListenAddress string // host:port
+	ConnLimit     int
 
-	MaxRecvMsgSize           int           `yaml:"grpc_server_max_recv_msg_size"`
-	MaxSendMsgSize           int           `yaml:"grpc_server_max_send_msg_size"`
-	MaxConcurrentStreams     uint          `yaml:"grpc_server_max_concurrent_streams"`
-	MaxConnectionIdle        time.Duration `yaml:"grpc_server_max_connection_idle"`
-	MaxConnectionAge         time.Duration `yaml:"grpc_server_max_connection_age"`
-	MaxConnectionAgeGrace    time.Duration `yaml:"grpc_server_max_connection_age_grace"`
-	KeepaliveTime            time.Duration `yaml:"grpc_server_keepalive_time"`
-	KeepaliveTimeout         time.Duration `yaml:"grpc_server_keepalive_timeout"`
-	MinTimeBetweenPings      time.Duration `yaml:"grpc_server_min_time_between_pings"`
-	PingWithoutStreamAllowed bool          `yaml:"grpc_server_ping_without_stream_allowed"`
+	MaxRecvMsgSize           int
+	MaxSendMsgSize           int
+	MaxConcurrentStreams     uint
+	MaxConnectionIdle        time.Duration
+	MaxConnectionAge         time.Duration
+	MaxConnectionAgeGrace    time.Duration
+	KeepaliveTime            time.Duration
+	KeepaliveTimeout         time.Duration
+	MinTimeBetweenPings      time.Duration
+	PingWithoutStreamAllowed bool
 }
 
-// GetListenAddress determines the final ListenAddress, where it is either
-// o.ListenAddress or a combination of o.ListenHost and o.ListenPort.
-func (f GRPCFlags) GetListenAddress() string {
-	if f.ListenAddress != "" {
-		return f.ListenAddress
+// ListenHostPort splits the ListenAddress into a listen host and listen port.
+// Returns an error if the ListenAddress isn't valid.
+func (f GRPCFlags) ListenHostPort() (host string, port int, err error) {
+	var portStr string
+	host, portStr, err = net.SplitHostPort(f.ListenAddress)
+	if err != nil {
+		return
 	}
-	return fmt.Sprintf("%s:%d", f.ListenHost, f.ListenPort)
+	port, err = strconv.Atoi(portStr)
+	return
 }
 
 var infinity = time.Duration(math.MaxInt64)
@@ -94,8 +97,7 @@ var (
 	DefaultHTTPFlags = HTTPFlags{
 		InMemoryAddr:  "agent.internal:12345",
 		ListenNetwork: "tcp",
-		ListenHost:    "127.0.0.1",
-		ListenPort:    12345,
+		ListenAddress: "127.0.0.1:12345",
 		ReadTimeout:   30 * time.Second,
 		WriteTimeout:  30 * time.Second,
 		IdleTimeout:   120 * time.Second,
@@ -104,8 +106,7 @@ var (
 	DefaultGRPCFlags = GRPCFlags{
 		InMemoryAddr:          "agent.internal:12346",
 		ListenNetwork:         "tcp",
-		ListenHost:            "127.0.0.1",
-		ListenPort:            12346,
+		ListenAddress:         "127.0.0.1:12346",
 		MaxRecvMsgSize:        4 * 1024 * 1024,
 		MaxSendMsgSize:        4 * 1024 * 1024,
 		MaxConcurrentStreams:  100,

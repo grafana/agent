@@ -9,7 +9,7 @@ Some parts of the codebase have other maintainers:
 
 * `pkg/traces`: Joe Elliott (<joe.elliott@grafana.com> / @joe-elliott), Mario Rodriguez (<mario.rodriguez@grafana.com>/ @mapno)
 * `pkg/integrations`: Gabriel Antunes (<gabriel.antunes@grafana.com> / @gaantunes), Ryan Geyer (<ryan.geyer@grafana.com> / @rgeyer)
-* `docs/user`: Brenda Muir (<brenda.muir@grafana.com> / @brendamuir)
+* `docs/sources`: Brenda Muir (<brenda.muir@grafana.com> / @brendamuir)
 
 For the sake of brevity, not all subtrees are explicitly listed. Due to the
 size of this repository, the natural changes in focus of maintainers over time,

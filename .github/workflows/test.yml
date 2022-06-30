@@ -5,7 +5,7 @@ jobs:
     name: Test
     strategy:
       matrix:
-        platform: [macos-latest, windows-latest]
+        platform: [macos-latest]
     runs-on: ${{ matrix.platform }}
     steps:
     - name: Checkout code
@@ -29,14 +29,5 @@ jobs:
         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-
-    - name: Increase pagefile
-      uses: al-cheb/configure-pagefile-action@v1.2
-      # Tests on Windows can use a lot of memory, and we need to increase the
-      # pagefile to compensate.
-      with:
-          minimum-size: 16GB
-          maximum-size: 16GB
-          disk-root: "C:"
-      if: ${{ matrix.platform == 'windows-latest' }}
     - name: Test
       run: make DOCKER_OPTS="" GOFLAGS="-tags=netgo,nodocker" BUILD_IN_CONTAINER=false test
