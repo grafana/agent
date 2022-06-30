@@ -373,6 +373,65 @@ func TestStorage_TruncateAfterClose(t *testing.T) {
 	require.Error(t, ErrWALClosed, s.Truncate(0))
 }
 
+func TestGlobalReferenceID_Normal(t *testing.T) {
+	walDir, _ := ioutil.TempDir(os.TempDir(), "wal")
+	defer os.RemoveAll(walDir)
+
+	s, _ := NewStorage(log.NewNopLogger(), nil, walDir)
+	defer s.Close()
+	app := s.Appender(context.Background())
+	l := labels.New(labels.Label{
+		Name:  "__name__",
+		Value: "label1",
+	})
+	ref, err := app.Append(0, l, time.Now().UnixMilli(), 0.1)
+	_ = app.Commit()
+	require.NoError(t, err)
+	require.True(t, ref == 1)
+	ref2, err := app.Append(0, l, time.Now().UnixMilli(), 0.1)
+	require.NoError(t, err)
+	require.True(t, ref2 == 1)
+
+	l2 := labels.New(labels.Label{
+		Name:  "__name__",
+		Value: "label2",
+	})
+	ref3, err := app.Append(0, l2, time.Now().UnixMilli(), 0.1)
+	require.NoError(t, err)
+	require.True(t, ref3 == 2)
+}
+
+func TestGlobalReferenceID_UsingGlobal(t *testing.T) {
+	// By passing in a global refid we want to ensure that reference ids are not reused between wals
+	walDir, _ := ioutil.TempDir(os.TempDir(), "wal")
+	defer os.RemoveAll(walDir)
+
+	s, _ := NewStorageWithRefIDSource(log.NewNopLogger(), nil, walDir, GlobalRefID)
+	defer s.Close()
+
+	walDir2, _ := ioutil.TempDir(os.TempDir(), "wal")
+	defer os.RemoveAll(walDir2)
+
+	s2, _ := NewStorageWithRefIDSource(log.NewNopLogger(), nil, walDir2, GlobalRefID)
+	defer s2.Close()
+
+	app1 := s.Appender(context.Background())
+	app2 := s2.Appender(context.Background())
+
+	l := labels.New(labels.Label{
+		Name:  "__name__",
+		Value: "label1",
+	})
+	// Add the same label to two references should create separate reference ids
+	ref, err := app1.Append(0, l, time.Now().UnixMilli(), 0.1)
+	_ = app1.Commit()
+	require.NoError(t, err)
+	require.True(t, ref == 1)
+	ref2, err := app2.Append(0, l, time.Now().UnixMilli(), 0.1)
+	require.NoError(t, err)
+	require.True(t, ref2 == 2)
+}
+
 func BenchmarkAppendExemplar(b *testing.B) {
 	walDir, _ := ioutil.TempDir(os.TempDir(), "wal")
 	defer os.RemoveAll(walDir)

@@ -3,10 +3,8 @@ package integrations
 import (
 	"context"
 	"fmt"
-	"net"
 	"net/http"
 	"path"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -118,20 +116,15 @@ func (c *ManagerConfig) DefaultRelabelConfigs(instanceKey string) []*relabel.Con
 //
 // If any integrations are enabled and are configured to be scraped, the
 // Prometheus configuration must have a WAL directory configured.
-func (c *ManagerConfig) ApplyDefaults(scfg *server.Config, mcfg *metrics.Config) error {
-	hostPort := scfg.Flags.HTTP.GetListenAddress()
-	host, portStr, err := net.SplitHostPort(hostPort)
+func (c *ManagerConfig) ApplyDefaults(sflags *server.Flags, mcfg *metrics.Config) error {
+	host, port, err := sflags.HTTP.ListenHostPort()
 	if err != nil {
 		return fmt.Errorf("reading HTTP host:port: %w", err)
-	}
-	port, err := strconv.Atoi(portStr)
-	if err != nil {
-		return fmt.Errorf("reading HTTP port: %w", err)
 	}
 
 	c.ListenHost = host
 	c.ListenPort = port
-	c.ServerUsingTLS = scfg.Flags.HTTP.UseTLS
+	c.ServerUsingTLS = sflags.HTTP.UseTLS
 
 	if len(c.PrometheusRemoteWrite) == 0 {
 		c.PrometheusRemoteWrite = mcfg.Global.RemoteWrite

@@ -21,7 +21,8 @@ const anyLocalhost = "127.0.0.1:0"
 
 func TestServer(t *testing.T) {
 	cfg := newTestConfig()
-	srv := runExampleServer(t, cfg)
+	flags := newTestFlags()
+	srv := runExampleServer(t, cfg, flags)
 
 	// Validate HTTP
 	resp, err := http.Get(fmt.Sprintf("http://%s/testing", srv.HTTPAddress()))
@@ -39,12 +40,13 @@ func TestServer(t *testing.T) {
 
 func TestServer_InMemory(t *testing.T) {
 	cfg := newTestConfig()
-	srv := runExampleServer(t, cfg)
+	flags := newTestFlags()
+	srv := runExampleServer(t, cfg, flags)
 
 	// Validate HTTP
 	var httpClient http.Client
 	httpClient.Transport = &http.Transport{DialContext: srv.DialContext}
-	resp, err := httpClient.Get(fmt.Sprintf("http://%s/testing", cfg.Flags.HTTP.InMemoryAddr))
+	resp, err := httpClient.Get(fmt.Sprintf("http://%s/testing", flags.HTTP.InMemoryAddr))
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 	_ = resp.Body.Close()
@@ -53,7 +55,7 @@ func TestServer_InMemory(t *testing.T) {
 	grpcDialer := grpc.WithContextDialer(func(ctx context.Context, s string) (net.Conn, error) {
 		return srv.DialContext(ctx, "", s)
 	})
-	cc, err := grpc.Dial(cfg.Flags.GRPC.InMemoryAddr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpcDialer)
+	cc, err := grpc.Dial(flags.GRPC.InMemoryAddr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpcDialer)
 	require.NoError(t, err)
 	_, err = grpc_health_v1.NewHealthClient(cc).Check(context.Background(), &grpc_health_v1.HealthCheckRequest{})
 	require.NoError(t, err)
@@ -61,15 +63,20 @@ func TestServer_InMemory(t *testing.T) {
 
 func newTestConfig() Config {
 	cfg := DefaultConfig
-	cfg.Flags.HTTP.ListenAddress = anyLocalhost
-	cfg.Flags.GRPC.ListenAddress = anyLocalhost
 	return cfg
 }
 
-func runExampleServer(t *testing.T, cfg Config) *Server {
+func newTestFlags() Flags {
+	flags := DefaultFlags
+	flags.HTTP.ListenAddress = anyLocalhost
+	flags.GRPC.ListenAddress = anyLocalhost
+	return flags
+}
+
+func runExampleServer(t *testing.T, cfg Config, flags Flags) *Server {
 	t.Helper()
 
-	srv, err := New(log.NewNopLogger(), nil, nil, cfg)
+	srv, err := New(log.NewNopLogger(), nil, nil, cfg, flags)
 	require.NoError(t, err)
 
 	// Set up some expected services for us to test against.
@@ -90,8 +97,10 @@ func runExampleServer(t *testing.T, cfg Config) *Server {
 
 func TestServer_TLS(t *testing.T) {
 	cfg := newTestConfig()
-	cfg.Flags.HTTP.UseTLS = true
-	cfg.Flags.GRPC.UseTLS = true
+	flags := newTestFlags()
+
+	flags.HTTP.UseTLS = true
+	flags.GRPC.UseTLS = true
 
 	tlsConfig := TLSConfig{
 		TLSCertPath: "testdata/example-cert.pem",
@@ -100,7 +109,7 @@ func TestServer_TLS(t *testing.T) {
 	cfg.HTTP.TLSConfig = tlsConfig
 	cfg.GRPC.TLSConfig = tlsConfig
 
-	srv := runExampleServer(t, cfg)
+	srv := runExampleServer(t, cfg, flags)
 
 	// Validate HTTPS
 	cli := http.Client{
@@ -125,9 +134,10 @@ func TestServer_TLS(t *testing.T) {
 // HTTP/GRPC servers stop unexpectedly.
 func TestRunReturnsError(t *testing.T) {
 	cfg := newTestConfig()
+	flags := newTestFlags()
 
 	t.Run("http", func(t *testing.T) {
-		srv, err := New(nil, nil, nil, cfg)
+		srv, err := New(nil, nil, nil, cfg, flags)
 		require.NoError(t, err)
 
 		ctx, cancel := context.WithCancel(context.Background())
@@ -143,7 +153,7 @@ func TestRunReturnsError(t *testing.T) {
 	})
 
 	t.Run("grpc", func(t *testing.T) {
-		srv, err := New(nil, nil, nil, cfg)
+		srv, err := New(nil, nil, nil, cfg, flags)
 		require.NoError(t, err)
 
 		ctx, cancel := context.WithCancel(context.Background())
@@ -162,8 +172,9 @@ func TestRunReturnsError(t *testing.T) {
 func TestServer_ApplyConfig(t *testing.T) {
 	t.Run("no changes", func(t *testing.T) {
 		cfg := newTestConfig()
+		flags := newTestFlags()
 
-		srv, err := New(nil, nil, nil, cfg)
+		srv, err := New(nil, nil, nil, cfg, flags)
 		require.NoError(t, err)
 
 		require.NoError(t, srv.ApplyConfig(cfg))
@@ -171,61 +182,12 @@ func TestServer_ApplyConfig(t *testing.T) {
 
 	t.Run("valid changes", func(t *testing.T) {
 		cfg := newTestConfig()
+		flags := newTestFlags()
 
-		srv, err := New(nil, nil, nil, cfg)
+		srv, err := New(nil, nil, nil, cfg, flags)
 		require.NoError(t, err)
 
 		cfg.LogLevel.Set("debug")
 		require.NoError(t, srv.ApplyConfig(cfg))
 	})
-
-	t.Run("invalid changes", func(t *testing.T) {
-		cfg := newTestConfig()
-
-		srv, err := New(nil, nil, nil, cfg)
-		require.NoError(t, err)
-
-		cfg.Flags.HTTP.ListenPort = 2
-		require.EqualError(t, srv.ApplyConfig(cfg), "cannot dynamically update values for deprecated YAML fields")
-	})
-}
-
-func TestServer_ListenAddress_Precedence(t *testing.T) {
-	// Reserve a port to listen on
-	reservedHTTPLis, err := net.Listen("tcp", anyLocalhost)
-	require.NoError(t, err)
-	defer reservedHTTPLis.Close()
-
-	reservedGRPCLis, err := net.Listen("tcp", anyLocalhost)
-	require.NoError(t, err)
-	defer reservedGRPCLis.Close()
-
-	// Create a config which sets both ListenAddress and ListenHost/ListenPort.
-	// ListenAddress should take precedence. If it doesn't, the port will collide
-	// with our existing listeners.
-	cfg := DefaultConfig
-	cfg.Flags.HTTP.ListenAddress = anyLocalhost
-	cfg.Flags.HTTP.ListenHost = "127.0.0.1"
-	cfg.Flags.HTTP.ListenPort = reservedHTTPLis.Addr().(*net.TCPAddr).Port
-	cfg.Flags.GRPC.ListenAddress = anyLocalhost
-	cfg.Flags.GRPC.ListenHost = "127.0.0.1"
-	cfg.Flags.GRPC.ListenPort = reservedGRPCLis.Addr().(*net.TCPAddr).Port
-
-	srv, err := New(nil, nil, nil, cfg)
-	require.NoError(t, err)
-	require.NoError(t, srv.Close()) // Close listeners we just opened
-
-	// Now we want to remove the ListenAddress override and ensure that creating
-	// a new server fails.
-	cfg.Flags.HTTP.ListenAddress = ""
-	cfg.Flags.GRPC.ListenAddress = anyLocalhost
-	srv, err = New(nil, nil, nil, cfg)
-	require.NotNil(t, err) // The error message is different per platform, so we don't check for the error string here
-	require.Nil(t, srv)
-
-	cfg.Flags.HTTP.ListenAddress = anyLocalhost
-	cfg.Flags.GRPC.ListenAddress = ""
-	srv, err = New(nil, nil, nil, cfg)
-	require.NotNil(t, err) // The error message is different per platform, so we don't check for the error string here
-	require.Nil(t, srv)
 }
