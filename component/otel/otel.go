@@ -2,17 +2,12 @@
 package otel
 
 import (
-	"context"
-	"fmt"
-	"sync"
-
 	"github.com/grafana/agent/component/otel/internal/errorconsumer"
 	"github.com/grafana/agent/component/otel/internal/fanoutconsumer"
 	otelconfiggrpc "go.opentelemetry.io/collector/config/configgrpc"
 	otelconfighttp "go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/config/confignet"
 	otelconsumer "go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/model/pdata"
 )
 
 // GRPCServerArguments holds shared gRPC settings for components which launch gRPC
@@ -138,73 +133,4 @@ func (args *NextReceiverArguments) TracesConsumer() otelconsumer.Traces {
 		conv[i] = args.Traces[i]
 	}
 	return fanoutconsumer.Traces(conv)
-}
-
-type lazyConsumer struct {
-	mut     sync.RWMutex
-	metrics otelconsumer.Metrics
-	logs    otelconsumer.Logs
-	traces  otelconsumer.Traces
-}
-
-var (
-	_ otelconsumer.Metrics = (*lazyConsumer)(nil)
-	_ otelconsumer.Logs    = (*lazyConsumer)(nil)
-	_ otelconsumer.Traces  = (*lazyConsumer)(nil)
-)
-
-func (lazy *lazyConsumer) Capabilities() otelconsumer.Capabilities {
-	// TODO(rfratto): this implementation is inefficient since it always requires
-	// data to be copied in the pipeline.
-	//
-	// To make things more efficient, we would have to:
-	//
-	// - Block on calls to Capabilities until our inner consumers are set
-	// - Split up lazyConsumer into a lazyConsumer for Metrics/Logs/Traces
-	return otelconsumer.Capabilities{MutatesData: true}
-}
-
-func (lazy *lazyConsumer) ConsumeMetrics(ctx context.Context, md pdata.Metrics) error {
-	lazy.mut.RLock()
-	defer lazy.mut.RUnlock()
-
-	if lazy.metrics == nil {
-		return fmt.Errorf("metrics consumer doesn't exist")
-	}
-	return lazy.metrics.ConsumeMetrics(ctx, md)
-}
-
-func (lazy *lazyConsumer) ConsumeLogs(ctx context.Context, md pdata.Logs) error {
-	lazy.mut.RLock()
-	defer lazy.mut.RUnlock()
-
-	if lazy.logs == nil {
-		return fmt.Errorf("logs consumer doesn't exist")
-	}
-	return lazy.logs.ConsumeLogs(ctx, md)
-}
-
-func (lazy *lazyConsumer) ConsumeTraces(ctx context.Context, md pdata.Traces) error {
-	lazy.mut.RLock()
-	defer lazy.mut.RUnlock()
-
-	if lazy.traces == nil {
-		return fmt.Errorf("traces consumer doesn't exist")
-	}
-	return lazy.traces.ConsumeTraces(ctx, md)
-}
-
-type updateConsumerFunc func() (otelconsumer.Metrics, otelconsumer.Logs, otelconsumer.Traces)
-
-// Update updates the lazy consumer with the result of calling f. Data sent to
-// the consumer is blocked while f is being invoked.
-func (lazy *lazyConsumer) Update(f updateConsumerFunc) {
-	lazy.mut.Lock()
-	defer lazy.mut.Unlock()
-
-	// TODO(rfratto): we're assuming that metrics/logs/traces will be nil when
-	// something failed, but it'd be nice to have some kind of unhealthy consumer
-	// which reports specific errors back to the caller when a component goes
-	// unhealthy.
-	lazy.metrics, lazy.logs, lazy.traces = f()
 }
