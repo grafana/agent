@@ -10,9 +10,38 @@ local "file" "this-file" {
   detector = "fsnotify"
 }
 
+otel "receiver_zipkin" "default" {
+  http {}
+
+  output {
+    traces = [otel.exporter_logging.default.input, otel.exporter_otlp.default.input]
+  }
+}
+
+otel "receiver_jaeger" "default" {
+  grpc {}
+  http {}
+
+  output {
+    traces = [otel.exporter_logging.default.input, otel.exporter_otlp.default.input]
+  }
+}
+
 otel "receiver_otlp" "default" {
   grpc {}
   http {}
 
-  output {}
+  output {
+    traces = [otel.exporter_logging.default.input, otel.exporter_otlp.default.input]
+  }
 }
+
+otel "exporter_logging" "default" {}
+
+otel "exporter_otlp" "default" {
+  client {
+    endpoint = "localhost:54317"
+  }
+}
+
+

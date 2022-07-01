@@ -22,8 +22,9 @@ type FlowExporter struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 
-	opts    component.Options
-	factory otelcomponent.ExporterFactory
+	opts      component.Options
+	factory   otelcomponent.ExporterFactory
+	consumers *lazyCombinedConsumer
 
 	runner *componentRunner
 }
@@ -47,15 +48,25 @@ type ExporterArguments interface {
 // NewFlowExporter creates a new Flow component which encapsules an
 // OpenTelemetry Collector exporter. args must be the argument type registered
 // with the component.
+//
+// The component must also be registered to exports the ConsumerExports type,
+// otherwise NewFlowExporter will panic.
 func NewFlowExporter(opts component.Options, f otelcomponent.ExporterFactory, args ExporterArguments) (*FlowExporter, error) {
+	consumers := newLazyCombinedConsumer()
+
+	// Immediately set our state with the combined consumer. The exports never
+	// change throughout the lifecycle of our component.
+	opts.OnStateChange(ConsumerExports{Input: &Consumer{consumers}})
+
 	ctx, cancel := context.WithCancel(context.Background())
 
 	fr := &FlowExporter{
 		ctx:    ctx,
 		cancel: cancel,
 
-		opts:    opts,
-		factory: f,
+		opts:      opts,
+		factory:   f,
+		consumers: consumers,
 
 		runner: newComponentRunner(opts.Logger),
 	}
@@ -120,19 +131,20 @@ func (r *FlowExporter) Update(args component.Arguments) error {
 	logsRecv, err := r.factory.CreateLogsExporter(r.ctx, settings, exporterConfig)
 	if err != nil && !errors.Is(err, otelcomponenterror.ErrDataTypeIsNotSupported) {
 		return err
-	} else if metricsRecv != nil {
+	} else if logsRecv != nil {
 		schedule = append(schedule, logsRecv)
 	}
 
 	tracesRecv, err := r.factory.CreateTracesExporter(r.ctx, settings, exporterConfig)
 	if err != nil && !errors.Is(err, otelcomponenterror.ErrDataTypeIsNotSupported) {
 		return err
-	} else if metricsRecv != nil {
+	} else if tracesRecv != nil {
 		schedule = append(schedule, tracesRecv)
 	}
 
 	// Schedule the components to run when our component is running.
 	r.runner.Schedule(&h, schedule...)
+	r.consumers.SetConsumers(metricsRecv, logsRecv, tracesRecv)
 	return nil
 }
 

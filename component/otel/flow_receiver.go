@@ -129,14 +129,14 @@ func (r *FlowReceiver) Update(args component.Arguments) error {
 	logsRecv, err := r.factory.CreateLogsReceiver(r.ctx, settings, receiverConfig, nextLogs)
 	if err != nil && !errors.Is(err, otelcomponenterror.ErrDataTypeIsNotSupported) {
 		return err
-	} else if metricsRecv != nil {
+	} else if logsRecv != nil {
 		schedule = append(schedule, logsRecv)
 	}
 
 	tracesRecv, err := r.factory.CreateTracesReceiver(r.ctx, settings, receiverConfig, nextTraces)
 	if err != nil && !errors.Is(err, otelcomponenterror.ErrDataTypeIsNotSupported) {
 		return err
-	} else if metricsRecv != nil {
+	} else if tracesRecv != nil {
 		schedule = append(schedule, tracesRecv)
 	}
 

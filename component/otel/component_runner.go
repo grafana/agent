@@ -43,6 +43,7 @@ func (cr *componentRunner) Schedule(h otelcomponent.Host, cc ...otelcomponent.Co
 	defer cr.schedMut.Unlock()
 
 	cr.schedComponents = cc
+	cr.host = h
 
 	select {
 	case cr.onComponents <- struct{}{}:
@@ -77,6 +78,8 @@ func (cr *componentRunner) Run(ctx context.Context) error {
 			components = cr.schedComponents
 			host := cr.host
 			cr.schedMut.Unlock()
+
+			level.Debug(cr.log).Log("msg", "scheduling components", "count", len(components))
 			cr.startComponents(ctx, host, components...)
 		}
 	}
@@ -95,6 +98,7 @@ func (cr *componentRunner) startComponents(ctx context.Context, h otelcomponent.
 
 	for _, c := range cc {
 		if err := c.Start(ctx, h); err != nil {
+			level.Error(cr.log).Log("msg", "failed when starting component", "err", err)
 			errs = multierr.Append(errs, err)
 		}
 	}

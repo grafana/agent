@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otel/internal/errorconsumer"
 	"github.com/grafana/agent/component/otel/internal/fanoutconsumer"
 	otelconfiggrpc "go.opentelemetry.io/collector/config/configgrpc"
@@ -15,12 +14,6 @@ import (
 	otelconsumer "go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/model/pdata"
 )
-
-func init() {
-	component.RegisterGoStruct("MetricsConsumer", MetricsConsumer{})
-	component.RegisterGoStruct("LogsConsumer", LogsConsumer{})
-	component.RegisterGoStruct("TracesConsumer", TracesConsumer{})
-}
 
 // GRPCServerArguments holds shared gRPC settings for components which launch gRPC
 // servers.
@@ -100,9 +93,9 @@ func (args *HTTPServerArguments) Convert() *otelconfighttp.HTTPServerSettings {
 }
 
 type NextReceiverArguments struct {
-	Metrics []MetricsConsumer `hcl:"metrics,optional"`
-	Logs    []LogsConsumer    `hcl:"logs,optional"`
-	Traces  []TracesConsumer  `hcl:"traces,optional"`
+	Metrics []*Consumer `hcl:"metrics,optional"`
+	Logs    []*Consumer `hcl:"logs,optional"`
+	Traces  []*Consumer `hcl:"traces,optional"`
 }
 
 type (

@@ -22,8 +22,9 @@ type FlowProcessor struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 
-	opts    component.Options
-	factory otelcomponent.ProcessorFactory
+	opts      component.Options
+	factory   otelcomponent.ProcessorFactory
+	consumers *lazyCombinedConsumer
 
 	runner *componentRunner
 }
@@ -51,14 +52,21 @@ type ProcessorArguments interface {
 // OpenTelemetry Collector processor. args must be the argument type registered
 // with the component.
 func NewFlowProcessor(opts component.Options, f otelcomponent.ProcessorFactory, args ProcessorArguments) (*FlowProcessor, error) {
+	consumers := newLazyCombinedConsumer()
+
+	// Immediately set our state with the combined consumer. The exports never
+	// change throughout the lifecycle of our component.
+	opts.OnStateChange(ConsumerExports{Input: &Consumer{consumers}})
+
 	ctx, cancel := context.WithCancel(context.Background())
 
 	fp := &FlowProcessor{
 		ctx:    ctx,
 		cancel: cancel,
 
-		opts:    opts,
-		factory: f,
+		opts:      opts,
+		factory:   f,
+		consumers: consumers,
 
 		runner: newComponentRunner(opts.Logger),
 	}
@@ -129,19 +137,20 @@ func (p *FlowProcessor) Update(args component.Arguments) error {
 	logsProc, err := p.factory.CreateLogsProcessor(p.ctx, settings, processorConfig, nextLogs)
 	if err != nil && !errors.Is(err, otelcomponenterror.ErrDataTypeIsNotSupported) {
 		return err
-	} else if metricsProc != nil {
+	} else if logsProc != nil {
 		schedule = append(schedule, logsProc)
 	}
 
 	tracesProc, err := p.factory.CreateTracesProcessor(p.ctx, settings, processorConfig, nextTraces)
 	if err != nil && !errors.Is(err, otelcomponenterror.ErrDataTypeIsNotSupported) {
 		return err
-	} else if metricsProc != nil {
+	} else if tracesProc != nil {
 		schedule = append(schedule, tracesProc)
 	}
 
 	// Schedule the components to run when our component is running.
 	p.runner.Schedule(&h, schedule...)
+	p.consumers.SetConsumers(metricsProc, logsProc, tracesProc)
 	return nil
 }
 
