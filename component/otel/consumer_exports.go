@@ -63,18 +63,30 @@ func (c *lazyCombinedConsumer) Capabilities() otelconsumer.Capabilities {
 func (c *lazyCombinedConsumer) ConsumeMetrics(ctx context.Context, md pdata.Metrics) error {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
+	if c.metricsConsumer == nil {
+		// TODO(rfratto): should this log?
+		return nil
+	}
 	return c.metricsConsumer.ConsumeMetrics(ctx, md)
 }
 
 func (c *lazyCombinedConsumer) ConsumeLogs(ctx context.Context, md pdata.Logs) error {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
+	if c.logsConsumer == nil {
+		// TODO(rfratto): should this log?
+		return nil
+	}
 	return c.logsConsumer.ConsumeLogs(ctx, md)
 }
 
 func (c *lazyCombinedConsumer) ConsumeTraces(ctx context.Context, md pdata.Traces) error {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
+	if c.tracesConsumer == nil {
+		// TODO(rfratto): should this log?
+		return nil
+	}
 	return c.tracesConsumer.ConsumeTraces(ctx, md)
 }
 
