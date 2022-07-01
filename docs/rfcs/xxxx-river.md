@@ -281,12 +281,14 @@ River types map to Go types as follows:
 * `bool`: Go `bool`
 * `string`: Go `string`, `[]byte`
 * `list`: Go `[]T`, `[...]T`.
-* `object`: Go `map[string]T`, and structs with at least one River tag
+* `object`: Go `map[string]T`, and structs
 * `function`: Any Go function.
   * If the final return value of the Go function is an error, it will be
     checked on calling; a non-nil error will cause the evaluation of the
     function to fail.
 * `capsule`: All other Go values.
+  * Additionally, type which implements `interface { RiverCapsuleMarker() }`
+    will also be treated as a capsule.
 
 River acts like a combination of a configuration language like HCL and an
 embedded language like Lua due to its focus on supporting all Go values,
@@ -308,6 +310,8 @@ Tags take one of the following forms:
 Attribute and block names must be unique across the whole type. When encoding a
 Go struct, inner blocks are converted into objects. Attributes are converted
 into River values of the appropriate type.
+
+Fields without struct tags are ignored.
 
 ### Errors
 
