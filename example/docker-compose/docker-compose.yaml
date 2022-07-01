@@ -48,7 +48,7 @@ services:
       - "-server.http-listen-port=3200"
     ports:
       - "3200:3200"
-      - "54317:4317"
+      - "4317:4317"
 
   avalanche:
     image: quay.io/freshtracks.io/avalanche:latest
