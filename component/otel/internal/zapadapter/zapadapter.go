@@ -23,8 +23,6 @@ type loggerCore struct {
 
 var _ zapcore.Core = (*loggerCore)(nil)
 
-// LevelEnabler
-
 func (lc *loggerCore) Enabled(zapcore.Level) bool { return true }
 
 func (lc *loggerCore) With(ff []zapcore.Field) zapcore.Core {
