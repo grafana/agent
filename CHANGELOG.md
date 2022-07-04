@@ -25,6 +25,10 @@ Main (unreleased)
 
 - Introduce eBPF exporter integration. (@tpaschalis)
 
+### Enhancements
+
+- Update statsd_exporter dependency to v0.22.5 (@tpaschalis)
+
 ### Bugfixes
 
 - Relative symlinks for promtail now work as expected. (@RangerCD, @mukerjee)
