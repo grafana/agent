@@ -14,7 +14,7 @@ require (
 	github.com/fatih/structs v1.1.0
 	github.com/fsnotify/fsnotify v1.5.4
 	github.com/github/smimesign v0.2.0
-	github.com/go-kit/log v0.2.0
+	github.com/go-kit/log v0.2.1
 	github.com/go-logfmt/logfmt v0.5.1
 	github.com/go-logr/logr v1.2.2
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
@@ -72,10 +72,10 @@ require (
 	github.com/prometheus-community/windows_exporter v0.0.0-00010101000000-000000000000
 	github.com/prometheus-operator/prometheus-operator v0.55.0
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.55.0
-	github.com/prometheus/client_golang v1.12.1
-	github.com/prometheus/common v0.33.0
+	github.com/prometheus/client_golang v1.12.2
+	github.com/prometheus/common v0.35.0
 	github.com/prometheus/consul_exporter v0.7.2-0.20210127095228-584c6de19f23
-	github.com/prometheus/memcached_exporter v0.9.0
+	github.com/prometheus/memcached_exporter v0.10.0
 	github.com/prometheus/mysqld_exporter v0.13.0
 	github.com/prometheus/node_exporter v1.3.1-0.20220127103407-4f27a4fd8efa
 	github.com/prometheus/procfs v0.7.4-0.20211011103944-1a7a2bd3279f
@@ -119,8 +119,6 @@ require (
 	sigs.k8s.io/yaml v1.3.0
 )
 
-require github.com/Lusitaniae/apache_exporter v0.11.1-0.20220518131644-f9522724dab4
-
 require (
 	cloud.google.com/go v0.100.2 // indirect
 	cloud.google.com/go/compute v1.5.0 // indirect
@@ -142,6 +140,7 @@ require (
 	github.com/Azure/go-autorest/autorest/validation v0.3.1 // indirect
 	github.com/Azure/go-autorest/logger v0.2.1 // indirect
 	github.com/Azure/go-autorest/tracing v0.6.0 // indirect
+	github.com/Lusitaniae/apache_exporter v0.11.1-0.20220518131644-f9522724dab4
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.1.1 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.2 // indirect
