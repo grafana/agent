@@ -28,6 +28,8 @@ Before you begin, make sure that you have installed Agent Operator into your clu
 - [Installing Grafana Agent Operator with Helm]({{< relref "./helm-getting-started.md" >}})
 - [Installing Grafana Agent Operator]({{< relref "./getting-started.md" >}})
 
+If dynamic provisioning is not enabled in your Kubernetes system, you will need to provision a Persistent Volume for the wal storage named `agent-wal`. 
+
 ## Step 1: Deploy GrafanaAgent resource
 
 In this step you'll roll out a `GrafanaAgent` resource. A `GrafanaAgent` resource discovers `MetricsInstance` and `LogsInstance` resources and defines the Grafana Agent image, Pod requests, limits, affinities, and tolerations. Pod attributes can only be defined at the GrafanaAgent level and are propagated to `MetricsInstance` and `LogsInstance` Pods. To learn more, please see the GrafanaAgent [Custom Resource Definition](https://github.com/grafana/agent/blob/main/production/operator/crds/monitoring.grafana.com_grafanaagents.yaml).
