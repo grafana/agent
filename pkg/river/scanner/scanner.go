@@ -692,7 +692,7 @@ func (s *Scanner) findLineEnd() bool {
 //
 // This is used for tokens which can either be a single character but also are
 // the starting character for a 2-length token (i.e., = and ==).
-func (s *Scanner) switch2(a, b token.Token, next rune) token.Token {
+func (s *Scanner) switch2(a, b token.Token, next rune) token.Token { //nolint:unparam
 	if s.ch == next {
 		s.next()
 		return b
