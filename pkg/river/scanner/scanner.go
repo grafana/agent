@@ -341,7 +341,7 @@ scanAgain:
 			if ch != bom {
 				s.onError(pos.Offset(), fmt.Sprintf("illegal character %#U", ch))
 			}
-			insertTerm = s.insertTerm // Preverse previous s.insertTerm state
+			insertTerm = s.insertTerm // Preserve previous s.insertTerm state
 			tok = token.ILLEGAL
 			lit = string(ch)
 		}

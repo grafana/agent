@@ -11,19 +11,19 @@ const (
 	EOF                  // End-of-file.
 	COMMENT              // // Hello, world!
 
-	literal_beg
+	literalBeg
 	IDENT  // foobar
 	NUMBER // 1234
 	FLOAT  // 1234.0
 	STRING // "foobar"
-	literal_end
+	literalEnd
 
-	keyword_beg
+	keywordBeg
 	BOOL // true
 	NULL // null
-	keyword_end
+	keywordEnd
 
-	operator_beg
+	operatorBeg
 	OR  // ||
 	AND // &&
 	NOT // !
@@ -52,7 +52,7 @@ const (
 	RBRACK // ]
 	COMMA  // ,
 	DOT    // .
-	operator_end
+	operatorEnd
 
 	TERMINATOR // \n
 )
@@ -129,18 +129,18 @@ func (t Token) String() string {
 func (t Token) GoString() string { return t.String() }
 
 // IsKeyword returns true if the token corresponds to a keyword.
-func (t Token) IsKeyword() bool { return t > keyword_beg && t < keyword_end }
+func (t Token) IsKeyword() bool { return t > keywordBeg && t < keywordEnd }
 
 // IsLiteral returns true if the token corresponds to a literal token or
 // identifier.
-func (t Token) IsLiteral() bool { return t > literal_beg && t < literal_end }
+func (t Token) IsLiteral() bool { return t > literalBeg && t < literalEnd }
 
 // IsOperator returns true if the token corresponds to an operator or
 // delimiter.
-func (t Token) IsOperator() bool { return t > operator_beg && t < operator_end }
+func (t Token) IsOperator() bool { return t > operatorBeg && t < operatorEnd }
 
-// Precedence returns the operator precedence of the binary operator t. If t is
-// not a binary operator, the result is LowestPrecedence.
+// BinaryPrecedence returns the operator precedence of the binary operator t.
+// If t is not a binary operator, the result is LowestPrecedence.
 func (t Token) BinaryPrecedence() int {
 	switch t {
 	case OR:

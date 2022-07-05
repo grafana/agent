@@ -5,7 +5,7 @@ import (
 	"sort"
 )
 
-// NosPos is the zero value for Pos. It has no file or line information
+// NoPos is the zero value for Pos. It has no file or line information
 // associated with it, and NoPos.Valid is false.
 var NoPos = Pos{}
 
