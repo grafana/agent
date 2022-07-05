@@ -1479,8 +1479,9 @@ batch:
   send_batch_size: 100
 tail_sampling:
   policies:
-    - always_sample:
-    - string_attribute:
+    - type: always_sample
+    - type: string_attribute
+      string_attribute:
         key: key
         values:
           - value1
@@ -1530,8 +1531,9 @@ batch:
   send_batch_size: 100
 tail_sampling:
   policies:
-    - always_sample:
-    - string_attribute:
+    - type: always_sample
+    - type: string_attribute
+      string_attribute:
         key: key
         values:
           - value1
