@@ -530,8 +530,11 @@ func (c *InstanceConfig) loadBalancingExporter() (map[string]interface{}, error)
 func formatPolicies(cfg []policy) ([]map[string]interface{}, error) {
 	policies := make([]map[string]interface{}, 0, len(cfg))
 	for i, policy := range cfg {
-		typ := policy.Type
-		name := policy.Name
+		typ, name := policy.Type, policy.Name
+		if typ == "" {
+			return nil, fmt.Errorf("policy %d must have a type", i)
+		}
+
 		if name == "" {
 			name = fmt.Sprintf("%s/%d", typ, i)
 		}
