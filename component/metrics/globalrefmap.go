@@ -74,8 +74,8 @@ func (g *GlobalRefMap) GetOrAddLink(componentID string, localRefID uint64, l lab
 	return g.globalRefID
 }
 
-// CreateGlobalRefID is used to create a global refid for a labelset
-func (g *GlobalRefMap) CreateGlobalRefID(l labels.Labels) uint64 {
+// CreateOrRetrieveGlobalRefID is used to create a global refid for a labelset
+func (g *GlobalRefMap) CreateOrRetrieveGlobalRefID(l labels.Labels) uint64 {
 	g.mut.Lock()
 	defer g.mut.Unlock()
 	labelHash := l.Hash()

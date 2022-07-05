@@ -244,12 +244,13 @@ func (c *Component) Receive(ts int64, metricArr []*metrics.FlowMetric) {
 	for _, m := range metricArr {
 		// TODO this should all be simplified into one call
 		if m.GlobalRefID == 0 {
-			globalID := metrics.GlobalRefMapping.CreateGlobalRefID(m.Labels)
+			globalID := metrics.GlobalRefMapping.CreateOrRetrieveGlobalRefID(m.Labels)
 			m.GlobalRefID = globalID
 		}
 		localID := metrics.GlobalRefMapping.GetLocalRefID(c.opts.ID, m.GlobalRefID)
 		newLocal, err := app.Append(storage.SeriesRef(localID), m.Labels, ts, m.Value)
-		if localID == 0 {
+		// Add link if there wasn't one before, and we received a valid local id
+		if localID == 0 && newLocal != 0 {
 			metrics.GlobalRefMapping.GetOrAddLink(c.opts.ID, uint64(newLocal), m.Labels)
 		}
 		if err != nil {
