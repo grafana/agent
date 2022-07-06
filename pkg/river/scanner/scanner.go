@@ -412,6 +412,10 @@ func (s *Scanner) scanIdentifier() string {
 		goto exit
 	}
 
+	s.offset = len(s.input)
+	s.readOffset = len(s.input)
+	s.ch = eof
+
 exit:
 	return string(s.input[off:s.offset])
 }

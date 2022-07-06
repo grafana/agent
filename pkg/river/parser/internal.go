@@ -276,7 +276,7 @@ func (p *parser) parseBlockName() *blockName {
 
 	// [ string ]
 	if p.tok != token.ASSIGN && p.tok != token.LCURLY {
-		if p.tok == token.STRING {
+		if p.tok == token.STRING && len(p.lit) > 2 {
 			bn.Label = p.lit[1 : len(p.lit)-1] // Strip quotes from label
 			bn.LabelPos = p.pos
 		} else {
