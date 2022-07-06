@@ -16,12 +16,10 @@ type tokenExample struct {
 var tokens = []tokenExample{
 	// Special tokens
 	{token.COMMENT, "/* a comment */"},
-	{token.COMMENT, "# a comment \n"},
 	{token.COMMENT, "// a comment \n"},
 	{token.COMMENT, "/*\r*/"},
 	{token.COMMENT, "/**\r/*/"}, // golang/go#11151
 	{token.COMMENT, "/**\r\r/*/"},
-	{token.COMMENT, "#\r\n"},
 	{token.COMMENT, "//\r\n"},
 
 	// Identifiers and basic type literals
@@ -131,7 +129,7 @@ func TestScanner_Scan(t *testing.T) {
 		case token.COMMENT:
 			// no CRs in comments
 			expectLit = string(stripCR([]byte(e.lit), e.lit[1] == '*'))
-			if expectLit[0] == '#' || expectLit[1] == '/' {
+			if expectLit[1] == '/' {
 				// Line comment literals doesn't contain newline
 				expectLit = expectLit[0 : len(expectLit)-1]
 			}
@@ -199,7 +197,6 @@ var errorTests = []struct {
 	{"\"abc\x00def\"", token.STRING, 4, "\"abc\x00def\"", "illegal character NUL"},
 	{"\"abc\x80def\"", token.STRING, 4, "\"abc\x80def\"", "illegal UTF-8 encoding"},
 	{"\ufeff\ufeff", token.ILLEGAL, 3, "\ufeff\ufeff", "illegal byte order mark"},                        // only first BOM is ignored
-	{"#\ufeff", token.COMMENT, 1, "#\ufeff", "illegal byte order mark"},                                  // only first BOM is ignored
 	{"//\ufeff", token.COMMENT, 2, "//\ufeff", "illegal byte order mark"},                                // only first BOM is ignored
 	{`"` + "abc\ufeffdef" + `"`, token.STRING, 4, `"` + "abc\ufeffdef" + `"`, "illegal byte order mark"}, // only first BOM is ignored
 	{"abc\x00def", token.IDENT, 3, "abc", "illegal character NUL"},

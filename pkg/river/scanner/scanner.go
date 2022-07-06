@@ -11,16 +11,21 @@ import (
 
 // EBNF for the scanner:
 //
-//   COMMENT        = online_comment | block_comment
-//   online_comment = ("#" | "//") { character }
-//   block_comment  = "/*" { character | newline } "*/"
+//   letter           = /* any unicode letter class character */ | "_"
+//   number           = /* any unicode number class character */
+//   digit            = /* ASCII characters 0 through 9 */
+//   string_character = /* any unicode character that isn't '"' */
+//
+//   COMMENT       = line_comment | block_comment
+//   line_comment  = "//" { character }
+//   block_comment = "/*" { character | newline } "*/"
 //
 //   IDENT   = letter { letter | number }
 //   NULL    = "null"
 //   BOOL    = "true" | "false"
 //   NUMBER  = digit { digit }
 //   FLOAT   = [ digit ] "." digit { digit } [ "e" ("+" | "-") digit { digit } ]
-//   STRING  = '"' { character | escape_sequence } '"'
+//   STRING  = '"' { string_character | escape_sequence } '"'
 //   OR      = "||"
 //   AND     = "&&"
 //   NOT     = "!"
@@ -45,11 +50,16 @@ import (
 //   RBRACK  = "]"
 //   COMMA   = ","
 //   DOT     = "."
+//
+// The EBNF for escape_sequence is currently undocumented; see scanEscape for
+// details. The escape sequences supported by River are the same as the escape
+// sequences supported by Go, except that it is always valid to use \' in
+// strings (which in Go, is only valid to use in character literals).
 
 // ErrorHandler is invoked whenever there is an error.
 type ErrorHandler func(pos token.Pos, msg string)
 
-// Mode is a set of bitewise flags which control scanner behavior.
+// Mode is a set of bitwise flags which control scanner behavior.
 type Mode uint
 
 const (
@@ -251,25 +261,6 @@ scanAgain:
 			}
 			tok = token.AND
 
-		case '#': // #-style comment
-			if s.insertTerm {
-				// We're expenting a terminator prior to the comment. Reset the scanner
-				// state back to the start of the comment and force emit a terminator.
-				s.ch = '#'
-				s.offset = pos.Offset()
-				s.readOffset = s.offset + 1
-				s.insertTerm = false // Consumed newline
-				return pos, token.TERMINATOR, "\n"
-			}
-			comment := s.scanComment(false)
-			if s.mode&IncludeComments == 0 {
-				// Skip over comment
-				s.insertTerm = false // Consumed newline
-				goto scanAgain
-			}
-			tok = token.COMMENT
-			lit = comment
-
 		case '!': // !, !=
 			tok = s.switch2(token.NOT, token.NEQ, '=')
 		case '=': // =, ==
@@ -299,7 +290,7 @@ scanAgain:
 					s.insertTerm = false // Consumed newline
 					return pos, token.TERMINATOR, "\n"
 				}
-				comment := s.scanComment(true)
+				comment := s.scanComment()
 				if s.mode&IncludeComments == 0 {
 					// Skip over comment
 					s.insertTerm = false // Consumed newline
@@ -555,7 +546,7 @@ func digitVal(ch rune) int {
 	return 16 // Larger than any legal digit val
 }
 
-func (s *Scanner) scanComment(slashComment bool) string {
+func (s *Scanner) scanComment() string {
 	// The initial character in the comment was already consumed from the scanner
 	// forcing progress.
 	//
@@ -568,8 +559,8 @@ func (s *Scanner) scanComment(slashComment bool) string {
 		blockComment = false
 	)
 
-	if !slashComment || s.ch == '/' { // NOTE: s.ch is second character in comment sequence
-		// #-style or //-style comment.
+	if s.ch == '/' { // NOTE: s.ch is second character in comment sequence
+		// //-style comment.
 		//
 		// The final '\n' is not considered to be part of the comment.
 		if s.ch == '/' {
@@ -634,11 +625,7 @@ func stripCR(b []byte, blockComment bool) []byte {
 	return c[:i]
 }
 
-// findLineEnd checks to see if a //- or /*-style comment runs to the end of
-// the line.
-//
-// findLineEnd is not used for #-style comments, which always run to the end of
-// the line.
+// findLineEnd checks to see if a comment runs to the end of the line.
 func (s *Scanner) findLineEnd() bool {
 	// NOTE: initial '/' is already consumed by forcing the scanner to progress.
 
