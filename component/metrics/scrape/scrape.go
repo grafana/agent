@@ -39,7 +39,7 @@ type Arguments struct {
 	// TODO(@tpaschalis) enable HTTPClientOptions []config_util.HTTPClientOption
 
 	// Scrape Config
-	ScrapeConfig Config `hcl:"scrape_config,block"`
+	ScrapeConfigs []Config `hcl:"scrape_config,block"`
 }
 
 // Target refers to a singular HTTP or HTTPS endpoint that will be used for
@@ -106,8 +106,9 @@ func (c *Component) Run(ctx context.Context) error {
 		case <-c.reloadTargets:
 			c.mut.RLock()
 			tgs := c.args.Targets
+			scs := c.args.ScrapeConfigs
 			c.mut.RUnlock()
-			promTargets := c.hclTargetsToProm(tgs)
+			promTargets := c.hclTargetsToProm(scs, tgs)
 
 			select {
 			case targetSetsChan <- promTargets:
@@ -128,13 +129,14 @@ func (c *Component) Update(args component.Arguments) error {
 
 	c.appendable.Receivers = newArgs.Receivers
 
-	scs := c.getPromScrapeConfig(c.opts.ID, newArgs.ScrapeConfig)
+	scs := c.getPromScrapeConfigs(newArgs.ScrapeConfigs)
 	err := c.scraper.ApplyConfig(&config.Config{
 		ScrapeConfigs: scs,
 	})
 	if err != nil {
 		return fmt.Errorf("error applying scrape configs: %w", err)
 	}
+	level.Debug(c.opts.Logger).Log("msg", "applied new scrape configs", "len", len(scs))
 
 	select {
 	case c.reloadTargets <- struct{}{}:
@@ -144,12 +146,17 @@ func (c *Component) Update(args component.Arguments) error {
 	return nil
 }
 
-func (c *Component) hclTargetsToProm(tgs []Target) map[string][]*targetgroup.Group {
-	promGroup := &targetgroup.Group{Source: c.opts.ID}
-	for _, tg := range tgs {
-		promGroup.Targets = append(promGroup.Targets, convertLabelSet(tg))
+func (c *Component) hclTargetsToProm(scs []Config, tgs []Target) map[string][]*targetgroup.Group {
+	res := make(map[string][]*targetgroup.Group, len(scs))
+	for _, sc := range scs {
+		promGroup := &targetgroup.Group{Source: c.opts.ID}
+		for _, tg := range tgs {
+			promGroup.Targets = append(promGroup.Targets, convertLabelSet(tg))
+		}
+		targetGroupName := c.opts.ID + "/" + sc.JobName
+		res[targetGroupName] = []*targetgroup.Group{promGroup}
 	}
-	return map[string][]*targetgroup.Group{c.opts.ID: {promGroup}}
+	return res
 }
 
 func convertLabelSet(tg Target) model.LabelSet {
