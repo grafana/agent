@@ -14,6 +14,7 @@ import (
 //   letter           = /* any unicode letter class character */ | "_"
 //   number           = /* any unicode number class character */
 //   digit            = /* ASCII characters 0 through 9 */
+//   digits           = digit { digit }
 //   string_character = /* any unicode character that isn't '"' */
 //
 //   COMMENT       = line_comment | block_comment
@@ -23,8 +24,8 @@ import (
 //   IDENT   = letter { letter | number }
 //   NULL    = "null"
 //   BOOL    = "true" | "false"
-//   NUMBER  = digit { digit }
-//   FLOAT   = [ digit ] "." digit { digit } [ "e" ("+" | "-") digit { digit } ]
+//   NUMBER  = digits
+//   FLOAT   = ( digits | "." digits ) [ "e" ( "+" | "-") digits ]
 //   STRING  = '"' { string_character | escape_sequence } '"'
 //   OR      = "||"
 //   AND     = "&&"
@@ -425,7 +426,7 @@ func (s *Scanner) scanNumber() (tok token.Token, lit string) {
 	}
 
 	// Fractional part of number
-	for s.ch == '.' {
+	if s.ch == '.' {
 		tok = token.FLOAT
 
 		s.next()
