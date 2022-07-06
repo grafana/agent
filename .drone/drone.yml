@@ -84,6 +84,12 @@ steps:
   - name: test
     image: grafana/ci-build-windows:0.3.4
     commands:
+      # TODO: remove the install below when grafana/ci-build-windows is updated
+      # with newer versions of Go and golangci-lint.
+      - powershell -Command choco install golang --version 1.18.3 -y
+      - powershell (New-Object Net.WebClient).DownloadFile("https://github.com/golangci/golangci-lint/releases/download/v1.46.2/golangci-lint-1.46.2-windows-amd64.zip", "golangci-lint.zip")
+      - powershell (Get-FileHash golangci-lint.zip -Algorithm SHA256).Hash -eq 'a11b73bebd0ab6f2161d3677a5c63883001bf489aeebc494a6aaaead6addd161'
+      - 7z e -y golangci-lint.zip
       - go test -tags="nodocker,nonetwork" ./...
 depends_on:
   - Lint
@@ -273,6 +279,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: e02f705240027503b6ebd744a1df9a4d05dbdb6b675c6570e82ec3752b0f1f66
+hmac: 4179b46a8c2dd99adb08d0273fd3f2bc3ed386f2ed44865a901c96c3bcbbbcc1
 
 ...
