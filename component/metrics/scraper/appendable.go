@@ -15,7 +15,7 @@ import (
 
 type scrapeAppendable struct {
 	mut sync.Mutex
-	// TODO add comment on why using a map when most of the time its only 1
+	// Though mostly a map of 1 item, this allows it to work if more than one TS gets added
 	buffer    map[int64][]*metrics.FlowMetric
 	receivers []*metrics.Receiver
 }
