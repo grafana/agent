@@ -25,7 +25,7 @@ import (
 //   NULL    = "null"
 //   BOOL    = "true" | "false"
 //   NUMBER  = digits
-//   FLOAT   = ( digits | "." digits ) [ "e" ( "+" | "-") digits ]
+//   FLOAT   = ( digits | "." digits ) [ "e" [ "+" | "-" ] digits ]
 //   STRING  = '"' { string_character | escape_sequence } '"'
 //   OR      = "||"
 //   AND     = "&&"
