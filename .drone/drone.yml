@@ -88,7 +88,7 @@ steps:
       # with newer versions of Go and golangci-lint.
       - powershell -Command choco install golang --version 1.18.3 -y
       - powershell (New-Object Net.WebClient).DownloadFile("https://github.com/golangci/golangci-lint/releases/download/v1.46.2/golangci-lint-1.46.2-windows-amd64.zip", "golangci-lint.zip")
-      - powershell (Get-FileHash golangci-lint.zip -Algorithm SHA256).Hash -eq 'a11b73bebd0ab6f2161d3677a5c63883001bf489aeebc494a6aaaead6addd161'
+      - powershell (Get-FileHash golangci-lint.zip -Algorithm SHA256).Hash -eq "604acc1378a566abb0eac799362f3a37b7fcb5fa2268aeb2d5d954c829367301"
       - 7z e -y golangci-lint.zip
       - go test -tags="nodocker,nonetwork" ./...
 depends_on:
@@ -279,6 +279,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: 4179b46a8c2dd99adb08d0273fd3f2bc3ed386f2ed44865a901c96c3bcbbbcc1
+hmac: bc296c7b3c574df542211b9051b565b24264c720e8b096f426c12aa1c3f02160
 
 ...
