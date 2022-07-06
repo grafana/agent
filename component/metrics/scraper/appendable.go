@@ -1,4 +1,5 @@
-// Package scraper nolint
+//nolint
+//lint:ignore
 package scraper
 
 import (
@@ -61,6 +62,7 @@ func (s *scrapeAppendable) Append(ref storage.SeriesRef, l labels.Labels, t int6
 func (s *scrapeAppendable) set(receiver []*metrics.Receiver) {
 	s.mut.Lock()
 	defer s.mut.Unlock()
+
 	s.receivers = receiver
 }
 
