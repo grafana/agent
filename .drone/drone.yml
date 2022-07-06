@@ -84,6 +84,7 @@ steps:
   - name: test
     image: grafana/ci-build-windows:0.3.4
     commands:
+      - powershell -Command choco install golang --version 1.18.3 -y
       - go test -tags="nodocker,nonetwork" ./...
 depends_on:
   - Lint
@@ -273,6 +274,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: 56508186d2cd2cb71ab0596c9d0210735177404efbf0fdc2e5109727ef39aede
+hmac: 269ff3c2fd3e86def4bb404f2b7b33d804f74de12c149748d96278d3f312911f
 
 ...
