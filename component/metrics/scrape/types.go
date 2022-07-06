@@ -16,6 +16,10 @@ import (
 	"github.com/rfratto/gohcl"
 )
 
+var emptyAuthorization = common_config.Authorization{}
+var emptyBasicAuth = common_config.BasicAuth{}
+var emptyOAuth2 = &common_config.OAuth2{}
+
 // Config holds all of the attributes that can be used to configure a scrape
 // component.
 type Config struct {
@@ -129,6 +133,24 @@ func (c *Config) DecodeHCL(body hcl.Body, ctx *hcl.EvalContext) error {
 func (c *Component) getPromScrapeConfig(jobName string, sc Config) []*config.ScrapeConfig {
 	res := make([]*config.ScrapeConfig, 0)
 
+	// General scrape settings
+	dec := config.DefaultScrapeConfig
+	dec.JobName = c.opts.ID
+	dec.HonorLabels = sc.HonorLabels
+	dec.HonorTimestamps = sc.HonorTimestamps
+	dec.Params = sc.Params
+	dec.ScrapeInterval = model.Duration(sc.ScrapeInterval)
+	dec.ScrapeTimeout = model.Duration(sc.ScrapeTimeout)
+	dec.MetricsPath = sc.MetricsPath
+	dec.Scheme = sc.Scheme
+	dec.BodySizeLimit = sc.BodySizeLimit
+	dec.SampleLimit = sc.SampleLimit
+	dec.TargetLimit = sc.TargetLimit
+	dec.LabelLimit = sc.LabelLimit
+	dec.LabelNameLengthLimit = sc.LabelNameLengthLimit
+	dec.LabelValueLengthLimit = sc.LabelValueLengthLimit
+
+	// HTTP scrape client settings
 	var proxyURL, oauth2ProxyURL *url.URL
 	if sc.ProxyURL != "" {
 		proxyURL, _ = url.Parse(sc.ProxyURL)
@@ -136,82 +158,76 @@ func (c *Component) getPromScrapeConfig(jobName string, sc Config) []*config.Scr
 	if sc.OAuth2ProxyURL != "" {
 		oauth2ProxyURL, _ = url.Parse(sc.OAuth2ProxyURL)
 	}
-	decoded := &config.ScrapeConfig{
-		JobName:               jobName,
-		HonorLabels:           sc.HonorLabels,
-		HonorTimestamps:       sc.HonorTimestamps,
-		Params:                sc.Params,
-		ScrapeInterval:        sc.ScrapeInterval,
-		ScrapeTimeout:         sc.ScrapeTimeout,
-		MetricsPath:           sc.MetricsPath,
-		Scheme:                sc.Scheme,
-		BodySizeLimit:         sc.BodySizeLimit,
-		SampleLimit:           sc.SampleLimit,
-		TargetLimit:           sc.TargetLimit,
-		LabelLimit:            sc.LabelLimit,
-		LabelNameLengthLimit:  sc.LabelNameLengthLimit,
-		LabelValueLengthLimit: sc.LabelValueLengthLimit,
-		HTTPClientConfig: common_config.HTTPClientConfig{
-			BasicAuth: &common_config.BasicAuth{
-				Username:     sc.BasicAuthUsername,
-				Password:     common_config.Secret(sc.BasicAuthPassword),
-				PasswordFile: sc.BasicAuthPasswordFile,
-			},
-			Authorization: &common_config.Authorization{
-				Type:            sc.AuthorizationType,
-				Credentials:     common_config.Secret(sc.AuthorizationCredential),
-				CredentialsFile: sc.AuthorizationCredentialsFile,
-			},
-			OAuth2: &common_config.OAuth2{
-				ClientID:         sc.OAuth2ClientID,
-				ClientSecret:     common_config.Secret(sc.OAuth2ClientSecret),
-				ClientSecretFile: sc.OAuth2ClientSecretFile,
-				Scopes:           sc.OAuth2Scopes,
-				TokenURL:         sc.OAuth2TokenURL,
-				EndpointParams:   sc.OAuth2EndpointParams,
-				ProxyURL:         common_config.URL{URL: oauth2ProxyURL},
-				TLSConfig: common_config.TLSConfig{
-					CAFile:             sc.OAuth2TLSConfigCAFile,
-					CertFile:           sc.OAuth2TLSConfigCertFile,
-					KeyFile:            sc.OAuth2TLSConfigKeyFile,
-					ServerName:         sc.OAuth2TLSConfigServerName,
-					InsecureSkipVerify: sc.OAuth2TLSConfigInsecureSkipVerify,
-				},
-			},
-			BearerToken:     common_config.Secret(sc.BearerToken),
-			BearerTokenFile: sc.BearerTokenFile,
-			ProxyURL:        common_config.URL{URL: proxyURL},
-			TLSConfig: common_config.TLSConfig{
-				CAFile:             sc.TLSConfigCAFile,
-				CertFile:           sc.TLSConfigCertFile,
-				KeyFile:            sc.TLSConfigKeyFile,
-				ServerName:         sc.TLSConfigServerName,
-				InsecureSkipVerify: sc.TLSConfigInsecureSkipVerify,
-			},
-			FollowRedirects: sc.FollowRedirects,
-			EnableHTTP2:     sc.EnableHTTP2,
+	httpClient := common_config.DefaultHTTPClientConfig
+	dec.HTTPClientConfig = httpClient
+
+	dec.HTTPClientConfig.BasicAuth = &common_config.BasicAuth{
+		Username:     sc.BasicAuthUsername,
+		Password:     common_config.Secret(sc.BasicAuthPassword),
+		PasswordFile: sc.BasicAuthPasswordFile,
+	}
+	dec.HTTPClientConfig.Authorization = &common_config.Authorization{
+		Type:            sc.AuthorizationType,
+		Credentials:     common_config.Secret(sc.AuthorizationCredential),
+		CredentialsFile: sc.AuthorizationCredentialsFile,
+	}
+
+	// dec.HTTPClientConfig.OAuth2 = &common_config.OAuth2{
+	oauth2Config := &common_config.OAuth2{
+		ClientID:         sc.OAuth2ClientID,
+		ClientSecret:     common_config.Secret(sc.OAuth2ClientSecret),
+		ClientSecretFile: sc.OAuth2ClientSecretFile,
+		Scopes:           sc.OAuth2Scopes,
+		TokenURL:         sc.OAuth2TokenURL,
+		EndpointParams:   sc.OAuth2EndpointParams,
+		ProxyURL:         common_config.URL{URL: oauth2ProxyURL},
+		TLSConfig: common_config.TLSConfig{
+			CAFile:             sc.OAuth2TLSConfigCAFile,
+			CertFile:           sc.OAuth2TLSConfigCertFile,
+			KeyFile:            sc.OAuth2TLSConfigKeyFile,
+			ServerName:         sc.OAuth2TLSConfigServerName,
+			InsecureSkipVerify: sc.OAuth2TLSConfigInsecureSkipVerify,
 		},
 	}
-	err := validateHTTPClientConfig(decoded.HTTPClientConfig)
+	// TODO(@tpaschalis) had to include this workaround with the OAuth2 config
+	// object, otherwise it would get resolved to a non-nil object, trigger a
+	// different behavior in the scrape requests and fail them. Let's check if
+	// it's the same case with the other nested HTTPClientConfigs structs.
+	if reflect.DeepEqual(oauth2Config, emptyOAuth2) {
+		dec.HTTPClientConfig.OAuth2 = nil
+	} else {
+		dec.HTTPClientConfig.OAuth2 = oauth2Config
+	}
+
+	dec.HTTPClientConfig.BearerToken = common_config.Secret(sc.BearerToken)
+	dec.HTTPClientConfig.BearerTokenFile = sc.BearerTokenFile
+	dec.HTTPClientConfig.ProxyURL = common_config.URL{URL: proxyURL}
+	dec.HTTPClientConfig.TLSConfig = common_config.TLSConfig{
+		CAFile:             sc.TLSConfigCAFile,
+		CertFile:           sc.TLSConfigCertFile,
+		KeyFile:            sc.TLSConfigKeyFile,
+		ServerName:         sc.TLSConfigServerName,
+		InsecureSkipVerify: sc.TLSConfigInsecureSkipVerify,
+	}
+	dec.HTTPClientConfig.FollowRedirects = sc.FollowRedirects
+	dec.HTTPClientConfig.EnableHTTP2 = sc.EnableHTTP2
+
+	err := validateHTTPClientConfig(dec.HTTPClientConfig)
 	if err != nil {
 		level.Error(c.opts.Logger).Log("msg", "provided scrape_config resulted in an invalid HTTP client configuration, skipping it", "err", err)
 	} else {
-		res = append(res, decoded)
+		res = append(res, &dec)
 	}
 
 	return res
 }
 
 func validateHTTPClientConfig(c common_config.HTTPClientConfig) error {
-	emptyAuthorization := common_config.Authorization{}
-	emptyBasicAuth := common_config.BasicAuth{}
-	emptyOAuth2 := &common_config.OAuth2{}
-
 	// Backwards compatibility with the bearer_token field.
 	if len(c.BearerToken) > 0 && len(c.BearerTokenFile) > 0 {
 		return fmt.Errorf("at most one of bearer_token & bearer_token_file must be configured")
 	}
-	if (*c.BasicAuth != emptyBasicAuth || !reflect.DeepEqual(c.OAuth2, emptyOAuth2)) && (len(c.BearerToken) > 0 || len(c.BearerTokenFile) > 0) {
+	if (*c.BasicAuth != emptyBasicAuth || c.OAuth2 != nil) && (len(c.BearerToken) > 0 || len(c.BearerTokenFile) > 0) {
 		return fmt.Errorf("at most one of basic_auth, oauth2, bearer_token & bearer_token_file must be configured")
 	}
 	if *c.BasicAuth != emptyBasicAuth && (string(c.BasicAuth.Password) != "" && c.BasicAuth.PasswordFile != "") {
@@ -231,7 +247,7 @@ func validateHTTPClientConfig(c common_config.HTTPClientConfig) error {
 		if strings.ToLower(c.Authorization.Type) == "basic" {
 			return fmt.Errorf(`authorization type cannot be set to "basic", use "basic_auth" instead`)
 		}
-		if *c.BasicAuth != emptyBasicAuth || !reflect.DeepEqual(c.OAuth2, emptyOAuth2) {
+		if *c.BasicAuth != emptyBasicAuth || c.OAuth2 != nil {
 			return fmt.Errorf("at most one of basic_auth, oauth2 & authorization must be configured")
 		}
 	} else {
@@ -246,7 +262,7 @@ func validateHTTPClientConfig(c common_config.HTTPClientConfig) error {
 			c.BearerTokenFile = ""
 		}
 	}
-	if !reflect.DeepEqual(c.OAuth2, emptyOAuth2) {
+	if c.OAuth2 != nil {
 		if *c.BasicAuth != emptyBasicAuth {
 			return fmt.Errorf("at most one of basic_auth, oauth2 & authorization must be configured")
 		}
