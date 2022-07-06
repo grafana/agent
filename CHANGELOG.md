@@ -18,6 +18,8 @@ Main (unreleased)
 - Deprecated `server` YAML block fields have now been removed in favor of the
   command-line flags that replaced them. These fields were originally
   deprecated in v0.24.0. (@rfratto)
+- Changed tail sampling policies to be configured as in the OpenTelemetry
+  Collector. (@mapno)
 
 ### Features
 
