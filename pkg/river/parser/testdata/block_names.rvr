@@ -1,0 +1,21 @@
+valid_block {
+
+}
+
+valid_block "labeled" {
+
+}
+
+invalid_block bad_label_name /* ERROR "expected block label, got IDENT" */ {
+
+}
+
+other_valid_block {
+  nested_block {
+
+  }
+
+  nested_block "labeled" {
+
+  }
+}
