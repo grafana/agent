@@ -82,12 +82,11 @@ trigger:
     - refs/tags/**
 steps:
   - name: test
-    #image: grafana/ci-build-windows:0.3.4
-    image: golang:1.18.3-windowsservercore-1809
+    image: grafana/ci-build-windows:0.3.4
     commands:
       # TODO: remove the install below when grafana/ci-build-windows is updated
       # with newer versions of Go.
-      # - powershell -Command choco install golang --version 1.18.3 -y
+      - powershell -Command choco install golang --version 1.18.3 -y
       - go test -tags="nodocker,nonetwork" ./...
 depends_on:
   - Lint
@@ -277,6 +276,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: d029f84a3395198d4d8e85ffaac93a5dd25b43e373bf9475be38e1e679397ba6
+hmac: 1eb649e21ef645fccbdde5fff6577f6c56666bf7683f68b91b753887d2952069
 
 ...
