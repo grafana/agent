@@ -44,7 +44,7 @@ func newParser(filename string, src []byte) *parser {
 			Position: file.PositionFor(pos),
 			Message:  msg,
 		})
-	}, 0)
+	}, scanner.IncludeComments)
 
 	p.next()
 	return p
