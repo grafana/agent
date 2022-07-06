@@ -1,4 +1,4 @@
-//nolint:golint
+// Package scraper nolint
 package scraper
 
 import (
