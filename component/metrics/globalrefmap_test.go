@@ -15,8 +15,8 @@ func TestAddingMarker(t *testing.T) {
 		Name:  "__name__",
 		Value: "test",
 	})
-	globalID := mapping.CreateOrRetrieveGlobalRefID(l)
-	shouldBeSameGlobalID := mapping.CreateOrRetrieveGlobalRefID(l)
+	globalID := mapping.GetOrAddGlobalRefID(l)
+	shouldBeSameGlobalID := mapping.GetOrAddGlobalRefID(l)
 	require.True(t, globalID == shouldBeSameGlobalID)
 	require.Len(t, mapping.labelsHashToGlobal, 1)
 }
@@ -33,8 +33,8 @@ func TestAddingDifferentMarkers(t *testing.T) {
 		Name:  "__name__",
 		Value: "roar",
 	})
-	globalID := mapping.CreateOrRetrieveGlobalRefID(l)
-	shouldBeDifferentID := mapping.CreateOrRetrieveGlobalRefID(l2)
+	globalID := mapping.GetOrAddGlobalRefID(l)
+	shouldBeDifferentID := mapping.GetOrAddGlobalRefID(l2)
 	require.True(t, globalID != shouldBeDifferentID)
 	require.Len(t, mapping.labelsHashToGlobal, 2)
 }
@@ -47,7 +47,7 @@ func TestAddingLocalMapping(t *testing.T) {
 		Value: "test",
 	})
 
-	globalID := mapping.CreateOrRetrieveGlobalRefID(l)
+	globalID := mapping.GetOrAddGlobalRefID(l)
 	shouldBeSameGlobalID := mapping.GetOrAddLink("1", 1, l)
 	require.True(t, globalID == shouldBeSameGlobalID)
 	require.Len(t, mapping.labelsHashToGlobal, 1)
@@ -65,7 +65,7 @@ func TestAddingLocalMappings(t *testing.T) {
 		Value: "test",
 	})
 
-	globalID := mapping.CreateOrRetrieveGlobalRefID(l)
+	globalID := mapping.GetOrAddGlobalRefID(l)
 	shouldBeSameGlobalID := mapping.GetOrAddLink("1", 1, l)
 	shouldBeSameGlobalID2 := mapping.GetOrAddLink("2", 1, l)
 	require.True(t, globalID == shouldBeSameGlobalID)

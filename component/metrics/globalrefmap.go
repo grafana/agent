@@ -15,7 +15,7 @@ func init() {
 	GlobalRefMapping = newGlobalRefMap()
 }
 
-// staleDuration determines how often we should wait after a stale value is received to GC that
+// staleDuration determines how often we should wait after a stale value is received to GC that value
 var staleDuration = time.Minute * 10
 
 // GlobalRefMap allows conversion from remote_write refids to global refs ids that everything else can use
@@ -74,10 +74,11 @@ func (g *GlobalRefMap) GetOrAddLink(componentID string, localRefID uint64, l lab
 	return g.globalRefID
 }
 
-// CreateOrRetrieveGlobalRefID is used to create a global refid for a labelset
-func (g *GlobalRefMap) CreateOrRetrieveGlobalRefID(l labels.Labels) uint64 {
+// GetOrAddGlobalRefID is used to create a global refid for a labelset
+func (g *GlobalRefMap) GetOrAddGlobalRefID(l labels.Labels) uint64 {
 	g.mut.Lock()
 	defer g.mut.Unlock()
+
 	labelHash := l.Hash()
 	globalID, found := g.labelsHashToGlobal[labelHash]
 	if found {

@@ -41,7 +41,7 @@ func (s *scrapeAppendable) Append(ref storage.SeriesRef, l labels.Labels, t int6
 	}
 	// If ref is 0 then lets grab a global id
 	if ref == 0 {
-		ref = storage.SeriesRef(metrics.GlobalRefMapping.CreateOrRetrieveGlobalRefID(l))
+		ref = storage.SeriesRef(metrics.GlobalRefMapping.GetOrAddGlobalRefID(l))
 	}
 	// If it is stale then we can remove it
 	if value.IsStaleNaN(v) {

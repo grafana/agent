@@ -244,7 +244,7 @@ func (c *Component) Receive(ts int64, metricArr []*metrics.FlowMetric) {
 	for _, m := range metricArr {
 		// TODO this should all be simplified into one call
 		if m.GlobalRefID == 0 {
-			globalID := metrics.GlobalRefMapping.CreateOrRetrieveGlobalRefID(m.Labels)
+			globalID := metrics.GlobalRefMapping.GetOrAddGlobalRefID(m.Labels)
 			m.GlobalRefID = globalID
 		}
 		localID := metrics.GlobalRefMapping.GetLocalRefID(c.opts.ID, m.GlobalRefID)
