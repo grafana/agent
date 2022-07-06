@@ -27,7 +27,7 @@ type Config struct {
 	// as the key in the targetGroups map that is being passed through the
 	// channel, and not allow it to be freely set.
 	// The job name to which the job label is set by default.
-	// JobName string `hcl:"job_name,attr"`
+	JobName string `hcl:"job_name,attr"`
 
 	// Indicator whether the scraped metrics should remain unmodified.
 	HonorLabels bool `hcl:"honor_labels,optional"`
@@ -130,93 +130,94 @@ func (c *Config) DecodeHCL(body hcl.Body, ctx *hcl.EvalContext) error {
 // - RelabelConfigs
 // - MetricsRelabelConfigs
 // - ServiceDiscoveryConfigs
-func (c *Component) getPromScrapeConfig(jobName string, sc Config) []*config.ScrapeConfig {
+func (c *Component) getPromScrapeConfigs(scs []Config) []*config.ScrapeConfig {
 	res := make([]*config.ScrapeConfig, 0)
 
-	// General scrape settings
-	dec := config.DefaultScrapeConfig
-	dec.JobName = c.opts.ID
-	dec.HonorLabels = sc.HonorLabels
-	dec.HonorTimestamps = sc.HonorTimestamps
-	dec.Params = sc.Params
-	dec.ScrapeInterval = model.Duration(sc.ScrapeInterval)
-	dec.ScrapeTimeout = model.Duration(sc.ScrapeTimeout)
-	dec.MetricsPath = sc.MetricsPath
-	dec.Scheme = sc.Scheme
-	dec.BodySizeLimit = sc.BodySizeLimit
-	dec.SampleLimit = sc.SampleLimit
-	dec.TargetLimit = sc.TargetLimit
-	dec.LabelLimit = sc.LabelLimit
-	dec.LabelNameLengthLimit = sc.LabelNameLengthLimit
-	dec.LabelValueLengthLimit = sc.LabelValueLengthLimit
+	for _, sc := range scs {
+		// General scrape settings
+		dec := config.DefaultScrapeConfig
+		dec.JobName = c.opts.ID + "/" + sc.JobName
+		dec.HonorLabels = sc.HonorLabels
+		dec.HonorTimestamps = sc.HonorTimestamps
+		dec.Params = sc.Params
+		dec.ScrapeInterval = model.Duration(sc.ScrapeInterval)
+		dec.ScrapeTimeout = model.Duration(sc.ScrapeTimeout)
+		dec.MetricsPath = sc.MetricsPath
+		dec.Scheme = sc.Scheme
+		dec.BodySizeLimit = sc.BodySizeLimit
+		dec.SampleLimit = sc.SampleLimit
+		dec.TargetLimit = sc.TargetLimit
+		dec.LabelLimit = sc.LabelLimit
+		dec.LabelNameLengthLimit = sc.LabelNameLengthLimit
+		dec.LabelValueLengthLimit = sc.LabelValueLengthLimit
 
-	// HTTP scrape client settings
-	var proxyURL, oauth2ProxyURL *url.URL
-	if sc.ProxyURL != "" {
-		proxyURL, _ = url.Parse(sc.ProxyURL)
-	}
-	if sc.OAuth2ProxyURL != "" {
-		oauth2ProxyURL, _ = url.Parse(sc.OAuth2ProxyURL)
-	}
-	httpClient := common_config.DefaultHTTPClientConfig
-	dec.HTTPClientConfig = httpClient
+		// HTTP scrape client settings
+		var proxyURL, oauth2ProxyURL *url.URL
+		if sc.ProxyURL != "" {
+			proxyURL, _ = url.Parse(sc.ProxyURL)
+		}
+		if sc.OAuth2ProxyURL != "" {
+			oauth2ProxyURL, _ = url.Parse(sc.OAuth2ProxyURL)
+		}
+		httpClient := common_config.DefaultHTTPClientConfig
+		dec.HTTPClientConfig = httpClient
 
-	dec.HTTPClientConfig.BasicAuth = &common_config.BasicAuth{
-		Username:     sc.BasicAuthUsername,
-		Password:     common_config.Secret(sc.BasicAuthPassword),
-		PasswordFile: sc.BasicAuthPasswordFile,
-	}
-	dec.HTTPClientConfig.Authorization = &common_config.Authorization{
-		Type:            sc.AuthorizationType,
-		Credentials:     common_config.Secret(sc.AuthorizationCredential),
-		CredentialsFile: sc.AuthorizationCredentialsFile,
-	}
+		dec.HTTPClientConfig.BasicAuth = &common_config.BasicAuth{
+			Username:     sc.BasicAuthUsername,
+			Password:     common_config.Secret(sc.BasicAuthPassword),
+			PasswordFile: sc.BasicAuthPasswordFile,
+		}
+		dec.HTTPClientConfig.Authorization = &common_config.Authorization{
+			Type:            sc.AuthorizationType,
+			Credentials:     common_config.Secret(sc.AuthorizationCredential),
+			CredentialsFile: sc.AuthorizationCredentialsFile,
+		}
 
-	// dec.HTTPClientConfig.OAuth2 = &common_config.OAuth2{
-	oauth2Config := &common_config.OAuth2{
-		ClientID:         sc.OAuth2ClientID,
-		ClientSecret:     common_config.Secret(sc.OAuth2ClientSecret),
-		ClientSecretFile: sc.OAuth2ClientSecretFile,
-		Scopes:           sc.OAuth2Scopes,
-		TokenURL:         sc.OAuth2TokenURL,
-		EndpointParams:   sc.OAuth2EndpointParams,
-		ProxyURL:         common_config.URL{URL: oauth2ProxyURL},
-		TLSConfig: common_config.TLSConfig{
-			CAFile:             sc.OAuth2TLSConfigCAFile,
-			CertFile:           sc.OAuth2TLSConfigCertFile,
-			KeyFile:            sc.OAuth2TLSConfigKeyFile,
-			ServerName:         sc.OAuth2TLSConfigServerName,
-			InsecureSkipVerify: sc.OAuth2TLSConfigInsecureSkipVerify,
-		},
-	}
-	// TODO(@tpaschalis) had to include this workaround with the OAuth2 config
-	// object, otherwise it would get resolved to a non-nil object, trigger a
-	// different behavior in the scrape requests and fail them. Let's check if
-	// it's the same case with the other nested HTTPClientConfigs structs.
-	if reflect.DeepEqual(oauth2Config, emptyOAuth2) {
-		dec.HTTPClientConfig.OAuth2 = nil
-	} else {
-		dec.HTTPClientConfig.OAuth2 = oauth2Config
-	}
+		oauth2Config := &common_config.OAuth2{
+			ClientID:         sc.OAuth2ClientID,
+			ClientSecret:     common_config.Secret(sc.OAuth2ClientSecret),
+			ClientSecretFile: sc.OAuth2ClientSecretFile,
+			Scopes:           sc.OAuth2Scopes,
+			TokenURL:         sc.OAuth2TokenURL,
+			EndpointParams:   sc.OAuth2EndpointParams,
+			ProxyURL:         common_config.URL{URL: oauth2ProxyURL},
+			TLSConfig: common_config.TLSConfig{
+				CAFile:             sc.OAuth2TLSConfigCAFile,
+				CertFile:           sc.OAuth2TLSConfigCertFile,
+				KeyFile:            sc.OAuth2TLSConfigKeyFile,
+				ServerName:         sc.OAuth2TLSConfigServerName,
+				InsecureSkipVerify: sc.OAuth2TLSConfigInsecureSkipVerify,
+			},
+		}
+		// TODO(@tpaschalis) had to include this workaround with the OAuth2 config
+		// object, otherwise it would get resolved to a non-nil object, trigger a
+		// different behavior in the scrape requests and fail them. Let's check if
+		// it's the same case with the other nested HTTPClientConfigs structs.
+		if reflect.DeepEqual(oauth2Config, emptyOAuth2) {
+			dec.HTTPClientConfig.OAuth2 = nil
+		} else {
+			dec.HTTPClientConfig.OAuth2 = oauth2Config
+		}
 
-	dec.HTTPClientConfig.BearerToken = common_config.Secret(sc.BearerToken)
-	dec.HTTPClientConfig.BearerTokenFile = sc.BearerTokenFile
-	dec.HTTPClientConfig.ProxyURL = common_config.URL{URL: proxyURL}
-	dec.HTTPClientConfig.TLSConfig = common_config.TLSConfig{
-		CAFile:             sc.TLSConfigCAFile,
-		CertFile:           sc.TLSConfigCertFile,
-		KeyFile:            sc.TLSConfigKeyFile,
-		ServerName:         sc.TLSConfigServerName,
-		InsecureSkipVerify: sc.TLSConfigInsecureSkipVerify,
-	}
-	dec.HTTPClientConfig.FollowRedirects = sc.FollowRedirects
-	dec.HTTPClientConfig.EnableHTTP2 = sc.EnableHTTP2
+		dec.HTTPClientConfig.BearerToken = common_config.Secret(sc.BearerToken)
+		dec.HTTPClientConfig.BearerTokenFile = sc.BearerTokenFile
+		dec.HTTPClientConfig.ProxyURL = common_config.URL{URL: proxyURL}
+		dec.HTTPClientConfig.TLSConfig = common_config.TLSConfig{
+			CAFile:             sc.TLSConfigCAFile,
+			CertFile:           sc.TLSConfigCertFile,
+			KeyFile:            sc.TLSConfigKeyFile,
+			ServerName:         sc.TLSConfigServerName,
+			InsecureSkipVerify: sc.TLSConfigInsecureSkipVerify,
+		}
+		dec.HTTPClientConfig.FollowRedirects = sc.FollowRedirects
+		dec.HTTPClientConfig.EnableHTTP2 = sc.EnableHTTP2
 
-	err := validateHTTPClientConfig(dec.HTTPClientConfig)
-	if err != nil {
-		level.Error(c.opts.Logger).Log("msg", "provided scrape_config resulted in an invalid HTTP client configuration, skipping it", "err", err)
-	} else {
-		res = append(res, &dec)
+		err := validateHTTPClientConfig(dec.HTTPClientConfig)
+		if err != nil {
+			level.Error(c.opts.Logger).Log("msg", "provided scrape_config resulted in an invalid HTTP client configuration, skipping it", "err", err)
+		} else {
+			res = append(res, &dec)
+		}
 	}
 
 	return res
