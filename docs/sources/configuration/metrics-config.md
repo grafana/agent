@@ -250,7 +250,7 @@ remote_write:
   - [<remote_write>]
 ```
 
-> **Note:** For more informaton on remote_write, refer to the [Prometheus documentation](https://prometheus.io/docs/prometheus/2.28/configuration/configuration/#remote_write)
+> **Note:** For more informaton on remote_write, refer to the [Prometheus documentation](https://prometheus.io/docs/prometheus/2.35/configuration/configuration/#remote_write)
 
 ## metrics_instance_config
 
