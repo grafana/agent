@@ -9,6 +9,38 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestDecode_Numbers(t *testing.T) {
+	// There's a lot of values that can represent numbers, so we construct a
+	// matrix dynamically of all the combinations here.
+	vals := []interface{}{
+		int(15), int8(15), int16(15), int32(15), int64(15),
+		uint(15), uint8(15), uint16(15), uint32(15), uint64(15),
+		float32(15), float64(15),
+		string("15"), // string holding a valid number (which can be converted to a number)
+	}
+
+	for _, input := range vals {
+		for _, expect := range vals {
+			val := value.Encode(input)
+
+			name := fmt.Sprintf(
+				"%s to %s",
+				reflect.TypeOf(input),
+				reflect.TypeOf(expect),
+			)
+
+			t.Run(name, func(t *testing.T) {
+				vPtr := reflect.New(reflect.TypeOf(expect)).Interface()
+				require.NoError(t, value.Decode(val, vPtr))
+
+				actual := reflect.ValueOf(vPtr).Elem().Interface()
+
+				require.Equal(t, expect, actual)
+			})
+		}
+	}
+}
+
 func TestDecode(t *testing.T) {
 	// Declare some types to use for testing. Person2 is used as a struct
 	// equivalent to Person, but with a different Go type to force casting.
@@ -25,166 +57,9 @@ func TestDecode(t *testing.T) {
 	}{
 		{nil, (*int)(nil)},
 
-		// Non-number primitives. Non-number primitives can only ever be one Go
-		// type, so they are the simplest to test.
+		// Non-number primitives.
 		{string("Hello!"), string("Hello!")},
 		{bool(true), bool(true)},
-
-		// Number primitives. Number primitives have many Go types they can be
-		// converted to. We do an exhaustive list of conversions below.
-		{int(15), int(15)},
-		{int(15), int8(15)},
-		{int(15), int16(15)},
-		{int(15), int32(15)},
-		{int(15), int64(15)},
-		{int(15), uint(15)},
-		{int(15), uint8(15)},
-		{int(15), uint16(15)},
-		{int(15), uint32(15)},
-		{int(15), uint64(15)},
-		{int(15), float32(15)},
-		{int(15), float64(15)},
-		{int(15), string("15")},
-
-		{int8(15), int(15)},
-		{int8(15), int8(15)},
-		{int8(15), int16(15)},
-		{int8(15), int32(15)},
-		{int8(15), int64(15)},
-		{int8(15), uint(15)},
-		{int8(15), uint8(15)},
-		{int8(15), uint16(15)},
-		{int8(15), uint32(15)},
-		{int8(15), uint64(15)},
-		{int8(15), float32(15)},
-		{int8(15), float64(15)},
-		{int8(15), string("15")},
-
-		{int16(15), int(15)},
-		{int16(15), int8(15)},
-		{int16(15), int16(15)},
-		{int16(15), int32(15)},
-		{int16(15), int64(15)},
-		{int16(15), uint(15)},
-		{int16(15), uint8(15)},
-		{int16(15), uint16(15)},
-		{int16(15), uint32(15)},
-		{int16(15), uint64(15)},
-		{int16(15), float32(15)},
-		{int16(15), float64(15)},
-		{int16(15), string("15")},
-
-		{int32(15), int(15)},
-		{int32(15), int8(15)},
-		{int32(15), int16(15)},
-		{int32(15), int32(15)},
-		{int32(15), int64(15)},
-		{int32(15), uint(15)},
-		{int32(15), uint8(15)},
-		{int32(15), uint16(15)},
-		{int32(15), uint32(15)},
-		{int32(15), uint64(15)},
-		{int32(15), float32(15)},
-		{int32(15), float64(15)},
-		{int32(15), string("15")},
-
-		{int64(15), int(15)},
-		{int64(15), int8(15)},
-		{int64(15), int16(15)},
-		{int64(15), int32(15)},
-		{int64(15), int64(15)},
-		{int64(15), uint(15)},
-		{int64(15), uint8(15)},
-		{int64(15), uint16(15)},
-		{int64(15), uint32(15)},
-		{int64(15), uint64(15)},
-		{int64(15), float32(15)},
-		{int64(15), float64(15)},
-		{int64(15), string("15")},
-
-		{uint(15), int(15)},
-		{uint(15), int8(15)},
-		{uint(15), int16(15)},
-		{uint(15), int32(15)},
-		{uint(15), int64(15)},
-		{uint(15), uint(15)},
-		{uint(15), uint8(15)},
-		{uint(15), uint16(15)},
-		{uint(15), uint32(15)},
-		{uint(15), uint64(15)},
-		{uint(15), float32(15)},
-		{uint(15), float64(15)},
-		{uint(15), string("15")},
-
-		{uint8(15), int(15)},
-		{uint8(15), int8(15)},
-		{uint8(15), int16(15)},
-		{uint8(15), int32(15)},
-		{uint8(15), int64(15)},
-		{uint8(15), uint(15)},
-		{uint8(15), uint8(15)},
-		{uint8(15), uint16(15)},
-		{uint8(15), uint32(15)},
-		{uint8(15), uint64(15)},
-		{uint8(15), float32(15)},
-		{uint8(15), float64(15)},
-		{uint8(15), string("15")},
-
-		{uint16(15), int(15)},
-		{uint16(15), int8(15)},
-		{uint16(15), int16(15)},
-		{uint16(15), int32(15)},
-		{uint16(15), int64(15)},
-		{uint16(15), uint(15)},
-		{uint16(15), uint8(15)},
-		{uint16(15), uint16(15)},
-		{uint16(15), uint32(15)},
-		{uint16(15), uint64(15)},
-		{uint16(15), float32(15)},
-		{uint16(15), float64(15)},
-		{uint16(15), string("15")},
-
-		{uint32(15), int(15)},
-		{uint32(15), int8(15)},
-		{uint32(15), int16(15)},
-		{uint32(15), int32(15)},
-		{uint32(15), int64(15)},
-		{uint32(15), uint(15)},
-		{uint32(15), uint8(15)},
-		{uint32(15), uint16(15)},
-		{uint32(15), uint32(15)},
-		{uint32(15), uint64(15)},
-		{uint32(15), float32(15)},
-		{uint32(15), float64(15)},
-		{uint32(15), string("15")},
-
-		{uint64(15), int(15)},
-		{uint64(15), int8(15)},
-		{uint64(15), int16(15)},
-		{uint64(15), int32(15)},
-		{uint64(15), int64(15)},
-		{uint64(15), uint(15)},
-		{uint64(15), uint8(15)},
-		{uint64(15), uint16(15)},
-		{uint64(15), uint32(15)},
-		{uint64(15), uint64(15)},
-		{uint64(15), float32(15)},
-		{uint64(15), float64(15)},
-		{uint64(15), string("15")},
-
-		{string("15"), int(15)},
-		{string("15"), int8(15)},
-		{string("15"), int16(15)},
-		{string("15"), int32(15)},
-		{string("15"), int64(15)},
-		{string("15"), uint(15)},
-		{string("15"), uint8(15)},
-		{string("15"), uint16(15)},
-		{string("15"), uint32(15)},
-		{string("15"), uint64(15)},
-		{string("15"), float32(15)},
-		{string("15"), float64(15)},
-		{string("15"), string("15")},
 
 		// Arrays
 		{[]int{1, 2, 3}, []int{1, 2, 3}},
