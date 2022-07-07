@@ -67,6 +67,6 @@ func (c *Component) Run(ctx context.Context) error {
 func (c *Component) Update(args component.Arguments) error {
 	c.log.Log("Msg", "Update")
 	var err error
-	c.integration, err = &node_integration.New(c.log, c.cfg)
+	c.integration, err = node_integration.New(c.log, c.cfg)
 	return err
 }

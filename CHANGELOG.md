@@ -18,6 +18,8 @@ Main (unreleased)
 - Deprecated `server` YAML block fields have now been removed in favor of the
   command-line flags that replaced them. These fields were originally
   deprecated in v0.24.0. (@rfratto)
+- Changed tail sampling policies to be configured as in the OpenTelemetry
+  Collector. (@mapno)
 
 ### Features
 
@@ -29,6 +31,7 @@ Main (unreleased)
 
 - Relative symlinks for promtail now work as expected. (@RangerCD, @mukerjee)
 - Fix rate limiting implementation for the app agent receiver integration. (@domasx2)
+- Fix mongodb exporter so that it now collects all metrics. (@mattdurham)
 
 v0.25.1 (2022-06-16)
 -------------------------

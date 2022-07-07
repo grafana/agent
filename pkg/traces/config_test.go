@@ -624,25 +624,31 @@ remote_write:
   - endpoint: example.com:12345
 tail_sampling:
   policies:
-    - always_sample:
-    - latency:
-        threshold_ms: 5000
-    - numeric_attribute:
+    - type: always_sample
+    - type: latency
+      latency:
+        threshold_ms: 100
+    - type: numeric_attribute
+      numeric_attribute:
         key: key1
         min_value: 50
         max_value: 100
-    - probabilistic:
+    - type: probabilistic
+      probabilistic:
         sampling_percentage: 10
-    - status_code:
+    - type: status_code
+      status_code:
         status_codes:
           - ERROR
           - UNSET
-    - string_attribute:
+    - type: string_attribute
+      string_attribute:
         key: key
         values:
           - value1
           - value2
-    - rate_limiting:
+    - type: rate_limiting
+      rate_limiting:
         spans_per_second: 35
 `,
 			expectedConfig: `
@@ -666,7 +672,7 @@ processors:
       - name: latency/1
         type: latency
         latency:
-          threshold_ms: 5000
+          threshold_ms: 100
       - name: numeric_attribute/2
         type: numeric_attribute
         numeric_attribute:
@@ -713,8 +719,9 @@ remote_write:
   - endpoint: example.com:12345
 tail_sampling:
   policies:
-    - always_sample:
-    - string_attribute:
+    - type: always_sample
+    - type: string_attribute
+      string_attribute:
         key: key
         values:
           - value1
@@ -1472,8 +1479,9 @@ batch:
   send_batch_size: 100
 tail_sampling:
   policies:
-    - always_sample:
-    - string_attribute:
+    - type: always_sample
+    - type: string_attribute
+      string_attribute:
         key: key
         values:
           - value1
@@ -1523,8 +1531,9 @@ batch:
   send_batch_size: 100
 tail_sampling:
   policies:
-    - always_sample:
-    - string_attribute:
+    - type: always_sample
+    - type: string_attribute
+      string_attribute:
         key: key
         values:
           - value1

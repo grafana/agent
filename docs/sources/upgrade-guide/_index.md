@@ -22,6 +22,39 @@ been removed, replaced by equivalent command line flags. Please refer to the
 original deprecation notice for instructions for how to migrate to the command
 line flags.
 
+### Breaking change: Reconcile sampling policies between Agent and OTel
+
+Configuring sampling policies in the `tail_sampling` block of the `traces`
+block has been changed to be equal with the upstream configuration of the OTel
+processor. It now requires that the policy `type` is specified.
+
+Old configuration:
+
+```yaml
+traces:
+  configs:
+    - name: default
+    ...
+    tail_sampling:
+      policies:
+      - latency:
+          threshold_ms: 100
+```
+
+New configuration:
+
+```yaml
+traces:
+  configs:
+    - name: default
+    ...
+    tail_sampling:
+      policies:
+      - type: latency
+        latency:
+          threshold_ms: 100
+```
+
 ## v0.24.0
 
 ### Breaking change: Integrations renamed when `integrations-next` feature flag is used

@@ -4,5 +4,6 @@ package all
 import (
 	_ "github.com/grafana/agent/component/integrations/node_exporter" // Import targets.mutate
 	_ "github.com/grafana/agent/component/local/file"                 // Import local.file
+	_ "github.com/grafana/agent/component/metrics/remotewrite"        // Import metrics.remotewrite
 	_ "github.com/grafana/agent/component/targets/mutate"             // Import targets.mutate
 )
