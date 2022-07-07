@@ -36,7 +36,7 @@ type Arguments struct {
 	Receivers []Receiver `hcl:"receivers"`
 
 	// Scrape Options
-	ExtraMetrics bool `hcl:"scrape_extra_metrics,optional"`
+	ExtraMetrics bool `hcl:"extra_metrics,optional"`
 	// TODO(@tpaschalis) enable HTTPClientOptions []config_util.HTTPClientOption
 
 	// Scrape Config
