@@ -20,6 +20,8 @@ var emptyAuthorization = common_config.Authorization{}
 var emptyBasicAuth = common_config.BasicAuth{}
 var emptyOAuth2 = &common_config.OAuth2{}
 
+const bearer string = "Bearer"
+
 // Config holds all of the attributes that can be used to configure a scrape
 // component.
 type Config struct {
@@ -140,8 +142,8 @@ func (c *Component) getPromScrapeConfigs(scs []Config) []*config.ScrapeConfig {
 		dec.HonorLabels = sc.HonorLabels
 		dec.HonorTimestamps = sc.HonorTimestamps
 		dec.Params = sc.Params
-		dec.ScrapeInterval = model.Duration(sc.ScrapeInterval)
-		dec.ScrapeTimeout = model.Duration(sc.ScrapeTimeout)
+		dec.ScrapeInterval = sc.ScrapeInterval
+		dec.ScrapeTimeout = sc.ScrapeTimeout
 		dec.MetricsPath = sc.MetricsPath
 		dec.Scheme = sc.Scheme
 		dec.BodySizeLimit = sc.BodySizeLimit
@@ -243,7 +245,7 @@ func validateHTTPClientConfig(c common_config.HTTPClientConfig) error {
 		}
 		c.Authorization.Type = strings.TrimSpace(c.Authorization.Type)
 		if len(c.Authorization.Type) == 0 {
-			c.Authorization.Type = "Bearer"
+			c.Authorization.Type = bearer
 		}
 		if strings.ToLower(c.Authorization.Type) == "basic" {
 			return fmt.Errorf(`authorization type cannot be set to "basic", use "basic_auth" instead`)
@@ -254,12 +256,12 @@ func validateHTTPClientConfig(c common_config.HTTPClientConfig) error {
 	} else {
 		if len(c.BearerToken) > 0 {
 			c.Authorization = &common_config.Authorization{Credentials: c.BearerToken}
-			c.Authorization.Type = "Bearer"
+			c.Authorization.Type = bearer
 			c.BearerToken = ""
 		}
 		if len(c.BearerTokenFile) > 0 {
 			c.Authorization = &common_config.Authorization{CredentialsFile: c.BearerTokenFile}
-			c.Authorization.Type = "Bearer"
+			c.Authorization.Type = bearer
 			c.BearerTokenFile = ""
 		}
 	}

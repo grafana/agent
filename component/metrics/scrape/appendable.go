@@ -13,7 +13,6 @@ import (
 
 // FlowMetric is a wrapper around a single sample without the timestamp.
 type FlowMetric struct {
-	refID  uint64
 	Labels labels.Labels
 	Value  float64
 }
@@ -26,6 +25,7 @@ type flowAppendable struct {
 
 func newFlowAppendable(receivers ...*metrics.Receiver) *flowAppendable {
 	return &flowAppendable{
+		buffer:    make(map[int64][]*metrics.FlowMetric),
 		receivers: receivers,
 	}
 }

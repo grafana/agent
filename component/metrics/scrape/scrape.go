@@ -68,7 +68,7 @@ var (
 
 // New creates a new metrics.scrape component.
 func New(o component.Options, args Arguments) (*Component, error) {
-	flowAppendable := newFlowAppendable()
+	flowAppendable := newFlowAppendable(args.Receivers...)
 
 	scrapeOptions := &scrape.Options{ExtraMetrics: args.ExtraMetrics}
 	scraper := scrape.NewManager(scrapeOptions, o.Logger, flowAppendable)
@@ -170,15 +170,17 @@ func (c *Component) DebugInfo() interface{} {
 
 	for job, stt := range c.scraper.TargetsActive() {
 		for _, st := range stt {
-			res = append(res, TargetStatus{
-				JobName:            job,
-				URL:                st.URL().String(),
-				Health:             string(st.Health()),
-				Labels:             st.Labels().Map(),
-				LastError:          st.LastError().Error(),
-				LastScrape:         st.LastScrape(),
-				LastScrapeDuration: st.LastScrapeDuration(),
-			})
+			if st != nil {
+				res = append(res, TargetStatus{
+					JobName:            job,
+					URL:                st.URL().String(),
+					Health:             string(st.Health()),
+					Labels:             st.Labels().Map(),
+					LastError:          st.LastError().Error(),
+					LastScrape:         st.LastScrape(),
+					LastScrapeDuration: st.LastScrapeDuration(),
+				})
+			}
 		}
 	}
 
