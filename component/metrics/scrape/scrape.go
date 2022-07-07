@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
@@ -144,6 +145,43 @@ func (c *Component) Update(args component.Arguments) error {
 	}
 
 	return nil
+}
+
+// ScraperStatus reports the status of the scraper's jobs.
+type ScraperStatus struct {
+	TargetStatus []TargetStatus `hcl:"target,block"`
+}
+
+// TargetStatus reports on the status of the latest scrape for a target.
+type TargetStatus struct {
+	JobName            string            `hcl:"job"`
+	URL                string            `hcl:"url"`
+	Health             string            `hcl:"health"`
+	Labels             map[string]string `hcl:"labels,attr"`
+	LastError          string            `hcl:"last_error,optional"`
+	LastScrape         time.Time         `hcl:"last_scrape"`
+	LastScrapeDuration time.Duration     `hcl:"last_scrape_duration,optional"`
+}
+
+// DebugInfo implements component.DebugComponent
+func (c *Component) DebugInfo() interface{} {
+	var res []TargetStatus
+
+	for job, stt := range c.scraper.TargetsActive() {
+		for _, st := range stt {
+			res = append(res, TargetStatus{
+				JobName:            job,
+				URL:                st.URL().String(),
+				Health:             string(st.Health()),
+				Labels:             st.Labels().Map(),
+				LastError:          st.LastError().Error(),
+				LastScrape:         st.LastScrape(),
+				LastScrapeDuration: st.LastScrapeDuration(),
+			})
+		}
+	}
+
+	return res
 }
 
 func (c *Component) hclTargetsToProm(scs []Config, tgs []Target) map[string][]*targetgroup.Group {
