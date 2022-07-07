@@ -31,6 +31,7 @@ Main (unreleased)
 
 - Relative symlinks for promtail now work as expected. (@RangerCD, @mukerjee)
 - Fix rate limiting implementation for the app agent receiver integration. (@domasx2)
+- Fix mongodb exporter so that it now collects all metrics. (@mattdurham)
 
 v0.25.1 (2022-06-16)
 -------------------------
