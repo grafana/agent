@@ -33,8 +33,8 @@ func init() {
 // Arguments holds values which are used to configure the metrics.scrape
 // component.
 type Arguments struct {
-	Targets   []Target           `hcl:"targets"`
-	Receivers []metrics.Receiver `hcl:"receivers"`
+	Targets   []Target            `hcl:"targets"`
+	Receivers []*metrics.Receiver `hcl:"receivers"`
 
 	// Scrape Options
 	ExtraMetrics bool `hcl:"extra_metrics,optional"`
@@ -182,7 +182,7 @@ func (c *Component) DebugInfo() interface{} {
 		}
 	}
 
-	return res
+	return ScraperStatus{TargetStatus: res}
 }
 
 func (c *Component) hclTargetsToProm(scs []Config, tgs []Target) map[string][]*targetgroup.Group {

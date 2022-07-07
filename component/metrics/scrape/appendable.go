@@ -21,10 +21,10 @@ type FlowMetric struct {
 type flowAppendable struct {
 	mut       sync.Mutex
 	buffer    map[int64][]*metrics.FlowMetric // Though mostly a map of 1 item, this allows it to work if more than one TS gets added
-	receivers []metrics.Receiver
+	receivers []*metrics.Receiver
 }
 
-func newFlowAppendable(receivers ...metrics.Receiver) *flowAppendable {
+func newFlowAppendable(receivers ...*metrics.Receiver) *flowAppendable {
 	return &flowAppendable{
 		receivers: receivers,
 	}
