@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/metrics"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
@@ -26,14 +27,14 @@ func init() {
 			return New(opts, args.(Arguments))
 		},
 	})
-	component.RegisterGoStruct("MetricsReceiver", Receiver{})
+	component.RegisterGoStruct("MetricsReceiver", metrics.Receiver{})
 }
 
 // Arguments holds values which are used to configure the metrics.scrape
 // component.
 type Arguments struct {
-	Targets   []Target   `hcl:"targets"`
-	Receivers []Receiver `hcl:"receivers"`
+	Targets   []Target           `hcl:"targets"`
+	Receivers []metrics.Receiver `hcl:"receivers"`
 
 	// Scrape Options
 	ExtraMetrics bool `hcl:"extra_metrics,optional"`
@@ -128,7 +129,7 @@ func (c *Component) Update(args component.Arguments) error {
 	defer c.mut.Unlock()
 	c.args = newArgs
 
-	c.appendable.Receivers = newArgs.Receivers
+	c.appendable.receivers = newArgs.Receivers
 
 	scs := c.getPromScrapeConfigs(newArgs.ScrapeConfigs)
 	err := c.scraper.ApplyConfig(&config.Config{
