@@ -176,6 +176,9 @@ func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string
 				level.Error(storage.logger).Log("msg", "WAL truncate failure", "err", e)
 				return nil, fmt.Errorf("truncate corrupted WAL: %w", e)
 			}
+			if e := wal.DeleteCheckpoints(w.Dir(), math.MaxInt); e != nil {
+				return nil, fmt.Errorf("delete WAL checkpoints: %w", e)
+			}
 			return nil, fmt.Errorf("repair corrupted WAL: %w", err)
 		}
 	}
