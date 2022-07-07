@@ -27,6 +27,10 @@ Main (unreleased)
 
 - Introduce eBPF exporter integration. (@tpaschalis)
 
+### Enhancements
+
+- Truncate all records in WAL if repair attempt fails. (@rlankfo)
+
 ### Bugfixes
 
 - Relative symlinks for promtail now work as expected. (@RangerCD, @mukerjee)
