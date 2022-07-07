@@ -60,15 +60,3 @@ func Test_RiverType(t *testing.T) {
 		})
 	}
 }
-
-func Benchmark_RiverType(b *testing.B) {
-	for _, tc := range typeTests {
-		rt := reflect.TypeOf(tc.input)
-
-		b.Run(rt.String(), func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
-				_ = value.RiverType(rt)
-			}
-		})
-	}
-}
