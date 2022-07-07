@@ -2,6 +2,7 @@ package node_exporter
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"sync"
 
@@ -45,8 +46,9 @@ type Component struct {
 
 func NewComponent(o component.Options, args node_integration.Config) (*Component, error) {
 	c := &Component{
-		log: o.Logger,
-		cfg: &args,
+		log:  o.Logger,
+		cfg:  &args,
+		opts: o,
 	}
 
 	// Call to Update() to set the output once at the start
@@ -69,6 +71,16 @@ func (c *Component) Update(args component.Arguments) error {
 	c.log.Log("Msg", "Update")
 	var err error
 	c.integration, err = node_integration.New(c.log, c.cfg)
+	targets := []Target{{
+		// todo (cpeterson) customize per server config
+		"__address__":      "127.0.0.1:12345",
+		"__scheme__":       "http",
+		"__metrics_path__": fmt.Sprintf("/component/%s/metrics", c.opts.ID),
+		"name":             "node_exporter",
+	}}
+	c.opts.OnStateChange(Exports{
+		Output: targets,
+	})
 	return err
 }
 
