@@ -62,23 +62,23 @@ honor_timestamps         | bool     | Indicator whether the scraped timestamps s
 params                   | map(list(string)) | A set of query parameters with which the target is scraped. | | no 
 scrape_interval          | duration | How frequently to scrape the targets of this scrape config. | "60s" | no 
 scrape_timeout           | duration | The timeout for scraping targets of this config. | "10s" | no 
-metrics_path             | string   | The HTTP resource path on which to fetch metrics from targets. | /metrics | 
-scheme                   | string   | The URL scheme with which to fetch metrics from targets. | | 
+metrics_path             | string   | The HTTP resource path on which to fetch metrics from targets. | /metrics | no 
+scheme                   | string   | The URL scheme with which to fetch metrics from targets. | | no 
 body_size_limit          | int      | An uncompressed response body larger than this many bytes will cause the scrape to fail. 0 means no limit. | | no 
 sample_limit             | uint     | More than this many samples post metric-relabeling will cause the scrape to fail | | no 
 target_limit             | uint     | More than this many targets after the target relabeling will cause the scrapes to fail. | | no 
 label_limit              | uint     | More than this many labels post metric-relabeling will cause the scrape to fail. | | no 
 label_name_length_limit  | uint     | More than this label name length post metric-relabeling will cause the | | no 
 label_value_length_limit | uint     | More than this label value length post metric-relabeling will cause the scrape to fail. | | no 
-basic_auth_username      | string   | Setup of Basic HTTP authentication credentials. | | 
-basic_auth_password      | string   | Setup of Basic HTTP authentication credentials. | |  
-basic_auth_password_file | string   | Setup of Basic HTTP authentication credentials. | | 
-authorization_type       | string   | Setup of HTTP Authorization credentials. | | 
-authorization_credential | string   | Setup of HTTP Authorization credentials. | | 
-authorization_credentials_file    | string | Setup of HTTP Authorization credentials. | | 
-oauth2_client_id         | string   | Setup of the OAuth2 client. | | 
+basic_auth_username      | string   | Setup of Basic HTTP authentication credentials. | | no 
+basic_auth_password      | string   | Setup of Basic HTTP authentication credentials. | | no 
+basic_auth_password_file | string   | Setup of Basic HTTP authentication credentials. | | no 
+authorization_type       | string   | Setup of HTTP Authorization credentials. | | no 
+authorization_credential | string   | Setup of HTTP Authorization credentials. | | no 
+authorization_credentials_file    | string | Setup of HTTP Authorization credentials. | | no 
+oauth2_client_id         | string   | Setup of the OAuth2 client. | | no 
 oauth2_client_secret     | string   | Setup of the OAuth2 client. | | no 
-oauth2_client_secret_file | string  | Setup of the OAuth2 client. | | 
+oauth2_client_secret_file | string  | Setup of the OAuth2 client. | | no 
 oauth2_scopes            | list(string) | Setup of the OAuth2 client. | | no 
 oauth2_token_url         | string   | Setup of the OAuth2 client. | | no 
 oauth2_endpoint_params   | map(string) | Setup of the OAuth2 client. | | no 
