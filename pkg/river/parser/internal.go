@@ -584,7 +584,7 @@ func (p *parser) parseFieldList(until token.Token) []*ast.ObjectField {
 //    Field = ( string | identifier ) "=" Expression
 func (p *parser) parseField() *ast.ObjectField {
 	if p.tok != token.STRING && p.tok != token.IDENT {
-		p.addErrorf("expected field name (string or identifier, got %s", p.tok)
+		p.addErrorf("expected field name (string or identifier), got %s", p.tok)
 		p.advanceAny(fieldStarter)
 		return nil
 	}
