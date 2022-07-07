@@ -21,17 +21,17 @@ metrics "scrape" "blackbox-scraper" {
   receivers = [metrics.remote_write.grafanacloud, metrics.remote_write.onprem]
 
   scrape_config {
-    job_name = "grafana"
+    job_name        = "grafana"
     scrape_interval = "10s"
-    params = { "target" = ["grafana.com"], "module" = ["http_2xx"]}
-    metrics_path = "/probe"
+    params          = { "target" = ["grafana.com"], "module" = ["http_2xx"]}
+    metrics_path    = "/probe"
   }
 
   scrape_config {
-    job_name = "google"
-    scrape_interval = "13s"
-    params = { "target" = ["google.com"], "module" = ["http_2xx"]}
-    metrics_path = "/probe"
+    job_name        = "google"
+    scrape_interval = "120s"
+    params          = { "target" = ["google.com"], "module" = ["http_2xx"]}
+    metrics_path    = "/probe"
   }
 }
 ```
