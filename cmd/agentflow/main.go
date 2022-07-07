@@ -92,6 +92,7 @@ func run() error {
 		r.Handle("/-/config", f.ConfigHandler())
 		r.Handle("/metrics", promhttp.Handler())
 		r.Handle("/debug/graph", f.GraphHandler())
+		r.PathPrefix("/component").Handler(http.StripPrefix("/component", f.ComponentHandler()))
 		r.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
 
 		r.HandleFunc("/-/reload", func(w http.ResponseWriter, _ *http.Request) {

@@ -51,7 +51,10 @@
 // creating a new one.
 package component
 
-import "context"
+import (
+	"context"
+	"net/http"
+)
 
 // The Arguments contains the input fields for a specific component, which is
 // unmarshaled from HCL.
@@ -103,4 +106,11 @@ type DebugComponent interface {
 	//
 	// DebugInfo must be safe for calling concurrently.
 	DebugInfo() interface{}
+}
+
+// DebugComponent is an extension interface for components which contain their own HTTP Handlers
+type HTTPComponent interface {
+	Component
+
+	Handler() http.Handler
 }

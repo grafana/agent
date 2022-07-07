@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -425,4 +426,12 @@ func (cn *ComponentNode) setRunHealth(t component.HealthType, msg string) {
 		Message:    msg,
 		UpdateTime: time.Now(),
 	}
+}
+
+func (cn *ComponentNode) HttpHandler() http.Handler {
+	handler, ok := cn.managed.(component.HTTPComponent)
+	if !ok {
+		return nil
+	}
+	return handler.Handler()
 }

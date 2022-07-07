@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
@@ -40,6 +41,35 @@ func (f *Flow) ConfigHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		debugInfo := r.URL.Query().Get("debug") == "1"
 		_, _ = f.configBytes(w, debugInfo)
+	}
+}
+
+// ComponentHandler returns an http.HandlerFunc which will delegate all requests to
+// a component named by the first path segment
+func (f *Flow) ComponentHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		parts := strings.Split(r.URL.Path, "/")
+		id := parts[1]
+		newPath := "/" + strings.Join(parts[2:], "/")
+		// find node with ID
+		var node *controller.ComponentNode
+		for _, n := range f.loader.Components() {
+			if n.ID().String() == id {
+				node = n
+				break
+			}
+		}
+		if node == nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		handler := node.HttpHandler()
+		if handler == nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		r.URL.Path = newPath
+		handler.ServeHTTP(w, r)
 	}
 }
 

@@ -2,6 +2,7 @@ package node_exporter
 
 import (
 	"context"
+	"net/http"
 	"sync"
 
 	"github.com/go-kit/log"
@@ -69,4 +70,13 @@ func (c *Component) Update(args component.Arguments) error {
 	var err error
 	c.integration, err = node_integration.New(c.log, c.cfg)
 	return err
+}
+
+func (c *Component) Handler() http.Handler {
+	if c.integration != nil {
+		// todo: handle
+		h, _ := c.integration.MetricsHandler()
+		return h
+	}
+	return nil
 }
