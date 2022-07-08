@@ -181,8 +181,8 @@ platform:
   os: linux
   arch: amd64
 trigger:
-  ref:
-    - refs/tags/v*
+  event:
+    - pull_request
 
 steps:
   - name: create-release
@@ -197,12 +197,17 @@ steps:
         from_secret: DOCKER_PASSWORD
       GITHUB_TOKEN:
         from_secret: GITHUB_KEY
+      GPG_PRIVATE_KEY: 
+        from_secret: gpg_private_key
+      GPG_PUBLIC_KEY:
+        from_secret: gpg_public_key
+      GPG_PASSPHRASE:
+        from_secret: gpg_passphrase
     commands:
       - apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
       - curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
       - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian bullseye stable"
       - apt-get update &&  apt-get install -y rubygems rpm nsis docker-ce docker-ce-cli containerd.io gettext
-      - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
       - gem install --no-document fpm
       - rm -r /usr/local/go
       - mkdir -p /usr/local/go/bin
@@ -213,9 +218,8 @@ steps:
       - go install github.com/tcnksm/ghr@latest
       - go install github.com/mitchellh/gox@latest
       - export PATH="$(go env GOPATH)/bin:$PATH"
-      - make -j4 DOCKER_OPTS="" BUILD_IN_CONTAINER=false RELEASE_BUILD=true RELEASE_TAG=${DRONE_TAG} publish
-depends_on:
-  - Test
+      - ./packaging/rpm/setup-rpm-gpg.sh
+      - make -j4 DOCKER_OPTS="" BUILD_IN_CONTAINER=false RELEASE_BUILD=true RELEASE_TAG=${DRONE_TAG} dist
 
 volumes:
   - name: docker
@@ -245,8 +249,34 @@ name: gh_token
 get:
   path: infra/data/ci/github/grafanabot
   name: pat
+
+---
+kind: secret
+name: gpg_public_key
+
+get:
+  name: public-key
+  path: infra/data/ci/packages-publish/gpg
+
+---
+kind: secret
+name: gpg_private_key
+
+get:
+  name: private-key
+  path: infra/data/ci/packages-publish/gpg
+
+---
+kind: secret
+name: gpg_passphrase
+
+get:
+  name: passphrase
+  path: infra/data/ci/packages-publish/gpg
+
+
 ---
 kind: signature
-hmac: 1f0e740f805d80163698aaf68cdd126f56a5b26ad68d7c2b8dbdc4025e4b85ee
+hmac: 0980e7fc709125e9047dd9e44af109ecc4c370af13cf6291cab48e865d5bb341
 
 ...
