@@ -2,6 +2,7 @@ package remotewriteexporter
 
 import (
 	"context"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/collector/component"
@@ -23,6 +24,11 @@ type Config struct {
 	ConstLabels  prometheus.Labels `mapstructure:"const_labels"`
 	Namespace    string            `mapstructure:"namespace"`
 	PromInstance string            `mapstructure:"metrics_instance"`
+	// StaleTime is the duration after which a series is considered stale and will be removed.
+	StaleTime time.Duration `mapstructure:"stale_time"`
+	// LoopInterval is the duration after which the exporter will be checked for new data.
+	// New data is flushed to a WAL.
+	LoopInterval time.Duration `mapstructure:"loop_interval"`
 }
 
 // NewFactory returns a new factory for the Prometheus remote write processor.

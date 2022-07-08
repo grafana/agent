@@ -31,7 +31,7 @@ Main (unreleased)
 
 - Truncate all records in WAL if repair attempt fails. (@rlankfo)
 
-- Introduce a periodic appender to the remotewriteexporter to control sample rate. (@mapno)
+- Tracing: Introduce a periodic appender to the remotewriteexporter to control sample rate. (@mapno)
 
 ### Bugfixes
 

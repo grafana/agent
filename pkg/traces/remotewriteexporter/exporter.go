@@ -38,8 +38,8 @@ type datapoint struct {
 type remoteWriteExporter struct {
 	mtx sync.Mutex
 
-	closing chan struct{}
-	closed  chan struct{}
+	close  chan struct{}
+	closed chan struct{}
 
 	manager      instance.Manager
 	promInstance string
@@ -47,9 +47,10 @@ type remoteWriteExporter struct {
 	constLabels labels.Labels
 	namespace   string
 
-	seriesMap map[uint64]*datapoint
-	staleTime int64
-	lastFlush int64
+	seriesMap    map[uint64]*datapoint
+	staleTime    int64
+	lastFlush    int64
+	loopInterval time.Duration
 
 	logger log.Logger
 }
@@ -63,15 +64,26 @@ func newRemoteWriteExporter(cfg *Config) (component.MetricsExporter, error) {
 		ls = append(ls, labels.Label{Name: name, Value: value})
 	}
 
+	staleTime := (15 * time.Minute).Milliseconds()
+	if cfg.StaleTime > 0 {
+		staleTime = cfg.StaleTime.Milliseconds()
+	}
+
+	loopInterval := time.Second
+	if cfg.LoopInterval > 0 {
+		loopInterval = cfg.LoopInterval
+	}
+
 	return &remoteWriteExporter{
 		mtx:          sync.Mutex{},
-		closing:      make(chan struct{}),
+		close:        make(chan struct{}),
 		closed:       make(chan struct{}),
 		constLabels:  ls,
 		namespace:    cfg.Namespace,
 		promInstance: cfg.PromInstance,
 		seriesMap:    make(map[uint64]*datapoint),
-		staleTime:    15 * time.Minute.Milliseconds(),
+		staleTime:    staleTime,
+		loopInterval: loopInterval,
 		logger:       logger,
 	}, nil
 }
@@ -89,7 +101,7 @@ func (e *remoteWriteExporter) Start(ctx context.Context, _ component.Host) error
 }
 
 func (e *remoteWriteExporter) Shutdown(ctx context.Context) error {
-	close(e.closing)
+	close(e.close)
 
 	select {
 	case <-e.closed:
@@ -225,8 +237,7 @@ func (e *remoteWriteExporter) appendDatapointForSeries(l labels.Labels, ts int64
 }
 
 func (e *remoteWriteExporter) appenderLoop() {
-	loopInterval := 2 * time.Second
-	t := time.NewTicker(loopInterval)
+	t := time.NewTicker(e.loopInterval)
 
 	for {
 		select {
@@ -240,13 +251,12 @@ func (e *remoteWriteExporter) appenderLoop() {
 			appender := inst.Appender(context.Background())
 
 			now := time.Now().UnixMilli()
-			var staleSeries []uint64
 			for _, dp := range e.seriesMap {
 				// If the datapoint hasn't been updated since the last loop, don't append it
 				if dp.ts < e.lastFlush {
-					// If the datapoint is older than now - staleTime, it is stale and should be removed.
+					// If the datapoint is older than now - staleTime, it is stale and gets removed.
 					if now-dp.ts > e.staleTime {
-						staleSeries = append(staleSeries, dp.l.Hash())
+						delete(e.seriesMap, dp.l.Hash())
 					}
 					continue
 				}
@@ -260,15 +270,10 @@ func (e *remoteWriteExporter) appenderLoop() {
 				level.Error(e.logger).Log("msg", "failed to commit appender", "err", err)
 			}
 
-			// Remove stale series
-			for _, hash := range staleSeries {
-				delete(e.seriesMap, hash)
-			}
-
 			e.lastFlush = now
 			e.mtx.Unlock()
 
-		case <-e.closing:
+		case <-e.close:
 			close(e.closed)
 			return
 		}
