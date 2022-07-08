@@ -204,7 +204,7 @@ steps:
       GPG_PASSPHRASE:
         from_secret: gpg_passphrase
     commands:
-      - apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release gnupg2
+      - apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
       - curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
       - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian bullseye stable"
       - apt-get update &&  apt-get install -y rubygems rpm nsis docker-ce docker-ce-cli containerd.io gettext
@@ -277,6 +277,6 @@ get:
 
 ---
 kind: signature
-hmac: 4fee58664c6dafa31bd1432153202dcdb868f900191291c3d8f013e1872280d8
+hmac: 6d9426acd008a1e40cdc94b686f0fa24201bde2b32c1cdc4f2e2b09b38043190
 
 ...
