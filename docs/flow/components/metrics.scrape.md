@@ -1,9 +1,15 @@
 # metrics.scrape
-The `metrics.scrape` component configures a metrics scraping job for a given set of `targets`. The metrics are forwarded to the given list of `receivers`. Multiple `metrics.scrape` components can be specified by providing a 'name' like "blackbox-scraper" in the following example.
+The `metrics.scrape` component configures a metrics scraping job for a given
+set of `targets`. The scraped metrics are forwarded to the list of receivers
+passed in `forward_to`. Multiple `metrics.scrape` components can be specified
+by providing a 'name' like "blackbox-scraper" in the following example.
 
 ## Example
 
-The following example will set up a scrape job with certain attributes (scrape intervals, query parameters) and let it scrape two instances of the blackbox exporter. The received metrics will be forwarded to the provided remote_write 'receivers' which are referred to as exports from another component.
+The following example will set up the job with certain attributes (scrape
+intervals, query parameters) and let it scrape two instances of the blackbox
+exporter. The received metrics will be sent over to the provided list of
+remote_writes, as defined by other components.
 
 ```hcl
 metrics "scrape" "blackbox-scraper" {
@@ -11,7 +17,7 @@ metrics "scrape" "blackbox-scraper" {
     {"__address__" = "blackbox-exporter:9115", "instance" = "one"},
     {"__address__" = "blackbox-exporter:9116", "instance" = "two"},
   ]
-  receivers = [metrics.remote_write.grafanacloud, metrics.remote_write.onprem]
+  forward_to = [metrics.remote_write.grafanacloud, metrics.remote_write.onprem]
 
   scrape_config {
     job_name        = "grafana"

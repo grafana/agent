@@ -34,7 +34,7 @@ func init() {
 // component.
 type Arguments struct {
 	Targets   []Target            `hcl:"targets"`
-	Receivers []*metrics.Receiver `hcl:"receivers"`
+	ForwardTo []*metrics.Receiver `hcl:"forward_to"`
 
 	ScrapeConfig Config `hcl:"scrape_config,block"`
 
@@ -67,7 +67,7 @@ var (
 
 // New creates a new metrics.scrape component.
 func New(o component.Options, args Arguments) (*Component, error) {
-	flowAppendable := newFlowAppendable(args.Receivers...)
+	flowAppendable := newFlowAppendable(args.ForwardTo...)
 
 	scrapeOptions := &scrape.Options{ExtraMetrics: args.ExtraMetrics}
 	scraper := scrape.NewManager(scrapeOptions, o.Logger, flowAppendable)
@@ -127,7 +127,7 @@ func (c *Component) Update(args component.Arguments) error {
 	defer c.mut.Unlock()
 	c.args = newArgs
 
-	c.appendable.receivers = newArgs.Receivers
+	c.appendable.receivers = newArgs.ForwardTo
 
 	sc, err := newArgs.ScrapeConfig.getPromScrapeConfigs(c.opts.ID)
 	if err != nil {
