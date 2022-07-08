@@ -110,7 +110,7 @@ PROTO_DEFS := $(shell find . $(DONT_FIND) -type f -name '*.proto' -print)
 PROTO_GOS := $(patsubst %.proto,%.pb.go,$(PROTO_DEFS))
 
 # Packaging
-PACKAGE_VERSION := $(patsubst v%,%,$(RELEASE_TAG))
+PACKAGE_VERSION := v999.999.999
 # The number of times this version of the software was released, starting with 1 for the first release.
 PACKAGE_RELEASE := 1
 
