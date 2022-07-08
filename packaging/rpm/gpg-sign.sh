@@ -5,13 +5,14 @@
 
 # Write GPG key to GPG keyring
 printf "%s" "${GPG_PUBLIC_KEY}" > /tmp/gpg-public-key
-gpg --import /tmp/gpg-public-key
-printf "%s" "${GPG_PRIVATE_KEY}" | gpg --import --no-tty --batch --yes --passphrase "${GPG_PASSPHRASE}"
+gpg2 --import /tmp/gpg-public-key
+printf "%s" "${GPG_PRIVATE_KEY}" | gpg2 --import --no-tty --batch --yes --passphrase "${GPG_PASSPHRASE}"
 
 rpm --import /tmp/gpg-public-key
 
 echo "%_gpg_name Grafana <info@grafana.com>
 %__gpg_check_password_cmd /bin/true
+%_gpgbin /usr/bin/gpg2
 %__gpg_sign_cmd     %{__gpg} \
          gpg --no-tty --batch --yes --verbose --no-armor \
          --passphrase "${GPG_PASSPHRASE}" \
@@ -22,4 +23,4 @@ echo "%_gpg_name Grafana <info@grafana.com>
 " > ~/.rpmmacros
 
 rpm --addsign dist/*.rpm
-rpm --checksign dist/*.rpm
+rpm --checksig dist/*.rpm
