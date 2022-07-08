@@ -2,7 +2,6 @@ package scrape
 
 import (
 	"context"
-	"sync"
 
 	"github.com/grafana/agent/component/metrics"
 	"github.com/prometheus/prometheus/model/exemplar"
@@ -18,26 +17,28 @@ type FlowMetric struct {
 }
 
 type flowAppendable struct {
-	mut       sync.Mutex
-	buffer    map[int64][]*metrics.FlowMetric // Though mostly a map of 1 item, this allows it to work if more than one TS gets added
 	receivers []*metrics.Receiver
 }
 
 func newFlowAppendable(receivers ...*metrics.Receiver) *flowAppendable {
 	return &flowAppendable{
-		buffer:    make(map[int64][]*metrics.FlowMetric),
 		receivers: receivers,
 	}
 }
 
-func (app *flowAppendable) Appender(_ context.Context) storage.Appender {
-	return app
+type flowAppender struct {
+	buffer    map[int64][]*metrics.FlowMetric // Though mostly a map of 1 item, this allows it to work if more than one TS gets added
+	receivers []*metrics.Receiver
 }
 
-func (app *flowAppendable) Append(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, error) {
-	app.mut.Lock()
-	defer app.mut.Unlock()
+func (app *flowAppendable) Appender(_ context.Context) storage.Appender {
+	return &flowAppender{
+		buffer:    make(map[int64][]*metrics.FlowMetric),
+		receivers: app.receivers,
+	}
+}
 
+func (app *flowAppender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, error) {
 	if len(app.receivers) == 0 {
 		return 0, nil
 	}
@@ -64,13 +65,11 @@ func (app *flowAppendable) Append(ref storage.SeriesRef, l labels.Labels, t int6
 	return ref, nil
 }
 
-func (app *flowAppendable) AppendExemplar(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar) (storage.SeriesRef, error) {
+func (app *flowAppender) AppendExemplar(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar) (storage.SeriesRef, error) {
 	return 0, nil
 }
 
-func (app *flowAppendable) Commit() error {
-	app.mut.Lock()
-	defer app.mut.Unlock()
+func (app *flowAppender) Commit() error {
 	for _, r := range app.receivers {
 		for ts, metrics := range app.buffer {
 			if r.Receive == nil {
@@ -83,7 +82,7 @@ func (app *flowAppendable) Commit() error {
 	return nil
 }
 
-func (app *flowAppendable) Rollback() error {
+func (app *flowAppender) Rollback() error {
 	app.buffer = make(map[int64][]*metrics.FlowMetric)
 	return nil
 }
