@@ -42,7 +42,7 @@ type numberValue struct {
 	// float64 before it can be used.
 	value uint64
 
-	bits uint8      // 8, 16, 32, 64
+	bits uint8      // 8, 16, 32, 64, used for overflow checking
 	k    numberKind // int, uint, float
 }
 

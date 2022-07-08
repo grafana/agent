@@ -19,7 +19,7 @@ import (
 
 // Go types used throughout the package.
 var (
-	goAny             = reflect.TypeOf((*any)(nil)).Elem()
+	goAny             = reflect.TypeOf((*interface{})(nil)).Elem()
 	goString          = reflect.TypeOf(string(""))
 	goByteSlice       = reflect.TypeOf([]byte(nil))
 	goError           = reflect.TypeOf((*error)(nil)).Elem()
@@ -103,6 +103,15 @@ func Capsule(v interface{}) Value {
 		panic("river/value: Capsule called with non-capsule type")
 	}
 	return Value{rv: rv, ty: TypeCapsule}
+}
+
+// Encode creates a new Value from v. If v is a pointer, v must be considered
+// immutable and not change while the Value is used.
+func Encode(v interface{}) Value {
+	if v == nil {
+		return Null
+	}
+	return makeValue(reflect.ValueOf(v))
 }
 
 // Type returns the River type for the value.

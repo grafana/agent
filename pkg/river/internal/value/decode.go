@@ -6,15 +6,6 @@ import (
 	"reflect"
 )
 
-// Encode creates a new Value from v. If v is a pointer, v must be considered
-// immutable and not change while the Value is used.
-func Encode(v interface{}) Value {
-	if v == nil {
-		return Null
-	}
-	return makeValue(reflect.ValueOf(v))
-}
-
 // Decode assigns a Value val to a Go pointer target. Decode will attempt to
 // convert val to the type expected by target for assignment. If val cannot be
 // converted, an error is returned. Pointers will be allocated as necessary
@@ -71,6 +62,10 @@ func decode(val Value, into reflect.Value) error {
 
 	// Fastest cases: we can directly assign values.
 	switch {
+	case val.Type() == TypeNull:
+		// TODO(rfratto): Does it make sense for a null to always decode into the
+		// zero value? Maybe only objects and arrays should support null?
+		into.Set(reflect.Zero(into.Type()))
 	case val.rv.Type() == into.Type():
 		into.Set(cloneGoValue(val.rv))
 		return nil
@@ -91,8 +86,6 @@ func decode(val Value, into reflect.Value) error {
 
 	// Convert the value.
 	switch {
-	case convVal.Type() == TypeNull:
-		into.Set(reflect.Zero(into.Type()))
 	case val.rv.Type() == goByteSlice && into.Type() == goString: // []byte -> string
 		into.Set(val.rv.Convert(goString))
 		return nil
@@ -134,7 +127,7 @@ func decode(val Value, into reflect.Value) error {
 		// creating an adapter between the two functions.
 		return DecodeError{
 			Value: val,
-			Inner: fmt.Errorf("expected %s, got %s", into.Type(), convVal.rv.Type()),
+			Inner: fmt.Errorf("expected function(%s), got function(%s)", into.Type(), convVal.rv.Type()),
 		}
 	case TypeCapsule:
 		// Capsule types require being identical go types, which would've been
