@@ -15,6 +15,7 @@ printf "%s" "${GPG_PRIVATE_KEY}" | gpg --import --no-tty --batch --yes --passphr
 
 rpm --import /tmp/gpg-public-key
 
+mkdir -p /etc/rpm
 echo "%_gpg_name Grafana <info@grafana.com>
 %_signature gpg
 %_gpg_path /root/.gnupg
@@ -30,5 +31,7 @@ echo "%_gpg_name Grafana <info@grafana.com>
 " > /etc/rpm/macros
 cat /etc/rpm/macros > ~/.rpmmacros
 
-cat /dev/null | setsid rpmsign --resign dist/*.rpm
-rpm --checksig dist/*.rpm
+for f in $(ls dist/*.rpm); do
+  cat /dev/null | setsid rpmsign --resign "${f}"
+  rpm --checksig "${f}"
+done
