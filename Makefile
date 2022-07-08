@@ -134,7 +134,7 @@ seego = docker run --init --rm $(DOCKER_OPTS) $(MOD_MOUNT) -v "$(CURDIR):$(CURDI
 docker-build = docker build $(DOCKER_BUILD_FLAGS)
 ifeq ($(CROSS_BUILD),true)
 DOCKERFILE = Dockerfile.buildx
-docker-build = docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7,linux/ppc64le $(DOCKER_BUILD_FLAGS)
+docker-build = docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7,linux/ppc64le $(DOCKER_BUILD_FLAGS)
 endif
 
 # we want to override the default seego behavior. Drone always builds locally inside seego and if build in container is false then use
@@ -446,6 +446,7 @@ define generate_fpm =
 		--before-remove packaging/$(1)/control/prerm \
 		--config-files /etc/grafana-agent.yaml \
 		--config-files $(ENVIRONMENT_FILE_$(1)) \
+		--rpm-sign \
 		--package $(4) \
 			dist/agent-linux-$(3)=/usr/bin/grafana-agent \
 			dist/agentctl-linux-$(3)=/usr/bin/grafana-agentctl \

@@ -211,8 +211,8 @@ platform:
   os: linux
   arch: amd64
 trigger:
-  ref:
-    - refs/tags/v*
+  event:
+    - pull_request
 
 steps:
   - name: create-release
@@ -227,12 +227,17 @@ steps:
         from_secret: DOCKER_PASSWORD
       GITHUB_TOKEN:
         from_secret: GITHUB_KEY
+      GPG_PRIVATE_KEY: 
+        from_secret: gpg_private_key
+      GPG_PUBLIC_KEY:
+        from_secret: gpg_public_key
+      GPG_PASSPHRASE:
+        from_secret: gpg_passphrase
     commands:
       - apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
       - curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
       - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian bullseye stable"
       - apt-get update &&  apt-get install -y rubygems rpm nsis docker-ce docker-ce-cli containerd.io gettext
-      - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
       - gem install --no-document fpm
       - rm -r /usr/local/go
       - mkdir -p /usr/local/go/bin
@@ -242,6 +247,7 @@ steps:
       - export PATH=$PATH:/usr/local/go/bin
       - GO111MODULE=on go get -u github.com/mitchellh/gox github.com/tcnksm/ghr
       - export PATH="$(go env GOPATH)/bin:$PATH"
+      - ./packaging/rpm/setup-rpm-gpg.sh
       - make -j4 DOCKER_OPTS="" BUILD_IN_CONTAINER=false RELEASE_BUILD=true RELEASE_TAG=${DRONE_TAG} dist
 
 volumes:
@@ -272,8 +278,34 @@ name: gh_token
 get:
   path: infra/data/ci/github/grafanabot
   name: pat
+
+---
+kind: secret
+name: gpg_public_key
+
+get:
+  name: public-key
+  path: infra/data/ci/packages-publish/gpg
+
+---
+kind: secret
+name: gpg_private_key
+
+get:
+  name: private-key
+  path: infra/data/ci/packages-publish/gpg
+
+---
+kind: secret
+name: gpg_passphrase
+
+get:
+  name: passphrase
+  path: infra/data/ci/packages-publish/gpg
+
+
 ---
 kind: signature
-hmac: c3101a34135d7be9e5f0b2d69a2785c702c696bf24fe2dc11b1645850da4953a
+hmac: 55988715f841d54a560b6b0574c5b05f1821e556eb7031c8aa7ced1f1d402773
 
 ...
