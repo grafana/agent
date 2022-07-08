@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 # We are not using fpm's signing functionality because it does not work anymore
 # https://github.com/jordansissel/fpm/issues/1626
 
 # Write GPG key to GPG keyring
 printf "%s" "${GPG_PUBLIC_KEY}" > /tmp/gpg-public-key
-gpg2 --import /tmp/gpg-public-key
-printf "%s" "${GPG_PRIVATE_KEY}" | gpg2 --import --no-tty --batch --yes --passphrase "${GPG_PASSPHRASE}"
+gpg --import /tmp/gpg-public-key
+printf "%s" "${GPG_PRIVATE_KEY}" | gpg --import --no-tty --batch --yes --passphrase "${GPG_PASSPHRASE}"
 
 rpm --import /tmp/gpg-public-key
 
 echo "%_gpg_name Grafana <info@grafana.com>
 %__gpg_check_password_cmd /bin/true
-%_gpgbin /usr/bin/gpg2
+%_gpgbin /usr/bin/gpg
 %__gpg_sign_cmd     %{__gpg} \
-         gpg --no-tty --batch --yes --verbose --no-armor \
+         --no-tty --batch --yes --verbose --no-armor \
          --passphrase "${GPG_PASSPHRASE}" \
          --pinentry-mode loopback \
          %{?_gpg_digest_algo:--digest-algo %{_gpg_digest_algo}} \
