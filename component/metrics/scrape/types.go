@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/alecthomas/units"
-	"github.com/go-kit/log/level"
 	"github.com/hashicorp/hcl/v2"
 	common_config "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
@@ -132,97 +131,90 @@ func (c *Config) DecodeHCL(body hcl.Body, ctx *hcl.EvalContext) error {
 // - RelabelConfigs
 // - MetricsRelabelConfigs
 // - ServiceDiscoveryConfigs
-func (c *Component) getPromScrapeConfigs(scs []Config) []*config.ScrapeConfig {
-	res := make([]*config.ScrapeConfig, 0)
+func (c *Config) getPromScrapeConfigs(jobName string) (*config.ScrapeConfig, error) {
+	dec := config.DefaultScrapeConfig
+	dec.JobName = jobName
+	dec.HonorLabels = c.HonorLabels
+	dec.HonorTimestamps = c.HonorTimestamps
+	dec.Params = c.Params
+	dec.ScrapeInterval = c.ScrapeInterval
+	dec.ScrapeTimeout = c.ScrapeTimeout
+	dec.MetricsPath = c.MetricsPath
+	dec.Scheme = c.Scheme
+	dec.BodySizeLimit = c.BodySizeLimit
+	dec.SampleLimit = c.SampleLimit
+	dec.TargetLimit = c.TargetLimit
+	dec.LabelLimit = c.LabelLimit
+	dec.LabelNameLengthLimit = c.LabelNameLengthLimit
+	dec.LabelValueLengthLimit = c.LabelValueLengthLimit
 
-	for _, sc := range scs {
-		// General scrape settings
-		dec := config.DefaultScrapeConfig
-		dec.JobName = c.opts.ID + "/" + sc.JobName
-		dec.HonorLabels = sc.HonorLabels
-		dec.HonorTimestamps = sc.HonorTimestamps
-		dec.Params = sc.Params
-		dec.ScrapeInterval = sc.ScrapeInterval
-		dec.ScrapeTimeout = sc.ScrapeTimeout
-		dec.MetricsPath = sc.MetricsPath
-		dec.Scheme = sc.Scheme
-		dec.BodySizeLimit = sc.BodySizeLimit
-		dec.SampleLimit = sc.SampleLimit
-		dec.TargetLimit = sc.TargetLimit
-		dec.LabelLimit = sc.LabelLimit
-		dec.LabelNameLengthLimit = sc.LabelNameLengthLimit
-		dec.LabelValueLengthLimit = sc.LabelValueLengthLimit
+	// HTTP scrape client settings
+	var proxyURL, oauth2ProxyURL *url.URL
+	if c.ProxyURL != "" {
+		proxyURL, _ = url.Parse(c.ProxyURL)
+	}
+	if c.OAuth2ProxyURL != "" {
+		oauth2ProxyURL, _ = url.Parse(c.OAuth2ProxyURL)
+	}
+	httpClient := common_config.DefaultHTTPClientConfig
+	dec.HTTPClientConfig = httpClient
 
-		// HTTP scrape client settings
-		var proxyURL, oauth2ProxyURL *url.URL
-		if sc.ProxyURL != "" {
-			proxyURL, _ = url.Parse(sc.ProxyURL)
-		}
-		if sc.OAuth2ProxyURL != "" {
-			oauth2ProxyURL, _ = url.Parse(sc.OAuth2ProxyURL)
-		}
-		httpClient := common_config.DefaultHTTPClientConfig
-		dec.HTTPClientConfig = httpClient
-
-		dec.HTTPClientConfig.BasicAuth = &common_config.BasicAuth{
-			Username:     sc.BasicAuthUsername,
-			Password:     common_config.Secret(sc.BasicAuthPassword),
-			PasswordFile: sc.BasicAuthPasswordFile,
-		}
-		dec.HTTPClientConfig.Authorization = &common_config.Authorization{
-			Type:            sc.AuthorizationType,
-			Credentials:     common_config.Secret(sc.AuthorizationCredential),
-			CredentialsFile: sc.AuthorizationCredentialsFile,
-		}
-
-		oauth2Config := &common_config.OAuth2{
-			ClientID:         sc.OAuth2ClientID,
-			ClientSecret:     common_config.Secret(sc.OAuth2ClientSecret),
-			ClientSecretFile: sc.OAuth2ClientSecretFile,
-			Scopes:           sc.OAuth2Scopes,
-			TokenURL:         sc.OAuth2TokenURL,
-			EndpointParams:   sc.OAuth2EndpointParams,
-			ProxyURL:         common_config.URL{URL: oauth2ProxyURL},
-			TLSConfig: common_config.TLSConfig{
-				CAFile:             sc.OAuth2TLSConfigCAFile,
-				CertFile:           sc.OAuth2TLSConfigCertFile,
-				KeyFile:            sc.OAuth2TLSConfigKeyFile,
-				ServerName:         sc.OAuth2TLSConfigServerName,
-				InsecureSkipVerify: sc.OAuth2TLSConfigInsecureSkipVerify,
-			},
-		}
-		// TODO(@tpaschalis) had to include this workaround with the OAuth2 config
-		// object, otherwise it would get resolved to a non-nil object, trigger a
-		// different behavior in the scrape requests and fail them. Let's check if
-		// it's the same case with the other nested HTTPClientConfigs structs.
-		if reflect.DeepEqual(oauth2Config, emptyOAuth2) {
-			dec.HTTPClientConfig.OAuth2 = nil
-		} else {
-			dec.HTTPClientConfig.OAuth2 = oauth2Config
-		}
-
-		dec.HTTPClientConfig.BearerToken = common_config.Secret(sc.BearerToken)
-		dec.HTTPClientConfig.BearerTokenFile = sc.BearerTokenFile
-		dec.HTTPClientConfig.ProxyURL = common_config.URL{URL: proxyURL}
-		dec.HTTPClientConfig.TLSConfig = common_config.TLSConfig{
-			CAFile:             sc.TLSConfigCAFile,
-			CertFile:           sc.TLSConfigCertFile,
-			KeyFile:            sc.TLSConfigKeyFile,
-			ServerName:         sc.TLSConfigServerName,
-			InsecureSkipVerify: sc.TLSConfigInsecureSkipVerify,
-		}
-		dec.HTTPClientConfig.FollowRedirects = sc.FollowRedirects
-		dec.HTTPClientConfig.EnableHTTP2 = sc.EnableHTTP2
-
-		err := validateHTTPClientConfig(dec.HTTPClientConfig)
-		if err != nil {
-			level.Error(c.opts.Logger).Log("msg", "provided scrape_config resulted in an invalid HTTP client configuration, skipping it", "err", err)
-		} else {
-			res = append(res, &dec)
-		}
+	dec.HTTPClientConfig.BasicAuth = &common_config.BasicAuth{
+		Username:     c.BasicAuthUsername,
+		Password:     common_config.Secret(c.BasicAuthPassword),
+		PasswordFile: c.BasicAuthPasswordFile,
+	}
+	dec.HTTPClientConfig.Authorization = &common_config.Authorization{
+		Type:            c.AuthorizationType,
+		Credentials:     common_config.Secret(c.AuthorizationCredential),
+		CredentialsFile: c.AuthorizationCredentialsFile,
 	}
 
-	return res
+	oauth2Config := &common_config.OAuth2{
+		ClientID:         c.OAuth2ClientID,
+		ClientSecret:     common_config.Secret(c.OAuth2ClientSecret),
+		ClientSecretFile: c.OAuth2ClientSecretFile,
+		Scopes:           c.OAuth2Scopes,
+		TokenURL:         c.OAuth2TokenURL,
+		EndpointParams:   c.OAuth2EndpointParams,
+		ProxyURL:         common_config.URL{URL: oauth2ProxyURL},
+		TLSConfig: common_config.TLSConfig{
+			CAFile:             c.OAuth2TLSConfigCAFile,
+			CertFile:           c.OAuth2TLSConfigCertFile,
+			KeyFile:            c.OAuth2TLSConfigKeyFile,
+			ServerName:         c.OAuth2TLSConfigServerName,
+			InsecureSkipVerify: c.OAuth2TLSConfigInsecureSkipVerify,
+		},
+	}
+	// TODO(@tpaschalis) had to include this workaround with the OAuth2 config
+	// object, otherwise it would get resolved to a non-nil object, trigger a
+	// different behavior in the scrape requests and fail them. Let's check if
+	// it's the same case with the other nested HTTPClientConfigs structs.
+	if reflect.DeepEqual(oauth2Config, emptyOAuth2) {
+		dec.HTTPClientConfig.OAuth2 = nil
+	} else {
+		dec.HTTPClientConfig.OAuth2 = oauth2Config
+	}
+
+	dec.HTTPClientConfig.BearerToken = common_config.Secret(c.BearerToken)
+	dec.HTTPClientConfig.BearerTokenFile = c.BearerTokenFile
+	dec.HTTPClientConfig.ProxyURL = common_config.URL{URL: proxyURL}
+	dec.HTTPClientConfig.TLSConfig = common_config.TLSConfig{
+		CAFile:             c.TLSConfigCAFile,
+		CertFile:           c.TLSConfigCertFile,
+		KeyFile:            c.TLSConfigKeyFile,
+		ServerName:         c.TLSConfigServerName,
+		InsecureSkipVerify: c.TLSConfigInsecureSkipVerify,
+	}
+	dec.HTTPClientConfig.FollowRedirects = c.FollowRedirects
+	dec.HTTPClientConfig.EnableHTTP2 = c.EnableHTTP2
+
+	err := validateHTTPClientConfig(dec.HTTPClientConfig)
+	if err != nil {
+		return nil, fmt.Errorf("the provided scrape_config resulted in an invalid HTTP Client configuration: %w", err)
+	}
+
+	return &dec, nil
 }
 
 func validateHTTPClientConfig(c common_config.HTTPClientConfig) error {

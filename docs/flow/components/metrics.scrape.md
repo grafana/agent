@@ -1,16 +1,9 @@
 # metrics.scrape
-The `metrics.scrape` component configures scrape jobs for scraping metrics from
-a given set of `targets`. The metrics are forwarded to the given list of
-`receivers`. Multiple `metrics.scrape` components can be specified by
-providing a 'name' like "blackbox-scraper" in the following example.
+The `metrics.scrape` component configures a metrics scraping job for a given set of `targets`. The metrics are forwarded to the given list of `receivers`. Multiple `metrics.scrape` components can be specified by providing a 'name' like "blackbox-scraper" in the following example.
 
 ## Example
 
-The following example will set up two scrape jobs with different attributes
-(scrape intervals, query parameters) and let them scrape the two instances of
-the blackbox exporter. The received metrics will be forwarded to the provided
-remote_write 'receivers' which are referred to as exports from another
-component.
+The following example will set up a scrape job with certain attributes (scrape intervals, query parameters) and let it scrape two instances of the blackbox exporter. The received metrics will be forwarded to the provided remote_write 'receivers' which are referred to as exports from another component.
 
 ```hcl
 metrics "scrape" "blackbox-scraper" {
@@ -26,13 +19,6 @@ metrics "scrape" "blackbox-scraper" {
     params          = { "target" = ["grafana.com"], "module" = ["http_2xx"]}
     metrics_path    = "/probe"
   }
-
-  scrape_config {
-    job_name        = "google"
-    scrape_interval = "120s"
-    params          = { "target" = ["google.com"], "module" = ["http_2xx"]}
-    metrics_path    = "/probe"
-  }
 }
 ```
 
@@ -44,9 +30,9 @@ receivers | list(map(string)) | The targets to scrape. | | **yes**
 extra_metrics| list(map(string)) | The targets to scrape. | false | no
 
 ### `scrape_config` block
-The user can provide zero or more `scrape_config` blocks; each one will
-configure and start a new scrape job to scrape all of the input targets. The
-list of arguments that can be used to configure a block is presented below.
+The user must provide one `scrape_config` block; it will configure and start a
+new scrape job to scrape all of the input targets. The list of arguments that
+can be used to configure the block is presented below.
 
 All arguments except for `job_name` are optional and any omitted fields will
 take on their default values. In case that conflicting attributes are being

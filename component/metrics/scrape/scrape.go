@@ -36,12 +36,11 @@ type Arguments struct {
 	Targets   []Target            `hcl:"targets"`
 	Receivers []*metrics.Receiver `hcl:"receivers"`
 
+	ScrapeConfig Config `hcl:"scrape_config,block"`
+
 	// Scrape Options
 	ExtraMetrics bool `hcl:"extra_metrics,optional"`
 	// TODO(@tpaschalis) enable HTTPClientOptions []config_util.HTTPClientOption
-
-	// Scrape Config
-	ScrapeConfigs []Config `hcl:"scrape_config,block"`
 }
 
 // Target refers to a singular HTTP or HTTPS endpoint that will be used for
@@ -108,9 +107,8 @@ func (c *Component) Run(ctx context.Context) error {
 		case <-c.reloadTargets:
 			c.mut.RLock()
 			tgs := c.args.Targets
-			scs := c.args.ScrapeConfigs
 			c.mut.RUnlock()
-			promTargets := c.hclTargetsToProm(scs, tgs)
+			promTargets := c.hclTargetsToProm(tgs)
 
 			select {
 			case targetSetsChan <- promTargets:
@@ -131,14 +129,18 @@ func (c *Component) Update(args component.Arguments) error {
 
 	c.appendable.receivers = newArgs.Receivers
 
-	scs := c.getPromScrapeConfigs(newArgs.ScrapeConfigs)
-	err := c.scraper.ApplyConfig(&config.Config{
-		ScrapeConfigs: scs,
+	sc, err := newArgs.ScrapeConfig.getPromScrapeConfigs(c.opts.ID)
+	if err != nil {
+		return fmt.Errorf("invalid scrape_config: %w", err)
+	}
+
+	err = c.scraper.ApplyConfig(&config.Config{
+		ScrapeConfigs: []*config.ScrapeConfig{sc},
 	})
 	if err != nil {
 		return fmt.Errorf("error applying scrape configs: %w", err)
 	}
-	level.Debug(c.opts.Logger).Log("msg", "applied new scrape configs", "len", len(scs))
+	level.Debug(c.opts.Logger).Log("msg", "scrape config was updated")
 
 	select {
 	case c.reloadTargets <- struct{}{}:
@@ -187,17 +189,13 @@ func (c *Component) DebugInfo() interface{} {
 	return ScraperStatus{TargetStatus: res}
 }
 
-func (c *Component) hclTargetsToProm(scs []Config, tgs []Target) map[string][]*targetgroup.Group {
-	res := make(map[string][]*targetgroup.Group, len(scs))
-	for _, sc := range scs {
-		promGroup := &targetgroup.Group{Source: c.opts.ID}
-		for _, tg := range tgs {
-			promGroup.Targets = append(promGroup.Targets, convertLabelSet(tg))
-		}
-		targetGroupName := c.opts.ID + "/" + sc.JobName
-		res[targetGroupName] = []*targetgroup.Group{promGroup}
+func (c *Component) hclTargetsToProm(tgs []Target) map[string][]*targetgroup.Group {
+	promGroup := &targetgroup.Group{Source: c.opts.ID}
+	for _, tg := range tgs {
+		promGroup.Targets = append(promGroup.Targets, convertLabelSet(tg))
 	}
-	return res
+
+	return map[string][]*targetgroup.Group{c.opts.ID: {promGroup}}
 }
 
 func convertLabelSet(tg Target) model.LabelSet {
