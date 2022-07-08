@@ -27,7 +27,8 @@ echo "%_gpg_name Grafana <info@grafana.com>
          %{?_gpg_digest_algo:--digest-algo %{_gpg_digest_algo}} \
          --no-secmem-warning \
          -u \"%{_gpg_name}\" -sbo %{__signature_filename} %{__plaintext_filename}
-" > ~/.rpmmacros
+" > /etc/rpm/macros
+cat /etc/rpm/macros > ~/.rpmmacros
 
 cat /dev/null | setsid rpmsign --resign dist/*.rpm
 rpm --checksig dist/*.rpm
