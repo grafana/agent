@@ -56,34 +56,52 @@ target_limit             | uint     | More than this many targets after the targ
 label_limit              | uint     | More than this many labels post metric-relabeling will cause the scrape to fail. | | no 
 label_name_length_limit  | uint     | More than this label name length post metric-relabeling will cause the | | no 
 label_value_length_limit | uint     | More than this label value length post metric-relabeling will cause the scrape to fail. | | no 
-basic_auth_username      | string   | Setup of Basic HTTP authentication credentials. | | no 
-basic_auth_password      | string   | Setup of Basic HTTP authentication credentials. | | no 
-basic_auth_password_file | string   | Setup of Basic HTTP authentication credentials. | | no 
-authorization_type       | string   | Setup of HTTP Authorization credentials. | | no 
-authorization_credential | string   | Setup of HTTP Authorization credentials. | | no 
-authorization_credentials_file    | string | Setup of HTTP Authorization credentials. | | no 
-oauth2_client_id         | string   | Setup of the OAuth2 client. | | no 
-oauth2_client_secret     | string   | Setup of the OAuth2 client. | | no 
-oauth2_client_secret_file | string  | Setup of the OAuth2 client. | | no 
-oauth2_scopes            | list(string) | Setup of the OAuth2 client. | | no 
-oauth2_token_url         | string   | Setup of the OAuth2 client. | | no 
-oauth2_endpoint_params   | map(string) | Setup of the OAuth2 client. | | no 
-oauth2_proxy_url         | string   | Setup of the OAuth2 client. | | no 
-oauth2_tls_config_ca_file     | string | Setup of the OAuth2 client. | | no 
-oauth2_tls_config_cert_file   | string | Setup of the OAuth2 client. | | no 
-oauth2_tls_config_key_file    | string | Setup of the OAuth2 client. | | no 
-oauth2_tls_config_server_name | string | Setup of the OAuth2 client. | | no 
-oauth2_tls_config_insecure_skip_verify    | bool | Setup of the OAuth2 client. | | no 
+                         |          |                            | | 
+basic_auth               | basic_auth block    | Setup of Basic HTTP authentication credentials. | | no
+authorization            | authorization block | Setup of HTTP Authorization credentials. | | no 
+oauth2                   | oauth2 block        | Setup of the OAuth2 client. | | no 
+tls_config               | tls_config block    | Configuration options for TLS connections. | | no 
+                         |          |                            | | 
 bearer_token             | string   | Used to set up the Bearer Token. | | no 
 bearer_token_file        | string   | Used to set up the Bearer Token file. | | no 
 proxy_url                | string   | Used to set up a Proxy URL. | | no 
-tls_config_ca_file       | string   | Configuration options for TLS connections. | | no 
-tls_config_cert_file     | string   | Configuration options for TLS connections. | | no 
-tls_config_key_file      | string   | Configuration options for TLS connections. | | no 
-tls_config_server_name   | string   | Configuration options for TLS connections. | | no 
-tls_config_insecure_skip_verify | bool | Configuration options for TLS connections. | | no 
 follow_redirects         | bool     | Whether the scraper should follow redirects. | true | no 
 enable_http_2            | bool     | Whether the scraper should use HTTP2. | | no 
+
+#### basic_auth block
+Name          | Type     | Description                                     | Default | Required
+--------------| -------- | ----------------------------------------------- | ------- | ------- 
+username      | string   | Setup of Basic HTTP authentication credentials. |         | no 
+password      | string   | Setup of Basic HTTP authentication credentials. |         | no 
+password_file | string   | Setup of Basic HTTP authentication credentials. |         | no 
+
+#### authorization block
+Name                | Type     | Description                              | Default | Required
+------------------- | -------- | -----------------------------------------| ------- | --------
+type                | string   | Setup of HTTP Authorization credentials. |         | no 
+credential          | string   | Setup of HTTP Authorization credentials. |         | no 
+credentials_file    | string   | Setup of HTTP Authorization credentials. |         | no 
+
+#### oauth2 block
+Name               | Type             | Description                              | Default | Required
+------------------ | ---------------- | -----------------------------------------| ------- | --------
+client_id          | string           | Setup of the OAuth2 client.              |         | no 
+client_secret      | string           | Setup of the OAuth2 client.              |         | no 
+client_secret_file | string           | Setup of the OAuth2 client.              |         | no 
+scopes             | list(string)     | Setup of the OAuth2 client.              |         | no 
+token_url          | string           | Setup of the OAuth2 client.              |         | no 
+endpoint_params    | map(string)      | Setup of the OAuth2 client.              |         | no 
+proxy_url          | string           | Setup of the OAuth2 client.              |         | no 
+tls_config         | tls_config block | Setup of TLS options.
+
+#### tls_config block
+Name                            | Type     | Description                                | Default | Required
+------------------------------- | -------- | ------------------------------------------ | ------- | --------
+tls_config_ca_file              | string   | Configuration options for TLS connections. |         | no 
+tls_config_cert_file            | string   | Configuration options for TLS connections. |         | no 
+tls_config_key_file             | string   | Configuration options for TLS connections. |         | no 
+tls_config_server_name          | string   | Configuration options for TLS connections. |         | no 
+tls_config_insecure_skip_verify | bool     | Configuration options for TLS connections. |         | no 
 
 ## Exported fields
 The `metrics.scrape` component does not export any fields that can be

@@ -3,7 +3,6 @@ package scrape
 import (
 	"fmt"
 	"net/url"
-	"reflect"
 	"strings"
 	"time"
 
@@ -15,9 +14,9 @@ import (
 	"github.com/rfratto/gohcl"
 )
 
-var emptyAuthorization = common_config.Authorization{}
-var emptyBasicAuth = common_config.BasicAuth{}
-var emptyOAuth2 = &common_config.OAuth2{}
+// var emptyAuthorization = common_config.Authorization{}
+// var emptyBasicAuth = common_config.BasicAuth{}
+// var emptyOAuth2 = &common_config.OAuth2{}
 
 const bearer string = "Bearer"
 
@@ -64,39 +63,52 @@ type Config struct {
 	LabelValueLengthLimit uint `hcl:"label_value_length_limit,optional"`
 
 	// HTTP Client Config
-	BasicAuthUsername     string `hcl:"basic_auth_username,optional"`
-	BasicAuthPassword     string `hcl:"basic_auth_password,optional"`
-	BasicAuthPasswordFile string `hcl:"basic_auth_password_file,optional"`
-
-	AuthorizationType            string `hcl:"authorization_type,optional"`
-	AuthorizationCredential      string `hcl:"authorization_credential,optional"`
-	AuthorizationCredentialsFile string `hcl:"authorization_credentials_file,optional"`
-
-	OAuth2ClientID                    string            `hcl:"oauth2_client_id,optional"`
-	OAuth2ClientSecret                string            `hcl:"oauth2_client_secret,optional"`
-	OAuth2ClientSecretFile            string            `hcl:"oauth2_client_secret_file,optional"`
-	OAuth2Scopes                      []string          `hcl:"oauth2_scopes,optional"`
-	OAuth2TokenURL                    string            `hcl:"oauth2_token_url,optional"`
-	OAuth2EndpointParams              map[string]string `hcl:"oauth2_endpoint_params,optional"`
-	OAuth2ProxyURL                    string            `hcl:"oauth2_proxy_url,optional"`
-	OAuth2TLSConfigCAFile             string            `hcl:"oauth2_tls_config_ca_file,optional"`
-	OAuth2TLSConfigCertFile           string            `hcl:"oauth2_tls_config_cert_file,optional"`
-	OAuth2TLSConfigKeyFile            string            `hcl:"oauth2_tls_config_key_file,optional"`
-	OAuth2TLSConfigServerName         string            `hcl:"oauth2_tls_config_server_name,optional"`
-	OAuth2TLSConfigInsecureSkipVerify bool              `hcl:"oauth2_tls_config_insecure_skip_verify,optional"`
+	BasicAuth     *BasicAuth     `hcl:"basic_auth,block"`
+	Authorization *Authorization `hcl:"authorization,block"`
+	OAuth2        *OAuth2Config  `hcl:"oauth2,block"`
+	TLSConfig     *TLSConfig     `hcl:"tls_config,block"`
 
 	BearerToken     string `hcl:"bearer_token,optional"`
 	BearerTokenFile string `hcl:"bearer_token_file,optional"`
 	ProxyURL        string `hcl:"proxy_url,optional"`
 
-	TLSConfigCAFile             string `hcl:"tls_config_ca_file,optional"`
-	TLSConfigCertFile           string `hcl:"tls_config_cert_file,optional"`
-	TLSConfigKeyFile            string `hcl:"tls_config_key_file,optional"`
-	TLSConfigServerName         string `hcl:"tls_config_server_name,optional"`
-	TLSConfigInsecureSkipVerify bool   `hcl:"tls_config_insecure_skip_verify,optional"`
-
 	FollowRedirects bool `hcl:"follow_redirects,optional"`
 	EnableHTTP2     bool `hcl:"enable_http_2,optional"`
+}
+
+// BasicAuth configures Basic HTTP authentication credentials.
+type BasicAuth struct {
+	Username     string `hcl:"username,optional"`
+	Password     string `hcl:"password,optional"`
+	PasswordFile string `hcl:"password_file,optional"`
+}
+
+// Authorization sets up HTTP authorization credentials.
+type Authorization struct {
+	Type            string `hcl:"authorization_type,optional"`
+	Credential      string `hcl:"authorization_credential,optional"`
+	CredentialsFile string `hcl:"authorization_credentials_file,optional"`
+}
+
+// TLSConfig sets up options for TLS connections.
+type TLSConfig struct {
+	CAFile             string `hcl:"ca_file,optional"`
+	CertFile           string `hcl:"cert_file,optional"`
+	KeyFile            string `hcl:"key_file,optional"`
+	ServerName         string `hcl:"server_name,optional"`
+	InsecureSkipVerify bool   `hcl:"insecure_skip_verify,optional"`
+}
+
+// OAuth2Config sets up the OAuth2 client.
+type OAuth2Config struct {
+	ClientID         string            `hcl:"client_id,optional"`
+	ClientSecret     string            `hcl:"client_secret,optional"`
+	ClientSecretFile string            `hcl:"client_secret_file,optional"`
+	Scopes           []string          `hcl:"scopes,optional"`
+	TokenURL         string            `hcl:"token_url,optional"`
+	EndpointParams   map[string]string `hcl:"endpoint_params,optional"`
+	ProxyURL         string            `hcl:"proxy_url,optional"`
+	TLSConfig        *TLSConfig        `hcl:"tls_config,optional"`
 }
 
 // DefaultConfig is the set of default options applied before decoding a given
@@ -153,58 +165,70 @@ func (c *Config) getPromScrapeConfigs(jobName string) (*config.ScrapeConfig, err
 	if c.ProxyURL != "" {
 		proxyURL, _ = url.Parse(c.ProxyURL)
 	}
-	if c.OAuth2ProxyURL != "" {
-		oauth2ProxyURL, _ = url.Parse(c.OAuth2ProxyURL)
+	if c.OAuth2 != nil && c.OAuth2.ProxyURL != "" {
+		oauth2ProxyURL, _ = url.Parse(c.OAuth2.ProxyURL)
 	}
 	httpClient := common_config.DefaultHTTPClientConfig
 	dec.HTTPClientConfig = httpClient
 
-	dec.HTTPClientConfig.BasicAuth = &common_config.BasicAuth{
-		Username:     c.BasicAuthUsername,
-		Password:     common_config.Secret(c.BasicAuthPassword),
-		PasswordFile: c.BasicAuthPasswordFile,
+	if c.BasicAuth != nil {
+		dec.HTTPClientConfig.BasicAuth = &common_config.BasicAuth{
+			Username:     c.BasicAuth.Username,
+			Password:     common_config.Secret(c.BasicAuth.Password),
+			PasswordFile: c.BasicAuth.PasswordFile,
+		}
 	}
-	dec.HTTPClientConfig.Authorization = &common_config.Authorization{
-		Type:            c.AuthorizationType,
-		Credentials:     common_config.Secret(c.AuthorizationCredential),
-		CredentialsFile: c.AuthorizationCredentialsFile,
+	if c.Authorization != nil {
+		dec.HTTPClientConfig.Authorization = &common_config.Authorization{
+			Type:            c.Authorization.Type,
+			Credentials:     common_config.Secret(c.Authorization.Credential),
+			CredentialsFile: c.Authorization.CredentialsFile,
+		}
 	}
 
-	oauth2Config := &common_config.OAuth2{
-		ClientID:         c.OAuth2ClientID,
-		ClientSecret:     common_config.Secret(c.OAuth2ClientSecret),
-		ClientSecretFile: c.OAuth2ClientSecretFile,
-		Scopes:           c.OAuth2Scopes,
-		TokenURL:         c.OAuth2TokenURL,
-		EndpointParams:   c.OAuth2EndpointParams,
-		ProxyURL:         common_config.URL{URL: oauth2ProxyURL},
-		TLSConfig: common_config.TLSConfig{
-			CAFile:             c.OAuth2TLSConfigCAFile,
-			CertFile:           c.OAuth2TLSConfigCertFile,
-			KeyFile:            c.OAuth2TLSConfigKeyFile,
-			ServerName:         c.OAuth2TLSConfigServerName,
-			InsecureSkipVerify: c.OAuth2TLSConfigInsecureSkipVerify,
-		},
+	if c.OAuth2 != nil {
+		var oauth2TLSConfig common_config.TLSConfig
+		if c.OAuth2.TLSConfig != nil {
+			oauth2TLSConfig = common_config.TLSConfig{
+				CAFile:             c.OAuth2.TLSConfig.CAFile,
+				CertFile:           c.OAuth2.TLSConfig.CertFile,
+				KeyFile:            c.OAuth2.TLSConfig.KeyFile,
+				ServerName:         c.OAuth2.TLSConfig.ServerName,
+				InsecureSkipVerify: c.OAuth2.TLSConfig.InsecureSkipVerify,
+			}
+		}
+		dec.HTTPClientConfig.OAuth2 = &common_config.OAuth2{
+			ClientID:         c.OAuth2.ClientID,
+			ClientSecret:     common_config.Secret(c.OAuth2.ClientSecret),
+			ClientSecretFile: c.OAuth2.ClientSecretFile,
+			Scopes:           c.OAuth2.Scopes,
+			TokenURL:         c.OAuth2.TokenURL,
+			EndpointParams:   c.OAuth2.EndpointParams,
+			ProxyURL:         common_config.URL{URL: oauth2ProxyURL},
+			TLSConfig:        oauth2TLSConfig,
+		}
 	}
 	// TODO(@tpaschalis) had to include this workaround with the OAuth2 config
 	// object, otherwise it would get resolved to a non-nil object, trigger a
 	// different behavior in the scrape requests and fail them. Let's check if
 	// it's the same case with the other nested HTTPClientConfigs structs.
-	if reflect.DeepEqual(oauth2Config, emptyOAuth2) {
-		dec.HTTPClientConfig.OAuth2 = nil
-	} else {
-		dec.HTTPClientConfig.OAuth2 = oauth2Config
-	}
+	// if reflect.DeepEqual(oauth2Config, emptyOAuth2) {
+	// 	dec.HTTPClientConfig.OAuth2 = nil
+	// } else {
+	// 	dec.HTTPClientConfig.OAuth2 = oauth2Config
+	// }
 
 	dec.HTTPClientConfig.BearerToken = common_config.Secret(c.BearerToken)
 	dec.HTTPClientConfig.BearerTokenFile = c.BearerTokenFile
 	dec.HTTPClientConfig.ProxyURL = common_config.URL{URL: proxyURL}
-	dec.HTTPClientConfig.TLSConfig = common_config.TLSConfig{
-		CAFile:             c.TLSConfigCAFile,
-		CertFile:           c.TLSConfigCertFile,
-		KeyFile:            c.TLSConfigKeyFile,
-		ServerName:         c.TLSConfigServerName,
-		InsecureSkipVerify: c.TLSConfigInsecureSkipVerify,
+	if c.TLSConfig != nil {
+		dec.HTTPClientConfig.TLSConfig = common_config.TLSConfig{
+			CAFile:             c.TLSConfig.CAFile,
+			CertFile:           c.TLSConfig.CertFile,
+			KeyFile:            c.TLSConfig.KeyFile,
+			ServerName:         c.TLSConfig.ServerName,
+			InsecureSkipVerify: c.TLSConfig.InsecureSkipVerify,
+		}
 	}
 	dec.HTTPClientConfig.FollowRedirects = c.FollowRedirects
 	dec.HTTPClientConfig.EnableHTTP2 = c.EnableHTTP2
@@ -222,13 +246,13 @@ func validateHTTPClientConfig(c common_config.HTTPClientConfig) error {
 	if len(c.BearerToken) > 0 && len(c.BearerTokenFile) > 0 {
 		return fmt.Errorf("at most one of bearer_token & bearer_token_file must be configured")
 	}
-	if (*c.BasicAuth != emptyBasicAuth || c.OAuth2 != nil) && (len(c.BearerToken) > 0 || len(c.BearerTokenFile) > 0) {
+	if (c.BasicAuth != nil || c.OAuth2 != nil) && (len(c.BearerToken) > 0 || len(c.BearerTokenFile) > 0) {
 		return fmt.Errorf("at most one of basic_auth, oauth2, bearer_token & bearer_token_file must be configured")
 	}
-	if *c.BasicAuth != emptyBasicAuth && (string(c.BasicAuth.Password) != "" && c.BasicAuth.PasswordFile != "") {
+	if c.BasicAuth != nil && (string(c.BasicAuth.Password) != "" && c.BasicAuth.PasswordFile != "") {
 		return fmt.Errorf("at most one of basic_auth password & password_file must be configured")
 	}
-	if *c.Authorization != emptyAuthorization {
+	if c.Authorization != nil {
 		if len(c.BearerToken) > 0 || len(c.BearerTokenFile) > 0 {
 			return fmt.Errorf("authorization is not compatible with bearer_token & bearer_token_file")
 		}
@@ -242,7 +266,7 @@ func validateHTTPClientConfig(c common_config.HTTPClientConfig) error {
 		if strings.ToLower(c.Authorization.Type) == "basic" {
 			return fmt.Errorf(`authorization type cannot be set to "basic", use "basic_auth" instead`)
 		}
-		if *c.BasicAuth != emptyBasicAuth || c.OAuth2 != nil {
+		if c.BasicAuth != nil || c.OAuth2 != nil {
 			return fmt.Errorf("at most one of basic_auth, oauth2 & authorization must be configured")
 		}
 	} else {
@@ -258,7 +282,7 @@ func validateHTTPClientConfig(c common_config.HTTPClientConfig) error {
 		}
 	}
 	if c.OAuth2 != nil {
-		if *c.BasicAuth != emptyBasicAuth {
+		if c.BasicAuth != nil {
 			return fmt.Errorf("at most one of basic_auth, oauth2 & authorization must be configured")
 		}
 		if len(c.OAuth2.ClientID) == 0 {
