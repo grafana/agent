@@ -1,3 +1,8 @@
+#!/usr/bin/env bash
+
+# We are not using fpm's signing functionality because it does not work anymore
+# https://github.com/jordansissel/fpm/issues/1626
+
 # Write GPG key to GPG keyring
 printf "%s" "${GPG_PUBLIC_KEY}" > /tmp/gpg-public-key
 gpg --import /tmp/gpg-public-key
@@ -15,3 +20,6 @@ echo "%_gpg_name Grafana <info@grafana.com>
          --no-secmem-warning \
          -u \"%{_gpg_name}\" -sbo %{__signature_filename} %{__plaintext_filename}
 " > ~/.rpmmacros
+
+rpm --addsign dist/*.rpm
+rpm --checksign dist/*.rpm

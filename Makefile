@@ -437,9 +437,7 @@ ENVIRONMENT_FILE_deb := /etc/default/grafana-agent
 define generate_fpm =
 	fpm -s dir -v $(PACKAGE_VERSION) -a $(2) \
 		-n grafana-agent --iteration $(PACKAGE_RELEASE) -f \
-		--verbose \
-		--debug \
-		--log debug \
+		--log error \
 		--license "Apache 2.0" \
 		--vendor "Grafana Labs" \
 		--url "https://github.com/grafana/agent" \
@@ -448,7 +446,6 @@ define generate_fpm =
 		--before-remove packaging/$(1)/control/prerm \
 		--config-files /etc/grafana-agent.yaml \
 		--config-files $(ENVIRONMENT_FILE_$(1)) \
-		--rpm-sign \
 		--package $(4) \
 			dist/agent-linux-$(3)=/usr/bin/grafana-agent \
 			dist/agentctl-linux-$(3)=/usr/bin/grafana-agentctl \
