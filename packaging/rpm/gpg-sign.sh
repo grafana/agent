@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -euxo pipefail
+shopt -s extglob
 
 # We are not using fpm's signing functionality because it does not work anymore
 # https://github.com/jordansissel/fpm/issues/1626
@@ -25,5 +26,5 @@ echo "%_gpg_name Grafana <info@grafana.com>
          -u \"%{_gpg_name}\" -sbo %{__signature_filename} %{__plaintext_filename}
 " > ~/.rpmmacros
 
-cat /dev/null | setsid rpmsign --resign "${PWD}/dist/*.rpm"
-rpm --checksig "${PWD}/dist/*.rpm"
+cat /dev/null | setsid rpmsign --resign dist/*.rpm
+rpm --checksig dist/*.rpm
