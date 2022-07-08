@@ -24,5 +24,5 @@ echo "%_gpg_name Grafana <info@grafana.com>
          -u \"%{_gpg_name}\" -sbo %{__signature_filename} %{__plaintext_filename}
 " > ~/.rpmmacros
 
-rpm --addsign dist/*.rpm
+cat /dev/null | setsid rpmsign --resign dist/*.rpm
 rpm --checksig dist/*.rpm
