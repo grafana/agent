@@ -56,12 +56,10 @@ target_limit             | uint     | More than this many targets after the targ
 label_limit              | uint     | More than this many labels post metric-relabeling will cause the scrape to fail. | | no 
 label_name_length_limit  | uint     | More than this label name length post metric-relabeling will cause the | | no 
 label_value_length_limit | uint     | More than this label value length post metric-relabeling will cause the scrape to fail. | | no 
-                         |          |                            | | 
 basic_auth               | basic_auth block    | Setup of Basic HTTP authentication credentials. | | no
 authorization            | authorization block | Setup of HTTP Authorization credentials. | | no 
 oauth2                   | oauth2 block        | Setup of the OAuth2 client. | | no 
 tls_config               | tls_config block    | Configuration options for TLS connections. | | no 
-                         |          |                            | | 
 bearer_token             | string   | Used to set up the Bearer Token. | | no 
 bearer_token_file        | string   | Used to set up the Bearer Token file. | | no 
 proxy_url                | string   | Used to set up a Proxy URL. | | no 
@@ -92,7 +90,7 @@ scopes             | list(string)     | Setup of the OAuth2 client.             
 token_url          | string           | Setup of the OAuth2 client.              |         | no 
 endpoint_params    | map(string)      | Setup of the OAuth2 client.              |         | no 
 proxy_url          | string           | Setup of the OAuth2 client.              |         | no 
-tls_config         | tls_config block | Setup of TLS options.
+tls_config         | tls_config block | Setup of TLS options.                    |         | no
 
 #### tls_config block
 Name                            | Type     | Description                                | Default | Required
