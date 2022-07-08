@@ -13,10 +13,11 @@ printf "%s" "${GPG_PRIVATE_KEY}" | gpg --import --no-tty --batch --yes --passphr
 rpm --import /tmp/gpg-public-key
 
 echo "%_gpg_name Grafana <info@grafana.com>
-%__gpg_check_password_cmd /bin/true
+%_signature gpg
 %_gpgbin /usr/bin/gpg
+%__gpg_check_password_cmd /bin/true
 %__gpg_sign_cmd     %{__gpg} \
-         --no-tty --batch --yes --verbose --no-armor \
+         gpg --no-tty --batch --yes --verbose --no-armor \
          --passphrase "${GPG_PASSPHRASE}" \
          --pinentry-mode loopback \
          %{?_gpg_digest_algo:--digest-algo %{_gpg_digest_algo}} \
