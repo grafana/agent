@@ -32,6 +32,6 @@ echo "%_gpg_name Grafana <info@grafana.com>
 cat /etc/rpm/macros > ~/.rpmmacros
 
 for f in $(ls dist/*.rpm); do
-  cat /dev/null | setsid rpmsign --resign "${f}"
+  rpm -v --addsign "${f}"
   rpm --checksig "${f}"
 done
