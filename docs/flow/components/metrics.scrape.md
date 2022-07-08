@@ -74,16 +74,16 @@ oauth2_tls_config_cert_file   | string | Setup of the OAuth2 client. | | no
 oauth2_tls_config_key_file    | string | Setup of the OAuth2 client. | | no 
 oauth2_tls_config_server_name | string | Setup of the OAuth2 client. | | no 
 oauth2_tls_config_insecure_skip_verify    | bool | Setup of the OAuth2 client. | | no 
-bearer_token             | string   | Used to set up the Bearer Token | | no 
-bearer_token_file        | string   | Used to set up the Bearer Token file | | no 
-proxy_url                | string   | Used to set up a Proxy URL | | no 
-tls_config_ca_file       | string   | Configuration options for TLS connections | | no 
-tls_config_cert_file     | string   | Configuration options for TLS connections | | no 
-tls_config_key_file      | string   | Configuration options for TLS connections | | no 
-tls_config_server_name   | string   | Configuration options for TLS connections | | no 
-tls_config_insecure_skip_verify | bool | Configuration options for TLS connections | | no 
-follow_redirects         | bool     | Whether the scraper should follow redirects | true | no 
-enable_http_2            | bool     | Whether the scraper should use HTTP2 | | no 
+bearer_token             | string   | Used to set up the Bearer Token. | | no 
+bearer_token_file        | string   | Used to set up the Bearer Token file. | | no 
+proxy_url                | string   | Used to set up a Proxy URL. | | no 
+tls_config_ca_file       | string   | Configuration options for TLS connections. | | no 
+tls_config_cert_file     | string   | Configuration options for TLS connections. | | no 
+tls_config_key_file      | string   | Configuration options for TLS connections. | | no 
+tls_config_server_name   | string   | Configuration options for TLS connections. | | no 
+tls_config_insecure_skip_verify | bool | Configuration options for TLS connections. | | no 
+follow_redirects         | bool     | Whether the scraper should follow redirects. | true | no 
+enable_http_2            | bool     | Whether the scraper should use HTTP2. | | no 
 
 ## Exported fields
 The `metrics.scrape` component does not export any fields that can be
