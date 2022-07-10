@@ -280,7 +280,7 @@ func EndPos(n Node) token.Pos {
 	case *Comment:
 		return n.Start.Add(len(n.Text) - 1)
 	case *AttributeStmt:
-		return EndPos(n.Name)
+		return EndPos(n.Value)
 	case *BlockStmt:
 		return n.RCurly
 	case *IdentifierExpr:

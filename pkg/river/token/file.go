@@ -3,6 +3,7 @@ package token
 import (
 	"fmt"
 	"sort"
+	"strconv"
 )
 
 // NoPos is the zero value for Pos. It has no file or line information
@@ -15,6 +16,9 @@ type Pos struct {
 	file *File
 	off  int
 }
+
+// String returns the string form of the Pos (the offset).
+func (p Pos) String() string { return strconv.Itoa(p.off) }
 
 // File returns the file used by the Pos. This will be nil for invalid
 // positions.
