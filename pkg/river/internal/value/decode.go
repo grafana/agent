@@ -161,12 +161,15 @@ func decodeArray(val Value, rt reflect.Value) error {
 
 	case reflect.Array:
 		res := reflect.New(rt.Type()).Elem()
-		for i := 0; i < val.rv.Len(); i++ {
-			// Stop processing elements if the target array is too short.
-			// TODO(rfratto): should we force array length to be identical?
-			if i >= res.Len() {
-				break
+
+		if val.rv.Len() != res.Len() {
+			return ValueError{
+				Value: val,
+				Inner: fmt.Errorf("array must have exactly %d elements, got %d", res.Len(), val.rv.Len()),
 			}
+		}
+
+		for i := 0; i < val.rv.Len(); i++ {
 			if err := decode(val.Index(i), res.Index(i)); err != nil {
 				return ElementError{Value: val, Index: i, Inner: err}
 			}
