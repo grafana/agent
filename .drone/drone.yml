@@ -228,7 +228,7 @@ steps:
       GITHUB_TOKEN:
         from_secret: GITHUB_KEY
     commands:
-      - apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
+      - apt-get update &&  apt-get install -y rubygems rpm nsis apt-transport-https ca-certificates curl gnupg lsb-release libbpfcc-dev
       - curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
       - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian bullseye stable"
       - apt-get update &&  apt-get install -y rubygems rpm nsis docker-ce docker-ce-cli containerd.io gettext
@@ -244,7 +244,7 @@ steps:
       - export PATH="$(go env GOPATH)/bin:$PATH"
       - make -j4 DOCKER_OPTS="" BUILD_IN_CONTAINER=false RELEASE_BUILD=true RELEASE_TAG=${DRONE_TAG} publish
 depends_on:
-  - Test
+  - Containerize
 
 volumes:
   - name: docker
@@ -276,6 +276,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: 1eb649e21ef645fccbdde5fff6577f6c56666bf7683f68b91b753887d2952069
+hmac: 42866b2345b4fc50fb092b32d4d1ba0a1a6aafdd6fc607a42ffcf56946ed8c5d
 
 ...
