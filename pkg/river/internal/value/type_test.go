@@ -43,6 +43,7 @@ var typeTests = []struct {
 	{(func())(nil), value.TypeCapsule},                 // Must have non-error return type
 	{(func() error)(nil), value.TypeCapsule},           // First return type must be non-error
 	{(func() (error, int))(nil), value.TypeCapsule},    // First return type must be non-error
+	{(func() (error, error))(nil), value.TypeCapsule},  // First return type must be non-error
 	{(func() (int, int))(nil), value.TypeCapsule},      // Second return type must be error
 	{(func() (int, int, int))(nil), value.TypeCapsule}, // Can only have 1 or 2 return types
 

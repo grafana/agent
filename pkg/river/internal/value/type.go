@@ -104,7 +104,7 @@ func RiverType(t reflect.Type) Type {
 			}
 			return TypeFunction
 		case 2:
-			if t.Out(1) != goError {
+			if t.Out(0) == goError || t.Out(1) != goError {
 				return TypeCapsule
 			}
 			return TypeFunction
