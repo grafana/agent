@@ -227,6 +227,12 @@ steps:
         from_secret: DOCKER_PASSWORD
       GITHUB_TOKEN:
         from_secret: GITHUB_KEY
+      GPG_PRIVATE_KEY: 
+        from_secret: gpg_private_key
+      GPG_PUBLIC_KEY:
+        from_secret: gpg_public_key
+      GPG_PASSPHRASE:
+        from_secret: gpg_passphrase
     commands:
       - apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
       - curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
@@ -274,8 +280,33 @@ name: gh_token
 get:
   path: infra/data/ci/github/grafanabot
   name: pat
+
+---
+kind: secret
+name: gpg_public_key
+
+get:
+  name: public-key
+  path: infra/data/ci/packages-publish/gpg
+
+---
+kind: secret
+name: gpg_private_key
+
+get:
+  name: private-key
+  path: infra/data/ci/packages-publish/gpg
+
+---
+kind: secret
+name: gpg_passphrase
+
+get:
+  name: passphrase
+  path: infra/data/ci/packages-publish/gpg
+
 ---
 kind: signature
-hmac: 1eb649e21ef645fccbdde5fff6577f6c56666bf7683f68b91b753887d2952069
+hmac: 1b8681557ad1771fcc97f0a57ddbc65a394b80f6db83c11b474e35b513bb462b
 
 ...
