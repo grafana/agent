@@ -41,7 +41,7 @@ func decode(val Value, into reflect.Value) error {
 		}
 		err = into.Interface().(encoding.TextUnmarshaler).UnmarshalText([]byte(s))
 		if err != nil {
-			return DecodeError{Value: val, Inner: err}
+			return ValueError{Value: val, Inner: err}
 		}
 		return nil
 	}
@@ -125,7 +125,7 @@ func decode(val Value, into reflect.Value) error {
 		//
 		// TODO(rfratto): we may want to consider being more lax here, potentially
 		// creating an adapter between the two functions.
-		return DecodeError{
+		return ValueError{
 			Value: val,
 			Inner: fmt.Errorf("expected function(%s), got function(%s)", into.Type(), convVal.rv.Type()),
 		}
@@ -138,7 +138,7 @@ func decode(val Value, into reflect.Value) error {
 		// appropriate at the moment because it would just print "capsule", which
 		// doesn't contain all the information the user would want to know (e.g., a
 		// capsule of what inner type?).
-		return DecodeError{
+		return ValueError{
 			Value: val,
 			Inner: fmt.Errorf("expected capsule(%s), got %s", into.Type(), convVal.Describe()),
 		}

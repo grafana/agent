@@ -2,15 +2,6 @@ package value
 
 import "fmt"
 
-// DecodeError is used for reporting on a value failing to decode.
-type DecodeError struct {
-	Value Value
-	Inner error
-}
-
-// Error returns the message of the decode error.
-func (de DecodeError) Error() string { return de.Inner.Error() }
-
 // TypeError is used for reporting on a value having an unexpected type.
 type TypeError struct {
 	// Value which caused the error.
@@ -22,6 +13,16 @@ type TypeError struct {
 func (te TypeError) Error() string {
 	return fmt.Sprintf("expected %s, got %s", te.Expected, te.Value.Type())
 }
+
+// ValueError is used for reporting on a value-level error. It is more general
+// than a TypeError.
+type ValueError struct {
+	Value Value
+	Inner error
+}
+
+// Error returns the message of the decode error.
+func (de ValueError) Error() string { return de.Inner.Error() }
 
 // MissingKeyError is used for reporting that a value is missing a key.
 type MissingKeyError struct {
@@ -62,13 +63,13 @@ func WalkError(err error, f func(err error)) bool {
 	nextError := err
 	for nextError != nil {
 		switch ne := nextError.(type) {
-		case DecodeError:
-			f(nextError)
-			nextError = ne.Inner
-			foundOne = true
 		case TypeError:
 			f(nextError)
 			nextError = nil
+			foundOne = true
+		case ValueError:
+			f(nextError)
+			nextError = ne.Inner
 			foundOne = true
 		case MissingKeyError:
 			f(nextError)
