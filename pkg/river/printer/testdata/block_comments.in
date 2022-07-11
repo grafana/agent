@@ -1,0 +1,23 @@
+// block_comments.in expects that comments within blocks are formatted to
+// remain within the block with the proper indentation.
+
+// Comment is on same line as block header.
+block { // comment
+}
+
+// Comment is alone in block body.
+block {
+// comment
+}
+
+// Comment is before a statement.
+block {
+// comment
+	attr = 5
+}
+
+// Comment is after a statement.
+block {
+	attr = 5
+// comment
+}
