@@ -53,11 +53,11 @@ type Field struct {
 // Get returns the list of tagged fields for some struct type ty. Get panics if
 // ty is not a struct type.
 //
-// Get examines each tagged field in ty for a rvr key. The rvr key is then
+// Get examines each tagged field in ty for a river key. The river key is then
 // parsed as containing a name for the field, followed by a required
 // comma-separated list of options. The name may be empty for fields which do
-// not require a name. Get will ignore any field that is not tagged with a rvr
-// key.
+// not require a name. Get will ignore any field that is not tagged with a
+// river key.
 //
 // Get will treat anonymous struct fields as if the inner fields were fields in
 // the outer struct.
@@ -65,26 +65,26 @@ type Field struct {
 // Examples of struct field tags and their meanings:
 //
 //     // Field is used as a required block named "my_block".
-//     Field struct{} `rvr:"my_block,block"`
+//     Field struct{} `river:"my_block,block"`
 //
 //     // Field is used as an optional block named "my_block".
-//     Field struct{} `rvr:"my_block,block,optional"`
+//     Field struct{} `river:"my_block,block,optional"`
 //
 //     // Field is used as a required attribute named "my_attr".
-//     Field string `rvr:"my_attr,attr"`
+//     Field string `river:"my_attr,attr"`
 //
 //     // Field is used as an optional attribute named "my_attr".
-//     Field string `rvr:"my_attr,attr,optional"`
+//     Field string `river:"my_attr,attr,optional"`
 //
 //     // Field is used for storing the label of the block which the struct
 //     // represents.
-//     Field string `rvr:",label"`
+//     Field string `river:",label"`
 //
-// With the exception of the `rvr:",label"` tag, all tagged fields must have a
+// With the exception of the `river:",label"` tag, all tagged fields must have a
 // unique name.
 //
 // The type of tagged fields may be any Go type, with the exception of
-// `rvr:",label"` tags, which must be strings.
+// `river:",label"` tags, which must be strings.
 func Get(ty reflect.Type) []Field {
 	if k := ty.Kind(); k != reflect.Struct {
 		panic(fmt.Sprintf("rivertags: Get requires struct kind, got %s", k))
@@ -104,13 +104,13 @@ func Get(ty reflect.Type) []Field {
 			continue
 		}
 
-		tag, tagged := field.Tag.Lookup("rvr")
+		tag, tagged := field.Tag.Lookup("river")
 		if !tagged {
 			continue
 		}
 
 		if !field.IsExported() {
-			panic(fmt.Sprintf("river: rvr tag found on unexported field at %s", printPathToField(ty, field.Index)))
+			panic(fmt.Sprintf("river: river tag found on unexported field at %s", printPathToField(ty, field.Index)))
 		}
 
 		options := strings.SplitN(tag, ",", 2)

@@ -45,11 +45,11 @@ func TestDecode(t *testing.T) {
 	// Declare some types to use for testing. Person2 is used as a struct
 	// equivalent to Person, but with a different Go type to force casting.
 	type Person struct {
-		Name string `rvr:"name,attr"`
+		Name string `river:"name,attr"`
 	}
 
 	type Person2 struct {
-		Name string `rvr:"name,attr"`
+		Name string `river:"name,attr"`
 	}
 
 	tt := []struct {
@@ -107,13 +107,13 @@ func TestDecode(t *testing.T) {
 func TestDecode_EmbeddedField(t *testing.T) {
 	t.Run("Non-pointer", func(t *testing.T) {
 		type Phone struct {
-			Brand string `rvr:"phone_brand,attr"`
-			Year  int    `rvr:"phone_year,attr"`
+			Brand string `river:"phone_brand,attr"`
+			Year  int    `river:"phone_year,attr"`
 		}
 		type Person struct {
 			Phone
-			Name string `rvr:"name,attr"`
-			Age  int    `rvr:"age,attr"`
+			Name string `river:"name,attr"`
+			Age  int    `river:"age,attr"`
 		}
 
 		input := value.Object(map[string]value.Value{
@@ -135,13 +135,13 @@ func TestDecode_EmbeddedField(t *testing.T) {
 
 	t.Run("Pointer", func(t *testing.T) {
 		type Phone struct {
-			Brand string `rvr:"phone_brand,attr"`
-			Year  int    `rvr:"phone_year,attr"`
+			Brand string `river:"phone_brand,attr"`
+			Year  int    `river:"phone_year,attr"`
 		}
 		type Person struct {
 			*Phone
-			Name string `rvr:"name,attr"`
-			Age  int    `rvr:"age,attr"`
+			Name string `river:"name,attr"`
+			Age  int    `river:"age,attr"`
 		}
 
 		input := value.Object(map[string]value.Value{
@@ -252,9 +252,9 @@ func TestDecode_ErrorChain(t *testing.T) {
 	type Target struct {
 		Key struct {
 			Object struct {
-				Field1 []int `rvr:"field1,attr"`
-			} `rvr:"object,attr"`
-		} `rvr:"key,attr"`
+				Field1 []int `river:"field1,attr"`
+			} `river:"object,attr"`
+		} `river:"key,attr"`
 	}
 
 	val := value.Object(map[string]value.Value{
