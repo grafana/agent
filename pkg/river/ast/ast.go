@@ -48,7 +48,7 @@ type CommentGroup []*Comment
 // removed, EndPos will not be accurate for any comment which contained
 // carriage returns.
 type Comment struct {
-	Start token.Pos // Starting position of comment
+	StartPos token.Pos // Starting position of comment
 	// Text of the comment. Text will not contain '\n' for line comments.
 	Text string
 }
@@ -66,7 +66,7 @@ type BlockStmt struct {
 	Label   string
 	Body    Body
 
-	LCurly, RCurly token.Pos
+	LCurlyPos, RCurlyPos token.Pos
 }
 
 // IdentifierExpr refers to a named value.
@@ -88,14 +88,14 @@ type LiteralExpr struct {
 
 // ArrayExpr is an array of values.
 type ArrayExpr struct {
-	Elements       []Expr
-	LBrack, RBrack token.Pos
+	Elements             []Expr
+	LBrackPos, RBrackPos token.Pos
 }
 
 // ObjectExpr declares an object of key-value pairs.
 type ObjectExpr struct {
-	Fields         []*ObjectField
-	LCurly, RCurly token.Pos
+	Fields               []*ObjectField
+	LCurlyPos, RCurlyPos token.Pos
 }
 
 // ObjectField defines an individual key-value pair within an object.
@@ -114,8 +114,8 @@ type AccessExpr struct {
 
 // IndexExpr accesses an index in an array value.
 type IndexExpr struct {
-	Value, Index   Expr
-	LBrack, RBrack token.Pos
+	Value, Index         Expr
+	LBrackPos, RBrackPos token.Pos
 }
 
 // CallExpr invokes a function value with a set of arguments.
@@ -123,7 +123,7 @@ type CallExpr struct {
 	Value Expr
 	Args  []Expr
 
-	LParen, RParen token.Pos
+	LParenPos, RParenPos token.Pos
 }
 
 // UnaryExpr performs a unary operation on a single value.
@@ -142,8 +142,8 @@ type BinaryExpr struct {
 
 // ParenExpr represents an expression wrapped in parenthesis.
 type ParenExpr struct {
-	Inner          Expr
-	LParen, RParen token.Pos
+	Inner                Expr
+	LParenPos, RParenPos token.Pos
 }
 
 // Type assertions
@@ -229,7 +229,7 @@ func StartPos(n Node) token.Pos {
 		}
 		return StartPos(n[0])
 	case *Comment:
-		return n.Start
+		return n.StartPos
 	case *AttributeStmt:
 		return StartPos(n.Name)
 	case *BlockStmt:
@@ -239,9 +239,9 @@ func StartPos(n Node) token.Pos {
 	case *LiteralExpr:
 		return n.ValuePos
 	case *ArrayExpr:
-		return n.LBrack
+		return n.LBrackPos
 	case *ObjectExpr:
-		return n.LCurly
+		return n.LCurlyPos
 	case *AccessExpr:
 		return StartPos(n.Value)
 	case *IndexExpr:
@@ -253,7 +253,7 @@ func StartPos(n Node) token.Pos {
 	case *BinaryExpr:
 		return StartPos(n.Left)
 	case *ParenExpr:
-		return n.LParen
+		return n.LParenPos
 	default:
 		panic(fmt.Sprintf("Unhandled Node type %T", n))
 	}
@@ -278,31 +278,31 @@ func EndPos(n Node) token.Pos {
 		}
 		return EndPos(n[len(n)-1])
 	case *Comment:
-		return n.Start.Add(len(n.Text) - 1)
+		return n.StartPos.Add(len(n.Text) - 1)
 	case *AttributeStmt:
 		return EndPos(n.Value)
 	case *BlockStmt:
-		return n.RCurly
+		return n.RCurlyPos
 	case *IdentifierExpr:
 		return n.NamePos.Add(len(n.Name) - 1)
 	case *LiteralExpr:
 		return n.ValuePos.Add(len(n.Value) - 1)
 	case *ArrayExpr:
-		return n.RBrack
+		return n.RBrackPos
 	case *ObjectExpr:
-		return n.RCurly
+		return n.RCurlyPos
 	case *AccessExpr:
 		return EndPos(n.Name)
 	case *IndexExpr:
-		return n.RBrack
+		return n.RBrackPos
 	case *CallExpr:
-		return n.RParen
+		return n.RParenPos
 	case *UnaryExpr:
 		return EndPos(n.Value)
 	case *BinaryExpr:
 		return EndPos(n.Right)
 	case *ParenExpr:
-		return n.RParen
+		return n.RParenPos
 	default:
 		panic(fmt.Sprintf("Unhandled Node type %T", n))
 	}

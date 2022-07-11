@@ -293,7 +293,7 @@ func (p *printer) writeCommentPrefix(next token.Position, c *ast.Comment) {
 		return
 	}
 
-	cPos := c.Start.Position()
+	cPos := c.StartPos.Position()
 
 	if cPos.Line == p.last.Line {
 		// Our comment is on the same line as the last token. Write a separator
@@ -340,7 +340,7 @@ func (p *printer) writeCommentPrefix(next token.Position, c *ast.Comment) {
 }
 
 func (p *printer) writeComment(next token.Position, c *ast.Comment) {
-	p.writeString(c.Start.Position(), c.Text, true)
+	p.writeString(c.StartPos.Position(), c.Text, true)
 }
 
 // writeCommentSuffix writes any whitespace necessary between the last comment

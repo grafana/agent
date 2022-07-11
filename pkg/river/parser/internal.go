@@ -96,7 +96,7 @@ func (p *parser) consumeComment() (comment *ast.Comment, endline int) {
 		}
 	}
 
-	comment = &ast.Comment{Start: p.pos, Text: p.lit}
+	comment = &ast.Comment{StartPos: p.pos, Text: p.lit}
 	p.next0()
 	return
 }
@@ -223,9 +223,9 @@ func (p *parser) parseStatement() ast.Stmt {
 			Label:   blockName.Label,
 		}
 
-		block.LCurly, _, _ = p.expect(token.LCURLY)
+		block.LCurlyPos, _, _ = p.expect(token.LCURLY)
 		block.Body = p.parseBody(token.RCURLY)
-		block.RCurly, _, _ = p.expect(token.RCURLY)
+		block.RCurlyPos, _, _ = p.expect(token.RCURLY)
 
 		return block
 
@@ -424,10 +424,10 @@ NextOper:
 			rBrack, _, _ := p.expect(token.RBRACK)
 
 			primary = &ast.IndexExpr{
-				Value:  primary,
-				LBrack: lBrack,
-				Index:  index,
-				RBrack: rBrack,
+				Value:     primary,
+				LBrackPos: lBrack,
+				Index:     index,
+				RBrackPos: rBrack,
 			}
 
 		case token.LPAREN: // CallExpr
@@ -440,10 +440,10 @@ NextOper:
 			rParen, _, _ := p.expect(token.RPAREN)
 
 			primary = &ast.CallExpr{
-				Value:  primary,
-				LParen: lParen,
-				Args:   args,
-				RParen: rParen,
+				Value:     primary,
+				LParenPos: lParen,
+				Args:      args,
+				RParenPos: rParen,
 			}
 
 		default:
@@ -497,29 +497,29 @@ func (p *parser) parsePrimaryExpr() ast.Expr {
 		rParen, _, _ := p.expect(token.RPAREN)
 
 		return &ast.ParenExpr{
-			LParen: lParen,
-			Inner:  expr,
-			RParen: rParen,
+			LParenPos: lParen,
+			Inner:     expr,
+			RParenPos: rParen,
 		}
 
 	case token.LBRACK:
 		var res ast.ArrayExpr
 
-		res.LBrack, _, _ = p.expect(token.LBRACK)
+		res.LBrackPos, _, _ = p.expect(token.LBRACK)
 		if p.tok != token.RBRACK {
 			res.Elements = p.parseExpressionList(token.RBRACK)
 		}
-		res.RBrack, _, _ = p.expect(token.RBRACK)
+		res.RBrackPos, _, _ = p.expect(token.RBRACK)
 		return &res
 
 	case token.LCURLY:
 		var res ast.ObjectExpr
 
-		res.LCurly, _, _ = p.expect(token.LCURLY)
+		res.LCurlyPos, _, _ = p.expect(token.LCURLY)
 		if p.tok != token.RBRACK {
 			res.Fields = p.parseFieldList(token.RCURLY)
 		}
-		res.RCurly, _, _ = p.expect(token.RCURLY)
+		res.RCurlyPos, _, _ = p.expect(token.RCURLY)
 		return &res
 	}
 

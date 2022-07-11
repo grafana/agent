@@ -119,13 +119,13 @@ func (w *walker) walkBlockStmt(s *ast.BlockStmt) {
 
 	w.p.Write(
 		wsBlank,
-		s.LCurly, token.LCURLY, wsIndent,
+		s.LCurlyPos, token.LCURLY, wsIndent,
 		wsNewline,
 	)
 
 	w.walkStmts(s.Body)
 
-	w.p.Write(wsUnindent, s.RCurly, token.RCURLY)
+	w.p.Write(wsUnindent, s.RCurlyPos, token.RCURLY)
 }
 
 func (w *walker) walkExpr(e ast.Expr) {
@@ -148,9 +148,9 @@ func (w *walker) walkExpr(e ast.Expr) {
 
 	case *ast.IndexExpr:
 		w.walkExpr(e.Value)
-		w.p.Write(e.LBrack, token.LBRACK)
+		w.p.Write(e.LBrackPos, token.LBRACK)
 		w.walkExpr(e.Index)
-		w.p.Write(e.RBrack, token.RBRACK)
+		w.p.Write(e.RBrackPos, token.RBRACK)
 
 	case *ast.CallExpr:
 		// TODO(rfratto): allow arguments to be on a new line
@@ -188,9 +188,9 @@ func (w *walker) walkExpr(e ast.Expr) {
 }
 
 func (w *walker) walkArrayExpr(e *ast.ArrayExpr) {
-	w.p.Write(e.LBrack, token.LBRACK, wsIndent)
+	w.p.Write(e.LBrackPos, token.LBRACK, wsIndent)
 
-	prevPos := e.LBrack
+	prevPos := e.LBrackPos
 
 	for i := 0; i < len(e.Elements); i++ {
 		elementPos := ast.StartPos(e.Elements[i])
@@ -217,17 +217,17 @@ func (w *walker) walkArrayExpr(e *ast.ArrayExpr) {
 
 	// If the closing bracket is on a different line than the final element,
 	// we need to add a trailing comma.
-	if len(e.Elements) > 0 && differentLines(prevPos, e.RBrack) {
+	if len(e.Elements) > 0 && differentLines(prevPos, e.RBrackPos) {
 		w.p.Write(token.COMMA, wsFormfeed)
 	}
 
-	w.p.Write(wsUnindent, e.RBrack, token.RBRACK)
+	w.p.Write(wsUnindent, e.RBrackPos, token.RBRACK)
 }
 
 func (w *walker) walkObjectExpr(e *ast.ObjectExpr) {
 	w.p.Write(token.LCURLY, wsIndent)
 
-	prevPos := e.LCurly
+	prevPos := e.LCurlyPos
 
 	for i := 0; i < len(e.Fields); i++ {
 		field := e.Fields[i]
@@ -268,11 +268,11 @@ func (w *walker) walkObjectExpr(e *ast.ObjectExpr) {
 
 	// If the closing bracket is on a different line than the final element,
 	// we need to add a trailing comma.
-	if len(e.Fields) > 0 && differentLines(prevPos, e.RCurly) {
+	if len(e.Fields) > 0 && differentLines(prevPos, e.RCurlyPos) {
 		w.p.Write(token.COMMA, wsFormfeed)
 	}
 
-	w.p.Write(wsUnindent, e.RCurly, token.RCURLY)
+	w.p.Write(wsUnindent, e.RCurlyPos, token.RCURLY)
 }
 
 // differentLines returns true if a and b are on different lines.
