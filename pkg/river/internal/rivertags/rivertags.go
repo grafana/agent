@@ -131,21 +131,19 @@ func Get(ty reflect.Type) []Field {
 		}
 		usedNames[tf.Name] = tf.Index
 
-		if len(options) == 2 {
-			switch options[1] {
-			case "attr":
-				tf.Flags |= FlagAttr
-			case "attr,optional":
-				tf.Flags |= FlagAttr | FlagOptional
-			case "block":
-				tf.Flags |= FlagBlock
-			case "block,optional":
-				tf.Flags |= FlagBlock | FlagOptional
-			case "label":
-				tf.Flags |= FlagLabel
-			default:
-				panic(fmt.Sprintf("river: unrecognized river tag format %q at %s", tag, printPathToField(ty, tf.Index)))
-			}
+		switch options[1] {
+		case "attr":
+			tf.Flags |= FlagAttr
+		case "attr,optional":
+			tf.Flags |= FlagAttr | FlagOptional
+		case "block":
+			tf.Flags |= FlagBlock
+		case "block,optional":
+			tf.Flags |= FlagBlock | FlagOptional
+		case "label":
+			tf.Flags |= FlagLabel
+		default:
+			panic(fmt.Sprintf("river: unrecognized river tag format %q at %s", tag, printPathToField(ty, tf.Index)))
 		}
 
 		// Validate field
