@@ -243,7 +243,7 @@ steps:
       - GO111MODULE=on go get -u github.com/mitchellh/gox github.com/tcnksm/ghr
       - export PATH="$(go env GOPATH)/bin:$PATH"
       - go mod tidy
-      - make -j4 DOCKER_OPTS="" BUILD_IN_CONTAINER=false RELEASE_BUILD=true RELEASE_TAG=${DRONE_TAG} publish
+      - make -j4 DOCKER_OPTS="" DRONE=true BUILD_IN_CONTAINER=false RELEASE_BUILD=true RELEASE_TAG=${DRONE_TAG} publish
 depends_on:
   - Containerize
 
@@ -277,6 +277,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: 4c8151f550e2d36ad2cb6bfdec51663f054e71dc316dc53c2a9efd450b8994c9
+hmac: 825d5072261390aeff821465cc8eae5c58abefc10752c6705a9d450a0c885054
 
 ...
