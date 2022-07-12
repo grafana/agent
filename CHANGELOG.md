@@ -7,7 +7,7 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-v0.26.0-rc.0 (2022-07-11)
+v0.26.0-rc.0 (2022-07-12)
 -------------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
