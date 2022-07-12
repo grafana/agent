@@ -87,10 +87,10 @@ issuer_common_names:
   [- <string> ... ]
 
 # Regular expression to match Subject name
-[client_subject_regex: <string>]
+[subject_regex: <string>]
 
 # Client Template ID to match in ASN1 format ex "1.2.3"
-[client_template_id: <string>]
+[template_id: <string>]
 ```
 
 ### windows_server_config
