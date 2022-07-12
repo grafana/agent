@@ -245,7 +245,7 @@ steps:
       - go mod tidy
       - make -j4 DOCKER_OPTS="" BUILD_IN_CONTAINER=false RELEASE_BUILD=true RELEASE_TAG=${DRONE_TAG} publish
 depends_on:
-  - Dist
+  - Containerize
 
 volumes:
   - name: docker
