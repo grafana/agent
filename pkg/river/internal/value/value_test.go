@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestFunction(t *testing.T) {
+func TestValue_Call(t *testing.T) {
 	t.Run("simple", func(t *testing.T) {
 		add := func(a, b int) int { return a + b }
 		addVal := value.Encode(add)
