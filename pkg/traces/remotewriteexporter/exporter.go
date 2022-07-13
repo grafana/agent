@@ -14,12 +14,9 @@ import (
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/traces/contextkeys"
 	"github.com/prometheus/prometheus/model/labels"
-	"github.com/prometheus/prometheus/model/timestamp"
-	"github.com/prometheus/prometheus/storage"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/model/pdata"
-	"go.uber.org/atomic"
 )
 
 const (
@@ -32,15 +29,28 @@ const (
 	noSuffix     = ""
 )
 
+type datapoint struct {
+	ts int64
+	v  float64
+	l  labels.Labels
+}
+
 type remoteWriteExporter struct {
 	mtx sync.Mutex
 
-	done         atomic.Bool
+	close  chan struct{}
+	closed chan struct{}
+
 	manager      instance.Manager
 	promInstance string
 
 	constLabels labels.Labels
 	namespace   string
+
+	seriesMap    map[uint64]*datapoint
+	staleTime    int64
+	lastFlush    int64
+	loopInterval time.Duration
 
 	logger log.Logger
 }
@@ -54,12 +64,26 @@ func newRemoteWriteExporter(cfg *Config) (component.MetricsExporter, error) {
 		ls = append(ls, labels.Label{Name: name, Value: value})
 	}
 
+	staleTime := (15 * time.Minute).Milliseconds()
+	if cfg.StaleTime > 0 {
+		staleTime = cfg.StaleTime.Milliseconds()
+	}
+
+	loopInterval := time.Second
+	if cfg.LoopInterval > 0 {
+		loopInterval = cfg.LoopInterval
+	}
+
 	return &remoteWriteExporter{
 		mtx:          sync.Mutex{},
-		done:         atomic.Bool{},
+		close:        make(chan struct{}),
+		closed:       make(chan struct{}),
 		constLabels:  ls,
 		namespace:    cfg.Namespace,
 		promInstance: cfg.PromInstance,
+		seriesMap:    make(map[uint64]*datapoint),
+		staleTime:    staleTime,
+		loopInterval: loopInterval,
 		logger:       logger,
 	}, nil
 }
@@ -70,12 +94,21 @@ func (e *remoteWriteExporter) Start(ctx context.Context, _ component.Host) error
 		return fmt.Errorf("key does not contain a InstanceManager instance")
 	}
 	e.manager = manager
+
+	go e.appenderLoop()
+
 	return nil
 }
 
-func (e *remoteWriteExporter) Shutdown(_ context.Context) error {
-	e.done.Store(true)
-	return nil
+func (e *remoteWriteExporter) Shutdown(ctx context.Context) error {
+	close(e.close)
+
+	select {
+	case <-e.closed:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
 func (e *remoteWriteExporter) Capabilities() consumer.Capabilities {
@@ -83,21 +116,11 @@ func (e *remoteWriteExporter) Capabilities() consumer.Capabilities {
 }
 
 func (e *remoteWriteExporter) ConsumeMetrics(ctx context.Context, md pdata.Metrics) error {
-	if e.done.Load() {
+	select {
+	case <-e.closed:
 		return nil
+	default:
 	}
-
-	// Lock taken to ensure that only one appender is open at a time.
-	// This prevents parallel writes for metrics with the same labels.
-	e.mtx.Lock()
-	defer e.mtx.Unlock()
-
-	prom, err := e.manager.GetInstance(e.promInstance)
-	if err != nil {
-		level.Warn(e.logger).Log("msg", "failed to get prom instance", "err", err)
-		return nil
-	}
-	app := prom.Appender(ctx)
 
 	resourceMetrics := md.ResourceMetrics()
 	for i := 0; i < resourceMetrics.Len(); i++ {
@@ -109,7 +132,7 @@ func (e *remoteWriteExporter) ConsumeMetrics(ctx context.Context, md pdata.Metri
 				switch metric := metricSlice.At(k); metric.DataType() {
 				case pdata.MetricDataTypeGauge:
 					dataPoints := metric.Sum().DataPoints()
-					if err := e.handleNumberDataPoints(app, metric.Name(), dataPoints); err != nil {
+					if err := e.handleNumberDataPoints(metric.Name(), dataPoints); err != nil {
 						return err
 					}
 				case pdata.MetricDataTypeSum:
@@ -117,7 +140,7 @@ func (e *remoteWriteExporter) ConsumeMetrics(ctx context.Context, md pdata.Metri
 						continue // Only cumulative metrics are supported
 					}
 					dataPoints := metric.Sum().DataPoints()
-					if err := e.handleNumberDataPoints(app, metric.Name(), dataPoints); err != nil {
+					if err := e.handleNumberDataPoints(metric.Name(), dataPoints); err != nil {
 						return err
 					}
 				case pdata.MetricDataTypeHistogram:
@@ -125,9 +148,7 @@ func (e *remoteWriteExporter) ConsumeMetrics(ctx context.Context, md pdata.Metri
 						continue // Only cumulative metrics are supported
 					}
 					dataPoints := metric.Histogram().DataPoints()
-					if err := e.handleHistogramDataPoints(app, metric.Name(), dataPoints); err != nil {
-						return fmt.Errorf("failed to process metric %s", err)
-					}
+					e.handleHistogramDataPoints(metric.Name(), dataPoints)
 				case pdata.MetricDataTypeSummary:
 					return fmt.Errorf("unsupported metric data type %s", metric.DataType())
 				default:
@@ -137,21 +158,21 @@ func (e *remoteWriteExporter) ConsumeMetrics(ctx context.Context, md pdata.Metri
 		}
 	}
 
-	return app.Commit()
+	return nil
 }
 
-func (e *remoteWriteExporter) handleNumberDataPoints(app storage.Appender, name string, dataPoints pdata.NumberDataPointSlice) error {
+func (e *remoteWriteExporter) handleNumberDataPoints(name string, dataPoints pdata.NumberDataPointSlice) error {
 	for ix := 0; ix < dataPoints.Len(); ix++ {
 		dataPoint := dataPoints.At(ix)
 		lbls := e.createLabelSet(name, noSuffix, dataPoint.Attributes(), labels.Labels{})
-		if err := e.appendNumberDataPoint(app, dataPoint, lbls); err != nil {
-			return fmt.Errorf("failed to process metric %s", err)
+		if err := e.appendNumberDataPoint(dataPoint, lbls); err != nil {
+			return fmt.Errorf("failed to process datapoints %s", err)
 		}
 	}
 	return nil
 }
 
-func (e *remoteWriteExporter) appendNumberDataPoint(app storage.Appender, dataPoint pdata.NumberDataPoint, labels labels.Labels) error {
+func (e *remoteWriteExporter) appendNumberDataPoint(dataPoint pdata.NumberDataPoint, labels labels.Labels) error {
 	var val float64
 	switch dataPoint.ValueType() {
 	case pdata.MetricValueTypeDouble:
@@ -163,26 +184,23 @@ func (e *remoteWriteExporter) appendNumberDataPoint(app storage.Appender, dataPo
 	}
 	ts := e.timestamp()
 
-	_, err := app.Append(0, labels, ts, val)
-	return err
+	e.appendDatapointForSeries(labels, ts, val)
+
+	return nil
 }
 
-func (e *remoteWriteExporter) handleHistogramDataPoints(app storage.Appender, name string, dataPoints pdata.HistogramDataPointSlice) error {
+func (e *remoteWriteExporter) handleHistogramDataPoints(name string, dataPoints pdata.HistogramDataPointSlice) {
 	for ix := 0; ix < dataPoints.Len(); ix++ {
 		dataPoint := dataPoints.At(ix)
 		ts := e.timestamp()
 
 		// Append sum value
 		sumLabels := e.createLabelSet(name, sumSuffix, dataPoint.Attributes(), labels.Labels{})
-		if _, err := app.Append(0, sumLabels, ts, dataPoint.Sum()); err != nil {
-			return err
-		}
+		e.appendDatapointForSeries(sumLabels, ts, dataPoint.Sum())
 
 		// Append count value
 		countLabels := e.createLabelSet(name, countSuffix, dataPoint.Attributes(), labels.Labels{})
-		if _, err := app.Append(0, countLabels, ts, float64(dataPoint.Count())); err != nil {
-			return err
-		}
+		e.appendDatapointForSeries(countLabels, ts, float64(dataPoint.Count()))
 
 		var cumulativeCount uint64
 		for ix, eb := range dataPoint.ExplicitBounds() {
@@ -192,18 +210,74 @@ func (e *remoteWriteExporter) handleHistogramDataPoints(app storage.Appender, na
 			cumulativeCount += dataPoint.BucketCounts()[ix]
 			boundStr := strconv.FormatFloat(eb, 'f', -1, 64)
 			bucketLabels := e.createLabelSet(name, bucketSuffix, dataPoint.Attributes(), labels.Labels{{Name: leStr, Value: boundStr}})
-			if _, err := app.Append(0, bucketLabels, ts, float64(cumulativeCount)); err != nil {
-				return err
-			}
+			e.appendDatapointForSeries(bucketLabels, ts, float64(cumulativeCount))
 		}
 		// add le=+Inf bucket
 		cumulativeCount += dataPoint.BucketCounts()[len(dataPoint.BucketCounts())-1]
 		infBucketLabels := e.createLabelSet(name, bucketSuffix, dataPoint.Attributes(), labels.Labels{{Name: leStr, Value: infBucket}})
-		if _, err := app.Append(0, infBucketLabels, ts, float64(cumulativeCount)); err != nil {
-			return err
+		e.appendDatapointForSeries(infBucketLabels, ts, float64(cumulativeCount))
+	}
+}
+
+func (e *remoteWriteExporter) appendDatapointForSeries(l labels.Labels, ts int64, v float64) {
+	e.mtx.Lock()
+	defer e.mtx.Unlock()
+
+	series := l.Hash()
+	if lastDatapoint, ok := e.seriesMap[series]; ok {
+		if lastDatapoint.ts >= ts {
+			return
+		}
+		lastDatapoint.ts = ts
+		lastDatapoint.v = v
+		return
+	}
+
+	e.seriesMap[series] = &datapoint{l: l, ts: ts, v: v}
+}
+
+func (e *remoteWriteExporter) appenderLoop() {
+	t := time.NewTicker(e.loopInterval)
+
+	for {
+		select {
+		case <-t.C:
+			e.mtx.Lock()
+			inst, err := e.manager.GetInstance(e.promInstance)
+			if err != nil {
+				level.Error(e.logger).Log("msg", "failed to get prom instance", "err", err)
+				continue
+			}
+			appender := inst.Appender(context.Background())
+
+			now := time.Now().UnixMilli()
+			for _, dp := range e.seriesMap {
+				// If the datapoint hasn't been updated since the last loop, don't append it
+				if dp.ts < e.lastFlush {
+					// If the datapoint is older than now - staleTime, it is stale and gets removed.
+					if now-dp.ts > e.staleTime {
+						delete(e.seriesMap, dp.l.Hash())
+					}
+					continue
+				}
+
+				if _, err := appender.Append(0, dp.l, dp.ts, dp.v); err != nil {
+					level.Error(e.logger).Log("msg", "failed to append datapoint", "err", err)
+				}
+			}
+
+			if err := appender.Commit(); err != nil {
+				level.Error(e.logger).Log("msg", "failed to commit appender", "err", err)
+			}
+
+			e.lastFlush = now
+			e.mtx.Unlock()
+
+		case <-e.close:
+			close(e.closed)
+			return
 		}
 	}
-	return nil
 }
 
 func (e *remoteWriteExporter) createLabelSet(name, suffix string, labelMap pdata.AttributeMap, customLabels labels.Labels) labels.Labels {
@@ -229,12 +303,7 @@ func (e *remoteWriteExporter) createLabelSet(name, suffix string, labelMap pdata
 }
 
 func (e *remoteWriteExporter) timestamp() int64 {
-	return convertTimeStamp(time.Now())
-}
-
-// convertTimeStamp converts time.Time to timestamp in ms
-func convertTimeStamp(t time.Time) int64 {
-	return timestamp.FromTime(t)
+	return time.Now().UnixMilli()
 }
 
 func metricName(namespace, metric, suffix string) string {

@@ -31,6 +31,8 @@ Main (unreleased)
 
 - Truncate all records in WAL if repair attempt fails. (@rlankfo)
 
+- Tracing: Introduce a periodic appender to the remotewriteexporter to control sample rate. (@mapno)
+
 ### Bugfixes
 
 - Relative symlinks for promtail now work as expected. (@RangerCD, @mukerjee)
@@ -87,12 +89,10 @@ v0.25.0 (2022-06-06)
 
 - `extra-scrape-metrics` can now be enabled with the `--enable-features=extra-scrape-metrics` feature flag. See https://prometheus.io/docs/prometheus/2.31/feature_flags/#extra-scrape-metrics for details. (@rlankfo)
 
-
 - Resolved issue in v2 integrations where if an instance name was a prefix of another the route handler would fail to
   match requests on the longer name (@mattdurham)
 
 - Set `include_metadata` to true by default for OTLP traces receivers (@mapno)
-
 
 ### Bugfixes
 
