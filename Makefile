@@ -482,6 +482,7 @@ enforce-release-tag:
 	sh -c '[ -n "${RELEASE_TAG}" ] || (echo \$$RELEASE_TAG environment variable not set; exit 1)'
 
 test-packages:
+	docker pull $(BUILD_IMAGE)
 	go test -tags=packaging  ./packaging
 .PHONY: test-packages
 
