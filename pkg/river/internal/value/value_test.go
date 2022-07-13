@@ -54,6 +54,39 @@ func TestFunction(t *testing.T) {
 		})
 	})
 
+	t.Run("partially variadic", func(t *testing.T) {
+		add := func(firstNum int, nums ...int) int {
+			sum := firstNum
+			for _, num := range nums {
+				sum += num
+			}
+			return sum
+		}
+		addVal := value.Encode(add)
+
+		t.Run("no variadic args", func(t *testing.T) {
+			res, err := addVal.Call(value.Int(52))
+			require.NoError(t, err)
+			require.Equal(t, int64(52), res.Int())
+		})
+
+		t.Run("one variadic arg", func(t *testing.T) {
+			res, err := addVal.Call(value.Int(52), value.Int(32))
+			require.NoError(t, err)
+			require.Equal(t, int64(52+32), res.Int())
+		})
+
+		t.Run("many variadic args", func(t *testing.T) {
+			res, err := addVal.Call(
+				value.Int(32),
+				value.Int(59),
+				value.Int(12),
+			)
+			require.NoError(t, err)
+			require.Equal(t, int64(32+59+12), res.Int())
+		})
+	})
+
 	t.Run("returns error", func(t *testing.T) {
 		failWhenTrue := func(val bool) (int, error) {
 			if val {
