@@ -54,7 +54,7 @@ steps:
     commands:
       # NOTE(rfratto): the variable syntax is parsed ahead of time by Drone,
       # and not by Windows (where the syntax obviously wouldn't work).
-      - $IMAGE_TAG=${DRONE_TAG##build-image/v}-windows
+      - $IMAGE_TAG="${DRONE_TAG##build-image/v}-windows"
       - docker login -u $Env:DOCKER_LOGIN -p $Env:DOCKER_PASSWORD
       - docker build -t grafana/agent-build-image:$IMAGE_TAG ./build-image/windows
       - docker push grafana/agent-build-image:$IMAGE_TAG
