@@ -12,6 +12,8 @@ import (
 	config_util "github.com/prometheus/common/config"
 )
 
+var _ config_util.Secret = Config{}.URI
+
 // Config controls mongodb_exporter
 type Config struct {
 	// MongoDB connection URI. example:mongodb://user:pass@127.0.0.1:27017/admin?ssl=true"

@@ -17,6 +17,8 @@ import (
 	config_util "github.com/prometheus/common/config"
 )
 
+var _ config_util.Secret = Config{}.RedisPassword
+
 // DefaultConfig holds non-zero default options for the Config when it is
 // unmarshaled from YAML.
 var DefaultConfig = Config{

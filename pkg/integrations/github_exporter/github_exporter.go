@@ -14,6 +14,8 @@ import (
 	config_util "github.com/prometheus/common/config"
 )
 
+var _ config_util.Secret = Config{}.APIToken
+
 // DefaultConfig holds the default settings for the github_exporter integration
 var DefaultConfig = Config{
 	APIURL: "https://api.github.com",

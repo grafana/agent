@@ -17,6 +17,8 @@ import (
 	"github.com/prometheus/mysqld_exporter/collector"
 )
 
+var _ config_util.Secret = Config{}.DataSourceName
+
 // DefaultConfig holds the default settings for the mysqld_exporter integration.
 var DefaultConfig = Config{
 	LockWaitTimeout: 2,

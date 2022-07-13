@@ -13,6 +13,8 @@ import (
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 )
 
+var _ config_util.Secret = Config{}.SASLPassword
+
 // DefaultConfig holds the default settings for the kafka_lag_exporter
 // integration.
 var DefaultConfig = Config{

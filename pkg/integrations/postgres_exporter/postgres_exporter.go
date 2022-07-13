@@ -16,6 +16,8 @@ import (
 	"github.com/prometheus-community/postgres_exporter/exporter"
 )
 
+var _ []config_util.Secret = Config{}.DataSourceNames
+
 // Config controls the postgres_exporter integration.
 type Config struct {
 	// DataSourceNames to use to connect to Postgres.
