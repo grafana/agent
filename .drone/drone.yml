@@ -121,9 +121,6 @@ steps:
       - make DOCKER_OPTS="" cmd/agent/agent cmd/agentctl/agentctl cmd/agent-operator/agent-operator tools/crow/grafana-agent-crow tools/smoke/grafana-agent-smoke
       - make DOCKER_OPTS="" K8S_USE_DOCKER_NETWORK=1 DRONE=true BUILD_IN_CONTAINER=false test
 
-depends_on:
-  - Lint
-
 volumes:
  - name: docker
    host:
@@ -147,14 +144,9 @@ trigger:
     - refs/tags/v*
 steps:
   - name: test
-    image: grafana/ci-build-windows:0.3.4
+    image: grafana/agent-build-image:0.14.0-windows
     commands:
-      # TODO: remove the install below when grafana/ci-build-windows is updated
-      # with newer versions of Go.
-      - powershell -Command choco install golang --version 1.18.3 -y
       - go test -tags="nodocker,nonetwork" ./...
-depends_on:
-  - Lint
 ---
 kind: pipeline
 type: docker
@@ -372,6 +364,6 @@ get:
 
 ---
 kind: signature
-hmac: 68c3176038580cae0741def5c790ed18b6c0d5f7fa1715fc10634ecfa73fb526
+hmac: 2cf5a5ca48b13a35f2f609985ab81e5cf21bf5f31a1543fde16a74ce3ff60c13
 
 ...
