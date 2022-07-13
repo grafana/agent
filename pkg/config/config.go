@@ -437,6 +437,6 @@ func CheckSecret(t *testing.T, rawCfg string, originalValue string) {
 	bb, err := yaml.Marshal(cfg)
 	require.NoError(t, err)
 	scrubbedCfg := string(bb)
-	require.True(t, strings.Contains(scrubbedCfg, "<secret>"))
+	require.True(t, strings.Contains(scrubbedCfg, "********"))
 	require.False(t, strings.Contains(scrubbedCfg, originalValue))
 }
