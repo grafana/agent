@@ -1,12 +1,12 @@
-local k = import 'ksonnet-util/kausal.libsonnet';
-local container = k.core.v1.container;
-local policyRule = k.rbac.v1.policyRule;
-local serviceAccount = k.core.v1.serviceAccount;
-local deployment = k.apps.v1.deployment;
-
 {
   new(name='grafana-agent-operator', namespace=''):: {
     local k = (import 'ksonnet-util/kausal.libsonnet') { _config+:: { namespace: namespace } },
+
+    local container = k.core.v1.container,
+    local policyRule = k.rbac.v1.policyRule,
+    local serviceAccount = k.core.v1.serviceAccount,
+    local deployment = k.apps.v1.deployment,
+
     local this = self,
 
     _images:: {
