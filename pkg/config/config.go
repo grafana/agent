@@ -20,6 +20,7 @@ import (
 	"github.com/grafana/agent/pkg/server"
 	"github.com/grafana/agent/pkg/traces"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/dskit/flagext"
 	"github.com/grafana/dskit/kv/consul"
 	"github.com/prometheus/common/config"
 	"github.com/prometheus/common/version"
@@ -148,7 +149,7 @@ func (c Config) MarshalYAML() (interface{}, error) {
 		// Obscure the password fields for known types that do not obscure passwords.
 		switch v := in.(type) {
 		case consul.Config:
-			v.ACLToken = "<secret>"
+			v.ACLToken = flagext.SecretWithValue("<secret>")
 			return true, v, nil
 		default:
 			return false, nil, nil

@@ -109,7 +109,7 @@ func (r *Remote) ApplyConfig(cfg kv.Config, enable bool) error {
 	if cfg.Store == "consul" {
 		consulClient, err = api.NewClient(&api.Config{
 			Address: cfg.Consul.Host,
-			Token:   cfg.Consul.ACLToken,
+			Token:   cfg.Consul.ACLToken.String(),
 			Scheme:  "http",
 			HttpClient: &http.Client{
 				Transport: cleanhttp.DefaultPooledTransport(),
