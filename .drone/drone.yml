@@ -1,5 +1,70 @@
 ---
 kind: pipeline
+type: docker
+name: Create Linux build image
+platform:
+  os: linux
+  arch: amd64
+trigger:
+  event: [tag]
+  ref: [refs/tags/build-image/v*]
+steps:
+  - name: Build
+    image: docker
+    volumes:
+      - name: docker
+        path: /var/run/docker.sock
+    environment:
+      DOCKER_LOGIN:
+        from_secret: DOCKER_LOGIN
+      DOCKER_PASSWORD:
+        from_secret: DOCKER_PASSWORD
+    commands:
+    - export IMAGE_TAG=${DRONE_TAG##build-image/v}
+    - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
+    - docker build -t grafana/agent-build-image:$IMAGE_TAG ./build-image
+    - docker push grafana/agent-build-image:$IMAGE_TAG
+volumes:
+  - name: docker
+    host:
+      path: /var/run/docker.sock
+
+---
+kind: pipeline
+type: docker
+name: Create Windows build image
+platform:
+  os: windows
+  arch: amd64
+  version: "1809"
+trigger:
+  event: [tag]
+  ref: [refs/tags/build-image/v*]
+steps:
+  - name: Build
+    image: docker:windowsservercore-1809
+    volumes:
+      - name: docker
+        path: //./pipe/docker_engine/
+    environment:
+      DOCKER_LOGIN:
+        from_secret: DOCKER_LOGIN
+      DOCKER_PASSWORD:
+        from_secret: DOCKER_PASSWORD
+    commands:
+      # NOTE(rfratto): the variable syntax is parsed ahead of time by Drone,
+      # and not by Windows (where the syntax obviously wouldn't work).
+      - set IMAGE_TAG=${DRONE_TAG##build-image/v}-windows
+      - docker login -u %DOCKER_LOGIN% -p %DOCKER_PASSWORD%
+      - docker build -t grafana/agent-build-image:%IMAGE_TAG% ./build-image/windows
+      - docker push grafana/agent-build-image:%IMAGE_TAG%
+volumes:
+- name: docker
+  host:
+    path: //./pipe/docker_engine/
+
+---
+kind: pipeline
 name: Lint
 platform:
   os: linux
@@ -12,7 +77,7 @@ trigger:
   ref:
     - refs/heads/main
     - refs/pull/*/head
-    - refs/tags/**
+    - refs/tags/v*
 
 steps:
   - name: lint
@@ -36,7 +101,7 @@ trigger:
   ref:
     - refs/heads/main
     - refs/pull/*/head
-    - refs/tags/**
+    - refs/tags/v*
 
 steps:
   - name: test
@@ -79,7 +144,7 @@ trigger:
   ref:
     - refs/heads/main
     - refs/pull/*/head
-    - refs/tags/**
+    - refs/tags/v*
 steps:
   - name: test
     image: grafana/ci-build-windows:0.3.4
@@ -227,7 +292,7 @@ steps:
         from_secret: DOCKER_PASSWORD
       GITHUB_TOKEN:
         from_secret: GITHUB_KEY
-      GPG_PRIVATE_KEY: 
+      GPG_PRIVATE_KEY:
         from_secret: gpg_private_key
       GPG_PUBLIC_KEY:
         from_secret: gpg_public_key
@@ -307,6 +372,6 @@ get:
 
 ---
 kind: signature
-hmac: 1b8681557ad1771fcc97f0a57ddbc65a394b80f6db83c11b474e35b513bb462b
+hmac: ab9614af14522e531577279229a9f4dc3ec8b182a5bb32e89d91a952bda43b13
 
 ...
