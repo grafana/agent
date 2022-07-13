@@ -81,6 +81,13 @@ trigger:
     - refs/pull/*/head
     - refs/tags/**
 steps:
+  - name: docker
+    image: docker:windowsservercore-1809
+    volumes:
+      - name: docker
+        path: //./pipe/docker_engine/
+    commands:
+      - docker info
   - name: test
     image: grafana/ci-build-windows:0.3.4
     commands:
@@ -90,6 +97,11 @@ steps:
       - go test -tags="nodocker,nonetwork" ./...
 depends_on:
   - Lint
+
+volumes:
+  - name: docker
+    host:
+      path: //./pipe/docker_engine/
 ---
 kind: pipeline
 type: docker
@@ -227,7 +239,7 @@ steps:
         from_secret: DOCKER_PASSWORD
       GITHUB_TOKEN:
         from_secret: GITHUB_KEY
-      GPG_PRIVATE_KEY: 
+      GPG_PRIVATE_KEY:
         from_secret: gpg_private_key
       GPG_PUBLIC_KEY:
         from_secret: gpg_public_key
@@ -307,6 +319,6 @@ get:
 
 ---
 kind: signature
-hmac: 1b8681557ad1771fcc97f0a57ddbc65a394b80f6db83c11b474e35b513bb462b
+hmac: eff2702cc99e0914a336f993049ed7af4bd1a6010555e3a33346893718fa87da
 
 ...
