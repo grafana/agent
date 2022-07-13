@@ -33,6 +33,8 @@ Main (unreleased)
 
 - Tracing: Introduce a periodic appender to the remotewriteexporter to control sample rate. (@mapno)
 
+- Add base agent-operator jsonnet library and generated manifests (@hjet)
+
 ### Bugfixes
 
 - Relative symlinks for promtail now work as expected. (@RangerCD, @mukerjee)
