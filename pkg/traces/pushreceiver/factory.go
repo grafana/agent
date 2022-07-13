@@ -35,6 +35,7 @@ type Factory struct {
 	Consumer consumer.Traces
 }
 
+// StabilityLevel implements component.Factory.
 func (f *Factory) StabilityLevel(config.DataType) component.StabilityLevel {
 	return component.StabilityLevelUndefined
 }
