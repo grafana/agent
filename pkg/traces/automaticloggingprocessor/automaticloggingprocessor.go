@@ -18,10 +18,11 @@ import (
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/prometheus/common/model"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/component/componenterror"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/model/pdata"
-	semconv "go.opentelemetry.io/collector/model/semconv/v1.6.1"
+	pdata_internal "go.opentelemetry.io/collector/pdata/external"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/ptrace"
+	semconv "go.opentelemetry.io/collector/semconv/v1.6.1"
 	"go.uber.org/atomic"
 )
 
@@ -57,7 +58,7 @@ func newTraceProcessor(nextConsumer consumer.Traces, cfg *AutomaticLoggingConfig
 	logger := log.With(util.Logger, "component", "traces automatic logging")
 
 	if nextConsumer == nil {
-		return nil, componenterror.ErrNilNextConsumer
+		return nil, component.ErrNilNextConsumer
 	}
 
 	if !cfg.Roots && !cfg.Processes && !cfg.Spans {
@@ -103,11 +104,11 @@ func newTraceProcessor(nextConsumer consumer.Traces, cfg *AutomaticLoggingConfig
 	}, nil
 }
 
-func (p *automaticLoggingProcessor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
+func (p *automaticLoggingProcessor) ConsumeTraces(ctx context.Context, td ptrace.Traces) error {
 	rsLen := td.ResourceSpans().Len()
 	for i := 0; i < rsLen; i++ {
 		rs := td.ResourceSpans().At(i)
-		ilsLen := rs.InstrumentationLibrarySpans().Len()
+		ssLen := rs.ScopeSpans().Len()
 
 		var svc string
 		svcAtt, ok := rs.Resource().Attributes().Get(semconv.AttributeServiceName)
@@ -115,13 +116,13 @@ func (p *automaticLoggingProcessor) ConsumeTraces(ctx context.Context, td pdata.
 			svc = svcAtt.StringVal()
 		}
 
-		for j := 0; j < ilsLen; j++ {
-			ils := rs.InstrumentationLibrarySpans().At(j)
-			spanLen := ils.Spans().Len()
+		for j := 0; j < ssLen; j++ {
+			ss := rs.ScopeSpans().At(j)
+			spanLen := ss.Spans().Len()
 
 			lastTraceID := ""
 			for k := 0; k < spanLen; k++ {
-				span := ils.Spans().At(k)
+				span := ss.Spans().At(k)
 				traceID := span.TraceID().HexString()
 
 				if p.cfg.Spans {
@@ -203,7 +204,7 @@ func (p *automaticLoggingProcessor) Shutdown(context.Context) error {
 	return nil
 }
 
-func (p *automaticLoggingProcessor) processKeyVals(resource pdata.Resource, svc string) []interface{} {
+func (p *automaticLoggingProcessor) processKeyVals(resource pcommon.Resource, svc string) []interface{} {
 	atts := make([]interface{}, 0, 2) // 2 for service name
 	rsAtts := resource.Attributes()
 
@@ -223,7 +224,7 @@ func (p *automaticLoggingProcessor) processKeyVals(resource pdata.Resource, svc 
 	return atts
 }
 
-func (p *automaticLoggingProcessor) spanKeyVals(span pdata.Span) []interface{} {
+func (p *automaticLoggingProcessor) spanKeyVals(span ptrace.Span) []interface{} {
 	atts := make([]interface{}, 0, 8) // 8 for name, duration, service name and status
 
 	atts = append(atts, p.cfg.Overrides.SpanNameKey)
@@ -233,7 +234,7 @@ func (p *automaticLoggingProcessor) spanKeyVals(span pdata.Span) []interface{} {
 	atts = append(atts, spanDuration(span))
 
 	// Skip STATUS_CODE_UNSET to be less spammy
-	if span.Status().Code() != pdata.StatusCodeUnset {
+	if span.Status().Code() != pdata_internal.StatusCodeUnset {
 		atts = append(atts, p.cfg.Overrides.StatusKey)
 		atts = append(atts, span.Status().Code())
 	}
@@ -283,24 +284,24 @@ func (p *automaticLoggingProcessor) exportToLogsInstance(kind string, traceID st
 	}
 }
 
-func spanDuration(span pdata.Span) string {
+func spanDuration(span ptrace.Span) string {
 	dur := int64(span.EndTimestamp() - span.StartTimestamp())
 	return strconv.FormatInt(dur, 10) + "ns"
 }
 
-func attributeValue(att pdata.AttributeValue) interface{} {
+func attributeValue(att pcommon.Value) interface{} {
 	switch att.Type() {
-	case pdata.AttributeValueTypeString:
+	case pcommon.ValueTypeString:
 		return att.StringVal()
-	case pdata.AttributeValueTypeInt:
+	case pcommon.ValueTypeInt:
 		return att.IntVal()
-	case pdata.AttributeValueTypeDouble:
+	case pcommon.ValueTypeDouble:
 		return att.DoubleVal()
-	case pdata.AttributeValueTypeBool:
+	case pcommon.ValueTypeBool:
 		return att.BoolVal()
-	case pdata.AttributeValueTypeMap:
+	case pcommon.ValueTypeMap:
 		return att.MapVal()
-	case pdata.AttributeValueTypeArray:
+	case pcommon.ValueTypeSlice:
 		return att.SliceVal()
 	}
 	return nil

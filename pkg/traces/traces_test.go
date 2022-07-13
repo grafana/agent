@@ -14,13 +14,13 @@ import (
 	"github.com/stretchr/testify/require"
 	jaegercfg "github.com/uber/jaeger-client-go/config"
 	"github.com/weaveworks/common/logging"
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/ptrace"
 	"gopkg.in/yaml.v2"
 )
 
 func TestTraces(t *testing.T) {
-	tracesCh := make(chan pdata.Traces)
-	tracesAddr := traceutils.NewTestServer(t, func(t pdata.Traces) {
+	tracesCh := make(chan ptrace.Traces)
+	tracesAddr := traceutils.NewTestServer(t, func(t ptrace.Traces) {
 		tracesCh <- t
 	})
 
@@ -99,8 +99,8 @@ configs:
 }
 
 func TestTrace_ApplyConfig(t *testing.T) {
-	tracesCh := make(chan pdata.Traces)
-	tracesAddr := traceutils.NewTestServer(t, func(t pdata.Traces) {
+	tracesCh := make(chan ptrace.Traces)
+	tracesAddr := traceutils.NewTestServer(t, func(t ptrace.Traces) {
 		tracesCh <- t
 	})
 

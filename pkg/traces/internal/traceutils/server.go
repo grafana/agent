@@ -13,12 +13,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configunmarshaler"
+	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
-	"go.opentelemetry.io/collector/service/external/builder"
-	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/collector/service/external/configunmarshaler"
+	"go.opentelemetry.io/collector/service/external/pipelines"
+	"go.opentelemetry.io/otel/metric/nonrecording"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
@@ -27,15 +28,13 @@ import (
 // Server is a Tracing testing server that invokes a function every time a span
 // is received.
 type Server struct {
-	receivers builder.Receivers
-	pipelines builder.BuiltPipelines
-	exporters builder.Exporters
+	pipelines *pipelines.Pipelines
 }
 
 // NewTestServer creates a new Server for testing, where received traces will
 // call the callback function. The returned string is the address where traces
 // can be sent using OTLP.
-func NewTestServer(t *testing.T, callback func(pdata.Traces)) string {
+func NewTestServer(t *testing.T, callback func(ptrace.Traces)) string {
 	t.Helper()
 
 	srv, listenAddr, err := NewServerWithRandomPort(callback)
@@ -52,7 +51,7 @@ func NewTestServer(t *testing.T, callback func(pdata.Traces)) string {
 
 // NewServerWithRandomPort calls NewServer with a random port >49152 and
 // <65535. It will try up to five times before failing.
-func NewServerWithRandomPort(callback func(pdata.Traces)) (srv *Server, addr string, err error) {
+func NewServerWithRandomPort(callback func(ptrace.Traces)) (srv *Server, addr string, err error) {
 	var lastError error
 
 	for i := 0; i < 5; i++ {
@@ -73,7 +72,7 @@ func NewServerWithRandomPort(callback func(pdata.Traces)) (srv *Server, addr str
 
 // NewServer creates an OTLP-accepting server that calls a function when a
 // trace is received. This is primarily useful for testing.
-func NewServer(addr string, callback func(pdata.Traces)) (*Server, error) {
+func NewServer(addr string, callback func(ptrace.Traces)) (*Server, error) {
 	conf := util.Untab(fmt.Sprintf(`
 processors:
 	func_processor:
@@ -126,8 +125,8 @@ service:
 		Exporters:  exportersFactory,
 	}
 
-	configMap := config.NewMapFromStringMap(cfg)
-	cfgUnmarshaler := configunmarshaler.NewDefault()
+	configMap := confmap.NewFromStringMap(cfg)
+	cfgUnmarshaler := configunmarshaler.New()
 	otelCfg, err := cfgUnmarshaler.Unmarshal(configMap, factories)
 	if err != nil {
 		return nil, fmt.Errorf("failed to make otel config: %w", err)
@@ -141,39 +140,34 @@ service:
 	settings := component.TelemetrySettings{
 		Logger:         logger,
 		TracerProvider: trace.NewNoopTracerProvider(),
-		MeterProvider:  metric.NewNoopMeterProvider(),
+		MeterProvider:  nonrecording.NewNoopMeterProvider(),
 	}
 
-	exporters, err := builder.BuildExporters(settings, startInfo, otelCfg, factories.Exporters)
-	if err != nil {
-		return nil, fmt.Errorf("failed to build exporters: %w", err)
-	}
-	if err := exporters.StartAll(context.Background(), nil); err != nil {
-		return nil, fmt.Errorf("failed to start exporters: %w", err)
-	}
+	pipelines, err := pipelines.Build(context.Background(), pipelines.Settings{
+		Telemetry: settings,
+		BuildInfo: startInfo,
 
-	pipelines, err := builder.BuildPipelines(settings, startInfo, otelCfg, exporters, factories.Processors)
+		ReceiverFactories:  factories.Receivers,
+		ReceiverConfigs:    otelCfg.Receivers,
+		ProcessorFactories: factories.Processors,
+		ProcessorConfigs:   otelCfg.Processors,
+		ExporterFactories:  factories.Exporters,
+		ExporterConfigs:    otelCfg.Exporters,
+
+		PipelineConfigs: otelCfg.Pipelines,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to build pipelines: %w", err)
 	}
-	if err := pipelines.StartProcessors(context.Background(), nil); err != nil {
-		return nil, fmt.Errorf("failed to start pipelines: %w", err)
-	}
 
-	receivers, err := builder.BuildReceivers(settings, startInfo, otelCfg, pipelines, factories.Receivers)
-	if err != nil {
-		return nil, fmt.Errorf("failed to build receivers: %w", err)
-	}
 	h := &mocks.Host{}
 	h.On("GetExtensions").Return(nil)
-	if err := receivers.StartAll(context.Background(), h); err != nil {
+	if err := pipelines.StartAll(context.Background(), h); err != nil {
 		return nil, fmt.Errorf("failed to start receivers: %w", err)
 	}
 
 	return &Server{
-		receivers: receivers,
 		pipelines: pipelines,
-		exporters: exporters,
 	}, nil
 }
 
@@ -182,24 +176,10 @@ func (s *Server) Stop() error {
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	var firstErr error
-
-	deps := []func(context.Context) error{
-		s.receivers.ShutdownAll,
-		s.pipelines.ShutdownProcessors,
-		s.exporters.ShutdownAll,
-	}
-	for _, dep := range deps {
-		err := dep(shutdownCtx)
-		if err != nil && firstErr == nil {
-			firstErr = err
-		}
-	}
-
-	return firstErr
+	return s.pipelines.ShutdownAll(shutdownCtx)
 }
 
-func newFuncProcessorFactory(callback func(pdata.Traces)) component.ProcessorFactory {
+func newFuncProcessorFactory(callback func(ptrace.Traces)) component.ProcessorFactory {
 	return component.NewProcessorFactory(
 		"func_processor",
 		func() config.Processor {
@@ -222,11 +202,11 @@ func newFuncProcessorFactory(callback func(pdata.Traces)) component.ProcessorFac
 }
 
 type funcProcessor struct {
-	Callback func(pdata.Traces)
+	Callback func(ptrace.Traces)
 	Next     consumer.Traces
 }
 
-func (p *funcProcessor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
+func (p *funcProcessor) ConsumeTraces(ctx context.Context, td ptrace.Traces) error {
 	if p.Callback != nil {
 		p.Callback(td)
 	}
@@ -267,4 +247,4 @@ func (n noopExporter) Shutdown(context.Context) error { return nil }
 
 func (n noopExporter) Capabilities() consumer.Capabilities { return consumer.Capabilities{} }
 
-func (n noopExporter) ConsumeTraces(context.Context, pdata.Traces) error { return nil }
+func (n noopExporter) ConsumeTraces(context.Context, ptrace.Traces) error { return nil }

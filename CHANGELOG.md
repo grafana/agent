@@ -33,6 +33,8 @@ Main (unreleased)
 
 - Tracing: Introduce a periodic appender to the remotewriteexporter to control sample rate. (@mapno)
 
+- Tracing: Update OpenTelemetry dependency to v0.55.0. (@rfratto, @mapno)
+
 ### Bugfixes
 
 - Relative symlinks for promtail now work as expected. (@RangerCD, @mukerjee)

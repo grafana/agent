@@ -13,8 +13,9 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/model/pdata"
-	semconv "go.opentelemetry.io/collector/model/semconv/v1.6.1"
+	pdata_internal "go.opentelemetry.io/collector/pdata/external"
+	"go.opentelemetry.io/collector/pdata/ptrace"
+	semconv "go.opentelemetry.io/collector/semconv/v1.6.1"
 	"google.golang.org/grpc/codes"
 )
 
@@ -232,7 +233,7 @@ func (p *processor) Capabilities() consumer.Capabilities {
 	return consumer.Capabilities{}
 }
 
-func (p *processor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
+func (p *processor) ConsumeTraces(ctx context.Context, td ptrace.Traces) error {
 	// Evict expired edges
 	p.store.expire()
 
@@ -263,7 +264,7 @@ func (p *processor) collectEdge(e *edge) {
 	}
 }
 
-func (p *processor) consume(trace pdata.Traces) error {
+func (p *processor) consume(trace ptrace.Traces) error {
 	var totalDroppedSpans int
 	rSpansSlice := trace.ResourceSpans()
 	for i := 0; i < rSpansSlice.Len(); i++ {
@@ -274,15 +275,15 @@ func (p *processor) consume(trace pdata.Traces) error {
 			continue
 		}
 
-		ilsSlice := rSpan.InstrumentationLibrarySpans()
-		for j := 0; j < ilsSlice.Len(); j++ {
-			ils := ilsSlice.At(j)
+		ssSlice := rSpan.ScopeSpans()
+		for j := 0; j < ssSlice.Len(); j++ {
+			ils := ssSlice.At(j)
 
 			for k := 0; k < ils.Spans().Len(); k++ {
 				span := ils.Spans().At(k)
 
 				switch span.Kind() {
-				case pdata.SpanKindClient:
+				case ptrace.SpanKindClient:
 					k := key(span.TraceID().HexString(), span.SpanID().HexString())
 
 					edge, err := p.store.upsertEdge(k, func(e *edge) {
@@ -305,7 +306,7 @@ func (p *processor) consume(trace pdata.Traces) error {
 						p.collectCh <- k
 					}
 
-				case pdata.SpanKindServer:
+				case ptrace.SpanKindServer:
 					k := key(span.TraceID().HexString(), span.ParentSpanID().HexString())
 
 					edge, err := p.store.upsertEdge(k, func(e *edge) {
@@ -342,7 +343,7 @@ func (p *processor) consume(trace pdata.Traces) error {
 	return nil
 }
 
-func (p *processor) spanFailed(span pdata.Span) bool {
+func (p *processor) spanFailed(span ptrace.Span) bool {
 	// Request considered failed if status is not 2XX or added as a successful status code
 	if statusCode, ok := span.Attributes().Get(semconv.AttributeHTTPStatusCode); ok {
 		sc := int(statusCode.IntVal())
@@ -359,10 +360,10 @@ func (p *processor) spanFailed(span pdata.Span) bool {
 		}
 	}
 
-	return span.Status().Code() == pdata.StatusCodeError
+	return span.Status().Code() == pdata_internal.StatusCodeError
 }
 
-func spanDuration(span pdata.Span) time.Duration {
+func spanDuration(span ptrace.Span) time.Duration {
 	return span.EndTimestamp().AsTime().Sub(span.StartTimestamp().AsTime())
 }
 

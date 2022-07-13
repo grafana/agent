@@ -12,7 +12,9 @@ import (
 	"github.com/prometheus/prometheus/storage"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/model/pdata"
+	internal "go.opentelemetry.io/collector/pdata/external"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 )
 
 const (
@@ -44,30 +46,30 @@ func TestRemoteWriteExporter_ConsumeMetrics(t *testing.T) {
 	ctx := context.WithValue(context.Background(), contextkeys.Metrics, manager)
 	require.NoError(t, exp.Start(ctx, nil))
 
-	metrics := pdata.NewMetrics()
-	ilm := metrics.ResourceMetrics().AppendEmpty().InstrumentationLibraryMetrics().AppendEmpty()
-	ilm.InstrumentationLibrary().SetName("spanmetrics")
+	metrics := pmetric.NewMetrics()
+	ilm := metrics.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty()
+	ilm.Scope().SetName("spanmetrics")
 
 	// Append sum metric
 	sm := ilm.Metrics().AppendEmpty()
-	sm.SetDataType(pdata.MetricDataTypeSum)
+	sm.SetDataType(pmetric.MetricDataTypeSum)
 	sm.SetName("spanmetrics_calls_total")
-	sm.Sum().SetAggregationTemporality(pdata.MetricAggregationTemporalityCumulative)
+	sm.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
 
 	sdp := sm.Sum().DataPoints().AppendEmpty()
-	sdp.SetTimestamp(pdata.NewTimestampFromTime(ts.UTC()))
+	sdp.SetTimestamp(pcommon.NewTimestampFromTime(ts.UTC()))
 	sdp.SetDoubleVal(sumValue)
 
 	// Append histogram
 	hm := ilm.Metrics().AppendEmpty()
-	hm.SetDataType(pdata.MetricDataTypeHistogram)
+	hm.SetDataType(pmetric.MetricDataTypeHistogram)
 	hm.SetName("spanmetrics_latency")
-	hm.Histogram().SetAggregationTemporality(pdata.MetricAggregationTemporalityCumulative)
+	hm.Histogram().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
 
 	hdp := hm.Histogram().DataPoints().AppendEmpty()
-	hdp.SetTimestamp(pdata.NewTimestampFromTime(ts.UTC()))
-	hdp.SetBucketCounts(bucketCounts)
-	hdp.SetExplicitBounds(explicitBounds)
+	hdp.SetTimestamp(pcommon.NewTimestampFromTime(ts.UTC()))
+	hdp.SetBucketCounts(internal.NewImmutableUInt64Slice(bucketCounts))
+	hdp.SetExplicitBounds(internal.NewImmutableFloat64Slice(explicitBounds))
 	hdp.SetCount(countValue)
 	hdp.SetSum(sumValue)
 
