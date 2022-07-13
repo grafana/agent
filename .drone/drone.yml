@@ -228,7 +228,7 @@ steps:
       GITHUB_TOKEN:
         from_secret: GITHUB_KEY
     commands:
-      - apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
+      - apt-get update &&  apt-get install -y rubygems rpm nsis apt-transport-https ca-certificates curl gnupg lsb-release libbpfcc-dev
       - curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
       - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian bullseye stable"
       - apt-get update &&  apt-get install -y rubygems rpm nsis docker-ce docker-ce-cli containerd.io gettext
@@ -277,6 +277,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: 2fb8ef672e6306d2ff09eeffbe8c67fd600103db401975fb6975b915d67e33e0
+hmac: 6e4d636733b9bbb411cefb43e46298517db74b46629d3bf444caa58bb6479a39
 
 ...
