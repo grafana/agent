@@ -14,6 +14,7 @@ import (
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/dskit/flagext"
 	"github.com/prometheus/common/model"
 	promCfg "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/model/labels"
@@ -411,18 +412,18 @@ metrics:
 	var cfg Config
 	require.NoError(t, LoadBytes([]byte(cfgText), false, &cfg))
 
-	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.KVStore.Consul.ACLToken)
-	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.Lifecycler.RingConfig.KVStore.Consul.ACLToken)
+	require.Equal(t, flagext.SecretWithValue("verysecret"), cfg.Metrics.ServiceConfig.KVStore.Consul.ACLToken)
+	require.Equal(t, flagext.SecretWithValue("verysecret"), cfg.Metrics.ServiceConfig.Lifecycler.RingConfig.KVStore.Consul.ACLToken)
 
 	bb, err := yaml.Marshal(&cfg)
 	require.NoError(t, err)
 
 	require.False(t, strings.Contains(string(bb), "verysecret"), "secrets did not get obscured")
-	require.True(t, strings.Contains(string(bb), "<secret>"), "secrets did not get obscured properly")
+	require.True(t, strings.Contains(string(bb), "********"), "secrets did not get obscured properly")
 
 	// Re-validate that the config object has not changed
-	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.KVStore.Consul.ACLToken)
-	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.Lifecycler.RingConfig.KVStore.Consul.ACLToken)
+	require.Equal(t, flagext.SecretWithValue("verysecret"), cfg.Metrics.ServiceConfig.KVStore.Consul.ACLToken)
+	require.Equal(t, flagext.SecretWithValue("verysecret"), cfg.Metrics.ServiceConfig.Lifecycler.RingConfig.KVStore.Consul.ACLToken)
 }
 
 func TestConfig_RemoteWriteDefaults(t *testing.T) {
