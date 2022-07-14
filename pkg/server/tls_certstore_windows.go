@@ -7,16 +7,32 @@ import (
 	"crypto/x509"
 	"encoding/asn1"
 	"fmt"
+	"github.com/github/smimesign/certstore"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"regexp"
 	"sort"
 	"sync"
 	"time"
-
-	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
-
-	"github.com/github/smimesign/certstore"
 )
+
+// winCertStoreHandler handles the finding of certificates, validating them and injecting into the default tls pipeline
+type winCertStoreHandler struct {
+	cfg          WindowsCertificateFilter
+	subjectRegEx *regexp.Regexp
+	log          log.Logger
+
+	winMut       sync.Mutex
+	serverCert   *x509.Certificate
+	serverSigner crypto.PrivateKey
+	// We have to store the identity to access the signer (it's a win32 api call), if we close the identity
+	// we lose access to the signer
+	// the client does NOT need the signer
+	serverIdentity certstore.Identity
+	clientAuth     tls.ClientAuthType
+
+	cancelContext context.Context
+}
 
 func (l *tlsListener) applyWindowsCertificateStore(c TLSConfig) error {
 
@@ -58,15 +74,8 @@ func (l *tlsListener) applyWindowsCertificateStore(c TLSConfig) error {
 	if err != nil {
 		return err
 	}
-	// CertPool, if there is a clientrootca use it, else pass in nil which will use the default certs
-	var certPool *x509.CertPool
-	if cn.clientRootCA != nil {
-		certPool = x509.NewCertPool()
-		certPool.AddCert(cn.clientRootCA)
-	}
 
 	config := &tls.Config{
-		ClientCAs:             certPool,
 		VerifyPeerCertificate: cn.VerifyPeer,
 		GetCertificate: func(info *tls.ClientHelloInfo) (*tls.Certificate, error) {
 			cn.winMut.Lock()
@@ -102,25 +111,55 @@ func (l *tlsListener) applyWindowsCertificateStore(c TLSConfig) error {
 	return nil
 }
 
+// VerifyPeer is called by the TLS pipeline, and specified in tls.config, this is where any custom verification happens
+func (c *winCertStoreHandler) VerifyPeer(_ [][]byte, verifiedChains [][]*x509.Certificate) error {
+	opts := x509.VerifyOptions{}
+	clientCert := verifiedChains[0][0]
+
+	// Check for issuer
+	issuerMatches := len(c.cfg.Client.IssuerCommonNames) == 0
+	for _, cn := range c.cfg.Client.IssuerCommonNames {
+		if cn == clientCert.Issuer.CommonName {
+			issuerMatches = true
+			break
+		}
+	}
+	if !issuerMatches {
+		return fmt.Errorf("unable to match client issuer")
+	}
+
+	// Check for subject
+	subjectMatches := true
+	if c.subjectRegEx != nil {
+		if !c.subjectRegEx.MatchString(clientCert.Subject.CommonName) {
+			subjectMatches = false
+		}
+	}
+	if !subjectMatches {
+		return fmt.Errorf("unable to match client subject")
+	}
+
+	// Check for template id
+	if c.cfg.Client.TemplateID != "" {
+		templateid := getTemplateID(clientCert)
+		if templateid != c.cfg.Client.TemplateID {
+			return fmt.Errorf("unable to match client template id")
+		}
+	}
+
+	// call the normal pipeline
+	_, err := clientCert.Verify(opts)
+	return err
+
+}
+
 // this is the ASN1 Object Identifier for TemplateID
 var asnTemplateOID = "1.3.6.1.4.1.311.21.7"
 
-type winCertStoreHandler struct {
-	cfg          WindowsCertificateFilter
-	subjectRegEx *regexp.Regexp
-	log          log.Logger
-
-	winMut       sync.Mutex
-	serverCert   *x509.Certificate
-	serverSigner crypto.PrivateKey
-	// We have to store the identity to access the signer (it's a win32 api call), if we close the identity
-	// we lose access to the signer
-	// the client does NOT need the signer
-	serverIdentity certstore.Identity
-	clientRootCA   *x509.Certificate
-	clientAuth     tls.ClientAuthType
-
-	cancelContext context.Context
+type templateInformation struct {
+	Template     asn1.ObjectIdentifier
+	MajorVersion int
+	MinorVersion int
 }
 
 func (c *winCertStoreHandler) startUpdateTimer() {
@@ -159,18 +198,12 @@ func (c *winCertStoreHandler) refreshCerts() (err error) {
 		c.serverIdentity.Close()
 	}
 	var serverIdentity certstore.Identity
-	var clientIdentity certstore.Identity
-	var clientCertificate *x509.Certificate
 	// This handles closing all our various handles
 	defer func() {
 		// we have to keep the server identity open if we want to use it, BUT only if an error occurred, else we need it
 		// open to sign
 		if serverIdentity != nil && err != nil {
 			serverIdentity.Close()
-		}
-		// Client identity does NOT need to be open since we dont need to sign
-		if clientIdentity != nil {
-			clientIdentity.Close()
 		}
 	}()
 	serverIdentity, err = c.findServerIdentity()
@@ -186,23 +219,9 @@ func (c *winCertStoreHandler) refreshCerts() (err error) {
 		return fmt.Errorf("failed getting server signer %w", err)
 
 	}
-	clientIdentity, err = c.findClientIdentity()
-	if err != nil {
-		return fmt.Errorf("failed getting client identity %w", err)
-	}
-	if clientIdentity == nil && (c.clientAuth == tls.RequireAndVerifyClientCert || c.clientAuth == tls.RequestClientCert) {
-		return fmt.Errorf("client auth requires a certificate (RequireAndVerifyClientCert or RequestClientCert) and failed getting client identity")
-	}
-	if clientIdentity != nil {
-		clientCertificate, err = clientIdentity.Certificate()
-		if err != nil {
-			return fmt.Errorf("failed getting client certificate %w", err)
-		}
-	}
 
 	c.serverCert = sc
 	c.serverSigner = signer
-	c.clientRootCA = clientCertificate
 	c.serverIdentity = serverIdentity
 	return
 }
@@ -210,15 +229,8 @@ func (c *winCertStoreHandler) refreshCerts() (err error) {
 func (c *winCertStoreHandler) findServerIdentity() (certstore.Identity, error) {
 	return c.findCertificate(c.cfg.Server.SystemStore, c.cfg.Server.Store, c.cfg.Server.IssuerCommonNames, c.cfg.Server.TemplateID, nil, c.getStore)
 }
-func (c *winCertStoreHandler) findClientIdentity() (certstore.Identity, error) {
-	// Client certificate is not required
-	// Valid configurations are checked further in findCertificate
-	if c.cfg.Client == nil {
-		return nil, nil
-	}
-	return c.findCertificate(c.cfg.Client.SystemStore, c.cfg.Client.Store, c.cfg.Client.IssuerCommonNames, c.cfg.Client.TemplateID, c.subjectRegEx, c.getStore)
-}
 
+// getStore converts the string representation to the enum representation
 func (c *winCertStoreHandler) getStore(systemStore string, storeName string) (certstore.Store, error) {
 	st, err := certstore.StringToStoreType(systemStore)
 	if err != nil {
@@ -233,11 +245,12 @@ func (c *winCertStoreHandler) getStore(systemStore string, storeName string) (ce
 
 type getStoreFunc func(systemStore, storeName string) (certstore.Store, error)
 
+// findCertificate applies the filters to get the server certificate
 func (c *winCertStoreHandler) findCertificate(systemStore string, storeName string, commonNames []string, templateID string, subjectRegEx *regexp.Regexp, getStore getStoreFunc) (certstore.Identity, error) {
 	var store certstore.Store
 	var validIdentity certstore.Identity
 	var identities []certstore.Identity
-	// Lots of cleanup here that point to windows handles.
+	// Lots of cleanup here for pointers to windows handles.
 	defer func() {
 		if store != nil {
 			store.Close()
@@ -325,26 +338,26 @@ func (c *winCertStoreHandler) filterByTemplateID(input []certstore.Identity, id 
 		if err != nil {
 			return nil, err
 		}
-		for _, ext := range cert.Extensions {
-			if ext.Id.String() == asnTemplateOID {
-				templateInfo := &templateInformation{}
-				_, err := asn1.Unmarshal(ext.Value, templateInfo)
-				if err != nil {
-					return nil, err
-				}
-				if templateInfo.Template.String() == id {
-					returnIdentities = append(returnIdentities, identity)
-				}
-			}
+		templateid := getTemplateID(cert)
+		if templateid == id {
+			returnIdentities = append(returnIdentities, identity)
 		}
 	}
 	return returnIdentities, nil
 }
 
-type templateInformation struct {
-	Template     asn1.ObjectIdentifier
-	MajorVersion int
-	MinorVersion int
+func getTemplateID(cert *x509.Certificate) string {
+	for _, ext := range cert.Extensions {
+		if ext.Id.String() == asnTemplateOID {
+			templateInfo := &templateInformation{}
+			_, err := asn1.Unmarshal(ext.Value, templateInfo)
+			if err != nil {
+				return ""
+			}
+			return templateInfo.Template.String()
+		}
+	}
+	return ""
 }
 
 func (c *winCertStoreHandler) filterBySubjectRegularExpression(input []certstore.Identity, regEx *regexp.Regexp) ([]certstore.Identity, error) {
@@ -363,12 +376,4 @@ func (c *winCertStoreHandler) filterBySubjectRegularExpression(input []certstore
 		}
 	}
 	return returnIdentities, nil
-}
-
-func (c *winCertStoreHandler) VerifyPeer(_ [][]byte, verifiedChains [][]*x509.Certificate) error {
-	opts := x509.VerifyOptions{}
-	clientCert := verifiedChains[0][0]
-	_, err := clientCert.Verify(opts)
-	return err
-
 }
