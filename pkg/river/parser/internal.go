@@ -278,6 +278,9 @@ func (p *parser) parseBlockName() *blockName {
 	if p.tok != token.ASSIGN && p.tok != token.LCURLY {
 		if p.tok == token.STRING && len(p.lit) > 2 {
 			bn.Label = p.lit[1 : len(p.lit)-1] // Strip quotes from label
+			if !isValidIdentifier(bn.Label) {
+				p.addErrorf("expected block label to be a valid identifier")
+			}
 			bn.LabelPos = p.pos
 		} else {
 			p.addErrorf("expected block label, got %s", p.tok)
@@ -611,4 +614,14 @@ func (p *parser) parseField() *ast.ObjectField {
 var fieldStarter = map[token.Token]struct{}{
 	token.STRING: {},
 	token.IDENT:  {},
+}
+
+func isValidIdentifier(in string) bool {
+	s := scanner.New(nil, []byte(in), nil, 0)
+	_, tok1, _ := s.Scan()
+	_, tok2, _ := s.Scan()
+	if !(tok1 == token.IDENT && tok2 == token.TERMINATOR) {
+		return false
+	}
+	return true
 }
