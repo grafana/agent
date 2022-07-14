@@ -428,6 +428,8 @@ func (cn *ComponentNode) setRunHealth(t component.HealthType, msg string) {
 	}
 }
 
+// HttpHandler returns an http handler for a component IF it implements HTTPComponent.
+// otherwise it will return nil.
 func (cn *ComponentNode) HttpHandler() http.Handler {
 	handler, ok := cn.managed.(component.HTTPComponent)
 	if !ok {

@@ -108,9 +108,10 @@ type DebugComponent interface {
 	DebugInfo() interface{}
 }
 
-// DebugComponent is an extension interface for components which contain their own HTTP Handlers
+// HTTPComponent is an extension interface for components which contain their own HTTP Handlers
 type HTTPComponent interface {
 	Component
 
+	// Handler should return a valid http handler for the component
 	Handler() http.Handler
 }
