@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/go-kit/log/level"
+	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/internal/graphviz"
@@ -48,9 +49,9 @@ func (f *Flow) ConfigHandler() http.HandlerFunc {
 // a component named by the first path segment
 func (f *Flow) ComponentHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		parts := strings.Split(r.URL.Path, "/")
-		id := parts[1]
-		newPath := "/" + strings.Join(parts[2:], "/")
+		vars := mux.Vars(r)
+		id := vars["id"]
+
 		// find node with ID
 		var node *controller.ComponentNode
 		for _, n := range f.loader.Components() {
@@ -68,7 +69,8 @@ func (f *Flow) ComponentHandler() http.HandlerFunc {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-		r.URL.Path = newPath
+		// remove /component/{id} from front of path, so each component can handle paths from their own root path
+		r.URL.Path := strings.TrimPrefix(r.URL.Path, "/component/"+id)
 		handler.ServeHTTP(w, r)
 	}
 }
