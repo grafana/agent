@@ -55,6 +55,17 @@ type FieldError struct {
 // Error returns the text of the inner error.
 func (fe FieldError) Error() string { return fe.Inner.Error() }
 
+// ArgError is used to report on an invalid argument to a function.
+type ArgError struct {
+	Function Value
+	Argument Value
+	Index    int
+	Inner    error
+}
+
+// Error returns the text of the inner error.
+func (ae ArgError) Error() string { return ae.Inner.Error() }
+
 // WalkError walks err for all value-related errors in this package.
 // WalkError returns false if err is not an error from this package.
 func WalkError(err error, f func(err error)) bool {
@@ -80,6 +91,10 @@ func WalkError(err error, f func(err error)) bool {
 			nextError = ne.Inner
 			foundOne = true
 		case FieldError:
+			f(nextError)
+			nextError = ne.Inner
+			foundOne = true
+		case ArgError:
 			f(nextError)
 			nextError = ne.Inner
 			foundOne = true

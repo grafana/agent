@@ -12,10 +12,9 @@ import (
 
 // TODO(rfratto): This package is missing three main features:
 //
-// 1. Ability to invoke function values
-// 2. Proper encoding/decoding to Go structs with rvr block tags (currently,
+// 1. Proper encoding/decoding to Go structs with rvr block tags (currently,
 //    labels are ignored)
-// 3. Decoding to Go structs with missing required attributes should fail
+// 2. Decoding to Go structs with missing required attributes should fail
 
 // Go types used throughout the package.
 var (
@@ -278,6 +277,77 @@ func (v Value) Key(key string) (index Value, ok bool) {
 	}
 
 	panic("river/value: unreachable")
+}
+
+// Call invokes a function value with the provided arguments. It panics if v is
+// not a function. If v is a variadic function, args should be the full flat
+// list of arguments.
+//
+// An ArgError will be returned if one of the arguments is invalid. An Error
+// will be returned if the function call returns an error or if the number of
+// arguments doesn't match.
+func (v Value) Call(args ...Value) (Value, error) {
+	if v.ty != TypeFunction {
+		panic("river/value: Call called on non-function type")
+	}
+
+	var (
+		variadic     = v.rv.Type().IsVariadic()
+		expectedArgs = v.rv.Type().NumIn()
+	)
+
+	if variadic && len(args) < expectedArgs-1 {
+		return Null, Error{
+			Value: v,
+			Inner: fmt.Errorf("expected at least %d args, got %d", expectedArgs-1, len(args)),
+		}
+	} else if !variadic && len(args) != expectedArgs {
+		return Null, Error{
+			Value: v,
+			Inner: fmt.Errorf("expected %d args, got %d", expectedArgs, len(args)),
+		}
+	}
+
+	reflectArgs := make([]reflect.Value, len(args))
+	for i, arg := range args {
+		var argVal reflect.Value
+		if variadic && i >= expectedArgs-1 {
+			argType := v.rv.Type().In(expectedArgs - 1).Elem()
+			argVal = reflect.New(argType).Elem()
+		} else {
+			argType := v.rv.Type().In(i)
+			argVal = reflect.New(argType).Elem()
+		}
+
+		if err := decode(arg, argVal); err != nil {
+			return Null, ArgError{
+				Function: v,
+				Argument: arg,
+				Index:    i,
+				Inner:    err,
+			}
+		}
+
+		reflectArgs[i] = argVal
+	}
+
+	outs := v.rv.Call(reflectArgs)
+	switch len(outs) {
+	case 1:
+		return makeValue(outs[0]), nil
+	case 2:
+		// When there's 2 return values, the second is always an error.
+		err, _ := outs[1].Interface().(error)
+		if err != nil {
+			return Null, Error{Value: v, Inner: err}
+		}
+		return makeValue(outs[0]), nil
+
+	default:
+		// It's not possible to reach here; we enforce that function values always
+		// have 1 or 2 return values.
+		panic("river/value: unreachable")
+	}
 }
 
 func convertValue(val Value, toType Type) (Value, error) {
