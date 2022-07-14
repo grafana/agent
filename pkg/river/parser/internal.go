@@ -618,10 +618,6 @@ var fieldStarter = map[token.Token]struct{}{
 
 func isValidIdentifier(in string) bool {
 	s := scanner.New(nil, []byte(in), nil, 0)
-	_, tok1, _ := s.Scan()
-	_, tok2, _ := s.Scan()
-	if !(tok1 == token.IDENT && tok2 == token.TERMINATOR) {
-		return false
-	}
-	return true
+	_, tok, lit := s.Scan()
+	return tok == token.IDENT && lit == in
 }
