@@ -16,7 +16,8 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 )
 
 const (
@@ -115,7 +116,7 @@ func (e *remoteWriteExporter) Capabilities() consumer.Capabilities {
 	return consumer.Capabilities{}
 }
 
-func (e *remoteWriteExporter) ConsumeMetrics(ctx context.Context, md pdata.Metrics) error {
+func (e *remoteWriteExporter) ConsumeMetrics(ctx context.Context, md pmetric.Metrics) error {
 	select {
 	case <-e.closed:
 		return nil
@@ -125,31 +126,31 @@ func (e *remoteWriteExporter) ConsumeMetrics(ctx context.Context, md pdata.Metri
 	resourceMetrics := md.ResourceMetrics()
 	for i := 0; i < resourceMetrics.Len(); i++ {
 		resourceMetric := resourceMetrics.At(i)
-		instrumentationLibraryMetricsSlice := resourceMetric.InstrumentationLibraryMetrics()
-		for j := 0; j < instrumentationLibraryMetricsSlice.Len(); j++ {
-			metricSlice := instrumentationLibraryMetricsSlice.At(j).Metrics()
+		scopeMetricsSlice := resourceMetric.ScopeMetrics()
+		for j := 0; j < scopeMetricsSlice.Len(); j++ {
+			metricSlice := scopeMetricsSlice.At(j).Metrics()
 			for k := 0; k < metricSlice.Len(); k++ {
 				switch metric := metricSlice.At(k); metric.DataType() {
-				case pdata.MetricDataTypeGauge:
+				case pmetric.MetricDataTypeGauge:
 					dataPoints := metric.Sum().DataPoints()
 					if err := e.handleNumberDataPoints(metric.Name(), dataPoints); err != nil {
 						return err
 					}
-				case pdata.MetricDataTypeSum:
-					if metric.Sum().AggregationTemporality() != pdata.MetricAggregationTemporalityCumulative {
+				case pmetric.MetricDataTypeSum:
+					if metric.Sum().AggregationTemporality() != pmetric.MetricAggregationTemporalityCumulative {
 						continue // Only cumulative metrics are supported
 					}
 					dataPoints := metric.Sum().DataPoints()
 					if err := e.handleNumberDataPoints(metric.Name(), dataPoints); err != nil {
 						return err
 					}
-				case pdata.MetricDataTypeHistogram:
-					if metric.Histogram().AggregationTemporality() != pdata.MetricAggregationTemporalityCumulative {
+				case pmetric.MetricDataTypeHistogram:
+					if metric.Histogram().AggregationTemporality() != pmetric.MetricAggregationTemporalityCumulative {
 						continue // Only cumulative metrics are supported
 					}
 					dataPoints := metric.Histogram().DataPoints()
 					e.handleHistogramDataPoints(metric.Name(), dataPoints)
-				case pdata.MetricDataTypeSummary:
+				case pmetric.MetricDataTypeSummary:
 					return fmt.Errorf("unsupported metric data type %s", metric.DataType())
 				default:
 					return fmt.Errorf("unsupported metric data type %s", metric.DataType())
@@ -161,7 +162,7 @@ func (e *remoteWriteExporter) ConsumeMetrics(ctx context.Context, md pdata.Metri
 	return nil
 }
 
-func (e *remoteWriteExporter) handleNumberDataPoints(name string, dataPoints pdata.NumberDataPointSlice) error {
+func (e *remoteWriteExporter) handleNumberDataPoints(name string, dataPoints pmetric.NumberDataPointSlice) error {
 	for ix := 0; ix < dataPoints.Len(); ix++ {
 		dataPoint := dataPoints.At(ix)
 		lbls := e.createLabelSet(name, noSuffix, dataPoint.Attributes(), labels.Labels{})
@@ -172,12 +173,12 @@ func (e *remoteWriteExporter) handleNumberDataPoints(name string, dataPoints pda
 	return nil
 }
 
-func (e *remoteWriteExporter) appendNumberDataPoint(dataPoint pdata.NumberDataPoint, labels labels.Labels) error {
+func (e *remoteWriteExporter) appendNumberDataPoint(dataPoint pmetric.NumberDataPoint, labels labels.Labels) error {
 	var val float64
 	switch dataPoint.ValueType() {
-	case pdata.MetricValueTypeDouble:
+	case pmetric.NumberDataPointValueTypeDouble:
 		val = dataPoint.DoubleVal()
-	case pdata.MetricValueTypeInt:
+	case pmetric.NumberDataPointValueTypeInt:
 		val = float64(dataPoint.IntVal())
 	default:
 		return fmt.Errorf("unknown data point type: %s", dataPoint.ValueType())
@@ -189,7 +190,7 @@ func (e *remoteWriteExporter) appendNumberDataPoint(dataPoint pdata.NumberDataPo
 	return nil
 }
 
-func (e *remoteWriteExporter) handleHistogramDataPoints(name string, dataPoints pdata.HistogramDataPointSlice) {
+func (e *remoteWriteExporter) handleHistogramDataPoints(name string, dataPoints pmetric.HistogramDataPointSlice) {
 	for ix := 0; ix < dataPoints.Len(); ix++ {
 		dataPoint := dataPoints.At(ix)
 		ts := e.timestamp()
@@ -203,17 +204,20 @@ func (e *remoteWriteExporter) handleHistogramDataPoints(name string, dataPoints 
 		e.appendDatapointForSeries(countLabels, ts, float64(dataPoint.Count()))
 
 		var cumulativeCount uint64
-		for ix, eb := range dataPoint.ExplicitBounds() {
-			if ix >= len(dataPoint.BucketCounts()) {
+		for ix := 0; ix < dataPoint.ExplicitBounds().Len(); ix++ {
+			eb := dataPoint.ExplicitBounds().At(ix)
+
+			if ix >= dataPoint.BucketCounts().Len() {
 				break
 			}
-			cumulativeCount += dataPoint.BucketCounts()[ix]
+			cumulativeCount += dataPoint.BucketCounts().At(ix)
 			boundStr := strconv.FormatFloat(eb, 'f', -1, 64)
 			bucketLabels := e.createLabelSet(name, bucketSuffix, dataPoint.Attributes(), labels.Labels{{Name: leStr, Value: boundStr}})
 			e.appendDatapointForSeries(bucketLabels, ts, float64(cumulativeCount))
 		}
+
 		// add le=+Inf bucket
-		cumulativeCount += dataPoint.BucketCounts()[len(dataPoint.BucketCounts())-1]
+		cumulativeCount += dataPoint.BucketCounts().At(dataPoint.BucketCounts().Len() - 1)
 		infBucketLabels := e.createLabelSet(name, bucketSuffix, dataPoint.Attributes(), labels.Labels{{Name: leStr, Value: infBucket}})
 		e.appendDatapointForSeries(infBucketLabels, ts, float64(cumulativeCount))
 	}
@@ -280,10 +284,10 @@ func (e *remoteWriteExporter) appenderLoop() {
 	}
 }
 
-func (e *remoteWriteExporter) createLabelSet(name, suffix string, labelMap pdata.AttributeMap, customLabels labels.Labels) labels.Labels {
+func (e *remoteWriteExporter) createLabelSet(name, suffix string, labelMap pcommon.Map, customLabels labels.Labels) labels.Labels {
 	ls := make(labels.Labels, 0, labelMap.Len()+1+len(e.constLabels)+len(customLabels))
 	// Labels from spanmetrics processor
-	labelMap.Range(func(k string, v pdata.AttributeValue) bool {
+	labelMap.Range(func(k string, v pcommon.Value) bool {
 		ls = append(ls, labels.Label{
 			Name:  strings.Replace(k, ".", "_", -1),
 			Value: v.StringVal(),

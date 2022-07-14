@@ -7,18 +7,18 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/ptrace"
 )
 
 type mockTracesConsumer struct {
-	consumed []pdata.Traces
+	consumed []ptrace.Traces
 }
 
 func (c *mockTracesConsumer) Capabilities() consumer.Capabilities {
 	return consumer.Capabilities{MutatesData: false}
 }
 
-func (c *mockTracesConsumer) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
+func (c *mockTracesConsumer) ConsumeTraces(ctx context.Context, td ptrace.Traces) error {
 	c.consumed = append(c.consumed, td)
 	return nil
 }
