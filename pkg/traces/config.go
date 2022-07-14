@@ -27,11 +27,12 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configtest"
-	"go.opentelemetry.io/collector/config/configunmarshaler"
+	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
 	"go.opentelemetry.io/collector/processor/batchprocessor"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
+	"go.opentelemetry.io/collector/service/external/configunmarshaler"
 	"go.uber.org/multierr"
 
 	"github.com/grafana/agent/pkg/logs"
@@ -768,8 +769,8 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 		return nil, fmt.Errorf("failed to validate factories: %w", err)
 	}
 
-	configMap := config.NewMapFromStringMap(otelMapStructure)
-	otelCfg, err := configunmarshaler.NewDefault().Unmarshal(configMap, factories)
+	configMap := confmap.NewFromStringMap(otelMapStructure)
+	otelCfg, err := configunmarshaler.New().Unmarshal(configMap, factories)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load OTel config: %w", err)
 	}

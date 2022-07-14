@@ -11,14 +11,16 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/model/pdata"
+	pdata "go.opentelemetry.io/collector/pdata/external"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/ptrace"
 	"gopkg.in/yaml.v3"
 )
 
 func TestSpanKeyVals(t *testing.T) {
 	tests := []struct {
 		spanName  string
-		spanAttrs map[string]pdata.AttributeValue
+		spanAttrs map[string]interface{}
 		spanStart time.Time
 		spanEnd   time.Time
 		cfg       AutomaticLoggingConfig
@@ -65,8 +67,8 @@ func TestSpanKeyVals(t *testing.T) {
 			},
 		},
 		{
-			spanAttrs: map[string]pdata.AttributeValue{
-				"xstr": pdata.NewAttributeValueString("test"),
+			spanAttrs: map[string]interface{}{
+				"xstr": "test",
 			},
 			expected: []interface{}{
 				"span", "",
@@ -75,8 +77,8 @@ func TestSpanKeyVals(t *testing.T) {
 			},
 		},
 		{
-			spanAttrs: map[string]pdata.AttributeValue{
-				"xstr": pdata.NewAttributeValueString("test"),
+			spanAttrs: map[string]interface{}{
+				"xstr": "test",
 			},
 			cfg: AutomaticLoggingConfig{
 				SpanAttributes: []string{"xstr"},
@@ -110,11 +112,11 @@ func TestSpanKeyVals(t *testing.T) {
 		p, err := newTraceProcessor(&automaticLoggingProcessor{}, &tc.cfg)
 		require.NoError(t, err)
 
-		span := pdata.NewSpan()
+		span := ptrace.NewSpan()
 		span.SetName(tc.spanName)
-		pdata.NewAttributeMapFromMap(tc.spanAttrs).Sort().CopyTo(span.Attributes())
-		span.SetStartTimestamp(pdata.NewTimestampFromTime(tc.spanStart))
-		span.SetEndTimestamp(pdata.NewTimestampFromTime(tc.spanEnd))
+		pcommon.NewMapFromRaw(tc.spanAttrs).Sort().CopyTo(span.Attributes())
+		span.SetStartTimestamp(pcommon.NewTimestampFromTime(tc.spanStart))
+		span.SetEndTimestamp(pcommon.NewTimestampFromTime(tc.spanEnd))
 		span.Status().SetCode(pdata.StatusCodeOk)
 
 		actual := p.(*automaticLoggingProcessor).spanKeyVals(span)
@@ -124,7 +126,7 @@ func TestSpanKeyVals(t *testing.T) {
 
 func TestProcessKeyVals(t *testing.T) {
 	tests := []struct {
-		processAttrs map[string]pdata.AttributeValue
+		processAttrs map[string]interface{}
 		svc          string
 		cfg          AutomaticLoggingConfig
 		expected     []interface{}
@@ -135,16 +137,16 @@ func TestProcessKeyVals(t *testing.T) {
 			},
 		},
 		{
-			processAttrs: map[string]pdata.AttributeValue{
-				"xstr": pdata.NewAttributeValueString("test"),
+			processAttrs: map[string]interface{}{
+				"xstr": "test",
 			},
 			expected: []interface{}{
 				"svc", "",
 			},
 		},
 		{
-			processAttrs: map[string]pdata.AttributeValue{
-				"xstr": pdata.NewAttributeValueString("test"),
+			processAttrs: map[string]interface{}{
+				"xstr": "test",
 			},
 			cfg: AutomaticLoggingConfig{
 				ProcessAttributes: []string{"xstr"},
@@ -162,8 +164,8 @@ func TestProcessKeyVals(t *testing.T) {
 		p, err := newTraceProcessor(&automaticLoggingProcessor{}, &tc.cfg)
 		require.NoError(t, err)
 
-		process := pdata.NewResource()
-		pdata.NewAttributeMapFromMap(tc.processAttrs).Sort().CopyTo(process.Attributes())
+		process := pcommon.NewResource()
+		pcommon.NewMapFromRaw(tc.processAttrs).Sort().CopyTo(process.Attributes())
 
 		actual := p.(*automaticLoggingProcessor).processKeyVals(process, tc.svc)
 		assert.Equal(t, tc.expected, actual)

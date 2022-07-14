@@ -33,6 +33,8 @@ Main (unreleased)
 
 - Tracing: Introduce a periodic appender to the remotewriteexporter to control sample rate. (@mapno)
 
+- Tracing: Update OpenTelemetry dependency to v0.55.0. (@rfratto, @mapno)
+
 - Add base agent-operator jsonnet library and generated manifests (@hjet)
 
 ### Bugfixes
