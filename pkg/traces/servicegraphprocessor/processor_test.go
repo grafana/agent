@@ -13,8 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/model/otlp"
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/ptrace"
 )
 
 const (
@@ -97,11 +96,11 @@ func TestConsumeMetrics(t *testing.T) {
 	}
 }
 
-func traceSamples(t *testing.T, path string) pdata.Traces {
+func traceSamples(t *testing.T, path string) ptrace.Traces {
 	b, err := ioutil.ReadFile(path)
 	require.NoError(t, err)
 
-	traces, err := otlp.NewJSONTracesUnmarshaler().UnmarshalTraces(b)
+	traces, err := ptrace.NewJSONUnmarshaler().UnmarshalTraces(b)
 	require.NoError(t, err)
 
 	return traces
@@ -124,7 +123,7 @@ type mockConsumer struct{}
 
 func (m *mockConsumer) Capabilities() consumer.Capabilities { return consumer.Capabilities{} }
 
-func (m *mockConsumer) ConsumeTraces(context.Context, pdata.Traces) error { return nil }
+func (m *mockConsumer) ConsumeTraces(context.Context, ptrace.Traces) error { return nil }
 
 const (
 	happyCaseExpectedMetrics = `

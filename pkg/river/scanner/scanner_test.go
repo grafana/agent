@@ -90,6 +90,30 @@ var source = func() []byte {
 	return src
 }()
 
+// FuzzScanner ensures that the scanner will always be able to reach EOF
+// regardless of input.
+func FuzzScanner(f *testing.F) {
+	// Add each token into the corpus
+	for _, t := range tokens {
+		f.Add([]byte(t.lit))
+	}
+	// Then add the entire source
+	f.Add(source)
+
+	f.Fuzz(func(t *testing.T, input []byte) {
+		f := token.NewFile(t.Name())
+
+		s := New(f, input, nil, IncludeComments)
+
+		for {
+			_, tok, _ := s.Scan()
+			if tok == token.EOF {
+				break
+			}
+		}
+	})
+}
+
 func TestScanner_Scan(t *testing.T) {
 	whitespaceLinecount := newlineCount(whitespace)
 

@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/component/componenterror"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
 )
@@ -36,6 +35,11 @@ type Factory struct {
 	Consumer consumer.Traces
 }
 
+// StabilityLevel implements component.Factory.
+func (f *Factory) StabilityLevel(config.DataType) component.StabilityLevel {
+	return component.StabilityLevelUndefined
+}
+
 // CreateTracesReceiver creates a stub receiver while also sneakily keeping a reference to the provided Traces consumer.
 func (f *Factory) CreateTracesReceiver(
 	_ context.Context,
@@ -54,12 +58,12 @@ func (f *Factory) CreateTracesReceiver(
 func (f *Factory) CreateMetricsReceiver(ctx context.Context, set component.ReceiverCreateSettings,
 	cfg config.Receiver, nextConsumer consumer.Metrics) (component.MetricsReceiver, error) {
 
-	return nil, componenterror.ErrDataTypeIsNotSupported
+	return nil, component.ErrDataTypeIsNotSupported
 }
 
 // CreateLogsReceiver returns an error because logs are not supported by push receiver.
 func (f *Factory) CreateLogsReceiver(ctx context.Context, set component.ReceiverCreateSettings,
 	cfg config.Receiver, nextConsumer consumer.Logs) (component.LogsReceiver, error) {
 
-	return nil, componenterror.ErrDataTypeIsNotSupported
+	return nil, component.ErrDataTypeIsNotSupported
 }

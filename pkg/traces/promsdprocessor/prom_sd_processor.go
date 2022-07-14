@@ -18,10 +18,10 @@ import (
 	"github.com/prometheus/prometheus/model/relabel"
 	"go.opentelemetry.io/collector/client"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/component/componenterror"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/model/pdata"
-	semconv "go.opentelemetry.io/collector/model/semconv/v1.6.1"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/ptrace"
+	semconv "go.opentelemetry.io/collector/semconv/v1.6.1"
 )
 
 type promServiceDiscoProcessor struct {
@@ -83,7 +83,7 @@ func newTraceProcessor(nextConsumer consumer.Traces, operationType string, podAs
 
 	if nextConsumer == nil {
 		cancel()
-		return nil, componenterror.ErrNilNextConsumer
+		return nil, component.ErrNilNextConsumer
 	}
 	return &promServiceDiscoProcessor{
 		nextConsumer:     nextConsumer,
@@ -98,7 +98,7 @@ func newTraceProcessor(nextConsumer consumer.Traces, operationType string, podAs
 	}, nil
 }
 
-func (p *promServiceDiscoProcessor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
+func (p *promServiceDiscoProcessor) ConsumeTraces(ctx context.Context, td ptrace.Traces) error {
 	rss := td.ResourceSpans()
 	for i := 0; i < rss.Len(); i++ {
 		rs := rss.At(i)
@@ -109,9 +109,9 @@ func (p *promServiceDiscoProcessor) ConsumeTraces(ctx context.Context, td pdata.
 	return p.nextConsumer.ConsumeTraces(ctx, td)
 }
 
-func stringAttributeFromMap(attrs pdata.AttributeMap, key string) string {
+func stringAttributeFromMap(attrs pcommon.Map, key string) string {
 	if attr, ok := attrs.Get(key); ok {
-		if attr.Type() == pdata.AttributeValueTypeString {
+		if attr.Type() == pcommon.ValueTypeString {
 			return attr.StringVal()
 		}
 	}
@@ -127,7 +127,7 @@ func getConnectionIP(ctx context.Context) string {
 	return c.Addr.String()
 }
 
-func (p *promServiceDiscoProcessor) getPodIP(ctx context.Context, attrs pdata.AttributeMap) string {
+func (p *promServiceDiscoProcessor) getPodIP(ctx context.Context, attrs pcommon.Map) string {
 	for _, podAssociation := range p.podAssociations {
 		switch podAssociation {
 		case podAssociationIPLabel, podAssociationOTelIPLabel, podAssociationk8sIPLabel:
@@ -150,7 +150,7 @@ func (p *promServiceDiscoProcessor) getPodIP(ctx context.Context, attrs pdata.At
 	return ""
 }
 
-func (p *promServiceDiscoProcessor) processAttributes(ctx context.Context, attrs pdata.AttributeMap) {
+func (p *promServiceDiscoProcessor) processAttributes(ctx context.Context, attrs pcommon.Map) {
 	ip := p.getPodIP(ctx, attrs)
 	// have to have an ip for labels lookup
 	if ip == "" {

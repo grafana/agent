@@ -11,7 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configunmarshaler"
+	"go.opentelemetry.io/collector/confmap"
+	"go.opentelemetry.io/collector/service/external/configunmarshaler"
 	"gopkg.in/yaml.v2"
 )
 
@@ -1411,8 +1412,8 @@ service:
 			factories, err := tracingFactories()
 			require.NoError(t, err)
 
-			configMap := config.NewMapFromStringMap(otelMapStructure)
-			cfgUnmarshaler := configunmarshaler.NewDefault()
+			configMap := confmap.NewFromStringMap(otelMapStructure)
+			cfgUnmarshaler := configunmarshaler.New()
 			expectedConfig, err := cfgUnmarshaler.Unmarshal(configMap, factories)
 			require.NoError(t, err)
 
@@ -1787,7 +1788,7 @@ receivers:
 func sortService(cfg *config.Config) {
 	sort.Slice(cfg.Service.Extensions, func(i, j int) bool { return cfg.Service.Extensions[i].String() > cfg.Service.Extensions[j].String() })
 
-	for _, pipeline := range cfg.Service.Pipelines {
+	for _, pipeline := range cfg.Pipelines {
 		sort.Slice(pipeline.Exporters, func(i, j int) bool { return pipeline.Exporters[i].String() > pipeline.Exporters[j].String() })
 		sort.Slice(pipeline.Receivers, func(i, j int) bool { return pipeline.Receivers[i].String() > pipeline.Receivers[j].String() })
 		sort.Slice(pipeline.Processors, func(i, j int) bool { return pipeline.Processors[i].String() > pipeline.Processors[j].String() })

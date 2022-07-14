@@ -2,16 +2,19 @@ package remotewriteexporter
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
 	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/grafana/agent/pkg/traces/contextkeys"
 	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/config"
+	internal "go.opentelemetry.io/collector/pdata/external"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 )
 
 const (
@@ -30,42 +33,52 @@ func TestRemoteWriteExporter_ConsumeMetrics(t *testing.T) {
 		ts                     = time.Date(2020, 1, 2, 3, 4, 5, 6, time.UTC)
 	)
 
-	manager := &mockManager{}
-	exp := remoteWriteExporter{
-		manager:      manager,
-		namespace:    "traces",
-		promInstance: "traces",
+	cfg := Config{
+		ExporterSettings: config.ExporterSettings{},
+		ConstLabels:      nil,
+		Namespace:        "traces",
+		PromInstance:     "traces",
 	}
+	exp, err := newRemoteWriteExporter(&cfg)
+	require.NoError(t, err)
 
-	metrics := pdata.NewMetrics()
-	ilm := metrics.ResourceMetrics().AppendEmpty().InstrumentationLibraryMetrics().AppendEmpty()
-	ilm.InstrumentationLibrary().SetName("spanmetrics")
+	manager := &mockManager{}
+	ctx := context.WithValue(context.Background(), contextkeys.Metrics, manager)
+	require.NoError(t, exp.Start(ctx, nil))
+
+	metrics := pmetric.NewMetrics()
+	ilm := metrics.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty()
+	ilm.Scope().SetName("spanmetrics")
 
 	// Append sum metric
 	sm := ilm.Metrics().AppendEmpty()
-	sm.SetDataType(pdata.MetricDataTypeSum)
+	sm.SetDataType(pmetric.MetricDataTypeSum)
 	sm.SetName("spanmetrics_calls_total")
-	sm.Sum().SetAggregationTemporality(pdata.MetricAggregationTemporalityCumulative)
+	sm.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
 
 	sdp := sm.Sum().DataPoints().AppendEmpty()
-	sdp.SetTimestamp(pdata.NewTimestampFromTime(ts.UTC()))
+	sdp.SetTimestamp(pcommon.NewTimestampFromTime(ts.UTC()))
 	sdp.SetDoubleVal(sumValue)
 
 	// Append histogram
 	hm := ilm.Metrics().AppendEmpty()
-	hm.SetDataType(pdata.MetricDataTypeHistogram)
+	hm.SetDataType(pmetric.MetricDataTypeHistogram)
 	hm.SetName("spanmetrics_latency")
-	hm.Histogram().SetAggregationTemporality(pdata.MetricAggregationTemporalityCumulative)
+	hm.Histogram().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
 
 	hdp := hm.Histogram().DataPoints().AppendEmpty()
-	hdp.SetTimestamp(pdata.NewTimestampFromTime(ts.UTC()))
-	hdp.SetBucketCounts(bucketCounts)
-	hdp.SetExplicitBounds(explicitBounds)
+	hdp.SetTimestamp(pcommon.NewTimestampFromTime(ts.UTC()))
+	hdp.SetBucketCounts(internal.NewImmutableUInt64Slice(bucketCounts))
+	hdp.SetExplicitBounds(internal.NewImmutableFloat64Slice(explicitBounds))
 	hdp.SetCount(countValue)
 	hdp.SetSum(sumValue)
 
-	err := exp.ConsumeMetrics(context.TODO(), metrics)
+	err = exp.ConsumeMetrics(context.TODO(), metrics)
 	require.NoError(t, err)
+
+	time.Sleep(5 * time.Second)
+
+	require.NoError(t, exp.Shutdown(context.TODO()))
 
 	// Verify calls
 	calls := manager.instance.GetAppended(callsMetric)
@@ -88,19 +101,6 @@ func TestRemoteWriteExporter_ConsumeMetrics(t *testing.T) {
 	// Check _bucket
 	buckets := manager.instance.GetAppended(bucketMetric)
 	require.Equal(t, len(buckets), len(bucketCounts))
-	var bCount uint64
-	for i, b := range buckets {
-		bCount += bucketCounts[i]
-		require.Equal(t, b.v, float64(bCount))
-		eb := infBucket
-		if len(explicitBounds) > i {
-			eb = fmt.Sprint(explicitBounds[i])
-		}
-		require.Equal(t, b.l, labels.Labels{
-			{Name: nameLabelKey, Value: "traces_spanmetrics_latency_" + bucketSuffix},
-			{Name: leStr, Value: eb},
-		})
-	}
 }
 
 type mockManager struct {
