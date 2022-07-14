@@ -19,3 +19,7 @@ other_valid_block {
 
   }
 }
+
+invalid_block "with space" /* ERROR "expected block label to be a valid identifier" */ {
+
+}
