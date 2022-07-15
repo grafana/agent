@@ -92,7 +92,10 @@ func (c *Component) Receive(ts int64, metricArr []*metrics.FlowMetric) {
 		if m.Labels == nil {
 			continue
 		}
-		app.Append(storage.SeriesRef(m.GlobalRefID), m.Labels, ts, m.Value)
+		_, err := app.Append(storage.SeriesRef(m.GlobalRefID), m.Labels, ts, m.Value)
+		if err != nil {
+			level.Error(c.opts.Logger).Log("msg", "failed to forward sample from metrics.mutate component", "err", err, "componentID", c.opts.ID)
+		}
 	}
 	err := app.Commit()
 	if err != nil {
