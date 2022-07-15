@@ -62,11 +62,7 @@ func TestBuilder_GoEncode(t *testing.T) {
 	f.Body().SetAttributeValue("mixed_list", []interface{}{
 		0,
 		true,
-		map[string]interface{}{
-			"key_1": true,
-			"key_2": true,
-			"key_3": true,
-		},
+		map[string]interface{}{"key": true},
 		"Hello!",
 	})
 
@@ -88,9 +84,7 @@ func TestBuilder_GoEncode(t *testing.T) {
 		}
 
 		mixed_list = [0, true, {
-			key_1 = true,
-			key_2 = true,
-			key_3 = true,
+			key = true,
 		}, "Hello!"]
 	`)
 
