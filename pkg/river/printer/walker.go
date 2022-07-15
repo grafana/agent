@@ -188,23 +188,25 @@ func (w *walker) walkExpr(e ast.Expr) {
 }
 
 func (w *walker) walkArrayExpr(e *ast.ArrayExpr) {
-	w.p.Write(e.LBrackPos, token.LBRACK, wsIndent)
-
+	w.p.Write(e.LBrackPos, token.LBRACK)
 	prevPos := e.LBrackPos
 
 	for i := 0; i < len(e.Elements); i++ {
+		var addedNewline bool
+
 		elementPos := ast.StartPos(e.Elements[i])
 
-		// Add a newline if this element starts on a different line from the last
-		// element.
+		// Add a newline if this element starts on a different line than the last
+		// element ended.
 		if differentLines(prevPos, elementPos) {
-			w.p.Write(wsFormfeed)
+			w.p.Write(wsFormfeed, wsIndent)
+			addedNewline = true
 		} else if i > 0 {
 			// Make sure a space is injected before the next element if two
 			// successive elements are on the same line.
 			w.p.Write(wsBlank)
 		}
-		prevPos = elementPos
+		prevPos = ast.EndPos(e.Elements[i])
 
 		// Write the expression.
 		w.walkExpr(e.Elements[i])
@@ -212,6 +214,10 @@ func (w *walker) walkArrayExpr(e *ast.ArrayExpr) {
 		// Always add commas in between successive elements.
 		if i+1 < len(e.Elements) {
 			w.p.Write(token.COMMA)
+		}
+
+		if addedNewline {
+			w.p.Write(wsUnindent)
 		}
 	}
 
@@ -221,11 +227,11 @@ func (w *walker) walkArrayExpr(e *ast.ArrayExpr) {
 		w.p.Write(token.COMMA, wsFormfeed)
 	}
 
-	w.p.Write(wsUnindent, e.RBrackPos, token.RBRACK)
+	w.p.Write(e.RBrackPos, token.RBRACK)
 }
 
 func (w *walker) walkObjectExpr(e *ast.ObjectExpr) {
-	w.p.Write(token.LCURLY, wsIndent)
+	w.p.Write(e.LCurlyPos, token.LCURLY, wsIndent)
 
 	prevPos := e.LCurlyPos
 
@@ -233,8 +239,8 @@ func (w *walker) walkObjectExpr(e *ast.ObjectExpr) {
 		field := e.Fields[i]
 		elementPos := ast.StartPos(field.Name)
 
-		// Add a newline if this element starts on a different line from the last
-		// element.
+		// Add a newline if this element starts on a different line than the last
+		// element ended.
 		if differentLines(prevPos, elementPos) {
 			w.p.Write(wsFormfeed)
 		} else if i > 0 {
@@ -242,7 +248,7 @@ func (w *walker) walkObjectExpr(e *ast.ObjectExpr) {
 			// elements are on the same line.
 			w.p.Write(wsBlank)
 		}
-		prevPos = elementPos
+		prevPos = ast.EndPos(field.Name)
 
 		w.p.Write(field.Name.NamePos)
 

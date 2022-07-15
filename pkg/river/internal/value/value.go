@@ -123,7 +123,7 @@ func (v Value) Describe() string {
 	if v.ty != TypeCapsule {
 		return v.ty.String()
 	}
-	return fmt.Sprintf("capsule(%s)", v.rv.Type())
+	return fmt.Sprintf("capsule(%q)", v.rv.Type())
 }
 
 // Bool returns the boolean value for v. It panics if v is not a bool.
@@ -134,17 +134,25 @@ func (v Value) Bool() bool {
 	return v.rv.Bool()
 }
 
+// Number returns a Number value for v. It panics if v is not a Number.
+func (v Value) Number() Number {
+	if v.ty != TypeNumber {
+		panic("river/value: Number called on non-number type")
+	}
+	return newNumberValue(v.rv)
+}
+
 // Int returns an int value for v. It panics if v is not a number.
 func (v Value) Int() int64 {
 	if v.ty != TypeNumber {
 		panic("river/value: Int called on non-number type")
 	}
 	switch makeNumberKind(v.rv.Kind()) {
-	case numberKindInt:
+	case NumberKindInt:
 		return v.rv.Int()
-	case numberKindUint:
+	case NumberKindUint:
 		return int64(v.rv.Uint())
-	case numberKindFloat:
+	case NumberKindFloat:
 		return int64(v.rv.Float())
 	}
 	panic("river/value: unreachable")
@@ -156,11 +164,11 @@ func (v Value) Uint() uint64 {
 		panic("river/value: Uint called on non-number type")
 	}
 	switch makeNumberKind(v.rv.Kind()) {
-	case numberKindInt:
+	case NumberKindInt:
 		return uint64(v.rv.Int())
-	case numberKindUint:
+	case NumberKindUint:
 		return v.rv.Uint()
-	case numberKindFloat:
+	case NumberKindFloat:
 		return uint64(v.rv.Float())
 	}
 	panic("river/value: unreachable")
@@ -172,14 +180,22 @@ func (v Value) Float() float64 {
 		panic("river/value: Float called on non-number type")
 	}
 	switch makeNumberKind(v.rv.Kind()) {
-	case numberKindInt:
+	case NumberKindInt:
 		return float64(v.rv.Int())
-	case numberKindUint:
+	case NumberKindUint:
 		return float64(v.rv.Uint())
-	case numberKindFloat:
+	case NumberKindFloat:
 		return v.rv.Float()
 	}
 	panic("river/value: unreachable")
+}
+
+// Text returns a string value fo v. It panics if v is not a string.
+func (v Value) Text() string {
+	if v.ty != TypeString {
+		panic("river/value: Text called on non-string type")
+	}
+	return v.rv.String()
 }
 
 // Len returns the length of v. Panics if v is not an array or object.
