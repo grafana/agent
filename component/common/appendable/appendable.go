@@ -1,4 +1,4 @@
-package scrape
+package appendable
 
 import (
 	"context"
@@ -16,13 +16,15 @@ type FlowMetric struct {
 	Value  float64
 }
 
-type flowAppendable struct {
-	receivers []*metrics.Receiver
+// FlowAppendable is a flow-specific implementation of an Appender.
+type FlowAppendable struct {
+	Receivers []*metrics.Receiver
 }
 
-func newFlowAppendable(receivers ...*metrics.Receiver) *flowAppendable {
-	return &flowAppendable{
-		receivers: receivers,
+// NewFlowAppendable initializes the appendable.
+func NewFlowAppendable(receivers ...*metrics.Receiver) *FlowAppendable {
+	return &FlowAppendable{
+		Receivers: receivers,
 	}
 }
 
@@ -31,10 +33,11 @@ type flowAppender struct {
 	receivers []*metrics.Receiver
 }
 
-func (app *flowAppendable) Appender(_ context.Context) storage.Appender {
+// Appender implements the Prometheus Appendable interface.
+func (app *FlowAppendable) Appender(_ context.Context) storage.Appender {
 	return &flowAppender{
 		buffer:    make(map[int64][]*metrics.FlowMetric),
-		receivers: app.receivers,
+		receivers: app.Receivers,
 	}
 }
 

@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
+	fa "github.com/grafana/agent/component/common/appendable"
 	"github.com/grafana/agent/component/metrics"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/prometheus/common/model"
@@ -58,7 +59,7 @@ type Component struct {
 	mut        sync.RWMutex
 	args       Arguments
 	scraper    *scrape.Manager
-	appendable *flowAppendable
+	appendable *fa.FlowAppendable
 }
 
 var (
@@ -67,7 +68,7 @@ var (
 
 // New creates a new metrics.scrape component.
 func New(o component.Options, args Arguments) (*Component, error) {
-	flowAppendable := newFlowAppendable(args.ForwardTo...)
+	flowAppendable := fa.NewFlowAppendable(args.ForwardTo...)
 
 	scrapeOptions := &scrape.Options{ExtraMetrics: args.ExtraMetrics}
 	scraper := scrape.NewManager(scrapeOptions, o.Logger, flowAppendable)
@@ -127,7 +128,7 @@ func (c *Component) Update(args component.Arguments) error {
 	defer c.mut.Unlock()
 	c.args = newArgs
 
-	c.appendable.receivers = newArgs.ForwardTo
+	c.appendable.Receivers = newArgs.ForwardTo
 
 	sc, err := newArgs.ScrapeConfig.getPromScrapeConfigs(c.opts.ID)
 	if err != nil {
@@ -172,13 +173,17 @@ func (c *Component) DebugInfo() interface{} {
 
 	for job, stt := range c.scraper.TargetsActive() {
 		for _, st := range stt {
+			var lastError string
+			if st.LastError() != nil {
+				lastError = st.LastError().Error()
+			}
 			if st != nil {
 				res = append(res, TargetStatus{
 					JobName:            job,
 					URL:                st.URL().String(),
 					Health:             string(st.Health()),
 					Labels:             st.Labels().Map(),
-					LastError:          st.LastError().Error(),
+					LastError:          lastError,
 					LastScrape:         st.LastScrape(),
 					LastScrapeDuration: st.LastScrapeDuration(),
 				})
