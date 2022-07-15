@@ -1,8 +1,69 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  name: grafana-agent
+  namespace: default
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
   name: grafana-agent-operator
   namespace: default
+---
+apiVersion: v1
+data: {}
+kind: Secret
+metadata:
+  name: primary-credentials-logs
+  namespace: default
+stringData:
+  password: YOUR_HL_PASS
+  username: YOUR_HL_USER
+type: Opaque
+---
+apiVersion: v1
+data: {}
+kind: Secret
+metadata:
+  name: primary-credentials-metrics
+  namespace: default
+stringData:
+  password: YOUR_HM_PASS
+  username: YOUR_HM_USER
+type: Opaque
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: grafana-agent
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  - nodes/proxy
+  - nodes/metrics
+  - services
+  - endpoints
+  - pods
+  - events
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  verbs:
+  - get
+  - list
+  - watch
+- nonResourceURLs:
+  - /metrics
+  - /metrics/cadvisor
+  verbs:
+  - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -73,6 +134,19 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
+  name: grafana-agent
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: grafana-agent
+subjects:
+- kind: ServiceAccount
+  name: grafana-agent
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
   name: grafana-agent-operator
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -107,3 +181,105 @@ spec:
         imagePullPolicy: IfNotPresent
         name: grafana-agent-operator
       serviceAccount: grafana-agent-operator
+---
+apiVersion: monitoring.grafana.com/v1alpha1
+kind: GrafanaAgent
+metadata:
+  name: grafana-agent
+  namespace: default
+spec:
+  image: grafana/agent:v0.26.0-rc.0
+  logs:
+    instanceSelector:
+      matchLabels:
+        agent: grafana-agent-logs
+  metrics:
+    externalLabels:
+      cluster: cloud
+    instanceSelector:
+      matchLabels:
+        agent: grafana-agent-metrics
+  serviceAccountName: grafana-agent
+---
+apiVersion: monitoring.grafana.com/v1alpha1
+kind: LogsInstance
+metadata:
+  labels:
+    agent: grafana-agent-logs
+  name: grafana-agent-logs
+  namespace: default
+spec:
+  clients:
+  - basicAuth:
+      password:
+        key: password
+        name: primary-credentials-logs
+      username:
+        key: username
+        name: primary-credentials-logs
+    externalLabels:
+      cluster: cloud
+    url: YOUR_HL_URL
+  podLogsNamespaceSelector: {}
+  podLogsSelector:
+    matchLabels:
+      instance: primary
+---
+apiVersion: monitoring.grafana.com/v1alpha1
+kind: MetricsInstance
+metadata:
+  labels:
+    agent: grafana-agent-metrics
+  name: grafana-agent-metrics
+  namespace: default
+spec:
+  podMonitorNamespaceSelector: {}
+  podMonitorSelector:
+    matchLabels:
+      instance: primary
+  probeNamespaceSelector: {}
+  probeSelector:
+    matchLabels:
+      instance: primary
+  remoteWrite:
+  - basicAuth:
+      password:
+        key: password
+        name: primary-credentials-metrics
+      username:
+        key: username
+        name: primary-credentials-metrics
+    url: YOUR_HM_URL
+  serviceMonitorNamespaceSelector: {}
+  serviceMonitorSelector:
+    matchLabels:
+      instance: primary
+---
+apiVersion: monitoring.grafana.com/v1alpha1
+kind: PodLogs
+metadata:
+  labels:
+    instance: primary
+  name: kubernetes-pods
+  namespace: default
+spec:
+  namespaceSelector:
+    any: true
+  pipelineStages:
+  - docker: {}
+  selector:
+    matchLabels: {}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    instance: primary
+  name: kubelet-monitor
+  namespace: default
+spec:
+  namespaceSelector:
+    any: true
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kubelet

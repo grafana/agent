@@ -141,7 +141,7 @@ spec:
         volumeMounts:
         - mountPath: /etc/agent
           name: grafana-agent-traces
-      serviceAccount: grafana-agent-traces
+      serviceAccountName: grafana-agent-traces
       volumes:
       - configMap:
           name: grafana-agent-traces

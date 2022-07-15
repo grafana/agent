@@ -83,7 +83,7 @@ spec:
         - mountPath: /var/lib/docker/containers
           name: varlibdockercontainers
           readOnly: true
-      serviceAccount: grafana-agent-logs
+      serviceAccountName: grafana-agent-logs
       tolerations:
       - effect: NoSchedule
         operator: Exists
