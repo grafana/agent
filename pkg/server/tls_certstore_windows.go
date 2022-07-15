@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-// winCertStoreHandler handles the finding of certificates, validating them and injecting into the default tls pipeline
+// winCertStoreHandler handles the finding of certificates, validating them and injecting into the default TLS pipeline
 type winCertStoreHandler struct {
 	cfg          WindowsCertificateFilter
 	subjectRegEx *regexp.Regexp
