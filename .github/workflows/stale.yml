@@ -12,6 +12,7 @@ jobs:
     steps:
       - uses: actions/stale@v5
         with:
+          close-issue-reason: not_planned
           days-before-stale: 30
           days-before-close: 7
           stale-issue-message: >
