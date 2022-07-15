@@ -31,7 +31,7 @@ type Arguments struct {
 	ForwardTo []*metrics.Receiver `hcl:"forward_to"`
 
 	// The relabelling steps to apply to each metric before it's forwarded.
-	MetricRelabelConfigs []*flow_relabel.RelabelConfig `hcl:"metric_relabel_config,block"`
+	MetricRelabelConfigs []*flow_relabel.Config `hcl:"metric_relabel_config,block"`
 }
 
 // Exports holds values which are exported by the metrics.mutate component.
@@ -44,7 +44,7 @@ type Component struct {
 	opts component.Options
 	mrc  []*relabel.Config
 
-	appendable *appendable.FlowAppendable
+	appendable *fa.FlowAppendable
 	receiver   *metrics.Receiver
 }
 

@@ -27,7 +27,7 @@ type Arguments struct {
 	Targets []Target `hcl:"targets"`
 
 	// The relabelling steps to apply to the each target's label set.
-	RelabelConfigs []*flow_relabel.RelabelConfig `hcl:"relabel_config,block"`
+	RelabelConfigs []*flow_relabel.Config `hcl:"relabel_config,block"`
 }
 
 // Target refers to a singular HTTP or HTTPS endpoint that will be used for scraping.

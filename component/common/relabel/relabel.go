@@ -97,8 +97,8 @@ func (re *Regexp) UnmarshalText(text []byte) error {
 	return nil
 }
 
-// RelabelConfig describes a relabelling step to be applied on a target.
-type RelabelConfig struct {
+// Config describes a relabelling step to be applied on a target.
+type Config struct {
 	SourceLabels []string `hcl:"source_labels,optional"`
 	Separator    string   `hcl:"separator,optional"`
 	Regex        Regexp   `hcl:"regex,optional"`
@@ -109,7 +109,7 @@ type RelabelConfig struct {
 }
 
 // DefaultRelabelConfig sets the default values of fields when decoding a RelabelConfig block.
-var DefaultRelabelConfig = RelabelConfig{
+var DefaultRelabelConfig = Config{
 	Action:      Replace,
 	Separator:   ";",
 	Regex:       mustNewRegexp("(.*)"),
@@ -120,10 +120,10 @@ var relabelTarget = regexp.MustCompile(`^(?:(?:[a-zA-Z_]|\$(?:\{\w+\}|\w+))+\w*)
 
 // DecodeHCL implements gohcl.Decoder.
 // This method is only called on blocks, not objects.
-func (rc *RelabelConfig) DecodeHCL(body hcl.Body, ctx *hcl.EvalContext) error {
+func (rc *Config) DecodeHCL(body hcl.Body, ctx *hcl.EvalContext) error {
 	*rc = DefaultRelabelConfig
 
-	type relabelConfig RelabelConfig
+	type relabelConfig Config
 	err := gohcl.DecodeBody(body, ctx, (*relabelConfig)(rc))
 	if err != nil {
 		return err
@@ -165,7 +165,9 @@ func (rc *RelabelConfig) DecodeHCL(body hcl.Body, ctx *hcl.EvalContext) error {
 	return nil
 }
 
-func HCLToPromRelabelConfigs(rcs []*RelabelConfig) []*relabel.Config {
+// HCLToPromRelabelConfigs bridges the HCL-based configuration of relabeling
+// steps to the Prometheus implementation.
+func HCLToPromRelabelConfigs(rcs []*Config) []*relabel.Config {
 	res := make([]*relabel.Config, len(rcs))
 	for i, rc := range rcs {
 		sourceLabels := make([]model.LabelName, len(rc.SourceLabels))
