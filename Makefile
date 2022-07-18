@@ -18,7 +18,7 @@ RELEASE_TAG = $(IMAGE_TAG)
 else
 IMAGE_TAG ?= $(RELEASE_TAG)
 
-RELEASE_DOC_TAG = `echo ${RELEASE_TAG} | awk -F "\." '{print $$1"."$$2}'`
+RELEASE_DOC_TAG = `echo ${RELEASE_TAG} | awk -F '.' '{print $$1"."$$2}'`
 
 # If $RELEASE_TAG is from a stable release we want to update :latest instead of
 # a branch. Otherwise, we want to re-use the versioned tag name.
