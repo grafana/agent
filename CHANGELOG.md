@@ -22,6 +22,9 @@ v0.26.0 (2022-07-18)
 - Changed tail sampling policies to be configured as in the OpenTelemetry
   Collector. (@mapno)
 
+- Change windows certificate store so client certificate is no longer required in store. (@mattdurham)
+
+
 ### Features
 
 - Introduce Apache HTTP exporter integration. (@v-zhuravlev)
@@ -90,12 +93,10 @@ v0.25.0 (2022-06-06)
 
 - `extra-scrape-metrics` can now be enabled with the `--enable-features=extra-scrape-metrics` feature flag. See https://prometheus.io/docs/prometheus/2.31/feature_flags/#extra-scrape-metrics for details. (@rlankfo)
 
-
 - Resolved issue in v2 integrations where if an instance name was a prefix of another the route handler would fail to
   match requests on the longer name (@mattdurham)
 
 - Set `include_metadata` to true by default for OTLP traces receivers (@mapno)
-
 
 ### Bugfixes
 

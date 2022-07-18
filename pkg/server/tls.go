@@ -36,8 +36,6 @@ type WindowsCertificateFilter struct {
 
 // WindowsClientFilter is used to select a client root CA certificate
 type WindowsClientFilter struct {
-	Store             string   `yaml:"store,omitempty"`
-	SystemStore       string   `yaml:"system_store,omitempty"`
 	IssuerCommonNames []string `yaml:"issuer_common_names,omitempty"`
 	SubjectRegEx      string   `yaml:"subject_regex,omitempty"`
 	TemplateID        string   `yaml:"template_id,omitempty"`
