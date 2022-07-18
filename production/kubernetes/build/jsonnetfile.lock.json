@@ -45,6 +45,16 @@
     },
     {
       "source": {
+        "git": {
+          "remote": "https://github.com/kubernetes/kube-state-metrics.git",
+          "subdir": "jsonnet/kube-state-metrics"
+        }
+      },
+      "version": "0567e1e1b981755e563d2244fa1659563f2cddbc",
+      "sum": "P0dCnbzyPScQGNXwXRcwiPkMLeTq0IPNbSTysDbySnM="
+    },
+    {
+      "source": {
         "local": {
           "directory": "../../tanka/grafana-agent"
         }

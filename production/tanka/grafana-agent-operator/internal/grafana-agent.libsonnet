@@ -8,11 +8,11 @@ function(name='grafana-agent', namespace='') {
     local policyRule = k.rbac.v1.policyRule,
     local serviceAccount = k.core.v1.serviceAccount,
 
-    _images+:: {
+    _images:: {
       agent: 'grafana/agent:v0.26.0-rc.0',
     },
 
-    ga_rbac: k.util.rbac(name, [
+    rbac: k.util.rbac(name, [
         policyRule.withApiGroups(['']) +
         policyRule.withResources(['nodes', 'nodes/proxy', 'nodes/metrics', 'services', 'endpoints', 'pods', 'events']) +
         policyRule.withVerbs(['get', 'list', 'watch']),
@@ -27,7 +27,7 @@ function(name='grafana-agent', namespace='') {
         service_account+: serviceAccount.mixin.metadata.withNamespace(namespace),
     },
 
-    ga_resource: ga.new(name) +
+    resource: ga.new(name) +
         ga.metadata.withNamespace(namespace) +
         ga.spec.withServiceAccountName(name) +
         ga.spec.withImage(this._images.agent)

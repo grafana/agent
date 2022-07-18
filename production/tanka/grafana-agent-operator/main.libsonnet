@@ -1,24 +1,25 @@
 {
   new(name='grafana-agent-operator', namespace='')::
-    (import './internal/base.libsonnet')(name, namespace),
+    (import './internal/operator.libsonnet')(name, namespace),
 
   withGrafanaAgent(name='grafana-agent', namespace='')::
     (import './internal/grafana-agent.libsonnet')(name, namespace),
 
-  withMetricsInstance(name='grafana-agent-metrics', namespace='', external_labels={})::
-    (import './internal/metricsinstance.libsonnet')(name, namespace, external_labels),
+  withMetricsInstance(name='grafana-agent-metrics', namespace='', config={})::
+    (import './internal/metricsinstance.libsonnet')(name, namespace, config),
 
-  withLogsInstance(name='grafana-agent-logs', namespace='', external_labels={})::
-    (import './internal/logsinstance.libsonnet')(name, namespace, external_labels),
+  withLogsInstance(name='grafana-agent-logs', namespace='', config={})::
+    (import './internal/logsinstance.libsonnet')(name, namespace, config),
 
-  withK8sMetrics(namespace='', allowlist=false, allowlistmetrics=[])::
-    (import './internal/k8smetrics.libsonnet')(namespace, allowlist, allowlistmetrics),
+  withK8sMetrics(namespace='', allowlist=false, allowlistMetrics=[], config={})::
+    (import './internal/k8smetrics.libsonnet')(namespace, allowlist, allowlistMetrics, config),
 
-  #withKubeStateMetrics()::
+  withKSM(name='kube-state-metrics', namespace='')::
+    (import './internal/ksm.libsonnet')(name, namespace),
 
-  # TODO: make this a statefulset? use a PV?
-  #withK8sEvents()::
+  withK8sEvents(name='kubernetes-events', namespace='', logsName='', logsNamespace='', config={})::
+    (import './internal/k8s-events.libsonnet')(name, namespace, logsName, logsNamespace, config),
 
-  withDefaultLogs(name='kubernetes-pods', namespace='', container_engine='')::
-    (import './internal/podlogs.libsonnet')(name, namespace, container_engine)
+  withDefaultLogs(name='kubernetes-pods', namespace='', containerEngine='')::
+    (import './internal/podlogs.libsonnet')(name, namespace, containerEngine)
 }
