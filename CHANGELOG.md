@@ -35,6 +35,8 @@ Main (unreleased)
 
 - Tracing: Update OpenTelemetry dependency to v0.55.0. (@rfratto, @mapno)
 
+- Add base agent-operator jsonnet library and generated manifests (@hjet)
+
 ### Bugfixes
 
 - Relative symlinks for promtail now work as expected. (@RangerCD, @mukerjee)
