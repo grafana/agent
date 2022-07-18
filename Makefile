@@ -495,7 +495,8 @@ clean-dist:
 publish: dist
 	./packaging/rpm/gpg-sign.sh
 	RELEASE_DOC_TAG=$(RELEASE_DOC_TAG) ./tools/release
-	./packaging/rpm/gpg-sign.sh
+	./tools/release
+
 
 
 # Drone signs the yaml, you will need to specify DRONE_TOKEN, which can be found by logging into your profile in drone
