@@ -503,6 +503,7 @@ clean-dist:
 .PHONY: clean
 
 publish: dist
+	export RELEASE_DOC_TAG=`echo ${RELEASE_TAG} | awk -F "\." '{print $1"."$2}'`
 	./tools/release
 
 # Drone signs the yaml, you will need to specify DRONE_TOKEN, which can be found by logging into your profile in drone
