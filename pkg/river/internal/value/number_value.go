@@ -11,109 +11,118 @@ var (
 	nativeUintBits = reflect.TypeOf(uint(0)).Bits()
 )
 
-// numberKind categorizes a type of Go number.
-type numberKind uint8
+// NumberKind categorizes a type of Go number.
+type NumberKind uint8
 
 const (
-	numberKindInt numberKind = iota
-	numberKindUint
-	numberKindFloat
+	// NumberKindInt represents an int-like type (e.g., int, int8, etc.).
+	NumberKindInt NumberKind = iota
+	// NumberKindUint represents a uint-like type (e.g., uint, uint8, etc.).
+	NumberKindUint
+	// NumberKindFloat represents both float32 and float64.
+	NumberKindFloat
 )
 
-func makeNumberKind(k reflect.Kind) numberKind {
+func makeNumberKind(k reflect.Kind) NumberKind {
 	switch k {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return numberKindInt
+		return NumberKindInt
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return numberKindUint
+		return NumberKindUint
 	case reflect.Float32, reflect.Float64:
-		return numberKindFloat
+		return NumberKindFloat
 	default:
 		panic("river/value: makeNumberKind called with unsupported Kind value")
 	}
 }
 
-// numberValue is a generic representation of Go numbers. It is intended to be
+// Number is a generic representation of Go numbers. It is intended to be
 // created on the fly for numerical operations when the real number type is not
 // known.
-type numberValue struct {
+type Number struct {
 	// Value holds the raw data for the number. Note that for numberKindFloat,
 	// value is the raw bits of the float64 and must be converted back to a
 	// float64 before it can be used.
 	value uint64
 
 	bits uint8      // 8, 16, 32, 64, used for overflow checking
-	k    numberKind // int, uint, float
+	k    NumberKind // int, uint, float
 }
 
-func newNumberValue(v reflect.Value) numberValue {
+func newNumberValue(v reflect.Value) Number {
 	var (
 		val  uint64
 		bits int
-		nk   numberKind
+		nk   NumberKind
 	)
 
 	switch v.Kind() {
 	case reflect.Int:
-		val, bits, nk = uint64(v.Int()), nativeIntBits, numberKindInt
+		val, bits, nk = uint64(v.Int()), nativeIntBits, NumberKindInt
 	case reflect.Int8:
-		val, bits, nk = uint64(v.Int()), 8, numberKindInt
+		val, bits, nk = uint64(v.Int()), 8, NumberKindInt
 	case reflect.Int16:
-		val, bits, nk = uint64(v.Int()), 16, numberKindInt
+		val, bits, nk = uint64(v.Int()), 16, NumberKindInt
 	case reflect.Int32:
-		val, bits, nk = uint64(v.Int()), 32, numberKindInt
+		val, bits, nk = uint64(v.Int()), 32, NumberKindInt
 	case reflect.Int64:
-		val, bits, nk = uint64(v.Int()), 64, numberKindInt
+		val, bits, nk = uint64(v.Int()), 64, NumberKindInt
 	case reflect.Uint:
-		val, bits, nk = v.Uint(), nativeUintBits, numberKindUint
+		val, bits, nk = v.Uint(), nativeUintBits, NumberKindUint
 	case reflect.Uint8:
-		val, bits, nk = v.Uint(), 8, numberKindUint
+		val, bits, nk = v.Uint(), 8, NumberKindUint
 	case reflect.Uint16:
-		val, bits, nk = v.Uint(), 16, numberKindUint
+		val, bits, nk = v.Uint(), 16, NumberKindUint
 	case reflect.Uint32:
-		val, bits, nk = v.Uint(), 32, numberKindUint
+		val, bits, nk = v.Uint(), 32, NumberKindUint
 	case reflect.Uint64:
-		val, bits, nk = v.Uint(), 64, numberKindUint
+		val, bits, nk = v.Uint(), 64, NumberKindUint
 	case reflect.Float32:
-		val, bits, nk = math.Float64bits(v.Float()), 32, numberKindFloat
+		val, bits, nk = math.Float64bits(v.Float()), 32, NumberKindFloat
 	case reflect.Float64:
-		val, bits, nk = math.Float64bits(v.Float()), 64, numberKindFloat
+		val, bits, nk = math.Float64bits(v.Float()), 64, NumberKindFloat
 	default:
 		panic("river/value: unrecognized Go number type " + v.Kind().String())
 	}
 
-	return numberValue{val, uint8(bits), nk}
+	return Number{val, uint8(bits), nk}
 }
 
-func (nv numberValue) Int() int64 {
-	if nv.k == numberKindFloat {
+// Kind returns the Number's NumberKind.
+func (nv Number) Kind() NumberKind { return nv.k }
+
+// Int converts the Number into an int64.
+func (nv Number) Int() int64 {
+	if nv.k == NumberKindFloat {
 		return int64(math.Float64frombits(nv.value))
 	}
 	return int64(nv.value)
 }
 
-func (nv numberValue) Uint() uint64 {
-	if nv.k == numberKindFloat {
+// Uint converts the Number into a uint64.
+func (nv Number) Uint() uint64 {
+	if nv.k == NumberKindFloat {
 		return uint64(math.Float64frombits(nv.value))
 	}
 	return nv.value
 }
 
-func (nv numberValue) Float() float64 {
-	if nv.k == numberKindFloat {
+// Float converts the Number into a float64.
+func (nv Number) Float() float64 {
+	if nv.k == NumberKindFloat {
 		return math.Float64frombits(nv.value)
 	}
 	return float64(nv.value)
 }
 
-// ToString converts the number to a string.
-func (nv numberValue) ToString() string {
+// ToString converts the Number to a string.
+func (nv Number) ToString() string {
 	switch nv.k {
-	case numberKindUint:
+	case NumberKindUint:
 		return strconv.FormatUint(nv.value, 10)
-	case numberKindInt:
+	case NumberKindInt:
 		return strconv.FormatInt(int64(nv.value), 10)
-	case numberKindFloat:
+	case NumberKindFloat:
 		return strconv.FormatFloat(math.Float64frombits(nv.value), 'f', -1, 64)
 	}
 	panic("river/value: unreachable")
