@@ -63,8 +63,8 @@ func (b *Body) Tokens() []Token {
 		if i+1 < len(b.nodes) {
 			// Append a terminator between each statement in the Body.
 			rawToks = append(rawToks, Token{
-				Type: token.ILLEGAL,
-				Lit:  "\n",
+				Tok: LiteralTok,
+				Lit: "\n",
 			})
 		}
 	}
@@ -122,8 +122,8 @@ type attribute struct {
 func (attr *attribute) Tokens() []Token {
 	var toks []Token
 
-	toks = append(toks, Token{Type: token.IDENT, Lit: attr.Name})
-	toks = append(toks, Token{Type: token.ASSIGN})
+	toks = append(toks, Token{Tok: token.IDENT, Lit: attr.Name})
+	toks = append(toks, Token{Tok: token.ASSIGN})
 	toks = append(toks, attr.RawTokens...)
 
 	return toks
@@ -159,21 +159,21 @@ func (b *Block) Tokens() []Token {
 	var toks []Token
 
 	for i, frag := range b.Name {
-		toks = append(toks, Token{Type: token.IDENT, Lit: frag})
+		toks = append(toks, Token{Tok: token.IDENT, Lit: frag})
 		if i+1 < len(b.Name) {
-			toks = append(toks, Token{Type: token.DOT})
+			toks = append(toks, Token{Tok: token.DOT})
 		}
 	}
 
-	toks = append(toks, Token{Type: token.ILLEGAL, Lit: " "})
+	toks = append(toks, Token{Tok: LiteralTok, Lit: " "})
 
 	if b.Label != "" {
-		toks = append(toks, Token{Type: token.STRING, Lit: fmt.Sprintf("%q", b.Label)})
+		toks = append(toks, Token{Tok: token.STRING, Lit: fmt.Sprintf("%q", b.Label)})
 	}
 
-	toks = append(toks, Token{Type: token.LCURLY}, Token{Type: token.ILLEGAL, Lit: "\n"})
+	toks = append(toks, Token{Tok: token.LCURLY}, Token{Tok: LiteralTok, Lit: "\n"})
 	toks = append(toks, b.body.Tokens()...)
-	toks = append(toks, Token{Type: token.ILLEGAL, Lit: "\n"}, Token{Type: token.RCURLY})
+	toks = append(toks, Token{Tok: LiteralTok, Lit: "\n"}, Token{Tok: token.RCURLY})
 
 	return toks
 }

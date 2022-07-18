@@ -14,15 +14,15 @@ import (
 func TestBuilder_File(t *testing.T) {
 	f := builder.NewFile()
 
-	f.Body().SetAttributeTokens("attr_1", []builder.Token{{Type: token.NUMBER, Lit: "15"}})
-	f.Body().SetAttributeTokens("attr_2", []builder.Token{{Type: token.BOOL, Lit: "true"}})
+	f.Body().SetAttributeTokens("attr_1", []builder.Token{{Tok: token.NUMBER, Lit: "15"}})
+	f.Body().SetAttributeTokens("attr_2", []builder.Token{{Tok: token.BOOL, Lit: "true"}})
 
 	b1 := builder.NewBlock([]string{"test", "block"}, "")
-	b1.Body().SetAttributeTokens("inner_attr", []builder.Token{{Type: token.STRING, Lit: `"block 1"`}})
+	b1.Body().SetAttributeTokens("inner_attr", []builder.Token{{Tok: token.STRING, Lit: `"block 1"`}})
 	f.Body().AppendBlock(b1)
 
 	b2 := builder.NewBlock([]string{"test", "block"}, "labeled")
-	b2.Body().SetAttributeTokens("inner_attr", []builder.Token{{Type: token.STRING, Lit: `"block 2"`}})
+	b2.Body().SetAttributeTokens("inner_attr", []builder.Token{{Tok: token.STRING, Lit: `"block 2"`}})
 	f.Body().AppendBlock(b2)
 
 	expect := format(t, `
@@ -45,7 +45,7 @@ func TestBuilder_GoEncode(t *testing.T) {
 	f := builder.NewFile()
 
 	f.Body().SetAttributeValue("null_value", nil)
-	f.Body().AppendTokens([]builder.Token{{token.ILLEGAL, "\n"}})
+	f.Body().AppendTokens([]builder.Token{{builder.LiteralTok, "\n"}})
 
 	f.Body().SetAttributeValue("num", 15)
 	f.Body().SetAttributeValue("string", "Hello, world!")
@@ -53,11 +53,11 @@ func TestBuilder_GoEncode(t *testing.T) {
 	f.Body().SetAttributeValue("list", []int{0, 1, 2})
 	f.Body().SetAttributeValue("func", func(int, int) int { return 0 })
 	f.Body().SetAttributeValue("capsule", make(chan int))
-	f.Body().AppendTokens([]builder.Token{{token.ILLEGAL, "\n"}})
+	f.Body().AppendTokens([]builder.Token{{builder.LiteralTok, "\n"}})
 
 	f.Body().SetAttributeValue("map", map[string]interface{}{"foo": "bar"})
 	f.Body().SetAttributeValue("map_2", map[string]interface{}{"non ident": "bar"})
-	f.Body().AppendTokens([]builder.Token{{token.ILLEGAL, "\n"}})
+	f.Body().AppendTokens([]builder.Token{{builder.LiteralTok, "\n"}})
 
 	f.Body().SetAttributeValue("mixed_list", []interface{}{
 		0,
