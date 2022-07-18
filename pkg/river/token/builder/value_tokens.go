@@ -42,7 +42,7 @@ func valueTokens(v value.Value) []Token {
 		toks = append(toks, Token{token.RBRACK, ""})
 
 	case value.TypeObject:
-		toks = append(toks, Token{token.LCURLY, ""}, Token{LiteralTok, "\n"})
+		toks = append(toks, Token{token.LCURLY, ""}, Token{token.LITERAL, "\n"})
 
 		keys := v.Keys()
 		for i := 0; i < len(keys); i++ {
@@ -55,15 +55,15 @@ func valueTokens(v value.Value) []Token {
 			field, _ := v.Key(keys[i])
 			toks = append(toks, Token{token.ASSIGN, ""})
 			toks = append(toks, valueTokens(field)...)
-			toks = append(toks, Token{token.COMMA, ""}, Token{LiteralTok, "\n"})
+			toks = append(toks, Token{token.COMMA, ""}, Token{token.LITERAL, "\n"})
 		}
 		toks = append(toks, Token{token.RCURLY, ""})
 
 	case value.TypeFunction:
-		toks = append(toks, Token{LiteralTok, v.Describe()})
+		toks = append(toks, Token{token.LITERAL, v.Describe()})
 
 	case value.TypeCapsule:
-		toks = append(toks, Token{LiteralTok, v.Describe()})
+		toks = append(toks, Token{token.LITERAL, v.Describe()})
 
 	default:
 		panic(fmt.Sprintf("river/token/builder: unrecognized value type %q", v.Type()))

@@ -63,7 +63,7 @@ func (b *Body) Tokens() []Token {
 		if i+1 < len(b.nodes) {
 			// Append a terminator between each statement in the Body.
 			rawToks = append(rawToks, Token{
-				Tok: LiteralTok,
+				Tok: token.LITERAL,
 				Lit: "\n",
 			})
 		}
@@ -165,15 +165,15 @@ func (b *Block) Tokens() []Token {
 		}
 	}
 
-	toks = append(toks, Token{Tok: LiteralTok, Lit: " "})
+	toks = append(toks, Token{Tok: token.LITERAL, Lit: " "})
 
 	if b.Label != "" {
 		toks = append(toks, Token{Tok: token.STRING, Lit: fmt.Sprintf("%q", b.Label)})
 	}
 
-	toks = append(toks, Token{Tok: token.LCURLY}, Token{Tok: LiteralTok, Lit: "\n"})
+	toks = append(toks, Token{Tok: token.LCURLY}, Token{Tok: token.LITERAL, Lit: "\n"})
 	toks = append(toks, b.body.Tokens()...)
-	toks = append(toks, Token{Tok: LiteralTok, Lit: "\n"}, Token{Tok: token.RCURLY})
+	toks = append(toks, Token{Tok: token.LITERAL, Lit: "\n"}, Token{Tok: token.RCURLY})
 
 	return toks
 }

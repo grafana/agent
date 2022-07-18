@@ -74,7 +74,7 @@ type printer struct {
 
 	output  []byte
 	indent  int         // Current indentation level
-	lastTok token.Token // Last token printed (token.ILLEGAL if it's whitespace)
+	lastTok token.Token // Last token printed (token.LITERAL if it's whitespace)
 
 	// Whitespace holds a buffer of whitespace characters to print prior to the
 	// next non-whitespace token. Whitespace is held in a buffer to avoid
@@ -193,7 +193,7 @@ func (p *printer) Write(args ...interface{}) {
 			}
 			p.whitespace = p.whitespace[0 : i+1]
 			p.whitespace[i] = arg
-			p.lastTok = token.ILLEGAL
+			p.lastTok = token.LITERAL
 			continue
 
 		case *ast.IdentifierExpr:

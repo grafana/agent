@@ -45,7 +45,7 @@ func TestBuilder_GoEncode(t *testing.T) {
 	f := builder.NewFile()
 
 	f.Body().SetAttributeValue("null_value", nil)
-	f.Body().AppendTokens([]builder.Token{{builder.LiteralTok, "\n"}})
+	f.Body().AppendTokens([]builder.Token{{token.LITERAL, "\n"}})
 
 	f.Body().SetAttributeValue("num", 15)
 	f.Body().SetAttributeValue("string", "Hello, world!")
@@ -53,11 +53,11 @@ func TestBuilder_GoEncode(t *testing.T) {
 	f.Body().SetAttributeValue("list", []int{0, 1, 2})
 	f.Body().SetAttributeValue("func", func(int, int) int { return 0 })
 	f.Body().SetAttributeValue("capsule", make(chan int))
-	f.Body().AppendTokens([]builder.Token{{builder.LiteralTok, "\n"}})
+	f.Body().AppendTokens([]builder.Token{{token.LITERAL, "\n"}})
 
 	f.Body().SetAttributeValue("map", map[string]interface{}{"foo": "bar"})
 	f.Body().SetAttributeValue("map_2", map[string]interface{}{"non ident": "bar"})
-	f.Body().AppendTokens([]builder.Token{{builder.LiteralTok, "\n"}})
+	f.Body().AppendTokens([]builder.Token{{token.LITERAL, "\n"}})
 
 	f.Body().SetAttributeValue("mixed_list", []interface{}{
 		0,

@@ -9,14 +9,6 @@ import (
 	"github.com/grafana/agent/pkg/river/token"
 )
 
-// LiteralTok is used as a token.Token value for writing literal sequences of
-// text into a built file.
-//
-// river/token doesn't have the capability of representing literal strings, so
-// LiteralTok uses token.ILLEGAL as a way to uniquely identify when literal
-// strings should be injected.
-const LiteralTok = token.ILLEGAL
-
 // A Token is a wrapper around token.Token which contains the token type
 // alongside its literal. Use LiteralTok as the Tok field to write literal
 // characters such as whitespace.
@@ -31,7 +23,7 @@ func printTokens(w io.Writer, toks []Token) (int, error) {
 	var raw bytes.Buffer
 	for _, tok := range toks {
 		switch {
-		case tok.Tok == LiteralTok:
+		case tok.Tok == token.LITERAL:
 			raw.WriteString(tok.Lit)
 		case tok.Tok.IsLiteral() || tok.Tok.IsKeyword():
 			raw.WriteString(tok.Lit)
