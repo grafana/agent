@@ -17,15 +17,11 @@ type FlowMetric struct {
 }
 
 // FlowAppendable is a flow-specific implementation of an Appender.
-type FlowAppendable struct {
-	Receivers []*metrics.Receiver
-}
+type FlowAppendable []*metrics.Receiver
 
 // NewFlowAppendable initializes the appendable.
-func NewFlowAppendable(receivers ...*metrics.Receiver) *FlowAppendable {
-	return &FlowAppendable{
-		Receivers: receivers,
-	}
+func NewFlowAppendable(receivers ...*metrics.Receiver) FlowAppendable {
+	return receivers
 }
 
 type flowAppender struct {
@@ -34,10 +30,10 @@ type flowAppender struct {
 }
 
 // Appender implements the Prometheus Appendable interface.
-func (app *FlowAppendable) Appender(_ context.Context) storage.Appender {
+func (app FlowAppendable) Appender(_ context.Context) storage.Appender {
 	return &flowAppender{
 		buffer:    make(map[int64][]*metrics.FlowMetric),
-		receivers: app.Receivers,
+		receivers: app,
 	}
 }
 

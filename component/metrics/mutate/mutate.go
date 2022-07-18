@@ -85,6 +85,11 @@ func (c *Component) Update(args component.Arguments) error {
 
 // Receive implements the receiver.Receive func that allows an array of metrics
 // to be passed around.
+// TODO (@tpaschalis) The relabelling process will run _every_ time, for all
+// metrics, resulting in some serious CPU overhead. We should be caching the
+// relabeling results per refID and clearing entries for dropped or stale
+// series. This is a blocker for releasing a production-grade metrics.mutate
+// component.
 func (c *Component) Receive(ts int64, metricArr []*metrics.FlowMetric) {
 	app := c.appendable.Appender(context.Background())
 	for _, m := range metricArr {
