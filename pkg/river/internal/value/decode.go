@@ -70,8 +70,7 @@ func decode(val Value, into reflect.Value) error {
 		into.Set(cloneGoValue(val.rv))
 		return nil
 	case into.Type() == goAny:
-		into.Set(cloneGoValue(val.rv))
-		return nil
+		return decodeAny(val, into)
 	}
 
 	targetType := RiverType(into.Type())
@@ -147,6 +146,62 @@ func decode(val Value, into reflect.Value) error {
 	}
 }
 
+func decodeAny(val Value, into reflect.Value) error {
+	var ptr reflect.Value
+
+	switch val.Type() {
+	case TypeNull:
+		into.Set(reflect.Zero(into.Type()))
+		return nil
+
+	case TypeNumber:
+		switch val.Number().Kind() {
+		case NumberKindFloat:
+			var v float64
+			ptr = reflect.ValueOf(&v)
+		case NumberKindInt:
+			var v int
+			ptr = reflect.ValueOf(&v)
+		case NumberKindUint:
+			var v uint
+			ptr = reflect.ValueOf(&v)
+		default:
+			panic("river/value: unreachable")
+		}
+
+	case TypeArray:
+		var v []interface{}
+		ptr = reflect.ValueOf(&v)
+
+	case TypeObject:
+		var v map[string]interface{}
+		ptr = reflect.ValueOf(&v)
+
+	case TypeBool:
+		var v bool
+		ptr = reflect.ValueOf(&v)
+
+	case TypeString:
+		var v string
+		ptr = reflect.ValueOf(&v)
+
+	case TypeFunction, TypeCapsule:
+		// Functions and capsules must be directly assigned since there's no
+		// "generic" representation for either.
+		into.Set(val.rv)
+		return nil
+
+	default:
+		panic("river/value: unreachable")
+	}
+
+	if err := decode(val, ptr); err != nil {
+		return err
+	}
+	into.Set(ptr.Elem())
+	return nil
+}
+
 func decodeArray(val Value, rt reflect.Value) error {
 	switch rt.Kind() {
 	case reflect.Slice:
@@ -184,66 +239,89 @@ func decodeArray(val Value, rt reflect.Value) error {
 }
 
 func decodeObject(val Value, rt reflect.Value) error {
-	switch val.rv.Kind() {
-	case reflect.Struct:
-		return decodeStructObject(val, rt)
-	case reflect.Map:
-		return decodeMapObject(val, rt)
-	default:
-		panic(fmt.Sprintf("river/value: unexpected object type %s", val.rv.Kind()))
-	}
-}
-
-func decodeStructObject(val Value, rt reflect.Value) error {
 	switch rt.Kind() {
 	case reflect.Struct:
-		// TODO(rfratto): can we find a way to encode optional keys that aren't
-		// set?
-		sourceTags := getCachedTags(val.rv.Type())
 		targetTags := getCachedTags(rt.Type())
-
-		for i := 0; i < sourceTags.Len(); i++ {
-			key := sourceTags.Index(i)
-			keyValue, _ := val.Key(key.Name)
-
-			// Find the equivalent key in the Go struct.
-			target, ok := targetTags.Get(key.Name)
-			if !ok {
-				return TypeError{Value: val, Expected: RiverType(rt.Type())}
-			}
-			if err := decodeToField(keyValue, rt, target.Index); err != nil {
-				return FieldError{Value: val, Field: key.Name, Inner: err}
-			}
-		}
+		return decodeObjectToStruct(val, rt, targetTags, false)
 
 	case reflect.Map:
 		if rt.Type().Key() != goString {
 			// Maps with non-string types are treated as capsules and can't be
-			// decoded from objects.
+			// decoded from maps.
 			return TypeError{Value: val, Expected: RiverType(rt.Type())}
 		}
 
 		res := reflect.MakeMapWithSize(rt.Type(), val.Len())
 
-		sourceTags := getCachedTags(val.rv.Type())
-
-		for i := 0; i < sourceTags.Len(); i++ {
-			keyName := sourceTags.Index(i).Name
-			keyValue, _ := val.Key(keyName)
+		for _, key := range val.Keys() {
+			// We ignore the ok value because we know it exists.
+			value, _ := val.Key(key)
 
 			// Create a new value to hold the entry and decode into it.
-			entry := reflect.New(rt.Type().Elem()).Elem()
-			if err := decode(keyValue, entry); err != nil {
-				return FieldError{Value: val, Field: keyName, Inner: err}
+			into := reflect.New(rt.Type().Elem()).Elem()
+			if err := decode(value, into); err != nil {
+				return FieldError{Value: val, Field: key, Inner: err}
 			}
 
 			// Then set the map index.
-			res.SetMapIndex(reflect.ValueOf(keyName), entry)
+			res.SetMapIndex(reflect.ValueOf(key), into)
 		}
+
 		rt.Set(res)
 
 	default:
-		panic(fmt.Sprintf("river/value: unexpected Go object target type %s", rt.Kind()))
+		panic(fmt.Sprintf("river/value: unexpected object type %s", val.rv.Kind()))
+	}
+
+	return nil
+}
+
+func decodeObjectToStruct(val Value, rt reflect.Value, fields *objectFields, decodedLabel bool) error {
+	// TODO(rfratto): this needs to check for required keys being set
+
+	for _, key := range val.Keys() {
+		// We ignore the ok value because we know it exists.
+		value, _ := val.Key(key)
+
+		// Struct labels should be decoded first, since objects are wrapped in
+		// labels. If we have yet to decode the label, decode it now.
+		if lf, ok := fields.LabelField(); ok && !decodedLabel {
+			// Safety check: if the inner field isn't an object, there's something
+			// wrong here. It's unclear if a user can craft an expression that hits
+			// this case, but it's left in for safety.
+			if value.Type() != TypeObject {
+				return FieldError{
+					Value: val,
+					Field: key,
+					Inner: TypeError{Value: value, Expected: TypeObject},
+				}
+			}
+
+			// Decode the key into the label.
+			rt.FieldByIndex(lf.Index).Set(reflect.ValueOf(key))
+
+			// ...and then code the rest of the object.
+			if err := decodeObjectToStruct(value, rt, fields, true); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch fields.Has(key) {
+		case objectKeyTypeInvalid:
+			return MissingKeyError{Value: value, Missing: key}
+		case objectKeyTypeNestedField:
+			next, _ := fields.NestedField(key)
+			// Recruse the call with the inner value.
+			if err := decodeObjectToStruct(value, rt, next, decodedLabel); err != nil {
+				return err
+			}
+		case objectKeyTypeField:
+			targetField, _ := fields.Field(key)
+			if err := decodeToField(value, rt, targetField.Index); err != nil {
+				return FieldError{Value: val, Field: key, Inner: err}
+			}
+		}
 	}
 
 	return nil
@@ -266,59 +344,6 @@ func decodeToField(val Value, intoStruct reflect.Value, index []int) error {
 	}
 
 	return decode(val, curr)
-}
-
-func decodeMapObject(val Value, rt reflect.Value) error {
-	switch rt.Kind() {
-	case reflect.Struct:
-		// TODO(rfratto): can we find a way to encode optional keys that aren't
-		// set?
-		targetTags := getCachedTags(rt.Type())
-
-		for _, key := range val.Keys() {
-			// We ignore the ok value below because we know it exists in the map.
-			value, _ := val.Key(key)
-
-			// Find the equivalent key in the Go struct.
-			target, ok := targetTags.Get(key)
-			if !ok {
-				return MissingKeyError{Value: value, Missing: key}
-			}
-
-			if err := decodeToField(value, rt, target.Index); err != nil {
-				return FieldError{Value: val, Field: key, Inner: err}
-			}
-		}
-
-	case reflect.Map:
-		if rt.Type().Key() != goString {
-			// Maps with non-string types are treated as capsules and can't be
-			// decoded from maps.
-			return TypeError{Value: val, Expected: RiverType(rt.Type())}
-		}
-
-		res := reflect.MakeMapWithSize(rt.Type(), val.Len())
-
-		for _, key := range val.Keys() {
-			// We ignore the ok value below because we know it exists in the map.
-			value, _ := val.Key(key)
-
-			// Create a new value to hold the entry and decode into it.
-			entry := reflect.New(rt.Type().Elem()).Elem()
-			if err := decode(value, entry); err != nil {
-				return FieldError{Value: val, Field: key, Inner: err}
-			}
-
-			// Then set the map index.
-			res.SetMapIndex(reflect.ValueOf(key), entry)
-		}
-		rt.Set(res)
-
-	default:
-		panic(fmt.Sprintf("river/value: unexpected Go object target type %s", rt.Kind()))
-	}
-
-	return nil
 }
 
 func cloneGoValue(v reflect.Value) reflect.Value {

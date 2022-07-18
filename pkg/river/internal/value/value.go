@@ -10,12 +10,6 @@ import (
 	"strings"
 )
 
-// TODO(rfratto): This package is missing three main features:
-//
-// 1. Proper encoding/decoding to Go structs with rvr block tags (currently,
-//    labels are ignored)
-// 2. Decoding to Go structs with missing required attributes should fail
-
 // Go types used throughout the package.
 var (
 	goAny             = reflect.TypeOf((*interface{})(nil)).Elem()
@@ -23,6 +17,7 @@ var (
 	goByteSlice       = reflect.TypeOf([]byte(nil))
 	goError           = reflect.TypeOf((*error)(nil)).Elem()
 	goTextUnmarshaler = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
+	goStructWrapper   = reflect.TypeOf(structWrapper{})
 )
 
 // NOTE(rfratto): This package is extremely sensitive to performance, so
@@ -204,10 +199,12 @@ func (v Value) Len() int {
 	case TypeArray:
 		return v.rv.Len()
 	case TypeObject:
-		switch v.rv.Kind() {
-		case reflect.Struct:
+		switch {
+		case v.rv.Type() == goStructWrapper:
+			return v.rv.Interface().(structWrapper).Len()
+		case v.rv.Kind() == reflect.Struct:
 			return getCachedTags(v.rv.Type()).Len()
-		case reflect.Map:
+		case v.rv.Kind() == reflect.Map:
 			return v.rv.Len()
 		}
 	}
@@ -245,12 +242,14 @@ func (v Value) Keys() []string {
 		panic("river/value: Keys called on non-object value")
 	}
 
-	switch v.rv.Kind() {
-	case reflect.Struct:
-		ff := getCachedTags(v.rv.Type())
-		return ff.Keys()
+	switch {
+	case v.rv.Type() == goStructWrapper:
+		return v.rv.Interface().(structWrapper).Keys()
 
-	case reflect.Map:
+	case v.rv.Kind() == reflect.Struct:
+		return wrapStruct(v.rv).Keys()
+
+	case v.rv.Kind() == reflect.Map:
 		reflectKeys := v.rv.MapKeys()
 		res := make([]string, len(reflectKeys))
 		for i, rk := range reflectKeys {
@@ -269,22 +268,12 @@ func (v Value) Key(key string) (index Value, ok bool) {
 		panic("river/value: Key called on non-object value")
 	}
 
-	switch v.rv.Kind() {
-	case reflect.Struct:
-		// TODO(rfratto): optimize
-		ff := getCachedTags(v.rv.Type())
-		f, foundField := ff.Get(key)
-		if !foundField {
-			return
-		}
-
-		val, err := v.rv.FieldByIndexErr(f.Index)
-		if err != nil {
-			return Null, true
-		}
-		return makeValue(val), true
-
-	case reflect.Map:
+	switch {
+	case v.rv.Type() == goStructWrapper:
+		return v.rv.Interface().(structWrapper).Key(key)
+	case v.rv.Kind() == reflect.Struct:
+		return wrapStruct(v.rv).Key(key)
+	case v.rv.Kind() == reflect.Map:
 		val := v.rv.MapIndex(reflect.ValueOf(key))
 		if !val.IsValid() || val.IsZero() {
 			return
