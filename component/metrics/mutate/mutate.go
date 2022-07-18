@@ -44,7 +44,7 @@ type Component struct {
 	opts component.Options
 	mrc  []*relabel.Config
 
-	appendable *fa.FlowAppendable
+	appendable fa.FlowAppendable
 	receiver   *metrics.Receiver
 }
 
@@ -77,7 +77,7 @@ func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 
 	c.mrc = flow_relabel.HCLToPromRelabelConfigs(newArgs.MetricRelabelConfigs)
-	c.appendable.Receivers = newArgs.ForwardTo
+	c.appendable = fa.FlowAppendable(newArgs.ForwardTo)
 	c.opts.OnStateChange(Exports{Receiver: c.receiver})
 
 	return nil
@@ -88,7 +88,7 @@ func (c *Component) Update(args component.Arguments) error {
 // TODO (@tpaschalis) The relabelling process will run _every_ time, for all
 // metrics, resulting in some serious CPU overhead. We should be caching the
 // relabeling results per refID and clearing entries for dropped or stale
-// series. This is a blocker for releasing a production-grade metrics.mutate
+// series. This is a blocker for releasing a production-grade  of the metrics.mutate
 // component.
 func (c *Component) Receive(ts int64, metricArr []*metrics.FlowMetric) {
 	app := c.appendable.Appender(context.Background())
