@@ -18,6 +18,8 @@ RELEASE_TAG = $(IMAGE_TAG)
 else
 IMAGE_TAG ?= $(RELEASE_TAG)
 
+RELEASE_DOC_TAG = `echo ${RELEASE_TAG} | awk -F '.' '{print $$1"."$$2}'`
+
 # If $RELEASE_TAG is from a stable release we want to update :latest instead of
 # a branch. Otherwise, we want to re-use the versioned tag name.
 ifeq (,$(findstring -rc.,$(RELEASE_TAG)))
@@ -492,7 +494,10 @@ clean-dist:
 
 publish: dist
 	./packaging/rpm/gpg-sign.sh
+	RELEASE_DOC_TAG=$(RELEASE_DOC_TAG) ./tools/release
 	./tools/release
+
+
 
 # Drone signs the yaml, you will need to specify DRONE_TOKEN, which can be found by logging into your profile in drone
 .PHONY: drone
