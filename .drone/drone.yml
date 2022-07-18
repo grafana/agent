@@ -243,6 +243,7 @@ steps:
       - go install github.com/tcnksm/ghr@latest
       - go install github.com/mitchellh/gox@latest
       - export PATH="$(go env GOPATH)/bin:$PATH"
+      - export RELEASE_DOC_TAG=`echo ${DRONE_TAG} | awk -F "\." '{print $1"."$2}'`
       - make -j4 DOCKER_OPTS="" BUILD_IN_CONTAINER=false RELEASE_BUILD=true RELEASE_TAG=${DRONE_TAG} publish
 depends_on:
   - Test
@@ -277,6 +278,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: 6e4d636733b9bbb411cefb43e46298517db74b46629d3bf444caa58bb6479a39
+hmac: 0d7c083702eb7a76e804b369d3b65159bb471101bfae16a3d4cf18df97de1ab5
 
 ...

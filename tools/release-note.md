@@ -1,7 +1,7 @@
 This is release `${RELEASE_TAG}` of the Grafana Agent.
 
 ### Upgrading
-Read the [upgrade guide](https://github.com/grafana/agent/blob/${RELEASE_TAG}/docs/sources/upgrade-guide/_index.md) for specific instructions on upgrading from older versions.
+Read the [upgrade guide](https://github.com/grafana/agent/blob/${RELEASE_DOC_TAG}/docs/sources/upgrade-guide/_index.md) for specific instructions on upgrading from older versions.
 
 ### Notable changes:
 :warning: **ADD RELEASE NOTES HERE** :warning:
