@@ -15,6 +15,8 @@ Main (unreleased)
 
 ### Breaking changes
 
+- Change windows certificate store so client certificate is no longer required in store (@mattdurham)
+
 ### Features
 
 ### Enhancements
