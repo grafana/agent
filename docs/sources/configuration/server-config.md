@@ -76,12 +76,6 @@ server: <windows_server_config>
 ### windows_client_config
 
 ```yaml
-# Name of the system store to look for the Client Certificate ex LocalMachine, CurrentUser 
-system_store: <string>
-
-# Name of the store to look for the Client Certificate ex My, CA
-store: <string>
-
 # Array of issuer common names to check against
 issuer_common_names:
   [- <string> ... ]
