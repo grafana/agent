@@ -2,11 +2,29 @@ package value
 
 import "reflect"
 
-// Most Go values can be represented and decoded directly. Objects are
-// different, since each field may indicate a deeply nested value.
+// structWrapper allows for partially traversing structs which contain fields
+// representing blocks. This is required due to how block names and labels
+// change the object representation.
 //
-// TODO(rfratto): document more
-
+// If a block name is a.b.c, then it is represented as three nested objects:
+//
+//	{
+// 	  a = {
+//	    b = {
+//	      c = { /* block contents */ },
+//	    },
+//	  }
+//	}
+//
+// Similarly, if a block name is labeled (a.b.c "label"), then the label is the
+// top-level key after c.
+//
+// structWrapper exposes Len, Keys, and Key methods similar to Value to allow
+// traversing through the synthetic object. The values it returns are
+// structWrappers.
+//
+// Code in value.go MUST check to see if a struct is a structWrapper *before*
+// checking the value kind to ensure the appropriate methods are invoked.
 type structWrapper struct {
 	structVal reflect.Value
 	fields    *objectFields
