@@ -24,7 +24,6 @@ v0.26.0 (2022-07-18)
 
 - Change windows certificate store so client certificate is no longer required in store. (@mattdurham)
 
-
 ### Features
 
 - Introduce Apache HTTP exporter integration. (@v-zhuravlev)
@@ -38,10 +37,13 @@ v0.26.0 (2022-07-18)
 ### Bugfixes
 
 - Relative symlinks for promtail now work as expected. (@RangerCD, @mukerjee)
- 
+
 - Fix rate limiting implementation for the app agent receiver integration. (@domasx2)
 
 - Fix mongodb exporter so that it now collects all metrics. (@mattdurham)
+
+- Operator: Fix issue where configured `targetPort` ServiceMonitors resulted in
+  generating an incorrect scrape_config. (@rfratto)
 
 v0.25.1 (2022-06-16)
 -------------------------

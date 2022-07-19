@@ -131,7 +131,7 @@ function(
         action: 'keep',
       } else if endpoint.TargetPort != null then (
         if endpoint.TargetPort.StrVal != '' then {
-          source_labels: ['__meta_kubernetes_pod_container_name'],
+          source_labels: ['__meta_kubernetes_pod_container_port_name'],
           regex: endpoint.TargetPort.StrVal,
           action: 'keep',
         } else if endpoint.TargetPort.IntVal != 0 then {
