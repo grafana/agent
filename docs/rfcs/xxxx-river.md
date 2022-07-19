@@ -70,7 +70,8 @@ enable users to manipulate values to meet their own use cases in ways that
 otherwise would require dedicated feature work, such as:
 
 * Allowing users to merge metadata together from distinct sources when adding
-  labels to metrics
+  labels to metrics, such as merging labels from discovered Kubernetes
+  namespaces with discovered Kubernetes pods.
 
 * Allowing users to chain Prometheus service discoveries (e.g., feed the output
   of Kubernetes Service Discovery into HTTP Service Discovery)
@@ -95,11 +96,11 @@ concept.
 
 ### Why an embedded language?
 
-Embedded languages are typically known for the ability for maintainers of the
-project to expose APIs to users of the embedded language, such as the Lua API
-used by Neovim. Embedded languages typically imply tight integration with the
-application embedding them, as opposed to something like YAML which is a
-language consumed once at load time.
+We are using the term "embedded languages" to refer to languages typically
+known for the ability for maintainers of the project to expose APIs to users of
+the embedded language, such as the Lua API used by Neovim. Embedded languages
+typically imply tight integration with the application embedding them, as
+opposed to something like YAML which is a language consumed once at load time.
 
 An embedded language is a good fit for Flow:
 
@@ -137,14 +138,17 @@ difficult to work with for Flow, requiring a lot of boilerplate. While there is
 a library to interoperate with tagged Go structs, it was insufficient for
 passing around arbitrary Go values, requiring me to [fork][gohcl] both
 github.com/hashicorp/hcl/v2/gohcl and github.com/zclconf/go-cty/cty/gocty to
-reduce boilerplate. This fork contains a non-trivial amount of changes that
-would need to be contributed upstream to be tenable long-term.
+reduce boilerplate. While the fork lets us avoid the boilerplate of hand-crafting
+schema definitions for components, it contains a non-trivial amount of changes
+that would need to be contributed upstream to be tenable long-term.
 
 Additionally, there is desired functionality that is not supported today in
 HCL/go-cty:
 
 1. A stronger focus on performance and memory usage, changing go-cty to operate
    around Go values instead of converting Go values to a custom representation.
+   The performance gain will suit our needs for doing continuous evaluation of
+   expressions.
 2. Ability to disable go-cty's requirement that strings are UTF-8 encoded
 3. Pass around functions as go-cty values (e.g., to allow a clustering
    component to expose a function to check for ownership of key against a hash
@@ -376,7 +380,7 @@ come from the result of referring to a variable or calling a function.
 
 No existing tooling for River will exist from day one. While the initial
 implementation should include a formatter, tools like syntax highlighting or
-LSPs won't exist.
+LSPs won't exist and will need to be created over time.
 
 ## Alternatives considered
 
@@ -394,8 +398,9 @@ Cons:
 * Still wouldn't allow HCL to pass around functions as values
 * More tedious for developers to work with (they now have to exchange handles
   for values).
-* Requires extra logic for making sure resources that handles refer to don't
-  leak.
+* Developers will have to deal with extra logic for handling stale handles,
+  whereas arbitrary Go values would continue to exist until they've been
+  garbage collected.
 
 [RFC-0004]: ./0004-agent-flow.md
 [HCL]: https://github.com/hashicorp/hcl
