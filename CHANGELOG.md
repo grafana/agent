@@ -29,6 +29,9 @@ Main (unreleased)
 
 ### Bugfixes
 
+- Operator: Fix issue where configured `targetPort` ServiceMonitors resulted in
+  generating an incorrect scrape_config. (@rfratto)
+
 
 v0.26.0 (2022-07-18)
 -------------------------
