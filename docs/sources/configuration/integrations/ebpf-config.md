@@ -17,6 +17,9 @@ it comes with the relevant caveats of running eBPF programs
 on your host, like being on a kernel version >4.1, specific
 kernel flags being enabled, plus having superuser access.
 
+To enable the integration, you'll need to build the Agent from source and pass
+the `-tags=withebpf` flag.
+
 Currently, the exporter only supports `kprobes`, that is
 kernel-space probes.
 
