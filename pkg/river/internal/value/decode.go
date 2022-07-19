@@ -244,6 +244,40 @@ func decodeObject(val Value, rt reflect.Value) error {
 		targetTags := getCachedTags(rt.Type())
 		return decodeObjectToStruct(val, rt, targetTags, false)
 
+	case reflect.Slice, reflect.Array: // Slice of labeled blocks
+		keys := val.Keys()
+
+		var res reflect.Value
+
+		if rt.Kind() == reflect.Slice {
+			res = reflect.MakeSlice(rt.Type(), len(keys), len(keys))
+		} else { // Array
+			res = reflect.New(rt.Type()).Elem()
+
+			if res.Len() != len(keys) {
+				return Error{
+					Value: val,
+					Inner: fmt.Errorf("object must have exactly %d keys, got %d", res.Len(), len(keys)),
+				}
+			}
+		}
+
+		fields := getCachedTags(rt.Type().Elem())
+		labelField, _ := fields.LabelField()
+
+		for i, key := range keys {
+			// First decode the key into the label.
+			elem := res.Index(i)
+			elem.FieldByIndex(labelField.Index).Set(reflect.ValueOf(key))
+
+			// Now decode the inner object.
+			value, _ := val.Key(key)
+			if err := decodeObjectToStruct(value, elem, fields, true); err != nil {
+				return FieldError{Value: val, Field: key, Inner: err}
+			}
+		}
+		rt.Set(res)
+
 	case reflect.Map:
 		if rt.Type().Key() != goString {
 			// Maps with non-string types are treated as capsules and can't be
@@ -270,7 +304,7 @@ func decodeObject(val Value, rt reflect.Value) error {
 		rt.Set(res)
 
 	default:
-		panic(fmt.Sprintf("river/value: unexpected object type %s", val.rv.Kind()))
+		panic(fmt.Sprintf("river/value: unexpected target type %s", rt.Kind()))
 	}
 
 	return nil

@@ -13,7 +13,7 @@ type structWrapper struct {
 	label     string // Non-empty string if this struct is wrapped in a label.
 }
 
-func wrapStruct(val reflect.Value) structWrapper {
+func wrapStruct(val reflect.Value, keepLabel bool) structWrapper {
 	if val.Kind() != reflect.Struct {
 		panic("river/value: wrapStruct called on non-struct value")
 	}
@@ -21,7 +21,7 @@ func wrapStruct(val reflect.Value) structWrapper {
 	fields := getCachedTags(val.Type())
 
 	var label string
-	if f, ok := fields.LabelField(); ok {
+	if f, ok := fields.LabelField(); ok && keepLabel {
 		label = val.FieldByIndex(f.Index).String()
 	}
 
@@ -29,6 +29,14 @@ func wrapStruct(val reflect.Value) structWrapper {
 		structVal: val,
 		fields:    fields,
 		label:     label,
+	}
+}
+
+// Value turns sw into a value.
+func (sw structWrapper) Value() Value {
+	return Value{
+		rv: reflect.ValueOf(sw),
+		ty: TypeObject,
 	}
 }
 

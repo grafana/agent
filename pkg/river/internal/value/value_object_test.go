@@ -3,6 +3,7 @@ package value_test
 import (
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/grafana/agent/pkg/river/internal/value"
 	"github.com/stretchr/testify/require"
 )
@@ -110,4 +111,84 @@ func TestBlockRepresentation(t *testing.T) {
 	})
 }
 
-// TODO(rfratto): test slice of labeled blocks
+func TestSliceOfBlocks(t *testing.T) {
+	type UnlabledBlock struct {
+		Value int `river:"value,attr"`
+	}
+	type LabeledBlock struct {
+		Value int    `river:"value,attr"`
+		Label string `river:",label"`
+	}
+	type OuterBlock struct {
+		Attr1 string `river:"attr_1,attr"`
+		Attr2 string `river:"attr_2,attr"`
+
+		Unlabeled []UnlabledBlock `river:"unlabeled,block"`
+		Labeled   []LabeledBlock  `river:"labeled,block"`
+	}
+
+	val := OuterBlock{
+		Attr1: "value_1",
+		Attr2: "value_2",
+		Unlabeled: []UnlabledBlock{
+			{Value: 1},
+			{Value: 2},
+			{Value: 3},
+		},
+		Labeled: []LabeledBlock{
+			{Label: "label_a", Value: 4},
+			{Label: "label_b", Value: 5},
+			{Label: "label_c", Value: 6},
+		},
+	}
+
+	t.Run("Map decode", func(t *testing.T) {
+		var m map[string]interface{}
+		require.NoError(t, value.Decode(value.Encode(val), &m))
+
+		type object = map[string]interface{}
+		type list = []interface{}
+
+		expect := object{
+			"attr_1": "value_1",
+			"attr_2": "value_2",
+			"unlabeled": list{
+				object{"value": 1},
+				object{"value": 2},
+				object{"value": 3},
+			},
+			"labeled": object{
+				"label_a": object{"value": 4},
+				"label_b": object{"value": 5},
+				"label_c": object{"value": 6},
+			},
+		}
+
+		spew.Dump(m)
+
+		require.Equal(t, m, expect)
+	})
+
+	t.Run("Object decode from map", func(t *testing.T) {
+		// First decode into a map so the types aren't equal. This ensures that our
+		// decoding doesn't hit the fast path of assigning two structurally
+		// identical types.
+		var m map[string]interface{}
+		require.NoError(t, value.Decode(value.Encode(val), &m))
+
+		// Now decode the map into our actual value.
+		var actualVal OuterBlock
+		require.NoError(t, value.Decode(value.Encode(m), &actualVal))
+		require.Equal(t, val, actualVal)
+	})
+
+	t.Run("Object decode from other object", func(t *testing.T) {
+		// Decode into a separate type which is structurally identical but not
+		// literally the same.
+		type OuterBlock2 OuterBlock
+
+		var actualVal OuterBlock2
+		require.NoError(t, value.Decode(value.Encode(val), &actualVal))
+		require.Equal(t, val, OuterBlock(actualVal))
+	})
+}

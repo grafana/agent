@@ -34,6 +34,11 @@ var typeTests = []struct {
 
 	{struct{}{}, value.TypeObject},
 
+	// A slice of labeled blocks should be an object.
+	{[]struct {
+		Label string `river:",label"`
+	}{}, value.TypeObject},
+
 	{map[string]interface{}{}, value.TypeObject},
 
 	// Go functions must have one non-error return type and one optional error

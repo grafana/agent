@@ -202,6 +202,8 @@ func (v Value) Len() int {
 		switch {
 		case v.rv.Type() == goStructWrapper:
 			return v.rv.Interface().(structWrapper).Len()
+		case v.rv.Kind() == reflect.Array, v.rv.Kind() == reflect.Slice: // Array of labeled blocks
+			return v.rv.Len()
 		case v.rv.Kind() == reflect.Struct:
 			return getCachedTags(v.rv.Type()).Len()
 		case v.rv.Kind() == reflect.Map:
@@ -247,7 +249,17 @@ func (v Value) Keys() []string {
 		return v.rv.Interface().(structWrapper).Keys()
 
 	case v.rv.Kind() == reflect.Struct:
-		return wrapStruct(v.rv).Keys()
+		return wrapStruct(v.rv, true).Keys()
+
+	case v.rv.Kind() == reflect.Array, v.rv.Kind() == reflect.Slice:
+		// List of labeled blocks.
+		labelField, _ := getCachedTags(v.rv.Type().Elem()).LabelField()
+
+		keys := make([]string, v.rv.Len())
+		for i := range keys {
+			keys[i] = v.rv.Index(i).FieldByIndex(labelField.Index).String()
+		}
+		return keys
 
 	case v.rv.Kind() == reflect.Map:
 		reflectKeys := v.rv.MapKeys()
@@ -272,16 +284,34 @@ func (v Value) Key(key string) (index Value, ok bool) {
 	case v.rv.Type() == goStructWrapper:
 		return v.rv.Interface().(structWrapper).Key(key)
 	case v.rv.Kind() == reflect.Struct:
-		return wrapStruct(v.rv).Key(key)
+		// We return the struct with the label intact.
+		return wrapStruct(v.rv, true).Key(key)
 	case v.rv.Kind() == reflect.Map:
 		val := v.rv.MapIndex(reflect.ValueOf(key))
 		if !val.IsValid() || val.IsZero() {
 			return
 		}
 		return makeValue(val), true
+
+	case v.rv.Kind() == reflect.Slice, v.rv.Kind() == reflect.Array:
+		// List of labeled blocks.
+		labelField, _ := getCachedTags(v.rv.Type().Elem()).LabelField()
+
+		for i := 0; i < v.rv.Len(); i++ {
+			elem := v.rv.Index(i)
+
+			label := elem.FieldByIndex(labelField.Index).String()
+			if label == key {
+				// We discard the label since the key here represents the label value.
+				ws := wrapStruct(elem, false)
+				return ws.Value(), true
+			}
+		}
+	default:
+		panic("river/value: unreachable")
 	}
 
-	panic("river/value: unreachable")
+	return
 }
 
 // Call invokes a function value with the provided arguments. It panics if v is
