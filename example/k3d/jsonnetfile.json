@@ -4,7 +4,7 @@
     {
       "source": {
         "git": {
-          "remote": "https://github.com/grafana/cortex-jsonnet",
+          "remote": "https://github.com/grafana/cortex-jsonnet.git",
           "subdir": "cortex-mixin"
         }
       },
@@ -13,7 +13,7 @@
     {
       "source": {
         "git": {
-          "remote": "https://github.com/grafana/jsonnet-libs",
+          "remote": "https://github.com/grafana/jsonnet-libs.git",
           "subdir": "ksonnet-util"
         }
       },
@@ -22,7 +22,16 @@
     {
       "source": {
         "git": {
-          "remote": "https://github.com/jsonnet-libs/k8s-alpha",
+          "remote": "https://github.com/grafana/tempo.git",
+          "subdir": "operations/jsonnet/single-binary"
+        }
+      },
+      "version": "main"
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/jsonnet-libs/k8s-alpha.git",
           "subdir": "1.14"
         }
       },

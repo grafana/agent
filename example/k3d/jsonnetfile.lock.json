@@ -54,6 +54,16 @@
     {
       "source": {
         "git": {
+          "remote": "https://github.com/grafana/tempo.git",
+          "subdir": "operations/jsonnet/single-binary"
+        }
+      },
+      "version": "07e9ef2f1c25a63ac6061307a3a8453b81b5e417",
+      "sum": "0f7vj8dSS9a9CRPf8O9LowMHqieUm9bqgfq6uHJGIF4="
+    },
+    {
+      "source": {
+        "git": {
           "remote": "https://github.com/jsonnet-libs/k8s-alpha.git",
           "subdir": "1.14"
         }

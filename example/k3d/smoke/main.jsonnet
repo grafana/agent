@@ -1,6 +1,6 @@
 local monitoring = import './monitoring/main.jsonnet';
 local cortex = import 'cortex/main.libsonnet';
-local tempo = import 'tempo/main.libsonnet';
+local tempo = import 'github.com/grafana/tempo/operations/jsonnet/single-binary/tempo.libsonnet';
 local avalanche = import 'grafana-agent/smoke/avalanche/main.libsonnet';
 local crow = import 'grafana-agent/smoke/crow/main.libsonnet';
 local vulture = import 'grafana-agent/smoke/vulture/main.libsonnet';
@@ -13,6 +13,9 @@ local namespace = k.core.v1.namespace;
 local pvc = k.core.v1.persistentVolumeClaim;
 local volumeMount = k.core.v1.volumeMount;
 local containerPort = k.core.v1.containerPort;
+local statefulset = k.apps.v1.statefulSet;
+local service = k.core.v1.service;
+local configMap = k.core.v1.configMap;
 
 local images = {
   agent: 'grafana/agent:main',
@@ -38,7 +41,49 @@ local smoke = {
 
   cortex: cortex.new('smoke'),
 
-  tempo: tempo.new('smoke'),
+  tempo: tempo {
+    _config+:: {
+      namespace: 'smoke',
+      tempo: {
+        port: 3200,
+        replicas: 1,
+        headless_service_name: 'localhost',
+      },
+      pvc_size: '30Gi',
+      pvc_storage_class: 'local-path',
+      receivers: {
+        jaeger: {
+          protocols: {
+            thrift_http: null,
+          },
+        },
+        otlp: {
+          protocols: {
+            grpc: {
+              endpoint: "0.0.0.0:4317"
+            },
+          },
+        },
+      }
+    },
+    tempo_config+: {
+      querier: {
+        frontend_worker: {
+          frontend_address: 'localhost:9095',
+        },
+      },
+    },
+    tempo_statefulset+:
+      statefulset.mixin.metadata.withNamespace("smoke"),
+    tempo_service+:
+      service.mixin.metadata.withNamespace("smoke"),
+    tempo_headless_service+:
+      service.mixin.metadata.withNamespace("smoke"),
+    tempo_query_configmap+:
+      configMap.mixin.metadata.withNamespace("smoke"),
+    tempo_configmap+:
+      configMap.mixin.metadata.withNamespace("smoke")
+  },
 
   // Needed to run agent cluster
   etcd: etcd.new('smoke'),
