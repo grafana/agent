@@ -2,12 +2,11 @@ package kubernetes
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"net/url"
+	"time"
 
 	"github.com/grafana/agent/component"
-	"github.com/prometheus/common/config"
+	"github.com/grafana/agent/component/metrics/scrape"
 	promk8s "github.com/prometheus/prometheus/discovery/kubernetes"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 )
@@ -77,153 +76,9 @@ func (sc *SelectorConfig) Convert() *promk8s.SelectorConfig {
 	}
 }
 
-// TODO (cpeterson) move HTTPClientConfig and subtypes to dedicated package. make sure all custom serializers work
-type HTTPClientConfig struct {
-	// The HTTP basic authentication credentials for the targets.
-	BasicAuth *BasicAuth `hcl:"basic_auth,optional"`
-	// The HTTP authorization credentials for the targets.
-	Authorization *Authorization `hcl:"authorization,optional"`
-	// The OAuth2 client credentials used to fetch a token for the targets.
-	OAuth2 *OAuth2 `hcl:"oauth2,optional"`
-	// The bearer token for the targets. Deprecated in favour of
-	// Authorization.Credentials.
-	BearerToken Secret `hcl:"bearer_token,optional"`
-	// The bearer token file for the targets. Deprecated in favour of
-	// Authorization.CredentialsFile.
-	BearerTokenFile string `hcl:"bearer_token_file,optional"`
-	// HTTP proxy server to use to connect to the targets.
-	ProxyURL URL `hcl:"proxy_url,optional"`
-	// TLSConfig to use to connect to the targets.
-	TLSConfig TLSConfig `hcl:"tls_config,optional"`
-	// FollowRedirects specifies whether the client should follow HTTP 3xx redirects.
-	// The optional flag is not set, because it would be hidden from the
-	// marshalled configuration when set to false.
-	FollowRedirects bool `hcl:"follow_redirects"`
-	// EnableHTTP2 specifies whether the client should configure HTTP2.
-	// The optional flag is not set, because it would be hidden from the
-	// marshalled configuration when set to false.
-	EnableHTTP2 bool `hcl:"enable_http2"`
-}
-
-func (h *HTTPClientConfig) Convert() *config.HTTPClientConfig {
-	return &config.HTTPClientConfig{
-		BasicAuth:       h.BasicAuth.Convert(),
-		Authorization:   h.Authorization.Convert(),
-		OAuth2:          h.OAuth2.Convert(),
-		BearerToken:     config.Secret(h.BearerToken),
-		BearerTokenFile: h.BearerTokenFile,
-		ProxyURL:        h.ProxyURL.Convert(),
-		TLSConfig:       *h.TLSConfig.Convert(),
-		FollowRedirects: h.FollowRedirects,
-		EnableHTTP2:     h.EnableHTTP2,
-	}
-}
-
-type URL string
-
-func (u URL) Convert() config.URL {
-	urlp, _ := url.Parse(string(u))
-
-	return config.URL{URL: urlp}
-}
-
-type BasicAuth struct {
-	Username     string `hcl:"username"`
-	Password     Secret `hcl:"password,optional"`
-	PasswordFile string `hcl:"password_file,optional"`
-}
-
-func (b *BasicAuth) Convert() *config.BasicAuth {
-	if b == nil {
-		return nil
-	}
-	return &config.BasicAuth{
-		Username:     b.Username,
-		Password:     config.Secret(b.Password),
-		PasswordFile: b.PasswordFile,
-	}
-}
-
-type Secret string
-
-type Authorization struct {
-	Type            string `hcl:"type,optional"`
-	Credentials     Secret `hcl:"credentials,optional"`
-	CredentialsFile string `hcl:"credentials_file,optional"`
-}
-
-func (a *Authorization) Convert() *config.Authorization {
-	if a == nil {
-		return nil
-	}
-	return &config.Authorization{
-		Type:            a.Type,
-		Credentials:     config.Secret(a.Credentials),
-		CredentialsFile: a.CredentialsFile,
-	}
-}
-
-type OAuth2 struct {
-	ClientID         string            `hcl:"client_id"`
-	ClientSecret     Secret            `hcl:"client_secret"`
-	ClientSecretFile string            `hcl:"client_secret_file"`
-	Scopes           []string          `hcl:"scopes,optional"`
-	TokenURL         string            `hcl:"token_url"`
-	EndpointParams   map[string]string `hcl:"endpoint_params,optional"`
-
-	// HTTP proxy server to use to connect to the targets.
-	ProxyURL URL `hcl:"proxy_url,optional"`
-	// TLSConfig is used to connect to the token URL.
-	TLSConfig TLSConfig `hcl:"tls_config,optional"`
-}
-
-func (o *OAuth2) Convert() *config.OAuth2 {
-	if o == nil {
-		return nil
-	}
-	return &config.OAuth2{
-		ClientID:         o.ClientID,
-		ClientSecret:     config.Secret(o.ClientSecret),
-		ClientSecretFile: o.ClientSecretFile,
-		Scopes:           o.Scopes,
-		TokenURL:         o.TokenURL,
-		EndpointParams:   o.EndpointParams,
-		ProxyURL:         o.ProxyURL.Convert(),
-		TLSConfig:        *o.TLSConfig.Convert(),
-	}
-}
-
-type TLSConfig struct {
-	// The CA cert to use for the targets.
-	CAFile string `hcl:"ca_file,optional"`
-	// The client cert file for the targets.
-	CertFile string `hcl:"cert_file,optional"`
-	// The client key file for the targets.
-	KeyFile string `hcl:"key_file,optional"`
-	// Used to verify the hostname for the targets.
-	ServerName string `hcl:"server_name,optional"`
-	// Disable target certificate validation.
-	InsecureSkipVerify bool `hcl:"insecure_skip_verify"`
-	// Minimum TLS version.
-	MinVersion TLSVersion `hcl:"min_version,optional"`
-}
-
-func (t *TLSConfig) Convert() *config.TLSConfig {
-	return &config.TLSConfig{
-		CAFile:             t.CAFile,
-		CertFile:           t.CertFile,
-		KeyFile:            t.KeyFile,
-		ServerName:         t.ServerName,
-		InsecureSkipVerify: t.InsecureSkipVerify,
-		MinVersion:         config.TLSVersion(t.MinVersion),
-	}
-}
-
-type TLSVersion uint16
-
 // Exports holds values which are exported by the discovery.k8s component.
 type Exports struct {
-	B string `hcl:"b,optional"`
+	Targets []scrape.Target `hcl:"targets,optional"`
 }
 
 // Component implements the discovery.k8s component.
@@ -239,7 +94,8 @@ type Component struct {
 func New(o component.Options, args SDConfig) (*Component, error) {
 	c := &Component{
 		opts: o,
-		ch:   make(chan []*targetgroup.Group),
+		// TODO: check buffering in prometheus service discovery manager
+		ch: make(chan []*targetgroup.Group),
 	}
 
 	// Perform an update which will immediately set our exports
@@ -251,20 +107,69 @@ func New(o component.Options, args SDConfig) (*Component, error) {
 
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
+	f := func(t []scrape.Target) {
+		c.opts.OnStateChange(Exports{Targets: t})
+	}
+	runDiscovery(ctx, c.ch, f)
+	// if we get here, we've canceled
+	if c.cancel != nil {
+		c.cancel()
+	}
+	return nil
+}
+
+func runDiscovery(ctx context.Context, ch <-chan []*targetgroup.Group, f func([]scrape.Target)) {
+	cache := map[string]*targetgroup.Group{}
+
+	dirty := false
+
+	const maxChangeFreq = 5 * time.Second
+	// this should give us 2 seconds at startup to collect some changes before sending
+	var lastChange time.Time = time.Now().Add(-3 * time.Second)
 	for {
+		var timeChan <-chan time.Time = nil
+		if dirty {
+			now := time.Now()
+			nextValidTime := lastChange.Add(5 * time.Second)
+			if now.Unix() > nextValidTime.Unix() {
+				// We are past the threshold, send change notification now
+				lastChange = now
+				t := []scrape.Target{}
+				for _, group := range cache {
+					for _, target := range group.Targets {
+						m := map[string]string{}
+						for k, v := range group.Labels {
+							m[string(k)] = string(v)
+						}
+						for k, v := range target {
+							m[string(k)] = string(v)
+						}
+						t = append(t, m)
+					}
+				}
+				f(t)
+			} else {
+				// else set a timer
+				timeToWait := nextValidTime.Sub(now)
+				timeChan = time.After(timeToWait)
+			}
+		}
 		select {
 		case <-ctx.Done():
-			if c.cancel != nil {
-				c.cancel()
+			return
+		case <-timeChan:
+			continue
+		case groups := <-ch:
+			for _, group := range groups {
+				if len(group.Targets) == 0 {
+					delete(cache, group.Source)
+				} else {
+					cache[group.Source] = group
+					dirty = true
+				}
 			}
-			return nil
-		case group := <-c.ch:
-			d, _ := json.MarshalIndent(group, "", "  ")
-			fmt.Println(string(d))
-			fmt.Println(group[0].Source)
 		}
 	}
-
 }
 
 // Update implements component.Compnoent.
