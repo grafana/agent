@@ -29,6 +29,9 @@ Main (unreleased)
 
 ### Bugfixes
 
+- Fix Linux/AMD64 binaries requiring the bcc toolchain to be present by making
+  the eBPF exporter opt-in. (@tpaschalis)
+
 
 v0.26.0 (2022-07-18)
 -------------------------
