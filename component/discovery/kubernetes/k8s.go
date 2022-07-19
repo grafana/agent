@@ -3,9 +3,9 @@ package kubernetes
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/metrics/scrape"
 	promk8s "github.com/prometheus/prometheus/discovery/kubernetes"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
@@ -110,66 +110,12 @@ func (c *Component) Run(ctx context.Context) error {
 	f := func(t []scrape.Target) {
 		c.opts.OnStateChange(Exports{Targets: t})
 	}
-	runDiscovery(ctx, c.ch, f)
+	discovery.RunDiscovery(ctx, c.ch, f)
 	// if we get here, we've canceled
 	if c.cancel != nil {
 		c.cancel()
 	}
 	return nil
-}
-
-func runDiscovery(ctx context.Context, ch <-chan []*targetgroup.Group, f func([]scrape.Target)) {
-	cache := map[string]*targetgroup.Group{}
-
-	dirty := false
-
-	const maxChangeFreq = 5 * time.Second
-	// this should give us 2 seconds at startup to collect some changes before sending
-	var lastChange time.Time = time.Now().Add(-3 * time.Second)
-	for {
-		var timeChan <-chan time.Time = nil
-		if dirty {
-			now := time.Now()
-			nextValidTime := lastChange.Add(5 * time.Second)
-			if now.Unix() > nextValidTime.Unix() {
-				// We are past the threshold, send change notification now
-				lastChange = now
-				t := []scrape.Target{}
-				for _, group := range cache {
-					for _, target := range group.Targets {
-						m := map[string]string{}
-						for k, v := range group.Labels {
-							m[string(k)] = string(v)
-						}
-						for k, v := range target {
-							m[string(k)] = string(v)
-						}
-						t = append(t, m)
-					}
-				}
-				f(t)
-			} else {
-				// else set a timer
-				timeToWait := nextValidTime.Sub(now)
-				timeChan = time.After(timeToWait)
-			}
-		}
-		select {
-		case <-ctx.Done():
-			return
-		case <-timeChan:
-			continue
-		case groups := <-ch:
-			for _, group := range groups {
-				if len(group.Targets) == 0 {
-					delete(cache, group.Source)
-				} else {
-					cache[group.Source] = group
-					dirty = true
-				}
-			}
-		}
-	}
 }
 
 // Update implements component.Compnoent.
