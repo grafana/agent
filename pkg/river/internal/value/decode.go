@@ -98,7 +98,7 @@ func decode(val Value, into reflect.Value) error {
 	case convVal.Type() != targetType:
 		// Check to see if we can use capsule conversion.
 		if convVal.Type() == TypeCapsule {
-			cc, ok := convVal.Interface().(ConvertibleCapsule)
+			cc, ok := convVal.Interface().(ConvertibleIntoCapsule)
 			if ok {
 				// It's always possible to Addr the reflect.Value below since we expect
 				// it to be a settable non-pointer value.
@@ -112,7 +112,7 @@ func decode(val Value, into reflect.Value) error {
 		}
 
 		if targetType == TypeCapsule {
-			cc, ok := into.Addr().Interface().(ConvertibleCapsule)
+			cc, ok := into.Addr().Interface().(ConvertibleFromCapsule)
 			if ok {
 				err := cc.ConvertFrom(convVal.rv.Interface())
 				if err == nil {

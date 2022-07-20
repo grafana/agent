@@ -285,7 +285,8 @@ func TestDecode_ErrorChain(t *testing.T) {
 
 type boolish int
 
-var _ value.ConvertibleCapsule = (*boolish)(nil)
+var _ value.ConvertibleFromCapsule = (*boolish)(nil)
+var _ value.ConvertibleIntoCapsule = (boolish)(0)
 
 func (b boolish) RiverCapsule() {}
 
@@ -326,10 +327,8 @@ func TestDecode_CustomConvert(t *testing.T) {
 	})
 
 	t.Run("custom to compatible type", func(t *testing.T) {
-		src := boolish(10)
-
 		var b bool
-		err := value.Decode(value.Encapsulate(&src), &b)
+		err := value.Decode(value.Encapsulate(boolish(10)), &b)
 		require.NoError(t, err)
 		require.Equal(t, true, b)
 	})

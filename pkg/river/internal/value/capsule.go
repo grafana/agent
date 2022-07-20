@@ -26,13 +26,9 @@ type Capsule interface {
 // denote that a custom conversion from or to a specific type is unavailable.
 var ErrNoConversion = fmt.Errorf("no custom capsule conversion available")
 
-// ConvertibleCapsule is a Capsule which supports custom conversion rules
-// between Go types which are not the same.
-//
-// ConvertibleCapsule's methods are used even if the other type in the
-// conversion is not a capsule; such as converting a bool into a capsule type
-// or vice-versa.
-type ConvertibleCapsule interface {
+// ConvertibleFromCapsule is a Capsule which supports custom conversion rules
+// from any Go type which is not the same as the capsule type.
+type ConvertibleFromCapsule interface {
 	Capsule
 
 	// ConvertFrom should modify the ConvertibleCapsule value based on the value
@@ -41,6 +37,12 @@ type ConvertibleCapsule interface {
 	// ConvertFrom should return ErrNoConversion if no conversion is available
 	// from src.
 	ConvertFrom(src interface{}) error
+}
+
+// ConvertibleIntoCapsule is a Capsule which supports custom conversion rules
+// into any Go type which is not the same as the capsule type.
+type ConvertibleIntoCapsule interface {
+	Capsule
 
 	// ConvertInto should convert its value and store it into dst. dst will be a
 	// pointer to a value which ConvertInto is expected to update.
