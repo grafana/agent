@@ -293,6 +293,8 @@ dist: dist-agent dist-agentctl dist-packages
 ####################
 
 dist-agent: seego dist/agent-linux-amd64 dist/agent-linux-arm64 dist/agent-linux-armv6 dist/agent-linux-armv7 dist/agent-linux-ppc64le dist/agent-darwin-amd64 dist/agent-darwin-arm64 dist/agent-windows-amd64.exe dist/agent-freebsd-amd64 dist/agent-windows-installer.exe
+
+# Override CGO_FLAGS to add the noebpf build tag in linux/amd64 builds
 dist/agent-linux-amd64: CGO_FLAGS := -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo noebpf" $(GOFLAGS)
 dist/agent-linux-amd64: seego
 	$(call SetBuildVarsConditional,linux/amd64) ;      $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
@@ -341,6 +343,7 @@ dist/agent-freebsd-amd64: seego
 
 dist-agentctl: seego dist/agentctl-linux-amd64 dist/agentctl-linux-arm64 dist/agentctl-linux-armv6 dist/agentctl-linux-armv7 dist/agentctl-darwin-amd64 dist/agentctl-darwin-arm64 dist/agentctl-windows-amd64.exe dist/agentctl-freebsd-amd64
 
+# Override CGO_FLAGS to add the noebpf build tag in linux/amd64 builds
 dist/agentctl-linux-amd64: CGO_FLAGS := -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo noebpf" $(GOFLAGS)
 dist/agentctl-linux-amd64: seego
 	$(call SetBuildVarsConditional,linux/amd64);    $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
