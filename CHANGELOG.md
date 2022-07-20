@@ -32,6 +32,7 @@ Main (unreleased)
 - Operator: Fix issue where configured `targetPort` ServiceMonitors resulted in
   generating an incorrect scrape_config. (@rfratto)
 
+- Build the Linux/AMD64 artifacts using the opt-out flag for the ebpf_exporter. (@tpaschalis)
 
 v0.26.0 (2022-07-18)
 -------------------------
