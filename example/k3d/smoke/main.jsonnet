@@ -3,7 +3,8 @@ local cortex = import 'cortex/main.libsonnet';
 local tempo = import 'github.com/grafana/tempo/operations/jsonnet/single-binary/tempo.libsonnet';
 local avalanche = import 'grafana-agent/smoke/avalanche/main.libsonnet';
 local crow = import 'grafana-agent/smoke/crow/main.libsonnet';
-local vulture = import 'grafana-agent/smoke/vulture/main.libsonnet';
+local vulture = import 'github.com/grafana/tempo/operations/jsonnet/microservices/vulture.libsonnet';
+local tempo = import 'github.com/grafana/tempo/operations/jsonnet/single-binary/tempo.libsonnet';
 local etcd = import 'grafana-agent/smoke/etcd/main.libsonnet';
 local smoke = import 'grafana-agent/smoke/main.libsonnet';
 local gragent = import 'grafana-agent/v2/main.libsonnet';
@@ -16,6 +17,7 @@ local containerPort = k.core.v1.containerPort;
 local statefulset = k.apps.v1.statefulSet;
 local service = k.core.v1.service;
 local configMap = k.core.v1.configMap;
+local deployment = k.apps.v1.deployment;
 
 local images = {
   agent: 'grafana/agent:main',
@@ -103,7 +105,25 @@ local smoke = {
     new_crow('crow-cluster', 'cluster="grafana-agent-cluster"'),
   ],
 
-  vulture: vulture.new(namespace='smoke'),
+  vulture: vulture {
+    _images+:: {
+      tempo_vulture: 'grafana/tempo-vulture:latest'
+    },    
+    _config+:: {
+      vulture: {
+        replicas: 1,
+        tempoPushUrl: 'http://grafana-agent',
+        tempoQueryUrl: 'http://tempo:3200',
+        tempoOrgId: '',
+        tempoRetentionDuration: '336h',
+        tempoSearchBackoffDuration: '0s',
+        tempoReadBackoffDuration: '10s',
+        tempoWriteBackoffDuration: '10s',
+      }      
+    },
+    tempo_vulture_deployment+:
+      deployment.mixin.metadata.withNamespace("smoke")
+  },
 
   local metric_instances(crow_name) = [{
     name: 'crow',

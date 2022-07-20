@@ -23,6 +23,15 @@
       "source": {
         "git": {
           "remote": "https://github.com/grafana/tempo.git",
+          "subdir": "operations/jsonnet/microservices"
+        }
+      },
+      "version": "main"
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/grafana/tempo.git",
           "subdir": "operations/jsonnet/single-binary"
         }
       },
