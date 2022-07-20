@@ -25,23 +25,35 @@ apiVersion: v1
 data: {}
 kind: Secret
 metadata:
-  name: primary-credentials-logs
+  name: logs-secret
   namespace: default
 stringData:
-  password: YOUR_HL_PASS
-  username: YOUR_HL_USER
+  password: test
+  username: test
 type: Opaque
 ---
 apiVersion: v1
 data: {}
 kind: Secret
 metadata:
-  name: primary-credentials-metrics
+  name: metrics-secret
   namespace: default
 stringData:
-  password: YOUR_HM_PASS
-  username: YOUR_HM_USER
+  password: test
+  username: test
 type: Opaque
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: agent-eventhandler
+  namespace: default
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -404,38 +416,45 @@ spec:
   integrations:
     selector:
       matchLabels:
-        agent: grafana-agent-integrations
+        agent: grafana-agent
   logs:
     instanceSelector:
       matchLabels:
-        agent: grafana-agent-logs
+        agent: grafana-agent
   metrics:
     externalLabels:
       cluster: cloud
     instanceSelector:
       matchLabels:
-        agent: grafana-agent-metrics
+        agent: grafana-agent
   serviceAccountName: grafana-agent
 ---
 apiVersion: monitoring.grafana.com/v1alpha1
 kind: Integration
 metadata:
   labels:
-    agent: grafana-agent-integrations
-  name: eventhandler
+    agent: grafana-agent
+  name: agent-eventhandler
   namespace: default
 spec:
   config:
-    cache_path: /var/lib/grafana-agent/data/eventhandler.cache
-    logs_instance: default/grafana-agent-logs
+    cache_path: /etc/eventhandler/eventhandler.cache
+    logs_instance: default/grafana-agent
   type:
     unique: true
+  volumeMounts:
+  - mountPath: /etc/eventhandler
+    name: agent-eventhandler
+  volumes:
+  - name: agent-eventhandler
+    persistentVolumeClaim:
+      claimName: agent-eventhandler
 ---
 apiVersion: monitoring.grafana.com/v1alpha1
 kind: LogsInstance
 metadata:
   labels:
-    agent: grafana-agent-logs
+    agent: grafana-agent
   name: grafana-agent-logs
   namespace: default
 spec:
@@ -443,23 +462,23 @@ spec:
   - basicAuth:
       password:
         key: password
-        name: primary-credentials-logs
+        name: logs-secret
       username:
         key: username
-        name: primary-credentials-logs
+        name: logs-secret
     externalLabels:
       cluster: cloud
-    url: YOUR_HL_URL
+    url: test
   podLogsNamespaceSelector: {}
   podLogsSelector:
     matchLabels:
-      agent: grafana-agent-logs
+      instance: primary
 ---
 apiVersion: monitoring.grafana.com/v1alpha1
 kind: MetricsInstance
 metadata:
   labels:
-    agent: grafana-agent-metrics
+    agent: grafana-agent
   name: grafana-agent-metrics
   namespace: default
 spec:
@@ -467,21 +486,21 @@ spec:
   - basicAuth:
       password:
         key: password
-        name: primary-credentials-metrics
+        name: metrics-secret
       username:
         key: username
-        name: primary-credentials-metrics
-    url: YOUR_HM_URL
+        name: metrics-secret
+    url: test
   serviceMonitorNamespaceSelector: {}
   serviceMonitorSelector:
     matchLabels:
-      agent: grafana-agent-metrics
+      instance: primary
 ---
 apiVersion: monitoring.grafana.com/v1alpha1
 kind: PodLogs
 metadata:
   labels:
-    agent: grafana-agent-logs
+    instance: primary
   name: kubernetes-pods
   namespace: default
 spec:
@@ -496,29 +515,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   labels:
-    agent: grafana-agent-metrics
-  name: ksm-monitor
-spec:
-  endpoints:
-  - honorLabels: true
-    interval: 60s
-    metricRelabelings:
-    - action: replace
-      replacement: integrations/kubernetes/kube-state-metrics
-      targetLabel: job
-    path: /metrics
-    port: http-metrics
-  namespaceSelector:
-    any: true
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: kube-state-metrics
----
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  labels:
-    agent: grafana-agent-metrics
+    instance: primary
   name: cadvisor-monitor
   namespace: default
 spec:
@@ -540,7 +537,8 @@ spec:
     tlsConfig:
       insecureSkipVerify: true
   namespaceSelector:
-    any: true
+    matchNames:
+    - default
   selector:
     matchLabels:
       app.kubernetes.io/name: kubelet
@@ -549,7 +547,31 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   labels:
-    agent: grafana-agent-metrics
+    instance: primary
+  name: ksm-monitor
+  namespace: default
+spec:
+  endpoints:
+  - honorLabels: true
+    interval: 60s
+    metricRelabelings:
+    - action: replace
+      replacement: integrations/kubernetes/kube-state-metrics
+      targetLabel: job
+    path: /metrics
+    port: http-metrics
+  namespaceSelector:
+    matchNames:
+    - default
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kube-state-metrics
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    instance: primary
   name: kubelet-monitor
   namespace: default
 spec:
@@ -571,7 +593,8 @@ spec:
     tlsConfig:
       insecureSkipVerify: true
   namespaceSelector:
-    any: true
+    matchNames:
+    - default
   selector:
     matchLabels:
       app.kubernetes.io/name: kubelet
