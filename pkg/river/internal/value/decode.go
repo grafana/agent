@@ -146,6 +146,22 @@ func decode(val Value, into reflect.Value) error {
 	}
 }
 
+// decodeAny is invoked by decode when into is an interface{}. We assign the
+// interface{} a known type based on the River value being decoded:
+//
+//   Null values:   nil
+//   Number values: float64, int, or uint depending on the underlying Go type
+//                  of the River value
+//   Arrays:        []interface{}
+//   Objects:       map[string]interface{}
+//   Bool:          bool
+//   String:        string
+//   Function:      Passthrough of the underlying function value
+//   Capsule:       Passthrough of the underlying capsule value
+//
+// In the cases where we do not passthrough the underlying value, we create a
+// value of that type, recrusively call decode to populate that new value, and
+// then store that value into the interface{}.
 func decodeAny(val Value, into reflect.Value) error {
 	var ptr reflect.Value
 
