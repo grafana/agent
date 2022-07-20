@@ -104,7 +104,9 @@ func (b *Body) getOrCreateAttribute(name string) *attribute {
 
 // SetAttributeValue sets an attribute in the Body whose value is converted
 // from a Go value to a River value. The Go value is encoded using the normal
-// Go to River encoding rules.
+// Go to River encoding rules. If any value reachable from goValue implements
+// Tokenizer, the printed tokens will instead be retrieved by calling the
+// RiverTokenize method.
 //
 // If the attribute was previously set, its value tokens are updated.
 //
