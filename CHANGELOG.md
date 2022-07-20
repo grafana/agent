@@ -40,8 +40,6 @@ v0.26.0 (2022-07-18)
 - Changed tail sampling policies to be configured as in the OpenTelemetry
   Collector. (@mapno)
 
-- Change windows certificate store so client certificate is no longer required in store. (@mattdurham)
-
 ### Features
 
 - Introduce Apache HTTP exporter integration. (@v-zhuravlev)
