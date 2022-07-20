@@ -18,6 +18,7 @@ var (
 	goError           = reflect.TypeOf((*error)(nil)).Elem()
 	goTextUnmarshaler = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
 	goStructWrapper   = reflect.TypeOf(structWrapper{})
+	goCapsule         = reflect.TypeOf((*Capsule)(nil)).Elem()
 )
 
 // NOTE(rfratto): This package is extremely sensitive to performance, so
@@ -89,9 +90,9 @@ func Func(f interface{}) Value {
 	return Value{rv: rv, ty: TypeFunction}
 }
 
-// Capsule creates a new Capsule value from v. Capsule panics if v does not map
-// to a River capsule.
-func Capsule(v interface{}) Value {
+// Encapsulate creates a new Capsule value from v. Encapsulate panics if v does
+// not map to a River capsule.
+func Encapsulate(v interface{}) Value {
 	rv := reflect.ValueOf(v)
 	if RiverType(rv.Type()) != TypeCapsule {
 		panic("river/value: Capsule called with non-capsule type")
@@ -220,6 +221,14 @@ func (v Value) Index(i int) Value {
 		panic("river/value: Index called on non-array value")
 	}
 	return makeValue(v.rv.Index(i))
+}
+
+// Interface returns the underlying Go value for the Value.
+func (v Value) Interface() interface{} {
+	if v.ty == TypeNull {
+		return nil
+	}
+	return v.rv.Interface()
 }
 
 // makeValue converts a reflect value into a Value, deferencing any pointers or
