@@ -7,6 +7,24 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+
+v0.26.1 (2022-07-25)
+-------------------------
+
+> **BREAKING CHANGES**: This release has breaking changes. Please read entries
+> carefully and consult the [upgrade guide][] for specific instructions.
+
+### Breaking changes
+
+- Change windows certificate store so client certificate is no longer required in store. (@mattdurham)
+
+### Bugfixes
+
+- Operator: Fix issue where configured `targetPort` ServiceMonitors resulted in
+  generating an incorrect scrape_config. (@rfratto)
+
+- Build the Linux/AMD64 artifacts using the opt-out flag for the ebpf_exporter. (@tpaschalis)
+
 v0.26.0 (2022-07-18)
 -------------------------
 
