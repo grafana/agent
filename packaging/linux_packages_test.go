@@ -61,13 +61,11 @@ func buildPackages(t *testing.T) {
 	root, err := filepath.Abs(filepath.Join(wd, ".."))
 	require.NoError(t, err)
 
-	gocache := filepath.Join(wd, ".cache")
 	cmd := exec.Command("make", fmt.Sprintf("dist-packages-%s", runtime.GOARCH))
 	cmd.Env = append(
 		os.Environ(),
 		"RELEASE_TAG=v0.0.0",
 		"DOCKER_OPTS=",
-		fmt.Sprintf("GOCACHE=%s", gocache),
 	)
 	cmd.Dir = root
 	cmd.Stderr = os.Stderr
