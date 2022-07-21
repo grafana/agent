@@ -86,14 +86,14 @@ func (vm *Evaluator) evaluateBlock(scope *Scope, assoc map[value.Value]ast.Node,
 	tfs := rivertags.Get(rv.Type())
 
 	// Decode the block label first.
-	if err := vm.evaluateBlockLabel(node, assoc, tfs, rv); err != nil {
+	if err := vm.evaluateBlockLabel(node, tfs, rv); err != nil {
 		return err
 	}
 
 	return vm.evaluateBody(scope, assoc, node.Body, rv)
 }
 
-func (vm *Evaluator) evaluateBlockLabel(node *ast.BlockStmt, assoc map[value.Value]ast.Node, tfs []rivertags.Field, rv reflect.Value) error {
+func (vm *Evaluator) evaluateBlockLabel(node *ast.BlockStmt, tfs []rivertags.Field, rv reflect.Value) error {
 	var (
 		labelField rivertags.Field
 		foundField bool
