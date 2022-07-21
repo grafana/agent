@@ -10,12 +10,6 @@ import (
 	"strings"
 )
 
-// TODO(rfratto): This package is missing three main features:
-//
-// 1. Proper encoding/decoding to Go structs with rvr block tags (currently,
-//    labels are ignored)
-// 2. Decoding to Go structs with missing required attributes should fail
-
 // Go types used throughout the package.
 var (
 	goAny             = reflect.TypeOf((*interface{})(nil)).Elem()
@@ -23,6 +17,7 @@ var (
 	goByteSlice       = reflect.TypeOf([]byte(nil))
 	goError           = reflect.TypeOf((*error)(nil)).Elem()
 	goTextUnmarshaler = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
+	goStructWrapper   = reflect.TypeOf(structWrapper{})
 )
 
 // NOTE(rfratto): This package is extremely sensitive to performance, so
@@ -204,10 +199,14 @@ func (v Value) Len() int {
 	case TypeArray:
 		return v.rv.Len()
 	case TypeObject:
-		switch v.rv.Kind() {
-		case reflect.Struct:
+		switch {
+		case v.rv.Type() == goStructWrapper:
+			return v.rv.Interface().(structWrapper).Len()
+		case v.rv.Kind() == reflect.Array, v.rv.Kind() == reflect.Slice: // Array of labeled blocks
+			return v.rv.Len()
+		case v.rv.Kind() == reflect.Struct:
 			return getCachedTags(v.rv.Type()).Len()
-		case reflect.Map:
+		case v.rv.Kind() == reflect.Map:
 			return v.rv.Len()
 		}
 	}
@@ -245,12 +244,24 @@ func (v Value) Keys() []string {
 		panic("river/value: Keys called on non-object value")
 	}
 
-	switch v.rv.Kind() {
-	case reflect.Struct:
-		ff := getCachedTags(v.rv.Type())
-		return ff.Keys()
+	switch {
+	case v.rv.Type() == goStructWrapper:
+		return v.rv.Interface().(structWrapper).Keys()
 
-	case reflect.Map:
+	case v.rv.Kind() == reflect.Struct:
+		return wrapStruct(v.rv, true).Keys()
+
+	case v.rv.Kind() == reflect.Array, v.rv.Kind() == reflect.Slice:
+		// List of labeled blocks.
+		labelField, _ := getCachedTags(v.rv.Type().Elem()).LabelField()
+
+		keys := make([]string, v.rv.Len())
+		for i := range keys {
+			keys[i] = v.rv.Index(i).FieldByIndex(labelField.Index).String()
+		}
+		return keys
+
+	case v.rv.Kind() == reflect.Map:
 		reflectKeys := v.rv.MapKeys()
 		res := make([]string, len(reflectKeys))
 		for i, rk := range reflectKeys {
@@ -269,30 +280,38 @@ func (v Value) Key(key string) (index Value, ok bool) {
 		panic("river/value: Key called on non-object value")
 	}
 
-	switch v.rv.Kind() {
-	case reflect.Struct:
-		// TODO(rfratto): optimize
-		ff := getCachedTags(v.rv.Type())
-		f, foundField := ff.Get(key)
-		if !foundField {
-			return
-		}
-
-		val, err := v.rv.FieldByIndexErr(f.Index)
-		if err != nil {
-			return Null, true
-		}
-		return makeValue(val), true
-
-	case reflect.Map:
+	switch {
+	case v.rv.Type() == goStructWrapper:
+		return v.rv.Interface().(structWrapper).Key(key)
+	case v.rv.Kind() == reflect.Struct:
+		// We return the struct with the label intact.
+		return wrapStruct(v.rv, true).Key(key)
+	case v.rv.Kind() == reflect.Map:
 		val := v.rv.MapIndex(reflect.ValueOf(key))
 		if !val.IsValid() || val.IsZero() {
 			return
 		}
 		return makeValue(val), true
+
+	case v.rv.Kind() == reflect.Slice, v.rv.Kind() == reflect.Array:
+		// List of labeled blocks.
+		labelField, _ := getCachedTags(v.rv.Type().Elem()).LabelField()
+
+		for i := 0; i < v.rv.Len(); i++ {
+			elem := v.rv.Index(i)
+
+			label := elem.FieldByIndex(labelField.Index).String()
+			if label == key {
+				// We discard the label since the key here represents the label value.
+				ws := wrapStruct(elem, false)
+				return ws.Value(), true
+			}
+		}
+	default:
+		panic("river/value: unreachable")
 	}
 
-	panic("river/value: unreachable")
+	return
 }
 
 // Call invokes a function value with the provided arguments. It panics if v is

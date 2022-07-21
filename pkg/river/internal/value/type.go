@@ -83,6 +83,13 @@ func RiverType(t reflect.Type) Type {
 		return TypeBool
 
 	case reflect.Array, reflect.Slice:
+		if inner := t.Elem(); inner.Kind() == reflect.Struct {
+			if _, labeled := getCachedTags(inner).LabelField(); labeled {
+				// An slice/array of labeled blocks is an object, where each label is a
+				// top-level key.
+				return TypeObject
+			}
+		}
 		return TypeArray
 
 	case reflect.Map:

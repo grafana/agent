@@ -10,7 +10,7 @@ import (
 	"github.com/grafana/agent/pkg/river/token"
 )
 
-// A File reprents a River configuration file.
+// A File represents a River configuration file.
 type File struct {
 	body *Body
 }
