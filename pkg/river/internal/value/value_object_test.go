@@ -3,7 +3,6 @@ package value_test
 import (
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/grafana/agent/pkg/river/internal/value"
 	"github.com/stretchr/testify/require"
 )
@@ -87,19 +86,6 @@ func TestBlockRepresentation(t *testing.T) {
 		require.Equal(t, m, expect)
 	})
 
-	t.Run("Object decode from map", func(t *testing.T) {
-		// First decode into a map so the types aren't equal. This ensures that our
-		// decoding doesn't hit the fast path of assigning two structurally
-		// identical types.
-		var m map[string]interface{}
-		require.NoError(t, value.Decode(value.Encode(val), &m))
-
-		// Now decode the map into our actual value.
-		var actualVal OuterBlock
-		require.NoError(t, value.Decode(value.Encode(m), &actualVal))
-		require.Equal(t, val, actualVal)
-	})
-
 	t.Run("Object decode from other object", func(t *testing.T) {
 		// Decode into a separate type which is structurally identical but not
 		// literally the same.
@@ -164,22 +150,7 @@ func TestSliceOfBlocks(t *testing.T) {
 			},
 		}
 
-		spew.Dump(m)
-
 		require.Equal(t, m, expect)
-	})
-
-	t.Run("Object decode from map", func(t *testing.T) {
-		// First decode into a map so the types aren't equal. This ensures that our
-		// decoding doesn't hit the fast path of assigning two structurally
-		// identical types.
-		var m map[string]interface{}
-		require.NoError(t, value.Decode(value.Encode(val), &m))
-
-		// Now decode the map into our actual value.
-		var actualVal OuterBlock
-		require.NoError(t, value.Decode(value.Encode(m), &actualVal))
-		require.Equal(t, val, actualVal)
 	})
 
 	t.Run("Object decode from other object", func(t *testing.T) {

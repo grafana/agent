@@ -2,14 +2,18 @@ package value
 
 import (
 	"encoding"
+	"errors"
 	"fmt"
 	"reflect"
 )
 
-// Decode assigns a Value val to a Go pointer target. Decode will attempt to
-// convert val to the type expected by target for assignment. If val cannot be
-// converted, an error is returned. Pointers will be allocated as necessary
-// when decoding.
+// Decode assigns a Value val to a Go pointer target. Pointers will be
+// allocated as necessary when decoding.
+//
+// Decode will attempt to convert val to the type expected by target for
+// assignment. If val or target implement ConvertibleCapsule, conversion
+// between values will be attempted by calling ConvertFrom and ConvertInto as
+// appropriate. If val cannot be converted, an error is returned.
 //
 // New arrays and slices will be allocated when decoding into target.
 //
@@ -92,6 +96,33 @@ func decode(val Value, into reflect.Value) error {
 		into.Set(val.rv.Convert(goByteSlice))
 		return nil
 	case convVal.Type() != targetType:
+		// Check to see if we can use capsule conversion.
+		if convVal.Type() == TypeCapsule {
+			cc, ok := convVal.Interface().(ConvertibleIntoCapsule)
+			if ok {
+				// It's always possible to Addr the reflect.Value below since we expect
+				// it to be a settable non-pointer value.
+				err := cc.ConvertInto(into.Addr().Interface())
+				if err == nil {
+					return nil
+				} else if err != nil && !errors.Is(err, ErrNoConversion) {
+					return Error{Value: convVal, Inner: err}
+				}
+			}
+		}
+
+		if targetType == TypeCapsule {
+			cc, ok := into.Addr().Interface().(ConvertibleFromCapsule)
+			if ok {
+				err := cc.ConvertFrom(convVal.rv.Interface())
+				if err == nil {
+					return nil
+				} else if err != nil && !errors.Is(err, ErrNoConversion) {
+					return Error{Value: convVal, Inner: err}
+				}
+			}
+		}
+
 		var err error
 		convVal, err = convertValue(convVal, targetType)
 		if err != nil {

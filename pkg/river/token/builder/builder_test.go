@@ -102,3 +102,37 @@ func format(t *testing.T, in string) string {
 
 	return buf.String()
 }
+
+type CustomTokenizer bool
+
+var _ builder.Tokenizer = (CustomTokenizer)(false)
+
+func (ct CustomTokenizer) RiverTokenize() []builder.Token {
+	return []builder.Token{{Tok: token.LITERAL, Lit: "CUSTOM_TOKENS"}}
+}
+
+func TestBuilder_GoEncode_Tokenizer(t *testing.T) {
+	f := builder.NewFile()
+
+	type block struct {
+		Number int             `river:"number,attr"`
+		Custom CustomTokenizer `river:"custom_tokenizer,attr"`
+		String string          `river:"string,attr"`
+	}
+
+	f.Body().SetAttributeValue("custom_tokens", block{
+		Number: 15,
+		Custom: CustomTokenizer(true),
+		String: "Hello, world!",
+	})
+
+	expect := format(t, `
+		custom_tokens = {
+			number = 15,
+			custom_tokenizer = CUSTOM_TOKENS,
+			string = "Hello, world!",
+		}
+	`)
+
+	require.Equal(t, expect, string(f.Bytes()))
+}

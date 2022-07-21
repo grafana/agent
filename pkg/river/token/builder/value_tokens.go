@@ -8,12 +8,23 @@ import (
 	"github.com/grafana/agent/pkg/river/token"
 )
 
+// Tokenizer is any value which can return a raw set of tokens.
+type Tokenizer interface {
+	// RiverTokenize returns the raw set of River tokens which are used when
+	// printing out the value with river/token/builder.
+	RiverTokenize() []Token
+}
+
 func tokenEncode(val interface{}) []Token {
 	return valueTokens(value.Encode(val))
 }
 
 func valueTokens(v value.Value) []Token {
 	var toks []Token
+
+	if tk, ok := v.Interface().(Tokenizer); ok {
+		return tk.RiverTokenize()
+	}
 
 	switch v.Type() {
 	case value.TypeNull:
