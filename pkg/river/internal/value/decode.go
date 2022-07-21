@@ -156,14 +156,15 @@ func decode(val Value, into reflect.Value) error {
 	case TypeObject:
 		return decodeObject(convVal, into)
 	case TypeFunction:
-		// If the function types had the exact same signature, they would've been
-		// handled in the best case statement above. If we've hit this point,
-		// they're not the same.
-		//
-		// For now, we return an error.
+		// The Go types for two functions must be the same.
 		//
 		// TODO(rfratto): we may want to consider being more lax here, potentially
 		// creating an adapter between the two functions.
+		if convVal.rv.Type() == into.Type() {
+			into.Set(convVal.rv)
+			return nil
+		}
+
 		return Error{
 			Value: val,
 			Inner: fmt.Errorf("expected function(%s), got function(%s)", into.Type(), convVal.rv.Type()),
