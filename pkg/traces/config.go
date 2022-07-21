@@ -27,11 +27,12 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configtest"
-	"go.opentelemetry.io/collector/config/configunmarshaler"
+	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
 	"go.opentelemetry.io/collector/processor/batchprocessor"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
+	"go.opentelemetry.io/collector/service/external/configunmarshaler"
 	"go.uber.org/multierr"
 
 	"github.com/grafana/agent/pkg/logs"
@@ -301,9 +302,15 @@ type SpanMetricsConfig struct {
 type tailSamplingConfig struct {
 	// Policies are the strategies used for sampling. Multiple policies can be used in the same pipeline.
 	// For more information, refer to https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor
-	Policies []map[string]interface{} `yaml:"policies"`
+	Policies []policy `yaml:"policies"`
 	// DecisionWait defines the time to wait for a complete trace before making a decision
 	DecisionWait time.Duration `yaml:"decision_wait,omitempty"`
+}
+
+type policy struct {
+	Name   string                 `yaml:"name,omitempty"`
+	Type   string                 `yaml:"type"`
+	Policy map[string]interface{} `yaml:",inline"`
 }
 
 // loadBalancingConfig defines the configuration for load balancing spans between agent instances
@@ -520,27 +527,31 @@ func (c *InstanceConfig) loadBalancingExporter() (map[string]interface{}, error)
 }
 
 // formatPolicies creates sampling policies (i.e. rules) compatible with OTel's tail sampling processor
-// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.36.0/processor/tailsamplingprocessor
-func formatPolicies(cfg []map[string]interface{}) ([]map[string]interface{}, error) {
+// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.46.0/processor/tailsamplingprocessor
+func formatPolicies(cfg []policy) ([]map[string]interface{}, error) {
 	policies := make([]map[string]interface{}, 0, len(cfg))
 	for i, policy := range cfg {
-		if len(policy) != 1 {
-			return nil, errors.New("malformed sampling policy")
+		typ, name := policy.Type, policy.Name
+		if typ == "" {
+			return nil, fmt.Errorf("policy %d must have a type", i)
 		}
-		for typ, rules := range policy {
-			switch typ {
-			case alwaysSamplePolicy:
-				policies = append(policies, map[string]interface{}{
-					"name": fmt.Sprintf("%s/%d", typ, i),
-					"type": typ,
-				})
-			default:
-				policies = append(policies, map[string]interface{}{
-					"name": fmt.Sprintf("%s/%d", typ, i),
-					"type": typ,
-					typ:    rules,
-				})
-			}
+
+		if name == "" {
+			name = fmt.Sprintf("%s/%d", typ, i)
+		}
+
+		switch typ {
+		case alwaysSamplePolicy:
+			policies = append(policies, map[string]interface{}{
+				"name": name,
+				"type": typ,
+			})
+		default:
+			policies = append(policies, map[string]interface{}{
+				"name": name,
+				"type": typ,
+				typ:    policy.Policy[typ],
+			})
 		}
 	}
 	return policies, nil
@@ -758,8 +769,8 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 		return nil, fmt.Errorf("failed to validate factories: %w", err)
 	}
 
-	configMap := config.NewMapFromStringMap(otelMapStructure)
-	otelCfg, err := configunmarshaler.NewDefault().Unmarshal(configMap, factories)
+	configMap := confmap.NewFromStringMap(otelMapStructure)
+	otelCfg, err := configunmarshaler.New().Unmarshal(configMap, factories)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load OTel config: %w", err)
 	}

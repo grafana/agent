@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
@@ -19,13 +20,22 @@ func Test_ReportLoop(t *testing.T) {
 	reportCheckInterval = 100 * time.Millisecond
 	reportInterval = time.Second
 
-	totalReport := 0
-	agentIDs := []string{}
+	var (
+		mut          sync.Mutex
+		totalReports int
+		agentIDs     []string
+	)
+
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		mut.Lock()
+		defer mut.Unlock()
+
+		totalReports++
+
 		var received Report
-		totalReport++
 		require.NoError(t, jsoniter.NewDecoder(r.Body).Decode(&received))
 		agentIDs = append(agentIDs, received.UsageStatsID)
+
 		rw.WriteHeader(http.StatusOK)
 	}))
 	usageStatsURL = server.URL
@@ -40,7 +50,11 @@ func Test_ReportLoop(t *testing.T) {
 		cancel()
 	}()
 	require.Equal(t, context.Canceled, r.Start(ctx))
-	require.GreaterOrEqual(t, totalReport, 5)
+
+	mut.Lock()
+	defer mut.Unlock()
+
+	require.GreaterOrEqual(t, totalReports, 5)
 	first := agentIDs[0]
 	for _, uid := range agentIDs {
 		require.Equal(t, first, uid)

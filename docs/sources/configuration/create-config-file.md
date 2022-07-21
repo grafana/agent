@@ -173,8 +173,6 @@ traces:
     remote_write:
       - endpoint: localhost:55680
         insecure: true  # only add this if TLS is not required
-        queue:
-          retry_on_failure: true
     batch:
       timeout: 5s
       send_batch_size: 100

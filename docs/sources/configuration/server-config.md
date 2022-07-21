@@ -76,21 +76,15 @@ server: <windows_server_config>
 ### windows_client_config
 
 ```yaml
-# Name of the system store to look for the Client Certificate ex LocalMachine, CurrentUser 
-system_store: <string>
-
-# Name of the store to look for the Client Certificate ex My, CA
-store: <string>
-
 # Array of issuer common names to check against
 issuer_common_names:
   [- <string> ... ]
 
 # Regular expression to match Subject name
-[client_subject_regex: <string>]
+[subject_regex: <string>]
 
 # Client Template ID to match in ASN1 format ex "1.2.3"
-[client_template_id: <string>]
+[template_id: <string>]
 ```
 
 ### windows_server_config

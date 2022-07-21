@@ -18,6 +18,8 @@ RELEASE_TAG = $(IMAGE_TAG)
 else
 IMAGE_TAG ?= $(RELEASE_TAG)
 
+RELEASE_DOC_TAG = `echo ${RELEASE_TAG} | awk -F '.' '{print $$1"."$$2}'`
+
 # If $RELEASE_TAG is from a stable release we want to update :latest instead of
 # a branch. Otherwise, we want to re-use the versioned tag name.
 ifeq (,$(findstring -rc.,$(RELEASE_TAG)))
@@ -65,8 +67,7 @@ CROSS_BUILD ?= false
 # run make BUILD_IN_CONTAINER=false <target>, or you can set BUILD_IN_CONTAINER=true
 # as an environment variable.
 BUILD_IN_CONTAINER ?= true
-BUILD_IMAGE_VERSION := 0.13.0
-BUILD_IMAGE := $(IMAGE_PREFIX)/agent-build-image:$(BUILD_IMAGE_VERSION)
+BUILD_IMAGE := $(IMAGE_PREFIX)/agent-build-image:0.14.0
 
 # Enables the binary to be built with optimizations (i.e., doesn't strip the image of
 # symbols, etc.)
@@ -149,7 +150,7 @@ endif
 # CRDs #
 ########
 
-crds: build-image/.uptodate
+crds:
 ifeq ($(BUILD_IN_CONTAINER),true)
 	mkdir -p $(shell pwd)/.pkg
 	mkdir -p $(shell pwd)/.cache
@@ -376,18 +377,6 @@ ifeq ($(BUILD_IN_CONTAINER),true)
 endif
 endif
 
-
-build-image/.uptodate: build-image/Dockerfile
-	docker pull $(BUILD_IMAGE) || docker build -t $(BUILD_IMAGE) $(@D)
-	touch $@
-
-build-image/.published: build-image/.uptodate
-ifneq (,$(findstring WIP,$(IMAGE_TAG)))
-	@echo "Cannot push a WIP image, commit changes first"; \
-	false
-endif
-	docker push $(IMAGE_PREFIX)/agent-build-image:$(BUILD_IMAGE_VERSION)
-
 packaging/debian-systemd/.uptodate: $(wildcard packaging/debian-systemd/*)
 	docker pull $(IMAGE_PREFIX)/debian-systemd || docker build -t $(IMAGE_PREFIX)/debian-systemd $(@D)
 	touch $@
@@ -411,15 +400,15 @@ container_make = docker run --init --rm $(DOCKER_OPTS) \
 	-e SRC_PATH=/src/agent \
 	$(BUILD_IMAGE)
 
-dist-packages-amd64: enforce-release-tag dist/agent-linux-amd64 dist/agentctl-linux-amd64 build-image/.uptodate
+dist-packages-amd64: enforce-release-tag dist/agent-linux-amd64 dist/agentctl-linux-amd64
 	$(container_make) $@;
-dist-packages-arm64: enforce-release-tag dist/agent-linux-arm64 dist/agentctl-linux-arm64 build-image/.uptodate
+dist-packages-arm64: enforce-release-tag dist/agent-linux-arm64 dist/agentctl-linux-arm64
 	$(container_make) $@;
-dist-packages-armv6: enforce-release-tag dist/agent-linux-armv6 dist/agentctl-linux-armv6 build-image/.uptodate
+dist-packages-armv6: enforce-release-tag dist/agent-linux-armv6 dist/agentctl-linux-armv6
 	$(container_make) $@;
-dist-packages-armv7: enforce-release-tag dist/agent-linux-armv7 dist/agentctl-linux-armv7 build-image/.uptodate
+dist-packages-armv7: enforce-release-tag dist/agent-linux-armv7 dist/agentctl-linux-armv7
 	$(container_make) $@;
-dist-packages-ppc64le: enforce-release-tag dist/agent-linux-ppc64le dist/agentctl-linux-ppc64le build-image/.uptodate
+dist-packages-ppc64le: enforce-release-tag dist/agent-linux-ppc64le dist/agentctl-linux-ppc64le
 	$(container_make) $@;
 
 else
@@ -495,6 +484,7 @@ enforce-release-tag:
 	sh -c '[ -n "${RELEASE_TAG}" ] || (echo \$$RELEASE_TAG environment variable not set; exit 1)'
 
 test-packages:
+	docker pull $(BUILD_IMAGE)
 	go test -tags=packaging  ./packaging
 .PHONY: test-packages
 
@@ -503,7 +493,11 @@ clean-dist:
 .PHONY: clean
 
 publish: dist
+	./packaging/rpm/gpg-sign.sh
+	RELEASE_DOC_TAG=$(RELEASE_DOC_TAG) ./tools/release
 	./tools/release
+
+
 
 # Drone signs the yaml, you will need to specify DRONE_TOKEN, which can be found by logging into your profile in drone
 .PHONY: drone

@@ -62,6 +62,7 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		// the old names, so we hard-code it to true now. We may wish to make this
 		// configurable in the future.
 		CompatibleMode: true,
+		CollectAll:     true,
 	})
 
 	return integrations.NewHandlerIntegration(c.Name(), exp.Handler()), nil

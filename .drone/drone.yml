@@ -1,5 +1,70 @@
 ---
 kind: pipeline
+type: docker
+name: Create Linux build image
+platform:
+  os: linux
+  arch: amd64
+trigger:
+  event: [tag]
+  ref: [refs/tags/build-image/v*]
+steps:
+  - name: Build
+    image: docker
+    volumes:
+      - name: docker
+        path: /var/run/docker.sock
+    environment:
+      DOCKER_LOGIN:
+        from_secret: DOCKER_LOGIN
+      DOCKER_PASSWORD:
+        from_secret: DOCKER_PASSWORD
+    commands:
+    - export IMAGE_TAG=${DRONE_TAG##build-image/v}
+    - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
+    - docker build -t grafana/agent-build-image:$IMAGE_TAG ./build-image
+    - docker push grafana/agent-build-image:$IMAGE_TAG
+volumes:
+  - name: docker
+    host:
+      path: /var/run/docker.sock
+
+---
+kind: pipeline
+type: docker
+name: Create Windows build image
+platform:
+  os: windows
+  arch: amd64
+  version: "1809"
+trigger:
+  event: [tag]
+  ref: [refs/tags/build-image/v*]
+steps:
+  - name: Build
+    image: docker:windowsservercore-1809
+    volumes:
+      - name: docker
+        path: //./pipe/docker_engine/
+    environment:
+      DOCKER_LOGIN:
+        from_secret: DOCKER_LOGIN
+      DOCKER_PASSWORD:
+        from_secret: DOCKER_PASSWORD
+    commands:
+      # NOTE(rfratto): the variable syntax is parsed ahead of time by Drone,
+      # and not by Windows (where the syntax obviously wouldn't work).
+      - $IMAGE_TAG="${DRONE_TAG##build-image/v}-windows"
+      - docker login -u $Env:DOCKER_LOGIN -p $Env:DOCKER_PASSWORD
+      - docker build -t grafana/agent-build-image:$IMAGE_TAG ./build-image/windows
+      - docker push grafana/agent-build-image:$IMAGE_TAG
+volumes:
+- name: docker
+  host:
+    path: //./pipe/docker_engine/
+
+---
+kind: pipeline
 name: Lint
 platform:
   os: linux
@@ -12,11 +77,11 @@ trigger:
   ref:
     - refs/heads/main
     - refs/pull/*/head
-    - refs/tags/**
+    - refs/tags/v*
 
 steps:
   - name: lint
-    image: golangci/golangci-lint:v1.44
+    image: golangci/golangci-lint:v1.46
     commands:
       - apt-get update -y && apt-get install -y libsystemd-dev libbpfcc-dev
       - make DOCKER_OPTS="" lint
@@ -36,7 +101,7 @@ trigger:
   ref:
     - refs/heads/main
     - refs/pull/*/head
-    - refs/tags/**
+    - refs/tags/v*
 
 steps:
   - name: test
@@ -55,9 +120,6 @@ steps:
       - export PATH=$PATH:/usr/local/go/bin
       - make DOCKER_OPTS="" cmd/agent/agent cmd/agentctl/agentctl cmd/agent-operator/agent-operator tools/crow/grafana-agent-crow tools/smoke/grafana-agent-smoke
       - make DOCKER_OPTS="" K8S_USE_DOCKER_NETWORK=1 DRONE=true BUILD_IN_CONTAINER=false test
-
-depends_on:
-  - Lint
 
 volumes:
  - name: docker
@@ -79,14 +141,12 @@ trigger:
   ref:
     - refs/heads/main
     - refs/pull/*/head
-    - refs/tags/**
+    - refs/tags/v*
 steps:
   - name: test
-    image: grafana/ci-build-windows:0.3.4
+    image: grafana/agent-build-image:0.14.0-windows
     commands:
       - go test -tags="nodocker,nonetwork" ./...
-depends_on:
-  - Lint
 ---
 kind: pipeline
 type: docker
@@ -224,6 +284,12 @@ steps:
         from_secret: DOCKER_PASSWORD
       GITHUB_TOKEN:
         from_secret: GITHUB_KEY
+      GPG_PRIVATE_KEY:
+        from_secret: gpg_private_key
+      GPG_PUBLIC_KEY:
+        from_secret: gpg_public_key
+      GPG_PASSPHRASE:
+        from_secret: gpg_passphrase
     commands:
       - apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
       - curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
@@ -271,8 +337,33 @@ name: gh_token
 get:
   path: infra/data/ci/github/grafanabot
   name: pat
+
+---
+kind: secret
+name: gpg_public_key
+
+get:
+  name: public-key
+  path: infra/data/ci/packages-publish/gpg
+
+---
+kind: secret
+name: gpg_private_key
+
+get:
+  name: private-key
+  path: infra/data/ci/packages-publish/gpg
+
+---
+kind: secret
+name: gpg_passphrase
+
+get:
+  name: passphrase
+  path: infra/data/ci/packages-publish/gpg
+
 ---
 kind: signature
-hmac: 56508186d2cd2cb71ab0596c9d0210735177404efbf0fdc2e5109727ef39aede
+hmac: 2cf5a5ca48b13a35f2f609985ab81e5cf21bf5f31a1543fde16a74ce3ff60c13
 
 ...
