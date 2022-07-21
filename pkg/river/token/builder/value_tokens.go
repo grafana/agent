@@ -18,12 +18,6 @@ type Tokenizer interface {
 }
 
 func tokenEncode(val interface{}) []Token {
-	if val, ok := val.(value.Value); ok {
-		// Special case: it's already a value.Value and we don't need to encode it.
-		// This will happen by internal usages of river/token/builder, such as
-		// river/vm when constructing errors.
-		return valueTokens(val)
-	}
 	return valueTokens(value.Encode(val))
 }
 

@@ -10,6 +10,7 @@ import (
 	"github.com/grafana/agent/pkg/river/token/builder"
 )
 
+// ValueError represents a failed evaluation for an AST Node.
 type ValueError struct {
 	// Node where the error originated.
 	Node ast.Node
@@ -97,7 +98,9 @@ func convertValueError(err error, assoc map[value.Value]ast.Node) error {
 	if node != nil {
 		var nodeText strings.Builder
 		if err := printer.Fprint(&nodeText, node); err != nil {
-			// TODO(rfratto): is it OK for this to panic?
+			// TODO(rfratto): is it OK for this to panic? It should never fail since
+			// Fprint only fails if it's given an unexpected node value, which we
+			// never do here.
 			panic(err)
 		}
 
@@ -112,7 +115,7 @@ func convertValueError(err error, assoc map[value.Value]ast.Node) error {
 	var valueText string
 	if cause != value.Null {
 		be := builder.NewExpr()
-		be.SetValue(cause)
+		be.SetValue(cause.Interface())
 		valueText = string(be.Bytes())
 	}
 

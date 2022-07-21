@@ -7,8 +7,9 @@ import (
 )
 
 // Functions returns the list of stdlib functions by name. The interface{}
-// value is always function value with exactly one return value, though it may
-// accept any number of inputs.
+// value is always a River-compatible function value, where functions have at
+// least one non-error return value, with an optionally supported error return
+// value as the second return value.
 var Functions = map[string]interface{}{
 	"env": os.Getenv,
 
