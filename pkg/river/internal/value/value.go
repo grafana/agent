@@ -72,8 +72,10 @@ func Object(m map[string]Value) Value {
 // Array creates an array from the given values. A copy of the vv slice is made
 // for producing the Value.
 func Array(vv ...Value) Value {
-	ty := reflect.ArrayOf(len(vv), goAny)
-	raw := reflect.New(ty).Elem()
+	// Arrays should be slices otherwise any reference to them gets copied by
+	// value into a new pointer.
+	arrayType := reflect.SliceOf(goAny)
+	raw := reflect.MakeSlice(arrayType, len(vv), len(vv))
 
 	for i, v := range vv {
 		if v.ty == TypeNull {

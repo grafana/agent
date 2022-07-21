@@ -95,15 +95,12 @@ func decode(val Value, into reflect.Value) error {
 		into = into.Elem()
 	}
 
-	// Fastest cases: we can directly assign values.
+	// Fastest cases: we can directly assign values without converting.
 	switch {
 	case val.Type() == TypeNull:
 		// TODO(rfratto): Does it make sense for a null to always decode into the
 		// zero value? Maybe only objects and arrays should support null?
 		into.Set(reflect.Zero(into.Type()))
-	case val.rv.Type() == into.Type():
-		into.Set(cloneGoValue(val.rv))
-		return nil
 	case into.Type() == goAny:
 		return decodeAny(val, into)
 	}

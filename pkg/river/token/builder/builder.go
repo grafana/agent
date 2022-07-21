@@ -13,6 +13,38 @@ import (
 	"github.com/grafana/agent/pkg/river/token"
 )
 
+// An Expr represents a single River expression.
+type Expr struct {
+	rawTokens []Token
+}
+
+// NewExpr creates a new Expr.
+func NewExpr() *Expr { return &Expr{} }
+
+// Tokens returns the Expr as a set of Tokens.
+func (e *Expr) Tokens() []Token { return e.rawTokens }
+
+// SetValue sets the Expr to a River value converted from a Go value. The Go
+// value is encoded using the normal Go to River encoding rules. If any value
+// reachable from goValue implements Tokenizer, the printed tokens will instead
+// be retrieved by calling the RiverTokenize method.
+func (e *Expr) SetValue(goValue interface{}) {
+	e.rawTokens = tokenEncode(goValue)
+}
+
+// WriteTo renders and formats the File, writing the contents to w.
+func (e *Expr) WriteTo(w io.Writer) (int64, error) {
+	n, err := printExprTokens(w, e.Tokens())
+	return int64(n), err
+}
+
+// Bytes renders the File to a formatted byte slice.
+func (e *Expr) Bytes() []byte {
+	var buf bytes.Buffer
+	_, _ = e.WriteTo(&buf)
+	return buf.Bytes()
+}
+
 // A File represents a River configuration file.
 type File struct {
 	body *Body
@@ -29,7 +61,7 @@ func (f *File) Body() *Body { return f.body }
 
 // WriteTo renders and formats the File, writing the contents to w.
 func (f *File) WriteTo(w io.Writer) (int64, error) {
-	n, err := printTokens(w, f.Tokens())
+	n, err := printFileTokens(w, f.Tokens())
 	return int64(n), err
 }
 
