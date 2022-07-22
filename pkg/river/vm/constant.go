@@ -14,6 +14,9 @@ func valueFromLiteral(lit string, tok token.Token) (value.Value, error) {
 	// an AST with invalid literals.
 
 	switch tok {
+	case token.NULL:
+		return value.Null, nil
+
 	case token.NUMBER:
 		v, err := strconv.ParseInt(lit, 0, 64)
 		if err != nil {

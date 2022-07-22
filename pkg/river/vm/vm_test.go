@@ -150,6 +150,17 @@ func TestVM_Evaluate(t *testing.T) {
 	}
 }
 
+func TestVM_Evaluate_Null(t *testing.T) {
+	expr, err := parser.ParseExpression("null")
+	require.NoError(t, err)
+
+	eval := vm.New(expr)
+
+	var v interface{}
+	require.NoError(t, eval.Evaluate(nil, &v))
+	require.Nil(t, v)
+}
+
 func TestVM_Evaluate_IdentifierExpr(t *testing.T) {
 	t.Run("Valid lookup", func(t *testing.T) {
 		scope := &vm.Scope{
