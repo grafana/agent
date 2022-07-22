@@ -2,7 +2,9 @@ package builder_test
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/grafana/agent/pkg/river/parser"
 	"github.com/grafana/agent/pkg/river/printer"
@@ -112,27 +114,33 @@ func (ct CustomTokenizer) RiverTokenize() []builder.Token {
 }
 
 func TestBuilder_GoEncode_Tokenizer(t *testing.T) {
-	f := builder.NewFile()
+	t.Run("Tokenizer", func(t *testing.T) {
+		f := builder.NewFile()
+		f.Body().SetAttributeValue("value", CustomTokenizer(true))
 
-	type block struct {
-		Number int             `river:"number,attr"`
-		Custom CustomTokenizer `river:"custom_tokenizer,attr"`
-		String string          `river:"string,attr"`
-	}
-
-	f.Body().SetAttributeValue("custom_tokens", block{
-		Number: 15,
-		Custom: CustomTokenizer(true),
-		String: "Hello, world!",
+		expect := format(t, `value = CUSTOM_TOKENS`)
+		require.Equal(t, expect, string(f.Bytes()))
 	})
 
-	expect := format(t, `
-		custom_tokens = {
-			number = 15,
-			custom_tokenizer = CUSTOM_TOKENS,
-			string = "Hello, world!",
-		}
-	`)
+	t.Run("TextMarshaler", func(t *testing.T) {
+		now := time.Now()
+		expectBytes, err := now.MarshalText()
+		require.NoError(t, err)
 
-	require.Equal(t, expect, string(f.Bytes()))
+		f := builder.NewFile()
+		f.Body().SetAttributeValue("value", now)
+
+		expect := format(t, fmt.Sprintf(`value = %q`, string(expectBytes)))
+		require.Equal(t, expect, string(f.Bytes()))
+	})
+
+	t.Run("Duration", func(t *testing.T) {
+		dur := 15 * time.Second
+
+		f := builder.NewFile()
+		f.Body().SetAttributeValue("value", dur)
+
+		expect := format(t, fmt.Sprintf(`value = %q`, dur.String()))
+		require.Equal(t, expect, string(f.Bytes()))
+	})
 }

@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Go types used throughout the package.
@@ -19,6 +20,7 @@ var (
 	goTextUnmarshaler = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
 	goStructWrapper   = reflect.TypeOf(structWrapper{})
 	goCapsule         = reflect.TypeOf((*Capsule)(nil)).Elem()
+	goDurationPtr     = reflect.TypeOf((*time.Duration)(nil))
 )
 
 // NOTE(rfratto): This package is extremely sensitive to performance, so
