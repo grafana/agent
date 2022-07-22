@@ -101,6 +101,7 @@ func decode(val Value, into reflect.Value) error {
 		// TODO(rfratto): Does it make sense for a null to always decode into the
 		// zero value? Maybe only objects and arrays should support null?
 		into.Set(reflect.Zero(into.Type()))
+		return nil
 	case into.Type() == goAny:
 		return decodeAny(val, into)
 	}
