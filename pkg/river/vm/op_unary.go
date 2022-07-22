@@ -20,9 +20,9 @@ func evalUnaryOp(op token.Token, val value.Value) (value.Value, error) {
 
 		valNum := val.Number()
 		switch valNum.Kind() {
-		case value.NumberKindUint:
-			return value.Uint(-valNum.Uint()), nil
-		case value.NumberKindInt:
+		case value.NumberKindInt, value.NumberKindUint:
+			// It doesn't make much sense to invert a uint, so we always cast to an
+			// int and return an int.
 			return value.Int(-valNum.Int()), nil
 		case value.NumberKindFloat:
 			return value.Float(-valNum.Float()), nil
