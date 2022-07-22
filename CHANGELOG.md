@@ -15,9 +15,37 @@ Main (unreleased)
 
 ### Breaking changes
 
+- Change windows certificate store so client certificate is no longer required in store (@mattdurham)
+
+### Features
+
+### Enhancements
+
+- Tracing: Introduce a periodic appender to the remotewriteexporter to control sample rate. (@mapno)
+
+- Tracing: Update OpenTelemetry dependency to v0.55.0. (@rfratto, @mapno)
+
+- Add base agent-operator jsonnet library and generated manifests (@hjet)
+
+### Bugfixes
+
+- Operator: Fix issue where configured `targetPort` ServiceMonitors resulted in
+  generating an incorrect scrape_config. (@rfratto)
+
+- Build the Linux/AMD64 artifacts using the opt-out flag for the ebpf_exporter. (@tpaschalis)
+
+v0.26.0 (2022-07-18)
+-------------------------
+
+> **BREAKING CHANGES**: This release has breaking changes. Please read entries
+> carefully and consult the [upgrade guide][] for specific instructions.
+
+### Breaking changes
+
 - Deprecated `server` YAML block fields have now been removed in favor of the
   command-line flags that replaced them. These fields were originally
   deprecated in v0.24.0. (@rfratto)
+
 - Changed tail sampling policies to be configured as in the OpenTelemetry
   Collector. (@mapno)
 
@@ -31,16 +59,12 @@ Main (unreleased)
 
 - Truncate all records in WAL if repair attempt fails. (@rlankfo)
 
-- Tracing: Introduce a periodic appender to the remotewriteexporter to control sample rate. (@mapno)
-
-- Tracing: Update OpenTelemetry dependency to v0.55.0. (@rfratto, @mapno)
-
-- Add base agent-operator jsonnet library and generated manifests (@hjet)
-
 ### Bugfixes
 
 - Relative symlinks for promtail now work as expected. (@RangerCD, @mukerjee)
+
 - Fix rate limiting implementation for the app agent receiver integration. (@domasx2)
+
 - Fix mongodb exporter so that it now collects all metrics. (@mattdurham)
 
 v0.25.1 (2022-06-16)

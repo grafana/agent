@@ -6,8 +6,13 @@ package token
 type Token int
 
 // List of all lexical tokens and examples that represent them.
+//
+// LITERAL is used by token/builder to represent literal strings for writing
+// tokens, but never used for reading (so scanner never returns a
+// token.LITERAL).
 const (
 	ILLEGAL Token = iota // Invalid token.
+	LITERAL              // Literal text.
 	EOF                  // End-of-file.
 	COMMENT              // // Hello, world!
 
@@ -59,6 +64,7 @@ const (
 
 var tokenNames = [...]string{
 	ILLEGAL: "ILLEGAL",
+	LITERAL: "LITERAL",
 	EOF:     "EOF",
 	COMMENT: "COMMENT",
 

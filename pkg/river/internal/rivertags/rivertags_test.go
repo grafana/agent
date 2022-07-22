@@ -22,11 +22,11 @@ func Test_Get(t *testing.T) {
 	fs := rivertags.Get(reflect.TypeOf(Struct{}))
 
 	expect := []rivertags.Field{
-		{"req_attr", []int{1}, rivertags.FlagAttr},
-		{"opt_attr", []int{2}, rivertags.FlagAttr | rivertags.FlagOptional},
-		{"req_block", []int{3}, rivertags.FlagBlock},
-		{"opt_block", []int{4}, rivertags.FlagBlock | rivertags.FlagOptional},
-		{"", []int{5}, rivertags.FlagLabel},
+		{[]string{"req_attr"}, []int{1}, rivertags.FlagAttr},
+		{[]string{"opt_attr"}, []int{2}, rivertags.FlagAttr | rivertags.FlagOptional},
+		{[]string{"req_block"}, []int{3}, rivertags.FlagBlock},
+		{[]string{"opt_block"}, []int{4}, rivertags.FlagBlock | rivertags.FlagOptional},
+		{[]string{""}, []int{5}, rivertags.FlagLabel},
 	}
 
 	require.Equal(t, expect, fs)
@@ -47,10 +47,10 @@ func Test_Get_Embedded(t *testing.T) {
 	fs := rivertags.Get(reflect.TypeOf(Struct{}))
 
 	expect := []rivertags.Field{
-		{"parent_field_1", []int{0}, rivertags.FlagAttr},
-		{"inner_field_1", []int{1, 0}, rivertags.FlagAttr},
-		{"inner_field_2", []int{1, 1}, rivertags.FlagAttr},
-		{"parent_field_2", []int{2}, rivertags.FlagAttr},
+		{[]string{"parent_field_1"}, []int{0}, rivertags.FlagAttr},
+		{[]string{"inner_field_1"}, []int{1, 0}, rivertags.FlagAttr},
+		{[]string{"inner_field_2"}, []int{1, 1}, rivertags.FlagAttr},
+		{[]string{"parent_field_2"}, []int{2}, rivertags.FlagAttr},
 	}
 
 	require.Equal(t, expect, fs)
