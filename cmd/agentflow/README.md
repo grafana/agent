@@ -12,8 +12,8 @@ Grafana Agent Flow is a component-based reimagining of Grafana Agent, where
 units of logic are broken up into "components" which can independently
 configured and wired together by the user.
 
-Grafana Agent Flow currently uses HCL for its configuration language rather
-than the YAML used by the existing project.
+Grafana Agent Flow currently uses a custom language called River for its
+configuration language rather than the YAML used by the existing project.
 
 See the package-level comments in the [component package][] for information on
 how to write new components.
@@ -53,7 +53,7 @@ installed for this component to work.
 
 ### Config endpoint
 
-The `/-/config` endpoint will render the state of all components as HCL with
+The `/-/config` endpoint will render the state of all components as River with
 expressions evaluated.
 
 You may invoke `/-/config?debug=1` to append health information for each

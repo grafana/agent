@@ -28,19 +28,18 @@ func init() {
 			return New(opts, args.(Arguments))
 		},
 	})
-	component.RegisterGoStruct("MetricsReceiver", metrics.Receiver{})
 }
 
 // Arguments holds values which are used to configure the metrics.scrape
 // component.
 type Arguments struct {
-	Targets   []Target            `hcl:"targets"`
-	ForwardTo []*metrics.Receiver `hcl:"forward_to"`
+	Targets   []Target            `river:"targets,attr"`
+	ForwardTo []*metrics.Receiver `river:"forward_to,attr"`
 
-	ScrapeConfig Config `hcl:"scrape_config,block"`
+	ScrapeConfig Config `river:"scrape_config,block"`
 
 	// Scrape Options
-	ExtraMetrics bool `hcl:"extra_metrics,optional"`
+	ExtraMetrics bool `river:"extra_metrics,attr,optional"`
 	// TODO(@tpaschalis) enable HTTPClientOptions []config_util.HTTPClientOption
 }
 
@@ -109,7 +108,7 @@ func (c *Component) Run(ctx context.Context) error {
 			c.mut.RLock()
 			tgs := c.args.Targets
 			c.mut.RUnlock()
-			promTargets := c.hclTargetsToProm(tgs)
+			promTargets := c.componentTargetsToProm(tgs)
 
 			select {
 			case targetSetsChan <- promTargets:
@@ -153,18 +152,18 @@ func (c *Component) Update(args component.Arguments) error {
 
 // ScraperStatus reports the status of the scraper's jobs.
 type ScraperStatus struct {
-	TargetStatus []TargetStatus `hcl:"target,block"`
+	TargetStatus []TargetStatus `river:"target,block,optional"`
 }
 
 // TargetStatus reports on the status of the latest scrape for a target.
 type TargetStatus struct {
-	JobName            string            `hcl:"job"`
-	URL                string            `hcl:"url"`
-	Health             string            `hcl:"health"`
-	Labels             map[string]string `hcl:"labels,attr"`
-	LastError          string            `hcl:"last_error,optional"`
-	LastScrape         time.Time         `hcl:"last_scrape"`
-	LastScrapeDuration time.Duration     `hcl:"last_scrape_duration,optional"`
+	JobName            string            `river:"job,attr"`
+	URL                string            `river:"url,attr"`
+	Health             string            `river:"health,attr"`
+	Labels             map[string]string `river:"labels,attr"`
+	LastError          string            `river:"last_error,attr,optional"`
+	LastScrape         time.Time         `river:"last_scrape,attr"`
+	LastScrapeDuration time.Duration     `river:"last_scrape_duration,attr,optional"`
 }
 
 // DebugInfo implements component.DebugComponent
@@ -194,7 +193,7 @@ func (c *Component) DebugInfo() interface{} {
 	return ScraperStatus{TargetStatus: res}
 }
 
-func (c *Component) hclTargetsToProm(tgs []Target) map[string][]*targetgroup.Group {
+func (c *Component) componentTargetsToProm(tgs []Target) map[string][]*targetgroup.Group {
 	promGroup := &targetgroup.Group{Source: c.opts.ID}
 	for _, tg := range tgs {
 		promGroup.Targets = append(promGroup.Targets, convertLabelSet(tg))

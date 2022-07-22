@@ -7,7 +7,6 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/regexp"
-	"github.com/hashicorp/hcl/v2"
 )
 
 // The parsedName of a component is the parts of its name ("remote.http") split
@@ -69,14 +68,14 @@ type Registration struct {
 	// whole process. Normally, multiple components of the same type may be
 	// created.
 	//
-	// The fully-qualified name of a component is the combination of HCL block
+	// The fully-qualified name of a component is the combination of River block
 	// name and all of its labels. Fully-qualified names must be unique across
 	// the process. Components which are *NOT* singletons automatically support
 	// user-supplied identifiers:
 	//
 	//     // Fully-qualified names: remote.s3.object-a, remote.s3.object-b
-	//     remote "s3" "object-a" { ... }
-	//     remote "s3" "object-b" { ... }
+	//     remote.s3 "object-a" { ... }
+	//     remote.s3 "object-b" { ... }
 	//
 	// This allows for multiple instances of the same component to be defined.
 	// However, components registered as a singleton do not support user-supplied
@@ -177,64 +176,4 @@ func validatePrefixMatch(check parsedName, against map[string]parsedName) error 
 func Get(name string) (Registration, bool) {
 	r, ok := registered[name]
 	return r, ok
-}
-
-// RegistrySchema returns an HCL body schema using all registered components.
-func RegistrySchema() *hcl.BodySchema {
-	var schema hcl.BodySchema
-
-	usedBlockSchemas := make(map[string]struct{})
-
-	for _, rc := range registered {
-		parsed := parsedNames[rc.Name]
-		if parsed == nil {
-			// This will never happen when using the exposed API, but may creep up
-			// from tests that only set registered but not parsedNames.
-			panic(rc.Name + " is missing from parsedNames map")
-		}
-
-		// The generic name of a component uses the first identifier of the
-		// component and mapping the rest of the identifiers to labels.
-		labels := labelNames(parsed, rc.Singleton)
-		genericNameList := append([]string{parsed[0]}, labels...)
-		genericName := strings.Join(genericNameList, ".")
-		if _, defined := usedBlockSchemas[genericName]; defined {
-			// Ignore blocks that were already added. This will happen when
-			// processing a component for "remote.http" and "remote.s3", since both
-			// of them are injected into the schema as "remote.kind.name".
-			continue
-		}
-		usedBlockSchemas[genericName] = struct{}{}
-
-		schema.Blocks = append(schema.Blocks, hcl.BlockHeaderSchema{
-			Type:       parsed[0],
-			LabelNames: labels,
-		})
-	}
-
-	return &schema
-}
-
-func labelNames(in parsedName, singleton bool) []string {
-	if singleton {
-		// Component does *NOT* support a user-supplied identifier.
-		switch len(in) {
-		case 1:
-			return []string{}
-		case 2:
-			return []string{"kind"}
-		default:
-			panic("Unexpected component name " + in.String())
-		}
-	}
-
-	// Component supports a user-supplied identifier.
-	switch len(in) {
-	case 1:
-		return []string{"name"}
-	case 2:
-		return []string{"kind", "name"}
-	default:
-		panic("Unexpected component name " + in.String())
-	}
 }

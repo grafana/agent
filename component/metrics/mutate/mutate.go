@@ -28,15 +28,15 @@ func init() {
 // component.
 type Arguments struct {
 	// Where the relabelled metrics should be forwarded to.
-	ForwardTo []*metrics.Receiver `hcl:"forward_to"`
+	ForwardTo []*metrics.Receiver `river:"forward_to,attr"`
 
 	// The relabelling steps to apply to each metric before it's forwarded.
-	MetricRelabelConfigs []*flow_relabel.Config `hcl:"metric_relabel_config,block"`
+	MetricRelabelConfigs []*flow_relabel.Config `river:"metric_relabel_config,block,optional"`
 }
 
 // Exports holds values which are exported by the metrics.mutate component.
 type Exports struct {
-	Receiver *metrics.Receiver `hcl:"receiver"`
+	Receiver *metrics.Receiver `river:"receiver,attr"`
 }
 
 // Component implements the metrics.mutate component.
@@ -76,7 +76,7 @@ func (c *Component) Run(ctx context.Context) error {
 func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 
-	c.mrc = flow_relabel.HCLToPromRelabelConfigs(newArgs.MetricRelabelConfigs)
+	c.mrc = flow_relabel.ComponentToPromRelabelConfigs(newArgs.MetricRelabelConfigs)
 	c.appendable.SetReceivers(newArgs.ForwardTo)
 	c.opts.OnStateChange(Exports{Receiver: c.receiver})
 

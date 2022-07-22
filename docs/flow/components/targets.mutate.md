@@ -14,21 +14,21 @@ different name labels like "keep-backend-only" in the following example.
 
 ## Example
 
-```hcl
-targets "mutate" "keep-backend-only" {
-  targets = [ 
+```river
+targets.mutate "keep-backend-only" {
+  targets = [
     { "__meta_foo" = "foo", "__address__" = "localhost", "instance" = "one",   "app" = "backend"  },
     { "__meta_bar" = "bar", "__address__" = "localhost", "instance" = "two",   "app" = "database" },
     { "__meta_baz" = "baz", "__address__" = "localhost", "instance" = "three", "app" = "frontend" }
   ]
-  
+
   relabel_config {
     source_labels = ["__address__", "instance"]
     separator     = "/"
     target_label  = "destination"
     action        = "replace"
-  } 
-  
+  }
+
   relabel_config {
     source_labels = ["app"]
     action        = "keep"

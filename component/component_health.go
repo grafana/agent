@@ -10,7 +10,7 @@ import (
 // report health information.
 //
 // Health information is exposed to the end user for informational purposes and
-// cannot be referened in an HCL expression.
+// cannot be referened in a River expression.
 type HealthComponent interface {
 	Component
 
@@ -23,18 +23,18 @@ type HealthComponent interface {
 }
 
 // Health is the reported health state of a component. It can be encoded to
-// HCL.
+// River.
 type Health struct {
 	// The specific health value.
-	Health HealthType `hcl:"state,attr"`
+	Health HealthType `river:"state,attr"`
 
 	// An optional message to describe the health; useful to say why a component
 	// is unhealthy.
-	Message string `hcl:"message,optional"`
+	Message string `river:"message,attr,optional"`
 
 	// An optional time to indicate when the component last modified something
 	// which updated its health.
-	UpdateTime time.Time `hcl:"update_time,optional"`
+	UpdateTime time.Time `river:"update_time,attr,optional"`
 }
 
 // HealthType holds the health value for a component.
