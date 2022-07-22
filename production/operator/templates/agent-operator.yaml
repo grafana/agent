@@ -2,13 +2,13 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: grafana-agent
-  namespace: default
+  namespace: ${NAMESPACE}
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: grafana-agent-operator
-  namespace: default
+  namespace: ${NAMESPACE}
 ---
 apiVersion: v1
 automountServiceAccountToken: false
@@ -19,17 +19,17 @@ metadata:
     app.kubernetes.io/name: kube-state-metrics
     app.kubernetes.io/version: 2.5.0
   name: kube-state-metrics
-  namespace: default
+  namespace: ${NAMESPACE}
 ---
 apiVersion: v1
 data: {}
 kind: Secret
 metadata:
   name: logs-secret
-  namespace: default
+  namespace: ${NAMESPACE}
 stringData:
-  password: test
-  username: test
+  password: ${LOGS_KEY}
+  username: ${LOGS_USER}
 type: Opaque
 ---
 apiVersion: v1
@@ -37,17 +37,17 @@ data: {}
 kind: Secret
 metadata:
   name: metrics-secret
-  namespace: default
+  namespace: ${NAMESPACE}
 stringData:
-  password: test
-  username: test
+  password: ${METRICS_KEY}
+  username: ${METRICS_USER}
 type: Opaque
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: agent-eventhandler
-  namespace: default
+  namespace: ${NAMESPACE}
 spec:
   accessModes:
   - ReadWriteOnce
@@ -275,7 +275,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: grafana-agent
-  namespace: default
+  namespace: ${NAMESPACE}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -288,7 +288,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: grafana-agent-operator
-  namespace: default
+  namespace: ${NAMESPACE}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -305,7 +305,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: kube-state-metrics
-  namespace: default
+  namespace: ${NAMESPACE}
 ---
 apiVersion: v1
 kind: Service
@@ -315,7 +315,7 @@ metadata:
     app.kubernetes.io/name: kube-state-metrics
     app.kubernetes.io/version: 2.5.0
   name: kube-state-metrics
-  namespace: default
+  namespace: ${NAMESPACE}
 spec:
   clusterIP: None
   ports:
@@ -332,7 +332,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: grafana-agent-operator
-  namespace: default
+  namespace: ${NAMESPACE}
 spec:
   minReadySeconds: 10
   replicas: 1
@@ -361,7 +361,7 @@ metadata:
     app.kubernetes.io/name: kube-state-metrics
     app.kubernetes.io/version: 2.5.0
   name: kube-state-metrics
-  namespace: default
+  namespace: ${NAMESPACE}
 spec:
   replicas: 1
   selector:
@@ -410,7 +410,7 @@ apiVersion: monitoring.grafana.com/v1alpha1
 kind: GrafanaAgent
 metadata:
   name: grafana-agent
-  namespace: default
+  namespace: ${NAMESPACE}
 spec:
   image: grafana/agent:v0.26.0-rc.0
   integrations:
@@ -423,7 +423,7 @@ spec:
         agent: grafana-agent
   metrics:
     externalLabels:
-      cluster: cloud
+      cluster: ${CLUSTER}
     instanceSelector:
       matchLabels:
         agent: grafana-agent
@@ -435,11 +435,11 @@ metadata:
   labels:
     agent: grafana-agent
   name: agent-eventhandler
-  namespace: default
+  namespace: ${NAMESPACE}
 spec:
   config:
     cache_path: /etc/eventhandler/eventhandler.cache
-    logs_instance: default/grafana-agent
+    logs_instance: ${NAMESPACE}/grafana-agent-logs
   type:
     unique: true
   volumeMounts:
@@ -456,7 +456,7 @@ metadata:
   labels:
     agent: grafana-agent
   name: grafana-agent-logs
-  namespace: default
+  namespace: ${NAMESPACE}
 spec:
   clients:
   - basicAuth:
@@ -467,8 +467,8 @@ spec:
         key: username
         name: logs-secret
     externalLabels:
-      cluster: cloud
-    url: test
+      cluster: ${CLUSTER}
+    url: ${LOGS_URL}
   podLogsNamespaceSelector: {}
   podLogsSelector:
     matchLabels:
@@ -480,7 +480,7 @@ metadata:
   labels:
     agent: grafana-agent
   name: grafana-agent-metrics
-  namespace: default
+  namespace: ${NAMESPACE}
 spec:
   remoteWrite:
   - basicAuth:
@@ -490,7 +490,7 @@ spec:
       username:
         key: username
         name: metrics-secret
-    url: test
+    url: ${METRICS_URL}
   serviceMonitorNamespaceSelector: {}
   serviceMonitorSelector:
     matchLabels:
@@ -501,15 +501,71 @@ kind: PodLogs
 metadata:
   labels:
     instance: primary
-  name: kubernetes-pods
-  namespace: default
+  name: kubernetes-logs
+  namespace: ${NAMESPACE}
 spec:
   namespaceSelector:
     any: true
   pipelineStages:
-  - docker: {}
+  - cri: {}
   selector:
     matchLabels: {}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    instance: primary
+  name: ksm-monitor
+  namespace: ${NAMESPACE}
+spec:
+  endpoints:
+  - honorLabels: true
+    interval: 60s
+    metricRelabelings:
+    - action: replace
+      replacement: integrations/kubernetes/kube-state-metrics
+      targetLabel: job
+    path: /metrics
+    port: http-metrics
+  namespaceSelector:
+    matchNames:
+    - ${NAMESPACE}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kube-state-metrics
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    instance: primary
+  name: kubelet-monitor
+  namespace: ${NAMESPACE}
+spec:
+  endpoints:
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    honorLabels: true
+    interval: 60s
+    metricRelabelings:
+    - action: replace
+      replacement: integrations/kubernetes/kubelet
+      targetLabel: job
+    path: /metrics
+    port: https-metrics
+    relabelings:
+    - sourceLabels:
+      - __metrics_path__
+      targetLabel: metrics_path
+    scheme: https
+    tlsConfig:
+      insecureSkipVerify: true
+  namespaceSelector:
+    matchNames:
+    - ${NAMESPACE}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kubelet
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
@@ -538,63 +594,7 @@ spec:
       insecureSkipVerify: true
   namespaceSelector:
     matchNames:
-    - default
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: kubelet
----
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  labels:
-    instance: primary
-  name: ksm-monitor
-  namespace: default
-spec:
-  endpoints:
-  - honorLabels: true
-    interval: 60s
-    metricRelabelings:
-    - action: replace
-      replacement: integrations/kubernetes/kube-state-metrics
-      targetLabel: job
-    path: /metrics
-    port: http-metrics
-  namespaceSelector:
-    matchNames:
-    - default
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: kube-state-metrics
----
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  labels:
-    instance: primary
-  name: kubelet-monitor
-  namespace: default
-spec:
-  endpoints:
-  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
-    honorLabels: true
-    interval: 60s
-    metricRelabelings:
-    - action: replace
-      replacement: integrations/kubernetes/kubelet
-      targetLabel: job
-    path: /metrics
-    port: https-metrics
-    relabelings:
-    - sourceLabels:
-      - __metrics_path__
-      targetLabel: metrics_path
-    scheme: https
-    tlsConfig:
-      insecureSkipVerify: true
-  namespaceSelector:
-    matchNames:
-    - default
+    - ${NAMESPACE}
   selector:
     matchLabels:
       app.kubernetes.io/name: kubelet

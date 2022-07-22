@@ -43,7 +43,7 @@ local r = e.relabelings;
             e.withScheme('https')
         ]),
     
-    newMonitor(name, namespace, monitorLabels, targetNamespace, targetLabels, jobLabel, metricsPath, allowlist=false, allowlistMetrics=[])::
+    newServiceMonitor(name, namespace, monitorLabels, targetNamespace, targetLabels, jobLabel, metricsPath, allowlist=false, allowlistMetrics=[])::
         sm.new(name) +
         sm.metadata.withNamespace(namespace) +
         sm.metadata.withLabels(monitorLabels) +
