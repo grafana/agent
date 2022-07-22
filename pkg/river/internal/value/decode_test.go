@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/grafana/agent/pkg/river/internal/value"
 	"github.com/stretchr/testify/require"
@@ -200,6 +201,27 @@ func TestDecode_ArrayCopy(t *testing.T) {
 
 	res[0] = 10
 	require.Equal(t, [3]int{1, 2, 3}, orig, "Original array should not have been modified")
+}
+
+func TestDecode_CustomTypes(t *testing.T) {
+	t.Run("TextUnmarshaler", func(t *testing.T) {
+		now := time.Now()
+		nowBytes, _ := now.MarshalText()
+
+		var actual time.Time
+		require.NoError(t, value.Decode(value.String(string(nowBytes)), &actual))
+
+		actualBytes, _ := actual.MarshalText()
+		require.Equal(t, nowBytes, actualBytes)
+	})
+
+	t.Run("time.Duration", func(t *testing.T) {
+		dur := 15 * time.Second
+
+		var actual time.Duration
+		require.NoError(t, value.Decode(value.String(dur.String()), &actual))
+		require.Equal(t, dur.String(), actual.String())
+	})
 }
 
 type textEnumType bool

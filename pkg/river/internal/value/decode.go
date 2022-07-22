@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"time"
 )
 
 // Decode assigns a Value val to a Go pointer target. Pointers will be
@@ -37,6 +38,19 @@ func decode(val Value, into reflect.Value) error {
 	}
 
 	switch {
+	case into.Type() == goDurationPtr:
+		var s string
+		err := decode(val, reflect.ValueOf(&s))
+		if err != nil {
+			return err
+		}
+		dur, err := time.ParseDuration(s)
+		if err != nil {
+			return Error{Value: val, Inner: err}
+		}
+		*into.Interface().(*time.Duration) = dur
+		return nil
+
 	case into.Type().Implements(goTextUnmarshaler):
 		var s string
 		err := decode(val, reflect.ValueOf(&s))
@@ -96,34 +110,13 @@ func decode(val Value, into reflect.Value) error {
 		into.Set(val.rv.Convert(goByteSlice))
 		return nil
 	case convVal.Type() != targetType:
-		// Check to see if we can use capsule conversion.
-		if convVal.Type() == TypeCapsule {
-			cc, ok := convVal.Interface().(ConvertibleIntoCapsule)
-			if ok {
-				// It's always possible to Addr the reflect.Value below since we expect
-				// it to be a settable non-pointer value.
-				err := cc.ConvertInto(into.Addr().Interface())
-				if err == nil {
-					return nil
-				} else if err != nil && !errors.Is(err, ErrNoConversion) {
-					return Error{Value: convVal, Inner: err}
-				}
-			}
+		converted, err := tryCapsuleConvert(convVal, into, targetType)
+		if err != nil {
+			return err
+		} else if converted {
+			return nil
 		}
 
-		if targetType == TypeCapsule {
-			cc, ok := into.Addr().Interface().(ConvertibleFromCapsule)
-			if ok {
-				err := cc.ConvertFrom(convVal.rv.Interface())
-				if err == nil {
-					return nil
-				} else if err != nil && !errors.Is(err, ErrNoConversion) {
-					return Error{Value: convVal, Inner: err}
-				}
-			}
-		}
-
-		var err error
 		convVal, err = convertValue(convVal, targetType)
 		if err != nil {
 			return err
@@ -160,21 +153,61 @@ func decode(val Value, into reflect.Value) error {
 			Inner: fmt.Errorf("expected function(%s), got function(%s)", into.Type(), convVal.rv.Type()),
 		}
 	case TypeCapsule:
-		// Capsule types require being identical go types, which would've been
-		// handled in the best case statement above. If we hit this point, they're
-		// not the same.
-		//
+		// The Go types for the capsules must be the same or able to be converted.
+		if convVal.rv.Type() == into.Type() {
+			into.Set(convVal.rv)
+			return nil
+		}
+
+		converted, err := tryCapsuleConvert(convVal, into, targetType)
+		if err != nil {
+			return err
+		} else if converted {
+			return nil
+		}
+
 		// TODO(rfratto): return a TypeError for this instead. TypeError isn't
 		// appropriate at the moment because it would just print "capsule", which
 		// doesn't contain all the information the user would want to know (e.g., a
 		// capsule of what inner type?).
 		return Error{
 			Value: val,
-			Inner: fmt.Errorf("expected capsule(%s), got %s", into.Type(), convVal.Describe()),
+			Inner: fmt.Errorf("expected capsule(%q), got %s", into.Type(), convVal.Describe()),
 		}
 	default:
 		panic("river/value: unexpected kind " + convVal.Type().String())
 	}
+}
+
+func tryCapsuleConvert(from Value, into reflect.Value, intoType Type) (ok bool, err error) {
+	// Check to see if we can use capsule conversion.
+	if from.Type() == TypeCapsule {
+		cc, ok := from.Interface().(ConvertibleIntoCapsule)
+		if ok {
+			// It's always possible to Addr the reflect.Value below since we expect
+			// it to be a settable non-pointer value.
+			err := cc.ConvertInto(into.Addr().Interface())
+			if err == nil {
+				return true, nil
+			} else if err != nil && !errors.Is(err, ErrNoConversion) {
+				return false, Error{Value: from, Inner: err}
+			}
+		}
+	}
+
+	if intoType == TypeCapsule {
+		cc, ok := into.Addr().Interface().(ConvertibleFromCapsule)
+		if ok {
+			err := cc.ConvertFrom(from.Interface())
+			if err == nil {
+				return true, nil
+			} else if err != nil && !errors.Is(err, ErrNoConversion) {
+				return false, Error{Value: from, Inner: err}
+			}
+		}
+	}
+
+	return false, nil
 }
 
 // decodeAny is invoked by decode when into is an interface{}. We assign the
