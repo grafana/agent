@@ -10,6 +10,8 @@ import (
 )
 
 func evalBinop(lhs value.Value, op token.Token, rhs value.Value) (value.Value, error) {
+	// TODO(rfratto): evalBinop should check for underflows and overflows
+
 	// We have special handling for EQ and NEQ since it's valid to attempt to
 	// compare values of any two types.
 	switch op {
