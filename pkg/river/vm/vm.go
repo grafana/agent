@@ -79,6 +79,8 @@ func (vm *Evaluator) Evaluate(scope *Scope, v interface{}) (err error) {
 }
 
 func (vm *Evaluator) evaluateBlock(scope *Scope, assoc map[value.Value]ast.Node, node *ast.BlockStmt, rv reflect.Value) error {
+	// TODO(rfratto): potentially loosen this restriction and allow decoding into
+	// an interface{} or map[string]interface{}.
 	if rv.Kind() != reflect.Struct {
 		panic(fmt.Sprintf("river/vm: can only evaluate blocks into structs, got %s", rv.Kind()))
 	}
@@ -145,6 +147,8 @@ func (vm *Evaluator) evaluateBody(scope *Scope, assoc map[value.Value]ast.Node, 
 	// TODO(rfratto): the errors returned by this function are missing context to
 	// be able to print line numbers. We need to return decorated error types.
 
+	// TODO(rfratto): potentially loosen this restriction and allow decoding into
+	// an interface{} or map[string]interface{}.
 	if rv.Kind() != reflect.Struct {
 		panic(fmt.Sprintf("river/vm: can only evaluate blocks into structs, got %s", rv.Kind()))
 	}
