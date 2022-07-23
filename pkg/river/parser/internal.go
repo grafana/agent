@@ -2,8 +2,10 @@ package parser
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/grafana/agent/pkg/river/ast"
+	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/scanner"
 	"github.com/grafana/agent/pkg/river/token"
 )
@@ -22,7 +24,7 @@ import (
 // discarded if errors were encountered during parsing.
 type parser struct {
 	file     *token.File
-	errors   ErrorList
+	diags    diag.Diagnostics
 	scanner  *scanner.Scanner
 	comments []ast.CommentGroup
 
@@ -40,8 +42,9 @@ func newParser(filename string, src []byte) *parser {
 	}
 
 	p.scanner = scanner.New(file, src, func(pos token.Pos, msg string) {
-		p.errors.Add(&Error{
-			Position: file.PositionFor(pos),
+		p.diags.Add(diag.Diagnostic{
+			Severity: diag.SeverityLevelError,
+			StartPos: file.PositionFor(pos),
 			Message:  msg,
 		})
 	}, scanner.IncludeComments)
@@ -135,8 +138,9 @@ func (p *parser) expect(t token.Token) (pos token.Pos, tok token.Token, lit stri
 }
 
 func (p *parser) addErrorf(format string, args ...interface{}) {
-	p.errors.Add(&Error{
-		Position: p.file.PositionFor(p.pos),
+	p.diags.Add(diag.Diagnostic{
+		Severity: diag.SeverityLevelError,
+		StartPos: p.file.PositionFor(p.pos),
 		Message:  fmt.Sprintf(format, args...),
 	})
 }
@@ -197,14 +201,20 @@ func (p *parser) parseStatement() ast.Stmt {
 		p.next() // Consume "="
 
 		if len(blockName.Fragments) != 1 {
-			p.errors.Add(&Error{
-				Position: blockName.Start.Position(),
+			attrName := strings.Join(blockName.Fragments, ".")
+			p.diags.Add(diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				StartPos: blockName.Start.Position(),
+				EndPos:   blockName.Start.Add(len(attrName) - 1).Position(),
 				Message:  `attribute names may only consist of a single identifier with no "."`,
 			})
 		} else if blockName.LabelPos != token.NoPos {
-			p.errors.Add(&Error{
-				Position: blockName.LabelPos.Position(),
-				Message:  `attribute names may not have labels`,
+			p.diags.Add(diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				StartPos: blockName.LabelPos.Position(),
+				// Add 1 to the end position to add in the end quote, which is stripped from the label value.
+				EndPos:  blockName.LabelPos.Add(len(blockName.Label) + 1).Position(),
+				Message: `attribute names may not have labels`,
 			})
 		}
 
