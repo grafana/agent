@@ -219,7 +219,7 @@ func (p *parser) parseStatement() ast.Stmt {
 		}
 
 		return &ast.AttributeStmt{
-			Name: &ast.IdentifierExpr{
+			Name: &ast.Ident{
 				Name:    blockName.Fragments[0],
 				NamePos: blockName.Start,
 			},
@@ -425,7 +425,7 @@ NextOper:
 
 			primary = &ast.AccessExpr{
 				Value: primary,
-				Name: &ast.IdentifierExpr{
+				Name: &ast.Ident{
 					Name:    name,
 					NamePos: namePos,
 				},
@@ -489,8 +489,10 @@ func (p *parser) parsePrimaryExpr() ast.Expr {
 	switch p.tok {
 	case token.IDENT:
 		res := &ast.IdentifierExpr{
-			Name:    p.lit,
-			NamePos: p.pos,
+			Ident: &ast.Ident{
+				Name:    p.lit,
+				NamePos: p.pos,
+			},
 		}
 		p.next()
 		return res
@@ -603,7 +605,7 @@ func (p *parser) parseField() *ast.ObjectField {
 	}
 
 	field := &ast.ObjectField{
-		Name: &ast.IdentifierExpr{
+		Name: &ast.Ident{
 			Name:    p.lit,
 			NamePos: p.pos,
 		},
