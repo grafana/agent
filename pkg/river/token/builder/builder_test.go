@@ -46,6 +46,7 @@ func TestBuilder_File(t *testing.T) {
 func TestBuilder_GoEncode(t *testing.T) {
 	f := builder.NewFile()
 
+	f.Body().AppendTokens([]builder.Token{{token.COMMENT, "// Hello, world!"}})
 	f.Body().SetAttributeValue("null_value", nil)
 	f.Body().AppendTokens([]builder.Token{{token.LITERAL, "\n"}})
 
@@ -69,6 +70,7 @@ func TestBuilder_GoEncode(t *testing.T) {
 	})
 
 	expect := format(t, `
+		// Hello, world!
 		null_value = null
 	
 		num     = 15 
