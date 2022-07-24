@@ -10,6 +10,8 @@ import (
 	"github.com/grafana/agent/pkg/river/token"
 )
 
+// TODO(rfratto): check for optional values
+
 // Tokenizer is any value which can return a raw set of tokens.
 type Tokenizer interface {
 	// RiverTokenize returns the raw set of River tokens which are used when

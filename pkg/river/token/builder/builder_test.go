@@ -95,6 +95,73 @@ func TestBuilder_GoEncode(t *testing.T) {
 	require.Equal(t, expect, string(f.Bytes()))
 }
 
+func TestBuilder_AppendFrom(t *testing.T) {
+	type InnerBlock struct {
+		Number int `river:"number,attr"`
+	}
+
+	type Structure struct {
+		Field string `river:"field,attr"`
+
+		Block       InnerBlock   `river:"block,block"`
+		OtherBlocks []InnerBlock `river:"other_block,block"`
+	}
+
+	f := builder.NewFile()
+	f.Body().AppendFrom(Structure{
+		Field: "some_value",
+
+		Block: InnerBlock{Number: 1},
+		OtherBlocks: []InnerBlock{
+			{Number: 2},
+			{Number: 3},
+		},
+	})
+
+	expect := format(t, `
+		field = "some_value"
+	
+		block {
+			number = 1
+		}
+
+		other_block {
+			number = 2
+		}
+
+		other_block {
+			number = 3
+		}
+	`)
+
+	require.Equal(t, expect, string(f.Bytes()))
+}
+
+func TestBuilder_SkipOptional(t *testing.T) {
+	type Structure struct {
+		OptFieldA string `river:"opt_field_a,attr,optional"`
+		OptFieldB string `river:"opt_field_b,attr,optional"`
+		ReqFieldA string `river:"req_field_a,attr"`
+		ReqFieldB string `river:"req_field_b,attr"`
+	}
+
+	f := builder.NewFile()
+	f.Body().AppendFrom(Structure{
+		OptFieldA: "some_value",
+		OptFieldB: "", // Zero value
+		ReqFieldA: "some_value",
+		ReqFieldB: "", // Zero value
+	})
+
+	expect := format(t, `
+		opt_field_a = "some_value"
+		req_field_a = "some_value"
+		req_field_b = ""
+	`)
+
+	require.Equal(t, expect, string(f.Bytes()))
+}
+
 func format(t *testing.T, in string) string {
 	t.Helper()
 

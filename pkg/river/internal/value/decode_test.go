@@ -35,7 +35,6 @@ func TestDecode_Numbers(t *testing.T) {
 				require.NoError(t, value.Decode(val, vPtr))
 
 				actual := reflect.ValueOf(vPtr).Elem().Interface()
-
 				require.Equal(t, expect, actual)
 			})
 		}
