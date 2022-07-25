@@ -87,7 +87,7 @@ func (app *flowAppender) AppendExemplar(ref storage.SeriesRef, l labels.Labels, 
 func (app *flowAppender) Commit() error {
 	for _, r := range app.receivers {
 		for ts, metrics := range app.buffer {
-			if r.Receive == nil {
+			if r == nil || r.Receive == nil {
 				continue
 			}
 			r.Receive(ts, metrics)
