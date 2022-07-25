@@ -17,11 +17,15 @@ type FlowMetric struct {
 }
 
 // FlowAppendable is a flow-specific implementation of an Appender.
-type FlowAppendable []*metrics.Receiver
+type FlowAppendable struct {
+	receivers []*metrics.Receiver
+}
 
 // NewFlowAppendable initializes the appendable.
-func NewFlowAppendable(receivers ...*metrics.Receiver) FlowAppendable {
-	return receivers
+func NewFlowAppendable(receivers ...*metrics.Receiver) *FlowAppendable {
+	return &FlowAppendable{
+		receivers: receivers,
+	}
 }
 
 type flowAppender struct {
@@ -33,8 +37,13 @@ type flowAppender struct {
 func (app FlowAppendable) Appender(_ context.Context) storage.Appender {
 	return &flowAppender{
 		buffer:    make(map[int64][]*metrics.FlowMetric),
-		receivers: app,
+		receivers: app.receivers,
 	}
+}
+
+// SetReceivers defines the list of receivers for this appendable.
+func (app *FlowAppendable) SetReceivers(receivers []*metrics.Receiver) {
+	app.receivers = receivers
 }
 
 func (app *flowAppender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, error) {
