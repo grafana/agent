@@ -8,6 +8,13 @@ import (
 	"time"
 )
 
+// Unmarshaler is a custom type which can be used to hook into the decoder.
+type Unmarshaler interface {
+	// UnmarshalRiver is called when decoding a value. f should be invoked to
+	// continue decoding with a value to decode into.
+	UnmarshalRiver(f func(v interface{}) error) error
+}
+
 // Decode assigns a Value val to a Go pointer target. Pointers will be
 // allocated as necessary when decoding.
 //
@@ -50,6 +57,16 @@ func decode(val Value, into reflect.Value) error {
 		}
 		*into.Interface().(*time.Duration) = dur
 		return nil
+
+	case into.Type().Implements(goRiverDecoder):
+		err := into.Interface().(Unmarshaler).UnmarshalRiver(func(v interface{}) error {
+			return decode(val, reflect.ValueOf(v))
+		})
+		if err != nil {
+			// TODO(rfratto): we need to detect if error is one of the error types
+			// from this package and only wrap it in an Error if it isn't.
+			return Error{Value: val, Inner: err}
+		}
 
 	case into.Type().Implements(goTextUnmarshaler):
 		var s string

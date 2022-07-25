@@ -204,6 +204,12 @@ func TestDecode_ArrayCopy(t *testing.T) {
 }
 
 func TestDecode_CustomTypes(t *testing.T) {
+	t.Run("Unmarshaler", func(t *testing.T) {
+		var actual customUnmarshaler
+		require.NoError(t, value.Decode(value.Object(nil), &actual))
+		require.True(t, actual.Called, "UnmarshalRiver was not invoked")
+	})
+
 	t.Run("TextUnmarshaler", func(t *testing.T) {
 		now := time.Now()
 		nowBytes, _ := now.MarshalText()
@@ -222,6 +228,17 @@ func TestDecode_CustomTypes(t *testing.T) {
 		require.NoError(t, value.Decode(value.String(dur.String()), &actual))
 		require.Equal(t, dur.String(), actual.String())
 	})
+}
+
+type customUnmarshaler struct {
+	Called bool
+}
+
+func (cu *customUnmarshaler) UnmarshalRiver(f func(interface{}) error) error {
+	cu.Called = true
+
+	type s customUnmarshaler
+	return f((*s)(cu))
 }
 
 type textEnumType bool

@@ -21,6 +21,7 @@ var (
 	goStructWrapper   = reflect.TypeOf(structWrapper{})
 	goCapsule         = reflect.TypeOf((*Capsule)(nil)).Elem()
 	goDurationPtr     = reflect.TypeOf((*time.Duration)(nil))
+	goRiverDecoder    = reflect.TypeOf((*Unmarshaler)(nil)).Elem()
 )
 
 // NOTE(rfratto): This package is extremely sensitive to performance, so
