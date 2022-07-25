@@ -7,6 +7,24 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+
+v0.26.1 (2022-07-25)
+-------------------------
+
+> **BREAKING CHANGES**: This release has breaking changes. Please read entries
+> carefully and consult the [upgrade guide][] for specific instructions.
+
+### Breaking changes
+
+- Change windows certificate store so client certificate is no longer required in store. (@mattdurham)
+
+### Bugfixes
+
+- Operator: Fix issue where configured `targetPort` ServiceMonitors resulted in
+  generating an incorrect scrape_config. (@rfratto)
+
+- Build the Linux/AMD64 artifacts using the opt-out flag for the ebpf_exporter. (@tpaschalis)
+
 v0.26.0 (2022-07-18)
 -------------------------
 
@@ -35,7 +53,7 @@ v0.26.0 (2022-07-18)
 ### Bugfixes
 
 - Relative symlinks for promtail now work as expected. (@RangerCD, @mukerjee)
- 
+
 - Fix rate limiting implementation for the app agent receiver integration. (@domasx2)
 
 - Fix mongodb exporter so that it now collects all metrics. (@mattdurham)
@@ -90,12 +108,10 @@ v0.25.0 (2022-06-06)
 
 - `extra-scrape-metrics` can now be enabled with the `--enable-features=extra-scrape-metrics` feature flag. See https://prometheus.io/docs/prometheus/2.31/feature_flags/#extra-scrape-metrics for details. (@rlankfo)
 
-
 - Resolved issue in v2 integrations where if an instance name was a prefix of another the route handler would fail to
   match requests on the longer name (@mattdurham)
 
 - Set `include_metadata` to true by default for OTLP traces receivers (@mapno)
-
 
 ### Bugfixes
 
