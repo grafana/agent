@@ -8,6 +8,41 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestInterfacePointerReceiver tests various cases where Go values which only
+// implement an interface for a pointer receiver are retained correctly
+// throughout values.
+func TestInterfacePointerReceiver(t *testing.T) {
+	t.Run("Encode", func(t *testing.T) {
+		pm := &pointerMarshaler{}
+
+		val := value.Encode(pm)
+		require.Equal(t, value.TypeString, val.Type())
+		require.Equal(t, "Hello, world!", val.Text())
+	})
+
+	t.Run("From field", func(t *testing.T) {
+		type Body struct {
+			Data pointerMarshaler `river:"data,attr"`
+		}
+
+		b := &Body{}
+
+		bodyVal := value.Encode(b)
+		require.Equal(t, value.TypeObject, bodyVal.Type())
+
+		val, ok := bodyVal.Key("data")
+		require.True(t, ok, "data key did not exist")
+		require.Equal(t, value.TypeString, val.Type())
+		require.Equal(t, "Hello, world!", val.Text())
+	})
+}
+
+type pointerMarshaler struct{}
+
+func (*pointerMarshaler) MarshalText() ([]byte, error) {
+	return []byte("Hello, world!"), nil
+}
+
 func TestValue_Call(t *testing.T) {
 	t.Run("simple", func(t *testing.T) {
 		add := func(a, b int) int { return a + b }

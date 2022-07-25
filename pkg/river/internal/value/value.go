@@ -262,13 +262,29 @@ func makeValue(v reflect.Value) Value {
 	if !v.IsValid() {
 		return Null
 	}
-	for v.Kind() == reflect.Pointer || v.Type() == goAny {
+
+	// Early check: if v is interface{}, we need to deference it to get the
+	// concrete value.
+	if v.Type() == goAny {
 		v = v.Elem()
-		if !v.IsValid() {
+	}
+
+	// Before we get the River type of the Value, we need to see if it's possible
+	// to get a pointer to v. This ensures that if v is a non-pointer field of an
+	// addressable struct, still detect the type of v as if it was a pointer.
+	if v.CanAddr() {
+		v = v.Addr()
+	}
+	riverType := RiverType(v.Type())
+
+	// Finally, deference the pointer fully and use the type we detected.
+	for v.Kind() == reflect.Pointer {
+		if v.IsNil() {
 			return Null
 		}
+		v = v.Elem()
 	}
-	return Value{rv: v, ty: RiverType(v.Type())}
+	return Value{rv: v, ty: riverType}
 }
 
 // Keys returns the keys in v in unspecified order. It panics if v is not an
