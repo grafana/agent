@@ -128,7 +128,7 @@ func (c *Component) Update(args component.Arguments) error {
 	defer c.mut.Unlock()
 	c.args = newArgs
 
-	c.appendable.SetReceivers(newArgs.ForwardTo...)
+	c.appendable = fa.FlowAppendable(newArgs.ForwardTo)
 
 	sc, err := newArgs.ScrapeConfig.getPromScrapeConfigs(c.opts.ID)
 	if err != nil {
