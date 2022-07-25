@@ -454,9 +454,7 @@ func convertValue(val Value, toType Type) (Value, error) {
 	return Null, TypeError{Value: val, Expected: toType}
 }
 
-func convertGoNumber(v reflect.Value, target reflect.Type) reflect.Value {
-	nval := newNumberValue(v)
-
+func convertGoNumber(nval Number, target reflect.Type) reflect.Value {
 	switch target.Kind() {
 	case reflect.Int:
 		return reflect.ValueOf(int(nval.Int()))
