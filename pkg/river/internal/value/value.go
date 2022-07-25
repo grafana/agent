@@ -206,7 +206,7 @@ func (v Value) Text() string {
 	}
 	switch {
 	case addrRV.Type().Implements(goTextMarshaler):
-		// TODO(rfratto): what shoudl we do if this fails?
+		// TODO(rfratto): what should we do if this fails?
 		text, _ := addrRV.Interface().(encoding.TextMarshaler).MarshalText()
 		return string(text)
 
