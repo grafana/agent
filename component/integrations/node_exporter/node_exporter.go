@@ -9,6 +9,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
 	node_integration "github.com/grafana/agent/pkg/integrations/node_exporter"
+	"github.com/prometheus/common/model"
 )
 
 func init() {
@@ -72,11 +73,10 @@ func (c *Component) Update(args component.Arguments) error {
 	var err error
 	c.integration, err = node_integration.New(c.log, c.cfg)
 	targets := []Target{{
-		// todo (cpeterson) customize per server config
-		"__address__":      "127.0.0.1:12345",
-		"__scheme__":       "http",
-		"__metrics_path__": fmt.Sprintf("/component/%s/metrics", c.opts.ID),
-		"name":             "node_exporter",
+		model.AddressLabel:     "127.0.0.1:12345",
+		model.SchemeLabel:      "http",
+		model.MetricsPathLabel: fmt.Sprintf("/component/%s/metrics", c.opts.ID),
+		"name":                 "node_exporter",
 	}}
 	c.opts.OnStateChange(Exports{
 		Output: targets,
