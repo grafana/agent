@@ -2,6 +2,7 @@ package appendable
 
 import (
 	"context"
+	"sync"
 
 	"github.com/grafana/agent/component/metrics"
 	"github.com/prometheus/prometheus/model/exemplar"
@@ -18,6 +19,7 @@ type FlowMetric struct {
 
 // FlowAppendable is a flow-specific implementation of an Appender.
 type FlowAppendable struct {
+	mut       sync.RWMutex
 	receivers []*metrics.Receiver
 }
 
@@ -34,7 +36,10 @@ type flowAppender struct {
 }
 
 // Appender implements the Prometheus Appendable interface.
-func (app FlowAppendable) Appender(_ context.Context) storage.Appender {
+func (app *FlowAppendable) Appender(_ context.Context) storage.Appender {
+	app.mut.RLock()
+	defer app.mut.RUnlock()
+
 	return &flowAppender{
 		buffer:    make(map[int64][]*metrics.FlowMetric),
 		receivers: app.receivers,
@@ -43,7 +48,9 @@ func (app FlowAppendable) Appender(_ context.Context) storage.Appender {
 
 // SetReceivers defines the list of receivers for this appendable.
 func (app *FlowAppendable) SetReceivers(receivers []*metrics.Receiver) {
+	app.mut.Lock()
 	app.receivers = receivers
+	app.mut.Unlock()
 }
 
 func (app *flowAppender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, error) {
