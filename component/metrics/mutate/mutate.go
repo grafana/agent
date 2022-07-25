@@ -77,7 +77,7 @@ func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 
 	c.mrc = flow_relabel.HCLToPromRelabelConfigs(newArgs.MetricRelabelConfigs)
-	c.appendable = fa.FlowAppendable(newArgs.ForwardTo)
+	c.appendable.SetReceivers(newArgs.ForwardTo...)
 	c.opts.OnStateChange(Exports{Receiver: c.receiver})
 
 	return nil

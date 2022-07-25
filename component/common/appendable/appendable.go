@@ -37,6 +37,13 @@ func (app FlowAppendable) Appender(_ context.Context) storage.Appender {
 	}
 }
 
+// SetReceivers sets the list of receivers the appendable should forward to.
+func (app FlowAppendable) SetReceivers(receivers ...*metrics.Receiver) {
+	if receivers != nil {
+		app = FlowAppendable(receivers)
+	}
+}
+
 func (app *flowAppender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, error) {
 	if len(app.receivers) == 0 {
 		return 0, nil
@@ -71,7 +78,7 @@ func (app *flowAppender) AppendExemplar(ref storage.SeriesRef, l labels.Labels, 
 func (app *flowAppender) Commit() error {
 	for _, r := range app.receivers {
 		for ts, metrics := range app.buffer {
-			if r.Receive == nil {
+			if r == nil || r.Receive == nil {
 				continue
 			}
 			r.Receive(ts, metrics)
