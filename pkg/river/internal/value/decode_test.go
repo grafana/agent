@@ -203,13 +203,29 @@ func TestDecode_ArrayCopy(t *testing.T) {
 }
 
 func TestDecode_CustomTypes(t *testing.T) {
-	t.Run("Unmarshaler", func(t *testing.T) {
+	t.Run("object to Unmarshaler", func(t *testing.T) {
 		var actual customUnmarshaler
 		require.NoError(t, value.Decode(value.Object(nil), &actual))
 		require.True(t, actual.Called, "UnmarshalRiver was not invoked")
 	})
 
-	t.Run("TextUnmarshaler", func(t *testing.T) {
+	t.Run("TextMarshaler to TextUnmarshaler", func(t *testing.T) {
+		now := time.Now()
+
+		var actual time.Time
+		require.NoError(t, value.Decode(value.Encode(now), &actual))
+		require.True(t, now.Equal(actual))
+	})
+
+	t.Run("time.Duration to time.Duration", func(t *testing.T) {
+		dur := 15 * time.Second
+
+		var actual time.Duration
+		require.NoError(t, value.Decode(value.Encode(dur), &actual))
+		require.Equal(t, dur, actual)
+	})
+
+	t.Run("string to TextUnmarshaler", func(t *testing.T) {
 		now := time.Now()
 		nowBytes, _ := now.MarshalText()
 
@@ -220,7 +236,7 @@ func TestDecode_CustomTypes(t *testing.T) {
 		require.Equal(t, nowBytes, actualBytes)
 	})
 
-	t.Run("time.Duration", func(t *testing.T) {
+	t.Run("string to time.Duration", func(t *testing.T) {
 		dur := 15 * time.Second
 
 		var actual time.Duration

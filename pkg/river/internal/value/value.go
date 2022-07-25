@@ -17,9 +17,11 @@ var (
 	goString          = reflect.TypeOf(string(""))
 	goByteSlice       = reflect.TypeOf([]byte(nil))
 	goError           = reflect.TypeOf((*error)(nil)).Elem()
+	goTextMarshaler   = reflect.TypeOf((*encoding.TextMarshaler)(nil)).Elem()
 	goTextUnmarshaler = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
 	goStructWrapper   = reflect.TypeOf(structWrapper{})
 	goCapsule         = reflect.TypeOf((*Capsule)(nil)).Elem()
+	goDuration        = reflect.TypeOf((time.Duration)(0))
 	goDurationPtr     = reflect.TypeOf((*time.Duration)(nil))
 	goRiverDecoder    = reflect.TypeOf((*Unmarshaler)(nil)).Elem()
 )
@@ -189,12 +191,32 @@ func (v Value) Float() float64 {
 	panic("river/value: unreachable")
 }
 
-// Text returns a string value fo v. It panics if v is not a string.
+// Text returns a string value of v. It panics if v is not a string.
 func (v Value) Text() string {
 	if v.ty != TypeString {
 		panic("river/value: Text called on non-string type")
 	}
-	return v.rv.String()
+
+	// Attempt to get an address to v.rv for interface checking.
+	//
+	// The normal v.rv value is used for other checks.
+	addrRV := v.rv
+	if addrRV.CanAddr() {
+		addrRV = addrRV.Addr()
+	}
+	switch {
+	case addrRV.Type().Implements(goTextMarshaler):
+		// TODO(rfratto): what shoudl we do if this fails?
+		text, _ := addrRV.Interface().(encoding.TextMarshaler).MarshalText()
+		return string(text)
+
+	case v.rv.Type() == goDuration:
+		// Special case: v.rv is a duration and its String method should be used.
+		return v.rv.Interface().(time.Duration).String()
+
+	default:
+		return v.rv.String()
+	}
 }
 
 // Len returns the length of v. Panics if v is not an array or object.
