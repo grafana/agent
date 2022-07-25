@@ -92,7 +92,7 @@ require (
 	github.com/vincent-petithory/dataurl v1.0.0
 	github.com/weaveworks/common v0.0.0-20211222122857-933588f98737
 	github.com/wk8/go-ordered-map v0.2.0
-	github.com/zclconf/go-cty v1.10.0 // indirect
+	github.com/zclconf/go-cty v1.10.0
 	go.opencensus.io v0.23.0
 	go.opentelemetry.io/collector v0.55.0
 	go.opentelemetry.io/otel/metric v0.30.0
@@ -121,9 +121,9 @@ require (
 	github.com/Lusitaniae/apache_exporter v0.11.1-0.20220518131644-f9522724dab4
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137
 	github.com/fatih/color v1.13.0
+	github.com/rfratto/gohcl v0.0.0-20220609143238-53312695dc8f
 	go.opentelemetry.io/collector/pdata v0.55.0
 	go.opentelemetry.io/collector/semconv v0.55.0
-	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e
 )
 
 require (
