@@ -15,8 +15,6 @@ Main (unreleased)
 
 ### Breaking changes
 
-- Change windows certificate store so client certificate is no longer required in store (@mattdurham)
-
 ### Features
 
 ### Enhancements
@@ -26,6 +24,20 @@ Main (unreleased)
 - Tracing: Update OpenTelemetry dependency to v0.55.0. (@rfratto, @mapno)
 
 - Add base agent-operator jsonnet library and generated manifests (@hjet)
+
+### Bugfixes
+
+
+
+v0.26.1 (2022-07-25)
+-------------------------
+
+> **BREAKING CHANGES**: This release has breaking changes. Please read entries
+> carefully and consult the [upgrade guide][] for specific instructions.
+
+### Breaking changes
+
+- Change windows certificate store so client certificate is no longer required in store. (@mattdurham)
 
 ### Bugfixes
 
