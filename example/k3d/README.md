@@ -67,6 +67,7 @@ These alerts are viewable [here](http://prometheus.k3d.localhost:50080/alerts).
 
 Prometheus alerts are triggered:
 - If any Crow instances are not running or Crow samples are not being propagated correctly.
+- If any Vulture instances are not running or Vulture samples are not being propagated correctly.
 - If any Grafana Agents are not running or Grafana Agent limits are outside their norm.
 
 NOTE: The alerts might be in pending until the system settles down.
@@ -98,12 +99,18 @@ By default, a k3d cluster will be created running the following instances
 - cortex
 - avalanche - selection of avalanche instances serving traffic
 - smoke - scales avalanche replicas and introduces chaos by deleting agent pods during testing
+- vulture - emits traces and checks if are stored properly
+- tempo
 
-Crow instance will check to see if the metrics that were scraped shows up in the prometheus endpoint and then will emit metrics on the success of those metrics. This success/failure result will trigger an alert if it is incorrect.
+Crow and Vulture instances will check to see if the metrics and traces that were scraped shows up in the prometheus endpoint and then will emit metrics on the success of those metrics. This success/failure result will trigger an alert if it is incorrect.
 
-### Flow
+### Metrics Flow
 
-![](./assets/order.png)
+![](./assets/metrics_flow.png)
+
+### Traces Flow
+
+![](./assets/traces_flow.png)
 
 ### Avalanche
 

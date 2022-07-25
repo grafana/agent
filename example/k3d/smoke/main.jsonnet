@@ -2,6 +2,8 @@ local monitoring = import './monitoring/main.jsonnet';
 local cortex = import 'cortex/main.libsonnet';
 local avalanche = import 'grafana-agent/smoke/avalanche/main.libsonnet';
 local crow = import 'grafana-agent/smoke/crow/main.libsonnet';
+local vulture = import 'github.com/grafana/tempo/operations/jsonnet/microservices/vulture.libsonnet';
+local tempo = import 'github.com/grafana/tempo/operations/jsonnet/single-binary/tempo.libsonnet';
 local etcd = import 'grafana-agent/smoke/etcd/main.libsonnet';
 local smoke = import 'grafana-agent/smoke/main.libsonnet';
 local gragent = import 'grafana-agent/v2/main.libsonnet';
@@ -10,6 +12,11 @@ local k = import 'ksonnet-util/kausal.libsonnet';
 local namespace = k.core.v1.namespace;
 local pvc = k.core.v1.persistentVolumeClaim;
 local volumeMount = k.core.v1.volumeMount;
+local containerPort = k.core.v1.containerPort;
+local statefulset = k.apps.v1.statefulSet;
+local service = k.core.v1.service;
+local configMap = k.core.v1.configMap;
+local deployment = k.apps.v1.deployment;
 
 local images = {
   agent: 'grafana/agent:main',
@@ -35,6 +42,50 @@ local smoke = {
 
   cortex: cortex.new('smoke'),
 
+  tempo: tempo {
+    _config+:: {
+      namespace: 'smoke',
+      tempo: {
+        port: 3200,
+        replicas: 1,
+        headless_service_name: 'localhost',
+      },
+      pvc_size: '30Gi',
+      pvc_storage_class: 'local-path',
+      receivers: {
+        jaeger: {
+          protocols: {
+            thrift_http: null,
+          },
+        },
+        otlp: {
+          protocols: {
+            grpc: {
+              endpoint: "0.0.0.0:4317"
+            },
+          },
+        },
+      }
+    },
+    tempo_config+: {
+      querier: {
+        frontend_worker: {
+          frontend_address: 'localhost:9095',
+        },
+      },
+    },
+    tempo_statefulset+:
+      statefulset.mixin.metadata.withNamespace("smoke"),
+    tempo_service+:
+      service.mixin.metadata.withNamespace("smoke"),
+    tempo_headless_service+:
+      service.mixin.metadata.withNamespace("smoke"),
+    tempo_query_configmap+:
+      configMap.mixin.metadata.withNamespace("smoke"),
+    tempo_configmap+:
+      configMap.mixin.metadata.withNamespace("smoke")
+  },
+
   // Needed to run agent cluster
   etcd: etcd.new('smoke'),
 
@@ -52,6 +103,26 @@ local smoke = {
     new_crow('crow-single', 'cluster="grafana-agent"'),
     new_crow('crow-cluster', 'cluster="grafana-agent-cluster"'),
   ],
+
+  vulture: vulture {
+    _images+:: {
+      tempo_vulture: 'grafana/tempo-vulture:latest'
+    },    
+    _config+:: {
+      vulture: {
+        replicas: 1,
+        tempoPushUrl: 'http://grafana-agent',
+        tempoQueryUrl: 'http://tempo:3200',
+        tempoOrgId: '',
+        tempoRetentionDuration: '336h',
+        tempoSearchBackoffDuration: '0s',
+        tempoReadBackoffDuration: '10s',
+        tempoWriteBackoffDuration: '10s',
+      }      
+    },
+    tempo_vulture_deployment+:
+      deployment.mixin.metadata.withNamespace("smoke")
+  },
 
   local metric_instances(crow_name) = [{
     name: 'crow',
@@ -143,6 +214,50 @@ local smoke = {
         }],
       },
     ],
+  }, {
+    name: 'vulture',
+    remote_write: [
+      {
+        url: 'http://cortex/api/prom/push',
+        write_relabel_configs: [
+          {
+            source_labels: ['__name__'],
+            regex: 'avalanche_.*',
+            action: 'drop',
+          },
+        ],
+      },
+      {
+        url: 'http://smoke-test:19090/api/prom/push',
+        write_relabel_configs: [
+          {
+            source_labels: ['__name__'],
+            regex: 'avalanche_.*',
+            action: 'keep',
+          },
+        ],
+      },
+    ],
+    scrape_configs: [
+      {
+        job_name: 'vulture',
+        kubernetes_sd_configs: [{ role: 'pod' }],
+        tls_config: {
+          ca_file: '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt',
+        },
+        bearer_token_file: '/var/run/secrets/kubernetes.io/serviceaccount/token',
+
+        relabel_configs: [{
+          source_labels: ['__meta_kubernetes_namespace'],
+          regex: 'smoke',
+          action: 'keep',
+        }, {
+          source_labels: ['__meta_kubernetes_pod_container_name'],
+          regex: 'avalanche',
+          action: 'keep',
+        }],
+      },
+    ],
   }],
 
   normal_agent:
@@ -160,6 +275,9 @@ local smoke = {
     ) +
     gragent.withVolumeMountsMixin([volumeMount.new('agent-wal', '/var/lib/agent')]) +
     gragent.withService() +
+    gragent.withPortsMixin([
+      containerPort.new('thrift-grpc', 14250) + containerPort.withProtocol('TCP'),
+    ]) +
     gragent.withAgentConfig({
       server: { log_level: 'debug' },
 
@@ -173,6 +291,30 @@ local smoke = {
         wal_directory: '/var/lib/agent/data',
         configs: metric_instances('crow-single'),
       },
+      traces: {
+        configs: [
+            {
+                name: "vulture",
+                receivers: {
+                    jaeger: {
+                        protocols: {
+                            grpc: null
+                        }
+                    }
+                },
+                remote_write: [
+                    {
+                        endpoint: "tempo:4317",
+                        insecure: true
+                    }
+                ],
+                batch: {
+                    timeout: "5s",
+                    send_batch_size: 100
+                }
+            }
+        ]
+      }
     }),
 
   cluster_agent:

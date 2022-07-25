@@ -191,6 +191,51 @@ local _config = config._config;
           },
         ],
       },
+      {
+        name: 'VultureChecks',
+        rules: [
+          {
+            alert: 'VultureDown',
+            expr: |||
+              up{job=~"agent-smoke-test/vulture"} == 0
+            |||,
+            'for': '5m',
+            annotations: {
+              summary: 'Vulture {{ $labels.job }} is down.',
+            },
+          },
+          {
+            alert: 'VultureFlapping',
+            expr: |||
+              avg_over_time(up{job=~"agent-smoke-test/vulture"}[5m]) < 1
+            |||,
+            'for': '15m',
+            annotations: {
+              summary: 'Vulture {{ $labels.job }} is flapping.',
+            },
+          },
+          {
+            alert: 'VultureNotScraped',
+            expr: |||
+              rate(tempo_vulture_trace_total[1m]) == 0
+            |||,
+            'for': '5m',
+            annotations: {
+              summary: 'Vulture {{ $labels.job }} is not being scraped.',
+            },
+          },
+          {
+            alert: 'VultureFailures',
+            expr: |||
+              (rate(tempo_vulture_error_total[2m]) / rate(tempo_vulture_trace_total[2m])) > 0 
+            |||,
+            'for': '5m',
+            annotations: {
+              summary: 'Vulture {{ $labels.job }} has had failures for at least 5m',
+            },
+          },
+        ],
+      },      
     ],
   },
 }

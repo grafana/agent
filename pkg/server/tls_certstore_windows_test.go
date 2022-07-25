@@ -6,7 +6,6 @@ import (
 	"crypto/x509/pkix"
 	"encoding/asn1"
 	"math/big"
-	"regexp"
 	"testing"
 	"time"
 
@@ -152,64 +151,6 @@ func TestMatching2CertsGetMostRecent(t *testing.T) {
 	foundCert, err := identity.Certificate()
 	require.NoError(t, err)
 	require.Equal(t, foundCert, shouldFind)
-}
-
-func TestRegularExpression(t *testing.T) {
-	c := &winCertStoreHandler{
-		cfg: WindowsCertificateFilter{
-			Client: &WindowsClientFilter{
-				Store:        "My",
-				SystemStore:  "LocalMachine",
-				TemplateID:   "1.2.3",
-				SubjectRegEx: "[Villa]",
-			},
-		},
-	}
-	var subjectRegEx *regexp.Regexp
-	subjectRegEx, err := regexp.Compile(c.cfg.Client.SubjectRegEx)
-	require.NoError(t, err)
-	c.subjectRegEx = subjectRegEx
-	serverSt := newFakeStore()
-	sc := makeCert(time.Now().Add(time.Duration(-5)*time.Minute), time.Now().Add(5*time.Minute), []int{1, 2, 3}, "BobVilla", "")
-	serverSt.identities = append(serverSt.identities, newFakeIdentity(sc))
-	findCert := func(systemStore, _ string) (certstore.Store, error) {
-		return serverSt, nil
-	}
-	identity, err := c.findCertificate(c.cfg.Client.SystemStore, c.cfg.Client.Store, c.cfg.Client.IssuerCommonNames, c.cfg.Client.TemplateID, c.subjectRegEx, findCert)
-
-	require.NoError(t, err)
-	foundCert, err := identity.Certificate()
-	require.NoError(t, err)
-	require.Equal(t, foundCert, sc)
-}
-
-func TestRegularExpression_Fail(t *testing.T) {
-	c := &winCertStoreHandler{
-		cfg: WindowsCertificateFilter{
-			Client: &WindowsClientFilter{
-				Store:        "My",
-				SystemStore:  "LocalMachine",
-				TemplateID:   "1.2.3",
-				SubjectRegEx: "[Villa]",
-			},
-		},
-	}
-	var subjectRegEx *regexp.Regexp
-	subjectRegEx, err := regexp.Compile(c.cfg.Client.SubjectRegEx)
-	require.NoError(t, err)
-	c.subjectRegEx = subjectRegEx
-	serverSt := newFakeStore()
-	sc := makeCert(time.Now().Add(time.Duration(-5)*time.Minute), time.Now().Add(5*time.Minute), []int{1, 2, 3}, "BAD_EXAMPLE", "")
-	serverSt.identities = append(serverSt.identities, newFakeIdentity(sc))
-
-	findCert := func(systemStore, _ string) (certstore.Store, error) {
-		return serverSt, nil
-	}
-	identity, err := c.findCertificate(c.cfg.Client.SystemStore, c.cfg.Client.Store, c.cfg.Client.IssuerCommonNames, c.cfg.Client.TemplateID, c.subjectRegEx, findCert)
-
-	require.Error(t, err)
-	require.Nil(t, identity)
-
 }
 
 type fakeStore struct {
