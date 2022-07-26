@@ -67,6 +67,7 @@ func decode(val Value, into reflect.Value) error {
 			// from this package and only wrap it in an Error if it isn't.
 			return Error{Value: val, Inner: err}
 		}
+		return nil
 
 	case into.Type().Implements(goTextUnmarshaler):
 		var s string

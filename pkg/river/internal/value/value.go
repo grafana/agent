@@ -261,13 +261,9 @@ func (v Value) Interface() interface{} {
 // makeValue converts a reflect value into a Value, deferencing any pointers or
 // interface{} values.
 func makeValue(v reflect.Value) Value {
-	if !v.IsValid() {
-		return Null
-	}
-
 	// Early check: if v is interface{}, we need to deference it to get the
 	// concrete value.
-	if v.Type() == goAny {
+	if v.IsValid() && v.Type() == goAny {
 		v = v.Elem()
 	}
 
@@ -276,6 +272,10 @@ func makeValue(v reflect.Value) Value {
 	// addressable struct, still detect the type of v as if it was a pointer.
 	if v.CanAddr() {
 		v = v.Addr()
+	}
+
+	if !v.IsValid() {
+		return Null
 	}
 	riverType := RiverType(v.Type())
 

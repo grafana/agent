@@ -361,6 +361,43 @@ func TestVM_Block_Label(t *testing.T) {
 	})
 }
 
+func TestVM_Block_Unmarshaler(t *testing.T) {
+	type OuterBlock struct {
+		FieldA   string  `river:"field_a,attr"`
+		Settings Setting `river:"some.settings,block"`
+	}
+
+	input := `
+		field_a = "foobar"
+		some.settings {
+			field_a = "fizzbuzz"
+			field_b = "helloworld"
+		}
+	`
+
+	file, err := parser.ParseFile(t.Name(), []byte(input))
+	require.NoError(t, err)
+
+	eval := vm.New(file)
+
+	var actual OuterBlock
+	require.NoError(t, eval.Evaluate(nil, &actual))
+	require.True(t, actual.Settings.Called, "UnmarshalRiver did not get invoked")
+}
+
+type Setting struct {
+	FieldA string `river:"field_a,attr"`
+	FieldB string `river:"field_b,attr"`
+
+	Called bool
+}
+
+func (s *Setting) UnmarshalRiver(f func(interface{}) error) error {
+	s.Called = true
+	type setting Setting
+	return f((*setting)(s))
+}
+
 func parseBlock(t *testing.T, input string) *ast.BlockStmt {
 	t.Helper()
 

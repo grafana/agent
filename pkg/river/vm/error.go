@@ -5,45 +5,16 @@ import (
 	"strings"
 
 	"github.com/grafana/agent/pkg/river/ast"
+	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/internal/value"
 	"github.com/grafana/agent/pkg/river/printer"
 	"github.com/grafana/agent/pkg/river/token/builder"
 )
 
-// ValueError represents a failed evaluation for an AST Node.
-type ValueError struct {
-	// Node where the error originated.
-	Node ast.Node
-
-	// Error message (e.g., "foobar should be number, got string")
-	Message string
-
-	// Value is the formated value which caused the error. Value may contain
-	// formatting characters such as tabs and newline depending on the type of
-	// value.
-	Value string
-
-	// Literal indicates that the offending value is the Node itself, and not a
-	// value found inside the evaluation of Node.
-	//
-	// Literal can be used to determine whether the Value field needs to be
-	// printed. When Literal is true, it indicates that the offending value can
-	// be seen by printing the line number of the Node.
-	Literal bool
-}
-
-// Error returns the short-form error messsage of ve.
-func (ve ValueError) Error() string {
-	if ve.Node != nil {
-		return fmt.Sprintf("%s: %s", ast.StartPos(ve.Node).Position(), ve.Message)
-	}
-	return ve.Message
-}
-
-// convertValueError tries to convert err into a ValueError. err must be an
+// makeDiagnostic tries to convert err into a diag.Diagnostic. err must be an
 // error from the river/internal/value package, otherwise err will be returned
 // unmodified.
-func convertValueError(err error, assoc map[value.Value]ast.Node) error {
+func makeDiagnostic(err error, assoc map[value.Value]ast.Node) error {
 	var (
 		node    ast.Node
 		expr    strings.Builder
@@ -118,11 +89,19 @@ func convertValueError(err error, assoc map[value.Value]ast.Node) error {
 		be.SetValue(cause.Interface())
 		valueText = string(be.Bytes())
 	}
-
-	return ValueError{
-		Node:    node,
-		Message: message,
-		Value:   valueText,
-		Literal: literal,
+	if literal {
+		// Hide the value if the node itself has the error we were worried about.
+		valueText = ""
 	}
+
+	d := diag.Diagnostic{
+		Severity: diag.SeverityLevelError,
+		Message:  message,
+		Value:    valueText,
+	}
+	if node != nil {
+		d.StartPos = ast.StartPos(node).Position()
+		d.EndPos = ast.EndPos(node).Position()
+	}
+	return d
 }

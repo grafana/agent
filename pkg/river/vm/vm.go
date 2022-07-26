@@ -7,10 +7,10 @@ import (
 	"strings"
 
 	"github.com/grafana/agent/pkg/river/ast"
+	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/internal/rivertags"
 	"github.com/grafana/agent/pkg/river/internal/stdlib"
 	"github.com/grafana/agent/pkg/river/internal/value"
-	"github.com/grafana/agent/pkg/river/parser"
 )
 
 // Evaluator evaluates River AST nodes into Go values. Each Evaluator is bound
@@ -25,7 +25,7 @@ type Evaluator struct {
 }
 
 // New creates a new Evaluator for the given AST node. The given node must be
-// either an *ast.File, *ast.BlockStmt, or assignable to an ast.Expr.
+// either an *ast.File, *ast.BlockStmt, ast.Body, or assignable to an ast.Expr.
 func New(node ast.Node) *Evaluator {
 	return &Evaluator{node: node}
 }
@@ -44,27 +44,23 @@ func (vm *Evaluator) Evaluate(scope *Scope, v interface{}) (err error) {
 	defer func() {
 		if err != nil {
 			// Decorate the error on return.
-			err = convertValueError(err, assoc)
+			err = makeDiagnostic(err, assoc)
 		}
 	}()
 
 	switch node := vm.node.(type) {
-	case *ast.BlockStmt:
+	case *ast.BlockStmt, ast.Body:
 		rv := reflect.ValueOf(v)
 		if rv.Kind() != reflect.Pointer {
 			panic(fmt.Sprintf("river/vm: expected pointer, got %s", rv.Kind()))
 		}
-		rv = rv.Elem()
-
-		return vm.evaluateBlock(scope, assoc, node, rv)
+		return vm.evaluateBlockOrBody(scope, assoc, node, rv)
 	case *ast.File:
 		rv := reflect.ValueOf(v)
 		if rv.Kind() != reflect.Pointer {
 			panic(fmt.Sprintf("river/vm: expected pointer, got %s", rv.Kind()))
 		}
-		rv = rv.Elem()
-
-		return vm.evaluateBody(scope, assoc, node.Body, rv)
+		return vm.evaluateBlockOrBody(scope, assoc, node.Body, rv)
 	default:
 		expr, ok := node.(ast.Expr)
 		if !ok {
@@ -78,75 +74,34 @@ func (vm *Evaluator) Evaluate(scope *Scope, v interface{}) (err error) {
 	}
 }
 
-func (vm *Evaluator) evaluateBlock(scope *Scope, assoc map[value.Value]ast.Node, node *ast.BlockStmt, rv reflect.Value) error {
-	// TODO(rfratto): potentially loosen this restriction and allow decoding into
-	// an interface{} or map[string]interface{}.
-	if rv.Kind() != reflect.Struct {
-		panic(fmt.Sprintf("river/vm: can only evaluate blocks into structs, got %s", rv.Kind()))
-	}
-
-	tfs := rivertags.Get(rv.Type())
-
-	// Decode the block label first.
-	if err := vm.evaluateBlockLabel(node, tfs, rv); err != nil {
-		return err
-	}
-
-	return vm.evaluateBody(scope, assoc, node.Body, rv)
-}
-
-func (vm *Evaluator) evaluateBlockLabel(node *ast.BlockStmt, tfs []rivertags.Field, rv reflect.Value) error {
-	var (
-		labelField rivertags.Field
-		foundField bool
-	)
-	for _, tf := range tfs {
-		if tf.Flags&rivertags.FlagLabel != 0 {
-			labelField = tf
-			foundField = true
-			break
-		}
-	}
-
-	// Check for user errors first.
-	//
-	// We return parser.Error here to restrict the position of the error to just
-	// the name. We might be able to clean this up in the future by extending
-	// ValueError to have an explicit position.
-	switch {
-	case node.Label == "" && foundField: // No user label, but struct expects one
-		return parser.Error{
-			Position: node.NamePos.Position(),
-			Message:  fmt.Sprintf("block %q requires non-empty label", strings.Join(node.Name, ".")),
-		}
-	case node.Label != "" && !foundField: // User label, but struct doesn't expect one
-		return parser.Error{
-			Position: node.NamePos.Position(),
-			Message:  fmt.Sprintf("block %q does not support specifying labels", strings.Join(node.Name, ".")),
-		}
-	}
-
-	if node.Label == "" {
-		// no-op: no labels to set.
-		return nil
-	}
-
-	var (
-		field     = rv.FieldByIndex(labelField.Index)
-		fieldType = field.Type()
-	)
-	if !reflect.TypeOf(node.Label).AssignableTo(fieldType) {
-		// The Label struct field needs to be a string.
-		panic(fmt.Sprintf("river/vm: cannot assign block label to non-string type %s", fieldType))
-	}
-	field.Set(reflect.ValueOf(node.Label))
-	return nil
-}
-
-func (vm *Evaluator) evaluateBody(scope *Scope, assoc map[value.Value]ast.Node, stmts []ast.Stmt, rv reflect.Value) error {
+func (vm *Evaluator) evaluateBlockOrBody(scope *Scope, assoc map[value.Value]ast.Node, node ast.Node, rv reflect.Value) error {
 	// TODO(rfratto): the errors returned by this function are missing context to
 	// be able to print line numbers. We need to return decorated error types.
 
+	// Before decoding the block, we need to temporarily take the address of rv
+	// to handle the case of it implementing the unmarshaler interface.
+	if rv.CanAddr() {
+		rv = rv.Addr()
+	}
+
+	if ru, ok := rv.Interface().(value.Unmarshaler); ok {
+		return ru.UnmarshalRiver(func(v interface{}) error {
+			rv := reflect.ValueOf(v)
+			if rv.Kind() != reflect.Pointer {
+				panic(fmt.Sprintf("river/vm: expected pointer, got %s", rv.Kind()))
+			}
+			return vm.evaluateBlockOrBody(scope, assoc, node, rv.Elem())
+		})
+	}
+
+	// Fully deference rv and allocate pointers as necessary.
+	for rv.Kind() == reflect.Pointer {
+		if rv.IsNil() {
+			rv.Set(reflect.New(rv.Type().Elem()))
+		}
+		rv = rv.Elem()
+	}
+
 	// TODO(rfratto): potentially loosen this restriction and allow decoding into
 	// an interface{} or map[string]interface{}.
 	if rv.Kind() != reflect.Struct {
@@ -154,6 +109,20 @@ func (vm *Evaluator) evaluateBody(scope *Scope, assoc map[value.Value]ast.Node, 
 	}
 
 	tfs := rivertags.Get(rv.Type())
+
+	var stmts ast.Body
+	switch node := node.(type) {
+	case *ast.BlockStmt:
+		// Decode the block label first.
+		if err := vm.evaluateBlockLabel(node, tfs, rv); err != nil {
+			return err
+		}
+		stmts = node.Body
+	case ast.Body:
+		stmts = node
+	default:
+		panic(fmt.Sprintf("river/vm: unrecognized node type %T", node))
+	}
 
 	var (
 		foundAttrs  = make(map[string][]*ast.AttributeStmt, len(tfs))
@@ -242,7 +211,7 @@ func (vm *Evaluator) evaluateBody(scope *Scope, assoc map[value.Value]ast.Node, 
 				// individually into the slice.
 				for i, block := range blocks {
 					decodeElement := prepareDecodeValue(decodeField.Index(i))
-					err := vm.evaluateBlock(scope, assoc, block, decodeElement)
+					err := vm.evaluateBlockOrBody(scope, assoc, block, decodeElement)
 					if err != nil {
 						return err
 					}
@@ -260,7 +229,7 @@ func (vm *Evaluator) evaluateBody(scope *Scope, assoc map[value.Value]ast.Node, 
 
 				for i := 0; i < decodeField.Len(); i++ {
 					decodeElement := prepareDecodeValue(decodeField.Index(i))
-					err := vm.evaluateBlock(scope, assoc, blocks[i], decodeElement)
+					err := vm.evaluateBlockOrBody(scope, assoc, blocks[i], decodeElement)
 					if err != nil {
 						return err
 					}
@@ -270,7 +239,7 @@ func (vm *Evaluator) evaluateBody(scope *Scope, assoc map[value.Value]ast.Node, 
 				if len(blocks) > 1 {
 					return fmt.Errorf("block %q may only be specified once", tf.Name)
 				}
-				err := vm.evaluateBlock(scope, assoc, blocks[0], decodeField)
+				err := vm.evaluateBlockOrBody(scope, assoc, blocks[0], decodeField)
 				if err != nil {
 					return err
 				}
@@ -303,6 +272,58 @@ func (vm *Evaluator) evaluateBody(scope *Scope, assoc map[value.Value]ast.Node, 
 		}
 	}
 
+	return nil
+}
+
+func (vm *Evaluator) evaluateBlockLabel(node *ast.BlockStmt, tfs []rivertags.Field, rv reflect.Value) error {
+	var (
+		labelField rivertags.Field
+		foundField bool
+	)
+	for _, tf := range tfs {
+		if tf.Flags&rivertags.FlagLabel != 0 {
+			labelField = tf
+			foundField = true
+			break
+		}
+	}
+
+	// Check for user errors first.
+	//
+	// We return parser.Error here to restrict the position of the error to just
+	// the name. We might be able to clean this up in the future by extending
+	// ValueError to have an explicit position.
+	switch {
+	case node.Label == "" && foundField: // No user label, but struct expects one
+		return diag.Diagnostic{
+			Severity: diag.SeverityLevelError,
+			StartPos: node.NamePos.Position(),
+			EndPos:   node.LCurlyPos.Position(),
+			Message:  fmt.Sprintf("block %q requires non-empty label", strings.Join(node.Name, ".")),
+		}
+	case node.Label != "" && !foundField: // User label, but struct doesn't expect one
+		return diag.Diagnostic{
+			Severity: diag.SeverityLevelError,
+			StartPos: node.NamePos.Position(),
+			EndPos:   node.LCurlyPos.Position(),
+			Message:  fmt.Sprintf("block %q does not support specifying labels", strings.Join(node.Name, ".")),
+		}
+	}
+
+	if node.Label == "" {
+		// no-op: no labels to set.
+		return nil
+	}
+
+	var (
+		field     = rv.FieldByIndex(labelField.Index)
+		fieldType = field.Type()
+	)
+	if !reflect.TypeOf(node.Label).AssignableTo(fieldType) {
+		// The Label struct field needs to be a string.
+		panic(fmt.Sprintf("river/vm: cannot assign block label to non-string type %s", fieldType))
+	}
+	field.Set(reflect.ValueOf(node.Label))
 	return nil
 }
 
@@ -364,12 +385,13 @@ func (vm *Evaluator) evaluateExpr(scope *Scope, assoc map[value.Value]ast.Node, 
 		return value.Object(fields), nil
 
 	case *ast.IdentifierExpr:
-		val, found := findIdentifier(scope, expr.Name)
+		val, found := scope.Lookup(expr.Ident.Name)
 		if !found {
-			return value.Null, ValueError{
-				Node:    expr,
-				Message: fmt.Sprintf("identifier %q does not exist", expr.Name),
-				Literal: true,
+			return value.Null, diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				StartPos: ast.StartPos(expr).Position(),
+				EndPos:   ast.EndPos(expr).Position(),
+				Message:  fmt.Sprintf("identifier %q does not exist", expr.Ident.Name),
 			}
 		}
 		return value.Encode(val), nil
@@ -502,4 +524,20 @@ type Scope struct {
 	// Variables holds the list of available variable names that can be used when
 	// evaluating a node.
 	Variables map[string]interface{}
+}
+
+// Lookup looks up a named identifier from the scope, all of the scope's
+// parents, and the stdlib.
+func (s *Scope) Lookup(name string) (interface{}, bool) {
+	// Traverse the scope first, then fall back to stdlib.
+	for s != nil {
+		if val, ok := s.Variables[name]; ok {
+			return val, true
+		}
+		s = s.Parent
+	}
+	if fn, ok := stdlib.Functions[name]; ok {
+		return fn, true
+	}
+	return nil, false
 }
