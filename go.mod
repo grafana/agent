@@ -493,7 +493,7 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect
 )
 
-// replacements for cves
+// replacements for security updates
 replace github.com/emicklei/go-restful => github.com/emicklei/go-restful/v3 v3.8.0
 
 // Replace directives from Prometheus
