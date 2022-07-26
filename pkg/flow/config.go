@@ -14,7 +14,7 @@ import (
 // File holds the contents of a parsed Flow file.
 type File struct {
 	Name string    // File name given to ReadFile.
-	Node *ast.File // Raw File now.
+	Node *ast.File // Raw File node.
 
 	Logging logging.Options
 
