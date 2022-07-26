@@ -72,8 +72,10 @@ func Object(m map[string]Value) Value {
 // Array creates an array from the given values. A copy of the vv slice is made
 // for producing the Value.
 func Array(vv ...Value) Value {
-	ty := reflect.ArrayOf(len(vv), goAny)
-	raw := reflect.New(ty).Elem()
+	// Arrays should be slices otherwise any reference to them gets copied by
+	// value into a new pointer.
+	arrayType := reflect.SliceOf(goAny)
+	raw := reflect.MakeSlice(arrayType, len(vv), len(vv))
 
 	for i, v := range vv {
 		if v.ty == TypeNull {
@@ -259,13 +261,9 @@ func (v Value) Interface() interface{} {
 // makeValue converts a reflect value into a Value, deferencing any pointers or
 // interface{} values.
 func makeValue(v reflect.Value) Value {
-	if !v.IsValid() {
-		return Null
-	}
-
 	// Early check: if v is interface{}, we need to deference it to get the
 	// concrete value.
-	if v.Type() == goAny {
+	if v.IsValid() && v.Type() == goAny {
 		v = v.Elem()
 	}
 
@@ -274,6 +272,10 @@ func makeValue(v reflect.Value) Value {
 	// addressable struct, still detect the type of v as if it was a pointer.
 	if v.CanAddr() {
 		v = v.Addr()
+	}
+
+	if !v.IsValid() {
+		return Null
 	}
 	riverType := RiverType(v.Type())
 

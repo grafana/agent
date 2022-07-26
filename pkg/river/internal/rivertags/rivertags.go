@@ -50,6 +50,15 @@ type Field struct {
 	Flags Flags    // Flags assigned to field
 }
 
+// IsAttr returns whether f is for an attribute.
+func (f Field) IsAttr() bool { return f.Flags&FlagAttr != 0 }
+
+// IsBlock returns whether f is for a block.
+func (f Field) IsBlock() bool { return f.Flags&FlagBlock != 0 }
+
+// IsOptional returns whether f is optional.
+func (f Field) IsOptional() bool { return f.Flags&FlagOptional != 0 }
+
 // Get returns the list of tagged fields for some struct type ty. Get panics if
 // ty is not a struct type.
 //

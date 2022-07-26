@@ -67,6 +67,7 @@ func decode(val Value, into reflect.Value) error {
 			// from this package and only wrap it in an Error if it isn't.
 			return Error{Value: val, Inner: err}
 		}
+		return nil
 
 	case into.Type().Implements(goTextUnmarshaler):
 		var s string
@@ -95,14 +96,12 @@ func decode(val Value, into reflect.Value) error {
 		into = into.Elem()
 	}
 
-	// Fastest cases: we can directly assign values.
+	// Fastest cases: we can directly assign values without converting.
 	switch {
 	case val.Type() == TypeNull:
 		// TODO(rfratto): Does it make sense for a null to always decode into the
 		// zero value? Maybe only objects and arrays should support null?
 		into.Set(reflect.Zero(into.Type()))
-	case val.rv.Type() == into.Type():
-		into.Set(cloneGoValue(val.rv))
 		return nil
 	case into.Type() == goAny:
 		return decodeAny(val, into)
@@ -159,14 +158,15 @@ func decode(val Value, into reflect.Value) error {
 	case TypeObject:
 		return decodeObject(convVal, into)
 	case TypeFunction:
-		// If the function types had the exact same signature, they would've been
-		// handled in the best case statement above. If we've hit this point,
-		// they're not the same.
-		//
-		// For now, we return an error.
+		// The Go types for two functions must be the same.
 		//
 		// TODO(rfratto): we may want to consider being more lax here, potentially
 		// creating an adapter between the two functions.
+		if convVal.rv.Type() == into.Type() {
+			into.Set(convVal.rv)
+			return nil
+		}
+
 		return Error{
 			Value: val,
 			Inner: fmt.Errorf("expected function(%s), got function(%s)", into.Type(), convVal.rv.Type()),
@@ -477,67 +477,4 @@ func decodeToField(val Value, intoStruct reflect.Value, index []int) error {
 	}
 
 	return decode(val, curr)
-}
-
-func cloneGoValue(v reflect.Value) reflect.Value {
-	switch v.Kind() {
-	case reflect.Array:
-		return cloneGoArray(v)
-	case reflect.Slice:
-		return cloneGoSlice(v)
-	case reflect.Map:
-		return cloneGoMap(v)
-	}
-
-	return v
-}
-
-func needsCloned(t reflect.Type) bool {
-	switch t.Kind() {
-	case reflect.Array, reflect.Slice, reflect.Map:
-		return true
-	default:
-		return false
-	}
-}
-
-func cloneGoArray(in reflect.Value) reflect.Value {
-	res := reflect.New(in.Type()).Elem()
-
-	if !needsCloned(in.Type().Elem()) {
-		// Optimization: we can use reflect.Copy if the inner type doesn't need to
-		// be cloned.
-		reflect.Copy(res, in)
-		return res
-	}
-
-	for i := 0; i < in.Len(); i++ {
-		res.Index(i).Set(cloneGoValue(in.Index(i)))
-	}
-	return res
-}
-
-func cloneGoSlice(in reflect.Value) reflect.Value {
-	res := reflect.MakeSlice(in.Type(), in.Len(), in.Len())
-
-	if !needsCloned(in.Type().Elem()) {
-		// Optimization: we can use reflect.Copy if the inner type doesn't need to
-		// be cloned.
-		reflect.Copy(res, in)
-		return res
-	}
-
-	for i := 0; i < in.Len(); i++ {
-		res.Index(i).Set(cloneGoValue(in.Index(i)))
-	}
-	return res
-}
-
-func cloneGoMap(in reflect.Value) reflect.Value {
-	res := reflect.MakeMapWithSize(in.Type(), in.Len())
-	iter := in.MapRange()
-	for iter.Next() {
-		res.SetMapIndex(cloneGoValue(iter.Key()), cloneGoValue(iter.Value()))
-	}
-	return res
 }
