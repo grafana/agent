@@ -69,9 +69,8 @@ func makeDiagnostic(err error, assoc map[value.Value]ast.Node) error {
 	if node != nil {
 		var nodeText strings.Builder
 		if err := printer.Fprint(&nodeText, node); err != nil {
-			// TODO(rfratto): is it OK for this to panic? It should never fail since
-			// Fprint only fails if it's given an unexpected node value, which we
-			// never do here.
+			// This should never panic; printer.Fprint only fails when given an
+			// unexpected type, which we never do here.
 			panic(err)
 		}
 
