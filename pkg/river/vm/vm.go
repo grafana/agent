@@ -500,20 +500,6 @@ func (vm *Evaluator) evaluateExpr(scope *Scope, assoc map[value.Value]ast.Node, 
 	}
 }
 
-func findIdentifier(scope *Scope, name string) (interface{}, bool) {
-	// Traverse the scope first, then fall back to stdlib.
-	for scope != nil {
-		if val, ok := scope.Variables[name]; ok {
-			return val, true
-		}
-		scope = scope.Parent
-	}
-	if fn, ok := stdlib.Functions[name]; ok {
-		return fn, true
-	}
-	return nil, false
-}
-
 // A Scope exposes a set of variables available to use during evaluation.
 type Scope struct {
 	// Parent optionally points to a parent Scope containing more variable.
