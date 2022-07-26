@@ -25,6 +25,8 @@ func printTokens(w io.Writer, toks []Token) (int, error) {
 		switch {
 		case tok.Tok == token.LITERAL:
 			raw.WriteString(tok.Lit)
+		case tok.Tok == token.COMMENT:
+			raw.WriteString(tok.Lit)
 		case tok.Tok.IsLiteral() || tok.Tok.IsKeyword():
 			raw.WriteString(tok.Lit)
 		default:

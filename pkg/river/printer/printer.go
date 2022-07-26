@@ -196,7 +196,7 @@ func (p *printer) Write(args ...interface{}) {
 			p.lastTok = token.LITERAL
 			continue
 
-		case *ast.IdentifierExpr:
+		case *ast.Ident:
 			data = arg.Name
 			p.lastTok = token.IDENT
 

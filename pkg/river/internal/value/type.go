@@ -68,15 +68,23 @@ func RiverType(t reflect.Type) Type {
 	// or non-pointer type, so we have to check before and after dereferencing.
 
 	for t.Kind() == reflect.Pointer {
-		if t.Implements(goCapsule) {
+		switch {
+		case t.Implements(goCapsule):
 			return TypeCapsule
+		case t.Implements(goTextMarshaler):
+			return TypeString
 		}
 
 		t = t.Elem()
 	}
 
-	if t.Implements(goCapsule) {
+	switch {
+	case t.Implements(goCapsule):
 		return TypeCapsule
+	case t.Implements(goTextMarshaler):
+		return TypeString
+	case t == goDuration:
+		return TypeString
 	}
 
 	switch t.Kind() {

@@ -8,6 +8,13 @@ import (
 	"time"
 )
 
+// Unmarshaler is a custom type which can be used to hook into the decoder.
+type Unmarshaler interface {
+	// UnmarshalRiver is called when decoding a value. f should be invoked to
+	// continue decoding with a value to decode into.
+	UnmarshalRiver(f func(v interface{}) error) error
+}
+
 // Decode assigns a Value val to a Go pointer target. Pointers will be
 // allocated as necessary when decoding.
 //
@@ -50,6 +57,16 @@ func decode(val Value, into reflect.Value) error {
 		}
 		*into.Interface().(*time.Duration) = dur
 		return nil
+
+	case into.Type().Implements(goRiverDecoder):
+		err := into.Interface().(Unmarshaler).UnmarshalRiver(func(v interface{}) error {
+			return decode(val, reflect.ValueOf(v))
+		})
+		if err != nil {
+			// TODO(rfratto): we need to detect if error is one of the error types
+			// from this package and only wrap it in an Error if it isn't.
+			return Error{Value: val, Inner: err}
+		}
 
 	case into.Type().Implements(goTextUnmarshaler):
 		var s string
@@ -127,13 +144,15 @@ func decode(val Value, into reflect.Value) error {
 	// that convVal.rv and into are compatible Go types.
 	switch convVal.Type() {
 	case TypeNumber:
-		into.Set(convertGoNumber(convVal.rv, into.Type()))
+		into.Set(convertGoNumber(convVal.Number(), into.Type()))
 		return nil
 	case TypeString:
-		into.Set(convVal.rv)
+		// Call convVal.Text() to get the final string value, since convVal.rv
+		// might not be a string.
+		into.Set(reflect.ValueOf(convVal.Text()))
 		return nil
 	case TypeBool:
-		into.Set(convVal.rv)
+		into.Set(reflect.ValueOf(convVal.Bool()))
 		return nil
 	case TypeArray:
 		return decodeArray(convVal, into)
@@ -285,8 +304,8 @@ func decodeAny(val Value, into reflect.Value) error {
 func decodeArray(val Value, rt reflect.Value) error {
 	switch rt.Kind() {
 	case reflect.Slice:
-		res := reflect.MakeSlice(rt.Type(), val.rv.Len(), val.rv.Len())
-		for i := 0; i < val.rv.Len(); i++ {
+		res := reflect.MakeSlice(rt.Type(), val.Len(), val.Len())
+		for i := 0; i < val.Len(); i++ {
 			// Decode the original elements into the new elements.
 			if err := decode(val.Index(i), res.Index(i)); err != nil {
 				return ElementError{Value: val, Index: i, Inner: err}
@@ -297,14 +316,14 @@ func decodeArray(val Value, rt reflect.Value) error {
 	case reflect.Array:
 		res := reflect.New(rt.Type()).Elem()
 
-		if val.rv.Len() != res.Len() {
+		if val.Len() != res.Len() {
 			return Error{
 				Value: val,
-				Inner: fmt.Errorf("array must have exactly %d elements, got %d", res.Len(), val.rv.Len()),
+				Inner: fmt.Errorf("array must have exactly %d elements, got %d", res.Len(), val.Len()),
 			}
 		}
 
-		for i := 0; i < val.rv.Len(); i++ {
+		for i := 0; i < val.Len(); i++ {
 			if err := decode(val.Index(i), res.Index(i)); err != nil {
 				return ElementError{Value: val, Index: i, Inner: err}
 			}

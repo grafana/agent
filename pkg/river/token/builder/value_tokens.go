@@ -1,14 +1,14 @@
 package builder
 
 import (
-	"encoding"
 	"fmt"
-	"time"
 
 	"github.com/grafana/agent/pkg/river/internal/value"
 	"github.com/grafana/agent/pkg/river/scanner"
 	"github.com/grafana/agent/pkg/river/token"
 )
+
+// TODO(rfratto): check for optional values
 
 // Tokenizer is any value which can return a raw set of tokens.
 type Tokenizer interface {
@@ -24,22 +24,9 @@ func tokenEncode(val interface{}) []Token {
 func valueTokens(v value.Value) []Token {
 	var toks []Token
 
-	// Check for interfces which override encoding behavior:
-	switch v := v.Interface().(type) {
-	case time.Duration:
-		return []Token{{
-			Tok: token.STRING,
-			Lit: fmt.Sprintf("%q", v.String()),
-		}}
-	case Tokenizer:
-		return v.RiverTokenize()
-	case encoding.TextMarshaler:
-		// TODO(rfratto): what if this fails?
-		bb, _ := v.MarshalText()
-		return []Token{{
-			Tok: token.STRING,
-			Lit: fmt.Sprintf("%q", string(bb)),
-		}}
+	// If v is a Tokenizer, allow it to override what tokens get generated.
+	if tk, ok := v.Interface().(Tokenizer); ok {
+		return tk.RiverTokenize()
 	}
 
 	switch v.Type() {
