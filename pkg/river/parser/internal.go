@@ -287,8 +287,10 @@ func (p *parser) parseBlockName() *blockName {
 	// [ string ]
 	if p.tok != token.ASSIGN && p.tok != token.LCURLY {
 		if p.tok == token.STRING {
+			// Strip the quotes if it's non empty. We then require any non-empty
+			// label to be a valid identifier.
 			if len(p.lit) > 2 {
-				bn.Label = p.lit[1 : len(p.lit)-1] // Strip quotes from label
+				bn.Label = p.lit[1 : len(p.lit)-1]
 				if !isValidIdentifier(bn.Label) {
 					p.addErrorf("expected block label to be a valid identifier")
 				}
