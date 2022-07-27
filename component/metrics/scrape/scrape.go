@@ -59,7 +59,7 @@ type Component struct {
 	mut        sync.RWMutex
 	args       Arguments
 	scraper    *scrape.Manager
-	appendable fa.FlowAppendable
+	appendable *fa.FlowAppendable
 }
 
 var (
@@ -128,7 +128,7 @@ func (c *Component) Update(args component.Arguments) error {
 	defer c.mut.Unlock()
 	c.args = newArgs
 
-	c.appendable = fa.FlowAppendable(newArgs.ForwardTo)
+	c.appendable.SetReceivers(newArgs.ForwardTo)
 
 	sc, err := newArgs.ScrapeConfig.getPromScrapeConfigs(c.opts.ID)
 	if err != nil {

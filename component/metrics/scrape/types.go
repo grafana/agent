@@ -14,18 +14,11 @@ import (
 	"github.com/rfratto/gohcl"
 )
 
-// var emptyAuthorization = common_config.Authorization{}
-// var emptyBasicAuth = common_config.BasicAuth{}
-// var emptyOAuth2 = &common_config.OAuth2{}
-
 const bearer string = "Bearer"
 
 // Config holds all of the attributes that can be used to configure a scrape
 // component.
 type Config struct {
-	// TODO (@tpaschalis) I think we need to override this to be the same value
-	// as the key in the targetGroups map that is being passed through the
-	// channel, and not allow it to be freely set.
 	// The job name to which the job label is set by default.
 	JobName string `hcl:"job_name,attr"`
 
@@ -208,15 +201,6 @@ func (c *Config) getPromScrapeConfigs(jobName string) (*config.ScrapeConfig, err
 			TLSConfig:        oauth2TLSConfig,
 		}
 	}
-	// TODO(@tpaschalis) had to include this workaround with the OAuth2 config
-	// object, otherwise it would get resolved to a non-nil object, trigger a
-	// different behavior in the scrape requests and fail them. Let's check if
-	// it's the same case with the other nested HTTPClientConfigs structs.
-	// if reflect.DeepEqual(oauth2Config, emptyOAuth2) {
-	// 	dec.HTTPClientConfig.OAuth2 = nil
-	// } else {
-	// 	dec.HTTPClientConfig.OAuth2 = oauth2Config
-	// }
 
 	dec.HTTPClientConfig.BearerToken = common_config.Secret(c.BearerToken)
 	dec.HTTPClientConfig.BearerTokenFile = c.BearerTokenFile
