@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/metrics/scrape"
 	promk8s "github.com/prometheus/prometheus/discovery/kubernetes"
@@ -23,17 +24,17 @@ func init() {
 
 // SDConfig is a conversion of discover/kubernetes/SDConfig to be compatible with flow
 type SDConfig struct {
-	APIServer          URL                `hcl:"api_server,optional"`
-	Role               string             `hcl:"role"`
-	KubeConfig         string             `hcl:"kubeconfig_file,optional"`
-	HTTPClientConfig   HTTPClientConfig   `hcl:"http_client_config,optional"`
-	NamespaceDiscovery NamespaceDiscovery `hcl:"namespaces,optional"`
-	Selectors          []SelectorConfig   `hcl:"selectors,optional"`
+	APIServer          config.URL              `hcl:"api_server,optional"`
+	Role               string                  `hcl:"role"`
+	KubeConfig         string                  `hcl:"kubeconfig_file,optional"`
+	HTTPClientConfig   config.HTTPClientConfig `hcl:"http_client_config,optional"`
+	NamespaceDiscovery NamespaceDiscovery      `hcl:"namespaces,optional"`
+	Selectors          []SelectorConfig        `hcl:"selectors,optional"`
 }
 
 // Defaults for SDConfig. (copied from prometheus)
 var DefaultConfig = SDConfig{
-	HTTPClientConfig: DefaultHTTPClientConfig,
+	HTTPClientConfig: config.DefaultHTTPClientConfig,
 }
 
 func (sd *SDConfig) UnmarshalRiver(f func(interface{}) error) error {
