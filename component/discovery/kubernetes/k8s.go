@@ -24,12 +24,12 @@ func init() {
 
 // SDConfig is a conversion of discover/kubernetes/SDConfig to be compatible with flow
 type SDConfig struct {
-	APIServer          config.URL              `hcl:"api_server,optional"`
-	Role               string                  `hcl:"role"`
-	KubeConfig         string                  `hcl:"kubeconfig_file,optional"`
-	HTTPClientConfig   config.HTTPClientConfig `hcl:"http_client_config,optional"`
-	NamespaceDiscovery NamespaceDiscovery      `hcl:"namespaces,optional"`
-	Selectors          []SelectorConfig        `hcl:"selectors,optional"`
+	APIServer          config.URL              `river:"api_server,attr,optional"`
+	Role               string                  `river:"role,attr"`
+	KubeConfig         string                  `river:"kubeconfig_file,attr,optional"`
+	HTTPClientConfig   config.HTTPClientConfig `river:"http_client_config,attr,optional"`
+	NamespaceDiscovery NamespaceDiscovery      `river:"namespaces,attr,optional"`
+	Selectors          []SelectorConfig        `river:"selectors,attr,optional"`
 }
 
 // Defaults for SDConfig. (copied from prometheus)
@@ -103,11 +103,7 @@ func New(o component.Options, args SDConfig) (*Component, error) {
 	c := &Component{
 		opts: o,
 	}
-
-	// Perform an update which will immediately set our exports
-	if err := c.Update(args); err != nil {
-		return nil, err
-	}
+	c.opts.OnStateChange(Exports{Targets: []scrape.Target{}})
 	return c, nil
 }
 
