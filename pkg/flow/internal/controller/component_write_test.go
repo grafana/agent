@@ -21,7 +21,6 @@ func TestWriteComponent(t *testing.T) {
 			input = "Hello, world!"
 		}
 	`
-
 	blocks := loadFile(t, []byte(config))
 
 	cn := NewComponentNode(ComponentGlobals{

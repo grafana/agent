@@ -31,7 +31,7 @@ type Loader struct {
 // NewLoader creates a new Loader. Components built by the Loader will be built
 // with co for their options.
 func NewLoader(globals ComponentGlobals) *Loader {
-	initControllerMetrics(prometheus.DefaultRegisterer)
+	registerControllerMetrics(prometheus.DefaultRegisterer)
 	return &Loader{
 		log:     globals.Logger,
 		globals: globals,
