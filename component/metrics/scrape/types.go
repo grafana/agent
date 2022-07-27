@@ -54,31 +54,19 @@ type Config struct {
 	// scrape to fail.
 	LabelValueLengthLimit uint `river:"label_value_length_limit,attr,optional"`
 
-	// HTTP Client Config
-	// TODO: cpeterson (can this just embed component_config.HTTPClientConfig somehow?
-	BasicAuth     *component_config.BasicAuth     `river:"basic_auth,block,optional"`
-	Authorization *component_config.Authorization `river:"authorization,block,optional"`
-	OAuth2        *component_config.OAuth2Config  `river:"oauth2,block,optional"`
-	TLSConfig     *component_config.TLSConfig     `river:"tls_config,block,optional"`
-
-	BearerToken     string `river:"bearer_token,attr,optional"`
-	BearerTokenFile string `river:"bearer_token_file,attr,optional"`
-	ProxyURL        string `river:"proxy_url,attr,optional"`
-
-	FollowRedirects bool `river:"follow_redirects,attr,optional"`
-	EnableHTTP2     bool `river:"enable_http_2,attr,optional"`
+	component_config.HTTPClientConfig
 }
 
 // DefaultConfig is the set of default options applied before decoding a given
 // scrape_config block.
 var DefaultConfig = Config{
-	MetricsPath:     "/metrics",
-	Scheme:          "http",
-	HonorLabels:     false,
-	HonorTimestamps: true,
-	FollowRedirects: true,                             // From common_config.DefaultHTTPClientConfig
-	ScrapeInterval:  model.Duration(1 * time.Minute),  // From config.DefaultGlobalConfig
-	ScrapeTimeout:   model.Duration(10 * time.Second), // From config.DefaultGlobalConfig
+	MetricsPath:      "/metrics",
+	Scheme:           "http",
+	HonorLabels:      false,
+	HonorTimestamps:  true,
+	HTTPClientConfig: component_config.DefaultHTTPClientConfig,
+	ScrapeInterval:   model.Duration(1 * time.Minute),  // From config.DefaultGlobalConfig
+	ScrapeTimeout:    model.Duration(10 * time.Second), // From config.DefaultGlobalConfig
 }
 
 // UnmarshalRiver implements river.Unmarshaler.
