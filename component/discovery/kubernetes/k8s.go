@@ -8,7 +8,6 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/metrics/scrape"
 	promk8s "github.com/prometheus/prometheus/discovery/kubernetes"
-	"github.com/prometheus/prometheus/discovery/targetgroup"
 )
 
 // TODO: cpeterson: use defaults from here for hcl default
@@ -87,15 +86,13 @@ type Component struct {
 	args   SDConfig
 	cancel context.CancelFunc
 
-	ch chan []*targetgroup.Group
+	baseContext context.Context
 }
 
 // New creates a new discovery.k8s component.
 func New(o component.Options, args SDConfig) (*Component, error) {
 	c := &Component{
 		opts: o,
-		// TODO: check buffering in prometheus service discovery manager
-		ch: make(chan []*targetgroup.Group),
 	}
 
 	// Perform an update which will immediately set our exports
@@ -107,14 +104,8 @@ func New(o component.Options, args SDConfig) (*Component, error) {
 
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
-	f := func(t []scrape.Target) {
-		c.opts.OnStateChange(Exports{Targets: t})
-	}
-	discovery.RunDiscovery(ctx, c.ch, f)
-	// if we get here, we've canceled
-	if c.cancel != nil {
-		c.cancel()
-	}
+	c.baseContext = ctx
+	<-ctx.Done()
 	return nil
 }
 
@@ -126,11 +117,19 @@ func (c *Component) Update(args component.Arguments) error {
 	if err != nil {
 		return err
 	}
+	// cancel any previously running discovery
 	if c.cancel != nil {
 		c.cancel()
 	}
-	ctx, cancel := context.WithCancel(context.Background())
+	// function to send updates on change
+	f := func(t []scrape.Target) {
+		c.opts.OnStateChange(Exports{Targets: t})
+	}
+	// create new context so we can cancel it if we get any future updates
+	// descended from component's main context so it handles controller cancellations too
+	newCtx, cancel := context.WithCancel(c.baseContext)
 	c.cancel = cancel
-	go disc.Run(ctx, c.ch)
+	// finally run discovery
+	go discovery.RunDiscovery(newCtx, disc, f)
 	return nil
 }
