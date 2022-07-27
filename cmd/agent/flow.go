@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	_ "net/http/pprof" // anonymous import to get the pprof handler registered
 	"os"
 	"os/signal"
 	"sync"
@@ -16,19 +15,23 @@ import (
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-
-	// Install components
-	_ "github.com/grafana/agent/component/all"
 )
 
-func main() {
-	if err := run(); err != nil {
+// IsFlowEnabled checks to see if the environment var is set
+func IsFlowEnabled() bool {
+	_, found := os.LookupEnv("EXPERIMENTAL_ENABLE_FLOW")
+	return found
+}
+
+// RunFlow runs the flow subsystem
+func RunFlow() {
+	if err := runFlow(); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %s\n", err)
 		os.Exit(1)
 	}
 }
 
-func run() error {
+func runFlow() error {
 	var wg sync.WaitGroup
 	defer wg.Wait()
 
