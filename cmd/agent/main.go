@@ -29,7 +29,7 @@ func init() {
 }
 
 func main() {
-	// If Windows is trying to flow us as a service, go through that
+	// If Windows is trying to run as a service, go through that
 	// path instead.
 	if IsWindowsService() {
 		err := RunService()
