@@ -94,8 +94,6 @@ type Component struct {
 	opts   component.Options
 	args   SDConfig
 	cancel context.CancelFunc
-
-	baseContext context.Context
 }
 
 // New creates a new discovery.k8s component.
@@ -103,14 +101,16 @@ func New(o component.Options, args SDConfig) (*Component, error) {
 	c := &Component{
 		opts: o,
 	}
-	c.opts.OnStateChange(Exports{Targets: []scrape.Target{}})
+	c.Update(args)
 	return c, nil
 }
 
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
-	c.baseContext = ctx
 	<-ctx.Done()
+	if c.cancel != nil {
+		c.cancel()
+	}
 	return nil
 }
 
@@ -130,8 +130,7 @@ func (c *Component) Update(args component.Arguments) error {
 		c.opts.OnStateChange(Exports{Targets: t})
 	}
 	// create new context so we can cancel it if we get any future updates
-	// descended from component's main context so it handles controller cancellations too
-	newCtx, cancel := context.WithCancel(c.baseContext)
+	newCtx, cancel := context.WithCancel(context.Background())
 	c.cancel = cancel
 	// finally run discovery
 	go discovery.RunDiscovery(newCtx, disc, f)
