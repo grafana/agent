@@ -53,6 +53,13 @@ func (app *FlowAppendable) SetReceivers(receivers []*metrics.Receiver) {
 	app.mut.Unlock()
 }
 
+// ListReceivers is a test method for exposing the Appender's receivers.
+func (app *FlowAppendable) ListReceivers() []*metrics.Receiver {
+	app.mut.RLock()
+	defer app.mut.RUnlock()
+	return app.receivers
+}
+
 func (app *flowAppender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, error) {
 	if len(app.receivers) == 0 {
 		return 0, nil
