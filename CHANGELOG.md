@@ -18,6 +18,7 @@ Main (unreleased)
 ### Features
 
 - Integrations: (beta) Add vmware_exporter integration (@rlankfo)
+- Introduce Blackbox exporter integration. (@marctc)
 
 ### Enhancements
 

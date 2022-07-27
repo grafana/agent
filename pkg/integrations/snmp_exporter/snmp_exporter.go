@@ -99,7 +99,7 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 	return integration, nil
 }
 
-// Integration is the node_exporter integration. The integration scrapes metrics
+// Integration is the SNMP integration. The integration scrapes metrics
 // from the host Linux-based system.
 type Integration struct {
 	sh *snmpHandler

@@ -70,7 +70,7 @@ metrics:
 integrations:
   snmp:
     autoscrape:
-      enabled: false # set autoscrape to off
+      enable: false # set autoscrape to off
     walk_params:
       private:
         version: 2
