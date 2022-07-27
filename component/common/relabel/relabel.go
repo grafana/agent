@@ -4,10 +4,8 @@ import (
 	"fmt"
 
 	"github.com/grafana/regexp"
-	"github.com/hashicorp/hcl/v2"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"
-	"github.com/rfratto/gohcl"
 )
 
 // Action is the relabelling action to be performed.
@@ -99,13 +97,13 @@ func (re *Regexp) UnmarshalText(text []byte) error {
 
 // Config describes a relabelling step to be applied on a target.
 type Config struct {
-	SourceLabels []string `hcl:"source_labels,optional"`
-	Separator    string   `hcl:"separator,optional"`
-	Regex        Regexp   `hcl:"regex,optional"`
-	Modulus      uint64   `hcl:"modulus,optional"`
-	TargetLabel  string   `hcl:"target_label,optional"`
-	Replacement  string   `hcl:"replacement,optional"`
-	Action       Action   `hcl:"action,optional"`
+	SourceLabels []string `river:"source_labels,attr,optional"`
+	Separator    string   `river:"separator,attr,optional"`
+	Regex        Regexp   `river:"regex,attr,optional"`
+	Modulus      uint64   `river:"modulus,attr,optional"`
+	TargetLabel  string   `river:"target_label,attr,optional"`
+	Replacement  string   `river:"replacement,attr,optional"`
+	Action       Action   `river:"action,attr,optional"`
 }
 
 // DefaultRelabelConfig sets the default values of fields when decoding a RelabelConfig block.
@@ -118,14 +116,12 @@ var DefaultRelabelConfig = Config{
 
 var relabelTarget = regexp.MustCompile(`^(?:(?:[a-zA-Z_]|\$(?:\{\w+\}|\w+))+\w*)+$`)
 
-// DecodeHCL implements gohcl.Decoder.
-// This method is only called on blocks, not objects.
-func (rc *Config) DecodeHCL(body hcl.Body, ctx *hcl.EvalContext) error {
+// UnmarshalRiver implements river.Unmarshaler.
+func (rc *Config) UnmarshalRiver(f func(interface{}) error) error {
 	*rc = DefaultRelabelConfig
 
 	type relabelConfig Config
-	err := gohcl.DecodeBody(body, ctx, (*relabelConfig)(rc))
-	if err != nil {
+	if err := f((*relabelConfig)(rc)); err != nil {
 		return err
 	}
 
@@ -165,9 +161,9 @@ func (rc *Config) DecodeHCL(body hcl.Body, ctx *hcl.EvalContext) error {
 	return nil
 }
 
-// HCLToPromRelabelConfigs bridges the HCL-based configuration of relabeling
-// steps to the Prometheus implementation.
-func HCLToPromRelabelConfigs(rcs []*Config) []*relabel.Config {
+// ComponentToPromRelabelConfigs bridges the Compnoent-based configuration of
+// relabeling steps to the Prometheus implementation.
+func ComponentToPromRelabelConfigs(rcs []*Config) []*relabel.Config {
 	res := make([]*relabel.Config, len(rcs))
 	for i, rc := range rcs {
 		sourceLabels := make([]model.LabelName, len(rc.SourceLabels))

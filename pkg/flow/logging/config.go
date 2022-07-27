@@ -5,14 +5,13 @@ import (
 	"fmt"
 
 	"github.com/go-kit/log/level"
-	"github.com/hashicorp/hcl/v2"
-	"github.com/rfratto/gohcl"
+	"github.com/grafana/agent/pkg/river"
 )
 
 // Options is a set of options used to construct and configure a Logger.
 type Options struct {
-	Level  Level  `hcl:"level,optional"`
-	Format Format `hcl:"format,optional"`
+	Level  Level  `river:"level,attr,optional"`
+	Format Format `river:"format,attr,optional"`
 
 	// TODO: log sink parameter (e.g., to use the Windows Event logger)
 }
@@ -23,14 +22,14 @@ var DefaultOptions = Options{
 	Format: FormatDefault,
 }
 
-var _ gohcl.Decoder = (*Options)(nil)
+var _ river.Unmarshaler = (*Options)(nil)
 
-// DecodeHCL implements gohcl.Decoder.
-func (o *Options) DecodeHCL(body hcl.Body, ctx *hcl.EvalContext) error {
+// UnmarshalRiver implements river.Unmarshaler.
+func (o *Options) UnmarshalRiver(f func(interface{}) error) error {
 	*o = DefaultOptions
 
 	type options Options
-	return gohcl.DecodeBody(body, ctx, (*options)(o))
+	return f((*options)(o))
 }
 
 // Level represents how verbose logging should be.

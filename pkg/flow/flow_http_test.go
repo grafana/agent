@@ -10,46 +10,44 @@ import (
 
 func Test_configBytes(t *testing.T) {
 	configFile := `
-		testcomponents "tick" "ticker-a" {
+		testcomponents.tick "ticker_a" {
 			frequency = "1s"
 		}
 
-		testcomponents "passthrough" "static" {
+		testcomponents.passthrough "static" {
 			input = "hello, world!"
 		}
 	`
 
-	file, diags := ReadFile(t.Name(), []byte(configFile))
+	file, err := ReadFile(t.Name(), []byte(configFile))
 	require.NotNil(t, file)
-	require.False(t, diags.HasErrors(), "Found errors when loading file")
+	require.NoError(t, err)
 
 	f, _ := newFlow(testOptions(t))
 
-	err := f.LoadFile(file)
+	err = f.LoadFile(file)
 	require.NoError(t, err)
 
 	var buf bytes.Buffer
 	_, _ = f.configBytes(&buf, false)
 	actual := buf.String()
 
-	// Exported fields aren't reported for testcomponents.tick.ticker-a because
+	// Exported fields aren't reported for testcomponents.tick.ticker_a because
 	// the controller isn't running, so all of its exports are the zero value and
 	// get omitted from the result.
 	expect :=
-		`// Component testcomponents.tick.ticker-a:
-testcomponents "tick" "ticker-a" {
-  frequency = "1s"
+		`// Component testcomponents.tick.ticker_a:
+testcomponents.tick "ticker_a" {
+	frequency = "1s"
 }
 
 // Component testcomponents.passthrough.static:
-testcomponents "passthrough" "static" {
-  input = "hello, world!"
+testcomponents.passthrough "static" {
+	input = "hello, world!"
 
-  // Exported fields:
-  output = "hello, world!"
-}
-
-`
+	// Exported fields:
+	output = "hello, world!"
+}`
 
 	require.Equal(t, expect, actual)
 }
