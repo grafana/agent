@@ -1,28 +1,26 @@
 package controller
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/zclconf/go-cty/cty"
 )
 
 func TestValueCache(t *testing.T) {
 	vc := newValueCache()
 
 	type fooArgs struct {
-		Something bool `hcl:"something,attr"`
+		Something bool `river:"something,attr"`
 	}
 	type fooExports struct {
-		SomethingElse bool `hcl:"something_else,attr"`
+		SomethingElse bool `river:"something_else,attr"`
 	}
 
 	type barArgs struct {
-		Number int `hcl:"number,attr"`
+		Number int `river:"number,attr"`
 	}
 
-	// Emulate values from the following HCL file:
+	// Emulate values from the following River file:
 	//
 	//     foo {
 	//       something = true
@@ -39,21 +37,21 @@ func TestValueCache(t *testing.T) {
 	//       number = 34
 	//     }
 	//
-	// and expects to generate the equivalent to the following JSON object:
+	// and expects to generate the equivalent to the following River object:
 	//
 	//     {
-	//       "foo": {
-	//         "something": true
-	//       },
-	//       "bar": {
-	//         "label_a": {
-	//           "number": 12
-	//         },
-	//         "label_b": {
-	//           "number": 34
-	//         }
-	//       }
+	//      	foo = {
+	//      		something_else = true,
+	//      	},
+	//
+	//      	bar = {
+	//      		label_a = {},
+	//      		label_b = {},
+	//      	}
 	//     }
+	//
+	// For now, only exports are placed in generated objects, which is why the
+	// bar values are empty and the foo object only contains the exports.
 
 	vc.CacheArguments(ComponentID{"foo"}, fooArgs{Something: true})
 	vc.CacheExports(ComponentID{"foo"}, fooExports{SomethingElse: true})
@@ -71,33 +69,13 @@ func TestValueCache(t *testing.T) {
 	}
 	require.ElementsMatch(t, expectKeys, actualKeys)
 
-	expectFoo := cty.ObjectVal(map[string]cty.Value{
-		"something":      cty.BoolVal(true),
-		"something_else": cty.BoolVal(true),
-	})
-	expectBar := cty.ObjectVal(map[string]cty.Value{
-		"label_a": cty.ObjectVal(map[string]cty.Value{
-			"number": cty.NumberIntVal(12),
-		}),
-		"label_b": cty.ObjectVal(map[string]cty.Value{
-			"number": cty.NumberIntVal(34),
-		}),
-	})
+	type object = map[string]interface{}
 
-	requireCtyEqual(t, expectFoo, res.Variables["foo"])
-	requireCtyEqual(t, expectBar, res.Variables["bar"])
-}
-
-// requireCtyEqual requires a and b to be equal.
-func requireCtyEqual(t *testing.T, expect, actual cty.Value) {
-	t.Helper()
-
-	if expect.Equals(actual).True() {
-		return
+	expectFoo := fooExports{SomethingElse: true}
+	expectBar := object{
+		"label_a": object{}, // no exports for bar
+		"label_b": object{}, // no exports for bar
 	}
-
-	require.Fail(t, fmt.Sprintf("Not equal: \n"+
-		"expected: %s\n"+
-		"actual  : %s", expect.GoString(), actual.GoString(),
-	))
+	require.Equal(t, expectFoo, res.Variables["foo"])
+	require.Equal(t, expectBar, res.Variables["bar"])
 }

@@ -8,6 +8,8 @@ import (
 	"github.com/grafana/agent/pkg/river/token"
 )
 
+// TODO(rfratto): check for optional values
+
 // Tokenizer is any value which can return a raw set of tokens.
 type Tokenizer interface {
 	// RiverTokenize returns the raw set of River tokens which are used when
@@ -22,6 +24,7 @@ func tokenEncode(val interface{}) []Token {
 func valueTokens(v value.Value) []Token {
 	var toks []Token
 
+	// If v is a Tokenizer, allow it to override what tokens get generated.
 	if tk, ok := v.Interface().(Tokenizer); ok {
 		return tk.RiverTokenize()
 	}

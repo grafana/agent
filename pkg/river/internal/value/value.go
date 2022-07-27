@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Go types used throughout the package.
@@ -16,9 +17,13 @@ var (
 	goString          = reflect.TypeOf(string(""))
 	goByteSlice       = reflect.TypeOf([]byte(nil))
 	goError           = reflect.TypeOf((*error)(nil)).Elem()
+	goTextMarshaler   = reflect.TypeOf((*encoding.TextMarshaler)(nil)).Elem()
 	goTextUnmarshaler = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
 	goStructWrapper   = reflect.TypeOf(structWrapper{})
 	goCapsule         = reflect.TypeOf((*Capsule)(nil)).Elem()
+	goDuration        = reflect.TypeOf((time.Duration)(0))
+	goDurationPtr     = reflect.TypeOf((*time.Duration)(nil))
+	goRiverDecoder    = reflect.TypeOf((*Unmarshaler)(nil)).Elem()
 )
 
 // NOTE(rfratto): This package is extremely sensitive to performance, so
@@ -67,8 +72,10 @@ func Object(m map[string]Value) Value {
 // Array creates an array from the given values. A copy of the vv slice is made
 // for producing the Value.
 func Array(vv ...Value) Value {
-	ty := reflect.ArrayOf(len(vv), goAny)
-	raw := reflect.New(ty).Elem()
+	// Arrays should be slices otherwise any reference to them gets copied by
+	// value into a new pointer.
+	arrayType := reflect.SliceOf(goAny)
+	raw := reflect.MakeSlice(arrayType, len(vv), len(vv))
 
 	for i, v := range vv {
 		if v.ty == TypeNull {
@@ -186,12 +193,32 @@ func (v Value) Float() float64 {
 	panic("river/value: unreachable")
 }
 
-// Text returns a string value fo v. It panics if v is not a string.
+// Text returns a string value of v. It panics if v is not a string.
 func (v Value) Text() string {
 	if v.ty != TypeString {
 		panic("river/value: Text called on non-string type")
 	}
-	return v.rv.String()
+
+	// Attempt to get an address to v.rv for interface checking.
+	//
+	// The normal v.rv value is used for other checks.
+	addrRV := v.rv
+	if addrRV.CanAddr() {
+		addrRV = addrRV.Addr()
+	}
+	switch {
+	case addrRV.Type().Implements(goTextMarshaler):
+		// TODO(rfratto): what should we do if this fails?
+		text, _ := addrRV.Interface().(encoding.TextMarshaler).MarshalText()
+		return string(text)
+
+	case v.rv.Type() == goDuration:
+		// Special case: v.rv is a duration and its String method should be used.
+		return v.rv.Interface().(time.Duration).String()
+
+	default:
+		return v.rv.String()
+	}
 }
 
 // Len returns the length of v. Panics if v is not an array or object.
@@ -234,16 +261,32 @@ func (v Value) Interface() interface{} {
 // makeValue converts a reflect value into a Value, deferencing any pointers or
 // interface{} values.
 func makeValue(v reflect.Value) Value {
+	// Early check: if v is interface{}, we need to deference it to get the
+	// concrete value.
+	if v.IsValid() && v.Type() == goAny {
+		v = v.Elem()
+	}
+
+	// Before we get the River type of the Value, we need to see if it's possible
+	// to get a pointer to v. This ensures that if v is a non-pointer field of an
+	// addressable struct, still detect the type of v as if it was a pointer.
+	if v.CanAddr() {
+		v = v.Addr()
+	}
+
 	if !v.IsValid() {
 		return Null
 	}
-	for v.Kind() == reflect.Pointer || v.Type() == goAny {
-		v = v.Elem()
-		if !v.IsValid() {
+	riverType := RiverType(v.Type())
+
+	// Finally, deference the pointer fully and use the type we detected.
+	for v.Kind() == reflect.Pointer {
+		if v.IsNil() {
 			return Null
 		}
+		v = v.Elem()
 	}
-	return Value{rv: v, ty: RiverType(v.Type())}
+	return Value{rv: v, ty: riverType}
 }
 
 // Keys returns the keys in v in unspecified order. It panics if v is not an
@@ -451,9 +494,7 @@ func convertValue(val Value, toType Type) (Value, error) {
 	return Null, TypeError{Value: val, Expected: toType}
 }
 
-func convertGoNumber(v reflect.Value, target reflect.Type) reflect.Value {
-	nval := newNumberValue(v)
-
+func convertGoNumber(nval Number, target reflect.Type) reflect.Value {
 	switch target.Kind() {
 	case reflect.Int:
 		return reflect.ValueOf(int(nval.Int()))

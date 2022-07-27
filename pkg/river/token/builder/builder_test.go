@@ -2,7 +2,9 @@ package builder_test
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/grafana/agent/pkg/river/parser"
 	"github.com/grafana/agent/pkg/river/printer"
@@ -44,6 +46,7 @@ func TestBuilder_File(t *testing.T) {
 func TestBuilder_GoEncode(t *testing.T) {
 	f := builder.NewFile()
 
+	f.Body().AppendTokens([]builder.Token{{token.COMMENT, "// Hello, world!"}})
 	f.Body().SetAttributeValue("null_value", nil)
 	f.Body().AppendTokens([]builder.Token{{token.LITERAL, "\n"}})
 
@@ -67,6 +70,7 @@ func TestBuilder_GoEncode(t *testing.T) {
 	})
 
 	expect := format(t, `
+		// Hello, world!
 		null_value = null
 	
 		num     = 15 
@@ -86,6 +90,73 @@ func TestBuilder_GoEncode(t *testing.T) {
 		mixed_list = [0, true, {
 			key = true,
 		}, "Hello!"]
+	`)
+
+	require.Equal(t, expect, string(f.Bytes()))
+}
+
+func TestBuilder_AppendFrom(t *testing.T) {
+	type InnerBlock struct {
+		Number int `river:"number,attr"`
+	}
+
+	type Structure struct {
+		Field string `river:"field,attr"`
+
+		Block       InnerBlock   `river:"block,block"`
+		OtherBlocks []InnerBlock `river:"other_block,block"`
+	}
+
+	f := builder.NewFile()
+	f.Body().AppendFrom(Structure{
+		Field: "some_value",
+
+		Block: InnerBlock{Number: 1},
+		OtherBlocks: []InnerBlock{
+			{Number: 2},
+			{Number: 3},
+		},
+	})
+
+	expect := format(t, `
+		field = "some_value"
+	
+		block {
+			number = 1
+		}
+
+		other_block {
+			number = 2
+		}
+
+		other_block {
+			number = 3
+		}
+	`)
+
+	require.Equal(t, expect, string(f.Bytes()))
+}
+
+func TestBuilder_SkipOptional(t *testing.T) {
+	type Structure struct {
+		OptFieldA string `river:"opt_field_a,attr,optional"`
+		OptFieldB string `river:"opt_field_b,attr,optional"`
+		ReqFieldA string `river:"req_field_a,attr"`
+		ReqFieldB string `river:"req_field_b,attr"`
+	}
+
+	f := builder.NewFile()
+	f.Body().AppendFrom(Structure{
+		OptFieldA: "some_value",
+		OptFieldB: "", // Zero value
+		ReqFieldA: "some_value",
+		ReqFieldB: "", // Zero value
+	})
+
+	expect := format(t, `
+		opt_field_a = "some_value"
+		req_field_a = "some_value"
+		req_field_b = ""
 	`)
 
 	require.Equal(t, expect, string(f.Bytes()))
@@ -112,27 +183,33 @@ func (ct CustomTokenizer) RiverTokenize() []builder.Token {
 }
 
 func TestBuilder_GoEncode_Tokenizer(t *testing.T) {
-	f := builder.NewFile()
+	t.Run("Tokenizer", func(t *testing.T) {
+		f := builder.NewFile()
+		f.Body().SetAttributeValue("value", CustomTokenizer(true))
 
-	type block struct {
-		Number int             `river:"number,attr"`
-		Custom CustomTokenizer `river:"custom_tokenizer,attr"`
-		String string          `river:"string,attr"`
-	}
-
-	f.Body().SetAttributeValue("custom_tokens", block{
-		Number: 15,
-		Custom: CustomTokenizer(true),
-		String: "Hello, world!",
+		expect := format(t, `value = CUSTOM_TOKENS`)
+		require.Equal(t, expect, string(f.Bytes()))
 	})
 
-	expect := format(t, `
-		custom_tokens = {
-			number = 15,
-			custom_tokenizer = CUSTOM_TOKENS,
-			string = "Hello, world!",
-		}
-	`)
+	t.Run("TextMarshaler", func(t *testing.T) {
+		now := time.Now()
+		expectBytes, err := now.MarshalText()
+		require.NoError(t, err)
 
-	require.Equal(t, expect, string(f.Bytes()))
+		f := builder.NewFile()
+		f.Body().SetAttributeValue("value", now)
+
+		expect := format(t, fmt.Sprintf(`value = %q`, string(expectBytes)))
+		require.Equal(t, expect, string(f.Bytes()))
+	})
+
+	t.Run("Duration", func(t *testing.T) {
+		dur := 15 * time.Second
+
+		f := builder.NewFile()
+		f.Body().SetAttributeValue("value", dur)
+
+		expect := format(t, fmt.Sprintf(`value = %q`, dur.String()))
+		require.Equal(t, expect, string(f.Bytes()))
+	})
 }

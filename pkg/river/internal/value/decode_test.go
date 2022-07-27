@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/grafana/agent/pkg/river/internal/value"
 	"github.com/stretchr/testify/require"
@@ -34,7 +35,6 @@ func TestDecode_Numbers(t *testing.T) {
 				require.NoError(t, value.Decode(val, vPtr))
 
 				actual := reflect.ValueOf(vPtr).Elem().Interface()
-
 				require.Equal(t, expect, actual)
 			})
 		}
@@ -200,6 +200,60 @@ func TestDecode_ArrayCopy(t *testing.T) {
 
 	res[0] = 10
 	require.Equal(t, [3]int{1, 2, 3}, orig, "Original array should not have been modified")
+}
+
+func TestDecode_CustomTypes(t *testing.T) {
+	t.Run("object to Unmarshaler", func(t *testing.T) {
+		var actual customUnmarshaler
+		require.NoError(t, value.Decode(value.Object(nil), &actual))
+		require.True(t, actual.Called, "UnmarshalRiver was not invoked")
+	})
+
+	t.Run("TextMarshaler to TextUnmarshaler", func(t *testing.T) {
+		now := time.Now()
+
+		var actual time.Time
+		require.NoError(t, value.Decode(value.Encode(now), &actual))
+		require.True(t, now.Equal(actual))
+	})
+
+	t.Run("time.Duration to time.Duration", func(t *testing.T) {
+		dur := 15 * time.Second
+
+		var actual time.Duration
+		require.NoError(t, value.Decode(value.Encode(dur), &actual))
+		require.Equal(t, dur, actual)
+	})
+
+	t.Run("string to TextUnmarshaler", func(t *testing.T) {
+		now := time.Now()
+		nowBytes, _ := now.MarshalText()
+
+		var actual time.Time
+		require.NoError(t, value.Decode(value.String(string(nowBytes)), &actual))
+
+		actualBytes, _ := actual.MarshalText()
+		require.Equal(t, nowBytes, actualBytes)
+	})
+
+	t.Run("string to time.Duration", func(t *testing.T) {
+		dur := 15 * time.Second
+
+		var actual time.Duration
+		require.NoError(t, value.Decode(value.String(dur.String()), &actual))
+		require.Equal(t, dur.String(), actual.String())
+	})
+}
+
+type customUnmarshaler struct {
+	Called bool
+}
+
+func (cu *customUnmarshaler) UnmarshalRiver(f func(interface{}) error) error {
+	cu.Called = true
+
+	type s customUnmarshaler
+	return f((*s)(cu))
 }
 
 type textEnumType bool

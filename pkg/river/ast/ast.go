@@ -55,7 +55,7 @@ type Comment struct {
 
 // AttributeStmt is a key-value pair being set in a Body or BlockStmt.
 type AttributeStmt struct {
-	Name  *IdentifierExpr
+	Name  *Ident
 	Value Expr
 }
 
@@ -69,10 +69,15 @@ type BlockStmt struct {
 	LCurlyPos, RCurlyPos token.Pos
 }
 
-// IdentifierExpr refers to a named value.
-type IdentifierExpr struct {
+// Ident holds an identifier with its position.
+type Ident struct {
 	Name    string
 	NamePos token.Pos
+}
+
+// IdentifierExpr refers to a named value.
+type IdentifierExpr struct {
+	Ident *Ident
 }
 
 // LiteralExpr is a constant value of a specific token kind.
@@ -101,7 +106,7 @@ type ObjectExpr struct {
 // ObjectField defines an individual key-value pair within an object.
 // ObjectField does not implement Node.
 type ObjectField struct {
-	Name   *IdentifierExpr
+	Name   *Ident
 	Quoted bool // True if the name was wrapped in quotes
 	Value  Expr
 }
@@ -109,7 +114,7 @@ type ObjectField struct {
 // AccessExpr accesses a field in an object value by name.
 type AccessExpr struct {
 	Value Expr
-	Name  *IdentifierExpr
+	Name  *Ident
 }
 
 // IndexExpr accesses an index in an array value.
@@ -153,6 +158,7 @@ var (
 	_ Node = (*Body)(nil)
 	_ Node = (*AttributeStmt)(nil)
 	_ Node = (*BlockStmt)(nil)
+	_ Node = (*Ident)(nil)
 	_ Node = (*IdentifierExpr)(nil)
 	_ Node = (*LiteralExpr)(nil)
 	_ Node = (*ArrayExpr)(nil)
@@ -185,6 +191,7 @@ func (n CommentGroup) astNode()    {}
 func (n *Comment) astNode()        {}
 func (n *AttributeStmt) astNode()  {}
 func (n *BlockStmt) astNode()      {}
+func (n *Ident) astNode()          {}
 func (n *IdentifierExpr) astNode() {}
 func (n *LiteralExpr) astNode()    {}
 func (n *ArrayExpr) astNode()      {}
@@ -234,8 +241,10 @@ func StartPos(n Node) token.Pos {
 		return StartPos(n.Name)
 	case *BlockStmt:
 		return n.NamePos
-	case *IdentifierExpr:
+	case *Ident:
 		return n.NamePos
+	case *IdentifierExpr:
+		return StartPos(n.Ident)
 	case *LiteralExpr:
 		return n.ValuePos
 	case *ArrayExpr:
@@ -283,8 +292,10 @@ func EndPos(n Node) token.Pos {
 		return EndPos(n.Value)
 	case *BlockStmt:
 		return n.RCurlyPos
-	case *IdentifierExpr:
+	case *Ident:
 		return n.NamePos.Add(len(n.Name) - 1)
+	case *IdentifierExpr:
+		return EndPos(n.Ident)
 	case *LiteralExpr:
 		return n.ValuePos.Add(len(n.Value) - 1)
 	case *ArrayExpr:

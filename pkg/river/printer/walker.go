@@ -105,7 +105,7 @@ func (w *walker) walkBlockStmt(s *ast.BlockStmt) {
 
 	w.p.Write(
 		s.NamePos,
-		&ast.IdentifierExpr{Name: joined, NamePos: s.NamePos},
+		&ast.Ident{Name: joined, NamePos: s.NamePos},
 	)
 
 	if s.Label != "" {
@@ -140,7 +140,7 @@ func (w *walker) walkExpr(e ast.Expr) {
 		w.walkObjectExpr(e)
 
 	case *ast.IdentifierExpr:
-		w.p.Write(e.NamePos, e)
+		w.p.Write(e.Ident.NamePos, e.Ident)
 
 	case *ast.AccessExpr:
 		w.walkExpr(e.Value)
