@@ -14,6 +14,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
+	_ "github.com/grafana/agent/component/all"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river/diag"
@@ -22,8 +23,11 @@ import (
 
 // IsFlowEnabled checks to see if the environment var is set
 func IsFlowEnabled() bool {
-	_, found := os.LookupEnv("EXPERIMENTAL_ENABLE_FLOW")
-	return found
+	key, found := os.LookupEnv("EXPERIMENTAL_ENABLE_FLOW")
+	if !found {
+		return false
+	}
+	return key == "true"
 }
 
 // RunFlow runs the flow subsystem
