@@ -102,31 +102,12 @@ func (c *Config) getPromScrapeConfigs(jobName string) (*config.ScrapeConfig, err
 	dec.LabelValueLengthLimit = c.LabelValueLengthLimit
 
 	// HTTP scrape client settings
-	var proxyURL, _ *url.URL
-	if c.ProxyURL != "" {
-		proxyURL, _ = url.Parse(c.ProxyURL)
-	}
-	httpClient := common_config.DefaultHTTPClientConfig
-	dec.HTTPClientConfig = httpClient
-
-	dec.HTTPClientConfig.BasicAuth = c.BasicAuth.Convert()
-
-	dec.HTTPClientConfig.Authorization = c.Authorization.Convert()
-
-	dec.HTTPClientConfig.OAuth2 = c.OAuth2.Convert()
-
-	dec.HTTPClientConfig.BearerToken = common_config.Secret(c.BearerToken)
-	dec.HTTPClientConfig.BearerTokenFile = c.BearerTokenFile
-	dec.HTTPClientConfig.ProxyURL = common_config.URL{URL: proxyURL}
-	dec.HTTPClientConfig.TLSConfig = *c.TLSConfig.Convert()
-	dec.HTTPClientConfig.FollowRedirects = c.FollowRedirects
-	dec.HTTPClientConfig.EnableHTTP2 = c.EnableHTTP2
+	dec.HTTPClientConfig = *c.HTTPClientConfig.Convert()
 
 	err := validateHTTPClientConfig(dec.HTTPClientConfig)
 	if err != nil {
 		return nil, fmt.Errorf("the provided scrape_config resulted in an invalid HTTP Client configuration: %w", err)
 	}
-
 	return &dec, nil
 }
 
