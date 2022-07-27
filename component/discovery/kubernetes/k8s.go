@@ -2,16 +2,12 @@ package kubernetes
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/metrics/scrape"
 	promk8s "github.com/prometheus/prometheus/discovery/kubernetes"
 )
-
-// TODO: cpeterson: use defaults from here for hcl default
-var _ = promk8s.DefaultSDConfig
 
 func init() {
 	component.Register(component.Registration{
@@ -25,6 +21,7 @@ func init() {
 	})
 }
 
+// SDConfig is a conversion of discover/kubernetes/SDConfig to be compatible with flow
 type SDConfig struct {
 	APIServer          URL                `hcl:"api_server,optional"`
 	Role               string             `hcl:"role"`
@@ -32,6 +29,17 @@ type SDConfig struct {
 	HTTPClientConfig   HTTPClientConfig   `hcl:"http_client_config,optional"`
 	NamespaceDiscovery NamespaceDiscovery `hcl:"namespaces,optional"`
 	Selectors          []SelectorConfig   `hcl:"selectors,optional"`
+}
+
+// Defaults for SDConfig. (copied from prometheus)
+var DefaultConfig = SDConfig{
+	HTTPClientConfig: DefaultHTTPClientConfig,
+}
+
+func (sd *SDConfig) UnmarshalRiver(f func(interface{}) error) error {
+	*sd = DefaultConfig
+	type arguments SDConfig
+	return f((*arguments)(sd))
 }
 
 func (sd *SDConfig) Convert() *promk8s.SDConfig {
@@ -112,7 +120,6 @@ func (c *Component) Run(ctx context.Context) error {
 // Update implements component.Compnoent.
 func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(SDConfig)
-	fmt.Println(newArgs)
 	disc, err := promk8s.New(c.opts.Logger, newArgs.Convert())
 	if err != nil {
 		return err

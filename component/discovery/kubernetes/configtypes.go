@@ -48,6 +48,11 @@ func (h *HTTPClientConfig) Convert() *config.HTTPClientConfig {
 	}
 }
 
+var DefaultHTTPClientConfig = HTTPClientConfig{
+	FollowRedirects: true,
+	EnableHTTP2:     true,
+}
+
 type URL string
 
 func (u URL) Convert() config.URL {
