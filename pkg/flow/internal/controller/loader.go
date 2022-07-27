@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -10,6 +11,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclwrite"
+	"github.com/prometheus/client_golang/prometheus"
 
 	_ "github.com/grafana/agent/pkg/flow/internal/testcomponents" // Include test components
 )
@@ -29,6 +31,7 @@ type Loader struct {
 // NewLoader creates a new Loader. Components built by the Loader will be built
 // with co for their options.
 func NewLoader(globals ComponentGlobals) *Loader {
+	initControllerMetrics(prometheus.DefaultRegisterer)
 	return &Loader{
 		log:     globals.Logger,
 		globals: globals,
@@ -50,8 +53,12 @@ func NewLoader(globals ComponentGlobals) *Loader {
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
 func (l *Loader) Apply(parentContext *hcl.EvalContext, blocks hcl.Blocks) hcl.Diagnostics {
+	start := time.Now()
+
 	l.mut.Lock()
 	defer l.mut.Unlock()
+	controllerEvaluation.Set(1)
+	defer controllerEvaluation.Set(0)
 
 	var (
 		diags    hcl.Diagnostics
@@ -104,6 +111,7 @@ func (l *Loader) Apply(parentContext *hcl.EvalContext, blocks hcl.Blocks) hcl.Di
 	l.graph = &newGraph
 	l.cache.SyncIDs(componentIDs)
 	l.blocks = blocks
+	componentEvaluationTime.Observe(time.Since(start).Seconds())
 	return diags
 }
 
@@ -222,7 +230,7 @@ func (l *Loader) EvaluateDependencies(parentContext *hcl.EvalContext, c *Compone
 	})
 }
 
-// evaluate constructs the final context for c and evalutes it. mut must be
+// evaluate constructs the final context for c and evaluates it. mut must be
 // held when calling evaluate.
 func (l *Loader) evaluate(parent *hcl.EvalContext, c *ComponentNode, cacheArgs, cacheExports bool) error {
 	ectx := l.cache.BuildContext(parent)

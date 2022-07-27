@@ -189,7 +189,7 @@ func (c *Flow) LoadFile(f *File) error {
 	diags := c.loader.Apply(rootEvalContext, f.Components)
 	if !c.loadedOnce && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
-		// errors in the coniguration file.
+		// errors in the configuration file.
 		return diags
 	}
 	c.loadedOnce = true

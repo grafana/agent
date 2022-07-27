@@ -407,6 +407,7 @@ func (cn *ComponentNode) setEvalHealth(t component.HealthType, msg string) {
 	cn.healthMut.Lock()
 	defer cn.healthMut.Unlock()
 
+	evaluatedComponentStatus.WithLabelValues(cn.id.String(), t.String()).Set(1)
 	cn.evalHealth = component.Health{
 		Health:     t,
 		Message:    msg,
@@ -420,6 +421,7 @@ func (cn *ComponentNode) setRunHealth(t component.HealthType, msg string) {
 	cn.healthMut.Lock()
 	defer cn.healthMut.Unlock()
 
+	runningComponentStatus.WithLabelValues(cn.id.String(), t.String()).Set(1)
 	cn.runHealth = component.Health{
 		Health:     t,
 		Message:    msg,
