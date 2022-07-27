@@ -95,6 +95,40 @@ func TestBuilder_GoEncode(t *testing.T) {
 	require.Equal(t, expect, string(f.Bytes()))
 }
 
+func TestBuilder_GoEncode_SortMapKeys(t *testing.T) {
+	f := builder.NewFile()
+
+	type Ordered struct {
+		SomeKey  string `river:"some_key,attr"`
+		OtherKey string `river:"other_key,attr"`
+	}
+
+	// Maps are unordered because you can't iterate over their keys in a
+	// consistent order.
+	var unordered = map[string]interface{}{
+		"key_a": 1,
+		"key_c": 3,
+		"key_b": 2,
+	}
+
+	f.Body().SetAttributeValue("ordered", Ordered{SomeKey: "foo", OtherKey: "bar"})
+	f.Body().SetAttributeValue("unordered", unordered)
+
+	expect := format(t, `
+		ordered = {
+			some_key  = "foo",
+			other_key = "bar",
+		}
+		unordered = {
+			key_a = 1,
+			key_b = 2,
+			key_c = 3,
+		}
+	`)
+
+	require.Equal(t, expect, string(f.Bytes()))
+}
+
 func TestBuilder_AppendFrom(t *testing.T) {
 	type InnerBlock struct {
 		Number int `river:"number,attr"`
