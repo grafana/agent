@@ -86,7 +86,7 @@ func (sc *SelectorConfig) Convert() *promk8s.SelectorConfig {
 
 // Exports holds values which are exported by the discovery.k8s component.
 type Exports struct {
-	Targets []scrape.Target `hcl:"targets,optional"`
+	Targets []scrape.Target `river:"targets,attr,optional"`
 }
 
 // Component implements the discovery.k8s component.

@@ -14,7 +14,6 @@ const MaxUpdateFrequency = 5 * time.Second
 // RunDiscovery is a utility for consuming and forwarding target groups from a discoverer.
 // It will handle collating targets (and clearing), as well as time based throttling of updates.
 func RunDiscovery(ctx context.Context, d discovery.Discoverer, f func([]scrape.Target)) {
-
 	// all targets we have seen so far
 	cache := map[string]*targetgroup.Group{}
 
