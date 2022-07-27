@@ -29,8 +29,7 @@ func init() {
 }
 
 func main() {
-
-	// If Windows is trying to runFlow us as a service, go through that
+	// If Windows is trying to flow us as a service, go through that
 	// path instead.
 	if IsWindowsService() {
 		err := RunService()
@@ -41,6 +40,7 @@ func main() {
 	}
 
 	// If flow is enabled go into that working mode
+	// TODO allow flow to run as a windows service
 	if IsFlowEnabled() {
 		RunFlow()
 		return
