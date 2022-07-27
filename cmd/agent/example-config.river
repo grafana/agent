@@ -6,7 +6,7 @@ logging {
 local.file "this_file" {
   // Must be running from the root directory of the repository for this relative
   // path to work.
-  filename = "./cmd/agentflow/test-local-file.txt"
+  filename = "./cmd/agent/test-local-file.txt"
   detector = "fsnotify"
 }
 

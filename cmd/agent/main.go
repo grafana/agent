@@ -29,13 +29,20 @@ func init() {
 }
 
 func main() {
-	// If Windows is trying to run us as a service, go through that
+	// If Windows is trying to run as a service, go through that
 	// path instead.
 	if IsWindowsService() {
 		err := RunService()
 		if err != nil {
 			log.Fatalln(err)
 		}
+		return
+	}
+
+	// If flow is enabled go into that working mode
+	// TODO allow flow to run as a windows service
+	if IsFlowEnabled() {
+		RunFlow()
 		return
 	}
 
