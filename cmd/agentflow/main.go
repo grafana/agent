@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"net"
@@ -11,10 +12,12 @@ import (
 	"os/signal"
 	"sync"
 
+	"github.com/fatih/color"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	// Install components
@@ -77,6 +80,23 @@ func run() error {
 	}
 
 	if err := reload(); err != nil {
+		var diags diag.Diagnostics
+		if errors.As(err, &diags) {
+			bb, _ := os.ReadFile(configFile)
+
+			p := diag.NewPrinter(diag.PrinterConfig{
+				Color:              !color.NoColor,
+				ContextLinesBefore: 1,
+				ContextLinesAfter:  1,
+			})
+			_ = p.Fprint(os.Stderr, map[string][]byte{configFile: bb}, diags)
+
+			// Print newline after the diagnostics.
+			fmt.Println()
+
+			return fmt.Errorf("could not perform the initial load successfully")
+		}
+
 		// Exit if the initial load files
 		return err
 	}
@@ -129,11 +149,7 @@ func loadFlowFile(filename string) (*flow.File, error) {
 		return nil, err
 	}
 
-	f, diags := flow.ReadFile(filename, bb)
-	if !diags.HasErrors() {
-		return f, nil
-	}
-	return f, diags
+	return flow.ReadFile(filename, bb)
 }
 
 func interruptContext() (context.Context, context.CancelFunc) {

@@ -10,9 +10,8 @@ import (
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/internal/graphviz"
-	"github.com/hashicorp/hcl/v2/hclsyntax"
-	"github.com/hashicorp/hcl/v2/hclwrite"
-	"github.com/rfratto/gohcl/hclfmt"
+	"github.com/grafana/agent/pkg/river/token"
+	"github.com/grafana/agent/pkg/river/token/builder"
 )
 
 // GraphHandler returns an http.HandlerFunc which renders the current graph's
@@ -35,35 +34,43 @@ func (f *Flow) GraphHandler() http.HandlerFunc {
 }
 
 // ConfigHandler returns an http.HandlerFunc which will render the most
-// recently loaded configuration file as HCL.
+// recently loaded configuration file as River.
 func (f *Flow) ConfigHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		debugInfo := r.URL.Query().Get("debug") == "1"
-		_, _ = f.configBytes(w, debugInfo)
+
+		var buf bytes.Buffer
+		_, err := f.configBytes(&buf, debugInfo)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		} else {
+			_, _ = io.Copy(w, &buf)
+		}
 	}
 }
 
-// configBytes dumps the current state of the flow config as HCL.
+// configBytes dumps the current state of the flow config as River.
 func (f *Flow) configBytes(w io.Writer, debugInfo bool) (n int64, err error) {
-	file := hclwrite.NewFile()
+	file := builder.NewFile()
 
 	blocks := f.loader.WriteBlocks(debugInfo)
 	for _, block := range blocks {
 		var id controller.ComponentID
-		id = append(id, block.Type())
-		id = append(id, block.Labels()...)
+		id = append(id, block.Name...)
+		if block.Label != "" {
+			id = append(id, block.Label)
+		}
 
-		comment := fmt.Sprintf("// Component %s:\n", id.String())
-		file.Body().AppendUnstructuredTokens(hclwrite.Tokens{
-			{Type: hclsyntax.TokenComment, Bytes: []byte(comment)},
+		comment := fmt.Sprintf("// Component %s:", id.String())
+		file.Body().AppendTokens([]builder.Token{
+			{Tok: token.COMMENT, Lit: comment},
 		})
 
 		file.Body().AppendBlock(block)
-		file.Body().AppendNewline()
+		file.Body().AppendTokens([]builder.Token{
+			{Tok: token.LITERAL, Lit: "\n"},
+		})
 	}
 
-	toks := file.BuildTokens(nil)
-	hclfmt.Format(toks)
-
-	return toks.WriteTo(w)
+	return file.WriteTo(w)
 }

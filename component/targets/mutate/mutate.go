@@ -24,10 +24,10 @@ func init() {
 // Arguments holds values which are used to configure the targets.mutate component.
 type Arguments struct {
 	// Targets contains the input 'targets' passed by a service discovery component.
-	Targets []Target `hcl:"targets"`
+	Targets []Target `river:"targets,attr"`
 
 	// The relabelling steps to apply to the each target's label set.
-	RelabelConfigs []*flow_relabel.Config `hcl:"relabel_config,block"`
+	RelabelConfigs []*flow_relabel.Config `river:"relabel_config,block,optional"`
 }
 
 // Target refers to a singular HTTP or HTTPS endpoint that will be used for scraping.
@@ -39,7 +39,7 @@ type Target map[string]string
 
 // Exports holds values which are exported by the targets.mutate component.
 type Exports struct {
-	Output []Target `hcl:"output,attr"`
+	Output []Target `river:"output,attr"`
 }
 
 // Component implements the targets.mutate component.
@@ -74,13 +74,13 @@ func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 
 	targets := make([]Target, 0, len(newArgs.Targets))
-	relabelConfigs := flow_relabel.HCLToPromRelabelConfigs(newArgs.RelabelConfigs)
+	relabelConfigs := flow_relabel.ComponentToPromRelabelConfigs(newArgs.RelabelConfigs)
 
 	for _, t := range newArgs.Targets {
-		lset := hclMapToPromLabels(t)
+		lset := componentMapToPromLabels(t)
 		lset = relabel.Process(lset, relabelConfigs...)
 		if lset != nil {
-			targets = append(targets, promLabelsToHCL(lset))
+			targets = append(targets, promLabelsToComponent(lset))
 		}
 	}
 
@@ -91,7 +91,7 @@ func (c *Component) Update(args component.Arguments) error {
 	return nil
 }
 
-func hclMapToPromLabels(ls Target) labels.Labels {
+func componentMapToPromLabels(ls Target) labels.Labels {
 	res := make([]labels.Label, 0, len(ls))
 	for k, v := range ls {
 		res = append(res, labels.Label{Name: k, Value: v})
@@ -100,7 +100,7 @@ func hclMapToPromLabels(ls Target) labels.Labels {
 	return res
 }
 
-func promLabelsToHCL(ls labels.Labels) Target {
+func promLabelsToComponent(ls labels.Labels) Target {
 	res := make(map[string]string, len(ls))
 	for _, l := range ls {
 		res[l.Name] = l.Value

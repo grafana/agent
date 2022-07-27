@@ -7,17 +7,16 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/component"
 	_ "github.com/grafana/agent/pkg/flow/internal/testcomponents" // Import test components
-	"github.com/hashicorp/hcl/v2"
-	"github.com/hashicorp/hcl/v2/hclsyntax"
-	"github.com/hashicorp/hcl/v2/hclwrite"
+	"github.com/grafana/agent/pkg/river/ast"
+	"github.com/grafana/agent/pkg/river/parser"
+	"github.com/grafana/agent/pkg/river/token/builder"
 	"github.com/stretchr/testify/require"
 )
 
 func TestWriteComponent(t *testing.T) {
 	config := `
-		testcomponents "passthrough" "example" {
+		testcomponents.passthrough "example" {
 			input = "Hello, world!"
 		}
 	`
@@ -37,11 +36,11 @@ func TestWriteComponent(t *testing.T) {
 	actual := marshalBlock(outBlock)
 
 	expect := `
-testcomponents "passthrough" "example" {
-  input = "Hello, world!"
+testcomponents.passthrough "example" {
+	input = "Hello, world!"
 
-  // Exported fields:
-  output = "Hello, world!"
+	// Exported fields:
+	output = "Hello, world!"
 }`
 
 	// Remove leading and trailing whitespace so we don't have to get too picky
@@ -53,7 +52,7 @@ testcomponents "passthrough" "example" {
 
 func TestWriteComponent_DebugInfo(t *testing.T) {
 	config := `
-		testcomponents "passthrough" "example" {
+		testcomponents.passthrough "example" {
 			input = "Hello, world!"
 		}
 	`
@@ -74,21 +73,22 @@ func TestWriteComponent_DebugInfo(t *testing.T) {
 	actual := marshalBlock(outBlock)
 
 	expect := fmt.Sprintf(`
-testcomponents "passthrough" "example" {
-  input = "Hello, world!"
+testcomponents.passthrough "example" {
+	input = "Hello, world!"
 
-  // Exported fields:
-  output = "Hello, world!"
+	// Exported fields:
+	output = "Hello, world!"
 
-  // Debug info:
-  health {
-    state       = "healthy"
-    message     = "component evaluated"
-    update_time = %q
-  }
-  status {
-    component_version = "v0.1-beta.0"
-  }
+	// Debug info:
+	health {
+		state       = "healthy"
+		message     = "component evaluated"
+		update_time = %q
+	}
+
+	status {
+		component_version = "v0.1-beta.0"
+	}
 }`, cn.evalHealth.UpdateTime.Format(time.RFC3339Nano))
 
 	// Remove leading and trailing whitespace so we don't have to get too picky
@@ -98,23 +98,26 @@ testcomponents "passthrough" "example" {
 	require.Equal(t, expect, actual)
 }
 
-func loadFile(t *testing.T, bb []byte) hcl.Blocks {
-	file, diags := hclsyntax.ParseConfig(bb, t.Name(), hcl.InitialPos)
-	if diags.HasErrors() {
-		require.FailNow(t, diags.Error())
+func loadFile(t *testing.T, bb []byte) []*ast.BlockStmt {
+	file, err := parser.ParseFile(t.Name(), bb)
+	require.NoError(t, err)
+
+	var blocks []*ast.BlockStmt
+
+	for _, stmt := range file.Body {
+		switch stmt := stmt.(type) {
+		case *ast.BlockStmt:
+			blocks = append(blocks, stmt)
+		default:
+			require.FailNow(t, "%s: non-block statement unexpected", ast.StartPos(stmt).Position())
+		}
 	}
 
-	blockSchema := component.RegistrySchema()
-	content, contentDiags := file.Body.Content(blockSchema)
-	if contentDiags.HasErrors() {
-		require.FailNow(t, contentDiags.Error())
-	}
-
-	return content.Blocks
+	return blocks
 }
 
-func marshalBlock(b *hclwrite.Block) string {
-	f := hclwrite.NewFile()
+func marshalBlock(b *builder.Block) string {
+	f := builder.NewFile()
 	f.Body().AppendBlock(b)
 	return string(f.Bytes())
 }

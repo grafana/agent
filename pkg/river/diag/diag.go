@@ -38,6 +38,17 @@ type Diagnostic struct {
 	Value   string
 }
 
+// As allows d to be interpreted as a list of Diagnostics.
+func (d Diagnostic) As(v interface{}) bool {
+	switch v := v.(type) {
+	case *Diagnostics:
+		*v = Diagnostics{d}
+		return true
+	}
+
+	return false
+}
+
 // Error implements error.
 func (d Diagnostic) Error() string {
 	return fmt.Sprintf("%s: %s", d.StartPos, d.Message)

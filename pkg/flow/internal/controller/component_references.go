@@ -4,33 +4,50 @@ import (
 	"fmt"
 
 	"github.com/grafana/agent/pkg/flow/internal/dag"
-	"github.com/hashicorp/hcl/v2"
-	"github.com/hashicorp/hcl/v2/hclsyntax"
+	"github.com/grafana/agent/pkg/river/ast"
+	"github.com/grafana/agent/pkg/river/diag"
+	"github.com/grafana/agent/pkg/river/vm"
 )
 
-// Reference describes an HCL expression reference to a ComponentNode.
+// Traversal describes accessing a sequence of fields relative to a component.
+// Traversal only include uninterrupted sequences of field accessors; for an
+// expression "component.field_a.field_b.field_c[0].inner_field", the Traversal
+// will be (field_a, field_b, field_c).
+type Traversal []*ast.Ident
+
+// Reference describes an River expression reference to a ComponentNode.
 type Reference struct {
 	Target *ComponentNode // Component being referenced
 
-	// Traversal describes which field within Target is being accessed. It is
-	// relative to Target and not an absolute Traversal.
-	Traversal hcl.Traversal
+	// Traversal describes which nested field relative to Target is being
+	// accessed.
+	Traversal Traversal
 }
 
 // ComponentReferences returns the list of references a component is making to
 // other components.
-func ComponentReferences(cn *ComponentNode, g *dag.Graph) ([]Reference, hcl.Diagnostics) {
+func ComponentReferences(cn *ComponentNode, g *dag.Graph) ([]Reference, diag.Diagnostics) {
 	var (
 		traversals = componentTraversals(cn)
 
-		diags hcl.Diagnostics
+		diags diag.Diagnostics
 	)
 
 	refs := make([]Reference, 0, len(traversals))
 	for _, t := range traversals {
-		ref, refDiags := resolveTraversal(t, g)
-		diags = diags.Extend(refDiags)
-		if refDiags.HasErrors() {
+		// We use an empty scope to determine if a reference refers to something in
+		// the stdlib, since vm.Scope.Lookup will search the scope tree + the
+		// stdlib.
+		//
+		// Any call to an stdlib function is ignored.
+		var emptyScope vm.Scope
+		if _, ok := emptyScope.Lookup(t[0].Name); ok && len(t) == 1 {
+			continue
+		}
+
+		ref, resolveDiags := resolveTraversal(t, g)
+		diags = append(diags, resolveDiags...)
+		if resolveDiags.HasErrors() {
 			continue
 		}
 		refs = append(refs, ref)
@@ -39,38 +56,87 @@ func ComponentReferences(cn *ComponentNode, g *dag.Graph) ([]Reference, hcl.Diag
 	return refs, diags
 }
 
-// componentTraversals gets the set of hcl.Traverals for a given component.
-func componentTraversals(cn *ComponentNode) []hcl.Traversal {
+// componentTraversals gets the set of Traverals for a given component.
+func componentTraversals(cn *ComponentNode) []Traversal {
 	cn.mut.RLock()
 	defer cn.mut.RUnlock()
-	return expressionsFromSyntaxBody(cn.block.Body.(*hclsyntax.Body))
+	return expressionsFromBody(cn.block.Body)
 }
 
 // expressionsFromSyntaxBody recurses through body and finds all variable
 // references.
-func expressionsFromSyntaxBody(body *hclsyntax.Body) []hcl.Traversal {
-	var exprs []hcl.Traversal
+func expressionsFromBody(body ast.Body) []Traversal {
+	var w traversalWalker
+	ast.Walk(&w, body)
 
-	for _, attrib := range body.Attributes {
-		exprs = append(exprs, attrib.Expr.Variables()...)
-	}
-	for _, block := range body.Blocks {
-		exprs = append(exprs, expressionsFromSyntaxBody(block.Body)...)
-	}
-
-	return exprs
+	// Flush after the walk in case there was an in-progress traversal.
+	w.flush()
+	return w.traversals
 }
 
-func resolveTraversal(t hcl.Traversal, g *dag.Graph) (Reference, hcl.Diagnostics) {
-	var (
-		diags hcl.Diagnostics
+type traversalWalker struct {
+	traversals []Traversal
 
-		split   = t.SimpleSplit()
-		partial = ComponentID{split.RootName()}
-		rem     = split.Rel
+	buildTraversal   bool      // Whether
+	currentTraversal Traversal // currentTraversal being built.
+}
+
+func (tw *traversalWalker) Visit(node ast.Node) ast.Visitor {
+	switch n := node.(type) {
+	case *ast.IdentifierExpr:
+		// Identifiers always start new traversals. Pop the last one.
+		tw.flush()
+		tw.buildTraversal = true
+		tw.currentTraversal = append(tw.currentTraversal, n.Ident)
+
+	case *ast.AccessExpr:
+		ast.Walk(tw, n.Value)
+
+		// Fields being accessed should get only added to the traversal if one is
+		// being built. This will be false for accesses like a().foo.
+		if tw.buildTraversal {
+			tw.currentTraversal = append(tw.currentTraversal, n.Name)
+		}
+		return nil
+
+	case *ast.IndexExpr:
+		// Indexing interrupts traversals so we flush after walking the value.
+		ast.Walk(tw, n.Value)
+		tw.flush()
+		ast.Walk(tw, n.Index)
+		return nil
+
+	case *ast.CallExpr:
+		// Calls interrupt traversals so we flush after walking the value.
+		ast.Walk(tw, n.Value)
+		tw.flush()
+		for _, arg := range n.Args {
+			ast.Walk(tw, arg)
+		}
+		return nil
+	}
+
+	return tw
+}
+
+// flush will flush the in-progress traversal to the traversals list and unset
+// the buildTraversal state.
+func (tw *traversalWalker) flush() {
+	if tw.buildTraversal && len(tw.currentTraversal) > 0 {
+		tw.traversals = append(tw.traversals, tw.currentTraversal)
+	}
+	tw.buildTraversal = false
+	tw.currentTraversal = nil
+}
+
+func resolveTraversal(t Traversal, g *dag.Graph) (Reference, diag.Diagnostics) {
+	var (
+		diags diag.Diagnostics
+
+		partial = ComponentID{t[0].Name}
+		rem     = t[1:]
 	)
 
-Lookup:
 	for {
 		if n := g.GetByID(partial.String()); n != nil {
 			return Reference{
@@ -84,22 +150,16 @@ Lookup:
 			break
 		}
 
-		// Find the next name in the traversal and append it to our reference.
-		switch v := rem[0].(type) {
-		case hcl.TraverseAttr:
-			partial = append(partial, v.Name)
-			// Shift rem forward one
-			rem = rem[1:]
-		default:
-			break Lookup
-		}
+		// Append the next name in the traversal to our partial reference.
+		partial = append(partial, rem[0].Name)
+		rem = rem[1:]
 	}
 
-	diags = diags.Append(&hcl.Diagnostic{
-		Severity: hcl.DiagError,
-		Summary:  "Invalid reference",
-		Detail:   fmt.Sprintf("component %s does not exist", partial),
-		Subject:  split.Abs.SourceRange().Ptr(),
+	diags = append(diags, diag.Diagnostic{
+		Severity: diag.SeverityLevelError,
+		Message:  fmt.Sprintf("component %q does not exist", partial),
+		StartPos: ast.StartPos(t[0]).Position(),
+		EndPos:   ast.StartPos(t[len(t)-1]).Position(),
 	})
 	return Reference{}, diags
 }

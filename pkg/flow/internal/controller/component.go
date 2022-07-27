@@ -14,8 +14,8 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
-	"github.com/hashicorp/hcl/v2"
-	"github.com/rfratto/gohcl"
+	"github.com/grafana/agent/pkg/river/ast"
+	"github.com/grafana/agent/pkg/river/vm"
 	"go.uber.org/atomic"
 )
 
@@ -24,11 +24,13 @@ import (
 // "remote.http.example" is ComponentID{"remote", "http", "example"}.
 type ComponentID []string
 
-// BlockComponentID returns the ComponentID specified by an HCL block.
-func BlockComponentID(b *hcl.Block) ComponentID {
-	id := make(ComponentID, 0, 1+len(b.Labels)) // add 1 for the block type
-	id = append(id, b.Type)
-	id = append(id, b.Labels...)
+// BlockComponentID returns the ComponentID specified by an River block.
+func BlockComponentID(b *ast.BlockStmt) ComponentID {
+	id := make(ComponentID, 0, len(b.Name)+1) // add 1 for the optional label
+	id = append(id, b.Name...)
+	if b.Label != "" {
+		id = append(id, b.Label)
+	}
 	return id
 }
 
@@ -62,7 +64,7 @@ type ComponentGlobals struct {
 //
 // ComponentNode manages the underlying component and caches its current
 // arguments and exports. ComponentNode manages the arguments for the component
-// from an HCL block.
+// from a River block.
 type ComponentNode struct {
 	id              ComponentID
 	nodeID          string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
@@ -72,7 +74,8 @@ type ComponentNode struct {
 	onExportsChange func(cn *ComponentNode) // Informs controller that we changed our exports
 
 	mut     sync.RWMutex
-	block   *hcl.Block          // Current HCL block to derive args from
+	block   *ast.BlockStmt // Current River block to derive args from
+	eval    *vm.Evaluator
 	managed component.Component // Inner managed component
 	args    component.Arguments // Evaluated arguments for the managed component
 
@@ -94,19 +97,19 @@ var (
 	_ dag.Node = (*ComponentNode)(nil)
 )
 
-// NewComponentNode creates a new ComponentNode from an initial hcl.Block. The
-// underlying managed component isn't created until Evaluate is called.
-func NewComponentNode(globals ComponentGlobals, b *hcl.Block) *ComponentNode {
+// NewComponentNode creates a new ComponentNode from an initial ast.BlockStmt.
+// The underlying managed component isn't created until Evaluate is called.
+func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode {
 	var (
 		id     = BlockComponentID(b)
 		nodeID = id.String()
 	)
 
-	reg, ok := getRegistration(id)
+	reg, ok := component.Get(ComponentID(b.Name).String())
 	if !ok {
 		// NOTE(rfratto): It's normally not possible to get to this point; the
-		// HCL schema should be validated in advance to guarantee that b is an
-		// expected component.
+		// blocks should have been validated by the graph loader in advance to
+		// guarantee that b is an expected component.
 		panic("NewComponentNode: could not find registration for component " + nodeID)
 	}
 
@@ -124,6 +127,7 @@ func NewComponentNode(globals ComponentGlobals, b *hcl.Block) *ComponentNode {
 		onExportsChange: globals.OnExportsChange,
 
 		block: b,
+		eval:  vm.New(b.Body),
 
 		// Prepopulate arguments and exports with their zero values.
 		args:    reg.Args,
@@ -135,21 +139,6 @@ func NewComponentNode(globals ComponentGlobals, b *hcl.Block) *ComponentNode {
 	cn.managedOpts = getManagedOptions(globals, cn)
 
 	return cn
-}
-
-func getRegistration(id ComponentID) (component.Registration, bool) {
-	// id is the fully qualified name of the component, including the custom user
-	// identifier, if supported by the component. We don't know if the component
-	// we're looking up is a singleton or not, so we have to try the lookup
-	// twice: once with all name fragments in the ID and once without the last
-	// one (e.g., the one that represents the user ID).
-	reg, ok := component.Get(id.String())
-	if ok {
-		return reg, ok
-	}
-
-	reg, ok = component.Get(id[:len(id)-1].String())
-	return reg, ok
 }
 
 func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Options {
@@ -168,38 +157,48 @@ func getExportsType(reg component.Registration) reflect.Type {
 	return nil
 }
 
-// ID returns the component ID of the managed component from its HCL block.
+// ID returns the component ID of the managed component from its River block.
 func (cn *ComponentNode) ID() ComponentID { return cn.id }
 
 // NodeID implements dag.Node and returns the unique ID for this node. The
-// NodeID is the string representation of the component's ID from its HCL
+// NodeID is the string representation of the component's ID from its River
 // block.
 func (cn *ComponentNode) NodeID() string { return cn.nodeID }
 
-// UpdateBlock updates the HCL block used to construct arguments for the
+// UpdateBlock updates the River block used to construct arguments for the
 // managed component. The new block isn't used until the next time Evaluate is
 // invoked.
 //
 // UpdateBlock will panic if the block does not match the component ID of the
 // ComponentNode.
-func (cn *ComponentNode) UpdateBlock(b *hcl.Block) {
+func (cn *ComponentNode) UpdateBlock(b *ast.BlockStmt) {
 	if !BlockComponentID(b).Equals(cn.id) {
-		panic("UpdateBlock called with an HCL block with a different component ID")
+		panic("UpdateBlock called with an River block with a different component ID")
 	}
 
 	cn.mut.Lock()
 	defer cn.mut.Unlock()
 	cn.block = b
+	cn.eval = vm.New(b.Body)
+}
+
+// getBlock gets the block currently used by this component. This is only used
+// internally for getting the block name and label and the return value should
+// not be modified.
+func (cn *ComponentNode) getBlock() *ast.BlockStmt {
+	cn.mut.RLock()
+	defer cn.mut.RUnlock()
+	return cn.block
 }
 
 // Evaluate updates the arguments for the managed component by re-evaluating
-// its HCL block with the provided evaluation context. The managed component
-// will be built the first time Evaluate is called.
+// its River block with the provided scope. The managed component will be built
+// the first time Evaluate is called.
 //
-// Evaluate will return an error if the HCL block cannot be evaluated or if
+// Evaluate will return an error if the River block cannot be evaluated or if
 // decoding to arguments fails.
-func (cn *ComponentNode) Evaluate(ectx *hcl.EvalContext) error {
-	err := cn.evaluate(ectx)
+func (cn *ComponentNode) Evaluate(scope *vm.Scope) error {
+	err := cn.evaluate(scope)
 
 	switch err {
 	case nil:
@@ -212,7 +211,7 @@ func (cn *ComponentNode) Evaluate(ectx *hcl.EvalContext) error {
 	return err
 }
 
-func (cn *ComponentNode) evaluate(ectx *hcl.EvalContext) error {
+func (cn *ComponentNode) evaluate(scope *vm.Scope) error {
 	cn.mut.Lock()
 	defer cn.mut.Unlock()
 
@@ -220,9 +219,8 @@ func (cn *ComponentNode) evaluate(ectx *hcl.EvalContext) error {
 	defer cn.doingEval.Store(false)
 
 	args := cn.reg.CloneArguments()
-	diags := gohcl.DecodeBody(cn.block.Body, ectx, args)
-	if diags.HasErrors() {
-		return fmt.Errorf("decoding HCL: %w", diags)
+	if err := cn.eval.Evaluate(scope, args); err != nil {
+		return fmt.Errorf("decoding River: %w", err)
 	}
 
 	// args is always a pointer to the args type, so we want to deference it since

@@ -13,19 +13,19 @@ import (
 )
 
 var testFile = `
-	testcomponents "tick" "ticker" {
+	testcomponents.tick "ticker" {
 		frequency = "1s"
 	}
 
-	testcomponents "passthrough" "static" {
+	testcomponents.passthrough "static" {
 		input = "hello, world!"
 	}
 
-	testcomponents "passthrough" "ticker" {
+	testcomponents.passthrough "ticker" {
 		input = testcomponents.tick.ticker.tick_time
 	}
 
-	testcomponents "passthrough" "forwarded" {
+	testcomponents.passthrough "forwarded" {
 		input = testcomponents.passthrough.ticker.output
 	}
 `
@@ -34,11 +34,11 @@ func TestController_LoadFile_Evaluation(t *testing.T) {
 	ctrl, _ := newFlow(testOptions(t))
 
 	// Use testFile from graph_builder_test.go.
-	f, diags := ReadFile(t.Name(), []byte(testFile))
-	require.False(t, diags.HasErrors())
+	f, err := ReadFile(t.Name(), []byte(testFile))
+	require.NoError(t, err)
 	require.NotNil(t, f)
 
-	err := ctrl.LoadFile(f)
+	err = ctrl.LoadFile(f)
 	require.NoError(t, err)
 	require.Len(t, ctrl.loader.Components(), 4)
 

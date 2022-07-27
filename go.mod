@@ -37,7 +37,6 @@ require (
 	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/hashicorp/go-discover v0.0.0-20220105235006-b95dfa40aaed
 	github.com/hashicorp/go-multierror v1.1.1
-	github.com/hashicorp/hcl/v2 v2.12.0
 	github.com/infinityworks/github-exporter v0.0.0-20210802160115-284088c21e7d
 	github.com/johannesboyne/gofakes3 v0.0.0-20210819161434-5c8dfcfe5310
 	github.com/json-iterator/go v1.1.12
@@ -92,7 +91,6 @@ require (
 	github.com/vincent-petithory/dataurl v1.0.0
 	github.com/weaveworks/common v0.0.0-20211222122857-933588f98737
 	github.com/wk8/go-ordered-map v0.2.0
-	github.com/zclconf/go-cty v1.10.0
 	go.opencensus.io v0.23.0
 	go.opentelemetry.io/collector v0.55.0
 	go.opentelemetry.io/otel/metric v0.30.0
@@ -121,7 +119,6 @@ require (
 	github.com/Lusitaniae/apache_exporter v0.11.1-0.20220518131644-f9522724dab4
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137
 	github.com/fatih/color v1.13.0
-	github.com/rfratto/gohcl v0.0.0-20220609143238-53312695dc8f
 	go.opentelemetry.io/collector/pdata v0.55.0
 	go.opentelemetry.io/collector/semconv v0.55.0
 )
@@ -159,11 +156,9 @@ require (
 	github.com/Shopify/ejson v1.3.1 // indirect
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/acomagu/bufpipe v1.0.3 // indirect
-	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
 	github.com/antonmedv/expr v1.9.0 // indirect
 	github.com/apache/thrift v0.16.0 // indirect
-	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/armon/go-metrics v0.3.10 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/aws/aws-sdk-go v1.44.47 // indirect
@@ -353,7 +348,6 @@ require (
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.0.0 // indirect
-	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
 	github.com/moby/sys/mount v0.3.0 // indirect
 	github.com/moby/sys/mountinfo v0.5.0 // indirect
 	github.com/moby/term v0.0.0-20210619224110-3f7ff695adc6 // indirect

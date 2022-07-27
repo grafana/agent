@@ -1,22 +1,27 @@
 package controller
 
 import (
+	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
+	"github.com/grafana/agent/pkg/river/ast"
+	"github.com/grafana/agent/pkg/river/diag"
+	"github.com/grafana/agent/pkg/river/token/builder"
+	"github.com/grafana/agent/pkg/river/vm"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/hcl/v2"
-	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/prometheus/client_golang/prometheus"
 
 	_ "github.com/grafana/agent/pkg/flow/internal/testcomponents" // Include test components
 )
 
-// The Loader builds and evaluates ComponentNodes from HCL blocks.
+// The Loader builds and evaluates ComponentNodes from River blocks.
 type Loader struct {
 	log     log.Logger
 	globals ComponentGlobals
@@ -25,7 +30,7 @@ type Loader struct {
 	graph      *dag.Graph
 	components []*ComponentNode
 	cache      *valueCache
-	blocks     hcl.Blocks // Most recently loaded blocks, used for writing
+	blocks     []*ast.BlockStmt // Most recently loaded blocks, used for writing
 }
 
 // NewLoader creates a new Loader. Components built by the Loader will be built
@@ -42,39 +47,39 @@ func NewLoader(globals ComponentGlobals) *Loader {
 }
 
 // Apply loads a new set of components into the Loader. Apply will drop any
-// previously loaded component which is not described in the set of HCL blocks.
+// previously loaded component which is not described in the set of River
+// blocks.
 //
 // Apply will reuse existing components if there is an existing component which
-// matches the component ID specified by any of the provided HCL blocks. Reused
-// components will be updated to point at the new HCL block.
+// matches the component ID specified by any of the provided River blocks.
+// Reused components will be updated to point at the new River block.
 //
 // Apply will perform an evaluation of all loaded components before returning.
 // The provided parentContext can be used to provide global variables and
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
-func (l *Loader) Apply(parentContext *hcl.EvalContext, blocks hcl.Blocks) hcl.Diagnostics {
+func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt) diag.Diagnostics {
 	start := time.Now()
-
 	l.mut.Lock()
 	defer l.mut.Unlock()
 	controllerEvaluation.Set(1)
 	defer controllerEvaluation.Set(0)
 
 	var (
-		diags    hcl.Diagnostics
+		diags    diag.Diagnostics
 		newGraph dag.Graph
 	)
 
 	populateDiags := l.populateGraph(&newGraph, blocks)
-	diags = diags.Extend(populateDiags)
+	diags = append(diags, populateDiags...)
 
 	wireDiags := l.wireGraphEdges(&newGraph)
-	diags = diags.Extend(wireDiags)
+	diags = append(diags, wireDiags...)
 
 	// Validate graph to detect cycles
 	err := dag.Validate(&newGraph)
 	if err != nil {
-		diags = diags.Extend(multierrToDiags(err))
+		diags = append(diags, multierrToDiags(err)...)
 		return diags
 	}
 
@@ -96,13 +101,18 @@ func (l *Loader) Apply(parentContext *hcl.EvalContext, blocks hcl.Blocks) hcl.Di
 		// We cache both arguments and exports during an initial load in case the
 		// component is new; we want to make sure that all fields are available
 		// before the component updates its exports for the first time.
-		if err := l.evaluate(parentContext, n.(*ComponentNode), true, true); err != nil {
-			diags = diags.Append(&hcl.Diagnostic{
-				Severity: hcl.DiagError,
-				Summary:  "Failed to build component",
-				Detail:   err.Error(),
-				Subject:  &n.(*ComponentNode).block.DefRange,
-			})
+		if err := l.evaluate(parentScope, n.(*ComponentNode), true, true); err != nil {
+			var evalDiags diag.Diagnostics
+			if errors.As(err, &evalDiags) {
+				diags = append(diags, evalDiags...)
+			} else {
+				diags.Add(diag.Diagnostic{
+					Severity: diag.SeverityLevelError,
+					Message:  fmt.Sprintf("Failed to build component: %s", err),
+					StartPos: ast.StartPos(n.(*ComponentNode).block).Position(),
+					EndPos:   ast.EndPos(n.(*ComponentNode).block).Position(),
+				})
+			}
 		}
 		return nil
 	})
@@ -115,22 +125,22 @@ func (l *Loader) Apply(parentContext *hcl.EvalContext, blocks hcl.Blocks) hcl.Di
 	return diags
 }
 
-func (l *Loader) populateGraph(g *dag.Graph, blocks hcl.Blocks) hcl.Diagnostics {
+func (l *Loader) populateGraph(g *dag.Graph, blocks []*ast.BlockStmt) diag.Diagnostics {
 	// Fill our graph with components.
 	var (
-		diags    hcl.Diagnostics
-		blockMap = make(map[string]*hcl.Block, len(blocks))
+		diags    diag.Diagnostics
+		blockMap = make(map[string]*ast.BlockStmt, len(blocks))
 	)
 	for _, block := range blocks {
 		var c *ComponentNode
 		id := BlockComponentID(block).String()
 
 		if orig, redefined := blockMap[id]; redefined {
-			diags = diags.Append(&hcl.Diagnostic{
-				Severity: hcl.DiagError,
-				Summary:  fmt.Sprintf("Component %s redeclared", id),
-				Detail:   fmt.Sprintf("%s: %s originally declared here", orig.DefRange.String(), id),
-				Subject:  block.DefRange.Ptr(),
+			diags.Add(diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				Message:  fmt.Sprintf("Component %s already declared at %s", id, ast.StartPos(orig).Position()),
+				StartPos: block.NamePos.Position(),
+				EndPos:   block.NamePos.Add(len(id) - 1).Position(),
 			})
 			continue
 		}
@@ -141,6 +151,17 @@ func (l *Loader) populateGraph(g *dag.Graph, blocks hcl.Blocks) hcl.Diagnostics 
 			c = exist.(*ComponentNode)
 			c.UpdateBlock(block)
 		} else {
+			componentName := strings.Join(block.Name, ".")
+			if _, exists := component.Get(componentName); !exists {
+				diags.Add(diag.Diagnostic{
+					Severity: diag.SeverityLevelError,
+					Message:  fmt.Sprintf("Unrecognized component name %q", componentName),
+					StartPos: block.NamePos.Position(),
+					EndPos:   block.NamePos.Add(len(componentName) - 1).Position(),
+				})
+				continue
+			}
+
 			// Create a new component
 			c = NewComponentNode(l.globals, block)
 		}
@@ -151,15 +172,15 @@ func (l *Loader) populateGraph(g *dag.Graph, blocks hcl.Blocks) hcl.Diagnostics 
 	return diags
 }
 
-func (l *Loader) wireGraphEdges(g *dag.Graph) hcl.Diagnostics {
-	var diags hcl.Diagnostics
+func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
+	var diags diag.Diagnostics
 
 	for _, n := range g.Nodes() {
 		refs, nodeDiags := ComponentReferences(n.(*ComponentNode), g)
 		for _, ref := range refs {
 			g.AddEdge(dag.Edge{From: n, To: ref.Target})
 		}
-		diags = diags.Extend(nodeDiags)
+		diags = append(diags, nodeDiags...)
 	}
 
 	return diags
@@ -179,17 +200,16 @@ func (l *Loader) Graph() *dag.Graph {
 	return l.graph.Clone()
 }
 
-// WriteBlocks returns a set of evaluated hclwrite blocks for each loaded
-// component. Components are returned in the order they were supplied to
-// Apply (i.e., the original order from the config file) and not topological
-// order.
+// WriteBlocks returns a set of evaluated token/builder blocks for each loaded
+// component. Components are returned in the order they were supplied to Apply
+// (i.e., the original order from the config file) and not topological order.
 //
 // Blocks will include health and debug information if debugInfo is true.
-func (l *Loader) WriteBlocks(debugInfo bool) []*hclwrite.Block {
+func (l *Loader) WriteBlocks(debugInfo bool) []*builder.Block {
 	l.mut.RLock()
 	defer l.mut.RUnlock()
 
-	blocks := make([]*hclwrite.Block, 0, len(l.components))
+	blocks := make([]*builder.Block, 0, len(l.components))
 
 	for _, b := range l.blocks {
 		id := BlockComponentID(b).String()
@@ -211,7 +231,7 @@ func (l *Loader) WriteBlocks(debugInfo bool) []*hclwrite.Block {
 // The provided parentContext can be used to provide global variables and
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
-func (l *Loader) EvaluateDependencies(parentContext *hcl.EvalContext, c *ComponentNode) {
+func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 	l.mut.RLock()
 	defer l.mut.RUnlock()
 
@@ -225,14 +245,14 @@ func (l *Loader) EvaluateDependencies(parentContext *hcl.EvalContext, c *Compone
 			// arguments will need re-evaluation.
 			return nil
 		}
-		_ = l.evaluate(parentContext, n.(*ComponentNode), true, false)
+		_ = l.evaluate(parentScope, n.(*ComponentNode), true, false)
 		return nil
 	})
 }
 
 // evaluate constructs the final context for c and evaluates it. mut must be
 // held when calling evaluate.
-func (l *Loader) evaluate(parent *hcl.EvalContext, c *ComponentNode, cacheArgs, cacheExports bool) error {
+func (l *Loader) evaluate(parent *vm.Scope, c *ComponentNode, cacheArgs, cacheExports bool) error {
 	ectx := l.cache.BuildContext(parent)
 	if err := c.Evaluate(ectx); err != nil {
 		level.Error(l.log).Log("msg", "failed to evaluate component", "component", c.NodeID(), "err", err)
@@ -247,14 +267,13 @@ func (l *Loader) evaluate(parent *hcl.EvalContext, c *ComponentNode, cacheArgs, 
 	return nil
 }
 
-func multierrToDiags(errors error) hcl.Diagnostics {
-	var diags hcl.Diagnostics
+func multierrToDiags(errors error) diag.Diagnostics {
+	var diags diag.Diagnostics
 	for _, err := range errors.(*multierror.Error).Errors {
-		diags = append(diags, &hcl.Diagnostic{
-			Severity: hcl.DiagError,
-			Summary:  err.Error(),
-			Detail:   err.Error(),
-			Subject:  nil,
+		// TODO(rfratto): should this include position information?
+		diags.Add(diag.Diagnostic{
+			Severity: diag.SeverityLevelError,
+			Message:  err.Error(),
 		})
 	}
 	return diags
