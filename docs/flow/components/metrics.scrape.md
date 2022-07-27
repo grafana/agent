@@ -66,7 +66,7 @@ basic_auth               | basic_auth block    | Setup of Basic HTTP authenticat
 authorization            | authorization block | Setup of HTTP Authorization credentials. | | no
 oauth2                   | oauth2 block        | Setup of the OAuth2 client. | | no
 tls_config               | tls_config block    | Configuration options for TLS connections. | | no
-bearer_token             | string   | Used to set up the Bearer Token. | | no
+bearer_token             | secret   | Used to set up the Bearer Token. | | no
 bearer_token_file        | string   | Used to set up the Bearer Token file. | | no
 proxy_url                | string   | Used to set up a Proxy URL. | | no
 follow_redirects         | bool     | Whether the scraper should follow redirects. | true | no
@@ -76,21 +76,21 @@ enable_http_2            | bool     | Whether the scraper should use HTTP2. | | 
 Name          | Type     | Description                                     | Default | Required
 --------------| -------- | ----------------------------------------------- | ------- | -------
 username      | string   | Setup of Basic HTTP authentication credentials. |         | no
-password      | string   | Setup of Basic HTTP authentication credentials. |         | no
+password      | secret   | Setup of Basic HTTP authentication credentials. |         | no
 password_file | string   | Setup of Basic HTTP authentication credentials. |         | no
 
 #### authorization block
 Name                | Type     | Description                              | Default | Required
 ------------------- | -------- | -----------------------------------------| ------- | --------
 type                | string   | Setup of HTTP Authorization credentials. |         | no
-credential          | string   | Setup of HTTP Authorization credentials. |         | no
+credential          | secret   | Setup of HTTP Authorization credentials. |         | no
 credentials_file    | string   | Setup of HTTP Authorization credentials. |         | no
 
 #### oauth2 block
 Name               | Type             | Description                              | Default | Required
 ------------------ | ---------------- | -----------------------------------------| ------- | --------
 client_id          | string           | Setup of the OAuth2 client.              |         | no
-client_secret      | string           | Setup of the OAuth2 client.              |         | no
+client_secret      | secret           | Setup of the OAuth2 client.              |         | no
 client_secret_file | string           | Setup of the OAuth2 client.              |         | no
 scopes             | list(string)     | Setup of the OAuth2 client.              |         | no
 token_url          | string           | Setup of the OAuth2 client.              |         | no

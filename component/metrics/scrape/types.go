@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/alecthomas/units"
+	"github.com/grafana/agent/pkg/flow/rivertypes"
 	common_config "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
@@ -69,16 +70,16 @@ type Config struct {
 
 // BasicAuth configures Basic HTTP authentication credentials.
 type BasicAuth struct {
-	Username     string `river:"username,attr,optional"`
-	Password     string `river:"password,attr,optional"`
-	PasswordFile string `river:"password_file,attr,optional"`
+	Username     string            `river:"username,attr,optional"`
+	Password     rivertypes.Secret `river:"password,attr,optional"`
+	PasswordFile string            `river:"password_file,attr,optional"`
 }
 
 // Authorization sets up HTTP authorization credentials.
 type Authorization struct {
-	Type            string `river:"authorization_type,attr,optional"`
-	Credential      string `river:"authorization_credential,attr,optional"`
-	CredentialsFile string `river:"authorization_credentials_file,attr,optional"`
+	Type            string            `river:"authorization_type,attr,optional"`
+	Credential      rivertypes.Secret `river:"authorization_credential,attr,optional"`
+	CredentialsFile string            `river:"authorization_credentials_file,attr,optional"`
 }
 
 // TLSConfig sets up options for TLS connections.
@@ -93,7 +94,7 @@ type TLSConfig struct {
 // OAuth2Config sets up the OAuth2 client.
 type OAuth2Config struct {
 	ClientID         string            `river:"client_id,attr,optional"`
-	ClientSecret     string            `river:"client_secret,attr,optional"`
+	ClientSecret     rivertypes.Secret `river:"client_secret,attr,optional"`
 	ClientSecretFile string            `river:"client_secret_file,attr,optional"`
 	Scopes           []string          `river:"scopes,attr,optional"`
 	TokenURL         string            `river:"token_url,attr,optional"`
