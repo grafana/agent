@@ -282,3 +282,68 @@ func TestDecode_ErrorChain(t *testing.T) {
 	expectErr := `expected number, got string`
 	require.EqualError(t, err, expectErr)
 }
+
+type boolish int
+
+var _ value.ConvertibleFromCapsule = (*boolish)(nil)
+var _ value.ConvertibleIntoCapsule = (boolish)(0)
+
+func (b boolish) RiverCapsule() {}
+
+func (b *boolish) ConvertFrom(src interface{}) error {
+	switch v := src.(type) {
+	case bool:
+		if v {
+			*b = 1
+		} else {
+			*b = 0
+		}
+		return nil
+	}
+
+	return value.ErrNoConversion
+}
+
+func (b boolish) ConvertInto(dst interface{}) error {
+	switch d := dst.(type) {
+	case *bool:
+		if b == 0 {
+			*d = false
+		} else {
+			*d = true
+		}
+		return nil
+	}
+
+	return value.ErrNoConversion
+}
+
+func TestDecode_CustomConvert(t *testing.T) {
+	t.Run("compatible type to custom", func(t *testing.T) {
+		var b boolish
+		err := value.Decode(value.Bool(true), &b)
+		require.NoError(t, err)
+		require.Equal(t, boolish(1), b)
+	})
+
+	t.Run("custom to compatible type", func(t *testing.T) {
+		var b bool
+		err := value.Decode(value.Encapsulate(boolish(10)), &b)
+		require.NoError(t, err)
+		require.Equal(t, true, b)
+	})
+
+	t.Run("incompatible type to custom", func(t *testing.T) {
+		var b boolish
+		err := value.Decode(value.String("true"), &b)
+		require.EqualError(t, err, "expected capsule, got string")
+	})
+
+	t.Run("custom to incompatible type", func(t *testing.T) {
+		src := boolish(10)
+
+		var s string
+		err := value.Decode(value.Encapsulate(&src), &s)
+		require.EqualError(t, err, "expected string, got capsule")
+	})
+}

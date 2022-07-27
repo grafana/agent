@@ -10,8 +10,9 @@ jobs:
   stale:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/stale@v5
+      - uses: actions/stale@v5.1.0
         with:
+          close-issue-reason: not_planned
           days-before-stale: 30
           days-before-close: 7
           stale-issue-message: >
