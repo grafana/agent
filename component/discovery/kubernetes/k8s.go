@@ -59,8 +59,8 @@ func (sd *SDConfig) Convert() *promk8s.SDConfig {
 }
 
 type NamespaceDiscovery struct {
-	IncludeOwnNamespace bool     `hcl:"own_namespace,optional"`
-	Names               []string `hcl:"names,optional"`
+	IncludeOwnNamespace bool     `river:"own_namespace,attr,optional"`
+	Names               []string `river:"names,attr,optional"`
 }
 
 func (nd *NamespaceDiscovery) Convert() *promk8s.NamespaceDiscovery {
@@ -71,9 +71,9 @@ func (nd *NamespaceDiscovery) Convert() *promk8s.NamespaceDiscovery {
 }
 
 type SelectorConfig struct {
-	Role  string `hcl:"role,optional"`
-	Label string `hcl:"label,optional"`
-	Field string `hcl:"field,optional"`
+	Role  string `river:"role,attr,optional"`
+	Label string `river:"label,attr,optional"`
+	Field string `river:"field,attr,optional"`
 }
 
 func (sc *SelectorConfig) Convert() *promk8s.SelectorConfig {
