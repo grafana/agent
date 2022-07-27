@@ -95,6 +95,10 @@ func TestBuilder_GoEncode(t *testing.T) {
 	require.Equal(t, expect, string(f.Bytes()))
 }
 
+// TestBuilder_GoEncode_SortMapKeys ensures that object literals from unordered
+// values (i.e., Go maps) are printed in a deterministic order by sorting the
+// keys lexicographically. Other object literals should be printed in the order
+// the keys are reported in (i.e., in the order presented by the Go structs).
 func TestBuilder_GoEncode_SortMapKeys(t *testing.T) {
 	f := builder.NewFile()
 
