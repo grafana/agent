@@ -14,11 +14,13 @@ import (
 	"github.com/fatih/color"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
-	_ "github.com/grafana/agent/component/all"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+
+	// Install Components
+	_ "github.com/grafana/agent/component/all"
 )
 
 // IsFlowEnabled checks to see if the environment var is set
