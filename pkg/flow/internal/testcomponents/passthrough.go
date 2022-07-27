@@ -22,13 +22,13 @@ func init() {
 
 // PassthroughConfig configures the testcomponents.passthrough component.
 type PassthroughConfig struct {
-	Input string `hcl:"input,attr"`
+	Input string `river:"input,attr"`
 }
 
 // PassthroughExports describes exported fields for the
 // testcomponents.passthrough component.
 type PassthroughExports struct {
-	Output string `hcl:"output,optional"`
+	Output string `river:"output,attr,optional"`
 }
 
 // Passthrough implements the testcomponents.passthrough component, where it
@@ -79,5 +79,5 @@ func (t *Passthrough) DebugInfo() interface{} {
 }
 
 type passthroughDebugInfo struct {
-	ComponentVersion string `hcl:"component_version"`
+	ComponentVersion string `river:"component_version,attr"`
 }

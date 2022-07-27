@@ -2,6 +2,7 @@ package appendable
 
 import (
 	"context"
+	"sync"
 
 	"github.com/grafana/agent/component/metrics"
 	"github.com/prometheus/prometheus/model/exemplar"
@@ -17,11 +18,16 @@ type FlowMetric struct {
 }
 
 // FlowAppendable is a flow-specific implementation of an Appender.
-type FlowAppendable []*metrics.Receiver
+type FlowAppendable struct {
+	mut       sync.RWMutex
+	receivers []*metrics.Receiver
+}
 
 // NewFlowAppendable initializes the appendable.
-func NewFlowAppendable(receivers ...*metrics.Receiver) FlowAppendable {
-	return receivers
+func NewFlowAppendable(receivers ...*metrics.Receiver) *FlowAppendable {
+	return &FlowAppendable{
+		receivers: receivers,
+	}
 }
 
 type flowAppender struct {
@@ -30,11 +36,28 @@ type flowAppender struct {
 }
 
 // Appender implements the Prometheus Appendable interface.
-func (app FlowAppendable) Appender(_ context.Context) storage.Appender {
+func (app *FlowAppendable) Appender(_ context.Context) storage.Appender {
+	app.mut.RLock()
+	defer app.mut.RUnlock()
+
 	return &flowAppender{
 		buffer:    make(map[int64][]*metrics.FlowMetric),
-		receivers: app,
+		receivers: app.receivers,
 	}
+}
+
+// SetReceivers defines the list of receivers for this appendable.
+func (app *FlowAppendable) SetReceivers(receivers []*metrics.Receiver) {
+	app.mut.Lock()
+	app.receivers = receivers
+	app.mut.Unlock()
+}
+
+// ListReceivers is a test method for exposing the Appender's receivers.
+func (app *FlowAppendable) ListReceivers() []*metrics.Receiver {
+	app.mut.RLock()
+	defer app.mut.RUnlock()
+	return app.receivers
 }
 
 func (app *flowAppender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, error) {
@@ -71,7 +94,7 @@ func (app *flowAppender) AppendExemplar(ref storage.SeriesRef, l labels.Labels, 
 func (app *flowAppender) Commit() error {
 	for _, r := range app.receivers {
 		for ts, metrics := range app.buffer {
-			if r.Receive == nil {
+			if r == nil || r.Receive == nil {
 				continue
 			}
 			r.Receive(ts, metrics)
