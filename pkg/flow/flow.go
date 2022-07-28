@@ -54,6 +54,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 // Options holds static options for a flow controller.
@@ -65,6 +66,8 @@ type Options struct {
 	// Directory where components can write data. Components will create
 	// subdirectories for component-specific data.
 	DataPath string
+
+	Reg prometheus.Registerer
 }
 
 // Flow is the Flow system.
@@ -94,7 +97,6 @@ func New(o Options) *Flow {
 
 func newFlow(o Options) (*Flow, context.Context) {
 	ctx, cancel := context.WithCancel(context.Background())
-
 	log := o.Logger
 	if log == nil {
 		var err error
@@ -115,7 +117,7 @@ func newFlow(o Options) (*Flow, context.Context) {
 				// Changed components should be queued for reevaluation.
 				queue.Enqueue(cn)
 			},
-		})
+		}, o.Reg)
 	)
 
 	return &Flow{

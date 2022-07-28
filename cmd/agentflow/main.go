@@ -18,6 +18,7 @@ import (
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river/diag"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	// Install components
@@ -66,6 +67,7 @@ func run() error {
 	f := flow.New(flow.Options{
 		Logger:   l,
 		DataPath: storagePath,
+		Reg:      prometheus.DefaultRegisterer,
 	})
 
 	reload := func() error {

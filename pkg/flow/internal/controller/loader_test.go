@@ -10,6 +10,7 @@ import (
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/parser"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 )
 
@@ -53,7 +54,7 @@ func TestLoader(t *testing.T) {
 	}
 
 	t.Run("New Graph", func(t *testing.T) {
-		l := controller.NewLoader(globals)
+		l := controller.NewLoader(globals, prometheus.DefaultRegisterer)
 		diags := applyFromContent(t, l, []byte(testFile))
 		require.NoError(t, diags.ErrorOrNil())
 		requireGraph(t, l.Graph(), testGraphDefinition)
@@ -71,7 +72,7 @@ func TestLoader(t *testing.T) {
 				frequency = "1m"
 			}
 		`
-		l := controller.NewLoader(globals)
+		l := controller.NewLoader(globals, nil)
 		diags := applyFromContent(t, l, []byte(startFile))
 		origGraph := l.Graph()
 		require.NoError(t, diags.ErrorOrNil())
@@ -90,7 +91,7 @@ func TestLoader(t *testing.T) {
 			doesnotexist "bad_component" {
 			}
 		`
-		l := controller.NewLoader(globals)
+		l := controller.NewLoader(globals, nil)
 		diags := applyFromContent(t, l, []byte(invalidFile))
 		require.ErrorContains(t, diags.ErrorOrNil(), `Unrecognized component name "doesnotexist`)
 	})
@@ -109,7 +110,7 @@ func TestLoader(t *testing.T) {
 				input = testcomponents.tick.doesnotexist.tick_time
 			}
 		`
-		l := controller.NewLoader(globals)
+		l := controller.NewLoader(globals, nil)
 		diags := applyFromContent(t, l, []byte(invalidFile))
 		require.Error(t, diags.ErrorOrNil())
 
@@ -143,7 +144,7 @@ func TestLoader(t *testing.T) {
 				input = testcomponents.passthrough.ticker.output
 			}
 		`
-		l := controller.NewLoader(globals)
+		l := controller.NewLoader(globals, nil)
 		diags := applyFromContent(t, l, []byte(invalidFile))
 		require.Error(t, diags.ErrorOrNil())
 	})
