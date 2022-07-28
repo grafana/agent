@@ -49,6 +49,23 @@ func (f *Flow) ConfigHandler() http.HandlerFunc {
 	}
 }
 
+// ScopeHandler returns an http.HandlerFunc which will render the scope used
+// for variable references throughout River expressions.
+func (f *Flow) ScopeHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, _ *http.Request) {
+		be := builder.NewExpr()
+		be.SetValue(f.loader.Variables())
+
+		var buf bytes.Buffer
+		_, err := be.WriteTo(&buf)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		} else {
+			_, _ = io.Copy(w, &buf)
+		}
+	}
+}
+
 // configBytes dumps the current state of the flow config as River.
 func (f *Flow) configBytes(w io.Writer, debugInfo bool) (n int64, err error) {
 	file := builder.NewFile()

@@ -85,6 +85,9 @@ func (vc *valueCache) SyncIDs(ids []ComponentID) {
 // BuildContext builds a vm.Scope based on the current set of cached values.
 // The arguments and exports for the same ID are merged into one object.
 func (vc *valueCache) BuildContext(parent *vm.Scope) *vm.Scope {
+	vc.mut.RLock()
+	defer vc.mut.RUnlock()
+
 	scope := &vm.Scope{
 		Parent:    parent,
 		Variables: make(map[string]interface{}),

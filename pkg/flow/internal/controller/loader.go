@@ -179,6 +179,12 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 	return diags
 }
 
+// Variables returns the Variables the Loader exposes for other Flow components
+// to reference.
+func (l *Loader) Variables() map[string]interface{} {
+	return l.cache.BuildContext(nil).Variables
+}
+
 // Components returns the current set of loaded components.
 func (l *Loader) Components() []*ComponentNode {
 	l.mut.RLock()
