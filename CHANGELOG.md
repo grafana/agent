@@ -29,7 +29,7 @@ Main (unreleased)
 
 ### Other changes
 
- - Update several go dependencies to resolve warnings from certain security scanning tools. None of the resolved vulnerabilities were known to be exploitable through the agent.
+ - Update several go dependencies to resolve warnings from certain security scanning tools. None of the resolved vulnerabilities were known to be exploitable through the agent. (@captncraig)
 
 
 
