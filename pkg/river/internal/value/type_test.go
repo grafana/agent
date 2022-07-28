@@ -8,6 +8,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type customCapsule bool
+
+var _ value.Capsule = (customCapsule)(false)
+
+func (customCapsule) RiverCapsule() {}
+
 var typeTests = []struct {
 	input  interface{}
 	expect value.Type
@@ -34,6 +40,11 @@ var typeTests = []struct {
 
 	{struct{}{}, value.TypeObject},
 
+	// A slice of labeled blocks should be an object.
+	{[]struct {
+		Label string `river:",label"`
+	}{}, value.TypeObject},
+
 	{map[string]interface{}{}, value.TypeObject},
 
 	// Go functions must have one non-error return type and one optional error
@@ -49,6 +60,11 @@ var typeTests = []struct {
 
 	{make(chan struct{}), value.TypeCapsule},
 	{map[bool]interface{}{}, value.TypeCapsule}, // Maps with non-string types are capsules
+
+	// Types with capsule markers should be capsules.
+	{customCapsule(false), value.TypeCapsule},
+	{(*customCapsule)(nil), value.TypeCapsule},
+	{(**customCapsule)(nil), value.TypeCapsule},
 }
 
 func Test_RiverType(t *testing.T) {

@@ -9,7 +9,7 @@ import (
 // be TypeArray, but this does not imply anything about the type of that
 // array's elements (all of which may be any type).
 //
-// The Capsule type is a special type which encapsulates arbitrary Go values.
+// TypeCapsule is a special type which encapsulates arbitrary Go values.
 type Type uint8
 
 // Supported Type values.
@@ -60,9 +60,31 @@ func (t Type) String() string {
 // Go functions are only valid for River if they have one non-error return type
 // (the first return type) and one optional error return type (the second
 // return type). Other function types are treated as capsules.
+//
+// As an exception, any type which implements the Capsule interface is forced
+// to be a capsule.
 func RiverType(t reflect.Type) Type {
+	// We don't know if the RiverCapsule interface is implemented for a pointer
+	// or non-pointer type, so we have to check before and after dereferencing.
+
 	for t.Kind() == reflect.Pointer {
+		switch {
+		case t.Implements(goCapsule):
+			return TypeCapsule
+		case t.Implements(goTextMarshaler):
+			return TypeString
+		}
+
 		t = t.Elem()
+	}
+
+	switch {
+	case t.Implements(goCapsule):
+		return TypeCapsule
+	case t.Implements(goTextMarshaler):
+		return TypeString
+	case t == goDuration:
+		return TypeString
 	}
 
 	switch t.Kind() {
@@ -83,6 +105,13 @@ func RiverType(t reflect.Type) Type {
 		return TypeBool
 
 	case reflect.Array, reflect.Slice:
+		if inner := t.Elem(); inner.Kind() == reflect.Struct {
+			if _, labeled := getCachedTags(inner).LabelField(); labeled {
+				// An slice/array of labeled blocks is an object, where each label is a
+				// top-level key.
+				return TypeObject
+			}
+		}
 		return TypeArray
 
 	case reflect.Map:

@@ -6,11 +6,46 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"reflect"
+	"strings"
 
+	"github.com/grafana/agent/pkg/river/internal/rivertags"
 	"github.com/grafana/agent/pkg/river/token"
 )
 
-// A File reprents a River configuration file.
+// An Expr represents a single River expression.
+type Expr struct {
+	rawTokens []Token
+}
+
+// NewExpr creates a new Expr.
+func NewExpr() *Expr { return &Expr{} }
+
+// Tokens returns the Expr as a set of Tokens.
+func (e *Expr) Tokens() []Token { return e.rawTokens }
+
+// SetValue sets the Expr to a River value converted from a Go value. The Go
+// value is encoded using the normal Go to River encoding rules. If any value
+// reachable from goValue implements Tokenizer, the printed tokens will instead
+// be retrieved by calling the RiverTokenize method.
+func (e *Expr) SetValue(goValue interface{}) {
+	e.rawTokens = tokenEncode(goValue)
+}
+
+// WriteTo renders and formats the File, writing the contents to w.
+func (e *Expr) WriteTo(w io.Writer) (int64, error) {
+	n, err := printExprTokens(w, e.Tokens())
+	return int64(n), err
+}
+
+// Bytes renders the File to a formatted byte slice.
+func (e *Expr) Bytes() []byte {
+	var buf bytes.Buffer
+	_, _ = e.WriteTo(&buf)
+	return buf.Bytes()
+}
+
+// A File represents a River configuration file.
 type File struct {
 	body *Body
 }
@@ -26,7 +61,7 @@ func (f *File) Body() *Body { return f.body }
 
 // WriteTo renders and formats the File, writing the contents to w.
 func (f *File) WriteTo(w io.Writer) (int64, error) {
-	n, err := printTokens(w, f.Tokens())
+	n, err := printFileTokens(w, f.Tokens())
 	return int64(n), err
 }
 
@@ -81,6 +116,94 @@ func (b *Body) AppendBlock(block *Block) {
 	b.nodes = append(b.nodes, block)
 }
 
+// AppendFrom sets attributes and appends blocks defined by goValue into the
+// Body. If any value reachable from goValue implements Tokenizer, the printed
+// tokens will instead be retrieved by calling the RiverTokenize method.
+//
+// goValue must be a struct or a pointer to a struct that contains River struct
+// tags.
+func (b *Body) AppendFrom(goValue interface{}) {
+	if goValue == nil {
+		return
+	}
+
+	rv := reflect.ValueOf(goValue)
+	b.encodeFields(rv)
+}
+
+func (b *Body) encodeFields(rv reflect.Value) {
+	for rv.Kind() == reflect.Pointer {
+		if rv.IsNil() {
+			return
+		}
+		rv = rv.Elem()
+	}
+	if rv.Kind() != reflect.Struct {
+		panic(fmt.Sprintf("river/token/builder: can only encode struct values to bodies, got %s", rv.Type()))
+	}
+
+	fields := rivertags.Get(rv.Type())
+
+	for _, field := range fields {
+		fieldVal := rv.FieldByIndex(field.Index)
+		b.encodeField(field, fieldVal)
+	}
+}
+
+func (b *Body) encodeField(field rivertags.Field, fieldValue reflect.Value) {
+	fieldName := strings.Join(field.Name, ".")
+
+	for fieldValue.Kind() == reflect.Pointer {
+		if fieldValue.IsNil() {
+			break
+		}
+		fieldValue = fieldValue.Elem()
+	}
+	if field.Flags&rivertags.FlagOptional != 0 && fieldValue.IsZero() {
+		return
+	}
+
+	switch {
+	case field.Flags&rivertags.FlagAttr != 0:
+		b.SetAttributeValue(fieldName, fieldValue.Interface())
+
+	case field.Flags&rivertags.FlagBlock != 0:
+		switch {
+		case fieldValue.IsZero():
+			// It shouldn't be possible to have a required block which is unset, but
+			// we'll encode something anyway.
+			inner := NewBlock(field.Name, "")
+			b.AppendBlock(inner)
+
+		case fieldValue.Kind() == reflect.Slice, fieldValue.Kind() == reflect.Array:
+			for i := 0; i < fieldValue.Len(); i++ {
+				elem := fieldValue.Index(i)
+
+				// Recursively call encodeField for each element in the slice/array.
+				// The recurisve call will hit the case below and add a new block for
+				// each field encountered.
+				b.encodeField(field, elem)
+			}
+
+		case fieldValue.Kind() == reflect.Struct:
+			inner := NewBlock(field.Name, getBlockLabel(fieldValue))
+			inner.Body().encodeFields(fieldValue)
+			b.AppendBlock(inner)
+		}
+	}
+}
+
+func getBlockLabel(rv reflect.Value) string {
+	tags := rivertags.Get(rv.Type())
+	for _, tag := range tags {
+		if tag.Flags&rivertags.FlagLabel != 0 {
+			return rv.FieldByIndex(tag.Index).String()
+		}
+	}
+
+	return ""
+}
+
 // SetAttributeTokens sets an attribute to the Body whose value is a set of raw
 // tokens. If the attribute was previously set, its value tokens are updated.
 //
@@ -104,7 +227,9 @@ func (b *Body) getOrCreateAttribute(name string) *attribute {
 
 // SetAttributeValue sets an attribute in the Body whose value is converted
 // from a Go value to a River value. The Go value is encoded using the normal
-// Go to River encoding rules.
+// Go to River encoding rules. If any value reachable from goValue implements
+// Tokenizer, the printed tokens will instead be retrieved by calling the
+// RiverTokenize method.
 //
 // If the attribute was previously set, its value tokens are updated.
 //

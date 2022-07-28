@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/grafana/agent/pkg/river/internal/value"
 	"github.com/stretchr/testify/require"
@@ -34,7 +35,6 @@ func TestDecode_Numbers(t *testing.T) {
 				require.NoError(t, value.Decode(val, vPtr))
 
 				actual := reflect.ValueOf(vPtr).Elem().Interface()
-
 				require.Equal(t, expect, actual)
 			})
 		}
@@ -202,6 +202,60 @@ func TestDecode_ArrayCopy(t *testing.T) {
 	require.Equal(t, [3]int{1, 2, 3}, orig, "Original array should not have been modified")
 }
 
+func TestDecode_CustomTypes(t *testing.T) {
+	t.Run("object to Unmarshaler", func(t *testing.T) {
+		var actual customUnmarshaler
+		require.NoError(t, value.Decode(value.Object(nil), &actual))
+		require.True(t, actual.Called, "UnmarshalRiver was not invoked")
+	})
+
+	t.Run("TextMarshaler to TextUnmarshaler", func(t *testing.T) {
+		now := time.Now()
+
+		var actual time.Time
+		require.NoError(t, value.Decode(value.Encode(now), &actual))
+		require.True(t, now.Equal(actual))
+	})
+
+	t.Run("time.Duration to time.Duration", func(t *testing.T) {
+		dur := 15 * time.Second
+
+		var actual time.Duration
+		require.NoError(t, value.Decode(value.Encode(dur), &actual))
+		require.Equal(t, dur, actual)
+	})
+
+	t.Run("string to TextUnmarshaler", func(t *testing.T) {
+		now := time.Now()
+		nowBytes, _ := now.MarshalText()
+
+		var actual time.Time
+		require.NoError(t, value.Decode(value.String(string(nowBytes)), &actual))
+
+		actualBytes, _ := actual.MarshalText()
+		require.Equal(t, nowBytes, actualBytes)
+	})
+
+	t.Run("string to time.Duration", func(t *testing.T) {
+		dur := 15 * time.Second
+
+		var actual time.Duration
+		require.NoError(t, value.Decode(value.String(dur.String()), &actual))
+		require.Equal(t, dur.String(), actual.String())
+	})
+}
+
+type customUnmarshaler struct {
+	Called bool
+}
+
+func (cu *customUnmarshaler) UnmarshalRiver(f func(interface{}) error) error {
+	cu.Called = true
+
+	type s customUnmarshaler
+	return f((*s)(cu))
+}
+
 type textEnumType bool
 
 func (et *textEnumType) UnmarshalText(text []byte) error {
@@ -281,4 +335,69 @@ func TestDecode_ErrorChain(t *testing.T) {
 	err := value.Decode(val, &Target{})
 	expectErr := `expected number, got string`
 	require.EqualError(t, err, expectErr)
+}
+
+type boolish int
+
+var _ value.ConvertibleFromCapsule = (*boolish)(nil)
+var _ value.ConvertibleIntoCapsule = (boolish)(0)
+
+func (b boolish) RiverCapsule() {}
+
+func (b *boolish) ConvertFrom(src interface{}) error {
+	switch v := src.(type) {
+	case bool:
+		if v {
+			*b = 1
+		} else {
+			*b = 0
+		}
+		return nil
+	}
+
+	return value.ErrNoConversion
+}
+
+func (b boolish) ConvertInto(dst interface{}) error {
+	switch d := dst.(type) {
+	case *bool:
+		if b == 0 {
+			*d = false
+		} else {
+			*d = true
+		}
+		return nil
+	}
+
+	return value.ErrNoConversion
+}
+
+func TestDecode_CustomConvert(t *testing.T) {
+	t.Run("compatible type to custom", func(t *testing.T) {
+		var b boolish
+		err := value.Decode(value.Bool(true), &b)
+		require.NoError(t, err)
+		require.Equal(t, boolish(1), b)
+	})
+
+	t.Run("custom to compatible type", func(t *testing.T) {
+		var b bool
+		err := value.Decode(value.Encapsulate(boolish(10)), &b)
+		require.NoError(t, err)
+		require.Equal(t, true, b)
+	})
+
+	t.Run("incompatible type to custom", func(t *testing.T) {
+		var b boolish
+		err := value.Decode(value.String("true"), &b)
+		require.EqualError(t, err, "expected capsule, got string")
+	})
+
+	t.Run("custom to incompatible type", func(t *testing.T) {
+		src := boolish(10)
+
+		var s string
+		err := value.Decode(value.Encapsulate(&src), &s)
+		require.EqualError(t, err, "expected string, got capsule")
+	})
 }

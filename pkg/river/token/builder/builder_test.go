@@ -2,7 +2,9 @@ package builder_test
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/grafana/agent/pkg/river/parser"
 	"github.com/grafana/agent/pkg/river/printer"
@@ -44,6 +46,7 @@ func TestBuilder_File(t *testing.T) {
 func TestBuilder_GoEncode(t *testing.T) {
 	f := builder.NewFile()
 
+	f.Body().AppendTokens([]builder.Token{{token.COMMENT, "// Hello, world!"}})
 	f.Body().SetAttributeValue("null_value", nil)
 	f.Body().AppendTokens([]builder.Token{{token.LITERAL, "\n"}})
 
@@ -67,6 +70,7 @@ func TestBuilder_GoEncode(t *testing.T) {
 	})
 
 	expect := format(t, `
+		// Hello, world!
 		null_value = null
 	
 		num     = 15 
@@ -91,6 +95,111 @@ func TestBuilder_GoEncode(t *testing.T) {
 	require.Equal(t, expect, string(f.Bytes()))
 }
 
+// TestBuilder_GoEncode_SortMapKeys ensures that object literals from unordered
+// values (i.e., Go maps) are printed in a deterministic order by sorting the
+// keys lexicographically. Other object literals should be printed in the order
+// the keys are reported in (i.e., in the order presented by the Go structs).
+func TestBuilder_GoEncode_SortMapKeys(t *testing.T) {
+	f := builder.NewFile()
+
+	type Ordered struct {
+		SomeKey  string `river:"some_key,attr"`
+		OtherKey string `river:"other_key,attr"`
+	}
+
+	// Maps are unordered because you can't iterate over their keys in a
+	// consistent order.
+	var unordered = map[string]interface{}{
+		"key_a": 1,
+		"key_c": 3,
+		"key_b": 2,
+	}
+
+	f.Body().SetAttributeValue("ordered", Ordered{SomeKey: "foo", OtherKey: "bar"})
+	f.Body().SetAttributeValue("unordered", unordered)
+
+	expect := format(t, `
+		ordered = {
+			some_key  = "foo",
+			other_key = "bar",
+		}
+		unordered = {
+			key_a = 1,
+			key_b = 2,
+			key_c = 3,
+		}
+	`)
+
+	require.Equal(t, expect, string(f.Bytes()))
+}
+
+func TestBuilder_AppendFrom(t *testing.T) {
+	type InnerBlock struct {
+		Number int `river:"number,attr"`
+	}
+
+	type Structure struct {
+		Field string `river:"field,attr"`
+
+		Block       InnerBlock   `river:"block,block"`
+		OtherBlocks []InnerBlock `river:"other_block,block"`
+	}
+
+	f := builder.NewFile()
+	f.Body().AppendFrom(Structure{
+		Field: "some_value",
+
+		Block: InnerBlock{Number: 1},
+		OtherBlocks: []InnerBlock{
+			{Number: 2},
+			{Number: 3},
+		},
+	})
+
+	expect := format(t, `
+		field = "some_value"
+	
+		block {
+			number = 1
+		}
+
+		other_block {
+			number = 2
+		}
+
+		other_block {
+			number = 3
+		}
+	`)
+
+	require.Equal(t, expect, string(f.Bytes()))
+}
+
+func TestBuilder_SkipOptional(t *testing.T) {
+	type Structure struct {
+		OptFieldA string `river:"opt_field_a,attr,optional"`
+		OptFieldB string `river:"opt_field_b,attr,optional"`
+		ReqFieldA string `river:"req_field_a,attr"`
+		ReqFieldB string `river:"req_field_b,attr"`
+	}
+
+	f := builder.NewFile()
+	f.Body().AppendFrom(Structure{
+		OptFieldA: "some_value",
+		OptFieldB: "", // Zero value
+		ReqFieldA: "some_value",
+		ReqFieldB: "", // Zero value
+	})
+
+	expect := format(t, `
+		opt_field_a = "some_value"
+		req_field_a = "some_value"
+		req_field_b = ""
+	`)
+
+	require.Equal(t, expect, string(f.Bytes()))
+}
+
 func format(t *testing.T, in string) string {
 	t.Helper()
 
@@ -101,4 +210,44 @@ func format(t *testing.T, in string) string {
 	require.NoError(t, printer.Fprint(&buf, f))
 
 	return buf.String()
+}
+
+type CustomTokenizer bool
+
+var _ builder.Tokenizer = (CustomTokenizer)(false)
+
+func (ct CustomTokenizer) RiverTokenize() []builder.Token {
+	return []builder.Token{{Tok: token.LITERAL, Lit: "CUSTOM_TOKENS"}}
+}
+
+func TestBuilder_GoEncode_Tokenizer(t *testing.T) {
+	t.Run("Tokenizer", func(t *testing.T) {
+		f := builder.NewFile()
+		f.Body().SetAttributeValue("value", CustomTokenizer(true))
+
+		expect := format(t, `value = CUSTOM_TOKENS`)
+		require.Equal(t, expect, string(f.Bytes()))
+	})
+
+	t.Run("TextMarshaler", func(t *testing.T) {
+		now := time.Now()
+		expectBytes, err := now.MarshalText()
+		require.NoError(t, err)
+
+		f := builder.NewFile()
+		f.Body().SetAttributeValue("value", now)
+
+		expect := format(t, fmt.Sprintf(`value = %q`, string(expectBytes)))
+		require.Equal(t, expect, string(f.Bytes()))
+	})
+
+	t.Run("Duration", func(t *testing.T) {
+		dur := 15 * time.Second
+
+		f := builder.NewFile()
+		f.Body().SetAttributeValue("value", dur)
+
+		expect := format(t, fmt.Sprintf(`value = %q`, dur.String()))
+		require.Equal(t, expect, string(f.Bytes()))
+	})
 }

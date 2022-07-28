@@ -45,10 +45,19 @@ func (f Flags) GoString() string { return f.String() }
 
 // Field is a tagged field within a struct.
 type Field struct {
-	Name  string // Name of tagged field
-	Index []int  // Index into field (reflect.Value.FieldByIndex)
-	Flags Flags  // Flags assigned to field
+	Name  []string // Name of tagged field
+	Index []int    // Index into field (reflect.Value.FieldByIndex)
+	Flags Flags    // Flags assigned to field
 }
+
+// IsAttr returns whether f is for an attribute.
+func (f Field) IsAttr() bool { return f.Flags&FlagAttr != 0 }
+
+// IsBlock returns whether f is for a block.
+func (f Field) IsBlock() bool { return f.Flags&FlagBlock != 0 }
+
+// IsOptional returns whether f is optional.
+func (f Field) IsOptional() bool { return f.Flags&FlagOptional != 0 }
 
 // Get returns the list of tagged fields for some struct type ty. Get panics if
 // ty is not a struct type.
@@ -121,15 +130,17 @@ func Get(ty reflect.Type) []Field {
 			panic(fmt.Sprintf("river: field %s tag is missing options", printPathToField(ty, field.Index)))
 		}
 
+		fullName := options[0]
+
 		tf := Field{
-			Name:  options[0],
+			Name:  strings.Split(fullName, "."),
 			Index: field.Index,
 		}
 
-		if first, used := usedNames[tf.Name]; used && tf.Name != "" {
-			panic(fmt.Sprintf("river: field name %s already used by %s", tf.Name, printPathToField(ty, first)))
+		if first, used := usedNames[fullName]; used && fullName != "" {
+			panic(fmt.Sprintf("river: field name %s already used by %s", fullName, printPathToField(ty, first)))
 		}
-		usedNames[tf.Name] = tf.Index
+		usedNames[fullName] = tf.Index
 
 		switch options[1] {
 		case "attr":
@@ -148,8 +159,12 @@ func Get(ty reflect.Type) []Field {
 
 		// Validate field
 
+		if len(tf.Name) > 1 && tf.Flags&FlagBlock == 0 {
+			panic(fmt.Sprintf("river: field names with `.` may only be used by blocks (found at %s)", printPathToField(ty, tf.Index)))
+		}
+
 		if tf.Flags&FlagLabel != 0 {
-			if tf.Name != "" {
+			if fullName != "" {
 				panic(fmt.Sprintf("river: label field at %s must not have a name", printPathToField(ty, tf.Index)))
 			}
 			if field.Type.Kind() != reflect.String {
@@ -162,7 +177,7 @@ func Get(ty reflect.Type) []Field {
 			usedLabelField = tf.Index
 		}
 
-		if tf.Name == "" && tf.Flags&FlagLabel == 0 /* (e.g., *not* a label) */ {
+		if fullName == "" && tf.Flags&FlagLabel == 0 /* (e.g., *not* a label) */ {
 			panic(fmt.Sprintf("river: non-empty field name required at %s", printPathToField(ty, tf.Index)))
 		}
 

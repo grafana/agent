@@ -7,8 +7,11 @@ import (
 // Receiver is used to pass an array of metrics to another receiver
 type Receiver struct {
 	// metrics should be considered immutable
-	Receive func(timestamp int64, metrics []*FlowMetric) `hcl:"receiver"`
+	Receive func(timestamp int64, metrics []*FlowMetric)
 }
+
+// RiverCapsule marks receivers as a capsule.
+func (r Receiver) RiverCapsule() {}
 
 // FlowMetric is a wrapper around a single metric without the timestamp
 type FlowMetric struct {

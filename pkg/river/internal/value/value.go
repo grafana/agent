@@ -8,13 +8,8 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 )
-
-// TODO(rfratto): This package is missing three main features:
-//
-// 1. Proper encoding/decoding to Go structs with rvr block tags (currently,
-//    labels are ignored)
-// 2. Decoding to Go structs with missing required attributes should fail
 
 // Go types used throughout the package.
 var (
@@ -22,7 +17,13 @@ var (
 	goString          = reflect.TypeOf(string(""))
 	goByteSlice       = reflect.TypeOf([]byte(nil))
 	goError           = reflect.TypeOf((*error)(nil)).Elem()
+	goTextMarshaler   = reflect.TypeOf((*encoding.TextMarshaler)(nil)).Elem()
 	goTextUnmarshaler = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
+	goStructWrapper   = reflect.TypeOf(structWrapper{})
+	goCapsule         = reflect.TypeOf((*Capsule)(nil)).Elem()
+	goDuration        = reflect.TypeOf((time.Duration)(0))
+	goDurationPtr     = reflect.TypeOf((*time.Duration)(nil))
+	goRiverDecoder    = reflect.TypeOf((*Unmarshaler)(nil)).Elem()
 )
 
 // NOTE(rfratto): This package is extremely sensitive to performance, so
@@ -71,8 +72,10 @@ func Object(m map[string]Value) Value {
 // Array creates an array from the given values. A copy of the vv slice is made
 // for producing the Value.
 func Array(vv ...Value) Value {
-	ty := reflect.ArrayOf(len(vv), goAny)
-	raw := reflect.New(ty).Elem()
+	// Arrays should be slices otherwise any reference to them gets copied by
+	// value into a new pointer.
+	arrayType := reflect.SliceOf(goAny)
+	raw := reflect.MakeSlice(arrayType, len(vv), len(vv))
 
 	for i, v := range vv {
 		if v.ty == TypeNull {
@@ -94,9 +97,9 @@ func Func(f interface{}) Value {
 	return Value{rv: rv, ty: TypeFunction}
 }
 
-// Capsule creates a new Capsule value from v. Capsule panics if v does not map
-// to a River capsule.
-func Capsule(v interface{}) Value {
+// Encapsulate creates a new Capsule value from v. Encapsulate panics if v does
+// not map to a River capsule.
+func Encapsulate(v interface{}) Value {
 	rv := reflect.ValueOf(v)
 	if RiverType(rv.Type()) != TypeCapsule {
 		panic("river/value: Capsule called with non-capsule type")
@@ -190,12 +193,32 @@ func (v Value) Float() float64 {
 	panic("river/value: unreachable")
 }
 
-// Text returns a string value fo v. It panics if v is not a string.
+// Text returns a string value of v. It panics if v is not a string.
 func (v Value) Text() string {
 	if v.ty != TypeString {
 		panic("river/value: Text called on non-string type")
 	}
-	return v.rv.String()
+
+	// Attempt to get an address to v.rv for interface checking.
+	//
+	// The normal v.rv value is used for other checks.
+	addrRV := v.rv
+	if addrRV.CanAddr() {
+		addrRV = addrRV.Addr()
+	}
+	switch {
+	case addrRV.Type().Implements(goTextMarshaler):
+		// TODO(rfratto): what should we do if this fails?
+		text, _ := addrRV.Interface().(encoding.TextMarshaler).MarshalText()
+		return string(text)
+
+	case v.rv.Type() == goDuration:
+		// Special case: v.rv is a duration and its String method should be used.
+		return v.rv.Interface().(time.Duration).String()
+
+	default:
+		return v.rv.String()
+	}
 }
 
 // Len returns the length of v. Panics if v is not an array or object.
@@ -204,10 +227,14 @@ func (v Value) Len() int {
 	case TypeArray:
 		return v.rv.Len()
 	case TypeObject:
-		switch v.rv.Kind() {
-		case reflect.Struct:
+		switch {
+		case v.rv.Type() == goStructWrapper:
+			return v.rv.Interface().(structWrapper).Len()
+		case v.rv.Kind() == reflect.Array, v.rv.Kind() == reflect.Slice: // Array of labeled blocks
+			return v.rv.Len()
+		case v.rv.Kind() == reflect.Struct:
 			return getCachedTags(v.rv.Type()).Len()
-		case reflect.Map:
+		case v.rv.Kind() == reflect.Map:
 			return v.rv.Len()
 		}
 	}
@@ -223,19 +250,57 @@ func (v Value) Index(i int) Value {
 	return makeValue(v.rv.Index(i))
 }
 
+// Interface returns the underlying Go value for the Value.
+func (v Value) Interface() interface{} {
+	if v.ty == TypeNull {
+		return nil
+	}
+	return v.rv.Interface()
+}
+
 // makeValue converts a reflect value into a Value, deferencing any pointers or
 // interface{} values.
 func makeValue(v reflect.Value) Value {
+	// Early check: if v is interface{}, we need to deference it to get the
+	// concrete value.
+	if v.IsValid() && v.Type() == goAny {
+		v = v.Elem()
+	}
+
+	// Before we get the River type of the Value, we need to see if it's possible
+	// to get a pointer to v. This ensures that if v is a non-pointer field of an
+	// addressable struct, still detect the type of v as if it was a pointer.
+	if v.CanAddr() {
+		v = v.Addr()
+	}
+
 	if !v.IsValid() {
 		return Null
 	}
-	for v.Kind() == reflect.Pointer || v.Type() == goAny {
-		v = v.Elem()
-		if !v.IsValid() {
+	riverType := RiverType(v.Type())
+
+	// Finally, deference the pointer fully and use the type we detected.
+	for v.Kind() == reflect.Pointer {
+		if v.IsNil() {
 			return Null
 		}
+		v = v.Elem()
 	}
-	return Value{rv: v, ty: RiverType(v.Type())}
+	return Value{rv: v, ty: riverType}
+}
+
+// OrderedKeys reports if v represents an object with consistently ordered
+// keys. If panics if v is not an object.
+func (v Value) OrderedKeys() bool {
+	if v.ty != TypeObject {
+		panic("river/value: OrderedKeys called on non-object value")
+	}
+
+	// Maps are the only type of unordered River object, since their keys can't
+	// be iterated over in a deterministic order. Every other type of River
+	// object comes from a struct or a slice where the order of keys stays the
+	// same.
+	return v.rv.Kind() != reflect.Map
 }
 
 // Keys returns the keys in v in unspecified order. It panics if v is not an
@@ -245,12 +310,24 @@ func (v Value) Keys() []string {
 		panic("river/value: Keys called on non-object value")
 	}
 
-	switch v.rv.Kind() {
-	case reflect.Struct:
-		ff := getCachedTags(v.rv.Type())
-		return ff.Keys()
+	switch {
+	case v.rv.Type() == goStructWrapper:
+		return v.rv.Interface().(structWrapper).Keys()
 
-	case reflect.Map:
+	case v.rv.Kind() == reflect.Struct:
+		return wrapStruct(v.rv, true).Keys()
+
+	case v.rv.Kind() == reflect.Array, v.rv.Kind() == reflect.Slice:
+		// List of labeled blocks.
+		labelField, _ := getCachedTags(v.rv.Type().Elem()).LabelField()
+
+		keys := make([]string, v.rv.Len())
+		for i := range keys {
+			keys[i] = v.rv.Index(i).FieldByIndex(labelField.Index).String()
+		}
+		return keys
+
+	case v.rv.Kind() == reflect.Map:
 		reflectKeys := v.rv.MapKeys()
 		res := make([]string, len(reflectKeys))
 		for i, rk := range reflectKeys {
@@ -269,30 +346,38 @@ func (v Value) Key(key string) (index Value, ok bool) {
 		panic("river/value: Key called on non-object value")
 	}
 
-	switch v.rv.Kind() {
-	case reflect.Struct:
-		// TODO(rfratto): optimize
-		ff := getCachedTags(v.rv.Type())
-		f, foundField := ff.Get(key)
-		if !foundField {
-			return
-		}
-
-		val, err := v.rv.FieldByIndexErr(f.Index)
-		if err != nil {
-			return Null, true
-		}
-		return makeValue(val), true
-
-	case reflect.Map:
+	switch {
+	case v.rv.Type() == goStructWrapper:
+		return v.rv.Interface().(structWrapper).Key(key)
+	case v.rv.Kind() == reflect.Struct:
+		// We return the struct with the label intact.
+		return wrapStruct(v.rv, true).Key(key)
+	case v.rv.Kind() == reflect.Map:
 		val := v.rv.MapIndex(reflect.ValueOf(key))
 		if !val.IsValid() || val.IsZero() {
 			return
 		}
 		return makeValue(val), true
+
+	case v.rv.Kind() == reflect.Slice, v.rv.Kind() == reflect.Array:
+		// List of labeled blocks.
+		labelField, _ := getCachedTags(v.rv.Type().Elem()).LabelField()
+
+		for i := 0; i < v.rv.Len(); i++ {
+			elem := v.rv.Index(i)
+
+			label := elem.FieldByIndex(labelField.Index).String()
+			if label == key {
+				// We discard the label since the key here represents the label value.
+				ws := wrapStruct(elem, false)
+				return ws.Value(), true
+			}
+		}
+	default:
+		panic("river/value: unreachable")
 	}
 
-	panic("river/value: unreachable")
+	return
 }
 
 // Call invokes a function value with the provided arguments. It panics if v is
@@ -423,9 +508,7 @@ func convertValue(val Value, toType Type) (Value, error) {
 	return Null, TypeError{Value: val, Expected: toType}
 }
 
-func convertGoNumber(v reflect.Value, target reflect.Type) reflect.Value {
-	nval := newNumberValue(v)
-
+func convertGoNumber(nval Number, target reflect.Type) reflect.Value {
 	switch target.Kind() {
 	case reflect.Int:
 		return reflect.ValueOf(int(nval.Int()))

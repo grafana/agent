@@ -2,11 +2,21 @@ package builder
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/grafana/agent/pkg/river/internal/value"
 	"github.com/grafana/agent/pkg/river/scanner"
 	"github.com/grafana/agent/pkg/river/token"
 )
+
+// TODO(rfratto): check for optional values
+
+// Tokenizer is any value which can return a raw set of tokens.
+type Tokenizer interface {
+	// RiverTokenize returns the raw set of River tokens which are used when
+	// printing out the value with river/token/builder.
+	RiverTokenize() []Token
+}
 
 func tokenEncode(val interface{}) []Token {
 	return valueTokens(value.Encode(val))
@@ -14,6 +24,11 @@ func tokenEncode(val interface{}) []Token {
 
 func valueTokens(v value.Value) []Token {
 	var toks []Token
+
+	// If v is a Tokenizer, allow it to override what tokens get generated.
+	if tk, ok := v.Interface().(Tokenizer); ok {
+		return tk.RiverTokenize()
+	}
 
 	switch v.Type() {
 	case value.TypeNull:
@@ -45,6 +60,13 @@ func valueTokens(v value.Value) []Token {
 		toks = append(toks, Token{token.LCURLY, ""}, Token{token.LITERAL, "\n"})
 
 		keys := v.Keys()
+
+		// If v isn't an ordered object (i.e., a go map), sort the keys so they
+		// have a deterministic print order.
+		if !v.OrderedKeys() {
+			sort.Strings(keys)
+		}
+
 		for i := 0; i < len(keys); i++ {
 			if isValidIdentifier(keys[i]) {
 				toks = append(toks, Token{token.IDENT, keys[i]})

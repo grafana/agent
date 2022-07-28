@@ -18,7 +18,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/build"
-	"github.com/grafana/agent/pkg/flow/hcltypes"
+	"github.com/grafana/agent/pkg/flow/rivertypes"
 	"github.com/grafana/agent/pkg/metrics/wal"
 	"github.com/prometheus/client_golang/prometheus"
 	common "github.com/prometheus/common/config"
@@ -57,28 +57,28 @@ func init() {
 
 // RemoteConfig represents the input state of the metrics_forwarder component.
 type RemoteConfig struct {
-	ExternalLabels map[string]string `hcl:"external_labels,optional"`
-	RemoteWrite    []*Config         `hcl:"remote_write,block"`
+	ExternalLabels map[string]string `river:"external_labels,attr,optional"`
+	RemoteWrite    []*Config         `river:"remote_write,block,optional"`
 }
 
 // Config is the metrics_fowarder's configuration for where to send
 // metrics stored in the WAL.
 type Config struct {
-	Name      string           `hcl:"name,optional"`
-	URL       string           `hcl:"url"`
-	BasicAuth *BasicAuthConfig `hcl:"basic_auth,block"`
+	Name      string           `river:"name,attr,optional"`
+	URL       string           `river:"url,attr"`
+	BasicAuth *BasicAuthConfig `river:"basic_auth,block,optional"`
 }
 
 // Export is used to assign this to receive metrics
 type Export struct {
-	Receiver *metrics.Receiver `hcl:"receiver"`
+	Receiver *metrics.Receiver `river:"receiver,attr"`
 }
 
 // BasicAuthConfig is the metrics_forwarder's configuration for authenticating
 // against the remote system when sending metrics.
 type BasicAuthConfig struct {
-	Username string          `hcl:"username"`
-	Password hcltypes.Secret `hcl:"password"`
+	Username string            `river:"username,attr"`
+	Password rivertypes.Secret `river:"password,attr"`
 }
 
 // Component is the metrics_forwarder component.

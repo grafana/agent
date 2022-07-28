@@ -10,7 +10,7 @@
     local this = self,
 
     _images:: {
-      agent_operator: 'grafana/agent-operator:v0.26.0-rc.0',
+      agent_operator: 'grafana/agent-operator:v0.26.1',
     },
 
     _config:: {

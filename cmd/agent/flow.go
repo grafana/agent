@@ -2,33 +2,36 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"net"
 	"net/http"
-	_ "net/http/pprof" // anonymous import to get the pprof handler registered
 	"os"
 	"os/signal"
 	"sync"
 
+	"github.com/fatih/color"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	// Install components
+	// Install Components
 	_ "github.com/grafana/agent/component/all"
 )
 
-func main() {
-	if err := run(); err != nil {
-		fmt.Fprintf(os.Stderr, "error: %s\n", err)
-		os.Exit(1)
+func isFlowEnabled() bool {
+	key, found := os.LookupEnv("EXPERIMENTAL_ENABLE_FLOW")
+	if !found {
+		return false
 	}
+	return key == "true"
 }
 
-func run() error {
+func runFlow() error {
 	var wg sync.WaitGroup
 	defer wg.Wait()
 
@@ -77,6 +80,23 @@ func run() error {
 	}
 
 	if err := reload(); err != nil {
+		var diags diag.Diagnostics
+		if errors.As(err, &diags) {
+			bb, _ := os.ReadFile(configFile)
+
+			p := diag.NewPrinter(diag.PrinterConfig{
+				Color:              !color.NoColor,
+				ContextLinesBefore: 1,
+				ContextLinesAfter:  1,
+			})
+			_ = p.Fprint(os.Stderr, map[string][]byte{configFile: bb}, diags)
+
+			// Print newline after the diagnostics.
+			fmt.Println()
+
+			return fmt.Errorf("could not perform the initial load successfully")
+		}
+
 		// Exit if the initial load files
 		return err
 	}
@@ -89,8 +109,8 @@ func run() error {
 		}
 
 		r := mux.NewRouter()
-		r.Handle("/-/config", f.ConfigHandler())
 		r.Handle("/metrics", promhttp.Handler())
+		r.Handle("/debug/config", f.ConfigHandler())
 		r.Handle("/debug/graph", f.GraphHandler())
 		r.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
 
@@ -129,11 +149,7 @@ func loadFlowFile(filename string) (*flow.File, error) {
 		return nil, err
 	}
 
-	f, diags := flow.ReadFile(filename, bb)
-	if !diags.HasErrors() {
-		return f, nil
-	}
-	return f, diags
+	return flow.ReadFile(filename, bb)
 }
 
 func interruptContext() (context.Context, context.CancelFunc) {

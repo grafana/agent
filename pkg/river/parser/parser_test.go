@@ -25,13 +25,14 @@ func FuzzParser(f *testing.F) {
 		p := newParser(t.Name(), input)
 
 		_ = p.ParseFile()
-		if len(p.errors) > 0 {
+		if len(p.diags) > 0 {
 			t.SkipNow()
 		}
 	})
 }
 
-// TestValid parses every *.rvr file in testdata, which is expected to be valid
+// TestValid parses every *.river file in testdata, which is expected to be
+// valid.
 func TestValid(t *testing.T) {
 	filepath.WalkDir("./testdata/valid", func(path string, d fs.DirEntry, _ error) error {
 		if d.IsDir() {
@@ -46,7 +47,7 @@ func TestValid(t *testing.T) {
 
 			res := p.ParseFile()
 			require.NotNil(t, res)
-			require.Len(t, p.errors, 0)
+			require.Len(t, p.diags, 0)
 		})
 
 		return nil
@@ -116,7 +117,7 @@ func TestParseExpressions(t *testing.T) {
 
 			res := p.ParseExpression()
 			require.NotNil(t, res)
-			require.Len(t, p.errors, 0)
+			require.Len(t, p.diags, 0)
 		})
 	}
 }

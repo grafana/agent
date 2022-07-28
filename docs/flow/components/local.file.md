@@ -12,8 +12,8 @@ labels.
 
 ## Example
 
-```hcl
-local "file" "my-file" {
+```river
+local.file "my-file" {
   filename = "path/to/my/file"
 }
 ```
