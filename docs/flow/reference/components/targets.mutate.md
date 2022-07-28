@@ -1,16 +1,22 @@
+---
+aliases:
+- /docs/agent/latest/flow/reference/components/targets.mutate
+title: targets.mutate
+---
+
 # targets.mutate
 
-The `targets.mutate` component rewrites the label set of the input
-targets by applying one or more `relabel_config` steps. If no relabeling
-steps are defined, then the input targets will be exported as-is.
+`targets.mutate` rewrites the label set of the input targets by applying one or
+more `relabel_config` steps. If no relabeling steps are defined, then the input
+targets will be exported as-is.
 
-The most common use of `targets.mutate` is to filter Prometheus targets
-or standardize the label set that will be passed to a downstream component.
-The `relabel_config` blocks will be applied to the label set of each target in
+The most common use of `targets.mutate` is to filter Prometheus targets or
+standardize the label set that will be passed to a downstream component. The
+`relabel_config` blocks will be applied to the label set of each target in
 order of their appearance in the configuration file.
 
-Multiple `targets.mutate` components can be specified by giving them
-different name labels like "keep-backend-only" in the following example.
+Multiple `targets.mutate` components can be specified by giving them different
+labels.
 
 ## Example
 
@@ -39,12 +45,11 @@ targets.mutate "keep-backend-only" {
 
 ## Arguments
 
-The following arguments are supported and can be referenced by other
-components:
+The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-targets | list(map(string)) | The targets to mutate. | | **yes**
+targets | list(map(string)) | Targets to mutate | | **yes**
 
 
 ### `relabel_config` block
@@ -87,9 +92,9 @@ output | list(map(string)) | The set of targets after applying relabeling.
 
 ## Component health
 
-The `targets.mutate` component will only be reported as unhealthy when
-given an invalid configuration. In those cases, exported fields will be kept at
-their last healthy values.
+`targets.mutate` will only be reported as unhealthy when given an invalid
+configuration. In those cases, exported fields will be kept at their last
+healthy values.
 
 ## Debug information
 
@@ -98,4 +103,3 @@ their last healthy values.
 ### Debug metrics
 
 `targets.mutate` does not expose any component-specific debug metrics.
-

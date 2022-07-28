@@ -8,4 +8,4 @@ pull:
 
 .PHONY: docs
 docs: pull
-	docker run -v $(shell pwd)/user:$(CONTENT_PATH):Z -p $(PORT) --rm -it $(IMAGE)
+	docker run --init -v $(shell pwd)/flow:$(CONTENT_PATH)/flow:Z -v $(shell pwd)/sources:$(CONTENT_PATH):Z -p $(PORT) --rm -it $(IMAGE)
