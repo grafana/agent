@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"net/http/httptest"
-	"net/url"
 	"testing"
 	"time"
 
@@ -17,7 +16,8 @@ import (
 
 func TestCorrectBucket(t *testing.T) {
 	o := component.Options{
-		ID: "t1",
+		ID:            "t1",
+		OnStateChange: func(_ component.Exports) {},
 	}
 	s3File, err := New(o,
 		Arguments{
@@ -30,33 +30,41 @@ func TestCorrectBucket(t *testing.T) {
 }
 
 func TestWatchingFile(t *testing.T) {
-	u := pushFilesToFakeS3(t, "test.txt", "success!")
-
+	_, srv := pushFilesToFakeS3(t, "test.txt", "success!")
 	s3File, err := New(component.Options{
-		ID: "id1",
+		ID:            "id1",
+		OnStateChange: func(_ component.Exports) {},
 	}, Arguments{
-		Path:          "s3://mybucket?region=us-east-1&disableSSL=true&s3ForcePathStyle=true&endpoint=" + u.Host +  "/test.txt",
-		PollFrequency: 1 * time.Second,
+		Path:          "s3://mybucket/test.txt",
+		PollFrequency: 100 * time.Millisecond,
 		IsSecret:      false,
+		Options: AWSOptions{
+			Endpoint:     srv.URL,
+			DisableSSL:   true,
+			UsePathStyle: true,
+		},
 	})
 	require.NoError(t, err)
 	ctx, cancel := context.WithCancel(context.Background())
-
 	go s3File.Run(ctx)
-	time.Sleep(5 * time.Second)
+	time.Sleep(200 * time.Millisecond)
 	require.True(t, s3File.content == "success!")
 	cancel()
 }
 
-func pushFilesToFakeS3(t *testing.T, filename string, filecontents string) *url.URL {
+func pushFilesToFakeS3(t *testing.T, filename string, filecontents string) (*s3mem.Backend, *httptest.Server) {
 	t.Setenv("AWS_ANON", "true")
 
 	backend := s3mem.New()
 	faker := gofakes3.New(backend)
-
 	srv := httptest.NewServer(faker.Server())
 	_ = backend.CreateBucket("mybucket")
 	t.Cleanup(srv.Close)
+	pushFile(t, backend, filename, filecontents)
+	return backend, srv
+}
+
+func pushFile(t *testing.T, backend *s3mem.Backend, filename string, filecontents string) {
 	_, err := backend.PutObject(
 		"mybucket",
 		filename,
@@ -65,7 +73,4 @@ func pushFilesToFakeS3(t *testing.T, filename string, filecontents string) *url.
 		int64(len(filecontents)),
 	)
 	assert.NoError(t, err)
-	u, err := url.Parse(srv.URL)
-	assert.NoError(t, err)
-	return u
 }
