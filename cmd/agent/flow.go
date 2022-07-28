@@ -112,6 +112,7 @@ func runFlow() error {
 		r.Handle("/metrics", promhttp.Handler())
 		r.Handle("/debug/config", f.ConfigHandler())
 		r.Handle("/debug/graph", f.GraphHandler())
+		r.Handle("/debug/scope", f.ScopeHandler())
 		r.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
 
 		r.HandleFunc("/-/reload", func(w http.ResponseWriter, _ *http.Request) {
