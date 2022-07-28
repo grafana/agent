@@ -28,9 +28,9 @@ type Config struct {
 	// A set of query parameters with which the target is scraped.
 	Params url.Values `river:"params,attr,optional"`
 	// How frequently to scrape the targets of this scrape config.
-	ScrapeInterval model.Duration `river:"scrape_interval,attr,optional"`
+	ScrapeInterval time.Duration `river:"scrape_interval,attr,optional"`
 	// The timeout for scraping targets of this config.
-	ScrapeTimeout model.Duration `river:"scrape_timeout,attr,optional"`
+	ScrapeTimeout time.Duration `river:"scrape_timeout,attr,optional"`
 	// The HTTP resource path on which to fetch metrics from targets.
 	MetricsPath string `river:"metrics_path,attr,optional"`
 	// The URL scheme with which to fetch metrics from targets.
@@ -110,9 +110,9 @@ var DefaultConfig = Config{
 	Scheme:          "http",
 	HonorLabels:     false,
 	HonorTimestamps: true,
-	FollowRedirects: true,                             // From common_config.DefaultHTTPClientConfig
-	ScrapeInterval:  model.Duration(1 * time.Minute),  // From config.DefaultGlobalConfig
-	ScrapeTimeout:   model.Duration(10 * time.Second), // From config.DefaultGlobalConfig
+	FollowRedirects: true,             // From common_config.DefaultHTTPClientConfig
+	ScrapeInterval:  1 * time.Minute,  // From config.DefaultGlobalConfig
+	ScrapeTimeout:   10 * time.Second, // From config.DefaultGlobalConfig
 }
 
 // UnmarshalRiver implements river.Unmarshaler.
@@ -136,8 +136,8 @@ func (c *Config) getPromScrapeConfigs(jobName string) (*config.ScrapeConfig, err
 	dec.HonorLabels = c.HonorLabels
 	dec.HonorTimestamps = c.HonorTimestamps
 	dec.Params = c.Params
-	dec.ScrapeInterval = c.ScrapeInterval
-	dec.ScrapeTimeout = c.ScrapeTimeout
+	dec.ScrapeInterval = model.Duration(c.ScrapeInterval)
+	dec.ScrapeTimeout = model.Duration(c.ScrapeTimeout)
 	dec.MetricsPath = c.MetricsPath
 	dec.Scheme = c.Scheme
 	dec.BodySizeLimit = c.BodySizeLimit
