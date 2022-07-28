@@ -23,21 +23,12 @@ import (
 	_ "github.com/grafana/agent/component/all"
 )
 
-// IsFlowEnabled checks to see if the environment var is set
-func IsFlowEnabled() bool {
+func isFlowEnabled() bool {
 	key, found := os.LookupEnv("EXPERIMENTAL_ENABLE_FLOW")
 	if !found {
 		return false
 	}
 	return key == "true"
-}
-
-// RunFlow runs the flow subsystem
-func RunFlow() {
-	if err := runFlow(); err != nil {
-		fmt.Fprintf(os.Stderr, "error: %s\n", err)
-		os.Exit(1)
-	}
 }
 
 func runFlow() error {
@@ -118,8 +109,8 @@ func runFlow() error {
 		}
 
 		r := mux.NewRouter()
-		r.Handle("/-/config", f.ConfigHandler())
 		r.Handle("/metrics", promhttp.Handler())
+		r.Handle("/debug/config", f.ConfigHandler())
 		r.Handle("/debug/graph", f.GraphHandler())
 		r.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
 
