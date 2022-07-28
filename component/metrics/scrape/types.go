@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/alecthomas/units"
+	"github.com/grafana/agent/pkg/flow/rivertypes"
 	common_config "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
@@ -27,9 +28,9 @@ type Config struct {
 	// A set of query parameters with which the target is scraped.
 	Params url.Values `river:"params,attr,optional"`
 	// How frequently to scrape the targets of this scrape config.
-	ScrapeInterval model.Duration `river:"scrape_interval,attr,optional"`
+	ScrapeInterval time.Duration `river:"scrape_interval,attr,optional"`
 	// The timeout for scraping targets of this config.
-	ScrapeTimeout model.Duration `river:"scrape_timeout,attr,optional"`
+	ScrapeTimeout time.Duration `river:"scrape_timeout,attr,optional"`
 	// The HTTP resource path on which to fetch metrics from targets.
 	MetricsPath string `river:"metrics_path,attr,optional"`
 	// The URL scheme with which to fetch metrics from targets.
@@ -69,16 +70,16 @@ type Config struct {
 
 // BasicAuth configures Basic HTTP authentication credentials.
 type BasicAuth struct {
-	Username     string `river:"username,attr,optional"`
-	Password     string `river:"password,attr,optional"`
-	PasswordFile string `river:"password_file,attr,optional"`
+	Username     string            `river:"username,attr,optional"`
+	Password     rivertypes.Secret `river:"password,attr,optional"`
+	PasswordFile string            `river:"password_file,attr,optional"`
 }
 
 // Authorization sets up HTTP authorization credentials.
 type Authorization struct {
-	Type            string `river:"authorization_type,attr,optional"`
-	Credential      string `river:"authorization_credential,attr,optional"`
-	CredentialsFile string `river:"authorization_credentials_file,attr,optional"`
+	Type            string            `river:"authorization_type,attr,optional"`
+	Credential      rivertypes.Secret `river:"authorization_credential,attr,optional"`
+	CredentialsFile string            `river:"authorization_credentials_file,attr,optional"`
 }
 
 // TLSConfig sets up options for TLS connections.
@@ -93,7 +94,7 @@ type TLSConfig struct {
 // OAuth2Config sets up the OAuth2 client.
 type OAuth2Config struct {
 	ClientID         string            `river:"client_id,attr,optional"`
-	ClientSecret     string            `river:"client_secret,attr,optional"`
+	ClientSecret     rivertypes.Secret `river:"client_secret,attr,optional"`
 	ClientSecretFile string            `river:"client_secret_file,attr,optional"`
 	Scopes           []string          `river:"scopes,attr,optional"`
 	TokenURL         string            `river:"token_url,attr,optional"`
@@ -109,9 +110,9 @@ var DefaultConfig = Config{
 	Scheme:          "http",
 	HonorLabels:     false,
 	HonorTimestamps: true,
-	FollowRedirects: true,                             // From common_config.DefaultHTTPClientConfig
-	ScrapeInterval:  model.Duration(1 * time.Minute),  // From config.DefaultGlobalConfig
-	ScrapeTimeout:   model.Duration(10 * time.Second), // From config.DefaultGlobalConfig
+	FollowRedirects: true,             // From common_config.DefaultHTTPClientConfig
+	ScrapeInterval:  1 * time.Minute,  // From config.DefaultGlobalConfig
+	ScrapeTimeout:   10 * time.Second, // From config.DefaultGlobalConfig
 }
 
 // UnmarshalRiver implements river.Unmarshaler.
@@ -135,8 +136,8 @@ func (c *Config) getPromScrapeConfigs(jobName string) (*config.ScrapeConfig, err
 	dec.HonorLabels = c.HonorLabels
 	dec.HonorTimestamps = c.HonorTimestamps
 	dec.Params = c.Params
-	dec.ScrapeInterval = c.ScrapeInterval
-	dec.ScrapeTimeout = c.ScrapeTimeout
+	dec.ScrapeInterval = model.Duration(c.ScrapeInterval)
+	dec.ScrapeTimeout = model.Duration(c.ScrapeTimeout)
 	dec.MetricsPath = c.MetricsPath
 	dec.Scheme = c.Scheme
 	dec.BodySizeLimit = c.BodySizeLimit

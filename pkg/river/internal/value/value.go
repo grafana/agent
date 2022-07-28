@@ -289,6 +289,20 @@ func makeValue(v reflect.Value) Value {
 	return Value{rv: v, ty: riverType}
 }
 
+// OrderedKeys reports if v represents an object with consistently ordered
+// keys. If panics if v is not an object.
+func (v Value) OrderedKeys() bool {
+	if v.ty != TypeObject {
+		panic("river/value: OrderedKeys called on non-object value")
+	}
+
+	// Maps are the only type of unordered River object, since their keys can't
+	// be iterated over in a deterministic order. Every other type of River
+	// object comes from a struct or a slice where the order of keys stays the
+	// same.
+	return v.rv.Kind() != reflect.Map
+}
+
 // Keys returns the keys in v in unspecified order. It panics if v is not an
 // object.
 func (v Value) Keys() []string {

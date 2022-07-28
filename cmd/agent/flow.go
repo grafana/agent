@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	_ "net/http/pprof" // anonymous import to get the pprof handler registered
 	"os"
 	"os/signal"
 	"sync"
@@ -21,18 +20,19 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	// Install components
+	// Install Components
 	_ "github.com/grafana/agent/component/all"
 )
 
-func main() {
-	if err := run(); err != nil {
-		fmt.Fprintf(os.Stderr, "error: %s\n", err)
-		os.Exit(1)
+func isFlowEnabled() bool {
+	key, found := os.LookupEnv("EXPERIMENTAL_ENABLE_FLOW")
+	if !found {
+		return false
 	}
+	return key == "true"
 }
 
-func run() error {
+func runFlow() error {
 	var wg sync.WaitGroup
 	defer wg.Wait()
 
@@ -111,8 +111,8 @@ func run() error {
 		}
 
 		r := mux.NewRouter()
-		r.Handle("/-/config", f.ConfigHandler())
 		r.Handle("/metrics", promhttp.Handler())
+		r.Handle("/debug/config", f.ConfigHandler())
 		r.Handle("/debug/graph", f.GraphHandler())
 		r.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
 

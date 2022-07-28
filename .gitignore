@@ -10,7 +10,6 @@ data-agent
 
 /cmd/agent/agent
 /cmd/agentctl/agentctl
-/cmd/agentflow/agentflow
 /cmd/agent-operator/agent-operator
 /cmd/grafana-agent-crow/grafana-agent-crow
 /dist/

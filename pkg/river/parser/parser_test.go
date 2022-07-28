@@ -31,7 +31,8 @@ func FuzzParser(f *testing.F) {
 	})
 }
 
-// TestValid parses every *.rvr file in testdata, which is expected to be valid
+// TestValid parses every *.river file in testdata, which is expected to be
+// valid.
 func TestValid(t *testing.T) {
 	filepath.WalkDir("./testdata/valid", func(path string, d fs.DirEntry, _ error) error {
 		if d.IsDir() {

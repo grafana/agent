@@ -214,6 +214,7 @@ var errorTests = []struct {
 	{"\a", token.ILLEGAL, 0, "", "illegal character U+0007"},
 	{`…`, token.ILLEGAL, 0, "", "illegal character U+2026 '…'"},
 	{"..", token.DOT, 0, "", ""}, // two periods, not invalid token (golang/go#28112)
+	{`'illegal string'`, token.ILLEGAL, 0, "", "illegal single-quoted string; use double quotes"},
 	{`""`, token.STRING, 0, `""`, ""},
 	{`"abc`, token.STRING, 0, `"abc`, "string literal not terminated"},
 	{"\"abc\n", token.STRING, 0, `"abc`, "string literal not terminated"},
