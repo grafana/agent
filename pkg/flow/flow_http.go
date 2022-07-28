@@ -49,7 +49,7 @@ func (f *Flow) ConfigHandler() http.HandlerFunc {
 	}
 }
 
-// ConfigHandler returns an http.HandlerFunc which will render the scope used
+// ScopeHandler returns an http.HandlerFunc which will render the scope used
 // for variable references throughout River expressions.
 func (f *Flow) ScopeHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {
