@@ -27,6 +27,10 @@ Main (unreleased)
 
 ### Bugfixes
 
+### Other changes
+
+ - Update several go dependencies to resolve warnings from certain security scanning tools. None of the resolved vulnerabilities were known to be exploitable through the agent.
+
 
 
 v0.26.1 (2022-07-25)
