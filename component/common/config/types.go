@@ -59,6 +59,9 @@ func (b *BasicAuth) Convert() *config.BasicAuth {
 type URL string
 
 func (u URL) Convert() config.URL {
+	if u == "" {
+		return config.URL{}
+	}
 	urlp, _ := url.Parse(string(u))
 
 	return config.URL{URL: urlp}
