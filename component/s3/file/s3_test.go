@@ -45,7 +45,7 @@ func TestWatchingFile(t *testing.T) {
 		Path:          "s3://mybucket/test.txt",
 		PollFrequency: 10 * time.Second,
 		IsSecret:      false,
-		Options: AWSOptions{
+		Options: ClientOptions{
 			Endpoint:     srv.URL,
 			DisableSSL:   true,
 			UsePathStyle: true,
