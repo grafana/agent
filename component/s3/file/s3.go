@@ -124,10 +124,10 @@ func generateS3Config(args Arguments) (*aws.Config, error) {
 	configOptions := make([]func(*aws_config.LoadOptions) error, 0)
 	// Override the endpoint
 	if args.Options.Endpoint != "" {
-		endFunc := aws.EndpointResolverFunc(func(service, region string) (aws.Endpoint, error) {
+		endFunc := aws.EndpointResolverWithOptionsFunc(func(service, region string, _ ...interface{}) (aws.Endpoint, error) {
 			return aws.Endpoint{URL: args.Options.Endpoint}, nil
 		})
-		endResolver := aws_config.WithEndpointResolver(endFunc)
+		endResolver := aws_config.WithEndpointResolverWithOptions(endFunc)
 		configOptions = append(configOptions, endResolver)
 	}
 

@@ -27,6 +27,7 @@ func newWatcher(
 	frequency time.Duration,
 	downloader *s3.Client,
 ) (*watcher, error) {
+
 	return &watcher{
 		bucket:     bucket,
 		file:       file,
@@ -85,7 +86,10 @@ func (w *watcher) download() error {
 		return err
 	}
 	buf := make([]byte, output.ContentLength)
-	output.Body.Read(buf)
+	_, err = output.Body.Read(buf)
+	if err != nil {
+		return err
+	}
 	w.output <- buf
 	return nil
 }
