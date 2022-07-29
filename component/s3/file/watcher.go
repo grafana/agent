@@ -47,25 +47,26 @@ func (w *watcher) updateValues(bucket, file string, frequency time.Duration, dow
 }
 
 func (w *watcher) run(ctx context.Context) {
-	err := w.download(w.bucket, w.file, w.output, w.downloader)
+	err := w.download()
 	if err != nil {
 		w.outError <- err
 	}
-	timer := time.NewTimer(w.frequency)
+	dlTick := time.NewTicker(w.frequency)
 	currentFrequency := w.frequency
-	defer timer.Stop()
+	defer dlTick.Stop()
 	for {
 		select {
-		case <-timer.C:
-			err = w.download(w.bucket, w.file, w.output, w.downloader)
+		case <-dlTick.C:
+			err = w.download()
 			if err != nil {
 				w.outError <- err
 			}
+			w.mut.Lock()
 			if currentFrequency != w.frequency {
 				currentFrequency = w.frequency
-				timer.Stop()
-				timer = time.NewTimer(w.frequency)
+				dlTick.Reset(currentFrequency)
 			}
+			w.mut.Unlock()
 		case <-ctx.Done():
 			return
 		}
@@ -73,18 +74,18 @@ func (w *watcher) run(ctx context.Context) {
 }
 
 // download actually downloads the file from s3
-func (w *watcher) download(bucket, file string, out chan []byte, downloader *s3.Client) error {
+func (w *watcher) download() error {
 	w.mut.Lock()
 	defer w.mut.Unlock()
-	output, err := downloader.GetObject(context.Background(), &s3.GetObjectInput{
-		Bucket: aws.String(bucket),
-		Key:    aws.String(file),
+	output, err := w.downloader.GetObject(context.Background(), &s3.GetObjectInput{
+		Bucket: aws.String(w.bucket),
+		Key:    aws.String(w.file),
 	})
 	if err != nil {
 		return err
 	}
 	buf := make([]byte, output.ContentLength)
 	output.Body.Read(buf)
-	out <- buf
+	w.output <- buf
 	return nil
 }

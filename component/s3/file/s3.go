@@ -12,7 +12,6 @@ import (
 	aws_config "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
 	"github.com/grafana/agent/pkg/river"
 	"golang.org/x/net/context"
 )
@@ -22,46 +21,13 @@ func init() {
 		Name:    "s3.file",
 		Args:    Arguments{},
 		Exports: Exports{},
+		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
+			return New(opts, args.(Arguments))
+		},
 	})
 }
 
-// Arguments implements the input for the s3 component
-type Arguments struct {
-	Path string `river:"path,attr"`
-	// PollFrequency determines the frequency to check for changes
-	// defaults to 5m
-	PollFrequency time.Duration `river:"poll_frequency,attr"`
-	// IsSecret determines if the content should be displayed to the user
-	IsSecret bool `river:"is_secret,attr,optional"`
-	// Options allows you to override default settings
-	Options AWSOptions `river:"options,block,optional"`
-}
-
-// AWSOptions implements specific AWS configuration options
-type AWSOptions struct {
-	AccessKey    string            `river:"key,attr,optional"`
-	Secret       rivertypes.Secret `river:"secret,attr,optional"`
-	Endpoint     string            `river:"endpoint,attr,optional"`
-	DisableSSL   bool              `river:"disable_ssl,attr,optional"`
-	UsePathStyle bool              `river:"use_path_style,attr,optional"`
-}
-
-var DefaultArguments = Arguments{
-	PollFrequency: 10 * time.Minute,
-}
-
-// UnmarshalRiver implements the unmarshaller
-func (a *Arguments) UnmarshalRiver(f func(v interface{}) error) error {
-	*a = DefaultArguments
-	type arguments Arguments
-	return f((*arguments)(a))
-}
-
-// Exports implements the file content
-type Exports struct {
-	Content string `river:"content,attr"`
-}
-
+// S3 handles reading content from a file located in S3
 type S3 struct {
 	mut        sync.Mutex
 	opts       component.Options
@@ -177,6 +143,7 @@ func generateS3Config(args Arguments) (*aws.Config, error) {
 		)
 		configOptions = append(configOptions, httpOverride)
 	}
+
 	// check credentials
 	if args.Options.AccessKey != "" {
 		if args.Options.Secret == "" {
@@ -196,6 +163,11 @@ func generateS3Config(args Arguments) (*aws.Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	// Set region
+	if args.Options.Region != "" {
+		cfg.Region = args.Options.Region
+	}
+
 	return &cfg, nil
 }
 
@@ -224,11 +196,10 @@ func (s *S3) handleContentUpdate(ctx context.Context) {
 }
 
 func (s *S3) handleContentPolling(err error) {
-		if err == nil {
-s.opts.OnStateChange(&Exports{
-				Content: s.content,
-			})
-
+	if err == nil {
+		s.opts.OnStateChange(Exports{
+			Content: s.content,
+		})
 		s.health.Health = component.HealthTypeHealthy
 		s.health.Message = "s3 file updated"
 	} else {
