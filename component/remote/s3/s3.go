@@ -19,7 +19,7 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "s3.file",
+		Name:    "remote.s3",
 		Args:    Arguments{},
 		Exports: Exports{},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
