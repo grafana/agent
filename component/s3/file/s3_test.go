@@ -36,7 +36,7 @@ func TestWatchingFile(t *testing.T) {
 		OnStateChange: func(_ component.Exports) {},
 	}, Arguments{
 		Path:          "s3://mybucket/test.txt",
-		PollFrequency: 100 * time.Millisecond,
+		PollFrequency: 10 * time.Second,
 		IsSecret:      false,
 		Options: AWSOptions{
 			Endpoint:     srv.URL,
@@ -47,7 +47,7 @@ func TestWatchingFile(t *testing.T) {
 	require.NoError(t, err)
 	ctx, cancel := context.WithCancel(context.Background())
 	go s3File.Run(ctx)
-	time.Sleep(200 * time.Millisecond)
+	time.Sleep(20 * time.Millisecond)
 	require.True(t, s3File.content == "success!")
 	cancel()
 }

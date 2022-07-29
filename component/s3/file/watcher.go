@@ -1,6 +1,7 @@
 package s3
 
 import (
+	"io"
 	"sync"
 	"time"
 
@@ -87,7 +88,7 @@ func (w *watcher) download() error {
 	}
 	buf := make([]byte, output.ContentLength)
 	_, err = output.Body.Read(buf)
-	if err != nil {
+	if err != nil && err != io.EOF {
 		return err
 	}
 	w.output <- buf
