@@ -91,6 +91,8 @@ type ComponentNode struct {
 
 	exportsMut sync.RWMutex
 	exports    component.Exports // Evaluated exports for the managed component
+
+	cm *componentMetrics
 }
 
 var (
@@ -99,7 +101,7 @@ var (
 
 // NewComponentNode creates a new ComponentNode from an initial ast.BlockStmt.
 // The underlying managed component isn't created until Evaluate is called.
-func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode {
+func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt, cm *componentMetrics) *ComponentNode {
 	var (
 		id     = BlockComponentID(b)
 		nodeID = id.String()
@@ -135,6 +137,7 @@ func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode
 
 		evalHealth: initHealth,
 		runHealth:  initHealth,
+		cm:         cm,
 	}
 	cn.managedOpts = getManagedOptions(globals, cn)
 
@@ -405,7 +408,6 @@ func (cn *ComponentNode) setEvalHealth(t component.HealthType, msg string) {
 	cn.healthMut.Lock()
 	defer cn.healthMut.Unlock()
 
-	evaluatedComponentStatus.WithLabelValues(cn.id.String(), t.String()).Set(1)
 	cn.evalHealth = component.Health{
 		Health:     t,
 		Message:    msg,
@@ -419,7 +421,7 @@ func (cn *ComponentNode) setRunHealth(t component.HealthType, msg string) {
 	cn.healthMut.Lock()
 	defer cn.healthMut.Unlock()
 
-	runningComponentStatus.WithLabelValues(cn.id.String(), t.String()).Set(1)
+	cn.cm.runningComponentTotal.WithLabelValues(cn.id.String(), t.String()).Inc()
 	cn.runHealth = component.Health{
 		Health:     t,
 		Message:    msg,

@@ -31,18 +31,19 @@ type Loader struct {
 	components []*ComponentNode
 	cache      *valueCache
 	blocks     []*ast.BlockStmt // Most recently loaded blocks, used for writing
+	cm         *componentMetrics
 }
 
 // NewLoader creates a new Loader. Components built by the Loader will be built
 // with co for their options.
 func NewLoader(globals ComponentGlobals, reg prometheus.Registerer) *Loader {
-	registerControllerMetrics(reg)
 	return &Loader{
 		log:     globals.Logger,
 		globals: globals,
 
 		graph: &dag.Graph{},
 		cache: newValueCache(),
+		cm:    newControllerMetrics(reg),
 	}
 }
 
@@ -62,8 +63,8 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt) diag.Diag
 	start := time.Now()
 	l.mut.Lock()
 	defer l.mut.Unlock()
-	controllerEvaluation.Set(1)
-	defer controllerEvaluation.Set(0)
+	l.cm.controllerEvaluation.Set(1)
+	defer l.cm.controllerEvaluation.Set(0)
 
 	var (
 		diags    diag.Diagnostics
@@ -121,7 +122,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt) diag.Diag
 	l.graph = &newGraph
 	l.cache.SyncIDs(componentIDs)
 	l.blocks = blocks
-	componentEvaluationTime.Observe(time.Since(start).Seconds())
+	l.cm.componentEvaluationTime.Observe(time.Since(start).Seconds())
 	return diags
 }
 
@@ -163,7 +164,7 @@ func (l *Loader) populateGraph(g *dag.Graph, blocks []*ast.BlockStmt) diag.Diagn
 			}
 
 			// Create a new component
-			c = NewComponentNode(l.globals, block)
+			c = NewComponentNode(l.globals, block, l.cm)
 		}
 
 		g.Add(c)
