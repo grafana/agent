@@ -13,7 +13,7 @@ local op = import 'grafana-agent-operator/operator.libsonnet';
 local ga_util = import 'grafana-agent-operator/util/grafana-agent.libsonnet';
 local mi_util =  import 'grafana-agent-operator/util/metricsinstance.libsonnet';
 local li_util = import 'grafana-agent-operator/util/logsinstance.libsonnet';
-local pl_util = import 'grafana-agent-operator/util/podlogs.libsonnet';
+local pl_util = import 'grafana-agent-operator/util/k8slogs.libsonnet';
 local mon_util = import 'grafana-agent-operator/util/k8smonitors.libsonnet';
 local int_util = import 'grafana-agent-operator/util/integrations.libsonnet';
 
@@ -95,7 +95,8 @@ local ksm = import 'kube-state-metrics/kube-state-metrics.libsonnet';
     pl.metadata.withLabels({instance: 'primary'}) +
     pl.spec.withPipelineStages(pl.spec.pipelineStages.withCri({})) +
     pl.spec.namespaceSelector.withAny(true) +
-    pl.spec.selector.withMatchLabels({}),
+    pl.spec.selector.withMatchLabels({}) +
+    pl.spec.withRelabelings(pl_util.withK8sLogsRelabeling()),
 
   k8s_monitors: [
     mon_util.newKubernetesMonitor(

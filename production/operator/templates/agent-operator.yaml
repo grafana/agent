@@ -508,6 +508,37 @@ spec:
     any: true
   pipelineStages:
   - cri: {}
+  relabelings:
+  - sourceLabels:
+    - __meta_kubernetes_pod_node_name
+    targetLabel: __host__
+  - action: labelmap
+    regex: __meta_kubernetes_pod_label_(.+)
+  - action: replace
+    replacement: $1
+    separator: /
+    sourceLabels:
+    - __meta_kubernetes_namespace
+    - __meta_kubernetes_pod_name
+    targetLabel: job
+  - action: replace
+    sourceLabels:
+    - __meta_kubernetes_namespace
+    targetLabel: namespace
+  - action: replace
+    sourceLabels:
+    - __meta_kubernetes_pod_name
+    targetLabel: pod
+  - action: replace
+    sourceLabels:
+    - __meta_kubernetes_container_name
+    targetLabel: container
+  - replacement: /var/log/pods/*$1/*.log
+    separator: /
+    sourceLabels:
+    - __meta_kubernetes_pod_uid
+    - __meta_kubernetes_pod_container_name
+    targetLabel: __path__
   selector:
     matchLabels: {}
 ---
