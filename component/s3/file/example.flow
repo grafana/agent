@@ -1,7 +1,0 @@
-s3.file "test" {
-	path = "s3://test/test.txt"
-	poll_frequency = "5s"
-	options {
-		region = "us-west-1"
-	}		
-}
