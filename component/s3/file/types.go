@@ -52,7 +52,6 @@ func (a *Arguments) UnmarshalRiver(f func(v interface{}) error) error {
 		return fmt.Errorf("poll_frequency must be greater than 30s")
 	}
 	return nil
-
 }
 
 // Exports implements the file content

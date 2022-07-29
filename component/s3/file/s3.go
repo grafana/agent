@@ -201,7 +201,6 @@ func (s *S3) handleContentPolling(newContent string, err error) {
 		s.health.Message = err.Error()
 	}
 	s.health.UpdateTime = time.Now()
-
 }
 
 func getPathBucketAndFile(path string) (bucket, file string) {
