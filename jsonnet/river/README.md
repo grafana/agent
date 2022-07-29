@@ -21,6 +21,13 @@ In addition to the helper functions, `river.expr(literal)` is used to inject a
 literal River expression, so that `river.expr('env("HOME")')` is manifested as
 the literal River expression `env("HOME")`.
 
+## Limitations
+
+* Manifested River files always have attributes and object keys in
+  lexicographic sort order, regardless of how they were defined in Jsonnet.
+* The resulting River files are not pretty-printed to how the formatter would
+  print files.
+
 ## Example
 
 ```jsonnet
