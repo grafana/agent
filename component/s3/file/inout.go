@@ -42,5 +42,5 @@ func (a *Arguments) UnmarshalRiver(f func(v interface{}) error) error {
 
 // Exports implements the file content
 type Exports struct {
-	Content string `river:"content,attr"`
+	Content rivertypes.OptionalSecret `river:"content,attr"`
 }

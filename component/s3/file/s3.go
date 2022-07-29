@@ -12,6 +12,7 @@ import (
 	aws_config "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/flow/rivertypes"
 	"github.com/grafana/agent/pkg/river"
 	"golang.org/x/net/context"
 )
@@ -198,7 +199,10 @@ func (s *S3) handleContentUpdate(ctx context.Context) {
 func (s *S3) handleContentPolling(err error) {
 	if err == nil {
 		s.opts.OnStateChange(Exports{
-			Content: s.content,
+			Content: rivertypes.OptionalSecret{
+				IsSecret: s.args.IsSecret,
+				Value:    s.content,
+			},
 		})
 		s.health.Health = component.HealthTypeHealthy
 		s.health.Message = "s3 file updated"
