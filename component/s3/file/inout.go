@@ -10,7 +10,7 @@ import (
 type Arguments struct {
 	Path string `river:"path,attr"`
 	// PollFrequency determines the frequency to check for changes
-	// defaults to 5m
+	// defaults to 10m
 	PollFrequency time.Duration `river:"poll_frequency,attr,optional"`
 	// IsSecret determines if the content should be displayed to the user
 	IsSecret bool `river:"is_secret,attr,optional"`
