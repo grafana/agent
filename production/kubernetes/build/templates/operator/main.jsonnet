@@ -19,7 +19,6 @@ local int_util = import 'grafana-agent-operator/util/integrations.libsonnet';
 
 local ksm = import 'kube-state-metrics/kube-state-metrics.libsonnet';
 
-## TODO: pod logs & metrics relabeling to match what we currently do / enable correlation
 {
   local this = self,
 
