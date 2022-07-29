@@ -1,10 +1,15 @@
 package s3
 
 import (
+	"fmt"
 	"time"
+
+	"github.com/grafana/agent/pkg/river"
 
 	"github.com/grafana/agent/pkg/flow/rivertypes"
 )
+
+var _ river.Unmarshaler = (*Arguments)(nil)
 
 // Arguments implements the input for the s3 component
 type Arguments struct {
@@ -15,7 +20,7 @@ type Arguments struct {
 	// IsSecret determines if the content should be displayed to the user
 	IsSecret bool `river:"is_secret,attr,optional"`
 	// Options allows you to override default settings
-	Options AWSOptions `river:"options,block,optional"`
+	Options AWSOptions `river:"aws_options,block,optional"`
 }
 
 // AWSOptions implements specific AWS configuration options
@@ -28,6 +33,8 @@ type AWSOptions struct {
 	Region       string            `river:"region,attr,optional"`
 }
 
+const minimumPollFrequency = 30 * time.Second
+
 // DefaultArguments sets the poll frequency
 var DefaultArguments = Arguments{
 	PollFrequency: 10 * time.Minute,
@@ -37,7 +44,15 @@ var DefaultArguments = Arguments{
 func (a *Arguments) UnmarshalRiver(f func(v interface{}) error) error {
 	*a = DefaultArguments
 	type arguments Arguments
-	return f((*arguments)(a))
+	err := f((*arguments)(a))
+	if err != nil {
+		return err
+	}
+	if a.PollFrequency <= minimumPollFrequency {
+		return fmt.Errorf("poll_frequency must be greater than 30s")
+	}
+	return nil
+
 }
 
 // Exports implements the file content

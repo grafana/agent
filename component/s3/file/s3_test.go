@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"net/http/httptest"
+	"sync"
 	"testing"
 	"time"
 
@@ -30,10 +31,16 @@ func TestCorrectBucket(t *testing.T) {
 }
 
 func TestWatchingFile(t *testing.T) {
+	var mut sync.Mutex
 	_, srv := pushFilesToFakeS3(t, "test.txt", "success!")
+	var output string
 	s3File, err := New(component.Options{
-		ID:            "id1",
-		OnStateChange: func(_ component.Exports) {},
+		ID: "id1",
+		OnStateChange: func(e component.Exports) {
+			mut.Lock()
+			defer mut.Unlock()
+			output = e.(Exports).Content.Value
+		},
 	}, Arguments{
 		Path:          "s3://mybucket/test.txt",
 		PollFrequency: 10 * time.Second,
@@ -48,7 +55,11 @@ func TestWatchingFile(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	go s3File.Run(ctx)
 	time.Sleep(20 * time.Millisecond)
-	require.True(t, s3File.content == "success!")
+
+	// This is due to race detector
+	mut.Lock()
+	require.True(t, output == "success!")
+	mut.Unlock()
 	cancel()
 }
 

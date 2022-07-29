@@ -8,12 +8,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/grafana/agent/pkg/flow/rivertypes"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	aws_config "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
-	"github.com/grafana/agent/pkg/river"
 	"golang.org/x/net/context"
 )
 
@@ -44,7 +44,6 @@ type S3 struct {
 var (
 	_ component.Component       = (*S3)(nil)
 	_ component.HealthComponent = (*S3)(nil)
-	_ river.Unmarshaler         = (*Arguments)(nil)
 )
 
 // New initializes the s3 component
@@ -90,11 +89,7 @@ func (s *S3) Run(ctx context.Context) error {
 // Update is called whenever the arguments have changed
 func (s *S3) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
-	if newArgs.PollFrequency <= time.Second*30 {
-		return fmt.Errorf("poll_frequency must be greater than 30s")
-	}
 
-	// TODO detect if args are different
 	s3cfg, err := generateS3Config(newArgs)
 	if err != nil {
 		return nil
@@ -177,33 +172,28 @@ func (s *S3) handleContentUpdate(ctx context.Context) {
 	for {
 		select {
 		case buf := <-s.updateChan:
-			s.mut.Lock()
 			strBuf := string(buf)
-			// Only update if changed
-			if strBuf != s.content {
-				s.content = strBuf
-				s.handleContentPolling(nil)
-			}
-			s.mut.Unlock()
+			s.handleContentPolling(strBuf, nil)
 		case err := <-s.errorChan:
-			s.mut.Lock()
-			s.handleContentPolling(err)
-			s.mut.Unlock()
-
+			s.handleContentPolling("", err)
 		case <-ctx.Done():
 			return
 		}
 	}
 }
 
-func (s *S3) handleContentPolling(err error) {
+func (s *S3) handleContentPolling(newContent string, err error) {
+	s.mut.Lock()
+	defer s.mut.Unlock()
+
 	if err == nil {
 		s.opts.OnStateChange(Exports{
 			Content: rivertypes.OptionalSecret{
 				IsSecret: s.args.IsSecret,
-				Value:    s.content,
+				Value:    newContent,
 			},
 		})
+		s.content = newContent
 		s.health.Health = component.HealthTypeHealthy
 		s.health.Message = "s3 file updated"
 	} else {
@@ -211,6 +201,7 @@ func (s *S3) handleContentPolling(err error) {
 		s.health.Message = err.Error()
 	}
 	s.health.UpdateTime = time.Now()
+
 }
 
 func getPathBucketAndFile(path string) (bucket, file string) {

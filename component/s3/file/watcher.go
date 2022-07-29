@@ -17,7 +17,7 @@ type watcher struct {
 	file       string
 	output     chan []byte
 	outError   chan error
-	frequency  time.Duration
+	dlTicker   *time.Ticker
 	downloader *s3.Client
 }
 
@@ -34,7 +34,7 @@ func newWatcher(
 		file:       file,
 		output:     out,
 		outError:   outError,
-		frequency:  frequency,
+		dlTicker:   time.NewTicker(frequency),
 		downloader: downloader,
 	}, nil
 }
@@ -44,7 +44,7 @@ func (w *watcher) updateValues(bucket, file string, frequency time.Duration, dow
 	defer w.mut.Unlock()
 	w.bucket = bucket
 	w.file = file
-	w.frequency = frequency
+	w.dlTicker.Reset(frequency)
 	w.downloader = downloader
 }
 
@@ -53,22 +53,14 @@ func (w *watcher) run(ctx context.Context) {
 	if err != nil {
 		w.outError <- err
 	}
-	dlTick := time.NewTicker(w.frequency)
-	currentFrequency := w.frequency
-	defer dlTick.Stop()
+	defer w.dlTicker.Stop()
 	for {
 		select {
-		case <-dlTick.C:
+		case <-w.dlTicker.C:
 			err = w.download()
 			if err != nil {
 				w.outError <- err
 			}
-			w.mut.Lock()
-			if currentFrequency != w.frequency {
-				currentFrequency = w.frequency
-				dlTick.Reset(currentFrequency)
-			}
-			w.mut.Unlock()
 		case <-ctx.Done():
 			return
 		}
