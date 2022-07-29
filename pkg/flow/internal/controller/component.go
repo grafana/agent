@@ -91,6 +91,7 @@ type ComponentNode struct {
 
 	exportsMut sync.RWMutex
 	exports    component.Exports // Evaluated exports for the managed component
+
 }
 
 var (

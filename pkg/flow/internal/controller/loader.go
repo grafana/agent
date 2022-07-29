@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -15,6 +16,7 @@ import (
 	"github.com/grafana/agent/pkg/river/token/builder"
 	"github.com/grafana/agent/pkg/river/vm"
 	"github.com/hashicorp/go-multierror"
+	"github.com/prometheus/client_golang/prometheus"
 
 	_ "github.com/grafana/agent/pkg/flow/internal/testcomponents" // Include test components
 )
@@ -29,18 +31,25 @@ type Loader struct {
 	components []*ComponentNode
 	cache      *valueCache
 	blocks     []*ast.BlockStmt // Most recently loaded blocks, used for writing
+	cm         *controllerMetrics
 }
 
 // NewLoader creates a new Loader. Components built by the Loader will be built
 // with co for their options.
-func NewLoader(globals ComponentGlobals) *Loader {
-	return &Loader{
+func NewLoader(globals ComponentGlobals, reg prometheus.Registerer) *Loader {
+	l := &Loader{
 		log:     globals.Logger,
 		globals: globals,
 
 		graph: &dag.Graph{},
 		cache: newValueCache(),
+		cm:    newControllerMetrics(reg),
 	}
+	cc := newControllerCollector(l)
+	if reg != nil {
+		reg.MustRegister(cc)
+	}
+	return l
 }
 
 // Apply loads a new set of components into the Loader. Apply will drop any
@@ -56,8 +65,11 @@ func NewLoader(globals ComponentGlobals) *Loader {
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
 func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt) diag.Diagnostics {
+	start := time.Now()
 	l.mut.Lock()
 	defer l.mut.Unlock()
+	l.cm.controllerEvaluation.Set(1)
+	defer l.cm.controllerEvaluation.Set(0)
 
 	var (
 		diags    diag.Diagnostics
@@ -115,6 +127,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt) diag.Diag
 	l.graph = &newGraph
 	l.cache.SyncIDs(componentIDs)
 	l.blocks = blocks
+	l.cm.componentEvaluationTime.Observe(time.Since(start).Seconds())
 	return diags
 }
 
@@ -249,7 +262,7 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 	})
 }
 
-// evaluate constructs the final context for c and evalutes it. mut must be
+// evaluate constructs the final context for c and evaluates it. mut must be
 // held when calling evaluate.
 func (l *Loader) evaluate(parent *vm.Scope, c *ComponentNode, cacheArgs, cacheExports bool) error {
 	ectx := l.cache.BuildContext(parent)

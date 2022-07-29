@@ -68,5 +68,6 @@ func testOptions(t *testing.T) Options {
 	return Options{
 		Logger:   l,
 		DataPath: t.TempDir(),
+		Reg:      nil,
 	}
 }
