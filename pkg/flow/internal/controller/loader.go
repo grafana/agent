@@ -37,7 +37,7 @@ type Loader struct {
 // NewLoader creates a new Loader. Components built by the Loader will be built
 // with co for their options.
 func NewLoader(globals ComponentGlobals, reg prometheus.Registerer) *Loader {
-	return &Loader{
+	l := &Loader{
 		log:     globals.Logger,
 		globals: globals,
 
@@ -45,6 +45,11 @@ func NewLoader(globals ComponentGlobals, reg prometheus.Registerer) *Loader {
 		cache: newValueCache(),
 		cm:    NewControllerMetrics(reg),
 	}
+	cc := newControllerCollector(l)
+	if reg != nil {
+		reg.MustRegister(cc)
+	}
+	return l
 }
 
 // Apply loads a new set of components into the Loader. Apply will drop any
