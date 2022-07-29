@@ -27,7 +27,7 @@ func TestWriteComponent(t *testing.T) {
 		Logger:          log.NewNopLogger(),
 		DataPath:        t.TempDir(),
 		OnExportsChange: func(cn *ComponentNode) { /* no-op */ },
-	}, blocks[0], nil)
+	}, blocks[0])
 
 	// Evaluate the component so we're sure it's built
 	err := cn.Evaluate(nil)
@@ -64,7 +64,7 @@ func TestWriteComponent_DebugInfo(t *testing.T) {
 		Logger:          log.NewNopLogger(),
 		DataPath:        t.TempDir(),
 		OnExportsChange: func(cn *ComponentNode) { /* no-op */ },
-	}, blocks[0], nil)
+	}, blocks[0])
 
 	// Evaluate the component so we're sure it's built
 	err := cn.Evaluate(nil)

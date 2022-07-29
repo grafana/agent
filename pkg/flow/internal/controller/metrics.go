@@ -2,17 +2,17 @@ package controller
 
 import "github.com/prometheus/client_golang/prometheus"
 
-// ControllerMetrics contains the metrics for components controller
-type ControllerMetrics struct {
+// controllerMetrics contains the metrics for components controller
+type controllerMetrics struct {
 	r prometheus.Registerer
 
 	controllerEvaluation    prometheus.Gauge
 	componentEvaluationTime prometheus.Histogram
 }
 
-// NewControllerMetrics inits the metrics for the components controller
-func NewControllerMetrics(r prometheus.Registerer) *ControllerMetrics {
-	cm := ControllerMetrics{r: r}
+// newControllerMetrics inits the metrics for the components controller
+func newControllerMetrics(r prometheus.Registerer) *controllerMetrics {
+	cm := controllerMetrics{r: r}
 
 	cm.controllerEvaluation = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: "agent_component_controller_evaluating",
