@@ -180,7 +180,7 @@ func (s *S3) handleContentUpdate(ctx context.Context) {
 			strBuf := string(buf)
 			// Only update if changed
 			if strBuf != s.content {
-				s.content = string(buf)
+				s.content = strBuf
 				s.handleContentPolling(nil)
 			}
 			s.mut.Unlock()
