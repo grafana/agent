@@ -15,16 +15,19 @@ type watcher struct {
 	mut        sync.Mutex
 	bucket     string
 	file       string
-	output     chan []byte
-	outError   chan error
+	output     chan result
 	dlTicker   *time.Ticker
 	downloader *s3.Client
 }
 
+type result struct {
+	result []byte
+	err    error
+}
+
 func newWatcher(
 	bucket, file string,
-	out chan []byte,
-	outError chan error,
+	out chan result,
 	frequency time.Duration,
 	downloader *s3.Client,
 ) *watcher {
@@ -33,7 +36,6 @@ func newWatcher(
 		bucket:     bucket,
 		file:       file,
 		output:     out,
-		outError:   outError,
 		dlTicker:   time.NewTicker(frequency),
 		downloader: downloader,
 	}
@@ -49,18 +51,12 @@ func (w *watcher) updateValues(bucket, file string, frequency time.Duration, dow
 }
 
 func (w *watcher) run(ctx context.Context) {
-	err := w.download(ctx)
-	if err != nil {
-		w.outError <- err
-	}
+	w.download(ctx)
 	defer w.dlTicker.Stop()
 	for {
 		select {
 		case <-w.dlTicker.C:
-			err = w.download(ctx)
-			if err != nil {
-				w.outError <- err
-			}
+			w.download(ctx)
 		case <-ctx.Done():
 			return
 		}
@@ -68,26 +64,45 @@ func (w *watcher) run(ctx context.Context) {
 }
 
 // download actually downloads the file from s3
-func (w *watcher) download(ctx context.Context) error {
+func (w *watcher) download(ctx context.Context) {
 	w.mut.Lock()
 	defer w.mut.Unlock()
-	output, err := w.downloader.GetObject(context.Background(), &s3.GetObjectInput{
+	buf, err := w.getObject(context.Background())
+	r := result{
+		result: buf,
+		err:    err,
+	}
+	select {
+	case <-ctx.Done():
+		return
+	case w.output <- r:
+	}
+	return
+}
+
+func (w *watcher) downloadSynchronously() (string, error) {
+	w.mut.Lock()
+	defer w.mut.Unlock()
+	buf, err := w.getObject(context.Background())
+	if err != nil {
+		return "", err
+	}
+	return string(buf), nil
+}
+
+// getObject ensure that the return []byte is never nil
+func (w *watcher) getObject(ctx context.Context) ([]byte, error) {
+	output, err := w.downloader.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(w.bucket),
 		Key:    aws.String(w.file),
 	})
 	if err != nil {
-		return err
+		return []byte{}, err
 	}
 	buf := make([]byte, output.ContentLength)
 	_, err = output.Body.Read(buf)
 	if err != nil && err != io.EOF {
-		return err
+		return []byte{}, err
 	}
-	select {
-	case <-ctx.Done():
-		return nil
-	case w.output <- buf:
-	}
-
-	return nil
+	return buf, nil
 }

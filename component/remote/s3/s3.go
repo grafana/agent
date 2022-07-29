@@ -37,8 +37,7 @@ type S3 struct {
 	content string
 
 	watcher    *watcher
-	updateChan chan []byte
-	errorChan  chan error
+	updateChan chan result
 }
 
 var (
@@ -62,12 +61,14 @@ func New(o component.Options, args Arguments) (*S3, error) {
 		opts:       o,
 		args:       args,
 		health:     component.Health{},
-		updateChan: make(chan []byte),
-		errorChan:  make(chan error),
+		updateChan: make(chan result),
 	}
 
-	w := newWatcher(bucket, file, s.updateChan, s.errorChan, args.PollFrequency, s3Client)
+	w := newWatcher(bucket, file, s.updateChan, args.PollFrequency, s3Client)
 	s.watcher = w
+
+	content, err := w.downloadSynchronously()
+	s.handleContentPolling(content, err)
 	return s, nil
 }
 
@@ -164,11 +165,9 @@ func generateS3Config(args Arguments) (*aws.Config, error) {
 func (s *S3) handleContentUpdate(ctx context.Context) {
 	for {
 		select {
-		case buf := <-s.updateChan:
-			strBuf := string(buf)
-			s.handleContentPolling(strBuf, nil)
-		case err := <-s.errorChan:
-			s.handleContentPolling("", err)
+		case r := <-s.updateChan:
+			// r.result will never be nil,
+			s.handleContentPolling(string(r.result), r.err)
 		case <-ctx.Done():
 			return
 		}
