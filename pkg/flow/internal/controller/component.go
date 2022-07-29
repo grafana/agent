@@ -274,6 +274,7 @@ func (cn *ComponentNode) Run(ctx context.Context) error {
 	}
 
 	cn.setRunHealth(component.HealthTypeHealthy, "started component")
+	cn.cm.runningHealthyComponents.Inc()
 	err := cn.managed.Run(ctx)
 
 	var exitMsg string
@@ -287,6 +288,7 @@ func (cn *ComponentNode) Run(ctx context.Context) error {
 	}
 
 	cn.setRunHealth(component.HealthTypeExited, exitMsg)
+	cn.cm.runningHealthyComponents.Dec()
 	return err
 }
 
@@ -421,7 +423,6 @@ func (cn *ComponentNode) setRunHealth(t component.HealthType, msg string) {
 	cn.healthMut.Lock()
 	defer cn.healthMut.Unlock()
 
-	cn.cm.runningComponentTotal.WithLabelValues(cn.id.String(), t.String()).Inc()
 	cn.runHealth = component.Health{
 		Health:     t,
 		Message:    msg,

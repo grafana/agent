@@ -6,9 +6,9 @@ import "github.com/prometheus/client_golang/prometheus"
 type ControllerMetrics struct {
 	r prometheus.Registerer
 
-	controllerEvaluation    prometheus.Gauge
-	componentEvaluationTime prometheus.Histogram
-	runningComponentTotal   *prometheus.CounterVec
+	controllerEvaluation     prometheus.Gauge
+	componentEvaluationTime  prometheus.Histogram
+	runningHealthyComponents prometheus.Gauge
 }
 
 // NewControllerMetrics inits the metrics for the components controller
@@ -27,16 +27,16 @@ func NewControllerMetrics(r prometheus.Registerer) *ControllerMetrics {
 		},
 	)
 
-	cm.runningComponentTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Name: "agent_component_running_component_total",
-		Help: "Total of running components",
-	}, []string{"health_type"})
+	cm.runningHealthyComponents = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "agent_component_running_healthy_components",
+		Help: "Number of running healthy components",
+	})
 
 	if r != nil {
 		r.MustRegister(
 			cm.controllerEvaluation,
 			cm.componentEvaluationTime,
-			cm.runningComponentTotal,
+			cm.runningHealthyComponents,
 		)
 	}
 	return &cm
