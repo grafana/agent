@@ -30,15 +30,15 @@ func init() {
 
 // S3 handles reading content from a file located in S3
 type S3 struct {
-	mut        sync.Mutex
-	opts       component.Options
-	args       Arguments
-	health     *component.Health
+	mut     sync.Mutex
+	opts    component.Options
+	args    Arguments
+	health  component.Health
+	content string
+
 	watcher    *watcher
 	updateChan chan []byte
 	errorChan  chan error
-	content    string
-	cancel     context.CancelFunc
 }
 
 var (
@@ -61,15 +61,12 @@ func New(o component.Options, args Arguments) (*S3, error) {
 	s := &S3{
 		opts:       o,
 		args:       args,
-		health:     &component.Health{},
+		health:     component.Health{},
 		updateChan: make(chan []byte),
 		errorChan:  make(chan error),
 	}
 
-	w, err := newWatcher(bucket, file, s.updateChan, s.errorChan, args.PollFrequency, s3Client)
-	if err != nil {
-		return nil, err
-	}
+	w := newWatcher(bucket, file, s.updateChan, s.errorChan, args.PollFrequency, s3Client)
 	s.watcher = w
 	return s, nil
 }
@@ -79,10 +76,6 @@ func (s *S3) Run(ctx context.Context) error {
 	go s.handleContentUpdate(ctx)
 	go s.watcher.run(ctx)
 	<-ctx.Done()
-	if s.cancel != nil {
-		s.cancel()
-	}
-
 	return nil
 }
 
@@ -112,7 +105,7 @@ func (s *S3) Update(args component.Arguments) error {
 func (s *S3) CurrentHealth() component.Health {
 	s.mut.Lock()
 	defer s.mut.Unlock()
-	return *s.health
+	return s.health
 }
 
 func generateS3Config(args Arguments) (*aws.Config, error) {

@@ -27,7 +27,7 @@ func newWatcher(
 	outError chan error,
 	frequency time.Duration,
 	downloader *s3.Client,
-) (*watcher, error) {
+) *watcher {
 
 	return &watcher{
 		bucket:     bucket,
@@ -36,7 +36,7 @@ func newWatcher(
 		outError:   outError,
 		dlTicker:   time.NewTicker(frequency),
 		downloader: downloader,
-	}, nil
+	}
 }
 
 func (w *watcher) updateValues(bucket, file string, frequency time.Duration, downloader *s3.Client) {
@@ -49,7 +49,7 @@ func (w *watcher) updateValues(bucket, file string, frequency time.Duration, dow
 }
 
 func (w *watcher) run(ctx context.Context) {
-	err := w.download()
+	err := w.download(ctx)
 	if err != nil {
 		w.outError <- err
 	}
@@ -57,7 +57,7 @@ func (w *watcher) run(ctx context.Context) {
 	for {
 		select {
 		case <-w.dlTicker.C:
-			err = w.download()
+			err = w.download(ctx)
 			if err != nil {
 				w.outError <- err
 			}
@@ -68,7 +68,7 @@ func (w *watcher) run(ctx context.Context) {
 }
 
 // download actually downloads the file from s3
-func (w *watcher) download() error {
+func (w *watcher) download(ctx context.Context) error {
 	w.mut.Lock()
 	defer w.mut.Unlock()
 	output, err := w.downloader.GetObject(context.Background(), &s3.GetObjectInput{
@@ -83,6 +83,11 @@ func (w *watcher) download() error {
 	if err != nil && err != io.EOF {
 		return err
 	}
-	w.output <- buf
+	select {
+	case <-ctx.Done():
+		return nil
+	case w.output <- buf:
+	}
+
 	return nil
 }
