@@ -92,7 +92,7 @@ type ComponentNode struct {
 	exportsMut sync.RWMutex
 	exports    component.Exports // Evaluated exports for the managed component
 
-	cm *componentMetrics
+	cm *ControllerMetrics
 }
 
 var (
@@ -101,7 +101,7 @@ var (
 
 // NewComponentNode creates a new ComponentNode from an initial ast.BlockStmt.
 // The underlying managed component isn't created until Evaluate is called.
-func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt, cm *componentMetrics) *ComponentNode {
+func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt, cm *ControllerMetrics) *ComponentNode {
 	var (
 		id     = BlockComponentID(b)
 		nodeID = id.String()

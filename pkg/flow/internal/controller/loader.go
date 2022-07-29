@@ -31,7 +31,7 @@ type Loader struct {
 	components []*ComponentNode
 	cache      *valueCache
 	blocks     []*ast.BlockStmt // Most recently loaded blocks, used for writing
-	cm         *componentMetrics
+	cm         *ControllerMetrics
 }
 
 // NewLoader creates a new Loader. Components built by the Loader will be built
@@ -43,7 +43,7 @@ func NewLoader(globals ComponentGlobals, reg prometheus.Registerer) *Loader {
 
 		graph: &dag.Graph{},
 		cache: newValueCache(),
-		cm:    newControllerMetrics(reg),
+		cm:    NewControllerMetrics(reg),
 	}
 }
 
