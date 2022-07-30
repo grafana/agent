@@ -24,6 +24,7 @@ require (
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/cortexproject/cortex v1.11.0
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/davidmparrott/kafka_exporter/v2 v2.0.1
 	github.com/docker/docker v23.0.3+incompatible
 	github.com/docker/go-connections v0.4.0
@@ -62,6 +63,14 @@ require (
 	github.com/hashicorp/go-discover v0.0.0-20220105235006-b95dfa40aaed
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/golang-lru v0.6.0
+	github.com/hashicorp/vault/api v1.7.2
+	github.com/hashicorp/vault/api/auth/approle v0.2.0
+	github.com/hashicorp/vault/api/auth/aws v0.2.0
+	github.com/hashicorp/vault/api/auth/azure v0.2.0
+	github.com/hashicorp/vault/api/auth/gcp v0.2.0
+	github.com/hashicorp/vault/api/auth/kubernetes v0.2.0
+	github.com/hashicorp/vault/api/auth/ldap v0.2.0
+	github.com/hashicorp/vault/api/auth/userpass v0.2.0
 	github.com/heroku/x v0.0.55
 	github.com/iamseth/oracledb_exporter v0.3.2
 	github.com/infinityworks/github-exporter v0.0.0-20210802160115-284088c21e7d
@@ -272,7 +281,6 @@ require (
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.3 // indirect
 	github.com/danieljoos/wincred v1.1.2 // indirect
-	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dennwc/btrfs v0.0.0-20221026161108-3097362dc072 // indirect
 	github.com/dennwc/ioctl v1.0.0 // indirect
 	github.com/dennwc/varint v1.0.0 // indirect
@@ -364,6 +372,10 @@ require (
 	github.com/hashicorp/go-msgpack v0.5.5 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.2 // indirect
 	github.com/hashicorp/go-rootcerts v1.0.2 // indirect
+	github.com/hashicorp/go-secure-stdlib/awsutil v0.1.6 // indirect
+	github.com/hashicorp/go-secure-stdlib/mlock v0.1.1 // indirect
+	github.com/hashicorp/go-secure-stdlib/parseutil v0.1.6 // indirect
+	github.com/hashicorp/go-secure-stdlib/strutil v0.1.2 // indirect
 	github.com/hashicorp/go-sockaddr v1.0.2 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
@@ -371,6 +383,7 @@ require (
 	github.com/hashicorp/memberlist v0.5.0 // indirect
 	github.com/hashicorp/nomad/api v0.0.0-20230124213148-69fd1a0e4bf7 // indirect
 	github.com/hashicorp/serf v0.10.1 // indirect
+	github.com/hashicorp/vault/sdk v0.5.1 // indirect
 	github.com/hashicorp/vic v1.5.1-0.20190403131502-bbfe86ec9443 // indirect
 	github.com/hetznercloud/hcloud-go v1.39.0 // indirect
 	github.com/hodgesds/perf-utils v0.5.1 // indirect
@@ -566,13 +579,22 @@ require (
 )
 
 require (
+	github.com/armon/go-radix v1.0.0 // indirect
+	github.com/cenkalti/backoff/v3 v3.0.0 // indirect
 	github.com/efficientgo/tools/core v0.0.0-20220817170617-6c25e3b627dd // indirect
 	github.com/gomodule/redigo v1.8.9 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
+	github.com/hashicorp/go-plugin v1.4.5 // indirect
+	github.com/hashicorp/go-version v1.6.0 // indirect
+	github.com/hashicorp/yamux v0.0.0-20190923154419-df201c70410d // indirect
+	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/moby/sys/mount v0.3.0 // indirect
+	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
+	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/willf/bitset v1.1.11 // indirect
 	github.com/willf/bloom v2.0.3+incompatible // indirect
+	gopkg.in/square/go-jose.v2 v2.5.1 // indirect
 )
 
 // NOTE: replace directives below must always be *temporary*.
