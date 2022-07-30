@@ -2,17 +2,27 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
 	"os"
 
+	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/parser"
 	"github.com/grafana/agent/pkg/river/printer"
 )
 
 func main() {
-	if err := run(); err != nil {
+	err := run()
+
+	var diags diag.Diagnostics
+	if errors.As(err, &diags) {
+		for _, diag := range diags {
+			fmt.Fprintln(os.Stderr, diag)
+		}
+		os.Exit(1)
+	} else if err != nil {
 		fmt.Fprintf(os.Stderr, "error: %s\n", err)
 		os.Exit(1)
 	}
