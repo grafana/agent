@@ -1,4 +1,4 @@
-// package config contains types from github.com/prometheus/common/config, but changes them to be compatible with river
+// Package config contains types from github.com/prometheus/common/config, but changes them to be compatible with river
 package config
 
 import (
@@ -7,6 +7,7 @@ import (
 	"github.com/prometheus/common/config"
 )
 
+// HTTPClientConfig mirrors config.HTTPClientConfig
 type HTTPClientConfig struct {
 	BasicAuth       *BasicAuth     `river:"basic_auth,block,optional"`
 	Authorization   *Authorization `river:"authorization,block,optional"`
@@ -19,6 +20,7 @@ type HTTPClientConfig struct {
 	EnableHTTP2     bool           `river:"enable_http2,attr,optional"`
 }
 
+// Convert converts our type to the native prometheus type
 func (h *HTTPClientConfig) Convert() *config.HTTPClientConfig {
 	return &config.HTTPClientConfig{
 		BasicAuth:       h.BasicAuth.Convert(),
@@ -33,6 +35,7 @@ func (h *HTTPClientConfig) Convert() *config.HTTPClientConfig {
 	}
 }
 
+// DefaultHTTPCLientConfig for initializing objects
 var DefaultHTTPClientConfig = HTTPClientConfig{
 	FollowRedirects: true,
 	EnableHTTP2:     true,
@@ -45,6 +48,7 @@ type BasicAuth struct {
 	PasswordFile string `river:"password_file,attr,optional"`
 }
 
+// Convert converts our type to the native prometheus type
 func (b *BasicAuth) Convert() *config.BasicAuth {
 	if b == nil {
 		return nil
@@ -56,8 +60,10 @@ func (b *BasicAuth) Convert() *config.BasicAuth {
 	}
 }
 
+// URL mirrors config.URL
 type URL string
 
+// Convert converts our type to the native prometheus type
 func (u URL) Convert() config.URL {
 	if u == "" {
 		return config.URL{}
@@ -67,6 +73,7 @@ func (u URL) Convert() config.URL {
 	return config.URL{URL: urlp}
 }
 
+// Secret mirrors config.Secret
 type Secret string
 
 // Authorization sets up HTTP authorization credentials.
@@ -76,6 +83,7 @@ type Authorization struct {
 	CredentialsFile string `river:"credentials_file,attr,optional"`
 }
 
+// Convert converts our type to the native prometheus type
 func (a *Authorization) Convert() *config.Authorization {
 	if a == nil {
 		return nil
@@ -87,6 +95,7 @@ func (a *Authorization) Convert() *config.Authorization {
 	}
 }
 
+// TLSVersion mirrors config.TLSVersion
 type TLSVersion uint16
 
 // TLSConfig sets up options for TLS connections.
@@ -99,6 +108,7 @@ type TLSConfig struct {
 	MinVersion         TLSVersion `river:"min_version,attr,optional"`
 }
 
+// Convert converts our type to the native prometheus type
 func (t *TLSConfig) Convert() *config.TLSConfig {
 	if t == nil {
 		return nil
@@ -125,6 +135,7 @@ type OAuth2Config struct {
 	TLSConfig        *TLSConfig        `river:"tls_config,attr,optional"`
 }
 
+// Convert converts our type to the native prometheus type
 func (o *OAuth2Config) Convert() *config.OAuth2 {
 	if o == nil {
 		return nil
