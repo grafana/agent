@@ -7,11 +7,7 @@ import (
 	"time"
 
 	"github.com/alecthomas/units"
-<<<<<<< HEAD
 	component_config "github.com/grafana/agent/component/common/config"
-=======
-	"github.com/grafana/agent/pkg/flow/rivertypes"
->>>>>>> main
 	common_config "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
@@ -58,79 +54,19 @@ type Config struct {
 	// scrape to fail.
 	LabelValueLengthLimit uint `river:"label_value_length_limit,attr,optional"`
 
-<<<<<<< HEAD
 	component_config.HTTPClientConfig
-=======
-	// HTTP Client Config
-	BasicAuth     *BasicAuth     `river:"basic_auth,block,optional"`
-	Authorization *Authorization `river:"authorization,block,optional"`
-	OAuth2        *OAuth2Config  `river:"oauth2,block,optional"`
-	TLSConfig     *TLSConfig     `river:"tls_config,block,optional"`
-
-	BearerToken     string `river:"bearer_token,attr,optional"`
-	BearerTokenFile string `river:"bearer_token_file,attr,optional"`
-	ProxyURL        string `river:"proxy_url,attr,optional"`
-
-	FollowRedirects bool `river:"follow_redirects,attr,optional"`
-	EnableHTTP2     bool `river:"enable_http_2,attr,optional"`
-}
-
-// BasicAuth configures Basic HTTP authentication credentials.
-type BasicAuth struct {
-	Username     string            `river:"username,attr,optional"`
-	Password     rivertypes.Secret `river:"password,attr,optional"`
-	PasswordFile string            `river:"password_file,attr,optional"`
-}
-
-// Authorization sets up HTTP authorization credentials.
-type Authorization struct {
-	Type            string            `river:"authorization_type,attr,optional"`
-	Credential      rivertypes.Secret `river:"authorization_credential,attr,optional"`
-	CredentialsFile string            `river:"authorization_credentials_file,attr,optional"`
-}
-
-// TLSConfig sets up options for TLS connections.
-type TLSConfig struct {
-	CAFile             string `river:"ca_file,attr,optional"`
-	CertFile           string `river:"cert_file,attr,optional"`
-	KeyFile            string `river:"key_file,attr,optional"`
-	ServerName         string `river:"server_name,attr,optional"`
-	InsecureSkipVerify bool   `river:"insecure_skip_verify,attr,optional"`
-}
-
-// OAuth2Config sets up the OAuth2 client.
-type OAuth2Config struct {
-	ClientID         string            `river:"client_id,attr,optional"`
-	ClientSecret     rivertypes.Secret `river:"client_secret,attr,optional"`
-	ClientSecretFile string            `river:"client_secret_file,attr,optional"`
-	Scopes           []string          `river:"scopes,attr,optional"`
-	TokenURL         string            `river:"token_url,attr,optional"`
-	EndpointParams   map[string]string `river:"endpoint_params,attr,optional"`
-	ProxyURL         string            `river:"proxy_url,attr,optional"`
-	TLSConfig        *TLSConfig        `river:"tls_config,attr,optional"`
->>>>>>> main
 }
 
 // DefaultConfig is the set of default options applied before decoding a given
 // scrape_config block.
 var DefaultConfig = Config{
-<<<<<<< HEAD
 	MetricsPath:      "/metrics",
 	Scheme:           "http",
 	HonorLabels:      false,
 	HonorTimestamps:  true,
 	HTTPClientConfig: component_config.DefaultHTTPClientConfig,
-	ScrapeInterval:   model.Duration(1 * time.Minute),  // From config.DefaultGlobalConfig
-	ScrapeTimeout:    model.Duration(10 * time.Second), // From config.DefaultGlobalConfig
-=======
-	MetricsPath:     "/metrics",
-	Scheme:          "http",
-	HonorLabels:     false,
-	HonorTimestamps: true,
-	FollowRedirects: true,             // From common_config.DefaultHTTPClientConfig
-	ScrapeInterval:  1 * time.Minute,  // From config.DefaultGlobalConfig
-	ScrapeTimeout:   10 * time.Second, // From config.DefaultGlobalConfig
->>>>>>> main
+	ScrapeInterval:   1 * time.Minute,  // From config.DefaultGlobalConfig
+	ScrapeTimeout:    10 * time.Second, // From config.DefaultGlobalConfig
 }
 
 // UnmarshalRiver implements river.Unmarshaler.
