@@ -78,7 +78,6 @@ func (w *watcher) download(ctx context.Context) {
 		return
 	case w.output <- r:
 	}
-	return
 }
 
 func (w *watcher) downloadSynchronously() (string, error) {
