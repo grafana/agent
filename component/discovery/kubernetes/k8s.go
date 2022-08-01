@@ -96,7 +96,6 @@ type Exports struct {
 // Component implements the discovery.k8s component.
 type Component struct {
 	opts   component.Options
-	args   SDConfig
 	cancel context.CancelFunc
 }
 
