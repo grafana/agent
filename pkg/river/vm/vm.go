@@ -406,9 +406,11 @@ func (vm *Evaluator) evaluateExpr(scope *Scope, assoc map[value.Value]ast.Node, 
 		case value.TypeObject:
 			res, ok := val.Key(expr.Name.Name)
 			if !ok {
-				return value.Null, value.MissingKeyError{
-					Value:   val,
-					Missing: expr.Name.Name,
+				return value.Null, diag.Diagnostic{
+					Severity: diag.SeverityLevelError,
+					StartPos: ast.StartPos(expr.Name).Position(),
+					EndPos:   ast.EndPos(expr.Name).Position(),
+					Message:  fmt.Sprintf("field %q does not exist", expr.Name.Name),
 				}
 			}
 			return res, nil
@@ -453,9 +455,11 @@ func (vm *Evaluator) evaluateExpr(scope *Scope, assoc map[value.Value]ast.Node, 
 
 			field, ok := val.Key(idx.Text())
 			if !ok {
-				return value.Null, value.MissingKeyError{
-					Value:   val,
-					Missing: idx.Text(),
+				return value.Null, diag.Diagnostic{
+					Severity: diag.SeverityLevelError,
+					StartPos: ast.StartPos(expr.Index).Position(),
+					EndPos:   ast.EndPos(expr.Index).Position(),
+					Message:  fmt.Sprintf("field %q does not exist", idx.Text()),
 				}
 			}
 			return field, nil

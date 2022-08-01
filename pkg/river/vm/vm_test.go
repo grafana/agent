@@ -221,7 +221,7 @@ func TestVM_Evaluate_AccessExpr(t *testing.T) {
 
 		var v interface{}
 		err = eval.Evaluate(nil, &v)
-		require.EqualError(t, err, `1:1: {a = 15} does not have field named "b"`)
+		require.EqualError(t, err, `1:12: field "b" does not exist`)
 	})
 }
 
