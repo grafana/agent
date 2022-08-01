@@ -9,6 +9,9 @@ import (
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 )
 
+// MaxUpdateFrequency is the minimum time to wait between updating targets.
+// Currently not settable, since prometheus uses a static threshold, but
+// we could reconsider later.
 const MaxUpdateFrequency = 5 * time.Second
 
 // RunDiscovery is a utility for consuming and forwarding target groups from a discoverer.

@@ -32,51 +32,55 @@ type SDConfig struct {
 	Selectors          []SelectorConfig        `river:"selectors,attr,optional"`
 }
 
-// Defaults for SDConfig. (copied from prometheus)
+// DefaultConfig holds defaults for SDConfig. (copied from prometheus)
 var DefaultConfig = SDConfig{
 	HTTPClientConfig: config.DefaultHTTPClientConfig,
 }
 
+// UnmarshalRiver simply applies defaults then unmarshals regularly
 func (sd *SDConfig) UnmarshalRiver(f func(interface{}) error) error {
 	*sd = DefaultConfig
 	type arguments SDConfig
 	return f((*arguments)(sd))
 }
 
+// Convert to prometheus config type
 func (sd *SDConfig) Convert() *promk8s.SDConfig {
 	selectors := make([]promk8s.SelectorConfig, len(sd.Selectors))
 	for i, s := range sd.Selectors {
-		selectors[i] = *s.Convert()
+		selectors[i] = *s.convert()
 	}
 	return &promk8s.SDConfig{
 		APIServer:          sd.APIServer.Convert(),
 		Role:               promk8s.Role(sd.Role),
 		KubeConfig:         sd.KubeConfig,
 		HTTPClientConfig:   *sd.HTTPClientConfig.Convert(),
-		NamespaceDiscovery: *sd.NamespaceDiscovery.Convert(),
+		NamespaceDiscovery: *sd.NamespaceDiscovery.convert(),
 		Selectors:          selectors,
 	}
 }
 
+// NamespaceDiscovery mirroring prometheus type
 type NamespaceDiscovery struct {
 	IncludeOwnNamespace bool     `river:"own_namespace,attr,optional"`
 	Names               []string `river:"names,attr,optional"`
 }
 
-func (nd *NamespaceDiscovery) Convert() *promk8s.NamespaceDiscovery {
+func (nd *NamespaceDiscovery) convert() *promk8s.NamespaceDiscovery {
 	return &promk8s.NamespaceDiscovery{
 		IncludeOwnNamespace: nd.IncludeOwnNamespace,
 		Names:               nd.Names,
 	}
 }
 
+// SelectorConfig mirroring prometheus type
 type SelectorConfig struct {
 	Role  string `river:"role,attr,optional"`
 	Label string `river:"label,attr,optional"`
 	Field string `river:"field,attr,optional"`
 }
 
-func (sc *SelectorConfig) Convert() *promk8s.SelectorConfig {
+func (sc *SelectorConfig) convert() *promk8s.SelectorConfig {
 	return &promk8s.SelectorConfig{
 		Role:  promk8s.Role(sc.Role),
 		Label: sc.Label,
@@ -101,8 +105,7 @@ func New(o component.Options, args SDConfig) (*Component, error) {
 	c := &Component{
 		opts: o,
 	}
-	c.Update(args)
-	return c, nil
+	return c, c.Update(args)
 }
 
 // Run implements component.Component.

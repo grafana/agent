@@ -35,7 +35,7 @@ func (h *HTTPClientConfig) Convert() *config.HTTPClientConfig {
 	}
 }
 
-// DefaultHTTPCLientConfig for initializing objects
+// DefaultHTTPClientConfig for initializing objects
 var DefaultHTTPClientConfig = HTTPClientConfig{
 	FollowRedirects: true,
 	EnableHTTP2:     true,
