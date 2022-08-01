@@ -1,13 +1,18 @@
+---
+aliases:
+- /docs/agent/latest/flow/reference/components/local.file
+title: local.file
+---
+
 # local.file
 
-The `local.file` component exposes the contents of a file on disk to other
-components. The file will be watched for changes so that its latest content is
-always exposed.
+`local.file` exposes the contents of a file on disk to other components. The
+file will be watched for changes so that its latest content is always exposed.
 
 The most common use of `local.file` is to load secrets (e.g., API keys) from
 files.
 
-Multiple `local.file` components can be specified by giving them different name
+Multiple `local.file` components can be specified by giving them different
 labels.
 
 ## Example
@@ -20,8 +25,7 @@ local.file "my-file" {
 
 ## Arguments
 
-The following arguments are supported and can be referenced by other
-components:
+The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
@@ -71,8 +75,8 @@ argument was true.
 
 ## Component health
 
-Any `local.file` component will be reported as healthy whenever if the watched
-file was read successfully.
+`local.file` will be reported as healthy whenever if the watched file was read
+successfully.
 
 Failing to read the file whenever an update is detected (or after the poll
 period elapses) will cause the component to be reported as unhealthy. When

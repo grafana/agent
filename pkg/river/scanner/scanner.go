@@ -242,10 +242,16 @@ scanAgain:
 			s.insertTerm = false // Consumed newline
 			return pos, token.TERMINATOR, "\n"
 
+		case '\'':
+			s.onError(pos.Offset(), "illegal single-quoted string; use double quotes")
+			insertTerm = true
+			tok = token.ILLEGAL
+			lit = s.scanString('\'')
+
 		case '"':
 			insertTerm = true
 			tok = token.STRING
-			lit = s.scanString()
+			lit = s.scanString('"')
 
 		case '|':
 			if s.ch != '|' {
@@ -463,7 +469,7 @@ func (s *Scanner) digits() (count int) {
 	return
 }
 
-func (s *Scanner) scanString() string {
+func (s *Scanner) scanString(until rune) string {
 	// subtract 1 to account for the opening '"' which was already consumed by
 	// the scanner forcing progress.
 	off := s.offset - 1
@@ -475,7 +481,7 @@ func (s *Scanner) scanString() string {
 			break
 		}
 		s.next()
-		if ch == '"' {
+		if ch == until {
 			break
 		}
 		if ch == '\\' {
