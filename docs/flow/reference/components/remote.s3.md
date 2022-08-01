@@ -33,7 +33,10 @@ Name | Type | Description                                                       
 `poll_frequency` | `duration` | How often to poll the file for changes, must be greater than 30 seconds | `"10m"` | no
 `is_secret` | `bool` | Marks the file as containing a [secret][] | `false` | no
 
-### client_options
+### `client_options` block
+
+The `client_options` subblock can be provided to customize the connection to
+S3.
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
