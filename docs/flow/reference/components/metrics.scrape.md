@@ -47,6 +47,12 @@ Name | Type | Description | Default | Required
 `forward_to` | `list(MetricsReceiver)` | List of receivers to send scraped metrics to | | **yes**
 `extra_metrics` | `bool` | Whether extra metrics should be generated for scrape targets | `false` | no
 
+The following subblocks are supported:
+
+Name | Description | Required
+---- | ----------- | --------
+[`scrape_config`](#scrape_config-block) | Configures how metrics will be collected from the targets | **yes**
+
 ### `scrape_config` block
 
 The user must provide one `scrape_config` block; it will configure and start a
@@ -85,7 +91,16 @@ Name                       | Type       | Description | Default | Required
 `follow_redirects`         | `bool`     | Whether the scraper should follow redirects. | `true` | no
 `enable_http_2`            | `bool`     | Whether the scraper should use HTTP2. | | no
 
-#### basic_auth block
+The following subblocks are supported:
+
+Name | Description | Required
+---- | ----------- | --------
+[`basic_auth`](#basic_auth-block) | Configures basic_auth for authenticating against targets | no
+[`authorization`](#authorization-block) | Configures generic authentication against targets | no
+[`oauth2`](#oauth2-block) | Configures OAuth2 for authenticating against targets | no
+[`tls_config`](#tls_config-block) | Configures TLS settings for connecting to targets | no
+
+#### `basic_auth` block
 
 Name          | Type     | Description                                     | Default | Required
 --------------| -------- | ----------------------------------------------- | ------- | -------
@@ -93,7 +108,7 @@ username      | string   | Setup of Basic HTTP authentication credentials. |    
 password      | secret   | Setup of Basic HTTP authentication credentials. |         | no
 password_file | string   | Setup of Basic HTTP authentication credentials. |         | no
 
-#### authorization block
+#### `authorization` block
 
 Name                | Type     | Description                              | Default | Required
 ------------------- | -------- | -----------------------------------------| ------- | --------
@@ -101,7 +116,7 @@ type                | string   | Setup of HTTP Authorization credentials. |     
 credential          | secret   | Setup of HTTP Authorization credentials. |         | no
 credentials_file    | string   | Setup of HTTP Authorization credentials. |         | no
 
-#### oauth2 block
+#### `oauth2` block
 
 Name               | Type             | Description                              | Default | Required
 ------------------ | ---------------- | -----------------------------------------| ------- | --------
@@ -114,7 +129,7 @@ endpoint_params    | map(string)      | Setup of the OAuth2 client.             
 proxy_url          | string           | Setup of the OAuth2 client.              |         | no
 tls_config         | tls_config block | Setup of TLS options.                    |         | no
 
-#### tls_config block
+#### `tls_config` block
 
 Name                            | Type     | Description                                | Default | Required
 ------------------------------- | -------- | ------------------------------------------ | ------- | --------
