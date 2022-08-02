@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/grafana/agent/pkg/flow/rivertypes"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	aws_config "github.com/aws/aws-sdk-go-v2/config"
@@ -36,8 +38,10 @@ type S3 struct {
 	health  component.Health
 	content string
 
-	watcher    *watcher
-	updateChan chan result
+	watcher      *watcher
+	updateChan   chan result
+	s3Errors     prometheus.Counter
+	lastAccessed prometheus.Gauge
 }
 
 var (
@@ -62,8 +66,18 @@ func New(o component.Options, args Arguments) (*S3, error) {
 		args:       args,
 		health:     component.Health{},
 		updateChan: make(chan result),
+		s3Errors: promauto.NewCounter(prometheus.CounterOpts{
+			Name: "remote_s3_errors_total",
+			Help: "The number of errors while accessing s3",
+		}),
+		lastAccessed: promauto.NewGauge(prometheus.GaugeOpts{
+			Name: "remote_s3_timestamp_last_accessed_unix_seconds",
+			Help: "The last successful access in unix seconds",
+		}),
 	}
 
+	o.Registerer.Register(s.s3Errors)
+	o.Registerer.Register(s.lastAccessed)
 	w := newWatcher(bucket, file, s.updateChan, args.PollFrequency, s3Client)
 	s.watcher = w
 
@@ -77,6 +91,8 @@ func (s *S3) Run(ctx context.Context) error {
 	go s.handleContentUpdate(ctx)
 	go s.watcher.run(ctx)
 	<-ctx.Done()
+	s.opts.Registerer.Unregister(s.s3Errors)
+	s.opts.Registerer.Unregister(s.lastAccessed)
 	return nil
 }
 
@@ -185,10 +201,12 @@ func (s *S3) handleContentPolling(newContent string, err error) {
 				Value:    newContent,
 			},
 		})
+		s.lastAccessed.SetToCurrentTime()
 		s.content = newContent
 		s.health.Health = component.HealthTypeHealthy
 		s.health.Message = "s3 file updated"
 	} else {
+		s.s3Errors.Inc()
 		s.health.Health = component.HealthTypeUnhealthy
 		s.health.Message = err.Error()
 	}

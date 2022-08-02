@@ -8,6 +8,8 @@ import (
 	fa "github.com/grafana/agent/component/common/appendable"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/metrics"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/prometheus/prometheus/storage"
 )
@@ -17,7 +19,6 @@ func init() {
 		Name:    "metrics.mutate",
 		Args:    Arguments{},
 		Exports: Exports{},
-
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
 		},
@@ -44,8 +45,9 @@ type Component struct {
 	opts component.Options
 	mrc  []*relabel.Config
 
-	appendable *fa.FlowAppendable
-	receiver   *metrics.Receiver
+	appendable       *fa.FlowAppendable
+	receiver         *metrics.Receiver
+	metricsProcessed prometheus.Counter
 }
 
 var (
@@ -57,7 +59,12 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{opts: o}
 	c.appendable = fa.NewFlowAppendable(args.ForwardTo...)
 	c.receiver = &metrics.Receiver{Receive: c.Receive}
+	c.metricsProcessed = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "metrics_mutate_metrics_processed",
+		Help: "Total number of metrics processed",
+	})
 
+	o.Registerer.Register(c.metricsProcessed)
 	// Call to Update() to set the relabelling rules once at the start.
 	if err := c.Update(args); err != nil {
 		return nil, err
@@ -69,6 +76,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
 	<-ctx.Done()
+	c.opts.Registerer.Unregister(c.metricsProcessed)
 	return nil
 }
 

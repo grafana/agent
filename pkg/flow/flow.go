@@ -117,7 +117,8 @@ func newFlow(o Options) (*Flow, context.Context) {
 				// Changed components should be queued for reevaluation.
 				queue.Enqueue(cn)
 			},
-		}, o.Reg)
+			Registerer: o.Reg,
+		})
 	)
 
 	return &Flow{
