@@ -9,15 +9,19 @@ import (
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 )
 
-// MaxUpdateFrequency is the minimum time to wait between updating targets.
+// maxUpdateFrequency is the minimum time to wait between updating targets.
 // Currently not settable, since prometheus uses a static threshold, but
 // we could reconsider later.
-const MaxUpdateFrequency = 5 * time.Second
+const maxUpdateFrequency = 5 * time.Second
+
+// Discoverer is an alias for Prometheus' Discoverer interface, so users of this package don't need
+// to import github.com/prometheus/prometheus/discover as well.
+type Discoverer discovery.Discoverer
 
 // RunDiscovery is a utility for consuming and forwarding target groups from a discoverer.
 // It will handle collating targets (and clearing), as well as time based throttling of updates.
 // f should be a function that updates the component's exports, most likely calling `opts.OnStateChange()`.
-func RunDiscovery(ctx context.Context, d discovery.Discoverer, f func([]scrape.Target)) {
+func RunDiscovery(ctx context.Context, d Discoverer, f func([]scrape.Target)) {
 	// all targets we have seen so far
 	cache := map[string]*targetgroup.Group{}
 
@@ -30,6 +34,8 @@ func RunDiscovery(ctx context.Context, d discovery.Discoverer, f func([]scrape.T
 		for _, group := range cache {
 			for _, target := range group.Targets {
 				labels := map[string]string{}
+				// first add the group labels, and then the
+				// target labels, so that target labels take precedence.
 				for k, v := range group.Labels {
 					labels[string(k)] = string(v)
 				}
@@ -42,7 +48,7 @@ func RunDiscovery(ctx context.Context, d discovery.Discoverer, f func([]scrape.T
 		f(allTargets)
 	}
 
-	ticker := time.NewTicker(MaxUpdateFrequency)
+	ticker := time.NewTicker(maxUpdateFrequency)
 	// true if we have received new targets and need to send.
 	haveUpdates := false
 	for {

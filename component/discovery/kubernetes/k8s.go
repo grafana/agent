@@ -27,9 +27,9 @@ type SDConfig struct {
 	APIServer          config.URL              `river:"api_server,attr,optional"`
 	Role               string                  `river:"role,attr"`
 	KubeConfig         string                  `river:"kubeconfig_file,attr,optional"`
-	HTTPClientConfig   config.HTTPClientConfig `river:"http_client_config,attr,optional"`
-	NamespaceDiscovery NamespaceDiscovery      `river:"namespaces,attr,optional"`
-	Selectors          []SelectorConfig        `river:"selectors,attr,optional"`
+	HTTPClientConfig   config.HTTPClientConfig `river:"http_client_config,block,optional"`
+	NamespaceDiscovery NamespaceDiscovery      `river:"namespaces,block,optional"`
+	Selectors          []SelectorConfig        `river:"selectors,block,optional"`
 }
 
 // DefaultConfig holds defaults for SDConfig. (copied from prometheus)
@@ -75,7 +75,7 @@ func (nd *NamespaceDiscovery) convert() *promk8s.NamespaceDiscovery {
 
 // SelectorConfig mirroring prometheus type
 type SelectorConfig struct {
-	Role  string `river:"role,attr,optional"`
+	Role  string `river:"role,attr"`
 	Label string `river:"label,attr,optional"`
 	Field string `river:"field,attr,optional"`
 }
@@ -97,23 +97,44 @@ type Exports struct {
 type Component struct {
 	opts   component.Options
 	cancel context.CancelFunc
+
+	newDiscoverer chan discovery.Discoverer
 }
 
 // New creates a new discovery.k8s component.
 func New(o component.Options, args SDConfig) (*Component, error) {
 	c := &Component{
 		opts: o,
+		// buffered to avoid deadlock from the first immediate update
+		newDiscoverer: make(chan discovery.Discoverer, 1),
 	}
 	return c, c.Update(args)
 }
 
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
-	<-ctx.Done()
-	if c.cancel != nil {
-		c.cancel()
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case disc := <-c.newDiscoverer:
+			// cancel any previously running discovery
+			if c.cancel != nil {
+				c.cancel()
+			}
+			// function to send updates on change
+			f := func(t []scrape.Target) {
+				c.opts.OnStateChange(Exports{Targets: t})
+			}
+			// create new context so we can cancel it if we get any future updates
+			// since it is derived from the main run context, it only needs to be
+			// canceled directly if we receive new updates
+			newCtx, cancel := context.WithCancel(ctx)
+			c.cancel = cancel
+			// finally run discovery
+			go discovery.RunDiscovery(newCtx, disc, f)
+		}
 	}
-	return nil
 }
 
 // Update implements component.Compnoent.
@@ -123,18 +144,6 @@ func (c *Component) Update(args component.Arguments) error {
 	if err != nil {
 		return err
 	}
-	// cancel any previously running discovery
-	if c.cancel != nil {
-		c.cancel()
-	}
-	// function to send updates on change
-	f := func(t []scrape.Target) {
-		c.opts.OnStateChange(Exports{Targets: t})
-	}
-	// create new context so we can cancel it if we get any future updates
-	newCtx, cancel := context.WithCancel(context.Background())
-	c.cancel = cancel
-	// finally run discovery
-	go discovery.RunDiscovery(newCtx, disc, f)
+	c.newDiscoverer <- disc
 	return nil
 }
