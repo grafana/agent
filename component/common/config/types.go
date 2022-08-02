@@ -68,6 +68,7 @@ type URL struct {
 	*url.URL
 }
 
+// MarshalText implements encoding.TextMarshaler
 func (u *URL) MarshalText() (text []byte, err error) {
 	u2 := &config.URL{
 		URL: u.URL,
@@ -78,6 +79,7 @@ func (u *URL) MarshalText() (text []byte, err error) {
 	return nil, nil
 }
 
+// UnmarshalText implements encoding.TextUnmarshaler
 func (u *URL) UnmarshalText(text []byte) error {
 	s := string(text)
 	urlp, err := url.Parse(s)
@@ -115,6 +117,7 @@ func (a *Authorization) Convert() *config.Authorization {
 // TLSVersion mirrors config.TLSVersion
 type TLSVersion uint16
 
+// MarshalText implements encoding.TextMarshaler
 func (tv *TLSVersion) MarshalText() (text []byte, err error) {
 	for s, v := range config.TLSVersions {
 		if config.TLSVersion(*tv) == v {
@@ -124,6 +127,7 @@ func (tv *TLSVersion) MarshalText() (text []byte, err error) {
 	return nil, fmt.Errorf("unknown TLS version: %d", tv)
 }
 
+// UnmarshalText implements encoding.TextUnmarshaler
 func (tv *TLSVersion) UnmarshalText(text []byte) error {
 
 	if v, ok := config.TLSVersions[string(text)]; ok {
