@@ -129,7 +129,6 @@ func (tv TLSVersion) MarshalText() (text []byte, err error) {
 
 // UnmarshalText implements encoding.TextUnmarshaler
 func (tv *TLSVersion) UnmarshalText(text []byte) error {
-
 	if v, ok := config.TLSVersions[string(text)]; ok {
 		*tv = TLSVersion(v)
 		return nil
