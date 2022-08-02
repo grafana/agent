@@ -2,6 +2,7 @@ package kubernetes
 
 import (
 	"context"
+	"sync"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/config"
@@ -95,10 +96,11 @@ type Exports struct {
 
 // Component implements the discovery.k8s component.
 type Component struct {
-	opts   component.Options
-	cancel context.CancelFunc
+	opts component.Options
 
-	newDiscoverer chan discovery.Discoverer
+	discMut       sync.Mutex
+	latestDisc    discovery.Discoverer
+	newDiscoverer chan struct{}
 }
 
 // New creates a new discovery.k8s component.
@@ -106,21 +108,22 @@ func New(o component.Options, args SDConfig) (*Component, error) {
 	c := &Component{
 		opts: o,
 		// buffered to avoid deadlock from the first immediate update
-		newDiscoverer: make(chan discovery.Discoverer, 1),
+		newDiscoverer: make(chan struct{}, 1),
 	}
 	return c, c.Update(args)
 }
 
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
+	var cancel context.CancelFunc
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
-		case disc := <-c.newDiscoverer:
+		case <-c.newDiscoverer:
 			// cancel any previously running discovery
-			if c.cancel != nil {
-				c.cancel()
+			if cancel != nil {
+				cancel()
 			}
 			// function to send updates on change
 			f := func(t []scrape.Target) {
@@ -129,9 +132,13 @@ func (c *Component) Run(ctx context.Context) error {
 			// create new context so we can cancel it if we get any future updates
 			// since it is derived from the main run context, it only needs to be
 			// canceled directly if we receive new updates
-			newCtx, cancel := context.WithCancel(ctx)
-			c.cancel = cancel
+			newCtx, cancelFunc := context.WithCancel(ctx)
+			cancel = cancelFunc
+
 			// finally run discovery
+			c.discMut.Lock()
+			disc := c.latestDisc
+			c.discMut.Unlock()
 			go discovery.RunDiscovery(newCtx, disc, f)
 		}
 	}
@@ -140,10 +147,19 @@ func (c *Component) Run(ctx context.Context) error {
 // Update implements component.Compnoent.
 func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(SDConfig)
+
 	disc, err := promk8s.New(c.opts.Logger, newArgs.Convert())
 	if err != nil {
 		return err
 	}
-	c.newDiscoverer <- disc
+	c.discMut.Lock()
+	c.latestDisc = disc
+	c.discMut.Unlock()
+
+	select {
+	case c.newDiscoverer <- struct{}{}:
+	default:
+	}
+
 	return nil
 }
