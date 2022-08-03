@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"sync"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
@@ -35,7 +34,6 @@ type Component struct {
 	log  log.Logger
 	opts component.Options
 
-	mut sync.RWMutex
 	cfg *node_integration.Config
 
 	integration *node_integration.Integration
