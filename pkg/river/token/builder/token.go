@@ -17,13 +17,15 @@ type Token struct {
 	Lit string
 }
 
-// printTokens prints out the tokens as River text and formats them, writing
+// printFileTokens prints out the tokens as River text and formats them, writing
 // the final result to w.
-func printTokens(w io.Writer, toks []Token) (int, error) {
+func printFileTokens(w io.Writer, toks []Token) (int, error) {
 	var raw bytes.Buffer
 	for _, tok := range toks {
 		switch {
 		case tok.Tok == token.LITERAL:
+			raw.WriteString(tok.Lit)
+		case tok.Tok == token.COMMENT:
 			raw.WriteString(tok.Lit)
 		case tok.Tok.IsLiteral() || tok.Tok.IsKeyword():
 			raw.WriteString(tok.Lit)
@@ -39,6 +41,31 @@ func printTokens(w io.Writer, toks []Token) (int, error) {
 
 	wc := &writerCount{w: w}
 	err = printer.Fprint(wc, f)
+	return wc.n, err
+}
+
+// printExprTokens prints out the tokens as River text and formats them,
+// writing the final result to w.
+func printExprTokens(w io.Writer, toks []Token) (int, error) {
+	var raw bytes.Buffer
+	for _, tok := range toks {
+		switch {
+		case tok.Tok == token.LITERAL:
+			raw.WriteString(tok.Lit)
+		case tok.Tok.IsLiteral() || tok.Tok.IsKeyword():
+			raw.WriteString(tok.Lit)
+		default:
+			raw.WriteString(tok.Tok.String())
+		}
+	}
+
+	expr, err := parser.ParseExpression(raw.String())
+	if err != nil {
+		return 0, err
+	}
+
+	wc := &writerCount{w: w}
+	err = printer.Fprint(wc, expr)
 	return wc.n, err
 }
 

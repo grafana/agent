@@ -32,7 +32,7 @@ func init() {
 type Target map[string]string
 
 type Exports struct {
-	Output []Target `hcl:"output,attr"`
+	Output []Target `river:"output,attr"`
 }
 
 type Component struct {

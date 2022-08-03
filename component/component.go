@@ -9,39 +9,35 @@
 // configuration changes. A component may also update its Exports throughout
 // its lifetime, such as a component which outputs the current day of the week.
 //
-// Components are built by users with HCL, where they can use HCL expressions
-// to refer to any input or exported field from other components. This allows
-// users to connect components together to declaratively form a pipeline.
+// Components are built by users with River, where they can use River
+// expressions to refer to any input or exported field from other components.
+// This allows users to connect components together to declaratively form a
+// pipeline.
 //
 // Defining Arguments and Exports structs
 //
 // Arguments and Exports implemented by new components must be able to be
-// encoded to and from HCL. "hcl" struct field tags are used for encoding;
-// refer to the package documentation of github.com/rfratto/gohcl for a
-// description of how to write these tags.
+// encoded to and from River. "river" struct field tags are used for encoding;
+// refer to the package documentation at pkg/river for a description of how to
+// write these tags.
 //
-// The set of HCL element names of a given component's Arguments and Exports
-// types must not overlap. Additionally, the following HCL element names are
-// reserved for use by the Flow controller:
+// The set of River element names of a given component's Arguments and Exports
+// types must not overlap. Additionally, the following River field and block
+// names are reserved for use by the Flow controller:
 //
 //     * for_each
 //     * enabled
 //     * health
 //     * debug
 //
-// Default values for Arguments may be provided by implementing gohcl.Decoder.
+// Default values for Arguments may be provided by implementing
+// river.Unmarshaler.
 //
-// Mapping HCL strings to custom types
+// Mapping River strings to custom types
 //
 // Custom encoding and decoding of fields is available by implementing
 // encoding.TextMarshaler and encoding.TextUnmarshaler. Types implementing
-// these interfaces will be represented as strings in the HCL.
-//
-// Exposing advanced Go structs to HCL
-//
-// Go structs which contain interfaces, channels, or pointers can be encoded to
-// and from HCL by calling RegisterGoStruct. This allows components to pass
-// around arbitrary values for binding complex logic, such as a data stream.
+// these interfaces will be represented as strings in River.
 //
 // Component registration
 //
@@ -57,14 +53,14 @@ import (
 )
 
 // The Arguments contains the input fields for a specific component, which is
-// unmarshaled from HCL.
+// unmarshaled from River.
 //
 // Refer to the package documentation for details around how to build proper
 // Arguments implementations.
 type Arguments interface{}
 
 // Exports contains the current set of outputs for a specific component, which
-// is then marshaled to HCL.
+// is then marshaled to River.
 //
 // Refer to the package documentation for details around how to build proper
 // Exports implementations.
@@ -99,7 +95,7 @@ type DebugComponent interface {
 
 	// DebugInfo returns the current debug information of the component. May
 	// return nil if there is no debug info to currently report. The result of
-	// DebugInfo must be encodable to HCL like Arguments and Exports.
+	// DebugInfo must be encodable to River like Arguments and Exports.
 	//
 	// Values from DebugInfo are not exposed to other components for use in
 	// expressions.

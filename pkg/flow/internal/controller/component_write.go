@@ -3,47 +3,44 @@ package controller
 import (
 	"reflect"
 
-	"github.com/hashicorp/hcl/v2/hclsyntax"
-	"github.com/hashicorp/hcl/v2/hclwrite"
-	"github.com/rfratto/gohcl"
+	"github.com/grafana/agent/pkg/river/token"
+	"github.com/grafana/agent/pkg/river/token/builder"
 )
 
-// WriteComponent generates an hclwrite Block from a component. Health and
+// WriteComponent generates a token/builder Block from a component. Health and
 // debug info will be included if debugInfo is true.
-func WriteComponent(cn *ComponentNode, debugInfo bool) *hclwrite.Block {
-	var (
-		id = cn.ID()
-
-		blockName = id[0]
-		labels    = id[1:]
-	)
-
-	b := hclwrite.NewBlock(blockName, labels)
+func WriteComponent(cn *ComponentNode, debugInfo bool) *builder.Block {
+	b := builder.NewBlock(cn.getBlock().Name, cn.getBlock().Label)
 
 	if args := cn.Arguments(); args != nil {
-		gohcl.EncodeIntoBody(args, b.Body())
+		b.Body().AppendFrom(args)
 	}
 
 	// We ignore zero value exports since the zero values for fields don't get
 	// written back out to the user.
 	if exports := cn.Exports(); exports != nil && !exportsZeroValue(exports) {
-		b.Body().AppendUnstructuredTokens(hclwrite.Tokens{
-			{Type: hclsyntax.TokenNewline, Bytes: []byte("\n")},
-			{Type: hclsyntax.TokenComment, Bytes: []byte("// Exported fields:\n")},
+		b.Body().AppendTokens([]builder.Token{
+			{Tok: token.LITERAL, Lit: "\n"},
+			{Tok: token.COMMENT, Lit: "// Exported fields:"},
 		})
-		gohcl.EncodeIntoBody(exports, b.Body())
+
+		b.Body().AppendFrom(exports)
 	}
 
 	if debugInfo {
-		b.Body().AppendUnstructuredTokens(hclwrite.Tokens{
-			{Type: hclsyntax.TokenNewline, Bytes: []byte("\n")},
-			{Type: hclsyntax.TokenComment, Bytes: []byte("// Debug info:\n")},
+		b.Body().AppendTokens([]builder.Token{
+			{Tok: token.LITERAL, Lit: "\n"},
+			{Tok: token.COMMENT, Lit: "// Debug info:"},
 		})
 
-		b.Body().AppendBlock(gohcl.EncodeAsBlock(cn.CurrentHealth(), "health"))
+		healthBlock := builder.NewBlock([]string{"health"}, "")
+		healthBlock.Body().AppendFrom(cn.CurrentHealth())
+		b.Body().AppendBlock(healthBlock)
 
 		if di := cn.DebugInfo(); di != nil {
-			b.Body().AppendBlock(gohcl.EncodeAsBlock(di, "status"))
+			statusBlock := builder.NewBlock([]string{"status"}, "")
+			statusBlock.Body().AppendFrom(di)
+			b.Body().AppendBlock(statusBlock)
 		}
 	}
 

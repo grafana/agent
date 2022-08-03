@@ -1,32 +1,30 @@
 package controller
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/grafana/agent/component"
-	"github.com/hashicorp/hcl/v2"
-	"github.com/rfratto/gohcl"
-	"github.com/zclconf/go-cty/cty"
+	"github.com/grafana/agent/pkg/river/vm"
 )
 
-// valueCache caches component arguments and exports evaluated as cty.Values.
+// valueCache caches component arguments and exports to expose as variables for
+// River expressions.
 //
-// The current state of valueCache can then be built into a *hcl.EvalContext
-// for other components to be evaluated.
+// The current state of valueCache can then be built into a *vm.Scope for other
+// components to be evaluated.
 type valueCache struct {
 	mut        sync.RWMutex
 	components map[string]ComponentID // NodeID -> ComponentID
-	args       map[string]cty.Value   // NodeID -> cty.Value of component arguments
-	exports    map[string]cty.Value   // NodeID -> cty.Value of component exports
+	args       map[string]interface{} // NodeID -> component arguments value
+	exports    map[string]interface{} // NodeID -> component exports value
 }
 
 // newValueCache cretes a new ValueCache.
 func newValueCache() *valueCache {
 	return &valueCache{
 		components: make(map[string]ComponentID),
-		args:       make(map[string]cty.Value),
-		exports:    make(map[string]cty.Value),
+		args:       make(map[string]interface{}),
+		exports:    make(map[string]interface{}),
 	}
 }
 
@@ -39,19 +37,10 @@ func (vc *valueCache) CacheArguments(id ComponentID, args component.Arguments) {
 	nodeID := id.String()
 	vc.components[nodeID] = id
 
-	argsVal := cty.EmptyObjectVal
+	var argsVal interface{} = make(map[string]interface{})
 	if args != nil {
-		ty, err := gohcl.ImpliedType(args)
-		if err != nil {
-			panic(err)
-		}
-		cv, err := gohcl.ToCtyValue(args, ty)
-		if err != nil {
-			panic(err)
-		}
-		argsVal = cv
+		argsVal = args
 	}
-
 	vc.args[nodeID] = argsVal
 }
 
@@ -64,19 +53,10 @@ func (vc *valueCache) CacheExports(id ComponentID, exports component.Exports) {
 	nodeID := id.String()
 	vc.components[nodeID] = id
 
-	exportsVal := cty.EmptyObjectVal
+	var exportsVal interface{} = make(map[string]interface{})
 	if exports != nil {
-		ty, err := gohcl.ImpliedType(exports)
-		if err != nil {
-			panic(err)
-		}
-		cv, err := gohcl.ToCtyValue(exports, ty)
-		if err != nil {
-			panic(err)
-		}
-		exportsVal = cv
+		exportsVal = exports
 	}
-
 	vc.exports[nodeID] = exportsVal
 }
 
@@ -102,22 +82,18 @@ func (vc *valueCache) SyncIDs(ids []ComponentID) {
 	}
 }
 
-// BuildContext builds an hcl.EvalContext based on the current set of cached
-// values. The arguments and exports for the same ID are merged into one
-// object.
-func (vc *valueCache) BuildContext(parent *hcl.EvalContext) *hcl.EvalContext {
-	var ectx *hcl.EvalContext
-	if parent == nil {
-		ectx = parent.NewChild()
-	} else {
-		ectx = &hcl.EvalContext{}
+// BuildContext builds a vm.Scope based on the current set of cached values.
+// The arguments and exports for the same ID are merged into one object.
+func (vc *valueCache) BuildContext(parent *vm.Scope) *vm.Scope {
+	vc.mut.RLock()
+	defer vc.mut.RUnlock()
+
+	scope := &vm.Scope{
+		Parent:    parent,
+		Variables: make(map[string]interface{}),
 	}
 
-	// Variables is used to build the mapping of referenceable values. See
-	// value_cache_test.go for examples of what the expected output is.
-	ectx.Variables = make(map[string]cty.Value)
-
-	// First, partition components by HCL block name.
+	// First, partition components by River block name.
 	var componentsByBlockName = make(map[string][]ComponentID)
 	for _, id := range vc.components {
 		blockName := id[0]
@@ -126,33 +102,30 @@ func (vc *valueCache) BuildContext(parent *hcl.EvalContext) *hcl.EvalContext {
 
 	// Then, convert each partition into a single value.
 	for blockName, ids := range componentsByBlockName {
-		ectx.Variables[blockName] = vc.buildValue(ids, 1)
+		scope.Variables[blockName] = vc.buildValue(ids, 1)
 	}
 
-	return ectx
+	return scope
 }
 
 // buildValue recursively converts the set of user components into a single
-// cty.Value. offset is used to determine which element in the
-// userComponentName we're looking at.
-func (vc *valueCache) buildValue(from []ComponentID, offset int) cty.Value {
+// value. offset is used to determine which element in the userComponentName
+// we're looking at.
+func (vc *valueCache) buildValue(from []ComponentID, offset int) interface{} {
 	// We can't recurse anymore; return the node directly.
 	if len(from) == 1 && offset >= len(from[0]) {
 		name := from[0].String()
 
-		cfg, ok := vc.args[name]
-		if !ok {
-			cfg = cty.EmptyObjectVal
-		}
+		// TODO(rfratto): should we allow arguments to be returned so users can
+		// reference arguments as well as exports?
 		exports, ok := vc.exports[name]
 		if !ok {
-			exports = cty.EmptyObjectVal
+			exports = make(map[string]interface{})
 		}
-
-		return mergeComponentValues(cfg, exports)
+		return exports
 	}
 
-	attrs := make(map[string]cty.Value)
+	attrs := make(map[string]interface{})
 
 	// First, partition the components by their label.
 	var componentsByLabel = make(map[string][]ComponentID)
@@ -165,36 +138,5 @@ func (vc *valueCache) buildValue(from []ComponentID, offset int) cty.Value {
 	for label, ids := range componentsByLabel {
 		attrs[label] = vc.buildValue(ids, offset+1)
 	}
-
-	return cty.ObjectVal(attrs)
-}
-
-// mergeComponentValues merges a component's config and exports. mergeState
-// panics if a key exits in both inputs and store or if neither argument is an
-// object.
-func mergeComponentValues(args, exports cty.Value) cty.Value {
-	if !args.Type().IsObjectType() {
-		panic("component arguments must be object type")
-	}
-	if !exports.Type().IsObjectType() {
-		panic("component exports must be object type")
-	}
-
-	var (
-		inputMap = args.AsValueMap()
-		stateMap = exports.AsValueMap()
-	)
-
-	mergedMap := make(map[string]cty.Value, len(inputMap)+len(stateMap))
-	for key, value := range inputMap {
-		mergedMap[key] = value
-	}
-	for key, value := range stateMap {
-		if _, exist := mergedMap[key]; exist {
-			panic(fmt.Sprintf("component exports overrides arguments key %s", key))
-		}
-		mergedMap[key] = value
-	}
-
-	return cty.ObjectVal(mergedMap)
+	return attrs
 }

@@ -1,11 +1,11 @@
 // Package flow implements the Flow component graph system. Flow configuration
-// files are parsed from HCL, which contain a listing of components to run.
+// files are parsed from River, which contain a listing of components to run.
 //
 // Components
 //
-// Each component has a set of arguments (HCL attributes and blocks) and
-// optionally a set of exported fields. Components can reference the arguments
-// or exports of other components using HCL expressions.
+// Each component has a set of arguments (River attributes and blocks) and
+// optionally a set of exported fields. Components can reference the exports of
+// other components using River expressions.
 //
 // See the top-level component package for more information on components, and
 // subpackages for defined components.
@@ -29,8 +29,8 @@
 //
 // Component Evaluation
 //
-// The process of converting the HCL block associated with a component into the
-// appropriate Go struct is called "component evaluation."
+// The process of converting the River block associated with a component into
+// the appropriate Go struct is called "component evaluation."
 //
 // Components are only evaluated after all components they reference have been
 // evaluated; cyclic dependencies are invalid.
@@ -54,7 +54,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/logging"
-	"github.com/hashicorp/hcl/v2"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 // Options holds static options for a flow controller.
@@ -66,6 +66,8 @@ type Options struct {
 	// Directory where components can write data. Components will create
 	// subdirectories for component-specific data.
 	DataPath string
+
+	Reg prometheus.Registerer
 }
 
 // Flow is the Flow system.
@@ -95,7 +97,6 @@ func New(o Options) *Flow {
 
 func newFlow(o Options) (*Flow, context.Context) {
 	ctx, cancel := context.WithCancel(context.Background())
-
 	log := o.Logger
 	if log == nil {
 		var err error
@@ -116,7 +117,7 @@ func newFlow(o Options) (*Flow, context.Context) {
 				// Changed components should be queued for reevaluation.
 				queue.Enqueue(cn)
 			},
-		})
+		}, o.Reg)
 	)
 
 	return &Flow{
@@ -149,7 +150,7 @@ func (c *Flow) run(ctx context.Context) {
 			updated := c.updateQueue.TryDequeue()
 			if updated != nil {
 				level.Debug(c.log).Log("msg", "handling component with updated state", "node_id", updated.NodeID())
-				c.loader.EvaluateDependencies(rootEvalContext, updated)
+				c.loader.EvaluateDependencies(nil, updated)
 			}
 
 		case <-c.loadFinished:
@@ -174,9 +175,6 @@ func (c *Flow) run(ctx context.Context) {
 //
 // The controller will only start running components after Load is called once
 // without any configuration errors.
-//
-// LoadFile will return an error value of hcl.Diagnostics. hcl.Diagnostics is
-// used to report both warnings and configuration errors.
 func (c *Flow) LoadFile(f *File) error {
 	c.loadMut.Lock()
 	defer c.loadMut.Unlock()
@@ -186,10 +184,10 @@ func (c *Flow) LoadFile(f *File) error {
 		return fmt.Errorf("error updating logger: %w", err)
 	}
 
-	diags := c.loader.Apply(rootEvalContext, f.Components)
+	diags := c.loader.Apply(nil, f.Components)
 	if !c.loadedOnce && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
-		// errors in the coniguration file.
+		// errors in the configuration file.
 		return diags
 	}
 	c.loadedOnce = true
@@ -199,14 +197,7 @@ func (c *Flow) LoadFile(f *File) error {
 	default:
 		// A refresh is already scheduled
 	}
-	return diagsOrNil(diags)
-}
-
-func diagsOrNil(d hcl.Diagnostics) error {
-	if len(d) > 0 {
-		return d
-	}
-	return nil
+	return diags.ErrorOrNil()
 }
 
 // Close closes the controller and all running components.

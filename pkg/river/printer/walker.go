@@ -105,7 +105,7 @@ func (w *walker) walkBlockStmt(s *ast.BlockStmt) {
 
 	w.p.Write(
 		s.NamePos,
-		&ast.IdentifierExpr{Name: joined, NamePos: s.NamePos},
+		&ast.Ident{Name: joined, NamePos: s.NamePos},
 	)
 
 	if s.Label != "" {
@@ -140,7 +140,7 @@ func (w *walker) walkExpr(e ast.Expr) {
 		w.walkObjectExpr(e)
 
 	case *ast.IdentifierExpr:
-		w.p.Write(e.NamePos, e)
+		w.p.Write(e.Ident.NamePos, e.Ident)
 
 	case *ast.AccessExpr:
 		w.walkExpr(e.Value)
@@ -242,7 +242,13 @@ func (w *walker) walkObjectExpr(e *ast.ObjectExpr) {
 		// Add a newline if this element starts on a different line than the last
 		// element ended.
 		if differentLines(prevPos, elementPos) {
-			w.p.Write(wsFormfeed)
+			// We want to align the equal sign for object attributes if the previous
+			// field only crossed one line.
+			if i > 0 && nodeLines(e.Fields[i-1].Value) == 1 {
+				w.p.Write(wsNewline)
+			} else {
+				w.p.Write(wsFormfeed)
+			}
 		} else if i > 0 {
 			// Make sure a space is injected before the next element if two successive
 			// elements are on the same line.

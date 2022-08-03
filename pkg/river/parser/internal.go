@@ -2,8 +2,10 @@ package parser
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/grafana/agent/pkg/river/ast"
+	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/scanner"
 	"github.com/grafana/agent/pkg/river/token"
 )
@@ -22,13 +24,17 @@ import (
 // discarded if errors were encountered during parsing.
 type parser struct {
 	file     *token.File
-	errors   ErrorList
+	diags    diag.Diagnostics
 	scanner  *scanner.Scanner
 	comments []ast.CommentGroup
 
 	pos token.Pos   // Current token position
 	tok token.Token // Current token
 	lit string      // Current token literal
+
+	// Position of the last error written. Two parse errors on the same line are
+	// ignored.
+	lastError token.Position
 }
 
 // newParser creates a new parser which will parse the provided src.
@@ -40,8 +46,9 @@ func newParser(filename string, src []byte) *parser {
 	}
 
 	p.scanner = scanner.New(file, src, func(pos token.Pos, msg string) {
-		p.errors.Add(&Error{
-			Position: file.PositionFor(pos),
+		p.diags.Add(diag.Diagnostic{
+			Severity: diag.SeverityLevelError,
+			StartPos: file.PositionFor(pos),
 			Message:  msg,
 		})
 	}, scanner.IncludeComments)
@@ -135,8 +142,17 @@ func (p *parser) expect(t token.Token) (pos token.Pos, tok token.Token, lit stri
 }
 
 func (p *parser) addErrorf(format string, args ...interface{}) {
-	p.errors.Add(&Error{
-		Position: p.file.PositionFor(p.pos),
+	pos := p.file.PositionFor(p.pos)
+
+	// Ignore errors which occur on the same line.
+	if p.lastError.Line == pos.Line {
+		return
+	}
+	p.lastError = pos
+
+	p.diags.Add(diag.Diagnostic{
+		Severity: diag.SeverityLevelError,
+		StartPos: pos,
 		Message:  fmt.Sprintf(format, args...),
 	})
 }
@@ -170,10 +186,50 @@ func (p *parser) parseBody(until token.Token) ast.Body {
 		if p.tok == until {
 			break
 		}
-		p.expect(token.TERMINATOR)
+
+		if p.tok != token.TERMINATOR {
+			p.addErrorf("expected %s, got %s", token.TERMINATOR, p.tok)
+			p.consumeStatement()
+		}
+		p.next()
 	}
 
 	return body
+}
+
+// consumeStatement consumes tokens for the remainder of a statement (i.e., up
+// to but not including a terminator). consumeStatement will keep track of the
+// number of {}, [], and () pairs, only returning after the count of pairs is
+// <= 0.
+func (p *parser) consumeStatement() {
+	var curlyPairs, brackPairs, parenPairs int
+
+	for p.tok != token.EOF {
+		switch p.tok {
+		case token.LCURLY:
+			curlyPairs++
+		case token.RCURLY:
+			curlyPairs--
+		case token.LBRACK:
+			brackPairs++
+		case token.RBRACK:
+			brackPairs--
+		case token.LPAREN:
+			parenPairs++
+		case token.RPAREN:
+			parenPairs--
+		}
+
+		if p.tok == token.TERMINATOR {
+			// Only return after we've consumed all pairs. It's possible for pairs to
+			// be less than zero if our statement started in a surrounding pair.
+			if curlyPairs <= 0 && brackPairs <= 0 && parenPairs <= 0 {
+				return
+			}
+		}
+
+		p.next()
+	}
 }
 
 // parseStatement parses an individual statement within a body.
@@ -197,19 +253,25 @@ func (p *parser) parseStatement() ast.Stmt {
 		p.next() // Consume "="
 
 		if len(blockName.Fragments) != 1 {
-			p.errors.Add(&Error{
-				Position: blockName.Start.Position(),
+			attrName := strings.Join(blockName.Fragments, ".")
+			p.diags.Add(diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				StartPos: blockName.Start.Position(),
+				EndPos:   blockName.Start.Add(len(attrName) - 1).Position(),
 				Message:  `attribute names may only consist of a single identifier with no "."`,
 			})
 		} else if blockName.LabelPos != token.NoPos {
-			p.errors.Add(&Error{
-				Position: blockName.LabelPos.Position(),
-				Message:  `attribute names may not have labels`,
+			p.diags.Add(diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				StartPos: blockName.LabelPos.Position(),
+				// Add 1 to the end position to add in the end quote, which is stripped from the label value.
+				EndPos:  blockName.LabelPos.Add(len(blockName.Label) + 1).Position(),
+				Message: `attribute names may not have labels`,
 			})
 		}
 
 		return &ast.AttributeStmt{
-			Name: &ast.IdentifierExpr{
+			Name: &ast.Ident{
 				Name:    blockName.Fragments[0],
 				NamePos: blockName.Start,
 			},
@@ -276,10 +338,14 @@ func (p *parser) parseBlockName() *blockName {
 
 	// [ string ]
 	if p.tok != token.ASSIGN && p.tok != token.LCURLY {
-		if p.tok == token.STRING && len(p.lit) > 2 {
-			bn.Label = p.lit[1 : len(p.lit)-1] // Strip quotes from label
-			if !isValidIdentifier(bn.Label) {
-				p.addErrorf("expected block label to be a valid identifier")
+		if p.tok == token.STRING {
+			// Strip the quotes if it's non empty. We then require any non-empty
+			// label to be a valid identifier.
+			if len(p.lit) > 2 {
+				bn.Label = p.lit[1 : len(p.lit)-1]
+				if !isValidIdentifier(bn.Label) {
+					p.addErrorf("expected block label to be a valid identifier")
+				}
 			}
 			bn.LabelPos = p.pos
 		} else {
@@ -415,7 +481,7 @@ NextOper:
 
 			primary = &ast.AccessExpr{
 				Value: primary,
-				Name: &ast.IdentifierExpr{
+				Name: &ast.Ident{
 					Name:    name,
 					NamePos: namePos,
 				},
@@ -449,6 +515,35 @@ NextOper:
 				RParenPos: rParen,
 			}
 
+		case token.STRING, token.LCURLY:
+			// A user might be trying to assign a block to an attribute. let's
+			// attempt to parse the remainder as a block to tell them something is
+			// wrong.
+			//
+			// If we can't parse the remainder of the expression as a block, we give
+			// up and parse the remainder of the entire statement.
+			if p.tok == token.STRING {
+				p.next()
+			}
+			if _, tok, _ := p.expect(token.LCURLY); tok != token.LCURLY {
+				p.consumeStatement()
+				return primary
+			}
+			p.parseBody(token.RCURLY)
+
+			end, tok, _ := p.expect(token.RCURLY)
+			if tok != token.RCURLY {
+				p.consumeStatement()
+				return primary
+			}
+
+			p.diags.Add(diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				StartPos: ast.StartPos(primary).Position(),
+				EndPos:   end.Position(),
+				Message:  "cannot use a block as an expression",
+			})
+
 		default:
 			break NextOper
 		}
@@ -479,8 +574,10 @@ func (p *parser) parsePrimaryExpr() ast.Expr {
 	switch p.tok {
 	case token.IDENT:
 		res := &ast.IdentifierExpr{
-			Name:    p.lit,
-			NamePos: p.pos,
+			Ident: &ast.Ident{
+				Name:    p.lit,
+				NamePos: p.pos,
+			},
 		}
 		p.next()
 		return res
@@ -593,7 +690,7 @@ func (p *parser) parseField() *ast.ObjectField {
 	}
 
 	field := &ast.ObjectField{
-		Name: &ast.IdentifierExpr{
+		Name: &ast.Ident{
 			Name:    p.lit,
 			NamePos: p.pos,
 		},

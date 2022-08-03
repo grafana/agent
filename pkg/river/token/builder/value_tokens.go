@@ -1,14 +1,15 @@
 package builder
 
 import (
-	"encoding"
 	"fmt"
-	"time"
+	"sort"
 
 	"github.com/grafana/agent/pkg/river/internal/value"
 	"github.com/grafana/agent/pkg/river/scanner"
 	"github.com/grafana/agent/pkg/river/token"
 )
+
+// TODO(rfratto): check for optional values
 
 // Tokenizer is any value which can return a raw set of tokens.
 type Tokenizer interface {
@@ -24,22 +25,9 @@ func tokenEncode(val interface{}) []Token {
 func valueTokens(v value.Value) []Token {
 	var toks []Token
 
-	// Check for interfces which override encoding behavior:
-	switch v := v.Interface().(type) {
-	case time.Duration:
-		return []Token{{
-			Tok: token.STRING,
-			Lit: fmt.Sprintf("%q", v.String()),
-		}}
-	case Tokenizer:
-		return v.RiverTokenize()
-	case encoding.TextMarshaler:
-		// TODO(rfratto): what if this fails?
-		bb, _ := v.MarshalText()
-		return []Token{{
-			Tok: token.STRING,
-			Lit: fmt.Sprintf("%q", string(bb)),
-		}}
+	// If v is a Tokenizer, allow it to override what tokens get generated.
+	if tk, ok := v.Interface().(Tokenizer); ok {
+		return tk.RiverTokenize()
 	}
 
 	switch v.Type() {
@@ -72,6 +60,13 @@ func valueTokens(v value.Value) []Token {
 		toks = append(toks, Token{token.LCURLY, ""}, Token{token.LITERAL, "\n"})
 
 		keys := v.Keys()
+
+		// If v isn't an ordered object (i.e., a go map), sort the keys so they
+		// have a deterministic print order.
+		if !v.OrderedKeys() {
+			sort.Strings(keys)
+		}
+
 		for i := 0; i < len(keys); i++ {
 			if isValidIdentifier(keys[i]) {
 				toks = append(toks, Token{token.IDENT, keys[i]})
