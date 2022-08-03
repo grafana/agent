@@ -30,6 +30,7 @@ type Exports struct {
 	Output []scrape.Target `river:"output,attr"`
 }
 
+// Component for node exporter
 type Component struct {
 	log  log.Logger
 	opts component.Options
@@ -40,6 +41,7 @@ type Component struct {
 	integration *node_integration.Integration
 }
 
+// NewComponent creates a node_exporter component
 func NewComponent(o component.Options, args node_integration.Config) (*Component, error) {
 	c := &Component{
 		log:  o.Logger,
@@ -79,6 +81,7 @@ func (c *Component) Update(args component.Arguments) error {
 	return err
 }
 
+// Handler serves node_exporter metrics endpoint
 func (c *Component) Handler() http.Handler {
 	if c.integration != nil {
 		h, err := c.integration.MetricsHandler()
