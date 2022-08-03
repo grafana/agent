@@ -58,6 +58,7 @@ func (cc *controllerCollector) Collect(ch chan<- prometheus.Metric) {
 	for _, component := range cc.l.Components() {
 		health := component.CurrentHealth().Health.String()
 		componentsByHealth[health]++
+		component.register.Collect(ch)
 	}
 
 	for health, count := range componentsByHealth {
@@ -67,4 +68,7 @@ func (cc *controllerCollector) Collect(ch chan<- prometheus.Metric) {
 
 func (cc *controllerCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- cc.runningComponentsTotal
+	for _, component := range cc.l.components {
+		component.register.Describe(ch)
+	}
 }

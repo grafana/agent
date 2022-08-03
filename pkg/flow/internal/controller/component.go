@@ -72,6 +72,7 @@ type ComponentNode struct {
 	nodeID          string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
 	reg             component.Registration
 	managedOpts     component.Options
+	register        *wrappedRegisterer
 	exportsType     reflect.Type
 	onExportsChange func(cn *ComponentNode) // Informs controller that we changed our exports
 
@@ -145,14 +146,16 @@ func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode
 }
 
 func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Options {
+	wrapped := newWrappedRegisterer()
+	cn.register = wrapped
 	return component.Options{
 		ID:            cn.nodeID,
 		Logger:        log.With(globals.Logger, "component", cn.nodeID),
 		DataPath:      filepath.Join(globals.DataPath, cn.nodeID),
 		OnStateChange: cn.setExports,
-		Registerer: newRegister(prometheus.WrapRegistererWith(prometheus.Labels{
+		Registerer: prometheus.WrapRegistererWith(prometheus.Labels{
 			"component_id": cn.nodeID,
-		}, globals.Registerer)),
+		}, wrapped),
 	}
 }
 
@@ -277,7 +280,6 @@ func (cn *ComponentNode) Run(ctx context.Context) error {
 	}
 
 	cn.setRunHealth(component.HealthTypeHealthy, "started component")
-	defer cn.managedOpts.Registerer.UnregisterComponent()
 	err := cn.managed.Run(ctx)
 
 	var exitMsg string

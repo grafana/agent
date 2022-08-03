@@ -20,7 +20,6 @@ import (
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/flow/rivertypes"
 	"github.com/grafana/agent/pkg/metrics/wal"
-	"github.com/prometheus/client_golang/prometheus"
 	common "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
@@ -85,7 +84,6 @@ type BasicAuthConfig struct {
 type Component struct {
 	log  log.Logger
 	opts component.Options
-	reg  prometheus.Registerer
 
 	walStore    *wal.Storage
 	remoteStore *remote.Storage
@@ -110,10 +108,8 @@ func NewComponent(o component.Options, c RemoteConfig) (*Component, error) {
 	remoteStore := remote.NewStorage(remoteLogger, o.Registerer, startTime, dataPath, remoteFlushDeadline, nil)
 
 	res := &Component{
-		log:  o.Logger,
-		opts: o,
-		reg:  o.Registerer,
-
+		log:         o.Logger,
+		opts:        o,
 		walStore:    walStorage,
 		remoteStore: remoteStore,
 		storage:     storage.NewFanout(o.Logger, walStorage, remoteStore),

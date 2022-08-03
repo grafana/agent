@@ -52,7 +52,7 @@ type Options struct {
 	OnStateChange func(e Exports)
 
 	//Registerer allows components to add their own metrics. The register will come pre-wrapped with the component id
-	Registerer Registerer
+	Registerer prometheus.Registerer
 }
 
 // Registration describes a single component.

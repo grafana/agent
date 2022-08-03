@@ -24,7 +24,7 @@ func TestCorrectBucket(t *testing.T) {
 	o := component.Options{
 		ID:            "t1",
 		OnStateChange: func(_ component.Exports) {},
-		Registerer:    &fakeRegisterer{},
+		Registerer:    prometheus.NewRegistry(),
 	}
 	s3File, err := New(o,
 		Arguments{
@@ -47,7 +47,7 @@ func TestWatchingFile(t *testing.T) {
 			defer mut.Unlock()
 			output = e.(Exports).Content.Value
 		},
-		Registerer: &fakeRegisterer{},
+		Registerer: prometheus.NewRegistry(),
 	}, Arguments{
 		Path:          "s3://mybucket/test.txt",
 		PollFrequency: 10 * time.Second,
@@ -91,25 +91,4 @@ func pushFile(t *testing.T, backend *s3mem.Backend, filename string, filecontent
 		int64(len(filecontents)),
 	)
 	assert.NoError(t, err)
-}
-
-type fakeRegisterer struct {
-}
-
-func (f fakeRegisterer) Register(collector prometheus.Collector) error {
-	return nil
-}
-
-func (f fakeRegisterer) MustRegister(collector ...prometheus.Collector) {}
-
-func (f fakeRegisterer) Unregister(collector prometheus.Collector) bool {
-	return true
-}
-
-func (f fakeRegisterer) RegisterComponent(collector ...prometheus.Collector) error {
-	return nil
-}
-
-func (f fakeRegisterer) UnregisterComponent() bool {
-	return true
 }

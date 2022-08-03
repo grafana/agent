@@ -107,7 +107,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		}),
 	}
 
-	err := o.Registerer.RegisterComponent(c.lastAccessed)
+	err := o.Registerer.Register(c.lastAccessed)
 	if err != nil {
 		return nil, err
 	}
