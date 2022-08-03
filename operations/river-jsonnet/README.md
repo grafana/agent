@@ -1,6 +1,6 @@
-# Jsonnet `river` library
+# `river-jsonnet` library
 
-The Jsonnet `river` library makes it possible to return River-formatted config
+The `river-jsonnet` library makes it possible to return River-formatted config
 files using Jsonnet.
 
 To manifest a River configuration file, call `river.manifestRiver(value)`.
@@ -31,6 +31,8 @@ the literal River expression `env("HOME")`.
 ## Example
 
 ```jsonnet
+local river = import 'github.com/grafana/agent/operations/river-jsonnet/main.libsonnet';
+
 river.manifestRiver({
   attr_1: "Hello, world!",
 
