@@ -76,8 +76,14 @@ func New(o component.Options, args Arguments) (*S3, error) {
 		}),
 	}
 
-	o.Registerer.Register(s.s3Errors)
-	o.Registerer.Register(s.lastAccessed)
+	err = o.Registerer.Register(s.s3Errors)
+	if err != nil {
+		return nil, err
+	}
+	err = o.Registerer.Register(s.lastAccessed)
+	if err != nil {
+		return nil, err
+	}
 	w := newWatcher(bucket, file, s.updateChan, args.PollFrequency, s3Client)
 	s.watcher = w
 

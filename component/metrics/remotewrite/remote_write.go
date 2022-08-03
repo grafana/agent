@@ -99,7 +99,6 @@ type Component struct {
 
 // NewComponent creates a new metrics_forwarder component.
 func NewComponent(o component.Options, c RemoteConfig) (*Component, error) {
-
 	walLogger := log.With(o.Logger, "subcomponent", "wal")
 	dataPath := filepath.Join(o.DataPath, "wal", o.ID)
 	walStorage, err := wal.NewStorage(walLogger, o.Registerer, dataPath)

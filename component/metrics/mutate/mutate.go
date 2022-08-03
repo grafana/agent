@@ -64,9 +64,12 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		Help: "Total number of metrics processed",
 	})
 
-	o.Registerer.Register(c.metricsProcessed)
+	err := o.Registerer.Register(c.metricsProcessed)
+	if err != nil {
+		return nil, err
+	}
 	// Call to Update() to set the relabelling rules once at the start.
-	if err := c.Update(args); err != nil {
+	if err = c.Update(args); err != nil {
 		return nil, err
 	}
 
