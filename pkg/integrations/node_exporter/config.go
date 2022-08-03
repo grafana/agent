@@ -229,6 +229,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
+// UnmarshalRiver implements River unmarshalling for Config
 func (c *Config) UnmarshalRiver(f func(interface{}) error) error {
 	*c = DefaultConfig
 

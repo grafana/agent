@@ -70,7 +70,7 @@ func (f *Flow) ComponentHandler() http.HandlerFunc {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-		handler := node.HttpHandler()
+		handler := node.HTTPHandler()
 		if handler == nil {
 			w.WriteHeader(http.StatusNotFound)
 			return
