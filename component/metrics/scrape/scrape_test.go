@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
+
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/metrics"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -16,7 +18,10 @@ import (
 func TestForwardingToAppendable(t *testing.T) {
 	l, err := logging.New(os.Stderr, logging.DefaultOptions)
 	require.NoError(t, err)
-	opts := component.Options{Logger: l}
+	opts := component.Options{
+		Logger:     l,
+		Registerer: prometheus.NewRegistry(),
+	}
 
 	nilReceivers := []*metrics.Receiver{nil, nil}
 
