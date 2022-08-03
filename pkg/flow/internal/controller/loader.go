@@ -104,10 +104,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt) diag.Diag
 		components = append(components, c)
 		componentIDs = append(componentIDs, c.ID())
 
-		// We cache both arguments and exports during an initial load in case the
-		// component is new; we want to make sure that all fields are available
-		// before the component updates its exports for the first time.
-		if err := l.evaluate(parentScope, n.(*ComponentNode), true, true); err != nil {
+		if err := l.evaluate(parentScope, n.(*ComponentNode)); err != nil {
 			var evalDiags diag.Diagnostics
 			if errors.As(err, &evalDiags) {
 				diags = append(diags, evalDiags...)
@@ -257,25 +254,23 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 			// arguments will need re-evaluation.
 			return nil
 		}
-		_ = l.evaluate(parentScope, n.(*ComponentNode), true, false)
+		_ = l.evaluate(parentScope, n.(*ComponentNode))
 		return nil
 	})
 }
 
 // evaluate constructs the final context for c and evaluates it. mut must be
 // held when calling evaluate.
-func (l *Loader) evaluate(parent *vm.Scope, c *ComponentNode, cacheArgs, cacheExports bool) error {
+func (l *Loader) evaluate(parent *vm.Scope, c *ComponentNode) error {
 	ectx := l.cache.BuildContext(parent)
 	if err := c.Evaluate(ectx); err != nil {
 		level.Error(l.log).Log("msg", "failed to evaluate component", "component", c.NodeID(), "err", err)
 		return err
 	}
-	if cacheArgs {
-		l.cache.CacheArguments(c.ID(), c.Arguments())
-	}
-	if cacheExports {
-		l.cache.CacheExports(c.ID(), c.Exports())
-	}
+	// Always update the cache both the arguments and exports, since both might
+	// change when a component gets re-evaluated.
+	l.cache.CacheArguments(c.ID(), c.Arguments())
+	l.cache.CacheExports(c.ID(), c.Exports())
 	return nil
 }
 

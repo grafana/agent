@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/alecthomas/units"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
+	component_config "github.com/grafana/agent/component/common/config"
 	common_config "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
@@ -54,65 +54,19 @@ type Config struct {
 	// scrape to fail.
 	LabelValueLengthLimit uint `river:"label_value_length_limit,attr,optional"`
 
-	// HTTP Client Config
-	BasicAuth     *BasicAuth     `river:"basic_auth,block,optional"`
-	Authorization *Authorization `river:"authorization,block,optional"`
-	OAuth2        *OAuth2Config  `river:"oauth2,block,optional"`
-	TLSConfig     *TLSConfig     `river:"tls_config,block,optional"`
-
-	BearerToken     string `river:"bearer_token,attr,optional"`
-	BearerTokenFile string `river:"bearer_token_file,attr,optional"`
-	ProxyURL        string `river:"proxy_url,attr,optional"`
-
-	FollowRedirects bool `river:"follow_redirects,attr,optional"`
-	EnableHTTP2     bool `river:"enable_http_2,attr,optional"`
-}
-
-// BasicAuth configures Basic HTTP authentication credentials.
-type BasicAuth struct {
-	Username     string            `river:"username,attr,optional"`
-	Password     rivertypes.Secret `river:"password,attr,optional"`
-	PasswordFile string            `river:"password_file,attr,optional"`
-}
-
-// Authorization sets up HTTP authorization credentials.
-type Authorization struct {
-	Type            string            `river:"authorization_type,attr,optional"`
-	Credential      rivertypes.Secret `river:"authorization_credential,attr,optional"`
-	CredentialsFile string            `river:"authorization_credentials_file,attr,optional"`
-}
-
-// TLSConfig sets up options for TLS connections.
-type TLSConfig struct {
-	CAFile             string `river:"ca_file,attr,optional"`
-	CertFile           string `river:"cert_file,attr,optional"`
-	KeyFile            string `river:"key_file,attr,optional"`
-	ServerName         string `river:"server_name,attr,optional"`
-	InsecureSkipVerify bool   `river:"insecure_skip_verify,attr,optional"`
-}
-
-// OAuth2Config sets up the OAuth2 client.
-type OAuth2Config struct {
-	ClientID         string            `river:"client_id,attr,optional"`
-	ClientSecret     rivertypes.Secret `river:"client_secret,attr,optional"`
-	ClientSecretFile string            `river:"client_secret_file,attr,optional"`
-	Scopes           []string          `river:"scopes,attr,optional"`
-	TokenURL         string            `river:"token_url,attr,optional"`
-	EndpointParams   map[string]string `river:"endpoint_params,attr,optional"`
-	ProxyURL         string            `river:"proxy_url,attr,optional"`
-	TLSConfig        *TLSConfig        `river:"tls_config,attr,optional"`
+	component_config.HTTPClientConfig
 }
 
 // DefaultConfig is the set of default options applied before decoding a given
 // scrape_config block.
 var DefaultConfig = Config{
-	MetricsPath:     "/metrics",
-	Scheme:          "http",
-	HonorLabels:     false,
-	HonorTimestamps: true,
-	FollowRedirects: true,             // From common_config.DefaultHTTPClientConfig
-	ScrapeInterval:  1 * time.Minute,  // From config.DefaultGlobalConfig
-	ScrapeTimeout:   10 * time.Second, // From config.DefaultGlobalConfig
+	MetricsPath:      "/metrics",
+	Scheme:           "http",
+	HonorLabels:      false,
+	HonorTimestamps:  true,
+	HTTPClientConfig: component_config.DefaultHTTPClientConfig,
+	ScrapeInterval:   1 * time.Minute,  // From config.DefaultGlobalConfig
+	ScrapeTimeout:    10 * time.Second, // From config.DefaultGlobalConfig
 }
 
 // UnmarshalRiver implements river.Unmarshaler.
@@ -148,74 +102,12 @@ func (c *Config) getPromScrapeConfigs(jobName string) (*config.ScrapeConfig, err
 	dec.LabelValueLengthLimit = c.LabelValueLengthLimit
 
 	// HTTP scrape client settings
-	var proxyURL, oauth2ProxyURL *url.URL
-	if c.ProxyURL != "" {
-		proxyURL, _ = url.Parse(c.ProxyURL)
-	}
-	if c.OAuth2 != nil && c.OAuth2.ProxyURL != "" {
-		oauth2ProxyURL, _ = url.Parse(c.OAuth2.ProxyURL)
-	}
-	httpClient := common_config.DefaultHTTPClientConfig
-	dec.HTTPClientConfig = httpClient
-
-	if c.BasicAuth != nil {
-		dec.HTTPClientConfig.BasicAuth = &common_config.BasicAuth{
-			Username:     c.BasicAuth.Username,
-			Password:     common_config.Secret(c.BasicAuth.Password),
-			PasswordFile: c.BasicAuth.PasswordFile,
-		}
-	}
-	if c.Authorization != nil {
-		dec.HTTPClientConfig.Authorization = &common_config.Authorization{
-			Type:            c.Authorization.Type,
-			Credentials:     common_config.Secret(c.Authorization.Credential),
-			CredentialsFile: c.Authorization.CredentialsFile,
-		}
-	}
-
-	if c.OAuth2 != nil {
-		var oauth2TLSConfig common_config.TLSConfig
-		if c.OAuth2.TLSConfig != nil {
-			oauth2TLSConfig = common_config.TLSConfig{
-				CAFile:             c.OAuth2.TLSConfig.CAFile,
-				CertFile:           c.OAuth2.TLSConfig.CertFile,
-				KeyFile:            c.OAuth2.TLSConfig.KeyFile,
-				ServerName:         c.OAuth2.TLSConfig.ServerName,
-				InsecureSkipVerify: c.OAuth2.TLSConfig.InsecureSkipVerify,
-			}
-		}
-		dec.HTTPClientConfig.OAuth2 = &common_config.OAuth2{
-			ClientID:         c.OAuth2.ClientID,
-			ClientSecret:     common_config.Secret(c.OAuth2.ClientSecret),
-			ClientSecretFile: c.OAuth2.ClientSecretFile,
-			Scopes:           c.OAuth2.Scopes,
-			TokenURL:         c.OAuth2.TokenURL,
-			EndpointParams:   c.OAuth2.EndpointParams,
-			ProxyURL:         common_config.URL{URL: oauth2ProxyURL},
-			TLSConfig:        oauth2TLSConfig,
-		}
-	}
-
-	dec.HTTPClientConfig.BearerToken = common_config.Secret(c.BearerToken)
-	dec.HTTPClientConfig.BearerTokenFile = c.BearerTokenFile
-	dec.HTTPClientConfig.ProxyURL = common_config.URL{URL: proxyURL}
-	if c.TLSConfig != nil {
-		dec.HTTPClientConfig.TLSConfig = common_config.TLSConfig{
-			CAFile:             c.TLSConfig.CAFile,
-			CertFile:           c.TLSConfig.CertFile,
-			KeyFile:            c.TLSConfig.KeyFile,
-			ServerName:         c.TLSConfig.ServerName,
-			InsecureSkipVerify: c.TLSConfig.InsecureSkipVerify,
-		}
-	}
-	dec.HTTPClientConfig.FollowRedirects = c.FollowRedirects
-	dec.HTTPClientConfig.EnableHTTP2 = c.EnableHTTP2
+	dec.HTTPClientConfig = *c.HTTPClientConfig.Convert()
 
 	err := validateHTTPClientConfig(dec.HTTPClientConfig)
 	if err != nil {
 		return nil, fmt.Errorf("the provided scrape_config resulted in an invalid HTTP Client configuration: %w", err)
 	}
-
 	return &dec, nil
 }
 
