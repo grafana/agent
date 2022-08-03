@@ -128,7 +128,7 @@ func (c *Controller) buildComponent(dataPath string, args component.Arguments) (
 		Logger:        c.log,
 		DataPath:      dataPath,
 		OnStateChange: c.onStateChange,
-		Registerer:    prometheus.NewRegistry(),
+		Registerer:    &fakeRegisterer{},
 	}
 
 	inner, err := c.reg.Build(opts, args)
@@ -149,4 +149,25 @@ func (c *Controller) Update(args component.Arguments) error {
 		return fmt.Errorf("component is not running")
 	}
 	return c.inner.Update(args)
+}
+
+type fakeRegisterer struct {
+}
+
+func (f fakeRegisterer) Register(collector prometheus.Collector) error {
+	return nil
+}
+
+func (f fakeRegisterer) MustRegister(collector ...prometheus.Collector) {}
+
+func (f fakeRegisterer) Unregister(collector prometheus.Collector) bool {
+	return true
+}
+
+func (f fakeRegisterer) RegisterComponent(collector ...prometheus.Collector) error {
+	return nil
+}
+
+func (f fakeRegisterer) UnregisterComponent() bool {
+	return true
 }
