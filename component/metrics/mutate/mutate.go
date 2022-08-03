@@ -59,7 +59,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	c.appendable = fa.NewFlowAppendable(args.ForwardTo...)
 	c.receiver = &metrics.Receiver{Receive: c.Receive}
 	c.metricsProcessed = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "metrics_mutate_metrics_processed",
+		Name: "agent_metrics_mutate_metrics_processed",
 		Help: "Total number of metrics processed",
 	})
 
