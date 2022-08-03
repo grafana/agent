@@ -43,6 +43,7 @@ func runFlow() error {
 		httpListenAddr = "127.0.0.1:12345"
 		configFile     string
 		storagePath    = "data-agent/"
+		ready          = true
 	)
 
 	fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
@@ -111,6 +112,15 @@ func runFlow() error {
 		}
 
 		r := mux.NewRouter()
+		r.HandleFunc("/-/ready", func(w http.ResponseWriter, r *http.Request) {
+			if ready {
+				w.WriteHeader(http.StatusOK)
+				fmt.Fprintf(w, "Agent is Ready.\n")
+			} else {
+				w.WriteHeader(http.StatusServiceUnavailable)
+				fmt.Fprint(w, "Config failed to load.\n")
+			}
+		})
 		r.Handle("/metrics", promhttp.Handler())
 		r.Handle("/debug/config", f.ConfigHandler())
 		r.Handle("/debug/graph", f.GraphHandler())
@@ -119,6 +129,7 @@ func runFlow() error {
 
 		r.HandleFunc("/-/reload", func(w http.ResponseWriter, _ *http.Request) {
 			err := reload()
+			ready = err == nil
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return

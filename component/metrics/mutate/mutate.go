@@ -9,7 +9,6 @@ import (
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/metrics"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/prometheus/prometheus/storage"
 )
@@ -59,7 +58,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{opts: o}
 	c.appendable = fa.NewFlowAppendable(args.ForwardTo...)
 	c.receiver = &metrics.Receiver{Receive: c.Receive}
-	c.metricsProcessed = promauto.NewCounter(prometheus.CounterOpts{
+	c.metricsProcessed = prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "metrics_mutate_metrics_processed",
 		Help: "Total number of metrics processed",
 	})

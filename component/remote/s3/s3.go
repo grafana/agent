@@ -8,14 +8,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/grafana/agent/pkg/flow/rivertypes"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	aws_config "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/flow/rivertypes"
+	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/net/context"
 )
 
@@ -66,11 +64,11 @@ func New(o component.Options, args Arguments) (*S3, error) {
 		args:       args,
 		health:     component.Health{},
 		updateChan: make(chan result),
-		s3Errors: promauto.NewCounter(prometheus.CounterOpts{
+		s3Errors: prometheus.NewCounter(prometheus.CounterOpts{
 			Name: "remote_s3_errors_total",
 			Help: "The number of errors while accessing s3",
 		}),
-		lastAccessed: promauto.NewGauge(prometheus.GaugeOpts{
+		lastAccessed: prometheus.NewGauge(prometheus.GaugeOpts{
 			Name: "remote_s3_timestamp_last_accessed_unix_seconds",
 			Help: "The last successful access in unix seconds",
 		}),
