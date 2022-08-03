@@ -150,9 +150,9 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 		Logger:        log.With(globals.Logger, "component", cn.nodeID),
 		DataPath:      filepath.Join(globals.DataPath, cn.nodeID),
 		OnStateChange: cn.setExports,
-		Registerer: prometheus.WrapRegistererWith(prometheus.Labels{
+		Registerer: newRegister(prometheus.WrapRegistererWith(prometheus.Labels{
 			"component_id": cn.nodeID,
-		}, globals.Registerer),
+		}, globals.Registerer)),
 	}
 }
 
@@ -277,6 +277,7 @@ func (cn *ComponentNode) Run(ctx context.Context) error {
 	}
 
 	cn.setRunHealth(component.HealthTypeHealthy, "started component")
+	defer cn.managedOpts.Registerer.UnregisterComponent()
 	err := cn.managed.Run(ctx)
 
 	var exitMsg string

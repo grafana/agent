@@ -107,7 +107,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		}),
 	}
 
-	err := o.Registerer.Register(c.lastAccessed)
+	err := o.Registerer.RegisterComponent(c.lastAccessed)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +147,6 @@ func (c *Component) Run(ctx context.Context) error {
 	for {
 		select {
 		case <-ctx.Done():
-			c.opts.Registerer.Unregister(c.lastAccessed)
 			return nil
 		case <-c.reloadCh:
 			time.Sleep(waitReadPeriod)

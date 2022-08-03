@@ -74,16 +74,13 @@ func New(o component.Options, args Arguments) (*S3, error) {
 		}),
 	}
 
-	err = o.Registerer.Register(s.s3Errors)
-	if err != nil {
-		return nil, err
-	}
-	err = o.Registerer.Register(s.lastAccessed)
-	if err != nil {
-		return nil, err
-	}
 	w := newWatcher(bucket, file, s.updateChan, args.PollFrequency, s3Client)
 	s.watcher = w
+
+	err = o.Registerer.RegisterComponent(s.s3Errors, s.lastAccessed)
+	if err != nil {
+		return nil, err
+	}
 
 	content, err := w.downloadSynchronously()
 	s.handleContentPolling(content, err)
@@ -95,8 +92,7 @@ func (s *S3) Run(ctx context.Context) error {
 	go s.handleContentUpdate(ctx)
 	go s.watcher.run(ctx)
 	<-ctx.Done()
-	s.opts.Registerer.Unregister(s.s3Errors)
-	s.opts.Registerer.Unregister(s.lastAccessed)
+
 	return nil
 }
 

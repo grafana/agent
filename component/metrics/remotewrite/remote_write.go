@@ -148,8 +148,6 @@ func (c *Component) Run(ctx context.Context) error {
 	for {
 		select {
 		case <-ctx.Done():
-			c.walStore.Close()
-			c.storage.Close()
 			return nil
 		case <-time.After(walTruncateFrequency):
 			// The timestamp ts is used to determine which series are not receiving

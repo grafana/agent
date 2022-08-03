@@ -67,6 +67,7 @@ type Options struct {
 	// subdirectories for component-specific data.
 	DataPath string
 
+	// Reg is the prometheus register to use
 	Reg prometheus.Registerer
 }
 

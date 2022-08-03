@@ -20,7 +20,7 @@ func TestForwardingToAppendable(t *testing.T) {
 	require.NoError(t, err)
 	opts := component.Options{
 		Logger:     l,
-		Registerer: prometheus.NewRegistry(),
+		Registerer: &fakeRegisterer{},
 	}
 
 	nilReceivers := []*metrics.Receiver{nil, nil}
@@ -80,4 +80,25 @@ func TestForwardingToAppendable(t *testing.T) {
 	require.Equal(t, receivedTs, timestamp)
 	require.Len(t, receivedSamples, 1)
 	require.Equal(t, receivedSamples[0], &sample)
+}
+
+type fakeRegisterer struct {
+}
+
+func (f fakeRegisterer) Register(collector prometheus.Collector) error {
+	return nil
+}
+
+func (f fakeRegisterer) MustRegister(collector ...prometheus.Collector) {}
+
+func (f fakeRegisterer) Unregister(collector prometheus.Collector) bool {
+	return true
+}
+
+func (f fakeRegisterer) RegisterComponent(collector ...prometheus.Collector) error {
+	return nil
+}
+
+func (f fakeRegisterer) UnregisterComponent() bool {
+	return true
 }

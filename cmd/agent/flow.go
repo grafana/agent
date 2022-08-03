@@ -11,6 +11,8 @@ import (
 	"os/signal"
 	"sync"
 
+	"go.uber.org/atomic"
+
 	"github.com/fatih/color"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
@@ -43,7 +45,7 @@ func runFlow() error {
 		httpListenAddr = "127.0.0.1:12345"
 		configFile     string
 		storagePath    = "data-agent/"
-		ready          = true
+		ready          = atomic.NewBool(true)
 	)
 
 	fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
@@ -113,7 +115,7 @@ func runFlow() error {
 
 		r := mux.NewRouter()
 		r.HandleFunc("/-/ready", func(w http.ResponseWriter, r *http.Request) {
-			if ready {
+			if ready.Load() {
 				w.WriteHeader(http.StatusOK)
 				fmt.Fprintf(w, "Agent is Ready.\n")
 			} else {
@@ -129,7 +131,7 @@ func runFlow() error {
 
 		r.HandleFunc("/-/reload", func(w http.ResponseWriter, _ *http.Request) {
 			err := reload()
-			ready = err == nil
+			ready.Store(err == nil)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return

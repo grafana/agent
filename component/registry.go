@@ -52,7 +52,7 @@ type Options struct {
 	OnStateChange func(e Exports)
 
 	//Registerer allows components to add their own metrics. The register will come pre-wrapped with the component id
-	Registerer prometheus.Registerer
+	Registerer Registerer
 }
 
 // Registration describes a single component.
@@ -180,4 +180,15 @@ func validatePrefixMatch(check parsedName, against map[string]parsedName) error 
 func Get(name string) (Registration, bool) {
 	r, ok := registered[name]
 	return r, ok
+}
+
+// Registerer handles registering any custom metrics for a component and teardown
+type Registerer interface {
+	prometheus.Registerer
+
+	// RegisterComponent registers metrics for a component
+	RegisterComponent(...prometheus.Collector) error
+
+	// UnregisterComponent removes all metrics for a given component
+	UnregisterComponent() bool
 }
