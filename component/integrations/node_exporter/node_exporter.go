@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/metrics/scrape"
 	node_integration "github.com/grafana/agent/pkg/integrations/node_exporter"
 	"github.com/prometheus/common/model"
 )
@@ -24,15 +25,9 @@ func init() {
 	})
 }
 
-// Target refers to a singular HTTP or HTTPS endpoint that will be used for scraping.
-// Here, we're using a map[string]string instead of labels.Labels; if the label ordering
-// is important, we can change to follow the upstream logic instead.
-// TODO (@tpaschalis) Maybe the target definitions should be part of the
-// Service Discovery components package. Let's reconsider once it's ready.
-type Target map[string]string
-
+// Exports are simply a list of targets for a scraper to consume
 type Exports struct {
-	Output []Target `river:"output,attr"`
+	Output []scrape.Target `river:"output,attr"`
 }
 
 type Component struct {
@@ -72,7 +67,7 @@ func (c *Component) Update(args component.Arguments) error {
 	c.log.Log("Msg", "Update")
 	var err error
 	c.integration, err = node_integration.New(c.log, c.cfg)
-	targets := []Target{{
+	targets := []scrape.Target{{
 		model.AddressLabel:     "127.0.0.1:12345",
 		model.SchemeLabel:      "http",
 		model.MetricsPathLabel: fmt.Sprintf("/component/%s/metrics", c.opts.ID),
@@ -86,8 +81,10 @@ func (c *Component) Update(args component.Arguments) error {
 
 func (c *Component) Handler() http.Handler {
 	if c.integration != nil {
-		// todo: handle
-		h, _ := c.integration.MetricsHandler()
+		h, err := c.integration.MetricsHandler()
+		if err != nil {
+			c.log.Log(fmt.Errorf("Creating metrics handler: %e", err))
+		}
 		return h
 	}
 	return nil
