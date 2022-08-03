@@ -102,7 +102,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 		reloadCh: make(chan struct{}, 1),
 		lastAccessed: prometheus.NewGauge(prometheus.GaugeOpts{
-			Name: "local_file_timestamp_last_accessed_unix_seconds",
+			Name: "agent_local_file_timestamp_last_accessed_unix_seconds",
 			Help: "The last successful access in unix seconds",
 		}),
 	}
