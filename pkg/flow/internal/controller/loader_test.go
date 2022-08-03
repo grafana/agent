@@ -57,7 +57,6 @@ func TestLoader(t *testing.T) {
 	}
 
 	t.Run("New Graph", func(t *testing.T) {
-
 		l := controller.NewLoader(newGlobals())
 		diags := applyFromContent(t, l, []byte(testFile))
 		require.NoError(t, diags.ErrorOrNil())
