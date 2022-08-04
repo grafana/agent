@@ -123,7 +123,6 @@ local manifester(indent=0) = {
         acc + linePadding(indent + 1) + text
       ), std.objectFields(value), '');
 
-
       // Last check at the end: if the body is empty, we can return an empty object.
       if body == '' then '{}'
       else (
@@ -133,7 +132,6 @@ local manifester(indent=0) = {
     else error 'unsupported value type %s' % std.type(value)
   ),
 };
-
 
 {
   // manifestRiver returns a pretty-printed River file from the Jsonnet value.
