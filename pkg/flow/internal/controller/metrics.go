@@ -68,7 +68,4 @@ func (cc *controllerCollector) Collect(ch chan<- prometheus.Metric) {
 
 func (cc *controllerCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- cc.runningComponentsTotal
-	for _, component := range cc.l.components {
-		component.register.Describe(ch)
-	}
 }

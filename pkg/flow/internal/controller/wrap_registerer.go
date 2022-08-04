@@ -7,7 +7,7 @@ import (
 )
 
 type wrappedRegisterer struct {
-	mut                sync.Mutex
+	mut                sync.RWMutex
 	internalCollectors map[prometheus.Collector]struct{}
 }
 
@@ -18,8 +18,8 @@ func newWrappedRegisterer() *wrappedRegisterer {
 
 // Describe implements the interface
 func (w *wrappedRegisterer) Describe(descs chan<- *prometheus.Desc) {
-	w.mut.Lock()
-	defer w.mut.Unlock()
+	w.mut.RLock()
+	defer w.mut.RUnlock()
 
 	for c := range w.internalCollectors {
 		c.Describe(descs)
@@ -28,8 +28,8 @@ func (w *wrappedRegisterer) Describe(descs chan<- *prometheus.Desc) {
 
 // Collect implements the interface
 func (w *wrappedRegisterer) Collect(metrics chan<- prometheus.Metric) {
-	w.mut.Lock()
-	defer w.mut.Unlock()
+	w.mut.RLock()
+	defer w.mut.RUnlock()
 
 	for c := range w.internalCollectors {
 		c.Collect(metrics)
