@@ -16,7 +16,6 @@ import (
 	"github.com/grafana/agent/pkg/river/token/builder"
 	"github.com/grafana/agent/pkg/river/vm"
 	"github.com/hashicorp/go-multierror"
-	"github.com/prometheus/client_golang/prometheus"
 
 	_ "github.com/grafana/agent/pkg/flow/internal/testcomponents" // Include test components
 )
@@ -36,18 +35,18 @@ type Loader struct {
 
 // NewLoader creates a new Loader. Components built by the Loader will be built
 // with co for their options.
-func NewLoader(globals ComponentGlobals, reg prometheus.Registerer) *Loader {
+func NewLoader(globals ComponentGlobals) *Loader {
 	l := &Loader{
 		log:     globals.Logger,
 		globals: globals,
 
 		graph: &dag.Graph{},
 		cache: newValueCache(),
-		cm:    newControllerMetrics(reg),
+		cm:    newControllerMetrics(globals.Registerer),
 	}
 	cc := newControllerCollector(l)
-	if reg != nil {
-		reg.MustRegister(cc)
+	if globals.Registerer != nil {
+		globals.Registerer.MustRegister(cc)
 	}
 	return l
 }

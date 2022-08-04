@@ -16,6 +16,7 @@ import (
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/vm"
+	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/atomic"
 )
 
@@ -58,6 +59,7 @@ type ComponentGlobals struct {
 	Logger          log.Logger              // Logger shared between all managed components.
 	DataPath        string                  // Shared directory where component data may be stored
 	OnExportsChange func(cn *ComponentNode) // Invoked when the managed component updated its exports
+	Registerer      prometheus.Registerer   // Registerer for serving agent and component metrics
 }
 
 // ComponentNode is a controller node which manages a user-defined component.
@@ -70,6 +72,7 @@ type ComponentNode struct {
 	nodeID          string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
 	reg             component.Registration
 	managedOpts     component.Options
+	register        *wrappedRegisterer
 	exportsType     reflect.Type
 	onExportsChange func(cn *ComponentNode) // Informs controller that we changed our exports
 
@@ -143,11 +146,16 @@ func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode
 }
 
 func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Options {
+	wrapped := newWrappedRegisterer()
+	cn.register = wrapped
 	return component.Options{
 		ID:            cn.nodeID,
 		Logger:        log.With(globals.Logger, "component", cn.nodeID),
 		DataPath:      filepath.Join(globals.DataPath, cn.nodeID),
 		OnStateChange: cn.setExports,
+		Registerer: prometheus.WrapRegistererWith(prometheus.Labels{
+			"component_id": cn.nodeID,
+		}, wrapped),
 	}
 }
 

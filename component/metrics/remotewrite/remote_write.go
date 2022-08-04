@@ -55,7 +55,6 @@ func init() {
 type Component struct {
 	log  log.Logger
 	opts component.Options
-	reg  *metrics.CollectorRegistry
 
 	walStore    *wal.Storage
 	remoteStore *remote.Storage
@@ -69,23 +68,19 @@ type Component struct {
 
 // NewComponent creates a new metrics_forwarder component.
 func NewComponent(o component.Options, c RemoteConfig) (*Component, error) {
-	reg := metrics.NewCollectorRegistry()
-
 	walLogger := log.With(o.Logger, "subcomponent", "wal")
 	dataPath := filepath.Join(o.DataPath, "wal", o.ID)
-	walStorage, err := wal.NewStorage(walLogger, reg, dataPath)
+	walStorage, err := wal.NewStorage(walLogger, o.Registerer, dataPath)
 	if err != nil {
 		return nil, err
 	}
 
 	remoteLogger := log.With(o.Logger, "subcomponent", "rw")
-	remoteStore := remote.NewStorage(remoteLogger, reg, startTime, dataPath, remoteFlushDeadline, nil)
+	remoteStore := remote.NewStorage(remoteLogger, o.Registerer, startTime, dataPath, remoteFlushDeadline, nil)
 
 	res := &Component{
-		log:  o.Logger,
-		opts: o,
-		reg:  reg,
-
+		log:         o.Logger,
+		opts:        o,
 		walStore:    walStorage,
 		remoteStore: remoteStore,
 		storage:     storage.NewFanout(o.Logger, walStorage, remoteStore),
@@ -218,14 +213,4 @@ func (c *Component) Config() RemoteConfig {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
 	return c.cfg
-}
-
-// Describe implements prometheus.Collector.
-func (c *Component) Describe(ch chan<- *prometheus.Desc) {
-	c.reg.Describe(ch)
-}
-
-// Collect implements prometheus.Collector.
-func (c *Component) Collect(ch chan<- prometheus.Metric) {
-	c.reg.Collect(ch)
 }

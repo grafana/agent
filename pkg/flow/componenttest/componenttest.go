@@ -9,6 +9,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
+
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
 )
@@ -126,6 +128,7 @@ func (c *Controller) buildComponent(dataPath string, args component.Arguments) (
 		Logger:        c.log,
 		DataPath:      dataPath,
 		OnStateChange: c.onStateChange,
+		Registerer:    prometheus.NewRegistry(),
 	}
 
 	inner, err := c.reg.Build(opts, args)

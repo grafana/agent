@@ -47,14 +47,17 @@ func TestLoader(t *testing.T) {
 		},
 	}
 
-	globals := controller.ComponentGlobals{
-		Logger:          log.NewNopLogger(),
-		DataPath:        t.TempDir(),
-		OnExportsChange: func(cn *controller.ComponentNode) { /* no-op */ },
+	newGlobals := func() controller.ComponentGlobals {
+		return controller.ComponentGlobals{
+			Logger:          log.NewNopLogger(),
+			DataPath:        t.TempDir(),
+			OnExportsChange: func(cn *controller.ComponentNode) { /* no-op */ },
+			Registerer:      prometheus.NewRegistry(),
+		}
 	}
 
 	t.Run("New Graph", func(t *testing.T) {
-		l := controller.NewLoader(globals, prometheus.DefaultRegisterer)
+		l := controller.NewLoader(newGlobals())
 		diags := applyFromContent(t, l, []byte(testFile))
 		require.NoError(t, diags.ErrorOrNil())
 		requireGraph(t, l.Graph(), testGraphDefinition)
@@ -72,7 +75,7 @@ func TestLoader(t *testing.T) {
 				frequency = "1m"
 			}
 		`
-		l := controller.NewLoader(globals, nil)
+		l := controller.NewLoader(newGlobals())
 		diags := applyFromContent(t, l, []byte(startFile))
 		origGraph := l.Graph()
 		require.NoError(t, diags.ErrorOrNil())
@@ -91,7 +94,7 @@ func TestLoader(t *testing.T) {
 			doesnotexist "bad_component" {
 			}
 		`
-		l := controller.NewLoader(globals, nil)
+		l := controller.NewLoader(newGlobals())
 		diags := applyFromContent(t, l, []byte(invalidFile))
 		require.ErrorContains(t, diags.ErrorOrNil(), `Unrecognized component name "doesnotexist`)
 	})
@@ -110,7 +113,7 @@ func TestLoader(t *testing.T) {
 				input = testcomponents.tick.doesnotexist.tick_time
 			}
 		`
-		l := controller.NewLoader(globals, nil)
+		l := controller.NewLoader(newGlobals())
 		diags := applyFromContent(t, l, []byte(invalidFile))
 		require.Error(t, diags.ErrorOrNil())
 
@@ -144,7 +147,7 @@ func TestLoader(t *testing.T) {
 				input = testcomponents.passthrough.ticker.output
 			}
 		`
-		l := controller.NewLoader(globals, nil)
+		l := controller.NewLoader(newGlobals())
 		diags := applyFromContent(t, l, []byte(invalidFile))
 		require.Error(t, diags.ErrorOrNil())
 	})
