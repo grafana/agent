@@ -6,9 +6,7 @@ import (
 	"context"
 	"fmt"
 	"math"
-	"net/url"
 	"path/filepath"
-	"sort"
 	"sync"
 	"time"
 
@@ -18,12 +16,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/build"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
 	"github.com/grafana/agent/pkg/metrics/wal"
-	common "github.com/prometheus/common/config"
-	"github.com/prometheus/common/model"
-	"github.com/prometheus/prometheus/config"
-	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/timestamp"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/prometheus/prometheus/storage/remote"
@@ -42,7 +35,6 @@ var (
 
 func init() {
 	remote.UserAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
-	config.DefaultRemoteWriteConfig.SendExemplars = true
 
 	component.Register(component.Registration{
 		Name:    "metrics.remote_write",
@@ -52,32 +44,6 @@ func init() {
 			return NewComponent(o, c.(RemoteConfig))
 		},
 	})
-}
-
-// RemoteConfig represents the input state of the metrics_forwarder component.
-type RemoteConfig struct {
-	ExternalLabels map[string]string `river:"external_labels,attr,optional"`
-	RemoteWrite    []*Config         `river:"remote_write,block,optional"`
-}
-
-// Config is the metrics_fowarder's configuration for where to send
-// metrics stored in the WAL.
-type Config struct {
-	Name      string           `river:"name,attr,optional"`
-	URL       string           `river:"url,attr"`
-	BasicAuth *BasicAuthConfig `river:"basic_auth,block,optional"`
-}
-
-// Export is used to assign this to receive metrics
-type Export struct {
-	Receiver *metrics.Receiver `river:"receiver,attr"`
-}
-
-// BasicAuthConfig is the metrics_forwarder's configuration for authenticating
-// against the remote system when sending metrics.
-type BasicAuthConfig struct {
-	Username string            `river:"username,attr"`
-	Password rivertypes.Secret `river:"password,attr"`
 }
 
 // Component is the metrics_forwarder component.
@@ -190,40 +156,11 @@ func (c *Component) Update(newConfig component.Arguments) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 
-	var rwConfigs []*config.RemoteWriteConfig
-	for _, rw := range cfg.RemoteWrite {
-		parsedURL, err := url.Parse(rw.URL)
-		if err != nil {
-			return fmt.Errorf("cannot parse remote_write url %q: %w", rw.URL, err)
-		}
-
-		rwc := &config.RemoteWriteConfig{
-			Name:          rw.Name,
-			URL:           &common.URL{URL: parsedURL},
-			RemoteTimeout: model.Duration(30 * time.Second),
-			QueueConfig:   config.DefaultQueueConfig,
-			MetadataConfig: config.MetadataConfig{
-				Send: false,
-			},
-			HTTPClientConfig: common.DefaultHTTPClientConfig,
-		}
-
-		if rw.BasicAuth != nil {
-			rwc.HTTPClientConfig.BasicAuth = &common.BasicAuth{
-				Username: rw.BasicAuth.Username,
-				Password: common.Secret(rw.BasicAuth.Password),
-			}
-		}
-
-		rwConfigs = append(rwConfigs, rwc)
+	convertedConfig, err := convertConfigs(cfg)
+	if err != nil {
+		return err
 	}
-
-	err := c.remoteStore.ApplyConfig(&config.Config{
-		GlobalConfig: config.GlobalConfig{
-			ExternalLabels: toLabels(cfg.ExternalLabels),
-		},
-		RemoteWriteConfigs: rwConfigs,
-	})
+	err = c.remoteStore.ApplyConfig(convertedConfig)
 	if err != nil {
 		return err
 	}
@@ -255,15 +192,6 @@ func (c *Component) Receive(ts int64, metricArr []*metrics.FlowMetric) {
 		}
 	}
 	_ = app.Commit()
-}
-
-func toLabels(in map[string]string) labels.Labels {
-	res := make(labels.Labels, 0, len(in))
-	for k, v := range in {
-		res = append(res, labels.Label{Name: k, Value: v})
-	}
-	sort.Sort(res)
-	return res
 }
 
 // Config implements Component.
