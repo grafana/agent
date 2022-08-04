@@ -54,7 +54,7 @@ type Config struct {
 	// scrape to fail.
 	LabelValueLengthLimit uint `river:"label_value_length_limit,attr,optional"`
 
-	component_config.HTTPClientConfig
+	HTTPClientConfig component_config.HTTPClientConfig `river:"http_client_config,block,optional"`
 }
 
 // DefaultConfig is the set of default options applied before decoding a given
