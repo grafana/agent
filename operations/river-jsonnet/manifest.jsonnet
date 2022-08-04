@@ -46,24 +46,33 @@ local manifester(indent=0) = {
         else '%s "%s"' % [field.name, field.label]
       );
 
-      local statement = if field.type == 'attr' then (
+      if field.type == 'attr' then (
         // Manifest the value to text.
         local attr_value = this.value(value[field.orig]);
 
         // Attributes are printed as <attribute_name> = <rendered value>
-        acc + padding + ('%s = %s' % [name, attr_value])
-      ) else if field.type == 'block' then (
+        acc + padding + ('%s = %s' % [name, attr_value]) + '\n'
+      ) else if field.type == 'block' && std.isObject(value[field.orig]) then (
         local block_header = '%s {\n' % name;
         local block_body = manifester(indent + 1).body(value[field.orig]);
         // The block body ends in a newline, so the block trailer must start
         // with line padding.
         local block_trailer = padding + '}';
 
-        acc + padding + block_header + block_body + block_trailer
-      ) else error 'invalid field type';  // This should never happen
+        acc + padding + block_header + block_body + block_trailer + '\n'
+      ) else if field.type == 'block' && std.isArray(value[field.orig]) then (
+        // List of blocks.
 
-      // Add a newline after each statement to separate them.
-      statement + '\n'
+        local block_header = '%s {\n' % name;
+        local block_trailer = padding + '}';
+
+        std.foldl(function(acc, block) (
+          local block_body = manifester(indent + 1).body(block);
+          acc + padding + block_header + block_body + block_trailer + '\n'
+        ), value[field.orig], acc)
+      ) else (
+        error 'invalid field type'  // This should never happen
+      )
     ), parsedFields, '')
   ),
 
@@ -72,7 +81,13 @@ local manifester(indent=0) = {
     if value == null then (
       'null'
     ) else if isRiverExpr(value) then (
-      value.lit
+      local lines = std.split(value.lit, '\n');
+
+      // When injecting literals, each line after the first should have the
+      // current padding appended to it.
+      std.join('\n', std.mapWithIndex(function(index, line) (
+        if index > 0 then padding + line else line
+      ), lines))
     ) else if std.isString(value) then (
       '"%s"' % value
     ) else if std.isBoolean(value) then (
@@ -134,10 +149,15 @@ local manifester(indent=0) = {
 };
 
 {
+
   // manifestRiver returns a pretty-printed River file from the Jsonnet value.
   // value must be an object.
   manifestRiver(value):: (
     assert std.isObject(value) : 'manifestRiver must be called with object';
     manifester().body(value)
+  ),
+
+  manifestRiverValue(value):: (
+    manifester().value(value)
   ),
 }
