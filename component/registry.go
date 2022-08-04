@@ -181,14 +181,3 @@ func Get(name string) (Registration, bool) {
 	r, ok := registered[name]
 	return r, ok
 }
-
-// Registerer handles registering any custom metrics for a component and teardown
-type Registerer interface {
-	prometheus.Registerer
-
-	// RegisterComponent registers metrics for a component
-	RegisterComponent(...prometheus.Collector) error
-
-	// UnregisterComponent removes all metrics for a given component
-	UnregisterComponent() bool
-}
