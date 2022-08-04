@@ -3,7 +3,10 @@ package remotewrite
 import (
 	"fmt"
 	"net/url"
+	"sort"
 	"time"
+
+	"github.com/prometheus/prometheus/model/labels"
 
 	"github.com/prometheus/prometheus/config"
 
@@ -129,4 +132,13 @@ func convertConfigs(cfg RemoteConfig) (*config.Config, error) {
 		},
 		RemoteWriteConfigs: rwConfigs,
 	}, nil
+}
+
+func toLabels(in map[string]string) labels.Labels {
+	res := make(labels.Labels, 0, len(in))
+	for k, v := range in {
+		res = append(res, labels.Label{Name: k, Value: v})
+	}
+	sort.Sort(res)
+	return res
 }
