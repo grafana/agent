@@ -17,7 +17,6 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/metrics/wal"
-	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/model/timestamp"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/prometheus/prometheus/storage/remote"
@@ -36,7 +35,6 @@ var (
 
 func init() {
 	remote.UserAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
-	config.DefaultRemoteWriteConfig.SendExemplars = true
 
 	component.Register(component.Registration{
 		Name:    "metrics.remote_write",

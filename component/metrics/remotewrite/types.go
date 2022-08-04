@@ -74,6 +74,16 @@ type BasicAuthConfig struct {
 }
 
 // UnmarshalRiver allows injecting of default values
+func (r *Config) UnmarshalRiver(f func(v interface{}) error) error {
+	*r = Config{
+		SendExemplars: true,
+	}
+
+	type arguments Config
+	return f((*arguments)(r))
+}
+
+// UnmarshalRiver allows injecting of default values
 func (r *QueueConfig) UnmarshalRiver(f func(v interface{}) error) error {
 	*r = DefaultQueueConfig
 
