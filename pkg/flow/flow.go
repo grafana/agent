@@ -67,6 +67,7 @@ type Options struct {
 	// subdirectories for component-specific data.
 	DataPath string
 
+	// Reg is the prometheus register to use
 	Reg prometheus.Registerer
 }
 
@@ -117,7 +118,8 @@ func newFlow(o Options) (*Flow, context.Context) {
 				// Changed components should be queued for reevaluation.
 				queue.Enqueue(cn)
 			},
-		}, o.Reg)
+			Registerer: o.Reg,
+		})
 	)
 
 	return &Flow{

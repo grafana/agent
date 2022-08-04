@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/regexp"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 // The parsedName of a component is the parts of its name ("remote.http") split
@@ -49,6 +50,9 @@ type Options struct {
 	// by the component; a component must use the same Exports type for its
 	// lifetime.
 	OnStateChange func(e Exports)
+
+	// Registerer allows components to add their own metrics. The register will come pre-wrapped with the component ID. It is not necessary for components to unregister metrics on shutdown.
+	Registerer prometheus.Registerer
 }
 
 // Registration describes a single component.

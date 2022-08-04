@@ -11,6 +11,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
+
 	"github.com/grafana/agent/component"
 	"github.com/johannesboyne/gofakes3"
 	"github.com/johannesboyne/gofakes3/backend/s3mem"
@@ -22,6 +24,7 @@ func TestCorrectBucket(t *testing.T) {
 	o := component.Options{
 		ID:            "t1",
 		OnStateChange: func(_ component.Exports) {},
+		Registerer:    prometheus.NewRegistry(),
 	}
 	s3File, err := New(o,
 		Arguments{
@@ -44,6 +47,7 @@ func TestWatchingFile(t *testing.T) {
 			defer mut.Unlock()
 			output = e.(Exports).Content.Value
 		},
+		Registerer: prometheus.NewRegistry(),
 	}, Arguments{
 		Path:          "s3://mybucket/test.txt",
 		PollFrequency: 10 * time.Second,

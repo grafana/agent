@@ -8,6 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
+
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/rivertypes"
@@ -84,7 +86,8 @@ type Component struct {
 
 	// reloadCh is a buffered channel which is written to when the watched file
 	// should be reloaded by the component.
-	reloadCh chan struct{}
+	reloadCh     chan struct{}
+	lastAccessed prometheus.Gauge
 }
 
 var (
@@ -98,11 +101,19 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		opts: o,
 
 		reloadCh: make(chan struct{}, 1),
+		lastAccessed: prometheus.NewGauge(prometheus.GaugeOpts{
+			Name: "agent_local_file_timestamp_last_accessed_unix_seconds",
+			Help: "The last successful access in unix seconds",
+		}),
 	}
 
+	err := o.Registerer.Register(c.lastAccessed)
+	if err != nil {
+		return nil, err
+	}
 	// Perform an update which will immediately set our exports to the initial
 	// contents of the file.
-	if err := c.Update(args); err != nil {
+	if err = c.Update(args); err != nil {
 		return nil, err
 	}
 	return c, nil
@@ -162,6 +173,7 @@ func (c *Component) readFile() error {
 		return err
 	}
 	c.latestContent = string(bb)
+	c.lastAccessed.SetToCurrentTime()
 
 	c.opts.OnStateChange(Exports{
 		Content: rivertypes.OptionalSecret{
