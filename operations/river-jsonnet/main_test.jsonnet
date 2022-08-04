@@ -101,6 +101,42 @@ local tests = [
       }
     |||,
   },
+  {
+    name: 'List of blocks',
+    input: {
+      attr_1: 'Hello, world!',
+
+      [river.block('outer_block')]: {
+        attr_1: 53,
+        [river.block('inner_block', 'labeled')]: [
+          { bool: true },
+          { bool: false },
+        ],
+        [river.block('inner_block', 'other_label')]: [
+          { bool: true },
+          { bool: false },
+        ],
+      },
+    },
+    expect: |||
+      attr_1 = "Hello, world!"
+      outer_block {
+        attr_1 = 53
+        inner_block "labeled" {
+          bool = true
+        }
+        inner_block "labeled" {
+          bool = false
+        }
+        inner_block "other_label" {
+          bool = true
+        }
+        inner_block "other_label" {
+          bool = false
+        }
+      }
+    |||,
+  },
 ];
 
 std.map(function(test) (
