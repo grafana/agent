@@ -171,7 +171,7 @@ func (c *Component) Update(newConfig component.Arguments) error {
 
 // Receive implements the receiver.receive func that allows an array of metrics to be passed
 func (c *Component) Receive(ts int64, metricArr []*metrics.FlowMetric) {
-	app := c.walStore.Appender(context.Background())
+	app := c.storage.Appender(context.Background())
 	for _, m := range metricArr {
 		// TODO this should all be simplified into one call
 		if m.GlobalRefID == 0 {
