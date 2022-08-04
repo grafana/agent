@@ -51,7 +51,7 @@ type Options struct {
 	// lifetime.
 	OnStateChange func(e Exports)
 
-	//Registerer allows components to add their own metrics. The register will come pre-wrapped with the component id
+	// Registerer allows components to add their own metrics. The register will come pre-wrapped with the component ID. It is not necessary for components to unregister metrics on shutdown.
 	Registerer prometheus.Registerer
 }
 
