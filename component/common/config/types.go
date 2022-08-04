@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/grafana/agent/pkg/river"
+
 	"github.com/grafana/agent/pkg/flow/rivertypes"
 	"github.com/prometheus/common/config"
 )
@@ -21,6 +23,16 @@ type HTTPClientConfig struct {
 	TLSConfig       TLSConfig         `river:"tls_config,block,optional"`
 	FollowRedirects bool              `river:"follow_redirects,attr,optional"`
 	EnableHTTP2     bool              `river:"enable_http2,attr,optional"`
+}
+
+// UnmarshalRiver implements the umarshaller
+func (h *HTTPClientConfig) UnmarshalRiver(f func(v interface{}) error) error {
+	*h = HTTPClientConfig{
+		FollowRedirects: true,
+		EnableHTTP2:     true,
+	}
+	type config HTTPClientConfig
+	return f((*config)(h))
 }
 
 // Convert converts our type to the native prometheus type
@@ -43,6 +55,8 @@ var DefaultHTTPClientConfig = HTTPClientConfig{
 	FollowRedirects: true,
 	EnableHTTP2:     true,
 }
+
+var _ river.Unmarshaler = (*HTTPClientConfig)(nil)
 
 // BasicAuth configures Basic HTTP authentication credentials.
 type BasicAuth struct {

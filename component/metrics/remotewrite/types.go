@@ -10,6 +10,7 @@ import (
 
 	"github.com/prometheus/prometheus/config"
 
+	types "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/metrics"
 	"github.com/grafana/agent/pkg/flow/rivertypes"
 	"github.com/grafana/agent/pkg/river"
@@ -41,11 +42,12 @@ type RemoteConfig struct {
 // Config is the metrics_fowarder's configuration for where to send
 // metrics stored in the WAL.
 type Config struct {
-	Name          string           `river:"name,attr,optional"`
-	URL           string           `river:"url,attr"`
-	SendExemplars bool             `river:"send_exemplars,attr,optional"`
-	BasicAuth     *BasicAuthConfig `river:"basic_auth,block,optional"`
-	QueueConfig   *QueueConfig     `river:"queue_config,block,optional"`
+	Name             string                  `river:"name,attr,optional"`
+	URL              string                  `river:"url,attr"`
+	SendExemplars    bool                    `river:"send_exemplars,attr,optional"`
+	BasicAuth        *BasicAuthConfig        `river:"basic_auth,block,optional"`
+	QueueConfig      *QueueConfig            `river:"queue_config,block,optional"`
+	HTTPClientConfig *types.HTTPClientConfig `river:"client_config,block,optional"`
 }
 
 // QueueConfig handles the low level queue config options for a remote_write
@@ -129,6 +131,10 @@ func convertConfigs(cfg RemoteConfig) (*config.Config, error) {
 				MaxBackoff:        model.Duration(rw.QueueConfig.MaxBackoff),
 				RetryOnRateLimit:  rw.QueueConfig.RetryOn429,
 			}
+		}
+
+		if rw.HTTPClientConfig != nil {
+			rwc.HTTPClientConfig = *rw.HTTPClientConfig.Convert()
 		}
 
 		rwc.SendExemplars = rw.SendExemplars
