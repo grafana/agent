@@ -6,13 +6,10 @@ import (
 	"context"
 	"fmt"
 	"math"
-	"net/url"
 	"path/filepath"
 	"sort"
 	"sync"
 	"time"
-
-	"github.com/golang/protobuf/ptypes/duration"
 
 	"github.com/grafana/agent/component/metrics"
 
@@ -20,11 +17,8 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/build"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
 	"github.com/grafana/agent/pkg/metrics/wal"
 	"github.com/prometheus/client_golang/prometheus"
-	common "github.com/prometheus/common/config"
-	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/timestamp"
@@ -55,46 +49,6 @@ func init() {
 			return NewComponent(o, c.(RemoteConfig))
 		},
 	})
-}
-
-// RemoteConfig represents the input state of the metrics_forwarder component.
-type RemoteConfig struct {
-	ExternalLabels map[string]string `river:"external_labels,attr,optional"`
-	RemoteWrite    []*Config         `river:"remote_write,block,optional"`
-}
-
-// Config is the metrics_fowarder's configuration for where to send
-// metrics stored in the WAL.
-type Config struct {
-	Name          string           `river:"name,attr,optional"`
-	URL           string           `river:"url,attr"`
-	SendExemplars bool             `river:"send_exemplars,attr"`
-	BasicAuth     *BasicAuthConfig `river:"basic_auth,block,optional"`
-	QueueConfig   *QueueConfig     `river:"queue_config,block,optional"`
-}
-
-// QueueConfig handles the low level queue config options for a remote_write
-type QueueConfig struct {
-	Capacity          int               `river:"capacity,attr,optional"`
-	MaxShards         int               `river:"max_shards,attr,optional"`
-	MinShards         int               `river:"min_shards,attr,optional"`
-	MaxSamplesPerSend int               `river:"max_samples_per_send,attr,optional"`
-	BatchSendDeadline duration.Duration `river:"batch_send_deadline,attr,optional"`
-	MinBackoff        duration.Duration `river:"min_backoff,attr,optional"`
-	MaxBackoff        duration.Duration `river:"max_backoff,attr,optional"`
-	RetryOn429        bool              `river:"retry_on_http_429,attr,optional"`
-}
-
-// Export is used to assign this to receive metrics
-type Export struct {
-	Receiver *metrics.Receiver `river:"receiver,attr"`
-}
-
-// BasicAuthConfig is the metrics_forwarder's configuration for authenticating
-// against the remote system when sending metrics.
-type BasicAuthConfig struct {
-	Username string            `river:"username,attr"`
-	Password rivertypes.Secret `river:"password,attr"`
 }
 
 // Component is the metrics_forwarder component.
@@ -274,46 +228,4 @@ func (c *Component) Describe(ch chan<- *prometheus.Desc) {
 // Collect implements prometheus.Collector.
 func (c *Component) Collect(ch chan<- prometheus.Metric) {
 	c.reg.Collect(ch)
-}
-
-func convertConfigs(cfg RemoteConfig) (*config.Config, error) {
-	var rwConfigs []*config.RemoteWriteConfig
-	for _, rw := range cfg.RemoteWrite {
-		parsedURL, err := url.Parse(rw.URL)
-		if err != nil {
-			return nil, fmt.Errorf("cannot parse remote_write url %q: %w", rw.URL, err)
-		}
-
-		rwc := &config.RemoteWriteConfig{
-			Name:          rw.Name,
-			URL:           &common.URL{URL: parsedURL},
-			RemoteTimeout: model.Duration(30 * time.Second),
-			QueueConfig:   config.DefaultQueueConfig,
-			MetadataConfig: config.MetadataConfig{
-				Send: false,
-			},
-			HTTPClientConfig: common.DefaultHTTPClientConfig,
-		}
-
-		if rw.BasicAuth != nil {
-			rwc.HTTPClientConfig.BasicAuth = &common.BasicAuth{
-				Username: rw.BasicAuth.Username,
-				Password: common.Secret(rw.BasicAuth.Password),
-			}
-		}
-		if rw.QueueConfig != nil {
-			rwc.QueueConfig
-		}
-
-		rwConfigs = append(rwConfigs, rwc)
-	}
-	c := &config.Config{
-		GlobalConfig: config.GlobalConfig{
-			ExternalLabels: toLabels(cfg.ExternalLabels),
-		},
-		RemoteWriteConfigs: rwConfigs,
-	}
-	if cfg.
-	return c, nil
-
 }
