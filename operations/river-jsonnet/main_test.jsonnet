@@ -137,6 +137,17 @@ local tests = [
       }
     |||,
   },
+  {
+    name: 'Indented literals',
+    input: {
+      attr_1: river.expr('concat([%s])' % river.manifestRiverValue({ hello: 'world' })),
+    },
+    expect: |||
+      attr_1 = concat([{
+        "hello" = "world",
+      }])
+    |||,
+  },
 ];
 
 std.map(function(test) (
