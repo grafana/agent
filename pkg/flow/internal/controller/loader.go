@@ -243,6 +243,10 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 	l.mut.RLock()
 	defer l.mut.RUnlock()
 
+	l.cm.controllerEvaluation.Set(1)
+	defer l.cm.controllerEvaluation.Set(0)
+	start := time.Now()
+
 	// Make sure we're in-sync with the current exports of c.
 	l.cache.CacheExports(c.ID(), c.Exports())
 
@@ -256,6 +260,8 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 		_ = l.evaluate(parentScope, n.(*ComponentNode))
 		return nil
 	})
+
+	l.cm.componentEvaluationTime.Observe(time.Since(start).Seconds())
 }
 
 // evaluate constructs the final context for c and evaluates it. mut must be
