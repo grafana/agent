@@ -44,7 +44,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 
 func (c *Config) Name() string {
-	return "vmware_exporter"
+	return "vsphere"
 }
 
 func (c *Config) ApplyDefaults(g integrations.Globals) error {
@@ -73,7 +73,7 @@ func (c *Config) NewIntegration(log log.Logger, g integrations.Globals) (integra
 	vsphereURL.User = url.UserPassword(c.VSphereUser, c.VSpherePass)
 
 	exporterConfig := vsphere.Config{
-		TelemetryPath:           "/integrations/vmware_exporter/metrics",
+		TelemetryPath:           "/integrations/vsphere/metrics",
 		ChunkSize:               c.ChunkSize,
 		CollectConcurrency:      c.CollectConcurrency,
 		VSphereURL:              vsphereURL,
