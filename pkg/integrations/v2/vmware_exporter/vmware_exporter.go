@@ -10,6 +10,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/v2/common"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"github.com/grafana/vmware_exporter/vsphere"
+	config_util "github.com/prometheus/common/config"
 )
 
 func init() {
@@ -28,7 +29,7 @@ type Config struct {
 	CollectConcurrency      int                  `yaml:"collect_concurrency,omitempty"`
 	VSphereURL              string               `yaml:"vsphere_url,omitempty"`
 	VSphereUser             string               `yaml:"vsphere_user,omitempty"`
-	VSpherePass             string               `yaml:"vsphere_password,omitempty"`
+	VSpherePass             config_util.Secret   `yaml:"vsphere_password,omitempty"`
 	ObjectDiscoveryInterval time.Duration        `yaml:"discovery_interval,omitempty"`
 	EnableExporterMetrics   bool                 `yaml:"enable_exporter_metrics,omitempty"`
 	Common                  common.MetricsConfig `yaml:",inline"`
@@ -70,7 +71,7 @@ func (c *Config) NewIntegration(log log.Logger, g integrations.Globals) (integra
 	if err != nil {
 		return nil, err
 	}
-	vsphereURL.User = url.UserPassword(c.VSphereUser, c.VSpherePass)
+	vsphereURL.User = url.UserPassword(c.VSphereUser, string(c.VSpherePass))
 
 	exporterConfig := vsphere.Config{
 		TelemetryPath:           "/integrations/vsphere/metrics",
