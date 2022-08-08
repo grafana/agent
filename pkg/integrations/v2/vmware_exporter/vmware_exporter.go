@@ -60,14 +60,15 @@ func (c *Config) ApplyDefaults(g integrations.Globals) error {
 
 // Identifier returns a string that identifies the instance of the integration.
 func (c *Config) Identifier(g integrations.Globals) (string, error) {
-	return *c.Common.InstanceKey, nil
-}
+	if c.Common.InstanceKey != nil {
+		return *c.Common.InstanceKey, nil
 
-// InstanceKey returns the vsphere instance configured.
-func (c *Config) InstanceKey(agentKey string) (string, error) {
+	}
+
 	u, err := url.Parse(c.VSphereURL)
 	if err != nil {
 		return "", err
+
 	}
 	return fmt.Sprintf("%s:%s", u.Hostname(), u.Port()), nil
 }
@@ -81,7 +82,6 @@ func (c *Config) NewIntegration(log log.Logger, g integrations.Globals) (integra
 	vsphereURL.User = url.UserPassword(c.VSphereUser, string(c.VSpherePass))
 
 	exporterConfig := vsphere.Config{
-		TelemetryPath:           "/integrations/vsphere/metrics",
 		ChunkSize:               c.ChunkSize,
 		CollectConcurrency:      c.CollectConcurrency,
 		VSphereURL:              vsphereURL,

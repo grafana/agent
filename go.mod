@@ -123,7 +123,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.13.1
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.1
 	github.com/fatih/color v1.13.0
-	github.com/grafana/vmware_exporter v0.0.1-beta
+	github.com/grafana/vmware_exporter v0.0.2-beta
 	go.opentelemetry.io/collector/pdata v0.55.0
 	go.opentelemetry.io/collector/semconv v0.55.0
 )

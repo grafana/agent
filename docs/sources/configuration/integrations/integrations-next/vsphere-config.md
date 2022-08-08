@@ -30,8 +30,9 @@ Configuration reference:
     [scrape_interval: <duration> | default = <metrics.global.scrape_interval>]
     [scrape_timeout: <duration> | default = <metrics.global.scrape_timeout>]
 
-  # Integration instance name
-  [instance: <string>]
+  # Integration instance name. This will default to the host:port of the configured
+  # vsphere_url.
+  [instance: <string> | default = <vsphere_url>]
 
   # Number of managed objects to include in each request to vsphere when
   # fetching performance counters.
@@ -48,13 +49,13 @@ Configuration reference:
   [enable_exporter_metrics: <boolean> | default = true]
 
   # The url of the vCenter SDK endpoint
-  [vsphere_url: <string>]
+  vsphere_url: <string>
 
   # vCenter username
-  [vsphere_user: <string>]
+  vsphere_user: <string>
 
   # vCenter password
-  [vsphere_password: <string>]
+  vsphere_password: <string>
 
 ```
 
