@@ -17,6 +17,8 @@ func init() {
 	integrations.Register(&Config{}, integrations.TypeMultiplex)
 }
 
+// DefaultConfig holds non-zero default options for hte Config when it is
+// unmarshaled from YAML.
 var DefaultConfig = Config{
 	ChunkSize:               256,
 	CollectConcurrency:      8,
@@ -24,8 +26,9 @@ var DefaultConfig = Config{
 	EnableExporterMetrics:   true,
 }
 
+// Config configures the vmware_exporter integration.
 type Config struct {
-	ChunkSize               int                  `yaml:"chunk_size,omitempty"`
+	ChunkSize               int                  `yaml:"request_chunk_size,omitempty"`
 	CollectConcurrency      int                  `yaml:"collect_concurrency,omitempty"`
 	VSphereURL              string               `yaml:"vsphere_url,omitempty"`
 	VSphereUser             string               `yaml:"vsphere_user,omitempty"`
@@ -37,27 +40,30 @@ type Config struct {
 
 var _ integrations.Config = (*Config)(nil)
 
-// UnmarshalYAML implements the Unmarshaler interface
+// UnmarshalYAML implements the Unmarshaler interface.
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = DefaultConfig
 	type plain Config
 	return unmarshal((*plain)(c))
 }
 
+// Name returns the name of this integration.
 func (c *Config) Name() string {
 	return "vsphere"
 }
 
+// ApplyDefaults applies the integration's default configuration.
 func (c *Config) ApplyDefaults(g integrations.Globals) error {
 	c.Common.ApplyDefaults(g.SubsystemOpts.Metrics.Autoscrape)
 	return nil
 }
 
+// Identifier returns a string that identifies the instance of the integration.
 func (c *Config) Identifier(g integrations.Globals) (string, error) {
 	return *c.Common.InstanceKey, nil
 }
 
-// InstanceKey returns the vsphere instance
+// InstanceKey returns the vsphere instance configured.
 func (c *Config) InstanceKey(agentKey string) (string, error) {
 	u, err := url.Parse(c.VSphereURL)
 	if err != nil {
@@ -66,6 +72,7 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 	return fmt.Sprintf("%s:%s", u.Hostname(), u.Port()), nil
 }
 
+// NewIntegration constructs a new instance of this integration.
 func (c *Config) NewIntegration(log log.Logger, g integrations.Globals) (integrations.Integration, error) {
 	vsphereURL, err := url.Parse(c.VSphereURL)
 	if err != nil {
