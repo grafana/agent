@@ -62,13 +62,11 @@ func (c *Config) ApplyDefaults(g integrations.Globals) error {
 func (c *Config) Identifier(g integrations.Globals) (string, error) {
 	if c.Common.InstanceKey != nil {
 		return *c.Common.InstanceKey, nil
-
 	}
 
 	u, err := url.Parse(c.VSphereURL)
 	if err != nil {
 		return "", err
-
 	}
 	return fmt.Sprintf("%s:%s", u.Hostname(), u.Port()), nil
 }
