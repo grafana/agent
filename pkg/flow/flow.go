@@ -149,8 +149,15 @@ func (c *Flow) run(ctx context.Context) {
 			return
 
 		case <-c.updateQueue.Chan():
-			updated := c.updateQueue.TryDequeue()
-			if updated != nil {
+			// We need to pop _everything_ from the queue and evaluate each of them.
+			// If we only pop a single element, other components may sit waiting for
+			// evaluation forever.
+			for {
+				updated := c.updateQueue.TryDequeue()
+				if updated == nil {
+					break
+				}
+
 				level.Debug(c.log).Log("msg", "handling component with updated state", "node_id", updated.NodeID())
 				c.loader.EvaluateDependencies(nil, updated)
 			}
