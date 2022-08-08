@@ -149,8 +149,9 @@ func (c *Flow) run(ctx context.Context) {
 			return
 
 		case <-c.updateQueue.Chan():
-			// We need to pop everything from the queue and evaluate them, since
-			// otherwise components may sit waiting for evaluation forever.
+			// We need to pop _everything_ from the queue and evaluate each of them.
+			// If we only pop a single element, other components may sit waiting for
+			// evaluation forever.
 			for {
 				updated := c.updateQueue.TryDequeue()
 				if updated == nil {
