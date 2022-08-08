@@ -27,6 +27,9 @@ Main (unreleased)
 
 ### Bugfixes
 
+- Tracing: Fixed issue with the PromSD processor using the `connection` method to discover the IP
+  address.  It was failing to match because the port number was included in the address string. (@jphx)
+
 ### Other changes
 
  - Update several go dependencies to resolve warnings from certain security scanning tools. None of the resolved vulnerabilities were known to be exploitable through the agent. (@captncraig)

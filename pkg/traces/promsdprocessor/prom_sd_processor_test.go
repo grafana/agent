@@ -231,6 +231,20 @@ func TestPodAssociation(t *testing.T) {
 			expectedIP: ipStr,
 		},
 		{
+			name: "connection IP that includes a port number",
+			ctxFn: func(t *testing.T) context.Context {
+				info := client.Info{
+					Addr: &net.TCPAddr{
+						IP:   net.ParseIP(net.ParseIP(ipStr).String()),
+						Port: 1234,
+					},
+				}
+				return client.NewContext(context.Background(), info)
+			},
+			attrMapFn:  func(*testing.T) pcommon.Map { return pcommon.NewMap() },
+			expectedIP: ipStr,
+		},
+		{
 			name:            "connection IP is empty",
 			podAssociations: []string{podAssociationConnectionIP},
 			ctxFn: func(t *testing.T) context.Context {
