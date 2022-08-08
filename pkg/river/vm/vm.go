@@ -506,9 +506,6 @@ func (vm *Evaluator) evaluateExpr(scope *Scope, assoc map[value.Value]ast.Node, 
 
 // A Scope exposes a set of variables available to use during evaluation.
 type Scope struct {
-	// Name is the name of this particular scope/block
-	Name string
-
 	// Parent optionally points to a parent Scope containing more variable.
 	// Variables defined in children scopes take precedence over variables of the
 	// same name found in parent scopes.
