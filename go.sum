@@ -1360,10 +1360,8 @@ github.com/grafana/statsd_exporter v0.18.1-0.20211118164740-8e806158da0b h1:eFIc
 github.com/grafana/statsd_exporter v0.18.1-0.20211118164740-8e806158da0b/go.mod h1:N4Z1+iSqc9rnxlT1N8Qn3l65Vzb5t4Uq0jpg8nxyhio=
 github.com/grafana/tail v0.0.0-20220426200921-98e8eb28ea4c h1:qIsCzNln5YzuXfXbJgXhpfM+4gY7qi3mED3eYQS4Fls=
 github.com/grafana/tail v0.0.0-20220426200921-98e8eb28ea4c/go.mod h1:GIMXMPB/lRAllP5rVDvcGif87ryO2hgD7tCtHMdHrho=
-github.com/grafana/vmware_exporter v0.0.1-alpha.0.20220806221331-04def52297dd h1:ge1bmDfF4UBjoEf89a2tnSlxrH9wG/mgIm1jMfOqHIs=
-github.com/grafana/vmware_exporter v0.0.1-alpha.0.20220806221331-04def52297dd/go.mod h1:FQJJARbKvxeAtubYDM1y2pU81iNUYi+znt+cGpnoN4k=
-github.com/grafana/vmware_exporter v0.0.1-alpha.0.20220807004920-4dcb891795fd h1:Adx90m3+6NQytEluz2VfF82Q7MXtxX7Atdz+dAP6dco=
-github.com/grafana/vmware_exporter v0.0.1-alpha.0.20220807004920-4dcb891795fd/go.mod h1:FQJJARbKvxeAtubYDM1y2pU81iNUYi+znt+cGpnoN4k=
+github.com/grafana/vmware_exporter v0.0.1-beta h1:y7B5kkYA5Ji1fMrW/YWjrUnYeuJ6BPjRHka4XEFMEN0=
+github.com/grafana/vmware_exporter v0.0.1-beta/go.mod h1:FQJJARbKvxeAtubYDM1y2pU81iNUYi+znt+cGpnoN4k=
 github.com/grafana/windows_exporter v0.15.1-0.20220202211901-871715ba0b43 h1:gb+wDKb+9r4n3QbMzfudcHDtE9lI+kKjx+98bYphqK4=
 github.com/grafana/windows_exporter v0.15.1-0.20220202211901-871715ba0b43/go.mod h1:zWjLDqyEy3ZEy1LNlR6iUJJgYCoUDJTyUbrjeLUp3ZE=
 github.com/gregjones/httpcache v0.0.0-20180305231024-9cad4c3443a7/go.mod h1:FecbI9+v66THATjSRHfNgh1IVFe/9kFxbXtjV0ctIMA=
@@ -2530,7 +2528,6 @@ github.com/vishvananda/netns v0.0.0-20210104183010-2eb08e3e575f h1:p4VB7kIXpOQvV
 github.com/vishvananda/netns v0.0.0-20210104183010-2eb08e3e575f/go.mod h1:DD4vA1DwXk04H54A1oHXtwZmA0grkVMdPxx/VGLCah0=
 github.com/vjeantet/grok v1.0.0/go.mod h1:/FWYEVYekkm+2VjcFmO9PufDU5FgXHUz9oy2EGqmQBo=
 github.com/vmware/govmomi v0.18.0/go.mod h1:URlwyTFZX72RmxtxuaFL2Uj3fD1JTvZdx59bHWk6aFU=
-github.com/vmware/govmomi v0.19.0 h1:CR6tEByWCPOnRoRyhLzuHaU+6o2ybF3qufNRWS/MGrY=
 github.com/vmware/govmomi v0.19.0/go.mod h1:URlwyTFZX72RmxtxuaFL2Uj3fD1JTvZdx59bHWk6aFU=
 github.com/vmware/govmomi v0.27.2 h1:Ecooqg069gUbl5EuWYwcrvzRqMkah9J8BXaf9HCEGVM=
 github.com/vmware/govmomi v0.27.2/go.mod h1:daTuJEcQosNMXYJOeku0qdBJP9SOLLWB3Mqz8THtv6o=
@@ -2728,8 +2725,6 @@ go4.org/intern v0.0.0-20210108033219-3eb7198706b2 h1:VFTf+jjIgsldaz/Mr00VaCSswHJ
 go4.org/intern v0.0.0-20210108033219-3eb7198706b2/go.mod h1:vLqJ+12kCw61iCWsPto0EOHhBS+o4rO5VIucbc9g2Cc=
 go4.org/unsafe/assume-no-moving-gc v0.0.0-20201222175341-b30ae309168e/go.mod h1:FftLjUGFEDu5k8lt0ddY+HcrH/qU/0qk+H8j9/nTl3E=
 go4.org/unsafe/assume-no-moving-gc v0.0.0-20201222180813-1025295fd063/go.mod h1:FftLjUGFEDu5k8lt0ddY+HcrH/qU/0qk+H8j9/nTl3E=
-go4.org/unsafe/assume-no-moving-gc v0.0.0-20211027215541-db492cf91b37 h1:Tx9kY6yUkLge/pFG7IEMwDZy6CS2ajFc9TvQdPCW0uA=
-go4.org/unsafe/assume-no-moving-gc v0.0.0-20211027215541-db492cf91b37/go.mod h1:FftLjUGFEDu5k8lt0ddY+HcrH/qU/0qk+H8j9/nTl3E=
 go4.org/unsafe/assume-no-moving-gc v0.0.0-20220617031537-928513b29760 h1:FyBZqvoA/jbNzuAWLQE2kG820zMAkcilx6BMjGbL/E4=
 go4.org/unsafe/assume-no-moving-gc v0.0.0-20220617031537-928513b29760/go.mod h1:FftLjUGFEDu5k8lt0ddY+HcrH/qU/0qk+H8j9/nTl3E=
 gocloud.dev v0.24.0 h1:cNtHD07zQQiv02OiwwDyVMuHmR7iQt2RLkzoAgz7wBs=
