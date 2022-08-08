@@ -104,64 +104,6 @@ func TestDecode(t *testing.T) {
 	}
 }
 
-func TestDecode_EmbeddedField(t *testing.T) {
-	t.Run("Non-pointer", func(t *testing.T) {
-		type Phone struct {
-			Brand string `river:"phone_brand,attr"`
-			Year  int    `river:"phone_year,attr"`
-		}
-		type Person struct {
-			Phone
-			Name string `river:"name,attr"`
-			Age  int    `river:"age,attr"`
-		}
-
-		input := value.Object(map[string]value.Value{
-			"age":         value.Int(32),
-			"phone_brand": value.String("Android"),
-			"name":        value.String("John Doe"),
-			"phone_year":  value.Int(2019),
-		})
-
-		var actual Person
-		require.NoError(t, value.Decode(input, &actual))
-
-		require.Equal(t, Person{
-			Name:  "John Doe",
-			Age:   32,
-			Phone: Phone{Brand: "Android", Year: 2019},
-		}, actual)
-	})
-
-	t.Run("Pointer", func(t *testing.T) {
-		type Phone struct {
-			Brand string `river:"phone_brand,attr"`
-			Year  int    `river:"phone_year,attr"`
-		}
-		type Person struct {
-			*Phone
-			Name string `river:"name,attr"`
-			Age  int    `river:"age,attr"`
-		}
-
-		input := value.Object(map[string]value.Value{
-			"age":         value.Int(32),
-			"phone_brand": value.String("Android"),
-			"name":        value.String("John Doe"),
-			"phone_year":  value.Int(2019),
-		})
-
-		var actual Person
-		require.NoError(t, value.Decode(input, &actual))
-
-		require.Equal(t, Person{
-			Name:  "John Doe",
-			Age:   32,
-			Phone: &Phone{Brand: "Android", Year: 2019},
-		}, actual)
-	})
-}
-
 func TestDecode_Functions(t *testing.T) {
 	val := value.Encode(func() int { return 15 })
 
