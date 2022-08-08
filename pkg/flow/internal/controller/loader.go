@@ -191,7 +191,7 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 // Variables returns the Variables the Loader exposes for other Flow components
 // to reference.
 func (l *Loader) Variables() map[string]interface{} {
-	return l.cache.BuildContext(nil).Variables
+	return l.cache.BuildContext(nil, "").Variables
 }
 
 // Components returns the current set of loaded components.
@@ -267,15 +267,16 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 // evaluate constructs the final context for c and evaluates it. mut must be
 // held when calling evaluate.
 func (l *Loader) evaluate(parent *vm.Scope, c *ComponentNode) error {
-	ectx := l.cache.BuildContext(parent)
-	if err := c.Evaluate(ectx); err != nil {
+	ectx := l.cache.BuildContext(parent, c.nodeID)
+	err := c.Evaluate(ectx)
+	// Always update the cache both the arguments and exports, since both might
+	// change when a component gets re-evaluated. We also want to cache the arguments and exports in case of an error
+	l.cache.CacheArguments(c.ID(), c.Arguments())
+	l.cache.CacheExports(c.ID(), c.Exports())
+	if err != nil {
 		level.Error(l.log).Log("msg", "failed to evaluate component", "component", c.NodeID(), "err", err)
 		return err
 	}
-	// Always update the cache both the arguments and exports, since both might
-	// change when a component gets re-evaluated.
-	l.cache.CacheArguments(c.ID(), c.Arguments())
-	l.cache.CacheExports(c.ID(), c.Exports())
 	return nil
 }
 
