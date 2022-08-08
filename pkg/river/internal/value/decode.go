@@ -386,18 +386,24 @@ func decodeObject(val Value, rt reflect.Value) error {
 
 		res := reflect.MakeMapWithSize(rt.Type(), val.Len())
 
+		// Create a shared value to decode each element into. This will be zeroed
+		// out for each key, and then copied when setting the map index.
+		into := reflect.New(rt.Type().Elem()).Elem()
+
 		for _, key := range val.Keys() {
 			// We ignore the ok value because we know it exists.
 			value, _ := val.Key(key)
 
-			// Create a new value to hold the entry and decode into it.
-			into := reflect.New(rt.Type().Elem()).Elem()
+			// Decode into our element.
 			if err := decode(value, into); err != nil {
 				return FieldError{Value: val, Field: key, Inner: err}
 			}
 
 			// Then set the map index.
 			res.SetMapIndex(reflect.ValueOf(key), into)
+
+			// Zero out the value for the next iteration.
+			into.Set(reflect.Zero(into.Type()))
 		}
 
 		rt.Set(res)
