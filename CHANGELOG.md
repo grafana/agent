@@ -17,6 +17,8 @@ Main (unreleased)
 
 ### Features
 
+- Integrations: (beta) Add vmware_exporter integration (@rlankfo)
+
 ### Enhancements
 
 - Tracing: Introduce a periodic appender to the remotewriteexporter to control sample rate. (@mapno)
