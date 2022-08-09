@@ -65,13 +65,9 @@ func TestForwardingToAppendable(t *testing.T) {
 
 	// Forwarding a sample to the mock receiver should succeed.
 	appender = s.appendable.Appender(context.Background())
-	sample := metrics.FlowMetric{
-		GlobalRefID: 1,
-		Labels:      labels.FromStrings("foo", "bar"),
-		Value:       42.0,
-	}
+	sample := metrics.NewFlowMetric(1, labels.FromStrings("foo", "bar"), 42.0)
 	timestamp := time.Now().Unix()
-	_, err = appender.Append(0, sample.Labels, timestamp, sample.Value)
+	_, err = appender.Append(0, sample.LabelsCopy(), timestamp, sample.Value())
 	require.NoError(t, err)
 
 	err = appender.Commit()
@@ -79,5 +75,5 @@ func TestForwardingToAppendable(t *testing.T) {
 
 	require.Equal(t, receivedTs, timestamp)
 	require.Len(t, receivedSamples, 1)
-	require.Equal(t, receivedSamples[0], &sample)
+	require.Equal(t, receivedSamples[0], sample)
 }

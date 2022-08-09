@@ -2,15 +2,13 @@ package mutate
 
 import (
 	"context"
+	"sync"
 
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
-	fa "github.com/grafana/agent/component/common/appendable"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/metrics"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/relabel"
-	"github.com/prometheus/prometheus/storage"
 )
 
 func init() {
@@ -41,10 +39,11 @@ type Exports struct {
 
 // Component implements the metrics.mutate component.
 type Component struct {
-	opts component.Options
-	mrc  []*relabel.Config
+	mut       sync.Mutex
+	opts      component.Options
+	mrc       []*relabel.Config
+	forwardto []*metrics.Receiver
 
-	appendable       *fa.FlowAppendable
 	receiver         *metrics.Receiver
 	metricsProcessed prometheus.Counter
 }
@@ -56,7 +55,7 @@ var (
 // New creates a new metrics.mutate component.
 func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{opts: o}
-	c.appendable = fa.NewFlowAppendable(args.ForwardTo...)
+
 	c.receiver = &metrics.Receiver{Receive: c.Receive}
 	c.metricsProcessed = prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "agent_metrics_mutate_metrics_processed",
@@ -84,10 +83,12 @@ func (c *Component) Run(ctx context.Context) error {
 
 // Update implements component.Component.
 func (c *Component) Update(args component.Arguments) error {
-	newArgs := args.(Arguments)
+	c.mut.Lock()
+	defer c.mut.Unlock()
 
+	newArgs := args.(Arguments)
+	c.forwardto = newArgs.ForwardTo
 	c.mrc = flow_relabel.ComponentToPromRelabelConfigs(newArgs.MetricRelabelConfigs)
-	c.appendable.SetReceivers(newArgs.ForwardTo)
 	c.opts.OnStateChange(Exports{Receiver: c.receiver})
 
 	return nil
@@ -101,19 +102,21 @@ func (c *Component) Update(args component.Arguments) error {
 // series. This is a blocker for releasing a production-grade  of the metrics.mutate
 // component.
 func (c *Component) Receive(ts int64, metricArr []*metrics.FlowMetric) {
-	app := c.appendable.Appender(context.Background())
+	c.mut.Lock()
+	defer c.mut.Unlock()
+
+	relabelledMetrics := make([]*metrics.FlowMetric, 0)
 	for _, m := range metricArr {
-		m.Labels = relabel.Process(m.Labels, c.mrc...)
-		if m.Labels == nil {
+		newLabels := relabel.Process(m.LabelsCopy(), c.mrc...)
+		if newLabels == nil {
 			continue
 		}
-		_, err := app.Append(storage.SeriesRef(m.GlobalRefID), m.Labels, ts, m.Value)
-		if err != nil {
-			level.Error(c.opts.Logger).Log("msg", "failed to forward sample from metrics.mutate component", "err", err, "componentID", c.opts.ID)
-		}
+		relabelledMetrics = append(relabelledMetrics, metrics.NewFlowMetric(metrics.GlobalRefMapping.GetOrAddGlobalRefID(newLabels), newLabels, m.Value()))
 	}
-	err := app.Commit()
-	if err != nil {
-		level.Error(c.opts.Logger).Log("msg", "failed to commit after relabelling metrics", "err", err)
+	if len(relabelledMetrics) == 0 {
+		return
+	}
+	for _, forward := range c.forwardto {
+		forward.Receive(ts, relabelledMetrics)
 	}
 }
