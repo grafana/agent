@@ -41,7 +41,6 @@ type Arguments struct {
 
 	// Scrape Options
 	ExtraMetrics bool `river:"extra_metrics,attr,optional"`
-	// TODO(@tpaschalis) enable HTTPClientOptions []config_util.HTTPClientOption
 }
 
 // Component implements the metrics.Scrape component.
