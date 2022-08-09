@@ -4,10 +4,13 @@ import (
 	"context"
 	"time"
 
-	"github.com/grafana/agent/component/metrics/scrape"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 )
+
+// Target refers to a singular discovered endpoint found by a discovery
+// component.
+type Target map[string]string
 
 // maxUpdateFrequency is the minimum time to wait between updating targets.
 // Currently not settable, since prometheus uses a static threshold, but
@@ -21,7 +24,7 @@ type Discoverer discovery.Discoverer
 // RunDiscovery is a utility for consuming and forwarding target groups from a discoverer.
 // It will handle collating targets (and clearing), as well as time based throttling of updates.
 // f should be a function that updates the component's exports, most likely calling `opts.OnStateChange()`.
-func RunDiscovery(ctx context.Context, d Discoverer, f func([]scrape.Target)) {
+func RunDiscovery(ctx context.Context, d Discoverer, f func([]Target)) {
 	// all targets we have seen so far
 	cache := map[string]*targetgroup.Group{}
 
@@ -30,7 +33,7 @@ func RunDiscovery(ctx context.Context, d Discoverer, f func([]scrape.Target)) {
 
 	// function to convert and send targets in format scraper expects
 	send := func() {
-		allTargets := []scrape.Target{}
+		allTargets := []Target{}
 		for _, group := range cache {
 			for _, target := range group.Targets {
 				labels := map[string]string{}
