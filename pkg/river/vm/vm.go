@@ -513,6 +513,10 @@ type Scope struct {
 
 	// Variables holds the list of available variable names that can be used when
 	// evaluating a node.
+	//
+	// Values in the Variables map should considered immutable after passed to
+	// Evaluate; maps and slices will be copied by reference for performance
+	// optimizations.
 	Variables map[string]interface{}
 }
 

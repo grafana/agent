@@ -120,6 +120,9 @@ integrations:
 
   apache_http_configs:
     [- <apache_http_config>]
+
+  vsphere_configs:
+    [- <vsphere_config>]
 ```
 
 Note that most integrations are no longer configured with the `_exporter` name.

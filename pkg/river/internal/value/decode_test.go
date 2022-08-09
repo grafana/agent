@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"testing"
 	"time"
+	"unsafe"
 
 	"github.com/grafana/agent/pkg/river/internal/value"
 	"github.com/stretchr/testify/require"
@@ -104,6 +105,105 @@ func TestDecode(t *testing.T) {
 	}
 }
 
+// TestDecode_PreservePointer ensures that pointer addresses can be preserved
+// when decoding.
+func TestDecode_PreservePointer(t *testing.T) {
+	num := 5
+	val := value.Encode(&num)
+
+	var nump *int
+	require.NoError(t, value.Decode(val, &nump))
+	require.Equal(t, unsafe.Pointer(nump), unsafe.Pointer(&num))
+}
+
+// TestDecode_PreserveMapReference ensures that map references can be preserved
+// when decoding.
+func TestDecode_PreserveMapReference(t *testing.T) {
+	m := make(map[string]string)
+	val := value.Encode(m)
+
+	var actual map[string]string
+	require.NoError(t, value.Decode(val, &actual))
+
+	// We can't check to see if the pointers of m and actual match, but we can
+	// modify m to see if actual is also modified.
+	m["foo"] = "bar"
+	require.Equal(t, "bar", actual["foo"])
+}
+
+// TestDecode_PreserveSliceReference ensures that slice references can be
+// preserved when decoding.
+func TestDecode_PreserveSliceReference(t *testing.T) {
+	s := make([]string, 3)
+	val := value.Encode(s)
+
+	var actual []string
+	require.NoError(t, value.Decode(val, &actual))
+
+	// We can't check to see if the pointers of m and actual match, but we can
+	// modify s to see if actual is also modified.
+	s[0] = "Hello, world!"
+	require.Equal(t, "Hello, world!", actual[0])
+}
+
+func TestDecode_EmbeddedField(t *testing.T) {
+	t.Run("Non-pointer", func(t *testing.T) {
+		type Phone struct {
+			Brand string `river:"phone_brand,attr"`
+			Year  int    `river:"phone_year,attr"`
+		}
+		type Person struct {
+			Phone
+			Name string `river:"name,attr"`
+			Age  int    `river:"age,attr"`
+		}
+
+		input := value.Object(map[string]value.Value{
+			"age":         value.Int(32),
+			"phone_brand": value.String("Android"),
+			"name":        value.String("John Doe"),
+			"phone_year":  value.Int(2019),
+		})
+
+		var actual Person
+		require.NoError(t, value.Decode(input, &actual))
+
+		require.Equal(t, Person{
+			Name:  "John Doe",
+			Age:   32,
+			Phone: Phone{Brand: "Android", Year: 2019},
+		}, actual)
+	})
+
+	t.Run("Pointer", func(t *testing.T) {
+		type Phone struct {
+			Brand string `river:"phone_brand,attr"`
+			Year  int    `river:"phone_year,attr"`
+		}
+		type Person struct {
+			*Phone
+			Name string `river:"name,attr"`
+			Age  int    `river:"age,attr"`
+		}
+
+		input := value.Object(map[string]value.Value{
+			"age":         value.Int(32),
+			"phone_brand": value.String("Android"),
+			"name":        value.String("John Doe"),
+			"phone_year":  value.Int(2019),
+		})
+
+		var actual Person
+		require.NoError(t, value.Decode(input, &actual))
+
+		require.Equal(t, Person{
+			Name:  "John Doe",
+			Age:   32,
+			Phone: &Phone{Brand: "Android", Year: 2019},
+		}, actual)
+	})
+}
+
 func TestDecode_Functions(t *testing.T) {
 	val := value.Encode(func() int { return 15 })
 
@@ -120,25 +220,25 @@ func TestDecode_Capsules(t *testing.T) {
 	require.Equal(t, expect, actual)
 }
 
-// TestDecode_SliceCopy ensures that copies are made during decoding instead of
-// setting values directly.
-func TestDecode_SliceCopy(t *testing.T) {
+// TestDecodeCopy_SliceCopy ensures that copies are made during decoding
+// instead of setting values directly.
+func TestDecodeCopy_SliceCopy(t *testing.T) {
 	orig := []int{1, 2, 3}
 
 	var res []int
-	require.NoError(t, value.Decode(value.Encode(orig), &res))
+	require.NoError(t, value.DecodeCopy(value.Encode(orig), &res))
 
 	res[0] = 10
 	require.Equal(t, []int{1, 2, 3}, orig, "Original slice should not have been modified")
 }
 
-// TestDecode_ArrayCopy ensures that copies are made during decoding instead of
-// setting values directly.
+// TestDecodeCopy_ArrayCopy ensures that copies are made during decoding
+// instead of setting values directly.
 func TestDecode_ArrayCopy(t *testing.T) {
 	orig := [...]int{1, 2, 3}
 
 	var res [3]int
-	require.NoError(t, value.Decode(value.Encode(orig), &res))
+	require.NoError(t, value.DecodeCopy(value.Encode(orig), &res))
 
 	res[0] = 10
 	require.Equal(t, [3]int{1, 2, 3}, orig, "Original array should not have been modified")

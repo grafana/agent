@@ -33,6 +33,17 @@
 // Default values for Arguments may be provided by implementing
 // river.Unmarshaler.
 //
+// Arguments and Exports immutability
+//
+// Arguments passed to a component should be treated as immutable, as memory
+// can be shared between components as an optimization. Components should make
+// copies for fields they need to modify. An exception to this is for fields
+// which are expected to be mutable (e.g., interfaces which expose a
+// goroutine-safe API).
+//
+// Similarly, Exports and the fields within Exports must be considered
+// immutable after they are written for the same reason.
+//
 // Mapping River strings to custom types
 //
 // Custom encoding and decoding of fields is available by implementing
