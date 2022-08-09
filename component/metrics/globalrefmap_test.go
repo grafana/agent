@@ -15,8 +15,9 @@ func TestAddingMarker(t *testing.T) {
 		Name:  "__name__",
 		Value: "test",
 	})
-	globalID := mapping.GetOrAddGlobalRefID(l)
-	shouldBeSameGlobalID := mapping.GetOrAddGlobalRefID(l)
+	fm := NewFlowMetric(0, l, 0)
+	globalID := mapping.GetGlobalRefID(fm)
+	shouldBeSameGlobalID := mapping.GetGlobalRefID(fm)
 	require.True(t, globalID == shouldBeSameGlobalID)
 	require.Len(t, mapping.labelsHashToGlobal, 1)
 }
@@ -33,8 +34,10 @@ func TestAddingDifferentMarkers(t *testing.T) {
 		Name:  "__name__",
 		Value: "roar",
 	})
-	globalID := mapping.GetOrAddGlobalRefID(l)
-	shouldBeDifferentID := mapping.GetOrAddGlobalRefID(l2)
+	fm := NewFlowMetric(0, l, 0)
+	fm2 := NewFlowMetric(0, l2, 0)
+	globalID := mapping.GetGlobalRefID(fm)
+	shouldBeDifferentID := mapping.GetGlobalRefID(fm2)
 	require.True(t, globalID != shouldBeDifferentID)
 	require.Len(t, mapping.labelsHashToGlobal, 2)
 }
@@ -46,9 +49,9 @@ func TestAddingLocalMapping(t *testing.T) {
 		Name:  "__name__",
 		Value: "test",
 	})
-
-	globalID := mapping.GetOrAddGlobalRefID(l)
-	shouldBeSameGlobalID := mapping.GetOrAddLink("1", 1, l)
+	fm := NewFlowMetric(0, l, 0)
+	globalID := mapping.GetGlobalRefID(fm)
+	shouldBeSameGlobalID := mapping.GetOrAddLink("1", 1, fm)
 	require.True(t, globalID == shouldBeSameGlobalID)
 	require.Len(t, mapping.labelsHashToGlobal, 1)
 	require.Len(t, mapping.mappings, 1)
@@ -64,10 +67,11 @@ func TestAddingLocalMappings(t *testing.T) {
 		Name:  "__name__",
 		Value: "test",
 	})
+	fm := NewFlowMetric(0, l, 0)
 
-	globalID := mapping.GetOrAddGlobalRefID(l)
-	shouldBeSameGlobalID := mapping.GetOrAddLink("1", 1, l)
-	shouldBeSameGlobalID2 := mapping.GetOrAddLink("2", 1, l)
+	globalID := mapping.GetGlobalRefID(fm)
+	shouldBeSameGlobalID := mapping.GetOrAddLink("1", 1, fm)
+	shouldBeSameGlobalID2 := mapping.GetOrAddLink("2", 1, fm)
 	require.True(t, globalID == shouldBeSameGlobalID)
 	require.True(t, globalID == shouldBeSameGlobalID2)
 	require.Len(t, mapping.labelsHashToGlobal, 1)
@@ -89,9 +93,10 @@ func TestAddingLocalMappingsWithoutCreatingGlobalUpfront(t *testing.T) {
 		Name:  "__name__",
 		Value: "test",
 	})
+	fm := NewFlowMetric(0, l, 0)
 
-	shouldBeSameGlobalID := mapping.GetOrAddLink("1", 1, l)
-	shouldBeSameGlobalID2 := mapping.GetOrAddLink("2", 1, l)
+	shouldBeSameGlobalID := mapping.GetOrAddLink("1", 1, fm)
+	shouldBeSameGlobalID2 := mapping.GetOrAddLink("2", 1, fm)
 	require.True(t, shouldBeSameGlobalID2 == shouldBeSameGlobalID)
 	require.Len(t, mapping.labelsHashToGlobal, 1)
 	require.Len(t, mapping.mappings, 2)
@@ -117,9 +122,10 @@ func TestStaleness(t *testing.T) {
 		Name:  "__name__",
 		Value: "test2",
 	})
-
-	global1 := mapping.GetOrAddLink("1", 1, l)
-	_ = mapping.GetOrAddLink("2", 1, l2)
+	fm := NewFlowMetric(0, l, 0)
+	fm2 := NewFlowMetric(0, l2, 0)
+	global1 := mapping.GetOrAddLink("1", 1, fm)
+	_ = mapping.GetOrAddLink("2", 1, fm2)
 	mapping.AddStaleMarker(global1, l)
 	require.Len(t, mapping.staleGlobals, 1)
 	require.Len(t, mapping.labelsHashToGlobal, 2)
@@ -137,8 +143,9 @@ func TestRemovingStaleness(t *testing.T) {
 		Name:  "__name__",
 		Value: "test",
 	})
+	fm := NewFlowMetric(0, l, 0)
 
-	global1 := mapping.GetOrAddLink("1", 1, l)
+	global1 := mapping.GetOrAddLink("1", 1, fm)
 	mapping.AddStaleMarker(global1, l)
 	require.Len(t, mapping.staleGlobals, 1)
 	mapping.RemoveStaleMarker(global1)

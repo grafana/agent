@@ -44,7 +44,7 @@ func newGlobalRefMap() *GlobalRefMap {
 }
 
 // GetOrAddLink is called by a remote_write endpoint component to add mapping and get back the global id.
-func (g *GlobalRefMap) GetOrAddLink(componentID string, localRefID uint64, l labels.Labels) uint64 {
+func (g *GlobalRefMap) GetOrAddLink(componentID string, localRefID uint64, fm *FlowMetric) uint64 {
 	g.mut.Lock()
 	defer g.mut.Unlock()
 
@@ -59,7 +59,7 @@ func (g *GlobalRefMap) GetOrAddLink(componentID string, localRefID uint64, l lab
 		g.mappings[componentID] = m
 	}
 
-	labelHash := l.Hash()
+	labelHash := fm.labels.Hash()
 	globalID, found := g.labelsHashToGlobal[labelHash]
 	if found {
 		m.localToGlobal[localRefID] = globalID
@@ -74,8 +74,12 @@ func (g *GlobalRefMap) GetOrAddLink(componentID string, localRefID uint64, l lab
 	return g.globalRefID
 }
 
-// GetOrAddGlobalRefID is used to create a global refid for a labelset
-func (g *GlobalRefMap) GetOrAddGlobalRefID(l labels.Labels) uint64 {
+// GetGlobalRefID is used to create a global refid for a FlowMetric
+func (g *GlobalRefMap) GetGlobalRefID(fm *FlowMetric) uint64 {
+	return g.GetGlobalRefIDByLabels(fm.labels)
+}
+
+func (g *GlobalRefMap) GetGlobalRefIDByLabels(l labels.Labels) uint64 {
 	g.mut.Lock()
 	defer g.mut.Unlock()
 
@@ -87,10 +91,11 @@ func (g *GlobalRefMap) GetOrAddGlobalRefID(l labels.Labels) uint64 {
 	g.globalRefID++
 	g.labelsHashToGlobal[labelHash] = g.globalRefID
 	return g.globalRefID
+
 }
 
-// GetGlobalRefID returns the global refid for a component local combo, or 0 if not found
-func (g *GlobalRefMap) GetGlobalRefID(componentID string, localRefID uint64) uint64 {
+// GetGlobalRefIDForComponent returns the global refid for a component local combo, or 0 if not found
+func (g *GlobalRefMap) GetGlobalRefIDForComponent(componentID string, localRefID uint64) uint64 {
 	g.mut.Lock()
 	defer g.mut.Unlock()
 

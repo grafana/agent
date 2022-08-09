@@ -111,7 +111,9 @@ func (c *Component) Receive(ts int64, metricArr []*metrics.FlowMetric) {
 		if newLabels == nil {
 			continue
 		}
-		relabelledMetrics = append(relabelledMetrics, metrics.NewFlowMetric(metrics.GlobalRefMapping.GetOrAddGlobalRefID(newLabels), newLabels, m.Value()))
+		globalID := metrics.GlobalRefMapping.GetGlobalRefIDByLabels(newLabels)
+		fm := metrics.NewFlowMetric(globalID, newLabels, m.Value())
+		relabelledMetrics = append(relabelledMetrics, fm)
 	}
 	if len(relabelledMetrics) == 0 {
 		return

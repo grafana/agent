@@ -71,7 +71,7 @@ func (app *flowAppender) Append(ref storage.SeriesRef, l labels.Labels, t int64,
 	}
 	// If ref is 0 then lets grab a global id
 	if ref == 0 {
-		ref = storage.SeriesRef(metrics.GlobalRefMapping.GetOrAddGlobalRefID(l))
+		ref = storage.SeriesRef(metrics.GlobalRefMapping.GetGlobalRefIDByLabels(l))
 	}
 	// If it is stale then we can remove it
 	if value.IsStaleNaN(v) {
