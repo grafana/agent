@@ -420,7 +420,8 @@ func (v Value) Call(args ...Value) (Value, error) {
 			argVal = reflect.New(argType).Elem()
 		}
 
-		if err := decode(arg, argVal); err != nil {
+		var d decoder
+		if err := d.decode(arg, argVal); err != nil {
 			return Null, ArgError{
 				Function: v,
 				Argument: arg,
