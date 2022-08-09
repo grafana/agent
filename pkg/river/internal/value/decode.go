@@ -18,12 +18,23 @@ type Unmarshaler interface {
 // Decode assigns a Value val to a Go pointer target. Pointers will be
 // allocated as necessary when decoding.
 //
-// Decode will attempt to convert val to the type expected by target for
+// As a performance optimization, the underlying Go value of val will be
+// assigned directly to target if the Go types match. This means that pointers,
+// slices, and maps will be passed by reference. Callers should take care not
+// to modify any Values after decoding, unless it is expected by the contract
+// of the type (i.e., when the type exposes a goroutine-safe API). In other
+// cases, new maps and slices will be allocated as necessary. Call DecodeCopy
+// to make a copy of val instead.
+//
+// When a direct assignment is not done, Decode first checks to see if target
+// implements the Unmarshaler or text.Unmarshaler interface, invoking methods
+// as appropriate. It will also use time.ParseDuration if target is
+// *time.Duration.
+//
+// Next, Decode will attempt to convert val to the type expected by target for
 // assignment. If val or target implement ConvertibleCapsule, conversion
 // between values will be attempted by calling ConvertFrom and ConvertInto as
 // appropriate. If val cannot be converted, an error is returned.
-//
-// New arrays and slices will be allocated when decoding into target.
 //
 // River null values will decode into a nil Go pointer or the zero value for
 // the non-pointer type.
@@ -34,59 +45,50 @@ func Decode(val Value, target interface{}) error {
 	if rt.Kind() != reflect.Pointer {
 		panic("river/value: Decode called with non-pointer value")
 	}
-	return decode(val, rt)
+
+	var d decoder
+	return d.decode(val, rt)
 }
 
-func decode(val Value, into reflect.Value) error {
-	// Before decoding, we need to temporarily take the address of rt so we can
-	// handle the case of it implementing supported interfaces.
-	if into.CanAddr() {
-		into = into.Addr()
+// DecodeCopy is like Decode but a deep copy of val is always made.
+//
+// Unlike Decode, DecodeCopy will always invoke Unmarshaler and
+// text.Unmarshaler interfaces (if implemented by target).
+func DecodeCopy(val Value, target interface{}) error {
+	rt := reflect.ValueOf(target)
+	if rt.Kind() != reflect.Pointer {
+		panic("river/value: Decode called with non-pointer value")
 	}
 
-	switch {
-	case into.Type() == goDurationPtr:
-		var s string
-		err := decode(val, reflect.ValueOf(&s))
-		if err != nil {
-			return err
-		}
-		dur, err := time.ParseDuration(s)
-		if err != nil {
-			return Error{Value: val, Inner: err}
-		}
-		*into.Interface().(*time.Duration) = dur
-		return nil
+	d := decoder{makeCopy: true}
+	return d.decode(val, rt)
+}
 
-	case into.Type().Implements(goRiverDecoder):
-		err := into.Interface().(Unmarshaler).UnmarshalRiver(func(v interface{}) error {
-			return decode(val, reflect.ValueOf(v))
-		})
-		if err != nil {
-			// TODO(rfratto): we need to detect if error is one of the error types
-			// from this package and only wrap it in an Error if it isn't.
-			return Error{Value: val, Inner: err}
-		}
-		return nil
+type decoder struct {
+	makeCopy bool
+}
 
-	case into.Type().Implements(goTextUnmarshaler):
-		var s string
-		err := decode(val, reflect.ValueOf(&s))
-		if err != nil {
-			return err
-		}
-		err = into.Interface().(encoding.TextUnmarshaler).UnmarshalText([]byte(s))
-		if err != nil {
-			return Error{Value: val, Inner: err}
-		}
-		return nil
+func (d *decoder) decode(val Value, into reflect.Value) error {
+	// Store the raw value from val and try to address it so we can do underlying
+	// type match assignment.
+	rawValue := val.rv
+	if rawValue.CanAddr() {
+		rawValue = rawValue.Addr()
 	}
 
-	// Fully deference rt and allocate pointers as necessary.
+	// Fully deference into and allocate pointers as necessary.
 	for into.Kind() == reflect.Pointer {
-		// If our value is Null, we want to set the first settable pointer to nil.
-		if val.Type() == TypeNull && into.CanSet() {
+		// Check for direct assignments before allocating pointers and deferencing.
+		// This preservs pointer addresses when decoding an *int into an *int.
+		switch {
+		case into.CanSet() && val.Type() == TypeNull:
 			into.Set(reflect.Zero(into.Type()))
+			return nil
+		case into.CanSet() && d.canDirectlyAssign(rawValue.Type(), into.Type()):
+			into.Set(rawValue)
+			return nil
+		case into.CanSet() && d.canDirectlyAssign(val.rv.Type(), into.Type()):
+			into.Set(val.rv)
 			return nil
 		}
 
@@ -96,15 +98,30 @@ func decode(val Value, into reflect.Value) error {
 		into = into.Elem()
 	}
 
-	// Fastest cases: we can directly assign values without converting.
+	// Ww need to preform the same switch statement as above after the loop to
+	// check for direct assignment one more time on the fully deferenced types.
+	//
+	// NOTE(rfratto): we skip the rawValue assignment check since that's meant
+	// for assigning pointers, and into is never a pointer when we reach here.
 	switch {
-	case val.Type() == TypeNull:
-		// TODO(rfratto): Does it make sense for a null to always decode into the
-		// zero value? Maybe only objects and arrays should support null?
+	case into.CanSet() && val.Type() == TypeNull:
 		into.Set(reflect.Zero(into.Type()))
 		return nil
-	case into.Type() == goAny:
-		return decodeAny(val, into)
+	case into.CanSet() && d.canDirectlyAssign(val.rv.Type(), into.Type()):
+		into.Set(val.rv)
+		return nil
+	}
+
+	// Special decoding rules:
+	//
+	// 1. If into is an interface{}, go through decodeAny so it gets assigned
+	//    predictable types.
+	// 2. If into implements a supported interface, use the interface for
+	//    decoding instead.
+	if into.Type() == goAny {
+		return d.decodeAny(val, into)
+	} else if ok, err := d.decodeFromInterface(val, into); ok {
+		return err
 	}
 
 	targetType := RiverType(into.Type())
@@ -114,7 +131,7 @@ func decode(val Value, into reflect.Value) error {
 	//
 	// NOTE(rfratto): we don't reassign to val here, since Go 1.18 thinks that
 	// means it escapes the heap. We need to create a local variable to avoid
-	// exctra allocations.
+	// extra allocations.
 	convVal := val
 
 	// Convert the value.
@@ -154,9 +171,9 @@ func decode(val Value, into reflect.Value) error {
 		into.Set(reflect.ValueOf(convVal.Bool()))
 		return nil
 	case TypeArray:
-		return decodeArray(convVal, into)
+		return d.decodeArray(convVal, into)
 	case TypeObject:
-		return decodeObject(convVal, into)
+		return d.decodeObject(convVal, into)
 	case TypeFunction:
 		// The Go types for two functions must be the same.
 		//
@@ -196,6 +213,100 @@ func decode(val Value, into reflect.Value) error {
 	default:
 		panic("river/value: unexpected kind " + convVal.Type().String())
 	}
+}
+
+// canDirectlyAssign returns true if the `from` type can be directly asssigned
+// to the `into` type. This always returns false if the decoder is set to make
+// copies or into contains an interface{} type anywhere in its type definition
+// to allow for decoding interfaces{} into a set of known types.
+func (d *decoder) canDirectlyAssign(from reflect.Type, into reflect.Type) bool {
+	if d.makeCopy {
+		return false
+	}
+	if from != into {
+		return false
+	}
+	return !containsAny(into)
+}
+
+// containsAny recrusively traverses through into, returning true if it
+// contains an interface{} value anywhere in its structure.
+func containsAny(into reflect.Type) bool {
+	// TODO(rfratto): cache result of this function?
+
+	if into == goAny {
+		return true
+	}
+
+	switch into.Kind() {
+	case reflect.Array, reflect.Pointer, reflect.Slice:
+		return containsAny(into.Elem())
+	case reflect.Map:
+		if into.Key() == goString {
+			return containsAny(into.Elem())
+		}
+		return false
+
+	case reflect.Struct:
+		for i := 0; i < into.NumField(); i++ {
+			if containsAny(into.Field(i).Type) {
+				return true
+			}
+		}
+		return false
+
+	default:
+		// Other kinds are not River types where the decodeAny check applies.
+		return false
+	}
+}
+
+func (d *decoder) decodeFromInterface(val Value, into reflect.Value) (ok bool, err error) {
+	// into may only implement interface types for a pointer receiver, so we want
+	// to address into if possible.
+	if into.CanAddr() {
+		into = into.Addr()
+	}
+
+	switch {
+	case into.Type() == goDurationPtr:
+		var s string
+		err := d.decode(val, reflect.ValueOf(&s))
+		if err != nil {
+			return true, err
+		}
+		dur, err := time.ParseDuration(s)
+		if err != nil {
+			return true, Error{Value: val, Inner: err}
+		}
+		*into.Interface().(*time.Duration) = dur
+		return true, nil
+
+	case into.Type().Implements(goRiverDecoder):
+		err := into.Interface().(Unmarshaler).UnmarshalRiver(func(v interface{}) error {
+			return d.decode(val, reflect.ValueOf(v))
+		})
+		if err != nil {
+			// TODO(rfratto): we need to detect if error is one of the error types
+			// from this package and only wrap it in an Error if it isn't.
+			return true, Error{Value: val, Inner: err}
+		}
+		return true, nil
+
+	case into.Type().Implements(goTextUnmarshaler):
+		var s string
+		err := d.decode(val, reflect.ValueOf(&s))
+		if err != nil {
+			return true, err
+		}
+		err = into.Interface().(encoding.TextUnmarshaler).UnmarshalText([]byte(s))
+		if err != nil {
+			return true, Error{Value: val, Inner: err}
+		}
+		return true, nil
+	}
+
+	return false, nil
 }
 
 func tryCapsuleConvert(from Value, into reflect.Value, intoType Type) (ok bool, err error) {
@@ -245,7 +356,7 @@ func tryCapsuleConvert(from Value, into reflect.Value, intoType Type) (ok bool, 
 // In the cases where we do not passthrough the underlying value, we create a
 // value of that type, recrusively call decode to populate that new value, and
 // then store that value into the interface{}.
-func decodeAny(val Value, into reflect.Value) error {
+func (d *decoder) decodeAny(val Value, into reflect.Value) error {
 	var ptr reflect.Value
 
 	switch val.Type() {
@@ -294,20 +405,20 @@ func decodeAny(val Value, into reflect.Value) error {
 		panic("river/value: unreachable")
 	}
 
-	if err := decode(val, ptr); err != nil {
+	if err := d.decode(val, ptr); err != nil {
 		return err
 	}
 	into.Set(ptr.Elem())
 	return nil
 }
 
-func decodeArray(val Value, rt reflect.Value) error {
+func (d *decoder) decodeArray(val Value, rt reflect.Value) error {
 	switch rt.Kind() {
 	case reflect.Slice:
 		res := reflect.MakeSlice(rt.Type(), val.Len(), val.Len())
 		for i := 0; i < val.Len(); i++ {
 			// Decode the original elements into the new elements.
-			if err := decode(val.Index(i), res.Index(i)); err != nil {
+			if err := d.decode(val.Index(i), res.Index(i)); err != nil {
 				return ElementError{Value: val, Index: i, Inner: err}
 			}
 		}
@@ -324,7 +435,7 @@ func decodeArray(val Value, rt reflect.Value) error {
 		}
 
 		for i := 0; i < val.Len(); i++ {
-			if err := decode(val.Index(i), res.Index(i)); err != nil {
+			if err := d.decode(val.Index(i), res.Index(i)); err != nil {
 				return ElementError{Value: val, Index: i, Inner: err}
 			}
 		}
@@ -337,11 +448,11 @@ func decodeArray(val Value, rt reflect.Value) error {
 	return nil
 }
 
-func decodeObject(val Value, rt reflect.Value) error {
+func (d *decoder) decodeObject(val Value, rt reflect.Value) error {
 	switch rt.Kind() {
 	case reflect.Struct:
 		targetTags := getCachedTags(rt.Type())
-		return decodeObjectToStruct(val, rt, targetTags, false)
+		return d.decodeObjectToStruct(val, rt, targetTags, false)
 
 	case reflect.Slice, reflect.Array: // Slice of labeled blocks
 		keys := val.Keys()
@@ -371,7 +482,7 @@ func decodeObject(val Value, rt reflect.Value) error {
 
 			// Now decode the inner object.
 			value, _ := val.Key(key)
-			if err := decodeObjectToStruct(value, elem, fields, true); err != nil {
+			if err := d.decodeObjectToStruct(value, elem, fields, true); err != nil {
 				return FieldError{Value: val, Field: key, Inner: err}
 			}
 		}
@@ -400,7 +511,7 @@ func decodeObject(val Value, rt reflect.Value) error {
 				into.Set(intoZero)
 			}
 			// Decode into our element.
-			if err := decode(value, into); err != nil {
+			if err := d.decode(value, into); err != nil {
 				return FieldError{Value: val, Field: key, Inner: err}
 			}
 
@@ -417,7 +528,7 @@ func decodeObject(val Value, rt reflect.Value) error {
 	return nil
 }
 
-func decodeObjectToStruct(val Value, rt reflect.Value, fields *objectFields, decodedLabel bool) error {
+func (d *decoder) decodeObjectToStruct(val Value, rt reflect.Value, fields *objectFields, decodedLabel bool) error {
 	// TODO(rfratto): this needs to check for required keys being set
 
 	for _, key := range val.Keys() {
@@ -442,7 +553,7 @@ func decodeObjectToStruct(val Value, rt reflect.Value, fields *objectFields, dec
 			rt.FieldByIndex(lf.Index).Set(reflect.ValueOf(key))
 
 			// ...and then code the rest of the object.
-			if err := decodeObjectToStruct(value, rt, fields, true); err != nil {
+			if err := d.decodeObjectToStruct(value, rt, fields, true); err != nil {
 				return err
 			}
 			continue
@@ -454,12 +565,12 @@ func decodeObjectToStruct(val Value, rt reflect.Value, fields *objectFields, dec
 		case objectKeyTypeNestedField:
 			next, _ := fields.NestedField(key)
 			// Recruse the call with the inner value.
-			if err := decodeObjectToStruct(value, rt, next, decodedLabel); err != nil {
+			if err := d.decodeObjectToStruct(value, rt, next, decodedLabel); err != nil {
 				return err
 			}
 		case objectKeyTypeField:
 			targetField, _ := fields.Field(key)
-			if err := decodeToField(value, rt, targetField.Index); err != nil {
+			if err := d.decodeToField(value, rt, targetField.Index); err != nil {
 				return FieldError{Value: val, Field: key, Inner: err}
 			}
 		}
@@ -471,7 +582,7 @@ func decodeObjectToStruct(val Value, rt reflect.Value, fields *objectFields, dec
 // decodeToField will decode val into a field within intoStruct indexed by the
 // index slice. decodeToField will allocate pointers as necessary while
 // traversing the struct fields.
-func decodeToField(val Value, intoStruct reflect.Value, index []int) error {
+func (d *decoder) decodeToField(val Value, intoStruct reflect.Value, index []int) error {
 	curr := intoStruct
 	for _, next := range index {
 		for curr.Kind() == reflect.Pointer {
@@ -484,5 +595,5 @@ func decodeToField(val Value, intoStruct reflect.Value, index []int) error {
 		curr = curr.Field(next)
 	}
 
-	return decode(val, curr)
+	return d.decode(val, curr)
 }
