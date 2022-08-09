@@ -108,7 +108,7 @@ func Get(ty reflect.Type) []Field {
 
 	for _, field := range reflect.VisibleFields(ty) {
 		// River does not support embedding of fields
-		if field.Anonymous && field.Type.Kind() == reflect.Struct {
+		if field.Anonymous {
 			panic(fmt.Sprintf("river: anonymous fields not supported %s", printPathToField(ty, field.Index)))
 		}
 
@@ -154,10 +154,6 @@ func Get(ty reflect.Type) []Field {
 			tf.Flags |= FlagLabel
 		default:
 			panic(fmt.Sprintf("river: unrecognized river tag format %q at %s", tag, printPathToField(ty, tf.Index)))
-		}
-
-		if options[0] == "" && tf.Flags&FlagBlock == FlagBlock {
-			panic(fmt.Sprintf("river: blocks require a name (found at %s)", printPathToField(ty, tf.Index)))
 		}
 
 		if len(tf.Name) > 1 && tf.Flags&FlagBlock == 0 {

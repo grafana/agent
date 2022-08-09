@@ -43,15 +43,7 @@ func TestEmbedded(t *testing.T) {
 		InnerStruct
 		Field2 string `river:"parent_field_2,attr"`
 	}
-	panicked := false
-	defer func() {
-		if recover() != nil {
-			panicked = true
-		}
-		require.True(t, panicked)
-	}()
-
-	_ = rivertags.Get(reflect.TypeOf(Struct{}))
+	require.PanicsWithValue(t, "river: anonymous fields not supported rivertags_test.Struct.InnerStruct", func() { rivertags.Get(reflect.TypeOf(Struct{})) })
 }
 
 func Test_Get_Panics(t *testing.T) {
