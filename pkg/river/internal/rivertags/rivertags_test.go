@@ -32,7 +32,7 @@ func Test_Get(t *testing.T) {
 	require.Equal(t, expect, fs)
 }
 
-func Test_Get_Embedded(t *testing.T) {
+func TestEmbedded(t *testing.T) {
 	type InnerStruct struct {
 		InnerField1 string `river:"inner_field_1,attr"`
 		InnerField2 string `river:"inner_field_2,attr"`
@@ -43,17 +43,7 @@ func Test_Get_Embedded(t *testing.T) {
 		InnerStruct
 		Field2 string `river:"parent_field_2,attr"`
 	}
-
-	fs := rivertags.Get(reflect.TypeOf(Struct{}))
-
-	expect := []rivertags.Field{
-		{[]string{"parent_field_1"}, []int{0}, rivertags.FlagAttr},
-		{[]string{"inner_field_1"}, []int{1, 0}, rivertags.FlagAttr},
-		{[]string{"inner_field_2"}, []int{1, 1}, rivertags.FlagAttr},
-		{[]string{"parent_field_2"}, []int{2}, rivertags.FlagAttr},
-	}
-
-	require.Equal(t, expect, fs)
+	require.PanicsWithValue(t, "river: anonymous fields not supported rivertags_test.Struct.InnerStruct", func() { rivertags.Get(reflect.TypeOf(Struct{})) })
 }
 
 func Test_Get_Panics(t *testing.T) {
