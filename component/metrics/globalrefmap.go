@@ -79,6 +79,7 @@ func (g *GlobalRefMap) GetGlobalRefID(fm *FlowMetric) uint64 {
 	return g.GetGlobalRefIDByLabels(fm.labels)
 }
 
+// GetGlobalRefIDByLabels retrieves a global id based on the labels
 func (g *GlobalRefMap) GetGlobalRefIDByLabels(l labels.Labels) uint64 {
 	g.mut.Lock()
 	defer g.mut.Unlock()
@@ -91,7 +92,6 @@ func (g *GlobalRefMap) GetGlobalRefIDByLabels(l labels.Labels) uint64 {
 	g.globalRefID++
 	g.labelsHashToGlobal[labelHash] = g.globalRefID
 	return g.globalRefID
-
 }
 
 // GetGlobalRefIDForComponent returns the global refid for a component local combo, or 0 if not found
