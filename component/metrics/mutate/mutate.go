@@ -39,7 +39,7 @@ type Exports struct {
 
 // Component implements the metrics.mutate component.
 type Component struct {
-	mut       sync.Mutex
+	mut       sync.RWMutex
 	opts      component.Options
 	mrc       []*relabel.Config
 	forwardto []*metrics.Receiver
@@ -102,8 +102,8 @@ func (c *Component) Update(args component.Arguments) error {
 // series. This is a blocker for releasing a production-grade  of the metrics.mutate
 // component.
 func (c *Component) Receive(ts int64, metricArr []*metrics.FlowMetric) {
-	c.mut.Lock()
-	defer c.mut.Unlock()
+	c.mut.RLock()
+	defer c.mut.RLocker()
 
 	relabelledMetrics := make([]*metrics.FlowMetric, 0)
 	for _, m := range metricArr {
