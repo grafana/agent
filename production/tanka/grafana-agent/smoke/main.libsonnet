@@ -51,6 +51,7 @@ local util = k.util;
         'chaos-frequency': this._config.chaosFrequency,
         'pod-prefix': this._config.podPrefix,
         'fake-remote-write': true,
+        'simulate-errors': true,
       })),
 
     agentsmoke_deployment:
