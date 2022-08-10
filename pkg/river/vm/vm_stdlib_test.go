@@ -1,6 +1,7 @@
 package vm_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/grafana/agent/pkg/river/parser"
@@ -35,5 +36,52 @@ func TestVM_Stdlib(t *testing.T) {
 			require.NoError(t, eval.Evaluate(nil, &v))
 			require.Equal(t, tc.expect, v)
 		})
+	}
+}
+
+func BenchmarkConcat(b *testing.B) {
+	// There's a bit of setup work to do here: we want to create a scope
+	// holding a slice of the Data type, which has a fair amount of data in
+	// it.
+	//
+	// We then want to pass it through concat.
+	//
+	// If the code path is fully optimized, there will be no intermediate
+	// translations to interface{}.
+	type Data map[string]string
+	type Body struct {
+		Values []Data `river:"values,attr"`
+	}
+
+	in := `values = concat(values_ref)`
+	f, err := parser.ParseFile("", []byte(in))
+	require.NoError(b, err)
+
+	eval := vm.New(f)
+
+	valuesRef := make([]Data, 0, 20)
+	for i := 0; i < 20; i++ {
+		data := make(Data, 20)
+		for j := 0; j < 20; j++ {
+			var (
+				key   = fmt.Sprintf("key_%d", i+1)
+				value = fmt.Sprintf("value_%d", i+1)
+			)
+			data[key] = value
+		}
+		valuesRef = append(valuesRef, data)
+	}
+	scope := &vm.Scope{
+		Variables: map[string]interface{}{
+			"values_ref": valuesRef,
+		},
+	}
+
+	// Reset timer before running the actual test
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		var b Body
+		_ = eval.Evaluate(scope, &b)
 	}
 }
