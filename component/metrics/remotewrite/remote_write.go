@@ -173,11 +173,6 @@ func (c *Component) Update(newConfig component.Arguments) error {
 func (c *Component) Receive(ts int64, metricArr []*metrics.FlowMetric) {
 	app := c.storage.Appender(context.Background())
 	for _, m := range metricArr {
-		// TODO this should all be simplified into one call
-		if m.GlobalRefID() == 0 {
-			globalID := metrics.GlobalRefMapping.GetGlobalRefID(m)
-			m.SetGlobalRefID(globalID)
-		}
 		localID := metrics.GlobalRefMapping.GetLocalRefID(c.opts.ID, m.GlobalRefID())
 		newLocal, err := app.Append(storage.SeriesRef(localID), m.LabelsCopy(), ts, m.Value())
 		// Add link if there wasn't one before, and we received a valid local id

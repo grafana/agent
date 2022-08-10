@@ -11,12 +11,6 @@ import (
 	"github.com/prometheus/prometheus/storage"
 )
 
-// FlowMetric is a wrapper around a single sample without the timestamp.
-type FlowMetric struct {
-	Labels labels.Labels
-	Value  float64
-}
-
 // FlowAppendable is a flow-specific implementation of an Appender.
 type FlowAppendable struct {
 	mut       sync.RWMutex
