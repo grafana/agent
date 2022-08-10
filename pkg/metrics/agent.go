@@ -20,6 +20,7 @@ import (
 	"github.com/grafana/agent/pkg/metrics/cluster/client"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/prometheus/prometheus/discovery"
 )
 
 // DefaultConfig is the default settings for the Prometheus-lite client.
@@ -149,6 +150,8 @@ type Agent struct {
 
 // New creates and starts a new Agent.
 func New(reg prometheus.Registerer, cfg Config, logger log.Logger) (*Agent, error) {
+	// This registers discovery metrics with the default registry which should be the reg specified above.
+	discovery.RegisterMetrics()
 	return newAgent(reg, cfg, logger, defaultInstanceFactory)
 }
 
