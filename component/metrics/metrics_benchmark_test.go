@@ -11,7 +11,7 @@ func BenchmarkLabels(b *testing.B) {
 	fms := generateFlowMetrics()
 	for i := 0; i < b.N; i++ {
 		for j := 0; j < len(fms); j++ {
-			GlobalRefMapping.GetGlobalRefIDByLabels(fms[j].labels)
+			GlobalRefMapping.getGlobalRefIDByLabels(fms[j].labels)
 		}
 	}
 }
@@ -20,7 +20,7 @@ func BenchmarkFlowMetrics(b *testing.B) {
 	fms := generateFlowMetrics()
 	for i := 0; i < b.N; i++ {
 		for j := 0; j < len(fms); j++ {
-			GlobalRefMapping.GetGlobalRefIDByLabels(fms[j].LabelsCopy())
+			GlobalRefMapping.getGlobalRefIDByLabels(fms[j].LabelsCopy())
 		}
 	}
 }

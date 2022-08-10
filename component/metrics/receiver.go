@@ -16,16 +16,19 @@ func (r Receiver) RiverCapsule() {}
 // FlowMetric is a wrapper around a single metric without the timestamp, FlowMetric is *mostly* immutable
 // the globalrefid can only be set if it is 0
 type FlowMetric struct {
-	globalRefID uint64
+	globalRefID RefID
 	labels      labels.Labels
 	value       float64
 }
 
+// RefID wraps uint64 and used for a globally unique value
+type RefID uint64
+
 // NewFlowMetric instantiates a new flow metric
-func NewFlowMetric(globalRefID uint64, lbls labels.Labels, value float64) *FlowMetric {
+func NewFlowMetric(globalRefID RefID, lbls labels.Labels, value float64) *FlowMetric {
 	// Always ensure we have a valid global ref id
 	if globalRefID == 0 {
-		globalRefID = GlobalRefMapping.GetGlobalRefIDByLabels(lbls)
+		globalRefID = GlobalRefMapping.getGlobalRefIDByLabels(lbls)
 	}
 	return &FlowMetric{
 		globalRefID: globalRefID,
@@ -35,7 +38,7 @@ func NewFlowMetric(globalRefID uint64, lbls labels.Labels, value float64) *FlowM
 }
 
 // GlobalRefID Retrieves the GlobalRefID
-func (fw *FlowMetric) GlobalRefID() uint64 { return fw.globalRefID}
+func (fw *FlowMetric) GlobalRefID() RefID { return fw.globalRefID}
 
 // Value returns the value
 func (fw *FlowMetric) Value() float64 { return fw.value }

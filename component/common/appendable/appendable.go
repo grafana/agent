@@ -63,17 +63,15 @@ func (app *flowAppender) Append(ref storage.SeriesRef, l labels.Labels, t int64,
 		set := make([]*metrics.FlowMetric, 0)
 		app.buffer[t] = set
 	}
-	// If ref is 0 then lets grab a global id
-	if ref == 0 {
-		ref = storage.SeriesRef(metrics.GlobalRefMapping.GetGlobalRefIDByLabels(l))
-	}
-	// If it is stale then we can remove it
+	// The incoming ref is a global refid.
+    fm := metrics.NewFlowMetric(metrics.RefID(ref), l, v)
+	// If it is stale then we can remove it.
 	if value.IsStaleNaN(v) {
-		metrics.GlobalRefMapping.AddStaleMarker(uint64(ref), l)
+		metrics.GlobalRefMapping.AddStaleMarker(fm.GlobalRefID(), l)
 	} else {
-		metrics.GlobalRefMapping.RemoveStaleMarker(uint64(ref))
+		metrics.GlobalRefMapping.RemoveStaleMarker(fm.GlobalRefID())
 	}
-	app.buffer[t] = append(app.buffer[t], metrics.NewFlowMetric(uint64(ref), l, v))
+	app.buffer[t] = append(app.buffer[t],fm)
 	return ref, nil
 }
 

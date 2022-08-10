@@ -21,14 +21,14 @@ var staleDuration = time.Minute * 10
 // GlobalRefMap allows conversion from remote_write refids to global refs ids that everything else can use
 type GlobalRefMap struct {
 	mut                sync.Mutex
-	globalRefID        uint64
+	globalRefID        RefID
 	mappings           map[string]*remoteWriteMapping
-	labelsHashToGlobal map[uint64]uint64
-	staleGlobals       map[uint64]*staleMarker
+	labelsHashToGlobal map[uint64]RefID
+	staleGlobals       map[RefID]*staleMarker
 }
 
 type staleMarker struct {
-	globalID        uint64
+	globalID        RefID
 	lastMarkedStale time.Time
 	labelHash       uint64
 }
@@ -38,13 +38,13 @@ func newGlobalRefMap() *GlobalRefMap {
 	return &GlobalRefMap{
 		globalRefID:        0,
 		mappings:           make(map[string]*remoteWriteMapping),
-		labelsHashToGlobal: make(map[uint64]uint64),
-		staleGlobals:       make(map[uint64]*staleMarker),
+		labelsHashToGlobal: make(map[uint64]RefID),
+		staleGlobals:       make(map[RefID]*staleMarker),
 	}
 }
 
 // GetOrAddLink is called by a remote_write endpoint component to add mapping and get back the global id.
-func (g *GlobalRefMap) GetOrAddLink(componentID string, localRefID uint64, fm *FlowMetric) uint64 {
+func (g *GlobalRefMap) GetOrAddLink(componentID string, localRefID uint64, fm *FlowMetric) RefID {
 	g.mut.Lock()
 	defer g.mut.Unlock()
 
@@ -53,8 +53,8 @@ func (g *GlobalRefMap) GetOrAddLink(componentID string, localRefID uint64, fm *F
 	if !found {
 		m = &remoteWriteMapping{
 			RemoteWriteID: componentID,
-			localToGlobal: make(map[uint64]uint64),
-			globalToLocal: make(map[uint64]uint64),
+			localToGlobal: make(map[uint64]RefID),
+			globalToLocal: make(map[RefID]uint64),
 		}
 		g.mappings[componentID] = m
 	}
@@ -74,13 +74,13 @@ func (g *GlobalRefMap) GetOrAddLink(componentID string, localRefID uint64, fm *F
 	return g.globalRefID
 }
 
-// GetGlobalRefID is used to create a global refid for a FlowMetric
-func (g *GlobalRefMap) GetGlobalRefID(fm *FlowMetric) uint64 {
-	return g.GetGlobalRefIDByLabels(fm.labels)
+// getGlobalRefID is used to create a global refid for a FlowMetric
+func (g *GlobalRefMap) getGlobalRefID(fm *FlowMetric) RefID {
+	return g.getGlobalRefIDByLabels(fm.labels)
 }
 
-// GetGlobalRefIDByLabels retrieves a global id based on the labels
-func (g *GlobalRefMap) GetGlobalRefIDByLabels(l labels.Labels) uint64 {
+// getGlobalRefIDByLabels retrieves a global id based on the labels
+func (g *GlobalRefMap) getGlobalRefIDByLabels(l labels.Labels) RefID{
 	g.mut.Lock()
 	defer g.mut.Unlock()
 
@@ -95,7 +95,7 @@ func (g *GlobalRefMap) GetGlobalRefIDByLabels(l labels.Labels) uint64 {
 }
 
 // GetGlobalRefIDForComponent returns the global refid for a component local combo, or 0 if not found
-func (g *GlobalRefMap) GetGlobalRefIDForComponent(componentID string, localRefID uint64) uint64 {
+func (g *GlobalRefMap) GetGlobalRefIDForComponent(componentID string, localRefID uint64) RefID {
 	g.mut.Lock()
 	defer g.mut.Unlock()
 
@@ -108,7 +108,7 @@ func (g *GlobalRefMap) GetGlobalRefIDForComponent(componentID string, localRefID
 }
 
 // GetLocalRefID returns the local refid for a component global combo, or 0 if not found
-func (g *GlobalRefMap) GetLocalRefID(componentID string, globalRefID uint64) uint64 {
+func (g *GlobalRefMap) GetLocalRefID(componentID string, globalRefID RefID) uint64 {
 	g.mut.Lock()
 	defer g.mut.Unlock()
 
@@ -121,7 +121,7 @@ func (g *GlobalRefMap) GetLocalRefID(componentID string, globalRefID uint64) uin
 }
 
 // AddStaleMarker adds a stale marker
-func (g *GlobalRefMap) AddStaleMarker(globalRefID uint64, l labels.Labels) {
+func (g *GlobalRefMap) AddStaleMarker(globalRefID RefID, l labels.Labels) {
 	g.mut.Lock()
 	defer g.mut.Unlock()
 
@@ -133,7 +133,7 @@ func (g *GlobalRefMap) AddStaleMarker(globalRefID uint64, l labels.Labels) {
 }
 
 // RemoveStaleMarker removes a stale marker
-func (g *GlobalRefMap) RemoveStaleMarker(globalRefID uint64) {
+func (g *GlobalRefMap) RemoveStaleMarker(globalRefID RefID) {
 	g.mut.Lock()
 	defer g.mut.Unlock()
 

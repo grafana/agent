@@ -16,8 +16,8 @@ func TestAddingMarker(t *testing.T) {
 		Value: "test",
 	})
 	fm := NewFlowMetric(0, l, 0)
-	globalID := mapping.GetGlobalRefID(fm)
-	shouldBeSameGlobalID := mapping.GetGlobalRefID(fm)
+	globalID := mapping.getGlobalRefID(fm)
+	shouldBeSameGlobalID := mapping.getGlobalRefID(fm)
 	require.True(t, globalID == shouldBeSameGlobalID)
 	require.Len(t, mapping.labelsHashToGlobal, 1)
 }
@@ -36,8 +36,8 @@ func TestAddingDifferentMarkers(t *testing.T) {
 	})
 	fm := NewFlowMetric(0, l, 0)
 	fm2 := NewFlowMetric(0, l2, 0)
-	globalID := mapping.GetGlobalRefID(fm)
-	shouldBeDifferentID := mapping.GetGlobalRefID(fm2)
+	globalID := mapping.getGlobalRefID(fm)
+	shouldBeDifferentID := mapping.getGlobalRefID(fm2)
 	require.True(t, globalID != shouldBeDifferentID)
 	require.Len(t, mapping.labelsHashToGlobal, 2)
 }
@@ -50,7 +50,7 @@ func TestAddingLocalMapping(t *testing.T) {
 		Value: "test",
 	})
 	fm := NewFlowMetric(0, l, 0)
-	globalID := mapping.GetGlobalRefID(fm)
+	globalID := mapping.getGlobalRefID(fm)
 	shouldBeSameGlobalID := mapping.GetOrAddLink("1", 1, fm)
 	require.True(t, globalID == shouldBeSameGlobalID)
 	require.Len(t, mapping.labelsHashToGlobal, 1)
@@ -69,7 +69,7 @@ func TestAddingLocalMappings(t *testing.T) {
 	})
 	fm := NewFlowMetric(0, l, 0)
 
-	globalID := mapping.GetGlobalRefID(fm)
+	globalID := mapping.getGlobalRefID(fm)
 	shouldBeSameGlobalID := mapping.GetOrAddLink("1", 1, fm)
 	shouldBeSameGlobalID2 := mapping.GetOrAddLink("2", 1, fm)
 	require.True(t, globalID == shouldBeSameGlobalID)
