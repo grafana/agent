@@ -81,7 +81,7 @@ func (app *flowAppender) AppendExemplar(
 	l labels.Labels,
 	e exemplar.Exemplar,
 ) (storage.SeriesRef, error) {
-
+	// TODO actually implement this before flow production.
 	return 0, nil
 }
 

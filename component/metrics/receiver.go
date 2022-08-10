@@ -13,8 +13,7 @@ type Receiver struct {
 // RiverCapsule marks receivers as a capsule.
 func (r Receiver) RiverCapsule() {}
 
-// FlowMetric is a wrapper around a single metric without the timestamp, FlowMetric is *mostly* immutable
-// the globalrefid can only be set if it is 0
+// FlowMetric is a wrapper around a single metric without the timestamp.
 type FlowMetric struct {
 	globalRefID RefID
 	labels      labels.Labels
