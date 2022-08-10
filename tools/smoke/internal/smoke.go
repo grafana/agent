@@ -84,7 +84,7 @@ func New(logger log.Logger, cfg Config) (*Smoke, error) {
 		if cfg.SimulateErrors {
 			count := 0
 			s.fakeRemoteWriteHandler = func(w http.ResponseWriter, _ *http.Request) {
-				if count += 1; count%100 == 0 {
+				if count++; count%100 == 0 {
 					w.WriteHeader(http.StatusInternalServerError)
 					return
 				}
