@@ -42,7 +42,7 @@ func (c *Config) Name() string {
 func (c *Config) InstanceKey(agentKey string) (string, error) {
 	u, err := url.Parse(c.ApacheAddr)
 	if err != nil {
-		return agentKey, err
+		return "", err
 	}
 	return fmt.Sprintf("%s:%s", u.Hostname(), u.Port()), nil
 }

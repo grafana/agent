@@ -44,7 +44,7 @@ func (c *Config) Identifier(globals integrations_v2.Globals) (string, error) {
 	}
 	u, err := url.Parse(c.ApacheAddr)
 	if err != nil {
-		return globals.AgentIdentifier, err
+		return "", err
 	}
 	return fmt.Sprintf("%s:%s", u.Hostname(), u.Port()), nil
 }
