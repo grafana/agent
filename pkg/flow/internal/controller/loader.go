@@ -268,14 +268,15 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 // held when calling evaluate.
 func (l *Loader) evaluate(parent *vm.Scope, c *ComponentNode) error {
 	ectx := l.cache.BuildContext(parent)
-	if err := c.Evaluate(ectx); err != nil {
+	err := c.Evaluate(ectx)
+	// Always update the cache both the arguments and exports, since both might
+	// change when a component gets re-evaluated. We also want to cache the arguments and exports in case of an error
+	l.cache.CacheArguments(c.ID(), c.Arguments())
+	l.cache.CacheExports(c.ID(), c.Exports())
+	if err != nil {
 		level.Error(l.log).Log("msg", "failed to evaluate component", "component", c.NodeID(), "err", err)
 		return err
 	}
-	// Always update the cache both the arguments and exports, since both might
-	// change when a component gets re-evaluated.
-	l.cache.CacheArguments(c.ID(), c.Arguments())
-	l.cache.CacheExports(c.ID(), c.Exports())
 	return nil
 }
 
