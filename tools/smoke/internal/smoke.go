@@ -19,6 +19,8 @@ type Smoke struct {
 	cfg    *Config
 	logger log.Logger
 	tasks  []repeatingTask
+
+	fakeRemoteWriteHandler http.HandlerFunc
 }
 
 // Config struct to pass configuration to the Smoke constructor.
@@ -27,6 +29,7 @@ type Config struct {
 	Namespace         string
 	PodPrefix         string
 	FakeRemoteWrite   bool
+	SimulateErrors    bool
 	ChaosFrequency    time.Duration
 	MutationFrequency time.Duration
 }
@@ -37,6 +40,7 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&c.Kubeconfig, "kubeconfig", DefaultConfig.Kubeconfig, "absolute path to the kubeconfig file")
 	f.StringVar(&c.PodPrefix, "pod-prefix", DefaultConfig.PodPrefix, "prefix for grafana agent pods")
 	f.BoolVar(&c.FakeRemoteWrite, "fake-remote-write", DefaultConfig.FakeRemoteWrite, "remote write endpoint for series which are discarded, useful for testing and not storing metrics")
+	f.BoolVar(&c.SimulateErrors, "simulate-errors", DefaultConfig.SimulateErrors, "remote write endpoint will return a 500 error response 1% of the time.")
 	f.DurationVar(&c.ChaosFrequency, "chaos-frequency", DefaultConfig.ChaosFrequency, "chaos frequency duration")
 	f.DurationVar(&c.MutationFrequency, "mutation-frequency", DefaultConfig.MutationFrequency, "mutation frequency duration")
 }
@@ -47,6 +51,7 @@ var DefaultConfig = Config{
 	Namespace:         "default",
 	PodPrefix:         "grafana-agent",
 	FakeRemoteWrite:   false,
+	SimulateErrors:    false,
 	ChaosFrequency:    30 * time.Minute,
 	MutationFrequency: 5 * time.Minute,
 }
@@ -70,6 +75,22 @@ func New(logger log.Logger, cfg Config) (*Smoke, error) {
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return nil, err
+	}
+
+	if cfg.FakeRemoteWrite {
+		s.fakeRemoteWriteHandler = func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}
+		if cfg.SimulateErrors {
+			count := 0
+			s.fakeRemoteWriteHandler = func(w http.ResponseWriter, _ *http.Request) {
+				if count += 1; count%100 == 0 {
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+				w.WriteHeader(http.StatusOK)
+			}
+		}
 	}
 
 	// add default tasks
@@ -107,8 +128,8 @@ func New(logger log.Logger, cfg Config) (*Smoke, error) {
 	return s, nil
 }
 
-func (s *Smoke) ServeHTTP(rw http.ResponseWriter, _ *http.Request) {
-	rw.WriteHeader(http.StatusOK)
+func (s *Smoke) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	s.fakeRemoteWriteHandler(w, r)
 }
 
 // Run starts the smoke test and runs the tasks concurrently.
@@ -133,16 +154,16 @@ func (s *Smoke) Run(ctx context.Context) error {
 		}
 	}
 	for _, task := range s.tasks {
-		g.Add(taskFn(task), func(err error) {
+		g.Add(taskFn(task), func(_ error) {
 			cancel()
 		})
 	}
 
-	if s.cfg.FakeRemoteWrite {
+	if s.cfg.FakeRemoteWrite && s.fakeRemoteWriteHandler != nil {
 		level.Info(s.logger).Log("msg", "serving fake remote-write endpoint on :19090")
 		g.Add(func() error {
 			return http.ListenAndServe(":19090", s)
-		}, func(err error) {
+		}, func(_ error) {
 			cancel()
 		})
 	}
