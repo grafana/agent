@@ -34,7 +34,7 @@ Main (unreleased)
 
 - Register prometheus discovery metrics. (@mattdurham)
 
-- Don't use the optional config parameter (instance) as the Identity on apache_http integration v2 (@rgeyer)
+- Don't use the optional config parameter (instance) as the Identity on apache_http integration v2. Resolves #2017 for the apache_http integration. (@rgeyer)
 
 ### Other changes
 
