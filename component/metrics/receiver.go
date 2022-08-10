@@ -38,7 +38,7 @@ func NewFlowMetric(globalRefID RefID, lbls labels.Labels, value float64) *FlowMe
 }
 
 // GlobalRefID Retrieves the GlobalRefID
-func (fw *FlowMetric) GlobalRefID() RefID { return fw.globalRefID}
+func (fw *FlowMetric) GlobalRefID() RefID { return fw.globalRefID }
 
 // Value returns the value
 func (fw *FlowMetric) Value() float64 { return fw.value }

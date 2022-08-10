@@ -74,13 +74,8 @@ func (g *GlobalRefMap) GetOrAddLink(componentID string, localRefID uint64, fm *F
 	return g.globalRefID
 }
 
-// getGlobalRefID is used to create a global refid for a FlowMetric
-func (g *GlobalRefMap) getGlobalRefID(fm *FlowMetric) RefID {
-	return g.getGlobalRefIDByLabels(fm.labels)
-}
-
 // getGlobalRefIDByLabels retrieves a global id based on the labels
-func (g *GlobalRefMap) getGlobalRefIDByLabels(l labels.Labels) RefID{
+func (g *GlobalRefMap) getGlobalRefIDByLabels(l labels.Labels) RefID {
 	g.mut.Lock()
 	defer g.mut.Unlock()
 
