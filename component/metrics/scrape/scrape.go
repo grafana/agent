@@ -9,6 +9,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	fa "github.com/grafana/agent/component/common/appendable"
+	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/metrics"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/prometheus/common/model"
@@ -33,21 +34,14 @@ func init() {
 // Arguments holds values which are used to configure the metrics.scrape
 // component.
 type Arguments struct {
-	Targets   []Target            `river:"targets,attr"`
+	Targets   []discovery.Target  `river:"targets,attr"`
 	ForwardTo []*metrics.Receiver `river:"forward_to,attr"`
 
 	ScrapeConfig Config `river:"scrape_config,block"`
 
 	// Scrape Options
 	ExtraMetrics bool `river:"extra_metrics,attr,optional"`
-	// TODO(@tpaschalis) enable HTTPClientOptions []config_util.HTTPClientOption
 }
-
-// Target refers to a singular HTTP or HTTPS endpoint that will be used for
-// scraping. Here, we're using a map[string]string instead of labels.Labels;
-// if the label ordering is important, we can change to follow the upstream
-// logic instead.
-type Target map[string]string
 
 // Component implements the metrics.Scrape component.
 type Component struct {
@@ -193,7 +187,7 @@ func (c *Component) DebugInfo() interface{} {
 	return ScraperStatus{TargetStatus: res}
 }
 
-func (c *Component) componentTargetsToProm(tgs []Target) map[string][]*targetgroup.Group {
+func (c *Component) componentTargetsToProm(tgs []discovery.Target) map[string][]*targetgroup.Group {
 	promGroup := &targetgroup.Group{Source: c.opts.ID}
 	for _, tg := range tgs {
 		promGroup.Targets = append(promGroup.Targets, convertLabelSet(tg))
@@ -202,7 +196,7 @@ func (c *Component) componentTargetsToProm(tgs []Target) map[string][]*targetgro
 	return map[string][]*targetgroup.Group{c.opts.ID: {promGroup}}
 }
 
-func convertLabelSet(tg Target) model.LabelSet {
+func convertLabelSet(tg discovery.Target) model.LabelSet {
 	lset := make(model.LabelSet, len(tg))
 	for k, v := range tg {
 		lset[model.LabelName(k)] = model.LabelValue(v)

@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/targets/mutate"
 	"github.com/grafana/agent/pkg/flow/componenttest"
 	"github.com/grafana/agent/pkg/river/parser"
@@ -55,7 +56,7 @@ relabel_config {
 }
 `
 	expectedExports := mutate.Exports{
-		Output: []mutate.Target{
+		Output: []discovery.Target{
 			map[string]string{"__address__": "localhost", "app": "backend", "destination": "localhost/one", "meta_bar": "bar", "meta_foo": "foo", "name": "one"},
 		},
 	}

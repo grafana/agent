@@ -7,7 +7,6 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/component/metrics/scrape"
 	promk8s "github.com/prometheus/prometheus/discovery/kubernetes"
 )
 
@@ -91,7 +90,7 @@ func (sc *SelectorConfig) convert() *promk8s.SelectorConfig {
 
 // Exports holds values which are exported by the discovery.k8s component.
 type Exports struct {
-	Targets []scrape.Target `river:"targets,attr"`
+	Targets []discovery.Target `river:"targets,attr"`
 }
 
 // Component implements the discovery.k8s component.
@@ -126,7 +125,7 @@ func (c *Component) Run(ctx context.Context) error {
 				cancel()
 			}
 			// function to send updates on change
-			f := func(t []scrape.Target) {
+			f := func(t []discovery.Target) {
 				c.opts.OnStateChange(Exports{Targets: t})
 			}
 			// create new context so we can cancel it if we get any future updates
