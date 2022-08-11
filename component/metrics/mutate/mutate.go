@@ -107,11 +107,11 @@ func (c *Component) Receive(ts int64, metricArr []*metrics.FlowMetric) {
 
 	relabelledMetrics := make([]*metrics.FlowMetric, 0)
 	for _, m := range metricArr {
-		newLabels := relabel.Process(m.LabelsCopy(), c.mrc...)
-		if newLabels == nil {
+		// Note relabel may return itself if no changes needed
+		fm := m.Relabel(c.mrc...)
+		if fm == nil {
 			continue
 		}
-		fm := metrics.NewFlowMetric(0, newLabels, m.Value())
 		relabelledMetrics = append(relabelledMetrics, fm)
 	}
 	if len(relabelledMetrics) == 0 {
