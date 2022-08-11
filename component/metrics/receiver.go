@@ -53,11 +53,11 @@ func (fw *FlowMetric) RawLabels() labels.Labels {
 
 // Relabel applies normal prometheus relabel rules and returns a flow metric. NOTE this may return itself.
 func (fw *FlowMetric) Relabel(cfgs ...*promrelabel.Config) *FlowMetric {
-	retLbls := promrelabel.Process(fw.labels)
+	retLbls := promrelabel.Process(fw.labels, cfgs...)
 	if retLbls == nil {
 		return nil
 	}
-	if retLbls.Hash() == fw.labels.Hash() {
+	if retLbls.Hash() == fw.labels.Hash() && labels.Equal(retLbls, fw.labels) {
 		return fw
 	}
 	return NewFlowMetric(0, retLbls, fw.value)
