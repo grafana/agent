@@ -24,14 +24,8 @@ import (
 
 // Options.
 //
-// TODO(rfratto): These should be flags. How do we want to handle static
-// options for components?
-var (
-	walTruncateFrequency = 2 * time.Hour
-	minWALTime           = 5 * time.Minute
-	maxWALTime           = 8 * time.Hour
-	remoteFlushDeadline  = 1 * time.Minute
-)
+// TODO(rfratto): This should be exposed. How do we want to expose this?
+var remoteFlushDeadline = 1 * time.Minute
 
 func init() {
 	remote.UserAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
@@ -111,7 +105,17 @@ func (c *Component) Run(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			return nil
-		case <-time.After(walTruncateFrequency):
+		case <-time.After(c.truncateFrequency()):
+			// We retrieve the current min/max keepalive time at once, since
+			// retrieving them separately could lead to issues where we have an older
+			// value for min which is now larger than max.
+			c.mut.RLock()
+			var (
+				minWALTime = c.cfg.WALOptions.MinKeepaliveTime
+				maxWALTime = c.cfg.WALOptions.MaxKeepaliveTime
+			)
+			c.mut.RUnlock()
+
 			// The timestamp ts is used to determine which series are not receiving
 			// samples and may be deleted from the WAL. Their most recent append
 			// timestamp is compared to ts, and if that timestamp is older then ts,
@@ -147,6 +151,12 @@ func (c *Component) Run(ctx context.Context) error {
 			}
 		}
 	}
+}
+
+func (c *Component) truncateFrequency() time.Duration {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+	return c.cfg.WALOptions.TruncateFrequency
 }
 
 // Update implements Component.

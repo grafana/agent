@@ -18,8 +18,12 @@ import (
 	"github.com/prometheus/common/model"
 )
 
+// Defaults for config blocks.
 var (
-	// DefaultQueueConfig matches the default defined in prometheus
+	DefaultRemoteConfig = RemoteConfig{
+		WALOptions: DefaultWALOptions,
+	}
+
 	DefaultQueueConfig = QueueConfig{
 		Capacity:          2500,
 		MaxShards:         200,
@@ -30,6 +34,13 @@ var (
 		MaxBackoff:        5 * time.Second,
 		RetryOn429:        false,
 	}
+
+	DefaultWALOptions = WALOptions{
+		TruncateFrequency: 2 * time.Hour,
+		MinKeepaliveTime:  5 * time.Minute,
+		MaxKeepaliveTime:  8 * time.Hour,
+	}
+
 	_ river.Unmarshaler = (*QueueConfig)(nil)
 )
 
@@ -37,6 +48,15 @@ var (
 type RemoteConfig struct {
 	ExternalLabels map[string]string `river:"external_labels,attr,optional"`
 	RemoteWrite    []*Config         `river:"remote_write,block,optional"`
+	WALOptions     WALOptions        `river:"wal,block,optional"`
+}
+
+// UnmarshalRiver implements river.Unmarshaler.
+func (rc *RemoteConfig) UnmarshalRiver(f func(interface{}) error) error {
+	*rc = DefaultRemoteConfig
+
+	type config RemoteConfig
+	return f((*config)(rc))
 }
 
 // Config is the metrics_fowarder's configuration for where to send
@@ -60,6 +80,32 @@ type QueueConfig struct {
 	MinBackoff        time.Duration `river:"min_backoff,attr,optional"`
 	MaxBackoff        time.Duration `river:"max_backoff,attr,optional"`
 	RetryOn429        bool          `river:"retry_on_http_429,attr,optional"`
+}
+
+// WALOptions configures behavior within the WAL.
+type WALOptions struct {
+	TruncateFrequency time.Duration `river:"truncate_frequency,attr,optional"`
+	MinKeepaliveTime  time.Duration `river:"min_keepalive_time,attr,optional"`
+	MaxKeepaliveTime  time.Duration `river:"max_keepalive_time,attr,optional"`
+}
+
+// UnmarshalRiver implements river.Unmarshaler.
+func (o *WALOptions) UnmarshalRiver(f func(interface{}) error) error {
+	*o = DefaultWALOptions
+
+	type config WALOptions
+	if err := f((*config)(o)); err != nil {
+		return err
+	}
+
+	switch {
+	case o.TruncateFrequency == 0:
+		return fmt.Errorf("truncate_frequency must not be 0")
+	case o.MaxKeepaliveTime <= o.MinKeepaliveTime:
+		return fmt.Errorf("min_keepalive_time must be smaller than max_keepalive_time")
+	}
+
+	return nil
 }
 
 // Export is used to assign this to receive metrics
