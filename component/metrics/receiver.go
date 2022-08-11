@@ -1,13 +1,31 @@
 package metrics
 
 import (
+	"github.com/panjf2000/ants/v2"
+
 	"github.com/prometheus/prometheus/model/labels"
 )
 
+var pool, _ = ants.NewPool(1000)
+
+// Receive is a func signature for something to receive metrics
+type Receive func(timestamp int64, metrics []*FlowMetric)
+
 // Receiver is used to pass an array of metrics to another receiver
 type Receiver struct {
-	// metrics should be considered immutable
-	Receive func(timestamp int64, metrics []*FlowMetric)
+	rec Receive
+}
+
+func NewReceiver(recFunc Receive) *Receiver {
+	return &Receiver{
+		rec: recFunc,
+	}
+}
+
+func (r *Receiver) Send(timestamp int64, metrics []*FlowMetric) {
+	ants.Submit(func() {
+		r.rec(timestamp, metrics)
+	})
 }
 
 // RiverCapsule marks receivers as a capsule.

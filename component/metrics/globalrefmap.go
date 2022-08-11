@@ -47,6 +47,7 @@ func newGlobalRefMap() *GlobalRefMap {
 func (g *GlobalRefMap) UnregisterComponent(componentID string) {
 	g.mut.Lock()
 	defer g.mut.Unlock()
+
 	delete(g.mappings, componentID)
 }
 

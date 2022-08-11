@@ -88,10 +88,11 @@ func (app *flowAppender) AppendExemplar(
 func (app *flowAppender) Commit() error {
 	for _, r := range app.receivers {
 		for ts, metrics := range app.buffer {
-			if r == nil || r.Receive == nil {
+			if r == nil {
 				continue
 			}
-			r.Receive(ts, metrics)
+
+			r.Send(ts, metrics)
 		}
 	}
 	app.buffer = make(map[int64][]*metrics.FlowMetric)

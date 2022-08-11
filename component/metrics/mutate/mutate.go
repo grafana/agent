@@ -56,7 +56,7 @@ var (
 func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{opts: o}
 
-	c.receiver = &metrics.Receiver{Receive: c.Receive}
+	c.receiver = metrics.NewReceiver(c.Receive)
 	c.metricsProcessed = prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "agent_metrics_mutate_metrics_processed",
 		Help: "Total number of metrics processed",
@@ -118,6 +118,6 @@ func (c *Component) Receive(ts int64, metricArr []*metrics.FlowMetric) {
 		return
 	}
 	for _, forward := range c.forwardto {
-		forward.Receive(ts, relabelledMetrics)
+		forward.Send(ts, relabelledMetrics)
 	}
 }
