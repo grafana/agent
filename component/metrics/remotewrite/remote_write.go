@@ -175,8 +175,8 @@ func (c *Component) Receive(ts int64, metricArr []*metrics.FlowMetric) {
 	for _, m := range metricArr {
 		localID := metrics.GlobalRefMapping.GetLocalRefID(c.opts.ID, m.GlobalRefID())
 		// Currently it doesn't look like the storage interfaces mutate the labels, but thats not a strong
-		// promise so copying the labels to go to the appendable.
-		newLocal, err := app.Append(storage.SeriesRef(localID), m.LabelsCopy(), ts, m.Value())
+		// promise. So this should be treated with care.
+		newLocal, err := app.Append(storage.SeriesRef(localID), m.RawLabels(), ts, m.Value())
 		// Add link if there wasn't one before, and we received a valid local id
 		if localID == 0 && newLocal != 0 {
 			metrics.GlobalRefMapping.GetOrAddLink(c.opts.ID, uint64(newLocal), m)
