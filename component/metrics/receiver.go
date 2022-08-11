@@ -21,9 +21,6 @@ type FlowMetric struct {
 	value       float64
 }
 
-// RefID wraps uint64 and used for a globally unique value
-type RefID uint64
-
 // NewFlowMetric instantiates a new flow metric
 func NewFlowMetric(globalRefID uint64, lbls labels.Labels, value float64) *FlowMetric {
 	// Always ensure we have a valid global ref id
