@@ -99,13 +99,8 @@ func (c *Component) Run(ctx context.Context) error {
 		c.mut.Lock()
 		defer c.mut.Unlock()
 
-		metrics.GlobalRefMapping.UnregisterComponent(c.opts.ID)
-		err := c.walStore.Truncate(math.MaxInt64)
-		if err != nil {
-			level.Error(c.log).Log("msg", "failure to truncare wal during component shutdown", "err", err)
-		}
 		level.Debug(c.log).Log("msg", "closing storage")
-		err = c.storage.Close()
+		err := c.storage.Close()
 		level.Debug(c.log).Log("msg", "storage closed")
 		if err != nil {
 			level.Error(c.log).Log("msg", "error when closing storage", "err", err)
