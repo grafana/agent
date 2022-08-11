@@ -148,6 +148,15 @@ local tests = [
       }])
     |||,
   },
+  {
+    name: 'Pruned expressions',
+    input: std.prune({
+      expr: river.expr('env("HOME")'),
+    }),
+    expect: |||
+      expr = env("HOME")
+    |||,
+  },
 ];
 
 std.map(function(test) (
