@@ -80,7 +80,7 @@ func NewComponent(o component.Options, c RemoteConfig) (*Component, error) {
 		remoteStore: remoteStore,
 		storage:     storage.NewFanout(o.Logger, walStorage, remoteStore),
 	}
-	res.receiver = metrics.NewReceiver(res.Receive)
+	res.receiver = &metrics.Receiver{Receive: res.Receive}
 	if err := res.Update(c); err != nil {
 		return nil, err
 	}
@@ -98,6 +98,7 @@ func (c *Component) Run(ctx context.Context) error {
 		// This is needed so the component doesn't exit until the append is finished
 		c.mut.Lock()
 		defer c.mut.Unlock()
+
 		metrics.GlobalRefMapping.UnregisterComponent(c.opts.ID)
 		err := c.walStore.Truncate(math.MaxInt64)
 		if err != nil {
@@ -109,7 +110,6 @@ func (c *Component) Run(ctx context.Context) error {
 		if err != nil {
 			level.Error(c.log).Log("msg", "error when closing storage", "err", err)
 		}
-
 	}()
 
 	// Track the last timestamp we truncated for to prevent segments from getting

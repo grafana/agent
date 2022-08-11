@@ -92,7 +92,7 @@ func (app *flowAppender) Commit() error {
 				continue
 			}
 
-			r.Send(ts, metrics)
+			r.Receive(ts, metrics)
 		}
 	}
 	app.buffer = make(map[int64][]*metrics.FlowMetric)
