@@ -172,10 +172,7 @@ func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string
 		if err := w.Repair(ce); err != nil {
 			// if repair fails, truncate everything in WAL
 			level.Warn(storage.logger).Log("msg", "WAL repair failed, truncating!", "err", err)
-			if e := w.Truncate(math.MaxInt); e != nil {
-				level.Error(storage.logger).Log("msg", "WAL truncate failure", "err", e)
-				return nil, fmt.Errorf("truncate corrupted WAL: %w", e)
-			}
+
 			if e := wal.DeleteCheckpoints(w.Dir(), math.MaxInt); e != nil {
 				return nil, fmt.Errorf("delete WAL checkpoints: %w", e)
 			}

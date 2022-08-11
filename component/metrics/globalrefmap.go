@@ -43,6 +43,13 @@ func newGlobalRefMap() *GlobalRefMap {
 	}
 }
 
+// UnregisterComponent deletes all the mappings for a given component
+func (g *GlobalRefMap) UnregisterComponent(componentID string) {
+	g.mut.Lock()
+	defer g.mut.Unlock()
+	delete(g.mappings, componentID)
+}
+
 // GetOrAddLink is called by a remote_write endpoint component to add mapping and get back the global id.
 func (g *GlobalRefMap) GetOrAddLink(componentID string, localRefID uint64, fm *FlowMetric) RefID {
 	g.mut.Lock()

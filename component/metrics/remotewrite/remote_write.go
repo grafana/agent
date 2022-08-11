@@ -81,9 +81,9 @@ func NewComponent(o component.Options, c RemoteConfig) (*Component, error) {
 		storage:     storage.NewFanout(o.Logger, walStorage, remoteStore),
 	}
 	res.receiver = &metrics.Receiver{Receive: res.Receive}
-	if err := res.Update(c); err != nil {
+	/*if err := res.Update(c); err != nil {
 		return nil, err
-	}
+	}*/
 	return res, nil
 }
 
@@ -95,12 +95,21 @@ var _ component.Component = (*Component)(nil)
 func (c *Component) Run(ctx context.Context) error {
 	c.opts.OnStateChange(Export{Receiver: c.receiver})
 	defer func() {
+		// This is needed so the component doesn't exit until the append is finished
+		c.mut.Lock()
+		defer c.mut.Unlock()
+		metrics.GlobalRefMapping.UnregisterComponent(c.opts.ID)
+		err := c.walStore.Truncate(math.MaxInt64)
+		if err != nil {
+			level.Error(c.log).Log("msg", "failure to truncare wal during component shutdown", "err", err)
+		}
 		level.Debug(c.log).Log("msg", "closing storage")
-		err := c.storage.Close()
+		err = c.storage.Close()
 		level.Debug(c.log).Log("msg", "storage closed")
 		if err != nil {
 			level.Error(c.log).Log("msg", "error when closing storage", "err", err)
 		}
+
 	}()
 
 	// Track the last timestamp we truncated for to prevent segments from getting
@@ -110,6 +119,7 @@ func (c *Component) Run(ctx context.Context) error {
 	for {
 		select {
 		case <-ctx.Done():
+
 			return nil
 		case <-time.After(walTruncateFrequency):
 			// The timestamp ts is used to determine which series are not receiving
@@ -171,6 +181,9 @@ func (c *Component) Update(newConfig component.Arguments) error {
 
 // Receive implements the receiver.receive func that allows an array of metrics to be passed
 func (c *Component) Receive(ts int64, metricArr []*metrics.FlowMetric) {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+
 	app := c.storage.Appender(context.Background())
 	for _, m := range metricArr {
 		localID := metrics.GlobalRefMapping.GetLocalRefID(c.opts.ID, m.GlobalRefID())
