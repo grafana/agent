@@ -1,3 +1,5 @@
+local utils = import './internal/utils.jsonnet';
+
 // parseField parses a field name from a Jsonnet object and determines if it's
 // supposed to be a River attribute or block.
 local parseField(name) = (
@@ -19,7 +21,7 @@ local parseField(name) = (
 );
 
 // isRiverExpr returns true if value was constructed with river.expr().
-local isRiverExpr(value) = std.isObject(value) && '_river_expr' in value;
+local isRiverExpr(value) = std.isObject(value) && std.length(value) == 1 && utils.exprMarker in value;
 
 // linePadding returns number of spaces to indent a line with given a specific
 // indentation level.
@@ -81,7 +83,7 @@ local manifester(indent=0) = {
     if value == null then (
       'null'
     ) else if isRiverExpr(value) then (
-      local lines = std.split(value.lit, '\n');
+      local lines = std.split(value[utils.exprMarker], '\n');
 
       // When injecting literals, each line after the first should have the
       // current padding appended to it.
