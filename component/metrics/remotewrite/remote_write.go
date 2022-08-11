@@ -99,6 +99,7 @@ func (c *Component) Run(ctx context.Context) error {
 		c.mut.Lock()
 		defer c.mut.Unlock()
 
+		metrics.GlobalRefMapping.UnregisterComponent(c.opts.ID)
 		level.Debug(c.log).Log("msg", "closing storage")
 		err := c.storage.Close()
 		level.Debug(c.log).Log("msg", "storage closed")
