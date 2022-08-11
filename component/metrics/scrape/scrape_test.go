@@ -76,5 +76,5 @@ func TestForwardingToAppendable(t *testing.T) {
 
 	require.Equal(t, receivedTs, timestamp)
 	require.Len(t, receivedSamples, 1)
-	require.Equal(t, receivedSamples[0], &sample)
+	require.Equal(t, receivedSamples[0], sample)
 }

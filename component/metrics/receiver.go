@@ -45,6 +45,12 @@ func (fw *FlowMetric) LabelsCopy() labels.Labels {
 	return fw.labels.Copy()
 }
 
+// RawLabels returns the actual underlying labels that SHOULD be treated as immutable. Usage of this
+// must be very careful to ensure that nothing that consume this mutates labels in anyway.
+func (fw *FlowMetric) RawLabels() labels.Labels {
+	return fw.labels
+}
+
 // Relabel applies normal prometheus relabel rules and returns a flow metric. NOTE this may return itself.
 func (fw *FlowMetric) Relabel(cfgs ...*promrelabel.Config) *FlowMetric {
 	retLbls := promrelabel.Process(fw.labels)
