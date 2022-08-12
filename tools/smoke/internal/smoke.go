@@ -43,7 +43,7 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&c.PodPrefix, "pod-prefix", DefaultConfig.PodPrefix, "prefix for grafana agent pods")
 	f.BoolVar(&c.FakeRemoteWrite, "fake-remote-write", DefaultConfig.FakeRemoteWrite, "remote write endpoint for series which are discarded, useful for testing and not storing metrics")
 	f.BoolVar(&c.SimulateErrors, "simulate-errors", DefaultConfig.SimulateErrors, "remote write endpoint will return a 500 error response randomly")
-	f.Float64Var(&c.ErrorPrrcentage, "simulate-errors-percentage", DefaultConfig.ErrorPercentage, "percentage chance a request will result in an error")
+	f.Float64Var(&c.ErrorPercentage, "simulate-errors-percentage", DefaultConfig.ErrorPercentage, "percentage chance a request will result in an error")
 	f.DurationVar(&c.ChaosFrequency, "chaos-frequency", DefaultConfig.ChaosFrequency, "chaos frequency duration")
 	f.DurationVar(&c.MutationFrequency, "mutation-frequency", DefaultConfig.MutationFrequency, "mutation frequency duration")
 }
