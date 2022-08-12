@@ -4,6 +4,7 @@ import {
   Nav,
   Navbar as BootstrapNavbar,
   NavItem,
+  NavLink as BootstrapLink,
   NavbarToggler,
   Collapse,
   UncontrolledDropdown,
@@ -53,6 +54,9 @@ function Navbar() {
               </NavLink>
             </DropdownMenu>
           </UncontrolledDropdown>
+          <NavItem>
+            <BootstrapLink href="https://grafana.com/docs/agent/latest">Help</BootstrapLink>
+          </NavItem>
         </Nav>
       </Collapse>
     </BootstrapNavbar>
