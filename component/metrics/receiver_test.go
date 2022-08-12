@@ -23,7 +23,6 @@ func TestRelabel(t *testing.T) {
 
 	require.Len(t, newfm.labels, 2)
 	require.True(t, newfm.labels.Has("new"))
-
 }
 
 func TestRelabelTheSame(t *testing.T) {
@@ -41,5 +40,4 @@ func TestRelabelTheSame(t *testing.T) {
 	require.Len(t, newfm.labels, 1)
 	require.True(t, newfm.globalRefID == fm.globalRefID)
 	require.True(t, labels.Equal(newfm.labels, fm.labels))
-
 }
