@@ -79,11 +79,7 @@ func (app *flowAppender) Append(ref storage.SeriesRef, l labels.Labels, t int64,
 	} else {
 		metrics.GlobalRefMapping.RemoveStaleMarker(uint64(ref))
 	}
-	app.buffer[t] = append(app.buffer[t], &metrics.FlowMetric{
-		GlobalRefID: uint64(ref),
-		Labels:      l,
-		Value:       v,
-	})
+	app.buffer[t] = append(app.buffer[t], metrics.NewFlowMetric(uint64(ref), l, v))
 	return ref, nil
 }
 

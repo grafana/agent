@@ -183,16 +183,13 @@ func (c *Component) Update(newConfig component.Arguments) error {
 func (c *Component) Receive(ts int64, metricArr []*metrics.FlowMetric) {
 	app := c.storage.Appender(context.Background())
 	for _, m := range metricArr {
-		// TODO this should all be simplified into one call
-		if m.GlobalRefID == 0 {
-			globalID := metrics.GlobalRefMapping.GetOrAddGlobalRefID(m.Labels)
-			m.GlobalRefID = globalID
-		}
-		localID := metrics.GlobalRefMapping.GetLocalRefID(c.opts.ID, m.GlobalRefID)
-		newLocal, err := app.Append(storage.SeriesRef(localID), m.Labels, ts, m.Value)
+		localID := metrics.GlobalRefMapping.GetLocalRefID(c.opts.ID, m.GlobalRefID())
+		// Currently it doesn't look like the storage interfaces mutate the labels, but thats not a strong
+		// promise. So this should be treated with care.
+		newLocal, err := app.Append(storage.SeriesRef(localID), m.RawLabels(), ts, m.Value())
 		// Add link if there wasn't one before, and we received a valid local id
 		if localID == 0 && newLocal != 0 {
-			metrics.GlobalRefMapping.GetOrAddLink(c.opts.ID, uint64(newLocal), m.Labels)
+			metrics.GlobalRefMapping.GetOrAddLink(c.opts.ID, uint64(newLocal), m)
 		}
 		if err != nil {
 			_ = app.Rollback()
