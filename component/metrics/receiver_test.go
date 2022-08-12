@@ -67,7 +67,7 @@ func runTest() {
 	cnt := atomic.NewInt64(0)
 	finalRec := NewReceiver(func(timestamp int64, metrics []*FlowMetric) {
 		cnt.Inc()
-		time.Sleep(1 * time.Millisecond)
+		time.Sleep(100 * time.Microsecond)
 	})
 	maxdepth := 4
 	childrencount := 2
