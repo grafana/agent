@@ -105,7 +105,7 @@ func (c *Component) Receive(ts int64, metricArr []*metrics.FlowMetric) {
 	c.mut.RLock()
 	defer c.mut.RLocker()
 
-	relabelledMetrics := make([]*metrics.FlowMetric, 0)
+	relabelledMetrics := make([]*metrics.FlowMetric, 0, len(metricArr))
 	for _, m := range metricArr {
 		// Note relabel may return itself if no changes needed
 		fm := m.Relabel(c.mrc...)

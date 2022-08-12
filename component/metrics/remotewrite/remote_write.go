@@ -191,7 +191,7 @@ func (c *Component) Receive(ts int64, metricArr []*metrics.FlowMetric) {
 		if err != nil {
 			_ = app.Rollback()
 			//TODO what should we log and behave?
-			level.Error(c.log).Log("err", err, "msg", "error receiving metrics", "component", c.opts.ID)
+			level.Error(c.log).Log("err", err, "msg", "error appending metrics", "component", c.opts.ID)
 			return
 		}
 	}
