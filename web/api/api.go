@@ -10,8 +10,15 @@ package api
 //
 // /api/v0/web/components
 //
-// Return list of components ID and health status. Arguments and exports
-// should not be included.
+// Return list of components, where each component contains:
+//   * component ID
+//   * component name (metrics.remote_write)
+//   * component label
+//   * health info
+//   * component IDs of components being referenced by this component
+//   * component IDs of components referencing this component
+//
+// Arguments, exports, and debug info are *not* included.
 //
 // /api/v0/web/component/{id}
 //
@@ -27,10 +34,6 @@ package api
 // /api/v0/web/component/{id}/raw
 //
 // Return raw evaluated River text for component
-//
-//  /api/v0/web/dag
-//
-//  Return the DAG to be interpreted by Javascript for rendering.
 //
 // /api/v0/web/status/build-info
 //
