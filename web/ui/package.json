@@ -5,6 +5,8 @@
     "bootstrap": "^5.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-router-dom": "^6.3.0",
+    "reactstrap": "^9.1.3",
     "typescript": "^4.4.2"
   },
   "devDependencies": {
@@ -25,11 +27,10 @@
     "lint:ci": "eslint --quiet \"src/**/*.{ts,tsx}\"",
     "lint": "eslint --fix \"src/**/*.{ts,tsx}\""
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
+  "prettier": {
+    "singleQuote": true,
+    "trailingComma": "es5",
+    "printWidth": 125
   },
   "browserslist": [
     ">0.2%",

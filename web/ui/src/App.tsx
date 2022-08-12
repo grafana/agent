@@ -1,5 +1,18 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import ComponentList from './pages/ComponentList';
+import DAG from './pages/DAG';
+
 function App() {
-  return <h1>Hello, world!</h1>;
+  return (
+    <BrowserRouter>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<ComponentList />} />
+        <Route path="/dag" element={<DAG />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
 export default App;
