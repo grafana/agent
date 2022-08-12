@@ -4,7 +4,7 @@
 // externally.
 package api
 
-// All API methods should be JSON.
+// Unless otherwise specified, API methods should be JSON.
 //
 // API methods needed:
 //
@@ -16,12 +16,17 @@ package api
 // /api/v0/web/component/{id}
 //
 // Return details on a component:
+//   * component name (metrics.remote_write)
 //   * Arguments
 //   * Exports
 //   * Debug info
 //   * Health info
 //   * Dependencies
 //   * Dependants
+//
+// /api/v0/web/component/{id}/raw
+//
+// Return raw evaluated River text for component
 //
 //  /api/v0/web/dag
 //
