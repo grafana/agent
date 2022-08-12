@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"time"
 
@@ -30,6 +31,7 @@ type Config struct {
 	PodPrefix         string
 	FakeRemoteWrite   bool
 	SimulateErrors    bool
+	ErrorPercentage   float64
 	ChaosFrequency    time.Duration
 	MutationFrequency time.Duration
 }
@@ -40,7 +42,8 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&c.Kubeconfig, "kubeconfig", DefaultConfig.Kubeconfig, "absolute path to the kubeconfig file")
 	f.StringVar(&c.PodPrefix, "pod-prefix", DefaultConfig.PodPrefix, "prefix for grafana agent pods")
 	f.BoolVar(&c.FakeRemoteWrite, "fake-remote-write", DefaultConfig.FakeRemoteWrite, "remote write endpoint for series which are discarded, useful for testing and not storing metrics")
-	f.BoolVar(&c.SimulateErrors, "simulate-errors", DefaultConfig.SimulateErrors, "remote write endpoint will return a 500 error response 1% of the time.")
+	f.BoolVar(&c.SimulateErrors, "simulate-errors", DefaultConfig.SimulateErrors, "remote write endpoint will return a 500 error response randomly")
+	f.Float64Var(&c.ErrorPrrcentage, "simulate-errors-percentage", DefaultConfig.ErrorPercentage, "percentage chance a request will result in an error")
 	f.DurationVar(&c.ChaosFrequency, "chaos-frequency", DefaultConfig.ChaosFrequency, "chaos frequency duration")
 	f.DurationVar(&c.MutationFrequency, "mutation-frequency", DefaultConfig.MutationFrequency, "mutation frequency duration")
 }
@@ -52,6 +55,7 @@ var DefaultConfig = Config{
 	PodPrefix:         "grafana-agent",
 	FakeRemoteWrite:   false,
 	SimulateErrors:    false,
+	ErrorPercentage:   0.01,
 	ChaosFrequency:    30 * time.Minute,
 	MutationFrequency: 5 * time.Minute,
 }
@@ -82,9 +86,9 @@ func New(logger log.Logger, cfg Config) (*Smoke, error) {
 			w.WriteHeader(http.StatusOK)
 		}
 		if cfg.SimulateErrors {
-			count := 0
+			rand.Seed(time.Now().UnixNano())
 			s.fakeRemoteWriteHandler = func(w http.ResponseWriter, _ *http.Request) {
-				if count++; count%100 == 0 {
+				if rnd := rand.Float64(); cfg.ErrorPercentage > rnd {
 					w.WriteHeader(http.StatusInternalServerError)
 					return
 				}
