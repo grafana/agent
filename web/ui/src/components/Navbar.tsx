@@ -9,7 +9,6 @@ import {
   UncontrolledDropdown,
   DropdownToggle,
   DropdownMenu,
-  DropdownItem,
 } from 'reactstrap';
 import logo from '../images/logo.svg';
 
@@ -42,10 +41,16 @@ function Navbar() {
             <DropdownToggle nav caret>
               Status
             </DropdownToggle>
-            <DropdownMenu right>
-              <DropdownItem>Runtime and build information</DropdownItem>
-              <DropdownItem>Command-line flags</DropdownItem>
-              <DropdownItem>Configuration file</DropdownItem>
+            <DropdownMenu end>
+              <NavLink to="/status/build-info" className="dropdown-item" tabIndex={0} role="menuitem">
+                Runtime and build information
+              </NavLink>
+              <NavLink to="/status/flags" className="dropdown-item" tabIndex={0} role="menuitem">
+                Command-line flags
+              </NavLink>
+              <NavLink to="/status/config-file" className="dropdown-item" tabIndex={0} role="menuitem">
+                Configuration file
+              </NavLink>
             </DropdownMenu>
           </UncontrolledDropdown>
         </Nav>
