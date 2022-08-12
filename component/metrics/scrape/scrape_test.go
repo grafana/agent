@@ -49,13 +49,11 @@ func TestForwardingToAppendable(t *testing.T) {
 	// Update the component with a mock receiver; it should be passed along to the Appendable.
 	var receivedTs int64
 	var receivedSamples []*metrics.FlowMetric
-	mockReceiver := []*metrics.Receiver{
-		{
-			Receive: func(t int64, m []*metrics.FlowMetric) {
-				receivedTs = t
-				receivedSamples = m
-			},
-		},
+	mockReceiver := []*metrics.Receiver{metrics.NewReceiver(func(t int64, m []*metrics.FlowMetric) {
+		receivedTs = t
+		receivedSamples = m
+	},
+	),
 	}
 
 	args.ForwardTo = mockReceiver

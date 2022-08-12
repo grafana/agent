@@ -80,7 +80,7 @@ func NewComponent(o component.Options, c RemoteConfig) (*Component, error) {
 		remoteStore: remoteStore,
 		storage:     storage.NewFanout(o.Logger, walStorage, remoteStore),
 	}
-	res.receiver = &metrics.Receiver{Receive: res.Receive}
+	res.receiver = metrics.NewReceiver(res.Receive)
 	if err := res.Update(c); err != nil {
 		return nil, err
 	}
