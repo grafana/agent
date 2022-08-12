@@ -49,7 +49,6 @@ func BenchmarkWorkerReceiver(b *testing.B) {
 	useWorkers = true
 	for i := 0; i < b.N; i++ {
 		runTest()
-		// 1669357
 	}
 }
 
@@ -57,7 +56,6 @@ func BenchmarkFuncReceiver(b *testing.B) {
 	useWorkers = false
 	for i := 0; i < b.N; i++ {
 		runTest()
-		// 176162347
 	}
 }
 
