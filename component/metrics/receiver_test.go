@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"context"
 	"math"
 	"testing"
 	"time"
@@ -60,6 +61,11 @@ func BenchmarkFuncReceiver(b *testing.B) {
 }
 
 func runTest() {
+	maxdepth := 4
+	childrencount := 2
+	expectedCount := math.Pow(float64(childrencount), float64(maxdepth))
+
+	ctx, cancel := context.WithCancel(context.Background())
 	parent := &receiverChain{
 		parent:   nil,
 		children: make([]*Receiver, 0),
@@ -68,24 +74,22 @@ func runTest() {
 	finalRec := NewReceiver(func(timestamp int64, metrics []*FlowMetric) {
 		cnt.Inc()
 		time.Sleep(100 * time.Microsecond)
+		if float64(cnt.Load()) == expectedCount {
+			cancel()
+		}
 	})
-	maxdepth := 4
-	childrencount := 2
-	expectedCount := math.Pow(float64(childrencount), float64(maxdepth))
 	childs := buildReceiverPyramid(1, maxdepth, childrencount, parent, finalRec)
 	for _, c := range childs {
 		nr := NewReceiver(c.Receive)
 		parent.children = append(parent.children, nr)
 	}
 	parent.Receive(time.Now().Unix(), nil)
-	for {
-		if cnt.Load() == int64(expectedCount) {
-			break
-		}
-		time.Sleep(1 * time.Microsecond)
-	}
+
+	// Done will return when we have hit the expected number of receiver calls
+	<-ctx.Done()
 }
 
+// buildReceiverPyramid creates "pyramid" of chains where each layer adds x children
 func buildReceiverPyramid(
 	currentDepth, maxDepth, childrenCount int,
 	parent *receiverChain,
@@ -99,10 +103,12 @@ func buildReceiverPyramid(
 			children: make([]*Receiver, 0),
 		}
 		children = append(children, leaf)
+		// We are at the depth we want so we can apply the endpoint that we require
 		if currentDepth == maxDepth {
 			leaf.children = append(leaf.children, finalRec)
 			continue
 		} else {
+			// Build another layer
 			newDepth := currentDepth + 1
 			leafChildren := buildReceiverPyramid(newDepth, maxDepth, childrenCount, leaf, finalRec)
 			for _, lc := range leafChildren {
