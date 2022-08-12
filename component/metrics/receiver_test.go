@@ -93,6 +93,7 @@ func buildReceiverPyramid(
 	parent *receiverChain,
 	finalRec *Receiver,
 ) []*receiverChain {
+
 	children := make([]*receiverChain, 0)
 	for i := 0; i < childrenCount; i++ {
 		leaf := &receiverChain{

@@ -32,7 +32,6 @@ func (r *Receiver) Send(timestamp int64, metrics []*FlowMetric) {
 	} else {
 		r.rec(timestamp, metrics)
 	}
-
 }
 
 // RiverCapsule marks receivers as a capsule.
