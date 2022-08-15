@@ -26,12 +26,20 @@
     rbac: 
       k.util.rbac(name, [
           policyRule.withApiGroups(['monitoring.grafana.com']) +
-          policyRule.withResources(['grafanaagents', 'metricsinstances', 'logsintances', 'podlogs', 'integrations']) +
+          policyRule.withResources(['grafanaagents', 'metricsinstances', 'logsinstances', 'podlogs', 'integrations']) +
           policyRule.withVerbs(['get', 'list', 'watch']),
+
+          policyRule.withApiGroups(['monitoring.grafana.com']) +
+          policyRule.withResources(['grafanaagents/finalizers', 'metricsinstances/finalizers', 'logsinstances/finalizers', 'podlogs/finalizers', 'integrations/finalizers']) +
+          policyRule.withVerbs(['get', 'list', 'watch', 'update']),
 
           policyRule.withApiGroups(['monitoring.coreos.com']) +
           policyRule.withResources(['podmonitors', 'probes', 'servicemonitors']) +
           policyRule.withVerbs(['get', 'list', 'watch']),
+
+          policyRule.withApiGroups(['monitoring.coreos.com']) +
+          policyRule.withResources(['podmonitors/finalizers', 'probes/finalizers', 'servicemonitors/finalizers']) +
+          policyRule.withVerbs(['get', 'list', 'watch', 'update']),
 
           policyRule.withApiGroups(['']) +
           policyRule.withResources(['namespaces', 'nodes']) +
