@@ -1,5 +1,10 @@
+html, body, #root {
+  height: 100%;
+}
+
 body {
   background-color: #f4f4f5;
+  font-family: 'Roboto', sans-serif;
 }
 
 .app-navbar {
