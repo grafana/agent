@@ -42,7 +42,7 @@ Write-Host "Installing Grafana agent for Windows"
 .\grafana-agent-installer.exe /S
 
 Write-Host "Retrieving and updating Grafana agent config"
-$CONFIG_URI = "$GCLOUD_API_URL/stacks/$GCLOUD_STACK_ID/agent_config"
+$CONFIG_URI = "$GCLOUD_API_URL/stacks/$GCLOUD_STACK_ID/agent_config?platforms=windows"
 $AUTH_TOKEN = "Bearer $GCLOUD_API_KEY"
 
 $headers = @{
