@@ -1,5 +1,6 @@
 import { FC } from 'react';
-import { Card, CardBody, CardText, Container } from 'reactstrap';
+import { NavLink } from 'react-router-dom';
+import styles from './ComponentList.module.css';
 
 export enum ComponentHealth {
   HEALTHY = 'healthy',
@@ -19,35 +20,37 @@ interface ComponentListProps {
 
 const ComponentList: FC<ComponentListProps> = ({ components }) => {
   return (
-    <Container>
+    <div className={styles.list}>
+      <header>
+        <ul>
+          <li>Health</li>
+          <li>ID</li>
+        </ul>
+      </header>
       {components.map((component) => {
-        let color = 'primary';
-        switch (component.health) {
-          case ComponentHealth.HEALTHY:
-            color = 'success';
-            break;
-          case ComponentHealth.UNHEALTHY:
-            color = 'danger';
-            break;
-          case ComponentHealth.UNKNOWN:
-            color = 'warning';
-            break;
-          case ComponentHealth.EXITED:
-            color = 'primary';
-            break;
-        }
+        const healthMappings = {
+          [ComponentHealth.HEALTHY]: `${styles.health} ${styles['state-ok']}`,
+          [ComponentHealth.UNHEALTHY]: `${styles.health} ${styles['state-error']}`,
+          [ComponentHealth.UNKNOWN]: `${styles.health} ${styles['state-warn']}`,
+          [ComponentHealth.EXITED]: `${styles.health} ${styles['state-error']}`,
+        };
+        const healthClass = healthMappings[component.health];
 
         return (
-          <Card outline color={color} className="row">
-            <CardBody>
-              <CardText>
-                {component.id} ({component.health})
-              </CardText>
-            </CardBody>
-          </Card>
+          <ul>
+            <li>
+              <span className={healthClass}>{component.health}</span>
+            </li>
+            <li className={styles.text}>{component.id}</li>
+            <li>
+              <NavLink to={'/component/' + component.id} className={styles.viewButton}>
+                View
+              </NavLink>
+            </li>
+          </ul>
         );
       })}
-    </Container>
+    </div>
   );
 };
 

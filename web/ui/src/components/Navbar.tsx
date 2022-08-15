@@ -1,65 +1,47 @@
-import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import {
-  Nav,
-  Navbar as BootstrapNavbar,
-  NavItem,
-  NavLink as BootstrapLink,
-  NavbarToggler,
-  Collapse,
-  UncontrolledDropdown,
-  DropdownToggle,
-  DropdownMenu,
-} from 'reactstrap';
+import styles from './Navbar.module.css';
 import logo from '../images/logo.svg';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCaretDown } from '@fortawesome/free-solid-svg-icons';
+import { useState } from 'react';
 
 function Navbar() {
-  const [collapsed, setCollapsed] = useState(true);
-
-  const toggleNavbar = () => setCollapsed(!collapsed);
+  const [statusVisible, setStatusVisible] = useState(false);
+  const toggleStatus = () => setStatusVisible(!statusVisible);
 
   return (
-    <BootstrapNavbar className="app-navbar" expand="lg">
-      <NavLink to="/" className="navbar-brand" style={{ height: '45px' }}>
-        <img
-          src={logo}
-          alt="Grafana Agent Logo"
-          title="Grafana Agent"
-          style={{
-            height: '25px',
-          }}
-        />
-      </NavLink>
-      <NavbarToggler onClick={toggleNavbar} />
-      <Collapse isOpen={!collapsed} navbar>
-        <Nav navbar>
-          <NavItem>
-            <NavLink to="/dag" className="nav-link">
-              DAG
+    <nav className={styles.navbar}>
+      <header>
+        <NavLink to="/">
+          <img src={logo} alt="Grafana Agent Logo" title="Grafana Agent" />
+        </NavLink>
+      </header>
+      <ul>
+        <li>
+          <NavLink to="/dag" className="nav-link">
+            DAG
+          </NavLink>
+        </li>
+        <li className={styles.statusLink} onClick={toggleStatus}>
+          Status
+          <FontAwesomeIcon icon={faCaretDown} className={styles.caret} />
+          <ul hidden={!statusVisible}>
+            <NavLink to="/status/build-info">
+              <li>Runtime and build information</li>
             </NavLink>
-          </NavItem>
-          <UncontrolledDropdown nav inNavbar>
-            <DropdownToggle nav caret>
-              Status
-            </DropdownToggle>
-            <DropdownMenu end>
-              <NavLink to="/status/build-info" className="dropdown-item" tabIndex={0} role="menuitem">
-                Runtime and build information
-              </NavLink>
-              <NavLink to="/status/flags" className="dropdown-item" tabIndex={0} role="menuitem">
-                Command-line flags
-              </NavLink>
-              <NavLink to="/status/config-file" className="dropdown-item" tabIndex={0} role="menuitem">
-                Configuration file
-              </NavLink>
-            </DropdownMenu>
-          </UncontrolledDropdown>
-          <NavItem>
-            <BootstrapLink href="https://grafana.com/docs/agent/latest">Help</BootstrapLink>
-          </NavItem>
-        </Nav>
-      </Collapse>
-    </BootstrapNavbar>
+            <NavLink to="/status/flags">
+              <li>Command-line flags</li>
+            </NavLink>
+            <NavLink to="/status/config">
+              <li>Configuration file</li>
+            </NavLink>
+          </ul>
+        </li>
+        <li>
+          <a href="https://grafana.com/docs/agent/latest">Help</a>
+        </li>
+      </ul>
+    </nav>
   );
 }
 

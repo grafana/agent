@@ -1,5 +1,8 @@
+import { faHammer } from '@fortawesome/free-solid-svg-icons';
+import Page from '../../components/Page';
+
 function BuildInfo() {
-  return <h1>TODO: Build info</h1>;
+  return <Page name="Build info" desc="Runtime and build information" icon={faHammer} />;
 }
 
 export default BuildInfo;

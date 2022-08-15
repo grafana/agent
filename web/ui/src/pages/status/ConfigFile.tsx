@@ -1,5 +1,8 @@
+import { faGear } from '@fortawesome/free-solid-svg-icons';
+import Page from '../../components/Page';
+
 function ConfigFile() {
-  return <h1>TODO: Config file</h1>;
+  return <Page name="Config file" desc="Last successfully read unevaluated config file" icon={faGear} />;
 }
 
 export default ConfigFile;
