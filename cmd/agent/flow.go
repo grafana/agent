@@ -19,6 +19,7 @@ import (
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river/diag"
+	"github.com/grafana/agent/web/api"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
@@ -138,6 +139,9 @@ func runFlow() error {
 			}
 			fmt.Fprintln(w, "config reloaded")
 		})
+
+		fa := api.NewFlowApi(f, r)
+		fa.SetupRoute()
 
 		srv := &http.Server{Handler: r}
 

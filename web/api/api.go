@@ -4,6 +4,45 @@
 // externally.
 package api
 
+import (
+	"encoding/json"
+	"net/http"
+
+	"github.com/gorilla/mux"
+	"github.com/grafana/agent/pkg/flow"
+)
+
+type FlowApi struct {
+	flow   *flow.Flow
+	router *mux.Router
+}
+
+func NewFlowApi(flow *flow.Flow, r *mux.Router) *FlowApi {
+	fa := &FlowApi{
+		flow:   flow,
+		router: r,
+	}
+	fa.SetupRoute()
+	return fa
+}
+
+func (f *FlowApi) SetupRoute() {
+	f.router.HandleFunc("/api/v0/web/components", f.ListComponentsHandler())
+}
+
+func (f *FlowApi) ListComponentsHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, _ *http.Request) {
+		infos := f.flow.ComponentInfo()
+		bb, err := json.Marshal(infos)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		_, _ = w.Write(bb)
+
+	}
+}
+
 // Unless otherwise specified, API methods should be JSON.
 //
 // API methods needed:

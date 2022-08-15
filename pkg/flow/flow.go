@@ -49,9 +49,12 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 	"sync"
+	"time"
 
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/prometheus/client_golang/prometheus"
@@ -209,9 +212,62 @@ func (c *Flow) LoadFile(f *File) error {
 	return diags.ErrorOrNil()
 }
 
+func (c *Flow) ComponentInfo() []*ComponentInfo {
+	cns := c.loader.Components()
+	infos := make([]*ComponentInfo, len(cns))
+	refByBacktrack := make(map[string]*ComponentInfo, 0)
+	for i, com := range cns {
+		refs, _ := controller.ComponentReferences(com, c.loader.Graph())
+		nn := newFromNode(com, refs)
+		infos[i] = nn
+		refByBacktrack[nn.ID] = nn
+	}
+	// We need to backtrack the infos
+	for _, info := range infos {
+		for _, refTo := range info.ReferencesTo {
+			refByBacktrack[refTo].ReferencedBy = append(refByBacktrack[refTo].ReferencedBy, info.ID)
+		}
+	}
+	return infos
+}
+
 // Close closes the controller and all running components.
 func (c *Flow) Close() error {
 	c.cancel()
 	<-c.exited
 	return c.sched.Close()
+}
+
+type ComponentInfo struct {
+	ID           string   `json:"id"`
+	ReferencesTo []string `json:"references_to"`
+	ReferencedBy []string `json:"referenced_by"`
+	Health       Health   `json:"health"`
+}
+
+func newFromNode(cn *controller.ComponentNode, refs []controller.Reference) *ComponentInfo {
+	refsStr := make([]string, len(refs))
+	for i, r := range refs {
+		refsStr[i] = strings.Join(r.Target.ID(), ".")
+	}
+	return &ComponentInfo{
+		ID:           cn.NodeID(),
+		ReferencesTo: refsStr,
+		ReferencedBy: make([]string, 0),
+		Health:       *newFromComponentHealth(cn.CurrentHealth()),
+	}
+}
+
+type Health struct {
+	Status     string    `json:"status"`
+	Message    string    `json:"message"`
+	UpdateTime time.Time `json:"health_type"`
+}
+
+func newFromComponentHealth(ch component.Health) *Health {
+	return &Health{
+		Status:     ch.Health.String(),
+		Message:    ch.Message,
+		UpdateTime: ch.UpdateTime,
+	}
 }
