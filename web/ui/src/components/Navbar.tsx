@@ -1,8 +1,14 @@
 import { NavLink } from 'react-router-dom';
 import styles from './Navbar.module.css';
 import logo from '../images/logo.svg';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCaretDown } from '@fortawesome/free-solid-svg-icons';
+import { useState } from 'react';
 
 function Navbar() {
+  const [statusVisible, setStatusVisible] = useState(false);
+  const toggleStatus = () => setStatusVisible(!statusVisible);
+
   return (
     <nav className={styles.navbar}>
       <header>
@@ -16,7 +22,21 @@ function Navbar() {
             DAG
           </NavLink>
         </li>
-        <li>Status</li>
+        <li className={styles.statusLink} onClick={toggleStatus}>
+          Status
+          <FontAwesomeIcon icon={faCaretDown} className={styles.caret} />
+          <ul hidden={!statusVisible}>
+            <NavLink to="/status/build-info">
+              <li>Runtime and build information</li>
+            </NavLink>
+            <NavLink to="/status/flags">
+              <li>Command-line flags</li>
+            </NavLink>
+            <NavLink to="/status/config">
+              <li>Configuration file</li>
+            </NavLink>
+          </ul>
+        </li>
         <li>
           <a href="https://grafana.com/docs/agent/latest">Help</a>
         </li>
@@ -24,12 +44,5 @@ function Navbar() {
     </nav>
   );
 }
-
-/*
-          <NavLink to="/status/build-info">Runtime and build information</NavLink>
-          <NavLink to="/status/flags">Command-line flags</NavLink>
-          <NavLink to="/status/config-file">Configuration file</NavLink>
-
-*/
 
 export default Navbar;

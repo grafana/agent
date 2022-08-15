@@ -11,7 +11,7 @@ function PageComponentList() {
   ];
 
   return (
-    <Page name="Components" desc="Components and their statuses" icon={faCubes}>
+    <Page name="Components" desc="List of known components" icon={faCubes}>
       <ComponentList components={mockComponents} />
     </Page>
   );

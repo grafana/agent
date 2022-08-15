@@ -18,7 +18,7 @@ function App() {
             <Route path="/dag" element={<DAG />} />
             <Route path="/status/build-info" element={<StatusBuildInfo />} />
             <Route path="/status/flags" element={<StatusFlags />} />
-            <Route path="/status/config-file" element={<StatusConfigFile />} />
+            <Route path="/status/config" element={<StatusConfigFile />} />
           </Routes>
         </main>
       </BrowserRouter>

@@ -33,3 +33,38 @@
   text-decoration: none;
   line-height: 225%;
 }
+
+/* "Status" dropdown */
+.statusLink {
+  cursor: pointer;
+}
+
+.statusLink .caret {
+  /* Add space between caret and text preceeding it */
+  margin-left: 2px;
+}
+
+
+/* Box when "status" dropdown is showing */
+.statusLink ul {
+  display: block;
+  position: absolute;
+  background-color: #ffffff;
+  border: 1px solid #e4e5e6;
+  border-radius: 3px;
+  box-sizing: border-box;
+  padding: 0px;
+}
+
+.statusLink ul[hidden] {
+  display: none;
+}
+
+.statusLink ul li {
+  margin: 0px;
+  padding: 6px 12px;
+}
+
+.statusLink ul li:hover {
+  background-color: #ccced0;
+}
