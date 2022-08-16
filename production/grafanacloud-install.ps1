@@ -53,13 +53,26 @@ $response = Invoke-WebRequest $CONFIG_URI -Method 'GET' -Headers $headers
 
 $jsonObj = $response | ConvertFrom-Json
 if ($jsonObj.status -eq "success") {
+	$config_file = ".\agent-config.yaml"
 	Write-Host "Saving and updating agent configuration file"
 	$yamlConfig = $jsonObj.data | ConvertTo-Yaml
-	Set-Content -Path ".\agent-config.yaml" -Value ($yamlConfig)
-	Move-Item ".\agent-config.yaml" "C:\Program Files\Grafana Agent\agent-config.yaml" -force
-	Write-Host "Wait for Grafana service to initialize"
+	Set-Content -Path $config_file -Value ($yamlConfig)
+    # Append APPDATA path to bookmark files
+    $line = Get-Content $config_file | Select-String bookmark_path | Select-Object -ExpandProperty Line
+    if ($line -ne $null) {
+        $content = Get-Content $config_file
+        $line | ForEach-Object {  
+            $split_line = $_ -split ": "
+            $prefix = $split_line[0]
+            $bookmark_filename = $split_line[1] -replace "./",""
+            $content = $content -replace $_,"$($prefix): $($env:APPDATA)\$($bookmark_filename)"
+        }
+        $content | Set-Content $config_file
+    }
+    Move-Item $config_file "C:\Program Files\Grafana Agent\agent-config.yaml" -force
 
 	# Wait for service to initialize after first install
+	Write-Host "Wait for Grafana service to initialize"
 	Start-Sleep -s 5
 
 	# Restart Grafana agent to load new configuration
