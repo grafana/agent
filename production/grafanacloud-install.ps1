@@ -81,7 +81,7 @@ if ($jsonObj.status -eq "success") {
 	Start-Service "Grafana Agent"
 
 	# Wait for service to startup after restart
-	Write-Host "Wait for Grafana service to initialize"
+	Write-Host "Wait for Grafana service to initialize after restart"
 	Start-Sleep -s 10
 
 	# Show Grafana agent service status
