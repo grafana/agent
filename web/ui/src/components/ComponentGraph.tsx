@@ -10,7 +10,7 @@ interface Component {
   name: string;
   label?: string;
   health: ComponentHealth;
-  debugInfo?: Record<string, any>;
+  debugInfo?: Record<string, unknown>;
   inReferences: string[];
   outReferences: string[];
 }
@@ -161,7 +161,7 @@ function lineIntersectionPoint(l1: Line, l2: Line): Point | undefined {
   const [x4, y4] = [l2.end.x, l2.end.y];
 
   const denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
-  if (denominator == 0) {
+  if (denominator === 0) {
     return undefined;
   }
 
@@ -202,7 +202,7 @@ const ComponentGraph: FC = () => {
 
     const contentHeight = nodeHeight - nodePadding * 2;
 
-    let widthCache: Record<string, number> = {
+    const widthCache: Record<string, number> = {
       foo: 5,
     };
 
@@ -227,8 +227,8 @@ const ComponentGraph: FC = () => {
 
         // Calculate how much width the text needs to be displayed.
         let width = nodeWidth;
-        let textWidth = calcTextWidth(n.data.id, "bold 13px 'Roboto', sans-serif");
 
+        const textWidth = calcTextWidth(n.data.id, "bold 13px 'Roboto', sans-serif");
         if (textWidth != null && textWidth > width) {
           width = textWidth;
         }
@@ -310,8 +310,8 @@ const ComponentGraph: FC = () => {
         // 4. The line will now stop at the box edge as expected.
 
         const nodeBox: Box = {
-          x: node.target.x! - widthCache[node.target.data.id] / 2 - nodePadding,
-          y: node.target.y! - nodeHeight / 2 - nodePadding,
+          x: (node.target.x || 0) - widthCache[node.target.data.id] / 2 - nodePadding,
+          y: (node.target.y || 0) - nodeHeight / 2 - nodePadding,
           w: widthCache[node.target.data.id] + nodePadding * 2,
           h: nodeHeight + nodePadding * 2,
         };
@@ -319,7 +319,7 @@ const ComponentGraph: FC = () => {
         const idx = node.points.findIndex((p) => {
           return intersectsBox(p, nodeBox);
         });
-        if (idx == -1) {
+        if (idx === -1) {
           // It shouldn't be possible for this to happen; we know that the
           // final point always goes to the center of the target box so there
           // should always be an intersection.
@@ -357,8 +357,8 @@ const ComponentGraph: FC = () => {
         // We translate the group to the top-left corner to make it easier to
         // position all the elements. Top left corner should account for
         // padding space.
-        const x = node.x! - widthCache[node.data.id] / 2 - nodePadding;
-        const y = node.y! - nodeHeight / 2 - nodePadding;
+        const x = (node.x || 0) - widthCache[node.data.id] / 2 - nodePadding;
+        const y = (node.y || 0) - nodeHeight / 2 - nodePadding;
         return `translate(${x}, ${y})`;
       });
 
@@ -440,7 +440,7 @@ const ComponentGraph: FC = () => {
       .attr('text-anchor', 'middle')
       .attr('alignment-baseline', 'middle')
       .attr('fill', (node) => {
-        if (node.data.health.type == HealthType.UNKNOWN) {
+        if (node.data.health.type === HealthType.UNKNOWN) {
           return '#000000';
         }
         return '#ffffff';
