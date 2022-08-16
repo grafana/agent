@@ -98,13 +98,26 @@ rules:
   resources:
   - grafanaagents
   - metricsinstances
-  - logsintances
+  - logsinstances
   - podlogs
   - integrations
   verbs:
   - get
   - list
   - watch
+- apiGroups:
+  - monitoring.grafana.com
+  resources:
+  - grafanaagents/finalizers
+  - metricsinstances/finalizers
+  - logsinstances/finalizers
+  - podlogs/finalizers
+  - integrations/finalizers
+  verbs:
+  - get
+  - list
+  - watch
+  - update
 - apiGroups:
   - monitoring.coreos.com
   resources:
@@ -115,6 +128,17 @@ rules:
   - get
   - list
   - watch
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - podmonitors/finalizers
+  - probes/finalizers
+  - servicemonitors/finalizers
+  verbs:
+  - get
+  - list
+  - watch
+  - update
 - apiGroups:
   - ""
   resources:
@@ -440,6 +464,7 @@ spec:
   config:
     cache_path: /etc/eventhandler/eventhandler.cache
     logs_instance: ${NAMESPACE}/grafana-agent-logs
+  name: eventhandler
   type:
     unique: true
   volumeMounts:
@@ -514,13 +539,6 @@ spec:
     targetLabel: __host__
   - action: labelmap
     regex: __meta_kubernetes_pod_label_(.+)
-  - action: replace
-    replacement: $1
-    separator: /
-    sourceLabels:
-    - __meta_kubernetes_namespace
-    - __meta_kubernetes_pod_name
-    targetLabel: job
   - action: replace
     sourceLabels:
     - __meta_kubernetes_namespace

@@ -10,11 +10,11 @@ local r = pl.spec.relabelings;
         r.withAction('labelmap') +
         r.withRegex('__meta_kubernetes_pod_label_(.+)'),
 
-        r.withAction('replace') +
-        r.withReplacement('$1') +
-        r.withSeparator('/') +
-        r.withSourceLabels(['__meta_kubernetes_namespace', '__meta_kubernetes_pod_name']) +
-        r.withTargetLabel('job'),
+        // r.withAction('replace') +
+        // r.withReplacement('$1') +
+        // r.withSeparator('/') +
+        // r.withSourceLabels(['__meta_kubernetes_namespace', '__meta_kubernetes_pod_name']) +
+        // r.withTargetLabel('job'),
 
         r.withAction('replace') +
         r.withSourceLabels('__meta_kubernetes_namespace') +

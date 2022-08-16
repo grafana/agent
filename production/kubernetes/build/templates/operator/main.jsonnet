@@ -58,7 +58,6 @@ local ksm = import 'kube-state-metrics/kube-state-metrics.libsonnet';
     ga.spec.metrics.withExternalLabels(this._config.cluster_label), 
     rbac:
       ga_util.withRbac(name='grafana-agent', namespace=this._config.namespace),
-
   
   metrics_instance:
     mi.new(name='grafana-agent-metrics') +
@@ -142,6 +141,7 @@ local ksm = import 'kube-state-metrics/kube-state-metrics.libsonnet';
     int.new('agent-eventhandler') +
     int.metadata.withNamespace(this._config.namespace) +
     int.metadata.withLabels({agent: 'grafana-agent'}) +
+    int.spec.withName("eventhandler") +
     int.spec.type.withUnique(true) +
     int.spec.withConfig({
         logs_instance: this._config.namespace + '/' + 'grafana-agent-logs',
