@@ -1,0 +1,89 @@
+.page {
+  font-family: 'Roboto', sans-serif;
+
+  max-width: 1440px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+div.page > div.content {
+  margin: 20px;
+}
+
+.page h1 .icon {
+  margin-right: 5px;
+}
+
+.page h1 .icon svg {
+  width: 21px;
+  color: rgba(36, 41, 46, 0.75);
+  position: relative;
+  top: 2px;
+}
+
+.page h1, h2, h3, h4, h5, h6 {
+  color: rgb(36, 41, 46);
+  font-size: 1.4em;
+  font-weight: normal;
+}
+
+.page h2, h3, h4, h5, h6 {
+  font-size: 1.2em;
+}
+
+.page table {
+  text-align: left;
+  border: 1px solid #e4e5e6;
+  border-radius: 3px;
+  width: 100%;
+}
+
+.page table tr {
+  /*
+   * For a tr element, height works like min-height; it will be resized as
+   * needed.
+   */
+  height: 42px;
+}
+
+.page table thead tr {
+  background-color: #f4f5f5;
+}
+
+.page table tbody tr:nth-child(even) {
+  background-color: #f4f5f5;
+}
+
+.page table th, .page table td {
+  vertical-align: top;
+  padding: 8px;
+}
+
+.page table th {
+  color: rgba(36, 41, 46, 0.75);
+  font-weight: normal;
+}
+
+th.nameColumn {
+  width: 150px;
+}
+
+td.nameColumn {
+  font-family: monospace;
+}
+
+td.valueColumn {
+  margin: 0px;
+}
+
+.page section div.sectionContent {
+  background-color: white;
+  border: 1px solid #e4e5e6;
+  border-radius: 3px;
+  padding: 16px;
+}
+
+
+.page section.nested {
+  margin-left: 32px;
+}

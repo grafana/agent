@@ -6,6 +6,7 @@ import StatusBuildInfo from './pages/status/BuildInfo';
 import StatusFlags from './pages/status/Flags';
 import StatusConfigFile from './pages/status/ConfigFile';
 import styles from './App.module.css';
+import { ComponentDetailPage } from './pages/ComponentDetailPage';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
             <Route path="/status/build-info" element={<StatusBuildInfo />} />
             <Route path="/status/flags" element={<StatusFlags />} />
             <Route path="/status/config" element={<StatusConfigFile />} />
+            <Route path="/component/:component" element={<ComponentDetailPage />} />
           </Routes>
         </main>
       </BrowserRouter>

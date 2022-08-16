@@ -1,0 +1,18 @@
+.value {
+  font-family: monospace;
+  white-space: pre;
+  tab-size: 4;
+  margin: 0px;
+}
+
+.value span.literal {
+  color: blue;
+}
+
+.value span.string {
+  color: green;
+}
+
+.value span.special {
+  color: gray;
+}
