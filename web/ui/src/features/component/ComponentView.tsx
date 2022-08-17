@@ -15,9 +15,7 @@ export interface ComponentViewProps {
 }
 
 export const ComponentView: FC<ComponentViewProps> = (props) => {
-  // TODO(rfratto): health information after h1
   // TODO(rfratto): expand/collapse icon for sections (treat it like Row in grafana dashboard)
-  // TODO(rfratto): bring title before section closer inside of it
 
   const inInfo = props.component.inReferences.map((id) => props.info[id]);
   const outInfo = props.component.outReferences.map((id) => props.info[id]);
@@ -47,6 +45,9 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
         <h1>Sections</h1>
         <hr />
         <ul>
+          <li>
+            <a href={'#' + props.component.id}>{props.component.id}</a>
+          </li>
           {props.component.rawConfig && (
             <li>
               <a href="#raw-config">Raw config</a>
@@ -69,7 +70,7 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
       </nav>
 
       <main className={styles.content}>
-        <h1>
+        <h1 id={props.component.id}>
           <span className={styles.icon}>
             <FontAwesomeIcon icon={faCubes} />
           </span>
