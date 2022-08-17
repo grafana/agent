@@ -52,6 +52,7 @@ The current team members are:
 - Richard Hartmann - [RichiH](https://github.com/RichiH) ([Grafana Labs](https://grafana.com))
 - Hanif Jetha - [hjet](https://github.com/hjet) ([Grafana Labs](https://grafana.com))
 - Mario Rodriguez - [mapno](https://github.com/mapno) ([Grafana Labs](https://grafana.com))
+- Robert Lankford - [rlankfo](https://github.com/rlankfo) ([Grafana Labs](https://grafana.com))
 
 ### Maintainers
 
