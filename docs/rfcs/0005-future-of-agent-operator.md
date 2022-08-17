@@ -2,7 +2,7 @@
 
 * Date: 2022-08-17
 * Author: Craig Peterson (@captncraig)
-* PR: [grafana/agent#XXXX](https://github.com/grafana/agent/pull/XXXX)
+* PR: [grafana/agent#2046](https://github.com/grafana/agent/pull/2046)
 * Status: Draft
 
 
