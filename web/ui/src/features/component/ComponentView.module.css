@@ -48,27 +48,6 @@
   overflow-y: auto;
 }
 
-.content blockquote {
-  border: 1px solid #e4e5e6;
-  border-radius: 3px;
-  color: #555;
-  margin: 20px 0px;
-  padding: 20px 20px;
-}
-
-.content blockquote h1 {
-  color: #555;
-  margin: 0px;
-  font-size: 12px;
-  font-weight: bold;
-}
-
-.content blockquote p {
-  margin-bottom: 0px;
-  white-space: pre;
-  font-family: 'Fira Code', monospace;
-}
-
 .content h1 .icon {
   margin-right: 5px;
 }
@@ -93,11 +72,53 @@
   color: rgb(36, 41, 46);
   font-size: 1.4em;
   font-weight: normal;
+  margin-bottom: 8px;
 }
 
 .content h2, h3, h4, h5, h6 {
   font-size: 1.2em;
 }
+
+.content .docsLink {
+  display: block;
+  width: fit-content;
+  height: fit-content;
+  font-size: 10px;
+  padding: 5px;
+
+  color: #ffffff;
+  background-color: rgb(56, 133, 220);
+  border: 1px solid rgb(56, 133, 220);
+  border-radius: 3px;
+}
+
+.docsLink a {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.content blockquote {
+  border: 1px solid #e4e5e6;
+  border-radius: 3px;
+  color: #555;
+  margin: 20px 0px;
+  padding: 20px 20px;
+}
+
+.content blockquote h1 {
+  color: #555;
+  margin: 0px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.content blockquote p {
+  margin-bottom: 0px;
+  white-space: pre;
+  font-family: 'Fira Code', monospace;
+}
+
+
 
 .content table {
   text-align: left;

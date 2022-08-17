@@ -205,7 +205,7 @@ function validIdentifier(input: string): boolean {
 function escapeString(input: string): string {
   // TODO(rfratto): this should also escape Unicode characters into \u and \U
   // forms.
-  return input.replace(/[\b\f\n\r\t\v\0\'\"\\]/g, (match) => {
+  return input.replace(/[\b\f\n\r\t\v\0'"\\]/g, (match) => {
     switch (match) {
       case '\b':
         return '\\b';

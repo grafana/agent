@@ -4,7 +4,7 @@ import { AttrStmt, Body, StmtType } from '../../features/river-js/types';
 import { ComponentDetail, ComponentInfo } from './types';
 import styles from './ComponentView.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCubes } from '@fortawesome/free-solid-svg-icons';
+import { faCubes, faLink } from '@fortawesome/free-solid-svg-icons';
 import ComponentList from './ComponentList';
 import { HealthLabel } from './HealthLabel';
 import { RiverBlob } from '../river-js/RiverBlob';
@@ -80,6 +80,12 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
             <HealthLabel health={props.component.health.type} />
           </span>
         </h1>
+
+        <div className={styles.docsLink}>
+          <a href={`https://grafana.com/docs/agent/latest/flow/reference/components/${props.component.name}`}>
+            Documentation <FontAwesomeIcon icon={faLink} />
+          </a>
+        </div>
 
         {props.component.health.message && (
           <blockquote>
