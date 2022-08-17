@@ -1,0 +1,17 @@
+code span.token.string {
+  color: green;
+}
+
+code span.token.selector {
+  color: #bc5429;
+}
+
+code span.token.comment {
+  color: silver;
+}
+
+code span.token.number,
+code span.token.keyword,
+code span.token.boolean {
+  color: blue;
+}

@@ -1,4 +1,4 @@
-import { FC, Fragment, ReactElement, useEffect, useRef } from 'react';
+import { FC, Fragment, ReactElement } from 'react';
 import { RiverValue } from '../../features/river-js/RiverValue';
 import { AttrStmt, Body, StmtType } from '../../features/river-js/types';
 import { ComponentDetail, ComponentInfo } from './types';
@@ -6,67 +6,14 @@ import styles from './ComponentView.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCubes } from '@fortawesome/free-solid-svg-icons';
 import ComponentList from './ComponentList';
-import prism from 'prismjs';
 import './RiverPrismTheme.css';
 import { HealthLabel } from './HealthLabel';
-
-prism.languages.river = {
-  blockHeader: {
-    pattern: /^\s*[^=]+{/m,
-    inside: {
-      selector: {
-        pattern: /([A-Za-z_][A-Za-z0-9_]*)(.([A-Za-z_][A-Za-z0-9_]*))*/,
-      },
-      comment: {
-        pattern: /\/\/.*|\/\*[\s\S]*?(?:\*\/|$)/,
-        greedy: true,
-      },
-      string: {
-        pattern: /(^|[^\\])"(?:\\.|[^\\"\r\n])*"(?!\s*:)/,
-        lookbehind: true,
-        greedy: true,
-      },
-    },
-  },
-  comment: {
-    pattern: /\/\/.*|\/\*[\s\S]*?(?:\*\/|$)/,
-    greedy: true,
-  },
-  number: /-?\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b/i,
-  string: {
-    pattern: /(^|[^\\])"(?:\\.|[^\\"\r\n])*"(?!\s*:)/,
-    lookbehind: true,
-    greedy: true,
-  },
-  boolean: /\b(?:false|true)\b/,
-  null: {
-    pattern: /\bnull\b/,
-    alias: 'keyword',
-  },
-};
+import { RiverBlob } from '../river-js/RiverBlob';
 
 export interface ComponentViewProps {
   component: ComponentDetail;
   info: Record<string, ComponentInfo>;
 }
-
-const RiverBlob: FC<{ children: string }> = ({ children }) => {
-  const codeRef = useRef<HTMLPreElement>(null);
-
-  useEffect(() => {
-    if (codeRef.current == null) {
-      return;
-    }
-
-    prism.highlightAllUnder(codeRef.current);
-  }, []);
-
-  return (
-    <pre ref={codeRef} style={{ margin: '0px', fontSize: '14px' }}>
-      <code className="language-river">{children}</code>
-    </pre>
-  );
-};
 
 export const ComponentView: FC<ComponentViewProps> = (props) => {
   // TODO(rfratto): health information after h1
@@ -119,7 +66,7 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
           )}
         </ul>
       </nav>
-      /
+
       <main className={styles.content}>
         <h1>
           <span className={styles.icon}>
