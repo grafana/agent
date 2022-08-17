@@ -32,9 +32,7 @@ const ValueRenderer: FC<valueRendererProps> = (props) => {
       return <span className={styles.literal}>{value.value.toString()}</span>;
 
     case ValueType.STRING:
-      // TODO(rfratto): make sure that line breaks get replaced with escaped
-      // characters.
-      return <span className={styles.string}>"{value.value}"</span>;
+      return <span className={styles.string}>"{escapeString(value.value)}"</span>;
 
     case ValueType.BOOL:
       if (value.value) {
@@ -71,8 +69,6 @@ const ValueRenderer: FC<valueRendererProps> = (props) => {
 
       const partitions = partitionFields(value.value);
 
-      // TODO(rfratto): make sure that keys which are not valid identifiers
-      // are wrapped in quotes.
       return (
         <>
           <span>&#123;</span>
@@ -162,7 +158,7 @@ function partitionKeyLength(partition: ObjectField[]): number {
   let keyLength = 0;
 
   partition.forEach((f) => {
-    const fieldLength = f.key.length;
+    const fieldLength = partitionKey(f, 0).length;
     if (fieldLength > keyLength) {
       keyLength = fieldLength;
     }
@@ -176,10 +172,16 @@ function partitionKeyLength(partition: ObjectField[]): number {
  * partition.
  */
 function partitionKey(field: ObjectField, keyLength: number): string {
-  if (field.key.length < keyLength) {
-    return field.key + ' '.repeat(keyLength - field.key.length);
+  let key = field.key;
+  if (!validIdentifier(key)) {
+    // Keys which aren't valid identifiers should be wrapped in quotes.
+    key = `"${key}"`;
   }
-  return field.key;
+
+  if (key.length < keyLength) {
+    return key + ' '.repeat(keyLength - key.length);
+  }
+  return key;
 }
 
 function getLinePrefix(indentLevel: number): ReactElement | null {
@@ -187,4 +189,43 @@ function getLinePrefix(indentLevel: number): ReactElement | null {
     return null;
   }
   return <span>{'\t'.repeat(indentLevel)}</span>;
+}
+
+/**
+ * validIdentifier reports whether the input is a valid River identifier.
+ */
+function validIdentifier(input: string): boolean {
+  return /^[_a-z][_a-z0-9]*$/i.test(input);
+}
+
+/**
+ * escapeString escapes special characters in a string so they can be printed
+ * inside a River string literal.
+ */
+function escapeString(input: string): string {
+  // TODO(rfratto): this should also escape Unicode characters into \u and \U
+  // forms.
+  return input.replace(/[\b\f\n\r\t\v\0\'\"\\]/g, (match) => {
+    switch (match) {
+      case '\b':
+        return '\\b';
+      case '\f':
+        return '\\f';
+      case '\n':
+        return '\\n';
+      case '\r':
+        return '\\r';
+      case '\t':
+        return '\\t';
+      case '\v':
+        return '\\v';
+      case "'":
+        return "\\'";
+      case '"':
+        return '\\"';
+      case '\\':
+        return '\\\\';
+    }
+    return '';
+  });
 }

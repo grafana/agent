@@ -1,17 +1,65 @@
 .page {
+  display: flex;
   font-family: 'Roboto', sans-serif;
+  height: 100%;
+}
 
+.page nav {
+  border-radius: 3px;
+  width: 250px;
+  min-width: 250px;
+  margin: 15px;
+  overflow-y: auto;
+  font-size: 0.9em;
+}
+
+.page nav h1 {
+  font-size: 0.8em;
+  font-weight: bold;
+  margin: 0px 0px;
+  color: #545556;
+}
+
+.page nav ul {
+  list-style-type: none;
+  padding-left: 16px;
+}
+
+.page nav hr {
+  border: none;
+  border-top: 1px solid #545556;
+}
+
+.page nav li, .page nav a {
+  color: #545556;
+  text-decoration: none;
+  margin: 20px 0px;
+}
+
+.page nav a:hover, .page nav a:focus {
+  text-decoration: underline;
+}
+
+.page > main.content {
   max-width: 1440px;
   margin-left: auto;
   margin-right: auto;
-}
-
-div.page > div.content {
-  margin: 20px;
+  padding: 20px;
+  overflow-y: auto;
 }
 
 .page h1 .icon {
   margin-right: 5px;
+}
+
+.page h1 span.healthLabel {
+  position: relative;
+  top: -3px;
+  left: 5px;
+}
+
+.page h1 span.healthLabel > * {
+  transform: scale(0.75);
 }
 
 .page h1 .icon svg {
@@ -34,16 +82,12 @@ div.page > div.content {
 .page table {
   text-align: left;
   border: 1px solid #e4e5e6;
-  border-radius: 3px;
   width: 100%;
+  border-radius: 3px;
+  border-spacing: 0;
 }
 
-.page table tr {
-  /*
-   * For a tr element, height works like min-height; it will be resized as
-   * needed.
-   */
-  height: 42px;
+.page table tr:last-child, .page table td {
 }
 
 .page table thead tr {

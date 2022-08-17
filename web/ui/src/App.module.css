@@ -6,5 +6,5 @@
 
 .app main {
   flex-grow: 1;
-  overflow-y: scroll;
+  overflow-y: hidden;
 }

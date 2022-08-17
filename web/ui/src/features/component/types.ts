@@ -41,6 +41,17 @@ export interface ComponentInfo {
 }
 
 /**
+ * componentInfoByID partitions ComponentInfo by a component's ID.
+ */
+export function componentInfoByID(info: ComponentInfo[]): Record<string, ComponentInfo> {
+  const res: Record<string, ComponentInfo> = {};
+  info.forEach((elem) => {
+    res[elem.id] = elem;
+  });
+  return res;
+}
+
+/**
  * ComponentHealth represents the health of a specific component. A component's
  * health
  */

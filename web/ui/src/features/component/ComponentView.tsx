@@ -1,18 +1,80 @@
-import { FC, Fragment, ReactElement } from 'react';
-import { NavLink } from 'react-router-dom';
+import { FC, Fragment, ReactElement, useEffect, useRef } from 'react';
 import { RiverValue } from '../../features/river-js/RiverValue';
 import { AttrStmt, Body, StmtType } from '../../features/river-js/types';
-import { ComponentDetail } from './types';
+import { ComponentDetail, ComponentInfo } from './types';
 import styles from './ComponentView.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faAngleRight, faCubes } from '@fortawesome/free-solid-svg-icons';
+import { faCubes } from '@fortawesome/free-solid-svg-icons';
+import ComponentList from '../../components/ComponentList';
+import prism from 'prismjs';
+import './RiverPrismTheme.css';
+import { HealthLabel } from './HealthLabel';
+
+prism.languages.river = {
+  blockHeader: {
+    pattern: /^\s*[^=]+{/m,
+    inside: {
+      selector: {
+        pattern: /([A-Za-z_][A-Za-z0-9_]*)(.([A-Za-z_][A-Za-z0-9_]*))*/,
+      },
+      comment: {
+        pattern: /\/\/.*|\/\*[\s\S]*?(?:\*\/|$)/,
+        greedy: true,
+      },
+      string: {
+        pattern: /(^|[^\\])"(?:\\.|[^\\"\r\n])*"(?!\s*:)/,
+        lookbehind: true,
+        greedy: true,
+      },
+    },
+  },
+  comment: {
+    pattern: /\/\/.*|\/\*[\s\S]*?(?:\*\/|$)/,
+    greedy: true,
+  },
+  number: /-?\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b/i,
+  string: {
+    pattern: /(^|[^\\])"(?:\\.|[^\\"\r\n])*"(?!\s*:)/,
+    lookbehind: true,
+    greedy: true,
+  },
+  boolean: /\b(?:false|true)\b/,
+  null: {
+    pattern: /\bnull\b/,
+    alias: 'keyword',
+  },
+};
 
 export interface ComponentViewProps {
   component: ComponentDetail;
+  info: Record<string, ComponentInfo>;
 }
+
+const RiverBlob: FC<{ children: string }> = ({ children }) => {
+  const codeRef = useRef<HTMLPreElement>(null);
+
+  useEffect(() => {
+    if (codeRef.current == null) {
+      return;
+    }
+
+    prism.highlightAllUnder(codeRef.current);
+  }, []);
+
+  return (
+    <pre ref={codeRef} style={{ margin: '0px', fontSize: '13px' }}>
+      <code className="language-river">{children}</code>
+    </pre>
+  );
+};
 
 export const ComponentView: FC<ComponentViewProps> = (props) => {
   // TODO(rfratto): health information after h1
+  // TODO(rfratto): expand/collapse icon for sections (treat it like Row in grafana dashboard)
+  // TODO(rfratto): bring title before section closer inside of it
+
+  const inInfo = props.component.inReferences.map((id) => props.info[id]);
+  const outInfo = props.component.outReferences.map((id) => props.info[id]);
 
   const args = partitionBody(props.component.arguments, 'Arguments');
 
@@ -33,77 +95,98 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
 
   return (
     <div className={styles.page}>
-      <div className={styles.content}>
+      <nav>
+        <h1>Sections</h1>
+        <hr />
+        <ul>
+          <li>
+            <a href="#raw-config">Raw config</a>
+          </li>
+          {partitionTOC(args)}
+          {props.component.exports && (
+            <li>
+              <a href="#exports">Exports</a>
+            </li>
+          )}
+          {props.component.debugInfo && (
+            <li>
+              <a href="#debug-info">Debug info</a>
+            </li>
+          )}
+          {props.component.outReferences.length > 0 && (
+            <li>
+              <a href="#dependencies">Dependencies</a>
+            </li>
+          )}
+          {props.component.inReferences.length > 0 && (
+            <li>
+              <a href="#dependants">Dependants</a>
+            </li>
+          )}
+        </ul>
+      </nav>
+
+      <main className={styles.content}>
         <h1>
           <span className={styles.icon}>
             <FontAwesomeIcon icon={faCubes} />
           </span>
-          <span className={styles.icon}>
-            <FontAwesomeIcon icon={faAngleRight} />
-          </span>
           {props.component.id}
+          <span className={styles.healthLabel}>
+            <HealthLabel health={props.component.health.type} />
+          </span>
         </h1>
 
-        <nav>
-          <ul>
-            {partitionTOC(args)}
-            {props.component.exports && <li>Exports</li>}
-            {props.component.debugInfo && <li>Debug info</li>}
-            {props.component.outReferences.length > 0 && <li>Dependencies</li>}
-            {props.component.inReferences.length > 0 && <li>Dependants</li>}
-          </ul>
-        </nav>
+        <section id="raw-config">
+          <h2>Raw config</h2>
+          <div className={styles.sectionContent}>
+            <RiverBlob>
+              {`metrics.scrape "k8s_pods" {
+  targets    = discovery.k8s.pods.targets
+  forward_to = [metrics.remote_write.default.receiver]
+
+  scrape_config {
+    job_name = "default"
+  }
+}`}
+            </RiverBlob>
+          </div>
+        </section>
 
         <ComponentBody partition={args} />
 
         {props.component.exports && (
-          <section>
+          <section id="exports">
             <h2>Exports</h2>
             <div className={styles.sectionContent}></div>
           </section>
         )}
 
         {props.component.debugInfo && (
-          <section>
+          <section id="debug-info">
             <h2>Debug info</h2>
             <div className={styles.sectionContent}></div>
           </section>
         )}
 
         {props.component.outReferences.length > 0 && (
-          <section>
+          <section id="dependencies">
             <h2>Dependencies</h2>
             <div className={styles.sectionContent}>
-              <ul>
-                {props.component.outReferences.map((ref) => {
-                  return (
-                    <li key={ref}>
-                      <NavLink to={'/component/' + ref}>{ref}</NavLink>
-                    </li>
-                  );
-                })}
-              </ul>
+              <ComponentList components={outInfo} />
             </div>
           </section>
         )}
 
         {props.component.inReferences.length > 0 && (
-          <section>
+          <section id="dependants">
             <h2>Dependants</h2>
             <div className={styles.sectionContent}>
-              <ul>
-                {props.component.inReferences.map((ref) => {
-                  return (
-                    <li key={ref}>
-                      <NavLink to={'/component/' + ref}>{ref}</NavLink>
-                    </li>
-                  );
-                })}
-              </ul>
+              <ComponentList components={inInfo} />
             </div>
           </section>
         )}
-      </div>
+      </main>
     </div>
   );
 };
@@ -183,11 +266,7 @@ const ComponentBody: FC<ComponentBodyProps> = ({ partition }) => {
                 return (
                   <Fragment key={idx.toString()}>
                     <span>{val}</span>
-                    {idx + 1 < partition.key.length && (
-                      <span>
-                        <FontAwesomeIcon icon={faAngleRight} />
-                      </span>
-                    )}
+                    {idx + 1 < partition.key.length && <span> / </span>}
                   </Fragment>
                 );
               })}
