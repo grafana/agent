@@ -4,74 +4,9 @@ import * as d3Zoom from 'd3-zoom';
 import { HasId, HasParentIds, IdOperator, ParentIdsOperator } from 'd3-dag/dist/dag/create';
 import { decrossOpt, NodeSizeAccessor, sugiyama, dagStratify, coordQuad } from 'd3-dag';
 import { Point } from 'd3-dag/dist/dag';
+import { ComponentHealthType, ComponentInfo } from '../features/component/types';
+import { testComponents } from '../testdata/data';
 
-interface Component {
-  id: string;
-  name: string;
-  label?: string;
-  health: ComponentHealth;
-  debugInfo?: Record<string, unknown>;
-  inReferences: string[];
-  outReferences: string[];
-}
-
-interface ComponentHealth {
-  type: HealthType;
-  message?: string;
-  updateTime?: string;
-}
-
-enum HealthType {
-  HEALTHY = 'healthy',
-  UNHEALTHY = 'unhealthy',
-  UNKNOWN = 'unknown',
-  EXITED = 'exited',
-}
-
-const testData: Component[] = [
-  {
-    id: 'local.file.api_key',
-    name: 'local.file',
-    label: 'api_key',
-    health: {
-      type: HealthType.HEALTHY,
-    },
-    inReferences: ['metrics.remote_write.default'],
-    outReferences: [],
-  },
-  {
-    id: 'discovery.k8s.pods',
-    name: 'discovery.k8s',
-    label: 'pods',
-    health: {
-      type: HealthType.UNHEALTHY,
-    },
-    inReferences: ['metrics.scrape.k8s_pods'],
-    outReferences: [],
-  },
-  {
-    id: 'metrics.scrape.k8s_pods',
-    name: 'metrics.scrape',
-    label: 'k8s_pods',
-    health: {
-      type: HealthType.UNKNOWN,
-    },
-    inReferences: [],
-    outReferences: ['metrics.remote_write.default', 'discovery.k8s.pods'],
-  },
-  {
-    id: 'metrics.remote_write.default',
-    name: 'metrics.remote_write',
-    label: 'default',
-    health: {
-      type: HealthType.EXITED,
-    },
-    inReferences: ['metrics.scrape.k8s_pods'],
-    outReferences: ['local.file.api_key'],
-  },
-];
-
-// Create a canvas
 let canvas: HTMLCanvasElement | undefined;
 
 /**
@@ -207,9 +142,9 @@ const ComponentGraph: FC = () => {
     };
 
     const builder = dagStratify()
-      .id<IdOperator<Component>>((n) => n.id)
-      .parentIds<ParentIdsOperator<Component>>((n) => n.inReferences);
-    const dag = builder(testData);
+      .id<IdOperator<ComponentInfo>>((n) => n.id)
+      .parentIds<ParentIdsOperator<ComponentInfo>>((n) => n.inReferences);
+    const dag = builder(testComponents);
 
     const layout = sugiyama()
       .decross(decrossOpt())
@@ -412,13 +347,13 @@ const ComponentGraph: FC = () => {
       .append('rect')
       .attr('fill', (node) => {
         switch (node.data.health.type) {
-          case HealthType.HEALTHY:
+          case ComponentHealthType.HEALTHY:
             return '#3b8160';
-          case HealthType.UNHEALTHY:
+          case ComponentHealthType.UNHEALTHY:
             return '#d2476d';
-          case HealthType.EXITED:
+          case ComponentHealthType.EXITED:
             return '#d2476d';
-          case HealthType.UNKNOWN:
+          case ComponentHealthType.UNKNOWN:
             return '#f5d65b';
         }
       })
@@ -440,7 +375,7 @@ const ComponentGraph: FC = () => {
       .attr('text-anchor', 'middle')
       .attr('alignment-baseline', 'middle')
       .attr('fill', (node) => {
-        if (node.data.health.type === HealthType.UNKNOWN) {
+        if (node.data.health.type === ComponentHealthType.UNKNOWN) {
           return '#000000';
         }
         return '#ffffff';
