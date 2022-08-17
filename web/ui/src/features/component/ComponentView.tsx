@@ -47,9 +47,11 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
         <h1>Sections</h1>
         <hr />
         <ul>
-          <li>
-            <a href="#raw-config">Raw config</a>
-          </li>
+          {props.component.rawConfig && (
+            <li>
+              <a href="#raw-config">Raw config</a>
+            </li>
+          )}
           {argsPartition && partitionTOC(argsPartition)}
           {exportsPartition && partitionTOC(exportsPartition)}
           {debugPartition && partitionTOC(debugPartition)}
@@ -78,21 +80,26 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
           </span>
         </h1>
 
-        <section id="raw-config">
-          <h2>Raw config</h2>
-          <div className={styles.sectionContent}>
-            <RiverBlob>
-              {`metrics.scrape "k8s_pods" {
-  targets    = discovery.k8s.pods.targets
-  forward_to = [metrics.remote_write.default.receiver]
+        {props.component.health.message && (
+          <blockquote>
+            <h1>
+              Latest health message{' '}
+              {props.component.health.updateTime && (
+                <span className={styles.updateTime}>({props.component.health.updateTime})</span>
+              )}
+            </h1>
+            <p>{props.component.health.message}</p>
+          </blockquote>
+        )}
 
-  scrape_config {
-    job_name = "default"
-  }
-}`}
-            </RiverBlob>
-          </div>
-        </section>
+        {props.component.rawConfig && (
+          <section id="raw-config">
+            <h2>Raw config</h2>
+            <div className={styles.sectionContent}>
+              <RiverBlob>{props.component.rawConfig}</RiverBlob>
+            </div>
+          </section>
+        )}
 
         <ComponentBody partition={argsPartition} />
         {exportsPartition && <ComponentBody partition={exportsPartition} />}

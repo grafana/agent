@@ -40,7 +40,7 @@
   text-decoration: underline;
 }
 
-.page > main.content {
+.page .content {
   max-width: 1440px;
   margin-left: auto;
   margin-right: auto;
@@ -48,37 +48,58 @@
   overflow-y: auto;
 }
 
-.page h1 .icon {
+.content blockquote {
+  border: 1px solid #e4e5e6;
+  border-radius: 3px;
+  color: #555;
+  margin: 20px 0px;
+  padding: 20px 20px;
+}
+
+.content blockquote h1 {
+  color: #555;
+  margin: 0px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.content blockquote p {
+  margin-bottom: 0px;
+  white-space: pre;
+  font-family: 'Fira Code', monospace;
+}
+
+.content h1 .icon {
   margin-right: 5px;
 }
 
-.page h1 span.healthLabel {
+.content h1 span.healthLabel {
   position: relative;
   top: -3px;
 }
 
-.page h1 span.healthLabel > * {
+.content h1 span.healthLabel > * {
   transform: scale(0.75);
 }
 
-.page h1 .icon svg {
+.content h1 .icon svg {
   width: 21px;
   color: rgba(36, 41, 46, 0.75);
   position: relative;
   top: 2px;
 }
 
-.page h1, h2, h3, h4, h5, h6 {
+.content h1, h2, h3, h4, h5, h6 {
   color: rgb(36, 41, 46);
   font-size: 1.4em;
   font-weight: normal;
 }
 
-.page h2, h3, h4, h5, h6 {
+.content h2, h3, h4, h5, h6 {
   font-size: 1.2em;
 }
 
-.page table {
+.content table {
   text-align: left;
   border: 1px solid #e4e5e6;
   width: 100%;
@@ -86,23 +107,23 @@
   border-spacing: 0;
 }
 
-.page table tr:last-child, .page table td {
+.content table tr:last-child, .page table td {
 }
 
-.page table thead tr {
+.content table thead tr {
   background-color: #f4f5f5;
 }
 
-.page table tbody tr:nth-child(even) {
+.content table tbody tr:nth-child(even) {
   background-color: #f4f5f5;
 }
 
-.page table th, .page table td {
+.content table th, .content table td {
   vertical-align: top;
   padding: 8px;
 }
 
-.page table th {
+.content table th {
   color: rgba(36, 41, 46, 0.75);
   font-weight: normal;
 }
@@ -120,7 +141,7 @@ td.valueColumn {
   margin: 0px;
 }
 
-.page section div.sectionContent {
+.content div.sectionContent {
   background-color: white;
   border: 1px solid #e4e5e6;
   border-radius: 3px;
@@ -128,6 +149,6 @@ td.valueColumn {
 }
 
 
-.page section.nested {
+.content section.nested {
   margin-left: 32px;
 }

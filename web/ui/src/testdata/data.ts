@@ -50,9 +50,20 @@ export const testComponentDetail: ComponentDetail = {
   label: 'k8s_pods',
   health: {
     type: ComponentHealthType.UNKNOWN,
+    message: 'Component updated',
+    updateTime: '2020-08-17',
   },
   inReferences: [],
   outReferences: ['metrics.remote_write.default', 'discovery.k8s.pods'],
+
+  rawConfig: `metrics.scrape "k8s_pods" {
+  targets    = discovery.k8s.pods.targets
+  forward_to = [metrics.remote_write.default.receiver]
+
+  scrape_config {
+    job_name = "default"
+  }
+}`,
 
   arguments: [
     {

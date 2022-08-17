@@ -79,6 +79,11 @@ export enum ComponentHealthType {
  */
 export interface ComponentDetail extends ComponentInfo {
   /**
+   * rawConfig is the optional raw River blob used to configure this component.
+   */
+  rawConfig?: string;
+
+  /**
    * Arguments is the list of user-provided settings which configure an argument.
    * This is expected to be the *evaluated* arguments, not the raw expressions
    * a user may have used.
