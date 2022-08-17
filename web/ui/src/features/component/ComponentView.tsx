@@ -132,6 +132,7 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
             <FontAwesomeIcon icon={faCubes} />
           </span>
           {props.component.id}
+          &nbsp; {/* space to separate the component name and label so double-click selections work */}
           <span className={styles.healthLabel}>
             <HealthLabel health={props.component.health.type} />
           </span>

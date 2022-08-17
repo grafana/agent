@@ -55,7 +55,6 @@
 .page h1 span.healthLabel {
   position: relative;
   top: -3px;
-  left: 5px;
 }
 
 .page h1 span.healthLabel > * {
