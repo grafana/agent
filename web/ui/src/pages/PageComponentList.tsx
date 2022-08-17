@@ -1,6 +1,6 @@
 import { faCubes } from '@fortawesome/free-solid-svg-icons';
-import Page from '../components/Page';
-import ComponentList from '../components/ComponentList';
+import Page from '../features/layout/Page';
+import ComponentList from '../features/component/ComponentList';
 import { testComponents } from '../testdata/data';
 
 function PageComponentList() {

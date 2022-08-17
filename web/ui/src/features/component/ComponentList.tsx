@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { NavLink } from 'react-router-dom';
-import { HealthLabel } from '../features/component/HealthLabel';
-import { ComponentInfo } from '../features/component/types';
+import { HealthLabel } from './HealthLabel';
+import { ComponentInfo } from './types';
 import styles from './ComponentList.module.css';
 
 interface ComponentListProps {
@@ -19,7 +19,7 @@ const ComponentList: FC<ComponentListProps> = ({ components }) => {
       </header>
       {components.map((component) => {
         return (
-          <ul>
+          <ul key={component.id}>
             <li>
               <HealthLabel health={component.health.type} />
             </li>

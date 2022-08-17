@@ -4,8 +4,8 @@ import * as d3Zoom from 'd3-zoom';
 import { HasId, HasParentIds, IdOperator, ParentIdsOperator } from 'd3-dag/dist/dag/create';
 import { decrossOpt, NodeSizeAccessor, sugiyama, dagStratify, coordQuad } from 'd3-dag';
 import { Point } from 'd3-dag/dist/dag';
-import { ComponentHealthType, ComponentInfo } from '../features/component/types';
-import { testComponents } from '../testdata/data';
+import { ComponentHealthType, ComponentInfo } from './types';
+import { testComponents } from '../../testdata/data';
 
 let canvas: HTMLCanvasElement | undefined;
 

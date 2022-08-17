@@ -5,7 +5,7 @@ import { ComponentDetail, ComponentInfo } from './types';
 import styles from './ComponentView.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCubes } from '@fortawesome/free-solid-svg-icons';
-import ComponentList from '../../components/ComponentList';
+import ComponentList from './ComponentList';
 import prism from 'prismjs';
 import './RiverPrismTheme.css';
 import { HealthLabel } from './HealthLabel';
@@ -76,7 +76,9 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
   const inInfo = props.component.inReferences.map((id) => props.info[id]);
   const outInfo = props.component.outReferences.map((id) => props.info[id]);
 
-  const args = partitionBody(props.component.arguments, 'Arguments');
+  const argsPartition = partitionBody(props.component.arguments, 'Arguments');
+  const exportsPartition = props.component.exports && partitionBody(props.component.exports, 'Exports');
+  const debugPartition = props.component.debugInfo && partitionBody(props.component.debugInfo, 'Debug info');
 
   function partitionTOC(partition: PartitionedBody): ReactElement {
     return (
@@ -102,17 +104,9 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
           <li>
             <a href="#raw-config">Raw config</a>
           </li>
-          {partitionTOC(args)}
-          {props.component.exports && (
-            <li>
-              <a href="#exports">Exports</a>
-            </li>
-          )}
-          {props.component.debugInfo && (
-            <li>
-              <a href="#debug-info">Debug info</a>
-            </li>
-          )}
+          {argsPartition && partitionTOC(argsPartition)}
+          {exportsPartition && partitionTOC(exportsPartition)}
+          {debugPartition && partitionTOC(debugPartition)}
           {props.component.outReferences.length > 0 && (
             <li>
               <a href="#dependencies">Dependencies</a>
@@ -125,7 +119,7 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
           )}
         </ul>
       </nav>
-
+      /
       <main className={styles.content}>
         <h1>
           <span className={styles.icon}>
@@ -154,21 +148,9 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
           </div>
         </section>
 
-        <ComponentBody partition={args} />
-
-        {props.component.exports && (
-          <section id="exports">
-            <h2>Exports</h2>
-            <div className={styles.sectionContent}></div>
-          </section>
-        )}
-
-        {props.component.debugInfo && (
-          <section id="debug-info">
-            <h2>Debug info</h2>
-            <div className={styles.sectionContent}></div>
-          </section>
-        )}
+        <ComponentBody partition={argsPartition} />
+        {exportsPartition && <ComponentBody partition={exportsPartition} />}
+        {debugPartition && <ComponentBody partition={debugPartition} />}
 
         {props.component.outReferences.length > 0 && (
           <section id="dependencies">
