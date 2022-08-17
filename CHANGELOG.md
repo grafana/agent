@@ -27,6 +27,8 @@ Main (unreleased)
 
 - Add base agent-operator jsonnet library and generated manifests (@hjet)
 
+- Add full (metrics, logs, K8s events) sample agent-operator jsonnet library and gen manifests (@hjet)
+
 ### Bugfixes
 
 - Tracing: Fixed issue with the PromSD processor using the `connection` method to discover the IP
