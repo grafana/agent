@@ -113,7 +113,8 @@ th.nameColumn {
 }
 
 td.nameColumn {
-  font-family: monospace;
+  font-family: 'Fira Code', monospace;
+  font-size: 14px;
 }
 
 td.valueColumn {

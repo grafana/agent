@@ -23,3 +23,7 @@ body {
 .app-navbar a {
   color: #25292e;
 }
+
+pre, code {
+  font-family: 'Fira Code', monospace;
+}

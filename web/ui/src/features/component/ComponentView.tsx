@@ -62,7 +62,7 @@ const RiverBlob: FC<{ children: string }> = ({ children }) => {
   }, []);
 
   return (
-    <pre ref={codeRef} style={{ margin: '0px', fontSize: '13px' }}>
+    <pre ref={codeRef} style={{ margin: '0px', fontSize: '14px' }}>
       <code className="language-river">{children}</code>
     </pre>
   );
