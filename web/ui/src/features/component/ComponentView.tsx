@@ -6,7 +6,6 @@ import styles from './ComponentView.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCubes } from '@fortawesome/free-solid-svg-icons';
 import ComponentList from './ComponentList';
-import './RiverPrismTheme.css';
 import { HealthLabel } from './HealthLabel';
 import { RiverBlob } from '../river-js/RiverBlob';
 

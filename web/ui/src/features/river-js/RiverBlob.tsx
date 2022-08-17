@@ -1,5 +1,6 @@
 import { FC, useEffect, useRef } from 'react';
 import prism from 'prismjs';
+import './RiverPrismTheme.css';
 
 // Add river definitions to Prism. We only define elements we expliclty have
 // syntax highlighting rules for.
