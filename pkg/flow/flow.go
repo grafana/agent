@@ -238,6 +238,10 @@ func (c *Flow) Close() error {
 	return c.sched.Close()
 }
 
+type ComponentInfoDetailed struct {
+	ComponentInfo
+}
+
 type ComponentInfo struct {
 	ID           string   `json:"id"`
 	ReferencesTo []string `json:"references_to"`
