@@ -37,6 +37,7 @@
 /* "Status" dropdown */
 .statusLink {
   cursor: pointer;
+  z-index: 999;
 }
 
 .statusLink .caret {
