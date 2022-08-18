@@ -244,8 +244,8 @@ type ComponentInfo struct {
 	ID           string   `json:"id,omitempty"`
 	Label        string   `json:"label,omitempty"`
 	Name         string   `json:"name"`
-	ReferencesTo []string `json:"references_to"`
-	ReferencedBy []string `json:"referenced_by"`
+	ReferencesTo []string `json:"referencesTo"`
+	ReferencedBy []string `json:"referencedBy"`
 	Health       Health   `json:"health"`
 }
 
