@@ -11,18 +11,21 @@ import (
 	"github.com/grafana/agent/pkg/river/internal/value"
 )
 
-// Field should probably spit this into block and non block fields
+type ComponentField struct {
+	Field        `json:",omitempty""`
+	References   []string `json:"references,omitempty"`
+	ReferencedBy []string `json:"reference_by,omitempty"`
+	Health       *Health  `json:"health,omitempty"`
+	Original     string   `json:"original,omitempty"`
+}
+
 type Field struct {
-	ID           string      `json:"id,omitempty"`
-	Key          string      `json:"key,omitempty"`
-	Name         string      `json:"name,omitempty"`
-	Label        string      `json:"label,omitempty"`
-	Type         string      `json:"type,omitempty"`
-	References   []string    `json:"references,omitempty"`
-	ReferencedBy []string    `json:"reference_by,omitempty"`
-	Health       *Health     `json:"health,omitempty"`
-	Original     string      `json:"original,omitempty"`
-	Value        interface{} `json:"value,omitempty"`
+	ID    string      `json:"id,omitempty"`
+	Key   string      `json:"key,omitempty"`
+	Label string      `json:"label,omitempty"`
+	Name  string      `json:"name,omitempty"`
+	Type  string      `json:"type,omitempty"`
+	Value interface{} `json:"value,omitempty"`
 }
 
 // Health represents the health of a component.
@@ -32,25 +35,26 @@ type Health struct {
 	UpdateTime time.Time `json:"health_type"`
 }
 
-// ConvertBlock converts a set of component information into a generic Field json representation.
-func ConvertBlock(
+// ConvertComponentToJSON converts a set of component information into a generic Field json representation.
+func ConvertComponentToJSON(
 	id []string,
 	args interface{},
 	exports interface{},
 	references, referencedby []string,
 	health *Health,
 	original string,
-) *Field {
-
-	nf := &Field{
-		ID:           strings.Join(id, "."),
-		Name:         strings.Join(id[0:2], "."),
-		Type:         "block",
+) *ComponentField {
+	nf := &ComponentField{
+		Field: Field{
+			ID:    strings.Join(id, "."),
+			Name:  strings.Join(id[0:2], "."),
+			Type:  "block",
+			Value: nil,
+		},
 		References:   references,
 		ReferencedBy: referencedby,
 		Health:       health,
 		Original:     original,
-		Value:        nil,
 	}
 	if len(id) == 3 {
 		nf.Label = id[2]

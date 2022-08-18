@@ -107,7 +107,7 @@ func (c *Flow) ComponentJSON(w io.Writer, ci *ComponentInfo) (int, error) {
 	if foundComponent == nil {
 		return 0, fmt.Errorf("unable to find component named %s", ci.ID)
 	}
-	field := river.ConvertBlock(
+	field := river.ConvertComponentToJSON(
 		foundComponent.ID(),
 		foundComponent.Arguments(),
 		foundComponent.Arguments(),
