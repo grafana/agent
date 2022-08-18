@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"path"
 
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/flow"
@@ -15,24 +16,18 @@ import (
 
 // FlowAPI wraps several calls for the component health api.
 type FlowAPI struct {
-	flow   *flow.Flow
-	router *mux.Router
+	flow *flow.Flow
 }
 
 // NewFlowAPI instantiates a new flow api.
 func NewFlowAPI(flow *flow.Flow, r *mux.Router) *FlowAPI {
-	fa := &FlowAPI{
-		flow:   flow,
-		router: r,
-	}
-	fa.SetupRoute()
-	return fa
+	return &FlowAPI{flow: flow}
 }
 
-// SetupRoute registers all the routes.
-func (f *FlowAPI) SetupRoute() {
-	f.router.HandleFunc("/api/v0/web/components", f.listComponentsHandler())
-	f.router.HandleFunc("/api/v0/web/components/{id}", f.listComponentHandler())
+// RegisterRoutes registers all the routes.
+func (f *FlowAPI) RegisterRoutes(urlPrefix string, r *mux.Router) {
+	r.HandleFunc(path.Join(urlPrefix, "/api/v0/web/components"), f.listComponentsHandler())
+	r.HandleFunc(path.Join(urlPrefix, "/api/v0/web/components/{id}"), f.listComponentHandler())
 }
 
 func (f *FlowAPI) listComponentsHandler() http.HandlerFunc {

@@ -144,7 +144,7 @@ func runFlow() error {
 		})
 
 		fa := api.NewFlowAPI(f, r)
-		fa.SetupRoute()
+		fa.RegisterRoutes(uiPrefix, r)
 
 		// NOTE(rfratto): keep this at the bottom of all other routes, otherwise it
 		// will take precedence over anything else mapped in uiPrefix.
