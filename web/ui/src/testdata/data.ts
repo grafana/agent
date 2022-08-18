@@ -9,8 +9,8 @@ export const testComponents: ComponentInfo[] = [
     health: {
       type: ComponentHealthType.HEALTHY,
     },
-    inReferences: ['metrics.remote_write.default'],
-    outReferences: [],
+    referencedBy: ['metrics.remote_write.default'],
+    referencesTo: [],
   },
   {
     id: 'discovery.k8s.pods',
@@ -19,8 +19,8 @@ export const testComponents: ComponentInfo[] = [
     health: {
       type: ComponentHealthType.UNHEALTHY,
     },
-    inReferences: ['metrics.scrape.k8s_pods'],
-    outReferences: [],
+    referencedBy: ['metrics.scrape.k8s_pods'],
+    referencesTo: [],
   },
   {
     id: 'metrics.scrape.k8s_pods',
@@ -29,8 +29,8 @@ export const testComponents: ComponentInfo[] = [
     health: {
       type: ComponentHealthType.UNKNOWN,
     },
-    inReferences: [],
-    outReferences: ['metrics.remote_write.default', 'discovery.k8s.pods'],
+    referencedBy: [],
+    referencesTo: ['metrics.remote_write.default', 'discovery.k8s.pods'],
   },
   {
     id: 'metrics.remote_write.default',
@@ -39,8 +39,8 @@ export const testComponents: ComponentInfo[] = [
     health: {
       type: ComponentHealthType.EXITED,
     },
-    inReferences: ['metrics.scrape.k8s_pods'],
-    outReferences: [],
+    referencedBy: ['metrics.scrape.k8s_pods'],
+    referencesTo: [],
   },
 ];
 
@@ -53,8 +53,8 @@ export const testComponentDetail: ComponentDetail = {
     message: 'Component updated',
     updateTime: '2020-08-17',
   },
-  inReferences: [],
-  outReferences: ['metrics.remote_write.default', 'discovery.k8s.pods'],
+  referencedBy: [],
+  referencesTo: ['metrics.remote_write.default', 'discovery.k8s.pods'],
 
   rawConfig: `metrics.scrape "k8s_pods" {
   targets    = discovery.k8s.pods.targets

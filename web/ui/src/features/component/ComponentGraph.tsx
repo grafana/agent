@@ -152,7 +152,7 @@ export const ComponentGraph: FC<ComponentGraphProps> = (props) => {
 
     const builder = dagStratify()
       .id<IdOperator<ComponentInfo>>((n) => n.id)
-      .parentIds<ParentIdsOperator<ComponentInfo>>((n) => n.inReferences);
+      .parentIds<ParentIdsOperator<ComponentInfo>>((n) => n.referencedBy);
     const dag = builder(props.components);
 
     const layout = sugiyama()

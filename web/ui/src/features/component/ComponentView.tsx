@@ -17,8 +17,8 @@ export interface ComponentViewProps {
 export const ComponentView: FC<ComponentViewProps> = (props) => {
   // TODO(rfratto): expand/collapse icon for sections (treat it like Row in grafana dashboard)
 
-  const inInfo = props.component.inReferences.map((id) => props.info[id]);
-  const outInfo = props.component.outReferences.map((id) => props.info[id]);
+  const inInfo = props.component.referencedBy.map((id) => props.info[id]);
+  const outInfo = props.component.referencesTo.map((id) => props.info[id]);
 
   const argsPartition = partitionBody(props.component.arguments, 'Arguments');
   const exportsPartition = props.component.exports && partitionBody(props.component.exports, 'Exports');
@@ -56,12 +56,12 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
           {argsPartition && partitionTOC(argsPartition)}
           {exportsPartition && partitionTOC(exportsPartition)}
           {debugPartition && partitionTOC(debugPartition)}
-          {props.component.outReferences.length > 0 && (
+          {props.component.referencesTo.length > 0 && (
             <li>
               <a href="#dependencies">Dependencies</a>
             </li>
           )}
-          {props.component.inReferences.length > 0 && (
+          {props.component.referencedBy.length > 0 && (
             <li>
               <a href="#dependants">Dependants</a>
             </li>
@@ -112,7 +112,7 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
         {exportsPartition && <ComponentBody partition={exportsPartition} />}
         {debugPartition && <ComponentBody partition={debugPartition} />}
 
-        {props.component.outReferences.length > 0 && (
+        {props.component.referencesTo.length > 0 && (
           <section id="dependencies">
             <h2>Dependencies</h2>
             <div className={styles.sectionContent}>
@@ -121,7 +121,7 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
           </section>
         )}
 
-        {props.component.inReferences.length > 0 && (
+        {props.component.referencedBy.length > 0 && (
           <section id="dependants">
             <h2>Dependants</h2>
             <div className={styles.sectionContent}>

@@ -32,12 +32,12 @@ export interface ComponentInfo {
   /**
    * IDs of components which are referencing this component.
    */
-  inReferences: string[];
+  referencedBy: string[];
 
   /**
    * IDs of components which this component is referencing.
    */
-  outReferences: string[];
+  referencesTo: string[];
 }
 
 /**
