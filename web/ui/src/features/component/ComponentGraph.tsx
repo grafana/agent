@@ -5,7 +5,6 @@ import { HasId, HasParentIds, IdOperator, ParentIdsOperator } from 'd3-dag/dist/
 import { decrossOpt, NodeSizeAccessor, sugiyama, dagStratify, coordQuad } from 'd3-dag';
 import { Point } from 'd3-dag/dist/dag';
 import { ComponentHealthType, ComponentInfo } from './types';
-import { testComponents } from '../../testdata/data';
 import { useHref } from 'react-router-dom';
 
 let canvas: HTMLCanvasElement | undefined;
@@ -126,7 +125,15 @@ interface Box {
   h: number;
 }
 
-const ComponentGraph: FC = () => {
+export interface ComponentGraphProps {
+  components: ComponentInfo[];
+}
+
+/**
+ * ComponentGraph renders an SVG with relationships between defined components.
+ * The components prop must be a non-empty array.
+ */
+export const ComponentGraph: FC<ComponentGraphProps> = (props) => {
   const baseComponentPath = useHref('/component');
   const svgRef = useRef<SVGSVGElement>(null);
 
@@ -146,7 +153,7 @@ const ComponentGraph: FC = () => {
     const builder = dagStratify()
       .id<IdOperator<ComponentInfo>>((n) => n.id)
       .parentIds<ParentIdsOperator<ComponentInfo>>((n) => n.inReferences);
-    const dag = builder(testComponents);
+    const dag = builder(props.components);
 
     const layout = sugiyama()
       .decross(decrossOpt())
@@ -348,7 +355,7 @@ const ComponentGraph: FC = () => {
     healthBox
       .append('rect')
       .attr('fill', (node) => {
-        switch (node.data.health.type) {
+        switch (node.data.health.type || ComponentHealthType.UNKNOWN) {
           case ComponentHealthType.HEALTHY:
             return '#3b8160';
           case ComponentHealthType.UNHEALTHY:
@@ -366,7 +373,7 @@ const ComponentGraph: FC = () => {
     healthBox
       .append('text')
       .text((d) => {
-        const text = d.data.health.type;
+        const text = d.data.health.type || 'unknown';
         return text.charAt(0).toUpperCase() + text.substring(1);
       })
       .attr('x', 45 / 2) // Anchor to middle of box
@@ -387,5 +394,3 @@ const ComponentGraph: FC = () => {
   // TODO(rfratto): figure out why this scrolls when using height: 100%
   return <svg ref={svgRef} style={{ width: '100%', height: '100%' }} />;
 };
-
-export default ComponentGraph;
