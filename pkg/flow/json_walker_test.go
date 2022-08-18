@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/grafana/agent/pkg/river"
+
 	"github.com/grafana/agent/pkg/flow/rivertypes"
 
 	_ "github.com/grafana/agent/component/discovery/kubernetes" // Import discovery.k8s
@@ -30,22 +32,22 @@ func TestSimpleWalking(t *testing.T) {
 		Bool:   true,
 		Float:  3.14,
 	}
-	fields := convertToField(test, "simple")
+	fields := river.ConvertToField(test, "simple")
 	require.True(t, fields.Key == "simple")
-	sub := fields.Value.([]*Field)
+	sub := fields.Value.([]*river.Field)
 	require.Len(t, sub, 5)
 
 	require.True(t, sub[0].Key == "int_test")
-	require.True(t, sub[0].Value.(*Field).Value.(int64) == 1)
+	require.True(t, sub[0].Value.(*river.Field).Value.(int64) == 1)
 
 	require.True(t, sub[1].Key == "string_test")
-	require.True(t, sub[1].Value.(*Field).Value.(string) == "cool")
+	require.True(t, sub[1].Value.(*river.Field).Value.(string) == "cool")
 
 	require.True(t, sub[2].Key == "bool_test")
-	require.True(t, sub[2].Value.(*Field).Value.(bool) == true)
+	require.True(t, sub[2].Value.(*river.Field).Value.(bool) == true)
 
 	require.True(t, sub[3].Key == "float_test")
-	require.True(t, sub[3].Value.(*Field).Value.(float64) == test.Float)
+	require.True(t, sub[3].Value.(*river.Field).Value.(float64) == test.Float)
 
 	_, err := json.Marshal(fields)
 	require.NoError(t, err)
@@ -58,12 +60,12 @@ func TestArrayWalking(t *testing.T) {
 	test := simple{
 		Array: []int{1, 2, 3},
 	}
-	fields := convertToField(test, "simple")
-	sub := fields.Value.([]*Field)
+	fields := river.ConvertToField(test, "simple")
+	sub := fields.Value.([]*river.Field)
 	require.Len(t, sub, 1)
 
 	require.True(t, sub[0].Key == "array_test")
-	arr := sub[0].Value.([]*Field)
+	arr := sub[0].Value.([]*river.Field)
 	require.Len(t, arr, 3)
 
 	_, err := json.Marshal(fields)
@@ -80,12 +82,12 @@ func TestMapWalking(t *testing.T) {
 			"p2": "sam",
 		},
 	}
-	fields := convertToField(test, "simple")
-	sub := fields.Value.([]*Field)
+	fields := river.ConvertToField(test, "simple")
+	sub := fields.Value.([]*river.Field)
 	require.Len(t, sub, 1)
 
 	require.True(t, sub[0].Key == "map_test")
-	arr := sub[0].Value.([]*Field)
+	arr := sub[0].Value.([]*river.Field)
 	require.Len(t, arr, 2)
 }
 
@@ -100,16 +102,16 @@ func TestSecretsWalking(t *testing.T) {
 		AlwaysSecret: rivertypes.OptionalSecret{IsSecret: true, Value: "password"},
 		NotSecret:    rivertypes.OptionalSecret{IsSecret: false, Value: "password"},
 	}
-	fields := convertToField(test, "simple")
-	sub := fields.Value.([]*Field)
+	fields := river.ConvertToField(test, "simple")
+	sub := fields.Value.([]*river.Field)
 	require.Len(t, sub, 3)
 
 	require.True(t, sub[0].Key == "secret_test")
-	require.True(t, sub[0].Value.(*Field).Value == "(secret)")
+	require.True(t, sub[0].Value.(*river.Field).Value == "(secret)")
 
 	require.True(t, sub[1].Key == "opt_yes")
-	require.True(t, sub[1].Value.(*Field).Value == "(secret)")
+	require.True(t, sub[1].Value.(*river.Field).Value == "(secret)")
 
 	require.True(t, sub[2].Key == "opt_no")
-	require.True(t, sub[2].Value.(*Field).Value == "password")
+	require.True(t, sub[2].Value.(*river.Field).Value == "\"password\"")
 }
