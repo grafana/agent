@@ -6,6 +6,7 @@ import { decrossOpt, NodeSizeAccessor, sugiyama, dagStratify, coordQuad } from '
 import { Point } from 'd3-dag/dist/dag';
 import { ComponentHealthType, ComponentInfo } from './types';
 import { testComponents } from '../../testdata/data';
+import { useHref } from 'react-router-dom';
 
 let canvas: HTMLCanvasElement | undefined;
 
@@ -126,6 +127,7 @@ interface Box {
 }
 
 const ComponentGraph: FC = () => {
+  const baseComponentPath = useHref('/component');
   const svgRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
@@ -297,7 +299,7 @@ const ComponentGraph: FC = () => {
         return `translate(${x}, ${y})`;
       });
 
-    const linkedNodes = nodes.append('a').attr('href', (n) => `/component/${n.data.id}`);
+    const linkedNodes = nodes.append('a').attr('href', (n) => `${baseComponentPath}/${n.data.id}`);
 
     // Plot nodes
     linkedNodes

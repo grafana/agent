@@ -9,9 +9,11 @@ import styles from './App.module.css';
 import { ComponentDetailPage } from './pages/ComponentDetailPage';
 
 function App() {
+  const baseName = process.env.REACT_APP_BASE_URL || '';
+
   return (
     <div className={styles.app}>
-      <BrowserRouter>
+      <BrowserRouter basename={baseName}>
         <Navbar />
         <main>
           <Routes>
