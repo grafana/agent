@@ -2,6 +2,7 @@ package flow
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -49,6 +50,16 @@ func (f *Flow) ConfigHandler() http.HandlerFunc {
 	}
 }
 
+func (f *Flow) Json(c *ComponentInfoDetailed) (bytes.Buffer, error) {
+	var buf bytes.Buffer
+	_, err := f.configJson(&buf, c)
+	if err != nil {
+		return bytes.Buffer{}, err
+	}
+	return buf, nil
+
+}
+
 // ScopeHandler returns an http.HandlerFunc which will render the scope used
 // for variable references throughout River expressions.
 func (f *Flow) ScopeHandler() http.HandlerFunc {
@@ -90,4 +101,31 @@ func (f *Flow) configBytes(w io.Writer, debugInfo bool) (n int64, err error) {
 	}
 
 	return file.WriteTo(w)
+}
+
+// configJson returns the json representation of the flow config.
+func (f *Flow) configJson(w io.Writer, ci *ComponentInfoDetailed) (int, error) {
+	var foundComponent *controller.ComponentNode
+	for _, c := range f.loader.Components() {
+		if c.ID().String() == ci.ID {
+			foundComponent = c
+			break
+		}
+	}
+	if foundComponent == nil {
+		return 0, fmt.Errorf("unable to find component named %s", ci.ID)
+	}
+	field := ConvertBlock(
+		foundComponent.ID(),
+		foundComponent.Arguments(),
+		foundComponent.Arguments(),
+		ci.ReferencesTo,
+		ci.ReferencedBy,
+		&ci.Health,
+		"")
+	bb, err := json.Marshal(field)
+	if err != nil {
+		return 0, err
+	}
+	return w.Write(bb)
 }

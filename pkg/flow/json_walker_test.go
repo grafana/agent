@@ -13,7 +13,6 @@ import (
 	_ "github.com/grafana/agent/component/metrics/scrape"       // Import metrics.scrape
 	_ "github.com/grafana/agent/component/remote/s3"            // Import s3.file
 	_ "github.com/grafana/agent/component/targets/mutate"       // Import targets.mutate
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,7 +21,7 @@ func TestSimpleWalking(t *testing.T) {
 		Int    int64       `river:"int_test,attr"`
 		String string      `river:"string_test,attr"`
 		Bool   bool        `river:"bool_test,attr"`
-		Float  float32     `river:"float_test,attr"`
+		Float  float64     `river:"float_test,attr"`
 		Nil    interface{} `river:"nil_test,attr"`
 	}
 	test := simple{
@@ -31,8 +30,7 @@ func TestSimpleWalking(t *testing.T) {
 		Bool:   true,
 		Float:  3.14,
 	}
-	w := NewWalker()
-	fields := w.ConvertToField(test, "simple")
+	fields := ConvertToField(test, "simple")
 	require.True(t, fields.Key == "simple")
 	sub := fields.Value.([]*Field)
 	require.Len(t, sub, 5)
@@ -47,7 +45,7 @@ func TestSimpleWalking(t *testing.T) {
 	require.True(t, sub[2].Value.(*Field).Value.(bool) == true)
 
 	require.True(t, sub[3].Key == "float_test")
-	require.True(t, sub[3].Value.(*Field).Value.(float32) == 3.14)
+	require.True(t, sub[3].Value.(*Field).Value.(float64) == test.Float)
 
 	_, err := json.Marshal(fields)
 	require.NoError(t, err)
@@ -61,14 +59,17 @@ func TestArrayWalking(t *testing.T) {
 	test := simple{
 		Array: []int{1, 2, 3},
 	}
-	w := NewWalker()
-	fields := w.ConvertToField(test, "simple")
+	fields := ConvertToField(test, "simple")
 	sub := fields.Value.([]*Field)
 	require.Len(t, sub, 1)
 
 	require.True(t, sub[0].Key == "array_test")
 	arr := sub[0].Value.([]*Field)
 	require.Len(t, arr, 3)
+
+	str, err := json.Marshal(fields)
+	require.NoError(t, err)
+	println(str)
 }
 
 func TestMapWalking(t *testing.T) {
@@ -81,8 +82,7 @@ func TestMapWalking(t *testing.T) {
 			"p2": "sam",
 		},
 	}
-	w := NewWalker()
-	fields := w.ConvertToField(test, "simple")
+	fields := ConvertToField(test, "simple")
 	sub := fields.Value.([]*Field)
 	require.Len(t, sub, 1)
 
@@ -102,8 +102,7 @@ func TestSecretsWalking(t *testing.T) {
 		AlwaysSecret: rivertypes.OptionalSecret{IsSecret: true, Value: "password"},
 		NotSecret:    rivertypes.OptionalSecret{IsSecret: false, Value: "password"},
 	}
-	w := NewWalker()
-	fields := w.ConvertToField(test, "simple")
+	fields := ConvertToField(test, "simple")
 	sub := fields.Value.([]*Field)
 	require.Len(t, sub, 3)
 
@@ -115,64 +114,5 @@ func TestSecretsWalking(t *testing.T) {
 
 	require.True(t, sub[2].Key == "opt_no")
 	require.True(t, sub[2].Value.(*Field).Value == "password")
-
-}
-
-func TestBlockWalking(t *testing.T) {
-	config := `
-metrics.remote_write "d1" {
-    remote_write {
-        url = "https://example.com"
-        basic_auth {
-            username = 12345
-            password = "password"
-        }
-        queue_config {
-            capacity = 3000
-        }
-    }
-}
-
-metrics.scrape "scraper" {
-    targets = [{"__address__" = "localhost:12345"}]
-    forward_to = [metrics.mutate.mutator.receiver]
-    scrape_config {
-        job_name = "testJob"
-        http_client_config {
-            follow_redirects = true
-        }
-    }
-}
-
-metrics.mutate "mutator" {
-    metric_relabel_config {
-        source_labels = ["__name__"]
-        regex = "(.+)"
-        replacement = "${1}-cool"
-        target_label = "newlabel"
-    }
-    forward_to = [metrics.remote_write.d1.receiver]
-}
-`
-	f, _ := newFlow(Options{
-		Reg: prometheus.NewRegistry(),
-	})
-	file, err := ReadFile("test", []byte(config))
-	require.NoError(t, err)
-
-	err = f.LoadFile(file)
-	require.NoError(t, err)
-	w := NewWalker()
-	fields := make([]*Field, 0)
-	comps := f.loader.Components()
-	for _, c := range comps {
-		fields = append(fields, w.ConvertBlock(c))
-	}
-	require.Len(t, fields, 3)
-
-	bb, err := json.Marshal(fields)
-	require.NoError(t, err)
-	str := string(bb)
-	println(str)
 
 }

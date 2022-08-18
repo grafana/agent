@@ -139,9 +139,9 @@ func newFlow(o Options) (*Flow, context.Context) {
 	}, ctx
 }
 
-func (c *Flow) run(ctx context.Context) {
-	defer close(c.exited)
-	defer level.Debug(c.log).Log("msg", "flow controller exiting")
+func (f *Flow) run(ctx context.Context) {
+	defer close(f.exited)
+	defer level.Debug(f.log).Log("msg", "flow controller exiting")
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -151,31 +151,31 @@ func (c *Flow) run(ctx context.Context) {
 		case <-ctx.Done():
 			return
 
-		case <-c.updateQueue.Chan():
+		case <-f.updateQueue.Chan():
 			// We need to pop _everything_ from the queue and evaluate each of them.
 			// If we only pop a single element, other components may sit waiting for
 			// evaluation forever.
 			for {
-				updated := c.updateQueue.TryDequeue()
+				updated := f.updateQueue.TryDequeue()
 				if updated == nil {
 					break
 				}
 
-				level.Debug(c.log).Log("msg", "handling component with updated state", "node_id", updated.NodeID())
-				c.loader.EvaluateDependencies(nil, updated)
+				level.Debug(f.log).Log("msg", "handling component with updated state", "node_id", updated.NodeID())
+				f.loader.EvaluateDependencies(nil, updated)
 			}
 
-		case <-c.loadFinished:
-			level.Info(c.log).Log("msg", "scheduling loaded components")
+		case <-f.loadFinished:
+			level.Info(f.log).Log("msg", "scheduling loaded components")
 
-			components := c.loader.Components()
+			components := f.loader.Components()
 			runnables := make([]controller.RunnableNode, 0, len(components))
 			for _, uc := range components {
 				runnables = append(runnables, uc)
 			}
-			err := c.sched.Synchronize(runnables)
+			err := f.sched.Synchronize(runnables)
 			if err != nil {
-				level.Error(c.log).Log("msg", "failed to load components", "err", err)
+				level.Error(f.log).Log("msg", "failed to load components", "err", err)
 			}
 		}
 	}
@@ -187,37 +187,37 @@ func (c *Flow) run(ctx context.Context) {
 //
 // The controller will only start running components after Load is called once
 // without any configuration errors.
-func (c *Flow) LoadFile(f *File) error {
-	c.loadMut.Lock()
-	defer c.loadMut.Unlock()
+func (f *Flow) LoadFile(file *File) error {
+	f.loadMut.Lock()
+	defer f.loadMut.Unlock()
 
-	err := c.log.Update(f.Logging)
+	err := f.log.Update(file.Logging)
 	if err != nil {
 		return fmt.Errorf("error updating logger: %w", err)
 	}
 
-	diags := c.loader.Apply(nil, f.Components)
-	if !c.loadedOnce && diags.HasErrors() {
+	diags := f.loader.Apply(nil, file.Components)
+	if !f.loadedOnce && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.
 		return diags
 	}
-	c.loadedOnce = true
+	f.loadedOnce = true
 
 	select {
-	case c.loadFinished <- struct{}{}:
+	case f.loadFinished <- struct{}{}:
 	default:
 		// A refresh is already scheduled
 	}
 	return diags.ErrorOrNil()
 }
 
-func (c *Flow) ComponentInfo() []*ComponentInfo {
-	cns := c.loader.Components()
-	infos := make([]*ComponentInfo, len(cns))
-	refByBacktrack := make(map[string]*ComponentInfo, 0)
+func (f *Flow) ComponentInfo() []*ComponentInfoDetailed {
+	cns := f.loader.Components()
+	infos := make([]*ComponentInfoDetailed, len(cns))
+	refByBacktrack := make(map[string]*ComponentInfoDetailed, 0)
 	for i, com := range cns {
-		refs, _ := controller.ComponentReferences(com, c.loader.Graph())
+		refs, _ := controller.ComponentReferences(com, f.loader.Graph())
 		nn := newFromNode(com, refs)
 		infos[i] = nn
 		refByBacktrack[nn.ID] = nn
@@ -232,10 +232,10 @@ func (c *Flow) ComponentInfo() []*ComponentInfo {
 }
 
 // Close closes the controller and all running components.
-func (c *Flow) Close() error {
-	c.cancel()
-	<-c.exited
-	return c.sched.Close()
+func (f *Flow) Close() error {
+	f.cancel()
+	<-f.exited
+	return f.sched.Close()
 }
 
 type ComponentInfoDetailed struct {
@@ -249,16 +249,18 @@ type ComponentInfo struct {
 	Health       Health   `json:"health"`
 }
 
-func newFromNode(cn *controller.ComponentNode, refs []controller.Reference) *ComponentInfo {
+func newFromNode(cn *controller.ComponentNode, refs []controller.Reference) *ComponentInfoDetailed {
 	refsStr := make([]string, len(refs))
 	for i, r := range refs {
 		refsStr[i] = strings.Join(r.Target.ID(), ".")
 	}
-	return &ComponentInfo{
-		ID:           cn.NodeID(),
-		ReferencesTo: refsStr,
-		ReferencedBy: make([]string, 0),
-		Health:       *newFromComponentHealth(cn.CurrentHealth()),
+	return &ComponentInfoDetailed{
+		ComponentInfo: ComponentInfo{
+			ID:           cn.NodeID(),
+			ReferencesTo: refsStr,
+			ReferencedBy: make([]string, 0),
+			Health:       *newFromComponentHealth(cn.CurrentHealth()),
+		},
 	}
 }
 

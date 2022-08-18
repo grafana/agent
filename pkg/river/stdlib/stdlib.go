@@ -6,7 +6,7 @@ import (
 	"os"
 	"reflect"
 
-	"github.com/grafana/agent/pkg/river/internal/value"
+	"github.com/grafana/agent/pkg/river/value"
 )
 
 var goAny = reflect.TypeOf((*interface{})(nil)).Elem()

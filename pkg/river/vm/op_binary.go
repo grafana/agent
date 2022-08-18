@@ -5,8 +5,8 @@ import (
 	"math"
 	"reflect"
 
-	"github.com/grafana/agent/pkg/river/internal/value"
 	"github.com/grafana/agent/pkg/river/token"
+	"github.com/grafana/agent/pkg/river/value"
 )
 
 func evalBinop(lhs value.Value, op token.Token, rhs value.Value) (value.Value, error) {

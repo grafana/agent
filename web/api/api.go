@@ -34,7 +34,11 @@ func (f *FlowApi) SetupRoute() {
 func (f *FlowApi) ListComponentsHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {
 		infos := f.flow.ComponentInfo()
-		bb, err := json.Marshal(infos)
+		nonDetails := make([]*flow.ComponentInfo, len(infos))
+		for i, ci := range infos {
+			nonDetails[i] = &ci.ComponentInfo
+		}
+		bb, err := json.Marshal(nonDetails)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -48,14 +52,15 @@ func (f *FlowApi) ListComponentHandler() http.HandlerFunc {
 		vars := mux.Vars(r)
 		infos := f.flow.ComponentInfo()
 		requestedComponent := vars["id"]
+
 		for _, info := range infos {
 			if requestedComponent == info.ID {
-				bb, err := json.Marshal(info)
+				bb, err := f.flow.Json(info)
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
 				}
-				_, _ = w.Write(bb)
+				_, _ = w.Write(bb.Bytes())
 				return
 			}
 		}

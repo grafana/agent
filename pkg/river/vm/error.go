@@ -6,9 +6,9 @@ import (
 
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/diag"
-	"github.com/grafana/agent/pkg/river/internal/value"
 	"github.com/grafana/agent/pkg/river/printer"
 	"github.com/grafana/agent/pkg/river/token/builder"
+	"github.com/grafana/agent/pkg/river/value"
 )
 
 // makeDiagnostic tries to convert err into a diag.Diagnostic. err must be an

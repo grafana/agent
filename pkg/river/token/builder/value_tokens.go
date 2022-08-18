@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/grafana/agent/pkg/river/internal/value"
 	"github.com/grafana/agent/pkg/river/scanner"
 	"github.com/grafana/agent/pkg/river/token"
+	"github.com/grafana/agent/pkg/river/value"
 )
 
 // TODO(rfratto): check for optional values

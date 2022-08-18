@@ -1,8 +1,11 @@
 package flow
 
 import (
+	"encoding/json"
 	"os"
 	"testing"
+
+	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
@@ -47,6 +50,61 @@ func TestController_LoadFile_Evaluation(t *testing.T) {
 	in, out := getFields(t, ctrl.loader.Graph(), "testcomponents.passthrough.static")
 	require.Equal(t, "hello, world!", in.(testcomponents.PassthroughConfig).Input)
 	require.Equal(t, "hello, world!", out.(testcomponents.PassthroughExports).Output)
+}
+
+func TestBlockWalking(t *testing.T) {
+	config := `
+metrics.remote_write "d1" {
+    remote_write {
+        url = "https://example.com"
+        basic_auth {
+            username = 12345
+            password = "password"
+        }
+        queue_config {
+            capacity = 3000
+        }
+    }
+}
+
+metrics.scrape "scraper" {
+    targets = [{"__address__" = "localhost:12345"}]
+    forward_to = [metrics.mutate.mutator.receiver]
+    scrape_config {
+        job_name = "testJob"
+        http_client_config {
+            follow_redirects = true
+        }
+    }
+}
+
+metrics.mutate "mutator" {
+    metric_relabel_config {
+        source_labels = ["__name__"]
+        regex = "(.+)"
+        replacement = "${1}-cool"
+        target_label = "newlabel"
+    }
+    forward_to = [metrics.remote_write.d1.receiver]
+}
+`
+	f, _ := newFlow(Options{
+		Reg: prometheus.NewRegistry(),
+	})
+	file, err := ReadFile("test", []byte(config))
+	require.NoError(t, err)
+
+	err = f.LoadFile(file)
+	require.NoError(t, err)
+	fields := make([]*Field, 0)
+	comps := f.loader.Components()
+	for _, c := range comps {
+		fields = append(fields, ConvertBlock(c.ID(), c.Arguments(), c.Exports(), nil, nil, nil, ""))
+	}
+	require.Len(t, fields, 3)
+
+	_, err = json.Marshal(fields)
+	require.NoError(t, err)
 }
 
 func getFields(t *testing.T, g *dag.Graph, nodeID string) (component.Arguments, component.Exports) {

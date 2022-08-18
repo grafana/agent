@@ -1,56 +1,73 @@
 package flow
 
 import (
-	"fmt"
 	"reflect"
 	"strings"
-	"time"
 
-	"github.com/grafana/agent/component/common/relabel"
-
-	"github.com/grafana/regexp"
+	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/river/value"
 
 	"github.com/grafana/agent/pkg/flow/rivertypes"
 
-	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/river/rivertags"
 )
 
-type Walker struct {
+// Field should probably spit this into block and non block fields
+type Field struct {
+	ID           string      `json:"id,omitempty"`
+	Key          string      `json:"key,omitempty"`
+	Name         string      `json:"name,omitempty"`
+	Label        string      `json:"label,omitempty"`
+	Type         string      `json:"type,omitempty"`
+	References   []string    `json:"references,omitempty"`
+	ReferencedBy []string    `json:"reference_by,omitempty"`
+	Health       *Health     `json:"health,omitempty"`
+	Original     string      `json:"original,omitempty"`
+	Value        interface{} `json:"value,omitempty"`
 }
 
-func NewWalker() *Walker {
-	return &Walker{}
-}
+func ConvertBlock(
+	id []string,
+	args component.Arguments,
+	exports component.Exports,
+	references, referencedby []string,
+	health *Health,
+	original string,
+) *Field {
 
-func (w *Walker) ConvertBlock(c *controller.ComponentNode) *Field {
 	nf := &Field{}
+	nf.Health = health
+	nf.References = references
+	nf.ReferencedBy = referencedby
+	nf.Original = original
 	nf.Type = "block"
-	nf.Key = strings.Join(c.ID(), ".")
+	nf.ID = strings.Join(id, ".")
+	nf.Name = strings.Join(id[0:2], ".")
+	nf.Label = id[2]
 	fields := make([]*Field, 0)
-	args := w.ConvertArguments(c)
+	cArgs := ConvertArguments(args)
 	if args != nil {
-		fields = append(fields, args)
+		fields = append(fields, cArgs)
 	}
-	exports := w.ConvertExports(c)
+	cExports := ConvertExports(exports)
 	if exports != nil {
-		fields = append(fields)
+		fields = append(fields, cExports)
 	}
 	nf.Value = fields
 	return nf
 
 }
 
-func (w *Walker) ConvertArguments(c *controller.ComponentNode) *Field {
-	return convertField(c.Arguments(), &rivertags.Field{
+func ConvertArguments(args component.Arguments) *Field {
+	return convertField(args, &rivertags.Field{
 		Name:  []string{"arguments"},
 		Index: nil,
 		Flags: 0,
 	})
 }
 
-func (w *Walker) ConvertExports(c *controller.ComponentNode) *Field {
-	return convertField(c.Exports(), &rivertags.Field{
+func ConvertExports(exports component.Exports) *Field {
+	return convertField(exports, &rivertags.Field{
 		Name:  []string{"exports"},
 		Index: nil,
 		Flags: 0,
@@ -58,7 +75,7 @@ func (w *Walker) ConvertExports(c *controller.ComponentNode) *Field {
 }
 
 // ConvertToField converts to a generic field for json
-func (w *Walker) ConvertToField(in interface{}, name string) *Field {
+func ConvertToField(in interface{}, name string) *Field {
 	return convertField(in, &rivertags.Field{
 		Name:  []string{name},
 		Index: nil,
@@ -67,12 +84,12 @@ func (w *Walker) ConvertToField(in interface{}, name string) *Field {
 }
 
 func convertField(in interface{}, f *rivertags.Field) *Field {
-	nf := &Field{}
+	// Assume everything is an attr unless otherwise specified
+	nf := &Field{
+		Type: "attr",
+	}
 	if f != nil && len(f.Name) > 0 {
 		nf.Key = f.Name[len(f.Name)-1]
-	}
-	if nf.Key == "follow_redirects" {
-		println("")
 	}
 
 	nt := reflect.TypeOf(in)
@@ -83,31 +100,19 @@ func convertField(in interface{}, f *rivertags.Field) *Field {
 			nt = vIn.Type()
 		}
 		in = vIn.Interface()
-	}
-
-	if in == nil || (reflect.TypeOf(in).Kind() == reflect.Pointer && reflect.ValueOf(in).IsNil()) || reflect.ValueOf(in).IsZero() {
-		/*nf.Value = &Field{
+	} else {
+		nf.Value = &Field{
 			Type: "null",
 		}
-		return nf*/
+		return nf
+	}
+
+	// Dont write zero value records
+	if reflect.ValueOf(in).IsZero() {
 		return nil
 	}
+
 	switch in.(type) {
-	case int, int8, int16, int32, int64, uint8, uint16, uint32, uint64, float32, float64:
-		nf.Value = convertNumber(in)
-		return nf
-	case string:
-		nf.Value = &Field{
-			Type:  "string",
-			Value: in,
-		}
-		return nf
-	case bool:
-		nf.Value = &Field{
-			Type:  "string",
-			Value: in,
-		}
-		return nf
 	case rivertypes.Secret:
 		nf.Value = &Field{
 			Type:  "string",
@@ -124,138 +129,111 @@ func convertField(in interface{}, f *rivertags.Field) *Field {
 			nf.Value.(*Field).Value = maybeSecret.Value
 		}
 		return nf
-	case time.Duration:
-		nf.Value = &Field{
-			Type:  "string",
-			Value: in.(time.Duration).String(),
-		}
-		return nf
-	case regexp.Regexp:
-		nf.Value = &Field{
-			Type:  "string",
-			Value: in.(*regexp.Regexp).String(),
-		}
-		return nf
-	case relabel.Regexp:
-		nf.Value = &Field{
-			Type:  "string",
-			Value: in.(relabel.Regexp).String(),
-		}
-		return nf
+
 	}
 
-	switch nt.Kind() {
-	// This handles aliases for other types.
-	case reflect.String:
-		conv := reflect.ValueOf(in)
+	rt := value.RiverType(reflect.TypeOf(in))
+	rv := value.NewValue(reflect.ValueOf(in), rt)
+	switch rt {
+	case value.TypeNull:
+		nf.Value = &Field{
+			Type: "null",
+		}
+		return nf
+	case value.TypeNumber:
+		numField := &Field{
+			Type: "number",
+		}
+		switch value.MakeNumberKind(vIn.Kind()) {
+		case value.NumberKindInt:
+			numField.Value = rv.Int()
+		case value.NumberKindUint:
+			numField.Value = rv.Uint()
+		case value.NumberKindFloat:
+			numField.Value = rv.Float()
+		}
+		nf.Value = numField
+		return nf
+	case value.TypeString:
 		nf.Value = &Field{
 			Type:  "string",
-			Value: conv.String(),
+			Value: rv.Text(),
 		}
 		return nf
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		conv := reflect.ValueOf(in)
-		nf.Type = "number"
-		nf.Value = conv.Int()
-		return nf
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		conv := reflect.ValueOf(in)
-		nf.Type = "number"
-		nf.Value = conv.Uint()
-		return nf
-	case reflect.Float32, reflect.Float64:
-		conv := reflect.ValueOf(in)
-		nf.Type = "number"
-		nf.Value = conv.Float()
-		return nf
-	case reflect.Struct:
-		if f != nil && f.IsBlock() {
-			nf.Type = "block"
-		} else {
-			nf.Type = "object"
+	case value.TypeBool:
+		nf.Value = &Field{
+			Type:  "bool",
+			Value: rv.Bool(),
 		}
-
-		fields := make([]*Field, 0)
-		riverFields := rivertags.Get(reflect.TypeOf(in))
-		for _, rf := range riverFields {
-			fieldValue := vIn.FieldByIndex(rf.Index)
-			found := convertField(fieldValue.Interface(), &rf)
-			if found != nil {
-				fields = append(fields, found)
-			}
-		}
-		nf.Value = fields
 		return nf
-	case reflect.Array, reflect.Slice:
+	case value.TypeArray:
 		nf.Type = "array"
 		fields := make([]*Field, 0)
 		for i := 0; i < vIn.Len(); i++ {
 			arrEle := vIn.Index(i).Interface()
-			found := convertField(arrEle, nil)
+			found := convertField(arrEle, f)
 			if found != nil {
 				fields = append(fields, found)
 			}
 		}
 		nf.Value = fields
 		return nf
-	case reflect.Map:
-		nf.Type = "map"
-		fields := make([]*Field, 0)
-		iter := vIn.MapRange()
-		for iter.Next() {
-			mf := &Field{}
-			mf.Key = iter.Key().String()
-			mf.Value = convertField(iter.Value().Interface(), nil)
-			if mf.Value != nil {
-				fields = append(fields, mf)
+	case value.TypeObject:
+		if vIn.Kind() == reflect.Struct {
+			if f != nil && f.IsBlock() {
+				nf.Type = "block"
+				nf.ID = strings.Join(f.Name, ".")
+				// remote_write "t1"
+				if len(f.Name) == 2 {
+					nf.Name = f.Name[0]
+					if f.Name[1] != "" {
+						nf.Label = f.Name[1]
+					}
+				}
+			} else {
+				nf.Type = "object"
 			}
+
+			fields := make([]*Field, 0)
+			riverFields := rivertags.Get(reflect.TypeOf(in))
+			for _, rf := range riverFields {
+				fieldValue := vIn.FieldByIndex(rf.Index)
+				found := convertField(fieldValue.Interface(), &rf)
+				if found != nil {
+					fields = append(fields, found)
+				}
+			}
+			nf.Value = fields
+			return nf
+		} else if vIn.Kind() == reflect.Map {
+			nf.Type = "map"
+			fields := make([]*Field, 0)
+			iter := vIn.MapRange()
+			for iter.Next() {
+				mf := &Field{}
+				mf.Key = iter.Key().String()
+				mf.Value = convertField(iter.Value().Interface(), nil)
+				if mf.Value != nil {
+					fields = append(fields, mf)
+				}
+			}
+			nf.Value = fields
+			return nf
+		} else {
+			if f.IsBlock() && f.IsOptional() {
+				return nil
+			}
+			panic("wut?")
 		}
-		nf.Value = fields
+	case value.TypeFunction:
+		panic("func not handled")
+	case value.TypeCapsule:
+		nf.Type = "attr"
+		nf.Value = &Field{
+			Type:  "capsule",
+			Value: rv.Describe(),
+		}
 		return nf
-	default:
-		panic(fmt.Sprintf("unknown type %T for kind %d", in, vIn.Kind()))
 	}
-
-	panic("could not convert object for json_walking")
-}
-
-func convertNumber(in interface{}) *Field {
-
-	f := &Field{}
-	f.Type = "number"
-	switch in.(type) {
-	case int:
-		f.Value = in
-	case int8:
-		f.Value = in
-	case int16:
-		f.Value = in
-	case int32:
-		f.Value = in
-	case int64:
-		f.Value = in
-	case uint:
-		f.Value = in
-	case uint8:
-		f.Value = in
-	case uint16:
-		f.Value = in
-	case uint32:
-		f.Value = in
-	case uint64:
-		f.Value = in
-	case float32:
-		f.Value = in
-	case float64:
-		f.Value = in
-	default:
-		panic("invalid input")
-	}
-	return f
-}
-
-type Field struct {
-	Key   string      `json:"key,omitempty"`
-	Type  string      `json:"type,omitempty"`
-	Value interface{} `json:"value,omitempty"`
+	return nil
 }
