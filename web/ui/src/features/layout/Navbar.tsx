@@ -12,7 +12,7 @@ function Navbar() {
   return (
     <nav className={styles.navbar}>
       <header>
-        <NavLink to="/">
+        <NavLink to="/components">
           <img src={logo} alt="Grafana Agent Logo" title="Grafana Agent" />
         </NavLink>
       </header>
