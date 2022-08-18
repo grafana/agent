@@ -77,7 +77,7 @@ func ConvertComponentToJSON(
 }
 
 func convertArguments(args interface{}) *Field {
-	return convertField(args, &rivertags.Field{
+	return ConvertToField(args, &rivertags.Field{
 		Name:  []string{"arguments"},
 		Index: nil,
 		Flags: 0,
@@ -85,23 +85,22 @@ func convertArguments(args interface{}) *Field {
 }
 
 func convertExports(exports interface{}) *Field {
-	return convertField(exports, &rivertags.Field{
+	return ConvertToField(exports, &rivertags.Field{
 		Name:  []string{"exports"},
 		Index: nil,
 		Flags: 0,
 	})
 }
 
-// ConvertToField converts to a generic field for json
-func ConvertToField(in interface{}, name string) *Field {
-	return convertField(in, &rivertags.Field{
-		Name:  []string{name},
-		Index: nil,
-		Flags: 0,
+// ConvertToFieldWithName allows conversion of an top level object for testing.
+func ConvertToFieldWithName(in interface{}, name string) *Field {
+	return ConvertToField(in, &rivertags.Field{
+		Name: []string{name},
 	})
 }
 
-func convertField(in interface{}, f *rivertags.Field) *Field {
+// ConvertToField converts a river object to a JSON field representation.
+func ConvertToField(in interface{}, f *rivertags.Field) *Field {
 	// Assume everything is an attr unless otherwise specified
 	nf := &Field{
 		Type: "attr",
@@ -112,6 +111,7 @@ func convertField(in interface{}, f *rivertags.Field) *Field {
 
 	nt := reflect.TypeOf(in)
 	vIn := reflect.ValueOf(in)
+	// Find the actual object.
 	if in != nil {
 		for nt.Kind() == reflect.Pointer && !vIn.IsZero() {
 			vIn = vIn.Elem()
@@ -179,7 +179,7 @@ func convertField(in interface{}, f *rivertags.Field) *Field {
 		fields := make([]*Field, 0)
 		for i := 0; i < vIn.Len(); i++ {
 			arrEle := vIn.Index(i).Interface()
-			found := convertField(arrEle, f)
+			found := ConvertToField(arrEle, f)
 			if found != nil {
 				fields = append(fields, found)
 			}
@@ -206,7 +206,7 @@ func convertField(in interface{}, f *rivertags.Field) *Field {
 			riverFields := rivertags.Get(reflect.TypeOf(in))
 			for _, rf := range riverFields {
 				fieldValue := vIn.FieldByIndex(rf.Index)
-				found := convertField(fieldValue.Interface(), &rf)
+				found := ConvertToField(fieldValue.Interface(), &rf)
 				if found != nil {
 					fields = append(fields, found)
 				}
@@ -220,7 +220,7 @@ func convertField(in interface{}, f *rivertags.Field) *Field {
 			for iter.Next() {
 				mf := &Field{}
 				mf.Key = iter.Key().String()
-				mf.Value = convertField(iter.Value().Interface(), nil)
+				mf.Value = ConvertToField(iter.Value().Interface(), nil)
 				if mf.Value != nil {
 					fields = append(fields, mf)
 				}
@@ -231,7 +231,6 @@ func convertField(in interface{}, f *rivertags.Field) *Field {
 			if f.IsBlock() && f.IsOptional() {
 				return nil
 			}
-			panic("wut?")
 		}
 	case value.TypeFunction:
 		panic("func not handled")

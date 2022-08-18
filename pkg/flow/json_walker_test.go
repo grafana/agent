@@ -32,7 +32,7 @@ func TestSimpleWalking(t *testing.T) {
 		Bool:   true,
 		Float:  3.14,
 	}
-	fields := river.ConvertToField(test, "simple")
+	fields := river.ConvertToFieldWithName(test, "simple")
 	require.True(t, fields.Key == "simple")
 	sub := fields.Value.([]*river.Field)
 	require.Len(t, sub, 5)
@@ -60,7 +60,7 @@ func TestArrayWalking(t *testing.T) {
 	test := simple{
 		Array: []int{1, 2, 3},
 	}
-	fields := river.ConvertToField(test, "simple")
+	fields := river.ConvertToFieldWithName(test, "simple")
 	sub := fields.Value.([]*river.Field)
 	require.Len(t, sub, 1)
 
@@ -82,7 +82,7 @@ func TestMapWalking(t *testing.T) {
 			"p2": "sam",
 		},
 	}
-	fields := river.ConvertToField(test, "simple")
+	fields := river.ConvertToFieldWithName(test, "simple")
 	sub := fields.Value.([]*river.Field)
 	require.Len(t, sub, 1)
 
@@ -102,7 +102,7 @@ func TestSecretsWalking(t *testing.T) {
 		AlwaysSecret: rivertypes.OptionalSecret{IsSecret: true, Value: "password"},
 		NotSecret:    rivertypes.OptionalSecret{IsSecret: false, Value: "password"},
 	}
-	fields := river.ConvertToField(test, "simple")
+	fields := river.ConvertToFieldWithName(test, "simple")
 	sub := fields.Value.([]*river.Field)
 	require.Len(t, sub, 3)
 
