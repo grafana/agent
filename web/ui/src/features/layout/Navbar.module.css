@@ -14,6 +14,10 @@
   margin-top: 1px;
 }
 
+.navbar header img:hover {
+  cursor: pointer;
+}
+
 .navbar ul {
   display: flex;
   flex-direction: row;
