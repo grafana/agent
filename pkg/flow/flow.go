@@ -187,16 +187,16 @@ func (c *Flow) run(ctx context.Context) {
 //
 // The controller will only start running components after Load is called once
 // without any configuration errors.
-func (c *Flow) LoadFile(f *File) error {
+func (c *Flow) LoadFile(file *File) error {
 	c.loadMut.Lock()
 	defer c.loadMut.Unlock()
 
-	err := c.log.Update(f.Logging)
+	err := c.log.Update(file.Logging)
 	if err != nil {
 		return fmt.Errorf("error updating logger: %w", err)
 	}
 
-	diags := c.loader.Apply(nil, f.Components)
+	diags := c.loader.Apply(nil, file.Components)
 	if !c.loadedOnce && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.
@@ -212,7 +212,8 @@ func (c *Flow) LoadFile(f *File) error {
 	return diags.ErrorOrNil()
 }
 
-func (c *Flow) ComponentInfo() []*ComponentInfo {
+// ComponentInfos returns the component infos.
+func (c *Flow) ComponentInfos() []*ComponentInfo {
 	cns := c.loader.Components()
 	infos := make([]*ComponentInfo, len(cns))
 	refByBacktrack := make(map[string]*ComponentInfo, 0)
@@ -238,10 +239,7 @@ func (c *Flow) Close() error {
 	return c.sched.Close()
 }
 
-type ComponentInfoDetailed struct {
-	ComponentInfo
-}
-
+// ComponentInfo contains information on a single component.
 type ComponentInfo struct {
 	ID           string   `json:"id"`
 	ReferencesTo []string `json:"references_to"`
@@ -262,6 +260,7 @@ func newFromNode(cn *controller.ComponentNode, refs []controller.Reference) *Com
 	}
 }
 
+// Health contains information on the health of a component.
 type Health struct {
 	Status     string    `json:"status"`
 	Message    string    `json:"message"`

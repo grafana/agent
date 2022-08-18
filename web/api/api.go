@@ -5,35 +5,34 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
+	"path"
 
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/flow"
 )
 
-type FlowApi struct {
-	flow   *flow.Flow
-	router *mux.Router
+// FlowAPI wraps several calls for the component health api.
+type FlowAPI struct {
+	flow *flow.Flow
 }
 
-func NewFlowApi(flow *flow.Flow, r *mux.Router) *FlowApi {
-	fa := &FlowApi{
-		flow:   flow,
-		router: r,
-	}
-	fa.SetupRoute()
-	return fa
+// NewFlowAPI instantiates a new flow api.
+func NewFlowAPI(flow *flow.Flow, r *mux.Router) *FlowAPI {
+	return &FlowAPI{flow: flow}
 }
 
-func (f *FlowApi) SetupRoute() {
-	f.router.HandleFunc("/api/v0/web/components", f.ListComponentsHandler())
-	f.router.HandleFunc("/api/v0/web/components/{id}", f.ListComponentHandler())
+// RegisterRoutes registers all the routes.
+func (f *FlowAPI) RegisterRoutes(urlPrefix string, r *mux.Router) {
+	r.HandleFunc(path.Join(urlPrefix, "/api/v0/web/components"), f.listComponentsHandler())
+	r.HandleFunc(path.Join(urlPrefix, "/api/v0/web/components/{id}"), f.listComponentHandler())
 }
 
-func (f *FlowApi) ListComponentsHandler() http.HandlerFunc {
+func (f *FlowAPI) listComponentsHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {
-		infos := f.flow.ComponentInfo()
+		infos := f.flow.ComponentInfos()
 		bb, err := json.Marshal(infos)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -43,25 +42,36 @@ func (f *FlowApi) ListComponentsHandler() http.HandlerFunc {
 	}
 }
 
-func (f *FlowApi) ListComponentHandler() http.HandlerFunc {
+func (f *FlowAPI) listComponentHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		infos := f.flow.ComponentInfo()
+		infos := f.flow.ComponentInfos()
 		requestedComponent := vars["id"]
+
 		for _, info := range infos {
 			if requestedComponent == info.ID {
-				bb, err := json.Marshal(info)
+				bb, err := f.JSON(info)
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
 				}
-				_, _ = w.Write(bb)
+				_, _ = w.Write(bb.Bytes())
 				return
 			}
 		}
 
 		http.NotFound(w, r)
 	}
+}
+
+// JSON returns the json representation of ComponentInfoDetailed.
+func (f *FlowAPI) JSON(c *flow.ComponentInfo) (bytes.Buffer, error) {
+	var buf bytes.Buffer
+	_, err := f.flow.ComponentJSON(&buf, c)
+	if err != nil {
+		return bytes.Buffer{}, err
+	}
+	return buf, nil
 }
 
 // Unless otherwise specified, API methods should be JSON.

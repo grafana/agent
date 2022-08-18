@@ -20,6 +20,7 @@ import (
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/web/api"
+	"github.com/grafana/agent/web/ui"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
@@ -47,12 +48,14 @@ func runFlow() error {
 		configFile     string
 		storagePath    = "data-agent/"
 		ready          = atomic.NewBool(true)
+		uiPrefix       = "/"
 	)
 
 	fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 	fs.StringVar(&httpListenAddr, "server.http-listen-addr", httpListenAddr, "address to listen for http traffic on")
 	fs.StringVar(&configFile, "config.file", configFile, "path to config file to load")
 	fs.StringVar(&storagePath, "storage.path", storagePath, "Base directory where Flow components can store data")
+	fs.StringVar(&uiPrefix, "server.http.ui-path-prefix", uiPrefix, "Prefix to serve the HTTP UI at")
 
 	if err := fs.Parse(os.Args[1:]); err != nil {
 		return fmt.Errorf("error parsing flags: %w", err)
@@ -140,8 +143,12 @@ func runFlow() error {
 			fmt.Fprintln(w, "config reloaded")
 		})
 
-		fa := api.NewFlowApi(f, r)
-		fa.SetupRoute()
+		fa := api.NewFlowAPI(f, r)
+		fa.RegisterRoutes(uiPrefix, r)
+
+		// NOTE(rfratto): keep this at the bottom of all other routes, otherwise it
+		// will take precedence over anything else mapped in uiPrefix.
+		ui.RegisterRoutes(uiPrefix, r)
 
 		srv := &http.Server{Handler: r}
 

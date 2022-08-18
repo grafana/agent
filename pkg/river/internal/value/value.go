@@ -40,6 +40,14 @@ type Value struct {
 	ty Type
 }
 
+// NewValue instantiates a new value.
+func NewValue(rv reflect.Value, ty Type) Value {
+	return Value{
+		rv: rv,
+		ty: ty,
+	}
+}
+
 // Null is the null value.
 var Null = Value{}
 
@@ -151,7 +159,7 @@ func (v Value) Int() int64 {
 	if v.ty != TypeNumber {
 		panic("river/value: Int called on non-number type")
 	}
-	switch makeNumberKind(v.rv.Kind()) {
+	switch MakeNumberKind(v.rv.Kind()) {
 	case NumberKindInt:
 		return v.rv.Int()
 	case NumberKindUint:
@@ -167,7 +175,7 @@ func (v Value) Uint() uint64 {
 	if v.ty != TypeNumber {
 		panic("river/value: Uint called on non-number type")
 	}
-	switch makeNumberKind(v.rv.Kind()) {
+	switch MakeNumberKind(v.rv.Kind()) {
 	case NumberKindInt:
 		return uint64(v.rv.Int())
 	case NumberKindUint:
@@ -183,7 +191,7 @@ func (v Value) Float() float64 {
 	if v.ty != TypeNumber {
 		panic("river/value: Float called on non-number type")
 	}
-	switch makeNumberKind(v.rv.Kind()) {
+	switch MakeNumberKind(v.rv.Kind()) {
 	case NumberKindInt:
 		return float64(v.rv.Int())
 	case NumberKindUint:

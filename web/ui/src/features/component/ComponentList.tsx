@@ -1,21 +1,11 @@
 import { FC } from 'react';
 import { NavLink } from 'react-router-dom';
+import { HealthLabel } from './HealthLabel';
+import { ComponentInfo } from './types';
 import styles from './ComponentList.module.css';
 
-export enum ComponentHealth {
-  HEALTHY = 'healthy',
-  UNHEALTHY = 'unhealthy',
-  UNKNOWN = 'unknown',
-  EXITED = 'exited',
-}
-
-export interface Component {
-  id: string;
-  health: ComponentHealth;
-}
-
 interface ComponentListProps {
-  components: Component[];
+  components: ComponentInfo[];
 }
 
 const ComponentList: FC<ComponentListProps> = ({ components }) => {
@@ -28,18 +18,10 @@ const ComponentList: FC<ComponentListProps> = ({ components }) => {
         </ul>
       </header>
       {components.map((component) => {
-        const healthMappings = {
-          [ComponentHealth.HEALTHY]: `${styles.health} ${styles['state-ok']}`,
-          [ComponentHealth.UNHEALTHY]: `${styles.health} ${styles['state-error']}`,
-          [ComponentHealth.UNKNOWN]: `${styles.health} ${styles['state-warn']}`,
-          [ComponentHealth.EXITED]: `${styles.health} ${styles['state-error']}`,
-        };
-        const healthClass = healthMappings[component.health];
-
         return (
-          <ul>
+          <ul key={component.id}>
             <li>
-              <span className={healthClass}>{component.health}</span>
+              <HealthLabel health={component.health.type} />
             </li>
             <li className={styles.text}>{component.id}</li>
             <li>
