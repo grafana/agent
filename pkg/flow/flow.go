@@ -212,11 +212,11 @@ func (f *Flow) LoadFile(file *File) error {
 	return diags.ErrorOrNil()
 }
 
-// ComponentInfo returns the detailed component info.
-func (f *Flow) ComponentInfo() []*ComponentInfoDetailed {
+// ComponentInfos returns the component infos.
+func (f *Flow) ComponentInfos() []*ComponentInfo {
 	cns := f.loader.Components()
-	infos := make([]*ComponentInfoDetailed, len(cns))
-	refByBacktrack := make(map[string]*ComponentInfoDetailed, 0)
+	infos := make([]*ComponentInfo, len(cns))
+	refByBacktrack := make(map[string]*ComponentInfo, 0)
 	for i, com := range cns {
 		refs, _ := controller.ComponentReferences(com, f.loader.Graph())
 		nn := newFromNode(com, refs)
@@ -239,12 +239,6 @@ func (f *Flow) Close() error {
 	return f.sched.Close()
 }
 
-// ComponentInfoDetailed contains all the information for a component.
-// TODO can probably get rid of.
-type ComponentInfoDetailed struct {
-	ComponentInfo
-}
-
 // ComponentInfo contains information on a single component.
 type ComponentInfo struct {
 	ID           string   `json:"id"`
@@ -253,18 +247,16 @@ type ComponentInfo struct {
 	Health       Health   `json:"health"`
 }
 
-func newFromNode(cn *controller.ComponentNode, refs []controller.Reference) *ComponentInfoDetailed {
+func newFromNode(cn *controller.ComponentNode, refs []controller.Reference) *ComponentInfo {
 	refsStr := make([]string, len(refs))
 	for i, r := range refs {
 		refsStr[i] = strings.Join(r.Target.ID(), ".")
 	}
-	return &ComponentInfoDetailed{
-		ComponentInfo: ComponentInfo{
-			ID:           cn.NodeID(),
-			ReferencesTo: refsStr,
-			ReferencedBy: make([]string, 0),
-			Health:       *newFromComponentHealth(cn.CurrentHealth()),
-		},
+	return &ComponentInfo{
+		ID:           cn.NodeID(),
+		ReferencesTo: refsStr,
+		ReferencedBy: make([]string, 0),
+		Health:       *newFromComponentHealth(cn.CurrentHealth()),
 	}
 }
 

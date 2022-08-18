@@ -50,16 +50,6 @@ func (f *Flow) ConfigHandler() http.HandlerFunc {
 	}
 }
 
-// JSON returns the json representation of ComponentInfoDetailed.
-func (f *Flow) JSON(c *ComponentInfoDetailed) (bytes.Buffer, error) {
-	var buf bytes.Buffer
-	_, err := f.configjson(&buf, c)
-	if err != nil {
-		return bytes.Buffer{}, err
-	}
-	return buf, nil
-}
-
 // ScopeHandler returns an http.HandlerFunc which will render the scope used
 // for variable references throughout River expressions.
 func (f *Flow) ScopeHandler() http.HandlerFunc {
@@ -103,8 +93,8 @@ func (f *Flow) configBytes(w io.Writer, debugInfo bool) (n int64, err error) {
 	return file.WriteTo(w)
 }
 
-// configjson returns the json representation of the flow config.
-func (f *Flow) configjson(w io.Writer, ci *ComponentInfoDetailed) (int, error) {
+// ComponentJSON returns the json representation of the flow component.
+func (f *Flow) ComponentJSON(w io.Writer, ci *ComponentInfo) (int, error) {
 	var foundComponent *controller.ComponentNode
 	for _, c := range f.loader.Components() {
 		if c.ID().String() == ci.ID {

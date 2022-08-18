@@ -5,6 +5,7 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 
@@ -36,12 +37,8 @@ func (f *FlowAPI) SetupRoute() {
 
 func (f *FlowAPI) listComponentsHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {
-		infos := f.flow.ComponentInfo()
-		nonDetails := make([]*flow.ComponentInfo, len(infos))
-		for i, ci := range infos {
-			nonDetails[i] = &ci.ComponentInfo
-		}
-		bb, err := json.Marshal(nonDetails)
+		infos := f.flow.ComponentInfos()
+		bb, err := json.Marshal(infos)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -53,12 +50,12 @@ func (f *FlowAPI) listComponentsHandler() http.HandlerFunc {
 func (f *FlowAPI) listComponentHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		infos := f.flow.ComponentInfo()
+		infos := f.flow.ComponentInfos()
 		requestedComponent := vars["id"]
 
 		for _, info := range infos {
 			if requestedComponent == info.ID {
-				bb, err := f.flow.JSON(info)
+				bb, err := f.JSON(info)
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
@@ -70,6 +67,16 @@ func (f *FlowAPI) listComponentHandler() http.HandlerFunc {
 
 		http.NotFound(w, r)
 	}
+}
+
+// JSON returns the json representation of ComponentInfoDetailed.
+func (f *FlowAPI) JSON(c *flow.ComponentInfo) (bytes.Buffer, error) {
+	var buf bytes.Buffer
+	_, err := f.flow.ComponentJSON(&buf, c)
+	if err != nil {
+		return bytes.Buffer{}, err
+	}
+	return buf, nil
 }
 
 // Unless otherwise specified, API methods should be JSON.
