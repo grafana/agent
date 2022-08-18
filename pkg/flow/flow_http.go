@@ -7,6 +7,8 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/grafana/agent/pkg/river"
+
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
@@ -105,13 +107,17 @@ func (c *Flow) ComponentJSON(w io.Writer, ci *ComponentInfo) (int, error) {
 	if foundComponent == nil {
 		return 0, fmt.Errorf("unable to find component named %s", ci.ID)
 	}
-	field := ConvertBlock(
+	field := river.ConvertBlock(
 		foundComponent.ID(),
 		foundComponent.Arguments(),
 		foundComponent.Arguments(),
 		ci.ReferencesTo,
 		ci.ReferencedBy,
-		&ci.Health,
+		&river.Health{
+			Status:     ci.Health.Status,
+			Message:    ci.Health.Message,
+			UpdateTime: ci.Health.UpdateTime,
+		},
 		"")
 	bb, err := json.Marshal(field)
 	if err != nil {

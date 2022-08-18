@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/grafana/agent/pkg/river/value"
+	"github.com/grafana/agent/pkg/river/internal/value"
 	"github.com/stretchr/testify/require"
 )
 

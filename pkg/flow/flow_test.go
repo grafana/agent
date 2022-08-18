@@ -5,6 +5,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/grafana/agent/pkg/river"
+
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/grafana/agent/component"
@@ -96,10 +98,10 @@ metrics.mutate "mutator" {
 
 	err = f.LoadFile(file)
 	require.NoError(t, err)
-	fields := make([]*Field, 0)
+	fields := make([]*river.Field, 0)
 	comps := f.loader.Components()
 	for _, c := range comps {
-		fields = append(fields, ConvertBlock(c.ID(), c.Arguments(), c.Exports(), nil, nil, nil, ""))
+		fields = append(fields, river.ConvertBlock(c.ID(), c.Arguments(), c.Exports(), nil, nil, nil, ""))
 	}
 	require.Len(t, fields, 3)
 

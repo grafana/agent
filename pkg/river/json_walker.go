@@ -1,14 +1,14 @@
-package flow
+package river
 
 import (
 	"reflect"
 	"strings"
+	"time"
 
-	"github.com/grafana/agent/pkg/river/value"
+	"github.com/grafana/agent/pkg/river/token/builder"
 
-	"github.com/grafana/agent/pkg/flow/rivertypes"
-
-	"github.com/grafana/agent/pkg/river/rivertags"
+	"github.com/grafana/agent/pkg/river/internal/rivertags"
+	"github.com/grafana/agent/pkg/river/internal/value"
 )
 
 // Field should probably spit this into block and non block fields
@@ -23,6 +23,13 @@ type Field struct {
 	Health       *Health     `json:"health,omitempty"`
 	Original     string      `json:"original,omitempty"`
 	Value        interface{} `json:"value,omitempty"`
+}
+
+// Health represents the health of a component.
+type Health struct {
+	Status     string    `json:"status"`
+	Message    string    `json:"message"`
+	UpdateTime time.Time `json:"health_type"`
 }
 
 // ConvertBlock converts a set of component information into a generic Field json representation.
@@ -78,8 +85,8 @@ func convertExports(exports interface{}) *Field {
 	})
 }
 
-// convertToField converts to a generic field for json
-func convertToField(in interface{}, name string) *Field {
+// ConvertToField converts to a generic field for json
+func ConvertToField(in interface{}, name string) *Field {
 	return convertField(in, &rivertags.Field{
 		Name:  []string{name},
 		Index: nil,
@@ -116,21 +123,12 @@ func convertField(in interface{}, f *rivertags.Field) *Field {
 		return nil
 	}
 
-	switch in.(type) {
-	case rivertypes.Secret:
+	// Handle items that explicitly use tokenizer, these are always considered capsule values.
+	if tkn, ok := in.(builder.Tokenizer); ok {
+		tokens := tkn.RiverTokenize()
 		nf.Value = &Field{
-			Type:  "string",
-			Value: "(secret)",
-		}
-		return nf
-	case rivertypes.OptionalSecret:
-		nf.Value = &Field{
-			Type:  "string",
-			Value: "(secret)",
-		}
-		maybeSecret := in.(rivertypes.OptionalSecret)
-		if !maybeSecret.IsSecret {
-			nf.Value.(*Field).Value = maybeSecret.Value
+			Type:  "capsule",
+			Value: tokens[0].Lit,
 		}
 		return nf
 	}
