@@ -11,14 +11,16 @@ import (
 	"github.com/grafana/agent/pkg/river/internal/value"
 )
 
+// ComponentField represents a component in river.
 type ComponentField struct {
-	Field        `json:",omitempty""`
+	Field        `json:" ,omitempty"`
 	References   []string `json:"references,omitempty"`
 	ReferencedBy []string `json:"reference_by,omitempty"`
 	Health       *Health  `json:"health,omitempty"`
 	Original     string   `json:"original,omitempty"`
 }
 
+// Field represents a value in river.
 type Field struct {
 	ID    string      `json:"id,omitempty"`
 	Key   string      `json:"key,omitempty"`
@@ -44,6 +46,7 @@ func ConvertComponentToJSON(
 	health *Health,
 	original string,
 ) *ComponentField {
+
 	nf := &ComponentField{
 		Field: Field{
 			ID:    strings.Join(id, "."),
