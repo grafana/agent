@@ -77,12 +77,12 @@ func ConvertComponentToJSON(
 }
 
 func convertArguments(args interface{}) []*Field {
-	f := convertStruct(args, reflect.ValueOf(args), nil)
+	f := convertStruct(args, nil)
 	return f.Value.([]*Field)
 }
 
 func convertExports(exports interface{}) []*Field {
-	f := convertStruct(exports, reflect.ValueOf(exports), nil)
+	f := convertStruct(exports, nil)
 	return f.Value.([]*Field)
 }
 
@@ -163,7 +163,19 @@ func ConvertToField(in interface{}, f *rivertags.Field) *Field {
 		}
 		return nf
 	case value.TypeArray:
-		nf.Type = "array"
+		// If this is an array and a block we need to treat those differently. More like an array of blocks
+		if f.IsBlock() {
+			fields := make([]*Field, 0)
+			for i := 0; i < vIn.Len(); i++ {
+				arrEle := vIn.Index(i).Interface()
+				found := convertStruct(arrEle, f)
+				if found != nil {
+					fields = append(fields, found)
+				}
+			}
+			nf.Value = fields
+			return nf
+		}
 		fields := make([]*Field, 0)
 		for i := 0; i < vIn.Len(); i++ {
 			arrEle := vIn.Index(i).Interface()
@@ -175,7 +187,7 @@ func ConvertToField(in interface{}, f *rivertags.Field) *Field {
 		nf.Value = fields
 		return nf
 	case value.TypeObject:
-		return convertStruct(in, vIn, f)
+		return convertStruct(in, f)
 	case value.TypeFunction:
 		panic("func not handled")
 	case value.TypeCapsule:
@@ -189,8 +201,8 @@ func ConvertToField(in interface{}, f *rivertags.Field) *Field {
 	return nil
 }
 
-func convertStruct(in interface{}, vIn reflect.Value, f *rivertags.Field) *Field {
-	in, _, vIn = getActualStruct(in)
+func convertStruct(in interface{}, f *rivertags.Field) *Field {
+	in, _, vIn := getActualStruct(in)
 	nf := &Field{
 		Type: "attr",
 	}
@@ -209,7 +221,7 @@ func convertStruct(in interface{}, vIn reflect.Value, f *rivertags.Field) *Field
 				}
 			}
 		} else {
-			nf.Type = "object"
+			nf.Type = "attr"
 		}
 
 		fields := make([]*Field, 0)
@@ -224,7 +236,12 @@ func convertStruct(in interface{}, vIn reflect.Value, f *rivertags.Field) *Field
 		nf.Value = fields
 		return nf
 	} else if vIn.Kind() == reflect.Map {
-		nf.Type = "map"
+		if f.IsAttr() {
+			nf.Type = "attr"
+		} else {
+			nf.Type = "array"
+		}
+
 		fields := make([]*Field, 0)
 		iter := vIn.MapRange()
 		for iter.Next() {
