@@ -16,13 +16,6 @@ div.page main {
   box-sizing: border-box;
   border: 1px solid #e4e5e6;
   border-radius: 3px;
-
-  /*
-  max-width: 1440px;
-  margin-left: auto;
-  margin-right: auto;
-  width: 100%;
-  */
 }
 
 .header {

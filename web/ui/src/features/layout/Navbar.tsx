@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import styles from './Navbar.module.css';
-import logo from '../images/logo.svg';
+import logo from '../../images/logo.svg';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCaretDown } from '@fortawesome/free-solid-svg-icons';
 import { useState } from 'react';
