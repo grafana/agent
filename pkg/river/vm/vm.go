@@ -6,11 +6,10 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/grafana/agent/pkg/river/internal/rivertags"
-	"github.com/grafana/agent/pkg/river/internal/stdlib"
-
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/diag"
+	"github.com/grafana/agent/pkg/river/internal/rivertags"
+	"github.com/grafana/agent/pkg/river/internal/stdlib"
 	"github.com/grafana/agent/pkg/river/internal/value"
 )
 
