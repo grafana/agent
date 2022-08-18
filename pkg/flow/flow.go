@@ -212,6 +212,7 @@ func (f *Flow) LoadFile(file *File) error {
 	return diags.ErrorOrNil()
 }
 
+// ComponentInfo returns the detailed component info.
 func (f *Flow) ComponentInfo() []*ComponentInfoDetailed {
 	cns := f.loader.Components()
 	infos := make([]*ComponentInfoDetailed, len(cns))
@@ -238,10 +239,13 @@ func (f *Flow) Close() error {
 	return f.sched.Close()
 }
 
+// ComponentInfoDetailed contains all the information for a component.
+// TODO can probably get rid of.
 type ComponentInfoDetailed struct {
 	ComponentInfo
 }
 
+// ComponentInfo contains information on a single component.
 type ComponentInfo struct {
 	ID           string   `json:"id"`
 	ReferencesTo []string `json:"references_to"`
@@ -264,6 +268,7 @@ func newFromNode(cn *controller.ComponentNode, refs []controller.Reference) *Com
 	}
 }
 
+// Health contains information on the health of a component.
 type Health struct {
 	Status     string    `json:"status"`
 	Message    string    `json:"message"`

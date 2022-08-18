@@ -26,6 +26,7 @@ type Field struct {
 	Value        interface{} `json:"value,omitempty"`
 }
 
+// ConvertBlock converts a set of component information into a generic Field json representation.
 func ConvertBlock(
 	id []string,
 	args component.Arguments,
@@ -45,20 +46,19 @@ func ConvertBlock(
 	nf.Name = strings.Join(id[0:2], ".")
 	nf.Label = id[2]
 	fields := make([]*Field, 0)
-	cArgs := ConvertArguments(args)
+	cArgs := convertArguments(args)
 	if args != nil {
 		fields = append(fields, cArgs)
 	}
-	cExports := ConvertExports(exports)
+	cExports := convertExports(exports)
 	if exports != nil {
 		fields = append(fields, cExports)
 	}
 	nf.Value = fields
 	return nf
-
 }
 
-func ConvertArguments(args component.Arguments) *Field {
+func convertArguments(args component.Arguments) *Field {
 	return convertField(args, &rivertags.Field{
 		Name:  []string{"arguments"},
 		Index: nil,
@@ -66,7 +66,7 @@ func ConvertArguments(args component.Arguments) *Field {
 	})
 }
 
-func ConvertExports(exports component.Exports) *Field {
+func convertExports(exports component.Exports) *Field {
 	return convertField(exports, &rivertags.Field{
 		Name:  []string{"exports"},
 		Index: nil,
@@ -74,8 +74,8 @@ func ConvertExports(exports component.Exports) *Field {
 	})
 }
 
-// ConvertToField converts to a generic field for json
-func ConvertToField(in interface{}, name string) *Field {
+// convertToField converts to a generic field for json
+func convertToField(in interface{}, name string) *Field {
 	return convertField(in, &rivertags.Field{
 		Name:  []string{name},
 		Index: nil,
@@ -129,7 +129,6 @@ func convertField(in interface{}, f *rivertags.Field) *Field {
 			nf.Value.(*Field).Value = maybeSecret.Value
 		}
 		return nf
-
 	}
 
 	rt := value.RiverType(reflect.TypeOf(in))

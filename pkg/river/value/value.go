@@ -40,6 +40,7 @@ type Value struct {
 	ty Type
 }
 
+// NewValue instantiates a new value.
 func NewValue(rv reflect.Value, ty Type) Value {
 	return Value{
 		rv: rv,

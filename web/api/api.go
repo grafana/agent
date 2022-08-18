@@ -12,13 +12,15 @@ import (
 	"github.com/grafana/agent/pkg/flow"
 )
 
-type FlowApi struct {
+// FlowAPI wraps several calls for the component health api.
+type FlowAPI struct {
 	flow   *flow.Flow
 	router *mux.Router
 }
 
-func NewFlowApi(flow *flow.Flow, r *mux.Router) *FlowApi {
-	fa := &FlowApi{
+// NewFlowAPI instantiates a new flow api.
+func NewFlowAPI(flow *flow.Flow, r *mux.Router) *FlowAPI {
+	fa := &FlowAPI{
 		flow:   flow,
 		router: r,
 	}
@@ -26,12 +28,13 @@ func NewFlowApi(flow *flow.Flow, r *mux.Router) *FlowApi {
 	return fa
 }
 
-func (f *FlowApi) SetupRoute() {
-	f.router.HandleFunc("/api/v0/web/components", f.ListComponentsHandler())
-	f.router.HandleFunc("/api/v0/web/components/{id}", f.ListComponentHandler())
+// SetupRoute registers all the routes.
+func (f *FlowAPI) SetupRoute() {
+	f.router.HandleFunc("/api/v0/web/components", f.listComponentsHandler())
+	f.router.HandleFunc("/api/v0/web/components/{id}", f.listComponentHandler())
 }
 
-func (f *FlowApi) ListComponentsHandler() http.HandlerFunc {
+func (f *FlowAPI) listComponentsHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {
 		infos := f.flow.ComponentInfo()
 		nonDetails := make([]*flow.ComponentInfo, len(infos))
@@ -47,7 +50,7 @@ func (f *FlowApi) ListComponentsHandler() http.HandlerFunc {
 	}
 }
 
-func (f *FlowApi) ListComponentHandler() http.HandlerFunc {
+func (f *FlowAPI) listComponentHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		infos := f.flow.ComponentInfo()
@@ -55,7 +58,7 @@ func (f *FlowApi) ListComponentHandler() http.HandlerFunc {
 
 		for _, info := range infos {
 			if requestedComponent == info.ID {
-				bb, err := f.flow.Json(info)
+				bb, err := f.flow.JSON(info)
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
