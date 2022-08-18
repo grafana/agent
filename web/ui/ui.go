@@ -53,7 +53,6 @@ func RegisterRoutes(pathPrefix string, router *mux.Router) {
 		r.URL.Path = "/"
 		server.StaticFileServer(renderer).ServeHTTP(w, r)
 	})
-
 }
 
 // templateRenderer wraps around an inner fs.FS and will use html/template to

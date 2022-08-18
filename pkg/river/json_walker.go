@@ -32,9 +32,9 @@ type Field struct {
 
 // Health represents the health of a component.
 type Health struct {
-	Status     string    `json:"status"`
-	Message    string    `json:"message"`
-	UpdateTime time.Time `json:"health_type"`
+	Type        string    `json:"type"`
+	Message     string    `json:"message"`
+	UpdatedTime time.Time `json:"updated_time"`
 }
 
 // ConvertComponentToJSON converts a set of component information into a generic Field json representation.
