@@ -17,8 +17,8 @@ export interface ComponentViewProps {
 export const ComponentView: FC<ComponentViewProps> = (props) => {
   // TODO(rfratto): expand/collapse icon for sections (treat it like Row in grafana dashboard)
 
-  const inInfo = props.component.referencedBy.map((id) => props.info[id]);
-  const outInfo = props.component.referencesTo.map((id) => props.info[id]);
+  const referencedBy = props.component.referencedBy.filter((id) => props.info[id] !== undefined).map((id) => props.info[id]);
+  const referencesTo = props.component.referencesTo.filter((id) => props.info[id] !== undefined).map((id) => props.info[id]);
 
   const argsPartition = partitionBody(props.component.arguments, 'Arguments');
   const exportsPartition = props.component.exports && partitionBody(props.component.exports, 'Exports');
@@ -116,7 +116,7 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
           <section id="dependencies">
             <h2>Dependencies</h2>
             <div className={styles.sectionContent}>
-              <ComponentList components={outInfo} />
+              <ComponentList components={referencesTo} />
             </div>
           </section>
         )}
@@ -125,7 +125,7 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
           <section id="dependants">
             <h2>Dependants</h2>
             <div className={styles.sectionContent}>
-              <ComponentList components={inInfo} />
+              <ComponentList components={referencedBy} />
             </div>
           </section>
         )}

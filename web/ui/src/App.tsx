@@ -27,7 +27,7 @@ function App() {
             <Routes>
               <Route path="/" element={<PageComponentList />} />
               <Route path="/components" element={<PageComponentList />} />
-              <Route path="/component/:component" element={<ComponentDetailPage />} />
+              <Route path="/component/:id" element={<ComponentDetailPage />} />
               <Route path="/dag" element={<DAG />} />
               <Route path="/status/build-info" element={<StatusBuildInfo />} />
               <Route path="/status/config" element={<StatusConfigFile />} />
