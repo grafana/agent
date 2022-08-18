@@ -21,6 +21,12 @@ import (
 // Grafana Agent Flow UI. The UI will be served relative to pathPrefix. If no
 // pathPrefix is specified, the UI will be served at root.
 //
+// By default, the UI is retreived from the ./web/ui/build directory relative
+// to working directory, assuming that the Agent is run from the repo root.
+// However, if the builtinassets Go tag is present, the built UI will be
+// embedded into the binary; run go generate -tags builtinassets for this
+// package to generate the assets to embed.
+//
 // RegisterRoutes catches all requests from pathPrefix and so should only be
 // invoked after all other routes have been registered.
 //
