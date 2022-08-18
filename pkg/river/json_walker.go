@@ -30,6 +30,7 @@ type Field struct {
 	Name  string      `json:"name,omitempty"`
 	Type  string      `json:"type,omitempty"`
 	Value interface{} `json:"value,omitempty"`
+	Body  interface{} `json:"body,omitempty"`
 }
 
 // Health represents the health of a component.
@@ -95,9 +96,9 @@ func ConvertToFieldWithName(in interface{}, name string) *Field {
 
 // ConvertToField converts a river object to a JSON field representation.
 func ConvertToField(in interface{}, f *rivertags.Field) *Field {
-	// Assume everything is an attr unless otherwise specified
-	nf := &Field{
-		Type: "attr",
+	nf := &Field{}
+	if f != nil && f.IsAttr() {
+		nf.Type = "attr"
 	}
 	if f != nil && len(f.Name) > 0 {
 		nf.Key = f.Name[len(f.Name)-1]
@@ -165,6 +166,7 @@ func ConvertToField(in interface{}, f *rivertags.Field) *Field {
 	case value.TypeArray:
 		// If this is an array and a block we need to treat those differently. More like an array of blocks
 		if f.IsBlock() {
+			nf.Type = "block"
 			fields := make([]*Field, 0)
 			for i := 0; i < vIn.Len(); i++ {
 				arrEle := vIn.Index(i).Interface()
@@ -173,30 +175,33 @@ func ConvertToField(in interface{}, f *rivertags.Field) *Field {
 					fields = append(fields, found)
 				}
 			}
-			nf.Value = fields
+			nf.Body = fields
 			return nf
 		}
 		fields := make([]*Field, 0)
 		for i := 0; i < vIn.Len(); i++ {
 			arrEle := vIn.Index(i).Interface()
-			found := ConvertToField(arrEle, f)
+			found := ConvertToField(arrEle, nil)
 			if found != nil {
 				fields = append(fields, found)
 			}
 		}
-		nf.Value = fields
+
+		arrField := &Field{
+			Type:  "array",
+			Value: fields,
+		}
+		nf.Value = arrField
 		return nf
 	case value.TypeObject:
 		return convertStruct(in, f)
 	case value.TypeFunction:
 		panic("func not handled")
 	case value.TypeCapsule:
-		nf.Type = "attr"
-		nf.Value = &Field{
+		return &Field{
 			Type:  "capsule",
 			Value: rv.Describe(),
 		}
-		return nf
 	}
 	return nil
 }
@@ -233,10 +238,15 @@ func convertStruct(in interface{}, f *rivertags.Field) *Field {
 				fields = append(fields, found)
 			}
 		}
-		nf.Value = fields
+		if nf.Type == "block" {
+			nf.Body = fields
+		} else {
+			nf.Value = fields
+		}
+
 		return nf
 	} else if vIn.Kind() == reflect.Map {
-		if f.IsAttr() {
+		if f != nil && f.IsAttr() {
 			nf.Type = "attr"
 		} else {
 			nf.Type = "array"
