@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/grafana/agent/pkg/river/internal/rivertags"
-
 	"github.com/grafana/agent/pkg/river/token"
 )
 
