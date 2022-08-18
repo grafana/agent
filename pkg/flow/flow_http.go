@@ -114,7 +114,7 @@ func (c *Flow) ComponentJSON(w io.Writer, ci *ComponentInfo) (int, error) {
 		ci.ReferencesTo,
 		ci.ReferencedBy,
 		&river.Health{
-			Type:        ci.Health.Type,
+			State:       ci.Health.State,
 			Message:     ci.Health.Message,
 			UpdatedTime: ci.Health.UpdateTime,
 		},

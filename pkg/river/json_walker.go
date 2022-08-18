@@ -32,7 +32,7 @@ type Field struct {
 
 // Health represents the health of a component.
 type Health struct {
-	Type        string    `json:"type"`
+	State       string    `json:"state"`
 	Message     string    `json:"message"`
 	UpdatedTime time.Time `json:"updated_time"`
 }
