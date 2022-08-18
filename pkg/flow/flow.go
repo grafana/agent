@@ -269,14 +269,14 @@ func newFromNode(cn *controller.ComponentNode, refs []controller.Reference) *Com
 
 // Health contains information on the health of a component.
 type Health struct {
-	Status     string    `json:"status"`
+	Type       string    `json:"type"`
 	Message    string    `json:"message"`
-	UpdateTime time.Time `json:"health_type"`
+	UpdateTime time.Time `json:"updated_time"`
 }
 
 func newFromComponentHealth(ch component.Health) *Health {
 	return &Health{
-		Status:     ch.Health.String(),
+		Type:       ch.Health.String(),
 		Message:    ch.Message,
 		UpdateTime: ch.UpdateTime,
 	}
