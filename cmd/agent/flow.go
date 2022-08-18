@@ -140,7 +140,7 @@ func runFlow() error {
 			fmt.Fprintln(w, "config reloaded")
 		})
 
-		fa := api.NewFlowApi(f, r)
+		fa := api.NewFlowAPI(f, r)
 		fa.SetupRoute()
 
 		srv := &http.Server{Handler: r}

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/pkg/river/internal/rivertags"
+
 	"github.com/stretchr/testify/require"
 )
 
