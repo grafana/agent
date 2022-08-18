@@ -1,4 +1,4 @@
-import { ComponentDetail, ComponentHealthType, ComponentInfo } from '../features/component/types';
+import { ComponentDetail, ComponentHealthState, ComponentInfo } from '../features/component/types';
 import { StmtType, ValueType } from '../features/river-js/types';
 
 export const testComponents: ComponentInfo[] = [
@@ -7,7 +7,7 @@ export const testComponents: ComponentInfo[] = [
     name: 'local.file',
     label: 'api_key',
     health: {
-      type: ComponentHealthType.HEALTHY,
+      state: ComponentHealthState.HEALTHY,
     },
     referencedBy: ['metrics.remote_write.default'],
     referencesTo: [],
@@ -17,7 +17,7 @@ export const testComponents: ComponentInfo[] = [
     name: 'discovery.k8s',
     label: 'pods',
     health: {
-      type: ComponentHealthType.UNHEALTHY,
+      state: ComponentHealthState.UNHEALTHY,
     },
     referencedBy: ['metrics.scrape.k8s_pods'],
     referencesTo: [],
@@ -27,7 +27,7 @@ export const testComponents: ComponentInfo[] = [
     name: 'metrics.scrape',
     label: 'k8ds_pods',
     health: {
-      type: ComponentHealthType.UNKNOWN,
+      state: ComponentHealthState.UNKNOWN,
     },
     referencedBy: [],
     referencesTo: ['metrics.remote_write.default', 'discovery.k8s.pods'],
@@ -37,7 +37,7 @@ export const testComponents: ComponentInfo[] = [
     name: 'metrics.remote_write',
     label: 'default',
     health: {
-      type: ComponentHealthType.EXITED,
+      state: ComponentHealthState.EXITED,
     },
     referencedBy: ['metrics.scrape.k8s_pods'],
     referencesTo: [],
@@ -49,7 +49,7 @@ export const testComponentDetail: ComponentDetail = {
   name: 'metrics.scrape',
   label: 'k8s_pods',
   health: {
-    type: ComponentHealthType.UNKNOWN,
+    state: ComponentHealthState.UNKNOWN,
     message: 'Component updated',
     updateTime: '2020-08-17',
   },

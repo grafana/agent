@@ -1,17 +1,17 @@
 import { FC } from 'react';
 import styles from './HealthLabel.module.css';
-import { ComponentHealthType } from './types';
+import { ComponentHealthState } from './types';
 
 interface HealthLabelProps {
-  health: ComponentHealthType;
+  health: ComponentHealthState;
 }
 
 export const HealthLabel: FC<HealthLabelProps> = ({ health }) => {
   const healthMappings = {
-    [ComponentHealthType.HEALTHY]: `${styles.health} ${styles['state-ok']}`,
-    [ComponentHealthType.UNHEALTHY]: `${styles.health} ${styles['state-error']}`,
-    [ComponentHealthType.UNKNOWN]: `${styles.health} ${styles['state-warn']}`,
-    [ComponentHealthType.EXITED]: `${styles.health} ${styles['state-error']}`,
+    [ComponentHealthState.HEALTHY]: `${styles.health} ${styles['state-ok']}`,
+    [ComponentHealthState.UNHEALTHY]: `${styles.health} ${styles['state-error']}`,
+    [ComponentHealthState.UNKNOWN]: `${styles.health} ${styles['state-warn']}`,
+    [ComponentHealthState.EXITED]: `${styles.health} ${styles['state-error']}`,
   };
   const healthClass = healthMappings[health];
 

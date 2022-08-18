@@ -4,7 +4,7 @@ import * as d3Zoom from 'd3-zoom';
 import { HasId, HasParentIds, IdOperator, ParentIdsOperator } from 'd3-dag/dist/dag/create';
 import { decrossOpt, NodeSizeAccessor, sugiyama, dagStratify, coordQuad } from 'd3-dag';
 import { Point } from 'd3-dag/dist/dag';
-import { ComponentHealthType, ComponentInfo } from './types';
+import { ComponentHealthState, ComponentInfo } from './types';
 import { useHref } from 'react-router-dom';
 
 let canvas: HTMLCanvasElement | undefined;
@@ -355,14 +355,14 @@ export const ComponentGraph: FC<ComponentGraphProps> = (props) => {
     healthBox
       .append('rect')
       .attr('fill', (node) => {
-        switch (node.data.health.type || ComponentHealthType.UNKNOWN) {
-          case ComponentHealthType.HEALTHY:
+        switch (node.data.health.state || ComponentHealthState.UNKNOWN) {
+          case ComponentHealthState.HEALTHY:
             return '#3b8160';
-          case ComponentHealthType.UNHEALTHY:
+          case ComponentHealthState.UNHEALTHY:
             return '#d2476d';
-          case ComponentHealthType.EXITED:
+          case ComponentHealthState.EXITED:
             return '#d2476d';
-          case ComponentHealthType.UNKNOWN:
+          case ComponentHealthState.UNKNOWN:
             return '#f5d65b';
         }
       })
@@ -373,7 +373,7 @@ export const ComponentGraph: FC<ComponentGraphProps> = (props) => {
     healthBox
       .append('text')
       .text((d) => {
-        const text = d.data.health.type || 'unknown';
+        const text = d.data.health.state || 'unknown';
         return text.charAt(0).toUpperCase() + text.substring(1);
       })
       .attr('x', 45 / 2) // Anchor to middle of box
@@ -384,7 +384,7 @@ export const ComponentGraph: FC<ComponentGraphProps> = (props) => {
       .attr('text-anchor', 'middle')
       .attr('alignment-baseline', 'middle')
       .attr('fill', (node) => {
-        if (node.data.health.type === ComponentHealthType.UNKNOWN) {
+        if (node.data.health.state === ComponentHealthState.UNKNOWN) {
           return '#000000';
         }
         return '#ffffff';

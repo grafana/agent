@@ -77,7 +77,7 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
           {props.component.id}
           &nbsp; {/* space to separate the component name and label so double-click selections work */}
           <span className={styles.healthLabel}>
-            <HealthLabel health={props.component.health.type} />
+            <HealthLabel health={props.component.health.state} />
           </span>
         </h1>
 

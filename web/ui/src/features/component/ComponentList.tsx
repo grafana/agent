@@ -21,7 +21,7 @@ const ComponentList: FC<ComponentListProps> = ({ components }) => {
         return (
           <ul key={component.id}>
             <li>
-              <HealthLabel health={component.health.type} />
+              <HealthLabel health={component.health.state} />
             </li>
             <li className={styles.text}>{component.id}</li>
             <li>

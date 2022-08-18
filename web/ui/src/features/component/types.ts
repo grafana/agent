@@ -57,7 +57,7 @@ export function componentInfoByID(info: ComponentInfo[]): Record<string, Compone
  */
 export interface ComponentHealth {
   /** Type of health. */
-  type: ComponentHealthType;
+  state: ComponentHealthState;
   /** Message associated with health. */
   message?: string;
   /** Timestamp when health last changed. */
@@ -65,9 +65,9 @@ export interface ComponentHealth {
 }
 
 /**
- * Known health types for a given component.
+ * Known health states for a given component.
  */
-export enum ComponentHealthType {
+export enum ComponentHealthState {
   HEALTHY = 'healthy',
   UNHEALTHY = 'unhealthy',
   UNKNOWN = 'unknown',
