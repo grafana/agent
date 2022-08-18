@@ -4,7 +4,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/river/value"
 
 	"github.com/grafana/agent/pkg/flow/rivertypes"
@@ -29,36 +28,41 @@ type Field struct {
 // ConvertBlock converts a set of component information into a generic Field json representation.
 func ConvertBlock(
 	id []string,
-	args component.Arguments,
-	exports component.Exports,
+	args interface{},
+	exports interface{},
 	references, referencedby []string,
 	health *Health,
 	original string,
 ) *Field {
 
-	nf := &Field{}
-	nf.Health = health
-	nf.References = references
-	nf.ReferencedBy = referencedby
-	nf.Original = original
-	nf.Type = "block"
-	nf.ID = strings.Join(id, ".")
-	nf.Name = strings.Join(id[0:2], ".")
-	nf.Label = id[2]
+	nf := &Field{
+		ID:           strings.Join(id, "."),
+		Name:         strings.Join(id[0:2], "."),
+		Type:         "block",
+		References:   references,
+		ReferencedBy: referencedby,
+		Health:       health,
+		Original:     original,
+		Value:        nil,
+	}
+	if len(id) == 3 {
+		nf.Label = id[2]
+	}
+
 	fields := make([]*Field, 0)
 	cArgs := convertArguments(args)
-	if args != nil {
+	if cArgs != nil {
 		fields = append(fields, cArgs)
 	}
 	cExports := convertExports(exports)
-	if exports != nil {
+	if cExports != nil {
 		fields = append(fields, cExports)
 	}
 	nf.Value = fields
 	return nf
 }
 
-func convertArguments(args component.Arguments) *Field {
+func convertArguments(args interface{}) *Field {
 	return convertField(args, &rivertags.Field{
 		Name:  []string{"arguments"},
 		Index: nil,
@@ -66,7 +70,7 @@ func convertArguments(args component.Arguments) *Field {
 	})
 }
 
-func convertExports(exports component.Exports) *Field {
+func convertExports(exports interface{}) *Field {
 	return convertField(exports, &rivertags.Field{
 		Name:  []string{"exports"},
 		Index: nil,
