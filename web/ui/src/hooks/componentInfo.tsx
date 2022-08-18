@@ -13,7 +13,10 @@ export const useComponentInfo = (): ComponentInfo[] => {
   useEffect(
     function () {
       const worker = async () => {
-        const resp = await fetch(pathPrefix + 'api/v0/web/components');
+        const resp = await fetch(pathPrefix + 'api/v0/web/components', {
+          cache: 'no-cache',
+          credentials: 'same-origin',
+        });
         setComponents(await resp.json());
       };
 
