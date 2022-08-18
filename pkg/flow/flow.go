@@ -241,7 +241,9 @@ func (c *Flow) Close() error {
 
 // ComponentInfo contains information on a single component.
 type ComponentInfo struct {
-	ID           string   `json:"id"`
+	ID           string   `json:"id,omitempty"`
+	Label        string   `json:"label,omitempty"`
+	Name         string   `json:"name"`
 	ReferencesTo []string `json:"references_to"`
 	ReferencedBy []string `json:"referenced_by"`
 	Health       Health   `json:"health"`
@@ -252,12 +254,17 @@ func newFromNode(cn *controller.ComponentNode, refs []controller.Reference) *Com
 	for i, r := range refs {
 		refsStr[i] = strings.Join(r.Target.ID(), ".")
 	}
-	return &ComponentInfo{
+	ci := &ComponentInfo{
 		ID:           cn.NodeID(),
 		ReferencesTo: refsStr,
 		ReferencedBy: make([]string, 0),
+		Name:         strings.Join(cn.ID()[0:2], "."),
 		Health:       *newFromComponentHealth(cn.CurrentHealth()),
 	}
+	if len(cn.ID()) == 3 {
+		ci.Label = cn.ID()[2]
+	}
+	return ci
 }
 
 // Health contains information on the health of a component.
