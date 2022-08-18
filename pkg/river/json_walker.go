@@ -102,6 +102,8 @@ func ConvertToField(in interface{}, f *rivertags.Field) *Field {
 	}
 	if f != nil && len(f.Name) > 0 {
 		nf.Key = f.Name[len(f.Name)-1]
+		nf.ID = f.Name[len(f.Name)-1]
+		nf.Name = f.Name[len(f.Name)-1]
 	}
 	var vIn reflect.Value
 	// Find the actual object.
@@ -213,6 +215,8 @@ func convertStruct(in interface{}, f *rivertags.Field) *Field {
 	}
 	if f != nil && len(f.Name) > 0 {
 		nf.Key = f.Name[len(f.Name)-1]
+		nf.ID = f.Name[len(f.Name)-1]
+		nf.Name = f.Name[len(f.Name)-1]
 	}
 	if vIn.Kind() == reflect.Struct {
 		if f != nil && f.IsBlock() {
@@ -257,6 +261,7 @@ func convertStruct(in interface{}, f *rivertags.Field) *Field {
 		for iter.Next() {
 			mf := &Field{}
 			mf.Key = iter.Key().String()
+			mf.Name = iter.Key().String()
 			mf.Value = ConvertToField(iter.Value().Interface(), nil)
 			if mf.Value != nil {
 				fields = append(fields, mf)
