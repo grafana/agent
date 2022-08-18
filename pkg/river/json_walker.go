@@ -78,11 +78,17 @@ func ConvertComponentToJSON(
 }
 
 func convertArguments(args interface{}) []*Field {
+	if args == nil {
+		return nil
+	}
 	f := convertStruct(args, nil)
 	return f.Value.([]*Field)
 }
 
 func convertExports(exports interface{}) []*Field {
+	if exports == nil {
+		return nil
+	}
 	f := convertStruct(exports, nil)
 	return f.Value.([]*Field)
 }
