@@ -53,6 +53,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/grafana/agent/pkg/river"
+
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
@@ -213,10 +215,10 @@ func (c *Flow) LoadFile(file *File) error {
 }
 
 // ComponentInfos returns the component infos.
-func (c *Flow) ComponentInfos() []*ComponentInfo {
+func (c *Flow) ComponentInfos() []*river.ComponentField {
 	cns := c.loader.Components()
-	infos := make([]*ComponentInfo, len(cns))
-	refByBacktrack := make(map[string]*ComponentInfo, 0)
+	infos := make([]*river.ComponentField, len(cns))
+	refByBacktrack := make(map[string]*river.ComponentField, 0)
 	for i, com := range cns {
 		refs, _ := controller.ComponentReferences(com, c.loader.Graph())
 		nn := newFromNode(com, refs)
@@ -225,7 +227,7 @@ func (c *Flow) ComponentInfos() []*ComponentInfo {
 	}
 	// We need to backtrack the infos
 	for _, info := range infos {
-		for _, refTo := range info.ReferencesTo {
+		for _, refTo := range info.References {
 			refByBacktrack[refTo].ReferencedBy = append(refByBacktrack[refTo].ReferencedBy, info.ID)
 		}
 	}
@@ -239,27 +241,21 @@ func (c *Flow) Close() error {
 	return c.sched.Close()
 }
 
-// ComponentInfo contains information on a single component.
-type ComponentInfo struct {
-	ID           string   `json:"id,omitempty"`
-	Label        string   `json:"label,omitempty"`
-	Name         string   `json:"name"`
-	ReferencesTo []string `json:"referencesTo"`
-	ReferencedBy []string `json:"referencedBy"`
-	Health       Health   `json:"health"`
-}
-
-func newFromNode(cn *controller.ComponentNode, refs []controller.Reference) *ComponentInfo {
+func newFromNode(cn *controller.ComponentNode, refs []controller.Reference) *river.ComponentField {
 	refsStr := make([]string, len(refs))
 	for i, r := range refs {
 		refsStr[i] = strings.Join(r.Target.ID(), ".")
 	}
-	ci := &ComponentInfo{
-		ID:           cn.NodeID(),
-		ReferencesTo: refsStr,
+	ci := &river.ComponentField{
+		Field: river.Field{
+			ID:   cn.NodeID(),
+			Name: strings.Join(cn.ID()[0:2], "."),
+			Type: "block",
+			Key:  strings.Join(cn.ID(), "."),
+		},
+		References:   refsStr,
 		ReferencedBy: make([]string, 0),
-		Name:         strings.Join(cn.ID()[0:2], "."),
-		Health:       *newFromComponentHealth(cn.CurrentHealth()),
+		Health:       newFromComponentHealth(cn.CurrentHealth()),
 	}
 	if len(cn.ID()) == 3 {
 		ci.Label = cn.ID()[2]
@@ -274,10 +270,10 @@ type Health struct {
 	UpdateTime time.Time `json:"updated_time"`
 }
 
-func newFromComponentHealth(ch component.Health) *Health {
-	return &Health{
-		State:      ch.Health.String(),
-		Message:    ch.Message,
-		UpdateTime: ch.UpdateTime,
+func newFromComponentHealth(ch component.Health) *river.Health {
+	return &river.Health{
+		State:       ch.Health.String(),
+		Message:     ch.Message,
+		UpdatedTime: ch.UpdateTime,
 	}
 }

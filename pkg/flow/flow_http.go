@@ -96,7 +96,7 @@ func (c *Flow) configBytes(w io.Writer, debugInfo bool) (n int64, err error) {
 }
 
 // ComponentJSON returns the json representation of the flow component.
-func (c *Flow) ComponentJSON(w io.Writer, ci *ComponentInfo) (int, error) {
+func (c *Flow) ComponentJSON(w io.Writer, ci *river.ComponentField) (int, error) {
 	var foundComponent *controller.ComponentNode
 	for _, c := range c.loader.Components() {
 		if c.ID().String() == ci.ID {
@@ -111,12 +111,12 @@ func (c *Flow) ComponentJSON(w io.Writer, ci *ComponentInfo) (int, error) {
 		foundComponent.ID(),
 		foundComponent.Arguments(),
 		foundComponent.Arguments(),
-		ci.ReferencesTo,
+		ci.References,
 		ci.ReferencedBy,
 		&river.Health{
 			State:       ci.Health.State,
 			Message:     ci.Health.Message,
-			UpdatedTime: ci.Health.UpdateTime,
+			UpdatedTime: ci.Health.UpdatedTime,
 		},
 		"")
 	bb, err := json.Marshal(field)

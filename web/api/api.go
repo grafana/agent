@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"path"
 
+	"github.com/grafana/agent/pkg/river"
+
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/flow"
 )
@@ -65,7 +67,7 @@ func (f *FlowAPI) listComponentHandler() http.HandlerFunc {
 }
 
 // JSON returns the json representation of ComponentInfoDetailed.
-func (f *FlowAPI) JSON(c *flow.ComponentInfo) (bytes.Buffer, error) {
+func (f *FlowAPI) JSON(c *river.ComponentField) (bytes.Buffer, error) {
 	var buf bytes.Buffer
 	_, err := f.flow.ComponentJSON(&buf, c)
 	if err != nil {

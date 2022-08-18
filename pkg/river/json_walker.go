@@ -13,11 +13,11 @@ import (
 
 // ComponentField represents a component in river.
 type ComponentField struct {
-	Field        `json:" ,omitempty"`
-	References   []string `json:"referencesTo,omitempty"`
-	ReferencedBy []string `json:"referencedBy,omitempty"`
-	Health       *Health  `json:"health,omitempty"`
-	Original     string   `json:"original,omitempty"`
+	Field        `json:",omitempty"`
+	References   []string `json:"referencesTo"`
+	ReferencedBy []string `json:"referencedBy"`
+	Health       *Health  `json:"health"`
+	Original     string   `json:"original"`
 }
 
 // Field represents a value in river.
