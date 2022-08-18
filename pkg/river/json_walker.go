@@ -18,6 +18,8 @@ type ComponentField struct {
 	ReferencedBy []string `json:"referencedBy"`
 	Health       *Health  `json:"health"`
 	Original     string   `json:"original"`
+	Arguments    []*Field `json:"arguments,omitempty"`
+	Exports      []*Field `json:"exports,omitempty"`
 }
 
 // Field represents a value in river.
@@ -63,33 +65,25 @@ func ConvertComponentToJSON(
 		nf.Label = id[2]
 	}
 
-	fields := make([]*Field, 0)
 	cArgs := convertArguments(args)
 	if cArgs != nil {
-		fields = append(fields, cArgs)
+		nf.Arguments = cArgs
 	}
 	cExports := convertExports(exports)
 	if cExports != nil {
-		fields = append(fields, cExports)
+		nf.Exports = cExports
 	}
-	nf.Value = fields
 	return nf
 }
 
-func convertArguments(args interface{}) *Field {
-	return ConvertToField(args, &rivertags.Field{
-		Name:  []string{"arguments"},
-		Index: nil,
-		Flags: 0,
-	})
+func convertArguments(args interface{}) []*Field {
+	f := convertStruct(args, reflect.ValueOf(args), nil)
+	return f.Value.([]*Field)
 }
 
-func convertExports(exports interface{}) *Field {
-	return ConvertToField(exports, &rivertags.Field{
-		Name:  []string{"exports"},
-		Index: nil,
-		Flags: 0,
-	})
+func convertExports(exports interface{}) []*Field {
+	f := convertStruct(exports, reflect.ValueOf(exports), nil)
+	return f.Value.([]*Field)
 }
 
 // ConvertToFieldWithName allows conversion of an top level object for testing.
@@ -108,16 +102,10 @@ func ConvertToField(in interface{}, f *rivertags.Field) *Field {
 	if f != nil && len(f.Name) > 0 {
 		nf.Key = f.Name[len(f.Name)-1]
 	}
-
-	nt := reflect.TypeOf(in)
-	vIn := reflect.ValueOf(in)
+	var vIn reflect.Value
 	// Find the actual object.
 	if in != nil {
-		for nt.Kind() == reflect.Pointer && !vIn.IsZero() {
-			vIn = vIn.Elem()
-			nt = vIn.Type()
-		}
-		in = vIn.Interface()
+		in, _, vIn = getActualStruct(in)
 	} else {
 		nf.Value = &Field{
 			Type: "null",
@@ -187,51 +175,7 @@ func ConvertToField(in interface{}, f *rivertags.Field) *Field {
 		nf.Value = fields
 		return nf
 	case value.TypeObject:
-		if vIn.Kind() == reflect.Struct {
-			if f != nil && f.IsBlock() {
-				nf.Type = "block"
-				nf.ID = strings.Join(f.Name, ".")
-				// remote_write "t1"
-				if len(f.Name) == 2 {
-					nf.Name = f.Name[0]
-					if f.Name[1] != "" {
-						nf.Label = f.Name[1]
-					}
-				}
-			} else {
-				nf.Type = "object"
-			}
-
-			fields := make([]*Field, 0)
-			riverFields := rivertags.Get(reflect.TypeOf(in))
-			for _, rf := range riverFields {
-				fieldValue := vIn.FieldByIndex(rf.Index)
-				found := ConvertToField(fieldValue.Interface(), &rf)
-				if found != nil {
-					fields = append(fields, found)
-				}
-			}
-			nf.Value = fields
-			return nf
-		} else if vIn.Kind() == reflect.Map {
-			nf.Type = "map"
-			fields := make([]*Field, 0)
-			iter := vIn.MapRange()
-			for iter.Next() {
-				mf := &Field{}
-				mf.Key = iter.Key().String()
-				mf.Value = ConvertToField(iter.Value().Interface(), nil)
-				if mf.Value != nil {
-					fields = append(fields, mf)
-				}
-			}
-			nf.Value = fields
-			return nf
-		} else {
-			if f.IsBlock() && f.IsOptional() {
-				return nil
-			}
-		}
+		return convertStruct(in, vIn, f)
 	case value.TypeFunction:
 		panic("func not handled")
 	case value.TypeCapsule:
@@ -243,4 +187,70 @@ func ConvertToField(in interface{}, f *rivertags.Field) *Field {
 		return nf
 	}
 	return nil
+}
+
+func convertStruct(in interface{}, vIn reflect.Value, f *rivertags.Field) *Field {
+	in, _, vIn = getActualStruct(in)
+	nf := &Field{
+		Type: "attr",
+	}
+	if f != nil && len(f.Name) > 0 {
+		nf.Key = f.Name[len(f.Name)-1]
+	}
+	if vIn.Kind() == reflect.Struct {
+		if f != nil && f.IsBlock() {
+			nf.Type = "block"
+			nf.ID = strings.Join(f.Name, ".")
+			// remote_write "t1"
+			if len(f.Name) == 2 {
+				nf.Name = f.Name[0]
+				if f.Name[1] != "" {
+					nf.Label = f.Name[1]
+				}
+			}
+		} else {
+			nf.Type = "object"
+		}
+
+		fields := make([]*Field, 0)
+		riverFields := rivertags.Get(reflect.TypeOf(in))
+		for _, rf := range riverFields {
+			fieldValue := vIn.FieldByIndex(rf.Index)
+			found := ConvertToField(fieldValue.Interface(), &rf)
+			if found != nil {
+				fields = append(fields, found)
+			}
+		}
+		nf.Value = fields
+		return nf
+	} else if vIn.Kind() == reflect.Map {
+		nf.Type = "map"
+		fields := make([]*Field, 0)
+		iter := vIn.MapRange()
+		for iter.Next() {
+			mf := &Field{}
+			mf.Key = iter.Key().String()
+			mf.Value = ConvertToField(iter.Value().Interface(), nil)
+			if mf.Value != nil {
+				fields = append(fields, mf)
+			}
+		}
+		nf.Value = fields
+		return nf
+	} else {
+		if f.IsBlock() && f.IsOptional() {
+			return nil
+		}
+	}
+	return nil
+}
+
+func getActualStruct(in interface{}) (interface{}, reflect.Type, reflect.Value) {
+	nt := reflect.TypeOf(in)
+	vIn := reflect.ValueOf(in)
+	for nt.Kind() == reflect.Pointer && !vIn.IsZero() {
+		vIn = vIn.Elem()
+		nt = vIn.Type()
+	}
+	return vIn.Interface(), nt, vIn
 }
