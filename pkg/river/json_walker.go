@@ -253,7 +253,7 @@ func convertStruct(in interface{}, f *rivertags.Field) *Field {
 		if f != nil && f.IsAttr() {
 			nf.Type = "attr"
 		} else {
-			nf.Type = "array"
+			nf.Type = "map"
 		}
 
 		fields := make([]*Field, 0)
