@@ -110,7 +110,7 @@ func (c *Flow) ComponentJSON(w io.Writer, ci *river.ComponentField) (int, error)
 	field := river.ConvertComponentToJSON(
 		foundComponent.ID(),
 		foundComponent.Arguments(),
-		foundComponent.Arguments(),
+		foundComponent.Exports(),
 		ci.References,
 		ci.ReferencedBy,
 		&river.Health{
