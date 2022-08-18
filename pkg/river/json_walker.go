@@ -37,7 +37,7 @@ type Field struct {
 type Health struct {
 	State       string    `json:"state"`
 	Message     string    `json:"message"`
-	UpdatedTime time.Time `json:"updated_time"`
+	UpdatedTime time.Time `json:"updatedTime"`
 }
 
 // ConvertComponentToJSON converts a set of component information into a generic Field json representation.
