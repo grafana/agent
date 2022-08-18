@@ -32,7 +32,6 @@ func RegisterRoutes(pathPrefix string, router *mux.Router) {
 	}
 
 	publicPath := path.Join(pathPrefix, "public")
-	homePath := path.Join(pathPrefix, "components")
 
 	renderer := &templateRenderer{
 		pathPrefix: strings.TrimSuffix(pathPrefix, "/"),
@@ -46,15 +45,10 @@ func RegisterRoutes(pathPrefix string, router *mux.Router) {
 		server.StaticFileServer(renderer).ServeHTTP(w, r)
 	})))
 
-	router.HandleFunc(path.Join(pathPrefix), func(w http.ResponseWriter, r *http.Request) {
-		// Redirect to the main page.
-		http.Redirect(w, r, homePath, http.StatusFound)
+	router.HandleFunc(strings.TrimSuffix(pathPrefix, "/"), func(w http.ResponseWriter, r *http.Request) {
+		// Redirect to form with /
+		http.Redirect(w, r, pathPrefix, http.StatusFound)
 	})
-	router.HandleFunc(pathPrefix, func(w http.ResponseWriter, r *http.Request) {
-		// Redirect to the main page.
-		http.Redirect(w, r, homePath, http.StatusFound)
-	})
-
 	router.PathPrefix(pathPrefix).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		r.URL.Path = "/"
 		server.StaticFileServer(renderer).ServeHTTP(w, r)
