@@ -22,10 +22,7 @@ export const ComponentDetailPage: FC = () => {
           cache: 'no-cache',
           credentials: 'same-origin',
         });
-        const content = await resp.json();
-
-        console.log(content);
-        setComponent(content);
+        setComponent(await resp.json());
       };
 
       worker().catch(console.error);
