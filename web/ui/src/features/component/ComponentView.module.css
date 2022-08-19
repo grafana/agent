@@ -173,3 +173,8 @@ td.valueColumn {
 .content section.nested {
   margin-left: 32px;
 }
+
+em.informative {
+  color: #555;
+  font-size: 14px;
+}
