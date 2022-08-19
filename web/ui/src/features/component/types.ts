@@ -61,7 +61,7 @@ export interface ComponentHealth {
   /** Message associated with health. */
   message?: string;
   /** Timestamp when health last changed. */
-  updateTime?: string;
+  updatedTime?: string;
 }
 
 /**

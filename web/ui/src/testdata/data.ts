@@ -51,7 +51,7 @@ export const testComponentDetail: ComponentDetail = {
   health: {
     state: ComponentHealthState.UNKNOWN,
     message: 'Component updated',
-    updateTime: '2020-08-17',
+    updatedTime: '2020-08-17',
   },
   referencedBy: [],
   referencesTo: ['metrics.remote_write.default', 'discovery.k8s.pods'],

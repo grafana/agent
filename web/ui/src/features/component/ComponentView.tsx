@@ -91,8 +91,8 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
           <blockquote>
             <h1>
               Latest health message{' '}
-              {props.component.health.updateTime && (
-                <span className={styles.updateTime}>({props.component.health.updateTime})</span>
+              {props.component.health.updatedTime && (
+                <span className={styles.updateTime}>({props.component.health.updatedTime})</span>
               )}
             </h1>
             <p>{props.component.health.message}</p>

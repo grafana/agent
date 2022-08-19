@@ -18,7 +18,10 @@ export const ComponentDetailPage: FC = () => {
   useEffect(
     function () {
       const worker = async () => {
-        const resp = await fetch(pathPrefix + 'api/v0/web/components/' + id);
+        const resp = await fetch(pathPrefix + 'api/v0/web/components/' + id, {
+          cache: 'no-cache',
+          credentials: 'same-origin',
+        });
         const content = await resp.json();
 
         console.log(content);
