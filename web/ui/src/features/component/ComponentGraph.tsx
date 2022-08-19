@@ -391,6 +391,5 @@ export const ComponentGraph: FC<ComponentGraphProps> = (props) => {
       });
   });
 
-  // TODO(rfratto): figure out why this scrolls when using height: 100%
-  return <svg ref={svgRef} style={{ width: '100%', height: '100%' }} />;
+  return <svg ref={svgRef} style={{ width: '100%', height: '100%', display: 'block' }} />;
 };
