@@ -162,8 +162,7 @@ type TargetStatus struct {
 
 // DebugInfo implements component.DebugComponent
 func (c *Component) DebugInfo() interface{} {
-	var res []TargetStatus
-
+	res := make([]TargetStatus, 0)
 	for job, stt := range c.scraper.TargetsActive() {
 		for _, st := range stt {
 			var lastError string

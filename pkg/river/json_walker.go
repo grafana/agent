@@ -20,6 +20,7 @@ type ComponentField struct {
 	Original     string      `json:"original"`
 	Arguments    interface{} `json:"arguments,omitempty"`
 	Exports      interface{} `json:"exports,omitempty"`
+	DebugInfo    interface{} `json:"debugInfo,omitempty"`
 }
 
 // Field represents a value in river.
@@ -45,6 +46,7 @@ func ConvertComponentToJSON(
 	id []string,
 	args interface{},
 	exports interface{},
+	debug interface{},
 	references, referencedby []string,
 	health *Health,
 	original string,
@@ -66,31 +68,30 @@ func ConvertComponentToJSON(
 		nf.Label = id[2]
 	}
 
-	cArgs := convertArguments(args)
+	cArgs := convertComponentChild(args)
 	if cArgs != nil {
 		nf.Arguments = cArgs
 	}
-	cExports := convertExports(exports)
+	cExports := convertComponentChild(exports)
 	if cExports != nil {
 		nf.Exports = cExports
+	}
+	cDebug := convertComponentChild(debug)
+	if cDebug != nil {
+		nf.DebugInfo = cDebug
 	}
 	return nf
 }
 
-func convertArguments(args interface{}) interface{} {
-	if args == nil {
+func convertComponentChild(in interface{}) interface{} {
+	if in == nil {
 		return nil
 	}
-	f := convertStruct(args, nil)
-	return f.Value
-}
-
-func convertExports(exports interface{}) interface{} {
-	if exports == nil {
-		return nil
+	f := convertStruct(in, nil)
+	if _, ok := f.(*Field); ok {
+		return f.(*Field).Value
 	}
-	f := convertStruct(exports, nil)
-	return f.Value
+	return f
 }
 
 // convertRiver is used to convert values that are a river type and have a field value
@@ -109,12 +110,12 @@ func convertRiver(in interface{}, f *rivertags.Field) interface{} {
 	if f != nil && len(f.Name) > 0 {
 		nf.Name = f.Name[len(f.Name)-1]
 	}
-	in, _, vIn := getActualStruct(in)
+	in, vt, vIn := getActualStruct(in)
 
 	if reflect.ValueOf(in).IsZero() {
 		return nil
 	}
-	rt := value.RiverType(reflect.TypeOf(in))
+	rt := value.RiverType(vt)
 	//rv := value.NewValue(reflect.ValueOf(in), rt)
 	switch rt {
 	case value.TypeNull, value.TypeNumber, value.TypeString, value.TypeBool, value.TypeCapsule:
@@ -124,7 +125,7 @@ func convertRiver(in interface{}, f *rivertags.Field) interface{} {
 		// If this is an array and a block we need to treat those differently. More like an array of blocks
 		if f.IsBlock() {
 			nf.Type = "block"
-			fields := make([]*Field, 0)
+			fields := make([]interface{}, 0)
 			for i := 0; i < vIn.Len(); i++ {
 				arrEle := vIn.Index(i).Interface()
 				found := convertStruct(arrEle, f)
@@ -134,7 +135,7 @@ func convertRiver(in interface{}, f *rivertags.Field) interface{} {
 			}
 			return fields
 		}
-		fields := make([]*Field, 0)
+		fields := make([]interface{}, 0)
 		for i := 0; i < vIn.Len(); i++ {
 			arrEle := vIn.Index(i).Interface()
 			found := convertValue(arrEle)
@@ -158,7 +159,7 @@ func convertRiver(in interface{}, f *rivertags.Field) interface{} {
 }
 
 // convertValue is used to transform the underlying value of a river tag to a field
-func convertValue(in interface{}) *Field {
+func convertValue(in interface{}) interface{} {
 	in, _, vIn := getActualStruct(in)
 
 	if reflect.ValueOf(in).IsZero() {
@@ -217,7 +218,7 @@ func convertValue(in interface{}) *Field {
 	panic("this shouldnt happen")
 }
 
-func convertStruct(in interface{}, f *rivertags.Field) *Field {
+func convertStruct(in interface{}, f *rivertags.Field) interface{} {
 	in, _, vIn := getActualStruct(in)
 	nf := &Field{
 		Type: "attr",
@@ -243,17 +244,32 @@ func convertStruct(in interface{}, f *rivertags.Field) *Field {
 		riverFields := rivertags.Get(reflect.TypeOf(in))
 		for _, rf := range riverFields {
 			fieldValue := vIn.FieldByIndex(rf.Index)
-			found := convertRiver(fieldValue.Interface(), &rf)
+			fieldIn, _, _ := getActualStruct(fieldValue.Interface())
+			found := convertRiver(fieldIn, &rf)
 			if found != nil {
-				fields = append(fields, found)
+				// If this is a block and is an array add the elements not as an array, but as
+				// individual elements.
+				if rf.IsBlock() {
+					if arr, ok := found.([]interface{}); ok {
+						for _, elem := range arr {
+							fields = append(fields, elem)
+						}
+					}
+				} else {
+					fields = append(fields, found)
+				}
+
 			}
 		}
 		if nf.Type == "block" {
 			nf.Body = fields
+		} else if f == nil {
+			// This is a special case where there is no river tags so we are expecting a raw value.
+			// Usually used for an array of blocks
+			return fields
 		} else {
 			nf.Value = fields
 		}
-
 		return nf
 	} else if vIn.Kind() == reflect.Map {
 		if f != nil && f.IsAttr() {

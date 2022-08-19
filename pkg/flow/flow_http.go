@@ -111,6 +111,7 @@ func (c *Flow) ComponentJSON(w io.Writer, ci *river.ComponentField) (int, error)
 		foundComponent.ID(),
 		foundComponent.Arguments(),
 		foundComponent.Exports(),
+		foundComponent.DebugInfo(),
 		ci.References,
 		ci.ReferencedBy,
 		&river.Health{
