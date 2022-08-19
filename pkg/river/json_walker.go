@@ -93,88 +93,32 @@ func convertExports(exports interface{}) []*Field {
 	return f.Value.([]*Field)
 }
 
-// ConvertToFieldWithName allows conversion of an top level object for testing.
-func ConvertToFieldWithName(in interface{}, name string) *Field {
-	return ConvertToField(in, &rivertags.Field{
-		Name: []string{name},
-	})
-}
-
-// ConvertToField converts a river object to a JSON field representation.
-func ConvertToField(in interface{}, f *rivertags.Field) *Field {
+// convertRiver is used to convert values that are a river type and have a field value
+func convertRiver(in interface{}, f *rivertags.Field) *Field {
 	nf := &Field{}
-	if f != nil && f.IsAttr() {
-		nf.Type = "attr"
+	if f == nil {
+		panic("this shouldnt happen")
+	} else {
+		if f.IsAttr() {
+			nf.Type = "attr"
+		} else {
+			nf.Type = "block"
+		}
 	}
+
 	if f != nil && len(f.Name) > 0 {
-		nf.Key = f.Name[len(f.Name)-1]
-		nf.ID = f.Name[len(f.Name)-1]
 		nf.Name = f.Name[len(f.Name)-1]
 	}
-	var vIn reflect.Value
-	// Find the actual object.
-	if in != nil {
-		in, _, vIn = getActualStruct(in)
-	} else {
-		nf.Value = &Field{
-			Type: "null",
-		}
-		return nf
-	}
+	in, _, vIn := getActualStruct(in)
 
-	// Dont write zero value records
 	if reflect.ValueOf(in).IsZero() {
 		return nil
 	}
-
-	// Handle items that explicitly use tokenizer, these are always considered capsule values.
-	if tkn, ok := in.(builder.Tokenizer); ok {
-		tokens := tkn.RiverTokenize()
-		nf.Value = &Field{
-			Type:  "capsule",
-			Value: tokens[0].Lit,
-		}
-		return nf
-	}
-
 	rt := value.RiverType(reflect.TypeOf(in))
-	rv := value.NewValue(reflect.ValueOf(in), rt)
+	//rv := value.NewValue(reflect.ValueOf(in), rt)
 	switch rt {
-	case value.TypeNull:
-		nf.Value = &Field{
-			Type: "null",
-		}
-		return nf
-	case value.TypeNumber:
-		numField := &Field{
-			Type: "number",
-		}
-		switch value.MakeNumberKind(vIn.Kind()) {
-		case value.NumberKindInt:
-			numField.Value = rv.Int()
-		case value.NumberKindUint:
-			numField.Value = rv.Uint()
-		case value.NumberKindFloat:
-			numField.Value = rv.Float()
-		}
-		nf.Value = numField
-		return nf
-	case value.TypeString:
-		sf := &Field{
-			Type:  "string",
-			Value: rv.Text(),
-		}
-		if f != nil {
-			nf.Value = sf
-			return nf
-		} else {
-			return sf
-		}
-	case value.TypeBool:
-		nf.Value = &Field{
-			Type:  "bool",
-			Value: rv.Bool(),
-		}
+	case value.TypeNull, value.TypeNumber, value.TypeString, value.TypeBool, value.TypeCapsule:
+		nf.Value = convertValue(in)
 		return nf
 	case value.TypeArray:
 		// If this is an array and a block we need to treat those differently. More like an array of blocks
@@ -194,7 +138,7 @@ func ConvertToField(in interface{}, f *rivertags.Field) *Field {
 		fields := make([]*Field, 0)
 		for i := 0; i < vIn.Len(); i++ {
 			arrEle := vIn.Index(i).Interface()
-			found := ConvertToField(arrEle, nil)
+			found := convertValue(arrEle)
 			if found != nil {
 				fields = append(fields, found)
 			}
@@ -210,18 +154,68 @@ func ConvertToField(in interface{}, f *rivertags.Field) *Field {
 		return convertStruct(in, f)
 	case value.TypeFunction:
 		panic("func not handled")
+	}
+	panic("this shouldnt happen")
+}
+
+// convertValue is used to transform the underlying value of a river tag to a field
+func convertValue(in interface{}) *Field {
+	in, _, vIn := getActualStruct(in)
+
+	if reflect.ValueOf(in).IsZero() {
+		return nil
+	}
+	// Handle items that explicitly use tokenizer, these are always considered capsule values.
+	if tkn, ok := in.(builder.Tokenizer); ok {
+		tokens := tkn.RiverTokenize()
+		return &Field{
+			Type:  "capsule",
+			Value: tokens[0].Lit,
+		}
+	}
+	rt := value.RiverType(reflect.TypeOf(in))
+	rv := value.NewValue(reflect.ValueOf(in), rt)
+	switch rt {
+	case value.TypeNull:
+		return &Field{
+			Type: "null",
+		}
+	case value.TypeNumber:
+		numField := &Field{
+			Type: "number",
+		}
+		switch value.MakeNumberKind(vIn.Kind()) {
+		case value.NumberKindInt:
+			numField.Value = rv.Int()
+		case value.NumberKindUint:
+			numField.Value = rv.Uint()
+		case value.NumberKindFloat:
+			numField.Value = rv.Float()
+		}
+		return numField
+	case value.TypeString:
+		return &Field{
+			Type:  "string",
+			Value: rv.Text(),
+		}
+	case value.TypeBool:
+		return &Field{
+			Type:  "bool",
+			Value: rv.Bool(),
+		}
+	case value.TypeArray:
+		panic("this shouldnt happen")
+	case value.TypeObject:
+		panic("this shouldnt happen")
+	case value.TypeFunction:
+		panic("func not handled")
 	case value.TypeCapsule:
-		cf := &Field{
+		return &Field{
 			Type:  "capsule",
 			Value: rv.Describe(),
 		}
-		if f != nil {
-			nf.Value = cf
-			return nf
-		}
-		return cf
 	}
-	return nil
+	panic("this shouldnt happen")
 }
 
 func convertStruct(in interface{}, f *rivertags.Field) *Field {
@@ -230,14 +224,11 @@ func convertStruct(in interface{}, f *rivertags.Field) *Field {
 		Type: "attr",
 	}
 	if f != nil && len(f.Name) > 0 {
-		nf.Key = f.Name[len(f.Name)-1]
-		nf.ID = f.Name[len(f.Name)-1]
 		nf.Name = f.Name[len(f.Name)-1]
 	}
 	if vIn.Kind() == reflect.Struct {
 		if f != nil && f.IsBlock() {
 			nf.Type = "block"
-			nf.ID = strings.Join(f.Name, ".")
 			// remote_write "t1"
 			if len(f.Name) == 2 {
 				nf.Name = f.Name[0]
@@ -253,7 +244,7 @@ func convertStruct(in interface{}, f *rivertags.Field) *Field {
 		riverFields := rivertags.Get(reflect.TypeOf(in))
 		for _, rf := range riverFields {
 			fieldValue := vIn.FieldByIndex(rf.Index)
-			found := ConvertToField(fieldValue.Interface(), &rf)
+			found := convertRiver(fieldValue.Interface(), &rf)
 			if found != nil {
 				fields = append(fields, found)
 			}
@@ -278,7 +269,7 @@ func convertStruct(in interface{}, f *rivertags.Field) *Field {
 			mf := &Field{}
 			mf.Key = iter.Key().String()
 			mf.Name = iter.Key().String()
-			mf.Value = ConvertToField(iter.Value().Interface(), nil)
+			mf.Value = convertRiver(iter.Value().Interface(), nil)
 			if mf.Value != nil {
 				fields = append(fields, mf)
 			}
