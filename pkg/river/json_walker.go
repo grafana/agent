@@ -211,10 +211,15 @@ func ConvertToField(in interface{}, f *rivertags.Field) *Field {
 	case value.TypeFunction:
 		panic("func not handled")
 	case value.TypeCapsule:
-		return &Field{
+		cf := &Field{
 			Type:  "capsule",
 			Value: rv.Describe(),
 		}
+		if f != nil {
+			nf.Value = cf
+			return nf
+		}
+		return cf
 	}
 	return nil
 }
