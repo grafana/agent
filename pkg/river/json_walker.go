@@ -160,11 +160,16 @@ func ConvertToField(in interface{}, f *rivertags.Field) *Field {
 		nf.Value = numField
 		return nf
 	case value.TypeString:
-		nf.Value = &Field{
+		sf := &Field{
 			Type:  "string",
 			Value: rv.Text(),
 		}
-		return nf
+		if f != nil {
+			nf.Value = sf
+			return nf
+		} else {
+			return sf
+		}
 	case value.TypeBool:
 		nf.Value = &Field{
 			Type:  "bool",

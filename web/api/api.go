@@ -35,7 +35,7 @@ func (f *FlowAPI) RegisterRoutes(urlPrefix string, r *mux.Router) {
 func (f *FlowAPI) listComponentsHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {
 		infos := f.flow.ComponentInfos()
-		bb, err := json.Marshal(infos)
+		bb, err := json.MarshalIndent(infos, "", "    ")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

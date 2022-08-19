@@ -119,7 +119,7 @@ func (c *Flow) ComponentJSON(w io.Writer, ci *river.ComponentField) (int, error)
 			UpdatedTime: ci.Health.UpdatedTime,
 		},
 		"")
-	bb, err := json.Marshal(field)
+	bb, err := json.MarshalIndent(field, "", "    ")
 	if err != nil {
 		return 0, err
 	}
