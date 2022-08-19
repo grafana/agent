@@ -14,12 +14,12 @@ import (
 // ComponentField represents a component in river.
 type ComponentField struct {
 	Field        `json:",omitempty"`
-	References   []string `json:"referencesTo"`
-	ReferencedBy []string `json:"referencedBy"`
-	Health       *Health  `json:"health"`
-	Original     string   `json:"original"`
-	Arguments    []*Field `json:"arguments,omitempty"`
-	Exports      []*Field `json:"exports,omitempty"`
+	References   []string    `json:"referencesTo"`
+	ReferencedBy []string    `json:"referencedBy"`
+	Health       *Health     `json:"health"`
+	Original     string      `json:"original"`
+	Arguments    interface{} `json:"arguments,omitempty"`
+	Exports      interface{} `json:"exports,omitempty"`
 }
 
 // Field represents a value in river.
@@ -77,24 +77,24 @@ func ConvertComponentToJSON(
 	return nf
 }
 
-func convertArguments(args interface{}) []*Field {
+func convertArguments(args interface{}) interface{} {
 	if args == nil {
 		return nil
 	}
 	f := convertStruct(args, nil)
-	return f.Value.([]*Field)
+	return f.Value
 }
 
-func convertExports(exports interface{}) []*Field {
+func convertExports(exports interface{}) interface{} {
 	if exports == nil {
 		return nil
 	}
 	f := convertStruct(exports, nil)
-	return f.Value.([]*Field)
+	return f.Value
 }
 
 // convertRiver is used to convert values that are a river type and have a field value
-func convertRiver(in interface{}, f *rivertags.Field) *Field {
+func convertRiver(in interface{}, f *rivertags.Field) interface{} {
 	nf := &Field{}
 	// f is generally null if this is a object that is a child of an array or map, but the elements have river
 	// tags.
@@ -132,8 +132,7 @@ func convertRiver(in interface{}, f *rivertags.Field) *Field {
 					fields = append(fields, found)
 				}
 			}
-			nf.Body = fields
-			return nf
+			return fields
 		}
 		fields := make([]*Field, 0)
 		for i := 0; i < vIn.Len(); i++ {
@@ -240,7 +239,7 @@ func convertStruct(in interface{}, f *rivertags.Field) *Field {
 			nf.Type = "attr"
 		}
 
-		fields := make([]*Field, 0)
+		fields := make([]interface{}, 0)
 		riverFields := rivertags.Get(reflect.TypeOf(in))
 		for _, rf := range riverFields {
 			fieldValue := vIn.FieldByIndex(rf.Index)
