@@ -96,9 +96,9 @@ func convertExports(exports interface{}) []*Field {
 // convertRiver is used to convert values that are a river type and have a field value
 func convertRiver(in interface{}, f *rivertags.Field) *Field {
 	nf := &Field{}
-	if f == nil {
-		panic("this shouldnt happen")
-	} else {
+	// f is generally null if this is a object that is a child of an array or map, but the elements have river
+	// tags.
+	if f != nil {
 		if f.IsAttr() {
 			nf.Type = "attr"
 		} else {
@@ -206,7 +206,7 @@ func convertValue(in interface{}) *Field {
 	case value.TypeArray:
 		panic("this shouldnt happen")
 	case value.TypeObject:
-		panic("this shouldnt happen")
+		return convertStruct(in, nil)
 	case value.TypeFunction:
 		panic("func not handled")
 	case value.TypeCapsule:
@@ -269,7 +269,14 @@ func convertStruct(in interface{}, f *rivertags.Field) *Field {
 			mf := &Field{}
 			mf.Key = iter.Key().String()
 			mf.Name = iter.Key().String()
-			mf.Value = convertRiver(iter.Value().Interface(), nil)
+			val, vt, _ := getActualStruct(iter.Value().Interface())
+			hasTags := rivertags.HasRiverTags(vt)
+			if hasTags {
+				mf.Value = convertRiver(val, nil)
+			} else {
+				mf.Value = convertValue(val)
+			}
+
 			if mf.Value != nil {
 				fields = append(fields, mf)
 			}

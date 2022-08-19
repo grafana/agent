@@ -184,6 +184,28 @@ func Get(ty reflect.Type) []Field {
 	return fields
 }
 
+func HasRiverTags(ty reflect.Type) bool {
+	if k := ty.Kind(); k != reflect.Struct {
+		return false
+	}
+
+	for _, field := range reflect.VisibleFields(ty) {
+		// River does not support embedding of fields
+		if field.Anonymous {
+			panic(fmt.Sprintf("river: anonymous fields not supported %s", printPathToField(ty, field.Index)))
+		}
+
+		_, tagged := field.Tag.Lookup("river")
+		if !tagged {
+			continue
+		}
+		return true
+
+	}
+
+	return false
+}
+
 func printPathToField(structTy reflect.Type, path []int) string {
 	var sb strings.Builder
 
