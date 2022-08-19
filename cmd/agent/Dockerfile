@@ -1,6 +1,14 @@
-FROM golang:1.18.0-bullseye as build
+FROM node:16.17-alpine as build-ui
+
+# Enable Yarn
+RUN corepack enable
+
 COPY . /src/agent
-WORKDIR /src/agent
+WORKDIR /src/agent/web/ui
+RUN yarn
+RUN yarn build
+
+FROM golang:1.18.0-bullseye as build
 ARG RELEASE_BUILD=true
 ARG IMAGE_TAG
 
@@ -11,7 +19,11 @@ RUN apt-get update && apt-get install -t bullseye-backports -qy libsystemd-dev
 # Add support for bcc bindings required to compile the eBPF integration
 RUN apt-get update && apt-get install -qy libbpfcc-dev
 
-RUN make clean && make IMAGE_TAG=${IMAGE_TAG} RELEASE_BUILD=${RELEASE_BUILD} BUILD_IN_CONTAINER=false agent
+COPY . /src/agent
+WORKDIR /src/agent
+
+COPY --from=build-ui /src/agent/web/ui/build /src/agent/web/ui/build
+RUN make clean && make IMAGE_TAG=${IMAGE_TAG} RELEASE_BUILD=${RELEASE_BUILD} BUILD_IN_CONTAINER=false BUILTIN_ASSETS=true agent
 
 FROM debian:bullseye-slim
 

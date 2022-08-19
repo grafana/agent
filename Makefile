@@ -9,6 +9,7 @@ SHELL = /usr/bin/env bash
 IMAGE_PREFIX ?= grafana
 IMAGE_BRANCH_TAG ?= main
 DOCKER_OPTS ?= -it
+BUILTIN_ASSETS ?= false
 
 ifeq ($(RELEASE_TAG),)
 IMAGE_TAG ?= $(shell ./tools/image-tag)
@@ -81,17 +82,21 @@ GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 # define the list here to make scanning faster.
 DONT_FIND := -name tools -prune -o -name vendor -prune -o -name .git -prune -o -name .cache -prune -o -name .pkg -prune -o
 
+ifeq ($(BUILTIN_ASSETS),true)
+EXTRA_TAGS := $(EXTRA_TAGS) builtinassets
+endif
+
 # Build flags
 VPREFIX        := github.com/grafana/agent/pkg/build
 GO_LDFLAGS     := -X $(VPREFIX).Branch=$(GIT_BRANCH) -X $(VPREFIX).Version=$(IMAGE_TAG) -X $(VPREFIX).Revision=$(GIT_REVISION) -X $(VPREFIX).BuildUser=$(shell whoami)@$(shell hostname) -X $(VPREFIX).BuildDate=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
-GO_FLAGS       := -ldflags "-extldflags \"-static\" -s -w $(GO_LDFLAGS)" -tags "netgo static_build" $(GOFLAGS)
-DEBUG_GO_FLAGS := -gcflags "all=-N -l" -ldflags "-extldflags \"-static\" $(GO_LDFLAGS)" -tags "netgo static_build" $(GOFLAGS)
+GO_FLAGS       := -ldflags "-extldflags \"-static\" -s -w $(GO_LDFLAGS)" -tags "netgo static_build $(EXTRA_TAGS)" $(GOFLAGS)
+DEBUG_GO_FLAGS := -gcflags "all=-N -l" -ldflags "-extldflags \"-static\" $(GO_LDFLAGS)" -tags "netgo static_build $(EXTRA_TAGS)" $(GOFLAGS)
 DOCKER_BUILD_FLAGS = --build-arg RELEASE_BUILD=$(RELEASE_BUILD) --build-arg IMAGE_TAG=$(IMAGE_TAG) --build-arg DRONE=$(DRONE)
 
 # We need a separate set of flags for CGO, where building with -static can
 # cause problems with some C libraries.
-CGO_FLAGS := -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo" $(GOFLAGS)
-DEBUG_CGO_FLAGS := -gcflags "all=-N -l" -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo" $(GOFLAGS)
+CGO_FLAGS := -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo $(EXTRA_TAGS)" $(GOFLAGS)
+DEBUG_CGO_FLAGS := -gcflags "all=-N -l" -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo $(EXTRA_TAGS)" $(GOFLAGS)
 # If we're not building the release, use the debug flags instead.
 ifeq ($(RELEASE_BUILD),false)
 GO_FLAGS = $(DEBUG_GO_FLAGS)
@@ -295,7 +300,7 @@ dist: dist-agent dist-agentctl dist-packages
 dist-agent: seego dist/agent-linux-amd64 dist/agent-linux-arm64 dist/agent-linux-armv6 dist/agent-linux-armv7 dist/agent-linux-ppc64le dist/agent-darwin-amd64 dist/agent-darwin-arm64 dist/agent-windows-amd64.exe dist/agent-freebsd-amd64 dist/agent-windows-installer.exe
 
 # Override CGO_FLAGS to add the noebpf build tag in linux/amd64 builds
-dist/agent-linux-amd64: CGO_FLAGS := -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo noebpf" $(GOFLAGS)
+dist/agent-linux-amd64: CGO_FLAGS := -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo noebpf $(EXTRA_TAGS)" $(GOFLAGS)
 dist/agent-linux-amd64: seego
 	$(call SetBuildVarsConditional,linux/amd64) ;      $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
@@ -344,7 +349,7 @@ dist/agent-freebsd-amd64: seego
 dist-agentctl: seego dist/agentctl-linux-amd64 dist/agentctl-linux-arm64 dist/agentctl-linux-armv6 dist/agentctl-linux-armv7 dist/agentctl-darwin-amd64 dist/agentctl-darwin-arm64 dist/agentctl-windows-amd64.exe dist/agentctl-freebsd-amd64
 
 # Override CGO_FLAGS to add the noebpf build tag in linux/amd64 builds
-dist/agentctl-linux-amd64: CGO_FLAGS := -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo noebpf" $(GOFLAGS)
+dist/agentctl-linux-amd64: CGO_FLAGS := -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo noebpf $(EXTRA_TAGS)" $(GOFLAGS)
 dist/agentctl-linux-amd64: seego
 	$(call SetBuildVarsConditional,linux/amd64);    $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
