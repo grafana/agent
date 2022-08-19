@@ -217,7 +217,7 @@ const ComponentBody: FC<ComponentBodyProps> = ({ partition }) => {
           )
         }
         <div className={styles.sectionContent}>
-          {partition.attrs.length == 0 ? (
+          {partition.attrs.length === 0 ? (
             <em className={styles.informative}>(No set attributes in this block)</em>
           ) : (
             <table>
