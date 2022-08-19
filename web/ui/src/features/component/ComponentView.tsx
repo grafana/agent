@@ -217,26 +217,30 @@ const ComponentBody: FC<ComponentBodyProps> = ({ partition }) => {
           )
         }
         <div className={styles.sectionContent}>
-          <table>
-            <thead>
-              <tr>
-                <th className={styles.nameColumn}>Name</th>
-                <th className={styles.valueColumn}>Value</th>
-              </tr>
-            </thead>
-            <tbody>
-              {partition.attrs.map((attr) => {
-                return (
-                  <tr key={attr.name}>
-                    <td className={styles.nameColumn}>{attr.name}</td>
-                    <td className={styles.valueColumn}>
-                      <RiverValue value={attr.value} />
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          {partition.attrs.length === 0 ? (
+            <em className={styles.informative}>(No set attributes in this block)</em>
+          ) : (
+            <table>
+              <thead>
+                <tr>
+                  <th className={styles.nameColumn}>Name</th>
+                  <th className={styles.valueColumn}>Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                {partition.attrs.map((attr) => {
+                  return (
+                    <tr key={attr.name}>
+                      <td className={styles.nameColumn}>{attr.name}</td>
+                      <td className={styles.valueColumn}>
+                        <RiverValue value={attr.value} />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
       </section>
       {partition.inner.map((body) => {
