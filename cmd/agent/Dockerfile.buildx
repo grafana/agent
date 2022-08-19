@@ -1,3 +1,16 @@
+FROM --platform=$BUILDPLATFORM node:16.17-alpine as build-ui
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
+
+# Enable Yarn
+RUN corepack enable
+
+# Build the UI
+COPY . /src/agent
+WORKDIR /src/agent/web/ui
+RUN yarn
+RUN yarn build
+
 FROM --platform=$BUILDPLATFORM rfratto/seego:latest as build
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM
@@ -20,7 +33,8 @@ WORKDIR /src/agent
 ARG RELEASE_BUILD=true
 ARG IMAGE_TAG
 
-RUN make clean && IMAGE_TAG=${IMAGE_TAG} RELEASE_BUILD=${RELEASE_BUILD} BUILD_IN_CONTAINER=false DRONE=true make agent
+COPY --from=build-ui /src/agent/web/ui/build /src/agent/web/ui/build
+RUN make clean && IMAGE_TAG=${IMAGE_TAG} RELEASE_BUILD=${RELEASE_BUILD} BUILD_IN_CONTAINER=false DRONE=true BUILTIN_ASSETS=true make agent
 
 FROM debian:bullseye-slim
 
