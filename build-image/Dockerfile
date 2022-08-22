@@ -13,8 +13,8 @@ FROM golang:1.17 as ghr
 RUN GO111MODULE=on go get github.com/tcnksm/ghr
 
 # Dependency: docker (for building images)
-FROM alpine:edge as docker
-RUN apk add --no-cache docker-cli
+FROM alpine:3.16 as docker
+RUN apk add --no-cache docker-cli docker-cli-buildx
 
 # Dependency: Go and Go dependencies
 FROM golang:1.18-bullseye as golang
@@ -24,6 +24,7 @@ ENV CONTROLLER_GEN_VERSION v0.8.0
 
 RUN go install sigs.k8s.io/controller-tools/cmd/controller-gen@$CONTROLLER_GEN_VERSION \
  && go install github.com/mitchellh/gox@v1.0.1                                         \
+ && go install github.com/tcnksm/ghr@v0.15.0                                           \
  && go install github.com/grafana/tanka/cmd/tk@v0.22.1                                 \
  && go install github.com/jsonnet-bundler/jsonnet-bundler/cmd/jb@v0.5.1                \
  && go install github.com/google/go-jsonnet/cmd/jsonnet@v0.18.0                        \
@@ -39,20 +40,23 @@ RUN go install sigs.k8s.io/controller-tools/cmd/controller-gen@$CONTROLLER_GEN_V
 # dependencies.
 FROM rfratto/viceroy:v0.2.1
 
+# NOTE(rfratto): musl is installed so the Docker binaries from alpine work
+# properly.
 RUN apt-get update                               \
  && apt-get install -qy                          \
       build-essential file zip unzip gettext git \
-      libsystemd-dev nsis libbpfcc-dev nsis      \
+      musl libsystemd-dev nsis libbpfcc-dev nsis \
       rpm ruby ruby-dev rubygems                 \
       protobuf-compiler libprotobuf-dev          \
  && gem install --no-document fpm                \
  && rm -rf /var/lib/apt/lists/*
 
-COPY --from=golang   /usr/local/go      /usr/local/go
-COPY --from=golang   /go/bin            /go/bin
-COPY --from=golangci /bin/golangci-lint /usr/local/bin
-COPY --from=ghr      /go/bin/ghr        /usr/bin/ghr
-COPY --from=docker   /usr/bin/docker    /usr/bin/docker
+COPY --from=golang   /usr/local/go                   /usr/local/go
+COPY --from=golang   /go/bin                         /go/bin
+COPY --from=golangci /bin/golangci-lint              /usr/local/bin
+COPY --from=ghr      /go/bin/ghr                     /usr/bin/ghr
+COPY --from=docker   /usr/bin/docker                 /usr/bin/docker
+COPY --from=docker   /usr/libexec/docker/cli-plugins /usr/libexec/docker/cli-plugins
 
 # Set CC to viceroycc to ensure that the cross compilers are used for all C
 # compilation.
