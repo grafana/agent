@@ -6,7 +6,11 @@ ARG IMAGE_TAG
 
 RUN make clean && make IMAGE_TAG=${IMAGE_TAG} RELEASE_BUILD=${RELEASE_BUILD} BUILD_IN_CONTAINER=false agent-operator
 
-FROM gcr.io/distroless/base-debian11
+FROM debian:bullseye-slim
+
+RUN apt-get update && \
+  apt-get install -qy tzdata ca-certificates && \
+  rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 COPY --from=build /src/agent/cmd/agent-operator/agent-operator /bin/agent-operator
 
