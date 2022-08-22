@@ -8,10 +8,6 @@
 FROM alpine as golangci
 RUN wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.46.2
 
-# Dependency: ghr (for producing releases)
-FROM golang:1.17 as ghr
-RUN GO111MODULE=on go get github.com/tcnksm/ghr
-
 # Dependency: docker (for building images)
 FROM alpine:3.16 as docker
 RUN apk add --no-cache docker-cli docker-cli-buildx
@@ -51,12 +47,11 @@ RUN apt-get update                               \
  && gem install --no-document fpm                \
  && rm -rf /var/lib/apt/lists/*
 
-COPY --from=golang   /usr/local/go                   /usr/local/go
-COPY --from=golang   /go/bin                         /go/bin
 COPY --from=golangci /bin/golangci-lint              /usr/local/bin
-COPY --from=ghr      /go/bin/ghr                     /usr/bin/ghr
 COPY --from=docker   /usr/bin/docker                 /usr/bin/docker
 COPY --from=docker   /usr/libexec/docker/cli-plugins /usr/libexec/docker/cli-plugins
+COPY --from=golang   /usr/local/go                   /usr/local/go
+COPY --from=golang   /go/bin                         /go/bin
 
 # Set CC to viceroycc to ensure that the cross compilers are used for all C
 # compilation.
