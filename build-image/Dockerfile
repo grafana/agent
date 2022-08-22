@@ -1,21 +1,62 @@
-# Use the loki-build-image as a base as it shares most of the common tooling.
-# We just need some additional tooling for building packages.
-FROM grafana/loki-build-image:0.18.0
+#
+# Dependencies
+#
+# We retrieve many of our dependencies by using various smaller containers.
+#
 
-RUN apt-get update && apt-get install -y \
-  build-essential \
-  rpm \
-  ruby \
-  ruby-dev \
-  rubygems \
-  && gem install --no-ri --no-rdoc fpm \
-  && rm -rf /var/lib/apt/lists/*
+# Dependency: golangci-lint (for linting)
+FROM alpine as golangci
+RUN wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.46.2
 
-# Install dependencies used for the operator
-# Keep versions in sync with cmd/agent-operator/DEVELOPERS.md
-RUN go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.8.0
+# Dependency: ghr (for producing releases)
+FROM golang:1.17 as ghr
+RUN GO111MODULE=on go get github.com/tcnksm/ghr
 
-# Fix permissions for /go/bin directory.
-RUN chmod 0755 /go/bin
-# Use /src/agent directory instead of /src/loki.
-RUN sed -i -e 's /src/loki /src/agent ' /build.sh
+# Dependency: docker (for building images)
+FROM alpine:edge as docker
+RUN apk add --no-cache docker-cli
+
+# Dependency: Go and Go dependencies
+FROM golang:1.18-bullseye as golang
+
+# Keep in sync with cmd/agent-operator/DEVELOPERS.md
+ENV CONTROLLER_GEN_VERSION v0.8.0
+
+RUN go install sigs.k8s.io/controller-tools/cmd/controller-gen@$CONTROLLER_GEN_VERSION \
+ && go install github.com/mitchellh/gox@v1.0.1                                         \
+ && go install github.com/grafana/tanka/cmd/tk@v0.22.1                                 \
+ && go install github.com/jsonnet-bundler/jsonnet-bundler/cmd/jb@v0.5.1                \
+ && go install github.com/google/go-jsonnet/cmd/jsonnet@v0.18.0                        \
+ && go install github.com/golang/protobuf/protoc-gen-go@v1.3.1                         \
+ && go install github.com/gogo/protobuf/protoc-gen-gogoslick@v1.3.0                    \
+ && go install github.com/gogo/protobuf/gogoproto/...@v1.3.0
+
+#
+# Final image
+#
+
+# rfratto/viceroy contains C cross compilers can be used for our Cgo
+# dependencies.
+FROM rfratto/viceroy:v0.2.1
+
+RUN apt-get update                               \
+ && apt-get install -qy                          \
+      build-essential file zip unzip gettext git \
+      libsystemd-dev nsis libbpfcc-dev nsis      \
+      rpm ruby ruby-dev rubygems                 \
+      protobuf-compiler libprotobuf-dev          \
+ && gem install --no-document fpm                \
+ && rm -rf /var/lib/apt/lists/*
+
+COPY --from=golang   /usr/local/go      /usr/local/go
+COPY --from=golang   /go/bin            /go/bin
+COPY --from=golangci /bin/golangci-lint /usr/local/bin
+COPY --from=ghr      /go/bin/ghr        /usr/bin/ghr
+COPY --from=docker   /usr/bin/docker    /usr/bin/docker
+
+# Set CC to viceroycc to ensure that the cross compilers are used for all C
+# compilation.
+ENV CC viceroycc
+
+ENV GOPATH /go
+ENV PATH /usr/local/go/bin:/go/bin:$PATH
