@@ -46,6 +46,8 @@ Main (unreleased)
 
  - It is now possible to compile Grafana Agent using Go 1.19. (@rfratto)
 
+ - The agent-operator docker image is now based on [distroless](https://github.com/GoogleContainerTools/distroless) instead of the heavier debian base image. (@captncraig)
+
 v0.26.1 (2022-07-25)
 -------------------------
 
