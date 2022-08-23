@@ -45,6 +45,7 @@ define one instance.
 
 # Allows to configure the maximum amount of time an idle Keep-Alive connection
 # can remain idle before closing itself. Zero means no limit.
+# The setting is ignored when `http_disable_keepalives` is enabled.
 [http_idle_conn_timeout: <duration> | default = "5m"]
 
 # The list of Prometheus instances to launch with the agent.
