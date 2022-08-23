@@ -22,6 +22,7 @@ import (
 	"github.com/grafana/agent/pkg/util"
 	"github.com/oklog/run"
 	"github.com/prometheus/client_golang/prometheus"
+	config_util "github.com/prometheus/common/config"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/model/relabel"
@@ -69,6 +70,9 @@ type Config struct {
 	// Minimum and maximum time series should exist in the WAL for.
 	MinWALTime time.Duration `yaml:"min_wal_time,omitempty"`
 	MaxWALTime time.Duration `yaml:"max_wal_time,omitempty"`
+
+	DisableKeepAlives bool          `yaml:"http_disable_keepalives,omitempty"`
+	IdleConnTimeout   time.Duration `yaml:"http_idle_conn_timeout,omitempty"`
 
 	RemoteFlushDeadline  time.Duration `yaml:"remote_flush_deadline,omitempty"`
 	WriteStaleOnShutdown bool          `yaml:"write_stale_on_shutdown,omitempty"`
@@ -427,7 +431,15 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer, cf
 	i.storage = storage.NewFanout(i.logger, i.wal, i.remoteStore)
 
 	opts := &scrape.Options{
-		ExtraMetrics: cfg.global.ExtraMetrics,
+		ExtraMetrics:      cfg.global.ExtraMetrics,
+		HTTPClientOptions: []config_util.HTTPClientOption{},
+	}
+
+	if cfg.DisableKeepAlives {
+		opts.HTTPClientOptions = append(opts.HTTPClientOptions, config_util.WithKeepAlivesDisabled())
+	}
+	if cfg.IdleConnTimeout != 0 {
+		opts.HTTPClientOptions = append(opts.HTTPClientOptions, config_util.WithIdleConnTimeout(cfg.IdleConnTimeout))
 	}
 	scrapeManager := newScrapeManager(opts, log.With(i.logger, "component", "scrape manager"), i.storage)
 	err = scrapeManager.ApplyConfig(&config.Config{

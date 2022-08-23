@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"net/http/httptest"
 	"os"
 	"path"
+	"reflect"
 	"strings"
 	"sync"
 	"testing"
@@ -243,6 +245,82 @@ func TestInstance(t *testing.T) {
 		defer mockStorage.mut.Unlock()
 		return len(mockStorage.series) > 0
 	})
+}
+
+func TestDisabledKeepAlives(t *testing.T) {
+	// When we DisableKeepAlives the Connection header should be set to 'close'
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, r.Header.Get("Connection"), "close")
+	})
+	httpSrv := httptest.NewServer(handler)
+	defer httpSrv.Close()
+
+	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
+	require.NoError(t, err)
+	defer os.RemoveAll(walDir)
+
+	globalConfig := getTestGlobalConfig(t)
+	cfg := getTestConfig(t, &globalConfig, httpSrv.Listener.Addr().String())
+	cfg.DisableKeepAlives = true
+
+	mockStorage := mockWalStorage{series: make(map[storage.SeriesRef]int), directory: walDir}
+	newWal := func(_ prometheus.Registerer) (walStorage, error) { return &mockStorage, nil }
+
+	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
+	inst, err := newInstance(cfg, nil, logger, newWal)
+	require.NoError(t, err)
+	runInstance(t, inst)
+
+	// Wait until mockWalStorage has had a series added to it.
+	test.Poll(t, 30*time.Second, true, func() interface{} {
+		mockStorage.mut.Lock()
+		defer mockStorage.mut.Unlock()
+		return len(mockStorage.series) > 0
+	})
+}
+
+func TestIdleConnectionTimeouts(t *testing.T) {
+	// When we set a very small IdleConnectionTimeout, we expect the
+	// requests to be killed off before they can be reused, resulting in new
+	// underlying network connections.
+	networkConnections := make(map[interface{}]struct{})
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ptrVal := reflect.ValueOf(w)
+		val := reflect.Indirect(ptrVal)
+		// w is an 'http.response' from which we get the 'conn' field
+		val1 := reflect.Indirect(val.FieldByName("conn"))
+		// conn is an 'http.conn' from which we get the 'rwc' field
+		rwc := reflect.Indirect(val1.FieldByName("rwc").Elem())
+		networkConnections[rwc] = struct{}{}
+	})
+	httpSrv := httptest.NewServer(handler)
+	defer httpSrv.Close()
+
+	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
+	require.NoError(t, err)
+	defer os.RemoveAll(walDir)
+
+	globalConfig := getTestGlobalConfig(t)
+	cfg := getTestConfig(t, &globalConfig, httpSrv.Listener.Addr().String())
+	cfg.global.Prometheus.ScrapeInterval = model.Duration(1 * time.Second)
+	cfg.DisableKeepAlives = false
+	cfg.IdleConnTimeout = 10 * time.Nanosecond
+
+	mockStorage := mockWalStorage{series: make(map[storage.SeriesRef]int), directory: walDir}
+	newWal := func(_ prometheus.Registerer) (walStorage, error) { return &mockStorage, nil }
+
+	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
+	inst, err := newInstance(cfg, nil, logger, newWal)
+	require.NoError(t, err)
+	runInstance(t, inst)
+
+	// Wait until mockWalStorage has had a series added to it.
+	test.Poll(t, 30*time.Second, true, func() interface{} {
+		mockStorage.mut.Lock()
+		defer mockStorage.mut.Unlock()
+		return len(mockStorage.series) > 0
+	})
+	require.True(t, len(networkConnections) > 1)
 }
 
 // TestInstance_Recreate ensures that creating an instance with the same name twice
