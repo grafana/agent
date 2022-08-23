@@ -106,7 +106,7 @@ func convertComponentChild(input interface{}) ([]*Field, error) {
 	for _, t := range rt {
 		fieldValue := vIn.FieldByIndex(t.Index)
 		fieldIn, fieldT, fieldVal := getActualValue(fieldValue.Interface())
-		// Blocks can only happen at this level
+		// Array blocks can only happen at this level
 		if t.IsBlock() && (fieldT.Kind() == reflect.Array || fieldT.Kind() == reflect.Slice) {
 			for i := 0; i < fieldVal.Len(); i++ {
 				arrEle := fieldVal.Index(i).Interface()
@@ -146,12 +146,15 @@ func convertThing(in interface{}, f *rivertags.Field) (*Field, error) {
 	}
 
 	in, inType, inValue := getActualValue(in)
+	// If this is a pointer then its an interface{}nil and return
 	if inType.Kind() == reflect.Pointer {
 		return nil, nil
 	}
+	// If its a struct that is entirely default values return nil
 	if inType.Kind() == reflect.Struct && inValue.IsZero() {
 		return nil, nil
 	}
+
 	if f != nil && f.IsBlock() {
 		return convertBlock(in, f)
 	}
@@ -164,20 +167,16 @@ func convertThing(in interface{}, f *rivertags.Field) (*Field, error) {
 	if inType.Kind() == reflect.Array || inType.Kind() == reflect.Slice {
 		return convertArray(inType, inValue, f)
 	} else if inType.Kind() == reflect.Struct {
-		// Normal structures have river tags so handle them like structs. But some things regex, time, etc act like
-		// structs but need to be considered a value. They distill into string, so create an attr to hold them and move on.
 		if f != nil && f.IsAttr() {
-			v, err := convertValue(in)
+			v, err := convertAttribute(in, inType, f)
 			if err != nil {
 				return nil, err
 			}
-			return &Field{
-				Type:  attr,
-				Value: v,
-				Name:  strings.Join(f.Name, "."),
-			}, nil
+			return v, nil
 		} else if !rivertags.HasRiverTags(inType) {
-			// This is used when the caller is converting a value directly.
+			// This is used when the caller is converting a struct that is technically a struct, but should be
+			// treated like a string. Regex, time.time, time.duration ect. If it doesn't have river tags then we
+			// get the string representation.
 			v, err := convertValue(in)
 			if err != nil {
 				return nil, err
@@ -203,6 +202,8 @@ func convertAttribute(in interface{}, t reflect.Type, f *rivertags.Field) (*Fiel
 		Name: strings.Join(f.Name, "."),
 		Type: attr,
 	}
+
+	// If this is a simple attribute then grab the value directly.
 	if isValue(t) {
 		v, err := convertValue(in)
 		if err != nil {
@@ -353,22 +354,11 @@ func convertMap(vIn reflect.Value) (*Field, error) {
 	for iter.Next() {
 		mf := &Field{}
 		mf.Key = iter.Key().String()
-		val, vt, _ := getActualValue(iter.Value().Interface())
-		hasTags := rivertags.HasRiverTags(vt)
-		if hasTags {
-			v, err := convertThing(iter.Value().Interface(), nil)
-			if err != nil {
-				return nil, err
-			}
-			mf.Value = v
-		} else {
-			v, err := convertValue(val)
-			if err != nil {
-				return nil, err
-			}
-			mf.Value = v
+		v, err := convertThing(iter.Value().Interface(), nil)
+		if err != nil {
+			return nil, err
 		}
-
+		mf.Value = v
 		if mf.Value != nil {
 			fields = append(fields, mf)
 		}
