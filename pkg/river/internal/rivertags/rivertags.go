@@ -184,6 +184,7 @@ func Get(ty reflect.Type) []Field {
 	return fields
 }
 
+// HasRiverTags checks to see if the type contains any river tags
 func HasRiverTags(ty reflect.Type) bool {
 	if k := ty.Kind(); k != reflect.Struct {
 		return false
@@ -192,7 +193,7 @@ func HasRiverTags(ty reflect.Type) bool {
 	for _, field := range reflect.VisibleFields(ty) {
 		// River does not support embedding of fields
 		if field.Anonymous {
-			panic(fmt.Sprintf("river: anonymous fields not supported %s", printPathToField(ty, field.Index)))
+			return false
 		}
 
 		_, tagged := field.Tag.Lookup("river")
@@ -200,7 +201,6 @@ func HasRiverTags(ty reflect.Type) bool {
 			continue
 		}
 		return true
-
 	}
 
 	return false

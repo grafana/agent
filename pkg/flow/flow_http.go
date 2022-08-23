@@ -107,7 +107,7 @@ func (c *Flow) ComponentJSON(w io.Writer, ci *river.ComponentField) (int, error)
 	if foundComponent == nil {
 		return 0, fmt.Errorf("unable to find component named %s", ci.ID)
 	}
-	field := river.ConvertComponentToJSON(
+	field, err := river.ConvertComponentToJSON(
 		foundComponent.ID(),
 		foundComponent.Arguments(),
 		foundComponent.Exports(),
@@ -120,6 +120,9 @@ func (c *Flow) ComponentJSON(w io.Writer, ci *river.ComponentField) (int, error)
 			UpdatedTime: ci.Health.UpdatedTime,
 		},
 		"")
+	if err != nil {
+		return 0, err
+	}
 	bb, err := json.MarshalIndent(field, "", "    ")
 	if err != nil {
 		return 0, err

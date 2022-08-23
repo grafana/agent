@@ -122,7 +122,7 @@ func Encode(v interface{}) Value {
 	if v == nil {
 		return Null
 	}
-	return makeValue(reflect.ValueOf(v))
+	return MakeValue(reflect.ValueOf(v))
 }
 
 // Type returns the River type for the value.
@@ -256,7 +256,7 @@ func (v Value) Index(i int) Value {
 	if v.ty != TypeArray {
 		panic("river/value: Index called on non-array value")
 	}
-	return makeValue(v.rv.Index(i))
+	return MakeValue(v.rv.Index(i))
 }
 
 // Interface returns the underlying Go value for the Value.
@@ -270,9 +270,9 @@ func (v Value) Interface() interface{} {
 // Reflect returns the raw reflection value backing v.
 func (v Value) Reflect() reflect.Value { return v.rv }
 
-// makeValue converts a reflect value into a Value, deferencing any pointers or
+// MakeValue converts a reflect value into a Value, deferencing any pointers or
 // interface{} values.
-func makeValue(v reflect.Value) Value {
+func MakeValue(v reflect.Value) Value {
 	// Early check: if v is interface{}, we need to deference it to get the
 	// concrete value.
 	if v.IsValid() && v.Type() == goAny {
@@ -369,7 +369,7 @@ func (v Value) Key(key string) (index Value, ok bool) {
 		if !val.IsValid() || val.IsZero() {
 			return
 		}
-		return makeValue(val), true
+		return MakeValue(val), true
 
 	case v.rv.Kind() == reflect.Slice, v.rv.Kind() == reflect.Array:
 		// List of labeled blocks.
@@ -452,14 +452,14 @@ func (v Value) Call(args ...Value) (Value, error) {
 	outs := v.rv.Call(reflectArgs)
 	switch len(outs) {
 	case 1:
-		return makeValue(outs[0]), nil
+		return MakeValue(outs[0]), nil
 	case 2:
 		// When there's 2 return values, the second is always an error.
 		err, _ := outs[1].Interface().(error)
 		if err != nil {
 			return Null, Error{Value: v, Inner: err}
 		}
-		return makeValue(outs[0]), nil
+		return MakeValue(outs[0]), nil
 
 	default:
 		// It's not possible to reach here; we enforce that function values always
@@ -484,7 +484,7 @@ func convertValue(val Value, toType Type) (Value, error) {
 		switch toType {
 		case TypeString: // number -> string
 			strVal := newNumberValue(val.rv).ToString()
-			return makeValue(reflect.ValueOf(strVal)), nil
+			return MakeValue(reflect.ValueOf(strVal)), nil
 		}
 
 	case TypeString:
