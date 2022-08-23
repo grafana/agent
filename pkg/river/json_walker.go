@@ -175,7 +175,7 @@ func convertThing(in interface{}, f *rivertags.Field) (*Field, error) {
 			return v, nil
 		} else if !rivertags.HasRiverTags(inType) {
 			// This is used when the caller is converting a struct that is technically a struct, but should be
-			// treated like a string. Regex, time.time, time.duration ect. If it doesn't have river tags then we
+			// treated like a string. Regex, time.time, time.duration etc. If it doesn't have river tags then we
 			// get the string representation.
 			v, err := convertValue(in)
 			if err != nil {
