@@ -47,6 +47,8 @@ type Config struct {
 	Configs                []instance.Config     `yaml:"configs,omitempty,omitempty"`
 	InstanceRestartBackoff time.Duration         `yaml:"instance_restart_backoff,omitempty"`
 	InstanceMode           instance.Mode         `yaml:"instance_mode,omitempty"`
+	DisableKeepAlives      bool                  `yaml:"http_disable_keepalives,omitempty"`
+	IdleConnTimeout        time.Duration         `yaml:"http_idle_conn_timeout,omitempty"`
 
 	// Unmarshaled is true when the Config was unmarshaled from YAML.
 	Unmarshaled bool `yaml:"-"`
@@ -79,6 +81,8 @@ func (c *Config) ApplyDefaults() error {
 		return errors.New("cannot use configs when scraping_service mode is enabled")
 	}
 
+	c.Global.DisableKeepAlives = c.DisableKeepAlives
+	c.Global.IdleConnTimeout = c.IdleConnTimeout
 	usedNames := map[string]struct{}{}
 
 	for i := range c.Configs {
