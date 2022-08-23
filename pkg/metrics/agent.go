@@ -81,6 +81,10 @@ func (c *Config) ApplyDefaults() error {
 		return errors.New("cannot use configs when scraping_service mode is enabled")
 	}
 
+	if c.DisableKeepAlives && c.IdleConnTimeout > 0 {
+		return errors.New("cannot disable keep-alives and set the idle connection timeout at the same time")
+	}
+
 	c.Global.DisableKeepAlives = c.DisableKeepAlives
 	c.Global.IdleConnTimeout = c.IdleConnTimeout
 	usedNames := map[string]struct{}{}

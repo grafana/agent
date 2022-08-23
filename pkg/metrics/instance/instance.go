@@ -435,7 +435,7 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer, cf
 	if cfg.global.DisableKeepAlives {
 		opts.HTTPClientOptions = append(opts.HTTPClientOptions, config_util.WithKeepAlivesDisabled())
 	}
-	if cfg.global.IdleConnTimeout != 0 {
+	if cfg.global.IdleConnTimeout > 0 {
 		opts.HTTPClientOptions = append(opts.HTTPClientOptions, config_util.WithIdleConnTimeout(cfg.global.IdleConnTimeout))
 	}
 	scrapeManager := newScrapeManager(opts, log.With(i.logger, "component", "scrape manager"), i.storage)
