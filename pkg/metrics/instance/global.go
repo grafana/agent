@@ -1,6 +1,10 @@
 package instance
 
-import "github.com/prometheus/prometheus/config"
+import (
+	"time"
+
+	"github.com/prometheus/prometheus/config"
+)
 
 // DefaultGlobalConfig holds default global settings to be used across all instances.
 var DefaultGlobalConfig = GlobalConfig{
@@ -12,7 +16,9 @@ type GlobalConfig struct {
 	Prometheus  config.GlobalConfig         `yaml:",inline"`
 	RemoteWrite []*config.RemoteWriteConfig `yaml:"remote_write,omitempty"`
 
-	ExtraMetrics bool `yaml:"-"`
+	ExtraMetrics      bool          `yaml:"-"`
+	DisableKeepAlives bool          `yaml:"-"`
+	IdleConnTimeout   time.Duration `yaml:"-"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
