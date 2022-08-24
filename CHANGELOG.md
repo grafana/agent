@@ -10,11 +10,6 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
-> **BREAKING CHANGES**: This release has breaking changes. Please read entries
-> carefully and consult the [upgrade guide][] for specific instructions.
-
-### Breaking changes
-
 
 v0.27.0 (2022-08-24)
 -------------------------
