@@ -49,7 +49,7 @@ Main (unreleased)
 
  - It is now possible to compile Grafana Agent using Go 1.19. (@rfratto)
 
- - Updated a bug in the Agent Operator CR quickstart guide (@hjet)
+ - Fix a bug in the Agent Operator CR quickstart guide (@hjet)
 
 v0.26.1 (2022-07-25)
 -------------------------
