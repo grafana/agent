@@ -52,6 +52,8 @@ PACKAGE_SYSTEM=${PACKAGE_SYSTEM:=}
 #
 RELEASE_VERSION="v0.26.1"
 
+# The DEB and RPM urls don't include the `v` version prefix in the file names,
+# so we trim it out using ${RELEASE_VERSION#v} below.
 RELEASE_URL="https://github.com/grafana/agent/releases/download/${RELEASE_VERSION}"
 DEB_URL="${RELEASE_URL}/grafana-agent-${RELEASE_VERSION#v}-1.${ARCH}.deb"
 RPM_URL="${RELEASE_URL}/grafana-agent-${RELEASE_VERSION#v}-1.${ARCH}.rpm"
