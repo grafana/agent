@@ -50,11 +50,11 @@ PACKAGE_SYSTEM=${PACKAGE_SYSTEM:=}
 #
 # Global constants.
 #
-RELEASE_VERSION="0.26.1"
+RELEASE_VERSION="v0.26.1"
 
-RELEASE_URL="https://github.com/grafana/agent/releases/download/v${RELEASE_VERSION}"
-DEB_URL="${RELEASE_URL}/grafana-agent-${RELEASE_VERSION}-1.${ARCH}.deb"
-RPM_URL="${RELEASE_URL}/grafana-agent-${RELEASE_VERSION}-1.${ARCH}.rpm"
+RELEASE_URL="https://github.com/grafana/agent/releases/download/${RELEASE_VERSION}"
+DEB_URL="${RELEASE_URL}/grafana-agent-${RELEASE_VERSION#v}-1.${ARCH}.deb"
+RPM_URL="${RELEASE_URL}/grafana-agent-${RELEASE_VERSION#v}-1.${ARCH}.rpm"
 
 main() {
   if [ -z "$PACKAGE_SYSTEM" ]; then
