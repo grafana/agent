@@ -43,8 +43,8 @@ River file wasn't specified, can't be loaded, or contains errors, run will exit
 immediately.
 
 run starts an HTTP server which can be used to debug Grafana Agent Flow or
-force it to reload (by POSTing to /-/reload). The listen address can be changed
-through the --server.http.listen-addr flag.
+force it to reload (by sending a GET or POST request to /-/reload). The listen
+address can be changed through the --server.http.listen-addr flag.
 
 By default, the HTTP server exposes the following debug endpoints:
 
@@ -173,7 +173,7 @@ func (fr *flowRun) Run(configFile string) error {
 				return
 			}
 			fmt.Fprintln(w, "config reloaded")
-		})
+		}).Methods(http.MethodGet, http.MethodPost)
 
 		srv := &http.Server{Handler: r}
 
