@@ -126,8 +126,8 @@ final config state should be.
 ### Why not HCL?
 
 > For some background, it's important to note that HCL can be considered two
-> separate projects: hashicorp/hcl (the language and expression evaluator) and
-> zclconf/go-cty (the value and type system used by HCL).
+> separate projects: `hashicorp/hcl` (the language and expression evaluator)
+> and `zclconf/go-cty` (the value and type system used by HCL).
 
 HCL was the obvious first choice for the Flow prototype: it supports
 expressions, you can expose functions for users to call, and its syntax has a
