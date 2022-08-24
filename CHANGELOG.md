@@ -15,6 +15,10 @@ Main (unreleased)
 
 ### Breaking changes
 
+
+v0.27.0 (2022-08-24)
+-------------------------
+
 ### Features
 
 - Integrations: (beta) Add vmware_exporter integration (@rlankfo)
