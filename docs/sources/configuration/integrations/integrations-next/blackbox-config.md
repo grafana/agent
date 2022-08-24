@@ -73,10 +73,11 @@ Full reference of options:
   #
 
   # blackbox configuration file with custom modules.
+  # This field has precedence to the config defined in the blackbox_config block.
   # See https://github.com/prometheus/blackbox_exporter/blob/master/example.yml for more details how to generate custom blackbox.yml file.
   [config_file: <string> | default = ""]
 
-  # Embedded blackbox configuration.You can specify your modules here instead of an external config file.
+  # Embedded blackbox configuration. You can specify your modules here instead of an external config file.
   # See https://github.com/prometheus/blackbox_exporter/blob/master/CONFIGURATION.md for more details how to specify your blackbox modules.
   blackbox_config:
     [- <modules> ... ]
