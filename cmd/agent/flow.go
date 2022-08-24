@@ -1,6 +1,9 @@
 package main
 
 import (
+	//Its important that we do this first so that we can register with the windows service control ASAP to avoid timeouts
+	_ "github.com/grafana/agent/cmd/agent/initiate"
+
 	"context"
 	"errors"
 	"flag"

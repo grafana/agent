@@ -1,6 +1,9 @@
 package main
 
 import (
+	//Its important that we do this first so that we can register with the windows service control ASAP to avoid timeouts
+	"github.com/grafana/agent/cmd/agent/initiate"
+
 	"flag"
 	"fmt"
 	"log"
@@ -30,15 +33,6 @@ func init() {
 }
 
 func main() {
-	// If Windows is trying to run as a service, go through that
-	// path instead.
-	if IsWindowsService() {
-		err := RunService()
-		if err != nil {
-			log.Fatalln(err)
-		}
-		return
-	}
 
 	// If flow is enabled go into that working mode
 	// TODO allow flow to run as a windows service
@@ -63,7 +57,7 @@ func main() {
 	logger := server.NewLogger(&cfg.Server)
 	util_log.Logger = logger
 
-	ep, err := NewEntrypoint(logger, cfg, reloader)
+	ep, err := initiate.NewEntrypoint(logger, cfg, reloader)
 	if err != nil {
 		level.Error(logger).Log("msg", "error creating the agent server entrypoint", "err", err)
 		os.Exit(1)

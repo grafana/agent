@@ -1,12 +1,6 @@
-//go:build windows
-// +build windows
-
-package main
+package initiate
 
 import (
-	//Its important that we do this first so that we can register with the windows service control ASAP to avoid timeouts
-	"github.com/grafana/agent/cmd/agent/initiate"
-
 	"flag"
 	"log"
 	"os"
@@ -18,6 +12,18 @@ import (
 
 	"golang.org/x/sys/windows/svc"
 )
+
+func init() {
+	// If Windows is trying to run as a service, go through that
+	// path instead.
+	if IsWindowsService() {
+		err := RunService()
+		if err != nil {
+			log.Fatalln(err)
+		}
+		return
+	}
+}
 
 const cmdsAccepted = svc.AcceptStop | svc.AcceptShutdown
 
@@ -53,9 +59,9 @@ func (m *AgentService) Execute(args []string, serviceRequests <-chan svc.ChangeR
 	entrypointExit := make(chan error)
 
 	// Kick off the server in the background so that we can respond to status queries
-	var ep *initiate.Entrypoint
+	var ep *Entrypoint
 	go func() {
-		ep, err = initiate.NewEntrypoint(logger, cfg, reloader)
+		ep, err = NewEntrypoint(logger, cfg, reloader)
 		if err != nil {
 			level.Error(logger).Log("msg", "error creating the agent server entrypoint", "err", err)
 			os.Exit(1)
