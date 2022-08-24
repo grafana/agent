@@ -4,73 +4,45 @@
 package initiate
 
 import (
-	"flag"
 	"log"
-	"os"
-
-	util_log "github.com/cortexproject/cortex/pkg/util/log"
-	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/config"
-	"github.com/grafana/agent/pkg/server"
 
 	"golang.org/x/sys/windows/svc"
+)
+
+const (
+	ServiceName = "Grafana Agent"
 )
 
 func init() {
 	// If Windows is trying to run as a service, go through that
 	// path instead.
 	if IsWindowsService() {
-		err := RunService()
-		if err != nil {
-			log.Fatalln(err)
-		}
-		return
+		go func() {
+			err := svc.Run(ServiceName, &AgentService{stopCh: ServiceExit})
+			if err != nil {
+				log.Fatalf("Failed to start service: %v", err)
+			}
+		}()
 	}
 }
 
 const cmdsAccepted = svc.AcceptStop | svc.AcceptShutdown
 
+var ServiceExit = make(chan bool)
+
 // AgentService runs the Grafana Agent as a service.
-type AgentService struct{}
+type AgentService struct {
+	stopCh chan<- bool
+}
 
 // Execute starts the AgentService.
 func (m *AgentService) Execute(args []string, serviceRequests <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {
 	changes <- svc.Status{State: svc.StartPending}
 
-	// Executable name and any command line parameters will be placed into os.args, this comes from
-	// registry key `Computer\HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Services\<servicename>\ImagePath`
-	// oddly enough args is blank
-
-	reloader := func() (*config.Config, error) {
-		fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-		return config.Load(fs, os.Args[1:])
-	}
-	cfg, err := reloader()
-	if err != nil {
-		log.Fatalln(err)
-	}
-
 	// Pause is not accepted, we immediately set the service as running and trigger the entrypoint load in the background
 	// this is because the WAL is reloaded and the timeout for a windows service starting is 30 seconds. In this case
 	// the service is running but Agent may still be starting up reading the WAL and doing other operations.
 	changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
-
-	// After this point we can start using go-kit logging.
-	logger := server.NewWindowsEventLogger(&cfg.Server)
-	util_log.Logger = logger
-
-	entrypointExit := make(chan error)
-
-	// Kick off the server in the background so that we can respond to status queries
-	var ep *Entrypoint
-	go func() {
-		ep, err = NewEntrypoint(logger, cfg, reloader)
-		if err != nil {
-			level.Error(logger).Log("msg", "error creating the agent server entrypoint", "err", err)
-			os.Exit(1)
-		}
-		entrypointExit <- ep.Start()
-	}()
 
 loop:
 	for {
@@ -80,23 +52,22 @@ loop:
 			case svc.Interrogate:
 				changes <- c.CurrentStatus
 			case svc.Stop, svc.Shutdown:
+				//We need to send a message back to stop the process if this happens
+				m.stopCh <- true
 				break loop
 			case svc.Pause:
 			case svc.Continue:
 			default:
-				break loop
+				log.Fatalf("unexpected control request #%d", c)
 			}
-		case err := <-entrypointExit:
-			level.Error(logger).Log("msg", "error while running agent server entrypoint", "err", err)
-			break loop
 		}
 	}
 	// There is a chance the entrypoint may not be setup yet, in that case we don't want to stop.
 	// Since it is in another go func it may start after this has returned, in either case the program
 	// will exit.
-	if ep != nil {
-		ep.Stop()
-	}
+	//if ep != nil {
+	//	ep.Stop()
+	//}
 	changes <- svc.Status{State: svc.StopPending}
 	return
 }
@@ -109,10 +80,4 @@ func IsWindowsService() bool {
 		return false
 	}
 	return isService
-}
-
-// RunService runs the current process as a Windows servce. On non-Windows platforms,
-// this is always a no-op.
-func RunService() error {
-	return svc.Run(server.ServiceName, &AgentService{})
 }

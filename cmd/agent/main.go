@@ -31,9 +31,7 @@ import (
 func init() {
 	prometheus.MustRegister(version.NewCollector("agent"))
 }
-
 func main() {
-
 	// If flow is enabled go into that working mode
 	// TODO allow flow to run as a windows service
 	if isFlowEnabled() {
@@ -43,7 +41,6 @@ func main() {
 		}
 		return
 	}
-
 	reloader := func() (*config.Config, error) {
 		fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 		return config.Load(fs, os.Args[1:])
@@ -52,22 +49,30 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-
 	// After this point we can start using go-kit logging.
-	logger := server.NewLogger(&cfg.Server)
+	var logger *server.Logger
+	if initiate.IsWindowsService() {
+		logger = server.NewWindowsEventLogger(&cfg.Server)
+	} else {
+		logger = server.NewLogger(&cfg.Server)
+	}
 	util_log.Logger = logger
-
-	ep, err := initiate.NewEntrypoint(logger, cfg, reloader)
+	ep, err := NewEntrypoint(logger, cfg, reloader)
 	if err != nil {
 		level.Error(logger).Log("msg", "error creating the agent server entrypoint", "err", err)
 		os.Exit(1)
 	}
-
 	if err = ep.Start(); err != nil {
 		level.Error(logger).Log("msg", "error running agent", "err", err)
 		// Don't os.Exit here; we want to do cleanup by stopping promMetrics
 	}
-
+	if initiate.IsWindowsService() {
+		for {
+			if <-initiate.ServiceExit {
+				break
+			}
+		}
+	}
 	ep.Stop()
 	level.Info(logger).Log("msg", "agent exiting")
 }
