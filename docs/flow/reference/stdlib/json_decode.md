@@ -35,7 +35,7 @@ null
   key = "value",
 }
 
-> json_decode(local.file.some_file.contents)
+> json_decode(local.file.some_file.content)
 "Hello, world!"
 ```
 
