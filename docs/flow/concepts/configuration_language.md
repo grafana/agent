@@ -27,7 +27,7 @@ metrics.remote_write "default" {
 }
 ```
 
-River was designed with two requirements in mind:
+River was designed with the following requirements in mind:
 
 * _Fast_: The configuration language must be fast so the component controller
   can evaluate changes as quickly as possible.

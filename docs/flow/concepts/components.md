@@ -22,14 +22,25 @@ contents of files on disk.
 
 Components are specified by users by first providing the component's name with
 a user-specified label, and then by providing arguments to configure the
-component.
+component:
+
+```
+discovery.k8s "pods" {
+  role = "pod"
+}
+
+discovery.k8s "nodes" {
+  role = "node"
+}
+```
 
 > Components are referenced by combining the component name with its label. For
 > example, a `local.file` component labeled `foo` would be referenced as
 > `local.file.foo`.
 >
 > The combination of a component's name and its label must be unique within the
-> configuration file.
+> configuration file. This means multiple instances of a component may be
+> defined as long as each instance has a different label value.
 
 ## Pipelines
 
@@ -41,7 +52,7 @@ Users may also use _expressions_ to dynamically compute the value of an
 argument at runtime. Among other things, expressions may be used to retrieving
 the value of an environment variable (`log_level = env("LOG_LEVEL")`) or
 referencing the export of another component (`log_level =
-local.file.log_level.contents`).
+local.file.log_level.content`).
 
 When a user configures a component's argument to reference an export of another
 component, a relationship is created: a component's input (arguments) now
@@ -55,12 +66,12 @@ _pipeline_.
 An example pipeline may look like this:
 
 1. A `local.file` component watches a file on disk containing an API key.
-1. A `metrics.remote_write` component is configured to receive metrics and
+2. A `metrics.remote_write` component is configured to receive metrics and
    forward them to an external database using the API key from the `local.file`
    for authentication.
-2. A `discovery.kubernetes` component discovers and exports Kubernetes Pods
-   where metrics can be collected.
-3. A `metrics.scrape` component references the exports of the previous
+3. A `discovery.k8s` component discovers and exports Kubernetes Pods where
+   metrics can be collected.
+4. A `metrics.scrape` component references the exports of the previous
    component, and sends collected metrics to the `metrics.remote_write`
    component.
 
@@ -69,7 +80,7 @@ A user would use this config file to represent the above pipeline:
 ```river
 // Get our API key from disk.
 //
-// This component has an exported value called "contents", holding the contents
+// This component has an exported value called "content", holding the content
 // of the file.
 //
 // local.file.api_key will watch the file and update its exports any time the
@@ -95,7 +106,7 @@ metrics.remote_write "prod" {
       username = "admin"
 
       // Use our password file for authenticating with the production database.
-      password = local.file.api_key.contents
+      password = local.file.api_key.content
     }
   }
 }
@@ -104,13 +115,13 @@ metrics.remote_write "prod" {
 //
 // This component exports a "targets" value which contains the list of
 // discovered pods.
-discovery.kubernetes "pods" {
+discovery.k8s "pods" {
   role = "pod"
 }
 
 // Collect metrics from Kubernetes pods and send them to prod.
 metrics.scrape "default" {
-  targets    = discovery.kubernetes.pods.targets
+  targets    = discovery.k8s.pods.targets
   forward_to = [metrics.remote_write.prod.receiver]
 }
 ```

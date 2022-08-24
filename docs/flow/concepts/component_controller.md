@@ -60,7 +60,7 @@ evaluation process.
 
 ## Component reevaluation
 
-As mentioned in [Components][], a comonent is dynamic: a component may update
+As mentioned in [Components][], a component is dynamic: a component may update
 its exports any number of times throughout its lifetime.
 
 When a component updates its exports, a _controller reevaluation_ is triggered:
@@ -78,8 +78,8 @@ At any given time, a component may have one of the following health states:
 4. Exited: the component has stopped and is no longer running
 
 By default, the component controller determines the health of a component. The
-component controller will mark a compoent has healthy as long as that component
-is running and its most recent evaluation was successful.
+component controller will mark a component has healthy as long as that
+component is running and its most recent evaluation was successful.
 
 Some components may report their own component-specific health information. For
 example, the `local.file` component will report itself unhealthy if the file it
@@ -108,7 +108,7 @@ valid API key until the component returns to a healthy state.
 
 ## Updating the config file
 
-Both the `/-/reload` HTTP endpoint and the `SIGHUP` singal can be used to
+Both the `/-/reload` HTTP endpoint and the `SIGHUP` signal can be used to
 inform the component controller to reload the config file. When this happens,
 the component controller will synchronize the set of running components with
 the ones in the config file, removing components which are no longer defined in
