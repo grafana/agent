@@ -43,6 +43,9 @@ func (c *Config) ApplyDefaults(globals integrations_v2.Globals) error {
 
 // Identifier returns a string that identifies the integration.
 func (c *Config) Identifier(globals integrations_v2.Globals) (string, error) {
+	if c.Common.InstanceKey != nil {
+		return *c.Common.InstanceKey, nil
+	}
 	return c.Name(), nil
 }
 
