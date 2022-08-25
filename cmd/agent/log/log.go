@@ -4,7 +4,6 @@
 package log
 
 import (
-	"github.com/grafana/agent/cmd/agent/initiate"
 	"github.com/grafana/agent/pkg/server"
 )
 
