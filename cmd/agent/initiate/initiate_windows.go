@@ -30,7 +30,7 @@ func init() {
 
 const cmdsAccepted = svc.AcceptStop | svc.AcceptShutdown
 
-// Channel to inform server of service stop request
+// ServiceExit is a Channel used to inform server of service stop request
 var ServiceExit = make(chan bool)
 
 // AgentService runs the Grafana Agent as a service.
