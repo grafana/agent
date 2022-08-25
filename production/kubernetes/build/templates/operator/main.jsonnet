@@ -37,9 +37,9 @@ local ksm = import 'kube-state-metrics/kube-state-metrics.libsonnet';
     logs_user: '${LOGS_USER}',
     logs_key: '${LOGS_KEY}',
     cluster_label: {cluster: '${CLUSTER}'},
-    kubelet_job: 'integrations/kubernetes/kubelet',
-    cadvisor_job: 'integrations/kubernetes/cadvisor',
-    ksm_job: 'integrations/kubernetes/kube-state-metrics',
+    kubelet_job: 'kubelet',
+    cadvisor_job: 'cadvisor',
+    ksm_job: 'kube-state-metrics',
     ksm_version: '2.5.0',
   },
 
