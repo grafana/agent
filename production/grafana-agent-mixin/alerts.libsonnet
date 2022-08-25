@@ -227,7 +227,7 @@ local _config = config._config;
           {
             alert: 'VultureFailures',
             expr: |||
-              (rate(tempo_vulture_error_total[2m]) / rate(tempo_vulture_trace_total[2m])) > 0 
+              (rate(tempo_vulture_error_total[5m]) / rate(tempo_vulture_trace_total[5m])) > 0.3
             |||,
             'for': '5m',
             annotations: {
