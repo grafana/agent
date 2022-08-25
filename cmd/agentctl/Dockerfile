@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -qy libbpfcc-dev
 
 RUN make clean && make IMAGE_TAG=${IMAGE_TAG} RELEASE_BUILD=${RELEASE_BUILD} BUILD_IN_CONTAINER=false agentctl
 
-FROM debian:bullseye-slim
+FROM ubuntu:jammy
 
 # Backports repo required to get a libsystemd version 246 or newer which is required to handle journal +ZSTD compression
 # plus the libbpfcc library for running the eBPF integration.

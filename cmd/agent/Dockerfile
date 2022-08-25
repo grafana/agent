@@ -13,13 +13,11 @@ RUN apt-get update && apt-get install -qy libbpfcc-dev
 
 RUN make clean && make IMAGE_TAG=${IMAGE_TAG} RELEASE_BUILD=${RELEASE_BUILD} BUILD_IN_CONTAINER=false agent
 
-FROM debian:bullseye-slim
+FROM ubuntu:jammy
 
 # Backports repo required to get a libsystemd version 246 or newer which is required to handle journal +ZSTD compression
 # plus the libbpfcc library for running the eBPF integration.
-RUN echo "deb http://deb.debian.org/debian bullseye-backports main" >> /etc/apt/sources.list
-RUN apt-get update && apt-get install -t bullseye-backports -qy libsystemd-dev && \
-  apt-get install -qy tzdata ca-certificates && \
+RUN apt-get update && apt-get install -qy libsystemd-dev tzdata ca-certificates && \
   if [ `uname -m` = "x86_64" ]; then apt-get install -qy libbpfcc; fi && \
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 

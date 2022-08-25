@@ -6,7 +6,7 @@ ARG IMAGE_TAG
 
 RUN make clean && make IMAGE_TAG=${IMAGE_TAG} RELEASE_BUILD=${RELEASE_BUILD} BUILD_IN_CONTAINER=false agent-operator
 
-FROM debian:bullseye-slim
+FROM ubuntu:focal
 
 RUN apt-get update && \
   apt-get install -qy tzdata ca-certificates && \
