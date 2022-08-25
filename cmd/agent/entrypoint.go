@@ -2,7 +2,7 @@ package main
 
 import (
 	//Its important that we do this first so that we can register with the windows service control ASAP to avoid timeouts
-	_ "github.com/grafana/agent/cmd/agent/initiate"
+	"github.com/grafana/agent/cmd/agent/initiate"
 
 	"context"
 	"fmt"
@@ -301,10 +301,20 @@ func (ep *Entrypoint) Start() error {
 	}()
 
 	g.Add(func() error {
-		signalHandler.Loop()
+		if initiate.IsWindowsService() {
+			for {
+				if <-initiate.ServiceExit {
+					break
+				}
+			}
+		} else {
+			signalHandler.Loop()
+		}
 		return nil
 	}, func(e error) {
-		signalHandler.Stop()
+		if !initiate.IsWindowsService() {
+			signalHandler.Stop()
+		}
 	})
 
 	if ep.reloadServer != nil && ep.reloadListener != nil {

@@ -66,13 +66,6 @@ func main() {
 		level.Error(logger).Log("msg", "error running agent", "err", err)
 		// Don't os.Exit here; we want to do cleanup by stopping promMetrics
 	}
-	if initiate.IsWindowsService() {
-		for {
-			if <-initiate.ServiceExit {
-				break
-			}
-		}
-	}
 	ep.Stop()
 	level.Info(logger).Log("msg", "agent exiting")
 }
