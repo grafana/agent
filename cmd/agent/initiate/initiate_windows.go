@@ -9,6 +9,7 @@ import (
 	"golang.org/x/sys/windows/svc"
 )
 
+// Default name for the Grafana Agent under Windows
 const (
 	ServiceName = "Grafana Agent"
 )
@@ -28,6 +29,7 @@ func init() {
 
 const cmdsAccepted = svc.AcceptStop | svc.AcceptShutdown
 
+// Channel to inform server of service stop request
 var ServiceExit = make(chan bool)
 
 // AgentService runs the Grafana Agent as a service.
@@ -36,14 +38,14 @@ type AgentService struct {
 }
 
 // Execute starts the AgentService.
-func (m *AgentService) Execute(args []string, serviceRequests <-chan svc.ChangeRequest, service_changes chan<- svc.Status) (ssec bool, errno uint32) {
-	service_changes <- svc.Status{State: svc.StartPending}
+func (m *AgentService) Execute(args []string, serviceRequests <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {
+	changes <- svc.Status{State: svc.StartPending}
 
 	// Pause is not accepted, we immediately set the service as running and trigger the entrypoint load in the background
 	// this is because the WAL is reloaded and the timeout for a windows service starting is 30 seconds. In this case
 	// the service is running but Agent may still be starting up reading the WAL and doing other operations.
 
-	service_changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
+	changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
 
 loop:
 	for {
@@ -51,7 +53,7 @@ loop:
 		case c := <-serviceRequests:
 			switch c.Cmd {
 			case svc.Interrogate:
-				service_changes <- c.CurrentStatus
+				changes <- c.CurrentStatus
 			case svc.Stop, svc.Shutdown:
 				//We need to send a message back to stop the process if this happens
 				m.stopCh <- true
@@ -69,7 +71,7 @@ loop:
 	//if ep != nil {
 	//	ep.Stop()
 	//}
-	service_changes <- svc.Status{State: svc.StopPending}
+	changes <- svc.Status{State: svc.StopPending}
 	return
 }
 
