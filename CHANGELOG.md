@@ -49,6 +49,8 @@ Main (unreleased)
 
  - It is now possible to compile Grafana Agent using Go 1.19. (@rfratto)
 
+ - Fix relabel configs in sample agent-operator manifests (@hjet)
+
 v0.26.1 (2022-07-25)
 -------------------------
 
