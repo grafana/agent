@@ -1,15 +1,10 @@
-package initiate
+//go:build !windows
+// +build !windows
 
-import (
-	"golang.org/x/sys/windows/svc"
-)
+package initiate
 
 // IsWindowsService returns whether the current process is running as a Windows
 // Service. On non-Windows platforms, this always returns false.
 func IsWindowsService() bool {
-	isService, err := svc.IsWindowsService()
-	if err != nil {
-		return false
-	}
-	return isService
+	return false
 }
