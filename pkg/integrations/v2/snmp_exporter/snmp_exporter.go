@@ -77,6 +77,11 @@ func (c *Config) NewIntegration(log log.Logger, globals integrations_v2.Globals)
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = DefaultConfig
 
+	// This should technically be accomplished by assigning DefaultConfig, right?
+	// But in the reload case the existing values in this map are not purged and
+	// an unmarshal error is thrown stating that they key already exists in the map.
+	c.WalkParams = make(map[string]snmp_config.WalkParams)
+
 	type plain Config
 	return unmarshal((*plain)(c))
 }
