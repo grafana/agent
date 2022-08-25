@@ -3,6 +3,7 @@
 
 package initiate
 
+//We must keep this package clear of importing any large packages so that we can initialise the windows service ASAP
 import (
 	"log"
 

@@ -2,7 +2,7 @@ package main
 
 import (
 	//Its important that we do this first so that we can register with the windows service control ASAP to avoid timeouts
-	"github.com/grafana/agent/cmd/agent/initiate"
+	_ "github.com/grafana/agent/cmd/agent/initiate"
 
 	"flag"
 	"log"
@@ -10,8 +10,8 @@ import (
 
 	util_log "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/log/level"
+	initLog "github.com/grafana/agent/cmd/agent/log"
 	"github.com/grafana/agent/pkg/config"
-	"github.com/grafana/agent/pkg/server"
 
 	// Adds version information
 	_ "github.com/grafana/agent/pkg/build"
@@ -46,12 +46,7 @@ func main() {
 		log.Fatalln(err)
 	}
 	// After this point we can start using go-kit logging.
-	var logger *server.Logger
-	if initiate.IsWindowsService() {
-		logger = server.NewWindowsEventLogger(&cfg.Server)
-	} else {
-		logger = server.NewLogger(&cfg.Server)
-	}
+	logger := initLog.NewLogger(&cfg.Server)
 	util_log.Logger = logger
 	ep, err := NewEntrypoint(logger, cfg, reloader)
 	if err != nil {
