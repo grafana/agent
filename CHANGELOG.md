@@ -48,6 +48,10 @@ v0.27.0-rc.0 (2022-08-24)
 
 - Fix grafanacloud-install.ps1 web request internal server error when fetching config. (@rlankfo)
 
+- Fix snmp integration not passing module or walk_params parameters when scraping. (@rgeyer)
+
+- Fix unmarshal errors (key "<walk_param name>" already set in map) for snmp integration config when walk_params is defined, and the config is reloaded. (@rgeyer)
+
 ### Other changes
 
  - Update several go dependencies to resolve warnings from certain security scanning tools. None of the resolved vulnerabilities were known to be exploitable through the agent. (@captncraig)
