@@ -15,6 +15,7 @@ type Payload struct {
 	Exceptions   []Exception   `json:"exceptions,omitempty"`
 	Logs         []Log         `json:"logs,omitempty"`
 	Measurements []Measurement `json:"measurements,omitempty"`
+	Events       []Event       `json:"events,omitempty"`
 	Meta         Meta          `json:"meta,omitempty"`
 	Traces       *Traces       `json:"traces,omitempty"`
 }
@@ -334,6 +335,28 @@ type App struct {
 	Release     string `json:"release,omitempty"`
 	Version     string `json:"version,omitempty"`
 	Environment string `json:"environment,omitempty"`
+}
+
+type Event struct {
+	Name       string            `json:"name"`
+	Domain     string            `json:"domain,omitempty"`
+	Attributes map[string]string `json:"attributes,omitempty"`
+	Timestamp  time.Time         `json:"timestamp,omitempty"`
+	Trace      TraceContext      `json:"trace,omitempty"`
+}
+
+// KeyVal produces key -> value representation of Event metadata
+func (e Event) KeyVal() *KeyVal {
+	kv := NewKeyVal()
+	KeyValAdd(kv, "timestamp", e.Timestamp.String())
+	KeyValAdd(kv, "kind", "event")
+	KeyValAdd(kv, "name", e.Name)
+	KeyValAdd(kv, "domain", e.Domain)
+	if e.Attributes != nil {
+		MergeKeyVal(kv, KeyValFromMap(e.Attributes))
+	}
+	MergeKeyVal(kv, e.Trace.KeyVal())
+	return kv
 }
 
 // KeyVal produces key-> value representation of App metadata
