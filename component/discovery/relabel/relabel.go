@@ -1,4 +1,4 @@
-package mutate
+package relabel
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "targets.mutate",
+		Name:    "discovery.relabel",
 		Args:    Arguments{},
 		Exports: Exports{},
 
@@ -22,7 +22,7 @@ func init() {
 	})
 }
 
-// Arguments holds values which are used to configure the targets.mutate component.
+// Arguments holds values which are used to configure the discovery.relabel component.
 type Arguments struct {
 	// Targets contains the input 'targets' passed by a service discovery component.
 	Targets []discovery.Target `river:"targets,attr"`
@@ -31,21 +31,19 @@ type Arguments struct {
 	RelabelConfigs []*flow_relabel.Config `river:"relabel_config,block,optional"`
 }
 
-// Exports holds values which are exported by the targets.mutate component.
+// Exports holds values which are exported by the discovery.relabel component.
 type Exports struct {
 	Output []discovery.Target `river:"output,attr"`
 }
 
-// Component implements the targets.mutate component.
+// Component implements the discovery.relabel component.
 type Component struct {
 	opts component.Options
 }
 
-var (
-	_ component.Component = (*Component)(nil)
-)
+var _ component.Component = (*Component)(nil)
 
-// New creates a new targets.mutate component.
+// New creates a new discovery.relabel component.
 func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{opts: o}
 
