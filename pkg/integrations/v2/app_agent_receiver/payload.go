@@ -337,6 +337,7 @@ type App struct {
 	Environment string `json:"environment,omitempty"`
 }
 
+// Event holds RUM event data
 type Event struct {
 	Name       string            `json:"name"`
 	Domain     string            `json:"domain,omitempty"`
@@ -350,10 +351,10 @@ func (e Event) KeyVal() *KeyVal {
 	kv := NewKeyVal()
 	KeyValAdd(kv, "timestamp", e.Timestamp.String())
 	KeyValAdd(kv, "kind", "event")
-	KeyValAdd(kv, "name", e.Name)
-	KeyValAdd(kv, "domain", e.Domain)
+	KeyValAdd(kv, "event.name", e.Name)
+	KeyValAdd(kv, "event.domain", e.Domain)
 	if e.Attributes != nil {
-		MergeKeyVal(kv, KeyValFromMap(e.Attributes))
+		MergeKeyValWithPrefix(kv, KeyValFromMap(e.Attributes), "event.data.")
 	}
 	MergeKeyVal(kv, e.Trace.KeyVal())
 	return kv

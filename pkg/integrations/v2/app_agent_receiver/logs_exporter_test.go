@@ -107,7 +107,7 @@ func TestExportLogs(t *testing.T) {
 		prommodel.LabelName("app"):  prommodel.LabelValue("frontend"),
 		prommodel.LabelName("kind"): prommodel.LabelValue("event"),
 	}, inst.Entries[4].Labels)
-	expectedLine = "timestamp=\"2021-09-30 10:46:17.68 +0000 UTC\" kind=event name=click_login_button domain=frontend foo=bar one=two traceID=abcd spanID=def sdk_name=grafana-frontend-agent sdk_version=1.0.0 app_name=testapp app_release=0.8.2 app_version=abcdefg app_environment=production user_email=geralt@kaermorhen.org user_id=123 user_username=domasx2 user_attr_foo=bar session_id=abcd session_attr_time_elapsed=100s page_url=https://example.com/page browser_name=chrome browser_version=88.12.1 browser_os=linux browser_mobile=false"
+	expectedLine = "timestamp=\"2021-09-30 10:46:17.68 +0000 UTC\" kind=event event.name=click_login_button event.domain=frontend event.data.foo=bar event.data.one=two traceID=abcd spanID=def sdk_name=grafana-frontend-agent sdk_version=1.0.0 app_name=testapp app_release=0.8.2 app_version=abcdefg app_environment=production user_email=geralt@kaermorhen.org user_id=123 user_username=domasx2 user_attr_foo=bar session_id=abcd session_attr_time_elapsed=100s page_url=https://example.com/page browser_name=chrome browser_version=88.12.1 browser_os=linux browser_mobile=false"
 	require.Equal(t, expectedLine, inst.Entries[4].Line)
 
 	// event 2
@@ -115,6 +115,6 @@ func TestExportLogs(t *testing.T) {
 		prommodel.LabelName("app"):  prommodel.LabelValue("frontend"),
 		prommodel.LabelName("kind"): prommodel.LabelValue("event"),
 	}, inst.Entries[5].Labels)
-	expectedLine = "timestamp=\"2021-09-30 10:46:17.68 +0000 UTC\" kind=event name=click_reset_password_button sdk_name=grafana-frontend-agent sdk_version=1.0.0 app_name=testapp app_release=0.8.2 app_version=abcdefg app_environment=production user_email=geralt@kaermorhen.org user_id=123 user_username=domasx2 user_attr_foo=bar session_id=abcd session_attr_time_elapsed=100s page_url=https://example.com/page browser_name=chrome browser_version=88.12.1 browser_os=linux browser_mobile=false"
+	expectedLine = "timestamp=\"2021-09-30 10:46:17.68 +0000 UTC\" kind=event event.name=click_reset_password_button sdk_name=grafana-frontend-agent sdk_version=1.0.0 app_name=testapp app_release=0.8.2 app_version=abcdefg app_environment=production user_email=geralt@kaermorhen.org user_id=123 user_username=domasx2 user_attr_foo=bar session_id=abcd session_attr_time_elapsed=100s page_url=https://example.com/page browser_name=chrome browser_version=88.12.1 browser_os=linux browser_mobile=false"
 	require.Equal(t, expectedLine, inst.Entries[5].Line)
 }
