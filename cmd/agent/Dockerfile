@@ -15,8 +15,6 @@ RUN make clean && make IMAGE_TAG=${IMAGE_TAG} RELEASE_BUILD=${RELEASE_BUILD} BUI
 
 FROM ubuntu:jammy
 
-# Backports repo required to get a libsystemd version 246 or newer which is required to handle journal +ZSTD compression
-# plus the libbpfcc library for running the eBPF integration.
 RUN apt-get update && apt-get install -qy libsystemd-dev tzdata ca-certificates && \
   if [ `uname -m` = "x86_64" ]; then apt-get install -qy libbpfcc; fi && \
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
