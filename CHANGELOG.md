@@ -18,6 +18,7 @@ Main (unreleased)
 ### Features
 
 - Integrations: (beta) Add vmware_exporter integration (@rlankfo)
+- App agent receiver: add Event kind to payload (@domasx2)
 
 ### Enhancements
 
