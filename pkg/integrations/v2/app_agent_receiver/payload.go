@@ -351,10 +351,10 @@ func (e Event) KeyVal() *KeyVal {
 	kv := NewKeyVal()
 	KeyValAdd(kv, "timestamp", e.Timestamp.String())
 	KeyValAdd(kv, "kind", "event")
-	KeyValAdd(kv, "event.name", e.Name)
-	KeyValAdd(kv, "event.domain", e.Domain)
+	KeyValAdd(kv, "event_name", e.Name)
+	KeyValAdd(kv, "event_domain", e.Domain)
 	if e.Attributes != nil {
-		MergeKeyValWithPrefix(kv, KeyValFromMap(e.Attributes), "event.data.")
+		MergeKeyValWithPrefix(kv, KeyValFromMap(e.Attributes), "event_data_")
 	}
 	MergeKeyVal(kv, e.Trace.KeyVal())
 	return kv
