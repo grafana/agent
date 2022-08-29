@@ -13,6 +13,7 @@ import (
 
 	"go.uber.org/atomic"
 
+	"github.com/NYTimes/gziphandler"
 	"github.com/fatih/color"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
@@ -118,6 +119,11 @@ func runFlow() error {
 		}
 
 		r := mux.NewRouter()
+		// Add gzip if the client requests it to all requests.
+		r.Use(func(h http.Handler) http.Handler {
+			return gziphandler.GzipHandler(h)
+		})
+
 		r.HandleFunc("/-/ready", func(w http.ResponseWriter, r *http.Request) {
 			if ready.Load() {
 				w.WriteHeader(http.StatusOK)
