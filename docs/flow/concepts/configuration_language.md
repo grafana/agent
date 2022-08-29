@@ -68,6 +68,10 @@ The most common expression is to reference the exports of a component like
 formed by merging the component's name (e.g., `local.file`), label (e.g.,
 `password_file`), and export name (e.g., `content`), delimited by period.
 
+For components that don't use labels, like
+`prometheus.integration.node_exporter`, only combine the component name with
+export name: `prometheus.integration.node_exporter.targets`.
+
 ## Blocks
 
 _Blocks_ are used to configure components and groups of attributes. Each block
