@@ -116,5 +116,5 @@ the config file and creating new components which were added to the config
 file. All components managed by the controller will be reevaluated after
 reloading.
 
-[Components]: {{< relref "./components.md" >})
+[Components]: {{< relref "./components.md" >}}
 [DAG]: https://en.wikipedia.org/wiki/Directed_acyclic_graph
