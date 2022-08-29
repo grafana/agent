@@ -1,17 +1,17 @@
 ---
 aliases:
-- /docs/agent/latest/flow/reference/components/metrics.scrape
-title: metrics.scrape
+- /docs/agent/latest/flow/reference/components/prometheus.scrape
+title: prometheus.scrape
 ---
 
-# metrics.scrape
+# prometheus.scrape
 
-`metrics.scrape` configures a metrics scraping job for a given set of
+`prometheus.scrape` configures a metrics scraping job for a given set of
 `targets`. The scraped metrics are forwarded to the list of receivers passed in
 `forward_to`.
 
-Multiple `metrics.scrape` components can be specified by giving them different
-labels.
+Multiple `prometheus.scrape` components can be specified by giving them
+different labels.
 
 ## Example
 
@@ -21,12 +21,12 @@ exporter. The received metrics will be sent over to the provided list of
 remote_writes, as defined by other components.
 
 ```river
-metrics.scrape "blackbox-scraper" {
+prometheus.scrape "blackbox_scraper" {
   targets = [
     {"__address__" = "blackbox-exporter:9115", "instance" = "one"},
     {"__address__" = "blackbox-exporter:9116", "instance" = "two"},
   ]
-  forward_to = [metrics.remote_write.grafanacloud.receiver, metrics.remote_write.onprem.receiver]
+  forward_to = [prometheus.remote_write.grafanacloud.receiver, prometheus.remote_write.onprem.receiver]
 
   scrape_config {
     job_name        = "grafana"
@@ -141,19 +141,20 @@ tls_config_insecure_skip_verify | bool     | Configuration options for TLS conne
 
 ## Exported fields
 
-`metrics.scrape` does not export any fields that can be referenced by other
+`prometheus.scrape` does not export any fields that can be referenced by other
 components.
 
 ## Component health
 
-`metrics.scrape` will only be reported as unhealthy when given an invalid
+`prometheus.scrape` will only be reported as unhealthy when given an invalid
 configuration.
 
 ## Debug information
 
-`metrics.scrape` reports the status of the last scrape for each configured
+`prometheus.scrape` reports the status of the last scrape for each configured
 scrape job on the component's debug endpoint.
 
 ### Debug metrics
 
-`metrics.scrape` does not expose any component-specific debug metrics.
+`prometheus.scrape` does not expose any component-specific debug metrics.
+

@@ -6,12 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/prometheus/client_golang/prometheus"
-
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/component/metrics"
+	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/flow/logging"
+	prometheus_client "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/stretchr/testify/require"
 )
@@ -21,10 +20,10 @@ func TestForwardingToAppendable(t *testing.T) {
 	require.NoError(t, err)
 	opts := component.Options{
 		Logger:     l,
-		Registerer: prometheus.NewRegistry(),
+		Registerer: prometheus_client.NewRegistry(),
 	}
 
-	nilReceivers := []*metrics.Receiver{nil, nil}
+	nilReceivers := []*prometheus.Receiver{nil, nil}
 
 	args := Arguments{
 		Targets:      []discovery.Target{},
@@ -48,10 +47,10 @@ func TestForwardingToAppendable(t *testing.T) {
 
 	// Update the component with a mock receiver; it should be passed along to the Appendable.
 	var receivedTs int64
-	var receivedSamples []*metrics.FlowMetric
-	mockReceiver := []*metrics.Receiver{
+	var receivedSamples []*prometheus.FlowMetric
+	mockReceiver := []*prometheus.Receiver{
 		{
-			Receive: func(t int64, m []*metrics.FlowMetric) {
+			Receive: func(t int64, m []*prometheus.FlowMetric) {
 				receivedTs = t
 				receivedSamples = m
 			},
@@ -66,7 +65,7 @@ func TestForwardingToAppendable(t *testing.T) {
 
 	// Forwarding a sample to the mock receiver should succeed.
 	appender = s.appendable.Appender(context.Background())
-	sample := metrics.NewFlowMetric(1, labels.FromStrings("foo", "bar"), 42.0)
+	sample := prometheus.NewFlowMetric(1, labels.FromStrings("foo", "bar"), 42.0)
 	timestamp := time.Now().Unix()
 	_, err = appender.Append(0, sample.LabelsCopy(), timestamp, sample.Value())
 	require.NoError(t, err)

@@ -13,14 +13,14 @@ configuration files which define and configure components to run.
 The configuration language is called River, a Terraform/HCL-inspired language:
 
 ```river
-metrics.scrape "default" {
+prometheus.scrape "default" {
   targets = [{
     "__address__" = "demo.robustperception.io:9090",
   }]
-  forward_to = [metrics.remote_write.default.receiver]
+  forward_to = [prometheus.remote_write.default.receiver]
 }
 
-metrics.remote_write "default" {
+prometheus.remote_write "default" {
   remote_write {
     url = "http://localhost:9009/api/prom/push"
   }
@@ -67,7 +67,7 @@ _Blocks_ are used to configure components and groups of attributes. Each block
 can contain any number of attributes or nested blocks.
 
 ```river
-metrics.remote_write "default" {
+prometheus.remote_write "default" {
   remote_write {
     url = "http://localhost:9009/api/prom/push"
   }
@@ -76,8 +76,8 @@ metrics.remote_write "default" {
 
 This file has two blocks:
 
-* `metrics.remote_write "default"`: A labeled block which instantiates a
-  `metrics.remote_write` component. The label is the string `"default"`.
+* `prometheus.remote_write "default"`: A labeled block which instantiates a
+  `prometheus.remote_write` component. The label is the string `"default"`.
 
 * `remote_write`: An unlabeled block inside the component which configures an
   endpoint to send metrics to. This block sets the `url` attribute to specify
