@@ -10,7 +10,7 @@ import (
 	"github.com/grafana/agent/component"
 	fa "github.com/grafana/agent/component/common/appendable"
 	"github.com/grafana/agent/component/discovery"
-	flow_prometheus "github.com/grafana/agent/component/prometheus"
+	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
@@ -34,8 +34,8 @@ func init() {
 // Arguments holds values which are used to configure the prometheus.scrape
 // component.
 type Arguments struct {
-	Targets   []discovery.Target          `river:"targets,attr"`
-	ForwardTo []*flow_prometheus.Receiver `river:"forward_to,attr"`
+	Targets   []discovery.Target     `river:"targets,attr"`
+	ForwardTo []*prometheus.Receiver `river:"forward_to,attr"`
 
 	ScrapeConfig Config `river:"scrape_config,block"`
 

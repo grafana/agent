@@ -10,11 +10,10 @@ import (
 	"sync"
 	"time"
 
-	flow_prometheus "github.com/grafana/agent/component/prometheus"
-
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/metrics/wal"
 	"github.com/prometheus/prometheus/model/timestamp"
@@ -52,7 +51,7 @@ type Component struct {
 	mut sync.RWMutex
 	cfg RemoteConfig
 
-	receiver *flow_prometheus.Receiver
+	receiver *prometheus.Receiver
 }
 
 // NewComponent creates a new prometheus.remote_write component.
@@ -74,7 +73,7 @@ func NewComponent(o component.Options, c RemoteConfig) (*Component, error) {
 		remoteStore: remoteStore,
 		storage:     storage.NewFanout(o.Logger, walStorage, remoteStore),
 	}
-	res.receiver = &flow_prometheus.Receiver{Receive: res.Receive}
+	res.receiver = &prometheus.Receiver{Receive: res.Receive}
 	if err := res.Update(c); err != nil {
 		return nil, err
 	}
@@ -180,16 +179,16 @@ func (c *Component) Update(newConfig component.Arguments) error {
 }
 
 // Receive implements the receiver.receive func that allows an array of metrics to be passed
-func (c *Component) Receive(ts int64, metricArr []*flow_prometheus.FlowMetric) {
+func (c *Component) Receive(ts int64, metricArr []*prometheus.FlowMetric) {
 	app := c.storage.Appender(context.Background())
 	for _, m := range metricArr {
-		localID := flow_prometheus.GlobalRefMapping.GetLocalRefID(c.opts.ID, m.GlobalRefID())
+		localID := prometheus.GlobalRefMapping.GetLocalRefID(c.opts.ID, m.GlobalRefID())
 		// Currently it doesn't look like the storage interfaces mutate the labels, but thats not a strong
 		// promise. So this should be treated with care.
 		newLocal, err := app.Append(storage.SeriesRef(localID), m.RawLabels(), ts, m.Value())
 		// Add link if there wasn't one before, and we received a valid local id
 		if localID == 0 && newLocal != 0 {
-			flow_prometheus.GlobalRefMapping.GetOrAddLink(c.opts.ID, uint64(newLocal), m)
+			prometheus.GlobalRefMapping.GetOrAddLink(c.opts.ID, uint64(newLocal), m)
 		}
 		if err != nil {
 			_ = app.Rollback()

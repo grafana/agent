@@ -11,7 +11,7 @@ import (
 	"github.com/prometheus/prometheus/config"
 
 	types "github.com/grafana/agent/component/common/config"
-	flow_prometheus "github.com/grafana/agent/component/prometheus"
+	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/flow/rivertypes"
 	"github.com/grafana/agent/pkg/river"
 	common "github.com/prometheus/common/config"
@@ -110,7 +110,7 @@ func (o *WALOptions) UnmarshalRiver(f func(interface{}) error) error {
 
 // Export is used to assign this to receive metrics
 type Export struct {
-	Receiver *flow_prometheus.Receiver `river:"receiver,attr"`
+	Receiver *prometheus.Receiver `river:"receiver,attr"`
 }
 
 // BasicAuthConfig is the prometheus.remote_write's configuration for

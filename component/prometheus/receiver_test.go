@@ -4,15 +4,15 @@ import (
 	"testing"
 
 	"github.com/prometheus/prometheus/model/labels"
-	promrelabel "github.com/prometheus/prometheus/model/relabel"
+	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/stretchr/testify/require"
 )
 
 func TestRelabel(t *testing.T) {
 	fm := NewFlowMetric(0, labels.FromStrings("key", "value"), 0)
 	require.True(t, fm.globalRefID != 0)
-	rg, _ := promrelabel.NewRegexp("(.*)")
-	newfm := fm.Relabel(&promrelabel.Config{
+	rg, _ := relabel.NewRegexp("(.*)")
+	newfm := fm.Relabel(&relabel.Config{
 		Replacement: "${1}_new",
 		Action:      "replace",
 		TargetLabel: "new",
@@ -28,8 +28,8 @@ func TestRelabel(t *testing.T) {
 func TestRelabelTheSame(t *testing.T) {
 	fm := NewFlowMetric(0, labels.FromStrings("key", "value"), 0)
 	require.True(t, fm.globalRefID != 0)
-	rg, _ := promrelabel.NewRegexp("bad")
-	newfm := fm.Relabel(&promrelabel.Config{
+	rg, _ := relabel.NewRegexp("bad")
+	newfm := fm.Relabel(&relabel.Config{
 		Replacement: "${1}_new",
 		Action:      "replace",
 		TargetLabel: "new",

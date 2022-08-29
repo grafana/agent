@@ -2,7 +2,7 @@ package prometheus
 
 import (
 	"github.com/prometheus/prometheus/model/labels"
-	promrelabel "github.com/prometheus/prometheus/model/relabel"
+	"github.com/prometheus/prometheus/model/relabel"
 )
 
 // Receiver is used to pass an array of metrics to another receiver
@@ -52,8 +52,8 @@ func (fw *FlowMetric) RawLabels() labels.Labels {
 }
 
 // Relabel applies normal prometheus relabel rules and returns a flow metric. NOTE this may return itself.
-func (fw *FlowMetric) Relabel(cfgs ...*promrelabel.Config) *FlowMetric {
-	retLbls := promrelabel.Process(fw.labels, cfgs...)
+func (fw *FlowMetric) Relabel(cfgs ...*relabel.Config) *FlowMetric {
+	retLbls := relabel.Process(fw.labels, cfgs...)
 	if retLbls == nil {
 		return nil
 	}
