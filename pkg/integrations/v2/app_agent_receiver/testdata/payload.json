@@ -223,6 +223,25 @@
           }
       }
   ],
+  "events": [
+    {
+        "name": "click_login_button",
+        "domain": "frontend",
+        "attributes": {
+            "foo": "bar",
+            "one": "two"
+        },
+        "timestamp": "2021-09-30T10:46:17.680Z",
+        "trace": {
+            "trace_id": "abcd",
+            "span_id": "def"
+        }
+    },
+    {
+        "name": "click_reset_password_button",
+        "timestamp": "2021-09-30T10:46:17.680Z"
+    }
+  ],
   "meta": {
       "sdk": {
           "name": "grafana-frontend-agent",

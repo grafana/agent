@@ -12,6 +12,7 @@ type ReceiverMetricsExporter struct {
 	totalLogs         prometheus.Counter
 	totalMeasurements prometheus.Counter
 	totalExceptions   prometheus.Counter
+	totalEvents       prometheus.Counter
 }
 
 // NewReceiverMetricsExporter creates a new ReceiverMetricsExporter
@@ -29,9 +30,13 @@ func NewReceiverMetricsExporter(reg prometheus.Registerer) appAgentReceiverExpor
 			Name: "app_agent_receiver_exceptions_total",
 			Help: "Total number of ingested exceptions",
 		}),
+		totalEvents: prometheus.NewCounter(prometheus.CounterOpts{
+			Name: "app_agent_receiver_events_total",
+			Help: "Total number of ingested events",
+		}),
 	}
 
-	reg.MustRegister(exp.totalLogs, exp.totalExceptions, exp.totalMeasurements)
+	reg.MustRegister(exp.totalLogs, exp.totalExceptions, exp.totalMeasurements, exp.totalEvents)
 
 	return exp
 }
@@ -46,5 +51,6 @@ func (re *ReceiverMetricsExporter) Export(ctx context.Context, payload Payload) 
 	re.totalExceptions.Add(float64(len(payload.Exceptions)))
 	re.totalLogs.Add(float64(len(payload.Logs)))
 	re.totalMeasurements.Add(float64(len(payload.Measurements)))
+	re.totalEvents.Add(float64(len(payload.Events)))
 	return nil
 }
