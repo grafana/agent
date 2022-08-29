@@ -1,31 +1,31 @@
 ---
 aliases:
-- /docs/agent/latest/flow/reference/components/targets.mutate
-title: targets.mutate
+- /docs/agent/latest/flow/reference/components/discovery.relabel
+title: discovery.relabel
 ---
 
-# targets.mutate
+# discovery.relabel
 
-`targets.mutate` rewrites the label set of the input targets by applying one or
-more `relabel_config` steps. If no relabeling steps are defined, then the input
-targets will be exported as-is.
+`discovery.relabel` rewrites the label set of the input targets by applying one
+or more `relabel_config` steps. If no relabeling steps are defined, then the
+input targets will be exported as-is.
 
-The most common use of `targets.mutate` is to filter Prometheus targets or
+The most common use of `discovery.relabel` is to filter Prometheus targets or
 standardize the label set that will be passed to a downstream component. The
 `relabel_config` blocks will be applied to the label set of each target in
 order of their appearance in the configuration file.
 
-Multiple `targets.mutate` components can be specified by giving them different
-labels.
+Multiple `discovery.relabel` components can be specified by giving them
+different labels.
 
 ## Example
 
 ```river
-targets.mutate "keep-backend-only" {
+discovery.relabel "keep_backend_only" {
   targets = [
     { "__meta_foo" = "foo", "__address__" = "localhost", "instance" = "one",   "app" = "backend"  },
     { "__meta_bar" = "bar", "__address__" = "localhost", "instance" = "two",   "app" = "database" },
-    { "__meta_baz" = "baz", "__address__" = "localhost", "instance" = "three", "app" = "frontend" }
+    { "__meta_baz" = "baz", "__address__" = "localhost", "instance" = "three", "app" = "frontend" },
   ]
 
   relabel_config {
@@ -49,20 +49,20 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-targets | list(map(string)) | Targets to mutate | | **yes**
+targets | list(map(string)) | Targets to relabel | | **yes**
 
 The following subblocks are supported:
 
 Name | Description | Required
 ---- | ----------- | --------
-[`relabel_config`](#relabel_config-block) | Mutations to apply to targets | no
+[`relabel_config`](#relabel_config-block) | Relabeling steps to apply to targets | no
 
 ### `relabel_config` block
 
 The `relabel_config` block contains the definition of any relabeling rules that
 can be applied to an input target. If more than one `relabel_config` block is
-defined within `targets.mutate`, the transformations will be applied in-order
-from top down.
+defined within `discovery.relabel`, the transformations will be applied
+in top-down order.
 
 The following arguments can be used to configure a `relabel_config` block.
 All arguments are optional and any omitted fields will take on their default
@@ -100,14 +100,14 @@ output | list(map(string)) | The set of targets after applying relabeling.
 
 ## Component health
 
-`targets.mutate` will only be reported as unhealthy when given an invalid
+`discovery.relabel` will only be reported as unhealthy when given an invalid
 configuration. In those cases, exported fields will be kept at their last
 healthy values.
 
 ## Debug information
 
-`targets.mutate` does not expose any component-specific debug information.
+`discovery.relabel` does not expose any component-specific debug information.
 
 ### Debug metrics
 
-`targets.mutate` does not expose any component-specific debug metrics.
+`discovery.relabel` does not expose any component-specific debug metrics.
