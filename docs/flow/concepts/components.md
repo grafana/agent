@@ -66,13 +66,13 @@ _pipeline_.
 An example pipeline may look like this:
 
 1. A `local.file` component watches a file on disk containing an API key.
-2. A `metrics.remote_write` component is configured to receive metrics and
+2. A `prometheus.remote_write` component is configured to receive metrics and
    forward them to an external database using the API key from the `local.file`
    for authentication.
 3. A `discovery.k8s` component discovers and exports Kubernetes Pods where
    metrics can be collected.
-4. A `metrics.scrape` component references the exports of the previous
-   component, and sends collected metrics to the `metrics.remote_write`
+4. A `prometheus.scrape` component references the exports of the previous
+   component, and sends collected metrics to the `prometheus.remote_write`
    component.
 
 A user would use this config file to represent the above pipeline:
@@ -93,12 +93,12 @@ local.file "api_key" {
   is_secret = true
 }
 
-// Create a metrics.remote_write component which other components can send
+// Create a prometheus.remote_write component which other components can send
 // metrics to.
 //
 // This component exports a "receiver" value which can be used by other
 // components to send metrics.
-metrics.remote_write "prod" {
+prometheus.remote_write "prod" {
   remote_write {
     url = "https://prod:9090/api/v1/write"
 
@@ -120,8 +120,8 @@ discovery.k8s "pods" {
 }
 
 // Collect metrics from Kubernetes pods and send them to prod.
-metrics.scrape "default" {
+prometheus.scrape "default" {
   targets    = discovery.k8s.pods.targets
-  forward_to = [metrics.remote_write.prod.receiver]
+  forward_to = [prometheus.remote_write.prod.receiver]
 }
 ```
