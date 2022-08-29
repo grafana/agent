@@ -10,6 +10,12 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+v0.27.0-rc.1 (2022-08-29)
+-------------------------
+
+### Features
+
+- App agent receiver: add Event kind to payload (@domasx2)
 
 v0.27.0-rc.0 (2022-08-24)
 -------------------------
@@ -17,7 +23,6 @@ v0.27.0-rc.0 (2022-08-24)
 ### Features
 
 - Integrations: (beta) Add vmware_exporter integration (@rlankfo)
-- App agent receiver: add Event kind to payload (@domasx2)
 
 ### Enhancements
 
