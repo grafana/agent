@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/grafana/agent/component/metrics"
+	flow_prometheus "github.com/grafana/agent/component/prometheus"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -31,7 +31,7 @@ func init() {
 	remote.UserAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
 
 	component.Register(component.Registration{
-		Name:    "metrics.remote_write",
+		Name:    "prometheus.remote_write",
 		Args:    RemoteConfig{},
 		Exports: Export{},
 		Build: func(o component.Options, c component.Arguments) (component.Component, error) {
@@ -40,7 +40,7 @@ func init() {
 	})
 }
 
-// Component is the metrics_forwarder component.
+// Component is the prometheus.remote_write component.
 type Component struct {
 	log  log.Logger
 	opts component.Options
@@ -52,10 +52,10 @@ type Component struct {
 	mut sync.RWMutex
 	cfg RemoteConfig
 
-	receiver *metrics.Receiver
+	receiver *flow_prometheus.Receiver
 }
 
-// NewComponent creates a new metrics_forwarder component.
+// NewComponent creates a new prometheus.remote_write component.
 func NewComponent(o component.Options, c RemoteConfig) (*Component, error) {
 	walLogger := log.With(o.Logger, "subcomponent", "wal")
 	dataPath := filepath.Join(o.DataPath, "wal", o.ID)
@@ -74,7 +74,7 @@ func NewComponent(o component.Options, c RemoteConfig) (*Component, error) {
 		remoteStore: remoteStore,
 		storage:     storage.NewFanout(o.Logger, walStorage, remoteStore),
 	}
-	res.receiver = &metrics.Receiver{Receive: res.Receive}
+	res.receiver = &flow_prometheus.Receiver{Receive: res.Receive}
 	if err := res.Update(c); err != nil {
 		return nil, err
 	}
@@ -180,16 +180,16 @@ func (c *Component) Update(newConfig component.Arguments) error {
 }
 
 // Receive implements the receiver.receive func that allows an array of metrics to be passed
-func (c *Component) Receive(ts int64, metricArr []*metrics.FlowMetric) {
+func (c *Component) Receive(ts int64, metricArr []*flow_prometheus.FlowMetric) {
 	app := c.storage.Appender(context.Background())
 	for _, m := range metricArr {
-		localID := metrics.GlobalRefMapping.GetLocalRefID(c.opts.ID, m.GlobalRefID())
+		localID := flow_prometheus.GlobalRefMapping.GetLocalRefID(c.opts.ID, m.GlobalRefID())
 		// Currently it doesn't look like the storage interfaces mutate the labels, but thats not a strong
 		// promise. So this should be treated with care.
 		newLocal, err := app.Append(storage.SeriesRef(localID), m.RawLabels(), ts, m.Value())
 		// Add link if there wasn't one before, and we received a valid local id
 		if localID == 0 && newLocal != 0 {
-			metrics.GlobalRefMapping.GetOrAddLink(c.opts.ID, uint64(newLocal), m)
+			flow_prometheus.GlobalRefMapping.GetOrAddLink(c.opts.ID, uint64(newLocal), m)
 		}
 		if err != nil {
 			_ = app.Rollback()

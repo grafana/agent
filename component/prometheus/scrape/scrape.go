@@ -10,7 +10,7 @@ import (
 	"github.com/grafana/agent/component"
 	fa "github.com/grafana/agent/component/common/appendable"
 	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/component/metrics"
+	flow_prometheus "github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
@@ -22,7 +22,7 @@ func init() {
 	scrape.UserAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
 
 	component.Register(component.Registration{
-		Name: "metrics.scrape",
+		Name: "prometheus.scrape",
 		Args: Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
@@ -31,11 +31,11 @@ func init() {
 	})
 }
 
-// Arguments holds values which are used to configure the metrics.scrape
+// Arguments holds values which are used to configure the prometheus.scrape
 // component.
 type Arguments struct {
-	Targets   []discovery.Target  `river:"targets,attr"`
-	ForwardTo []*metrics.Receiver `river:"forward_to,attr"`
+	Targets   []discovery.Target          `river:"targets,attr"`
+	ForwardTo []*flow_prometheus.Receiver `river:"forward_to,attr"`
 
 	ScrapeConfig Config `river:"scrape_config,block"`
 
@@ -43,7 +43,7 @@ type Arguments struct {
 	ExtraMetrics bool `river:"extra_metrics,attr,optional"`
 }
 
-// Component implements the metrics.Scrape component.
+// Component implements the prometheus.scrape component.
 type Component struct {
 	opts component.Options
 
@@ -59,7 +59,7 @@ var (
 	_ component.Component = (*Component)(nil)
 )
 
-// New creates a new metrics.scrape component.
+// New creates a new prometheus.scrape component.
 func New(o component.Options, args Arguments) (*Component, error) {
 	flowAppendable := fa.NewFlowAppendable(args.ForwardTo...)
 

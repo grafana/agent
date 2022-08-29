@@ -1,4 +1,4 @@
-package metrics
+package prometheus
 
 // remoteWriteMapping maps a remote_write to a set of global ids
 type remoteWriteMapping struct {

@@ -1,4 +1,4 @@
-package metrics
+package prometheus
 
 import (
 	"github.com/prometheus/prometheus/model/labels"

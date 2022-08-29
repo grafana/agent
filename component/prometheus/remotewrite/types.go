@@ -11,7 +11,7 @@ import (
 	"github.com/prometheus/prometheus/config"
 
 	types "github.com/grafana/agent/component/common/config"
-	"github.com/grafana/agent/component/metrics"
+	flow_prometheus "github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/flow/rivertypes"
 	"github.com/grafana/agent/pkg/river"
 	common "github.com/prometheus/common/config"
@@ -44,7 +44,7 @@ var (
 	_ river.Unmarshaler = (*QueueConfig)(nil)
 )
 
-// RemoteConfig represents the input state of the metrics_forwarder component.
+// RemoteConfig represents the input state of the prometheus.remote_write component.
 type RemoteConfig struct {
 	ExternalLabels map[string]string `river:"external_labels,attr,optional"`
 	RemoteWrite    []*Config         `river:"remote_write,block,optional"`
@@ -110,11 +110,11 @@ func (o *WALOptions) UnmarshalRiver(f func(interface{}) error) error {
 
 // Export is used to assign this to receive metrics
 type Export struct {
-	Receiver *metrics.Receiver `river:"receiver,attr"`
+	Receiver *flow_prometheus.Receiver `river:"receiver,attr"`
 }
 
-// BasicAuthConfig is the metrics_forwarder's configuration for authenticating
-// against the remote system when sending metrics.
+// BasicAuthConfig is the prometheus.remote_write's configuration for
+// authenticating against the remote system when sending metrics.
 type BasicAuthConfig struct {
 	Username     string            `river:"username,attr"`
 	Password     rivertypes.Secret `river:"password,attr,optional"`

@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/grafana/agent/component/metrics"
+	flow_prometheus "github.com/grafana/agent/component/prometheus"
 	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/value"
@@ -20,19 +20,19 @@ type FlowMetric struct {
 // FlowAppendable is a flow-specific implementation of an Appender.
 type FlowAppendable struct {
 	mut       sync.RWMutex
-	receivers []*metrics.Receiver
+	receivers []*flow_prometheus.Receiver
 }
 
 // NewFlowAppendable initializes the appendable.
-func NewFlowAppendable(receivers ...*metrics.Receiver) *FlowAppendable {
+func NewFlowAppendable(receivers ...*flow_prometheus.Receiver) *FlowAppendable {
 	return &FlowAppendable{
 		receivers: receivers,
 	}
 }
 
 type flowAppender struct {
-	buffer    map[int64][]*metrics.FlowMetric // Though mostly a map of 1 item, this allows it to work if more than one TS gets added
-	receivers []*metrics.Receiver
+	buffer    map[int64][]*flow_prometheus.FlowMetric // Though mostly a map of 1 item, this allows it to work if more than one TS gets added
+	receivers []*flow_prometheus.Receiver
 }
 
 // Appender implements the Prometheus Appendable interface.
@@ -41,20 +41,20 @@ func (app *FlowAppendable) Appender(_ context.Context) storage.Appender {
 	defer app.mut.RUnlock()
 
 	return &flowAppender{
-		buffer:    make(map[int64][]*metrics.FlowMetric),
+		buffer:    make(map[int64][]*flow_prometheus.FlowMetric),
 		receivers: app.receivers,
 	}
 }
 
 // SetReceivers defines the list of receivers for this appendable.
-func (app *FlowAppendable) SetReceivers(receivers []*metrics.Receiver) {
+func (app *FlowAppendable) SetReceivers(receivers []*flow_prometheus.Receiver) {
 	app.mut.Lock()
 	app.receivers = receivers
 	app.mut.Unlock()
 }
 
 // ListReceivers is a test method for exposing the Appender's receivers.
-func (app *FlowAppendable) ListReceivers() []*metrics.Receiver {
+func (app *FlowAppendable) ListReceivers() []*flow_prometheus.Receiver {
 	app.mut.RLock()
 	defer app.mut.RUnlock()
 	return app.receivers
@@ -66,20 +66,20 @@ func (app *flowAppender) Append(ref storage.SeriesRef, l labels.Labels, t int64,
 	}
 	_, found := app.buffer[t]
 	if !found {
-		set := make([]*metrics.FlowMetric, 0)
+		set := make([]*flow_prometheus.FlowMetric, 0)
 		app.buffer[t] = set
 	}
 	// If ref is 0 then lets grab a global id
 	if ref == 0 {
-		ref = storage.SeriesRef(metrics.GlobalRefMapping.GetOrAddGlobalRefID(l))
+		ref = storage.SeriesRef(flow_prometheus.GlobalRefMapping.GetOrAddGlobalRefID(l))
 	}
 	// If it is stale then we can remove it
 	if value.IsStaleNaN(v) {
-		metrics.GlobalRefMapping.AddStaleMarker(uint64(ref), l)
+		flow_prometheus.GlobalRefMapping.AddStaleMarker(uint64(ref), l)
 	} else {
-		metrics.GlobalRefMapping.RemoveStaleMarker(uint64(ref))
+		flow_prometheus.GlobalRefMapping.RemoveStaleMarker(uint64(ref))
 	}
-	app.buffer[t] = append(app.buffer[t], metrics.NewFlowMetric(uint64(ref), l, v))
+	app.buffer[t] = append(app.buffer[t], flow_prometheus.NewFlowMetric(uint64(ref), l, v))
 	return ref, nil
 }
 
@@ -96,11 +96,11 @@ func (app *flowAppender) Commit() error {
 			r.Receive(ts, metrics)
 		}
 	}
-	app.buffer = make(map[int64][]*metrics.FlowMetric)
+	app.buffer = make(map[int64][]*flow_prometheus.FlowMetric)
 	return nil
 }
 
 func (app *flowAppender) Rollback() error {
-	app.buffer = make(map[int64][]*metrics.FlowMetric)
+	app.buffer = make(map[int64][]*flow_prometheus.FlowMetric)
 	return nil
 }
