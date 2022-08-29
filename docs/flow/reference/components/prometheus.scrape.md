@@ -26,7 +26,7 @@ prometheus.scrape "blackbox_scraper" {
     {"__address__" = "blackbox-exporter:9115", "instance" = "one"},
     {"__address__" = "blackbox-exporter:9116", "instance" = "two"},
   ]
-  forward_to = [metrics.remote_write.grafanacloud.receiver, metrics.remote_write.onprem.receiver]
+  forward_to = [prometheus.remote_write.grafanacloud.receiver, prometheus.remote_write.onprem.receiver]
 
   scrape_config {
     job_name        = "grafana"
