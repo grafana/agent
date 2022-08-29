@@ -17,6 +17,12 @@ v0.27.0-rc.1 (2022-08-29)
 
 - App agent receiver: add Event kind to payload (@domasx2)
 
+### Bugfixes
+
+- Fix snmp integration not passing module or walk_params parameters when scraping. (@rgeyer)
+
+- Fix unmarshal errors (key "<walk_param name>" already set in map) for snmp integration config when walk_params is defined, and the config is reloaded. (@rgeyer)
+
 v0.27.0-rc.0 (2022-08-24)
 -------------------------
 
