@@ -10,10 +10,13 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
-### **Discontinuing armv6 Docker images**
-
-- We have stopped publishing docker images for armv6 platforms. This is due to the new ubuntu base image we are using that does not support armv6. We still publish binaries and deb packages
-for users of armv6 platforms. The new ubuntu images allow us to provide more secure images for users on all other platforms.
+> **NOTE**: ARMv6 Docker images are no longer being published.
+> 
+> We have stopped publishing Docker images for ARMv6 platforms. 
+> This is due to the new Ubuntu base image we are using that does not support ARMv6. 
+> The new Ubuntu base image has less reported CVEs, and allows us to provide more 
+> secure Docker images. We will still continue to publish ARMv6 release binaries and 
+> deb/rpm packages.
 
 ### Features
 
