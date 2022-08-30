@@ -39,4 +39,4 @@ null
 "Hello, world!"
 ```
 
-[`local.file`]: {{< relref "../../components/local.file.md" >}}
+[`local.file`]: {{< relref "../components/local.file.md" >}}
