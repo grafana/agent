@@ -135,7 +135,7 @@ seego = docker run --init --rm $(DOCKER_OPTS) $(MOD_MOUNT) -v "$(CURDIR):$(CURDI
 docker-build = docker build $(DOCKER_BUILD_FLAGS)
 ifeq ($(CROSS_BUILD),true)
 DOCKERFILE = Dockerfile.buildx
-docker-build = docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7,linux/ppc64le $(DOCKER_BUILD_FLAGS)
+docker-build = docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le $(DOCKER_BUILD_FLAGS)
 endif
 
 # we want to override the default seego behavior. Drone always builds locally inside seego and if build in container is false then use
