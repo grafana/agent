@@ -7,6 +7,6 @@ weight: 100
 
 # Concepts
 
-This explain explains primary concepts of Grafana Agent Flow.
+This section explains primary concepts of Grafana Agent Flow.
 
 {{< section >}}

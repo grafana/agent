@@ -36,11 +36,11 @@ discovery.kubernetes "pods" {
   role = "pod"
 }
 
-// Scrape metrics from Kubernetes pods and send to a metrics.remote_write
+// Scrape metrics from Kubernetes pods and send to a prometheus.remote_write
 // component.
-metrics.scrape "default" {
+prometheus.scrape "default" {
   targets    = discovery.kubernetes.pods.targets
-  forward_to = [metrics.remote_write.default.receiver]
+  forward_to = [prometheus.remote_write.default.receiver]
 }
 
 // Get an API key from disk.
@@ -50,7 +50,7 @@ local.file "apikey" {
 }
 
 // Collect and send metrics to a Prometheus remote_write endpoint.
-metrics.remote_write "default" {
+prometheus.remote_write "default" {
   remote_write {
     url = "http://localhost:9009/api/prom/push"
 
