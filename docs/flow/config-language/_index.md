@@ -27,7 +27,14 @@ local.file "my_file" {
   filename = "/tmp/my-file.txt"
 }
 
+// Pattern for creating a labeled block, which the above block follows:
 <BLOCK NAME> "<BLOCK LABEL>" {
+  // Block body
+  <IDENTIFIER> = <EXPRESSION> // Attribute
+}
+
+// Pattern for creating an unlabeled block:
+<BLOCK NAME> {
   // Block body
   <IDENTIFIER> = <EXPRESSION> // Attribute
 }
