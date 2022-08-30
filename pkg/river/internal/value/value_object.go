@@ -108,7 +108,7 @@ func (sw structWrapper) Key(key string) (index Value, ok bool) {
 		if err != nil {
 			return Null, true
 		}
-		return makeValue(val), true
+		return MakeValue(val), true
 	}
 
 	panic("river/value: unreachable")

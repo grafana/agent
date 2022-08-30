@@ -1,7 +1,7 @@
 // Package flow implements the Flow component graph system. Flow configuration
 // files are parsed from River, which contain a listing of components to run.
 //
-// Components
+// # Components
 //
 // Each component has a set of arguments (River attributes and blocks) and
 // optionally a set of exported fields. Components can reference the exports of
@@ -10,14 +10,14 @@
 // See the top-level component package for more information on components, and
 // subpackages for defined components.
 //
-// Component Health
+// # Component Health
 //
 // A component will have various health states during its lifetime:
 //
-//     1. Unknown:   The initial health state for new components.
-//     2. Healthy:   A healthy component
-//     3. Unhealthy: An unhealthy component.
-//     4. Exited:    A component which is no longer running.
+//  1. Unknown:   The initial health state for new components.
+//  2. Healthy:   A healthy component
+//  3. Unhealthy: An unhealthy component.
+//  4. Exited:    A component which is no longer running.
 //
 // Health states are paired with a time for when the health state was generated
 // and a message providing more detail for the health state.
@@ -27,7 +27,7 @@
 // when evaluating the configuration for a component will always be reported as
 // unhealthy until the next successful evaluation.
 //
-// Component Evaluation
+// # Component Evaluation
 //
 // The process of converting the River block associated with a component into
 // the appropriate Go struct is called "component evaluation."
@@ -49,9 +49,14 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 	"sync"
+	"time"
+
+	"github.com/grafana/agent/pkg/river"
 
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/prometheus/client_golang/prometheus"
@@ -184,16 +189,16 @@ func (c *Flow) run(ctx context.Context) {
 //
 // The controller will only start running components after Load is called once
 // without any configuration errors.
-func (c *Flow) LoadFile(f *File) error {
+func (c *Flow) LoadFile(file *File) error {
 	c.loadMut.Lock()
 	defer c.loadMut.Unlock()
 
-	err := c.log.Update(f.Logging)
+	err := c.log.Update(file.Logging)
 	if err != nil {
 		return fmt.Errorf("error updating logger: %w", err)
 	}
 
-	diags := c.loader.Apply(nil, f.Components)
+	diags := c.loader.Apply(nil, file.Components)
 	if !c.loadedOnce && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.
@@ -209,9 +214,66 @@ func (c *Flow) LoadFile(f *File) error {
 	return diags.ErrorOrNil()
 }
 
+// ComponentInfos returns the component infos.
+func (c *Flow) ComponentInfos() []*river.ComponentField {
+	cns := c.loader.Components()
+	infos := make([]*river.ComponentField, len(cns))
+	refByBacktrack := make(map[string]*river.ComponentField, 0)
+	for i, com := range cns {
+		refs, _ := controller.ComponentReferences(com, c.loader.Graph())
+		nn := newFromNode(com, refs)
+		infos[i] = nn
+		refByBacktrack[nn.ID] = nn
+	}
+	// We need to backtrack the infos
+	for _, info := range infos {
+		for _, refTo := range info.References {
+			refByBacktrack[refTo].ReferencedBy = append(refByBacktrack[refTo].ReferencedBy, info.ID)
+		}
+	}
+	return infos
+}
+
 // Close closes the controller and all running components.
 func (c *Flow) Close() error {
 	c.cancel()
 	<-c.exited
 	return c.sched.Close()
+}
+
+func newFromNode(cn *controller.ComponentNode, refs []controller.Reference) *river.ComponentField {
+	refsStr := make([]string, len(refs))
+	for i, r := range refs {
+		refsStr[i] = strings.Join(r.Target.ID(), ".")
+	}
+	ci := &river.ComponentField{
+		Field: river.Field{
+			ID:   cn.NodeID(),
+			Name: strings.Join(cn.ID()[0:2], "."),
+			Type: "block",
+			Key:  strings.Join(cn.ID(), "."),
+		},
+		References:   refsStr,
+		ReferencedBy: make([]string, 0),
+		Health:       newFromComponentHealth(cn.CurrentHealth()),
+	}
+	if len(cn.ID()) == 3 {
+		ci.Label = cn.ID()[2]
+	}
+	return ci
+}
+
+// Health contains information on the health of a component.
+type Health struct {
+	State      string    `json:"state"`
+	Message    string    `json:"message"`
+	UpdateTime time.Time `json:"updatedTime"`
+}
+
+func newFromComponentHealth(ch component.Health) *river.Health {
+	return &river.Health{
+		State:       ch.Health.String(),
+		Message:     ch.Message,
+		UpdatedTime: ch.UpdateTime,
+	}
 }

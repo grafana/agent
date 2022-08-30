@@ -10,6 +10,9 @@ import (
 	"os/signal"
 	"sync"
 
+	"github.com/NYTimes/gziphandler"
+	"github.com/grafana/agent/web/api"
+
 	"github.com/fatih/color"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
@@ -30,6 +33,7 @@ func runCommand() *cobra.Command {
 		httpListenAddr:       "127.0.0.1:12345",
 		storagePath:          "data-agent/",
 		enableDebugEndpoints: true,
+		uiPrefix:             "/",
 	}
 
 	var cmd = &cobra.Command{
@@ -73,6 +77,7 @@ depending on the nature of the reload error.
 	cmd.Flags().StringVar(&r.httpListenAddr, "server.http.listen-addr", r.httpListenAddr, "address to listen for HTTP traffic on")
 	cmd.Flags().StringVar(&r.storagePath, "storage.path", r.storagePath, "Base directory where components can store data")
 	cmd.Flags().BoolVar(&r.enableDebugEndpoints, "debug.endpoints.enabled", r.enableDebugEndpoints, "Enables /debug/ HTTP endpoints")
+	cmd.Flags().StringVar(&r.uiPrefix, "server.http.ui-path-prefix", r.uiPrefix, "Prefix to serve the HTTP UI at")
 	return cmd
 }
 
@@ -80,6 +85,7 @@ type flowRun struct {
 	httpListenAddr       string
 	storagePath          string
 	enableDebugEndpoints bool
+	uiPrefix             string
 }
 
 func (fr *flowRun) Run(configFile string) error {
@@ -145,6 +151,13 @@ func (fr *flowRun) Run(configFile string) error {
 		}
 
 		r := mux.NewRouter()
+		// Add gzip if the client requests it to all requests.
+		r.Use(func(h http.Handler) http.Handler {
+			return gziphandler.GzipHandler(h)
+		})
+
+		fa := api.NewFlowAPI(f, r)
+		fa.RegisterRoutes(fr.uiPrefix, r)
 		r.Handle("/metrics", promhttp.Handler())
 
 		if fr.enableDebugEndpoints {
