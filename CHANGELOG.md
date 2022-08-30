@@ -10,10 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
-> **BREAKING CHANGES**: This release has breaking changes. Please read entries
-> carefully and consult the [upgrade guide][] for specific instructions.
+### **Discontinuing armv6 Docker images**
 
-### Breaking changes
+- We have stopped publishing docker images for armv6 platforms. This is due to the new ubuntu base image we are using that does not support armv6. We still publish binaries and deb packages
+for users of armv6 platforms. The new ubuntu images allow us to provide more secure images for users on all other platforms.
 
 ### Features
 
