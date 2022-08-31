@@ -39,6 +39,12 @@ take on their default values.
  other components. There is no limit to what an export might be; it can take on
 any River value or Go type (eg. channels, interfaces).
 
+Each component's documentation page contains the list of all available
+Arguments and resulting Exports, along their underlying type. Users can
+configure Arguments either using a constant value or an
+[_expression_]({{< relref "./expressions/_index.md" >}}) to continuously
+re-evaluate values who are dynamic in nature.
+
 Here's a quick example; the following block defines a `local.file` component
 labelled "targets". The `local.file.targets` component will then expose the
 file `content` as a string in its Exports.
@@ -87,6 +93,10 @@ prometheus.scrape "default" {
 }
 ```
 
+Every time the file contents change and the `local.file` component re-evaluates
+its Exports, the value will propagated to `prometheus.scrape` so it can start
+scraping the new target.
+
 All Arguments and Exports have an underlying [type]({{< relref "./expressions/types_and_values.md" >}}).
 River will type-check expressions before assigning a value to an attribute; the
 documentation of each component will have more information about the ways that
@@ -110,6 +120,18 @@ invalid references in expressions.
 In the previous example, the contents of the `local.file.target.content`
 expression must first be evaluated in a concrete value then type-checked and
 substituted into `prometheus.scrape.default` for it to be configured in turn.
+
+## Component Lifecycle
+Each time a River configuration file is reloaded or re-evaluated, Flow will:
+
+- Parse the provided configuration file. In case any errors are found, the
+  Agent will continue using the last valid River configuration.
+- Parse and apply settings for predefined global blocks (like `logging`).
+- Create a graph of component relationships and validate it.
+- Create new components that weren't present in the last loaded configuration
+  file.
+- Drop components that no longer exist in the new configuration file.
+- Update any pre-existing components whose arguments have changed.
 
 ## Error reporting
 Like in the case of syntax errors, River will also enrich component-related
