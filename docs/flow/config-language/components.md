@@ -25,7 +25,7 @@ Each component features a complete reference page, so getting a component to
 work for you should be as easy as reading its documentation and copy/pasting
 from an example.
 
-## Arguments and Outputs
+## Arguments and Exports
 Most user interactions with components will center around two basic concepts;
 _Arguments_ and _Exports_.
 
