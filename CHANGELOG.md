@@ -59,6 +59,8 @@ Main (unreleased)
 
  - Fix relabel configs in sample agent-operator manifests (@hjet)
 
+ - Operator no longer set the `SecurityContext.Privileged` flag in the `config-reloader` container. (@hsyed-dojo)
+
 v0.26.1 (2022-07-25)
 -------------------------
 

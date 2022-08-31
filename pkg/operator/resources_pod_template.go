@@ -193,8 +193,7 @@ func generatePodTemplate(
 			VolumeMounts: volumeMounts,
 			Env:          envVars,
 			SecurityContext: &core_v1.SecurityContext{
-				Privileged: pointer.Bool(true),
-				RunAsUser:  pointer.Int64(0),
+				RunAsUser: pointer.Int64(0),
 			},
 			Args: []string{
 				"--config-file=/var/lib/grafana-agent/config-in/agent.yml",
