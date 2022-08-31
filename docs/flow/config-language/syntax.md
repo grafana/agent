@@ -36,9 +36,8 @@ digit.
 
 The `<ATTRIBUTE_VALUE>` can be either a constant value of a valid River
 [type]({{< relref "./expressions/types_and_values.md" >}}) (eg. string,
-boolean, number), or an [_expression_]({{< relref "./expressions/_index.md"
->}}) that computes and continuously re-evaluates more complex attribute
-values.
+boolean, number) or an [_expression_]({{< relref "./expressions/_index.md" >}})
+that computes and continuously re-evaluates more complex attribute values.
 
 ### Blocks
 _Blocks_ are used to configure components by grouping any number of attributes
@@ -115,11 +114,9 @@ Error: ./cmd/agent/example-config.river:33:1: expected }, got EOF
 ```
 
 ## Examples
-Here's an example of a simple River configuration file to showcase the
-language's syntax primitives.
+The following example showcases River's syntax primitives.
 
 ```river
-
 // `logging` is a special block that sets up some global attributes
 logging {
 	level  = "debug"

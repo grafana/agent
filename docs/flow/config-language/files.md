@@ -6,7 +6,6 @@ weight: 100
 ---
 
 # Files
-
 River files are plaintext files with the `.river` file extension. Each River
 file may be referred to as a 'configuration file', or a 'River configuration'.
 
