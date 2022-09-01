@@ -16,42 +16,34 @@ controller_]({{< relref "../concepts/component_controller.md" >}}), who is
 responsible for scheduling them, reporting their health and debug status, and
 continuously re-evaluating their inputs and outputs.
 
-Each top-level River _block_ will instantiate a new component. A component
-consists of its name (which describes what the component is responsible for) as
-well as an optional user-specified label.
+Each top-level River _block_ will instantiate a new component. All components
+are identified by their name, describing what the component is responsible for,
+while some allow or require to provide an extra user-specified _label_.
 
 You can see a list of all available components [here]({{< relref "../components/_index.md" >}}).
-Each component features a complete reference page, so getting a component to
-work for you should be as easy as reading its documentation and copy/pasting
-from an example.
+Each one features a complete reference page, so getting a component to work for
+you should be as easy as reading its documentation and copy/pasting from an
+example.
 
 ## Arguments and Exports
 Most user interactions with components will center around two basic concepts;
 _Arguments_ and _Exports_.
 
-* _Arguments_ work much like function arguments in your favorite programming
- language. They can be any number of attributes or nested unlabeled blocks and
-are used to configure the component's behavior. Most components will feature
-both required and optional arguments. Any arguments that are not provided will
-take on their default values.
+* _Arguments_ are settings which modify the behavior of a component. They can
+ be any number of attributes or nested unlabeled blocks, some of them being
+required for the component to work and some being optional. Any optional
+arguments that are not overriden, will take on their default values.
 
 * _Exports_ are zero or more named return values that can be referred to by
- other components. There is no limit to what an export might be; it can take on
-any River value or Go type (eg. channels, interfaces).
-
-Each component's documentation page contains the list of all available
-Arguments and resulting Exports, along their underlying type. Users can
-configure Arguments either using a constant value or an
-[_expression_]({{< relref "./expressions/_index.md" >}}) to continuously
-re-evaluate values who are dynamic in nature.
+ other components and can be any River value.
 
 Here's a quick example; the following block defines a `local.file` component
 labelled "targets". The `local.file.targets` component will then expose the
 file `content` as a string in its Exports.
 
 The `filename` attribute is a _required_ argument; the user can also define a
-number of _optional_ ones (in this case  `detector`, `poll_frequency` and
-`is_sensitive`), which configure how and how often the file should be polled
+number of _optional_ ones, in this case `detector`, `poll_frequency` and
+`is_sensitive`, which configure how and how often the file should be polled
 as well as whether its contents are safe to be presented as plaintext back to
 the user.
 
@@ -60,19 +52,18 @@ local.file "targets" {
 	// Required Argument
 	filename = "/etc/agent/targets" 
 
-	/* Optional Arguments
-	is_sensitive   = <boolean>
-	detector       = < "fsnotify" | "poll" >
-	poll_frequency = <duration> 
-	*/
+	// Optional Arguments
+	//   is_sensitive   = <boolean>
+	//   detector       = < "fsnotify" | "poll" >
+	//   poll_frequency = <duration> 
 
 	// Exports: a single field named `content`
 	// It can be referred to as `local.file.token.content`
 }
 ```
 
-To wire components together, you just use the Exports of one as the Arguments
-of another.
+To wire components together, one can use the Exports of one as the Arguments
+to another.
 
 For example, here's a component that scrapes Prometheus metrics. The `targets`
 field is populated with two scrape targets; a constant one `localhost:9001` and
@@ -102,61 +93,13 @@ River will type-check expressions before assigning a value to an attribute; the
 documentation of each component will have more information about the ways that
 you can wire components together.
 
+In the previous example, the contents of the `local.file.target.content`
+expression must first be evaluated in a concrete value then type-checked and
+substituted into `prometheus.scrape.default` for it to be configured in turn.
+
 River attributes that appear as Arguments and Exports can carry around more
 than the basic types you'd expect such as strings, numbers or booleans; they
 are able to natively wrap any Go value (eg. channels or interfaces), as well as
 pass around and invoke Go functions which makes for powerful tooling when
 building more complex pipelines.
 
-## DAG
-The relationships between components form a [Directed Acyclic Graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph).
-
-This graph is used by River to resolve dependencies between components, set the
-correct order for component evaluation, and ensure the validity of references.
-River does not allow components that reference themselves, any other
-relationship that might end up in cyclical references, and will reject outright
-invalid references in expressions.
-
-In the previous example, the contents of the `local.file.target.content`
-expression must first be evaluated in a concrete value then type-checked and
-substituted into `prometheus.scrape.default` for it to be configured in turn.
-
-## Component Lifecycle
-Each time a River configuration file is reloaded or re-evaluated, Flow will:
-
-- Parse the provided configuration file. In case any errors are found, the
-  Agent will continue using the last valid River configuration.
-- Parse and apply settings for predefined global blocks (like `logging`).
-- Create a graph of component relationships and validate it.
-- Create new components that weren't present in the last loaded configuration
-  file.
-- Drop components that no longer exist in the new configuration file.
-- Update any pre-existing components whose arguments have changed.
-
-## Error reporting
-Like in the case of syntax errors, River will also enrich component-related
-errors with useful information to help with debugging.
-
-```
-Error: ./cmd/agent/example-config.river:16:21: component "local.file.this_files.content" does not exist
-
-15 |         "__address__"   = "localhost:12345",
-16 |         "dynamic_label" = local.file.this_files.content,
-   |                           ^^^^^^^^^^^^^^^^^^^^^^^
-17 |     }]
-
-Error: ./cmd/agent/example-config.river:25:1: Failed to build component: building component: duplicate remote write configs are not allowed, found duplicate for URL: http://localhost:9009/api/prom/push
-
-24 |
-25 | | prometheus.remote_write "default" {
-   |  _^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-26 | |     remote_write {
-27 | |         url = "http://localhost:9009/api/prom/push"
-28 | |     }
-29 | |     remote_write {
-30 | |         url = "http://localhost:9009/api/prom/push"
-31 | |     }
-32 | | }
-   | |_^
-33 |
-```
