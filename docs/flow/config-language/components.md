@@ -16,6 +16,8 @@ controller_]({{< relref "../concepts/component_controller.md" >}}), who is
 responsible for scheduling them, reporting their health and debug status, and
 continuously re-evaluating their inputs and outputs.
 
+
+## Configuring components
 Each top-level River _block_ will instantiate a new component. All components
 are identified by their name, describing what the component is responsible for,
 while some allow or require to provide an extra user-specified _label_.
@@ -62,6 +64,7 @@ local.file "targets" {
 }
 ```
 
+## Referencing components
 To wire components together, one can use the Exports of one as the Arguments
 to another.
 
@@ -96,10 +99,4 @@ you can wire components together.
 In the previous example, the contents of the `local.file.target.content`
 expression must first be evaluated in a concrete value then type-checked and
 substituted into `prometheus.scrape.default` for it to be configured in turn.
-
-River attributes that appear as Arguments and Exports can carry around more
-than the basic types you'd expect such as strings, numbers or booleans; they
-are able to natively wrap any Go value (eg. channels or interfaces), as well as
-pass around and invoke Go functions which makes for powerful tooling when
-building more complex pipelines.
 
