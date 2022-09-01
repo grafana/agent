@@ -197,33 +197,21 @@ endif
 # Targets for building Docker images
 #
 
+DOCKER_FLAGS := --build-arg RELEASE_BUILD=$(RELEASE_BUILD) --build-arg VERSION=$(VERSION)
+
 .PHONY: images agent-image agentctl-image operator-image crow-image smoke-image
 images: agent-image agentctl-image operator-image crow-image smoke-image
 
-agent-image: GOOS         := linux
-agent-image: AGENT_BINARY := build/docker/agent
-agent-image: agent
-	docker build -t $(AGENT_IMAGE) -f cmd/agent/Dockerfile .
-
-agentctl-image: GOOS            := linux
-agentctl-image: AGENTCTL_BINARY := build/docker/agentctl
-agentctl-image: agentctl
-	docker build -t $(AGENTCTL_IMAGE) -f cmd/agentctl/Dockerfile .
-
-operator-image: GOOS            := linux
-operator-image: OPERATOR_BINARY := build/docker/agent-operator
-operator-image: operator
-	docker build -t $(OPERATOR_IMAGE) -f cmd/agent-operator/Dockerfile .
-
-crow-image: GOOS        := linux
-crow-image: CROW_BINARY := build/docker/agent-crow
-crow-image: crow
-	docker build -t $(CROW_IMAGE) -f tools/crow/Dockerfile .
-
-smoke-image: GOOS         := linux
-smoke-image: SMOKE_BINARY := build/docker/agent-smoke
-smoke-image: smoke
-	docker build -t $(SMOKE_IMAGE) -f tools/smoke/Dockerfile .
+agent-image:
+	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(AGENT_IMAGE) -f cmd/agent/Dockerfile.new .
+agentctl-image:
+	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(AGENTCTL_IMAGE) -f cmd/agentctl/Dockerfile.new .
+operator-image:
+	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(OPERATOR_IMAGE) -f cmd/agent-operator/Dockerfile.new .
+crow-image:
+	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(CROW_IMAGE) -f tools/crow/Dockerfile.new .
+smoke-image:
+	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(SMOKE_IMAGE) -f tools/smoke/Dockerfile.new .
 
 #
 # Targets for generating assets
