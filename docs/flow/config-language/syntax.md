@@ -85,10 +85,10 @@ local.file "token" {
 ```
 
 ## Comments
-River configuration files support single-line `//` as well as `/* */` block
+River configuration files support single-line `//` as well as block `/* */` 
 comments.
 
 ## Identifiers
 River considers an identifier as valid if it consists of one or more UTF-8
-letters, digits or underscores, but it doesn't start with a digit.
+letters, digits or underscores, but doesn't start with a digit.
 

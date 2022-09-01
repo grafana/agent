@@ -8,7 +8,7 @@ weight: 300
 # Components
 Components are the defining feature of Grafana Agent Flow. They are autonomous
 pieces of business logic that perform a single task (like retrieving secrets or
-collecting Prometheus metrics) and are wired together to form programmable
+collecting Prometheus metrics) and can be wired together to form programmable
 pipelines of telemetry data.
 
 Under the hood, components are orchestrated via the [_component
@@ -33,11 +33,11 @@ _Arguments_ and _Exports_.
 
 * _Arguments_ are settings which modify the behavior of a component. They can
  be any number of attributes or nested unlabeled blocks, some of them being
-required for the component to work and some being optional. Any optional
-arguments that are not overriden, will take on their default values.
+required and some being optional. Any optional arguments that are not
+overriden, will take on their default values.
 
-* _Exports_ are zero or more named return values that can be referred to by
- other components and can be any River value.
+* _Exports_ are zero or more output values that can be referred to by other
+  components, and can be any River type.
 
 Here's a quick example; the following block defines a `local.file` component
 labelled "targets". The `local.file.targets` component will then expose the
@@ -70,7 +70,7 @@ to another.
 
 For example, here's a component that scrapes Prometheus metrics. The `targets`
 field is populated with two scrape targets; a constant one `localhost:9001` and
-an expression that ties the target to the contents of
+an expression that ties the target to the value of
 `local.file.target.content`.
 
 ```river
