@@ -10,25 +10,14 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
-v0.27.0-rc.1 (2022-08-29)
--------------------------
-
-### Features
-
-- App agent receiver: add Event kind to payload (@domasx2)
-
-### Bugfixes
-
-- Fix snmp integration not passing module or walk_params parameters when scraping. (@rgeyer)
-
-- Fix unmarshal errors (key "<walk_param name>" already set in map) for snmp integration config when walk_params is defined, and the config is reloaded. (@rgeyer)
-
-v0.27.0-rc.0 (2022-08-24)
+v0.27.0 (2022-09-01)
 -------------------------
 
 ### Features
 
 - Integrations: (beta) Add vmware_exporter integration (@rlankfo)
+
+- App agent receiver: add Event kind to payload (@domasx2)
 
 ### Enhancements
 
@@ -53,6 +42,10 @@ v0.27.0-rc.0 (2022-08-24)
 - Fix seg fault when no instance parameter is provided for apache_http integration, using integrations-next feature flag. (@rgeyer)
 
 - Fix grafanacloud-install.ps1 web request internal server error when fetching config. (@rlankfo)
+
+- Fix snmp integration not passing module or walk_params parameters when scraping. (@rgeyer)
+
+- Fix unmarshal errors (key "<walk_param name>" already set in map) for snmp integration config when walk_params is defined, and the config is reloaded. (@rgeyer)
 
 ### Other changes
 
