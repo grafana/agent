@@ -45,9 +45,8 @@ file `content` as a string in its Exports.
 
 The `filename` attribute is a _required_ argument; the user can also define a
 number of _optional_ ones, in this case `detector`, `poll_frequency` and
-`is_sensitive`, which configure how and how often the file should be polled
-as well as whether its contents are safe to be presented as plaintext back to
-the user.
+`is_secret`, which configure how and how often the file should be polled
+as well as whether its contents are sensitive or not.
 
 ```river
 local.file "targets" {
@@ -55,7 +54,7 @@ local.file "targets" {
 	filename = "/etc/agent/targets" 
 
 	// Optional Arguments
-	//   is_sensitive   = <boolean>
+	//   is_secret      = <boolean>
 	//   detector       = < "fsnotify" | "poll" >
 	//   poll_frequency = <duration> 
 
