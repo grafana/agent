@@ -6,8 +6,8 @@ weight: 200
 ---
 
 # Referencing component Exports
-Referencing component Exports is what enables River's primary goal; to
-dynamically configure and connect components using expressions.
+Referencing component Exports is what enables River to dynamically configure
+and connect components using expressions.
 
 While components can work in isolation, they can be much more versatile when
 one component's behavior and data flow is bound to the Exports of another,

@@ -32,7 +32,7 @@ The `+` operator can also be used for string concatenation.
 >=    greater or equal
 ```
 
-The equality operators == and != can be applied to any operands.
+The equality operators `==` and `!=` can be applied to any operands.
 
 On the other hand, for the ordering operators the two operands must both be
 _orderable_ and of the same type. These terms and the result of the comparisons
@@ -53,6 +53,7 @@ are defined as follows:
 ||    conditional OR 
 !     NOT            
 ```
+
 Logical operators apply to boolean values and yield a boolean result.
 
 ## Assignment operator
@@ -62,9 +63,9 @@ An assignment statement may only assign a single value to a single attribute.
 In assignments, each value must be _assignable_ to the attribute to which it is
 assigned.
 
-* The `null` value can be assigned to any value
+* The `null` value can be assigned to any attribute.
 * Numerical, string, boolean, array and object types are assignable to
-  corresponding attributes
+  attributes of the corresponding type.
 
 ## Brackets operators
 ```
@@ -87,8 +88,10 @@ arr = [1, true, 7 * (1+1), 3]
 ```
 
 River's access operators support accessing of arbitrarily nested values.
-Square brackets can be used to access zero-indexed array indices as well as object fields by enclosing them in double quotes.
-The dot operator can be used to access both object inner elements (without enclosing them in double quotes) and component Exports.
+Square brackets can be used to access zero-indexed array indices as well as
+object fields by enclosing the field name in double quotes.
+The dot operator can be used to access both object fields (without double
+quotes) and component Exports.
 ```river
 obj["app"]
 arr[1]

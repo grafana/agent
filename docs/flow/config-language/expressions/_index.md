@@ -12,8 +12,7 @@ within a configuration.
 
 Basic expressions are literal values, like `"Hello, world!"` or `true`.
 Expressions may also do things like [refer to values][] exported by components,
-perform arithmetic, or [call functions][] from the River standard library as
-well as custom ones, dynamically created by components on the spot.
+perform arithmetic, or [call functions][].
 
 Expressions can be used when configuring any component. As all component
 Arguments have an underlying [type][], River will type-check expressions before
