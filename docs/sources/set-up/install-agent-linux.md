@@ -54,7 +54,7 @@ yum-config-manager grafana
 sudo yum install grafana-agent
 ```
 
-### Operational guide
+### Operation guide
 
 The Grafana Agent will be configured a [systemd](https://systemd.io/) service after using the installation methods
 explained in the previous sections.
