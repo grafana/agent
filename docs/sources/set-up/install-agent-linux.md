@@ -56,19 +56,24 @@ sudo yum install grafana-agent
 
 ### Operational guide
 
-The Grafana Agent will be configured a systemd service after using the installation methods
+The Grafana Agent will be configured a [systemd](https://systemd.io/) service after using the installation methods
 explained in the previous sections.
 
 #### Start the Agent
 
 To run the service you just need to type:
 ```shell
-sudo service grafana-agent start
+sudo systemctl start grafana-server
 ```
 
 You can check the status of the running agent typing:
 ```shell
-sudo service grafana-agent status
+sudo systemctl status grafana-server
+```
+
+Alternately, you can configure the Grafana server to restart at boot:
+```shell
+sudo systemctl enable grafana-agent.service
 ```
 
 #### Editing the Agent's config file
@@ -76,7 +81,7 @@ sudo service grafana-agent status
 By default, the config file is located in `/etc/grafana-agent.yaml`. After editing the file
 with the desired config, you need to restart the agent running:
 ```shell
-sudo service grafan-agent restart
+sudo systemctl restart grafana-server
 ```
 
 #### Check the logs of running Agent
@@ -85,4 +90,8 @@ You can check the logs of running agent typing:
 
 ```shell
 sudo journalctl -u grafana-agent
+
+Sep 02 14:33:28 grafana systemd[1]: Started Monitoring system and forwarder.
+Sep 02 14:33:28 grafana grafana-agent[1633180]: ts=2022-09-02T12:33:28Z level=info caller=traces/traces.go:143 msg="Traces Logger I>
+Sep 02 14:37:45 grafana systemd[1]: Stopping Monitoring system and forwarder...
 ```
