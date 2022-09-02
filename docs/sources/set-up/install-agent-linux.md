@@ -11,8 +11,6 @@ Install Grafana Agent and get it up and running on Linux.
 
 ### Install on Debian or Ubuntu
 
-#### Steps
-
 1.  If your distribution supports the signed-by option, open a terminal and enter:
 ```shell
 $ mkdir -p /etc/apt/keyrings/
@@ -34,7 +32,6 @@ sudo apt-get install grafana-agent
 ```
 ### Install on RPM-based Linux (CentOS, Fedora, OpenSuse, Red Hat)
 
-#### Steps
 1. Manually create a new `.repo` file inside `/etc/yum.repos.d` using a text editor:
 ```shell
 $ sudo nano /etc/yum.repos.d/grafana.repo
@@ -55,4 +52,37 @@ yum-config-manager grafana
 3. Install Grafana Agent:
 ```shell
 sudo yum install grafana-agent
+```
+
+### Operational guide
+
+The Grafana Agent will be configured a systemd service after using the installation methods
+explained in the previous sections.
+
+#### Start the Agent
+
+To run the service you just need to type:
+```shell
+sudo service grafana-agent start
+```
+
+You can check the status of the running agent typing:
+```shell
+sudo service grafana-agent status
+```
+
+#### Editing the Agent's config file
+
+By default, the config file is located in `/etc/grafana-agent.yaml`. After editing the file
+with the desired config, you need to restart the agent running:
+```shell
+sudo service grafan-agent restart
+```
+
+#### Check the logs of running Agent
+
+You can check the logs of running agent typing:
+
+```shell
+sudo journalctl -u grafana-agent
 ```
