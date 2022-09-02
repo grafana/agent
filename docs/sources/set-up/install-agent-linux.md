@@ -71,7 +71,7 @@ You can check the status of the running agent typing:
 sudo systemctl status grafana-server
 ```
 
-Alternately, you can configure the Grafana server to restart at boot:
+Alternately, you can configure the Grafana Agent to restart at boot:
 ```shell
 sudo systemctl enable grafana-agent.service
 ```
