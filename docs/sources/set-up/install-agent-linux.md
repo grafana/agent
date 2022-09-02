@@ -63,12 +63,12 @@ explained in the previous sections.
 
 To run the service you just need to type:
 ```shell
-sudo systemctl start grafana-server
+sudo systemctl start grafana-agent
 ```
 
 You can check the status of the running agent typing:
 ```shell
-sudo systemctl status grafana-server
+sudo systemctl status grafana-agent
 ```
 
 Alternately, you can configure the Grafana Agent to restart at boot:
@@ -81,7 +81,7 @@ sudo systemctl enable grafana-agent.service
 By default, the config file is located in `/etc/grafana-agent.yaml`. After editing the file
 with the desired config, you need to restart the agent running:
 ```shell
-sudo systemctl restart grafana-server
+sudo systemctl restart grafana-agent
 ```
 
 #### Check the logs of running Agent
