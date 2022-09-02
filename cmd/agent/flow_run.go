@@ -10,7 +10,6 @@ import (
 	"os/signal"
 	"sync"
 
-	"github.com/NYTimes/gziphandler"
 	"github.com/grafana/agent/web/api"
 
 	"github.com/fatih/color"
@@ -21,6 +20,7 @@ import (
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/prometheus/util/httputil"
 	"github.com/spf13/cobra"
 	"go.uber.org/atomic"
 
@@ -36,7 +36,7 @@ func runCommand() *cobra.Command {
 		uiPrefix:             "/",
 	}
 
-	var cmd = &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "run [flags] file",
 		Short: "Run Grafana Agent Flow",
 		Long: `The run subcommand runs Grafana Agent Flow in the foreground until an interrupt
@@ -74,9 +74,11 @@ depending on the nature of the reload error.
 		},
 	}
 
-	cmd.Flags().StringVar(&r.httpListenAddr, "server.http.listen-addr", r.httpListenAddr, "address to listen for HTTP traffic on")
+	cmd.Flags().
+		StringVar(&r.httpListenAddr, "server.http.listen-addr", r.httpListenAddr, "address to listen for HTTP traffic on")
 	cmd.Flags().StringVar(&r.storagePath, "storage.path", r.storagePath, "Base directory where components can store data")
-	cmd.Flags().BoolVar(&r.enableDebugEndpoints, "debug.endpoints.enabled", r.enableDebugEndpoints, "Enables /debug/ HTTP endpoints")
+	cmd.Flags().
+		BoolVar(&r.enableDebugEndpoints, "debug.endpoints.enabled", r.enableDebugEndpoints, "Enables /debug/ HTTP endpoints")
 	cmd.Flags().StringVar(&r.uiPrefix, "server.http.ui-path-prefix", r.uiPrefix, "Prefix to serve the HTTP UI at")
 	return cmd
 }
@@ -151,9 +153,9 @@ func (fr *flowRun) Run(configFile string) error {
 		}
 
 		r := mux.NewRouter()
-		// Add gzip if the client requests it to all requests.
+		// Wrap calls to handle gzip requests.
 		r.Use(func(h http.Handler) http.Handler {
-			return gziphandler.GzipHandler(h)
+			return httputil.CompressionHandler{Handler: h}
 		})
 
 		fa := api.NewFlowAPI(f, r)

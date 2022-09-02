@@ -49,7 +49,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"strings"
 	"sync"
 	"time"
 
@@ -58,6 +57,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
+	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -218,18 +218,10 @@ func (c *Flow) LoadFile(file *File) error {
 func (c *Flow) ComponentInfos() []*river.ComponentField {
 	cns := c.loader.Components()
 	infos := make([]*river.ComponentField, len(cns))
-	refByBacktrack := make(map[string]*river.ComponentField, 0)
+	edges := c.loader.Graph().Edges()
 	for i, com := range cns {
-		refs, _ := controller.ComponentReferences(com, c.loader.Graph())
-		nn := newFromNode(com, refs)
+		nn := newFromNode(com, edges)
 		infos[i] = nn
-		refByBacktrack[nn.ID] = nn
-	}
-	// We need to backtrack the infos
-	for _, info := range infos {
-		for _, refTo := range info.References {
-			refByBacktrack[refTo].ReferencedBy = append(refByBacktrack[refTo].ReferencedBy, info.ID)
-		}
 	}
 	return infos
 }
@@ -241,24 +233,26 @@ func (c *Flow) Close() error {
 	return c.sched.Close()
 }
 
-func newFromNode(cn *controller.ComponentNode, refs []controller.Reference) *river.ComponentField {
-	refsStr := make([]string, len(refs))
-	for i, r := range refs {
-		refsStr[i] = strings.Join(r.Target.ID(), ".")
+func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *river.ComponentField {
+	references := make([]string, 0)
+	referencedBy := make([]string, 0)
+	for _, e := range edges {
+		if e.From.NodeID() == cn.NodeID() {
+			references = append(references, e.To.NodeID())
+		} else if e.To.NodeID() == cn.NodeID() {
+			referencedBy = append(referencedBy, e.From.NodeID())
+		}
 	}
 	ci := &river.ComponentField{
 		Field: river.Field{
-			ID:   cn.NodeID(),
-			Name: strings.Join(cn.ID()[0:2], "."),
-			Type: "block",
-			Key:  strings.Join(cn.ID(), "."),
+			ID:    cn.NodeID(),
+			Name:  cn.NodeType(),
+			Type:  "block",
+			Label: cn.Label(),
 		},
-		References:   refsStr,
-		ReferencedBy: make([]string, 0),
+		References:   references,
+		ReferencedBy: referencedBy,
 		Health:       newFromComponentHealth(cn.CurrentHealth()),
-	}
-	if len(cn.ID()) == 3 {
-		ci.Label = cn.ID()[2]
 	}
 	return ci
 }

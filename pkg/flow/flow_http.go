@@ -96,7 +96,7 @@ func (c *Flow) configBytes(w io.Writer, debugInfo bool) (n int64, err error) {
 }
 
 // ComponentJSON returns the json representation of the flow component.
-func (c *Flow) ComponentJSON(w io.Writer, ci *river.ComponentField) (int, error) {
+func (c *Flow) ComponentJSON(w io.Writer, ci *river.ComponentField) error {
 	var foundComponent *controller.ComponentNode
 	for _, c := range c.loader.Components() {
 		if c.ID().String() == ci.ID {
@@ -105,10 +105,12 @@ func (c *Flow) ComponentJSON(w io.Writer, ci *river.ComponentField) (int, error)
 		}
 	}
 	if foundComponent == nil {
-		return 0, fmt.Errorf("unable to find component named %s", ci.ID)
+		return fmt.Errorf("unable to find component named %s", ci.ID)
 	}
 	field, err := river.ConvertComponentToJSON(
 		foundComponent.ID(),
+		foundComponent.Label(),
+		foundComponent.NodeType(),
 		foundComponent.Arguments(),
 		foundComponent.Exports(),
 		foundComponent.DebugInfo(),
@@ -121,11 +123,12 @@ func (c *Flow) ComponentJSON(w io.Writer, ci *river.ComponentField) (int, error)
 		},
 		"")
 	if err != nil {
-		return 0, err
+		return err
 	}
-	bb, err := json.MarshalIndent(field, "", "    ")
+	bb, err := json.MarshalIndent(field, "    ", "    ")
 	if err != nil {
-		return 0, err
+		return err
 	}
-	return w.Write(bb)
+	_, err = w.Write(bb)
+	return nil
 }

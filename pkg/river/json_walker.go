@@ -47,6 +47,8 @@ const attr = "attr"
 // ConvertComponentToJSON converts a set of component information into a generic Field json representation.
 func ConvertComponentToJSON(
 	id []string,
+	label string,
+	typeName string,
 	args interface{},
 	exports interface{},
 	debug interface{},
@@ -58,7 +60,8 @@ func ConvertComponentToJSON(
 	nf := &ComponentField{
 		Field: Field{
 			ID:    strings.Join(id, "."),
-			Name:  strings.Join(id[0:2], "."),
+			Name:  typeName,
+			Label: label,
 			Type:  "block",
 			Value: nil,
 		},
@@ -66,9 +69,6 @@ func ConvertComponentToJSON(
 		ReferencedBy: referencedby,
 		Health:       health,
 		Original:     original,
-	}
-	if len(id) == 3 {
-		nf.Label = id[2]
 	}
 
 	cArgs, err := convertComponentChild(args)

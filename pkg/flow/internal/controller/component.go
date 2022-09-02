@@ -69,6 +69,8 @@ type ComponentGlobals struct {
 // from a River block.
 type ComponentNode struct {
 	id              ComponentID
+	label           string
+	nodeType        string
 	nodeID          string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
 	reg             component.Registration
 	managedOpts     component.Options
@@ -94,12 +96,9 @@ type ComponentNode struct {
 
 	exportsMut sync.RWMutex
 	exports    component.Exports // Evaluated exports for the managed component
-
 }
 
-var (
-	_ dag.Node = (*ComponentNode)(nil)
-)
+var _ dag.Node = (*ComponentNode)(nil)
 
 // NewComponentNode creates a new ComponentNode from an initial ast.BlockStmt.
 // The underlying managed component isn't created until Evaluate is called.
@@ -125,7 +124,9 @@ func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode
 
 	cn := &ComponentNode{
 		id:              id,
+		label:           b.Label,
 		nodeID:          nodeID,
+		nodeType:        strings.Join(b.Name, "."),
 		reg:             reg,
 		exportsType:     getExportsType(reg),
 		onExportsChange: globals.OnExportsChange,
@@ -168,6 +169,12 @@ func getExportsType(reg component.Registration) reflect.Type {
 
 // ID returns the component ID of the managed component from its River block.
 func (cn *ComponentNode) ID() ComponentID { return cn.id }
+
+// Label returns the label for the block or "" if none was specified.
+func (cn *ComponentNode) Label() string { return cn.label }
+
+// NodeType returns the nodes type, ie `local.file.test` returns `local.file`.
+func (cn *ComponentNode) NodeType() string { return cn.nodeType }
 
 // NodeID implements dag.Node and returns the unique ID for this node. The
 // NodeID is the string representation of the component's ID from its River
