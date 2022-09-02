@@ -158,6 +158,7 @@ func (g *Graph) Edges() []Edge {
 	return edges
 }
 
+// NonTransitiveEdges is the original edge list before the reduce function.
 func (g *Graph) NonTransitiveEdges() []Edge { return g.originalEdges }
 
 // Dependants returns the list of Nodes that depend on n: all Nodes for which
@@ -212,7 +213,6 @@ func (g *Graph) Leaves() []Node {
 
 // Clone returns a copy of g.
 func (g *Graph) Clone() *Graph {
-
 	newGraph := &Graph{
 		nodes: g.nodes.Clone(),
 

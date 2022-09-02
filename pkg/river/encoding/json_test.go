@@ -1,4 +1,4 @@
-package river
+package encoding
 
 import (
 	"testing"
@@ -19,7 +19,7 @@ func TestMap(t *testing.T) {
 	newTest.Targets = append(newTest.Targets, map[string]string{
 		"__address__": "localhost",
 	})
-	fields, err := convertComponentChild(newTest)
+	fields, err := ConvertComponentChild(newTest)
 	require.NoError(t, err)
 	require.Len(t, fields, 1)
 	require.True(t, fields[0].Type == attr)
@@ -27,9 +27,9 @@ func TestMap(t *testing.T) {
 	require.Len(t, fields[0].Value.(*Field).Value, 1)
 	objField := fields[0].Value.(*Field).Value.([]interface{})[0].(*Field)
 	require.True(t, objField.Type == "object")
-	require.True(t, objField.Value.([]*Field)[0].Key == "__address__")
-	require.True(t, objField.Value.([]*Field)[0].Value.(*Field).Type == "string")
-	require.True(t, objField.Value.([]*Field)[0].Value.(*Field).Value == "localhost")
+	require.True(t, objField.Value.([]*KeyField)[0].Key == "__address__")
+	require.True(t, objField.Value.([]*KeyField)[0].Value.(*Field).Type == "string")
+	require.True(t, objField.Value.([]*KeyField)[0].Value.(*Field).Value == "localhost")
 }
 
 type TCapsule struct {
@@ -50,12 +50,12 @@ func TestCapsule(t *testing.T) {
 		},
 	}
 
-	fields, err := convertComponentChild(newTest)
+	fields, err := ConvertComponentChild(newTest)
 	require.NoError(t, err)
 	require.Len(t, fields, 1)
 	require.True(t, fields[0].Type == attr)
 	require.True(t, fields[0].Name == "receiver")
-	require.True(t, fields[0].Value.(*Field).Value == "capsule(\"river.TCapsule\")")
+	require.True(t, fields[0].Value.(*Field).Value == "capsule(\"encoding.TCapsule\")")
 	require.True(t, fields[0].Value.(*Field).Type == "capsule")
 }
 
@@ -69,7 +69,7 @@ func TestTime(t *testing.T) {
 		Time: n,
 	}
 
-	fields, err := convertComponentChild(newTest)
+	fields, err := ConvertComponentChild(newTest)
 	require.NoError(t, err)
 	require.Len(t, fields, 1)
 	require.True(t, fields[0].Type == attr)

@@ -7,7 +7,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/agent/pkg/river/encoding"
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
@@ -96,7 +96,10 @@ func (c *Flow) configBytes(w io.Writer, debugInfo bool) (n int64, err error) {
 }
 
 // ComponentJSON returns the json representation of the flow component.
-func (c *Flow) ComponentJSON(w io.Writer, ci *river.ComponentField) error {
+func (c *Flow) ComponentJSON(w io.Writer, ci *ComponentField) error {
+	c.loadMut.RLock()
+	defer c.loadMut.RUnlock()
+
 	var foundComponent *controller.ComponentNode
 	for _, c := range c.loader.Components() {
 		if c.ID().String() == ci.ID {
@@ -107,28 +110,27 @@ func (c *Flow) ComponentJSON(w io.Writer, ci *river.ComponentField) error {
 	if foundComponent == nil {
 		return fmt.Errorf("unable to find component named %s", ci.ID)
 	}
-	field, err := river.ConvertComponentToJSON(
-		foundComponent.ID(),
-		foundComponent.Label(),
-		foundComponent.NodeType(),
-		foundComponent.Arguments(),
-		foundComponent.Exports(),
-		foundComponent.DebugInfo(),
-		ci.References,
-		ci.ReferencedBy,
-		&river.Health{
-			State:       ci.Health.State,
-			Message:     ci.Health.Message,
-			UpdatedTime: ci.Health.UpdatedTime,
-		},
-		"")
+
+	var err error
+	ci.Arguments, err = encoding.ConvertComponentChild(foundComponent.Arguments())
 	if err != nil {
 		return err
 	}
-	bb, err := json.MarshalIndent(field, "    ", "    ")
+
+	ci.Exports, err = encoding.ConvertComponentChild(foundComponent.Exports())
+	if err != nil {
+		return err
+	}
+
+	ci.DebugInfo, err = encoding.ConvertComponentChild(foundComponent.DebugInfo())
+	if err != nil {
+		return err
+	}
+
+	bb, err := json.MarshalIndent(ci, "", "    ")
 	if err != nil {
 		return err
 	}
 	_, err = w.Write(bb)
-	return nil
+	return err
 }

@@ -12,7 +12,6 @@ import (
 // original graph: any node N reachable from node S will still be reachable
 // after a reduction.
 func Reduce(g *Graph) {
-
 	// Cache our original edges before reducing.
 	g.originalEdges = g.Edges()
 

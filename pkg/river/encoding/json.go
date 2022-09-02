@@ -1,10 +1,9 @@
-package river
+package encoding
 
 import (
 	"fmt"
 	"reflect"
 	"strings"
-	"time"
 
 	"github.com/grafana/agent/pkg/river/token/builder"
 
@@ -12,22 +11,9 @@ import (
 	"github.com/grafana/agent/pkg/river/internal/value"
 )
 
-// ComponentField represents a component in river.
-type ComponentField struct {
-	Field        `json:",omitempty"`
-	References   []string    `json:"referencesTo"`
-	ReferencedBy []string    `json:"referencedBy"`
-	Health       *Health     `json:"health"`
-	Original     string      `json:"original"`
-	Arguments    interface{} `json:"arguments,omitempty"`
-	Exports      interface{} `json:"exports,omitempty"`
-	DebugInfo    interface{} `json:"debugInfo,omitempty"`
-}
-
 // Field represents a value in river.
 type Field struct {
 	ID    string      `json:"id,omitempty"`
-	Key   string      `json:"key,omitempty"`
 	Label string      `json:"label,omitempty"`
 	Name  string      `json:"name,omitempty"`
 	Type  string      `json:"type,omitempty"`
@@ -35,68 +21,16 @@ type Field struct {
 	Body  []*Field    `json:"body,omitempty"`
 }
 
-// Health represents the health of a component.
-type Health struct {
-	State       string    `json:"state"`
-	Message     string    `json:"message"`
-	UpdatedTime time.Time `json:"updatedTime"`
+// KeyField represents a map backed field.
+type KeyField struct {
+	Field `json:",omitempty"`
+	Key   string `json:"key,omitempty"`
 }
 
 const attr = "attr"
 
-// ConvertComponentToJSON converts a set of component information into a generic Field json representation.
-func ConvertComponentToJSON(
-	id []string,
-	label string,
-	typeName string,
-	args interface{},
-	exports interface{},
-	debug interface{},
-	references, referencedby []string,
-	health *Health,
-	original string,
-) (*ComponentField, error) {
-
-	nf := &ComponentField{
-		Field: Field{
-			ID:    strings.Join(id, "."),
-			Name:  typeName,
-			Label: label,
-			Type:  "block",
-			Value: nil,
-		},
-		References:   references,
-		ReferencedBy: referencedby,
-		Health:       health,
-		Original:     original,
-	}
-
-	cArgs, err := convertComponentChild(args)
-	if err != nil {
-		return nil, err
-	}
-	if cArgs != nil {
-		nf.Arguments = cArgs
-	}
-	cExports, err := convertComponentChild(exports)
-	if err != nil {
-		return nil, err
-	}
-	if cExports != nil {
-		nf.Exports = cExports
-	}
-	cDebug, err := convertComponentChild(debug)
-	if err != nil {
-		return nil, err
-	}
-	if cDebug != nil {
-		nf.DebugInfo = cDebug
-	}
-	return nf, nil
-}
-
-// convertComponentChild is used to convert arguments, exports, health and debuginfo.
-func convertComponentChild(input interface{}) ([]*Field, error) {
+// ConvertComponentChild is used to convert arguments, exports, health and debuginfo.
+func ConvertComponentChild(input interface{}) ([]*Field, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -349,10 +283,10 @@ func convertBlock(in interface{}, f *rivertags.Field) (*Field, error) {
 }
 
 func convertMap(vIn reflect.Value) (*Field, error) {
-	fields := make([]*Field, 0)
+	fields := make([]*KeyField, 0)
 	iter := vIn.MapRange()
 	for iter.Next() {
-		mf := &Field{}
+		mf := &KeyField{}
 		mf.Key = iter.Key().String()
 		v, err := convertThing(iter.Value().Interface(), nil)
 		if err != nil {

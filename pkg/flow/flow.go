@@ -52,10 +52,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/agent/pkg/river/encoding"
 
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -215,9 +214,12 @@ func (c *Flow) LoadFile(file *File) error {
 }
 
 // ComponentInfos returns the component infos.
-func (c *Flow) ComponentInfos() []*river.ComponentField {
+func (c *Flow) ComponentInfos() []*ComponentField {
+	c.loadMut.RLock()
+	defer c.loadMut.RUnlock()
+
 	cns := c.loader.Components()
-	infos := make([]*river.ComponentField, len(cns))
+	infos := make([]*ComponentField, len(cns))
 	edges := c.loader.Graph().NonTransitiveEdges()
 	for i, com := range cns {
 		nn := newFromNode(com, edges)
@@ -233,7 +235,7 @@ func (c *Flow) Close() error {
 	return c.sched.Close()
 }
 
-func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *river.ComponentField {
+func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *ComponentField {
 	references := make([]string, 0)
 	referencedBy := make([]string, 0)
 	for _, e := range edges {
@@ -243,8 +245,9 @@ func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *river.Componen
 			referencedBy = append(referencedBy, e.From.NodeID())
 		}
 	}
-	ci := &river.ComponentField{
-		Field: river.Field{
+	h := cn.CurrentHealth()
+	ci := &ComponentField{
+		Field: encoding.Field{
 			ID:    cn.NodeID(),
 			Name:  cn.NodeType(),
 			Type:  "block",
@@ -252,7 +255,11 @@ func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *river.Componen
 		},
 		References:   references,
 		ReferencedBy: referencedBy,
-		Health:       newFromComponentHealth(cn.CurrentHealth()),
+		Health: &ComponentHealth{
+			State:       h.Health.String(),
+			Message:     h.Message,
+			UpdatedTime: h.UpdateTime,
+		},
 	}
 	return ci
 }
@@ -264,10 +271,21 @@ type Health struct {
 	UpdateTime time.Time `json:"updatedTime"`
 }
 
-func newFromComponentHealth(ch component.Health) *river.Health {
-	return &river.Health{
-		State:       ch.Health.String(),
-		Message:     ch.Message,
-		UpdatedTime: ch.UpdateTime,
-	}
+// ComponentField represents a component in river.
+type ComponentField struct {
+	encoding.Field `json:",omitempty"`
+	References     []string         `json:"referencesTo"`
+	ReferencedBy   []string         `json:"referencedBy"`
+	Health         *ComponentHealth `json:"health"`
+	Original       string           `json:"original"`
+	Arguments      interface{}      `json:"arguments,omitempty"`
+	Exports        interface{}      `json:"exports,omitempty"`
+	DebugInfo      interface{}      `json:"debugInfo,omitempty"`
+}
+
+// ComponentHealth represents the health of a component.
+type ComponentHealth struct {
+	State       string    `json:"state"`
+	Message     string    `json:"message"`
+	UpdatedTime time.Time `json:"updatedTime"`
 }
