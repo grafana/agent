@@ -15,10 +15,11 @@ type Edge struct{ From, To Node }
 // Graph is a Directed Acyclic Graph. The zero value is ready for use. Graph
 // cannot be modified concurrently.
 type Graph struct {
-	nodeByID map[string]Node
-	nodes    nodeSet
-	outEdges map[Node]nodeSet // Outgoing edges for a given Node
-	inEdges  map[Node]nodeSet // Incoming edges for a given Node
+	nodeByID      map[string]Node
+	nodes         nodeSet
+	outEdges      map[Node]nodeSet // Outgoing edges for a given Node
+	inEdges       map[Node]nodeSet // Incoming edges for a given Node
+	originalEdges []Edge           // Original edges is used for when you need to access the original state before the transitive reduction.
 }
 
 type nodeSet map[Node]struct{}
@@ -157,6 +158,8 @@ func (g *Graph) Edges() []Edge {
 	return edges
 }
 
+func (g *Graph) NonTransitiveEdges() []Edge { return g.originalEdges }
+
 // Dependants returns the list of Nodes that depend on n: all Nodes for which
 // an edge to n is defined.
 func (g *Graph) Dependants(n Node) []Node {
@@ -209,6 +212,7 @@ func (g *Graph) Leaves() []Node {
 
 // Clone returns a copy of g.
 func (g *Graph) Clone() *Graph {
+
 	newGraph := &Graph{
 		nodes: g.nodes.Clone(),
 
@@ -226,6 +230,8 @@ func (g *Graph) Clone() *Graph {
 	for node, set := range g.inEdges {
 		newGraph.inEdges[node] = set.Clone()
 	}
+	newGraph.originalEdges = make([]Edge, len(g.originalEdges))
+	copy(newGraph.originalEdges, g.originalEdges)
 
 	return newGraph
 }

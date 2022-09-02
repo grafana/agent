@@ -218,7 +218,7 @@ func (c *Flow) LoadFile(file *File) error {
 func (c *Flow) ComponentInfos() []*river.ComponentField {
 	cns := c.loader.Components()
 	infos := make([]*river.ComponentField, len(cns))
-	edges := c.loader.Graph().Edges()
+	edges := c.loader.Graph().NonTransitiveEdges()
 	for i, com := range cns {
 		nn := newFromNode(com, edges)
 		infos[i] = nn
