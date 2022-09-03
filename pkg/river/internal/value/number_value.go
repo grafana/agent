@@ -23,8 +23,8 @@ const (
 	NumberKindFloat
 )
 
-// MakeNumberKind converts a go kind to a river kind.
-func MakeNumberKind(k reflect.Kind) NumberKind {
+// makeNumberKind converts a go kind to a river kind.
+func makeNumberKind(k reflect.Kind) NumberKind {
 	switch k {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return NumberKindInt
@@ -33,7 +33,7 @@ func MakeNumberKind(k reflect.Kind) NumberKind {
 	case reflect.Float32, reflect.Float64:
 		return NumberKindFloat
 	default:
-		panic("river/value: MakeNumberKind called with unsupported Kind value")
+		panic("river/value: makeNumberKind called with unsupported Kind value")
 	}
 }
 
