@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"reflect"
 
 	"github.com/grafana/agent/pkg/river/encoding"
 
@@ -112,19 +113,28 @@ func (c *Flow) ComponentJSON(w io.Writer, ci *ComponentField) error {
 	}
 
 	var err error
-	ci.Arguments, err = encoding.ConvertComponentChild(foundComponent.Arguments())
+	args, err := encoding.ConvertComponentChild(foundComponent.Arguments())
 	if err != nil {
 		return err
 	}
+	if args != nil && !reflect.ValueOf(args).IsNil() {
+		ci.Arguments = args
+	}
 
-	ci.Exports, err = encoding.ConvertComponentChild(foundComponent.Exports())
+	exports, err := encoding.ConvertComponentChild(foundComponent.Exports())
 	if err != nil {
 		return err
 	}
+	if exports != nil && !reflect.ValueOf(exports).IsNil() {
+		ci.Exports = exports
+	}
 
-	ci.DebugInfo, err = encoding.ConvertComponentChild(foundComponent.DebugInfo())
+	debugInfo, err := encoding.ConvertComponentChild(foundComponent.DebugInfo())
 	if err != nil {
 		return err
+	}
+	if debugInfo != nil && !reflect.ValueOf(debugInfo).IsNil() {
+		ci.DebugInfo = debugInfo
 	}
 
 	bb, err := json.MarshalIndent(ci, "", "    ")

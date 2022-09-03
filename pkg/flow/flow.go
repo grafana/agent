@@ -247,11 +247,11 @@ func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *ComponentField
 	}
 	h := cn.CurrentHealth()
 	ci := &ComponentField{
+		Label: cn.Label(),
+		ID:    cn.NodeID(),
 		Field: encoding.Field{
-			ID:    cn.NodeID(),
-			Name:  cn.NodeType(),
-			Type:  "block",
-			Label: cn.Label(),
+			Name: cn.NodeType(),
+			Type: "block",
 		},
 		References:   references,
 		ReferencedBy: referencedBy,
@@ -274,6 +274,8 @@ type Health struct {
 // ComponentField represents a component in river.
 type ComponentField struct {
 	encoding.Field `json:",omitempty"`
+	ID             string           `json:"id,omitempty"`
+	Label          string           `json:"label,omitempty"`
 	References     []string         `json:"referencesTo"`
 	ReferencedBy   []string         `json:"referencedBy"`
 	Health         *ComponentHealth `json:"health"`

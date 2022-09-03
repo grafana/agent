@@ -3,7 +3,6 @@ package encoding
 import (
 	"fmt"
 	"reflect"
-	"strings"
 
 	"github.com/grafana/agent/pkg/river/token/builder"
 
@@ -11,178 +10,59 @@ import (
 	"github.com/grafana/agent/pkg/river/internal/value"
 )
 
-// Field represents a value in river.
-type Field struct {
-	ID    string      `json:"id,omitempty"`
-	Label string      `json:"label,omitempty"`
-	Name  string      `json:"name,omitempty"`
-	Type  string      `json:"type,omitempty"`
-	Value interface{} `json:"value,omitempty"`
-	Body  []*Field    `json:"body,omitempty"`
-}
-
-// KeyField represents a map backed field.
-type KeyField struct {
-	Field `json:",omitempty"`
-	Key   string `json:"key,omitempty"`
-}
-
 const attr = "attr"
+const object = "object"
 
-// ConvertComponentChild is used to convert arguments, exports, health and debuginfo.
-func ConvertComponentChild(input interface{}) ([]*Field, error) {
+// ConvertComponentChild is used to convertBase arguments, exports, health and debuginfo.
+func ConvertComponentChild(input interface{}) ([]interface{}, error) {
 	if input == nil {
 		return nil, nil
 	}
-	_, vt, vIn := getActualValue(input)
-	fields := make([]*Field, 0)
-	rt := rivertags.Get(vt)
+	val := value.Encode(input)
+	fields := make([]interface{}, 0)
+	rt := rivertags.Get(val.Reflect().Type())
 	for _, t := range rt {
-		fieldValue := vIn.FieldByIndex(t.Index)
-		fieldIn, fieldT, fieldVal := getActualValue(fieldValue.Interface())
+		fieldValue := val.Reflect().FieldByIndex(t.Index)
+		enVal := value.Encode(fieldValue.Interface())
 		// Array blocks can only happen at this level
-		if t.IsBlock() && (fieldT.Kind() == reflect.Array || fieldT.Kind() == reflect.Slice) {
-			for i := 0; i < fieldVal.Len(); i++ {
-				arrEle := fieldVal.Index(i).Interface()
-				found, err := convertBlock(arrEle, &t)
+		if t.IsBlock() && (enVal.Reflect().Kind() == reflect.Array || enVal.Reflect().Kind() == reflect.Slice) {
+			for i := 0; i < enVal.Reflect().Len(); i++ {
+				arrEle := enVal.Reflect().Index(i).Interface()
+				bf, err := newBlock(value.Encode(arrEle), t)
 				if err != nil {
 					return nil, err
 				}
-				if found != nil {
-					fields = append(fields, found)
+				if bf.isValid() {
+					fields = append(fields, bf)
 				}
 			}
 		} else if t.IsBlock() {
-			found, err := convertBlock(fieldIn, &t)
+			bf, err := newBlock(value.Encode(enVal), t)
+
 			if err != nil {
 				return nil, err
 			}
-			if found != nil {
-				fields = append(fields, found)
+			if bf.isValid() {
+				fields = append(fields, bf)
 			}
 		} else {
-			found, err := convertAttribute(fieldIn, vt, &t)
+			af, err := newAttribute(enVal, t)
 			if err != nil {
 				return nil, err
 			}
-			if found != nil {
-				fields = append(fields, found)
+			if af.isValid() {
+				fields = append(fields, af)
 			}
 		}
+	}
+	if len(fields) == 0 {
+		return nil, nil
 	}
 	return fields, nil
 }
 
-// convertThing is the switchboard for conversions
-func convertThing(in interface{}, f *rivertags.Field) (*Field, error) {
-	if in == nil {
-		return nil, nil
-	}
-
-	in, inType, inValue := getActualValue(in)
-	// If this is a pointer then its an interface{}nil and return
-	if inType.Kind() == reflect.Pointer {
-		return nil, nil
-	}
-	// If its a struct that is entirely default values return nil
-	if inType.Kind() == reflect.Struct && inValue.IsZero() {
-		return nil, nil
-	}
-
-	if f != nil && f.IsBlock() {
-		return convertBlock(in, f)
-	}
-
-	// Capsules would be seen as a struct below but we want to treat them special.
-	if value.RiverType(inType) == value.TypeCapsule {
-		return convertValue(in)
-	}
-
-	if inType.Kind() == reflect.Array || inType.Kind() == reflect.Slice {
-		return convertArray(inType, inValue, f)
-	} else if inType.Kind() == reflect.Struct {
-		if f != nil && f.IsAttr() {
-			v, err := convertAttribute(in, inType, f)
-			if err != nil {
-				return nil, err
-			}
-			return v, nil
-		} else if !rivertags.HasRiverTags(inType) {
-			// This is used when the caller is converting a struct that is technically a struct, but should be
-			// treated like a string. Regex, time.time, time.duration etc. If it doesn't have river tags then we
-			// get the string representation.
-			v, err := convertValue(in)
-			if err != nil {
-				return nil, err
-			}
-			return v, nil
-		} else {
-			return convertStruct(in, inValue, f)
-		}
-	} else if inType.Kind() == reflect.Map {
-		return convertMap(inValue)
-	}
-	if f != nil {
-		return convertAttribute(in, inType, f)
-	}
-	return convertValue(in)
-}
-
-func convertAttribute(in interface{}, t reflect.Type, f *rivertags.Field) (*Field, error) {
-	if !f.IsAttr() {
-		return nil, fmt.Errorf("convertAttribute requires a field that is an attribute got %T", in)
-	}
-	nf := &Field{
-		Name: strings.Join(f.Name, "."),
-		Type: attr,
-	}
-
-	// If this is a simple attribute then grab the value directly.
-	if isValue(t) {
-		v, err := convertValue(in)
-		if err != nil {
-			return nil, err
-		}
-		nf.Value = v
-	} else {
-		v, err := convertThing(in, nil)
-		if err != nil {
-			return nil, err
-		}
-		nf.Value = v
-	}
-	if nf.Value == nil || reflect.ValueOf(nf.Value).IsZero() {
-		return nil, nil
-	}
-	return nf, nil
-}
-
-func convertArray(inType reflect.Type, inValue reflect.Value, f *rivertags.Field) (*Field, error) {
-	if inType.Kind() != reflect.Array && inType.Kind() != reflect.Slice {
-		return nil, fmt.Errorf("convertArray requires a field that is an slice/array got %T", inValue.Interface())
-	}
-	nf := &Field{}
-	nf.Type = "array"
-
-	blocks := make([]interface{}, 0)
-	for i := 0; i < inValue.Len(); i++ {
-		arrEle := inValue.Index(i).Interface()
-		found, err := convertThing(arrEle, f)
-		if err != nil {
-			return nil, err
-		}
-		if found != nil {
-			blocks = append(blocks, found)
-		}
-	}
-
-	nf.Value = blocks
-	return nf, nil
-}
-
-func isValue(t reflect.Type) bool {
-	rt := value.RiverType(t)
-	switch rt {
+func isValue(val value.Value) bool {
+	switch val.Type() {
 	case value.TypeNull, value.TypeNumber, value.TypeString, value.TypeBool, value.TypeFunction, value.TypeCapsule:
 		return true
 	}
@@ -190,154 +70,80 @@ func isValue(t reflect.Type) bool {
 }
 
 // convertValue is used to transform the underlying value of a river tag to a field
-func convertValue(in interface{}) (*Field, error) {
-	in, _, vIn := getActualValue(in)
-
-	if reflect.ValueOf(in).IsZero() {
-		return nil, nil
-	}
+func convertValue(val value.Value) (*ValueField, error) {
 	// Handle items that explicitly use tokenizer, these are always considered capsule values.
-	if tkn, ok := in.(builder.Tokenizer); ok {
+	if tkn, ok := val.Interface().(builder.Tokenizer); ok {
 		tokens := tkn.RiverTokenize()
-		return &Field{
+		return &ValueField{
 			Type:  "capsule",
 			Value: tokens[0].Lit,
 		}, nil
 	}
-	newV := value.MakeValue(vIn)
-	rt := value.RiverType(reflect.TypeOf(in))
-	switch rt {
+	switch val.Type() {
 	case value.TypeNull:
-		return &Field{
+		return &ValueField{
 			Type: "null",
 		}, nil
 	case value.TypeNumber:
-		return &Field{
+		return &ValueField{
 			Type:  "number",
-			Value: newV.Interface(),
+			Value: val.Interface(),
 		}, nil
 	case value.TypeString:
-		return &Field{
+		return &ValueField{
 			Type:  "string",
-			Value: newV.Text(),
+			Value: val.Text(),
 		}, nil
 	case value.TypeBool:
-		return &Field{
+		return &ValueField{
 			Type:  "bool",
-			Value: newV.Bool(),
+			Value: val.Bool(),
 		}, nil
 	case value.TypeArray:
 		return nil, fmt.Errorf("convertValue does not allow array types")
 	case value.TypeObject:
 		return nil, fmt.Errorf("convertValue does not allow object types")
 	case value.TypeFunction:
-		return &Field{
+		return &ValueField{
 			Type:  "function",
-			Value: newV.Describe(),
+			Value: val.Describe(),
 		}, nil
 	case value.TypeCapsule:
-		return &Field{
+		return &ValueField{
 			Type:  "capsule",
-			Value: newV.Describe(),
+			Value: val.Describe(),
 		}, nil
+	default:
+		return nil, fmt.Errorf("unable to convert %T", val.Interface())
 	}
-	return nil, fmt.Errorf("error while converting value to json %T", in)
 }
 
-func convertBlock(in interface{}, f *rivertags.Field) (*Field, error) {
-	if in == nil {
-		return nil, nil
-	}
-	in, _, vIn := getActualValue(in)
-	if vIn.Kind() == reflect.Pointer && (vIn.IsZero() || vIn.IsNil()) {
-		return nil, nil
-	}
-
-	if vIn.Kind() != reflect.Struct {
-		return nil, fmt.Errorf("convertBlock cannot work on interface or slices")
-	}
-
-	nf := &Field{
-		Name: strings.Join(f.Name, "."),
-		Type: "block",
-	}
-	body := make([]*Field, 0)
-
-	riverFields := rivertags.Get(reflect.TypeOf(in))
-	for _, rf := range riverFields {
-		fieldValue := vIn.FieldByIndex(rf.Index)
-		found, err := convertThing(fieldValue.Interface(), &rf)
-		if err != nil {
-			return nil, err
-		}
-		if found != nil {
-			body = append(body, found)
-		}
-	}
-	// If we have no content then return nil
-	if len(body) == 0 {
-		return nil, nil
-	}
-	nf.Body = body
-	return nf, nil
+func isArray(val value.Value) bool {
+	return val.Reflect().Kind() == reflect.Array || val.Reflect().Kind() == reflect.Slice
 }
 
-func convertMap(vIn reflect.Value) (*Field, error) {
-	fields := make([]*KeyField, 0)
-	iter := vIn.MapRange()
-	for iter.Next() {
-		mf := &KeyField{}
-		mf.Key = iter.Key().String()
-		v, err := convertThing(iter.Value().Interface(), nil)
-		if err != nil {
-			return nil, err
-		}
-		mf.Value = v
-		if mf.Value != nil {
-			fields = append(fields, mf)
-		}
-	}
-	if len(fields) == 0 {
-		return nil, nil
-	}
-	return &Field{
-		Type:  "object",
-		Value: fields,
-	}, nil
+func isMap(val value.Value) bool {
+	return val.Reflect().Kind() == reflect.Map
 }
 
-func convertStruct(in interface{}, vIn reflect.Value, f *rivertags.Field) (*Field, error) {
-	nf := &Field{}
-	if f != nil && len(f.Name) > 0 {
-		nf.Name = f.Name[len(f.Name)-1]
-	}
-	if vIn.Kind() != reflect.Struct {
-		return nil, fmt.Errorf("convertStruct cannot work on non-structs")
-	}
-	nf.Type = attr
-	fields := make([]interface{}, 0)
-	riverFields := rivertags.Get(reflect.TypeOf(in))
-	for _, rf := range riverFields {
-		fieldValue := vIn.FieldByIndex(rf.Index)
-		found, err := convertThing(fieldValue.Interface(), &rf)
-		if err != nil {
-			return nil, err
-		}
-		if found != nil {
-			fields = append(fields, found)
-		}
-	}
-	nf.Value = fields
-	return nf, nil
+func isStruct(val value.Value) bool {
+	return val.Reflect().Kind() == reflect.Struct
 }
 
-// getActualValue is used to find the concrete value
-func getActualValue(in interface{}) (interface{}, reflect.Type, reflect.Value) {
-	nt := reflect.TypeOf(in)
-	vIn := reflect.ValueOf(in)
-	for nt.Kind() == reflect.Pointer && !vIn.IsZero() {
-		vIn = vIn.Elem()
-		nt = vIn.Type()
+func convertRiverValue(val value.Value) (vf *ValueField, af *ArrayField, mf *MapField, sf *StructField, err error) {
+	if isValue(val) {
+		vf, err = convertValue(val)
+		return
+	} else if isArray(val) {
+		af, err = newArray(val)
+		return
+	} else if isMap(val) {
+		mf, err = newMap(val)
+		return
+	} else if isStruct(val) {
+		sf, err = newStruct(val)
+		return
 	}
-	return vIn.Interface(), nt, vIn
+	err = fmt.Errorf("unknown value %T", val.Interface())
+	return
 }
