@@ -29,7 +29,7 @@ prometheus.scrape "blackbox_scraper" {
 	forward_to = [prometheus.remote_write.grafanacloud.receiver, prometheus.remote_write.onprem.receiver]
 	
 	scrape_interval = "10s"
-	params          = { "target" = ["grafana.com"], "module" = ["http_2xx"]}
+	params          = { "target" = ["grafana.com"], "module" = ["http_2xx"] }
 	metrics_path    = "/probe"
 }
 ```
