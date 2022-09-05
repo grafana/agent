@@ -171,6 +171,7 @@ type GrafanaAgentSpec struct {
 	EnableConfigReadAPI bool `json:"enableConfigReadAPI,omitempty"`
 
 	// disableReporting disable reporting of enabled feature flags to Grafana.
+	// +kubebuilder:default=false
 	DisableReporting bool `json:"disableReporting,omitempty"`
 }
 
