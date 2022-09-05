@@ -16,7 +16,7 @@ perform arithmetic, or [call functions][].
 
 Expressions can be used when configuring any component. As all component
 Arguments have an underlying [type][], River will type-check expressions before
-assigning the resolved value to an attribute. 
+assigning the result to an attribute. 
 
 The only exception to this rule are some special reserved blocks like
 [`logging`][] which are used to configure the global behavior of Grafana Agent

@@ -66,6 +66,7 @@ assigned.
 * The `null` value can be assigned to any attribute.
 * Numerical, string, boolean, array and object types are assignable to
   attributes of the corresponding type.
+* Blocks are not assignable.
 
 ## Brackets operators
 ```

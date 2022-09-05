@@ -6,7 +6,7 @@ weight: 400
 ---
 
 # Function Calls
-Function calls is one more River feature that allows users to build richer
+Function calls is one more River feature that lets users build richer
 expresisons.
 
 Functions take zero or more arguments as their input and always return a single
@@ -24,7 +24,7 @@ json_decode(local.file.cfg.contents)["namespace"]
 ```
 
 ## Exported by components
-Some components also expose functions in their named Exports, documented on the
-component's reference page. 
+Components can also expose functions in their named Exports, as documented on
+their reference page. 
 
 [standard library]: {{< relref "../../reference/stdlib/_index.md" >}}
