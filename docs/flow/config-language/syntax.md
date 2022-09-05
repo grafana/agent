@@ -32,16 +32,15 @@ All `<ATTRIBUTE_NAME>`s must be valid River identifiers.
 The `<ATTRIBUTE_VALUE>` can be either a constant value of a valid River
 [type]({{< relref "./expressions/types_and_values.md" >}}) (eg. string,
 boolean, number) or an [_expression_]({{< relref "./expressions/_index.md" >}})
-that computes and continuously re-evaluates more complex attribute values.
+to represent or compute more complex attribute values.
 
 ### Blocks
 _Blocks_ are used to configure components by grouping any number of attributes
 or nested blocks using curly braces.
 
-Blocks have a _name_ (the type of the component it defines), an
-optional _label_ and a body that contains any number of arguments or nested
-unlabeled blocks. Labels are used to disambiguate between multiple top-level
-blocks of the same name.
+Blocks have a _name_ (the type of the component it defines), an optional
+_label_ (depending on the component type) and a body that contains any number
+of arguments or nested unlabeled blocks.
 
 ```
 // Pattern for creating an unlabeled block:
@@ -70,8 +69,8 @@ The `<BLOCK_NAME>` must correspond to a registered Flow [component]({{< relref "
 If the optional `<BLOCK_LABEL>` is set, it has to be a valid River identifier
 wrapped in double quotes.
 
-River does not allow multiple unlabelled blocks with the same name to co-exist,
-so `<BLOCK_LABEL>`s are used to create multiple blocks and distinguish them.
+In case the component allows or requires a label to be set, it will be used to
+disambiguate between multiple top-level blocks of the same name.
 
 The following snippet defines a block named `local.file` with its label set to
 "token". The block's body sets the to the contents of the `TOKEN_FILE_PATH`

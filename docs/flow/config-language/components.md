@@ -33,14 +33,14 @@ _Arguments_ and _Exports_.
 
 * _Arguments_ are settings which modify the behavior of a component. They can
  be any number of attributes or nested unlabeled blocks, some of them being
-required and some being optional. Any optional arguments that are not
-overriden, will take on their default values.
+required and some being optional. Any optional arguments that are not set, will
+take on their default values.
 
 * _Exports_ are zero or more output values that can be referred to by other
-  components, and can be any River type.
+  components, and can be of any River type.
 
 Here's a quick example; the following block defines a `local.file` component
-labelled "targets". The `local.file.targets` component will then expose the
+labeled "targets". The `local.file.targets` component will then expose the
 file `content` as a string in its Exports.
 
 The `filename` attribute is a _required_ argument; the user can also define a
