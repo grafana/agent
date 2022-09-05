@@ -16,10 +16,6 @@ prometheus.scrape "default" {
 		"dynamic_label" = local.file.this_file.content,
 	}]
 	forward_to = [prometheus.remote_write.default.receiver]
-
-	scrape_config {
-		job_name = "default"
-	}
 }
 
 prometheus.remote_write "default" {

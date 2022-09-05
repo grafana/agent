@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/flow/logging"
 	prometheus_client "github.com/prometheus/client_golang/prometheus"
@@ -25,11 +24,8 @@ func TestForwardingToAppendable(t *testing.T) {
 
 	nilReceivers := []*prometheus.Receiver{nil, nil}
 
-	args := Arguments{
-		Targets:      []discovery.Target{},
-		ForwardTo:    nilReceivers,
-		ScrapeConfig: DefaultConfig,
-	}
+	args := DefaultArguments
+	args.ForwardTo = nilReceivers
 
 	s, err := New(opts, args)
 	require.NoError(t, err)

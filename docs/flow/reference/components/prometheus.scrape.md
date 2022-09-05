@@ -18,26 +18,32 @@ different labels.
 The following example will set up the job with certain attributes (scrape
 intervals, query parameters) and let it scrape two instances of the blackbox
 exporter. The received metrics will be sent over to the provided list of
-remote_writes, as defined by other components.
+remote writes, as defined by other components.
 
 ```river
 prometheus.scrape "blackbox_scraper" {
-  targets = [
-    {"__address__" = "blackbox-exporter:9115", "instance" = "one"},
-    {"__address__" = "blackbox-exporter:9116", "instance" = "two"},
-  ]
-  forward_to = [prometheus.remote_write.grafanacloud.receiver, prometheus.remote_write.onprem.receiver]
-
-  scrape_config {
-    job_name        = "grafana"
-    scrape_interval = "10s"
-    params          = { "target" = ["grafana.com"], "module" = ["http_2xx"]}
-    metrics_path    = "/probe"
-  }
+	targets = [
+		{"__address__" = "blackbox-exporter:9115", "instance" = "one"},
+		{"__address__" = "blackbox-exporter:9116", "instance" = "two"},
+	]
+	forward_to = [prometheus.remote_write.grafanacloud.receiver, prometheus.remote_write.onprem.receiver]
+	
+	scrape_interval = "10s"
+	params          = { "target" = ["grafana.com"], "module" = ["http_2xx"]}
+	metrics_path    = "/probe"
 }
 ```
 
 ## Arguments
+
+The component will configure and start a new scrape job to scrape all of the
+input targets. The list of arguments that can be used to configure the block is
+presented below.
+
+Any omitted fields will take on their default values. In case that conflicting
+attributes are being passed (eg. defining both a BearerToken and
+BearerTokenFile or configuring both Basic Authorization and OAuth2 at the same
+time), the component will report an error.
 
 The following arguments are supported:
 
@@ -46,28 +52,6 @@ Name | Type | Description | Default | Required
 `targets` | `list(map(string))` | Targets to scrape | | **yes**
 `forward_to` | `list(MetricsReceiver)` | List of receivers to send scraped metrics to | | **yes**
 `extra_metrics` | `bool` | Whether extra metrics should be generated for scrape targets | `false` | no
-
-The following subblocks are supported:
-
-Name | Description | Required
----- | ----------- | --------
-[`scrape_config`](#scrape_config-block) | Configures how metrics will be collected from the targets | **yes**
-
-### `scrape_config` block
-
-The user must provide one `scrape_config` block; it will configure and start a
-new scrape job to scrape all of the input targets. The list of arguments that
-can be used to configure the block is presented below.
-
-All arguments except for `job_name` are optional and any omitted fields will
-take on their default values. In case that conflicting attributes are being
-passed (eg. defining both a BearerToken and BearerTokenFile or configuring both
-Basic Authorization and OAuth2 at the same time), the scrape job will not be
-created.
-
-Name                       | Type       | Description | Default | Required
--------------------------- | ---------- | ----------- | ------- | --------
-`job_name`                 | `string`   | The job name to which the job label is set by default. | | **yes**
 `honor_labels`             | `bool`     | Indicator whether the scraped metrics should remain unmodified. | false | no
 `honor_timestamps`         | `bool`     | Indicator whether the scraped timestamps should be respected. | true | no
 `params`                   | `map(list(string))` | A set of query parameters with which the target is scraped. | | no
@@ -81,6 +65,13 @@ Name                       | Type       | Description | Default | Required
 `label_limit`              | `uint`     | More than this many labels post metric-relabeling will cause the scrape to fail. | | no
 `label_name_length_limit`  | `uint`     | More than this label name length post metric-relabeling will cause the | | no
 `label_value_length_limit` | `uint`     | More than this label value length post metric-relabeling will cause the scrape to fail. | | no
+`http_client_config`       | `http_client_config` block | Configures the HTTP client used for the scraping | | no
+
+
+### `http_client_config` block
+
+Name | Description | Required
+---- | ----------- | --------
 `basic_auth`               | `basic_auth` block    | Setup of Basic HTTP authentication credentials. | | no
 `authorization`            | `authorization` block | Setup of HTTP Authorization credentials. | | no
 `oauth2`                   | `oauth2` block        | Setup of the OAuth2 client. | | no
@@ -89,14 +80,14 @@ Name                       | Type       | Description | Default | Required
 `bearer_token_file`        | `string`   | Used to set up the Bearer Token file. | | no
 `proxy_url`                | `string`   | Used to set up a Proxy URL. | | no
 `follow_redirects`         | `bool`     | Whether the scraper should follow redirects. | `true` | no
-`enable_http_2`            | `bool`     | Whether the scraper should use HTTP2. | | no
+`enable_http_2`            | `bool`     | Whether the scraper should use HTTP2. | `true` | no
 
 The following subblocks are supported:
 
 Name | Description | Required
 ---- | ----------- | --------
 [`basic_auth`](#basic_auth-block) | Configures basic_auth for authenticating against targets | no
-[`authorization`](#authorization-block) | Configures generic authentication against targets | no
+[`authorization`](#authorization-block) | Configures generic authorization against targets | no
 [`oauth2`](#oauth2-block) | Configures OAuth2 for authenticating against targets | no
 [`tls_config`](#tls_config-block) | Configures TLS settings for connecting to targets | no
 
@@ -111,7 +102,7 @@ password_file | string   | Setup of Basic HTTP authentication credentials. |    
 #### `authorization` block
 
 Name                | Type     | Description                              | Default | Required
-------------------- | -------- | -----------------------------------------| ------- | --------
+------------------- | -------- | ---------------------------------------- | ------- | --------
 type                | string   | Setup of HTTP Authorization credentials. |         | no
 credential          | secret   | Setup of HTTP Authorization credentials. |         | no
 credentials_file    | string   | Setup of HTTP Authorization credentials. |         | no
@@ -119,7 +110,7 @@ credentials_file    | string   | Setup of HTTP Authorization credentials. |     
 #### `oauth2` block
 
 Name               | Type             | Description                              | Default | Required
------------------- | ---------------- | -----------------------------------------| ------- | --------
+------------------ | ---------------- | ---------------------------------------- | ------- | --------
 client_id          | string           | Setup of the OAuth2 client.              |         | no
 client_secret      | secret           | Setup of the OAuth2 client.              |         | no
 client_secret_file | string           | Setup of the OAuth2 client.              |         | no
