@@ -99,9 +99,10 @@ func (fr *flowRun) Run(configFile string) error {
 	}
 
 	f := flow.New(flow.Options{
-		Logger:   l,
-		DataPath: fr.storagePath,
-		Reg:      prometheus.DefaultRegisterer,
+		Logger:         l,
+		DataPath:       fr.storagePath,
+		Reg:            prometheus.DefaultRegisterer,
+		HTTPListenAddr: fr.httpListenAddr,
 	})
 
 	reload := func() error {
