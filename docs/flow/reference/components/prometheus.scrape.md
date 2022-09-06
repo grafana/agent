@@ -56,40 +56,39 @@ Name | Description | Required
 ### `scrape_config` block
 
 The user must provide one `scrape_config` block; it will configure and start a
-new scrape job to scrape all of the input targets. The list of arguments that
+new scrape job to scrape all the input targets. The list of arguments that
 can be used to configure the block is presented below.
 
-All arguments except for `job_name` are optional and any omitted fields will
-take on their default values. In case that conflicting attributes are being
-passed (eg. defining both a BearerToken and BearerTokenFile or configuring both
-Basic Authorization and OAuth2 at the same time), the scrape job will not be
-created.
+Argument `job_name` will default to the fully formed component name in the case 
+that it is not specified. In case that conflicting attributes are being passed 
+(eg. defining both a BearerToken and BearerTokenFile or configuring both 
+Basic Authorization and OAuth2 at the same time), the scrape job will not be created.
 
-Name                       | Type       | Description | Default | Required
--------------------------- | ---------- | ----------- | ------- | --------
-`job_name`                 | `string`   | The job name to which the job label is set by default. | | **yes**
-`honor_labels`             | `bool`     | Indicator whether the scraped metrics should remain unmodified. | false | no
-`honor_timestamps`         | `bool`     | Indicator whether the scraped timestamps should be respected. | true | no
-`params`                   | `map(list(string))` | A set of query parameters with which the target is scraped. | | no
-`scrape_interval`          | `duration` | How frequently to scrape the targets of this scrape config. | `"60s"` | no
-`scrape_timeout`           | `duration` | The timeout for scraping targets of this config. | `"10s"` | no
-`metrics_path`             | `string`   | The HTTP resource path on which to fetch metrics from targets. | `/metrics` | no
-`scheme`                   | `string`   | The URL scheme with which to fetch metrics from targets. | | no
-`body_size_limit`          | `int`      | An uncompressed response body larger than this many bytes will cause the scrape to fail. 0 means no limit. | | no
-`sample_limit`             | `uint`     | More than this many samples post metric-relabeling will cause the scrape to fail | | no
-`target_limit`             | `uint`     | More than this many targets after the target relabeling will cause the scrapes to fail. | | no
-`label_limit`              | `uint`     | More than this many labels post metric-relabeling will cause the scrape to fail. | | no
-`label_name_length_limit`  | `uint`     | More than this label name length post metric-relabeling will cause the | | no
-`label_value_length_limit` | `uint`     | More than this label value length post metric-relabeling will cause the scrape to fail. | | no
-`basic_auth`               | `basic_auth` block    | Setup of Basic HTTP authentication credentials. | | no
-`authorization`            | `authorization` block | Setup of HTTP Authorization credentials. | | no
-`oauth2`                   | `oauth2` block        | Setup of the OAuth2 client. | | no
-`tls_config`               | `tls_config` block    | Configuration options for TLS connections. | | no
-`bearer_token`             | `secret`   | Used to set up the Bearer Token. | | no
-`bearer_token_file`        | `string`   | Used to set up the Bearer Token file. | | no
-`proxy_url`                | `string`   | Used to set up a Proxy URL. | | no
-`follow_redirects`         | `bool`     | Whether the scraper should follow redirects. | `true` | no
-`enable_http_2`            | `bool`     | Whether the scraper should use HTTP2. | | no
+Name                       | Type       | Description | Default        | Required
+-------------------------- | ---------- | ----------- |----------------| --------
+`job_name`                 | `string`   | The job name to which the job label is set by default. | component name | no
+`honor_labels`             | `bool`     | Indicator whether the scraped metrics should remain unmodified. | false          | no
+`honor_timestamps`         | `bool`     | Indicator whether the scraped timestamps should be respected. | true           | no
+`params`                   | `map(list(string))` | A set of query parameters with which the target is scraped. |                | no
+`scrape_interval`          | `duration` | How frequently to scrape the targets of this scrape config. | `"60s"`        | no
+`scrape_timeout`           | `duration` | The timeout for scraping targets of this config. | `"10s"`        | no
+`metrics_path`             | `string`   | The HTTP resource path on which to fetch metrics from targets. | `/metrics`     | no
+`scheme`                   | `string`   | The URL scheme with which to fetch metrics from targets. |                | no
+`body_size_limit`          | `int`      | An uncompressed response body larger than this many bytes will cause the scrape to fail. 0 means no limit. |                | no
+`sample_limit`             | `uint`     | More than this many samples post metric-relabeling will cause the scrape to fail |                | no
+`target_limit`             | `uint`     | More than this many targets after the target relabeling will cause the scrapes to fail. |                | no
+`label_limit`              | `uint`     | More than this many labels post metric-relabeling will cause the scrape to fail. |                | no
+`label_name_length_limit`  | `uint`     | More than this label name length post metric-relabeling will cause the |                | no
+`label_value_length_limit` | `uint`     | More than this label value length post metric-relabeling will cause the scrape to fail. |                | no
+`basic_auth`               | `basic_auth` block    | Setup of Basic HTTP authentication credentials. |                | no
+`authorization`            | `authorization` block | Setup of HTTP Authorization credentials. |                | no
+`oauth2`                   | `oauth2` block        | Setup of the OAuth2 client. |                | no
+`tls_config`               | `tls_config` block    | Configuration options for TLS connections. |                | no
+`bearer_token`             | `secret`   | Used to set up the Bearer Token. |                | no
+`bearer_token_file`        | `string`   | Used to set up the Bearer Token file. |                | no
+`proxy_url`                | `string`   | Used to set up a Proxy URL. |                | no
+`follow_redirects`         | `bool`     | Whether the scraper should follow redirects. | `true`         | no
+`enable_http_2`            | `bool`     | Whether the scraper should use HTTP2. |                | no
 
 The following subblocks are supported:
 

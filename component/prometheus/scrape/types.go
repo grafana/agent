@@ -19,7 +19,7 @@ const bearer string = "Bearer"
 // component.
 type Config struct {
 	// The job name to which the job label is set by default.
-	JobName string `river:"job_name,attr"`
+	JobName string `river:"job_name,attr,optional"`
 
 	// Indicator whether the scraped metrics should remain unmodified.
 	HonorLabels bool `river:"honor_labels,attr,optional"`
@@ -86,7 +86,11 @@ func (c *Config) UnmarshalRiver(f func(interface{}) error) error {
 // - ServiceDiscoveryConfigs
 func (c *Config) getPromScrapeConfigs(jobName string) (*config.ScrapeConfig, error) {
 	dec := config.DefaultScrapeConfig
-	dec.JobName = jobName
+	if c.JobName == "" {
+		dec.JobName = jobName
+	} else {
+		dec.JobName = c.JobName
+	}
 	dec.HonorLabels = c.HonorLabels
 	dec.HonorTimestamps = c.HonorTimestamps
 	dec.Params = c.Params
