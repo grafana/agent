@@ -38,7 +38,7 @@ type Component struct {
 
 	integration *node_integration.Integration
 
-	sync.Mutex
+	mut sync.Mutex
 }
 
 // NewComponent creates a node_exporter component
@@ -46,6 +46,7 @@ func NewComponent(o component.Options, args node_integration.Config) (*Component
 	c := &Component{
 		log:  o.Logger,
 		opts: o,
+		mut:  sync.Mutex{},
 	}
 
 	// Call to Update() to set the output once at the start
@@ -66,9 +67,9 @@ func (c *Component) Run(ctx context.Context) error {
 func (c *Component) Update(args component.Arguments) error {
 	var err error
 	cfg := args.(node_integration.Config)
-	c.Lock()
+	c.mut.Lock()
 	c.integration, err = node_integration.New(c.log, &cfg)
-	c.Unlock()
+	c.mut.Unlock()
 	if err != nil {
 		return err
 	}
@@ -87,8 +88,8 @@ func (c *Component) Update(args component.Arguments) error {
 
 // Handler serves node_exporter metrics endpoint
 func (c *Component) Handler() http.Handler {
-	c.Lock()
-	defer c.Unlock()
+	c.mut.Lock()
+	defer c.mut.Unlock()
 	h, err := c.integration.MetricsHandler()
 	if err != nil {
 		level.Error(c.log).Log("msg", "failed to creating metrics handler", "err", err)
