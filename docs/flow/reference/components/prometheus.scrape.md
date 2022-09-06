@@ -18,7 +18,7 @@ different labels.
 The following example will set up the job with certain attributes (scrape
 intervals, query parameters) and let it scrape two instances of the blackbox
 exporter. The received metrics will be sent over to the provided list of
-remote writes, as defined by other components.
+receivers, as defined by other components.
 
 ```river
 prometheus.scrape "blackbox_scraper" {
