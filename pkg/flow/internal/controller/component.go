@@ -61,6 +61,7 @@ type ComponentGlobals struct {
 	DataPath        string                  // Shared directory where component data may be stored
 	OnExportsChange func(cn *ComponentNode) // Invoked when the managed component updated its exports
 	Registerer      prometheus.Registerer   // Registerer for serving agent and component metrics
+	HTTPListenAddr  string                  // Base address for server
 }
 
 // ComponentNode is a controller node which manages a user-defined component.
@@ -157,6 +158,8 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 		Registerer: prometheus.WrapRegistererWith(prometheus.Labels{
 			"component_id": cn.nodeID,
 		}, wrapped),
+		HTTPListenAddr: globals.HTTPListenAddr,
+		HTTPPath:       fmt.Sprintf("/component/%s/", cn.nodeID),
 	}
 }
 

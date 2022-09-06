@@ -53,6 +53,13 @@ type Options struct {
 
 	// Registerer allows components to add their own metrics. The register will come pre-wrapped with the component ID. It is not necessary for components to unregister metrics on shutdown.
 	Registerer prometheus.Registerer
+
+	// HTTPListenAddr is the address the server is listening on. For information only.
+	HTTPListenAddr string
+
+	// HTTPPath is the base path that requests need in order to route to this component.
+	// Requests received by a component handler will have this already trimmed off.
+	HTTPPath string
 }
 
 // Registration describes a single component.

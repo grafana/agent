@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"path"
 	"sync"
 
 	"github.com/go-kit/log"
@@ -73,9 +74,9 @@ func (c *Component) Update(args component.Arguments) error {
 	}
 
 	targets := []discovery.Target{{
-		model.AddressLabel:     "127.0.0.1:12345",
+		model.AddressLabel:     c.opts.HTTPListenAddr,
 		model.SchemeLabel:      "http",
-		model.MetricsPathLabel: fmt.Sprintf("/component/%s/metrics", c.opts.ID),
+		model.MetricsPathLabel: path.Join(c.opts.HTTPPath, "metrics"),
 		"name":                 "node_exporter",
 	}}
 	c.opts.OnStateChange(Exports{

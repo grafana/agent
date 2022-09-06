@@ -123,7 +123,8 @@ func newFlow(o Options) (*Flow, context.Context) {
 				// Changed components should be queued for reevaluation.
 				queue.Enqueue(cn)
 			},
-			Registerer: o.Reg,
+			Registerer:     o.Reg,
+			HTTPListenAddr: o.HTTPListenAddr,
 		})
 	)
 
