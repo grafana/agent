@@ -147,10 +147,6 @@ func parseComponentName(name string) (parsedName, error) {
 		return nil, fmt.Errorf("missing name")
 	}
 
-	if len(parts) > 2 {
-		return nil, fmt.Errorf("component name may only have 1 or 2 identifiers, found %d", len(parts))
-	}
-
 	for _, part := range parts {
 		if part == "" {
 			return nil, fmt.Errorf("found empty identifier")
@@ -171,12 +167,14 @@ func parseComponentName(name string) (parsedName, error) {
 // component are defined.
 func validatePrefixMatch(check parsedName, against map[string]parsedName) error {
 	for _, other := range against {
-		if other[0] != check[0] {
-			continue
-		}
-
-		if len(other) != len(check) {
-			return fmt.Errorf("%q cannot be used because it is incompatible with %q", check, other)
+		for i := 0; ; i++ {
+			if i >= len(other) || i >= len(check) {
+				// one name is a complete prefix of another
+				return fmt.Errorf("%q cannot be used because it is incompatible with %q", check, other)
+			}
+			if other[i] != check[i] {
+				break
+			}
 		}
 	}
 
