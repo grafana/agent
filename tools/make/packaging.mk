@@ -217,10 +217,14 @@ endif
 # Windows installer
 #
 
+# TODO(rfratto): update the install_script.nsis so we don't need to copy assets
+# over into the packaging/windows folder.
 .PHONY: dist-agent-installer
 dist-agent-installer: dist/agent-windows-amd64.exe
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
+	cp ./dist/agent-windows-amd64.exe ./packaging/windows
+	cp LICENSE ./packaging/windows
 	makensis -V4 -DVERSION=$(VERSION) -DOUT="../../dist/grafana-agent-installer.exe" ./packaging/windows/install_script.nsis
 endif
