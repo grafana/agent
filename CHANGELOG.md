@@ -36,6 +36,8 @@ Main (unreleased)
 - Introduce new configuration fields for disabling Keep-Alives and setting the
   IdleConnectionTimeout when scraping. (@tpaschalis)
 
+- Add field to Operator CRD to disable report usage functionality. (@marctc)
+
 ### Bugfixes
 
 - Tracing: Fixed issue with the PromSD processor using the `connection` method to discover the IP
