@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+  cortex:
+    image: cortexproject/cortex:v1.8.1
+    volumes:
+      - ./cortex/config:/etc/cortex-config
+    entrypoint:
+      - /bin/cortex
+      - -config.file=/etc/cortex-config/cortex.yaml
+    ports:
+      - "9009:9009"
+  agent:
+    image: grafana/agent:main
+    ports:
+      - 12345:12345
+    volumes:
+      - ./scraping:/etc/agent-config
+    environment:
+      EXPERIMENTAL_ENABLE_FLOW: "true"
+    entrypoint:
+      - /bin/agent 
+      - run 
+      - --server.http.listen-addr=0.0.0.0:12345
+      - /etc/agent-config/agent.flow
+  grafana:
+    image: grafana/grafana:8.3.3
+    entrypoint:
+      - /usr/share/grafana/bin/grafana-server
+      - --homepath=/usr/share/grafana
+      - --config=/etc/grafana-config/grafana.ini
+    volumes:
+      - ./grafana/config:/etc/grafana-config
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/dashboards-provisioning:/etc/grafana/provisioning/dashboards
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    ports:
+      - "3000:3000"
