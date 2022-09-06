@@ -2,12 +2,12 @@ package node_exporter
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"path"
 	"sync"
 
 	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
 	node_integration "github.com/grafana/agent/pkg/integrations/node_exporter"
@@ -91,7 +91,10 @@ func (c *Component) Handler() http.Handler {
 	defer c.Unlock()
 	h, err := c.integration.MetricsHandler()
 	if err != nil {
-		c.log.Log(fmt.Errorf("Creating metrics handler: %e", err))
+		level.Error(c.log).Log("msg", "failed to creating metrics handler", "err", err)
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusInternalServerError)
+		})
 	}
 	return h
 }
