@@ -115,11 +115,11 @@ type DebugComponent interface {
 	DebugInfo() interface{}
 }
 
-// HTTPComponent is an extension interface for components which contain their own HTTP Handlers
+// HTTPComponent is an extension interface for components which contain their own HTTP handlers.
 type HTTPComponent interface {
 	Component
 
-	// Handler should return a valid http handler for the component.
+	// Handler should return a valid HTTP handler for the component.
 	// All requests to the component will have the path trimmed such that the component is at the root.
 	// For example, f a request is made to `/component/{id}/metrics`, the component
 	// will receive a request to just `/metrics`
