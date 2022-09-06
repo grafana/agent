@@ -35,6 +35,14 @@
 ##   crow-image      Builds crow Docker image.
 ##   smoke-image     Builds smoke test Docker image.
 ##
+## Targets for packaging:
+##
+##   dist                   Produce release assets for everything.
+##   dist-agent-binaries    Produce release-ready agent binaries.
+##   dist-agentctl-binaries Produce release-ready agentctl binaries.
+##   dist-packages          Produce release-ready DEB and RPM packages.
+##   dist-agent-intaller    Produce a Windows installer for Grafana Agent.
+##
 ## Targets for generating assets:
 ##
 ##   generate             Generate everything.
@@ -257,9 +265,8 @@ endif
 #
 
 .PHONY: clean
-clean: clean-build-container-cache
+clean: clean-dist clean-build-container-cache
 	rm -rf ./build/*
-	rm -rf ./dist/*
 
 .PHONY: info
 info:
