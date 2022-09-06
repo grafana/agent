@@ -23,6 +23,7 @@ local util = k.util;
       image: this._images.agentsmoke,
       pull_secret: '',
       podPrefix: 'grafana-agent',
+      simulateErrors: true,
     } + config,
 
     rbac:
@@ -51,6 +52,7 @@ local util = k.util;
         'chaos-frequency': this._config.chaosFrequency,
         'pod-prefix': this._config.podPrefix,
         'fake-remote-write': true,
+        'simulate-errors': this._config.simulateErrors,
       })),
 
     agentsmoke_deployment:

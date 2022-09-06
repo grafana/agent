@@ -39,7 +39,14 @@ func (c *Config) ApplyDefaults(globals integrations_v2.Globals) error {
 
 // Identifier returns a string that identifies the integration.
 func (c *Config) Identifier(globals integrations_v2.Globals) (string, error) {
-	return *c.Common.InstanceKey, nil
+	if c.Common.InstanceKey != nil {
+		return *c.Common.InstanceKey, nil
+	}
+	u, err := url.Parse(c.ApacheAddr)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s:%s", u.Hostname(), u.Port()), nil
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
@@ -53,15 +60,6 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 // Name returns the name of the integration this config is for.
 func (c *Config) Name() string {
 	return "apache_http"
-}
-
-// InstanceKey returns the addr of the apache server.
-func (c *Config) InstanceKey(agentKey string) (string, error) {
-	u, err := url.Parse(c.ApacheAddr)
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("%s:%s", u.Hostname(), u.Port()), nil
 }
 
 type apacheHandler struct {

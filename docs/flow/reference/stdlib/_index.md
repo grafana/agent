@@ -18,8 +18,6 @@ when assigning values to attributes.
 All standard library functions are idempotent: they will always return the same
 output if given the same input.
 
-* [`concat`]({{< relref "./concat.md" >}})
-* [`env`]({{< relref "./env.md" >}})
-* [`json_decode`]({{< relref "./json_decode.md" >}})
+{{< section >}}
 
 [feedback]: https://github.com/grafana/agent/discussions/1969

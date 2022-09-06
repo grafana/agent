@@ -83,6 +83,13 @@ func (le *LogsExporter) Export(ctx context.Context, payload Payload) error {
 		err = le.sendKeyValsToLogsPipeline(kv)
 	}
 
+	// events
+	for _, event := range payload.Events {
+		kv := event.KeyVal()
+		MergeKeyVal(kv, meta)
+		err = le.sendKeyValsToLogsPipeline(kv)
+	}
+
 	return err
 }
 

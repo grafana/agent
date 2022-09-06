@@ -7,9 +7,10 @@ The following people are the primary maintainers of the project:
 
 Some parts of the codebase have other maintainers:
 
+* `cmd/agent-operator`: Craig Peterson (<craig.peterson@grafana.com> / @catpncraig), Marc Tudurí (<marc.tuduri@grafana.com> / @marctc)
+* `pkg/integrations`: Gabriel Antunes (<gabriel.antunes@grafana.com> / @gaantunes), Ryan Geyer (<ryan.geyer@grafana.com> / @rgeyer), Craig Peterson (<craig.peterson@grafana.com> / @catpncraig), Marc Tudurí (<marc.tuduri@grafana.com> / @marctc)
+* `pkg/operator`: Craig Peterson (<craig.peterson@grafana.com> / @catpncraig), Marc Tudurí (<marc.tuduri@grafana.com> / @marctc)
 * `pkg/traces`: Joe Elliott (<joe.elliott@grafana.com> / @joe-elliott), Mario Rodriguez (<mario.rodriguez@grafana.com>/ @mapno)
-* `pkg/integrations`: Gabriel Antunes (<gabriel.antunes@grafana.com> / @gaantunes), Ryan Geyer (<ryan.geyer@grafana.com> / @rgeyer)
-* `docs/sources`: Brenda Muir (<brenda.muir@grafana.com> / @brendamuir)
 
 For the sake of brevity, not all subtrees are explicitly listed. Due to the
 size of this repository, the natural changes in focus of maintainers over time,

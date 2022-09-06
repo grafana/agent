@@ -16,7 +16,6 @@ import (
 	"github.com/grafana/agent/pkg/river/token/builder"
 	"github.com/grafana/agent/pkg/river/vm"
 	"github.com/hashicorp/go-multierror"
-	"github.com/prometheus/client_golang/prometheus"
 
 	_ "github.com/grafana/agent/pkg/flow/internal/testcomponents" // Include test components
 )
@@ -36,18 +35,18 @@ type Loader struct {
 
 // NewLoader creates a new Loader. Components built by the Loader will be built
 // with co for their options.
-func NewLoader(globals ComponentGlobals, reg prometheus.Registerer) *Loader {
+func NewLoader(globals ComponentGlobals) *Loader {
 	l := &Loader{
 		log:     globals.Logger,
 		globals: globals,
 
 		graph: &dag.Graph{},
 		cache: newValueCache(),
-		cm:    newControllerMetrics(reg),
+		cm:    newControllerMetrics(globals.Registerer),
 	}
 	cc := newControllerCollector(l)
-	if reg != nil {
-		reg.MustRegister(cc)
+	if globals.Registerer != nil {
+		globals.Registerer.MustRegister(cc)
 	}
 	return l
 }
@@ -244,6 +243,10 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 	l.mut.RLock()
 	defer l.mut.RUnlock()
 
+	l.cm.controllerEvaluation.Set(1)
+	defer l.cm.controllerEvaluation.Set(0)
+	start := time.Now()
+
 	// Make sure we're in-sync with the current exports of c.
 	l.cache.CacheExports(c.ID(), c.Exports())
 
@@ -257,20 +260,23 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 		_ = l.evaluate(parentScope, n.(*ComponentNode))
 		return nil
 	})
+
+	l.cm.componentEvaluationTime.Observe(time.Since(start).Seconds())
 }
 
 // evaluate constructs the final context for c and evaluates it. mut must be
 // held when calling evaluate.
 func (l *Loader) evaluate(parent *vm.Scope, c *ComponentNode) error {
 	ectx := l.cache.BuildContext(parent)
-	if err := c.Evaluate(ectx); err != nil {
+	err := c.Evaluate(ectx)
+	// Always update the cache both the arguments and exports, since both might
+	// change when a component gets re-evaluated. We also want to cache the arguments and exports in case of an error
+	l.cache.CacheArguments(c.ID(), c.Arguments())
+	l.cache.CacheExports(c.ID(), c.Exports())
+	if err != nil {
 		level.Error(l.log).Log("msg", "failed to evaluate component", "component", c.NodeID(), "err", err)
 		return err
 	}
-	// Always update the cache both the arguments and exports, since both might
-	// change when a component gets re-evaluated.
-	l.cache.CacheArguments(c.ID(), c.Arguments())
-	l.cache.CacheExports(c.ID(), c.Exports())
 	return nil
 }
 

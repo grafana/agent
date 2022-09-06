@@ -8,12 +8,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/grafana/agent/pkg/flow/rivertypes"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	aws_config "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/flow/rivertypes"
+	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/net/context"
 )
 
@@ -36,8 +36,10 @@ type S3 struct {
 	health  component.Health
 	content string
 
-	watcher    *watcher
-	updateChan chan result
+	watcher      *watcher
+	updateChan   chan result
+	s3Errors     prometheus.Counter
+	lastAccessed prometheus.Gauge
 }
 
 var (
@@ -62,10 +64,27 @@ func New(o component.Options, args Arguments) (*S3, error) {
 		args:       args,
 		health:     component.Health{},
 		updateChan: make(chan result),
+		s3Errors: prometheus.NewCounter(prometheus.CounterOpts{
+			Name: "agent_remote_s3_errors_total",
+			Help: "The number of errors while accessing s3",
+		}),
+		lastAccessed: prometheus.NewGauge(prometheus.GaugeOpts{
+			Name: "agent_remote_s3_timestamp_last_accessed_unix_seconds",
+			Help: "The last successful access in unix seconds",
+		}),
 	}
 
 	w := newWatcher(bucket, file, s.updateChan, args.PollFrequency, s3Client)
 	s.watcher = w
+
+	err = o.Registerer.Register(s.s3Errors)
+	if err != nil {
+		return nil, err
+	}
+	err = o.Registerer.Register(s.lastAccessed)
+	if err != nil {
+		return nil, err
+	}
 
 	content, err := w.downloadSynchronously()
 	s.handleContentPolling(content, err)
@@ -77,6 +96,7 @@ func (s *S3) Run(ctx context.Context) error {
 	go s.handleContentUpdate(ctx)
 	go s.watcher.run(ctx)
 	<-ctx.Done()
+
 	return nil
 }
 
@@ -185,10 +205,12 @@ func (s *S3) handleContentPolling(newContent string, err error) {
 				Value:    newContent,
 			},
 		})
+		s.lastAccessed.SetToCurrentTime()
 		s.content = newContent
 		s.health.Health = component.HealthTypeHealthy
 		s.health.Message = "s3 file updated"
 	} else {
+		s.s3Errors.Inc()
 		s.health.Health = component.HealthTypeUnhealthy
 		s.health.Message = err.Error()
 	}

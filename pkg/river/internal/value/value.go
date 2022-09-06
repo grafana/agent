@@ -24,6 +24,7 @@ var (
 	goDuration        = reflect.TypeOf((time.Duration)(0))
 	goDurationPtr     = reflect.TypeOf((*time.Duration)(nil))
 	goRiverDecoder    = reflect.TypeOf((*Unmarshaler)(nil)).Elem()
+	goRawRiverFunc    = reflect.TypeOf((RawFunction)(nil))
 )
 
 // NOTE(rfratto): This package is extremely sensitive to performance, so
@@ -258,6 +259,9 @@ func (v Value) Interface() interface{} {
 	return v.rv.Interface()
 }
 
+// Reflect returns the raw reflection value backing v.
+func (v Value) Reflect() reflect.Value { return v.rv }
+
 // makeValue converts a reflect value into a Value, deferencing any pointers or
 // interface{} values.
 func makeValue(v reflect.Value) Value {
@@ -392,6 +396,10 @@ func (v Value) Call(args ...Value) (Value, error) {
 		panic("river/value: Call called on non-function type")
 	}
 
+	if v.rv.Type() == goRawRiverFunc {
+		return v.rv.Interface().(RawFunction)(v, args...)
+	}
+
 	var (
 		variadic     = v.rv.Type().IsVariadic()
 		expectedArgs = v.rv.Type().NumIn()
@@ -420,7 +428,8 @@ func (v Value) Call(args ...Value) (Value, error) {
 			argVal = reflect.New(argType).Elem()
 		}
 
-		if err := decode(arg, argVal); err != nil {
+		var d decoder
+		if err := d.decode(arg, argVal); err != nil {
 			return Null, ArgError{
 				Function: v,
 				Argument: arg,

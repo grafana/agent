@@ -35,8 +35,8 @@ null
   key = "value",
 }
 
-> json_decode(local.file.some_file.contents)
+> json_decode(local.file.some_file.content)
 "Hello, world!"
 ```
 
-[`local.file`]: {{< relref "../../components/local.file.md" >}}
+[`local.file`]: {{< relref "../components/local.file.md" >}}

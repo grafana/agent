@@ -22,6 +22,7 @@ import (
 	"github.com/grafana/agent/pkg/util"
 	"github.com/oklog/run"
 	"github.com/prometheus/client_golang/prometheus"
+	config_util "github.com/prometheus/common/config"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/model/relabel"
@@ -427,7 +428,15 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer, cf
 	i.storage = storage.NewFanout(i.logger, i.wal, i.remoteStore)
 
 	opts := &scrape.Options{
-		ExtraMetrics: cfg.global.ExtraMetrics,
+		ExtraMetrics:      cfg.global.ExtraMetrics,
+		HTTPClientOptions: []config_util.HTTPClientOption{},
+	}
+
+	if cfg.global.DisableKeepAlives {
+		opts.HTTPClientOptions = append(opts.HTTPClientOptions, config_util.WithKeepAlivesDisabled())
+	}
+	if cfg.global.IdleConnTimeout > 0 {
+		opts.HTTPClientOptions = append(opts.HTTPClientOptions, config_util.WithIdleConnTimeout(cfg.global.IdleConnTimeout))
 	}
 	scrapeManager := newScrapeManager(opts, log.With(i.logger, "component", "scrape manager"), i.storage)
 	err = scrapeManager.ApplyConfig(&config.Config{

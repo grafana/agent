@@ -10,12 +10,36 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
-> **BREAKING CHANGES**: This release has breaking changes. Please read entries
-> carefully and consult the [upgrade guide][] for specific instructions.
-
-### Breaking changes
+> **NOTE**: ARMv6 Docker images are no longer being published.
+> 
+> We have stopped publishing Docker images for ARMv6 platforms. 
+> This is due to the new Ubuntu base image we are using that does not support ARMv6. 
+> The new Ubuntu base image has less reported CVEs, and allows us to provide more 
+> secure Docker images. We will still continue to publish ARMv6 release binaries and 
+> deb/rpm packages.
 
 ### Features
+
+### Enhancements
+
+### Bugfixes
+
+### Other changes
+
+ - Switch docker image base from debian to ubuntu (@captncraig)
+
+ - Fix relabel configs in sample agent-operator manifests (@hjet)
+
+ - Operator no longer set the `SecurityContext.Privileged` flag in the `config-reloader` container. (@hsyed-dojo)
+
+v0.27.0 (2022-09-01)
+-------------------------
+
+### Features
+
+- Integrations: (beta) Add vmware_exporter integration (@rlankfo)
+
+- App agent receiver: add Event kind to payload (@domasx2)
 
 ### Enhancements
 
@@ -25,13 +49,33 @@ Main (unreleased)
 
 - Add base agent-operator jsonnet library and generated manifests (@hjet)
 
+- Add full (metrics, logs, K8s events) sample agent-operator jsonnet library and gen manifests (@hjet)
+
+- Introduce new configuration fields for disabling Keep-Alives and setting the
+  IdleConnectionTimeout when scraping. (@tpaschalis)
+
+- Add field to Operator CRD to disable report usage functionality. (@marctc)
+
 ### Bugfixes
+
+- Tracing: Fixed issue with the PromSD processor using the `connection` method to discover the IP
+  address.  It was failing to match because the port number was included in the address string. (@jphx)
+
+- Register prometheus discovery metrics. (@mattdurham)
+
+- Fix seg fault when no instance parameter is provided for apache_http integration, using integrations-next feature flag. (@rgeyer)
+
+- Fix grafanacloud-install.ps1 web request internal server error when fetching config. (@rlankfo)
+
+- Fix snmp integration not passing module or walk_params parameters when scraping. (@rgeyer)
+
+- Fix unmarshal errors (key "<walk_param name>" already set in map) for snmp integration config when walk_params is defined, and the config is reloaded. (@rgeyer)
 
 ### Other changes
 
  - Update several go dependencies to resolve warnings from certain security scanning tools. None of the resolved vulnerabilities were known to be exploitable through the agent. (@captncraig)
 
-
+ - It is now possible to compile Grafana Agent using Go 1.19. (@rfratto)
 
 v0.26.1 (2022-07-25)
 -------------------------

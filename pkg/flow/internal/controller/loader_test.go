@@ -2,6 +2,7 @@ package controller_test
 
 import (
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/go-kit/log"
@@ -47,14 +48,17 @@ func TestLoader(t *testing.T) {
 		},
 	}
 
-	globals := controller.ComponentGlobals{
-		Logger:          log.NewNopLogger(),
-		DataPath:        t.TempDir(),
-		OnExportsChange: func(cn *controller.ComponentNode) { /* no-op */ },
+	newGlobals := func() controller.ComponentGlobals {
+		return controller.ComponentGlobals{
+			Logger:          log.NewNopLogger(),
+			DataPath:        t.TempDir(),
+			OnExportsChange: func(cn *controller.ComponentNode) { /* no-op */ },
+			Registerer:      prometheus.NewRegistry(),
+		}
 	}
 
 	t.Run("New Graph", func(t *testing.T) {
-		l := controller.NewLoader(globals, prometheus.DefaultRegisterer)
+		l := controller.NewLoader(newGlobals())
 		diags := applyFromContent(t, l, []byte(testFile))
 		require.NoError(t, diags.ErrorOrNil())
 		requireGraph(t, l.Graph(), testGraphDefinition)
@@ -72,7 +76,7 @@ func TestLoader(t *testing.T) {
 				frequency = "1m"
 			}
 		`
-		l := controller.NewLoader(globals, nil)
+		l := controller.NewLoader(newGlobals())
 		diags := applyFromContent(t, l, []byte(startFile))
 		origGraph := l.Graph()
 		require.NoError(t, diags.ErrorOrNil())
@@ -91,7 +95,7 @@ func TestLoader(t *testing.T) {
 			doesnotexist "bad_component" {
 			}
 		`
-		l := controller.NewLoader(globals, nil)
+		l := controller.NewLoader(newGlobals())
 		diags := applyFromContent(t, l, []byte(invalidFile))
 		require.ErrorContains(t, diags.ErrorOrNil(), `Unrecognized component name "doesnotexist`)
 	})
@@ -110,7 +114,7 @@ func TestLoader(t *testing.T) {
 				input = testcomponents.tick.doesnotexist.tick_time
 			}
 		`
-		l := controller.NewLoader(globals, nil)
+		l := controller.NewLoader(newGlobals())
 		diags := applyFromContent(t, l, []byte(invalidFile))
 		require.Error(t, diags.ErrorOrNil())
 
@@ -144,10 +148,46 @@ func TestLoader(t *testing.T) {
 				input = testcomponents.passthrough.ticker.output
 			}
 		`
-		l := controller.NewLoader(globals, nil)
+		l := controller.NewLoader(newGlobals())
 		diags := applyFromContent(t, l, []byte(invalidFile))
 		require.Error(t, diags.ErrorOrNil())
 	})
+}
+
+// TestScopeWithFailingComponent is used to ensure that the scope is filled out, even if the component
+// fails to properly start.
+func TestScopeWithFailingComponent(t *testing.T) {
+	testFile := `
+		testcomponents.tick "ticker" {
+			frequenc = "1s"
+		}
+
+		testcomponents.passthrough "static" {
+			input = "hello, world!"
+		}
+
+		testcomponents.passthrough "ticker" {
+			input = testcomponents.tick.ticker.tick_time
+		}
+
+		testcomponents.passthrough "forwarded" {
+			input = testcomponents.passthrough.ticker.output
+		}
+	`
+	newGlobals := func() controller.ComponentGlobals {
+		return controller.ComponentGlobals{
+			Logger:          log.NewNopLogger(),
+			DataPath:        t.TempDir(),
+			OnExportsChange: func(cn *controller.ComponentNode) { /* no-op */ },
+			Registerer:      prometheus.NewRegistry(),
+		}
+	}
+
+	l := controller.NewLoader(newGlobals())
+	diags := applyFromContent(t, l, []byte(testFile))
+	require.Error(t, diags.ErrorOrNil())
+	require.Len(t, diags, 1)
+	require.True(t, strings.Contains(diags.Error(), "Failed to build component: decoding River: missing required attribute \"frequency\""))
 }
 
 func applyFromContent(t *testing.T, l *controller.Loader, bb []byte) diag.Diagnostics {
