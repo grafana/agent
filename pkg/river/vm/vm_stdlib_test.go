@@ -19,10 +19,10 @@ func TestVM_Stdlib(t *testing.T) {
 	}{
 		{"env", `env("TEST_VAR")`, string("Hello!")},
 		{"concat", `concat([true, "foo"], [], [false, 1])`, []interface{}{true, "foo", false, 1}},
-		{"unmarshal_json object", `unmarshal_json("{\"foo\": \"bar\"}")`, map[string]interface{}{"foo": "bar"}},
-		{"unmarshal_json array", `unmarshal_json("[0, 1, 2]")`, []interface{}{float64(0), float64(1), float64(2)}},
-		{"unmarshal_json nil field", `unmarshal_json("{\"foo\": null}")`, map[string]interface{}{"foo": nil}},
-		{"unmarshal_json nil array element", `unmarshal_json("[0, null]")`, []interface{}{float64(0), nil}},
+		{"json_decode object", `json_decode("{\"foo\": \"bar\"}")`, map[string]interface{}{"foo": "bar"}},
+		{"json_decode array", `json_decode("[0, 1, 2]")`, []interface{}{float64(0), float64(1), float64(2)}},
+		{"json_decode nil field", `json_decode("{\"foo\": null}")`, map[string]interface{}{"foo": nil}},
+		{"json_decode nil array element", `json_decode("[0, null]")`, []interface{}{float64(0), nil}},
 	}
 
 	for _, tc := range tt {
