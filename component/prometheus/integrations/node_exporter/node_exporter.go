@@ -16,42 +16,49 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "prometheus.integration.node_exporter",
-		Args:    node_integration.Config{},
-		Exports: Exports{},
-
+		Name:      "prometheus.integration.node_exporter",
+		Args:      node_integration.Config{},
+		Exports:   Exports{},
+		Singleton: true,
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return NewComponent(opts, args.(node_integration.Config))
 		},
 	})
 }
 
-// Exports are simply a list of targets for a scraper to consume
+// Exports are simply a list of targets for a scraper to consume.
 type Exports struct {
 	Targets []discovery.Target `river:"targets,attr"`
 }
 
 // Component for node_exporter.
 type Component struct {
-	log  log.Logger
-	opts component.Options
+	log log.Logger
 
-	mut sync.Mutex
+	mut         sync.Mutex
 	integration *node_integration.Integration
 }
 
-// NewComponent creates a node_exporter component
+// NewComponent creates a node_exporter component.
 func NewComponent(o component.Options, args node_integration.Config) (*Component, error) {
 	c := &Component{
-		log:  o.Logger,
-		opts: o,
-		mut:  sync.Mutex{},
+		log: o.Logger,
 	}
 
-	// Call to Update() to set the output once at the start
+	// Call to Update() to set the output once at the start.
 	if err := c.Update(args); err != nil {
 		return nil, err
 	}
+
+	targets := []discovery.Target{{
+		model.AddressLabel:     o.HTTPListenAddr,
+		model.SchemeLabel:      "http",
+		model.MetricsPathLabel: path.Join(o.HTTPPath, "metrics"),
+		"name":                 "node_exporter",
+	}}
+	o.OnStateChange(Exports{
+		Targets: targets,
+	})
 
 	return c, nil
 }
@@ -72,20 +79,10 @@ func (c *Component) Update(args component.Arguments) error {
 	if err != nil {
 		return err
 	}
-
-	targets := []discovery.Target{{
-		model.AddressLabel:     c.opts.HTTPListenAddr,
-		model.SchemeLabel:      "http",
-		model.MetricsPathLabel: path.Join(c.opts.HTTPPath, "metrics"),
-		"name":                 "node_exporter",
-	}}
-	c.opts.OnStateChange(Exports{
-		Targets: targets,
-	})
 	return err
 }
 
-// Handler serves node_exporter metrics endpoint
+// Handler serves node_exporter metrics endpoint.
 func (c *Component) Handler() http.Handler {
 	c.mut.Lock()
 	defer c.mut.Unlock()

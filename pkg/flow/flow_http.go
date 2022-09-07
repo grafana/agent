@@ -70,6 +70,7 @@ func (f *Flow) ComponentHandler() http.HandlerFunc {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
+		// TODO: potentially cache these handlers, and invalidate on component state change.
 		handler := node.HTTPHandler()
 		if handler == nil {
 			w.WriteHeader(http.StatusNotFound)
