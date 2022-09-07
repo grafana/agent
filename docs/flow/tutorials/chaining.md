@@ -1,25 +1,17 @@
 ---
 aliases:
-- /docs/agent/latest/flow/tutorials/multiple-inputs
-title: Multiple Inputs
-weight: 100
+- /docs/agent/latest/flow/tutorials/chaining
+title: Chaining components
+weight: 400
 ---
 
-The goal of this tutorial is to show the ability to have data go to several different locations using [multiple-inputs.flow](./assets/flow_configs/multiple-inputs.flow). This builds upon [Adding New Component](./adding-new-component.md) and requires all the other previous prerequisites.
+The goal of this tutorial is to show the ability to have data go to several different locations using [multiple-inputs.flow](../assets/flow_configs/multiple-inputs.flow). This builds upon [Relabel Component]({{< relref "relabel-component.md">}}) and requires all the other previous prerequisites.
+
+A new concept in Flow is chaining components together. 
 
 ## Example
 
-To run the example execute `docker-compose -f ./assets/multiple-inputs.yaml up` from the tutorials directory. Here is the diagram of what is happening.
-
-```mermaid
-graph LR 
-	scrape.first --> filter.cool
-	scrape.first --> filter.not_cool
-	scrape.second --> filter.cool
-	scrape.second --> filter.not_cool
-	filter.filter -->  remote_write.prom
-	filter.not_cool --> remote_write.prom
-```
+To run the example execute `docker-compose -f ./assets/multiple-inputs.yaml up` from the tutorials directory. 
 
 Allow the Agent to run for two minutes then go to [Grafana](http://localhost:3000/explore?orgId=1&left=%5B%22now-1m%22,%22now%22,%22Cortex%22,%7B%22refId%22:%22A%22,%22instant%22:true,%22range%22:true,%22exemplar%22:false,%22expr%22:%22agent_build_info%22%7D%5D).
 

@@ -1,11 +1,11 @@
 ---
 aliases:
-- /docs/agent/latest/flow/tutorials/adding-new-component
-title: Adding a New Component
-weight: 200
+- /docs/agent/latest/flow/tutorials/relabel-component
+title: Using the relabel component
+weight: 300
 ---
 
-The goal of this tutorial is to add a new component [prometheus.relabel](../reference/components/prometheus.relabel.md) using [relabel.flow](./assets/flow_configs/relabel.flow). This builds upon [Scraping the Agent](./scraping-the-agent.md) and requires all the other previous prerequisites.
+The goal of this tutorial is to add a new component [prometheus.relabel]({{< ref "prometheus.relabel.md" >}}) using [relabel.flow](../assets/flow_configs/relabel.flow). This builds upon [Collecting Prometheus Metrics]({{< relref "./collecting-prometheus-metrics.md">}}) and requires all the other previous prerequisites.
 
 # Prometheus Relabel Component
 
@@ -13,7 +13,7 @@ The `prometheus.relabel` component is used to drop, add or filter metrics.  To q
 
 Wait two minutes to ensure the scrape has been completed then visit the [Grafana](http://localhost:3000/explore?orgId=1&left=%5B%22now-1h%22,%22now%22,%22Cortex%22,%7B%22refId%22:%22A%22,%22instant%22:true,%22range%22:true,%22exemplar%22:false,%22expr%22:%22rate(process_cpu_seconds_total%5B5m%5D)%22%7D%5D) page and the `cool_label` will be there.
 
-![](./assets/filter.png)
+![](../assets/filter.png)
 
 # What's Happening
 
