@@ -57,8 +57,10 @@ metrics.remote_write "default" {
     url = "http://localhost:9090/api/v1/write"
   }
 }
+
 metrics.scrape "default" {
   targets = [/* ... */]
+
   // Have scraped metrics be sent to metrics.remote_write.default's receiver.
   forward_to = [metrics.remote_write.default.receiver]
 }
@@ -67,10 +69,6 @@ metrics.scrape "default" {
 ## Numbers
 River handles integers, unsigned integers and floating-point values as a single
 'number' type which simplifies writing and reading River configuration files.
-
-When a value has to be decoded into a Go type, River will perform the necessary
-conversion. The language also supports defining numbers using the scientific e
-notation.
 
 ```
 3   == 3.00     // true

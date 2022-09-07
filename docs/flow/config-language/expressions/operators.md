@@ -34,9 +34,9 @@ The `+` operator can also be used for string concatenation.
 
 The equality operators `==` and `!=` can be applied to any operands.
 
-On the other hand, for the ordering operators the two operands must both be
-_orderable_ and of the same type. These terms and the result of the comparisons
-are defined as follows:
+On the other hand, for the ordering operators `<` `<=` `>` and `>=`, the two
+operands must both be _orderable_ and of the same type. These terms and the
+result of the comparisons are defined as follows:
 
 * Boolean values are comparable. Two boolean values are equal if they are
   either both true or both false.
@@ -64,8 +64,11 @@ In assignments, each value must be _assignable_ to the attribute to which it is
 assigned.
 
 * The `null` value can be assigned to any attribute.
-* Numerical, string, boolean, array and object types are assignable to
-  attributes of the corresponding type.
+* Numerical, string, boolean, array, function, capsule and object types are
+  assignable to attributes of the corresponding type.
+* Numbers can be assigned to strings attributes with an implicit conversion.
+* Strings can be assigned to numerical attributes, provided that they represent
+  a number.
 * Blocks are not assignable.
 
 ## Brackets operators
@@ -78,7 +81,7 @@ assigned.
 In the following example we can see the use of curly braces and square brackets
 to define an object and an array.
 ```river
-obj = { app = "agent", namespace = "dev"}
+obj = { app = "agent", namespace = "dev" }
 arr = [1, true, 7 * (1+1), 3]
 ```
 
