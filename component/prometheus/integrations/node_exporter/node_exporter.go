@@ -36,9 +36,8 @@ type Component struct {
 	log  log.Logger
 	opts component.Options
 
-	integration *node_integration.Integration
-
 	mut sync.Mutex
+	integration *node_integration.Integration
 }
 
 // NewComponent creates a node_exporter component
