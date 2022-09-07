@@ -57,6 +57,7 @@
 ##
 ##   build-container-cache  Create a cache for the build container to speed up
 ##                          subsequent proxied builds
+##   drone                  Sign Drone CI config (maintainers only)
 ##   clean                  Clean caches and built binaries
 ##   help                   Displays this message
 ##   info                   Print Makefile-specific environment variables
@@ -262,7 +263,15 @@ endif
 #
 # build-container-cache and clean-build-container-cache are defined in
 # Makefile.build-container.
+
+# Drone signs the yaml, you will need to specify DRONE_TOKEN, which can be
+# found by logging into your profile in Drone.
 #
+# This will only work for maintainers.
+.PHONY: drone
+drone:
+	drone lint .drone/drone.yml --trusted
+	drone --server https://drone.grafana.net sign --save grafana/agent .drone/drone.yml
 
 .PHONY: clean
 clean: clean-dist clean-build-container-cache
