@@ -1,7 +1,7 @@
 ---
 aliases:
 - /docs/agent/latest/flow/tutorials/collecting-prometheus-metrics
-title: Collecting Prometheus Metrics
+title: Collecting Prometheus metrics
 weight: 200
 ---
 
