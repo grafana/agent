@@ -14,7 +14,7 @@ var DefaultConfig = Config{
 	ProcFSPath: procfs.DefaultMountPoint,
 	RootFSPath: "/",
 	Disk: DiskStatsConfig{
-		IgnoredDevices: "^(ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$",
+		IgnoredDevices: node_integration.DefaultConfig.DiskStatsIgnoredDevices,
 	},
 	EthTool: EthToolConfig{
 		MetricsInclude: ".*",
@@ -33,7 +33,7 @@ var DefaultConfig = Config{
 		IgnoredDevices: "^$",
 	},
 	Netstat: NetstatConfig{
-		Fields: "^(.*_(InErrors|InErrs)|Ip_Forwarding|Ip(6|Ext)_(InOctets|OutOctets)|Icmp6?_(InMsgs|OutMsgs)|TcpExt_(Listen.*|Syncookies.*|TCPSynRetrans|TCPTimeouts)|Tcp_(ActiveOpens|InSegs|OutSegs|OutRsts|PassiveOpens|RetransSegs|CurrEstab)|Udp6?_(InDatagrams|OutDatagrams|NoPorts|RcvbufErrors|SndbufErrors))$",
+		Fields: node_integration.DefaultConfig.NetstatFields,
 	},
 	Powersupply: PowersupplyConfig{
 		IgnoredSupplies: "^$",
@@ -45,14 +45,14 @@ var DefaultConfig = Config{
 		URL: "http://localhost:9001/RPC2",
 	},
 	Systemd: SystemdConfig{
-		UnitExclude: ".+\\.(automount|device|mount|scope|slice)",
+		UnitExclude: node_integration.DefaultConfig.SystemdUnitExclude,
 		UnitInclude: ".+",
 	},
 	Tapestats: TapestatsConfig{
 		IgnoredDevices: "^$",
 	},
 	VMStat: VMStatConfig{
-		Fields: "^(oom_kill|pgpg|pswp|pg.*fault).*",
+		Fields: node_integration.DefaultConfig.VMStatFields,
 	},
 }
 
