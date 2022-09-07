@@ -18,14 +18,14 @@ These references are built by combining the component's name, label and named
 export with dots.
 
 For example, the contents of a file exported by the `local.file` component
-might be referenced as `local.file.targets.content`, while a
+might be referenced as `local.file.target.content`, while a
 `prometheus.remote_write` component instance might expose a receiver for
 metrics like `prometheus.remote_write.onprem.receiver`.
 
 Let's see that in action:
 ```river
-local.file "targets" {
-	filename = "/etc/agent/targets" 
+local.file "target" {
+	filename = "/etc/agent/target" 
 }
 
 prometheus.scrape "default" {

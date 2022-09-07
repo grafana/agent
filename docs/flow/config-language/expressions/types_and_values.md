@@ -23,48 +23,6 @@ River uses the following types for its values:
   or more arguments as input and always return a single value as output.
 * `null`: A type that has no value.
 
-### Special Types
-
-#### Secrets
-
-A `secret` is a special type of string which is never displayed to the user.
-`string` values may be assigned to an attribute expecting a `secret`, but never
-the inverse; it is not possible to convert a secret to a string or assign a
-secret to an attribute expecting a string.
-
-Secrets cannot be constructed by users, but are returned by components which
-deal with sensitive values.
-
-#### Capsules
-
-River has a special type called a `capsule`, which represents a category of
-_internal_ types used by Flow. Each capsule type has a unique name and will be
-represented to the user as `capsule("SOME_INTERNAL_NAME")`.
-Capsule values cannot be constructed by the user, but can be used in
-expressions as any other type. Capsules are not inter-compatible and an
-attribute expecting a capsule can only be given a capsule of the same internal
-type. That means, if an attribute expects a `capsule("prometheus.Receiver")`,
-it can only be assigned a `capsule("prometheus.Receiver")` type. The specific
-type of capsule expected is explicitly documented for any component which uses
-or exports them.
-
-In the following example, the `metrics.remote_write` component exports a
-`receiver`, which is a `capsule("metrics.Receiver")` type. This can then be
-used in the `forward_to` attribute of `metrics.scrape`, which
-expects an array of `capsule("metrics.Receiver")`s:
-
-```river
-metrics.remote_write "default" {
-  remote_write {
-    url = "http://localhost:9090/api/v1/write"
-  }
-}
-
-metrics.scrape "default" {
-  targets    = [/* ... */]
-  forward_to = [metrics.remote_write.default.receiver]
-}
-```
 
 ## Numbers
 River handles integers, unsigned integers and floating-point values as a single
@@ -146,3 +104,45 @@ standard library or when exported by a component.
 ## Null
 The null value is represented by the symbol `null`.
 
+## Special Types
+
+#### Secrets
+
+A `secret` is a special type of string which is never displayed to the user.
+`string` values may be assigned to an attribute expecting a `secret`, but never
+the inverse; it is not possible to convert a secret to a string or assign a
+secret to an attribute expecting a string.
+
+Secrets cannot be constructed by users, but are returned by components which
+deal with sensitive values.
+
+#### Capsules
+
+River has a special type called a `capsule`, which represents a category of
+_internal_ types used by Flow. Each capsule type has a unique name and will be
+represented to the user as `capsule("SOME_INTERNAL_NAME")`.
+Capsule values cannot be constructed by the user, but can be used in
+expressions as any other type. Capsules are not inter-compatible and an
+attribute expecting a capsule can only be given a capsule of the same internal
+type. That means, if an attribute expects a `capsule("prometheus.Receiver")`,
+it can only be assigned a `capsule("prometheus.Receiver")` type. The specific
+type of capsule expected is explicitly documented for any component which uses
+or exports them.
+
+In the following example, the `metrics.remote_write` component exports a
+`receiver`, which is a `capsule("metrics.Receiver")` type. This can then be
+used in the `forward_to` attribute of `metrics.scrape`, which
+expects an array of `capsule("metrics.Receiver")`s:
+
+```river
+metrics.remote_write "default" {
+  remote_write {
+    url = "http://localhost:9090/api/v1/write"
+  }
+}
+
+metrics.scrape "default" {
+  targets    = [/* ... */]
+  forward_to = [metrics.remote_write.default.receiver]
+}
+```

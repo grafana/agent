@@ -57,7 +57,7 @@ Logical operators apply to boolean values and yield a boolean result.
 ## Assignment operator
 River uses `=` as its assignment operator.
 
-An assignment statement may only assign a single value to a single attribute.
+An assignment statement may only assign a single value.
 In assignments, each value must be _assignable_ to the attribute or object key
 to which it is being assigned.
 
