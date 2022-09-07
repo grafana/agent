@@ -190,7 +190,9 @@ steps:
         # stable release (e.g., not a release candiate, we'll update :latest,
         # otherwise we update the branch name).
         #
-        # If there's no branch, we'll default to the version.
+        # If there's no branch, we'll default to the version. This means the
+        # same Docker tag will be created twice, effectively turning the branch
+        # tag into a no-op.
         if [ ! -z "$DRONE_TAG" ] && [[ "$DRONE_TAG" != *"-rc."* ]]; then
           export BRANCH_TAG=$DRONE_TAG
         elif [ ! -z "$DRONE_BRANCH" ]; then
@@ -426,6 +428,6 @@ get:
 
 ---
 kind: signature
-hmac: e1796875c78e260d9a6ae096f6f1ac47f9b09ff687e5350442fdd11fa2c2f020
+hmac: 802581e2c69988f181ee3cedcdf0e936fc153f4c4587abbb9192292604cda123
 
 ...
