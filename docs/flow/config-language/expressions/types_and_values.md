@@ -37,19 +37,21 @@ deal with sensitive values.
 
 #### Capsules
 
-River has a special type called a `capsule`, which represents an internal type
-used by Grafana Agent for building telemetry pipelines. Capsule values can
-never be constructed by the user, but can be used in expressions and assigned
-to attributes. Capsules are represented to the user as
-`capsule("SOME_INTENRAL_NAME")`. An attribute expecting a capsule can only be
-given a capsule of the same internal type. The specific type of capsule
-expected is explicitly documented for any component which uses or exports them.
+River has a special type called a `capsule`, which represents a category of
+_internal_ types used by Flow. Each capsule type has a unique name and will be
+represented to the user as `capsule("SOME_INTERNAL_NAME")`.
+Capsule values cannot be constructed by the user, but can be used in
+expressions as any other type. Capsules are not inter-compatible and an
+attribute expecting a capsule can only be given a capsule of the same internal
+type. That means, if an attribute expects a `capsule("prometheus.Receiver")`,
+it can only be assigned a `capsule("prometheus.Receiver")` type. The specific
+type of capsule expected is explicitly documented for any component which uses
+or exports them.
 
-
-The `metrics.remote_write` component below exports an attribute called
-`forwarder`, which is a `capsule("metrics.Receiver")` type. This can then be
-used in the `forward_to` attribute of `metrics.scrape`, which expects a list of
-`capsule("metrics.Receiver")`:
+In the following example, the `metrics.remote_write` component exports a
+`receiver`, which is a `capsule("metrics.Receiver")` type. This can then be
+used in the `forward_to` attribute of `metrics.scrape`, which
+expects an array of `capsule("metrics.Receiver")`s:
 
 ```river
 metrics.remote_write "default" {
@@ -59,9 +61,7 @@ metrics.remote_write "default" {
 }
 
 metrics.scrape "default" {
-  targets = [/* ... */]
-
-  // Have scraped metrics be sent to metrics.remote_write.default's receiver.
+  targets    = [/* ... */]
   forward_to = [metrics.remote_write.default.receiver]
 }
 ```

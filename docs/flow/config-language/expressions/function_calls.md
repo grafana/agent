@@ -11,7 +11,7 @@ expresisons.
 
 Functions take zero or more arguments as their input and always return a single
 value as their output. Functions cannot be constructed by users, but can be
-either called from River's standard library, or exported by a compoonent.
+either called from River's standard library, or exported by a component.
 
 ## Standard library functions
 River contains a [standard library][] of useful functions. Some enable
@@ -22,9 +22,5 @@ strings into objects).
 env("HOME")
 json_decode(local.file.cfg.contents)["namespace"]
 ```
-
-## Exported by components
-Components can also expose functions in their named Exports, as documented on
-their reference page. 
 
 [standard library]: {{< relref "../../reference/stdlib/_index.md" >}}

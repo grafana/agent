@@ -15,12 +15,8 @@ Expressions may also do things like [refer to values][] exported by components,
 perform arithmetic, or [call functions][].
 
 Expressions can be used when configuring any component. As all component
-Arguments have an underlying [type][], River will type-check expressions before
+arguments have an underlying [type][], River will type-check expressions before
 assigning the result to an attribute. 
-
-The only exception to this rule are some special reserved blocks like
-[`logging`][] which are used to configure the global behavior of Grafana Agent
-Flow and do not support expressions but can only use literal values.
 
 [refer to values]: {{< relref "./referencing_exports.md" >}}
 [call functions]: {{< relref "./function_calls.md" >}}

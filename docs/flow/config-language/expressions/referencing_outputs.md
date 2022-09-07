@@ -1,21 +1,21 @@
 ---
 aliases:
 - /docs/agent/latest/flow/configuration-language/expressions/referencing-exports
-title: Referencing component Exports
+title: Referencing component exports
 weight: 200
 ---
 
-# Referencing component Exports
-Referencing component Exports is what enables River to dynamically configure
+# Referencing component exports
+Referencing component exports is what enables River to dynamically configure
 and connect components using expressions.
 
 While components can work in isolation, they can be much more versatile when
-one component's behavior and data flow is bound to the Exports of another,
+one component's behavior and data flow is bound to the exports of another,
 building a dependency relationship between the two.
 
 ## Using references
 These references are built by combining the component's name, label and named
-Export with dots.
+export with dots.
 
 For example, the contents of a file exported by the `local.file` component
 might be referenced as `local.file.targets.content`, while a
@@ -61,7 +61,7 @@ writing a few River expressions.
 
 As with all expressions, once the value is resolved, it must match the [type][]
 of the attribute being assigned to. While users can only configure attributes
-using the basic River types, the Exports of components can also take on special
+using the basic River types, the exports of components can also take on special
 internal River types such as Secrets or Capsules, which expose different
 functionality.
 

@@ -60,8 +60,8 @@ Logical operators apply to boolean values and yield a boolean result.
 River uses `=` as its assignment operator.
 
 An assignment statement may only assign a single value to a single attribute.
-In assignments, each value must be _assignable_ to the attribute to which it is
-assigned.
+In assignments, each value must be _assignable_ to the attribute or object key
+to which it is being assigned.
 
 * The `null` value can be assigned to any attribute.
 * Numerical, string, boolean, array, function, capsule and object types are
@@ -95,7 +95,7 @@ River's access operators support accessing of arbitrarily nested values.
 Square brackets can be used to access zero-indexed array indices as well as
 object fields by enclosing the field name in double quotes.
 The dot operator can be used to access both object fields (without double
-quotes) and component Exports.
+quotes) and component exports.
 ```river
 obj["app"]
 arr[1]
