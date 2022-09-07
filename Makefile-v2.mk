@@ -1,9 +1,10 @@
 ## Build, test, and generate code for various parts of Grafana Agent.
 ##
 ## At least Go 1.18, git, and a moderately recent version of Docker is required
-## to be able to use the Makefile. If you do not have the full list of build
-## dependencies, you may set USE_CONTAINER=1 to proxy build commands to a build
-## container.
+## to be able to use the Makefile. This list isn't exhaustive and there are other
+## dependencies for the generate-* targets. If you do not have the full list of
+## build dependencies, you may set USE_CONTAINER=1 to proxy build commands to a
+## build container.
 ##
 ## Other environment variables can be used to tweak behaviors of targets.
 ## See the bottom of this help section for the full list of supported
@@ -41,7 +42,7 @@
 ##   dist-agent-binaries    Produce release-ready agent binaries.
 ##   dist-agentctl-binaries Produce release-ready agentctl binaries.
 ##   dist-packages          Produce release-ready DEB and RPM packages.
-##   dist-agent-intaller    Produce a Windows installer for Grafana Agent.
+##   dist-agent-installer   Produce a Windows installer for Grafana Agent.
 ##
 ## Targets for generating assets:
 ##
@@ -106,9 +107,8 @@ GOARM           ?= $(shell go env GOARM)
 CGO_ENABLED     ?= 1
 RELEASE_BUILD   ?= 0
 
-# This should contain the list of all environment variables should should
-# propagate to the build container. USE_CONTAINER should _not_ be included to
-# avoid infinite recursion.
+# List of all environment variables which will propagate to the build
+# container. USE_CONTAINER must _not_ be included to avoid infinite recursion.
 PROPAGATE_VARS := \
 	AGENT_IMAGE AGENTCTL_IMAGE OPERATOR_IMAGE CROW_IMAGE SMOKE_IMAGE \
 	BUILD_IMAGE GOOS GOARCH GOARM CGO_ENABLED RELEASE_BUILD \
@@ -116,7 +116,7 @@ PROPAGATE_VARS := \
 	VERSION GO_TAGS
 
 #
-# Contants for targets
+# Constants for targets
 #
 
 GO_ENV := GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CGO_ENABLED=$(CGO_ENABLED)

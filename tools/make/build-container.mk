@@ -52,7 +52,7 @@ define volume_exists
 $(shell docker volume inspect $(1) >/dev/null 2>&1 && echo 1 || echo "")
 endef
 
-# Figure out if our build container
+# Figure out if our build container should be using a build cache for Go.
 ifneq ($(USE_CONTAINER),0)
 GO_CACHE_VOLUME_EXISTS    := $(call volume_exists,$(GO_CACHE_VOLUME))
 GO_MODCACHE_VOLUME_EXISTS := $(call volume_exists,$(GO_MODCACHE_VOLUME))
