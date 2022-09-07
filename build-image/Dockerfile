@@ -38,12 +38,12 @@ FROM rfratto/viceroy:v0.2.1
 
 # NOTE(rfratto): musl is installed so the Docker binaries from alpine work
 # properly.
-RUN apt-get update                               \
- && apt-get install -qy                          \
-      build-essential file zip unzip gettext git \
-      musl libsystemd-dev nsis libbpfcc-dev nsis \
-      rpm ruby ruby-dev rubygems                 \
-      protobuf-compiler libprotobuf-dev          \
+RUN apt-get update                                \
+ && apt-get install -qy                           \
+      build-essential file zip unzip gettext git  \
+      musl libsystemd-dev nsis libbpfcc-dev:amd64 \
+      rpm ruby ruby-dev rubygems                  \
+      protobuf-compiler libprotobuf-dev           \
  && gem install --no-document fpm                \
  && rm -rf /var/lib/apt/lists/*
 
