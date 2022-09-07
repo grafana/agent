@@ -229,16 +229,6 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
-// UnmarshalRiver implements River unmarshalling for Config
-func (c *Config) UnmarshalRiver(f func(interface{}) error) error {
-	*c = DefaultConfig
-
-	type cfg Config
-	//TODO: (cpeterson) This does not have feature parity with yaml.
-	// It does not map migrated fields like UnmarshalYAML does
-	return f((*cfg)(c))
-}
-
 // Name returns the name of the integration that this config represents.
 func (c *Config) Name() string {
 	return "node_exporter"

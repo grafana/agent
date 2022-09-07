@@ -17,11 +17,11 @@ import (
 func init() {
 	component.Register(component.Registration{
 		Name:      "prometheus.integration.node_exporter",
-		Args:      node_integration.Config{},
+		Args:      Config{},
 		Exports:   Exports{},
 		Singleton: true,
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
-			return NewComponent(opts, args.(node_integration.Config))
+			return NewComponent(opts, args.(Config))
 		},
 	})
 }
@@ -40,7 +40,7 @@ type Component struct {
 }
 
 // NewComponent creates a node_exporter component.
-func NewComponent(o component.Options, args node_integration.Config) (*Component, error) {
+func NewComponent(o component.Options, args Config) (*Component, error) {
 	c := &Component{
 		log: o.Logger,
 	}
@@ -72,9 +72,9 @@ func (c *Component) Run(ctx context.Context) error {
 // Update implements component.Component.
 func (c *Component) Update(args component.Arguments) error {
 	var err error
-	cfg := args.(node_integration.Config)
+	cfg := args.(Config)
 	c.mut.Lock()
-	c.integration, err = node_integration.New(c.log, &cfg)
+	c.integration, err = node_integration.New(c.log, cfg.Convert())
 	c.mut.Unlock()
 	if err != nil {
 		return err
