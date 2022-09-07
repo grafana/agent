@@ -80,61 +80,61 @@ func init() {
 
 // Config controls the node_exporter integration.
 type Config struct {
-	IncludeExporterMetrics bool `yaml:"include_exporter_metrics,omitempty" river:"include_exporter_metrics,attr,optional"`
+	IncludeExporterMetrics bool `yaml:"include_exporter_metrics,omitempty"`
 
-	ProcFSPath string `yaml:"procfs_path,omitempty" river:"procfs_path,attr,optional"`
-	SysFSPath  string `yaml:"sysfs_path,omitempty" river:"sysfs_path,attr,optional"`
-	RootFSPath string `yaml:"rootfs_path,omitempty" river:"rootfs_path,attr,optional"`
+	ProcFSPath string `yaml:"procfs_path,omitempty"`
+	SysFSPath  string `yaml:"sysfs_path,omitempty"`
+	RootFSPath string `yaml:"rootfs_path,omitempty"`
 
 	// Collectors to mark as enabled
-	EnableCollectors flagext.StringSlice `yaml:"enable_collectors,omitempty" river:"enable_collectors,attr,optional"`
+	EnableCollectors flagext.StringSlice `yaml:"enable_collectors,omitempty"`
 
 	// Collectors to mark as disabled
-	DisableCollectors flagext.StringSlice `yaml:"disable_collectors,omitempty" river:"disable_collectors,attr,optional"`
+	DisableCollectors flagext.StringSlice `yaml:"disable_collectors,omitempty"`
 
 	// Overrides the default set of enabled collectors with the collectors
 	// listed.
-	SetCollectors flagext.StringSlice `yaml:"set_collectors,omitempty" river:"set_collectors,attr,optional"`
+	SetCollectors flagext.StringSlice `yaml:"set_collectors,omitempty"`
 
 	// Collector-specific config options
-	BcachePriorityStats              bool                `yaml:"enable_bcache_priority_stats,omitempty" river:"enable_bcache_priority_stats,attr,optional"`
-	CPUBugsInclude                   string              `yaml:"cpu_bugs_include,omitempty" river:"cpu_bugs_include,attr,optional"`
-	CPUEnableCPUGuest                bool                `yaml:"enable_cpu_guest_seconds_metric,omitempty" river:"enable_cpu_guest_seconds_metric,attr,optional"`
-	CPUEnableCPUInfo                 bool                `yaml:"enable_cpu_info_metric,omitempty" river:"enable_cpu_info_metric,attr,optional"`
-	CPUFlagsInclude                  string              `yaml:"cpu_flags_include,omitempty" river:"cpu_flags_include,attr,optional"`
-	DiskStatsIgnoredDevices          string              `yaml:"diskstats_ignored_devices,omitempty" river:"diskstats_ignored_devices,attr,optional"`
-	EthtoolDeviceExclude             string              `yaml:"ethtool_device_exclude,omitempty" river:"ethtool_device_exclude,attr,optional"`
-	EthtoolDeviceInclude             string              `yaml:"ethtool_device_include,omitempty" river:"ethtool_device_include,attr,optional"`
-	EthtoolMetricsInclude            string              `yaml:"ethtool_metrics_include,omitempty" river:"ethtool_metrics_include,attr,optional"`
-	FilesystemFSTypesExclude         string              `yaml:"filesystem_fs_types_exclude,omitempty" river:"filesystem_fs_types_exclude,attr,optional"`
-	FilesystemMountPointsExclude     string              `yaml:"filesystem_mount_points_exclude,omitempty" river:"filesystem_mount_points_exclude,attr,optional"`
-	FilesystemMountTimeout           time.Duration       `yaml:"filesystem_mount_timeout,omitempty" river:"filesystem_mount_timeout,attr,optional"`
-	IPVSBackendLabels                []string            `yaml:"ipvs_backend_labels,omitempty" river:"ipvs_backend_labels,attr,optional"`
-	NTPIPTTL                         int                 `yaml:"ntp_ip_ttl,omitempty" river:"ntp_ip_ttl,attr,optional"`
-	NTPLocalOffsetTolerance          time.Duration       `yaml:"ntp_local_offset_tolerance,omitempty" river:"ntp_local_offset_tolerance,attr,optional"`
-	NTPMaxDistance                   time.Duration       `yaml:"ntp_max_distance,omitempty" river:"ntp_max_distance,attr,optional"`
-	NTPProtocolVersion               int                 `yaml:"ntp_protocol_version,omitempty" river:"ntp_protocol_version,attr,optional"`
-	NTPServer                        string              `yaml:"ntp_server,omitempty" river:"ntp_server,attr,optional"`
-	NTPServerIsLocal                 bool                `yaml:"ntp_server_is_local,omitempty" river:"ntp_server_is_local,attr,optional"`
-	NetclassIgnoreInvalidSpeedDevice bool                `yaml:"netclass_ignore_invalid_speed_device,omitempty" river:"netclass_ignore_invalid_speed_device,attr,optional"`
-	NetclassIgnoredDevices           string              `yaml:"netclass_ignored_devices,omitempty" river:"netclass_ignored_devices,attr,optional"`
-	NetdevAddressInfo                bool                `yaml:"netdev_address_info,omitempty" river:"netdev_address_info,attr,optional"`
-	NetdevDeviceExclude              string              `yaml:"netdev_device_exclude,omitempty" river:"netdev_device_exclude,attr,optional"`
-	NetdevDeviceInclude              string              `yaml:"netdev_device_include,omitempty" river:"netdev_device_include,attr,optional"`
-	NetstatFields                    string              `yaml:"netstat_fields,omitempty" river:"netstat_fields,attr,optional"`
-	PerfCPUS                         string              `yaml:"perf_cpus,omitempty" river:"perf_cpus,attr,optional"`
-	PerfTracepoint                   flagext.StringSlice `yaml:"perf_tracepoint,omitempty" river:"perf_tracepoint,attr,optional"`
-	PowersupplyIgnoredSupplies       string              `yaml:"powersupply_ignored_supplies,omitempty" river:"powersupply_ignored_supplies,attr,optional"`
-	RunitServiceDir                  string              `yaml:"runit_service_dir,omitempty" river:"runit_service_dir,attr,optional"`
-	SupervisordURL                   string              `yaml:"supervisord_url,omitempty" river:"supervisord_url,attr,optional"`
-	SystemdEnableRestartsMetrics     bool                `yaml:"systemd_enable_restarts_metrics,omitempty" river:"systemd_enable_restarts_metrics,attr,optional"`
-	SystemdEnableStartTimeMetrics    bool                `yaml:"systemd_enable_start_time_metrics,omitempty" river:"systemd_enable_start_time_metrics,attr,optional"`
-	SystemdEnableTaskMetrics         bool                `yaml:"systemd_enable_task_metrics,omitempty" river:"systemd_enable_task_metrics,attr,optional"`
-	SystemdUnitExclude               string              `yaml:"systemd_unit_exclude,omitempty" river:"systemd_unit_exclude,attr,optional"`
-	SystemdUnitInclude               string              `yaml:"systemd_unit_include,omitempty" river:"systemd_unit_include,attr,optional"`
-	TapestatsIgnoredDevices          string              `yaml:"tapestats_ignored_devices,omitempty" river:"tapestats_ignored_devices,attr,optional"`
-	TextfileDirectory                string              `yaml:"textfile_directory,omitempty" river:"textfile_directory,attr,optional"`
-	VMStatFields                     string              `yaml:"vmstat_fields,omitempty" river:"vmstat_fields,attr,optional"`
+	BcachePriorityStats              bool                `yaml:"enable_bcache_priority_stats,omitempty"`
+	CPUBugsInclude                   string              `yaml:"cpu_bugs_include,omitempty"`
+	CPUEnableCPUGuest                bool                `yaml:"enable_cpu_guest_seconds_metric,omitempty"`
+	CPUEnableCPUInfo                 bool                `yaml:"enable_cpu_info_metric,omitempty"`
+	CPUFlagsInclude                  string              `yaml:"cpu_flags_include,omitempty"`
+	DiskStatsIgnoredDevices          string              `yaml:"diskstats_ignored_devices,omitempty"`
+	EthtoolDeviceExclude             string              `yaml:"ethtool_device_exclude,omitempty"`
+	EthtoolDeviceInclude             string              `yaml:"ethtool_device_include,omitempty"`
+	EthtoolMetricsInclude            string              `yaml:"ethtool_metrics_include,omitempty"`
+	FilesystemFSTypesExclude         string              `yaml:"filesystem_fs_types_exclude,omitempty"`
+	FilesystemMountPointsExclude     string              `yaml:"filesystem_mount_points_exclude,omitempty"`
+	FilesystemMountTimeout           time.Duration       `yaml:"filesystem_mount_timeout,omitempty"`
+	IPVSBackendLabels                []string            `yaml:"ipvs_backend_labels,omitempty"`
+	NTPIPTTL                         int                 `yaml:"ntp_ip_ttl,omitempty"`
+	NTPLocalOffsetTolerance          time.Duration       `yaml:"ntp_local_offset_tolerance,omitempty"`
+	NTPMaxDistance                   time.Duration       `yaml:"ntp_max_distance,omitempty"`
+	NTPProtocolVersion               int                 `yaml:"ntp_protocol_version,omitempty"`
+	NTPServer                        string              `yaml:"ntp_server,omitempty"`
+	NTPServerIsLocal                 bool                `yaml:"ntp_server_is_local,omitempty"`
+	NetclassIgnoreInvalidSpeedDevice bool                `yaml:"netclass_ignore_invalid_speed_device,omitempty"`
+	NetclassIgnoredDevices           string              `yaml:"netclass_ignored_devices,omitempty"`
+	NetdevAddressInfo                bool                `yaml:"netdev_address_info,omitempty"`
+	NetdevDeviceExclude              string              `yaml:"netdev_device_exclude,omitempty"`
+	NetdevDeviceInclude              string              `yaml:"netdev_device_include,omitempty"`
+	NetstatFields                    string              `yaml:"netstat_fields,omitempty"`
+	PerfCPUS                         string              `yaml:"perf_cpus,omitempty"`
+	PerfTracepoint                   flagext.StringSlice `yaml:"perf_tracepoint,omitempty"`
+	PowersupplyIgnoredSupplies       string              `yaml:"powersupply_ignored_supplies,omitempty"`
+	RunitServiceDir                  string              `yaml:"runit_service_dir,omitempty"`
+	SupervisordURL                   string              `yaml:"supervisord_url,omitempty"`
+	SystemdEnableRestartsMetrics     bool                `yaml:"systemd_enable_restarts_metrics,omitempty"`
+	SystemdEnableStartTimeMetrics    bool                `yaml:"systemd_enable_start_time_metrics,omitempty"`
+	SystemdEnableTaskMetrics         bool                `yaml:"systemd_enable_task_metrics,omitempty"`
+	SystemdUnitExclude               string              `yaml:"systemd_unit_exclude,omitempty"`
+	SystemdUnitInclude               string              `yaml:"systemd_unit_include,omitempty"`
+	TapestatsIgnoredDevices          string              `yaml:"tapestats_ignored_devices,omitempty"`
+	TextfileDirectory                string              `yaml:"textfile_directory,omitempty"`
+	VMStatFields                     string              `yaml:"vmstat_fields,omitempty"`
 
 	UnmarshalWarnings []string `yaml:"-"`
 }
