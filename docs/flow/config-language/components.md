@@ -6,30 +6,29 @@ weight: 300
 ---
 
 # Components
-Components are the defining feature of Grafana Agent Flow. They are autonomous
-pieces of business logic that perform a single task (like retrieving secrets or
-collecting Prometheus metrics) and can be wired together to form programmable
-pipelines of telemetry data.
+Components are the defining feature of Grafana Agent Flow. They are small,
+reusable pieces of business logic that perform a single task (like retrieving
+secrets or collecting Prometheus metrics) and can be wired together to form
+programmable pipelines of telemetry data.
 
 Under the hood, components are orchestrated via the [_component
 controller_]({{< relref "../concepts/component_controller.md" >}}), which is
-responsible for scheduling them, reporting their health and debug status, and
-continuously re-evaluating their inputs and outputs.
-
+responsible for scheduling them, reporting their health and debug status,
+re-evaluating their arguments and providing their exports.
 
 ## Configuring components
-Each top-level River _block_ will instantiate a new component. All components
+Components are created by defining a top-level River block. All components
 are identified by their name, describing what the component is responsible for,
 while some allow or require to provide an extra user-specified _label_.
 
-The [components docs]({{< relref "../components/_index.md" >}}) contain a list
+The [components docs]({{< relref "../reference/components/_index.md" >}}) contain a list
 of all available components. Each one has a complete reference page, so getting
 a component to work for you should be as easy as reading its documentation and
 copy/pasting from an example.
 
-## Arguments and Exports
+## Arguments and exports
 Most user interactions with components will center around two basic concepts;
-_Arguments_ and _Exports_.
+_arguments_ and _exports_.
 
 * _Arguments_ are settings which modify the behavior of a component. They can
  be any number of attributes or nested unlabeled blocks, some of them being
@@ -41,7 +40,7 @@ take on their default values.
 
 Here's a quick example; the following block defines a `local.file` component
 labeled "targets". The `local.file.targets` component will then expose the
-file `content` as a string in its Exports.
+file `content` as a string in its exports.
 
 The `filename` attribute is a _required_ argument; the user can also define a
 number of _optional_ ones, in this case `detector`, `poll_frequency` and
@@ -50,10 +49,10 @@ as well as whether its contents are sensitive or not.
 
 ```river
 local.file "targets" {
-	// Required Argument
+	// Required argument
 	filename = "/etc/agent/targets" 
 
-	// Optional Arguments: Components may have some optional arguments that
+	// Optional arguments: Components may have some optional arguments that
 	// do not need to be defined.
 	// 
 	// The optional arguments for local.file are is_secret, detector, and
@@ -65,7 +64,7 @@ local.file "targets" {
 ```
 
 ## Referencing components
-To wire components together, one can use the Exports of one as the Arguments
+To wire components together, one can use the exports of one as the arguments
 to another by using references. References can only appear in components.
 
 For example, here's a component that scrapes Prometheus metrics. The `targets`
@@ -87,11 +86,10 @@ prometheus.scrape "default" {
 }
 ```
 
-Every time the file contents change and the `local.file` component re-evaluates
-its Exports, the value will propagated to `prometheus.scrape` so it can start
-scraping the new target.
+Every time the file contents change, the `local.file` will update its exports,
+so the new value will provided to `prometheus.scrape` targets field.
 
-All Arguments and Exports have an underlying [type]({{< relref "./expressions/types_and_values.md" >}}).
+All arguments and exports have an underlying [type]({{< relref "./expressions/types_and_values.md" >}}).
 River will type-check expressions before assigning a value to an attribute; the
 documentation of each component will have more information about the ways that
 you can wire components together.

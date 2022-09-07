@@ -35,12 +35,10 @@ boolean, number) or an [_expression_]({{< relref "./expressions/_index.md" >}})
 to represent or compute more complex attribute values.
 
 ### Blocks
-_Blocks_ are used to configure components by grouping any number of attributes
-or nested blocks using curly braces.
-
-Blocks have a _name_ (the type of the component it defines), an optional
-_label_ (depending on the component type) and a body that contains any number
-of arguments or nested unlabeled blocks.
+_Blocks_ are used to configure the Agent behavior as well as Flow components by
+grouping any number of attributes or nested blocks using curly braces.
+Blocks have a _name_, an optional _label_ and a body that contains any number
+of arguments and nested unlabeled blocks.
 
 ```
 // Pattern for creating an unlabeled block:
@@ -64,13 +62,11 @@ of arguments or nested unlabeled blocks.
 }
 ```
 
-The `<BLOCK_NAME>` must correspond to a registered Flow [component]({{< relref "./components.md" >}}).
-
-If the optional `<BLOCK_LABEL>` is set, it has to be a valid River [identifier](#identifiers)
-wrapped in double quotes.
-
-In case the component allows or requires a label to be set, it will be used to
-disambiguate between multiple top-level blocks of the same name.
+The `<BLOCK_NAME>` has to be recognized by Flow as either a valid component
+name or a special block for configuring global settings. If the `<BLOCK_LABEL>`
+has to be set, it must be a valid River [identifier](#identifiers) wrapped in
+double quotes. In these cases the label will be used to disambiguate between
+multiple top-level blocks of the same name.
 
 The following snippet defines a block named `local.file` with its label set to
 "token". The block's body sets the to the contents of the `TOKEN_FILE_PATH`
@@ -96,5 +92,5 @@ All block and attribute definitions are followed by a newline, which River
 calls a _terminator_, as it terminates the current statement.
 A terminator is found when there's a newline following any expression, `]`,
 `)` or `}`. Other newlines are effectively ignored and a user can enter as many
-newlines as they want.
+cosmetic newlines as they want.
 
