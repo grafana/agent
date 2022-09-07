@@ -5,7 +5,7 @@ import (
 	_ "github.com/grafana/agent/component/discovery/kubernetes"                  // Import discovery.k8s
 	_ "github.com/grafana/agent/component/discovery/relabel"                     // Import discovery.relabel
 	_ "github.com/grafana/agent/component/local/file"                            // Import local.file
-	_ "github.com/grafana/agent/component/prometheus/integrations/node_exporter" // Import exporter.node
+	_ "github.com/grafana/agent/component/prometheus/integrations/node_exporter" // Import prometheus.integration.node_exporter
 	_ "github.com/grafana/agent/component/prometheus/relabel"                    // Import prometheus.relabel
 	_ "github.com/grafana/agent/component/prometheus/remotewrite"                // Import prometheus.remote_write
 	_ "github.com/grafana/agent/component/prometheus/scrape"                     // Import prometheus.scrape
