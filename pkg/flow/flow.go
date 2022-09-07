@@ -214,12 +214,12 @@ func (c *Flow) LoadFile(file *File) error {
 }
 
 // ComponentInfos returns the component infos.
-func (c *Flow) ComponentInfos() []*ComponentField {
+func (c *Flow) ComponentInfos() []*ComponentInfo {
 	c.loadMut.RLock()
 	defer c.loadMut.RUnlock()
 
 	cns := c.loader.Components()
-	infos := make([]*ComponentField, len(cns))
+	infos := make([]*ComponentInfo, len(cns))
 	edges := c.loader.Graph().NonTransitiveEdges()
 	for i, com := range cns {
 		nn := newFromNode(com, edges)
@@ -235,7 +235,7 @@ func (c *Flow) Close() error {
 	return c.sched.Close()
 }
 
-func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *ComponentField {
+func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *ComponentInfo {
 	references := make([]string, 0)
 	referencedBy := make([]string, 0)
 	for _, e := range edges {
@@ -246,7 +246,7 @@ func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *ComponentField
 		}
 	}
 	h := cn.CurrentHealth()
-	ci := &ComponentField{
+	ci := &ComponentInfo{
 		Label: cn.Label(),
 		ID:    cn.NodeID(),
 		Field: encoding.Field{
@@ -264,15 +264,8 @@ func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *ComponentField
 	return ci
 }
 
-// Health contains information on the health of a component.
-type Health struct {
-	State      string    `json:"state"`
-	Message    string    `json:"message"`
-	UpdateTime time.Time `json:"updatedTime"`
-}
-
-// ComponentField represents a component in river.
-type ComponentField struct {
+// ComponentInfo represents a component in river.
+type ComponentInfo struct {
 	encoding.Field `json:",omitempty"`
 	ID             string           `json:"id,omitempty"`
 	Label          string           `json:"label,omitempty"`

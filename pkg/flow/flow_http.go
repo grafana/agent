@@ -97,7 +97,7 @@ func (c *Flow) configBytes(w io.Writer, debugInfo bool) (n int64, err error) {
 }
 
 // ComponentJSON returns the json representation of the flow component.
-func (c *Flow) ComponentJSON(w io.Writer, ci *ComponentField) error {
+func (c *Flow) ComponentJSON(w io.Writer, ci *ComponentInfo) error {
 	c.loadMut.RLock()
 	defer c.loadMut.RUnlock()
 
@@ -109,11 +109,11 @@ func (c *Flow) ComponentJSON(w io.Writer, ci *ComponentField) error {
 		}
 	}
 	if foundComponent == nil {
-		return fmt.Errorf("unable to find component named %s", ci.ID)
+		return fmt.Errorf("unable to find component named %q", ci.ID)
 	}
 
 	var err error
-	args, err := encoding.ConvertComponentChild(foundComponent.Arguments())
+	args, err := encoding.ConvertRiverBlock(foundComponent.Arguments())
 	if err != nil {
 		return err
 	}
@@ -121,7 +121,7 @@ func (c *Flow) ComponentJSON(w io.Writer, ci *ComponentField) error {
 		ci.Arguments = args
 	}
 
-	exports, err := encoding.ConvertComponentChild(foundComponent.Exports())
+	exports, err := encoding.ConvertRiverBlock(foundComponent.Exports())
 	if err != nil {
 		return err
 	}
@@ -129,7 +129,7 @@ func (c *Flow) ComponentJSON(w io.Writer, ci *ComponentField) error {
 		ci.Exports = exports
 	}
 
-	debugInfo, err := encoding.ConvertComponentChild(foundComponent.DebugInfo())
+	debugInfo, err := encoding.ConvertRiverBlock(foundComponent.DebugInfo())
 	if err != nil {
 		return err
 	}
@@ -137,7 +137,7 @@ func (c *Flow) ComponentJSON(w io.Writer, ci *ComponentField) error {
 		ci.DebugInfo = debugInfo
 	}
 
-	bb, err := json.MarshalIndent(ci, "", "    ")
+	bb, err := json.Marshal(ci)
 	if err != nil {
 		return err
 	}

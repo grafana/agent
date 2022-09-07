@@ -13,13 +13,13 @@ import (
 const attr = "attr"
 const object = "object"
 
-// ConvertComponentChild is used to convertBase arguments, exports, health and debuginfo.
-func ConvertComponentChild(input interface{}) ([]interface{}, error) {
+// ConvertRiverBlock is used to convertBase arguments, exports, health and debuginfo.
+func ConvertRiverBlock(input interface{}) ([]interface{}, error) {
 	if input == nil {
 		return nil, nil
 	}
 	val := value.Encode(input)
-	fields := make([]interface{}, 0)
+	var fields []interface{}
 	rt := rivertags.Get(val.Reflect().Type())
 	for _, t := range rt {
 		fieldValue := val.Reflect().FieldByIndex(t.Index)
@@ -55,13 +55,10 @@ func ConvertComponentChild(input interface{}) ([]interface{}, error) {
 			}
 		}
 	}
-	if len(fields) == 0 {
-		return nil, nil
-	}
 	return fields, nil
 }
 
-func isValue(val value.Value) bool {
+func isFieldValue(val value.Value) bool {
 	switch val.Type() {
 	case value.TypeNull, value.TypeNumber, value.TypeString, value.TypeBool, value.TypeFunction, value.TypeCapsule:
 		return true
@@ -131,7 +128,7 @@ func isStruct(val value.Value) bool {
 }
 
 func convertRiverValue(val value.Value) (vf *ValueField, af *ArrayField, mf *MapField, sf *StructField, err error) {
-	if isValue(val) {
+	if isFieldValue(val) {
 		vf, err = convertValue(val)
 		return
 	} else if isArray(val) {

@@ -173,7 +173,7 @@ func (cn *ComponentNode) ID() ComponentID { return cn.id }
 // Label returns the label for the block or "" if none was specified.
 func (cn *ComponentNode) Label() string { return cn.label }
 
-// NodeType returns the nodes type, ie `local.file.test` returns `local.file`.
+// NodeType returns the component's type, i.e. `local.file.test` returns `local.file`.
 func (cn *ComponentNode) NodeType() string { return cn.nodeType }
 
 // NodeID implements dag.Node and returns the unique ID for this node. The
