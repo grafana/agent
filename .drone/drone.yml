@@ -82,10 +82,9 @@ trigger:
 
 steps:
   - name: lint
-    image: golangci/golangci-lint:v1.46
+    image: grafana/agent-build-image:0.15.1
     commands:
-      - apt-get update -y && apt-get install -y libsystemd-dev libbpfcc-dev
-      - make DOCKER_OPTS="" lint
+      - make -f Makefile-v2.mk lint
 
 ---
 kind: pipeline
@@ -106,26 +105,19 @@ trigger:
 
 steps:
   - name: test
-    image: rfratto/seego
+    image: grafana/agent-build-image:0.15.1
     volumes:
       - name: docker
         path: /var/run/docker.sock
     commands:
-      - apt-get update &&  apt-get install -y rubygems rpm nsis apt-transport-https ca-certificates curl gnupg lsb-release libbpfcc-dev
-      - gem install --no-document fpm
-      - rm -r /usr/local/go
-      - mkdir -p /usr/local/go/bin
-      - wget -q https://golang.org/dl/go1.18.linux-amd64.tar.gz
-      - tar -C /usr/local -xzf go1.18.linux-amd64.tar.gz
-      - rm go1.18.linux-amd64.tar.gz
-      - export PATH=$PATH:/usr/local/go/bin
-      - make DOCKER_OPTS="" cmd/agent/agent cmd/agentctl/agentctl cmd/agent-operator/agent-operator tools/crow/grafana-agent-crow tools/smoke/grafana-agent-smoke
-      - make DOCKER_OPTS="" K8S_USE_DOCKER_NETWORK=1 DRONE=true BUILD_IN_CONTAINER=false test
+      - make -f Makefile-v2.mk binaries
+      - K8S_USE_DOCKER_NETWORK=1 make -f Makefile-v2.mk test
 
 volumes:
  - name: docker
    host:
      path: /var/run/docker.sock
+
 ---
 kind: pipeline
 type: docker
@@ -148,6 +140,7 @@ steps:
     image: grafana/agent-build-image:0.14.0-windows
     commands:
       - go test -tags="nodocker,nonetwork" ./...
+
 ---
 kind: pipeline
 type: docker
@@ -200,6 +193,7 @@ volumes:
   - name: docker
     host:
       path: /var/run/docker.sock
+
 ---
 kind: pipeline
 type: docker
@@ -261,6 +255,7 @@ volumes:
   - name: docker
     host:
       path: /var/run/docker.sock
+
 ---
 kind: pipeline
 type: docker
@@ -366,6 +361,6 @@ get:
 
 ---
 kind: signature
-hmac: 1ba848fa0abbbeeb5a9c222a68fdd53e06b9bbc889a4847b006821ff764bc3cd
+hmac: bdeeb5ab5a36cd1c44766657ec0f76c5d998a9ef8ef2f1a4e51288e8e824d924
 
 ...
