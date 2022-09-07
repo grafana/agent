@@ -31,7 +31,7 @@ type Exports struct {
 	Targets []discovery.Target `river:"targets,attr"`
 }
 
-// Component for node exporter
+// Component for node_exporter.
 type Component struct {
 	log  log.Logger
 	opts component.Options
