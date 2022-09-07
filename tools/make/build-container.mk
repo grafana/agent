@@ -34,7 +34,7 @@
 # variable names should be passed through to the container.
 
 USE_CONTAINER ?= 0
-BUILD_IMAGE   ?= grafana/agent-build-image:0.15.0
+BUILD_IMAGE   ?= grafana/agent-build-image:0.15.1
 
 #
 # Build container cache. `make build-container-cache` will create two Docker
