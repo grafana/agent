@@ -20,7 +20,11 @@ const bearer string = "Bearer"
 // - ServiceDiscoveryConfigs
 func getPromScrapeConfigs(jobName string, c Arguments) (*config.ScrapeConfig, error) {
 	dec := config.DefaultScrapeConfig
-	dec.JobName = jobName
+	if c.JobName != "" {
+		dec.JobName = c.JobName
+	} else {
+		dec.JobName = jobName
+	}
 	dec.HonorLabels = c.HonorLabels
 	dec.HonorTimestamps = c.HonorTimestamps
 	dec.Params = c.Params

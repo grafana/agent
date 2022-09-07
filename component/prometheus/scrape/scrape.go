@@ -40,6 +40,8 @@ type Arguments struct {
 	Targets   []discovery.Target     `river:"targets,attr"`
 	ForwardTo []*prometheus.Receiver `river:"forward_to,attr"`
 
+	// The job name to override the job label with.
+	JobName string `river:"job_name,attr,optional"`
 	// Indicator whether the scraped metrics should remain unmodified.
 	HonorLabels bool `river:"honor_labels,attr,optional"`
 	// Indicator whether the scraped timestamps should be respected.

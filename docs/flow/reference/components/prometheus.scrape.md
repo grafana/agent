@@ -40,6 +40,8 @@ The component will configure and start a new scrape job to scrape all of the
 input targets. The list of arguments that can be used to configure the block is
 presented below.
 
+The scrape job name will default to the fully formed component name.
+
 Any omitted fields will take on their default values. In case that conflicting
 attributes are being passed (eg. defining both a BearerToken and
 BearerTokenFile or configuring both Basic Authorization and OAuth2 at the same
@@ -49,9 +51,10 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`targets` | `list(map(string))` | Targets to scrape | | **yes**
-`forward_to` | `list(MetricsReceiver)` | List of receivers to send scraped metrics to | | **yes**
-`extra_metrics` | `bool` | Whether extra metrics should be generated for scrape targets | `false` | no
+`targets`                  | `list(map(string))`     | List of targets to scrape. | | **yes**
+`forward_to`               | `list(MetricsReceiver)` | List of receivers to send scraped metrics to. | | **yes**
+`job_name`                 | `string`   | The job name to override the job label with. | component name | no
+`extra_metrics`            | `bool`     | Whether extra metrics should be generated for scrape targets. | `false` | no
 `honor_labels`             | `bool`     | Indicator whether the scraped metrics should remain unmodified. | false | no
 `honor_timestamps`         | `bool`     | Indicator whether the scraped timestamps should be respected. | true | no
 `params`                   | `map(list(string))` | A set of query parameters with which the target is scraped. | | no
