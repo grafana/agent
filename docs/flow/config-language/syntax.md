@@ -91,3 +91,10 @@ comments.
 River considers an identifier as valid if it consists of one or more UTF-8
 letters, digits or underscores, but doesn't start with a digit.
 
+## Terminators
+All block and attribute definitions are followed by a newline, which River
+calls a _terminator_, as it terminates the current statement.
+A terminator is found when there's a newline following any expression, `]`,
+`)` or `}`. Other newlines are effectively ignored and a user can enter as many
+newlines as they want.
+
