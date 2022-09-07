@@ -1,18 +1,16 @@
 package node_exporter
 
 import (
-	"os"
-	"runtime"
 	"time"
 
 	node_integration "github.com/grafana/agent/pkg/integrations/node_exporter"
 	"github.com/grafana/dskit/flagext"
-	"github.com/prometheus/procfs"
 )
 
 var DefaultConfig = Config{
-	ProcFSPath: procfs.DefaultMountPoint,
-	RootFSPath: "/",
+	ProcFSPath: node_integration.DefaultConfig.ProcFSPath,
+	RootFSPath: node_integration.DefaultConfig.RootFSPath,
+	SysFSPath:  node_integration.DefaultConfig.SysFSPath,
 	Disk: DiskStatsConfig{
 		IgnoredDevices: node_integration.DefaultConfig.DiskStatsIgnoredDevices,
 	},
@@ -20,7 +18,9 @@ var DefaultConfig = Config{
 		MetricsInclude: ".*",
 	},
 	Filesystem: FilesystemConfig{
-		MountTimeout: 5 * time.Second,
+		MountTimeout:       5 * time.Second,
+		MountPointsExclude: node_integration.DefaultConfig.FilesystemMountPointsExclude,
+		FSTypesExclude:     node_integration.DefaultConfig.FilesystemFSTypesExclude,
 	},
 	NTP: NTPConfig{
 		IPTTL:                1,
@@ -42,7 +42,7 @@ var DefaultConfig = Config{
 		ServiceDir: "/etc/service",
 	},
 	Supervisord: SupervisordConfig{
-		URL: "http://localhost:9001/RPC2",
+		URL: node_integration.DefaultConfig.SupervisordURL,
 	},
 	Systemd: SystemdConfig{
 		UnitExclude: node_integration.DefaultConfig.SystemdUnitExclude,
@@ -54,27 +54,6 @@ var DefaultConfig = Config{
 	VMStat: VMStatConfig{
 		Fields: node_integration.DefaultConfig.VMStatFields,
 	},
-}
-
-func init() {
-	// The default values for the filesystem collector are to ignore everything,
-	// but some platforms have specific defaults. We'll fill these in below at
-	// initialization time, but the values can still be overridden via the config
-	// file.
-	switch runtime.GOOS {
-	case "linux":
-		DefaultConfig.Filesystem.MountPointsExclude = "^/(dev|proc|run/credentials/.+|sys|var/lib/docker/.+)($|/)"
-		DefaultConfig.Filesystem.FSTypesExclude = "^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$"
-	case "darwin":
-		DefaultConfig.Filesystem.MountPointsExclude = "^/(dev)($|/)"
-		DefaultConfig.Filesystem.FSTypesExclude = "^(autofs|devfs)$"
-	case "freebsd", "netbsd", "openbsd":
-		DefaultConfig.Filesystem.MountPointsExclude = "^/(dev)($|/)"
-		DefaultConfig.Filesystem.FSTypesExclude = "^devfs$"
-	}
-	if url := os.Getenv("SUPERVISORD_URL"); url != "" {
-		DefaultConfig.Supervisord.URL = url
-	}
 }
 
 type Config struct {
