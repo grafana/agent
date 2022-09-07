@@ -44,7 +44,7 @@ RUN apt-get update                                \
       musl libsystemd-dev nsis libbpfcc-dev:amd64 \
       rpm ruby ruby-dev rubygems                  \
       protobuf-compiler libprotobuf-dev           \
- && gem install --no-document fpm                \
+ && gem install --no-document fpm                 \
  && rm -rf /var/lib/apt/lists/*
 
 COPY --from=golangci /bin/golangci-lint              /usr/local/bin
