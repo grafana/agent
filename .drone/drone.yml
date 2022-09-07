@@ -155,7 +155,7 @@ trigger:
     - refs/heads/dev.*
 steps:
   - name: Build Containers
-    image: docker
+    image: grafana/agent-build-image:0.15.1
     volumes:
       - name: docker
         path: /var/run/docker.sock
@@ -170,20 +170,85 @@ steps:
       - mkdir -p $HOME/.docker
       - printenv GCR_CREDS > $HOME/.docker/config.json
       - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-      - apk update && apk add make bash wget git qemu
-      - wget -q https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-amd64
-      - mkdir -p ~/.docker/cli-plugins
-      - cp buildx-v0.5.1.linux-amd64 ~/.docker/cli-plugins/docker-buildx
-      - chmod a+x ~/.docker/cli-plugins/docker-buildx
+
+      # Create a buildx worker container for multiplatform builds.
       - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
       - docker buildx create --name multiarch --driver docker-container --use
-      - export RELEASE_TAG=${DRONE_TAG}
-      - export IMAGE_BRANCH_TAG=${DRONE_BRANCH}
-      - make DOCKER_OPTS="" DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agent-image
-      - make DOCKER_OPTS="" DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agentctl-image
-      - make DOCKER_OPTS="" DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agent-operator-image
-      - make DOCKER_OPTS="" DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true grafana-agent-crow-image
-      - make DOCKER_OPTS="" DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agent-smoke-image
+
+      - |
+        # If containers are being built as the result of a tag, force the
+        # VERSION to come from the drone tag info.
+        #
+        # Otherwise, use the script to determine the tag.
+        if [ ! -z "$DRONE_TAG" ]; then
+          export VERISON=$DRONE_TAG
+        else
+          export VERSION=$(./tools/image-tag)
+        fi
+
+        # We also need to know which "branch tag" to update. If this is a
+        # stable release (e.g., not a release candiate, we'll update :latest,
+        # otherwise we update the branch name).
+        #
+        # If there's no branch, we'll default to the version.
+        if [ ! -z "$DRONE_TAG" ] && [[ "$DRONE_TAG" != *"-rc."* ]]; then
+          export BRANCH_TAG=$DRONE_TAG
+        elif [ ! -z "$DRONE_BRANCH" ]; then
+          export BRANCH_TAG=$DRONE_BRANCH
+        else
+          export BRANCH_TAG=$VERSION
+        fi
+
+      - >-
+        docker buildx build --push
+        --platform linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le
+        --build-arg RELEASE_BUILD=1
+        --build-arg VERISON=$VERSION
+        -t grafana/agent:$VERSION
+        -t grafana/agent:$BRANCH_TAG
+        -f cmd/agent/Dockerfile.new
+        .
+
+      - >-
+        docker buildx build --push
+        --platform linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le
+        --build-arg RELEASE_BUILD=1
+        --build-arg VERISON=$VERSION
+        -t grafana/agentctl:$VERSION
+        -t grafana/agentctl:$BRANCH_TAG
+        -f cmd/agentctl/Dockerfile.new
+        .
+
+      - >-
+        docker buildx build --push
+        --platform linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le
+        --build-arg RELEASE_BUILD=1
+        --build-arg VERISON=$VERSION
+        -t grafana/agent-operator:$VERSION
+        -t grafana/agent-operator:$BRANCH_TAG
+        -f cmd/agent-operator/Dockerfile.new
+        .
+
+      - >-
+        docker buildx build --push
+        --platform linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le
+        --build-arg RELEASE_BUILD=1
+        --build-arg VERISON=$VERSION
+        -t us.gcr.io/kubernetes-dev/grafana/agent-crow:$VERSION
+        -t us.gcr.io/kubernetes-dev/grafana/agent-crow:$BRANCH_TAG
+        -f tools/crow/Dockerfile.new
+        .
+
+      - >-
+        docker buildx build --push
+        --platform linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le
+        --build-arg RELEASE_BUILD=1
+        --build-arg VERISON=$VERSION
+        -t us.gcr.io/kubernetes-dev/grafana/agent-smoke:$VERSION
+        -t us.gcr.io/kubernetes-dev/grafana/agent-smoke:$BRANCH_TAG
+        -f tools/smoke/Dockerfile.new
+        .
+
       - docker buildx rm multiarch
 
 depends_on:
@@ -361,6 +426,6 @@ get:
 
 ---
 kind: signature
-hmac: bdeeb5ab5a36cd1c44766657ec0f76c5d998a9ef8ef2f1a4e51288e8e824d924
+hmac: e1796875c78e260d9a6ae096f6f1ac47f9b09ff687e5350442fdd11fa2c2f020
 
 ...
