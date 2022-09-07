@@ -1,11 +1,11 @@
 ---
 aliases:
-- /docs/agent/latest/flow/tutorials/relabel-component
-title: Using the relabel component
+- /docs/agent/latest/flow/tutorials/filtering-metrics
+title: Filtering metrics
 weight: 300
 ---
 
-The goal of this tutorial is to add a new component [prometheus.relabel]({{< ref "prometheus.relabel.md" >}}) using [relabel.flow](../assets/flow_configs/relabel.flow). This builds upon [Collecting Prometheus Metrics]({{< relref "./collecting-prometheus-metrics.md">}}) and requires all the other previous prerequisites.
+The goal of this tutorial is to add a new component [prometheus.relabel]({{< ref "prometheus.relabel.md" >}}) using [relabel.flow](../assets/flow_configs/relabel.flow) that allows the filtering of metrics. This builds upon [Collecting Prometheus Metrics]({{< relref "./collecting-prometheus-metrics.md">}}) and requires all the other previous prerequisites.
 
 # Prometheus Relabel Component
 

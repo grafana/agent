@@ -5,7 +5,7 @@ title: Chaining components
 weight: 400
 ---
 
-The goal of this tutorial is to show the ability to have data go to several different locations using [multiple-inputs.flow](../assets/flow_configs/multiple-inputs.flow). This builds upon [Relabel Component]({{< relref "relabel-component.md">}}) and requires all the other previous prerequisites.
+The goal of this tutorial is to show the ability to have data go to several different locations using [multiple-inputs.flow](../assets/flow_configs/multiple-inputs.flow). This builds upon [filtering metrics]({{< relref "filtering-metrics.md">}}) and requires all the other previous prerequisites.
 
 A new concept in Flow is chaining components together. 
 
