@@ -20,6 +20,6 @@ assigning the result to an attribute.
 
 [refer to values]: {{< relref "./referencing_exports.md" >}}
 [call functions]: {{< relref "./function_calls.md" >}}
-[type]: {{< relref "./expressions/types_and_values.md" >}}
+[type]: {{< relref "./types_and_values.md" >}}
 [`logging`]: {{< relref "../../controller-config/logging.md" >}}
 

@@ -66,4 +66,4 @@ internal River types such as Secrets or Capsules, which expose different
 functionality.
 
 
-[type]: {{< relref "./expressions/types_and_values.md" >}}
+[type]: {{< relref "./types_and_values.md" >}}
