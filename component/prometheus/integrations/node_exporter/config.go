@@ -7,6 +7,10 @@ import (
 	"github.com/grafana/dskit/flagext"
 )
 
+// DefaultConfig holds non-zero default options for the Config when it is
+// unmarshaled from YAML.
+//
+// Some defaults are populated from init functions in the github.com/grafana/agent/pkg/integrations/node_exporter package.
 var DefaultConfig = Config{
 	ProcFSPath: node_integration.DefaultConfig.ProcFSPath,
 	RootFSPath: node_integration.DefaultConfig.RootFSPath,
@@ -56,6 +60,7 @@ var DefaultConfig = Config{
 	},
 }
 
+// Config is the base config for this integration
 type Config struct {
 	IncludeExporterMetrics bool   `river:"include_exporter_metrics,attr,optional"`
 	ProcFSPath             string `river:"procfs_path,attr,optional"`
@@ -93,6 +98,7 @@ type Config struct {
 	VMStat      VMStatConfig      `river:"vmstat,block,optional"`
 }
 
+// Convert gives a config suitable for use with github.com/grafana/agent/pkg/integrations/node_exporter
 func (c *Config) Convert() *node_integration.Config {
 	return &node_integration.Config{
 		IncludeExporterMetrics:           c.IncludeExporterMetrics,
@@ -151,70 +157,85 @@ func (c *Config) UnmarshalRiver(f func(interface{}) error) error {
 	return f((*cfg)(c))
 }
 
+// PowersupplyConfig contains config specific to the powersupply collector
 type PowersupplyConfig struct {
 	IgnoredSupplies string `river:"ignored_supplies,attr,optional"`
 }
 
+// RunitConfig contains config specific to the runit collector
 type RunitConfig struct {
 	ServiceDir string `river:"service_dir,attr,optional"`
 }
 
+// SupervisordConfig contains config specific to the supervisord collector
 type SupervisordConfig struct {
 	URL string `river:"url,attr,optional"`
 }
 
+// TapestatsConfig contains config specific to the tapestats collector
 type TapestatsConfig struct {
 	IgnoredDevices string `river:"ignored_devices,attr,optional"`
 }
 
+// TextfileConfig contains config specific to the textfile collector
 type TextfileConfig struct {
 	Directory string `river:"directory,attr,optional"`
 }
 
+// VMStatConfig contains config specific to the vmstat collector
 type VMStatConfig struct {
 	Fields string `river:"fields,attr,optional"`
 }
 
+// NetclassConfig contains config specific to the netclass collector
 type NetclassConfig struct {
 	IgnoreInvalidSpeedDevice bool   `river:"ignore_invalid_speed_device,attr,optional"`
 	IgnoredDevices           string `river:"ignored_devices,attr,optional"`
 }
 
+// NetdevConfig contains config specific to the netdev collector
 type NetdevConfig struct {
 	AddressInfo   bool   `river:"address_info,attr,optional"`
 	DeviceExclude string `river:"device_exclude,attr,optional"`
 	DeviceInclude string `river:"device_include,attr,optional"`
 }
 
+// NetstatConfig contains config specific to the netstat collector
 type NetstatConfig struct {
 	Fields string `river:"fields,attr,optional"`
 }
 
+// PerfConfig contains config specific to the perf collector
 type PerfConfig struct {
 	CPUS       string              `river:"cpus,attr,optional"`
 	Tracepoint flagext.StringSlice `river:"tracepoint,attr,optional"`
 }
 
+// EthToolConfig contains config specific to the ethtool collector
 type EthToolConfig struct {
 	DeviceExclude  string `river:"device_exclude,attr,optional"`
 	DeviceInclude  string `river:"device_include,attr,optional"`
 	MetricsInclude string `river:"metrics_include,attr,optional"`
 }
 
+// FilesystemConfig contains config specific to the filesystem collector
 type FilesystemConfig struct {
 	FSTypesExclude     string        `river:"fs_types_exclude,attr,optional"`
 	MountPointsExclude string        `river:"mount_points_exclude,attr,optional"`
 	MountTimeout       time.Duration `river:"mount_timeout,attr,optional"`
 }
 
+// IPVSConfig contains config specific to the ipvs collector
 type IPVSConfig struct {
 	BackendLabels []string `river:"backend_labels,attr,optional"`
 }
 
+// BCacheConfig contains config specific to the bcache collector
 type BCacheConfig struct {
 	PriorityStats bool `river:"priority_stats,attr,optional"`
 }
 
+// CPUConfig contains config specific to the cpu collector
 type CPUConfig struct {
 	BugsInclude    string `river:"bugs_include,attr,optional"`
 	EnableCPUGuest bool   `river:"guest,attr,optional"`
@@ -222,10 +243,12 @@ type CPUConfig struct {
 	FlagsInclude   string `river:"flags_include,attr,optional"`
 }
 
+// DiskStatsConfig contains config specific to the diskstats collector
 type DiskStatsConfig struct {
 	IgnoredDevices string `river:"ignored_devices,attr,optional"`
 }
 
+// NTPConfig contains config specific to the ntp collector
 type NTPConfig struct {
 	IPTTL                int           `river:"ip_ttl,attr,optional"`
 	LocalOffsetTolerance time.Duration `river:"local_offset_tolerance,attr,optional"`
@@ -235,6 +258,7 @@ type NTPConfig struct {
 	ServerIsLocal        bool          `river:"server_is_local,attr,optional"`
 }
 
+// SystemdConfig contains config specific to the systemd collector
 type SystemdConfig struct {
 	EnableRestartsMetrics  bool   `river:"enable_restarts,attr,optional"`
 	EnableStartTimeMetrics bool   `river:"start_time,attr,optional"`
