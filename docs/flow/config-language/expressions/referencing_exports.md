@@ -6,21 +6,23 @@ weight: 200
 ---
 
 # Referencing component exports
-Referencing component exports is what enables River to dynamically configure
-and connect components using expressions.
+Referencing exports is what enables River to dynamically configure and connect
+components using expressions. While components can work in isolation, they're
+more useful when one component's behavior and data flow is bound to the exports
+of another, building a dependency relationship between the two.
 
-While components can work in isolation, they can be much more versatile when
-one component's behavior and data flow is bound to the exports of another,
-building a dependency relationship between the two.
+Such references can only appear as part of another component's arguments.
+That means that components cannot reference themselves, and references cannot
+appear in non-component blocks like `logging`.
 
 ## Using references
 These references are built by combining the component's name, label and named
 export with dots.
 
 For example, the contents of a file exported by the `local.file` component
-might be referenced as `local.file.target.content`, while a
-`prometheus.remote_write` component instance might expose a receiver for
-metrics like `prometheus.remote_write.onprem.receiver`.
+labeled `target` might be referenced as `local.file.target.content`.
+Similarly, a `prometheus.remote_write` component instance labeled `onprem` will
+expose its receiver for metrics on `prometheus.remote_write.onprem.receiver`.
 
 Let's see that in action:
 ```river
@@ -30,7 +32,7 @@ local.file "target" {
 
 prometheus.scrape "default" {
 	targets    = [{ "__address__" = local.file.target.content }] 
-	forward_to = [prometheus.remote_write.default.receiver]
+	forward_to = [prometheus.remote_write.onprem.receiver]
 }
 
 prometheus.remote_write "onprem" {

@@ -29,10 +29,10 @@ River handles integers, unsigned integers and floating-point values as a single
 'number' type which simplifies writing and reading River configuration files.
 
 ```
-3   == 3.00     // true
-5.0 == (10 / 2) // true
-1e+2 == 100    // true
-2e-3 == 0.002  // true
+3    == 3.00     // true
+5.0  == (10 / 2) // true
+1e+2 == 100      // true
+2e-3 == 0.002    // true
 ```
 
 ## Strings
