@@ -1,0 +1,41 @@
+prometheus.scrape "first" {
+    targets = [{"__address__" = "localhost:12345"}]
+    forward_to = [prometheus.relabel.filter.receiver,prometheus.relabel.not_cool.receiver]
+    scrape_config {
+        job_name = "first"
+    }
+}
+
+prometheus.scrape "second" {
+    targets = [{"__address__" = "localhost:12345"}]
+    forward_to = [prometheus.relabel.filter.receiver,prometheus.relabel.not_cool.receiver]
+    scrape_config {
+        job_name = "second"
+    }
+}
+
+prometheus.relabel "cool" {
+    metric_relabel_config {
+        source_labels = ["__name__"]
+        regex = "(.+)"
+        replacement = "${1}_cool"
+        target_label = "cool_label"
+    }
+    forward_to = [prometheus.remote_write.prom.receiver]
+}
+
+prometheus.relabel "not_cool" {
+    metric_relabel_config {
+        source_labels = ["__name__"]
+        regex = "(.+)"
+        replacement = "${1}_not_cool"
+        target_label = "not_cool_label"
+    }
+    forward_to = [prometheus.remote_write.prom.receiver]
+}
+
+prometheus.remote_write "prom" {
+    remote_write {
+        url = "http://cortex:9009/api/prom/push"
+    }
+}

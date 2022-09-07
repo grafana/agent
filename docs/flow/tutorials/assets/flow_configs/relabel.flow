@@ -1,0 +1,26 @@
+prometheus.scrape "default" {
+    targets = [{"__address__" = "localhost:12345"}]
+    forward_to = [prometheus.relabel.filter.receiver]
+    scrape_config {
+        job_name = "test"
+    }
+}
+
+// prometheus.relabel allows you to filter the results, in this case we are using the always present
+// label `__name__` and creating a new label that is the value + `-cool` , then forwarding the results to 
+// the remote_write.
+prometheus.relabel "filter" {
+    metric_relabel_config {
+        source_labels = ["__name__"]
+        regex = "(.+)"
+        replacement = "${1}_cool"
+        target_label = "cool_label"
+    }
+    forward_to = [prometheus.remote_write.prom.receiver]
+}
+
+prometheus.remote_write "prom" {
+    remote_write {
+        url = "http://cortex:9009/api/prom/push"
+    }
+}

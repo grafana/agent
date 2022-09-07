@@ -6,11 +6,8 @@ prometheus.scrape "default" {
     // Forward the scrape results to the receiver, in general 
     // Flow uses forward_to to tell which receiver to send results to. 
     // The forward_to is an argument of prometheus.scrape.default  and 
-    // the reciever is an export prometheus.remote_write.prom
+    // the receiver is an export prometheus.remote_write.prom
     forward_to = [prometheus.remote_write.prom.receiver]
-     scrape_config {
-        job_name = "scrape_agent"
-    }
 }
 
 prometheus.remote_write "prom" {

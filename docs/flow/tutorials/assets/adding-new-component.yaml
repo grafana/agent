@@ -22,7 +22,7 @@ services:
       - /bin/agent 
       - run 
       - --server.http.listen-addr=0.0.0.0:12345
-      - /etc/agent-config/agent.flow
+      - /etc/agent-config/relabel.flow
   grafana:
     image: grafana/grafana:8.3.3
     entrypoint:
