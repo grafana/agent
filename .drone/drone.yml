@@ -336,7 +336,7 @@ trigger:
 
 steps:
   - name: create-release
-    image: rfratto/seego
+    image: grafana/agent-build-image:0.15.1
     volumes:
       - name: docker
         path: /var/run/docker.sock
@@ -354,22 +354,12 @@ steps:
       GPG_PASSPHRASE:
         from_secret: gpg_passphrase
     commands:
-      - apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
-      - curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
-      - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian bullseye stable"
-      - apt-get update &&  apt-get install -y rubygems rpm nsis docker-ce docker-ce-cli containerd.io gettext
       - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-      - gem install --no-document fpm
-      - rm -r /usr/local/go
-      - mkdir -p /usr/local/go/bin
-      - wget -q https://golang.org/dl/go1.18.linux-amd64.tar.gz
-      - tar -C /usr/local -xzf go1.18.linux-amd64.tar.gz
-      - rm go1.18.linux-amd64.tar.gz
-      - export PATH=$PATH:/usr/local/go/bin
-      - go install github.com/mitchellh/gox@latest
-      - go install github.com/tcnksm/ghr@latest
-      - export PATH="$(go env GOPATH)/bin:$PATH"
-      - make -j4 DOCKER_OPTS="" BUILD_IN_CONTAINER=false RELEASE_BUILD=true RELEASE_TAG=${DRONE_TAG} publish
+      - make -f Makefile-v2.mk -j4 RELEASE_BUILD=1 VERISON=${DRONE_TAG} dist
+      - for i in dist/agent*; do zip -j -m $$i.zip $$i; done
+      - pushd dist && sha256sum * > SHA256SUMS && popd
+      - ./packaging/rpm/gpg-sign.sh
+      - RELEASE_DOC_TAG=$(echo $VERSION | awk -F '.' '{print $1"."$2}') ./tools/release
 depends_on:
   - Test
 
@@ -428,6 +418,6 @@ get:
 
 ---
 kind: signature
-hmac: 802581e2c69988f181ee3cedcdf0e936fc153f4c4587abbb9192292604cda123
+hmac: 0bc9843c53a70f57b26aa9b16816a5b5a09b44018aeb1c876b6698795da09c9b
 
 ...
