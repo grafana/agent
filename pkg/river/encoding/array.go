@@ -37,7 +37,7 @@ func (af *ArrayField) MarshalJSON() ([]byte, error) {
 	return json.Marshal((*temp)(af))
 }
 
-func (af *ArrayField) isValid() bool {
+func (af *ArrayField) hasValue() bool {
 	if af == nil {
 		return false
 	}
@@ -62,11 +62,11 @@ func (af *ArrayField) convertArray(val value.Value) error {
 			return err
 		}
 
-		if vf.isValid() {
+		if vf.hasValue() {
 			values = append(values, vf)
-		} else if arrF.isValid() {
+		} else if arrF.hasValue() {
 			arrays = append(arrays, arrF)
-		} else if mf.isValid() {
+		} else if mf.hasValue() {
 			maps = append(maps, mf)
 		} else {
 			return fmt.Errorf("unable to find value for %T in convertArray", val.Interface())

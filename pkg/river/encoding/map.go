@@ -17,7 +17,7 @@ func newMap(val value.Value) (*MapField, error) {
 	return mf, mf.convertMap(val)
 }
 
-func (mf *MapField) isValid() bool {
+func (mf *MapField) hasValue() bool {
 	if mf == nil {
 		return false
 	}
@@ -39,11 +39,11 @@ func (mf *MapField) convertMap(val value.Value) error {
 		if err != nil {
 			return err
 		}
-		if vf.isValid() {
+		if vf.hasValue() {
 			kf.Value = vf
-		} else if arrF.isValid() {
+		} else if arrF.hasValue() {
 			kf.Value = arrF
-		} else if mapF.isValid() {
+		} else if mapF.hasValue() {
 			kf.Value = mapF
 		} else {
 			return fmt.Errorf("unable to find value for %T in map", val.Interface())

@@ -1,6 +1,7 @@
 package encoding
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/grafana/agent/pkg/river/internal/rivertags"
@@ -15,15 +16,16 @@ func TestSimple(t *testing.T) {
 	obj := &t1{
 		Age: 1,
 	}
+	reqString := `{"name":"age","type":"attr","value":{"type":"number","value":1}}`
 	val := value.Encode(obj)
 	tags := rivertags.Get(val.Reflect().Type())
 	require.Len(t, tags, 1)
 
 	af, err := newAttribute(value.Encode(obj.Age), tags[0])
 	require.NoError(t, err)
-	require.True(t, af.Name == age)
-	require.True(t, af.valueField.Type == number)
-	require.True(t, af.valueField.Value == 1)
+	bb, err := json.Marshal(af)
+	require.NoError(t, err)
+	require.JSONEq(t, reqString, string(bb))
 }
 
 func TestNested(t *testing.T) {
@@ -33,6 +35,7 @@ func TestNested(t *testing.T) {
 	type parent struct {
 		Person *t1 `river:"person,attr"`
 	}
+	reqString := `{"name":"person","type":"attr","value":{"type":"object","value":[{"value":{"type":"number","value":1},"key":"age"}]}}`
 
 	obj := &parent{Person: &t1{Age: 1}}
 	val := value.Encode(obj)
@@ -41,10 +44,7 @@ func TestNested(t *testing.T) {
 
 	af, err := newAttribute(value.Encode(obj.Person), tags[0])
 	require.NoError(t, err)
-	require.True(t, af.Name == "person")
-	require.True(t, af.structField.Type == object)
-	require.Len(t, af.structField.Value, 1)
-	require.True(t, af.structField.Value[0].Key == age)
-	require.True(t, af.structField.Value[0].Value.(*ValueField).Value == 1)
-	require.True(t, af.structField.Value[0].Value.(*ValueField).Type == number)
+	bb, err := json.Marshal(af)
+	require.NoError(t, err)
+	require.JSONEq(t, reqString, string(bb))
 }

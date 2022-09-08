@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"reflect"
 
 	"github.com/grafana/agent/pkg/river/encoding"
 
@@ -117,7 +116,7 @@ func (c *Flow) ComponentJSON(w io.Writer, ci *ComponentInfo) error {
 	if err != nil {
 		return err
 	}
-	if args != nil && !reflect.ValueOf(args).IsNil() {
+	if len(args) > 0 {
 		ci.Arguments = args
 	}
 
@@ -125,7 +124,7 @@ func (c *Flow) ComponentJSON(w io.Writer, ci *ComponentInfo) error {
 	if err != nil {
 		return err
 	}
-	if exports != nil && !reflect.ValueOf(exports).IsNil() {
+	if len(exports) > 0 {
 		ci.Exports = exports
 	}
 
@@ -133,7 +132,7 @@ func (c *Flow) ComponentJSON(w io.Writer, ci *ComponentInfo) error {
 	if err != nil {
 		return err
 	}
-	if debugInfo != nil && !reflect.ValueOf(debugInfo).IsNil() {
+	if len(debugInfo) > 0 {
 		ci.DebugInfo = debugInfo
 	}
 

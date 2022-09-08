@@ -20,7 +20,6 @@ import (
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/prometheus/prometheus/util/httputil"
 	"github.com/spf13/cobra"
 	"go.uber.org/atomic"
 
@@ -153,13 +152,7 @@ func (fr *flowRun) Run(configFile string) error {
 		}
 
 		r := mux.NewRouter()
-		// Wrap calls to handle gzip requests.
-		r.Use(func(h http.Handler) http.Handler {
-			return httputil.CompressionHandler{Handler: h}
-		})
 
-		fa := api.NewFlowAPI(f, r)
-		fa.RegisterRoutes(fr.uiPrefix, r)
 		r.Handle("/metrics", promhttp.Handler())
 
 		if fr.enableDebugEndpoints {
@@ -189,6 +182,10 @@ func (fr *flowRun) Run(configFile string) error {
 			}
 			fmt.Fprintln(w, "config reloaded")
 		}).Methods(http.MethodGet, http.MethodPost)
+
+		// Register Routes must be the last
+		fa := api.NewFlowAPI(f, r)
+		fa.RegisterRoutes(fr.uiPrefix, r)
 
 		srv := &http.Server{Handler: r}
 

@@ -13,7 +13,7 @@ type ValueField struct {
 	Value interface{} `json:"value,omitempty"`
 }
 
-func (vf *ValueField) isValid() bool {
+func (vf *ValueField) hasValue() bool {
 	if vf == nil {
 		return false
 	}

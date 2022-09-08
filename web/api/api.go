@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"path"
 
+	"github.com/prometheus/prometheus/util/httputil"
+
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/flow"
 )
@@ -26,8 +28,8 @@ func NewFlowAPI(flow *flow.Flow, r *mux.Router) *FlowAPI {
 
 // RegisterRoutes registers all the routes.
 func (f *FlowAPI) RegisterRoutes(urlPrefix string, r *mux.Router) {
-	r.HandleFunc(path.Join(urlPrefix, "/api/v0/web/components"), f.listComponentsHandler())
-	r.HandleFunc(path.Join(urlPrefix, "/api/v0/web/components/{id}"), f.listComponentHandler())
+	r.Handle(path.Join(urlPrefix, "/api/v0/web/components"), httputil.CompressionHandler{Handler: f.listComponentsHandler()})
+	r.Handle(path.Join(urlPrefix, "/api/v0/web/components/{id}"), httputil.CompressionHandler{Handler: f.listComponentHandler()})
 }
 
 func (f *FlowAPI) listComponentsHandler() http.HandlerFunc {

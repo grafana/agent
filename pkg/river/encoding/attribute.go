@@ -27,11 +27,11 @@ func (af *AttributeField) isValid() bool {
 		return false
 	}
 	if af.mapField != nil {
-		return af.mapField.isValid()
+		return af.mapField.hasValue()
 	} else if af.arrayField != nil {
-		return af.arrayField.isValid()
+		return af.arrayField.hasValue()
 	} else if af.valueField != nil {
-		return af.valueField.isValid()
+		return af.valueField.hasValue()
 	}
 	return false
 }
@@ -67,11 +67,11 @@ func (af *AttributeField) convertAttribute(val value.Value, f rivertags.Field) e
 		return err
 	}
 
-	if vf.isValid() {
+	if vf.hasValue() {
 		af.valueField = vf
-	} else if arrF.isValid() {
+	} else if arrF.hasValue() {
 		af.arrayField = arrF
-	} else if mf.isValid() {
+	} else if mf.hasValue() {
 		af.mapField = mf
 	} else {
 		return fmt.Errorf("unable to find value for %T in convertAttribute", val.Interface())
