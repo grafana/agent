@@ -94,7 +94,7 @@ local images = {
     ]) +
     grafana_agent.withTracesTailSamplingConfig({
       policies: [{
-        always_sample: null,
+        type: 'always_sample',
       }],
     }) +
     grafana_agent.withTracesLoadBalancingConfig({
