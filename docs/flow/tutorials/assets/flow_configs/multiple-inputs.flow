@@ -1,17 +1,11 @@
 prometheus.scrape "first" {
     targets = [{"__address__" = "localhost:12345"}]
     forward_to = [prometheus.relabel.filter.receiver,prometheus.relabel.not_cool.receiver]
-    scrape_config {
-        job_name = "first"
-    }
 }
 
 prometheus.scrape "second" {
     targets = [{"__address__" = "localhost:12345"}]
     forward_to = [prometheus.relabel.filter.receiver,prometheus.relabel.not_cool.receiver]
-    scrape_config {
-        job_name = "second"
-    }
 }
 
 prometheus.relabel "cool" {

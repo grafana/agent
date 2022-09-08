@@ -1,9 +1,6 @@
 prometheus.scrape "default" {
     targets = [{"__address__" = "localhost:12345"}]
     forward_to = [prometheus.relabel.filter.receiver]
-    scrape_config {
-        job_name = "test"
-    }
 }
 
 // prometheus.relabel allows you to filter the results, in this case we are using the always present
