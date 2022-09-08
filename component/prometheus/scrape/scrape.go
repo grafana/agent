@@ -157,9 +157,15 @@ func (c *Component) Run(ctx context.Context) error {
 			return nil
 		case <-c.reloadTargets:
 			c.mut.RLock()
-			tgs := c.args.Targets
+			var (
+				tgs     = c.args.Targets
+				jobName = c.opts.ID
+			)
+			if c.args.JobName != "" {
+				jobName = c.args.JobName
+			}
 			c.mut.RUnlock()
-			promTargets := c.componentTargetsToProm(tgs)
+			promTargets := c.componentTargetsToProm(jobName, tgs)
 
 			select {
 			case targetSetsChan <- promTargets:
@@ -244,13 +250,13 @@ func (c *Component) DebugInfo() interface{} {
 	return ScraperStatus{TargetStatus: res}
 }
 
-func (c *Component) componentTargetsToProm(tgs []discovery.Target) map[string][]*targetgroup.Group {
-	promGroup := &targetgroup.Group{Source: c.opts.ID}
+func (c *Component) componentTargetsToProm(jobName string, tgs []discovery.Target) map[string][]*targetgroup.Group {
+	promGroup := &targetgroup.Group{Source: jobName}
 	for _, tg := range tgs {
 		promGroup.Targets = append(promGroup.Targets, convertLabelSet(tg))
 	}
 
-	return map[string][]*targetgroup.Group{c.opts.ID: {promGroup}}
+	return map[string][]*targetgroup.Group{jobName: {promGroup}}
 }
 
 func convertLabelSet(tg discovery.Target) model.LabelSet {
