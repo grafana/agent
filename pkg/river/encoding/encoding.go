@@ -123,11 +123,6 @@ func isMapOrStruct(val value.Value) bool {
 	return val.Type() == value.TypeObject
 }
 
-func isStruct(val value.Value) bool {
-	// By checking the val.Type we can try to avoice the more expensive reflect.
-	return val.Type() == value.TypeObject && val.Reflect().Kind() == reflect.Struct
-}
-
 func convertRiverValue(val value.Value) (vf *ValueField, af *ArrayField, mf *MapField, err error) {
 	if isFieldValue(val) {
 		vf, err = convertValue(val)

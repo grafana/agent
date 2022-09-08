@@ -8,9 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const number = "number"
-const age = "age"
-
 func TestSimpleArray(t *testing.T) {
 	intArr := make([]int, 10)
 	for i := 0; i < 10; i++ {
