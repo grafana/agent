@@ -5,9 +5,14 @@ title: Chaining components
 weight: 400
 ---
 
-The goal of this tutorial is to show the ability to have data go to several different locations using [multiple-inputs.flow](../assets/flow_configs/multiple-inputs.flow). This builds upon [filtering metrics]({{< relref "filtering-metrics.md">}}) and requires all the other previous prerequisites.
+The goal of this tutorial is to show the ability to have data go to several different locations using [multiple-inputs.flow](../assets/flow_configs/multiple-inputs.flow). This uses the same base as [filtering metrics]({{< relref "filtering-metrics.md">}}).
 
 A new concept in Flow is chaining components together. 
+
+# Prerequisites
+
+* [Docker](https://www.docker.com/products/docker-desktop)
+* Clone the [Agent Repository](https://github.com/grafana/agent) `git clone git@github.com:grafana/agent.git`
 
 ## Example
 

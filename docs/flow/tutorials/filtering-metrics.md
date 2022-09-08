@@ -5,7 +5,12 @@ title: Filtering metrics
 weight: 300
 ---
 
-The goal of this tutorial is to add a new component [prometheus.relabel]({{< ref "prometheus.relabel.md" >}}) using [relabel.flow](../assets/flow_configs/relabel.flow) that allows the filtering of metrics. This builds upon [Collecting Prometheus Metrics]({{< relref "./collecting-prometheus-metrics.md">}}) and requires all the other previous prerequisites.
+The goal of this tutorial is to add a new component [prometheus.relabel]({{< ref "prometheus.relabel.md" >}}) using [relabel.flow](../assets/flow_configs/relabel.flow) that allows the filtering of metrics. This uses the same base as [Collecting Prometheus Metrics]({{< relref "./collecting-prometheus-metrics.md">}}).
+
+# Prerequisites
+
+* [Docker](https://www.docker.com/products/docker-desktop)
+* Clone the [Agent Repository](https://github.com/grafana/agent) `git clone git@github.com:grafana/agent.git`
 
 # Prometheus Relabel Component
 
