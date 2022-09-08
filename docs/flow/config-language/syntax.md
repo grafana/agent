@@ -90,7 +90,7 @@ letters, digits or underscores, but doesn't start with a digit.
 ## Terminators
 All block and attribute definitions are followed by a newline, which River
 calls a _terminator_, as it terminates the current statement.
-A terminator is found when there's a newline following any expression, `]`,
-`)` or `}`. Other newlines are effectively ignored and a user can enter as many
-cosmetic newlines as they want.
+A newline is treated as terminator when it follows any expression, `]`,
+`)` or `}`. Other newlines are ignored by River and and a user can enter as many
+newlines as they want.
 
