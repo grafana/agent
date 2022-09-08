@@ -69,6 +69,18 @@ k3d/Tanka environment. Both examples deploy the Agent, Cortex and Grafana for
 testing the agent. See the [docker-compose README](./example/docker-compose/README.md)
 and the [k3d example README](./example/k3d/README.md) for more information.
 
+## Release schedule
+
+Starting with the v0.28 release on 2022-09-20, a new minor release is planned
+to be created every 6 weeks. This includes a release for Grafana Agent and
+Grafana Agent Operator.
+
+The release schedule is best-effort, and releases may be moved forward or
+backwards if needed. The planned release date for future minor releases are not
+changed if one minor release is moved.
+
+Patch and security releases may be created at any time.
+
 ## Prometheus Vendoring
 
 The Grafana Agent vendors a downstream Prometheus repository maintained by
