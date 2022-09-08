@@ -1,4 +1,4 @@
-// prometheus.scrape is the type of component and "default" is the name or label of a component
+// prometheus.scrape is the name of a component and "default" is the label of this component
 prometheus.scrape "default" {
     // Tell the scraper to scrap at http://localhost:12345/metrics
     // the http:// and metrics are implied but able to be overwritten 

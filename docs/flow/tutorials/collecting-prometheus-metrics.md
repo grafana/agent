@@ -26,7 +26,7 @@ This example scrapes the Grafana Agent's `http://localhost:12345/metrics` endpoi
 The [`prometheus.scrape`]({{< relref "prometheus.scrape.md" >}}) component is responsible for scraping the metrics of a particular endpoint and passing them on to another component.
 
 ```river
-// prometheus.scrape is the type of component and "default" is the name or label of a component
+// prometheus.scrape is the name of component and "default" is the label of a component
 prometheus.scrape "default" {
     // Tell the scraper to scrap at http://localhost:12345/metrics
     // the http:// and metrics are implied but able to be overwritten 
@@ -39,7 +39,7 @@ prometheus.scrape "default" {
 }
 ```
 
-The `prometheus.scrape "default"` annotation tells the type `prometheus.scrape` and the label `default`. All components must have a unique combination of type and name.
+The `prometheus.scrape "default"` annotation tells the name `prometheus.scrape` and the label `default`. All components must have a unique combination of name and label.
 
 The `targets` [attribute]({{< relref "configuration_language.md#Attributes" >}}) is an [argument]({{< relref "../concepts/components.md">}}). Targets is a list of labels that specify the target via the special key `__address__`. The scraper is targeting the Agent's `/metrics` endpoint. Both the `http` and `/metrics` are implied but can be overridden.
 
