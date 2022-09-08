@@ -19,9 +19,9 @@ import (
 
 // GraphHandler returns an http.HandlerFunc which renders the current graph's
 // DAG as an SVG. Graphviz must be installed for this function to work.
-func (c *Flow) GraphHandler() http.HandlerFunc {
+func (f *Flow) GraphHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {
-		g := c.loader.Graph()
+		g := f.loader.Graph()
 		dot := dag.MarshalDOT(g)
 
 		svgBytes, err := graphviz.Dot(dot, "svg")
@@ -31,19 +31,19 @@ func (c *Flow) GraphHandler() http.HandlerFunc {
 		}
 		_, err = io.Copy(w, bytes.NewReader(svgBytes))
 		if err != nil {
-			level.Error(c.log).Log("msg", "failed to write svg graph", "err", err)
+			level.Error(f.log).Log("msg", "failed to write svg graph", "err", err)
 		}
 	}
 }
 
 // ConfigHandler returns an http.HandlerFunc which will render the most
 // recently loaded configuration file as River.
-func (c *Flow) ConfigHandler() http.HandlerFunc {
+func (f *Flow) ConfigHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		debugInfo := r.URL.Query().Get("debug") == "1"
 
 		var buf bytes.Buffer
-		_, err := c.configBytes(&buf, debugInfo)
+		_, err := f.configBytes(&buf, debugInfo)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		} else {
@@ -54,10 +54,10 @@ func (c *Flow) ConfigHandler() http.HandlerFunc {
 
 // ScopeHandler returns an http.HandlerFunc which will render the scope used
 // for variable references throughout River expressions.
-func (c *Flow) ScopeHandler() http.HandlerFunc {
+func (f *Flow) ScopeHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {
 		be := builder.NewExpr()
-		be.SetValue(c.loader.Variables())
+		be.SetValue(f.loader.Variables())
 
 		var buf bytes.Buffer
 		_, err := be.WriteTo(&buf)
@@ -70,10 +70,10 @@ func (c *Flow) ScopeHandler() http.HandlerFunc {
 }
 
 // configBytes dumps the current state of the flow config as River.
-func (c *Flow) configBytes(w io.Writer, debugInfo bool) (n int64, err error) {
+func (f *Flow) configBytes(w io.Writer, debugInfo bool) (n int64, err error) {
 	file := builder.NewFile()
 
-	blocks := c.loader.WriteBlocks(debugInfo)
+	blocks := f.loader.WriteBlocks(debugInfo)
 	for _, block := range blocks {
 		var id controller.ComponentID
 		id = append(id, block.Name...)
@@ -96,12 +96,12 @@ func (c *Flow) configBytes(w io.Writer, debugInfo bool) (n int64, err error) {
 }
 
 // ComponentJSON returns the json representation of the flow component.
-func (c *Flow) ComponentJSON(w io.Writer, ci *ComponentInfo) error {
-	c.loadMut.RLock()
-	defer c.loadMut.RUnlock()
+func (f *Flow) ComponentJSON(w io.Writer, ci *ComponentInfo) error {
+	f.loadMut.RLock()
+	defer f.loadMut.RUnlock()
 
 	var foundComponent *controller.ComponentNode
-	for _, c := range c.loader.Components() {
+	for _, c := range f.loader.Components() {
 		if c.ID().String() == ci.ID {
 			foundComponent = c
 			break
