@@ -264,27 +264,33 @@ func (vm *Evaluator) evaluateBlockOrBody(scope *Scope, assoc map[value.Value]ast
 	// Make sure that all of the attributes and blocks defined in the AST node
 	// matched up with a field from our struct.
 	for attrName, attrs := range foundAttrs {
-		if _, consumed := consumedAttrs[attrName]; !consumed {
-			for _, attr := range attrs {
-				diags = append(diags, diag.Diagnostic{
-					Severity: diag.SeverityLevelError,
-					StartPos: ast.StartPos(attr.Name).Position(),
-					EndPos:   ast.EndPos(attr.Name).Position(),
-					Message:  fmt.Sprintf("unrecognized attribute name %q", attrName),
-				})
-			}
+		if _, consumed := consumedAttrs[attrName]; consumed {
+			// Ignore accepted attributes.
+			continue
+		}
+
+		for _, attr := range attrs {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				StartPos: ast.StartPos(attr.Name).Position(),
+				EndPos:   ast.EndPos(attr.Name).Position(),
+				Message:  fmt.Sprintf("unrecognized attribute name %q", attrName),
+			})
 		}
 	}
 	for blockName, blocks := range foundBlocks {
-		if _, consumed := consumedBlocks[blockName]; !consumed {
-			for _, block := range blocks {
-				diags = append(diags, diag.Diagnostic{
-					Severity: diag.SeverityLevelError,
-					StartPos: block.NamePos.Position(),
-					EndPos:   block.NamePos.Add(len(blockName) - 1).Position(),
-					Message:  fmt.Sprintf("unrecognized block name %q", blockName),
-				})
-			}
+		if _, consumed := consumedBlocks[blockName]; consumed {
+			// Ignore accepted blocks.
+			continue
+		}
+
+		for _, block := range blocks {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				StartPos: block.NamePos.Position(),
+				EndPos:   block.NamePos.Add(len(blockName) - 1).Position(),
+				Message:  fmt.Sprintf("unrecognized block name %q", blockName),
+			})
 		}
 	}
 
