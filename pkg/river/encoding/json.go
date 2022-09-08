@@ -116,29 +116,27 @@ func convertValue(val value.Value) (*ValueField, error) {
 }
 
 func isArray(val value.Value) bool {
-	return val.Reflect().Kind() == reflect.Array || val.Reflect().Kind() == reflect.Slice
+	return val.Type() == value.TypeArray
 }
 
-func isMap(val value.Value) bool {
-	return val.Reflect().Kind() == reflect.Map
+func isMapOrStruct(val value.Value) bool {
+	return val.Type() == value.TypeObject
 }
 
 func isStruct(val value.Value) bool {
-	return val.Reflect().Kind() == reflect.Struct
+	// By checking the val.Type we can try to avoice the more expensive reflect.
+	return val.Type() == value.TypeObject && val.Reflect().Kind() == reflect.Struct
 }
 
-func convertRiverValue(val value.Value) (vf *ValueField, af *ArrayField, mf *MapField, sf *StructField, err error) {
+func convertRiverValue(val value.Value) (vf *ValueField, af *ArrayField, mf *MapField, err error) {
 	if isFieldValue(val) {
 		vf, err = convertValue(val)
 		return
 	} else if isArray(val) {
 		af, err = newArray(val)
 		return
-	} else if isMap(val) {
+	} else if isMapOrStruct(val) {
 		mf, err = newMap(val)
-		return
-	} else if isStruct(val) {
-		sf, err = newStruct(val)
 		return
 	}
 	err = fmt.Errorf("unknown value %T", val.Interface())

@@ -27,12 +27,15 @@ func (mf *MapField) isValid() bool {
 func (mf *MapField) convertMap(val value.Value) error {
 	mf.Type = object
 	fields := make([]*KeyField, 0)
-	iter := val.Reflect().MapRange()
-	for iter.Next() {
+	for _, key := range val.Keys() {
 		kf := &KeyField{}
-		kf.Key = iter.Key().String()
-		mapVal := value.Encode(iter.Value().Interface())
-		vf, arrF, mapF, sf, err := convertRiverValue(mapVal)
+
+		kf.Key = key
+		mapVal, found := val.Key(key)
+		if !found {
+			return fmt.Errorf("unable to find key %s for value type %d", key, val.Type())
+		}
+		vf, arrF, mapF, err := convertRiverValue(mapVal)
 		if err != nil {
 			return err
 		}
@@ -42,8 +45,6 @@ func (mf *MapField) convertMap(val value.Value) error {
 			kf.Value = arrF
 		} else if mapF.isValid() {
 			kf.Value = mapF
-		} else if sf.isValid() {
-			kf.Value = sf
 		} else {
 			return fmt.Errorf("unable to find value for %T in map", val.Interface())
 		}

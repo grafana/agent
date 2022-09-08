@@ -9,12 +9,11 @@ import (
 
 // ArrayField represents an array node.
 type ArrayField struct {
-	Type         string        `json:"type"`
-	Value        []interface{} `json:"value,omitempty"`
-	valueFields  []*ValueField
-	structFields []*StructField
-	arrayFields  []*ArrayField
-	mapFields    []*MapField
+	Type        string        `json:"type"`
+	Value       []interface{} `json:"value,omitempty"`
+	valueFields []*ValueField
+	arrayFields []*ArrayField
+	mapFields   []*MapField
 }
 
 func newArray(val value.Value) (*ArrayField, error) {
@@ -26,9 +25,6 @@ func newArray(val value.Value) (*ArrayField, error) {
 func (af *ArrayField) MarshalJSON() ([]byte, error) {
 	af.Value = make([]interface{}, 0)
 	for _, x := range af.valueFields {
-		af.Value = append(af.Value, x)
-	}
-	for _, x := range af.structFields {
 		af.Value = append(af.Value, x)
 	}
 	for _, x := range af.arrayFields {
@@ -45,7 +41,7 @@ func (af *ArrayField) isValid() bool {
 	if af == nil {
 		return false
 	}
-	return len(af.valueFields)+len(af.structFields)+len(af.mapFields)+len(af.arrayFields) > 0
+	return len(af.valueFields)+len(af.mapFields)+len(af.arrayFields) > 0
 }
 
 func (af *ArrayField) convertArray(val value.Value) error {
@@ -53,7 +49,6 @@ func (af *ArrayField) convertArray(val value.Value) error {
 		return fmt.Errorf("convertArray requires a field that is an slice/array got %T", val.Interface())
 	}
 	af.Type = "array"
-	structs := make([]*StructField, 0)
 	values := make([]*ValueField, 0)
 	arrays := make([]*ArrayField, 0)
 	maps := make([]*MapField, 0)
@@ -62,7 +57,7 @@ func (af *ArrayField) convertArray(val value.Value) error {
 		arrEle := val.Index(i).Interface()
 		arrVal := value.Encode(arrEle)
 
-		vf, arrF, mf, sf, err := convertRiverValue(arrVal)
+		vf, arrF, mf, err := convertRiverValue(arrVal)
 		if err != nil {
 			return err
 		}
@@ -73,13 +68,10 @@ func (af *ArrayField) convertArray(val value.Value) error {
 			arrays = append(arrays, arrF)
 		} else if mf.isValid() {
 			maps = append(maps, mf)
-		} else if sf.isValid() {
-			structs = append(structs, sf)
 		} else {
 			return fmt.Errorf("unable to find value for %T in convertArray", val.Interface())
 		}
 	}
-	af.structFields = structs
 	af.valueFields = values
 	af.arrayFields = arrays
 	af.mapFields = maps

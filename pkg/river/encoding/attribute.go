@@ -11,11 +11,10 @@ import (
 
 // AttributeField represents a json representation of a river attribute.
 type AttributeField struct {
-	Field       `json:",omitempty"`
-	valueField  *ValueField
-	arrayField  *ArrayField
-	mapField    *MapField
-	structField *StructField
+	Field      `json:",omitempty"`
+	valueField *ValueField
+	arrayField *ArrayField
+	mapField   *MapField
 }
 
 func newAttribute(val value.Value, f rivertags.Field) (*AttributeField, error) {
@@ -31,8 +30,6 @@ func (af *AttributeField) isValid() bool {
 		return af.mapField.isValid()
 	} else if af.arrayField != nil {
 		return af.arrayField.isValid()
-	} else if af.structField != nil {
-		return af.structField.isValid()
 	} else if af.valueField != nil {
 		return af.valueField.isValid()
 	}
@@ -47,8 +44,6 @@ func (af *AttributeField) MarshalJSON() ([]byte, error) {
 		af.Field.Value = af.mapField
 	} else if af.arrayField != nil {
 		af.Field.Value = af.arrayField
-	} else if af.structField != nil {
-		af.Field.Value = af.structField
 	} else {
 		return nil, fmt.Errorf("attribute field did not have any valid values")
 	}
@@ -67,7 +62,7 @@ func (af *AttributeField) convertAttribute(val value.Value, f rivertags.Field) e
 	af.Type = attr
 	af.Name = strings.Join(f.Name, ".")
 
-	vf, arrF, mf, sf, err := convertRiverValue(val)
+	vf, arrF, mf, err := convertRiverValue(val)
 	if err != nil {
 		return err
 	}
@@ -78,8 +73,6 @@ func (af *AttributeField) convertAttribute(val value.Value, f rivertags.Field) e
 		af.arrayField = arrF
 	} else if mf.isValid() {
 		af.mapField = mf
-	} else if sf.isValid() {
-		af.structField = sf
 	} else {
 		return fmt.Errorf("unable to find value for %T in convertAttribute", val.Interface())
 	}
