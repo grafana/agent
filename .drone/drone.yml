@@ -84,7 +84,7 @@ steps:
   - name: lint
     image: grafana/agent-build-image:0.15.1
     commands:
-      - make -f Makefile-v2.mk lint
+      - make lint
 
 ---
 kind: pipeline
@@ -115,8 +115,8 @@ steps:
       # The operator tests require K8S_USE_DOCKER_NETWORK=1 to be set when
       # tests are being run inside of a Docker container so it can access the
       # created k3d cluster properly.
-      - make -f Makefile-v2.mk binaries
-      - K8S_USE_DOCKER_NETWORK=1 make -f Makefile-v2.mk test
+      - make binaries
+      - K8S_USE_DOCKER_NETWORK=1 make test
 
 volumes:
  - name: docker
@@ -287,7 +287,7 @@ steps:
         from_secret: gpg_passphrase
     commands:
       - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-      - make -f Makefile-v2.mk -j4 RELEASE_BUILD=1 VERISON=${DRONE_TAG} dist
+      - make -j4 RELEASE_BUILD=1 VERISON=${DRONE_TAG} dist
       - RELEASE_DOC_TAG=$(echo $VERSION | awk -F '.' '{print $1"."$2}') ./tools/release
 depends_on:
   - Test
@@ -347,6 +347,6 @@ get:
 
 ---
 kind: signature
-hmac: 051ed54396fad1a1864ec5342b91c3d8599576f985956d8dd42e87e97483a197
+hmac: 30ef74d8b3810aec51486cb913df033ef6b51efa58f85e5cc33a00fa602a0ba7
 
 ...

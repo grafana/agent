@@ -50,7 +50,7 @@ docker buildx build --push       \
   --build-arg VERISON="$VERSION" \
   -t "$AGENT_IMAGE:$VERSION"     \
   -t "$AGENT_IMAGE:$BRANCH_TAG"  \
-  -f cmd/agent/Dockerfile.new    \
+  -f cmd/agent/Dockerfile        \
   .
 
 docker buildx build --push         \
@@ -59,7 +59,7 @@ docker buildx build --push         \
   --build-arg VERISON="$VERSION"   \
   -t "$AGENTCTL_IMAGE:$VERSION"    \
   -t "$AGENTCTL_IMAGE:$BRANCH_TAG" \
-  -f cmd/agentctl/Dockerfile.new   \
+  -f cmd/agentctl/Dockerfile       \
   .
 
 docker buildx build --push             \
@@ -68,7 +68,7 @@ docker buildx build --push             \
   --build-arg VERISON="$VERSION"       \
   -t "$OPERATOR_IMAGE:$VERSION"        \
   -t "$OPERATOR_IMAGE:$BRANCH_TAG"     \
-  -f cmd/agent-operator/Dockerfile.new \
+  -f cmd/agent-operator/Dockerfile     \
   .
 
 docker buildx build --push       \
@@ -77,7 +77,7 @@ docker buildx build --push       \
   --build-arg VERISON="$VERSION" \
   -t "$SMOKE_IMAGE:$VERSION"     \
   -t "$SMOKE_IMAGE:$BRANCH_TAG"  \
-  -f tools/smoke/Dockerfile.new  \
+  -f tools/smoke/Dockerfile      \
   .
 
 docker buildx build --push       \
@@ -86,5 +86,5 @@ docker buildx build --push       \
   --build-arg VERISON="$VERSION" \
   -t "$CROW_IMAGE:$VERSION"      \
   -t "$CROW_IMAGE:$BRANCH_TAG"   \
-  -f tools/crow/Dockerfile.new   \
+  -f tools/crow/Dockerfile       \
   .
