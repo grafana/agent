@@ -89,6 +89,39 @@ steps:
 ---
 kind: pipeline
 type: docker
+name: Test distribution binaries
+platform:
+  os: linux
+  arch: amd64
+trigger:
+  event:
+    - push
+    - pull_request
+    - tag
+  ref:
+    - refs/heads/main
+    - refs/pull/*/head
+    - refs/tags/v*
+
+steps:
+  - name: test
+    image: grafana/agent-build-image:0.15.1
+    volumes:
+      - name: docker
+        path: /var/run/docker.sock
+    commands:
+      - make dist
+
+volumes:
+ - name: docker
+   host:
+     path: /var/run/docker.sock
+
+
+
+---
+kind: pipeline
+type: docker
 name: Test
 platform:
   os: linux
@@ -347,6 +380,6 @@ get:
 
 ---
 kind: signature
-hmac: 30ef74d8b3810aec51486cb913df033ef6b51efa58f85e5cc33a00fa602a0ba7
+hmac: f53b484ed4c5cab3a5169ad8dab5a4b6b462586c547f5044463a373eb63ba3d6
 
 ...
