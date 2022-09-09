@@ -1,23 +1,37 @@
-FROM golang:1.18.0-bullseye as build
+# syntax=docker/dockerfile:1.4
+
+# NOTE: This Dockerfile can only be built using BuildKit. BuildKit is used by
+# default when running `docker buildx build` or when DOCKER_BUILDKIT=1 is set
+# in environment variables.
+
+FROM --platform=$BUILDPLATFORM grafana/agent-build-image:0.15.1 as build
+ARG BUILDPLATFORM
+ARG TARGETPLATFORM
+ARG TARGETOS
+ARG TARGETARCH
+ARG TARGETVARIANT
+ARG RELEASE_BUILD=1
+ARG VERSION
+
 COPY . /src/agent
 WORKDIR /src/agent
-ARG RELEASE_BUILD=true
-ARG IMAGE_TAG
 
-# Backports repo required to get a libsystemd version 246 or newer which is required to handle journal +ZSTD compression
-RUN echo "deb http://deb.debian.org/debian bullseye-backports main" >> /etc/apt/sources.list
-RUN apt-get update && apt-get install -t bullseye-backports -qy libsystemd-dev
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    GOOS=$TARGETOS GOARCH=$TARGETARCH GOARM=${TARGETVARIANT#v} \
+    RELEASE_BUILD=${RELEASE_BUILD} VERISON=${VERSION} \
+    make smoke
 
-RUN make clean && make IMAGE_TAG=${IMAGE_TAG} RELEASE_BUILD=${RELEASE_BUILD} BUILD_IN_CONTAINER=false agent-smoke
+FROM ubuntu:jammy
 
-FROM debian:bullseye-slim
+# Install dependencies needed at runtime.
+RUN <<EOF
+  apt-get update
+  apt-get install -qy libsystemd-dev tzdata ca-certificates
 
-# Backports repo required to get a libsystemd version 246 or newer which is required to handle journal +ZSTD compression
-RUN echo "deb http://deb.debian.org/debian bullseye-backports main" >> /etc/apt/sources.list
-RUN apt-get update && apt-get install -t bullseye-backports -qy libsystemd-dev && \
-  apt-get install -qy tzdata ca-certificates && \
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+EOF
 
-COPY --from=build /src/agent/tools/smoke/grafana-agent-smoke /bin/grafana-agent-smoke
+COPY --from=build /src/agent/build/agent-smoke /bin/grafana-agent-smoke
 
 ENTRYPOINT ["/bin/grafana-agent-smoke"]
