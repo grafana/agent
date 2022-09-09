@@ -1,4 +1,19 @@
 #!/usr/bin/env bash
+#
+# This script should be run from the root of the repository.
+
+# Zip up agent* binaries to reduce the download size. agent* binaries include
+# everything *except* for the deb/rpm assets, which are named grafana-agent*.
+for i in dist/agent*; do
+  zip -j -m $$i.zip $$i
+done
+
+# Sign the RPM packages. DEB packages aren't signed.
+./packaging/rpm/gpg-sign.sh
+
+# Get the SHA256SUMS before continuing.
+pushd dist && sha256sum * > SHA256SUMS && popd
+
 ghr \
   -t "${GITHUB_TOKEN}" \
   -u "grafana" \

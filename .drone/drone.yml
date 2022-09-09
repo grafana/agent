@@ -110,6 +110,11 @@ steps:
       - name: docker
         path: /var/run/docker.sock
     commands:
+      # Ensure the binaries can build and also run Go tests.
+      #
+      # The operator tests require K8S_USE_DOCKER_NETWORK=1 to be set when
+      # tests are being run inside of a Docker container so it can access the
+      # created k3d cluster properly.
       - make -f Makefile-v2.mk binaries
       - K8S_USE_DOCKER_NETWORK=1 make -f Makefile-v2.mk test
 
@@ -175,82 +180,9 @@ steps:
       - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
       - docker buildx create --name multiarch --driver docker-container --use
 
-      - |
-        # If containers are being built as the result of a tag, force the
-        # VERSION to come from the drone tag info.
-        #
-        # Otherwise, use the script to determine the tag.
-        if [ ! -z "$DRONE_TAG" ]; then
-          export VERISON=$DRONE_TAG
-        else
-          export VERSION=$(./tools/image-tag)
-        fi
+      - ./tools/ci/docker-containers
 
-        # We also need to know which "branch tag" to update. If this is a
-        # stable release (e.g., not a release candiate, we'll update :latest,
-        # otherwise we update the branch name).
-        #
-        # If there's no branch, we'll default to the version. This means the
-        # same Docker tag will be created twice, effectively turning the branch
-        # tag into a no-op.
-        if [ ! -z "$DRONE_TAG" ] && [[ "$DRONE_TAG" != *"-rc."* ]]; then
-          export BRANCH_TAG=$DRONE_TAG
-        elif [ ! -z "$DRONE_BRANCH" ]; then
-          export BRANCH_TAG=$DRONE_BRANCH
-        else
-          export BRANCH_TAG=$VERSION
-        fi
-
-      - >-
-        docker buildx build --push
-        --platform linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le
-        --build-arg RELEASE_BUILD=1
-        --build-arg VERISON=$VERSION
-        -t grafana/agent:$VERSION
-        -t grafana/agent:$BRANCH_TAG
-        -f cmd/agent/Dockerfile.new
-        .
-
-      - >-
-        docker buildx build --push
-        --platform linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le
-        --build-arg RELEASE_BUILD=1
-        --build-arg VERISON=$VERSION
-        -t grafana/agentctl:$VERSION
-        -t grafana/agentctl:$BRANCH_TAG
-        -f cmd/agentctl/Dockerfile.new
-        .
-
-      - >-
-        docker buildx build --push
-        --platform linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le
-        --build-arg RELEASE_BUILD=1
-        --build-arg VERISON=$VERSION
-        -t grafana/agent-operator:$VERSION
-        -t grafana/agent-operator:$BRANCH_TAG
-        -f cmd/agent-operator/Dockerfile.new
-        .
-
-      - >-
-        docker buildx build --push
-        --platform linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le
-        --build-arg RELEASE_BUILD=1
-        --build-arg VERISON=$VERSION
-        -t us.gcr.io/kubernetes-dev/grafana/agent-crow:$VERSION
-        -t us.gcr.io/kubernetes-dev/grafana/agent-crow:$BRANCH_TAG
-        -f tools/crow/Dockerfile.new
-        .
-
-      - >-
-        docker buildx build --push
-        --platform linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le
-        --build-arg RELEASE_BUILD=1
-        --build-arg VERISON=$VERSION
-        -t us.gcr.io/kubernetes-dev/grafana/agent-smoke:$VERSION
-        -t us.gcr.io/kubernetes-dev/grafana/agent-smoke:$BRANCH_TAG
-        -f tools/smoke/Dockerfile.new
-        .
-
+      # Remove the buildx worker container.
       - docker buildx rm multiarch
 
 depends_on:
@@ -356,9 +288,6 @@ steps:
     commands:
       - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
       - make -f Makefile-v2.mk -j4 RELEASE_BUILD=1 VERISON=${DRONE_TAG} dist
-      - for i in dist/agent*; do zip -j -m $$i.zip $$i; done
-      - pushd dist && sha256sum * > SHA256SUMS && popd
-      - ./packaging/rpm/gpg-sign.sh
       - RELEASE_DOC_TAG=$(echo $VERSION | awk -F '.' '{print $1"."$2}') ./tools/release
 depends_on:
   - Test
@@ -418,6 +347,6 @@ get:
 
 ---
 kind: signature
-hmac: 0bc9843c53a70f57b26aa9b16816a5b5a09b44018aeb1c876b6698795da09c9b
+hmac: 051ed54396fad1a1864ec5342b91c3d8599576f985956d8dd42e87e97483a197
 
 ...
