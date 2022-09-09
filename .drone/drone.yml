@@ -89,7 +89,7 @@ steps:
 ---
 kind: pipeline
 type: docker
-name: Test distribution binaries
+name: Test building binaries
 platform:
   os: linux
   arch: amd64
@@ -110,7 +110,9 @@ steps:
       - name: docker
         path: /var/run/docker.sock
     commands:
-      - make dist
+      # dist also builds packages which expect a vX.Y.Z-formatted VERSION to be
+      # set.
+      - VERSION=v0.0.0 make -j4 dist
 
 volumes:
  - name: docker
@@ -380,6 +382,6 @@ get:
 
 ---
 kind: signature
-hmac: f53b484ed4c5cab3a5169ad8dab5a4b6b462586c547f5044463a373eb63ba3d6
+hmac: a50eefcf1554e55a3df072ee27594a0916dbb0d894ab3fc1e2b06bc547569c21
 
 ...
