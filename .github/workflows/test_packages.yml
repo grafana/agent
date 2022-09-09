@@ -19,4 +19,4 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
     - name: Test
-      run: DOCKER_OPTS="" make test-packages
+      run: USE_CONTAINER=1 DOCKER_OPTS="" make test-packages

@@ -84,12 +84,6 @@
 ##   VERSION          Version to inject into built binaries.
 ##   GO_TAGS          Extra tags to use when building.
 
-# TODO(rfratto): test-packages target
-#
-# This depends on some reworking of how the Go tests in ./packaging works to
-# assume that packages have already been built so we don't have to hook in
-# packaging code here.
-
 include tools/make/*.mk
 
 AGENT_IMAGE     ?= grafana/agent:latest
@@ -159,6 +153,10 @@ lint:
 test:
 	$(GO_ENV) go test $(CGO_FLAGS) -race ./...
 	$(GO_ENV) go test $(CGO_FLAGS) ./pkg/integrations/node_exporter ./pkg/logs ./pkg/operator ./pkg/util/k8s
+
+test-packages:
+	docker pull $(BUILD_IMAGE)
+	go test -tags=packaging  ./packaging
 
 #
 # Targets for building binaries
