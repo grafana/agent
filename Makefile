@@ -151,8 +151,8 @@ lint:
 # We have to run test twice: once for all packages with -race and then once
 # more without -race for packages that have known race detection issues.
 test:
-	$(GO_ENV) go test $(CGO_FLAGS) -race ./...
-	$(GO_ENV) go test $(CGO_FLAGS) ./pkg/integrations/node_exporter ./pkg/logs ./pkg/operator ./pkg/util/k8s
+	$(GO_ENV) go test $(GO_FLAGS) -race ./...
+	$(GO_ENV) go test $(GO_FLAGS) ./pkg/integrations/node_exporter ./pkg/logs ./pkg/operator ./pkg/util/k8s
 
 test-packages:
 	docker pull $(BUILD_IMAGE)
