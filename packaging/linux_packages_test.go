@@ -64,10 +64,11 @@ func buildPackages(t *testing.T) {
 	cmd := exec.Command("make", fmt.Sprintf("dist-packages-%s", runtime.GOARCH))
 	cmd.Env = append(
 		os.Environ(),
-		"RELEASE_TAG=v0.0.0",
+		"VERSION=v0.0.0",
 		"DOCKER_OPTS=",
 	)
 	cmd.Dir = root
+	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	require.NoError(t, cmd.Run())
 }

@@ -12,6 +12,7 @@ data-agent
 /cmd/agentctl/agentctl
 /cmd/agent-operator/agent-operator
 /cmd/grafana-agent-crow/grafana-agent-crow
+/build/
 /dist/
 /packaging/windows/LICENSE
 /packaging/windows/agent-windows-amd64.exe

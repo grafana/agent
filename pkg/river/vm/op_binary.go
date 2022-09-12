@@ -25,12 +25,12 @@ func evalBinop(lhs value.Value, op token.Token, rhs value.Value) (value.Value, e
 	if !acceptableBinopType(lhs, op) {
 		return value.Null, value.Error{
 			Value: lhs,
-			Inner: fmt.Errorf("should be one of %s for binop %s, got %s", binopAllowedTypes[op], op, lhs.Type()),
+			Inner: fmt.Errorf("should be one of %v for binop %s, got %s", binopAllowedTypes[op], op, lhs.Type()),
 		}
 	} else if !acceptableBinopType(rhs, op) {
 		return value.Null, value.Error{
 			Value: rhs,
-			Inner: fmt.Errorf("should be one of %s for binop %s, got %s", binopAllowedTypes[op], op, rhs.Type()),
+			Inner: fmt.Errorf("should be one of %v for binop %s, got %s", binopAllowedTypes[op], op, rhs.Type()),
 		}
 	}
 

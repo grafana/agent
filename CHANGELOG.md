@@ -20,7 +20,25 @@ Main (unreleased)
 
 ### Features
 
+### Enhancements
+
+### Bugfixes
+
+### Other changes
+
+ - Switch docker image base from debian to ubuntu (@captncraig)
+
+ - Fix relabel configs in sample agent-operator manifests (@hjet)
+
+ - Operator no longer set the `SecurityContext.Privileged` flag in the `config-reloader` container. (@hsyed-dojo)
+
+v0.27.0 (2022-09-01)
+-------------------------
+
+### Features
+
 - Integrations: (beta) Add vmware_exporter integration (@rlankfo)
+
 - App agent receiver: add Event kind to payload (@domasx2)
 
 ### Enhancements
@@ -58,10 +76,6 @@ Main (unreleased)
  - Update several go dependencies to resolve warnings from certain security scanning tools. None of the resolved vulnerabilities were known to be exploitable through the agent. (@captncraig)
 
  - It is now possible to compile Grafana Agent using Go 1.19. (@rfratto)
-
- - Fix relabel configs in sample agent-operator manifests (@hjet)
-
- - Operator no longer set the `SecurityContext.Privileged` flag in the `config-reloader` container. (@hsyed-dojo)
 
 v0.26.1 (2022-07-25)
 -------------------------

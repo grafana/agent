@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/go-kit/log/level"
+	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/internal/graphviz"
@@ -46,6 +48,37 @@ func (f *Flow) ConfigHandler() http.HandlerFunc {
 		} else {
 			_, _ = io.Copy(w, &buf)
 		}
+	}
+}
+
+// ComponentHandler returns an http.HandlerFunc which will delegate all requests to
+// a component named by the first path segment
+func (f *Flow) ComponentHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		id := vars["id"]
+
+		// find node with ID
+		var node *controller.ComponentNode
+		for _, n := range f.loader.Components() {
+			if n.ID().String() == id {
+				node = n
+				break
+			}
+		}
+		if node == nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		// TODO: potentially cache these handlers, and invalidate on component state change.
+		handler := node.HTTPHandler()
+		if handler == nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		// remove /component/{id} from front of path, so each component can handle paths from their own root path
+		r.URL.Path = strings.TrimPrefix(r.URL.Path, "/component/"+id)
+		handler.ServeHTTP(w, r)
 	}
 }
 

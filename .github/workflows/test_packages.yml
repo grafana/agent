@@ -18,5 +18,11 @@ jobs:
       id: go
     - name: Checkout code
       uses: actions/checkout@v3
-    - name: Test
-      run: DOCKER_OPTS="" make test-packages
+    - name: Create build container cache
+      run: make build-container-cache
+    - name: Build agent-linux-amd64
+      run: USE_CONTAINER=1 DOCKER_OPTS="" make dist/agent-linux-amd64
+    - name: Build agentctl-linux-amd64
+      run: USE_CONTAINER=1 DOCKER_OPTS="" make dist/agentctl-linux-amd64
+    - name: Test packages
+      run: USE_CONTAINER=1 DOCKER_OPTS="" make test-packages
