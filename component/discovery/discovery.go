@@ -23,26 +23,26 @@ type Exports struct {
 // to import github.com/prometheus/prometheus/discover as well.
 type Discoverer discovery.Discoverer
 
-// DiscoveryCreator is a function provided by an implementation to create a concrete Discoverer instance.
-type DiscoveryCreator func(component.Arguments, component.Options) (Discoverer, error)
+// Creator is a function provided by an implementation to create a concrete Discoverer instance.
+type Creator func(component.Arguments, component.Options) (Discoverer, error)
 
-// Discovery component is a reusable component for any discovery implementation.
+// Component is a reusable component for any discovery implementation.
 // it will handle dynamic updates and exporting targets appropriately for a scrape implementation.
-type DiscoveryComponent struct {
+type Component struct {
 	opts component.Options
 
 	discMut       sync.Mutex
 	latestDisc    discovery.Discoverer
 	newDiscoverer chan struct{}
 
-	constructor DiscoveryCreator
+	creator Creator
 }
 
 // New creates a discovery component given arguments and a concrete Discovery implementation function.
-func New(o component.Options, args component.Arguments, constructor DiscoveryCreator) (*DiscoveryComponent, error) {
-	c := &DiscoveryComponent{
-		opts:        o,
-		constructor: constructor,
+func New(o component.Options, args component.Arguments, creator Creator) (*Component, error) {
+	c := &Component{
+		opts:    o,
+		creator: creator,
 		// buffered to avoid deadlock from the first immediate update
 		newDiscoverer: make(chan struct{}, 1),
 	}
@@ -50,7 +50,7 @@ func New(o component.Options, args component.Arguments, constructor DiscoveryCre
 }
 
 // Run implements component.Component.
-func (c *DiscoveryComponent) Run(ctx context.Context) error {
+func (c *Component) Run(ctx context.Context) error {
 	var cancel context.CancelFunc
 	for {
 		select {
@@ -77,8 +77,8 @@ func (c *DiscoveryComponent) Run(ctx context.Context) error {
 }
 
 // Update implements component.Compnoent.
-func (c *DiscoveryComponent) Update(args component.Arguments) error {
-	disc, err := c.constructor(args, c.opts)
+func (c *Component) Update(args component.Arguments) error {
+	disc, err := c.creator(args, c.opts)
 	if err != nil {
 		return err
 	}
@@ -101,7 +101,7 @@ const maxUpdateFrequency = 5 * time.Second
 
 // runDiscovery is a utility for consuming and forwarding target groups from a discoverer.
 // It will handle collating targets (and clearing), as well as time based throttling of updates.
-func (c *DiscoveryComponent) runDiscovery(ctx context.Context, d Discoverer) {
+func (c *Component) runDiscovery(ctx context.Context, d Discoverer) {
 	// all targets we have seen so far
 	cache := map[string]*targetgroup.Group{}
 
