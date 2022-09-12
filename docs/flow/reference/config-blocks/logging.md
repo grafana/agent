@@ -7,8 +7,9 @@ weight: 100
 
 # `logging` block
 
-`logging` is a configuration block used to customize how Grafana Agent produces
-log messages.
+`logging` is an optional configuration block used to customize how Grafana
+Agent produces log messages. `logging` is specified without a label and can
+only be provided once per configuration file.
 
 > **NOTE**: Configuration blocks are not components, so expressions which
 > reference the exports of components may not be used.
