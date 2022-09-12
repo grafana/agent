@@ -8,7 +8,8 @@ weight: 200
 # Configuration blocks
 
 Configuration blocks are optional top-level blocks which can be used to
-configure various parts of the Grafana Agent process.
+configure various parts of the Grafana Agent process. Each config block may
+only be defined once.
 
 Configuration blocks are _not_ components, so expressions which reference
 components are invalid. Expressions which do not reference components (e.g.,
