@@ -23,9 +23,11 @@ type Exports struct {
 // to import github.com/prometheus/prometheus/discover as well.
 type Discoverer discovery.Discoverer
 
-// DiscoveryCreator is a function provided by an implementation to create a static Discoverer instance
+// DiscoveryCreator is a function provided by an implementation to create a concrete Discoverer instance
 type DiscoveryCreator func(component.Arguments, component.Options) (Discoverer, error)
 
+// Discovery component is a reusable component for any discovery implementation.
+// it will handle dynamic updates and exporting targets appropriately for a scrape implementation.
 type DiscoveryComponent struct {
 	opts component.Options
 
@@ -36,6 +38,7 @@ type DiscoveryComponent struct {
 	constructor DiscoveryCreator
 }
 
+// New creates a discovery component given arguments and a concrete Discovery implementation function
 func New(o component.Options, args component.Arguments, constructor DiscoveryCreator) (*DiscoveryComponent, error) {
 	c := &DiscoveryComponent{
 		opts:        o,
