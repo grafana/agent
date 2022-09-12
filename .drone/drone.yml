@@ -82,10 +82,9 @@ trigger:
 
 steps:
   - name: lint
-    image: golangci/golangci-lint:v1.46
+    image: grafana/agent-build-image:0.15.1
     commands:
-      - apt-get update -y && apt-get install -y libsystemd-dev libbpfcc-dev
-      - make DOCKER_OPTS="" lint
+      - make lint
 
 ---
 kind: pipeline
@@ -106,26 +105,24 @@ trigger:
 
 steps:
   - name: test
-    image: rfratto/seego
+    image: grafana/agent-build-image:0.15.1
     volumes:
       - name: docker
         path: /var/run/docker.sock
     commands:
-      - apt-get update &&  apt-get install -y rubygems rpm nsis apt-transport-https ca-certificates curl gnupg lsb-release libbpfcc-dev
-      - gem install --no-document fpm
-      - rm -r /usr/local/go
-      - mkdir -p /usr/local/go/bin
-      - wget -q https://golang.org/dl/go1.18.linux-amd64.tar.gz
-      - tar -C /usr/local -xzf go1.18.linux-amd64.tar.gz
-      - rm go1.18.linux-amd64.tar.gz
-      - export PATH=$PATH:/usr/local/go/bin
-      - make DOCKER_OPTS="" cmd/agent/agent cmd/agentctl/agentctl cmd/agent-operator/agent-operator tools/crow/grafana-agent-crow tools/smoke/grafana-agent-smoke
-      - make DOCKER_OPTS="" K8S_USE_DOCKER_NETWORK=1 DRONE=true BUILD_IN_CONTAINER=false test
+      # Ensure the binaries can build and also run Go tests.
+      #
+      # The operator tests require K8S_USE_DOCKER_NETWORK=1 to be set when
+      # tests are being run inside of a Docker container so it can access the
+      # created k3d cluster properly.
+      - make binaries
+      - K8S_USE_DOCKER_NETWORK=1 make test
 
 volumes:
  - name: docker
    host:
      path: /var/run/docker.sock
+
 ---
 kind: pipeline
 type: docker
@@ -148,6 +145,7 @@ steps:
     image: grafana/agent-build-image:0.14.0-windows
     commands:
       - go test -tags="nodocker,nonetwork" ./...
+
 ---
 kind: pipeline
 type: docker
@@ -162,7 +160,7 @@ trigger:
     - refs/heads/dev.*
 steps:
   - name: Build Containers
-    image: docker
+    image: grafana/agent-build-image:0.15.1
     volumes:
       - name: docker
         path: /var/run/docker.sock
@@ -177,20 +175,14 @@ steps:
       - mkdir -p $HOME/.docker
       - printenv GCR_CREDS > $HOME/.docker/config.json
       - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-      - apk update && apk add make bash wget git qemu
-      - wget -q https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-amd64
-      - mkdir -p ~/.docker/cli-plugins
-      - cp buildx-v0.5.1.linux-amd64 ~/.docker/cli-plugins/docker-buildx
-      - chmod a+x ~/.docker/cli-plugins/docker-buildx
+
+      # Create a buildx worker container for multiplatform builds.
       - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
       - docker buildx create --name multiarch --driver docker-container --use
-      - export RELEASE_TAG=${DRONE_TAG}
-      - export IMAGE_BRANCH_TAG=${DRONE_BRANCH}
-      - make DOCKER_OPTS="" DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agent-image
-      - make DOCKER_OPTS="" DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agentctl-image
-      - make DOCKER_OPTS="" DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agent-operator-image
-      - make DOCKER_OPTS="" DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true grafana-agent-crow-image
-      - make DOCKER_OPTS="" DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agent-smoke-image
+
+      - ./tools/ci/docker-containers
+
+      # Remove the buildx worker container.
       - docker buildx rm multiarch
 
 depends_on:
@@ -200,6 +192,7 @@ volumes:
   - name: docker
     host:
       path: /var/run/docker.sock
+
 ---
 kind: pipeline
 type: docker
@@ -261,6 +254,7 @@ volumes:
   - name: docker
     host:
       path: /var/run/docker.sock
+
 ---
 kind: pipeline
 type: docker
@@ -274,7 +268,7 @@ trigger:
 
 steps:
   - name: create-release
-    image: rfratto/seego
+    image: grafana/agent-build-image:0.15.1
     volumes:
       - name: docker
         path: /var/run/docker.sock
@@ -292,22 +286,9 @@ steps:
       GPG_PASSPHRASE:
         from_secret: gpg_passphrase
     commands:
-      - apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
-      - curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
-      - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian bullseye stable"
-      - apt-get update &&  apt-get install -y rubygems rpm nsis docker-ce docker-ce-cli containerd.io gettext
       - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-      - gem install --no-document fpm
-      - rm -r /usr/local/go
-      - mkdir -p /usr/local/go/bin
-      - wget -q https://golang.org/dl/go1.18.linux-amd64.tar.gz
-      - tar -C /usr/local -xzf go1.18.linux-amd64.tar.gz
-      - rm go1.18.linux-amd64.tar.gz
-      - export PATH=$PATH:/usr/local/go/bin
-      - go install github.com/mitchellh/gox@latest
-      - go install github.com/tcnksm/ghr@latest
-      - export PATH="$(go env GOPATH)/bin:$PATH"
-      - make -j4 DOCKER_OPTS="" BUILD_IN_CONTAINER=false RELEASE_BUILD=true RELEASE_TAG=${DRONE_TAG} publish
+      - make -j4 RELEASE_BUILD=1 VERISON=${DRONE_TAG} dist
+      - RELEASE_DOC_TAG=$(echo $VERSION | awk -F '.' '{print $1"."$2}') ./tools/release
 depends_on:
   - Test
 
@@ -366,6 +347,6 @@ get:
 
 ---
 kind: signature
-hmac: 1ba848fa0abbbeeb5a9c222a68fdd53e06b9bbc889a4847b006821ff764bc3cd
+hmac: 30ef74d8b3810aec51486cb913df033ef6b51efa58f85e5cc33a00fa602a0ba7
 
 ...

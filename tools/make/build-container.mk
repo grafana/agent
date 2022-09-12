@@ -34,7 +34,8 @@
 # variable names should be passed through to the container.
 
 USE_CONTAINER ?= 0
-BUILD_IMAGE   ?= grafana/agent-build-image:0.15.0
+BUILD_IMAGE   ?= grafana/agent-build-image:0.15.1
+DOCKER_OPTS   ?= -it
 
 #
 # Build container cache. `make build-container-cache` will create two Docker
@@ -86,7 +87,7 @@ PARENT_MAKEFILE := $(firstword $(MAKEFILE_LIST))
 # Callers can use PROPAGATE_VARS to set which environment variables get passed
 # through to the container. USE_CONTAINER should never get propagated.
 define RERUN_IN_CONTAINER
-	docker run $(DOCKER_OPTS) --init --rm -it                  \
+	docker run $(DOCKER_OPTS) --init --rm $(DOCKER_OPTS)       \
 		-e "CC=viceroycc"                                        \
 		-v "$(shell pwd):/src"                                   \
 		-w "/src"                                                \

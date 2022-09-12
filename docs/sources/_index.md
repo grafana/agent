@@ -112,7 +112,7 @@ The Grafana Agent is also capable of exporting to any OpenTelemetry GRPC compati
 
 ## Release schedule
 
-Starting with the v0.28 release on 2022-09-20, a new minor release is planned
+Starting with the v0.28 release on 2022-09-27, a new minor release is planned
 to be created every 6 weeks. This includes a release for Grafana Agent, Grafana
 Agent Operator, and the `agentctl` binary.
 
