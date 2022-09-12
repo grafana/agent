@@ -71,9 +71,9 @@ and the [k3d example README](./example/k3d/README.md) for more information.
 
 ## Release schedule
 
-Starting with the v0.28 release on 2022-09-27, a new minor release is planned
-to be created every 6 weeks. This includes a release for Grafana Agent, Grafana
-Agent Operator, and the `agentctl` binary.
+Starting with the v0.28 release, a new minor release is planned to be created
+every 6 weeks. This includes a release for Grafana Agent, Grafana Agent
+Operator, and the `agentctl` binary.
 
 The release schedule is best-effort, and releases may be moved forward or
 backwards if needed. The planned release dates for future minor releases are
