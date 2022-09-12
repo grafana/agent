@@ -16,8 +16,8 @@ component is running.
 > the component. Component-specific metrics are used to expose the state of a
 > component for observability, alerting, and debugging.
 
-Metrics for component-specific metrics are exposed at the `/metrics` HTTP
-endpoint of the Grafana Agent HTTP server, which defaults to listening on
+Component-specific metrics are exposed at the `/metrics` HTTP endpoint of the
+Grafana Agent HTTP server, which defaults to listening on
 `http://localhost:12345`.
 
 > The documentation for the [`agent run`][agent run] command describes how to
