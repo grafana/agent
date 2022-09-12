@@ -2,8 +2,10 @@ package discovery
 
 import (
 	"context"
+	"sync"
 	"time"
 
+	"github.com/grafana/agent/component"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 )
@@ -12,19 +14,91 @@ import (
 // component.
 type Target map[string]string
 
-// maxUpdateFrequency is the minimum time to wait between updating targets.
-// Currently not settable, since prometheus uses a static threshold, but
-// we could reconsider later.
-const maxUpdateFrequency = 5 * time.Second
+// Exports holds values which are exported by all discovery components.
+type Exports struct {
+	Targets []Target `river:"targets,attr"`
+}
 
 // Discoverer is an alias for Prometheus' Discoverer interface, so users of this package don't need
 // to import github.com/prometheus/prometheus/discover as well.
 type Discoverer discovery.Discoverer
 
-// RunDiscovery is a utility for consuming and forwarding target groups from a discoverer.
+// DiscoveryCreator is a function provided by an implementation to create a static Discoverer instance
+type DiscoveryCreator func(component.Arguments, component.Options) (Discoverer, error)
+
+type DiscoveryComponent struct {
+	opts component.Options
+
+	discMut       sync.Mutex
+	latestDisc    discovery.Discoverer
+	newDiscoverer chan struct{}
+
+	constructor DiscoveryCreator
+}
+
+func New(o component.Options, args component.Arguments, constructor DiscoveryCreator) (*DiscoveryComponent, error) {
+	c := &DiscoveryComponent{
+		opts:        o,
+		constructor: constructor,
+		// buffered to avoid deadlock from the first immediate update
+		newDiscoverer: make(chan struct{}, 1),
+	}
+	return c, c.Update(args)
+}
+
+// Run implements component.Component.
+func (c *DiscoveryComponent) Run(ctx context.Context) error {
+	var cancel context.CancelFunc
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-c.newDiscoverer:
+			// cancel any previously running discovery
+			if cancel != nil {
+				cancel()
+			}
+			// create new context so we can cancel it if we get any future updates
+			// since it is derived from the main run context, it only needs to be
+			// canceled directly if we receive new updates
+			newCtx, cancelFunc := context.WithCancel(ctx)
+			cancel = cancelFunc
+
+			// finally run discovery
+			c.discMut.Lock()
+			disc := c.latestDisc
+			c.discMut.Unlock()
+			go c.runDiscovery(newCtx, disc)
+		}
+	}
+}
+
+// Update implements component.Compnoent.
+func (c *DiscoveryComponent) Update(args component.Arguments) error {
+	disc, err := c.constructor(args, c.opts)
+	if err != nil {
+		return err
+	}
+	c.discMut.Lock()
+	c.latestDisc = disc
+	c.discMut.Unlock()
+
+	select {
+	case c.newDiscoverer <- struct{}{}:
+	default:
+	}
+
+	return nil
+}
+
+// maxUpdateFrequency is the minimum time to wait between updating targets.
+// Currently not settable, since prometheus uses a static threshold, but
+// we could reconsider later.
+const maxUpdateFrequency = 5 * time.Second
+
+// runDiscovery is a utility for consuming and forwarding target groups from a discoverer.
 // It will handle collating targets (and clearing), as well as time based throttling of updates.
-// f should be a function that updates the component's exports, most likely calling `opts.OnStateChange()`.
-func RunDiscovery(ctx context.Context, d Discoverer, f func([]Target)) {
+func (c *DiscoveryComponent) runDiscovery(ctx context.Context, d Discoverer) {
 	// all targets we have seen so far
 	cache := map[string]*targetgroup.Group{}
 
@@ -48,7 +122,7 @@ func RunDiscovery(ctx context.Context, d Discoverer, f func([]Target)) {
 				allTargets = append(allTargets, labels)
 			}
 		}
-		f(allTargets)
+		c.opts.OnStateChange(Exports{Targets: allTargets})
 	}
 
 	ticker := time.NewTicker(maxUpdateFrequency)
