@@ -18,7 +18,7 @@ only be provided once per configuration file.
 
 ```river
 logging {
-  level  = "error"
+  level  = "info"
   format = "logfmt"
 }
 ```
