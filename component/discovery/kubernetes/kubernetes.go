@@ -19,7 +19,7 @@ func init() {
 	})
 }
 
-var newK8s discovery.DiscoveryCreator = func(args component.Arguments, opts component.Options) (discovery.Discoverer, error) {
+var newK8s discovery.Creator = func(args component.Arguments, opts component.Options) (discovery.Discoverer, error) {
 	newArgs := args.(SDConfig)
 	return promk8s.New(opts.Logger, newArgs.Convert())
 }
