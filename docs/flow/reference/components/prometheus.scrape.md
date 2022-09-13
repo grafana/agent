@@ -59,9 +59,9 @@ successful scrape, as well as the labels last used for scraping.
 ## Example
 
 The following example will set up the job with certain attributes (scrape
-intervals, query parameters) and let it scrape two instances of the blackbox
-exporter. The received metrics will be sent over to the provided list of
-receivers, as defined by other components.
+endpoint, scrape interval, query parameters) and let it scrape two instances of
+the blackbox exporter. The exposed metrics will be sent over to the provided
+list of receivers, as defined by other components.
 
 ```river
 prometheus.scrape "blackbox_scraper" {
@@ -69,12 +69,19 @@ prometheus.scrape "blackbox_scraper" {
 		{"__address__" = "blackbox-exporter:9115", "instance" = "one"},
 		{"__address__" = "blackbox-exporter:9116", "instance" = "two"},
 	]
+
 	forward_to = [prometheus.remote_write.grafanacloud.receiver, prometheus.remote_write.onprem.receiver]
 	
 	scrape_interval = "10s"
 	params          = { "target" = ["grafana.com"], "module" = ["http_2xx"] }
 	metrics_path    = "/probe"
 }
+```
+
+The endpoints that will be scraped every 10 seconds here are:
+```
+http://blackbox-exporter:9115/probe?target=grafana.com&module=http_2xx
+http://blackbox-exporter:9116/probe?target=grafana.com&module=http_2xx
 ```
 
 ## Arguments
