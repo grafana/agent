@@ -26,28 +26,25 @@ standardize the label set that will be passed to one or more downstream
 receivers. The `metric_relabel_config` blocks will be applied to the label set
 of each metric in order of their appearance in the configuration file.
 
-Labels beginning with a double underscore are reserved for internal used and
-will be silently discarded after all relabeling steps have been applied.
-
 Multiple `prometheus.relabel` components can be specified by giving them
 different labels.
 
 ## Example
 
 ```river
-prometheus.relabel "keep_mysql_only" {
+prometheus.relabel "keep_backend_only" {
   forward_to [prometheus.remote_write.onprem.receiver]
 
   metric_relabel_config {
+    action        = "replace"
     source_labels = ["__address__", "instance"]
     separator     = "/"
     target_label  = "host"
-    action        = "replace"
   }
 
   metric_relabel_config {
-    source_labels = ["app"]
     action        = "keep"
+    source_labels = ["app"]
     regex         = "backend"
   }
 
@@ -71,7 +68,7 @@ metric_a{__address__ = "cluster_b", instance = "production",  app = "database"}	
 
 After applying the first `metric_relabel_config` block, the `replace` action
 would populate a new label named `host` by the concatenating the two
-`__address__` and `instance` labels separated by a slash `/`.
+`__address__` and `instance` label contents, separated by a slash `/`.
 
 ```
 metric_a{host = "localhost/development", __address__ = "localhost", instance = "development", app = "frontend"} 10
@@ -93,15 +90,15 @@ metric_a{host = "cluster_a/production",  __address__ = "cluster_a", instance = "
 The third and final relabeling step which uses the `labeldrop` action would
 remove the `instance` label from the set of labels.
 
-So, after filtering down the samples passed through the exported receiver,
-the two resulting metrics would then be propagated to each receiver passed in
-the `forward_to` argument.
-
+So, in this case, the initial set of metrics passed to the exported receiver
+were filtered down to just
 ```
 metric_a{host = "localhost/development", __address__ = "localhost", app = "backend"}	2
 metric_a{host = "cluster_a/production",  __address__ = "cluster_a", app = "backend"}	9
 ```
 
+The two resulting metrics will then be propagated to each receiver defined
+in the `forward_to` argument.
 
 ## Arguments
 
@@ -109,7 +106,7 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`forward_to` | `list(receiver)` | Where the metrics should be forwarded to after relabeling takes place | | **yes**
+`forward_to` | `list(receiver)` | Where the metrics should be forwarded to, after relabeling takes place | | **yes**
 
 The following subblocks are supported:
 
@@ -158,7 +155,7 @@ The following fields are exported and can be referenced by other components:
 
 Name | Type | Description
 ---- | ---- | -----------
-`receiver` | `receiver` | The receiver where samples should be sent to, in order to be relabeled.
+`receiver` | `receiver` | The input receiver where samples should be sent to, for them to be relabeled.
 
 ## Component health
 
