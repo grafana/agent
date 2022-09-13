@@ -23,7 +23,6 @@ River uses the following types for its values:
   or more arguments as input and always return a single value as output.
 * `null`: A type that has no value.
 
-
 ## Numbers
 River handles integers, unsigned integers and floating-point values as a single
 'number' type which simplifies writing and reading River configuration files.
