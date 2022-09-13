@@ -7,10 +7,11 @@ weight: 300
 
 # Debugging
 
-There are two primary ways to debug issues with Grafana Agent Flow:
+Follow these steps to debug issues with Grafana Agent Flow:
 
-1. Through the Grafana Agent Flow UI
-2. Through examining logs
+1. Use the Grafana Agent Flow UI to debug issues.
+2. If the UI doesn't help with debugging an issue, logs can be examined
+   instead.
 
 ## Grafana Agent Flow UI
 
@@ -23,8 +24,8 @@ server, which defaults to listening at `http://localhost:12345`.
 This UI provides two views:
 
 * The home page shows a table of running components along with their health.
-  Clicking the "View" button navigates to the detail page for that component.
-* The "Graph" page shows a graph view of all running components along with
+  Clicking **View** navigates to the detail page for that component.
+* The **Graph** page shows a graph view of all running components along with
   their health. Clicking a component in the graph navigates to the detail page
   for that component.
 
@@ -46,7 +47,6 @@ To debug using the UI:
 
 [agent run]: {{< relref "../reference/cli/run.md" >}}
 [secret]: {{< relref "../config-language/expressions/types_and_values.md#secrets" >}}
-
 
 ## Examining logs
 
