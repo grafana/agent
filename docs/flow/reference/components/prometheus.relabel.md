@@ -91,23 +91,17 @@ metric_a{host = "cluster_a/production",  __address__ = "cluster_a", instance = "
 ```
 
 The third and final relabeling step which uses the `labeldrop` action would
-remove the `instance` label from the set of labels
+remove the `instance` label from the set of labels.
+
+So, after filtering down the samples passed through the exported receiver,
+the two resulting metrics would then be propagated to each receiver passed in
+the `forward_to` argument.
 
 ```
 metric_a{host = "localhost/development", __address__ = "localhost", app = "backend"}	2
 metric_a{host = "cluster_a/production",  __address__ = "cluster_a", app = "backend"}	9
 ```
 
-Finally, the `__address__` label, as it starts with a double underscore and is
-reserved as an 'internal' label and would be implicitly removed.
-
-After filtering down the samples passed through the exported receiver, these
-two final metrics would then be propagated to each receiver passed in the
-`forward_to` argument.
-```
-metric_a{host = "localhost/development", app = "backend"}	2
-metric_a{host = "cluster_a/production",  app = "backend"}	9
-```
 
 ## Arguments
 
@@ -115,7 +109,7 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-forward_to | list(receiver) | Where the metrics should be forwarded to after relabeling takes place | | **yes**
+`forward_to` | `list(receiver)` | Where the metrics should be forwarded to after relabeling takes place | | **yes**
 
 The following subblocks are supported:
 
@@ -138,25 +132,26 @@ values.
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-source_labels | list(string) | The list of labels whose values should be selected. Their content is concatenated using the `separator` and matched against `regex`. | | no
-separator     | string       |  The separator used to concatenate the values present in `source_labels`. | ; | no
-regex         | string       | A valid RE2 expression with support for parenthesized capture groups. Used to match the extracted value from the combination of the `source_label` and `separator` fields or filter labels during the labelkeep/labeldrop/labelmap actions. | `(.*)` | no
-modulus       | uint         | A positive integer used to calculate the modulus of the hashed source label values. | | no
-target_label  | string       | Label to which the resulting value will be written to. | | no
-replacement   | string       | The value against which a regex replace is performed, if the regex matched the extracted value. Supports previously captured groups. | $1 | no
-action        | string       | The relabeling action to perform. | replace | no
+`source_labels` | `list(string)` | The list of labels whose values should be selected. Their content is concatenated using the `separator` and matched against `regex`. | | no
+`separator`     | `string`       |  The separator used to concatenate the values present in `source_labels`. | ; | no
+`regex`         | `string`       | A valid RE2 expression with support for parenthesized capture groups. Used to match the extracted value from the combination of the `source_label` and `separator` fields or filter labels during the labelkeep/labeldrop/labelmap actions. | `(.*)` | no
+`modulus`       | `uint`         | A positive integer used to calculate the modulus of the hashed source label values. | | no
+`target_label`  | `string`       | Label to which the resulting value will be written to. | | no
+`replacement`   | `string`       | The value against which a regex replace is performed, if the regex matched the extracted value. Supports previously captured groups. | $1 | no
+`action`        | `string`       | The relabeling action to perform. | replace | no
 
 Here's a list of the available actions along with a brief description of their usage.
 
-* replace - This action matches `regex` to the concatenated labels. If there's a match, it replaces the content of the `target_label` using the contents of the `replacement` field.
-* keep    - This action only keeps the metrics where `regex` matches the string extracted using the `source_labels` and `separator`.
-* drop    - This action drops the metrics where `regex` matches the string extracted using the `source_labels` and `separator`.
-* hashmod - This action hashes the concatenated labels, calculates its modulo `modulus` and writes the result to the `target_label`.
-* labelmap  - This action matches `regex` against all label names. Any labels that match will be renamed according to the contents of the `replacement` field.
-* labeldrop - This action matches `regex` against all label names. Any labels that match will be removed from the metric's label set.
-* labelkeep - This action matches `regex` against all label names. Any labels that don't match will be removed from the metric's label set.
+* `replace`   - This action matches `regex` to the concatenated labels. If there's a match, it replaces the content of the `target_label` using the contents of the `replacement` field.
+* `keep`      - This action only keeps the metrics where `regex` matches the string extracted using the `source_labels` and `separator`.
+* `drop`      - This action drops the metrics where `regex` matches the string extracted using the `source_labels` and `separator`.
+* `hashmod`   - This action hashes the concatenated labels, calculates its modulo `modulus` and writes the result to the `target_label`.
+* `labelmap`  - This action matches `regex` against all label names. Any labels that match will be renamed according to the contents of the `replacement` field.
+* `labeldrop` - This action matches `regex` against all label names. Any labels that match will be removed from the metric's label set.
+* `labelkeep` - This action matches `regex` against all label names. Any labels that don't match will be removed from the metric's label set.
 
-Finally, note that the regex capture groups can be referred to using either the `$1` or `$${1}` notation.
+Finally, note that the regex capture groups can be referred to using either the
+`$1` or `$${1}` notation.
 
 ## Exported fields
 
@@ -164,7 +159,7 @@ The following fields are exported and can be referenced by other components:
 
 Name | Type | Description
 ---- | ---- | -----------
-receiver | receiver | The receiver where samples should be sent to, in order to be relabeled.
+`receiver` | receiver | The receiver where samples should be sent to, in order to be relabeled.
 
 ## Component health
 
