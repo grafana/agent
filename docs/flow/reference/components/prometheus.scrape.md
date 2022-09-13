@@ -19,7 +19,7 @@ Prometheus, and by extend this component, uses a pull model for scraping
 metrics from a given set of _targets_.
 Each scrape target is defined as a set of _labels_ i.e. key-value pairs. The
 set of targets can either be _static_, or dynamically provided periodically by
-a service disovery component such `as discovery.kubernetes`. The special
+a service disovery component such as `discovery.kubernetes`. The special
 internal label `__address__` _must always_ be present and corresponds to the
 `<host>:<port>` that will be used for the scrape request.
 
