@@ -54,11 +54,15 @@ The following log line formats are recognized:
 
 Grafana Agent writes all logs to `stderr`.
 
-When running Grafana Agent as a systemd service, logs will also be sent to
-`journald`.
+When running Grafana Agent as a systemd service, logs written to `stderr` can
+be viewed through `journald`.
 
-When running Grafana Agent as a Windows service, logs are also written as event
-logs and can be viewed through the Event Viewer.
+When running Grafana Agent as a container, logs written to `stderr` can be
+viewed through `docker logs` or `kubectl logs`, depending on if Docker or
+Kubernetes was used for deploying the agent.
+
+When running Grafana Agent as a Windows service, logs are instead written as
+event logs and can be viewed through Event Viewer.
 
 In other cases, users must redirect `stderr` of the Grafana Agent process to a
 file for logs to persist on disk.
