@@ -123,12 +123,12 @@ func isMapOrStruct(val value.Value) bool {
 	return val.Type() == value.TypeObject
 }
 
-// RiverValue is an interface that wraps the various concrete options for a river value.
-type RiverValue interface {
+// RiverField is an interface that wraps the various concrete options for a river value.
+type RiverField interface {
 	hasValue() bool
 }
 
-func convertRiverValue(val value.Value) (RiverValue, error) {
+func convertRiverValue(val value.Value) (RiverField, error) {
 	if isFieldValue(val) {
 		return convertValue(val)
 	} else if isArray(val) {

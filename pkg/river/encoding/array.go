@@ -9,7 +9,7 @@ import (
 // ArrayField represents an array node.
 type ArrayField struct {
 	Type  string       `json:"type"`
-	Value []RiverValue `json:"value,omitempty"`
+	Value []RiverField `json:"value,omitempty"`
 }
 
 func newArray(val value.Value) (*ArrayField, error) {

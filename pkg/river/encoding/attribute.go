@@ -12,7 +12,7 @@ import (
 // AttributeField represents a json representation of a river attribute.
 type AttributeField struct {
 	Field `json:",omitempty"`
-	field RiverValue
+	field RiverField
 }
 
 func newAttribute(val value.Value, f rivertags.Field) (*AttributeField, error) {
