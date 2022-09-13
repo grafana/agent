@@ -23,7 +23,6 @@ River uses the following types for its values:
   or more arguments as input and always return a single value as output.
 * `null`: A type that has no value.
 
-
 ## Numbers
 River handles integers, unsigned integers and floating-point values as a single
 'number' type which simplifies writing and reading River configuration files.
@@ -112,9 +111,6 @@ A `secret` is a special type of string which is never displayed to the user.
 `string` values may be assigned to an attribute expecting a `secret`, but never
 the inverse; it is not possible to convert a secret to a string or assign a
 secret to an attribute expecting a string.
-
-Secrets cannot be constructed by users, but are returned by components which
-deal with sensitive values.
 
 #### Capsules
 
