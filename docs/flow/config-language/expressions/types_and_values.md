@@ -113,9 +113,6 @@ A `secret` is a special type of string which is never displayed to the user.
 the inverse; it is not possible to convert a secret to a string or assign a
 secret to an attribute expecting a string.
 
-Secrets cannot be constructed by users, but are returned by components which
-deal with sensitive values.
-
 #### Capsules
 
 River has a special type called a `capsule`, which represents a category of
