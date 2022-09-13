@@ -6,12 +6,55 @@ title: prometheus.scrape
 
 # prometheus.scrape
 
-`prometheus.scrape` configures a metrics scraping job for a given set of
+`prometheus.scrape` configures a Prometheus scraping job for a given set of
 `targets`. The scraped metrics are forwarded to the list of receivers passed in
 `forward_to`.
 
 Multiple `prometheus.scrape` components can be specified by giving them
 different labels.
+
+## Scraping behavior
+The `prometheus.scrape` component borrows the scraping behavior of Prometheus.
+Prometheus, and by extend this component, uses a pull model for scraping
+metrics from a given set of _targets_.
+Each scrape target is defined as a set of _labels_ i.e. key-value pairs. The
+set of targets can either be _static_, or dynamically provided periodically by
+a service disovery component such `as discovery.kubernetes`. The special
+internal label `__address__` _must always_ be present and corresponds to the
+`<host>:<port>` that will be used for the scrape request.
+
+By default, the scrape job will try to scrape all available targets' `/metrics`
+endpoint using HTTP, with a scrape interval of 1 minute and scrape timeout of
+10 seconds. The metrics path, protocol scheme, scrape interval and timeout,
+query parameters, as well as any other settings can be configured using the
+component's arguments.
+
+The scrape job expects the metrics exposed by the endpoint to follow the
+[OpenMetrics](https://openmetrics.io/) format. All metrics will then be
+propagated to each receiver listed in the component's `forward_to`
+argument.
+
+Labels that start with a double underscore `__` are treated by Prometheus as
+_internal_, and will be removed prior to scraping. The first use of these
+internal labels is to describe or override the scrape job's parameters. These
+are: `__scheme__`, `__metrics_path__`, `__scrape_interval__`,
+`__scrape_timeout__` as well as `__param_<name>` for query parameters.
+The other use case for these internal labels is to expose information from the
+service discovery mechanism, grouped under `__meta_*`. For example, using the
+`discovery.kubernetes` component will populate the family of
+`__meta_kubernetes_*` labels to provide details about the discovered
+Kubernetes resources.
+
+The target's labels (and most often the service discovery ones), can be used
+together with the `discovery.relabel` component to filter targets and rewrite 
+their label set before they are scraped.
+
+The `prometheus.scrape` components regards a scrape as successful if it
+responded with a 200 status code and returned a body of valid metrics.
+
+If the scrape request fails, the component's debug endpoint and debug UI
+section will contain more detailed information about the failure, the last
+successful scrape, as well as the labels last used for scraping.
 
 ## Example
 
