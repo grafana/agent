@@ -115,8 +115,7 @@ The following subblocks are supported:
 
 Name | Description | Required
 ---- | ----------- | --------
-[`metric_relabel_config`](#metric_relabel_config-block) | Relabeling steps to
-apply to received metrics | no
+[`metric_relabel_config`](#metric_relabel_config-block) | Relabeling steps to apply to received metrics | no
 
 ### `metric_relabel_config` block
 
@@ -134,7 +133,7 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `source_labels` | `list(string)` | The list of labels whose values should be selected. Their content is concatenated using the `separator` and matched against `regex`. | | no
 `separator`     | `string`       |  The separator used to concatenate the values present in `source_labels`. | ; | no
-`regex`         | `string`       | A valid RE2 expression with support for parenthesized capture groups. Used to match the extracted value from the combination of the `source_label` and `separator` fields or filter labels during the labelkeep/labeldrop/labelmap actions. | `(.*)` | no
+`regex`         | `string`       | A valid RE2 expression with support for parenthesized capture groups. Used to match the extracted value from the combination of the `source_label` and `separator` fields or filter labels during the `labelkeep/labeldrop/labelmap` actions. | `(.*)` | no
 `modulus`       | `uint`         | A positive integer used to calculate the modulus of the hashed source label values. | | no
 `target_label`  | `string`       | Label to which the resulting value will be written to. | | no
 `replacement`   | `string`       | The value against which a regex replace is performed, if the regex matched the extracted value. Supports previously captured groups. | $1 | no
@@ -159,7 +158,7 @@ The following fields are exported and can be referenced by other components:
 
 Name | Type | Description
 ---- | ---- | -----------
-`receiver` | receiver | The receiver where samples should be sent to, in order to be relabeled.
+`receiver` | `receiver` | The receiver where samples should be sent to, in order to be relabeled.
 
 ## Component health
 
