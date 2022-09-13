@@ -7,6 +7,14 @@
 # from a Drone trigger.
 set -euxo pipefail
 
+# Environment variables used throughout this script. These must be set
+# otherwise bash will fail with an "unbound variable" error. This is because
+# we run `set -u` on the above line.
+#
+# The variables will default to the empty string when unset.
+export DRONE_TAG=${DRONE_TAG:-}
+export DRONE_BRANCH=${DRONE_BRANCH:-}
+
 export AGENT_IMAGE=grafana/agent
 export AGENTCTL_IMAGE=grafana/agentctl
 export OPERATOR_IMAGE=grafana/agent-operator
