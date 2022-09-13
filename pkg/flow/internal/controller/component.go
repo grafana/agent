@@ -70,7 +70,7 @@ type ComponentGlobals struct {
 type ComponentNode struct {
 	id              ComponentID
 	label           string
-	nodeType        string
+	componentName   string
 	nodeID          string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
 	reg             component.Registration
 	managedOpts     component.Options
@@ -126,7 +126,7 @@ func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode
 		id:              id,
 		label:           b.Label,
 		nodeID:          nodeID,
-		nodeType:        strings.Join(b.Name, "."),
+		componentName:   strings.Join(b.Name, "."),
 		reg:             reg,
 		exportsType:     getExportsType(reg),
 		onExportsChange: globals.OnExportsChange,
@@ -173,8 +173,8 @@ func (cn *ComponentNode) ID() ComponentID { return cn.id }
 // Label returns the label for the block or "" if none was specified.
 func (cn *ComponentNode) Label() string { return cn.label }
 
-// NodeType returns the component's type, i.e. `local.file.test` returns `local.file`.
-func (cn *ComponentNode) NodeType() string { return cn.nodeType }
+// ComponentName returns the component's type, i.e. `local.file.test` returns `local.file`.
+func (cn *ComponentNode) ComponentName() string { return cn.componentName }
 
 // NodeID implements dag.Node and returns the unique ID for this node. The
 // NodeID is the string representation of the component's ID from its River

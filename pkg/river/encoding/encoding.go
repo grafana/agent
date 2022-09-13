@@ -123,17 +123,18 @@ func isMapOrStruct(val value.Value) bool {
 	return val.Type() == value.TypeObject
 }
 
-func convertRiverValue(val value.Value) (vf *ValueField, af *ArrayField, mf *MapField, err error) {
+// RiverValue is an interface that wraps the various concrete options for a river value.
+type RiverValue interface {
+	hasValue() bool
+}
+
+func convertRiverValue(val value.Value) (RiverValue, error) {
 	if isFieldValue(val) {
-		vf, err = convertValue(val)
-		return
+		return convertValue(val)
 	} else if isArray(val) {
-		af, err = newArray(val)
-		return
+		return newArray(val)
 	} else if isMapOrStruct(val) {
-		mf, err = newMap(val)
-		return
+		return newMap(val)
 	}
-	err = fmt.Errorf("unknown value %T", val.Interface())
-	return
+	return nil, fmt.Errorf("unknown value %T", val.Interface())
 }

@@ -220,7 +220,7 @@ func (c *Flow) ComponentInfos() []*ComponentInfo {
 
 	cns := c.loader.Components()
 	infos := make([]*ComponentInfo, len(cns))
-	edges := c.loader.Graph().NonTransitiveEdges()
+	edges := c.loader.OriginalGraph().Edges()
 	for i, com := range cns {
 		nn := newFromNode(com, edges)
 		infos[i] = nn
@@ -250,7 +250,7 @@ func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *ComponentInfo 
 		Label: cn.Label(),
 		ID:    cn.NodeID(),
 		Field: encoding.Field{
-			Name: cn.NodeType(),
+			Name: cn.ComponentName(),
 			Type: "block",
 		},
 		References:   references,

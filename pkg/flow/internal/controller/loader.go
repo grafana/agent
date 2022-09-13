@@ -25,12 +25,13 @@ type Loader struct {
 	log     log.Logger
 	globals ComponentGlobals
 
-	mut        sync.RWMutex
-	graph      *dag.Graph
-	components []*ComponentNode
-	cache      *valueCache
-	blocks     []*ast.BlockStmt // Most recently loaded blocks, used for writing
-	cm         *controllerMetrics
+	mut           sync.RWMutex
+	graph         *dag.Graph
+	originalGraph *dag.Graph
+	components    []*ComponentNode
+	cache         *valueCache
+	blocks        []*ast.BlockStmt // Most recently loaded blocks, used for writing
+	cm            *controllerMetrics
 }
 
 // NewLoader creates a new Loader. Components built by the Loader will be built
@@ -87,7 +88,8 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt) diag.Diag
 		diags = append(diags, multierrToDiags(err)...)
 		return diags
 	}
-
+	// Copy the original graph
+	l.originalGraph = newGraph.Clone()
 	// Perform a transitive reduction of the graph to clean it up.
 	dag.Reduce(&newGraph)
 
@@ -206,6 +208,13 @@ func (l *Loader) Graph() *dag.Graph {
 	l.mut.RLock()
 	defer l.mut.RUnlock()
 	return l.graph.Clone()
+}
+
+// OriginalGraph returns a copy of the graph before Reduce was called.
+func (l *Loader) OriginalGraph() *dag.Graph {
+	l.mut.RLock()
+	defer l.mut.RUnlock()
+	return l.originalGraph.Clone()
 }
 
 // WriteBlocks returns a set of evaluated token/builder blocks for each loaded

@@ -35,16 +35,12 @@ func (mf *MapField) convertMap(val value.Value) error {
 		if !found {
 			return fmt.Errorf("unable to find key %s for value type %d", key, val.Type())
 		}
-		vf, arrF, mapF, err := convertRiverValue(mapVal)
+		rv, err := convertRiverValue(mapVal)
 		if err != nil {
 			return err
 		}
-		if vf.hasValue() {
-			kf.Value = vf
-		} else if arrF.hasValue() {
-			kf.Value = arrF
-		} else if mapF.hasValue() {
-			kf.Value = mapF
+		if rv.hasValue() {
+			kf.Value = rv
 		} else {
 			return fmt.Errorf("unable to find value for %T in map", val.Interface())
 		}
