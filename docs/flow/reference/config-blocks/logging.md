@@ -11,8 +11,8 @@ weight: 100
 Agent produces log messages. `logging` is specified without a label and can
 only be provided once per configuration file.
 
-> **NOTE**: Configuration blocks are not components, so expressions which
-> reference the exports of components may not be used.
+> **NOTE**: Configuration blocks are not components, so expressions that
+> reference the exports of components cannot be used.
 
 ## Example
 
@@ -34,19 +34,19 @@ Name | Type | Description | Default | Required
 
 ### Log level
 
-The following log levels are recognized:
+The following strings are recognized as valid log levels:
 
-* `error`: Only write logs at the "error" level.
-* `warn`: Only write logs at the "warn" level or above.
-* `info`: Only write logs at "info" level or above.
-* `debug`: Write all logs, including "debug" level logs.
+* `"error"`: Only write logs at the _error_ level.
+* `"warn"`: Only write logs at the _warn_ level or above.
+* `"info"`: Only write logs at _info_ level or above.
+* `"debug"`: Write all logs, including _debug_ level logs.
 
 ### Log format
 
-The following log line formats are recognized:
+The following strings are recognized as valid log line formats:
 
-* `logfmt`: Write logs as [logfmt][] lines.
-* `json`: Write logs as JSON objects.
+* `"logfmt"`: Write logs as [logfmt][] lines.
+* `"json"`: Write logs as JSON objects.
 
 [logfmt]: https://brandur.org/logfmt
 
@@ -54,15 +54,15 @@ The following log line formats are recognized:
 
 Grafana Agent writes all logs to `stderr`.
 
-When running Grafana Agent as a systemd service, logs written to `stderr` can
-be viewed through `journald`.
+When running Grafana Agent as a systemd service, view logs written to `stderr`
+through `journald`.
 
-When running Grafana Agent as a container, logs written to `stderr` can be
-viewed through `docker logs` or `kubectl logs`, depending on if Docker or
+When running Grafana Agent as a container, view logs written to `stderr`
+through `docker logs` or `kubectl logs`, depending on whether Docker or
 Kubernetes was used for deploying the agent.
 
 When running Grafana Agent as a Windows service, logs are instead written as
-event logs and can be viewed through Event Viewer.
+event logs; view logs through Event Viewer.
 
-In other cases, users must redirect `stderr` of the Grafana Agent process to a
-file for logs to persist on disk.
+In other cases, redirect `stderr` of the Grafana Agent process to a file for
+logs to persist on disk.
