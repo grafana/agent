@@ -5,6 +5,7 @@
 #
 # This script expects to be run from the repo root and has checks for running
 # from a Drone trigger.
+set -euxo pipefail
 
 export AGENT_IMAGE=grafana/agent
 export AGENTCTL_IMAGE=grafana/agentctl
