@@ -35,13 +35,18 @@ The component detail page shows the following information for each component:
 * The current exports for the component.
 * The current debug info for the component (if the component has debug info).
 
+> Values marked as a [secret][] are obfuscated and will display as the text
+> `(secret)`.
+
 To debug using the UI:
 
 * Ensure that no component is reported as unhealthy.
 * Ensure that the arguments and exports for misbehaving components appear
   correct.
 
-[agent run]: {{< relref "../reference/cli/run.md" }}
+[agent run]: {{< relref "../reference/cli/run.md" >}}
+[secret]: {{< relref "../config-language/expressions/types_and_values.md#secrets" >}}
+
 
 ## Examining logs
 

@@ -31,4 +31,4 @@ The controller exposes the following metrics:
   took.
 
 [controller]: {{< relref "../concepts/component_controller.md" >}}
-[agent run]: {{< relref "../reference/cli/run.md" }}
+[agent run]: {{< relref "../reference/cli/run.md" >}}

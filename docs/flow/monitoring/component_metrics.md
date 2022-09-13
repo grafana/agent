@@ -33,5 +33,5 @@ component-specific metrics that component exposes. Not all components will
 expose metrics.
 
 [component]: {{< relref "../concepts/components.md" >}}
-[agent run]: {{< relref "../reference/cli/run.md" }}
+[agent run]: {{< relref "../reference/cli/run.md" >}}
 [reference documentation]: {{< relref "../reference/components/_index.md" >}}
