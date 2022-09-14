@@ -10,14 +10,6 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
-> **NOTE**: ARMv6 Docker images are no longer being published.
-> 
-> We have stopped publishing Docker images for ARMv6 platforms. 
-> This is due to the new Ubuntu base image we are using that does not support ARMv6. 
-> The new Ubuntu base image has less reported CVEs, and allows us to provide more 
-> secure Docker images. We will still continue to publish ARMv6 release binaries and 
-> deb/rpm packages.
-
 ### Features
 
 ### Enhancements
@@ -26,11 +18,24 @@ Main (unreleased)
 
 ### Other changes
 
- - Switch docker image base from debian to ubuntu (@captncraig)
-
  - Fix relabel configs in sample agent-operator manifests (@hjet)
 
  - Operator no longer set the `SecurityContext.Privileged` flag in the `config-reloader` container. (@hsyed-dojo)
+
+v0.27.1 (2022-09-09)
+-------------------------
+
+> **NOTE**: ARMv6 Docker images are no longer being published.
+> 
+> We have stopped publishing Docker images for ARMv6 platforms. 
+> This is due to the new Ubuntu base image we are using that does not support ARMv6. 
+> The new Ubuntu base image has less reported CVEs, and allows us to provide more 
+> secure Docker images. We will still continue to publish ARMv6 release binaries and 
+> deb/rpm packages.
+
+### Other Changes
+
+ - Switch docker image base from debian to ubuntu. (@captncraig)
 
 v0.27.0 (2022-09-01)
 -------------------------
