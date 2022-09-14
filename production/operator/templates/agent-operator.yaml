@@ -372,7 +372,7 @@ spec:
       containers:
       - args:
         - --kubelet-service=default/kubelet
-        image: grafana/agent-operator:v0.26.1
+        image: grafana/agent-operator:v0.27.0
         imagePullPolicy: IfNotPresent
         name: grafana-agent-operator
       serviceAccount: grafana-agent-operator
@@ -436,7 +436,7 @@ metadata:
   name: grafana-agent
   namespace: ${NAMESPACE}
 spec:
-  image: grafana/agent:v0.26.1
+  image: grafana/agent:v0.27.0
   integrations:
     selector:
       matchLabels:
@@ -571,12 +571,12 @@ spec:
   endpoints:
   - honorLabels: true
     interval: 60s
-    metricRelabelings:
-    - action: replace
-      replacement: integrations/kubernetes/kube-state-metrics
-      targetLabel: job
     path: /metrics
     port: http-metrics
+    relabelings:
+    - action: replace
+      replacement: kube-state-metrics
+      targetLabel: job
   namespaceSelector:
     matchNames:
     - ${NAMESPACE}
@@ -596,16 +596,15 @@ spec:
   - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
     honorLabels: true
     interval: 60s
-    metricRelabelings:
-    - action: replace
-      replacement: integrations/kubernetes/kubelet
-      targetLabel: job
     path: /metrics
     port: https-metrics
     relabelings:
     - sourceLabels:
       - __metrics_path__
       targetLabel: metrics_path
+    - action: replace
+      replacement: kubelet
+      targetLabel: job
     scheme: https
     tlsConfig:
       insecureSkipVerify: true
@@ -628,16 +627,15 @@ spec:
   - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
     honorLabels: true
     interval: 60s
-    metricRelabelings:
-    - action: replace
-      replacement: integrations/kubernetes/cadvisor
-      targetLabel: job
     path: /metrics/cadvisor
     port: https-metrics
     relabelings:
     - sourceLabels:
       - __metrics_path__
       targetLabel: metrics_path
+    - action: replace
+      replacement: cadvisor
+      targetLabel: job
     scheme: https
     tlsConfig:
       insecureSkipVerify: true

@@ -45,7 +45,7 @@ metadata:
   labels:
     app: grafana-agent
 spec:
-  image: grafana/agent:v0.26.1
+  image: grafana/agent:v0.27.0
   logLevel: info
   serviceAccountName: grafana-agent
   metrics:
@@ -132,6 +132,10 @@ The full hierarchy of custom resources is as follows:
     - `PodLogs`
 
 Deploying a GrafanaAgent resource on its own will not spin up any Agent Pods. Agent Operator will create Agent Pods once MetricsInstance and LogsIntance resources have been created. In the next step, you'll roll out a `MetricsInstance` resource to scrape cAdvisor and Kubelet metrics and ship these to your Prometheus-compatible metrics endpoint.
+
+### Disable feature flags reporting
+
+If you would like to disable the [reporting]({{< relref "../configuration/flags.md/#report-use-of-feature-flags" >}}) usage of feature flags to Grafana, set `disableReporting` field to `true`.
 
 ## Step 2: Deploy a MetricsInstance resource
 

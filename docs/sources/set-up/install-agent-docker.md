@@ -21,7 +21,7 @@ Install Grafana Agent and get it up and running on Docker.
 docker run \
   -v /tmp/agent:/etc/agent/data \
   -v /path/to/config.yaml:/etc/agent/agent.yaml \
-  grafana/agent:v0.26.1
+  grafana/agent:v0.27.0
 ```
 
 2.  Replace `/tmp/agent` with the folder you want to store WAL data in.

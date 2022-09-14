@@ -31,7 +31,7 @@ k + config {
 
   agent_args:: {
     'config.file': '/etc/agent/agent.yml',
-    'prometheus.wal-directory': '/tmp/agent/data',
+    'metrics.wal-directory': '/tmp/agent/data',
   },
 
   agent_container::

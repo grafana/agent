@@ -72,7 +72,7 @@ local policyRule = k.rbac.v1.policyRule;
       container.withPorts(containerPort.new(name='http-metrics', port=80)) +
       container.withArgsMixin(k.util.mapToFlags({
         'config.file': '/etc/agent/agent.yml',
-        'prometheus.wal-directory': '/tmp/agent/data',
+        'metrics.wal-directory': '/tmp/agent/data',
       })) +
       container.withEnv([
         k.core.v1.envVar.fromFieldPath('HOSTNAME', 'spec.nodeName'),

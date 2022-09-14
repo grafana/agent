@@ -25,11 +25,11 @@ a user-specified label, and then by providing arguments to configure the
 component:
 
 ```
-discovery.k8s "pods" {
+discovery.kubernetes "pods" {
   role = "pod"
 }
 
-discovery.k8s "nodes" {
+discovery.kubernetes "nodes" {
   role = "node"
 }
 ```
@@ -69,8 +69,8 @@ An example pipeline may look like this:
 2. A `prometheus.remote_write` component is configured to receive metrics and
    forward them to an external database using the API key from the `local.file`
    for authentication.
-3. A `discovery.k8s` component discovers and exports Kubernetes Pods where
-   metrics can be collected.
+3. A `discovery.kubernetes` component discovers and exports Kubernetes Pods
+   where metrics can be collected.
 4. A `prometheus.scrape` component references the exports of the previous
    component, and sends collected metrics to the `prometheus.remote_write`
    component.
@@ -115,13 +115,13 @@ prometheus.remote_write "prod" {
 //
 // This component exports a "targets" value which contains the list of
 // discovered pods.
-discovery.k8s "pods" {
+discovery.kubernetes "pods" {
   role = "pod"
 }
 
 // Collect metrics from Kubernetes pods and send them to prod.
 prometheus.scrape "default" {
-  targets    = discovery.k8s.pods.targets
+  targets    = discovery.kubernetes.pods.targets
   forward_to = [prometheus.remote_write.prod.receiver]
 }
 ```

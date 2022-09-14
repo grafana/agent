@@ -106,9 +106,10 @@ func (fr *flowRun) Run(configFile string) error {
 	}
 
 	f := flow.New(flow.Options{
-		Logger:   l,
-		DataPath: fr.storagePath,
-		Reg:      prometheus.DefaultRegisterer,
+		Logger:         l,
+		DataPath:       fr.storagePath,
+		Reg:            prometheus.DefaultRegisterer,
+		HTTPListenAddr: fr.httpListenAddr,
 	})
 
 	reload := func() error {
@@ -160,6 +161,7 @@ func (fr *flowRun) Run(configFile string) error {
 			r.Handle("/debug/graph", f.GraphHandler())
 			r.Handle("/debug/scope", f.ScopeHandler())
 			r.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
+			r.PathPrefix("/component/{id}/").Handler(f.ComponentHandler())
 		}
 
 		ready := atomic.NewBool(true)

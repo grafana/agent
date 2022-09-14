@@ -53,6 +53,13 @@ type Options struct {
 
 	// Registerer allows components to add their own metrics. The register will come pre-wrapped with the component ID. It is not necessary for components to unregister metrics on shutdown.
 	Registerer prometheus.Registerer
+
+	// HTTPListenAddr is the address the server is configured to listen on.
+	HTTPListenAddr string
+
+	// HTTPPath is the base path that requests need in order to route to this component.
+	// Requests received by a component handler will have this already trimmed off.
+	HTTPPath string
 }
 
 // Registration describes a single component.
@@ -140,10 +147,6 @@ func parseComponentName(name string) (parsedName, error) {
 		return nil, fmt.Errorf("missing name")
 	}
 
-	if len(parts) > 2 {
-		return nil, fmt.Errorf("component name may only have 1 or 2 identifiers, found %d", len(parts))
-	}
-
 	for _, part := range parts {
 		if part == "" {
 			return nil, fmt.Errorf("found empty identifier")
@@ -157,22 +160,21 @@ func parseComponentName(name string) (parsedName, error) {
 	return parts, nil
 }
 
-// validatePrefixMatch validates that components that share a prefix have the
-// same length of identifiers in their names.
+// validatePrefixMatch validates that no component has a name that is solely a prefix of another.
 //
 // For example, this will return an error if both a "remote" and "remote.http"
 // component are defined.
 func validatePrefixMatch(check parsedName, against map[string]parsedName) error {
+	// add a trailing dot to each component name, so that we are always matching
+	// complete segments.
+	name := check.String() + "."
 	for _, other := range against {
-		if other[0] != check[0] {
-			continue
-		}
-
-		if len(other) != len(check) {
+		otherName := other.String() + "."
+		// if either is a prefix of the other, we have ambiguous names.
+		if strings.HasPrefix(otherName, name) || strings.HasPrefix(name, otherName) {
 			return fmt.Errorf("%q cannot be used because it is incompatible with %q", check, other)
 		}
 	}
-
 	return nil
 }
 
