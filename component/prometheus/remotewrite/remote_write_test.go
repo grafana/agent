@@ -21,7 +21,7 @@ import (
 
 // Test is an integration-level test which ensures that metrics can get sent to
 // a prometheus.remote_write component and forwarded to a
-// remote_write-comaptible server.
+// remote_write-compatible server.
 func Test(t *testing.T) {
 	writeResult := make(chan *prompb.WriteRequest)
 
