@@ -203,7 +203,7 @@ Similarly, these metrics that record the behavior of the scrape targets are
 also automatically available.
 Metric Name                | Description
 -------------------------- | -----------
-`up`                       | 1 if the instance is healthy, i.e. reachable, or 0 if the scrape failed.
+`up`                       | 1 if the instance is healthy and reachable, or 0 if the scrape failed.
 `scrape_duration_seconds`  | Duration of the scrape in seconds.
 `scrape_samples_scraped`   | The number of samples the target exposed.
 `scrape_samples_post_metric_relabeling` | The number of samples remaining after metric relabeling was applied.
