@@ -211,10 +211,10 @@ Metric Name                | Description
 `scrape_sample_limit`      | The configured sample limit for a target. Useful for measuring how close a target was to reaching the sample limit using `scrape_samples_post_metric_relabeling / (scrape_sample_limit > 0)`
 `scrape_body_size_bytes`   | The uncompressed size of the most recent scrape response, if successful. Scrapes failing because the `body_size_limit` is exceeded report -1, other scrape failures report 0.
 
-
 The `up` metric is particularly useful for monitoring and alerting on the
-health of a scrape job. It is set to zero in case anything goes wrong with the
+health of a scrape job. It is set to `0` in case anything goes wrong with the
 scrape target, either because it is not reachable, because the connection
 times out while scraping, or because the samples from the target could not be
-processed.
+processed. When the target is behaving normally, the `up` metric is set to
+`1`.
 
