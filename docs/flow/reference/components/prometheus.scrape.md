@@ -13,55 +13,13 @@ title: prometheus.scrape
 Multiple `prometheus.scrape` components can be specified by giving them
 different labels.
 
-## Scraping behavior
-The `prometheus.scrape` component borrows the scraping behavior of Prometheus.
-Prometheus, and by extend this component, uses a pull model for scraping
-metrics from a given set of _targets_.
-Each scrape target is defined as a set of _labels_ i.e. key-value pairs. The
-set of targets can either be _static_, or dynamically provided periodically by
-a service disovery component such as `discovery.kubernetes`. The special
-internal label `__address__` _must always_ be present and corresponds to the
-`<host>:<port>` that will be used for the scrape request.
-
-By default, the scrape job will try to scrape all available targets' `/metrics`
-endpoint using HTTP, with a scrape interval of 1 minute and scrape timeout of
-10 seconds. The metrics path, protocol scheme, scrape interval and timeout,
-query parameters, as well as any other settings can be configured using the
-component's arguments.
-
-The scrape job expects the metrics exposed by the endpoint to follow the
-[OpenMetrics](https://openmetrics.io/) format. All metrics will then be
-propagated to each receiver listed in the component's `forward_to`
-argument.
-
-Labels that start with a double underscore `__` are treated by Prometheus as
-_internal_, and will be removed prior to scraping. The first use of these
-internal labels is to describe or override the scrape job's parameters. These
-are: `__scheme__`, `__metrics_path__`, `__scrape_interval__`,
-`__scrape_timeout__` as well as `__param_<name>` for query parameters.
-The other use case for these internal labels is to expose information from the
-service discovery mechanism, grouped under `__meta_*`. For example, using the
-`discovery.kubernetes` component will populate the family of
-`__meta_kubernetes_*` labels to provide details about the discovered
-Kubernetes resources.
-
-The target's labels (and most often the service discovery ones), can be used
-together with the `discovery.relabel` component to filter targets and rewrite 
-their label set before they are scraped.
-
-The `prometheus.scrape` components regards a scrape as successful if it
-responded with a 200 status code and returned a body of valid metrics.
-
-If the scrape request fails, the component's debug endpoint and debug UI
-section will contain more detailed information about the failure, the last
-successful scrape, as well as the labels last used for scraping.
-
 ## Example
 
-The following example will set up the job with certain attributes (scrape
-endpoint, scrape interval, query parameters) and let it scrape two instances of
-the blackbox exporter. The exposed metrics will be sent over to the provided
-list of receivers, as defined by other components.
+The following example sets up the scrape job with certain attributes (scrape
+endpoint, scrape interval, query parameters) and lets it scrape two instances
+of the [blackbox exporter](https://github.com/prometheus/blackbox_exporter/).
+The exposed metrics are sent over to the provided list of receivers, as
+defined by other components.
 
 ```river
 prometheus.scrape "blackbox_scraper" {
@@ -78,7 +36,7 @@ prometheus.scrape "blackbox_scraper" {
 }
 ```
 
-The endpoints that will be scraped every 10 seconds here are:
+Here's the the endpoints that are being scraped every 10 seconds:
 ```
 http://blackbox-exporter:9115/probe?target=grafana.com&module=http_2xx
 http://blackbox-exporter:9116/probe?target=grafana.com&module=http_2xx
@@ -86,16 +44,16 @@ http://blackbox-exporter:9116/probe?target=grafana.com&module=http_2xx
 
 ## Arguments
 
-The component will configure and start a new scrape job to scrape all of the
+The component configures and start a new scrape job to scrape all of the
 input targets. The list of arguments that can be used to configure the block is
 presented below.
 
-The scrape job name will default to the fully formed component name.
+The scrape job name defaults to the fully formed component name.
 
-Any omitted fields will take on their default values. In case that conflicting
+Any omitted fields take on their default values. In case that conflicting
 attributes are being passed (eg. defining both a BearerToken and
 BearerTokenFile or configuring both Basic Authorization and OAuth2 at the same
-time), the component will report an error.
+time), the component reports an error.
 
 The following arguments are supported:
 
@@ -190,7 +148,7 @@ components.
 
 ## Component health
 
-`prometheus.scrape` will only be reported as unhealthy when given an invalid
+`prometheus.scrape` is only reported as unhealthy if given an invalid
 configuration.
 
 ## Debug information
@@ -198,7 +156,53 @@ configuration.
 `prometheus.scrape` reports the status of the last scrape for each configured
 scrape job on the component's debug endpoint.
 
-### Debug metrics
+## Debug metrics
 
 `prometheus.scrape` does not expose any component-specific debug metrics.
+
+## Scraping behavior
+The `prometheus.scrape` component borrows the scraping behavior of Prometheus.
+Prometheus, and by extent this component, uses a pull model for scraping
+metrics from a given set of _targets_.
+Each scrape target is defined as a set of key-value pairs called _labels_.
+The set of targets can either be _static_, or dynamically provided periodically
+by a service disovery component such as `discovery.kubernetes`. The special
+label `__address__` _must always_ be present and corresponds to the
+`<host>:<port>` that is used for the scrape request.
+
+By default, the scrape job tries to scrape all available targets' `/metrics`
+endpoints using HTTP, with a scrape interval of 1 minute and scrape timeout of
+10 seconds. The metrics path, protocol scheme, scrape interval and timeout,
+query parameters, as well as any other settings can be configured using the
+component's arguments.
+
+The scrape job expects the metrics exposed by the endpoint to follow the
+[OpenMetrics](https://openmetrics.io/) format. All metrics are then propagated
+to each receiver listed in the component's `forward_to` argument.
+
+Labels from targets that start with a double underscore `__` are treated by
+
+The `prometheus.scrape` component regards a scrape as successful if it
+responded with a 200 status code and returned a body of valid metrics.
+
+If the scrape request fails, the component's debug endpoint and debug UI
+section contains more detailed information about the failure, the last
+successful scrape, as well as the labels last used for scraping.
+
+The following labels are automatically injected to the scraped time series and
+can help pin down a scrape target.
+```
+job: The configured job name that the target belongs to. Defaults to the fully formed component name.
+instance: The __address__ (<host>:<port>) of the scrape target's URL.
+```
+
+Similarly, these time series that record the behavior of the scrape targets are
+also made available.
+```
+up{job="", instance=""}: 1 if the instance is healthy, i.e. reachable, or 0 if the scrape failed.
+scrape_duration_seconds{job="", instance=""}: duration of the scrape.
+scrape_samples_post_metric_relabeling{job="", instance=""}: the number of samples remaining after metric relabeling was applied.
+scrape_samples_scraped{job="", instance=""}: the number of samples the target exposed.
+scrape_series_added{job="", instance=""}: the approximate number of new series in this scrape.
+```
 
