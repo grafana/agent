@@ -29,76 +29,6 @@ each metric in order of their appearance in the configuration file.
 To create multiple `prometheus.relabel` components, assign them different
 labels.
 
-## Example
-
-```river
-prometheus.relabel "keep_backend_only" {
-  forward_to [prometheus.remote_write.onprem.receiver]
-
-  metric_relabel_config {
-    action        = "replace"
-    source_labels = ["__address__", "instance"]
-    separator     = "/"
-    target_label  = "host"
-  }
-
-  metric_relabel_config {
-    action        = "keep"
-    source_labels = ["app"]
-    regex         = "backend"
-  }
-
-  metric_relabel_config {
-    action = "labeldrop"
-    regex  = "instance"
-  }
-}
-```
-
-Let's see how the previous instance of the `prometheus.relabel` component acts
-on some metrics.
-
-```
-metric_a{__address__ = "localhost", instance = "development", app = "frontend"} 10
-metric_a{__address__ = "localhost", instance = "development", app = "backend"}	2
-metric_a{__address__ = "cluster_a", instance = "production",  app = "frontend"} 7
-metric_a{__address__ = "cluster_a", instance = "production",  app = "backend"}	9
-metric_a{__address__ = "cluster_b", instance = "production",  app = "database"}	4
-```
-
-After applying the first `metric_relabel_config` block, the `replace` action
-populates a new label named `host` by concatenating the contents of the
-`__address__` and `instance` labels, separated by a slash `/`.
-
-```
-metric_a{host = "localhost/development", __address__ = "localhost", instance = "development", app = "frontend"} 10
-metric_a{host = "localhost/development", __address__ = "localhost", instance = "development", app = "backend"}	2
-metric_a{host = "cluster_a/production",  __address__ = "cluster_a", instance = "production",  app = "frontend"} 7
-metric_a{host = "cluster_a/production",  __address__ = "cluster_a", instance = "production",  app = "backend"}	9
-metric_a{host = "cluster_b/production",  __address__ = "cluster_a", instance = "production",  app = "database"}	4
-```
-
-On the second relabeling step, the `keep` action only keeps the metrics whose
-`app` label matches `regex`, dropping everything else, so the list of metrics
-is be trimmed down to:
-
-```
-metric_a{host = "localhost/development", __address__ = "localhost", instance = "development", app = "backend"}	2
-metric_a{host = "cluster_a/production",  __address__ = "cluster_a", instance = "production",  app = "backend"}	9
-```
-
-The third and final relabeling step which uses the `labeldrop` action removes
-the `instance` label from the set of labels.
-
-So in this case, the initial set of metrics passed to the exported receiver is:
-```
-metric_a{host = "localhost/development", __address__ = "localhost", app = "backend"}	2
-metric_a{host = "cluster_a/production",  __address__ = "cluster_a", app = "backend"}	9
-```
-
-The two resulting metrics are then propagated to each receiver defined in the
-`forward_to` argument.
-
 ## Arguments
 
 The following arguments are supported:
@@ -165,6 +95,75 @@ values.
 
 `prometheus.relabel` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `prometheus.relabel` does not expose any component-specific debug metrics.
+
+## Example
+Let's create an instance of a see `prometheus.relabel` component and see how
+it acts on the following metrics.
+```river
+prometheus.relabel "keep_backend_only" {
+  forward_to [prometheus.remote_write.onprem.receiver]
+
+  metric_relabel_config {
+    action        = "replace"
+    source_labels = ["__address__", "instance"]
+    separator     = "/"
+    target_label  = "host"
+  }
+
+  metric_relabel_config {
+    action        = "keep"
+    source_labels = ["app"]
+    regex         = "backend"
+  }
+
+  metric_relabel_config {
+    action = "labeldrop"
+    regex  = "instance"
+  }
+}
+```
+
+```
+metric_a{__address__ = "localhost", instance = "development", app = "frontend"} 10
+metric_a{__address__ = "localhost", instance = "development", app = "backend"}	2
+metric_a{__address__ = "cluster_a", instance = "production",  app = "frontend"} 7
+metric_a{__address__ = "cluster_a", instance = "production",  app = "backend"}	9
+metric_a{__address__ = "cluster_b", instance = "production",  app = "database"}	4
+```
+
+After applying the first `metric_relabel_config` block, the `replace` action
+populates a new label named `host` by concatenating the contents of the
+`__address__` and `instance` labels, separated by a slash `/`.
+
+```
+metric_a{host = "localhost/development", __address__ = "localhost", instance = "development", app = "frontend"} 10
+metric_a{host = "localhost/development", __address__ = "localhost", instance = "development", app = "backend"}	2
+metric_a{host = "cluster_a/production",  __address__ = "cluster_a", instance = "production",  app = "frontend"} 7
+metric_a{host = "cluster_a/production",  __address__ = "cluster_a", instance = "production",  app = "backend"}	9
+metric_a{host = "cluster_b/production",  __address__ = "cluster_a", instance = "production",  app = "database"}	4
+```
+
+On the second relabeling step, the `keep` action only keeps the metrics whose
+`app` label matches `regex`, dropping everything else, so the list of metrics
+is be trimmed down to:
+
+```
+metric_a{host = "localhost/development", __address__ = "localhost", instance = "development", app = "backend"}	2
+metric_a{host = "cluster_a/production",  __address__ = "cluster_a", instance = "production",  app = "backend"}	9
+```
+
+The third and final relabeling step which uses the `labeldrop` action removes
+the `instance` label from the set of labels.
+
+So in this case, the initial set of metrics passed to the exported receiver is:
+```
+metric_a{host = "localhost/development", __address__ = "localhost", app = "backend"}	2
+metric_a{host = "cluster_a/production",  __address__ = "cluster_a", app = "backend"}	9
+```
+
+The two resulting metrics are then propagated to each receiver defined in the
+`forward_to` argument.
+
