@@ -35,8 +35,13 @@ func (h *HTTPClientConfig) UnmarshalRiver(f func(v interface{}) error) error {
 	return f((*config)(h))
 }
 
-// Convert converts our type to the native prometheus type
+// Convert converts HTTPClientConfig to the native Prometheus type. If h is
+// nil, the default client config is returned.
 func (h *HTTPClientConfig) Convert() *config.HTTPClientConfig {
+	if h == nil {
+		return &config.DefaultHTTPClientConfig
+	}
+
 	return &config.HTTPClientConfig{
 		BasicAuth:       h.BasicAuth.Convert(),
 		Authorization:   h.Authorization.Convert(),
