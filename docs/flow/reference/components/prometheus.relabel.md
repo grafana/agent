@@ -16,7 +16,7 @@ time series and contains a value and an optional timestamp.
 
 The `prometheus.relabel` component rewrites the label set of each metric passed
 along to the exported receiver by applying one or more `metric_relabel_config`
-steps.  If no relabeling steps are defined or applicable to one of the metrics,
+steps. If no relabeling steps are defined or applicable to one of the metrics,
 then the metric is forwarded as-is to each receiver passed in the component's
 arguments. If no labels remain after the relabeling steps are applied, then the
 metric is dropped.
@@ -28,6 +28,26 @@ each metric in order of their appearance in the configuration file.
 
 To create multiple `prometheus.relabel` components, assign them different
 labels.
+
+## Example
+```river
+prometheus.relabel "keep_backend_only" {
+	forward_to = [prometheus.remote_write.onprem.receiver]
+
+	metric_relabel_config {
+		action        = "replace"
+		source_labels = ["__address__", "instance"]
+		separator     = "/"
+		target_label  = "host"
+	}
+
+	metric_relabel_config {
+		action        = "keep"
+		source_labels = ["app"]
+		regex         = "backend"
+	}
+}
+```
 
 ## Arguments
 
@@ -57,7 +77,7 @@ All arguments are optional. Omitted fields take their default values.
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `source_labels` | `list(string)` | The list of labels whose values are to be selected. Their content is concatenated using the `separator` and matched against `regex`. | | no
-`separator`     | `string`       |  The separator used to concatenate the values present in `source_labels`. | ; | no
+`separator`     | `string`       | The separator used to concatenate the values present in `source_labels`. | ; | no
 `regex`         | `string`       | A valid RE2 expression with support for parenthesized capture groups. Used to match the extracted value from the combination of the `source_label` and `separator` fields or filter labels during the `labelkeep/labeldrop/labelmap` actions. | `(.*)` | no
 `modulus`       | `uint`         | A positive integer used to calculate the modulus of the hashed source label values. | | no
 `target_label`  | `string`       | Label to which the resulting value will be written to. | | no
@@ -104,25 +124,23 @@ Let's create an instance of a see `prometheus.relabel` component and see how
 it acts on the following metrics.
 ```river
 prometheus.relabel "keep_backend_only" {
-  forward_to [prometheus.remote_write.onprem.receiver]
+	forward_to = [prometheus.remote_write.onprem.receiver]
 
-  metric_relabel_config {
-    action        = "replace"
-    source_labels = ["__address__", "instance"]
-    separator     = "/"
-    target_label  = "host"
-  }
-
-  metric_relabel_config {
-    action        = "keep"
-    source_labels = ["app"]
-    regex         = "backend"
-  }
-
-  metric_relabel_config {
-    action = "labeldrop"
-    regex  = "instance"
-  }
+	metric_relabel_config {
+		action        = "replace"
+		source_labels = ["__address__", "instance"]
+		separator     = "/"
+		target_label  = "host"
+	}
+	metric_relabel_config {
+		action        = "keep"
+		source_labels = ["app"]
+		regex         = "backend"
+	}
+	metric_relabel_config {
+		action = "labeldrop"
+		regex  = "instance"
+	}
 }
 ```
 
