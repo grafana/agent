@@ -81,8 +81,8 @@ Name | Type | Description | Default | Required
 
 ### `http_client_config` block
 
-Name | Type | Description | Required
----- | ---- | ----------- | --------
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
 `basic_auth`               | `basic_auth` block    | Set up basic HTTP authentication credentials. | | no
 `authorization`            | `authorization` block | Set up HTTP authorization credentials. | | no
 `oauth2`                   | `oauth2` block        | Set up the OAuth2 client. | | no
@@ -196,7 +196,7 @@ can help pin down a scrape target.
 Label                 | Description
 --------------------- | ---------- 
 job                   | The configured job name that the target belongs to. Defaults to the fully formed component name.
-instance              | The __address__ (<host>:<port>) of the scrape target's URL.
+instance              | The `__address__` or `<host>:<port>` of the scrape target's URL.
 
 
 Similarly, these metrics that record the behavior of the scrape targets are
