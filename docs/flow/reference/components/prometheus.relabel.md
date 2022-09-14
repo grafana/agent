@@ -64,7 +64,7 @@ Name | Type | Description | Default | Required
 `replacement`   | `string`       | The value against which a regex replace is performed, if the regex matches the extracted value. Supports previously captured groups. | $1 | no
 `action`        | `string`       | The relabeling action to perform. | replace | no
 
-Here's a list of the available actions along with a brief description of their usage.
+Here's a list of the available actions, along with a brief description of their usage.
 
 * `replace`   - Matches `regex` to the concatenated labels. If there's a match, it replaces the content of the `target_label` using the contents of the `replacement` field.
 * `keep`      - Keeps metrics where `regex` matches the string extracted using the `source_labels` and `separator`.
