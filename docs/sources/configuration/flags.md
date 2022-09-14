@@ -43,6 +43,14 @@ These statistics are sent to `stats.grafana.org`.
 Statistics help us better understand how Grafana Agent is used.
 This helps us prioritize features and documentation.
 
+Besides the enabled feature flags we are also collecting the following information:
+* A randomly generated and an anonymous unique ID (UUID).
+* Timestamp of when the UID was first generated.
+* Timestamp of when the report was created (by default every 4h).
+* Version of running Grafana Agent.
+* Operating system Grafana Agent is running on.
+* System architecture Grafana Agent is running on.
+
 If you would like to disable the reporting, Grafana Agent provides the flag `-disable-reporting`
 to stop the reporting.
 
