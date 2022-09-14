@@ -181,7 +181,7 @@ The scrape job expects the metrics exposed by the endpoint to follow the
 to each receiver listed in the component's `forward_to` argument.
 
 Labels coming from targets, that start with a double underscore `__` are
-treated as _internal_, and will be removed prior to scraping.
+treated as _internal_, and are removed prior to scraping.
 
 The `prometheus.scrape` component regards a scrape as successful if it
 responded with a 200 status code and returned a body of valid metrics.
@@ -208,4 +208,14 @@ Metric Name                | Description
 `scrape_samples_scraped`   | The number of samples the target exposed.
 `scrape_samples_post_metric_relabeling` | The number of samples remaining after metric relabeling was applied.
 `scrape_series_added`      | The approximate number of new series in this scrape.
+`scrape_timeout_seconds`   | The configured scrape timeout for a target. Useful for measuring how close a target was to timing out using `scrape_duration_seconds / scrape_timeout_seconds`
+`scrape_sample_limit`      | The configured sample limit for a target. Useful for measuring how close a target was to reaching the sample limit using `scrape_samples_post_metric_relabeling / (scrape_sample_limit > 0)`
+`scrape_body_size_bytes`   | The uncompressed size of the most recent scrape response, if successful. Scrapes failing because the `body_size_limit` is exceeded report -1, other scrape failures report 0.
+
+
+The `up` metric is particularly useful for monitoring and alerting on the
+health of a scrape job. It is set to zero in case anything goes wrong with the
+scrape target, either because it is not reachable, because the connection
+times out while scraping, or because the samples from the target could not be
+processed.
 
