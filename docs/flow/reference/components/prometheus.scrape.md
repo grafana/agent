@@ -180,7 +180,8 @@ The scrape job expects the metrics exposed by the endpoint to follow the
 [OpenMetrics](https://openmetrics.io/) format. All metrics are then propagated
 to each receiver listed in the component's `forward_to` argument.
 
-Labels from targets that start with a double underscore `__` are treated by
+Labels coming from targets, that start with a double underscore `__` are
+treated as  _internal_, and will be removed prior to scraping.
 
 The `prometheus.scrape` component regards a scrape as successful if it
 responded with a 200 status code and returned a body of valid metrics.
