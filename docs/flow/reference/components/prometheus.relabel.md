@@ -26,8 +26,8 @@ standardize the label set that will be passed to one or more downstream
 receivers. The `metric_relabel_config` blocks are applied to the label set of
 each metric in order of their appearance in the configuration file.
 
-To create multiple `prometheus.relabel` components, assign them different
-labels.
+Multiple `prometheus.relabel` components can be specified by giving them
+different labels.
 
 ## Example
 ```river
@@ -119,7 +119,7 @@ values.
 
 `prometheus.relabel` does not expose any component-specific debug metrics.
 
-## Example
+## Metric relabeling in action
 Let's create an instance of a see `prometheus.relabel` component and see how
 it acts on the following metrics.
 ```river
