@@ -63,8 +63,8 @@ Name | Type | Description | Default | Required
 `forward_to`               | `list(MetricsReceiver)` | List of receivers to send scraped metrics to. | | **yes**
 `job_name`                 | `string`   | The job name to override the job label with. | component name | no
 `extra_metrics`            | `bool`     | Whether extra metrics should be generated for scrape targets. | `false` | no
-`honor_labels`             | `bool`     | Indicator whether the scraped metrics should remain unmodified. | false | no
-`honor_timestamps`         | `bool`     | Indicator whether the scraped timestamps should be respected. | true | no
+`honor_labels`             | `bool`     | Indicator whether the scraped metrics should remain unmodified. | `false` | no
+`honor_timestamps`         | `bool`     | Indicator whether the scraped timestamps should be respected. | `true` | no
 `params`                   | `map(list(string))` | A set of query parameters with which the target is scraped. | | no
 `scrape_interval`          | `duration` | How frequently to scrape the targets of this scrape config. | `"60s"` | no
 `scrape_timeout`           | `duration` | The timeout for scraping targets of this config. | `"10s"` | no
@@ -81,15 +81,15 @@ Name | Type | Description | Default | Required
 
 ### `http_client_config` block
 
-Name | Description | Required
----- | ----------- | --------
-`basic_auth`               | `basic_auth` block    | Setup of Basic HTTP authentication credentials. | | no
-`authorization`            | `authorization` block | Setup of HTTP Authorization credentials. | | no
-`oauth2`                   | `oauth2` block        | Setup of the OAuth2 client. | | no
-`tls_config`               | `tls_config` block    | Configuration options for TLS connections. | | no
-`bearer_token`             | `secret`   | Used to set up the Bearer Token. | | no
-`bearer_token_file`        | `string`   | Used to set up the Bearer Token file. | | no
-`proxy_url`                | `string`   | Used to set up a Proxy URL. | | no
+Name | Type | Description | Required
+---- | ---- | ----------- | --------
+`basic_auth`               | `basic_auth` block    | Set up basic HTTP authentication credentials. | | no
+`authorization`            | `authorization` block | Set up HTTP authorization credentials. | | no
+`oauth2`                   | `oauth2` block        | Set up the OAuth2 client. | | no
+`tls_config`               | `tls_config` block    | Configure options for TLS connections. | | no
+`bearer_token`             | `secret`   | Use to set up the Bearer Token. | | no
+`bearer_token_file`        | `string`   | Use to set up the Bearer Token file. | | no
+`proxy_url`                | `string`   | Use to set up a proxy URL. | | no
 `follow_redirects`         | `bool`     | Whether the scraper should follow redirects. | `true` | no
 `enable_http_2`            | `bool`     | Whether the scraper should use HTTP2. | `true` | no
 
@@ -97,10 +97,10 @@ The following subblocks are supported:
 
 Name | Description | Required
 ---- | ----------- | --------
-[`basic_auth`](#basic_auth-block) | Configures basic_auth for authenticating against targets | no
-[`authorization`](#authorization-block) | Configures generic authorization against targets | no
-[`oauth2`](#oauth2-block) | Configures OAuth2 for authenticating against targets | no
-[`tls_config`](#tls_config-block) | Configures TLS settings for connecting to targets | no
+[`basic_auth`](#basic_auth-block) | Configure basic_auth for authenticating against targets | no
+[`authorization`](#authorization-block) | Configure generic authorization against targets | no
+[`oauth2`](#oauth2-block) | Configure OAuth2 for authenticating against targets | no
+[`tls_config`](#tls_config-block) | Configure TLS settings for connecting to targets | no
 
 #### `basic_auth` block
 
@@ -192,18 +192,20 @@ successful scrape, as well as the labels last used for scraping.
 
 The following labels are automatically injected to the scraped time series and
 can help pin down a scrape target.
-```
-job: The configured job name that the target belongs to. Defaults to the fully formed component name.
-instance: The __address__ (<host>:<port>) of the scrape target's URL.
-```
 
-Similarly, these time series that record the behavior of the scrape targets are
-also made available.
-```
-up{job="", instance=""}: 1 if the instance is healthy, i.e. reachable, or 0 if the scrape failed.
-scrape_duration_seconds{job="", instance=""}: duration of the scrape.
-scrape_samples_post_metric_relabeling{job="", instance=""}: the number of samples remaining after metric relabeling was applied.
-scrape_samples_scraped{job="", instance=""}: the number of samples the target exposed.
-scrape_series_added{job="", instance=""}: the approximate number of new series in this scrape.
-```
+Label                 | Description
+--------------------- | ---------- 
+job                   | The configured job name that the target belongs to. Defaults to the fully formed component name.
+instance              | The __address__ (<host>:<port>) of the scrape target's URL.
+
+
+Similarly, these metrics that record the behavior of the scrape targets are
+also automatically available.
+Metric Name                | Description
+-------------------------- | -----------
+`up`                       | 1 if the instance is healthy, i.e. reachable, or 0 if the scrape failed.
+`scrape_duration_seconds`  | Duration of the scrape in seconds.
+`scrape_samples_scraped`   | The number of samples the target exposed.
+`scrape_samples_post_metric_relabeling` | The number of samples remaining after metric relabeling was applied.
+`scrape_series_added`      | The approximate number of new series in this scrape.
 
