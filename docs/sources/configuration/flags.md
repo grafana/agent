@@ -46,7 +46,7 @@ This helps us prioritize features and documentation.
 The usage information includes the following details:
 * A randomly generated and an anonymous unique ID (UUID).
 * Timestamp of when the UID was first generated.
-* Timestamp of when the report was created (by default every 4h).
+* Timestamp of when the report was created (by default, every 4h).
 * Version of running Grafana Agent.
 * Operating system Grafana Agent is running on.
 * System architecture Grafana Agent is running on.
