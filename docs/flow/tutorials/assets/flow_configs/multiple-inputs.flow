@@ -1,11 +1,11 @@
 prometheus.scrape "first" {
     targets = [{"__address__" = "localhost:12345"}]
-    forward_to = [prometheus.relabel.filter.receiver,prometheus.relabel.not_cool.receiver]
+    forward_to = [prometheus.relabel.cool.receiver,prometheus.relabel.not_cool.receiver]
 }
 
 prometheus.scrape "second" {
     targets = [{"__address__" = "localhost:12345"}]
-    forward_to = [prometheus.relabel.filter.receiver,prometheus.relabel.not_cool.receiver]
+    forward_to = [prometheus.relabel.cool.receiver,prometheus.relabel.not_cool.receiver]
 }
 
 prometheus.relabel "cool" {
@@ -30,6 +30,6 @@ prometheus.relabel "not_cool" {
 
 prometheus.remote_write "prom" {
     remote_write {
-        url = "http://cortex:9009/api/prom/push"
+        url = "http://mimir:9009/api/v1/push"
     }
 }

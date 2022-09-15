@@ -14,11 +14,11 @@ Grafana Agent is a telemetry collector with the primary goal of moving telemetry
 
 # Scraping the Agent
 
-To quickly spin up an example environment, run the following: `docker-compose -f ./assets/scraping-the-agent.yaml` with the [flow file](../assets/flow_configs/agent.flow). Allow the service to run for a few minutes, then navigate to the [metrics browser](http://localhost:3000/explore?orgId=1&left=%5B%22now-1h%22,%22now%22,%22Cortex%22,%7B%22refId%22:%22A%22,%22instant%22:true,%22range%22:true,%22exemplar%22:false,%22expr%22:%22agent_build_info%22%7D%5D). 
+To quickly spin up an example environment, run the following: `CONFIG_FILE=agent.flow docker-compose -f ./assets/docker-compose.yaml up` with the [flow file](../assets/flow_configs/agent.flow). Allow the service to run for a few minutes, then navigate to the [metrics browser](http://localhost:3000/explore?orgId=1&left=%5B%22now-1h%22,%22now%22,%22Mimir%22,%7B%22refId%22:%22A%22,%22instant%22:true,%22range%22:true,%22exemplar%22:true,%22expr%22:%22agent_build_info%7B%7D%22%7D%5D). 
 
 ![](./assets/agent_build_info.png)
 
-This example scrapes the Grafana Agent's `http://localhost:12345/metrics` endpoint and pushes those metrics to the cortex instance. 
+This example scrapes the Grafana Agent's `http://localhost:12345/metrics` endpoint and pushes those metrics to the Mimir instance. 
 
 
 ## Scraping component
@@ -47,12 +47,12 @@ The `forward_to` attribute is an argument that references the [export]({{< relre
 
 ## Remote Write component
 
-The [`prometheus.remote_write`]({{< relref "prometheus.remote_write.md" >}}) component is responsible for writing the metrics to a Prometheus-compatible endpoint (Cortex).
+The [`prometheus.remote_write`]({{< relref "prometheus.remote_write.md" >}}) component is responsible for writing the metrics to a Prometheus-compatible endpoint (Mimir).
 
 ```river
 prometheus.remote_write "prom" {
     remote_write {
-        url = "http://cortex:9009/api/prom/push"
+        url = "http://mimir:9009/api/v1/push"
     }
 }
 ```

@@ -12,6 +12,6 @@ prometheus.scrape "default" {
 
 prometheus.remote_write "prom" {
     remote_write {
-        url = "http://cortex:9009/api/prom/push"
+        url = "http://mimir:9009/api/v1/push"
     }
 }

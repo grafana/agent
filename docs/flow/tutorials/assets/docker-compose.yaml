@@ -1,13 +1,13 @@
 version: '3'
 
 services:
-  cortex:
-    image: cortexproject/cortex:v1.8.1
+  mimir:
+    image: grafana/mimir:latest
     volumes:
-      - ./cortex/config:/etc/cortex-config
+      - ./mimir:/etc/mimir-config
     entrypoint:
-      - /bin/cortex
-      - -config.file=/etc/cortex-config/cortex.yaml
+      - /bin/mimir
+      - -config.file=/etc/mimir-config/mimir.yaml
     ports:
       - "9009:9009"
   agent:
@@ -22,7 +22,7 @@ services:
       - /bin/agent 
       - run 
       - --server.http.listen-addr=0.0.0.0:12345
-      - /etc/agent-config/relabel.flow
+      - /etc/agent-config/$CONFIG_FILE
   grafana:
     image: grafana/grafana:8.3.3
     entrypoint:

@@ -5,20 +5,21 @@ title: Chaining components
 weight: 400
 ---
 
-The goal of this tutorial is to show how to use [multiple-inputs.flow](../assets/flow_configs/multiple-inputs.flow) to send data to several different locations. This tutorial uses the same base as [Filtering metrics]({{< relref "filtering-metrics.md">}}).
+The goal of this tutorial is to show how to use [multiple-inputs.flow](../assets/flow_configs/multiple-inputs.flow) to send data to several different locations. This tutorial uses the same base as [Filtering metrics]({{< relref "filtering-metrics.md">}}). 
 
-A new concept in Flow is chaining components together. 
+A new concept introduced in Flow is chaining components together in a composable pipeline. This promotes the reusability of components while offering flexibility. 
 
 # Prerequisites
 
 * [Docker](https://www.docker.com/products/docker-desktop)
-* Clone the [Agent Repository](https://github.com/grafana/agent) `git clone git@github.com:grafana/agent.git`
+* Clone the [Agent Repository](https://github.com/grafana/agent) 
+    * `git clone git@github.com:grafana/agent.git`
 
 ## Example
 
-To run the example execute `docker-compose -f ./assets/multiple-inputs.yaml up` from the tutorials directory. 
+To run the example execute `CONFIG_FILE=multiple-inputs.flow docker-compose -f ./assets/docker-compose.yaml up` from the tutorials directory. 
 
-Allow the Agent to run for two minutes then go to [Grafana](http://localhost:3000/explore?orgId=1&left=%5B%22now-1m%22,%22now%22,%22Cortex%22,%7B%22refId%22:%22A%22,%22instant%22:true,%22range%22:true,%22exemplar%22:false,%22expr%22:%22agent_build_info%22%7D%5D).
+Allow the Agent to run for two minutes then go to [Grafana](http://localhost:3000/explore?orgId=1&left=%5B%22now-1h%22,%22now%22,%22Mimir%22,%7B%22refId%22:%22A%22,%22instant%22:true,%22range%22:true,%22exemplar%22:true,%22expr%22:%22agent_build_info%7B%7D%22%7D%5D).
 
 ![](./assets/multiple.png)
 
@@ -63,7 +64,7 @@ prometheus.relabel "not_cool" {
 
 prometheus.remote_write "prom" {
     remote_write {
-        url = "http://cortex:9009/api/prom/push"
+        url = "http://mimir:9009/api/v1/push"
     }
 }
 ```
