@@ -1,7 +1,7 @@
 ---
 aliases:
 - /docs/agent/latest/flow/tutorials/chaining
-title: Chaining components
+title: Chaining Prometheus components
 weight: 400
 ---
 
@@ -29,11 +29,8 @@ There are four series&mdash;two scrapers each sending metrics to both filters, s
 
 ```river
 prometheus.scrape "first" {
-    targets = [{"__address__" = "localhost:12345"}]
-    forward_to = [prometheus.relabel.filter.receiver,prometheus.relabel.not_cool.receiver]
-    scrape_config {
-        job_name = "first"
-    }
+	targets    = [{"__address__" = "localhost:12345"}]
+	forward_to = [prometheus.relabel.cool.receiver, prometheus.relabel.not_cool.receiver]
 }
 ```
 
@@ -70,5 +67,3 @@ prometheus.remote_write "prom" {
 ```
 
 In the above Flow blocks, `prometheus.remote_write.prom` receives input from both `prometheus.relabel.cool` and `prometheus.relabel.not_cool`. 
-
-
