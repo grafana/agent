@@ -19,8 +19,8 @@ type riverField interface {
 	hasValue() bool
 }
 
-// ConvertRiverBodyToJson is used to convertBase arguments, exports, health and debuginfo.
-func ConvertRiverBodyToJson(input interface{}) (*json.RawMessage, error) {
+// ConvertRiverBodyToJSON is used to convertBase arguments, exports, health and debuginfo.
+func ConvertRiverBodyToJSON(input interface{}) (*json.RawMessage, error) {
 	if input == nil {
 		return nil, nil
 	}
