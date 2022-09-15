@@ -691,7 +691,7 @@ func (p *parser) parseField() *ast.ObjectField {
 			NamePos: p.pos,
 		}
 		if p.tok == token.STRING && len(p.lit) > 2 {
-			// The field name a string literal; unwrap the quotes.
+			// The field name is a string literal; unwrap the quotes.
 			field.Name.Name = p.lit[1 : len(p.lit)-1]
 			field.Quoted = true
 		}
