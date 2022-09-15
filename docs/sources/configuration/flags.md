@@ -52,7 +52,7 @@ The usage information includes the following details:
 * System architecture Grafana Agent is running on.
 * List of enabled feature flags.
 
-This list may change over time. All newly reported data will be also documented in the CHANGELOG.
+This list may change over time. All newly reported data will also be documented in the CHANGELOG.
 
 If you would like to disable the reporting, Grafana Agent provides the flag `-disable-reporting`
 to stop the reporting.
