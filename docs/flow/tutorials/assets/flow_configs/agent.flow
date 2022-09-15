@@ -1,4 +1,4 @@
-// prometheus.scrape is the name of a component and "default" is the label of this component
+// Create a prometheus.scrape component labeled "default."
 prometheus.scrape "default" {
 	// Collect metrics from `http://localhost:12345/metrics`. 
 	// The http:// protocol and /metrics path are implied by default 
