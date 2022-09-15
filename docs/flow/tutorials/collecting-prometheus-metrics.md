@@ -5,7 +5,7 @@ title: Collecting Prometheus metrics
 weight: 200
 ---
 
-Grafana Agent is a telemetry collector and the primary goal is to get telemetry data from one location to another. The goal of this tutorial is to get a basic working example of Grafana Agent working in Flow mode.  
+Grafana Agent is a telemetry collector with the primary goal of moving telemetry data from one location to another. In this tutorial, you'll set up a Grafana Agent in Flow mode.  
 
 # Prerequisites
 
