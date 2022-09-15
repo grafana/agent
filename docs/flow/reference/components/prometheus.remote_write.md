@@ -43,7 +43,8 @@ Name | Type | Description | Default | Required
 
 ## Blocks
 
-The following sub-blocks are supported:
+The following blocks are supported inside the definition of
+`prometheus.remote_write`:
 
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
@@ -57,6 +58,10 @@ endpoint > http_client_config > tls_config | [tls_config][] | Configure TLS sett
 endpoint > queue_config | [queue_config][] | Configuration for how metrics are batched before sending. | no
 endpoint > metadata_config | [metadata_config][] | Configuration for how metric metadata is sent. | no
 wal | [wal][] | Configuration for the component's WAL. | no
+
+The `>` symbol indicates deeper levels of nesting. For example, `endpoint >
+http_client_config` refers to an `http_client_config` block defined inside a
+`endpoint` block.
 
 [endpoint]: #endpoint-block
 [http_client_config]: #endpoint-block
