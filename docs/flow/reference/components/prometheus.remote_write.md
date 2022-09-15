@@ -351,3 +351,7 @@ information.
   bytes of metadata sent by queues after compression.
 * `prometheus_remote_storage_max_samples_per_send` (gauge): The maximum number
   of samples each shard is allowed to send in a single request.
+* `prometheus_remote_storage_samples_in_total` (counter): Samples read into
+  remote storage.
+* `prometheus_remote_storage_exemplars_in_total` (counter): Exemplars read into
+  remote storage.
