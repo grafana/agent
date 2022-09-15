@@ -9,37 +9,37 @@ import (
 	"github.com/grafana/agent/pkg/river/internal/value"
 )
 
-// AttributeField represents a json representation of a river attribute.
-type AttributeField struct {
-	Field `json:",omitempty"`
-	field RiverField
+// attributeField represents a json representation of a river attribute.
+type attributeField struct {
+	field    `json:",omitempty"`
+	valField riverField
 }
 
-func newAttribute(val value.Value, f rivertags.Field) (*AttributeField, error) {
-	af := &AttributeField{}
+func newAttribute(val value.Value, f rivertags.Field) (*attributeField, error) {
+	af := &attributeField{}
 	return af, af.convertAttribute(val, f)
 }
 
-func (af *AttributeField) isValid() bool {
-	if af == nil || af.field == nil {
+func (af *attributeField) isValid() bool {
+	if af == nil || af.valField == nil {
 		return false
 	}
-	return af.field.hasValue()
+	return af.valField.hasValue()
 }
 
 // MarshalJSON implements json marshaller.
-func (af *AttributeField) MarshalJSON() ([]byte, error) {
-	if af.field.hasValue() {
-		af.Field.Value = af.field
+func (af *attributeField) MarshalJSON() ([]byte, error) {
+	if af.valField.hasValue() {
+		af.field.Value = af.valField
 	} else {
 		return nil, fmt.Errorf("attribute field did not have any valid values")
 	}
 
-	type temp AttributeField
+	type temp attributeField
 	return json.Marshal((*temp)(af))
 }
 
-func (af *AttributeField) convertAttribute(val value.Value, f rivertags.Field) error {
+func (af *attributeField) convertAttribute(val value.Value, f rivertags.Field) error {
 	if !f.IsAttr() {
 		return fmt.Errorf("convertAttribute requires a field that is an attribute got %T", val.Interface())
 	}
@@ -56,6 +56,6 @@ func (af *AttributeField) convertAttribute(val value.Value, f rivertags.Field) e
 	if !rv.hasValue() {
 		return fmt.Errorf("unable to find value for %T in convertAttribute", val.Interface())
 	}
-	af.field = rv
+	af.valField = rv
 	return nil
 }

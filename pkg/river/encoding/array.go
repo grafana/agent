@@ -6,32 +6,31 @@ import (
 	"github.com/grafana/agent/pkg/river/internal/value"
 )
 
-// ArrayField represents an array node.
-type ArrayField struct {
+// arrayField represents an array node.
+type arrayField struct {
 	Type  string       `json:"type"`
-	Value []RiverField `json:"value,omitempty"`
+	Value []riverField `json:"value,omitempty"`
 }
 
-func newArray(val value.Value) (*ArrayField, error) {
-	af := &ArrayField{Type: "array"}
+func newRiverArray(val value.Value) (*arrayField, error) {
+	af := &arrayField{Type: "array"}
 	return af, af.convertArray(val)
 }
 
-func (af *ArrayField) hasValue() bool {
+func (af *arrayField) hasValue() bool {
 	if af == nil {
 		return false
 	}
 	return len(af.Value) > 0
 }
 
-func (af *ArrayField) convertArray(val value.Value) error {
-	if !isArray(val) {
+func (af *arrayField) convertArray(val value.Value) error {
+	if !isRiverArray(val) {
 		return fmt.Errorf("convertArray requires a field that is an slice/array got %T", val.Interface())
 	}
 	af.Type = "array"
 	for i := 0; i < val.Len(); i++ {
-		arrEle := val.Index(i).Interface()
-		arrVal := value.Encode(arrEle)
+		arrVal := val.Index(i)
 
 		rv, err := convertRiverValue(arrVal)
 		if err != nil {

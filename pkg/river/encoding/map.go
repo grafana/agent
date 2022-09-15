@@ -6,29 +6,29 @@ import (
 	"github.com/grafana/agent/pkg/river/internal/value"
 )
 
-// MapField represents a value in river.
-type MapField struct {
+// mapField represents a value in river.
+type mapField struct {
 	Type  string      `json:"type,omitempty"`
-	Value []*KeyField `json:"value,omitempty"`
+	Value []*keyField `json:"value,omitempty"`
 }
 
-func newMap(val value.Value) (*MapField, error) {
-	mf := &MapField{}
+func newRiverMap(val value.Value) (*mapField, error) {
+	mf := &mapField{}
 	return mf, mf.convertMap(val)
 }
 
-func (mf *MapField) hasValue() bool {
+func (mf *mapField) hasValue() bool {
 	if mf == nil {
 		return false
 	}
 	return len(mf.Value) > 0
 }
 
-func (mf *MapField) convertMap(val value.Value) error {
+func (mf *mapField) convertMap(val value.Value) error {
 	mf.Type = object
-	fields := make([]*KeyField, 0)
+	fields := make([]*keyField, 0)
 	for _, key := range val.Keys() {
-		kf := &KeyField{}
+		kf := &keyField{}
 
 		kf.Key = key
 		mapVal, found := val.Key(key)

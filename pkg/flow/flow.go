@@ -47,12 +47,11 @@ package flow
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"sync"
 	"time"
-
-	"github.com/grafana/agent/pkg/river/encoding"
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
@@ -253,12 +252,10 @@ func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *ComponentInfo 
 	}
 	h := cn.CurrentHealth()
 	ci := &ComponentInfo{
-		Label: cn.Label(),
-		ID:    cn.NodeID(),
-		Field: encoding.Field{
-			Name: cn.ComponentName(),
-			Type: "block",
-		},
+		Label:        cn.Label(),
+		ID:           cn.NodeID(),
+		Name:         cn.ComponentName(),
+		Type:         "block",
 		References:   references,
 		ReferencedBy: referencedBy,
 		Health: &ComponentHealth{
@@ -272,16 +269,17 @@ func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *ComponentInfo 
 
 // ComponentInfo represents a component in river.
 type ComponentInfo struct {
-	encoding.Field `json:",omitempty"`
-	ID             string           `json:"id,omitempty"`
-	Label          string           `json:"label,omitempty"`
-	References     []string         `json:"referencesTo"`
-	ReferencedBy   []string         `json:"referencedBy"`
-	Health         *ComponentHealth `json:"health"`
-	Original       string           `json:"original"`
-	Arguments      interface{}      `json:"arguments,omitempty"`
-	Exports        interface{}      `json:"exports,omitempty"`
-	DebugInfo      interface{}      `json:"debugInfo,omitempty"`
+	Name         string           `json:"name,omitempty"`
+	Type         string           `json:"type,omitempty"`
+	ID           string           `json:"id,omitempty"`
+	Label        string           `json:"label,omitempty"`
+	References   []string         `json:"referencesTo"`
+	ReferencedBy []string         `json:"referencedBy"`
+	Health       *ComponentHealth `json:"health"`
+	Original     string           `json:"original"`
+	Arguments    *json.RawMessage `json:"arguments,omitempty"`
+	Exports      *json.RawMessage `json:"exports,omitempty"`
+	DebugInfo    *json.RawMessage `json:"debugInfo,omitempty"`
 }
 
 // ComponentHealth represents the health of a component.

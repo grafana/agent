@@ -1,6 +1,7 @@
 package encoding
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 
@@ -13,14 +14,19 @@ import (
 const attr = "attr"
 const object = "object"
 
-// ConvertRiverBlock is used to convertBase arguments, exports, health and debuginfo.
-func ConvertRiverBlock(input interface{}) ([]interface{}, error) {
+// riverField is an interface that wraps the various concrete options for a river value.
+type riverField interface {
+	hasValue() bool
+}
+
+// ConvertRiverBodyToJson is used to convertBase arguments, exports, health and debuginfo.
+func ConvertRiverBodyToJson(input interface{}) (*json.RawMessage, error) {
 	if input == nil {
 		return nil, nil
 	}
 	val := value.Encode(input)
-	var fields []interface{}
 	rt := rivertags.Get(val.Reflect().Type())
+	var fields []interface{}
 	for _, t := range rt {
 		fieldValue := val.Reflect().FieldByIndex(t.Index)
 		enVal := value.Encode(fieldValue.Interface())
@@ -28,7 +34,7 @@ func ConvertRiverBlock(input interface{}) ([]interface{}, error) {
 		if t.IsBlock() && (enVal.Reflect().Kind() == reflect.Array || enVal.Reflect().Kind() == reflect.Slice) {
 			for i := 0; i < enVal.Reflect().Len(); i++ {
 				arrEle := enVal.Reflect().Index(i).Interface()
-				bf, err := newBlock(value.Encode(arrEle), t)
+				bf, err := newBlock(reflect.ValueOf(arrEle), t)
 				if err != nil {
 					return nil, err
 				}
@@ -37,7 +43,7 @@ func ConvertRiverBlock(input interface{}) ([]interface{}, error) {
 				}
 			}
 		} else if t.IsBlock() {
-			bf, err := newBlock(value.Encode(enVal), t)
+			bf, err := newBlock(reflect.ValueOf(enVal), t)
 
 			if err != nil {
 				return nil, err
@@ -55,7 +61,12 @@ func ConvertRiverBlock(input interface{}) ([]interface{}, error) {
 			}
 		}
 	}
-	return fields, nil
+	bb, err := json.Marshal(fields)
+	if err != nil {
+		return nil, err
+	}
+	raw := json.RawMessage(bb)
+	return &raw, nil
 }
 
 func isFieldValue(val value.Value) bool {
@@ -67,32 +78,32 @@ func isFieldValue(val value.Value) bool {
 }
 
 // convertValue is used to transform the underlying value of a river tag to a field
-func convertValue(val value.Value) (*ValueField, error) {
+func convertValue(val value.Value) (*valueField, error) {
 	// Handle items that explicitly use tokenizer, these are always considered capsule values.
 	if tkn, ok := val.Interface().(builder.Tokenizer); ok {
 		tokens := tkn.RiverTokenize()
-		return &ValueField{
+		return &valueField{
 			Type:  "capsule",
 			Value: tokens[0].Lit,
 		}, nil
 	}
 	switch val.Type() {
 	case value.TypeNull:
-		return &ValueField{
+		return &valueField{
 			Type: "null",
 		}, nil
 	case value.TypeNumber:
-		return &ValueField{
+		return &valueField{
 			Type:  "number",
 			Value: val.Interface(),
 		}, nil
 	case value.TypeString:
-		return &ValueField{
+		return &valueField{
 			Type:  "string",
 			Value: val.Text(),
 		}, nil
 	case value.TypeBool:
-		return &ValueField{
+		return &valueField{
 			Type:  "bool",
 			Value: val.Bool(),
 		}, nil
@@ -101,12 +112,12 @@ func convertValue(val value.Value) (*ValueField, error) {
 	case value.TypeObject:
 		return nil, fmt.Errorf("convertValue does not allow object types")
 	case value.TypeFunction:
-		return &ValueField{
+		return &valueField{
 			Type:  "function",
 			Value: val.Describe(),
 		}, nil
 	case value.TypeCapsule:
-		return &ValueField{
+		return &valueField{
 			Type:  "capsule",
 			Value: val.Describe(),
 		}, nil
@@ -115,26 +126,23 @@ func convertValue(val value.Value) (*ValueField, error) {
 	}
 }
 
-func isArray(val value.Value) bool {
+func convertRiverValue(val value.Value) (riverField, error) {
+	switch {
+	case isFieldValue(val):
+		return convertValue(val)
+	case isRiverArray(val):
+		return newRiverArray(val)
+	case isRiverMapOrStruct(val):
+		return newRiverMap(val)
+	default:
+		return nil, fmt.Errorf("unknown value %T", val.Interface())
+	}
+}
+
+func isRiverArray(val value.Value) bool {
 	return val.Type() == value.TypeArray
 }
 
-func isMapOrStruct(val value.Value) bool {
+func isRiverMapOrStruct(val value.Value) bool {
 	return val.Type() == value.TypeObject
-}
-
-// RiverField is an interface that wraps the various concrete options for a river value.
-type RiverField interface {
-	hasValue() bool
-}
-
-func convertRiverValue(val value.Value) (RiverField, error) {
-	if isFieldValue(val) {
-		return convertValue(val)
-	} else if isArray(val) {
-		return newArray(val)
-	} else if isMapOrStruct(val) {
-		return newMap(val)
-	}
-	return nil, fmt.Errorf("unknown value %T", val.Interface())
 }

@@ -145,29 +145,23 @@ func (f *Flow) ComponentJSON(w io.Writer, ci *ComponentInfo) error {
 	}
 
 	var err error
-	args, err := encoding.ConvertRiverBlock(foundComponent.Arguments())
+	args, err := encoding.ConvertRiverBodyToJson(foundComponent.Arguments())
 	if err != nil {
 		return err
 	}
-	if len(args) > 0 {
-		ci.Arguments = args
-	}
+	ci.Arguments = args
 
-	exports, err := encoding.ConvertRiverBlock(foundComponent.Exports())
+	exports, err := encoding.ConvertRiverBodyToJson(foundComponent.Exports())
 	if err != nil {
 		return err
 	}
-	if len(exports) > 0 {
-		ci.Exports = exports
-	}
+	ci.Exports = exports
 
-	debugInfo, err := encoding.ConvertRiverBlock(foundComponent.DebugInfo())
+	debugInfo, err := encoding.ConvertRiverBodyToJson(foundComponent.DebugInfo())
 	if err != nil {
 		return err
 	}
-	if len(debugInfo) > 0 {
-		ci.DebugInfo = debugInfo
-	}
+	ci.DebugInfo = debugInfo
 
 	bb, err := json.Marshal(ci)
 	if err != nil {
