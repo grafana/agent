@@ -1,7 +1,7 @@
 ---
 aliases:
 - /docs/agent/latest/flow/tutorials/filtering-metrics
-title: Filtering metrics
+title: Filtering Prometheus metrics
 weight: 300
 ---
 

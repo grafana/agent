@@ -1,12 +1,14 @@
 // prometheus.scrape is the name of a component and "default" is the label of this component
 prometheus.scrape "default" {
-    // Tell the scraper to scrap at http://localhost:12345/metrics
-    // the http:// and metrics are implied but able to be overwritten 
+    // Collect metrics from `http://localhost:12345/metrics`. 
+    // The http:// protocol and /metrics path are implied by default 
+    // but can be overridden.
     targets = [{"__address__" = "localhost:12345"}]
-    // Forward the scrape results to the receiver, in general 
-    // Flow uses forward_to to tell which receiver to send results to. 
-    // The forward_to is an argument of prometheus.scrape.default  and 
-    // the receiver is an export prometheus.remote_write.prom
+
+    // Forward collected metrics to the receiver. forward_to 
+    // is a common argument name used for forwarding Prometheus metrics.
+    // Receiver is an export of prometheus.remote_write.prom which 
+    // can accept metrics.
     forward_to = [prometheus.remote_write.prom.receiver]
 }
 
