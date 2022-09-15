@@ -20,7 +20,7 @@ func newAttribute(val value.Value, f rivertags.Field) (*attributeField, error) {
 	return af, af.convertAttribute(val, f)
 }
 
-func (af *attributeField) isValid() bool {
+func (af *attributeField) hasValue() bool {
 	if af == nil || af.valField == nil {
 		return false
 	}

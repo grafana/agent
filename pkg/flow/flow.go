@@ -277,9 +277,9 @@ type ComponentInfo struct {
 	ReferencedBy []string         `json:"referencedBy"`
 	Health       *ComponentHealth `json:"health"`
 	Original     string           `json:"original"`
-	Arguments    *json.RawMessage `json:"arguments,omitempty"`
-	Exports      *json.RawMessage `json:"exports,omitempty"`
-	DebugInfo    *json.RawMessage `json:"debugInfo,omitempty"`
+	Arguments    json.RawMessage  `json:"arguments,omitempty"`
+	Exports      json.RawMessage  `json:"exports,omitempty"`
+	DebugInfo    json.RawMessage  `json:"debugInfo,omitempty"`
 }
 
 // ComponentHealth represents the health of a component.

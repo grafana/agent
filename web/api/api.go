@@ -75,15 +75,3 @@ func (f *FlowAPI) JSON(c *flow.ComponentInfo) (bytes.Buffer, error) {
 	}
 	return buf, nil
 }
-
-// /api/v0/web/status/build-info
-//
-//   Go runtime, build information (like the Prometheus page)
-//
-// /api/v0/web/status/flags
-//
-//   Command-line flags used to launch application
-//
-// /api/v0/web/status/config-file
-//
-//   Parsed config file (*not* evaluated config file)

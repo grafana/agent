@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/grafana/agent/pkg/river/token/builder"
+
 	"github.com/grafana/agent/pkg/river/internal/rivertags"
 	"github.com/grafana/agent/pkg/river/internal/value"
 )
@@ -38,7 +40,7 @@ func (bf *blockField) MarshalJSON() ([]byte, error) {
 	return json.Marshal((*temp)(bf))
 }
 
-func (bf *blockField) isValid() bool {
+func (bf *blockField) hasValue() bool {
 	if bf == nil {
 		return false
 	}
@@ -58,6 +60,7 @@ func (bf *blockField) convertBlock(reflectValue reflect.Value, f rivertags.Field
 
 	bf.Name = strings.Join(f.Name, ".")
 	bf.Type = "block"
+	bf.Label = builder.GetBlockLabel(reflectValue)
 
 	riverFields := rivertags.Get(reflectValue.Type())
 	for _, rf := range riverFields {
@@ -70,7 +73,7 @@ func (bf *blockField) convertBlock(reflectValue reflect.Value, f rivertags.Field
 			if err != nil {
 				return nil
 			}
-			if newBF.isValid() {
+			if newBF.hasValue() {
 				bf.blockFields = append(bf.blockFields, newBF)
 			}
 		} else if rf.IsAttr() {
@@ -78,7 +81,7 @@ func (bf *blockField) convertBlock(reflectValue reflect.Value, f rivertags.Field
 			if err != nil {
 				return nil
 			}
-			if newAttr.isValid() {
+			if newAttr.hasValue() {
 				bf.attributeFields = append(bf.attributeFields, newAttr)
 			}
 		}

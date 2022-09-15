@@ -19,8 +19,8 @@ type riverField interface {
 	hasValue() bool
 }
 
-// ConvertRiverBodyToJSON is used to convertBase arguments, exports, health and debuginfo.
-func ConvertRiverBodyToJSON(input interface{}) (*json.RawMessage, error) {
+// ConvertRiverBodyToJSON is used to convert a River body value to a JSON representation.
+func ConvertRiverBodyToJSON(input interface{}) (json.RawMessage, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -38,7 +38,7 @@ func ConvertRiverBodyToJSON(input interface{}) (*json.RawMessage, error) {
 				if err != nil {
 					return nil, err
 				}
-				if bf.isValid() {
+				if bf.hasValue() {
 					fields = append(fields, bf)
 				}
 			}
@@ -48,7 +48,7 @@ func ConvertRiverBodyToJSON(input interface{}) (*json.RawMessage, error) {
 			if err != nil {
 				return nil, err
 			}
-			if bf.isValid() {
+			if bf.hasValue() {
 				fields = append(fields, bf)
 			}
 		} else {
@@ -56,7 +56,7 @@ func ConvertRiverBodyToJSON(input interface{}) (*json.RawMessage, error) {
 			if err != nil {
 				return nil, err
 			}
-			if af.isValid() {
+			if af.hasValue() {
 				fields = append(fields, af)
 			}
 		}
@@ -66,7 +66,7 @@ func ConvertRiverBodyToJSON(input interface{}) (*json.RawMessage, error) {
 		return nil, err
 	}
 	raw := json.RawMessage(bb)
-	return &raw, nil
+	return raw, nil
 }
 
 func isFieldValue(val value.Value) bool {
