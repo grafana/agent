@@ -62,7 +62,7 @@ func (c VersionedIntegrations) MarshalYAML() (interface{}, error) {
 	case c.configV2 != nil:
 		return c.configV2, nil
 	default:
-		return c.raw, nil
+		return &c.raw, nil
 	}
 }
 
