@@ -20,6 +20,6 @@ Wait two minutes to ensure the scrape is complete, then visit the [Grafana](http
 
 ![](../assets/filter.png)
 
-# What's Happening
+# What's happening?
 
 The scraper is sending the metrics to the filter which is then sending metrics to the remote_write. 
