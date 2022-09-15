@@ -3,6 +3,7 @@ obj {
     "string_field"    = "foo", 
     identifier_string = "bar", 
     1337 /* ERROR "expected field name \(string or identifier\), got NUMBER" */ = "baz", 
+    "another_field"   = "qux",
   }
 }
 
