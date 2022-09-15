@@ -431,7 +431,6 @@ func CheckSecret(t *testing.T, rawCfg string, originalValue string) {
 	bb, err := yaml.Marshal(&cfg)
 	require.NoError(t, err)
 
-	fmt.Println(string(bb))
 	require.True(t, strings.Contains(string(bb), "<secret>"))
 	require.False(t, strings.Contains(string(bb), originalValue))
 }
