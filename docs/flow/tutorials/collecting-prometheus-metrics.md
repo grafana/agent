@@ -28,8 +28,8 @@ The [`prometheus.scrape`]({{< relref "prometheus.scrape.md" >}}) component is re
 ```river
 // prometheus.scrape is the name of the component and "default" is its label.
 prometheus.scrape "default" {
-    // Tell the scraper to scrape at http://localhost:12345/metrics
-    // the http:// and metrics are implied but able to be overwritten 
+    // Tell the scraper to scrape at http://localhost:12345/metrics.
+    // The http:// and metrics are implied but able to be overwritten. 
     targets = [{"__address__" = "localhost:12345"}]
     // Forward the scrape results to the receiver. In general, 
     // Flow uses forward_to to tell which receiver to send results to. 
