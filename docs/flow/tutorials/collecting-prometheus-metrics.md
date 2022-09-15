@@ -21,7 +21,7 @@ To quickly spin up an example environment, run the following: `docker-compose -f
 This example scrapes the Grafana Agent's `http://localhost:12345/metrics` endpoint and pushes those metrics to the cortex instance. 
 
 
-## Scraping Component
+## Scraping component
 
 The [`prometheus.scrape`]({{< relref "prometheus.scrape.md" >}}) component is responsible for scraping the metrics of a particular endpoint and passing them on to another component.
 
