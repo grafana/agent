@@ -30,4 +30,4 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-go-
     - name: Test
-      run: make DOCKER_OPTS="" GOFLAGS="-tags=netgo,nodocker" BUILD_IN_CONTAINER=false test
+      run: make GO_TAGS="nodocker" test

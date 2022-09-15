@@ -69,6 +69,11 @@ type Options struct {
 
 	// Reg is the prometheus register to use
 	Reg prometheus.Registerer
+
+	// HTTPListenAddr is the base address that the server is listening on.
+	// The controller does not itself listen here, but some components
+	// need to know this to set the correct targets.
+	HTTPListenAddr string
 }
 
 // Flow is the Flow system.
@@ -118,7 +123,8 @@ func newFlow(o Options) (*Flow, context.Context) {
 				// Changed components should be queued for reevaluation.
 				queue.Enqueue(cn)
 			},
-			Registerer: o.Reg,
+			Registerer:     o.Reg,
+			HTTPListenAddr: o.HTTPListenAddr,
 		})
 	)
 

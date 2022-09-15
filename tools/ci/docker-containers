@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+#
+# This script builds and pushes cross-platform Docker containers. Maintainers
+# should *not* run this locally since it pushes the containers.
+#
+# This script expects to be run from the repo root and has checks for running
+# from a Drone trigger.
+set -euxo pipefail
+
+# Environment variables used throughout this script. These must be set
+# otherwise bash will fail with an "unbound variable" error because of the `set
+# -u` flag on the above line.
+#
+# If the environment variables are unset, the variables below default to an
+# empty string.
+export DRONE_TAG=${DRONE_TAG:-}
+export DRONE_BRANCH=${DRONE_BRANCH:-}
+
+export AGENT_IMAGE=grafana/agent
+export AGENTCTL_IMAGE=grafana/agentctl
+export OPERATOR_IMAGE=grafana/agent-operator
+export SMOKE_IMAGE=us.gcr.io/kubernetes-dev/grafana/agent-smoke
+export CROW_IMAGE=us.gcr.io/kubernetes-dev/grafana/agent-crow
+
+# We need to determine what version to assign to built binaries. If containers
+# are being built from a Drone tag trigger, we force the version to come from the
+# Drone tag name.
+#
+# Otherwise, we use the ./tools/image-tag script to determine the version.
+if [ -n "$DRONE_TAG" ]; then
+  VERSION=$DRONE_TAG
+else
+  VERSION=$(./tools/image-tag)
+fi
+
+# We also need to know which "branch tag" to update. Branch tags are used as a
+# secondary tag for Docker containers. The branch tag is "latest" when being
+# tagged from a stable release (i.e., not a release candidate) or the Drone
+# branch when coming from a Drone job.
+#
+# If we're not running from drone, we'll set the branch tag to match the
+# version. This effectively acts as a no-op because it will tag the same Docker
+# image twice.
+if [ -n "$DRONE_TAG" ] && [[ "$DRONE_TAG" != *"-rc."* ]]; then
+  BRANCH_TAG=latest
+elif [ -n "$DRONE_BRANCH" ]; then
+  BRANCH_TAG=$DRONE_BRANCH
+else
+  BRANCH_TAG=$VERSION
+fi
+
+
+# Build all of our images.
+
+export BUILD_PLATFORMS=linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le
+
+docker buildx build --push       \
+  --platform $BUILD_PLATFORMS    \
+  --build-arg RELEASE_BUILD=1    \
+  --build-arg VERISON="$VERSION" \
+  -t "$AGENT_IMAGE:$VERSION"     \
+  -t "$AGENT_IMAGE:$BRANCH_TAG"  \
+  -f cmd/agent/Dockerfile        \
+  .
+
+docker buildx build --push         \
+  --platform $BUILD_PLATFORMS      \
+  --build-arg RELEASE_BUILD=1      \
+  --build-arg VERISON="$VERSION"   \
+  -t "$AGENTCTL_IMAGE:$VERSION"    \
+  -t "$AGENTCTL_IMAGE:$BRANCH_TAG" \
+  -f cmd/agentctl/Dockerfile       \
+  .
+
+docker buildx build --push             \
+  --platform $BUILD_PLATFORMS          \
+  --build-arg RELEASE_BUILD=1          \
+  --build-arg VERISON="$VERSION"       \
+  -t "$OPERATOR_IMAGE:$VERSION"        \
+  -t "$OPERATOR_IMAGE:$BRANCH_TAG"     \
+  -f cmd/agent-operator/Dockerfile     \
+  .
+
+docker buildx build --push       \
+  --platform $BUILD_PLATFORMS    \
+  --build-arg RELEASE_BUILD=1    \
+  --build-arg VERISON="$VERSION" \
+  -t "$SMOKE_IMAGE:$VERSION"     \
+  -t "$SMOKE_IMAGE:$BRANCH_TAG"  \
+  -f tools/smoke/Dockerfile      \
+  .
+
+docker buildx build --push       \
+  --platform $BUILD_PLATFORMS    \
+  --build-arg RELEASE_BUILD=1    \
+  --build-arg VERISON="$VERSION" \
+  -t "$CROW_IMAGE:$VERSION"      \
+  -t "$CROW_IMAGE:$BRANCH_TAG"   \
+  -f tools/crow/Dockerfile       \
+  .

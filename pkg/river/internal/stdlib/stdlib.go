@@ -88,7 +88,7 @@ var Functions = map[string]interface{}{
 		return value.Encode(raw.Interface()), nil
 	}),
 
-	"unmarshal_json": func(in string) (interface{}, error) {
+	"json_decode": func(in string) (interface{}, error) {
 		var res interface{}
 		err := json.Unmarshal([]byte(in), &res)
 		if err != nil {

@@ -52,6 +52,11 @@ func generatePodTemplate(
 		agentArgs = append(agentArgs, "-config.enable-read-api")
 	}
 
+	disableReporting := d.Agent.Spec.DisableReporting
+	if disableReporting {
+		agentArgs = append(agentArgs, "-disable-reporting")
+	}
+
 	// NOTE(rfratto): the Prometheus Operator supports a ListenLocal to prevent a
 	// service from being created. Given the intent is that Agents can connect to
 	// each other, ListenLocal isn't currently supported and we always create a

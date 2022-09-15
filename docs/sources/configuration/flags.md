@@ -34,14 +34,25 @@ Valid feature names are:
 * `dynamic-config`: Enable support for [dynamic configuration]({{< relref "./dynamic-config" >}})
 * `extra-scrape-metrics`: When enabled, additional time series  are exposed for each metrics instance scrape. See [Extra scrape metrics](https://prometheus.io/docs/prometheus/latest/feature_flags/#extra-scrape-metrics).
 
-### Report use of feature flags
+## Report information usage
 
-By default, Grafana Agent sends anonymous, but uniquely-identifiable information
-of the enabled feature flags from your running Grafana Agent instance to Grafana Labs.
+By default, Grafana Agent sends anonymous, but uniquely-identifiable usage information
+from your running Grafana Agent instance to Grafana Labs.
 These statistics are sent to `stats.grafana.org`.
 
 Statistics help us better understand how Grafana Agent is used.
 This helps us prioritize features and documentation.
+
+The usage information includes the following details:
+* A randomly generated and an anonymous unique ID (UUID).
+* Timestamp of when the UID was first generated.
+* Timestamp of when the report was created (by default, every 4h).
+* Version of running Grafana Agent.
+* Operating system Grafana Agent is running on.
+* System architecture Grafana Agent is running on.
+* List of enabled feature flags.
+
+This list may change over time. All newly reported data will also be documented in the CHANGELOG.
 
 If you would like to disable the reporting, Grafana Agent provides the flag `-disable-reporting`
 to stop the reporting.

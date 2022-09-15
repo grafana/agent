@@ -3,12 +3,15 @@ package scrape
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"sync"
 	"time"
 
+	"github.com/alecthomas/units"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	fa "github.com/grafana/agent/component/common/appendable"
+	component_config "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/build"
@@ -37,10 +40,64 @@ type Arguments struct {
 	Targets   []discovery.Target     `river:"targets,attr"`
 	ForwardTo []*prometheus.Receiver `river:"forward_to,attr"`
 
-	ScrapeConfig Config `river:"scrape_config,block"`
+	// The job name to override the job label with.
+	JobName string `river:"job_name,attr,optional"`
+	// Indicator whether the scraped metrics should remain unmodified.
+	HonorLabels bool `river:"honor_labels,attr,optional"`
+	// Indicator whether the scraped timestamps should be respected.
+	HonorTimestamps bool `river:"honor_timestamps,attr,optional"`
+	// A set of query parameters with which the target is scraped.
+	Params url.Values `river:"params,attr,optional"`
+	// How frequently to scrape the targets of this scrape config.
+	ScrapeInterval time.Duration `river:"scrape_interval,attr,optional"`
+	// The timeout for scraping targets of this config.
+	ScrapeTimeout time.Duration `river:"scrape_timeout,attr,optional"`
+	// The HTTP resource path on which to fetch metrics from targets.
+	MetricsPath string `river:"metrics_path,attr,optional"`
+	// The URL scheme with which to fetch metrics from targets.
+	Scheme string `river:"scheme,attr,optional"`
+	// An uncompressed response body larger than this many bytes will cause the
+	// scrape to fail. 0 means no limit.
+	BodySizeLimit units.Base2Bytes `river:"body_size_limit,attr,optional"`
+	// More than this many samples post metric-relabeling will cause the scrape
+	// to fail.
+	SampleLimit uint `river:"sample_limit,attr,optional"`
+	// More than this many targets after the target relabeling will cause the
+	// scrapes to fail.
+	TargetLimit uint `river:"target_limit,attr,optional"`
+	// More than this many labels post metric-relabeling will cause the scrape
+	// to fail.
+	LabelLimit uint `river:"label_limit,attr,optional"`
+	// More than this label name length post metric-relabeling will cause the
+	// scrape to fail.
+	LabelNameLengthLimit uint `river:"label_name_length_limit,attr,optional"`
+	// More than this label value length post metric-relabeling will cause the
+	// scrape to fail.
+	LabelValueLengthLimit uint `river:"label_value_length_limit,attr,optional"`
+
+	HTTPClientConfig component_config.HTTPClientConfig `river:"http_client_config,block,optional"`
 
 	// Scrape Options
 	ExtraMetrics bool `river:"extra_metrics,attr,optional"`
+}
+
+// DefaultArguments defines the default settings for a scrape job.
+var DefaultArguments = Arguments{
+	MetricsPath:      "/metrics",
+	Scheme:           "http",
+	HonorLabels:      false,
+	HonorTimestamps:  true,
+	HTTPClientConfig: component_config.DefaultHTTPClientConfig,
+	ScrapeInterval:   1 * time.Minute,  // From config.DefaultGlobalConfig
+	ScrapeTimeout:    10 * time.Second, // From config.DefaultGlobalConfig
+}
+
+// UnmarshalRiver implements river.Unmarshaler.
+func (arg *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+	*arg = DefaultArguments
+
+	type args Arguments
+	return f((*args)(arg))
 }
 
 // Component implements the prometheus.scrape component.
@@ -100,9 +157,15 @@ func (c *Component) Run(ctx context.Context) error {
 			return nil
 		case <-c.reloadTargets:
 			c.mut.RLock()
-			tgs := c.args.Targets
+			var (
+				tgs     = c.args.Targets
+				jobName = c.opts.ID
+			)
+			if c.args.JobName != "" {
+				jobName = c.args.JobName
+			}
 			c.mut.RUnlock()
-			promTargets := c.componentTargetsToProm(tgs)
+			promTargets := c.componentTargetsToProm(jobName, tgs)
 
 			select {
 			case targetSetsChan <- promTargets:
@@ -123,7 +186,7 @@ func (c *Component) Update(args component.Arguments) error {
 
 	c.appendable.SetReceivers(newArgs.ForwardTo)
 
-	sc, err := newArgs.ScrapeConfig.getPromScrapeConfigs(c.opts.ID)
+	sc, err := getPromScrapeConfigs(c.opts.ID, newArgs)
 	if err != nil {
 		return fmt.Errorf("invalid scrape_config: %w", err)
 	}
@@ -187,13 +250,13 @@ func (c *Component) DebugInfo() interface{} {
 	return ScraperStatus{TargetStatus: res}
 }
 
-func (c *Component) componentTargetsToProm(tgs []discovery.Target) map[string][]*targetgroup.Group {
-	promGroup := &targetgroup.Group{Source: c.opts.ID}
+func (c *Component) componentTargetsToProm(jobName string, tgs []discovery.Target) map[string][]*targetgroup.Group {
+	promGroup := &targetgroup.Group{Source: jobName}
 	for _, tg := range tgs {
 		promGroup.Targets = append(promGroup.Targets, convertLabelSet(tg))
 	}
 
-	return map[string][]*targetgroup.Group{c.opts.ID: {promGroup}}
+	return map[string][]*targetgroup.Group{jobName: {promGroup}}
 }
 
 func convertLabelSet(tg discovery.Target) model.LabelSet {

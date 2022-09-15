@@ -52,7 +52,7 @@ means that reliability of alerts are tied to the reliability of the remote syste
 and alerts will be delayed at least by the time it takes for samples to reach
 the remote system.
 
-## Getting Started
+## Getting started
 
 When using Kubernetes this [link](https://grafana.com/docs/grafana-cloud/quickstart/agent-k8s) offers the best guide.
 
@@ -69,7 +69,19 @@ k3d/Tanka environment. Both examples deploy the Agent, Cortex and Grafana for
 testing the agent. See the [docker-compose README](./example/docker-compose/README.md)
 and the [k3d example README](./example/k3d/README.md) for more information.
 
-## Prometheus Vendoring
+## Release schedule
+
+Starting with the v0.28 release, a new minor release is planned for every 6
+weeks. This includes a release for Grafana Agent, Grafana Agent Operator, and
+the `agentctl` binary.
+
+The release schedule is best-effort, and releases may be moved forward or
+backwards if needed. The planned release dates for future minor releases are
+not changed if one minor release is moved.
+
+Patch and security releases may be created at any time.
+
+## Prometheus vendoring
 
 The Grafana Agent vendors a downstream Prometheus repository maintained by
 [Grafana Labs](https://github.com/grafana/prometheus). This is done so
@@ -80,7 +92,7 @@ experimental changes to a minimum and upstream changes as soon as possible.
 For more context on our vendoring strategy, read our
 [downstream repo maintenance guide](./docs/developer/downstream-prometheus.md).
 
-## Getting Help
+## Getting help
 
 If you have any questions or feedback regarding the Grafana Agent:
 

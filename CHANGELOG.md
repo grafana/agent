@@ -10,6 +10,21 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Features
+
+### Enhancements
+
+### Bugfixes
+
+### Other changes
+
+ - Fix relabel configs in sample agent-operator manifests (@hjet)
+
+ - Operator no longer set the `SecurityContext.Privileged` flag in the `config-reloader` container. (@hsyed-dojo)
+
+v0.27.1 (2022-09-09)
+-------------------------
+
 > **NOTE**: ARMv6 Docker images are no longer being published.
 > 
 > We have stopped publishing Docker images for ARMv6 platforms. 
@@ -18,9 +33,17 @@ Main (unreleased)
 > secure Docker images. We will still continue to publish ARMv6 release binaries and 
 > deb/rpm packages.
 
+### Other Changes
+
+ - Switch docker image base from debian to ubuntu. (@captncraig)
+
+v0.27.0 (2022-09-01)
+-------------------------
+
 ### Features
 
 - Integrations: (beta) Add vmware_exporter integration (@rlankfo)
+
 - App agent receiver: add Event kind to payload (@domasx2)
 
 ### Enhancements
@@ -35,6 +58,8 @@ Main (unreleased)
 
 - Introduce new configuration fields for disabling Keep-Alives and setting the
   IdleConnectionTimeout when scraping. (@tpaschalis)
+
+- Add field to Operator CRD to disable report usage functionality. (@marctc)
 
 ### Bugfixes
 
@@ -56,10 +81,6 @@ Main (unreleased)
  - Update several go dependencies to resolve warnings from certain security scanning tools. None of the resolved vulnerabilities were known to be exploitable through the agent. (@captncraig)
 
  - It is now possible to compile Grafana Agent using Go 1.19. (@rfratto)
-
- - Fix relabel configs in sample agent-operator manifests (@hjet)
-
- - Operator no longer set the `SecurityContext.Privileged` flag in the `config-reloader` container. (@hsyed-dojo)
 
 v0.26.1 (2022-07-25)
 -------------------------

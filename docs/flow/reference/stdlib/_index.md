@@ -8,7 +8,7 @@ weight: 400
 # Standard library
 
 > Grafana Agent Flow is still growing, and its standard library isn't mature
-> yet. If you have a request for for extensions to the standard library, please
+> yet. If you have a request for extensions to the standard library, please
 > leave feedback on our dedicated [GitHub discussion for River
 > feedback][feedback].
 
