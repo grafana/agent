@@ -41,17 +41,34 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `external_labels` | `map(string)` | Labels to add to metrics sent over the network. | | no
 
+## Blocks
+
 The following sub-blocks are supported:
 
-Name | Description | Required
----- | ----------- | --------
-`endpoint` | Location to send metrics to. | no
-`wal` | Configuration for the component's WAL. | no
+Hierarchy | Block | Description | Required
+--------- | ----- | ----------- | --------
+endpoint | [endpoint][] | Location to send metrics to. | no
+endpoint > http_client_config | [http_client_config][] | HTTP client settings when connecting to the endpoint. | no
+endpoint > http_client_config > basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
+endpoint > http_client_config > authorization | [authorization][] | Configure generic authorization to the endpoint. | no
+endpoint > http_client_config > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
+endpoint > http_client_config > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+endpoint > http_client_config > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+endpoint > queue_config | [queue_config][] | Configuration for how metrics are batched before sending. | no
+endpoint > metadata_config | [metadata_config][] | Configuration for how metric metadata is sent. | no
+wal | [wal][] | Configuration for the component's WAL. | no
 
 [endpoint]: #endpoint-block
+[http_client_config]: #endpoint-block
+[basic_auth]: #basic_auth-block
+[authorization]: #authorization-block
+[oauth2]: #oauth2-block
+[tls_config]: #tls_config-block
+[queue_config]: #queue_config-block
+[metadata_config]: #metadata_config-block
 [wal]: #wal-block
 
-### Block: `endpoint`
+### endpoint block
 
 The `endpoint` block describes a single location to send metrics to. Multiple
 `endpoint` blocks may be provided to send metrics to multiple locations.
@@ -66,14 +83,6 @@ Name | Type | Description | Default | Required
 `headers` | `map(string)` | Extra headers to deliver with the request. | | no
 `send_exemplars` | `bool` | Whether exemplars should be sent. | `true` | no
 
-The following sub-blocks are supported:
-
-Name | Description | Required
----- | ----------- | --------
-`http_client_config` | HTTP client settings when connecting to the endpoint. | no
-`queue_config` | Configuration for how metrics are batched before sending. | no
-`metadata_config` | Configuration for how metric metadata is sent. | no
-
 When multiple `endpoint` blocks are provided, metrics will be sent concurrently
 to all configured locations. Each endpoint has a _queue_ which is used to read
 metrics from the WAL and queue them for sending. The `queue_config` block can
@@ -83,7 +92,7 @@ Endpoints can be named for easier identification in debug metrics using the
 `name` argument. If the `name` argument isn't provided, a name is generated
 based on a hash of the endpoint settings.
 
-### Block: `endpoint` > `http_client_config`
+### http_client_config block
 
 The `http_client_config` block configures the HTTP client used to connect to an
 endpoint.
@@ -98,19 +107,10 @@ Name | Type | Description | Default | Required
 `follow_redirects` | `bool` | Whether redirects returned by the server should be followed. | `true` | no
 `enable_http_2` | `bool` | Whether HTTP2 is supported for requests. | `true` | no
 
-The following sub-blocks are supported:
-
-Name | Description | Required
----- | ----------- | --------
-`basic_auth` | Configure basic_auth for authenticating to the endpoint. | no
-`authorization` | Configure generic authorization to the endpoint. | no
-`oauth2` | Configure OAuth2 for authenticating to the endpoint. | no
-`tls_config` | Configure TLS settings for connecting to the endpoint. | no
-
 `basic_auth`, `authorization`, and `oauth2` are mutually exclusive and only one
 may be provided inside of a `http_client_config` block.
 
-### Block: `endpoint` > `http_client_config` > `basic_auth`
+### basic_auth block
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
@@ -121,7 +121,7 @@ Name | Type | Description | Default | Required
 `password` and `password_file` are mututally exclusive and only one may be
 provided inside of a `basic_auth` block.
 
-### Block: `endpoint` > `http_client_config` > `authorization`
+### authorization block
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
@@ -132,7 +132,7 @@ Name | Type | Description | Default | Required
 `credential` and `credentials_file` are mututally exclusive and only one may be
 provided inside of an `authorization` block.
 
-### Block: `endpoint` > `http_client_config` > `oauth2`
+### oauth2 block
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
@@ -147,13 +147,7 @@ Name | Type | Description | Default | Required
 `client_secret` and `client_secret_file` are mututally exclusive and only one
 may be provided inside of an `oauth2` block.
 
-The following sub-blocks are supported:
-
-Name | Description | Required
----- | ----------- | --------
-`tls_config` | Configure basic_auth for authenticating against targets | no
-
-### Block: `endpoint` > `http_client_config` > `oauth2` > `tls_config`
+### tls_config block
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
@@ -173,27 +167,7 @@ provided, it must be set to one of the following strings:
 * `"TLS12"` (TLS 1.2)
 * `"TLS13"` (TLS 1.3)
 
-### Block: `endpoint` > `http_client_config` > `tls_config`
-
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`ca_file` | `string` | CA certificate to validate the server with. | | no
-`cert_file` | `string` | Certificate file for client authentication. | | no
-`key_file` | `string` | Key file for client authentication. | | no
-`server_name` | `string` | ServerName extension to indicate the name of the server. | | no
-`insecure_skip_verify` | `bool` | Disables validation of the server certificate. | | no
-`min_version` | `string` | Minimum acceptable TLS version. | | no
-
-When `min_version` is not provided, the minumum acceptable TLS version is
-inherited from Go's default minimum version, TLS 1.2. If `min_version` is
-provided, it must be set to one of the following strings:
-
-* `"TLS10"` (TLS 1.0)
-* `"TLS11"` (TLS 1.1)
-* `"TLS12"` (TLS 1.2)
-* `"TLS13"` (TLS 1.3)
-
-### Block: `endpoint` > `queue_config`
+### queue_config block
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
@@ -228,7 +202,7 @@ other requests which fail due to a `HTTP 4xx` status code are never retried.
 The delay between retries can be customized with the `min_backoff` and
 `max_backoff` arguments.
 
-### Block: `endpoint` > `metadata_config`
+### metadata_config block
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
@@ -236,7 +210,7 @@ Name | Type | Description | Default | Required
 `send_interval` | `duration` | How frequently metric metadata is sent to the endpoint. | `"1m"` | no
 `max_samples_per_send` | `number` | Maximum number of metadata samples to send to the endpoint at once. | `500` | no
 
-### Block: `wal`
+### wal block
 
 The `wal` block customizes the WAL used to locally store metrics before they
 are sent to the configured set of endpoints.
