@@ -68,6 +68,6 @@ prometheus.remote_write "prom" {
 }
 ```
 
-In the above flow blocks the `prometheus.remote_write.prom` receives input from both the `prometheus.relabel.cool` and `prometheus.relabel.not_cool`. 
+In the above Flow blocks, `prometheus.remote_write.prom` receives input from both `prometheus.relabel.cool` and `prometheus.relabel.not_cool`. 
 
 
