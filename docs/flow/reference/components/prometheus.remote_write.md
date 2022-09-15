@@ -20,6 +20,13 @@ prometheus.remote_write "staging" {
   // Send metrics to a locally running Mimir.
   endpoint {
     url = "http://mimir:9009/api/v1/push"
+
+    http_client_config {
+      basic_auth {
+        username = "example-user"
+        password = "example-password"
+      }
+    }
   }
 }
 
