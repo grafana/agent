@@ -20,7 +20,6 @@ import (
 	"github.com/grafana/agent/pkg/server"
 	"github.com/grafana/agent/pkg/traces"
 	"github.com/grafana/agent/pkg/util"
-	"github.com/grafana/dskit/kv/consul"
 	"github.com/prometheus/common/config"
 	"github.com/prometheus/common/version"
 	"github.com/stretchr/testify/require"
@@ -144,16 +143,6 @@ func (c Config) MarshalYAML() (interface{}, error) {
 	var buf bytes.Buffer
 
 	enc := yaml.NewEncoder(&buf)
-	enc.SetHook(func(in interface{}) (ok bool, out interface{}, err error) {
-		// Obscure the password fields for known types that do not obscure passwords.
-		switch v := in.(type) {
-		case consul.Config:
-			v.ACLToken = "<secret>"
-			return true, v, nil
-		default:
-			return false, nil, nil
-		}
-	})
 
 	type config Config
 	if err := enc.Encode((config)(c)); err != nil {
