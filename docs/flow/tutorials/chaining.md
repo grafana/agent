@@ -22,7 +22,7 @@ Allow the Agent to run for two minutes then go to [Grafana](http://localhost:300
 
 ![](./assets/multiple.png)
 
-There are 4 series: Two scrapers each sending metrics to both filters so you end up with 4 series. They differ in `job` and `cool_label/not_cool_label`.
+There are four series&mdash;two scrapers each sending metrics to both filters, so you end up with 4 series. They differ in `job` and `cool_label/not_cool_label`.
 
 ## Multiple Outputs
 
