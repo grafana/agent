@@ -14,7 +14,7 @@ Grafana Agent is a telemetry collector with the primary goal of moving telemetry
 
 # Scraping the Agent
 
-To quickly spin up an example environment run the following: `docker-compose -f ./assets/scraping-the-agent.yaml` with the [flow file](../assets/flow_configs/agent.flow). Allow the service to run for a few minutes and you should be able to navigate to the [metrics browser](http://localhost:3000/explore?orgId=1&left=%5B%22now-1h%22,%22now%22,%22Cortex%22,%7B%22refId%22:%22A%22,%22instant%22:true,%22range%22:true,%22exemplar%22:false,%22expr%22:%22agent_build_info%22%7D%5D). 
+To quickly spin up an example environment, run the following: `docker-compose -f ./assets/scraping-the-agent.yaml` with the [flow file](../assets/flow_configs/agent.flow). Allow the service to run for a few minutes, then navigate to the [metrics browser](http://localhost:3000/explore?orgId=1&left=%5B%22now-1h%22,%22now%22,%22Cortex%22,%7B%22refId%22:%22A%22,%22instant%22:true,%22range%22:true,%22exemplar%22:false,%22expr%22:%22agent_build_info%22%7D%5D). 
 
 ![](./assets/agent_build_info.png)
 
