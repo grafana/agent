@@ -1,7 +1,5 @@
 package remotewrite
 
-// NOTE: This is a placeholder component for remote_write for testing of the appendable, it should NOT be considered final
-
 import (
 	"context"
 	"fmt"
@@ -31,10 +29,10 @@ func init() {
 
 	component.Register(component.Registration{
 		Name:    "prometheus.remote_write",
-		Args:    RemoteConfig{},
-		Exports: Export{},
+		Args:    Arguments{},
+		Exports: Exports{},
 		Build: func(o component.Options, c component.Arguments) (component.Component, error) {
-			return NewComponent(o, c.(RemoteConfig))
+			return NewComponent(o, c.(Arguments))
 		},
 	})
 }
@@ -49,13 +47,13 @@ type Component struct {
 	storage     storage.Storage
 
 	mut sync.RWMutex
-	cfg RemoteConfig
+	cfg Arguments
 
 	receiver *prometheus.Receiver
 }
 
 // NewComponent creates a new prometheus.remote_write component.
-func NewComponent(o component.Options, c RemoteConfig) (*Component, error) {
+func NewComponent(o component.Options, c Arguments) (*Component, error) {
 	walLogger := log.With(o.Logger, "subcomponent", "wal")
 	dataPath := filepath.Join(o.DataPath, "wal", o.ID)
 	walStorage, err := wal.NewStorage(walLogger, o.Registerer, dataPath)
@@ -86,7 +84,7 @@ var _ component.Component = (*Component)(nil)
 
 // Run implements Component.
 func (c *Component) Run(ctx context.Context) error {
-	c.opts.OnStateChange(Export{Receiver: c.receiver})
+	c.opts.OnStateChange(Exports{Receiver: c.receiver})
 	defer func() {
 		level.Debug(c.log).Log("msg", "closing storage")
 		err := c.storage.Close()
@@ -160,7 +158,7 @@ func (c *Component) truncateFrequency() time.Duration {
 
 // Update implements Component.
 func (c *Component) Update(newConfig component.Arguments) error {
-	cfg := newConfig.(RemoteConfig)
+	cfg := newConfig.(Arguments)
 
 	c.mut.Lock()
 	defer c.mut.Unlock()
@@ -197,11 +195,15 @@ func (c *Component) Receive(ts int64, metricArr []*prometheus.FlowMetric) {
 			return
 		}
 	}
-	_ = app.Commit()
+
+	err := app.Commit()
+	if err != nil {
+		level.Error(c.log).Log("msg", "failed to commit samples", "err", err)
+	}
 }
 
 // Config implements Component.
-func (c *Component) Config() RemoteConfig {
+func (c *Component) Config() Arguments {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
 	return c.cfg
