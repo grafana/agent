@@ -62,7 +62,8 @@ func (c VersionedIntegrations) MarshalYAML() (interface{}, error) {
 	case c.configV2 != nil:
 		return c.configV2, nil
 	default:
-		return c.raw, nil
+		// A pointer is needed for the yaml.Marshaler implementation to work.
+		return &c.raw, nil
 	}
 }
 
