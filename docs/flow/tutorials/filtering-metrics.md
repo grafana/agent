@@ -5,7 +5,7 @@ title: Filtering metrics
 weight: 300
 ---
 
-The goal of this tutorial is to add a new component [prometheus.relabel]({{< ref "prometheus.relabel.md" >}}) using [relabel.flow](../assets/flow_configs/relabel.flow) that allows the filtering of metrics. This uses the same base as [Collecting Prometheus Metrics]({{< relref "./collecting-prometheus-metrics.md">}}).
+In this tutorial, you'll add a new component [prometheus.relabel]({{< ref "prometheus.relabel.md" >}}) using [relabel.flow](../assets/flow_configs/relabel.flow) to filter metrics. This tutorial uses the same base as [Collecting Prometheus metrics]({{< relref "./collecting-prometheus-metrics.md">}}).
 
 # Prerequisites
 
