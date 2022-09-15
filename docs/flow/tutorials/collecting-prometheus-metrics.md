@@ -26,28 +26,28 @@ This example scrapes the Grafana Agent's `http://localhost:12345/metrics` endpoi
 The [`prometheus.scrape`]({{< relref "prometheus.scrape.md" >}}) component is responsible for scraping the metrics of a particular endpoint and passing them on to another component.
 
 ```river
-// prometheus.scrape is the name of component and "default" is the label of a component
+// prometheus.scrape is the name of the component and "default" is its label.
 prometheus.scrape "default" {
-    // Tell the scraper to scrap at http://localhost:12345/metrics
+    // Tell the scraper to scrape at http://localhost:12345/metrics
     // the http:// and metrics are implied but able to be overwritten 
     targets = [{"__address__" = "localhost:12345"}]
-    // Forward the scrape results to the receiver, in general 
+    // Forward the scrape results to the receiver. In general, 
     // Flow uses forward_to to tell which receiver to send results to. 
-    // The forward_to is an argument of prometheus.scrape.default  and 
-    // the receiver is an export prometheus.remote_write.prom
+    // The forward_to is an argument of prometheus.scrape.default and 
+    // the receiver is an export prometheus.remote_write.prom.
     forward_to = [prometheus.remote_write.prom.receiver]
 }
 ```
 
-The `prometheus.scrape "default"` annotation tells the name `prometheus.scrape` and the label `default`. All components must have a unique combination of name and label.
+The `prometheus.scrape "default"` annotation indicates the name of the component, `prometheus.scrape`, and its label, `default`. All components must have a unique combination of name and label.
 
-The `targets` [attribute]({{< relref "configuration_language.md#Attributes" >}}) is an [argument]({{< relref "../concepts/components.md">}}). Targets is a list of labels that specify the target via the special key `__address__`. The scraper is targeting the Agent's `/metrics` endpoint. Both the `http` and `/metrics` are implied but can be overridden.
+The `targets` [attribute]({{< relref "configuration_language.md#Attributes" >}}) is an [argument]({{< relref "../concepts/components.md">}}). `targets` is a list of labels that specify the target via the special key `__address__`. The scraper is targeting the Agent's `/metrics` endpoint. Both `http` and `/metrics` are implied but can be overridden.
 
 The `forward_to` attribute is an argument that references the [export]({{< relref "../concepts/components.md">}}) of the `prometheus.remote_write.prom` component. This is where the scraper will send the metrics for further processing.
 
-## Remote Write Component
+## Remote Write component
 
-The [`prometheus.remote_write`]({{< relref "prometheus.remote_write.md" >}}) is responsible for writing the metrics to a prometheus compatible endpoint (cortex).
+The [`prometheus.remote_write`]({{< relref "prometheus.remote_write.md" >}}) component is responsible for writing the metrics to a Prometheus-compatible endpoint (Cortex).
 
 ```river
 prometheus.remote_write "prom" {
@@ -60,6 +60,6 @@ prometheus.remote_write "prom" {
 ## Running without Docker
 
 To try out the Grafana Agent without using Docker:
-1. Download the Grafana Agent 
-1. Set the environment variable `EXPERIMENTAL_ENABLE_FLOW=true`
+1. Download the Grafana Agent.
+1. Set the environment variable `EXPERIMENTAL_ENABLE_FLOW=true`.
 1. Run the agent with `agent run <path_to_flow_config>`.
