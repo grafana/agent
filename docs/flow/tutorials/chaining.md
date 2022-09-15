@@ -5,7 +5,7 @@ title: Chaining components
 weight: 400
 ---
 
-The goal of this tutorial is to show the ability to have data go to several different locations using [multiple-inputs.flow](../assets/flow_configs/multiple-inputs.flow). This uses the same base as [filtering metrics]({{< relref "filtering-metrics.md">}}).
+The goal of this tutorial is to show how to use [multiple-inputs.flow](../assets/flow_configs/multiple-inputs.flow) to send data to several different locations. This tutorial uses the same base as [Filtering metrics]({{< relref "filtering-metrics.md">}}).
 
 A new concept in Flow is chaining components together. 
 
