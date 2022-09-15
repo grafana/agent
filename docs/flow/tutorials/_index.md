@@ -7,6 +7,6 @@ weight: 100
 
 # Tutorials
 
-This section provides tutorials on getting started with Grafana Agent Flow. 
+This section provides tutorials for learning how to use Grafana Agent Flow. 
 
 {{< section >}}
