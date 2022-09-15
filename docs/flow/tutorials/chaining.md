@@ -38,7 +38,7 @@ prometheus.scrape "first" {
 
 In the above Flow block, `forward_to` accepts an array of `receivers`. In previous examples, a single receiver was used, but the use of multiple inputs and outputs is a basic building block of Flow. In the above example, `prometheus.scrape.first` is sending to both `prometheus.relabel.filter` and `prometheus.relabel.not_cool`. 
 
-## Multiple Inputs
+## Multiple inputs
 
 ```river
 prometheus.relabel "cool" {
