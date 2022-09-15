@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"net"
@@ -17,12 +18,23 @@ import (
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/cobra"
 	"go.uber.org/atomic"
 
 	// Install Components
 	_ "github.com/grafana/agent/component/all"
+)
+
+var (
+	configHash = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "agent_flow_config_hash",
+			Help: "Hash of the currently active config file.",
+		},
+		[]string{"sha256"},
+	)
 )
 
 func runCommand() *cobra.Command {
@@ -203,6 +215,8 @@ func loadFlowFile(filename string) (*flow.File, error) {
 		return nil, err
 	}
 
+	instrumentConfig(bb)
+
 	return flow.ReadFile(filename, bb)
 }
 
@@ -223,4 +237,12 @@ func interruptContext() (context.Context, context.CancelFunc) {
 	}()
 
 	return ctx, cancel
+}
+
+// create a sha256 hash of the config before expansion and expose it via
+// the agent_config_hash metric
+func instrumentConfig(buf []byte) {
+	hash := sha256.Sum256(buf)
+	configHash.Reset()
+	configHash.WithLabelValues(fmt.Sprintf("%x", hash)).Set(1)
 }

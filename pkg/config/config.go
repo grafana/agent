@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"errors"
 	"flag"
 	"fmt"
@@ -20,6 +21,8 @@ import (
 	"github.com/grafana/agent/pkg/server"
 	"github.com/grafana/agent/pkg/traces"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/common/config"
 	"github.com/prometheus/common/version"
 	"github.com/stretchr/testify/require"
@@ -45,6 +48,14 @@ var (
 	fileTypeDynamic = "dynamic"
 
 	fileTypes = []string{fileTypeYAML, fileTypeDynamic}
+
+	configHash = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "agent_config_hash",
+			Help: "Hash of the currently active config file.",
+		},
+		[]string{"sha256"},
+	)
 )
 
 // DefaultConfig holds default settings for all the subsystems.
@@ -218,9 +229,13 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 // LoadFile reads a file and passes the contents to Load
 func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 	buf, err := ioutil.ReadFile(filename)
+
+	instrumentConfig(buf)
+
 	if err != nil {
 		return fmt.Errorf("error reading config file %w", err)
 	}
+
 	return LoadBytes(buf, expandEnvVars, c)
 }
 
@@ -256,6 +271,9 @@ func LoadRemote(url string, expandEnvVars bool, c *Config) error {
 	if err != nil {
 		return fmt.Errorf("error retrieving remote config: %w", err)
 	}
+
+	instrumentConfig(bb)
+
 	return LoadBytes(bb, expandEnvVars, c)
 }
 
@@ -433,4 +451,12 @@ func CheckSecret(t *testing.T, rawCfg string, originalValue string) {
 
 	require.True(t, strings.Contains(string(bb), "<secret>"))
 	require.False(t, strings.Contains(string(bb), originalValue))
+}
+
+// Create a sha256 hash of the config before expansion and expose it via
+// the agent_config_hash metric
+func instrumentConfig(buf []byte) {
+	hash := sha256.Sum256(buf)
+	configHash.Reset()
+	configHash.WithLabelValues(fmt.Sprintf("%x", hash)).Set(1)
 }

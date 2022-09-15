@@ -107,6 +107,8 @@ func (c *DynamicLoader) LoadConfigByPath(path string) error {
 		return fmt.Errorf("config path must start with file:// or s3://, not %s", path)
 	}
 
+	instrumentConfig(buf)
+
 	cl := &LoaderConfig{}
 	err = yaml.Unmarshal(buf, cl)
 	if err != nil {
