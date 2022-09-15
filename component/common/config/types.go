@@ -5,12 +5,15 @@ package config
 import (
 	"fmt"
 	"net/url"
+	"strings"
 
 	"github.com/grafana/agent/pkg/river"
 
 	"github.com/grafana/agent/pkg/flow/rivertypes"
 	"github.com/prometheus/common/config"
 )
+
+const bearerAuth string = "Bearer"
 
 // HTTPClientConfig mirrors config.HTTPClientConfig
 type HTTPClientConfig struct {
@@ -32,7 +35,72 @@ func (h *HTTPClientConfig) UnmarshalRiver(f func(v interface{}) error) error {
 		EnableHTTP2:     true,
 	}
 	type config HTTPClientConfig
-	return f((*config)(h))
+	if err := f((*config)(h)); err != nil {
+		return err
+	}
+
+	return h.Validate()
+}
+
+// Validate returns an error if h is invalid.
+func (h *HTTPClientConfig) Validate() error {
+	// Backwards compatibility with the bearer_token field.
+	if len(h.BearerToken) > 0 && len(h.BearerTokenFile) > 0 {
+		return fmt.Errorf("at most one of bearer_token & bearer_token_file must be configured")
+	}
+	if (h.BasicAuth != nil || h.OAuth2 != nil) && (len(h.BearerToken) > 0 || len(h.BearerTokenFile) > 0) {
+		return fmt.Errorf("at most one of basic_auth, oauth2, bearer_token & bearer_token_file must be configured")
+	}
+	if h.BasicAuth != nil && (string(h.BasicAuth.Password) != "" && h.BasicAuth.PasswordFile != "") {
+		return fmt.Errorf("at most one of basic_auth password & password_file must be configured")
+	}
+	if h.Authorization != nil {
+		if len(h.BearerToken) > 0 || len(h.BearerTokenFile) > 0 {
+			return fmt.Errorf("authorization is not compatible with bearer_token & bearer_token_file")
+		}
+		if string(h.Authorization.Credentials) != "" && h.Authorization.CredentialsFile != "" {
+			return fmt.Errorf("at most one of authorization credentials & credentials_file must be configured")
+		}
+		h.Authorization.Type = strings.TrimSpace(h.Authorization.Type)
+		if len(h.Authorization.Type) == 0 {
+			h.Authorization.Type = bearerAuth
+		}
+		if strings.ToLower(h.Authorization.Type) == "basic" {
+			return fmt.Errorf(`authorization type cannot be set to "basic", use "basic_auth" instead`)
+		}
+		if h.BasicAuth != nil || h.OAuth2 != nil {
+			return fmt.Errorf("at most one of basic_auth, oauth2 & authorization must be configured")
+		}
+	} else {
+		if len(h.BearerToken) > 0 {
+			h.Authorization = &Authorization{Credentials: h.BearerToken}
+			h.Authorization.Type = bearerAuth
+			h.BearerToken = ""
+		}
+		if len(h.BearerTokenFile) > 0 {
+			h.Authorization = &Authorization{CredentialsFile: h.BearerTokenFile}
+			h.Authorization.Type = bearerAuth
+			h.BearerTokenFile = ""
+		}
+	}
+	if h.OAuth2 != nil {
+		if h.BasicAuth != nil {
+			return fmt.Errorf("at most one of basic_auth, oauth2 & authorization must be configured")
+		}
+		if len(h.OAuth2.ClientID) == 0 {
+			return fmt.Errorf("oauth2 client_id must be configured")
+		}
+		if len(h.OAuth2.ClientSecret) == 0 && len(h.OAuth2.ClientSecretFile) == 0 {
+			return fmt.Errorf("either oauth2 client_secret or client_secret_file must be configured")
+		}
+		if len(h.OAuth2.TokenURL) == 0 {
+			return fmt.Errorf("oauth2 token_url must be configured")
+		}
+		if len(h.OAuth2.ClientSecret) > 0 && len(h.OAuth2.ClientSecretFile) > 0 {
+			return fmt.Errorf("at most one of oauth2 client_secret & client_secret_file must be configured")
+		}
+	}
+	return nil
 }
 
 // Convert converts HTTPClientConfig to the native Prometheus type. If h is

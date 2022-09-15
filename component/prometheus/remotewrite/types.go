@@ -36,7 +36,7 @@ var (
 		BatchSendDeadline: 5 * time.Second,
 		MinBackoff:        30 * time.Millisecond,
 		MaxBackoff:        5 * time.Second,
-		RetryOnRateLimit:  false,
+		RetryOnHTTP429:    false,
 	}
 
 	DefaultMetadataOptions = MetadataOptions{
@@ -100,7 +100,7 @@ type QueueOptions struct {
 	BatchSendDeadline time.Duration `river:"batch_send_deadline,attr,optional"`
 	MinBackoff        time.Duration `river:"min_backoff,attr,optional"`
 	MaxBackoff        time.Duration `river:"max_backoff,attr,optional"`
-	RetryOnRateLimit  bool          `river:"retry_on_http_429,attr,optional"`
+	RetryOnHTTP429    bool          `river:"retry_on_http_429,attr,optional"`
 }
 
 // UnmarshalRiver allows injecting of default values
@@ -124,7 +124,7 @@ func (r *QueueOptions) toPrometheusType() config.QueueConfig {
 		BatchSendDeadline: model.Duration(r.BatchSendDeadline),
 		MinBackoff:        model.Duration(r.MinBackoff),
 		MaxBackoff:        model.Duration(r.MaxBackoff),
-		RetryOnRateLimit:  r.RetryOnRateLimit,
+		RetryOnRateLimit:  r.RetryOnHTTP429,
 	}
 }
 
