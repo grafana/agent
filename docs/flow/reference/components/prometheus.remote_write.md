@@ -34,7 +34,8 @@ prometheus.remote_write "staging" {
 // prometheus.remote_write component.
 prometheus.scrape "demo" {
   targets = [
-    {"__address__" = "demo.robustperception.io:9090"},
+    // Collect metrics from Grafana Agent's default HTTP listen address.
+    {"__address__" = "127.0.0.1:12345"},
   ]
   forward_to = [prometheus.remote_write.staging.receiver]
 }
@@ -208,11 +209,13 @@ duration specified by `batch_send_deadline` has elapsed since the last flush
 for that shard.
 
 Shards will infinitely retry requests which fail with an `HTTP 5xx` status code
-until the requests succeeds. The `retry_on_http_429` argument can optionally
-configure shards to retry requests which fail with an `HTTP 429` status code;
-other requests which fail due to a `HTTP 4xx` status code are never retried.
-The delay between retries can be customized with the `min_backoff` and
-`max_backoff` arguments.
+until the requests succeeds. The delay between retries can be customized with
+the `min_backoff` and `max_backoff` arguments.
+
+The `retry_on_http_429` argument can optionally configure shards to retry
+requests which fail with an `HTTP 429` status code; other requests which fail
+due to a `HTTP 4xx` status code are never retried. When `retry_on_http_429` is
+enabled, `Retry-After` response headers from the servers are honored.
 
 ### metadata_config block
 
