@@ -707,11 +707,6 @@ func (p *parser) parseField() *ast.ObjectField {
 	return &field
 }
 
-var fieldStarter = map[token.Token]struct{}{
-	token.STRING: {},
-	token.IDENT:  {},
-}
-
 func isValidIdentifier(in string) bool {
 	s := scanner.New(nil, []byte(in), nil, 0)
 	_, tok, lit := s.Scan()
