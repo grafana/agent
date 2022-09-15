@@ -24,6 +24,7 @@ import (
 
 	"github.com/grafana/agent/pkg/config"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/weaveworks/common/signals"
 
 	"github.com/go-kit/log/level"
@@ -47,6 +48,9 @@ type Entrypoint struct {
 
 	reloadListener net.Listener
 	reloadServer   *http.Server
+
+	configReloadSuccess prometheus.Gauge
+	configReloadSeconds prometheus.Gauge
 }
 
 // Reloader is any function that returns a new config.
@@ -61,6 +65,14 @@ func NewEntrypoint(logger *server.Logger, cfg *config.Config, reloader Reloader)
 		ep = &Entrypoint{
 			log:      logger,
 			reloader: reloader,
+			configReloadSuccess: promauto.NewGauge(prometheus.GaugeOpts{
+				Name: "agent_config_last_reload_successful",
+				Help: "Config loaded successfully.",
+			}),
+			configReloadSeconds: promauto.NewGauge(prometheus.GaugeOpts{
+				Name: "agent_config_last_reload_success_timestamp_seconds",
+				Help: "Timestamp of the last successful configuration reload.",
+			}),
 		}
 		err error
 	)
@@ -250,6 +262,7 @@ func (ep *Entrypoint) TriggerReload() bool {
 
 	cfg, err := ep.reloader()
 	if err != nil {
+		ep.configReloadSuccess.Set(0)
 		level.Error(ep.log).Log("msg", "failed to reload config file", "err", err)
 		return false
 	}
@@ -257,10 +270,13 @@ func (ep *Entrypoint) TriggerReload() bool {
 
 	err = ep.ApplyConfig(*cfg)
 	if err != nil {
+		ep.configReloadSuccess.Set(0)
 		level.Error(ep.log).Log("msg", "failed to reload config file", "err", err)
 		return false
 	}
 
+	ep.configReloadSuccess.Set(1)
+	ep.configReloadSeconds.SetToCurrentTime()
 	return true
 }
 
