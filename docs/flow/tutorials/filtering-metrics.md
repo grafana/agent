@@ -12,7 +12,7 @@ The goal of this tutorial is to add a new component [prometheus.relabel]({{< ref
 * [Docker](https://www.docker.com/products/docker-desktop)
 * Clone the [Agent Repository](https://github.com/grafana/agent) `git clone git@github.com:grafana/agent.git`
 
-# Prometheus Relabel Component
+# Prometheus Relabel component
 
 The `prometheus.relabel` component is used to drop, add or filter metrics.  To quickly spin up an example environment run the following: `docker-compose -f ./assets/adding-new-component.yaml up` from the tutorials directory.
 
