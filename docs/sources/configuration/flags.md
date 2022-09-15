@@ -37,7 +37,7 @@ Valid feature names are:
 ## Report information usage
 
 By default, Grafana Agent sends anonymous, but uniquely-identifiable usage information
-for your running Grafana Agent instance to Grafana Labs.
+from your running Grafana Agent instance to Grafana Labs.
 These statistics are sent to `stats.grafana.org`.
 
 Statistics help us better understand how Grafana Agent is used.
