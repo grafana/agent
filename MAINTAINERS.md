@@ -2,7 +2,6 @@ The following people are the primary maintainers of the project:
 
 * Robert Fratto (<robert.fratto@grafana.com> / @rfratto)
 * Matt Durham (<matt.durham@grafana.com> / @mattdurham)
-* Robbie Lankford (<robert.lankford@grafana.com> / @rlankfo)
 * Paschalis Tsilias (<paschalis.tsilias@grafana.com> / @tpaschalis)
 
 Some parts of the codebase have other maintainers:
