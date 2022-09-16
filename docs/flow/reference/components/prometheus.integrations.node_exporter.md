@@ -104,9 +104,13 @@ Name | Type | Description | Default | Required
 ### `filesystem` block
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`fs_types_exclude`     | string   | Regexp of filesystem types to ignore for filesystem collector.| `"^(autofs<code>&#124;</code>binfmt_misc<code>&#124;</code>bpf<code>&#124;</code>cgroup2?<code>&#124;</code>configfs<code>&#124;</code>debugfs<code>&#124;</code>devpts<code>&#124;</code>devtmpfs<code>&#124;</code>fusectl<code>&#124;</code>hugetlbfs<code>&#124;</code>iso9660<code>&#124;</code>mqueue<code>&#124;</code>nsfs<code>&#124;</code>overlay<code>&#124;</code>proc<code>&#124;</code>procfs<code>&#124;</code>pstore<code>&#124;</code>rpc_pipefs<code>&#124;</code>securityfs<code>&#124;</code>selinuxfs<code>&#124;</code>squashfs<code>&#124;</code>sysfs<code>&#124;</code>tracefs)$"` | no
+`fs_types_exclude`     | string   | Regexp of filesystem types to ignore for filesystem collector.| `"^(autofs\|binfmt_misc\|bpf\|cgroup2?\|configfs\|debugfs\|devpts\|devtmpfs\|fusectl\|hugetlbfs\|iso9660\|mqueue\|nsfs\|overlay\|proc\|procfs\|pstore\|rpc_pipefs\|securityfs\|selinuxfs\|squashfs\|sysfs\|tracefs)$"` | no
+`fs_types_exclude`     <code>|#124;</code> string   <code>|#124;</code> Regexp of filesystem types to ignore for filesystem collector.<code>|#124;</code>  <code>|#124;</code> no
 `mount_points_exclude` | string   | Regexp of mount points to ignore for filesystem collector. | `"^/(dev|proc|sys|var/lib/docker/.+)($|/)"` | no
 `mount_timeout`        | duration | How long to wait for a mount to respond before marking it as stale. | "5s" | no
+
+ 
+
 
 ### `ipvs` block
 Name | Type | Description | Default | Required
