@@ -55,7 +55,7 @@ func (bf *blockField) convertBlock(reflectValue reflect.Value, f rivertags.Field
 		reflectValue = reflectValue.Elem()
 	}
 	if reflectValue.Kind() != reflect.Struct {
-		return fmt.Errorf("convertBlock cannot work on interface or slices")
+		return fmt.Errorf("convertBlock can only be called on struct kinds, got %s", reflectValue.Kind())
 	}
 
 	bf.Name = strings.Join(f.Name, ".")
