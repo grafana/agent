@@ -165,7 +165,6 @@ export const ComponentGraph: FC<ComponentGraphProps> = (props) => {
         // be added to the size here;
 
         if (n === undefined) {
-          //return [0, 0];
           return [nodeWidth + nodeMargin + nodePadding * 2, nodeHeight + nodeMargin + nodePadding * 2];
         }
 
