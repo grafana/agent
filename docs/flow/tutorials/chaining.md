@@ -21,9 +21,9 @@ To run the example, execute `CONFIG_FILE=multiple-inputs.flow docker-compose -f 
 
 Allow the Agent to run for two minutes, then go to [Grafana](http://localhost:3000/explore?orgId=1&left=%5B%22now-1h%22,%22now%22,%22Mimir%22,%7B%22refId%22:%22A%22,%22instant%22:true,%22range%22:true,%22exemplar%22:true,%22expr%22:%22agent_build_info%7B%7D%22%7D%5D).
 
-![](./assets/multiple.png)
+![](../assets/multiple.png)
 
-There are four series&mdash;two scrapers each sending metrics to both filters, so you end up with four series. They differ in `job` and `cool_label/not_cool_label`.
+There are two scrapes each sending two metrics to both filters, so you end up with a total of four metrics. They differ in `job` and `cool_label/not_cool_label`.
 
 ## Multiple outputs
 
@@ -34,7 +34,7 @@ prometheus.scrape "first" {
 }
 ```
 
-In the above Flow block, `forward_to` accepts an array of `receivers`. In previous examples, a single receiver was used, but the use of multiple inputs and outputs is a basic building block of Flow. In the above example, `prometheus.scrape.first` is sending to both `prometheus.relabel.filter` and `prometheus.relabel.not_cool`. 
+In the above Flow block, `forward_to` accepts an array of receivers. In previous examples, a single receiver was used, but the use of multiple inputs and outputs is a basic building block of Flow. In the above example, `prometheus.scrape.first` is sending to both `prometheus.relabel.filter` and `prometheus.relabel.not_cool`. 
 
 ## Multiple inputs
 

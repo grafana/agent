@@ -16,7 +16,7 @@ Grafana Agent is a telemetry collector with the primary goal of moving telemetry
 
 To quickly spin up an example environment, run the following: `CONFIG_FILE=agent.flow docker-compose -f ./assets/docker-compose.yaml up` with the [flow file](../assets/flow_configs/agent.flow). Allow the service to run for a few minutes, then navigate to the [metrics browser](http://localhost:3000/explore?orgId=1&left=%5B%22now-1h%22,%22now%22,%22Mimir%22,%7B%22refId%22:%22A%22,%22instant%22:true,%22range%22:true,%22exemplar%22:true,%22expr%22:%22agent_build_info%7B%7D%22%7D%5D). 
 
-![](./assets/agent_build_info.png)
+![](../assets/agent_build_info.png)
 
 This example scrapes the Grafana Agent's `http://localhost:12345/metrics` endpoint and pushes those metrics to the Mimir instance. 
 
@@ -39,7 +39,7 @@ prometheus.scrape "default" {
 }
 ```
 
-The `prometheus.scrape "default"` annotation indicates the name of the component, `prometheus.scrape`, and its label, `default`. All components must have a unique combination of name and label.
+The `prometheus.scrape "default"` annotation indicates the name of the component, `prometheus.scrape`, and its label, `default`. All components must have a unique combination of name and if applicable label. 
 
 The `targets` [attribute]({{< relref "configuration_language.md#Attributes" >}}) is an [argument]({{< relref "../concepts/components.md">}}). `targets` is a list of labels that specify the target via the special key `__address__`. The scraper is targeting the Agent's `/metrics` endpoint. Both `http` and `/metrics` are implied but can be overridden.
 
