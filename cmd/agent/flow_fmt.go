@@ -30,6 +30,7 @@ If the file argument is not supplied or if the file argument is "-", then fmt wi
 The -w flag can be used to write the formatted file back to disk. -w can not be provided when fmt is reading from stdin. When -w is not provided, fmt will write the result to stdout.`,
 		Args:         cobra.RangeArgs(0, 1),
 		SilenceUsage: true,
+		Aliases:      []string{"format"},
 
 		RunE: func(_ *cobra.Command, args []string) error {
 			var err error
