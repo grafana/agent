@@ -92,7 +92,7 @@ Name | Type | Description | Default | Required
 ### `disk` block
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`ignored_devices` | string | Regexp of devices to ignore for diskstats | `"^(ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$"` | no
+`ignored_devices` | string | Regexp of devices to ignore for diskstats | `"^(ram\|loop\|fd\|(h\|s\|v\|xv)d[a-z]\|nvme\\d+n\\d+p)\\d+$"` | no
 
 ### `ethtool` block
 Name | Type | Description | Default | Required
@@ -150,7 +150,7 @@ name | type | description | default | required
 name | type | description | default | required
 ---- | ---- | ----------- | ------- | --------
 `cpus`      | string       | List of CPUs from which perf metrics should be collected. | "" | no
-`tracepoint | list(string) | Array of perf tracepoints that should be collected. | | no
+`tracepoint` | list(string) | Array of perf tracepoints that should be collected. | | no
 
 ### `powersupply` block
 name | type | description | default | required
@@ -178,7 +178,7 @@ name | type | description | default | required
 enable_restarts | boolean | Enables service unit metric service_restart_total | false | no
 start_time      | boolean | Enables service unit metric unit_start_time_seconds | false | no
 task_metrics    | boolean | Enables service unit tasks metrics unit_tasks_current and unit_tasks_max.
-unit_exclude    | string  | Regexp of systemd units to exclude. Units must both match include and not match exclude to be collected. | `".+\\.(automount|device|mount|scope|slice)"` | no
+unit_exclude    | string  | Regexp of systemd units to exclude. Units must both match include and not match exclude to be collected. | `".+\\\.(automount\|device\|mount\|scope\|slice)"` | no
 unit_include    | string  | Regexp of systemd units to include. Units must both match include and not match exclude to be collected. | `".+"` | no
 
 ### `tapestats` block
@@ -194,7 +194,7 @@ name | type | description | default | required
 ### `vmstat` block
 name | type | description | default | required
 ---- | ---- | ----------- | ------- | --------
-`fields` | string | Regexp of fields to return for the vmstat collector. | `"^(oom_kill|pgpg|pswp|pg.*fault).*"` | no
+`fields` | string | Regexp of fields to return for the vmstat collector. | `"^(oom_kill\|pgpg\|pswp\|pg.*fault).*"` | no
 
 
 ## Exported fields
