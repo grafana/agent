@@ -21,7 +21,7 @@ type FlowAPI struct {
 	flow *flow.Flow
 }
 
-// NewFlowAPI instantiates a new flow api.
+// NewFlowAPI instantiates a new Flow API.
 func NewFlowAPI(flow *flow.Flow, r *mux.Router) *FlowAPI {
 	return &FlowAPI{flow: flow}
 }
