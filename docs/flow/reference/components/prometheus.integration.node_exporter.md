@@ -1,7 +1,7 @@
 ---
 aliases:
-- /docs/agent/latest/flow/reference/components/prometheus.integrations.node_exporter
-title: prometheus.integrations.node_exporter
+- /docs/agent/latest/flow/reference/components/prometheus.integration.node_exporter
+title: prometheus.integration.node_exporter
 ---
 
 # prometheus.integrations.node_exporter
