@@ -15,8 +15,8 @@ starts Grafana Agent Flow.
 
 Available commands:
 
-* [`agent run`][run]: Start Grafana Agent Flow given a config file.
-* [`agent fmt`][fmt]: Format a Grafana Agent Flow configuration file.
+* [`agent run`][run]: Start Grafana Agent Flow, given a config file.
+* [`agent fmt`][fmt]: Format a Grafana Agent Flow config file.
 * `agent completion`: Generate shell completion for the `agent` CLI.
 * `agent help`: Print help for supported commands.
 
