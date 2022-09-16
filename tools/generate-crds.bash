@@ -15,7 +15,7 @@ PROM_OP_DIR=$(go list -f '{{.Dir}}' $PROM_OP_DEP_NAME)
 cd $PROM_OP_DIR
 controller-gen crd:crdVersions=v1 paths=.  output:crd:dir=$ROOT/production/operator/crds
 
-# Generate API docs for agent-operator
+# Generate API docs for agent-operator using https://github.com/ahmetb/gen-crd-api-reference-docs
 gen-crd-api-reference-docs -config $ROOT/tools/gen-crd-docs/config.json -api-dir "github.com/grafana/agent/pkg/operator/apis/monitoring/" -out-file $ROOT/docs/sources/operator/api.md -template-dir $ROOT/tools/gen-crd-docs/template
 
 # Remove known Prometheus-Operator CRDS we don't generate. (An allowlist would
