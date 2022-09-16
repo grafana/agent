@@ -44,7 +44,7 @@ Name | Type | Description | Default | Required
 `rootfs_path`              | string       | Specify a prefix for accessing the host filesystem. | `/` | no
 
 The `set_collectors` argument defines a hand-picked list of enabled-by-default
-collectors. If set, anything not provided in that list will be disabled by
+collectors. If set, anything not provided in that list is disabled by
 default.
 
 The `enable_collectors` enables more collectors over the default set, or on top
@@ -167,7 +167,7 @@ name | type | description | default | required
 ---- | ---- | ----------- | ------- | --------
 `url` | string | XML RPC endpoint for the supervisord collector. | `"http://localhost:9001/RPC2"` | no
 
-Setting SUPERVISORD_URL in the environment will override the default value.
+Setting SUPERVISORD_URL in the environment overrides the default value.
 An explicit value in the YAML config takes precedence over the environment
 variable.
 
@@ -202,7 +202,7 @@ The following fields are exported and can be referenced by other components.
 
 Name      | Type                | Description 
 --------- | ------------------- | ----------- 
-`targets` | `list(map(string))` | The targets where the `node_exporter` metrics will be exposed to.
+`targets` | `list(map(string))` | The targets where the `node_exporter` metrics are exposed to.
 
 For example, the `targets` could either be passed to a `prometheus.relabel`
 component to rewrite the metrics' label set, or to a `prometheus.scrape`
