@@ -21,7 +21,7 @@ type FlowAPI struct {
 	flow *flow.Flow
 }
 
-// NewFlowAPI instantiates a new flow api.
+// NewFlowAPI instantiates a new Flow API.
 func NewFlowAPI(flow *flow.Flow, r *mux.Router) *FlowAPI {
 	return &FlowAPI{flow: flow}
 }
@@ -66,7 +66,7 @@ func (f *FlowAPI) listComponentHandler() http.HandlerFunc {
 	}
 }
 
-// json returns the JSON representation of ComponentInfoDetailed.
+// json returns the JSON representation of c.
 func (f *FlowAPI) json(c *flow.ComponentInfo) ([]byte, error) {
 	var buf bytes.Buffer
 	err := f.flow.ComponentJSON(&buf, c)
