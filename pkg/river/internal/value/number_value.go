@@ -23,7 +23,7 @@ const (
 	NumberKindFloat
 )
 
-// makeNumberKind converts a go kind to a river kind.
+// makeNumberKind converts a Go kind to a River kind.
 func makeNumberKind(k reflect.Kind) NumberKind {
 	switch k {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
