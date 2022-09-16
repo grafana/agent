@@ -1,0 +1,35 @@
+prometheus.scrape "first" {
+	targets    = [{"__address__" = "localhost:12345"}]
+	forward_to = [prometheus.relabel.cool.receiver, prometheus.relabel.not_cool.receiver]
+}
+
+prometheus.scrape "second" {
+	targets    = [{"__address__" = "localhost:12345"}]
+	forward_to = [prometheus.relabel.cool.receiver, prometheus.relabel.not_cool.receiver]
+}
+
+prometheus.relabel "cool" {
+	metric_relabel_config {
+		source_labels = ["__name__"]
+		regex         = "(.+)"
+		replacement   = "${1}_cool"
+		target_label  = "cool_label"
+	}
+	forward_to = [prometheus.remote_write.prom.receiver]
+}
+
+prometheus.relabel "not_cool" {
+	metric_relabel_config {
+		source_labels = ["__name__"]
+		regex         = "(.+)"
+		replacement   = "${1}_not_cool"
+		target_label  = "not_cool_label"
+	}
+	forward_to = [prometheus.remote_write.prom.receiver]
+}
+
+prometheus.remote_write "prom" {
+	remote_write {
+		url = "http://mimir:9009/api/v1/push"
+	}
+}
