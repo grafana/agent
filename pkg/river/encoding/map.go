@@ -2,6 +2,7 @@ package encoding
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/grafana/agent/pkg/river/internal/value"
 )
@@ -27,7 +28,16 @@ func (mf *mapField) hasValue() bool {
 func (mf *mapField) convertMap(val value.Value) error {
 	mf.Type = objectType
 	fields := make([]*keyField, 0)
-	for _, key := range val.Keys() {
+
+	keys := val.Keys()
+
+	// If v isn't an ordered object (i.e., a go map), sort the keys so they have
+	// a deterministic print order.
+	if !val.OrderedKeys() {
+		sort.Strings(keys)
+	}
+
+	for _, key := range keys {
 		kf := &keyField{}
 
 		kf.Key = key
