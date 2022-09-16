@@ -71,7 +71,7 @@ endpoint > metadata_config | [metadata_config][] | Configuration for how metric 
 wal | [wal][] | Configuration for the component's WAL. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `endpoint >
-http_client_config` refers to an `http_client_config` block defined inside a
+http_client_config` refers to an `http_client_config` block defined inside an
 `endpoint` block.
 
 [endpoint]: #endpoint-block
@@ -87,7 +87,7 @@ http_client_config` refers to an `http_client_config` block defined inside a
 ### endpoint block
 
 The `endpoint` block describes a single location to send metrics to. Multiple
-`endpoint` blocks may be provided to send metrics to multiple locations.
+`endpoint` blocks can be provided to send metrics to multiple locations.
 
 The following arguments are supported:
 
@@ -99,10 +99,10 @@ Name | Type | Description | Default | Required
 `headers` | `map(string)` | Extra headers to deliver with the request. | | no
 `send_exemplars` | `bool` | Whether exemplars should be sent. | `true` | no
 
-When multiple `endpoint` blocks are provided, metrics will be sent concurrently
-to all configured locations. Each endpoint has a _queue_ which is used to read
-metrics from the WAL and queue them for sending. The `queue_config` block can
-be used to customize the behavior of the queue.
+When multiple `endpoint` blocks are provided, metrics are concurrently to all
+configured locations. Each endpoint has a _queue_ which is used to read metrics
+from the WAL and queue them for sending. The `queue_config` block can be used
+to customize the behavior of the queue.
 
 Endpoints can be named for easier identification in debug metrics using the
 `name` argument. If the `name` argument isn't provided, a name is generated
@@ -123,8 +123,9 @@ Name | Type | Description | Default | Required
 `follow_redirects` | `bool` | Whether redirects returned by the server should be followed. | `true` | no
 `enable_http_2` | `bool` | Whether HTTP2 is supported for requests. | `true` | no
 
-`basic_auth`, `authorization`, and `oauth2` are mutually exclusive and only one
-may be provided inside of a `http_client_config` block.
+`bearer_token`, `bearer_token_file`, `basic_auth`, `authorization`, and
+`oauth2` are mutually exclusive and only one can be provided inside of a
+`http_client_config` block.
 
 ### basic_auth block
 
@@ -134,7 +135,7 @@ Name | Type | Description | Default | Required
 `password` | `secret` | Basic auth password. | | no
 `password_file` | `string` | File containing the basic auth password. | | no
 
-`password` and `password_file` are mututally exclusive and only one may be
+`password` and `password_file` are mututally exclusive and only one can be
 provided inside of a `basic_auth` block.
 
 ### authorization block
@@ -145,7 +146,7 @@ Name | Type | Description | Default | Required
 `credential` | `secret` | Secret value. | | no
 `credentials_file` | `string` | File containing the secret value. | | no
 
-`credential` and `credentials_file` are mututally exclusive and only one may be
+`credential` and `credentials_file` are mututally exclusive and only one can be
 provided inside of an `authorization` block.
 
 ### oauth2 block
@@ -161,7 +162,7 @@ Name | Type | Description | Default | Required
 `proxy_url` | `string` | Optional proxy URL for OAuth2 requests. | | no
 
 `client_secret` and `client_secret_file` are mututally exclusive and only one
-may be provided inside of an `oauth2` block.
+can be provided inside of an `oauth2` block.
 
 ### tls_config block
 
@@ -203,35 +204,36 @@ quickly enough. The range of permitted shards can be configured with the
 `min_shards` and `max_shards` arguments.
 
 Each shard has a buffer of samples it will keep in memory, controlled with the
-`capacity` argument. New metrics won't be read from the WAL unless there is at
+`capacity` argument. New metrics aren't read from the WAL unless there is at
 least one shard that is not at maximum capcity.
 
-The buffer of a shard will be flushed and sent to the endpoint either after the
+The buffer of a shard is flushed and sent to the endpoint either after the
 shard reaches the number of samples specified by `max_samples_per_send` or the
 duration specified by `batch_send_deadline` has elapsed since the last flush
 for that shard.
 
-Shards will infinitely retry requests which fail with an `HTTP 5xx` status code
-until the requests succeeds. The delay between retries can be customized with
-the `min_backoff` and `max_backoff` arguments.
+Shards retry requests which fail due to a recoverable error. An error is
+recoverable if the server responds with an `HTTP 5xx` status code. The delay
+between retries can be customized with the `min_backoff` and `max_backoff`
+arguments.
 
-The `retry_on_http_429` argument can optionally configure shards to retry
-requests which fail with an `HTTP 429` status code; other requests which fail
-due to a `HTTP 4xx` status code are never retried. When `retry_on_http_429` is
+The `retry_on_http_429` argument specifies whether `HTTP 429` status code
+responses should be treated as recoverable errors; other `HTTP 4xx` status code
+responses are never considered recoverable errors. When `retry_on_http_429` is
 enabled, `Retry-After` response headers from the servers are honored.
 
 ### metadata_config block
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`send` | `bool` | Controls wheter metric metadata is sent to the endpoint. | `true` | no
+`send` | `bool` | Controls whether metric metadata is sent to the endpoint. | `true` | no
 `send_interval` | `duration` | How frequently metric metadata is sent to the endpoint. | `"1m"` | no
 `max_samples_per_send` | `number` | Maximum number of metadata samples to send to the endpoint at once. | `500` | no
 
 ### wal block
 
-The `wal` block customizes the WAL used to locally store metrics before they
-are sent to the configured set of endpoints.
+The `wal` block customizes the Write-Ahead Log (WAL) used to temporarily store
+metrics before they are sent to the configured set of endpoints.
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
@@ -239,20 +241,25 @@ Name | Type | Description | Default | Required
 `min_keepalive_time` | `duration` | Minimum time to keep data in the WAL before it can be removed. | `"5m"` | no
 `max_keepalive_time` | `duration` | Maximum time to keep data in the WAL before removing it. | `"8h"` | no
 
+The WAL serves two primary purposes:
+
+* Buffer unsent metrics in case of intermittent network issues.
+* Populate in-memory cache after a process restart.
+
 The WAL is located inside a component-specific directory relative to the
 storage path Grafana Agent is configured to use. See the
 [`agent run` documentation][run] for how to change the storage path.
 
 The `truncate_frequency` argument configures how often to clean up the WAL.
 Every time the `truncate_frequency` period elapses, the lower two-thirds of
-data will be removed from the WAL and will no longer be available for sending.
+data is removed from the WAL and is no available for sending.
 
-When a WAL clean up starts, the lowest succesfully sent timestamp is used to
+When a WAL clean-up starts, the lowest successfully sent timestamp is used to
 determine how much data is safe to remove from the WAL. The
 `min_keepalive_time` and `max_keepalive_time` control the permitted age range
-of data in the WAL; samples won't be removed until they are at least as old as
-`min_keepalive_time`, and samples will be forcibly removed if they are older
-than `max_keepalive_time`.
+of data in the WAL; samples aren't removed until they are at least as old as
+`min_keepalive_time`, and samples are forcibly removed if they are older than
+`max_keepalive_time`.
 
 [run]: {{< relref "../cli/run.md" >}}
 
@@ -296,20 +303,20 @@ information.
 * `prometheus_remote_storage_metadata_total` (counter): Total number of
   metadata entries sent to remote storage.
 * `prometheus_remote_storage_samples_failed_total` (counter): Total number of
-  samples which failed to send to remote storage due to non-recoverable errors.
+  samples that failed to send to remote storage due to non-recoverable errors.
 * `prometheus_remote_storage_exemplars_failed_total` (counter): Total number of
-  exemplars which failed to send to remote storage due to non-recoverable errors.
+  exemplars that failed to send to remote storage due to non-recoverable errors.
 * `prometheus_remote_storage_metadata_failed_total` (counter): Total number of
-  metadata entries which failed to send to remote storage due to
+  metadata entries that failed to send to remote storage due to
   non-recoverable errors.
 * `prometheus_remote_storage_samples_retries_total` (counter): Total number of
-  samples which failed to send to remote storage but were retried due to
+  samples that failed to send to remote storage but were retried due to
   recoverable errors.
 * `prometheus_remote_storage_exemplars_retried_total` (counter): Total number of
-  exemplars which failed to send to remote storage but were retried due to
+  exemplars that failed to send to remote storage but were retried due to
   recoverable errors.
 * `prometheus_remote_storage_metadata_retried_total` (counter): Total number of
-  metadata entries which failed to send to remote storage but were retried due
+  metadata entries that failed to send to remote storage but were retried due
   to recoverable errors.
 * `prometheus_remote_storage_samples_dropped_total` (counter): Total number of
   samples which were dropped after being read from the WAL before being sent to
@@ -328,7 +335,7 @@ information.
 * `prometheus_remote_storage_exemplars_pending` (gauge): The number of
   exemplars pending in shards to be sent to remote storage.
 * `prometheus_remote_storage_shard_capacity` (gauge): The capacity of shards
-  within for a given queue.
+  within a given queue.
 * `prometheus_remote_storage_shards` (gauge): The number of shards used for
   concurrent delivery of metrics to an endpoint.
 * `prometheus_remote_storage_shards_min` (gauge): The minimum number of shards
