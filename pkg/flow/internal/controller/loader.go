@@ -178,7 +178,7 @@ func (l *Loader) populateGraph(g *dag.Graph, blocks []*ast.BlockStmt) diag.Diagn
 			if !registration.Singleton && block.Label == "" {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
-					Message:  fmt.Sprintf("Component %q is missing its label", componentName),
+					Message:  fmt.Sprintf("Component %q must have a label", componentName),
 					StartPos: block.NamePos.Position(),
 					EndPos:   block.NamePos.Add(len(componentName) - 1).Position(),
 				})
