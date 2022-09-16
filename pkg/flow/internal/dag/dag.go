@@ -226,6 +226,5 @@ func (g *Graph) Clone() *Graph {
 	for node, set := range g.inEdges {
 		newGraph.inEdges[node] = set.Clone()
 	}
-
 	return newGraph
 }

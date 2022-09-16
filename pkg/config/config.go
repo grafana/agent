@@ -20,7 +20,6 @@ import (
 	"github.com/grafana/agent/pkg/server"
 	"github.com/grafana/agent/pkg/traces"
 	"github.com/grafana/agent/pkg/util"
-	"github.com/grafana/dskit/kv/consul"
 	"github.com/prometheus/common/config"
 	"github.com/prometheus/common/version"
 	"github.com/stretchr/testify/require"
@@ -144,16 +143,6 @@ func (c Config) MarshalYAML() (interface{}, error) {
 	var buf bytes.Buffer
 
 	enc := yaml.NewEncoder(&buf)
-	enc.SetHook(func(in interface{}) (ok bool, out interface{}, err error) {
-		// Obscure the password fields for known types that do not obscure passwords.
-		switch v := in.(type) {
-		case consul.Config:
-			v.ACLToken = "<secret>"
-			return true, v, nil
-		default:
-			return false, nil, nil
-		}
-	})
 
 	type config Config
 	if err := enc.Encode((config)(c)); err != nil {
@@ -430,12 +419,18 @@ func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
 
 // CheckSecret is a helper function to ensure the original value is overwritten with <secret>
 func CheckSecret(t *testing.T, rawCfg string, originalValue string) {
-	var cfg = &Config{}
-	err := LoadBytes([]byte(rawCfg), false, cfg)
+	var cfg Config
+	err := LoadBytes([]byte(rawCfg), false, &cfg)
 	require.NoError(t, err)
-	bb, err := yaml.Marshal(cfg)
+
+	// Set integrations version to make sure our marshal function goes through
+	// the custom marshaling code.
+	err = cfg.Integrations.setVersion(integrationsVersion1)
 	require.NoError(t, err)
-	scrubbedCfg := string(bb)
-	require.True(t, strings.Contains(scrubbedCfg, "<secret>"))
-	require.False(t, strings.Contains(scrubbedCfg, originalValue))
+
+	bb, err := yaml.Marshal(&cfg)
+	require.NoError(t, err)
+
+	require.True(t, strings.Contains(string(bb), "<secret>"))
+	require.False(t, strings.Contains(string(bb), originalValue))
 }

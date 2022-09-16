@@ -123,7 +123,7 @@ the upcoming release tag:
 * Modify `CHANGELOG.md` with a new version number and its release date.
 * Go through the entire repository and find references to the previous release
   version, updating them to reference the new version.
-* Run `make example-kubernetes` and `make example-dashboards` to update
+* Run `make generate-manifests` and `make generate-dashboards` to update
   manifests in case they are stale.
 
 NOTE: Any time CHANGELOG.md is updated for a release, it should first be done

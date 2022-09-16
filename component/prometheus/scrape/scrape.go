@@ -186,12 +186,8 @@ func (c *Component) Update(args component.Arguments) error {
 
 	c.appendable.SetReceivers(newArgs.ForwardTo)
 
-	sc, err := getPromScrapeConfigs(c.opts.ID, newArgs)
-	if err != nil {
-		return fmt.Errorf("invalid scrape_config: %w", err)
-	}
-
-	err = c.scraper.ApplyConfig(&config.Config{
+	sc := getPromScrapeConfigs(c.opts.ID, newArgs)
+	err := c.scraper.ApplyConfig(&config.Config{
 		ScrapeConfigs: []*config.ScrapeConfig{sc},
 	})
 	if err != nil {
@@ -205,6 +201,39 @@ func (c *Component) Update(args component.Arguments) error {
 	}
 
 	return nil
+}
+
+// Helper function to bridge the in-house configuration with the Prometheus
+// scrape_config.
+// As explained in the Config struct, the following fields are purposefully
+// missing out, as they're being implemented by another components.
+// - RelabelConfigs
+// - MetricsRelabelConfigs
+// - ServiceDiscoveryConfigs
+func getPromScrapeConfigs(jobName string, c Arguments) *config.ScrapeConfig {
+	dec := config.DefaultScrapeConfig
+	if c.JobName != "" {
+		dec.JobName = c.JobName
+	} else {
+		dec.JobName = jobName
+	}
+	dec.HonorLabels = c.HonorLabels
+	dec.HonorTimestamps = c.HonorTimestamps
+	dec.Params = c.Params
+	dec.ScrapeInterval = model.Duration(c.ScrapeInterval)
+	dec.ScrapeTimeout = model.Duration(c.ScrapeTimeout)
+	dec.MetricsPath = c.MetricsPath
+	dec.Scheme = c.Scheme
+	dec.BodySizeLimit = c.BodySizeLimit
+	dec.SampleLimit = c.SampleLimit
+	dec.TargetLimit = c.TargetLimit
+	dec.LabelLimit = c.LabelLimit
+	dec.LabelNameLengthLimit = c.LabelNameLengthLimit
+	dec.LabelValueLengthLimit = c.LabelValueLengthLimit
+
+	// HTTP scrape client settings
+	dec.HTTPClientConfig = *c.HTTPClientConfig.Convert()
+	return &dec
 }
 
 // ScraperStatus reports the status of the scraper's jobs.

@@ -2,10 +2,13 @@ package flow
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/grafana/agent/pkg/river/encoding"
 
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
@@ -123,4 +126,47 @@ func (f *Flow) configBytes(w io.Writer, debugInfo bool) (n int64, err error) {
 	}
 
 	return file.WriteTo(w)
+}
+
+// ComponentJSON returns the json representation of the flow component.
+func (f *Flow) ComponentJSON(w io.Writer, ci *ComponentInfo) error {
+	f.loadMut.RLock()
+	defer f.loadMut.RUnlock()
+
+	var foundComponent *controller.ComponentNode
+	for _, c := range f.loader.Components() {
+		if c.ID().String() == ci.ID {
+			foundComponent = c
+			break
+		}
+	}
+	if foundComponent == nil {
+		return fmt.Errorf("unable to find component named %q", ci.ID)
+	}
+
+	var err error
+	args, err := encoding.ConvertRiverBodyToJSON(foundComponent.Arguments())
+	if err != nil {
+		return err
+	}
+	ci.Arguments = args
+
+	exports, err := encoding.ConvertRiverBodyToJSON(foundComponent.Exports())
+	if err != nil {
+		return err
+	}
+	ci.Exports = exports
+
+	debugInfo, err := encoding.ConvertRiverBodyToJSON(foundComponent.DebugInfo())
+	if err != nil {
+		return err
+	}
+	ci.DebugInfo = debugInfo
+
+	bb, err := json.Marshal(ci)
+	if err != nil {
+		return err
+	}
+	_, err = w.Write(bb)
+	return err
 }
