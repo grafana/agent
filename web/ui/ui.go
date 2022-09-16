@@ -64,6 +64,9 @@ func RegisterRoutes(pathPrefix string, router *mux.Router) {
 // templateRenderer wraps around an inner fs.FS and will use html/template to
 // render files it serves. Files will be cached after rendering to save on CPU
 // time between repeated requests.
+//
+// The templateRenderer is used to inject runtime variables into the statically
+// built UI, such as the base URL path where the UI is exposed.
 type templateRenderer struct {
 	pathPrefix string
 	inner      http.FileSystem
