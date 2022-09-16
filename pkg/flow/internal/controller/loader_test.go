@@ -163,7 +163,7 @@ func TestLoader(t *testing.T) {
 		l := controller.NewLoader(newGlobals())
 		diags := applyFromContent(t, l, []byte(invalidFile))
 		require.ErrorContains(t, diags[0], `Component "testcomponents.tick" must have a label`)
-		require.ErrorContains(t, diags[1], `Singleton component "testcomponents.singleton" must not have a label`)
+		require.ErrorContains(t, diags[1], `Component "testcomponents.singleton" does not support labels`)
 	})
 }
 
