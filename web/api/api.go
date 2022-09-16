@@ -66,7 +66,7 @@ func (f *FlowAPI) listComponentHandler() http.HandlerFunc {
 	}
 }
 
-// JSON returns the json representation of ComponentInfoDetailed.
+// JSON returns the JSON representation of c.
 func (f *FlowAPI) JSON(c *flow.ComponentInfo) (bytes.Buffer, error) {
 	var buf bytes.Buffer
 	err := f.flow.ComponentJSON(&buf, c)
