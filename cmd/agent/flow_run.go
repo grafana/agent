@@ -50,7 +50,11 @@ run starts an HTTP server which can be used to debug Grafana Agent Flow or
 force it to reload (by sending a GET or POST request to /-/reload). The listen
 address can be changed through the --server.http.listen-addr flag.
 
-By default, the HTTP server exposes the following debug endpoints:
+By default, the HTTP server exposes a debugging UI at /. The path of the
+debugging UI can be changed by providing a different value to
+--server.http.ui-path-prefix.
+
+Additionally, the HTTP server exposes the following debug endpoints:
 
   /debug/config  Display the state of running components. Values marked as
                  secret are not shown. /debug/config?debug=1 shows extra
