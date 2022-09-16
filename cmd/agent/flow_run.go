@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/grafana/agent/web/api"
+	"github.com/grafana/agent/web/ui"
 
 	"github.com/fatih/color"
 	"github.com/go-kit/log/level"
@@ -188,6 +189,10 @@ func (fr *flowRun) Run(configFile string) error {
 		// Register Routes must be the last
 		fa := api.NewFlowAPI(f, r)
 		fa.RegisterRoutes(fr.uiPrefix, r)
+
+		// NOTE(rfratto): keep this at the bottom of all other routes, otherwise it
+		// will take precedence over anything else mapped in uiPrefix.
+		ui.RegisterRoutes(fr.uiPrefix, r)
 
 		srv := &http.Server{Handler: r}
 
