@@ -217,10 +217,11 @@ export const ComponentGraph: FC<ComponentGraphProps> = (props) => {
       .append('path')
       .attr(
         'd',
+        // Draw an arrow shape
         d3.line()([
-          [0, 0],
-          [0, 20],
-          [20, 10],
+          [0, 0], // Bottom left of arrow
+          [0, 20], // Top left of arrow
+          [20, 10], // Middle point of arrow
         ])
       )
       .attr('fill', '#c8c9ca');
