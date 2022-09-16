@@ -9,7 +9,7 @@ import (
 	"github.com/grafana/agent/pkg/river/internal/value"
 )
 
-// attributeField represents a json representation of a river attribute.
+// attributeField represents a JSON representation of a river attribute.
 type attributeField struct {
 	field    `json:",omitempty"`
 	valField riverField
@@ -46,7 +46,7 @@ func (af *attributeField) convertAttribute(val value.Value, f rivertags.Field) e
 	if val.Reflect().IsZero() {
 		return nil
 	}
-	af.Type = attr
+	af.Type = attrType
 	af.Name = strings.Join(f.Name, ".")
 
 	rv, err := convertRiverValue(val)

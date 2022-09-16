@@ -25,7 +25,7 @@ func (mf *mapField) hasValue() bool {
 }
 
 func (mf *mapField) convertMap(val value.Value) error {
-	mf.Type = object
+	mf.Type = objectType
 	fields := make([]*keyField, 0)
 	for _, key := range val.Keys() {
 		kf := &keyField{}

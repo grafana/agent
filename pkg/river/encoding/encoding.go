@@ -3,16 +3,14 @@ package encoding
 import (
 	"encoding/json"
 	"fmt"
-	"reflect"
 
 	"github.com/grafana/agent/pkg/river/token/builder"
 
-	"github.com/grafana/agent/pkg/river/internal/rivertags"
 	"github.com/grafana/agent/pkg/river/internal/value"
 )
 
-const attr = "attr"
-const object = "object"
+const attrType = "attr"
+const objectType = "object"
 
 // riverField is an interface that wraps the various concrete options for a river value.
 type riverField interface {
@@ -20,53 +18,19 @@ type riverField interface {
 }
 
 // ConvertRiverBodyToJSON is used to convert a River body value to a JSON representation.
-func ConvertRiverBodyToJSON(input interface{}) (json.RawMessage, error) {
+func ConvertRiverBodyToJSON(input interface{}) ([]byte, error) {
 	if input == nil {
 		return nil, nil
 	}
-	val := value.Encode(input)
-	rt := rivertags.Get(val.Reflect().Type())
-	var fields []interface{}
-	for _, t := range rt {
-		fieldValue := val.Reflect().FieldByIndex(t.Index)
-		enVal := value.Encode(fieldValue.Interface())
-		// Array blocks can only happen at this level
-		if t.IsBlock() && (enVal.Reflect().Kind() == reflect.Array || enVal.Reflect().Kind() == reflect.Slice) {
-			for i := 0; i < enVal.Reflect().Len(); i++ {
-				arrEle := enVal.Reflect().Index(i).Interface()
-				bf, err := newBlock(reflect.ValueOf(arrEle), t)
-				if err != nil {
-					return nil, err
-				}
-				if bf.hasValue() {
-					fields = append(fields, bf)
-				}
-			}
-		} else if t.IsBlock() {
-			bf, err := newBlock(reflect.ValueOf(enVal), t)
-
-			if err != nil {
-				return nil, err
-			}
-			if bf.hasValue() {
-				fields = append(fields, bf)
-			}
-		} else {
-			af, err := newAttribute(enVal, t)
-			if err != nil {
-				return nil, err
-			}
-			if af.hasValue() {
-				fields = append(fields, af)
-			}
-		}
+	fields, err := getFieldsForBlock(input)
+	if err != nil {
+		return nil, err
 	}
 	bb, err := json.Marshal(fields)
 	if err != nil {
 		return nil, err
 	}
-	raw := json.RawMessage(bb)
-	return raw, nil
+	return bb, nil
 }
 
 func isFieldValue(val value.Value) bool {

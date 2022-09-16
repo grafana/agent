@@ -16,7 +16,7 @@ import (
 	"github.com/grafana/agent/pkg/flow"
 )
 
-// FlowAPI wraps several calls for the component health api.
+// FlowAPI is a wrapper around the component API.
 type FlowAPI struct {
 	flow *flow.Flow
 }
@@ -26,7 +26,7 @@ func NewFlowAPI(flow *flow.Flow, r *mux.Router) *FlowAPI {
 	return &FlowAPI{flow: flow}
 }
 
-// RegisterRoutes registers all the routes.
+// RegisterRoutes registers all the API's routes.
 func (f *FlowAPI) RegisterRoutes(urlPrefix string, r *mux.Router) {
 	r.Handle(path.Join(urlPrefix, "/api/v0/web/components"), httputil.CompressionHandler{Handler: f.listComponentsHandler()})
 	r.Handle(path.Join(urlPrefix, "/api/v0/web/components/{id}"), httputil.CompressionHandler{Handler: f.listComponentHandler()})
@@ -52,12 +52,12 @@ func (f *FlowAPI) listComponentHandler() http.HandlerFunc {
 
 		for _, info := range infos {
 			if requestedComponent == info.ID {
-				bb, err := f.JSON(info)
+				bb, err := f.json(info)
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
 				}
-				_, _ = w.Write(bb.Bytes())
+				_, _ = w.Write(bb)
 				return
 			}
 		}
@@ -66,12 +66,12 @@ func (f *FlowAPI) listComponentHandler() http.HandlerFunc {
 	}
 }
 
-// JSON returns the json representation of ComponentInfoDetailed.
-func (f *FlowAPI) JSON(c *flow.ComponentInfo) (bytes.Buffer, error) {
+// json returns the JSON representation of ComponentInfoDetailed.
+func (f *FlowAPI) json(c *flow.ComponentInfo) ([]byte, error) {
 	var buf bytes.Buffer
 	err := f.flow.ComponentJSON(&buf, c)
 	if err != nil {
-		return bytes.Buffer{}, err
+		return nil, err
 	}
-	return buf, nil
+	return buf.Bytes(), nil
 }

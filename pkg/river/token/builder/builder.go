@@ -131,8 +131,8 @@ func (b *Body) AppendFrom(goValue interface{}) {
 	b.encodeFields(rv)
 }
 
-// GetBlockLabel returns the label for a given block.
-func GetBlockLabel(rv reflect.Value) string {
+// getBlockLabel returns the label for a given block.
+func getBlockLabel(rv reflect.Value) string {
 	tags := rivertags.Get(rv.Type())
 	for _, tag := range tags {
 		if tag.Flags&rivertags.FlagLabel != 0 {
@@ -198,7 +198,7 @@ func (b *Body) encodeField(field rivertags.Field, fieldValue reflect.Value) {
 			}
 
 		case fieldValue.Kind() == reflect.Struct:
-			inner := NewBlock(field.Name, GetBlockLabel(fieldValue))
+			inner := NewBlock(field.Name, getBlockLabel(fieldValue))
 			inner.Body().encodeFields(fieldValue)
 			b.AppendBlock(inner)
 		}

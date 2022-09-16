@@ -1,12 +1,9 @@
 package encoding
 
 import (
-	"encoding/json"
 	"fmt"
 	"reflect"
 	"strings"
-
-	"github.com/grafana/agent/pkg/river/token/builder"
 
 	"github.com/grafana/agent/pkg/river/internal/rivertags"
 	"github.com/grafana/agent/pkg/river/internal/value"
@@ -14,12 +11,10 @@ import (
 
 // blockField represents the json representation of a river block.
 type blockField struct {
-	field           `json:",omitempty"`
-	ID              string        `json:"id,omitempty"`
-	Label           string        `json:"label,omitempty"`
-	Body            []interface{} `json:"body,omitempty"`
-	attributeFields []*attributeField
-	blockFields     []*blockField
+	field `json:",omitempty"`
+	ID    string        `json:"id,omitempty"`
+	Label string        `json:"label,omitempty"`
+	Body  []interface{} `json:"body,omitempty"`
 }
 
 func newBlock(reflectValue reflect.Value, f rivertags.Field) (*blockField, error) {
@@ -27,24 +22,11 @@ func newBlock(reflectValue reflect.Value, f rivertags.Field) (*blockField, error
 	return bf, bf.convertBlock(reflectValue, f)
 }
 
-// MarshalJSON implements json marshaller.
-func (bf *blockField) MarshalJSON() ([]byte, error) {
-	bf.Body = make([]interface{}, 0)
-	for _, x := range bf.attributeFields {
-		bf.Body = append(bf.Body, x)
-	}
-	for _, x := range bf.blockFields {
-		bf.Body = append(bf.Body, x)
-	}
-	type temp blockField
-	return json.Marshal((*temp)(bf))
-}
-
 func (bf *blockField) hasValue() bool {
 	if bf == nil {
 		return false
 	}
-	return len(bf.blockFields)+len(bf.attributeFields) > 0
+	return len(bf.Body) > 0
 }
 
 func (bf *blockField) convertBlock(reflectValue reflect.Value, f rivertags.Field) error {
@@ -60,31 +42,66 @@ func (bf *blockField) convertBlock(reflectValue reflect.Value, f rivertags.Field
 
 	bf.Name = strings.Join(f.Name, ".")
 	bf.Type = "block"
-	bf.Label = builder.GetBlockLabel(reflectValue)
+	bf.Label = getBlockLabel(reflectValue)
 
-	riverFields := rivertags.Get(reflectValue.Type())
-	for _, rf := range riverFields {
-		fieldIn := reflectValue.FieldByIndex(rf.Index)
-		fieldVal := fieldIn.Interface()
+	fields, err := getFieldsForBlock(reflectValue.Interface())
+	if err != nil {
+		return err
+	}
+	bf.Body = fields
+	return nil
+}
 
-		// Blocks can only have sub blocks and attributes
-		if rf.IsBlock() {
-			newBF, err := newBlock(reflect.ValueOf(fieldVal), rf)
+// getBlockLabel returns the label for a given block.
+func getBlockLabel(rv reflect.Value) string {
+	tags := rivertags.Get(rv.Type())
+	for _, tag := range tags {
+		if tag.Flags&rivertags.FlagLabel != 0 {
+			return rv.FieldByIndex(tag.Index).String()
+		}
+	}
+
+	return ""
+}
+
+func getFieldsForBlock(input interface{}) ([]interface{}, error) {
+	val := value.Encode(input)
+	reflectVal := val.Reflect()
+	rt := rivertags.Get(reflectVal.Type())
+	var fields []interface{}
+	for _, t := range rt {
+		fieldRef := reflectVal.FieldByIndex(t.Index)
+		fieldVal := value.Encode(fieldRef.Interface())
+		fieldReflect := fieldVal.Reflect()
+		if t.IsBlock() && (fieldReflect.Kind() == reflect.Array || fieldReflect.Kind() == reflect.Slice) {
+			for i := 0; i < fieldReflect.Len(); i++ {
+				arrEle := fieldReflect.Index(i).Interface()
+				bf, err := newBlock(reflect.ValueOf(arrEle), t)
+				if err != nil {
+					return nil, err
+				}
+				if bf.hasValue() {
+					fields = append(fields, bf)
+				}
+			}
+		} else if t.IsBlock() {
+			bf, err := newBlock(fieldRef, t)
+
 			if err != nil {
-				return nil
+				return nil, err
 			}
-			if newBF.hasValue() {
-				bf.blockFields = append(bf.blockFields, newBF)
+			if bf.hasValue() {
+				fields = append(fields, bf)
 			}
-		} else if rf.IsAttr() {
-			newAttr, err := newAttribute(value.Encode(fieldVal), rf)
+		} else {
+			af, err := newAttribute(fieldVal, t)
 			if err != nil {
-				return nil
+				return nil, err
 			}
-			if newAttr.hasValue() {
-				bf.attributeFields = append(bf.attributeFields, newAttr)
+			if af.hasValue() {
+				fields = append(fields, af)
 			}
 		}
 	}
-	return nil
+	return fields, nil
 }

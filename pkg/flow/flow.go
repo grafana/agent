@@ -267,7 +267,7 @@ func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *ComponentInfo 
 	return ci
 }
 
-// ComponentInfo represents a component in river.
+// ComponentInfo represents a component in flow.
 type ComponentInfo struct {
 	Name         string           `json:"name,omitempty"`
 	Type         string           `json:"type,omitempty"`
