@@ -7,9 +7,15 @@ title: prometheus.integrations.node_exporter
 # prometheus.integrations.node_exporter
 The component embeds the popular
 [node_exporter](https://github.com/prometheus/node_exporter) which exposes a 
-wide variety of hardware and OS metrics.
+wide variety of hardware and OS metrics from the host machine.
 
-The `node_exporter` itself is comprised of various _collectors_, which can be enabled and disabled at will.
+The `node_exporter` itself is comprised of various _collectors_, which can be
+enabled and disabled at will. For more information on collectors refer to the
+[`collectors-list`](#collectors-list) section.
+
+The `prometheus.integrations.node_exporter` component is a _singleton_
+component. That means that it can only appear _once_ per configuration file,
+and it requires that no block label is passed to it.
 
 ## Example
 ```river
@@ -29,22 +35,28 @@ All arguments are optional. Omitted fields take their default values.
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`include_exporter_metrics` | boolean      | Whether metrics about the exporter itself should be reported | false | no 
-`procfs_path`              | string       | The procfs mountpoint. | `/proc` | no
-`sysfs_path`               | string       | The sysfs mountpoint.  | `sys`   | no
-`rootfs_path`              | string       | Specify a prefix for accessing the host filesystem. | `/` | no
+`set_collectors`           | list(string) | Overrides the default set of enabled collectors with the collectors listed. | | no
 `enable_collectors`        | list(string) | Collectors to mark as enabled.  | | no
 `disable_collectors`       | list(string) | Collectors to mark as disabled. | | no
-`set_collectors`           | list(string) | Overrides the default set of enabled collectors with the collectors listed. | | no
+`include_exporter_metrics` | boolean      | Whether metrics about the exporter itself should be reported | false | no 
+`procfs_path`              | string       | The procfs mountpoint. | `/proc` | no
+`sysfs_path`               | string       | The sysfs mountpoint.  | `/sys`   | no
+`rootfs_path`              | string       | Specify a prefix for accessing the host filesystem. | `/` | no
 
-If running in Docker, the root filesystem of the host machine should be mounted and `rootfs_path` should be changed to the mount directory.
+The `set_collectors` argument defines a hand-picked list of enabled-by-default
+collectors. If set, anything not provided in that list will be disabled by
+default.
+
+The `enable_collectors` enables more collectors over the default set, or on top
+of the ones provided in `set_collectors`.
+
+The `disable_collector` extends the default set of disabled collectors. In case
+of conflicts, it takes precedence over `enable_collectors`.
 
 Additionally, the following subblocks are supported for configuring collector-specific options.
 
 Name | Description | Required
 ---- | ----------- | --------
-[`relabel_config`](#relabel_config-block) | Relabeling steps to apply to targets | no
-
 [`bcache`](#bcache-block) | Configures the bcache collector | no
 [`cpu`](#cpu-block) | Configures the cpu collector | no
 [`disk`](#disk-block) | Configures the diskstats collector | no
@@ -63,11 +75,6 @@ Name | Description | Required
 [`tapestats`](#tapestats-block) | Configures the tapestats collector | no
 [`textfile`](#textfile-block) | Configures the textfile collector | no
 [`vmstat`](#vmstat-block) | Configures the vmstat collector | no
-
-
-
-
-
 
 ### `bcache` block
 Name | Type | Description | Default | Required
@@ -105,18 +112,84 @@ Name | Type | Description | Default | Required
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `backend_labels` | list(string) | Array of IPVS backend stats labels. | `[local_address, local_port, remote_address, remote_port, proto, local_mark]` | no
+
 ### `ntp` block
+name | type | description | default | required
+---- | ---- | ----------- | ------- | --------
+`server`                 | string   | NTP server to use for the collector. | "127.0.0.1" | no
+`server_is_local`        | boolean  | Certifies that the server address is not a public ntp server. | false | no
+`ip_ttl`                 | int      | TTL to use while sending NTP query. | 1 | no
+`local_offset_tolerance` | duration | Offset between local clock and local ntpd time to tolerate. | "1ms" | no
+`max_distance`           | duration | Max accumulated distance to the root. | "3466080us" | no
+`protocol_version`       | int      | NTP protocol version | 4 | no
+
 ### `netclass` block
+name | type | description | default | required
+---- | ---- | ----------- | ------- | --------
+`ignore_invalid_speed_device` | boolean | Ignore net devices with invalid speed values | false | no
+`ignored_devices`             | string  | Regexp of net devices to ignore for netclass collector. | `"^$"` | no
+
 ### `netdev` block
+name | type | description | default | required
+---- | ---- | ----------- | ------- | --------
+`address_info`   | boolean | Enable collecting address-info for every device | false | no
+`device_exclude` | string  | Regexp of net devices to exclude (mutually exclusive with include) | `""` | no
+`device_include` | string  | Regexp of net devices to include (mutually exclusive with exclude) | `""` | no
+
 ### `netstat` block
+name | type | description | default | required
+---- | ---- | ----------- | ------- | --------
+`fields` | string | Regexp of fields to return for netstat collector. | `"^(.*_(InErrors|InErrs)|Ip_Forwarding|Ip(6|Ext)_(InOctets|OutOctets)|Icmp6?_(InMsgs|OutMsgs)|TcpExt_(Listen.*|Syncookies.*|TCPSynRetrans|TCPTimeouts)|Tcp_(ActiveOpens|InSegs|OutSegs|OutRsts|PassiveOpens|RetransSegs|CurrEstab)|Udp6?_(InDatagrams|OutDatagrams|NoPorts|RcvbufErrors|SndbufErrors))$"` | no
+
 ### `perf` block
+name | type | description | default | required
+---- | ---- | ----------- | ------- | --------
+`cpus`      | string       | List of CPUs from which perf metrics should be collected. | "" | no
+`tracepoint | list(string) | Array of perf tracepoints that should be collected. | | no
+
 ### `powersupply` block
+name | type | description | default | required
+---- | ---- | ----------- | ------- | --------
+`ignored_supplies` | string | Regexp of power supplies to ignore for the powersupplyclass collector. | `"^$"` | no
+
 ### `runit` block
+name | type | description | default | required
+---- | ---- | ----------- | ------- | --------
+`service_dir` | string | Path to runit service directory. | `"/etc/service"` | no
+
 ### `supervisord` block
+name | type | description | default | required
+---- | ---- | ----------- | ------- | --------
+`url` | string | XML RPC endpoint for the supervisord collector. | `"http://localhost:9001/RPC2"` | no
+
+Setting SUPERVISORD_URL in the environment will override the default value.
+An explicit value in the YAML config takes precedence over the environment
+variable.
+
+
 ### `systemd` block
+name | type | description | default | required
+---- | ---- | ----------- | ------- | --------
+enable_restarts | boolean | Enables service unit metric service_restart_total | false | no
+start_time      | boolean | Enables service unit metric unit_start_time_seconds | false | no
+task_metrics    | boolean | Enables service unit tasks metrics unit_tasks_current and unit_tasks_max.
+unit_exclude    | string  | Regexp of systemd units to exclude. Units must both match include and not match exclude to be collected. | `".+\\.(automount|device|mount|scope|slice)"` | no
+unit_include    | string  | Regexp of systemd units to include. Units must both match include and not match exclude to be collected. | `".+"` | no
+
 ### `tapestats` block
+name | type | description | default | required
+---- | ---- | ----------- | ------- | --------
+`ignored_devices` | string | Regexp of tapestats devices to ignore. | `"^$"` | no
+
 ### `textfile` block
+name | type | description | default | required
+---- | ---- | ----------- | ------- | --------
+`textfile_directory` | string | Directory to read *.prom files from for the textfile collector. | `""` | no
+
 ### `vmstat` block
+name | type | description | default | required
+---- | ---- | ----------- | ------- | --------
+`fields` | string | Regexp of fields to return for the vmstat collector. | `"^(oom_kill|pgpg|pswp|pg.*fault).*"` | no
 
 
 ## Exported fields
@@ -144,3 +217,89 @@ last healthy values.
 
 `prometheus.relabel` does not expose any component-specific debug metrics.
 
+## Collectors List
+The following table lists the available collectors that node_exporter brings
+bundled in. Some collectors may only work on specific operating systems;
+enabling a collector that is not supported by the host OS where Flow is running
+is a no-op.
+
+Users can choose to enable a subset of collectors to limit the amount of
+metrics exposed by the `prometheus.integrations.node_exporter` component,
+or disable collectors that are expensive to run.
+
+| Name             | Description | OS | Enabled by default |
+| ---------------- | ----------- | -- | ------------------ |
+| arp              | Exposes ARP statistics from /proc/net/arp. | Linux | yes |
+| bcache           | Exposes bcache statistics from /sys/fs/bcache. | Linux | yes |
+| bonding          | Exposes the number of configured and active slaves of Linux bonding interfaces. | Linux | yes |
+| boottime         | Exposes system boot time derived from the kern.boottime sysctl. | Darwin, Dragonfly, FreeBSD, NetBSD, OpenBSD, Solaris | yes |
+| btrfs            | Exposes statistics on btrfs. | Linux | yes |
+| buddyinfo        | Exposes statistics of memory fragments as reported by /proc/buddyinfo. | Linux | no |
+| conntrack        | Shows conntrack statistics (does nothing if no /proc/sys/net/netfilter/ present). | Linux | yes |
+| cpu              | Exposes CPU statistics. | Darwin, Dragonfly, FreeBSD, Linux, Solaris | yes |
+| cpufreq          | Exposes CPU frequency statistics. | Linux, Solaris | yes |
+| devstat          | Exposes device statistics. | Dragonfly, FreeBSD | no |
+| diskstats        | Exposes disk I/O statistics. | Darwin, Linux, OpenBSD | yes |
+| dmi              | Exposes DMI information. | Linux | yes |
+| drbd             | Exposes Distributed Replicated Block Device statistics (to version 8.4). | Linux | no |
+| drm              | Exposes GPU card info from /sys/class/drm/card?/device | Linux | no |
+| edac             | Exposes error detection and correction statistics. | Linux | yes |
+| entropy          | Exposes available entropy. | Linux | yes |
+| ethtool          | Exposes ethtool stats | Linux | no |
+| exec             | Exposes execution statistics. | Dragonfly, FreeBSD | yes |
+| fibrechannel     | Exposes FibreChannel statistics. | Linux | yes |
+| filefd           | Exposes file descriptor statistics from /proc/sys/fs/file-nr. | Linux | yes |
+| filesystem       | Exposes filesystem statistics, such as disk space used. | Darwin, Dragonfly, FreeBSD, Linux, OpenBSD | yes |
+| hwmon            | Exposes hardware monitoring and sensor data from /sys/class/hwmon. | Linux | yes |
+| infiniband       | Exposes network statistics specific to InfiniBand and Intel OmniPath configurations. | Linux | yes |
+| interrupts       | Exposes detailed interrupts statistics. | Linux, OpenBSD | no |
+| ipvs             | Exposes IPVS status from /proc/net/ip_vs and stats from /proc/net/ip_vs_stats. | Linux | yes |
+| ksmd             | Exposes kernel and system statistics from /sys/kernel/mm/ksm. | Linux | no |
+| lnstat           | Exposes Linux network cache stats | Linux | no |
+| loadavg          | Exposes load average. | Darwin, Dragonfly, FreeBSD, Linux, NetBSD, OpenBSD, Solaris | yes |
+| logind           | Exposes session counts from logind. | Linux | no |
+| mdadm            | Exposes statistics about devices in /proc/mdstat (does nothing if no /proc/mdstat present). | Linux | yes |
+| meminfo          | Exposes memory statistics. | Darwin, Dragonfly, FreeBSD, Linux, OpenBSD | yes |
+| meminfo_numa     | Exposes memory statistics from /proc/meminfo_numa. | Linux | no |
+| mountstats       | Exposes filesystem statistics from /proc/self/mountstats. Exposes detailed NFS client statistics. | Linux | no |
+| netclass         | Exposes network interface info from /sys/class/net. | Linux | yes |
+| netdev           | Exposes network interface statistics such as bytes transferred. | Darwin, Dragonfly, FreeBSD, Linux, OpenBSD | yes |
+| netstat          | Exposes network statistics from /proc/net/netstat. This is the same information as netstat -s. | Linux | yes |
+| network_route    | Exposes network route statistics. | Linux | no |
+| nfs              | Exposes NFS client statistics from /proc/net/rpc/nfs. This is the same information as nfsstat -c. | Linux | yes |
+| nfsd             | Exposes NFS kernel server statistics from /proc/net/rpc/nfsd. This is the same information as nfsstat -s. | Linux | yes |
+| ntp              | Exposes local NTP daemon health to check time. | any | no |
+| nvme             | Exposes NVMe statistics. | Linux | yes |
+| os               | Exposes os-release information. | Linux | yes |
+| perf             | Exposes perf based metrics (Warning: Metrics are dependent on kernel configuration and settings). | Linux | no |
+| powersupplyclass | Collects information on power supplies. | any | yes |
+| pressure         | Exposes pressure stall statistics from /proc/pressure/. | Linux (kernel 4.20+ and/or CONFIG_PSI) | yes |
+| processes        | Exposes aggregate process statistics from /proc. | Linux | no |
+| qdisc            | Exposes queuing discipline statistics. | Linux | no |
+| rapl             | Exposes various statistics from /sys/class/powercap. | Linux | yes |
+| runit            | Exposes service status from runit. | any | no |
+| schedstat        | Exposes task scheduler statistics from /proc/schedstat. | Linux | yes |
+| sockstat         | Exposes various statistics from /proc/net/sockstat. | Linux | yes |
+| softnet          | Exposes statistics from /proc/net/softnet_stat. | Linux | yes |
+| stat             | Exposes various statistics from /proc/stat. This includes boot time, forks and interrupts. | Linux | yes |
+| supervisord      | Exposes service status from supervisord. | any | no |
+| systemd          | Exposes service and system status from systemd. | Linux | no |
+| tapestats        | Exposes tape device stats. | Linux | yes |
+| tcpstat          | Exposes TCP connection status information from /proc/net/tcp and /proc/net/tcp6. (Warning: the current version has potential performance issues in high load situations). | Linux | no |
+| textfile         | Collects metrics from files in a directory matching the filename pattern *.prom. The files must be using the text format defined here: https://prometheus.io/docs/instrumenting/exposition_formats/ | any | yes |
+| thermal          | Exposes thermal statistics. | Darwin | yes |
+| thermal_zone     | Exposes thermal zone & cooling device statistics from /sys/class/thermal. | Linux | yes |
+| time             | Exposes the current system time. | any | yes |
+| timex            | Exposes selected adjtimex(2) system call stats. | Linux | yes |
+| udp_queues       | Exposes UDP total lengths of the rx_queue and tx_queue from /proc/net/udp and /proc/net/udp6. | Linux | yes |
+| uname            | Exposes system information as provided by the uname system call. | Darwin, FreeBSD, Linux, OpenBSD | yes |
+| vmstat           | Exposes statistics from /proc/vmstat. | Linux | yes |
+| wifi             | Exposes WiFi device and station statistics. | Linux | no |
+| xfs              | Exposes XFS runtime statistics. | Linux (kernel 4.4+) | yes |
+| zfs              | Exposes ZFS performance statistics. | Linux, Solaris | yes |
+| zoneinfo         | Exposes zone stats. | Linux | no |
+
+## Running on Docker/Kubernetes
+When running Flow in a Docker container, you need to bind mount the filesystem, procfs and sysfs from the host machine as well as set the corresponding arguments for the component to work.
+
+You may also need to add capabilities such as `SYS_TIME` and make sure that the Agent is running with elevated privileges for some of the collectors to work properly.
