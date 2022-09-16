@@ -24,6 +24,8 @@ Main (unreleased)
 
 - Operator no longer set the `SecurityContext.Privileged` flag in the `config-reloader` container. (@hsyed-dojo)
 
+- Add metrics for config reloads and config hash (@jcreixell)
+
 v0.27.1 (2022-09-09)
 -------------------------
 
