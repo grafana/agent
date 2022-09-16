@@ -31,7 +31,7 @@ func (mf *mapField) convertMap(val value.Value) error {
 
 	keys := val.Keys()
 
-	// If v isn't an ordered object (i.e., a go map), sort the keys so they have
+	// If v isn't an ordered object (i.e., a Go map), sort the keys so they have
 	// a deterministic print order.
 	if !val.OrderedKeys() {
 		sort.Strings(keys)
