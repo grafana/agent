@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from './features/layout/Navbar';
 import PageComponentList from './pages/PageComponentList';
-import Graph from './pages/Graph';
 import styles from './App.module.css';
 import { ComponentDetailPage } from './pages/ComponentDetailPage';
 import { PathPrefixContext } from './contexts/PathPrefixContext';
@@ -25,7 +24,6 @@ function App() {
               <Route path="/" element={<PageComponentList />} />
               <Route path="/components" element={<PageComponentList />} />
               <Route path="/component/:id" element={<ComponentDetailPage />} />
-              <Route path="/graph" element={<Graph />} />
             </Routes>
           </main>
         </BrowserRouter>

@@ -12,11 +12,6 @@ function Navbar() {
       </header>
       <ul>
         <li>
-          <NavLink to="/graph" className="nav-link">
-            Graph
-          </NavLink>
-        </li>
-        <li>
           <a href="https://grafana.com/docs/agent/latest">Help</a>
         </li>
       </ul>
