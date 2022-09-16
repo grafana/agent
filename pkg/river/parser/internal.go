@@ -280,9 +280,10 @@ func (p *parser) parseStatement() ast.Stmt {
 
 	case token.LCURLY: // Block
 		block := &ast.BlockStmt{
-			Name:    blockName.Fragments,
-			NamePos: blockName.Start,
-			Label:   blockName.Label,
+			Name:     blockName.Fragments,
+			NamePos:  blockName.Start,
+			Label:    blockName.Label,
+			LabelPos: blockName.LabelPos,
 		}
 
 		block.LCurlyPos, _, _ = p.expect(token.LCURLY)
