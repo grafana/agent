@@ -73,7 +73,7 @@ dist/agent-darwin-arm64: GOARCH  := arm64
 dist/agent-darwin-arm64: generate-ui
 	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
-dist/agent-windows-amd64.exe: GO_TAGS += noebpf builtinassets
+dist/agent-windows-amd64.exe: GO_TAGS += builtinassets
 dist/agent-windows-amd64.exe: GOOS    := windows builtinassets
 dist/agent-windows-amd64.exe: GOARCH  := amd64
 dist/agent-windows-amd64.exe: generate-ui
