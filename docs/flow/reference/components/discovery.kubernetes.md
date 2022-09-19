@@ -44,7 +44,7 @@ Name | Type | Description | Default | Required
 `role` | `string` | Type of kubernetes resource to query. Must be one of `node`, `pod`, `service`, `endpoints`, `endpointslice` or `ingress` | | **yes**
 `kubeconfig_file` | `string` | Path of kubeconfig file to use for kubernetes connection | | no
 
-The following subblocks are supported:
+The following sub-blocks are supported:
 
 Name | Description | Required
 ---- | ----------- | --------
