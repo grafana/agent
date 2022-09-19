@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/grafana/agent/web/api"
+	"github.com/grafana/agent/web/ui"
 
 	"github.com/fatih/color"
 	"github.com/go-kit/log/level"
@@ -49,7 +50,11 @@ run starts an HTTP server which can be used to debug Grafana Agent Flow or
 force it to reload (by sending a GET or POST request to /-/reload). The listen
 address can be changed through the --server.http.listen-addr flag.
 
-By default, the HTTP server exposes the following debug endpoints:
+By default, the HTTP server exposes a debugging UI at /. The path of the
+debugging UI can be changed by providing a different value to
+--server.http.ui-path-prefix.
+
+Additionally, the HTTP server exposes the following debug endpoints:
 
   /debug/config  Display the state of running components. Values marked as
                  secret are not shown. /debug/config?debug=1 shows extra
@@ -188,6 +193,10 @@ func (fr *flowRun) Run(configFile string) error {
 		// Register Routes must be the last
 		fa := api.NewFlowAPI(f, r)
 		fa.RegisterRoutes(fr.uiPrefix, r)
+
+		// NOTE(rfratto): keep this at the bottom of all other routes, otherwise it
+		// will take precedence over anything else mapped in uiPrefix.
+		ui.RegisterRoutes(fr.uiPrefix, r)
 
 		srv := &http.Server{Handler: r}
 

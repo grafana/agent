@@ -29,6 +29,7 @@ various debugging needs.
 
 The following flags are supported:
 
-* `--server.http.listen-addr`: Address to listen for HTTP traffic on (default `127.0.0.1:12345`).
-* `--storage.path`: Base directory where components can store data (default `data-agent/`).
 * `--debug.endpoints.enabled`: Whether to enable HTTP debug endpoints (default `true`).
+* `--server.http.listen-addr`: Address to listen for HTTP traffic on (default `127.0.0.1:12345`).
+* `--server.http.ui-path-prefix`: Base path where the UI will be exposed (default `/`).
+* `--storage.path`: Base directory where components can store data (default `data-agent/`).
