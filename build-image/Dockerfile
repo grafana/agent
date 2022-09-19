@@ -61,7 +61,7 @@ EOF
 # See https://yarnpkg.com/getting-started/install#nodejs-1610
 RUN corepack enable
 
-#  Install other dependencies.
+# Install other dependencies.
 #
 # NOTE(rfratto): musl is installed so the Docker binaries from alpine work
 # properly.
