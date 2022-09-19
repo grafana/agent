@@ -240,7 +240,7 @@ or disable collectors that are expensive to run.
 | `boottime`         | Exposes system boot time derived from the `kern.boottime sysctl`. | Darwin, Dragonfly, FreeBSD, NetBSD, OpenBSD, Solaris | yes |
 | `btrfs`            | Exposes statistics on btrfs. | Linux | yes |
 | `buddyinfo`        | Exposes statistics of memory fragments as reported by `/proc/buddyinfo`. | Linux | no |
-| `conntrack`        | Shows conntrack statistics (does nothing if no /proc/sys/net/netfilter/ present). | Linux | yes |
+| `conntrack`        | Shows conntrack statistics (does nothing if no `/proc/sys/net/netfilter/` present). | Linux | yes |
 | `cpu`              | Exposes CPU statistics. | Darwin, Dragonfly, FreeBSD, Linux, Solaris | yes |
 | `cpufreq`          | Exposes CPU frequency statistics. | Linux, Solaris | yes |
 | `devstat`          | Exposes device statistics. | Dragonfly, FreeBSD | no |
@@ -291,7 +291,7 @@ or disable collectors that are expensive to run.
 | `systemd`          | Exposes service and system status from systemd. | Linux | no |
 | `tapestats`        | Exposes tape device stats. | Linux | yes |
 | `tcpstat`          | Exposes TCP connection status information from `/proc/net/tcp` and `/proc/net/tcp6`. (Warning: the current version has potential performance issues in high load situations). | Linux | no |
-| `textfile`         | Collects metrics from files in a directory matching the filename pattern \*.prom. The files must be using the text format defined here: https://prometheus.io/docs/instrumenting/exposition_formats/. | any | yes |
+| `textfile`         | Collects metrics from files in a directory matching the filename pattern `*.prom`. The files must be using the text format defined here: https://prometheus.io/docs/instrumenting/exposition_formats/. | any | yes |
 | `thermal`          | Exposes thermal statistics. | Darwin | yes |
 | `thermal_zone`     | Exposes thermal zone & cooling device statistics from `/sys/class/thermal`. | Linux | yes |
 | `time`             | Exposes the current system time. | any | yes |
