@@ -39,7 +39,7 @@ Name | Type | Description                                                       
 
 Name | Description | Required
 ---- | ----------- | --------
-[`client_options`](#client_options) | Additional options for configuring the S3 client. | no
+[`client_options`](#client_options-block) | Additional options for configuring the S3 client. | no
 
 
 ### client_options block
@@ -77,8 +77,6 @@ the watched file was successful.
 ### Debug metrics
 
 `remote.s3` does not expose any component-specific debug metrics.
-
-[secret]: ../secrets.md#is_secret-argument-in-components
 
 ## Other S3 compatible systems
 
