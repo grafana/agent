@@ -1,10 +1,10 @@
 ---
 aliases:
-- /docs/agent/latest/operator/api/
-title: API Reference
+- /docs/agent/latest/operator/crd/
+title: CRD Reference
 weight: 500
 ---
-# API Reference
+# CRD Reference
 <p>Packages:</p>
 <ul>
 <li>
@@ -12,8 +12,6 @@ weight: 500
 </li>
 </ul>
 <h2 id="monitoring.grafana.com/v1alpha1">monitoring.grafana.com/v1alpha1</h2>
-<div>
-</div>
 Resource Types:
 <ul><li>
 <a href="#monitoring.grafana.com/v1alpha1.Deployment">Deployment</a>
@@ -4616,5 +4614,5 @@ Can be skip or fudge. Defaults to fudge.</p>
 <hr/>
 <p><em>
 Generated with <code>gen-crd-api-reference-docs</code>
-on git commit <code>917b8f3e</code>.
+on git commit <code>34181951</code>.
 </em></p>

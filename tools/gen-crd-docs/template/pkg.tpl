@@ -3,11 +3,11 @@
 {{ with .packages}}
 ---
 aliases:
-- /docs/agent/latest/operator/api/
-title: API Reference
+- /docs/agent/latest/operator/crd/
+title: CRD Reference
 weight: 500
 ---
-# API Reference
+# CRD Reference
 
 <p>Packages:</p>
 <ul>
