@@ -10,7 +10,7 @@ title: discovery.kubernetes
 
 Internally, this component uses Kubernetes Service Discovery from Prometheus. [The documentation](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#kubernetes_sd_config) on their site offers further details on the metadata labels applied to targets and other usage considerations.
 
-If you supply no connection information, this component will default to using an in-cluster config. Otherwise, you can specify a kubeconfig file, or manual apiserver configuration.
+If you supply no connection information, this component defaults to using an in-cluster config. Otherwise, you can specify a kubeconfig file, or manual apiserver configuration.
 
 ## Example
 
