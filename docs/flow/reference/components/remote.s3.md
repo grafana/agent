@@ -44,7 +44,7 @@ Name | Description | Required
 
 ### client_options block
 
-The `client_options` block allows the overriding of default client values. 
+The `client_options` block customizes options to connect to the S3 server.
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
@@ -67,7 +67,7 @@ The `content` field will be secret if `is_secret` was set to true.
 
 ## Component health
 
-Instances of `remote.s3` will report as healthy if the most recent read of
+Instances of `remote.s3` report as healthy if the most recent read of
 the watched file was successful.
 
 ## Debug information
