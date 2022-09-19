@@ -63,7 +63,7 @@ Name | Type | Description | Default | Required
 
 ### `selectors` block
 
-This contains optional label and field selectors to limit the discovery process to a subset of available resources.
+The `selectors` block contains optional label and field selectors to limit the discovery process to a subset of resources.
 See [https://kubernetes.io/docs/concepts/overview/working-with-objects/field-selectors/](https://kubernetes.io/docs/concepts/overview/working-with-objects/field-selectors/)
 and [https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) to learn more about the possible
 filters that can be used.
