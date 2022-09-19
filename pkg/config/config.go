@@ -60,10 +60,10 @@ var (
 		Name: "agent_config_last_reload_successful",
 		Help: "Config loaded successfully.",
 	})
-	configReloadSeconds = promauto.NewGauge(prometheus.GaugeOpts{
-		Name: "agent_config_last_reload_success_timestamp_seconds",
-		Help: "Timestamp of the last successful configuration reload.",
-	})
+	configReloadSeconds = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "agent_config_last_reload_timestamp_seconds",
+		Help: "Timestamp of the last configuration reload by result.",
+	}, []string{"result"})
 )
 
 // DefaultConfig holds default settings for all the subsystems.
@@ -369,11 +369,7 @@ func Load(fs *flag.FlagSet, args []string) (*Config, error) {
 		}
 	})
 
-	if error == nil {
-		configReloadSuccess.Set(1)
-		configReloadSeconds.SetToCurrentTime()
-	}
-
+	instrumentLoad(error)
 	return cfg, error
 }
 
@@ -474,4 +470,14 @@ func instrumentConfig(buf []byte) {
 	hash := sha256.Sum256(buf)
 	configHash.Reset()
 	configHash.WithLabelValues(fmt.Sprintf("%x", hash)).Set(1)
+}
+
+func instrumentLoad(err error) {
+	if err != nil {
+		configReloadSuccess.Set(0)
+		configReloadSeconds.WithLabelValues("failure").SetToCurrentTime()
+	} else {
+		configReloadSuccess.Set(1)
+		configReloadSeconds.WithLabelValues("success").SetToCurrentTime()
+	}
 }
