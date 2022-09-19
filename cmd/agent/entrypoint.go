@@ -260,6 +260,7 @@ func (ep *Entrypoint) TriggerReload() bool {
 		level.Error(ep.log).Log("msg", "failed to reload config file", "err", err)
 		return false
 	}
+
 	return true
 }
 
