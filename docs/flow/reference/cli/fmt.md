@@ -1,7 +1,7 @@
 ---
 aliases:
 - /docs/agent/latest/flow/reference/cli/run
-title: agent run
+title: agent fmt
 weight: 100
 ---
 
@@ -17,9 +17,9 @@ If the `file` argument is not provided or if the `file` argument is equal to
 `-`, `agent fmt` formats the contents of standard input. Otherwise, `agent fmt`
 reads and formats the file from disk specified by the argument.
 
-The `--write` flag can be specified to write the formatted result back to disk.
-`--write` can only be provided when `agent fmt` is not reading from standard
-input.
+The `--write` flag can be specified to replace the contents of the original
+file on disk with the formatted results. `--write` can only be provided when
+`agent fmt` is not reading from standard input.
 
 The following flags are supported:
 
