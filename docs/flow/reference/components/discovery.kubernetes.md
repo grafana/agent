@@ -28,7 +28,7 @@ Specific namespace only with kubeconfig file:
 discovery.kubernetes "k8s_pods" {
   role = "pod"
   kubeconfig_file = "/path/to/kubeconfig"
-  namepsaces {
+  namespaces {
     names = ["myapp"]
   }
 }
