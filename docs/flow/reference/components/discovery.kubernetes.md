@@ -147,7 +147,7 @@ The following fields are exported and can be referenced by other components:
 
 Name | Type | Description
 ---- | ---- | -----------
-targets | list(map(string)) | The set of targets discovered from the kubernetes api
+targets | list(map(string)) | The set of targets discovered from the Kubernetes API
 
 ## Component health
 
