@@ -1,6 +1,6 @@
 ---
 aliases:
-- /docs/agent/latest/flow/reference/cli/run
+- /docs/agent/latest/flow/reference/cli/fmt
 title: agent fmt
 weight: 100
 ---
