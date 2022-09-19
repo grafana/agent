@@ -465,13 +465,14 @@ func CheckSecret(t *testing.T, rawCfg string, originalValue string) {
 }
 
 // Create a sha256 hash of the config before expansion and expose it via
-// the agent_config_hash metric
+// the agent_config_hash metric.
 func instrumentConfig(buf []byte) {
 	hash := sha256.Sum256(buf)
 	configHash.Reset()
 	configHash.WithLabelValues(fmt.Sprintf("%x", hash)).Set(1)
 }
 
+// Expose metrics for reload success / failures.
 func instrumentLoad(err error) {
 	if err != nil {
 		configReloadSuccess.Set(0)
