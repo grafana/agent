@@ -94,6 +94,10 @@ func (tr *templateRenderer) Open(name string) (http.File, error) {
 
 	// Return the underlying file if we got a directory. Otherwise, we're going
 	// to create our own synthethic file.
+	//
+	// When we create a synthethic file, we close the original file, f, on
+	// return. Otherwise, we leave f open on return so the caller can read and
+	// close it.
 	if fi.IsDir() {
 		return f, nil
 	}

@@ -3,9 +3,13 @@
 
 package ui
 
-import "net/http"
+import (
+	"net/http"
+	"path/filepath"
+)
 
 // Assets contains the UI's assets.
 func Assets() http.FileSystem {
-	return http.Dir("./web/ui/build")
+	assetsDir := filepath.Join(".", "web", "ui", "build")
+	return http.Dir(assetsDir)
 }
