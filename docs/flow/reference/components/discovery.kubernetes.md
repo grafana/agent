@@ -6,7 +6,7 @@ title: discovery.kubernetes
 
 # discovery.kubernetes
 
-`discovery.kubernetes` allows you to find scrape targets from kubernetes resources. It watches cluster state, and ensures targets are continually synced with what is currently running in your cluster.
+`discovery.kubernetes` allows you to find scrape targets from Kubernetes resources. It watches cluster state, and ensures targets are continually synced with what is currently running in your cluster.
 
 Internally, this component uses Kubernetes Service Discovery from Prometheus. [The documentation](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#kubernetes_sd_config) on their site offers further details on the metadata labels applied to targets and other usage considerations.
 
