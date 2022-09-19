@@ -157,10 +157,31 @@ func (l *Loader) populateGraph(g *dag.Graph, blocks []*ast.BlockStmt) diag.Diagn
 			c.UpdateBlock(block)
 		} else {
 			componentName := strings.Join(block.Name, ".")
-			if _, exists := component.Get(componentName); !exists {
+			registration, exists := component.Get(componentName)
+			if !exists {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
 					Message:  fmt.Sprintf("Unrecognized component name %q", componentName),
+					StartPos: block.NamePos.Position(),
+					EndPos:   block.NamePos.Add(len(componentName) - 1).Position(),
+				})
+				continue
+			}
+
+			if registration.Singleton && block.Label != "" {
+				diags.Add(diag.Diagnostic{
+					Severity: diag.SeverityLevelError,
+					Message:  fmt.Sprintf("Component %q does not support labels", componentName),
+					StartPos: block.LabelPos.Position(),
+					EndPos:   block.LabelPos.Add(len(block.Label) + 1).Position(),
+				})
+				continue
+			}
+
+			if !registration.Singleton && block.Label == "" {
+				diags.Add(diag.Diagnostic{
+					Severity: diag.SeverityLevelError,
+					Message:  fmt.Sprintf("Component %q must have a label", componentName),
 					StartPos: block.NamePos.Position(),
 					EndPos:   block.NamePos.Add(len(componentName) - 1).Position(),
 				})
