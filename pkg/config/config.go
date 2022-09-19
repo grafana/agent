@@ -56,6 +56,14 @@ var (
 		},
 		[]string{"sha256"},
 	)
+	configReloadSuccess = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "agent_config_last_reload_successful",
+		Help: "Config loaded successfully.",
+	})
+	configReloadSeconds = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "agent_config_last_reload_success_timestamp_seconds",
+		Help: "Timestamp of the last successful configuration reload.",
+	})
 )
 
 // DefaultConfig holds default settings for all the subsystems.
@@ -338,7 +346,7 @@ func getenv(name string) string {
 // to the flagset before parsing them with the values specified by
 // args.
 func Load(fs *flag.FlagSet, args []string) (*Config, error) {
-	return load(fs, args, func(path, fileType string, expandArgs bool, c *Config) error {
+	cfg, error := load(fs, args, func(path, fileType string, expandArgs bool, c *Config) error {
 		switch fileType {
 		case fileTypeYAML:
 			if features.Enabled(fs, featRemoteConfigs) {
@@ -360,6 +368,13 @@ func Load(fs *flag.FlagSet, args []string) (*Config, error) {
 			return fmt.Errorf("unknown file type %q. accepted values: %s", fileType, strings.Join(fileTypes, ", "))
 		}
 	})
+
+	if error == nil {
+		configReloadSuccess.Set(1)
+		configReloadSeconds.SetToCurrentTime()
+	}
+
+	return cfg, error
 }
 
 type loaderFunc func(path string, fileType string, expandArgs bool, target *Config) error
