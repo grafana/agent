@@ -96,10 +96,10 @@ The following sub-blocks are supported for `http_client_config`:
 
 Name | Description | Required
 ---- | ----------- | --------
-[`basic_auth`](#basic_auth-block) | Configure basic_auth for authenticating against targets | no
-[`authorization`](#authorization-block) | Configure generic authorization against targets | no
-[`oauth2`](#oauth2-block) | Configure OAuth2 for authenticating against targets | no
-[`tls_config`](#tls_config-block) | Configure TLS settings for connecting to targets | no
+[`basic_auth`](#basic_auth-block) | Configure basic_auth for authenticating against Kubernetes | no
+[`authorization`](#authorization-block) | Configure generic authorization against Kubernetes | no
+[`oauth2`](#oauth2-block) | Configure OAuth2 for authenticating against Kubernetes | no
+[`tls_config`](#tls_config-block) | Configure TLS settings for connecting to Kubernetes | no
 
 #### `basic_auth` block
 
