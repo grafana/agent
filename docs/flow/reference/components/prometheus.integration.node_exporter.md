@@ -107,7 +107,7 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `fs_types_exclude`     | `string`   | Regexp of filesystem types to ignore for filesystem collector.| `"^(autofs\|binfmt_misc\|bpf\|cgroup2?\|configfs\|debugfs\|devpts\|devtmpfs\|fusectl\|hugetlbfs\|iso9660\|mqueue\|nsfs\|overlay\|proc\|procfs\|pstore\|rpc_pipefs\|securityfs\|selinuxfs\|squashfs\|sysfs\|tracefs)$"` | no
 `mount_points_exclude` | `string`   | Regexp of mount points to ignore for filesystem collector. | `"^/(dev\|proc\|sys\|var/lib/docker/.+)($\|/)"` | no
-`mount_timeout`        | `duration` | How long to wait for a mount to respond before marking it as stale. | "5s" | no
+`mount_timeout`        | `duration` | How long to wait for a mount to respond before marking it as stale. | `"5s"` | no
 
  
 
@@ -120,11 +120,11 @@ Name | Type | Description | Default | Required
 ### `ntp` block
 name | type | description | default | required
 ---- | ---- | ----------- | ------- | --------
-`server`                 | `string`   | NTP server to use for the collector. | "127.0.0.1" | no
+`server`                 | `string`   | NTP server to use for the collector. | `"127.0.0.1"` | no
 `server_is_local`        | `boolean`  | Certifies that the server address is not a public ntp server. | false | no
 `ip_ttl`                 | `int`      | TTL to use while sending NTP query. | 1 | no
-`local_offset_tolerance` | `duration` | Offset between local clock and local ntpd time to tolerate. | "1ms" | no
-`max_distance`           | `duration` | Max accumulated distance to the root. | "3466080us" | no
+`local_offset_tolerance` | `duration` | Offset between local clock and local ntpd time to tolerate. | `"1ms"` | no
+`max_distance`           | `duration` | Max accumulated distance to the root. | `"3466080us"` | no
 `protocol_version`       | `int`      | NTP protocol version. | 4 | no
 
 ### `netclass` block
@@ -150,7 +150,7 @@ name | type | description | default | required
 ### `perf` block
 name | type | description | default | required
 ---- | ---- | ----------- | ------- | --------
-`cpus`       | `string`       | List of CPUs from which perf metrics should be collected. | "" | no
+`cpus`       | `string`       | List of CPUs from which perf metrics should be collected. | | no
 `tracepoint` | `list(string)` | Array of perf tracepoints that should be collected. | | no
 
 ### `powersupply` block
