@@ -54,7 +54,7 @@ Name | Description | Required
 
 ### `namespaces` block
 
-Optional namespace discovery. If omitted, all namespaces are used.
+The `namespaces` block limits the namespaces to discover resources in. If omitted, all namespaces are searched.
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
