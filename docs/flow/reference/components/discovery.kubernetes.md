@@ -14,7 +14,7 @@ If you supply no connection information, this component defaults to an in-cluste
 
 ## Example
 
-Simple in-cluster discovery of all pods:
+This example shows a simple in-cluster discovery of all pods:
 
 ```river
 discovery.kubernetes "k8s_pods" {
