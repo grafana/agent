@@ -98,8 +98,8 @@ Name | Type | Description | Default | Required
 ### `ethtool` block
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`device_exclude` | `string` | Regexp of ethtool devices to exclude (mutually exclusive with ethtool_device_include). | | no
-`device_include` | `string` | Regexp of ethtool devices to include (mutually exclusive with ethtool_device_exclude). | | no
+`device_exclude` | `string` | Regexp of ethtool devices to exclude (mutually exclusive with `device_include`). | | no
+`device_include` | `string` | Regexp of ethtool devices to include (mutually exclusive with `device_exclude`). | | no
 `metrics_include`| `string` | Regexp of ethtool stats to include. | `.*` | no
 
 ### `filesystem` block
@@ -108,9 +108,6 @@ Name | Type | Description | Default | Required
 `fs_types_exclude`     | `string`   | Regexp of filesystem types to ignore for filesystem collector.| `"^(autofs\|binfmt_misc\|bpf\|cgroup2?\|configfs\|debugfs\|devpts\|devtmpfs\|fusectl\|hugetlbfs\|iso9660\|mqueue\|nsfs\|overlay\|proc\|procfs\|pstore\|rpc_pipefs\|securityfs\|selinuxfs\|squashfs\|sysfs\|tracefs)$"` | no
 `mount_points_exclude` | `string`   | Regexp of mount points to ignore for filesystem collector. | `"^/(dev\|proc\|sys\|var/lib/docker/.+)($\|/)"` | no
 `mount_timeout`        | `duration` | How long to wait for a mount to respond before marking it as stale. | `"5s"` | no
-
- 
-
 
 ### `ipvs` block
 Name | Type | Description | Default | Required
@@ -137,8 +134,8 @@ name | type | description | default | required
 name | type | description | default | required
 ---- | ---- | ----------- | ------- | --------
 `address_info`   | `boolean` | Enable collecting address-info for every device. | false | no
-`device_exclude` | `string`  | Regexp of net devices to exclude (mutually exclusive with include). |  | no
-`device_include` | `string`  | Regexp of net devices to include (mutually exclusive with exclude). |  | no
+`device_exclude` | `string`  | Regexp of net devices to exclude (mutually exclusive with `device_include`). |  | no
+`device_include` | `string`  | Regexp of net devices to include (mutually exclusive with `device_exclude`). |  | no
 
 ### `netstat` block
 name | type | description | default | required
@@ -190,7 +187,7 @@ name | type | description | default | required
 ### `textfile` block
 name | type | description | default | required
 ---- | ---- | ----------- | ------- | --------
-`textfile_directory` | `string` | Directory to read \*.prom files from for the textfile collector. |  | no
+`textfile_directory` | `string` | Directory to read `*.prom` files from for the textfile collector. |  | no
 
 ### `vmstat` block
 name | type | description | default | required
@@ -237,12 +234,12 @@ or disable collectors that are expensive to run.
 
 | Name             | Description | OS | Enabled by default |
 | ---------------- | ----------- | -- | ------------------ |
-| `arp`              | Exposes ARP statistics from /proc/net/arp. | Linux | yes |
-| `bcache`           | Exposes bcache statistics from /sys/fs/bcache. | Linux | yes |
+| `arp`              | Exposes ARP statistics from `/proc/net/arp`. | Linux | yes |
+| `bcache`           | Exposes bcache statistics from `/sys/fs/bcache`. | Linux | yes |
 | `bonding`          | Exposes the number of configured and active slaves of Linux bonding interfaces. | Linux | yes |
-| `boottime`         | Exposes system boot time derived from the kern.boottime sysctl. | Darwin, Dragonfly, FreeBSD, NetBSD, OpenBSD, Solaris | yes |
+| `boottime`         | Exposes system boot time derived from the `kern.boottime sysctl`. | Darwin, Dragonfly, FreeBSD, NetBSD, OpenBSD, Solaris | yes |
 | `btrfs`            | Exposes statistics on btrfs. | Linux | yes |
-| `buddyinfo`        | Exposes statistics of memory fragments as reported by /proc/buddyinfo. | Linux | no |
+| `buddyinfo`        | Exposes statistics of memory fragments as reported by `/proc/buddyinfo`. | Linux | no |
 | `conntrack`        | Shows conntrack statistics (does nothing if no /proc/sys/net/netfilter/ present). | Linux | yes |
 | `cpu`              | Exposes CPU statistics. | Darwin, Dragonfly, FreeBSD, Linux, Solaris | yes |
 | `cpufreq`          | Exposes CPU frequency statistics. | Linux, Solaris | yes |
@@ -250,27 +247,27 @@ or disable collectors that are expensive to run.
 | `diskstats`        | Exposes disk I/O statistics. | Darwin, Linux, OpenBSD | yes |
 | `dmi`              | Exposes DMI information. | Linux | yes |
 | `drbd`             | Exposes Distributed Replicated Block Device statistics (to version 8.4). | Linux | no |
-| `drm`              | Exposes GPU card info from /sys/class/drm/card?/device. | Linux | no |
+| `drm`              | Exposes GPU card info from `/sys/class/drm/card?/device`. | Linux | no |
 | `edac`             | Exposes error detection and correction statistics. | Linux | yes |
 | `entropy`          | Exposes available entropy. | Linux | yes |
 | `ethtool`          | Exposes ethtool stats. | Linux | no |
 | `exec`             | Exposes execution statistics. | Dragonfly, FreeBSD | yes |
 | `fibrechannel`     | Exposes FibreChannel statistics. | Linux | yes |
-| `filefd`           | Exposes file descriptor statistics from /proc/sys/fs/file-nr. | Linux | yes |
+| `filefd`           | Exposes file descriptor statistics from `/proc/sys/fs/file-nr`. | Linux | yes |
 | `filesystem`       | Exposes filesystem statistics, such as disk space used. | Darwin, Dragonfly, FreeBSD, Linux, OpenBSD | yes |
-| `hwmon`            | Exposes hardware monitoring and sensor data from /sys/class/hwmon. | Linux | yes |
+| `hwmon`            | Exposes hardware monitoring and sensor data from `/sys/class/hwmon`. | Linux | yes |
 | `infiniband`       | Exposes network statistics specific to InfiniBand and Intel OmniPath configurations. | Linux | yes |
 | `interrupts`       | Exposes detailed interrupts statistics. | Linux, OpenBSD | no |
 | `ipvs`             | Exposes IPVS status from `/proc/net/ip_vs` and stats from `/proc/net/ip_vs_stats`. | Linux | yes |
-| `ksmd`             | Exposes kernel and system statistics from /sys/kernel/mm/ksm. | Linux | no |
+| `ksmd`             | Exposes kernel and system statistics from `/sys/kernel/mm/ksm`. | Linux | no |
 | `lnstat`           | Exposes Linux network cache stats. | Linux | no |
 | `loadavg`          | Exposes load average. | Darwin, Dragonfly, FreeBSD, Linux, NetBSD, OpenBSD, Solaris | yes |
 | `logind`           | Exposes session counts from logind. | Linux | no |
-| `mdadm`            | Exposes statistics about devices in /proc/mdstat (does nothing if no /proc/mdstat present). | Linux | yes |
+| `mdadm`            | Exposes statistics about devices in `/proc/mdstat` (does nothing if no `/proc/mdstat` present). | Linux | yes |
 | `meminfo`          | Exposes memory statistics. | Darwin, Dragonfly, FreeBSD, Linux, OpenBSD | yes |
 | `meminfo_numa`     | Exposes memory statistics from `/proc/meminfo_numa`. | Linux | no |
 | `mountstats`       | Exposes filesystem statistics from `/proc/self/mountstats`. Exposes detailed NFS client statistics. | Linux | no |
-| `netclass`         | Exposes network interface info from `/sys/class/ne`t. | Linux | yes |
+| `netclass`         | Exposes network interface info from `/sys/class/net`. | Linux | yes |
 | `netdev`           | Exposes network interface statistics such as bytes transferred. | Darwin, Dragonfly, FreeBSD, Linux, OpenBSD | yes |
 | `netstat`          | Exposes network statistics from `/proc/net/netstat`. This is the same information as `netstat -s`. | Linux | yes |
 | `network_route`    | Exposes network route statistics. | Linux | no |
@@ -289,7 +286,7 @@ or disable collectors that are expensive to run.
 | `schedstat`        | Exposes task scheduler statistics from `/proc/schedstat`. | Linux | yes |
 | `sockstat`         | Exposes various statistics from `/proc/net/sockstat`. | Linux | yes |
 | `softnet`          | Exposes statistics from `/proc/net/softnet_stat`. | Linux | yes |
-| `stat`             | Exposes various statistics from /proc/stat. This includes boot time, forks and interrupts. | Linux | yes |
+| `stat`             | Exposes various statistics from `/proc/stat`. This includes boot time, forks and interrupts. | Linux | yes |
 | `supervisord`      | Exposes service status from supervisord. | any | no |
 | `systemd`          | Exposes service and system status from systemd. | Linux | no |
 | `tapestats`        | Exposes tape device stats. | Linux | yes |
