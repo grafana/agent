@@ -27,7 +27,10 @@ func runFlow() {
 	}
 	cmd.SetVersionTemplate("{{ .Version }}\n")
 
-	cmd.AddCommand(runCommand())
+	cmd.AddCommand(
+		fmtCommand(),
+		runCommand(),
+	)
 
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)
