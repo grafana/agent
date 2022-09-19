@@ -35,6 +35,14 @@ var (
 		},
 		[]string{"sha256"},
 	)
+	configReloadSuccess = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "agent_flow_config_last_reload_successful",
+		Help: "Flow config loaded successfully.",
+	})
+	configReloadSeconds = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "agent_flow_config_last_reload_timestamp_seconds",
+		Help: "Timestamp of the last flow configuration reload by result.",
+	}, []string{"result"})
 )
 
 func runCommand() *cobra.Command {
@@ -120,11 +128,15 @@ func (fr *flowRun) Run(configFile string) error {
 	reload := func() error {
 		flowCfg, err := loadFlowFile(configFile)
 		if err != nil {
+			instrumentLoad(err)
 			return fmt.Errorf("reading config file %q: %w", configFile, err)
 		}
 		if err := f.LoadFile(flowCfg); err != nil {
+			instrumentLoad(err)
 			return fmt.Errorf("error during the initial gragent load: %w", err)
 		}
+
+		instrumentLoad(nil)
 		return nil
 	}
 
@@ -240,9 +252,20 @@ func interruptContext() (context.Context, context.CancelFunc) {
 }
 
 // create a sha256 hash of the config before expansion and expose it via
-// the agent_config_hash metric
+// the agent_config_hash metric.
 func instrumentConfig(buf []byte) {
 	hash := sha256.Sum256(buf)
 	configHash.Reset()
 	configHash.WithLabelValues(fmt.Sprintf("%x", hash)).Set(1)
+}
+
+// Expose metrics for reload success / failures.
+func instrumentLoad(err error) {
+	if err != nil {
+		configReloadSuccess.Set(0)
+		configReloadSeconds.WithLabelValues("failure").SetToCurrentTime()
+	} else {
+		configReloadSuccess.Set(1)
+		configReloadSeconds.WithLabelValues("success").SetToCurrentTime()
+	}
 }
