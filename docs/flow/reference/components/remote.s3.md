@@ -6,14 +6,14 @@ title: remote.s3
 
 # remote.s3
 
-`remote.s3` exposes the contents of a file located in an S3 compatible system
+`remote.s3` exposes the string contents of a file located in [AWS S3](https://aws.amazon.com/s3/)  
 to other components. The file will be polled for changes so that the most
 recent content is always available.
 
+The most common use of `remote.s3` is to load secrets from files. 
+
 Multiple `remote.s3` components can be specified by giving them different name
-labels. By default, AWS environment variables are used to authenticate against
-S3. The `key` and `secret` arguments can be used to provide custom
-authentication.
+labels. By default, [AWS environment variables](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html) are used to authenticate against S3. The `key` and `secret` arguments inside `client_options` block can be used to provide custom authentication. 
 
 ## Example
 
@@ -29,26 +29,31 @@ The following arguments are supported:
 
 Name | Type | Description                                                             | Default | Required
 ---- | ---- |-------------------------------------------------------------------------| ------- | --------
-`path` | `string` | Path in the format of `"s3://bucket/file"` | | **yes**
-`poll_frequency` | `duration` | How often to poll the file for changes, must be greater than 30 seconds | `"10m"` | no
-`is_secret` | `bool` | Marks the file as containing a [secret][] | `false` | no
+`path` | `string` | Path in the format of `"s3://bucket/file"`. | | **yes**
+`poll_frequency` | `duration` | How often to poll the file for changes, must be greater than 30 seconds. | `"10m"` | no
+`is_secret` | `bool` | Marks the file as containing a [secret][]. | `false` | no
 
-The following subblocks are supported:
+[secret]: {{< relref "../../config-language/expressions/types_and_values.md#secrets" >}}
+
+## Blocks
 
 Name | Description | Required
 ---- | ----------- | --------
-[`client_options`](#client_options) | Additional options for configuring the S3 client | no
+[`client_options`](#client_options) | Additional options for configuring the S3 client. | no
 
-### `client_options` block
+
+### client_options block
+
+The `client_options` block allows the overriding of default client values. 
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`key` | `string` | Used to override default access key | | no
-`secret` | `secret` | Used to override default secret | | no
-`endpoint` | `string` | Endpoint specifies a custom url to access, used generally for S3 compatible systems | | no
-`disable_ssl` | `bool` | Used to disable SSL, generally used for testing | | no
-`use_path_style` | `string` | Path style is a deprecated that is generally enabled for S3 compatible systems | `false` | no
-`region` | `string` | Used to override default region | | no
+`key` | `string` | Used to override default access key. | | no
+`secret` | `secret` | Used to override default secret value. | | no
+`endpoint` | `string` | Endpoint specifies a custom url to access, used generally for S3 compatible systems. | | no
+`disable_ssl` | `bool` | Used to disable SSL, generally used for testing. | | no
+`use_path_style` | `string` | Path style is a deprecated settings that is generally enabled for S3 compatible systems. | `false` | no
+`region` | `string` | Used to override default region. | | no
 
 ## Exported fields
 
@@ -56,14 +61,14 @@ The following fields are exported and can be referenced by other components:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`content` | `string` or `secret` | The contents of the file | | no
+`content` | `string` or `secret` | The contents of the file. | | no
 
-The `content` field will be secret is `is_secret` was set.
+The `content` field will be secret if `is_secret` was set to true.
 
 ## Component health
 
-Instances of `remote.s3` will reported as healthy if the most recent read of
-the watched file succeeded.
+Instances of `remote.s3` will report as healthy if the most recent read of
+the watched file was successful.
 
 ## Debug information
 
@@ -74,3 +79,8 @@ the watched file succeeded.
 `remote.s3` does not expose any component-specific debug metrics.
 
 [secret]: ../secrets.md#is_secret-argument-in-components
+
+## Other S3 compatible systems
+
+Other S3 compatible systems can be read with `remote.s3` but may require specific authentication environment variables. There is no guarantee that `remote.s3` will work with non-AWS S3 systems. 
+

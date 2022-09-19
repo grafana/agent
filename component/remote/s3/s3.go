@@ -28,7 +28,7 @@ func init() {
 	})
 }
 
-// S3 handles reading content from a file located in S3
+// S3 handles reading content from a file located in an S3 compatible system.
 type S3 struct {
 	mut     sync.Mutex
 	opts    component.Options
@@ -47,7 +47,7 @@ var (
 	_ component.HealthComponent = (*S3)(nil)
 )
 
-// New initializes the s3 component
+// New initializes the S3 component.
 func New(o component.Options, args Arguments) (*S3, error) {
 	s3cfg, err := generateS3Config(args)
 	if err != nil {
@@ -91,7 +91,7 @@ func New(o component.Options, args Arguments) (*S3, error) {
 	return s, nil
 }
 
-// Run activates the content handler and watcher
+// Run activates the content handler and watcher.
 func (s *S3) Run(ctx context.Context) error {
 	go s.handleContentUpdate(ctx)
 	go s.watcher.run(ctx)
@@ -100,7 +100,7 @@ func (s *S3) Run(ctx context.Context) error {
 	return nil
 }
 
-// Update is called whenever the arguments have changed
+// Update is called whenever the arguments have changed.
 func (s *S3) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 
@@ -122,7 +122,7 @@ func (s *S3) Update(args component.Arguments) error {
 	return nil
 }
 
-// CurrentHealth returns the health of the component
+// CurrentHealth returns the health of the component.
 func (s *S3) CurrentHealth() component.Health {
 	s.mut.Lock()
 	defer s.mut.Unlock()
@@ -131,7 +131,7 @@ func (s *S3) CurrentHealth() component.Health {
 
 func generateS3Config(args Arguments) (*aws.Config, error) {
 	configOptions := make([]func(*aws_config.LoadOptions) error, 0)
-	// Override the endpoint
+	// Override the endpoint.
 	if args.Options.Endpoint != "" {
 		endFunc := aws.EndpointResolverWithOptionsFunc(func(service, region string, _ ...interface{}) (aws.Endpoint, error) {
 			return aws.Endpoint{URL: args.Options.Endpoint}, nil
@@ -140,7 +140,7 @@ func generateS3Config(args Arguments) (*aws.Config, error) {
 		configOptions = append(configOptions, endResolver)
 	}
 
-	// This incredibly nested option turns off ssl
+	// This incredibly nested option turns off SSL.
 	if args.Options.DisableSSL {
 		httpOverride := aws_config.WithHTTPClient(
 			&http.Client{
@@ -154,7 +154,8 @@ func generateS3Config(args Arguments) (*aws.Config, error) {
 		configOptions = append(configOptions, httpOverride)
 	}
 
-	// check credentials
+	// Check to see if we need to override the credentials, else it will use the default ones.
+	// https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html
 	if args.Options.AccessKey != "" {
 		if args.Options.Secret == "" {
 			return nil, fmt.Errorf("if accesskey or secret are specified then the other must also be specified")
@@ -173,7 +174,7 @@ func generateS3Config(args Arguments) (*aws.Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Set region
+	// Set region.
 	if args.Options.Region != "" {
 		cfg.Region = args.Options.Region
 	}
@@ -217,11 +218,11 @@ func (s *S3) handleContentPolling(newContent string, err error) {
 	s.health.UpdateTime = time.Now()
 }
 
+// getPathBucketAndFile takes the path and splits it into a bucket and file.
 func getPathBucketAndFile(path string) (bucket, file string) {
 	parts := strings.Split(path, "/")
 	file = parts[len(parts)-1]
 	bucket = strings.Join(parts[:len(parts)-1], "/")
 	bucket = strings.ReplaceAll(bucket, "s3://", "")
-	// TODO see if we can add some checks around the file/bucket
 	return
 }
