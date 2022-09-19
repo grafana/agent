@@ -40,16 +40,16 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-api_server | `string` | URL of kubernetes API server | | no
-role | `string` | Type of kubernetes resource to query. Must be one of `node`, `pod`, `service`, `endpoints`, `endpointslice` or `ingress` | | **yes**
-kubeconfig_file | `string` | Path of kubeconfig file to use for kubernetes connection | | no
+`api_server` | `string` | URL of kubernetes API server | | no
+`role` | `string` | Type of kubernetes resource to query. Must be one of `node`, `pod`, `service`, `endpoints`, `endpointslice` or `ingress` | | **yes**
+`kubeconfig_file` | `string` | Path of kubeconfig file to use for kubernetes connection | | no
 
 The following subblocks are supported:
 
 Name | Description | Required
 ---- | ----------- | --------
-[namespaces](#namespaces-block) | Information about which kubernetes namespaces to search. | no
-[selectors](#selectors-block) | Selectors to limit objects selected | no
+[`namespaces`](#namespaces-block) | Information about which kubernetes namespaces to search. | no
+[`selectors`](#selectors-block) | Selectors to limit objects selected | no
 [`http_client_config`](#http_client_config-block) | HTTP client configuration for kubernetes requests | no
 
 ### `namespaces` block
