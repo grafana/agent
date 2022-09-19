@@ -52,6 +52,7 @@
 ##   generate-dashboards  Generate dashboards in example/docker-compose after
 ##                        changing Jsonnet.
 ##   generate-protos      Generate protobuf files.
+##   generate-ui          Generate the UI assets.
 ##
 ## Other targets:
 ##
@@ -224,8 +225,8 @@ smoke-image:
 # Targets for generating assets
 #
 
-.PHONY: generate generate-crds generate-manifests generate-dashboards generate-protos
-generate: generate-crds generate-manifests generate-dashboards generate-protos
+.PHONY: generate generate-crds generate-manifests generate-dashboards generate-protos generate-ui
+generate: generate-crds generate-manifests generate-dashboards generate-protos generate-ui
 
 generate-crds:
 ifeq ($(USE_CONTAINER),1)
@@ -254,6 +255,13 @@ ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
 	go generate ./pkg/agentproto/
+endif
+
+generate-ui:
+ifeq ($(USE_CONTAINER),1)
+	$(RERUN_IN_CONTAINER)
+else
+	cd ./web/ui && yarn && yarn run build
 endif
 
 #

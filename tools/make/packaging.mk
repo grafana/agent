@@ -29,47 +29,54 @@ dist-agent-binaries: dist/agent-linux-amd64   \
                      dist/agent-darwin-arm64  \
                      dist/agent-windows-amd64.exe
 
-dist/agent-linux-amd64: GO_TAGS += noebpf
+dist/agent-linux-amd64: GO_TAGS += noebpf builtinassets
 dist/agent-linux-amd64: GOOS    := linux
 dist/agent-linux-amd64: GOARCH  := amd64
-dist/agent-linux-amd64:
+dist/agent-linux-amd64: generate-ui
 	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
-dist/agent-linux-arm64: GOOS   := linux
-dist/agent-linux-arm64: GOARCH := arm64
-dist/agent-linux-arm64:
+dist/agent-linux-arm64: GO_TAGS += builtinassets
+dist/agent-linux-arm64: GOOS    := linux
+dist/agent-linux-arm64: GOARCH  := arm64
+dist/agent-linux-arm64: generate-ui
 	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
-dist/agent-linux-armv6: GOOS   := linux
-dist/agent-linux-armv6: GOARCH := arm
-dist/agent-linux-armv6: GOARM  := 6
-dist/agent-linux-armv6:
+dist/agent-linux-armv6: GO_TAGS += builtinassets
+dist/agent-linux-armv6: GOOS    := linux
+dist/agent-linux-armv6: GOARCH  := arm
+dist/agent-linux-armv6: GOARM   := 6
+dist/agent-linux-armv6: generate-ui
 	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
-dist/agent-linux-armv7: GOOS   := linux
-dist/agent-linux-armv7: GOARCH := arm
-dist/agent-linux-armv7: GOARM  := 7
-dist/agent-linux-armv7:
+dist/agent-linux-armv7: GO_TAGS += builtinassets
+dist/agent-linux-armv7: GOOS    := linux
+dist/agent-linux-armv7: GOARCH  := arm
+dist/agent-linux-armv7: GOARM   := 7
+dist/agent-linux-armv7: generate-ui
 	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
-dist/agent-linux-ppc64le: GOOS   := linux
-dist/agent-linux-ppc64le: GOARCH := ppc64le
-dist/agent-linux-ppc64le:
+dist/agent-linux-ppc64le: GO_TAGS += builtinassets
+dist/agent-linux-ppc64le: GOOS    := linux
+dist/agent-linux-ppc64le: GOARCH  := ppc64le
+dist/agent-linux-ppc64le: generate-ui
 	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
-dist/agent-darwin-amd64: GOOS   := darwin
-dist/agent-darwin-amd64: GOARCH := amd64
-dist/agent-darwin-amd64:
+dist/agent-darwin-amd64: GO_TAGS += builtinassets
+dist/agent-darwin-amd64: GOOS    := darwin
+dist/agent-darwin-amd64: GOARCH  := amd64
+dist/agent-darwin-amd64: generate-ui
 	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
-dist/agent-darwin-arm64: GOOS   := darwin
-dist/agent-darwin-arm64: GOARCH := arm64
-dist/agent-darwin-arm64:
+dist/agent-darwin-arm64: GO_TAGS += builtinassets
+dist/agent-darwin-arm64: GOOS    := darwin
+dist/agent-darwin-arm64: GOARCH  := arm64
+dist/agent-darwin-arm64: generate-ui
 	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
-dist/agent-windows-amd64.exe: GOOS   := windows
-dist/agent-windows-amd64.exe: GOARCH := amd64
-dist/agent-windows-amd64.exe:
+dist/agent-windows-amd64.exe: GO_TAGS += noebpf builtinassets
+dist/agent-windows-amd64.exe: GOOS    := windows builtinassets
+dist/agent-windows-amd64.exe: GOARCH  := amd64
+dist/agent-windows-amd64.exe: generate-ui
 	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
 #
