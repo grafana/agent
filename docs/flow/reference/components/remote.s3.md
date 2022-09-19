@@ -52,7 +52,7 @@ Name | Type | Description | Default | Required
 `secret` | `secret` | Used to override default secret value. | | no
 `endpoint` | `string` | Endpoint specifies a custom url to access, used generally for S3 compatible systems. | | no
 `disable_ssl` | `bool` | Used to disable SSL, generally used for testing. | | no
-`use_path_style` | `string` | Path style is a deprecated settings that is generally enabled for S3 compatible systems. | `false` | no
+`use_path_style` | `string` | Path style is a deprecated setting that is generally enabled for S3 compatible systems. | `false` | no
 `region` | `string` | Used to override default region. | | no
 
 ## Exported fields
