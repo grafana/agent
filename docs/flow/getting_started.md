@@ -35,14 +35,14 @@ EXPERIMENTAL_ENABLE_FLOW=1 agent run /path/to/my/config.river
 You can use this file as an example to get started:
 
 ```river
-metrics.scrape "default" {
+prometheus.scrape "default" {
   targets = [
     {"__address__" = "demo.robustperception.io:9090"},
   ]
-  forward_to = [metrics.remote_write.default.receiver]
+  forward_to = [prometheus.remote_write.default.receiver]
 }
 
-metrics.remote_write "default" {
+prometheus.remote_write "default" {
   // No endpoints configured; metrics will be accumulated locally in a WAL
   // and discarded.
 }

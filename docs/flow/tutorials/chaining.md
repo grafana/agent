@@ -60,7 +60,7 @@ prometheus.relabel "not_cool" {
 }
 
 prometheus.remote_write "prom" {
-    remote_write {
+    endpoint {
         url = "http://mimir:9009/api/v1/push"
     }
 }

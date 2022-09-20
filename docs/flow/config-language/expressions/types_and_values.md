@@ -125,20 +125,20 @@ it can only be assigned a `capsule("prometheus.Receiver")` type. The specific
 type of capsule expected is explicitly documented for any component which uses
 or exports them.
 
-In the following example, the `metrics.remote_write` component exports a
-`receiver`, which is a `capsule("metrics.Receiver")` type. This can then be
-used in the `forward_to` attribute of `metrics.scrape`, which
-expects an array of `capsule("metrics.Receiver")`s:
+In the following example, the `prometheus.remote_write` component exports a
+`receiver`, which is a `capsule("prometheus.Receiver")` type. This can then be
+used in the `forward_to` attribute of `prometheus.scrape`, which
+expects an array of `capsule("prometheus.Receiver")`s:
 
 ```river
-metrics.remote_write "default" {
-  remote_write {
+prometheus.remote_write "default" {
+  endpoint {
     url = "http://localhost:9090/api/v1/write"
   }
 }
 
-metrics.scrape "default" {
+prometheus.scrape "default" {
   targets    = [/* ... */]
-  forward_to = [metrics.remote_write.default.receiver]
+  forward_to = [prometheus.remote_write.default.receiver]
 }
 ```
