@@ -51,7 +51,7 @@ The [`prometheus.remote_write`]({{< relref "prometheus.remote_write.md" >}}) com
 
 ```river
 prometheus.remote_write "prom" {
-    remote_write {
+    endpoint {
         url = "http://mimir:9009/api/v1/push"
     }
 }
