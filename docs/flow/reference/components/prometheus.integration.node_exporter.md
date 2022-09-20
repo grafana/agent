@@ -5,7 +5,7 @@ title: prometheus.integration.node_exporter
 ---
 
 # prometheus.integration.node_exporter
-The `prometheus.integration.node_exporter` embeds 
+The `prometheus.integration.node_exporter` component embeds 
 [node_exporter](https://github.com/prometheus/node_exporter) which exposes a 
 wide variety of hardware and OS metrics for \*nix-based systems.
 
