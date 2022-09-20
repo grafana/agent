@@ -86,7 +86,7 @@ depending on the nature of the reload error.
 	cmd.Flags().
 		BoolVar(&r.enableDebugEndpoints, "debug.endpoints.enabled", r.enableDebugEndpoints, "Enables /debug/ HTTP endpoints")
 	cmd.Flags().
-		BoolVar(&r.disableReporting, "disable-reporting", false, "Disable reporting of enabled components to Grafana.")
+		BoolVar(&r.disableReporting, "disable-reporting", r.disableReporting, "Disable reporting of enabled components to Grafana.")
 	cmd.Flags().StringVar(&r.uiPrefix, "server.http.ui-path-prefix", r.uiPrefix, "Prefix to serve the HTTP UI at")
 	return cmd
 }
