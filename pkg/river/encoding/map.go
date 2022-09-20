@@ -42,7 +42,8 @@ func (mf *mapField) convertMap(val value.Value) error {
 
 		kf.Key = key
 		mapVal, found := val.Key(key)
-		// The above val.Key(key) will return false if the value is nil or zero.
+		// The above val.Key(key) will return false if the value is nil or zero. This is an issue that will be evaluated
+		// later.
 		if !found {
 			continue
 		}
