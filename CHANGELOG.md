@@ -45,6 +45,7 @@ v0.27.0 (2022-09-01)
 ### Features
 
 - Integrations: (beta) Add vmware_exporter integration (@rlankfo)
+- Introduce Blackbox exporter integration. (@marctc)
 
 - App agent receiver: add Event kind to payload (@domasx2)
 
