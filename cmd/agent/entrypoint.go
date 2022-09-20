@@ -244,6 +244,8 @@ func (ep *Entrypoint) reloadHandler(rw http.ResponseWriter, r *http.Request) {
 
 // getReporterMetrics creates the metrics map to send to usage reporter
 func (ep *Entrypoint) getReporterMetrics() map[string]interface{} {
+	ep.mut.Lock()
+	defer ep.mut.Unlock()
 	return map[string]interface{}{"enabled-features": ep.cfg.EnabledFeatures}
 }
 
@@ -332,7 +334,7 @@ func (ep *Entrypoint) Start() error {
 	ep.mut.Unlock()
 	if cfg.EnableUsageReport {
 		g.Add(func() error {
-			return ep.reporter.Start(srvContext, ep.getReporterMetrics())
+			return ep.reporter.Start(srvContext, ep.getReporterMetrics)
 		}, func(e error) {
 			srvCancel()
 		})

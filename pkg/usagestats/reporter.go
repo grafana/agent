@@ -100,7 +100,7 @@ func agentSeedFileName() string {
 }
 
 // Start inits the reporter seed and start sending report for every interval
-func (rep *Reporter) Start(ctx context.Context, metrics map[string]interface{}) error {
+func (rep *Reporter) Start(ctx context.Context, metricsFunc func() map[string]interface{}) error {
 	level.Info(rep.logger).Log("msg", "running usage stats reporter")
 	err := rep.init(ctx)
 	if err != nil {
@@ -126,7 +126,7 @@ func (rep *Reporter) Start(ctx context.Context, metrics map[string]interface{}) 
 				continue
 			}
 			level.Info(rep.logger).Log("msg", "reporting agent stats", "date", time.Now())
-			if err := rep.reportUsage(ctx, next, metrics); err != nil {
+			if err := rep.reportUsage(ctx, next, metricsF()); err != nil {
 				level.Info(rep.logger).Log("msg", "failed to report usage", "err", err)
 				continue
 			}

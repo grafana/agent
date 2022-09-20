@@ -23,3 +23,9 @@ prometheus.remote_write "default" {
 		url = "http://localhost:9009/api/prom/push"
 	}
 }
+
+prometheus.remote_write "extra" {
+	endpoint {
+		url = "http://localhost:9009/api/prom/push"
+	}
+}

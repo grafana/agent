@@ -12,6 +12,7 @@ import (
 
 	"github.com/grafana/agent/web/api"
 	"github.com/grafana/agent/web/ui"
+	"golang.org/x/exp/maps"
 
 	"github.com/fatih/color"
 	"github.com/go-kit/log/level"
@@ -221,24 +222,33 @@ func (fr *flowRun) Run(configFile string) error {
 
 	// Report usage of enabled components
 	if !fr.disableReporting {
-		infos := f.ComponentInfos()
-		components := []string{}
-		for _, info := range infos {
-			components = append(components, info.Name)
-		}
-		metrics := map[string]interface{}{"enabled-components": components}
 
 		reporter, err := usagestats.NewReporter(l)
 		if err != nil {
-			return fmt.Errorf("failed to create stats reporter: %w", err)
+			return fmt.Errorf("failed to create reporter: %w", err)
 		}
 		go func() {
-			reporter.Start(ctx, metrics)
+			err := reporter.Start(ctx, getEnabledComponentsFunc(f))
+			if err != nil {
+				level.Error(l).Log("msg", "failed to start reporter", "err", err)
+			}
 		}()
 	}
 
 	<-ctx.Done()
 	return f.Close()
+}
+
+// getEnabledComponentsFunc returns a function that gets the current enabled components
+func getEnabledComponentsFunc(f *flow.Flow) func() map[string]interface{} {
+	return func() map[string]interface{} {
+		infos := f.ComponentInfos()
+		components := map[string]struct{}{}
+		for _, info := range infos {
+			components[info.Name] = struct{}{}
+		}
+		return map[string]interface{}{"enabled-components": maps.Keys(components)}
+	}
 }
 
 func loadFlowFile(filename string) (*flow.File, error) {
