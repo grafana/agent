@@ -27,8 +27,8 @@ type Arguments struct {
 	// Targets contains the input 'targets' passed by a service discovery component.
 	Targets []discovery.Target `river:"targets,attr"`
 
-	// The relabelling steps to apply to the each target's label set.
-	RelabelConfigs []*flow_relabel.Config `river:"relabel_config,block,optional"`
+	// The relabelling rules to apply to the each target's label set.
+	RelabelConfigs []*flow_relabel.Config `river:"rule,block,optional"`
 }
 
 // Exports holds values which are exported by the discovery.relabel component.

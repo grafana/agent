@@ -7,12 +7,12 @@ title: discovery.relabel
 # discovery.relabel
 
 `discovery.relabel` rewrites the label set of the input targets by applying one
-or more `relabel_config` steps. If no relabeling steps are defined, then the
-input targets will be exported as-is.
+or more relabeling `rule`s. If no rules are defined, then the input targets
+will be exported as-is.
 
 The most common use of `discovery.relabel` is to filter Prometheus targets or
 standardize the label set that will be passed to a downstream component. The
-`relabel_config` blocks will be applied to the label set of each target in
+`rule` blocks will be applied to the label set of each target in
 order of their appearance in the configuration file.
 
 Multiple `discovery.relabel` components can be specified by giving them
@@ -28,14 +28,14 @@ discovery.relabel "keep_backend_only" {
     { "__meta_baz" = "baz", "__address__" = "localhost", "instance" = "three", "app" = "frontend" },
   ]
 
-  relabel_config {
+  rule {
     source_labels = ["__address__", "instance"]
     separator     = "/"
     target_label  = "destination"
     action        = "replace"
   }
 
-  relabel_config {
+  rule {
     source_labels = ["app"]
     action        = "keep"
     regex         = "backend"
@@ -55,16 +55,16 @@ The following subblocks are supported:
 
 Name | Description | Required
 ---- | ----------- | --------
-[`relabel_config`](#relabel_config-block) | Relabeling steps to apply to targets | no
+[`rule`](#rule-block) | Relabeling rules to apply to targets | no
 
-### `relabel_config` block
+### `rule` block
 
-The `relabel_config` block contains the definition of any relabeling rules that
-can be applied to an input target. If more than one `relabel_config` block is
-defined within `discovery.relabel`, the transformations will be applied
-in top-down order.
+The `rule` block contains the definition of any relabeling rules that
+can be applied to an input target. If more than one `rule` block is defined
+within `discovery.relabel`, the transformations will be applied in top-down
+order.
 
-The following arguments can be used to configure a `relabel_config` block.
+The following arguments can be used to configure a `rule` block.
 All arguments are optional and any omitted fields will take on their default
 values.
 

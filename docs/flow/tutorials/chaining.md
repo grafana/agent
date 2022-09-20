@@ -40,7 +40,7 @@ In the above Flow block, `forward_to` accepts an array of receivers. In previous
 
 ```river
 prometheus.relabel "cool" {
-    metric_relabel_config {
+    rule {
         source_labels = ["__name__"]
         regex = "(.+)"
         replacement = "${1}_cool"
@@ -50,7 +50,7 @@ prometheus.relabel "cool" {
 }
 
 prometheus.relabel "not_cool" {
-    metric_relabel_config {
+    rule {
         source_labels = ["__name__"]
         regex = "(.+)"
         replacement = "${1}_not_cool"

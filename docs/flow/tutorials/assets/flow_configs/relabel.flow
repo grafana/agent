@@ -8,7 +8,7 @@ prometheus.scrape "default" {
 // "_cool" into a new label called "cool_label." The resulting mutated metrics
 // are then forwarded to our prometheus.remote_write component.
 prometheus.relabel "filter" {
-	metric_relabel_config {
+	rule {
 		source_labels = ["__name__"]
 		regex         = "(.+)"
 		replacement   = "${1}_cool"
