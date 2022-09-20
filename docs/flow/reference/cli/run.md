@@ -24,12 +24,11 @@ of the failure. When this happens, Grafana Agent Flow will continue functioning
 in the last valid state.
 
 `agent run` launches an HTTP server for expose metrics about itself and
-components. The HTTP server is also used for exposing `/debug/` endpoints for
-various debugging needs.
+components. The HTTP server is also used for exposing a UI at `/` for debugging
+running components.
 
 The following flags are supported:
 
-* `--debug.endpoints.enabled`: Whether to enable HTTP debug endpoints (default `true`).
 * `--server.http.listen-addr`: Address to listen for HTTP traffic on (default `127.0.0.1:12345`).
 * `--server.http.ui-path-prefix`: Base path where the UI will be exposed (default `/`).
 * `--storage.path`: Base directory where components can store data (default `data-agent/`).

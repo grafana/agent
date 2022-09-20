@@ -21,7 +21,7 @@ prometheus.scrape "default" {
 }
 
 prometheus.remote_write "default" {
-  remote_write {
+  endpoint {
     url = "http://localhost:9009/api/prom/push"
   }
 }
@@ -79,7 +79,7 @@ can contain any number of attributes or nested blocks.
 
 ```river
 prometheus.remote_write "default" {
-  remote_write {
+  endpoint {
     url = "http://localhost:9009/api/prom/push"
   }
 }

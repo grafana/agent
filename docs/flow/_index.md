@@ -51,12 +51,14 @@ local.file "apikey" {
 
 // Collect and send metrics to a Prometheus remote_write endpoint.
 prometheus.remote_write "default" {
-  remote_write {
+  endpoint {
     url = "http://localhost:9009/api/prom/push"
 
-    basic_auth {
-      username = "MY_USERNAME"
-      password = local.file.apikey.content
+    http_client_config {
+      basic_auth {
+        username = "MY_USERNAME"
+        password = local.file.apikey.content
+      }
     }
   }
 }

@@ -9,8 +9,9 @@ export interface ComponentInfo {
 
   /**
    * The name of the component is the name of the block used to instantiate
-   * the component. For example, the component ID metrics.remote_write.default
-   * would have a name of "metrics.remote_write".
+   * the component. For example, the component ID
+   * prometheus.remote_write.default would have a name of
+   * "prometheus.remote_write".
    */
   name: string;
 
@@ -18,8 +19,8 @@ export interface ComponentInfo {
    * Label is an optional label for a component. Not all components may have
    * labels.
    *
-   * For example, the metrics.remote_write.default component would have a label
-   * of "default".
+   * For example, the prometheus.remote_write.default component would have a
+   * label of "default".
    */
   label?: string;
 
