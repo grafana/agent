@@ -37,6 +37,8 @@ Name | Type | Description                                                       
 `poll_frequency` | `duration` | How often to poll the file for changes, must be greater than 30 seconds. | `"10m"` | no
 `is_secret` | `bool` | Marks the file as containing a [secret][]. | `false` | no
 
+> **NOTE**: `path` must include a full path to a file, this does not support reading of directories.
+
 [secret]: {{< relref "../../config-language/expressions/types_and_values.md#secrets" >}}
 
 ## Blocks
