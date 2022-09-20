@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/config"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/stretchr/testify/require"
 )
@@ -40,7 +39,7 @@ func Test_ReportLoop(t *testing.T) {
 	}))
 	usageStatsURL = server.URL
 
-	r, err := NewReporter(log.NewLogfmtLogger(os.Stdout), &config.Config{EnableUsageReport: true})
+	r, err := NewReporter(log.NewLogfmtLogger(os.Stdout))
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -49,7 +48,7 @@ func Test_ReportLoop(t *testing.T) {
 		<-time.After(6 * time.Second)
 		cancel()
 	}()
-	require.Equal(t, context.Canceled, r.Start(ctx))
+	require.Equal(t, context.Canceled, r.Start(ctx, map[string]interface{}{}))
 
 	mut.Lock()
 	defer mut.Unlock()

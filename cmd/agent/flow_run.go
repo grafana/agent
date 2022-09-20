@@ -19,6 +19,7 @@ import (
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river/diag"
+	"github.com/grafana/agent/pkg/usagestats"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/cobra"
@@ -34,6 +35,7 @@ func runCommand() *cobra.Command {
 		storagePath:          "data-agent/",
 		enableDebugEndpoints: true,
 		uiPrefix:             "/",
+		disableReporting:     false,
 	}
 
 	cmd := &cobra.Command{
@@ -83,6 +85,8 @@ depending on the nature of the reload error.
 	cmd.Flags().StringVar(&r.storagePath, "storage.path", r.storagePath, "Base directory where components can store data")
 	cmd.Flags().
 		BoolVar(&r.enableDebugEndpoints, "debug.endpoints.enabled", r.enableDebugEndpoints, "Enables /debug/ HTTP endpoints")
+	cmd.Flags().
+		BoolVar(&r.disableReporting, "disable-reporting", false, "Disable reporting of enabled components to Grafana.")
 	cmd.Flags().StringVar(&r.uiPrefix, "server.http.ui-path-prefix", r.uiPrefix, "Prefix to serve the HTTP UI at")
 	return cmd
 }
@@ -92,6 +96,7 @@ type flowRun struct {
 	storagePath          string
 	enableDebugEndpoints bool
 	uiPrefix             string
+	disableReporting     bool
 }
 
 func (fr *flowRun) Run(configFile string) error {
@@ -212,6 +217,24 @@ func (fr *flowRun) Run(configFile string) error {
 		}()
 
 		defer func() { _ = srv.Shutdown(ctx) }()
+	}
+
+	// Report usage of enabled components
+	if !fr.disableReporting {
+		infos := f.ComponentInfos()
+		components := []string{}
+		for _, info := range infos {
+			components = append(components, info.Name)
+		}
+		metrics := map[string]interface{}{"enabled-components": components}
+
+		reporter, err := usagestats.NewReporter(l)
+		if err != nil {
+			return fmt.Errorf("failed to create stats reporter: %w", err)
+		}
+		go func() {
+			reporter.Start(ctx, metrics)
+		}()
 	}
 
 	<-ctx.Done()

@@ -95,7 +95,7 @@ func NewEntrypoint(logger *server.Logger, cfg *config.Config, reloader Reloader)
 		return nil, err
 	}
 
-	ep.reporter, err = usagestats.NewReporter(logger, cfg)
+	ep.reporter, err = usagestats.NewReporter(logger)
 	if err != nil {
 		return nil, err
 	}
@@ -242,6 +242,11 @@ func (ep *Entrypoint) reloadHandler(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// getReporterMetrics creates the metrics map to send to usage reporter
+func (ep *Entrypoint) getReporterMetrics() map[string]interface{} {
+	return map[string]interface{}{"enabled-features": ep.cfg.EnabledFeatures}
+}
+
 // TriggerReload will cause the Entrypoint to re-request the config file and
 // apply the latest config. TriggerReload returns true if the reload was
 // successful.
@@ -327,7 +332,7 @@ func (ep *Entrypoint) Start() error {
 	ep.mut.Unlock()
 	if cfg.EnableUsageReport {
 		g.Add(func() error {
-			return ep.reporter.Start(srvContext)
+			return ep.reporter.Start(srvContext, ep.getReporterMetrics())
 		}, func(e error) {
 			srvCancel()
 		})
