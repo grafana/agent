@@ -1326,12 +1326,6 @@ github.com/gosimple/unidecode v1.0.1/go.mod h1:CP0Cr1Y1kogOtx0bJblKzsVWrqYaqfNOn
 github.com/gosnmp/gosnmp v1.34.0 h1:p96iiNTTdL4ZYspPC3leSKXiHfE1NiIYffMu9100p5E=
 github.com/gosnmp/gosnmp v1.34.0/go.mod h1:QWTRprXN9haHFof3P96XTDYc46boCGAh5IXp0DniEx4=
 github.com/gotestyourself/gotestyourself v2.2.0+incompatible/go.mod h1:zZKM6oeNM8k+FRljX1mnzVYeS8wiGgQyvST1/GafPbY=
-github.com/grafana/blackbox_exporter v0.21.1-0.20220804123005-e102fa2a0e07 h1:79RulSWptJKISfYW0WvPqJkQ1rA5Ar+mziK9qWvxdcs=
-github.com/grafana/blackbox_exporter v0.21.1-0.20220804123005-e102fa2a0e07/go.mod h1:5nS7A7JCcK9rLGMmvkTU76NxeIn1Ga42AByUJnFCphU=
-github.com/grafana/blackbox_exporter v0.21.1-0.20220808114229-1b1ccc2482d8 h1:IHaC/acatFJsVnPsA6tp9HcQvvRYrMICzXFPyhg6g/o=
-github.com/grafana/blackbox_exporter v0.21.1-0.20220808114229-1b1ccc2482d8/go.mod h1:5nS7A7JCcK9rLGMmvkTU76NxeIn1Ga42AByUJnFCphU=
-github.com/grafana/blackbox_exporter v0.21.1-0.20220808121409-717fd374cd41 h1:LJt/6gBIeV1KN8v6zH25N7jE7aC6aylZOPYp7v4LjGc=
-github.com/grafana/blackbox_exporter v0.21.1-0.20220808121409-717fd374cd41/go.mod h1:5nS7A7JCcK9rLGMmvkTU76NxeIn1Ga42AByUJnFCphU=
 github.com/grafana/dnsmasq_exporter v0.2.1-0.20211118155541-751b01d21de9 h1:/ovWD85B27b/xytKaxhP/LvXF8fxWIhEwE55mFpCQsE=
 github.com/grafana/dnsmasq_exporter v0.2.1-0.20211118155541-751b01d21de9/go.mod h1:Jj5TSVVJE6t8Brq/ZkUbQ1n260dilriL0tWNaHjVDUs=
 github.com/grafana/dskit v0.0.0-20210908150159-fcf48cb19aa4/go.mod h1:m3eHzwe5IT5eE2MI3Ena2ooU8+Hek8IiVXb9yJ1+0rs=
@@ -2177,6 +2171,8 @@ github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.55.0 h
 github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.55.0/go.mod h1:/xf16Bu3krDP6G5WhrJL9avDnLW/AN0g7hAIK63mbes=
 github.com/prometheus/alertmanager v0.23.0/go.mod h1:0MLTrjQI8EuVmvykEhcfr/7X0xmaDAZrqMgxIq3OXHk=
 github.com/prometheus/alertmanager v0.23.1-0.20210914172521-e35efbddb66a/go.mod h1:U7pGu+z7A9ZKhK8lq1MvIOp5GdVlZjwOYk+S0h3LSbA=
+github.com/prometheus/blackbox_exporter v0.22.1-0.20220920154026-3446984d6a6e h1:feerwqpwHSg4un1xDveT5TYDKiGjLUtrPdEj2zOQu7g=
+github.com/prometheus/blackbox_exporter v0.22.1-0.20220920154026-3446984d6a6e/go.mod h1:Yh1KJxVpbDo9WB0SyYcLSA8UTH0EJUlnBjnflMn6uGk=
 github.com/prometheus/client_golang v0.0.0-20180209125602-c332b6f63c06/go.mod h1:7SWBe2y4D6OKWSNQJUaRYU/AaXPKyh/dDVn+NZz0KFw=
 github.com/prometheus/client_golang v0.0.0-20180328130430-f504d69affe1/go.mod h1:7SWBe2y4D6OKWSNQJUaRYU/AaXPKyh/dDVn+NZz0KFw=
 github.com/prometheus/client_golang v0.9.0-pre1.0.20180209125602-c332b6f63c06/go.mod h1:7SWBe2y4D6OKWSNQJUaRYU/AaXPKyh/dDVn+NZz0KFw=
