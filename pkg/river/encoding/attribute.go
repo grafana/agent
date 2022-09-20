@@ -54,7 +54,7 @@ func (af *attributeField) convertAttribute(val value.Value, f rivertags.Field) e
 		return err
 	}
 	if !rv.hasValue() {
-		return fmt.Errorf("unable to find value for %T in convertAttribute", val.Interface())
+		return nil
 	}
 	af.valField = rv
 	return nil

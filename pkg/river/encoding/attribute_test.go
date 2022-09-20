@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/pkg/river/internal/rivertags"
 	"github.com/grafana/agent/pkg/river/internal/value"
 	"github.com/stretchr/testify/require"
@@ -47,4 +48,35 @@ func TestNested(t *testing.T) {
 	bb, err := json.Marshal(af)
 	require.NoError(t, err)
 	require.JSONEq(t, reqString, string(bb))
+}
+
+func TestDiscovery(t *testing.T) {
+	type t1 struct {
+		Targets []discovery.Target `river:"targets,attr"`
+	}
+	testObj := &t1{
+		Targets: make([]discovery.Target, 0),
+	}
+	testObj.Targets = append(testObj.Targets, discovery.Target{"t": "test"})
+	val := value.Encode(testObj)
+	tags := rivertags.Get(val.Reflect().Type())
+	attr, err := newAttribute(value.Encode(testObj.Targets), tags[0])
+	require.NoError(t, err)
+	require.True(t, attr.Name == "targets")
+	require.True(t, attr.hasValue())
+}
+
+func TestDiscoveryNil(t *testing.T) {
+	type t1 struct {
+		Targets []discovery.Target `river:"targets,attr"`
+	}
+	testObj := &t1{
+		Targets: make([]discovery.Target, 0),
+	}
+	val := value.Encode(testObj)
+	tags := rivertags.Get(val.Reflect().Type())
+	attr, err := newAttribute(value.Encode(testObj.Targets), tags[0])
+	require.NoError(t, err)
+	require.True(t, attr.Name == "targets")
+	require.False(t, attr.hasValue())
 }

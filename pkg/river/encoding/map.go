@@ -42,8 +42,10 @@ func (mf *mapField) convertMap(val value.Value) error {
 
 		kf.Key = key
 		mapVal, found := val.Key(key)
+		// The above val.Key(key) will return false if the value is nil or zero. This is an issue that will be evaluated
+		// later.
 		if !found {
-			return fmt.Errorf("unable to find key %s for value type %d", key, val.Type())
+			continue
 		}
 		rv, err := convertRiverValue(mapVal)
 		if err != nil {
