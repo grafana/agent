@@ -12,6 +12,7 @@ import (
 
 	"github.com/grafana/agent/web/api"
 	"github.com/grafana/agent/web/ui"
+	"golang.org/x/exp/maps"
 
 	"github.com/fatih/color"
 	"github.com/go-kit/log/level"
@@ -19,6 +20,7 @@ import (
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river/diag"
+	"github.com/grafana/agent/pkg/usagestats"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/cobra"
@@ -30,9 +32,10 @@ import (
 
 func runCommand() *cobra.Command {
 	r := &flowRun{
-		httpListenAddr: "127.0.0.1:12345",
-		storagePath:    "data-agent/",
-		uiPrefix:       "/",
+		httpListenAddr:   "127.0.0.1:12345",
+		storagePath:      "data-agent/",
+		uiPrefix:         "/",
+		disableReporting: false,
 	}
 
 	cmd := &cobra.Command{
@@ -73,13 +76,16 @@ depending on the nature of the reload error.
 		StringVar(&r.httpListenAddr, "server.http.listen-addr", r.httpListenAddr, "address to listen for HTTP traffic on")
 	cmd.Flags().StringVar(&r.storagePath, "storage.path", r.storagePath, "Base directory where components can store data")
 	cmd.Flags().StringVar(&r.uiPrefix, "server.http.ui-path-prefix", r.uiPrefix, "Prefix to serve the HTTP UI at")
+	cmd.Flags().
+		BoolVar(&r.disableReporting, "disable-reporting", r.disableReporting, "Disable reporting of enabled components to Grafana.")
 	return cmd
 }
 
 type flowRun struct {
-	httpListenAddr string
-	storagePath    string
-	uiPrefix       string
+	httpListenAddr   string
+	storagePath      string
+	uiPrefix         string
+	disableReporting bool
 }
 
 func (fr *flowRun) Run(configFile string) error {
@@ -196,8 +202,34 @@ func (fr *flowRun) Run(configFile string) error {
 		defer func() { _ = srv.Shutdown(ctx) }()
 	}
 
+	// Report usage of enabled components
+	if !fr.disableReporting {
+		reporter, err := usagestats.NewReporter(l)
+		if err != nil {
+			return fmt.Errorf("failed to create reporter: %w", err)
+		}
+		go func() {
+			err := reporter.Start(ctx, getEnabledComponentsFunc(f))
+			if err != nil {
+				level.Error(l).Log("msg", "failed to start reporter", "err", err)
+			}
+		}()
+	}
+
 	<-ctx.Done()
 	return f.Close()
+}
+
+// getEnabledComponentsFunc returns a function that gets the current enabled components
+func getEnabledComponentsFunc(f *flow.Flow) func() map[string]interface{} {
+	return func() map[string]interface{} {
+		infos := f.ComponentInfos()
+		components := map[string]struct{}{}
+		for _, info := range infos {
+			components[info.Name] = struct{}{}
+		}
+		return map[string]interface{}{"enabled-components": maps.Keys(components)}
+	}
 }
 
 func loadFlowFile(filename string) (*flow.File, error) {
