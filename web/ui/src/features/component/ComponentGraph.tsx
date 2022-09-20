@@ -2,7 +2,7 @@ import { FC, useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 import * as d3Zoom from 'd3-zoom';
 import { HasId, HasParentIds, IdOperator, ParentIdsOperator } from 'd3-dag/dist/dag/create';
-import { NodeSizeAccessor, sugiyama, dagStratify, decrossTwoLayer, layeringCoffmanGraham, coordQuad } from 'd3-dag';
+import { NodeSizeAccessor, sugiyama, dagStratify, decrossTwoLayer, layeringCoffmanGraham, coordSimplex } from 'd3-dag';
 import { Point } from 'd3-dag/dist/dag';
 import { ComponentHealthState, ComponentInfo } from './types';
 import { useHref } from 'react-router-dom';
@@ -164,7 +164,7 @@ export const ComponentGraph: FC<ComponentGraphProps> = (props) => {
     const layout = sugiyama()
       .layering(layeringCoffmanGraham())
       .decross(decrossTwoLayer())
-      .coord(coordQuad())
+      .coord(coordSimplex())
       .nodeSize<NodeSizeAccessor<HasId & HasParentIds, undefined>>((n) => {
         // nodeSize is the full amount of space you want the node to take up.
         //
