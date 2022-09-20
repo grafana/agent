@@ -202,15 +202,6 @@ func (cn *ComponentNode) UpdateBlock(b *ast.BlockStmt) {
 	cn.eval = vm.New(b.Body)
 }
 
-// getBlock gets the block currently used by this component. This is only used
-// internally for getting the block name and label and the return value should
-// not be modified.
-func (cn *ComponentNode) getBlock() *ast.BlockStmt {
-	cn.mut.RLock()
-	defer cn.mut.RUnlock()
-	return cn.block
-}
-
 // Evaluate updates the arguments for the managed component by re-evaluating
 // its River block with the provided scope. The managed component will be built
 // the first time Evaluate is called.
@@ -373,11 +364,11 @@ func (cn *ComponentNode) setExports(e component.Exports) {
 // The health of a ComponentNode is tracked from three parts, in descending
 // precedence order:
 //
-//     1. Exited health from a call to Run()
-//     2. Unhealthy status from last call to Evaluate
-//     3. Health reported by the managed component (if any)
-//     4. Latest health from Run() or Evaluate(), if the managed component does not
-//        report health.
+//  1. Exited health from a call to Run()
+//  2. Unhealthy status from last call to Evaluate
+//  3. Health reported by the managed component (if any)
+//  4. Latest health from Run() or Evaluate(), if the managed component does not
+//     report health.
 func (cn *ComponentNode) CurrentHealth() component.Health {
 	cn.healthMut.RLock()
 	defer cn.healthMut.RUnlock()
