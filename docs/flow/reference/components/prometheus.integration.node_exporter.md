@@ -4,8 +4,8 @@ aliases:
 title: prometheus.integration.node_exporter
 ---
 
-# prometheus.integrations.node_exporter
-The `prometheus.integrations.node_exporter` embeds 
+# prometheus.integration.node_exporter
+The `prometheus.integration.node_exporter` embeds 
 [node_exporter](https://github.com/prometheus/node_exporter) which exposes a 
 wide variety of hardware and OS metrics for \*nix-based systems.
 
@@ -13,18 +13,17 @@ The `node_exporter` itself is comprised of various _collectors_, which can be
 enabled and disabled at will. For more information on collectors, refer to the
 [`collectors-list`](#collectors-list) section.
 
-The `prometheus.integrations.node_exporter` component is a _singleton_
-component. That means that it can only appear once per configuration file, and
-a block label must not be passed to it.
+The `prometheus.integration.node_exporter` component can only appear once per
+configuration file, and a block label must not be passed to it.
 
 ## Example
 ```river
-prometheus.integrations.node_exporter {
+prometheus.integration.node_exporter {
 }
 
 // Configure a prometheus.scrape component to collect node_exporter metrics.
 prometheus.scrape "demo" {
-  targets    = prometheus.integrations.node_exporter.targets
+  targets    = prometheus.integration.node_exporter.targets
   forward_to = [ /* ... */ ]
 }
 ```
@@ -45,12 +44,13 @@ Name | Type | Description | Default | Required
 
 `set_collectors` defines a hand-picked list of enabled-by-default
 collectors. If set, anything not provided in that list is disabled by
-default.
+default. See the [Collectors list](#collectors-list) for the default set of
+enabled collectors for each supported operating system.
 
 `enable_collectors` enables more collectors over the default set, or on top
 of the ones provided in `set_collectors`.
 
-`disable_collector` extends the default set of disabled collectors. In case
+`disable_collectors` extends the default set of disabled collectors. In case
 of conflicts, it takes precedence over `enable_collectors`.
 
 Additionally, the following subblocks are supported for configuring
@@ -175,7 +175,7 @@ name | type | description | default | required
 ---- | ---- | ----------- | ------- | --------
 `enable_restarts` | `boolean` | Enables service unit metric `service_restart_total` | false | no
 `start_time`      | `boolean` | Enables service unit metric `unit_start_time_seconds` | false | no
-`task_metrics`    | `boolean` | Enables service unit tasks metrics `unit_tasks_current` and `unit_tasks_max.` | false | no
+`task_metrics`    | `boolean` | Enables service unit task metrics `unit_tasks_current` and `unit_tasks_max.` | false | no
 `unit_exclude`    | `string`  | Regexp of systemd units to exclude. Units must both match include and not match exclude to be collected. | `".+\\.(automount\|device\|mount\|scope\|slice)"` | no
 `unit_include`    | `string`  | Regexp of systemd units to include. Units must both match include and not match exclude to be collected. | `".+"` | no
 
@@ -200,7 +200,7 @@ The following fields are exported and can be referenced by other components.
 
 Name      | Type                | Description 
 --------- | ------------------- | ----------- 
-`targets` | `list(map(string))` | The targets where the `node_exporter` metrics are exposed to.
+`targets` | `list(map(string))` | The targets that can be used to collect `node_exporter` metrics.
 
 For example, the `targets` could either be passed to a `prometheus.relabel`
 component to rewrite the metrics' label set, or to a `prometheus.scrape`
@@ -208,28 +208,28 @@ component that collects the exposed metrics.
 
 ## Component health
 
-`prometheus.integrations.node_exporter` is only reported as unhealthy if given
-an invalid configuration. In those cases, exported fields are kept at their
-last healthy values.
+`prometheus.integration.node_exporter` is only reported as unhealthy if given
+an invalid configuration. In those cases, exported fields retain their last
+healthy values.
 
 ## Debug information
 
-`prometheus.integrations.node_exporter` does not expose any component-specific
+`prometheus.integration.node_exporter` does not expose any component-specific
 debug information.
 
 ## Debug metrics
 
-`prometheus.integrations.node_exporter` does not expose any component-specific
+`prometheus.integration.node_exporter` does not expose any component-specific
 debug metrics.
 
-## Collectors List
-The following table lists the available collectors that node_exporter brings
+## Collectors list
+The following table lists the available collectors that `node_exporter` brings
 bundled in. Some collectors only work on specific operating systems; enabling a
 collector that is not supported by the host OS where Flow is running
 is a no-op.
 
 Users can choose to enable a subset of collectors to limit the amount of
-metrics exposed by the `prometheus.integrations.node_exporter` component,
+metrics exposed by the `prometheus.integration.node_exporter` component,
 or disable collectors that are expensive to run.
 
 | Name             | Description | OS | Enabled by default |
@@ -290,7 +290,7 @@ or disable collectors that are expensive to run.
 | `supervisord`      | Exposes service status from supervisord. | any | no |
 | `systemd`          | Exposes service and system status from systemd. | Linux | no |
 | `tapestats`        | Exposes tape device stats. | Linux | yes |
-| `tcpstat`          | Exposes TCP connection status information from `/proc/net/tcp` and `/proc/net/tcp6`. (Warning: the current version has potential performance issues in high load situations). | Linux | no |
+| `tcpstat`          | Exposes TCP connection status information from `/proc/net/tcp` and `/proc/net/tcp6`. (Warning: The current version has potential performance issues in high load situations.) | Linux | no |
 | `textfile`         | Collects metrics from files in a directory matching the filename pattern `*.prom`. The files must be using the text format defined here: https://prometheus.io/docs/instrumenting/exposition_formats/. | any | yes |
 | `thermal`          | Exposes thermal statistics. | Darwin | yes |
 | `thermal_zone`     | Exposes thermal zone & cooling device statistics from `/sys/class/thermal`. | Linux | yes |
