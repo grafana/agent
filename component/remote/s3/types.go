@@ -11,15 +11,15 @@ import (
 
 var _ river.Unmarshaler = (*Arguments)(nil)
 
-// Arguments implements the input for the s3 component
+// Arguments implements the input for the S3 component.
 type Arguments struct {
 	Path string `river:"path,attr"`
 	// PollFrequency determines the frequency to check for changes
-	// defaults to 10m
+	// defaults to 10m.
 	PollFrequency time.Duration `river:"poll_frequency,attr,optional"`
-	// IsSecret determines if the content should be displayed to the user
+	// IsSecret determines if the content should be displayed to the user.
 	IsSecret bool `river:"is_secret,attr,optional"`
-	// Options allows you to override default settings
+	// Options allows the overriding of default settings.
 	Options ClientOptions `river:"client_options,block,optional"`
 }
 
