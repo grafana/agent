@@ -2,7 +2,7 @@ import { FC, useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 import * as d3Zoom from 'd3-zoom';
 import { HasId, HasParentIds, IdOperator, ParentIdsOperator } from 'd3-dag/dist/dag/create';
-import { decrossOpt, NodeSizeAccessor, sugiyama, dagStratify, coordQuad } from 'd3-dag';
+import { NodeSizeAccessor, sugiyama, dagStratify, decrossTwoLayer, layeringCoffmanGraham, coordSimplex } from 'd3-dag';
 import { Point } from 'd3-dag/dist/dag';
 import { ComponentHealthState, ComponentInfo } from './types';
 import { useHref } from 'react-router-dom';
@@ -155,9 +155,16 @@ export const ComponentGraph: FC<ComponentGraphProps> = (props) => {
       .parentIds<ParentIdsOperator<ComponentInfo>>((n) => n.referencedBy);
     const dag = builder(props.components);
 
+    // Our graph layout is optimized for graphs of 50 components or more. The
+    // decross method is where most of the layout time is spent; decrossOpt is
+    // far too slow.
+    //
+    // We also use Coffman Graham for layering, which constrains the final
+    // width of the graph as much as possible.
     const layout = sugiyama()
-      .decross(decrossOpt())
-      .coord(coordQuad())
+      .layering(layeringCoffmanGraham())
+      .decross(decrossTwoLayer())
+      .coord(coordSimplex())
       .nodeSize<NodeSizeAccessor<HasId & HasParentIds, undefined>>((n) => {
         // nodeSize is the full amount of space you want the node to take up.
         //
@@ -194,9 +201,13 @@ export const ComponentGraph: FC<ComponentGraphProps> = (props) => {
 
     const svgWrapper = svgSelection.append('g');
 
+    // TODO(rfratto): determine a reasonable zoom scale extent based on size of
+    // layout rather than hard coding 0.1x to 10x.
+    //
+    // As it is now, you can zoom in way too close on really small graphs.
     const zoom = d3Zoom
       .zoom()
-      .scaleExtent([0.1, 3])
+      .scaleExtent([0.1, 10])
       .on('zoom', (e) => {
         svgWrapper.attr('transform', e.transform);
       });
