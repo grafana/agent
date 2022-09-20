@@ -222,7 +222,6 @@ func (fr *flowRun) Run(configFile string) error {
 
 	// Report usage of enabled components
 	if !fr.disableReporting {
-
 		reporter, err := usagestats.NewReporter(l)
 		if err != nil {
 			return fmt.Errorf("failed to create reporter: %w", err)
