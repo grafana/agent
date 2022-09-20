@@ -135,7 +135,7 @@ Deploying a GrafanaAgent resource on its own will not spin up any Agent Pods. Ag
 
 ### Disable feature flags reporting
 
-If you would like to disable the [reporting]({{< relref "../configuration/flags.md//#report-information-usage" >}}) usage of feature flags to Grafana, set `disableReporting` field to `true`.
+If you would like to disable the [reporting]({{< relref "../configuration/flags.md/#report-information-usage" >}}) usage of feature flags to Grafana, set `disableReporting` field to `true`.
 
 ## Step 2: Deploy a MetricsInstance resource
 
