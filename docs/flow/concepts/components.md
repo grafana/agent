@@ -99,14 +99,16 @@ local.file "api_key" {
 // This component exports a "receiver" value which can be used by other
 // components to send metrics.
 prometheus.remote_write "prod" {
-  remote_write {
+  endpoint {
     url = "https://prod:9090/api/v1/write"
 
-    basic_auth {
-      username = "admin"
+    http_client_config {
+      basic_auth {
+        username = "admin"
 
-      // Use our password file for authenticating with the production database.
-      password = local.file.api_key.content
+        // Use our password file for authenticating with the production database.
+        password = local.file.api_key.content
+      }
     }
   }
 }
