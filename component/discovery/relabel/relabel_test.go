@@ -20,37 +20,37 @@ targets = [
 	{ "__meta_baz" = "baz", "__meta_qux" = "qux", "__address__" = "localhost", "instance" = "three", "app" = "frontend", "__tmp_c" = "tmp" },
 ]
 
-relabel_config {
+rule {
 	source_labels = ["__address__", "instance"]
 	separator     = "/"
 	target_label  = "destination"
 	action        = "replace"
 } 
 
-relabel_config {
+rule {
 	source_labels = ["app"]
 	action        = "drop"
 	regex         = "frontend"
 }
 
-relabel_config {
+rule {
 	source_labels = ["app"]
 	action        = "keep"
 	regex         = "backend"
 }
 
-relabel_config {
+rule {
 	source_labels = ["instance"]
 	target_label  = "name"
 }
 
-relabel_config {
+rule {
 	action      = "labelmap"
 	regex       = "__meta_(.*)"
 	replacement = "meta_$1"
 }
 
-relabel_config {
+rule {
 	action = "labeldrop"
 	regex  = "__meta(.*)|__tmp(.*)|instance"
 }
