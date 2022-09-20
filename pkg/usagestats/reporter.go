@@ -126,7 +126,7 @@ func (rep *Reporter) Start(ctx context.Context, metricsFunc func() map[string]in
 				continue
 			}
 			level.Info(rep.logger).Log("msg", "reporting agent stats", "date", time.Now())
-			if err := rep.reportUsage(ctx, next, metricsF()); err != nil {
+			if err := rep.reportUsage(ctx, next, metricsFunc()); err != nil {
 				level.Info(rep.logger).Log("msg", "failed to report usage", "err", err)
 				continue
 			}
