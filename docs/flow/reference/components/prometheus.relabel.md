@@ -15,10 +15,10 @@ time series and contains a value and an optional timestamp.
 ```
 
 The `prometheus.relabel` component rewrites the label set of each metric passed
-along to the exported receiver by applying one or more `rule`s. If no
-relabeling rules are defined or applicable to one of the metrics, then the
-metric is forwarded as-is to each receiver passed in the component's arguments.
-If no labels remain after the relabeling rules are applied, then the metric is
+along to the exported receiver by applying one or more relabeling `rule`s. If
+no rules are defined or applicable to some metrics, then those metrics are
+forwarded as-is to each receiver passed in the component's arguments. If no
+labels remain after the relabeling rules are applied, then the metric is
 dropped.
 
 The most common use of `prometheus.relabel` is to filter Prometheus metrics or
@@ -67,7 +67,7 @@ Name | Description | Required
 
 The `rule` block contains the definition of any relabeling
 rules that can be applied to an input metric. If more than one
-`rule`s block is defined within `prometheus.relabel`, the
+`rule` block is defined within `prometheus.relabel`, the
 transformations are applied in top-down order.
 
 The following arguments can be used to configure a `rule`.

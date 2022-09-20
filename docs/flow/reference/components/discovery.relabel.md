@@ -7,7 +7,7 @@ title: discovery.relabel
 # discovery.relabel
 
 `discovery.relabel` rewrites the label set of the input targets by applying one
-or more `rule`s. If no relabeling rules are defined, then the input targets
+or more relabeling `rule`s. If no rules are defined, then the input targets
 will be exported as-is.
 
 The most common use of `discovery.relabel` is to filter Prometheus targets or
@@ -59,7 +59,7 @@ Name | Description | Required
 
 ### `rule` block
 
-The `ruke` block contains the definition of any relabeling rules that
+The `rule` block contains the definition of any relabeling rules that
 can be applied to an input target. If more than one `rule` block is defined
 within `discovery.relabel`, the transformations will be applied in top-down
 order.
