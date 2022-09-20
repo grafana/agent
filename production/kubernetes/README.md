@@ -26,7 +26,7 @@ applying out of the box and you will have to manually perform the following step
 
 2. Modify your copy of the manifest, replacing relevant variables with the appropriate values
 
-3. Apply the modified manifest file: `kubectl -ndefault apply -f manifest.yaml`.
+3. Apply the modified manifest file: `kubectl -n default apply -f manifest.yaml`.
 
 This directory also contains an `install-bare.sh` script that is used inside of
 Grafana Cloud instructions. If using the Grafana Agent outside of Grafana Cloud,

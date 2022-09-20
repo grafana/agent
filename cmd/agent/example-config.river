@@ -10,20 +10,16 @@ local.file "this_file" {
 	detector = "fsnotify"
 }
 
-metrics.scrape "default" {
+prometheus.scrape "default" {
 	targets = [{
 		"__address__"   = "demo.robustperception.io:9090",
 		"dynamic_label" = local.file.this_file.content,
 	}]
-	forward_to = [metrics.remote_write.default.receiver]
-
-	scrape_config {
-		job_name = "default"
-	}
+	forward_to = [prometheus.remote_write.default.receiver]
 }
 
-metrics.remote_write "default" {
-	remote_write {
+prometheus.remote_write "default" {
+	endpoint {
 		url = "http://localhost:9009/api/prom/push"
 	}
 }

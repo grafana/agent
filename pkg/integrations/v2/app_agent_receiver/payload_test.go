@@ -94,4 +94,24 @@ func TestUnmarshalPayloadJSON(t *testing.T) {
 			},
 		},
 	}, payload.Logs)
+
+	require.Equal(t, []Event{
+		{
+			Name:      "click_login_button",
+			Domain:    "frontend",
+			Timestamp: now,
+			Attributes: map[string]string{
+				"foo": "bar",
+				"one": "two",
+			},
+			Trace: TraceContext{
+				TraceID: "abcd",
+				SpanID:  "def",
+			},
+		},
+		{
+			Name:      "click_reset_password_button",
+			Timestamp: now,
+		},
+	}, payload.Events)
 }

@@ -61,10 +61,11 @@ type AttributeStmt struct {
 
 // BlockStmt declares a block.
 type BlockStmt struct {
-	Name    []string
-	NamePos token.Pos
-	Label   string
-	Body    Body
+	Name     []string
+	NamePos  token.Pos
+	Label    string
+	LabelPos token.Pos
+	Body     Body
 
 	LCurlyPos, RCurlyPos token.Pos
 }

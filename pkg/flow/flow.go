@@ -47,12 +47,15 @@ package flow
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"sync"
+	"time"
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
+	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -69,6 +72,11 @@ type Options struct {
 
 	// Reg is the prometheus register to use
 	Reg prometheus.Registerer
+
+	// HTTPListenAddr is the base address that the server is listening on.
+	// The controller does not itself listen here, but some components
+	// need to know this to set the correct targets.
+	HTTPListenAddr string
 }
 
 // Flow is the Flow system.
@@ -118,7 +126,8 @@ func newFlow(o Options) (*Flow, context.Context) {
 				// Changed components should be queued for reevaluation.
 				queue.Enqueue(cn)
 			},
-			Registerer: o.Reg,
+			Registerer:     o.Reg,
+			HTTPListenAddr: o.HTTPListenAddr,
 		})
 	)
 
@@ -184,16 +193,16 @@ func (c *Flow) run(ctx context.Context) {
 //
 // The controller will only start running components after Load is called once
 // without any configuration errors.
-func (c *Flow) LoadFile(f *File) error {
+func (c *Flow) LoadFile(file *File) error {
 	c.loadMut.Lock()
 	defer c.loadMut.Unlock()
 
-	err := c.log.Update(f.Logging)
+	err := c.log.Update(file.Logging)
 	if err != nil {
 		return fmt.Errorf("error updating logger: %w", err)
 	}
 
-	diags := c.loader.Apply(nil, f.Components)
+	diags := c.loader.Apply(nil, file.Components)
 	if !c.loadedOnce && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.
@@ -209,9 +218,73 @@ func (c *Flow) LoadFile(f *File) error {
 	return diags.ErrorOrNil()
 }
 
+// ComponentInfos returns the component infos.
+func (c *Flow) ComponentInfos() []*ComponentInfo {
+	c.loadMut.RLock()
+	defer c.loadMut.RUnlock()
+
+	cns := c.loader.Components()
+	infos := make([]*ComponentInfo, len(cns))
+	edges := c.loader.OriginalGraph().Edges()
+	for i, com := range cns {
+		nn := newFromNode(com, edges)
+		infos[i] = nn
+	}
+	return infos
+}
+
 // Close closes the controller and all running components.
 func (c *Flow) Close() error {
 	c.cancel()
 	<-c.exited
 	return c.sched.Close()
+}
+
+func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *ComponentInfo {
+	references := make([]string, 0)
+	referencedBy := make([]string, 0)
+	for _, e := range edges {
+		if e.From.NodeID() == cn.NodeID() {
+			references = append(references, e.To.NodeID())
+		} else if e.To.NodeID() == cn.NodeID() {
+			referencedBy = append(referencedBy, e.From.NodeID())
+		}
+	}
+	h := cn.CurrentHealth()
+	ci := &ComponentInfo{
+		Label:        cn.Label(),
+		ID:           cn.NodeID(),
+		Name:         cn.ComponentName(),
+		Type:         "block",
+		References:   references,
+		ReferencedBy: referencedBy,
+		Health: &ComponentHealth{
+			State:       h.Health.String(),
+			Message:     h.Message,
+			UpdatedTime: h.UpdateTime,
+		},
+	}
+	return ci
+}
+
+// ComponentInfo represents a component in flow.
+type ComponentInfo struct {
+	Name         string           `json:"name,omitempty"`
+	Type         string           `json:"type,omitempty"`
+	ID           string           `json:"id,omitempty"`
+	Label        string           `json:"label,omitempty"`
+	References   []string         `json:"referencesTo"`
+	ReferencedBy []string         `json:"referencedBy"`
+	Health       *ComponentHealth `json:"health"`
+	Original     string           `json:"original"`
+	Arguments    json.RawMessage  `json:"arguments,omitempty"`
+	Exports      json.RawMessage  `json:"exports,omitempty"`
+	DebugInfo    json.RawMessage  `json:"debugInfo,omitempty"`
+}
+
+// ComponentHealth represents the health of a component.
+type ComponentHealth struct {
+	State       string    `json:"state"`
+	Message     string    `json:"message"`
+	UpdatedTime time.Time `json:"updatedTime"`
 }

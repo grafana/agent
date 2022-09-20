@@ -131,6 +131,18 @@ func (b *Body) AppendFrom(goValue interface{}) {
 	b.encodeFields(rv)
 }
 
+// getBlockLabel returns the label for a given block.
+func getBlockLabel(rv reflect.Value) string {
+	tags := rivertags.Get(rv.Type())
+	for _, tag := range tags {
+		if tag.Flags&rivertags.FlagLabel != 0 {
+			return rv.FieldByIndex(tag.Index).String()
+		}
+	}
+
+	return ""
+}
+
 func (b *Body) encodeFields(rv reflect.Value) {
 	for rv.Kind() == reflect.Pointer {
 		if rv.IsNil() {
@@ -191,17 +203,6 @@ func (b *Body) encodeField(field rivertags.Field, fieldValue reflect.Value) {
 			b.AppendBlock(inner)
 		}
 	}
-}
-
-func getBlockLabel(rv reflect.Value) string {
-	tags := rivertags.Get(rv.Type())
-	for _, tag := range tags {
-		if tag.Flags&rivertags.FlagLabel != 0 {
-			return rv.FieldByIndex(tag.Index).String()
-		}
-	}
-
-	return ""
 }
 
 // SetAttributeTokens sets an attribute to the Body whose value is a set of raw

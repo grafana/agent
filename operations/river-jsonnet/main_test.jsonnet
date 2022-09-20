@@ -27,10 +27,10 @@ local tests = [
   {
     name: 'Exprs',
     input: {
-      expr_attr: river.expr('metrics.remote_write.default.receiver'),
+      expr_attr: river.expr('prometheus.remote_write.default.receiver'),
     },
     expect: |||
-      expr_attr = metrics.remote_write.default.receiver
+      expr_attr = prometheus.remote_write.default.receiver
     |||,
   },
   {
@@ -146,6 +146,15 @@ local tests = [
       attr_1 = concat([{
         "hello" = "world",
       }])
+    |||,
+  },
+  {
+    name: 'Pruned expressions',
+    input: std.prune({
+      expr: river.expr('env("HOME")'),
+    }),
+    expect: |||
+      expr = env("HOME")
     |||,
   },
 ];

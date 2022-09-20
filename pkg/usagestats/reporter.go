@@ -14,7 +14,6 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/google/uuid"
-	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/dskit/backoff"
 	"github.com/grafana/dskit/multierror"
 	"github.com/prometheus/common/version"
@@ -28,7 +27,6 @@ var (
 // Reporter holds the agent seed information and sends report of usage
 type Reporter struct {
 	logger log.Logger
-	cfg    *config.Config
 
 	agentSeed  *AgentSeed
 	lastReport time.Time
@@ -42,10 +40,9 @@ type AgentSeed struct {
 }
 
 // NewReporter creates a Reporter that will send periodically reports to grafana.com
-func NewReporter(logger log.Logger, cfg *config.Config) (*Reporter, error) {
+func NewReporter(logger log.Logger) (*Reporter, error) {
 	r := &Reporter{
 		logger: logger,
-		cfg:    cfg,
 	}
 	return r, nil
 }
@@ -103,7 +100,7 @@ func agentSeedFileName() string {
 }
 
 // Start inits the reporter seed and start sending report for every interval
-func (rep *Reporter) Start(ctx context.Context) error {
+func (rep *Reporter) Start(ctx context.Context, metricsFunc func() map[string]interface{}) error {
 	level.Info(rep.logger).Log("msg", "running usage stats reporter")
 	err := rep.init(ctx)
 	if err != nil {
@@ -128,8 +125,8 @@ func (rep *Reporter) Start(ctx context.Context) error {
 			if !next.Equal(now) && now.Sub(rep.lastReport) < reportInterval {
 				continue
 			}
-			level.Info(rep.logger).Log("msg", "reporting cluster stats", "date", time.Now())
-			if err := rep.reportUsage(ctx, next); err != nil {
+			level.Info(rep.logger).Log("msg", "reporting agent stats", "date", time.Now())
+			if err := rep.reportUsage(ctx, next, metricsFunc()); err != nil {
 				level.Info(rep.logger).Log("msg", "failed to report usage", "err", err)
 				continue
 			}
@@ -142,7 +139,7 @@ func (rep *Reporter) Start(ctx context.Context) error {
 }
 
 // reportUsage reports the usage to grafana.com.
-func (rep *Reporter) reportUsage(ctx context.Context, interval time.Time) error {
+func (rep *Reporter) reportUsage(ctx context.Context, interval time.Time, metrics map[string]interface{}) error {
 	backoff := backoff.New(ctx, backoff.Config{
 		MinBackoff: time.Second,
 		MaxBackoff: 30 * time.Second,
@@ -150,7 +147,7 @@ func (rep *Reporter) reportUsage(ctx context.Context, interval time.Time) error 
 	})
 	var errs multierror.MultiError
 	for backoff.Ongoing() {
-		if err := sendReport(ctx, rep.agentSeed, interval, rep.getMetrics()); err != nil {
+		if err := sendReport(ctx, rep.agentSeed, interval, metrics); err != nil {
 			level.Info(rep.logger).Log("msg", "failed to send usage report", "retries", backoff.NumRetries(), "err", err)
 			errs.Add(err)
 			backoff.Wait()
@@ -160,12 +157,6 @@ func (rep *Reporter) reportUsage(ctx context.Context, interval time.Time) error 
 		return nil
 	}
 	return errs.Err()
-}
-
-func (rep *Reporter) getMetrics() map[string]interface{} {
-	return map[string]interface{}{
-		"enabled-features": rep.cfg.EnabledFeatures,
-	}
 }
 
 // nextReport compute the next report time based on the interval.

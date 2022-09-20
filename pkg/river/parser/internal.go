@@ -280,9 +280,10 @@ func (p *parser) parseStatement() ast.Stmt {
 
 	case token.LCURLY: // Block
 		block := &ast.BlockStmt{
-			Name:    blockName.Fragments,
-			NamePos: blockName.Start,
-			Label:   blockName.Label,
+			Name:     blockName.Fragments,
+			NamePos:  blockName.Start,
+			Label:    blockName.Label,
+			LabelPos: blockName.LabelPos,
 		}
 
 		block.LCurlyPos, _, _ = p.expect(token.LCURLY)
@@ -683,34 +684,28 @@ func (p *parser) parseFieldList(until token.Token) []*ast.ObjectField {
 //
 //    Field = ( string | identifier ) "=" Expression
 func (p *parser) parseField() *ast.ObjectField {
-	if p.tok != token.STRING && p.tok != token.IDENT {
-		p.addErrorf("expected field name (string or identifier), got %s", p.tok)
-		p.advanceAny(fieldStarter)
-		return nil
-	}
+	var field ast.ObjectField
 
-	field := &ast.ObjectField{
-		Name: &ast.Ident{
+	if p.tok == token.STRING || p.tok == token.IDENT {
+		field.Name = &ast.Ident{
 			Name:    p.lit,
 			NamePos: p.pos,
-		},
+		}
+		if p.tok == token.STRING && len(p.lit) > 2 {
+			// The field name is a string literal; unwrap the quotes.
+			field.Name.Name = p.lit[1 : len(p.lit)-1]
+			field.Quoted = true
+		}
+		p.next() // Consume field name
+	} else {
+		p.addErrorf("expected field name (string or identifier), got %s", p.tok)
+		p.advance(token.ASSIGN)
 	}
-	if p.tok == token.STRING && len(p.lit) > 2 {
-		// The field name a string literal; unwrap the quotes.
-		field.Name.Name = p.lit[1 : len(p.lit)-1]
-		field.Quoted = true
-	}
-	p.next() // Consume field name
 
 	p.expect(token.ASSIGN)
 
 	field.Value = p.ParseExpression()
-	return field
-}
-
-var fieldStarter = map[token.Token]struct{}{
-	token.STRING: {},
-	token.IDENT:  {},
+	return &field
 }
 
 func isValidIdentifier(in string) bool {

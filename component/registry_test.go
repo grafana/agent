@@ -35,8 +35,9 @@ func Test_parseComponentName(t *testing.T) {
 
 func Test_validatePrefixMatch(t *testing.T) {
 	existing := map[string]parsedName{
-		"remote.http": {"remote", "http"},
-		"test":        {"test"},
+		"remote.http":     {"remote", "http"},
+		"test":            {"test"},
+		"three.part.name": {"three", "part", "name"},
 	}
 
 	tt := []struct {
@@ -47,6 +48,11 @@ func Test_validatePrefixMatch(t *testing.T) {
 		{check: "remote", expectValid: false},
 		{check: "test2", expectValid: true},
 		{check: "test.new", expectValid: false},
+		{check: "remote.something.else", expectValid: true},
+		{check: "three.part", expectValid: false},
+		{check: "three", expectValid: false},
+		{check: "three.two", expectValid: true},
+		{check: "three.part.other", expectValid: true},
 	}
 
 	for _, tc := range tt {

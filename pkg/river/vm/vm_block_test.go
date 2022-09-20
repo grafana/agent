@@ -125,7 +125,7 @@ func TestVM_Block_Attributes(t *testing.T) {
 		eval := vm.New(parseBlock(t, input))
 
 		err := eval.Evaluate(nil, &block{})
-		require.EqualError(t, err, `unrecognized attribute name "invalid"`)
+		require.EqualError(t, err, `3:4: unrecognized attribute name "invalid"`)
 	})
 
 	t.Run("Supports arbitrarily nested struct pointer fields", func(t *testing.T) {
@@ -282,7 +282,7 @@ func TestVM_Block_Children_Blocks(t *testing.T) {
 		eval := vm.New(parseBlock(t, input))
 
 		err := eval.Evaluate(nil, &block{})
-		require.EqualError(t, err, `unrecognized block name "child.block"`)
+		require.EqualError(t, err, `4:4: unrecognized block name "child.block"`)
 	})
 
 	t.Run("Supports arbitrarily nested struct pointer fields", func(t *testing.T) {

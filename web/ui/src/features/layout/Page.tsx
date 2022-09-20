@@ -1,0 +1,30 @@
+import styles from './Page.module.css';
+import { IconProp } from '@fortawesome/fontawesome-svg-core';
+import { FC, ReactNode } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
+export interface PageProps {
+  name: string;
+  desc: string;
+  icon: IconProp;
+  children?: ReactNode;
+}
+
+const Page: FC<PageProps> = (props) => {
+  return (
+    <div className={styles.page}>
+      <header className={styles.header}>
+        <div className={styles.icon}>
+          <FontAwesomeIcon icon={props.icon} />
+        </div>
+        <div className={styles.info}>
+          <h1>{props.name}</h1>
+          <h2>{props.desc}</h2>
+        </div>
+      </header>
+      <main>{props.children}</main>
+    </div>
+  );
+};
+
+export default Page;

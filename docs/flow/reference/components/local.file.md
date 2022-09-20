@@ -90,6 +90,7 @@ component.
 
 ### Debug metrics
 
-`local.file` does not expose any component-specific debug metrics.
+* `agent_local_file_timestamp_last_accessed_unix_seconds` (gauge): The
+  timestamp, in Unix seconds, that the file was last sucessfully accessed.
 
 [secret]: ../secrets.md#is_secret-argument-in-components

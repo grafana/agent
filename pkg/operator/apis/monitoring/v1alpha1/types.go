@@ -169,6 +169,10 @@ type GrafanaAgentSpec struct {
 	// config port 8080 on the agent.
 	// +kubebuilder:default=false
 	EnableConfigReadAPI bool `json:"enableConfigReadAPI,omitempty"`
+
+	// disableReporting disable reporting of enabled feature flags to Grafana.
+	// +kubebuilder:default=false
+	DisableReporting bool `json:"disableReporting,omitempty"`
 }
 
 // +kubebuilder:object:generate=false

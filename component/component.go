@@ -33,6 +33,17 @@
 // Default values for Arguments may be provided by implementing
 // river.Unmarshaler.
 //
+// Arguments and Exports immutability
+//
+// Arguments passed to a component should be treated as immutable, as memory
+// can be shared between components as an optimization. Components should make
+// copies for fields they need to modify. An exception to this is for fields
+// which are expected to be mutable (e.g., interfaces which expose a
+// goroutine-safe API).
+//
+// Similarly, Exports and the fields within Exports must be considered
+// immutable after they are written for the same reason.
+//
 // Mapping River strings to custom types
 //
 // Custom encoding and decoding of fields is available by implementing
@@ -47,7 +58,10 @@
 // creating a new one.
 package component
 
-import "context"
+import (
+	"context"
+	"net/http"
+)
 
 // The Arguments contains the input fields for a specific component, which is
 // unmarshaled from River.
@@ -99,4 +113,15 @@ type DebugComponent interface {
 	//
 	// DebugInfo must be safe for calling concurrently.
 	DebugInfo() interface{}
+}
+
+// HTTPComponent is an extension interface for components which contain their own HTTP handlers.
+type HTTPComponent interface {
+	Component
+
+	// Handler should return a valid HTTP handler for the component.
+	// All requests to the component will have the path trimmed such that the component is at the root.
+	// For example, f a request is made to `/component/{id}/metrics`, the component
+	// will receive a request to just `/metrics`.
+	Handler() http.Handler
 }

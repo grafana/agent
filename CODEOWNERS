@@ -1,2 +1,5 @@
+/cmd/agent-operator @captncraig @marctc
+/pkg/integrations/ @rgeyer @gaantunes @captncraig @marctc
+/pkg/operator @captncraig @marctc
 /pkg/traces/ @joe-elliott @mapno
-/pkg/integrations/ @rgeyer @gaantunes
+/docs/sources/ @karengermond

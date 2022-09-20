@@ -2,6 +2,7 @@ package controller_test
 
 import (
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/go-kit/log"
@@ -151,6 +152,55 @@ func TestLoader(t *testing.T) {
 		diags := applyFromContent(t, l, []byte(invalidFile))
 		require.Error(t, diags.ErrorOrNil())
 	})
+
+	t.Run("Handling of singleton component labels", func(t *testing.T) {
+		invalidFile := `
+			testcomponents.tick {
+			}
+			testcomponents.singleton "first" {
+			}
+		`
+		l := controller.NewLoader(newGlobals())
+		diags := applyFromContent(t, l, []byte(invalidFile))
+		require.ErrorContains(t, diags[0], `Component "testcomponents.tick" must have a label`)
+		require.ErrorContains(t, diags[1], `Component "testcomponents.singleton" does not support labels`)
+	})
+}
+
+// TestScopeWithFailingComponent is used to ensure that the scope is filled out, even if the component
+// fails to properly start.
+func TestScopeWithFailingComponent(t *testing.T) {
+	testFile := `
+		testcomponents.tick "ticker" {
+			frequenc = "1s"
+		}
+
+		testcomponents.passthrough "static" {
+			input = "hello, world!"
+		}
+
+		testcomponents.passthrough "ticker" {
+			input = testcomponents.tick.ticker.tick_time
+		}
+
+		testcomponents.passthrough "forwarded" {
+			input = testcomponents.passthrough.ticker.output
+		}
+	`
+	newGlobals := func() controller.ComponentGlobals {
+		return controller.ComponentGlobals{
+			Logger:          log.NewNopLogger(),
+			DataPath:        t.TempDir(),
+			OnExportsChange: func(cn *controller.ComponentNode) { /* no-op */ },
+			Registerer:      prometheus.NewRegistry(),
+		}
+	}
+
+	l := controller.NewLoader(newGlobals())
+	diags := applyFromContent(t, l, []byte(testFile))
+	require.Error(t, diags.ErrorOrNil())
+	require.Len(t, diags, 1)
+	require.True(t, strings.Contains(diags.Error(), "Failed to build component: decoding River: missing required attribute \"frequency\""))
 }
 
 func applyFromContent(t *testing.T, l *controller.Loader, bb []byte) diag.Diagnostics {

@@ -30,7 +30,7 @@ goes into more detail about the context and design decisions being made.
 
 ## Updating CRDs
 
-The `make crds` command at the root of this repository will generate CRDs and
+The `make generate-crds` command at the root of this repository will generate CRDs and
 other code used by the operator. This calls the [generate-crds
 script](../../tools/generate-crds.bash) in a container. If you wish to call this
 script manually, you must also install `controller-gen`.

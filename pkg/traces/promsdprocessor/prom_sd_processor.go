@@ -118,13 +118,25 @@ func stringAttributeFromMap(attrs pcommon.Map, key string) string {
 	return ""
 }
 
-func getConnectionIP(ctx context.Context) string {
+func (p *promServiceDiscoProcessor) getConnectionIP(ctx context.Context) string {
 	c := client.FromContext(ctx)
 	if c.Addr == nil {
 		return ""
 	}
 
-	return c.Addr.String()
+	host := c.Addr.String()
+	if strings.Contains(host, ":") {
+		var err error
+		splitHost, _, err := net.SplitHostPort(host)
+		if err != nil {
+			// It's normal for this to fail for IPv6 address strings that don't actually include a port.
+			level.Debug(p.logger).Log("msg", "unable to split connection host and port", "host", host, "err", err)
+		} else {
+			host = splitHost
+		}
+	}
+
+	return host
 }
 
 func (p *promServiceDiscoProcessor) getPodIP(ctx context.Context, attrs pcommon.Map) string {
@@ -141,7 +153,7 @@ func (p *promServiceDiscoProcessor) getPodIP(ctx context.Context, attrs pcommon.
 				return hostname
 			}
 		case podAssociationConnectionIP:
-			ip := getConnectionIP(ctx)
+			ip := p.getConnectionIP(ctx)
 			if ip != "" {
 				return ip
 			}

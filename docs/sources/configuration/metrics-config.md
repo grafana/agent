@@ -39,6 +39,15 @@ define one instance.
 # A value of 0 disables periodic cleanup of abandoned WALs
 [wal_cleanup_period: <duration> | default = "30m"]
 
+# Allows to disable HTTP Keep-Alives when scraping; the Agent will only use
+# outgoing each connection for a single request.
+[http_disable_keepalives: <boolean> | default = false]
+
+# Allows to configure the maximum amount of time an idle Keep-Alive connection
+# can remain idle before closing itself. Zero means no limit.
+# The setting is ignored when `http_disable_keepalives` is enabled.
+[http_idle_conn_timeout: <duration> | default = "5m"]
+
 # The list of Prometheus instances to launch with the agent.
 configs:
   [- <metrics_instance_config>]

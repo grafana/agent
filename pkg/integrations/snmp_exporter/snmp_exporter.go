@@ -124,6 +124,12 @@ func (i *Integration) ScrapeConfigs() []config.ScrapeConfig {
 	for _, target := range i.sh.cfg.SnmpTargets {
 		queryParams := url.Values{}
 		queryParams.Add("target", target.Target)
+		if target.Module != "" {
+			queryParams.Add("module", target.Module)
+		}
+		if target.WalkParams != "" {
+			queryParams.Add("walk_params", target.WalkParams)
+		}
 		res = append(res, config.ScrapeConfig{
 			JobName:     i.sh.cfg.Name() + "/" + target.Name,
 			MetricsPath: "/metrics",

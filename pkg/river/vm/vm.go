@@ -259,20 +259,42 @@ func (vm *Evaluator) evaluateBlockOrBody(scope *Scope, assoc map[value.Value]ast
 		}
 	}
 
+	var diags diag.Diagnostics
+
 	// Make sure that all of the attributes and blocks defined in the AST node
 	// matched up with a field from our struct.
-	for attr := range foundAttrs {
-		if _, consumed := consumedAttrs[attr]; !consumed {
-			return fmt.Errorf("unrecognized attribute name %q", attr)
+	for attrName, attrs := range foundAttrs {
+		if _, consumed := consumedAttrs[attrName]; consumed {
+			// Ignore accepted attributes.
+			continue
+		}
+
+		for _, attr := range attrs {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				StartPos: ast.StartPos(attr.Name).Position(),
+				EndPos:   ast.EndPos(attr.Name).Position(),
+				Message:  fmt.Sprintf("unrecognized attribute name %q", attrName),
+			})
 		}
 	}
-	for block := range foundBlocks {
-		if _, consumed := consumedBlocks[block]; !consumed {
-			return fmt.Errorf("unrecognized block name %q", block)
+	for blockName, blocks := range foundBlocks {
+		if _, consumed := consumedBlocks[blockName]; consumed {
+			// Ignore accepted blocks.
+			continue
+		}
+
+		for _, block := range blocks {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				StartPos: block.NamePos.Position(),
+				EndPos:   block.NamePos.Add(len(blockName) - 1).Position(),
+				Message:  fmt.Sprintf("unrecognized block name %q", blockName),
+			})
 		}
 	}
 
-	return nil
+	return diags.ErrorOrNil()
 }
 
 func (vm *Evaluator) evaluateBlockLabel(node *ast.BlockStmt, tfs []rivertags.Field, rv reflect.Value) error {
@@ -513,6 +535,10 @@ type Scope struct {
 
 	// Variables holds the list of available variable names that can be used when
 	// evaluating a node.
+	//
+	// Values in the Variables map should considered immutable after passed to
+	// Evaluate; maps and slices will be copied by reference for performance
+	// optimizations.
 	Variables map[string]interface{}
 }
 

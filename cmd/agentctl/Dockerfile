@@ -1,28 +1,41 @@
-FROM golang:1.18.0-bullseye as build
+# syntax=docker/dockerfile:1.4
+
+# NOTE: This Dockerfile can only be built using BuildKit. BuildKit is used by
+# default when running `docker buildx build` or when DOCKER_BUILDKIT=1 is set
+# in environment variables.
+
+FROM --platform=$BUILDPLATFORM grafana/agent-build-image:0.16.0 as build
+ARG BUILDPLATFORM
+ARG TARGETPLATFORM
+ARG TARGETOS
+ARG TARGETARCH
+ARG TARGETVARIANT
+ARG RELEASE_BUILD=1
+ARG VERSION
+
 COPY . /src/agent
 WORKDIR /src/agent
-ARG RELEASE_BUILD=false
-ARG IMAGE_TAG
 
-# Backports repo required to get a libsystemd version 246 or newer which is required to handle journal +ZSTD compression
-RUN echo "deb http://deb.debian.org/debian bullseye-backports main" >> /etc/apt/sources.list
-RUN apt-get update && apt-get install -t bullseye-backports -qy libsystemd-dev
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    GOOS=$TARGETOS GOARCH=$TARGETARCH GOARM=${TARGETVARIANT#v} \
+    RELEASE_BUILD=${RELEASE_BUILD} VERISON=${VERSION} \
+    make agentctl
 
-# Add support for bcc bindings required to compile the eBPF integration
-RUN apt-get update && apt-get install -qy libbpfcc-dev
+FROM ubuntu:jammy
 
-RUN make clean && make IMAGE_TAG=${IMAGE_TAG} RELEASE_BUILD=${RELEASE_BUILD} BUILD_IN_CONTAINER=false agentctl
+# Install dependencies needed at runtime. On x86_64 (arm64), libbpfcc is also
+# needed for the eBPF integration.
+RUN <<EOF
+  apt-get update
+  apt-get install -qy libsystemd-dev tzdata ca-certificates
 
-FROM debian:bullseye-slim
+  if [ `uname -m` = "x86_64" ]; then
+    apt-get install -qy libbpfcc
+  fi
 
-# Backports repo required to get a libsystemd version 246 or newer which is required to handle journal +ZSTD compression
-# plus the libbpfcc library for running the eBPF integration.
-RUN echo "deb http://deb.debian.org/debian bullseye-backports main" >> /etc/apt/sources.list
-RUN apt-get update && apt-get install -t bullseye-backports -qy libsystemd-dev && \
-  apt-get install -qy tzdata ca-certificates && \
-  if [ `uname -m` = "x86_64" ]; then apt-get install -qy libbpfcc; fi && \
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+EOF
 
-COPY --from=build /src/agent/cmd/agentctl/agentctl /bin/agentctl
-
+COPY --from=build /src/agent/build/agentctl /bin/agentctl
 ENTRYPOINT ["/bin/agentctl"]

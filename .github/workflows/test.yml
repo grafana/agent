@@ -21,7 +21,7 @@ jobs:
         echo "::set-output name=go-build::$(go env GOCACHE)"
         echo "::set-output name=go-mod::$(go env GOMODCACHE)"
     - name: Restore Go cache
-      uses: actions/cache@v3.0.5
+      uses: actions/cache@v3.0.8
       with:
         path: |
           ${{ steps.go-cache.outputs.go-build }}
@@ -30,4 +30,4 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-go-
     - name: Test
-      run: make DOCKER_OPTS="" GOFLAGS="-tags=netgo,nodocker" BUILD_IN_CONTAINER=false test
+      run: make GO_TAGS="nodocker" test

@@ -107,10 +107,9 @@ func Get(ty reflect.Type) []Field {
 	)
 
 	for _, field := range reflect.VisibleFields(ty) {
-		// Skip over anonymous struct fields; they'll be iterated over on future
-		// loops.
-		if field.Anonymous && field.Type.Kind() == reflect.Struct {
-			continue
+		// River does not support embedding of fields
+		if field.Anonymous {
+			panic(fmt.Sprintf("river: anonymous fields not supported %s", printPathToField(ty, field.Index)))
 		}
 
 		tag, tagged := field.Tag.Lookup("river")
@@ -156,8 +155,6 @@ func Get(ty reflect.Type) []Field {
 		default:
 			panic(fmt.Sprintf("river: unrecognized river tag format %q at %s", tag, printPathToField(ty, tf.Index)))
 		}
-
-		// Validate field
 
 		if len(tf.Name) > 1 && tf.Flags&FlagBlock == 0 {
 			panic(fmt.Sprintf("river: field names with `.` may only be used by blocks (found at %s)", printPathToField(ty, tf.Index)))

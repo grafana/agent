@@ -50,6 +50,7 @@ func TestReceiverMetricsExport(t *testing.T) {
 	payload.Logs = make([]Log, 2)
 	payload.Measurements = make([]Measurement, 3)
 	payload.Exceptions = make([]Exception, 4)
+	payload.Events = make([]Event, 5)
 	testcase(t, payload, []metricAssertion{
 		{
 			name:  "app_agent_receiver_logs_total",
@@ -62,6 +63,10 @@ func TestReceiverMetricsExport(t *testing.T) {
 		{
 			name:  "app_agent_receiver_exceptions_total",
 			value: 4,
+		},
+		{
+			name:  "app_agent_receiver_events_total",
+			value: 5,
 		},
 	})
 }

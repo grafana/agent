@@ -111,7 +111,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        image: grafana/agent:v0.26.1
+        image: grafana/agent:v0.27.1
         imagePullPolicy: IfNotPresent
         name: grafana-agent-traces
         ports:
@@ -141,7 +141,7 @@ spec:
         volumeMounts:
         - mountPath: /etc/agent
           name: grafana-agent-traces
-      serviceAccount: grafana-agent-traces
+      serviceAccountName: grafana-agent-traces
       volumes:
       - configMap:
           name: grafana-agent-traces
