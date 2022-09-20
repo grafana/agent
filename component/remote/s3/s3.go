@@ -28,7 +28,7 @@ func init() {
 	})
 }
 
-// S3 handles reading content from a file located in an S3 compatible system.
+// S3 handles reading content from a file located in an S3-compatible system.
 type S3 struct {
 	mut     sync.Mutex
 	opts    component.Options

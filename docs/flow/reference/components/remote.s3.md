@@ -13,9 +13,9 @@ recent content is always available.
 The most common use of `remote.s3` is to load secrets from files. 
 
 Multiple `remote.s3` components can be specified by giving them different name
-labels. By default, [AWS environment variables](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html) are used to authenticate against S3. The `key` and `secret` arguments inside `client_options` block can be used to provide custom authentication. 
+labels. By default, [AWS environment variables](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html) are used to authenticate against S3. The `key` and `secret` arguments inside `client_options` blocks can be used to provide custom authentication. 
 
-> **NOTE**: Other S3 compatible systems can be read  with `remote.s3` but may require specific 
+> **NOTE**: Other S3-compatible systems can be read  with `remote.s3` but may require specific 
 > authentication environment variables. There is no  guarantee that `remote.s3` will work with non-AWS S3 
 > systems.
 
@@ -34,10 +34,10 @@ The following arguments are supported:
 Name | Type | Description                                                             | Default | Required
 ---- | ---- |-------------------------------------------------------------------------| ------- | --------
 `path` | `string` | Path in the format of `"s3://bucket/file"`. | | **yes**
-`poll_frequency` | `duration` | How often to poll the file for changes, must be greater than 30 seconds. | `"10m"` | no
+`poll_frequency` | `duration` | How often to poll the file for changes. Must be greater than 30 seconds. | `"10m"` | no
 `is_secret` | `bool` | Marks the file as containing a [secret][]. | `false` | no
 
-> **NOTE**: `path` must include a full path to a file, this does not support reading of directories.
+> **NOTE**: `path` must include a full path to a file. This does not support reading of directories.
 
 [secret]: {{< relref "../../config-language/expressions/types_and_values.md#secrets" >}}
 
@@ -56,7 +56,7 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `key` | `string` | Used to override default access key. | | no
 `secret` | `secret` | Used to override default secret value. | | no
-`endpoint` | `string` | Endpoint specifies a custom url to access, used generally for S3 compatible systems. | | no
+`endpoint` | `string` | Specifies a custom url to access, used generally for S3-compatible systems. | | no
 `disable_ssl` | `bool` | Used to disable SSL, generally used for testing. | | no
 `use_path_style` | `string` | Path style is a deprecated setting that is generally enabled for S3 compatible systems. | `false` | no
 `region` | `string` | Used to override default region. | | no
