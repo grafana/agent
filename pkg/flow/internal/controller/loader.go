@@ -13,7 +13,6 @@ import (
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/diag"
-	"github.com/grafana/agent/pkg/river/token/builder"
 	"github.com/grafana/agent/pkg/river/vm"
 	"github.com/hashicorp/go-multierror"
 
@@ -238,30 +237,6 @@ func (l *Loader) OriginalGraph() *dag.Graph {
 	l.mut.RLock()
 	defer l.mut.RUnlock()
 	return l.originalGraph.Clone()
-}
-
-// WriteBlocks returns a set of evaluated token/builder blocks for each loaded
-// component. Components are returned in the order they were supplied to Apply
-// (i.e., the original order from the config file) and not topological order.
-//
-// Blocks will include health and debug information if debugInfo is true.
-func (l *Loader) WriteBlocks(debugInfo bool) []*builder.Block {
-	l.mut.RLock()
-	defer l.mut.RUnlock()
-
-	blocks := make([]*builder.Block, 0, len(l.components))
-
-	for _, b := range l.blocks {
-		id := BlockComponentID(b).String()
-		node, _ := l.graph.GetByID(id).(*ComponentNode)
-		if node == nil {
-			continue
-		}
-
-		blocks = append(blocks, WriteComponent(node, debugInfo))
-	}
-
-	return blocks
 }
 
 // EvaluateDependencies re-evaluates components which depend directly or

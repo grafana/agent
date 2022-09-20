@@ -30,10 +30,9 @@ import (
 
 func runCommand() *cobra.Command {
 	r := &flowRun{
-		httpListenAddr:       "127.0.0.1:12345",
-		storagePath:          "data-agent/",
-		enableDebugEndpoints: true,
-		uiPrefix:             "/",
+		httpListenAddr: "127.0.0.1:12345",
+		storagePath:    "data-agent/",
+		uiPrefix:       "/",
 	}
 
 	cmd := &cobra.Command{
@@ -56,15 +55,7 @@ debugging UI can be changed by providing a different value to
 
 Additionally, the HTTP server exposes the following debug endpoints:
 
-  /debug/config  Display the state of running components. Values marked as
-                 secret are not shown. /debug/config?debug=1 shows extra
-                 information.
-  /debug/graph   Display the dependency graph of components. Graphviz must be
-                 installed for this to work.
-  /debug/scope   Display the variables available for components to use.
   /debug/pprof   Go performance profiling tools
-
-The debug endpoints can be disabled by providing --debug.endpoints.enabled=false.
 
 If reloading the config file fails, Grafana Agent Flow will continue running in
 its last valid state. Components which failed may be be listed as unhealthy,
@@ -81,17 +72,14 @@ depending on the nature of the reload error.
 	cmd.Flags().
 		StringVar(&r.httpListenAddr, "server.http.listen-addr", r.httpListenAddr, "address to listen for HTTP traffic on")
 	cmd.Flags().StringVar(&r.storagePath, "storage.path", r.storagePath, "Base directory where components can store data")
-	cmd.Flags().
-		BoolVar(&r.enableDebugEndpoints, "debug.endpoints.enabled", r.enableDebugEndpoints, "Enables /debug/ HTTP endpoints")
 	cmd.Flags().StringVar(&r.uiPrefix, "server.http.ui-path-prefix", r.uiPrefix, "Prefix to serve the HTTP UI at")
 	return cmd
 }
 
 type flowRun struct {
-	httpListenAddr       string
-	storagePath          string
-	enableDebugEndpoints bool
-	uiPrefix             string
+	httpListenAddr string
+	storagePath    string
+	uiPrefix       string
 }
 
 func (fr *flowRun) Run(configFile string) error {
@@ -160,14 +148,8 @@ func (fr *flowRun) Run(configFile string) error {
 		r := mux.NewRouter()
 
 		r.Handle("/metrics", promhttp.Handler())
-
-		if fr.enableDebugEndpoints {
-			r.Handle("/debug/config", f.ConfigHandler())
-			r.Handle("/debug/graph", f.GraphHandler())
-			r.Handle("/debug/scope", f.ScopeHandler())
-			r.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
-			r.PathPrefix("/component/{id}/").Handler(f.ComponentHandler())
-		}
+		r.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
+		r.PathPrefix("/component/{id}/").Handler(f.ComponentHandler())
 
 		ready := atomic.NewBool(true)
 		r.HandleFunc("/-/ready", func(w http.ResponseWriter, r *http.Request) {
