@@ -25,7 +25,7 @@ usually group their labels under `__meta_*`. For example, the
 discovery.kubernetes component populates a set of `__meta_kubernetes_*` labels
 to provide information about the discovered Kubernetes resources. If a
 relabeling rule needs to store a label value temporarily, for example as the
-input to a subsequent rule, use the `__tmp` label name prefix, as it is
+input to a subsequent step, use the `__tmp` label name prefix, as it is
 guaranteed to never be used.
 
 Multiple `discovery.relabel` components can be specified by giving them
