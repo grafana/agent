@@ -12,7 +12,7 @@ recent content is always available.
 
 The most common use of `remote.s3` is to load secrets from files. 
 
-Multiple `remote.s3` components can be specified by giving them different name
+Multiple `remote.s3` components can be specified using different name
 labels. By default, [AWS environment variables](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html) are used to authenticate against S3. The `key` and `secret` arguments inside `client_options` blocks can be used to provide custom authentication. 
 
 > **NOTE**: Other S3-compatible systems can be read  with `remote.s3` but may require specific 
