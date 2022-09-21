@@ -6,19 +6,29 @@ import styles from './App.module.css';
 import { ComponentDetailPage } from './pages/ComponentDetailPage';
 import { PathPrefixContext } from './contexts/PathPrefixContext';
 
+/**
+ * getBasePath retrieves the base path of the application by looking at the
+ * <base> HTML element in the HTML header. If there is no <base> element or the
+ * <base> element is empty, getBaseURL returns "/".
+ */
+function getBasePath(): string {
+  const elements = document.getElementsByTagName('base');
+  if (elements.length !== 1) {
+    return '/';
+  }
+
+  // elements[0].href will be a full URL, but we just want to extract the path
+  // portion.
+  return new URL(elements[0].href).pathname;
+}
+
 function App() {
-  // Production builds set REACT_APP_BASE_URL to a template string which Go
-  // code will replace with the value of --server.http.ui-path-prefix when
-  // serving this page.
-  //
-  // When developing with `yarn run watch`, this field is unset and is set to
-  // the root path.
-  const baseName = process.env.REACT_APP_BASE_URL || '/';
+  const basePath = getBasePath();
 
   return (
-    <PathPrefixContext.Provider value={baseName}>
+    <PathPrefixContext.Provider value={basePath}>
       <div className={styles.app}>
-        <BrowserRouter basename={baseName}>
+        <BrowserRouter basename={basePath}>
           <Navbar />
           <main>
             <Routes>

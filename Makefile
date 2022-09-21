@@ -84,6 +84,7 @@
 ##   RELEASE_BUILD    Set to 1 to build release binaries
 ##   VERSION          Version to inject into built binaries.
 ##   GO_TAGS          Extra tags to use when building.
+##   DOCKER_PLATFORM  Overrides platform to build Docker images for (defaults to host platform).
 
 include tools/make/*.mk
 
@@ -206,6 +207,10 @@ endif
 #
 
 DOCKER_FLAGS := --build-arg RELEASE_BUILD=$(RELEASE_BUILD) --build-arg VERSION=$(VERSION)
+
+ifneq ($(DOCKER_PLATFORM),)
+DOCKER_FLAGS += --platform=$(DOCKER_PLATFORM)
+endif
 
 .PHONY: images agent-image agentctl-image operator-image crow-image smoke-image
 images: agent-image agentctl-image operator-image crow-image smoke-image

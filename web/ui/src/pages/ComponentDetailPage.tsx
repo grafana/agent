@@ -1,14 +1,11 @@
 import { FC, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { usePathPrefix } from '../contexts/PathPrefixContext';
 import { ComponentView } from '../features/component/ComponentView';
 import { ComponentDetail, componentInfoByID } from '../features/component/types';
 import { useComponentInfo } from '../hooks/componentInfo';
 
 export const ComponentDetailPage: FC = () => {
   const { id } = useParams();
-
-  const pathPrefix = usePathPrefix();
 
   const components = useComponentInfo();
   const infoByID = componentInfoByID(components);
@@ -18,7 +15,8 @@ export const ComponentDetailPage: FC = () => {
   useEffect(
     function () {
       const worker = async () => {
-        const resp = await fetch(pathPrefix + 'api/v0/web/components/' + id, {
+        // Request is relative to the <base> tag inside of <head>.
+        const resp = await fetch('./api/v0/web/components/' + id, {
           cache: 'no-cache',
           credentials: 'same-origin',
         });
@@ -27,7 +25,7 @@ export const ComponentDetailPage: FC = () => {
 
       worker().catch(console.error);
     },
-    [id, pathPrefix]
+    [id]
   );
 
   return component ? <ComponentView component={component} info={infoByID} /> : <div></div>;
