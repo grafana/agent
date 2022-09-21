@@ -19,6 +19,6 @@ ghr \
   -t "${GITHUB_TOKEN}" \
   -u "grafana" \
   -r "agent" \
-  -b="$(envsubst < ./tools/release-note)" \
+  -b="$(envsubst < ./tools/release-note.md)" \
   -delete -draft \
   "${VERSION}" ./dist/
