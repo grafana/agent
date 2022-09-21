@@ -1,7 +1,7 @@
 import { FC, useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 import * as d3Zoom from 'd3-zoom';
-import { HasId, HasParentIds, IdOperator, ParentIdsOperator } from 'd3-dag/dist/dag/create';
+import { IdOperator, ParentIdsOperator } from 'd3-dag/dist/dag/create';
 import { NodeSizeAccessor, sugiyama, dagStratify, decrossTwoLayer, layeringCoffmanGraham, coordSimplex } from 'd3-dag';
 import { Point } from 'd3-dag/dist/dag';
 import { ComponentHealthState, ComponentInfo } from './types';
@@ -165,22 +165,32 @@ export const ComponentGraph: FC<ComponentGraphProps> = (props) => {
       .layering(layeringCoffmanGraham())
       .decross(decrossTwoLayer())
       .coord(coordSimplex())
-      .nodeSize<NodeSizeAccessor<HasId & HasParentIds, undefined>>((n) => {
+      .nodeSize<NodeSizeAccessor<ComponentInfo, undefined>>((n) => {
         // nodeSize is the full amount of space you want the node to take up.
         //
         // It can be considered similar to the box model: margin and padding should
-        // be added to the size here;
+        // be added to the size.
 
+        // n will be undefined for synthetic nodes in a layer. These synthetic
+        // nodes can be given sizes, but we keep them at [0, 0] to minimize the
+        // total width of the graph.
         if (n === undefined) {
-          return [nodeWidth + nodeMargin + nodePadding * 2, nodeHeight + nodeMargin + nodePadding * 2];
+          return [0, 0];
         }
 
         // Calculate how much width the text needs to be displayed.
         let width = nodeWidth;
 
-        const textWidth = calcTextWidth(n.data.id, "bold 13px 'Roboto', sans-serif");
-        if (textWidth != null && textWidth > width) {
-          width = textWidth;
+        const displayFont = "bold 13px 'Roboto', sans-serif";
+
+        const nameWidth = calcTextWidth(n.data.name, displayFont);
+        if (nameWidth != null && nameWidth > width) {
+          width = nameWidth;
+        }
+
+        const labelWidth = calcTextWidth(n.data.label || '', displayFont);
+        if (labelWidth != null && labelWidth > width) {
+          width = labelWidth;
         }
 
         // Cache the width so it can be used while plotting the SVG.
