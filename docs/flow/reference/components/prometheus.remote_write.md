@@ -75,7 +75,7 @@ http_client_config` refers to an `http_client_config` block defined inside an
 `endpoint` block.
 
 [endpoint]: #endpoint-block
-[http_client_config]: #endpoint-block
+[http_client_config]: #http_client_config-block
 [basic_auth]: #basic_auth-block
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
