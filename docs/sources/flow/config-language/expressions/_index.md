@@ -16,10 +16,9 @@ perform arithmetic, or [call functions][].
 
 Expressions can be used when configuring any component. As all component
 arguments have an underlying [type][], River will type-check expressions before
-assigning the result to an attribute. 
+assigning the result to an attribute.
 
 [refer to values]: {{< relref "./referencing_exports.md" >}}
 [call functions]: {{< relref "./function_calls.md" >}}
 [type]: {{< relref "./types_and_values.md" >}}
-[`logging`]: {{< relref "../../controller-config/logging.md" >}}
 
