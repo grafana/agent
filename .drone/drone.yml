@@ -287,9 +287,8 @@ steps:
         from_secret: gpg_passphrase
     commands:
       - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-      - export VERSION=${DRONE_TAG}
-      - make -j4 RELEASE_BUILD=1 VERSION=${VERSION} dist
-      - RELEASE_DOC_TAG=$(echo $VERSION | awk -F '.' '{print $1"."$2}') ./tools/release
+      - make -j4 RELEASE_BUILD=1 VERSION=${DRONE_TAG} dist
+      - VERSION=${DRONE_TAG} RELEASE_DOC_TAG=$(echo ${DRONE_TAG} | awk -F '.' '{print $1"."$2}') ./tools/release
 depends_on:
   - Test
 
@@ -348,6 +347,6 @@ get:
 
 ---
 kind: signature
-hmac: b0da351d56000448b50ccc5cd02ce5e499365e0847af1de96c7881b45cecc12a
+hmac: 87125fabd632d1c389feaea02149aa23f266ea618008116eadc849f09efde093
 
 ...
