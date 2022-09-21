@@ -19,7 +19,7 @@ WORKDIR /src/agent
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
     GOOS=$TARGETOS GOARCH=$TARGETARCH GOARM=${TARGETVARIANT#v} \
-    RELEASE_BUILD=${RELEASE_BUILD} VERISON=${VERSION} \
+    RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} \
     make crow
 
 FROM ubuntu:jammy

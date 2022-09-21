@@ -1,4 +1,4 @@
-This is release `${RELEASE_TAG}` of the Grafana Agent.
+This is release `${VERSION}` of the Grafana Agent.
 
 ### Upgrading
 Read the [upgrade guide](https://grafana.com/docs/agent/${RELEASE_DOC_TAG}/upgrade-guide) for specific instructions on upgrading from older versions.
@@ -10,7 +10,7 @@ Read the [upgrade guide](https://grafana.com/docs/agent/${RELEASE_DOC_TAG}/upgra
 ### Installation:
 Grafana Agent is currently distributed in plain binary form, Docker container images, a Windows installer, and a Kubernetes install script. Choose whichever fits your use-case best.
 
-#### Kubernetes 
+#### Kubernetes
 
 Install directions [here.](https://grafana.com/docs/grafana-cloud/quickstart/agent-k8s/)
 
@@ -19,16 +19,16 @@ Install directions [here.](https://grafana.com/docs/grafana-cloud/quickstart/age
 * https://hub.docker.com/r/grafana/agent
 
 ```bash
-docker pull "grafana/agent:${RELEASE_TAG}"
+docker pull "grafana/agent:${VERSION}"
 ```
 
 #### Windows installer
 
-The Windows installer is provided as a [release asset](https://github.com/grafana/agent/releases/download/${RELEASE_TAG}/grafana-agent-installer.exe) for x64 machines.
+The Windows installer is provided as a [release asset](https://github.com/grafana/agent/releases/download/${VERSION}/grafana-agent-installer.exe) for x64 machines.
 
 #### Binary
 
-We provide precompiled binary executables for the most common operating systems. Choose from the assets below for your matching operating system. 
+We provide precompiled binary executables for the most common operating systems. Choose from the assets below for your matching operating system.
 
 Note: ppc64le builds are currently considered secondary release targets and do not have the same level of support and testing as other platforms.
 
@@ -36,7 +36,7 @@ Example for the `linux` operating system on `amd64`:
 
 ```bash
 # download the binary
-curl -O -L "https://github.com/grafana/agent/releases/download/${RELEASE_TAG}/agent-linux-amd64.zip"
+curl -O -L "https://github.com/grafana/agent/releases/download/${VERSION}/agent-linux-amd64.zip"
 
 # extract the binary
 unzip "agent-linux-amd64.zip"
@@ -50,14 +50,14 @@ chmod a+x "agent-linux-amd64"
 `agentctl`, a tool for helping you interact with the Agent, is available as a Docker image:
 
 ```bash
-docker pull "grafana/agentctl:${RELEASE_TAG}"
+docker pull "grafana/agentctl:${VERSION}"
 ```
 
 Or as a binary. Like before, choose the assets below that matches your operating system. For example, with `linux` on `amd64`:
 
 ```bash
 # download the binary
-curl -O -L "https://github.com/grafana/agent/releases/download/${RELEASE_TAG}/agentctl-linux-amd64.zip"
+curl -O -L "https://github.com/grafana/agent/releases/download/${VERSION}/agentctl-linux-amd64.zip"
 
 # extract the binary
 unzip "agentctl-linux-amd64.zip"
@@ -71,5 +71,5 @@ chmod a+x "agentctl-linux-amd64"
 `agent-operator`, a Kubernetes Operator for the Grafana Agent, is available only as a Docker image:
 
 ```bash
-docker pull "grafana/agent-operator:${RELEASE_TAG}"
+docker pull "grafana/agent-operator:${VERSION}"
 ```

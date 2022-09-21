@@ -24,7 +24,7 @@ RUN --mount=type=cache,target=/src/agent/web/ui/node_modules,sharing=locked \
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
     GOOS=$TARGETOS GOARCH=$TARGETARCH GOARM=${TARGETVARIANT#v} \
-    RELEASE_BUILD=${RELEASE_BUILD} VERISON=${VERSION} \
+    RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} \
     GO_TAGS=builtinassets \
     make agent
 

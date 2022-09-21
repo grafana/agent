@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
 # This script should be run from the root of the repository.
+set -x
 
 # Zip up agent* binaries to reduce the download size. agent* binaries include
 # everything *except* for the deb/rpm assets, which are named grafana-agent*.
@@ -18,7 +19,6 @@ ghr \
   -t "${GITHUB_TOKEN}" \
   -u "grafana" \
   -r "agent" \
-  -c "${GITHUB_SHA}" \
-  -b="$(envsubst < ./tools/release-note)" \
+  -b="$(envsubst < ./tools/release-note.md)" \
   -delete -draft \
-  "${RELEASE_TAG}" ./dist/
+  "${VERSION}" ./dist/

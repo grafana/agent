@@ -57,7 +57,7 @@ export BUILD_PLATFORMS=linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le
 docker buildx build --push       \
   --platform $BUILD_PLATFORMS    \
   --build-arg RELEASE_BUILD=1    \
-  --build-arg VERISON="$VERSION" \
+  --build-arg VERSION="$VERSION" \
   -t "$AGENT_IMAGE:$VERSION"     \
   -t "$AGENT_IMAGE:$BRANCH_TAG"  \
   -f cmd/agent/Dockerfile        \
@@ -66,7 +66,7 @@ docker buildx build --push       \
 docker buildx build --push         \
   --platform $BUILD_PLATFORMS      \
   --build-arg RELEASE_BUILD=1      \
-  --build-arg VERISON="$VERSION"   \
+  --build-arg VERSION="$VERSION"   \
   -t "$AGENTCTL_IMAGE:$VERSION"    \
   -t "$AGENTCTL_IMAGE:$BRANCH_TAG" \
   -f cmd/agentctl/Dockerfile       \
@@ -75,7 +75,7 @@ docker buildx build --push         \
 docker buildx build --push             \
   --platform $BUILD_PLATFORMS          \
   --build-arg RELEASE_BUILD=1          \
-  --build-arg VERISON="$VERSION"       \
+  --build-arg VERSION="$VERSION"       \
   -t "$OPERATOR_IMAGE:$VERSION"        \
   -t "$OPERATOR_IMAGE:$BRANCH_TAG"     \
   -f cmd/agent-operator/Dockerfile     \
@@ -84,7 +84,7 @@ docker buildx build --push             \
 docker buildx build --push       \
   --platform $BUILD_PLATFORMS    \
   --build-arg RELEASE_BUILD=1    \
-  --build-arg VERISON="$VERSION" \
+  --build-arg VERSION="$VERSION" \
   -t "$SMOKE_IMAGE:$VERSION"     \
   -t "$SMOKE_IMAGE:$BRANCH_TAG"  \
   -f tools/smoke/Dockerfile      \
@@ -93,7 +93,7 @@ docker buildx build --push       \
 docker buildx build --push       \
   --platform $BUILD_PLATFORMS    \
   --build-arg RELEASE_BUILD=1    \
-  --build-arg VERISON="$VERSION" \
+  --build-arg VERSION="$VERSION" \
   -t "$CROW_IMAGE:$VERSION"      \
   -t "$CROW_IMAGE:$BRANCH_TAG"   \
   -f tools/crow/Dockerfile       \
