@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCubes, faLink } from '@fortawesome/free-solid-svg-icons';
 import ComponentList from './ComponentList';
 import { HealthLabel } from './HealthLabel';
+import { Link } from 'react-router-dom';
 
 export interface ComponentViewProps {
   component: ComponentDetail;
@@ -26,7 +27,7 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
   function partitionTOC(partition: PartitionedBody): ReactElement {
     return (
       <li>
-        <a href={'#' + partition.key.join('-')}>{partition.displayName[partition.displayName.length - 1]}</a>
+        <Link to={'#' + partition.key.join('-')}>{partition.displayName[partition.displayName.length - 1]}</Link>
         {partition.inner.length > 0 && (
           <ul>
             {partition.inner.map((next, idx) => {
@@ -45,19 +46,19 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
         <hr />
         <ul>
           <li>
-            <a href={'#' + props.component.id}>{props.component.id}</a>
+            <Link to={'#' + props.component.id}>{props.component.id}</Link>
           </li>
           {argsPartition && partitionTOC(argsPartition)}
           {exportsPartition && partitionTOC(exportsPartition)}
           {debugPartition && partitionTOC(debugPartition)}
           {props.component.referencesTo.length > 0 && (
             <li>
-              <a href="#dependencies">Dependencies</a>
+              <Link to="#dependencies">Dependencies</Link>
             </li>
           )}
           {props.component.referencedBy.length > 0 && (
             <li>
-              <a href="#dependants">Dependants</a>
+              <Link to="#dependants">Dependants</Link>
             </li>
           )}
         </ul>
