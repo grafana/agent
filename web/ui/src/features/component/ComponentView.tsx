@@ -27,7 +27,9 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
   function partitionTOC(partition: PartitionedBody): ReactElement {
     return (
       <li>
-        <Link to={'#' + partition.key.join('-')}>{partition.displayName[partition.displayName.length - 1]}</Link>
+        <Link to={'#' + partition.key.join('-')} target="_top">
+          {partition.displayName[partition.displayName.length - 1]}
+        </Link>
         {partition.inner.length > 0 && (
           <ul>
             {partition.inner.map((next, idx) => {
@@ -46,19 +48,25 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
         <hr />
         <ul>
           <li>
-            <Link to={'#' + props.component.id}>{props.component.id}</Link>
+            <Link to={'#' + props.component.id} target="_top">
+              {props.component.id}
+            </Link>
           </li>
           {argsPartition && partitionTOC(argsPartition)}
           {exportsPartition && partitionTOC(exportsPartition)}
           {debugPartition && partitionTOC(debugPartition)}
           {props.component.referencesTo.length > 0 && (
             <li>
-              <Link to="#dependencies">Dependencies</Link>
+              <Link to="#dependencies" target="_top">
+                Dependencies
+              </Link>
             </li>
           )}
           {props.component.referencedBy.length > 0 && (
             <li>
-              <Link to="#dependants">Dependants</Link>
+              <Link to="#dependants" target="_top">
+                Dependants
+              </Link>
             </li>
           )}
         </ul>
