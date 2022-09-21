@@ -19,7 +19,6 @@ ghr \
   -t "${GITHUB_TOKEN}" \
   -u "grafana" \
   -r "agent" \
-  -c "${GITHUB_SHA}" \
   -b="$(envsubst < ./tools/release-note)" \
   -delete -draft \
-  "${RELEASE_TAG}" ./dist/
+  "${VERSION}" ./dist/
