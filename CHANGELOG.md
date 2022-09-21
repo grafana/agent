@@ -17,8 +17,8 @@ v0.28.0-rc.0 (2022-09-21)
 
 - Introduce Grafana Agent Flow, an experimental "programmable pipeline" runtime
   mode which improves how to configure and debug Grafana Agent by using
-  components. (@rfratto, @mattdurham, @marctc, @rlankfo, @tpaschalis,
-  @captncraig)
+  components. (@captncraig, @marctc, @mattdurham, @rfratto, @rlankfo,
+  @tpaschalis)
 
 ### Enhancements
 
