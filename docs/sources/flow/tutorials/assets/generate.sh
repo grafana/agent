@@ -4,7 +4,8 @@
 
 echo "#!/bin/bash" > runt.sh
 
-for i in $(find . )
+# Instead of `for find .` doing it this way due to https://www.shellcheck.net/wiki/SC2044.
+while IFS= read -r -d '' i
 do
     # Ignore current directory, png and ds_store files. 
     if [[ $i == "." || $i == "./.DS_Store" || $i == *.png || $i == *.sh ]];
@@ -21,7 +22,7 @@ do
         # TODO at some point change this to release.
         echo "curl https://raw.githubusercontent.com/grafana/agent/main/docs/sources/flow/tutorials/assets$trimName -o $i" >> runt.sh
     fi
-done
+done <   <(find . -print0)
 
 # Always pull the newest.
 # TODO at some point change this from main.
