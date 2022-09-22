@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 curl https://raw.githubusercontent.com/grafana/agent/main/docs/sources/flow/tutorials/assets/docker-compose.yaml -o ./docker-compose.yaml
 mkdir -p ./mimir
 curl https://raw.githubusercontent.com/grafana/agent/main/docs/sources/flow/tutorials/assets/mimir/mimir.yaml -o ./mimir/mimir.yaml

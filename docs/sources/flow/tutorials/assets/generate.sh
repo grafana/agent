@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # This script generates runt.sh script that pulls down the needed files and runs them.
 
-echo "#!/bin/bash" > runt.sh
+echo "#!/usr/bin/env bash" > runt.sh
 
 # Instead of `for find .` doing it this way due to https://www.shellcheck.net/wiki/SC2044.
 while IFS= read -r -d '' i
