@@ -8,4 +8,4 @@ jobs:
     - uses: actions/checkout@v3
     - uses: azohra/shell-linter@latest
       with:
-        path: "packaging,production,tools/ci,tools/release"
+        path: "packaging,production,tools/ci,tools/release,docs/sources/flow/tutorials/assets"
