@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-# This script generates runt.sh script that pulls down the needed files and runs them.
+# This script generates runt.sh script that pulls down the needed files and runs them for the tutorials themselves.
+# This needs to be reran anytime new tutorials are added with new docker composes.
+# The runt.sh file is meant to download all the needed files for the example and for them to be used. 
 
 echo "#!/usr/bin/env bash" > runt.sh
 
