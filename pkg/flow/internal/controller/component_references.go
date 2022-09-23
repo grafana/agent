@@ -5,7 +5,6 @@ import (
 
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/river/ast"
-	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/vm"
 )
 
@@ -26,12 +25,8 @@ type Reference struct {
 
 // ComponentReferences returns the list of references a component is making to
 // other components.
-func ComponentReferences(cn *ComponentNode, g *dag.Graph) ([]Reference, diag.Diagnostics) {
-	var (
-		traversals = componentTraversals(cn)
-
-		diags diag.Diagnostics
-	)
+func ComponentReferences(cn *ComponentNode, g *dag.Graph) []Reference {
+	traversals := componentTraversals(cn)
 
 	refs := make([]Reference, 0, len(traversals))
 	for _, t := range traversals {
@@ -45,15 +40,14 @@ func ComponentReferences(cn *ComponentNode, g *dag.Graph) ([]Reference, diag.Dia
 			continue
 		}
 
-		ref, resolveDiags := resolveTraversal(t, g)
-		diags = append(diags, resolveDiags...)
-		if resolveDiags.HasErrors() {
+		ref, err := resolveTraversal(t, g)
+		if err != nil {
 			continue
 		}
 		refs = append(refs, ref)
 	}
 
-	return refs, diags
+	return refs
 }
 
 // componentTraversals gets the set of Traverals for a given component.
@@ -129,10 +123,8 @@ func (tw *traversalWalker) flush() {
 	tw.currentTraversal = nil
 }
 
-func resolveTraversal(t Traversal, g *dag.Graph) (Reference, diag.Diagnostics) {
+func resolveTraversal(t Traversal, g *dag.Graph) (Reference, error) {
 	var (
-		diags diag.Diagnostics
-
 		partial = ComponentID{t[0].Name}
 		rem     = t[1:]
 	)
@@ -155,11 +147,5 @@ func resolveTraversal(t Traversal, g *dag.Graph) (Reference, diag.Diagnostics) {
 		rem = rem[1:]
 	}
 
-	diags = append(diags, diag.Diagnostic{
-		Severity: diag.SeverityLevelError,
-		Message:  fmt.Sprintf("component %q does not exist", partial),
-		StartPos: ast.StartPos(t[0]).Position(),
-		EndPos:   ast.StartPos(t[len(t)-1]).Position(),
-	})
-	return Reference{}, diags
+	return Reference{}, fmt.Errorf("component %q does not exist", partial)
 }

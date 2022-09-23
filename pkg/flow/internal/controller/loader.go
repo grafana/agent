@@ -78,8 +78,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt) diag.Diag
 	populateDiags := l.populateGraph(&newGraph, blocks)
 	diags = append(diags, populateDiags...)
 
-	wireDiags := l.wireGraphEdges(&newGraph)
-	diags = append(diags, wireDiags...)
+	l.wireGraphEdges(&newGraph)
 
 	// Validate graph to detect cycles
 	err := dag.Validate(&newGraph)
@@ -197,18 +196,14 @@ func (l *Loader) populateGraph(g *dag.Graph, blocks []*ast.BlockStmt) diag.Diagn
 	return diags
 }
 
-func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
-	var diags diag.Diagnostics
-
+func (l *Loader) wireGraphEdges(g *dag.Graph) {
 	for _, n := range g.Nodes() {
-		refs, nodeDiags := ComponentReferences(n.(*ComponentNode), g)
+		refs := ComponentReferences(n.(*ComponentNode), g)
 		for _, ref := range refs {
 			g.AddEdge(dag.Edge{From: n, To: ref.Target})
 		}
-		diags = append(diags, nodeDiags...)
 	}
-
-	return diags
+	return
 }
 
 // Variables returns the Variables the Loader exposes for other Flow components
