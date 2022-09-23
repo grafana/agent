@@ -203,7 +203,6 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) {
 			g.AddEdge(dag.Edge{From: n, To: ref.Target})
 		}
 	}
-	return
 }
 
 // Variables returns the Variables the Loader exposes for other Flow components
