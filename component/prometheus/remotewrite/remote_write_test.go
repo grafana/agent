@@ -10,8 +10,7 @@ import (
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/component/prometheus/remotewrite"
 	"github.com/grafana/agent/pkg/flow/componenttest"
-	"github.com/grafana/agent/pkg/river/parser"
-	"github.com/grafana/agent/pkg/river/vm"
+	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/prompb"
@@ -62,7 +61,7 @@ func Test(t *testing.T) {
 	`, srv.URL)
 
 	var args remotewrite.Arguments
-	unmarshalRiver(t, []byte(cfg), &args)
+	require.NoError(t, river.Unmarshal([]byte(cfg), &args))
 
 	// Create our component and wait for it to generate exports so we can write
 	// metrics to the WAL.
@@ -111,14 +110,4 @@ func Test(t *testing.T) {
 	case res := <-writeResult:
 		require.Equal(t, expect, res.Timeseries)
 	}
-}
-
-func unmarshalRiver(t *testing.T, in []byte, v interface{}) {
-	t.Helper()
-
-	file, err := parser.ParseFile(t.Name(), in)
-	require.NoError(t, err)
-
-	err = vm.New(file).Evaluate(nil, v)
-	require.NoError(t, err)
 }
