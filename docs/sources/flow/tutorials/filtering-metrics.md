@@ -10,13 +10,19 @@ In this tutorial, you'll add a new component [prometheus.relabel]({{< ref "prome
 # Prerequisites
 
 * [Docker](https://www.docker.com/products/docker-desktop)
-* Clone the [Agent Repository](https://github.com/grafana/agent) `git clone git@github.com:grafana/agent.git`
 
 # Prometheus Relabel component
 
-The `prometheus.relabel` component is used to drop, add, or filter metrics.  To quickly spin up an example environment, run the following: `CONFIG_FILE=relabel.flow docker-compose -f ./assets/docker-compose.yaml up` from the `tutorials` directory.
+The `prometheus.relabel` component is used to drop, add, or filter metrics.  Run the following: `curl https://raw.githubusercontent.com/grafana/agent/main/docs/sources/flow/tutorials/assets/runt.sh -O && bash ./runt.sh relabel.flow`.
 
-Wait two minutes to ensure the scrape is complete, then visit the [Grafana](http://localhost:3000/explore?orgId=1&left=%5B%22now-1h%22,%22now%22,%22Mimir%22,%7B%22refId%22:%22A%22,%22instant%22:true,%22range%22:true,%22exemplar%22:true,%22expr%22:%22agent_build_info%7B%7D%22%7D%5D) page and the `cool_label` will be there.
+The `runt.sh` script does:
+
+1. Downloads the configs necessary for Mimir, Grafana and the Grafana Agent. 
+2. Downloads the docker image for Grafana Agent explicitly.
+3. Runs the docker-compose up command to bring all the services up.
+
+
+Allow the Grafana Agent to run for two minutes, then navigate to [Grafana](http://localhost:3000/explore?orgId=1&left=%5B%22now-1h%22,%22now%22,%22Mimir%22,%7B%22refId%22:%22A%22,%22instant%22:true,%22range%22:true,%22exemplar%22:true,%22expr%22:%22agent_build_info%7B%7D%22%7D%5D) page and the `cool_label` will be there.
 
 ![](../assets/filter.png)
 
