@@ -178,7 +178,7 @@ func (enc *Encoder) Encode(v interface{}) error {
 // EncodeValue converts the value pointed to by v into a River value and writes
 // the result to the Decoder's output stream.
 //
-// See the documentation for MarshalValue for details about the converstion of
+// See the documentation for MarshalValue for details about the conversion of
 // Go values into River values.
 func (enc *Encoder) EncodeValue(v interface{}) error {
 	expr := builder.NewExpr()
