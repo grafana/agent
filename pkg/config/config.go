@@ -2,7 +2,6 @@ package config
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"errors"
 	"flag"
 	"fmt"
@@ -16,13 +15,12 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/config/features"
+	"github.com/grafana/agent/pkg/config/instrumentation"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/server"
 	"github.com/grafana/agent/pkg/traces"
 	"github.com/grafana/agent/pkg/util"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/common/config"
 	"github.com/prometheus/common/version"
 	"github.com/stretchr/testify/require"
@@ -48,22 +46,6 @@ var (
 	fileTypeDynamic = "dynamic"
 
 	fileTypes = []string{fileTypeYAML, fileTypeDynamic}
-
-	configHash = promauto.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Name: "agent_config_hash",
-			Help: "Hash of the currently active config file.",
-		},
-		[]string{"sha256"},
-	)
-	configReloadSuccess = promauto.NewGauge(prometheus.GaugeOpts{
-		Name: "agent_config_last_reload_successful",
-		Help: "Config loaded successfully.",
-	})
-	configReloadSeconds = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "agent_config_last_reload_timestamp_seconds",
-		Help: "Timestamp of the last configuration reload by result.",
-	}, []string{"result"})
 )
 
 // DefaultConfig holds default settings for all the subsystems.
@@ -238,7 +220,7 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 	buf, err := ioutil.ReadFile(filename)
 
-	instrumentConfig(buf)
+	instrumentation.ConfigMetrics.InstrumentConfig(buf)
 
 	if err != nil {
 		return fmt.Errorf("error reading config file %w", err)
@@ -280,7 +262,7 @@ func LoadRemote(url string, expandEnvVars bool, c *Config) error {
 		return fmt.Errorf("error retrieving remote config: %w", err)
 	}
 
-	instrumentConfig(bb)
+	instrumentation.ConfigMetrics.InstrumentConfig(bb)
 
 	return LoadBytes(bb, expandEnvVars, c)
 }
@@ -369,7 +351,7 @@ func Load(fs *flag.FlagSet, args []string) (*Config, error) {
 		}
 	})
 
-	instrumentLoad(error)
+	instrumentation.ConfigMetrics.InstrumentLoad(error)
 	return cfg, error
 }
 
@@ -462,23 +444,4 @@ func CheckSecret(t *testing.T, rawCfg string, originalValue string) {
 
 	require.True(t, strings.Contains(string(bb), "<secret>"))
 	require.False(t, strings.Contains(string(bb), originalValue))
-}
-
-// Create a sha256 hash of the config before expansion and expose it via
-// the agent_config_hash metric.
-func instrumentConfig(buf []byte) {
-	hash := sha256.Sum256(buf)
-	configHash.Reset()
-	configHash.WithLabelValues(fmt.Sprintf("%x", hash)).Set(1)
-}
-
-// Expose metrics for reload success / failures.
-func instrumentLoad(err error) {
-	if err != nil {
-		configReloadSuccess.Set(0)
-		configReloadSeconds.WithLabelValues("failure").SetToCurrentTime()
-	} else {
-		configReloadSuccess.Set(1)
-		configReloadSeconds.WithLabelValues("success").SetToCurrentTime()
-	}
 }

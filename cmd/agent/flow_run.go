@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"crypto/sha256"
 	"errors"
 	"fmt"
 	"net"
@@ -14,35 +13,17 @@ import (
 	"github.com/fatih/color"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
+	"github.com/grafana/agent/pkg/config/instrumentation"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/cobra"
 	"go.uber.org/atomic"
 
 	// Install Components
 	_ "github.com/grafana/agent/component/all"
-)
-
-var (
-	configHash = promauto.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Name: "agent_flow_config_hash",
-			Help: "Hash of the currently active config file.",
-		},
-		[]string{"sha256"},
-	)
-	configReloadSuccess = promauto.NewGauge(prometheus.GaugeOpts{
-		Name: "agent_flow_config_last_reload_successful",
-		Help: "Flow config loaded successfully.",
-	})
-	configReloadSeconds = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "agent_flow_config_last_reload_timestamp_seconds",
-		Help: "Timestamp of the last flow configuration reload by result.",
-	}, []string{"result"})
 )
 
 func runCommand() *cobra.Command {
@@ -128,15 +109,15 @@ func (fr *flowRun) Run(configFile string) error {
 	reload := func() error {
 		flowCfg, err := loadFlowFile(configFile)
 		if err != nil {
-			instrumentLoad(err)
+			instrumentation.ConfigMetrics.InstrumentLoad(err)
 			return fmt.Errorf("reading config file %q: %w", configFile, err)
 		}
 		if err := f.LoadFile(flowCfg); err != nil {
-			instrumentLoad(err)
+			instrumentation.ConfigMetrics.InstrumentLoad(err)
 			return fmt.Errorf("error during the initial gragent load: %w", err)
 		}
 
-		instrumentLoad(nil)
+		instrumentation.ConfigMetrics.InstrumentLoad(nil)
 		return nil
 	}
 
@@ -227,7 +208,7 @@ func loadFlowFile(filename string) (*flow.File, error) {
 		return nil, err
 	}
 
-	instrumentConfig(bb)
+	instrumentation.ConfigMetrics.InstrumentConfig(bb)
 
 	return flow.ReadFile(filename, bb)
 }
@@ -249,23 +230,4 @@ func interruptContext() (context.Context, context.CancelFunc) {
 	}()
 
 	return ctx, cancel
-}
-
-// create a sha256 hash of the config before expansion and expose it via
-// the agent_config_hash metric.
-func instrumentConfig(buf []byte) {
-	hash := sha256.Sum256(buf)
-	configHash.Reset()
-	configHash.WithLabelValues(fmt.Sprintf("%x", hash)).Set(1)
-}
-
-// Expose metrics for reload success / failures.
-func instrumentLoad(err error) {
-	if err != nil {
-		configReloadSuccess.Set(0)
-		configReloadSeconds.WithLabelValues("failure").SetToCurrentTime()
-	} else {
-		configReloadSuccess.Set(1)
-		configReloadSeconds.WithLabelValues("success").SetToCurrentTime()
-	}
 }

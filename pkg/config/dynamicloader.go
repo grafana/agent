@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/grafana/agent/pkg/config/instrumentation"
 	v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
@@ -107,7 +108,7 @@ func (c *DynamicLoader) LoadConfigByPath(path string) error {
 		return fmt.Errorf("config path must start with file:// or s3://, not %s", path)
 	}
 
-	instrumentConfig(buf)
+	instrumentation.ConfigMetrics.InstrumentConfig(buf)
 
 	cl := &LoaderConfig{}
 	err = yaml.Unmarshal(buf, cl)
