@@ -20,6 +20,8 @@ v0.28.0-rc.0 (2022-09-21)
   components. (@captncraig, @marctc, @mattdurham, @rfratto, @rlankfo,
   @tpaschalis)
 
+- Introduce Blackbox exporter integration. (@marctc)
+
 ### Enhancements
 
 - Update Loki dependency to v2.6.1. (@rfratto)
@@ -53,7 +55,6 @@ v0.27.0 (2022-09-01)
 ### Features
 
 - Integrations: (beta) Add vmware_exporter integration (@rlankfo)
-- Introduce Blackbox exporter integration. (@marctc)
 
 - App agent receiver: add Event kind to payload (@domasx2)
 
