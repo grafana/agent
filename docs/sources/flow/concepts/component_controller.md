@@ -55,7 +55,7 @@ behavior. The component controller is finished loading once all components are
 evaluated, configured, and running.
 
 The component controller only evaluates a given component after evaluating all
-of that component's dependencies. Component which do not depend on another
+of that component's dependencies. Component that do not depend on other
 components can be evaluated at any time during the evaluation process.
 
 ## Component reevaluation
@@ -98,7 +98,7 @@ references an exported field of an unhealthy component.
 When a component fails to evaluate, it is marked as unhealthy with the reason
 for why the evaluation failed.
 
-When an evaluation fails, the component continues operating as normal: it
+When an evaluation fails, the component continue operating as normal: it
 continues using its previous set of evaluated arguments, and it can continue
 exporting new values.
 

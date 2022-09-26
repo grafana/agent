@@ -52,9 +52,9 @@ log_level = "debug"
 ```
 
 _Expressions_ can be used to dynamically compute the value of an argument at
-runtime. Among other things, expressions may be used to retrieving the value of
-an environment variable (`log_level = env("LOG_LEVEL")`) or referencing the
-export of another component (`log_level = local.file.log_level.content`).
+runtime. Among other things, expressions can be used to retrieve the value of
+an environment variable (`log_level = env("LOG_LEVEL")`) or to reference an
+exported field of another component (`log_level = local.file.log_level.content`).
 
 When a component's argument references an exported field of another component,
 a dependant relationship is created: a component's input (arguments) now
@@ -77,7 +77,7 @@ An example pipeline may look like this:
    component, and sends collected metrics to the `prometheus.remote_write`
    component.
 
-The following config file reprsents the above pipeline:
+The following config file represents the above pipeline:
 
 ```river
 // Get our API key from disk.
@@ -90,7 +90,7 @@ The following config file reprsents the above pipeline:
 local.file "api_key" {
   filename  = "/var/data/secrets/api-key"
 
-  // Mark this file as sensitive to prevent its value from being shown from the
+  // Mark this file as sensitive to prevent its value from being shown in the
   // UI.
   is_secret = true
 }

@@ -44,11 +44,11 @@ The config file can be reloaded from disk by either:
 * Sending an HTTP POST request to the `/-/reload` endpoint.
 * Sending a `SIGHUP` signal to the Grafana Agent process.
 
-When this happens, the [component controller][] will synchronize the set of
-running components with the latest set of components specified in the config
-file. Components which are no longer defined in the config file after reloading
-will be shut down, and components which have been added to the config file
-since the previous reload will be created.
+When this happens, the [component controller][] synchronizes the set of running
+components with the latest set of components specified in the config file.
+Components that are no longer defined in the config file after reloading are
+shut down, and components that have been added to the config file since the
+previous reload are created.
 
 All components managed by the component controller are reevaluated after
 reloading.
