@@ -49,17 +49,17 @@ as well as whether its contents are sensitive or not.
 
 ```river
 local.file "targets" {
-	// Required argument
-	filename = "/etc/agent/targets" 
+  // Required argument
+  filename = "/etc/agent/targets"
 
-	// Optional arguments: Components may have some optional arguments that
-	// do not need to be defined.
-	// 
-	// The optional arguments for local.file are is_secret, detector, and
-	// poll_frequency. 
+  // Optional arguments: Components may have some optional arguments that
+  // do not need to be defined.
+  //
+  // The optional arguments for local.file are is_secret, detector, and
+  // poll_frequency.
 
-	// Exports: a single field named `content`
-	// It can be referred to as `local.file.targets.content`
+  // Exports: a single field named `content`
+  // It can be referred to as `local.file.targets.content`
 }
 ```
 
@@ -74,22 +74,22 @@ an expression that ties the target to the value of
 
 ```river
 prometheus.scrape "default" {
-	targets = [
-		{ "__address__" = local.file.targets.content }, // tada!
-		{ "__address__" = "localhost:9001" },
-	] 
+  targets = [
+    { "__address__" = local.file.targets.content }, // tada!
+    { "__address__" = "localhost:9001" },
+  ]
 
-	forward_to = [prometheus.remote_write.default.receiver]
-	scrape_config {
-		job_name = "default"
-	}
+  forward_to = [prometheus.remote_write.default.receiver]
+  scrape_config {
+    job_name = "default"
+  }
 }
 ```
 
 Every time the file contents change, the `local.file` will update its exports,
 so the new value will provided to `prometheus.scrape` targets field.
 
-All arguments and exports have an underlying [type]({{< relref "./expressions/types_and_values.md" >}}).
+Each argument and exported field has an underlying [type]({{< relref "./expressions/types_and_values.md" >}}).
 River will type-check expressions before assigning a value to an attribute; the
 documentation of each component will have more information about the ways that
 you can wire components together.
