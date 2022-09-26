@@ -2,6 +2,7 @@ local monitoring = import './monitoring/main.jsonnet';
 local cortex = import 'cortex/main.libsonnet';
 local avalanche = import 'grafana-agent/smoke/avalanche/main.libsonnet';
 local crow = import 'grafana-agent/smoke/crow/main.libsonnet';
+local loki = import 'loki/main.libsonnet';
 local vulture = import 'github.com/grafana/tempo/operations/jsonnet/microservices/vulture.libsonnet';
 local tempo = import 'github.com/grafana/tempo/operations/jsonnet/single-binary/tempo.libsonnet';
 local etcd = import 'grafana-agent/smoke/etcd/main.libsonnet';
@@ -85,6 +86,8 @@ local smoke = {
     tempo_configmap+:
       configMap.mixin.metadata.withNamespace("smoke")
   },
+
+  loki: loki.new(namespace = 'smoke'),
 
   // Needed to run agent cluster
   etcd: etcd.new('smoke'),
@@ -258,6 +261,94 @@ local smoke = {
         }],
       },
     ],
+  }, {
+    name: 'canary',
+    remote_write: [
+      {
+        url: 'http://cortex/api/prom/push',
+        write_relabel_configs: [
+          {
+            source_labels: ['__name__'],
+            regex: 'avalanche_.*',
+            action: 'drop',
+          },
+        ],
+      },
+      {
+        url: 'http://smoke-test:19090/api/prom/push',
+        write_relabel_configs: [
+          {
+            source_labels: ['__name__'],
+            regex: 'avalanche_.*',
+            action: 'keep',
+          },
+        ],
+      },
+    ],
+    scrape_configs: [
+    {
+        job_name: 'canary',
+        kubernetes_sd_configs: [{ role: 'pod' }],
+        tls_config: {
+          ca_file: '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt',
+        },
+        bearer_token_file: '/var/run/secrets/kubernetes.io/serviceaccount/token',
+
+        relabel_configs: [{
+          source_labels: ['__meta_kubernetes_namespace'],
+          regex: 'smoke',
+          action: 'keep',
+          }, {
+          source_labels: ['__meta_kubernetes_pod_container_name'],
+          regex: 'canary',
+          action: 'keep',
+          }
+        ],
+     }],
+  }],
+
+  local logs_instances() = [{
+    name: 'write-loki',
+    clients: [{
+      url: 'http://loki/loki/api/v1/push',
+      basic_auth: {
+        username: '104334',
+        password: 'noauth',
+      },
+      external_labels: {
+        cluster: "grafana-agent",
+      },
+
+    }],
+    scrape_configs: [{
+      job_name: 'write-canary-output',
+      kubernetes_sd_configs: [{ role: 'pod' }],
+      pipeline_stages: [
+        {cri: {}},
+      ],
+      relabel_configs: [{
+        source_labels: ['__meta_kubernetes_namespace'],
+        regex: 'smoke',
+        action: 'keep',
+      },
+      {
+        source_labels: ['__meta_kubernetes_pod_container_name'],
+        regex: 'loki-canary',
+        action: 'keep',
+      }, 
+      {
+        action: 'replace',
+        source_labels: ['__meta_kubernetes_pod_uid', '__meta_kubernetes_pod_container_name'],
+        target_label: '__path__',
+        separator: '/',
+        replacement: '/var/log/pods/*$1/*.log',
+      },
+      {
+        action: 'replace',
+        source_labels: ['__meta_kubernetes_pod_name'],
+        target_label: 'pod',
+      }],
+    }],
   }],
 
   normal_agent:
@@ -278,8 +369,13 @@ local smoke = {
     gragent.withPortsMixin([
       containerPort.new('thrift-grpc', 14250) + containerPort.withProtocol('TCP'),
     ]) +
+    gragent.withLogVolumeMounts() +
     gragent.withAgentConfig({
       server: { log_level: 'debug' },
+      logs: {
+        positions_directory: "/var/lib/agent/logs-positions",
+        configs: logs_instances(),
+      },
 
       prometheus: {
         global: {
@@ -332,6 +428,7 @@ local smoke = {
     ) +
     gragent.withVolumeMountsMixin([volumeMount.new('agent-cluster-wal', '/var/lib/agent')]) +
     gragent.withService() +
+    gragent.withLogVolumeMounts() +
     gragent.withAgentConfig({
       server: { log_level: 'debug' },
 
