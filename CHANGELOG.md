@@ -10,6 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Bugfixes
+
+- Remove empty port from the `apache_http` integration's instance label. (@katepangLiu) 
+
 v0.28.0-rc.0 (2022-09-21)
 -------------------------
 
