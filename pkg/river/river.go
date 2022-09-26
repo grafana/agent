@@ -116,7 +116,8 @@ func Marshal(v interface{}) ([]byte, error) {
 // String values encode to River strings.
 //
 // Array and slice values encode to River arrays, except that []byte is
-// converted into a string. Nil slices encode as an empty array.
+// converted into a River string. Nil slices encode as an empty array and nil
+// []byte slices encode as an empty string.
 //
 // Structs encode to River objects, using Go struct field tags to determine the
 // resulting structure of the River object. Each exported struct field with a
