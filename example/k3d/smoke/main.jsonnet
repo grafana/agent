@@ -19,6 +19,7 @@ local statefulset = k.apps.v1.statefulSet;
 local service = k.core.v1.service;
 local configMap = k.core.v1.configMap;
 local deployment = k.apps.v1.deployment;
+local daemonSet = k.apps.v1.daemonSet;
 
 local images = {
   agent: 'grafana/agent:main',
@@ -90,8 +91,7 @@ local smoke = {
 
   loki: loki.new(namespace = 'smoke'),
 
-  // https://grafana.com/docs/loki/latest/operations/loki-canary/#kubernetes
-  local daemonSet = k.apps.v1.daemonSet,
+  // https://grafana.com/docs/loki/latest/operations/loki-canary/
   canary : canary{
     loki_canary_args+:: {
       addr: "loki:80",
