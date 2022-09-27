@@ -14,7 +14,7 @@ type configMetrics struct {
 	configReloadSeconds *prometheus.GaugeVec
 }
 
-// Metrics related to configuration
+// ConfigMetrics exposes metrics related to configuration loading
 var ConfigMetrics = newConfigMetrics()
 
 func newConfigMetrics() *configMetrics {
