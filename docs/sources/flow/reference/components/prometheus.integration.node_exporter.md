@@ -5,8 +5,8 @@ title: prometheus.integration.node_exporter
 ---
 
 # prometheus.integration.node_exporter
-The `prometheus.integration.node_exporter` component embeds 
-[node_exporter](https://github.com/prometheus/node_exporter) which exposes a 
+The `prometheus.integration.node_exporter` component embeds
+[node_exporter](https://github.com/prometheus/node_exporter) which exposes a
 wide variety of hardware and OS metrics for \*nix-based systems.
 
 The `node_exporter` itself is comprised of various _collectors_, which can be
@@ -37,7 +37,7 @@ Name | Type | Description | Default | Required
 `set_collectors`           | `list(string)` | Overrides the default set of enabled collectors with the collectors listed. | | no
 `enable_collectors`        | `list(string)` | Collectors to mark as enabled.  | | no
 `disable_collectors`       | `list(string)` | Collectors to mark as disabled. | | no
-`include_exporter_metrics` | `boolean`      | Whether metrics about the exporter itself should be reported. | false | no 
+`include_exporter_metrics` | `boolean`      | Whether metrics about the exporter itself should be reported. | false | no
 `procfs_path`              | `string`       | The procfs mountpoint. | `/proc` | no
 `sysfs_path`               | `string`       | The sysfs mountpoint.  | `/sys`   | no
 `rootfs_path`              | `string`       | Specify a prefix for accessing the host filesystem. | `/` | no
@@ -166,8 +166,7 @@ name | type | description | default | required
 `url` | `string` | XML RPC endpoint for the supervisord collector. | `"http://localhost:9001/RPC2"` | no
 
 Setting `SUPERVISORD_URL` in the environment overrides the default value.
-An explicit value in the YAML config takes precedence over the environment
-variable.
+An explicit value in the block takes precedence over the environment variable.
 
 
 ### `systemd` block
@@ -194,12 +193,11 @@ name | type | description | default | required
 ---- | ---- | ----------- | ------- | --------
 `fields` | `string` | Regexp of fields to return for the vmstat collector. | `"^(oom_kill\|pgpg\|pswp\|pg.*fault).*"` | no
 
-
 ## Exported fields
 The following fields are exported and can be referenced by other components.
 
-Name      | Type                | Description 
---------- | ------------------- | ----------- 
+Name      | Type                | Description
+--------- | ------------------- | -----------
 `targets` | `list(map(string))` | The targets that can be used to collect `node_exporter` metrics.
 
 For example, the `targets` could either be passed to a `prometheus.relabel`
