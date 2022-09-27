@@ -5,7 +5,7 @@ prometheus.scrape "default" {
 
 // The prometheus.relabel component allows you to filter and mutate metrics.
 // Here, we combine the metric name (from the __name__ label) with the string 
-// "service" into a new label called "service". The resulting mutated metrics
+// "api_server" into a new label called "service". The resulting mutated metrics
 // are then forwarded to our prometheus.remote_write component.
 prometheus.relabel "filter" {
 	rule {
