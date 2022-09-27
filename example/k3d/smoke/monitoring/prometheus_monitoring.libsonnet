@@ -222,7 +222,7 @@ local agent_prometheus = import 'grafana-agent/v1/lib/metrics.libsonnet';
             |||,
             'for': '5m',
             annotations: {
-              summary: ' Canary {{ $labels.job }} is down.',
+              summary: ' Canary is down.',
             },
           },
           {
@@ -232,7 +232,7 @@ local agent_prometheus = import 'grafana-agent/v1/lib/metrics.libsonnet';
             |||,
             'for': '5m',
             annotations: {
-              summary: 'Canary {{ $labels.job }} is not being scraped.',
+              summary: 'Canary is not being scraped.',
             },
           },
           {
@@ -242,7 +242,7 @@ local agent_prometheus = import 'grafana-agent/v1/lib/metrics.libsonnet';
             |||,
             'for': '2m',
             annotations: {
-              summary: 'Canary {{ $labels.job }} has had missing entries for at least 2m',
+              summary: 'Canary has had missing entries for at least 2m',
             },
           },
           {
@@ -252,7 +252,7 @@ local agent_prometheus = import 'grafana-agent/v1/lib/metrics.libsonnet';
             |||,
             'for': '2m',
             annotations: {
-              summary: 'Canary {{ $labels.job }} has had missing spot check entries for at least 2m',
+              summary: 'Canary has had missing spot check entries for at least 2m',
             },
           },
           {
@@ -262,7 +262,7 @@ local agent_prometheus = import 'grafana-agent/v1/lib/metrics.libsonnet';
             |||,
             'for': '2m',
             annotations: {
-              summary: 'Canary {{ $labels.job }} has had missing websocket entries for at least 2m',
+              summary: 'Canary has had missing websocket entries for at least 2m',
             },
           },
           {
@@ -272,7 +272,7 @@ local agent_prometheus = import 'grafana-agent/v1/lib/metrics.libsonnet';
             |||,
             'for': '2m',
             annotations: {
-              summary: 'Canary {{ $labels.job }} has had unexpected entries for at least 2m',
+              summary: 'Canary has had unexpected entries for at least 2m',
             },
           },
         ],
