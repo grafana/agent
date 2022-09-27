@@ -1,4 +1,6 @@
-package otelcol
+// Package scheduler exposes utilities for scheduling and running OpenTelemetry
+// Collector components.
+package scheduler
 
 import (
 	"context"
@@ -13,16 +15,16 @@ import (
 	"go.uber.org/multierr"
 )
 
-// componentScheduler implements manages a set of OpenTelemetry Collector
-// components. componentScheduler is intended to be used from Flow components
-// which need to schedule OpenTelemetry Collector components; it does not
-// implement the full component.Component interface.
+// Scheduler implements manages a set of OpenTelemetry Collector components.
+// Scheduler is intended to be used from Flow components which need to schedule
+// OpenTelemetry Collector components; it does not implement the full
+// component.Component interface.
 //
 // Each OpenTelemetry Collector component has one instance per supported
 // telemetry signal, hence supporting multiple OpenTelemetry Collector
-// components inside the scheduler. componentScheduler should only be used to
-// manage multiple instances of the same OpenTelemetry Collector component.
-type componentScheduler struct {
+// components inside the scheduler. Scheduler should only be used to manage
+// multiple instances of the same OpenTelemetry Collector component.
+type Scheduler struct {
 	log log.Logger
 
 	healthMut sync.RWMutex
@@ -36,14 +38,22 @@ type componentScheduler struct {
 	newComponentsCh chan struct{}
 }
 
-func newComponentScheduler(l log.Logger) *componentScheduler {
-	return &componentScheduler{
+// New creates a new unstarted Scheduler. Call Run to start it, and call
+// Schedule to schedule components to run.
+func New(l log.Logger) *Scheduler {
+	return &Scheduler{
 		log:             l,
 		newComponentsCh: make(chan struct{}, 1),
 	}
 }
 
-func (cs *componentScheduler) Schedule(h otelcomponent.Host, cc ...otelcomponent.Component) {
+// Schedule schedules a new set of OpenTelemetry Components to run. Components
+// will only be scheduled when the Scheduler is running.
+//
+// Schedule completely overrides the set of previously running components;
+// components which have been removed since the last call to Schedule will be
+// stopped.
+func (cs *Scheduler) Schedule(h otelcomponent.Host, cc ...otelcomponent.Component) {
 	cs.schedMut.Lock()
 	defer cs.schedMut.Unlock()
 
@@ -59,10 +69,9 @@ func (cs *componentScheduler) Schedule(h otelcomponent.Host, cc ...otelcomponent
 	}
 }
 
-// Run starts the componentScheduler. Run will watch for schedule components to
-// appear and run them, terminating previously running components if they
-// exist.
-func (cs *componentScheduler) Run(ctx context.Context) error {
+// Run starts the Schduler. Run will watch for schedule components to appear
+// and run them, terminating previously running components if they exist.
+func (cs *Scheduler) Run(ctx context.Context) error {
 	var components []otelcomponent.Component
 
 	// Make sure we terminate all of our running components on shutdown.
@@ -92,7 +101,7 @@ func (cs *componentScheduler) Run(ctx context.Context) error {
 	}
 }
 
-func (cs *componentScheduler) stopComponents(ctx context.Context, cc ...otelcomponent.Component) {
+func (cs *Scheduler) stopComponents(ctx context.Context, cc ...otelcomponent.Component) {
 	for _, c := range cc {
 		if err := c.Shutdown(ctx); err != nil {
 			level.Error(cs.log).Log("msg", "failed to stop scheduled component; future updates may fail", "err", err)
@@ -100,7 +109,7 @@ func (cs *componentScheduler) stopComponents(ctx context.Context, cc ...otelcomp
 	}
 }
 
-func (cs *componentScheduler) startComponents(ctx context.Context, h otelcomponent.Host, cc ...otelcomponent.Component) {
+func (cs *Scheduler) startComponents(ctx context.Context, h otelcomponent.Host, cc ...otelcomponent.Component) {
 	var errs error
 
 	for _, c := range cc {
@@ -125,14 +134,16 @@ func (cs *componentScheduler) startComponents(ctx context.Context, h otelcompone
 	}
 }
 
-// CurrentHealth implements component.HealthComponent.
-func (cs *componentScheduler) CurrentHealth() component.Health {
+// CurrentHealth implements component.HealthComponent. The component is
+// reported as healthy when the most recent set of scheduled components were
+// started successfully.
+func (cs *Scheduler) CurrentHealth() component.Health {
 	cs.healthMut.RLock()
 	defer cs.healthMut.RUnlock()
 	return cs.health
 }
 
-func (cs *componentScheduler) setHealth(h component.Health) {
+func (cs *Scheduler) setHealth(h component.Health) {
 	cs.healthMut.Lock()
 	defer cs.healthMut.Unlock()
 	cs.health = h

@@ -1,22 +1,23 @@
-package otelcol
+package scheduler_test
 
 import (
 	"context"
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/component/otelcol/internal/scheduler"
 	"github.com/grafana/agent/pkg/flow/componenttest"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/stretchr/testify/require"
 	otelcomponent "go.opentelemetry.io/collector/component"
 )
 
-func Test_scheduler(t *testing.T) {
+func TestScheduler(t *testing.T) {
 	t.Run("Scheduled components get started", func(t *testing.T) {
 		var (
 			l  = util.TestLogger(t)
-			cs = newComponentScheduler(l)
-			h  = newHost(l)
+			cs = scheduler.New(l)
+			h  = scheduler.NewHost(l)
 		)
 
 		// Run our scheduler in the background.
@@ -35,8 +36,8 @@ func Test_scheduler(t *testing.T) {
 	t.Run("Unscheduled components get stopped", func(t *testing.T) {
 		var (
 			l  = util.TestLogger(t)
-			cs = newComponentScheduler(l)
-			h  = newHost(l)
+			cs = scheduler.New(l)
+			h  = scheduler.NewHost(l)
 		)
 
 		// Run our scheduler in the background.
@@ -60,8 +61,8 @@ func Test_scheduler(t *testing.T) {
 	t.Run("Running components get stopped on shutdown", func(t *testing.T) {
 		var (
 			l  = util.TestLogger(t)
-			cs = newComponentScheduler(l)
-			h  = newHost(l)
+			cs = scheduler.New(l)
+			h  = scheduler.NewHost(l)
 		)
 
 		ctx, cancel := context.WithCancel(componenttest.TestContext(t))
