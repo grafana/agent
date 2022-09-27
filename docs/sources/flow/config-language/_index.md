@@ -7,7 +7,7 @@ weight: 400
 
 # Configuration language
 
-Grafana Agent Flow uses a custom configuration language called River to
+Grafana Agent Flow contains a custom configuration language called River to
 dynamically configure and connect components.
 
 River aims to reduce errors in configuration files by making configurations

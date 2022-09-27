@@ -18,11 +18,11 @@ release.
 Grafana Agent Flow can be enabled by setting the `EXPERIMENTAL_ENABLE_FLOW`
 environment variable to `true`.
 
-Then, use the `agent run` command to start Grafana Agent Flow, passing the
-config file to use.
+Then, use the `agent run` command to start Grafana Agent Flow, replacing
+`FILE_PATH` with the path of a config file to use:
 
 ```
-EXPERIMENTAL_ENABLE_FLOW=1 agent run /path/to/my/config.river
+EXPERIMENTAL_ENABLE_FLOW=1 agent run FILE_PATH
 ```
 
 > Grafana Agent Flow uses a different command-line interface and command line
