@@ -19,6 +19,7 @@ type Host struct {
 	exporters  map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter
 }
 
+// NewHost creates a new Host.
 func NewHost(l log.Logger) *Host {
 	return &Host{log: l}
 }
