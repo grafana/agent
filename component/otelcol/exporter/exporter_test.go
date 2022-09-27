@@ -160,11 +160,21 @@ func (fe *fakeExporter) ConsumeTraces(ctx context.Context, td ptrace.Traces) err
 }
 
 func createTestTraces() ptrace.Traces {
-	data := ptrace.NewTraces()
-	rss := data.ResourceSpans().AppendEmpty()
-	ss := rss.ScopeSpans().AppendEmpty()
-	s := ss.Spans().AppendEmpty()
-	s.SetName("TestSpan")
+	// Matches format from the protobuf definition:
+	// https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto
+	var bb = `{
+		"resource_spans": [{
+			"scope_spans": [{
+				"spans": [{
+					"name": "TestSpan"
+				}]
+			}]
+		}]
+	}`
 
+	data, err := ptrace.NewJSONUnmarshaler().UnmarshalTraces([]byte(bb))
+	if err != nil {
+		panic(err)
+	}
 	return data
 }
