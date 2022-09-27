@@ -12,9 +12,6 @@ import (
 type Host struct {
 	log log.Logger
 
-	// TODO(rfratto): allow the below fields below to be used. For now they're
-	// always nil.
-
 	extensions map[otelconfig.ComponentID]otelcomponent.Extension
 	exporters  map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter
 }
@@ -25,6 +22,18 @@ func NewHost(l log.Logger) *Host {
 }
 
 var _ otelcomponent.Host = (*Host)(nil)
+
+// SetExtensions sets the extensions available from the Host. It is not valid
+// to call this after the Host is in use.
+func (h *Host) SetExtensions(extensions map[otelconfig.ComponentID]otelcomponent.Extension) {
+	h.extensions = extensions
+}
+
+// SetExporters sets the exporters available from the Host. It is not valid
+// to call this after the Host is in use.
+func (h *Host) SetExporters(exporters map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter) {
+	h.exporters = exporters
+}
 
 // ReportFatalError implements otelcomponent.Host.
 func (h *Host) ReportFatalError(err error) {
