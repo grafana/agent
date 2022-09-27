@@ -48,8 +48,8 @@ func (c *configMetrics) InstrumentConfig(buf []byte) {
 }
 
 // Expose metrics for reload success / failures.
-func (c *configMetrics) InstrumentLoad(err error) {
-	if err != nil {
+func (c *configMetrics) InstrumentLoad(isError bool) {
+	if isError {
 		c.configReloadSuccess.Set(0)
 		c.configReloadSeconds.WithLabelValues("failure").SetToCurrentTime()
 	} else {
