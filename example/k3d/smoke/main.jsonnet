@@ -3,6 +3,7 @@ local cortex = import 'cortex/main.libsonnet';
 local avalanche = import 'grafana-agent/smoke/avalanche/main.libsonnet';
 local crow = import 'grafana-agent/smoke/crow/main.libsonnet';
 local loki = import 'loki/main.libsonnet';
+local canary = import 'github.com/grafana/loki/production/ksonnet/loki-canary/loki-canary.libsonnet';
 local vulture = import 'github.com/grafana/tempo/operations/jsonnet/microservices/vulture.libsonnet';
 local tempo = import 'github.com/grafana/tempo/operations/jsonnet/single-binary/tempo.libsonnet';
 local etcd = import 'grafana-agent/smoke/etcd/main.libsonnet';
@@ -88,6 +89,28 @@ local smoke = {
   },
 
   loki: loki.new(namespace = 'smoke'),
+
+  // https://grafana.com/docs/loki/latest/operations/loki-canary/#kubernetes
+  local daemonSet = k.apps.v1.daemonSet,
+  canary : canary{
+    loki_canary_args+:: {
+      addr: "loki:80",
+      port: "80",
+      tls: false,
+      labelname: "instance",
+      labelvalue: '$(POD_NAME)',
+      interval: "1s",
+      "metric-test-interval": "30m",
+      "metric-test-range": "2h",
+      size: 1024,
+      wait: "3m",
+    },
+    _config+:: {
+      namespace: "smoke",
+    },
+    loki_canary_daemonset+:
+      daemonSet.mixin.metadata.withNamespace('smoke'),
+  },
 
   // Needed to run agent cluster
   etcd: etcd.new('smoke'),
@@ -347,6 +370,10 @@ local smoke = {
         action: 'replace',
         source_labels: ['__meta_kubernetes_pod_name'],
         target_label: 'pod',
+      },{
+        action: 'replace',
+        source_labels: ['__meta_kubernetes_pod_name'],
+        target_label: 'instance',
       }],
     }],
   }],

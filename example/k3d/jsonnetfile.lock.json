@@ -54,6 +54,16 @@
     {
       "source": {
         "git": {
+          "remote": "https://github.com/grafana/loki.git",
+          "subdir": "production/ksonnet/loki-canary"
+        }
+      },
+      "version": "74c8cf03ba4fb2abd979a9af05bb945813a4505c",
+      "sum": "EIFf6m9IvdJbfGMXkzWYofoFSnHo8f+tVeUh3x/v+u0="
+    },
+    {
+      "source": {
+        "git": {
           "remote": "https://github.com/grafana/tempo.git",
           "subdir": "operations/jsonnet/microservices"
         }
