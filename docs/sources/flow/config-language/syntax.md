@@ -7,12 +7,20 @@ weight: 200
 
 # Syntax
 The River syntax is designed to be easy to read and write. Essentially, there
-are just two high-level elements to it: _Attributes_ and _Blocks_. 
+are just two high-level elements to it: _Attributes_ and _Blocks_.
 
 River is a _declarative_ language used to build programmable pipelines.
 As such, the ordering of blocks and attributes within the River configuration
 file is not important; the language will consider all direct and indirect
 dependencies between elements to determine their relationships.
+
+## Comments
+River configuration files support single-line `//` as well as block `/* */`
+comments.
+
+## Identifiers
+River considers an identifier as valid if it consists of one or more UTF-8
+letters, digits or underscores, but doesn't start with a digit.
 
 ## Attributes and Blocks
 
@@ -43,22 +51,22 @@ of arguments and nested unlabeled blocks.
 ```
 // Pattern for creating an unlabeled block:
 <BLOCK NAME> {
-	// Block body can contain attributes and nested unlabeled blocks
-	<IDENTIFIER> = <EXPRESSION> // Attribute
+  // Block body can contain attributes and nested unlabeled blocks
+  <IDENTIFIER> = <EXPRESSION> // Attribute
 
-	<NESTED_BLOCK_NAME> {
-		// Nested block body
-	}
+  <NESTED_BLOCK_NAME> {
+    // Nested block body
+  }
 }
 
 // Pattern for creating a labeled block:
 <BLOCK NAME> "<BLOCK LABEL>" {
-	// Block body can contain attributes and nested unlabeled blocks
-	<IDENTIFIER> = <EXPRESSION> // Attribute
+  // Block body can contain attributes and nested unlabeled blocks
+  <IDENTIFIER> = <EXPRESSION> // Attribute
 
-	<NESTED_BLOCK_NAME> {
-		// Nested block body
-	}
+  <NESTED_BLOCK_NAME> {
+    // Nested block body
+  }
 }
 ```
 
@@ -74,18 +82,10 @@ environment variable by using an expression and the `is_secret` attribute is
 set to the boolean `true`, marking the file content as sensitive.
 ```river
 local.file "token" {
-	filename  = env("TOKEN_FILE_PATH") // Use an expression to read from an env var.
-	is_secret = true
+  filename  = env("TOKEN_FILE_PATH") // Use an expression to read from an env var.
+  is_secret = true
 }
 ```
-
-## Comments
-River configuration files support single-line `//` as well as block `/* */` 
-comments.
-
-## Identifiers
-River considers an identifier as valid if it consists of one or more UTF-8
-letters, digits or underscores, but doesn't start with a digit.
 
 ## Terminators
 All block and attribute definitions are followed by a newline, which River

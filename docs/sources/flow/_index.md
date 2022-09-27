@@ -24,9 +24,10 @@ needs of power users.
 ## Features
 
 * Write declarative configurations with a Terraform-inspired configuration
-  language
-* Declare components to configure parts of a pipeline
-* Use expressions to bind components together to build a programmable pipeline
+  language.
+* Declare components to configure parts of a pipeline.
+* Use expressions to bind components together to build a programmable pipeline.
+* Includes a UI for debugging the state of a pipeline.
 
 ## Example
 

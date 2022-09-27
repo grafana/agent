@@ -5,7 +5,7 @@ title: Collecting Prometheus metrics
 weight: 200
 ---
 
-Grafana Agent is a telemetry collector with the primary goal of moving telemetry data from one location to another. In this tutorial, you'll set up a Grafana Agent in Flow mode.  
+Grafana Agent is a telemetry collector with the primary goal of moving telemetry data from one location to another. In this tutorial, you'll set up a Grafana Agent in Flow mode.
 
 # Prerequisites
 
@@ -25,7 +25,7 @@ Allow the Grafana Agent to run for two minutes, then navigate to [Grafana](http:
 
 ![](../assets/agent_build_info.png)
 
-This example scrapes the Grafana Agent's `http://localhost:12345/metrics` endpoint and pushes those metrics to the Mimir instance. 
+This example scrapes the Grafana Agent's `http://localhost:12345/metrics` endpoint and pushes those metrics to the Mimir instance.
 
 Navigate to `http://localhost:12345/graph` to view the Grafana Agent Flow UI. 
 
@@ -46,17 +46,17 @@ The [`prometheus.scrape`]({{< relref "prometheus.scrape.md" >}}) component is re
 // prometheus.scrape is the name of the component and "default" is its label.
 prometheus.scrape "default" {
     // Tell the scraper to scrape at http://localhost:12345/metrics.
-    // The http:// and metrics are implied but able to be overwritten. 
+    // The http:// and metrics are implied but able to be overwritten.
     targets = [{"__address__" = "localhost:12345"}]
-    // Forward the scrape results to the receiver. In general, 
-    // Flow uses forward_to to tell which receiver to send results to. 
-    // The forward_to is an argument of prometheus.scrape.default and 
-    // the receiver is an export prometheus.remote_write.prom.
+    // Forward the scrape results to the receiver. In general,
+    // Flow uses forward_to to tell which receiver to send results to.
+    // The forward_to is an argument of prometheus.scrape.default and
+    // the receiver is an exported field of prometheus.remote_write.prom.
     forward_to = [prometheus.remote_write.prom.receiver]
 }
 ```
 
-The `prometheus.scrape "default"` annotation indicates the name of the component, `prometheus.scrape`, and its label, `default`. All components must have a unique combination of name and if applicable label. 
+The `prometheus.scrape "default"` annotation indicates the name of the component, `prometheus.scrape`, and its label, `default`. All components must have a unique combination of name and if applicable label.
 
 The `targets` [attribute]({{< relref "configuration_language.md#Attributes" >}}) is an [argument]({{< relref "../concepts/components.md">}}). `targets` is a list of labels that specify the target via the special key `__address__`. The scraper is targeting the Agent's `/metrics` endpoint. Both `http` and `/metrics` are implied but can be overridden.
 
