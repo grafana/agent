@@ -6,17 +6,21 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
 	goruntime "runtime"
 	"sort"
 	"strings"
+	"syscall"
 	"time"
 
 	"gopkg.in/yaml.v2"
 
 	"github.com/grafana/agent/pkg/client/grafanacloud"
 	"github.com/grafana/agent/pkg/config"
+	"github.com/grafana/agent/pkg/logs"
 	"github.com/olekukonko/tablewriter"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/version"
 
 	"github.com/go-kit/log"
@@ -66,6 +70,7 @@ func main() {
 		operatorDetachCmd(),
 		cloudConfigCmd(),
 		templateDryRunCmd(),
+		testLogs(),
 	)
 
 	_ = cmd.Execute()
@@ -511,6 +516,43 @@ func templateDryRunCmd() *cobra.Command {
 			}
 			fmt.Println(string(outBytes))
 			return nil
+		},
+	}
+
+	return cmd
+}
+
+func testLogs() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "test-logs [config file]",
+		Short: "Collect logs but print entries instead of sending them to Loki.",
+		Long: `Starts Promtail using its '--dry-run' flag, which will only print logs instead of sending them to the remote server.
+		This can be useful for debugging and understanding how logs are being parsed.`,
+		Args: cobra.ExactArgs(1),
+
+		Run: func(_ *cobra.Command, args []string) {
+			file := args[0]
+
+			cfg := config.Config{}
+			err := config.LoadFile(file, false, &cfg)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "failed to validate config: %s\n", err)
+				os.Exit(1)
+			}
+
+			logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stdout))
+			l, err := logs.New(prometheus.NewRegistry(), cfg.Logs, logger, true)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "failed to start log collection: %s\n", err)
+				os.Exit(1)
+			}
+			defer l.Stop()
+
+			// Block until a shutdown signal is received.
+			sigs := make(chan os.Signal, 1)
+			signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+			sig := <-sigs
+			fmt.Fprintf(os.Stdout, "received shutdown %v signal, stopping...", sig)
 		},
 	}
 
