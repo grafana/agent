@@ -89,7 +89,7 @@ Changing the avalanche setting for label_count to 1000, located [here](../../pro
 
 ![](./assets/trigger_change.png)
 
-For Loki Canary, the easiest way to trigger an alert is to edit its Daemonset to query for a different label.
+For Loki Canary, the easiest way to trigger an alert is to edit its Daemonset to query for a different label that doesn't exist.
 ![](./assets/trigger_logs_alerts.png)
 ![](./assets/logs_alerts.png)
 
@@ -109,13 +109,14 @@ By default, a k3d cluster will be created running the following instances
 - vulture - emits traces and checks if they're stored properly
 - tempo
 
-Crow, Canary and Vulture instances will check to see if the metrics, logs and traces that were scraped respectively, show up in the Prometheus/Loki/Tempo instances. They will then emit metrics on the success of those metrics. This success/failure result will trigger an alert if it is incorrect.
+Crow, Canary and Vulture instances will check to see if the metrics, logs and traces that were scraped respectively, show up in the Cortex/Loki/Tempo instances. They will then emit metrics on the success of those metrics. This success/failure result will trigger an alert if it is incorrect.
 
 ### Metrics Flow
 
 ![](./assets/metrics_flow.png)
 
 ### Logs Flow
+
 ![](./assets/logs_flow.png)
 
 ### Traces Flow
