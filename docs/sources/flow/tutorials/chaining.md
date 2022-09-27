@@ -27,47 +27,36 @@ Allow the Grafana Agent to run for two minutes, then navigate to [Grafana](http:
 
 ![](../assets/multiple.png)
 
-There are two scrapes each sending two metrics to both filters, so you end up with a total of four metrics. They differ in `job` and `cool_label/not_cool_label`.
+There are two scrapes each sending metrics to one filter. Note the `job` label lists the full name of the scrape component.
 
 ## Multiple outputs
 
 ```river
 prometheus.scrape "first" {
 	targets    = [{"__address__" = "localhost:12345"}]
-	forward_to = [prometheus.relabel.cool.receiver, prometheus.relabel.not_cool.receiver]
+	forward_to = [prometheus.relabel.service.receiver]
+}
+
+prometheus.scrape "second" {
+	targets    = [{"__address__" = "localhost:12345"}]
+	forward_to = [prometheus.relabel.service.receiver]
+}
+
+prometheus.relabel "service" {
+	rule {
+		source_labels = ["__name__"]
+		regex         = "(.+)"
+		replacement   = "service"
+		target_label  = "api_server"
+	}
+	forward_to = [prometheus.remote_write.prom.receiver]
 }
 ```
 
-In the above Flow block, `forward_to` accepts an array of receivers. In previous examples, a single receiver was used, but the use of multiple inputs and outputs is a basic building block of Flow. In the above example, `prometheus.scrape.first` is sending to both `prometheus.relabel.filter` and `prometheus.relabel.not_cool`. 
+In the above Flow block, `prometheus.relabel.service` is being forwarded metrics from two sources `prometheus.scrape.first` and `prometheus.scrape.second`. This allows for a single relabel component to be used with any number of inputs.
 
-## Multiple inputs
+## Adding another relabel
 
-```river
-prometheus.relabel "cool" {
-    rule {
-        source_labels = ["__name__"]
-        regex = "(.+)"
-        replacement = "${1}_cool"
-        target_label = "cool_label"
-    }
-    forward_to = [prometheus.remote_write.prom.receiver]
-}
+In `multiple-input.flow` add a new `prometheus.relabel` component that adds a `version` label with the value of `v2` to all metrics after the `prometheus.relabel.service`.
 
-prometheus.relabel "not_cool" {
-    rule {
-        source_labels = ["__name__"]
-        regex = "(.+)"
-        replacement = "${1}_not_cool"
-        target_label = "not_cool_label"
-    }
-    forward_to = [prometheus.remote_write.prom.receiver]
-}
-
-prometheus.remote_write "prom" {
-    endpoint {
-        url = "http://mimir:9009/api/v1/push"
-    }
-}
-```
-
-In the above Flow blocks, `prometheus.remote_write.prom` receives input from both `prometheus.relabel.cool` and `prometheus.relabel.not_cool`. 
+![](../assets/scrape_v2.png)

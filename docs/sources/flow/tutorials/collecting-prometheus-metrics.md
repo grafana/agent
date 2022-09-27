@@ -13,7 +13,7 @@ Grafana Agent is a telemetry collector with the primary goal of moving telemetry
 
 # Scraping the Agent
 
-Run the following `curl https://raw.githubusercontent.com/grafana/agent/main/docs/sources/flow/tutorials/assets/runt.sh -O && bash ./runt.sh agent.flow` this uses the [flow file](../assets/flow_configs/agent.flow). 
+Run the following `curl https://raw.githubusercontent.com/grafana/agent/main/docs/sources/flow/tutorials/assets/runt.sh -O && bash ./runt.sh agent.flow`. 
 
 The `runt.sh` script does:
 
@@ -26,6 +26,16 @@ Allow the Grafana Agent to run for two minutes, then navigate to [Grafana](http:
 ![](../assets/agent_build_info.png)
 
 This example scrapes the Grafana Agent's `http://localhost:12345/metrics` endpoint and pushes those metrics to the Mimir instance. 
+
+Navigate to `http://localhost:12345/graph` to view the Grafana Agent Flow UI. 
+
+![](../assets/graph.png)
+
+Clicking on the nodes will navigate to the associated component page. This allows viewing the state, health information and if applicable the debug information.
+
+![](../assets/comp_info.png)
+
+
 
 
 ## Scraping component

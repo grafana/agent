@@ -5,14 +5,14 @@ prometheus.scrape "default" {
 
 // The prometheus.relabel component allows you to filter and mutate metrics.
 // Here, we combine the metric name (from the __name__ label) with the string 
-// "_cool" into a new label called "cool_label." The resulting mutated metrics
+// "service" into a new label called "service". The resulting mutated metrics
 // are then forwarded to our prometheus.remote_write component.
 prometheus.relabel "filter" {
 	rule {
 		source_labels = ["__name__"]
 		regex         = "(.+)"
-		replacement   = "${1}_cool"
-		target_label  = "cool_label"
+		replacement   = "api_server"
+		target_label  = "service"
 	}
 	forward_to = [prometheus.remote_write.prom.receiver]
 }
