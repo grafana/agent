@@ -90,6 +90,8 @@ Changing the avalanche setting for label_count to 1000, located [here](../../pro
 ![](./assets/trigger_change.png)
 
 For Loki Canary, the easiest way to trigger an alert is to edit its Daemonset to query for a different label.
+![](./assets/trigger_logs_alerts.png)
+![](./assets/logs_alerts.png)
 
 ### Architecture
 
