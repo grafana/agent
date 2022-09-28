@@ -63,7 +63,7 @@ prometheus.remote_write "prom" {
 }
 ```
 
-In the above Flow block, `prometheus.relabel.service` is being forwarded metrics from two sources `prometheus.scrape.agent` and `prometheus.scrape.node`. This allows for a single relabel component to be used with any number of inputs.
+In the above Flow block, `prometheus.relabel.service` is being forwarded metrics from two sources `prometheus.scrape.agent` and `prometheus.integration.node_exporter`. This allows for a single relabel component to be used with any number of inputs.
 
 ## Adding another relabel
 
