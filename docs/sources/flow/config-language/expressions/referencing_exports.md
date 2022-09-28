@@ -27,24 +27,27 @@ expose its receiver for metrics on `prometheus.remote_write.onprem.receiver`.
 Let's see that in action:
 ```river
 local.file "target" {
-	filename = "/etc/agent/target" 
+  filename = "/etc/agent/target"
 }
 
 prometheus.scrape "default" {
-	targets    = [{ "__address__" = local.file.target.content }] 
-	forward_to = [prometheus.remote_write.onprem.receiver]
+  targets    = [{ "__address__" = local.file.target.content }]
+  forward_to = [prometheus.remote_write.onprem.receiver]
 }
 
 prometheus.remote_write "onprem" {
-	endpoint {
-		url = "http://prometheus:9009/api/prom/push"
-	}
+  endpoint {
+    url = "http://prometheus:9009/api/prom/push"
+  }
 }
 ```
 
 In the previous example, we managed to wire together a very simple pipeline by
 writing a few River expressions.
-![](../../../../assets/flow_referencing_exports_diagram.svg)
+
+<p align="center">
+<img src="../../../../assets/flow_referencing_exports_diagram.svg" alt="Flow of example pipeline" width="500" />
+</p>
 
 As with all expressions, once the value is resolved, it must match the [type][]
 of the attribute being assigned to. While users can only configure attributes
