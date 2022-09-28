@@ -44,7 +44,7 @@ prometheus.remote_write "onprem" {
 
 In the previous example, we managed to wire together a very simple pipeline by
 writing a few River expressions.
-![](../../../assets/flow_referencing_exports_diagram.svg)
+![](../../../../assets/flow_referencing_exports_diagram.svg)
 
 As with all expressions, once the value is resolved, it must match the [type][]
 of the attribute being assigned to. While users can only configure attributes
