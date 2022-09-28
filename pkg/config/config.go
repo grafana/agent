@@ -351,7 +351,7 @@ func Load(fs *flag.FlagSet, args []string) (*Config, error) {
 		}
 	})
 
-	instrumentation.ConfigMetrics.InstrumentLoad(error != nil)
+	instrumentation.ConfigMetrics.InstrumentLoad(error == nil)
 	return cfg, error
 }
 

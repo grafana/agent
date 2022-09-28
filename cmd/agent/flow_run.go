@@ -108,16 +108,15 @@ func (fr *flowRun) Run(configFile string) error {
 
 	reload := func() error {
 		flowCfg, err := loadFlowFile(configFile)
+		defer instrumentation.ConfigMetrics.InstrumentLoad(err == nil)
+
 		if err != nil {
-			instrumentation.ConfigMetrics.InstrumentLoad(true)
 			return fmt.Errorf("reading config file %q: %w", configFile, err)
 		}
 		if err := f.LoadFile(flowCfg); err != nil {
-			instrumentation.ConfigMetrics.InstrumentLoad(true)
 			return fmt.Errorf("error during the initial gragent load: %w", err)
 		}
 
-		instrumentation.ConfigMetrics.InstrumentLoad(false)
 		return nil
 	}
 
