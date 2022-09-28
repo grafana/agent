@@ -78,6 +78,17 @@ prometheus.remote_write "default" {
 [configuration language]: {{< relref "./config-language/" >}}
 [reference documentation]: {{< relref "./reference" >}}
 
+## Current limitations
+
+The goal of Grafana Agent Flow is to eventually support the same use cases that
+Grafana Agent does today. Some functionality may be missing while Grafana Agent
+Flow is still in development:
+
+* Logging-specific components
+* Tracing-specific components
+* An equivalent list of integrations
+* An equivalent to the scraping service
+
 ## Provide feedback
 
 Feedback about Grafana Agent Flow and its configuration language can be
