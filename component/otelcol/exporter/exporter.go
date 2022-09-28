@@ -101,9 +101,11 @@ func (e *Exporter) Run(ctx context.Context) error {
 func (e *Exporter) Update(args component.Arguments) error {
 	eargs := args.(Arguments)
 
-	host := scheduler.NewHost(e.opts.Logger)
-	host.SetExtensions(eargs.Extensions())
-	host.SetExporters(eargs.Exporters())
+	host := scheduler.NewHost(
+		e.opts.Logger,
+		scheduler.WithHostExtensions(eargs.Extensions()),
+		scheduler.WithHostExporters(eargs.Exporters()),
+	)
 
 	settings := otelcomponent.ExporterCreateSettings{
 		TelemetrySettings: otelcomponent.TelemetrySettings{

@@ -17,23 +17,32 @@ type Host struct {
 }
 
 // NewHost creates a new Host.
-func NewHost(l log.Logger) *Host {
-	return &Host{log: l}
+func NewHost(l log.Logger, opts ...HostOption) *Host {
+	h := &Host{log: l}
+	for _, opt := range opts {
+		opt(h)
+	}
+	return h
+}
+
+// HostOption customizes behavior of the Host.
+type HostOption func(*Host)
+
+// WithHostExtensions provides a custom set of extensions to the Host.
+func WithHostExtensions(extensions map[otelconfig.ComponentID]otelcomponent.Extension) HostOption {
+	return func(h *Host) {
+		h.extensions = extensions
+	}
+}
+
+// WithHostExporters provides a custom set of exporters to the Host.
+func WithHostExporters(exporters map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter) HostOption {
+	return func(h *Host) {
+		h.exporters = exporters
+	}
 }
 
 var _ otelcomponent.Host = (*Host)(nil)
-
-// SetExtensions sets the extensions available from the Host. It is not valid
-// to call this after the Host is in use.
-func (h *Host) SetExtensions(extensions map[otelconfig.ComponentID]otelcomponent.Extension) {
-	h.extensions = extensions
-}
-
-// SetExporters sets the exporters available from the Host. It is not valid
-// to call this after the Host is in use.
-func (h *Host) SetExporters(exporters map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter) {
-	h.exporters = exporters
-}
 
 // ReportFatalError implements otelcomponent.Host.
 func (h *Host) ReportFatalError(err error) {
