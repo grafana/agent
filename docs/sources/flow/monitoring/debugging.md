@@ -25,8 +25,8 @@ server, which defaults to listening at `http://localhost:12345`.
 
 ![](../../../assets/ui-home-page.png)
 
-The home page shows a table of running components along with their health.
-Clicking **View** navigates to the [Component detail page](#component-detail-page)
+The home page shows a table of components defined in the config file along with
+their health. Clicking **View** navigates to the [Component detail page](#component-detail-page)
 for that component.
 
 Clicking the Grafana Agent logo navigates back to the home page.
@@ -35,9 +35,9 @@ Clicking the Grafana Agent logo navigates back to the home page.
 
 ![](../../../assets/ui-graph-page.png)
 
-The **Graph** page shows a graph view of all running components along with
-their health. Clicking a component in the graph navigates to the [Component
-detail page](#component-detail-page) for that component.
+The **Graph** page shows a graph view of components defined in the config file
+along with their health. Clicking a component in the graph navigates to the
+[Component detail page](#component-detail-page) for that component.
 
 ### Component detail page
 
