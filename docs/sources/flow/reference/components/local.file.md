@@ -98,7 +98,8 @@ component.
 ## Example
 
 ```river
-local.file "my_file" {
-  filename = "path/to/my/file"
+local.file "secret_key" {
+  filename  = "/var/secrets/password.txt"
+  is_secret = true
 }
 ```

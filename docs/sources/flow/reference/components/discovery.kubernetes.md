@@ -413,7 +413,7 @@ This example uses a kubeconfig file to authenticate to the Kubernetes API:
 ```river
 discovery.kubernetes "k8s_pods" {
   role = "pod"
-  kubeconfig_file = "/path/to/kubeconfig"
+  kubeconfig_file = "/etc/k8s/kubeconfig.yaml"
 }
 ```
 
