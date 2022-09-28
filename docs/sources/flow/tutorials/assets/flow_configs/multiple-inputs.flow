@@ -1,10 +1,14 @@
-prometheus.scrape "first" {
+prometheus.scrape "agent" {
 	targets    = [{"__address__" = "localhost:12345"}]
 	forward_to = [prometheus.relabel.service.receiver]
 }
 
-prometheus.scrape "second" {
-	targets    = [{"__address__" = "localhost:12345"}]
+prometheus.integration.node_exporter {
+	set_collectors = ["cpu", "diskstats"]
+}
+
+prometheus.scrape "node" {
+	targets    = prometheus.integration.node_exporter.targets
 	forward_to = [prometheus.relabel.service.receiver]
 }
 
