@@ -28,15 +28,15 @@ local.file "my_file" {
 }
 
 // Pattern for creating a labeled block, which the above block follows:
-<BLOCK NAME> "<BLOCK LABEL>" {
+BLOCK_NAME "BLOCK_LABEL" {
   // Block body
-  <IDENTIFIER> = <EXPRESSION> // Attribute
+  IDENTIFIER = EXPRESSION // Attribute
 }
 
 // Pattern for creating an unlabeled block:
-<BLOCK NAME> {
+BLOCK_NAME {
   // Block body
-  <IDENTIFIER> = <EXPRESSION> // Attribute
+  IDENTIFIER = EXPRESSION // Attribute
 }
 ```
 
