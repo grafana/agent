@@ -2,6 +2,7 @@ package exporter_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -48,8 +49,21 @@ func TestExporter(t *testing.T) {
 	// everything was wired up correctly.
 	testTraces := createTestTraces()
 	go func() {
-		err := ce.Input.ConsumeTraces(ctx, testTraces)
-		require.NoError(t, err)
+		var err error
+
+		for {
+			err = ce.Input.ConsumeTraces(ctx, testTraces)
+
+			if errors.Is(err, otelcomponent.ErrDataTypeIsNotSupported) {
+				// Our component may not have been fully initialized yet. Wait a little
+				// bit before trying again.
+				time.Sleep(100 * time.Millisecond)
+				continue
+			}
+
+			require.NoError(t, err)
+			break
+		}
 	}()
 
 	select {
