@@ -36,6 +36,12 @@ different labels.
 ```
 discovery.relabel "LABEL" {
   targets = TARGET_LIST
+
+  rule {
+    ...
+  }
+
+  ...
 }
 ```
 
