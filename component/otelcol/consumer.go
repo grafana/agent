@@ -4,7 +4,7 @@ import (
 	otelconsumer "go.opentelemetry.io/collector/consumer"
 )
 
-// Consumer is a compbined OpenTelemetry Collector consumer which can consume
+// Consumer is a combined OpenTelemetry Collector consumer which can consume
 // any telemetry signal.
 type Consumer interface {
 	otelconsumer.Traces
