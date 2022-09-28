@@ -11,7 +11,7 @@ Grafana Agent Flow is a _component-based_ experimental revision of Grafana
 Agent with a focus on ease-of-use, debuggability, and ability to adapt to the
 needs of power users.
 
-Components allow for reusability, composability and focus on a single task. 
+Components allow for reusability, composability, and focus on a single task. 
 
 * **Reusability** allows for the output of components to be reused as the input for multiple other components.
 * **Composability** allows for components to be chained together to form a pipeline.
