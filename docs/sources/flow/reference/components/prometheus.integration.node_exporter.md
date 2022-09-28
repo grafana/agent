@@ -1,7 +1,14 @@
 ---
+# NOTE(rfratto): the title below has zero-width spaces injected into it to
+# prevent it from overflowing the sidebar on the rendered site. Be careful when
+# modifying this section to retain the spaces.
+#
+# Ideally, in the future, we can fix the overflow issue with css rather than
+# injecting special characters.
+
 aliases:
 - /docs/agent/latest/flow/reference/components/prometheus.integration.node_exporter
-title: prometheus.&#8203;integration.&#8203;node_exporter
+title: prometheus.​integration.​node_exporter
 ---
 
 # prometheus.integration.node_exporter

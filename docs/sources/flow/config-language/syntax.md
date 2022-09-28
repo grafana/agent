@@ -26,7 +26,7 @@ letters, digits or underscores, but doesn't start with a digit.
 
 ### Attributes
 _Attributes_ are used to configure individual settings. They always take the
-form of `<ATTRIBUTE_NAME> = <ATTRIBUTE_VALUE>`. They can appear either as
+form of `ATTRIBUTE_NAME = ATTRIBUTE_VALUE`. They can appear either as
 top-level elements or nested within blocks.
 
 The following example sets the `log_level` attribute to `"debug"`.
@@ -35,9 +35,9 @@ The following example sets the `log_level` attribute to `"debug"`.
 log_level = "debug"
 ```
 
-All `<ATTRIBUTE_NAME>`s must be valid River [identifiers](#identifiers).
+All `ATTRIBUTE_NAME`s must be valid River [identifiers](#identifiers).
 
-The `<ATTRIBUTE_VALUE>` can be either a constant value of a valid River
+The `ATTRIBUTE_VALUE` can be either a constant value of a valid River
 [type]({{< relref "./expressions/types_and_values.md" >}}) (eg. string,
 boolean, number) or an [_expression_]({{< relref "./expressions/_index.md" >}})
 to represent or compute more complex attribute values.
@@ -50,21 +50,21 @@ of arguments and nested unlabeled blocks.
 
 ```
 // Pattern for creating an unlabeled block:
-<BLOCK NAME> {
+BLOCK_NAME {
   // Block body can contain attributes and nested unlabeled blocks
-  <IDENTIFIER> = <EXPRESSION> // Attribute
+  IDENTIFIER = EXPRESSION // Attribute
 
-  <NESTED_BLOCK_NAME> {
+  NESTED_BLOCK_NAME {
     // Nested block body
   }
 }
 
 // Pattern for creating a labeled block:
-<BLOCK NAME> "<BLOCK LABEL>" {
+BLOCK_NAME "BLOCK_LABEL" {
   // Block body can contain attributes and nested unlabeled blocks
-  <IDENTIFIER> = <EXPRESSION> // Attribute
+  IDENTIFIER = EXPRESSION // Attribute
 
-  <NESTED_BLOCK_NAME> {
+  NESTED_BLOCK_NAME {
     // Nested block body
   }
 }
