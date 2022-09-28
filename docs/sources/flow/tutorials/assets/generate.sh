@@ -6,7 +6,7 @@
 
 echo "#!/usr/bin/env bash" > runt.sh
 echo "mkdir ./tutorials" >> runt.sh
-echo "cd ./tutorials" >> runt.sh
+echo "cd ./tutorials || exit" >> runt.sh
 
 
 # Instead of `for find .` doing it this way due to https://www.shellcheck.net/wiki/SC2044.
