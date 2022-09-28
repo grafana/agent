@@ -14,7 +14,7 @@
 // This allows users to connect components together to declaratively form a
 // pipeline.
 //
-// Defining Arguments and Exports structs
+// # Defining Arguments and Exports structs
 //
 // Arguments and Exports implemented by new components must be able to be
 // encoded to and from River. "river" struct field tags are used for encoding;
@@ -25,15 +25,15 @@
 // types must not overlap. Additionally, the following River field and block
 // names are reserved for use by the Flow controller:
 //
-//     * for_each
-//     * enabled
-//     * health
-//     * debug
+//   - for_each
+//   - enabled
+//   - health
+//   - debug
 //
 // Default values for Arguments may be provided by implementing
 // river.Unmarshaler.
 //
-// Arguments and Exports immutability
+// # Arguments and Exports immutability
 //
 // Arguments passed to a component should be treated as immutable, as memory
 // can be shared between components as an optimization. Components should make
@@ -44,13 +44,13 @@
 // Similarly, Exports and the fields within Exports must be considered
 // immutable after they are written for the same reason.
 //
-// Mapping River strings to custom types
+// # Mapping River strings to custom types
 //
 // Custom encoding and decoding of fields is available by implementing
 // encoding.TextMarshaler and encoding.TextUnmarshaler. Types implementing
 // these interfaces will be represented as strings in River.
 //
-// Component registration
+// # Component registration
 //
 // Components are registered globally by calling Register. These components are
 // then made available by including them in the import path. The "all" child

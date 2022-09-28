@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"io/fs"
-	"io/ioutil"
 	"net/url"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -90,7 +90,7 @@ func (c *DynamicLoader) LoadConfigByPath(path string) error {
 		// It takes some work arounds to parse all windows paths as url so treating it differently now is easier
 		// otherwise we could parse path and then pivot
 		stripPath := strings.ReplaceAll(path, "file://", "")
-		buf, err = ioutil.ReadFile(stripPath)
+		buf, err = os.ReadFile(stripPath)
 		if err != nil {
 			return err
 		}

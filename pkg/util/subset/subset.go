@@ -12,15 +12,15 @@ import (
 // Assert checks whether target is a subset of source. source and target must
 // be the same type. target is a subset of source when:
 //
-// * If target and source are slices or arrays, then target must have the same
-//   number of elements as source. Each element in target must be a subset of
-//   the corresponding element from source.
+//   - If target and source are slices or arrays, then target must have the same
+//     number of elements as source. Each element in target must be a subset of
+//     the corresponding element from source.
 //
-// * If target and source are maps, each key in source must exist in target.
-//   The value for each element in target must be a subset of the corresponding
-//   element from source.
+//   - If target and source are maps, each key in source must exist in target.
+//     The value for each element in target must be a subset of the corresponding
+//     element from source.
 //
-// * Otherwise, target and source must be deeply equal.
+//   - Otherwise, target and source must be deeply equal.
 //
 // An instance of Error will be returned when target is not a subset of source.
 //

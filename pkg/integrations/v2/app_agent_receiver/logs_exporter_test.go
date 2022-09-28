@@ -3,7 +3,7 @@ package app_agent_receiver
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"testing"
 	"time"
 
@@ -18,7 +18,7 @@ func loadTestPayload(t *testing.T) Payload {
 	t.Helper()
 	// Safe to disable, this is a test.
 	// nolint:gosec
-	content, err := ioutil.ReadFile("./testdata/payload.json")
+	content, err := os.ReadFile("./testdata/payload.json")
 	require.NoError(t, err, "expected to be able to read file")
 	require.True(t, len(content) > 0)
 	var payload Payload

@@ -3,7 +3,6 @@ package instance
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"net/http/httptest"
 	"os"
 	"path"
@@ -189,7 +188,7 @@ func TestInstance_Path(t *testing.T) {
 	scrapeAddr, closeSrv := getTestServer(t)
 	defer closeSrv()
 
-	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
+	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
 	require.NoError(t, err)
 	defer os.RemoveAll(walDir)
 
@@ -218,7 +217,7 @@ func TestInstance(t *testing.T) {
 	scrapeAddr, closeSrv := getTestServer(t)
 	defer closeSrv()
 
-	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
+	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
 	require.NoError(t, err)
 	defer os.RemoveAll(walDir)
 
@@ -252,7 +251,7 @@ func TestInstance_Recreate(t *testing.T) {
 	scrapeAddr, closeSrv := getTestServer(t)
 	defer closeSrv()
 
-	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
+	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
 	require.NoError(t, err)
 	defer os.RemoveAll(walDir)
 

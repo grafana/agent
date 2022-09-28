@@ -14,9 +14,12 @@ import (
 // directly from a file (e.g., BasicAuth Username).
 //
 // The naming convention is either:
-//   /secrets/<namespace>/<name>/<key>
+//
+//	/secrets/<namespace>/<name>/<key>
+//
 // or:
-//   /configMaps/<namespace>/<name>/<key>
+//
+//	/configMaps/<namespace>/<name>/<key>
 //
 // Resources associated with a key should be watched for changes and trigger a
 // reconcile when modified.

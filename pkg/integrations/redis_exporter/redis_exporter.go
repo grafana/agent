@@ -4,7 +4,7 @@ package redis_exporter //nolint:golint
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/grafana/agent/pkg/integrations"
@@ -133,7 +133,7 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 	}
 
 	if c.ScriptPath != "" {
-		ls, err := ioutil.ReadFile(c.ScriptPath)
+		ls, err := os.ReadFile(c.ScriptPath)
 		if err != nil {
 			return nil, fmt.Errorf("Error loading script file %s: %w", c.ScriptPath, err)
 		}
@@ -155,7 +155,7 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 
 	// optional password file to take precedence over password property
 	if c.RedisPasswordFile != "" {
-		password, err := ioutil.ReadFile(c.RedisPasswordFile)
+		password, err := os.ReadFile(c.RedisPasswordFile)
 		if err != nil {
 			return nil, fmt.Errorf("Error loading password file %s: %w", c.RedisPasswordFile, err)
 		}

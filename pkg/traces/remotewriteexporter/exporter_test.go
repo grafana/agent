@@ -52,7 +52,7 @@ func TestRemoteWriteExporter_ConsumeMetrics(t *testing.T) {
 
 	// Append sum metric
 	sm := ilm.Metrics().AppendEmpty()
-	sm.SetDataType(pmetric.MetricDataTypeSum)
+	sm.SetEmptySum()
 	sm.SetName("spanmetrics_calls_total")
 	sm.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
 
@@ -62,7 +62,7 @@ func TestRemoteWriteExporter_ConsumeMetrics(t *testing.T) {
 
 	// Append histogram
 	hm := ilm.Metrics().AppendEmpty()
-	hm.SetDataType(pmetric.MetricDataTypeHistogram)
+	hm.SetEmptyHistogram()
 	hm.SetName("spanmetrics_latency")
 	hm.Histogram().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
 

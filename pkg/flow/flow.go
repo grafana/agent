@@ -1,7 +1,7 @@
 // Package flow implements the Flow component graph system. Flow configuration
 // files are parsed from River, which contain a listing of components to run.
 //
-// Components
+// # Components
 //
 // Each component has a set of arguments (River attributes and blocks) and
 // optionally a set of exported fields. Components can reference the exports of
@@ -10,14 +10,14 @@
 // See the top-level component package for more information on components, and
 // subpackages for defined components.
 //
-// Component Health
+// # Component Health
 //
 // A component will have various health states during its lifetime:
 //
-//     1. Unknown:   The initial health state for new components.
-//     2. Healthy:   A healthy component
-//     3. Unhealthy: An unhealthy component.
-//     4. Exited:    A component which is no longer running.
+//  1. Unknown:   The initial health state for new components.
+//  2. Healthy:   A healthy component
+//  3. Unhealthy: An unhealthy component.
+//  4. Exited:    A component which is no longer running.
 //
 // Health states are paired with a time for when the health state was generated
 // and a message providing more detail for the health state.
@@ -27,7 +27,7 @@
 // when evaluating the configuration for a component will always be reported as
 // unhealthy until the next successful evaluation.
 //
-// Component Evaluation
+// # Component Evaluation
 //
 // The process of converting the River block associated with a component into
 // the appropriate Go struct is called "component evaluation."

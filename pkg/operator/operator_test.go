@@ -55,12 +55,12 @@ func TestIntegrations(t *testing.T) {
 // ReconcileTest deploys a cluster and runs the operator against it locally. It
 // then does the following:
 //
-// 1. Deploys all resources in inFile, assuming a Reconcile will retrigger from
-//    them
+//  1. Deploys all resources in inFile, assuming a Reconcile will retrigger from
+//     them
 //
-// 2. Loads the resources specified by outFile and checks if the equivalent
-//    existing resources in the cluster are subsets of the loaded outFile
-//    resources.
+//  2. Loads the resources specified by outFile and checks if the equivalent
+//     existing resources in the cluster are subsets of the loaded outFile
+//     resources.
 //
 // The second step will run in a loop until the test passes or ctx is canceled.
 //
