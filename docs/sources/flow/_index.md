@@ -13,7 +13,7 @@ needs of power users.
 
 Components allow for reusability, composability and focus on a single task. 
 
-* **Reusability** allows for components to have multiple inputs and outputs.
+* **Reusability** allows for the output of components to be reused as the input for multiple other components.
 * **Composability** allows for components to be chained together to form a pipeline.
 * **Single task** means the scope of a component is limited to one narrow task and thus has fewer side effects.
 
