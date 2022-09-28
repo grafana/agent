@@ -1,15 +1,15 @@
 local monitoring = import './monitoring/main.jsonnet';
 local cortex = import 'cortex/main.libsonnet';
-local avalanche = import 'grafana-agent/smoke/avalanche/main.libsonnet';
-local crow = import 'grafana-agent/smoke/crow/main.libsonnet';
-local loki = import 'loki/main.libsonnet';
 local canary = import 'github.com/grafana/loki/production/ksonnet/loki-canary/loki-canary.libsonnet';
 local vulture = import 'github.com/grafana/tempo/operations/jsonnet/microservices/vulture.libsonnet';
 local tempo = import 'github.com/grafana/tempo/operations/jsonnet/single-binary/tempo.libsonnet';
+local avalanche = import 'grafana-agent/smoke/avalanche/main.libsonnet';
+local crow = import 'grafana-agent/smoke/crow/main.libsonnet';
 local etcd = import 'grafana-agent/smoke/etcd/main.libsonnet';
 local smoke = import 'grafana-agent/smoke/main.libsonnet';
 local gragent = import 'grafana-agent/v2/main.libsonnet';
 local k = import 'ksonnet-util/kausal.libsonnet';
+local loki = import 'loki/main.libsonnet';
 
 local namespace = k.core.v1.namespace;
 local pvc = k.core.v1.persistentVolumeClaim;
@@ -64,11 +64,11 @@ local smoke = {
         otlp: {
           protocols: {
             grpc: {
-              endpoint: "0.0.0.0:4317"
+              endpoint: '0.0.0.0:4317',
             },
           },
         },
-      }
+      },
     },
     tempo_config+: {
       querier: {
@@ -78,35 +78,35 @@ local smoke = {
       },
     },
     tempo_statefulset+:
-      statefulset.mixin.metadata.withNamespace("smoke"),
+      statefulset.mixin.metadata.withNamespace('smoke'),
     tempo_service+:
-      service.mixin.metadata.withNamespace("smoke"),
+      service.mixin.metadata.withNamespace('smoke'),
     tempo_headless_service+:
-      service.mixin.metadata.withNamespace("smoke"),
+      service.mixin.metadata.withNamespace('smoke'),
     tempo_query_configmap+:
-      configMap.mixin.metadata.withNamespace("smoke"),
+      configMap.mixin.metadata.withNamespace('smoke'),
     tempo_configmap+:
-      configMap.mixin.metadata.withNamespace("smoke")
+      configMap.mixin.metadata.withNamespace('smoke'),
   },
 
-  loki: loki.new(namespace = 'smoke'),
+  loki: loki.new(namespace='smoke'),
 
   // https://grafana.com/docs/loki/latest/operations/loki-canary/
-  canary : canary{
+  canary: canary {
     loki_canary_args+:: {
-      addr: "loki:80",
-      port: "80",
+      addr: 'loki:80',
+      port: '80',
       tls: false,
-      labelname: "instance",
+      labelname: 'instance',
       labelvalue: '$(POD_NAME)',
-      interval: "1s",
-      "metric-test-interval": "30m",
-      "metric-test-range": "2h",
+      interval: '1s',
+      'metric-test-interval': '30m',
+      'metric-test-range': '2h',
       size: 1024,
-      wait: "3m",
+      wait: '3m',
     },
     _config+:: {
-      namespace: "smoke",
+      namespace: 'smoke',
     },
     loki_canary_daemonset+:
       daemonSet.mixin.metadata.withNamespace('smoke'),
@@ -132,8 +132,8 @@ local smoke = {
 
   vulture: vulture {
     _images+:: {
-      tempo_vulture: 'grafana/tempo-vulture:latest'
-    },    
+      tempo_vulture: 'grafana/tempo-vulture:latest',
+    },
     _config+:: {
       vulture: {
         replicas: 1,
@@ -144,10 +144,10 @@ local smoke = {
         tempoSearchBackoffDuration: '0s',
         tempoReadBackoffDuration: '10s',
         tempoWriteBackoffDuration: '10s',
-      }      
+      },
     },
     tempo_vulture_deployment+:
-      deployment.mixin.metadata.withNamespace("smoke")
+      deployment.mixin.metadata.withNamespace('smoke'),
   },
 
   local metric_instances(crow_name) = [{
@@ -309,7 +309,7 @@ local smoke = {
       },
     ],
     scrape_configs: [
-    {
+      {
         job_name: 'canary',
         kubernetes_sd_configs: [{ role: 'pod' }],
         tls_config: {
@@ -317,17 +317,20 @@ local smoke = {
         },
         bearer_token_file: '/var/run/secrets/kubernetes.io/serviceaccount/token',
 
-        relabel_configs: [{
-          source_labels: ['__meta_kubernetes_namespace'],
-          regex: 'smoke',
-          action: 'keep',
-          }, {
-          source_labels: ['__meta_kubernetes_pod_container_name'],
-          regex: 'canary',
-          action: 'keep',
-          }
+        relabel_configs: [
+          {
+            source_labels: ['__meta_kubernetes_namespace'],
+            regex: 'smoke',
+            action: 'keep',
+          },
+          {
+            source_labels: ['__meta_kubernetes_pod_container_name'],
+            regex: 'canary',
+            action: 'keep',
+          },
         ],
-     }],
+      },
+    ],
   }],
 
   local logs_instances() = [{
@@ -339,7 +342,7 @@ local smoke = {
         password: 'noauth',
       },
       external_labels: {
-        cluster: "grafana-agent",
+        cluster: 'grafana-agent',
       },
 
     }],
@@ -347,34 +350,37 @@ local smoke = {
       job_name: 'write-canary-output',
       kubernetes_sd_configs: [{ role: 'pod' }],
       pipeline_stages: [
-        {cri: {}},
+        { cri: {} },
       ],
-      relabel_configs: [{
-        source_labels: ['__meta_kubernetes_namespace'],
-        regex: 'smoke',
-        action: 'keep',
-      },
-      {
-        source_labels: ['__meta_kubernetes_pod_container_name'],
-        regex: 'loki-canary',
-        action: 'keep',
-      }, 
-      {
-        action: 'replace',
-        source_labels: ['__meta_kubernetes_pod_uid', '__meta_kubernetes_pod_container_name'],
-        target_label: '__path__',
-        separator: '/',
-        replacement: '/var/log/pods/*$1/*.log',
-      },
-      {
-        action: 'replace',
-        source_labels: ['__meta_kubernetes_pod_name'],
-        target_label: 'pod',
-      },{
-        action: 'replace',
-        source_labels: ['__meta_kubernetes_pod_name'],
-        target_label: 'instance',
-      }],
+      relabel_configs: [
+        {
+          source_labels: ['__meta_kubernetes_namespace'],
+          regex: 'smoke',
+          action: 'keep',
+        },
+        {
+          source_labels: ['__meta_kubernetes_pod_container_name'],
+          regex: 'loki-canary',
+          action: 'keep',
+        },
+        {
+          action: 'replace',
+          source_labels: ['__meta_kubernetes_pod_uid', '__meta_kubernetes_pod_container_name'],
+          target_label: '__path__',
+          separator: '/',
+          replacement: '/var/log/pods/*$1/*.log',
+        },
+        {
+          action: 'replace',
+          source_labels: ['__meta_kubernetes_pod_name'],
+          target_label: 'pod',
+        },
+        {
+          action: 'replace',
+          source_labels: ['__meta_kubernetes_pod_name'],
+          target_label: 'instance',
+        },
+      ],
     }],
   }],
 
@@ -400,7 +406,7 @@ local smoke = {
     gragent.withAgentConfig({
       server: { log_level: 'debug' },
       logs: {
-        positions_directory: "/var/lib/agent/logs-positions",
+        positions_directory: '/var/lib/agent/logs-positions',
         configs: logs_instances(),
       },
 
@@ -416,28 +422,28 @@ local smoke = {
       },
       traces: {
         configs: [
-            {
-                name: "vulture",
-                receivers: {
-                    jaeger: {
-                        protocols: {
-                            grpc: null
-                        }
-                    }
+          {
+            name: 'vulture',
+            receivers: {
+              jaeger: {
+                protocols: {
+                  grpc: null,
                 },
-                remote_write: [
-                    {
-                        endpoint: "tempo:4317",
-                        insecure: true
-                    }
-                ],
-                batch: {
-                    timeout: "5s",
-                    send_batch_size: 100
-                }
-            }
-        ]
-      }
+              },
+            },
+            remote_write: [
+              {
+                endpoint: 'tempo:4317',
+                insecure: true,
+              },
+            ],
+            batch: {
+              timeout: '5s',
+              send_batch_size: 100,
+            },
+          },
+        ],
+      },
     }),
 
   cluster_agent:
