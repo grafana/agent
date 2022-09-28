@@ -50,14 +50,6 @@ The `role` argument is required to specify what type of targets to discover.
 `role` must be one of `node`, `pod`, `service`, `endpoints`, `endpointslice`,
 or `ingress`.
 
-The following sub-blocks are supported:
-
-Name | Description | Required
----- | ----------- | --------
-[`namespaces`](#namespaces-block) | Information about which Kubernetes namespaces to search. | no
-[`selectors`](#selectors-block) | Selectors to limit objects selected. | no
-[`http_client_config`](#http_client_config-block) | HTTP client configuration for Kubernetes requests. | no
-
 ### `node` role
 
 The `node` role discovers one target per cluster node with the address
@@ -246,7 +238,34 @@ The following labels are included for discovered ingress objects:
   config is set. Defaults to `http`.
 * `__meta_kubernetes_ingress_path`: Path from ingress spec. Defaults to /.
 
-### `namespaces` block
+## Blocks
+
+The following blocks are supported inside the definition of
+`discovery.kubernetes`:
+
+Hierarchy | Block | Description | Required
+--------- | ----- | ----------- | --------
+namespaces | [namespaces][] | Information about which Kubernetes namespaces to search. | no
+selectors | [selectors][] | Information about which Kubernetes namespaces to search. | no
+http_client_config | [http_client_config][] | HTTP client configuration for Kubernetes requests. | no
+http_client_config > basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
+http_client_config > authorization | [authorization][] | Configure generic authorization to the endpoint. | no
+http_client_config > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
+http_client_config > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+
+The `>` symbol indicates deeper levels of nesting. For example,
+`http_client_config > basic_auth` refers to a `basic_auth` block defined inside
+an `http_client_config` block.
+
+[namespaces]: #namespaces-block
+[selectors]: #selectors-block
+[http_client_config]: #http_client_config-block
+[basic_auth]: #basic_auth-block
+[authorization]: #authorization-block
+[oauth2]: #oauth2-block
+[tls_config]: #tls_config-block
+
+### namespaces block
 
 The `namespaces` block limits the namespaces to discover resources in. If
 omitted, all namespaces are searched.
@@ -256,7 +275,7 @@ Name | Type | Description | Default | Required
 `own_namespace` | `bool`   | Include the namespace the agent is running in. | | no
 `names` | `[]string` | List of namespaces to search. | | no
 
-### `selectors` block
+### selectors block
 
 The `selectors` block contains optional label and field selectors to limit the
 discovery process to a subset of resources.
@@ -282,7 +301,7 @@ selectors][] to learn more about the possible filters that can be used.
 [Labels and selectros]: https://Kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 [discovery.relabel]: {{< relref "./discovery.relabel.md" >}}
 
-### `http_client_config` block
+### http_client_config block
 
 The `http_client_config` block configures settings used to connect to the
 Kubernetes API server.

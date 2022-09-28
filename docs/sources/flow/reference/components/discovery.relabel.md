@@ -64,13 +64,18 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `targets` | `list(map(string))` | Targets to relabel | | **yes**
 
-The following subblocks are supported:
+## Blocks
 
-Name | Description | Required
----- | ----------- | --------
-[`rule`](#rule-block) | Relabeling rules to apply to targets | no
+The following blocks are supported inside the definition of
+`discovery.relabel`:
 
-### `rule` block
+Hierarchy | Block | Description | Required
+--------- | ----- | ----------- | --------
+rule | [rule][] | Relabeling rules to apply to targets. | no
+
+[rule]: #rule-block
+
+### rule block
 
 The `rule` block contains the definition of any relabeling rules that
 can be applied to an input target. If more than one `rule` block is

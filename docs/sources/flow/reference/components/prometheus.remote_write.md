@@ -175,7 +175,7 @@ Name | Type | Description | Default | Required
 `insecure_skip_verify` | `bool` | Disables validation of the server certificate. | | no
 `min_version` | `string` | Minimum acceptable TLS version. | | no
 
-When `min_version` is not provided, the minumum acceptable TLS version is
+When `min_version` is not provided, the minimum acceptable TLS version is
 inherited from Go's default minimum version, TLS 1.2. If `min_version` is
 provided, it must be set to one of the following strings:
 
