@@ -13,33 +13,13 @@ title: prometheus.scrape
 Multiple `prometheus.scrape` components can be specified by giving them
 different labels.
 
-## Example
+## Usage
 
-The following example sets up the scrape job with certain attributes (scrape
-endpoint, scrape interval, query parameters) and lets it scrape two instances
-of the [blackbox exporter](https://github.com/prometheus/blackbox_exporter/).
-The exposed metrics are sent over to the provided list of receivers, as
-defined by other components.
-
-```river
-prometheus.scrape "blackbox_scraper" {
-	targets = [
-		{"__address__" = "blackbox-exporter:9115", "instance" = "one"},
-		{"__address__" = "blackbox-exporter:9116", "instance" = "two"},
-	]
-
-	forward_to = [prometheus.remote_write.grafanacloud.receiver, prometheus.remote_write.onprem.receiver]
-	
-	scrape_interval = "10s"
-	params          = { "target" = ["grafana.com"], "module" = ["http_2xx"] }
-	metrics_path    = "/probe"
+```
+prometheus.scrape "LABEL" {
+  targets    = TARGET_LIST
+  forward_to = RECEIVER_LIST
 }
-```
-
-Here's the the endpoints that are being scraped every 10 seconds:
-```
-http://blackbox-exporter:9115/probe?target=grafana.com&module=http_2xx
-http://blackbox-exporter:9116/probe?target=grafana.com&module=http_2xx
 ```
 
 ## Arguments
@@ -77,67 +57,105 @@ Name | Type | Description | Default | Required
 `label_name_length_limit`  | `uint`     | More than this label name length post metric-relabeling causes the scrape to fail. | | no
 `label_value_length_limit` | `uint`     | More than this label value length post metric-relabeling causes the scrape to fail. | | no
 
-The components also supports the `http_client_config` sub-block for configuring
-the behavior of the HTTP client used for the scraping.
+## Blocks
 
-### `http_client_config` block
+The following blocks are supported inside the definition of `prometheus.remote_write`:
+
+Hierarchy | Block | Description | Required
+--------- | ----- | ----------- | --------
+http_client_config | [http_client_config][] | HTTP client settings when connecting to targets. | no
+http_client_config > basic_auth | [basic_auth][] | Configure basic_auth for authenticating to targets. | no
+http_client_config > authorization | [authorization][] | Configure generic authorization to targets. | no
+http_client_config > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to targets. | no
+http_client_config > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to targets via OAuth2. | no
+http_client_config > tls_config | [tls_config][] | Configure TLS settings for connecting to targets. | no
+
+The `>` symbol indicates deeper levels of nesting. For example,
+`http_client_config > basic_auth` refers to a `basic_auth` block defined inside
+an `http_client_config` block.
+
+
+[http_client_config]: #http_client_config-block
+[basic_auth]: #basic_auth-block
+[authorization]: #authorization-block
+[oauth2]: #oauth2-block
+[tls_config]: #tls_config-block
+
+### http_client_config block
+
+The `http_client_config` block configures the HTTP client used to connect to an
+endpoint.
+
+The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`bearer_token`             | `secret`   | Use to set up the Bearer Token. | | no
-`bearer_token_file`        | `string`   | Use to set up the Bearer Token file. | | no
-`proxy_url`                | `string`   | Use to set up a proxy URL. | | no
-`follow_redirects`         | `bool`     | Whether the scraper should follow redirects. | `true` | no
-`enable_http_2`            | `bool`     | Whether the scraper should use HTTP2. | `true` | no
+`bearer_token` | `secret` | Bearer token to authenticate with. | | no
+`bearer_token_file` | `string` | File containing a bearer token to authenticate with. | | no
+`proxy_url` | `string` | HTTP proxy to proxy requests through. | | no
+`follow_redirects` | `bool` | Whether redirects returned by the server should be followed. | `true` | no
+`enable_http_2` | `bool` | Whether HTTP2 is supported for requests. | `true` | no
 
-The following sub-blocks are supported for `http_client_config`:
+`bearer_token`, `bearer_token_file`, `basic_auth`, `authorization`, and
+`oauth2` are mutually exclusive and only one can be provided inside of a
+`http_client_config` block.
 
-Name | Description | Required
----- | ----------- | --------
-[`basic_auth`](#basic_auth-block) | Configure basic_auth for authenticating against targets | no
-[`authorization`](#authorization-block) | Configure generic authorization against targets | no
-[`oauth2`](#oauth2-block) | Configure OAuth2 for authenticating against targets | no
-[`tls_config`](#tls_config-block) | Configure TLS settings for connecting to targets | no
+### basic_auth block
 
-#### `basic_auth` block
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`username` | `string` | Basic auth username. | | no
+`password` | `secret` | Basic auth password. | | no
+`password_file` | `string` | File containing the basic auth password. | | no
 
-Name          | Type     | Description                                     | Default | Required
-------------- | -------- | ----------------------------------------------- | ------- | -------
-`username`      | `string`   | Setup of Basic HTTP authentication credentials. |         | no
-`password`      | `secret`   | Setup of Basic HTTP authentication credentials. |         | no
-`password_file` | `string`   | Setup of Basic HTTP authentication credentials. |         | no
+`password` and `password_file` are mututally exclusive and only one can be
+provided inside of a `basic_auth` block.
 
-#### `authorization` block
+### authorization block
 
-Name                  | Type       | Description                              | Default | Required
---------------------- | ---------- | ---------------------------------------- | ------- | --------
-`type`                | `string`   | Setup of HTTP Authorization credentials. |         | no
-`credential`          | `secret`   | Setup of HTTP Authorization credentials. |         | no
-`credentials_file`    | `string`   | Setup of HTTP Authorization credentials. |         | no
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`type` | `string` | Authorization type, for example, "Bearer". | | no
+`credential` | `secret` | Secret value. | | no
+`credentials_file` | `string` | File containing the secret value. | | no
 
-#### `oauth2` block
+`credential` and `credentials_file` are mututally exclusive and only one can be
+provided inside of an `authorization` block.
 
-Name                 | Type                 | Description                              | Default | Required
--------------------- | -------------------- | ---------------------------------------- | ------- | --------
-`client_id`          | `string`             | Setup of the OAuth2 client.              |         | no
-`client_secret`      | `secret`             | Setup of the OAuth2 client.              |         | no
-`client_secret_file` | `string`             | Setup of the OAuth2 client.              |         | no
-`scopes`             | `list(string)`       | Setup of the OAuth2 client.              |         | no
-`token_url`          | `string`             | Setup of the OAuth2 client.              |         | no
-`endpoint_params`    | `map(string)`        | Setup of the OAuth2 client.              |         | no
-`proxy_url`          | `string`             | Setup of the OAuth2 client.              |         | no
+### oauth2 block
 
-The `oauth2` block may also contain its own separate `tls_config` sub-block.
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`client_id` | `string` | OAuth2 client ID. | | no
+`client_secret` | `secret` | OAuth2 client secret. | | no
+`client_secret_file` | `string` | File containing the OAuth2 client secret. | | no
+`scopes` | `list(string)` | List of scopes to authenticate with. | | no
+`token_url` | `string` | URL to fetch the token from. | | no
+`endpoint_params` | `map(string)` | Optional parameters to append to the token URL. | | no
+`proxy_url` | `string` | Optional proxy URL for OAuth2 requests. | | no
 
-#### `tls_config` block
+`client_secret` and `client_secret_file` are mututally exclusive and only one
+can be provided inside of an `oauth2` block.
 
-Name                              | Type       | Description                                | Default | Required
---------------------------------- | ---------- | ------------------------------------------ | ------- | --------
-`tls_config_ca_file`              | `string`   | Configuration options for TLS connections. |         | no
-`tls_config_cert_file`            | `string`   | Configuration options for TLS connections. |         | no
-`tls_config_key_file`             | `string`   | Configuration options for TLS connections. |         | no
-`tls_config_server_name`          | `string`   | Configuration options for TLS connections. |         | no
-`tls_config_insecure_skip_verify` | `bool`     | Configuration options for TLS connections. |         | no
+### tls_config block
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`ca_file` | `string` | CA certificate to validate the server with. | | no
+`cert_file` | `string` | Certificate file for client authentication. | | no
+`key_file` | `string` | Key file for client authentication. | | no
+`server_name` | `string` | ServerName extension to indicate the name of the server. | | no
+`insecure_skip_verify` | `bool` | Disables validation of the server certificate. | | no
+`min_version` | `string` | Minimum acceptable TLS version. | | no
+
+When `min_version` is not provided, the minimum acceptable TLS version is
+inherited from Go's default minimum version, TLS 1.2. If `min_version` is
+provided, it must be set to one of the following strings:
+
+* `"TLS10"` (TLS 1.0)
+* `"TLS11"` (TLS 1.1)
+* `"TLS12"` (TLS 1.2)
+* `"TLS13"` (TLS 1.3)
 
 ## Exported fields
 
@@ -164,7 +182,7 @@ Prometheus, and by extent this component, uses a pull model for scraping
 metrics from a given set of _targets_.
 Each scrape target is defined as a set of key-value pairs called _labels_.
 The set of targets can either be _static_, or dynamically provided periodically
-by a service disovery component such as `discovery.kubernetes`. The special
+by a service discovery component such as `discovery.kubernetes`. The special
 label `__address__` _must always_ be present and corresponds to the
 `<host>:<port>` that is used for the scrape request.
 
@@ -193,7 +211,7 @@ The following labels are automatically injected to the scraped time series and
 can help pin down a scrape target.
 
 Label                 | Description
---------------------- | ---------- 
+--------------------- | ----------
 job                   | The configured job name that the target belongs to. Defaults to the fully formed component name.
 instance              | The `__address__` or `<host>:<port>` of the scrape target's URL.
 
@@ -217,4 +235,34 @@ scrape target, either because it is not reachable, because the connection
 times out while scraping, or because the samples from the target could not be
 processed. When the target is behaving normally, the `up` metric is set to
 `1`.
+
+## Example
+
+The following example sets up the scrape job with certain attributes (scrape
+endpoint, scrape interval, query parameters) and lets it scrape two instances
+of the [blackbox exporter](https://github.com/prometheus/blackbox_exporter/).
+The exposed metrics are sent over to the provided list of receivers, as
+defined by other components.
+
+```river
+prometheus.scrape "blackbox_scraper" {
+  targets = [
+    {"__address__" = "blackbox-exporter:9115", "instance" = "one"},
+    {"__address__" = "blackbox-exporter:9116", "instance" = "two"},
+  ]
+
+  forward_to = [prometheus.remote_write.grafanacloud.receiver, prometheus.remote_write.onprem.receiver]
+
+  scrape_interval = "10s"
+  params          = { "target" = ["grafana.com"], "module" = ["http_2xx"] }
+  metrics_path    = "/probe"
+}
+```
+
+Here's the the endpoints that are being scraped every 10 seconds:
+```
+http://blackbox-exporter:9115/probe?target=grafana.com&module=http_2xx
+http://blackbox-exporter:9116/probe?target=grafana.com&module=http_2xx
+```
+
 

@@ -16,31 +16,17 @@ different labels.
 
 [remote_write-spec]: https://docs.google.com/document/d/1LPhVRSFkGNSuU1fBd81ulhsCPR4hkSZyyBj1SZ8fWOM/edit
 
-## Example
+## Usage
 
 ```river
-prometheus.remote_write "staging" {
-  // Send metrics to a locally running Mimir.
+prometheus.remote_write "LABEL" {
   endpoint {
-    url = "http://mimir:9009/api/v1/push"
+    url = REMOTE_WRITE_URL
 
-    http_client_config {
-      basic_auth {
-        username = "example-user"
-        password = "example-password"
-      }
-    }
+    ...
   }
-}
 
-// Configure a prometheus.scrape component to send metrics to
-// prometheus.remote_write component.
-prometheus.scrape "demo" {
-  targets = [
-    // Collect metrics from Grafana Agent's default HTTP listen address.
-    {"__address__" = "127.0.0.1:12345"},
-  ]
-  forward_to = [prometheus.remote_write.staging.receiver]
+  ...
 }
 ```
 
@@ -175,7 +161,7 @@ Name | Type | Description | Default | Required
 `insecure_skip_verify` | `bool` | Disables validation of the server certificate. | | no
 `min_version` | `string` | Minimum acceptable TLS version. | | no
 
-When `min_version` is not provided, the minumum acceptable TLS version is
+When `min_version` is not provided, the minimum acceptable TLS version is
 inherited from Go's default minimum version, TLS 1.2. If `min_version` is
 provided, it must be set to one of the following strings:
 
@@ -354,3 +340,31 @@ information.
   remote storage.
 * `prometheus_remote_storage_exemplars_in_total` (counter): Exemplars read into
   remote storage.
+
+## Example
+
+```river
+prometheus.remote_write "staging" {
+  // Send metrics to a locally running Mimir.
+  endpoint {
+    url = "http://mimir:9009/api/v1/push"
+
+    http_client_config {
+      basic_auth {
+        username = "example-user"
+        password = "example-password"
+      }
+    }
+  }
+}
+
+// Configure a prometheus.scrape component to send metrics to
+// prometheus.remote_write component.
+prometheus.scrape "demo" {
+  targets = [
+    // Collect metrics from Grafana Agent's default HTTP listen address.
+    {"__address__" = "127.0.0.1:12345"},
+  ]
+  forward_to = [prometheus.remote_write.staging.receiver]
+}
+```

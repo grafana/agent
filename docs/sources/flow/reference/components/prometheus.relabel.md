@@ -29,23 +29,17 @@ each metric in order of their appearance in the configuration file.
 Multiple `prometheus.relabel` components can be specified by giving them
 different labels.
 
-## Example
+## Usage
+
 ```river
-prometheus.relabel "keep_backend_only" {
-	forward_to = [prometheus.remote_write.onprem.receiver]
+prometheus.relabel "LABEL" {
+  forward_to = RECEIVER_LIST
 
-	rule {
-		action        = "replace"
-		source_labels = ["__address__", "instance"]
-		separator     = "/"
-		target_label  = "host"
-	}
+  rule {
+    ...
+  }
 
-	rule {
-		action        = "keep"
-		source_labels = ["app"]
-		regex         = "backend"
-	}
+  ...
 }
 ```
 
@@ -55,15 +49,19 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`forward_to` | `list(receiver)` | Where the metrics should be forwarded to, after relabeling takes place | | **yes**
+`forward_to` | `list(receiver)` | Where the metrics should be forwarded to, after relabeling takes place. | | **yes**
 
-The following subblocks are supported:
+## Blocks
 
-Name | Description | Required
----- | ----------- | --------
-[`rule`](#rule-block) | Relabeling rules to apply to received metrics | no
+The following blocks are supported inside the definition of `prometheus.relabel`:
 
-### `rule` block
+Hierarchy | Name | Description | Required
+--------- | ---- | ----------- | --------
+rule | [rule][] | Relabeling rules to apply to received metrics. | no
+
+[rule]: #rule-block
+
+### rule block
 
 The `rule` block contains the definition of any relabeling
 rules that can be applied to an input metric. If more than one
@@ -118,37 +116,39 @@ values.
 
 `prometheus.relabel` does not expose any component-specific debug metrics.
 
-## Metric relabeling in action
+## Example
+
 Let's create an instance of a see `prometheus.relabel` component and see how
 it acts on the following metrics.
+
 ```river
 prometheus.relabel "keep_backend_only" {
-	forward_to = [prometheus.remote_write.onprem.receiver]
+  forward_to = [prometheus.remote_write.onprem.receiver]
 
-	rule {
-		action        = "replace"
-		source_labels = ["__address__", "instance"]
-		separator     = "/"
-		target_label  = "host"
-	}
-	rule {
-		action        = "keep"
-		source_labels = ["app"]
-		regex         = "backend"
-	}
-	rule {
-		action = "labeldrop"
-		regex  = "instance"
-	}
+  rule {
+    action        = "replace"
+    source_labels = ["__address__", "instance"]
+    separator     = "/"
+    target_label  = "host"
+  }
+  rule {
+    action        = "keep"
+    source_labels = ["app"]
+    regex         = "backend"
+  }
+  rule {
+    action = "labeldrop"
+    regex  = "instance"
+  }
 }
 ```
 
 ```
 metric_a{__address__ = "localhost", instance = "development", app = "frontend"} 10
-metric_a{__address__ = "localhost", instance = "development", app = "backend"}	2
+metric_a{__address__ = "localhost", instance = "development", app = "backend"}  2
 metric_a{__address__ = "cluster_a", instance = "production",  app = "frontend"} 7
-metric_a{__address__ = "cluster_a", instance = "production",  app = "backend"}	9
-metric_a{__address__ = "cluster_b", instance = "production",  app = "database"}	4
+metric_a{__address__ = "cluster_a", instance = "production",  app = "backend"}  9
+metric_a{__address__ = "cluster_b", instance = "production",  app = "database"} 4
 ```
 
 After applying the first `rule`, the `replace` action populates a new label
@@ -157,10 +157,10 @@ labels, separated by a slash `/`.
 
 ```
 metric_a{host = "localhost/development", __address__ = "localhost", instance = "development", app = "frontend"} 10
-metric_a{host = "localhost/development", __address__ = "localhost", instance = "development", app = "backend"}	2
+metric_a{host = "localhost/development", __address__ = "localhost", instance = "development", app = "backend"}  2
 metric_a{host = "cluster_a/production",  __address__ = "cluster_a", instance = "production",  app = "frontend"} 7
-metric_a{host = "cluster_a/production",  __address__ = "cluster_a", instance = "production",  app = "backend"}	9
-metric_a{host = "cluster_b/production",  __address__ = "cluster_a", instance = "production",  app = "database"}	4
+metric_a{host = "cluster_a/production",  __address__ = "cluster_a", instance = "production",  app = "backend"}  9
+metric_a{host = "cluster_b/production",  __address__ = "cluster_a", instance = "production",  app = "database"} 4
 ```
 
 On the second relabeling rule, the `keep` action only keeps the metrics whose
@@ -168,8 +168,8 @@ On the second relabeling rule, the `keep` action only keeps the metrics whose
 is be trimmed down to:
 
 ```
-metric_a{host = "localhost/development", __address__ = "localhost", instance = "development", app = "backend"}	2
-metric_a{host = "cluster_a/production",  __address__ = "cluster_a", instance = "production",  app = "backend"}	9
+metric_a{host = "localhost/development", __address__ = "localhost", instance = "development", app = "backend"}  2
+metric_a{host = "cluster_a/production",  __address__ = "cluster_a", instance = "production",  app = "backend"}  9
 ```
 
 The third and final relabeling rule which uses the `labeldrop` action removes
@@ -177,10 +177,9 @@ the `instance` label from the set of labels.
 
 So in this case, the initial set of metrics passed to the exported receiver is:
 ```
-metric_a{host = "localhost/development", __address__ = "localhost", app = "backend"}	2
-metric_a{host = "cluster_a/production",  __address__ = "cluster_a", app = "backend"}	9
+metric_a{host = "localhost/development", __address__ = "localhost", app = "backend"}  2
+metric_a{host = "cluster_a/production",  __address__ = "cluster_a", app = "backend"}  9
 ```
 
 The two resulting metrics are then propagated to each receiver defined in the
 `forward_to` argument.
-
