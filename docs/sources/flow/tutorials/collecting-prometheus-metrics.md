@@ -31,7 +31,7 @@ Navigate to `http://localhost:12345/graph` to view the Grafana Agent Flow UI.
 
 ![](../assets/graph.png)
 
-Clicking on the nodes will navigate to the associated component page. This allows viewing the state, health information and if applicable the debug information.
+Click the nodes to navigate to the associated component page. There, you can view the state, health information, and, if applicable, the debug information.
 
 ![](../assets/comp_info.png)
 
