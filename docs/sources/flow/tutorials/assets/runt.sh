@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
+mkdir ./tutorials
+cd ./tutorials || exit
 curl https://raw.githubusercontent.com/grafana/agent/main/docs/sources/flow/tutorials/assets/docker-compose.yaml -o ./docker-compose.yaml
 mkdir -p ./mimir
 curl https://raw.githubusercontent.com/grafana/agent/main/docs/sources/flow/tutorials/assets/mimir/mimir.yaml -o ./mimir/mimir.yaml
 mkdir -p ./flow_configs
 curl https://raw.githubusercontent.com/grafana/agent/main/docs/sources/flow/tutorials/assets/flow_configs/agent.flow -o ./flow_configs/agent.flow
+curl https://raw.githubusercontent.com/grafana/agent/main/docs/sources/flow/tutorials/assets/flow_configs/example.flow -o ./flow_configs/example.flow
 curl https://raw.githubusercontent.com/grafana/agent/main/docs/sources/flow/tutorials/assets/flow_configs/relabel.flow -o ./flow_configs/relabel.flow
 curl https://raw.githubusercontent.com/grafana/agent/main/docs/sources/flow/tutorials/assets/flow_configs/multiple-inputs.flow -o ./flow_configs/multiple-inputs.flow
 mkdir -p ./grafana
