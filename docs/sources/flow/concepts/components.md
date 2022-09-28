@@ -77,6 +77,10 @@ An example pipeline may look like this:
    component, and sends collected metrics to the `prometheus.remote_write`
    component.
 
+<p align="center">
+<img src="../../../assets/concepts_example_pipeline.svg" alt="Flow of example pipeline" width="500" />
+</p>
+
 The following config file represents the above pipeline:
 
 ```river
