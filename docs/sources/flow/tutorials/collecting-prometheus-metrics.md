@@ -30,7 +30,7 @@ This example scrapes the Grafana Agent's `http://localhost:12345/metrics` endpoi
 Navigate to `http://localhost:12345/graph` to view the Grafana Agent Flow UI. 
 
 ![](../assets/graph.png)
-
+The Agent displays the component pipeline in a dependency graph.  See [Scraping component](#scraping-component) and [Remote Write component](#remote-write-component) for details about the components used in this configuration. 
 Click the nodes to navigate to the associated component page. There, you can view the state, health information, and, if applicable, the debug information.
 
 ![](../assets/comp_info.png)
