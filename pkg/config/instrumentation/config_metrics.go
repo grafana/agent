@@ -9,9 +9,9 @@ import (
 )
 
 type configMetrics struct {
-	configHash          *prometheus.GaugeVec
-	configReloadSuccess prometheus.Gauge
-	configReloadSeconds *prometheus.GaugeVec
+	configHash        *prometheus.GaugeVec
+	configLoadSuccess prometheus.Gauge
+	configLoadSeconds *prometheus.GaugeVec
 }
 
 // ConfigMetrics exposes metrics related to configuration loading
@@ -27,13 +27,13 @@ func newConfigMetrics() *configMetrics {
 		},
 		[]string{"sha256"},
 	)
-	m.configReloadSuccess = promauto.NewGauge(prometheus.GaugeOpts{
-		Name: "agent_config_last_reload_successful",
+	m.configLoadSuccess = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "agent_config_last_load_successful",
 		Help: "Config loaded successfully.",
 	})
-	m.configReloadSeconds = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "agent_config_last_reload_timestamp_seconds",
-		Help: "Timestamp of the last configuration reload by result.",
+	m.configLoadSeconds = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "agent_config_last_load_timestamp_seconds",
+		Help: "Timestamp of the last configuration load by result.",
 	}, []string{"result"})
 
 	return &m
@@ -47,13 +47,13 @@ func (c *configMetrics) InstrumentConfig(buf []byte) {
 	c.configHash.WithLabelValues(fmt.Sprintf("%x", hash)).Set(1)
 }
 
-// Expose metrics for reload success / failures.
+// Expose metrics for load success / failures.
 func (c *configMetrics) InstrumentLoad(success bool) {
 	if success {
-		c.configReloadSuccess.Set(1)
-		c.configReloadSeconds.WithLabelValues("success").SetToCurrentTime()
+		c.configLoadSuccess.Set(1)
+		c.configLoadSeconds.WithLabelValues("success").SetToCurrentTime()
 	} else {
-		c.configReloadSuccess.Set(0)
-		c.configReloadSeconds.WithLabelValues("failure").SetToCurrentTime()
+		c.configLoadSuccess.Set(0)
+		c.configLoadSeconds.WithLabelValues("failure").SetToCurrentTime()
 	}
 }
