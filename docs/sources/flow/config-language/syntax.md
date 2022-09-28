@@ -35,7 +35,7 @@ The following example sets the `log_level` attribute to `"debug"`.
 log_level = "debug"
 ```
 
-All `ATTRIBUTE_NAME`s must be valid River [identifiers](#identifiers).
+The `ATTRIBUTE_NAME` must be a valid River [identifier](#identifier).
 
 The `ATTRIBUTE_VALUE` can be either a constant value of a valid River
 [type]({{< relref "./expressions/types_and_values.md" >}}) (eg. string,
@@ -48,8 +48,9 @@ grouping any number of attributes or nested blocks using curly braces.
 Blocks have a _name_, an optional _label_ and a body that contains any number
 of arguments and nested unlabeled blocks.
 
-```
-// Pattern for creating an unlabeled block:
+#### Pattern for creating an unlabeled block
+
+```river
 BLOCK_NAME {
   // Block body can contain attributes and nested unlabeled blocks
   IDENTIFIER = EXPRESSION // Attribute
@@ -58,7 +59,11 @@ BLOCK_NAME {
     // Nested block body
   }
 }
+```
 
+#### Pattern for creating a labeled block
+
+```river
 // Pattern for creating a labeled block:
 BLOCK_NAME "BLOCK_LABEL" {
   // Block body can contain attributes and nested unlabeled blocks
@@ -70,8 +75,10 @@ BLOCK_NAME "BLOCK_LABEL" {
 }
 ```
 
-The `<BLOCK_NAME>` has to be recognized by Flow as either a valid component
-name or a special block for configuring global settings. If the `<BLOCK_LABEL>`
+#### Block naming rules
+
+The `BLOCK_NAME` has to be recognized by Flow as either a valid component
+name or a special block for configuring global settings. If the `BLOCK_LABEL`
 has to be set, it must be a valid River [identifier](#identifiers) wrapped in
 double quotes. In these cases the label will be used to disambiguate between
 multiple top-level blocks of the same name.
