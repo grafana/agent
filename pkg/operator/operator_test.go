@@ -158,6 +158,7 @@ func NewTestCluster(ctx context.Context, t *testing.T, l log.Logger) *k8s.Cluste
 		require.NoError(t, err)
 	}
 
+	require.NoError(t, crds.Wait(ctx), "CRDs did not get created successfully")
 	return cluster
 }
 
