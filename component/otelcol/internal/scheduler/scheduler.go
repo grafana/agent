@@ -20,10 +20,13 @@ import (
 // OpenTelemetry Collector components; it does not implement the full
 // component.Component interface.
 //
-// Each OpenTelemetry Collector component has one instance per supported
-// telemetry signal, hence supporting multiple OpenTelemetry Collector
-// components inside the scheduler. Scheduler should only be used to manage
-// multiple instances of the same OpenTelemetry Collector component.
+// Each OpenTelemetry Collector component has one instance per support
+// telemetry signal, which is why Scheduler supports multiple components. For
+// example, when creating the otlpreceiver component, you would have three
+// total instances: one for logs, one for metrics, and one for traces.
+// Scheduler should only be used to manage the different signals of the same
+// OpenTelemetry Collector component; this means that otlpreceiver and
+// jaegerreceiver should not share the same Scheduler.
 type Scheduler struct {
 	log log.Logger
 
