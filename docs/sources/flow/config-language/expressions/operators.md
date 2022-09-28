@@ -52,7 +52,7 @@ comparisons are defined as follows:
 Operator | Description
 -------- | -----------
 `&&`     | `true` when the both left _and_ right value are `true`.
-`||`     | `true` when the either left _or_ right value are `true`.
+`\|\|`     | `true` when the either left _or_ right value are `true`.
 `!`      | Negates a boolean value.
 
 Logical operators apply to boolean values and yield a boolean result.
