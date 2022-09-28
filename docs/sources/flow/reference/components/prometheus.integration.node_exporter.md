@@ -16,15 +16,10 @@ enabled and disabled at will. For more information on collectors, refer to the
 The `prometheus.integration.node_exporter` component can only appear once per
 configuration file, and a block label must not be passed to it.
 
-## Example
+## Usage
+
 ```river
 prometheus.integration.node_exporter {
-}
-
-// Configure a prometheus.scrape component to collect node_exporter metrics.
-prometheus.scrape "demo" {
-  targets    = prometheus.integration.node_exporter.targets
-  forward_to = [ /* ... */ ]
 }
 ```
 
@@ -328,3 +323,21 @@ arguments for the component to work.
 You may also need to add capabilities such as `SYS_TIME` and make sure that the
 Agent is running with elevated privileges for some of the collectors to work
 properly.
+
+## Example
+
+This example uses a [`prometheus.scrape` component][scrape] to collect metrics
+from `prometheus.integration.node_exporter`:
+
+```river
+prometheus.integration.node_exporter {
+}
+
+// Configure a prometheus.scrape component to collect node_exporter metrics.
+prometheus.scrape "demo" {
+  targets    = prometheus.integration.node_exporter.targets
+  forward_to = [ /* ... */ ]
+}
+```
+
+[scrape]: {{< relref "./prometheus.scrape.md" >}}

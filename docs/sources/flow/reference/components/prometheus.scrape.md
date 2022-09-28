@@ -13,33 +13,13 @@ title: prometheus.scrape
 Multiple `prometheus.scrape` components can be specified by giving them
 different labels.
 
-## Example
+## Usage
 
-The following example sets up the scrape job with certain attributes (scrape
-endpoint, scrape interval, query parameters) and lets it scrape two instances
-of the [blackbox exporter](https://github.com/prometheus/blackbox_exporter/).
-The exposed metrics are sent over to the provided list of receivers, as
-defined by other components.
-
-```river
-prometheus.scrape "blackbox_scraper" {
-  targets = [
-    {"__address__" = "blackbox-exporter:9115", "instance" = "one"},
-    {"__address__" = "blackbox-exporter:9116", "instance" = "two"},
-  ]
-
-  forward_to = [prometheus.remote_write.grafanacloud.receiver, prometheus.remote_write.onprem.receiver]
-
-  scrape_interval = "10s"
-  params          = { "target" = ["grafana.com"], "module" = ["http_2xx"] }
-  metrics_path    = "/probe"
+```
+prometheus.scrape "LABEL" {
+  targets    = TARGET_LIST
+  forward_to = RECEIVER_LIST
 }
-```
-
-Here's the the endpoints that are being scraped every 10 seconds:
-```
-http://blackbox-exporter:9115/probe?target=grafana.com&module=http_2xx
-http://blackbox-exporter:9116/probe?target=grafana.com&module=http_2xx
 ```
 
 ## Arguments
@@ -255,4 +235,34 @@ scrape target, either because it is not reachable, because the connection
 times out while scraping, or because the samples from the target could not be
 processed. When the target is behaving normally, the `up` metric is set to
 `1`.
+
+## Example
+
+The following example sets up the scrape job with certain attributes (scrape
+endpoint, scrape interval, query parameters) and lets it scrape two instances
+of the [blackbox exporter](https://github.com/prometheus/blackbox_exporter/).
+The exposed metrics are sent over to the provided list of receivers, as
+defined by other components.
+
+```river
+prometheus.scrape "blackbox_scraper" {
+  targets = [
+    {"__address__" = "blackbox-exporter:9115", "instance" = "one"},
+    {"__address__" = "blackbox-exporter:9116", "instance" = "two"},
+  ]
+
+  forward_to = [prometheus.remote_write.grafanacloud.receiver, prometheus.remote_write.onprem.receiver]
+
+  scrape_interval = "10s"
+  params          = { "target" = ["grafana.com"], "module" = ["http_2xx"] }
+  metrics_path    = "/probe"
+}
+```
+
+Here's the the endpoints that are being scraped every 10 seconds:
+```
+http://blackbox-exporter:9115/probe?target=grafana.com&module=http_2xx
+http://blackbox-exporter:9116/probe?target=grafana.com&module=http_2xx
+```
+
 

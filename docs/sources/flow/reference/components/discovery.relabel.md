@@ -31,28 +31,11 @@ guaranteed to never be used.
 Multiple `discovery.relabel` components can be specified by giving them
 different labels.
 
-## Example
+## Usage
 
-```river
-discovery.relabel "keep_backend_only" {
-  targets = [
-    { "__meta_foo" = "foo", "__address__" = "localhost", "instance" = "one",   "app" = "backend"  },
-    { "__meta_bar" = "bar", "__address__" = "localhost", "instance" = "two",   "app" = "database" },
-    { "__meta_baz" = "baz", "__address__" = "localhost", "instance" = "three", "app" = "frontend" },
-  ]
-
-  rule {
-    source_labels = ["__address__", "instance"]
-    separator     = "/"
-    target_label  = "destination"
-    action        = "replace"
-  }
-
-  rule {
-    source_labels = ["app"]
-    action        = "keep"
-    regex         = "backend"
-  }
+```
+discovery.relabel "LABEL" {
+  targets = TARGET_LIST
 }
 ```
 
@@ -129,3 +112,30 @@ values.
 ### Debug metrics
 
 `discovery.relabel` does not expose any component-specific debug metrics.
+
+## Example
+
+```river
+discovery.relabel "keep_backend_only" {
+  targets = [
+    { "__meta_foo" = "foo", "__address__" = "localhost", "instance" = "one",   "app" = "backend"  },
+    { "__meta_bar" = "bar", "__address__" = "localhost", "instance" = "two",   "app" = "database" },
+    { "__meta_baz" = "baz", "__address__" = "localhost", "instance" = "three", "app" = "frontend" },
+  ]
+
+  rule {
+    source_labels = ["__address__", "instance"]
+    separator     = "/"
+    target_label  = "destination"
+    action        = "replace"
+  }
+
+  rule {
+    source_labels = ["app"]
+    action        = "keep"
+    regex         = "backend"
+  }
+}
+```
+
+

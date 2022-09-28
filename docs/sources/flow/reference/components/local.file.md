@@ -15,11 +15,11 @@ files.
 Multiple `local.file` components can be specified by giving them different
 labels.
 
-## Example
+## Usage
 
 ```river
-local.file "my-file" {
-  filename = "path/to/my/file"
+local.file "LABEL" {
+  filename = FILE_NAME
 }
 ```
 
@@ -94,3 +94,11 @@ component.
   timestamp, in Unix seconds, that the file was last sucessfully accessed.
 
 [secret]: ../secrets.md#is_secret-argument-in-components
+
+## Example
+
+```river
+local.file "my_file" {
+  filename = "path/to/my/file"
+}
+```

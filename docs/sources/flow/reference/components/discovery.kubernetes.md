@@ -14,25 +14,11 @@ If you supply no connection information, this component defaults to an
 in-cluster config. A kubeconfig file or manual connection settings can be used
 to override the defaults.
 
-## Example
-
-This example shows a simple in-cluster discovery of all pods:
+## Usage
 
 ```river
-discovery.kubernetes "k8s_pods" {
-  role = "pod"
-}
-```
-
-This example provides a custom namespace and kubeconfig file:
-
-```river
-discovery.kubernetes "k8s_pods" {
-  role = "pod"
-  kubeconfig_file = "/path/to/kubeconfig"
-  namespaces {
-    names = ["myapp"]
-  }
+discovery.kubernetes "LABEL" {
+  role = "DISCOVERY_ROLE"
 }
 ```
 
@@ -407,3 +393,39 @@ values.
 ### Debug metrics
 
 `discovery.kubernetes` does not expose any component-specific debug metrics.
+
+## Examples
+
+### In-cluster discovery
+
+This example uses in-cluster authentication to discover all pods:
+
+```river
+discovery.kubernetes "k8s_pods" {
+  role = "pod"
+}
+```
+
+### Kubeconfig authentication
+
+This example uses a kubeconfig file to authenticate to the Kubernetes API:
+
+```river
+discovery.kubernetes "k8s_pods" {
+  role = "pod"
+  kubeconfig_file = "/path/to/kubeconfig"
+}
+```
+
+### Limit searched namespaces
+
+This example limits the namespaces where pods are discovered using the `namespaces` block:
+
+```river
+discovery.kubernetes "k8s_pods" {
+  role = "pod"
+  namespaces {
+    names = ["myapp"]
+  }
+}
+```

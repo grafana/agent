@@ -19,11 +19,11 @@ labels. By default, [AWS environment variables](https://docs.aws.amazon.com/cli/
 > authentication environment variables. There is no  guarantee that `remote.s3` will work with non-AWS S3
 > systems.
 
-## Example
+## Usage
 
 ```river
-remote.s3 "data" {
-  path = "s3://test-bucket/file.txt"
+remote.s3 "LABEL" {
+  path = S3_FILE_PATH
 }
 ```
 
@@ -84,3 +84,11 @@ the watched file was successful.
 ### Debug metrics
 
 `remote.s3` does not expose any component-specific debug metrics.
+
+## Example
+
+```river
+remote.s3 "data" {
+  path = "s3://test-bucket/file.txt"
+}
+```
