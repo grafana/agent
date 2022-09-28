@@ -36,7 +36,7 @@ The `role` argument is required to specify what type of targets to discover.
 `role` must be one of `node`, `pod`, `service`, `endpoints`, `endpointslice`,
 or `ingress`.
 
-### `node` role
+### node role
 
 The `node` role discovers one target per cluster node with the address
 defaulting to the HTTP port of the Kubelet daemon. The target address defaults
@@ -59,7 +59,7 @@ The following labels are included for discovered nodes:
 In addition, the `instance` label for the node will be set to the node name as
 retrieved from the API server.
 
-### `service` role
+### service role
 
 The `service` role discovers a target for each service port for each service.
 This is generally useful for externally monitoring a service. The address will
@@ -89,7 +89,7 @@ The following labels are included for discovered services:
   the target.
 * `__meta_kubernetes_service_type`: The type of the service.
 
-### `pod` role
+### pod role
 
 The `pod` role discovers all pods and exposes their containers as targets. For
 each declared port of a container, a single target is generated.
@@ -131,7 +131,7 @@ The following labels are included for discovered pods:
 * `__meta_kubernetes_pod_controller_kind`: Object kind of the pod controller.
 * `__meta_kubernetes_pod_controller_name`: Name of the pod controller.
 
-### `endpoints` role
+### endpoints role
 
 The `endpoints` role discovers targets from listed endpoints of a service. For
 each endpoint address one target is discovered per port. If the endpoint is
@@ -164,7 +164,7 @@ The following labels are included for discovered endpoints:
 * For all targets backed by a pod, all labels of the `pod` role discovery are
   attached.
 
-### `endpointslice` role
+### endpointslice role
 
 The endpointslice role discovers targets from existing Kubernetes endpoint
 slices. For each endpoint address referenced in the `EndpointSlice` object, one
@@ -200,7 +200,7 @@ The following labels are included for discovered endpoint slices:
 * For all targets backed by a pod, all labels of the `pod` role discovery are
   attached.
 
-### `ingress` role
+### ingress role
 
 The `ingress` role discovers a target for each path of each ingress. This is
 generally useful for externally monitoring an ingress. The address will be set
