@@ -128,9 +128,15 @@ Name | Type | Description | Default | Required
 ### filesystem block
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`fs_types_exclude`     | `string`   | Regexp of filesystem types to ignore for filesystem collector.| `"^(autofs\|binfmt_misc\|bpf\|cgroup2?\|configfs\|debugfs\|devpts\|devtmpfs\|fusectl\|hugetlbfs\|iso9660\|mqueue\|nsfs\|overlay\|proc\|procfs\|pstore\|rpc_pipefs\|securityfs\|selinuxfs\|squashfs\|sysfs\|tracefs)$"` | no
+`fs_types_exclude`     | `string`   | Regexp of filesystem types to ignore for filesystem collector.| (_see below_ )| no
 `mount_points_exclude` | `string`   | Regexp of mount points to ignore for filesystem collector. | `"^/(dev\|proc\|sys\|var/lib/docker/.+)($\|/)"` | no
 `mount_timeout`        | `duration` | How long to wait for a mount to respond before marking it as stale. | `"5s"` | no
+
+`fs_types_exclude` defaults to the following regular expression string:
+
+```
+^(autofs\|binfmt_misc\|bpf\|cgroup2?\|configfs\|debugfs\|devpts\|devtmpfs\|fusectl\|hugetlbfs\|iso9660\|mqueue\|nsfs\|overlay\|proc\|procfs\|pstore\|rpc_pipefs\|securityfs\|selinuxfs\|squashfs\|sysfs\|tracefs)$
+```
 
 ### ipvs block
 Name | Type | Description | Default | Required
@@ -163,7 +169,13 @@ name | type | description | default | required
 ### netstat block
 name | type | description | default | required
 ---- | ---- | ----------- | ------- | --------
-`fields` | `string` | Regexp of fields to return for netstat collector. | `"^(.*_(InErrors\|InErrs)\|Ip_Forwarding\|Ip(6\|Ext)_(InOctets\|OutOctets)\|Icmp6?_(InMsgs\|OutMsgs)\|TcpExt_(Listen.*\|Syncookies.*\|TCPSynRetrans\|TCPTimeouts)\|Tcp_(ActiveOpens\|InSegs\|OutSegs\|OutRsts\|PassiveOpens\|RetransSegs\|CurrEstab)\|Udp6?_(InDatagrams\|OutDatagrams\|NoPorts\|RcvbufErrors\|SndbufErrors))$"` | no
+`fields` | `string` | Regexp of fields to return for netstat collector. | _(see below)_ | no
+
+`fields` defaults to the following regular expression string:
+
+```
+"^(.*_(InErrors\|InErrs)\|Ip_Forwarding\|Ip(6\|Ext)_(InOctets\|OutOctets)\|Icmp6?_(InMsgs\|OutMsgs)\|TcpExt_(Listen.*\|Syncookies.*\|TCPSynRetrans\|TCPTimeouts)\|Tcp_(ActiveOpens\|InSegs\|OutSegs\|OutRsts\|PassiveOpens\|RetransSegs\|CurrEstab)\|Udp6?_(InDatagrams\|OutDatagrams\|NoPorts\|RcvbufErrors\|SndbufErrors))$"
+```
 
 ### perf block
 name | type | description | default | required
