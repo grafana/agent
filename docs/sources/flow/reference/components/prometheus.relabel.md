@@ -116,9 +116,11 @@ values.
 
 `prometheus.relabel` does not expose any component-specific debug metrics.
 
-## Metric relabeling in action
+## Example
+
 Let's create an instance of a see `prometheus.relabel` component and see how
 it acts on the following metrics.
+
 ```river
 prometheus.relabel "keep_backend_only" {
   forward_to = [prometheus.remote_write.onprem.receiver]
@@ -181,26 +183,3 @@ metric_a{host = "cluster_a/production",  __address__ = "cluster_a", app = "backe
 
 The two resulting metrics are then propagated to each receiver defined in the
 `forward_to` argument.
-
-## Example
-
-```river
-prometheus.relabel "keep_backend_only" {
-  forward_to = [prometheus.remote_write.onprem.receiver]
-
-  rule {
-    action        = "replace"
-    source_labels = ["__address__", "instance"]
-    separator     = "/"
-    target_label  = "host"
-  }
-
-  rule {
-    action        = "keep"
-    source_labels = ["app"]
-    regex         = "backend"
-  }
-}
-```
-
-
