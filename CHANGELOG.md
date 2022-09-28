@@ -10,6 +10,12 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Features
+
+- Add `agentctl test-logs` command to allow testing log configurations by redirecting
+collected logs to standard output. This can be useful for debugging. (@jcreixell)
+
+
 v0.28.0-rc.0 (2022-09-21)
 -------------------------
 
