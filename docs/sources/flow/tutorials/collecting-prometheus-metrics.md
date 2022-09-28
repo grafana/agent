@@ -5,13 +5,15 @@ title: Collecting Prometheus metrics
 weight: 200
 ---
 
+# Collecting Prometheus metrics
+
 Grafana Agent is a telemetry collector with the primary goal of moving telemetry data from one location to another. In this tutorial, you'll set up a Grafana Agent in Flow mode.
 
-# Prerequisites
+## Prerequisites
 
 * [Docker](https://www.docker.com/products/docker-desktop)
 
-# Scraping the Agent
+## Run the example
 
 Run the following `curl https://raw.githubusercontent.com/grafana/agent/main/docs/sources/flow/tutorials/assets/runt.sh -O && bash ./runt.sh agent.flow`. 
 
@@ -34,9 +36,6 @@ Navigate to `http://localhost:12345/graph` to view the Grafana Agent Flow UI.
 Clicking on the nodes will navigate to the associated component page. This allows viewing the state, health information and if applicable the debug information.
 
 ![](../assets/comp_info.png)
-
-
-
 
 ## Scraping component
 
