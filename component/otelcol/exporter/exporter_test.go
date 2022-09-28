@@ -97,7 +97,7 @@ func newTestEnvironment(t *testing.T, fe *fakeExporter) *testEnvironment {
 				},
 				otelcomponent.WithTracesExporter(func(ctx context.Context, ecs otelcomponent.ExporterCreateSettings, e otelconfig.Exporter) (otelcomponent.TracesExporter, error) {
 					return fe, nil
-				}),
+				}, otelcomponent.StabilityLevelUndefined),
 			)
 
 			return exporter.New(opts, factory, args.(exporter.Arguments))

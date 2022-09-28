@@ -209,7 +209,10 @@ func newInstanceScraper(
 
 	sdOpts := []func(*discovery.Manager){
 		discovery.Name("autoscraper/" + instanceName),
-		discovery.DialContextFunc(dialerFunc),
+		discovery.HTTPClientOptions(
+			// If dialerFunc is nil, scrape.NewManager will use Go's default dialer.
+			config_util.WithDialContextFunc(dialerFunc),
+		),
 	}
 	sd := discovery.NewManager(ctx, l, sdOpts...)
 	sm := scrape.NewManager(&scrape.Options{

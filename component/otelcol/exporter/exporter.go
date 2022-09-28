@@ -14,7 +14,7 @@ import (
 	"github.com/grafana/agent/pkg/build"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelconfig "go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/otel/metric/nonrecording"
+	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
@@ -118,7 +118,7 @@ func (e *Exporter) Update(args component.Arguments) error {
 			// instrumentation from Flow, but metrics should come sooner since we're
 			// already set up for supporting component-specific metrics.
 			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  nonrecording.NewNoopMeterProvider(),
+			MeterProvider:  metric.NewNoopMeterProvider(),
 		},
 
 		BuildInfo: otelcomponent.BuildInfo{

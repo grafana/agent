@@ -8,7 +8,13 @@ changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
 Main (unreleased)
---------------------
+-----------------
+
+### Enhancements
+
+- Update OpenTelemetry Collector dependency to v0.60.0. (@rfratto)
+
+- Update Prometheus dependency to v2.38.0. (@rfratto)
 
 v0.28.0 (2022-09-29)
 --------------------

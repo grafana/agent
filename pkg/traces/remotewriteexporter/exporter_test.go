@@ -9,10 +9,10 @@ import (
 	"github.com/grafana/agent/pkg/traces/contextkeys"
 	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/model/metadata"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config"
-	internal "go.opentelemetry.io/collector/pdata/external"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 )
@@ -68,8 +68,8 @@ func TestRemoteWriteExporter_ConsumeMetrics(t *testing.T) {
 
 	hdp := hm.Histogram().DataPoints().AppendEmpty()
 	hdp.SetTimestamp(pcommon.NewTimestampFromTime(ts.UTC()))
-	hdp.SetBucketCounts(internal.NewImmutableUInt64Slice(bucketCounts))
-	hdp.SetExplicitBounds(internal.NewImmutableFloat64Slice(explicitBounds))
+	hdp.SetBucketCounts(pcommon.NewImmutableUInt64Slice(bucketCounts))
+	hdp.SetExplicitBounds(pcommon.NewImmutableFloat64Slice(explicitBounds))
 	hdp.SetCount(countValue)
 	hdp.SetSum(sumValue)
 
@@ -170,5 +170,9 @@ func (a *mockAppender) Commit() error { return nil }
 func (a *mockAppender) Rollback() error { return nil }
 
 func (a *mockAppender) AppendExemplar(_ storage.SeriesRef, _ labels.Labels, _ exemplar.Exemplar) (storage.SeriesRef, error) {
+	return 0, nil
+}
+
+func (a *mockAppender) UpdateMetadata(_ storage.SeriesRef, _ labels.Labels, _ metadata.Metadata) (storage.SeriesRef, error) {
 	return 0, nil
 }
