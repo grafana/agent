@@ -15,7 +15,7 @@ A new concept introduced in Flow is chaining components together in a composable
 
 * [Docker](https://www.docker.com/products/docker-desktop)
 
-## Example
+## Run the example
 
 Run the following `curl https://raw.githubusercontent.com/grafana/agent/main/docs/sources/flow/tutorials/assets/runt.sh -O && bash ./runt.sh multiple-inputs.flow`.
 
