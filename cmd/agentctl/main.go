@@ -540,7 +540,7 @@ func testLogs() *cobra.Command {
 				os.Exit(1)
 			}
 
-			logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stdout))
+			logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
 			l, err := logs.New(prometheus.NewRegistry(), cfg.Logs, logger, true)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "failed to start log collection: %s\n", err)
@@ -552,7 +552,7 @@ func testLogs() *cobra.Command {
 			sigs := make(chan os.Signal, 1)
 			signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 			sig := <-sigs
-			fmt.Fprintf(os.Stdout, "received shutdown %v signal, stopping...", sig)
+			fmt.Fprintf(os.Stderr, "received shutdown %v signal, stopping...", sig)
 		},
 	}
 
