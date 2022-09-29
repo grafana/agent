@@ -20,7 +20,7 @@ Main (unreleased)
 
 ### Enhancements
 
-- Update OpenTelemetry Collector dependency to v0.60.0. (@rfratto)
+- Update OpenTelemetry Collector dependency to v0.61.0. (@rfratto)
 
 - Update Prometheus dependency to v2.38.0. (@rfratto)
 

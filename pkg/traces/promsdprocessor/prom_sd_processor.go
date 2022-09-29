@@ -111,8 +111,8 @@ func (p *promServiceDiscoProcessor) ConsumeTraces(ctx context.Context, td ptrace
 
 func stringAttributeFromMap(attrs pcommon.Map, key string) string {
 	if attr, ok := attrs.Get(key); ok {
-		if attr.Type() == pcommon.ValueTypeString {
-			return attr.StringVal()
+		if attr.Type() == pcommon.ValueTypeStr {
+			return attr.Str()
 		}
 	}
 	return ""
@@ -189,7 +189,7 @@ func (p *promServiceDiscoProcessor) processAttributes(ctx context.Context, attrs
 			}
 		case OperationTypeUpdate:
 			if toVal, ok := attrs.Get(string(k)); ok {
-				toVal.SetStringVal(string(v))
+				toVal.SetStr(string(v))
 			}
 		}
 	}
