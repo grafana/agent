@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/dskit/backoff"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -51,6 +52,39 @@ func (rs *ResourceSet) AddFile(ctx context.Context, filename string) error {
 	}
 	defer f.Close()
 	return rs.Add(ctx, f)
+}
+
+// Wait waits until all of the ResourceSet's objects can be found.
+func (rs *ResourceSet) Wait(ctx context.Context) error {
+	bo := backoff.New(ctx, backoff.Config{
+		MinBackoff: 10 * time.Millisecond,
+		MaxBackoff: 100 * time.Second,
+	})
+
+	check := func() error {
+		for _, obj := range rs.objects {
+			key := client.ObjectKeyFromObject(obj)
+
+			clone := obj.DeepCopyObject().(client.Object)
+			if err := rs.kubeClient.Get(ctx, key, clone); err != nil {
+				return fmt.Errorf("failed to get %s: %w", key, err)
+			}
+		}
+
+		return nil
+	}
+
+	for bo.Ongoing() {
+		err := check()
+		if err == nil {
+			return nil
+		}
+
+		level.Debug(rs.log).Log("msg", "not all resources are available; waiting", "err", err)
+		bo.Wait()
+	}
+
+	return bo.Err()
 }
 
 // Stop removes deployed resources from the cluster.

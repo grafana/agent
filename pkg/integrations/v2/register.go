@@ -270,7 +270,7 @@ func MarshalYAML(v interface{}) (interface{}, error) {
 // Configs field that should be inlined in the YAML string. Code adapted from
 // Prometheus:
 //
-//   https://github.com/prometheus/prometheus/blob/511511324adfc4f4178f064cc104c2deac3335de/discovery/registry.go#L111
+//	https://github.com/prometheus/prometheus/blob/511511324adfc4f4178f064cc104c2deac3335de/discovery/registry.go#L111
 func UnmarshalYAML(out interface{}, unmarshal func(interface{}) error) error {
 	outVal := reflect.ValueOf(out)
 	if outVal.Kind() != reflect.Ptr {

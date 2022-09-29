@@ -37,9 +37,9 @@ type IntegrationsSubsystemSpec struct {
 // For example, if there is a default/production MetricsInstance, you can
 // configure a supported integration's autoscrape block with:
 //
-//     autoscrape:
-//       enable: true
-//       metrics_instance: default/production
+//	autoscrape:
+//	  enable: true
+//	  metrics_instance: default/production
 //
 // There is currently no way for telemetry created by an Operator-managed
 // integration to be collected from outside of the integration itself.

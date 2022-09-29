@@ -5,7 +5,6 @@ package logs
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -36,13 +35,13 @@ func TestLogs(t *testing.T) {
 	//
 	// Create a temporary file to tail
 	//
-	positionsDir, err := ioutil.TempDir(os.TempDir(), "positions-*")
+	positionsDir, err := os.MkdirTemp(os.TempDir(), "positions-*")
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = os.RemoveAll(positionsDir)
 	})
 
-	tmpFile, err := ioutil.TempFile(os.TempDir(), "*.log")
+	tmpFile, err := os.CreateTemp(os.TempDir(), "*.log")
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = os.RemoveAll(tmpFile.Name())
@@ -156,7 +155,7 @@ func TestLogs_PositionsDirectory(t *testing.T) {
 	//
 	// Create a temporary file to tail
 	//
-	positionsDir, err := ioutil.TempDir(os.TempDir(), "positions-*")
+	positionsDir, err := os.MkdirTemp(os.TempDir(), "positions-*")
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = os.RemoveAll(positionsDir)

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	_ "embed" // enables the go:embed directive
-	"io/ioutil"
+	"io"
 
 	snmp_config "github.com/prometheus/snmp_exporter/config"
 	"gopkg.in/yaml.v2"
@@ -22,7 +22,7 @@ func LoadEmbeddedConfig() (*snmp_config.Config, error) {
 		return nil, err
 	}
 
-	b, err := ioutil.ReadAll(gzipReader)
+	b, err := io.ReadAll(gzipReader)
 	if err != nil {
 		return nil, err
 	}

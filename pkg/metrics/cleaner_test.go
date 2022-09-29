@@ -1,7 +1,6 @@
 package metrics
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -30,7 +29,7 @@ func TestWALCleaner_getAllStorageNoRoot(t *testing.T) {
 }
 
 func TestWALCleaner_getAllStorageSuccess(t *testing.T) {
-	walRoot, err := ioutil.TempDir(os.TempDir(), "getAllStorageSuccess")
+	walRoot, err := os.MkdirTemp(os.TempDir(), "getAllStorageSuccess")
 	require.NoError(t, err)
 	defer os.RemoveAll(walRoot)
 
@@ -52,7 +51,7 @@ func TestWALCleaner_getAllStorageSuccess(t *testing.T) {
 }
 
 func TestWALCleaner_getAbandonedStorageBeforeCutoff(t *testing.T) {
-	walRoot, err := ioutil.TempDir(os.TempDir(), "getAbandonedStorageBeforeCutoff")
+	walRoot, err := os.MkdirTemp(os.TempDir(), "getAbandonedStorageBeforeCutoff")
 	require.NoError(t, err)
 	defer os.RemoveAll(walRoot)
 
@@ -85,7 +84,7 @@ func TestWALCleaner_getAbandonedStorageBeforeCutoff(t *testing.T) {
 }
 
 func TestWALCleaner_getAbandonedStorageAfterCutoff(t *testing.T) {
-	walRoot, err := ioutil.TempDir(os.TempDir(), "getAbandonedStorageAfterCutoff")
+	walRoot, err := os.MkdirTemp(os.TempDir(), "getAbandonedStorageAfterCutoff")
 	require.NoError(t, err)
 	defer os.RemoveAll(walRoot)
 
@@ -118,7 +117,7 @@ func TestWALCleaner_getAbandonedStorageAfterCutoff(t *testing.T) {
 }
 
 func TestWALCleaner_cleanup(t *testing.T) {
-	walRoot, err := ioutil.TempDir(os.TempDir(), "cleanup")
+	walRoot, err := os.MkdirTemp(os.TempDir(), "cleanup")
 	require.NoError(t, err)
 	defer os.RemoveAll(walRoot)
 

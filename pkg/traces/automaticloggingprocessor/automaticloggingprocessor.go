@@ -19,7 +19,6 @@ import (
 	"github.com/prometheus/common/model"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
-	pdata_internal "go.opentelemetry.io/collector/pdata/external"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	semconv "go.opentelemetry.io/collector/semconv/v1.6.1"
@@ -234,7 +233,7 @@ func (p *automaticLoggingProcessor) spanKeyVals(span ptrace.Span) []interface{} 
 	atts = append(atts, spanDuration(span))
 
 	// Skip STATUS_CODE_UNSET to be less spammy
-	if span.Status().Code() != pdata_internal.StatusCodeUnset {
+	if span.Status().Code() != ptrace.StatusCodeUnset {
 		atts = append(atts, p.cfg.Overrides.StatusKey)
 		atts = append(atts, span.Status().Code())
 	}

@@ -13,7 +13,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
-	pdata_internal "go.opentelemetry.io/collector/pdata/external"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	semconv "go.opentelemetry.io/collector/semconv/v1.6.1"
 	"google.golang.org/grpc/codes"
@@ -360,7 +359,7 @@ func (p *processor) spanFailed(span ptrace.Span) bool {
 		}
 	}
 
-	return span.Status().Code() == pdata_internal.StatusCodeError
+	return span.Status().Code() == ptrace.StatusCodeError
 }
 
 func spanDuration(span ptrace.Span) time.Duration {

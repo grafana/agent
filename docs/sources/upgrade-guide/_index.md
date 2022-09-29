@@ -10,9 +10,23 @@ weight: 800
 This guide describes all breaking changes that have happened in prior
 releases and how to migrate to newer versions.
 
-## Unreleased Changes
+## Unreleased changes
 
 These changes will come in a future version.
+
+### Breaking change: JSON-encoded traces from OTLP versions below 0.16.0 are no longer supported
+
+Grafana Agent's OpenTelemetry Collector dependency has been updated from
+v0.55.0 to v0.60.0. OpenTelemetry Collector v0.58.0 [no longer
+translates][translation-removal] from InstrumentationLibrary to Scope.
+
+This means that JSON-encoded traces that still use InstrumentationLibrary will
+be dropped. To work around this issue, either send traces using protobuf or
+update your OTLP protocol version to v0.16.0 or newer.
+
+[translation-removal]: https://github.com/open-telemetry/opentelemetry-collector/pull/5819
+
+## v0.24.0
 
 ### Breaking change: Deprecated YAML fields in `server` block removed
 

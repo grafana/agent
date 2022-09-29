@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"math"
 	"os"
 	"path/filepath"
@@ -70,7 +69,7 @@ func fileExists(path string) bool {
 
 // readSeedFile reads the agent seed file
 func (rep *Reporter) readSeedFile(path string) (*AgentSeed, error) {
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +87,7 @@ func (rep *Reporter) writeSeedFile(seed AgentSeed, path string) error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(path, data, 0644)
+	return os.WriteFile(path, data, 0644)
 }
 
 func agentSeedFileName() string {
