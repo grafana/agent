@@ -11,26 +11,28 @@ follow the standard [PEMDAS](https://en.wikipedia.org/wiki/Order_of_operations)
 rule for operator precedence.
 
 ## Arithmetic operators
-```
-+    for addition: 3+5
--    for subtraction: 10-3
-*    for multiplication: 13*7
-/    for division: 15/3
-%    for remainder: 7%2
-^    for exponentiation: 2^8
-```
+
+Operator | Description
+-------- | -----------
+`+`      | Adds two numbers.
+`-`      | Subtracts two numbers.
+`*`      | Multiplies two numbers.
+`/`      | Divides two numbers.
+`%`      | Computes the remainder after dividing two numbers.
+`^`      | Raises the number to the specified power.
 
 The `+` operator can also be used for string concatenation.
 
 ## Comparison operators
-```
-==    equal
-!=    not equal
-<     less
-<=    less or equal
->     greater
->=    greater or equal
-```
+
+Operator | Description
+-------- | -----------
+`==`     | `true` when two values are equal.
+`!=`     | `true` when two values are not equal.
+`<`      | `true` when the left value is less than the right value.
+`<=`     | `true` when the left value is less than or equal to the right value.
+`>`      | `true` when the left value is greater than the right value.
+`>=`     | `true` when the left value is greater or equal to the right value.
 
 The equality operators `==` and `!=` can be applied to any operands.
 
@@ -46,11 +48,12 @@ comparisons are defined as follows:
 * Array values are equal if their corresponding elements are equal.
 
 ## Logical operators
-```
-&&    conditional AND
-||    conditional OR 
-!     NOT            
-```
+
+Operator | Description
+-------- | -----------
+`&&`     | `true` when the both left _and_ right value are `true`.
+`\|\|`     | `true` when the either left _or_ right value are `true`.
+`!`      | Negates a boolean value.
 
 Logical operators apply to boolean values and yield a boolean result.
 
@@ -69,12 +72,13 @@ to which it is being assigned.
   a number.
 * Blocks are not assignable.
 
-## Brackets 
-```
-{ }    used for defining blocks and objects
-( )    used to group and prioritize expressions
-[ ]    used for defining arrays
-```
+## Brackets
+
+Brackets | Description
+-------- | -----------
+`{ }`    | Defines blocks and objects.
+`( )`    | Groups and prioritizes expressions.
+`[ ]`    | Defines arrays.
 
 In the following example we can see the use of curly braces and square brackets
 to define an object and an array.
@@ -84,10 +88,11 @@ arr = [1, true, 7 * (1+1), 3]
 ```
 
 ## Access operators
-```
-[ ]    used for access operations on arrays and objects
- .     used for access operations on objects and components
-```
+
+Operator | Description
+-------- | -----------
+`[ ]`    | Access a member of an array or object.
+`.`      | Access a named member of an object or an exported field of a component.
 
 River's access operators support accessing of arbitrarily nested values.
 Square brackets can be used to access zero-indexed array indices as well as

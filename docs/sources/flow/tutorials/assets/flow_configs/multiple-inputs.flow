@@ -1,29 +1,23 @@
-prometheus.scrape "first" {
+prometheus.scrape "agent" {
 	targets    = [{"__address__" = "localhost:12345"}]
-	forward_to = [prometheus.relabel.cool.receiver, prometheus.relabel.not_cool.receiver]
+	forward_to = [prometheus.relabel.service.receiver]
 }
 
-prometheus.scrape "second" {
-	targets    = [{"__address__" = "localhost:12345"}]
-	forward_to = [prometheus.relabel.cool.receiver, prometheus.relabel.not_cool.receiver]
+prometheus.integration.node_exporter {
+	set_collectors = ["cpu", "diskstats"]
 }
 
-prometheus.relabel "cool" {
+prometheus.scrape "node" {
+	targets    = prometheus.integration.node_exporter.targets
+	forward_to = [prometheus.relabel.service.receiver]
+}
+
+prometheus.relabel "service" {
 	rule {
 		source_labels = ["__name__"]
 		regex         = "(.+)"
-		replacement   = "${1}_cool"
-		target_label  = "cool_label"
-	}
-	forward_to = [prometheus.remote_write.prom.receiver]
-}
-
-prometheus.relabel "not_cool" {
-	rule {
-		source_labels = ["__name__"]
-		regex         = "(.+)"
-		replacement   = "${1}_not_cool"
-		target_label  = "not_cool_label"
+		replacement   = "api_server"
+		target_label  = "service"
 	}
 	forward_to = [prometheus.remote_write.prom.receiver]
 }

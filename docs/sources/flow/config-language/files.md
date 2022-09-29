@@ -7,7 +7,7 @@ weight: 100
 
 # Files
 River files are plaintext files with the `.river` file extension. Each River
-file may be referred to as a 'configuration file', or a 'River configuration'.
+file may be referred to as a "configuration file," or a "River configuration."
 
 River files are required to be UTF-8 encoded, and are permitted to contain
 Unicode characters. River files can use both Unix-style line endings (LF) and

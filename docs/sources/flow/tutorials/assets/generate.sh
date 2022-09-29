@@ -5,6 +5,9 @@
 # The runt.sh file is meant to download all the needed files for the example and for them to be used. 
 
 echo "#!/usr/bin/env bash" > runt.sh
+echo "mkdir ./tutorials" >> runt.sh
+echo "cd ./tutorials || exit" >> runt.sh
+
 
 # Instead of `for find .` doing it this way due to https://www.shellcheck.net/wiki/SC2044.
 while IFS= read -r -d '' i
