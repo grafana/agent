@@ -7,7 +7,7 @@ weight: 400
 
 # Function Calls
 Function calls is one more River feature that lets users build richer
-expresisons.
+expressions.
 
 Functions take zero or more arguments as their input and always return a single
 value as their output. Functions cannot be constructed by users, but can be

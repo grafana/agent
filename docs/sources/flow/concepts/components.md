@@ -13,16 +13,16 @@ collecting Prometheus metrics.
 
 Components are composed of two parts:
 
-* Arguments: settings which configure a component
-* Exports: named values which a component exposes to other components
+* Arguments: settings which configure a component.
+* Exports: named values which a component exposes to other components.
 
 Each component has a name which describes what that component is responsible
 for. For example, the `local.file` component is responsible for retrieving the
 contents of files on disk.
 
-Components are specified by users by first providing the component's name with
-a user-specified label, and then by providing arguments to configure the
-component:
+Components are specified in the config file by first providing the component's
+name with a user-specified label, and then by providing arguments to configure
+the component:
 
 ```
 discovery.kubernetes "pods" {
@@ -44,18 +44,20 @@ discovery.kubernetes "nodes" {
 
 ## Pipelines
 
-Most arguments a user specifies for a component will be some constant value,
-such setting a `log_level` attribute to the quoted string `"debug"` (`log_level
-= "debug"`).
+Most arguments for a component in a config file are constant values, such
+setting a `log_level` attribute to the quoted string `"debug"`:
 
-Users may also use _expressions_ to dynamically compute the value of an
-argument at runtime. Among other things, expressions may be used to retrieving
-the value of an environment variable (`log_level = env("LOG_LEVEL")`) or
-referencing the export of another component (`log_level =
-local.file.log_level.content`).
+```river
+log_level = "debug"
+```
 
-When a user configures a component's argument to reference an export of another
-component, a relationship is created: a component's input (arguments) now
+_Expressions_ can be used to dynamically compute the value of an argument at
+runtime. Among other things, expressions can be used to retrieve the value of
+an environment variable (`log_level = env("LOG_LEVEL")`) or to reference an
+exported field of another component (`log_level = local.file.log_level.content`).
+
+When a component's argument references an exported field of another component,
+a dependant relationship is created: a component's input (arguments) now
 depends on another component's output (exports). The input of the component
 will now be re-evaluated any time the exports of the components it references
 get updated.
@@ -75,12 +77,16 @@ An example pipeline may look like this:
    component, and sends collected metrics to the `prometheus.remote_write`
    component.
 
-A user would use this config file to represent the above pipeline:
+<p align="center">
+<img src="../../../assets/concepts_example_pipeline.svg" alt="Flow of example pipeline" width="500" />
+</p>
+
+The following config file represents the above pipeline:
 
 ```river
 // Get our API key from disk.
 //
-// This component has an exported value called "content", holding the content
+// This component has an exported field called "content", holding the content
 // of the file.
 //
 // local.file.api_key will watch the file and update its exports any time the
@@ -88,8 +94,8 @@ A user would use this config file to represent the above pipeline:
 local.file "api_key" {
   filename  = "/var/data/secrets/api-key"
 
-  // Mark this file as sensitive to prevent its value from being shown to
-  // users.
+  // Mark this file as sensitive to prevent its value from being shown in the
+  // UI.
   is_secret = true
 }
 

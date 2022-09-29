@@ -14,25 +14,11 @@ If you supply no connection information, this component defaults to an
 in-cluster config. A kubeconfig file or manual connection settings can be used
 to override the defaults.
 
-## Example
-
-This example shows a simple in-cluster discovery of all pods:
+## Usage
 
 ```river
-discovery.kubernetes "k8s_pods" {
-  role = "pod"
-}
-```
-
-This example provides a custom namespace and kubeconfig file:
-
-```river
-discovery.kubernetes "k8s_pods" {
-  role = "pod"
-  kubeconfig_file = "/path/to/kubeconfig"
-  namespaces {
-    names = ["myapp"]
-  }
+discovery.kubernetes "LABEL" {
+  role = "DISCOVERY_ROLE"
 }
 ```
 
@@ -50,15 +36,7 @@ The `role` argument is required to specify what type of targets to discover.
 `role` must be one of `node`, `pod`, `service`, `endpoints`, `endpointslice`,
 or `ingress`.
 
-The following sub-blocks are supported:
-
-Name | Description | Required
----- | ----------- | --------
-[`namespaces`](#namespaces-block) | Information about which Kubernetes namespaces to search. | no
-[`selectors`](#selectors-block) | Selectors to limit objects selected. | no
-[`http_client_config`](#http_client_config-block) | HTTP client configuration for Kubernetes requests. | no
-
-### `node` role
+### node role
 
 The `node` role discovers one target per cluster node with the address
 defaulting to the HTTP port of the Kubelet daemon. The target address defaults
@@ -81,7 +59,7 @@ The following labels are included for discovered nodes:
 In addition, the `instance` label for the node will be set to the node name as
 retrieved from the API server.
 
-### `service` role
+### service role
 
 The `service` role discovers a target for each service port for each service.
 This is generally useful for externally monitoring a service. The address will
@@ -111,7 +89,7 @@ The following labels are included for discovered services:
   the target.
 * `__meta_kubernetes_service_type`: The type of the service.
 
-### `pod` role
+### pod role
 
 The `pod` role discovers all pods and exposes their containers as targets. For
 each declared port of a container, a single target is generated.
@@ -153,7 +131,7 @@ The following labels are included for discovered pods:
 * `__meta_kubernetes_pod_controller_kind`: Object kind of the pod controller.
 * `__meta_kubernetes_pod_controller_name`: Name of the pod controller.
 
-### `endpoints` role
+### endpoints role
 
 The `endpoints` role discovers targets from listed endpoints of a service. For
 each endpoint address one target is discovered per port. If the endpoint is
@@ -186,7 +164,7 @@ The following labels are included for discovered endpoints:
 * For all targets backed by a pod, all labels of the `pod` role discovery are
   attached.
 
-### `endpointslice` role
+### endpointslice role
 
 The endpointslice role discovers targets from existing Kubernetes endpoint
 slices. For each endpoint address referenced in the `EndpointSlice` object, one
@@ -222,7 +200,7 @@ The following labels are included for discovered endpoint slices:
 * For all targets backed by a pod, all labels of the `pod` role discovery are
   attached.
 
-### `ingress` role
+### ingress role
 
 The `ingress` role discovers a target for each path of each ingress. This is
 generally useful for externally monitoring an ingress. The address will be set
@@ -246,7 +224,34 @@ The following labels are included for discovered ingress objects:
   config is set. Defaults to `http`.
 * `__meta_kubernetes_ingress_path`: Path from ingress spec. Defaults to /.
 
-### `namespaces` block
+## Blocks
+
+The following blocks are supported inside the definition of
+`discovery.kubernetes`:
+
+Hierarchy | Block | Description | Required
+--------- | ----- | ----------- | --------
+namespaces | [namespaces][] | Information about which Kubernetes namespaces to search. | no
+selectors | [selectors][] | Information about which Kubernetes namespaces to search. | no
+http_client_config | [http_client_config][] | HTTP client configuration for Kubernetes requests. | no
+http_client_config > basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
+http_client_config > authorization | [authorization][] | Configure generic authorization to the endpoint. | no
+http_client_config > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
+http_client_config > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+
+The `>` symbol indicates deeper levels of nesting. For example,
+`http_client_config > basic_auth` refers to a `basic_auth` block defined inside
+an `http_client_config` block.
+
+[namespaces]: #namespaces-block
+[selectors]: #selectors-block
+[http_client_config]: #http_client_config-block
+[basic_auth]: #basic_auth-block
+[authorization]: #authorization-block
+[oauth2]: #oauth2-block
+[tls_config]: #tls_config-block
+
+### namespaces block
 
 The `namespaces` block limits the namespaces to discover resources in. If
 omitted, all namespaces are searched.
@@ -256,7 +261,7 @@ Name | Type | Description | Default | Required
 `own_namespace` | `bool`   | Include the namespace the agent is running in. | | no
 `names` | `[]string` | List of namespaces to search. | | no
 
-### `selectors` block
+### selectors block
 
 The `selectors` block contains optional label and field selectors to limit the
 discovery process to a subset of resources.
@@ -282,7 +287,7 @@ selectors][] to learn more about the possible filters that can be used.
 [Labels and selectros]: https://Kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 [discovery.relabel]: {{< relref "./discovery.relabel.md" >}}
 
-### `http_client_config` block
+### http_client_config block
 
 The `http_client_config` block configures settings used to connect to the
 Kubernetes API server.
@@ -388,3 +393,39 @@ values.
 ### Debug metrics
 
 `discovery.kubernetes` does not expose any component-specific debug metrics.
+
+## Examples
+
+### In-cluster discovery
+
+This example uses in-cluster authentication to discover all pods:
+
+```river
+discovery.kubernetes "k8s_pods" {
+  role = "pod"
+}
+```
+
+### Kubeconfig authentication
+
+This example uses a kubeconfig file to authenticate to the Kubernetes API:
+
+```river
+discovery.kubernetes "k8s_pods" {
+  role = "pod"
+  kubeconfig_file = "/etc/k8s/kubeconfig.yaml"
+}
+```
+
+### Limit searched namespaces
+
+This example limits the namespaces where pods are discovered using the `namespaces` block:
+
+```river
+discovery.kubernetes "k8s_pods" {
+  role = "pod"
+  namespaces {
+    names = ["myapp"]
+  }
+}
+```
