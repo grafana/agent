@@ -12,8 +12,6 @@ releases and how to migrate to newer versions.
 
 ## v0.26.0
 
-These changes will come in a future version.
-
 ### Breaking change: Deprecated YAML fields in `server` block removed
 
 The YAML fields which were first [deprecated in the v0.24.0
