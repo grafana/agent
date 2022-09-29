@@ -309,14 +309,14 @@ func (p *processor) consume(trace ptrace.Traces) error {
 					k := key(span.TraceID().HexString(), span.ParentSpanID().HexString())
 
 					edge, err := p.store.upsertEdge(k, func(e *edge) {
-						e.serverService = svc.StringVal()
+						e.serverService = svc.Str()
 						e.serverLatency = spanDuration(span)
 						e.failed = e.failed || p.spanFailed(span) // keep request as failed if any span is failed
 					})
 
 					if errors.Is(err, errTooManyItems) {
 						totalDroppedSpans++
-						p.serviceGraphDroppedSpansTotal.WithLabelValues("", svc.StringVal()).Inc()
+						p.serviceGraphDroppedSpansTotal.WithLabelValues("", svc.Str()).Inc()
 						continue
 					}
 					// upsertEdge will only return this errTooManyItems
