@@ -112,7 +112,7 @@ func (p *automaticLoggingProcessor) ConsumeTraces(ctx context.Context, td ptrace
 		var svc string
 		svcAtt, ok := rs.Resource().Attributes().Get(semconv.AttributeServiceName)
 		if ok {
-			svc = svcAtt.StringVal()
+			svc = svcAtt.Str()
 		}
 
 		for j := 0; j < ssLen; j++ {
@@ -290,18 +290,18 @@ func spanDuration(span ptrace.Span) string {
 
 func attributeValue(att pcommon.Value) interface{} {
 	switch att.Type() {
-	case pcommon.ValueTypeString:
-		return att.StringVal()
+	case pcommon.ValueTypeStr:
+		return att.Str()
 	case pcommon.ValueTypeInt:
-		return att.IntVal()
+		return att.Int()
 	case pcommon.ValueTypeDouble:
-		return att.DoubleVal()
+		return att.Double()
 	case pcommon.ValueTypeBool:
-		return att.BoolVal()
+		return att.Bool()
 	case pcommon.ValueTypeMap:
-		return att.MapVal()
+		return att.Map()
 	case pcommon.ValueTypeSlice:
-		return att.SliceVal()
+		return att.Slice()
 	}
 	return nil
 }

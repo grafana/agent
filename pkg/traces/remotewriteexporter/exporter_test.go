@@ -58,7 +58,7 @@ func TestRemoteWriteExporter_ConsumeMetrics(t *testing.T) {
 
 	sdp := sm.Sum().DataPoints().AppendEmpty()
 	sdp.SetTimestamp(pcommon.NewTimestampFromTime(ts.UTC()))
-	sdp.SetDoubleVal(sumValue)
+	sdp.SetDoubleValue(sumValue)
 
 	// Append histogram
 	hm := ilm.Metrics().AppendEmpty()
@@ -68,8 +68,8 @@ func TestRemoteWriteExporter_ConsumeMetrics(t *testing.T) {
 
 	hdp := hm.Histogram().DataPoints().AppendEmpty()
 	hdp.SetTimestamp(pcommon.NewTimestampFromTime(ts.UTC()))
-	hdp.SetBucketCounts(pcommon.NewImmutableUInt64Slice(bucketCounts))
-	hdp.SetExplicitBounds(pcommon.NewImmutableFloat64Slice(explicitBounds))
+	hdp.BucketCounts().FromRaw(bucketCounts)
+	hdp.ExplicitBounds().FromRaw(explicitBounds)
 	hdp.SetCount(countValue)
 	hdp.SetSum(sumValue)
 

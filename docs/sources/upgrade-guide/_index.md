@@ -17,7 +17,7 @@ These changes will come in a future version.
 ### Breaking change: JSON-encoded traces from OTLP versions below 0.16.0 are no longer supported
 
 Grafana Agent's OpenTelemetry Collector dependency has been updated from
-v0.55.0 to v0.60.0. OpenTelemetry Collector v0.58.0 [no longer
+v0.55.0 to v0.61.0. OpenTelemetry Collector v0.58.0 [no longer
 translates][translation-removal] from InstrumentationLibrary to Scope.
 
 This means that JSON-encoded traces that still use InstrumentationLibrary will

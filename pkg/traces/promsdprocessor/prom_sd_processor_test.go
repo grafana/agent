@@ -199,7 +199,7 @@ func TestOperationType(t *testing.T) {
 			p.(*promServiceDiscoProcessor).processAttributes(context.TODO(), attrMap)
 
 			actualAttrValue, _ := attrMap.Get(attrKey)
-			assert.Equal(t, tc.expectedValue, actualAttrValue.StringVal())
+			assert.Equal(t, tc.expectedValue, actualAttrValue.Str())
 		})
 	}
 }
