@@ -10,6 +10,14 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+> **BREAKING CHANGES**: This release has breaking changes. Please read entries
+> carefully and consult the [upgrade guide][] for specific instructions.
+
+### Breaking changes
+
+- JSON-encoded traces from OTLP versions earlier than 0.16.0 are no longer
+  supported. (@rfratto)
+
 ### Enhancements
 
 - Update OpenTelemetry Collector dependency to v0.60.0. (@rfratto)
