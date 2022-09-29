@@ -10,9 +10,7 @@ weight: 800
 This guide describes all breaking changes that have happened in prior
 releases and how to migrate to newer versions.
 
-## Unreleased Changes
-
-These changes will come in a future version.
+## v0.26.0
 
 ### Breaking change: Deprecated YAML fields in `server` block removed
 
