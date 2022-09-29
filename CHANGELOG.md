@@ -8,17 +8,17 @@ changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
 Main (unreleased)
------------------
+--------------------
 
-v0.28.0-rc.0 (2022-09-21)
--------------------------
+v0.28.0 (2022-09-29)
+--------------------
 
 ### Features
 
 - Introduce Grafana Agent Flow, an experimental "programmable pipeline" runtime
   mode which improves how to configure and debug Grafana Agent by using
-  components. (@captncraig, @marctc, @mattdurham, @rfratto, @rlankfo,
-  @tpaschalis)
+  components. (@captncraig, @karengermond, @marctc, @mattdurham, @rfratto,
+  @rlankfo, @tpaschalis)
 
 - Introduce Blackbox exporter integration. (@marctc)
 
