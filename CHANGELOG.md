@@ -8,10 +8,10 @@ changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
 Main (unreleased)
------------------
+--------------------
 
 v0.28.0 (2022-09-29)
--------------------------
+--------------------
 
 ### Features
 
