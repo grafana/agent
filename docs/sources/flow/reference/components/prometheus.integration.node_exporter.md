@@ -1,12 +1,19 @@
 ---
+# NOTE(rfratto): the title below has zero-width spaces injected into it to
+# prevent it from overflowing the sidebar on the rendered site. Be careful when
+# modifying this section to retain the spaces.
+#
+# Ideally, in the future, we can fix the overflow issue with css rather than
+# injecting special characters.
+
 aliases:
 - /docs/agent/latest/flow/reference/components/prometheus.integration.node_exporter
-title: prometheus.integration.node_exporter
+title: prometheus.​integration.​node_exporter
 ---
 
 # prometheus.integration.node_exporter
-The `prometheus.integration.node_exporter` component embeds 
-[node_exporter](https://github.com/prometheus/node_exporter) which exposes a 
+The `prometheus.integration.node_exporter` component embeds
+[node_exporter](https://github.com/prometheus/node_exporter) which exposes a
 wide variety of hardware and OS metrics for \*nix-based systems.
 
 The `node_exporter` itself is comprised of various _collectors_, which can be
@@ -16,15 +23,10 @@ enabled and disabled at will. For more information on collectors, refer to the
 The `prometheus.integration.node_exporter` component can only appear once per
 configuration file, and a block label must not be passed to it.
 
-## Example
+## Usage
+
 ```river
 prometheus.integration.node_exporter {
-}
-
-// Configure a prometheus.scrape component to collect node_exporter metrics.
-prometheus.scrape "demo" {
-  targets    = prometheus.integration.node_exporter.targets
-  forward_to = [ /* ... */ ]
 }
 ```
 
@@ -37,7 +39,7 @@ Name | Type | Description | Default | Required
 `set_collectors`           | `list(string)` | Overrides the default set of enabled collectors with the collectors listed. | | no
 `enable_collectors`        | `list(string)` | Collectors to mark as enabled.  | | no
 `disable_collectors`       | `list(string)` | Collectors to mark as disabled. | | no
-`include_exporter_metrics` | `boolean`      | Whether metrics about the exporter itself should be reported. | false | no 
+`include_exporter_metrics` | `boolean`      | Whether metrics about the exporter itself should be reported. | false | no
 `procfs_path`              | `string`       | The procfs mountpoint. | `/proc` | no
 `sysfs_path`               | `string`       | The sysfs mountpoint.  | `/sys`   | no
 `rootfs_path`              | `string`       | Specify a prefix for accessing the host filesystem. | `/` | no
@@ -53,36 +55,57 @@ of the ones provided in `set_collectors`.
 `disable_collectors` extends the default set of disabled collectors. In case
 of conflicts, it takes precedence over `enable_collectors`.
 
-Additionally, the following subblocks are supported for configuring
-collector-specific options.
+## Blocks
 
-Name | Description | Required
----- | ----------- | --------
-[`bcache`](#bcache-block) | Configures the bcache collector. | no
-[`cpu`](#cpu-block) | Configures the cpu collector. | no
-[`disk`](#disk-block) | Configures the diskstats collector. | no
-[`ethtool`](#ethtool-block) | Configures the ethtool collector. | no
-[`filesystem`](#filesystem-block) | Configures the filesystem collector. | no
-[`ipvs`](#ipvs-block) | Configures the ipvs collector. | no
-[`ntp`](#ntp-block) | Configures the ntp collector. | no
-[`netclass`](#netclass-block) | Configures the netclass collector. | no
-[`netdev`](#netdev-block) | Configures the netdev collector. | no
-[`netstat`](#netstat-block) | Configures the netstat collector. | no
-[`perf`](#perf-block) | Configures the perf collector. | no
-[`powersupply`](#powersupply-block) | Configures the powersupply collector. | no
-[`runit`](#runit-block) | Configures the runit collector. | no
-[`supervisord`](#supervisord-block) | Configures the supervisord collector. | no
-[`systemd`](#systemd-block) | Configures the systemd collector. | no
-[`tapestats`](#tapestats-block) | Configures the tapestats collector. | no
-[`textfile`](#textfile-block) | Configures the textfile collector. | no
-[`vmstat`](#vmstat-block) | Configures the vmstat collector. | no
+The following blocks are supported inside the definiton of
+`prometheus.integration.node_exporter` to configure collector-specific options:
 
-### `bcache` block
+Hierarchy | Name | Description | Required
+--------- | ---- | ----------- | --------
+bcache | [bcache][] | Configures the bcache collector. | no
+cpu | [cpu][] | Configures the cpu collector. | no
+disk | [disk][] | Configures the diskstats collector. | no
+ethtool | [ethtool][] | Configures the ethtool collector. | no
+filesystem | [filesystem][] | Configures the filesystem collector. | no
+ipvs | [ipvs][] | Configures the ipvs collector. | no
+ntp | [ntp][] | Configures the ntp collector. | no
+netclass | [netclass][] | Configures the netclass collector. | no
+netdev | [netdev][] | Configures the netdev collector. | no
+netstat | [netstat][] | Configures the netstat collector. | no
+perf | [perf][] | Configures the perf collector. | no
+powersupply | [powersupply][] | Configures the powersupply collector. | no
+runit | [runit][] | Configures the runit collector. | no
+supervisord | [supervisord][] | Configures the supervisord collector. | no
+systemd | [systemd][] | Configures the systemd collector. | no
+tapestats | [tapestats][] | Configures the tapestats collector. | no
+textfile | [textfile][] | Configures the textfile collector. | no
+vmstat | [vmstat][] | Configures the vmstat collector. | no
+
+[bcache]: #bcache-block
+[cpu]: #cpu-block
+[disk]: #disk-block
+[ethtool]: #ethtool-block
+[filesystem]: #filesystem-block
+[ipvs]: #ipvs-block
+[ntp]: #ntp-block
+[netclass]: #netclass-block
+[netdev]: #netdev-block
+[netstat]: #netstat-block
+[perf]: #perf-block
+[powersupply]: #powersupply-block
+[runit]: #runit-block
+[supervisord]: #supervisord-block
+[systemd]: #systemd-block
+[tapestats]: #tapestats-block
+[textfile]: #textfile-block
+[vmstat]: #vmstat-block
+
+### bcache block
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `priority_stats` | `boolean` |  Enable exposing of expensive bcache priority stats. | false | no
 
-### `cpu` block
+### cpu block
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `guest`         | `boolean` | Enable the `node_cpu_guest_seconds_total` metric. | true | no
@@ -90,31 +113,37 @@ Name | Type | Description | Default | Required
 `bugs_include`  | `string`  | Regexp of `bugs` field in cpu info to filter. | | no
 `flags_include` | `string`  | Regexp of `flags` field in cpu info to filter. | | no
 
-### `disk` block
+### disk block
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `ignored_devices` | `string` | Regexp of devices to ignore for diskstats. | `"^(ram\|loop\|fd\|(h\|s\|v\|xv)d[a-z]\|nvme\\d+n\\d+p)\\d+$"` | no
 
-### `ethtool` block
+### ethtool block
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `device_exclude` | `string` | Regexp of ethtool devices to exclude (mutually exclusive with `device_include`). | | no
 `device_include` | `string` | Regexp of ethtool devices to include (mutually exclusive with `device_exclude`). | | no
 `metrics_include`| `string` | Regexp of ethtool stats to include. | `.*` | no
 
-### `filesystem` block
+### filesystem block
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`fs_types_exclude`     | `string`   | Regexp of filesystem types to ignore for filesystem collector.| `"^(autofs\|binfmt_misc\|bpf\|cgroup2?\|configfs\|debugfs\|devpts\|devtmpfs\|fusectl\|hugetlbfs\|iso9660\|mqueue\|nsfs\|overlay\|proc\|procfs\|pstore\|rpc_pipefs\|securityfs\|selinuxfs\|squashfs\|sysfs\|tracefs)$"` | no
+`fs_types_exclude`     | `string`   | Regexp of filesystem types to ignore for filesystem collector.| (_see below_ )| no
 `mount_points_exclude` | `string`   | Regexp of mount points to ignore for filesystem collector. | `"^/(dev\|proc\|sys\|var/lib/docker/.+)($\|/)"` | no
 `mount_timeout`        | `duration` | How long to wait for a mount to respond before marking it as stale. | `"5s"` | no
 
-### `ipvs` block
+`fs_types_exclude` defaults to the following regular expression string:
+
+```
+^(autofs\|binfmt_misc\|bpf\|cgroup2?\|configfs\|debugfs\|devpts\|devtmpfs\|fusectl\|hugetlbfs\|iso9660\|mqueue\|nsfs\|overlay\|proc\|procfs\|pstore\|rpc_pipefs\|securityfs\|selinuxfs\|squashfs\|sysfs\|tracefs)$
+```
+
+### ipvs block
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `backend_labels` | `list(string)` | Array of IPVS backend stats labels. | `[local_address, local_port, remote_address, remote_port, proto, local_mark]` | no
 
-### `ntp` block
+### ntp block
 name | type | description | default | required
 ---- | ---- | ----------- | ------- | --------
 `server`                 | `string`   | NTP server to use for the collector. | `"127.0.0.1"` | no
@@ -124,53 +153,55 @@ name | type | description | default | required
 `max_distance`           | `duration` | Max accumulated distance to the root. | `"3466080us"` | no
 `protocol_version`       | `int`      | NTP protocol version. | 4 | no
 
-### `netclass` block
+### netclass block
 name | type | description | default | required
 ---- | ---- | ----------- | ------- | --------
 `ignore_invalid_speed_device` | `boolean` | Ignore net devices with invalid speed values. | false | no
 `ignored_devices`             | `string`  | Regexp of net devices to ignore for netclass collector. | `"^$"` | no
 
-### `netdev` block
+### netdev block
 name | type | description | default | required
 ---- | ---- | ----------- | ------- | --------
 `address_info`   | `boolean` | Enable collecting address-info for every device. | false | no
 `device_exclude` | `string`  | Regexp of net devices to exclude (mutually exclusive with `device_include`). |  | no
 `device_include` | `string`  | Regexp of net devices to include (mutually exclusive with `device_exclude`). |  | no
 
-### `netstat` block
+### netstat block
 name | type | description | default | required
 ---- | ---- | ----------- | ------- | --------
-`fields` | `string` | Regexp of fields to return for netstat collector. | `"^(.*_(InErrors\|InErrs)\|Ip_Forwarding\|Ip(6\|Ext)_(InOctets\|OutOctets)\|Icmp6?_(InMsgs\|OutMsgs)\|TcpExt_(Listen.*\|Syncookies.*\|TCPSynRetrans\|TCPTimeouts)\|Tcp_(ActiveOpens\|InSegs\|OutSegs\|OutRsts\|PassiveOpens\|RetransSegs\|CurrEstab)\|Udp6?_(InDatagrams\|OutDatagrams\|NoPorts\|RcvbufErrors\|SndbufErrors))$"` | no
+`fields` | `string` | Regexp of fields to return for netstat collector. | _(see below)_ | no
 
+`fields` defaults to the following regular expression string:
 
+```
+"^(.*_(InErrors\|InErrs)\|Ip_Forwarding\|Ip(6\|Ext)_(InOctets\|OutOctets)\|Icmp6?_(InMsgs\|OutMsgs)\|TcpExt_(Listen.*\|Syncookies.*\|TCPSynRetrans\|TCPTimeouts)\|Tcp_(ActiveOpens\|InSegs\|OutSegs\|OutRsts\|PassiveOpens\|RetransSegs\|CurrEstab)\|Udp6?_(InDatagrams\|OutDatagrams\|NoPorts\|RcvbufErrors\|SndbufErrors))$"
+```
 
-### `perf` block
+### perf block
 name | type | description | default | required
 ---- | ---- | ----------- | ------- | --------
 `cpus`       | `string`       | List of CPUs from which perf metrics should be collected. | | no
 `tracepoint` | `list(string)` | Array of perf tracepoints that should be collected. | | no
 
-### `powersupply` block
+### powersupply block
 name | type | description | default | required
 ---- | ---- | ----------- | ------- | --------
 `ignored_supplies` | `string` | Regexp of power supplies to ignore for the powersupplyclass collector. | `"^$"` | no
 
-### `runit` block
+### runit block
 name | type | description | default | required
 ---- | ---- | ----------- | ------- | --------
 `service_dir` | `string` | Path to runit service directory. | `"/etc/service"` | no
 
-### `supervisord` block
+### supervisord block
 name | type | description | default | required
 ---- | ---- | ----------- | ------- | --------
 `url` | `string` | XML RPC endpoint for the supervisord collector. | `"http://localhost:9001/RPC2"` | no
 
 Setting `SUPERVISORD_URL` in the environment overrides the default value.
-An explicit value in the YAML config takes precedence over the environment
-variable.
+An explicit value in the block takes precedence over the environment variable.
 
-
-### `systemd` block
+### systemd block
 name | type | description | default | required
 ---- | ---- | ----------- | ------- | --------
 `enable_restarts` | `boolean` | Enables service unit metric `service_restart_total` | false | no
@@ -179,27 +210,26 @@ name | type | description | default | required
 `unit_exclude`    | `string`  | Regexp of systemd units to exclude. Units must both match include and not match exclude to be collected. | `".+\\.(automount\|device\|mount\|scope\|slice)"` | no
 `unit_include`    | `string`  | Regexp of systemd units to include. Units must both match include and not match exclude to be collected. | `".+"` | no
 
-### `tapestats` block
+### tapestats block
 name | type | description | default | required
 ---- | ---- | ----------- | ------- | --------
 `ignored_devices` | `string` | Regexp of tapestats devices to ignore. | `"^$"` | no
 
-### `textfile` block
+### textfile block
 name | type | description | default | required
 ---- | ---- | ----------- | ------- | --------
 `textfile_directory` | `string` | Directory to read `*.prom` files from for the textfile collector. |  | no
 
-### `vmstat` block
+### vmstat block
 name | type | description | default | required
 ---- | ---- | ----------- | ------- | --------
 `fields` | `string` | Regexp of fields to return for the vmstat collector. | `"^(oom_kill\|pgpg\|pswp\|pg.*fault).*"` | no
 
-
 ## Exported fields
 The following fields are exported and can be referenced by other components.
 
-Name      | Type                | Description 
---------- | ------------------- | ----------- 
+Name      | Type                | Description
+--------- | ------------------- | -----------
 `targets` | `list(map(string))` | The targets that can be used to collect `node_exporter` metrics.
 
 For example, the `targets` could either be passed to a `prometheus.relabel`
@@ -313,3 +343,20 @@ You may also need to add capabilities such as `SYS_TIME` and make sure that the
 Agent is running with elevated privileges for some of the collectors to work
 properly.
 
+## Example
+
+This example uses a [`prometheus.scrape` component][scrape] to collect metrics
+from `prometheus.integration.node_exporter`:
+
+```river
+prometheus.integration.node_exporter {
+}
+
+// Configure a prometheus.scrape component to collect node_exporter metrics.
+prometheus.scrape "demo" {
+  targets    = prometheus.integration.node_exporter.targets
+  forward_to = [ /* ... */ ]
+}
+```
+
+[scrape]: {{< relref "./prometheus.scrape.md" >}}

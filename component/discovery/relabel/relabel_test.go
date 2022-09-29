@@ -7,8 +7,7 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/discovery/relabel"
 	"github.com/grafana/agent/pkg/flow/componenttest"
-	"github.com/grafana/agent/pkg/river/parser"
-	"github.com/grafana/agent/pkg/river/vm"
+	"github.com/grafana/agent/pkg/river"
 	"github.com/stretchr/testify/require"
 )
 
@@ -61,12 +60,8 @@ rule {
 		},
 	}
 
-	file, err := parser.ParseFile("agent-config.river", []byte(riverArguments))
-	require.NoError(t, err)
-
 	var args relabel.Arguments
-	err = vm.New(file).Evaluate(nil, &args)
-	require.NoError(t, err)
+	require.NoError(t, river.Unmarshal([]byte(riverArguments), &args))
 
 	tc, err := componenttest.NewControllerFromID(nil, "discovery.relabel")
 	require.NoError(t, err)

@@ -8,21 +8,23 @@ changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
 Main (unreleased)
------------------
+--------------------
 
 ### Bugfixes
 
 - Remove empty port from the `apache_http` integration's instance label. (@katepangLiu) 
 
-v0.28.0-rc.0 (2022-09-21)
--------------------------
+v0.28.0 (2022-09-29)
+--------------------
 
 ### Features
 
 - Introduce Grafana Agent Flow, an experimental "programmable pipeline" runtime
   mode which improves how to configure and debug Grafana Agent by using
-  components. (@captncraig, @marctc, @mattdurham, @rfratto, @rlankfo,
-  @tpaschalis)
+  components. (@captncraig, @karengermond, @marctc, @mattdurham, @rfratto,
+  @rlankfo, @tpaschalis)
+
+- Introduce Blackbox exporter integration. (@marctc)
 
 ### Enhancements
 
@@ -57,7 +59,6 @@ v0.27.0 (2022-09-01)
 ### Features
 
 - Integrations: (beta) Add vmware_exporter integration (@rlankfo)
-- Introduce Blackbox exporter integration. (@marctc)
 
 - App agent receiver: add Event kind to payload (@domasx2)
 

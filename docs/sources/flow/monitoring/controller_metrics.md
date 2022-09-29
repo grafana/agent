@@ -30,5 +30,5 @@ The controller exposes the following metrics:
   graph evaluations performed by the component controller with how long they
   took.
 
-[controller]: {{< relref "../concepts/component_controller.md" >}}
+[component controller]: {{< relref "../concepts/component_controller.md" >}}
 [agent run]: {{< relref "../reference/cli/run.md" >}}
