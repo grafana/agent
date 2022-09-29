@@ -10,7 +10,7 @@ weight: 800
 This guide describes all breaking changes that have happened in prior
 releases and how to migrate to newer versions.
 
-## Unreleased Changes
+## v0.26.0
 
 These changes will come in a future version.
 
