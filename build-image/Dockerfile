@@ -1,3 +1,9 @@
+# syntax=docker/dockerfile:1.4
+
+# NOTE: This Dockerfile can only be built using BuildKit. BuildKit is used by
+# default when running `docker buildx build` or when DOCKER_BUILDKIT=1 is set
+# in environment variables.
+
 #
 # Dependencies
 #
@@ -36,6 +42,27 @@ RUN go install sigs.k8s.io/controller-tools/cmd/controller-gen@$CONTROLLER_GEN_V
 # dependencies.
 FROM rfratto/viceroy:v0.2.1
 
+# Install NodeJS LTS. This is needed because the most recent version of NodeJS
+# from official Debian packages is v12, and we need LTS version v16.
+#
+# This must be done before installing other dependencies, otherwise nodesource
+# will fail on installing NodeJS for all platforms instead of just our host
+# platform.
+RUN <<EOF
+  apt-get update && apt-get install -qy curl
+  curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
+
+  apt-get update && apt-get install -qy nodejs
+  rm -rf /var/lib/apt/lists/*
+EOF
+
+# Install Yarn.
+#
+# See https://yarnpkg.com/getting-started/install#nodejs-1610
+RUN corepack enable
+
+# Install other dependencies.
+#
 # NOTE(rfratto): musl is installed so the Docker binaries from alpine work
 # properly.
 RUN apt-get update                                \

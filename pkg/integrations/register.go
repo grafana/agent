@@ -132,7 +132,7 @@ func UnmarshalYAML(out interface{}, unmarshal func(interface{}) error) error {
 // field added for every integration in integrations. Code adapted from
 // Prometheus:
 //
-//   https://github.com/prometheus/prometheus/blob/511511324adfc4f4178f064cc104c2deac3335de/discovery/registry.go#L111
+//	https://github.com/prometheus/prometheus/blob/511511324adfc4f4178f064cc104c2deac3335de/discovery/registry.go#L111
 func unmarshalIntegrationsWithList(integrations []Config, out interface{}, unmarshal func(interface{}) error) error {
 	outVal := reflect.ValueOf(out)
 	if outVal.Kind() != reflect.Ptr {

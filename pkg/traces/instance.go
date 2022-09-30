@@ -10,9 +10,9 @@ import (
 	"go.opencensus.io/stats/view"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/service/external/extensions"
+	"go.opentelemetry.io/collector/service/extensions"
 	"go.opentelemetry.io/collector/service/external/pipelines"
-	"go.opentelemetry.io/otel/metric/nonrecording"
+	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 
@@ -116,7 +116,7 @@ func (i *Instance) stop() {
 				if i.extensions == nil {
 					return nil
 				}
-				return i.extensions.ShutdownAll(shutdownCtx)
+				return i.extensions.Shutdown(shutdownCtx)
 			},
 		},
 	}
@@ -179,23 +179,22 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	settings := component.TelemetrySettings{
 		Logger:         i.logger,
 		TracerProvider: trace.NewNoopTracerProvider(),
-		MeterProvider:  nonrecording.NewNoopMeterProvider(),
+		MeterProvider:  metric.NewNoopMeterProvider(),
 	}
 
 	// start extensions
-	i.extensions, err = extensions.Build(ctx, extensions.Settings{
+	i.extensions, err = extensions.New(ctx, extensions.Settings{
 		Telemetry: settings,
 		BuildInfo: appinfo,
 
-		Factories:         factories.Extensions,
-		Configs:           otelConfig.Extensions,
-		ServiceExtensions: otelConfig.Service.Extensions,
-	})
+		Factories: factories.Extensions,
+		Configs:   otelConfig.Extensions,
+	}, otelConfig.Service.Extensions)
 	if err != nil {
 		i.logger.Error(fmt.Sprintf("failed to build extensions: %s", err.Error()))
 		return fmt.Errorf("failed to create extensions builder: %w", err)
 	}
-	err = i.extensions.StartAll(ctx, i)
+	err = i.extensions.Start(ctx, i)
 	if err != nil {
 		i.logger.Error(fmt.Sprintf("failed to start extensions: %s", err.Error()))
 		return fmt.Errorf("failed to start extensions: %w", err)

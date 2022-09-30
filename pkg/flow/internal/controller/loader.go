@@ -13,7 +13,6 @@ import (
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/diag"
-	"github.com/grafana/agent/pkg/river/token/builder"
 	"github.com/grafana/agent/pkg/river/vm"
 	"github.com/hashicorp/go-multierror"
 
@@ -25,12 +24,13 @@ type Loader struct {
 	log     log.Logger
 	globals ComponentGlobals
 
-	mut        sync.RWMutex
-	graph      *dag.Graph
-	components []*ComponentNode
-	cache      *valueCache
-	blocks     []*ast.BlockStmt // Most recently loaded blocks, used for writing
-	cm         *controllerMetrics
+	mut           sync.RWMutex
+	graph         *dag.Graph
+	originalGraph *dag.Graph
+	components    []*ComponentNode
+	cache         *valueCache
+	blocks        []*ast.BlockStmt // Most recently loaded blocks, used for writing
+	cm            *controllerMetrics
 }
 
 // NewLoader creates a new Loader. Components built by the Loader will be built
@@ -87,7 +87,9 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt) diag.Diag
 		diags = append(diags, multierrToDiags(err)...)
 		return diags
 	}
-
+	// Copy the original graph, this is so we can have access to the original graph for things like displaying a UI or
+	// debug information.
+	l.originalGraph = newGraph.Clone()
 	// Perform a transitive reduction of the graph to clean it up.
 	dag.Reduce(&newGraph)
 
@@ -154,10 +156,31 @@ func (l *Loader) populateGraph(g *dag.Graph, blocks []*ast.BlockStmt) diag.Diagn
 			c.UpdateBlock(block)
 		} else {
 			componentName := strings.Join(block.Name, ".")
-			if _, exists := component.Get(componentName); !exists {
+			registration, exists := component.Get(componentName)
+			if !exists {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
 					Message:  fmt.Sprintf("Unrecognized component name %q", componentName),
+					StartPos: block.NamePos.Position(),
+					EndPos:   block.NamePos.Add(len(componentName) - 1).Position(),
+				})
+				continue
+			}
+
+			if registration.Singleton && block.Label != "" {
+				diags.Add(diag.Diagnostic{
+					Severity: diag.SeverityLevelError,
+					Message:  fmt.Sprintf("Component %q does not support labels", componentName),
+					StartPos: block.LabelPos.Position(),
+					EndPos:   block.LabelPos.Add(len(block.Label) + 1).Position(),
+				})
+				continue
+			}
+
+			if !registration.Singleton && block.Label == "" {
+				diags.Add(diag.Diagnostic{
+					Severity: diag.SeverityLevelError,
+					Message:  fmt.Sprintf("Component %q must have a label", componentName),
 					StartPos: block.NamePos.Position(),
 					EndPos:   block.NamePos.Add(len(componentName) - 1).Position(),
 				})
@@ -208,28 +231,12 @@ func (l *Loader) Graph() *dag.Graph {
 	return l.graph.Clone()
 }
 
-// WriteBlocks returns a set of evaluated token/builder blocks for each loaded
-// component. Components are returned in the order they were supplied to Apply
-// (i.e., the original order from the config file) and not topological order.
-//
-// Blocks will include health and debug information if debugInfo is true.
-func (l *Loader) WriteBlocks(debugInfo bool) []*builder.Block {
+// OriginalGraph returns a copy of the graph before Reduce was called. This can be used if you want to show a UI of the
+// original graph before the reduce function was called.
+func (l *Loader) OriginalGraph() *dag.Graph {
 	l.mut.RLock()
 	defer l.mut.RUnlock()
-
-	blocks := make([]*builder.Block, 0, len(l.components))
-
-	for _, b := range l.blocks {
-		id := BlockComponentID(b).String()
-		node, _ := l.graph.GetByID(id).(*ComponentNode)
-		if node == nil {
-			continue
-		}
-
-		blocks = append(blocks, WriteComponent(node, debugInfo))
-	}
-
-	return blocks
+	return l.originalGraph.Clone()
 }
 
 // EvaluateDependencies re-evaluates components which depend directly or

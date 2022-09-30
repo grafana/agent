@@ -5,7 +5,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
@@ -218,7 +217,7 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 
 // LoadFile reads a file and passes the contents to Load
 func LoadFile(filename string, expandEnvVars bool, c *Config) error {
-	buf, err := ioutil.ReadFile(filename)
+	buf, err := os.ReadFile(filename)
 
 	instrumentation.ConfigMetrics.InstrumentConfig(buf)
 

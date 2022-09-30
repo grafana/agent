@@ -33,7 +33,7 @@ original subsystem:
 
 * A new service discovery HTTP API is included. This can be used with
   Prometheus' [http_sd_config][http_sd_config]. The API returns extra labels
-  for integrations that previously were only availble when autoscraping, such
+  for integrations that previously were only available when autoscraping, such
   as `agent_hostname`.
 
 * Integrations that aren't Prometheus exporters may now be added, such as
@@ -81,6 +81,7 @@ integrations:
   [windows: <windows_exporter_config>]
   [eventhandler: <eventhandler_config>]
   [snmp: <snmp_exporter_config>]
+  [blackbox: <blackbox_config>]
   [ebpf: <ebpf_config>]
 
   # Configs for integrations that do support multiple instances. Note that

@@ -71,6 +71,8 @@ type ComponentGlobals struct {
 // from a River block.
 type ComponentNode struct {
 	id              ComponentID
+	label           string
+	componentName   string
 	nodeID          string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
 	reg             component.Registration
 	managedOpts     component.Options
@@ -96,12 +98,9 @@ type ComponentNode struct {
 
 	exportsMut sync.RWMutex
 	exports    component.Exports // Evaluated exports for the managed component
-
 }
 
-var (
-	_ dag.Node = (*ComponentNode)(nil)
-)
+var _ dag.Node = (*ComponentNode)(nil)
 
 // NewComponentNode creates a new ComponentNode from an initial ast.BlockStmt.
 // The underlying managed component isn't created until Evaluate is called.
@@ -127,7 +126,9 @@ func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode
 
 	cn := &ComponentNode{
 		id:              id,
+		label:           b.Label,
 		nodeID:          nodeID,
+		componentName:   strings.Join(b.Name, "."),
 		reg:             reg,
 		exportsType:     getExportsType(reg),
 		onExportsChange: globals.OnExportsChange,
@@ -173,6 +174,12 @@ func getExportsType(reg component.Registration) reflect.Type {
 // ID returns the component ID of the managed component from its River block.
 func (cn *ComponentNode) ID() ComponentID { return cn.id }
 
+// Label returns the label for the block or "" if none was specified.
+func (cn *ComponentNode) Label() string { return cn.label }
+
+// ComponentName returns the component's type, i.e. `local.file.test` returns `local.file`.
+func (cn *ComponentNode) ComponentName() string { return cn.componentName }
+
 // NodeID implements dag.Node and returns the unique ID for this node. The
 // NodeID is the string representation of the component's ID from its River
 // block.
@@ -193,15 +200,6 @@ func (cn *ComponentNode) UpdateBlock(b *ast.BlockStmt) {
 	defer cn.mut.Unlock()
 	cn.block = b
 	cn.eval = vm.New(b.Body)
-}
-
-// getBlock gets the block currently used by this component. This is only used
-// internally for getting the block name and label and the return value should
-// not be modified.
-func (cn *ComponentNode) getBlock() *ast.BlockStmt {
-	cn.mut.RLock()
-	defer cn.mut.RUnlock()
-	return cn.block
 }
 
 // Evaluate updates the arguments for the managed component by re-evaluating
@@ -366,11 +364,11 @@ func (cn *ComponentNode) setExports(e component.Exports) {
 // The health of a ComponentNode is tracked from three parts, in descending
 // precedence order:
 //
-//     1. Exited health from a call to Run()
-//     2. Unhealthy status from last call to Evaluate
-//     3. Health reported by the managed component (if any)
-//     4. Latest health from Run() or Evaluate(), if the managed component does not
-//        report health.
+//  1. Exited health from a call to Run()
+//  2. Unhealthy status from last call to Evaluate
+//  3. Health reported by the managed component (if any)
+//  4. Latest health from Run() or Evaluate(), if the managed component does not
+//     report health.
 func (cn *ComponentNode) CurrentHealth() component.Health {
 	cn.healthMut.RLock()
 	defer cn.healthMut.RUnlock()

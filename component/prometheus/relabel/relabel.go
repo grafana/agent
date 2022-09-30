@@ -28,8 +28,8 @@ type Arguments struct {
 	// Where the relabelled metrics should be forwarded to.
 	ForwardTo []*prometheus.Receiver `river:"forward_to,attr"`
 
-	// The relabelling steps to apply to each metric before it's forwarded.
-	MetricRelabelConfigs []*flow_relabel.Config `river:"metric_relabel_config,block,optional"`
+	// The relabelling rules to apply to each metric before it's forwarded.
+	MetricRelabelConfigs []*flow_relabel.Config `river:"rule,block,optional"`
 }
 
 // Exports holds values which are exported by the prometheus.relabel component.

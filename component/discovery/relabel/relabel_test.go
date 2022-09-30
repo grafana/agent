@@ -7,8 +7,7 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/discovery/relabel"
 	"github.com/grafana/agent/pkg/flow/componenttest"
-	"github.com/grafana/agent/pkg/river/parser"
-	"github.com/grafana/agent/pkg/river/vm"
+	"github.com/grafana/agent/pkg/river"
 	"github.com/stretchr/testify/require"
 )
 
@@ -20,37 +19,37 @@ targets = [
 	{ "__meta_baz" = "baz", "__meta_qux" = "qux", "__address__" = "localhost", "instance" = "three", "app" = "frontend", "__tmp_c" = "tmp" },
 ]
 
-relabel_config {
+rule {
 	source_labels = ["__address__", "instance"]
 	separator     = "/"
 	target_label  = "destination"
 	action        = "replace"
 } 
 
-relabel_config {
+rule {
 	source_labels = ["app"]
 	action        = "drop"
 	regex         = "frontend"
 }
 
-relabel_config {
+rule {
 	source_labels = ["app"]
 	action        = "keep"
 	regex         = "backend"
 }
 
-relabel_config {
+rule {
 	source_labels = ["instance"]
 	target_label  = "name"
 }
 
-relabel_config {
+rule {
 	action      = "labelmap"
 	regex       = "__meta_(.*)"
 	replacement = "meta_$1"
 }
 
-relabel_config {
+rule {
 	action = "labeldrop"
 	regex  = "__meta(.*)|__tmp(.*)|instance"
 }
@@ -61,12 +60,8 @@ relabel_config {
 		},
 	}
 
-	file, err := parser.ParseFile("agent-config.river", []byte(riverArguments))
-	require.NoError(t, err)
-
 	var args relabel.Arguments
-	err = vm.New(file).Evaluate(nil, &args)
-	require.NoError(t, err)
+	require.NoError(t, river.Unmarshal([]byte(riverArguments), &args))
 
 	tc, err := componenttest.NewControllerFromID(nil, "discovery.relabel")
 	require.NoError(t, err)

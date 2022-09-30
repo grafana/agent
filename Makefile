@@ -52,6 +52,7 @@
 ##   generate-dashboards  Generate dashboards in example/docker-compose after
 ##                        changing Jsonnet.
 ##   generate-protos      Generate protobuf files.
+##   generate-ui          Generate the UI assets.
 ##
 ## Other targets:
 ##
@@ -83,6 +84,7 @@
 ##   RELEASE_BUILD    Set to 1 to build release binaries
 ##   VERSION          Version to inject into built binaries.
 ##   GO_TAGS          Extra tags to use when building.
+##   DOCKER_PLATFORM  Overrides platform to build Docker images for (defaults to host platform).
 
 include tools/make/*.mk
 
@@ -206,6 +208,10 @@ endif
 
 DOCKER_FLAGS := --build-arg RELEASE_BUILD=$(RELEASE_BUILD) --build-arg VERSION=$(VERSION)
 
+ifneq ($(DOCKER_PLATFORM),)
+DOCKER_FLAGS += --platform=$(DOCKER_PLATFORM)
+endif
+
 .PHONY: images agent-image agentctl-image operator-image crow-image smoke-image
 images: agent-image agentctl-image operator-image crow-image smoke-image
 
@@ -224,8 +230,8 @@ smoke-image:
 # Targets for generating assets
 #
 
-.PHONY: generate generate-crds generate-manifests generate-dashboards generate-protos
-generate: generate-crds generate-manifests generate-dashboards generate-protos
+.PHONY: generate generate-crds generate-manifests generate-dashboards generate-protos generate-ui
+generate: generate-crds generate-manifests generate-dashboards generate-protos generate-ui
 
 generate-crds:
 ifeq ($(USE_CONTAINER),1)
@@ -254,6 +260,13 @@ ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
 	go generate ./pkg/agentproto/
+endif
+
+generate-ui:
+ifeq ($(USE_CONTAINER),1)
+	$(RERUN_IN_CONTAINER)
+else
+	cd ./web/ui && yarn && yarn run build
 endif
 
 #

@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
-	pdata "go.opentelemetry.io/collector/pdata/external"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"gopkg.in/yaml.v3"
@@ -30,7 +29,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "0ns",
-				"status", pdata.StatusCode(1),
+				"status", ptrace.StatusCode(1),
 			},
 		},
 		{
@@ -38,14 +37,14 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "test",
 				"dur", "0ns",
-				"status", pdata.StatusCode(1),
+				"status", ptrace.StatusCode(1),
 			},
 		},
 		{
 			expected: []interface{}{
 				"span", "",
 				"dur", "0ns",
-				"status", pdata.StatusCode(1),
+				"status", ptrace.StatusCode(1),
 			},
 		},
 		{
@@ -54,7 +53,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "10ns",
-				"status", pdata.StatusCode(1),
+				"status", ptrace.StatusCode(1),
 			},
 		},
 		{
@@ -63,7 +62,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "90ns",
-				"status", pdata.StatusCode(1),
+				"status", ptrace.StatusCode(1),
 			},
 		},
 		{
@@ -73,7 +72,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "0ns",
-				"status", pdata.StatusCode(1),
+				"status", ptrace.StatusCode(1),
 			},
 		},
 		{
@@ -86,7 +85,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "0ns",
-				"status", pdata.StatusCode(1),
+				"status", ptrace.StatusCode(1),
 				"xstr", "test",
 			},
 		},
@@ -101,7 +100,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"a", "",
 				"c", "0ns",
-				"d", pdata.StatusCode(1),
+				"d", ptrace.StatusCode(1),
 			},
 		},
 	}
@@ -114,10 +113,10 @@ func TestSpanKeyVals(t *testing.T) {
 
 		span := ptrace.NewSpan()
 		span.SetName(tc.spanName)
-		pcommon.NewMapFromRaw(tc.spanAttrs).Sort().CopyTo(span.Attributes())
+		span.Attributes().FromRaw(tc.spanAttrs)
 		span.SetStartTimestamp(pcommon.NewTimestampFromTime(tc.spanStart))
 		span.SetEndTimestamp(pcommon.NewTimestampFromTime(tc.spanEnd))
-		span.Status().SetCode(pdata.StatusCodeOk)
+		span.Status().SetCode(ptrace.StatusCodeOk)
 
 		actual := p.(*automaticLoggingProcessor).spanKeyVals(span)
 		assert.Equal(t, tc.expected, actual)
@@ -165,7 +164,7 @@ func TestProcessKeyVals(t *testing.T) {
 		require.NoError(t, err)
 
 		process := pcommon.NewResource()
-		pcommon.NewMapFromRaw(tc.processAttrs).Sort().CopyTo(process.Attributes())
+		process.Attributes().Sort().FromRaw(tc.processAttrs)
 
 		actual := p.(*automaticLoggingProcessor).processKeyVals(process, tc.svc)
 		assert.Equal(t, tc.expected, actual)
@@ -328,9 +327,9 @@ func TestLabels(t *testing.T) {
 		{
 			name:      "stringifies value if possible",
 			labels:    []string{"status"},
-			keyValues: []interface{}{"status", pdata.StatusCode(1)},
+			keyValues: []interface{}{"status", ptrace.StatusCode(1)},
 			expectedLabels: map[model.LabelName]model.LabelValue{
-				"status": model.LabelValue(pdata.StatusCode(1).String()),
+				"status": model.LabelValue(ptrace.StatusCode(1).String()),
 			},
 		},
 		{

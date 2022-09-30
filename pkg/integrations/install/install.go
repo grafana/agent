@@ -7,7 +7,8 @@ import (
 	//
 
 	_ "github.com/grafana/agent/pkg/integrations/agent"                  // register agent
-	_ "github.com/grafana/agent/pkg/integrations/apache_http"            // regisapache_httprter
+	_ "github.com/grafana/agent/pkg/integrations/apache_http"            // register apache_exporter
+	_ "github.com/grafana/agent/pkg/integrations/blackbox_exporter"      // register blackbox_exporter
 	_ "github.com/grafana/agent/pkg/integrations/cadvisor"               // register cadvisor
 	_ "github.com/grafana/agent/pkg/integrations/consul_exporter"        // register consul_exporter
 	_ "github.com/grafana/agent/pkg/integrations/dnsmasq_exporter"       // register dnsmasq_exporter
@@ -30,10 +31,11 @@ import (
 	// v2 integrations
 	//
 
-	_ "github.com/grafana/agent/pkg/integrations/v2/agent" // register agent
-	_ "github.com/grafana/agent/pkg/integrations/v2/apache_http"
+	_ "github.com/grafana/agent/pkg/integrations/v2/agent"              // register agent
+	_ "github.com/grafana/agent/pkg/integrations/v2/apache_http"        // register apache_exporter
 	_ "github.com/grafana/agent/pkg/integrations/v2/app_agent_receiver" // register app_agent_receiver
-	_ "github.com/grafana/agent/pkg/integrations/v2/eventhandler"
-	_ "github.com/grafana/agent/pkg/integrations/v2/snmp_exporter"
-	_ "github.com/grafana/agent/pkg/integrations/v2/vmware_exporter"
+	_ "github.com/grafana/agent/pkg/integrations/v2/blackbox_exporter"  // register blackbox_exporter
+	_ "github.com/grafana/agent/pkg/integrations/v2/eventhandler"       // register eventhandler
+	_ "github.com/grafana/agent/pkg/integrations/v2/snmp_exporter"      // register snmp_exporter
+	_ "github.com/grafana/agent/pkg/integrations/v2/vmware_exporter"    // register vmware_exporter
 )

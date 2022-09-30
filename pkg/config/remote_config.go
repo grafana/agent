@@ -2,7 +2,7 @@ package config
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 
@@ -92,7 +92,7 @@ func (p httpProvider) retrieve() ([]byte, error) {
 	if response.StatusCode/100 != 2 {
 		return nil, fmt.Errorf("error fetching config: status code: %d", response.StatusCode)
 	}
-	bb, err := ioutil.ReadAll(response.Body)
+	bb, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, err
 	}

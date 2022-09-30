@@ -82,7 +82,7 @@ trigger:
 
 steps:
   - name: lint
-    image: grafana/agent-build-image:0.15.1
+    image: grafana/agent-build-image:0.16.0
     commands:
       - make lint
 
@@ -105,7 +105,7 @@ trigger:
 
 steps:
   - name: test
-    image: grafana/agent-build-image:0.15.1
+    image: grafana/agent-build-image:0.16.0
     volumes:
       - name: docker
         path: /var/run/docker.sock
@@ -142,7 +142,7 @@ trigger:
     - refs/tags/v*
 steps:
   - name: test
-    image: grafana/agent-build-image:0.14.0-windows
+    image: grafana/agent-build-image:0.16.0-windows
     commands:
       - go test -tags="nodocker,nonetwork" ./...
 
@@ -160,7 +160,7 @@ trigger:
     - refs/heads/dev.*
 steps:
   - name: Build Containers
-    image: grafana/agent-build-image:0.15.1
+    image: grafana/agent-build-image:0.16.0
     volumes:
       - name: docker
         path: /var/run/docker.sock
@@ -268,7 +268,7 @@ trigger:
 
 steps:
   - name: create-release
-    image: grafana/agent-build-image:0.15.1
+    image: grafana/agent-build-image:0.16.0
     volumes:
       - name: docker
         path: /var/run/docker.sock
@@ -287,8 +287,8 @@ steps:
         from_secret: gpg_passphrase
     commands:
       - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-      - make -j4 RELEASE_BUILD=1 VERISON=${DRONE_TAG} dist
-      - RELEASE_DOC_TAG=$(echo $VERSION | awk -F '.' '{print $1"."$2}') ./tools/release
+      - make -j4 RELEASE_BUILD=1 VERSION=${DRONE_TAG} dist
+      - VERSION=${DRONE_TAG} RELEASE_DOC_TAG=$(echo ${DRONE_TAG} | awk -F '.' '{print $1"."$2}') ./tools/release
 depends_on:
   - Test
 
@@ -347,6 +347,6 @@ get:
 
 ---
 kind: signature
-hmac: 30ef74d8b3810aec51486cb913df033ef6b51efa58f85e5cc33a00fa602a0ba7
+hmac: 87125fabd632d1c389feaea02149aa23f266ea618008116eadc849f09efde093
 
 ...

@@ -32,16 +32,16 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 //
 // Validations:
 //
-//   1. No two InstanceConfigs may have the same name.
-//   2. No two InstanceConfigs may have the same positions path.
-//   3. No InstanceConfig may have an empty name.
-//   4. If InstanceConfig positions path is empty, shared PositionsDirectory
-//      must not be empty.
+//  1. No two InstanceConfigs may have the same name.
+//  2. No two InstanceConfigs may have the same positions path.
+//  3. No InstanceConfig may have an empty name.
+//  4. If InstanceConfig positions path is empty, shared PositionsDirectory
+//     must not be empty.
 //
 // Defaults:
 //
-//   1. If a positions config is empty, it will be generated based on
-//      the InstanceConfig name and Config.PositionsDirectory.
+//  1. If a positions config is empty, it will be generated based on
+//     the InstanceConfig name and Config.PositionsDirectory.
 func (c *Config) ApplyDefaults() error {
 	var (
 		names     = map[string]struct{}{}

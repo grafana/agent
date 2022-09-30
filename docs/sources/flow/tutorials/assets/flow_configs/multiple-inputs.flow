@@ -1,0 +1,29 @@
+prometheus.scrape "agent" {
+	targets    = [{"__address__" = "localhost:12345"}]
+	forward_to = [prometheus.relabel.service.receiver]
+}
+
+prometheus.integration.node_exporter {
+	set_collectors = ["cpu", "diskstats"]
+}
+
+prometheus.scrape "node" {
+	targets    = prometheus.integration.node_exporter.targets
+	forward_to = [prometheus.relabel.service.receiver]
+}
+
+prometheus.relabel "service" {
+	rule {
+		source_labels = ["__name__"]
+		regex         = "(.+)"
+		replacement   = "api_server"
+		target_label  = "service"
+	}
+	forward_to = [prometheus.remote_write.prom.receiver]
+}
+
+prometheus.remote_write "prom" {
+	endpoint {
+		url = "http://mimir:9009/api/v1/push"
+	}
+}

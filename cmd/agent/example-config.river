@@ -19,7 +19,7 @@ prometheus.scrape "default" {
 }
 
 prometheus.remote_write "default" {
-	remote_write {
+	endpoint {
 		url = "http://localhost:9009/api/prom/push"
 	}
 }

@@ -8,12 +8,12 @@ import (
 // represented as a River capsule. This is useful for types whose underlying
 // value is not a capsule, such as:
 //
-//   // Secret is a secret value. It would normally be a River string since the
-//   // underlying Go type is string, but it's a capsule since it implements
-//   // the Capsule interface.
-//   type Secret string
+//	// Secret is a secret value. It would normally be a River string since the
+//	// underlying Go type is string, but it's a capsule since it implements
+//	// the Capsule interface.
+//	type Secret string
 //
-//   func (s Secret) RiverCapsule() {}
+//	func (s Secret) RiverCapsule() {}
 //
 // Extension interfaces are used to describe additional behaviors for Capsules.
 // ConvertibleCapsule allows defining custom conversion rules to convert

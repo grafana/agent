@@ -159,7 +159,7 @@ func (p *parser) addErrorf(format string, args ...interface{}) {
 
 // ParseFile parses an entire file.
 //
-//     File = Body
+//	File = Body
 func (p *parser) ParseFile() *ast.File {
 	body := p.parseBody(token.EOF)
 
@@ -173,7 +173,7 @@ func (p *parser) ParseFile() *ast.File {
 // parseBody parses a series of statements up to and including the "until"
 // token, which terminates the body.
 //
-//     Body = [ Statement { terminator Statement } ]
+//	Body = [ Statement { terminator Statement } ]
 func (p *parser) parseBody(until token.Token) ast.Body {
 	var body ast.Body
 
@@ -234,9 +234,9 @@ func (p *parser) consumeStatement() {
 
 // parseStatement parses an individual statement within a body.
 //
-//     Statement = Attribute | Block
-//     Attribute = identifier "=" Expression
-//     Block     = BlockName "{" Body "}"
+//	Statement = Attribute | Block
+//	Attribute = identifier "=" Expression
+//	Block     = BlockName "{" Body "}"
 func (p *parser) parseStatement() ast.Stmt {
 	blockName := p.parseBlockName()
 	if blockName == nil {
@@ -280,9 +280,10 @@ func (p *parser) parseStatement() ast.Stmt {
 
 	case token.LCURLY: // Block
 		block := &ast.BlockStmt{
-			Name:    blockName.Fragments,
-			NamePos: blockName.Start,
-			Label:   blockName.Label,
+			Name:     blockName.Fragments,
+			NamePos:  blockName.Start,
+			Label:    blockName.Label,
+			LabelPos: blockName.LabelPos,
 		}
 
 		block.LCurlyPos, _, _ = p.expect(token.LCURLY)
@@ -308,7 +309,7 @@ func (p *parser) parseStatement() ast.Stmt {
 
 // parseBlockName parses the name used for a block.
 //
-//     BlockName = identifier { "." identifier } [ string ]
+//	BlockName = identifier { "." identifier } [ string ]
 func (p *parser) parseBlockName() *blockName {
 	if p.tok != token.IDENT {
 		p.addErrorf("expected identifier, got %s", p.tok)
@@ -373,7 +374,7 @@ func (n blockName) ValidAttribute() bool {
 
 // ParseExpression parses a single expression.
 //
-//     Expression = BinOpExpr
+//	Expression = BinOpExpr
 func (p *parser) ParseExpression() ast.Expr {
 	return p.parseBinOp(1)
 }
@@ -381,12 +382,12 @@ func (p *parser) ParseExpression() ast.Expr {
 // parseBinOp is the entrypoint for binary expressions. If there is no binary
 // expressions in the current state, a single operand will be returned instead.
 //
-//     BinOpExpr = OrExpr
-//     OrExpr    = AndExpr { "||"   AndExpr }
-//     AndExpr   = CmpExpr { "&&"   CmpExpr }
-//     CmpExpr   = AddExpr { cmp_op AddExpr }
-//     AddExpr   = MulExpr { add_op MulExpr }
-//     MulExpr   = PowExpr { mul_op PowExpr }
+//	BinOpExpr = OrExpr
+//	OrExpr    = AndExpr { "||"   AndExpr }
+//	AndExpr   = CmpExpr { "&&"   CmpExpr }
+//	CmpExpr   = AddExpr { cmp_op AddExpr }
+//	AddExpr   = MulExpr { add_op MulExpr }
+//	MulExpr   = PowExpr { mul_op PowExpr }
 //
 // parseBinOp avoids the need for multiple nonterminal functions by providing
 // context for operator precedence in recursive calls. inPrec specifies the
@@ -431,7 +432,7 @@ func (p *parser) parseBinOp(inPrec int) ast.Expr {
 // parsePowExpr is like parseBinOp but handles the right-associative pow
 // operator.
 //
-//   PowExpr = UnaryExpr [ "^" PowExpr ]
+//	PowExpr = UnaryExpr [ "^" PowExpr ]
 func (p *parser) parsePowExpr() ast.Expr {
 	lhs := p.parseUnaryExpr()
 
@@ -452,12 +453,12 @@ func (p *parser) parsePowExpr() ast.Expr {
 
 // parseUnaryExpr parses a unary expression.
 //
-//     UnaryExpr = OperExpr | unary_op UnaryExpr
+//	UnaryExpr = OperExpr | unary_op UnaryExpr
 //
-//     OperExpr   = PrimaryExpr { AccessExpr | IndexExpr | CallExpr }
-//     AccessExpr = "." identifier
-//     IndexExpr  = "[" Expression "]"
-//     CallExpr   = "(" [ ExpressionList ] ")"
+//	OperExpr   = PrimaryExpr { AccessExpr | IndexExpr | CallExpr }
+//	AccessExpr = "." identifier
+//	IndexExpr  = "[" Expression "]"
+//	CallExpr   = "(" [ ExpressionList ] ")"
 func (p *parser) parseUnaryExpr() ast.Expr {
 	if isUnaryOp(p.tok) {
 		op, pos := p.tok, p.pos
@@ -563,13 +564,13 @@ func isUnaryOp(tok token.Token) bool {
 
 // parsePrimaryExpr parses a primary expression.
 //
-//     PrimaryExpr = LiteralValue | ArrayExpr | ObjectExpr
+//	PrimaryExpr = LiteralValue | ArrayExpr | ObjectExpr
 //
-//     LiteralValue = identifier | string | number | float | bool | null |
-//                    "(" Expression ")"
+//	LiteralValue = identifier | string | number | float | bool | null |
+//	               "(" Expression ")"
 //
-//     ArrayExpr  = "[" [ ExpressionList ] "]"
-//     ObjectExpr = "{" [ FieldList ] "}"
+//	ArrayExpr  = "[" [ ExpressionList ] "]"
+//	ObjectExpr = "{" [ FieldList ] "}"
 func (p *parser) parsePrimaryExpr() ast.Expr {
 	switch p.tok {
 	case token.IDENT:
@@ -639,7 +640,7 @@ var statementEnd = map[token.Token]struct{}{
 
 // parseExpressionList parses a list of expressions.
 //
-//     ExpressionList = Expression { "," Expression } [ "," ]
+//	ExpressionList = Expression { "," Expression } [ "," ]
 func (p *parser) parseExpressionList(until token.Token) []ast.Expr {
 	var exprs []ast.Expr
 
@@ -660,7 +661,7 @@ func (p *parser) parseExpressionList(until token.Token) []ast.Expr {
 
 // parseFieldList parses a list of fields in an object.
 //
-//     FieldList = Field { "," Field } [ "," ]
+//	FieldList = Field { "," Field } [ "," ]
 func (p *parser) parseFieldList(until token.Token) []*ast.ObjectField {
 	var fields []*ast.ObjectField
 
@@ -681,7 +682,7 @@ func (p *parser) parseFieldList(until token.Token) []*ast.ObjectField {
 
 // parseField parses a field in an object.
 //
-//    Field = ( string | identifier ) "=" Expression
+//	Field = ( string | identifier ) "=" Expression
 func (p *parser) parseField() *ast.ObjectField {
 	var field ast.ObjectField
 

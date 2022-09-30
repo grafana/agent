@@ -6,8 +6,8 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net"
+	"os"
 	"sync"
 	"time"
 
@@ -257,7 +257,7 @@ func (l *tlsListener) applyNormalTLS(c TLSConfig) error {
 
 	if c.ClientCAs != "" {
 		clientCAPool := x509.NewCertPool()
-		clientCAFile, err := ioutil.ReadFile(c.ClientCAs)
+		clientCAFile, err := os.ReadFile(c.ClientCAs)
 		if err != nil {
 			return err
 		}

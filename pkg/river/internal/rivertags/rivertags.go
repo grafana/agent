@@ -73,21 +73,21 @@ func (f Field) IsOptional() bool { return f.Flags&FlagOptional != 0 }
 //
 // Examples of struct field tags and their meanings:
 //
-//     // Field is used as a required block named "my_block".
-//     Field struct{} `river:"my_block,block"`
+//	// Field is used as a required block named "my_block".
+//	Field struct{} `river:"my_block,block"`
 //
-//     // Field is used as an optional block named "my_block".
-//     Field struct{} `river:"my_block,block,optional"`
+//	// Field is used as an optional block named "my_block".
+//	Field struct{} `river:"my_block,block,optional"`
 //
-//     // Field is used as a required attribute named "my_attr".
-//     Field string `river:"my_attr,attr"`
+//	// Field is used as a required attribute named "my_attr".
+//	Field string `river:"my_attr,attr"`
 //
-//     // Field is used as an optional attribute named "my_attr".
-//     Field string `river:"my_attr,attr,optional"`
+//	// Field is used as an optional attribute named "my_attr".
+//	Field string `river:"my_attr,attr,optional"`
 //
-//     // Field is used for storing the label of the block which the struct
-//     // represents.
-//     Field string `river:",label"`
+//	// Field is used for storing the label of the block which the struct
+//	// represents.
+//	Field string `river:",label"`
 //
 // With the exception of the `river:",label"` tag, all tagged fields must have a
 // unique name.

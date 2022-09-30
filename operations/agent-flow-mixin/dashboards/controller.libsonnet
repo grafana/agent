@@ -137,8 +137,8 @@ local filename = 'agent-flow-controller.json';
           * Unknown: A component has been created but has not yet been started.
           * Exited: A component has exited. It will not return to the running state.
 
-          More information on a component's health state can be retrieved at
-          the /debug/config?debug=1 HTTP endpoint of the Grafana Agent process.
+          More information on a component's health state can be retrieved using
+          the Grafana Agent Flow UI.
 
           Note that components may be in a degraded state even if they report
           themselves as healthy. Use component-specific dashboards and alerts

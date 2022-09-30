@@ -4,7 +4,6 @@ package config
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"net/http/httptest"
 	"net/url"
 	"os"
@@ -123,7 +122,7 @@ integrations:
 
 func writeFile(t *testing.T, directory string, path string, contents string) {
 	fullpath := filepath.Join(directory, path)
-	err := ioutil.WriteFile(fullpath, []byte(contents), 0666)
+	err := os.WriteFile(fullpath, []byte(contents), 0666)
 	require.NoError(t, err)
 }
 

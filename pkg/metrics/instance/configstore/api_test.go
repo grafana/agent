@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -42,7 +41,7 @@ func TestAPI_ListConfigurations(t *testing.T) {
 			"configs": ["a", "b", "c"]
 		}
 	}`
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	require.JSONEq(t, expect, string(body))
 
@@ -76,7 +75,7 @@ func TestAPI_GetConfiguration_Invalid(t *testing.T) {
 			"error": "configuration does-not-exist does not exist"
 		}
 	}`
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	require.JSONEq(t, expect, string(body))
 
@@ -112,7 +111,7 @@ func TestAPI_GetConfiguration(t *testing.T) {
 			"value": "name: exists\nhost_filter: true\nremote_flush_deadline: 10m0s\n"
 		}
 	}`
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	require.JSONEq(t, expect, string(body))
 
@@ -227,7 +226,7 @@ func TestServer_GetConfiguration_Disabled(t *testing.T) {
 	resp, err := http.Get(env.srv.URL + "/agent/api/v1/configs/exists")
 	require.NoError(t, err)
 	require.Equal(t, http.StatusNotFound, resp.StatusCode)
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	require.Equal(t, []byte("404 - config endpoint is disabled"), body)
 }
@@ -287,7 +286,7 @@ func TestServer_PutConfiguration_Invalid(t *testing.T) {
 			"error": "failed to validate config: custom validation error"
 		}
 	}`
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	require.JSONEq(t, expect, string(body))
 }

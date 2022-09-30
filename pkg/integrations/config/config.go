@@ -12,9 +12,9 @@ import (
 // Common is a set of common options shared by all integrations. It should be
 // utilised by an integration's config by inlining the common options:
 //
-//   type IntegrationConfig struct {
-//     Common config.Common `yaml:",inline"`
-//   }
+//	type IntegrationConfig struct {
+//	  Common config.Common `yaml:",inline"`
+//	}
 type Common struct {
 	Enabled              bool              `yaml:"enabled,omitempty"`
 	InstanceKey          *string           `yaml:"instance,omitempty"`

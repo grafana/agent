@@ -10,7 +10,31 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+> **BREAKING CHANGES**: This release has breaking changes. Please read entries
+> carefully and consult the [upgrade guide][] for specific instructions.
+
+### Breaking changes
+
+- JSON-encoded traces from OTLP versions earlier than 0.16.0 are no longer
+  supported. (@rfratto)
+
+### Enhancements
+
+- Update OpenTelemetry Collector dependency to v0.61.0. (@rfratto)
+
+- Update Prometheus dependency to v2.38.0. (@rfratto)
+
+v0.28.0 (2022-09-29)
+--------------------
+
 ### Features
+
+- Introduce Grafana Agent Flow, an experimental "programmable pipeline" runtime
+  mode which improves how to configure and debug Grafana Agent by using
+  components. (@captncraig, @karengermond, @marctc, @mattdurham, @rfratto,
+  @rlankfo, @tpaschalis)
+
+- Introduce Blackbox exporter integration. (@marctc)
 
 ### Enhancements
 
@@ -27,7 +51,7 @@ Main (unreleased)
 - Add metrics for config reloads and config hash (@jcreixell)
 
 v0.27.1 (2022-09-09)
--------------------------
+--------------------
 
 > **NOTE**: ARMv6 Docker images are no longer being published.
 >
@@ -42,7 +66,7 @@ v0.27.1 (2022-09-09)
 - Switch docker image base from debian to ubuntu. (@captncraig)
 
 v0.27.0 (2022-09-01)
--------------------------
+--------------------
 
 ### Features
 
@@ -87,7 +111,7 @@ v0.27.0 (2022-09-01)
  - It is now possible to compile Grafana Agent using Go 1.19. (@rfratto)
 
 v0.26.1 (2022-07-25)
--------------------------
+--------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -104,7 +128,7 @@ v0.26.1 (2022-07-25)
 - Build the Linux/AMD64 artifacts using the opt-out flag for the ebpf_exporter. (@tpaschalis)
 
 v0.26.0 (2022-07-18)
--------------------------
+--------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -137,7 +161,7 @@ v0.26.0 (2022-07-18)
 - Fix mongodb exporter so that it now collects all metrics. (@mattdurham)
 
 v0.25.1 (2022-06-16)
--------------------------
+--------------------
 
 ### Bugfixes
 
@@ -147,7 +171,7 @@ v0.25.1 (2022-06-16)
 
 
 v0.25.0 (2022-06-06)
--------------------------
+--------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
