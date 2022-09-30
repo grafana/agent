@@ -13,7 +13,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
-	pdata_internal "go.opentelemetry.io/collector/pdata/external"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	semconv "go.opentelemetry.io/collector/semconv/v1.6.1"
 	"google.golang.org/grpc/codes"
@@ -271,7 +270,7 @@ func (p *processor) consume(trace ptrace.Traces) error {
 		rSpan := rSpansSlice.At(i)
 
 		svc, ok := rSpan.Resource().Attributes().Get(semconv.AttributeServiceName)
-		if !ok || svc.StringVal() == "" {
+		if !ok || svc.Str() == "" {
 			continue
 		}
 
@@ -287,14 +286,14 @@ func (p *processor) consume(trace ptrace.Traces) error {
 					k := key(span.TraceID().HexString(), span.SpanID().HexString())
 
 					edge, err := p.store.upsertEdge(k, func(e *edge) {
-						e.clientService = svc.StringVal()
+						e.clientService = svc.Str()
 						e.clientLatency = spanDuration(span)
 						e.failed = e.failed || p.spanFailed(span) // keep request as failed if any span is failed
 					})
 
 					if errors.Is(err, errTooManyItems) {
 						totalDroppedSpans++
-						p.serviceGraphDroppedSpansTotal.WithLabelValues(svc.StringVal(), "").Inc()
+						p.serviceGraphDroppedSpansTotal.WithLabelValues(svc.Str(), "").Inc()
 						continue
 					}
 					// upsertEdge will only return this errTooManyItems
@@ -310,14 +309,14 @@ func (p *processor) consume(trace ptrace.Traces) error {
 					k := key(span.TraceID().HexString(), span.ParentSpanID().HexString())
 
 					edge, err := p.store.upsertEdge(k, func(e *edge) {
-						e.serverService = svc.StringVal()
+						e.serverService = svc.Str()
 						e.serverLatency = spanDuration(span)
 						e.failed = e.failed || p.spanFailed(span) // keep request as failed if any span is failed
 					})
 
 					if errors.Is(err, errTooManyItems) {
 						totalDroppedSpans++
-						p.serviceGraphDroppedSpansTotal.WithLabelValues("", svc.StringVal()).Inc()
+						p.serviceGraphDroppedSpansTotal.WithLabelValues("", svc.Str()).Inc()
 						continue
 					}
 					// upsertEdge will only return this errTooManyItems
@@ -346,7 +345,7 @@ func (p *processor) consume(trace ptrace.Traces) error {
 func (p *processor) spanFailed(span ptrace.Span) bool {
 	// Request considered failed if status is not 2XX or added as a successful status code
 	if statusCode, ok := span.Attributes().Get(semconv.AttributeHTTPStatusCode); ok {
-		sc := int(statusCode.IntVal())
+		sc := int(statusCode.Int())
 		if _, ok := p.httpSuccessCodeMap[sc]; !ok && sc/100 != 2 {
 			return true
 		}
@@ -354,13 +353,13 @@ func (p *processor) spanFailed(span ptrace.Span) bool {
 
 	// Request considered failed if status is not OK or added as a successful status code
 	if statusCode, ok := span.Attributes().Get(semconv.AttributeRPCGRPCStatusCode); ok {
-		sc := int(statusCode.IntVal())
+		sc := int(statusCode.Int())
 		if _, ok := p.grpcSuccessCodeMap[sc]; !ok && sc != int(codes.OK) {
 			return true
 		}
 	}
 
-	return span.Status().Code() == pdata_internal.StatusCodeError
+	return span.Status().Code() == ptrace.StatusCodeError
 }
 
 func spanDuration(span ptrace.Span) time.Duration {

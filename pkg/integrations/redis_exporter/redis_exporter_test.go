@@ -3,7 +3,6 @@ package redis_exporter //nolint:golint
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -125,7 +124,7 @@ func TestRedisCases(t *testing.T) {
 			res, err := http.Get(srv.URL + "/metrics")
 			require.NoError(t, err)
 
-			body, err := ioutil.ReadAll(res.Body)
+			body, err := io.ReadAll(res.Body)
 			require.NoError(t, err)
 
 			foundMetricNames := map[string]bool{}

@@ -10,15 +10,29 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
-v0.28.0-rc.0 (2022-09-21)
--------------------------
+> **BREAKING CHANGES**: This release has breaking changes. Please read entries
+> carefully and consult the [upgrade guide][] for specific instructions.
+
+### Breaking changes
+
+- JSON-encoded traces from OTLP versions earlier than 0.16.0 are no longer
+  supported. (@rfratto)
+
+### Enhancements
+
+- Update OpenTelemetry Collector dependency to v0.61.0. (@rfratto)
+
+- Update Prometheus dependency to v2.38.0. (@rfratto)
+
+v0.28.0 (2022-09-29)
+--------------------
 
 ### Features
 
 - Introduce Grafana Agent Flow, an experimental "programmable pipeline" runtime
   mode which improves how to configure and debug Grafana Agent by using
-  components. (@captncraig, @marctc, @mattdurham, @rfratto, @rlankfo,
-  @tpaschalis)
+  components. (@captncraig, @karengermond, @marctc, @mattdurham, @rfratto,
+  @rlankfo, @tpaschalis)
 
 - Introduce Blackbox exporter integration. (@marctc)
 

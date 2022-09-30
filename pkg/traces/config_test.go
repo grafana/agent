@@ -1,7 +1,6 @@
 package traces
 
 import (
-	"io/ioutil"
 	"os"
 	"sort"
 	"strings"
@@ -17,7 +16,7 @@ import (
 )
 
 func tmpFile(t *testing.T, content string) (*os.File, func()) {
-	f, err := ioutil.TempFile("", "")
+	f, err := os.CreateTemp("", "")
 	require.NoError(t, err)
 
 	_, err = f.Write([]byte(content))

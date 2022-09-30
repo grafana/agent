@@ -9,7 +9,7 @@ import "reflect"
 // If a block name is a.b.c, then it is represented as three nested objects:
 //
 //	{
-// 	  a = {
+//	  a = {
 //	    b = {
 //	      c = { /* block contents */ },
 //	    },

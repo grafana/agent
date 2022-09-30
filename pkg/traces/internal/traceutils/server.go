@@ -19,7 +19,7 @@ import (
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.opentelemetry.io/collector/service/external/configunmarshaler"
 	"go.opentelemetry.io/collector/service/external/pipelines"
-	"go.opentelemetry.io/otel/metric/nonrecording"
+	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
@@ -140,7 +140,7 @@ service:
 	settings := component.TelemetrySettings{
 		Logger:         logger,
 		TracerProvider: trace.NewNoopTracerProvider(),
-		MeterProvider:  nonrecording.NewNoopMeterProvider(),
+		MeterProvider:  metric.NewNoopMeterProvider(),
 	}
 
 	pipelines, err := pipelines.Build(context.Background(), pipelines.Settings{
@@ -197,7 +197,7 @@ func newFuncProcessorFactory(callback func(ptrace.Traces)) component.ProcessorFa
 				Callback: callback,
 				Next:     next,
 			}, nil
-		}),
+		}, component.StabilityLevelUndefined),
 	)
 }
 
@@ -235,7 +235,7 @@ func newNoopExporterFactory() component.ExporterFactory {
 			error) {
 
 			return &noopExporter{}, nil
-		}),
+		}, component.StabilityLevelUndefined),
 	)
 }
 

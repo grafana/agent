@@ -35,8 +35,18 @@ type Factory struct {
 	Consumer consumer.Traces
 }
 
-// StabilityLevel implements component.Factory.
-func (f *Factory) StabilityLevel(config.DataType) component.StabilityLevel {
+// MetricsReceiverStability implements component.ReceiverFactory.
+func (f *Factory) MetricsReceiverStability() component.StabilityLevel {
+	return component.StabilityLevelUndefined
+}
+
+// LogsReceiverStability implements component.ReceiverFactory.
+func (f *Factory) LogsReceiverStability() component.StabilityLevel {
+	return component.StabilityLevelUndefined
+}
+
+// TracesReceiverStability implements component.ReceiverFactory.
+func (f *Factory) TracesReceiverStability() component.StabilityLevel {
 	return component.StabilityLevelUndefined
 }
 

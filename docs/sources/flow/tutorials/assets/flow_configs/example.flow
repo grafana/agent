@@ -1,5 +1,5 @@
 prometheus.integration.node_exporter {
-set_collectors = ["cpu", "diskstats"]
+	set_collectors = ["cpu", "diskstats"]
 }
 
 prometheus.scrape "my_scrape_job" {

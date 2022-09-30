@@ -36,8 +36,8 @@ var extraDiscoverProviders map[string]discover.Provider
 // exactly 1/N keys during simulation. Simulation tests used a cluster of 10
 // nodes and hashing 100,000 random keys:
 //
-//    256 tokens per node: min 94.0%, median 96.3%, max 115.3%
-//    512 tokens per node: min 96.1%, median 99.9%, max 103.2%
+//	256 tokens per node: min 94.0%, median 96.3%, max 115.3%
+//	512 tokens per node: min 96.1%, median 99.9%, max 103.2%
 //
 // While 512 tokens per node is closer to perfect distribution, 256 tokens per
 // node is good enough, optimizing for lower memory usage.

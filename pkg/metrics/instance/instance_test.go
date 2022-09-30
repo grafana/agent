@@ -3,7 +3,6 @@ package instance
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"net/http/httptest"
 	"os"
 	"path"
@@ -21,6 +20,7 @@ import (
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/model/metadata"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/stretchr/testify/require"
 )
@@ -188,7 +188,7 @@ func TestInstance_Path(t *testing.T) {
 	scrapeAddr, closeSrv := getTestServer(t)
 	defer closeSrv()
 
-	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
+	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
 	require.NoError(t, err)
 	defer os.RemoveAll(walDir)
 
@@ -217,7 +217,7 @@ func TestInstance(t *testing.T) {
 	scrapeAddr, closeSrv := getTestServer(t)
 	defer closeSrv()
 
-	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
+	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
 	require.NoError(t, err)
 	defer os.RemoveAll(walDir)
 
@@ -251,7 +251,7 @@ func TestInstance_Recreate(t *testing.T) {
 	scrapeAddr, closeSrv := getTestServer(t)
 	defer closeSrv()
 
-	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
+	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
 	require.NoError(t, err)
 	defer os.RemoveAll(walDir)
 
@@ -397,6 +397,10 @@ func (a *mockAppender) AddFast(ref storage.SeriesRef, t int64, v float64) error 
 }
 
 func (a *mockAppender) AppendExemplar(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar) (storage.SeriesRef, error) {
+	return 0, nil
+}
+
+func (a *mockAppender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata) (storage.SeriesRef, error) {
 	return 0, nil
 }
 

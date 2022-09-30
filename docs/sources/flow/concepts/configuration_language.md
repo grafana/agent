@@ -39,7 +39,7 @@ River was designed with the following requirements in mind:
 ## Attributes
 
 _Attributes_ are used to configure individual settings. They always take the
-form of `<ATTRIBUTE_NAME> = <ATTRIBUTE_VALUE>`.
+form of `ATTRIBUTE_NAME = ATTRIBUTE_VALUE`.
 
 ```river
 log_level = "debug"

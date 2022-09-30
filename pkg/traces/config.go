@@ -4,8 +4,8 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net"
+	"os"
 	"sort"
 	"strings"
 	"time"
@@ -356,7 +356,7 @@ func exporter(rwCfg RemoteWriteConfig) (map[string]interface{}, error) {
 		password := string(rwCfg.BasicAuth.Password)
 
 		if len(rwCfg.BasicAuth.PasswordFile) > 0 {
-			buff, err := ioutil.ReadFile(rwCfg.BasicAuth.PasswordFile)
+			buff, err := os.ReadFile(rwCfg.BasicAuth.PasswordFile)
 			if err != nil {
 				return nil, fmt.Errorf("unable to load password file %s: %w", rwCfg.BasicAuth.PasswordFile, err)
 			}

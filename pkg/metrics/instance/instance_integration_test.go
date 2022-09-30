@@ -3,7 +3,6 @@ package instance
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -22,16 +21,16 @@ import (
 
 // TestInstance_Update performs a full integration test by doing the following:
 //
-// 1. Launching an HTTP server which can be scraped and also mocks the remote_write
-//    endpoint.
-// 2. Creating an instance config with no scrape_configs or remote_write configs.
-// 3. Updates the instance with a scrape_config and remote_write.
-// 4. Validates that after 15 seconds, the scrape endpoint and remote_write
-//    endpoint has been called.
+//  1. Launching an HTTP server which can be scraped and also mocks the remote_write
+//     endpoint.
+//  2. Creating an instance config with no scrape_configs or remote_write configs.
+//  3. Updates the instance with a scrape_config and remote_write.
+//  4. Validates that after 15 seconds, the scrape endpoint and remote_write
+//     endpoint has been called.
 func TestInstance_Update(t *testing.T) {
 	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
 
-	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
+	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
 	require.NoError(t, err)
 	t.Cleanup(func() { os.RemoveAll(walDir) })
 
@@ -107,7 +106,7 @@ remote_write:
 func TestInstance_Update_Failed(t *testing.T) {
 	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
 
-	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
+	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
 	require.NoError(t, err)
 	t.Cleanup(func() { os.RemoveAll(walDir) })
 
@@ -174,7 +173,7 @@ remote_write:
 func TestInstance_Update_InvalidChanges(t *testing.T) {
 	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
 
-	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
+	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
 	require.NoError(t, err)
 	t.Cleanup(func() { os.RemoveAll(walDir) })
 

@@ -5,7 +5,6 @@ package node_exporter //nolint:golint
 
 import (
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"runtime"
@@ -59,7 +58,7 @@ func TestNodeExporter(t *testing.T) {
 	res, err := http.Get(srv.URL + "/metrics")
 	require.NoError(t, err)
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	require.NoError(t, err)
 
 	p := textparse.NewPromParser(body)

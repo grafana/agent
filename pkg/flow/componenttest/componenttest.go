@@ -34,13 +34,19 @@ type Controller struct {
 // NewControllerFromID returns a new testing Controller for the component with
 // the provided name.
 func NewControllerFromID(l log.Logger, componentName string) (*Controller, error) {
-	if l == nil {
-		l = log.NewNopLogger()
-	}
-
 	reg, ok := component.Get(componentName)
 	if !ok {
 		return nil, fmt.Errorf("no such component %q", componentName)
+	}
+	return NewControllerFromReg(l, reg), nil
+}
+
+// NewControllerFromReg registers a new testing Controller for a component with
+// the given registration. This can be used for testing fake components which
+// aren't really registered.
+func NewControllerFromReg(l log.Logger, reg component.Registration) *Controller {
+	if l == nil {
+		l = log.NewNopLogger()
 	}
 
 	return &Controller{
@@ -49,7 +55,7 @@ func NewControllerFromID(l log.Logger, componentName string) (*Controller, error
 
 		running:   make(chan struct{}, 1),
 		exportsCh: make(chan struct{}, 1),
-	}, nil
+	}
 }
 
 func (c *Controller) onStateChange(e component.Exports) {

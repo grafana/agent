@@ -15,7 +15,7 @@ var signalContexts atomic.Int64
 //
 // It is invalid to have two simultaneous SignalContexts per binary.
 func SignalContext(ctx context.Context, l log.Logger) (context.Context, context.CancelFunc) {
-	if !signalContexts.CAS(0, 1) {
+	if !signalContexts.CompareAndSwap(0, 1) {
 		panic("bug: multiple SignalContexts found")
 	}
 

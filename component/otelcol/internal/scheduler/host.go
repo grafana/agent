@@ -12,16 +12,34 @@ import (
 type Host struct {
 	log log.Logger
 
-	// TODO(rfratto): allow the below fields below to be used. For now they're
-	// always nil.
-
 	extensions map[otelconfig.ComponentID]otelcomponent.Extension
 	exporters  map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter
 }
 
 // NewHost creates a new Host.
-func NewHost(l log.Logger) *Host {
-	return &Host{log: l}
+func NewHost(l log.Logger, opts ...HostOption) *Host {
+	h := &Host{log: l}
+	for _, opt := range opts {
+		opt(h)
+	}
+	return h
+}
+
+// HostOption customizes behavior of the Host.
+type HostOption func(*Host)
+
+// WithHostExtensions provides a custom set of extensions to the Host.
+func WithHostExtensions(extensions map[otelconfig.ComponentID]otelcomponent.Extension) HostOption {
+	return func(h *Host) {
+		h.extensions = extensions
+	}
+}
+
+// WithHostExporters provides a custom set of exporters to the Host.
+func WithHostExporters(exporters map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter) HostOption {
+	return func(h *Host) {
+		h.exporters = exporters
+	}
 }
 
 var _ otelcomponent.Host = (*Host)(nil)
