@@ -15,7 +15,7 @@ Grafana Agent is a telemetry collector with the primary goal of moving telemetry
 
 ## Run the example
 
-Run the following `curl https://raw.githubusercontent.com/grafana/agent/main/docs/sources/flow/tutorials/assets/runt.sh -O && bash ./runt.sh agent.flow`. 
+Run the following `curl https://raw.githubusercontent.com/grafana/agent/main/docs/sources/flow/tutorials/assets/runt.sh -O && bash ./runt.sh agent.river`. 
 
 The `runt.sh` script does:
 

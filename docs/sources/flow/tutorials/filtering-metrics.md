@@ -15,7 +15,7 @@ In this tutorial, you'll add a new component [prometheus.relabel]({{< ref "prome
 
 ## Run the example
 
-The `prometheus.relabel` component is used to drop, add, or filter metrics.  Run the following: `curl https://raw.githubusercontent.com/grafana/agent/main/docs/sources/flow/tutorials/assets/runt.sh -O && bash ./runt.sh relabel.flow`.
+The `prometheus.relabel` component is used to drop, add, or filter metrics.  Run the following: `curl https://raw.githubusercontent.com/grafana/agent/main/docs/sources/flow/tutorials/assets/runt.sh -O && bash ./runt.sh relabel.river`.
 
 The `runt.sh` script does:
 

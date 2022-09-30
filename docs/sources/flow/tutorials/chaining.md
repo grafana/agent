@@ -17,7 +17,7 @@ A new concept introduced in Flow is chaining components together in a composable
 
 ## Run the example
 
-Run the following `curl https://raw.githubusercontent.com/grafana/agent/main/docs/sources/flow/tutorials/assets/runt.sh -O && bash ./runt.sh multiple-inputs.flow`.
+Run the following `curl https://raw.githubusercontent.com/grafana/agent/main/docs/sources/flow/tutorials/assets/runt.sh -O && bash ./runt.sh multiple-inputs.river`.
 
 The `runt.sh` script does:
 
