@@ -24,8 +24,8 @@ func TestReceiver(t *testing.T) {
 
 		waitConsumerTrigger = util.NewWaitTrigger()
 		onTracesConsumer    = func(t otelconsumer.Traces) {
-			waitConsumerTrigger.Trigger()
 			consumer = t
+			waitConsumerTrigger.Trigger()
 		}
 
 		waitTracesTrigger = util.NewWaitTrigger()
