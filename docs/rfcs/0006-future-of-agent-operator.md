@@ -5,7 +5,6 @@
 * PR: [grafana/agent#2046](https://github.com/grafana/agent/pull/2046)
 * Status: Draft
 
-
 ## Summary
 
 A recent [draft rfc](https://github.com/grafana/agent/pull/1565) discussed the possibility of deprecating the Agent Operator. Although we ultimately closed that proposal, there are still valid concerns in the community about the long-term support to be expected around the operator.
