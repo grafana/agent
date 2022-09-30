@@ -75,7 +75,7 @@ func NewEntrypoint(logger *server.Logger, cfg *config.Config, reloader Reloader)
 		return nil, err
 	}
 
-	ep.lokiLogs, err = logs.New(reg, cfg.Logs, logger)
+	ep.lokiLogs, err = logs.New(reg, cfg.Logs, logger, false)
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +160,7 @@ func (ep *Entrypoint) ApplyConfig(cfg config.Config) error {
 		failed = true
 	}
 
-	if err := ep.lokiLogs.ApplyConfig(cfg.Logs); err != nil {
+	if err := ep.lokiLogs.ApplyConfig(cfg.Logs, false); err != nil {
 		level.Error(ep.log).Log("msg", "failed to update loki", "err", err)
 		failed = true
 	}

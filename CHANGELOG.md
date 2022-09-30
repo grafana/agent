@@ -24,6 +24,12 @@ Main (unreleased)
 
 - Update Prometheus dependency to v2.38.0. (@rfratto)
 
+### Features
+
+- Add `agentctl test-logs` command to allow testing log configurations by redirecting
+collected logs to standard output. This can be useful for debugging. (@jcreixell)
+
+
 v0.28.0 (2022-09-29)
 --------------------
 
