@@ -128,7 +128,7 @@ func (e *Exporter) Update(args component.Arguments) error {
 		},
 	}
 
-	var exporterConfig = eargs.Convert()
+	exporterConfig := eargs.Convert()
 
 	// Create instances of the exporter from our factory for each of our
 	// supported telemetry signals.
