@@ -40,13 +40,13 @@ k3d cluster delete agent-k3d
 
 ## Smoke Test Environment
 
-The smoke test environment is used to validate samples end to end.
+The smoke test environment is used for end-to-end validation of all three observability signals.
 
 ### Running
 
 Smoke Test environment is invoked via `/scripts/smoke-test.bash`
 
-This tool will spin up cluster of Grafana Agent, Cortex, Avalanche, Smoke and [Crow](../../tools/crow/README.md) instances. The Smoke deployment will then periodically kill instances and check for any failed alerts. At the end of the duration (default 3h) it will end the testing.
+This tool will spin up cluster of Grafana Agent, Cortex, Avalanche, Smoke, [Crow](../../tools/crow/README.md), [Canary](https://grafana.com/docs/loki/latest/operations/loki-canary/) and Vulture instances. The Smoke deployment will then periodically kill instances and check for any failed alerts. At the end of the duration (default 3h) it will end the testing.
 
 For users who do not have access to the `us.gcr.io/kubernetes-dev` container registry, do the following to run the smoke test:
 
@@ -67,6 +67,7 @@ These alerts are viewable [here](http://prometheus.k3d.localhost:50080/alerts).
 
 Prometheus alerts are triggered:
 - If any Crow instances are not running or Crow samples are not being propagated correctly.
+- If any Canary instances are not running or Canary logs are not being propagated correctly.
 - If any Vulture instances are not running or Vulture samples are not being propagated correctly.
 - If any Grafana Agents are not running or Grafana Agent limits are outside their norm.
 
@@ -88,6 +89,10 @@ Changing the avalanche setting for label_count to 1000, located [here](../../pro
 
 ![](./assets/trigger_change.png)
 
+For Loki Canary, the easiest way to trigger an alert is to edit its Daemonset to query for a different label that doesn't exist.
+![](./assets/trigger_logs_alerts.png)
+![](./assets/logs_alerts.png)
+
 ### Architecture
 
 By default, a k3d cluster will be created running the following instances
@@ -99,14 +104,20 @@ By default, a k3d cluster will be created running the following instances
 - cortex
 - avalanche - selection of avalanche instances serving traffic
 - smoke - scales avalanche replicas and introduces chaos by deleting agent pods during testing
-- vulture - emits traces and checks if are stored properly
+- canary - emits logs and checks if they're stored properly
+- loki
+- vulture - emits traces and checks if they're stored properly
 - tempo
 
-Crow and Vulture instances will check to see if the metrics and traces that were scraped shows up in the prometheus endpoint and then will emit metrics on the success of those metrics. This success/failure result will trigger an alert if it is incorrect.
+Crow, Canary and Vulture instances will check to see if the metrics, logs and traces that were scraped respectively, show up in the Cortex/Loki/Tempo instances. They will then emit metrics on the success of those metrics. This success/failure result will trigger an alert if it is incorrect.
 
 ### Metrics Flow
 
 ![](./assets/metrics_flow.png)
+
+### Logs Flow
+
+![](./assets/logs_flow.png)
 
 ### Traces Flow
 
