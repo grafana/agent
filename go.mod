@@ -67,7 +67,7 @@ require (
 	github.com/ory/dockertest/v3 v3.8.1
 	github.com/percona/mongodb_exporter v0.31.2
 	github.com/prometheus-community/elasticsearch_exporter v1.2.1
-	github.com/prometheus-community/postgres_exporter v0.10.0
+	github.com/prometheus-community/postgres_exporter v0.11.1
 	github.com/prometheus-community/windows_exporter v0.0.0-00010101000000-000000000000
 	github.com/prometheus-operator/prometheus-operator v0.55.0
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.55.0
