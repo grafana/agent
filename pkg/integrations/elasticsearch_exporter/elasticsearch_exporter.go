@@ -27,6 +27,7 @@ var DefaultConfig = Config{
 	Timeout:                   5 * time.Second,
 	Node:                      "_local",
 	ExportClusterInfoInterval: 5 * time.Minute,
+	IncludeAliases:            true,
 }
 
 // Config controls the elasticsearch_exporter integration.
@@ -47,6 +48,8 @@ type Config struct {
 	ExportClusterSettings bool `yaml:"cluster_settings,omitempty"`
 	// Export stats for shards in the cluster (implies indices).
 	ExportShards bool `yaml:"shards,omitempty"`
+	// Include informational aliases metrics
+	IncludeAliases bool `yaml:"aliases,omitempty"`
 	// Export stats for the cluster snapshots.
 	ExportSnapshots bool `yaml:"snapshots,omitempty"`
 	// Cluster info update interval for the cluster label.
@@ -125,7 +128,7 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	}
 
 	if c.ExportIndices || c.ExportShards {
-		iC := collector.NewIndices(logger, httpClient, esURL, c.ExportShards)
+		iC := collector.NewIndices(logger, httpClient, esURL, c.ExportShards, c.IncludeAliases)
 		collectors = append(collectors, iC)
 		if registerErr := clusterInfoRetriever.RegisterConsumer(iC); registerErr != nil {
 			return nil, fmt.Errorf("failed to register indices collector in cluster info: %w", err)
