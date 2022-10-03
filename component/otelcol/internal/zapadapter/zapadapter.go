@@ -85,7 +85,16 @@ func (lc *loggerCore) Sync() error {
 // zapcore.Field into a value which will be written as a github.com/go-kit/log
 // keypair.
 type fieldEncoder struct {
-	fields    []interface{}
+	// fields are the list of fields that will be passed to log.Logger.Log.
+	fields []interface{}
+
+	// namespace is used to prefix keys before appending to fields. When a
+	// zap.Namespace field is logged, the OpenNamespace method of the
+	// fieldEncoder will be invoked, appending to the namespace slice.
+	//
+	// It is not possible to pop a namespace from the list; once a zap.Namespace
+	// field is logged, all further fields in that entry are scoped within that
+	// namespace.
 	namespace []string
 }
 
