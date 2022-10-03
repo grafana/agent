@@ -1434,6 +1434,7 @@ github.com/hashicorp/consul/api v1.7.0/go.mod h1:1NSuaUUkFaJzMasbfq/11wKYWSR67Xn
 github.com/hashicorp/consul/api v1.8.1/go.mod h1:sDjTOq0yUyv5G4h+BqSea7Fn6BU+XbolEz1952UB+mk=
 github.com/hashicorp/consul/api v1.9.1/go.mod h1:XjsvQN+RJGWI2TWy1/kqaE16HrR2J/FWgkYjdZQsX9M=
 github.com/hashicorp/consul/api v1.10.1/go.mod h1:XjsvQN+RJGWI2TWy1/kqaE16HrR2J/FWgkYjdZQsX9M=
+github.com/hashicorp/consul/api v1.12.0/go.mod h1:6pVBMo0ebnYdt2S3H87XhekM/HHrUoTD2XXb/VrZVy0=
 github.com/hashicorp/consul/api v1.13.0/go.mod h1:ZlVrynguJKcYr54zGaDbaL3fOvKC9m72FhPvA8T35KQ=
 github.com/hashicorp/consul/api v1.14.0/go.mod h1:bcaw5CSZ7NE9qfOfKCI1xb7ZKjzu/MyvQkCLTfqLqxQ=
 github.com/hashicorp/consul/api v1.15.2 h1:3Q/pDqvJ7udgt/60QOOW/p/PeKioQN+ncYzzCdN2av0=
@@ -2284,6 +2285,8 @@ github.com/prometheus/common/sigv4 v0.1.0 h1:qoVebwtwwEhS85Czm2dSROY5fTo2PAPEVdD
 github.com/prometheus/common/sigv4 v0.1.0/go.mod h1:2Jkxxk9yYvCkE5G1sQT7GuEXm57JrvHu9k5YwTjsNtI=
 github.com/prometheus/consul_exporter v0.7.2-0.20210127095228-584c6de19f23 h1:uiqUXSekO5KtYy79evDl2Nuy6M2QXrYupqNQjUbhIwA=
 github.com/prometheus/consul_exporter v0.7.2-0.20210127095228-584c6de19f23/go.mod h1:OwZlAa0i3Erc/Rokn9HM3zk3KKfZGM/TeHscq/kdj5o=
+github.com/prometheus/consul_exporter v0.8.0 h1:2z3drFic65WFoHaJRKkmnJRRlBLmmxVqT8L9LO2yxAo=
+github.com/prometheus/consul_exporter v0.8.0/go.mod h1:KHTgkT1/oLpXKC4+mKZV63hZSMHuKskUnHoenEave4Y=
 github.com/prometheus/exporter-toolkit v0.5.1/go.mod h1:OCkM4805mmisBhLmVFw858QYi3v0wKdY6/UxrT0pZVg=
 github.com/prometheus/exporter-toolkit v0.6.0/go.mod h1:ZUBIj498ePooX9t/2xtDjeQYwvRpiPP2lh5u4iblj2g=
 github.com/prometheus/exporter-toolkit v0.6.1/go.mod h1:ZUBIj498ePooX9t/2xtDjeQYwvRpiPP2lh5u4iblj2g=
