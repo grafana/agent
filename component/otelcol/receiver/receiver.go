@@ -11,12 +11,12 @@ import (
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/internal/fanoutconsumer"
 	"github.com/grafana/agent/component/otelcol/internal/scheduler"
+	"github.com/grafana/agent/component/otelcol/internal/zapadapter"
 	"github.com/grafana/agent/pkg/build"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelconfig "go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
-	"go.uber.org/zap"
 )
 
 // Arguments is an extension of component.Arguments which contains necessary
@@ -102,8 +102,7 @@ func (r *Receiver) Update(args component.Arguments) error {
 
 	settings := otelcomponent.ReceiverCreateSettings{
 		TelemetrySettings: otelcomponent.TelemetrySettings{
-			// TODO(rfratto): create an adapter from zap -> go-kit/log
-			Logger: zap.NewNop(),
+			Logger: zapadapter.New(r.opts.Logger),
 
 			// TODO(rfratto): expose tracing and logging statistics.
 			//
