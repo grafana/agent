@@ -46,7 +46,7 @@ require (
 	github.com/minio/pkg v1.1.15
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/mitchellh/reflectwalk v1.0.2
-	github.com/ncabatoff/process-exporter v0.7.5
+	github.com/ncabatoff/process-exporter v0.7.10
 	github.com/oklog/run v1.1.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/oliver006/redis_exporter v1.27.1
