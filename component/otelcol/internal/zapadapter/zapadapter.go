@@ -28,13 +28,19 @@ type loggerCore struct {
 
 var _ zapcore.Core = (*loggerCore)(nil)
 
+// Enabled implements zapcore.Core and returns whether logs at a specific level
+// should be reported.
 func (lc *loggerCore) Enabled(zapcore.Level) bool {
 	// An instance of log.Logger has no way of knowing if logs will be filtered
 	// out, so we always have to return true here.
 	return true
 }
 
+// With implements zapcore.Core, returning a new logger core with ff appended
+// to the list of fields.
 func (lc *loggerCore) With(ff []zapcore.Field) zapcore.Core {
+	// Encode all of the fields so that they're go-kit compatible and create a
+	// new logger from it.
 	enc := newFieldEncoder()
 	defer func() { _ = enc.Close() }()
 
@@ -47,10 +53,14 @@ func (lc *loggerCore) With(ff []zapcore.Field) zapcore.Core {
 	}
 }
 
+// Check implements zapcore.Core. lc will always add itself along with the
+// provided entry to the CheckedEntry.
 func (lc *loggerCore) Check(e zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.CheckedEntry {
 	return ce.AddCore(e, lc)
 }
 
+// Write serializes e with the provided list of fields, writing them to the
+// underlying github.com/go-kit/log.Logger instance.
 func (lc *loggerCore) Write(e zapcore.Entry, ff []zapcore.Field) error {
 	enc := newFieldEncoder()
 	defer func() { _ = enc.Close() }()
@@ -139,7 +149,7 @@ func (fe *fieldEncoder) AddBinary(key string, value []byte) {
 }
 
 func (fe *fieldEncoder) AddByteString(key string, value []byte) {
-	fe.fields = append(fe.fields, fe.keyName(key), value)
+	fe.fields = append(fe.fields, fe.keyName(key), string(value))
 }
 
 func (fe *fieldEncoder) AddBool(key string, value bool) {
