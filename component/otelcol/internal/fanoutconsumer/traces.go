@@ -17,7 +17,9 @@ import (
 
 // Traces creates a new fanout consumer for traces.
 func Traces(in []otelcol.Consumer) otelconsumer.Traces {
-	if len(in) == 1 {
+	if len(in) == 0 {
+		return &tracesFanout{}
+	} else if len(in) == 1 {
 		return in[0]
 	}
 
