@@ -2295,6 +2295,8 @@ github.com/prometheus/exporter-toolkit v0.7.1 h1:c6RXaK8xBVercEeUQ4tRNL8UGWzDHfv
 github.com/prometheus/exporter-toolkit v0.7.1/go.mod h1:ZUBIj498ePooX9t/2xtDjeQYwvRpiPP2lh5u4iblj2g=
 github.com/prometheus/memcached_exporter v0.9.0 h1:FnsCZBpNQJgPAnqNqqKtfWo9X+060V0UkGLRAzOfBes=
 github.com/prometheus/memcached_exporter v0.9.0/go.mod h1:SDcRCAJ2r6DZft+IVHAD1BMNgNjxbpEaFVeCxX3FuXM=
+github.com/prometheus/memcached_exporter v0.10.0 h1:TrPnwRaOg4CbRCsLJHXfA/NxbbGjn9X3jZ4zxvLCTCk=
+github.com/prometheus/memcached_exporter v0.10.0/go.mod h1:qHvTkwVTllvShLCs1CSnX8gB+9D3Zayp8g4tCAM+chQ=
 github.com/prometheus/node_exporter v1.0.0-rc.0.0.20200428091818-01054558c289/go.mod h1:FGbBv5OPKjch+jNUJmEQpMZytIdyW0NdBtWFcfSKusc=
 github.com/prometheus/node_exporter v1.3.1-0.20220127103407-4f27a4fd8efa h1:RD6gVRrJNA14XH/yfofwFGq305usV5t8tWVeS16nGSA=
 github.com/prometheus/node_exporter v1.3.1-0.20220127103407-4f27a4fd8efa/go.mod h1:Y7LDbciZw+6s4dNRKtNA344Wltn8XPsDN4Jzm02RB8M=

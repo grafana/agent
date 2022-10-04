@@ -48,6 +48,12 @@ v0.28.0 (2022-09-29)
 
 ### Bugfixes
 
+### Updates
+
+- Update embedded `github.com/prometheus/statsd_exporter` from `0.22.7` to `0.22.8`
+- Update embedded `github.com/prometheus-community/postgres_exporter` from `v0.10.0` to `v0.11.1`
+- Update embedded `github.com/prometheus/memcached_exporter` from `v0.9.0` to `v0.10.0` 
+
 ### Other changes
 
 - Fix relabel configs in sample agent-operator manifests (@hjet)
