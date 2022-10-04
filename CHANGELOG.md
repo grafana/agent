@@ -30,6 +30,10 @@ Main (unreleased)
 collected logs to standard output. This can be useful for debugging. (@jcreixell)
 
 
+### Bugfixes
+
+- Remove empty port from the `apache_http` integration's instance label. (@katepangLiu) 
+
 v0.28.0 (2022-09-29)
 --------------------
 
