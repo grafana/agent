@@ -23,8 +23,8 @@ func TestProcessor(t *testing.T) {
 	ctx := componenttest.TestContext(t)
 
 	// Create an instance of a fake OpenTelemetry Collector processor which our
-	// Flow component will wrap around. It is expected
-
+	// Flow component will wrap around. Our fake processor will immediately
+	// forward data to the connected consumer once one is made available to it.
 	var (
 		consumer otelconsumer.Traces
 
