@@ -24,7 +24,7 @@ import (
 type Arguments interface {
 	component.Arguments
 
-	// Convert converts the Arguments into an OpenTelemetry Collector exporter
+	// Convert converts the Arguments into an OpenTelemetry Collector receiver
 	// configuration.
 	Convert() otelconfig.Receiver
 
