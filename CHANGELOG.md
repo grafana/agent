@@ -54,6 +54,15 @@ v0.28.0 (2022-09-29)
 
 ### Other changes
 
+- Update embedded `github.com/prometheus/statsd_exporter` from [`v0.22.7` to `v0.22.8`](https://github.com/prometheus/statsd_exporter/releases)
+- Update embedded `github.com/prometheus-community/postgres_exporter` from [`v0.10.0` to `v0.11.1`](https://github.com/prometheus-community/postgres_exporter/releases)
+- Update embedded `github.com/prometheus/memcached_exporter` from [`v0.9.0` to `v0.10.0`](https://github.com/prometheus/memcached_exporter/releases)
+- Update embedded `github.com/prometheus-community/elasticsearch_exporter` from [`v1.2.1` to `v1.5.0`](https://github.com/prometheus-community/elasticsearch_exporter/releases)
+- Update embedded `github.com/prometheus/mysqld_exporter` from [`v0.13.0` to `v0.14.0`](https://github.com/prometheus/mysqld_exporter/releases)
+- Update embedded `github.com/prometheus/consul_exporter` from [`v0.7.2` to `v0.8.0`](https://github.com/prometheus/consul_exporter/releases)
+- Update embedded `github.com/ncabatoff/process-exporter` from [`v0.7.5` to `v0.7.10`](https://github.com/ncabatoff/process-exporter/releases)
+- Update embedded `github.com/prometheus-community/postgres_exporter` from [`v0.10.0` to `v0.11.1`](https://github.com/prometheus-community/postgres_exporter/releases)
+
 - Fix relabel configs in sample agent-operator manifests (@hjet)
 
 - Operator no longer set the `SecurityContext.Privileged` flag in the `config-reloader` container. (@hsyed-dojo)

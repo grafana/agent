@@ -27,6 +27,7 @@ var DefaultConfig = Config{
 	Timeout:                   5 * time.Second,
 	Node:                      "_local",
 	ExportClusterInfoInterval: 5 * time.Minute,
+	IncludeAliases:            true,
 }
 
 // Config controls the elasticsearch_exporter integration.
@@ -47,6 +48,8 @@ type Config struct {
 	ExportClusterSettings bool `yaml:"cluster_settings,omitempty"`
 	// Export stats for shards in the cluster (implies indices).
 	ExportShards bool `yaml:"shards,omitempty"`
+	// Include informational aliases metrics
+	IncludeAliases bool `yaml:"aliases,omitempty"`
 	// Export stats for the cluster snapshots.
 	ExportSnapshots bool `yaml:"snapshots,omitempty"`
 	// Cluster info update interval for the cluster label.
@@ -59,6 +62,10 @@ type Config struct {
 	ClientCert string `yaml:"client_cert,omitempty"`
 	// Skip SSL verification when connecting to Elasticsearch.
 	InsecureSkipVerify bool `yaml:"ssl_skip_verify,omitempty"`
+	// Export stats for Data Streams
+	ExportDataStreams bool `yaml:"data_stream,omitempty"`
+	// Export stats for Snapshot Lifecycle Management
+	ExportSLM bool `yaml:"slm,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
@@ -125,14 +132,14 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	}
 
 	if c.ExportIndices || c.ExportShards {
-		iC := collector.NewIndices(logger, httpClient, esURL, c.ExportShards)
+		iC := collector.NewIndices(logger, httpClient, esURL, c.ExportShards, c.IncludeAliases)
 		collectors = append(collectors, iC)
 		if registerErr := clusterInfoRetriever.RegisterConsumer(iC); registerErr != nil {
 			return nil, fmt.Errorf("failed to register indices collector in cluster info: %w", err)
 		}
 	}
 
-	if c.ExportShards {
+	if c.ExportSnapshots {
 		collectors = append(collectors, collector.NewSnapshots(logger, httpClient, esURL))
 	}
 
@@ -140,8 +147,16 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		collectors = append(collectors, collector.NewClusterSettings(logger, httpClient, esURL))
 	}
 
+	if c.ExportDataStreams {
+		collectors = append(collectors, collector.NewDataStream(logger, httpClient, esURL))
+	}
+
 	if c.ExportIndicesSettings {
 		collectors = append(collectors, collector.NewIndicesSettings(logger, httpClient, esURL))
+	}
+
+	if c.ExportSLM {
+		collectors = append(collectors, collector.NewSLM(logger, httpClient, esURL))
 	}
 
 	start := func(ctx context.Context) error {

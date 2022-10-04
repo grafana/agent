@@ -106,4 +106,13 @@ Full reference of options:
 
   # Skip SSL verification when connecting to Elasticsearch.
   [ ssl_skip_verify: <boolean> ]
+
+  # Include informational aliases metrics.
+  [ aliases: <boolean> ]
+
+  # Export stats for Data Streams.
+  [ data_stream: <boolean> ]
+
+  # Export stats for SLM (Snapshot Lifecycle Management).
+  [ slm: <boolean> ]
 ```
