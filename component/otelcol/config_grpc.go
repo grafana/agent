@@ -30,7 +30,7 @@ type GRPCServerArguments struct {
 	// We will need to generally figure out how we want to provide common
 	// authentication extensions to all of our components.
 
-	IncludeMetadata bool `river:"incldue_metadata,attr,optional"`
+	IncludeMetadata bool `river:"include_metadata,attr,optional"`
 }
 
 // Convert converts args into the upstream type.

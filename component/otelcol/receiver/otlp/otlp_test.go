@@ -8,12 +8,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/internal/fakeconsumer"
 	"github.com/grafana/agent/component/otelcol/receiver/otlp"
 	"github.com/grafana/agent/pkg/flow/componenttest"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/dskit/backoff"
 	"github.com/phayes/freeport"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/ptrace"
@@ -25,8 +27,9 @@ func Test(t *testing.T) {
 	httpAddr := getFreeAddr(t)
 
 	ctx := componenttest.TestContext(t)
+	l := util.TestLogger(t)
 
-	ctrl, err := componenttest.NewControllerFromID(util.TestLogger(t), "otelcol.receiver.otlp")
+	ctrl, err := componenttest.NewControllerFromID(l, "otelcol.receiver.otlp")
 	require.NoError(t, err)
 
 	cfg := fmt.Sprintf(`
@@ -58,9 +61,22 @@ func Test(t *testing.T) {
 		require.NoError(t, err)
 		defer func() { _ = f.Close() }()
 
-		tracesURL := fmt.Sprintf("http://%s/v1/traces", httpAddr)
-		_, err = http.DefaultClient.Post(tracesURL, "application/json", f)
-		require.NoError(t, err)
+		bo := backoff.New(ctx, backoff.Config{
+			MinBackoff: 10 * time.Millisecond,
+			MaxBackoff: 100 * time.Millisecond,
+		})
+		for bo.Ongoing() {
+			tracesURL := fmt.Sprintf("http://%s/v1/traces", httpAddr)
+			_, err := http.DefaultClient.Post(tracesURL, "application/json", f)
+
+			if err != nil {
+				level.Error(l).Log("msg", "failed to send traces", "err", err)
+				bo.Wait()
+				continue
+			}
+
+			return
+		}
 	}()
 
 	// Wait for our client to get a span.

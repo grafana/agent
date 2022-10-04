@@ -20,7 +20,7 @@ type HTTPServerArguments struct {
 	// authentication extensions to all of our components.
 
 	MaxRequestBodySize int64 `river:"max_request_body_size,attr,optional"`
-	IncludeMetadata    bool  `river:"incldue_metadata,attr,optional"`
+	IncludeMetadata    bool  `river:"include_metadata,attr,optional"`
 }
 
 // Convert converts args into the upstream type.
