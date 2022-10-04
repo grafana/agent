@@ -113,7 +113,7 @@ Full reference of options:
   # Export stats for Data Streams.
   [ data_stream: <boolean> ]
 
-  # Export stats for SLM (Snapshot Lifecycle Management)
+  # Export stats for SLM (Snapshot Lifecycle Management).
   [ slm: <boolean> ]
 
 
