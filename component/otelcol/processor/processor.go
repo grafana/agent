@@ -77,7 +77,7 @@ func New(opts component.Options, f otelcomponent.ProcessorFactory, args Argument
 	// otelcol.ConsumerExports.
 	opts.OnStateChange(otelcol.ConsumerExports{Input: consumer})
 
-	e := &Processor{
+	p := &Processor{
 		ctx:    ctx,
 		cancel: cancel,
 
@@ -87,33 +87,33 @@ func New(opts component.Options, f otelcomponent.ProcessorFactory, args Argument
 
 		sched: scheduler.New(opts.Logger),
 	}
-	if err := e.Update(args); err != nil {
+	if err := p.Update(args); err != nil {
 		return nil, err
 	}
-	return e, nil
+	return p, nil
 }
 
 // Run starts the Processor component.
-func (e *Processor) Run(ctx context.Context) error {
-	defer e.cancel()
-	return e.sched.Run(ctx)
+func (p *Processor) Run(ctx context.Context) error {
+	defer p.cancel()
+	return p.sched.Run(ctx)
 }
 
 // Update implements component.Component. It will convert the Arguments into
 // configuration for OpenTelemetry Collector processor configuration and manage
 // the underlying OpenTelemetry Collector processor.
-func (e *Processor) Update(args component.Arguments) error {
+func (p *Processor) Update(args component.Arguments) error {
 	pargs := args.(Arguments)
 
 	host := scheduler.NewHost(
-		e.opts.Logger,
+		p.opts.Logger,
 		scheduler.WithHostExtensions(pargs.Extensions()),
 		scheduler.WithHostExporters(pargs.Exporters()),
 	)
 
 	settings := otelcomponent.ProcessorCreateSettings{
 		TelemetrySettings: otelcomponent.TelemetrySettings{
-			Logger: zapadapter.New(e.opts.Logger),
+			Logger: zapadapter.New(p.opts.Logger),
 
 			// TODO(rfratto): expose tracing and logging statistics.
 			//
@@ -131,7 +131,7 @@ func (e *Processor) Update(args component.Arguments) error {
 		},
 	}
 
-	exporterConfig := pargs.Convert()
+	processorConfig := pargs.Convert()
 
 	var (
 		next        = pargs.NextConsumers()
@@ -140,25 +140,25 @@ func (e *Processor) Update(args component.Arguments) error {
 		nextLogs    = fanoutconsumer.Logs(next.Logs)
 	)
 
-	// Create instances of the exporter from our factory for each of our
+	// Create instances of the processor from our factory for each of our
 	// supported telemetry signals.
 	var components []otelcomponent.Component
 
-	tracesProcessor, err := e.factory.CreateTracesProcessor(e.ctx, settings, exporterConfig, nextTraces)
+	tracesProcessor, err := p.factory.CreateTracesProcessor(p.ctx, settings, processorConfig, nextTraces)
 	if err != nil && !errors.Is(err, otelcomponent.ErrDataTypeIsNotSupported) {
 		return err
 	} else if tracesProcessor != nil {
 		components = append(components, tracesProcessor)
 	}
 
-	metricsProcessor, err := e.factory.CreateMetricsProcessor(e.ctx, settings, exporterConfig, nextMetrics)
+	metricsProcessor, err := p.factory.CreateMetricsProcessor(p.ctx, settings, processorConfig, nextMetrics)
 	if err != nil && !errors.Is(err, otelcomponent.ErrDataTypeIsNotSupported) {
 		return err
 	} else if metricsProcessor != nil {
 		components = append(components, metricsProcessor)
 	}
 
-	logsProcessor, err := e.factory.CreateLogsProcessor(e.ctx, settings, exporterConfig, nextLogs)
+	logsProcessor, err := p.factory.CreateLogsProcessor(p.ctx, settings, processorConfig, nextLogs)
 	if err != nil && !errors.Is(err, otelcomponent.ErrDataTypeIsNotSupported) {
 		return err
 	} else if logsProcessor != nil {
@@ -166,12 +166,12 @@ func (e *Processor) Update(args component.Arguments) error {
 	}
 
 	// Schedule the components to run once our component is running.
-	e.sched.Schedule(host, components...)
-	e.consumer.SetConsumers(tracesProcessor, metricsProcessor, logsProcessor)
+	p.sched.Schedule(host, components...)
+	p.consumer.SetConsumers(tracesProcessor, metricsProcessor, logsProcessor)
 	return nil
 }
 
 // CurrentHealth implements component.HealthComponent.
-func (e *Processor) CurrentHealth() component.Health {
-	return e.sched.CurrentHealth()
+func (p *Processor) CurrentHealth() component.Health {
+	return p.sched.CurrentHealth()
 }
