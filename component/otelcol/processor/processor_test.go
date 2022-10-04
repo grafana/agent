@@ -109,7 +109,7 @@ func newTestEnvironment(
 		Args:    fakeProcessorArgs{},
 		Exports: otelcol.ConsumerExports{},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
-			// Create a factory which always returns our instance of fakeExporter
+			// Create a factory which always returns our instance of fakeProcessor
 			// defined above.
 			factory := otelcomponent.NewProcessorFactory(
 				"testcomponent",
@@ -176,7 +176,7 @@ type fakeProcessor struct {
 	ConsumeTracesFunc func(ctx context.Context, td ptrace.Traces) error
 }
 
-var _ otelcomponent.TracesExporter = (*fakeProcessor)(nil)
+var _ otelcomponent.TracesProcessor = (*fakeProcessor)(nil)
 
 func (fe *fakeProcessor) Start(ctx context.Context, host otelcomponent.Host) error {
 	if fe.StartFunc != nil {
