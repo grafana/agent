@@ -108,7 +108,7 @@ Full reference of options:
   [ ssl_skip_verify: <boolean> ]
 
   # Include informational aliases metrics.
-  [ aliases: <boolean>]
+  [ aliases: <boolean> ]
 
   # Export stats for Data Streams
   [ data_stream: <boolean>]
