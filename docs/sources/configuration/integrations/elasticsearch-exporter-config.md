@@ -115,9 +115,4 @@ Full reference of options:
 
   # Export stats for SLM (Snapshot Lifecycle Management).
   [ slm: <boolean> ]
-
-
-
-
-
 ```
