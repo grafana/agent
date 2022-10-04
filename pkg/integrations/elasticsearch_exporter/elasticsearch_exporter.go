@@ -139,7 +139,7 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		}
 	}
 
-	if c.ExportShards {
+	if c.ExportSnapshots {
 		collectors = append(collectors, collector.NewSnapshots(logger, httpClient, esURL))
 	}
 
