@@ -62,6 +62,10 @@ type Config struct {
 	ClientCert string `yaml:"client_cert,omitempty"`
 	// Skip SSL verification when connecting to Elasticsearch.
 	InsecureSkipVerify bool `yaml:"ssl_skip_verify,omitempty"`
+	// Export stats for Data Streams
+	ExportDataStreams bool `yaml:"data_stream,omitempty"`
+	// Export stats for Snapshot Lifecycle Management
+	ExportSLM bool `yaml:"slm,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
@@ -143,8 +147,16 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		collectors = append(collectors, collector.NewClusterSettings(logger, httpClient, esURL))
 	}
 
+	if c.ExportDataStreams {
+		collectors = append(collectors, collector.NewDataStream(logger, httpClient, esURL))
+	}
+
 	if c.ExportIndicesSettings {
 		collectors = append(collectors, collector.NewIndicesSettings(logger, httpClient, esURL))
+	}
+
+	if c.ExportSLM {
+		collectors = append(collectors, collector.NewSLM(logger, httpClient, esURL))
 	}
 
 	start := func(ctx context.Context) error {
