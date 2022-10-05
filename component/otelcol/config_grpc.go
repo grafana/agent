@@ -3,6 +3,7 @@ package otelcol
 import (
 	"time"
 
+	"github.com/alecthomas/units"
 	otelconfiggrpc "go.opentelemetry.io/collector/config/configgrpc"
 	"go.opentelemetry.io/collector/config/confignet"
 )
@@ -15,10 +16,10 @@ type GRPCServerArguments struct {
 
 	TLS *TLSServerArguments `river:"tls,block,optional"`
 
-	MaxRecvMsgSizeMiB    uint64 `river:"max_recv_msg_size_mib,attr,optional"`
-	MaxConcurrentStreams uint32 `river:"max_concurrent_streams,attr,optional"`
-	ReadBufferSize       int    `river:"read_buffer_size,attr,optional"`
-	WriteBufferSize      int    `river:"write_buffer_size,attr,optional"`
+	MaxRecvMsgSize       units.Base2Bytes `river:"max_recv_msg_size,attr,optional"`
+	MaxConcurrentStreams uint32           `river:"max_concurrent_streams,attr,optional"`
+	ReadBufferSize       units.Base2Bytes `river:"read_buffer_size,attr,optional"`
+	WriteBufferSize      units.Base2Bytes `river:"write_buffer_size,attr,optional"`
 
 	Keepalive *KeepaliveServerArguments `river:"keepalive,block,optional"`
 
@@ -47,10 +48,10 @@ func (args *GRPCServerArguments) Convert() *otelconfiggrpc.GRPCServerSettings {
 
 		TLSSetting: args.TLS.Convert(),
 
-		MaxRecvMsgSizeMiB:    args.MaxRecvMsgSizeMiB,
+		MaxRecvMsgSizeMiB:    uint64(args.MaxRecvMsgSize / units.Mebibyte),
 		MaxConcurrentStreams: args.MaxConcurrentStreams,
-		ReadBufferSize:       args.ReadBufferSize,
-		WriteBufferSize:      args.WriteBufferSize,
+		ReadBufferSize:       int(args.ReadBufferSize),
+		WriteBufferSize:      int(args.WriteBufferSize),
 
 		Keepalive: args.Keepalive.Convert(),
 

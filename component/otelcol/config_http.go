@@ -1,6 +1,9 @@
 package otelcol
 
-import otelconfighttp "go.opentelemetry.io/collector/config/confighttp"
+import (
+	"github.com/alecthomas/units"
+	otelconfighttp "go.opentelemetry.io/collector/config/confighttp"
+)
 
 // HTTPServerArguments holds shared settings for components which launch HTTP
 // servers.
@@ -19,8 +22,8 @@ type HTTPServerArguments struct {
 	// We will need to generally figure out how we want to provide common
 	// authentication extensions to all of our components.
 
-	MaxRequestBodySize int64 `river:"max_request_body_size,attr,optional"`
-	IncludeMetadata    bool  `river:"include_metadata,attr,optional"`
+	MaxRequestBodySize units.Base2Bytes `river:"max_request_body_size,attr,optional"`
+	IncludeMetadata    bool             `river:"include_metadata,attr,optional"`
 }
 
 // Convert converts args into the upstream type.
@@ -33,7 +36,7 @@ func (args *HTTPServerArguments) Convert() *otelconfighttp.HTTPServerSettings {
 		Endpoint:           args.Endpoint,
 		TLSSetting:         args.TLS.Convert(),
 		CORS:               args.CORS.Convert(),
-		MaxRequestBodySize: args.MaxRequestBodySize,
+		MaxRequestBodySize: int64(args.MaxRequestBodySize),
 		IncludeMetadata:    args.IncludeMetadata,
 	}
 }

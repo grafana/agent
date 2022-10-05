@@ -74,10 +74,10 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `endpoint` | `string` | `host:port` to listen for traffic on. | `"0.0.0.0:4317"` | no
 `transport` | `string` | Transport to use for the gRPC server. | `"tcp"` | no
-`max_recv_msg_size_mib` | `number` | Maximum size (in MiB) of messages the server will accept. | | no
+`max_recv_msg_size` | `string` | Maximum size of messages the server will accept. 0 disables a limit. | | no
 `max_concurrent_streams` | `number` | Limit the number of concurrent streaming RPC calls. | | no
-`read_buffer_size` | `number` | Size of the read buffer the gRPC server will use for reading from clients. | `512 * 1024` | no
-`write_buffer_size` | `number` | Size of the write buffer the gRPC will use for writing to clients. | | no
+`read_buffer_size` | `string` | Size of the read buffer the gRPC server will use for reading from clients. | `"512KiB"` | no
+`write_buffer_size` | `string` | Size of the write buffer the gRPC will use for writing to clients. | | no
 `include_metadata` | `boolean` | Propagate incoming connection metadata to downstream consumers. | | no
 
 ### tls block
@@ -143,7 +143,7 @@ The following arguments are supported:
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `endpoint` | `string` | `host:port` to listen for traffic on. | `"0.0.0.0:4318"` | no
-`max_request_body_size` | `number` | Maximum request body size (in bytes) the server will allow. | no
+`max_request_body_size` | `string` | Maximum request body size the server will allow. No limit when unset. | | no
 `include_metadata` | `boolean` | Propagate incoming connection metadata to downstream consumers. | | no
 
 ### cors block

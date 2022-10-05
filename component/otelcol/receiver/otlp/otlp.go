@@ -2,6 +2,7 @@
 package otlp
 
 import (
+	"github.com/alecthomas/units"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/receiver"
@@ -81,7 +82,7 @@ var (
 		Endpoint:  "0.0.0.0:4317",
 		Transport: "tcp",
 
-		ReadBufferSize: 512 * 1024,
+		ReadBufferSize: 512 * units.Kibibyte,
 		// We almost write 0 bytes, so no need to tune WriteBufferSize.
 	}
 
