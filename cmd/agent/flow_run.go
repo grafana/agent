@@ -17,6 +17,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
+	"github.com/grafana/agent/pkg/config/instrumentation"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river/diag"
@@ -113,12 +114,15 @@ func (fr *flowRun) Run(configFile string) error {
 
 	reload := func() error {
 		flowCfg, err := loadFlowFile(configFile)
+		defer instrumentation.ConfigMetrics.InstrumentLoad(err == nil)
+
 		if err != nil {
 			return fmt.Errorf("reading config file %q: %w", configFile, err)
 		}
 		if err := f.LoadFile(flowCfg); err != nil {
 			return fmt.Errorf("error during the initial gragent load: %w", err)
 		}
+
 		return nil
 	}
 
@@ -237,6 +241,8 @@ func loadFlowFile(filename string) (*flow.File, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	instrumentation.ConfigMetrics.InstrumentConfig(bb)
 
 	return flow.ReadFile(filename, bb)
 }

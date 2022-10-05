@@ -14,6 +14,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/config/features"
+	"github.com/grafana/agent/pkg/config/instrumentation"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/server"
@@ -217,9 +218,13 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 // LoadFile reads a file and passes the contents to Load
 func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 	buf, err := os.ReadFile(filename)
+
 	if err != nil {
 		return fmt.Errorf("error reading config file %w", err)
 	}
+
+	instrumentation.ConfigMetrics.InstrumentConfig(buf)
+
 	return LoadBytes(buf, expandEnvVars, c)
 }
 
@@ -255,6 +260,9 @@ func LoadRemote(url string, expandEnvVars bool, c *Config) error {
 	if err != nil {
 		return fmt.Errorf("error retrieving remote config: %w", err)
 	}
+
+	instrumentation.ConfigMetrics.InstrumentConfig(bb)
+
 	return LoadBytes(bb, expandEnvVars, c)
 }
 
@@ -319,7 +327,7 @@ func getenv(name string) string {
 // to the flagset before parsing them with the values specified by
 // args.
 func Load(fs *flag.FlagSet, args []string) (*Config, error) {
-	return load(fs, args, func(path, fileType string, expandArgs bool, c *Config) error {
+	cfg, error := load(fs, args, func(path, fileType string, expandArgs bool, c *Config) error {
 		switch fileType {
 		case fileTypeYAML:
 			if features.Enabled(fs, featRemoteConfigs) {
@@ -341,6 +349,9 @@ func Load(fs *flag.FlagSet, args []string) (*Config, error) {
 			return fmt.Errorf("unknown file type %q. accepted values: %s", fileType, strings.Join(fileTypes, ", "))
 		}
 	})
+
+	instrumentation.ConfigMetrics.InstrumentLoad(error == nil)
+	return cfg, error
 }
 
 type loaderFunc func(path string, fileType string, expandArgs bool, target *Config) error
