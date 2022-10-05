@@ -219,11 +219,11 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 	buf, err := os.ReadFile(filename)
 
-	instrumentation.ConfigMetrics.InstrumentConfig(buf)
-
 	if err != nil {
 		return fmt.Errorf("error reading config file %w", err)
 	}
+
+	instrumentation.ConfigMetrics.InstrumentConfig(buf)
 
 	return LoadBytes(buf, expandEnvVars, c)
 }
