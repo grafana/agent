@@ -65,8 +65,6 @@ Main (unreleased)
 
 - Update OpenTelemetry Collector dependency to v0.61.0. (@rfratto)
 
-- Update Prometheus dependency to v2.38.0. (@rfratto)
-
 - Add caching to Prometheus relabel component. (@mattdurham)
 
 - Grafana Agent Flow: add `agent_resources_*` metrics which explain basic
@@ -83,6 +81,10 @@ Main (unreleased)
   to be evaluated twice at process startup. (@rfratto)
 
 - Add missing setting to configure instance key for Eventhandler integration. (@marctc)
+
+- Update Prometheus dependency to v2.39.1. (@rfratto)
+
+- Update Promtail dependency to weekly release k122. (@rfratto)
 
 ### Bugfixes
 
