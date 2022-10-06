@@ -84,6 +84,20 @@ func (l *Logger) Log(kvps ...interface{}) error {
 	return l.l.Log(kvps...)
 }
 
+// GetLogger retrieves the server's logger.
+func (l *Logger) GetLogger() log.Logger {
+	l.mut.Lock()
+	defer l.mut.Unlock()
+	return l.l
+}
+
+// SetLogger overrides the server's inner logger.
+func (l *Logger) SetLogger(logger log.Logger) {
+	l.mut.Lock()
+	defer l.mut.Unlock()
+	l.l = logger
+}
+
 // GoKitLogger creates a logging.Interface from a log.Logger.
 func GoKitLogger(l log.Logger) logging.Interface {
 	return logging.GoKit(l)

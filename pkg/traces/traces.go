@@ -26,7 +26,7 @@ type Traces struct {
 	mut       sync.Mutex
 	instances map[string]*Instance
 
-	leveller *logLeveller
+	leveller *LogLeveller
 	logger   *zap.Logger
 	reg      prom_client.Registerer
 
@@ -35,7 +35,7 @@ type Traces struct {
 
 // New creates and starts trace collection.
 func New(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, reg prom_client.Registerer, cfg Config, level logrus.Level, fmt logging.Format) (*Traces, error) {
-	var leveller logLeveller
+	var leveller LogLeveller
 
 	traces := &Traces{
 		instances:           make(map[string]*Instance),
@@ -118,6 +118,20 @@ func (t *Traces) Stop() {
 	}
 }
 
+// GetLogger retrieves the subsystem's logger.
+func (t *Traces) GetLogger() *zap.Logger {
+	t.mut.Lock()
+	defer t.mut.Unlock()
+	return t.logger
+}
+
+// SetLogger overrides the subsystem's logger.
+func (t *Traces) SetLogger(logger *zap.Logger) {
+	t.mut.Lock()
+	defer t.mut.Unlock()
+	t.logger = logger
+}
+
 func newLogger(zapLevel zapcore.LevelEnabler, fmt logging.Format) *zap.Logger {
 	config := zap.NewProductionEncoderConfig()
 	config.EncodeTime = func(ts time.Time, encoder zapcore.PrimitiveArrayEncoder) {
@@ -145,14 +159,14 @@ func newLogger(zapLevel zapcore.LevelEnabler, fmt logging.Format) *zap.Logger {
 	return logger
 }
 
-// logLeveller implements the zapcore.LevelEnabler interface and allows for
+// LogLeveller implements the zapcore.LevelEnabler interface and allows for
 // switching out log levels at runtime.
-type logLeveller struct {
+type LogLeveller struct {
 	mut   sync.RWMutex
 	inner zapcore.Level
 }
 
-func (l *logLeveller) SetLevel(level logrus.Level) {
+func (l *LogLeveller) SetLevel(level logrus.Level) {
 	l.mut.Lock()
 	defer l.mut.Unlock()
 
@@ -177,7 +191,7 @@ func (l *logLeveller) SetLevel(level logrus.Level) {
 	l.inner = zapLevel
 }
 
-func (l *logLeveller) Enabled(target zapcore.Level) bool {
+func (l *LogLeveller) Enabled(target zapcore.Level) bool {
 	l.mut.RLock()
 	defer l.mut.RUnlock()
 	return l.inner.Enabled(target)

@@ -372,6 +372,20 @@ func (a *Agent) Stop() {
 	a.stopped = true
 }
 
+// GetLogger retrieves the Agent's logger.
+func (a *Agent) GetLogger() log.Logger {
+	a.mut.Lock()
+	defer a.mut.Unlock()
+	return a.logger
+}
+
+// SetLogger overrides the Agent's logger.
+func (a *Agent) SetLogger(l log.Logger) {
+	a.mut.Lock()
+	defer a.mut.Unlock()
+	a.logger = l
+}
+
 type instanceFactory = func(reg prometheus.Registerer, cfg instance.Config, walDir string, logger log.Logger) (instance.ManagedInstance, error)
 
 func defaultInstanceFactory(reg prometheus.Registerer, cfg instance.Config, walDir string, logger log.Logger) (instance.ManagedInstance, error) {

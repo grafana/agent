@@ -8,25 +8,26 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
+	"strconv"
 	"sync"
 	"syscall"
 
+	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
+	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/server"
+	"github.com/grafana/agent/pkg/supportbundle"
 	"github.com/grafana/agent/pkg/traces"
 	"github.com/grafana/agent/pkg/usagestats"
 	"github.com/oklog/run"
-	"google.golang.org/grpc"
-	"gopkg.in/yaml.v2"
-
-	"github.com/grafana/agent/pkg/config"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/weaveworks/common/signals"
-
-	"github.com/go-kit/log/level"
+	"golang.org/x/sync/singleflight"
+	"google.golang.org/grpc"
+	"gopkg.in/yaml.v2"
 )
 
 // Entrypoint is the entrypoint of the application that starts all subsystems.
@@ -231,6 +232,8 @@ func (ep *Entrypoint) wire(mux *mux.Router, grpc *grpc.Server) {
 	})
 
 	mux.HandleFunc("/-/reload", ep.reloadHandler).Methods("GET", "POST")
+
+	mux.HandleFunc("/-/support", ep.supportHandler).Methods("GET")
 }
 
 func (ep *Entrypoint) reloadHandler(rw http.ResponseWriter, r *http.Request) {
@@ -249,6 +252,74 @@ func (ep *Entrypoint) getReporterMetrics() map[string]interface{} {
 	return map[string]interface{}{
 		"enabled-features":     ep.cfg.EnabledFeatures,
 		"enabled-integrations": ep.cfg.Integrations.EnabledIntegrations(),
+	}
+}
+
+func (ep *Entrypoint) supportHandler(rw http.ResponseWriter, r *http.Request) {
+	duration := ep.srv.HTTPServer.WriteTimeout.Seconds()
+	if r.URL.Query().Has("duration") {
+		durationInt, err := strconv.Atoi(r.URL.Query().Get("duration"))
+		if err != nil {
+			http.Error(rw, fmt.Sprintf("duration value (in seconds) should be a positive integer: %s", err), http.StatusBadRequest)
+			return
+		}
+		if durationInt < 1 {
+			http.Error(rw, "duration value (in seconds) should be larger than 1", http.StatusBadRequest)
+			return
+		}
+		duration = float64(durationInt)
+		if float64(duration) > ep.srv.HTTPServer.WriteTimeout.Seconds() {
+			http.Error(rw, "duration value exceeds the server's write timeout", http.StatusBadRequest)
+			return
+		}
+	}
+
+	// Keep track of current loggers.
+	// TODO(@tpaschalis) Can we also dynamically up the log_level while the
+	// support bundle is being generated?
+	ep.mut.Lock()
+	var (
+		srvLogger     = ep.log.GetLogger()
+		metricsLogger = ep.promMetrics.GetLogger()
+		logsLogger    = ep.lokiLogs.GetLogger()
+		tracesLogger  = ep.tempoTraces.GetLogger()
+
+		cfg             = ep.cfg
+		enabledFeatures = ep.cfg.EnabledFeatures
+		httpSrvAddress  = ep.srv.HTTPAddress().String()
+	)
+	ep.mut.Unlock()
+
+	// Create new substitute loggers that tee off to a threadsafe buffer.
+	logfmtLogger, zapLogger, logsBuffer := supportbundle.GetSubstituteLoggers(cfg.Server.LogLevel.Logrus, tracesLogger)
+
+	// Don't forget to restore the original loggers afterwards.
+	defer func() {
+		ep.log.SetLogger(srvLogger)
+		ep.promMetrics.SetLogger(metricsLogger)
+		ep.lokiLogs.SetLogger(logsLogger)
+		ep.tempoTraces.SetLogger(tracesLogger)
+	}()
+
+	// Hijack subsystems loggers.
+	ep.log.SetLogger(logfmtLogger)
+	ep.promMetrics.SetLogger(logfmtLogger)
+	ep.lokiLogs.SetLogger(logfmtLogger)
+	ep.tempoTraces.SetLogger(zapLogger)
+
+	var g singleflight.Group
+	_, err, _ := g.Do("/-/support", func() (interface{}, error) {
+		bundle, err := supportbundle.Export(enabledFeatures, cfg, httpSrvAddress, duration)
+		if err != nil {
+			return nil, err
+		}
+		if err := supportbundle.Serve(rw, bundle, logsBuffer); err != nil {
+			return nil, err
+		}
+		return nil, nil
+	})
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
 	}
 }
 
