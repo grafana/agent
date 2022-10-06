@@ -17,7 +17,9 @@ import (
 
 // Metrics creates a new fanout consumer for metrics.
 func Metrics(in []otelcol.Consumer) otelconsumer.Metrics {
-	if len(in) == 1 {
+	if len(in) == 0 {
+		return &metricsFanout{}
+	} else if len(in) == 1 {
 		return in[0]
 	}
 

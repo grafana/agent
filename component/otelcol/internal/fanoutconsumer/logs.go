@@ -17,7 +17,9 @@ import (
 
 // Logs creates a new fanout consumer for logs.
 func Logs(in []otelcol.Consumer) otelconsumer.Logs {
-	if len(in) == 1 {
+	if len(in) == 0 {
+		return &logsFanout{}
+	} else if len(in) == 1 {
 		return in[0]
 	}
 

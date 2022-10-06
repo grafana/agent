@@ -24,6 +24,10 @@ Main (unreleased)
 
 - Update Prometheus dependency to v2.38.0. (@rfratto)
 
+- Flow: add `otelcol.receiver.otlp` component which receives OTLP-formatted
+  traces, metrics, and logs. Data can then be forwarded to other `otelcol`
+  components. (@rfratto)
+
 ### Features
 
 - Add `agentctl test-logs` command to allow testing log configurations by redirecting
@@ -32,7 +36,7 @@ collected logs to standard output. This can be useful for debugging. (@jcreixell
 
 ### Bugfixes
 
-- Remove empty port from the `apache_http` integration's instance label. (@katepangLiu) 
+- Remove empty port from the `apache_http` integration's instance label. (@katepangLiu)
 
 v0.28.0 (2022-09-29)
 --------------------
