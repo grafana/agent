@@ -46,18 +46,18 @@ following events happens:
 * The duration specified by `timeout` elapses since the time the last batch was
   sent.
 
-* The number of spans, log lines, or metric samples processed goes above the
+* The number of spans, log lines, or metric samples processed exceeds the
   number specified by `send_batch_size`.
 
-`send_batch_max_size` can be used to limit the amount of data contained in a
-single batch. When set to `0`, batches are allowed to be any size.
+Use `send_batch_max_size` to limit the amount of data contained in a single
+batch. When set to `0`, batches can be any size.
 
 For example, assume `send_batch_size` is set to the default `8192` and there
-are currently 8000 batched spans. If 8000 more spans are received at once, it
-would bring the total batch size to 16,192, which would then be flushed as a
-single batch. `send_batch_max_size` allows to constrain how big a batch can
-get. When set to a non-zero value, `send_batch_max_size` must be greater or
-equal to `send_batch_size`.
+are currently 8000 batched spans. If the batch processor receives 8000 more
+spans at once, the total batch size would be 16,192 which would then be flushed
+as a single batch. `send_batch_max_size` constrains how big a batch can get.
+When set to a non-zero value, `send_batch_max_size` must be greater or equal to
+`send_batch_size`.
 
 ## Blocks
 
@@ -84,9 +84,8 @@ Name | Type | Description | Default | Required
 `traces` | `list(otelcol.Consumer)` | List of consumers to send traces to. | `[]` | no
 
 The `output` block must be specified, but all of its arguments are optional. By
-default, telemetry data will be dropped. To send telemetry data to other
-components, configure the `metrics`, `logs`, and `traces` arguments
-accordingly.
+default, telemetry data is dropped. To send telemetry data to other components,
+configure the `metrics`, `logs`, and `traces` arguments accordingly.
 
 ## Exported fields
 
@@ -94,7 +93,7 @@ The following fields are exported and can be referenced by other components:
 
 Name | Type | Description
 ---- | ---- | -----------
-`input` | `otelcol.Consumer` | A value which other components can use to send telemetry data to.
+`input` | `otelcol.Consumer` | A value that other components can use to send telemetry data to.
 
 `input` accepts `otelcol.Consumer` data for any telemetry signal (metrics,
 logs, or traces).
