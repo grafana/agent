@@ -60,7 +60,7 @@ func Test(t *testing.T) {
 		request := func() error {
 			f, err := os.Open("testdata/payload.json")
 			require.NoError(t, err)
-			defer func() { _ = f.Close() }()
+			defer f.Close()
 
 			tracesURL := fmt.Sprintf("http://%s/v1/traces", httpAddr)
 			_, err = http.DefaultClient.Post(tracesURL, "application/json", f)
