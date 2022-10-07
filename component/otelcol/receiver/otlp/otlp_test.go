@@ -57,19 +57,22 @@ func Test(t *testing.T) {
 
 	// Send traces in the background to our receiver.
 	go func() {
-		f, err := os.Open("testdata/payload.json")
-		require.NoError(t, err)
-		defer func() { _ = f.Close() }()
+		request := func() error {
+			f, err := os.Open("testdata/payload.json")
+			require.NoError(t, err)
+			defer func() { _ = f.Close() }()
+
+			tracesURL := fmt.Sprintf("http://%s/v1/traces", httpAddr)
+			_, err = http.DefaultClient.Post(tracesURL, "application/json", f)
+			return err
+		}
 
 		bo := backoff.New(ctx, backoff.Config{
 			MinBackoff: 10 * time.Millisecond,
 			MaxBackoff: 100 * time.Millisecond,
 		})
 		for bo.Ongoing() {
-			tracesURL := fmt.Sprintf("http://%s/v1/traces", httpAddr)
-			_, err := http.DefaultClient.Post(tracesURL, "application/json", f)
-
-			if err != nil {
+			if err := request(); err != nil {
 				level.Error(l).Log("msg", "failed to send traces", "err", err)
 				bo.Wait()
 				continue
