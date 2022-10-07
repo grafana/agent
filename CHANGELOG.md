@@ -28,6 +28,10 @@ Main (unreleased)
   traces, metrics, and logs. Data can then be forwarded to other `otelcol`
   components. (@rfratto)
 
+- Flow: add `otelcol.processor.batch` component which batches data from
+  `otelcol` components before forwarding it to other `otelcol` components.
+  (@rfratto)
+
 ### Features
 
 - Add `agentctl test-logs` command to allow testing log configurations by redirecting
