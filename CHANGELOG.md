@@ -33,7 +33,7 @@ Main (unreleased)
   (@rfratto)
 
 - Flow: add `otelcol.exporter.otlp` component which accepts data from `otelcol`
-  components and sends it a gRPC server using the OTLP protocol. (@rfratto)
+  components and sends it to a gRPC server using the OTLP protocol. (@rfratto)
 
 ### Features
 

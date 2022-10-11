@@ -41,7 +41,7 @@ The following blocks are supported inside the definition of
 
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
-client | [client][] | Configures the gRPC server to send telemetry data to. | **yes**
+client | [client][] | Configures the gRPC server to send telemetry data to. | yes
 client > tls | [tls][] | Configures TLS for the gRPC client. | no
 client > keepalive | [keepalive][] | Configures keepalive settings for the gRPC client. | no
 queue | [queue][] | Configures batching of data before sending. | no
@@ -64,15 +64,15 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`endpoint` | `string` | `host:port` to send telemetry data to. | | **yes**
+`endpoint` | `string` | `host:port` to send telemetry data to. | | yes
 `compression` | `string` | Compression mechanism to use for requests. | `"gzip"` | no
-`read_buffer_size` | `string` | Size of the read buffer the gRPC client will use for reading server responses. | | no
-`write_buffer_size` | `string` | Size of the write buffer the gRPC client will use for writing requests. | `"512KiB"` | no
+`read_buffer_size` | `string` | Size of the read buffer the gRPC client to use for reading server responses. | | no
+`write_buffer_size` | `string` | Size of the write buffer the gRPC client to use for writing requests. | `"512KiB"` | no
 `wait_for_ready` | `boolean` | Waits for gRPC connection to be in the `READY` state before sending data. | `false` | no
 `headers` | `map(string)` | Additional headers to send with the request. | `{}` | no
 `balancer_name` | `string` | Which gRPC client-side load balancer to use for requests. | | no
 
-By default, requests will be compressed with gzip. The `compression` argument
+By default, requests are compressed with gzip. The `compression` argument
 controls which compression mechanism to use. Supported strings are:
 
 * `"gzip"`
@@ -81,8 +81,8 @@ controls which compression mechanism to use. Supported strings are:
 * `"snappy"`
 * `"zstd"`
 
-If `compression` is set to `"none"` or an empty string `""`, no compression
-will be used.
+If `compression` is set to `"none"` or an empty string `""`, no compression is
+used.
 
 The `balancer_name` argument controls what client-side load balancing mechanism
 to use. See the gRPC documentation on [Load balancing][] for more information.
@@ -135,13 +135,13 @@ The following arguments are supported:
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `enabled` | `boolean` | Enables an in-memory buffer before sending data to the client. | `true` | no
-`num_consumers` | `number` | Number of readers which will send batches written to the queue in parallel. | `10` | no
+`num_consumers` | `number` | Number of readers to send batches written to the queue in parallel. | `10` | no
 `queue_size` | `number` | Maximum number of unwritten batches allowed in the queue at once. | `5000` | no
 
-When `enabled` is `true`, data will first be written to an in-memory buffer
-before sending it to the configured gRPC server. Batches sent to the
-component's `input` exported field will be added to the buffer as long as the
-number of unsent batches does not exceed the configured `queue_size`.
+When `enabled` is `true`, data is first written to an in-memory buffer before
+sending it to the configured gRPC server. Batches sent to the component's
+`input` exported field are added to the buffer as long as the number of unsent
+batches does not exceed the configured `queue_size`.
 
 `queue_size` is used to determine how long an endpoint outage is tolerated for.
 Assuming 100 requests/second, the default queue size `5000` provides about 50
@@ -149,13 +149,13 @@ seconds of outage tolerance. To calculate the correct value for `queue_size`,
 multiply the average number of outgoing requests per second by the amount of
 time in seconds outages should be tolerated for.
 
-The `num_consumers` argument controls how many readers will read from the
-buffer and send data in parallel. Larger values of `num_consumers` will allow
-to send data more quickly at the expense of increased network traffic.
+The `num_consumers` argument controls how many readers read from the buffer and
+send data in parallel. Larger values of `num_consumers` allow data to be sent
+more quickly at the expense of increased network traffic.
 
 ### retry block
 
-The `retry` block configures how failed requests to the gRPC server will be
+The `retry` block configures how failed requests to the gRPC server are
 retried.
 
 The following arguments are supported:
@@ -167,11 +167,11 @@ Name | Type | Description | Default | Required
 `max_interval` | `duration` | Maximum time to wait between retries. | `"30s"` | no
 `max_elapsed_time` | `duration` | Maximum amount of time to wait before discarding a failed batch. | `"5m"` | no
 
-When `enabled` is `true`, failed batches will be retried after a given
-interval. The `initial_interval` argument specifies how long to wait before the
-first retry attempt. If requests continue to fail, the time to wait before
-retrying will exponentially increase. The `max_interval` argument specifies the
-upper bound of how long to wait in between retries.
+When `enabled` is `true`, failed batches are retried after a given interval.
+The `initial_interval` argument specifies how long to wait before the first
+retry attempt. If requests continue to fail, the time to wait before retrying
+increases exponentially. The `max_interval` argument specifies the upper bound
+of how long to wait between retries.
 
 If a batch has not sent successfully, it is discarded after the time specified
 by `max_elapsed_time` elapses. If `max_elapsed_time` is set to `"0s"`, failed
