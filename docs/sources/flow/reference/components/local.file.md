@@ -29,7 +29,7 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`filename` | `string` | Path of the file on disk to watch | | **yes**
+`filename` | `string` | Path of the file on disk to watch | | yes
 `detector` | `string` | Which file change detector to use (fsnotify, poll) | `"fsnotify"` | no
 `poll_frequency` | `duration` | How often to poll for file changes | `"1m"` | no
 `is_secret` | `bool` | Marks the file as containing a [secret][] | `false` | no

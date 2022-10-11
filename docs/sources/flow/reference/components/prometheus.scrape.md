@@ -39,8 +39,8 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`targets`                  | `list(map(string))`     | List of targets to scrape. | | **yes**
-`forward_to`               | `list(MetricsReceiver)` | List of receivers to send scraped metrics to. | | **yes**
+`targets`                  | `list(map(string))`     | List of targets to scrape. | | yes
+`forward_to`               | `list(MetricsReceiver)` | List of receivers to send scraped metrics to. | | yes
 `job_name`                 | `string`   | The job name to override the job label with. | component name | no
 `extra_metrics`            | `bool`     | Whether extra metrics should be generated for scrape targets. | `false` | no
 `honor_labels`             | `bool`     | Indicator whether the scraped metrics should remain unmodified. | `false` | no

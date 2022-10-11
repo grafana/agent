@@ -33,7 +33,7 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`path` | `string` | Path in the format of `"s3://bucket/file"`. | | **yes**
+`path` | `string` | Path in the format of `"s3://bucket/file"`. | | yes
 `poll_frequency` | `duration` | How often to poll the file for changes. Must be greater than 30 seconds. | `"10m"` | no
 `is_secret` | `bool` | Marks the file as containing a [secret][]. | `false` | no
 

@@ -51,7 +51,7 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`targets` | `list(map(string))` | Targets to relabel | | **yes**
+`targets` | `list(map(string))` | Targets to relabel | | yes
 
 ## Blocks
 

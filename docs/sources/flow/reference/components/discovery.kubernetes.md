@@ -29,7 +29,7 @@ The following arguments are supported:
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `api_server` | `string` | URL of Kubernetes API server. | | no
-`role` | `string` | Type of Kubernetes resource to query. | | **yes**
+`role` | `string` | Type of Kubernetes resource to query. | | yes
 `kubeconfig_file` | `string` | Path of kubeconfig file to use for connecting to Kubernetes. | | no
 
 The `role` argument is required to specify what type of targets to discover.

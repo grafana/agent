@@ -49,7 +49,7 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`forward_to` | `list(receiver)` | Where the metrics should be forwarded to, after relabeling takes place. | | **yes**
+`forward_to` | `list(receiver)` | Where the metrics should be forwarded to, after relabeling takes place. | | yes
 
 ## Blocks
 
