@@ -79,7 +79,7 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`url` | `string` | Full URL to send metrics to. | | **yes**
+`url` | `string` | Full URL to send metrics to. | | yes
 `name` | `string` | Optional name to identify the endpoint in metrics. | | no
 `remote_timeout` | `duration` | Timeout for requests made to the URL. | `"30s"` | no
 `headers` | `map(string)` | Extra headers to deliver with the request. | | no

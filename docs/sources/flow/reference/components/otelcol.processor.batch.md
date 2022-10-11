@@ -66,7 +66,7 @@ The following blocks are supported inside the definition of
 
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
-output | [output][] | Configures where to send received telemetry data. | **yes**
+output | [output][] | Configures where to send received telemetry data. | yes
 
 [output]: #output-block
 
