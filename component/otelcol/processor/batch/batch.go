@@ -47,6 +47,8 @@ var DefaultArguments = Arguments{
 	SendBatchSize: 8192,
 }
 
+// UnmarshalRiver implements river.Unmarshaler. It applies defaults to args and
+// validates settings provided by the user.
 func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	*args = DefaultArguments
 
