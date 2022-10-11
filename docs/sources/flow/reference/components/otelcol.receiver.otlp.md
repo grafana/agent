@@ -10,8 +10,8 @@ title: otelcol.receiver.otlp
 forwards it to other `otelcol.*` components.
 
 > **NOTE**: `otelcol.receiver.otlp` is a wrapper over the upstream
-> OpenTelemetry Collector `otlp` receiver. Bug reports or feature requests may
-> be redirected to the upstream repository.
+> OpenTelemetry Collector `otlp` receiver. Bug reports or feature requests will
+> be redirected to the upstream repository, if necessary.
 
 Multiple `otelcol.receiver.otlp` components can be specified by giving them
 different labels.
