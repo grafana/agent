@@ -166,6 +166,7 @@ type LogLeveller struct {
 	inner zapcore.Level
 }
 
+// SetLevel sets the zapcore level from a logrus.Level.
 func (l *LogLeveller) SetLevel(level logrus.Level) {
 	l.mut.Lock()
 	defer l.mut.Unlock()
@@ -191,6 +192,7 @@ func (l *LogLeveller) SetLevel(level logrus.Level) {
 	l.inner = zapLevel
 }
 
+// Enabled implements zapcore.LevelEnabler.
 func (l *LogLeveller) Enabled(target zapcore.Level) bool {
 	l.mut.RLock()
 	defer l.mut.RUnlock()
