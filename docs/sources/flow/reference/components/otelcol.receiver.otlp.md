@@ -51,6 +51,7 @@ grpc > keepalive > enforcement_policy | [enforcement_policy][] | Enforcement pol
 http | [http][] | Configures the HTTP server to receive telemetry data. | no
 http > tls | [tls][] | Configures TLS for the HTTP server. | no
 http > cors | [cors][] | Configures CORS for the HTTP server. | no
+output | [output][] | Configures where to send received telemetry data. | **yes**
 
 The `>` symbol indicates deeper levels of nesting. For example, `grpc > tls`
 refers to a `tls` block defined inside a `grpc` block.
@@ -62,6 +63,7 @@ refers to a `tls` block defined inside a `grpc` block.
 [enforcement_policy]: #enforcement_policy-block
 [http]: #http-block
 [cors]: #cors-block
+[output]: #output-block
 
 ### grpc block
 
@@ -167,6 +169,24 @@ request. The following headers are always implicitly allowed:
 * `Content-Language`
 
 If `allowed_headers` includes `"*"`, all headers will be permitted.
+
+### output block
+
+The `output` block configures a set of components to send received telemetry
+data to.
+
+The following arguments are supported:
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`metrics` | `list(otelcol.Consumer)` | List of consumers to send metrics to. | `[]` | no
+`logs` | `list(otelcol.Consumer)` | List of consumers to send logs to. | `[]` | no
+`traces` | `list(otelcol.Consumer)` | List of consumers to send traces to. | `[]` | no
+
+The `output` block must be specified, but all of its arguments are optional. By
+default, telemetry data will be dropped. To send telemetry data to other
+components, configure the `metrics`, `logs`, and `traces` arguments
+accordingly.
 
 ## Exported fields
 
