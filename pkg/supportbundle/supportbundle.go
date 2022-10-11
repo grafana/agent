@@ -33,7 +33,6 @@ type Bundle struct {
 	agentMetricsInstances []byte
 	agentMetricsTargets   []byte
 	agentLogsInstances    []byte
-	agentLogsTargets      []byte
 	heapBuf               *bytes.Buffer
 	goroutineBuf          *bytes.Buffer
 	blockBuf              *bytes.Buffer
@@ -134,20 +133,28 @@ func Export(enabledFeatures []string, cfg config.Config, srvAddress string, dura
 	// TODO(@tpaschalis) Since these are the built-in profiles, do we actually
 	// need the nil check?
 	if p := pprof.Lookup("heap"); p != nil {
-		p.WriteTo(&heapBuf, 0)
+		if err := p.WriteTo(&heapBuf, 0); err != nil {
+			return nil, err
+		}
 	}
 	if p := pprof.Lookup("goroutine"); p != nil {
-		p.WriteTo(&goroutineBuf, 0)
+		if err := p.WriteTo(&goroutineBuf, 0); err != nil {
+			return nil, err
+		}
 	}
 	runtime.SetBlockProfileRate(1)
 	if p := pprof.Lookup("block"); p != nil {
-		p.WriteTo(&blockBuf, 0)
+		if err := p.WriteTo(&blockBuf, 0); err != nil {
+			return nil, err
+		}
 	}
 	runtime.SetBlockProfileRate(0)
 
 	runtime.SetMutexProfileFraction(1)
 	if p := pprof.Lookup("mutex"); p != nil {
-		p.WriteTo(&mutexBuf, 0)
+		if err := p.WriteTo(&mutexBuf, 0); err != nil {
+			return nil, err
+		}
 	}
 	runtime.SetMutexProfileFraction(0)
 
@@ -155,7 +162,10 @@ func Export(enabledFeatures []string, cfg config.Config, srvAddress string, dura
 	// duration to server timeout settings. Also, ideally a CPU profile should
 	// include at least one scrape or some log collection, but we can't
 	// guarantee that.
-	pprof.StartCPUProfile(&cpuBuf)
+	err = pprof.StartCPUProfile(&cpuBuf)
+	if err != nil {
+		return nil, err
+	}
 	time.Sleep(time.Duration(duration-1) * time.Second)
 	pprof.StopCPUProfile()
 

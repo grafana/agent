@@ -268,7 +268,7 @@ func (ep *Entrypoint) supportHandler(rw http.ResponseWriter, r *http.Request) {
 			return
 		}
 		duration = float64(durationInt)
-		if float64(duration) > ep.srv.HTTPServer.WriteTimeout.Seconds() {
+		if duration > ep.srv.HTTPServer.WriteTimeout.Seconds() {
 			http.Error(rw, "duration value exceeds the server's write timeout", http.StatusBadRequest)
 			return
 		}
