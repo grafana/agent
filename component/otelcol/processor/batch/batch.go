@@ -16,8 +16,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "otelcol.processor.batch",
-		Args: Arguments{},
+		Name:    "otelcol.processor.batch",
+		Args:    Arguments{},
+		Exports: otelcol.ConsumerExports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := batchprocessor.NewFactory()

@@ -121,3 +121,71 @@ func (args *KeepaliveEnforcementPolicy) Convert() *otelconfiggrpc.KeepaliveEnfor
 		PermitWithoutStream: args.PermitWithoutStream,
 	}
 }
+
+// GRPCClientArguments holds shared gRPC settings for components which launch
+// gRPC clients.
+type GRPCClientArguments struct {
+	Endpoint string `river:"endpoint,attr"`
+
+	Compression CompressionType `river:"compression,attr,optional"`
+
+	TLS       TLSClientArguments        `river:"tls,block,optional"`
+	Keepalive *KeepaliveClientArguments `river:"keepalive,block,optional"`
+
+	ReadBufferSize  units.Base2Bytes  `river:"read_buffer_size,attr,optional"`
+	WriteBufferSize units.Base2Bytes  `river:"write_buffer_size,attr,optional"`
+	WaitForReady    bool              `river:"wait_for_ready,attr,optional"`
+	Headers         map[string]string `river:"headers,attr,optional"`
+	BalancerName    string            `river:"balancer_name,attr,optional"`
+
+	// TODO(rfratto): auth
+	//
+	// Figuring out how to do authentication isn't very straightforward here. The
+	// auth section links to an authenticator extension.
+	//
+	// We will need to generally figure out how we want to provide common
+	// authentication extensions to all of our components.
+}
+
+// Convert converts args into the upstream type.
+func (args *GRPCClientArguments) Convert() *otelconfiggrpc.GRPCClientSettings {
+	if args == nil {
+		return nil
+	}
+
+	return &otelconfiggrpc.GRPCClientSettings{
+		Endpoint: args.Endpoint,
+
+		Compression: args.Compression.Convert(),
+
+		TLSSetting: *args.TLS.Convert(),
+		Keepalive:  args.Keepalive.Convert(),
+
+		ReadBufferSize:  int(args.ReadBufferSize),
+		WriteBufferSize: int(args.WriteBufferSize),
+		WaitForReady:    args.WaitForReady,
+		Headers:         args.Headers,
+		BalancerName:    args.BalancerName,
+	}
+}
+
+// KeepaliveClientArguments holds shared keepalive settings for components
+// which launch clients.
+type KeepaliveClientArguments struct {
+	Time                time.Duration `river:"time,attr,optional"`
+	Timeout             time.Duration `river:"timeout,attr,optional"`
+	PermitWithoutStream bool          `river:"permit_without_stream,attr,optional"`
+}
+
+// Convert converts args into the upstream type.
+func (args *KeepaliveClientArguments) Convert() *otelconfiggrpc.KeepaliveClientConfig {
+	if args == nil {
+		return nil
+	}
+
+	return &otelconfiggrpc.KeepaliveClientConfig{
+		Time:                args.Time,
+		Timeout:             args.Timeout,
+		PermitWithoutStream: args.PermitWithoutStream,
+	}
+}
