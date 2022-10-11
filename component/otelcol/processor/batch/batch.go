@@ -61,7 +61,7 @@ func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	return nil
 }
 
-// Convert implements receiver.Arguments.
+// Convert implements processor.Arguments.
 func (args Arguments) Convert() otelconfig.Processor {
 	return &batchprocessor.Config{
 		ProcessorSettings: otelconfig.NewProcessorSettings(otelconfig.NewComponentID("batch")),
@@ -71,17 +71,17 @@ func (args Arguments) Convert() otelconfig.Processor {
 	}
 }
 
-// Extensions implements receiver.Arguments.
+// Extensions implements processor.Arguments.
 func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
 	return nil
 }
 
-// Exporters implements receiver.Arguments.
+// Exporters implements processor.Arguments.
 func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
 	return nil
 }
 
-// NextConsumers implements receiver.Arguments.
+// NextConsumers implements processor.Arguments.
 func (args Arguments) NextConsumers() *otelcol.ConsumerArguments {
 	return args.Output
 }

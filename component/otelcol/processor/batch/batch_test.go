@@ -48,7 +48,7 @@ func Test(t *testing.T) {
 	require.NoError(t, ctrl.WaitRunning(time.Second), "component never started")
 	require.NoError(t, ctrl.WaitExports(time.Second), "component never exported anything")
 
-	// Send traces in the background to our receiver
+	// Send traces in the background to our processor.
 	go func() {
 		exports := ctrl.Exports().(otelcol.ConsumerExports)
 
