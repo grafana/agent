@@ -5,6 +5,7 @@ import (
 	_ "github.com/grafana/agent/component/discovery/kubernetes"                 // Import discovery.kubernetes
 	_ "github.com/grafana/agent/component/discovery/relabel"                    // Import discovery.relabel
 	_ "github.com/grafana/agent/component/local/file"                           // Import local.file
+	_ "github.com/grafana/agent/component/otelcol/auth/basic"                   // Import otelcol.auth.basic
 	_ "github.com/grafana/agent/component/otelcol/exporter/otlp"                // Import otelcol.exporter.otlp
 	_ "github.com/grafana/agent/component/otelcol/processor/batch"              // Import otelcol.processor.batch
 	_ "github.com/grafana/agent/component/otelcol/receiver/otlp"                // Import otelcol.receiver.otlp

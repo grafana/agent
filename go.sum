@@ -186,6 +186,8 @@ github.com/DATA-DOG/go-sqlmock v1.4.1 h1:ThlnYciV1iM/V0OSF/dtkqWb6xo5qITT1TJBG1M
 github.com/DATA-DOG/go-sqlmock v1.4.1/go.mod h1:f/Ixk793poVmq4qj/V1dPUg2JEAKC73Q5eFN3EC/SaM=
 github.com/DataDog/datadog-go v0.0.0-20160329135253-cc2f4770f4d6/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
 github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
+github.com/GehirnInc/crypt v0.0.0-20200316065508-bb7000b8a962 h1:KeNholpO2xKjgaaSyd+DyQRrsQjhbSeS7qe4nEw8aQw=
+github.com/GehirnInc/crypt v0.0.0-20200316065508-bb7000b8a962/go.mod h1:kC29dT1vFpj7py2OvG1khBdQpo3kInWP+6QipLbdngo=
 github.com/GoogleCloudPlatform/cloudsql-proxy v1.24.0/go.mod h1:3tx938GhY4FC+E1KT/jNjDw7Z5qxAEtIiERJ2sXjnII=
 github.com/HdrHistogram/hdrhistogram-go v1.1.0/go.mod h1:yDgFjdqOqDEKOvasDdhWNXYg9BVp4O+o5f6V/ehm6Oo=
 github.com/HdrHistogram/hdrhistogram-go v1.1.2 h1:5IcZpTvzydCQeHzK4Ef/D5rrSqwxob0t8PQPMybUNFM=
@@ -2043,6 +2045,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancing
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter v0.61.0/go.mod h1:/UWRVw83NJvr3OAUxNKdFvA42ZcwJU80U6sC9Ga6rG4=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter v0.61.0 h1:4NrUohPC7kbHracIMwNMwjjJw+RoTzGFqLcyOgChXu0=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter v0.61.0/go.mod h1:GtzfeHEYI2XcD9rs79UlgDT6A+WYJv8o5GWL5k20kg4=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.61.0 h1:O02J3B6hkVtftbtXCbkEyaQm1mDu5k6VoVOghJgN95o=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.61.0/go.mod h1:lSpO0oRJvNEbAdKbKIqJ7Lb+Tfj6XI9N415E0ATAMYE=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension v0.61.0 h1:USlB+ZO5VxvoLU1iE3bToDaS9xBTcqD6J5ooYBu8fUk=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension v0.61.0/go.mod h1:kY/a+e4Yl3cTEWp3m8eFxmNU60yYvoWledSKjLKrip4=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/common v0.61.0 h1:z+MA5MWVNh9n6w9+npb4Cb7/Ycgfa/jqJFnkSCSYhb0=
@@ -2492,6 +2496,8 @@ github.com/tencentcloud/tencentcloud-sdk-go v1.0.162/go.mod h1:asUz5BPXxgoPGaRgZ
 github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/kms v1.0.194/go.mod h1:yrBKWhChnDqNz1xuXdSbWXG56XawEq0G5j1lg4VwBD4=
 github.com/tencentyun/cos-go-sdk-v5 v0.7.31/go.mod h1:4E4+bQ2gBVJcgEC9Cufwylio4mXOct2iu05WjgEBx1o=
 github.com/tent/http-link-go v0.0.0-20130702225549-ac974c61c2f9/go.mod h1:RHkNRtSLfOK7qBTHaeSX1D6BNpI3qw7NTxsmNr4RvN8=
+github.com/tg123/go-htpasswd v1.2.0 h1:UKp34m9H467/xklxUxU15wKRru7fwXoTojtxg25ITF0=
+github.com/tg123/go-htpasswd v1.2.0/go.mod h1:h7IzlfpvIWnVJhNZ0nQ9HaFxHb7pn5uFJYLlEUJa2sM=
 github.com/thanos-io/thanos v0.19.1-0.20211126105533-c5505f5eaa7d/go.mod h1:sfnKJG7cDA41ixNL4gsTJEa3w9Qt8lwAjw+dqRMSDG0=
 github.com/thanos-io/thanos v0.25.0 h1:vuEd8z8onjH8rQZ3vCdkeybdflrRm7T1qqkgboe3MHI=
 github.com/thanos-io/thanos v0.25.0/go.mod h1:7i7BAtkc5n9gADy6Fez3PCiVb9Wzc7DldhZ+JJJC0Eg=
@@ -2757,6 +2763,7 @@ golang.org/x/crypto v0.0.0-20181009213950-7c1a557ab941/go.mod h1:6SG95UA2DQfeDnf
 golang.org/x/crypto v0.0.0-20181029021203-45a5f77698d3/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
 golang.org/x/crypto v0.0.0-20190211182817-74369b46fc67/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
 golang.org/x/crypto v0.0.0-20190219172222-a4c6cb3142f2/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
+golang.org/x/crypto v0.0.0-20190228161510-8dd112bcdc25/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20190320223903-b7391e95e576/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20190325154230-a5d413f7728c/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=

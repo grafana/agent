@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/component/otelcol/internal/scheduler"
 	"github.com/grafana/agent/component/otelcol/internal/zapadapter"
 	"github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/pkg/river"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelconfig "go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/otel/metric"
@@ -40,10 +41,21 @@ type Arguments interface {
 // Exports is a common Exports type for Flow components which expose
 // OpenTelemetry Collector authentication extensions.
 type Exports struct {
-	// Handler is the managed otelcomponent.Extension. Handler is updated any
-	// time the extension is updated.
-	Handler otelcomponent.Extension `river:"handler,attr"`
+	// Handler is the managed compoent. Handler is updated any time the extension
+	// is updated.
+	Handler Handler `river:"handler,attr"`
 }
+
+// Handler combines an extension with its ID.
+type Handler struct {
+	ID        otelconfig.ComponentID
+	Extension otelcomponent.Extension
+}
+
+var _ river.Capsule = Handler{}
+
+// RiverCapsule marks Handler as a capsule type.
+func (Handler) RiverCapsule() {}
 
 // Auth is a Flow component shim which manages an OpenTelemetry Collector
 // authentication extension.
@@ -137,7 +149,12 @@ func (r *Auth) Update(args component.Arguments) error {
 	}
 
 	// Inform listeners that our handler changed.
-	r.opts.OnStateChange(Exports{Handler: ext})
+	r.opts.OnStateChange(Exports{
+		Handler: Handler{
+			ID:        otelconfig.NewComponentID(otelconfig.Type(r.opts.ID)),
+			Extension: ext,
+		},
+	})
 
 	// Schedule the components to run once our component is running.
 	r.sched.Schedule(host, components...)

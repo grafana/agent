@@ -4,6 +4,10 @@ import (
 	"time"
 
 	"github.com/alecthomas/units"
+	"github.com/grafana/agent/component/otelcol/auth"
+	otelcomponent "go.opentelemetry.io/collector/component"
+	otelconfig "go.opentelemetry.io/collector/config"
+	otelconfigauth "go.opentelemetry.io/collector/config/configauth"
 	otelconfiggrpc "go.opentelemetry.io/collector/config/configgrpc"
 	"go.opentelemetry.io/collector/config/confignet"
 )
@@ -138,19 +142,21 @@ type GRPCClientArguments struct {
 	Headers         map[string]string `river:"headers,attr,optional"`
 	BalancerName    string            `river:"balancer_name,attr,optional"`
 
-	// TODO(rfratto): auth
-	//
-	// Figuring out how to do authentication isn't very straightforward here. The
-	// auth section links to an authenticator extension.
-	//
-	// We will need to generally figure out how we want to provide common
-	// authentication extensions to all of our components.
+	// Auth is a binding to an otelcol.auth.* component extension which handles
+	// authentication.
+	Auth *auth.Handler `river:"auth,attr,optional"`
 }
 
 // Convert converts args into the upstream type.
 func (args *GRPCClientArguments) Convert() *otelconfiggrpc.GRPCClientSettings {
 	if args == nil {
 		return nil
+	}
+
+	// Configure the authentication if args.Auth is set.
+	var auth *otelconfigauth.Authentication
+	if args.Auth != nil {
+		auth = &otelconfigauth.Authentication{AuthenticatorID: args.Auth.ID}
 	}
 
 	return &otelconfiggrpc.GRPCClientSettings{
@@ -166,7 +172,18 @@ func (args *GRPCClientArguments) Convert() *otelconfiggrpc.GRPCClientSettings {
 		WaitForReady:    args.WaitForReady,
 		Headers:         args.Headers,
 		BalancerName:    args.BalancerName,
+
+		Auth: auth,
 	}
+}
+
+// Extensions exposes extensions used by args.
+func (args *GRPCClientArguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+	m := make(map[otelconfig.ComponentID]otelcomponent.Extension)
+	if args.Auth != nil {
+		m[args.Auth.ID] = args.Auth.Extension
+	}
+	return m
 }
 
 // KeepaliveClientArguments holds shared keepalive settings for components
