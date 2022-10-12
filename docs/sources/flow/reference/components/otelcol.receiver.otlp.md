@@ -10,8 +10,8 @@ title: otelcol.receiver.otlp
 forwards it to other `otelcol.*` components.
 
 > **NOTE**: `otelcol.receiver.otlp` is a wrapper over the upstream
-> OpenTelemetry Collector `otlp` receiver. Bug reports or feature requests may
-> be redirected to the upstream repository.
+> OpenTelemetry Collector `otlp` receiver. Bug reports or feature requests will
+> be redirected to the upstream repository, if necessary.
 
 Multiple `otelcol.receiver.otlp` components can be specified by giving them
 different labels.
@@ -79,7 +79,7 @@ Name | Type | Description | Default | Required
 `max_recv_msg_size` | `string` | Maximum size of messages the server will accept. 0 disables a limit. | | no
 `max_concurrent_streams` | `number` | Limit the number of concurrent streaming RPC calls. | | no
 `read_buffer_size` | `string` | Size of the read buffer the gRPC server will use for reading from clients. | `"512KiB"` | no
-`write_buffer_size` | `string` | Size of the write buffer the gRPC will use for writing to clients. | | no
+`write_buffer_size` | `string` | Size of the write buffer the gRPC server will use for writing to clients. | | no
 `include_metadata` | `boolean` | Propagate incoming connection metadata to downstream consumers. | | no
 
 ### tls block

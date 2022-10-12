@@ -13,7 +13,7 @@ data.
 
 > **NOTE**: `otelcol.processor.batch` is a wrapper over the upstream
 > OpenTelemetry Collector `batch` processor. Bug reports or feature requests
-> may be redirected to the upstream repository.
+> will be redirected to the upstream repository, if necessary.
 
 Multiple `otelcol.processor.batch` components can be specified by giving them
 different labels.
