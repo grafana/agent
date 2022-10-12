@@ -172,9 +172,9 @@ func (args *GRPCClientArguments) Convert() *otelconfiggrpc.GRPCClientSettings {
 // KeepaliveClientArguments holds shared keepalive settings for components
 // which launch clients.
 type KeepaliveClientArguments struct {
-	Time                time.Duration `river:"time,attr,optional"`
-	Timeout             time.Duration `river:"timeout,attr,optional"`
-	PermitWithoutStream bool          `river:"permit_without_stream,attr,optional"`
+	PingWait            time.Duration `river:"ping_wait,attr,optional"`
+	PingResponseTimeout time.Duration `river:"ping_response_timeout,attr,optional"`
+	PingWithoutStream   bool          `river:"ping_without_stream,attr,optional"`
 }
 
 // Convert converts args into the upstream type.
@@ -184,8 +184,8 @@ func (args *KeepaliveClientArguments) Convert() *otelconfiggrpc.KeepaliveClientC
 	}
 
 	return &otelconfiggrpc.KeepaliveClientConfig{
-		Time:                args.Time,
-		Timeout:             args.Timeout,
-		PermitWithoutStream: args.PermitWithoutStream,
+		Time:                args.PingWait,
+		Timeout:             args.PingResponseTimeout,
+		PermitWithoutStream: args.PingWithoutStream,
 	}
 }

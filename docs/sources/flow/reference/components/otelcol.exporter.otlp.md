@@ -121,9 +121,9 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`time` | `duration` | How often to ping the server after no activity. | | no
-`timeout` | `duration` | Time to wait before closing inactive connections if the server does not respond to a ping. | | no
-`permit_without_stream` | `boolean` | Send pings even if there is no active stream request. | | no
+`ping_wait` | `duration` | How often to ping the server after no activity. | | no
+`ping_response_timeout` | `duration` | Time to wait before closing inactive connections if the server does not respond to a ping. | | no
+`ping_without_stream` | `boolean` | Send pings even if there is no active stream request. | | no
 
 ### queue block
 
