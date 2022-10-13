@@ -259,7 +259,7 @@ information.
 ## Examples
 
 This example creates a pipeline which accepts Jaeger-formatted traces and
-writes them to a OTLP server:
+writes them to an OTLP server:
 
 ```river
 otelcol.receiver.jaeger "default" {
