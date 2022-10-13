@@ -35,6 +35,13 @@ Main (unreleased)
 - Flow: add `otelcol.exporter.otlp` component which accepts data from `otelcol`
   components and sends it to a gRPC server using the OTLP protocol. (@rfratto)
 
+- Flow: add `otelcol.auth.basic` component which can perform basic
+  authentication for `otelcol` components which support authentication
+  extensions. (@rfratto)
+
+- Flow: add `otelcol.receiver.jeager` component which receives Jaeger-formatted
+  traces. Data can then be forwarded to other `otelcol` components. (@rfratto)
+
 ### Features
 
 - Add `agentctl test-logs` command to allow testing log configurations by redirecting
