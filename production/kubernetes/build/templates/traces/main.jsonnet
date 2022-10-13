@@ -25,7 +25,8 @@ local newPort(name, portNumber, protocol='TCP') =
       newPort('zipkin', 9411, 'TCP'),
 
       // OTLP
-      newPort('otlp', 4317, 'TCP'),
+      newPort('otlp-grpc', 4317, 'TCP'),
+      newPort('otlp-http', 4318, 'TCP'),
 
       // Opencensus
       newPort('opencensus', 55678, 'TCP'),
