@@ -24,22 +24,22 @@ Main (unreleased)
 
 - Update Prometheus dependency to v2.38.0. (@rfratto)
 
-- Flow: add `otelcol.receiver.otlp` component which receives OTLP-formatted
+- Flow: add an `otelcol.receiver.otlp` component which receives OTLP-formatted
   traces, metrics, and logs. Data can then be forwarded to other `otelcol`
   components. (@rfratto)
 
-- Flow: add `otelcol.processor.batch` component which batches data from
+- Flow: add an `otelcol.processor.batch` component which batches data from
   `otelcol` components before forwarding it to other `otelcol` components.
   (@rfratto)
 
-- Flow: add `otelcol.exporter.otlp` component which accepts data from `otelcol`
+- Flow: add an `otelcol.exporter.otlp` component which accepts data from `otelcol`
   components and sends it to a gRPC server using the OTLP protocol. (@rfratto)
 
-- Flow: add `otelcol.auth.basic` component which can perform basic
+- Flow: add an `otelcol.auth.basic` component which can perform basic
   authentication for `otelcol` components which support authentication
   extensions. (@rfratto)
 
-- Flow: add `otelcol.receiver.jeager` component which receives Jaeger-formatted
+- Flow: add an `otelcol.receiver.jeager` component which receives Jaeger-formatted
   traces. Data can then be forwarded to other `otelcol` components. (@rfratto)
 
 ### Features
