@@ -41,8 +41,8 @@ type Arguments interface {
 // Exports is a common Exports type for Flow components which expose
 // OpenTelemetry Collector authentication extensions.
 type Exports struct {
-	// Handler is the managed compoent. Handler is updated any time the extension
-	// is updated.
+	// Handler is the managed component. Handler is updated any time the
+	// extension is updated.
 	Handler Handler `river:"handler,attr"`
 }
 
