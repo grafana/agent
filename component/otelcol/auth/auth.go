@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/component/otelcol/internal/scheduler"
 	"github.com/grafana/agent/component/otelcol/internal/zapadapter"
 	"github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/pkg/river"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelconfig "go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/otel/metric"
@@ -40,10 +41,21 @@ type Arguments interface {
 // Exports is a common Exports type for Flow components which expose
 // OpenTelemetry Collector authentication extensions.
 type Exports struct {
-	// Handler is the managed otelcomponent.Extension. Handler is updated any
-	// time the extension is updated.
-	Handler otelcomponent.Extension `river:"handler,attr"`
+	// Handler is the managed component. Handler is updated any time the
+	// extension is updated.
+	Handler Handler `river:"handler,attr"`
 }
+
+// Handler combines an extension with its ID.
+type Handler struct {
+	ID        otelconfig.ComponentID
+	Extension otelcomponent.Extension
+}
+
+var _ river.Capsule = Handler{}
+
+// RiverCapsule marks Handler as a capsule type.
+func (Handler) RiverCapsule() {}
 
 // Auth is a Flow component shim which manages an OpenTelemetry Collector
 // authentication extension.
@@ -87,26 +99,26 @@ func New(opts component.Options, f otelcomponent.ExtensionFactory, args Argument
 }
 
 // Run starts the Auth component.
-func (r *Auth) Run(ctx context.Context) error {
-	defer r.cancel()
-	return r.sched.Run(ctx)
+func (a *Auth) Run(ctx context.Context) error {
+	defer a.cancel()
+	return a.sched.Run(ctx)
 }
 
 // Update implements component.Component. It will convert the Arguments into
 // configuration for OpenTelemetry Collector authentication extension
 // configuration and manage the underlying OpenTelemetry Collector extension.
-func (r *Auth) Update(args component.Arguments) error {
+func (a *Auth) Update(args component.Arguments) error {
 	rargs := args.(Arguments)
 
 	host := scheduler.NewHost(
-		r.opts.Logger,
+		a.opts.Logger,
 		scheduler.WithHostExtensions(rargs.Extensions()),
 		scheduler.WithHostExporters(rargs.Exporters()),
 	)
 
 	settings := otelcomponent.ExtensionCreateSettings{
 		TelemetrySettings: otelcomponent.TelemetrySettings{
-			Logger: zapadapter.New(r.opts.Logger),
+			Logger: zapadapter.New(a.opts.Logger),
 
 			// TODO(rfratto): expose tracing and logging statistics.
 			//
@@ -129,7 +141,7 @@ func (r *Auth) Update(args component.Arguments) error {
 	// Create instances of the extension from our factory.
 	var components []otelcomponent.Component
 
-	ext, err := r.factory.CreateExtension(r.ctx, settings, extensionConfig)
+	ext, err := a.factory.CreateExtension(a.ctx, settings, extensionConfig)
 	if err != nil {
 		return err
 	} else if ext != nil {
@@ -137,14 +149,19 @@ func (r *Auth) Update(args component.Arguments) error {
 	}
 
 	// Inform listeners that our handler changed.
-	r.opts.OnStateChange(Exports{Handler: ext})
+	a.opts.OnStateChange(Exports{
+		Handler: Handler{
+			ID:        otelconfig.NewComponentID(otelconfig.Type(a.opts.ID)),
+			Extension: ext,
+		},
+	})
 
 	// Schedule the components to run once our component is running.
-	r.sched.Schedule(host, components...)
+	a.sched.Schedule(host, components...)
 	return nil
 }
 
 // CurrentHealth implements component.HealthComponent.
-func (r *Auth) CurrentHealth() component.Health {
-	return r.sched.CurrentHealth()
+func (a *Auth) CurrentHealth() component.Health {
+	return a.sched.CurrentHealth()
 }
