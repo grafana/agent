@@ -184,6 +184,12 @@ func (proto *ProtocolUDP) Convert() *jaegerreceiver.ProtocolUDP {
 
 // RemoteSamplingArguments configures remote sampling settings.
 type RemoteSamplingArguments struct {
+	// TODO(rfratto): can we work with upstream to provide a hook to provide a
+	// custom strategy file and bypass the reload interval?
+	//
+	// That would let users connect a local.file to otelcol.receiver.jaeger for
+	// the remote sampling.
+
 	HostEndpoint               string                      `river:"host_endpoint,attr"`
 	StrategyFile               string                      `river:"strategy_file,attr"`
 	StrategyFileReloadInterval time.Duration               `river:"strategy_file_reload_interval,attr"`
