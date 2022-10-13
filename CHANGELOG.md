@@ -28,8 +28,6 @@ Main (unreleased)
   traces, metrics, and logs. Data can then be forwarded to other `otelcol`
   components. (@rfratto)
 
-- Expose Grafana Agent traces Kubernetes with port 4318 to OTLP exporter sustain both gRPC and HTTP protocols. (@Eji4h)
-
 ### Features
 
 - Add `agentctl test-logs` command to allow testing log configurations by redirecting
