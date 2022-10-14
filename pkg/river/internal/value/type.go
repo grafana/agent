@@ -43,6 +43,9 @@ func (t Type) String() string {
 	return fmt.Sprintf("Type(%d)", t)
 }
 
+// GoString returns the name of t.
+func (t Type) GoString() string { return t.String() }
+
 // RiverType returns the River type from the Go type.
 //
 // Go types map to River types using the following rules:
