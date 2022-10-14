@@ -52,6 +52,8 @@ collected logs to standard output. This can be useful for debugging. (@jcreixell
 
 - Remove empty port from the `apache_http` integration's instance label. (@katepangLiu)
 
+- Fix identifier on target creation for SNMP v2 integration. (@marctc)
+
 v0.28.0 (2022-09-29)
 --------------------
 
