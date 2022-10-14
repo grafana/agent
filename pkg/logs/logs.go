@@ -120,20 +120,6 @@ type Instance struct {
 	promtail *promtail.Promtail
 }
 
-// GetLogger retrieves the subsystem's logger.
-func (l *Logs) GetLogger() log.Logger {
-	l.mut.Lock()
-	defer l.mut.Unlock()
-	return l.l
-}
-
-// SetLogger overrides the subsystem's logger.
-func (l *Logs) SetLogger(logger log.Logger) {
-	l.mut.Lock()
-	defer l.mut.Unlock()
-	l.l = logger
-}
-
 // NewInstance creates and starts a Logs instance.
 func NewInstance(reg prometheus.Registerer, c *InstanceConfig, l log.Logger, dryRun bool) (*Instance, error) {
 	instReg := prometheus.WrapRegistererWith(prometheus.Labels{"logs_config": c.Name}, reg)

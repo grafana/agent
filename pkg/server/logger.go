@@ -18,9 +18,18 @@ type Logger struct {
 	mut sync.RWMutex
 	l   log.Logger
 
+	// HookLogger is used to temporarily hijack logs for support bundles.
+	HookLogger HookedLogger
+
 	// makeLogger will default to defaultLogger. It's a struct
 	// member to make testing work properly.
 	makeLogger func(*Config) (log.Logger, error)
+}
+
+// HookedLogger is used to temporarily redirect
+type HookedLogger struct {
+	Enabled bool
+	Logger  log.Logger
 }
 
 // NewLogger creates a new Logger.
@@ -81,21 +90,19 @@ func makeDefaultLogger(lvl logging.Level, fmt logging.Format) (log.Logger, error
 func (l *Logger) Log(kvps ...interface{}) error {
 	l.mut.RLock()
 	defer l.mut.RUnlock()
+	err := l.HookLogger.Log(kvps...)
+	if err != nil {
+		return err
+	}
 	return l.l.Log(kvps...)
 }
 
-// GetLogger retrieves the server's logger.
-func (l *Logger) GetLogger() log.Logger {
-	l.mut.Lock()
-	defer l.mut.Unlock()
-	return l.l
-}
-
-// SetLogger overrides the server's inner logger.
-func (l *Logger) SetLogger(logger log.Logger) {
-	l.mut.Lock()
-	defer l.mut.Unlock()
-	l.l = logger
+// Log implements log.Logger.
+func (hl *HookedLogger) Log(kvps ...interface{}) error {
+	if hl.Enabled {
+		return hl.Logger.Log(kvps...)
+	}
+	return nil
 }
 
 // GoKitLogger creates a logging.Interface from a log.Logger.

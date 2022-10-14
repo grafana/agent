@@ -6,22 +6,15 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"path/filepath"
 	"runtime"
 	"runtime/pprof"
-	"sync"
 	"time"
 
-	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/config"
-	"github.com/grafana/agent/pkg/traces"
-	zaplogfmt "github.com/jsternberg/zap-logfmt"
+	"github.com/grafana/agent/pkg/server"
 	"github.com/mackerelio/go-osstat/uptime"
-	"github.com/sirupsen/logrus"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 	"gopkg.in/yaml.v3"
 )
 
@@ -50,7 +43,7 @@ type Metadata struct {
 }
 
 // Export gathers the information required for the support bundle.
-func Export(enabledFeatures []string, cfg config.Config, srvAddress string, duration float64) (*Bundle, error) {
+func Export(enabledFeatures []string, cfg config.Config, srvAddress string, duration float64, dialContext server.DialContextFunc) (*Bundle, error) {
 	// Gather runtime metadata.
 	ut, err := uptime.Get()
 	if err != nil {
@@ -73,8 +66,10 @@ func Export(enabledFeatures []string, cfg config.Config, srvAddress string, dura
 		return nil, fmt.Errorf("failed to marshal config: %s", err)
 	}
 
+	var httpClient http.Client
+	httpClient.Transport = &http.Transport{DialContext: dialContext}
 	// Gather Agent's own metrics.
-	resp, err := http.DefaultClient.Get("http://" + srvAddress + "/metrics")
+	resp, err := httpClient.Get("http://" + srvAddress + "/metrics")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get internal Agent metrics: %s", err)
 	}
@@ -84,7 +79,7 @@ func Export(enabledFeatures []string, cfg config.Config, srvAddress string, dura
 	}
 
 	// Collect the Agent metrics instances and target statuses.
-	resp, err = http.DefaultClient.Get("http://" + srvAddress + "/agent/api/v1/metrics/instances")
+	resp, err = httpClient.Get("http://" + srvAddress + "/agent/api/v1/metrics/instances")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get internal Agent metrics: %s", err)
 	}
@@ -92,7 +87,7 @@ func Export(enabledFeatures []string, cfg config.Config, srvAddress string, dura
 	if err != nil {
 		return nil, fmt.Errorf("failed to read internal Agent metrics: %s", err)
 	}
-	resp, err = http.DefaultClient.Get("http://" + srvAddress + "/agent/api/v1/metrics/targets")
+	resp, err = httpClient.Get("http://" + srvAddress + "/agent/api/v1/metrics/targets")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get Agent metrics targets: %s", err)
 	}
@@ -102,7 +97,7 @@ func Export(enabledFeatures []string, cfg config.Config, srvAddress string, dura
 	}
 
 	// Collect the Agent's logs instances and target statuses.
-	resp, err = http.DefaultClient.Get("http://" + srvAddress + "/agent/api/v1/logs/instances")
+	resp, err = httpClient.Get("http://" + srvAddress + "/agent/api/v1/logs/instances")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get Agent logs instances: %s", err)
 	}
@@ -191,7 +186,7 @@ func Export(enabledFeatures []string, cfg config.Config, srvAddress string, dura
 
 // Serve the collected data and logs as a zip file over the given
 // http.ResponseWriter.
-func Serve(rw http.ResponseWriter, b *Bundle, logsBuf *ConcurrentBuffer) error {
+func Serve(rw http.ResponseWriter, b *Bundle, logsBuf *bytes.Buffer) error {
 	zw := zip.NewWriter(rw)
 	rw.Header().Set("Content-Type", "application/zip")
 	rw.Header().Set("Content-Disposition", "attachment; filename=\"agent-support-bundle.zip\"")
@@ -215,7 +210,7 @@ func Serve(rw http.ResponseWriter, b *Bundle, logsBuf *ConcurrentBuffer) error {
 		return err
 	}
 
-	if err := writeBytesBuff(zw, &logsBuf.b, "agent-support-bundle", "agent-logs.txt"); err != nil {
+	if err := writeBytesBuff(zw, logsBuf, "agent-support-bundle", "agent-logs.txt"); err != nil {
 		return err
 	}
 
@@ -264,47 +259,4 @@ func writeBytesBuff(zw *zip.Writer, b *bytes.Buffer, fn ...string) error {
 		return err
 	}
 	return nil
-}
-
-// ConcurrentBuffer is a bytes.Buffer protected by a Mutex so it can be used by
-// multiple loggers at the same time.
-type ConcurrentBuffer struct {
-	mut sync.Mutex
-	b   bytes.Buffer
-}
-
-func (cb *ConcurrentBuffer) Write(p []byte) (n int, err error) {
-	cb.mut.Lock()
-	defer cb.mut.Unlock()
-	return cb.b.Write(p)
-}
-
-// GetSubstituteLoggers returns the tee-ed off loggers that can be used to
-// hijack the existing ones, as well as the underlying buffer that logs are
-// written to.
-func GetSubstituteLoggers(lvl logrus.Level, currentZap *zap.Logger) (log.Logger, *zap.Logger, *ConcurrentBuffer) {
-	cb := &ConcurrentBuffer{}
-	logfmtLogger := log.NewSyncLogger(log.NewLogfmtLogger(io.MultiWriter(os.Stderr, cb)))
-	zapLogger := zap.New(
-		zapcore.NewTee(
-			currentZap.Core(),
-			getBufferZapCore(cb, lvl),
-		))
-	return logfmtLogger, zapLogger, cb
-}
-
-func getBufferZapCore(bf *ConcurrentBuffer, lvl logrus.Level) zapcore.Core {
-	var traceLogLeveller traces.LogLeveller
-	traceLogLeveller.SetLevel(lvl)
-
-	traceLoggerConfig := zap.NewProductionEncoderConfig()
-	traceLoggerConfig.EncodeTime = func(ts time.Time, encoder zapcore.PrimitiveArrayEncoder) {
-		encoder.AppendString(ts.UTC().Format(time.RFC3339))
-	}
-	encoder := zaplogfmt.NewEncoder(traceLoggerConfig)
-
-	traceLogger := zapcore.NewCore(encoder, zapcore.AddSync(bf), &traceLogLeveller)
-	traceLogger = traceLogger.With([]zapcore.Field{zap.String("component", "traces")})
-
-	return traceLogger
 }

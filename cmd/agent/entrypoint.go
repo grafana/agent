@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"net/url"
@@ -12,6 +14,7 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/config"
@@ -25,7 +28,6 @@ import (
 	"github.com/oklog/run"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/weaveworks/common/signals"
-	"golang.org/x/sync/singleflight"
 	"google.golang.org/grpc"
 	"gopkg.in/yaml.v2"
 )
@@ -48,6 +50,9 @@ type Entrypoint struct {
 
 	reloadListener net.Listener
 	reloadServer   *http.Server
+
+	// Used to enforce single-flight requests for support bundle generation.
+	sbmut sync.Mutex
 }
 
 // Reloader is any function that returns a new config.
@@ -81,7 +86,7 @@ func NewEntrypoint(logger *server.Logger, cfg *config.Config, reloader Reloader)
 		return nil, err
 	}
 
-	ep.tempoTraces, err = traces.New(ep.lokiLogs, ep.promMetrics.InstanceManager(), reg, cfg.Traces, cfg.Server.LogLevel.Logrus, cfg.Server.LogFormat)
+	ep.tempoTraces, err = traces.New(ep.lokiLogs, ep.promMetrics.InstanceManager(), reg, cfg.Traces, cfg.Server.LogLevel.Logrus, cfg.Server.LogFormat, &ep.log.HookLogger)
 	if err != nil {
 		return nil, err
 	}
@@ -256,6 +261,9 @@ func (ep *Entrypoint) getReporterMetrics() map[string]interface{} {
 }
 
 func (ep *Entrypoint) supportHandler(rw http.ResponseWriter, r *http.Request) {
+	ep.sbmut.Lock()
+	defer ep.sbmut.Unlock()
+
 	duration := ep.srv.HTTPServer.WriteTimeout.Seconds()
 	if r.URL.Query().Has("duration") {
 		durationInt, err := strconv.Atoi(r.URL.Query().Get("duration"))
@@ -274,52 +282,33 @@ func (ep *Entrypoint) supportHandler(rw http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Keep track of current loggers.
-	// TODO(@tpaschalis) Can we also dynamically up the log_level while the
-	// support bundle is being generated?
 	ep.mut.Lock()
 	var (
-		srvLogger     = ep.log.GetLogger()
-		metricsLogger = ep.promMetrics.GetLogger()
-		logsLogger    = ep.lokiLogs.GetLogger()
-		tracesLogger  = ep.tempoTraces.GetLogger()
-
 		cfg             = ep.cfg
 		enabledFeatures = ep.cfg.EnabledFeatures
-		httpSrvAddress  = ep.srv.HTTPAddress().String()
+		httpSrvAddress  = ep.cfg.ServerFlags.HTTP.InMemoryAddr
 	)
 	ep.mut.Unlock()
 
-	// Create new substitute loggers that tee off to a threadsafe buffer.
-	logfmtLogger, zapLogger, logsBuffer := supportbundle.GetSubstituteLoggers(cfg.Server.LogLevel.Logrus, tracesLogger)
-
-	// Don't forget to restore the original loggers afterwards.
+	// TODO(@tpaschalis) Can we also dynamically up the log_level while the
+	// support bundle is being generated?
+	var logsBuffer bytes.Buffer
+	logger := log.NewSyncLogger(log.NewLogfmtLogger(io.MultiWriter(os.Stderr, &logsBuffer)))
 	defer func() {
-		ep.log.SetLogger(srvLogger)
-		ep.promMetrics.SetLogger(metricsLogger)
-		ep.lokiLogs.SetLogger(logsLogger)
-		ep.tempoTraces.SetLogger(tracesLogger)
+		ep.log.HookLogger.Enabled = false
+		ep.log.HookLogger.Logger = nil
 	}()
+	ep.log.HookLogger.Enabled = true
+	ep.log.HookLogger.Logger = logger
 
-	// Hijack subsystems loggers.
-	ep.log.SetLogger(logfmtLogger)
-	ep.promMetrics.SetLogger(logfmtLogger)
-	ep.lokiLogs.SetLogger(logfmtLogger)
-	ep.tempoTraces.SetLogger(zapLogger)
-
-	var g singleflight.Group
-	_, err, _ := g.Do("/-/support", func() (interface{}, error) {
-		bundle, err := supportbundle.Export(enabledFeatures, cfg, httpSrvAddress, duration)
-		if err != nil {
-			return nil, err
-		}
-		if err := supportbundle.Serve(rw, bundle, logsBuffer); err != nil {
-			return nil, err
-		}
-		return nil, nil
-	})
+	bundle, err := supportbundle.Export(enabledFeatures, cfg, httpSrvAddress, duration, ep.srv.DialContext)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if err := supportbundle.Serve(rw, bundle, &logsBuffer); err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
 	}
 }
 

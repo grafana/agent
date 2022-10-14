@@ -7,8 +7,10 @@ import (
 	"time"
 
 	"contrib.go.opencensus.io/exporter/prometheus"
+	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/grafana/agent/pkg/util/zapadapter"
 	zaplogfmt "github.com/jsternberg/zap-logfmt"
 	prom_client "github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
@@ -26,7 +28,7 @@ type Traces struct {
 	mut       sync.Mutex
 	instances map[string]*Instance
 
-	leveller *LogLeveller
+	leveller *logLeveller
 	logger   *zap.Logger
 	reg      prom_client.Registerer
 
@@ -34,13 +36,13 @@ type Traces struct {
 }
 
 // New creates and starts trace collection.
-func New(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, reg prom_client.Registerer, cfg Config, level logrus.Level, fmt logging.Format) (*Traces, error) {
-	var leveller LogLeveller
+func New(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, reg prom_client.Registerer, cfg Config, level logrus.Level, fmt logging.Format, l log.Logger) (*Traces, error) {
+	var leveller logLeveller
 
 	traces := &Traces{
 		instances:           make(map[string]*Instance),
 		leveller:            &leveller,
-		logger:              newLogger(&leveller, fmt),
+		logger:              newLogger(&leveller, fmt, l),
 		reg:                 reg,
 		promInstanceManager: promInstanceManager,
 	}
@@ -118,21 +120,7 @@ func (t *Traces) Stop() {
 	}
 }
 
-// GetLogger retrieves the subsystem's logger.
-func (t *Traces) GetLogger() *zap.Logger {
-	t.mut.Lock()
-	defer t.mut.Unlock()
-	return t.logger
-}
-
-// SetLogger overrides the subsystem's logger.
-func (t *Traces) SetLogger(logger *zap.Logger) {
-	t.mut.Lock()
-	defer t.mut.Unlock()
-	t.logger = logger
-}
-
-func newLogger(zapLevel zapcore.LevelEnabler, fmt logging.Format) *zap.Logger {
+func newLogger(zapLevel zapcore.LevelEnabler, fmt logging.Format, l log.Logger) *zap.Logger {
 	config := zap.NewProductionEncoderConfig()
 	config.EncodeTime = func(ts time.Time, encoder zapcore.PrimitiveArrayEncoder) {
 		encoder.AppendString(ts.UTC().Format(time.RFC3339))
@@ -148,26 +136,32 @@ func newLogger(zapLevel zapcore.LevelEnabler, fmt logging.Format) *zap.Logger {
 		encoder = zaplogfmt.NewEncoder(config)
 	}
 
-	logger := zap.New(zapcore.NewCore(
-		encoder,
-		os.Stdout,
-		zapLevel,
-	), zap.AddCaller())
+	zapAdapter := zapadapter.New(l)
+
+	logger := zap.New(
+		zapcore.NewTee(
+			zapcore.NewCore(
+				encoder,
+				os.Stdout,
+				zapLevel,
+			),
+			zapAdapter.Core()),
+		zap.AddCaller())
 	logger = logger.With(zap.String("component", "traces"))
 	logger.Info("Traces Logger Initialized")
 
 	return logger
 }
 
-// LogLeveller implements the zapcore.LevelEnabler interface and allows for
+// logLeveller implements the zapcore.LevelEnabler interface and allows for
 // switching out log levels at runtime.
-type LogLeveller struct {
+type logLeveller struct {
 	mut   sync.RWMutex
 	inner zapcore.Level
 }
 
 // SetLevel sets the zapcore level from a logrus.Level.
-func (l *LogLeveller) SetLevel(level logrus.Level) {
+func (l *logLeveller) SetLevel(level logrus.Level) {
 	l.mut.Lock()
 	defer l.mut.Unlock()
 
@@ -193,7 +187,7 @@ func (l *LogLeveller) SetLevel(level logrus.Level) {
 }
 
 // Enabled implements zapcore.LevelEnabler.
-func (l *LogLeveller) Enabled(target zapcore.Level) bool {
+func (l *logLeveller) Enabled(target zapcore.Level) bool {
 	l.mut.RLock()
 	defer l.mut.RUnlock()
 	return l.inner.Enabled(target)
