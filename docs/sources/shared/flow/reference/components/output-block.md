@@ -2,6 +2,7 @@
 aliases:
 - /docs/agent/latest/shared/flow/otelcol/output-block/
 - /docs/agent/shared/flow/otelcol/output-block/
+- /docs/agent/shared/flow/reference/components/output-block/
 headless: true
 ---
 

@@ -67,36 +67,7 @@ rule | [rule][] | Relabeling rules to apply to targets. | no
 
 ### rule block
 
-The `rule` block contains the definition of any relabeling rules that
-can be applied to an input target. If more than one `rule` block is
-defined within `discovery.relabel`, the transformations are applied
-in top-down order.
-
-The following arguments can be used to configure a `rule` block.
-All arguments are optional and any omitted fields take on their default
-values.
-
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`source_labels` | `list(string)` | The list of labels whose values should be selected. Their content is concatenated using the `separator` and matched against `regex`. | | no
-`separator`     | `string`       |  The separator used to concatenate the values present in `source_labels`. | `;` | no
-`regex`         | `string`       | A valid RE2 expression with support for parenthesized capture groups. Used to match the extracted value from the combination of the `source_label` and `separator` fields or filter labels during the labelkeep/labeldrop/labelmap actions. | `(.*)` | no
-`modulus`       | `uint`         | A positive integer used to calculate the modulus of the hashed source label values. | | no
-`target_label`  | `string`       | Label to which the resulting value are written to. | | no
-`replacement`   | `string`       | The value against which a regex replace is performed, if the regex matched the extracted value. Supports previously captured groups. | `$1` | no
-`action`        | `string`       | The relabeling action to perform. | `replace` | no
-
-Here's a list of the available actions along with a brief description of their usage.
-
-* `replace` - This action matches `regex` to the concatenated labels. If there's a match, it replaces the content of the `target_label` using the contents of the `replacement` field.
-* `keep`    - This action only keeps the targets where `regex` matches the string extracted using the `source_labels` and `separator`.
-* `drop`    - This action drops the targets where `regex` matches the string extracted using the `source_labels` and `separator`.
-* `hashmod` - This action hashes the concatenated labels, calculates its modulo `modulus` and writes the result to the `target_label`.
-* `labelmap`  - This action matches `regex` against all label names. Any labels that match are renamed according to the contents of the `replacement` field.
-* `labeldrop` - This action matches `regex` against all label names. Any labels that match are removed from the target's label set.
-* `labelkeep` - This action matches `regex` against all label names. Any labels that don't match are removed from the target's label set.
-
-Finally, note that the regex capture groups can be referred to using either the `$1` or `$${1}` notation.
+{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" >}}
 
 ## Exported fields
 
