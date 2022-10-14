@@ -91,11 +91,6 @@ func (c *Config) Name() string {
 	return "snmp"
 }
 
-// InstanceKey returns the hostname:port of the agent.
-func (c *Config) InstanceKey(agentKey string) (string, error) {
-	return agentKey, nil
-}
-
 func init() {
 	integrations_v2.Register(&Config{}, integrations_v2.TypeSingleton)
 }

@@ -32,7 +32,7 @@ type snmpHandler struct {
 
 func (sh *snmpHandler) Targets(ep integrations.Endpoint) []*targetgroup.Group {
 	integrationNameValue := model.LabelValue("integrations/" + sh.cfg.Name())
-	key, _ := sh.cfg.InstanceKey("")
+	key, _ := sh.cfg.Identifier(sh.cfg.globals)
 
 	group := &targetgroup.Group{
 		Labels: model.LabelSet{
