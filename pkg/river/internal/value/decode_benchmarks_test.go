@@ -28,3 +28,63 @@ func BenchmarkObjectDecode(b *testing.B) {
 		_ = value.Decode(sourceVal, &dst)
 	}
 }
+
+func BenchmarkObject(b *testing.B) {
+	b.Run("Non-capsule", func(b *testing.B) {
+		b.StopTimer()
+
+		vals := make(map[string]value.Value)
+		for i := 0; i < 20; i++ {
+			vals[fmt.Sprintf("%d", i)] = value.Int(int64(i))
+		}
+
+		b.StartTimer()
+		for i := 0; i < b.N; i++ {
+			_ = value.Object(vals)
+		}
+	})
+
+	b.Run("Capsule", func(b *testing.B) {
+		b.StopTimer()
+
+		vals := make(map[string]value.Value)
+		for i := 0; i < 20; i++ {
+			vals[fmt.Sprintf("%d", i)] = value.Encapsulate(make(chan int))
+		}
+
+		b.StartTimer()
+		for i := 0; i < b.N; i++ {
+			_ = value.Object(vals)
+		}
+	})
+}
+
+func BenchmarkArray(b *testing.B) {
+	b.Run("Non-capsule", func(b *testing.B) {
+		b.StopTimer()
+
+		var vals []value.Value
+		for i := 0; i < 20; i++ {
+			vals = append(vals, value.Int(int64(i)))
+		}
+
+		b.StartTimer()
+		for i := 0; i < b.N; i++ {
+			_ = value.Array(vals...)
+		}
+	})
+
+	b.Run("Capsule", func(b *testing.B) {
+		b.StopTimer()
+
+		var vals []value.Value
+		for i := 0; i < 20; i++ {
+			vals = append(vals, value.Encapsulate(make(chan int)))
+		}
+
+		b.StartTimer()
+		for i := 0; i < b.N; i++ {
+			_ = value.Array(vals...)
+		}
+	})
+}

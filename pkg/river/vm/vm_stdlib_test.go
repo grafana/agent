@@ -40,17 +40,19 @@ func TestVM_Stdlib(t *testing.T) {
 }
 
 func BenchmarkConcat(b *testing.B) {
-	// There's a bit of setup work to do here: we want to create a scope
-	// holding a slice of the Data type, which has a fair amount of data in
-	// it.
+	// There's a bit of setup work to do here: we want to create a scope holding
+	// a slice of the Person type, which has a fair amount of data in it.
 	//
 	// We then want to pass it through concat.
 	//
 	// If the code path is fully optimized, there will be no intermediate
 	// translations to interface{}.
-	type Data map[string]string
+	type Person struct {
+		Name  string            `river:"name,attr"`
+		Attrs map[string]string `river:"attrs,attr"`
+	}
 	type Body struct {
-		Values []Data `river:"values,attr"`
+		Values []Person `river:"values,attr"`
 	}
 
 	in := `values = concat(values_ref)`
@@ -59,9 +61,9 @@ func BenchmarkConcat(b *testing.B) {
 
 	eval := vm.New(f)
 
-	valuesRef := make([]Data, 0, 20)
+	valuesRef := make([]Person, 0, 20)
 	for i := 0; i < 20; i++ {
-		data := make(Data, 20)
+		data := make(map[string]string, 20)
 		for j := 0; j < 20; j++ {
 			var (
 				key   = fmt.Sprintf("key_%d", i+1)
@@ -69,7 +71,10 @@ func BenchmarkConcat(b *testing.B) {
 			)
 			data[key] = value
 		}
-		valuesRef = append(valuesRef, data)
+		valuesRef = append(valuesRef, Person{
+			Name:  "Test Person",
+			Attrs: data,
+		})
 	}
 	scope := &vm.Scope{
 		Variables: map[string]interface{}{
