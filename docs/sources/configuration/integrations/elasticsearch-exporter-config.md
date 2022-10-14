@@ -1,5 +1,6 @@
 ---
 aliases:
+- /docs/agent/configuration/integrations/elasticsearch-exporter-config/
 - /docs/agent/latest/configuration/integrations/elasticsearch-exporter-config/
 title: elasticsearch_exporter_config
 ---

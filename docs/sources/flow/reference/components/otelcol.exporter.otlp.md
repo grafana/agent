@@ -1,6 +1,7 @@
 ---
 aliases:
-- /docs/agent/latest/flow/reference/components/otelcol.exporter.otlp
+- /docs/agent/flow/reference/components/otelcol.exporter.otlp/
+- /docs/agent/latest/flow/reference/components/otelcol.exporter.otlp/
 title: otelcol.exporter.otlp
 ---
 

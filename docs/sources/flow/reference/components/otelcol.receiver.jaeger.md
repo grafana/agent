@@ -1,6 +1,7 @@
 ---
 aliases:
-- /docs/agent/latest/flow/reference/components/otelcol.receiver.jaeger
+- /docs/agent/flow/reference/components/otelcol.receiver.jaeger/
+- /docs/agent/latest/flow/reference/components/otelcol.receiver.jaeger/
 title: otelcol.receiver.jaeger
 ---
 

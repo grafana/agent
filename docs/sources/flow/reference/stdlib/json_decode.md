@@ -1,6 +1,7 @@
 ---
 aliases:
-- /docs/agent/latest/flow/configuration-language/standard-library/json_decode
+- /docs/agent/flow/reference/stdlib/json_decode/
+- /docs/agent/latest/flow/configuration-language/standard-library/json_decode/
 title: json_decode
 ---
 

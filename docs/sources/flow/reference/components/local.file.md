@@ -1,6 +1,7 @@
 ---
 aliases:
-- /docs/agent/latest/flow/reference/components/local.file
+- /docs/agent/flow/reference/components/local.file/
+- /docs/agent/latest/flow/reference/components/local.file/
 title: local.file
 ---
 

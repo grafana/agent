@@ -1,6 +1,7 @@
 ---
 aliases:
-- /docs/agent/latest/flow/getting-started
+- /docs/agent/flow/getting_started/
+- /docs/agent/latest/flow/getting-started/
 title: Getting started
 weight: 200
 ---

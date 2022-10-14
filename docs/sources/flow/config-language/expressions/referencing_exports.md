@@ -1,6 +1,7 @@
 ---
 aliases:
-- /docs/agent/latest/flow/configuration-language/expressions/referencing-exports
+- /docs/agent/flow/config-language/expressions/referencing_exports/
+- /docs/agent/latest/flow/configuration-language/expressions/referencing-exports/
 title: Referencing component exports
 weight: 200
 ---

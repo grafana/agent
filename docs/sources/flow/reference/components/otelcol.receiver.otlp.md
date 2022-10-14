@@ -1,6 +1,7 @@
 ---
 aliases:
-- /docs/agent/latest/flow/reference/components/otelcol.receiver.otlp
+- /docs/agent/flow/reference/components/otelcol.receiver.otlp/
+- /docs/agent/latest/flow/reference/components/otelcol.receiver.otlp/
 title: otelcol.receiver.otlp
 ---
 

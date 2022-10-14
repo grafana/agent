@@ -1,6 +1,7 @@
 ---
 aliases:
-  - /docs/agent/latest/configuration/integrations/integrations-next/vsphere-config/
+- /docs/agent/configuration/integrations/integrations-next/vsphere-config/
+- /docs/agent/latest/configuration/integrations/integrations-next/vsphere-config/
 title: vsphere_config
 ---
 

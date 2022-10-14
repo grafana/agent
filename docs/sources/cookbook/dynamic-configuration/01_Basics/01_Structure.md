@@ -1,6 +1,7 @@
 ---
 aliases:
-- /docs/agent/latest/dynamic-configuration/structure
+- /docs/agent/cookbook/dynamic-configuration/01_Basics/01_Structure/
+- /docs/agent/latest/dynamic-configuration/structure/
 title: Structure
 weight: 100
 ---

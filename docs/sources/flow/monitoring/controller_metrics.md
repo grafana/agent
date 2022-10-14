@@ -1,6 +1,7 @@
 ---
 aliases:
-- /docs/agent/latest/flow/monitoring/controller-metrics
+- /docs/agent/flow/monitoring/controller_metrics/
+- /docs/agent/latest/flow/monitoring/controller-metrics/
 title: Controller metrics
 weight: 100
 ---

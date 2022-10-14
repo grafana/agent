@@ -1,6 +1,7 @@
 ---
 aliases:
-- /docs/agent/latest/flow/monitoring
+- /docs/agent/flow/monitoring/
+- /docs/agent/latest/flow/monitoring/
 title: Monitoring Grafana Agent Flow
 weight: 500
 ---

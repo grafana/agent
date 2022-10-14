@@ -1,6 +1,7 @@
 ---
 aliases:
-- /docs/agent/latest/flow/configuration-language/standard-library/concat
+- /docs/agent/flow/reference/stdlib/concat/
+- /docs/agent/latest/flow/configuration-language/standard-library/concat/
 title: concat
 ---
 

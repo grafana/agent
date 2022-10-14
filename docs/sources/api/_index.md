@@ -1,5 +1,6 @@
 ---
 aliases:
+- /docs/agent/api/
 - /docs/agent/latest/api/
 title: Grafana Agent API
 weight: 400

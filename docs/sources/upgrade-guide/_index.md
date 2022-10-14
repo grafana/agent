@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/agent/latest/upgrade-guide/
+- /docs/agent/upgrade-guide/
 title: Upgrade guide
 weight: 800
 ---

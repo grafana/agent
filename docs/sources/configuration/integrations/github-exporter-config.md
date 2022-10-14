@@ -1,5 +1,6 @@
 ---
 aliases:
+- /docs/agent/configuration/integrations/github-exporter-config/
 - /docs/agent/latest/configuration/integrations/github-exporter-config/
 title: github_exporter_config
 ---

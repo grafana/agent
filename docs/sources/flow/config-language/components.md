@@ -1,6 +1,7 @@
 ---
 aliases:
-- /docs/agent/latest/flow/configuration-language/components
+- /docs/agent/flow/config-language/components/
+- /docs/agent/latest/flow/configuration-language/components/
 title: Components
 weight: 300
 ---

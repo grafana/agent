@@ -1,6 +1,7 @@
 ---
 aliases:
-- /docs/agent/latest/flow/reference/config-blocks
+- /docs/agent/flow/reference/config-blocks/
+- /docs/agent/latest/flow/reference/config-blocks/
 title: Configuration blocks
 weight: 200
 ---

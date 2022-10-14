@@ -1,6 +1,7 @@
 ---
 aliases:
-- /docs/agent/latest/flow/monitoring/component-metrics
+- /docs/agent/flow/monitoring/component_metrics/
+- /docs/agent/latest/flow/monitoring/component-metrics/
 title: Component metrics
 weight: 200
 ---

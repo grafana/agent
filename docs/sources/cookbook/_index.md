@@ -1,6 +1,7 @@
 ---
 aliases:
-- /docs/agent/latest/cookbook
+- /docs/agent/cookbook/
+- /docs/agent/latest/cookbook/
 title: Cookbook
 weight: 900
 ---

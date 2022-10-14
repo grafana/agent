@@ -1,5 +1,6 @@
 ---
 aliases:
+- /docs/agent/flow/
 - /docs/agent/latest/flow/
 title: Grafana Agent Flow
 weight: 900

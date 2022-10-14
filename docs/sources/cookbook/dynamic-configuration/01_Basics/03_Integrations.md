@@ -1,6 +1,7 @@
 ---
 aliases:
-- /docs/agent/latest/dynamic-configuration/integrations
+- /docs/agent/cookbook/dynamic-configuration/01_Basics/03_Integrations/
+- /docs/agent/latest/dynamic-configuration/integrations/
 title: Integrations
 weight: 120
 ---

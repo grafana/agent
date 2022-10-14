@@ -1,6 +1,7 @@
 ---
 aliases:
-- /docs/agent/latest/flow/reference/cli/fmt
+- /docs/agent/flow/reference/cli/fmt/
+- /docs/agent/latest/flow/reference/cli/fmt/
 title: agent fmt
 weight: 100
 ---

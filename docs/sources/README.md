@@ -1,5 +1,6 @@
 ---
 aliases:
+- /docs/agent/README/
 - /docs/agent/latest/README/
 draft: "True"
 ---

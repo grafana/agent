@@ -1,6 +1,7 @@
 ---
 aliases:
-- /docs/agent/latest/dynamic-configuration/instances
+- /docs/agent/cookbook/dynamic-configuration/01_Basics/02_Instances/
+- /docs/agent/latest/dynamic-configuration/instances/
 title: Instances
 weight: 110
 ---

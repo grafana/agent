@@ -1,6 +1,7 @@
 ---
 aliases:
-- /docs/agent/latest/flow/monitoring/debugging
+- /docs/agent/flow/monitoring/debugging/
+- /docs/agent/latest/flow/monitoring/debugging/
 title: Debugging
 weight: 300
 ---

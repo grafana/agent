@@ -1,5 +1,6 @@
 ---
 aliases:
+- /docs/agent/flow/concepts/
 - /docs/agent/latest/concepts/
 title: Concepts
 weight: 100

@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/agent/latest/set-up/install-agent-binary/
+- /docs/agent/set-up/install-agent-binary/
 title: Install the Grafana Agent binary
 weight: 140
 ---

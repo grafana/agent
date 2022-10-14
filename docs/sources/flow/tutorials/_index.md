@@ -1,6 +1,7 @@
 ---
 aliases:
-  - /docs/agent/latest/flow/tutorials
+- /docs/agent/flow/tutorials/
+- /docs/agent/latest/flow/tutorials/
 title: Tutorials
 weight: 300
 ---

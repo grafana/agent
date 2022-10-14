@@ -1,6 +1,7 @@
 ---
 aliases:
-- /docs/agent/latest/flow/configuration-language
+- /docs/agent/flow/config-language/
+- /docs/agent/latest/flow/configuration-language/
 title: Configuration language
 weight: 400
 ---

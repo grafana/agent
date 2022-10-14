@@ -1,6 +1,7 @@
 ---
 aliases:
-- /docs/agent/latest/dynamic-configuration/aws
+- /docs/agent/cookbook/dynamic-configuration/03_Advanced_Datasources/01_AWS/
+- /docs/agent/latest/dynamic-configuration/aws/
 title: Querying AWS
 weight: 300
 ---

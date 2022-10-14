@@ -1,5 +1,6 @@
 ---
 aliases:
+- /docs/agent/configuration/logs-config/
 - /docs/agent/latest/configuration/logs-config/
 - /docs/agent/latest/configuration/loki-config/
 title: logs_config

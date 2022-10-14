@@ -1,5 +1,6 @@
 ---
 aliases:
+- /docs/agent/configuration/flags/
 - /docs/agent/latest/configuration/flags/
 title: Command-line flags
 weight: 100

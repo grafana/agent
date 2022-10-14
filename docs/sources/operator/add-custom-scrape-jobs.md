@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/agent/latest/operator/add-custom-scrape-jobs/
+- /docs/agent/operator/add-custom-scrape-jobs/
 title: Add custom scrape jobs
 weight: 400
 ---

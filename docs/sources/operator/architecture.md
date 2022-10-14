@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/agent/latest/operator/architecture/
+- /docs/agent/operator/architecture/
 title: Operator architecture
 weight: 300
 ---

@@ -1,6 +1,7 @@
 ---
 aliases:
-- /docs/agent/latest/flow/configuration-language/syntax
+- /docs/agent/flow/config-language/syntax/
+- /docs/agent/latest/flow/configuration-language/syntax/
 title: Syntax
 weight: 200
 ---

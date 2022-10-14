@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/agent/latest/operator/
+- /docs/agent/operator/
 title: Grafana Agent Operator
 weight: 500
 ---

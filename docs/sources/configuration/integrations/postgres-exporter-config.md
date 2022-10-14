@@ -1,5 +1,6 @@
 ---
 aliases:
+- /docs/agent/configuration/integrations/postgres-exporter-config/
 - /docs/agent/latest/configuration/integrations/postgres-exporter-config/
 title: postgres_exporter_config
 ---

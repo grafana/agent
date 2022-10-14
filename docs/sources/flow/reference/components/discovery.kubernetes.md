@@ -1,6 +1,7 @@
 ---
 aliases:
-- /docs/agent/latest/flow/reference/components/discovery.kubernetes
+- /docs/agent/flow/reference/components/discovery.kubernetes/
+- /docs/agent/latest/flow/reference/components/discovery.kubernetes/
 title: discovery.kubernetes
 ---
 

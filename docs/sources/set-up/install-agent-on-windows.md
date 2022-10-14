@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/agent/latest/set-up/install-agent-on-windows/
+- /docs/agent/set-up/install-agent-on-windows/
 title: Install Grafana Agent on Windows
 weight: 120
 ---

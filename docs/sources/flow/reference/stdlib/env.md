@@ -1,6 +1,7 @@
 ---
 aliases:
-- /docs/agent/latest/flow/configuration-language/standard-library/env
+- /docs/agent/flow/reference/stdlib/env/
+- /docs/agent/latest/flow/configuration-language/standard-library/env/
 title: env
 ---
 
