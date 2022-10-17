@@ -1,6 +1,5 @@
 ---
 aliases:
-- /docs/agent/configuration/integrations/memcached-exporter-config/
 - /docs/agent/latest/configuration/integrations/memcached-exporter-config/
 title: memcached_exporter_config
 ---

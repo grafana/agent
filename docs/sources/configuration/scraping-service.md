@@ -1,6 +1,5 @@
 ---
 aliases:
-- /docs/agent/configuration/scraping-service/
 - /docs/agent/latest/scraping-service/
 title: Scraping Service Mode
 weight: 600

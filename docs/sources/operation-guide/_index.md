@@ -1,7 +1,6 @@
 ---
 aliases:
 - /docs/agent/latest/operation-guide/
-- /docs/agent/operation-guide/
 title: Operation guide
 weight: 700
 ---

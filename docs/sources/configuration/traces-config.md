@@ -1,6 +1,5 @@
 ---
 aliases:
-- /docs/agent/configuration/traces-config/
 - /docs/agent/latest/configuration/tempo-config/
 - /docs/agent/latest/configuration/traces-config/
 title: traces_config

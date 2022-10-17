@@ -1,7 +1,6 @@
 ---
 aliases:
-- /docs/agent/flow/config-language/expressions/function_calls/
-- /docs/agent/latest/flow/configuration-language/expressions/function-calls/
+- /docs/agent/latest/flow/configuration-language/expressions/function-calls
 title: Function calls
 weight: 400
 ---

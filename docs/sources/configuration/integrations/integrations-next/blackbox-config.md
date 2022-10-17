@@ -1,6 +1,5 @@
 ---
 aliases:
-- /docs/agent/configuration/integrations/integrations-next/blackbox-config/
 - /docs/agent/latest/configuration/integrations/integrations-next/blackbox-config/
 title: blackbox_config
 ---

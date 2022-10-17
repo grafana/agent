@@ -1,7 +1,6 @@
 ---
 aliases:
-- /docs/agent/flow/tutorials/chaining/
-- /docs/agent/latest/flow/tutorials/chaining/
+- /docs/agent/latest/flow/tutorials/chaining
 title: Chaining Prometheus components
 weight: 400
 ---

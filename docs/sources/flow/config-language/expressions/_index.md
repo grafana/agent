@@ -1,7 +1,6 @@
 ---
 aliases:
-- /docs/agent/flow/config-language/expressions/
-- /docs/agent/latest/flow/configuration-language/expressions/
+- /docs/agent/latest/flow/configuration-language/expressions
 title: Expressions
 weight: 400
 ---

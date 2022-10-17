@@ -1,6 +1,5 @@
 ---
 aliases:
-- /docs/agent/configuration/integrations/statsd-exporter-config/
 - /docs/agent/latest/configuration/integrations/statsd-exporter-config/
 title: statsd_exporter_config
 ---

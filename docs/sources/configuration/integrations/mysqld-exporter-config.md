@@ -1,6 +1,5 @@
 ---
 aliases:
-- /docs/agent/configuration/integrations/mysqld-exporter-config/
 - /docs/agent/latest/configuration/integrations/mysqld-exporter-config/
 title: mysqld_exporter_config
 ---

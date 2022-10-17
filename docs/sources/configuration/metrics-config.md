@@ -1,6 +1,5 @@
 ---
 aliases:
-- /docs/agent/configuration/metrics-config/
 - /docs/agent/latest/configuration/metrics-config/
 - /docs/agent/latest/configuration/prometheus-config/
 title: metrics_config

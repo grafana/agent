@@ -1,6 +1,5 @@
 ---
 aliases:
-- /docs/agent/configuration/integrations/process-exporter-config/
 - /docs/agent/latest/configuration/integrations/process-exporter-config/
 title: process_exporter_config
 ---

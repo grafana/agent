@@ -1,7 +1,6 @@
 ---
 aliases:
-- /docs/agent/flow/reference/components/prometheus.scrape/
-- /docs/agent/latest/flow/reference/components/prometheus.scrape/
+- /docs/agent/latest/flow/reference/components/prometheus.scrape
 title: prometheus.scrape
 ---
 

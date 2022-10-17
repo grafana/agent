@@ -1,9 +1,7 @@
 ---
-aliases:
-- /docs/agent/latest/shared/flow/otelcol/output-block/
-- /docs/agent/shared/flow/otelcol/output-block/
-- /docs/agent/shared/flow/reference/components/output-block/
 headless: true
+aliases:
+  - /docs/agent/latest/shared/flow/otelcol/output-block/
 ---
 
 The `output` block configures a set of components to forward resulting

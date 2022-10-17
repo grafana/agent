@@ -1,7 +1,6 @@
 ---
 aliases:
-- /docs/agent/flow/reference/components/discovery.relabel/
-- /docs/agent/latest/flow/reference/components/discovery.relabel/
+- /docs/agent/latest/flow/reference/components/discovery.relabel
 title: discovery.relabel
 ---
 

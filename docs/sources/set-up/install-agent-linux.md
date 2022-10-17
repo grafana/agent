@@ -1,7 +1,6 @@
 ---
 aliases:
 - /docs/agent/latest/set-up/install-agent-linux/
-- /docs/agent/set-up/install-agent-linux/
 title: Install Grafana Agent on Linux
 weight: 115
 ---

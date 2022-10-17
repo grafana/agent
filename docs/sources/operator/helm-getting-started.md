@@ -1,7 +1,6 @@
 ---
 aliases:
 - /docs/agent/latest/operator/helm-getting-started/
-- /docs/agent/operator/helm-getting-started/
 title: Installing Grafana Agent Operator with Helm
 weight: 110
 ---

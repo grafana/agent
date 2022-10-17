@@ -1,7 +1,6 @@
 ---
 aliases:
-- /docs/agent/flow/reference/cli/run/
-- /docs/agent/latest/flow/reference/cli/run/
+- /docs/agent/latest/flow/reference/cli/run
 title: agent run
 weight: 100
 ---

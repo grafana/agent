@@ -1,7 +1,6 @@
 ---
 aliases:
 - /docs/agent/latest/operator/custom-resource-quickstart/
-- /docs/agent/operator/custom-resource-quickstart/
 title: Custom Resource Quickstart
 weight: 120
 ---

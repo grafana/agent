@@ -1,7 +1,6 @@
 ---
 aliases:
-- /docs/agent/flow/reference/components/prometheus.relabel/
-- /docs/agent/latest/flow/reference/components/prometheus.relabel/
+- /docs/agent/latest/flow/reference/components/prometheus.relabel
 title: prometheus.relabel
 ---
 

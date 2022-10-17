@@ -1,7 +1,6 @@
 ---
 aliases:
-- /docs/agent/cookbook/dynamic-configuration/
-- /docs/agent/latest/dynamic-configuration/
+- /docs/agent/latest/dynamic-configuration
 title: Dynamic Configuration
 weight: 100
 ---

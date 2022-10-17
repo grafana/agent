@@ -1,7 +1,6 @@
 ---
 aliases:
-- /docs/agent/flow/reference/
-- /docs/agent/latest/flow/reference/
+- /docs/agent/latest/flow/reference
 title: Reference
 weight: 600
 ---

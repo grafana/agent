@@ -1,7 +1,6 @@
 ---
 aliases:
-- /docs/agent/flow/concepts/component_controller/
-- /docs/agent/latest/concepts/component-controller/
+- /docs/agent/latest/concepts/component-controller
 title: Component controller
 weight: 200
 ---

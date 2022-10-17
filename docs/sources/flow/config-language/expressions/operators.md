@@ -1,7 +1,6 @@
 ---
 aliases:
-- /docs/agent/flow/config-language/expressions/operators/
-- /docs/agent/latest/flow/configuration-language/expressions/operators/
+- /docs/agent/latest/flow/configuration-language/expressions/operators
 title: Operators
 weight: 300
 ---

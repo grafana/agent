@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/cookbook/dynamic-configuration/README/
 draft: true
 ---
 

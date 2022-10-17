@@ -1,7 +1,6 @@
 ---
 aliases:
-- /docs/agent/flow/config-language/expressions/types_and_values/
-- /docs/agent/latest/flow/configuration-language/expressions/types-and-values/
+- /docs/agent/latest/flow/configuration-language/expressions/types-and-values
 title: Types and values
 weight: 100
 ---

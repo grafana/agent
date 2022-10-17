@@ -1,6 +1,5 @@
 ---
 aliases:
-- /docs/agent/configuration/integrations/consul-exporter-config/
 - /docs/agent/latest/configuration/integrations/consul-exporter-config/
 title: consul_exporter_config
 ---

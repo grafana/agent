@@ -1,7 +1,6 @@
 ---
 aliases:
-- /docs/agent/flow/reference/components/otelcol.auth.basic/
-- /docs/agent/latest/flow/reference/components/otelcol.auth.basic/
+- /docs/agent/latest/flow/reference/components/otelcol.auth.basic
 title: otelcol.auth.basic
 ---
 

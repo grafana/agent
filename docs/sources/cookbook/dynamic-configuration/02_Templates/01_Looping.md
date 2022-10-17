@@ -1,7 +1,6 @@
 ---
 aliases:
-- /docs/agent/cookbook/dynamic-configuration/02_Templates/01_Looping/
-- /docs/agent/latest/dynamic-configuration/looping/
+- /docs/agent/latest/dynamic-configuration/looping
 title: Looping
 weight: 200
 ---

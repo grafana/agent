@@ -1,7 +1,6 @@
 ---
 aliases:
 - /docs/agent/latest/set-up/install-agent-docker/
-- /docs/agent/set-up/install-agent-docker/
 title: Run Grafana Agent on Docker
 weight: 110
 ---

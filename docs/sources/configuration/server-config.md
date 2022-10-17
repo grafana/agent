@@ -1,6 +1,5 @@
 ---
 aliases:
-- /docs/agent/configuration/server-config/
 - /docs/agent/latest/configuration/server-config/
 title: server_config
 weight: 100

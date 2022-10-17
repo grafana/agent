@@ -1,6 +1,5 @@
 ---
 aliases:
-- /docs/agent/configuration/integrations/cadvisor-config/
 - /docs/agent/latest/configuration/integrations/cadvisor-config/
 title: cadvisor_config
 ---

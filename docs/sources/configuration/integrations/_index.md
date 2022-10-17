@@ -1,6 +1,5 @@
 ---
 aliases:
-- /docs/agent/configuration/integrations/
 - /docs/agent/latest/configuration/integrations/
 title: integrations_config
 weight: 500

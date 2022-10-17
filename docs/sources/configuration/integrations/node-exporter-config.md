@@ -1,6 +1,5 @@
 ---
 aliases:
-- /docs/agent/configuration/integrations/node-exporter-config/
 - /docs/agent/latest/configuration/integrations/node-exporter-config/
 title: node_exporter_config
 ---

@@ -1,7 +1,6 @@
 ---
 aliases:
-- /docs/agent/flow/reference/components/prometheus.remote_write/
-- /docs/agent/latest/flow/reference/components/prometheus.remote_write/
+- /docs/agent/latest/flow/reference/components/prometheus.remote_write
 title: prometheus.remote_write
 ---
 

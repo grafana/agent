@@ -1,7 +1,6 @@
 ---
 aliases:
-- /docs/agent/cookbook/dynamic-configuration/01_Basics/04_Logs_and_Traces/
-- /docs/agent/latest/dynamic-configuration/logs-traces/
+- /docs/agent/latest/dynamic-configuration/logs-traces
 title: Logs and Traces
 weight: 130
 ---

@@ -1,7 +1,6 @@
 ---
 aliases:
-- /docs/agent/cookbook/dynamic-configuration/02_Templates/02_Datasources/
-- /docs/agent/latest/dynamic-configuration/datasources/
+- /docs/agent/latest/dynamic-configuration/datasources
 title: Datasources
 weight: 210
 ---

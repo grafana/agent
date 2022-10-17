@@ -1,7 +1,6 @@
 ---
 aliases:
-- /docs/agent/flow/reference/cli/
-- /docs/agent/latest/flow/reference/cli/
+- /docs/agent/latest/flow/reference/cli
 title: Command-line interface
 weight: 100
 ---

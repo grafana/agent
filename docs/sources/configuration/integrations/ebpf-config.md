@@ -1,6 +1,5 @@
 ---
 aliases:
-- /docs/agent/configuration/integrations/ebpf-config/
 - /docs/agent/latest/configuration/integrations/ebpf-config/
 title: ebpf_config
 ---

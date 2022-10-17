@@ -1,7 +1,6 @@
 ---
 aliases:
-- /docs/agent/flow/config-language/files/
-- /docs/agent/latest/flow/configuration-language/files/
+- /docs/agent/latest/flow/configuration-language/files
 title: Files
 weight: 100
 ---
