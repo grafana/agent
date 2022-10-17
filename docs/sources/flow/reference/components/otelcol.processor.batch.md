@@ -72,7 +72,7 @@ output | [output][] | Configures where to send received telemetry data. | yes
 
 ### output block
 
-{{< docs/shared lookup="flow/otelcol/output-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" >}}
 
 ## Exported fields
 
