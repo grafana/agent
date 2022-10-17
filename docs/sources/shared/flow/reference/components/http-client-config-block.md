@@ -18,12 +18,3 @@ Name | Type | Description | Default | Required
 `bearer_token`, `bearer_token_file`, `basic_auth`, `authorization`, and
 `oauth2` are mutually exclusive and only one can be provided inside of a
 `http_client_config` block.
-
-The following sub-blocks are supported for `http_client_config`:
-
-Name | Description | Required
----- | ----------- | --------
-[`basic_auth`](#basic_auth-block) | Configure basic_auth for authenticating against Kubernetes. | no
-[`authorization`](#authorization-block) | Configure generic authorization against Kubernetes. | no
-[`oauth2`](#oauth2-block) | Configure OAuth2 for authenticating against Kubernetes. | no
-[`tls_config`](#tls_config-block) | Configure TLS settings for connecting to Kubernetes. | no
