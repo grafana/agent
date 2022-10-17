@@ -187,3 +187,35 @@ configuration.
 
 `otelcol.receiver.otlp` does not expose any component-specific debug
 information.
+
+## Example
+
+This example forwards received telemetry data through a batch processor before
+finally sending it to an OTLP-capable endpoint:
+
+```river
+otelcol.receiver.otlp "default" {
+  http {}
+  grpc {}
+
+  output {
+    metrics = [otelcol.processor.batch.default.input]
+    logs    = [otelcol.processor.batch.default.input]
+    traces  = [otelcol.processor.batch.default.input]
+  }
+}
+
+otelcol.processor.batch "default" {
+  output {
+    metrics = [otelcol.exporter.otlp.default.input]
+    logs    = [otelcol.exporter.otlp.default.input]
+    traces  = [otelcol.exporter.otlp.default.input]
+  }
+}
+
+otelcol.exporter.otlp "default" {
+  client {
+    endpoint = env("OTLP_ENDPOINT")
+  }
+}
+```

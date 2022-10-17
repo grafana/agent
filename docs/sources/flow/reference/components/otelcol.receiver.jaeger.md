@@ -242,7 +242,7 @@ configuration.
 `otelcol.receiver.jaeger` does not expose any component-specific debug
 information.
 
-## Examples
+## Example
 
 This example creates a pipeline which accepts Jaeger-formatted traces and
 writes them to an OTLP server:

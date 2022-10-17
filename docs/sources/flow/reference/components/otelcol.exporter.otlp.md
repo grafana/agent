@@ -198,3 +198,20 @@ configuration.
 
 `otelcol.exporter.otlp` does not expose any component-specific debug
 information.
+
+## Example
+
+This example creates an exporter to send data to a locally running Grafana
+Tempo without TLS:
+
+```river
+otelcol.exporter.otlp "tempo" {
+    client {
+        endpoint = "tempo:4317"
+        tls {
+            insecure             = true
+            insecure_skip_verify = true
+        }
+    }
+}
+```
