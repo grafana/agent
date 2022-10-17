@@ -54,13 +54,13 @@ var DefaultArguments = Arguments{
 			Endpoint: "0.0.0.0:14268",
 		},
 		ThriftBinary: &ProtocolUDP{
-			Endpoint:      "0.0.0.0:6831",
+			Endpoint:      "0.0.0.0:6832",
 			QueueSize:     1_000,
 			MaxPacketSize: 65 * units.KiB,
 			Workers:       10,
 		},
 		ThriftCompact: &ProtocolUDP{
-			Endpoint:      "0.0.0.0:6832",
+			Endpoint:      "0.0.0.0:6831",
 			QueueSize:     1_000,
 			MaxPacketSize: 65 * units.KiB,
 			Workers:       10,
