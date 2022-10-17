@@ -18,11 +18,10 @@ Main (unreleased)
 - JSON-encoded traces from OTLP versions earlier than 0.16.0 are no longer
   supported. (@rfratto)
 
-### Enhancements
+### Features
 
-- Update OpenTelemetry Collector dependency to v0.61.0. (@rfratto)
-
-- Update Prometheus dependency to v2.38.0. (@rfratto)
+- Add `agentctl test-logs` command to allow testing log configurations by redirecting
+collected logs to standard output. This can be useful for debugging. (@jcreixell)
 
 - Flow: add an `otelcol.receiver.otlp` component which receives OTLP-formatted
   traces, metrics, and logs. Data can then be forwarded to other `otelcol`
@@ -41,12 +40,12 @@ Main (unreleased)
 
 - Flow: add an `otelcol.receiver.jeager` component which receives Jaeger-formatted
   traces. Data can then be forwarded to other `otelcol` components. (@rfratto)
+  
+### Enhancements
 
-### Features
+- Update OpenTelemetry Collector dependency to v0.61.0. (@rfratto)
 
-- Add `agentctl test-logs` command to allow testing log configurations by redirecting
-collected logs to standard output. This can be useful for debugging. (@jcreixell)
-
+- Update Prometheus dependency to v2.38.0. (@rfratto)
 
 ### Bugfixes
 
