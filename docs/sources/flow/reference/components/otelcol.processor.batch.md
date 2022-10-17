@@ -97,7 +97,7 @@ information.
 
 ## Example
 
-This example batches telemetry data before sending it toe
+This example batches telemetry data before sending it to
 [otelcol.exporter.otlp][] for further processing:
 
 ```river
