@@ -53,10 +53,10 @@ Name | Type | Description | Default | Required
 `limit`              | `string`   | Maximum amount of memory targeted to be allocated by the process heap. | `"0MiB"` | no
 `spike_limit`        | `string`   | Maximum spike expected between the measurements of memory usage. | 20% of `limit` | no
 `limit_percentage`   | `int`      | Maximum amount of total available memory targeted to be allocated by the process heap. | `0` | no
-`spike_limit_percentage` |` int`  | Maximum spike expected between the measurements of memory usage. | `0` | 
+`spike_limit_percentage` |` int`  | Maximum spike expected between the measurements of memory usage. | `0` | no 
 
-At least one of `limit` or the  `limit_percentage, spike_limit_percentage` pair
-must be defined, with the former having precedence.
+The arguments must define either `limit` or the `limit_percentage,
+spike_limit_percentage` pair, but not both.
 
 The configuration options `limit` and `limit_percentage` define the hard
 limits. The soft limits are then calculated as the hard limit minus the

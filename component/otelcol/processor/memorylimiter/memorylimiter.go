@@ -68,6 +68,10 @@ func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 		return fmt.Errorf("check_interval must me greater than zero")
 	}
 
+	if args.MemoryLimit > 0 && args.MemoryLimitPercentage > 0 {
+		return fmt.Errorf("either limit or limit_percentage must be set, but not both")
+	}
+
 	if args.MemoryLimit > 0 {
 		if args.MemorySpikeLimit >= args.MemoryLimit {
 			return fmt.Errorf("spike_limit must be less than limit")
@@ -88,7 +92,7 @@ func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 		return nil
 	}
 
-	return fmt.Errorf("either limit or limit_percentage values must be set to greater than zero")
+	return fmt.Errorf("either limit or limit_percentage must be set to greater than zero")
 }
 
 // Convert implements processor.Arguments.
