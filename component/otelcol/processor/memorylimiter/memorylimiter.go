@@ -80,8 +80,9 @@ func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	if args.MemoryLimitPercentage > 0 {
 		if args.MemoryLimitPercentage <= 0 ||
 			args.MemoryLimitPercentage > 100 ||
-			args.MemorySpikePercentage < 0 ||
+			args.MemorySpikePercentage <= 0 ||
 			args.MemorySpikePercentage > 100 {
+
 			return fmt.Errorf("limit_percentage and spike_limit_percentage must be greater than 0 and and less or equal than 100")
 		}
 		return nil
