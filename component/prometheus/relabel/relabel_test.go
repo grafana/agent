@@ -49,7 +49,6 @@ func TestUpdateReset(t *testing.T) {
 		MetricRelabelConfigs: []*flow_relabel.Config{},
 	})
 	require.Len(t, relabeller.cache, 0)
-
 }
 
 func generateRelabel(t *testing.T) *Component {
@@ -79,5 +78,4 @@ func generateRelabel(t *testing.T) *Component {
 	require.NotNil(t, relabeller)
 	require.NoError(t, err)
 	return relabeller
-
 }
