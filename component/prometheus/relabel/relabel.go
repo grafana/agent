@@ -9,6 +9,7 @@ import (
 	"github.com/grafana/agent/component/prometheus"
 	prometheus_client "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/relabel"
+	"github.com/prometheus/prometheus/model/value"
 )
 
 func init() {
@@ -45,15 +46,17 @@ type Component struct {
 	forwardto        []*prometheus.Receiver
 	receiver         *prometheus.Receiver
 	metricsProcessed prometheus_client.Counter
+	cache            map[uint64]*prometheus.FlowMetric
 }
 
-var (
-	_ component.Component = (*Component)(nil)
-)
+var _ component.Component = (*Component)(nil)
 
 // New creates a new prometheus.relabel component.
 func New(o component.Options, args Arguments) (*Component, error) {
-	c := &Component{opts: o}
+	c := &Component{
+		opts:  o,
+		cache: make(map[uint64]*prometheus.FlowMetric),
+	}
 	c.receiver = &prometheus.Receiver{Receive: c.Receive}
 	c.metricsProcessed = prometheus_client.NewCounter(prometheus_client.CounterOpts{
 		Name: "agent_prometheus_relabel_metrics_processed",
@@ -85,7 +88,7 @@ func (c *Component) Update(args component.Arguments) error {
 	defer c.mut.Unlock()
 
 	newArgs := args.(Arguments)
-
+	c.cache = make(map[uint64]*prometheus.FlowMetric)
 	c.mrc = flow_relabel.ComponentToPromRelabelConfigs(newArgs.MetricRelabelConfigs)
 	c.forwardto = newArgs.ForwardTo
 	c.opts.OnStateChange(Exports{Receiver: c.receiver})
@@ -95,11 +98,6 @@ func (c *Component) Update(args component.Arguments) error {
 
 // Receive implements the receiver.Receive func that allows an array of metrics
 // to be passed around.
-// TODO (@tpaschalis) The relabelling process will run _every_ time, for all
-// metrics, resulting in some serious CPU overhead. We should be caching the
-// relabeling results per refID and clearing entries for dropped or stale
-// series. This is a blocker for releasing a production-grade version of the
-// prometheus.relabel component.
 func (c *Component) Receive(ts int64, metricArr []*prometheus.FlowMetric) {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
@@ -107,7 +105,20 @@ func (c *Component) Receive(ts int64, metricArr []*prometheus.FlowMetric) {
 	relabelledMetrics := make([]*prometheus.FlowMetric, 0)
 	for _, m := range metricArr {
 		// Relabel may return the original flowmetric if no changes applied, nil if everything was removed or an entirely new flowmetric.
-		relabelledFm := m.Relabel(c.mrc...)
+		var relabelledFm *prometheus.FlowMetric
+		if fm, found := c.cache[m.GlobalRefID()]; found {
+			relabelledFm = fm
+		} else {
+			relabelledFm = m.Relabel(c.mrc...)
+			c.cache[m.GlobalRefID()] = relabelledFm
+		}
+
+		// If stale remove from the cache, the reason we don't exit early is so the stale value can propagate.
+		// TODO: (@mattdurham) This caching can leak and likely needs a timed eviction at some point, but this is simple.
+		// In the future the global ref cache may have some hooks to allow notification of when caches should be evicted.
+		if value.IsStaleNaN(m.Value()) {
+			delete(c.cache, m.GlobalRefID())
+		}
 		if relabelledFm == nil {
 			continue
 		}
