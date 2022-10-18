@@ -1,0 +1,107 @@
+---
+aliases:
+- /docs/agent/latest/flow/reference/components/otelcol.processor.memory_limiter
+title: otelcol.processor.memory_limiter
+---
+
+# otelcol.processor.memory_limiter
+
+`otelcol.processor.memory_limiter` is used to prevent out of memory situations
+on a telemetry pipeline. It performs periodic checks of memory usage, and will
+begin dropping data and forcing GC to reduce memory consumption if usage
+exceeds the defined limits.
+
+The `memory_limiter` component uses both soft and hard limits, where the latter
+is always equal or larger than the former. When memory usage goes above the
+soft limit, the processor component will start dropping data and returning
+errors to the preceding components in the pipeline. When usage exceeds the hard
+limit, the processor will force a garbage collection in order to try to free
+memory. When usage drops below the soft limit, the normal operation is resumed
+(data will not longer be dropped and no forced garbage collection will be
+performed).
+
+> **NOTE**: `otelcol.processor.memory_limiter` is a wrapper over the upstream
+> OpenTelemetry Collector `memorylimiter` processor. Bug reports or feature
+> requests will be redirected to the upstream repository, if necessary.
+
+Multiple `otelcol.processor.memory_limiter` components can be specified by
+giving them different labels.
+
+## Usage
+
+```river
+otelcol.processor.memory_limiter "LABEL" {
+  output {
+    check_interval = "1s"
+
+    metrics = [...]
+    logs    = [...]
+    traces  = [...]
+  }
+}
+```
+
+## Arguments
+
+`otelcol.processor.memory_limiter` supports the following arguments:
+
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`check_interval`     | `duration` | How often to check memory usage. | `0s` | yes
+`limit`              | `string`   | Maximum amount of memory targeted to be allocated by the process heap. | `0MiB` | no
+`spike_limit`        | `string`   | Maximum spike expected between the measurements of memory usage. | `20% of limit` | no
+`limit_percentage`   | `int`      | Maximum amount of total available memory targeted to be allocated by the process heap. | `0` | no
+`spike_limit_percentage` |` int`  | Maximum spike expected between the measurements of memory usage | `0` | 
+
+At least one of the `limit, spike_limit` and `limit_percentage,
+spike_limit_percentage` pairs must be defined, with the former gaining
+precedence.
+
+The configuration options `limit` and `limit_percentage` define the hard
+limits. The soft limits are then calculated as the hard limit minus the
+`spike_limit` or `spike_limit_percentage` values respectively. The recommended
+values for the spike limit values is recommended to be about 20% of the
+corresponding hard limit.
+
+The recommended `check_interval` value is 1 second. If the traffic through the
+component is spiky in nature, it is recommended to either decrease the interval
+or increase the spike limit to avoid going over the hard limit.
+
+The `limit` and `spike_limit` values must be larger than "1MiB".
+
+## Blocks
+
+The following blocks are supported inside the definition of
+`otelcol.processor.memory_limiter`:
+
+Hierarchy | Block | Description | Required
+--------- | ----- | ----------- | --------
+output | [output][] | Configures where to send received telemetry data. | yes
+
+[output]: #output-block
+
+### output block
+
+{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" >}}
+
+## Exported fields
+
+The following fields are exported and can be referenced by other components:
+
+Name | Type | Description
+---- | ---- | -----------
+`input` | `otelcol.Consumer` | A value that other components can use to send telemetry data to.
+
+`input` accepts `otelcol.Consumer` data for any telemetry signal (metrics,
+logs, or traces).
+
+## Component health
+
+`otelcol.processor.memory_limiter` is only reported as unhealthy if given an invalid
+configuration.
+
+## Debug information
+
+`otelcol.processor.memory_limiter` does not expose any component-specific debug
+information.
