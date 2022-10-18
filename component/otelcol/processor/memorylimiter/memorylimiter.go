@@ -31,7 +31,7 @@ func init() {
 // Arguments configures the otelcol.processor.memory_limiter component.
 type Arguments struct {
 	CheckInterval         time.Duration    `river:"check_interval,attr"`
-	MemoryLimit           units.Base2Bytes `river:"limit,attr,optional"` // TODO (@tpaschalis, document these must be at least 1 Mib)
+	MemoryLimit           units.Base2Bytes `river:"limit,attr,optional"`
 	MemorySpikeLimit      units.Base2Bytes `river:"spike_limit,attr,optional"`
 	MemoryLimitPercentage uint32           `river:"limit_percentage,attr,optional"`
 	MemorySpikePercentage uint32           `river:"spike_limit_percentage,attr,optional"`
