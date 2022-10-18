@@ -405,7 +405,6 @@ func (ep *Entrypoint) Start() error {
 	ep.mut.Lock()
 	cfg := ep.cfg
 	ep.mut.Unlock()
-
 	if cfg.EnableUsageReport {
 		g.Add(func() error {
 			return ep.reporter.Start(srvContext, ep.getReporterMetrics)
