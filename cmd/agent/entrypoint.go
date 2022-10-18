@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"net"
 	"net/http"
 	"net/url"
@@ -13,6 +12,7 @@ import (
 	"strconv"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -261,6 +261,15 @@ func (ep *Entrypoint) getReporterMetrics() map[string]interface{} {
 }
 
 func (ep *Entrypoint) supportHandler(rw http.ResponseWriter, r *http.Request) {
+	ep.mut.Lock()
+	cfg := ep.cfg
+	ep.mut.Unlock()
+
+	if cfg.DisableSupportBundle {
+		rw.WriteHeader(http.StatusNotFound)
+		_, _ = rw.Write([]byte("404 - support bundle generation is disabled"))
+		return
+	}
 	ep.sbmut.Lock()
 	defer ep.sbmut.Unlock()
 
@@ -281,10 +290,11 @@ func (ep *Entrypoint) supportHandler(rw http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(duration)*time.Second)
+	defer cancel()
 
 	ep.mut.Lock()
 	var (
-		cfg             = ep.cfg
 		enabledFeatures = ep.cfg.EnabledFeatures
 		httpSrvAddress  = ep.cfg.ServerFlags.HTTP.InMemoryAddr
 	)
@@ -293,7 +303,7 @@ func (ep *Entrypoint) supportHandler(rw http.ResponseWriter, r *http.Request) {
 	// TODO(@tpaschalis) Can we also dynamically up the log_level while the
 	// support bundle is being generated?
 	var logsBuffer bytes.Buffer
-	logger := log.NewSyncLogger(log.NewLogfmtLogger(io.MultiWriter(os.Stderr, &logsBuffer)))
+	logger := log.NewSyncLogger(log.NewLogfmtLogger(&logsBuffer))
 	defer func() {
 		ep.log.HookLogger.Enabled = false
 		ep.log.HookLogger.Logger = nil
@@ -301,7 +311,7 @@ func (ep *Entrypoint) supportHandler(rw http.ResponseWriter, r *http.Request) {
 	ep.log.HookLogger.Enabled = true
 	ep.log.HookLogger.Logger = logger
 
-	bundle, err := supportbundle.Export(enabledFeatures, cfg, httpSrvAddress, duration, ep.srv.DialContext)
+	bundle, err := supportbundle.Export(ctx, enabledFeatures, cfg, httpSrvAddress, ep.srv.DialContext)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
@@ -395,6 +405,7 @@ func (ep *Entrypoint) Start() error {
 	ep.mut.Lock()
 	cfg := ep.cfg
 	ep.mut.Unlock()
+
 	if cfg.EnableUsageReport {
 		g.Add(func() error {
 			return ep.reporter.Start(srvContext, ep.getReporterMetrics)

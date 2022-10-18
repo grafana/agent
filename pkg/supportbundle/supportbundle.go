@@ -3,12 +3,14 @@ package supportbundle
 import (
 	"archive/zip"
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
 	"path/filepath"
 	"runtime"
 	"runtime/pprof"
+	"strings"
 	"time"
 
 	"github.com/grafana/agent/pkg/build"
@@ -35,26 +37,36 @@ type Bundle struct {
 
 // Metadata contains general runtime information about the current Agent.
 type Metadata struct {
-	BuildVersion    string   `yaml:"build_version"`
-	OS              string   `yaml:"os"`
-	Architecture    string   `yaml:"architecture"`
-	Uptime          float64  `yaml:"uptime"`
-	EnabledFeatures []string `yaml:"enabled_features"`
+	BuildVersion string                 `yaml:"build_version"`
+	OS           string                 `yaml:"os"`
+	Architecture string                 `yaml:"architecture"`
+	Uptime       float64                `yaml:"uptime"`
+	Payload      map[string]interface{} `yaml:"payload"`
 }
 
 // Export gathers the information required for the support bundle.
-func Export(enabledFeatures []string, cfg config.Config, srvAddress string, duration float64, dialContext server.DialContextFunc) (*Bundle, error) {
+func Export(ctx context.Context, enabledFeatures []string, cfg config.Config, srvAddress string, dialContext server.DialContextFunc) (*Bundle, error) {
+	// The block profiler is disabled by default. Temporarily enable recording
+	// of all blocking events. Also, temporarily record all mutex contentions,
+	// and defer restoring of earlier mutex profiling fraction.
+	runtime.SetBlockProfileRate(1)
+	old := runtime.SetMutexProfileFraction(1)
+	defer func() {
+		runtime.SetBlockProfileRate(0)
+		runtime.SetMutexProfileFraction(old)
+	}()
+
 	// Gather runtime metadata.
 	ut, err := uptime.Get()
 	if err != nil {
 		return nil, err
 	}
 	m := Metadata{
-		BuildVersion:    build.Version,
-		OS:              runtime.GOOS,
-		Architecture:    runtime.GOARCH,
-		Uptime:          ut.Seconds(),
-		EnabledFeatures: enabledFeatures,
+		BuildVersion: build.Version,
+		OS:           runtime.GOOS,
+		Architecture: runtime.GOARCH,
+		Uptime:       ut.Seconds(),
+		Payload:      map[string]interface{}{"enabled-features": enabledFeatures},
 	}
 	meta, err := yaml.Marshal(m)
 	if err != nil {
@@ -105,7 +117,6 @@ func Export(enabledFeatures []string, cfg config.Config, srvAddress string, dura
 	if err != nil {
 		return nil, fmt.Errorf("failed to read Agent logs instances: %s", err)
 	}
-
 	// TODO(@tpaschalis) Add back after grafana/agent@2175 is resolved, as it
 	// currently results in a panic.
 	// resp, err = http.DefaultClient.Get("http://" + srvAddress + "/agent/api/v1/logs/targets")
@@ -119,12 +130,20 @@ func Export(enabledFeatures []string, cfg config.Config, srvAddress string, dura
 
 	// Export pprof data.
 	var (
+		cpuBuf       bytes.Buffer
 		heapBuf      bytes.Buffer
 		goroutineBuf bytes.Buffer
 		blockBuf     bytes.Buffer
 		mutexBuf     bytes.Buffer
-		cpuBuf       bytes.Buffer
 	)
+	err = pprof.StartCPUProfile(&cpuBuf)
+	if err != nil {
+		return nil, err
+	}
+	deadline, _ := ctx.Deadline()
+	time.Sleep(time.Until(deadline) - 100*time.Millisecond)
+	pprof.StopCPUProfile()
+
 	// TODO(@tpaschalis) Since these are the built-in profiles, do we actually
 	// need the nil check?
 	if p := pprof.Lookup("heap"); p != nil {
@@ -137,32 +156,16 @@ func Export(enabledFeatures []string, cfg config.Config, srvAddress string, dura
 			return nil, err
 		}
 	}
-	runtime.SetBlockProfileRate(1)
 	if p := pprof.Lookup("block"); p != nil {
 		if err := p.WriteTo(&blockBuf, 0); err != nil {
 			return nil, err
 		}
 	}
-	runtime.SetBlockProfileRate(0)
-
-	runtime.SetMutexProfileFraction(1)
 	if p := pprof.Lookup("mutex"); p != nil {
 		if err := p.WriteTo(&mutexBuf, 0); err != nil {
 			return nil, err
 		}
 	}
-	runtime.SetMutexProfileFraction(0)
-
-	// TODO(@tpaschalis) Figure out how to better correlate CPU profile
-	// duration to server timeout settings. Also, ideally a CPU profile should
-	// include at least one scrape or some log collection, but we can't
-	// guarantee that.
-	err = pprof.StartCPUProfile(&cpuBuf)
-	if err != nil {
-		return nil, err
-	}
-	time.Sleep(time.Duration(duration-1) * time.Second)
-	pprof.StopCPUProfile()
 
 	// Finally, bundle everything up to be served, either as a zip from
 	// memory, or exported to a directory.
@@ -191,43 +194,26 @@ func Serve(rw http.ResponseWriter, b *Bundle, logsBuf *bytes.Buffer) error {
 	rw.Header().Set("Content-Type", "application/zip")
 	rw.Header().Set("Content-Disposition", "attachment; filename=\"agent-support-bundle.zip\"")
 
-	if err := writeByteSlice(zw, b.meta, "agent-support-bundle", "agent-metadata.yaml"); err != nil {
-		return err
-	}
-	if err := writeByteSlice(zw, b.config, "agent-support-bundle", "agent-config.yaml"); err != nil {
-		return err
-	}
-	if err := writeByteSlice(zw, b.agentMetrics, "agent-support-bundle", "agent-metrics.txt"); err != nil {
-		return err
-	}
-	if err := writeByteSlice(zw, b.agentMetricsInstances, "agent-support-bundle", "agent-metrics-instances.json"); err != nil {
-		return err
-	}
-	if err := writeByteSlice(zw, b.agentMetricsTargets, "agent-support-bundle", "agent-metrics-targets.json"); err != nil {
-		return err
-	}
-	if err := writeByteSlice(zw, b.agentLogsInstances, "agent-support-bundle", "agent-logs-instances.json"); err != nil {
-		return err
+	zipStructure := map[string][]byte{
+		"agent-metadata.yaml":          b.meta,
+		"agent-config.yaml":            b.config,
+		"agent-metrics.txt":            b.agentMetrics,
+		"agent-metrics-instances.json": b.agentMetricsInstances,
+		"agent-metrics-targets.json":   b.agentMetricsTargets,
+		"agent-logs-instances.json":    b.agentLogsInstances,
+		"agent-logs.txt":               logsBuf.Bytes(),
+		"pprof/cpu.pprof":              b.cpuBuf.Bytes(),
+		"pprof/heap.pprof":             b.heapBuf.Bytes(),
+		"pprof/goroutine.pprof":        b.goroutineBuf.Bytes(),
+		"pprof/mutex.pprof":            b.mutexBuf.Bytes(),
+		"pprof/block.pprof":            b.blockBuf.Bytes(),
 	}
 
-	if err := writeBytesBuff(zw, logsBuf, "agent-support-bundle", "agent-logs.txt"); err != nil {
-		return err
-	}
-
-	if err := writeBytesBuff(zw, b.cpuBuf, "agent-support-bundle", "pprof", "cpu.pprof"); err != nil {
-		return err
-	}
-	if err := writeBytesBuff(zw, b.heapBuf, "agent-support-bundle", "pprof", "heap.pprof"); err != nil {
-		return err
-	}
-	if err := writeBytesBuff(zw, b.goroutineBuf, "agent-support-bundle", "pprof", "goroutine.pprof"); err != nil {
-		return err
-	}
-	if err := writeBytesBuff(zw, b.mutexBuf, "agent-support-bundle", "pprof", "mutex.pprof"); err != nil {
-		return err
-	}
-	if err := writeBytesBuff(zw, b.blockBuf, "agent-support-bundle", "pprof", "block.pprof"); err != nil {
-		return err
+	for fn, b := range zipStructure {
+		path := append([]string{"agent-support-bundle"}, strings.Split(fn, "/")...)
+		if err := writeByteSlice(zw, b, path...); err != nil {
+			return err
+		}
 	}
 
 	err := zw.Close()
@@ -243,18 +229,6 @@ func writeByteSlice(zw *zip.Writer, b []byte, fn ...string) error {
 		return err
 	}
 	_, err = f.Write(b)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func writeBytesBuff(zw *zip.Writer, b *bytes.Buffer, fn ...string) error {
-	f, err := zw.Create(filepath.Join(fn...))
-	if err != nil {
-		return err
-	}
-	_, err = io.Copy(f, b)
 	if err != nil {
 		return err
 	}
