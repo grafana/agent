@@ -16,7 +16,7 @@ is always equal or larger than the soft limit. When memory usage goes above the
 soft limit, the processor component drops data and returns errors to the
 preceding components in the pipeline. When usage exceeds the hard
 limit, the processor forces a garbage collection in order to try and free
-memory. When usage drops below the soft limit, no data is dropped and no forced
+memory. When usage is below the soft limit, no data is dropped and no forced
 garbage collection is performed.
 
 > **NOTE**: `otelcol.processor.memory_limiter` is a wrapper over the upstream
