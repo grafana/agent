@@ -7,18 +7,17 @@ title: otelcol.processor.memory_limiter
 # otelcol.processor.memory_limiter
 
 `otelcol.processor.memory_limiter` is used to prevent out of memory situations
-on a telemetry pipeline. It performs periodic checks of memory usage, and will
-begin dropping data and forcing GC to reduce memory consumption if usage
-exceeds the defined limits.
+on a telemetry pipeline by performing periodic checks of memory usage. If
+usage exceeds the defined limits, data is dropped and garbage collections
+are triggered to reduce it.
 
-The `memory_limiter` component uses both soft and hard limits, where the latter
-is always equal or larger than the former. When memory usage goes above the
-soft limit, the processor component will start dropping data and returning
-errors to the preceding components in the pipeline. When usage exceeds the hard
-limit, the processor will force a garbage collection in order to try to free
-memory. When usage drops below the soft limit, the normal operation is resumed
-(data will not longer be dropped and no forced garbage collection will be
-performed).
+The `memory_limiter` component uses both soft and hard limits, where the hard limit
+is always equal or larger than the soft limit. When memory usage goes above the
+soft limit, the processor component drops data and returns errors to the
+preceding components in the pipeline. When usage exceeds the hard
+limit, the processor forces a garbage collection in order to try and free
+memory. When usage drops below the soft limit, no data is dropped and no forced
+garbage collection is performed.
 
 > **NOTE**: `otelcol.processor.memory_limiter` is a wrapper over the upstream
 > OpenTelemetry Collector `memorylimiter` processor. Bug reports or feature
@@ -31,9 +30,11 @@ giving them different labels.
 
 ```river
 otelcol.processor.memory_limiter "LABEL" {
-  output {
-    check_interval = "1s"
+  check_interval = "1s"
+  
+  limit = "50MiB" // alternatively, set `limit_percentage` and `spike_limit_percentage`
 
+  output {
     metrics = [...]
     logs    = [...]
     traces  = [...]
@@ -48,26 +49,25 @@ otelcol.processor.memory_limiter "LABEL" {
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`check_interval`     | `duration` | How often to check memory usage. | `0s` | yes
-`limit`              | `string`   | Maximum amount of memory targeted to be allocated by the process heap. | `0MiB` | no
-`spike_limit`        | `string`   | Maximum spike expected between the measurements of memory usage. | `20% of limit` | no
+`check_interval`     | `duration` | How often to check memory usage. |  | yes
+`limit`              | `string`   | Maximum amount of memory targeted to be allocated by the process heap. | `"0MiB"` | no
+`spike_limit`        | `string`   | Maximum spike expected between the measurements of memory usage. | 20% of `limit` | no
 `limit_percentage`   | `int`      | Maximum amount of total available memory targeted to be allocated by the process heap. | `0` | no
 `spike_limit_percentage` |` int`  | Maximum spike expected between the measurements of memory usage. | `0` | 
 
 At least one of `limit` or the  `limit_percentage, spike_limit_percentage` pair
-must be defined, with the former gaining precedence.
+must be defined, with the former having precedence.
 
 The configuration options `limit` and `limit_percentage` define the hard
 limits. The soft limits are then calculated as the hard limit minus the
 `spike_limit` or `spike_limit_percentage` values respectively. The recommended
-values for the spike limit values is recommended to be about 20% of the
-corresponding hard limit.
+value for spike limits is about 20% of the corresponding hard limit.
 
 The recommended `check_interval` value is 1 second. If the traffic through the
 component is spiky in nature, it is recommended to either decrease the interval
 or increase the spike limit to avoid going over the hard limit.
 
-The `limit` and `spike_limit` values must be larger than "1MiB".
+The `limit` and `spike_limit` values must be larger than 1 MiB.
 
 ## Blocks
 

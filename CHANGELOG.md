@@ -41,7 +41,8 @@ collected logs to standard output. This can be useful for debugging. (@jcreixell
     be forwarded to other `otelcol` components. (@rfratto)
 
   - `otelcol.processor.memory_limiter` periodically checks memory usage and
-    drops data or forces a GC if the defined limits are exceeded. (@tpaschalis)
+    drops data or forces a garbage collection if the defined limits are
+    exceeded. (@tpaschalis)
   
 ### Enhancements
 

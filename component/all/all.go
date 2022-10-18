@@ -8,6 +8,7 @@ import (
 	_ "github.com/grafana/agent/component/otelcol/auth/basic"                   // Import otelcol.auth.basic
 	_ "github.com/grafana/agent/component/otelcol/exporter/otlp"                // Import otelcol.exporter.otlp
 	_ "github.com/grafana/agent/component/otelcol/processor/batch"              // Import otelcol.processor.batch
+	_ "github.com/grafana/agent/component/otelcol/processor/memorylimiter"      // Import otelcol.processor.memory_limiter
 	_ "github.com/grafana/agent/component/otelcol/receiver/jaeger"              // Import otelcol.receiver.jaeger
 	_ "github.com/grafana/agent/component/otelcol/receiver/otlp"                // Import otelcol.receiver.otlp
 	_ "github.com/grafana/agent/component/prometheus/integration/node_exporter" // Import prometheus.integration.node_exporter
