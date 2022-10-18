@@ -21,7 +21,7 @@ Main (unreleased)
 ### Features
 
 - Add `agentctl test-logs` command to allow testing log configurations by redirecting
-collected logs to standard output. This can be useful for debugging. (@jcreixell)
+  collected logs to standard output. This can be useful for debugging. (@jcreixell)
 
 - New Grafana Agent Flow components:
 
@@ -43,12 +43,14 @@ collected logs to standard output. This can be useful for debugging. (@jcreixell
   - `otelcol.processor.memory_limiter` periodically checks memory usage and
     drops data or forces a garbage collection if the defined limits are
     exceeded. (@tpaschalis)
-  
+
 ### Enhancements
 
 - Update OpenTelemetry Collector dependency to v0.61.0. (@rfratto)
 
 - Update Prometheus dependency to v2.38.0. (@rfratto)
+
+- Add caching to Prometheus relabel component. (@mattdurham)
 
 ### Bugfixes
 
@@ -147,9 +149,9 @@ v0.27.0 (2022-09-01)
 
 ### Other changes
 
- - Update several go dependencies to resolve warnings from certain security scanning tools. None of the resolved vulnerabilities were known to be exploitable through the agent. (@captncraig)
+- Update several go dependencies to resolve warnings from certain security scanning tools. None of the resolved vulnerabilities were known to be exploitable through the agent. (@captncraig)
 
- - It is now possible to compile Grafana Agent using Go 1.19. (@rfratto)
+- It is now possible to compile Grafana Agent using Go 1.19. (@rfratto)
 
 v0.26.1 (2022-07-25)
 --------------------
@@ -1713,12 +1715,12 @@ v0.2.0 (2020-04-09)
   (@gotjosh)
 
   These metrics are available to monitor metadata being sent:
-    - `prometheus_remote_storage_succeeded_metadata_total`
-    - `prometheus_remote_storage_failed_metadata_total`
-    - `prometheus_remote_storage_retried_metadata_total`
-    - `prometheus_remote_storage_sent_batch_duration_seconds` and
-      `prometheus_remote_storage_sent_bytes_total` have a new label “type” with
-      the values of `metadata` or `samples`.
+  - `prometheus_remote_storage_succeeded_metadata_total`
+  - `prometheus_remote_storage_failed_metadata_total`
+  - `prometheus_remote_storage_retried_metadata_total`
+  - `prometheus_remote_storage_sent_batch_duration_seconds` and
+    `prometheus_remote_storage_sent_bytes_total` have a new label “type” with
+    the values of `metadata` or `samples`.
 
 ### Enhancements
 
