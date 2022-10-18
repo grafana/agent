@@ -52,7 +52,7 @@ Name | Type | Description | Default | Required
 `limit`              | `string`   | Maximum amount of memory targeted to be allocated by the process heap. | `0MiB` | no
 `spike_limit`        | `string`   | Maximum spike expected between the measurements of memory usage. | `20% of limit` | no
 `limit_percentage`   | `int`      | Maximum amount of total available memory targeted to be allocated by the process heap. | `0` | no
-`spike_limit_percentage` |` int`  | Maximum spike expected between the measurements of memory usage | `0` | 
+`spike_limit_percentage` |` int`  | Maximum spike expected between the measurements of memory usage. | `0` | 
 
 At least one of `limit` or the  `limit_percentage, spike_limit_percentage` pair
 must be defined, with the former gaining precedence.

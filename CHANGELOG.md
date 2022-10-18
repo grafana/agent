@@ -40,6 +40,9 @@ collected logs to standard output. This can be useful for debugging. (@jcreixell
   - `otelcol.receiver.jeager` receives Jaeger-formatted traces. Data can then
     be forwarded to other `otelcol` components. (@rfratto)
 
+  - `otelcol.processor.memory_limiter` periodically checks memory usage and
+    drops data or forces a GC if the defined limits are exceeded. (@tpaschalis)
+  
 ### Enhancements
 
 - Update OpenTelemetry Collector dependency to v0.61.0. (@rfratto)
