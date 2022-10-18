@@ -94,3 +94,27 @@ configuration.
 
 `otelcol.processor.batch` does not expose any component-specific debug
 information.
+
+## Example
+
+This example batches telemetry data before sending it to
+[otelcol.exporter.otlp][] for further processing:
+
+```river
+otelcol.processor.batch "default" {
+  output {
+    metrics = [otelcol.exporter.otlp.production.input]
+    logs    = [otelcol.exporter.otlp.production.input]
+    traces  = [otelcol.exporter.otlp.production.input]
+  }
+}
+
+otelcol.exporter.otlp "production" {
+  client {
+    endpoint = env("OTLP_SERVER_ENDPOINT")
+  }
+}
+
+```
+
+[otelcol.exporter.otlp]: {{< relref "./otelcol.exporter.otlp.md" >}}
