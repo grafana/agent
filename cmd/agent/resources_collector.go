@@ -100,8 +100,6 @@ func (rc *resourcesCollector) Collect(ch chan<- prometheus.Metric) {
 		)
 	}
 
-	proc.CPUPercent()
-
 	if ts, err := proc.Times(); err != nil {
 		rc.reportError(rc.cpuTotal, err)
 	} else {
