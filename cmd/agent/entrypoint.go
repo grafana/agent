@@ -308,11 +308,9 @@ func (ep *Entrypoint) supportHandler(rw http.ResponseWriter, r *http.Request) {
 	var logsBuffer bytes.Buffer
 	logger := log.NewSyncLogger(log.NewLogfmtLogger(&logsBuffer))
 	defer func() {
-		ep.log.HookLogger.Enabled = false
-		ep.log.HookLogger.Logger = nil
+		ep.log.HookLogger.Set(nil)
 	}()
-	ep.log.HookLogger.Enabled = true
-	ep.log.HookLogger.Logger = logger
+	ep.log.HookLogger.Set(logger)
 
 	bundle, err := supportbundle.Export(ctx, enabledFeatures, cfg, httpSrvAddress, ep.srv.DialContext)
 	if err != nil {
