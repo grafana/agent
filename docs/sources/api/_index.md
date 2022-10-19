@@ -372,8 +372,8 @@ This endpoint returns a 'support bundle', a zip file that contains information
 about a running agent, and can be used as a baseline of information when trying
 to debug an issue.
 
-The duration parameter is optional, must be less or equal than the configured
-HTTP server write timeout, and if no provided, defaults to it.
+The duration parameter is optional, must be less than or equal to the
+configured HTTP server write timeout, and if not provided, defaults to it.
 The endpoint is only exposed to the agent's HTTP server listen address, which
 defaults to `localhost:12345`.
 
@@ -383,14 +383,14 @@ inspected before sharing, to verify that no sensitive information has leaked.
 In addition, you can inspect the [supportbundle package](https://github.com/grafana/agent/tree/main/pkg/supportbundle)
 to verify the code that is being used to generate these bundles.
 
-A support bundle contains the following data
+A support bundle contains the following data:
 * `agent-config.yaml` contains the current agent configuration.
 * `agent-logs.txt` contains the agent logs during the bundle generation.
 * `agent-metadata.yaml` contains the agent's build version, operating system, architecture, uptime, plus a string payload defining which extra agent features have been enabled via command-line flags.
 * `agent-metrics-instances.json` and `agent-metrics-targets.json` contain the active metric subsystem instances, and the discovered scraped targets for each one.
 * `agent-logs-instances.json` contains the active logs subsystem instances.
 * `agent-metrics.txt` contains a snapshot of the agent's internal metrics.
-* the `pprof/` directory contains Go runtime profiling data (CPU, heap, goroutine, mutex, block profiles) as exported by the pprof package.
+* The `pprof/` directory contains Go runtime profiling data (CPU, heap, goroutine, mutex, block profiles) as exported by the pprof package.
 
 ## Integrations API (Experimental)
 

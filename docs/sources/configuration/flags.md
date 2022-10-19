@@ -58,21 +58,22 @@ This list may change over time. All newly reported data will also be documented 
 If you would like to disable the reporting, Grafana Agent provides the flag `-disable-reporting`
 to stop the reporting.
 
-## Support Bundles
-Grafana Agent allows exporting 'Support Bundles' on the `/-/support` endpoint.
-These are zip files, that contain commonly-used information to provide a
-baseline when starting to debug an issue with the Agent.
+## Support bundles
+Grafana Agent allows the exporting of 'support bundles' on the `/-/support`
+endpoint. Support bundles are zip files containing commonly-used information
+that provide a baseline for debugging issues with the Agent.
 
-The support bundle contains all information in plain text, so that it can be
-inspected before sharing, to verify that no sensitive information has leaked.
-The bundle's structure is:
+Support bundles contain all information in plain text, so that they can be
+inspected before sharing to verify that no sensitive information has leaked.
+
+Support bundles contain the following data:
 * `agent-config.yaml` contains the current agent configuration.
 * `agent-logs.txt` contains the agent logs during the bundle generation.
 * `agent-metadata.yaml` contains the agent's build version, operating system, architecture, uptime, plus a string payload defining which extra agent features have been enabled via command-line flags.
 * `agent-metrics-instances.json` and `agent-metrics-targets.json` contain the active metric subsystem instances, and the discovered scraped targets for each one.
 * `agent-logs-instances.json` contains the active logs subsystem instances.
 * `agent-metrics.txt` contains a snapshot of the agent's internal metrics.
-* the `pprof/` directory contains Go runtime profiling data (CPU, heap, goroutine, mutex, block profiles) as exported by the pprof package.
+* The `pprof/` directory contains Go runtime profiling data (CPU, heap, goroutine, mutex, block profiles) as exported by the pprof package.
 
 To disable the endpoint that exports these support bundles, you can pass in the
 `-disable-support-bundle` command-line flag.
