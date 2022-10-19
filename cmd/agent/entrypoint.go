@@ -303,8 +303,6 @@ func (ep *Entrypoint) supportHandler(rw http.ResponseWriter, r *http.Request) {
 	)
 	ep.mut.Unlock()
 
-	// TODO(@tpaschalis) Can we also dynamically up the log_level while the
-	// support bundle is being generated?
 	var logsBuffer bytes.Buffer
 	logger := log.NewSyncLogger(log.NewLogfmtLogger(&logsBuffer))
 	defer func() {
