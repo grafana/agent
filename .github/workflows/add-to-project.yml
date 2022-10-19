@@ -3,9 +3,6 @@ on:
   issues:
     types:
       - opened
-  pull_request:
-    types:
-      - opened
 jobs:
   add-to-project:
     name: Add issue to project
