@@ -26,6 +26,17 @@ update your OTLP protocol version to v0.16.0 or newer.
 
 [translation-removal]: https://github.com/open-telemetry/opentelemetry-collector/pull/5819
 
+### Deprecation: binary names will be prefixed with `grafana-` in v0.31.0
+
+The binary names `agent`, `agentctl`, and `agent-operator` have been deprecated
+and will be renamed to `grafana-agent`, `grafana-agentctl`, and
+`grafana-agent-operator` respectively in the v0.31.0 release.
+
+As part of this change, the Docker containers for the v0.31.0 release will
+include symbolic links from the old binary names to the new binary names.
+
+There is no action to take at this time.
+
 ## v0.24.0
 
 ### Breaking change: Deprecated YAML fields in `server` block removed

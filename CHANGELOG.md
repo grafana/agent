@@ -18,6 +18,12 @@ Main (unreleased)
 - JSON-encoded traces from OTLP versions earlier than 0.16.0 are no longer
   supported. (@rfratto)
 
+### Deprecations
+
+- The binary names `agent`, `agentctl`, and `agent-operator` have been
+  deprecated and will be renamed to `grafana-agent`, `grafana-agentctl`, and
+  `grafana-agent-operator` in the v0.31.0 release.
+
 ### Features
 
 - Add `agentctl test-logs` command to allow testing log configurations by redirecting
