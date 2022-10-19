@@ -34,7 +34,7 @@ func newResourcesCollector(l log.Logger) *resourcesCollector {
 
 		processStartTime: prometheus.NewDesc(
 			"agent_resources_process_start_time_seconds",
-			"Start time of the process since Unix epoch in seconds",
+			"Start time of the process since Unix epoch in seconds.",
 			nil, nil,
 		),
 
@@ -46,25 +46,25 @@ func newResourcesCollector(l log.Logger) *resourcesCollector {
 
 		rssMemory: prometheus.NewDesc(
 			"agent_resources_process_resident_memory_bytes",
-			"Resident memory size in bytes.",
+			"Current resident memory size in bytes.",
 			nil, nil,
 		),
 
 		virtMemory: prometheus.NewDesc(
 			"agent_resources_process_virtual_memory_bytes",
-			"Virtual memory size in bytes.",
+			"Current virtual memory size in bytes.",
 			nil, nil,
 		),
 
 		rxBytes: prometheus.NewDesc(
-			"agent_resources_machine_rx_bytes",
-			"Machine-wide bytes received across all network interfaces",
+			"agent_resources_machine_rx_bytes_total",
+			"Total bytes, host-wide, received across all network interfaces.",
 			nil, nil,
 		),
 
 		txBytes: prometheus.NewDesc(
-			"agent_resources_machine_tx_bytes",
-			"Machine-wide bytes sent across all given network interface",
+			"agent_resources_machine_tx_bytes_total",
+			"Total bytes, host-wide, sent across all given network interface.",
 			nil, nil,
 		),
 	}
