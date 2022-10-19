@@ -50,9 +50,6 @@ type Entrypoint struct {
 
 	reloadListener net.Listener
 	reloadServer   *http.Server
-
-	// Used to enforce single-flight requests for support bundle generation.
-	sbmut sync.Mutex
 }
 
 // Reloader is any function that returns a new config.
@@ -260,37 +257,43 @@ func (ep *Entrypoint) getReporterMetrics() map[string]interface{} {
 	}
 }
 
+func getServerWriteTimeout(r *http.Request) time.Duration {
+	srv, ok := r.Context().Value(http.ServerContextKey).(*http.Server)
+	if ok && srv.WriteTimeout != 0 {
+		return srv.WriteTimeout
+	}
+	return 30 * time.Second
+}
+
 func (ep *Entrypoint) supportHandler(rw http.ResponseWriter, r *http.Request) {
 	ep.mut.Lock()
 	cfg := ep.cfg
 	ep.mut.Unlock()
 
 	if cfg.DisableSupportBundle {
-		rw.WriteHeader(http.StatusNotFound)
-		_, _ = rw.Write([]byte("404 - support bundle generation is disabled"))
+		rw.WriteHeader(http.StatusForbidden)
+		_, _ = rw.Write([]byte("403 - support bundle generation is disabled"))
 		return
 	}
-	ep.sbmut.Lock()
-	defer ep.sbmut.Unlock()
 
-	duration := ep.srv.HTTPServer.WriteTimeout.Seconds()
+	duration := getServerWriteTimeout(r)
 	if r.URL.Query().Has("duration") {
-		durationInt, err := strconv.Atoi(r.URL.Query().Get("duration"))
+		d, err := strconv.Atoi(r.URL.Query().Get("duration"))
 		if err != nil {
 			http.Error(rw, fmt.Sprintf("duration value (in seconds) should be a positive integer: %s", err), http.StatusBadRequest)
 			return
 		}
-		if durationInt < 1 {
+		if d < 1 {
 			http.Error(rw, "duration value (in seconds) should be larger than 1", http.StatusBadRequest)
 			return
 		}
-		duration = float64(durationInt)
-		if duration > ep.srv.HTTPServer.WriteTimeout.Seconds() {
+		if float64(d) > duration.Seconds() {
 			http.Error(rw, "duration value exceeds the server's write timeout", http.StatusBadRequest)
 			return
 		}
+		duration = time.Duration(d) * time.Second
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(duration)*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), duration)
 	defer cancel()
 
 	ep.mut.Lock()

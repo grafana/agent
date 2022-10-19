@@ -11,6 +11,7 @@ import (
 	"runtime"
 	"runtime/pprof"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/grafana/agent/pkg/build"
@@ -44,8 +45,13 @@ type Metadata struct {
 	Payload      map[string]interface{} `yaml:"payload"`
 }
 
+// Used to enforce single-flight requests to Export
+var mut sync.Mutex
+
 // Export gathers the information required for the support bundle.
 func Export(ctx context.Context, enabledFeatures []string, cfg config.Config, srvAddress string, dialContext server.DialContextFunc) (*Bundle, error) {
+	mut.Lock()
+	defer mut.Unlock()
 	// The block profiler is disabled by default. Temporarily enable recording
 	// of all blocking events. Also, temporarily record all mutex contentions,
 	// and defer restoring of earlier mutex profiling fraction.
