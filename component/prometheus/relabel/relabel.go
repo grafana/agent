@@ -46,7 +46,9 @@ type Component struct {
 	forwardto        []*prometheus.Receiver
 	receiver         *prometheus.Receiver
 	metricsProcessed prometheus_client.Counter
-	cache            map[uint64]*prometheus.FlowMetric
+
+	cacheMut sync.RWMutex
+	cache    map[uint64]*prometheus.FlowMetric
 }
 
 var _ component.Component = (*Component)(nil)
@@ -88,7 +90,7 @@ func (c *Component) Update(args component.Arguments) error {
 	defer c.mut.Unlock()
 
 	newArgs := args.(Arguments)
-	c.cache = make(map[uint64]*prometheus.FlowMetric)
+	c.clearCache()
 	c.mrc = flow_relabel.ComponentToPromRelabelConfigs(newArgs.MetricRelabelConfigs)
 	c.forwardto = newArgs.ForwardTo
 	c.opts.OnStateChange(Exports{Receiver: c.receiver})
@@ -106,18 +108,19 @@ func (c *Component) Receive(ts int64, metricArr []*prometheus.FlowMetric) {
 	for _, m := range metricArr {
 		// Relabel may return the original flowmetric if no changes applied, nil if everything was removed or an entirely new flowmetric.
 		var relabelledFm *prometheus.FlowMetric
-		if fm, found := c.cache[m.GlobalRefID()]; found {
+		fm, found := c.getFromCache(m.GlobalRefID())
+		if found {
 			relabelledFm = fm
 		} else {
 			relabelledFm = m.Relabel(c.mrc...)
-			c.cache[m.GlobalRefID()] = relabelledFm
+			c.addToCache(m.GlobalRefID(), relabelledFm)
 		}
 
 		// If stale remove from the cache, the reason we don't exit early is so the stale value can propagate.
 		// TODO: (@mattdurham) This caching can leak and likely needs a timed eviction at some point, but this is simple.
 		// In the future the global ref cache may have some hooks to allow notification of when caches should be evicted.
 		if value.IsStaleNaN(m.Value()) {
-			delete(c.cache, m.GlobalRefID())
+			c.deleteFromCache(m.GlobalRefID())
 		}
 		if relabelledFm == nil {
 			continue
@@ -130,4 +133,33 @@ func (c *Component) Receive(ts int64, metricArr []*prometheus.FlowMetric) {
 	for _, forward := range c.forwardto {
 		forward.Receive(ts, relabelledMetrics)
 	}
+}
+
+func (c *Component) getFromCache(id uint64) (*prometheus.FlowMetric, bool) {
+	c.cacheMut.RLock()
+	defer c.cacheMut.RUnlock()
+
+	fm, found := c.cache[id]
+	return fm, found
+}
+
+func (c *Component) deleteFromCache(id uint64) {
+	c.cacheMut.Lock()
+	defer c.cacheMut.Unlock()
+
+	delete(c.cache, id)
+}
+
+func (c *Component) clearCache() {
+	c.cacheMut.Lock()
+	defer c.cacheMut.Unlock()
+
+	c.cache = make(map[uint64]*prometheus.FlowMetric)
+}
+
+func (c *Component) addToCache(originalID uint64, fm *prometheus.FlowMetric) {
+	c.cacheMut.Lock()
+	defer c.cacheMut.Unlock()
+
+	c.cache[originalID] = fm
 }
