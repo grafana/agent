@@ -33,4 +33,4 @@ Here's a list of the available actions, along with a brief description of their 
 * `labelkeep` - Matches `regex` against all label names. Any labels that don't match are removed from the metric's label set.
 
 Finally, note that the regex capture groups can be referred to using either the
-`$1` or `${1}` notation.
+`$CAPTURE_GROUP_NUMBER` or `${CAPTURE_GROUP_NUMBER}` notation.
