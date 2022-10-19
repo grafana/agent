@@ -58,6 +58,11 @@ Main (unreleased)
 
 - Add caching to Prometheus relabel component. (@mattdurham)
 
+- Grafana Agent Flow: add `agent_resources_*` metrics which explain basic
+  platform-agnostic metrics. These metrics assist with basic monitoring of
+  Grafana Agent, but are not meant to act as a replacement for fully featured
+  components like `prometheus.integration.node_exporter`. (@rfratto)
+
 ### Bugfixes
 
 - Remove empty port from the `apache_http` integration's instance label. (@katepangLiu)
