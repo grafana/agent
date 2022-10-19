@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/pkg/server"
 	"github.com/grafana/agent/pkg/traces/internal/traceutils"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/opentracing/opentracing-go"
@@ -48,7 +49,7 @@ configs:
 	var loggingLevel logging.Level
 	require.NoError(t, loggingLevel.Set("debug"))
 
-	traces, err := New(nil, nil, prometheus.NewRegistry(), cfg, logrus.InfoLevel, logging.Format{})
+	traces, err := New(nil, nil, prometheus.NewRegistry(), cfg, logrus.InfoLevel, logging.Format{}, &server.HookLogger{})
 	require.NoError(t, err)
 	t.Cleanup(traces.Stop)
 
@@ -93,7 +94,7 @@ configs:
 	var loggingLevel logging.Level
 	require.NoError(t, loggingLevel.Set("debug"))
 
-	traces, err := New(nil, nil, prometheus.NewRegistry(), cfg, logrus.InfoLevel, logging.Format{})
+	traces, err := New(nil, nil, prometheus.NewRegistry(), cfg, logrus.InfoLevel, logging.Format{}, &server.HookLogger{})
 	require.NoError(t, err)
 	t.Cleanup(traces.Stop)
 }
@@ -127,7 +128,7 @@ configs:
 	err := dec.Decode(&cfg)
 	require.NoError(t, err)
 
-	traces, err := New(nil, nil, prometheus.NewRegistry(), cfg, logrus.DebugLevel, logging.Format{})
+	traces, err := New(nil, nil, prometheus.NewRegistry(), cfg, logrus.DebugLevel, logging.Format{}, &server.HookLogger{})
 	require.NoError(t, err)
 	t.Cleanup(traces.Stop)
 
