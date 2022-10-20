@@ -72,4 +72,28 @@
   },
 
   withPanelsMixin(panels):: { panels+: panels },
+
+  withDocsLink(url, desc):: {
+    links+: [{
+      title: 'Documentation',
+      icon: 'doc',
+      targetBlank: true,
+      tooltip: desc,
+      type: 'link',
+      url: url,
+    }],
+  },
+
+  withDashboardsLink():: {
+    links+: [{
+      title: 'Dashboards',
+      type: 'dashboards',
+      asDropdown: true,
+      icon: 'external link',
+      includeVars: true,
+      keepTime: true,
+      tags: ['grafana-agent-flow-mixin'],
+      targetBlank: false,
+    }],
+  },
 }
