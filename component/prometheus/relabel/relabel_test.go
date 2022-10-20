@@ -126,7 +126,6 @@ func TestNil(t *testing.T) {
 	newFm := prometheus.NewFlowMetric(0, labels.FromStrings("__address__", "localhost"), 20)
 	relabeller.Receive(time.Now().Unix(), []*prometheus.FlowMetric{newFm})
 	require.True(t, fm.GlobalRefID() == newFm.GlobalRefID())
-
 }
 
 func BenchmarkCache(b *testing.B) {
