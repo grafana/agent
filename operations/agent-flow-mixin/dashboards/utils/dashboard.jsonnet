@@ -71,6 +71,12 @@
     sort: 2,
   },
 
+  newMultiTemplateVariable(name, query):: $.newTemplateVariable(name, query) {
+    allValue: '.*',
+    includeAll: true,
+    multi: true,
+  },
+
   withPanelsMixin(panels):: { panels+: panels },
 
   withDocsLink(url, desc):: {
