@@ -33,7 +33,7 @@ func Test(t *testing.T) {
 	require.NoError(t, err)
 
 	cfg := fmt.Sprintf(`
-		timeout = "1s"
+		timeout = "250ms"
 
 		client {
 			endpoint = "%s"
