@@ -110,11 +110,11 @@ func (c *Component) Receive(ts int64, metricArr []*prometheus.FlowMetric) {
 	for _, m := range metricArr {
 		// Relabel may return the original flowmetric if no changes applied, nil if everything was removed or an entirely new flowmetric.
 		var relabelledFm *prometheus.FlowMetric
-		fm, found := c.getFromCache(m.GlobalRefID())
+		lbls, found := c.getFromCache(m.GlobalRefID())
 		if found {
-			// If fm is nil but found then we want to keep the value nil, if it's not we want to reuse the labels
-			if fm.labels != nil {
-				relabelledFm = prometheus.NewFlowMetric(fm.id, fm.labels, m.Value())
+			// If lbls is nil but cache entry was found then we want to keep the value nil, if it's not we want to reuse the labels
+			if lbls != nil {
+				relabelledFm = prometheus.NewFlowMetric(lbls.id, lbls.labels, m.Value())
 			}
 		} else {
 			relabelledFm = m.Relabel(c.mrc...)
