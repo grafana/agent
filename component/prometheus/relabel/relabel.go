@@ -8,6 +8,8 @@ import (
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/prometheus"
 	prometheus_client "github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/prometheus/model/labels"
+
 	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/prometheus/prometheus/model/value"
 )
@@ -48,7 +50,7 @@ type Component struct {
 	metricsProcessed prometheus_client.Counter
 
 	cacheMut sync.RWMutex
-	cache    map[uint64]*prometheus.FlowMetric
+	cache    map[uint64]*labelAndID
 }
 
 var _ component.Component = (*Component)(nil)
@@ -57,7 +59,7 @@ var _ component.Component = (*Component)(nil)
 func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{
 		opts:  o,
-		cache: make(map[uint64]*prometheus.FlowMetric),
+		cache: make(map[uint64]*labelAndID),
 	}
 	c.receiver = &prometheus.Receiver{Receive: c.Receive}
 	c.metricsProcessed = prometheus_client.NewCounter(prometheus_client.CounterOpts{
@@ -110,7 +112,10 @@ func (c *Component) Receive(ts int64, metricArr []*prometheus.FlowMetric) {
 		var relabelledFm *prometheus.FlowMetric
 		fm, found := c.getFromCache(m.GlobalRefID())
 		if found {
-			relabelledFm = fm
+			// If fm is nil but found then we want to keep the value nil, if it's not we want to reuse the labels
+			if fm.labels != nil {
+				relabelledFm = prometheus.NewFlowMetric(fm.id, fm.labels, m.Value())
+			}
 		} else {
 			relabelledFm = m.Relabel(c.mrc...)
 			c.addToCache(m.GlobalRefID(), relabelledFm)
@@ -135,7 +140,7 @@ func (c *Component) Receive(ts int64, metricArr []*prometheus.FlowMetric) {
 	}
 }
 
-func (c *Component) getFromCache(id uint64) (*prometheus.FlowMetric, bool) {
+func (c *Component) getFromCache(id uint64) (*labelAndID, bool) {
 	c.cacheMut.RLock()
 	defer c.cacheMut.RUnlock()
 
@@ -154,12 +159,26 @@ func (c *Component) clearCache() {
 	c.cacheMut.Lock()
 	defer c.cacheMut.Unlock()
 
-	c.cache = make(map[uint64]*prometheus.FlowMetric)
+	c.cache = make(map[uint64]*labelAndID)
 }
 
 func (c *Component) addToCache(originalID uint64, fm *prometheus.FlowMetric) {
 	c.cacheMut.Lock()
 	defer c.cacheMut.Unlock()
 
-	c.cache[originalID] = fm
+	if fm == nil {
+		c.cache[originalID] = nil
+		return
+	}
+	c.cache[originalID] = &labelAndID{
+		labels: fm.RawLabels(),
+		id:     fm.GlobalRefID(),
+	}
+}
+
+// labelAndID stores both the globalrefid for the label and the id itself. We store the id so that it doesnt have
+// to be recalculated again.
+type labelAndID struct {
+	labels labels.Labels
+	id     uint64
 }

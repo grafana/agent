@@ -24,10 +24,11 @@ func TestCache(t *testing.T) {
 
 	relabeller.Receive(time.Now().Unix(), []*prometheus.FlowMetric{fm})
 	require.Len(t, relabeller.cache, 1)
-	entry, found := relabeller.cache[fm.GlobalRefID()]
+	entry, found := relabeller.getFromCache(fm.GlobalRefID())
+	newFm := prometheus.NewFlowMetric(entry.id, entry.labels, 0)
 	require.True(t, found)
 	require.NotNil(t, entry)
-	require.True(t, entry.GlobalRefID() != fm.GlobalRefID())
+	require.True(t, newFm.GlobalRefID() != fm.GlobalRefID())
 }
 
 func TestEviction(t *testing.T) {
@@ -47,7 +48,7 @@ func TestUpdateReset(t *testing.T) {
 
 	relabeller.Receive(time.Now().Unix(), []*prometheus.FlowMetric{fm})
 	require.Len(t, relabeller.cache, 1)
-	relabeller.Update(Arguments{
+	_ = relabeller.Update(Arguments{
 		MetricRelabelConfigs: []*flow_relabel.Config{},
 	})
 	require.Len(t, relabeller.cache, 0)
