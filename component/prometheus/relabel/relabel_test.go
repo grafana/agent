@@ -54,6 +54,81 @@ func TestUpdateReset(t *testing.T) {
 	require.Len(t, relabeller.cache, 0)
 }
 
+func TestThatValueIsNotReused(t *testing.T) {
+	// The recval is used to ensure that the value isn't also cached with the labels and id.
+	var recval float64
+	rec := &prometheus.Receiver{
+		Receive: func(timestamp int64, metrics []*prometheus.FlowMetric) {
+			require.True(t, metrics[0].LabelsCopy().Has("new_label"))
+			require.True(t, metrics[0].Value() == recval)
+		},
+	}
+	relabeller, err := New(component.Options{
+		ID:     "1",
+		Logger: util.TestLogger(t),
+		OnStateChange: func(e component.Exports) {
+		},
+		Registerer: prom.NewRegistry(),
+	}, Arguments{
+		ForwardTo: []*prometheus.Receiver{rec},
+		MetricRelabelConfigs: []*flow_relabel.Config{
+			{
+				SourceLabels: []string{"__address__"},
+				Regex:        flow_relabel.Regexp(relabel.MustNewRegexp("(.+)")),
+				TargetLabel:  "new_label",
+				Replacement:  "new_value",
+				Action:       "replace",
+			},
+		},
+	})
+	require.NotNil(t, relabeller)
+	require.NoError(t, err)
+
+	recval = 10
+	fm := prometheus.NewFlowMetric(0, labels.FromStrings("__address__", "localhost"), recval)
+	relabeller.Receive(time.Now().Unix(), []*prometheus.FlowMetric{fm})
+
+	recval = 20
+	newFm := prometheus.NewFlowMetric(0, labels.FromStrings("__address__", "localhost"), recval)
+	relabeller.Receive(time.Now().Unix(), []*prometheus.FlowMetric{newFm})
+	require.True(t, fm.GlobalRefID() == newFm.GlobalRefID())
+}
+
+func TestNil(t *testing.T) {
+	rec := &prometheus.Receiver{
+		Receive: func(timestamp int64, metrics []*prometheus.FlowMetric) {
+			// This should never run
+			require.True(t, false)
+		},
+	}
+	relabeller, err := New(component.Options{
+		ID:     "1",
+		Logger: util.TestLogger(t),
+		OnStateChange: func(e component.Exports) {
+		},
+		Registerer: prom.NewRegistry(),
+	}, Arguments{
+		ForwardTo: []*prometheus.Receiver{rec},
+		MetricRelabelConfigs: []*flow_relabel.Config{
+			{
+				SourceLabels: []string{"__address__"},
+				Regex:        flow_relabel.Regexp(relabel.MustNewRegexp("(.+)")),
+				Action:       "drop",
+			},
+		},
+	})
+	require.NotNil(t, relabeller)
+	require.NoError(t, err)
+
+	fm := prometheus.NewFlowMetric(0, labels.FromStrings("__address__", "localhost"), 10)
+	relabeller.Receive(time.Now().Unix(), []*prometheus.FlowMetric{fm})
+
+	newFm := prometheus.NewFlowMetric(0, labels.FromStrings("__address__", "localhost"), 20)
+	relabeller.Receive(time.Now().Unix(), []*prometheus.FlowMetric{newFm})
+	require.True(t, fm.GlobalRefID() == newFm.GlobalRefID())
+
+}
+
 func BenchmarkCache(b *testing.B) {
 	rec := &prometheus.Receiver{
 		Receive: func(timestamp int64, metrics []*prometheus.FlowMetric) {
