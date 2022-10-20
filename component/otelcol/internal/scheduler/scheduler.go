@@ -99,7 +99,7 @@ func (cs *Scheduler) Run(ctx context.Context) error {
 			cs.schedMut.Unlock()
 
 			level.Debug(cs.log).Log("msg", "scheduling components", "count", len(components))
-			cs.startComponents(ctx, host, components...)
+			components = cs.startComponents(ctx, host, components...)
 		}
 	}
 }
@@ -112,13 +112,17 @@ func (cs *Scheduler) stopComponents(ctx context.Context, cc ...otelcomponent.Com
 	}
 }
 
-func (cs *Scheduler) startComponents(ctx context.Context, h otelcomponent.Host, cc ...otelcomponent.Component) {
+// startComponent schedules the provided components from cc. It then returns
+// the list of components which started successfully.
+func (cs *Scheduler) startComponents(ctx context.Context, h otelcomponent.Host, cc ...otelcomponent.Component) (started []otelcomponent.Component) {
 	var errs error
 
 	for _, c := range cc {
 		if err := c.Start(ctx, h); err != nil {
 			level.Error(cs.log).Log("msg", "failed to start scheduled component", "err", err)
 			errs = multierr.Append(errs, err)
+		} else {
+			started = append(started, c)
 		}
 	}
 
@@ -135,6 +139,8 @@ func (cs *Scheduler) startComponents(ctx context.Context, h otelcomponent.Host, 
 			UpdateTime: time.Now(),
 		})
 	}
+
+	return started
 }
 
 // CurrentHealth implements component.HealthComponent. The component is
