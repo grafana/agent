@@ -33,11 +33,11 @@ func ComponentReferences(cn dag.Node, g *dag.Graph) ([]Reference, diag.Diagnosti
 		diags diag.Diagnostics
 	)
 
-	switch cn.(type) {
+	switch cn := cn.(type) {
 	case *ConfigNode:
-		traversals = configTraversals(cn.(*ConfigNode))
+		traversals = configTraversals(cn)
 	case *ComponentNode:
-		traversals = componentTraversals(cn.(*ComponentNode))
+		traversals = componentTraversals(cn)
 	}
 
 	refs := make([]Reference, 0, len(traversals))

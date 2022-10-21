@@ -94,7 +94,10 @@ func (cn *ConfigNode) Evaluate(scope *vm.Scope) (*ast.BlockStmt, error) {
 
 	l, ok := cn.logger.(*logging.Logger)
 	if ok {
-		l.Update(cn.loggingArgs)
+		err := l.Update(cn.loggingArgs)
+		if err != nil {
+			return cn.loggingBlock, fmt.Errorf("could not update logger: %v", err)
+		}
 	}
 	return nil, nil
 }
@@ -102,6 +105,6 @@ func (cn *ConfigNode) Evaluate(scope *vm.Scope) (*ast.BlockStmt, error) {
 // LoggingArgs returns the arguments used to configure the logger.
 func (cn *ConfigNode) LoggingArgs() logging.Options {
 	cn.mut.RLock()
-	cn.mut.RUnlock()
+	defer cn.mut.RUnlock()
 	return cn.loggingArgs
 }

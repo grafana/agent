@@ -109,14 +109,12 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlo
 
 	// Evaluate all of the components.
 	_ = dag.WalkTopological(&newGraph, newGraph.Leaves(), func(n dag.Node) error {
-		switch n.(type) {
+		switch c := n.(type) {
 		case *ComponentNode:
-			c := n.(*ComponentNode)
-
 			components = append(components, c)
 			componentIDs = append(componentIDs, c.ID())
 
-			if err := l.evaluate(parentScope, n.(*ComponentNode)); err != nil {
+			if err := l.evaluate(parentScope, c); err != nil {
 				var evalDiags diag.Diagnostics
 				if errors.As(err, &evalDiags) {
 					diags = append(diags, evalDiags...)
@@ -130,7 +128,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlo
 				}
 			}
 		case *ConfigNode:
-			if errBlock, err := l.evaluateConfig(parentScope, n.(*ConfigNode)); err != nil {
+			if errBlock, err := l.evaluateConfig(parentScope, c); err != nil {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
 					Message:  fmt.Sprintf("Failed to build node from config blocks: %s", err),
