@@ -8,7 +8,6 @@ import (
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/parser"
-	"github.com/grafana/agent/pkg/river/vm"
 )
 
 // File holds the contents of a parsed Flow file.
@@ -20,7 +19,8 @@ type File struct {
 
 	// Components holds the list of raw River AST blocks describing components.
 	// The Flow controller can interpret them.
-	Components []*ast.BlockStmt
+	Components   []*ast.BlockStmt
+	ConfigBlocks []*ast.BlockStmt
 }
 
 // ReadFile parses the River file specified by bb into a File. name should be
@@ -37,8 +37,8 @@ func ReadFile(name string, bb []byte) (*File, error) {
 	// TODO(rfratto): should this code be brought into a helper somewhere? Maybe
 	// in ast?
 	var (
-		loggerBlock *ast.BlockStmt
-		components  []*ast.BlockStmt
+		components []*ast.BlockStmt
+		configs    []*ast.BlockStmt
 	)
 
 	for _, stmt := range node.Body {
@@ -55,7 +55,7 @@ func ReadFile(name string, bb []byte) (*File, error) {
 			fullName := strings.Join(stmt.Name, ".")
 			switch fullName {
 			case "logging":
-				loggerBlock = stmt
+				configs = append(configs, stmt)
 			default:
 				components = append(components, stmt)
 			}
@@ -71,16 +71,12 @@ func ReadFile(name string, bb []byte) (*File, error) {
 	}
 
 	loggingOpts := logging.DefaultOptions
-	if loggerBlock != nil {
-		if err := vm.New(loggerBlock.Body).Evaluate(nil, &loggingOpts); err != nil {
-			return nil, err
-		}
-	}
 
 	return &File{
-		Name:       name,
-		Node:       node,
-		Logging:    loggingOpts,
-		Components: components,
+		Name:         name,
+		Node:         node,
+		Logging:      loggingOpts,
+		Components:   components,
+		ConfigBlocks: configs,
 	}, nil
 }

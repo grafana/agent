@@ -202,7 +202,7 @@ func (c *Flow) LoadFile(file *File) error {
 		return fmt.Errorf("error updating logger: %w", err)
 	}
 
-	diags := c.loader.Apply(nil, file.Components)
+	diags := c.loader.Apply(nil, file.Components, file.ConfigBlocks)
 	if !c.loadedOnce && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.

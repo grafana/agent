@@ -63,7 +63,7 @@ func NewLoader(globals ComponentGlobals) *Loader {
 // The provided parentContext can be used to provide global variables and
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
-func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt) diag.Diagnostics {
+func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) diag.Diagnostics {
 	start := time.Now()
 	l.mut.Lock()
 	defer l.mut.Unlock()
@@ -75,6 +75,15 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt) diag.Diag
 		newGraph dag.Graph
 	)
 
+	// Pre-populate graph with a ConfigNode.
+	// TODO (@tpaschalis) Are we okay with recreating the config node on each
+	// Apply? Should we check if it already exists and just update its blocks
+	// instead? if exist := l.graph.GetByID(configNodeID); exist == nil { ...
+	c, configBlockDiags := NewConfigNode(configBlocks, l.log)
+	diags = append(diags, configBlockDiags...)
+	newGraph.Add(c)
+
+	// Handle the rest of the graph as ComponentNodes.
 	populateDiags := l.populateGraph(&newGraph, blocks)
 	diags = append(diags, populateDiags...)
 
@@ -100,21 +109,33 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt) diag.Diag
 
 	// Evaluate all of the components.
 	_ = dag.WalkTopological(&newGraph, newGraph.Leaves(), func(n dag.Node) error {
-		c := n.(*ComponentNode)
+		switch n.(type) {
+		case *ComponentNode:
+			c := n.(*ComponentNode)
 
-		components = append(components, c)
-		componentIDs = append(componentIDs, c.ID())
+			components = append(components, c)
+			componentIDs = append(componentIDs, c.ID())
 
-		if err := l.evaluate(parentScope, n.(*ComponentNode)); err != nil {
-			var evalDiags diag.Diagnostics
-			if errors.As(err, &evalDiags) {
-				diags = append(diags, evalDiags...)
-			} else {
+			if err := l.evaluate(parentScope, n.(*ComponentNode)); err != nil {
+				var evalDiags diag.Diagnostics
+				if errors.As(err, &evalDiags) {
+					diags = append(diags, evalDiags...)
+				} else {
+					diags.Add(diag.Diagnostic{
+						Severity: diag.SeverityLevelError,
+						Message:  fmt.Sprintf("Failed to build component: %s", err),
+						StartPos: ast.StartPos(n.(*ComponentNode).block).Position(),
+						EndPos:   ast.EndPos(n.(*ComponentNode).block).Position(),
+					})
+				}
+			}
+		case *ConfigNode:
+			if errBlock, err := l.evaluateConfig(parentScope, n.(*ConfigNode)); err != nil {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
-					Message:  fmt.Sprintf("Failed to build component: %s", err),
-					StartPos: ast.StartPos(n.(*ComponentNode).block).Position(),
-					EndPos:   ast.EndPos(n.(*ComponentNode).block).Position(),
+					Message:  fmt.Sprintf("Failed to build node from config blocks: %s", err),
+					StartPos: ast.StartPos(errBlock).Position(),
+					EndPos:   ast.EndPos(errBlock).Position(),
 				})
 			}
 		}
@@ -201,7 +222,7 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	for _, n := range g.Nodes() {
-		refs, nodeDiags := ComponentReferences(n.(*ComponentNode), g)
+		refs, nodeDiags := ComponentReferences(n, g)
 		for _, ref := range refs {
 			g.AddEdge(dag.Edge{From: n, To: ref.Target})
 		}
@@ -285,6 +306,18 @@ func (l *Loader) evaluate(parent *vm.Scope, c *ComponentNode) error {
 		return err
 	}
 	return nil
+}
+
+// evaluateConfig constructs the final context for the special config Node and
+// evaluates it. mut must be held when calling evaluateConfig.
+func (l *Loader) evaluateConfig(parent *vm.Scope, c *ConfigNode) (*ast.BlockStmt, error) {
+	ectx := l.cache.BuildContext(parent)
+	errBlock, err := c.Evaluate(ectx)
+	if err != nil {
+		level.Error(l.log).Log("msg", "failed to evaluate config", "node", c.NodeID(), "err", err)
+		return errBlock, err
+	}
+	return nil, nil
 }
 
 func multierrToDiags(errors error) diag.Diagnostics {

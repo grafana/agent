@@ -26,12 +26,19 @@ type Reference struct {
 
 // ComponentReferences returns the list of references a component is making to
 // other components.
-func ComponentReferences(cn *ComponentNode, g *dag.Graph) ([]Reference, diag.Diagnostics) {
+func ComponentReferences(cn dag.Node, g *dag.Graph) ([]Reference, diag.Diagnostics) {
 	var (
-		traversals = componentTraversals(cn)
+		traversals []Traversal
 
 		diags diag.Diagnostics
 	)
+
+	switch cn.(type) {
+	case *ConfigNode:
+		traversals = configTraversals(cn.(*ConfigNode))
+	case *ComponentNode:
+		traversals = componentTraversals(cn.(*ComponentNode))
+	}
 
 	refs := make([]Reference, 0, len(traversals))
 	for _, t := range traversals {
@@ -61,6 +68,18 @@ func componentTraversals(cn *ComponentNode) []Traversal {
 	cn.mut.RLock()
 	defer cn.mut.RUnlock()
 	return expressionsFromBody(cn.block.Body)
+}
+
+// configTraversals gets the set of Traverals for the config node.
+func configTraversals(cn *ConfigNode) []Traversal {
+	cn.mut.RLock()
+	defer cn.mut.RUnlock()
+
+	var res []Traversal
+	for _, b := range cn.blocks {
+		res = append(res, expressionsFromBody(b.Body)...)
+	}
+	return res
 }
 
 // expressionsFromSyntaxBody recurses through body and finds all variable
