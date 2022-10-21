@@ -50,6 +50,8 @@ Main (unreleased)
     drops data or forces a garbage collection if the defined limits are
     exceeded. (@tpaschalis)
 
+- Flow: Allow config blocks to reference component exports. (@tpaschalis)
+
 ### Enhancements
 
 - Update OpenTelemetry Collector dependency to v0.61.0. (@rfratto)
