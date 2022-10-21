@@ -26,7 +26,7 @@ type Logger struct {
 	makeLogger func(*Config) (log.Logger, error)
 }
 
-// HookedLogger is used to temporarily redirect
+// HookLogger is used to temporarily redirect
 type HookLogger struct {
 	mut     sync.RWMutex
 	enabled bool
