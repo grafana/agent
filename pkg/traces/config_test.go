@@ -1782,6 +1782,27 @@ receivers:
 	assert.Contains(t, otel.Service.Pipelines[config.NewComponentID("traces")].Receivers, config.NewComponentID(pushreceiver.TypeStr))
 }
 
+func TestUnmarshalYAMLEmptyOTLP(t *testing.T) {
+	test := `
+receivers:
+  otlp:`
+	cfg := InstanceConfig{}
+	err := yaml.Unmarshal([]byte(test), &cfg)
+	assert.NotNil(t, err)
+	require.Contains(t, err.Error(), "failed to parse OTLP receiver config: otlp")
+}
+
+func TestUnmarshalYAMLEmptyOTLPProtocols(t *testing.T) {
+	test := `
+receivers:
+  otlp:
+    protocols:`
+	cfg := InstanceConfig{}
+	err := yaml.Unmarshal([]byte(test), &cfg)
+	assert.NotNil(t, err)
+	require.Contains(t, err.Error(), "otlp receiver requires a \"protocols\" field which must be a YAML map: otlp")
+}
+
 // sortService is a helper function to lexicographically sort all
 // the possibly unsorted elements of a given cfg.Service
 func sortService(cfg *config.Config) {

@@ -157,9 +157,14 @@ func (r *ReceiverMap) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	for k := range *r {
 		if strings.HasPrefix(k, otlpReceiverName) {
 			// for http and grpc receivers, include_metadata is set to true by default
-			protocolsCfg, ok := (*r)[k].(map[interface{}]interface{})["protocols"].(map[interface{}]interface{})
+			receiverCfg, ok := (*r)[k].(map[interface{}]interface{})
 			if !ok {
 				return fmt.Errorf("failed to parse OTLP receiver config: %s", k)
+			}
+
+			protocolsCfg, ok := receiverCfg["protocols"].(map[interface{}]interface{})
+			if !ok {
+				return fmt.Errorf("otlp receiver requires a \"protocols\" field which must be a YAML map: %s", k)
 			}
 
 			for _, p := range protocols {
