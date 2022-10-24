@@ -94,8 +94,8 @@ An HTTP proxy can be configured through the following environment variables:
 * `HTTPS_PROXY`
 * `NO_PROXY`
 
-Connections to the proxy will be established via [the `HTTP CONNECT`
-method][HTTP CONNECT].
+Connections to the proxy are established via [the `HTTP CONNECT` method][HTTP
+CONNECT].
 
 Because `otelcol.exporter.otlp` uses gRPC, the configured proxy server must be
 able to handle and proxy HTTP/2 traffic.
