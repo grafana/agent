@@ -11,7 +11,6 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/metrics/wal"
 	"github.com/prometheus/prometheus/model/timestamp"
@@ -48,8 +47,6 @@ type Component struct {
 
 	mut sync.RWMutex
 	cfg Arguments
-
-	receiver *prometheus.Receiver
 }
 
 // NewComponent creates a new prometheus.remote_write component.
@@ -71,7 +68,6 @@ func NewComponent(o component.Options, c Arguments) (*Component, error) {
 		remoteStore: remoteStore,
 		storage:     storage.NewFanout(o.Logger, walStorage, remoteStore),
 	}
-	res.receiver = &prometheus.Receiver{Receive: res.Receive}
 	if err := res.Update(c); err != nil {
 		return nil, err
 	}
@@ -84,7 +80,10 @@ var _ component.Component = (*Component)(nil)
 
 // Run implements Component.
 func (c *Component) Run(ctx context.Context) error {
-	c.opts.OnStateChange(Exports{Receiver: c.receiver})
+	c.opts.OnStateChange(Exports{Receiver: &appendable{
+		inner:       c.storage,
+		componentID: c.opts.ID,
+	}})
 	defer func() {
 		level.Debug(c.log).Log("msg", "closing storage")
 		err := c.storage.Close()
@@ -177,7 +176,7 @@ func (c *Component) Update(newConfig component.Arguments) error {
 }
 
 // Receive implements the receiver.receive func that allows an array of metrics to be passed
-func (c *Component) Receive(ts int64, metricArr []*prometheus.FlowMetric) {
+/*func (c *Component) Receive(ts int64, metricArr []*prometheus.FlowMetric) {
 	app := c.storage.Appender(context.Background())
 	for _, m := range metricArr {
 		localID := prometheus.GlobalRefMapping.GetLocalRefID(c.opts.ID, m.GlobalRefID())
@@ -200,7 +199,7 @@ func (c *Component) Receive(ts int64, metricArr []*prometheus.FlowMetric) {
 	if err != nil {
 		level.Error(c.log).Log("msg", "failed to commit samples", "err", err)
 	}
-}
+}*/
 
 // Config implements Component.
 func (c *Component) Config() Arguments {

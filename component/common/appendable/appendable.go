@@ -1,17 +1,6 @@
 package appendable
 
-import (
-	"context"
-	"sync"
-
-	"github.com/grafana/agent/component/prometheus"
-	"github.com/prometheus/prometheus/model/exemplar"
-	"github.com/prometheus/prometheus/model/labels"
-	"github.com/prometheus/prometheus/model/metadata"
-	"github.com/prometheus/prometheus/model/value"
-	"github.com/prometheus/prometheus/storage"
-)
-
+/*
 // FlowMetric is a wrapper around a single sample without the timestamp.
 type FlowMetric struct {
 	Labels labels.Labels
@@ -108,4 +97,4 @@ func (app *flowAppender) Commit() error {
 func (app *flowAppender) Rollback() error {
 	app.buffer = make(map[int64][]*prometheus.FlowMetric)
 	return nil
-}
+}*/

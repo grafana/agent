@@ -44,7 +44,7 @@ func newGlobalRefMap() *GlobalRefMap {
 }
 
 // GetOrAddLink is called by a remote_write endpoint component to add mapping and get back the global id.
-func (g *GlobalRefMap) GetOrAddLink(componentID string, localRefID uint64, fm *FlowMetric) uint64 {
+func (g *GlobalRefMap) GetOrAddLink(componentID string, localRefID uint64, lbls labels.Labels) uint64 {
 	g.mut.Lock()
 	defer g.mut.Unlock()
 
@@ -59,7 +59,7 @@ func (g *GlobalRefMap) GetOrAddLink(componentID string, localRefID uint64, fm *F
 		g.mappings[componentID] = m
 	}
 
-	labelHash := fm.labels.Hash()
+	labelHash := lbls.Hash()
 	globalID, found := g.labelsHashToGlobal[labelHash]
 	if found {
 		m.localToGlobal[localRefID] = globalID
@@ -78,6 +78,10 @@ func (g *GlobalRefMap) GetOrAddLink(componentID string, localRefID uint64, fm *F
 func (g *GlobalRefMap) GetOrAddGlobalRefID(l labels.Labels) uint64 {
 	g.mut.Lock()
 	defer g.mut.Unlock()
+
+	if l == nil {
+		return 0
+	}
 
 	labelHash := l.Hash()
 	globalID, found := g.labelsHashToGlobal[labelHash]

@@ -4,6 +4,11 @@ import (
 	"context"
 	"sync"
 
+	"github.com/prometheus/prometheus/model/exemplar"
+	"github.com/prometheus/prometheus/model/metadata"
+
+	"github.com/prometheus/prometheus/storage"
+
 	"github.com/grafana/agent/component"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/prometheus"
@@ -29,7 +34,7 @@ func init() {
 // component.
 type Arguments struct {
 	// Where the relabelled metrics should be forwarded to.
-	ForwardTo []*prometheus.Receiver `river:"forward_to,attr"`
+	ForwardTo []storage.Appendable `river:"forward_to,attr"`
 
 	// The relabelling rules to apply to each metric before it's forwarded.
 	MetricRelabelConfigs []*flow_relabel.Config `river:"rule,block,optional"`
@@ -37,7 +42,7 @@ type Arguments struct {
 
 // Exports holds values which are exported by the prometheus.relabel component.
 type Exports struct {
-	Receiver *prometheus.Receiver `river:"receiver,attr"`
+	Receiver storage.Appendable `river:"receiver,attr"`
 }
 
 // Component implements the prometheus.relabel component.
@@ -45,15 +50,29 @@ type Component struct {
 	mut              sync.RWMutex
 	opts             component.Options
 	mrc              []*relabel.Config
-	forwardto        []*prometheus.Receiver
-	receiver         *prometheus.Receiver
+	forwardto        []storage.Appendable
 	metricsProcessed prometheus_client.Counter
 
 	cacheMut sync.RWMutex
 	cache    map[uint64]*labelAndID
 }
 
-var _ component.Component = (*Component)(nil)
+var (
+	_ component.Component = (*Component)(nil)
+	_ storage.Appendable  = (*Component)(nil)
+	_ storage.Appender    = (*appender)(nil)
+)
+
+func (c *Component) Appender(ctx context.Context) storage.Appender {
+	app := &appender{
+		children: make([]storage.Appender, 0),
+		relabel:  c.Relabel,
+	}
+	for _, forward := range c.forwardto {
+		app.children = append(app.children, forward.Appender(ctx))
+	}
+	return app
+}
 
 // New creates a new prometheus.relabel component.
 func New(o component.Options, args Arguments) (*Component, error) {
@@ -61,7 +80,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		opts:  o,
 		cache: make(map[uint64]*labelAndID),
 	}
-	c.receiver = &prometheus.Receiver{Receive: c.Receive}
+	c.forwardto = args.ForwardTo
 	c.metricsProcessed = prometheus_client.NewCounter(prometheus_client.CounterOpts{
 		Name: "agent_prometheus_relabel_metrics_processed",
 		Help: "Total number of metrics processed",
@@ -95,49 +114,37 @@ func (c *Component) Update(args component.Arguments) error {
 	c.clearCache()
 	c.mrc = flow_relabel.ComponentToPromRelabelConfigs(newArgs.MetricRelabelConfigs)
 	c.forwardto = newArgs.ForwardTo
-	c.opts.OnStateChange(Exports{Receiver: c.receiver})
+	c.opts.OnStateChange(Exports{Receiver: c})
 
 	return nil
 }
 
-// Receive implements the receiver.Receive func that allows an array of metrics
-// to be passed around.
-func (c *Component) Receive(ts int64, metricArr []*prometheus.FlowMetric) {
+func (c *Component) Relabel(val float64, lbls labels.Labels) labels.Labels {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
+	globalRef := prometheus.GlobalRefMapping.GetOrAddGlobalRefID(lbls)
+	var relabelled labels.Labels
+	newLbls, found := c.getFromCache(globalRef)
+	if found {
+		// If newLbls is nil but cache entry was found then we want to keep the value nil, if it's not we want to reuse the labels
+		if newLbls != nil {
+			relabelled = newLbls.labels
+		}
+	} else {
+		processedLabels := relabel.Process(lbls, c.mrc...)
+		c.addToCache(globalRef, processedLabels)
+	}
 
-	relabelledMetrics := make([]*prometheus.FlowMetric, 0)
-	for _, m := range metricArr {
-		// Relabel may return the original flowmetric if no changes applied, nil if everything was removed or an entirely new flowmetric.
-		var relabelledFm *prometheus.FlowMetric
-		lbls, found := c.getFromCache(m.GlobalRefID())
-		if found {
-			// If lbls is nil but cache entry was found then we want to keep the value nil, if it's not we want to reuse the labels
-			if lbls != nil {
-				relabelledFm = prometheus.NewFlowMetric(lbls.id, lbls.labels, m.Value())
-			}
-		} else {
-			relabelledFm = m.Relabel(c.mrc...)
-			c.addToCache(m.GlobalRefID(), relabelledFm)
-		}
-
-		// If stale remove from the cache, the reason we don't exit early is so the stale value can propagate.
-		// TODO: (@mattdurham) This caching can leak and likely needs a timed eviction at some point, but this is simple.
-		// In the future the global ref cache may have some hooks to allow notification of when caches should be evicted.
-		if value.IsStaleNaN(m.Value()) {
-			c.deleteFromCache(m.GlobalRefID())
-		}
-		if relabelledFm == nil {
-			continue
-		}
-		relabelledMetrics = append(relabelledMetrics, relabelledFm)
+	// If stale remove from the cache, the reason we don't exit early is so the stale value can propagate.
+	// TODO: (@mattdurham) This caching can leak and likely needs a timed eviction at some point, but this is simple.
+	// In the future the global ref cache may have some hooks to allow notification of when caches should be evicted.
+	if value.IsStaleNaN(val) {
+		c.deleteFromCache(globalRef)
 	}
-	if len(relabelledMetrics) == 0 {
-		return
+	if relabelled == nil {
+		return nil
 	}
-	for _, forward := range c.forwardto {
-		forward.Receive(ts, relabelledMetrics)
-	}
+	return newLbls.labels
 }
 
 func (c *Component) getFromCache(id uint64) (*labelAndID, bool) {
@@ -162,17 +169,18 @@ func (c *Component) clearCache() {
 	c.cache = make(map[uint64]*labelAndID)
 }
 
-func (c *Component) addToCache(originalID uint64, fm *prometheus.FlowMetric) {
+func (c *Component) addToCache(originalID uint64, lbls labels.Labels) {
 	c.cacheMut.Lock()
 	defer c.cacheMut.Unlock()
 
-	if fm == nil {
+	if lbls == nil {
 		c.cache[originalID] = nil
 		return
 	}
+	newGlobal := prometheus.GlobalRefMapping.GetOrAddGlobalRefID(lbls)
 	c.cache[originalID] = &labelAndID{
-		labels: fm.RawLabels(),
-		id:     fm.GlobalRefID(),
+		labels: lbls,
+		id:     newGlobal,
 	}
 }
 
@@ -181,4 +189,44 @@ func (c *Component) addToCache(originalID uint64, fm *prometheus.FlowMetric) {
 type labelAndID struct {
 	labels labels.Labels
 	id     uint64
+}
+
+type appender struct {
+	children []storage.Appender
+	relabel  func(val float64, lbls labels.Labels) labels.Labels
+}
+
+func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, error) {
+	newLbls := a.relabel(v, l)
+	if newLbls == nil {
+		return ref, nil
+	}
+	for _, x := range a.children {
+		_, _ = x.Append(ref, newLbls, t, v)
+	}
+	return ref, nil
+}
+
+func (a *appender) Commit() error {
+	for _, x := range a.children {
+		_ = x.Commit()
+	}
+	return nil
+}
+
+func (a *appender) Rollback() error {
+	for _, x := range a.children {
+		_ = x.Rollback()
+	}
+	return nil
+}
+
+func (a *appender) AppendExemplar(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar) (storage.SeriesRef, error) {
+	// TODO implement me
+	panic("implement me")
+}
+
+func (a *appender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata) (storage.SeriesRef, error) {
+	// TODO implement me
+	panic("implement me")
 }

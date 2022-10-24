@@ -7,13 +7,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/prometheus/prometheus/storage"
+
 	"github.com/alecthomas/units"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
-	fa "github.com/grafana/agent/component/common/appendable"
 	component_config "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
@@ -37,8 +37,8 @@ func init() {
 // Arguments holds values which are used to configure the prometheus.scrape
 // component.
 type Arguments struct {
-	Targets   []discovery.Target     `river:"targets,attr"`
-	ForwardTo []*prometheus.Receiver `river:"forward_to,attr"`
+	Targets   []discovery.Target   `river:"targets,attr"`
+	ForwardTo []storage.Appendable `river:"forward_to,attr"`
 
 	// The job name to override the job label with.
 	JobName string `river:"job_name,attr,optional"`
@@ -109,7 +109,7 @@ type Component struct {
 	mut        sync.RWMutex
 	args       Arguments
 	scraper    *scrape.Manager
-	appendable *fa.FlowAppendable
+	appendable *fanout
 }
 
 var (
@@ -118,8 +118,8 @@ var (
 
 // New creates a new prometheus.scrape component.
 func New(o component.Options, args Arguments) (*Component, error) {
-	flowAppendable := fa.NewFlowAppendable(args.ForwardTo...)
-
+	//flowAppendable := fa.NewFlowAppendable(args.ForwardTo...)
+	flowAppendable := &fanout{children: args.ForwardTo}
 	scrapeOptions := &scrape.Options{ExtraMetrics: args.ExtraMetrics}
 	scraper := scrape.NewManager(scrapeOptions, o.Logger, flowAppendable)
 	c := &Component{
@@ -184,7 +184,7 @@ func (c *Component) Update(args component.Arguments) error {
 	defer c.mut.Unlock()
 	c.args = newArgs
 
-	c.appendable.SetReceivers(newArgs.ForwardTo)
+	c.appendable.children = newArgs.ForwardTo
 
 	sc := getPromScrapeConfigs(c.opts.ID, newArgs)
 	err := c.scraper.ApplyConfig(&config.Config{

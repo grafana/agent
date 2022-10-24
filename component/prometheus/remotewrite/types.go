@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/storage"
 
 	"github.com/prometheus/prometheus/config"
 
 	types "github.com/grafana/agent/component/common/config"
-	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/river"
 	common "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
@@ -185,7 +185,7 @@ func (o *WALOptions) UnmarshalRiver(f func(interface{}) error) error {
 // Exports are the set of fields exposed by the prometheus.remote_write
 // component.
 type Exports struct {
-	Receiver *prometheus.Receiver `river:"receiver,attr"`
+	Receiver storage.Appendable `river:"receiver,attr"`
 }
 
 func convertConfigs(cfg Arguments) (*config.Config, error) {
