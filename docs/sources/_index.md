@@ -111,7 +111,7 @@ The Grafana Agent is also capable of exporting to any OpenTelemetry GRPC compati
   * Minimum version: kernel 2.6.32 or later
   * Architectures: AMD64, ARM64, ARMv6, ARMv7
 * Windows
-  * Minimum version: Windows Server 2008R2 or later, or Windows 7 or later.
+  * Minimum version: Windows Server 2012 or later, or Windows 10 or later.
   * Architectures: AMD64
 * macOS
   * Minimum version: macOS 10.13 or later
