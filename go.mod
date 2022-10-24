@@ -124,6 +124,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.1
 	github.com/fatih/color v1.13.0
 	github.com/grafana/vmware_exporter v0.0.2-beta
+	github.com/muir/reflectutils v0.6.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.61.0
 	github.com/phayes/freeport v0.0.0-20220201140144-74d24b5ae9f5
 	github.com/prometheus/blackbox_exporter v0.22.1-0.20220920154026-3446984d6a6e

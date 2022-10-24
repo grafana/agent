@@ -1,6 +1,8 @@
 package kubernetes
 
 import (
+	"reflect"
+
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/discovery"
@@ -16,6 +18,7 @@ func init() {
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return discovery.New(opts, args, newK8s)
 		},
+		Type: reflect.TypeOf(discovery.Component{}),
 	})
 }
 
