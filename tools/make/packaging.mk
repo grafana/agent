@@ -86,12 +86,6 @@ dist/agent-freebsd-amd64: GOARCH  := amd64
 dist/agent-freebsd-amd64: generate-ui
 	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
-dist/agent-linux-mipsle: GO_TAGS += builtinassets
-dist/agent-linux-mipsle: GOOS    := linux
-dist/agent-linux-mipsle: GOARCH  := mipsle
-dist/agent-linux-mipsle: generate-ui
-	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
-
 #
 # agentctl release binaries.
 #
@@ -153,12 +147,6 @@ dist/agentctl-freebsd-amd64: GO_TAGS += builtinassets
 dist/agentctl-freebsd-amd64: GOOS    := freebsd
 dist/agentctl-freebsd-amd64: GOARCH  := amd64
 dist/agentctl-freebsd-amd64: generate-ui
-	$(PACKAGING_VARS) AGENTCTL_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agentctl
-
-dist/agentctl-linux-mipsle: GO_TAGS += builtinassets
-dist/agentctl-linux-mipsle: GOOS    := linux
-dist/agentctl-linux-mipsle: GOARCH  := mipsle
-dist/agentctl-linux-mipsle: generate-ui
 	$(PACKAGING_VARS) AGENTCTL_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agentctl
 
 #
