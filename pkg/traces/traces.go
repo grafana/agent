@@ -2,23 +2,17 @@ package traces
 
 import (
 	"fmt"
-	"os"
 	"sync"
-	"time"
 
 	"contrib.go.opencensus.io/exporter/prometheus"
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/util/zapadapter"
-	zaplogfmt "github.com/jsternberg/zap-logfmt"
 	prom_client "github.com/prometheus/client_golang/prometheus"
-	"github.com/sirupsen/logrus"
-	"github.com/weaveworks/common/logging"
 	"go.opencensus.io/stats/view"
 	"go.opentelemetry.io/collector/external/obsreportconfig"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 
 	"go.opentelemetry.io/collector/config/configtelemetry"
 )
@@ -28,25 +22,21 @@ type Traces struct {
 	mut       sync.Mutex
 	instances map[string]*Instance
 
-	leveller *logLeveller
-	logger   *zap.Logger
-	reg      prom_client.Registerer
+	logger *zap.Logger
+	reg    prom_client.Registerer
 
 	promInstanceManager instance.Manager
 }
 
 // New creates and starts trace collection.
-func New(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, reg prom_client.Registerer, cfg Config, level logrus.Level, fmt logging.Format, l log.Logger) (*Traces, error) {
-	var leveller logLeveller
-
+func New(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, reg prom_client.Registerer, cfg Config, l log.Logger) (*Traces, error) {
 	traces := &Traces{
 		instances:           make(map[string]*Instance),
-		leveller:            &leveller,
-		logger:              newLogger(&leveller, fmt, l),
+		logger:              newLogger(l),
 		reg:                 reg,
 		promInstanceManager: promInstanceManager,
 	}
-	if err := traces.ApplyConfig(logsSubsystem, promInstanceManager, cfg, level); err != nil {
+	if err := traces.ApplyConfig(logsSubsystem, promInstanceManager, cfg); err != nil {
 		return nil, err
 	}
 	return traces, nil
@@ -61,12 +51,9 @@ func (t *Traces) Instance(name string) *Instance {
 }
 
 // ApplyConfig updates Traces with a new Config.
-func (t *Traces) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, cfg Config, level logrus.Level) error {
+func (t *Traces) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, cfg Config) error {
 	t.mut.Lock()
 	defer t.mut.Unlock()
-
-	// Update the log level, if it has changed.
-	t.leveller.SetLevel(level)
 
 	newInstances := make(map[string]*Instance, len(cfg.Configs))
 
@@ -120,75 +107,12 @@ func (t *Traces) Stop() {
 	}
 }
 
-func newLogger(zapLevel zapcore.LevelEnabler, fmt logging.Format, l log.Logger) *zap.Logger {
-	config := zap.NewProductionEncoderConfig()
-	config.EncodeTime = func(ts time.Time, encoder zapcore.PrimitiveArrayEncoder) {
-		encoder.AppendString(ts.UTC().Format(time.RFC3339))
-	}
-
-	var encoder zapcore.Encoder
-	switch fmt.String() {
-	case "logfmt":
-		encoder = zaplogfmt.NewEncoder(config)
-	case "json":
-		encoder = zapcore.NewJSONEncoder(config)
-	default:
-		encoder = zaplogfmt.NewEncoder(config)
-	}
-
-	zapAdapter := zapadapter.New(l)
-
-	logger := zap.New(
-		zapcore.NewTee(
-			zapcore.NewCore(
-				encoder,
-				os.Stdout,
-				zapLevel,
-			),
-			zapAdapter.Core()),
-		zap.AddCaller())
+func newLogger(l log.Logger) *zap.Logger {
+	logger := zapadapter.New(l)
 	logger = logger.With(zap.String("component", "traces"))
 	logger.Info("Traces Logger Initialized")
 
 	return logger
-}
-
-// logLeveller implements the zapcore.LevelEnabler interface and allows for
-// switching out log levels at runtime.
-type logLeveller struct {
-	mut   sync.RWMutex
-	inner zapcore.Level
-}
-
-func (l *logLeveller) SetLevel(level logrus.Level) {
-	l.mut.Lock()
-	defer l.mut.Unlock()
-
-	zapLevel := zapcore.InfoLevel
-
-	switch level {
-	case logrus.PanicLevel:
-		zapLevel = zapcore.PanicLevel
-	case logrus.FatalLevel:
-		zapLevel = zapcore.FatalLevel
-	case logrus.ErrorLevel:
-		zapLevel = zapcore.ErrorLevel
-	case logrus.WarnLevel:
-		zapLevel = zapcore.WarnLevel
-	case logrus.InfoLevel:
-		zapLevel = zapcore.InfoLevel
-	case logrus.DebugLevel:
-	case logrus.TraceLevel:
-		zapLevel = zapcore.DebugLevel
-	}
-
-	l.inner = zapLevel
-}
-
-func (l *logLeveller) Enabled(target zapcore.Level) bool {
-	l.mut.RLock()
-	defer l.mut.RUnlock()
-	return l.inner.Enabled(target)
 }
 
 func newMetricViews(reg prom_client.Registerer) ([]*view.View, error) {

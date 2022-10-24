@@ -83,7 +83,7 @@ func NewEntrypoint(logger *server.Logger, cfg *config.Config, reloader Reloader)
 		return nil, err
 	}
 
-	ep.tempoTraces, err = traces.New(ep.lokiLogs, ep.promMetrics.InstanceManager(), reg, cfg.Traces, cfg.Server.LogLevel.Logrus, cfg.Server.LogFormat, &ep.log.HookLogger)
+	ep.tempoTraces, err = traces.New(ep.lokiLogs, ep.promMetrics.InstanceManager(), reg, cfg.Traces, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -168,7 +168,7 @@ func (ep *Entrypoint) ApplyConfig(cfg config.Config) error {
 		failed = true
 	}
 
-	if err := ep.tempoTraces.ApplyConfig(ep.lokiLogs, ep.promMetrics.InstanceManager(), cfg.Traces, cfg.Server.LogLevel.Logrus); err != nil {
+	if err := ep.tempoTraces.ApplyConfig(ep.lokiLogs, ep.promMetrics.InstanceManager(), cfg.Traces); err != nil {
 		level.Error(ep.log).Log("msg", "failed to update traces", "err", err)
 		failed = true
 	}

@@ -11,7 +11,6 @@ import (
 	"github.com/grafana/agent/pkg/util"
 	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 	jaegercfg "github.com/uber/jaeger-client-go/config"
 	"github.com/weaveworks/common/logging"
@@ -49,7 +48,7 @@ configs:
 	var loggingLevel logging.Level
 	require.NoError(t, loggingLevel.Set("debug"))
 
-	traces, err := New(nil, nil, prometheus.NewRegistry(), cfg, logrus.InfoLevel, logging.Format{}, &server.HookLogger{})
+	traces, err := New(nil, nil, prometheus.NewRegistry(), cfg, &server.HookLogger{})
 	require.NoError(t, err)
 	t.Cleanup(traces.Stop)
 
@@ -94,7 +93,7 @@ configs:
 	var loggingLevel logging.Level
 	require.NoError(t, loggingLevel.Set("debug"))
 
-	traces, err := New(nil, nil, prometheus.NewRegistry(), cfg, logrus.InfoLevel, logging.Format{}, &server.HookLogger{})
+	traces, err := New(nil, nil, prometheus.NewRegistry(), cfg, &server.HookLogger{})
 	require.NoError(t, err)
 	t.Cleanup(traces.Stop)
 }
@@ -128,7 +127,7 @@ configs:
 	err := dec.Decode(&cfg)
 	require.NoError(t, err)
 
-	traces, err := New(nil, nil, prometheus.NewRegistry(), cfg, logrus.DebugLevel, logging.Format{}, &server.HookLogger{})
+	traces, err := New(nil, nil, prometheus.NewRegistry(), cfg, &server.HookLogger{})
 	require.NoError(t, err)
 	t.Cleanup(traces.Stop)
 
@@ -154,7 +153,7 @@ configs:
 	err = dec.Decode(&fixedConfig)
 	require.NoError(t, err)
 
-	err = traces.ApplyConfig(nil, nil, fixedConfig, logrus.DebugLevel)
+	err = traces.ApplyConfig(nil, nil, fixedConfig)
 	require.NoError(t, err)
 
 	tr := testJaegerTracer(t)
