@@ -94,6 +94,13 @@ An HTTP proxy can be configured through the following environment variables:
 * `HTTPS_PROXY`
 * `NO_PROXY`
 
+The `NO_PROXY` environment variable is an optional list of comma-separated
+hostnames for which the HTTPS proxy should _not_ be used. Hostnames may be
+provided as an IP address (`1.2.3.4`), an IP address in CIDR notation
+(`1.2.3.4/8`), a domain name (`example.com`), or `*`. A domain name matches
+that name and all subdomains. A domain name with a leading "." (`.example.com`)
+matches subdomains only. `NO_PROXY` is only read when `HTTPS_PROXY` is set.
+
 Connections to the proxy are established via [the `HTTP CONNECT` method][HTTP
 CONNECT].
 
