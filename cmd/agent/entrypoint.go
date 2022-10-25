@@ -246,7 +246,10 @@ func (ep *Entrypoint) reloadHandler(rw http.ResponseWriter, r *http.Request) {
 func (ep *Entrypoint) getReporterMetrics() map[string]interface{} {
 	ep.mut.Lock()
 	defer ep.mut.Unlock()
-	return map[string]interface{}{"enabled-features": ep.cfg.EnabledFeatures}
+	return map[string]interface{}{
+		"enabled-features":     ep.cfg.EnabledFeatures,
+		"enabled-integrations": ep.cfg.Integrations.GetIntegrationsList(),
+	}
 }
 
 // TriggerReload will cause the Entrypoint to re-request the config file and

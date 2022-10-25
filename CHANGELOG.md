@@ -63,6 +63,8 @@ Main (unreleased)
   Grafana Agent, but are not meant to act as a replacement for fully featured
   components like `prometheus.integration.node_exporter`. (@rfratto)
 
+- Enable reporting of enabled integrations. (@marctc)
+
 ### Bugfixes
 
 - Remove empty port from the `apache_http` integration's instance label. (@katepangLiu)
