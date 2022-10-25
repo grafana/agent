@@ -415,12 +415,14 @@ func TestLogsStages(t *testing.T) {
 			name: "tenant",
 			input: map[string]interface{}{"spec": &gragent.PipelineStageSpec{
 				Tenant: &gragent.TenantStageSpec{
+					Label:  "__meta_kubernetes_pod_label_fake",
 					Source: "customer_id",
 					Value:  "fake",
 				},
 			}},
 			expect: util.Untab(`
 				tenant:
+					label: __meta_kubernetes_pod_label_fake
 					source: customer_id
 					value: fake
 			`),

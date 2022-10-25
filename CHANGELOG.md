@@ -65,6 +65,8 @@ Main (unreleased)
   Grafana Agent, but are not meant to act as a replacement for fully featured
   components like `prometheus.integration.node_exporter`. (@rfratto)
 
+- Enable field label in TenantStageSpec of PodLogs pipeline. (@siiimooon)
+
 ### Bugfixes
 
 - Remove empty port from the `apache_http` integration's instance label. (@katepangLiu)
