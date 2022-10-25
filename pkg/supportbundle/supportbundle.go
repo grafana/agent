@@ -141,30 +141,26 @@ func Export(ctx context.Context, enabledFeatures []string, cfg []byte, srvAddres
 		return nil, err
 	}
 	deadline, _ := ctx.Deadline()
-	time.Sleep(time.Until(deadline) - 100*time.Millisecond)
+	// Sleep for the remaining of the context deadline, but leave some time for
+	// the rest of the bundle to be exported successfully.
+	time.Sleep(time.Until(deadline) - 200*time.Millisecond)
 	pprof.StopCPUProfile()
 
-	// TODO(@tpaschalis) Since these are the built-in profiles, do we actually
-	// need the nil check?
-	if p := pprof.Lookup("heap"); p != nil {
-		if err := p.WriteTo(&heapBuf, 0); err != nil {
-			return nil, err
-		}
+	p := pprof.Lookup("heap")
+	if err := p.WriteTo(&heapBuf, 0); err != nil {
+		return nil, err
 	}
-	if p := pprof.Lookup("goroutine"); p != nil {
-		if err := p.WriteTo(&goroutineBuf, 0); err != nil {
-			return nil, err
-		}
+	p = pprof.Lookup("goroutine")
+	if err := p.WriteTo(&goroutineBuf, 0); err != nil {
+		return nil, err
 	}
-	if p := pprof.Lookup("block"); p != nil {
-		if err := p.WriteTo(&blockBuf, 0); err != nil {
-			return nil, err
-		}
+	p = pprof.Lookup("block")
+	if err := p.WriteTo(&blockBuf, 0); err != nil {
+		return nil, err
 	}
-	if p := pprof.Lookup("mutex"); p != nil {
-		if err := p.WriteTo(&mutexBuf, 0); err != nil {
-			return nil, err
-		}
+	p = pprof.Lookup("mutex")
+	if err := p.WriteTo(&mutexBuf, 0); err != nil {
+		return nil, err
 	}
 
 	// Finally, bundle everything up to be served, either as a zip from
