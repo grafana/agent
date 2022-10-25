@@ -76,9 +76,6 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlo
 	)
 
 	// Pre-populate graph with a ConfigNode.
-	// TODO (@tpaschalis) Are we okay with recreating the config node on each
-	// Apply? Should we check if it already exists and just update its blocks
-	// instead? if exist := l.graph.GetByID(configNodeID); exist == nil { ...
 	c, configBlockDiags := NewConfigNode(configBlocks, l.log)
 	diags = append(diags, configBlockDiags...)
 	newGraph.Add(c)

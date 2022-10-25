@@ -19,6 +19,8 @@ const (
 )
 
 // ConfigNode is a controller node which manages agent configuration.
+// The graph will always have _exactly one_ instance of ConfigNode, which will
+// be used to contain the state of all config blocks.
 type ConfigNode struct {
 	mut          sync.RWMutex
 	blocks       []*ast.BlockStmt // Current River blocks to derive config from
