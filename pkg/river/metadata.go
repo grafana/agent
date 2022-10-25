@@ -1,20 +1,12 @@
 package river
 
 import (
+	"reflect"
+	"strings"
+
 	"github.com/grafana/agent/pkg/river/internal/rivertags"
 	"github.com/grafana/agent/pkg/river/internal/value"
 	reflect_utils "github.com/muir/reflectutils"
-	"reflect"
-	"strings"
-)
-
-package parser
-
-import (
-"reflect"
-
-"github.com/grafana/agent/pkg/river/rivertags"
-reflect_utils "github.com/muir/reflectutils"
 )
 
 type Metadata struct {
@@ -24,60 +16,93 @@ type Metadata struct {
 }
 
 type Component struct {
-	Name        string  `json:"string"`
-	IsSingleton bool    `json:"is_singleton"`
-	Fields      []Field `json:"fields"`
+	Name          string   `json:"string"`
+	IsSingleton   bool     `json:"is_singleton"`
+	ArgumentField TagField `json:"argument_field"`
+	ExportField   TagField `json:"export_field"`
 }
 
-type Field struct {
-	Name         string  `json:"name"`
-	IsBlock      bool    `json:"is_block"`
-	IsAttribute  bool    `json:"is_attribute"`
-	IsArray      bool    `json:"is_array"`
-	IsMap bool `json:"is_map"`
-	IsOptional   bool    `json:"is_optional"`
-	DataType     string  `json:"datatype"`
-	ArrayType    string  `json:"array_type,omitempty"`
-	MapKeyType   string  `json:"key_type,omitempty"`
-	MapValueType string  `json:"value_type,omitempty"`
-	Fields       []Field `json:"fields,omitempty"`
+type TagField struct {
+	Name         string      `json:"name"`
+	IsBlock      bool        `json:"is_block"`
+	IsAttribute  bool        `json:"is_attribute"`
+	IsArray      bool        `json:"is_array"`
+	IsMap        bool        `json:"is_map"`
+	IsOptional   bool        `json:"is_optional"`
+	DataType     string      `json:"datatype"`
+	Fields       []*TagField `json:"fields,omitempty"`
+	ArrayType    string      `json:"array_type,omitempty"`
+	MapKeyType   string      `json:"map_key_type,omitempty"`
+	MapValueType string      `json:"map_value_type,omitempty"`
 }
 
-func GenerateComponent(name string, isSingleton bool, v interface{}) (Component, error) {
-	c := Component{
+type MapType struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+func GenerateComponent(name string, isSingleton bool, arguments interface{}, exports interface{}) (Component, error) {
+	/*c := Component{
 		Name:        name,
 		IsSingleton: isSingleton,
-		Fields:      make([]Field, 0),
 	}
+	_, err := generateField("arguments", arguments)
+	if err != nil {
+		return Component{}, err
+	}
+	_, err = generateField("exports", exports)
+	if err != nil {
+		return Component{}, err
+	}
+	//	c.ArgumentField = arg
+	//	c.ExportField = exp*/
+	return Component{}, nil
+}
+
+func generateField(tag *TagField, v interface{}) error {
+
 	t := reflect.TypeOf(v)
 	t = reflect_utils.NonPointer(t)
-	fields := rivertags.Get(t)
 	val := value.Encode(v)
+	refl := val.Reflect()
+	fields := rivertags.Get(t)
 	for _, field := range fields {
-		metaField := Field{
-			Name:        strings.Join(field.Name,"."),
+		metaField := &TagField{
+			Name:        strings.Join(field.Name, "."),
 			IsBlock:     field.IsBlock(),
 			IsAttribute: field.IsAttr(),
 			IsOptional:  field.IsOptional(),
+			Fields:      make([]*TagField, 0),
 		}
-		fieldVal := val.Index(field.Index[0])
-		metaField.DataType = fieldVal.Describe()
+		reflectField := refl.FieldByIndex(field.Index)
+		fieldVal := value.Encode(reflectField.Interface())
+		datatype := getType(fieldVal)
+		metaField.DataType = datatype
 		if metaField.DataType == "array" {
 			metaField.IsArray = true
 			elemVal := value.RiverType(fieldVal.Reflect().Type().Elem())
 			metaField.ArrayType = elemVal.String()
-		}
-		if metaField.DataType == "map" {
+		} else if metaField.DataType == "map" {
 			metaField.IsMap = true
 			elemVal := value.RiverType(fieldVal.Reflect().Type().Elem())
 			metaField.MapValueType = elemVal.String()
 
 			keyVal := value.RiverType(fieldVal.Reflect().Type().Key())
 			metaField.MapKeyType = keyVal.String()
+		} else if metaField.DataType == "object" {
+			err := generateField(metaField, reflectField.Interface())
+			if err != nil {
+				return err
+			}
 		}
-		c.Fields = append(c.Fields,metaField)
+		tag.Fields = append(tag.Fields, metaField)
 	}
-
-	return c, nil
+	return nil
 }
 
+func getType(val value.Value) string {
+	if val.Reflect().Kind() == reflect.Map {
+		return "map"
+	}
+	return val.Describe()
+}

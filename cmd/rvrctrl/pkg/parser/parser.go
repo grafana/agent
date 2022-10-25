@@ -2,9 +2,6 @@ package parser
 
 import (
 	"reflect"
-
-	"github.com/grafana/agent/pkg/river/rivertags"
-	reflect_utils "github.com/muir/reflectutils"
 )
 
 type Metadata struct {
@@ -35,13 +32,7 @@ func GenerateComponent(name string, isSingleton bool, v interface{}) (Component,
 		IsSingleton: isSingleton,
 		Fields:      make([]Field, 0),
 	}
-	t := reflect.TypeOf(v)
-	t = reflect_utils.NonPointer(t)
-	fields := rivertags.Get(t)
-	value
-	reflect_utils.WalkStructElements(t, func(field reflect.StructField) bool {
-
-	})
+	_ = reflect.TypeOf(v)
 
 	return c, nil
 }
