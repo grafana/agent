@@ -138,6 +138,9 @@ func (i *Integration) ScrapeConfigs() []config.ScrapeConfig {
 	for _, target := range i.cfg.BlackboxTargets {
 		queryParams := url.Values{}
 		queryParams.Add("target", target.Target)
+		if target.Module != "" {
+			queryParams.Add("module", target.Module)
+		}
 		res = append(res, config.ScrapeConfig{
 			JobName:     i.cfg.Name() + "/" + target.Name,
 			MetricsPath: "/metrics",

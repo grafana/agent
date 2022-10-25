@@ -71,6 +71,8 @@ Main (unreleased)
 
 - Fix identifier on target creation for SNMP v2 integration. (@marctc)
 
+- Fix bug when specifying Blackbox's modules when using Blackbox integration. (@marctc)
+
 v0.28.0 (2022-09-29)
 --------------------
 
