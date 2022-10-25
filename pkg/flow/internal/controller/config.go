@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/diag"
@@ -34,6 +35,8 @@ type ConfigNode struct {
 func ConfigBlockID(block *ast.BlockStmt) string {
 	return strings.Join(block.Name, ".")
 }
+
+var _ dag.Node = (*ConfigNode)(nil)
 
 // NewConfigNode creates a new ConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.
