@@ -310,7 +310,16 @@ func (ep *Entrypoint) supportHandler(rw http.ResponseWriter, r *http.Request) {
 	}()
 	ep.log.HookLogger.Set(logger)
 
-	bundle, err := supportbundle.Export(ctx, enabledFeatures, cfg, httpSrvAddress, ep.srv.DialContext)
+	var configBytes []byte
+	var err error
+	if cfg.EnableConfigEndpoints {
+		configBytes, err = yaml.Marshal(cfg)
+		if err != nil {
+			http.Error(rw, fmt.Sprintf("failed to marshal config: %s", err), http.StatusInternalServerError)
+		}
+	}
+
+	bundle, err := supportbundle.Export(ctx, enabledFeatures, configBytes, httpSrvAddress, ep.srv.DialContext)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return

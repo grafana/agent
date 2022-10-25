@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"github.com/grafana/agent/pkg/build"
-	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/server"
 	"github.com/mackerelio/go-osstat/uptime"
 	"gopkg.in/yaml.v3"
@@ -49,7 +48,7 @@ type Metadata struct {
 var mut sync.Mutex
 
 // Export gathers the information required for the support bundle.
-func Export(ctx context.Context, enabledFeatures []string, cfg config.Config, srvAddress string, dialContext server.DialContextFunc) (*Bundle, error) {
+func Export(ctx context.Context, enabledFeatures []string, cfg []byte, srvAddress string, dialContext server.DialContextFunc) (*Bundle, error) {
 	mut.Lock()
 	defer mut.Unlock()
 	// The block profiler is disabled by default. Temporarily enable recording
@@ -77,11 +76,6 @@ func Export(ctx context.Context, enabledFeatures []string, cfg config.Config, sr
 	meta, err := yaml.Marshal(m)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal support bundle metadata: %s", err)
-	}
-	// Gather current configuration.
-	config, err := yaml.Marshal(cfg)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal config: %s", err)
 	}
 
 	var httpClient http.Client
@@ -177,7 +171,7 @@ func Export(ctx context.Context, enabledFeatures []string, cfg config.Config, sr
 	// memory, or exported to a directory.
 	bundle := &Bundle{
 		meta:                  meta,
-		config:                config,
+		config:                cfg,
 		agentMetrics:          agentMetrics,
 		agentMetricsInstances: agentMetricsInstances,
 		agentMetricsTargets:   agentMetricsTargets,
@@ -216,9 +210,11 @@ func Serve(rw http.ResponseWriter, b *Bundle, logsBuf *bytes.Buffer) error {
 	}
 
 	for fn, b := range zipStructure {
-		path := append([]string{"agent-support-bundle"}, strings.Split(fn, "/")...)
-		if err := writeByteSlice(zw, b, path...); err != nil {
-			return err
+		if b != nil {
+			path := append([]string{"agent-support-bundle"}, strings.Split(fn, "/")...)
+			if err := writeByteSlice(zw, b, path...); err != nil {
+				return err
+			}
 		}
 	}
 
