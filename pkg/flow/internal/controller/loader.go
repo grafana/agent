@@ -128,7 +128,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlo
 			if errBlock, err := l.evaluateConfig(parentScope, c); err != nil {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
-					Message:  fmt.Sprintf("Failed to build node from config blocks: %s", err),
+					Message:  fmt.Sprintf("Failed to evaluate node for config blocks: %s", err),
 					StartPos: ast.StartPos(errBlock).Position(),
 					EndPos:   ast.EndPos(errBlock).Position(),
 				})
@@ -280,7 +280,12 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 			// arguments will need re-evaluation.
 			return nil
 		}
-		_ = l.evaluate(parentScope, n.(*ComponentNode))
+		switch n := n.(type) {
+		case *ComponentNode:
+			_ = l.evaluate(parentScope, n)
+		case *ConfigNode:
+			_, _ = l.evaluateConfig(parentScope, n)
+		}
 		return nil
 	})
 

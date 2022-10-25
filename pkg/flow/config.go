@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/parser"
@@ -14,8 +13,6 @@ import (
 type File struct {
 	Name string    // File name given to ReadFile.
 	Node *ast.File // Raw File node.
-
-	Logging logging.Options
 
 	// Components holds the list of raw River AST blocks describing components.
 	// The Flow controller can interpret them.
@@ -70,12 +67,9 @@ func ReadFile(name string, bb []byte) (*File, error) {
 		}
 	}
 
-	loggingOpts := logging.DefaultOptions
-
 	return &File{
 		Name:         name,
 		Node:         node,
-		Logging:      loggingOpts,
 		Components:   components,
 		ConfigBlocks: configs,
 	}, nil

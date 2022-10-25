@@ -48,7 +48,6 @@ package flow
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"sync"
 	"time"
@@ -196,11 +195,6 @@ func (c *Flow) run(ctx context.Context) {
 func (c *Flow) LoadFile(file *File) error {
 	c.loadMut.Lock()
 	defer c.loadMut.Unlock()
-
-	err := c.log.Update(file.Logging)
-	if err != nil {
-		return fmt.Errorf("error updating logger: %w", err)
-	}
 
 	diags := c.loader.Apply(nil, file.Components, file.ConfigBlocks)
 	if !c.loadedOnce && diags.HasErrors() {
