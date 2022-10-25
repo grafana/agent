@@ -4,7 +4,7 @@ import (
 	"net/url"
 	"testing"
 
-	a "github.com/grafana/agent/pkg/integrations/config"
+	integrations "github.com/grafana/agent/pkg/integrations/config"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )
@@ -37,7 +37,7 @@ blackbox_config:
 
 		integration, err := New(nil, &config)
 		require.NoError(t, err)
-		expectedScrapeConfigs := []a.ScrapeConfig{
+		expectedScrapeConfigs := []integrations.ScrapeConfig{
 			{
 				JobName:     "blackbox/icmp_cloudflare",
 				MetricsPath: "/metrics",
