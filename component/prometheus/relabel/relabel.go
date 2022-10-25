@@ -122,6 +122,7 @@ func (c *Component) Update(args component.Arguments) error {
 func (c *Component) Relabel(val float64, lbls labels.Labels) labels.Labels {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
+
 	globalRef := prometheus.GlobalRefMapping.GetOrAddGlobalRefID(lbls)
 	var relabelled labels.Labels
 	newLbls, found := c.getFromCache(globalRef)
@@ -196,6 +197,7 @@ type appender struct {
 	relabel  func(val float64, lbls labels.Labels) labels.Labels
 }
 
+// Append statisfies the appender interface.
 func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, error) {
 	newLbls := a.relabel(v, l)
 	if newLbls == nil {
@@ -207,6 +209,7 @@ func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v flo
 	return ref, nil
 }
 
+// Commit satisfies the appender interface.
 func (a *appender) Commit() error {
 	for _, x := range a.children {
 		_ = x.Commit()
@@ -214,6 +217,7 @@ func (a *appender) Commit() error {
 	return nil
 }
 
+// Rollback satisfies the appender interface.
 func (a *appender) Rollback() error {
 	for _, x := range a.children {
 		_ = x.Rollback()
@@ -221,11 +225,13 @@ func (a *appender) Rollback() error {
 	return nil
 }
 
+// AppendExemplar satisfies the appender interface.
 func (a *appender) AppendExemplar(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar) (storage.SeriesRef, error) {
 	// TODO implement me
 	panic("implement me")
 }
 
+// UpdateMetadata satisfies the appender interface.
 func (a *appender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata) (storage.SeriesRef, error) {
 	// TODO implement me
 	panic("implement me")

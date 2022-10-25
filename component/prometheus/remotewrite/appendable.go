@@ -17,6 +17,7 @@ type appendable struct {
 	componentID string
 }
 
+// Appender satisfies the Appendable interface.
 func (a *appendable) Appender(ctx context.Context) storage.Appender {
 	app := &appender{
 		child:       a.inner.Appender(ctx),
@@ -30,6 +31,7 @@ type appender struct {
 	componentID string
 }
 
+// Append satisfies the Appender interface.
 func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, error) {
 	// Conversion is needed because remote_writes assume they own all the IDs, so if you have two remote_writes they will
 	// both assume they have only one scraper attached. In flow that is not true, so we need to translate from a global id
@@ -41,19 +43,23 @@ func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v flo
 	return a.child.Append(storage.SeriesRef(localID), l, t, v)
 }
 
+// Commit satisfies the Appender interface.
 func (a *appender) Commit() error {
 	return a.child.Commit()
 }
 
+// Rollback satisfies the Appender interface.
 func (a *appender) Rollback() error {
 	return a.child.Rollback()
 }
 
+// AppendExemplate satisfies the Appender interface.
 func (a *appender) AppendExemplar(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar) (storage.SeriesRef, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
+// UpdateMetadata satisfies the Appender interface.
 func (a *appender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata) (storage.SeriesRef, error) {
 	//TODO implement me
 	panic("implement me")
