@@ -44,7 +44,7 @@ integrations:
 	require.NotNil(t, c.Integrations.configV2)
 }
 
-func TestIntegrationList_v1(t *testing.T) {
+func TestEnabledIntegrations_v1(t *testing.T) {
 	cfg := `
 metrics:
   wal_directory: /tmp/wal
@@ -60,10 +60,10 @@ integrations:
 		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
-	require.Equal(t, c.Integrations.GetIntegrationsList(), []string{"node_exporter", "agent"})
+	require.Equal(t, c.Integrations.EnabledIntegrations(), []string{"node_exporter", "agent"})
 }
 
-func TestIntegrationList_v2(t *testing.T) {
+func TestEnabledIntegrations_v2(t *testing.T) {
 	cfg := `
 metrics:
   wal_directory: /tmp/wal
@@ -81,5 +81,5 @@ integrations:
 		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
-	require.Equal(t, c.Integrations.GetIntegrationsList(), []string{"node_exporter", "agent"})
+	require.Equal(t, c.Integrations.EnabledIntegrations(), []string{"node_exporter", "agent"})
 }

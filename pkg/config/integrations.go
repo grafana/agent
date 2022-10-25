@@ -114,8 +114,8 @@ func (c *VersionedIntegrations) setVersion(v integrationsVersion) error {
 	}
 }
 
-// GetIntegrationsList returns a slice of enabled integrations
-func (c *VersionedIntegrations) GetIntegrationsList() []string {
+// EnabledIntegrations returns a slice of enabled integrations
+func (c *VersionedIntegrations) EnabledIntegrations() []string {
 	integrations := []string{}
 	if c.configV1 != nil {
 		for _, integration := range c.configV1.Integrations {

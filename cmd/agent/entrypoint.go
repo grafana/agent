@@ -248,7 +248,7 @@ func (ep *Entrypoint) getReporterMetrics() map[string]interface{} {
 	defer ep.mut.Unlock()
 	return map[string]interface{}{
 		"enabled-features":     ep.cfg.EnabledFeatures,
-		"enabled-integrations": ep.cfg.Integrations.GetIntegrationsList(),
+		"enabled-integrations": ep.cfg.Integrations.EnabledIntegrations(),
 	}
 }
 
