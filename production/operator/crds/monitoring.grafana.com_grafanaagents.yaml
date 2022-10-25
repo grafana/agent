@@ -2314,6 +2314,11 @@ spec:
                 description: disableReporting disable reporting of enabled feature
                   flags to Grafana.
                 type: boolean
+              disableSupportBundle:
+                default: false
+                description: disableSupportBundle disables the generation of support
+                  bundles.
+                type: boolean
               enableConfigReadAPI:
                 default: false
                 description: enableConfigReadAPI enables the read API for viewing
