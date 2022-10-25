@@ -67,7 +67,7 @@ Support bundles contain all information in plain text, so that they can be
 inspected before sharing to verify that no sensitive information has leaked.
 
 Support bundles contain the following data:
-* `agent-config.yaml` contains the current agent configuration.
+* `agent-config.yaml` contains the current agent configuration (when the `-config.enable-read-api` flag is passed).
 * `agent-logs.txt` contains the agent logs during the bundle generation.
 * `agent-metadata.yaml` contains the agent's build version, operating system, architecture, uptime, plus a string payload defining which extra agent features have been enabled via command-line flags.
 * `agent-metrics-instances.json` and `agent-metrics-targets.json` contain the active metric subsystem instances, and the discovered scraped targets for each one.
