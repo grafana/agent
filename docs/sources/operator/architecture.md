@@ -43,6 +43,23 @@ A single resource can belong to multiple hierarchies. For example, if two
 GrafanaAgents use the same Probe, modifying that Probe will cause both
 GrafanaAgents to be reconciled.
 
+### Build the Hierarchy
+
+Grafana Agent Operator builds the hierarchy using label matching on the custom resources. The following figure illustrates the matching. The `GrafanaAgent` picks up the `MetricsInstance`
+and `LogsInstance` that match the labels `app.kubernetes.io/name: loki` and `app.kubernetes.io/instance: release-name`, respectively. The instances pick up the resources the same way.
+
+{{<figure class="float-right" src="../../assets/hierarchy.svg" >}}
+
+### Debug the Hierarchy
+
+The generated configurations are saved in secrets. To download and
+validate them manually, use the following commands:
+
+```
+$ kubectl get secrets <???>-logs-config -o json | jq -r '.data."agent.yml"' | base64 --decode
+$ kubectl get secrets <???>-config -o json | jq -r '.data."agent.yml"' | base64 --decode
+```
+
 ## Reconcile
 
 When a resource hierarchy is created, updated, or deleted, a reconcile occurs.
