@@ -17,7 +17,7 @@ import (
 	"go.opentelemetry.io/collector/config/configauth"
 )
 
-// Test performs a basic integration test which runs the otelcol.exporter.otlp
+// Test performs a basic integration test which runs the otelcol.auth.bearer
 // component and ensures that it can be used for authentication.
 func Test(t *testing.T) {
 	// Create an HTTP server which will assert that bearer auth has been injected
