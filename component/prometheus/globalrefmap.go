@@ -79,6 +79,7 @@ func (g *GlobalRefMap) GetOrAddGlobalRefID(l labels.Labels) uint64 {
 	g.mut.Lock()
 	defer g.mut.Unlock()
 
+	// Guard against bad input.
 	if l == nil {
 		return 0
 	}

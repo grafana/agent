@@ -56,11 +56,11 @@ func (f *Fanout) Appender(ctx context.Context) storage.Appender {
 		intercept:   f.intercept,
 		componentID: f.componentID,
 	}
-	for i, x := range f.children {
+	for _, x := range f.children {
 		if x == nil {
 			continue
 		}
-		app.children[i] = x.Appender(ctx)
+		app.children = append(app.children, x.Appender(ctx))
 	}
 	return app
 }
@@ -78,22 +78,22 @@ func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v flo
 	if ref == 0 {
 		ref = storage.SeriesRef(GlobalRefMapping.GetOrAddGlobalRefID(l))
 	}
-	nRef := ref
-	nL := l
-	nT := t
-	nV := v
+	newRef := ref
+	newLabels := l
+	newTimestamp := t
+	newValue := v
 	if a.intercept != nil {
 		var err error
-		nRef, nL, nT, nV, err = a.intercept(ref, l, t, v)
+		newRef, newLabels, newTimestamp, newValue, err = a.intercept(ref, l, t, v)
 		if err != nil {
 			return 0, err
 		}
 	}
 	for _, x := range a.children {
-		if x == nil || nL == nil {
+		if newLabels == nil {
 			continue
 		}
-		_, _ = x.Append(nRef, nL, nT, nV)
+		_, _ = x.Append(newRef, newLabels, newTimestamp, newValue)
 	}
 	return ref, nil
 }
@@ -101,9 +101,6 @@ func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v flo
 // Commit satisfies the Appender interface.
 func (a *appender) Commit() error {
 	for _, x := range a.children {
-		if x == nil {
-			continue
-		}
 		_ = x.Commit()
 	}
 	return nil
@@ -112,9 +109,6 @@ func (a *appender) Commit() error {
 // Rollback satisifies the Appender interface.
 func (a *appender) Rollback() error {
 	for _, x := range a.children {
-		if x == nil {
-			continue
-		}
 		_, _ = x, a.Rollback()
 	}
 	return nil
@@ -122,10 +116,10 @@ func (a *appender) Rollback() error {
 
 // AppendExemplar satisfies the Appender interface.
 func (a *appender) AppendExemplar(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar) (storage.SeriesRef, error) {
-	return 0, fmt.Errorf("AppendExemplar not supported yet.")
+	return 0, fmt.Errorf("appendExemplar not supported yet")
 }
 
 // UpdateMetadata satisifies the Appender interface.
 func (a *appender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata) (storage.SeriesRef, error) {
-	return 0, fmt.Errorf("UpdateMetadata not supported yet.")
+	return 0, fmt.Errorf("updateMetadata not supported yet")
 }
