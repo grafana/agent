@@ -80,6 +80,10 @@ Configuration reference:
 
   ## If you would like to limit events to a given namespace, use this parameter.
   [namespace: <string>]
+
+  ## Configure extra labels to add to log lines
+  extra_labels:
+    { <string>: <string> }  
 ```
 
 Sample agent config:
