@@ -33,11 +33,12 @@ goes into more detail about the context and design decisions being made.
 The `make generate-crds` command at the root of this repository will generate CRDs and
 other code used by the operator. This calls the [generate-crds
 script](../../tools/generate-crds.bash) in a container. If you wish to call this
-script manually, you must also install `controller-gen`.
+script manually, you must also install `controller-gen` and `gen-crd-api-reference-docs`.
 Ensure to keep the version in sync with what's defined in the `Dockerfile`.
 
 ```
 go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.6.2
+go install github.com/ahmetb/gen-crd-api-reference-docs@v0.3.1-0.20220618162802-424739b250f5
 ```
 
 ## Testing Locally
