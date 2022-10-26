@@ -106,6 +106,12 @@ func Encode(v interface{}) Value {
 	return makeValue(reflect.ValueOf(v))
 }
 
+// FromRaw converts a reflect.Value into a River Value. It is useful to prevent
+// downcasting a interface into an any.
+func FromRaw(v reflect.Value) Value {
+	return makeValue(v)
+}
+
 // Type returns the River type for the value.
 func (v Value) Type() Type { return v.ty }
 
