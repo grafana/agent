@@ -2,6 +2,7 @@ package config
 
 import (
 	"flag"
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -60,7 +61,12 @@ integrations:
 		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
-	require.Equal(t, c.Integrations.EnabledIntegrations(), []string{"agent", "node_exporter"})
+
+	actual := c.Integrations.EnabledIntegrations()
+	sort.Strings(actual)
+	expected := []string{"agent", "node_exporter"}
+	sort.Strings(expected)
+	require.Equal(t, actual, expected)
 }
 
 func TestEnabledIntegrations_v2(t *testing.T) {
@@ -81,7 +87,12 @@ integrations:
 		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
-	require.Equal(t, c.Integrations.EnabledIntegrations(), []string{"node_exporter", "agent"})
+
+	actual := c.Integrations.EnabledIntegrations()
+	sort.Strings(actual)
+	expected := []string{"agent", "node_exporter"}
+	sort.Strings(expected)
+	require.Equal(t, actual, expected)
 }
 
 func TestEnabledIntegrations_v2MultipleInstances(t *testing.T) {
