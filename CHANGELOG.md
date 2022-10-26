@@ -85,6 +85,8 @@ Main (unreleased)
 
 - Fix bug when specifying Blackbox's modules when using Blackbox integration. (@marctc)
 
+- Tracing: fix a panic when the required `protocols` field was not set in the `otlp` receiver. (@ptodev)
+
 v0.28.0 (2022-09-29)
 --------------------
 
