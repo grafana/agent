@@ -54,29 +54,6 @@ Configuration reference:
   # The value here must be unique across all instances of the same integration.
   [instance: <string>]
 
-  # Override autoscrape defaults for this integration.
-  autoscrape:
-    # Enables autoscrape of integrations.
-    [enable: <boolean> | default = <integrations.metrics.autoscrape.enable>]
-
-    # Specifies the metrics instance name to send metrics to.
-    [metrics_instance: <string> | default = <integrations.metrics.autoscrape.metrics_instance>]
-
-    # Autoscrape interval and timeout.
-    [scrape_interval: <duration> | default = <integrations.metrics.autoscrape.scrape_interval>]
-    [scrape_timeout: <duration> | default = <integrations.metrics.autoscrape.scrape_timeout>]
-
-  # An optional extra set of labels to add to metrics from the integration target. These
-  # labels are only exposed via the integration service discovery HTTP API and
-  # added when autoscrape is used. They will not be found directly on the metrics
-  # page for an integration.
-  extra_labels:
-    [ <labelname>: <labelvalue> ... ]
-
-  #
-  # Exporter-specific configuration options
-  #
-
   ## Eventhandler hands watched events off to promtail using a promtail
   ## client channel. This parameter configures how long to wait (in seconds) on the channel
   ## before abandoning and moving on.

@@ -3,7 +3,6 @@ package eventhandler
 import (
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations/v2"
-	"github.com/grafana/agent/pkg/integrations/v2/common"
 	"github.com/prometheus/prometheus/model/labels"
 )
 
@@ -39,8 +38,8 @@ type Config struct {
 	// If you would like to limit events to a given namespace, use this parameter.
 	Namespace string `yaml:"namespace,omitempty"`
 	// Extra labels to append to log lines
-	ExtraLabels labels.Labels        `yaml:"extra_labels,omitempty"`
-	Common      common.MetricsConfig `yaml:",inline"`
+	ExtraLabels labels.Labels `yaml:"extra_labels,omitempty"`
+	InstanceKey *string       `yaml:"instance,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
@@ -61,8 +60,8 @@ func (c *Config) ApplyDefaults(globals integrations.Globals) error {
 
 // Identifier uniquely identifies this instance of Config
 func (c *Config) Identifier(globals integrations.Globals) (string, error) {
-	if c.Common.InstanceKey != nil {
-		return *c.Common.InstanceKey, nil
+	if c.InstanceKey != nil {
+		return *c.InstanceKey, nil
 	}
 	return c.Name(), nil
 }
