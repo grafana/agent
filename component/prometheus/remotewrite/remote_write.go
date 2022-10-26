@@ -60,7 +60,6 @@ func NewComponent(o component.Options, c Arguments) (*Component, error) {
 		return nil, err
 	}
 
-
 	remoteLogger := log.With(o.Logger, "subcomponent", "rw")
 	remoteStore := remote.NewStorage(remoteLogger, o.Registerer, startTime, dataPath, remoteFlushDeadline, nil)
 
@@ -182,4 +181,3 @@ func (c *Component) Update(newConfig component.Arguments) error {
 	c.cfg = cfg
 	return nil
 }
-

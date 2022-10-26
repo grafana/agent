@@ -47,7 +47,7 @@ type Component struct {
 	mut              sync.RWMutex
 	opts             component.Options
 	mrc              []*relabel.Config
-	receiver *prometheus.Fanout
+	receiver         *prometheus.Fanout
 	metricsProcessed prometheus_client.Counter
 
 	cacheMut sync.RWMutex
