@@ -40,6 +40,9 @@ Main (unreleased)
   - `otelcol.exporter.otlp` accepts data from `otelcol` components and sends
     it to a gRPC server using the OTLP protocol. (@rfratto)
 
+  - `otelcol.exporter.otlphttp` accepts data from `otelcol` components and
+    sends it to an HTTP server using the OTLP protocol. (@tpaschalis)
+
   - `otelcol.auth.basic` performs basic authentication for `otelcol`
     components which support authentication extensions. (@rfratto)
 
