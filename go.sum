@@ -2049,6 +2049,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexp
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter v0.61.0/go.mod h1:GtzfeHEYI2XcD9rs79UlgDT6A+WYJv8o5GWL5k20kg4=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.61.0 h1:O02J3B6hkVtftbtXCbkEyaQm1mDu5k6VoVOghJgN95o=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.61.0/go.mod h1:lSpO0oRJvNEbAdKbKIqJ7Lb+Tfj6XI9N415E0ATAMYE=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension v0.61.0 h1:s3Xc8ncFd8E4va9xDIXoEYzoBILSe2bdGwxMuS6MVBE=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension v0.61.0/go.mod h1:AlW4Z/pvtLqP0PtLzuh1I5ifJXEsSWTTj0g194BEsQA=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension v0.61.0 h1:USlB+ZO5VxvoLU1iE3bToDaS9xBTcqD6J5ooYBu8fUk=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension v0.61.0/go.mod h1:kY/a+e4Yl3cTEWp3m8eFxmNU60yYvoWledSKjLKrip4=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/common v0.61.0 h1:z+MA5MWVNh9n6w9+npb4Cb7/Ycgfa/jqJFnkSCSYhb0=

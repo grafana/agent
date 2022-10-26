@@ -50,6 +50,9 @@ Main (unreleased)
     drops data or forces a garbage collection if the defined limits are
     exceeded. (@tpaschalis)
 
+  - `otelcol.auth.bearer` performs bearer token authentication for `otelcol`
+    components that support authentication extensions. (@rfratto)
+
 - Flow: Allow config blocks to reference component exports. (@tpaschalis)
 
 ### Enhancements
