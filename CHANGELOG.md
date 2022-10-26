@@ -51,7 +51,7 @@ Main (unreleased)
     exceeded. (@tpaschalis)
 
   - `otelcol.auth.bearer` performs bearer token authentication for `otelcol`
-    components which support authentication extensions. (@rfratto)
+    components that support authentication extensions. (@rfratto)
 
 - Flow: Allow config blocks to reference component exports. (@tpaschalis)
 
