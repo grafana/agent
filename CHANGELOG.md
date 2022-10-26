@@ -44,7 +44,7 @@ Main (unreleased)
     sends it to an HTTP server using the OTLP protocol. (@tpaschalis)
 
   - `otelcol.auth.basic` performs basic authentication for `otelcol`
-    components which support authentication extensions. (@rfratto)
+    components that support authentication extensions. (@rfratto)
 
   - `otelcol.receiver.jeager` receives Jaeger-formatted traces. Data can then
     be forwarded to other `otelcol` components. (@rfratto)
@@ -54,6 +54,9 @@ Main (unreleased)
     exceeded. (@tpaschalis)
 
   - `otelcol.auth.bearer` performs bearer token authentication for `otelcol`
+    components that support authentication extensions. (@rfratto)
+
+  - `otelcol.auth.headers` attaches custom request headers to `otelcol`
     components that support authentication extensions. (@rfratto)
 
 - Flow: Allow config blocks to reference component exports. (@tpaschalis)
