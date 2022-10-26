@@ -30,7 +30,7 @@ otelcol.auth.headers "LABEL" {
 
 ## Arguments
 
-`otelcol.auth.headers` doesn't support any arugments and is configured fully
+`otelcol.auth.headers` doesn't support any arguments and is configured fully
 through inner blocks.
 
 ## Blocks
