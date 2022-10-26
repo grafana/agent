@@ -50,6 +50,11 @@ Main (unreleased)
     drops data or forces a garbage collection if the defined limits are
     exceeded. (@tpaschalis)
 
+  - `otelcol.auth.bearer` performs bearer token authentication for `otelcol`
+    components that support authentication extensions. (@rfratto)
+
+- Flow: Allow config blocks to reference component exports. (@tpaschalis)
+
 ### Enhancements
 
 - Update OpenTelemetry Collector dependency to v0.61.0. (@rfratto)
@@ -63,11 +68,19 @@ Main (unreleased)
   Grafana Agent, but are not meant to act as a replacement for fully featured
   components like `prometheus.integration.node_exporter`. (@rfratto)
 
+- Enable reporting of enabled integrations. (@marctc)
+
+- Grafana Agent Flow: `prometheus.remote_write` and `prometheus.relabel` will
+  now export receivers immediately, removing the need for dependant components
+  to be evaluated twice at process startup. (@rfratto)
+
 ### Bugfixes
 
 - Remove empty port from the `apache_http` integration's instance label. (@katepangLiu)
 
 - Fix identifier on target creation for SNMP v2 integration. (@marctc)
+
+- Fix bug when specifying Blackbox's modules when using Blackbox integration. (@marctc)
 
 v0.28.0 (2022-09-29)
 --------------------

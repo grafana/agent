@@ -31,6 +31,27 @@ func TestReadFile(t *testing.T) {
 	require.Equal(t, "testcomponents.passthrough.static", getBlockID(f.Components[1]))
 }
 
+func TestReadFileWithConfigBlock(t *testing.T) {
+	content := `
+        logging {
+		    log_format = "json"
+		}
+
+		testcomponents.tick "ticker_a" {
+			frequency = "1s"
+		}
+	`
+
+	f, err := flow.ReadFile(t.Name(), []byte(content))
+	require.NoError(t, err)
+	require.NotNil(t, f)
+
+	require.Len(t, f.Components, 1)
+	require.Equal(t, "testcomponents.tick.ticker_a", getBlockID(f.Components[0]))
+	require.Len(t, f.ConfigBlocks, 1)
+	require.Equal(t, "logging", getBlockID(f.ConfigBlocks[0]))
+}
+
 func TestReadFile_Defaults(t *testing.T) {
 	f, err := flow.ReadFile(t.Name(), []byte(``))
 	require.NotNil(t, f)

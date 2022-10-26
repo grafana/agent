@@ -7,6 +7,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// +genclient
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:path="grafanaagents"
 // +kubebuilder:resource:singular="grafanaagent"

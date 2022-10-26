@@ -5,6 +5,8 @@ import (
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 )
 
+// +genclient
+
 // Deployment is a set of discovered resources relative to a GrafanaAgent. The
 // tree of resources contained in a Deployment form the resource hierarchy used
 // for reconciling a GrafanaAgent.
@@ -21,6 +23,8 @@ type Deployment struct {
 	Secrets assets.SecretStore
 }
 
+// +genclient
+
 // MetricsDeployment is a set of discovered resources relative to a
 // MetricsInstance.
 type MetricsDeployment struct {
@@ -30,11 +34,15 @@ type MetricsDeployment struct {
 	Probes          []*promv1.Probe
 }
 
+// +genclient
+
 // LogsDeployment is a set of discovered resources relative to a LogsInstance.
 type LogsDeployment struct {
 	Instance *LogsInstance
 	PodLogs  []*PodLogs
 }
+
+// +genclient
 
 // IntegrationsDeployment is a set of discovered resources relative to an
 // IntegrationsDeployment.

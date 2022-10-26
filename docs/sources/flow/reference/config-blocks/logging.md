@@ -11,9 +11,6 @@ weight: 100
 Agent produces log messages. `logging` is specified without a label and can
 only be provided once per configuration file.
 
-> **NOTE**: Configuration blocks are not components, so expressions that
-> reference the exports of components cannot be used.
-
 ## Example
 
 ```river

@@ -21,8 +21,8 @@ There are other ways of sending metrics, logs and traces to the Grafana Stack, G
 
 * Provides a one-stop solution for collecting metrics, logs, and traces.
 * Collects out-of-the-box telemetry from popular projects like MySQL through integrations.
-* Works seamlessly with the Grafana Stack. Alternatively, metrics can be sent to any Prometheus-compatible endpoint, and traces can be sent to any OTLP-compatible endpoint.  
-* Offers new solutions to help scale metrics collection like host_filtering and sharding. 
+* Works seamlessly with the Grafana Stack. Alternatively, metrics can be sent to any Prometheus-compatible endpoint, and traces can be sent to any OTLP-compatible endpoint.
+* Offers new solutions to help scale metrics collection like host_filtering and sharding.
 * Provides the Grafana Agent Operator, which enables individual teams to manage their configurations through PodMonitors, ServiceMonitors, and Probes.
 
 ## Metrics
@@ -104,6 +104,21 @@ Grafana Agent collects traces and forwards them to Tempo using its
 Grafana Agent can ingest OpenTelemetry, OpenCensus, Jaeger, Zipkin, or Kafka spans.
 For more information on how to configure, refer to [receivers]({{< relref "./configuration/traces-config.md" >}}).
 The Grafana Agent is also capable of exporting to any OpenTelemetry GRPC compatible system.
+
+## Supported platforms
+
+* Linux
+  * Minimum version: kernel 2.6.32 or later
+  * Architectures: AMD64, ARM64, ARMv6, ARMv7
+* Windows
+  * Minimum version: Windows Server 2012 or later, or Windows 10 or later.
+  * Architectures: AMD64
+* macOS
+  * Minimum version: macOS 10.13 or later
+  * Architectures: AMD64 (Intel), ARM64 (Apple Silicon)
+* FreeBSD
+  * Minimum version: FreeBSD 10 or later
+  * Architectures: AMD64
 
 ## Release schedule
 

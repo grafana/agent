@@ -51,6 +51,7 @@ The usage information includes the following details:
 * Operating system Grafana Agent is running on.
 * System architecture Grafana Agent is running on.
 * List of enabled feature flags.
+* List of enabled integrations.
 
 This list may change over time. All newly reported data will also be documented in the CHANGELOG.
 

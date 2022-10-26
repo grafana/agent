@@ -71,6 +71,11 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// Immediately export the receiver which remains the same for the component
+	// lifetime.
+	o.OnStateChange(Exports{Receiver: c.receiver})
+
 	// Call to Update() to set the relabelling rules once at the start.
 	if err = c.Update(args); err != nil {
 		return nil, err
@@ -95,7 +100,6 @@ func (c *Component) Update(args component.Arguments) error {
 	c.clearCache()
 	c.mrc = flow_relabel.ComponentToPromRelabelConfigs(newArgs.MetricRelabelConfigs)
 	c.forwardto = newArgs.ForwardTo
-	c.opts.OnStateChange(Exports{Receiver: c.receiver})
 
 	return nil
 }
