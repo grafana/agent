@@ -1,10 +1,10 @@
 ---
 aliases:
 - /docs/agent/latest/operator/crd/
-title: CRD Reference
+title: Custom Resource Definition Reference
 weight: 500
 ---
-# CRD Reference
+# Custom Resource Definition Reference
 <p>Packages:</p>
 <ul>
 <li>
@@ -4614,5 +4614,5 @@ Can be skip or fudge. Defaults to fudge.</p>
 <hr/>
 <p><em>
 Generated with <code>gen-crd-api-reference-docs</code>
-on git commit <code>34181951</code>.
+on git commit <code>53ddc06d</code>.
 </em></p>
