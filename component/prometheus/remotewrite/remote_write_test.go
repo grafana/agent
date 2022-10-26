@@ -1,13 +1,13 @@
 package remotewrite_test
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/component/prometheus/remotewrite"
 	"github.com/grafana/agent/pkg/flow/componenttest"
 	"github.com/grafana/agent/pkg/river"
@@ -81,10 +81,13 @@ func Test(t *testing.T) {
 	// Send metrics to our component. These will be written to the WAL and
 	// subsequently written to our HTTP server.
 	rwExports := tc.Exports().(remotewrite.Exports)
-	rwExports.Receiver.Receive(sampleTimestamp, []*prometheus.FlowMetric{
-		prometheus.NewFlowMetric(0, labels.FromStrings("foo", "bar"), 12),
-		prometheus.NewFlowMetric(0, labels.FromStrings("fizz", "buzz"), 34),
-	})
+	appender := rwExports.Receiver.Appender(context.Background())
+	_, err = appender.Append(0, labels.FromStrings("foo", "bar"), time.Now().Unix(), 12)
+	require.NoError(t, err)
+	_, err = appender.Append(0, labels.FromStrings("fizz", "buzz"), time.Now().Unix(), 34)
+	require.NoError(t, err)
+	err = appender.Commit()
+	require.NoError(t, err)
 
 	expect := []prompb.TimeSeries{{
 		Labels: []prompb.Label{

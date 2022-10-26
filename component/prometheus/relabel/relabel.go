@@ -4,9 +4,6 @@ import (
 	"context"
 	"sync"
 
-	"github.com/prometheus/prometheus/model/exemplar"
-	"github.com/prometheus/prometheus/model/metadata"
-
 	"github.com/prometheus/prometheus/storage"
 
 	"github.com/grafana/agent/component"
@@ -59,20 +56,7 @@ type Component struct {
 
 var (
 	_ component.Component = (*Component)(nil)
-	_ storage.Appendable  = (*Component)(nil)
-	_ storage.Appender    = (*appender)(nil)
 )
-
-func (c *Component) Appender(ctx context.Context) storage.Appender {
-	app := &appender{
-		children: make([]storage.Appender, 0),
-		relabel:  c.Relabel,
-	}
-	for _, forward := range c.forwardto {
-		app.children = append(app.children, forward.Appender(ctx))
-	}
-	return app
-}
 
 // New creates a new prometheus.relabel component.
 func New(o component.Options, args Arguments) (*Component, error) {
@@ -114,12 +98,18 @@ func (c *Component) Update(args component.Arguments) error {
 	c.clearCache()
 	c.mrc = flow_relabel.ComponentToPromRelabelConfigs(newArgs.MetricRelabelConfigs)
 	c.forwardto = newArgs.ForwardTo
-	c.opts.OnStateChange(Exports{Receiver: c})
+	c.opts.OnStateChange(Exports{Receiver: &prometheus.Fanout{
+		Children: newArgs.ForwardTo,
+		Intercept: func(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, labels.Labels, int64, float64, error) {
+			newLbl := c.relabel(v, l)
+			return ref, newLbl, t, v, nil
+		}},
+	})
 
 	return nil
 }
 
-func (c *Component) Relabel(val float64, lbls labels.Labels) labels.Labels {
+func (c *Component) relabel(val float64, lbls labels.Labels) labels.Labels {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
 
@@ -190,49 +180,4 @@ func (c *Component) addToCache(originalID uint64, lbls labels.Labels) {
 type labelAndID struct {
 	labels labels.Labels
 	id     uint64
-}
-
-type appender struct {
-	children []storage.Appender
-	relabel  func(val float64, lbls labels.Labels) labels.Labels
-}
-
-// Append statisfies the appender interface.
-func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, error) {
-	newLbls := a.relabel(v, l)
-	if newLbls == nil {
-		return ref, nil
-	}
-	for _, x := range a.children {
-		_, _ = x.Append(ref, newLbls, t, v)
-	}
-	return ref, nil
-}
-
-// Commit satisfies the appender interface.
-func (a *appender) Commit() error {
-	for _, x := range a.children {
-		_ = x.Commit()
-	}
-	return nil
-}
-
-// Rollback satisfies the appender interface.
-func (a *appender) Rollback() error {
-	for _, x := range a.children {
-		_ = x.Rollback()
-	}
-	return nil
-}
-
-// AppendExemplar satisfies the appender interface.
-func (a *appender) AppendExemplar(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar) (storage.SeriesRef, error) {
-	// TODO implement me
-	panic("implement me")
-}
-
-// UpdateMetadata satisfies the appender interface.
-func (a *appender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata) (storage.SeriesRef, error) {
-	// TODO implement me
-	panic("implement me")
 }

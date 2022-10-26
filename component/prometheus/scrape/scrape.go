@@ -14,6 +14,7 @@ import (
 	"github.com/grafana/agent/component"
 	component_config "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/discovery"
+	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
@@ -109,7 +110,7 @@ type Component struct {
 	mut        sync.RWMutex
 	args       Arguments
 	scraper    *scrape.Manager
-	appendable *fanout
+	appendable *prometheus.Fanout
 }
 
 var (
@@ -118,8 +119,9 @@ var (
 
 // New creates a new prometheus.scrape component.
 func New(o component.Options, args Arguments) (*Component, error) {
-	//flowAppendable := fa.NewFlowAppendable(args.ForwardTo...)
-	flowAppendable := &fanout{children: args.ForwardTo}
+	flowAppendable := &prometheus.Fanout{
+		Children: args.ForwardTo,
+	}
 	scrapeOptions := &scrape.Options{ExtraMetrics: args.ExtraMetrics}
 	scraper := scrape.NewManager(scrapeOptions, o.Logger, flowAppendable)
 	c := &Component{
@@ -184,7 +186,7 @@ func (c *Component) Update(args component.Arguments) error {
 	defer c.mut.Unlock()
 	c.args = newArgs
 
-	c.appendable.children = newArgs.ForwardTo
+	c.appendable = &prometheus.Fanout{Children: newArgs.ForwardTo}
 
 	sc := getPromScrapeConfigs(c.opts.ID, newArgs)
 	err := c.scraper.ApplyConfig(&config.Config{
