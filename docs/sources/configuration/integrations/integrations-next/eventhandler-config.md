@@ -83,7 +83,7 @@ Configuration reference:
 
   ## Configure extra labels to add to log lines
   extra_labels:
-    { <string>: <string> }  
+    { <string>: <string> }
 ```
 
 Sample agent config:
