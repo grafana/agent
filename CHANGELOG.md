@@ -74,6 +74,9 @@ Main (unreleased)
   now export receivers immediately, removing the need for dependant components
   to be evaluated twice at process startup. (@rfratto)
 
+- Add missing setting to configure instance key, extra labels and autoscrape for
+  Eventhandler integration. (@marctc)
+
 ### Bugfixes
 
 - Remove empty port from the `apache_http` integration's instance label. (@katepangLiu)
