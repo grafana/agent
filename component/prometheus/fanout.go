@@ -111,6 +111,9 @@ func (a *appender) Commit() error {
 // Rollback satisifies the Appender interface.
 func (a *appender) Rollback() error {
 	for _, x := range a.children {
+		if x == nil {
+			continue
+		}
 		_, _ = x, a.Rollback()
 	}
 	return nil
