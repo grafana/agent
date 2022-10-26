@@ -89,8 +89,7 @@ configuration.
 
 ## Example
 
-This example configures [otelcol.exporter.otlp][] to use headers token
-authentication:
+This example configures [otelcol.exporter.otlp][] to use custom headers:
 
 ```river
 otelcol.exporter.otlp "example" {
