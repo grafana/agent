@@ -32,9 +32,9 @@ otelcol.exporter.otlphttp "LABEL" {
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`metrics_endpoint` | `string` | The endpoint to send metrics to | `client.endpoint + "/v1/metrics"` | no
-`logs_endpoint`    | `string` | The endpoint to send logs to    | `client.endpoint + "/v1/logs"`    | no
-`traces_endpoint`  | `string` | The endpoint to send traces to  | `client.endpoint + "/v1/traces"`  | no
+`metrics_endpoint` | `string` | The endpoint to send metrics to. | `client.endpoint + "/v1/metrics"` | no
+`logs_endpoint`    | `string` | The endpoint to send logs to.    | `client.endpoint + "/v1/logs"`    | no
+`traces_endpoint`  | `string` | The endpoint to send traces to.  | `client.endpoint + "/v1/traces"`  | no
 
 The default value depends on the `endpoint` field set in the required `client`
 block. If set, these arguments override the `client.endpoint` field for the
@@ -77,7 +77,7 @@ Name | Type | Description | Default | Required
 `max_idle_conns`     | `int`         | Limits the number of idle HTTP connections the client can keep open. | `100` | no
 `max_idle_conns_per_host` | `int`    | Limits the number of idle HTTP connections the host can keep open. | `0` | no
 `max_conns_per_host` | `int`         | Limits the total (dialing,active, and idle) number of connections per host. | `0` | no
-`idle_conn_timeout`  | `duration`    | Time to wait before an idle connection will close itself. | `"90s"` | no
+`idle_conn_timeout`  | `duration`    | Time to wait before an idle connection closes itself. | `"90s"` | no
 `auth`               | `capsule(otelcol.Handler)` | Handler from an `otelcol.auth` component to use for authenticating requests. | | no
 
 {{< docs/shared lookup="flow/reference/components/otelcol-compression-field.md" source="agent" >}}
