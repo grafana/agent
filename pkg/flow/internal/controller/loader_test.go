@@ -37,6 +37,7 @@ func TestLoader(t *testing.T) {
 	// corresponds to testFile
 	testGraphDefinition := graphDefinition{
 		Nodes: []string{
+			"configNode", // The config node is always present
 			"testcomponents.tick.ticker",
 			"testcomponents.passthrough.static",
 			"testcomponents.passthrough.ticker",
@@ -120,6 +121,7 @@ func TestLoader(t *testing.T) {
 
 		requireGraph(t, l.Graph(), graphDefinition{
 			Nodes: []string{
+				"configNode", // The config node is always present
 				"testcomponents.tick.ticker",
 				"testcomponents.passthrough.valid",
 				"testcomponents.passthrough.invalid",
@@ -233,7 +235,7 @@ func applyFromContent(t *testing.T, l *controller.Loader, bb []byte) diag.Diagno
 		return diags
 	}
 
-	applyDiags := l.Apply(nil, blocks)
+	applyDiags := l.Apply(nil, blocks, nil)
 	diags = append(diags, applyDiags...)
 
 	return diags

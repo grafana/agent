@@ -11,9 +11,8 @@ components using expressions. While components can work in isolation, they're
 more useful when one component's behavior and data flow is bound to the exports
 of another, building a dependency relationship between the two.
 
-Such references can only appear as part of another component's arguments.
-That means that components cannot reference themselves, and references cannot
-appear in non-component blocks like `logging`.
+Such references can only appear as part of another component's arguments or a
+config block's fields. That means that components cannot reference themselves.
 
 ## Using references
 These references are built by combining the component's name, label and named

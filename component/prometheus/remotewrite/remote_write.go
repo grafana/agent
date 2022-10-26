@@ -72,6 +72,11 @@ func NewComponent(o component.Options, c Arguments) (*Component, error) {
 		storage:     storage.NewFanout(o.Logger, walStorage, remoteStore),
 	}
 	res.receiver = &prometheus.Receiver{Receive: res.Receive}
+
+	// Immediately export the receiver which remains the same for the component
+	// lifetime.
+	o.OnStateChange(Exports{Receiver: res.receiver})
+
 	if err := res.Update(c); err != nil {
 		return nil, err
 	}
@@ -84,7 +89,6 @@ var _ component.Component = (*Component)(nil)
 
 // Run implements Component.
 func (c *Component) Run(ctx context.Context) error {
-	c.opts.OnStateChange(Exports{Receiver: c.receiver})
 	defer func() {
 		level.Debug(c.log).Log("msg", "closing storage")
 		err := c.storage.Close()

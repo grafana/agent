@@ -63,7 +63,7 @@ func NewLoader(globals ComponentGlobals) *Loader {
 // The provided parentContext can be used to provide global variables and
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
-func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt) diag.Diagnostics {
+func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) diag.Diagnostics {
 	start := time.Now()
 	l.mut.Lock()
 	defer l.mut.Unlock()
@@ -75,6 +75,12 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt) diag.Diag
 		newGraph dag.Graph
 	)
 
+	// Pre-populate graph with a ConfigNode.
+	c, configBlockDiags := NewConfigNode(configBlocks, l.log)
+	diags = append(diags, configBlockDiags...)
+	newGraph.Add(c)
+
+	// Handle the rest of the graph as ComponentNodes.
 	populateDiags := l.populateGraph(&newGraph, blocks)
 	diags = append(diags, populateDiags...)
 
@@ -100,21 +106,31 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt) diag.Diag
 
 	// Evaluate all of the components.
 	_ = dag.WalkTopological(&newGraph, newGraph.Leaves(), func(n dag.Node) error {
-		c := n.(*ComponentNode)
+		switch c := n.(type) {
+		case *ComponentNode:
+			components = append(components, c)
+			componentIDs = append(componentIDs, c.ID())
 
-		components = append(components, c)
-		componentIDs = append(componentIDs, c.ID())
-
-		if err := l.evaluate(parentScope, n.(*ComponentNode)); err != nil {
-			var evalDiags diag.Diagnostics
-			if errors.As(err, &evalDiags) {
-				diags = append(diags, evalDiags...)
-			} else {
+			if err := l.evaluate(parentScope, c); err != nil {
+				var evalDiags diag.Diagnostics
+				if errors.As(err, &evalDiags) {
+					diags = append(diags, evalDiags...)
+				} else {
+					diags.Add(diag.Diagnostic{
+						Severity: diag.SeverityLevelError,
+						Message:  fmt.Sprintf("Failed to build component: %s", err),
+						StartPos: ast.StartPos(n.(*ComponentNode).block).Position(),
+						EndPos:   ast.EndPos(n.(*ComponentNode).block).Position(),
+					})
+				}
+			}
+		case *ConfigNode:
+			if errBlock, err := l.evaluateConfig(parentScope, c); err != nil {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
-					Message:  fmt.Sprintf("Failed to build component: %s", err),
-					StartPos: ast.StartPos(n.(*ComponentNode).block).Position(),
-					EndPos:   ast.EndPos(n.(*ComponentNode).block).Position(),
+					Message:  fmt.Sprintf("Failed to evaluate node for config blocks: %s", err),
+					StartPos: ast.StartPos(errBlock).Position(),
+					EndPos:   ast.EndPos(errBlock).Position(),
 				})
 			}
 		}
@@ -201,7 +217,7 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	for _, n := range g.Nodes() {
-		refs, nodeDiags := ComponentReferences(n.(*ComponentNode), g)
+		refs, nodeDiags := ComponentReferences(n, g)
 		for _, ref := range refs {
 			g.AddEdge(dag.Edge{From: n, To: ref.Target})
 		}
@@ -264,7 +280,12 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 			// arguments will need re-evaluation.
 			return nil
 		}
-		_ = l.evaluate(parentScope, n.(*ComponentNode))
+		switch n := n.(type) {
+		case *ComponentNode:
+			_ = l.evaluate(parentScope, n)
+		case *ConfigNode:
+			_, _ = l.evaluateConfig(parentScope, n)
+		}
 		return nil
 	})
 
@@ -285,6 +306,18 @@ func (l *Loader) evaluate(parent *vm.Scope, c *ComponentNode) error {
 		return err
 	}
 	return nil
+}
+
+// evaluateConfig constructs the final context for the special config Node and
+// evaluates it. mut must be held when calling evaluateConfig.
+func (l *Loader) evaluateConfig(parent *vm.Scope, c *ConfigNode) (*ast.BlockStmt, error) {
+	ectx := l.cache.BuildContext(parent)
+	errBlock, err := c.Evaluate(ectx)
+	if err != nil {
+		level.Error(l.log).Log("msg", "failed to evaluate config", "node", c.NodeID(), "err", err)
+		return errBlock, err
+	}
+	return nil, nil
 }
 
 func multierrToDiags(errors error) diag.Diagnostics {

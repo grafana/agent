@@ -5,6 +5,11 @@ local filename = 'agent-flow-controller.json';
 {
   [filename]:
     dashboard.new(name='Grafana Agent Flow / Controller') +
+    dashboard.withDocsLink(
+      url='https://grafana.com/docs/agent/latest/flow/concepts/component_controller/',
+      desc='Component controller documentation',
+    ) +
+    dashboard.withDashboardsLink() +
     dashboard.withUID(std.md5(filename)) +
     dashboard.withTemplateVariablesMixin([
       dashboard.newTemplateVariable('cluster', |||
