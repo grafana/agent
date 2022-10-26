@@ -1,25 +1,25 @@
 ---
 aliases:
-- /docs/agent/latest/flow/reference/components/otelcol.exporter.otlp
-title: otelcol.exporter.otlp
+- /docs/agent/latest/flow/reference/components/otelcol.exporter.otlphttphttp
+title: otelcol.exporter.otlphttphttp
 ---
 
-# otelcol.exporter.otlp
+# otelcol.exporter.otlphttp
 
-`otelcol.exporter.otlp` accepts telemetry data from other `otelcol` components
-and writes them over the network using the OTLP gRPC protocol.
+`otelcol.exporter.otlphttp` accepts telemetry data from other `otelcol`
+components and writes them over the network using the OTLP HTTP protocol.
 
-> **NOTE**: `otelcol.exporter.otlp` is a wrapper over the upstream
-> OpenTelemetry Collector `otlp` exporter. Bug reports or feature requests will
-> be redirected to the upstream repository, if necessary.
+> **NOTE**: `otelcol.exporter.otlphttp` is a wrapper over the upstream
+> OpenTelemetry Collector `otlphttp` exporter. Bug reports or feature requests
+> will be redirected to the upstream repository, if necessary.
 
-Multiple `otelcol.exporter.otlp` components can be specified by giving them
+Multiple `otelcol.exporter.otlphttp` components can be specified by giving them
 different labels.
 
 ## Usage
 
 ```river
-otelcol.exporter.otlp "LABEL" {
+otelcol.exporter.otlphttp "LABEL" {
   client {
     endpoint = "HOST:PORT"
   }
@@ -28,50 +28,57 @@ otelcol.exporter.otlp "LABEL" {
 
 ## Arguments
 
-`otelcol.exporter.otlp` supports the following arguments:
+`otelcol.exporter.otlphttp` supports the following arguments:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`timeout` | `duration` | Time to wait before marking a request as failed. | `"5s"` | no
+`metrics_endpoint` | `string` | The endpoint to send metrics to | `client.endpoint + "/v1/metrics"` | no
+`logs_endpoint`    | `string` | The endpoint to send logs to    | `client.endpoint + "/v1/logs"`    | no
+`traces_endpoint`  | `string` | The endpoint to send traces to  | `client.endpoint + "/v1/traces"`  | no
+
+The default value depends on the `endpoint` field set in the required `client`
+block. If set, these arguments override the `client.endpoint` field for the
+corresponding signal.
 
 ## Blocks
 
 The following blocks are supported inside the definition of
-`otelcol.exporter.otlp`:
+`otelcol.exporter.otlphttp`:
 
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
-client | [client][] | Configures the gRPC server to send telemetry data to. | yes
-client > tls | [tls][] | Configures TLS for the gRPC client. | no
-client > keepalive | [keepalive][] | Configures keepalive settings for the gRPC client. | no
-queue | [queue][] | Configures batching of data before sending. | no
-retry | [retry][] | Configures retry mechanism for failed requests. | no
+`client`           | [client][] | Configures the HTTP server to send telemetry data to. | yes
+`client > tls`     | [tls][] | Configures TLS for the HTTP client. | no
+`queue`            | [queue][] | Configures batching of data before sending. | no
+`retry`            | [retry][] | Configures retry mechanism for failed requests. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `client > tls`
 refers to a `tls` block defined inside a `client` block.
 
 [client]: #client-block
 [tls]: #tls-block
-[keepalive]: #keepalive-block
 [queue]: #queue-block
 [retry]: #retry-block
 
 ### client block
 
-The `client` block configures the gRPC client used by the component.
+The `client` block configures the HTTP client used by the component.
 
 The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`endpoint` | `string` | `host:port` to send telemetry data to. | | yes
-`compression` | `string` | Compression mechanism to use for requests. | `"gzip"` | no
-`read_buffer_size` | `string` | Size of the read buffer the gRPC client to use for reading server responses. | | no
-`write_buffer_size` | `string` | Size of the write buffer the gRPC client to use for writing requests. | `"512KiB"` | no
-`wait_for_ready` | `boolean` | Waits for gRPC connection to be in the `READY` state before sending data. | `false` | no
-`headers` | `map(string)` | Additional headers to send with the request. | `{}` | no
-`balancer_name` | `string` | Which gRPC client-side load balancer to use for requests. | | no
-`auth` | `capsule(otelcol.Handler)` | Handler from an `otelcol.auth` component to use for authenticating requests. | | no
+`endpoint`           | `string`      | `host:port` to send telemetry data to. | | yes
+`read_buffer_size`   | `string`      | Size of the read buffer the HTTP client uses for reading server responses. | `0` | no
+`write_buffer_size`  | `string`      | Size of the write buffer the HTTP client uses for writing requests. | `"512KiB"` | no
+`timeout`            | `duration`    | Time to wait before marking a request as failed. | `"30s"` | no
+`headers`            | `map(string)` | Additional headers to send with the request. | `{}` | no
+`compression`        | `string`      | Compression mechanism to use for requests. | `"gzip"` | no
+`max_idle_conns`     | `int`         | Limits the number of idle HTTP connections the client can keep open. | `100` | no
+`max_idle_conns_per_host` | `int`    | Limits the number of idle HTTP connections the host can keep open. | `0` | no
+`max_conns_per_host` | `int`         | Limits the total (dialing,active, and idle) number of connections per host. | `0` | no
+`idle_conn_timeout`  | `duration`    | Time to wait before an idle connection will close itself. | `"90s"` | no
+`auth`               | `capsule(otelcol.Handler)` | Handler from an `otelcol.auth` component to use for authenticating requests. | | no
 
 By default, requests are compressed with gzip. The `compression` argument
 controls which compression mechanism to use. Supported strings are:
@@ -85,15 +92,9 @@ controls which compression mechanism to use. Supported strings are:
 If `compression` is set to `"none"` or an empty string `""`, no compression is
 used.
 
-The `balancer_name` argument controls what client-side load balancing mechanism
-to use. See the gRPC documentation on [Load balancing][] for more information.
-When unspecified, `pick_first` is used.
-
-[Load balancing]: https://github.com/grpc/grpc-go/blob/master/examples/features/load_balancing/README.md#pick_first
-
 ### tls block
 
-The `tls` block configures TLS settings used for the connection to the gRPC
+The `tls` block configures TLS settings used for the connection to the HTTP
 server.
 
 The following arguments are supported:
@@ -105,31 +106,18 @@ Name | Type | Description | Default | Required
 `key_file` | `string` | Path to the TLS certificate key. | | no
 `min_version` | `string` | Minimum acceptable TLS version for connections. | `"TLS 1.2"` | no
 `max_version` | `string` | Maximum acceptable TLS version for connections. | `"TLS 1.3"` | no
-`insecure` | `boolean` | Disables TLS when connecting to the gRPC server. | | no
+`insecure` | `boolean` | Disables TLS when connecting to the HTTP server. | | no
 `insecure_skip_verify` | `boolean` | Ignores insecure server TLS certificates. | | no
 `server_name` | `string` | Verifies the hostname of server certificates when set. | | no
 
 The `tls` block should always be provided, even if the server doesn't support
-TLS. To disable `tls` for connections to the gRPC server, set the `insecure`
+TLS. To disable `tls` for connections to the HTTP server, set the `insecure`
 argument to `true`.
-
-### keepalive block
-
-The `keepalive` block configures keepalive settings for gRPC client
-connections.
-
-The following arguments are supported:
-
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`ping_wait` | `duration` | How often to ping the server after no activity. | | no
-`ping_response_timeout` | `duration` | Time to wait before closing inactive connections if the server does not respond to a ping. | | no
-`ping_without_stream` | `boolean` | Send pings even if there is no active stream request. | | no
 
 ### queue block
 
 The `queue` block configures an in-memory buffer of batches before data is sent
-to the gRPC server.
+to the HTTP server.
 
 The following arguments are supported:
 
@@ -140,7 +128,7 @@ Name | Type | Description | Default | Required
 `queue_size` | `number` | Maximum number of unwritten batches allowed in the queue at once. | `5000` | no
 
 When `enabled` is `true`, data is first written to an in-memory buffer before
-sending it to the configured gRPC server. Batches sent to the component's
+sending it to the configured HTTP server. Batches sent to the component's
 `input` exported field are added to the buffer as long as the number of unsent
 batches does not exceed the configured `queue_size`.
 
@@ -156,7 +144,7 @@ more quickly at the expense of increased network traffic.
 
 ### retry block
 
-The `retry` block configures how failed requests to the gRPC server are
+The `retry` block configures how failed requests to the HTTP server are
 retried.
 
 The following arguments are supported:
@@ -191,12 +179,12 @@ logs, or traces).
 
 ## Component health
 
-`otelcol.exporter.otlp` is only reported as unhealthy if given an invalid
+`otelcol.exporter.otlphttp` is only reported as unhealthy if given an invalid
 configuration.
 
 ## Debug information
 
-`otelcol.exporter.otlp` does not expose any component-specific debug
+`otelcol.exporter.otlphttp` does not expose any component-specific debug
 information.
 
 ## Example
@@ -205,7 +193,7 @@ This example creates an exporter to send data to a locally running Grafana
 Tempo without TLS:
 
 ```river
-otelcol.exporter.otlp "tempo" {
+otelcol.exporter.otlphttp "tempo" {
     client {
         endpoint = "tempo:4317"
         tls {
