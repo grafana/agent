@@ -2,6 +2,7 @@ package prometheus
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/prometheus/prometheus/model/exemplar"
@@ -121,12 +122,10 @@ func (a *appender) Rollback() error {
 
 // AppendExemplar satisfies the Appender interface.
 func (a *appender) AppendExemplar(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar) (storage.SeriesRef, error) {
-	// TODO implement me
-	panic("implement me")
+	return 0, fmt.Errorf("AppendExemplar not supported yet.")
 }
 
 // UpdateMetadata satisifies the Appender interface.
 func (a *appender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata) (storage.SeriesRef, error) {
-	// TODO implement me
-	panic("implement me")
+	return 0, fmt.Errorf("UpdateMetadata not supported yet.")
 }

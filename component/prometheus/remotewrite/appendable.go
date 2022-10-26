@@ -1,6 +1,8 @@
 package remotewrite
 
 import (
+	"fmt"
+
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/labels"
@@ -57,12 +59,10 @@ func (a *appender) Rollback() error {
 
 // AppendExemplate satisfies the Appender interface.
 func (a *appender) AppendExemplar(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar) (storage.SeriesRef, error) {
-	//TODO implement me
-	panic("implement me")
+	return 0, fmt.Errorf("AppendExemplar not supported yet.")
 }
 
 // UpdateMetadata satisfies the Appender interface.
 func (a *appender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata) (storage.SeriesRef, error) {
-	//TODO implement me
-	panic("implement me")
+	return 0, fmt.Errorf("UpdateMetadata not supported yet.")
 }
