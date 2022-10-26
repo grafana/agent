@@ -37,9 +37,9 @@ type Arguments struct {
 	// use Client.Endpoint by appending "/v1/metrics", "/v1/logs" or
 	// "/v1/traces", respectively. If set, these settings override
 	// Client.Endpoint for the corresponding signal.
-	TracesEndpoint  string `mapstructure:"traces_endpoint"`
-	MetricsEndpoint string `mapstructure:"metrics_endpoint"`
-	LogsEndpoint    string `mapstructure:"logs_endpoint"`
+	TracesEndpoint  string `river:"traces_endpoint,attr,optional"`
+	MetricsEndpoint string `river:"metrics_endpoint,attr,optional"`
+	LogsEndpoint    string `river:"logs_endpoint,attr,optional"`
 }
 
 var (

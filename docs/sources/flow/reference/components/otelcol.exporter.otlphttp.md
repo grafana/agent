@@ -47,10 +47,10 @@ The following blocks are supported inside the definition of
 
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
-`client`           | [client][] | Configures the HTTP server to send telemetry data to. | yes
-`client > tls`     | [tls][] | Configures TLS for the HTTP client. | no
-`queue`            | [queue][] | Configures batching of data before sending. | no
-`retry`            | [retry][] | Configures retry mechanism for failed requests. | no
+client           | [client][] | Configures the HTTP server to send telemetry data to. | yes
+client > tls     | [tls][] | Configures TLS for the HTTP client. | no
+queue            | [queue][] | Configures batching of data before sending. | no
+retry            | [retry][] | Configures retry mechanism for failed requests. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `client > tls`
 refers to a `tls` block defined inside a `client` block.
