@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/agent/pkg/server"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/statsd_exporter/pkg/level"
+	"golang.org/x/exp/maps"
 	"gopkg.in/yaml.v2"
 )
 
@@ -112,6 +113,22 @@ func (c *VersionedIntegrations) setVersion(v integrationsVersion) error {
 	default:
 		panic(fmt.Sprintf("unknown integrations version %d", c.version))
 	}
+}
+
+// EnabledIntegrations returns a slice of enabled integrations
+func (c *VersionedIntegrations) EnabledIntegrations() []string {
+	integrations := map[string]struct{}{}
+	if c.configV1 != nil {
+		for _, integration := range c.configV1.Integrations {
+			integrations[integration.Name()] = struct{}{}
+		}
+	}
+	if c.configV2 != nil {
+		for _, integration := range c.configV2.Configs {
+			integrations[integration.Name()] = struct{}{}
+		}
+	}
+	return maps.Keys(integrations)
 }
 
 // IntegrationsGlobals is a global struct shared across integrations.
