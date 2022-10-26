@@ -38,6 +38,7 @@ func NewFanout(inter intercept, children []storage.Appendable, componentID strin
 	}
 }
 
+// UpdateChildren allows changing of the children of the fanout.
 func (f *Fanout) UpdateChildren(children []storage.Appendable) {
 	f.mut.Lock()
 	defer f.mut.Unlock()
