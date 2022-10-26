@@ -82,9 +82,9 @@ func Test(t *testing.T) {
 	// subsequently written to our HTTP server.
 	rwExports := tc.Exports().(remotewrite.Exports)
 	appender := rwExports.Receiver.Appender(context.Background())
-	_, err = appender.Append(0, labels.FromStrings("foo", "bar"), time.Now().Unix(), 12)
+	_, err = appender.Append(0, labels.FromStrings("foo", "bar"), sampleTimestamp, 12)
 	require.NoError(t, err)
-	_, err = appender.Append(0, labels.FromStrings("fizz", "buzz"), time.Now().Unix(), 34)
+	_, err = appender.Append(0, labels.FromStrings("fizz", "buzz"), sampleTimestamp, 34)
 	require.NoError(t, err)
 	err = appender.Commit()
 	require.NoError(t, err)

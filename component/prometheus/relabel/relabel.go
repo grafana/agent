@@ -98,13 +98,10 @@ func (c *Component) Update(args component.Arguments) error {
 	c.clearCache()
 	c.mrc = flow_relabel.ComponentToPromRelabelConfigs(newArgs.MetricRelabelConfigs)
 	c.forwardto = newArgs.ForwardTo
-	c.opts.OnStateChange(Exports{Receiver: &prometheus.Fanout{
-		Children: newArgs.ForwardTo,
-		Intercept: func(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, labels.Labels, int64, float64, error) {
-			newLbl := c.relabel(v, l)
-			return ref, newLbl, t, v, nil
-		}},
-	})
+	c.opts.OnStateChange(Exports{Receiver: prometheus.NewFanout(func(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, labels.Labels, int64, float64, error) {
+		newLbl := c.relabel(v, l)
+		return ref, newLbl, t, v, nil
+	}, newArgs.ForwardTo, c.opts.ID)})
 
 	return nil
 }
@@ -122,8 +119,8 @@ func (c *Component) relabel(val float64, lbls labels.Labels) labels.Labels {
 			relabelled = newLbls.labels
 		}
 	} else {
-		processedLabels := relabel.Process(lbls, c.mrc...)
-		c.addToCache(globalRef, processedLabels)
+		relabelled = relabel.Process(lbls, c.mrc...)
+		c.addToCache(globalRef, relabelled)
 	}
 
 	// If stale remove from the cache, the reason we don't exit early is so the stale value can propagate.
@@ -135,7 +132,7 @@ func (c *Component) relabel(val float64, lbls labels.Labels) labels.Labels {
 	if relabelled == nil {
 		return nil
 	}
-	return newLbls.labels
+	return relabelled
 }
 
 func (c *Component) getFromCache(id uint64) (*labelAndID, bool) {

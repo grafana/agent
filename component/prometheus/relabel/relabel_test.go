@@ -4,6 +4,9 @@ import (
 	"math"
 	"os"
 	"testing"
+	"time"
+
+	"golang.org/x/net/context"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
@@ -53,12 +56,10 @@ func TestUpdateReset(t *testing.T) {
 }
 
 func TestNil(t *testing.T) {
-	fanout := &prometheus.Fanout{
-		Intercept: func(ref storage.SeriesRef, l labels.Labels, tt int64, v float64) (storage.SeriesRef, labels.Labels, int64, float64, error) {
-			require.True(t, false)
-			return ref, l, tt, v, nil
-		},
-	}
+	fanout := prometheus.NewFanout(func(ref storage.SeriesRef, l labels.Labels, tt int64, v float64) (storage.SeriesRef, labels.Labels, int64, float64, error) {
+		require.True(t, false)
+		return ref, l, tt, v, nil
+	}, nil, "1")
 	relabeller, err := New(component.Options{
 		ID:     "1",
 		Logger: util.TestLogger(t),
@@ -85,18 +86,19 @@ func TestNil(t *testing.T) {
 func BenchmarkCache(b *testing.B) {
 	l := log.NewSyncLogger(log.NewLogfmtLogger(os.Stderr))
 
-	fanout := &prometheus.Fanout{
-		Intercept: func(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, labels.Labels, int64, float64, error) {
-			if !l.Has("new_label") {
-				panic("must have new label")
-			}
-			return ref, l, t, v, nil
-		},
-	}
-	relabeller, _ := New(component.Options{
+	fanout := prometheus.NewFanout(func(ref storage.SeriesRef, l labels.Labels, tt int64, v float64) (storage.SeriesRef, labels.Labels, int64, float64, error) {
+		if !l.Has("new_label") {
+			panic("must have new label")
+		}
+		return ref, l, tt, v, nil
+	}, nil, "1")
+	var entry storage.Appendable
+	_, _ = New(component.Options{
 		ID:     "1",
 		Logger: l,
 		OnStateChange: func(e component.Exports) {
+			newE := e.(Exports)
+			entry = newE.Receiver
 		},
 		Registerer: prom.NewRegistry(),
 	}, Arguments{
@@ -112,19 +114,20 @@ func BenchmarkCache(b *testing.B) {
 		},
 	})
 
+	lbls := labels.FromStrings("__address__", "localhost")
+	app := entry.Appender(context.Background())
+
 	for i := 0; i < b.N; i++ {
-		lbls := labels.FromStrings("__address__", "localhost")
-		relabeller.relabel(0, lbls)
+		app.Append(0, lbls, time.Now().UnixMilli(), 0)
 	}
+	app.Commit()
 }
 
 func generateRelabel(t *testing.T) *Component {
-	fanout := &prometheus.Fanout{
-		Intercept: func(ref storage.SeriesRef, l labels.Labels, tt int64, v float64) (storage.SeriesRef, labels.Labels, int64, float64, error) {
-			require.True(t, l.Has("new_label"))
-			return ref, l, tt, v, nil
-		},
-	}
+	fanout := prometheus.NewFanout(func(ref storage.SeriesRef, l labels.Labels, tt int64, v float64) (storage.SeriesRef, labels.Labels, int64, float64, error) {
+		require.True(t, l.Has("new_label"))
+		return ref, l, tt, v, nil
+	}, nil, "1")
 	relabeller, err := New(component.Options{
 		ID:     "1",
 		Logger: util.TestLogger(t),

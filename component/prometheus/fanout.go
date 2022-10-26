@@ -2,6 +2,7 @@ package prometheus
 
 import (
 	"context"
+	"sync"
 
 	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/labels"
@@ -12,20 +13,51 @@ import (
 
 var _ storage.Appendable = (*Fanout)(nil)
 
+type intercept func(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, labels.Labels, int64, float64, error)
+
 // Fanout supports the default Flow style of appendables since it can go to multiple outputs. It also allows the intercepting of appends.
 type Fanout struct {
-	// Intercept allows one to intercept the series before it fans out to make any changes. If labels.Labels returns nil the series is not propagated.
+	mut sync.RWMutex
+	// intercept allows one to intercept the series before it fans out to make any changes. If labels.Labels returns nil the series is not propagated.
 	// Intercept shouuld be thread safe and can be called across appenders.
-	Intercept func(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, labels.Labels, int64, float64, error)
+	intercept func(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, labels.Labels, int64, float64, error)
 
-	// Children is where to fan out.
-	Children []storage.Appendable
+	// children is where to fan out.
+	children []storage.Appendable
+
+	// ComponentID is what component this belongs to.
+	componentID string
+}
+
+// NewFanout creates a fanout appendable.
+func NewFanout(inter intercept, children []storage.Appendable, componentID string) *Fanout {
+	return &Fanout{
+		intercept:   inter,
+		children:    children,
+		componentID: componentID,
+	}
+}
+
+func (f *Fanout) UpdateChildren(children []storage.Appendable) {
+	f.mut.Lock()
+	defer f.mut.Unlock()
+	f.children = children
 }
 
 // Appender satisfies the Appendable interface.
 func (f *Fanout) Appender(ctx context.Context) storage.Appender {
-	app := &appender{children: make([]storage.Appender, len(f.Children))}
-	for i, x := range f.Children {
+	f.mut.RLock()
+	defer f.mut.RUnlock()
+
+	app := &appender{
+		children:    make([]storage.Appender, len(f.children)),
+		intercept:   f.intercept,
+		componentID: f.componentID,
+	}
+	for i, x := range f.children {
+		if x == nil {
+			continue
+		}
 		app.children[i] = x.Appender(ctx)
 	}
 	return app
@@ -34,8 +66,9 @@ func (f *Fanout) Appender(ctx context.Context) storage.Appender {
 var _ storage.Appender = (*appender)(nil)
 
 type appender struct {
-	children  []storage.Appender
-	intercept func(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, labels.Labels, int64, float64, error)
+	children    []storage.Appender
+	componentID string
+	intercept   func(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, labels.Labels, int64, float64, error)
 }
 
 // Append satisfies the Appender interface.
@@ -55,6 +88,9 @@ func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v flo
 		}
 	}
 	for _, x := range a.children {
+		if x == nil || nL == nil {
+			continue
+		}
 		_, _ = x.Append(nRef, nL, nT, nV)
 	}
 	return ref, nil
@@ -63,6 +99,9 @@ func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v flo
 // Commit satisfies the Appender interface.
 func (a *appender) Commit() error {
 	for _, x := range a.children {
+		if x == nil {
+			continue
+		}
 		_ = x.Commit()
 	}
 	return nil

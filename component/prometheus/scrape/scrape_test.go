@@ -31,9 +31,6 @@ func TestForwardingToAppendable(t *testing.T) {
 	s, err := New(opts, args)
 	require.NoError(t, err)
 
-	// List the Appendable's receivers; they are nil.
-	require.Equal(t, nilReceivers, s.appendable.Children)
-
 	// Forwarding samples to the nil receivers shouldn't fail.
 	appender := s.appendable.Appender(context.Background())
 	_, err = appender.Append(0, labels.FromStrings("foo", "bar"), 0, 0)
@@ -45,11 +42,11 @@ func TestForwardingToAppendable(t *testing.T) {
 	// Update the component with a mock receiver; it should be passed along to the Appendable.
 	var receivedTs int64
 	var receivedSamples labels.Labels
-	fanout := &prometheus.Fanout{Intercept: func(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, labels.Labels, int64, float64, error) {
+	fanout := prometheus.NewFanout(func(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, labels.Labels, int64, float64, error) {
 		receivedTs = t
 		receivedSamples = l
 		return ref, l, t, v, nil
-	}}
+	}, nil, "1")
 	args.ForwardTo = []storage.Appendable{fanout}
 	err = s.Update(args)
 	require.NoError(t, err)

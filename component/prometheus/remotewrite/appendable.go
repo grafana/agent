@@ -37,10 +37,9 @@ func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v flo
 	// both assume they have only one scraper attached. In flow that is not true, so we need to translate from a global id
 	// to a local (remote_write) id.
 	localID := prometheus.GlobalRefMapping.GetLocalRefID(a.componentID, uint64(ref))
-	noLocalID := localID == 0
 	newref, err := a.child.Append(storage.SeriesRef(localID), l, t, v)
 	// If there was no local id we need to propagate it.
-	if noLocalID {
+	if localID == 0 {
 		prometheus.GlobalRefMapping.GetOrAddLink(a.componentID, uint64(newref), l)
 	}
 	return ref, err
