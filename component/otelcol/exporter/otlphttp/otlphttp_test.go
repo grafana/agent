@@ -26,7 +26,7 @@ func Test(t *testing.T) {
 	ch := make(chan ptrace.Traces)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		b, _ := ioutil.ReadAll(r.Body)
-		trace, _ := ptrace.NewProtoUnmarshaler().UnmarshalTraces([]byte(b))
+		trace, _ := ptrace.NewProtoUnmarshaler().UnmarshalTraces(b)
 		require.Equal(t, 1, trace.SpanCount())
 		name := trace.ResourceSpans().At(0).ScopeSpans().At(0).Spans().At(0).Name()
 		require.Equal(t, "TestSpan", name)
