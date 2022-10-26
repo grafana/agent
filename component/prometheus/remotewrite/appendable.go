@@ -57,7 +57,7 @@ func (a *appender) Rollback() error {
 	return a.child.Rollback()
 }
 
-// AppendExemplate satisfies the Appender interface.
+// AppendExemplar satisfies the Appender interface.
 func (a *appender) AppendExemplar(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar) (storage.SeriesRef, error) {
 	return 0, fmt.Errorf("appendExemplar not supported yet")
 }

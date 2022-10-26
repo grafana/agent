@@ -52,7 +52,7 @@ func (f *Fanout) Appender(ctx context.Context) storage.Appender {
 	defer f.mut.RUnlock()
 
 	app := &appender{
-		children:    make([]storage.Appender, len(f.children)),
+		children:    make([]storage.Appender, 0),
 		intercept:   f.intercept,
 		componentID: f.componentID,
 	}
