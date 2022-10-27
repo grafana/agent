@@ -40,6 +40,9 @@ Main (unreleased)
   - `otelcol.exporter.otlp` accepts data from `otelcol` components and sends
     it to a gRPC server using the OTLP protocol. (@rfratto)
 
+  - `otelcol.exporter.otlphttp` accepts data from `otelcol` components and
+    sends it to an HTTP server using the OTLP protocol. (@tpaschalis)
+
   - `otelcol.auth.basic` performs basic authentication for `otelcol`
     components which support authentication extensions. (@rfratto)
 
@@ -49,6 +52,9 @@ Main (unreleased)
   - `otelcol.processor.memory_limiter` periodically checks memory usage and
     drops data or forces a garbage collection if the defined limits are
     exceeded. (@tpaschalis)
+
+  - `otelcol.auth.bearer` performs bearer token authentication for `otelcol`
+    components that support authentication extensions. (@rfratto)
 
 - Flow: Allow config blocks to reference component exports. (@tpaschalis)
 
@@ -67,11 +73,21 @@ Main (unreleased)
 
 - Enable field label in TenantStageSpec of PodLogs pipeline. (@siiimooon)
 
+- Enable reporting of enabled integrations. (@marctc)
+
+- Grafana Agent Flow: `prometheus.remote_write` and `prometheus.relabel` will
+  now export receivers immediately, removing the need for dependant components
+  to be evaluated twice at process startup. (@rfratto)
+
 ### Bugfixes
 
 - Remove empty port from the `apache_http` integration's instance label. (@katepangLiu)
 
 - Fix identifier on target creation for SNMP v2 integration. (@marctc)
+
+- Fix bug when specifying Blackbox's modules when using Blackbox integration. (@marctc)
+
+- Tracing: fix a panic when the required `protocols` field was not set in the `otlp` receiver. (@ptodev)
 
 v0.28.0 (2022-09-29)
 --------------------

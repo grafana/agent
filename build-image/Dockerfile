@@ -32,7 +32,8 @@ RUN go install sigs.k8s.io/controller-tools/cmd/controller-gen@$CONTROLLER_GEN_V
  && go install github.com/google/go-jsonnet/cmd/jsonnet@v0.18.0                        \
  && go install github.com/golang/protobuf/protoc-gen-go@v1.3.1                         \
  && go install github.com/gogo/protobuf/protoc-gen-gogoslick@v1.3.0                    \
- && go install github.com/gogo/protobuf/gogoproto/...@v1.3.0
+ && go install github.com/gogo/protobuf/gogoproto/...@v1.3.0                           \
+ && go install github.com/ahmetb/gen-crd-api-reference-docs@v0.3.1-0.20220618162802-424739b250f5
 
 #
 # Final image
