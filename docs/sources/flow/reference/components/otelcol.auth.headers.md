@@ -24,7 +24,6 @@ otelcol.auth.headers "LABEL" {
     key   = "HEADER_NAME"
     value = "HEADER_VALUE"
   }
-  token = "TOKEN"
 }
 ```
 
