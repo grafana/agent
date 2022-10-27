@@ -39,6 +39,7 @@ type Config struct {
 	Namespace string `yaml:"namespace,omitempty"`
 	// Extra labels to append to log lines
 	ExtraLabels labels.Labels `yaml:"extra_labels,omitempty"`
+	InstanceKey *string       `yaml:"instance,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
@@ -59,7 +60,10 @@ func (c *Config) ApplyDefaults(globals integrations.Globals) error {
 
 // Identifier uniquely identifies this instance of Config
 func (c *Config) Identifier(globals integrations.Globals) (string, error) {
-	return globals.AgentIdentifier, nil
+	if c.InstanceKey != nil {
+		return *c.InstanceKey, nil
+	}
+	return c.Name(), nil
 }
 
 // NewIntegration converts this config into an instance of an integration.
