@@ -34,16 +34,15 @@ function(namespace, rw) {
       password_file: secrets.pathForSecret(namespace, rw.BasicAuth.Password),
     }
   ),
+  local bearerToken = optionals.string(rw.BearerToken),
+  local bearerTokenFile = optionals.string(rw.BearerTokenFile),
 
-  authorization: (
-    if rw.BearerToken != "" then {
-      type: "Bearer",
-      credentials: rw.BearerToken
-    } else if rw.BearerTokenFile != "" then {
-      type: "Bearer",
-      credentials_file: rw.BearerTokenFile
-    }
-  ),
+  authorization: if bearerToken != null || bearerTokenFile != null then {
+    type: 'Bearer',
+    credentials: bearerToken,
+    credentials_file: bearerTokenFile,
+  },
+
   sigv4: (
     if rw.SigV4 != null then {
       region: optionals.string(rw.SigV4.Region),
