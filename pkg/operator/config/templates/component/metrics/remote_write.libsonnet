@@ -35,6 +35,15 @@ function(namespace, rw) {
     }
   ),
 
+  authorization: (
+    if rw.BearerToken != "" then {
+      type: "Bearer",
+      credentials: rw.BearerToken
+    } else if rw.BearerTokenFile != "" then {
+      type: "Bearer",
+      credentials_file: rw.BearerTokenFile
+    }
+  ),
   sigv4: (
     if rw.SigV4 != null then {
       region: optionals.string(rw.SigV4.Region),
