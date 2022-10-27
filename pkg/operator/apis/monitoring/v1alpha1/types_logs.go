@@ -526,7 +526,7 @@ type TemplateStageSpec struct {
 // TenantStageSpec is an action stage that sets the tenant ID for the log entry
 // picking it from a field in the extracted data map.
 type TenantStageSpec struct {
-	// Name from labels to whose value should be set as tenant ID. Mutually exclusive with
+	// Name from labels whose value should be set as tenant ID. Mutually exclusive with
 	// source and value.
 	Label string `json:"label,omitempty"`
 
