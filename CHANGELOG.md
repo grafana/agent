@@ -71,6 +71,8 @@ Main (unreleased)
   Grafana Agent, but are not meant to act as a replacement for fully featured
   components like `prometheus.integration.node_exporter`. (@rfratto)
 
+- Enable field label in TenantStageSpec of PodLogs pipeline. (@siiimooon)
+
 - Enable reporting of enabled integrations. (@marctc)
 
 - Grafana Agent Flow: `prometheus.remote_write` and `prometheus.relabel` will

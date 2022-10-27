@@ -386,14 +386,18 @@ spec:
                         data map. If the field is missing, the default LogsClientSpec.tenantId
                         will be used.
                       properties:
+                        label:
+                          description: Name from labels to whose value should be set
+                            as tenant ID. Mutually exclusive with source and value.
+                          type: string
                         source:
                           description: Name from extracted data to use as the tenant
-                            ID. Mutually exclusive with value.
+                            ID. Mutually exclusive with label and value.
                           type: string
                         value:
                           description: Value to use for the template ID. Useful when
                             this stage is used within a conditional pipeline such
-                            as match. Mutually exclusive with source.
+                            as match. Mutually exclusive with label and source.
                           type: string
                       type: object
                     timestamp:
