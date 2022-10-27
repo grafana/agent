@@ -4510,6 +4510,18 @@ picking it from a field in the extracted data map.</p>
 <tbody>
 <tr>
 <td>
+<code>label</code><br/>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Name from labels to whose value should be set as tenant ID. Mutually exclusive with
+source and value.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>source</code><br/>
 <em>
 string
@@ -4517,7 +4529,7 @@ string
 </td>
 <td>
 <p>Name from extracted data to use as the tenant ID. Mutually exclusive with
-value.</p>
+label and value.</p>
 </td>
 </tr>
 <tr>
@@ -4529,7 +4541,7 @@ string
 </td>
 <td>
 <p>Value to use for the template ID. Useful when this stage is used within a
-conditional pipeline such as match. Mutually exclusive with source.</p>
+conditional pipeline such as match. Mutually exclusive with label and source.</p>
 </td>
 </tr>
 </tbody>
@@ -4614,5 +4626,5 @@ Can be skip or fudge. Defaults to fudge.</p>
 <hr/>
 <p><em>
 Generated with <code>gen-crd-api-reference-docs</code>
-on git commit <code>53ddc06d</code>.
+on git commit <code>87429255</code>.
 </em></p>
