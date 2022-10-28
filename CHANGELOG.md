@@ -94,6 +94,8 @@ Main (unreleased)
 
 - Tracing: fix a panic when the required `protocols` field was not set in the `otlp` receiver. (@ptodev)
 
+- Support Bearer tokens for metric remote writes in the Grafana Operator (@jcreixell, @marctc)
+
 v0.28.0 (2022-09-29)
 --------------------
 
