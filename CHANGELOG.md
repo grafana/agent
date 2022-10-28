@@ -84,6 +84,8 @@ Main (unreleased)
 
 - Add missing setting to configure instance key for Eventhandler integration. (@marctc)
 
+- Tracing: support the `num_traces` and `expected_new_traces_per_sec` configuration parameters of the OpenTelemetry Collector. (@ptodev)
+
 ### Bugfixes
 
 - Remove empty port from the `apache_http` integration's instance label. (@katepangLiu)
