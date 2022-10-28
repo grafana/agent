@@ -573,6 +573,38 @@ func TestRemoteWrite(t *testing.T) {
 			`),
 		},
 		{
+			name: "bearer_token",
+			input: map[string]interface{}{
+				"namespace": "operator",
+				"rw": gragent.RemoteWriteSpec{
+					URL:         "http://cortex/api/prom/push",
+					BearerToken: "my-token",
+				},
+			},
+			expect: util.Untab(`
+				url: http://cortex/api/prom/push
+				authorization:
+					type: Bearer
+					credentials: my-token
+			`),
+		},
+		{
+			name: "bearer_token_file",
+			input: map[string]interface{}{
+				"namespace": "operator",
+				"rw": gragent.RemoteWriteSpec{
+					URL:             "http://cortex/api/prom/push",
+					BearerTokenFile: "/path/to/file",
+				},
+			},
+			expect: util.Untab(`
+				url: http://cortex/api/prom/push
+				authorization:
+					type: Bearer
+					credentials_file: /path/to/file
+			`),
+		},
+		{
 			name: "sigv4",
 			input: map[string]interface{}{
 				"namespace": "operator",
