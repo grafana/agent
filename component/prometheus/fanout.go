@@ -14,26 +14,18 @@ import (
 
 var _ storage.Appendable = (*Fanout)(nil)
 
-type intercept func(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, labels.Labels, int64, float64, error)
-
 // Fanout supports the default Flow style of appendables since it can go to multiple outputs. It also allows the intercepting of appends.
 type Fanout struct {
 	mut sync.RWMutex
-	// intercept allows one to intercept the series before it fans out to make any changes. If labels.Labels returns nil the series is not propagated.
-	// Intercept shouuld be thread safe and can be called across appenders.
-	intercept func(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, labels.Labels, int64, float64, error)
-
 	// children is where to fan out.
 	children []storage.Appendable
-
 	// ComponentID is what component this belongs to.
 	componentID string
 }
 
 // NewFanout creates a fanout appendable.
-func NewFanout(inter intercept, children []storage.Appendable, componentID string) *Fanout {
+func NewFanout(children []storage.Appendable, componentID string) *Fanout {
 	return &Fanout{
-		intercept:   inter,
 		children:    children,
 		componentID: componentID,
 	}
@@ -53,7 +45,6 @@ func (f *Fanout) Appender(ctx context.Context) storage.Appender {
 
 	app := &appender{
 		children:    make([]storage.Appender, 0),
-		intercept:   f.intercept,
 		componentID: f.componentID,
 	}
 	for _, x := range f.children {
@@ -70,7 +61,6 @@ var _ storage.Appender = (*appender)(nil)
 type appender struct {
 	children    []storage.Appender
 	componentID string
-	intercept   func(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, labels.Labels, int64, float64, error)
 }
 
 // Append satisfies the Appender interface.
@@ -78,22 +68,8 @@ func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v flo
 	if ref == 0 {
 		ref = storage.SeriesRef(GlobalRefMapping.GetOrAddGlobalRefID(l))
 	}
-	newRef := ref
-	newLabels := l
-	newTimestamp := t
-	newValue := v
-	if a.intercept != nil {
-		var err error
-		newRef, newLabels, newTimestamp, newValue, err = a.intercept(ref, l, t, v)
-		if err != nil {
-			return 0, err
-		}
-	}
 	for _, x := range a.children {
-		if newLabels == nil {
-			continue
-		}
-		_, _ = x.Append(newRef, newLabels, newTimestamp, newValue)
+		_, _ = x.Append(ref, l, t, v)
 	}
 	return ref, nil
 }

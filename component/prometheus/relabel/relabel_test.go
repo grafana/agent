@@ -56,7 +56,7 @@ func TestUpdateReset(t *testing.T) {
 }
 
 func TestNil(t *testing.T) {
-	fanout := prometheus.NewFanout(func(ref storage.SeriesRef, l labels.Labels, tt int64, v float64) (storage.SeriesRef, labels.Labels, int64, float64, error) {
+	fanout := prometheus.NewInterceptor(func(ref storage.SeriesRef, l labels.Labels, tt int64, v float64) (storage.SeriesRef, labels.Labels, int64, float64, error) {
 		require.True(t, false)
 		return ref, l, tt, v, nil
 	}, nil, "1")
@@ -86,7 +86,7 @@ func TestNil(t *testing.T) {
 func BenchmarkCache(b *testing.B) {
 	l := log.NewSyncLogger(log.NewLogfmtLogger(os.Stderr))
 
-	fanout := prometheus.NewFanout(func(ref storage.SeriesRef, l labels.Labels, tt int64, v float64) (storage.SeriesRef, labels.Labels, int64, float64, error) {
+	fanout := prometheus.NewInterceptor(func(ref storage.SeriesRef, l labels.Labels, tt int64, v float64) (storage.SeriesRef, labels.Labels, int64, float64, error) {
 		require.True(b, l.Has("new_label"))
 		return ref, l, tt, v, nil
 	}, nil, "1")
@@ -122,7 +122,7 @@ func BenchmarkCache(b *testing.B) {
 }
 
 func generateRelabel(t *testing.T) *Component {
-	fanout := prometheus.NewFanout(func(ref storage.SeriesRef, l labels.Labels, tt int64, v float64) (storage.SeriesRef, labels.Labels, int64, float64, error) {
+	fanout := prometheus.NewInterceptor(func(ref storage.SeriesRef, l labels.Labels, tt int64, v float64) (storage.SeriesRef, labels.Labels, int64, float64, error) {
 		require.True(t, l.Has("new_label"))
 		return ref, l, tt, v, nil
 	}, nil, "1")
