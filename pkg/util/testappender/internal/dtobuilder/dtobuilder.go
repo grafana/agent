@@ -62,6 +62,24 @@ type builder struct {
 // Build converts the dtoBuilder's Samples, Exemplars, and Metadata into a set
 // of []*dto.MetricFamily.
 func (b *builder) Build() []*dto.MetricFamily {
+	// *dto.MetricFamily represents a set of samples for a given family of
+	// metrics. All metrics with the same __name__ belong to the same family.
+	//
+	// Each *dto.MetricFamily has a set of *dto.Metric, which contain individual
+	// samples within that family. The *dto.Metric is where non-__name__ labels
+	// are kept.
+	//
+	// *dto.Metrics can represent counters, gauges, summaries, histograms, and
+	// untyped values.
+	//
+	// In the case of a summary, the *dto.Metric contains multiple samples,
+	// holding each quantile, the _count, and the _sum. Similarly for histograms,
+	// the *dto.Metric contains each bucket, the _count, and the _sum.
+	//
+	// Because *dto.Metrics for summaries and histograms contain multiple
+	// samples, Build must roll up individually recorded samples into the
+	// appropriate *dto.Metric. See buildMetricsFromSamples for more information.
+
 	// We *must* do things in the following order:
 	//
 	// 1. Populate the families from metadata so we know what fields in
@@ -78,7 +96,11 @@ func (b *builder) Build() []*dto.MetricFamily {
 }
 
 // buildFamiliesFromMetadata populates the list of families based on the
-// metadata known to the dtoBuilder.
+// metadata known to the dtoBuilder. familyLookup will be updated for all
+// metrics which map to the same family.
+//
+// In the case of summaries and instograms, multiple metrics map to the same
+// family (the bucket/quantile, the _sum, and the _count metrics).
 func (b *builder) buildFamiliesFromMetadata() {
 	for familyName, m := range b.Metadata {
 		mt := textParseToMetricType(m.Type)
