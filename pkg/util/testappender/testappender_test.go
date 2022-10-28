@@ -1,6 +1,7 @@
 package testappender_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/grafana/agent/pkg/util/testappender"
@@ -10,6 +11,30 @@ import (
 	"github.com/prometheus/prometheus/model/textparse"
 	"github.com/stretchr/testify/require"
 )
+
+func Example() {
+	var app testappender.Appender
+	app.Append(0, labels.FromStrings("__name__", "example_metric", "foo", "bar"), 60, 1234)
+	app.UpdateMetadata(0, labels.FromStrings("__name__", "example_metric"), metadata.Metadata{
+		Type: textparse.MetricTypeGauge,
+	})
+
+	expect := `
+		# TYPE example_metric gauge
+		example_metric{foo="bar"} 1234 60
+	`
+
+	_ = app.Commit()
+	families, _ := app.MetricFamilies()
+
+	err := testappender.Compare(families, expect)
+	if err != nil {
+		fmt.Println("Metrics do not match:", err)
+	} else {
+		fmt.Println("Metrics match!")
+	}
+	// Output: Metrics match!
+}
 
 // TestAppender_NoOp asserts that not doing anything results in no data.
 func TestAppender_NoOp(t *testing.T) {
