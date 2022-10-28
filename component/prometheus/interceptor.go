@@ -28,7 +28,7 @@ type Interceptor struct {
 	componentID string
 }
 
-// NewInterceptor creates a fanout appendable.
+// NewInterceptor creates a interceptor appendable.
 func NewInterceptor(inter intercept, child storage.Appendable, componentID string) *Interceptor {
 	return &Interceptor{
 		intercept:   inter,
@@ -37,7 +37,7 @@ func NewInterceptor(inter intercept, child storage.Appendable, componentID strin
 	}
 }
 
-// UpdateChild allows changing of the children of the fanout.
+// UpdateChild allows changing of the child of the interceptor.
 func (f *Interceptor) UpdateChild(child storage.Appendable) {
 	f.mut.Lock()
 	defer f.mut.Unlock()
