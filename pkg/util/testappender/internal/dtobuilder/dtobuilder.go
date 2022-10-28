@@ -44,6 +44,8 @@ func Build(
 		Samples:   samples,
 		Exemplars: exemplars,
 		Metadata:  metadata,
+
+		familyLookup: make(map[string]*dto.MetricFamily),
 	}
 	return b.Build()
 }
@@ -60,10 +62,6 @@ type builder struct {
 // Build converts the dtoBuilder's Samples, Exemplars, and Metadata into a set
 // of []*dto.MetricFamily.
 func (b *builder) Build() []*dto.MetricFamily {
-	// Reset state in case Build has already been called.
-	b.families = nil
-	b.familyLookup = make(map[string]*dto.MetricFamily)
-
 	// We *must* do things in the following order:
 	//
 	// 1. Populate the families from metadata so we know what fields in
@@ -76,7 +74,6 @@ func (b *builder) Build() []*dto.MetricFamily {
 
 	// Sort all the data before returning.
 	sortMetricFamilies(b.families)
-
 	return b.families
 }
 
