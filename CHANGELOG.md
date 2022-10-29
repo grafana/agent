@@ -63,6 +63,9 @@ Main (unreleased)
     to the OTLP metric format and forwards them to other `otelcol` components.
     (@tpaschalis)
 
+  - `otelcol.exporter.prometheus` forwards OTLP-formatted data to compatible
+    `prometheus` components. (@rfratto)
+
 - Flow: Allow config blocks to reference component exports. (@tpaschalis)
 
 - Introduce `/-/support` endpoint for generating 'support bundles' in static
