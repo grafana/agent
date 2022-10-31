@@ -15,6 +15,7 @@ import (
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/grafana/agent/pkg/opamp"
 	"github.com/grafana/agent/pkg/server"
 	"github.com/grafana/agent/pkg/traces"
 	"github.com/grafana/agent/pkg/usagestats"
@@ -44,6 +45,7 @@ type Entrypoint struct {
 	tempoTraces  *traces.Traces
 	integrations config.Integrations
 	reporter     *usagestats.Reporter
+	opamp        *opamp.OpAMP
 
 	reloadListener net.Listener
 	reloadServer   *http.Server
@@ -96,6 +98,11 @@ func NewEntrypoint(logger *server.Logger, cfg *config.Config, reloader Reloader)
 	}
 
 	ep.reporter, err = usagestats.NewReporter(logger)
+	if err != nil {
+		return nil, err
+	}
+
+	ep.opamp, err = opamp.NewOpAMP(logger)
 	if err != nil {
 		return nil, err
 	}
@@ -284,6 +291,7 @@ func (ep *Entrypoint) Stop() {
 	ep.promMetrics.Stop()
 	ep.tempoTraces.Stop()
 	ep.srv.Close()
+	ep.opamp.Stop()
 
 	if ep.reloadServer != nil {
 		ep.reloadServer.Close()
