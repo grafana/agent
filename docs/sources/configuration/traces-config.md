@@ -258,13 +258,13 @@ tail_sampling:
   # Time that to wait before making a decision for a trace.
   # Longer wait times reduce the probability of sampling an incomplete trace at
   # the cost of higher memory usage.
-  decision_wait: [ <duration> | default="5s" ]
+  [ decision_wait: <duration> | default="5s" ]
 
   # Optional, number of traces kept in memory
-  num_traces: [ <int> | default="50000" ]
+  [ num_traces: <int> | default="50000" ]
 
   # Optional, expected number of new traces (helps in allocating data structures)
-  expected_new_traces_per_sec: [ <int> | default="0" ]
+  [ expected_new_traces_per_sec: <int> | default="0" ]
 
 # load_balancing configures load balancing of spans across multi agent deployments.
 # It ensures that all spans of a trace are sampled in the same instance.
