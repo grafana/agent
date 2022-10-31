@@ -9,7 +9,7 @@ import (
 // LogsSubsystemSpec defines global settings to apply across the logging
 // subsystem.
 type LogsSubsystemSpec struct {
-	// Global set of clients to use when a discovered LogsInstance does not
+	// A global set of clients to use when a discovered LogsInstance does not
 	// have any clients defined.
 	Clients []LogsClientSpec `json:"clients,omitempty"`
 	// LogsExternalLabelName is the name of the external label used to
@@ -141,7 +141,7 @@ type LogsInstanceSpec struct {
 	// going to break Grafana Agent after the upgrade.
 	AdditionalScrapeConfigs *v1.SecretKeySelector `json:"additionalScrapeConfigs,omitempty"`
 
-	// Configures how tailed targets will be watched.
+	// Configures how tailed targets are watched.
 	TargetConfig *LogsTargetConfigSpec `json:"targetConfig,omitempty"`
 }
 
@@ -185,7 +185,7 @@ type PodLogsSpec struct {
 	// Selector to select which namespaces the Pod objects are discovered from.
 	NamespaceSelector prom_v1.NamespaceSelector `json:"namespaceSelector,omitempty"`
 
-	// Pipeline stages for this pod. Pipeline stages allow for transforming and
+	// Pipeline stages for this pod. Pipeline stages support transforming and
 	// filtering log lines.
 	PipelineStages []*PipelineStageSpec `json:"pipelineStages,omitempty"`
 
@@ -245,7 +245,7 @@ type PipelineStageSpec struct {
 	// or drop entries when a log entry matches a configurable LogQL stream
 	// selector and filter expressions.
 	Match *MatchStageSpec `json:"match,omitempty"`
-	// Metrics is an action stage that allows for defining and updating metrics
+	// Metrics is an action stage that supports defining and updating metrics
 	// based on data from the extracted map. Created metrics are not pushed to
 	// Loki or Prometheus and are instead exposed via the /metrics endpoint of
 	// the Grafana Agent pod. The Grafana Agent Operator should be configured
@@ -296,16 +296,16 @@ type DropStageSpec struct {
 	// Name from the extract data to parse. If empty, uses the log message.
 	Source string `json:"source,omitempty"`
 
-	// RE2 regular exprssion.
+	// RE2 regular expression.
 	//
-	// If source is provided, the regex will attempt
+	// If source is provided, the regex attempts
 	// to match the source.
 	//
-	// If no source is provided, then the regex will attempt
+	// If no source is provided, then the regex attempts
 	// to attach the log line.
 	//
 	// If the provided regex matches the log line or a provided source, the
-	// line will be dropped.
+	// line is dropped.
 	Expression string `json:"expression,omitempty"`
 
 	// Value can only be specified when source is specified. If the value
@@ -316,7 +316,7 @@ type DropStageSpec struct {
 	Value string `json:"value,omitempty"`
 
 	// OlderThan will be parsed as a Go duration. If the log line's timestamp
-	// is older than the current time minus the provided duration it will be
+	// is older than the current time minus the provided duration, it will be
 	// dropped.
 	OlderThan string `json:"olderThan,omitempty"`
 
@@ -325,9 +325,9 @@ type DropStageSpec struct {
 	// suffix (8kb).
 	LongerThan string `json:"longerThan,omitempty"`
 
-	// Every time a log line is dropped the metric logentry_dropped_lines_total
-	// will be incremented. A "reason" label is added, and can be customized by
-	// providing a custom value here. Defaults to "drop_stage."
+	// Every time a log line is dropped, the metric logentry_dropped_lines_total
+	// is incremented. A "reason" label is added, and can be customized by
+	// providing a custom value here. Defaults to "drop_stage".
 	DropCounterReason string `json:"dropCounterReason,omitempty"`
 }
 
@@ -342,7 +342,7 @@ type JSONStageSpec struct {
 	// key in the extracted data while the expression will be the value,
 	// evaluated as a JMESPath from the source data.
 	//
-	// Literal JMESPath exprssions can be done by wrapping a key in double
+	// Literal JMESPath expressions can be used by wrapping a key in double
 	// quotes, which then must be wrapped again in single quotes in YAML
 	// so they get passed to the JMESPath parser.
 	Expressions map[string]string `json:"expressions,omitempty"`
@@ -361,17 +361,17 @@ type MatchStageSpec struct {
 	PipelineName string `json:"pipelineName,omitempty"`
 
 	// Determines what action is taken when the selector matches the log line.
-	// Can be keep or drop. Defaults to keep. When set to drop, entries will be
-	// dropped and no later metrics will be recorded.
+	// Can be keep or drop. Defaults to keep. When set to drop, entries are
+	// dropped and no later metrics are recorded.
 	// Stages must be empty when dropping metrics.
 	Action string `json:"action,omitempty"`
 
-	// Every time a log line is dropped the metric logentry_dropped_lines_total
-	// will be incremented. A "reason" label is added, and can be customized by
+	// Every time a log line is dropped, the metric logentry_dropped_lines_total
+	// is incremented. A "reason" label is added, and can be customized by
 	// providing a custom value here. Defaults to "match_stage."
 	DropCounterReason string `json:"dropCounterReason,omitempty"`
 
-	// Nested set of pipeline stages to execute when action: keep and the log
+	// Nested set of pipeline stages to execute when action is keep and the log
 	// line matches selector.
 	//
 	// An example value for stages may be:
@@ -409,26 +409,26 @@ type MetricsStageSpec struct {
 
 	// Label values on metrics are dynamic which can cause exported metrics
 	// to go stale. To prevent unbounded cardinality, any metrics not updated
-	// within MaxIdleDuration will be removed.
+	// within MaxIdleDuration are removed.
 	//
 	// Must be greater or equal to 1s. Defaults to 5m.
 	MaxIdleDuration string `json:"maxIdleDuration,omitempty"`
 
-	// If true all log lines will be counted without attempting to match the
+	// If true, all log lines are counted without attempting to match the
 	// source to the extracted map. Mutually exclusive with value.
 	//
 	// Only valid for type: counter.
 	MatchAll *bool `json:"matchAll,omitempty"`
 
-	// If true all log line bytes will be counted. Can only be set with
+	// If true all log line bytes are counted. Can only be set with
 	// matchAll: true and action: add.
 	//
 	// Only valid for type: counter.
 	CountEntryBytes *bool `json:"countEntryBytes,omitempty"`
 
 	// Filters down source data and only changes the metric if the targeted
-	// value exactly matches the provided string. If not present, all
-	// data will match.
+	// value matches the provided string exactly. If not present, all
+	// data matches.
 	Value string `json:"value,omitempty"`
 
 	// The action to take against the metric. Required.
@@ -473,7 +473,7 @@ type OutputStageSpec struct {
 // labels into the log line by packing the log line and labels inside of a JSON
 // object.
 type PackStageSpec struct {
-	// Name from extracted data or line labels. Requiried.
+	// Name from extracted data or line labels. Required.
 	// Labels provided here are automatically removed from output labels.
 	Labels []string `json:"labels"`
 
@@ -517,7 +517,7 @@ type TemplateStageSpec struct {
 	// the log message.
 	Source string `json:"source"`
 
-	// Go template string to use. Required. In additional to normal template
+	// Go template string to use. Required. In addition to normal template
 	// functions, ToLower, ToUpper, Replace, Trim, TrimLeft, TrimRight,
 	// TrimPrefix, and TrimSpace are also available.
 	Template string `json:"template"`
