@@ -42,11 +42,16 @@ func TestForwardingToAppendable(t *testing.T) {
 	// Update the component with a mock receiver; it should be passed along to the Appendable.
 	var receivedTs int64
 	var receivedSamples labels.Labels
-	fanout := prometheus.NewFanout(func(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, labels.Labels, int64, float64, error) {
-		receivedTs = t
-		receivedSamples = l
-		return ref, l, t, v, nil
-	}, nil, "1")
+	fanout, err := prometheus.NewInterceptor(
+		func(ref storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
+			receivedTs = t
+			receivedSamples = l
+			return ref, nil
+		},
+		nil,
+		"1",
+	)
+	require.NoError(t, err)
 	args.ForwardTo = []storage.Appendable{fanout}
 	err = s.Update(args)
 	require.NoError(t, err)

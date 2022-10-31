@@ -119,7 +119,7 @@ var (
 
 // New creates a new prometheus.scrape component.
 func New(o component.Options, args Arguments) (*Component, error) {
-	flowAppendable := prometheus.NewFanout(nil, args.ForwardTo, o.ID)
+	flowAppendable := prometheus.NewFanout(args.ForwardTo, o.ID)
 	scrapeOptions := &scrape.Options{ExtraMetrics: args.ExtraMetrics}
 	scraper := scrape.NewManager(scrapeOptions, o.Logger, flowAppendable)
 	c := &Component{

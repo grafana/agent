@@ -47,8 +47,9 @@ type Component struct {
 	mut              sync.RWMutex
 	opts             component.Options
 	mrc              []*relabel.Config
-	receiver         *prometheus.Fanout
+	receiver         *prometheus.Interceptor
 	metricsProcessed prometheus_client.Counter
+	fanout           *prometheus.Fanout
 
 	cacheMut sync.RWMutex
 	cache    map[uint64]*labelAndID
@@ -74,11 +75,18 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		return nil, err
 	}
 
-	c.receiver = prometheus.NewFanout(func(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, labels.Labels, int64, float64, error) {
+	c.fanout = prometheus.NewFanout(args.ForwardTo, o.ID)
+	c.receiver, err = prometheus.NewInterceptor(func(ref storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
 		newLbl := c.relabel(v, l)
-		return ref, newLbl, t, v, nil
-	}, args.ForwardTo, c.opts.ID)
+		if newLbl == nil {
+			return 0, nil
+		}
+		return next.Append(0, newLbl, t, v)
+	}, c.fanout, c.opts.ID)
 
+	if err != nil {
+		return nil, err
+	}
 	// Immediately export the receiver which remains the same for the component
 	// lifetime.
 	o.OnStateChange(Exports{Receiver: c.receiver})
@@ -106,7 +114,7 @@ func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 	c.clearCache()
 	c.mrc = flow_relabel.ComponentToPromRelabelConfigs(newArgs.MetricRelabelConfigs)
-	c.receiver.UpdateChildren(newArgs.ForwardTo)
+	c.fanout.UpdateChildren(newArgs.ForwardTo)
 	c.opts.OnStateChange(Exports{Receiver: c.receiver})
 
 	return nil
