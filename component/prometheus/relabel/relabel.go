@@ -76,11 +76,17 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	}
 
 	c.fanout = prometheus.NewFanout(args.ForwardTo, o.ID)
-	c.receiver = prometheus.NewInterceptor(func(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, labels.Labels, int64, float64, error) {
+	c.receiver, err = prometheus.NewInterceptor(func(ref storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
 		newLbl := c.relabel(v, l)
-		return ref, newLbl, t, v, nil
+		if newLbl == nil {
+			return 0, nil
+		}
+		return next.Append(0, newLbl, t, v)
 	}, c.fanout, c.opts.ID)
 
+	if err != nil {
+		return nil, err
+	}
 	// Immediately export the receiver which remains the same for the component
 	// lifetime.
 	o.OnStateChange(Exports{Receiver: c.receiver})
