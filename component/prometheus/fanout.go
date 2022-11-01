@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/hashicorp/go-multierror"
+
 	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/metadata"
@@ -68,10 +70,14 @@ func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v flo
 	if ref == 0 {
 		ref = storage.SeriesRef(GlobalRefMapping.GetOrAddGlobalRefID(l))
 	}
+	var multiErr error
 	for _, x := range a.children {
-		_, _ = x.Append(ref, l, t, v)
+		_, err := x.Append(ref, l, t, v)
+		if err != nil {
+			multiErr = multierror.Append(multiErr, err)
+		}
 	}
-	return ref, nil
+	return ref, multiErr
 }
 
 // Commit satisfies the Appender interface.

@@ -8,6 +8,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/prometheus/prometheus/model/labels"
+
+	"github.com/grafana/agent/component/prometheus"
+
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
@@ -48,7 +52,7 @@ type Component struct {
 	mut sync.RWMutex
 	cfg Arguments
 
-	receiver *appendable
+	receiver *prometheus.Interceptor
 }
 
 // NewComponent creates a new prometheus.remote_write component.
@@ -70,11 +74,22 @@ func NewComponent(o component.Options, c Arguments) (*Component, error) {
 		remoteStore: remoteStore,
 		storage:     storage.NewFanout(o.Logger, walStorage, remoteStore),
 	}
-	res.receiver = &appendable{
-		inner:       res.storage,
-		componentID: o.ID,
+	res.receiver, err = prometheus.NewInterceptor(func(ref storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
+		// Conversion is needed because remote_writes assume they own all the IDs, so if you have two remote_writes they will
+		// both assume they have only one scraper attached. In flow that is not true, so we need to translate from a global id
+		// to a local (remote_write) id.
+		localID := prometheus.GlobalRefMapping.GetLocalRefID(res.opts.ID, uint64(ref))
+		newref, nextErr := next.Append(storage.SeriesRef(localID), l, t, v)
+		// If there was no local id we need to propagate it.
+		if localID == 0 {
+			prometheus.GlobalRefMapping.GetOrAddLink(res.opts.ID, uint64(newref), l)
+		}
+		// return the original ref since this needs to be a globalref id and not the local one.
+		return ref, nextErr
+	}, res.storage, o.ID)
+	if err != nil {
+		return nil, err
 	}
-
 	// Immediately export the receiver which remains the same for the component
 	// lifetime.
 	o.OnStateChange(Exports{Receiver: res.receiver})
