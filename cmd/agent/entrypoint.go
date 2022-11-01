@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net"
@@ -8,25 +9,27 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
+	"strconv"
 	"sync"
 	"syscall"
+	"time"
 
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
+	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/server"
+	"github.com/grafana/agent/pkg/supportbundle"
 	"github.com/grafana/agent/pkg/traces"
 	"github.com/grafana/agent/pkg/usagestats"
 	"github.com/oklog/run"
-	"google.golang.org/grpc"
-	"gopkg.in/yaml.v2"
-
-	"github.com/grafana/agent/pkg/config"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/weaveworks/common/signals"
-
-	"github.com/go-kit/log/level"
+	"google.golang.org/grpc"
+	"gopkg.in/yaml.v2"
 )
 
 // Entrypoint is the entrypoint of the application that starts all subsystems.
@@ -80,7 +83,7 @@ func NewEntrypoint(logger *server.Logger, cfg *config.Config, reloader Reloader)
 		return nil, err
 	}
 
-	ep.tempoTraces, err = traces.New(ep.lokiLogs, ep.promMetrics.InstanceManager(), reg, cfg.Traces, cfg.Server.LogLevel.Logrus, cfg.Server.LogFormat)
+	ep.tempoTraces, err = traces.New(ep.lokiLogs, ep.promMetrics.InstanceManager(), reg, cfg.Traces, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +168,7 @@ func (ep *Entrypoint) ApplyConfig(cfg config.Config) error {
 		failed = true
 	}
 
-	if err := ep.tempoTraces.ApplyConfig(ep.lokiLogs, ep.promMetrics.InstanceManager(), cfg.Traces, cfg.Server.LogLevel.Logrus); err != nil {
+	if err := ep.tempoTraces.ApplyConfig(ep.lokiLogs, ep.promMetrics.InstanceManager(), cfg.Traces); err != nil {
 		level.Error(ep.log).Log("msg", "failed to update traces", "err", err)
 		failed = true
 	}
@@ -231,6 +234,8 @@ func (ep *Entrypoint) wire(mux *mux.Router, grpc *grpc.Server) {
 	})
 
 	mux.HandleFunc("/-/reload", ep.reloadHandler).Methods("GET", "POST")
+
+	mux.HandleFunc("/-/support", ep.supportHandler).Methods("GET")
 }
 
 func (ep *Entrypoint) reloadHandler(rw http.ResponseWriter, r *http.Request) {
@@ -249,6 +254,79 @@ func (ep *Entrypoint) getReporterMetrics() map[string]interface{} {
 	return map[string]interface{}{
 		"enabled-features":     ep.cfg.EnabledFeatures,
 		"enabled-integrations": ep.cfg.Integrations.EnabledIntegrations(),
+	}
+}
+
+func getServerWriteTimeout(r *http.Request) time.Duration {
+	srv, ok := r.Context().Value(http.ServerContextKey).(*http.Server)
+	if ok && srv.WriteTimeout != 0 {
+		return srv.WriteTimeout
+	}
+	return 30 * time.Second
+}
+
+func (ep *Entrypoint) supportHandler(rw http.ResponseWriter, r *http.Request) {
+	ep.mut.Lock()
+	cfg := ep.cfg
+	ep.mut.Unlock()
+
+	if cfg.DisableSupportBundle {
+		rw.WriteHeader(http.StatusForbidden)
+		_, _ = rw.Write([]byte("403 - support bundle generation is disabled; it can be re-enabled by removing the -disable-support-bundle flag"))
+		return
+	}
+
+	duration := getServerWriteTimeout(r)
+	if r.URL.Query().Has("duration") {
+		d, err := strconv.Atoi(r.URL.Query().Get("duration"))
+		if err != nil {
+			http.Error(rw, fmt.Sprintf("duration value (in seconds) should be a positive integer: %s", err), http.StatusBadRequest)
+			return
+		}
+		if d < 1 {
+			http.Error(rw, "duration value (in seconds) should be larger than 1", http.StatusBadRequest)
+			return
+		}
+		if float64(d) > duration.Seconds() {
+			http.Error(rw, "duration value exceeds the server's write timeout", http.StatusBadRequest)
+			return
+		}
+		duration = time.Duration(d) * time.Second
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), duration)
+	defer cancel()
+
+	ep.mut.Lock()
+	var (
+		enabledFeatures = ep.cfg.EnabledFeatures
+		httpSrvAddress  = ep.cfg.ServerFlags.HTTP.InMemoryAddr
+	)
+	ep.mut.Unlock()
+
+	var logsBuffer bytes.Buffer
+	logger := log.NewSyncLogger(log.NewLogfmtLogger(&logsBuffer))
+	defer func() {
+		ep.log.HookLogger.Set(nil)
+	}()
+	ep.log.HookLogger.Set(logger)
+
+	var configBytes []byte
+	var err error
+	if cfg.EnableConfigEndpoints {
+		configBytes, err = yaml.Marshal(cfg)
+		if err != nil {
+			http.Error(rw, fmt.Sprintf("failed to marshal config: %s", err), http.StatusInternalServerError)
+		}
+	}
+
+	bundle, err := supportbundle.Export(ctx, enabledFeatures, configBytes, httpSrvAddress, ep.srv.DialContext)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if err := supportbundle.Serve(rw, bundle, &logsBuffer); err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
 	}
 }
 

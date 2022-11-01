@@ -54,6 +54,7 @@ var DefaultConfig = Config{
 	ServerFlags:           server.DefaultFlags,
 	Metrics:               metrics.DefaultConfig,
 	Integrations:          DefaultVersionedIntegrations,
+	DisableSupportBundle:  false,
 	EnableConfigEndpoints: false,
 	EnableUsageReport:     true,
 }
@@ -78,6 +79,9 @@ type Config struct {
 
 	// Toggle for config endpoint(s)
 	EnableConfigEndpoints bool `yaml:"-"`
+
+	// Toggle for support bundle generation.
+	DisableSupportBundle bool `yaml:"-"`
 
 	// Report enabled features options
 	EnableUsageReport bool     `yaml:"-"`
@@ -362,11 +366,12 @@ func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
 	var (
 		cfg = DefaultConfig
 
-		printVersion     bool
-		file             string
-		fileType         string
-		configExpandEnv  bool
-		disableReporting bool
+		printVersion          bool
+		file                  string
+		fileType              string
+		configExpandEnv       bool
+		disableReporting      bool
+		disableSupportBundles bool
 	)
 
 	fs.StringVar(&file, "config.file", "", "configuration file to load")
@@ -374,6 +379,7 @@ func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
 	fs.BoolVar(&printVersion, "version", false, "Print this build's version information.")
 	fs.BoolVar(&configExpandEnv, "config.expand-env", false, "Expands ${var} in config according to the values of the environment variables.")
 	fs.BoolVar(&disableReporting, "disable-reporting", false, "Disable reporting of enabled feature flags to Grafana.")
+	fs.BoolVar(&disableSupportBundles, "disable-support-bundle", false, "Disable functionality for generating support bundles.")
 	cfg.RegisterFlags(fs)
 
 	features.Register(fs, allFeatures)
@@ -418,6 +424,10 @@ func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
 		cfg.EnableUsageReport = false
 	} else {
 		cfg.EnabledFeatures = features.GetAllEnabled(fs)
+	}
+
+	if disableSupportBundles {
+		cfg.DisableSupportBundle = true
 	}
 
 	// Finally, apply defaults to config that wasn't specified by file or flag

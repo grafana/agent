@@ -48,8 +48,7 @@ func TestAddingLocalMapping(t *testing.T) {
 	})
 
 	globalID := mapping.GetOrAddGlobalRefID(l)
-	fm := NewFlowMetric(globalID, l, 0)
-	shouldBeSameGlobalID := mapping.GetOrAddLink("1", 1, fm)
+	shouldBeSameGlobalID := mapping.GetOrAddLink("1", 1, l)
 	require.True(t, globalID == shouldBeSameGlobalID)
 	require.Len(t, mapping.labelsHashToGlobal, 1)
 	require.Len(t, mapping.mappings, 1)
@@ -67,9 +66,8 @@ func TestAddingLocalMappings(t *testing.T) {
 	})
 
 	globalID := mapping.GetOrAddGlobalRefID(l)
-	fm := NewFlowMetric(globalID, l, 0)
-	shouldBeSameGlobalID := mapping.GetOrAddLink("1", 1, fm)
-	shouldBeSameGlobalID2 := mapping.GetOrAddLink("2", 1, fm)
+	shouldBeSameGlobalID := mapping.GetOrAddLink("1", 1, l)
+	shouldBeSameGlobalID2 := mapping.GetOrAddLink("2", 1, l)
 	require.True(t, globalID == shouldBeSameGlobalID)
 	require.True(t, globalID == shouldBeSameGlobalID2)
 	require.Len(t, mapping.labelsHashToGlobal, 1)
@@ -92,10 +90,8 @@ func TestAddingLocalMappingsWithoutCreatingGlobalUpfront(t *testing.T) {
 		Value: "test",
 	})
 
-	fm := NewFlowMetric(1, l, 0)
-
-	shouldBeSameGlobalID := mapping.GetOrAddLink("1", 1, fm)
-	shouldBeSameGlobalID2 := mapping.GetOrAddLink("2", 1, fm)
+	shouldBeSameGlobalID := mapping.GetOrAddLink("1", 1, l)
+	shouldBeSameGlobalID2 := mapping.GetOrAddLink("2", 1, l)
 	require.True(t, shouldBeSameGlobalID2 == shouldBeSameGlobalID)
 	require.Len(t, mapping.labelsHashToGlobal, 1)
 	require.Len(t, mapping.mappings, 2)
@@ -122,11 +118,8 @@ func TestStaleness(t *testing.T) {
 		Value: "test2",
 	})
 
-	fm := NewFlowMetric(0, l, 0)
-	fm2 := NewFlowMetric(0, l2, 0)
-
-	global1 := mapping.GetOrAddLink("1", 1, fm)
-	_ = mapping.GetOrAddLink("2", 1, fm2)
+	global1 := mapping.GetOrAddLink("1", 1, l)
+	_ = mapping.GetOrAddLink("2", 1, l2)
 	mapping.AddStaleMarker(global1, l)
 	require.Len(t, mapping.staleGlobals, 1)
 	require.Len(t, mapping.labelsHashToGlobal, 2)
@@ -145,9 +138,7 @@ func TestRemovingStaleness(t *testing.T) {
 		Value: "test",
 	})
 
-	fm := NewFlowMetric(0, l, 0)
-
-	global1 := mapping.GetOrAddLink("1", 1, fm)
+	global1 := mapping.GetOrAddLink("1", 1, l)
 	mapping.AddStaleMarker(global1, l)
 	require.Len(t, mapping.staleGlobals, 1)
 	mapping.RemoveStaleMarker(global1)

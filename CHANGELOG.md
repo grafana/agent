@@ -61,11 +61,13 @@ Main (unreleased)
 
 - Flow: Allow config blocks to reference component exports. (@tpaschalis)
 
+- Introduce `/-/support` endpoint for generating 'support bundles' in static
+  agent mode. Support bundles are zip files of commonly-requested information
+  that can be used to debug a running agent. (@tpaschalis)
+
 ### Enhancements
 
 - Update OpenTelemetry Collector dependency to v0.61.0. (@rfratto)
-
-- Update Prometheus dependency to v2.38.0. (@rfratto)
 
 - Add caching to Prometheus relabel component. (@mattdurham)
 
@@ -84,6 +86,10 @@ Main (unreleased)
 
 - Add missing setting to configure instance key for Eventhandler integration. (@marctc)
 
+- Update Prometheus dependency to v2.39.1. (@rfratto)
+
+- Update Promtail dependency to weekly release k122. (@rfratto)
+
 - Tracing: support the `num_traces` and `expected_new_traces_per_sec` configuration parameters in the tail_sampling processor. (@ptodev)
 
 ### Bugfixes
@@ -95,6 +101,28 @@ Main (unreleased)
 - Fix bug when specifying Blackbox's modules when using Blackbox integration. (@marctc)
 
 - Tracing: fix a panic when the required `protocols` field was not set in the `otlp` receiver. (@ptodev)
+
+- Support Bearer tokens for metric remote writes in the Grafana Operator (@jcreixell, @marctc)
+
+### Other changes
+
+- Update versions of embedded Prometheus exporters used for integrations:
+
+  - Update `github.com/prometheus/statsd_exporter` to `v0.22.8`. (@captncraig)
+
+  - Update `github.com/prometheus-community/postgres_exporter` to `v0.11.1`. (@captncraig)
+
+  - Update `github.com/prometheus/memcached_exporter` to `v0.10.0`. (@captncraig)
+
+  - Update `github.com/prometheus-community/elasticsearch_exporter` to `v1.5.0`. (@captncraig)
+
+  - Update `github.com/prometheus/mysqld_exporter` to `v0.14.0`. (@captncraig)
+
+  - Update `github.com/prometheus/consul_exporter` to `v0.8.0`. (@captncraig)
+
+  - Update `github.com/ncabatoff/process-exporter` to `v0.7.10`. (@captncraig)
+
+  - Update `github.com/prometheus-community/postgres_exporter` to `v0.11.1`. (@captncraig)
 
 v0.28.0 (2022-09-29)
 --------------------
@@ -115,15 +143,6 @@ v0.28.0 (2022-09-29)
 ### Bugfixes
 
 ### Other changes
-
-- Update embedded `github.com/prometheus/statsd_exporter` from [`v0.22.7` to `v0.22.8`](https://github.com/prometheus/statsd_exporter/releases)
-- Update embedded `github.com/prometheus-community/postgres_exporter` from [`v0.10.0` to `v0.11.1`](https://github.com/prometheus-community/postgres_exporter/releases)
-- Update embedded `github.com/prometheus/memcached_exporter` from [`v0.9.0` to `v0.10.0`](https://github.com/prometheus/memcached_exporter/releases)
-- Update embedded `github.com/prometheus-community/elasticsearch_exporter` from [`v1.2.1` to `v1.5.0`](https://github.com/prometheus-community/elasticsearch_exporter/releases)
-- Update embedded `github.com/prometheus/mysqld_exporter` from [`v0.13.0` to `v0.14.0`](https://github.com/prometheus/mysqld_exporter/releases)
-- Update embedded `github.com/prometheus/consul_exporter` from [`v0.7.2` to `v0.8.0`](https://github.com/prometheus/consul_exporter/releases)
-- Update embedded `github.com/ncabatoff/process-exporter` from [`v0.7.5` to `v0.7.10`](https://github.com/ncabatoff/process-exporter/releases)
-- Update embedded `github.com/prometheus-community/postgres_exporter` from [`v0.10.0` to `v0.11.1`](https://github.com/prometheus-community/postgres_exporter/releases)
 
 - Fix relabel configs in sample agent-operator manifests (@hjet)
 

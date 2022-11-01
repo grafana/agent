@@ -11,9 +11,9 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol/internal/scheduler"
-	"github.com/grafana/agent/component/otelcol/internal/zapadapter"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/agent/pkg/util/zapadapter"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelconfig "go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/otel/metric"

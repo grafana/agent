@@ -57,6 +57,10 @@ func generatePodTemplate(
 		agentArgs = append(agentArgs, "-disable-reporting")
 	}
 
+	if d.Agent.Spec.DisableSupportBundle {
+		agentArgs = append(agentArgs, "-disable-support-bundle")
+	}
+
 	// NOTE(rfratto): the Prometheus Operator supports a ListenLocal to prevent a
 	// service from being created. Given the intent is that Agents can connect to
 	// each other, ListenLocal isn't currently supported and we always create a

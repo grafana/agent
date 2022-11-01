@@ -828,13 +828,13 @@ string
 </em>
 </td>
 <td>
-<p>RE2 regular exprssion.</p>
-<p>If source is provided, the regex will attempt
+<p>RE2 regular expression.</p>
+<p>If source is provided, the regex attempts
 to match the source.</p>
-<p>If no source is provided, then the regex will attempt
+<p>If no source is provided, then the regex attempts
 to attach the log line.</p>
 <p>If the provided regex matches the log line or a provided source, the
-line will be dropped.</p>
+line is dropped.</p>
 </td>
 </tr>
 <tr>
@@ -860,7 +860,7 @@ string
 </td>
 <td>
 <p>OlderThan will be parsed as a Go duration. If the log line&rsquo;s timestamp
-is older than the current time minus the provided duration it will be
+is older than the current time minus the provided duration, it will be
 dropped.</p>
 </td>
 </tr>
@@ -885,9 +885,9 @@ string
 </em>
 </td>
 <td>
-<p>Every time a log line is dropped the metric logentry_dropped_lines_total
-will be incremented. A &ldquo;reason&rdquo; label is added, and can be customized by
-providing a custom value here. Defaults to &ldquo;drop_stage.&rdquo;</p>
+<p>Every time a log line is dropped, the metric logentry_dropped_lines_total
+is incremented. A &ldquo;reason&rdquo; label is added, and can be customized by
+providing a custom value here. Defaults to &ldquo;drop_stage&rdquo;.</p>
 </td>
 </tr>
 </tbody>
@@ -1312,11 +1312,11 @@ bool
 </p>
 <div>
 <p>Integration runs a single Grafana Agent integration. Integrations that
-generate telemetry must be configured to send that telemetry somewhere; such
+generate telemetry must be configured to send that telemetry somewhere, such
 as autoscrape for exporter-based integrations.</p>
 <p>Integrations have access to the LogsInstances and MetricsInstances in the
 same GrafanaAgent resource set, referenced by the <namespace>/<name> of the
-*Instance resource.</p>
+Instance resource.</p>
 <p>For example, if there is a default/production MetricsInstance, you can
 configure a supported integration&rsquo;s autoscrape block with:</p>
 <pre><code>autoscrape:
@@ -1383,7 +1383,7 @@ IntegrationType
 </em>
 </td>
 <td>
-<p>Type informs Grafana Agent Operator how to manage the integration being
+<p>Type informs Grafana Agent Operator about how to manage the integration being
 configured.</p>
 </td>
 </tr>
@@ -1397,7 +1397,7 @@ k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1.JSON
 </em>
 </td>
 <td>
-<p>The configuration for the named integration. Note that integrations are
+<p>The configuration for the named integration. Note that Integrations are
 deployed with the integrations-next feature flag, which has different
 common settings:</p>
 <p><a href="https://grafana.com/docs/agent/latest/configuration/integrations/integrations-next/">https://grafana.com/docs/agent/latest/configuration/integrations/integrations-next/</a></p>
@@ -1414,11 +1414,11 @@ common settings:</p>
 </td>
 <td>
 <p>An extra list of Volumes to be associated with the Grafana Agent pods
-running this integration. Volume names will be mutated to be unique across
+running this integration. Volume names are mutated to be unique across
 all Integrations. Note that the specified volumes should be able to
 tolerate existing on multiple pods at once when type is daemonset.</p>
-<p>Don&rsquo;t use volumes for loading secrets/configMaps from the same namespace
-as the Integration; use the secrets and configMaps fields instead.</p>
+<p>Don&rsquo;t use volumes for loading Secrets or ConfigMaps from the same namespace
+as the Integration; use the Secrets and ConfigMaps fields instead.</p>
 </td>
 </tr>
 <tr>
@@ -1432,7 +1432,7 @@ as the Integration; use the secrets and configMaps fields instead.</p>
 </td>
 <td>
 <p>An extra list of VolumeMounts to be associated with the Grafana Agent pods
-running this integration. VolumeMount names will be mutated to be unique
+running this integration. VolumeMount names are mutated to be unique
 across all used IntegrationSpecs.</p>
 <p>Mount paths should include the namespace/name of the Integration CR to
 avoid potentially colliding with other resources.</p>
@@ -1450,7 +1450,7 @@ avoid potentially colliding with other resources.</p>
 <td>
 <p>An extra list of keys from Secrets in the same namespace as the
 Integration which will be mounted into the Grafana Agent pod running this
-integration.</p>
+Integration.</p>
 <p>Secrets will be mounted at
 /etc/grafana-agent/integrations/secrets/<secret_namespace>/<secret_name>/<key>.</p>
 </td>
@@ -1467,8 +1467,8 @@ integration.</p>
 <td>
 <p>An extra list of keys from ConfigMaps in the same namespace as the
 Integration which will be mounted into the Grafana Agent pod running this
-integration.</p>
-<p>ConfigMaps will be mounted at
+Integration.</p>
+<p>ConfigMaps are mounted at
 /etc/grafana-agent/integrations/configMaps/<configmap_namespace>/<configmap_name>/<key>.</p>
 </td>
 </tr>
@@ -1515,7 +1515,7 @@ IntegrationType
 </em>
 </td>
 <td>
-<p>Type informs Grafana Agent Operator how to manage the integration being
+<p>Type informs Grafana Agent Operator about how to manage the integration being
 configured.</p>
 </td>
 </tr>
@@ -1529,7 +1529,7 @@ k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1.JSON
 </em>
 </td>
 <td>
-<p>The configuration for the named integration. Note that integrations are
+<p>The configuration for the named integration. Note that Integrations are
 deployed with the integrations-next feature flag, which has different
 common settings:</p>
 <p><a href="https://grafana.com/docs/agent/latest/configuration/integrations/integrations-next/">https://grafana.com/docs/agent/latest/configuration/integrations/integrations-next/</a></p>
@@ -1546,11 +1546,11 @@ common settings:</p>
 </td>
 <td>
 <p>An extra list of Volumes to be associated with the Grafana Agent pods
-running this integration. Volume names will be mutated to be unique across
+running this integration. Volume names are mutated to be unique across
 all Integrations. Note that the specified volumes should be able to
 tolerate existing on multiple pods at once when type is daemonset.</p>
-<p>Don&rsquo;t use volumes for loading secrets/configMaps from the same namespace
-as the Integration; use the secrets and configMaps fields instead.</p>
+<p>Don&rsquo;t use volumes for loading Secrets or ConfigMaps from the same namespace
+as the Integration; use the Secrets and ConfigMaps fields instead.</p>
 </td>
 </tr>
 <tr>
@@ -1564,7 +1564,7 @@ as the Integration; use the secrets and configMaps fields instead.</p>
 </td>
 <td>
 <p>An extra list of VolumeMounts to be associated with the Grafana Agent pods
-running this integration. VolumeMount names will be mutated to be unique
+running this integration. VolumeMount names are mutated to be unique
 across all used IntegrationSpecs.</p>
 <p>Mount paths should include the namespace/name of the Integration CR to
 avoid potentially colliding with other resources.</p>
@@ -1582,7 +1582,7 @@ avoid potentially colliding with other resources.</p>
 <td>
 <p>An extra list of keys from Secrets in the same namespace as the
 Integration which will be mounted into the Grafana Agent pod running this
-integration.</p>
+Integration.</p>
 <p>Secrets will be mounted at
 /etc/grafana-agent/integrations/secrets/<secret_namespace>/<secret_name>/<key>.</p>
 </td>
@@ -1599,8 +1599,8 @@ integration.</p>
 <td>
 <p>An extra list of keys from ConfigMaps in the same namespace as the
 Integration which will be mounted into the Grafana Agent pod running this
-integration.</p>
-<p>ConfigMaps will be mounted at
+Integration.</p>
+<p>ConfigMaps are mounted at
 /etc/grafana-agent/integrations/configMaps/<configmap_namespace>/<configmap_name>/<key>.</p>
 </td>
 </tr>
@@ -1631,7 +1631,7 @@ bool
 </td>
 <td>
 <p>When true, the configured integration should be run on every Node in the
-cluster. This is required for integrations that generate Node-specific
+cluster. This is required for Integrations that generate Node-specific
 metrics like node_exporter, otherwise it must be false to avoid generating
 duplicate metrics.</p>
 </td>
@@ -1646,7 +1646,7 @@ bool
 <td>
 <p>Whether this integration can only be defined once for a Grafana Agent
 process, such as statsd_exporter. It is invalid for a GrafanaAgent to
-discover multiple unique Integrations with the same integration name
+discover multiple unique Integrations with the same Integration name
 (i.e., a single GrafanaAgent cannot deploy two statsd_exporters).</p>
 </td>
 </tr>
@@ -1741,7 +1741,7 @@ map[string]string
 <p>Set of the key/value pairs of JMESPath expressions. The key will be the
 key in the extracted data while the expression will be the value,
 evaluated as a JMESPath from the source data.</p>
-<p>Literal JMESPath exprssions can be done by wrapping a key in double
+<p>Literal JMESPath expressions can be used by wrapping a key in double
 quotes, which then must be wrapped again in single quotes in YAML
 so they get passed to the JMESPath parser.</p>
 </td>
@@ -2088,7 +2088,7 @@ LogsTargetConfigSpec
 </em>
 </td>
 <td>
-<p>Configures how tailed targets will be watched.</p>
+<p>Configures how tailed targets are watched.</p>
 </td>
 </tr>
 </table>
@@ -2189,7 +2189,7 @@ LogsTargetConfigSpec
 </em>
 </td>
 <td>
-<p>Configures how tailed targets will be watched.</p>
+<p>Configures how tailed targets are watched.</p>
 </td>
 </tr>
 </tbody>
@@ -2221,7 +2221,7 @@ subsystem.</p>
 </em>
 </td>
 <td>
-<p>Global set of clients to use when a discovered LogsInstance does not
+<p>A global set of clients to use when a discovered LogsInstance does not
 have any clients defined.</p>
 </td>
 </tr>
@@ -2377,8 +2377,8 @@ string
 </td>
 <td>
 <p>Determines what action is taken when the selector matches the log line.
-Can be keep or drop. Defaults to keep. When set to drop, entries will be
-dropped and no later metrics will be recorded.
+Can be keep or drop. Defaults to keep. When set to drop, entries are
+dropped and no later metrics are recorded.
 Stages must be empty when dropping metrics.</p>
 </td>
 </tr>
@@ -2390,8 +2390,8 @@ string
 </em>
 </td>
 <td>
-<p>Every time a log line is dropped the metric logentry_dropped_lines_total
-will be incremented. A &ldquo;reason&rdquo; label is added, and can be customized by
+<p>Every time a log line is dropped, the metric logentry_dropped_lines_total
+is incremented. A &ldquo;reason&rdquo; label is added, and can be customized by
 providing a custom value here. Defaults to &ldquo;match_stage.&rdquo;</p>
 </td>
 </tr>
@@ -2403,7 +2403,7 @@ string
 </em>
 </td>
 <td>
-<p>Nested set of pipeline stages to execute when action: keep and the log
+<p>Nested set of pipeline stages to execute when action is keep and the log
 line matches selector.</p>
 <p>An example value for stages may be:</p>
 <p>stages: |
@@ -2968,7 +2968,7 @@ string
 <td>
 <p>Label values on metrics are dynamic which can cause exported metrics
 to go stale. To prevent unbounded cardinality, any metrics not updated
-within MaxIdleDuration will be removed.</p>
+within MaxIdleDuration are removed.</p>
 <p>Must be greater or equal to 1s. Defaults to 5m.</p>
 </td>
 </tr>
@@ -2980,7 +2980,7 @@ bool
 </em>
 </td>
 <td>
-<p>If true all log lines will be counted without attempting to match the
+<p>If true, all log lines are counted without attempting to match the
 source to the extracted map. Mutually exclusive with value.</p>
 <p>Only valid for type: counter.</p>
 </td>
@@ -2993,7 +2993,7 @@ bool
 </em>
 </td>
 <td>
-<p>If true all log line bytes will be counted. Can only be set with
+<p>If true all log line bytes are counted. Can only be set with
 matchAll: true and action: add.</p>
 <p>Only valid for type: counter.</p>
 </td>
@@ -3007,8 +3007,8 @@ string
 </td>
 <td>
 <p>Filters down source data and only changes the metric if the targeted
-value exactly matches the provided string. If not present, all
-data will match.</p>
+value matches the provided string exactly. If not present, all
+data matches.</p>
 </td>
 </tr>
 <tr>
@@ -3463,7 +3463,7 @@ object.</p>
 </em>
 </td>
 <td>
-<p>Name from extracted data or line labels. Requiried.
+<p>Name from extracted data or line labels. Required.
 Labels provided here are automatically removed from output labels.</p>
 </td>
 </tr>
@@ -3622,7 +3622,7 @@ map[string]github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1.Metric
 </em>
 </td>
 <td>
-<p>Metrics is an action stage that allows for defining and updating metrics
+<p>Metrics is an action stage that supports defining and updating metrics
 based on data from the extracted map. Created metrics are not pushed to
 Loki or Prometheus and are instead exposed via the /metrics endpoint of
 the Grafana Agent pod. The Grafana Agent Operator should be configured
@@ -3851,7 +3851,7 @@ github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.Namesp
 </em>
 </td>
 <td>
-<p>Pipeline stages for this pod. Pipeline stages allow for transforming and
+<p>Pipeline stages for this pod. Pipeline stages support transforming and
 filtering log lines.</p>
 </td>
 </tr>
@@ -3951,7 +3951,7 @@ github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.Namesp
 </em>
 </td>
 <td>
-<p>Pipeline stages for this pod. Pipeline stages allow for transforming and
+<p>Pipeline stages for this pod. Pipeline stages support transforming and
 filtering log lines.</p>
 </td>
 </tr>
@@ -4484,7 +4484,7 @@ string
 </em>
 </td>
 <td>
-<p>Go template string to use. Required. In additional to normal template
+<p>Go template string to use. Required. In addition to normal template
 functions, ToLower, ToUpper, Replace, Trim, TrimLeft, TrimRight,
 TrimPrefix, and TrimSpace are also available.</p>
 </td>
@@ -4516,7 +4516,7 @@ string
 </em>
 </td>
 <td>
-<p>Name from labels to whose value should be set as tenant ID. Mutually exclusive with
+<p>Name from labels whose value should be set as tenant ID. Mutually exclusive with
 source and value.</p>
 </td>
 </tr>
@@ -4626,5 +4626,5 @@ Can be skip or fudge. Defaults to fudge.</p>
 <hr/>
 <p><em>
 Generated with <code>gen-crd-api-reference-docs</code>
-on git commit <code>87429255</code>.
+on git commit <code>e19c9c42</code>.
 </em></p>

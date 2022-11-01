@@ -2314,6 +2314,11 @@ spec:
                 description: disableReporting disable reporting of enabled feature
                   flags to Grafana.
                 type: boolean
+              disableSupportBundle:
+                default: false
+                description: disableSupportBundle disables the generation of support
+                  bundles.
+                type: boolean
               enableConfigReadAPI:
                 default: false
                 description: enableConfigReadAPI enables the read API for viewing
@@ -3675,8 +3680,8 @@ spec:
                   settings unique to logging-specific pods that are deployed.
                 properties:
                   clients:
-                    description: Global set of clients to use when a discovered LogsInstance
-                      does not have any clients defined.
+                    description: A global set of clients to use when a discovered
+                      LogsInstance does not have any clients defined.
                     items:
                       description: LogsClientSpec defines the client integration for
                         logs, indicating which Loki server to send logs to.

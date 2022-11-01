@@ -4,6 +4,8 @@ import (
 	"context"
 	"sync"
 
+	"github.com/prometheus/prometheus/storage"
+
 	"github.com/grafana/agent/component"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/prometheus"
@@ -29,7 +31,7 @@ func init() {
 // component.
 type Arguments struct {
 	// Where the relabelled metrics should be forwarded to.
-	ForwardTo []*prometheus.Receiver `river:"forward_to,attr"`
+	ForwardTo []storage.Appendable `river:"forward_to,attr"`
 
 	// The relabelling rules to apply to each metric before it's forwarded.
 	MetricRelabelConfigs []*flow_relabel.Config `river:"rule,block,optional"`
@@ -37,7 +39,7 @@ type Arguments struct {
 
 // Exports holds values which are exported by the prometheus.relabel component.
 type Exports struct {
-	Receiver *prometheus.Receiver `river:"receiver,attr"`
+	Receiver storage.Appendable `river:"receiver,attr"`
 }
 
 // Component implements the prometheus.relabel component.
@@ -45,15 +47,17 @@ type Component struct {
 	mut              sync.RWMutex
 	opts             component.Options
 	mrc              []*relabel.Config
-	forwardto        []*prometheus.Receiver
-	receiver         *prometheus.Receiver
+	receiver         *prometheus.Interceptor
 	metricsProcessed prometheus_client.Counter
+	fanout           *prometheus.Fanout
 
 	cacheMut sync.RWMutex
 	cache    map[uint64]*labelAndID
 }
 
-var _ component.Component = (*Component)(nil)
+var (
+	_ component.Component = (*Component)(nil)
+)
 
 // New creates a new prometheus.relabel component.
 func New(o component.Options, args Arguments) (*Component, error) {
@@ -61,7 +65,6 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		opts:  o,
 		cache: make(map[uint64]*labelAndID),
 	}
-	c.receiver = &prometheus.Receiver{Receive: c.Receive}
 	c.metricsProcessed = prometheus_client.NewCounter(prometheus_client.CounterOpts{
 		Name: "agent_prometheus_relabel_metrics_processed",
 		Help: "Total number of metrics processed",
@@ -72,6 +75,18 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		return nil, err
 	}
 
+	c.fanout = prometheus.NewFanout(args.ForwardTo, o.ID)
+	c.receiver, err = prometheus.NewInterceptor(func(ref storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
+		newLbl := c.relabel(v, l)
+		if newLbl == nil {
+			return 0, nil
+		}
+		return next.Append(0, newLbl, t, v)
+	}, c.fanout, c.opts.ID)
+
+	if err != nil {
+		return nil, err
+	}
 	// Immediately export the receiver which remains the same for the component
 	// lifetime.
 	o.OnStateChange(Exports{Receiver: c.receiver})
@@ -99,49 +114,39 @@ func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 	c.clearCache()
 	c.mrc = flow_relabel.ComponentToPromRelabelConfigs(newArgs.MetricRelabelConfigs)
-	c.forwardto = newArgs.ForwardTo
+	c.fanout.UpdateChildren(newArgs.ForwardTo)
+	c.opts.OnStateChange(Exports{Receiver: c.receiver})
 
 	return nil
 }
 
-// Receive implements the receiver.Receive func that allows an array of metrics
-// to be passed around.
-func (c *Component) Receive(ts int64, metricArr []*prometheus.FlowMetric) {
+func (c *Component) relabel(val float64, lbls labels.Labels) labels.Labels {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
 
-	relabelledMetrics := make([]*prometheus.FlowMetric, 0)
-	for _, m := range metricArr {
-		// Relabel may return the original flowmetric if no changes applied, nil if everything was removed or an entirely new flowmetric.
-		var relabelledFm *prometheus.FlowMetric
-		lbls, found := c.getFromCache(m.GlobalRefID())
-		if found {
-			// If lbls is nil but cache entry was found then we want to keep the value nil, if it's not we want to reuse the labels
-			if lbls != nil {
-				relabelledFm = prometheus.NewFlowMetric(lbls.id, lbls.labels, m.Value())
-			}
-		} else {
-			relabelledFm = m.Relabel(c.mrc...)
-			c.addToCache(m.GlobalRefID(), relabelledFm)
+	globalRef := prometheus.GlobalRefMapping.GetOrAddGlobalRefID(lbls)
+	var relabelled labels.Labels
+	newLbls, found := c.getFromCache(globalRef)
+	if found {
+		// If newLbls is nil but cache entry was found then we want to keep the value nil, if it's not we want to reuse the labels
+		if newLbls != nil {
+			relabelled = newLbls.labels
 		}
+	} else {
+		relabelled = relabel.Process(lbls, c.mrc...)
+		c.addToCache(globalRef, relabelled)
+	}
 
-		// If stale remove from the cache, the reason we don't exit early is so the stale value can propagate.
-		// TODO: (@mattdurham) This caching can leak and likely needs a timed eviction at some point, but this is simple.
-		// In the future the global ref cache may have some hooks to allow notification of when caches should be evicted.
-		if value.IsStaleNaN(m.Value()) {
-			c.deleteFromCache(m.GlobalRefID())
-		}
-		if relabelledFm == nil {
-			continue
-		}
-		relabelledMetrics = append(relabelledMetrics, relabelledFm)
+	// If stale remove from the cache, the reason we don't exit early is so the stale value can propagate.
+	// TODO: (@mattdurham) This caching can leak and likely needs a timed eviction at some point, but this is simple.
+	// In the future the global ref cache may have some hooks to allow notification of when caches should be evicted.
+	if value.IsStaleNaN(val) {
+		c.deleteFromCache(globalRef)
 	}
-	if len(relabelledMetrics) == 0 {
-		return
+	if relabelled == nil {
+		return nil
 	}
-	for _, forward := range c.forwardto {
-		forward.Receive(ts, relabelledMetrics)
-	}
+	return relabelled
 }
 
 func (c *Component) getFromCache(id uint64) (*labelAndID, bool) {
@@ -166,17 +171,18 @@ func (c *Component) clearCache() {
 	c.cache = make(map[uint64]*labelAndID)
 }
 
-func (c *Component) addToCache(originalID uint64, fm *prometheus.FlowMetric) {
+func (c *Component) addToCache(originalID uint64, lbls labels.Labels) {
 	c.cacheMut.Lock()
 	defer c.cacheMut.Unlock()
 
-	if fm == nil {
+	if lbls == nil {
 		c.cache[originalID] = nil
 		return
 	}
+	newGlobal := prometheus.GlobalRefMapping.GetOrAddGlobalRefID(lbls)
 	c.cache[originalID] = &labelAndID{
-		labels: fm.RawLabels(),
-		id:     fm.GlobalRefID(),
+		labels: lbls,
+		id:     newGlobal,
 	}
 }
 
