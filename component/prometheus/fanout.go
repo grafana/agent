@@ -82,18 +82,26 @@ func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v flo
 
 // Commit satisfies the Appender interface.
 func (a *appender) Commit() error {
+	var multiErr error
 	for _, x := range a.children {
-		_ = x.Commit()
+		err := x.Commit()
+		if err != nil {
+			multiErr = multierror.Append(multiErr, err)
+		}
 	}
-	return nil
+	return multiErr
 }
 
 // Rollback satisifies the Appender interface.
 func (a *appender) Rollback() error {
+	var multiErr error
 	for _, x := range a.children {
-		_, _ = x, a.Rollback()
+		err := x.Rollback()
+		if err != nil {
+			multiErr = multierror.Append(multiErr, err)
+		}
 	}
-	return nil
+	return multiErr
 }
 
 // AppendExemplar satisfies the Appender interface.
