@@ -8,7 +8,7 @@ title: app_agent_config
 
 The `app_agent_receiver_config` block configures the `app_agent_receiver`
 integration. This integration exposes a http endpoint that can receive telemetry
-from the [Grafana Javascript Agent](https://github.com/grafana/grafana-javascript-agent)
+from the [Grafana Faro Web SDK](https://github.com/grafana/faro-web-sdk)
 and forward it to logs, traces or metrics backends.
 
 These are the options you have for configuring the app_agent_receiver integration.
