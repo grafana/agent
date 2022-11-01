@@ -84,7 +84,7 @@ Main (unreleased)
 
 - Add missing setting to configure instance key for Eventhandler integration. (@marctc)
 
-- Tracing: support the `num_traces` and `expected_new_traces_per_sec` configuration parameters of the OpenTelemetry Collector. (@ptodev)
+- Tracing: support the `num_traces` and `expected_new_traces_per_sec` configuration parameters in the tail_sampling processor. (@ptodev)
 
 ### Bugfixes
 
