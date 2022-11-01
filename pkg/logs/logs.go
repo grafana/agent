@@ -178,7 +178,7 @@ func (i *Instance) ApplyConfig(c *InstanceConfig, dryRun bool) error {
 		PositionsConfig: c.PositionsConfig,
 		ScrapeConfig:    c.ScrapeConfig,
 		TargetConfig:    c.TargetConfig,
-	}, clientMetrics, dryRun, promtail.WithLogger(i.log), promtail.WithRegisterer(i.reg))
+	}, nil, clientMetrics, dryRun, promtail.WithLogger(i.log), promtail.WithRegisterer(i.reg))
 	if err != nil {
 		return fmt.Errorf("unable to create logs instance: %w", err)
 	}

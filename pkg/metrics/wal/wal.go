@@ -414,7 +414,7 @@ func (w *Storage) Truncate(mint int64) error {
 
 	// Start a new segment, so low ingestion volume instance don't have more WAL
 	// than needed.
-	err = w.wal.NextSegment()
+	_, err = w.wal.NextSegment()
 	if err != nil {
 		return fmt.Errorf("next segment: %w", err)
 	}
