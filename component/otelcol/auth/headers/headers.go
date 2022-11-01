@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/auth"
 	"github.com/grafana/agent/pkg/flow/rivertypes"
 	"github.com/grafana/agent/pkg/river"
@@ -18,7 +17,7 @@ func init() {
 	component.Register(component.Registration{
 		Name:    "otelcol.auth.headers",
 		Args:    Arguments{},
-		Exports: otelcol.ConsumerExports{},
+		Exports: auth.Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := headerssetterextension.NewFactory()
