@@ -61,6 +61,10 @@ Main (unreleased)
 
 - Flow: Allow config blocks to reference component exports. (@tpaschalis)
 
+- Introduce `/-/support` endpoint for generating 'support bundles' in static
+  agent mode. Support bundles are zip files of commonly-requested information
+  that can be used to debug a running agent. (@tpaschalis)
+  
 ### Enhancements
 
 - Update OpenTelemetry Collector dependency to v0.61.0. (@rfratto)
