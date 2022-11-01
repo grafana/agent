@@ -1417,8 +1417,7 @@ service:
 			require.NoError(t, err)
 
 			configMap := confmap.NewFromStringMap(otelMapStructure)
-			cfgUnmarshaler := configunmarshaler.New()
-			expectedConfig, err := cfgUnmarshaler.Unmarshal(configMap, factories)
+			expectedConfig, err := configunmarshaler.Unmarshal(configMap, factories)
 			require.NoError(t, err)
 
 			// Exporters/Receivers/Processors in the config's service.Pipelines, as well as

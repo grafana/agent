@@ -126,8 +126,7 @@ service:
 	}
 
 	configMap := confmap.NewFromStringMap(cfg)
-	cfgUnmarshaler := configunmarshaler.New()
-	otelCfg, err := cfgUnmarshaler.Unmarshal(configMap, factories)
+	otelCfg, err := configunmarshaler.Unmarshal(configMap, factories)
 	if err != nil {
 		return nil, fmt.Errorf("failed to make otel config: %w", err)
 	}

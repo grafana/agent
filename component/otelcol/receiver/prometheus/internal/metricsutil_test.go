@@ -41,7 +41,7 @@ func histogramPointRaw(attributes []*kv, startTimestamp, timestamp pcommon.Times
 
 	attrs := hdp.Attributes()
 	for _, kv := range attributes {
-		attrs.PutString(kv.Key, kv.Value)
+		attrs.PutStr(kv.Key, kv.Value)
 	}
 
 	return hdp
@@ -77,7 +77,7 @@ func histogramMetric(name string, points ...pmetric.HistogramDataPoint) pmetric.
 	metric := pmetric.NewMetric()
 	metric.SetName(name)
 	histogram := metric.SetEmptyHistogram()
-	histogram.SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
+	histogram.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 
 	destPointL := histogram.DataPoints()
 	// By default the AggregationTemporality is Cumulative until it'll be changed by the caller.
@@ -95,7 +95,7 @@ func doublePointRaw(attributes []*kv, startTimestamp, timestamp pcommon.Timestam
 	ndp.SetTimestamp(timestamp)
 
 	for _, kv := range attributes {
-		ndp.Attributes().PutString(kv.Key, kv.Value)
+		ndp.Attributes().PutStr(kv.Key, kv.Value)
 	}
 
 	return ndp
@@ -129,7 +129,7 @@ func sumMetric(name string, points ...pmetric.NumberDataPoint) pmetric.Metric {
 	metric := pmetric.NewMetric()
 	metric.SetName(name)
 	sum := metric.SetEmptySum()
-	sum.SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
+	sum.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 	sum.SetIsMonotonic(true)
 
 	destPointL := sum.DataPoints()
@@ -147,7 +147,7 @@ func summaryPointRaw(attributes []*kv, startTimestamp, timestamp pcommon.Timesta
 	sdp.SetTimestamp(timestamp)
 
 	for _, kv := range attributes {
-		sdp.Attributes().PutString(kv.Key, kv.Value)
+		sdp.Attributes().PutStr(kv.Key, kv.Value)
 	}
 
 	return sdp

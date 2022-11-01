@@ -60,7 +60,9 @@ func (c *Consumer) ConsumeTraces(ctx context.Context, td ptrace.Traces) error {
 	}
 
 	if c.tracesConsumer.Capabilities().MutatesData {
-		td = td.Clone()
+		newTraces := ptrace.NewTraces()
+		td.CopyTo(newTraces)
+		td = newTraces
 	}
 	return c.tracesConsumer.ConsumeTraces(ctx, td)
 }
@@ -79,7 +81,9 @@ func (c *Consumer) ConsumeMetrics(ctx context.Context, md pmetric.Metrics) error
 	}
 
 	if c.metricsConsumer.Capabilities().MutatesData {
-		md = md.Clone()
+		newMetrics := pmetric.NewMetrics()
+		md.CopyTo(newMetrics)
+		md = newMetrics
 	}
 	return c.metricsConsumer.ConsumeMetrics(ctx, md)
 }
@@ -98,7 +102,9 @@ func (c *Consumer) ConsumeLogs(ctx context.Context, ld plog.Logs) error {
 	}
 
 	if c.logsConsumer.Capabilities().MutatesData {
-		ld = ld.Clone()
+		newLogs := plog.NewLogs()
+		ld.CopyTo(newLogs)
+		ld = newLogs
 	}
 	return c.logsConsumer.ConsumeLogs(ctx, ld)
 }
