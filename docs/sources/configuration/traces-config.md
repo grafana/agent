@@ -19,7 +19,7 @@ start.
 
 ```yaml
 configs:
- - [<traces_instance_config>]
+ [ - <traces_instance_config> ... ]
  ```
 
 ## traces_instance_config
@@ -33,12 +33,12 @@ name: <string>
 # This field allows for the general manipulation of tags on spans that pass
 # through this agent. A common use may be to add an environment or cluster
 # variable.
-[attributes: <attributes.config>]
+[ attributes: <attributes.config> ]
 
 # This field allows to configure grouping spans into batches. Batching helps
 # better compress the data and reduce the number of outgoing connections
 # required transmit the data.
-[batch: <batch.config>]
+[ batch: <batch.config> ]
 
 remote_write:
   # host:port to send traces to
@@ -78,36 +78,36 @@ remote_write:
     # Can not be used in combination with `basic_auth`.
     # See https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/extension/oauth2clientauthextension/README.md
     oauth2:
-            # Configures the TLS settings specific to the oauth2 client
-                    # The client identifier issued to the oauth client
-                    [client_id: <string>]
-                    # The secret string associated with the oauth client
-                    [client_secret: <string>]
-                    # The resource server's token endpoint URL
-                    [token_url: <string>]
-                    # Optional, requested permissions associated with the oauth client
-                    [scopes: [<string>]]
-                    # Optional, specifies the timeout fetching tokens from the token_url. Default: no timeout
-                    [timeout: <duration>]
-              tls:
-                      # Disable validation of the server certificate.
-                              [ insecure: <bool> | default = false ]
-                              # Path to the CA cert. For a client this verifies the server certificate. If empty uses system root CA.
-                              [ca_file: <string>]
-                              # Path to the TLS cert to use for TLS required connections
-                              [cert_file: <string>]
-                              # Path to the TLS key to use for TLS required connections
-                              [key_file: <string>]
+      # Configures the TLS settings specific to the oauth2 client
+      # The client identifier issued to the oauth client
+      [ client_id: <string> ]
+      # The secret string associated with the oauth client
+      [ client_secret: <string> ]
+      # The resource server's token endpoint URL
+      [ token_url: <string> ]
+      # Optional, requested permissions associated with the oauth client
+      [ scopes: [<string>] ]
+      # Optional, specifies the timeout fetching tokens from the token_url. Default: no timeout
+      [ timeout: <duration> ]
+      tls:
+        # Disable validation of the server certificate.
+        [ insecure: <bool> | default = false ]
+        # Path to the CA cert. For a client this verifies the server certificate. If empty uses system root CA.
+        [ ca_file: <string> ]
+        # Path to the TLS cert to use for TLS required connections
+        [ cert_file: <string> ]
+        # Path to the TLS key to use for TLS required connections
+        [ key_file: <string> ]
 
     # Controls TLS settings of the exporter's client. See https://github.com/open-telemetry/opentelemetry-collector/blob/v0.21.0/config/configtls/README.md
     # This should be used only if `insecure` is set to false
     tls_config:
       # Path to the CA cert. For a client this verifies the server certificate. If empty uses system root CA.
-      [ca_file: <string>]
+      [ ca_file: <string> ]
       # Path to the TLS cert to use for TLS required connections
-      [cert_file: <string>]
+      [ cert_file: <string> ]
       # Path to the TLS key to use for TLS required connections
-      [key_file: <string>]
+      [ key_file: <string> ]
       # Disable validation of the server certificate.
       [ insecure_skip_verify: <bool> | default = false ]
 
@@ -171,7 +171,7 @@ receivers: <receivers>
 # configs have their __address__ matched against the ip on incoming spans. If a
 # match is found then relabeling rules are applied.
 scrape_configs:
-  - [<scrape_config>]
+  [ - <scrape_config> ... ]
 # Defines what method is used when adding k/v to spans.
 # Options are `update`, `insert` and `upsert`.
 # `update` only modifies an existing k/v and `insert` only appends if the k/v
@@ -196,7 +196,7 @@ scrape_configs:
 # By default, all methods are enabled, and evaluated in the order specified above.
 # Order of evaluation is honored when multiple methods are enabled.
 prom_sd_pod_associations:
-  - [ <string>... ]
+  [ - <string> ... ]
 
 # spanmetrics supports aggregating Request, Error and Duration (R.E.D) metrics
 # from span data.
@@ -227,7 +227,7 @@ spanmetrics:
   # const_labels are labels that will always get applied to the exported
   # metrics.
   const_labels:
-    [ <string>: <string>... ]
+    [ <string>: <string> ... ]
   # Metrics are namespaced to `traces_spanmetrics` by default.
   # They can be further namespaced, i.e. `{namespace}_traces_spanmetrics`
   [ namespace: <string> ]
@@ -253,12 +253,18 @@ tail_sampling:
   # policies define the rules by which traces will be sampled. Multiple policies
   # can be added to the same pipeline.
   policies:
-    - [<tailsamplingprocessor.policies>]
+    [ - <tailsamplingprocessor.policies> ... ]
 
   # Time that to wait before making a decision for a trace.
   # Longer wait times reduce the probability of sampling an incomplete trace at
   # the cost of higher memory usage.
-  decision_wait: [ <duration> | default="5s" ]
+  [ decision_wait: <duration> | default = 5s ]
+
+  # Optional, number of traces kept in memory
+  [ num_traces: <int> | default = 50000 ]
+
+  # Optional, expected number of new traces (helps in allocating data structures)
+  [ expected_new_traces_per_sec: <int> | default = 0 ]
 
 # load_balancing configures load balancing of spans across multi agent deployments.
 # It ensures that all spans of a trace are sampled in the same instance.
@@ -337,7 +343,7 @@ service_graphs:
   #
   # increasing the waiting time will increase the percentage of paired spans.
   # retaining unpaired spans for longer will make reaching max_items more likely.
-  [ wait: <duration> | default = "10s"]
+  [ wait: <duration> | default = 10s ]
 
   # configures the max amount of edges that will be stored in memory.
   #
@@ -350,7 +356,7 @@ service_graphs:
   
   # configures the number of workers that will process completed edges concurrently.
   # as edges are completed, they get queued to be collected as metrics for the graph.
-  [ workers: <integer> | default = 10]
+  [ workers: <integer> | default = 10 ]
 
   # configures what status codes are considered as successful (e.g. HTTP 404).
   #

@@ -64,7 +64,7 @@ Main (unreleased)
 - Introduce `/-/support` endpoint for generating 'support bundles' in static
   agent mode. Support bundles are zip files of commonly-requested information
   that can be used to debug a running agent. (@tpaschalis)
-  
+
 ### Enhancements
 
 - Update OpenTelemetry Collector dependency to v0.61.0. (@rfratto)
@@ -89,6 +89,8 @@ Main (unreleased)
 - Update Prometheus dependency to v2.39.1. (@rfratto)
 
 - Update Promtail dependency to weekly release k122. (@rfratto)
+
+- Tracing: support the `num_traces` and `expected_new_traces_per_sec` configuration parameters in the tail_sampling processor. (@ptodev)
 
 ### Bugfixes
 

@@ -623,6 +623,9 @@ receivers:
 remote_write:
   - endpoint: example.com:12345
 tail_sampling:
+  decision_wait: 11s
+  num_traces: 98765
+  expected_new_traces_per_sec: 76
   policies:
     - type: always_sample
     - type: latency
@@ -665,7 +668,9 @@ exporters:
       max_elapsed_time: 60s
 processors:
   tail_sampling:
-    decision_wait: 5s
+    decision_wait: 11s
+    num_traces: 98765
+    expected_new_traces_per_sec: 76
     policies:
       - name: always_sample/0
         type: always_sample

@@ -51,6 +51,9 @@ const (
 	// defaultDecisionWait is the default time to wait for a trace before making a sampling decision
 	defaultDecisionWait = time.Second * 5
 
+	// defaultNumTraces is the default number of traces kept on memory.
+	defaultNumTraces = uint64(50000)
+
 	// defaultLoadBalancingPort is the default port the agent uses for internal load balancing
 	defaultLoadBalancingPort = "4318"
 	// agent's load balancing options
@@ -310,6 +313,12 @@ type tailSamplingConfig struct {
 	Policies []policy `yaml:"policies"`
 	// DecisionWait defines the time to wait for a complete trace before making a decision
 	DecisionWait time.Duration `yaml:"decision_wait,omitempty"`
+	// NumTraces is the number of traces kept on memory. Typically most of the data
+	// of a trace is released after a sampling decision is taken.
+	NumTraces uint64 `yaml:"num_traces,omitempty"`
+	// ExpectedNewTracesPerSec sets the expected number of new traces sending to the tail sampling processor
+	// per second. This helps with allocating data structures with closer to actual usage size.
+	ExpectedNewTracesPerSec uint64 `yaml:"expected_new_traces_per_sec,omitempty"`
 }
 
 type policy struct {
@@ -672,6 +681,13 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 	}
 
 	if c.TailSampling != nil {
+		expectedNewTracesPerSec := c.TailSampling.ExpectedNewTracesPerSec
+
+		numTraces := defaultNumTraces
+		if c.TailSampling.NumTraces != 0 {
+			numTraces = c.TailSampling.NumTraces
+		}
+
 		wait := defaultDecisionWait
 		if c.TailSampling.DecisionWait != 0 {
 			wait = c.TailSampling.DecisionWait
@@ -686,8 +702,10 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 		// TODO(mario.rodriguez): put attributes processor before tail_sampling. Maybe we want to sample on mutated spans
 		processorNames = append([]string{"tail_sampling"}, processorNames...)
 		processors["tail_sampling"] = map[string]interface{}{
-			"policies":      policies,
-			"decision_wait": wait,
+			"policies":                    policies,
+			"decision_wait":               wait,
+			"num_traces":                  numTraces,
+			"expected_new_traces_per_sec": expectedNewTracesPerSec,
 		}
 	}
 
