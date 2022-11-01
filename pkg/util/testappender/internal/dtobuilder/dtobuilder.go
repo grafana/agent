@@ -18,9 +18,10 @@ import (
 
 // Sample represents an individually written sample to a storage.Appender.
 type Sample struct {
-	Labels    labels.Labels
-	Timestamp int64
-	Value     float64
+	Labels         labels.Labels
+	Timestamp      int64
+	Value          float64
+	PrintTimestamp bool
 }
 
 // SeriesExemplar represents an individually written exemplar to a
@@ -162,7 +163,9 @@ func (b *builder) buildMetricsFromSamples() {
 
 		// Retrieve the *dto.Metric based on labels.
 		m := getOrCreateMetric(mf, sample.Labels)
-		m.TimestampMs = pointer.Int64(sample.Timestamp)
+		if sample.PrintTimestamp {
+			m.TimestampMs = pointer.Int64(sample.Timestamp)
+		}
 
 		switch familyType(mf) {
 		case dto.MetricType_COUNTER:

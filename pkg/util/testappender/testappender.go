@@ -27,6 +27,9 @@ import (
 //
 // Appender is not safe for concurrent use.
 type Appender struct {
+	// HideTimestamps, when true, will omit timestamps from results.
+	HideTimestamps bool
+
 	commitCalled, rollbackCalled bool
 
 	samples   map[string]dtobuilder.Sample         // metric labels -> sample
@@ -76,9 +79,10 @@ func (app *Appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v f
 	}
 
 	app.samples[l.String()] = dtobuilder.Sample{
-		Labels:    l,
-		Timestamp: t,
-		Value:     v,
+		Labels:         l,
+		Timestamp:      t,
+		Value:          v,
+		PrintTimestamp: !app.HideTimestamps,
 	}
 	return 0, nil
 }
