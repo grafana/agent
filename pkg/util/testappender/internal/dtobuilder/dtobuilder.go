@@ -110,7 +110,7 @@ func (b *builder) buildFamiliesFromMetadata() {
 			Type: &mt,
 		}
 		if m.Help != "" {
-			mf.Help = &m.Help
+			mf.Help = pointer.String(m.Help)
 		}
 
 		b.families = append(b.families, mf)
