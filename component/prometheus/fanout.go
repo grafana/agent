@@ -10,6 +10,7 @@ import (
 	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/metadata"
+	"github.com/prometheus/prometheus/scrape"
 
 	"github.com/prometheus/prometheus/storage"
 )
@@ -44,6 +45,14 @@ func (f *Fanout) UpdateChildren(children []storage.Appendable) {
 func (f *Fanout) Appender(ctx context.Context) storage.Appender {
 	f.mut.RLock()
 	defer f.mut.RUnlock()
+
+	// TODO(@tpaschalis): The `otelcol.receiver.prometheus` component reuses
+	// code from the prometheusreceiver which expects the Appender context to
+	// be contain both a scrape target and a metadata store, and fails the
+	// conversion if they are missing. We should find a way around this as both
+	// Targets and Metadata will be handled in a different way in Flow.
+	ctx = scrape.ContextWithTarget(ctx, &scrape.Target{})
+	ctx = scrape.ContextWithMetricMetadataStore(ctx, NoopMetadataStore{})
 
 	app := &appender{
 		children:    make([]storage.Appender, 0),
@@ -113,3 +122,20 @@ func (a *appender) AppendExemplar(ref storage.SeriesRef, l labels.Labels, e exem
 func (a *appender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata) (storage.SeriesRef, error) {
 	return 0, fmt.Errorf("updateMetadata not supported yet")
 }
+
+// NoopMetadataStore implements the MetricMetadataStore interface.
+type NoopMetadataStore map[string]scrape.MetricMetadata
+
+// GetMetadata implements the MetricMetadataStore interface.
+func (ms NoopMetadataStore) GetMetadata(familyName string) (scrape.MetricMetadata, bool) {
+	return scrape.MetricMetadata{}, false
+}
+
+// ListMetadata implements the MetricMetadataStore interface.
+func (ms NoopMetadataStore) ListMetadata() []scrape.MetricMetadata { return nil }
+
+// SizeMetadata implements the MetricMetadataStore interface.
+func (ms NoopMetadataStore) SizeMetadata() int { return 0 }
+
+// LengthMetadata implements the MetricMetadataStore interface.
+func (ms NoopMetadataStore) LengthMetadata() int { return 0 }
