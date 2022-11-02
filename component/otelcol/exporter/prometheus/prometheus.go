@@ -11,6 +11,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/exporter/prometheus/internal/convert"
+	"github.com/grafana/agent/component/otelcol/internal/lazyconsumer"
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/prometheus/prometheus/storage"
@@ -91,10 +92,17 @@ func New(o component.Options, c Arguments) (*Component, error) {
 		fanout:    fanout,
 		converter: converter,
 	}
-
 	if err := res.Update(c); err != nil {
 		return nil, err
 	}
+
+	// Construct a consumer based on our converter and export it. This will
+	// remain the same throughout the component's lifetime, so we do this during
+	// component construction.
+	export := lazyconsumer.New(context.Background())
+	export.SetConsumers(nil, converter, nil)
+	o.OnStateChange(otelcol.ConsumerExports{Input: export})
+
 	return res, nil
 }
 
