@@ -339,7 +339,7 @@ func (p *printer) writeCommentPrefix(next token.Position, c *ast.Comment) {
 	}
 }
 
-func (p *printer) writeComment(next token.Position, c *ast.Comment) {
+func (p *printer) writeComment(_ token.Position, c *ast.Comment) {
 	p.writeString(c.StartPos.Position(), c.Text, true)
 }
 
