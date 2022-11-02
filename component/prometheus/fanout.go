@@ -123,12 +123,19 @@ func (a *appender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m meta
 	return 0, fmt.Errorf("updateMetadata not supported yet")
 }
 
-// NoopMetadataStore implements the MetadataStore interface.
+// NoopMetadataStore implements the MetricMetadataStore interface.
 type NoopMetadataStore map[string]scrape.MetricMetadata
 
+// GetMetadata implements the MetricMetadataStore interface.
 func (ms NoopMetadataStore) GetMetadata(familyName string) (scrape.MetricMetadata, bool) {
 	return scrape.MetricMetadata{}, false
 }
+
+// ListMetadata implements the MetricMetadataStore interface.
 func (ms NoopMetadataStore) ListMetadata() []scrape.MetricMetadata { return nil }
-func (ms NoopMetadataStore) SizeMetadata() int                     { return 0 }
-func (ms NoopMetadataStore) LengthMetadata() int                   { return 0 }
+
+// SizeMetadata implements the MetricMetadataStore interface.
+func (ms NoopMetadataStore) SizeMetadata() int { return 0 }
+
+// LengthMetadata implements the MetricMetadataStore interface.
+func (ms NoopMetadataStore) LengthMetadata() int { return 0 }
