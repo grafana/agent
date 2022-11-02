@@ -46,8 +46,13 @@ func (f *Fanout) Appender(ctx context.Context) storage.Appender {
 	f.mut.RLock()
 	defer f.mut.RUnlock()
 
-	ctx = scrape.ContextWithMetricMetadataStore(ctx, NoopMetadataStore{})
+	// TODO(@tpaschalis): The `otelcol.receiver.prometheus` component reuses
+	// code from the prometheusreceiver which expects the Appender context to
+	// be contain both a scrape target and a metadata store, and fails the
+	// conversion if they are missing. We should find a way around this as both
+	// Targets and Metadata will be handled in a different way in Flow.
 	ctx = scrape.ContextWithTarget(ctx, &scrape.Target{})
+	ctx = scrape.ContextWithMetricMetadataStore(ctx, NoopMetadataStore{})
 
 	app := &appender{
 		children:    make([]storage.Appender, 0),
