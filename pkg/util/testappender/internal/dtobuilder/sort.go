@@ -13,7 +13,6 @@ func sortMetricFamilies(mf []*dto.MetricFamily) {
 		return mf[i].GetName() < mf[j].GetName()
 	})
 
-	// Sort the met
 	for _, family := range mf {
 		sortMetrics(family.Metric)
 	}
@@ -37,6 +36,8 @@ func sortMetrics(mm []*dto.Metric) {
 	}
 }
 
+// labelsLess implements the sort.Slice "less" function, returning true if a
+// should appear before b in a list of sorted labels.
 func labelsLess(a, b []*dto.LabelPair) bool {
 	for i := 0; i < len(a); i++ {
 		// If all labels have matched but we've gone past the length
