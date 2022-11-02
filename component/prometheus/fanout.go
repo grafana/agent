@@ -46,8 +46,6 @@ func (f *Fanout) Appender(ctx context.Context) storage.Appender {
 	f.mut.RLock()
 	defer f.mut.RUnlock()
 
-	fmt.Println("     >>> took a fanout Appender")
-
 	ctx = scrape.ContextWithMetricMetadataStore(ctx, NoopMetadataStore{})
 	ctx = scrape.ContextWithTarget(ctx, &scrape.Target{})
 
