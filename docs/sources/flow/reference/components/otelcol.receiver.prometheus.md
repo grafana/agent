@@ -7,7 +7,7 @@ title: otelcol.receiver.prometheus
 # otelcol.receiver.prometheus
 
 `otelcol.receiver.prometheus` receives Prometheus metrics, converts them to the
-OpenTelemetry metrics format and and forwards them to other `otelcol.*`
+OpenTelemetry metrics format, and forwards them to other `otelcol.*`
 components.
 
 Multiple `otelcol.receiver.prometheus` components can be specified by giving them
