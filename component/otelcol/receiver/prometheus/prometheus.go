@@ -5,7 +5,6 @@ import (
 	"context"
 	"os"
 	"regexp"
-	"sort"
 	"sync"
 	"time"
 
@@ -127,7 +126,7 @@ func (c *Component) Update(newConfig component.Arguments) error {
 		useStartTimeMetric,
 		startTimeMetricRegex,
 		otelconfig.NewComponentID(otelconfig.Type(c.opts.ID)),
-		toLabels(cfg.ExternalLabels),
+		labels.Labels{},
 	)
 	c.appendable = appendable
 
@@ -135,13 +134,4 @@ func (c *Component) Update(newConfig component.Arguments) error {
 	c.opts.OnStateChange(Exports{Receiver: c.appendable})
 
 	return nil
-}
-
-func toLabels(in map[string]string) labels.Labels {
-	res := make(labels.Labels, 0, len(in))
-	for k, v := range in {
-		res = append(res, labels.Label{Name: k, Value: v})
-	}
-	sort.Sort(res)
-	return res
 }
