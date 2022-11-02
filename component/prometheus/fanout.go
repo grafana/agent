@@ -10,6 +10,7 @@ import (
 	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/metadata"
+	"github.com/prometheus/prometheus/scrape"
 
 	"github.com/prometheus/prometheus/storage"
 )
@@ -44,6 +45,9 @@ func (f *Fanout) UpdateChildren(children []storage.Appendable) {
 func (f *Fanout) Appender(ctx context.Context) storage.Appender {
 	f.mut.RLock()
 	defer f.mut.RUnlock()
+
+	ctx = scrape.ContextWithMetricMetadataStore(ctx, noopMetadataStore{})
+	ctx = scrape.ContextWithTarget(ctx, &scrape.Target{})
 
 	app := &appender{
 		children:    make([]storage.Appender, 0),
@@ -113,3 +117,12 @@ func (a *appender) AppendExemplar(ref storage.SeriesRef, l labels.Labels, e exem
 func (a *appender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata) (storage.SeriesRef, error) {
 	return 0, fmt.Errorf("updateMetadata not supported yet")
 }
+
+type noopMetadataStore map[string]scrape.MetricMetadata
+
+func (ms noopMetadataStore) GetMetadata(familyName string) (scrape.MetricMetadata, bool) {
+	return scrape.MetricMetadata{}, false
+}
+func (ms noopMetadataStore) ListMetadata() []scrape.MetricMetadata { return nil }
+func (ms noopMetadataStore) SizeMetadata() int                     { return 0 }
+func (ms noopMetadataStore) LengthMetadata() int                   { return 0 }
