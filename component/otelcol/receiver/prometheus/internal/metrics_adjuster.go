@@ -234,6 +234,8 @@ func (jm *JobsMap) get(job, instance string) *timeseriesMap {
 	return tsm2
 }
 
+// MetricsAdjuster adjusts the start time of metrics when converting between
+// Prometheus and OTel.
 type MetricsAdjuster interface {
 	AdjustMetrics(metrics pmetric.Metrics) error
 }

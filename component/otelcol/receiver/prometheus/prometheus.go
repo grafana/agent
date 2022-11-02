@@ -91,7 +91,7 @@ func (c *Component) Update(newConfig component.Arguments) error {
 	// If set to true, the receiver will utilize a `startTimeMetricAdjuster`
 	// to adjust metric start times based on a start time metric. The start
 	// time metric defaults to `process_start_time_seconds`, but can be
-	// overriden by using this regex.
+	// overridden by using this regex.
 	//
 	// gcInterval should be at least as long as the longest scrape interval
 	// used by the upstream scrape configs, plus a delta to avoid race

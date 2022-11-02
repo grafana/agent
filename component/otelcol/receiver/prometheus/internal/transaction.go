@@ -59,6 +59,7 @@ func newTransaction(
 	externalLabels labels.Labels,
 	settings component.ReceiverCreateSettings,
 	obsrecv *obsreport.Receiver) *transaction {
+
 	return &transaction{
 		ctx:            ctx,
 		families:       make(map[string]*metricFamily),

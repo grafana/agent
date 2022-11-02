@@ -1,5 +1,4 @@
-//
-// This package is a near copy of
+// Package internal is a near copy of
 // https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.61.0/receiver/prometheusreceiver/internal
 // A copy was made because the upstream package is internal. If it is ever made
 // public, our copy can be removed.

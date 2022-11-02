@@ -48,6 +48,7 @@ func NewAppendable(
 	startTimeMetricRegex *regexp.Regexp,
 	receiverID config.ComponentID,
 	externalLabels labels.Labels) storage.Appendable {
+
 	var metricAdjuster MetricsAdjuster
 	if !useStartTimeMetric {
 		metricAdjuster = NewInitialPointAdjuster(set.Logger, gcInterval)
