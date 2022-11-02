@@ -214,6 +214,7 @@ func (conv *Converter) getOrCreateResource(res pcommon.Resource) *memorySeries {
 		entry = actual.(*memorySeries)
 	}
 
+	entry.SetValue(1)
 	entry.Ping()
 	return entry
 }
@@ -272,6 +273,7 @@ func (conv *Converter) getOrCreateScope(res *memorySeries, scope pcommon.Instrum
 		entry = actual.(*memorySeries)
 	}
 
+	entry.SetValue(1)
 	entry.Ping()
 	return entry
 }
