@@ -1,7 +1,6 @@
 package postgres_exporter //nolint:golint
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -67,11 +66,7 @@ func Test_getDataSourceNames(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			orig := os.Getenv("POSTGRES_EXPORTER_DATA_SOURCE_NAME")
-			t.Cleanup(func() {
-				os.Setenv("POSTGRES_EXPORTER_DATA_SOURCE_NAME", orig)
-			})
-			os.Setenv("POSTGRES_EXPORTER_DATA_SOURCE_NAME", tc.env)
+			t.Setenv("POSTGRES_EXPORTER_DATA_SOURCE_NAME", tc.env)
 
 			var cfg Config
 			err := yaml.Unmarshal([]byte(tc.config), &cfg)

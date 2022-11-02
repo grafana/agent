@@ -8,7 +8,6 @@ output:
 
 linters:
   enable:
-    - deadcode    # Report on unused code
     - errcheck    # Report unchecked errors
     - goconst     # Find repeated strings that could be replaced by constant
     - gofmt       # Check whether code was gofmt-ed
@@ -17,10 +16,8 @@ linters:
     - gosimple    # Check whether code can be simplified
     - ineffassign # Detect when assignment to variable is never used
     - misspell    # Report on commonly misspelled English words
-    - structcheck # Report on unused struct fields
     - unconvert   # Remove unnecessary type conversions
     - unparam     # Detect unused function parameters
-    - varcheck    # Find unused global variables/constants
     - govet       # `go vet`
     - unused      # Detect unused constants/variables/functions/types
     - typecheck   # Ensure code typechecks
@@ -81,3 +78,7 @@ linters-settings:
     multi-if: true
     multi-func: true
 
+  revive:
+    rules:
+    - name: package-comments
+      disabled: true
