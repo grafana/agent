@@ -22,6 +22,79 @@ func TestConverter(t *testing.T) {
 			name: "Gauge",
 			input: `{
 				"resource_metrics": [{
+					"scope_metrics": [{
+						"metrics": [{
+							"name": "test_metric_seconds",
+							"gauge": {
+								"data_points": [{
+									"start_time_unix_nano": 1000000000,
+									"time_unix_nano": 1000000000,
+									"as_double": 1234.56
+								}]
+							}
+						}]
+					}]
+				}]
+			}`,
+			expect: `
+				# TYPE test_metric_seconds gauge
+				test_metric_seconds 1234.56
+			`,
+		},
+		{
+			name: "Monotonic sum",
+			input: `{
+				"resource_metrics": [{
+					"scope_metrics": [{
+						"metrics": [{
+							"name": "test_metric_seconds_total",
+							"sum": {
+								"aggregation_temporality": 2,
+								"is_monotonic": true,
+								"data_points": [{
+									"start_time_unix_nano": 1000000000,
+									"time_unix_nano": 1000000000,
+									"as_double": 15
+								}]
+							}
+						}]
+					}]
+				}]
+			}`,
+			expect: `
+				# TYPE test_metric_seconds counter
+				test_metric_seconds_total 15.0
+			`,
+		},
+		{
+			name: "Non-monotonic sum",
+			input: `{
+				"resource_metrics": [{
+					"scope_metrics": [{
+						"metrics": [{
+							"name": "test_metric_seconds",
+							"sum": {
+								"aggregation_temporality": 2,
+								"is_monotonic": false,
+								"data_points": [{
+									"start_time_unix_nano": 1000000000,
+									"time_unix_nano": 1000000000,
+									"as_double": 15
+								}]
+							}
+						}]
+					}]
+				}]
+			}`,
+			expect: `
+				# TYPE test_metric_seconds gauge
+				test_metric_seconds 15.0
+			`,
+		},
+		{
+			name: "Gauge",
+			input: `{
+				"resource_metrics": [{
 					"resource": {
 						"attributes": [{
 							"key": "service.name",
