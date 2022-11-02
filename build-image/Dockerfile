@@ -12,7 +12,7 @@
 
 # Dependency: golangci-lint (for linting)
 FROM alpine as golangci
-RUN wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.46.2
+RUN wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.50.1
 
 # Dependency: docker (for building images)
 FROM alpine:3.16 as docker
