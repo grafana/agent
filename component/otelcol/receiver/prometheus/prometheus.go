@@ -38,8 +38,6 @@ func init() {
 
 // Arguments configures the otelcol.receiver.prometheus component.
 type Arguments struct {
-	ExternalLabels map[string]string `river:"external_labels,attr,optional"`
-
 	// Output configures where to send received data. Required.
 	Output *otelcol.ConsumerArguments `river:"output,block"`
 }

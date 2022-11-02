@@ -59,6 +59,10 @@ Main (unreleased)
   - `otelcol.auth.headers` attaches custom request headers to `otelcol`
     components that support authentication extensions. (@rfratto)
 
+  - `otelcol.receiver.prometheus` receives Prometheus metrics, converts them
+    to the OTLP metric format and forwards them to other `otelcol` components.
+    (@tpaschalis)
+
 - Flow: Allow config blocks to reference component exports. (@tpaschalis)
 
 - Introduce `/-/support` endpoint for generating 'support bundles' in static
