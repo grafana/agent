@@ -139,30 +139,6 @@ func (c *Component) Update(newConfig component.Arguments) error {
 	return nil
 }
 
-// Convert implements receiver.Arguments.
-// func (args Arguments) Convert() otelconfig.Receiver {
-// 	return &otlpreceiver.Config{
-// 		ReceiverSettings: otelconfig.NewReceiverSettings(otelconfig.NewComponentID("otelcol.receiver.prometheus")),
-// 	}
-// }
-
-// var _ receiver.Arguments = Arguments{}
-
-// Extensions implements receiver.Arguments.
-// func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
-// 	return nil
-// }
-
-// // Exporters implements receiver.Arguments.
-// func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
-// 	return nil
-// }
-
-// // NextConsumers implements receiver.Arguments.
-// func (args Arguments) NextConsumers() *otelcol.ConsumerArguments {
-// 	return args.Output
-// }
-
 func toLabels(in map[string]string) labels.Labels {
 	res := make(labels.Labels, 0, len(in))
 	for k, v := range in {

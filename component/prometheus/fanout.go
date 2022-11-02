@@ -46,7 +46,9 @@ func (f *Fanout) Appender(ctx context.Context) storage.Appender {
 	f.mut.RLock()
 	defer f.mut.RUnlock()
 
-	ctx = scrape.ContextWithMetricMetadataStore(ctx, noopMetadataStore{})
+	fmt.Println("     >>> took a fanout Appender")
+
+	ctx = scrape.ContextWithMetricMetadataStore(ctx, NoopMetadataStore{})
 	ctx = scrape.ContextWithTarget(ctx, &scrape.Target{})
 
 	app := &appender{
@@ -118,11 +120,12 @@ func (a *appender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m meta
 	return 0, fmt.Errorf("updateMetadata not supported yet")
 }
 
-type noopMetadataStore map[string]scrape.MetricMetadata
+// NoopMetadataStore implements the MetadataStore interface.
+type NoopMetadataStore map[string]scrape.MetricMetadata
 
-func (ms noopMetadataStore) GetMetadata(familyName string) (scrape.MetricMetadata, bool) {
+func (ms NoopMetadataStore) GetMetadata(familyName string) (scrape.MetricMetadata, bool) {
 	return scrape.MetricMetadata{}, false
 }
-func (ms noopMetadataStore) ListMetadata() []scrape.MetricMetadata { return nil }
-func (ms noopMetadataStore) SizeMetadata() int                     { return 0 }
-func (ms noopMetadataStore) LengthMetadata() int                   { return 0 }
+func (ms NoopMetadataStore) ListMetadata() []scrape.MetricMetadata { return nil }
+func (ms NoopMetadataStore) SizeMetadata() int                     { return 0 }
+func (ms NoopMetadataStore) LengthMetadata() int                   { return 0 }
