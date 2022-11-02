@@ -23,22 +23,26 @@ type Component struct {
 }
 
 type TagField struct {
-	Name         string      `json:"name"`
-	IsBlock      bool        `json:"is_block"`
-	IsAttribute  bool        `json:"is_attribute"`
-	IsArray      bool        `json:"is_array"`
-	IsMap        bool        `json:"is_map"`
-	IsOptional   bool        `json:"is_optional"`
-	DataType     string      `json:"datatype"`
-	Fields       []*TagField `json:"fields,omitempty"`
-	ArrayType    string      `json:"array_type,omitempty"`
-	MapKeyType   string      `json:"map_key_type,omitempty"`
-	MapValueType string      `json:"map_value_type,omitempty"`
+	Name         string `json:"name"`
+	IsBlock      bool   `json:"is_block"`
+	IsAttribute  bool   `json:"is_attribute"`
+	IsArray      bool   `json:"is_array"`
+	IsMap        bool   `json:"is_map"`
+	IsOptional   bool   `json:"is_optional"`
+	DataType     string `json:"datatype"`
+	ArrayType    string `json:"array_type,omitempty"`
+	MapKeyType   string `json:"map_key_type,omitempty"`
+	MapValueType string `json:"map_value_type,omitempty"`
 }
 
 type MapType struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
+}
+
+type DataType struct {
+	Name   string     `json:"name"`
+	Fields []TagField `json:"fields"`
 }
 
 func GenerateComponent(name string, isSingleton bool, arguments interface{}, exports interface{}) (Component, error) {
