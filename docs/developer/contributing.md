@@ -85,8 +85,10 @@ The Makefile provides several targets:
 ### Compile on Linux
 Compiling Grafana Agent on Linux requires a couple of extra dependencies:
 
-* [systemd headers](https://github.com/grafana/agent/blob/main/cmd/agent/Dockerfile#L8-L9) for Promtail
-* [bcc tools](https://github.com/grafana/agent/blob/main/cmd/agent/Dockerfile#L12-L13) for the eBPF integration on AMD64 systems
+* [systemd headers](https://packages.debian.org/sid/libsystemd-dev) for Promtail
+   * Can be installed on Ubuntu with: ```sudo apt install libsystemd-dev```
+* [bcc tools](https://packages.debian.org/sid/libbpfcc-dev) for the eBPF integration on AMD64 systems
+   * Can be installed on Ubuntu with: ```sudo apt install libbpfcc-dev```
 
 If you have issues installing the bcc tooling, you can use `-tags=noebpf` to compile Grafana Agent without the eBPF integration.
 
