@@ -124,6 +124,8 @@ Main (unreleased)
 
   - Update `github.com/prometheus-community/postgres_exporter` to `v0.11.1`. (@captncraig)
 
+- Use Go 1.19.3 for builds. (@rfratto)
+
 v0.28.0 (2022-09-29)
 --------------------
 
