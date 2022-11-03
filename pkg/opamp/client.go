@@ -3,8 +3,6 @@ package opamp
 import (
 	"context"
 	"math/rand"
-	"os"
-	"runtime"
 	"time"
 
 	"github.com/go-kit/log"
@@ -92,8 +90,6 @@ func (o *OpAMP) createAgentIdentity() {
 	entropy := ulid.Monotonic(rand.New(rand.NewSource(0)), 0)
 	o.instanceId = ulid.MustNew(ulid.Timestamp(time.Now()), entropy)
 
-	hostname, _ := os.Hostname()
-
 	// Create Agent description.
 	o.agentDescription = &protobufs.AgentDescription{
 		IdentifyingAttributes: []*protobufs.KeyValue{
@@ -109,22 +105,10 @@ func (o *OpAMP) createAgentIdentity() {
 					Value: &protobufs.AnyValue_StringValue{StringValue: "last"},
 				},
 			},
-		},
-		NonIdentifyingAttributes: []*protobufs.KeyValue{
 			{
-				Key: "os.family",
+				Key: "config.labels",
 				Value: &protobufs.AnyValue{
-					Value: &protobufs.AnyValue_StringValue{
-						StringValue: runtime.GOOS,
-					},
-				},
-			},
-			{
-				Key: "host.name",
-				Value: &protobufs.AnyValue{
-					Value: &protobufs.AnyValue_StringValue{
-						StringValue: hostname,
-					},
+					Value: &protobufs.AnyValue_StringValue{StringValue: "hostname=grafana-agent-0"},
 				},
 			},
 		},
@@ -177,6 +161,7 @@ func (o *OpAMP) onMessage(ctx context.Context, msg *types.MessageData) {
 				LastRemoteConfigHash: msg.RemoteConfig.ConfigHash,
 				Status:               protobufs.RemoteConfigStatuses_RemoteConfigStatuses_APPLIED,
 			})
+			o.opampClient.SetAgentDescription(o.agentDescription)
 		}
 	}
 
