@@ -113,14 +113,21 @@ func (a *appender) Rollback() error {
 	return multiErr
 }
 
+// Custom errors to return until we implement support for exemplars and
+// metadata.
+var (
+	ErrExemplarsNotSupported = fmt.Errorf("appendExemplar not supported yet")
+	ErrMetadataNotSupported  = fmt.Errorf("updateMetadata not supported yet")
+)
+
 // AppendExemplar satisfies the Appender interface.
 func (a *appender) AppendExemplar(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar) (storage.SeriesRef, error) {
-	return 0, fmt.Errorf("appendExemplar not supported yet")
+	return 0, ErrExemplarsNotSupported
 }
 
 // UpdateMetadata satisifies the Appender interface.
 func (a *appender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata) (storage.SeriesRef, error) {
-	return 0, fmt.Errorf("updateMetadata not supported yet")
+	return 0, ErrMetadataNotSupported
 }
 
 // NoopMetadataStore implements the MetricMetadataStore interface.
