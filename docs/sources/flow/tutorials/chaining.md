@@ -7,7 +7,7 @@ weight: 400
 
 # Chaining Prometheus components
 
-This tutorial shows how to use [multiple-inputs.river](../assets/flow_configs/multiple-inputs.riverf) to send data to several different locations. This tutorial uses the same base as [Filtering metrics]({{< relref "filtering-metrics.md">}}). 
+This tutorial shows how to use [multiple-inputs.river](../assets/flow_configs/multiple-inputs.river) to send data to several different locations. This tutorial uses the same base as [Filtering metrics]({{< relref "filtering-metrics.md">}}). 
 
 A new concept introduced in Flow is chaining components together in a composable pipeline. This promotes the reusability of components while offering flexibility. 
 
