@@ -115,16 +115,13 @@ func (conv *Converter) ConsumeMetrics(ctx context.Context, md pmetric.Metrics) e
 
 	for rcount := 0; rcount < md.ResourceMetrics().Len(); rcount++ {
 		rm := md.ResourceMetrics().At(rcount)
-		if err := conv.consumeResourceMetrics(app, rm); err != nil {
-			level.Error(conv.log).Log("msg", "failed to consume resource metrics", "err", err)
-			continue
-		}
+		conv.consumeResourceMetrics(app, rm)
 	}
 
 	return app.Commit()
 }
 
-func (conv *Converter) consumeResourceMetrics(app storage.Appender, rm pmetric.ResourceMetrics) error {
+func (conv *Converter) consumeResourceMetrics(app storage.Appender, rm pmetric.ResourceMetrics) {
 	resourceMD := conv.createOrUpdateMetadata("target_info", metadata.Metadata{
 		Type: textparse.MetricTypeGauge,
 		Help: "Target metadata",
@@ -144,14 +141,8 @@ func (conv *Converter) consumeResourceMetrics(app storage.Appender, rm pmetric.R
 
 	for smcount := 0; smcount < rm.ScopeMetrics().Len(); smcount++ {
 		sm := rm.ScopeMetrics().At(smcount)
-
-		if err := conv.consumeScopeMetrics(app, memResource, sm); err != nil {
-			level.Error(conv.log).Log("msg", "failed to write scope metrics", "err", err)
-			continue
-		}
+		conv.consumeScopeMetrics(app, memResource, sm)
 	}
-
-	return nil
 }
 
 func (conv *Converter) createOrUpdateMetadata(name string, md metadata.Metadata) *memoryMetadata {
@@ -223,7 +214,7 @@ func (conv *Converter) getOrCreateResource(res pcommon.Resource) *memorySeries {
 	return entry
 }
 
-func (conv *Converter) consumeScopeMetrics(app storage.Appender, memResource *memorySeries, sm pmetric.ScopeMetrics) error {
+func (conv *Converter) consumeScopeMetrics(app storage.Appender, memResource *memorySeries, sm pmetric.ScopeMetrics) {
 	scopeMD := conv.createOrUpdateMetadata("otel_scope_info", metadata.Metadata{
 		Type: textparse.MetricTypeGauge,
 	})
@@ -242,14 +233,8 @@ func (conv *Converter) consumeScopeMetrics(app storage.Appender, memResource *me
 
 	for mcount := 0; mcount < sm.Metrics().Len(); mcount++ {
 		m := sm.Metrics().At(mcount)
-
-		if err := conv.consumeMetric(app, memResource, memScope, m); err != nil {
-			level.Error(conv.log).Log("msg", "failed to write metric", "err", err)
-			continue
-		}
+		conv.consumeMetric(app, memResource, memScope, m)
 	}
-
-	return nil
 }
 
 // getOrCreateScope gets or creates a [*memorySeries] from the provided scope.
@@ -284,21 +269,20 @@ func (conv *Converter) getOrCreateScope(res *memorySeries, scope pcommon.Instrum
 	return entry
 }
 
-func (conv *Converter) consumeMetric(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric) error {
+func (conv *Converter) consumeMetric(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric) {
 	switch m.Type() {
 	case pmetric.MetricTypeGauge:
-		return conv.consumeGauge(app, memResource, memScope, m)
+		conv.consumeGauge(app, memResource, memScope, m)
 	case pmetric.MetricTypeSum:
-		return conv.consumeSum(app, memResource, memScope, m)
+		conv.consumeSum(app, memResource, memScope, m)
 	case pmetric.MetricTypeHistogram:
-		return conv.consumeHistogram(app, memResource, memScope, m)
+		conv.consumeHistogram(app, memResource, memScope, m)
 	case pmetric.MetricTypeSummary:
-		return conv.consumeSummary(app, memResource, memScope, m)
+		conv.consumeSummary(app, memResource, memScope, m)
 	}
-	return nil
 }
 
-func (conv *Converter) consumeGauge(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric) error {
+func (conv *Converter) consumeGauge(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric) {
 	metricName := prometheus.BuildPromCompliantName(m, "")
 
 	metricMD := conv.createOrUpdateMetadata(metricName, metadata.Metadata{
@@ -320,8 +304,6 @@ func (conv *Converter) consumeGauge(app storage.Appender, memResource *memorySer
 			level.Error(conv.log).Log("msg", "failed to write metric sample", "err", err)
 		}
 	}
-
-	return nil
 }
 
 type otelcolDataPoint interface {
@@ -392,7 +374,7 @@ func getNumberDataPointValue(dp pmetric.NumberDataPoint) float64 {
 	return 0
 }
 
-func (conv *Converter) consumeSum(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric) error {
+func (conv *Converter) consumeSum(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric) {
 	metricName := prometheus.BuildPromCompliantName(m, "")
 
 	// Excerpt from the spec:
@@ -415,10 +397,10 @@ func (conv *Converter) consumeSum(app storage.Appender, memResource *memorySerie
 		// Drop non-cumulative summaries for now, which is permitted by the spec.
 		//
 		// TODO(rfratto): implement delta-to-cumulative for sums.
-		return nil
+		return
 	default:
 		// Drop the metric.
-		return nil
+		return
 	}
 
 	metricMD := conv.createOrUpdateMetadata(metricName, metadata.Metadata{
@@ -442,18 +424,16 @@ func (conv *Converter) consumeSum(app storage.Appender, memResource *memorySerie
 			level.Error(conv.log).Log("msg", "failed to write metric sample", "err", err)
 		}
 	}
-
-	return nil
 }
 
-func (conv *Converter) consumeHistogram(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric) error {
+func (conv *Converter) consumeHistogram(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric) {
 	metricName := prometheus.BuildPromCompliantName(m, "")
 
 	if m.Histogram().AggregationTemporality() != pmetric.MetricAggregationTemporalityCumulative {
 		// Drop non-cumulative histograms for now, which is permitted by the spec.
 		//
 		// TODO(rfratto): implement delta-to-cumulative for histograms.
-		return nil
+		return
 	}
 
 	metricMD := conv.createOrUpdateMetadata(metricName, metadata.Metadata{
@@ -525,11 +505,9 @@ func (conv *Converter) consumeHistogram(app storage.Appender, memResource *memor
 			}
 		}
 	}
-
-	return nil
 }
 
-func (conv *Converter) consumeSummary(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric) error {
+func (conv *Converter) consumeSummary(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric) {
 	metricName := prometheus.BuildPromCompliantName(m, "")
 
 	metricMD := conv.createOrUpdateMetadata(metricName, metadata.Metadata{
@@ -583,7 +561,6 @@ func (conv *Converter) consumeSummary(app storage.Appender, memResource *memoryS
 			}
 		}
 	}
-	return nil
 }
 
 // GC cleans up stale metrics which have not been updated in the time specified
