@@ -101,7 +101,7 @@ type Traces struct {
 
 // UnmarshalJSON unmarshals Traces model.
 func (t *Traces) UnmarshalJSON(b []byte) error {
-	unmarshaler := ptrace.NewJSONUnmarshaler()
+	unmarshaler := &ptrace.JSONUnmarshaler{}
 	td, err := unmarshaler.UnmarshalTraces(b)
 	if err != nil {
 		return err
