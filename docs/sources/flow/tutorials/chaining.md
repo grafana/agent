@@ -7,7 +7,7 @@ weight: 400
 
 # Chaining Prometheus components
 
-This tutorial shows how to use [multiple-inputs.flow](../assets/flow_configs/multiple-inputs.flow) to send data to several different locations. This tutorial uses the same base as [Filtering metrics]({{< relref "filtering-metrics.md">}}). 
+This tutorial shows how to use [multiple-inputs.river](../assets/flow_configs/multiple-inputs.riverf) to send data to several different locations. This tutorial uses the same base as [Filtering metrics]({{< relref "filtering-metrics.md">}}). 
 
 A new concept introduced in Flow is chaining components together in a composable pipeline. This promotes the reusability of components while offering flexibility. 
 
@@ -67,6 +67,6 @@ In the above Flow block, `prometheus.relabel.service` is being forwarded metrics
 
 ## Adding another relabel
 
-In `multiple-input.flow` add a new `prometheus.relabel` component that adds a `version` label with the value of `v2` to all metrics after the `prometheus.relabel.service`.
+In `multiple-input.river` add a new `prometheus.relabel` component that adds a `version` label with the value of `v2` to all metrics after the `prometheus.relabel.service`.
 
 ![](../assets/scrape_v2.png)
