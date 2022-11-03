@@ -189,7 +189,7 @@ scrape_configs:
 # Tracing instrumentation is commonly the responsible for tagging spans
 # with IP address to the labels mentioned above.
 # If running on kubernetes, `k8s.pod.ip` can be automatically attached via the
-# downward API. For example, if you're using OTel instrumentation libraries, set 
+# downward API. For example, if you're using OTel instrumentation libraries, set
 # OTEL_RESOURCE_ATTRIBUTES=k8s.pod.ip=$(POD_IP) to inject spans with the sender
 # pod's IP.
 #
@@ -347,7 +347,7 @@ service_graphs:
   # a higher max number of items increases the max throughput of processed spans
   # with a higher memory consumption.
   [ max_items: <integer> | default = 10_000 ]
-  
+
   # configures the number of workers that will process completed edges concurrently.
   # as edges are completed, they get queued to be collected as metrics for the graph.
   [ workers: <integer> | default = 10]
