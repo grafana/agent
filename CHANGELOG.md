@@ -10,8 +10,15 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+v0.28.1 (2022-11-03)
+--------------------
+
+### Security
+
+- Update Docker base image to resolve libssl vulnerabilities CVE-2022-3602 and CVE-2022-3786. (@rfratto)
+
 v0.28.0 (2022-09-29)
--------------------------
+--------------------
 
 ### Features
 
