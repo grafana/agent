@@ -79,7 +79,28 @@ The `balancer_name` argument controls what client-side load balancing mechanism
 to use. See the gRPC documentation on [Load balancing][] for more information.
 When unspecified, `pick_first` is used.
 
+An HTTP proxy can be configured through the following environment variables:
+
+* `HTTPS_PROXY`
+* `NO_PROXY`
+
+The `HTTPS_PROXY` environment variable specifies a URL to use for proxying
+requests. Connections to the proxy are established via [the `HTTP CONNECT`
+method][HTTP CONNECT].
+
+The `NO_PROXY` environment variable is an optional list of comma-separated
+hostnames for which the HTTPS proxy should _not_ be used. Each hostname can be
+provided as an IP address (`1.2.3.4`), an IP address in CIDR notation
+(`1.2.3.4/8`), a domain name (`example.com`), or `*`. A domain name matches
+that domain and all subdomains. A domain name with a leading "."
+(`.example.com`) matches subdomains only. `NO_PROXY` is only read when
+`HTTPS_PROXY` is set.
+
+Because `otelcol.exporter.otlp` uses gRPC, the configured proxy server must be
+able to handle and proxy HTTP/2 traffic.
+
 [Load balancing]: https://github.com/grpc/grpc-go/blob/master/examples/features/load_balancing/README.md#pick_first
+[HTTP CONNECT]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/CONNECT
 
 ### tls block
 
