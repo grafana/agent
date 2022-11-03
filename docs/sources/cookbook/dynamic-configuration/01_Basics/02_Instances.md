@@ -61,7 +61,7 @@ scrape_configs:
 
 ## Final
 
-[final.yml](https://github.com/grafana/agent/blob/main/docs/sources/cookbook/dynamic-configuration/01_Basics/01_assets/final.yml)
+[final.yml](https://github.com/grafana/agent/blob/main/docs/sources/cookbook/dynamic-configuration/01_Basics/02_assets/final.yml)
 
 In the above you will see the `final.yml` includes all the instance configurations
 - default
