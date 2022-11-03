@@ -133,6 +133,16 @@ Main (unreleased)
 
 - Use Go 1.19.3 for builds. (@rfratto)
 
+v0.28.1 (2022-11-03)
+--------------------
+
+### Security
+
+- Update Docker base image to resolve OpenSSL vulnerabilities CVE-2022-3602 and
+  CVE-2022-3786. Grafana Agent does not use OpenSSL, so we do not believe it is
+  vulnerable to these issues, but the base image has been updated to remove the
+  report from image scanners. (@rfratto)
+
 v0.28.0 (2022-09-29)
 --------------------
 
