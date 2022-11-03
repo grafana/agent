@@ -9,6 +9,7 @@ package convert
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"sync"
@@ -16,6 +17,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	fp "github.com/grafana/agent/component/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/metadata"
@@ -131,7 +133,9 @@ func (conv *Converter) consumeResourceMetrics(app storage.Appender, rm pmetric.R
 
 	if conv.getOpts().IncludeTargetInfo {
 		if err := resourceMD.WriteTo(app, time.Now()); err != nil {
-			level.Warn(conv.log).Log("msg", "failed to write target_info metadata", "err", err)
+			if !errors.Is(err, fp.ErrMetadataNotSupported) {
+				level.Warn(conv.log).Log("msg", "failed to write target_info metadata", "err", err)
+			}
 		}
 		if err := memResource.WriteTo(app, time.Now()); err != nil {
 			level.Error(conv.log).Log("msg", "failed to write target_info metric", "err", err)
@@ -227,7 +231,9 @@ func (conv *Converter) consumeScopeMetrics(app storage.Appender, memResource *me
 
 	if conv.getOpts().IncludeScopeInfo {
 		if err := scopeMD.WriteTo(app, time.Now()); err != nil {
-			level.Warn(conv.log).Log("msg", "failed to write otel_scope_info metadata", "err", err)
+			if !errors.Is(err, fp.ErrMetadataNotSupported) {
+				level.Warn(conv.log).Log("msg", "failed to write otel_scope_info metadata", "err", err)
+			}
 		}
 		if err := memScope.WriteTo(app, time.Now()); err != nil {
 			level.Error(conv.log).Log("msg", "failed to write otel_scope_info metric", "err", err)
@@ -301,7 +307,9 @@ func (conv *Converter) consumeGauge(app storage.Appender, memResource *memorySer
 		Help: m.Description(),
 	})
 	if err := metricMD.WriteTo(app, time.Now()); err != nil {
-		level.Warn(conv.log).Log("msg", "failed to write metric family metadata", "err", err)
+		if !errors.Is(err, fp.ErrMetadataNotSupported) {
+			level.Warn(conv.log).Log("msg", "failed to write metric family metadata", "err", err)
+		}
 	}
 
 	for dpcount := 0; dpcount < m.Gauge().DataPoints().Len(); dpcount++ {
@@ -419,7 +427,9 @@ func (conv *Converter) consumeSum(app storage.Appender, memResource *memorySerie
 		Help: m.Description(),
 	})
 	if err := metricMD.WriteTo(app, time.Now()); err != nil {
-		level.Warn(conv.log).Log("msg", "failed to write metric family metadata", "err", err)
+		if !errors.Is(err, fp.ErrMetadataNotSupported) {
+			level.Warn(conv.log).Log("msg", "failed to write metric family metadata", "err", err)
+		}
 	}
 
 	for dpcount := 0; dpcount < m.Sum().DataPoints().Len(); dpcount++ {
@@ -452,7 +462,9 @@ func (conv *Converter) consumeHistogram(app storage.Appender, memResource *memor
 		Help: m.Description(),
 	})
 	if err := metricMD.WriteTo(app, time.Now()); err != nil {
-		level.Warn(conv.log).Log("msg", "failed to write metric family metadata", "err", err)
+		if !errors.Is(err, fp.ErrMetadataNotSupported) {
+			level.Warn(conv.log).Log("msg", "failed to write metric family metadata", "err", err)
+		}
 	}
 
 	for dpcount := 0; dpcount < m.Histogram().DataPoints().Len(); dpcount++ {
@@ -526,7 +538,9 @@ func (conv *Converter) consumeSummary(app storage.Appender, memResource *memoryS
 		Help: m.Description(),
 	})
 	if err := metricMD.WriteTo(app, time.Now()); err != nil {
-		level.Warn(conv.log).Log("msg", "failed to write metric family metadata", "err", err)
+		if !errors.Is(err, fp.ErrMetadataNotSupported) {
+			level.Warn(conv.log).Log("msg", "failed to write metric family metadata", "err", err)
+		}
 	}
 
 	for dpcount := 0; dpcount < m.Summary().DataPoints().Len(); dpcount++ {
