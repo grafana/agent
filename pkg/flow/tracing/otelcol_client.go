@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"sync"
-	"sync/atomic"
 
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/hashicorp/go-multierror"
@@ -13,6 +12,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	commonpb "go.opentelemetry.io/proto/otlp/common/v1"
 	tracepb "go.opentelemetry.io/proto/otlp/trace/v1"
+	"go.uber.org/atomic"
 )
 
 type client struct {
@@ -154,7 +154,6 @@ func copyMap(from []*commonpb.KeyValue, to pcommon.Map) {
 
 func copyValue(from *commonpb.AnyValue, to pcommon.Value) {
 	switch val := from.GetValue().(type) {
-
 	case *commonpb.AnyValue_StringValue:
 		to.SetStr(val.StringValue)
 
