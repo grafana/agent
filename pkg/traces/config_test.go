@@ -100,6 +100,8 @@ exporters:
     compression: gzip
     retry_on_failure:
       max_elapsed_time: 60s
+processors: {}
+extensions: {}
 service:
   pipelines:
     traces:
@@ -154,6 +156,7 @@ processors:
   batch:
     timeout: 5s
     send_batch_size: 100
+extensions: {}
 service:
   pipelines:
     traces:
@@ -191,6 +194,8 @@ exporters:
       authorization: Basic dGVzdDpwYXNzd29yZF9pbl9maWxl
     retry_on_failure:
       max_elapsed_time: 60s
+processors: {}
+extensions: {}
 service:
   pipelines:
     traces:
@@ -229,6 +234,8 @@ exporters:
       authorization: Basic dGVzdDpwYXNzd29yZF9pbl9maWxl
     retry_on_failure:
       max_elapsed_time: 60s
+processors: {}
+extensions: {}
 service:
   pipelines:
     traces:
@@ -261,6 +268,8 @@ exporters:
       insecure_skip_verify: true
     retry_on_failure:
       max_elapsed_time: 60s
+processors: {}
+extensions: {}
 service:
   pipelines:
     traces:
@@ -294,6 +303,8 @@ exporters:
     retry_on_failure:
       max_elapsed_time: 60s
     compression: none
+processors: {}
+extensions: {}
 service:
   pipelines:
     traces:
@@ -336,6 +347,8 @@ exporters:
     compression: gzip
     retry_on_failure:
       max_elapsed_time: 60s
+processors: {}
+extensions: {}
 service:
   pipelines:
     traces:
@@ -400,6 +413,8 @@ exporters:
       x-some-header: Some value!
     retry_on_failure:
       max_elapsed_time: 60s
+processors: {}
+extensions: {}
 service:
   pipelines:
     traces:
@@ -459,6 +474,8 @@ exporters:
     sending_queue:
       num_consumers: 15
     compression: none
+processors: {}
+extensions: {}
 service:
   pipelines:
     traces:
@@ -496,6 +513,7 @@ processors:
   batch:
     timeout: 5s
     send_batch_size: 100
+extensions: {}
 service:
   pipelines:
     traces:
@@ -545,6 +563,7 @@ processors:
       - name: http.method
         default: GET
       - name: http.status_code
+extensions: {}
 service:
   pipelines:
     traces:
@@ -587,6 +606,7 @@ exporters:
 processors:
   spanmetrics:
     metrics_exporter: prometheus
+extensions: {}
 service:
   pipelines:
     traces:
@@ -705,6 +725,7 @@ processors:
         type: rate_limiting
         rate_limiting:
           spans_per_second: 35
+extensions: {}
 service:
   pipelines:
     traces:
@@ -782,6 +803,7 @@ processors:
           values:
             - value1
             - value2
+extensions: {}
 service:
   pipelines:
     traces/0:
@@ -822,6 +844,7 @@ exporters:
     compression: gzip
     retry_on_failure:
       max_elapsed_time: 60s
+extensions: {}
 service:
   pipelines:
     traces:
@@ -862,6 +885,8 @@ exporters:
     compression: gzip
     retry_on_failure:
       max_elapsed_time: 60s
+processors: {}
+extensions: {}
 service:
   pipelines:
     traces:
@@ -900,6 +925,8 @@ exporters:
     compression: gzip
     retry_on_failure:
       max_elapsed_time: 60s
+processors: {}
+extensions: {}
 service:
   pipelines:
     traces:
@@ -939,6 +966,7 @@ processors:
     scrape_configs:
       - im_a_scrape_config
     operation_type: update
+extensions: {}
 service:
   pipelines:
     traces:
@@ -973,6 +1001,7 @@ exporters:
       max_elapsed_time: 60s
 processors:
   service_graphs:
+extensions: {}
 service:
   pipelines:
     traces:
@@ -1007,6 +1036,8 @@ exporters:
       insecure: true
     retry_on_failure:
       max_elapsed_time: 60s
+processors: {}
+extensions: {}
 service:
   pipelines:
     traces:
@@ -1047,6 +1078,8 @@ exporters:
       authorization: Basic dGVzdDpwYXNzd29yZF9pbl9maWxl
     retry_on_failure:
       max_elapsed_time: 60s
+processors: {}
+extensions: {}
 service:
   pipelines:
     traces:
@@ -1091,6 +1124,8 @@ exporters:
       insecure: true
     retry_on_failure:
       max_elapsed_time: 60s
+processors: {}
+extensions: {}
 service:
   pipelines:
     traces:
@@ -1155,6 +1190,7 @@ exporters:
       max_elapsed_time: 60s
     auth:
       authenticator: oauth2client/otlphttp0
+processors: {}
 service:
   extensions: ["oauth2client/otlphttp0"]
   pipelines:
@@ -1212,6 +1248,7 @@ exporters:
       max_elapsed_time: 60s
     auth:
       authenticator: oauth2client/otlphttp0
+processors: {}
 service:
   extensions: ["oauth2client/otlphttp0"]
   pipelines:
@@ -1280,6 +1317,7 @@ exporters:
       max_elapsed_time: 60s
     auth:
       authenticator: oauth2client/otlp1
+processors: {}
 service:
   extensions: ["oauth2client/otlphttp0", "oauth2client/otlp1"]
   pipelines:
@@ -1334,6 +1372,7 @@ exporters:
       max_elapsed_time: 60s
     auth:
       authenticator: oauth2client/otlphttp0
+processors: {}
 service:
   extensions: ["oauth2client/otlphttp0"]
   pipelines:
@@ -1385,6 +1424,8 @@ exporters:
     compression: gzip
     retry_on_failure:
       max_elapsed_time: 60s
+processors: {}
+extensions: {}
 service:
   pipelines:
     traces:
