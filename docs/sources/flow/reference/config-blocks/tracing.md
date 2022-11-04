@@ -5,7 +5,7 @@ title: tracing
 weight: 100
 ---
 
-# `tracing` block
+# tracing block
 
 `tracing` is an optional configuration block used to customize how Grafana Agent
 produces traces. `tracing` is specified without a label and can only be provided
