@@ -8,6 +8,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/grafana/regexp"
 	"github.com/prometheus/client_golang/prometheus"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // The parsedName of a component is the parts of its name ("remote.http") split
@@ -51,8 +52,14 @@ type Options struct {
 	// lifetime.
 	OnStateChange func(e Exports)
 
-	// Registerer allows components to add their own metrics. The register will come pre-wrapped with the component ID. It is not necessary for components to unregister metrics on shutdown.
+	// Registerer allows components to add their own metrics. The registerer will
+	// come pre-wrapped with the component ID. It is not necessary for components
+	// to unregister metrics on shutdown.
 	Registerer prometheus.Registerer
+
+	// Tracer allows components to record spans. The tracer will include an
+	// attribute denoting the component ID.
+	Tracer trace.TracerProvider
 
 	// HTTPListenAddr is the address the server is configured to listen on.
 	HTTPListenAddr string
