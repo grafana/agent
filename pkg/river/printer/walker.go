@@ -157,17 +157,7 @@ func (w *walker) walkExpr(e ast.Expr) {
 		w.p.Write(e.RBrackPos, token.RBRACK)
 
 	case *ast.CallExpr:
-		// TODO(rfratto): allow arguments to be on a new line
-		w.walkExpr(e.Value)
-		w.p.Write(token.LPAREN)
-		for i, arg := range e.Args {
-			w.walkExpr(arg)
-
-			if i+1 < len(e.Args) {
-				w.p.Write(token.COMMA, wsBlank)
-			}
-		}
-		w.p.Write(token.RPAREN)
+		w.walkCallExpr(e)
 
 	case *ast.UnaryExpr:
 		w.p.Write(e.KindPos, e.Kind)
@@ -289,6 +279,46 @@ func (w *walker) walkObjectExpr(e *ast.ObjectExpr) {
 	}
 
 	w.p.Write(wsUnindent, e.RCurlyPos, token.RCURLY)
+}
+
+func (w *walker) walkCallExpr(e *ast.CallExpr) {
+	w.walkExpr(e.Value)
+	w.p.Write(token.LPAREN)
+
+	prevPos := e.LParenPos
+
+	for i, arg := range e.Args {
+		var addedNewline bool
+
+		argPos := ast.StartPos(arg)
+
+		// Add a newline if this element starts on a different line than the last
+		// element ended.
+		if differentLines(prevPos, argPos) {
+			w.p.Write(wsFormfeed, wsIndent)
+			addedNewline = true
+		}
+
+		w.walkExpr(arg)
+		prevPos = ast.EndPos(arg)
+
+		if i+1 < len(e.Args) {
+			w.p.Write(token.COMMA, wsBlank)
+		}
+
+		if addedNewline {
+			w.p.Write(wsUnindent)
+		}
+	}
+
+	// Add a final comma if the final argument is on a different line than the
+	// right parenthesis.
+	if differentLines(prevPos, e.RParenPos) {
+		w.p.Write(token.COMMA, wsFormfeed)
+	}
+
+	w.p.Write(token.RPAREN)
+
 }
 
 // differentLines returns true if a and b are on different lines.
