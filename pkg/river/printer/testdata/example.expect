@@ -12,11 +12,9 @@ attr_2 = 30 * 2 + 5
 attr_3 = field.access * 2
 
 // Blocks with nothing inside of them should be truncated.
-empty.block {
-}
+empty.block { }
 
-empty.block "labeled" {
-}
+empty.block "labeled" { }
 
 //
 // Alignment tests

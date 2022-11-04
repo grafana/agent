@@ -100,9 +100,6 @@ func (w *walker) walkAttributeStmt(s *ast.AttributeStmt) {
 func (w *walker) walkBlockStmt(s *ast.BlockStmt) {
 	joined := strings.Join(s.Name, ".")
 
-	// TODO(rfratto): Should blocks have a oneline format if they're short or
-	// empty? e.g.: `empty_block { attr = 5 }`, `empty_block {}`
-
 	w.p.Write(
 		s.NamePos,
 		&ast.Ident{Name: joined, NamePos: s.NamePos},
@@ -120,10 +117,17 @@ func (w *walker) walkBlockStmt(s *ast.BlockStmt) {
 	w.p.Write(
 		wsBlank,
 		s.LCurlyPos, token.LCURLY, wsIndent,
-		wsNewline,
 	)
 
-	w.walkStmts(s.Body)
+	if len(s.Body) > 0 {
+		// Add a newline before writing any statements.
+		w.p.Write(wsNewline)
+		w.walkStmts(s.Body)
+	} else {
+		// There's no statements, but add a blank line between the left and right
+		// curly anyway.
+		w.p.Write(wsBlank)
+	}
 
 	w.p.Write(wsUnindent, s.RCurlyPos, token.RCURLY)
 }
