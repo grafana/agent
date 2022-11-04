@@ -99,6 +99,10 @@ Main (unreleased)
 
 - Tracing: support the `num_traces` and `expected_new_traces_per_sec` configuration parameters in the tail_sampling processor. (@ptodev)
 
+- riverfmt: Permit empty blocks with both curly braces on the same line. (@rfratto)
+
+- riverfmt: Allow function arguments to persist across different lines. (@rfratto)
+
 ### Bugfixes
 
 - Remove empty port from the `apache_http` integration's instance label. (@katepangLiu)
