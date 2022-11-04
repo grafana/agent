@@ -99,6 +99,9 @@ Main (unreleased)
 
 - Tracing: support the `num_traces` and `expected_new_traces_per_sec` configuration parameters in the tail_sampling processor. (@ptodev)
 
+- Grafana Agent Flow: Add tracing instrumentation and a `tracing` block to
+  forward traces to `otelcol` component. (@rfratto)
+
 ### Bugfixes
 
 - Remove empty port from the `apache_http` integration's instance label. (@katepangLiu)
