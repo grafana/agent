@@ -318,7 +318,6 @@ func (w *walker) walkCallExpr(e *ast.CallExpr) {
 	}
 
 	w.p.Write(token.RPAREN)
-
 }
 
 // differentLines returns true if a and b are on different lines.
