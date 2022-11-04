@@ -112,9 +112,9 @@ type mockTracesReceiver struct {
 
 var _ ptraceotlp.GRPCServer = (*mockTracesReceiver)(nil)
 
-func (ms *mockTracesReceiver) Export(_ context.Context, req ptraceotlp.Request) (ptraceotlp.Response, error) {
+func (ms *mockTracesReceiver) Export(_ context.Context, req ptraceotlp.ExportRequest) (ptraceotlp.Response, error) {
 	ms.ch <- req.Traces()
-	return ptraceotlp.NewResponse(), nil
+	return ptraceotlp.NewExportResponse(), nil
 }
 
 func createTestTraces() ptrace.Traces {

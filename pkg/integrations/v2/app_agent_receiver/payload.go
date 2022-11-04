@@ -112,7 +112,7 @@ func (t *Traces) UnmarshalJSON(b []byte) error {
 
 // MarshalJSON marshals Traces model to json.
 func (t Traces) MarshalJSON() ([]byte, error) {
-	marshaler := ptrace.NewJSONMarshaler()
+	marshaler := &ptrace.JSONMarshaler{}
 	return marshaler.MarshalTraces(t.Traces)
 }
 
