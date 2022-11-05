@@ -2,6 +2,7 @@ package river
 
 import (
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/grafana/agent/pkg/river/internal/rivertags"
@@ -16,10 +17,10 @@ type Metadata struct {
 }
 
 type Component struct {
-	Name          string   `json:"string"`
-	IsSingleton   bool     `json:"is_singleton"`
-	ArgumentField TagField `json:"argument_field"`
-	ExportField   TagField `json:"export_field"`
+	Name          string `json:"string"`
+	IsSingleton   bool   `json:"is_singleton"`
+	ArgumentField string `json:"argument_field"`
+	ExportField   string `json:"export_field"`
 }
 
 type TagField struct {
@@ -45,68 +46,204 @@ type DataType struct {
 	Fields []TagField `json:"fields"`
 }
 
-func GenerateComponent(name string, isSingleton bool, arguments interface{}, exports interface{}) (Component, error) {
-	/*c := Component{
+func (d DataType) Equals(dt DataType) bool {
+	if len(d.Fields) != len(dt.Fields) {
+		return false
+	}
+	for _, f := range d.Fields {
+		found := false
+		for _, foundField := range dt.Fields {
+			if f.DataType != foundField.DataType {
+				return false
+			}
+			if f.ArrayType != foundField.ArrayType {
+				return false
+			}
+			if f.IsAttribute != foundField.IsAttribute {
+				return false
+			}
+			if f.IsBlock != foundField.IsBlock {
+				return false
+			}
+			if f.IsMap != foundField.IsMap {
+				return false
+			}
+			if f.MapKeyType != foundField.MapKeyType {
+				return false
+			}
+			if f.MapValueType != foundField.MapValueType {
+				return false
+			}
+			found = true
+
+		}
+		if !found {
+			return false
+		}
+	}
+	return true
+}
+
+type MetadataDict struct {
+	Types []DataType
+}
+
+func (md *MetadataDict) GenerateComponent(name string, isSingleton bool, arguments interface{}, exports interface{}) (Component, error) {
+	c := Component{
 		Name:        name,
 		IsSingleton: isSingleton,
 	}
-	_, err := generateField("arguments", arguments)
-	if err != nil {
-		return Component{}, err
+	argname := ""
+	var err error
+	if arguments != nil {
+		argname, err = md.generateField("arguments", reflect.TypeOf(arguments))
+		if err != nil {
+			return Component{}, err
+		}
 	}
-	_, err = generateField("exports", exports)
-	if err != nil {
-		return Component{}, err
+	expname := ""
+	if exports != nil {
+		expname, err = md.generateField("exports", reflect.TypeOf(exports))
+		if err != nil {
+			return Component{}, err
+		}
 	}
-	//	c.ArgumentField = arg
-	//	c.ExportField = exp*/
-	return Component{}, nil
+
+	c.ArgumentField = argname
+	c.ExportField = expname
+	return c, nil
 }
 
-func generateField(tag *TagField, v interface{}) error {
+func (md *MetadataDict) find(name string) (bool, DataType) {
+	for _, x := range md.Types {
+		if x.Name == name {
+			return true, x
+		}
+	}
+	return false, DataType{}
+}
 
-	t := reflect.TypeOf(v)
-	t = reflect_utils.NonPointer(t)
-	val := value.Encode(v)
-	refl := val.Reflect()
+func (md *MetadataDict) generateField(preferredName string, p reflect.Type) (string, error) {
+	dt := DataType{}
+	t := reflect_utils.NonPointer(p)
 	fields := rivertags.Get(t)
+	mFields := make([]TagField, 0)
+	var err error
 	for _, field := range fields {
-		metaField := &TagField{
-			Name:        strings.Join(field.Name, "."),
+		fName := strings.Join(field.Name, ".")
+		metaField := TagField{
+			Name:        fName,
 			IsBlock:     field.IsBlock(),
 			IsAttribute: field.IsAttr(),
 			IsOptional:  field.IsOptional(),
-			Fields:      make([]*TagField, 0),
 		}
-		reflectField := refl.FieldByIndex(field.Index)
-		fieldVal := value.Encode(reflectField.Interface())
-		datatype := getType(fieldVal)
+		reflectField := t.FieldByIndex(field.Index)
+		datatype := getType(reflectField.Type)
 		metaField.DataType = datatype
 		if metaField.DataType == "array" {
-			metaField.IsArray = true
-			elemVal := value.RiverType(fieldVal.Reflect().Type().Elem())
-			metaField.ArrayType = elemVal.String()
-		} else if metaField.DataType == "map" {
-			metaField.IsMap = true
-			elemVal := value.RiverType(fieldVal.Reflect().Type().Elem())
-			metaField.MapValueType = elemVal.String()
-
-			keyVal := value.RiverType(fieldVal.Reflect().Type().Key())
-			metaField.MapKeyType = keyVal.String()
-		} else if metaField.DataType == "object" {
-			err := generateField(metaField, reflectField.Interface())
+			metaField, err = md.handleArray(fName, metaField, reflectField.Type)
 			if err != nil {
-				return err
+				return "", err
+			}
+
+		} else if metaField.DataType == "map" {
+			metaField, err = md.handleMap(metaField, reflectField.Type)
+			if err != nil {
+				return "", err
+			}
+
+		} else if metaField.DataType == "object" {
+			metaField, err = md.handleObject(fName, metaField, reflectField.Type)
+			if err != nil {
+				return "", err
 			}
 		}
-		tag.Fields = append(tag.Fields, metaField)
+		mFields = append(mFields, metaField)
 	}
-	return nil
+	dt.Fields = mFields
+	dt.Name = getName(preferredName, dt, 0, md.Types)
+
+	isUnique := true
+	for _, x := range md.Types {
+		if x.Equals(dt) {
+			isUnique = false
+			break
+		}
+	}
+	if isUnique {
+		md.Types = append(md.Types, dt)
+	}
+
+	return dt.Name, nil
 }
 
-func getType(val value.Value) string {
-	if val.Reflect().Kind() == reflect.Map {
+func (md *MetadataDict) handleArray(riverName string, tg TagField, t reflect.Type) (TagField, error) {
+	tg.IsArray = true
+	elem := value.RiverType(t.Elem())
+
+	tg.ArrayType = elem.String()
+	if tg.ArrayType == "object" {
+		elem := t.Elem()
+		k := elem.Kind()
+		objType := getType(t)
+		name := ""
+		var err error
+		if k == reflect.Map {
+			tg, err = md.handleMap(tg, t)
+			if err != nil {
+				return tg, err
+			}
+		} else if objType == "object" {
+			tg, err = md.handleObject(riverName, tg, t)
+			if err != nil {
+				return tg, err
+			}
+		}
+		tg.DataType = name
+	}
+	return tg, nil
+}
+
+func (md *MetadataDict) handleObject(riverName string, tg TagField, t reflect.Type) (TagField, error) {
+	name, err := md.generateField(riverName, t)
+	if err != nil {
+		return tg, err
+	}
+	tg.DataType = name
+	return tg, nil
+}
+
+func (md *MetadataDict) handleMap(tg TagField, t reflect.Type) (TagField, error) {
+	tg.IsMap = true
+	elemVal := value.RiverType(t.Elem())
+	tg.MapValueType = elemVal.String()
+
+	keyVal := value.RiverType(t.Key())
+	tg.MapKeyType = keyVal.String()
+	return tg, nil
+}
+
+func getName(preferredName string, dt DataType, iteration int, dataTypes []DataType) string {
+	for _, x := range dataTypes {
+		if x.Equals(dt) {
+			return x.Name
+		}
+	}
+	for _, x := range dataTypes {
+		if x.Name == preferredName {
+			iteration = iteration + 1
+			return getName(x.Name+strconv.Itoa(iteration), dt, iteration, dataTypes)
+		}
+	}
+	return preferredName
+}
+
+func getType(t reflect.Type) string {
+	riverType := value.RiverType(t)
+
+	k := t.Kind()
+	if k == reflect.Map {
 		return "map"
 	}
-	return val.Describe()
+	return riverType.String()
 }
