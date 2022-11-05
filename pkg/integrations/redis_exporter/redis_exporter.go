@@ -156,7 +156,7 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 	// optional password file to take precedence over password property
 	if c.RedisPasswordFile != "" {
 		passwordMap, err := re.LoadPwdFile(c.RedisPasswordFile)
-		if err != nil {
+		if err != nil { // TODO: Fallback to old way of reading password file to avoid being a breaking change?
 			return nil, fmt.Errorf("Error loading password file %s: %w", c.RedisPasswordFile, err)
 		}
 		exporterConfig.PasswordMap = passwordMap
