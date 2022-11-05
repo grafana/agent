@@ -111,6 +111,8 @@ Main (unreleased)
 
 - Support Bearer tokens for metric remote writes in the Grafana Operator (@jcreixell, @marctc)
 
+- Fix issue when loading password file for `redis_exporter`. (@spartan0x117)
+
 ### Other changes
 
 - Update versions of embedded Prometheus exporters used for integrations:
