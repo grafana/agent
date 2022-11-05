@@ -82,7 +82,7 @@ func TestRedisCases(t *testing.T) {
 			cfg: (func() Config {
 				c := DefaultConfig
 				c.RedisAddr = addr
-				c.RedisPasswordFile = "./testdata/sample_password_file.json"
+				c.RedisPasswordFile = "./redis_exporter.go" // contents not important
 				return c
 			})(),
 		},
