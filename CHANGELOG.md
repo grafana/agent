@@ -111,7 +111,7 @@ Main (unreleased)
 
 - Support Bearer tokens for metric remote writes in the Grafana Operator (@jcreixell, @marctc)
 
-- Fix issue when loading password file for `redis_exporter`. (@spartan0x117)
+- Fix issue when using a password file for `redis_exporter`. (@spartan0x117)
 
 ### Other changes
 
