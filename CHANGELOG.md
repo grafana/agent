@@ -18,6 +18,12 @@ Main (unreleased)
 
 - riverfmt: Allow function arguments to persist across different lines. (@rfratto)
 
+
+### Bugfixes
+
+- Fix issue where whitespace was being sent as part of password when using a
+  password file for `redis_exporter`. (@spartan0x117)
+
 v0.29.0 (2022-11-08)
 --------------------
 
