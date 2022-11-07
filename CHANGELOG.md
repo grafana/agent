@@ -10,6 +10,14 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Bugfixes
+
+- Fix issue where whitespace was being sent as part of password when using a
+  password file for `redis_exporter`. (@spartan0x117)
+
+v0.29.0-rc.0 (2022-11-03)
+-------------------------
+
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
 
@@ -110,8 +118,6 @@ Main (unreleased)
 - Tracing: fix a panic when the required `protocols` field was not set in the `otlp` receiver. (@ptodev)
 
 - Support Bearer tokens for metric remote writes in the Grafana Operator (@jcreixell, @marctc)
-
-- Fix issue where whitespace was being sent as part of password when using a password file for `redis_exporter`. (@spartan0x117)
 
 ### Other changes
 
