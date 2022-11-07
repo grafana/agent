@@ -308,7 +308,7 @@ func (conv *Converter) consumeGauge(app storage.Appender, memResource *memorySer
 
 type otelcolDataPoint interface {
 	Timestamp() pcommon.Timestamp
-	Flags() pmetric.MetricDataPointFlags
+	Flags() pmetric.DataPointFlags
 }
 
 func writeSeries(app storage.Appender, series *memorySeries, dp otelcolDataPoint, val float64) error {
@@ -389,11 +389,11 @@ func (conv *Converter) consumeSum(app storage.Appender, memResource *memorySerie
 	// * Otherwise, it MUST be dropped.
 	var convType textparse.MetricType
 	switch {
-	case m.Sum().AggregationTemporality() == pmetric.MetricAggregationTemporalityCumulative && m.Sum().IsMonotonic():
+	case m.Sum().AggregationTemporality() == pmetric.AggregationTemporalityCumulative && m.Sum().IsMonotonic():
 		convType = textparse.MetricTypeCounter
-	case m.Sum().AggregationTemporality() == pmetric.MetricAggregationTemporalityCumulative && !m.Sum().IsMonotonic():
+	case m.Sum().AggregationTemporality() == pmetric.AggregationTemporalityCumulative && !m.Sum().IsMonotonic():
 		convType = textparse.MetricTypeGauge
-	case m.Sum().AggregationTemporality() == pmetric.MetricAggregationTemporalityDelta && m.Sum().IsMonotonic():
+	case m.Sum().AggregationTemporality() == pmetric.AggregationTemporalityDelta && m.Sum().IsMonotonic():
 		// Drop non-cumulative summaries for now, which is permitted by the spec.
 		//
 		// TODO(rfratto): implement delta-to-cumulative for sums.
@@ -429,7 +429,7 @@ func (conv *Converter) consumeSum(app storage.Appender, memResource *memorySerie
 func (conv *Converter) consumeHistogram(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric) {
 	metricName := prometheus.BuildPromCompliantName(m, "")
 
-	if m.Histogram().AggregationTemporality() != pmetric.MetricAggregationTemporalityCumulative {
+	if m.Histogram().AggregationTemporality() != pmetric.AggregationTemporalityCumulative {
 		// Drop non-cumulative histograms for now, which is permitted by the spec.
 		//
 		// TODO(rfratto): implement delta-to-cumulative for histograms.

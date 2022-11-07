@@ -109,7 +109,8 @@ func createTestTraces() ptrace.Traces {
 		}]
 	}`
 
-	data, err := ptrace.NewJSONUnmarshaler().UnmarshalTraces([]byte(bb))
+	decoder := &ptrace.JSONUnmarshaler{}
+	data, err := decoder.UnmarshalTraces([]byte(bb))
 	if err != nil {
 		panic(err)
 	}
