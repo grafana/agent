@@ -579,6 +579,17 @@ bool
 <p>disableReporting disable reporting of enabled feature flags to Grafana.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>disableSupportBundle</code><br/>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>disableSupportBundle disables the generation of support bundles.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -1301,6 +1312,17 @@ bool
 </td>
 <td>
 <p>disableReporting disable reporting of enabled feature flags to Grafana.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>disableSupportBundle</code><br/>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>disableSupportBundle disables the generation of support bundles.</p>
 </td>
 </tr>
 </tbody>
@@ -4626,5 +4648,5 @@ Can be skip or fudge. Defaults to fudge.</p>
 <hr/>
 <p><em>
 Generated with <code>gen-crd-api-reference-docs</code>
-on git commit <code>e19c9c42</code>.
+on git commit <code>022b9c17</code>.
 </em></p>
