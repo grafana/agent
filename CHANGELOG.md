@@ -10,6 +10,15 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Enhancements
+
+- riverfmt: Permit empty blocks with both curly braces on the same line. (@rfratto)
+
+- riverfmt: Allow function arguments to persist across different lines. (@rfratto)
+
+v0.29.0-rc.0 (2022-11-03)
+-------------------------
+
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
 
@@ -98,10 +107,6 @@ Main (unreleased)
 - Update Promtail dependency to weekly release k122. (@rfratto)
 
 - Tracing: support the `num_traces` and `expected_new_traces_per_sec` configuration parameters in the tail_sampling processor. (@ptodev)
-
-- riverfmt: Permit empty blocks with both curly braces on the same line. (@rfratto)
-
-- riverfmt: Allow function arguments to persist across different lines. (@rfratto)
 
 ### Bugfixes
 
