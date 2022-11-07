@@ -3,16 +3,17 @@ package all
 import (
 	"testing"
 
+	"github.com/grafana/agent/pkg/river"
+
 	"github.com/grafana/agent/component/discovery"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/grafana/agent/component/local/file"
-	"github.com/grafana/agent/pkg/river"
 )
 
 func TestComponent(t *testing.T) {
-	md := river.MetadataDict{Types: make([]river.DataType, 0)}
+	md := river.NewMetaDict()
 	c, err := md.GenerateComponent("local.file", false, file.Arguments{}, file.Exports{})
 	require.NoError(t, err)
 	require.NotNil(t, c)
