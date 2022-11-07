@@ -10,6 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Enhancements
+
+- Update OpenTelemetry Collector dependency to v0.63.1. (@tpaschalis)
+
 v0.29.0-rc.0 (2022-11-03)
 -------------------------
 
