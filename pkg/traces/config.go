@@ -793,7 +793,7 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 	}
 
 	configMap := confmap.NewFromStringMap(otelMapStructure)
-	otelCfg, err := configunmarshaler.New().Unmarshal(configMap, factories)
+	otelCfg, err := configunmarshaler.Unmarshal(configMap, factories)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load OTel config: %w", err)
 	}

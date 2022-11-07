@@ -69,7 +69,9 @@ func (f *logsFanout) ConsumeLogs(ctx context.Context, ld plog.Logs) error {
 	// of sending the incoming data to a mutating consumer is used that may
 	// change the incoming data before cloning.
 	for _, f := range f.clone {
-		errs = multierr.Append(errs, f.ConsumeLogs(ctx, ld.Clone()))
+		newLogs := plog.NewLogs()
+		ld.CopyTo(newLogs)
+		errs = multierr.Append(errs, f.ConsumeLogs(ctx, newLogs))
 	}
 	for _, f := range f.passthrough {
 		errs = multierr.Append(errs, f.ConsumeLogs(ctx, ld))

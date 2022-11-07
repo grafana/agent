@@ -69,7 +69,9 @@ func (f *metricsFanout) ConsumeMetrics(ctx context.Context, md pmetric.Metrics) 
 	// of sending the incoming data to a mutating consumer is used that may
 	// change the incoming data before cloning.
 	for _, f := range f.clone {
-		errs = multierr.Append(errs, f.ConsumeMetrics(ctx, md.Clone()))
+		newMetrics := pmetric.NewMetrics()
+		md.CopyTo(newMetrics)
+		errs = multierr.Append(errs, f.ConsumeMetrics(ctx, newMetrics))
 	}
 	for _, f := range f.passthrough {
 		errs = multierr.Append(errs, f.ConsumeMetrics(ctx, md))

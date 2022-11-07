@@ -137,7 +137,7 @@ func (e *remoteWriteExporter) ConsumeMetrics(ctx context.Context, md pmetric.Met
 						return err
 					}
 				case pmetric.MetricTypeSum:
-					if metric.Sum().AggregationTemporality() != pmetric.MetricAggregationTemporalityCumulative {
+					if metric.Sum().AggregationTemporality() != pmetric.AggregationTemporalityCumulative {
 						continue // Only cumulative metrics are supported
 					}
 					dataPoints := metric.Sum().DataPoints()
@@ -145,7 +145,7 @@ func (e *remoteWriteExporter) ConsumeMetrics(ctx context.Context, md pmetric.Met
 						return err
 					}
 				case pmetric.MetricTypeHistogram:
-					if metric.Histogram().AggregationTemporality() != pmetric.MetricAggregationTemporalityCumulative {
+					if metric.Histogram().AggregationTemporality() != pmetric.AggregationTemporalityCumulative {
 						continue // Only cumulative metrics are supported
 					}
 					dataPoints := metric.Histogram().DataPoints()

@@ -100,7 +100,8 @@ func traceSamples(t *testing.T, path string) ptrace.Traces {
 	b, err := os.ReadFile(path)
 	require.NoError(t, err)
 
-	traces, err := ptrace.NewJSONUnmarshaler().UnmarshalTraces(b)
+	decoder := &ptrace.JSONUnmarshaler{}
+	traces, err := decoder.UnmarshalTraces(b)
 	require.NoError(t, err)
 
 	return traces
