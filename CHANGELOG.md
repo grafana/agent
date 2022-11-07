@@ -10,6 +10,14 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Enhancements
+
+- Update OpenTelemetry Collector dependency to v0.63.1. (@tpaschalis)
+
+- riverfmt: Permit empty blocks with both curly braces on the same line. (@rfratto)
+
+- riverfmt: Allow function arguments to persist across different lines. (@rfratto)
+
 ### Bugfixes
 
 - Fix issue where whitespace was being sent as part of password when using a

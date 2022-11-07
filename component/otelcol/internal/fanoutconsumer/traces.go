@@ -69,7 +69,9 @@ func (f *tracesFanout) ConsumeTraces(ctx context.Context, td ptrace.Traces) erro
 	// of sending the incoming data to a mutating consumer is used that may
 	// change the incoming data before cloning.
 	for _, f := range f.clone {
-		errs = multierr.Append(errs, f.ConsumeTraces(ctx, td.Clone()))
+		newTraces := ptrace.NewTraces()
+		td.CopyTo(newTraces)
+		errs = multierr.Append(errs, f.ConsumeTraces(ctx, newTraces))
 	}
 	for _, f := range f.passthrough {
 		errs = multierr.Append(errs, f.ConsumeTraces(ctx, td))
