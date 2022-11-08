@@ -12,15 +12,21 @@ Main (unreleased)
 
 ### Features
 
-  - `grafana-agent-operator` supports oauth2 as an authentication method for remote_write. (@timo-42)
+- `grafana-agent-operator` supports oauth2 as an authentication method for
+  remote_write. (@timo-42)
+
+- Grafana Agent Flow: Add tracing instrumentation and a `tracing` block to
+  forward traces to `otelcol` component. (@rfratto)
 
 ### Enhancements
 
 - Update OpenTelemetry Collector dependency to v0.63.1. (@tpaschalis)
 
-- riverfmt: Permit empty blocks with both curly braces on the same line. (@rfratto)
+- riverfmt: Permit empty blocks with both curly braces on the same line.
+  (@rfratto)
 
-- riverfmt: Allow function arguments to persist across different lines. (@rfratto)
+- riverfmt: Allow function arguments to persist across different lines.
+  (@rfratto)
 
 ### Bugfixes
 
@@ -118,9 +124,6 @@ v0.29.0-rc.0 (2022-11-03)
 - Update Promtail dependency to weekly release k122. (@rfratto)
 
 - Tracing: support the `num_traces` and `expected_new_traces_per_sec` configuration parameters in the tail_sampling processor. (@ptodev)
-
-- Grafana Agent Flow: Add tracing instrumentation and a `tracing` block to
-  forward traces to `otelcol` component. (@rfratto)
 
 ### Bugfixes
 
