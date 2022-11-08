@@ -135,7 +135,7 @@ func (c *Component) Run(ctx context.Context) error {
 }
 
 // nextPoll returns how long to wait to poll given the last time a
-// poll occured. nextPoll returns 0 if a poll should occur immediately.
+// poll occurred. nextPoll returns 0 if a poll should occur immediately.
 func (c *Component) nextPoll() time.Duration {
 	c.mut.Lock()
 	defer c.mut.Unlock()
@@ -177,7 +177,7 @@ func (c *Component) poll() {
 	}
 }
 
-// pollError is like poll but returns an error if one occured.
+// pollError is like poll but returns an error if one occurred.
 func (c *Component) pollError() error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
@@ -228,8 +228,8 @@ func (c *Component) pollError() error {
 // Update updates the remote.http component. After the update completes, a
 // poll is forced.
 func (c *Component) Update(args component.Arguments) (err error) {
-	// poll after updating. If an error occured during Update, we don't bother to
-	// do anything.
+	// poll after updating. If an error occurred during Update, we don't bother
+	// to do anything.
 	defer func() {
 		if err != nil {
 			return
