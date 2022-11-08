@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
@@ -132,6 +133,7 @@ func (c *Controller) buildComponent(dataPath string, args component.Arguments) (
 	opts := component.Options{
 		ID:            c.reg.Name + ".test",
 		Logger:        c.log,
+		Tracer:        trace.NewNoopTracerProvider(),
 		DataPath:      dataPath,
 		OnStateChange: c.onStateChange,
 		Registerer:    prometheus.NewRegistry(),
