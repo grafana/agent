@@ -289,6 +289,9 @@ selectors][] to learn more about the possible filters that can be used.
 
 ### http_client_config block
 
+The `http_client_config` block configures settings used to connect to the
+Kubernetes API server.
+
 {{< docs/shared lookup="flow/reference/components/http-client-config-block.md" source="agent" >}}
 
 ### basic_auth block

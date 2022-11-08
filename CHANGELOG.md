@@ -18,6 +18,11 @@ Main (unreleased)
 
 - riverfmt: Allow function arguments to persist across different lines. (@rfratto)
 
+- New Grafana Agent Flow components:
+
+  - `remote.http` polls an HTTP URL and exposes the response as a string or
+    secret to other components. (@rfratto)
+
 ### Bugfixes
 
 - Fix issue where whitespace was being sent as part of password when using a
