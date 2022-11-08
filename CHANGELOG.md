@@ -20,8 +20,8 @@ Main (unreleased)
 
 - New Grafana Agent Flow components:
 
-  - `remote.http` polls an HTTP URL and exposes the response as a string or
-    secret to other components. (@rfratto)
+  - `remote.http` polls an HTTP URL and exposes the response body as a string
+    or secret to other components. (@rfratto)
 
 ### Bugfixes
 

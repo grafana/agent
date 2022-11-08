@@ -32,7 +32,7 @@ Name | Type | Description | Default | Required
 `url` | `string` | URL to poll. | | yes
 `poll_frequency` | `duration` | Frequency to poll the URL. | `"1m"` | no
 `poll_timeout` | `duration` | Timeout when polling the URL. | `"10s"` | no
-`is_secret` | `bool` | Whether the response should be treated as a secret. | false | no
+`is_secret` | `bool` | Whether the response body should be treated as a secret. | false | no
 
 When `remote.http` performs a poll operation, an HTTP `GET` request is made
 against the URL specified by the `url` argument. A poll is triggered by the
@@ -43,7 +43,8 @@ following:
 * At the frequency specified by the `poll_frequency` argument.
 
 The poll is successful if the URL returns a `200 OK` response code. All other
-response codes are treated as errors and mark the component as unhealthy.
+response codes are treated as errors and mark the component as unhealthy. After
+a successful poll, the response body from the URL is exported.
 
 [secret]: {{< relref "../../config-language/expressions/types_and_values.md#secrets" >}}
 
