@@ -28,7 +28,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/cobra"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
-	"go.uber.org/atomic"
 
 	// Install Components
 	_ "github.com/grafana/agent/component/all"
@@ -158,28 +157,6 @@ func (fr *flowRun) Run(configFile string) error {
 		return nil
 	}
 
-	if err := reload(); err != nil {
-		var diags diag.Diagnostics
-		if errors.As(err, &diags) {
-			bb, _ := os.ReadFile(configFile)
-
-			p := diag.NewPrinter(diag.PrinterConfig{
-				Color:              !color.NoColor,
-				ContextLinesBefore: 1,
-				ContextLinesAfter:  1,
-			})
-			_ = p.Fprint(os.Stderr, map[string][]byte{configFile: bb}, diags)
-
-			// Print newline after the diagnostics.
-			fmt.Println()
-
-			return fmt.Errorf("could not perform the initial load successfully")
-		}
-
-		// Exit if the initial load files
-		return err
-	}
-
 	// HTTP server
 	{
 		lis, err := net.Listen("tcp", fr.httpListenAddr)
@@ -197,9 +174,8 @@ func (fr *flowRun) Run(configFile string) error {
 		r.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
 		r.PathPrefix("/component/{id}/").Handler(f.ComponentHandler())
 
-		ready := atomic.NewBool(true)
-		r.HandleFunc("/-/ready", func(w http.ResponseWriter, r *http.Request) {
-			if ready.Load() {
+		r.HandleFunc("/-/ready", func(w http.ResponseWriter, _ *http.Request) {
+			if f.Ready() {
 				w.WriteHeader(http.StatusOK)
 				fmt.Fprintf(w, "Agent is Ready.\n")
 			} else {
@@ -210,7 +186,6 @@ func (fr *flowRun) Run(configFile string) error {
 
 		r.HandleFunc("/-/reload", func(w http.ResponseWriter, _ *http.Request) {
 			err := reload()
-			ready.Store(err == nil)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
@@ -254,6 +229,31 @@ func (fr *flowRun) Run(configFile string) error {
 				level.Error(l).Log("msg", "failed to start reporter", "err", err)
 			}
 		}()
+	}
+
+	// Perform the initial reload. This is done after starting the HTTP server so
+	// that /metric and pprof endpoints are available while the Flow controller
+	// is loading.
+	if err := reload(); err != nil {
+		var diags diag.Diagnostics
+		if errors.As(err, &diags) {
+			bb, _ := os.ReadFile(configFile)
+
+			p := diag.NewPrinter(diag.PrinterConfig{
+				Color:              !color.NoColor,
+				ContextLinesBefore: 1,
+				ContextLinesAfter:  1,
+			})
+			_ = p.Fprint(os.Stderr, map[string][]byte{configFile: bb}, diags)
+
+			// Print newline after the diagnostics.
+			fmt.Println()
+
+			return fmt.Errorf("could not perform the initial load successfully")
+		}
+
+		// Exit if the initial load files
+		return err
 	}
 
 	<-ctx.Done()

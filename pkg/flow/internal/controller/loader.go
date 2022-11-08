@@ -43,9 +43,10 @@ func NewLoader(globals ComponentGlobals) *Loader {
 		tracer:  globals.TraceProvider,
 		globals: globals,
 
-		graph: &dag.Graph{},
-		cache: newValueCache(),
-		cm:    newControllerMetrics(globals.Registerer),
+		graph:         &dag.Graph{},
+		originalGraph: &dag.Graph{},
+		cache:         newValueCache(),
+		cm:            newControllerMetrics(globals.Registerer),
 	}
 	cc := newControllerCollector(l)
 	if globals.Registerer != nil {

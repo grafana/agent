@@ -58,6 +58,7 @@ import (
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/prometheus/client_golang/prometheus"
+	"go.uber.org/atomic"
 )
 
 // Options holds static options for a flow controller.
@@ -98,7 +99,7 @@ type Flow struct {
 	loadFinished chan struct{}
 
 	loadMut    sync.RWMutex
-	loadedOnce bool
+	loadedOnce atomic.Bool
 }
 
 // New creates and starts a new Flow controller. Call Close to stop
@@ -218,12 +219,12 @@ func (c *Flow) LoadFile(file *File) error {
 	defer c.loadMut.Unlock()
 
 	diags := c.loader.Apply(nil, file.Components, file.ConfigBlocks)
-	if !c.loadedOnce && diags.HasErrors() {
+	if !c.loadedOnce.Load() && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.
 		return diags
 	}
-	c.loadedOnce = true
+	c.loadedOnce.Store(true)
 
 	select {
 	case c.loadFinished <- struct{}{}:
@@ -231,6 +232,11 @@ func (c *Flow) LoadFile(file *File) error {
 		// A refresh is already scheduled
 	}
 	return diags.ErrorOrNil()
+}
+
+// Ready returns whether the Flow controller has finished its initial load.
+func (c *Flow) Ready() bool {
+	return c.loadedOnce.Load()
 }
 
 // ComponentInfos returns the component infos.

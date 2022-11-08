@@ -28,6 +28,10 @@ Main (unreleased)
 - riverfmt: Allow function arguments to persist across different lines.
   (@rfratto)
 
+- Flow: The HTTP server will now start before the Flow controller performs the
+  initial load. This allows metrics and pprof data to be collected during the
+  first load. (@rfratto)
+
 ### Bugfixes
 
 - Fix issue where whitespace was being sent as part of password when using a
