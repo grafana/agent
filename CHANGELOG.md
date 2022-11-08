@@ -39,6 +39,9 @@ Main (unreleased)
 - Fix issue where whitespace was being sent as part of password when using a
   password file for `redis_exporter`. (@spartan0x117)
 
+- Flow UI: Fix issue where a configuration block referencing a component would
+  cause the graph page to fail to load. (@rfratto)
+
 v0.29.0 (2022-11-08)
 --------------------
 

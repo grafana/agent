@@ -265,6 +265,18 @@ func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *ComponentInfo 
 	references := make([]string, 0)
 	referencedBy := make([]string, 0)
 	for _, e := range edges {
+		// Skip over any edge which isn't between two component nodes. This is a
+		// temporary workaround needed until there's the conept of configuration
+		// blocks from the API.
+		//
+		// Without this change, the graph fails to render when a configuration
+		// block is referenced in the graph.
+		//
+		// TODO(rfratto): add support for config block nodes in the API and UI.
+		if !isComponentNode(e.From) || !isComponentNode(e.To) {
+			continue
+		}
+
 		if e.From.NodeID() == cn.NodeID() {
 			references = append(references, e.To.NodeID())
 		} else if e.To.NodeID() == cn.NodeID() {
@@ -286,6 +298,11 @@ func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *ComponentInfo 
 		},
 	}
 	return ci
+}
+
+func isComponentNode(n dag.Node) bool {
+	_, ok := n.(*controller.ComponentNode)
+	return ok
 }
 
 // ComponentInfo represents a component in flow.
