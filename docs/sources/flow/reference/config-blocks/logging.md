@@ -5,7 +5,7 @@ title: logging
 weight: 100
 ---
 
-# `logging` block
+# logging block
 
 `logging` is an optional configuration block used to customize how Grafana
 Agent produces log messages. `logging` is specified without a label and can

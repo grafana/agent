@@ -1,20 +1,31 @@
+// This config file is designed to send traces and metrics to the docker
+// compose environment from example/docker-compose.
+
 logging {
 	level  = "debug"
 	format = "logfmt"
 }
 
-local.file "this_file" {
-	// Must be running from the root directory of the repository for this relative
-	// path to work.
-	filename = "./cmd/agent/test-local-file.txt"
-	detector = "fsnotify"
+tracing {
+	sampling_fraction = 0.1
+
+	write_to = [otelcol.exporter.otlp.tempo.input]
 }
 
+otelcol.exporter.otlp "tempo" {
+	client {
+		endpoint = "localhost:4317"
+
+		tls {
+			insecure = true
+		}
+	}
+}
+
+prometheus.integration.node_exporter { /* use defaults */ }
+
 prometheus.scrape "default" {
-	targets = [{
-		"__address__"   = "demo.robustperception.io:9090",
-		"dynamic_label" = local.file.this_file.content,
-	}]
+	targets    = prometheus.integration.node_exporter.targets
 	forward_to = [prometheus.remote_write.default.receiver]
 }
 

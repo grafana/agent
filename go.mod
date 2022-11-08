@@ -139,6 +139,11 @@ require (
 	go.opentelemetry.io/collector/exporter/otlphttpexporter v0.0.0-00010101000000-000000000000
 	go.opentelemetry.io/collector/pdata v0.63.1
 	go.opentelemetry.io/collector/semconv v0.63.1
+	go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux v0.36.4
+	go.opentelemetry.io/otel v1.11.1
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.10.0
+	go.opentelemetry.io/otel/sdk v1.11.1
+	go.opentelemetry.io/proto/otlp v0.19.0
 	golang.org/x/exp v0.0.0-20220916125017-b168a2c6b86b
 	google.golang.org/protobuf v1.28.1
 )
@@ -498,9 +503,7 @@ require (
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.36.4 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.36.4 // indirect
 	go.opentelemetry.io/contrib/propagators/b3 v1.11.1 // indirect
-	go.opentelemetry.io/otel v1.11.1 // indirect
 	go.opentelemetry.io/otel/exporters/prometheus v0.33.0 // indirect
-	go.opentelemetry.io/otel/sdk v1.11.1 // indirect
 	go.opentelemetry.io/otel/sdk/metric v0.33.0 // indirect
 	go.uber.org/goleak v1.2.0 // indirect
 	go4.org/intern v0.0.0-20211027215823-ae77deb06f29 // indirect
