@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
+
+	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/hashicorp/go-multierror"
 
@@ -23,14 +26,21 @@ type Fanout struct {
 	// children is where to fan out.
 	children []storage.Appendable
 	// ComponentID is what component this belongs to.
-	componentID string
+	componentID  string
+	writeLatency prometheus.Histogram
 }
 
 // NewFanout creates a fanout appendable.
-func NewFanout(children []storage.Appendable, componentID string) *Fanout {
+func NewFanout(children []storage.Appendable, componentID string, register prometheus.Registerer) *Fanout {
+	wl := prometheus.NewHistogram(prometheus.HistogramOpts{
+		Name: "agent_prometheus_fanout_latency",
+		Help: "Write latency for fanout to write to child tree",
+	})
+	_ = register.Register(wl)
 	return &Fanout{
-		children:    children,
-		componentID: componentID,
+		children:     children,
+		componentID:  componentID,
+		writeLatency: wl,
 	}
 }
 
@@ -55,8 +65,9 @@ func (f *Fanout) Appender(ctx context.Context) storage.Appender {
 	ctx = scrape.ContextWithMetricMetadataStore(ctx, NoopMetadataStore{})
 
 	app := &appender{
-		children:    make([]storage.Appender, 0),
-		componentID: f.componentID,
+		children:     make([]storage.Appender, 0),
+		componentID:  f.componentID,
+		writeLatency: f.writeLatency,
 	}
 	for _, x := range f.children {
 		if x == nil {
@@ -70,12 +81,17 @@ func (f *Fanout) Appender(ctx context.Context) storage.Appender {
 var _ storage.Appender = (*appender)(nil)
 
 type appender struct {
-	children    []storage.Appender
-	componentID string
+	children     []storage.Appender
+	componentID  string
+	writeLatency prometheus.Histogram
+	start        time.Time
 }
 
 // Append satisfies the Appender interface.
 func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, error) {
+	if a.start.IsZero() {
+		a.start = time.Now()
+	}
 	if ref == 0 {
 		ref = storage.SeriesRef(GlobalRefMapping.GetOrAddGlobalRefID(l))
 	}
@@ -91,6 +107,13 @@ func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v flo
 
 // Commit satisfies the Appender interface.
 func (a *appender) Commit() error {
+	defer func() {
+		if a.start.IsZero() {
+			return
+		}
+		duration := time.Since(a.start)
+		a.writeLatency.Observe(duration.Seconds())
+	}()
 	var multiErr error
 	for _, x := range a.children {
 		err := x.Commit()
@@ -103,6 +126,13 @@ func (a *appender) Commit() error {
 
 // Rollback satisifies the Appender interface.
 func (a *appender) Rollback() error {
+	defer func() {
+		if a.start.IsZero() {
+			return
+		}
+		duration := time.Since(a.start)
+		a.writeLatency.Observe(duration.Seconds())
+	}()
 	var multiErr error
 	for _, x := range a.children {
 		err := x.Rollback()

@@ -49,6 +49,10 @@ type Component struct {
 	mrc              []*relabel.Config
 	receiver         *prometheus.Interceptor
 	metricsProcessed prometheus_client.Counter
+	metricsOutgoing  prometheus_client.Counter
+	cacheHits        prometheus_client.Counter
+	cacheMisses      prometheus_client.Counter
+	cacheSize        prometheus_client.Gauge
 	fanout           *prometheus.Fanout
 
 	cacheMut sync.RWMutex
@@ -69,18 +73,51 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		Name: "agent_prometheus_relabel_metrics_processed",
 		Help: "Total number of metrics processed",
 	})
+	c.metricsOutgoing = prometheus_client.NewCounter(prometheus_client.CounterOpts{
+		Name: "agent_prometheus_relabel_metrics_written",
+		Help: "Total number of metrics written",
+	})
+	c.cacheMisses = prometheus_client.NewCounter(prometheus_client.CounterOpts{
+		Name: "agent_prometheus_relabel_metrics_misses",
+		Help: "Total number of cache misses",
+	})
+	c.cacheHits = prometheus_client.NewCounter(prometheus_client.CounterOpts{
+		Name: "agent_prometheus_relabel_cache_hits",
+		Help: "Total number of cache hits",
+	})
+	c.cacheSize = prometheus_client.NewGauge(prometheus_client.GaugeOpts{
+		Name: "agent_prometheus_relabel_cache_size",
+		Help: "Total size of relabel cache",
+	})
 
 	err := o.Registerer.Register(c.metricsProcessed)
 	if err != nil {
 		return nil, err
 	}
+	err = o.Registerer.Register(c.metricsOutgoing)
+	if err != nil {
+		return nil, err
+	}
+	err = o.Registerer.Register(c.cacheHits)
+	if err != nil {
+		return nil, err
+	}
+	err = o.Registerer.Register(c.cacheMisses)
+	if err != nil {
+		return nil, err
+	}
+	err = o.Registerer.Register(c.cacheSize)
+	if err != nil {
+		return nil, err
+	}
 
-	c.fanout = prometheus.NewFanout(args.ForwardTo, o.ID)
+	c.fanout = prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer)
 	c.receiver, err = prometheus.NewInterceptor(func(ref storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
 		newLbl := c.relabel(v, l)
 		if newLbl == nil {
 			return 0, nil
 		}
+		c.metricsOutgoing.Inc()
 		return next.Append(0, newLbl, t, v)
 	}, c.fanout, c.opts.ID)
 
@@ -102,7 +139,6 @@ func New(o component.Options, args Arguments) (*Component, error) {
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
 	<-ctx.Done()
-	c.opts.Registerer.Unregister(c.metricsProcessed)
 	return nil
 }
 
@@ -128,12 +164,15 @@ func (c *Component) relabel(val float64, lbls labels.Labels) labels.Labels {
 	var relabelled labels.Labels
 	newLbls, found := c.getFromCache(globalRef)
 	if found {
+		c.cacheHits.Inc()
 		// If newLbls is nil but cache entry was found then we want to keep the value nil, if it's not we want to reuse the labels
 		if newLbls != nil {
 			relabelled = newLbls.labels
 		}
 	} else {
 		relabelled = relabel.Process(lbls, c.mrc...)
+		c.cacheMisses.Inc()
+		c.cacheSize.Inc()
 		c.addToCache(globalRef, relabelled)
 	}
 
@@ -141,6 +180,7 @@ func (c *Component) relabel(val float64, lbls labels.Labels) labels.Labels {
 	// TODO: (@mattdurham) This caching can leak and likely needs a timed eviction at some point, but this is simple.
 	// In the future the global ref cache may have some hooks to allow notification of when caches should be evicted.
 	if value.IsStaleNaN(val) {
+		c.cacheSize.Dec()
 		c.deleteFromCache(globalRef)
 	}
 	if relabelled == nil {
