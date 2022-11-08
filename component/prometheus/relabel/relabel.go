@@ -78,7 +78,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		Help: "Total number of metrics written",
 	})
 	c.cacheMisses = prometheus_client.NewCounter(prometheus_client.CounterOpts{
-		Name: "agent_prometheus_relabel_metrics_misses",
+		Name: "agent_prometheus_relabel_cache_misses",
 		Help: "Total number of cache misses",
 	})
 	c.cacheHits = prometheus_client.NewCounter(prometheus_client.CounterOpts{
