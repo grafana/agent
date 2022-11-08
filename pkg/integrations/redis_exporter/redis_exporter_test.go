@@ -16,6 +16,7 @@ import (
 )
 
 const addr string = "localhost:6379"
+const redisExporterFile string = "./redis_exporter.go"
 
 func TestRedisCases(t *testing.T) {
 	tt := []struct {
@@ -55,7 +56,7 @@ func TestRedisCases(t *testing.T) {
 			cfg: (func() Config {
 				c := DefaultConfig
 				c.RedisAddr = addr
-				c.ScriptPath = "./redis_exporter.go" // file content is irrelevant
+				c.ScriptPath = redisExporterFile // file content is irrelevant
 				return c
 			})(),
 		},
@@ -82,7 +83,7 @@ func TestRedisCases(t *testing.T) {
 			cfg: (func() Config {
 				c := DefaultConfig
 				c.RedisAddr = addr
-				c.RedisPasswordFile = "./redis_exporter.go" // contents not important
+				c.RedisPasswordFile = redisExporterFile // contents not important
 				return c
 			})(),
 		},
@@ -114,7 +115,7 @@ func TestRedisCases(t *testing.T) {
 			cfg: (func() Config {
 				c := DefaultConfig
 				c.RedisAddr = addr
-				c.RedisPasswordMapFile = "./redis_exporter.go"
+				c.RedisPasswordMapFile = redisExporterFile
 				return c
 			})(),
 			expectConstructorError: true,
