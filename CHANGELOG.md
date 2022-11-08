@@ -10,6 +10,26 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Features
+
+  - `grafana-agent-operator` supports oauth2 as an authentication method for remote_write. (@timo-42)
+
+### Enhancements
+
+- Update OpenTelemetry Collector dependency to v0.63.1. (@tpaschalis)
+
+- riverfmt: Permit empty blocks with both curly braces on the same line. (@rfratto)
+
+- riverfmt: Allow function arguments to persist across different lines. (@rfratto)
+
+### Bugfixes
+
+- Fix issue where whitespace was being sent as part of password when using a
+  password file for `redis_exporter`. (@spartan0x117)
+
+v0.29.0-rc.0 (2022-11-03)
+-------------------------
+
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
 

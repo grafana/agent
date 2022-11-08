@@ -182,10 +182,10 @@ func (p *promServiceDiscoProcessor) processAttributes(ctx context.Context, attrs
 	for k, v := range labels {
 		switch p.operationType {
 		case OperationTypeUpsert:
-			attrs.PutString(string(k), string(v))
+			attrs.PutStr(string(k), string(v))
 		case OperationTypeInsert:
 			if _, ok := attrs.Get(string(k)); !ok {
-				attrs.PutString(string(k), string(v))
+				attrs.PutStr(string(k), string(v))
 			}
 		case OperationTypeUpdate:
 			if toVal, ok := attrs.Get(string(k)); ok {

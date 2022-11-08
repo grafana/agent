@@ -318,9 +318,10 @@ func TestConverter(t *testing.T) {
 		},
 	}
 
+	decoder := &pmetric.JSONUnmarshaler{}
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			payload, err := pmetric.NewJSONUnmarshaler().UnmarshalMetrics([]byte(tc.input))
+			payload, err := decoder.UnmarshalMetrics([]byte(tc.input))
 			require.NoError(t, err)
 
 			var app testappender.Appender

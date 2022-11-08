@@ -26,7 +26,8 @@ func Test(t *testing.T) {
 	ch := make(chan ptrace.Traces)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		b, _ := io.ReadAll(r.Body)
-		trace, _ := ptrace.NewProtoUnmarshaler().UnmarshalTraces(b)
+		decoder := &ptrace.ProtoUnmarshaler{}
+		trace, _ := decoder.UnmarshalTraces(b)
 		require.Equal(t, 1, trace.SpanCount())
 		name := trace.ResourceSpans().At(0).ScopeSpans().At(0).Spans().At(0).Name()
 		require.Equal(t, "TestSpan", name)
@@ -106,7 +107,8 @@ func createTestTraces() ptrace.Traces {
 		}]
 	}`
 
-	data, err := ptrace.NewJSONUnmarshaler().UnmarshalTraces([]byte(bb))
+	decoder := &ptrace.JSONUnmarshaler{}
+	data, err := decoder.UnmarshalTraces([]byte(bb))
 	if err != nil {
 		panic(err)
 	}

@@ -95,7 +95,7 @@ func makeTracesServer(t *testing.T, ch chan ptrace.Traces) string {
 	require.NoError(t, err)
 
 	srv := grpc.NewServer()
-	ptraceotlp.RegisterServer(srv, &mockTracesReceiver{ch: ch})
+	ptraceotlp.RegisterGRPCServer(srv, &mockTracesReceiver{ch: ch})
 
 	go func() {
 		err := srv.Serve(lis)
@@ -112,9 +112,9 @@ type mockTracesReceiver struct {
 
 var _ ptraceotlp.GRPCServer = (*mockTracesReceiver)(nil)
 
-func (ms *mockTracesReceiver) Export(_ context.Context, req ptraceotlp.Request) (ptraceotlp.Response, error) {
+func (ms *mockTracesReceiver) Export(_ context.Context, req ptraceotlp.ExportRequest) (ptraceotlp.ExportResponse, error) {
 	ms.ch <- req.Traces()
-	return ptraceotlp.NewResponse(), nil
+	return ptraceotlp.NewExportResponse(), nil
 }
 
 func createTestTraces() ptrace.Traces {
@@ -130,7 +130,8 @@ func createTestTraces() ptrace.Traces {
 		}]
 	}`
 
-	data, err := ptrace.NewJSONUnmarshaler().UnmarshalTraces([]byte(bb))
+	decoder := &ptrace.JSONUnmarshaler{}
+	data, err := decoder.UnmarshalTraces([]byte(bb))
 	if err != nil {
 		panic(err)
 	}
