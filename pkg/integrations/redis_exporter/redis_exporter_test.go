@@ -120,6 +120,19 @@ func TestRedisCases(t *testing.T) {
 			})(),
 			expectConstructorError: true,
 		},
+		// Test exporter construction fails when both redis_password_file and redis_password_map_file
+		// are specified
+		{
+			name: "too many password files",
+			cfg: (func() Config {
+				c := DefaultConfig
+				c.RedisAddr = addr
+				c.RedisPasswordFile = redisExporterFile    // contents not important
+				c.RedisPasswordMapFile = redisExporterFile // contents not important
+				return c
+			})(),
+			expectConstructorError: true,
+		},
 	}
 
 	logger := log.NewNopLogger()

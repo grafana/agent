@@ -155,6 +155,11 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 		exporterConfig.CaCertFile = c.TLSCaCertFile
 	}
 
+	// only one type of password file should be specified
+	if c.RedisPasswordFile != "" && c.RedisPasswordMapFile != "" {
+		return nil, errors.New("only one of redis_password_file and redis_password_map_file should be specified")
+	}
+
 	// optional password file to take precedence over password property
 	if c.RedisPasswordFile != "" {
 		password, err := os.ReadFile(c.RedisPasswordFile)
