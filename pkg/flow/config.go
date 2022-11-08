@@ -53,6 +53,8 @@ func ReadFile(name string, bb []byte) (*File, error) {
 			switch fullName {
 			case "logging":
 				configs = append(configs, stmt)
+			case "tracing":
+				configs = append(configs, stmt)
 			default:
 				components = append(components, stmt)
 			}

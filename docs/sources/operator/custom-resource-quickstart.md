@@ -45,7 +45,7 @@ metadata:
   labels:
     app: grafana-agent
 spec:
-  image: grafana/agent:v0.29.0-rc.0
+  image: grafana/agent:v0.29.0
   logLevel: info
   serviceAccountName: grafana-agent
   metrics:
@@ -169,6 +169,19 @@ spec:
       password:
         name: primary-credentials-metrics
         key: password
+
+  # As an alternative authentication method, Grafana Agent also supports OAuth2.
+  # - url: your_remote_write_URL
+  #   oauth2:
+  #     clientId:
+  #       secret:
+  #         key: username # Kubernetes Secret Key
+  #         name: primary-credentials-metrics # Kubernetes Secret Name
+  #     clientSecret:
+  #       key: password # Kubernetes Secret Key
+  #       name: primary-credentials-metrics # Kubernetes Secret Name
+  #     tokenUrl: https://auth.example.com/realms/master/protocol/openid-connect/token
+
 
   # Supply an empty namespace selector to look in all namespaces. Remove
   # this to only look in the same namespace as the MetricsInstance CR

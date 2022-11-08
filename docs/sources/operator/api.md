@@ -4248,6 +4248,19 @@ github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.BasicA
 </tr>
 <tr>
 <td>
+<code>oauth2</code><br/>
+<em>
+<a href="https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.OAuth2">
+github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.OAuth2
+</a>
+</em>
+</td>
+<td>
+<p>Oauth2 for URL</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>bearerToken</code><br/>
 <em>
 string

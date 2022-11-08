@@ -10,13 +10,27 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Features
+
+- `grafana-agent-operator` supports oauth2 as an authentication method for
+  remote_write. (@timo-42)
+
+- Grafana Agent Flow: Add tracing instrumentation and a `tracing` block to
+  forward traces to `otelcol` component. (@rfratto)
+
 ### Enhancements
 
 - Update OpenTelemetry Collector dependency to v0.63.1. (@tpaschalis)
 
-- riverfmt: Permit empty blocks with both curly braces on the same line. (@rfratto)
+- riverfmt: Permit empty blocks with both curly braces on the same line.
+  (@rfratto)
 
-- riverfmt: Allow function arguments to persist across different lines. (@rfratto)
+- riverfmt: Allow function arguments to persist across different lines.
+  (@rfratto)
+
+- Flow: The HTTP server will now start before the Flow controller performs the
+  initial load. This allows metrics and pprof data to be collected during the
+  first load. (@rfratto)
 
 - New Grafana Agent Flow components:
 
@@ -28,8 +42,8 @@ Main (unreleased)
 - Fix issue where whitespace was being sent as part of password when using a
   password file for `redis_exporter`. (@spartan0x117)
 
-v0.29.0-rc.0 (2022-11-03)
--------------------------
+v0.29.0 (2022-11-08)
+--------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.

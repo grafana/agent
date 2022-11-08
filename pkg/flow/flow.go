@@ -56,7 +56,9 @@ import (
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/prometheus/client_golang/prometheus"
+	"go.uber.org/atomic"
 )
 
 // Options holds static options for a flow controller.
@@ -64,6 +66,10 @@ type Options struct {
 	// Logger for components to use. A no-op logger will be created if this is
 	// nil.
 	Logger *logging.Logger
+
+	// Tracer for components to use. A no-op tracer will be created if this is
+	// nil.
+	Tracer *tracing.Tracer
 
 	// Directory where components can write data. Components will create
 	// subdirectories for component-specific data.
@@ -80,8 +86,9 @@ type Options struct {
 
 // Flow is the Flow system.
 type Flow struct {
-	log  *logging.Logger
-	opts Options
+	log    *logging.Logger
+	tracer *tracing.Tracer
+	opts   Options
 
 	updateQueue *controller.Queue
 	sched       *controller.Scheduler
@@ -92,7 +99,7 @@ type Flow struct {
 	loadFinished chan struct{}
 
 	loadMut    sync.RWMutex
-	loadedOnce bool
+	loadedOnce atomic.Bool
 }
 
 // New creates and starts a new Flow controller. Call Close to stop
@@ -105,10 +112,23 @@ func New(o Options) *Flow {
 
 func newFlow(o Options) (*Flow, context.Context) {
 	ctx, cancel := context.WithCancel(context.Background())
-	log := o.Logger
+
+	var (
+		log    = o.Logger
+		tracer = o.Tracer
+	)
+
 	if log == nil {
 		var err error
 		log, err = logging.New(io.Discard, logging.DefaultOptions)
+		if err != nil {
+			// This shouldn't happen unless there's a bug
+			panic(err)
+		}
+	}
+	if tracer == nil {
+		var err error
+		tracer, err = tracing.New(tracing.DefaultOptions)
 		if err != nil {
 			// This shouldn't happen unless there's a bug
 			panic(err)
@@ -119,8 +139,9 @@ func newFlow(o Options) (*Flow, context.Context) {
 		queue  = controller.NewQueue()
 		sched  = controller.NewScheduler()
 		loader = controller.NewLoader(controller.ComponentGlobals{
-			Logger:   log,
-			DataPath: o.DataPath,
+			Logger:        log,
+			TraceProvider: tracer,
+			DataPath:      o.DataPath,
 			OnExportsChange: func(cn *controller.ComponentNode) {
 				// Changed components should be queued for reevaluation.
 				queue.Enqueue(cn)
@@ -131,8 +152,9 @@ func newFlow(o Options) (*Flow, context.Context) {
 	)
 
 	return &Flow{
-		log:  log,
-		opts: o,
+		log:    log,
+		tracer: tracer,
+		opts:   o,
 
 		updateQueue: queue,
 		sched:       sched,
@@ -197,12 +219,12 @@ func (c *Flow) LoadFile(file *File) error {
 	defer c.loadMut.Unlock()
 
 	diags := c.loader.Apply(nil, file.Components, file.ConfigBlocks)
-	if !c.loadedOnce && diags.HasErrors() {
+	if !c.loadedOnce.Load() && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.
 		return diags
 	}
-	c.loadedOnce = true
+	c.loadedOnce.Store(true)
 
 	select {
 	case c.loadFinished <- struct{}{}:
@@ -210,6 +232,11 @@ func (c *Flow) LoadFile(file *File) error {
 		// A refresh is already scheduled
 	}
 	return diags.ErrorOrNil()
+}
+
+// Ready returns whether the Flow controller has finished its initial load.
+func (c *Flow) Ready() bool {
+	return c.loadedOnce.Load()
 }
 
 // ComponentInfos returns the component infos.

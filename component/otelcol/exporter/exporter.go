@@ -16,7 +16,6 @@ import (
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelconfig "go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/trace"
 )
 
 // Arguments is an extension of component.Arguments which contains necessary
@@ -111,13 +110,10 @@ func (e *Exporter) Update(args component.Arguments) error {
 		TelemetrySettings: otelcomponent.TelemetrySettings{
 			Logger: zapadapter.New(e.opts.Logger),
 
-			// TODO(rfratto): expose tracing and logging statistics.
-			//
-			// We may want to put off tracing until we have native tracing
-			// instrumentation from Flow, but metrics should come sooner since we're
-			// already set up for supporting component-specific metrics.
-			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  metric.NewNoopMeterProvider(),
+			TracerProvider: e.opts.Tracer,
+
+			// TODO(rfratto): expose metrics statistics.
+			MeterProvider: metric.NewNoopMeterProvider(),
 		},
 
 		BuildInfo: otelcomponent.BuildInfo{

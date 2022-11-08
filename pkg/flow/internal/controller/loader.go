@@ -15,6 +15,7 @@ import (
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/vm"
 	"github.com/hashicorp/go-multierror"
+	"go.opentelemetry.io/otel/trace"
 
 	_ "github.com/grafana/agent/pkg/flow/internal/testcomponents" // Include test components
 )
@@ -22,6 +23,7 @@ import (
 // The Loader builds and evaluates ComponentNodes from River blocks.
 type Loader struct {
 	log     log.Logger
+	tracer  trace.TracerProvider
 	globals ComponentGlobals
 
 	mut           sync.RWMutex
@@ -38,11 +40,13 @@ type Loader struct {
 func NewLoader(globals ComponentGlobals) *Loader {
 	l := &Loader{
 		log:     globals.Logger,
+		tracer:  globals.TraceProvider,
 		globals: globals,
 
-		graph: &dag.Graph{},
-		cache: newValueCache(),
-		cm:    newControllerMetrics(globals.Registerer),
+		graph:         &dag.Graph{},
+		originalGraph: &dag.Graph{},
+		cache:         newValueCache(),
+		cm:            newControllerMetrics(globals.Registerer),
 	}
 	cc := newControllerCollector(l)
 	if globals.Registerer != nil {
@@ -76,7 +80,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlo
 	)
 
 	// Pre-populate graph with a ConfigNode.
-	c, configBlockDiags := NewConfigNode(configBlocks, l.log)
+	c, configBlockDiags := NewConfigNode(configBlocks, l.log, l.tracer)
 	diags = append(diags, configBlockDiags...)
 	newGraph.Add(c)
 
