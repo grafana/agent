@@ -118,9 +118,10 @@ scrape job on the component's debug endpoint.
 
 ## Debug metrics
 
-`prometheus.scrape` does not expose any component-specific debug metrics.
+* `agent_prometheus_fanout_latency` (histogram): Write latency for fanout to write to child tree.
 
 ## Scraping behavior
+
 The `prometheus.scrape` component borrows the scraping behavior of Prometheus.
 Prometheus, and by extent this component, uses a pull model for scraping
 metrics from a given set of _targets_.
