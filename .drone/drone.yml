@@ -236,11 +236,6 @@ steps:
               "file_path": "ksonnet/environments/grafana-agent/waves/agent.libsonnet",
               "jsonnet_key": "dev_canary",
               "jsonnet_value_file": ".image-tag"
-            },
-            {
-              "file_path": "ksonnet/environments/agent-smoke-test/dev-us-central-0.agent-smoke-test/main.jsonnet",
-              "jsonnet_key": "image_tag",
-              "jsonnet_value_file": ".tag-only"
             }
           ]
         }
@@ -347,6 +342,6 @@ get:
 
 ---
 kind: signature
-hmac: 90029e04868a822b60c35963d6c07edca6279adef99f291ba02588a1c854509a
+hmac: bc08fc1da9ef0f0f5c88519ec5cfcb352657cc876a52ebbe748c5f3429f613f2
 
 ...
