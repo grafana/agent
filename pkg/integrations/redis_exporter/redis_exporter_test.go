@@ -98,6 +98,27 @@ func TestRedisCases(t *testing.T) {
 			})(),
 			expectConstructorError: true,
 		},
+		// Test exporter constructs ok when password map file is defined, exists, and is valid
+		{
+			name: "valid password map file",
+			cfg: (func() Config {
+				c := DefaultConfig
+				c.RedisAddr = addr
+				c.RedisPasswordMapFile = "./testdata/password_map_file.json"
+				return c
+			})(),
+		},
+		// Test exporter fails to construct when the password map file is not valid json
+		{
+			name: "invalid password map file",
+			cfg: (func() Config {
+				c := DefaultConfig
+				c.RedisAddr = addr
+				c.RedisPasswordMapFile = "./redis_exporter.go"
+				return c
+			})(),
+			expectConstructorError: true,
+		},
 	}
 
 	logger := log.NewNopLogger()
