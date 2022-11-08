@@ -1328,6 +1328,11 @@ func (in *RemoteWriteSpec) DeepCopyInto(out *RemoteWriteSpec) {
 		*out = new(v1.BasicAuth)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.OAuth2 != nil {
+		in, out := &in.OAuth2, &out.OAuth2
+		*out = new(v1.OAuth2)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.SigV4 != nil {
 		in, out := &in.SigV4, &out.SigV4
 		*out = new(SigV4Config)

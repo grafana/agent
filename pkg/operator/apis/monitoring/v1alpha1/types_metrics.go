@@ -98,6 +98,8 @@ type RemoteWriteSpec struct {
 	WriteRelabelConfigs []prom_v1.RelabelConfig `json:"writeRelabelConfigs,omitempty"`
 	// BasicAuth for the URL.
 	BasicAuth *prom_v1.BasicAuth `json:"basicAuth,omitempty"`
+	// Oauth2 for URL
+	OAuth2 *prom_v1.OAuth2 `json:"oauth2,omitempty"`
 	// BearerToken used for remote_write.
 	BearerToken string `json:"bearerToken,omitempty"`
 	// BearerTokenFile used to read bearer token.

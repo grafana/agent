@@ -10,6 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Features
+
+  - `grafana-agent-operator` supports oauth2 as an authentication method for remote_write. (@timo-42)
+
 ### Enhancements
 
 - Update OpenTelemetry Collector dependency to v0.63.1. (@tpaschalis)
