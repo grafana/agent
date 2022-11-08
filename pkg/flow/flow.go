@@ -56,6 +56,7 @@ import (
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/atomic"
 )
@@ -65,6 +66,10 @@ type Options struct {
 	// Logger for components to use. A no-op logger will be created if this is
 	// nil.
 	Logger *logging.Logger
+
+	// Tracer for components to use. A no-op tracer will be created if this is
+	// nil.
+	Tracer *tracing.Tracer
 
 	// Directory where components can write data. Components will create
 	// subdirectories for component-specific data.
@@ -81,8 +86,9 @@ type Options struct {
 
 // Flow is the Flow system.
 type Flow struct {
-	log  *logging.Logger
-	opts Options
+	log    *logging.Logger
+	tracer *tracing.Tracer
+	opts   Options
 
 	updateQueue *controller.Queue
 	sched       *controller.Scheduler
@@ -106,10 +112,23 @@ func New(o Options) *Flow {
 
 func newFlow(o Options) (*Flow, context.Context) {
 	ctx, cancel := context.WithCancel(context.Background())
-	log := o.Logger
+
+	var (
+		log    = o.Logger
+		tracer = o.Tracer
+	)
+
 	if log == nil {
 		var err error
 		log, err = logging.New(io.Discard, logging.DefaultOptions)
+		if err != nil {
+			// This shouldn't happen unless there's a bug
+			panic(err)
+		}
+	}
+	if tracer == nil {
+		var err error
+		tracer, err = tracing.New(tracing.DefaultOptions)
 		if err != nil {
 			// This shouldn't happen unless there's a bug
 			panic(err)
@@ -120,8 +139,9 @@ func newFlow(o Options) (*Flow, context.Context) {
 		queue  = controller.NewQueue()
 		sched  = controller.NewScheduler()
 		loader = controller.NewLoader(controller.ComponentGlobals{
-			Logger:   log,
-			DataPath: o.DataPath,
+			Logger:        log,
+			TraceProvider: tracer,
+			DataPath:      o.DataPath,
 			OnExportsChange: func(cn *controller.ComponentNode) {
 				// Changed components should be queued for reevaluation.
 				queue.Enqueue(cn)
@@ -132,8 +152,9 @@ func newFlow(o Options) (*Flow, context.Context) {
 	)
 
 	return &Flow{
-		log:  log,
-		opts: o,
+		log:    log,
+		tracer: tracer,
+		opts:   o,
 
 		updateQueue: queue,
 		sched:       sched,
