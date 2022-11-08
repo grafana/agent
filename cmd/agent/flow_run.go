@@ -28,7 +28,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/cobra"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
-	"go.uber.org/atomic"
 
 	// Install Components
 	_ "github.com/grafana/agent/component/all"
