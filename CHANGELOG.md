@@ -18,6 +18,8 @@ Main (unreleased)
 
 - riverfmt: Allow function arguments to persist across different lines. (@rfratto)
 
+- Add support for using a [password map file](https://github.com/oliver006/redis_exporter/blob/master/contrib/sample-pwd-file.json) in `redis_exporter`. (@spartan0x117)
+
 ### Bugfixes
 
 - Fix issue where whitespace was being sent as part of password when using a
