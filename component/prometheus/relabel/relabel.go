@@ -90,25 +90,12 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		Help: "Total size of relabel cache",
 	})
 
-	err := o.Registerer.Register(c.metricsProcessed)
-	if err != nil {
-		return nil, err
-	}
-	err = o.Registerer.Register(c.metricsOutgoing)
-	if err != nil {
-		return nil, err
-	}
-	err = o.Registerer.Register(c.cacheHits)
-	if err != nil {
-		return nil, err
-	}
-	err = o.Registerer.Register(c.cacheMisses)
-	if err != nil {
-		return nil, err
-	}
-	err = o.Registerer.Register(c.cacheSize)
-	if err != nil {
-		return nil, err
+	var err error
+	for _, metric := range []prometheus_client.Collector{c.metricsProcessed, c.metricsOutgoing, c.cacheMisses, c.cacheHits, c.cacheSize} {
+		err = o.Registerer.Register(metric)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	c.fanout = prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer)

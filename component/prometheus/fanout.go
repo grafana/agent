@@ -107,13 +107,7 @@ func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v flo
 
 // Commit satisfies the Appender interface.
 func (a *appender) Commit() error {
-	defer func() {
-		if a.start.IsZero() {
-			return
-		}
-		duration := time.Since(a.start)
-		a.writeLatency.Observe(duration.Seconds())
-	}()
+	defer a.recordLatency()
 	var multiErr error
 	for _, x := range a.children {
 		err := x.Commit()
@@ -124,15 +118,9 @@ func (a *appender) Commit() error {
 	return multiErr
 }
 
-// Rollback satisifies the Appender interface.
+// Rollback satisfies the Appender interface.
 func (a *appender) Rollback() error {
-	defer func() {
-		if a.start.IsZero() {
-			return
-		}
-		duration := time.Since(a.start)
-		a.writeLatency.Observe(duration.Seconds())
-	}()
+	defer a.recordLatency()
 	var multiErr error
 	for _, x := range a.children {
 		err := x.Rollback()
@@ -141,6 +129,14 @@ func (a *appender) Rollback() error {
 		}
 	}
 	return multiErr
+}
+
+func (a *appender) recordLatency() {
+	if a.start.IsZero() {
+		return
+	}
+	duration := time.Since(a.start)
+	a.writeLatency.Observe(duration.Seconds())
 }
 
 // Custom errors to return until we implement support for exemplars and
