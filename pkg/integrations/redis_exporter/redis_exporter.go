@@ -169,7 +169,7 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 	if c.RedisPasswordMapFile != "" {
 		passwordMap, err := re.LoadPwdFile(c.RedisPasswordMapFile)
 		if err != nil {
-			return nil, fmt.Errorf("Error loading password map file %s: %w", c.RedisPasswordMapFile, err)
+			return nil, fmt.Errorf("error loading password map file %s: %w", c.RedisPasswordMapFile, err)
 		}
 		exporterConfig.PasswordMap = passwordMap
 	}
