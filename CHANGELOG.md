@@ -18,6 +18,11 @@ Main (unreleased)
 - Grafana Agent Flow: Add tracing instrumentation and a `tracing` block to
   forward traces to `otelcol` component. (@rfratto)
 
+- New Grafana Agent Flow components:
+
+  - `remote.http` polls an HTTP URL and exposes the response body as a string
+    or secret to other components. (@rfratto)
+
 ### Enhancements
 
 - Update OpenTelemetry Collector dependency to v0.63.1. (@tpaschalis)
@@ -31,11 +36,6 @@ Main (unreleased)
 - Flow: The HTTP server will now start before the Flow controller performs the
   initial load. This allows metrics and pprof data to be collected during the
   first load. (@rfratto)
-
-- New Grafana Agent Flow components:
-
-  - `remote.http` polls an HTTP URL and exposes the response body as a string
-    or secret to other components. (@rfratto)
 
 ### Bugfixes
 
