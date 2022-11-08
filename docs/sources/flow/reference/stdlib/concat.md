@@ -4,11 +4,11 @@ aliases:
 title: concat
 ---
 
-# `concat` Function
+# concat
 
-`concat` concatenates one or more lists of values into a single list. Each
-argument to `concat` must be a list value. Elements within the list can be any
-type.
+The `concat` function concatenates one or more lists of values into a single
+list. Each argument to `concat` must be a list value. Elements within the list
+can be any type.
 
 ## Examples
 
