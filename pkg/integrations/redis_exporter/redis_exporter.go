@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/grafana/agent/pkg/integrations"
@@ -160,7 +161,7 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Error loading password file %s: %w", c.RedisPasswordFile, err)
 		}
-		exporterConfig.Password = string(password)
+		exporterConfig.Password = strings.TrimSpace(string(password))
 	}
 
 	// optional password file containing map of redis uris to passwords. If this is specified, it will take
