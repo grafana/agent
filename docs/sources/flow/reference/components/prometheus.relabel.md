@@ -91,7 +91,7 @@ values.
 * `agent_prometheus_relabel_cache_misses` (counter): Total number of cache misses.
 * `agent_prometheus_relabel_cache_hits` (counter): Total number of cache hits.
 * `agent_prometheus_relabel_cache_size` (gauge): Total size of relabel cache.
-* `agent_prometheus_fanout_latency` (histogram): Write latency for fanout to write to child tree.
+* `agent_prometheus_fanout_latency` (histogram): Write latency for sending to direct and indirect components.
 
 ## Example
 

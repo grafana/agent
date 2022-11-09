@@ -34,7 +34,7 @@ type Fanout struct {
 func NewFanout(children []storage.Appendable, componentID string, register prometheus.Registerer) *Fanout {
 	wl := prometheus.NewHistogram(prometheus.HistogramOpts{
 		Name: "agent_prometheus_fanout_latency",
-		Help: "Write latency writing to direct and indirect components",
+		Help: "Write latency for sending to direct and indirect components",
 	})
 	_ = register.Register(wl)
 	return &Fanout{

@@ -118,7 +118,7 @@ scrape job on the component's debug endpoint.
 
 ## Debug metrics
 
-* `agent_prometheus_fanout_latency` (histogram): Write latency for fanout to write to child tree.
+* `agent_prometheus_fanout_latency` (histogram): Write latency for sending to direct and indirect components.
 
 ## Scraping behavior
 
