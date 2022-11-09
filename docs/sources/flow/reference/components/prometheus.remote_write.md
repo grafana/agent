@@ -96,6 +96,9 @@ based on a hash of the endpoint settings.
 
 ### http_client_config block
 
+The `http_client_config` configures settings used to connect to the
+remote_write server.
+
 {{< docs/shared lookup="flow/reference/components/http-client-config-block.md" source="agent" >}}
 
 ### basic_auth block

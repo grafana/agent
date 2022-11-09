@@ -83,6 +83,9 @@ an `http_client_config` block.
 
 ### http_client_config block
 
+The `http_client_config` block configures settings used to connect to
+endpoints.
+
 {{< docs/shared lookup="flow/reference/components/http-client-config-block.md" source="agent" >}}
 
 ### basic_auth block

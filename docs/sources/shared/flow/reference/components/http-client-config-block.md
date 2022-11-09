@@ -4,9 +4,6 @@ aliases:
 headless: true
 ---
 
-The `http_client_config` block configures settings used to connect to the
-Kubernetes API server.
-
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `bearer_token` | `secret` | Bearer token to authenticate with. | | no

@@ -4,13 +4,12 @@ aliases:
 headless: true
 ---
 
-The `rule` block contains the definition of any relabeling
-rules that can be applied to an input metric. If more than one
-`rule` block is defined within `prometheus.relabel`, the
+The `rule` block contains the definition of any relabeling rules that can be
+applied to an input metric. If more than one `rule` block is defined, the
 transformations are applied in top-down order.
 
-The following arguments can be used to configure a `rule`.
-All arguments are optional. Omitted fields take their default values.
+The following arguments can be used to configure a `rule`. All arguments are
+optional. Omitted fields take their default values.
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------

@@ -22,6 +22,11 @@ Main (unreleased)
   array of discovery targets corresponding to Prometheus' HTTP and file service
   discovery formats. (@rfratto)
 
+- New Grafana Agent Flow components:
+
+  - `remote.http` polls an HTTP URL and exposes the response body as a string
+    or secret to other components. (@rfratto)
+
 ### Enhancements
 
 - Update OpenTelemetry Collector dependency to v0.63.1. (@tpaschalis)
