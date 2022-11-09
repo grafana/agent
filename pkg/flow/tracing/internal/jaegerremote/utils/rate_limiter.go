@@ -14,7 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package utils // import "go.opentelemetry.io/contrib/samplers/jaegerremote/internal/utils"
+//nolint:all
+package utils
 
 import (
 	"sync"
