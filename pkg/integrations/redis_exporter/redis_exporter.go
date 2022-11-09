@@ -41,6 +41,7 @@ type Config struct {
 	RedisUser               string             `yaml:"redis_user,omitempty"`
 	RedisPassword           config_util.Secret `yaml:"redis_password,omitempty"`
 	RedisPasswordFile       string             `yaml:"redis_password_file,omitempty"`
+	RedisPasswordMapFile    string             `yaml:"redis_password_map_file,omitempty"`
 	Namespace               string             `yaml:"namespace,omitempty"`
 	ConfigCommand           string             `yaml:"config_command,omitempty"`
 	CheckKeys               string             `yaml:"check_keys,omitempty"`
@@ -154,6 +155,11 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 		exporterConfig.CaCertFile = c.TLSCaCertFile
 	}
 
+	// only one type of password file should be specified
+	if c.RedisPasswordFile != "" && c.RedisPasswordMapFile != "" {
+		return nil, errors.New("only one of redis_password_file and redis_password_map_file should be specified")
+	}
+
 	// optional password file to take precedence over password property
 	if c.RedisPasswordFile != "" {
 		password, err := os.ReadFile(c.RedisPasswordFile)
@@ -161,6 +167,16 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 			return nil, fmt.Errorf("Error loading password file %s: %w", c.RedisPasswordFile, err)
 		}
 		exporterConfig.Password = strings.TrimSpace(string(password))
+	}
+
+	// optional password file containing map of redis uris to passwords. If this is specified, it will take
+	// precedence over a different password file
+	if c.RedisPasswordMapFile != "" {
+		passwordMap, err := re.LoadPwdFile(c.RedisPasswordMapFile)
+		if err != nil {
+			return nil, fmt.Errorf("error loading password map file %s: %w", c.RedisPasswordMapFile, err)
+		}
+		exporterConfig.PasswordMap = passwordMap
 	}
 
 	exporter, err := re.NewRedisExporter(

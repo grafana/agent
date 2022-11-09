@@ -85,7 +85,13 @@ values.
 
 ## Debug metrics
 
-`prometheus.relabel` does not expose any component-specific debug metrics.
+
+* `agent_prometheus_relabel_metrics_processed` (counter): Total number of metrics processed.
+* `agent_prometheus_relabel_metrics_written` (counter): Total number of metrics written.
+* `agent_prometheus_relabel_cache_misses` (counter): Total number of cache misses.
+* `agent_prometheus_relabel_cache_hits` (counter): Total number of cache hits.
+* `agent_prometheus_relabel_cache_size` (gauge): Total size of relabel cache.
+* `agent_prometheus_fanout_latency` (histogram): Write latency for sending to direct and indirect components.
 
 ## Example
 

@@ -18,6 +18,10 @@ Main (unreleased)
 - Grafana Agent Flow: Add tracing instrumentation and a `tracing` block to
   forward traces to `otelcol` component. (@rfratto)
 
+- Grafana Agent Flow: Add a `discovery_target_decode` function to decode a JSON
+  array of discovery targets corresponding to Prometheus' HTTP and file service
+  discovery formats. (@rfratto)
+
 - New Grafana Agent Flow components:
 
   - `remote.http` polls an HTTP URL and exposes the response body as a string
@@ -37,10 +41,15 @@ Main (unreleased)
   initial load. This allows metrics and pprof data to be collected during the
   first load. (@rfratto)
 
+- Add support for using a [password map file](https://github.com/oliver006/redis_exporter/blob/master/contrib/sample-pwd-file.json) in `redis_exporter`. (@spartan0x117)
+
 ### Bugfixes
 
 - Fix issue where whitespace was being sent as part of password when using a
   password file for `redis_exporter`. (@spartan0x117)
+
+- Flow UI: Fix issue where a configuration block referencing a component would
+  cause the graph page to fail to load. (@rfratto)
 
 v0.29.0 (2022-11-08)
 --------------------
