@@ -20,5 +20,6 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/relabel"                   // Import prometheus.relabel
 	_ "github.com/grafana/agent/component/prometheus/remotewrite"               // Import prometheus.remote_write
 	_ "github.com/grafana/agent/component/prometheus/scrape"                    // Import prometheus.scrape
-	_ "github.com/grafana/agent/component/remote/s3"                            // Import s3.file
+	_ "github.com/grafana/agent/component/remote/http"                          // Import remote.http
+	_ "github.com/grafana/agent/component/remote/s3"                            // Import remote.s3
 )

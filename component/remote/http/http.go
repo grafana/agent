@@ -53,15 +53,17 @@ var _ river.Unmarshaler = (*Arguments)(nil)
 
 // UnmarshalRiver implements river.Unmarshaler.
 func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+	*args = DefaultArguments
+
 	type arguments Arguments
 	if err := f((*arguments)(args)); err != nil {
 		return err
 	}
 
-	if args.PollFrequency == 0 {
+	if args.PollFrequency <= 0 {
 		return fmt.Errorf("poll_frequency must be greater than 0")
 	}
-	if args.PollTimeout == 0 {
+	if args.PollTimeout <= 0 {
 		return fmt.Errorf("poll_timeout must be greater than 0")
 	}
 	if args.PollTimeout >= args.PollFrequency {

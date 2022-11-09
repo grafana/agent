@@ -39,7 +39,7 @@ against the URL specified by the `url` argument. A poll is triggered by the
 following:
 
 * When the component first loads.
-* Every time the components arguments get re-evaluated.
+* Every time the component's arguments get re-evaluated.
 * At the frequency specified by the `poll_frequency` argument.
 
 The poll is successful if the URL returns a `200 OK` response code. All other
@@ -106,7 +106,7 @@ The `tls_config` block configures TLS settings for connecting to HTTPS servers.
 
 ## Exported fields
 
-The following fields are exported and can be referenced by other components:
+The following field is exported and can be referenced by other components:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------

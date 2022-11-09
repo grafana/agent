@@ -34,3 +34,7 @@ prometheus.remote_write "default" {
 		url = "http://localhost:9009/api/prom/push"
 	}
 }
+
+remote.http "example" {
+	url = "http://localhost:12345/metrics"
+}
