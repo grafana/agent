@@ -4,11 +4,11 @@ aliases:
 title: env
 ---
 
-# `env` Function
+# env
 
-`env` gets the value of an environment variable from the system Grafana Agent
-is running on. If the environment variable does not exist, `env` returns an
-empty string.
+The `env` function gets the value of an environment variable from the system
+Grafana Agent is running on. If the environment variable does not exist, `env`
+returns an empty string.
 
 ## Examples
 

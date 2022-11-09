@@ -4,10 +4,10 @@ aliases:
 title: json_decode
 ---
 
-# `json_decode` Function
+# json_decode
 
-`json_decode` decodes a string representing JSON into a River value.
-`json_decode` will fail if the string argument provided cannot be parsed as
+The `json_decode` function decodes a string representing JSON into a River
+value. `json_decode` fails if the string argument provided cannot be parsed as
 JSON.
 
 A common use case of `json_decode` is to decode the output of a
