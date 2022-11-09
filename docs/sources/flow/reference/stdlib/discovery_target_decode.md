@@ -31,8 +31,7 @@ Elements specified by the `targets` key are converted into a flat list of
 targets. The base set of labels for each target is retrieved from the `labels`
 key, and the `__address__` label is received from the target element.
 
-For example, the following JSON file will map to the River objects provided
-below:
+For example, the following JSON file maps to the River objects provided below:
 
 ```json
 [

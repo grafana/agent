@@ -18,7 +18,7 @@ Main (unreleased)
 - Grafana Agent Flow: Add tracing instrumentation and a `tracing` block to
   forward traces to `otelcol` component. (@rfratto)
 
-- Grafana Agent Flow: add a `discovery_target_decode` function to decode a JSON
+- Grafana Agent Flow: Add a `discovery_target_decode` function to decode a JSON
   array of discovery targets corresponding to Prometheus' HTTP and file service
   discovery formats. (@rfratto)
 
