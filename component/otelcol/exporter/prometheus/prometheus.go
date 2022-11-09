@@ -78,7 +78,7 @@ var _ component.Component = (*Component)(nil)
 
 // New creates a new otelcol.exporter.prometheus component.
 func New(o component.Options, c Arguments) (*Component, error) {
-	fanout := prometheus.NewFanout(nil, o.ID)
+	fanout := prometheus.NewFanout(nil, o.ID, o.Registerer)
 
 	converter := convert.New(o.Logger, fanout, convert.Options{
 		IncludeTargetInfo: true,
