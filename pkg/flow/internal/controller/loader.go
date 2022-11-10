@@ -118,6 +118,8 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlo
 	logger := log.With(l.log, "trace_id", span.SpanContext().TraceID())
 	level.Info(logger).Log("msg", "starting complete graph evaluation")
 	defer func() {
+		span.SetStatus(codes.Ok, "")
+
 		duration := time.Since(start)
 		level.Info(logger).Log("msg", "finished complete graph evaluation", "duration", duration)
 		l.cm.componentEvaluationTime.Observe(duration.Seconds())
@@ -313,6 +315,8 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 	logger := log.With(l.log, "trace_id", span.SpanContext().TraceID())
 	level.Info(logger).Log("msg", "starting partial graph evaluation")
 	defer func() {
+		span.SetStatus(codes.Ok, "")
+
 		duration := time.Since(start)
 		level.Info(logger).Log("msg", "finished partial graph evaluation", "duration", duration)
 		l.cm.componentEvaluationTime.Observe(duration.Seconds())
