@@ -21,7 +21,7 @@ func init() {
 	component.Register(component.Registration{
 		Name:    "discovery.kubernetes_crds",
 		Args:    struct{}{},
-		Exports: discovery.Exports{},
+		Exports: struct{}{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args)
@@ -76,7 +76,6 @@ func (c *Component) OnDeletePodMonitor(obj interface{}) {
 	pm := obj.(*v1.PodMonitor)
 	c.clearConfigs("podMonitor", pm.Namespace, pm.Name)
 	c.discovery.ApplyConfig(c.discoveryConfigs)
-}
 }
 
 // Run implements component.Component.
