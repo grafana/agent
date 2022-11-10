@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/pkg/river/parser"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/otel/trace"
 )
 
 func TestLoader(t *testing.T) {
@@ -52,6 +53,7 @@ func TestLoader(t *testing.T) {
 	newGlobals := func() controller.ComponentGlobals {
 		return controller.ComponentGlobals{
 			Logger:          log.NewNopLogger(),
+			TraceProvider:   trace.NewNoopTracerProvider(),
 			DataPath:        t.TempDir(),
 			OnExportsChange: func(cn *controller.ComponentNode) { /* no-op */ },
 			Registerer:      prometheus.NewRegistry(),
@@ -192,6 +194,7 @@ func TestScopeWithFailingComponent(t *testing.T) {
 	newGlobals := func() controller.ComponentGlobals {
 		return controller.ComponentGlobals{
 			Logger:          log.NewNopLogger(),
+			TraceProvider:   trace.NewNoopTracerProvider(),
 			DataPath:        t.TempDir(),
 			OnExportsChange: func(cn *controller.ComponentNode) { /* no-op */ },
 			Registerer:      prometheus.NewRegistry(),

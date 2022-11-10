@@ -7,7 +7,8 @@ logging {
 }
 
 tracing {
-	sampling_fraction = 0.1
+	// Sample all traces. This value should be lower for production configs!
+	sampling_fraction = 1
 
 	write_to = [otelcol.exporter.otlp.tempo.input]
 }
@@ -33,8 +34,4 @@ prometheus.remote_write "default" {
 	endpoint {
 		url = "http://localhost:9009/api/prom/push"
 	}
-}
-
-remote.http "example" {
-	url = "http://localhost:12345/metrics"
 }
