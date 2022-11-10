@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -15,6 +16,8 @@ import (
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/vm"
 	"github.com/hashicorp/go-multierror"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
 	_ "github.com/grafana/agent/pkg/flow/internal/testcomponents" // Include test components
@@ -108,14 +111,32 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlo
 		componentIDs = make([]ComponentID, 0, len(blocks))
 	)
 
+	tracer := l.tracer.Tracer("")
+	spanCtx, span := tracer.Start(context.Background(), "GraphEvaluate", trace.WithSpanKind(trace.SpanKindInternal))
+	defer span.End()
+
+	logger := log.With(l.log, "trace_id", span.SpanContext().TraceID())
+	level.Info(logger).Log("msg", "starting complete graph evaluation")
+	defer func() {
+		duration := time.Since(start)
+		level.Info(logger).Log("msg", "finished complete graph evaluation", "duration", duration)
+		l.cm.componentEvaluationTime.Observe(duration.Seconds())
+	}()
+
 	// Evaluate all of the components.
 	_ = dag.WalkTopological(&newGraph, newGraph.Leaves(), func(n dag.Node) error {
+		_, span := tracer.Start(spanCtx, "EvaluateNode", trace.WithSpanKind(trace.SpanKindInternal))
+		span.SetAttributes(attribute.String("node_id", n.NodeID()))
+		defer span.End()
+
+		var err error
+
 		switch c := n.(type) {
 		case *ComponentNode:
 			components = append(components, c)
 			componentIDs = append(componentIDs, c.ID())
 
-			if err := l.evaluate(parentScope, c); err != nil {
+			if err = l.evaluate(logger, parentScope, c); err != nil {
 				var evalDiags diag.Diagnostics
 				if errors.As(err, &evalDiags) {
 					diags = append(diags, evalDiags...)
@@ -129,7 +150,8 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlo
 				}
 			}
 		case *ConfigNode:
-			if errBlock, err := l.evaluateConfig(parentScope, c); err != nil {
+			var errBlock *ast.BlockStmt
+			if errBlock, err = l.evaluateConfig(logger, parentScope, c); err != nil {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
 					Message:  fmt.Sprintf("Failed to evaluate node for config blocks: %s", err),
@@ -137,6 +159,14 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlo
 					EndPos:   ast.EndPos(errBlock).Position(),
 				})
 			}
+		}
+
+		// We only use the error for updating the span status; we don't return the
+		// error because we want to evaluate as many nodes as we can.
+		if err != nil {
+			span.SetStatus(codes.Error, err.Error())
+		} else {
+			span.SetStatus(codes.Ok, "")
 		}
 		return nil
 	})
@@ -267,12 +297,26 @@ func (l *Loader) OriginalGraph() *dag.Graph {
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
 func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
+	tracer := l.tracer.Tracer("")
+
 	l.mut.RLock()
 	defer l.mut.RUnlock()
 
 	l.cm.controllerEvaluation.Set(1)
 	defer l.cm.controllerEvaluation.Set(0)
 	start := time.Now()
+
+	spanCtx, span := tracer.Start(context.Background(), "GraphEvaluatePartial", trace.WithSpanKind(trace.SpanKindInternal))
+	span.SetAttributes(attribute.String("initiator", c.NodeID()))
+	defer span.End()
+
+	logger := log.With(l.log, "trace_id", span.SpanContext().TraceID())
+	level.Info(logger).Log("msg", "starting partial graph evaluation")
+	defer func() {
+		duration := time.Since(start)
+		level.Info(logger).Log("msg", "finished partial graph evaluation", "duration", duration)
+		l.cm.componentEvaluationTime.Observe(duration.Seconds())
+	}()
 
 	// Make sure we're in-sync with the current exports of c.
 	l.cache.CacheExports(c.ID(), c.Exports())
@@ -284,21 +328,34 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 			// arguments will need re-evaluation.
 			return nil
 		}
+
+		_, span := tracer.Start(spanCtx, "EvaluateNode", trace.WithSpanKind(trace.SpanKindInternal))
+		span.SetAttributes(attribute.String("node_id", n.NodeID()))
+		defer span.End()
+
+		var err error
+
 		switch n := n.(type) {
 		case *ComponentNode:
-			_ = l.evaluate(parentScope, n)
+			err = l.evaluate(logger, parentScope, n)
 		case *ConfigNode:
-			_, _ = l.evaluateConfig(parentScope, n)
+			_, err = l.evaluateConfig(logger, parentScope, n)
+		}
+
+		// We only use the error for updating the span status; we don't return the
+		// error because we want to evaluate as many nodes as we can.
+		if err != nil {
+			span.SetStatus(codes.Error, err.Error())
+		} else {
+			span.SetStatus(codes.Ok, "")
 		}
 		return nil
 	})
-
-	l.cm.componentEvaluationTime.Observe(time.Since(start).Seconds())
 }
 
 // evaluate constructs the final context for c and evaluates it. mut must be
 // held when calling evaluate.
-func (l *Loader) evaluate(parent *vm.Scope, c *ComponentNode) error {
+func (l *Loader) evaluate(logger log.Logger, parent *vm.Scope, c *ComponentNode) error {
 	ectx := l.cache.BuildContext(parent)
 	err := c.Evaluate(ectx)
 	// Always update the cache both the arguments and exports, since both might
@@ -306,7 +363,7 @@ func (l *Loader) evaluate(parent *vm.Scope, c *ComponentNode) error {
 	l.cache.CacheArguments(c.ID(), c.Arguments())
 	l.cache.CacheExports(c.ID(), c.Exports())
 	if err != nil {
-		level.Error(l.log).Log("msg", "failed to evaluate component", "component", c.NodeID(), "err", err)
+		level.Error(logger).Log("msg", "failed to evaluate component", "component", c.NodeID(), "err", err)
 		return err
 	}
 	return nil
@@ -314,11 +371,11 @@ func (l *Loader) evaluate(parent *vm.Scope, c *ComponentNode) error {
 
 // evaluateConfig constructs the final context for the special config Node and
 // evaluates it. mut must be held when calling evaluateConfig.
-func (l *Loader) evaluateConfig(parent *vm.Scope, c *ConfigNode) (*ast.BlockStmt, error) {
+func (l *Loader) evaluateConfig(logger log.Logger, parent *vm.Scope, c *ConfigNode) (*ast.BlockStmt, error) {
 	ectx := l.cache.BuildContext(parent)
 	errBlock, err := c.Evaluate(ectx)
 	if err != nil {
-		level.Error(l.log).Log("msg", "failed to evaluate config", "node", c.NodeID(), "err", err)
+		level.Error(logger).Log("msg", "failed to evaluate config", "node", c.NodeID(), "err", err)
 		return errBlock, err
 	}
 	return nil, nil
