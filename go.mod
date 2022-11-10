@@ -29,7 +29,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/grafana/dskit v0.0.0-20220708141012-99f3d0043c23
 	github.com/grafana/loki v1.6.2-0.20220718071907-6bd05c9a4399
-	github.com/grafana/regexp v0.0.0-20220304100321-149c8afcd6cb
+	github.com/grafana/regexp v0.0.0-20221005092906-f072a00f63e9
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/hairyhenderson/go-fsimpl v0.0.0-20211102185733-857ee891b38d
 	github.com/hairyhenderson/gomplate/v3 v3.0.0
@@ -70,15 +70,15 @@ require (
 	github.com/prometheus-community/postgres_exporter v0.10.0
 	github.com/prometheus-community/windows_exporter v0.0.0-00010101000000-000000000000
 	github.com/prometheus-operator/prometheus-operator v0.55.0
-	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.59.2
-	github.com/prometheus/client_golang v1.12.2
+	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.60.1
+	github.com/prometheus/client_golang v1.14.0
 	github.com/prometheus/common v0.37.0
 	github.com/prometheus/consul_exporter v0.7.2-0.20210127095228-584c6de19f23
 	github.com/prometheus/memcached_exporter v0.9.0
 	github.com/prometheus/mysqld_exporter v0.13.0
 	github.com/prometheus/node_exporter v1.3.1-0.20220127103407-4f27a4fd8efa
-	github.com/prometheus/procfs v0.7.4-0.20211011103944-1a7a2bd3279f
-	github.com/prometheus/prometheus v1.8.2-0.20220308163432-03831554a519
+	github.com/prometheus/procfs v0.8.0
+	github.com/prometheus/prometheus v1.99.0
 	github.com/prometheus/snmp_exporter v0.20.1-0.20220111173215-83399c23888f
 	github.com/prometheus/statsd_exporter v0.22.2
 	github.com/rancher/k3d/v5 v5.2.2
@@ -98,19 +98,19 @@ require (
 	go.uber.org/atomic v1.9.0
 	go.uber.org/multierr v1.8.0
 	go.uber.org/zap v1.21.0
-	golang.org/x/net v0.0.0-20220920203100-d0c6ba3f52d9
-	golang.org/x/sys v0.0.0-20220829200755-d48e67d00261
-	golang.org/x/time v0.0.0-20220722155302-e5dcc9cfc0b9
+	golang.org/x/net v0.2.0
+	golang.org/x/sys v0.2.0
+	golang.org/x/time v0.2.0
 	google.golang.org/grpc v1.48.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/api v0.25.0
+	k8s.io/api v0.25.3
 	k8s.io/apiextensions-apiserver v0.25.0
-	k8s.io/apimachinery v0.25.0
-	k8s.io/client-go v0.25.0
-	k8s.io/klog/v2 v2.80.0
-	k8s.io/utils v0.0.0-20220823124924-e9cbc92d1a73
+	k8s.io/apimachinery v0.25.3
+	k8s.io/client-go v0.25.3
+	k8s.io/klog/v2 v2.80.1
+	k8s.io/utils v0.0.0-20221108210102-8e77b1f39fe2
 	sigs.k8s.io/controller-runtime v0.12.3
 	sigs.k8s.io/yaml v1.3.0
 )
@@ -261,7 +261,7 @@ require (
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/google/btree v1.0.1 // indirect
 	github.com/google/gnostic v0.6.9 // indirect
-	github.com/google/go-cmp v0.5.8 // indirect
+	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/pprof v0.0.0-20220218203455-0368bd9e19a7 // indirect
@@ -307,7 +307,7 @@ require (
 	github.com/hpcloud/tail v1.0.0 // indirect
 	github.com/huandu/xstrings v1.3.1 // indirect
 	github.com/illumos/go-kstat v0.0.0-20210513183136-173c9b0a9973 // indirect
-	github.com/imdario/mergo v0.3.12 // indirect
+	github.com/imdario/mergo v0.3.13 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/infinityworks/go-common v0.0.0-20170820165359-7f20a140fd37 // indirect
 	github.com/influxdata/go-syslog/v3 v3.0.1-0.20201128200927-a1889d947b48 // indirect
@@ -346,7 +346,7 @@ require (
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/mattn/go-xmlrpc v0.0.3 // indirect
-	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
+	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/mdlayher/genetlink v1.0.0 // indirect
 	github.com/mdlayher/netlink v1.4.1 // indirect
 	github.com/mdlayher/socket v0.0.0-20210307095302-262dc9984e00 // indirect
@@ -395,7 +395,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus-operator/prometheus-operator/pkg/client v0.59.2 // indirect
-	github.com/prometheus/client_model v0.2.0 // indirect
+	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common/sigv4 v0.1.0 // indirect
 	github.com/prometheus/exporter-toolkit v0.7.1 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
@@ -469,10 +469,10 @@ require (
 	gocloud.dev v0.24.0 // indirect
 	golang.org/x/crypto v0.0.0-20220507011949-2cf3adece122 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
-	golang.org/x/oauth2 v0.0.0-20220822191816-0ebed06d0094 // indirect
+	golang.org/x/oauth2 v0.2.0 // indirect
 	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4 // indirect
-	golang.org/x/term v0.0.0-20220722155259-a9ba230a4035 // indirect
-	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/term v0.2.0 // indirect
+	golang.org/x/text v0.4.0 // indirect
 	golang.org/x/tools v0.1.12 // indirect
 	golang.org/x/xerrors v0.0.0-20220609144429-65e65417b02f // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
@@ -490,7 +490,7 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	inet.af/netaddr v0.0.0-20211027220019-c74959edd3b6 // indirect
 	k8s.io/component-base v0.25.0 // indirect
-	k8s.io/kube-openapi v0.0.0-20220803164354-a70c9af30aea // indirect
+	k8s.io/kube-openapi v0.0.0-20221106113015-f73e7dbcfe29 // indirect
 	sigs.k8s.io/json v0.0.0-20220713155537-f223a00ba0e2 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 )
