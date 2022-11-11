@@ -18,7 +18,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func generateK8SSDConfig(
+type configGenerator struct {
+	config *Config
+}
+
+func (cg *configGenerator) generateK8SSDConfig(
 	namespaceSelector v1.NamespaceSelector,
 	namespace string,
 	//apiserverConfig *v1.APIServerConfig,
@@ -30,11 +34,14 @@ func generateK8SSDConfig(
 		Role: role,
 	}
 
-	namespaces := getNamespacesFromNamespaceSelector(namespaceSelector, namespace)
+	namespaces := cg.getNamespacesFromNamespaceSelector(namespaceSelector, namespace)
 	if len(namespaces) != 0 {
 		cfg.NamespaceDiscovery.Names = namespaces
 	}
 
+	if cg.config.KubeConfig != "" {
+		cfg.KubeConfig = cg.config.KubeConfig
+	}
 	// if apiserverConfig != nil {
 	// 	k8sSDConfig = append(k8sSDConfig, yaml.MapItem{
 	// 		Key: "api_server", Value: apiserverConfig.Host,
@@ -76,13 +83,13 @@ func generateK8SSDConfig(
 	return cfg
 }
 
-func generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodMetricsEndpoint, i int) *config.ScrapeConfig {
+func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodMetricsEndpoint, i int) *config.ScrapeConfig {
 	cfg := &config.ScrapeConfig{}
 	cfg.JobName = fmt.Sprintf("podMonitor/%s/%s/%d", m.Namespace, m.Name, i)
-	addHonorLabels(cfg, ep.HonorLabels)
-	addHonorTimestamps(cfg, ep.HonorTimestamps)
+	cg.addHonorLabels(cfg, ep.HonorLabels)
+	cg.addHonorTimestamps(cfg, ep.HonorTimestamps)
 
-	cfg.ServiceDiscoveryConfigs = append(cfg.ServiceDiscoveryConfigs, generateK8SSDConfig(m.Spec.NamespaceSelector, m.Namespace, promk8s.RolePod, m.Spec.AttachMetadata))
+	cfg.ServiceDiscoveryConfigs = append(cfg.ServiceDiscoveryConfigs, cg.generateK8SSDConfig(m.Spec.NamespaceSelector, m.Namespace, promk8s.RolePod, m.Spec.AttachMetadata))
 
 	if ep.Interval != "" {
 		// TODO: correct way to convert the durations?
@@ -138,7 +145,7 @@ func generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodMetricsEndpoint, i int)
 	//assetKey := fmt.Sprintf("podMonitor/%s/%s/%d", m.Namespace, m.Name, i)
 	//cfg = cg.addOAuth2ToYaml(cfg, ep.OAuth2, store.OAuth2Assets, assetKey)
 	//cfg = cg.addSafeAuthorizationToYaml(cfg, fmt.Sprintf("podMonitor/auth/%s/%s/%d", m.Namespace, m.Name, i), store, ep.Authorization)
-	relabels := initRelabelings(cfg)
+	relabels := cg.initRelabelings(cfg)
 
 	if ep.FilterRunning == nil || *ep.FilterRunning {
 		relabels = append(relabels, &relabel.Config{
@@ -298,7 +305,7 @@ func generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodMetricsEndpoint, i int)
 	return cfg
 }
 
-func initRelabelings(cfg *config.ScrapeConfig) []*relabel.Config {
+func (cg *configGenerator) initRelabelings(cfg *config.ScrapeConfig) []*relabel.Config {
 	// Relabel prometheus job name into a meta label
 	return []*relabel.Config{
 		{
@@ -313,7 +320,7 @@ func initRelabelings(cfg *config.ScrapeConfig) []*relabel.Config {
 // override applies.
 // For backwards compatibility with Prometheus <2.9.0 we don't set
 // honor_timestamps.
-func addHonorTimestamps(cfg *config.ScrapeConfig, userHonorTimestamps *bool) {
+func (cg *configGenerator) addHonorTimestamps(cfg *config.ScrapeConfig, userHonorTimestamps *bool) {
 	//TODO: for now I haven't added the full configGenerator concept. We may still need some of this global config
 	// Fast path.
 	if userHonorTimestamps == nil { //&& !cg.spec.OverrideHonorTimestamps {
@@ -326,7 +333,7 @@ func addHonorTimestamps(cfg *config.ScrapeConfig, userHonorTimestamps *bool) {
 	cfg.HonorTimestamps = honor
 	//return cg.WithMinimumVersion("2.9.0").AppendMapItem(cfg, "honor_timestamps", honor && !cg.spec.OverrideHonorTimestamps)
 }
-func addHonorLabels(cfg *config.ScrapeConfig, honorLabels bool) {
+func (cg *configGenerator) addHonorLabels(cfg *config.ScrapeConfig, honorLabels bool) {
 	//TODO:
 	//if cg.spec.OverrideHonorLabels {
 	//	honorLabels = false
@@ -342,7 +349,7 @@ func sanitizeLabelName(name string) model.LabelName {
 	return model.LabelName(invalidLabelCharRE.ReplaceAllString(name, "_"))
 }
 
-func getNamespacesFromNamespaceSelector(nsel v1.NamespaceSelector, namespace string) []string {
+func (cg *configGenerator) getNamespacesFromNamespaceSelector(nsel v1.NamespaceSelector, namespace string) []string {
 	// TODO:
 	//if cg.spec.IgnoreNamespaceSelectors {
 	//	return []string{namespace}
