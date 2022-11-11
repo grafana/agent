@@ -51,6 +51,8 @@ Main (unreleased)
 - Flow UI: Fix issue where a configuration block referencing a component would
   cause the graph page to fail to load. (@rfratto)
 
+- Remove duplicate `oauth2` key from `metricsinstances` CRD. (@daper)
+
 v0.29.0 (2022-11-08)
 --------------------
 
