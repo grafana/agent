@@ -19,7 +19,7 @@ digraph G {
      fontname = "Courier New"
      shape = "Mrecord"
      label =<<table border="0" cellborder="0" cellpadding="3" ><tr><td align="center" colspan="2"><font>MetricsInstance</font></td></tr><tr><td align="left" port="r0">helm.sh/chart: loki-3.2.2
-    </td></tr><tr><td align="left" port="r1">app.kubernetes.io/name: loki</td></tr></table>>
+    </td></tr><tr><td align="left" port="r1">instance: primary</td></tr></table>>
      ];
  "LogsInstance" [ 
      style = "filled, bold"
@@ -28,7 +28,7 @@ digraph G {
      fontname = "Courier New"
      shape = "Mrecord"
      label =<<table border="0" cellborder="0" cellpadding="3" ><tr><td align="center" colspan="2"><font>LogsInstance</font></td></tr><tr><td align="left" port="r0">helm.sh/chart: loki-3.2.2
-    </td></tr><tr><td align="left" port="r1">app.kubernetes.io/name: loki</td></tr></table>>
+    </td></tr><tr><td align="left" port="r1">instance: primary</td></tr></table>>
      ];
  "ServiceMonitor" [ 
      style = "filled, bold"
@@ -37,7 +37,7 @@ digraph G {
      fontname = "Courier New"
      shape = "Mrecord"
      label =<<table border="0" cellborder="0" cellpadding="3" ><tr><td align="center" colspan="2"><font>ServiceMonitor</font></td></tr><tr><td align="left" port="r0">helm.sh/chart: loki-3.2.2
-    </td></tr><tr><td align="left" port="r1">app.kubernetes.io/name: loki</td></tr></table>>
+    </td></tr><tr><td align="left" port="r1">instance: primary</td></tr></table>>
      ];
  "Probe" [ 
      style = "filled, bold"
@@ -46,7 +46,7 @@ digraph G {
      fontname = "Courier New"
      shape = "Mrecord"
      label =<<table border="0" cellborder="0" cellpadding="3" ><tr><td align="center" colspan="2"><font>Probe</font></td></tr><tr><td align="left" port="r0">helm.sh/chart: loki-3.2.2
-    </td></tr><tr><td align="left" port="r1">app.kubernetes.io/name: loki</td></tr></table>>
+    </td></tr><tr><td align="left" port="r1">instance: primary</td></tr></table>>
      ];
  "PodLogs" [ 
      style = "filled, bold"
@@ -55,16 +55,16 @@ digraph G {
      fontname = "Courier New"
      shape = "Mrecord"
      label =<<table border="0" cellborder="0" cellpadding="3" ><tr><td align="center" colspan="2"><font>PodLogs</font></td></tr><tr><td align="left" port="r0">helm.sh/chart: loki-3.2.2
-    </td></tr><tr><td align="left" port="r1">app.kubernetes.io/name: loki</td></tr></table>>
+    </td></tr><tr><td align="left" port="r1">instance: primary</td></tr></table>>
      ];
 
  
- GrafanaAgent -> MetricsInstance [ label="matchLabels:\l  app.kubernetes.io/name: loki" ];
- MetricsInstance -> Probe [ label="matchLabels:\l  app.kubernetes.io/name: loki" ];
- MetricsInstance -> ServiceMonitor [ label="matchLabels:\l app.kubernetes.io/name: loki" ];
+ GrafanaAgent -> MetricsInstance [ label="matchLabels:\l  instance: primary" ];
+ MetricsInstance -> Probe [ label="matchLabels:\l  instance: primary" ];
+ MetricsInstance -> ServiceMonitor [ label="matchLabels:\l instance: primary" ];
  
- GrafanaAgent -> LogsInstance [ label="matchLabels:\l  app.kubernetes.io/name: loki" ];
- LogsInstance -> PodLogs [ label="matchLabels:\l  app.kubernetes.io/name: loki" ];
+ GrafanaAgent -> LogsInstance [ label="matchLabels:\l  instance: primary" ];
+ LogsInstance -> PodLogs [ label="matchLabels:\l  instance: primary" ];
  
  
 
