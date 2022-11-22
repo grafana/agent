@@ -6,6 +6,8 @@ import (
 	_ "github.com/grafana/agent/component/discovery/kubernetes"                 // Import discovery.kubernetes
 	_ "github.com/grafana/agent/component/discovery/relabel"                    // Import discovery.relabel
 	_ "github.com/grafana/agent/component/local/file"                           // Import local.file
+	_ "github.com/grafana/agent/component/loki/sink/stdout"                     // Import loki.sink.stdout
+	_ "github.com/grafana/agent/component/loki/source/file"                     // Import loki.source.file
 	_ "github.com/grafana/agent/component/otelcol/auth/basic"                   // Import otelcol.auth.basic
 	_ "github.com/grafana/agent/component/otelcol/auth/bearer"                  // Import otelcol.auth.bearer
 	_ "github.com/grafana/agent/component/otelcol/auth/headers"                 // Import otelcol.auth.headers
