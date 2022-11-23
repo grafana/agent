@@ -13,11 +13,6 @@ type metrics struct {
 	readLines        *prometheus.CounterVec
 	encodingFailures *prometheus.CounterVec
 	filesActive      prometheus.Gauge
-
-	// TODO(@tpaschalis) We don't need these, right?
-	// Manager metrics
-	// failedTargets *prometheus.CounterVec
-	// targetsActive prometheus.Gauge
 }
 
 // newMetrics creates a new set of file metrics. If reg is non-nil, the metrics
@@ -41,31 +36,24 @@ func newMetrics(reg prometheus.Registerer) *metrics {
 		Name:      "read_lines_total",
 		Help:      "Number of lines read.",
 	}, []string{"path"})
+	m.encodingFailures = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Namespace: "loki_source_file",
+		Name:      "encoding_failures_total",
+		Help:      "Number of encoding failures.",
+	}, []string{"path"})
 	m.filesActive = prometheus.NewGauge(prometheus.GaugeOpts{
 		Namespace: "loki_source_file",
 		Name:      "files_active_total",
 		Help:      "Number of active files.",
 	})
 
-	// m.failedTargets = prometheus.NewCounterVec(prometheus.CounterOpts{
-	// 	Namespace: "loki_source_file",
-	// 	Name:      "targets_failed_total",
-	// 	Help:      "Number of failed targets.",
-	// }, []string{"reason"})
-	// m.targetsActive = prometheus.NewGauge(prometheus.GaugeOpts{
-	// 	Namespace: "loki_source_file",
-	// 	Name:      "targets_active_total",
-	// 	Help:      "Number of active total.",
-	// })
-
 	if reg != nil {
 		reg.MustRegister(
 			m.readBytes,
 			m.totalBytes,
 			m.readLines,
+			m.encodingFailures,
 			m.filesActive,
-			// m.failedTargets,
-			// m.targetsActive,
 		)
 	}
 

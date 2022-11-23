@@ -1,6 +1,8 @@
 package file
 
-import "testing"
+import (
+	"testing"
+)
 
 // TODO (@tpaschalis)
 func TestTailer(t *testing.T) {}
