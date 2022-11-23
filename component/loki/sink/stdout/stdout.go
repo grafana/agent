@@ -2,9 +2,9 @@ package stdout
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/loki/clients/pkg/promtail/api"
 )
@@ -20,10 +20,6 @@ func init() {
 		},
 	})
 }
-
-const (
-	pathLabel = "__path__"
-)
 
 // Arguments holds values which are used to configure the loki.sink.stdout
 // component.
@@ -85,7 +81,7 @@ func (c *Component) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case entry := <-c.receiver:
-			fmt.Printf("Receiver %s got entry %s\n", c.opts.ID, entry)
+			level.Info(c.opts.Logger).Log("receiver", c.opts.ID, "entry", entry)
 		}
 	}
 }

@@ -20,6 +20,7 @@ func Test(t *testing.T) {
 	l, err := logging.New(os.Stderr, logging.DefaultOptions)
 	require.NoError(t, err)
 	dataPath, err := os.MkdirTemp("", "loki.source.file")
+	require.NoError(t, err)
 	defer os.RemoveAll(dataPath) // clean up
 
 	opts := component.Options{Logger: l, DataPath: dataPath}

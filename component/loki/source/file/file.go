@@ -162,11 +162,9 @@ func (c *Component) Update(args component.Arguments) error {
 		return nil
 	}
 
-	var paths []string
 	for _, target := range newArgs.Targets {
 		path := target[pathLabel]
 		c.reportSize(path)
-		paths = append(paths, path)
 
 		var labels = make(model.LabelSet)
 		for k, v := range target {
@@ -178,7 +176,7 @@ func (c *Component) Update(args component.Arguments) error {
 
 		handler := api.AddLabelsMiddleware(labels).Wrap(api.NewEntryHandler(c.handler, func() {}))
 
-		reader, err := c.startTailing(path, handler, labels)
+		reader, err := c.startTailing(path, handler)
 		if err != nil {
 			continue // TODO (@tpaschalis) return err maybe?
 		}
@@ -209,7 +207,7 @@ func missing(as map[string]Reader, bs map[string]struct{}) map[string]struct{} {
 // startTailing starts and returns a reader for the given path. For most files,
 // this will be a tailer implementation. If the file suffix alludes to it being
 // a compressed file, then a decompressor will be started instead.
-func (c *Component) startTailing(path string, handler api.EntryHandler, labels model.LabelSet) (Reader, error) {
+func (c *Component) startTailing(path string, handler api.EntryHandler) (Reader, error) {
 	fi, err := os.Stat(path)
 	if err != nil {
 		level.Error(c.opts.Logger).Log("msg", "failed to tail file, stat failed", "error", err, "filename", path)

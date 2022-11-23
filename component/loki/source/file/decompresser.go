@@ -16,7 +16,6 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/pkg/errors"
 	"github.com/prometheus/common/model"
 	"go.uber.org/atomic"
 	"golang.org/x/text/encoding"
@@ -66,7 +65,7 @@ func newDecompressor(metrics *metrics, logger log.Logger, handler api.EntryHandl
 
 	pos, err := positions.Get(path)
 	if err != nil {
-		return nil, errors.Wrap(err, "get positions")
+		return nil, fmt.Errorf("failed to get positions: %w", err)
 	}
 
 	var decoder *encoding.Decoder
@@ -74,7 +73,7 @@ func newDecompressor(metrics *metrics, logger log.Logger, handler api.EntryHandl
 		level.Info(logger).Log("msg", "decompressor will decode messages", "from", encodingFormat, "to", "UTF8")
 		encoder, err := ianaindex.IANA.Encoding(encodingFormat)
 		if err != nil {
-			return nil, errors.Wrap(err, "error doing IANA encoding")
+			return nil, fmt.Errorf("failed to get IANA encoding %s: %w", encodingFormat, err)
 		}
 		decoder = encoder.NewDecoder()
 	}
@@ -280,7 +279,7 @@ func (d *decompressor) IsRunning() bool {
 func (d *decompressor) convertToUTF8(text string) (string, error) {
 	res, _, err := transform.String(d.decoder, text)
 	if err != nil {
-		return "", errors.Wrap(err, "error decoding text")
+		return "", fmt.Errorf("failed to decode text to UTF8: %w", err)
 	}
 
 	return res, nil
