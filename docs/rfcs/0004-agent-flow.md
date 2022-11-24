@@ -12,12 +12,12 @@
 
 ## Overarching Problem Statement
 
-The Agents configuration and onboarding is difficult to use. Viewing the effect of configuration changes on telemetry data is difficult. Making the configuration simplier, composable and intuitive allieviates these concerns.
+The Agents configuration and onboarding is difficult to use. Viewing the effect of configuration changes on telemetry data is difficult. Making the configuration simpler, composable and intuitive alleviates these concerns.
 
 
 ## Description
 
-Agent Flow is intended to solve real world needs that the Grafana Agent team have idenfified in conversations with users and developers. 
+Agent Flow is intended to solve real world needs that the Grafana Agent team have identified in conversations with users and developers. 
 
 These broadly include:
 
@@ -25,7 +25,7 @@ These broadly include:
     - Questions about what telemetry data are being sent
     - Are rules applying correctly?
     - How does filtering work?
-- Users have been requesting additional capabilites and adding new features is hard due to coupling between systems, some examples include
+- Users have been requesting additional capabilities and adding new features is hard due to coupling between systems, some examples include
     - Remote Write, Different Input Formats
     - Different output formats
     - Filtering ala Relabel Configs is complex and hard to figure out when they occur

@@ -42,6 +42,14 @@ func init() {
 
 // Component is the prometheus.remote_write component.
 type Component struct {
+	remoteWrites map[string]*OneComponent
+	receiver     *prometheus.Interceptor
+	cfg          Arguments
+}
+
+// TODO: Rename to RemoteWrite
+type OneComponent struct {
+	//TODO: Not sure which one of these member variables belong here and which ones belong to Component
 	log  log.Logger
 	opts component.Options
 
@@ -49,10 +57,8 @@ type Component struct {
 	remoteStore *remote.Storage
 	storage     storage.Storage
 
+	cfg *Arguments
 	mut sync.RWMutex
-	cfg Arguments
-
-	receiver *prometheus.Interceptor
 }
 
 // NewComponent creates a new prometheus.remote_write component.
@@ -67,26 +73,43 @@ func NewComponent(o component.Options, c Arguments) (*Component, error) {
 	remoteLogger := log.With(o.Logger, "subcomponent", "rw")
 	remoteStore := remote.NewStorage(remoteLogger, o.Registerer, startTime, dataPath, remoteFlushDeadline, nil)
 
-	res := &Component{
+	defaultComponent := &OneComponent{
 		log:         o.Logger,
 		opts:        o,
 		walStore:    walStorage,
 		remoteStore: remoteStore,
 		storage:     storage.NewFanout(o.Logger, walStorage, remoteStore),
 	}
+
+	var res Component
+	// The default component has an empty label
+	//TODO: Make sure this is not a problem. I guess it's not, because there cannot be an empty label in the real set of series?
+	res.remoteWrites = make(map[string]*OneComponent)
+	res.remoteWrites[""] = defaultComponent
+
 	res.receiver, err = prometheus.NewInterceptor(func(ref storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
 		// Conversion is needed because remote_writes assume they own all the IDs, so if you have two remote_writes they will
 		// both assume they have only one scraper attached. In flow that is not true, so we need to translate from a global id
 		// to a local (remote_write) id.
-		localID := prometheus.GlobalRefMapping.GetLocalRefID(res.opts.ID, uint64(ref))
+		localID := prometheus.GlobalRefMapping.GetLocalRefID(defaultComponent.opts.ID, uint64(ref))
+
+		// Init to the default remote write
+		remoteWrite, _ := res.remoteWrites[""]
+		switch res.cfg.Sharding.Policy {
+		case ShardingOneShardPerLabelValue:
+			//TODO: Is it ok to reference res like this? Or should it be a member of Interceptor?
+			shardingLabel := l.Get(res.cfg.Sharding.Label)
+			remoteWrite = res.remoteWrites[shardingLabel]
+		}
+
 		newref, nextErr := next.Append(storage.SeriesRef(localID), l, t, v)
 		// If there was no local id we need to propagate it.
 		if localID == 0 {
-			prometheus.GlobalRefMapping.GetOrAddLink(res.opts.ID, uint64(newref), l)
+			prometheus.GlobalRefMapping.GetOrAddLink(remoteWrite.opts.ID, uint64(newref), l)
 		}
 		// return the original ref since this needs to be a globalref id and not the local one.
 		return ref, nextErr
-	}, res.storage, o.ID)
+	}, defaultComponent.storage, o.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -97,22 +120,41 @@ func NewComponent(o component.Options, c Arguments) (*Component, error) {
 	if err := res.Update(c); err != nil {
 		return nil, err
 	}
-	return res, nil
+	return &res, nil
 }
 
 func startTime() (int64, error) { return 0, nil }
 
 var _ component.Component = (*Component)(nil)
 
-// Run implements Component.
 func (c *Component) Run(ctx context.Context) error {
+	var wg sync.WaitGroup
+	for rwName, rwComponent := range c.remoteWrites {
+		level.Debug(rwComponent.log).Log("msg", "running remote write component", "component name", rwName)
+		wg.Add(1)
+		go rwComponent.Run(ctx, &wg)
+	}
+	wg.Wait()
+	// TODO: implement this properly
+	return nil
+}
+
+func (c *Component) Update(newConfig component.Arguments) error {
+	// TODO: implement this properly
+	return nil
+}
+
+// Run implements Component.
+func (c *OneComponent) Run(ctx context.Context, wg *sync.WaitGroup) error {
 	defer func() {
+		// TODO: Also log the shard name? And component name?
 		level.Debug(c.log).Log("msg", "closing storage")
 		err := c.storage.Close()
 		level.Debug(c.log).Log("msg", "storage closed")
 		if err != nil {
 			level.Error(c.log).Log("msg", "error when closing storage", "err", err)
 		}
+		wg.Done()
 	}()
 
 	// Track the last timestamp we truncated for to prevent segments from getting
@@ -171,14 +213,14 @@ func (c *Component) Run(ctx context.Context) error {
 	}
 }
 
-func (c *Component) truncateFrequency() time.Duration {
+func (c *OneComponent) truncateFrequency() time.Duration {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
 	return c.cfg.WALOptions.TruncateFrequency
 }
 
 // Update implements Component.
-func (c *Component) Update(newConfig component.Arguments) error {
+func (c *OneComponent) Update(newConfig component.Arguments) error {
 	cfg := newConfig.(Arguments)
 
 	c.mut.Lock()
@@ -193,6 +235,6 @@ func (c *Component) Update(newConfig component.Arguments) error {
 		return err
 	}
 
-	c.cfg = cfg
+	c.cfg = &cfg
 	return nil
 }

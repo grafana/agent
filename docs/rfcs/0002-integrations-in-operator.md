@@ -149,7 +149,7 @@ integration pods:
 ### Sending telemetry from integrations
 
 Because the operator will not have any knowledge about individual integrations, it
-also doesn't know how integrations generate telemetry data. Users must manally
+also doesn't know how integrations generate telemetry data. Users must manually
 configure an integration to send its data to the appropriate instance.
 
 Users can refer to MetricsInstances and LogsInstance from the same resource
@@ -157,7 +157,7 @@ hierarchy by `<namespace>/<name>` in their integration configs. This
 configuring `autoscrape` for collecting metrics from an exporter-based
 integration.
 
-Given the following following resource hierarchy:
+Given the following resource hierarchy:
 
 > ```yaml
 > apiVersion: monitoring.grafana.com/v1alpha1
@@ -232,7 +232,7 @@ integrations first.
 Note that the Integration config above is only contextually valid: it is only
 valid if it is part of a resource hierarchy where a `default/primary`
 MetricsInstance exists. This makes it impossible for an Integration to be fully
-validated indepently of the resource hierarchy where it is discovered.
+validated independently of the resource hierarchy where it is discovered.
 
 ## Pros/Cons
 
@@ -271,7 +271,7 @@ Pros:
 Cons:
 
 * Prevents non-exporter integrations from working (i.e., `eventhandler` has no
-  separate container that can be run indepently)
+  separate container that can be run independently)
 * Prevents us from making agent-specific changes on top of exporters
 * Requires different documentation for people using the node_exporter
   integration vs deploying the actual node_exporter

@@ -19,7 +19,7 @@ type Intercept func(ref storage.SeriesRef, l labels.Labels, t int64, v float64, 
 type Interceptor struct {
 	mut sync.RWMutex
 	// intercept allows one to intercept the series before it fans out to make any changes. If labels.Labels returns nil the series is not propagated.
-	// Intercept shouuld be thread safe and can be called across appenders.
+	// Intercept should be thread safe and can be called across appenders.
 	intercept Intercept
 	// next is where to send the next command.
 	next storage.Appendable

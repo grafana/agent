@@ -161,7 +161,7 @@ func (rc *Config) UnmarshalRiver(f func(interface{}) error) error {
 	return nil
 }
 
-// ComponentToPromRelabelConfigs bridges the Compnoent-based configuration of
+// ComponentToPromRelabelConfigs bridges the Component-based configuration of
 // relabeling steps to the Prometheus implementation.
 func ComponentToPromRelabelConfigs(rcs []*Config) []*relabel.Config {
 	res := make([]*relabel.Config, len(rcs))

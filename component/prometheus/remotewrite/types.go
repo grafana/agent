@@ -60,6 +60,7 @@ type Arguments struct {
 	ExternalLabels map[string]string  `river:"external_labels,attr,optional"`
 	Endpoints      []*EndpointOptions `river:"endpoint,block,optional"`
 	WALOptions     WALOptions         `river:"wal,block,optional"`
+	Sharding       ShardingOptions    `river:"sharding,block,optional"`
 }
 
 // UnmarshalRiver implements river.Unmarshaler.
@@ -162,6 +163,25 @@ type WALOptions struct {
 	MinKeepaliveTime  time.Duration `river:"min_keepalive_time,attr,optional"`
 	MaxKeepaliveTime  time.Duration `river:"max_keepalive_time,attr,optional"`
 }
+
+// Sharding options configure whether to start multiple remote_write instances
+// To decide which shard the series should belong to, we attempt to match with
+// each sharding rule in the order that the sharding rules are defined.
+type ShardingOptions struct {
+	Policy string `river:"policy,block,optional"`
+	Label  string `river:"label,block,optional"`
+}
+
+const (
+	ShardingDisabled              = ""
+	ShardingOneShardPerLabelValue = "OneShardPerLabelValue"
+)
+
+// TODO: What is a good way to specify shard-specific config value overrides?
+// TODO: What is a good way to specify the label? It might only be used with the OneShardPerLabelValue policy.
+// TODO: Default sharding policy should be "none"? Or "disabled"?
+// TODO: Rename this from "shard" to something else. Otherwise people might confuse this with the Prometheus remote write sharding.
+// TODO: Also have other sharding policies, such as grouping certain labels into one shard?
 
 // UnmarshalRiver implements river.Unmarshaler.
 func (o *WALOptions) UnmarshalRiver(f func(interface{}) error) error {
