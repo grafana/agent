@@ -1,5 +1,8 @@
 package file
 
+// This code is copied from Promtail to test their decompresser implementation
+// of the reader interface.
+
 import (
 	"os"
 	"sync"
@@ -49,11 +52,11 @@ func BenchmarkReadlines(b *testing.B) {
 	}{
 		{
 			name: "2000 lines of log .tar.gz compressed",
-			file: "test_fixtures/short-access.tar.gz",
+			file: "testdata/short-access.tar.gz",
 		},
 		{
 			name: "100000 lines of log .gz compressed",
-			file: "test_fixtures/long-access.gz",
+			file: "testdata/long-access.gz",
 		},
 	}
 
@@ -78,7 +81,7 @@ func BenchmarkReadlines(b *testing.B) {
 }
 
 func TestGigantiqueGunzipFile(t *testing.T) {
-	file := "test_fixtures/long-access.gz"
+	file := "testdata/long-access.gz"
 	handler := fake.New(func() {})
 
 	d := &decompressor{
@@ -103,10 +106,10 @@ func TestGigantiqueGunzipFile(t *testing.T) {
 //
 // Based on our experience, this is the scenario with the most edge cases.
 func TestOnelineFiles(t *testing.T) {
-	fileContent, err := os.ReadFile("test_fixtures/onelinelog.log")
+	fileContent, err := os.ReadFile("testdata/onelinelog.log")
 	require.NoError(t, err)
 	t.Run("gunzip file", func(t *testing.T) {
-		file := "test_fixtures/onelinelog.log.gz"
+		file := "testdata/onelinelog.log.gz"
 		handler := fake.New(func() {})
 
 		d := &decompressor{
@@ -129,7 +132,7 @@ func TestOnelineFiles(t *testing.T) {
 	})
 
 	t.Run("bzip2 file", func(t *testing.T) {
-		file := "test_fixtures/onelinelog.log.bz2"
+		file := "testdata/onelinelog.log.bz2"
 		handler := fake.New(func() {})
 
 		d := &decompressor{
@@ -152,7 +155,7 @@ func TestOnelineFiles(t *testing.T) {
 	})
 
 	t.Run("tar.gz file", func(t *testing.T) {
-		file := "test_fixtures/onelinelog.tar.gz"
+		file := "testdata/onelinelog.tar.gz"
 		handler := fake.New(func() {})
 
 		d := &decompressor{

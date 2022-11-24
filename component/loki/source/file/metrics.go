@@ -1,5 +1,9 @@
 package file
 
+// This code is copied from Promtail. The metrics struct provides a common set
+// of metrics that are reused between all implementations of the reader
+// interface.
+
 import "github.com/prometheus/client_golang/prometheus"
 
 // metrics hold the set of file-based metrics.
@@ -22,29 +26,24 @@ func newMetrics(reg prometheus.Registerer) *metrics {
 	m.reg = reg
 
 	m.readBytes = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: "loki_source_file",
-		Name:      "read_bytes_total",
-		Help:      "Number of bytes read.",
+		Name: "loki_source_file_read_bytes_total",
+		Help: "Number of bytes read.",
 	}, []string{"path"})
 	m.totalBytes = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: "loki_source_file",
-		Name:      "file_bytes_total",
-		Help:      "Number of bytes total.",
+		Name: "loki_source_file_file_bytes_total",
+		Help: "Number of bytes total.",
 	}, []string{"path"})
 	m.readLines = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "loki_source_file",
-		Name:      "read_lines_total",
-		Help:      "Number of lines read.",
+		Name: "loki_source_file_read_lines_total",
+		Help: "Number of lines read.",
 	}, []string{"path"})
 	m.encodingFailures = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "loki_source_file",
-		Name:      "encoding_failures_total",
-		Help:      "Number of encoding failures.",
+		Name: "loki_source_file_encoding_failures_total",
+		Help: "Number of encoding failures.",
 	}, []string{"path"})
 	m.filesActive = prometheus.NewGauge(prometheus.GaugeOpts{
-		Namespace: "loki_source_file",
-		Name:      "files_active_total",
-		Help:      "Number of active files.",
+		Name: "loki_source_file_files_active_total",
+		Help: "Number of active files.",
 	})
 
 	if reg != nil {

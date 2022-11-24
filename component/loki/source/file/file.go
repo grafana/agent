@@ -36,8 +36,8 @@ const (
 // Arguments holds values which are used to configure the loki.source.file
 // component.
 type Arguments struct {
-	Targets   []discovery.Target `river:"targets,attr,optional"`
-	ForwardTo []chan api.Entry   `river:"forward_to,attr,optional"`
+	Targets   []discovery.Target `river:"targets,attr"`
+	ForwardTo []chan api.Entry   `river:"forward_to,attr"`
 }
 
 // DefaultArguments defines the default settings for loki.source.file.
@@ -65,7 +65,7 @@ type Component struct {
 	handler   chan api.Entry
 	receivers []chan api.Entry
 	posFile   positions.Positions
-	readers   map[string]Reader
+	readers   map[string]reader
 }
 
 // New creates a new loki.source.file component.
@@ -91,7 +91,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		handler:   make(chan api.Entry),
 		receivers: args.ForwardTo,
 		posFile:   positionsFile,
-		readers:   make(map[string]Reader),
+		readers:   make(map[string]reader),
 	}
 
 	// Call to Update() to start readers and set receivers once at the start.
@@ -155,7 +155,7 @@ func (c *Component) Update(args component.Arguments) error {
 		oldPaths[p] = struct{}{}
 		r.Stop()
 	}
-	c.readers = make(map[string]Reader)
+	c.readers = make(map[string]reader)
 
 	if len(newArgs.Targets) == 0 {
 		level.Debug(c.opts.Logger).Log("msg", "no files targets were passed, nothing will be tailed")
@@ -168,7 +168,7 @@ func (c *Component) Update(args component.Arguments) error {
 
 		var labels = make(model.LabelSet)
 		for k, v := range target {
-			if strings.HasPrefix(k, "__") {
+			if strings.HasPrefix(k, model.ReservedLabelPrefix) {
 				continue
 			}
 			labels[model.LabelName(k)] = model.LabelValue(v)
@@ -194,7 +194,7 @@ func (c *Component) Update(args component.Arguments) error {
 }
 
 // Returns the elements from set b which are missing from set a
-func missing(as map[string]Reader, bs map[string]struct{}) map[string]struct{} {
+func missing(as map[string]reader, bs map[string]struct{}) map[string]struct{} {
 	c := map[string]struct{}{}
 	for a := range bs {
 		if _, ok := as[a]; !ok {
@@ -207,7 +207,7 @@ func missing(as map[string]Reader, bs map[string]struct{}) map[string]struct{} {
 // startTailing starts and returns a reader for the given path. For most files,
 // this will be a tailer implementation. If the file suffix alludes to it being
 // a compressed file, then a decompressor will be started instead.
-func (c *Component) startTailing(path string, handler api.EntryHandler) (Reader, error) {
+func (c *Component) startTailing(path string, handler api.EntryHandler) (reader, error) {
 	fi, err := os.Stat(path)
 	if err != nil {
 		level.Error(c.opts.Logger).Log("msg", "failed to tail file, stat failed", "error", err, "filename", path)
@@ -221,7 +221,7 @@ func (c *Component) startTailing(path string, handler api.EntryHandler) (Reader,
 		return nil, fmt.Errorf("failed to tail file, it was a directory %s", path)
 	}
 
-	var reader Reader
+	var reader reader
 	if isCompressed(path) {
 		level.Debug(c.opts.Logger).Log("msg", "reading from compressed file", "filename", path)
 		decompressor, err := newDecompressor(

@@ -29,8 +29,8 @@ func Test(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer os.Remove(f.Name())
 	defer f.Close()
-	defer os.Remove(f.Name()) // clean up
 
 	ch := make(chan api.Entry)
 	args := DefaultArguments

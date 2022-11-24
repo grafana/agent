@@ -1,5 +1,9 @@
 package file
 
+// This code is copied from Promtail. decompresser implements the reader
+// interface and is used to read compressed log files. It uses the Go stdlib's
+// compress/* packages for decoding.
+
 import (
 	"bufio"
 	"compress/bzip2"

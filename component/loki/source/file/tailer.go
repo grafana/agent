@@ -1,5 +1,8 @@
 package file
 
+// This code is copied from Promtail. tailer implements the reader interface by
+// using the github.com/hpcloud/tail package to tail files.
+
 import (
 	"fmt"
 	"os"
