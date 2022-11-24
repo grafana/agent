@@ -69,7 +69,7 @@ require (
 	github.com/prometheus-community/postgres_exporter v0.11.1
 	github.com/prometheus-community/windows_exporter v0.0.0-00010101000000-000000000000
 	github.com/prometheus-operator/prometheus-operator v0.55.0
-	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.55.0
+	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.61.1
 	github.com/prometheus/client_golang v1.13.1-0.20221013115219-dcea97eee2b3
 	github.com/prometheus/common v0.37.0
 	github.com/prometheus/consul_exporter v0.8.0
@@ -97,20 +97,20 @@ require (
 	go.uber.org/atomic v1.10.0
 	go.uber.org/multierr v1.8.0
 	go.uber.org/zap v1.23.0
-	golang.org/x/net v0.1.0
-	golang.org/x/sys v0.1.0
+	golang.org/x/net v0.2.0
+	golang.org/x/sys v0.2.0
 	golang.org/x/time v0.0.0-20220920022843-2ce7c2934d45
 	google.golang.org/grpc v1.50.1
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/api v0.25.3
-	k8s.io/apiextensions-apiserver v0.23.5
-	k8s.io/apimachinery v0.25.3
-	k8s.io/client-go v0.25.3
-	k8s.io/klog/v2 v2.80.0
-	k8s.io/utils v0.0.0-20220728103510-ee6ede2d64ed
-	sigs.k8s.io/controller-runtime v0.11.2
+	k8s.io/api v0.25.4
+	k8s.io/apiextensions-apiserver v0.25.4
+	k8s.io/apimachinery v0.25.4
+	k8s.io/client-go v0.25.4
+	k8s.io/klog/v2 v2.80.1
+	k8s.io/utils v0.0.0-20221108210102-8e77b1f39fe2
+	sigs.k8s.io/controller-runtime v0.13.1
 	sigs.k8s.io/yaml v1.3.0
 )
 
@@ -256,6 +256,7 @@ require (
 	github.com/envoyproxy/protoc-gen-validate v0.6.8 // indirect
 	github.com/euank/go-kmsg-parser v2.0.0+incompatible // indirect
 	github.com/evanphx/json-patch v4.12.0+incompatible // indirect
+	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
 	github.com/facette/natsort v0.0.0-20181210072756-2cd4dd1e2dcb // indirect
 	github.com/felixge/fgprof v0.9.2 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
@@ -513,7 +514,7 @@ require (
 	golang.org/x/mod v0.6.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783 // indirect
 	golang.org/x/sync v0.0.0-20220929204114-8fcdb60fdcc0 // indirect
-	golang.org/x/term v0.1.0 // indirect
+	golang.org/x/term v0.2.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
 	golang.org/x/tools v0.2.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
@@ -530,7 +531,7 @@ require (
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	inet.af/netaddr v0.0.0-20211027220019-c74959edd3b6 // indirect
-	k8s.io/component-base v0.23.5 // indirect
+	k8s.io/component-base v0.25.4 // indirect
 	k8s.io/kube-openapi v0.0.0-20220803162953-67bda5d908f1 // indirect
 	sigs.k8s.io/json v0.0.0-20220713155537-f223a00ba0e2 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
