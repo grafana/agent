@@ -11,9 +11,9 @@ import (
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/common/loki/api"
+	"github.com/grafana/agent/component/common/loki/positions"
 	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/loki/clients/pkg/promtail/api"
-	"github.com/grafana/loki/clients/pkg/promtail/positions"
 	"github.com/prometheus/common/model"
 )
 
@@ -178,7 +178,7 @@ func (c *Component) Update(args component.Arguments) error {
 
 		reader, err := c.startTailing(path, handler)
 		if err != nil {
-			continue // TODO (@tpaschalis) return err maybe?
+			continue
 		}
 
 		c.readers[path] = reader

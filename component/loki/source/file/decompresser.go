@@ -20,16 +20,14 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/component/common/loki/api"
+	"github.com/grafana/agent/component/common/loki/positions"
+	"github.com/grafana/loki/pkg/logproto"
 	"github.com/prometheus/common/model"
 	"go.uber.org/atomic"
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/encoding/ianaindex"
 	"golang.org/x/text/transform"
-
-	"github.com/grafana/loki/pkg/logproto"
-
-	"github.com/grafana/loki/clients/pkg/promtail/api"
-	"github.com/grafana/loki/clients/pkg/promtail/positions"
 )
 
 func supportedCompressedFormats() map[string]struct{} {

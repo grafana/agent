@@ -11,18 +11,16 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/component/common/loki/api"
+	"github.com/grafana/agent/component/common/loki/positions"
+	"github.com/grafana/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/util"
 	"github.com/hpcloud/tail"
 	"github.com/prometheus/common/model"
 	"go.uber.org/atomic"
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/encoding/ianaindex"
 	"golang.org/x/text/transform"
-
-	"github.com/grafana/loki/clients/pkg/promtail/api"
-	"github.com/grafana/loki/clients/pkg/promtail/positions"
-
-	"github.com/grafana/loki/pkg/logproto"
-	"github.com/grafana/loki/pkg/util"
 )
 
 type tailer struct {
@@ -178,7 +176,7 @@ func (t *tailer) readLines() {
 			if err != nil {
 				level.Debug(t.logger).Log("msg", "failed to convert encoding", "error", err)
 				t.metrics.encodingFailures.WithLabelValues(t.path).Inc()
-				text = fmt.Sprintf("the requested encoding conversion for this line failed in Promtail/Grafana Agent: %s", err.Error())
+				text = fmt.Sprintf("the requested encoding conversion for this line failed in Grafana Agent Flow: %s", err.Error())
 			}
 		} else {
 			text = line.Text

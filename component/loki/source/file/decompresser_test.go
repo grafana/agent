@@ -10,8 +10,7 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/grafana/loki/clients/pkg/promtail/api"
-	"github.com/grafana/loki/clients/pkg/promtail/client/fake"
+	"github.com/grafana/agent/component/common/loki/api"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
@@ -41,6 +40,69 @@ func newNoopClient() *noopClient {
 		}
 	}()
 	return c
+}
+
+// fakeClient is a fake client to be used for testing.
+type fakeClient struct {
+	entries  chan api.Entry
+	received []api.Entry
+	once     sync.Once
+	mtx      sync.Mutex
+	wg       sync.WaitGroup
+	OnStop   func()
+}
+
+func newFakeClient(stop func()) *fakeClient {
+	c := &fakeClient{
+		OnStop:  stop,
+		entries: make(chan api.Entry),
+	}
+	c.wg.Add(1)
+	go func() {
+		defer c.wg.Done()
+		for e := range c.entries {
+			c.mtx.Lock()
+			c.received = append(c.received, e)
+			c.mtx.Unlock()
+		}
+	}()
+	return c
+}
+
+// Stop implements client.Client
+func (c *fakeClient) Stop() {
+	c.once.Do(func() { close(c.entries) })
+	c.wg.Wait()
+	c.OnStop()
+}
+
+func (c *fakeClient) Chan() chan<- api.Entry {
+	return c.entries
+}
+
+func (c *fakeClient) Received() []api.Entry {
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
+	cpy := make([]api.Entry, len(c.received))
+	copy(cpy, c.received)
+	return cpy
+}
+
+// StopNow implements client.Client
+func (c *fakeClient) StopNow() {
+	c.Stop()
+}
+
+func (c *fakeClient) Name() string {
+	return "fake"
+}
+
+// Clear is used to cleanup the buffered received entries, so the same client can be re-used between
+// test cases.
+func (c *fakeClient) Clear() {
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
+	c.received = []api.Entry{}
 }
 
 func BenchmarkReadlines(b *testing.B) {
@@ -82,7 +144,7 @@ func BenchmarkReadlines(b *testing.B) {
 
 func TestGigantiqueGunzipFile(t *testing.T) {
 	file := "testdata/long-access.gz"
-	handler := fake.New(func() {})
+	handler := newFakeClient(func() {})
 
 	d := &decompressor{
 		logger:  log.NewNopLogger(),
@@ -110,7 +172,7 @@ func TestOnelineFiles(t *testing.T) {
 	require.NoError(t, err)
 	t.Run("gunzip file", func(t *testing.T) {
 		file := "testdata/onelinelog.log.gz"
-		handler := fake.New(func() {})
+		handler := newFakeClient(func() {})
 
 		d := &decompressor{
 			logger:  log.NewNopLogger(),
@@ -133,7 +195,7 @@ func TestOnelineFiles(t *testing.T) {
 
 	t.Run("bzip2 file", func(t *testing.T) {
 		file := "testdata/onelinelog.log.bz2"
-		handler := fake.New(func() {})
+		handler := newFakeClient(func() {})
 
 		d := &decompressor{
 			logger:  log.NewNopLogger(),
@@ -156,7 +218,7 @@ func TestOnelineFiles(t *testing.T) {
 
 	t.Run("tar.gz file", func(t *testing.T) {
 		file := "testdata/onelinelog.tar.gz"
-		handler := fake.New(func() {})
+		handler := newFakeClient(func() {})
 
 		d := &decompressor{
 			logger:  log.NewNopLogger(),
