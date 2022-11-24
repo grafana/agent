@@ -1,0 +1,35 @@
+// This config file is designed to send traces and metrics to the docker
+// compose environment from example/docker-compose.
+
+logging {
+	level  = "debug"
+	format = "logfmt"
+}
+
+phlare.write "local" {
+	endpoint {
+		 url = "http://localhost:4100"
+	}
+	external_labels = {
+		"foo" = "bar",
+	}
+}
+
+
+pprof.scrape "default" {
+	targets    = [
+		 {"__address__" = "localhost:4100","app"="phlare"},
+		 {"__address__" = "localhost:12345","app"="agent"},
+	]
+	forward_to = [phlare.write.local.receiver]
+	profiling_config {
+		pprof_config = {
+			fgprof = {
+				path = "/debug/fgprof",
+				delta = true,
+				enabled = true,
+			},
+			block = { enabled = false },
+		}
+	}
+}
