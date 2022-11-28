@@ -181,7 +181,7 @@ func (c *Component) Update(args component.Arguments) error {
 			continue
 		}
 
-		c.readers[path+labels.String()] = reader
+		c.readers[path] = reader
 	}
 
 	// Remove from the positions file any paths that had a Reader before, but
