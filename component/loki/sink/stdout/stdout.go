@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/loki/clients/pkg/promtail/api"
+	"github.com/grafana/agent/component/common/loki/api"
 )
 
 func init() {
@@ -81,7 +81,7 @@ func (c *Component) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case entry := <-c.receiver:
-			level.Info(c.opts.Logger).Log("receiver", c.opts.ID, "entry", entry)
+			level.Info(c.opts.Logger).Log("receiver", c.opts.ID, "entry", entry.Line)
 		}
 	}
 }
