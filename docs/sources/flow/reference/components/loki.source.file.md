@@ -58,19 +58,19 @@ by a service discovery component such as `discovery.fileglob`. The special
 label `__path__` _must always_ be present and must point to the absolute path
 of the file to read from.
 
-The `__path__` value will be available as the `filename` label to each log
-entry the component will read. All other labels starting with a double
-underscore are considered _internal_ and will be removed from the log entries
-after they've been read.
+The `__path__` value is  available as the `filename` label to each log entry
+the component reads. All other labels starting with a double underscore are
+considered _internal_ and are removed from the log entries before they're
+passed to other `loki.*` components.
 
-The component will use its data path (a directory named after the domain's
+The component uses its data path (a directory named after the domain's
 fully qualified name) to store its _positions file_. The positions file is used
 to store read offsets, so that in case of a component or Agent restart,
 `loki.source.file` can pick up tailing from the same spot. 
 
 In case a file is removed from the `targets` list, its positions file entry
 is also removed; that means that when it's added back on, `loki.source.file`
-will start reading from the beginning.
+starts reading it from the beginning.
 
 ## Example
 
