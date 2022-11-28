@@ -25,7 +25,7 @@ The following arguments are supported:
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `host` | `string` | Address of the Docker Daemon to connect to. | | yes
-`port` | `number` | Default port to collect metrics from when a port mapping isn't defined. | `80` | no
+`port` | `number` | Port to use for collecting metrics when containers don't have any port mappings. | `80` | no
 `host_networking_host` | `string` | Host to use if the container is in host networking mode. | `"localhost"` | no
 `refresh_interval` | `duration` | Frequency to refresh list of containers. | `"1m"` | no
 
@@ -109,8 +109,8 @@ Each target includes the following labels:
 * `__meta_docker_container_label_<labelname>`: Each label from the container.
 * `__meta_docker_network_id`: ID of the Docker network the container is in.
 * `__meta_docker_network_name`: Name of the Docker network the container is in.
-* `__meta_docker_network_ingress`: Set to `true` if the Docker network the is
-  an ingress network.
+* `__meta_docker_network_ingress`: Set to `true` if the Docker network is an
+  ingress network.
 * `__meta_docker_network_internal`: Set to `true` if the Docker network is an
   internal network.
 * `__meta_docker_network_label_<labelname>`: Each label from the network the
@@ -123,8 +123,8 @@ Each target includes the following labels:
 * `__meta_docker_port_public_ip`: The public IP of the container, if a port
   mapping exists.
 
-Each discovered container maps into one target per each Docker network it
-belongs to and per each defined port mapping the container has.
+Each discovered container maps to one target per unique combination of networks
+and port mappings used by the container.
 
 ## Component health
 
