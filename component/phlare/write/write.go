@@ -153,6 +153,7 @@ func NewFanOut(opts component.Options, config Arguments) (*fanOutClient, error) 
 	}, nil
 }
 
+// Push implements the PusherServiceClient interface.
 func (f *fanOutClient) Push(ctx context.Context, req *connect.Request[pushv1.PushRequest]) (*connect.Response[pushv1.PushResponse], error) {
 	// Don't flow the context down to the `run.Group`.
 	// We want to fan out to all even in case of failures to one.
@@ -189,10 +190,12 @@ func (f *fanOutClient) Push(ctx context.Context, req *connect.Request[pushv1.Pus
 	return connect.NewResponse(&pushv1.PushResponse{}), nil
 }
 
+// Append implements the pprof.Appendable interface.
 func (f *fanOutClient) Appender() pprof.Appender {
 	return f
 }
 
+// Append implements the Appender interface.
 func (f *fanOutClient) Append(ctx context.Context, lbs labels.Labels, samples []*pprof.RawSample) error {
 	// todo(ctovena): we should probably pool the label pair arrays and label builder to avoid allocs.
 	var (
@@ -231,6 +234,7 @@ func (f *fanOutClient) Append(ctx context.Context, lbs labels.Labels, samples []
 	return err
 }
 
+// WithUserAgent returns a `connect.ClientOption` that sets the User-Agent header on.
 func WithUserAgent(agent string) connect.ClientOption {
 	return connect.WithInterceptors(&agentInterceptor{agent})
 }

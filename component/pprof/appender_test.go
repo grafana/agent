@@ -11,16 +11,6 @@ import (
 	"go.uber.org/atomic"
 )
 
-type AppendableFunc func(ctx context.Context, labels labels.Labels, samples []*RawSample) error
-
-func (f AppendableFunc) Append(ctx context.Context, labels labels.Labels, samples []*RawSample) error {
-	return f(ctx, labels, samples)
-}
-
-func (f AppendableFunc) Appender() Appender {
-	return f
-}
-
 func Test_FanOut(t *testing.T) {
 	totalAppend := atomic.NewInt32(0)
 	lbls := labels.Labels{

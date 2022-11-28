@@ -98,3 +98,13 @@ func (a *appender) Append(ctx context.Context, labels labels.Labels, samples []*
 	}
 	return multiErr
 }
+
+type AppendableFunc func(ctx context.Context, labels labels.Labels, samples []*RawSample) error
+
+func (f AppendableFunc) Append(ctx context.Context, labels labels.Labels, samples []*RawSample) error {
+	return f(ctx, labels, samples)
+}
+
+func (f AppendableFunc) Appender() Appender {
+	return f
+}

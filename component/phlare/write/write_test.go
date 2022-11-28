@@ -42,7 +42,7 @@ func Test_Write_FanOut(t *testing.T) {
 			func(_ context.Context, req *connect.Request[pushv1.PushRequest]) (*connect.Response[pushv1.PushResponse], error) {
 				pushTotal.Inc()
 				require.Equal(t, "test", req.Header()["X-Test-Header"][0])
-				require.Contains(t, "GrafanaAgent/", req.Header()["User-Agent"][0])
+				require.Contains(t, req.Header()["User-Agent"][0], "GrafanaAgent/")
 				require.Equal(t, []*pushv1.LabelPair{
 					{Name: "__name__", Value: "test"},
 					{Name: "foo", Value: "buzz"},

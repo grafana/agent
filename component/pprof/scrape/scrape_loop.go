@@ -212,8 +212,10 @@ func (t *scrapeLoop) scrape(ctx context.Context) {
 			break
 		}
 	}
-
-	if err := t.fetchProfile(scrapeCtx, profileType, buf); err != nil {
+	err := t.fetchProfile(scrapeCtx, profileType, buf)
+	t.mtx.Lock()
+	defer t.mtx.Unlock()
+	if err != nil {
 		level.Error(t.logger).Log("msg", "fetch profile failed", "target", t.Labels().String(), "err", err)
 		t.health = HealthBad
 		t.lastScrapeDuration = time.Since(start)
@@ -282,9 +284,4 @@ func (t *scrapeLoop) fetchProfile(ctx context.Context, profileType string, buf i
 func (t *scrapeLoop) stop() {
 	t.cancel()
 	t.wg.Wait()
-}
-
-// GetValue gets a label value from the entire label set.
-func (t *Target) GetValue(name string) string {
-	return t.labels.Get(name)
 }
