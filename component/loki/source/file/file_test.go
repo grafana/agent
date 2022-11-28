@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/common/loki/api"
+	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/prometheus/common/model"
@@ -32,10 +32,10 @@ func Test(t *testing.T) {
 	defer os.Remove(f.Name())
 	defer f.Close()
 
-	ch := make(chan api.Entry)
+	ch := make(chan loki.Entry)
 	args := DefaultArguments
 	args.Targets = []discovery.Target{{"__path__": f.Name(), "foo": "bar"}}
-	args.ForwardTo = []chan api.Entry{ch}
+	args.ForwardTo = []chan loki.Entry{ch}
 
 	c, err := New(opts, args)
 	require.NoError(t, err)

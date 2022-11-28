@@ -20,7 +20,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/component/common/loki/api"
+	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/prometheus/common/model"
@@ -43,7 +43,7 @@ func supportedCompressedFormats() map[string]struct{} {
 type decompressor struct {
 	metrics   *metrics
 	logger    log.Logger
-	handler   api.EntryHandler
+	handler   loki.EntryHandler
 	positions positions.Positions
 
 	path string
@@ -62,7 +62,7 @@ type decompressor struct {
 	size     int64
 }
 
-func newDecompressor(metrics *metrics, logger log.Logger, handler api.EntryHandler, positions positions.Positions, path string, encodingFormat string) (*decompressor, error) {
+func newDecompressor(metrics *metrics, logger log.Logger, handler loki.EntryHandler, positions positions.Positions, path string, encodingFormat string) (*decompressor, error) {
 	logger = log.With(logger, "component", "decompressor")
 
 	pos, err := positions.Get(path)
@@ -83,7 +83,7 @@ func newDecompressor(metrics *metrics, logger log.Logger, handler api.EntryHandl
 	decompressor := &decompressor{
 		metrics:   metrics,
 		logger:    logger,
-		handler:   api.AddLabelsMiddleware(model.LabelSet{filenameLabel: model.LabelValue(path)}).Wrap(handler),
+		handler:   loki.AddLabelsMiddleware(model.LabelSet{filenameLabel: model.LabelValue(path)}).Wrap(handler),
 		positions: positions,
 		path:      path,
 		running:   atomic.NewBool(false),
@@ -229,7 +229,7 @@ func (d *decompressor) readLines() {
 
 		d.metrics.readLines.WithLabelValues(d.path).Inc()
 
-		entries <- api.Entry{
+		entries <- loki.Entry{
 			Labels: model.LabelSet{},
 			Entry: logproto.Entry{
 				Timestamp: time.Now(),

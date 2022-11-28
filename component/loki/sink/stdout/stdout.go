@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/common/loki/api"
+	"github.com/grafana/agent/component/common/loki"
 )
 
 func init() {
@@ -27,7 +27,7 @@ type Arguments struct{}
 
 // Exports holds the values exported by the loki.sink.stdout component.
 type Exports struct {
-	Receiver chan api.Entry `river:"receiver,attr"`
+	Receiver chan loki.Entry `river:"receiver,attr"`
 }
 
 // DefaultArguments defines the default settings for log scraping.
@@ -51,12 +51,12 @@ type Component struct {
 
 	mut      sync.RWMutex
 	args     Arguments
-	receiver chan api.Entry
+	receiver chan loki.Entry
 }
 
 // New creates a new loki.sink.stdout component.
 func New(o component.Options, args Arguments) (*Component, error) {
-	ch := make(chan api.Entry)
+	ch := make(chan loki.Entry)
 	c := &Component{
 		opts:     o,
 		receiver: ch,

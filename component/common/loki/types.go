@@ -1,6 +1,6 @@
-package api
+package loki
 
-// This code is copied from Promtail. The api package contains the definitions
+// This code is copied from Promtail. The loki package contains the definitions
 // that allow log entries to flow from one subsystem to another, from scrapes,
 // to relabeling, stages and finally batched in a client to be written to Loki.
 

@@ -11,7 +11,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/component/common/loki/api"
+	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/grafana/loki/pkg/util"
@@ -26,7 +26,7 @@ import (
 type tailer struct {
 	metrics   *metrics
 	logger    log.Logger
-	handler   api.EntryHandler
+	handler   loki.EntryHandler
 	positions positions.Positions
 
 	path string
@@ -43,7 +43,7 @@ type tailer struct {
 	decoder *encoding.Decoder
 }
 
-func newTailer(metrics *metrics, logger log.Logger, handler api.EntryHandler, positions positions.Positions, path string, encoding string) (*tailer, error) {
+func newTailer(metrics *metrics, logger log.Logger, handler loki.EntryHandler, positions positions.Positions, path string, encoding string) (*tailer, error) {
 	// Simple check to make sure the file we are tailing doesn't
 	// have a position already saved which is past the end of the file.
 	fi, err := os.Stat(path)
@@ -78,7 +78,7 @@ func newTailer(metrics *metrics, logger log.Logger, handler api.EntryHandler, po
 	tailer := &tailer{
 		metrics:   metrics,
 		logger:    logger,
-		handler:   api.AddLabelsMiddleware(model.LabelSet{filenameLabel: model.LabelValue(path)}).Wrap(handler),
+		handler:   loki.AddLabelsMiddleware(model.LabelSet{filenameLabel: model.LabelValue(path)}).Wrap(handler),
 		positions: positions,
 		path:      path,
 		tail:      tail,
@@ -183,7 +183,7 @@ func (t *tailer) readLines() {
 		}
 
 		t.metrics.readLines.WithLabelValues(t.path).Inc()
-		entries <- api.Entry{
+		entries <- loki.Entry{
 			Labels: model.LabelSet{},
 			Entry: logproto.Entry{
 				Timestamp: line.Time,

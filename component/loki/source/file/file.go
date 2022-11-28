@@ -11,7 +11,7 @@ import (
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/common/loki/api"
+	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/prometheus/common/model"
@@ -37,7 +37,7 @@ const (
 // component.
 type Arguments struct {
 	Targets   []discovery.Target `river:"targets,attr"`
-	ForwardTo []chan api.Entry   `river:"forward_to,attr"`
+	ForwardTo []chan loki.Entry  `river:"forward_to,attr"`
 }
 
 // DefaultArguments defines the default settings for loki.source.file.
@@ -62,8 +62,8 @@ type Component struct {
 
 	mut       sync.RWMutex
 	args      Arguments
-	handler   chan api.Entry
-	receivers []chan api.Entry
+	handler   chan loki.Entry
+	receivers []chan loki.Entry
 	posFile   positions.Positions
 	readers   map[string]reader
 }
@@ -88,7 +88,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		opts:    o,
 		metrics: newMetrics(o.Registerer),
 
-		handler:   make(chan api.Entry),
+		handler:   make(chan loki.Entry),
 		receivers: args.ForwardTo,
 		posFile:   positionsFile,
 		readers:   make(map[string]reader),
@@ -174,14 +174,14 @@ func (c *Component) Update(args component.Arguments) error {
 			labels[model.LabelName(k)] = model.LabelValue(v)
 		}
 
-		handler := api.AddLabelsMiddleware(labels).Wrap(api.NewEntryHandler(c.handler, func() {}))
+		handler := loki.AddLabelsMiddleware(labels).Wrap(loki.NewEntryHandler(c.handler, func() {}))
 
 		reader, err := c.startTailing(path, handler)
 		if err != nil {
 			continue
 		}
 
-		c.readers[path] = reader
+		c.readers[path+labels.String()] = reader
 	}
 
 	// Remove from the positions file any paths that had a Reader before, but
@@ -191,6 +191,31 @@ func (c *Component) Update(args component.Arguments) error {
 	}
 
 	return nil
+}
+
+// DebugInfo returns information about the status of tailed targets.
+func (c *Component) DebugInfo() interface{} {
+	var res readerDebugInfo
+	for _, reader := range c.readers {
+		path := reader.Path()
+		offset, _ := c.posFile.Get(path)
+		res.TargetsInfo = append(res.TargetsInfo, targetInfo{
+			Path:       path,
+			IsRunning:  reader.IsRunning(),
+			ReadOffset: offset,
+		})
+	}
+	return res
+}
+
+type readerDebugInfo struct {
+	TargetsInfo []targetInfo `river:"targets_info,attr"`
+}
+
+type targetInfo struct {
+	Path       string `river:"path,attr"`
+	IsRunning  bool   `river:"is_running,attr"`
+	ReadOffset int64  `river:"read_offset,attr"`
 }
 
 // Returns the elements from set b which are missing from set a
@@ -207,7 +232,7 @@ func missing(as map[string]reader, bs map[string]struct{}) map[string]struct{} {
 // startTailing starts and returns a reader for the given path. For most files,
 // this will be a tailer implementation. If the file suffix alludes to it being
 // a compressed file, then a decompressor will be started instead.
-func (c *Component) startTailing(path string, handler api.EntryHandler) (reader, error) {
+func (c *Component) startTailing(path string, handler loki.EntryHandler) (reader, error) {
 	fi, err := os.Stat(path)
 	if err != nil {
 		level.Error(c.opts.Logger).Log("msg", "failed to tail file, stat failed", "error", err, "filename", path)

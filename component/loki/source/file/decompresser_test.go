@@ -10,19 +10,19 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/component/common/loki/api"
+	"github.com/grafana/agent/component/common/loki"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
 )
 
 type noopClient struct {
-	noopChan chan api.Entry
+	noopChan chan loki.Entry
 	wg       sync.WaitGroup
 	once     sync.Once
 }
 
-func (n *noopClient) Chan() chan<- api.Entry {
+func (n *noopClient) Chan() chan<- loki.Entry {
 	return n.noopChan
 }
 
@@ -31,7 +31,7 @@ func (n *noopClient) Stop() {
 }
 
 func newNoopClient() *noopClient {
-	c := &noopClient{noopChan: make(chan api.Entry)}
+	c := &noopClient{noopChan: make(chan loki.Entry)}
 	c.wg.Add(1)
 	go func() {
 		defer c.wg.Done()
@@ -44,8 +44,8 @@ func newNoopClient() *noopClient {
 
 // fakeClient is a fake client to be used for testing.
 type fakeClient struct {
-	entries  chan api.Entry
-	received []api.Entry
+	entries  chan loki.Entry
+	received []loki.Entry
 	once     sync.Once
 	mtx      sync.Mutex
 	wg       sync.WaitGroup
@@ -55,7 +55,7 @@ type fakeClient struct {
 func newFakeClient(stop func()) *fakeClient {
 	c := &fakeClient{
 		OnStop:  stop,
-		entries: make(chan api.Entry),
+		entries: make(chan loki.Entry),
 	}
 	c.wg.Add(1)
 	go func() {
@@ -76,14 +76,14 @@ func (c *fakeClient) Stop() {
 	c.OnStop()
 }
 
-func (c *fakeClient) Chan() chan<- api.Entry {
+func (c *fakeClient) Chan() chan<- loki.Entry {
 	return c.entries
 }
 
-func (c *fakeClient) Received() []api.Entry {
+func (c *fakeClient) Received() []loki.Entry {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
-	cpy := make([]api.Entry, len(c.received))
+	cpy := make([]loki.Entry, len(c.received))
 	copy(cpy, c.received)
 	return cpy
 }
@@ -102,7 +102,7 @@ func (c *fakeClient) Name() string {
 func (c *fakeClient) Clear() {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
-	c.received = []api.Entry{}
+	c.received = []loki.Entry{}
 }
 
 func BenchmarkReadlines(b *testing.B) {
