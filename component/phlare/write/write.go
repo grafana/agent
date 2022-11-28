@@ -12,6 +12,7 @@ import (
 	"github.com/oklog/run"
 	commonconfig "github.com/prometheus/common/config"
 	"github.com/prometheus/prometheus/model/labels"
+	"go.uber.org/multierr"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/config"
@@ -143,7 +144,7 @@ func NewFanOut(opts component.Options, config Arguments) (*fanOutClient, error) 
 		if err != nil {
 			return nil, err
 		}
-		clients = append(clients, pushv1connect.NewPusherServiceClient(httpClient, endpoint.URL))
+		clients = append(clients, pushv1connect.NewPusherServiceClient(httpClient, endpoint.URL, WithUserAgent(userAgent)))
 	}
 	return &fanOutClient{
 		clients: clients,
@@ -155,7 +156,11 @@ func NewFanOut(opts component.Options, config Arguments) (*fanOutClient, error) 
 func (f *fanOutClient) Push(ctx context.Context, req *connect.Request[pushv1.PushRequest]) (*connect.Response[pushv1.PushResponse], error) {
 	// Don't flow the context down to the `run.Group`.
 	// We want to fan out to all even in case of failures to one.
-	var g run.Group
+	var (
+		g    run.Group
+		errs error
+	)
+
 	for i, client := range f.clients {
 		client := client
 		i := i
@@ -164,20 +169,22 @@ func (f *fanOutClient) Push(ctx context.Context, req *connect.Request[pushv1.Pus
 			defer cancel()
 
 			req := connect.NewRequest(req.Msg)
-			req.Header().Set("User-Agent", userAgent)
 			for k, v := range f.config.Endpoints[i].Headers {
 				req.Header().Set(k, v)
 			}
 			_, err := client.Push(ctx, req)
-			return err
-		}, func(err error) {
 			if err != nil {
 				f.opts.Logger.Log("msg", "failed to push to endpoint", "endpoint", f.config.Endpoints[i].Name, "err", err)
+				errs = multierr.Append(errs, err)
 			}
-		})
+			return err
+		}, func(err error) {})
 	}
 	if err := g.Run(); err != nil {
 		return nil, err
+	}
+	if errs != nil {
+		return nil, errs
 	}
 	return connect.NewResponse(&pushv1.PushResponse{}), nil
 }
@@ -187,7 +194,7 @@ func (f *fanOutClient) Appender() pprof.Appender {
 }
 
 func (f *fanOutClient) Append(ctx context.Context, lbs labels.Labels, samples []*pprof.RawSample) error {
-	// todo(ctovena): we should probably pool the label pair arrays and label builder.
+	// todo(ctovena): we should probably pool the label pair arrays and label builder to avoid allocs.
 	var (
 		protoLabels  = make([]*pushv1.LabelPair, 0, len(lbs)+len(f.config.ExternalLabels))
 		protoSamples = make([]*pushv1.RawSample, 0, len(samples))
@@ -195,7 +202,7 @@ func (f *fanOutClient) Append(ctx context.Context, lbs labels.Labels, samples []
 	)
 
 	for _, label := range lbs {
-		// only __name__ is required.
+		// only __name__ is required as a private label.
 		if strings.HasPrefix(label.Name, "__") && label.Name != labels.MetricName {
 			continue
 		}
@@ -222,4 +229,31 @@ func (f *fanOutClient) Append(ctx context.Context, lbs labels.Labels, samples []
 		},
 	}))
 	return err
+}
+
+func WithUserAgent(agent string) connect.ClientOption {
+	return connect.WithInterceptors(&agentInterceptor{agent})
+}
+
+type agentInterceptor struct {
+	agent string
+}
+
+func (i *agentInterceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
+	return func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
+		req.Header().Set("User-Agent", i.agent)
+		return next(ctx, req)
+	}
+}
+
+func (i *agentInterceptor) WrapStreamingClient(next connect.StreamingClientFunc) connect.StreamingClientFunc {
+	return func(ctx context.Context, spec connect.Spec) connect.StreamingClientConn {
+		conn := next(ctx, spec)
+		conn.RequestHeader().Set("User-Agent", i.agent)
+		return conn
+	}
+}
+
+func (i *agentInterceptor) WrapStreamingHandler(next connect.StreamingHandlerFunc) connect.StreamingHandlerFunc {
+	return next
 }
