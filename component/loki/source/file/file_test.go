@@ -32,10 +32,10 @@ func Test(t *testing.T) {
 	defer os.Remove(f.Name())
 	defer f.Close()
 
-	ch := make(chan loki.Entry)
+	ch1, ch2 := make(chan loki.Entry), make(chan loki.Entry)
 	args := DefaultArguments
 	args.Targets = []discovery.Target{{"__path__": f.Name(), "foo": "bar"}}
-	args.ForwardTo = []chan loki.Entry{ch}
+	args.ForwardTo = []chan loki.Entry{ch1, ch2}
 
 	c, err := New(opts, args)
 	require.NoError(t, err)
@@ -50,12 +50,18 @@ func Test(t *testing.T) {
 		"foo":      "bar",
 	}
 
-	select {
-	case logEntry := <-ch:
-		require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
-		require.Equal(t, "writing some text", logEntry.Line)
-		require.Equal(t, wantLabelSet, logEntry.Labels)
-	case <-time.After(5 * time.Second):
-		require.FailNow(t, "failed waiting for log line")
+	for i := 0; i < 2; i++ {
+		select {
+		case logEntry := <-ch1:
+			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
+			require.Equal(t, "writing some text", logEntry.Line)
+			require.Equal(t, wantLabelSet, logEntry.Labels)
+		case logEntry := <-ch2:
+			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
+			require.Equal(t, "writing some text", logEntry.Line)
+			require.Equal(t, wantLabelSet, logEntry.Labels)
+		case <-time.After(5 * time.Second):
+			require.FailNow(t, "failed waiting for log line")
+		}
 	}
 }
