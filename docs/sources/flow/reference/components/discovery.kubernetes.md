@@ -320,7 +320,7 @@ Name | Type | Description
 
 ## Component health
 
-`discovery.kubernetes` is only be reported as unhealthy when given an invalid
+`discovery.kubernetes` is reported as unhealthy when given an invalid
 configuration. In those cases, exported fields retain their last healthy
 values.
 
