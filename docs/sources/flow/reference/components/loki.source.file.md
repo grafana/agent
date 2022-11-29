@@ -24,8 +24,8 @@ loki.source.file "LABEL" {
 ## Arguments
 The component starts a new reader for each of the given `targets` and fans out
 log entries to the list of receivers passed in `forward_to`.
-The list of arguments that can be used to configure the block is presented
-below.
+
+`loki.source.file` supports the following arguments:
 
 Name         | Type                   | Description          | Default | Required
 ------------ | ---------------------- | -------------------- | ------- | --------
@@ -78,9 +78,9 @@ fully qualified name) to store its _positions file_. The positions file is used
 to store read offsets, so that in case of a component or Agent restart,
 `loki.source.file` can pick up tailing from the same spot. 
 
-In case a file is removed from the `targets` list, its positions file entry
-is also removed; that means that when it's added back on, `loki.source.file`
-starts reading it from the beginning.
+If a file is removed from the `targets` list, its positions file entry is also
+removed. When it's added back on, `loki.source.file` starts reading it from the
+beginning.
 
 <!-- TODO(@tpaschalis) Add example section once loki.write is up and running.
 
