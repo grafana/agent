@@ -183,6 +183,8 @@ func (c *Component) Update(args component.Arguments) error {
 }
 
 // DebugInfo returns information about the status of tailed targets.
+// TODO(@tpaschalis) Decorate with more debug information once it's made
+// available, such as the label set and the last time a log line was read.
 func (c *Component) DebugInfo() interface{} {
 	var res readerDebugInfo
 	for _, reader := range c.readers {
