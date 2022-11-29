@@ -85,7 +85,7 @@ Name | Type | Description | Default | Required
 `headers` | `map(string)` | Extra headers to deliver with the request. | | no
 `send_exemplars` | `bool` | Whether exemplars should be sent. | `true` | no
 
-When multiple `endpoint` blocks are provided, metrics are concurrently to all
+When multiple `endpoint` blocks are provided, metrics are concurrently sent to all
 configured locations. Each endpoint has a _queue_ which is used to read metrics
 from the WAL and queue them for sending. The `queue_config` block can be used
 to customize the behavior of the queue.
