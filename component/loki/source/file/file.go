@@ -36,19 +36,8 @@ const (
 // Arguments holds values which are used to configure the loki.source.file
 // component.
 type Arguments struct {
-	Targets   []discovery.Target `river:"targets,attr"`
-	ForwardTo []chan loki.Entry  `river:"forward_to,attr"`
-}
-
-// DefaultArguments defines the default settings for loki.source.file.
-var DefaultArguments = Arguments{}
-
-// UnmarshalRiver implements river.Unmarshaler.
-func (arg *Arguments) UnmarshalRiver(f func(interface{}) error) error {
-	*arg = DefaultArguments
-
-	type args Arguments
-	return f((*args)(arg))
+	Targets   []discovery.Target  `river:"targets,attr"`
+	ForwardTo []loki.LogsReceiver `river:"forward_to,attr"`
 }
 
 var (
@@ -62,8 +51,8 @@ type Component struct {
 
 	mut       sync.RWMutex
 	args      Arguments
-	handler   chan loki.Entry
-	receivers []chan loki.Entry
+	handler   loki.LogsReceiver
+	receivers []loki.LogsReceiver
 	posFile   positions.Positions
 	readers   map[string]reader
 }
@@ -88,7 +77,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		opts:    o,
 		metrics: newMetrics(o.Registerer),
 
-		handler:   make(chan loki.Entry),
+		handler:   make(loki.LogsReceiver),
 		receivers: args.ForwardTo,
 		posFile:   positionsFile,
 		readers:   make(map[string]reader),

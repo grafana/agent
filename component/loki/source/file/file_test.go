@@ -33,7 +33,7 @@ func Test(t *testing.T) {
 	defer f.Close()
 
 	ch1, ch2 := make(chan loki.Entry), make(chan loki.Entry)
-	args := DefaultArguments
+	args := Arguments{}
 	args.Targets = []discovery.Target{{"__path__": f.Name(), "foo": "bar"}}
 	args.ForwardTo = []chan loki.Entry{ch1, ch2}
 

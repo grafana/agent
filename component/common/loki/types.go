@@ -13,6 +13,10 @@ import (
 	"github.com/grafana/loki/pkg/logproto"
 )
 
+// LogsReceiver is an alias for chan Entry which will be used for component
+// communication
+type LogsReceiver chan Entry
+
 // Entry is a log entry with labels.
 type Entry struct {
 	Labels model.LabelSet
