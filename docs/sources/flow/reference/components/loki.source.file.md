@@ -48,7 +48,17 @@ configuration.
 
 ## Debug information
 
-`loki.source.file` does not expose any component-specific debug information. ????
+`loki.source.file` exposes some target-level debug information per reader:
+* The tailed path.
+* Whether the reader is currently running.
+* What is the last recorded read offset in the positions file.
+
+## Debug metrics
+* `loki_source_file_read_bytes_total` (gauge): Number of bytes read.
+* `loki_source_file_file_bytes_total` (gauge): Number of bytes total.
+* `loki_source_file_read_lines_total` (counter): Number of lines read.
+* `loki_source_file_encoding_failures_total` (counter): Number of encoding failures.
+* `loki_source_file_files_active_total` (gauge): Number of active files.
 
 ## Component behavior
 Each element in the list of `targets` as a set of key-value pairs called
