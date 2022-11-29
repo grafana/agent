@@ -30,7 +30,7 @@ below.
 Name         | Type                   | Description          | Default | Required
 ------------ | ---------------------- | -------------------- | ------- | --------
 `targets`    | `list(map(string))`    | List of files to read from. | | yes
-`forward_to` | `list(chan loki.Entry)` | List of receivers to send log entries to. | | yes
+`forward_to` | `list(LogsReceiver)` | List of receivers to send log entries to. | | yes
 
 ## Blocks
 
@@ -54,9 +54,9 @@ configuration.
 Each element in the list of `targets` as a set of key-value pairs called
 _labels_.
 The set of targets can either be _static_, or dynamically provided periodically
-by a service discovery component such as `discovery.fileglob`. The special
-label `__path__` _must always_ be present and must point to the absolute path
-of the file to read from.
+by a service discovery component. The special label `__path__` _must always_ be
+present and must point to the absolute path of the file to read from.
+<!-- TODO(@tpaschalis) refer to discovery.fileglob -->
 
 The `__path__` value is  available as the `filename` label to each log entry
 the component reads. All other labels starting with a double underscore are
@@ -71,6 +71,8 @@ to store read offsets, so that in case of a component or Agent restart,
 In case a file is removed from the `targets` list, its positions file entry
 is also removed; that means that when it's added back on, `loki.source.file`
 starts reading it from the beginning.
+
+<!-- TODO(@tpaschalis) Add example section once loki.write is up and running.
 
 ## Example
 
@@ -94,3 +96,4 @@ loki.write "local" {
   }
 }
 ```
+-->
