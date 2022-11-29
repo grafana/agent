@@ -89,7 +89,6 @@ func (c *Component) Run(ctx context.Context) error {
 			}
 		}
 	}
-
 }
 
 // Update implements component.Component.

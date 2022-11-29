@@ -163,7 +163,6 @@ func New(metrics *Metrics, cfg Config, streamLagLabels []string, maxStreams int,
 }
 
 func newClient(metrics *Metrics, cfg Config, streamLagLabels []string, maxStreams int, logger log.Logger) (*client, error) {
-
 	if cfg.URL.URL == nil {
 		return nil, errors.New("client needs target URL")
 	}
