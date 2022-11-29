@@ -30,6 +30,9 @@ Main (unreleased)
   - `discovery.docker` discovers Docker containers from a Docker Engine host.
     (@rfratto)
 
+  - `loki.source.file` reads and tails files for log entries and forwards them
+    to other `loki` components. (@tpaschalis)
+
 ### Enhancements
 
 - Update OpenTelemetry Collector dependency to v0.63.1. (@tpaschalis)
