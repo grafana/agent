@@ -59,7 +59,7 @@ Name | Type | Description | Default | Required
 
 ## Blocks
 
-The following blocks are supported inside the definition of `prometheus.remote_write`:
+The following blocks are supported inside the definition of `prometheus.scrape`:
 
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
