@@ -17,7 +17,7 @@ phlare.write "local" {
 
 pprof.scrape "default" {
 	targets    = [
-		// {"__address__" = "localhost:4100","app"="phlare"},
+		 {"__address__" = "localhost:4100","app"="phlare"},
 		 {"__address__" = "localhost:12345","app"="agent"},
 	]
 	forward_to = [phlare.write.local.receiver]

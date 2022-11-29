@@ -13,6 +13,8 @@ import (
 	"github.com/grafana/agent/component/pprof"
 )
 
+var reloadInterval = 5 * time.Second
+
 type Manager struct {
 	logger log.Logger
 
@@ -43,7 +45,7 @@ func NewManager(appendable pprof.Appendable, logger log.Logger) *Manager {
 
 // Run receives and saves target set updates and triggers the scraping loops reloading.
 // Reloading happens in the background so that it doesn't block receiving targets updates.
-func (m *Manager) Run(tsets <-chan map[string][]*targetgroup.Group) error {
+func (m *Manager) Run(tsets <-chan map[string][]*targetgroup.Group) {
 	go m.reloader()
 	for {
 		select {
@@ -56,13 +58,13 @@ func (m *Manager) Run(tsets <-chan map[string][]*targetgroup.Group) error {
 			}
 
 		case <-m.graceShut:
-			return nil
+			return
 		}
 	}
 }
 
 func (m *Manager) reloader() {
-	ticker := time.NewTicker(5 * time.Second)
+	ticker := time.NewTicker(reloadInterval)
 
 	defer ticker.Stop()
 
@@ -109,19 +111,18 @@ func (m *Manager) reload() {
 func (m *Manager) ApplyConfig(cfg Arguments) error {
 	m.mtxScrape.Lock()
 	defer m.mtxScrape.Unlock()
-
-	m.config = cfg
-
+	if reflect.DeepEqual(m.config, cfg) {
+		return nil
+	}
 	// Cleanup and reload pool if the configuration has changed.
 	var failed bool
+	m.config = cfg
 
-	if !reflect.DeepEqual(m.config, cfg) {
-		for name, sp := range m.targetsGroups {
-			err := sp.reload(cfg)
-			if err != nil {
-				level.Error(m.logger).Log("msg", "error reloading scrape pool", "err", err, "scrape_pool", name)
-				failed = true
-			}
+	for name, sp := range m.targetsGroups {
+		err := sp.reload(cfg)
+		if err != nil {
+			level.Error(m.logger).Log("msg", "error reloading scrape pool", "err", err, "scrape_pool", name)
+			failed = true
 		}
 	}
 

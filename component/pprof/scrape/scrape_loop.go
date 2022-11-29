@@ -99,10 +99,12 @@ Outer:
 func (tg *scrapePool) reload(cfg Arguments) error {
 	tg.mtx.Lock()
 	defer tg.mtx.Unlock()
+	tg.config = cfg
 	scrapeClient, err := commonconfig.NewClientFromConfig(*cfg.HTTPClientConfig.Convert(), cfg.JobName)
 	if err != nil {
 		return err
 	}
+	tg.scrapeClient = scrapeClient
 	for _, t := range tg.activeTargets {
 		t.reload(scrapeClient, cfg.ScrapeInterval, cfg.ScrapeTimeout)
 	}

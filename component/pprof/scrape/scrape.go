@@ -207,11 +207,8 @@ func (c *Component) Run(ctx context.Context) error {
 	targetSetsChan := make(chan map[string][]*targetgroup.Group)
 
 	go func() {
-		err := c.scraper.Run(targetSetsChan)
+		c.scraper.Run(targetSetsChan)
 		level.Info(c.opts.Logger).Log("msg", "scrape manager stopped")
-		if err != nil {
-			level.Error(c.opts.Logger).Log("msg", "scrape manager failed", "err", err)
-		}
 	}()
 
 	for {
