@@ -1,3 +1,4 @@
+// Package kubernetes implements a discovery.kubernetes component.
 package kubernetes
 
 import (
@@ -10,22 +11,17 @@ import (
 func init() {
 	component.Register(component.Registration{
 		Name:    "discovery.kubernetes",
-		Args:    SDConfig{},
+		Args:    Arguments{},
 		Exports: discovery.Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
-			return discovery.New(opts, args, newK8s)
+			return New(opts, args.(Arguments))
 		},
 	})
 }
 
-var newK8s discovery.Creator = func(args component.Arguments, opts component.Options) (discovery.Discoverer, error) {
-	newArgs := args.(SDConfig)
-	return promk8s.New(opts.Logger, newArgs.Convert())
-}
-
-// SDConfig is a conversion of discover/kubernetes/SDConfig to be compatible with flow
-type SDConfig struct {
+// Arguments configures the discovery.kubernetes component.
+type Arguments struct {
 	APIServer          config.URL              `river:"api_server,attr,optional"`
 	Role               string                  `river:"role,attr"`
 	KubeConfig         string                  `river:"kubeconfig_file,attr,optional"`
@@ -34,35 +30,35 @@ type SDConfig struct {
 	Selectors          []SelectorConfig        `river:"selectors,block,optional"`
 }
 
-// DefaultConfig holds defaults for SDConfig. (copied from prometheus)
-var DefaultConfig = SDConfig{
+// DefaultConfig holds defaults for SDConfig.
+var DefaultConfig = Arguments{
 	HTTPClientConfig: config.DefaultHTTPClientConfig,
 }
 
-// UnmarshalRiver simply applies defaults then unmarshals regularly
-func (sd *SDConfig) UnmarshalRiver(f func(interface{}) error) error {
-	*sd = DefaultConfig
-	type arguments SDConfig
-	return f((*arguments)(sd))
+// UnmarshalRiver implements river.Unmarshaler and applies default settings.
+func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+	*args = DefaultConfig
+	type arguments Arguments
+	return f((*arguments)(args))
 }
 
-// Convert to prometheus config type
-func (sd *SDConfig) Convert() *promk8s.SDConfig {
-	selectors := make([]promk8s.SelectorConfig, len(sd.Selectors))
-	for i, s := range sd.Selectors {
+// Convert converts Arguments to the Prometheus SD type.
+func (args *Arguments) Convert() *promk8s.SDConfig {
+	selectors := make([]promk8s.SelectorConfig, len(args.Selectors))
+	for i, s := range args.Selectors {
 		selectors[i] = *s.convert()
 	}
 	return &promk8s.SDConfig{
-		APIServer:          sd.APIServer.Convert(),
-		Role:               promk8s.Role(sd.Role),
-		KubeConfig:         sd.KubeConfig,
-		HTTPClientConfig:   *sd.HTTPClientConfig.Convert(),
-		NamespaceDiscovery: *sd.NamespaceDiscovery.convert(),
+		APIServer:          args.APIServer.Convert(),
+		Role:               promk8s.Role(args.Role),
+		KubeConfig:         args.KubeConfig,
+		HTTPClientConfig:   *args.HTTPClientConfig.Convert(),
+		NamespaceDiscovery: *args.NamespaceDiscovery.convert(),
 		Selectors:          selectors,
 	}
 }
 
-// NamespaceDiscovery mirroring prometheus type
+// NamespaceDiscovery configures filtering rules for which namespaces to discover.
 type NamespaceDiscovery struct {
 	IncludeOwnNamespace bool     `river:"own_namespace,attr,optional"`
 	Names               []string `river:"names,attr,optional"`
@@ -75,7 +71,7 @@ func (nd *NamespaceDiscovery) convert() *promk8s.NamespaceDiscovery {
 	}
 }
 
-// SelectorConfig mirroring prometheus type
+// SelectorConfig configures selectors to filter resources to discover.
 type SelectorConfig struct {
 	Role  string `river:"role,attr"`
 	Label string `river:"label,attr,optional"`
@@ -88,4 +84,12 @@ func (sc *SelectorConfig) convert() *promk8s.SelectorConfig {
 		Label: sc.Label,
 		Field: sc.Field,
 	}
+}
+
+// New returns a new instance of a discovery.kubernetes component.
+func New(opts component.Options, args Arguments) (component.Component, error) {
+	return discovery.New(opts, args, func(args component.Arguments) (discovery.Discoverer, error) {
+		newArgs := args.(Arguments)
+		return promk8s.New(opts.Logger, newArgs.Convert())
+	})
 }

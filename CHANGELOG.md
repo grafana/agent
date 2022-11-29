@@ -27,6 +27,9 @@ Main (unreleased)
   - `remote.http` polls an HTTP URL and exposes the response body as a string
     or secret to other components. (@rfratto)
 
+  - `discovery.docker` discovers Docker containers from a Docker Engine host.
+    (@rfratto)
+
 ### Enhancements
 
 - Update OpenTelemetry Collector dependency to v0.63.1. (@tpaschalis)
