@@ -10,6 +10,8 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 )
 
+var NoopAppendable = AppendableFunc(func(_ context.Context, _ labels.Labels, _ []*RawSample) error { return nil })
+
 type Appendable interface {
 	Appender() Appender
 }
@@ -54,6 +56,13 @@ func (f *Fanout) UpdateChildren(children []Appendable) {
 	f.mut.Lock()
 	defer f.mut.Unlock()
 	f.children = children
+}
+
+// Children returns the children of the fanout.
+func (f *Fanout) Children() []Appendable {
+	f.mut.Lock()
+	defer f.mut.Unlock()
+	return f.children
 }
 
 // Appender satisfies the Appendable interface.

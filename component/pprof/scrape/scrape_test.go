@@ -1,12 +1,60 @@
 package scrape
 
 import (
+	"context"
+	"fmt"
 	"testing"
+	"time"
 
+	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
+	"github.com/grafana/agent/component/pprof"
+	"github.com/grafana/agent/component/prometheus/scrape"
 	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/agent/pkg/util"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 )
+
+func TestComponent(t *testing.T) {
+	defer goleak.VerifyNone(t)
+	reloadInterval = 100 * time.Millisecond
+	arg := NewDefaultArguments()
+	arg.JobName = "test"
+	c, err := New(component.Options{
+		Logger:     util.TestLogger(t),
+		Registerer: prometheus.NewRegistry(),
+	}, arg)
+	require.NoError(t, err)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go func() {
+		err := c.Run(ctx)
+		require.NoError(t, err)
+	}()
+
+	// triger an update
+	require.Empty(t, c.appendable.Children())
+	require.Empty(t, c.DebugInfo().(scrape.ScraperStatus).TargetStatus)
+
+	arg.ForwardTo = []pprof.Appendable{pprof.NoopAppendable}
+	arg.Targets = []discovery.Target{
+		{
+			model.AddressLabel: "foo",
+		},
+		{
+			model.AddressLabel: "bar",
+		},
+	}
+	c.Update(arg)
+
+	require.Eventually(t, func() bool {
+		fmt.Println(c.DebugInfo().(scrape.ScraperStatus).TargetStatus)
+		return len(c.appendable.Children()) == 1 && len(c.DebugInfo().(scrape.ScraperStatus).TargetStatus) == 10
+	}, 5*time.Second, 100*time.Millisecond)
+}
 
 func TestUnmarshalConfig(t *testing.T) {
 	for name, tt := range map[string]struct {
