@@ -29,6 +29,7 @@ pprof.scrape "default" {
 				enabled = true,
 			},
 			block = { enabled = false },
+			mutex = { enabled = false },
 		}
 	}
 }

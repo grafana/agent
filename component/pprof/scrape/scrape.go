@@ -288,7 +288,6 @@ func (c *Component) DebugInfo() interface{} {
 				lastError = st.LastError().Error()
 			}
 			if st != nil {
-				// todo(ctovena): add more info
 				res = append(res, scrape.TargetStatus{
 					JobName:            job,
 					URL:                st.URL().String(),
