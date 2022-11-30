@@ -105,6 +105,7 @@ local new_stage = function(spec) {
 
   // spec.Tenant :: *TenantStageSpec
   tenant: if spec.Tenant != null then {
+    label: optionals.string(spec.Tenant.Label),
     source: optionals.string(spec.Tenant.Source),
     value: optionals.string(spec.Tenant.Value),
   },

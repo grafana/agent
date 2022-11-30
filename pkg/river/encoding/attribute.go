@@ -43,7 +43,7 @@ func (af *attributeField) convertAttribute(val value.Value, f rivertags.Field) e
 	if !f.IsAttr() {
 		return fmt.Errorf("convertAttribute requires a field that is an attribute got %T", val.Interface())
 	}
-	if val.Reflect().IsZero() {
+	if !val.Reflect().IsValid() || val.Reflect().IsZero() {
 		return nil
 	}
 	af.Type = attrType

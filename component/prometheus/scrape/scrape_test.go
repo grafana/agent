@@ -11,6 +11,7 @@ import (
 	"github.com/grafana/agent/pkg/flow/logging"
 	prometheus_client "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/storage"
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,16 +23,13 @@ func TestForwardingToAppendable(t *testing.T) {
 		Registerer: prometheus_client.NewRegistry(),
 	}
 
-	nilReceivers := []*prometheus.Receiver{nil, nil}
+	nilReceivers := []storage.Appendable{nil, nil}
 
 	args := DefaultArguments
 	args.ForwardTo = nilReceivers
 
 	s, err := New(opts, args)
 	require.NoError(t, err)
-
-	// List the Appendable's receivers; they are nil.
-	require.Equal(t, nilReceivers, s.appendable.ListReceivers())
 
 	// Forwarding samples to the nil receivers shouldn't fail.
 	appender := s.appendable.Appender(context.Background())
@@ -43,27 +41,26 @@ func TestForwardingToAppendable(t *testing.T) {
 
 	// Update the component with a mock receiver; it should be passed along to the Appendable.
 	var receivedTs int64
-	var receivedSamples []*prometheus.FlowMetric
-	mockReceiver := []*prometheus.Receiver{
-		{
-			Receive: func(t int64, m []*prometheus.FlowMetric) {
-				receivedTs = t
-				receivedSamples = m
-			},
+	var receivedSamples labels.Labels
+	fanout, err := prometheus.NewInterceptor(
+		func(ref storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
+			receivedTs = t
+			receivedSamples = l
+			return ref, nil
 		},
-	}
-
-	args.ForwardTo = mockReceiver
+		nil,
+		"1",
+	)
+	require.NoError(t, err)
+	args.ForwardTo = []storage.Appendable{fanout}
 	err = s.Update(args)
 	require.NoError(t, err)
 
-	require.Equal(t, mockReceiver, s.appendable.ListReceivers())
-
 	// Forwarding a sample to the mock receiver should succeed.
 	appender = s.appendable.Appender(context.Background())
-	sample := prometheus.NewFlowMetric(1, labels.FromStrings("foo", "bar"), 42.0)
 	timestamp := time.Now().Unix()
-	_, err = appender.Append(0, sample.LabelsCopy(), timestamp, sample.Value())
+	sample := labels.FromStrings("foo", "bar")
+	_, err = appender.Append(0, sample, timestamp, 42.0)
 	require.NoError(t, err)
 
 	err = appender.Commit()
@@ -71,5 +68,5 @@ func TestForwardingToAppendable(t *testing.T) {
 
 	require.Equal(t, receivedTs, timestamp)
 	require.Len(t, receivedSamples, 1)
-	require.Equal(t, receivedSamples[0], sample)
+	require.Equal(t, receivedSamples, sample)
 }

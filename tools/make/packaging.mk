@@ -27,7 +27,8 @@ dist-agent-binaries: dist/agent-linux-amd64   \
                      dist/agent-linux-ppc64le \
                      dist/agent-darwin-amd64  \
                      dist/agent-darwin-arm64  \
-                     dist/agent-windows-amd64.exe
+                     dist/agent-windows-amd64.exe \
+                     dist/agent-freebsd-amd64
 
 dist/agent-linux-amd64: GO_TAGS += noebpf builtinassets
 dist/agent-linux-amd64: GOOS    := linux
@@ -79,6 +80,12 @@ dist/agent-windows-amd64.exe: GOARCH  := amd64
 dist/agent-windows-amd64.exe: generate-ui
 	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
+dist/agent-freebsd-amd64: GO_TAGS += builtinassets
+dist/agent-freebsd-amd64: GOOS    := freebsd
+dist/agent-freebsd-amd64: GOARCH  := amd64
+dist/agent-freebsd-amd64: generate-ui
+	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
+
 #
 # agentctl release binaries.
 #
@@ -90,7 +97,8 @@ dist-agentctl-binaries: dist/agentctl-linux-amd64   \
                         dist/agentctl-linux-ppc64le \
                         dist/agentctl-darwin-amd64  \
                         dist/agentctl-darwin-arm64  \
-                        dist/agentctl-windows-amd64.exe
+                        dist/agentctl-windows-amd64.exe \
+                        dist/agentctl-freebsd-amd64
 
 dist/agentctl-linux-amd64: GO_TAGS += noebpf
 dist/agentctl-linux-amd64: GOOS    := linux
@@ -133,6 +141,12 @@ dist/agentctl-darwin-arm64:
 dist/agentctl-windows-amd64.exe: GOOS   := windows
 dist/agentctl-windows-amd64.exe: GOARCH := amd64
 dist/agentctl-windows-amd64.exe:
+	$(PACKAGING_VARS) AGENTCTL_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agentctl
+
+dist/agentctl-freebsd-amd64: GO_TAGS += builtinassets
+dist/agentctl-freebsd-amd64: GOOS    := freebsd
+dist/agentctl-freebsd-amd64: GOARCH  := amd64
+dist/agentctl-freebsd-amd64:
 	$(PACKAGING_VARS) AGENTCTL_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agentctl
 
 #

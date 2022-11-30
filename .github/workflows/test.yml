@@ -1,5 +1,9 @@
 name: Test
-on: [pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
 jobs:
   test:
     name: Test
@@ -10,24 +14,10 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
-    - name: Set up Go 1.18
+    - name: Set up Go 1.19
       uses: actions/setup-go@v3
       with:
-        go-version: 1.18.0
-      id: go
-    - name: Determine Go cache directories
-      id: go-cache
-      run: |
-        echo "::set-output name=go-build::$(go env GOCACHE)"
-        echo "::set-output name=go-mod::$(go env GOMODCACHE)"
-    - name: Restore Go cache
-      uses: actions/cache@v3.0.8
-      with:
-        path: |
-          ${{ steps.go-cache.outputs.go-build }}
-          ${{ steps.go-cache.outputs.go-mod }}
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
+        go-version: "1.19"
+        cache: true
     - name: Test
       run: make GO_TAGS="nodocker" test

@@ -29,7 +29,7 @@ configs:
 	var cfg Config
 
 	logger := util.TestLogger(t)
-	l, err := New(prometheus.NewRegistry(), &cfg, logger)
+	l, err := New(prometheus.NewRegistry(), &cfg, logger, false)
 	require.NoError(t, err)
 	defer l.Stop()
 
@@ -46,7 +46,7 @@ configs:
 	dec.SetStrict(true)
 	require.NoError(t, dec.Decode(&cfg))
 	t.Run("non-empty", func(t *testing.T) {
-		require.NoError(t, l.ApplyConfig(&cfg))
+		require.NoError(t, l.ApplyConfig(&cfg, false))
 
 		expect := `{"status":"success","data":["instance-a"]}`
 		test.Poll(t, time.Second, true, func() interface{} {
@@ -73,7 +73,7 @@ configs:
 	require.NoError(t, dec.Decode(&cfg))
 
 	logger := util.TestLogger(t)
-	l, err := New(prometheus.NewRegistry(), &cfg, logger)
+	l, err := New(prometheus.NewRegistry(), &cfg, logger, false)
 	require.NoError(t, err)
 	defer l.Stop()
 

@@ -71,11 +71,11 @@ func getFieldsForBlock(input interface{}) ([]interface{}, error) {
 	var fields []interface{}
 	for _, t := range rt {
 		fieldRef := reflectVal.FieldByIndex(t.Index)
-		fieldVal := value.Encode(fieldRef.Interface())
-		fieldReflect := fieldVal.Reflect()
-		if t.IsBlock() && (fieldReflect.Kind() == reflect.Array || fieldReflect.Kind() == reflect.Slice) {
-			for i := 0; i < fieldReflect.Len(); i++ {
-				arrEle := fieldReflect.Index(i).Interface()
+		fieldVal := value.FromRaw(fieldRef)
+
+		if t.IsBlock() && (fieldRef.Kind() == reflect.Array || fieldRef.Kind() == reflect.Slice) {
+			for i := 0; i < fieldRef.Len(); i++ {
+				arrEle := fieldRef.Index(i).Interface()
 				bf, err := newBlock(reflect.ValueOf(arrEle), t)
 				if err != nil {
 					return nil, err

@@ -72,10 +72,14 @@ spec:
     port: 9411
     protocol: TCP
     targetPort: 9411
-  - name: grafana-agent-traces-otlp
+  - name: grafana-agent-traces-otlp-grpc
     port: 4317
     protocol: TCP
     targetPort: 4317
+  - name: grafana-agent-traces-otlp-http
+    port: 4318
+    protocol: TCP
+    targetPort: 4318
   - name: grafana-agent-traces-opencensus
     port: 55678
     protocol: TCP
@@ -111,7 +115,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        image: grafana/agent:v0.28.0-rc.0
+        image: grafana/agent:v0.29.0
         imagePullPolicy: IfNotPresent
         name: grafana-agent-traces
         ports:
@@ -133,7 +137,10 @@ spec:
           name: zipkin
           protocol: TCP
         - containerPort: 4317
-          name: otlp
+          name: otlp-grpc
+          protocol: TCP
+        - containerPort: 4318
+          name: otlp-http
           protocol: TCP
         - containerPort: 55678
           name: opencensus

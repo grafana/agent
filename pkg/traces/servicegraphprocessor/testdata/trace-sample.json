@@ -59,9 +59,9 @@
           }
         ]
       },
-      "instrumentationLibrarySpans":[
+      "scope_spans":[
         {
-          "instrumentationLibrary":{
+          "scope":{
 
           },
           "spans":[
@@ -548,9 +548,9 @@
           }
         ]
       },
-      "instrumentationLibrarySpans":[
+      "scope_spans":[
         {
-          "instrumentationLibrary":{
+          "scope":{
 
           },
           "spans":[
@@ -1111,9 +1111,9 @@
           }
         ]
       },
-      "instrumentationLibrarySpans":[
+      "scope_spans":[
         {
-          "instrumentationLibrary":{
+          "scope":{
 
           },
           "spans":[
@@ -1256,9 +1256,9 @@
           }
         ]
       },
-      "instrumentationLibrarySpans":[
+      "scope_spans":[
         {
-          "instrumentationLibrary":{
+          "scope":{
 
           },
           "spans":[
@@ -1547,9 +1547,9 @@
           }
         ]
       },
-      "instrumentationLibrarySpans":[
+      "scope_spans":[
         {
-          "instrumentationLibrary":{
+          "scope":{
 
           },
           "spans":[
@@ -1863,9 +1863,9 @@
           }
         ]
       },
-      "instrumentationLibrarySpans":[
+      "scope_spans":[
         {
-          "instrumentationLibrary":{
+          "scope":{
 
           },
           "spans":[

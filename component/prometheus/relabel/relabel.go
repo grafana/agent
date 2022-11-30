@@ -4,11 +4,16 @@ import (
 	"context"
 	"sync"
 
+	"github.com/prometheus/prometheus/storage"
+
 	"github.com/grafana/agent/component"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/prometheus"
 	prometheus_client "github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/prometheus/model/labels"
+
 	"github.com/prometheus/prometheus/model/relabel"
+	"github.com/prometheus/prometheus/model/value"
 )
 
 func init() {
@@ -26,7 +31,7 @@ func init() {
 // component.
 type Arguments struct {
 	// Where the relabelled metrics should be forwarded to.
-	ForwardTo []*prometheus.Receiver `river:"forward_to,attr"`
+	ForwardTo []storage.Appendable `river:"forward_to,attr"`
 
 	// The relabelling rules to apply to each metric before it's forwarded.
 	MetricRelabelConfigs []*flow_relabel.Config `river:"rule,block,optional"`
@@ -34,7 +39,7 @@ type Arguments struct {
 
 // Exports holds values which are exported by the prometheus.relabel component.
 type Exports struct {
-	Receiver *prometheus.Receiver `river:"receiver,attr"`
+	Receiver storage.Appendable `river:"receiver,attr"`
 }
 
 // Component implements the prometheus.relabel component.
@@ -42,9 +47,16 @@ type Component struct {
 	mut              sync.RWMutex
 	opts             component.Options
 	mrc              []*relabel.Config
-	forwardto        []*prometheus.Receiver
-	receiver         *prometheus.Receiver
+	receiver         *prometheus.Interceptor
 	metricsProcessed prometheus_client.Counter
+	metricsOutgoing  prometheus_client.Counter
+	cacheHits        prometheus_client.Counter
+	cacheMisses      prometheus_client.Counter
+	cacheSize        prometheus_client.Gauge
+	fanout           *prometheus.Fanout
+
+	cacheMut sync.RWMutex
+	cache    map[uint64]*labelAndID
 }
 
 var (
@@ -53,17 +65,56 @@ var (
 
 // New creates a new prometheus.relabel component.
 func New(o component.Options, args Arguments) (*Component, error) {
-	c := &Component{opts: o}
-	c.receiver = &prometheus.Receiver{Receive: c.Receive}
+	c := &Component{
+		opts:  o,
+		cache: make(map[uint64]*labelAndID),
+	}
 	c.metricsProcessed = prometheus_client.NewCounter(prometheus_client.CounterOpts{
 		Name: "agent_prometheus_relabel_metrics_processed",
 		Help: "Total number of metrics processed",
 	})
+	c.metricsOutgoing = prometheus_client.NewCounter(prometheus_client.CounterOpts{
+		Name: "agent_prometheus_relabel_metrics_written",
+		Help: "Total number of metrics written",
+	})
+	c.cacheMisses = prometheus_client.NewCounter(prometheus_client.CounterOpts{
+		Name: "agent_prometheus_relabel_cache_misses",
+		Help: "Total number of cache misses",
+	})
+	c.cacheHits = prometheus_client.NewCounter(prometheus_client.CounterOpts{
+		Name: "agent_prometheus_relabel_cache_hits",
+		Help: "Total number of cache hits",
+	})
+	c.cacheSize = prometheus_client.NewGauge(prometheus_client.GaugeOpts{
+		Name: "agent_prometheus_relabel_cache_size",
+		Help: "Total size of relabel cache",
+	})
 
-	err := o.Registerer.Register(c.metricsProcessed)
+	var err error
+	for _, metric := range []prometheus_client.Collector{c.metricsProcessed, c.metricsOutgoing, c.cacheMisses, c.cacheHits, c.cacheSize} {
+		err = o.Registerer.Register(metric)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	c.fanout = prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer)
+	c.receiver, err = prometheus.NewInterceptor(func(ref storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
+		newLbl := c.relabel(v, l)
+		if newLbl == nil {
+			return 0, nil
+		}
+		c.metricsOutgoing.Inc()
+		return next.Append(0, newLbl, t, v)
+	}, c.fanout, c.opts.ID)
+
 	if err != nil {
 		return nil, err
 	}
+	// Immediately export the receiver which remains the same for the component
+	// lifetime.
+	o.OnStateChange(Exports{Receiver: c.receiver})
+
 	// Call to Update() to set the relabelling rules once at the start.
 	if err = c.Update(args); err != nil {
 		return nil, err
@@ -75,7 +126,6 @@ func New(o component.Options, args Arguments) (*Component, error) {
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
 	<-ctx.Done()
-	c.opts.Registerer.Unregister(c.metricsProcessed)
 	return nil
 }
 
@@ -85,38 +135,87 @@ func (c *Component) Update(args component.Arguments) error {
 	defer c.mut.Unlock()
 
 	newArgs := args.(Arguments)
-
+	c.clearCache()
 	c.mrc = flow_relabel.ComponentToPromRelabelConfigs(newArgs.MetricRelabelConfigs)
-	c.forwardto = newArgs.ForwardTo
+	c.fanout.UpdateChildren(newArgs.ForwardTo)
 	c.opts.OnStateChange(Exports{Receiver: c.receiver})
 
 	return nil
 }
 
-// Receive implements the receiver.Receive func that allows an array of metrics
-// to be passed around.
-// TODO (@tpaschalis) The relabelling process will run _every_ time, for all
-// metrics, resulting in some serious CPU overhead. We should be caching the
-// relabeling results per refID and clearing entries for dropped or stale
-// series. This is a blocker for releasing a production-grade version of the
-// prometheus.relabel component.
-func (c *Component) Receive(ts int64, metricArr []*prometheus.FlowMetric) {
+func (c *Component) relabel(val float64, lbls labels.Labels) labels.Labels {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
 
-	relabelledMetrics := make([]*prometheus.FlowMetric, 0)
-	for _, m := range metricArr {
-		// Relabel may return the original flowmetric if no changes applied, nil if everything was removed or an entirely new flowmetric.
-		relabelledFm := m.Relabel(c.mrc...)
-		if relabelledFm == nil {
-			continue
+	globalRef := prometheus.GlobalRefMapping.GetOrAddGlobalRefID(lbls)
+	var relabelled labels.Labels
+	newLbls, found := c.getFromCache(globalRef)
+	if found {
+		c.cacheHits.Inc()
+		// If newLbls is nil but cache entry was found then we want to keep the value nil, if it's not we want to reuse the labels
+		if newLbls != nil {
+			relabelled = newLbls.labels
 		}
-		relabelledMetrics = append(relabelledMetrics, relabelledFm)
+	} else {
+		relabelled = relabel.Process(lbls, c.mrc...)
+		c.cacheMisses.Inc()
+		c.cacheSize.Inc()
+		c.addToCache(globalRef, relabelled)
 	}
-	if len(relabelledMetrics) == 0 {
+
+	// If stale remove from the cache, the reason we don't exit early is so the stale value can propagate.
+	// TODO: (@mattdurham) This caching can leak and likely needs a timed eviction at some point, but this is simple.
+	// In the future the global ref cache may have some hooks to allow notification of when caches should be evicted.
+	if value.IsStaleNaN(val) {
+		c.cacheSize.Dec()
+		c.deleteFromCache(globalRef)
+	}
+	if relabelled == nil {
+		return nil
+	}
+	return relabelled
+}
+
+func (c *Component) getFromCache(id uint64) (*labelAndID, bool) {
+	c.cacheMut.RLock()
+	defer c.cacheMut.RUnlock()
+
+	fm, found := c.cache[id]
+	return fm, found
+}
+
+func (c *Component) deleteFromCache(id uint64) {
+	c.cacheMut.Lock()
+	defer c.cacheMut.Unlock()
+
+	delete(c.cache, id)
+}
+
+func (c *Component) clearCache() {
+	c.cacheMut.Lock()
+	defer c.cacheMut.Unlock()
+
+	c.cache = make(map[uint64]*labelAndID)
+}
+
+func (c *Component) addToCache(originalID uint64, lbls labels.Labels) {
+	c.cacheMut.Lock()
+	defer c.cacheMut.Unlock()
+
+	if lbls == nil {
+		c.cache[originalID] = nil
 		return
 	}
-	for _, forward := range c.forwardto {
-		forward.Receive(ts, relabelledMetrics)
+	newGlobal := prometheus.GlobalRefMapping.GetOrAddGlobalRefID(lbls)
+	c.cache[originalID] = &labelAndID{
+		labels: lbls,
+		id:     newGlobal,
 	}
+}
+
+// labelAndID stores both the globalrefid for the label and the id itself. We store the id so that it doesnt have
+// to be recalculated again.
+type labelAndID struct {
+	labels labels.Labels
+	id     uint64
 }

@@ -2,7 +2,6 @@
 package apache_http //nolint:golint
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 
@@ -46,7 +45,7 @@ func (c *Config) Identifier(globals integrations_v2.Globals) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s:%s", u.Hostname(), u.Port()), nil
+	return u.Host, nil
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config

@@ -130,30 +130,30 @@ func (e *remoteWriteExporter) ConsumeMetrics(ctx context.Context, md pmetric.Met
 		for j := 0; j < scopeMetricsSlice.Len(); j++ {
 			metricSlice := scopeMetricsSlice.At(j).Metrics()
 			for k := 0; k < metricSlice.Len(); k++ {
-				switch metric := metricSlice.At(k); metric.DataType() {
-				case pmetric.MetricDataTypeGauge:
+				switch metric := metricSlice.At(k); metric.Type() {
+				case pmetric.MetricTypeGauge:
 					dataPoints := metric.Sum().DataPoints()
 					if err := e.handleNumberDataPoints(metric.Name(), dataPoints); err != nil {
 						return err
 					}
-				case pmetric.MetricDataTypeSum:
-					if metric.Sum().AggregationTemporality() != pmetric.MetricAggregationTemporalityCumulative {
+				case pmetric.MetricTypeSum:
+					if metric.Sum().AggregationTemporality() != pmetric.AggregationTemporalityCumulative {
 						continue // Only cumulative metrics are supported
 					}
 					dataPoints := metric.Sum().DataPoints()
 					if err := e.handleNumberDataPoints(metric.Name(), dataPoints); err != nil {
 						return err
 					}
-				case pmetric.MetricDataTypeHistogram:
-					if metric.Histogram().AggregationTemporality() != pmetric.MetricAggregationTemporalityCumulative {
+				case pmetric.MetricTypeHistogram:
+					if metric.Histogram().AggregationTemporality() != pmetric.AggregationTemporalityCumulative {
 						continue // Only cumulative metrics are supported
 					}
 					dataPoints := metric.Histogram().DataPoints()
 					e.handleHistogramDataPoints(metric.Name(), dataPoints)
-				case pmetric.MetricDataTypeSummary:
-					return fmt.Errorf("unsupported metric data type %s", metric.DataType())
+				case pmetric.MetricTypeSummary:
+					return fmt.Errorf("unsupported metric data type %s", metric.Type())
 				default:
-					return fmt.Errorf("unsupported metric data type %s", metric.DataType())
+					return fmt.Errorf("unsupported metric data type %s", metric.Type())
 				}
 			}
 		}
@@ -177,9 +177,9 @@ func (e *remoteWriteExporter) appendNumberDataPoint(dataPoint pmetric.NumberData
 	var val float64
 	switch dataPoint.ValueType() {
 	case pmetric.NumberDataPointValueTypeDouble:
-		val = dataPoint.DoubleVal()
+		val = dataPoint.DoubleValue()
 	case pmetric.NumberDataPointValueTypeInt:
-		val = float64(dataPoint.IntVal())
+		val = float64(dataPoint.IntValue())
 	default:
 		return fmt.Errorf("unknown data point type: %s", dataPoint.ValueType())
 	}
@@ -290,7 +290,7 @@ func (e *remoteWriteExporter) createLabelSet(name, suffix string, labelMap pcomm
 	labelMap.Range(func(k string, v pcommon.Value) bool {
 		ls = append(ls, labels.Label{
 			Name:  strings.Replace(k, ".", "_", -1),
-			Value: v.StringVal(),
+			Value: v.Str(),
 		})
 		return true
 	})

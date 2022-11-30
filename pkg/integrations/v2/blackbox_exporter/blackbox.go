@@ -90,17 +90,13 @@ func (bbh *blackboxHandler) Handler(prefix string) (http.Handler, error) {
 func (bbh *blackboxHandler) createHandler(targets []blackbox_exporter.BlackboxTarget) http.HandlerFunc {
 	blackboxTargets := make(map[string]blackbox_exporter.BlackboxTarget)
 	for _, target := range targets {
-		blackboxTargets[target.Name] = target
+		blackboxTargets[target.Target] = target
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		params := r.URL.Query()
 
 		targetName := params.Get("target")
-		t, ok := blackboxTargets[targetName]
-		if ok {
-			params.Set("target", t.Target)
-		}
-
+		t := blackboxTargets[targetName]
 		moduleName := params.Get("module")
 		if moduleName == "" {
 			params.Set("module", t.Module)

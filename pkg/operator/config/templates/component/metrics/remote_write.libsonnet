@@ -34,6 +34,27 @@ function(namespace, rw) {
       password_file: secrets.pathForSecret(namespace, rw.BasicAuth.Password),
     }
   ),
+  oauth2: (
+    if rw.OAuth2 != null then {
+      // TODO: client_id can also be stored in a config map:
+      // secrets.valueForConfigMap(namespace, rw.OAuth2.ClientID.ConfigMap),
+      local client_id = secrets.valueForSecret(namespace, rw.OAuth2.ClientID.Secret),
+      
+      client_id: client_id,
+      client_secret_file: secrets.pathForSecret(namespace, rw.OAuth2.ClientSecret),
+      endpoint_params: rw.OAuth2.EndpointParams,
+      scopes: rw.OAuth2.Scopes,
+      token_url: rw.OAuth2.TokenURL,
+    }
+  ),
+  local bearerToken = optionals.string(rw.BearerToken),
+  local bearerTokenFile = optionals.string(rw.BearerTokenFile),
+
+  authorization: if bearerToken != null || bearerTokenFile != null then {
+    type: 'Bearer',
+    credentials: bearerToken,
+    credentials_file: bearerTokenFile,
+  },
 
   sigv4: (
     if rw.SigV4 != null then {

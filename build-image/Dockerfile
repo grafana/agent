@@ -12,14 +12,14 @@
 
 # Dependency: golangci-lint (for linting)
 FROM alpine as golangci
-RUN wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.46.2
+RUN wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.50.1
 
 # Dependency: docker (for building images)
 FROM alpine:3.16 as docker
 RUN apk add --no-cache docker-cli docker-cli-buildx
 
 # Dependency: Go and Go dependencies
-FROM golang:1.18-bullseye as golang
+FROM golang:1.19.3-bullseye as golang
 
 # Keep in sync with cmd/agent-operator/DEVELOPERS.md
 ENV CONTROLLER_GEN_VERSION v0.8.0
@@ -32,7 +32,8 @@ RUN go install sigs.k8s.io/controller-tools/cmd/controller-gen@$CONTROLLER_GEN_V
  && go install github.com/google/go-jsonnet/cmd/jsonnet@v0.18.0                        \
  && go install github.com/golang/protobuf/protoc-gen-go@v1.3.1                         \
  && go install github.com/gogo/protobuf/protoc-gen-gogoslick@v1.3.0                    \
- && go install github.com/gogo/protobuf/gogoproto/...@v1.3.0
+ && go install github.com/gogo/protobuf/gogoproto/...@v1.3.0                           \
+ && go install github.com/ahmetb/gen-crd-api-reference-docs@v0.3.1-0.20220618162802-424739b250f5
 
 #
 # Final image

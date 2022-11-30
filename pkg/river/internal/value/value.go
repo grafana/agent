@@ -25,6 +25,7 @@ var (
 	goDurationPtr     = reflect.TypeOf((*time.Duration)(nil))
 	goRiverDecoder    = reflect.TypeOf((*Unmarshaler)(nil)).Elem()
 	goRawRiverFunc    = reflect.TypeOf((RawFunction)(nil))
+	goRiverValue      = reflect.TypeOf(Null)
 )
 
 // NOTE(rfratto): This package is extremely sensitive to performance, so
@@ -61,31 +62,19 @@ func Bool(b bool) Value { return Value{rv: reflect.ValueOf(b), ty: TypeBool} }
 // Object returns a new value from m. A copy of m is made for producing the
 // Value.
 func Object(m map[string]Value) Value {
-	raw := reflect.MakeMapWithSize(reflect.TypeOf(map[string]interface{}(nil)), len(m))
-
-	for k, v := range m {
-		raw.SetMapIndex(reflect.ValueOf(k), v.rv)
+	return Value{
+		rv: reflect.ValueOf(m),
+		ty: TypeObject,
 	}
-
-	return Value{rv: raw, ty: TypeObject}
 }
 
 // Array creates an array from the given values. A copy of the vv slice is made
 // for producing the Value.
 func Array(vv ...Value) Value {
-	// Arrays should be slices otherwise any reference to them gets copied by
-	// value into a new pointer.
-	arrayType := reflect.SliceOf(goAny)
-	raw := reflect.MakeSlice(arrayType, len(vv), len(vv))
-
-	for i, v := range vv {
-		if v.ty == TypeNull {
-			continue
-		}
-		raw.Index(i).Set(v.rv)
+	return Value{
+		rv: reflect.ValueOf(vv),
+		ty: TypeArray,
 	}
-
-	return Value{rv: raw, ty: TypeArray}
 }
 
 // Func makes a new function Value from f. Func panics if f does not map to a
@@ -115,6 +104,12 @@ func Encode(v interface{}) Value {
 		return Null
 	}
 	return makeValue(reflect.ValueOf(v))
+}
+
+// FromRaw converts a reflect.Value into a River Value. It is useful to prevent
+// downcasting a interface into an any.
+func FromRaw(v reflect.Value) Value {
+	return makeValue(v)
 }
 
 // Type returns the River type for the value.
@@ -269,6 +264,14 @@ func makeValue(v reflect.Value) Value {
 	// concrete value.
 	if v.IsValid() && v.Type() == goAny {
 		v = v.Elem()
+	}
+
+	// Special case: a reflect.Value may be a value.Value when it's coming from a
+	// River array or object. We can unwrap the inner value here before
+	// continuing.
+	if v.IsValid() && v.Type() == goRiverValue {
+		// Unwrap the inner value.
+		v = v.Interface().(Value).rv
 	}
 
 	// Before we get the River type of the Value, we need to see if it's possible

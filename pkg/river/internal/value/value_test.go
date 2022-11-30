@@ -2,6 +2,7 @@ package value_test
 
 import (
 	"fmt"
+	"io"
 	"testing"
 
 	"github.com/grafana/agent/pkg/river/internal/value"
@@ -142,4 +143,18 @@ func TestValue_Call(t *testing.T) {
 			require.EqualError(t, err, "function failed for a very good reason")
 		})
 	})
+}
+
+func TestValue_Interface_In_Array(t *testing.T) {
+	type Container struct {
+		Field io.Closer `river:"field,attr"`
+	}
+
+	val := value.Encode(Container{Field: io.NopCloser(nil)})
+	fieldVal, ok := val.Key("field")
+	require.True(t, ok, "field not found in object")
+	require.Equal(t, value.TypeCapsule, fieldVal.Type())
+
+	arrVal := value.Array(fieldVal)
+	require.Equal(t, value.TypeCapsule, arrVal.Index(0).Type())
 }

@@ -13,33 +13,13 @@ title: prometheus.scrape
 Multiple `prometheus.scrape` components can be specified by giving them
 different labels.
 
-## Example
+## Usage
 
-The following example sets up the scrape job with certain attributes (scrape
-endpoint, scrape interval, query parameters) and lets it scrape two instances
-of the [blackbox exporter](https://github.com/prometheus/blackbox_exporter/).
-The exposed metrics are sent over to the provided list of receivers, as
-defined by other components.
-
-```river
-prometheus.scrape "blackbox_scraper" {
-	targets = [
-		{"__address__" = "blackbox-exporter:9115", "instance" = "one"},
-		{"__address__" = "blackbox-exporter:9116", "instance" = "two"},
-	]
-
-	forward_to = [prometheus.remote_write.grafanacloud.receiver, prometheus.remote_write.onprem.receiver]
-	
-	scrape_interval = "10s"
-	params          = { "target" = ["grafana.com"], "module" = ["http_2xx"] }
-	metrics_path    = "/probe"
+```
+prometheus.scrape "LABEL" {
+  targets    = TARGET_LIST
+  forward_to = RECEIVER_LIST
 }
-```
-
-Here's the the endpoints that are being scraped every 10 seconds:
-```
-http://blackbox-exporter:9115/probe?target=grafana.com&module=http_2xx
-http://blackbox-exporter:9116/probe?target=grafana.com&module=http_2xx
 ```
 
 ## Arguments
@@ -59,8 +39,8 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`targets`                  | `list(map(string))`     | List of targets to scrape. | | **yes**
-`forward_to`               | `list(MetricsReceiver)` | List of receivers to send scraped metrics to. | | **yes**
+`targets`                  | `list(map(string))`     | List of targets to scrape. | | yes
+`forward_to`               | `list(MetricsReceiver)` | List of receivers to send scraped metrics to. | | yes
 `job_name`                 | `string`   | The job name to override the job label with. | component name | no
 `extra_metrics`            | `bool`     | Whether extra metrics should be generated for scrape targets. | `false` | no
 `honor_labels`             | `bool`     | Indicator whether the scraped metrics should remain unmodified. | `false` | no
@@ -77,67 +57,52 @@ Name | Type | Description | Default | Required
 `label_name_length_limit`  | `uint`     | More than this label name length post metric-relabeling causes the scrape to fail. | | no
 `label_value_length_limit` | `uint`     | More than this label value length post metric-relabeling causes the scrape to fail. | | no
 
-The components also supports the `http_client_config` sub-block for configuring
-the behavior of the HTTP client used for the scraping.
+## Blocks
 
-### `http_client_config` block
+The following blocks are supported inside the definition of `prometheus.scrape`:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`bearer_token`             | `secret`   | Use to set up the Bearer Token. | | no
-`bearer_token_file`        | `string`   | Use to set up the Bearer Token file. | | no
-`proxy_url`                | `string`   | Use to set up a proxy URL. | | no
-`follow_redirects`         | `bool`     | Whether the scraper should follow redirects. | `true` | no
-`enable_http_2`            | `bool`     | Whether the scraper should use HTTP2. | `true` | no
+Hierarchy | Block | Description | Required
+--------- | ----- | ----------- | --------
+http_client_config | [http_client_config][] | HTTP client settings when connecting to targets. | no
+http_client_config > basic_auth | [basic_auth][] | Configure basic_auth for authenticating to targets. | no
+http_client_config > authorization | [authorization][] | Configure generic authorization to targets. | no
+http_client_config > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to targets. | no
+http_client_config > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to targets via OAuth2. | no
+http_client_config > tls_config | [tls_config][] | Configure TLS settings for connecting to targets. | no
 
-The following sub-blocks are supported for `http_client_config`:
+The `>` symbol indicates deeper levels of nesting. For example,
+`http_client_config > basic_auth` refers to a `basic_auth` block defined inside
+an `http_client_config` block.
 
-Name | Description | Required
----- | ----------- | --------
-[`basic_auth`](#basic_auth-block) | Configure basic_auth for authenticating against targets | no
-[`authorization`](#authorization-block) | Configure generic authorization against targets | no
-[`oauth2`](#oauth2-block) | Configure OAuth2 for authenticating against targets | no
-[`tls_config`](#tls_config-block) | Configure TLS settings for connecting to targets | no
 
-#### `basic_auth` block
+[http_client_config]: #http_client_config-block
+[basic_auth]: #basic_auth-block
+[authorization]: #authorization-block
+[oauth2]: #oauth2-block
+[tls_config]: #tls_config-block
 
-Name          | Type     | Description                                     | Default | Required
-------------- | -------- | ----------------------------------------------- | ------- | -------
-`username`      | `string`   | Setup of Basic HTTP authentication credentials. |         | no
-`password`      | `secret`   | Setup of Basic HTTP authentication credentials. |         | no
-`password_file` | `string`   | Setup of Basic HTTP authentication credentials. |         | no
+### http_client_config block
 
-#### `authorization` block
+The `http_client_config` block configures settings used to connect to
+endpoints.
 
-Name                  | Type       | Description                              | Default | Required
---------------------- | ---------- | ---------------------------------------- | ------- | --------
-`type`                | `string`   | Setup of HTTP Authorization credentials. |         | no
-`credential`          | `secret`   | Setup of HTTP Authorization credentials. |         | no
-`credentials_file`    | `string`   | Setup of HTTP Authorization credentials. |         | no
+{{< docs/shared lookup="flow/reference/components/http-client-config-block.md" source="agent" >}}
 
-#### `oauth2` block
+### basic_auth block
 
-Name                 | Type                 | Description                              | Default | Required
--------------------- | -------------------- | ---------------------------------------- | ------- | --------
-`client_id`          | `string`             | Setup of the OAuth2 client.              |         | no
-`client_secret`      | `secret`             | Setup of the OAuth2 client.              |         | no
-`client_secret_file` | `string`             | Setup of the OAuth2 client.              |         | no
-`scopes`             | `list(string)`       | Setup of the OAuth2 client.              |         | no
-`token_url`          | `string`             | Setup of the OAuth2 client.              |         | no
-`endpoint_params`    | `map(string)`        | Setup of the OAuth2 client.              |         | no
-`proxy_url`          | `string`             | Setup of the OAuth2 client.              |         | no
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" >}}
 
-The `oauth2` block may also contain its own separate `tls_config` sub-block.
+### authorization block
 
-#### `tls_config` block
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" >}}
 
-Name                              | Type       | Description                                | Default | Required
---------------------------------- | ---------- | ------------------------------------------ | ------- | --------
-`tls_config_ca_file`              | `string`   | Configuration options for TLS connections. |         | no
-`tls_config_cert_file`            | `string`   | Configuration options for TLS connections. |         | no
-`tls_config_key_file`             | `string`   | Configuration options for TLS connections. |         | no
-`tls_config_server_name`          | `string`   | Configuration options for TLS connections. |         | no
-`tls_config_insecure_skip_verify` | `bool`     | Configuration options for TLS connections. |         | no
+### oauth2 block
+
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" >}}
+
+### tls_config block
+
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
 
 ## Exported fields
 
@@ -156,15 +121,16 @@ scrape job on the component's debug endpoint.
 
 ## Debug metrics
 
-`prometheus.scrape` does not expose any component-specific debug metrics.
+* `agent_prometheus_fanout_latency` (histogram): Write latency for sending to direct and indirect components.
 
 ## Scraping behavior
+
 The `prometheus.scrape` component borrows the scraping behavior of Prometheus.
 Prometheus, and by extent this component, uses a pull model for scraping
 metrics from a given set of _targets_.
 Each scrape target is defined as a set of key-value pairs called _labels_.
 The set of targets can either be _static_, or dynamically provided periodically
-by a service disovery component such as `discovery.kubernetes`. The special
+by a service discovery component such as `discovery.kubernetes`. The special
 label `__address__` _must always_ be present and corresponds to the
 `<host>:<port>` that is used for the scrape request.
 
@@ -193,7 +159,7 @@ The following labels are automatically injected to the scraped time series and
 can help pin down a scrape target.
 
 Label                 | Description
---------------------- | ---------- 
+--------------------- | ----------
 job                   | The configured job name that the target belongs to. Defaults to the fully formed component name.
 instance              | The `__address__` or `<host>:<port>` of the scrape target's URL.
 
@@ -217,4 +183,34 @@ scrape target, either because it is not reachable, because the connection
 times out while scraping, or because the samples from the target could not be
 processed. When the target is behaving normally, the `up` metric is set to
 `1`.
+
+## Example
+
+The following example sets up the scrape job with certain attributes (scrape
+endpoint, scrape interval, query parameters) and lets it scrape two instances
+of the [blackbox exporter](https://github.com/prometheus/blackbox_exporter/).
+The exposed metrics are sent over to the provided list of receivers, as
+defined by other components.
+
+```river
+prometheus.scrape "blackbox_scraper" {
+  targets = [
+    {"__address__" = "blackbox-exporter:9115", "instance" = "one"},
+    {"__address__" = "blackbox-exporter:9116", "instance" = "two"},
+  ]
+
+  forward_to = [prometheus.remote_write.grafanacloud.receiver, prometheus.remote_write.onprem.receiver]
+
+  scrape_interval = "10s"
+  params          = { "target" = ["grafana.com"], "module" = ["http_2xx"] }
+  metrics_path    = "/probe"
+}
+```
+
+Here's the the endpoints that are being scraped every 10 seconds:
+```
+http://blackbox-exporter:9115/probe?target=grafana.com&module=http_2xx
+http://blackbox-exporter:9116/probe?target=grafana.com&module=http_2xx
+```
+
 

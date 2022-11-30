@@ -47,7 +47,7 @@
 ## Targets for generating assets:
 ##
 ##   generate             Generate everything.
-##   generate-crds        Generate Grafana Agent Operator CRDs.
+##   generate-crds        Generate Grafana Agent Operator CRDs ands its documentation.
 ##   generate-manifests   Generate production/kubernetes YAML manifests.
 ##   generate-dashboards  Generate dashboards in example/docker-compose after
 ##                        changing Jsonnet.
@@ -129,7 +129,7 @@ GO_LDFLAGS   := -X $(VPREFIX).Branch=$(GIT_BRANCH)                        \
                 -X $(VPREFIX).BuildDate=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 DEFAULT_FLAGS    := $(GO_FLAGS)
-DEBUG_GO_FLAGS   := -gcflags "all=-N -l" -ldflags "$(GO_LDFLAGS)" -tags "netgo $(GO_TAGS)"
+DEBUG_GO_FLAGS   := -ldflags "$(GO_LDFLAGS)" -tags "netgo $(GO_TAGS)"
 RELEASE_GO_FLAGS := -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo $(GO_TAGS)"
 
 ifeq ($(RELEASE_BUILD),1)
@@ -238,6 +238,7 @@ ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
 	bash ./tools/generate-crds.bash
+	gen-crd-api-reference-docs -config tools/gen-crd-docs/config.json -api-dir "github.com/grafana/agent/pkg/operator/apis/monitoring/" -out-file docs/sources/operator/api.md -template-dir tools/gen-crd-docs/template
 endif
 
 generate-manifests:

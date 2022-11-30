@@ -1141,7 +1141,7 @@
             "multi": true,
             "name": "pod",
             "options": [ ],
-            "query": "label_values(agent_build_info{container=~\"$container\"}, pod)",
+            "query": "label_values(agent_build_info{container=~\"$container\", namespace=\"$namespace\"}, pod)",
             "refresh": 1,
             "regex": "",
             "sort": 2,

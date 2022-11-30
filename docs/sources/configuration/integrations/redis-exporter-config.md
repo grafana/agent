@@ -81,6 +81,10 @@ Full reference of options:
   # over redis_password.
   [redis_password_file: <string>]
 
+  # Path of a file containing a JSON object which maps Redis URIs [string] to passwords [string]
+  # (e.g. {"redis://localhost:6379": "sample_password"}).
+  [redis_password_map_file: <string>]
+
   # Namespace for the metrics.
   [namespace: <string> | default = "redis"]
 

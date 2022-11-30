@@ -27,19 +27,19 @@ type IntegrationsSubsystemSpec struct {
 // +kubebuilder:resource:categories="agent-operator"
 
 // Integration runs a single Grafana Agent integration. Integrations that
-// generate telemetry must be configured to send that telemetry somewhere; such
+// generate telemetry must be configured to send that telemetry somewhere, such
 // as autoscrape for exporter-based integrations.
 //
 // Integrations have access to the LogsInstances and MetricsInstances in the
 // same GrafanaAgent resource set, referenced by the <namespace>/<name> of the
-// *Instance resource.
+// Instance resource.
 //
 // For example, if there is a default/production MetricsInstance, you can
 // configure a supported integration's autoscrape block with:
 //
-//     autoscrape:
-//       enable: true
-//       metrics_instance: default/production
+//	autoscrape:
+//	  enable: true
+//	  metrics_instance: default/production
 //
 // There is currently no way for telemetry created by an Operator-managed
 // integration to be collected from outside of the integration itself.
@@ -57,13 +57,13 @@ type IntegrationSpec struct {
 	// Name of the integration to run (e.g., "node_exporter", "mysqld_exporter").
 	Name string `json:"name"`
 
-	// Type informs Grafana Agent Operator how to manage the integration being
+	// Type informs Grafana Agent Operator about how to manage the integration being
 	// configured.
 	Type IntegrationType `json:"type"`
 
 	// +kubebuilder:validation:Type=object
 
-	// The configuration for the named integration. Note that integrations are
+	// The configuration for the named integration. Note that Integrations are
 	// deployed with the integrations-next feature flag, which has different
 	// common settings:
 	//
@@ -71,16 +71,16 @@ type IntegrationSpec struct {
 	Config apiextv1.JSON `json:"config"`
 
 	// An extra list of Volumes to be associated with the Grafana Agent pods
-	// running this integration. Volume names will be mutated to be unique across
+	// running this integration. Volume names are mutated to be unique across
 	// all Integrations. Note that the specified volumes should be able to
 	// tolerate existing on multiple pods at once when type is daemonset.
 	//
-	// Don't use volumes for loading secrets/configMaps from the same namespace
-	// as the Integration; use the secrets and configMaps fields instead.
+	// Don't use volumes for loading Secrets or ConfigMaps from the same namespace
+	// as the Integration; use the Secrets and ConfigMaps fields instead.
 	Volumes []corev1.Volume `json:"volumes,omitempty"`
 
 	// An extra list of VolumeMounts to be associated with the Grafana Agent pods
-	// running this integration. VolumeMount names will be mutated to be unique
+	// running this integration. VolumeMount names are mutated to be unique
 	// across all used IntegrationSpecs.
 	//
 	// Mount paths should include the namespace/name of the Integration CR to
@@ -89,7 +89,7 @@ type IntegrationSpec struct {
 
 	// An extra list of keys from Secrets in the same namespace as the
 	// Integration which will be mounted into the Grafana Agent pod running this
-	// integration.
+	// Integration.
 	//
 	// Secrets will be mounted at
 	// /etc/grafana-agent/integrations/secrets/<secret_namespace>/<secret_name>/<key>.
@@ -97,9 +97,9 @@ type IntegrationSpec struct {
 
 	// An extra list of keys from ConfigMaps in the same namespace as the
 	// Integration which will be mounted into the Grafana Agent pod running this
-	// integration.
+	// Integration.
 	//
-	// ConfigMaps will be mounted at
+	// ConfigMaps are mounted at
 	// /etc/grafana-agent/integrations/configMaps/<configmap_namespace>/<configmap_name>/<key>.
 	ConfigMaps []corev1.ConfigMapKeySelector `json:"configMaps,omitempty"`
 }
@@ -109,7 +109,7 @@ type IntegrationType struct {
 	// +kubebuilder:validation:Optional
 
 	// When true, the configured integration should be run on every Node in the
-	// cluster. This is required for integrations that generate Node-specific
+	// cluster. This is required for Integrations that generate Node-specific
 	// metrics like node_exporter, otherwise it must be false to avoid generating
 	// duplicate metrics.
 	AllNodes bool `json:"allNodes"`
@@ -118,7 +118,7 @@ type IntegrationType struct {
 
 	// Whether this integration can only be defined once for a Grafana Agent
 	// process, such as statsd_exporter. It is invalid for a GrafanaAgent to
-	// discover multiple unique Integrations with the same integration name
+	// discover multiple unique Integrations with the same Integration name
 	// (i.e., a single GrafanaAgent cannot deploy two statsd_exporters).
 	Unique bool `json:"unique"`
 }

@@ -3,7 +3,7 @@ package servicegraphprocessor
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
+	"os"
 	"testing"
 	"time"
 
@@ -97,10 +97,11 @@ func TestConsumeMetrics(t *testing.T) {
 }
 
 func traceSamples(t *testing.T, path string) ptrace.Traces {
-	b, err := ioutil.ReadFile(path)
+	b, err := os.ReadFile(path)
 	require.NoError(t, err)
 
-	traces, err := ptrace.NewJSONUnmarshaler().UnmarshalTraces(b)
+	decoder := &ptrace.JSONUnmarshaler{}
+	traces, err := decoder.UnmarshalTraces(b)
 	require.NoError(t, err)
 
 	return traces

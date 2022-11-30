@@ -133,8 +133,8 @@ func GetAllEnabled(fs *flag.FlagSet) []string {
 // set implements flag.Value and holds the set of enabled features.
 // set should be provided to a flag.FlagSet with:
 //
-//  var s features.set
-//  fs.Var(&s, features.SetFlag, "")
+//	var s features.set
+//	fs.Var(&s, features.SetFlag, "")
 type set struct {
 	valid       map[Feature]struct{}
 	validString string // Comma-delimited list of acceptable values

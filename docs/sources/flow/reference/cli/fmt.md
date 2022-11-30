@@ -11,11 +11,11 @@ The `agent fmt` command formats a given Grafana Agent Flow configuration file.
 
 ## Usage
 
-Usage: `agent fmt [flags] file`
+Usage: `agent fmt [FLAG ...] FILE_NAME`
 
-If the `file` argument is not provided or if the `file` argument is equal to
-`-`, `agent fmt` formats the contents of standard input. Otherwise, `agent fmt`
-reads and formats the file from disk specified by the argument.
+If the `FILE_NAME` argument is not provided or if the `FILE_NAME` argument is
+equal to `-`, `agent fmt` formats the contents of standard input. Otherwise,
+`agent fmt` reads and formats the file from disk specified by the argument.
 
 The `--write` flag can be specified to replace the contents of the original
 file on disk with the formatted results. `--write` can only be provided when

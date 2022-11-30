@@ -16,31 +16,17 @@ different labels.
 
 [remote_write-spec]: https://docs.google.com/document/d/1LPhVRSFkGNSuU1fBd81ulhsCPR4hkSZyyBj1SZ8fWOM/edit
 
-## Example
+## Usage
 
 ```river
-prometheus.remote_write "staging" {
-  // Send metrics to a locally running Mimir.
+prometheus.remote_write "LABEL" {
   endpoint {
-    url = "http://mimir:9009/api/v1/push"
+    url = REMOTE_WRITE_URL
 
-    http_client_config {
-      basic_auth {
-        username = "example-user"
-        password = "example-password"
-      }
-    }
+    ...
   }
-}
 
-// Configure a prometheus.scrape component to send metrics to
-// prometheus.remote_write component.
-prometheus.scrape "demo" {
-  targets = [
-    // Collect metrics from Grafana Agent's default HTTP listen address.
-    {"__address__" = "127.0.0.1:12345"},
-  ]
-  forward_to = [prometheus.remote_write.staging.receiver]
+  ...
 }
 ```
 
@@ -93,13 +79,13 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`url` | `string` | Full URL to send metrics to. | | **yes**
+`url` | `string` | Full URL to send metrics to. | | yes
 `name` | `string` | Optional name to identify the endpoint in metrics. | | no
 `remote_timeout` | `duration` | Timeout for requests made to the URL. | `"30s"` | no
 `headers` | `map(string)` | Extra headers to deliver with the request. | | no
 `send_exemplars` | `bool` | Whether exemplars should be sent. | `true` | no
 
-When multiple `endpoint` blocks are provided, metrics are concurrently to all
+When multiple `endpoint` blocks are provided, metrics are concurrently sent to all
 configured locations. Each endpoint has a _queue_ which is used to read metrics
 from the WAL and queue them for sending. The `queue_config` block can be used
 to customize the behavior of the queue.
@@ -110,79 +96,26 @@ based on a hash of the endpoint settings.
 
 ### http_client_config block
 
-The `http_client_config` block configures the HTTP client used to connect to an
-endpoint.
+The `http_client_config` configures settings used to connect to the
+remote_write server.
 
-The following arguments are supported:
-
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`bearer_token` | `secret` | Bearer token to authenticate with. | | no
-`bearer_token_file` | `string` | File containing a bearer token to authenticate with. | | no
-`proxy_url` | `string` | HTTP proxy to proxy requests through. | | no
-`follow_redirects` | `bool` | Whether redirects returned by the server should be followed. | `true` | no
-`enable_http_2` | `bool` | Whether HTTP2 is supported for requests. | `true` | no
-
-`bearer_token`, `bearer_token_file`, `basic_auth`, `authorization`, and
-`oauth2` are mutually exclusive and only one can be provided inside of a
-`http_client_config` block.
+{{< docs/shared lookup="flow/reference/components/http-client-config-block.md" source="agent" >}}
 
 ### basic_auth block
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`username` | `string` | Basic auth username. | | no
-`password` | `secret` | Basic auth password. | | no
-`password_file` | `string` | File containing the basic auth password. | | no
-
-`password` and `password_file` are mututally exclusive and only one can be
-provided inside of a `basic_auth` block.
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" >}}
 
 ### authorization block
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`type` | `string` | Authorization type, for example, "Bearer". | | no
-`credential` | `secret` | Secret value. | | no
-`credentials_file` | `string` | File containing the secret value. | | no
-
-`credential` and `credentials_file` are mututally exclusive and only one can be
-provided inside of an `authorization` block.
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" >}}
 
 ### oauth2 block
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`client_id` | `string` | OAuth2 client ID. | | no
-`client_secret` | `secret` | OAuth2 client secret. | | no
-`client_secret_file` | `string` | File containing the OAuth2 client secret. | | no
-`scopes` | `list(string)` | List of scopes to authenticate with. | | no
-`token_url` | `string` | URL to fetch the token from. | | no
-`endpoint_params` | `map(string)` | Optional parameters to append to the token URL. | | no
-`proxy_url` | `string` | Optional proxy URL for OAuth2 requests. | | no
-
-`client_secret` and `client_secret_file` are mututally exclusive and only one
-can be provided inside of an `oauth2` block.
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" >}}
 
 ### tls_config block
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`ca_file` | `string` | CA certificate to validate the server with. | | no
-`cert_file` | `string` | Certificate file for client authentication. | | no
-`key_file` | `string` | Key file for client authentication. | | no
-`server_name` | `string` | ServerName extension to indicate the name of the server. | | no
-`insecure_skip_verify` | `bool` | Disables validation of the server certificate. | | no
-`min_version` | `string` | Minimum acceptable TLS version. | | no
-
-When `min_version` is not provided, the minumum acceptable TLS version is
-inherited from Go's default minimum version, TLS 1.2. If `min_version` is
-provided, it must be set to one of the following strings:
-
-* `"TLS10"` (TLS 1.0)
-* `"TLS11"` (TLS 1.1)
-* `"TLS12"` (TLS 1.2)
-* `"TLS13"` (TLS 1.3)
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
 
 ### queue_config block
 
@@ -354,3 +287,31 @@ information.
   remote storage.
 * `prometheus_remote_storage_exemplars_in_total` (counter): Exemplars read into
   remote storage.
+
+## Example
+
+```river
+prometheus.remote_write "staging" {
+  // Send metrics to a locally running Mimir.
+  endpoint {
+    url = "http://mimir:9009/api/v1/push"
+
+    http_client_config {
+      basic_auth {
+        username = "example-user"
+        password = "example-password"
+      }
+    }
+  }
+}
+
+// Configure a prometheus.scrape component to send metrics to
+// prometheus.remote_write component.
+prometheus.scrape "demo" {
+  targets = [
+    // Collect metrics from Grafana Agent's default HTTP listen address.
+    {"__address__" = "127.0.0.1:12345"},
+  ]
+  forward_to = [prometheus.remote_write.staging.receiver]
+}
+```

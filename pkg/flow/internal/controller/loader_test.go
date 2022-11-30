@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/pkg/river/parser"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/otel/trace"
 )
 
 func TestLoader(t *testing.T) {
@@ -37,6 +38,7 @@ func TestLoader(t *testing.T) {
 	// corresponds to testFile
 	testGraphDefinition := graphDefinition{
 		Nodes: []string{
+			"configNode", // The config node is always present
 			"testcomponents.tick.ticker",
 			"testcomponents.passthrough.static",
 			"testcomponents.passthrough.ticker",
@@ -51,6 +53,7 @@ func TestLoader(t *testing.T) {
 	newGlobals := func() controller.ComponentGlobals {
 		return controller.ComponentGlobals{
 			Logger:          log.NewNopLogger(),
+			TraceProvider:   trace.NewNoopTracerProvider(),
 			DataPath:        t.TempDir(),
 			OnExportsChange: func(cn *controller.ComponentNode) { /* no-op */ },
 			Registerer:      prometheus.NewRegistry(),
@@ -120,6 +123,7 @@ func TestLoader(t *testing.T) {
 
 		requireGraph(t, l.Graph(), graphDefinition{
 			Nodes: []string{
+				"configNode", // The config node is always present
 				"testcomponents.tick.ticker",
 				"testcomponents.passthrough.valid",
 				"testcomponents.passthrough.invalid",
@@ -190,6 +194,7 @@ func TestScopeWithFailingComponent(t *testing.T) {
 	newGlobals := func() controller.ComponentGlobals {
 		return controller.ComponentGlobals{
 			Logger:          log.NewNopLogger(),
+			TraceProvider:   trace.NewNoopTracerProvider(),
 			DataPath:        t.TempDir(),
 			OnExportsChange: func(cn *controller.ComponentNode) { /* no-op */ },
 			Registerer:      prometheus.NewRegistry(),
@@ -233,7 +238,7 @@ func applyFromContent(t *testing.T, l *controller.Loader, bb []byte) diag.Diagno
 		return diags
 	}
 
-	applyDiags := l.Apply(nil, blocks)
+	applyDiags := l.Apply(nil, blocks, nil)
 	diags = append(diags, applyDiags...)
 
 	return diags

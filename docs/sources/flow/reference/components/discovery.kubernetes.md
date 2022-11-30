@@ -14,25 +14,11 @@ If you supply no connection information, this component defaults to an
 in-cluster config. A kubeconfig file or manual connection settings can be used
 to override the defaults.
 
-## Example
-
-This example shows a simple in-cluster discovery of all pods:
+## Usage
 
 ```river
-discovery.kubernetes "k8s_pods" {
-  role = "pod"
-}
-```
-
-This example provides a custom namespace and kubeconfig file:
-
-```river
-discovery.kubernetes "k8s_pods" {
-  role = "pod"
-  kubeconfig_file = "/path/to/kubeconfig"
-  namespaces {
-    names = ["myapp"]
-  }
+discovery.kubernetes "LABEL" {
+  role = "DISCOVERY_ROLE"
 }
 ```
 
@@ -43,22 +29,14 @@ The following arguments are supported:
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `api_server` | `string` | URL of Kubernetes API server. | | no
-`role` | `string` | Type of Kubernetes resource to query. | | **yes**
+`role` | `string` | Type of Kubernetes resource to query. | | yes
 `kubeconfig_file` | `string` | Path of kubeconfig file to use for connecting to Kubernetes. | | no
 
 The `role` argument is required to specify what type of targets to discover.
 `role` must be one of `node`, `pod`, `service`, `endpoints`, `endpointslice`,
 or `ingress`.
 
-The following sub-blocks are supported:
-
-Name | Description | Required
----- | ----------- | --------
-[`namespaces`](#namespaces-block) | Information about which Kubernetes namespaces to search. | no
-[`selectors`](#selectors-block) | Selectors to limit objects selected. | no
-[`http_client_config`](#http_client_config-block) | HTTP client configuration for Kubernetes requests. | no
-
-### `node` role
+### node role
 
 The `node` role discovers one target per cluster node with the address
 defaulting to the HTTP port of the Kubelet daemon. The target address defaults
@@ -81,7 +59,7 @@ The following labels are included for discovered nodes:
 In addition, the `instance` label for the node will be set to the node name as
 retrieved from the API server.
 
-### `service` role
+### service role
 
 The `service` role discovers a target for each service port for each service.
 This is generally useful for externally monitoring a service. The address will
@@ -111,7 +89,7 @@ The following labels are included for discovered services:
   the target.
 * `__meta_kubernetes_service_type`: The type of the service.
 
-### `pod` role
+### pod role
 
 The `pod` role discovers all pods and exposes their containers as targets. For
 each declared port of a container, a single target is generated.
@@ -153,7 +131,7 @@ The following labels are included for discovered pods:
 * `__meta_kubernetes_pod_controller_kind`: Object kind of the pod controller.
 * `__meta_kubernetes_pod_controller_name`: Name of the pod controller.
 
-### `endpoints` role
+### endpoints role
 
 The `endpoints` role discovers targets from listed endpoints of a service. For
 each endpoint address one target is discovered per port. If the endpoint is
@@ -186,7 +164,7 @@ The following labels are included for discovered endpoints:
 * For all targets backed by a pod, all labels of the `pod` role discovery are
   attached.
 
-### `endpointslice` role
+### endpointslice role
 
 The endpointslice role discovers targets from existing Kubernetes endpoint
 slices. For each endpoint address referenced in the `EndpointSlice` object, one
@@ -222,7 +200,7 @@ The following labels are included for discovered endpoint slices:
 * For all targets backed by a pod, all labels of the `pod` role discovery are
   attached.
 
-### `ingress` role
+### ingress role
 
 The `ingress` role discovers a target for each path of each ingress. This is
 generally useful for externally monitoring an ingress. The address will be set
@@ -246,7 +224,34 @@ The following labels are included for discovered ingress objects:
   config is set. Defaults to `http`.
 * `__meta_kubernetes_ingress_path`: Path from ingress spec. Defaults to /.
 
-### `namespaces` block
+## Blocks
+
+The following blocks are supported inside the definition of
+`discovery.kubernetes`:
+
+Hierarchy | Block | Description | Required
+--------- | ----- | ----------- | --------
+namespaces | [namespaces][] | Information about which Kubernetes namespaces to search. | no
+selectors | [selectors][] | Information about which Kubernetes namespaces to search. | no
+http_client_config | [http_client_config][] | HTTP client configuration for Kubernetes requests. | no
+http_client_config > basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
+http_client_config > authorization | [authorization][] | Configure generic authorization to the endpoint. | no
+http_client_config > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
+http_client_config > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+
+The `>` symbol indicates deeper levels of nesting. For example,
+`http_client_config > basic_auth` refers to a `basic_auth` block defined inside
+an `http_client_config` block.
+
+[namespaces]: #namespaces-block
+[selectors]: #selectors-block
+[http_client_config]: #http_client_config-block
+[basic_auth]: #basic_auth-block
+[authorization]: #authorization-block
+[oauth2]: #oauth2-block
+[tls_config]: #tls_config-block
+
+### namespaces block
 
 The `namespaces` block limits the namespaces to discover resources in. If
 omitted, all namespaces are searched.
@@ -256,7 +261,7 @@ Name | Type | Description | Default | Required
 `own_namespace` | `bool`   | Include the namespace the agent is running in. | | no
 `names` | `[]string` | List of namespaces to search. | | no
 
-### `selectors` block
+### selectors block
 
 The `selectors` block contains optional label and field selectors to limit the
 discovery process to a subset of resources.
@@ -282,90 +287,28 @@ selectors][] to learn more about the possible filters that can be used.
 [Labels and selectros]: https://Kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 [discovery.relabel]: {{< relref "./discovery.relabel.md" >}}
 
-### `http_client_config` block
+### http_client_config block
 
 The `http_client_config` block configures settings used to connect to the
 Kubernetes API server.
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`bearer_token` | `secret` | Bearer token to authenticate with. | | no
-`bearer_token_file` | `string` | File containing a bearer token to authenticate with. | | no
-`proxy_url` | `string` | HTTP proxy to proxy requests through. | | no
-`follow_redirects` | `bool` | Whether redirects returned by the server should be followed. | `true` | no
-`enable_http_2` | `bool` | Whether HTTP2 is supported for requests. | `true` | no
-
-`bearer_token`, `bearer_token_file`, `basic_auth`, `authorization`, and
-`oauth2` are mutually exclusive and only one can be provided inside of a
-`http_client_config` block.
-
-The following sub-blocks are supported for `http_client_config`:
-
-Name | Description | Required
----- | ----------- | --------
-[`basic_auth`](#basic_auth-block) | Configure basic_auth for authenticating against Kubernetes. | no
-[`authorization`](#authorization-block) | Configure generic authorization against Kubernetes. | no
-[`oauth2`](#oauth2-block) | Configure OAuth2 for authenticating against Kubernetes. | no
-[`tls_config`](#tls_config-block) | Configure TLS settings for connecting to Kubernetes. | no
+{{< docs/shared lookup="flow/reference/components/http-client-config-block.md" source="agent" >}}
 
 ### basic_auth block
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`username` | `string` | Basic auth username. | | no
-`password` | `secret` | Basic auth password. | | no
-`password_file` | `string` | File containing the basic auth password. | | no
-
-`password` and `password_file` are mututally exclusive and only one can be
-provided inside of a `basic_auth` block.
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" >}}
 
 ### authorization block
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`type` | `string` | Authorization type, for example, "Bearer". | | no
-`credential` | `secret` | Secret value. | | no
-`credentials_file` | `string` | File containing the secret value. | | no
-
-`credential` and `credentials_file` are mututally exclusive and only one can be
-provided inside of an `authorization` block.
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" >}}
 
 ### oauth2 block
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`client_id` | `string` | OAuth2 client ID. | | no
-`client_secret` | `secret` | OAuth2 client secret. | | no
-`client_secret_file` | `string` | File containing the OAuth2 client secret. | | no
-`scopes` | `list(string)` | List of scopes to authenticate with. | | no
-`token_url` | `string` | URL to fetch the token from. | | no
-`endpoint_params` | `map(string)` | Optional parameters to append to the token URL. | | no
-`proxy_url` | `string` | Optional proxy URL for OAuth2 requests. | | no
-
-`client_secret` and `client_secret_file` are mututally exclusive and only one
-can be provided inside of an `oauth2` block.
-
-The `oauth2` block may also contain its own separate `tls_config` sub-block.
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" >}}
 
 ### tls_config block
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`ca_file` | `string` | CA certificate to validate the server with. | | no
-`cert_file` | `string` | Certificate file for client authentication. | | no
-`key_file` | `string` | Key file for client authentication. | | no
-`server_name` | `string` | ServerName extension to indicate the name of the server. | | no
-`insecure_skip_verify` | `bool` | Disables validation of the server certificate. | | no
-`min_version` | `string` | Minimum acceptable TLS version. | | no
-
-When `min_version` is not provided, the minumum acceptable TLS version is
-inherited from Go's default minimum version, TLS 1.2. If `min_version` is
-provided, it must be set to one of the following strings:
-
-* `"TLS10"` (TLS 1.0)
-* `"TLS11"` (TLS 1.1)
-* `"TLS12"` (TLS 1.2)
-* `"TLS13"` (TLS 1.3)
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
 
 ## Exported fields
 
@@ -377,7 +320,7 @@ Name | Type | Description
 
 ## Component health
 
-`discovery.kubernetes` is only be reported as unhealthy when given an invalid
+`discovery.kubernetes` is reported as unhealthy when given an invalid
 configuration. In those cases, exported fields retain their last healthy
 values.
 
@@ -388,3 +331,39 @@ values.
 ### Debug metrics
 
 `discovery.kubernetes` does not expose any component-specific debug metrics.
+
+## Examples
+
+### In-cluster discovery
+
+This example uses in-cluster authentication to discover all pods:
+
+```river
+discovery.kubernetes "k8s_pods" {
+  role = "pod"
+}
+```
+
+### Kubeconfig authentication
+
+This example uses a kubeconfig file to authenticate to the Kubernetes API:
+
+```river
+discovery.kubernetes "k8s_pods" {
+  role = "pod"
+  kubeconfig_file = "/etc/k8s/kubeconfig.yaml"
+}
+```
+
+### Limit searched namespaces
+
+This example limits the namespaces where pods are discovered using the `namespaces` block:
+
+```river
+discovery.kubernetes "k8s_pods" {
+  role = "pod"
+  namespaces {
+    names = ["myapp"]
+  }
+}
+```

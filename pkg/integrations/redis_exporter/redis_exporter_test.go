@@ -3,7 +3,6 @@ package redis_exporter //nolint:golint
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -17,6 +16,7 @@ import (
 )
 
 const addr string = "localhost:6379"
+const redisExporterFile string = "./redis_exporter.go"
 
 func TestRedisCases(t *testing.T) {
 	tt := []struct {
@@ -56,7 +56,7 @@ func TestRedisCases(t *testing.T) {
 			cfg: (func() Config {
 				c := DefaultConfig
 				c.RedisAddr = addr
-				c.ScriptPath = "./redis_exporter.go" // file content is irrelevant
+				c.ScriptPath = redisExporterFile // file content is irrelevant
 				return c
 			})(),
 		},
@@ -83,7 +83,7 @@ func TestRedisCases(t *testing.T) {
 			cfg: (func() Config {
 				c := DefaultConfig
 				c.RedisAddr = addr
-				c.RedisPasswordFile = "./redis_exporter.go" // contents not important
+				c.RedisPasswordFile = redisExporterFile // contents not important
 				return c
 			})(),
 		},
@@ -95,6 +95,40 @@ func TestRedisCases(t *testing.T) {
 				c := DefaultConfig
 				c.RedisAddr = addr
 				c.RedisPasswordFile = "/does/not/exist"
+				return c
+			})(),
+			expectConstructorError: true,
+		},
+		// Test exporter constructs ok when password map file is defined, exists, and is valid
+		{
+			name: "valid password map file",
+			cfg: (func() Config {
+				c := DefaultConfig
+				c.RedisAddr = addr
+				c.RedisPasswordMapFile = "./testdata/password_map_file.json"
+				return c
+			})(),
+		},
+		// Test exporter fails to construct when the password map file is not valid json
+		{
+			name: "invalid password map file",
+			cfg: (func() Config {
+				c := DefaultConfig
+				c.RedisAddr = addr
+				c.RedisPasswordMapFile = redisExporterFile
+				return c
+			})(),
+			expectConstructorError: true,
+		},
+		// Test exporter construction fails when both redis_password_file and redis_password_map_file
+		// are specified
+		{
+			name: "too many password files",
+			cfg: (func() Config {
+				c := DefaultConfig
+				c.RedisAddr = addr
+				c.RedisPasswordFile = redisExporterFile    // contents not important
+				c.RedisPasswordMapFile = redisExporterFile // contents not important
 				return c
 			})(),
 			expectConstructorError: true,
@@ -125,7 +159,7 @@ func TestRedisCases(t *testing.T) {
 			res, err := http.Get(srv.URL + "/metrics")
 			require.NoError(t, err)
 
-			body, err := ioutil.ReadAll(res.Body)
+			body, err := io.ReadAll(res.Body)
 			require.NoError(t, err)
 
 			foundMetricNames := map[string]bool{}

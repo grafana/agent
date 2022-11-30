@@ -9,9 +9,9 @@ import (
 // should be utilised by an integration's config by inlining the common
 // options:
 //
-//   type IntegrationConfig struct {
-//     Common common.MetricsConfig `yaml:",inline"`
-//   }
+//	type IntegrationConfig struct {
+//	  Common common.MetricsConfig `yaml:",inline"`
+//	}
 type MetricsConfig struct {
 	Autoscrape  autoscrape.Config `yaml:"autoscrape,omitempty"`
 	InstanceKey *string           `yaml:"instance,omitempty"`

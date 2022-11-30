@@ -14,6 +14,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/model/metadata"
 	"github.com/prometheus/prometheus/model/timestamp"
 	"github.com/prometheus/prometheus/model/value"
 	"github.com/prometheus/prometheus/storage"
@@ -413,7 +414,7 @@ func (w *Storage) Truncate(mint int64) error {
 
 	// Start a new segment, so low ingestion volume instance don't have more WAL
 	// than needed.
-	err = w.wal.NextSegment()
+	_, err = w.wal.NextSegment()
 	if err != nil {
 		return fmt.Errorf("next segment: %w", err)
 	}
@@ -684,6 +685,11 @@ func (a *appender) AppendExemplar(ref storage.SeriesRef, _ labels.Labels, e exem
 
 	a.w.metrics.totalAppendedExemplars.Inc()
 	return storage.SeriesRef(s.ref), nil
+}
+
+func (a *appender) UpdateMetadata(ref storage.SeriesRef, _ labels.Labels, m metadata.Metadata) (storage.SeriesRef, error) {
+	// TODO(rfratto): implement pushing metadata to WAL
+	return 0, nil
 }
 
 // Commit submits the collected samples and purges the batch.

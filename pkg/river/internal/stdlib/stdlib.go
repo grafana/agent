@@ -4,12 +4,11 @@ package stdlib
 import (
 	"encoding/json"
 	"os"
-	"reflect"
 
+	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/pkg/river/internal/value"
+	"github.com/prometheus/prometheus/discovery/targetgroup"
 )
-
-var goAny = reflect.TypeOf((*interface{})(nil)).Elem()
 
 // Functions returns the list of stdlib functions by name. The interface{}
 // value is always a River-compatible function value, where functions have at
@@ -53,39 +52,14 @@ var Functions = map[string]interface{}{
 			return args[0], nil
 		}
 
-		// If the imcoming Go slices have the same type, we can have our resulting
-		// slice use the same type. This will allow decoding to use the direct
-		// assignment optimization.
-		//
-		// However, if the types don't match, then we're forced to fall back to
-		// returning []interface{}.
-		//
-		// TODO(rfratto): This could fall back to checking the elements if the
-		// array/slice types don't match. It would be slower, but the direct
-		// assignment optimization probably justifies it.
-		useType := args[0].Reflect().Type()
-		for i := 1; i < len(args); i++ {
-			if args[i].Reflect().Type() != useType {
-				useType = reflect.SliceOf(goAny)
-				break
-			}
-		}
-
-		// Build out the final array.
-		raw := reflect.MakeSlice(useType, finalSize, finalSize)
-
-		var argNum int
+		raw := make([]value.Value, 0, finalSize)
 		for _, arg := range args {
 			for i := 0; i < arg.Len(); i++ {
-				elem := arg.Index(i)
-				if elem.Type() != value.TypeNull {
-					raw.Index(argNum).Set(elem.Reflect())
-				}
-				argNum++
+				raw = append(raw, arg.Index(i))
 			}
 		}
 
-		return value.Encode(raw.Interface()), nil
+		return value.Array(raw...), nil
 	}),
 
 	"json_decode": func(in string) (interface{}, error) {
@@ -94,6 +68,34 @@ var Functions = map[string]interface{}{
 		if err != nil {
 			return nil, err
 		}
+		return res, nil
+	},
+
+	"discovery_target_decode": func(in string) (interface{}, error) {
+		var targetGroups []*targetgroup.Group
+		if err := json.Unmarshal([]byte(in), &targetGroups); err != nil {
+			return nil, err
+		}
+
+		var res []discovery.Target
+
+		for _, group := range targetGroups {
+			for _, target := range group.Targets {
+
+				// Create the output target from group and target labels. Target labels
+				// should override group labels.
+				outputTarget := make(discovery.Target, len(group.Labels)+len(target))
+				for k, v := range group.Labels {
+					outputTarget[string(k)] = string(v)
+				}
+				for k, v := range target {
+					outputTarget[string(k)] = string(v)
+				}
+
+				res = append(res, outputTarget)
+			}
+		}
+
 		return res, nil
 	},
 }

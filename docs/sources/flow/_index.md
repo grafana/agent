@@ -11,6 +11,12 @@ Grafana Agent Flow is a _component-based_ experimental revision of Grafana
 Agent with a focus on ease-of-use, debuggability, and ability to adapt to the
 needs of power users.
 
+Components allow for reusability, composability, and focus on a single task. 
+
+* **Reusability** allows for the output of components to be reused as the input for multiple other components.
+* **Composability** allows for components to be chained together to form a pipeline.
+* **Single task** means the scope of a component is limited to one narrow task and thus has fewer side effects.
+
 > **EXPERIMENTAL**: Grafana Agent Flow is an [experimental][] feature.
 > Experimental features are subject to frequent breaking changes and are
 > subject for removal if the experiment doesn't work out.
@@ -24,9 +30,10 @@ needs of power users.
 ## Features
 
 * Write declarative configurations with a Terraform-inspired configuration
-  language
-* Declare components to configure parts of a pipeline
-* Use expressions to bind components together to build a programmable pipeline
+  language.
+* Declare components to configure parts of a pipeline.
+* Use expressions to bind components together to build a programmable pipeline.
+* Includes a UI for debugging the state of a pipeline.
 
 ## Example
 
@@ -76,6 +83,17 @@ prometheus.remote_write "default" {
 [tutorials]: {{< relref "./tutorials/ ">}}
 [configuration language]: {{< relref "./config-language/" >}}
 [reference documentation]: {{< relref "./reference" >}}
+
+## Current limitations
+
+The goal of Grafana Agent Flow is to eventually support the same use cases that
+Grafana Agent does today. Some functionality may be missing while Grafana Agent
+Flow is still in development:
+
+* Logging-specific components
+* Tracing-specific components
+* An equivalent list of integrations
+* An equivalent to the scraping service
 
 ## Provide feedback
 

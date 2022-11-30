@@ -7,6 +7,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// +genclient
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:path="grafanaagents"
 // +kubebuilder:resource:singular="grafanaagent"
@@ -173,6 +174,10 @@ type GrafanaAgentSpec struct {
 	// disableReporting disable reporting of enabled feature flags to Grafana.
 	// +kubebuilder:default=false
 	DisableReporting bool `json:"disableReporting,omitempty"`
+
+	// disableSupportBundle disables the generation of support bundles.
+	// +kubebuilder:default=false
+	DisableSupportBundle bool `json:"disableSupportBundle,omitempty"`
 }
 
 // +kubebuilder:object:generate=false

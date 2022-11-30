@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -318,7 +317,7 @@ func (eh *EventHandler) writeOutLastEvent() error {
 		return err
 	}
 
-	err = ioutil.WriteFile(temp, buf, os.FileMode(cacheFileMode))
+	err = os.WriteFile(temp, buf, os.FileMode(cacheFileMode))
 	if err != nil {
 		return err
 	}

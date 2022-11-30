@@ -56,12 +56,12 @@ func (pos *Position) Valid() bool { return pos.Line > 0 }
 
 // String returns a string in one of the following forms:
 //
-//     file:line:column   Valid position with file name
-//     file:line          Valid position with file name but no column
-//     line:column        Valid position with no file name
-//     line               Valid position with no file name or column
-//     file               Invalid position with file name
-//     -                  Invalid position with no file name
+//	file:line:column   Valid position with file name
+//	file:line          Valid position with file name but no column
+//	line:column        Valid position with no file name
+//	line               Valid position with no file name or column
+//	file               Invalid position with file name
+//	-                  Invalid position with no file name
 func (pos Position) String() string {
 	s := pos.Filename
 

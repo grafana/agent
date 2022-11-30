@@ -5,7 +5,6 @@ import (
 	"errors"
 	"io"
 	"io/fs"
-	"io/ioutil"
 	"net/http"
 	"path/filepath"
 	"testing"
@@ -140,7 +139,7 @@ func Test_RealSourceMapStore_DownloadError(t *testing.T) {
 
 	resp := &http.Response{
 		StatusCode: 500,
-		Body:       ioutil.NopCloser(bytes.NewReader([]byte{})),
+		Body:       io.NopCloser(bytes.NewReader([]byte{})),
 	}
 
 	httpClient := &mockHTTPClient{

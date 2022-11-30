@@ -3,8 +3,8 @@ package elasticsearch_exporter //nolint:golint
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"io/ioutil"
 	"log"
+	"os"
 )
 
 // this file was copied as is from
@@ -36,7 +36,7 @@ func createTLSConfig(pemFile, pemCertFile, pemPrivateKeyFile string, insecureSki
 }
 
 func loadCertificatesFrom(pemFile string) (*x509.CertPool, error) {
-	caCert, err := ioutil.ReadFile(pemFile)
+	caCert, err := os.ReadFile(pemFile)
 	if err != nil {
 		return nil, err
 	}

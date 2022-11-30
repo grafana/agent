@@ -5,7 +5,6 @@ package logs
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -25,9 +24,9 @@ import (
 )
 
 func TestLogs_NilConfig(t *testing.T) {
-	l, err := New(prometheus.NewRegistry(), nil, util.TestLogger(t))
+	l, err := New(prometheus.NewRegistry(), nil, util.TestLogger(t), false)
 	require.NoError(t, err)
-	require.NoError(t, l.ApplyConfig(nil))
+	require.NoError(t, l.ApplyConfig(nil, false))
 
 	defer l.Stop()
 }
@@ -36,13 +35,13 @@ func TestLogs(t *testing.T) {
 	//
 	// Create a temporary file to tail
 	//
-	positionsDir, err := ioutil.TempDir(os.TempDir(), "positions-*")
+	positionsDir, err := os.MkdirTemp(os.TempDir(), "positions-*")
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = os.RemoveAll(positionsDir)
 	})
 
-	tmpFile, err := ioutil.TempFile(os.TempDir(), "*.log")
+	tmpFile, err := os.CreateTemp(os.TempDir(), "*.log")
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = os.RemoveAll(tmpFile.Name())
@@ -94,7 +93,7 @@ configs:
 	require.NoError(t, dec.Decode(&cfg))
 
 	logger := log.NewSyncLogger(log.NewNopLogger())
-	l, err := New(prometheus.NewRegistry(), &cfg, logger)
+	l, err := New(prometheus.NewRegistry(), &cfg, logger, false)
 	require.NoError(t, err)
 	defer l.Stop()
 
@@ -134,7 +133,7 @@ configs:
 	dec.SetStrict(true)
 	require.NoError(t, dec.Decode(&newCfg))
 
-	require.NoError(t, l.ApplyConfig(&newCfg))
+	require.NoError(t, l.ApplyConfig(&newCfg, false))
 
 	fmt.Fprintf(tmpFile, "Hello again!\n")
 	select {
@@ -146,7 +145,7 @@ configs:
 
 	t.Run("update to nil", func(t *testing.T) {
 		// Applying a nil config should remove all instances.
-		err := l.ApplyConfig(nil)
+		err := l.ApplyConfig(nil, false)
 		require.NoError(t, err)
 		require.Len(t, l.instances, 0)
 	})
@@ -156,7 +155,7 @@ func TestLogs_PositionsDirectory(t *testing.T) {
 	//
 	// Create a temporary file to tail
 	//
-	positionsDir, err := ioutil.TempDir(os.TempDir(), "positions-*")
+	positionsDir, err := os.MkdirTemp(os.TempDir(), "positions-*")
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = os.RemoveAll(positionsDir)
@@ -184,7 +183,7 @@ configs:
 	require.NoError(t, dec.Decode(&cfg))
 
 	logger := util.TestLogger(t)
-	l, err := New(prometheus.NewRegistry(), &cfg, logger)
+	l, err := New(prometheus.NewRegistry(), &cfg, logger, false)
 	require.NoError(t, err)
 	defer l.Stop()
 

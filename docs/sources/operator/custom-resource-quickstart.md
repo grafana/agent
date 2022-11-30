@@ -45,7 +45,7 @@ metadata:
   labels:
     app: grafana-agent
 spec:
-  image: grafana/agent:v0.28.0-rc.0
+  image: grafana/agent:v0.29.0
   logLevel: info
   serviceAccountName: grafana-agent
   metrics:
@@ -137,6 +137,10 @@ Deploying a GrafanaAgent resource on its own will not spin up any Agent Pods. Ag
 
 If you would like to disable the [reporting]({{< relref "../configuration/flags.md/#report-information-usage" >}}) usage of feature flags to Grafana, set `disableReporting` field to `true`.
 
+### Disable support bundle generation
+
+If you would like to disable the [support bundles functionality]({{< relref "../configuration/flags.md/#support-bundles" >}}), set the `disableSupportBundle` field to `true`.
+
 ## Step 2: Deploy a MetricsInstance resource
 
 In this step you'll roll out a MetricsInstance resource. MetricsInstance resources define a `remote_write` sink for metrics and configure one or more selectors to watch for creation and updates to `*Monitor` objects. These objects allow you to define Agent scrape targets via K8s manifests:
@@ -165,6 +169,19 @@ spec:
       password:
         name: primary-credentials-metrics
         key: password
+
+  # As an alternative authentication method, Grafana Agent also supports OAuth2.
+  # - url: your_remote_write_URL
+  #   oauth2:
+  #     clientId:
+  #       secret:
+  #         key: username # Kubernetes Secret Key
+  #         name: primary-credentials-metrics # Kubernetes Secret Name
+  #     clientSecret:
+  #       key: password # Kubernetes Secret Key
+  #       name: primary-credentials-metrics # Kubernetes Secret Name
+  #     tokenUrl: https://auth.example.com/realms/master/protocol/openid-connect/token
+
 
   # Supply an empty namespace selector to look in all namespaces. Remove
   # this to only look in the same namespace as the MetricsInstance CR

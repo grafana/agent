@@ -21,13 +21,29 @@ server, which defaults to listening at `http://localhost:12345`.
 > The documentation for the [`agent run`][agent run] command describes how to
 > modify the address Grafana Agent listens on for HTTP traffic.
 
-This UI provides two views:
+### Home page
 
-* The home page shows a table of running components along with their health.
-  Clicking **View** navigates to the detail page for that component.
-* The **Graph** page shows a graph view of all running components along with
-  their health. Clicking a component in the graph navigates to the detail page
-  for that component.
+![](../../../assets/ui_home_page.png)
+
+The home page shows a table of components defined in the config file along with
+their health.
+
+Click **View** on a row in the table to navigate to the [Component detail page](#component-detail-page)
+for that component.
+
+Click the Grafana Agent logo to navigate back to the home page.
+
+### Graph page
+
+![](../../../assets/ui_graph_page.png)
+
+The **Graph** page shows a graph view of components defined in the config file
+along with their health. Clicking a component in the graph navigates to the
+[Component detail page](#component-detail-page) for that component.
+
+### Component detail page
+
+![](../../../assets/ui_component_detail_page.png)
 
 The component detail page shows the following information for each component:
 
@@ -38,6 +54,8 @@ The component detail page shows the following information for each component:
 
 > Values marked as a [secret][] are obfuscated and will display as the text
 > `(secret)`.
+
+## Debugging using the UI
 
 To debug using the UI:
 

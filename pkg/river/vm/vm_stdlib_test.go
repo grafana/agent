@@ -2,10 +2,13 @@ package vm_test
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 
+	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/pkg/river/parser"
 	"github.com/grafana/agent/pkg/river/vm"
+	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
 )
 
@@ -32,25 +35,90 @@ func TestVM_Stdlib(t *testing.T) {
 
 			eval := vm.New(expr)
 
-			var v interface{}
-			require.NoError(t, eval.Evaluate(nil, &v))
-			require.Equal(t, tc.expect, v)
+			rv := reflect.New(reflect.TypeOf(tc.expect))
+			require.NoError(t, eval.Evaluate(nil, rv.Interface()))
+			require.Equal(t, tc.expect, rv.Elem().Interface())
+		})
+	}
+}
+
+func TestVM_Stdlib_Scoped(t *testing.T) {
+	tt := []struct {
+		name   string
+		input  string
+		scope  *vm.Scope
+		expect interface{}
+	}{
+		{
+			name:  "discovery_target_decode",
+			input: `discovery_target_decode(input)`,
+			scope: &vm.Scope{
+				Variables: map[string]interface{}{
+					"input": `[
+						{
+							"targets": ["host-a:12345", "host-a:12346"],
+							"labels": {
+								"foo": "bar"
+							}
+						},
+						{
+							"targets": ["host-b:12345", "host-b:12346"],
+							"labels": {
+								"hello": "world"
+							}
+						}
+					]`,
+				},
+			},
+			expect: []discovery.Target{
+				{
+					model.AddressLabel: "host-a:12345",
+					"foo":              "bar",
+				},
+				{
+					model.AddressLabel: "host-a:12346",
+					"foo":              "bar",
+				},
+				{
+					model.AddressLabel: "host-b:12345",
+					"hello":            "world",
+				},
+				{
+					model.AddressLabel: "host-b:12346",
+					"hello":            "world",
+				},
+			},
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			expr, err := parser.ParseExpression(tc.input)
+			require.NoError(t, err)
+
+			eval := vm.New(expr)
+
+			rv := reflect.New(reflect.TypeOf(tc.expect))
+			require.NoError(t, eval.Evaluate(tc.scope, rv.Interface()))
+			require.Equal(t, tc.expect, rv.Elem().Interface())
 		})
 	}
 }
 
 func BenchmarkConcat(b *testing.B) {
-	// There's a bit of setup work to do here: we want to create a scope
-	// holding a slice of the Data type, which has a fair amount of data in
-	// it.
+	// There's a bit of setup work to do here: we want to create a scope holding
+	// a slice of the Person type, which has a fair amount of data in it.
 	//
 	// We then want to pass it through concat.
 	//
 	// If the code path is fully optimized, there will be no intermediate
 	// translations to interface{}.
-	type Data map[string]string
+	type Person struct {
+		Name  string            `river:"name,attr"`
+		Attrs map[string]string `river:"attrs,attr"`
+	}
 	type Body struct {
-		Values []Data `river:"values,attr"`
+		Values []Person `river:"values,attr"`
 	}
 
 	in := `values = concat(values_ref)`
@@ -59,9 +127,9 @@ func BenchmarkConcat(b *testing.B) {
 
 	eval := vm.New(f)
 
-	valuesRef := make([]Data, 0, 20)
+	valuesRef := make([]Person, 0, 20)
 	for i := 0; i < 20; i++ {
-		data := make(Data, 20)
+		data := make(map[string]string, 20)
 		for j := 0; j < 20; j++ {
 			var (
 				key   = fmt.Sprintf("key_%d", i+1)
@@ -69,7 +137,10 @@ func BenchmarkConcat(b *testing.B) {
 			)
 			data[key] = value
 		}
-		valuesRef = append(valuesRef, data)
+		valuesRef = append(valuesRef, Person{
+			Name:  "Test Person",
+			Attrs: data,
+		})
 	}
 	scope := &vm.Scope{
 		Variables: map[string]interface{}{

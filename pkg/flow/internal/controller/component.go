@@ -18,6 +18,7 @@ import (
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/vm"
 	"github.com/prometheus/client_golang/prometheus"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/atomic"
 )
 
@@ -58,6 +59,7 @@ func (id ComponentID) Equals(other ComponentID) bool {
 // ComponentNodes should use the same ComponentGlobals.
 type ComponentGlobals struct {
 	Logger          log.Logger              // Logger shared between all managed components.
+	TraceProvider   trace.TracerProvider    // Tracer shared between all managed components.
 	DataPath        string                  // Shared directory where component data may be stored
 	OnExportsChange func(cn *ComponentNode) // Invoked when the managed component updated its exports
 	Registerer      prometheus.Registerer   // Registerer for serving agent and component metrics
@@ -159,6 +161,7 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 		Registerer: prometheus.WrapRegistererWith(prometheus.Labels{
 			"component_id": cn.nodeID,
 		}, wrapped),
+		Tracer:         wrapTracer(globals.TraceProvider, cn.nodeID),
 		HTTPListenAddr: globals.HTTPListenAddr,
 		HTTPPath:       fmt.Sprintf("/component/%s/", cn.nodeID),
 	}

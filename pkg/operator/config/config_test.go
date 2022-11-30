@@ -22,6 +22,8 @@ func TestBuildConfigMetrics(t *testing.T) {
 
 	store[assets.Key("/secrets/default/example-secret/key")] = "somesecret"
 	store[assets.Key("/configMaps/default/example-cm/key")] = "somecm"
+	store[assets.Key("/secrets/default/client-id/client_id")] = "my-client-id"
+	store[assets.Key("/secrets/default/client-secret/client_secret")] = "somesecret-client-secret"
 
 	tt := []struct {
 		input  string
@@ -119,6 +121,80 @@ func TestBuildConfigMetrics(t *testing.T) {
 									ca_file: /var/lib/grafana-agent/secrets/_configMaps_default_example_cm_key
 									cert_file: /var/lib/grafana-agent/secrets/_secrets_default_example_secret_key
 									key_file: /var/lib/grafana-agent/secrets/_secrets_default_example_secret_key
+				`),
+		},
+		{
+			input: util.Untab(`
+metadata:
+  name: example
+  namespace: default
+spec:
+  logLevel: debug
+  metrics:
+    scrapeInterval: 15s
+    scrapeTimeout: 10s
+    externalLabels:
+      cluster: prod
+      foo: bar
+    remoteWrite:
+    - url: http://localhost:9090/api/v1/write
+      oauth2:
+        clientId:
+          secret:
+            key: client_id
+            name: client-id
+        clientSecret:
+          key: client_secret
+          name: my-client-secret
+        tokenUrl: https://auth.example.com/realms/master/protocol/openid-connect/token
+    - url: http://localhost:9090/api/v1/write
+      oauth2:
+        clientId:
+          secret:
+            key: client_id
+            name: client-id
+        clientSecret:
+          key: client_secret
+          name: my-client-secret
+        # test optional parameters endpointParams and scopes
+        endpointParams:
+          params-key0: params-value
+          params-key1: params-value
+        scopes:
+          - value0
+          - value1
+        tokenUrl: https://auth.example.com/realms/master/protocol/openid-connect/token
+				`),
+			expect: util.Untab(`
+server:
+  log_level: debug
+
+metrics:
+  wal_directory: /var/lib/grafana-agent/data
+  global:
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    external_labels:
+      cluster: prod
+      foo: bar
+      __replica__: replica-$(STATEFULSET_ORDINAL_NUMBER)
+    remote_write:
+      - url: http://localhost:9090/api/v1/write
+        oauth2:
+          client_id: my-client-id
+          client_secret_file: /var/lib/grafana-agent/secrets/_secrets_default_my_client_secret_client_secret
+          token_url: https://auth.example.com/realms/master/protocol/openid-connect/token
+      - url: http://localhost:9090/api/v1/write
+        oauth2:
+          client_id: my-client-id
+          client_secret_file: /var/lib/grafana-agent/secrets/_secrets_default_my_client_secret_client_secret
+          endpoint_params:
+            params-key0: params-value
+            params-key1: params-value
+          scopes:
+            - value0
+            - value1
+          token_url: https://auth.example.com/realms/master/protocol/openid-connect/token
 				`),
 		},
 	}

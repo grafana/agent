@@ -8,10 +8,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/prometheus/prometheus/model/labels"
+
+	"github.com/grafana/agent/component/prometheus"
+
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/metrics/wal"
 	"github.com/prometheus/prometheus/model/timestamp"
@@ -49,7 +52,7 @@ type Component struct {
 	mut sync.RWMutex
 	cfg Arguments
 
-	receiver *prometheus.Receiver
+	receiver *prometheus.Interceptor
 }
 
 // NewComponent creates a new prometheus.remote_write component.
@@ -71,7 +74,26 @@ func NewComponent(o component.Options, c Arguments) (*Component, error) {
 		remoteStore: remoteStore,
 		storage:     storage.NewFanout(o.Logger, walStorage, remoteStore),
 	}
-	res.receiver = &prometheus.Receiver{Receive: res.Receive}
+	res.receiver, err = prometheus.NewInterceptor(func(ref storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
+		// Conversion is needed because remote_writes assume they own all the IDs, so if you have two remote_writes they will
+		// both assume they have only one scraper attached. In flow that is not true, so we need to translate from a global id
+		// to a local (remote_write) id.
+		localID := prometheus.GlobalRefMapping.GetLocalRefID(res.opts.ID, uint64(ref))
+		newref, nextErr := next.Append(storage.SeriesRef(localID), l, t, v)
+		// If there was no local id we need to propagate it.
+		if localID == 0 {
+			prometheus.GlobalRefMapping.GetOrAddLink(res.opts.ID, uint64(newref), l)
+		}
+		// return the original ref since this needs to be a globalref id and not the local one.
+		return ref, nextErr
+	}, res.storage, o.ID)
+	if err != nil {
+		return nil, err
+	}
+	// Immediately export the receiver which remains the same for the component
+	// lifetime.
+	o.OnStateChange(Exports{Receiver: res.receiver})
+
 	if err := res.Update(c); err != nil {
 		return nil, err
 	}
@@ -84,7 +106,6 @@ var _ component.Component = (*Component)(nil)
 
 // Run implements Component.
 func (c *Component) Run(ctx context.Context) error {
-	c.opts.OnStateChange(Exports{Receiver: c.receiver})
 	defer func() {
 		level.Debug(c.log).Log("msg", "closing storage")
 		err := c.storage.Close()
@@ -174,37 +195,4 @@ func (c *Component) Update(newConfig component.Arguments) error {
 
 	c.cfg = cfg
 	return nil
-}
-
-// Receive implements the receiver.receive func that allows an array of metrics to be passed
-func (c *Component) Receive(ts int64, metricArr []*prometheus.FlowMetric) {
-	app := c.storage.Appender(context.Background())
-	for _, m := range metricArr {
-		localID := prometheus.GlobalRefMapping.GetLocalRefID(c.opts.ID, m.GlobalRefID())
-		// Currently it doesn't look like the storage interfaces mutate the labels, but thats not a strong
-		// promise. So this should be treated with care.
-		newLocal, err := app.Append(storage.SeriesRef(localID), m.RawLabels(), ts, m.Value())
-		// Add link if there wasn't one before, and we received a valid local id
-		if localID == 0 && newLocal != 0 {
-			prometheus.GlobalRefMapping.GetOrAddLink(c.opts.ID, uint64(newLocal), m)
-		}
-		if err != nil {
-			_ = app.Rollback()
-			//TODO what should we log and behave?
-			level.Error(c.log).Log("err", err, "msg", "error receiving metrics", "component", c.opts.ID)
-			return
-		}
-	}
-
-	err := app.Commit()
-	if err != nil {
-		level.Error(c.log).Log("msg", "failed to commit samples", "err", err)
-	}
-}
-
-// Config implements Component.
-func (c *Component) Config() Arguments {
-	c.mut.RLock()
-	defer c.mut.RUnlock()
-	return c.cfg
 }

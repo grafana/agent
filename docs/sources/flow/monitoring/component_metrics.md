@@ -32,6 +32,6 @@ The [reference documentation][] for each component will describe the list of
 component-specific metrics that component exposes. Not all components will
 expose metrics.
 
-[component]: {{< relref "../concepts/components.md" >}}
+[components]: {{< relref "../concepts/components.md" >}}
 [agent run]: {{< relref "../reference/cli/run.md" >}}
 [reference documentation]: {{< relref "../reference/components/_index.md" >}}

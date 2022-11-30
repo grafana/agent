@@ -19,7 +19,6 @@ import (
 	"github.com/prometheus/common/model"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
-	pdata_internal "go.opentelemetry.io/collector/pdata/external"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	semconv "go.opentelemetry.io/collector/semconv/v1.6.1"
@@ -113,7 +112,7 @@ func (p *automaticLoggingProcessor) ConsumeTraces(ctx context.Context, td ptrace
 		var svc string
 		svcAtt, ok := rs.Resource().Attributes().Get(semconv.AttributeServiceName)
 		if ok {
-			svc = svcAtt.StringVal()
+			svc = svcAtt.Str()
 		}
 
 		for j := 0; j < ssLen; j++ {
@@ -234,7 +233,7 @@ func (p *automaticLoggingProcessor) spanKeyVals(span ptrace.Span) []interface{} 
 	atts = append(atts, spanDuration(span))
 
 	// Skip STATUS_CODE_UNSET to be less spammy
-	if span.Status().Code() != pdata_internal.StatusCodeUnset {
+	if span.Status().Code() != ptrace.StatusCodeUnset {
 		atts = append(atts, p.cfg.Overrides.StatusKey)
 		atts = append(atts, span.Status().Code())
 	}
@@ -291,18 +290,18 @@ func spanDuration(span ptrace.Span) string {
 
 func attributeValue(att pcommon.Value) interface{} {
 	switch att.Type() {
-	case pcommon.ValueTypeString:
-		return att.StringVal()
+	case pcommon.ValueTypeStr:
+		return att.Str()
 	case pcommon.ValueTypeInt:
-		return att.IntVal()
+		return att.Int()
 	case pcommon.ValueTypeDouble:
-		return att.DoubleVal()
+		return att.Double()
 	case pcommon.ValueTypeBool:
-		return att.BoolVal()
+		return att.Bool()
 	case pcommon.ValueTypeMap:
-		return att.MapVal()
+		return att.Map()
 	case pcommon.ValueTypeSlice:
-		return att.SliceVal()
+		return att.Slice()
 	}
 	return nil
 }

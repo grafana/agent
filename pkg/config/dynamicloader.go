@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 	"io/fs"
-	"io/ioutil"
 	"net/url"
+	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/grafana/agent/pkg/config/instrumentation"
 	v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
@@ -90,7 +91,7 @@ func (c *DynamicLoader) LoadConfigByPath(path string) error {
 		// It takes some work arounds to parse all windows paths as url so treating it differently now is easier
 		// otherwise we could parse path and then pivot
 		stripPath := strings.ReplaceAll(path, "file://", "")
-		buf, err = ioutil.ReadFile(stripPath)
+		buf, err = os.ReadFile(stripPath)
 		if err != nil {
 			return err
 		}
@@ -106,6 +107,8 @@ func (c *DynamicLoader) LoadConfigByPath(path string) error {
 	default:
 		return fmt.Errorf("config path must start with file:// or s3://, not %s", path)
 	}
+
+	instrumentation.ConfigMetrics.InstrumentConfig(buf)
 
 	cl := &LoaderConfig{}
 	err = yaml.Unmarshal(buf, cl)

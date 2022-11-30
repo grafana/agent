@@ -2,7 +2,6 @@ package wal
 
 import (
 	"context"
-	"io/ioutil"
 	"math"
 	"os"
 	"sort"
@@ -22,7 +21,7 @@ import (
 )
 
 func TestStorage_InvalidSeries(t *testing.T) {
-	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
+	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
 	require.NoError(t, err)
 	defer os.RemoveAll(walDir)
 
@@ -64,7 +63,7 @@ func TestStorage_InvalidSeries(t *testing.T) {
 }
 
 func TestStorage(t *testing.T) {
-	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
+	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
 	require.NoError(t, err)
 	defer os.RemoveAll(walDir)
 
@@ -106,7 +105,7 @@ func TestStorage(t *testing.T) {
 }
 
 func TestStorage_DuplicateExemplarsIgnored(t *testing.T) {
-	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
+	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
 	require.NoError(t, err)
 	defer os.RemoveAll(walDir)
 
@@ -147,7 +146,7 @@ func TestStorage_DuplicateExemplarsIgnored(t *testing.T) {
 }
 
 func TestStorage_ExistingWAL(t *testing.T) {
-	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
+	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
 	require.NoError(t, err)
 	defer os.RemoveAll(walDir)
 
@@ -214,7 +213,7 @@ func TestStorage_ExistingWAL(t *testing.T) {
 func TestStorage_ExistingWAL_RefID(t *testing.T) {
 	l := util.TestLogger(t)
 
-	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
+	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
 	require.NoError(t, err)
 	defer os.RemoveAll(walDir)
 
@@ -247,7 +246,7 @@ func TestStorage_Truncate(t *testing.T) {
 	// after writing all the data, forcefully create 4 more segments,
 	// then do a truncate of a timestamp for _some_ of the data.
 	// then read data back in. Expect to only get the latter half of data.
-	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
+	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
 	require.NoError(t, err)
 	defer os.RemoveAll(walDir)
 
@@ -270,7 +269,8 @@ func TestStorage_Truncate(t *testing.T) {
 	// Forefully create a bunch of new segments so when we truncate
 	// there's enough segments to be considered for truncation.
 	for i := 0; i < 5; i++ {
-		require.NoError(t, s.wal.NextSegment())
+		_, err := s.wal.NextSegmentSync()
+		require.NoError(t, err)
 	}
 
 	// Truncate half of the samples, keeping only the second sample
@@ -308,7 +308,7 @@ func TestStorage_Truncate(t *testing.T) {
 }
 
 func TestStorage_WriteStalenessMarkers(t *testing.T) {
-	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
+	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
 	require.NoError(t, err)
 	defer os.RemoveAll(walDir)
 
@@ -362,7 +362,7 @@ func TestStorage_WriteStalenessMarkers(t *testing.T) {
 }
 
 func TestStorage_TruncateAfterClose(t *testing.T) {
-	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
+	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
 	require.NoError(t, err)
 	defer os.RemoveAll(walDir)
 
@@ -374,7 +374,7 @@ func TestStorage_TruncateAfterClose(t *testing.T) {
 }
 
 func TestGlobalReferenceID_Normal(t *testing.T) {
-	walDir, _ := ioutil.TempDir(os.TempDir(), "wal")
+	walDir, _ := os.MkdirTemp(os.TempDir(), "wal")
 	defer os.RemoveAll(walDir)
 
 	s, _ := NewStorage(log.NewNopLogger(), nil, walDir)
@@ -402,7 +402,7 @@ func TestGlobalReferenceID_Normal(t *testing.T) {
 }
 
 func BenchmarkAppendExemplar(b *testing.B) {
-	walDir, _ := ioutil.TempDir(os.TempDir(), "wal")
+	walDir, _ := os.MkdirTemp(os.TempDir(), "wal")
 	defer os.RemoveAll(walDir)
 
 	s, _ := NewStorage(log.NewNopLogger(), nil, walDir)

@@ -21,10 +21,10 @@ spec:
     schema:
       openAPIV3Schema:
         description: "Integration runs a single Grafana Agent integration. Integrations
-          that generate telemetry must be configured to send that telemetry somewhere;
+          that generate telemetry must be configured to send that telemetry somewhere,
           such as autoscrape for exporter-based integrations. \n Integrations have
           access to the LogsInstances and MetricsInstances in the same GrafanaAgent
-          resource set, referenced by the <namespace>/<name> of the *Instance resource.
+          resource set, referenced by the <namespace>/<name> of the Instance resource.
           \n For example, if there is a default/production MetricsInstance, you can
           configure a supported integration's autoscrape block with: \n autoscrape:
           enable: true metrics_instance: default/production \n There is currently
@@ -48,14 +48,14 @@ spec:
             properties:
               config:
                 description: "The configuration for the named integration. Note that
-                  integrations are deployed with the integrations-next feature flag,
+                  Integrations are deployed with the integrations-next feature flag,
                   which has different common settings: \n https://grafana.com/docs/agent/latest/configuration/integrations/integrations-next/"
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               configMaps:
                 description: "An extra list of keys from ConfigMaps in the same namespace
                   as the Integration which will be mounted into the Grafana Agent
-                  pod running this integration. \n ConfigMaps will be mounted at /etc/grafana-agent/integrations/configMaps/<configmap_namespace>/<configmap_name>/<key>."
+                  pod running this Integration. \n ConfigMaps are mounted at /etc/grafana-agent/integrations/configMaps/<configmap_namespace>/<configmap_name>/<key>."
                 items:
                   description: Selects a key from a ConfigMap.
                   properties:
@@ -81,7 +81,7 @@ spec:
               secrets:
                 description: "An extra list of keys from Secrets in the same namespace
                   as the Integration which will be mounted into the Grafana Agent
-                  pod running this integration. \n Secrets will be mounted at /etc/grafana-agent/integrations/secrets/<secret_namespace>/<secret_name>/<key>."
+                  pod running this Integration. \n Secrets will be mounted at /etc/grafana-agent/integrations/secrets/<secret_namespace>/<secret_name>/<key>."
                 items:
                   description: SecretKeySelector selects a key of a Secret.
                   properties:
@@ -101,12 +101,12 @@ spec:
                   type: object
                 type: array
               type:
-                description: Type informs Grafana Agent Operator how to manage the
-                  integration being configured.
+                description: Type informs Grafana Agent Operator about how to manage
+                  the integration being configured.
                 properties:
                   allNodes:
                     description: When true, the configured integration should be run
-                      on every Node in the cluster. This is required for integrations
+                      on every Node in the cluster. This is required for Integrations
                       that generate Node-specific metrics like node_exporter, otherwise
                       it must be false to avoid generating duplicate metrics.
                     type: boolean
@@ -114,16 +114,16 @@ spec:
                     description: Whether this integration can only be defined once
                       for a Grafana Agent process, such as statsd_exporter. It is
                       invalid for a GrafanaAgent to discover multiple unique Integrations
-                      with the same integration name (i.e., a single GrafanaAgent
+                      with the same Integration name (i.e., a single GrafanaAgent
                       cannot deploy two statsd_exporters).
                     type: boolean
                 type: object
               volumeMounts:
                 description: "An extra list of VolumeMounts to be associated with
                   the Grafana Agent pods running this integration. VolumeMount names
-                  will be mutated to be unique across all used IntegrationSpecs. \n
-                  Mount paths should include the namespace/name of the Integration
-                  CR to avoid potentially colliding with other resources."
+                  are mutated to be unique across all used IntegrationSpecs. \n Mount
+                  paths should include the namespace/name of the Integration CR to
+                  avoid potentially colliding with other resources."
                 items:
                   description: VolumeMount describes a mounting of a Volume within
                     a container.
@@ -163,12 +163,12 @@ spec:
                 type: array
               volumes:
                 description: "An extra list of Volumes to be associated with the Grafana
-                  Agent pods running this integration. Volume names will be mutated
-                  to be unique across all Integrations. Note that the specified volumes
+                  Agent pods running this integration. Volume names are mutated to
+                  be unique across all Integrations. Note that the specified volumes
                   should be able to tolerate existing on multiple pods at once when
-                  type is daemonset. \n Don't use volumes for loading secrets/configMaps
-                  from the same namespace as the Integration; use the secrets and
-                  configMaps fields instead."
+                  type is daemonset. \n Don't use volumes for loading Secrets or ConfigMaps
+                  from the same namespace as the Integration; use the Secrets and
+                  ConfigMaps fields instead."
                 items:
                   description: Volume represents a named volume in a pod that may
                     be accessed by any container in the pod.

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
@@ -15,6 +14,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/config/features"
+	"github.com/grafana/agent/pkg/config/instrumentation"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/server"
@@ -54,6 +54,7 @@ var DefaultConfig = Config{
 	ServerFlags:           server.DefaultFlags,
 	Metrics:               metrics.DefaultConfig,
 	Integrations:          DefaultVersionedIntegrations,
+	DisableSupportBundle:  false,
 	EnableConfigEndpoints: false,
 	EnableUsageReport:     true,
 }
@@ -78,6 +79,9 @@ type Config struct {
 
 	// Toggle for config endpoint(s)
 	EnableConfigEndpoints bool `yaml:"-"`
+
+	// Toggle for support bundle generation.
+	DisableSupportBundle bool `yaml:"-"`
 
 	// Report enabled features options
 	EnableUsageReport bool     `yaml:"-"`
@@ -217,10 +221,14 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 
 // LoadFile reads a file and passes the contents to Load
 func LoadFile(filename string, expandEnvVars bool, c *Config) error {
-	buf, err := ioutil.ReadFile(filename)
+	buf, err := os.ReadFile(filename)
+
 	if err != nil {
 		return fmt.Errorf("error reading config file %w", err)
 	}
+
+	instrumentation.ConfigMetrics.InstrumentConfig(buf)
+
 	return LoadBytes(buf, expandEnvVars, c)
 }
 
@@ -256,6 +264,9 @@ func LoadRemote(url string, expandEnvVars bool, c *Config) error {
 	if err != nil {
 		return fmt.Errorf("error retrieving remote config: %w", err)
 	}
+
+	instrumentation.ConfigMetrics.InstrumentConfig(bb)
+
 	return LoadBytes(bb, expandEnvVars, c)
 }
 
@@ -320,7 +331,7 @@ func getenv(name string) string {
 // to the flagset before parsing them with the values specified by
 // args.
 func Load(fs *flag.FlagSet, args []string) (*Config, error) {
-	return load(fs, args, func(path, fileType string, expandArgs bool, c *Config) error {
+	cfg, error := load(fs, args, func(path, fileType string, expandArgs bool, c *Config) error {
 		switch fileType {
 		case fileTypeYAML:
 			if features.Enabled(fs, featRemoteConfigs) {
@@ -342,6 +353,9 @@ func Load(fs *flag.FlagSet, args []string) (*Config, error) {
 			return fmt.Errorf("unknown file type %q. accepted values: %s", fileType, strings.Join(fileTypes, ", "))
 		}
 	})
+
+	instrumentation.ConfigMetrics.InstrumentLoad(error == nil)
+	return cfg, error
 }
 
 type loaderFunc func(path string, fileType string, expandArgs bool, target *Config) error
@@ -352,11 +366,12 @@ func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
 	var (
 		cfg = DefaultConfig
 
-		printVersion     bool
-		file             string
-		fileType         string
-		configExpandEnv  bool
-		disableReporting bool
+		printVersion          bool
+		file                  string
+		fileType              string
+		configExpandEnv       bool
+		disableReporting      bool
+		disableSupportBundles bool
 	)
 
 	fs.StringVar(&file, "config.file", "", "configuration file to load")
@@ -364,6 +379,7 @@ func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
 	fs.BoolVar(&printVersion, "version", false, "Print this build's version information.")
 	fs.BoolVar(&configExpandEnv, "config.expand-env", false, "Expands ${var} in config according to the values of the environment variables.")
 	fs.BoolVar(&disableReporting, "disable-reporting", false, "Disable reporting of enabled feature flags to Grafana.")
+	fs.BoolVar(&disableSupportBundles, "disable-support-bundle", false, "Disable functionality for generating support bundles.")
 	cfg.RegisterFlags(fs)
 
 	features.Register(fs, allFeatures)
@@ -408,6 +424,10 @@ func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
 		cfg.EnableUsageReport = false
 	} else {
 		cfg.EnabledFeatures = features.GetAllEnabled(fs)
+	}
+
+	if disableSupportBundles {
+		cfg.DisableSupportBundle = true
 	}
 
 	// Finally, apply defaults to config that wasn't specified by file or flag
