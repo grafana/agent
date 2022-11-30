@@ -92,8 +92,7 @@ based on a hash of the endpoint settings.
 
 ### http_client_config block
 
-The `http_client_config` configures settings used to connect to the
-remote_write server.
+The `http_client_config` configures settings used to connect to the Loki API.
 
 {{< docs/shared lookup="flow/reference/components/http-client-config-block.md" source="agent" >}}
 
@@ -150,9 +149,6 @@ to a local Loki instance without TLS:
 loki.write "local" {
     client {
         url = "loki:3100"
-        tls_config {
-            insecure_skip_verify = true
-        }
     }
 }
 ```

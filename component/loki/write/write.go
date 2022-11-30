@@ -7,7 +7,7 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/agent/component/loki/write/client"
+	"github.com/grafana/agent/component/loki/write/internal/client"
 	"github.com/grafana/agent/pkg/build"
 )
 
@@ -84,7 +84,12 @@ func (c *Component) Run(ctx context.Context) error {
 		case entry := <-c.receiver:
 			for _, client := range c.clients {
 				if client != nil {
-					client.Chan() <- entry
+					select {
+					case <-ctx.Done():
+						return nil
+					case client.Chan() <- entry:
+						// no-op
+					}
 				}
 			}
 		}

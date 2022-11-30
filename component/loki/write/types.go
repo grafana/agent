@@ -7,7 +7,7 @@ import (
 
 	"github.com/alecthomas/units"
 	types "github.com/grafana/agent/component/common/config"
-	"github.com/grafana/agent/component/loki/write/client"
+	"github.com/grafana/agent/component/loki/write/internal/client"
 	"github.com/grafana/dskit/backoff"
 	"github.com/grafana/dskit/flagext"
 	lokiflagext "github.com/grafana/loki/pkg/util/flagext"
@@ -47,7 +47,11 @@ func (r *EndpointOptions) UnmarshalRiver(f func(v interface{}) error) error {
 	*r = DefaultEndpointOptions
 
 	type arguments EndpointOptions
-	return f((*arguments)(r))
+	if err := f((*arguments)(r)); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (args Arguments) convertClientConfigs() ([]client.Config, error) {
