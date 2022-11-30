@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/agent/component/loki/write/client/fake"
+	"github.com/grafana/agent/component/loki/write/internal/client/fake"
 
 	"github.com/grafana/loki/pkg/logproto"
 	lokiflag "github.com/grafana/loki/pkg/util/flagext"
