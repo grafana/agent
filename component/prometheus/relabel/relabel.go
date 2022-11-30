@@ -101,32 +101,31 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	}
 
 	c.fanout = prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer)
-	c.receiver = &prometheus.Interceptor{
-		OnAppend: func(ref storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
+	c.receiver = prometheus.NewInterceptor(
+		c.fanout,
+		prometheus.WithAppendHook(func(_ storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
 			newLbl := c.relabel(v, l)
 			if newLbl == nil {
 				return 0, nil
 			}
 			c.metricsOutgoing.Inc()
 			return next.Append(0, newLbl, t, v)
-		},
-		OnAppendExemplar: func(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar, next storage.Appender) (storage.SeriesRef, error) {
+		}),
+		prometheus.WithExemplarHook(func(_ storage.SeriesRef, l labels.Labels, e exemplar.Exemplar, next storage.Appender) (storage.SeriesRef, error) {
 			newLbl := c.relabel(0, l)
 			if newLbl == nil {
 				return 0, nil
 			}
-			return next.AppendExemplar(ref, l, e)
-		},
-		OnUpdateMetadata: func(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error) {
+			return next.AppendExemplar(0, l, e)
+		}),
+		prometheus.WithMetadataHook(func(_ storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error) {
 			newLbl := c.relabel(0, l)
 			if newLbl == nil {
 				return 0, nil
 			}
-			return next.UpdateMetadata(ref, l, m)
-		},
-
-		Next: c.fanout,
-	}
+			return next.UpdateMetadata(0, l, m)
+		}),
+	)
 
 	// Immediately export the receiver which remains the same for the component
 	// lifetime.

@@ -76,40 +76,40 @@ func NewComponent(o component.Options, c Arguments) (*Component, error) {
 		remoteStore: remoteStore,
 		storage:     storage.NewFanout(o.Logger, walStorage, remoteStore),
 	}
-	res.receiver = &prometheus.Interceptor{
+	res.receiver = prometheus.NewInterceptor(
+		res.storage,
+
 		// In the methods below, conversion is needed because remote_writes assume
 		// they are responsible for generating ref IDs. This means two
 		// remote_writes may return the same ref ID for two different series. We
 		// treat the remote_write ID as a "local ID" and translate it to a "global
 		// ID" to ensure Flow compatibility.
 
-		OnAppend: func(globalRef storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
+		prometheus.WithAppendHook(func(globalRef storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
 			localID := prometheus.GlobalRefMapping.GetLocalRefID(res.opts.ID, uint64(globalRef))
 			newRef, nextErr := next.Append(storage.SeriesRef(localID), l, t, v)
 			if localID == 0 {
 				prometheus.GlobalRefMapping.GetOrAddLink(res.opts.ID, uint64(newRef), l)
 			}
 			return globalRef, nextErr
-		},
-		OnUpdateMetadata: func(globalRef storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error) {
+		}),
+		prometheus.WithMetadataHook(func(globalRef storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error) {
 			localID := prometheus.GlobalRefMapping.GetLocalRefID(res.opts.ID, uint64(globalRef))
 			newRef, nextErr := next.UpdateMetadata(storage.SeriesRef(localID), l, m)
 			if localID == 0 {
 				prometheus.GlobalRefMapping.GetOrAddLink(res.opts.ID, uint64(newRef), l)
 			}
 			return globalRef, nextErr
-		},
-		OnAppendExemplar: func(globalRef storage.SeriesRef, l labels.Labels, e exemplar.Exemplar, next storage.Appender) (storage.SeriesRef, error) {
+		}),
+		prometheus.WithExemplarHook(func(globalRef storage.SeriesRef, l labels.Labels, e exemplar.Exemplar, next storage.Appender) (storage.SeriesRef, error) {
 			localID := prometheus.GlobalRefMapping.GetLocalRefID(res.opts.ID, uint64(globalRef))
 			newRef, nextErr := next.AppendExemplar(storage.SeriesRef(localID), l, e)
 			if localID == 0 {
 				prometheus.GlobalRefMapping.GetOrAddLink(res.opts.ID, uint64(newRef), l)
 			}
 			return globalRef, nextErr
-		},
-
-		Next: res.storage,
-	}
+		}),
+	)
 
 	// Immediately export the receiver which remains the same for the component
 	// lifetime.

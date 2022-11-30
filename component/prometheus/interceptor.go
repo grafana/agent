@@ -13,23 +13,60 @@ import (
 // getting data. Interceptor should not be modified once created. All callback
 // fields are optional.
 type Interceptor struct {
-	OnAppend         func(ref storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error)
-	OnAppendExemplar func(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar, next storage.Appender) (storage.SeriesRef, error)
-	OnUpdateMetadata func(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error)
+	onAppend         func(ref storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error)
+	onAppendExemplar func(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar, next storage.Appender) (storage.SeriesRef, error)
+	onUpdateMetadata func(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error)
 
-	// Next is the next appendable to pass in the chain.
-	Next storage.Appendable
+	// next is the next appendable to pass in the chain.
+	next storage.Appendable
 }
 
 var _ storage.Appendable = (*Interceptor)(nil)
+
+// NewInterceptor creates a new Interceptor storage.Appendable. Options can be
+// provided to NewInterceptor to install custom hooks for different methods.
+func NewInterceptor(next storage.Appendable, opts ...InterceptorOption) *Interceptor {
+	i := &Interceptor{next: next}
+	for _, opt := range opts {
+		opt(i)
+	}
+	return i
+}
+
+// InterceptorOption is an option argument passed to NewInterceptor.
+type InterceptorOption func(*Interceptor)
+
+// WithAppendHook returns an InterceptorOption which hooks into calls to
+// Append.
+func WithAppendHook(f func(ref storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error)) InterceptorOption {
+	return func(i *Interceptor) {
+		i.onAppend = f
+	}
+}
+
+// WithExemplarHook returns an InterceptorOption which hooks into calls to
+// AppendExemplar.
+func WithExemplarHook(f func(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar, next storage.Appender) (storage.SeriesRef, error)) InterceptorOption {
+	return func(i *Interceptor) {
+		i.onAppendExemplar = f
+	}
+}
+
+// WithMetadataHook returns an InterceptorOption which hooks into calls to
+// UpdateMetadata.
+func WithMetadataHook(f func(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error)) InterceptorOption {
+	return func(i *Interceptor) {
+		i.onUpdateMetadata = f
+	}
+}
 
 // Appender satisfies the Appendable interface.
 func (f *Interceptor) Appender(ctx context.Context) storage.Appender {
 	app := &interceptappender{
 		interceptor: f,
 	}
-	if f.Next != nil {
-		app.child = f.Next.Appender(ctx)
+	if f.next != nil {
+		app.child = f.next.Appender(ctx)
 	}
 	return app
 }
@@ -47,8 +84,8 @@ func (a *interceptappender) Append(ref storage.SeriesRef, l labels.Labels, t int
 		ref = storage.SeriesRef(GlobalRefMapping.GetOrAddGlobalRefID(l))
 	}
 
-	if a.interceptor.OnAppend != nil {
-		return a.interceptor.OnAppend(ref, l, t, v, a.child)
+	if a.interceptor.onAppend != nil {
+		return a.interceptor.onAppend(ref, l, t, v, a.child)
 	}
 	return a.child.Append(ref, l, t, v)
 }
@@ -80,8 +117,8 @@ func (a *interceptappender) AppendExemplar(
 		ref = storage.SeriesRef(GlobalRefMapping.GetOrAddGlobalRefID(l))
 	}
 
-	if a.interceptor.OnAppendExemplar != nil {
-		return a.interceptor.OnAppendExemplar(ref, l, e, a.child)
+	if a.interceptor.onAppendExemplar != nil {
+		return a.interceptor.onAppendExemplar(ref, l, e, a.child)
 	}
 	return a.child.AppendExemplar(ref, l, e)
 }
@@ -97,8 +134,8 @@ func (a *interceptappender) UpdateMetadata(
 		ref = storage.SeriesRef(GlobalRefMapping.GetOrAddGlobalRefID(l))
 	}
 
-	if a.interceptor.OnUpdateMetadata != nil {
-		return a.interceptor.OnUpdateMetadata(ref, l, m, a.child)
+	if a.interceptor.onUpdateMetadata != nil {
+		return a.interceptor.onUpdateMetadata(ref, l, m, a.child)
 	}
 	return a.child.UpdateMetadata(ref, l, m)
 }
