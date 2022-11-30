@@ -8,7 +8,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/model/metadata"
 
 	"github.com/grafana/agent/component/prometheus"
 
@@ -74,22 +76,41 @@ func NewComponent(o component.Options, c Arguments) (*Component, error) {
 		remoteStore: remoteStore,
 		storage:     storage.NewFanout(o.Logger, walStorage, remoteStore),
 	}
-	res.receiver, err = prometheus.NewInterceptor(func(ref storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
-		// Conversion is needed because remote_writes assume they own all the IDs, so if you have two remote_writes they will
-		// both assume they have only one scraper attached. In flow that is not true, so we need to translate from a global id
-		// to a local (remote_write) id.
-		localID := prometheus.GlobalRefMapping.GetLocalRefID(res.opts.ID, uint64(ref))
-		newref, nextErr := next.Append(storage.SeriesRef(localID), l, t, v)
-		// If there was no local id we need to propagate it.
-		if localID == 0 {
-			prometheus.GlobalRefMapping.GetOrAddLink(res.opts.ID, uint64(newref), l)
-		}
-		// return the original ref since this needs to be a globalref id and not the local one.
-		return ref, nextErr
-	}, res.storage, o.ID)
-	if err != nil {
-		return nil, err
+	res.receiver = &prometheus.Interceptor{
+		// In the methods below, conversion is needed because remote_writes assume
+		// they are responsible for generating ref IDs. This means two
+		// remote_writes may return the same ref ID for two different series. We
+		// treat the remote_write ID as a "local ID" and translate it to a "global
+		// ID" to ensure Flow compatibility.
+
+		OnAppend: func(globalRef storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
+			localID := prometheus.GlobalRefMapping.GetLocalRefID(res.opts.ID, uint64(globalRef))
+			newRef, nextErr := next.Append(storage.SeriesRef(localID), l, t, v)
+			if localID == 0 {
+				prometheus.GlobalRefMapping.GetOrAddLink(res.opts.ID, uint64(newRef), l)
+			}
+			return globalRef, nextErr
+		},
+		OnUpdateMetadata: func(globalRef storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error) {
+			localID := prometheus.GlobalRefMapping.GetLocalRefID(res.opts.ID, uint64(globalRef))
+			newRef, nextErr := next.UpdateMetadata(storage.SeriesRef(localID), l, m)
+			if localID == 0 {
+				prometheus.GlobalRefMapping.GetOrAddLink(res.opts.ID, uint64(newRef), l)
+			}
+			return globalRef, nextErr
+		},
+		OnAppendExemplar: func(globalRef storage.SeriesRef, l labels.Labels, e exemplar.Exemplar, next storage.Appender) (storage.SeriesRef, error) {
+			localID := prometheus.GlobalRefMapping.GetLocalRefID(res.opts.ID, uint64(globalRef))
+			newRef, nextErr := next.AppendExemplar(storage.SeriesRef(localID), l, e)
+			if localID == 0 {
+				prometheus.GlobalRefMapping.GetOrAddLink(res.opts.ID, uint64(newRef), l)
+			}
+			return globalRef, nextErr
+		},
+
+		Next: res.storage,
 	}
+
 	// Immediately export the receiver which remains the same for the component
 	// lifetime.
 	o.OnStateChange(Exports{Receiver: res.receiver})
