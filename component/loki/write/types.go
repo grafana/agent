@@ -32,7 +32,7 @@ type EndpointOptions struct {
 // remote endpoint.
 // The backoff schedule with the default parameters:
 // 0.5s, 1s, 2s, 4s, 8s, 16s, 32s, 64s, 128s, 256s(4.267m)
-// For a total time of 511.5s(8.5m) before logs are lost
+// For a total time of 511.5s (8.5m) before logs are lost.
 var DefaultEndpointOptions = EndpointOptions{
 	BatchWait:         1 * time.Second,
 	BatchSize:         1 * units.MiB,
