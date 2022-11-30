@@ -51,19 +51,20 @@ func (r *EndpointOptions) UnmarshalRiver(f func(v interface{}) error) error {
 		return err
 	}
 
+	if _, err := url.Parse(r.URL); err != nil {
+		return fmt.Errorf("failed to parse remote url %q: %w", r.URL, err)
+	}
+
 	return nil
 }
 
 func (args Arguments) convertClientConfigs() ([]client.Config, error) {
 	var res []client.Config
 	for _, cfg := range args.Endpoints {
-		parsedURL, err := url.Parse(cfg.URL)
-		if err != nil {
-			return nil, fmt.Errorf("cannot parse remote_write url %q: %w", cfg.URL, err)
-		}
+		url, _ := url.Parse(cfg.URL)
 		cc := client.Config{
 			Name:      cfg.Name,
-			URL:       flagext.URLValue{URL: parsedURL},
+			URL:       flagext.URLValue{URL: url},
 			BatchWait: cfg.BatchWait,
 			BatchSize: int(cfg.BatchSize),
 			Client:    *cfg.HTTPClientConfig.Convert(),
