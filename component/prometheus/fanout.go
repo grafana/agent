@@ -2,7 +2,6 @@ package prometheus
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 
@@ -139,21 +138,40 @@ func (a *appender) recordLatency() {
 	a.writeLatency.Observe(duration.Seconds())
 }
 
-// Custom errors to return until we implement support for exemplars and
-// metadata.
-var (
-	ErrExemplarsNotSupported = fmt.Errorf("appendExemplar not supported yet")
-	ErrMetadataNotSupported  = fmt.Errorf("updateMetadata not supported yet")
-)
-
 // AppendExemplar satisfies the Appender interface.
 func (a *appender) AppendExemplar(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar) (storage.SeriesRef, error) {
-	return 0, ErrExemplarsNotSupported
+	if a.start.IsZero() {
+		a.start = time.Now()
+	}
+	if ref == 0 {
+		ref = storage.SeriesRef(GlobalRefMapping.GetOrAddGlobalRefID(l))
+	}
+	var multiErr error
+	for _, x := range a.children {
+		_, err := x.AppendExemplar(ref, l, e)
+		if err != nil {
+			multiErr = multierror.Append(multiErr, err)
+		}
+	}
+	return ref, multiErr
 }
 
 // UpdateMetadata satisifies the Appender interface.
 func (a *appender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata) (storage.SeriesRef, error) {
-	return 0, ErrMetadataNotSupported
+	if a.start.IsZero() {
+		a.start = time.Now()
+	}
+	if ref == 0 {
+		ref = storage.SeriesRef(GlobalRefMapping.GetOrAddGlobalRefID(l))
+	}
+	var multiErr error
+	for _, x := range a.children {
+		_, err := x.UpdateMetadata(ref, l, m)
+		if err != nil {
+			multiErr = multierror.Append(multiErr, err)
+		}
+	}
+	return ref, multiErr
 }
 
 // NoopMetadataStore implements the MetricMetadataStore interface.

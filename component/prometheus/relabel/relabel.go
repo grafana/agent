@@ -10,7 +10,9 @@ import (
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/prometheus"
 	prometheus_client "github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/model/metadata"
 
 	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/prometheus/prometheus/model/value"
@@ -99,18 +101,33 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	}
 
 	c.fanout = prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer)
-	c.receiver, err = prometheus.NewInterceptor(func(ref storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
-		newLbl := c.relabel(v, l)
-		if newLbl == nil {
-			return 0, nil
-		}
-		c.metricsOutgoing.Inc()
-		return next.Append(0, newLbl, t, v)
-	}, c.fanout, c.opts.ID)
+	c.receiver = &prometheus.Interceptor{
+		OnAppend: func(ref storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
+			newLbl := c.relabel(v, l)
+			if newLbl == nil {
+				return 0, nil
+			}
+			c.metricsOutgoing.Inc()
+			return next.Append(0, newLbl, t, v)
+		},
+		OnAppendExemplar: func(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar, next storage.Appender) (storage.SeriesRef, error) {
+			newLbl := c.relabel(0, l)
+			if newLbl == nil {
+				return 0, nil
+			}
+			return next.AppendExemplar(ref, l, e)
+		},
+		OnUpdateMetadata: func(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error) {
+			newLbl := c.relabel(0, l)
+			if newLbl == nil {
+				return 0, nil
+			}
+			return next.UpdateMetadata(ref, l, m)
+		},
 
-	if err != nil {
-		return nil, err
+		Next: c.fanout,
 	}
+
 	// Immediately export the receiver which remains the same for the component
 	// lifetime.
 	o.OnStateChange(Exports{Receiver: c.receiver})
