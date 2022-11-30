@@ -2,6 +2,8 @@ package prometheus
 
 import (
 	"context"
+	"fmt"
+	"sync"
 
 	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/labels"
@@ -9,48 +11,72 @@ import (
 	"github.com/prometheus/prometheus/storage"
 )
 
-// Interceptor is a storage.Appendable which invokes callback functions upon
-// getting data. Interceptor should not be modified once created. All callback
-// fields are optional.
-type Interceptor struct {
-	OnAppend         func(ref storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error)
-	OnAppendExemplar func(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar, next storage.Appender) (storage.SeriesRef, error)
-	OnUpdateMetadata func(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error)
+// Intercept func allows interceptor owners to inject custom behavior.
+type Intercept func(ref storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error)
 
-	// Next is the next appendable to pass in the chain.
-	Next storage.Appendable
+// Interceptor supports the concept of an appendable/appender that you can add a func to be called before
+// the values are sent to the child appendable/append.
+type Interceptor struct {
+	mut sync.RWMutex
+	// intercept allows one to intercept the series before it fans out to make any changes. If labels.Labels returns nil the series is not propagated.
+	// Intercept shouuld be thread safe and can be called across appenders.
+	intercept Intercept
+	// next is where to send the next command.
+	next storage.Appendable
+
+	// ComponentID is what component this belongs to.
+	componentID string
 }
 
-var _ storage.Appendable = (*Interceptor)(nil)
+// NewInterceptor creates a interceptor appendable.
+func NewInterceptor(inter Intercept, next storage.Appendable, componentID string) (*Interceptor, error) {
+	if inter == nil {
+		return nil, fmt.Errorf("intercept cannot be null for component %s", componentID)
+	}
+	return &Interceptor{
+		intercept:   inter,
+		next:        next,
+		componentID: componentID,
+	}, nil
+}
+
+// UpdateChild allows changing of the child of the interceptor.
+func (f *Interceptor) UpdateChild(child storage.Appendable) {
+	f.mut.Lock()
+	defer f.mut.Unlock()
+
+	f.next = child
+}
 
 // Appender satisfies the Appendable interface.
 func (f *Interceptor) Appender(ctx context.Context) storage.Appender {
+	f.mut.RLock()
+	defer f.mut.RUnlock()
+
 	app := &interceptappender{
-		interceptor: f,
+		intercept:   f.intercept,
+		componentID: f.componentID,
 	}
-	if f.Next != nil {
-		app.child = f.Next.Appender(ctx)
+	if f.next != nil {
+		app.child = f.next.Appender(ctx)
 	}
 	return app
 }
 
-type interceptappender struct {
-	interceptor *Interceptor
-	child       storage.Appender
-}
+var _ storage.Appender = (*appender)(nil)
 
-var _ storage.Appender = (*interceptappender)(nil)
+type interceptappender struct {
+	child       storage.Appender
+	componentID string
+	intercept   Intercept
+}
 
 // Append satisfies the Appender interface.
 func (a *interceptappender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, error) {
 	if ref == 0 {
 		ref = storage.SeriesRef(GlobalRefMapping.GetOrAddGlobalRefID(l))
 	}
-
-	if a.interceptor.OnAppend != nil {
-		return a.interceptor.OnAppend(ref, l, t, v, a.child)
-	}
-	return a.child.Append(ref, l, t, v)
+	return a.intercept(ref, l, t, v, a.child)
 }
 
 // Commit satisfies the Appender interface.
@@ -76,14 +102,7 @@ func (a *interceptappender) AppendExemplar(
 	e exemplar.Exemplar,
 ) (storage.SeriesRef, error) {
 
-	if ref == 0 {
-		ref = storage.SeriesRef(GlobalRefMapping.GetOrAddGlobalRefID(l))
-	}
-
-	if a.interceptor.OnAppendExemplar != nil {
-		return a.interceptor.OnAppendExemplar(ref, l, e, a.child)
-	}
-	return a.child.AppendExemplar(ref, l, e)
+	return 0, fmt.Errorf("appendExemplar not supported yet")
 }
 
 // UpdateMetadata satisifies the Appender interface.
@@ -93,12 +112,5 @@ func (a *interceptappender) UpdateMetadata(
 	m metadata.Metadata,
 ) (storage.SeriesRef, error) {
 
-	if ref == 0 {
-		ref = storage.SeriesRef(GlobalRefMapping.GetOrAddGlobalRefID(l))
-	}
-
-	if a.interceptor.OnUpdateMetadata != nil {
-		return a.interceptor.OnUpdateMetadata(ref, l, m, a.child)
-	}
-	return a.child.UpdateMetadata(ref, l, m)
+	return 0, fmt.Errorf("updateMetadata not supported yet")
 }

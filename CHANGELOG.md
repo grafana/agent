@@ -49,8 +49,6 @@ Main (unreleased)
 
 - Add support for using a [password map file](https://github.com/oliver006/redis_exporter/blob/master/contrib/sample-pwd-file.json) in `redis_exporter`. (@spartan0x117)
 
-- Flow: Add support for exemplars in Prometheus component pipelines. (@rfratto)
-
 ### Bugfixes
 
 - Fix issue where whitespace was being sent as part of password when using a
