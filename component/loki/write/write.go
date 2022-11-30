@@ -111,12 +111,7 @@ func (c *Component) Update(args component.Arguments) error {
 	}
 	c.clients = make([]client.Client, len(newArgs.Endpoints))
 
-	var err error
-	cfgs, err := newArgs.convertClientConfigs()
-	if err != nil {
-		return err
-	}
-
+	cfgs := newArgs.convertClientConfigs()
 	// TODO (@tpaschalis) We could use a client.NewMulti here to push the
 	// fanout logic back to the client layer, but I opted to keep it explicit
 	// here a) for easier debugging and b) possible improvements in the future.

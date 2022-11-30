@@ -58,7 +58,7 @@ func (r *EndpointOptions) UnmarshalRiver(f func(v interface{}) error) error {
 	return nil
 }
 
-func (args Arguments) convertClientConfigs() ([]client.Config, error) {
+func (args Arguments) convertClientConfigs() []client.Config {
 	var res []client.Config
 	for _, cfg := range args.Endpoints {
 		url, _ := url.Parse(cfg.URL)
@@ -80,7 +80,7 @@ func (args Arguments) convertClientConfigs() ([]client.Config, error) {
 		res = append(res, cc)
 	}
 
-	return res, nil
+	return res
 }
 
 func toLabelSet(in map[string]string) model.LabelSet {
