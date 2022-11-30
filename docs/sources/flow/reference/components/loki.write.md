@@ -66,7 +66,7 @@ The following arguments are supported:
 
 Name                  | Type       | Description                           | Default        | Required
 --------------------- | -----------| ------------------------------------- | -------------- | --------
-`url`                 | `string`   | Full URL to send logs    to.          |                | yes
+`url`                 | `string`   | Full URL to send logs to.             |                | yes
 `name`                | `string`   | Optional name to identify this endpoint with. |        | no
 `batch_wait`          | `bool`     | Maximum amount of time to wait before sending a batch. | `"1s"` | no
 `batch_size`          | `string`   | Maximum batch size of logs to accumulate before sending. | `"1MiB"` | no
@@ -77,14 +77,14 @@ Name                  | Type       | Description                           | Def
 `max_backoff_retries` | `int`      | Maximum number of retries.            | 10             | no
 
 
-If no `tenand_id` is provided, the component assumes that the Loki instance at
+If no `tenant_id` is provided, the component assumes that the Loki instance at
 `endpoint` is running in single-tenant mode and no X-Scope-OrgID header is
 sent.
 
 When multiple `endpoint` blocks are provided, the `loki.write` component 
 creates a client for each. Received log entries are fanned-out to these clients
 in succession. That means that if one client is bottlenecked, it may impact
-the rest of them, too.
+the rest.
 
 Endpoints can be named for easier identification in debug metrics using the
 `name` argument. If the `name` argument isn't provided, a name is generated
@@ -135,15 +135,15 @@ information.
 * `loki_write_sent_bytes_total` (counter): Number of bytes sent.
 * `loki_write_dropped_bytes_total` (counter): Number of bytes dropped because failed to be sent to the ingester after all retries.
 * `loki_write_sent_entries_total` (counter): Number of log entries sent to the ingester.
-* `loki_write_dropped_entries_total` (counter): Number of log entries dropped because failed to be sent to the ingester after all retries.
+* `loki_write_dropped_entries_total` (counter): Number of log entries dropped because they failed to be sent to the ingester after all retries.
 * `loki_write_request_duration_seconds` (histogram): Duration of sent requests.
-* `loki_write_batch_retries_total` (counter): Number of times batches has had to be retried.
+* `loki_write_batch_retries_total` (counter): Number of times batches have had to be retried.
 * `loki_write_stream_lag_seconds` (gauge): Difference between current time and last batch timestamp for successful sends.
 
 ## Example
 
-This example creates a `loki.write` component that will send received entries
-to a local Loki instance without TLS:
+This example creates a `loki.write` component that sends received entries to a
+local Loki instance without TLS:
 
 ```river
 loki.write "local" {
