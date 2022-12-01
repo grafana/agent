@@ -6,8 +6,8 @@ title: loki.write
 
 # loki.write
 
-`loki.write` receives log entries from other components and writes to a Loki
-instance over the network using Loki's `logproto` format.
+`loki.write` receives log entries from other loki components and sends them
+over the network using Loki's `logproto` format.
 
 Multiple `loki.write` components can be specified by giving them
 different labels.
@@ -86,7 +86,7 @@ creates a client for each. Received log entries are fanned-out to these clients
 in succession. That means that if one client is bottlenecked, it may impact
 the rest.
 
-Endpoints can be named for easier identification in debug metrics using the
+Endpoints can be named for easier identification in debug metrics by using the
 `name` argument. If the `name` argument isn't provided, a name is generated
 based on a hash of the endpoint settings.
 
@@ -143,7 +143,7 @@ information.
 ## Example
 
 This example creates a `loki.write` component that sends received entries to a
-local Loki instance without TLS:
+local Loki instance:
 
 ```river
 loki.write "local" {
