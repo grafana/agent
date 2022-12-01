@@ -33,6 +33,9 @@ Main (unreleased)
   - `loki.source.file` reads and tails files for log entries and forwards them
     to other `loki` components. (@tpaschalis)
 
+  - `loki.write` receives log entries from other `loki` components and sends
+    them over to a Loki instance. (@tpaschalis)
+
 ### Enhancements
 
 - Update OpenTelemetry Collector dependency to v0.63.1. (@tpaschalis)
