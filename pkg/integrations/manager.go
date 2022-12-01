@@ -1,10 +1,8 @@
 package integrations
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"net/http"
 	"path"
 	"strings"
@@ -12,7 +10,6 @@ import (
 	"time"
 
 	config_util "github.com/prometheus/common/config"
-	"gopkg.in/yaml.v2"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -247,8 +244,7 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 		// is unchanged, we have nothing to do. Otherwise, we're going to recreate
 		// it with the new settings, so we'll need to stop it.
 		if p, exist := m.integrations[key]; exist {
-			if compareIntegrationConfigs(p.cfg, ic) {
-				level.Debug(m.logger).Log("msg", fmt.Sprintf("[TESTING] FOUND NO UPDATE TO INTEGRATION CONFIG FOR: %s", ic.Name()))
+			if CompareConfigs(&p.cfg, &ic, false) {
 				continue
 			}
 			p.stop()
@@ -362,45 +358,6 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 		return fmt.Errorf("not all integrations were correctly updated")
 	}
 	return nil
-}
-
-// TODO: Figure out proper place to put this
-func MarshalConfigToWriter(c *UnmarshaledConfig, w io.Writer) error {
-	enc := yaml.NewEncoder(w)
-
-	enc.SetHook(func(in interface{}) (ok bool, out interface{}, err error) {
-		switch v := in.(type) {
-		case config_util.Secret:
-			return true, string(v), nil
-		case *config_util.URL:
-			return true, v.String(), nil
-		default:
-			return false, nil, nil
-		}
-	})
-
-	type plain UnmarshaledConfig
-	return enc.Encode((*plain)(c))
-}
-
-func MarshalConfig(c *UnmarshaledConfig) ([]byte, error) {
-	var buf bytes.Buffer
-	err := MarshalConfigToWriter(c, &buf)
-	return buf.Bytes(), err
-}
-
-// Compares two integration configs for equality
-func compareIntegrationConfigs(a UnmarshaledConfig, b UnmarshaledConfig) bool {
-	aBytes, err := MarshalConfig(&a)
-	if err != nil {
-		return false
-	}
-
-	bBytes, err := MarshalConfig(&b)
-	if err != nil {
-		return false
-	}
-	return bytes.Equal(aBytes, bBytes)
 }
 
 // integrationProcess is a running integration.
