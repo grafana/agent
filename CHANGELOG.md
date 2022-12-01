@@ -33,6 +33,9 @@ Main (unreleased)
   - `loki.source.file` reads and tails files for log entries and forwards them
     to other `loki` components. (@tpaschalis)
 
+  - `loki.write` receives log entries from other `loki` components and sends
+    them over to a Loki instance. (@tpaschalis)
+
 ### Enhancements
 
 - Update OpenTelemetry Collector dependency to v0.63.1. (@tpaschalis)
@@ -48,6 +51,8 @@ Main (unreleased)
   first load. (@rfratto)
 
 - Add support for using a [password map file](https://github.com/oliver006/redis_exporter/blob/master/contrib/sample-pwd-file.json) in `redis_exporter`. (@spartan0x117)
+
+- Flow: Add support for exemplars in Prometheus component pipelines. (@rfratto)
 
 ### Bugfixes
 
