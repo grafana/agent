@@ -30,7 +30,7 @@ func init() {
 // Arguments holds values which are used to configure the loki.relabel
 // component.
 type Arguments struct {
-	// Where the relabelled metrics should be forwarded to.
+	// Where the relabeled metrics should be forwarded to.
 	ForwardTo []loki.LogsReceiver `river:"forward_to,attr"`
 
 	// The relabelling rules to apply to each log entry before it's forwarded.
@@ -113,6 +113,7 @@ func (c *Component) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case entry := <-c.receiver:
+			c.metrics.entriesProcessed.Inc()
 			lbls := c.relabel(entry)
 			if len(lbls) == 0 {
 				level.Debug(c.opts.Logger).Log("msg", "dropping entry after relabeling", "labels", entry.Labels.String())
@@ -130,41 +131,6 @@ func (c *Component) Run(ctx context.Context) error {
 			}
 		}
 	}
-}
-
-func (c *Component) relabel(e loki.Entry) model.LabelSet {
-	c.metrics.entriesProcessed.Inc()
-	hash := e.Labels.Fingerprint().String()
-	found, ok := c.cache.Get(hash)
-	if ok {
-		c.metrics.cacheHits.Inc()
-		return found.(model.LabelSet)
-	}
-
-	c.metrics.cacheMisses.Inc()
-
-	// TODO(@tpaschalis) It's unfortunate how we have to cast back and forth
-	// between model.LabelSet (map) and labels.Labels (slice). Promtail does
-	// not have this issue as relabel config rules are only applied to targets.
-	// Do we want to use labels.Labels in loki.Entry instead?
-	var lbls labels.Labels
-	for k, v := range e.Labels {
-		lbls = append(lbls, labels.Label{
-			Name:  string(k),
-			Value: string(v),
-		})
-	}
-	lbls = relabel.Process(lbls, c.rcs...)
-
-	relabelled := make(model.LabelSet, len(lbls))
-	for i := range lbls {
-		relabelled[model.LabelName(lbls[i].Name)] = model.LabelValue(lbls[i].Value)
-	}
-
-	c.cache.Add(hash, relabelled)
-	c.metrics.cacheSize.Set(float64(c.cache.Len()))
-
-	return relabelled
 }
 
 // Update implements component.Component.
@@ -201,4 +167,69 @@ func relabelingChanged(prev, next []*relabel.Config) bool {
 		}
 	}
 	return false
+}
+
+type cacheItem struct {
+	original  model.LabelSet
+	relabeled model.LabelSet
+}
+
+// TODO(@tpaschalis) It's unfortunate how we have to cast back and forth
+// between model.LabelSet (map) and labels.Labels (slice). Promtail does
+// not have this issue as relabel config rules are only applied to targets.
+// Do we want to use labels.Labels in loki.Entry instead?
+func (c *Component) relabel(e loki.Entry) model.LabelSet {
+	hash := e.Labels.Fingerprint().String()
+
+	// Let's look in the cache for the hash of the entry's labels.
+	val, found := c.cache.Get(hash)
+	if !found {
+		// We've never seen this hash; initialize it in the cache with a new
+		// cacheItem and return the relabeled result.
+		c.metrics.cacheMisses.Inc()
+		relabeled := c.process(e)
+
+		c.cache.Add(hash, []cacheItem{{e.Labels, relabeled}})
+		c.metrics.cacheSize.Set(float64(c.cache.Len()))
+
+		return relabeled
+	}
+
+	// We've seen this hash before; let's see if we've already relabeled this
+	// specific entry before.
+	for _, ci := range val.([]cacheItem) {
+		if e.Labels.Equal(ci.original) {
+			c.metrics.cacheHits.Inc()
+			return ci.relabeled
+		}
+	}
+
+	// Rainy path; we have a collision where we have seen the hash but not
+	// for _this_ specific entry. Relabel it from scratch and append it to the
+	// slice stored in the cache key.
+	c.metrics.cacheMisses.Inc()
+	relabeled := c.process(e)
+
+	val = append(val.([]cacheItem), cacheItem{e.Labels, relabeled})
+	c.cache.Add(hash, val)
+	c.metrics.cacheSize.Set(float64(c.cache.Len()))
+
+	return relabeled
+}
+
+func (c *Component) process(e loki.Entry) model.LabelSet {
+	var lbls labels.Labels
+	for k, v := range e.Labels {
+		lbls = append(lbls, labels.Label{
+			Name:  string(k),
+			Value: string(v),
+		})
+	}
+	lbls = relabel.Process(lbls, c.rcs...)
+
+	relabeled := make(model.LabelSet, len(lbls))
+	for i := range lbls {
+		relabeled[model.LabelName(lbls[i].Name)] = model.LabelValue(lbls[i].Value)
+	}
+	return relabeled
 }

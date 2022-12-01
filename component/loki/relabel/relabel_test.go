@@ -97,5 +97,8 @@ func Test(t *testing.T) {
 			require.FailNow(t, "failed waiting for log line")
 		}
 	}
-
 }
+
+// TODO(@tpaschalis) Benchmark relabeling with new component.
+// TODO(@tpaschalis) Test new cache implementation.
+// TODO(@tpaschalis) Test graceful shutdown.
