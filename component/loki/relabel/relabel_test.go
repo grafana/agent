@@ -55,6 +55,7 @@ func Test(t *testing.T) {
 	args := Arguments{
 		ForwardTo:      []loki.LogsReceiver{ch1, ch2},
 		RelabelConfigs: relabelConfigs.Rcs,
+		MaxCacheSize:   10,
 	}
 
 	c, err := New(opts, args)

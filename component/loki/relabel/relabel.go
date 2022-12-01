@@ -11,7 +11,6 @@ import (
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/pkg/river"
 	lru "github.com/hashicorp/golang-lru"
-	prometheus_client "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/relabel"
@@ -64,17 +63,13 @@ type Exports struct {
 
 // Component implements the loki.relabel component.
 type Component struct {
+	opts    component.Options
+	metrics *metrics
+
 	mut      sync.RWMutex
-	opts     component.Options
 	rcs      []*relabel.Config
 	receiver loki.LogsReceiver
 	fanout   []loki.LogsReceiver
-
-	entriesProcessed prometheus_client.Counter
-	entriesOutgoing  prometheus_client.Counter
-	cacheHits        prometheus_client.Counter
-	cacheMisses      prometheus_client.Counter
-	cacheSize        prometheus_client.Gauge
 
 	cache        *lru.Cache
 	maxCacheSize int
@@ -93,35 +88,9 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 	c := &Component{
 		opts:         o,
+		metrics:      newMetrics(o.Registerer),
 		cache:        cache,
 		maxCacheSize: args.MaxCacheSize,
-	}
-	c.entriesProcessed = prometheus_client.NewCounter(prometheus_client.CounterOpts{
-		Name: "loki_relabel_entries_processed",
-		Help: "Total number of log entries processed",
-	})
-	c.entriesOutgoing = prometheus_client.NewCounter(prometheus_client.CounterOpts{
-		Name: "loki_relabel_entries_written",
-		Help: "Total number of log entries forwarded",
-	})
-	c.cacheMisses = prometheus_client.NewCounter(prometheus_client.CounterOpts{
-		Name: "loki_relabel_cache_misses",
-		Help: "Total number of cache misses",
-	})
-	c.cacheHits = prometheus_client.NewCounter(prometheus_client.CounterOpts{
-		Name: "loki_relabel_cache_hits",
-		Help: "Total number of cache hits",
-	})
-	c.cacheSize = prometheus_client.NewGauge(prometheus_client.GaugeOpts{
-		Name: "loki_relabel_cache_size",
-		Help: "Total size of relabel cache",
-	})
-
-	for _, metric := range []prometheus_client.Collector{c.entriesProcessed, c.entriesOutgoing, c.cacheMisses, c.cacheHits, c.cacheSize} {
-		err := o.Registerer.Register(metric)
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	// Create and immediately export the receiver which remains the same for
@@ -150,7 +119,7 @@ func (c *Component) Run(ctx context.Context) error {
 				continue
 			}
 
-			c.entriesOutgoing.Inc()
+			c.metrics.entriesOutgoing.Inc()
 			entry.Labels = lbls
 			for _, f := range c.fanout {
 				select {
@@ -164,15 +133,15 @@ func (c *Component) Run(ctx context.Context) error {
 }
 
 func (c *Component) relabel(e loki.Entry) model.LabelSet {
-	c.entriesProcessed.Inc()
+	c.metrics.entriesProcessed.Inc()
 	hash := e.Labels.Fingerprint().String()
 	found, ok := c.cache.Get(hash)
 	if ok {
-		c.cacheHits.Inc()
+		c.metrics.cacheHits.Inc()
 		return found.(model.LabelSet)
 	}
 
-	c.cacheMisses.Inc()
+	c.metrics.cacheMisses.Inc()
 
 	// TODO(@tpaschalis) It's unfortunate how we have to cast back and forth
 	// between model.LabelSet (map) and labels.Labels (slice). Promtail does
@@ -193,7 +162,7 @@ func (c *Component) relabel(e loki.Entry) model.LabelSet {
 	}
 
 	c.cache.Add(hash, relabelled)
-	c.cacheSize.Set(float64(c.cache.Len()))
+	c.metrics.cacheSize.Set(float64(c.cache.Len()))
 
 	return relabelled
 }
@@ -208,7 +177,7 @@ func (c *Component) Update(args component.Arguments) error {
 	if relabelingChanged(c.rcs, newRCS) {
 		level.Debug(c.opts.Logger).Log("msg", "received new relabel configs, purging cache")
 		c.cache.Purge()
-		c.cacheSize.Set(0)
+		c.metrics.cacheSize.Set(0)
 	}
 	if newArgs.MaxCacheSize != c.maxCacheSize {
 		evicted := c.cache.Resize(newArgs.MaxCacheSize)
