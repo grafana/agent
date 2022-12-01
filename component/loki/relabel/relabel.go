@@ -9,6 +9,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
+	"github.com/grafana/agent/pkg/river"
 	lru "github.com/hashicorp/golang-lru"
 	prometheus_client "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
@@ -35,6 +36,25 @@ type Arguments struct {
 
 	// The relabelling rules to apply to each log entry before it's forwarded.
 	RelabelConfigs []*flow_relabel.Config `river:"rule,block,optional"`
+
+	// The maximum number of items to hold in the component's LRU cache.
+	MaxCacheSize int `river:"max_cache_size,attr,optional"`
+}
+
+// DefaultArguments provides the default arguments for the loki.relabel
+// component.
+var DefaultArguments = Arguments{
+	MaxCacheSize: 10_000,
+}
+
+var _ river.Unmarshaler = (*Arguments)(nil)
+
+// UnmarshalRiver implements river.Unmarshaler.
+func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+	*a = DefaultArguments
+
+	type arguments Arguments
+	return f((*arguments)(a))
 }
 
 // Exports holds values which are exported by the loki.relabel component.
@@ -56,25 +76,25 @@ type Component struct {
 	cacheMisses      prometheus_client.Counter
 	cacheSize        prometheus_client.Gauge
 
-	cache *lru.Cache
+	cache        *lru.Cache
+	maxCacheSize int
 }
 
 var (
 	_ component.Component = (*Component)(nil)
-
-	maxCacheSize = 10_000 // TODO(@tpaschalis) Do we make this configurable?
 )
 
 // New creates a new loki.relabel component.
 func New(o component.Options, args Arguments) (*Component, error) {
-	cache, err := lru.New(maxCacheSize)
+	cache, err := lru.New(args.MaxCacheSize)
 	if err != nil {
 		return nil, err
 	}
 
 	c := &Component{
-		opts:  o,
-		cache: cache,
+		opts:         o,
+		cache:        cache,
+		maxCacheSize: args.MaxCacheSize,
 	}
 	c.entriesProcessed = prometheus_client.NewCounter(prometheus_client.CounterOpts{
 		Name: "loki_relabel_entries_processed",
@@ -190,17 +210,18 @@ func (c *Component) Update(args component.Arguments) error {
 		c.cache.Purge()
 		c.cacheSize.Set(0)
 	}
+	if newArgs.MaxCacheSize != c.maxCacheSize {
+		evicted := c.cache.Resize(newArgs.MaxCacheSize)
+		if evicted > 0 {
+			level.Debug(c.opts.Logger).Log("msg", "resizing the cache lead to evicting of items", "len_items_evicted", evicted)
+		}
+	}
 	c.rcs = newRCS
-	c.cache.Purge()
 	c.fanout = newArgs.ForwardTo
 
 	return nil
 }
 
-// TODO(@tpaschalis) This is an attempt to not purge the cache if the
-// relabeling rules are the same. One way to go about it would be to use the
-// fingerprinting idea on Flow's relabel structs, but this seemed more
-// straightforward. Are we okay with importing reflect here?
 func relabelingChanged(prev, next []*relabel.Config) bool {
 	if len(prev) != len(next) {
 		return true
