@@ -2,7 +2,6 @@ package util
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 
 	"gopkg.in/yaml.v2"
@@ -27,14 +26,10 @@ func CompareYAML(a, b interface{}) bool {
 // If either Marshal fails, CompareYAMLWithHook returns false.
 func CompareYAMLWithHook(a, b interface{}, hook func(in interface{}) (ok bool, out interface{}, err error)) bool {
 	aBytes, err := marshalWithHook(a, hook)
-	aString := string(aBytes)
-	fmt.Println(aString)
 	if err != nil {
 		return false
 	}
 	bBytes, err := marshalWithHook(b, hook)
-	bString := string(bBytes)
-	fmt.Println(bString)
 	if err != nil {
 		return false
 	}

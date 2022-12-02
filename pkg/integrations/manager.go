@@ -244,7 +244,7 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 		// is unchanged, we have nothing to do. Otherwise, we're going to recreate
 		// it with the new settings, so we'll need to stop it.
 		if p, exist := m.integrations[key]; exist {
-			if util.CompareYAMLWithHook(&p.cfg, &ic, noScrubbedSecretsHook) {
+			if util.CompareYAMLWithHook(p.cfg, ic, noScrubbedSecretsHook) {
 				continue
 			}
 			p.stop()
