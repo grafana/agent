@@ -33,8 +33,9 @@ func init() {
 }
 
 type Arguments struct {
-	ClientParams ClientArguments `river:"client,block"`
-	SyncInterval time.Duration   `river:"sync_interval,attr,optional"`
+	ClientParams       ClientArguments `river:"client,block"`
+	SyncInterval       time.Duration   `river:"sync_interval,attr,optional"`
+	MimirRuleNamespace string          `river:"mimir_rule_namespace,attr"`
 
 	RuleSelector          LabelSelector `river:"rule_selector,block,optional"`
 	RuleNamespaceSelector LabelSelector `river:"rule_namespace_selector,block,optional"`
@@ -119,6 +120,9 @@ func (c *Component) Reconcile(ctx context.Context, req reconcile.Request) (recon
 }
 
 func (c *Component) init() error {
+	if c.args.SyncInterval == 0 {
+		c.args.SyncInterval = 30 * time.Second
+	}
 
 	// TODO: allow overriding some stuff in RestConfig and k8s client options?
 	restConfig := controller.GetConfigOrDie()
@@ -136,10 +140,6 @@ func (c *Component) init() error {
 	c.k8sClient, err = k8sClient.New(restConfig, k8sClient.Options{
 		Scheme: scheme,
 	})
-
-	if c.args.SyncInterval == 0 {
-		c.args.SyncInterval = 30 * time.Second
-	}
 
 	c.mimirClient, err = mimirClient.New(mimirClient.Config{
 		User:    c.args.ClientParams.User,
@@ -207,17 +207,15 @@ func (c *Component) syncRules(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	level.Debug(c.log).Log("msg", "found rule crds", "num_crds", len(desiredState))
 
 	actualState, err := c.loadActiveRules(ctx)
 	if err != nil {
 		return err
 	}
-	level.Debug(c.log).Log("msg", "found active rules", "num_namespaces", len(actualState))
 
-	diff := c.diffRuleStates(desiredState, actualState)
+	diffs := c.diffRuleStates(desiredState, actualState)
 
-	return c.applyChanges(ctx, diff)
+	return c.applyChanges(ctx, diffs)
 }
 
 func convertSelectorToListOptions(selector LabelSelector) (labels.Selector, error) {
@@ -264,17 +262,88 @@ func (c *Component) discoverRuleCRDs(ctx context.Context) ([]*promv1.PrometheusR
 	return crds, nil
 }
 
-func (c *Component) loadActiveRules(ctx context.Context) (map[string][]mimirClient.RuleGroup, error) {
-	return c.mimirClient.ListRules(ctx, "")
+func (c *Component) loadActiveRules(ctx context.Context) ([]mimirClient.RuleGroup, error) {
+	rulesByNamespace, err := c.mimirClient.ListRules(ctx, c.args.MimirRuleNamespace)
+	if err != nil {
+		return nil, err
+	}
+
+	return rulesByNamespace[c.args.MimirRuleNamespace], nil
 }
+
+type RuleGroupDiffKind string
+
+const (
+	RuleGroupDiffKindAdd    RuleGroupDiffKind = "add"
+	RuleGroupDiffKindRemove RuleGroupDiffKind = "remove"
+	RuleGroupDiffKindUpdate RuleGroupDiffKind = "update"
+)
 
 type RuleGroupDiff struct {
+	Kind    RuleGroupDiffKind
+	Actual  mimirClient.RuleGroup
+	Desired promv1.RuleGroup
 }
 
-func (c *Component) diffRuleStates(desired []*promv1.PrometheusRule, actual map[string][]mimirClient.RuleGroup) []RuleGroupDiff {
-	return nil
+func (c *Component) diffRuleStates(desired []*promv1.PrometheusRule, actual []mimirClient.RuleGroup) []RuleGroupDiff {
+	var diff []RuleGroupDiff
+
+	seenGroups := map[string]bool{}
+
+	for _, desiredRule := range desired {
+	desiredGroups:
+		for _, desiredRuleGroup := range desiredRule.Spec.Groups {
+			for _, actualRuleGroup := range actual {
+				if desiredRuleGroup.Name == actualRuleGroup.Name {
+					diff = append(diff, RuleGroupDiff{
+						Kind:    RuleGroupDiffKindUpdate,
+						Actual:  actualRuleGroup,
+						Desired: desiredRuleGroup,
+					})
+					continue desiredGroups
+				}
+			}
+
+			diff = append(diff, RuleGroupDiff{
+				Kind:    RuleGroupDiffKindAdd,
+				Desired: desiredRuleGroup,
+			})
+		}
+	}
+
+	for _, actualRuleGroup := range actual {
+		if seenGroups[actualRuleGroup.Name] {
+			continue
+		}
+
+		diff = append(diff, RuleGroupDiff{
+			Kind:   RuleGroupDiffKindRemove,
+			Actual: actualRuleGroup,
+		})
+	}
+
+	return diff
 }
 
-func (c *Component) applyChanges(ctx context.Context, diff []RuleGroupDiff) error {
+func (c *Component) applyChanges(ctx context.Context, diffs []RuleGroupDiff) error {
+	if len(diffs) == 0 {
+		return nil
+	}
+
+	level.Info(c.log).Log("msg", "applying rule changes", "num_changes", len(diffs))
+
+	for _, diff := range diffs {
+		switch diff.Kind {
+		case RuleGroupDiffKindAdd:
+			level.Info(c.log).Log("msg", "adding rule group", "group", diff.Desired.Name)
+		case RuleGroupDiffKindRemove:
+			level.Info(c.log).Log("msg", "removing rule group", "group", diff.Actual.Name)
+		case RuleGroupDiffKindUpdate:
+			level.Info(c.log).Log("msg", "updating rule group", "group", diff.Desired.Name)
+		default:
+			level.Error(c.log).Log("msg", "unknown rule group diff kind", "kind", diff.Kind)
+		}
+	}
+
 	return nil
 }
