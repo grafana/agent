@@ -5,13 +5,16 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/ghodss/yaml"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/rivertypes"
 	mimirClient "github.com/grafana/agent/pkg/mimir/client"
 	"github.com/grafana/dskit/crypto/tls"
+	"github.com/grafana/dskit/multierror"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	"github.com/prometheus/prometheus/model/rulefmt"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -140,6 +143,9 @@ func (c *Component) init() error {
 	c.k8sClient, err = k8sClient.New(restConfig, k8sClient.Options{
 		Scheme: scheme,
 	})
+	if err != nil {
+		return fmt.Errorf("failed to create k8s client: %w", err)
+	}
 
 	c.mimirClient, err = mimirClient.New(mimirClient.Config{
 		User:    c.args.ClientParams.User,
@@ -198,7 +204,7 @@ func (c *Component) start(ctx context.Context) {
 }
 
 func (c *Component) syncRules(ctx context.Context) error {
-	level.Info(c.log).Log("msg", "syncing rules")
+	level.Debug(c.log).Log("msg", "syncing rules")
 
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
@@ -213,7 +219,10 @@ func (c *Component) syncRules(ctx context.Context) error {
 		return err
 	}
 
-	diffs := c.diffRuleStates(desiredState, actualState)
+	diffs, err := c.diffRuleStates(desiredState, actualState)
+	if err != nil {
+		return err
+	}
 
 	return c.applyChanges(ctx, diffs)
 }
@@ -282,23 +291,36 @@ const (
 type RuleGroupDiff struct {
 	Kind    RuleGroupDiffKind
 	Actual  mimirClient.RuleGroup
-	Desired promv1.RuleGroup
+	Desired mimirClient.RuleGroup
 }
 
-func (c *Component) diffRuleStates(desired []*promv1.PrometheusRule, actual []mimirClient.RuleGroup) []RuleGroupDiff {
+func (c *Component) diffRuleStates(desired []*promv1.PrometheusRule, actual []mimirClient.RuleGroup) ([]RuleGroupDiff, error) {
 	var diff []RuleGroupDiff
 
 	seenGroups := map[string]bool{}
 
 	for _, desiredRule := range desired {
+		translatedRuleGroups, err := convertCRDRuleGroupToRuleGroup(desiredRule.Spec)
+		if err != nil {
+			return nil, err
+		}
+
 	desiredGroups:
-		for _, desiredRuleGroup := range desiredRule.Spec.Groups {
+		for _, desiredRuleGroup := range translatedRuleGroups.Groups {
+			mimirRuleGroup := mimirClient.RuleGroup{
+				RuleGroup: desiredRuleGroup,
+				// TODO: allow setting the remote write configs?
+				// RWConfigs: ,
+			}
+
+			seenGroups[desiredRuleGroup.Name] = true
+
 			for _, actualRuleGroup := range actual {
 				if desiredRuleGroup.Name == actualRuleGroup.Name {
 					diff = append(diff, RuleGroupDiff{
 						Kind:    RuleGroupDiffKindUpdate,
 						Actual:  actualRuleGroup,
-						Desired: desiredRuleGroup,
+						Desired: mimirRuleGroup,
 					})
 					continue desiredGroups
 				}
@@ -306,7 +328,7 @@ func (c *Component) diffRuleStates(desired []*promv1.PrometheusRule, actual []mi
 
 			diff = append(diff, RuleGroupDiff{
 				Kind:    RuleGroupDiffKindAdd,
-				Desired: desiredRuleGroup,
+				Desired: mimirRuleGroup,
 			})
 		}
 	}
@@ -322,7 +344,7 @@ func (c *Component) diffRuleStates(desired []*promv1.PrometheusRule, actual []mi
 		})
 	}
 
-	return diff
+	return diff, nil
 }
 
 func (c *Component) applyChanges(ctx context.Context, diffs []RuleGroupDiff) error {
@@ -336,14 +358,40 @@ func (c *Component) applyChanges(ctx context.Context, diffs []RuleGroupDiff) err
 		switch diff.Kind {
 		case RuleGroupDiffKindAdd:
 			level.Info(c.log).Log("msg", "adding rule group", "group", diff.Desired.Name)
+			err := c.mimirClient.CreateRuleGroup(ctx, c.args.MimirRuleNamespace, diff.Desired)
+			if err != nil {
+				return err
+			}
 		case RuleGroupDiffKindRemove:
 			level.Info(c.log).Log("msg", "removing rule group", "group", diff.Actual.Name)
+			err := c.mimirClient.DeleteRuleGroup(ctx, c.args.MimirRuleNamespace, diff.Actual.Name)
+			if err != nil {
+				return err
+			}
 		case RuleGroupDiffKindUpdate:
 			level.Info(c.log).Log("msg", "updating rule group", "group", diff.Desired.Name)
+			err := c.mimirClient.CreateRuleGroup(ctx, c.args.MimirRuleNamespace, diff.Desired)
+			if err != nil {
+				return err
+			}
 		default:
 			level.Error(c.log).Log("msg", "unknown rule group diff kind", "kind", diff.Kind)
 		}
 	}
 
 	return nil
+}
+
+func convertCRDRuleGroupToRuleGroup(crd promv1.PrometheusRuleSpec) (*rulefmt.RuleGroups, error) {
+	buf, err := yaml.Marshal(crd)
+	if err != nil {
+		return &rulefmt.RuleGroups{}, err
+	}
+
+	groups, errs := rulefmt.Parse(buf)
+	if len(errs) > 0 {
+		return &rulefmt.RuleGroups{}, multierror.New(errs...).Err()
+	}
+
+	return groups, nil
 }
