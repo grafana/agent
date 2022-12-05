@@ -5,7 +5,6 @@ package stages
 // new code without being able to slowly review, examine and test them.
 
 import (
-	"errors"
 	"os"
 	"runtime"
 	"time"
@@ -215,7 +214,7 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 	// 		return nil, err
 	// 	}
 	default:
-		return nil, errors.New("Unknown stage type")
+		panic("unreacheable; should have decoded into one of the StageConfig fields")
 	}
 	return s, nil
 }
