@@ -240,7 +240,7 @@ func TestCache(t *testing.T) {
 	ls1 := model.LabelSet{"A": "K6sjsNNczPl"}
 	ls2 := model.LabelSet{"A": "cswpLMIZpwt"}
 	envls := model.LabelSet{"env": "staging"}
-	require.Equal(t, ls1.Fingerprint(), ls2.Fingerprint(), "expected labelset fingerpints to collide; have we changed the hashing algorithm?")
+	require.Equal(t, ls1.Fingerprint(), ls2.Fingerprint(), "expected labelset fingerprints to collide; have we changed the hashing algorithm?")
 
 	e.Labels = ls1
 	c.receiver <- e
