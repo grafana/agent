@@ -15,7 +15,7 @@ import (
 	_ "github.com/grafana/agent/pkg/integrations/consul_exporter"        // register consul_exporter
 	_ "github.com/grafana/agent/pkg/integrations/dnsmasq_exporter"       // register dnsmasq_exporter
 	_ "github.com/grafana/agent/pkg/integrations/elasticsearch_exporter" // register elasticsearch_exporter
-	_ "github.com/grafana/agent/pkg/integrations/gcp_metrics_exporter"   // gcp_metrics_exporter windows_exporter
+	_ "github.com/grafana/agent/pkg/integrations/gcp_metrics_exporter"   // register gcp_metrics_exporter
 	_ "github.com/grafana/agent/pkg/integrations/github_exporter"        // register github_exporter
 	_ "github.com/grafana/agent/pkg/integrations/kafka_exporter"         // register kafka_exporter
 	_ "github.com/grafana/agent/pkg/integrations/memcached_exporter"     // register memcached_exporter
