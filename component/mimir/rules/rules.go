@@ -1,6 +1,7 @@
 package rules
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"time"
@@ -17,6 +18,7 @@ import (
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	promListers "github.com/prometheus-operator/prometheus-operator/pkg/client/listers/monitoring/v1"
 	"github.com/prometheus/prometheus/model/rulefmt"
+	yamlv3 "gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -325,6 +327,10 @@ desiredGroups:
 
 		for _, actualRuleGroup := range actual {
 			if desiredRuleGroup.Name == actualRuleGroup.Name {
+				if equalRuleGroups(desiredRuleGroup, actualRuleGroup.RuleGroup) {
+					continue desiredGroups
+				}
+
 				// TODO: check if the rules are the same
 				diff = append(diff, RuleGroupDiff{
 					Kind:    RuleGroupDiffKindUpdate,
@@ -556,3 +562,26 @@ const (
 
 	EventTypeSyncMimir EventType = "sync-mimir"
 )
+
+func equalRuleGroups(a, b rulefmt.RuleGroup) bool {
+	aBuf, err := yamlv3.Marshal(a)
+	if err != nil {
+		return false
+	}
+	bBuf, err := yamlv3.Marshal(b)
+	if err != nil {
+		return false
+	}
+
+	if !bytes.Equal(aBuf, bBuf) {
+
+		fmt.Println("----")
+		fmt.Println(string(aBuf))
+		fmt.Println("----")
+		fmt.Println(string(bBuf))
+
+		return false
+	}
+
+	return bytes.Equal(aBuf, bBuf)
+}
