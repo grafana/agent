@@ -179,7 +179,7 @@ type cacheItem struct {
 // not have this issue as relabel config rules are only applied to targets.
 // Do we want to use labels.Labels in loki.Entry instead?
 func (c *Component) relabel(e loki.Entry) model.LabelSet {
-	hash := e.Labels.Fingerprint().String()
+	hash := e.Labels.Fingerprint()
 
 	// Let's look in the cache for the hash of the entry's labels.
 	val, found := c.cache.Get(hash)
