@@ -10,16 +10,15 @@ import (
 	"github.com/grafana/agent/component"
 	mimirClient "github.com/grafana/agent/pkg/mimir/client"
 	"github.com/grafana/dskit/crypto/tls"
-	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	promListers "github.com/prometheus-operator/prometheus-operator/pkg/client/listers/monitoring/v1"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/informers"
+	"k8s.io/client-go/kubernetes"
+	coreListers "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/util/workqueue"
 	controller "sigs.k8s.io/controller-runtime"
-	k8sClient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	promExternalVersions "github.com/prometheus-operator/prometheus-operator/pkg/client/informers/externalversions"
 	promVersioned "github.com/prometheus-operator/prometheus-operator/pkg/client/versioned"
@@ -44,13 +43,16 @@ type Component struct {
 	opts component.Options
 	args Arguments
 
-	mimirClient      *mimirClient.MimirClient
-	k8sClient        k8sClient.Client
-	promClient       promVersioned.Interface
-	ruleLister       promListers.PrometheusRuleLister
-	ruleInformer     cache.SharedIndexInformer
-	informerStopChan chan struct{}
-	ticker           *time.Ticker
+	mimirClient  *mimirClient.MimirClient
+	k8sClient    kubernetes.Interface
+	promClient   promVersioned.Interface
+	ruleLister   promListers.PrometheusRuleLister
+	ruleInformer cache.SharedIndexInformer
+
+	namespaceLister   coreListers.NamespaceLister
+	namespaceInformer cache.SharedIndexInformer
+	informerStopChan  chan struct{}
+	ticker            *time.Ticker
 
 	queue         workqueue.RateLimitingInterface
 	configUpdates chan ConfigUpdate
@@ -113,6 +115,10 @@ func (c *Component) startup(ctx context.Context) error {
 		return err
 	}
 
+	c.queue = workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
+	c.informerStopChan = make(chan struct{})
+
+	c.startNamespaceInformer()
 	c.startRuleInformer()
 	c.syncMimir(ctx)
 	go c.eventLoop(ctx)
@@ -141,19 +147,8 @@ func (c *Component) init() error {
 	// TODO: allow overriding some stuff in RestConfig and k8s client options?
 	restConfig := controller.GetConfigOrDie()
 
-	scheme := runtime.NewScheme()
-	err := corev1.AddToScheme(scheme)
-	if err != nil {
-		return fmt.Errorf("failed to add prometheus operator scheme: %w", err)
-	}
-	err = promv1.AddToScheme(scheme)
-	if err != nil {
-		return fmt.Errorf("failed to add prometheus operator scheme: %w", err)
-	}
-
-	c.k8sClient, err = k8sClient.New(restConfig, k8sClient.Options{
-		Scheme: scheme,
-	})
+	var err error
+	c.k8sClient, err = kubernetes.NewForConfig(restConfig)
 	if err != nil {
 		return fmt.Errorf("failed to create k8s client: %w", err)
 	}
@@ -216,9 +211,69 @@ func convertSelectorToListOptions(selector LabelSelector) (labels.Selector, erro
 	})
 }
 
+func (c *Component) startNamespaceInformer() {
+	factory := informers.NewSharedInformerFactoryWithOptions(
+		c.k8sClient,
+		24*time.Hour,
+		informers.WithTweakListOptions(func(lo *metav1.ListOptions) {
+			lo.LabelSelector = c.namespaceSelector.String()
+		}),
+	)
+
+	namespaces := factory.Core().V1().Namespaces()
+	c.namespaceLister = namespaces.Lister()
+	c.namespaceInformer = namespaces.Informer()
+	c.namespaceInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			key, err := cache.MetaNamespaceKeyFunc(obj)
+			if err != nil {
+				level.Error(c.log).Log("msg", "failed to get key from object", "err", err)
+				return
+			}
+
+			c.queue.AddRateLimited(Event{
+				Type:      EventTypeAddNamespace,
+				ObjectKey: key,
+			})
+		},
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			newKey, err := cache.MetaNamespaceKeyFunc(newObj)
+			if err != nil {
+				level.Error(c.log).Log("msg", "failed to get key from object", "err", err)
+				return
+			}
+
+			c.queue.AddRateLimited(Event{
+				Type:      EventTypeUpdateNamespace,
+				ObjectKey: newKey,
+			})
+		},
+		DeleteFunc: func(obj interface{}) {
+			key, err := cache.MetaNamespaceKeyFunc(obj)
+			if err != nil {
+				level.Error(c.log).Log("msg", "failed to get key from object", "err", err)
+				return
+			}
+
+			c.queue.AddRateLimited(Event{
+				Type:      EventTypeDeleteNamespace,
+				ObjectKey: key,
+			})
+		},
+	})
+
+	factory.Start(c.informerStopChan)
+	factory.WaitForCacheSync(c.informerStopChan)
+}
+
 func (c *Component) startRuleInformer() {
-	c.queue = workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
-	factory := promExternalVersions.NewSharedInformerFactory(c.promClient, 24*time.Hour)
+	factory := promExternalVersions.NewSharedInformerFactoryWithOptions(
+		c.promClient,
+		24*time.Hour,
+		promExternalVersions.WithTweakListOptions(func(lo *metav1.ListOptions) {
+			lo.LabelSelector = c.ruleSelector.String()
+		}),
+	)
 
 	promRules := factory.Monitoring().V1().PrometheusRules()
 	c.ruleLister = promRules.Lister()
@@ -232,17 +287,11 @@ func (c *Component) startRuleInformer() {
 			}
 
 			c.queue.AddRateLimited(Event{
-				Type:     EventTypeAddRule,
-				NewRules: key,
+				Type:      EventTypeAddRule,
+				ObjectKey: key,
 			})
 		},
 		UpdateFunc: func(oldObj, newObj interface{}) {
-			oldKey, err := cache.MetaNamespaceKeyFunc(oldObj)
-			if err != nil {
-				level.Error(c.log).Log("msg", "failed to get key from object", "err", err)
-				return
-			}
-
 			newKey, err := cache.MetaNamespaceKeyFunc(newObj)
 			if err != nil {
 				level.Error(c.log).Log("msg", "failed to get key from object", "err", err)
@@ -250,9 +299,8 @@ func (c *Component) startRuleInformer() {
 			}
 
 			c.queue.AddRateLimited(Event{
-				Type:     EventTypeUpdateRule,
-				NewRules: newKey,
-				OldRules: oldKey,
+				Type:      EventTypeUpdateRule,
+				ObjectKey: newKey,
 			})
 		},
 		DeleteFunc: func(obj interface{}) {
@@ -263,13 +311,12 @@ func (c *Component) startRuleInformer() {
 			}
 
 			c.queue.AddRateLimited(Event{
-				Type:     EventTypeDeleteRule,
-				OldRules: key,
+				Type:      EventTypeDeleteRule,
+				ObjectKey: key,
 			})
 		},
 	})
 
-	c.informerStopChan = make(chan struct{})
 	factory.Start(c.informerStopChan)
 	factory.WaitForCacheSync(c.informerStopChan)
 }

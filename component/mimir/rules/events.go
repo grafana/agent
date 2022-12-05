@@ -13,15 +13,10 @@ import (
 )
 
 // This type must be hashable, so it is kept simple. The indexer will maintain a
-// cache of current state, so this is only used for logging.
+// cache of current state, so this is mostly used for logging.
 type Event struct {
-	Type EventType
-
-	NewRules string
-	OldRules string
-
-	NewNamespace string
-	OldNamespace string
+	Type      EventType
+	ObjectKey string
 }
 
 type EventType string
@@ -61,15 +56,9 @@ func (c *Component) eventLoop(ctx context.Context) {
 }
 func (c *Component) processEvent(ctx context.Context, e Event) error {
 	switch e.Type {
-	case EventTypeAddRule:
-		level.Info(c.log).Log("msg", "processing add rule event", "key", e.NewRules)
-	case EventTypeUpdateRule:
-		level.Info(c.log).Log("msg", "processing update rule event", "key", e.NewRules)
-	case EventTypeDeleteRule:
-		level.Info(c.log).Log("msg", "processing delete rule event", "key", e.OldRules)
-	case EventTypeAddNamespace:
-	case EventTypeDeleteNamespace:
-	case EventTypeUpdateNamespace:
+	case EventTypeAddRule, EventTypeUpdateRule, EventTypeDeleteRule,
+		EventTypeAddNamespace, EventTypeUpdateNamespace, EventTypeDeleteNamespace:
+		level.Info(c.log).Log("msg", "processing event", "type", e.Type, "key", e.ObjectKey)
 	case EventTypeSyncMimir:
 		level.Debug(c.log).Log("msg", "syncing current state from ruler")
 		c.syncMimir(ctx)
@@ -94,20 +83,7 @@ func (c *Component) reconcileState(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	crdState, err := c.ruleLister.List(c.ruleSelector)
-	if err != nil {
-		return fmt.Errorf("failed to list rules: %w", err)
-	}
-
-	desiredState := []rulefmt.RuleGroup{}
-	for _, pr := range crdState {
-		groups, err := convertCRDRuleGroupToRuleGroup(pr.Spec)
-		if err != nil {
-			return fmt.Errorf("failed to convert rule group: %w", err)
-		}
-
-		desiredState = append(desiredState, groups.Groups...)
-	}
+	desiredState, err := c.loadStateFromK8s()
 
 	diffs, err := diffRuleStates(desiredState, c.currentState)
 	if err != nil {
@@ -115,6 +91,32 @@ func (c *Component) reconcileState(ctx context.Context) error {
 	}
 
 	return c.applyChanges(ctx, diffs)
+}
+
+func (c *Component) loadStateFromK8s() ([]rulefmt.RuleGroup, error) {
+	matchedNamespaces, err := c.namespaceLister.List(c.namespaceSelector)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list namespaces: %w", err)
+	}
+
+	desiredState := []rulefmt.RuleGroup{}
+	for _, ns := range matchedNamespaces {
+		crdState, err := c.ruleLister.PrometheusRules(ns.Name).List(c.ruleSelector)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list rules: %w", err)
+		}
+
+		for _, pr := range crdState {
+			groups, err := convertCRDRuleGroupToRuleGroup(pr.Spec)
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert rule group: %w", err)
+			}
+
+			desiredState = append(desiredState, groups.Groups...)
+		}
+	}
+
+	return desiredState, nil
 }
 
 func convertCRDRuleGroupToRuleGroup(crd promv1.PrometheusRuleSpec) (*rulefmt.RuleGroups, error) {
