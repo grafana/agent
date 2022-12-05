@@ -204,6 +204,14 @@ func convertConfigs(cfg Arguments) (*config.Config, error) {
 			Name:                rw.Name,
 			SendExemplars:       rw.SendExemplars,
 
+			// SendNativeHistograms is always set to true. Since scraping native
+			// histograms happens transparently from supported targets, native
+			// histograms should always be best-effort remote_written. Otherwise, if
+			// native histograms were controllable, then users might be surprised
+			// when some metrics from targets were never sent to the remote_write
+			// endpoint.
+			SendNativeHistograms: true,
+
 			HTTPClientConfig: *rw.HTTPClientConfig.Convert(),
 			QueueConfig:      rw.QueueOptions.toPrometheusType(),
 			MetadataConfig:   rw.MetadataOptions.toPrometheusType(),

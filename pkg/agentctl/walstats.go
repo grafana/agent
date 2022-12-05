@@ -7,7 +7,7 @@ import (
 	"github.com/prometheus/prometheus/model/timestamp"
 	"github.com/prometheus/prometheus/tsdb/chunks"
 	"github.com/prometheus/prometheus/tsdb/record"
-	"github.com/prometheus/prometheus/tsdb/wal"
+	"github.com/prometheus/prometheus/tsdb/wlog"
 )
 
 // WALStats stores statistics on the whole WAL.
@@ -85,7 +85,7 @@ type WALTargetStats struct {
 // CalculateStats calculates the statistics of the WAL for the given directory.
 // walDir must be a folder containing segment files and checkpoint directories.
 func CalculateStats(walDir string) (WALStats, error) {
-	w, err := wal.Open(nil, walDir)
+	w, err := wlog.Open(nil, walDir)
 	if err != nil {
 		return WALStats{}, err
 	}
@@ -95,7 +95,7 @@ func CalculateStats(walDir string) (WALStats, error) {
 }
 
 type walStatsCalculator struct {
-	w *wal.WAL
+	w *wlog.WL
 
 	fromTime    int64
 	toTime      int64
@@ -109,7 +109,7 @@ type walStatsCalculator struct {
 	hashInstances map[uint64]int
 }
 
-func newWALStatsCalculator(w *wal.WAL) *walStatsCalculator {
+func newWALStatsCalculator(w *wlog.WL) *walStatsCalculator {
 	return &walStatsCalculator{
 		w:             w,
 		fromTime:      math.MaxInt64,
@@ -124,12 +124,12 @@ func (c *walStatsCalculator) Calculate() (WALStats, error) {
 		err   error
 	)
 
-	_, checkpointIdx, err := wal.LastCheckpoint(c.w.Dir())
+	_, checkpointIdx, err := wlog.LastCheckpoint(c.w.Dir())
 	if err != nil && err != record.ErrNotFound {
 		return stats, err
 	}
 
-	firstSegment, lastSegment, err := wal.Segments(c.w.Dir())
+	firstSegment, lastSegment, err := wlog.Segments(c.w.Dir())
 	if err != nil {
 		return stats, err
 	}
@@ -164,7 +164,7 @@ func (c *walStatsCalculator) Calculate() (WALStats, error) {
 	return stats, nil
 }
 
-func (c *walStatsCalculator) readWAL(r *wal.Reader) error {
+func (c *walStatsCalculator) readWAL(r *wlog.Reader) error {
 	var dec record.Decoder
 
 	for r.Next() {
