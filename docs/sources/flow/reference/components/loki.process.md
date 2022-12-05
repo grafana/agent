@@ -46,36 +46,28 @@ Name              | Type                 | Description                          
 
 The following blocks are supported inside the definition of `loki.process`:
 
-Hierarchy    | Block | Description | Required
----------    | ----- | ----------- | --------
-stage        | [stage][] | Processing stage to run. | no
-stage > json | [json][]  | Configures a JSON processing stage.  | no
+Hierarchy      | Block      | Description | Required
+-------------- | ---------- | ----------- | --------
+stage          | [stage][]  | Processing stage to run. | no
+stage > json   | [json][]   | Configures a JSON processing stage.  | no
+stage > labels | [labels][] | Configures a Labels processing stage. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `stage > json`
 refers to a `json` block defined inside of a `stage` block.
 
 [stage]: #stage-block
 [json]: #json-block
+[labels]: #labels-block
 
 ### stage block
 
 The `stage` block describes a single processing step to run log entries
-through. As such, each block must have exactly _one_ inner block or argument,
-to match the type of stage to configure. Multiple processing stages must be
-defined in different blocks.
+through. As such, each block must have exactly _one_ inner block to match the
+type of stage to configure. Multiple processing stages must be defined in
+different blocks and are applied on the incoming log entries in top-down order.
 
-The following arguments are supported:
-
-Name                  | Type          | Description                               | Default        | Required
---------------------- | --------------| ----------------------------------------- | -------------- | --------
-`labels`              | `map(string)` | Configures a `labels` processing stage.   | `{}`           | no
-
-
-The `labels` argument configures a [Labels processing stage][] that can read data
-from the extracted values map and set new labels on incoming log entries.
-
-[Labels processing stage]: #labels-stage
-
+The block does not support any arguments and is configured only via inner
+blocks.
 
 ### json block
 
@@ -92,7 +84,16 @@ Name             | Type          | Description | Default | Required
 
 [JSON Processing stage]: #json-stage
 
+### labels block
 
+The `labels` inner block configures a [Labels processing stage][] that can read data
+from the extracted values map and set new labels on incoming log entries.
+
+Name                  | Type          | Description                               | Default        | Required
+--------------------- | --------------| ----------------------------------------- | -------------- | --------
+`labels`              | `map(string)` | Configures a `labels` processing stage.   | `{}`           | no
+
+[Labels processing stage]: #labels-stage
 
 ## Exported fields
 
@@ -153,12 +154,19 @@ Here's a given log line and two JSON stages to run.
 ```river
 {"log":"log message\n","extra":"{\"user\":\"agent\"}"}
 
-stage { json {
-  expressions = { output = log, extra = "" }
-}
-stage { json {
-  source      = "extra"
-  expressions = { username = "user" }
+loki.process "username" {
+	stage {
+		json {
+			expressions = {output = log, extra = ""}
+		}
+	}
+
+	stage {
+		json {
+			source      = "extra"
+			expressions = {username = "user"}
+		}
+	}
 }
 ```
 
@@ -183,9 +191,11 @@ the key.
 
 ```river
 stage {
-  labels = {
-    env  = ""           // Sets up an 'env' label, based on the 'env' extracted value.
-    user = "username"   // Sets up a 'user' label, based on the 'username' extracted value.
-  }
+	labels {
+		values = {
+			env  = "",         // Sets up an 'env' label, based on the 'env' extracted value.
+			user = "username", // Sets up a 'user' label, based on the 'username' extracted value.
+		}
+	}
 }
 ```

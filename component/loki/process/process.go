@@ -6,7 +6,7 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/agent/component/loki/process/stages"
+	"github.com/grafana/agent/component/loki/process/internal/stages"
 )
 
 func init() {

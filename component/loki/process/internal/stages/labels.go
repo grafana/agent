@@ -21,35 +21,36 @@ const (
 )
 
 // LabelsConfig is a set of labels to be extracted
-type LabelsConfig map[string]*string
+type LabelsConfig struct {
+	Values map[string]*string `river:"values,attr"`
+}
 
 // validateLabelsConfig validates the Label stage configuration
 func validateLabelsConfig(c LabelsConfig) error {
-	if c == nil {
+	if c.Values == nil {
 		return errors.New(ErrEmptyLabelStageConfig)
 	}
-	for labelName, labelSrc := range c {
+	for labelName, labelSrc := range c.Values {
 		if !model.LabelName(labelName).IsValid() {
 			return fmt.Errorf(ErrInvalidLabelName, labelName)
 		}
 		// If no label source was specified, use the key name
 		if labelSrc == nil || *labelSrc == "" {
 			lName := labelName
-			c[labelName] = &lName
+			c.Values[labelName] = &lName
 		}
 	}
 	return nil
 }
 
 // newLabelStage creates a new label stage to set labels from extracted data
-func newLabelStage(logger log.Logger, configs *map[string]*string) (Stage, error) {
-	cfgs := LabelsConfig(*configs)
-	err := validateLabelsConfig(cfgs)
+func newLabelStage(logger log.Logger, configs LabelsConfig) (Stage, error) {
+	err := validateLabelsConfig(configs)
 	if err != nil {
 		return nil, err
 	}
 	return toStage(&labelStage{
-		cfgs:   cfgs,
+		cfgs:   configs,
 		logger: logger,
 	}), nil
 }
@@ -62,7 +63,7 @@ type labelStage struct {
 
 // Process implements Stage
 func (l *labelStage) Process(labels model.LabelSet, extracted map[string]interface{}, t *time.Time, entry *string) {
-	for lName, lSrc := range l.cfgs {
+	for lName, lSrc := range l.cfgs.Values {
 		if lValue, ok := extracted[*lSrc]; ok {
 			s, err := getString(lValue)
 			if err != nil {

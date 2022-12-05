@@ -8,7 +8,7 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/agent/component/loki/process/stages"
+	"github.com/grafana/agent/component/loki/process/internal/stages"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/loki/pkg/logproto"
@@ -48,7 +48,13 @@ func TestJSONLabelsStage(t *testing.T) {
 			  }
 			}
 			stage { 
-			  labels = { "stream" = "", "user" = "", "ts" = "timestamp" }
+			  labels {
+			    values = { 
+				  stream = "",
+				  user   = "",
+				  ts     = "timestamp",
+			    }
+		      }
 			}`
 
 	// Unmarshal the River relabel rules into a custom struct, as we don't have

@@ -18,9 +18,11 @@ import (
 )
 
 // StageConfig defines a single stage in a processing pipeline.
+// We define these as pointers types so we can use reflection to check that
+// exactly one is set.
 type StageConfig struct {
-	JSONConfig   *JSONConfig         `river:"json,block,optional"`
-	LabelsConfig *map[string]*string `river:"labels,attr,optional"`
+	JSONConfig   *JSONConfig   `river:"json,block,optional"`
+	LabelsConfig *LabelsConfig `river:"labels,block,optional"`
 }
 
 // UnmarshalRiver implements river.Unmarshaler.
