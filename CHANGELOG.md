@@ -64,6 +64,9 @@ Main (unreleased)
 
 - Remove duplicate `oauth2` key from `metricsinstances` CRD. (@daper)
 
+- Fix issue where on checking whether to restart integrations the Integration Manager was comparing
+  configs with secret values scrubbed, preventing reloads if only secrets were updated. (@spartan0x117)
+
 v0.29.0 (2022-11-08)
 --------------------
 
