@@ -10,13 +10,13 @@ title: loki.process
 more processing _stages_, and forwards the results to the list of receivers
 in the component's arguments.
 
-The `loki.process` component is a multi-purpose tool that can parse, transform,
-and filter log entries before they're passed to a downstream component. The
-`stage` blocks are applied to each log entry in order of their appearance in
-the configuration file. All stages within a `loki.process` block have access to
-the log entry's label set, the log line, the log timestamp, as well as a shared
-map of 'extracted' values; this allows results of one stage to be used in a
-subsequent one.
+A stage is a multi-purpose tool that can parse, transform, and filter log
+entries before they're passed to a downstream component. These stages are
+applied to each log entry in order of their appearance in the configuration
+file. All stages within a `loki.process` block have access to the log entry's
+label set, the log line, the log timestamp, as well as a shared map of
+'extracted' values; this allows results of one stage to be used in a subsequent
+one.
 
 Multiple `loki.process` components can be specified by giving them
 different labels.
@@ -119,8 +119,8 @@ output: log message\n
 extra: {"user": "agent"}
 ```
 
-The second stage uses the extracted value in `extra` as the input and extracts
-the following key-value pair to the set of extracted data.
+The second stage uses the value in `extra` as the input and appends the
+following key-value pair to the set of extracted data.
 ```
 username: agent
 ```
@@ -189,6 +189,4 @@ loki.process "local" {
   }
 }
 ```
-
-## JSON stage
 
