@@ -1,8 +1,10 @@
-package gcp_metrics
+package gcp_metrics_exporter
 
 import (
 	"context"
 	"fmt"
+	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
+	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"net/http"
 	"time"
 
@@ -14,27 +16,43 @@ import (
 	"google.golang.org/api/option"
 
 	"github.com/grafana/agent/pkg/integrations"
-	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
-	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 )
 
+func init() {
+	integrations.RegisterIntegration(&Config{})
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeSingleton, metricsutils.NewNamedShim("gcp_metrics_exporter"))
+}
+
 type Config struct {
-	ProjectID string `yaml:"project_id"`
-	// TODO(Daniele) verify this
+	ProjectID      string        `yaml:"project_id"`
 	ClientTimeout  time.Duration `yaml:"client_timeout"`
 	MetricPrefixes []string      `yaml:"metrics_prefixes"`
 }
 
-func (c Config) Name() string {
+var DefaultConfig = Config{
+	ProjectID:      "1",
+	ClientTimeout:  15 * time.Second,
+	MetricPrefixes: []string{},
+}
+
+// UnmarshalYAML implements yaml.Unmarshaler for Config
+func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*c = DefaultConfig
+
+	type plain Config
+	return unmarshal((*plain)(c))
+}
+
+func (c *Config) Name() string {
 	return "gcp_metrics_exporter"
 }
 
-func (c Config) InstanceKey(agentKey string) (string, error) {
+func (c *Config) InstanceKey(agentKey string) (string, error) {
 	//TODO(daniele) find something
 	return c.Name(), nil
 }
 
-func (c Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
+func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -93,9 +111,4 @@ func createMonitoringService(ctx context.Context, httpTimeout time.Duration) (*m
 	}
 
 	return monitoringService, nil
-}
-
-func init() {
-	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.NewNamedShim("elasticsearch"))
 }
