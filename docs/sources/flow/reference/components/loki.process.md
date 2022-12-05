@@ -68,19 +68,19 @@ The following arguments are supported:
 
 Name                  | Type          | Description                               | Default        | Required
 --------------------- | --------------| ----------------------------------------- | -------------- | --------
-`labels`              | `map(string)` | Configures a `labels` processing stage.   |                | yes
+`labels`              | `map(string)` | Configures a `labels` processing stage.   | `{}`           | no
 
 
-The `labels` argument configures a [LabelsStage][] processing stage that can read data
+The `labels` argument configures a [Labels processing stage][] that can read data
 from the extracted values map and set new labels on incoming log entries.
 
-[LabelsStage]: #labels-stage
+[Labels processing stage]: #labels-stage
 
 
 ### json block
 
-The `json` inner block configures a [JSONStage][] processing stage that parses incoming
-log lines or previously extracted values as JSON, and uses
+The `json` inner block configures a [JSON Processing stage][] that parses incoming
+log lines or previously extracted values as JSON and uses
 [JMESPath expressions](https://jmespath.org/tutorial.html) to extract new
 values from them.
 
@@ -90,7 +90,7 @@ Name             | Type          | Description | Default | Required
 `source`         | `string`      | Source of the data to parse as JSON. | `""` | no
 `drop_malformed` | `bool`        | Drop lines whose input cannot be parsed as valid JSON.| `false` | no
 
-[JSONStage]: #json-stage
+[JSON Processing stage]: #json-stage
 
 
 
@@ -162,7 +162,7 @@ stage { json {
 }
 ```
 
-In this example, the first stage uses the log line as the source, and populates
+In this example, the first stage uses the log line as the source and populates
 these values in the shared map. An empty expression means using the same value
 as the key (so `extra="extra"`).
 ```
@@ -170,14 +170,14 @@ output: log message\n
 extra: {"user": "agent"}
 ```
 
-The second stage uses the extracted value in `extra` as the input, and extracts
+The second stage uses the extracted value in `extra` as the input and extracts
 the following key-value pair to the set of extracted data.
 ```
 username: agent
 ```
 
 ## Labels stage
-In a Labels stage, the map's keys define the label to set, and the values are
+In a Labels stage, the map's keys define the label to set and the values are
 how to look them up.  If the value is empty, it is inferred to be the same as
 the key.
 
