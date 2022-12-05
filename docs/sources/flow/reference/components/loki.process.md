@@ -10,7 +10,7 @@ title: loki.process
 more processing _stages_, and forwards the results to the list of receivers
 in the component's arguments.
 
-A stage is a multi-purpose tool that can parse, transform, and filter log
+A stage is a multi-purpose block that can parse, transform, and filter log
 entries before they're passed to a downstream component. These stages are
 applied to each log entry in order of their appearance in the configuration
 file. All stages within a `loki.process` block have access to the log entry's
@@ -66,7 +66,7 @@ through. As such, each block must have exactly _one_ inner block to match the
 type of stage to configure. Multiple processing stages must be defined in
 different blocks and are applied on the incoming log entries in top-down order.
 
-The block does not support any arguments and is configured only via inner
+This block does not support any arguments and is configured only via inner
 blocks.
 
 ### json block
@@ -75,6 +75,8 @@ The `json` inner block configures a JSON processing stage that parses incoming
 log lines or previously extracted values as JSON and uses
 [JMESPath expressions](https://jmespath.org/tutorial.html) to extract new
 values from them.
+
+The following arguments are supported:
 
 Name             | Type          | Description | Default | Required
 ---------------- | ------------- | ----------- | ------- | --------
@@ -130,9 +132,11 @@ username: agent
 The `labels` inner block configures a Labels processing stage that can read
 data from the extracted values map and set new labels on incoming log entries.
 
+The following arguments are supported:
+
 Name                  | Type          | Description                               | Default        | Required
 --------------------- | --------------| ----------------------------------------- | -------------- | --------
-`labels`              | `map(string)` | Configures a `labels` processing stage.   | `{}`           | no
+`values`              | `map(string)` | Configures a `labels` processing stage.   | `{}`           | no
 
 In a Labels stage, the map's keys define the label to set and the values are
 how to look them up.  If the value is empty, it is inferred to be the same as
@@ -159,13 +163,11 @@ Name | Type | Description
 
 ## Component health
 
-`loki.process` is only reported as unhealthy if given an invalid
-configuration.
+`loki.process` is only reported as unhealthy if given an invalid configuration.
 
 ## Debug information
 
-`loki.process` does not expose any component-specific debug
-information.
+`loki.process` does not expose any component-specific debug information.
 
 ## Debug metrics
 * `loki_process_dropped_lines_total` (counter): Number of lines dropped as part of a processing stage.
