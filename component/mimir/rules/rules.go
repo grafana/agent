@@ -13,15 +13,21 @@ import (
 	mimirClient "github.com/grafana/agent/pkg/mimir/client"
 	"github.com/grafana/dskit/crypto/tls"
 	"github.com/grafana/dskit/multierror"
+	"github.com/pkg/errors"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	promListers "github.com/prometheus-operator/prometheus-operator/pkg/client/listers/monitoring/v1"
 	"github.com/prometheus/prometheus/model/rulefmt"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/tools/cache"
+	"k8s.io/client-go/util/workqueue"
 	controller "sigs.k8s.io/controller-runtime"
 	k8sClient "sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	promExternalVersions "github.com/prometheus-operator/prometheus-operator/pkg/client/informers/externalversions"
+	promVersioned "github.com/prometheus-operator/prometheus-operator/pkg/client/versioned"
 )
 
 func init() {
@@ -83,49 +89,105 @@ type Component struct {
 	opts component.Options
 	args Arguments
 
-	mimirClient *mimirClient.MimirClient
-	k8sClient   k8sClient.Client
-	ticker      *time.Ticker
+	mimirClient      *mimirClient.MimirClient
+	k8sClient        k8sClient.Client
+	promClient       promVersioned.Interface
+	ruleLister       promListers.PrometheusRuleLister
+	ruleInformer     cache.SharedIndexInformer
+	informerStopChan chan struct{}
+	ticker           *time.Ticker
+
+	queue         workqueue.RateLimitingInterface
+	configUpdates chan ConfigUpdate
 
 	namespaceSelector labels.Selector
 	ruleSelector      labels.Selector
+
+	currentState []mimirClient.RuleGroup
+}
+
+type ConfigUpdate struct {
+	args Arguments
+	err  chan error
 }
 
 var _ component.Component = (*Component)(nil)
-var _ reconcile.Reconciler = (*Component)(nil)
 
 func NewComponent(o component.Options, c Arguments) (*Component, error) {
+	setDefaultArguments(&c)
 	return &Component{
-		log:  o.Logger,
-		opts: o,
-		args: c,
+		log:           o.Logger,
+		opts:          o,
+		args:          c,
+		configUpdates: make(chan ConfigUpdate),
+		ticker:        time.NewTicker(c.SyncInterval),
 	}, nil
 }
 
 func (c *Component) Run(ctx context.Context) error {
+	err := c.startup(ctx)
+	if err != nil {
+		return err
+	}
+
+	for {
+		select {
+		case update := <-c.configUpdates:
+			c.shutdown()
+
+			c.args = update.args
+			err := c.startup(ctx)
+			update.err <- err
+			if err != nil {
+				return err
+			}
+		case <-ctx.Done():
+			c.shutdown()
+			return nil
+		case <-c.ticker.C:
+			c.queue.Add(Event{
+				Type: EventTypeSyncMimir,
+			})
+		}
+	}
+}
+
+func (c *Component) startup(ctx context.Context) error {
 	err := c.init()
 	if err != nil {
 		return err
 	}
 
-	c.start(ctx)
-
+	c.startRuleInformer()
+	c.syncMimir(ctx)
+	go c.eventLoop(ctx)
 	return nil
 }
 
-func (c *Component) Update(newConfig component.Arguments) error {
-	c.args = newConfig.(Arguments)
-	return c.init()
+func (c *Component) shutdown() {
+	close(c.informerStopChan)
+	c.queue.ShutDownWithDrain()
 }
 
-func (c *Component) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
-	return reconcile.Result{}, nil
+func (c *Component) Update(newConfig component.Arguments) error {
+	errChan := make(chan error)
+	c.configUpdates <- ConfigUpdate{
+		args: newConfig.(Arguments),
+		err:  errChan,
+	}
+	return <-errChan
+}
+
+func setDefaultArguments(args *Arguments) {
+	if args.SyncInterval == 0 {
+		args.SyncInterval = 30 * time.Second
+	}
 }
 
 func (c *Component) init() error {
-	if c.args.SyncInterval == 0 {
-		c.args.SyncInterval = 30 * time.Second
-	}
+	level.Info(c.log).Log("msg", "initializing with new configuration")
+
+	setDefaultArguments(&c.args)
 
 	// TODO: allow overriding some stuff in RestConfig and k8s client options?
 	restConfig := controller.GetConfigOrDie()
@@ -145,6 +207,11 @@ func (c *Component) init() error {
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create k8s client: %w", err)
+	}
+
+	c.promClient, err = promVersioned.NewForConfig(restConfig)
+	if err != nil {
+		return fmt.Errorf("failed to create prometheus operator client: %w", err)
 	}
 
 	c.mimirClient, err = mimirClient.New(mimirClient.Config{
@@ -168,7 +235,7 @@ func (c *Component) init() error {
 		return err
 	}
 
-	c.ticker = time.NewTicker(c.args.SyncInterval)
+	c.ticker.Reset(c.args.SyncInterval)
 
 	c.namespaceSelector, err = convertSelectorToListOptions(c.args.RuleNamespaceSelector)
 	if err != nil {
@@ -183,43 +250,26 @@ func (c *Component) init() error {
 	return nil
 }
 
-func (c *Component) start(ctx context.Context) {
-	err := c.syncRules(ctx)
-	if err != nil {
-		level.Error(c.log).Log("msg", "failed to sync rules", "err", err)
-	}
-
-	for {
-		select {
-		case <-c.ticker.C:
-			err := c.syncRules(ctx)
-			if err != nil {
-				level.Error(c.log).Log("msg", "failed to sync rules", "err", err)
-			}
-		case <-ctx.Done():
-			level.Info(c.log).Log("msg", "shutting down")
-			return
-		}
-	}
-}
-
-func (c *Component) syncRules(ctx context.Context) error {
-	level.Debug(c.log).Log("msg", "syncing rules")
-
+func (c *Component) reconcileState(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	desiredState, err := c.discoverRuleCRDs(ctx)
+	crdState, err := c.ruleLister.List(c.ruleSelector)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to list rules: %w", err)
 	}
 
-	actualState, err := c.loadActiveRules(ctx)
-	if err != nil {
-		return err
+	desiredState := []rulefmt.RuleGroup{}
+	for _, pr := range crdState {
+		groups, err := convertCRDRuleGroupToRuleGroup(pr.Spec)
+		if err != nil {
+			return fmt.Errorf("failed to convert rule group: %w", err)
+		}
+
+		desiredState = append(desiredState, groups.Groups...)
 	}
 
-	diffs, err := c.diffRuleStates(desiredState, actualState)
+	diffs, err := c.diffRuleStates(desiredState, c.currentState)
 	if err != nil {
 		return err
 	}
@@ -244,42 +294,6 @@ func convertSelectorToListOptions(selector LabelSelector) (labels.Selector, erro
 	})
 }
 
-func (c *Component) discoverRuleCRDs(ctx context.Context) ([]*promv1.PrometheusRule, error) {
-	// List namespaces
-	var namespaces corev1.NamespaceList
-	err := c.k8sClient.List(ctx, &namespaces, &k8sClient.ListOptions{
-		LabelSelector: c.namespaceSelector,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	var crds []*promv1.PrometheusRule
-	// List rules in each namespace
-	for _, namespace := range namespaces.Items {
-		var crdList promv1.PrometheusRuleList
-		err := c.k8sClient.List(ctx, &crdList, &k8sClient.ListOptions{
-			LabelSelector: c.ruleSelector,
-			Namespace:     namespace.Name,
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		crds = append(crds, crdList.Items...)
-	}
-	return crds, nil
-}
-
-func (c *Component) loadActiveRules(ctx context.Context) ([]mimirClient.RuleGroup, error) {
-	rulesByNamespace, err := c.mimirClient.ListRules(ctx, c.args.MimirRuleNamespace)
-	if err != nil {
-		return nil, err
-	}
-
-	return rulesByNamespace[c.args.MimirRuleNamespace], nil
-}
-
 type RuleGroupDiffKind string
 
 const (
@@ -294,43 +308,37 @@ type RuleGroupDiff struct {
 	Desired mimirClient.RuleGroup
 }
 
-func (c *Component) diffRuleStates(desired []*promv1.PrometheusRule, actual []mimirClient.RuleGroup) ([]RuleGroupDiff, error) {
+func (c *Component) diffRuleStates(desired []rulefmt.RuleGroup, actual []mimirClient.RuleGroup) ([]RuleGroupDiff, error) {
 	var diff []RuleGroupDiff
 
 	seenGroups := map[string]bool{}
 
-	for _, desiredRule := range desired {
-		translatedRuleGroups, err := convertCRDRuleGroupToRuleGroup(desiredRule.Spec)
-		if err != nil {
-			return nil, err
+desiredGroups:
+	for _, desiredRuleGroup := range desired {
+		mimirRuleGroup := mimirClient.RuleGroup{
+			RuleGroup: desiredRuleGroup,
+			// TODO: allow setting the remote write configs?
+			// RWConfigs: ,
 		}
 
-	desiredGroups:
-		for _, desiredRuleGroup := range translatedRuleGroups.Groups {
-			mimirRuleGroup := mimirClient.RuleGroup{
-				RuleGroup: desiredRuleGroup,
-				// TODO: allow setting the remote write configs?
-				// RWConfigs: ,
+		seenGroups[desiredRuleGroup.Name] = true
+
+		for _, actualRuleGroup := range actual {
+			if desiredRuleGroup.Name == actualRuleGroup.Name {
+				// TODO: check if the rules are the same
+				diff = append(diff, RuleGroupDiff{
+					Kind:    RuleGroupDiffKindUpdate,
+					Actual:  actualRuleGroup,
+					Desired: mimirRuleGroup,
+				})
+				continue desiredGroups
 			}
-
-			seenGroups[desiredRuleGroup.Name] = true
-
-			for _, actualRuleGroup := range actual {
-				if desiredRuleGroup.Name == actualRuleGroup.Name {
-					diff = append(diff, RuleGroupDiff{
-						Kind:    RuleGroupDiffKindUpdate,
-						Actual:  actualRuleGroup,
-						Desired: mimirRuleGroup,
-					})
-					continue desiredGroups
-				}
-			}
-
-			diff = append(diff, RuleGroupDiff{
-				Kind:    RuleGroupDiffKindAdd,
-				Desired: mimirRuleGroup,
-			})
 		}
+
+		diff = append(diff, RuleGroupDiff{
+			Kind:    RuleGroupDiffKindAdd,
+			Desired: mimirRuleGroup,
+		})
 	}
 
 	for _, actualRuleGroup := range actual {
@@ -379,6 +387,8 @@ func (c *Component) applyChanges(ctx context.Context, diffs []RuleGroupDiff) err
 		}
 	}
 
+	c.syncMimir(ctx)
+
 	return nil
 }
 
@@ -395,3 +405,154 @@ func convertCRDRuleGroupToRuleGroup(crd promv1.PrometheusRuleSpec) (*rulefmt.Rul
 
 	return groups, nil
 }
+
+func (c *Component) startRuleInformer() {
+	c.queue = workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
+	factory := promExternalVersions.NewSharedInformerFactory(c.promClient, 24*time.Hour)
+
+	promRules := factory.Monitoring().V1().PrometheusRules()
+	c.ruleLister = promRules.Lister()
+	c.ruleInformer = promRules.Informer()
+	c.ruleInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			key, err := cache.MetaNamespaceKeyFunc(obj)
+			if err != nil {
+				level.Error(c.log).Log("msg", "failed to get key from object", "err", err)
+				return
+			}
+
+			c.queue.AddRateLimited(Event{
+				Type:     EventTypeAddRule,
+				NewRules: key,
+			})
+		},
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			oldKey, err := cache.MetaNamespaceKeyFunc(oldObj)
+			if err != nil {
+				level.Error(c.log).Log("msg", "failed to get key from object", "err", err)
+				return
+			}
+
+			newKey, err := cache.MetaNamespaceKeyFunc(newObj)
+			if err != nil {
+				level.Error(c.log).Log("msg", "failed to get key from object", "err", err)
+				return
+			}
+
+			c.queue.AddRateLimited(Event{
+				Type:     EventTypeUpdateRule,
+				NewRules: newKey,
+				OldRules: oldKey,
+			})
+		},
+		DeleteFunc: func(obj interface{}) {
+			key, err := cache.MetaNamespaceKeyFunc(obj)
+			if err != nil {
+				level.Error(c.log).Log("msg", "failed to get key from object", "err", err)
+				return
+			}
+
+			c.queue.AddRateLimited(Event{
+				Type:     EventTypeDeleteRule,
+				OldRules: key,
+			})
+		},
+	})
+
+	c.informerStopChan = make(chan struct{})
+	factory.Start(c.informerStopChan)
+	factory.WaitForCacheSync(c.informerStopChan)
+}
+
+func (c *Component) eventLoop(ctx context.Context) {
+	for {
+		event, shutdown := c.queue.Get()
+		if shutdown {
+			level.Info(c.log).Log("msg", "shutting down event loop")
+			return
+		}
+
+		evt := event.(Event)
+		err := c.processEvent(ctx, evt)
+
+		if err != nil {
+			// TODO: retry limits?
+			level.Error(c.log).Log("msg", "failed to process event", "err", err)
+			// c.queue.AddRateLimited(event)
+		} else {
+			c.queue.Forget(event)
+			c.queue.Done(event)
+		}
+	}
+}
+
+func (c *Component) getRuleGroupsFromKey(key string) (*rulefmt.RuleGroups, error) {
+	obj, _, err := c.ruleInformer.GetIndexer().GetByKey(key)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get rule from informer")
+	}
+
+	groups, err := convertCRDRuleGroupToRuleGroup(obj.(*promv1.PrometheusRule).Spec)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to convert CRD rule group to rule group")
+	}
+
+	return groups, nil
+}
+
+func (c *Component) processEvent(ctx context.Context, e Event) error {
+	switch e.Type {
+	case EventTypeAddRule:
+		level.Info(c.log).Log("msg", "processing add rule event", "key", e.NewRules)
+	case EventTypeUpdateRule:
+		level.Info(c.log).Log("msg", "processing update rule event", "key", e.NewRules)
+	case EventTypeDeleteRule:
+		level.Info(c.log).Log("msg", "processing delete rule event", "key", e.OldRules)
+	case EventTypeAddNamespace:
+	case EventTypeDeleteNamespace:
+	case EventTypeUpdateNamespace:
+	case EventTypeSyncMimir:
+		level.Debug(c.log).Log("msg", "syncing current state from ruler")
+		c.syncMimir(ctx)
+	default:
+		return fmt.Errorf("unknown event type: %s", e.Type)
+	}
+
+	return c.reconcileState(ctx)
+}
+
+func (c *Component) syncMimir(ctx context.Context) {
+	rulesByNamespace, err := c.mimirClient.ListRules(ctx, c.args.MimirRuleNamespace)
+	if err != nil {
+		level.Error(c.log).Log("msg", "failed to list rules from mimir", "err", err)
+		return
+	}
+
+	c.currentState = rulesByNamespace[c.args.MimirRuleNamespace]
+}
+
+// This type must be hashable, so it is kept simple. The indexer will maintain a
+// cache of current state, so this is only used for logging.
+type Event struct {
+	Type EventType
+
+	NewRules string
+	OldRules string
+
+	NewNamespace string
+	OldNamespace string
+}
+
+type EventType string
+
+const (
+	EventTypeAddRule    EventType = "add-rule"
+	EventTypeUpdateRule EventType = "update-rule"
+	EventTypeDeleteRule EventType = "delete-rule"
+
+	EventTypeAddNamespace    EventType = "add-namespace"
+	EventTypeUpdateNamespace EventType = "update-namespace"
+	EventTypeDeleteNamespace EventType = "delete-namespace"
+
+	EventTypeSyncMimir EventType = "sync-mimir"
+)
