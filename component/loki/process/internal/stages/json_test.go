@@ -5,11 +5,12 @@ package stages
 // new code without being able to slowly review, examine and test them.
 
 import (
+	"errors"
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 
@@ -148,7 +149,7 @@ func TestJSONConfig_validate(t *testing.T) {
 				},
 			},
 			0,
-			errors.Wrap(errors.New("SyntaxError: Unknown char: '#'"), ErrCouldNotCompileJMES),
+			fmt.Errorf("%s: SyntaxError: Unknown char: '#'", ErrCouldNotCompileJMES),
 		},
 		"empty source": {
 			&JSONConfig{

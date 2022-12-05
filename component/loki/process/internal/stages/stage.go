@@ -5,13 +5,13 @@ package stages
 // new code without being able to slowly review, examine and test them.
 
 import (
+	"errors"
 	"os"
 	"runtime"
 	"time"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component/common/loki"
-	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"gopkg.in/yaml.v2"
@@ -215,7 +215,7 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 	// 		return nil, err
 	// 	}
 	default:
-		return nil, errors.Errorf("Unknown stage type")
+		return nil, errors.New("Unknown stage type")
 	}
 	return s, nil
 }

@@ -5,13 +5,13 @@ package stages
 // new code without being able to slowly review, examine and test them.
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"time"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/pkg/errors"
 	"github.com/prometheus/common/model"
 )
 

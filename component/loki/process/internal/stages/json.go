@@ -5,6 +5,7 @@ package stages
 // new code without being able to slowly review, examine and test them.
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/jmespath/go-jmespath"
 	json "github.com/json-iterator/go"
-	"github.com/pkg/errors"
 )
 
 // Config Errors
@@ -56,7 +56,7 @@ func validateJSONConfig(c *JSONConfig) (map[string]*jmespath.JMESPath, error) {
 		}
 		expressions[n], err = jmespath.Compile(jmes)
 		if err != nil {
-			return nil, errors.Wrap(err, ErrCouldNotCompileJMES)
+			return nil, fmt.Errorf("%s: %w", ErrCouldNotCompileJMES, err)
 		}
 	}
 	return expressions, nil

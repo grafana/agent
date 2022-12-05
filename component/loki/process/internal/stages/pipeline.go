@@ -12,7 +12,6 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component/common/loki"
-	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/time/rate"
 )
@@ -66,7 +65,7 @@ func NewPipeline(logger log.Logger, stages []StageConfig, jobName *string, regis
 	for _, stage := range stages {
 		newStage, err := New(logger, jobName, stage, registerer)
 		if err != nil {
-			return nil, errors.Wrapf(err, "invalid stage config")
+			return nil, fmt.Errorf("invalid stage config %w", err)
 		}
 		st = append(st, newStage)
 	}
