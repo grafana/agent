@@ -71,7 +71,7 @@ blocks.
 
 ### json block
 
-The `json` inner block configures a [JSON Processing stage][] that parses incoming
+The `json` inner block configures a JSON processing stage that parses incoming
 log lines or previously extracted values as JSON and uses
 [JMESPath expressions](https://jmespath.org/tutorial.html) to extract new
 values from them.
@@ -82,18 +82,72 @@ Name             | Type          | Description | Default | Required
 `source`         | `string`      | Source of the data to parse as JSON. | `""` | no
 `drop_malformed` | `bool`        | Drop lines whose input cannot be parsed as valid JSON.| `false` | no
 
-[JSON Processing stage]: #json-stage
+When configuring a JSON stage, the `source` field defines the source of data to
+parse as JSON. By default, this is the log line itself, but it can also be a
+previously extracted value.
+
+The `expressions` field is the set of key-value pairs of MESPath expressions to
+run. The map key defines the name with which the data is extracted as, while
+the map value is the expression used to populate the value.
+
+Here's a given log line and two JSON stages to run.
+
+```river
+{"log":"log message\n","extra":"{\"user\":\"agent\"}"}
+
+loki.process "username" {
+	stage {
+		json {
+			expressions = {output = log, extra = ""}
+		}
+	}
+
+	stage {
+		json {
+			source      = "extra"
+			expressions = {username = "user"}
+		}
+	}
+}
+```
+
+In this example, the first stage uses the log line as the source and populates
+these values in the shared map. An empty expression means using the same value
+as the key (so `extra="extra"`).
+```
+output: log message\n
+extra: {"user": "agent"}
+```
+
+The second stage uses the extracted value in `extra` as the input and extracts
+the following key-value pair to the set of extracted data.
+```
+username: agent
+```
 
 ### labels block
 
-The `labels` inner block configures a [Labels processing stage][] that can read data
-from the extracted values map and set new labels on incoming log entries.
+The `labels` inner block configures a Labels processing stage that can read
+data from the extracted values map and set new labels on incoming log entries.
 
 Name                  | Type          | Description                               | Default        | Required
 --------------------- | --------------| ----------------------------------------- | -------------- | --------
 `labels`              | `map(string)` | Configures a `labels` processing stage.   | `{}`           | no
 
-[Labels processing stage]: #labels-stage
+In a Labels stage, the map's keys define the label to set and the values are
+how to look them up.  If the value is empty, it is inferred to be the same as
+the key.
+
+```river
+stage {
+	labels {
+		values = {
+			env  = "",         // Sets up an 'env' label, based on the 'env' extracted value.
+			user = "username", // Sets up a 'user' label, based on the 'username' extracted value.
+		}
+	}
+}
+```
 
 ## Exported fields
 
@@ -137,65 +191,4 @@ loki.process "local" {
 ```
 
 ## JSON stage
-When configuring a JSON stage, the `source` field defines the source of data to
-parse as JSON. By default, this is the log line itself, but it can also be a
-previously extracted value.
 
-The `expressions` field is the set of key-value pairs of MESPath expressions to
-run. The map key defines the name with which the data is extracted as, while
-the map value is the expression used to populate the value.
-
-<!-- TODO(@tpaschalis) Should we move this example here to a different tutorial?
-I don't feel the fields are enough for someone to understand what the processing
-stage is doing -->
-
-Here's a given log line and two JSON stages to run.
-
-```river
-{"log":"log message\n","extra":"{\"user\":\"agent\"}"}
-
-loki.process "username" {
-	stage {
-		json {
-			expressions = {output = log, extra = ""}
-		}
-	}
-
-	stage {
-		json {
-			source      = "extra"
-			expressions = {username = "user"}
-		}
-	}
-}
-```
-
-In this example, the first stage uses the log line as the source and populates
-these values in the shared map. An empty expression means using the same value
-as the key (so `extra="extra"`).
-```
-output: log message\n
-extra: {"user": "agent"}
-```
-
-The second stage uses the extracted value in `extra` as the input and extracts
-the following key-value pair to the set of extracted data.
-```
-username: agent
-```
-
-## Labels stage
-In a Labels stage, the map's keys define the label to set and the values are
-how to look them up.  If the value is empty, it is inferred to be the same as
-the key.
-
-```river
-stage {
-	labels {
-		values = {
-			env  = "",         // Sets up an 'env' label, based on the 'env' extracted value.
-			user = "username", // Sets up a 'user' label, based on the 'username' extracted value.
-		}
-	}
-}
-```
