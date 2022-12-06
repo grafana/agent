@@ -73,14 +73,15 @@ func (rc *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 // EndpointOptions describes an individual location for where metrics in the WAL
 // should be delivered to using the remote_write protocol.
 type EndpointOptions struct {
-	Name             string                  `river:"name,attr,optional"`
-	URL              string                  `river:"url,attr"`
-	RemoteTimeout    time.Duration           `river:"remote_timeout,attr,optional"`
-	Headers          map[string]string       `river:"headers,attr,optional"`
-	SendExemplars    bool                    `river:"send_exemplars,attr,optional"`
-	HTTPClientConfig *types.HTTPClientConfig `river:"http_client_config,block,optional"`
-	QueueOptions     *QueueOptions           `river:"queue_config,block,optional"`
-	MetadataOptions  *MetadataOptions        `river:"metadata_config,block,optional"`
+	Name                 string                  `river:"name,attr,optional"`
+	URL                  string                  `river:"url,attr"`
+	RemoteTimeout        time.Duration           `river:"remote_timeout,attr,optional"`
+	Headers              map[string]string       `river:"headers,attr,optional"`
+	SendExemplars        bool                    `river:"send_exemplars,attr,optional"`
+	SendNativeHistograms bool                    `river:"send_native_histograms,attr,optional"`
+	HTTPClientConfig     *types.HTTPClientConfig `river:"http_client_config,block,optional"`
+	QueueOptions         *QueueOptions           `river:"queue_config,block,optional"`
+	MetadataOptions      *MetadataOptions        `river:"metadata_config,block,optional"`
 }
 
 // UnmarshalRiver implements river.Unmarshaler.
@@ -197,20 +198,13 @@ func convertConfigs(cfg Arguments) (*config.Config, error) {
 		}
 
 		rwConfigs = append(rwConfigs, &config.RemoteWriteConfig{
-			URL:                 &common.URL{URL: parsedURL},
-			RemoteTimeout:       model.Duration(rw.RemoteTimeout),
-			Headers:             rw.Headers,
-			WriteRelabelConfigs: nil, // WriteRelabelConfigs are currently not supported
-			Name:                rw.Name,
-			SendExemplars:       rw.SendExemplars,
-
-			// SendNativeHistograms is always set to true. Since scraping native
-			// histograms happens transparently from supported targets, native
-			// histograms should always be best-effort remote_written. Otherwise, if
-			// native histograms were controllable, then users might be surprised
-			// when some metrics from targets were never sent to the remote_write
-			// endpoint.
-			SendNativeHistograms: true,
+			URL:                  &common.URL{URL: parsedURL},
+			RemoteTimeout:        model.Duration(rw.RemoteTimeout),
+			Headers:              rw.Headers,
+			WriteRelabelConfigs:  nil, // WriteRelabelConfigs are currently not supported
+			Name:                 rw.Name,
+			SendExemplars:        rw.SendExemplars,
+			SendNativeHistograms: rw.SendNativeHistograms,
 
 			HTTPClientConfig: *rw.HTTPClientConfig.Convert(),
 			QueueConfig:      rw.QueueOptions.toPrometheusType(),

@@ -60,8 +60,8 @@ Main (unreleased)
 
 - Native histograms are now supported in the static Grafana Agent and in
   `prometheus.*` Flow components. Native histograms will be automatically
-  collected from supported targets and forwarded to compatible remote_write
-  endpoints.
+  collected from supported targets. remote_write must be configured to forward
+  native histograms from the WAL to the specified endpoints.
 
 ### Bugfixes
 

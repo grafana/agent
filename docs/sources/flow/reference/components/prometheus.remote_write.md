@@ -84,6 +84,7 @@ Name | Type | Description | Default | Required
 `remote_timeout` | `duration` | Timeout for requests made to the URL. | `"30s"` | no
 `headers` | `map(string)` | Extra headers to deliver with the request. | | no
 `send_exemplars` | `bool` | Whether exemplars should be sent. | `true` | no
+`send_native_histograms` | `bool` | Whether native histograms should be sent. | `false` | no
 
 When multiple `endpoint` blocks are provided, metrics are concurrently sent to all
 configured locations. Each endpoint has a _queue_ which is used to read metrics
@@ -93,6 +94,11 @@ to customize the behavior of the queue.
 Endpoints can be named for easier identification in debug metrics using the
 `name` argument. If the `name` argument isn't provided, a name is generated
 based on a hash of the endpoint settings.
+
+When `send_native_histograms` is `true`, native Prometheus histogram samples
+sent to `prometheus.remote_write` are forwarded to the configured endpoint. If
+the endpoint doesn't support receiving native histogram samples, pushing
+metrics fails.
 
 ### http_client_config block
 
