@@ -38,6 +38,8 @@ Main (unreleased)
 
 ### Enhancements
 
+- Integrations: Always use direct connection in mongodb_exporter integration. (@v-zhuravlev)
+
 - Update OpenTelemetry Collector dependency to v0.63.1. (@tpaschalis)
 
 - riverfmt: Permit empty blocks with both curly braces on the same line.
