@@ -9,6 +9,7 @@ import (
 	"github.com/PuerkitoBio/rehttp"
 	"github.com/go-kit/log"
 	"github.com/prometheus-community/stackdriver_exporter/collectors"
+	"github.com/prometheus-community/stackdriver_exporter/utils"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/monitoring/v3"
 	"google.golang.org/api/option"
@@ -24,15 +25,27 @@ func init() {
 }
 
 type Config struct {
-	ProjectID      string        `yaml:"project_id"`
-	ClientTimeout  time.Duration `yaml:"client_timeout"`
-	MetricPrefixes []string      `yaml:"metrics_prefixes"`
+	ProjectID             string        `yaml:"project_id"`
+	MetricPrefixes        []string      `yaml:"metrics_prefixes"`
+	ExtraFilters          []string      `yaml:"extra_filters"`
+	APIKey                string        `yaml:"api_key"`
+	ClientTimeout         time.Duration `yaml:"client_timeout"`
+	RequestInterval       time.Duration `yaml:"request_interval"`
+	RequestOffset         time.Duration `yaml:"request_offset"`
+	IngestDelay           bool          `yaml:"ingest_delay"`
+	FillMissingLabels     bool          `yaml:"fill_missing_labels"`
+	DropDelegatedProjects bool          `yaml:"drop_delegated_projects"`
+	AggregateDeltas       bool          `yaml:"aggregate_deltas"`
 }
 
 var DefaultConfig = Config{
-	ProjectID:      "1",
-	ClientTimeout:  15 * time.Second,
-	MetricPrefixes: []string{},
+	ClientTimeout:         15 * time.Second,
+	RequestInterval:       5 * time.Minute,
+	RequestOffset:         0,
+	IngestDelay:           false,
+	FillMissingLabels:     true,
+	DropDelegatedProjects: false,
+	AggregateDeltas:       false,
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
@@ -47,31 +60,28 @@ func (c *Config) Name() string {
 	return "gcp_metrics_exporter"
 }
 
-func (c *Config) InstanceKey(agentKey string) (string, error) {
-	//TODO(daniele) find something
+func (c *Config) InstanceKey(_ string) (string, error) {
 	return c.Name(), nil
 }
 
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
-	svc, err := createMonitoringService(context.Background(), c.ClientTimeout)
+	svc, err := createMonitoringService(context.Background(), c.APIKey, c.ClientTimeout)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO(daniele) fill counterStore and distributionStore
 	monitoringCollector, err := collectors.NewMonitoringCollector(
 		c.ProjectID,
 		svc,
 		collectors.MonitoringCollectorOptions{
-			// TODO(daniele) fill options - using the default flags from stackdriver CLI
 			MetricTypePrefixes:    c.MetricPrefixes,
-			ExtraFilters:          nil,
-			RequestInterval:       5 * time.Minute,
-			RequestOffset:         0,
-			IngestDelay:           false,
-			FillMissingLabels:     true,
-			DropDelegatedProjects: false,
-			AggregateDeltas:       false,
+			ExtraFilters:          parseMetricExtraFilters(c.ExtraFilters),
+			RequestInterval:       c.RequestInterval,
+			RequestOffset:         c.RequestOffset,
+			IngestDelay:           c.IngestDelay,
+			FillMissingLabels:     c.FillMissingLabels,
+			DropDelegatedProjects: c.DropDelegatedProjects,
+			AggregateDeltas:       c.AggregateDeltas,
 		},
 		l,
 		collectors.NewInMemoryDeltaCounterStore(l, 30*time.Minute),
@@ -86,7 +96,7 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 	), nil
 }
 
-func createMonitoringService(ctx context.Context, httpTimeout time.Duration) (*monitoring.Service, error) {
+func createMonitoringService(ctx context.Context, apiKey string, httpTimeout time.Duration) (*monitoring.Service, error) {
 	googleClient, err := google.DefaultClient(ctx, monitoring.MonitoringReadScope)
 	if err != nil {
 		return nil, fmt.Errorf("error creating Google client: %v", err)
@@ -102,10 +112,28 @@ func createMonitoringService(ctx context.Context, httpTimeout time.Duration) (*m
 		rehttp.ExpJitterDelay(time.Second, 5*time.Second),
 	)
 
-	monitoringService, err := monitoring.NewService(ctx, option.WithHTTPClient(googleClient))
+	monitoringService, err := monitoring.NewService(ctx,
+		option.WithHTTPClient(googleClient),
+		option.WithAPIKey(apiKey),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("error creating Google Stackdriver Monitoring service: %v", err)
 	}
 
 	return monitoringService, nil
+}
+
+func parseMetricExtraFilters(filters []string) []collectors.MetricFilter {
+	var extraFilters []collectors.MetricFilter
+	for _, ef := range filters {
+		efPrefix, efModifier := utils.GetExtraFilterModifiers(ef, ":")
+		if efPrefix != "" {
+			extraFilter := collectors.MetricFilter{
+				Prefix:   efPrefix,
+				Modifier: efModifier,
+			}
+			extraFilters = append(extraFilters, extraFilter)
+		}
+	}
+	return extraFilters
 }
