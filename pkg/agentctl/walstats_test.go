@@ -12,7 +12,7 @@ import (
 	"github.com/prometheus/prometheus/model/timestamp"
 	"github.com/prometheus/prometheus/tsdb/chunks"
 	"github.com/prometheus/prometheus/tsdb/record"
-	"github.com/prometheus/prometheus/tsdb/wal"
+	"github.com/prometheus/prometheus/tsdb/wlog"
 	"github.com/stretchr/testify/require"
 )
 
@@ -56,7 +56,7 @@ func setupTestWAL(t *testing.T) string {
 	})
 
 	reg := prometheus.NewRegistry()
-	w, err := wal.NewSize(log.NewNopLogger(), reg, filepath.Join(walDir, "wal"), wal.DefaultSegmentSize, true)
+	w, err := wlog.NewSize(log.NewNopLogger(), reg, filepath.Join(walDir, "wal"), wlog.DefaultSegmentSize, true)
 	require.NoError(t, err)
 	defer w.Close()
 
@@ -83,7 +83,7 @@ func setupTestWAL(t *testing.T) string {
 		Labels: labels.FromStrings("__name__", "metric_1", "job", "test-job", "instance", "test-instance", "initial", "yes"),
 	})
 
-	nextSegment := func(w *wal.WAL) error {
+	nextSegment := func(w *wlog.WL) error {
 		_, err := w.NextSegment()
 		return err
 	}
@@ -96,7 +96,7 @@ func setupTestWAL(t *testing.T) string {
 	require.NoError(t, nextSegment(w))
 
 	// Checkpoint the previous segment.
-	_, err = wal.Checkpoint(l, w, 0, 1, func(_ chunks.HeadSeriesRef) bool { return true }, 0)
+	_, err = wlog.Checkpoint(l, w, 0, 1, func(_ chunks.HeadSeriesRef) bool { return true }, 0)
 	require.NoError(t, err)
 	require.NoError(t, nextSegment(w))
 

@@ -56,6 +56,15 @@ Main (unreleased)
 
 - Flow: Add support for exemplars in Prometheus component pipelines. (@rfratto)
 
+- Update Prometheus dependency to v2.40.5. (@rfratto)
+
+- Update Promtail dependency to k127. (@rfratto)
+
+- Native histograms are now supported in the static Grafana Agent and in
+  `prometheus.*` Flow components. Native histograms will be automatically
+  collected from supported targets. remote_write must be configured to forward
+  native histograms from the WAL to the specified endpoints.
+
 ### Bugfixes
 
 - Fix issue where whitespace was being sent as part of password when using a

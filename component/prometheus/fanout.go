@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 
 	"github.com/prometheus/prometheus/model/exemplar"
+	"github.com/prometheus/prometheus/model/histogram"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/metadata"
 	"github.com/prometheus/prometheus/scrape"
@@ -77,14 +78,14 @@ func (f *Fanout) Appender(ctx context.Context) storage.Appender {
 	return app
 }
 
-var _ storage.Appender = (*appender)(nil)
-
 type appender struct {
 	children     []storage.Appender
 	componentID  string
 	writeLatency prometheus.Histogram
 	start        time.Time
 }
+
+var _ storage.Appender = (*appender)(nil)
 
 // Append satisfies the Appender interface.
 func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, error) {
@@ -167,6 +168,23 @@ func (a *appender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m meta
 	var multiErr error
 	for _, x := range a.children {
 		_, err := x.UpdateMetadata(ref, l, m)
+		if err != nil {
+			multiErr = multierror.Append(multiErr, err)
+		}
+	}
+	return ref, multiErr
+}
+
+func (a *appender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram) (storage.SeriesRef, error) {
+	if a.start.IsZero() {
+		a.start = time.Now()
+	}
+	if ref == 0 {
+		ref = storage.SeriesRef(GlobalRefMapping.GetOrAddGlobalRefID(l))
+	}
+	var multiErr error
+	for _, x := range a.children {
+		_, err := x.AppendHistogram(ref, l, t, h)
 		if err != nil {
 			multiErr = multierror.Append(multiErr, err)
 		}

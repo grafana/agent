@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/prometheus/prometheus/model/exemplar"
+	"github.com/prometheus/prometheus/model/histogram"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/metadata"
 	"github.com/prometheus/prometheus/storage"
@@ -13,9 +14,10 @@ import (
 // getting data. Interceptor should not be modified once created. All callback
 // fields are optional.
 type Interceptor struct {
-	onAppend         func(ref storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error)
-	onAppendExemplar func(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar, next storage.Appender) (storage.SeriesRef, error)
-	onUpdateMetadata func(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error)
+	onAppend          func(ref storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error)
+	onAppendExemplar  func(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar, next storage.Appender) (storage.SeriesRef, error)
+	onUpdateMetadata  func(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error)
+	onAppendHistogram func(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, next storage.Appender) (storage.SeriesRef, error)
 
 	// next is the next appendable to pass in the chain.
 	next storage.Appendable
@@ -57,6 +59,14 @@ func WithExemplarHook(f func(ref storage.SeriesRef, l labels.Labels, e exemplar.
 func WithMetadataHook(f func(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error)) InterceptorOption {
 	return func(i *Interceptor) {
 		i.onUpdateMetadata = f
+	}
+}
+
+// WithAppendHistogram returns an InterceptorOption which hooks into calls to
+// AppendHistogram.
+func WithAppendHistogram(f func(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, next storage.Appender) (storage.SeriesRef, error)) InterceptorOption {
+	return func(i *Interceptor) {
+		i.onAppendHistogram = f
 	}
 }
 
@@ -138,4 +148,21 @@ func (a *interceptappender) UpdateMetadata(
 		return a.interceptor.onUpdateMetadata(ref, l, m, a.child)
 	}
 	return a.child.UpdateMetadata(ref, l, m)
+}
+
+func (a *interceptappender) AppendHistogram(
+	ref storage.SeriesRef,
+	l labels.Labels,
+	t int64,
+	h *histogram.Histogram,
+) (storage.SeriesRef, error) {
+
+	if ref == 0 {
+		ref = storage.SeriesRef(GlobalRefMapping.GetOrAddGlobalRefID(l))
+	}
+
+	if a.interceptor.onAppendHistogram != nil {
+		return a.interceptor.onAppendHistogram(ref, l, t, h, a.child)
+	}
+	return a.child.AppendHistogram(ref, l, t, h)
 }
