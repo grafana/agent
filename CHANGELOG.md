@@ -10,6 +10,15 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+> **DEPRECATIONS**: This release has deprecations. Please read entries
+> carefully and consult the [upgrade guide][] for specific instructions.
+
+### Deprecations
+
+- The `EXPERIMENTAL_ENABLE_FLOW` environment variable is deprecated in favor of
+  `AGENT_MODE=flow`. Support for `EXPERIMENTAL_ENABLE_FLOW` will be removed in
+  v0.32. (@rfratto)
+
 ### Features
 
 - `grafana-agent-operator` supports oauth2 as an authentication method for
@@ -77,6 +86,10 @@ Main (unreleased)
 
 - Fix issue where on checking whether to restart integrations the Integration Manager was comparing
   configs with secret values scrubbed, preventing reloads if only secrets were updated. (@spartan0x117)
+
+### Other changes
+
+- Grafana Agent Flow has graduated from experimental to beta.
 
 v0.29.0 (2022-11-08)
 --------------------
