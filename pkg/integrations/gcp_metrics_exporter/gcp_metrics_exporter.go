@@ -28,7 +28,6 @@ type Config struct {
 	ProjectID             string        `yaml:"project_id"`
 	MetricPrefixes        []string      `yaml:"metrics_prefixes"`
 	ExtraFilters          []string      `yaml:"extra_filters"`
-	APIKey                string        `yaml:"api_key"`
 	ClientTimeout         time.Duration `yaml:"client_timeout"`
 	RequestInterval       time.Duration `yaml:"request_interval"`
 	RequestOffset         time.Duration `yaml:"request_offset"`
@@ -65,7 +64,7 @@ func (c *Config) InstanceKey(_ string) (string, error) {
 }
 
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
-	svc, err := createMonitoringService(context.Background(), c.APIKey, c.ClientTimeout)
+	svc, err := createMonitoringService(context.Background(), c.ClientTimeout)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +95,7 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 	), nil
 }
 
-func createMonitoringService(ctx context.Context, apiKey string, httpTimeout time.Duration) (*monitoring.Service, error) {
+func createMonitoringService(ctx context.Context, httpTimeout time.Duration) (*monitoring.Service, error) {
 	googleClient, err := google.DefaultClient(ctx, monitoring.MonitoringReadScope)
 	if err != nil {
 		return nil, fmt.Errorf("error creating Google client: %v", err)
@@ -114,7 +113,6 @@ func createMonitoringService(ctx context.Context, apiKey string, httpTimeout tim
 
 	monitoringService, err := monitoring.NewService(ctx,
 		option.WithHTTPClient(googleClient),
-		option.WithAPIKey(apiKey),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("error creating Google Stackdriver Monitoring service: %v", err)
