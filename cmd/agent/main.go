@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"os"
 
@@ -42,7 +41,6 @@ func main() {
 
 	runMode, err := getRunMode()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
 		log.Fatalln(err)
 	}
 
