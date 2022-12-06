@@ -17,10 +17,10 @@ services:
     volumes:
       - ./flow_configs:/etc/agent-config
     environment:
-      EXPERIMENTAL_ENABLE_FLOW: "true"
+      AGENT_MODE: "flow"
     entrypoint:
-      - /bin/agent 
-      - run 
+      - /bin/agent
+      - run
       - --server.http.listen-addr=0.0.0.0:12345
       - /etc/agent-config/$CONFIG_FILE
   grafana:

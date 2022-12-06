@@ -14,6 +14,17 @@ releases and how to migrate to newer versions.
 
 These changes will come in a future version.
 
+### Deprecation: `EXPERIMENTAL_ENABLE_FLOW` environment variable changed
+
+As part of graduating Grafana Agent Flow to beta, the
+`EXPERIMENTAL_ENABLE_FLOW` environment variable is replaced by setting
+`AGENT_MODE` to `flow`.
+
+Setting `EXPERIMENTAL_ENABLE_FLOW` to `1` or `true` is now deprecated and
+support for it will be removed for the v0.32 release.
+
+## v0.29.0
+
 ### Breaking change: JSON-encoded traces from OTLP versions below 0.16.0 are no longer supported
 
 Grafana Agent's OpenTelemetry Collector dependency has been updated from

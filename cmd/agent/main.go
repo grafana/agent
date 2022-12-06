@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
 
@@ -39,9 +40,15 @@ func main() {
 		return
 	}
 
+	runMode, err := getRunMode()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		log.Fatalln(err)
+	}
+
 	// If flow is enabled go into that working mode
 	// TODO allow flow to run as a windows service
-	if isFlowEnabled() {
+	if runMode == runModeFlow {
 		runFlow()
 		return
 	}
