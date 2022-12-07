@@ -73,6 +73,17 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	return c, nil
 }
 
+func getDefault() Arguments {
+	return Arguments{UpdatePeriod: 10 * time.Second}
+}
+
+// UnmarshalRiver implements river.Unmarshaler.
+func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+	*a = getDefault()
+	type arguments Arguments
+	return f((*arguments)(a))
+}
+
 func (c *Component) Update(args component.Arguments) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
@@ -83,49 +94,37 @@ func (c *Component) Update(args component.Arguments) error {
 
 func (c *Component) Run(ctx context.Context) error {
 	watchDog := time.NewTicker(c.args.UpdatePeriod)
-	reconcileLoop := time.NewTicker(c.args.UpdatePeriod * 2)
 	timerDuration := c.args.UpdatePeriod
-	keepGoing := true
-
+	update := func() {
+		c.mut.Lock()
+		defer c.mut.Unlock()
+		c.reconcileWatchesWithWatcher()
+		c.checkOnStateChanged()
+		// Check to see if our ticker timer needs to be reset.
+		if timerDuration != c.args.UpdatePeriod {
+			watchDog.Reset(c.args.UpdatePeriod)
+			timerDuration = c.args.UpdatePeriod
+		}
+	}
+	update()
 	defer watchDog.Stop()
-	defer reconcileLoop.Stop()
-	for keepGoing {
+	for true {
 		select {
 		case fe := <-c.watcher.Events:
 			c.fsnotifyTrigger(fe)
 		case err := <-c.watcher.Errors:
 			level.Error(c.opts.Logger).Log("msg", "error with fsnotify", "err", err)
 		case <-watchDog.C:
-			c.checkOnStateChanged()
-			c.mut.Lock()
-			// Check to see if our ticker timer needs to be reset.
-			if timerDuration != c.args.UpdatePeriod {
-				watchDog.Reset(c.args.UpdatePeriod)
-				timerDuration = c.args.UpdatePeriod
-			}
-			c.mut.Unlock()
-		case <-reconcileLoop.C:
-			// There is a window between fsnotify watches being added and files being added.
-			// This means every so often the system will manually true up the files and dir.
-			func() {
-				c.mut.Lock()
-				defer c.mut.Unlock()
-				c.reconcileWatchesWithWatcher()
-			}()
-			// Check to see if our ticker timer needs to be reset.
-			if timerDuration != c.args.UpdatePeriod {
-				reconcileLoop.Reset(c.args.UpdatePeriod * 2)
-				timerDuration = c.args.UpdatePeriod
-			}
+			// This triggers a check for any new paths, along with pushing new targets.
+			update()
 		case <-ctx.Done():
 			c.mut.Lock()
 			err := c.watcher.Close()
 			if err != nil {
 				level.Error(c.opts.Logger).Log("msg", "error closing watcher", "err", err)
 			}
-			keepGoing = false
 			c.mut.Unlock()
-			break
+			return nil
 		}
 	}
 	return nil
@@ -134,8 +133,6 @@ func (c *Component) Run(ctx context.Context) error {
 // reconcileWatchesWithWatcher checks for any new directories that have been added along with verifying
 // that the args and watchers are in sync.
 func (c *Component) reconcileWatchesWithWatcher() {
-	c.watchesUpdated = true
-
 	expandedPaths, err := getPaths(c.args.Paths)
 	if err != nil {
 		level.Error(c.opts.Logger).Log("msg", "error expanding paths", "err", err)
@@ -148,7 +145,6 @@ func (c *Component) reconcileWatchesWithWatcher() {
 	}
 	// Ensure all the paths are added.
 	for _, n := range expandedPaths {
-
 		fi, fileErr := os.Stat(n)
 		if fileErr != nil {
 			level.Error(c.opts.Logger).Log("msg", "error getting os stats", "err", err)
@@ -196,6 +192,9 @@ func (c *Component) reconcileWatchesWithWatcher() {
 			pathsToRemove = append(pathsToRemove, p)
 		}
 	}
+	if len(pathsToRemove) > 0 {
+		c.watchesUpdated = true
+	}
 	for _, p := range pathsToRemove {
 		cleaned := filepath.Dir(p)
 		_ = c.watcher.Remove(cleaned)
@@ -205,9 +204,6 @@ func (c *Component) reconcileWatchesWithWatcher() {
 
 // checkOnStateChanged will see if onStateChanged needs to be called.
 func (c *Component) checkOnStateChanged() {
-	c.mut.Lock()
-	defer c.mut.Unlock()
-
 	if !c.watchesUpdated {
 		return
 	}
@@ -225,7 +221,6 @@ func (c *Component) fsnotifyTrigger(fe fsnotify.Event) {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 
-	c.watchesUpdated = true
 	if fe.Has(fsnotify.Create) {
 		fi, _ := os.Stat(fe.Name)
 		if fi.IsDir() {
@@ -240,7 +235,7 @@ func (c *Component) fsnotifyTrigger(fe fsnotify.Event) {
 					level.Error(c.opts.Logger).Log("msg", "error matching pattern", "err", err)
 				}
 				if match {
-					c.watchedFiles[fe.Name] = struct{}{}
+					c.addToWatchedFiles(p)
 					break
 				}
 			}
@@ -248,7 +243,7 @@ func (c *Component) fsnotifyTrigger(fe fsnotify.Event) {
 	} else if fe.Has(fsnotify.Remove) {
 		for k := range c.watchedFiles {
 			if k == fe.Name {
-				delete(c.watchedFiles, k)
+				c.removeFromWatched(k)
 				break
 			}
 		}
@@ -264,6 +259,13 @@ func (c *Component) addToWatchedFiles(fp string) {
 		return
 	}
 	c.watchedFiles[absFp] = struct{}{}
+	c.watchesUpdated = true
+}
+
+func (c *Component) removeFromWatched(fp string) {
+	abs, _ := filepath.Abs(fp)
+	delete(c.watchedFiles, abs)
+	c.watchesUpdated = true
 }
 
 func getPaths(paths []string) ([]string, error) {
@@ -277,8 +279,6 @@ func getPaths(paths []string) ([]string, error) {
 			abs, _ := filepath.Abs(m)
 			allMatchingPaths = append(allMatchingPaths, abs)
 		}
-
 	}
-
 	return allMatchingPaths, nil
 }
