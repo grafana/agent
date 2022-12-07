@@ -8,6 +8,7 @@ import (
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/traces/contextkeys"
 	"github.com/prometheus/prometheus/model/exemplar"
+	"github.com/prometheus/prometheus/model/histogram"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/metadata"
 	"github.com/prometheus/prometheus/storage"
@@ -150,6 +151,8 @@ type mockAppender struct {
 	appendedMetrics []metric
 }
 
+var _ storage.Appender = (*mockAppender)(nil)
+
 func (a *mockAppender) GetAppended(n string) []metric {
 	var ms []metric
 	for _, m := range a.appendedMetrics {
@@ -174,5 +177,9 @@ func (a *mockAppender) AppendExemplar(_ storage.SeriesRef, _ labels.Labels, _ ex
 }
 
 func (a *mockAppender) UpdateMetadata(_ storage.SeriesRef, _ labels.Labels, _ metadata.Metadata) (storage.SeriesRef, error) {
+	return 0, nil
+}
+
+func (a *mockAppender) AppendHistogram(_ storage.SeriesRef, _ labels.Labels, _ int64, _ *histogram.Histogram) (storage.SeriesRef, error) {
 	return 0, nil
 }

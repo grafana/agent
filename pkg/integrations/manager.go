@@ -244,7 +244,7 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 		// is unchanged, we have nothing to do. Otherwise, we're going to recreate
 		// it with the new settings, so we'll need to stop it.
 		if p, exist := m.integrations[key]; exist {
-			if util.CompareYAML(p.cfg, ic) {
+			if util.CompareYAMLWithHook(p.cfg, ic, noScrubbedSecretsHook) {
 				continue
 			}
 			p.stop()
@@ -358,6 +358,17 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 		return fmt.Errorf("not all integrations were correctly updated")
 	}
 	return nil
+}
+
+func noScrubbedSecretsHook(in interface{}) (ok bool, out interface{}, err error) {
+	switch v := in.(type) {
+	case config_util.Secret:
+		return true, string(v), nil
+	case *config_util.URL:
+		return true, v.String(), nil
+	default:
+		return false, nil, nil
+	}
 }
 
 // integrationProcess is a running integration.

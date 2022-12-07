@@ -22,6 +22,7 @@ import (
 
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/exemplar"
+	"github.com/prometheus/prometheus/model/histogram"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/metadata"
 	"github.com/prometheus/prometheus/model/value"
@@ -213,6 +214,11 @@ func (t *transaction) Rollback() error {
 }
 
 func (t *transaction) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata) (storage.SeriesRef, error) {
+	//TODO: implement this func
+	return 0, nil
+}
+
+func (t *transaction) AppendHistogram(ref storage.SeriesRef, l labels.Labels, ts int64, h *histogram.Histogram) (storage.SeriesRef, error) {
 	//TODO: implement this func
 	return 0, nil
 }

@@ -10,6 +10,15 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+> **DEPRECATIONS**: This release has deprecations. Please read entries
+> carefully and consult the [upgrade guide][] for specific instructions.
+
+### Deprecations
+
+- The `EXPERIMENTAL_ENABLE_FLOW` environment variable is deprecated in favor of
+  `AGENT_MODE=flow`. Support for `EXPERIMENTAL_ENABLE_FLOW` will be removed in
+  v0.32. (@rfratto)
+
 ### Features
 
 - `grafana-agent-operator` supports oauth2 as an authentication method for
@@ -33,7 +42,15 @@ Main (unreleased)
   - `loki.source.file` reads and tails files for log entries and forwards them
     to other `loki` components. (@tpaschalis)
 
+  - `loki.write` receives log entries from other `loki` components and sends
+    them over to a Loki instance. (@tpaschalis)
+
+  - `loki.relabel` receives log entries from other `loki` components and
+    rewrites their label set. (@tpaschalis)
+
 ### Enhancements
+
+- Integrations: Always use direct connection in mongodb_exporter integration. (@v-zhuravlev)
 
 - Update OpenTelemetry Collector dependency to v0.63.1. (@tpaschalis)
 
@@ -49,6 +66,17 @@ Main (unreleased)
 
 - Add support for using a [password map file](https://github.com/oliver006/redis_exporter/blob/master/contrib/sample-pwd-file.json) in `redis_exporter`. (@spartan0x117)
 
+- Flow: Add support for exemplars in Prometheus component pipelines. (@rfratto)
+
+- Update Prometheus dependency to v2.40.5. (@rfratto)
+
+- Update Promtail dependency to k127. (@rfratto)
+
+- Native histograms are now supported in the static Grafana Agent and in
+  `prometheus.*` Flow components. Native histograms will be automatically
+  collected from supported targets. remote_write must be configured to forward
+  native histograms from the WAL to the specified endpoints.
+
 ### Bugfixes
 
 - Fix issue where whitespace was being sent as part of password when using a
@@ -58,6 +86,13 @@ Main (unreleased)
   cause the graph page to fail to load. (@rfratto)
 
 - Remove duplicate `oauth2` key from `metricsinstances` CRD. (@daper)
+
+- Fix issue where on checking whether to restart integrations the Integration Manager was comparing
+  configs with secret values scrubbed, preventing reloads if only secrets were updated. (@spartan0x117)
+
+### Other changes
+
+- Grafana Agent Flow has graduated from experimental to beta.
 
 v0.29.0 (2022-11-08)
 --------------------
