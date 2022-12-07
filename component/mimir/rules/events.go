@@ -8,6 +8,7 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/go-kit/log/level"
+	mimirClient "github.com/grafana/agent/pkg/mimir/client"
 	"github.com/grafana/dskit/multierror"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/prometheus/prometheus/model/rulefmt"
@@ -102,13 +103,13 @@ func (c *Component) reconcileState(ctx context.Context) error {
 	return nil
 }
 
-func (c *Component) loadStateFromK8s() (map[string][]rulefmt.RuleGroup, error) {
+func (c *Component) loadStateFromK8s() (map[string][]mimirClient.RuleGroup, error) {
 	matchedNamespaces, err := c.namespaceLister.List(c.namespaceSelector)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list namespaces: %w", err)
 	}
 
-	desiredState := map[string][]rulefmt.RuleGroup{}
+	desiredState := map[string][]mimirClient.RuleGroup{}
 	for _, ns := range matchedNamespaces {
 		crdState, err := c.ruleLister.PrometheusRules(ns.Name).List(c.ruleSelector)
 		if err != nil {
@@ -123,25 +124,33 @@ func (c *Component) loadStateFromK8s() (map[string][]rulefmt.RuleGroup, error) {
 				return nil, fmt.Errorf("failed to convert rule group: %w", err)
 			}
 
-			desiredState[mimirNs] = groups.Groups
+			desiredState[mimirNs] = groups
 		}
 	}
 
 	return desiredState, nil
 }
 
-func convertCRDRuleGroupToRuleGroup(crd promv1.PrometheusRuleSpec) (*rulefmt.RuleGroups, error) {
+func convertCRDRuleGroupToRuleGroup(crd promv1.PrometheusRuleSpec) ([]mimirClient.RuleGroup, error) {
 	buf, err := yaml.Marshal(crd)
 	if err != nil {
-		return &rulefmt.RuleGroups{}, err
+		return nil, err
 	}
 
 	groups, errs := rulefmt.Parse(buf)
 	if len(errs) > 0 {
-		return &rulefmt.RuleGroups{}, multierror.New(errs...).Err()
+		return nil, multierror.New(errs...).Err()
 	}
 
-	return groups, nil
+	mimirGroups := make([]mimirClient.RuleGroup, len(groups.Groups))
+	for i, g := range groups.Groups {
+		mimirGroups[i] = mimirClient.RuleGroup{
+			RuleGroup: g,
+			// TODO: allow setting remote write configs?
+		}
+	}
+
+	return mimirGroups, nil
 }
 
 func (c *Component) applyChanges(ctx context.Context, namespace string, diffs []RuleGroupDiff) error {

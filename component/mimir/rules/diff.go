@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	mimirClient "github.com/grafana/agent/pkg/mimir/client"
-	"github.com/prometheus/prometheus/model/rulefmt"
 
 	"gopkg.in/yaml.v3"
 )
@@ -23,7 +22,7 @@ type RuleGroupDiff struct {
 	Desired mimirClient.RuleGroup
 }
 
-func diffRuleState(desired map[string][]rulefmt.RuleGroup, actual map[string][]mimirClient.RuleGroup) (map[string][]RuleGroupDiff, error) {
+func diffRuleState(desired map[string][]mimirClient.RuleGroup, actual map[string][]mimirClient.RuleGroup) (map[string][]RuleGroupDiff, error) {
 	seen := map[string]bool{}
 
 	diff := make(map[string][]RuleGroupDiff)
@@ -36,6 +35,11 @@ func diffRuleState(desired map[string][]rulefmt.RuleGroup, actual map[string][]m
 		if err != nil {
 			return nil, err
 		}
+
+		if len(subDiff) == 0 {
+			continue
+		}
+
 		diff[namespace] = subDiff
 	}
 
@@ -52,37 +56,32 @@ func diffRuleState(desired map[string][]rulefmt.RuleGroup, actual map[string][]m
 		if err != nil {
 			return nil, err
 		}
+
 		diff[namespace] = subDiff
 	}
 
 	return diff, nil
 }
 
-func diffRuleNamespaceState(desired []rulefmt.RuleGroup, actual []mimirClient.RuleGroup) ([]RuleGroupDiff, error) {
+func diffRuleNamespaceState(desired []mimirClient.RuleGroup, actual []mimirClient.RuleGroup) ([]RuleGroupDiff, error) {
 	var diff []RuleGroupDiff
 
 	seenGroups := map[string]bool{}
 
 desiredGroups:
 	for _, desiredRuleGroup := range desired {
-		mimirRuleGroup := mimirClient.RuleGroup{
-			RuleGroup: desiredRuleGroup,
-			// TODO: allow setting the remote write configs?
-			// RWConfigs: ,
-		}
-
 		seenGroups[desiredRuleGroup.Name] = true
 
 		for _, actualRuleGroup := range actual {
 			if desiredRuleGroup.Name == actualRuleGroup.Name {
-				if equalRuleGroups(desiredRuleGroup, actualRuleGroup.RuleGroup) {
+				if equalRuleGroups(desiredRuleGroup, actualRuleGroup) {
 					continue desiredGroups
 				}
 
 				diff = append(diff, RuleGroupDiff{
 					Kind:    RuleGroupDiffKindUpdate,
 					Actual:  actualRuleGroup,
-					Desired: mimirRuleGroup,
+					Desired: desiredRuleGroup,
 				})
 				continue desiredGroups
 			}
@@ -90,7 +89,7 @@ desiredGroups:
 
 		diff = append(diff, RuleGroupDiff{
 			Kind:    RuleGroupDiffKindAdd,
-			Desired: mimirRuleGroup,
+			Desired: desiredRuleGroup,
 		})
 	}
 
@@ -108,7 +107,7 @@ desiredGroups:
 	return diff, nil
 }
 
-func equalRuleGroups(a, b rulefmt.RuleGroup) bool {
+func equalRuleGroups(a, b mimirClient.RuleGroup) bool {
 	aBuf, err := yaml.Marshal(a)
 	if err != nil {
 		return false
