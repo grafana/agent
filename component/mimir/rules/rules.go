@@ -221,44 +221,7 @@ func (c *Component) startNamespaceInformer() {
 	namespaces := factory.Core().V1().Namespaces()
 	c.namespaceLister = namespaces.Lister()
 	c.namespaceInformer = namespaces.Informer()
-	c.namespaceInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc: func(obj interface{}) {
-			key, err := cache.MetaNamespaceKeyFunc(obj)
-			if err != nil {
-				level.Error(c.log).Log("msg", "failed to get key from object", "err", err)
-				return
-			}
-
-			c.queue.AddRateLimited(Event{
-				Type:      EventTypeAddNamespace,
-				ObjectKey: key,
-			})
-		},
-		UpdateFunc: func(oldObj, newObj interface{}) {
-			newKey, err := cache.MetaNamespaceKeyFunc(newObj)
-			if err != nil {
-				level.Error(c.log).Log("msg", "failed to get key from object", "err", err)
-				return
-			}
-
-			c.queue.AddRateLimited(Event{
-				Type:      EventTypeUpdateNamespace,
-				ObjectKey: newKey,
-			})
-		},
-		DeleteFunc: func(obj interface{}) {
-			key, err := cache.MetaNamespaceKeyFunc(obj)
-			if err != nil {
-				level.Error(c.log).Log("msg", "failed to get key from object", "err", err)
-				return
-			}
-
-			c.queue.AddRateLimited(Event{
-				Type:      EventTypeDeleteNamespace,
-				ObjectKey: key,
-			})
-		},
-	})
+	c.namespaceInformer.AddEventHandler(c)
 
 	factory.Start(c.informerStopChan)
 	factory.WaitForCacheSync(c.informerStopChan)
@@ -276,45 +239,33 @@ func (c *Component) startRuleInformer() {
 	promRules := factory.Monitoring().V1().PrometheusRules()
 	c.ruleLister = promRules.Lister()
 	c.ruleInformer = promRules.Informer()
-	c.ruleInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc: func(obj interface{}) {
-			key, err := cache.MetaNamespaceKeyFunc(obj)
-			if err != nil {
-				level.Error(c.log).Log("msg", "failed to get key from object", "err", err)
-				return
-			}
-
-			c.queue.AddRateLimited(Event{
-				Type:      EventTypeAddRule,
-				ObjectKey: key,
-			})
-		},
-		UpdateFunc: func(oldObj, newObj interface{}) {
-			newKey, err := cache.MetaNamespaceKeyFunc(newObj)
-			if err != nil {
-				level.Error(c.log).Log("msg", "failed to get key from object", "err", err)
-				return
-			}
-
-			c.queue.AddRateLimited(Event{
-				Type:      EventTypeUpdateRule,
-				ObjectKey: newKey,
-			})
-		},
-		DeleteFunc: func(obj interface{}) {
-			key, err := cache.MetaNamespaceKeyFunc(obj)
-			if err != nil {
-				level.Error(c.log).Log("msg", "failed to get key from object", "err", err)
-				return
-			}
-
-			c.queue.AddRateLimited(Event{
-				Type:      EventTypeDeleteRule,
-				ObjectKey: key,
-			})
-		},
-	})
+	c.ruleInformer.AddEventHandler(c)
 
 	factory.Start(c.informerStopChan)
 	factory.WaitForCacheSync(c.informerStopChan)
+}
+
+func (c *Component) OnAdd(obj interface{}) {
+	c.publishEvent(obj)
+}
+
+func (c *Component) OnUpdate(oldObj, newObj interface{}) {
+	c.publishEvent(newObj)
+}
+
+func (c *Component) OnDelete(obj interface{}) {
+	c.publishEvent(obj)
+}
+
+func (c *Component) publishEvent(obj interface{}) {
+	key, err := cache.MetaNamespaceKeyFunc(obj)
+	if err != nil {
+		level.Error(c.log).Log("msg", "failed to get key for object", "err", err)
+		return
+	}
+
+	c.queue.AddRateLimited(Event{
+		Type:      EventTypeResourceChanged,
+		ObjectKey: key,
+	})
 }

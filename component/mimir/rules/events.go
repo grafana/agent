@@ -24,15 +24,8 @@ type Event struct {
 type EventType string
 
 const (
-	EventTypeAddRule    EventType = "add-rule"
-	EventTypeUpdateRule EventType = "update-rule"
-	EventTypeDeleteRule EventType = "delete-rule"
-
-	EventTypeAddNamespace    EventType = "add-namespace"
-	EventTypeUpdateNamespace EventType = "update-namespace"
-	EventTypeDeleteNamespace EventType = "delete-namespace"
-
-	EventTypeSyncMimir EventType = "sync-mimir"
+	EventTypeResourceChanged EventType = "resource-changed"
+	EventTypeSyncMimir       EventType = "sync-mimir"
 )
 
 func (c *Component) eventLoop(ctx context.Context) {
@@ -58,8 +51,7 @@ func (c *Component) eventLoop(ctx context.Context) {
 }
 func (c *Component) processEvent(ctx context.Context, e Event) error {
 	switch e.Type {
-	case EventTypeAddRule, EventTypeUpdateRule, EventTypeDeleteRule,
-		EventTypeAddNamespace, EventTypeUpdateNamespace, EventTypeDeleteNamespace:
+	case EventTypeResourceChanged:
 		level.Info(c.log).Log("msg", "processing event", "type", e.Type, "key", e.ObjectKey)
 	case EventTypeSyncMimir:
 		level.Debug(c.log).Log("msg", "syncing current state from ruler")
