@@ -158,7 +158,6 @@ func TestAddingRemovingFileInSubDir(t *testing.T) {
 	require.True(t, contains(foundFiles, "t1.txt"))
 	require.True(t, contains(foundFiles, "t2.txt"))
 	mut.Unlock()
-
 }
 
 func TestExclude(t *testing.T) {
