@@ -37,6 +37,12 @@ type Config struct {
 	AuthToken       string `yaml:"auth_token"`
 }
 
+type Interface interface {
+	CreateRuleGroup(ctx context.Context, namespace string, rg RuleGroup) error
+	DeleteRuleGroup(ctx context.Context, namespace, groupName string) error
+	ListRules(ctx context.Context, namespace string) (map[string][]RuleGroup, error)
+}
+
 // MimirClient is a client to the Mimir API.
 type MimirClient struct {
 	user      string

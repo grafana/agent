@@ -40,7 +40,7 @@ type Component struct {
 	opts component.Options
 	args Arguments
 
-	mimirClient  *mimirClient.MimirClient
+	mimirClient  mimirClient.Interface
 	k8sClient    kubernetes.Interface
 	promClient   promVersioned.Interface
 	ruleLister   promListers.PrometheusRuleLister
@@ -243,29 +243,4 @@ func (c *Component) startRuleInformer() {
 
 	factory.Start(c.informerStopChan)
 	factory.WaitForCacheSync(c.informerStopChan)
-}
-
-func (c *Component) OnAdd(obj interface{}) {
-	c.publishEvent(obj)
-}
-
-func (c *Component) OnUpdate(oldObj, newObj interface{}) {
-	c.publishEvent(newObj)
-}
-
-func (c *Component) OnDelete(obj interface{}) {
-	c.publishEvent(obj)
-}
-
-func (c *Component) publishEvent(obj interface{}) {
-	key, err := cache.MetaNamespaceKeyFunc(obj)
-	if err != nil {
-		level.Error(c.log).Log("msg", "failed to get key for object", "err", err)
-		return
-	}
-
-	c.queue.AddRateLimited(Event{
-		Type:      EventTypeResourceChanged,
-		ObjectKey: key,
-	})
 }
