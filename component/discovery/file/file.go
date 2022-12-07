@@ -26,7 +26,7 @@ func init() {
 	})
 }
 
-// Arguments holds values which are used to configure the discovery.loki.path
+// Arguments holds values which are used to configure the discovery.file
 // component.
 type Arguments struct {
 	Paths         []string      `river:"paths,attr"`
@@ -34,13 +34,14 @@ type Arguments struct {
 	UpdatePeriod  time.Duration `river:"update_period,attr,optional"`
 }
 
+// Exports exposes targets.
 type Exports struct {
 	Targets []discovery.Target `river:"targets,attr"`
 }
 
 var _ component.Component = (*Component)(nil)
 
-// Component implements the discovery.loki.path component.
+// Component implements the discovery.file component.
 type Component struct {
 	opts component.Options
 
@@ -51,7 +52,7 @@ type Component struct {
 	watchedFiles   map[string]struct{}
 }
 
-// New creates a new loki.source.file component.
+// New creates a new discovery.file component.
 func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{
 		opts:         o,
@@ -69,7 +70,6 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	if err := c.Update(args); err != nil {
 		return nil, err
 	}
-
 	return c, nil
 }
 
@@ -84,21 +84,26 @@ func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	return f((*arguments)(a))
 }
 
+// Update satisfies the component interface.
 func (c *Component) Update(args component.Arguments) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
+
 	c.args = args.(Arguments)
 	c.reconcileWatchesWithWatcher()
 	return nil
 }
 
+// Run satisfies the component interface.
 func (c *Component) Run(ctx context.Context) error {
 	watchDog := time.NewTicker(c.args.UpdatePeriod)
 	timerDuration := c.args.UpdatePeriod
 	update := func() {
 		c.mut.Lock()
 		defer c.mut.Unlock()
+		// See if there is anything new we need to check.
 		c.reconcileWatchesWithWatcher()
+		// Update the exports with the targets. Should only be called if changes occured.
 		c.checkOnStateChanged()
 		// Check to see if our ticker timer needs to be reset.
 		if timerDuration != c.args.UpdatePeriod {
@@ -106,6 +111,7 @@ func (c *Component) Run(ctx context.Context) error {
 			timerDuration = c.args.UpdatePeriod
 		}
 	}
+	// Trigger initial check
 	update()
 	defer watchDog.Stop()
 	for true {
@@ -179,7 +185,7 @@ func (c *Component) reconcileWatchesWithWatcher() {
 		}
 	}
 	// Find all the removed paths.
-	pathsToRemove := make([]string, 0)
+	filesToRemove := make([]string, 0)
 	for p := range c.watchedFiles {
 		found := false
 		for _, np := range expandedPaths {
@@ -188,16 +194,31 @@ func (c *Component) reconcileWatchesWithWatcher() {
 				break
 			}
 		}
+
 		if !found {
-			pathsToRemove = append(pathsToRemove, p)
+			filesToRemove = append(filesToRemove, p)
+		}
+		// Scan to see if we need to exclude any new files.
+		for _, exclude := range c.args.ExcludedPaths {
+			matched, _ := doublestar.PathMatch(exclude, p)
+			if matched {
+				filesToRemove = append(filesToRemove, p)
+			}
 		}
 	}
-	if len(pathsToRemove) > 0 {
+
+	if len(filesToRemove) > 0 {
 		c.watchesUpdated = true
 	}
-	for _, p := range pathsToRemove {
+	for _, p := range filesToRemove {
 		cleaned := filepath.Dir(p)
-		_ = c.watcher.Remove(cleaned)
+		// Check to see if there are paths we no longer need to watch.
+		for _, exclude := range c.args.ExcludedPaths {
+			excludeDir, _ := doublestar.PathMatch(exclude, cleaned)
+			if excludeDir {
+				_ = c.watcher.Remove(cleaned)
+			}
+		}
 		delete(c.watchedFiles, p)
 	}
 }
