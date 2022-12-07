@@ -48,6 +48,8 @@ Main (unreleased)
   - `loki.relabel` receives log entries from other `loki` components and
     rewrites their label set. (@tpaschalis)
 
+  - `discovery.file` discovers files on the filesystem following doublestar patterns. (@mattdurham)
+
 ### Enhancements
 
 - Integrations: Always use direct connection in mongodb_exporter integration. (@v-zhuravlev)
