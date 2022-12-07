@@ -2,6 +2,7 @@ package process
 
 import (
 	"context"
+	"reflect"
 	"sync"
 
 	"github.com/grafana/agent/component"
@@ -41,10 +42,12 @@ var (
 type Component struct {
 	opts component.Options
 
-	mut      sync.RWMutex
-	args     Arguments
-	receiver loki.LogsReceiver
-	fanout   []chan<- loki.Entry
+	mut        sync.RWMutex
+	receiver   loki.LogsReceiver
+	fanout     []loki.LogsReceiver
+	processIn  chan<- loki.Entry
+	processOut chan loki.Entry
+	stages     []stages.StageConfig
 }
 
 // New creates a new loki.process component.
@@ -73,6 +76,16 @@ func (c *Component) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case entry := <-c.receiver:
+			c.mut.RLock()
+			select {
+			case <-ctx.Done():
+				return nil
+			case c.processIn <- entry:
+				// no-op
+			}
+			c.mut.RUnlock()
+		case entry := <-c.processOut:
+			c.mut.RLock()
 			for _, f := range c.fanout {
 				select {
 				case <-ctx.Done():
@@ -81,6 +94,7 @@ func (c *Component) Run(ctx context.Context) error {
 					// no-op
 				}
 			}
+			c.mut.RUnlock()
 		}
 	}
 }
@@ -91,18 +105,31 @@ func (c *Component) Update(args component.Arguments) error {
 
 	c.mut.Lock()
 	defer c.mut.Unlock()
-	c.args = newArgs
 
-	pipeline, err := stages.NewPipeline(c.opts.Logger, newArgs.Stages, &c.opts.ID, c.opts.Registerer)
-	if err != nil {
-		return err
+	if stagesChanged(c.stages, newArgs.Stages) {
+		pipeline, err := stages.NewPipeline(c.opts.Logger, newArgs.Stages, &c.opts.ID, c.opts.Registerer)
+		if err != nil {
+			return err
+		}
+		c.processOut = make(chan loki.Entry)
+		entryHandler := loki.NewEntryHandler(c.processOut, func() {})
+		c.processIn = pipeline.Wrap(entryHandler).Chan()
+		c.stages = newArgs.Stages
 	}
 
-	c.fanout = c.fanout[:0]
-	for _, f := range newArgs.ForwardTo {
-		entryHandler := loki.NewEntryHandler(f, func() {})
-		c.fanout = append(c.fanout, pipeline.Wrap(entryHandler).Chan())
-	}
+	c.fanout = newArgs.ForwardTo
 
 	return nil
+}
+
+func stagesChanged(prev, next []stages.StageConfig) bool {
+	if len(prev) != len(next) {
+		return true
+	}
+	for i := range prev {
+		if !reflect.DeepEqual(prev[i], next[i]) {
+			return true
+		}
+	}
+	return false
 }
