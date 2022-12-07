@@ -45,6 +45,9 @@ Main (unreleased)
   - `loki.write` receives log entries from other `loki` components and sends
     them over to a Loki instance. (@tpaschalis)
 
+  - `loki.relabel` receives log entries from other `loki` components and
+    rewrites their label set. (@tpaschalis)
+
 ### Enhancements
 
 - Integrations: Always use direct connection in mongodb_exporter integration. (@v-zhuravlev)
