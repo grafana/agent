@@ -55,3 +55,6 @@ type TLSArguments struct {
 	CipherSuites       string `river:"tls_cipher_suites,attr,optional"`
 	MinVersion         string `river:"tls_min_version,attr,optional"`
 }
+
+type Exports struct {
+}

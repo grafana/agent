@@ -35,9 +35,6 @@ func init() {
 	})
 }
 
-type Exports struct {
-}
-
 type Component struct {
 	log  log.Logger
 	opts component.Options
