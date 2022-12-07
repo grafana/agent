@@ -57,3 +57,17 @@ func Test_generatePodTemplate(t *testing.T) {
 			"privileged is not required. Fargate cannot schedule privileged containers.")
 	})
 }
+
+func TestSanitizeKubernetesLabel(t *testing.T) {
+	validLabel := "this_1_is-a.valid_label"
+
+	invalidCharLabel := "this#is$not&valid"
+	invalidCharLabelExpected := "this.is.not.valid"
+
+	invalidStartLabel := "-notvalid"
+	invalidStartLabelExpected := "notvalid"
+
+	require.Equal(t, validLabel, sanitizeKubernetesLabel(validLabel))
+	require.Equal(t, invalidCharLabelExpected, sanitizeKubernetesLabel(invalidCharLabel))
+	require.Equal(t, invalidStartLabelExpected, sanitizeKubernetesLabel(invalidStartLabel))
+}

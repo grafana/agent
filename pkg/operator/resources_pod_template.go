@@ -3,6 +3,7 @@ package operator
 import (
 	"fmt"
 	"path"
+	"regexp"
 
 	"github.com/grafana/agent/pkg/build"
 	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
@@ -157,7 +158,7 @@ func generatePodTemplate(
 		podLabels         = map[string]string{}
 		podSelectorLabels = map[string]string{
 			"app.kubernetes.io/name":     "grafana-agent",
-			"app.kubernetes.io/version":  build.Version,
+			"app.kubernetes.io/version":  sanitizeKubernetesLabel(build.Version),
 			"app.kubernetes.io/instance": d.Agent.Name,
 			"grafana-agent":              d.Agent.Name,
 			managedByOperatorLabel:       managedByOperatorLabelValue,
@@ -267,6 +268,26 @@ func generatePodTemplate(
 		},
 	}
 	return template, &meta_v1.LabelSelector{MatchLabels: finalSelectorLabels}, nil
+}
+
+// Sanitizes the input to be a valid kubernetes label by replacing
+// any invalid characters, then removing any invalid beginning characters,
+// and ensuring that the resulting value is <= 63 characters.
+func sanitizeKubernetesLabel(label string) string {
+	invalidChars := regexp.MustCompile(`[^A-Za-z0-9\._-]`)
+	invalidBeginningChars := regexp.MustCompile(`^[^A-Za-z0-9]*`)
+	labelBytes := []byte(label)
+
+	labelBytes = invalidChars.ReplaceAll(labelBytes, []byte("."))
+	labelBytes = invalidBeginningChars.ReplaceAll(labelBytes, []byte(""))
+	return trimLabel(string(labelBytes))
+}
+
+func trimLabel(label string) string {
+	if len(label) > 63 {
+		return label[:63]
+	}
+	return label
 }
 
 func applyDeploymentDefaults(d *gragent.Deployment) {
