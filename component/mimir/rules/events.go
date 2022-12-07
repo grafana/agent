@@ -78,6 +78,12 @@ func (c *Component) syncMimir(ctx context.Context) {
 		return
 	}
 
+	for ns := range rulesByNamespace {
+		if !isManagedMimirNamespace(c.args.MimirNameSpacePrefix, ns) {
+			delete(rulesByNamespace, ns)
+		}
+	}
+
 	c.currentState = rulesByNamespace
 }
 
@@ -117,7 +123,7 @@ func (c *Component) loadStateFromK8s() (map[string][]mimirClient.RuleGroup, erro
 		}
 
 		for _, pr := range crdState {
-			mimirNs := mimirNamespaceForRuleCRD(pr)
+			mimirNs := mimirNamespaceForRuleCRD(c.args.MimirNameSpacePrefix, pr)
 
 			groups, err := convertCRDRuleGroupToRuleGroup(pr.Spec)
 			if err != nil {
@@ -193,16 +199,19 @@ func (c *Component) applyChanges(ctx context.Context, namespace string, diffs []
 // mimirNamespaceForRuleCRD returns the namespace that the rule CRD should be
 // stored in mimir. This function, along with isManagedNamespace, is used to
 // determine if a rule CRD is managed by the agent.
-func mimirNamespaceForRuleCRD(pr *promv1.PrometheusRule) string {
+func mimirNamespaceForRuleCRD(prefix string, pr *promv1.PrometheusRule) string {
 	return fmt.Sprintf("agent/%s/%s/%s", pr.Namespace, pr.Name, pr.UID)
 }
 
 // isManagedMimirNamespace returns true if the namespace is managed by the agent.
 // Unmanaged namespaces are left as is by the operator.
-func isManagedMimirNamespace(namespace string) bool {
+func isManagedMimirNamespace(prefix, namespace string) bool {
+	prefixPart := regexp.QuoteMeta(prefix)
 	namespacePart := `.+`
 	namePart := `.+`
 	uuidPart := `[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}`
-	managedNamespaceRegex := regexp.MustCompile(fmt.Sprintf("^(agent/)?%s/%s/%s$", namespacePart, namePart, uuidPart))
+	managedNamespaceRegex := regexp.MustCompile(
+		fmt.Sprintf("^%s/%s/%s/%s$", prefixPart, namespacePart, namePart, uuidPart),
+	)
 	return managedNamespaceRegex.MatchString(namespace)
 }

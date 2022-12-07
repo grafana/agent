@@ -7,11 +7,22 @@ import (
 )
 
 type Arguments struct {
-	ClientParams ClientArguments `river:"client,block"`
-	SyncInterval time.Duration   `river:"sync_interval,attr,optional"`
+	ClientParams         ClientArguments `river:"client,block"`
+	SyncInterval         time.Duration   `river:"sync_interval,attr,optional"`
+	MimirNameSpacePrefix string          `river:"mimir_namespace_prefix,attr,optional"`
 
 	RuleSelector          LabelSelector `river:"rule_selector,block,optional"`
 	RuleNamespaceSelector LabelSelector `river:"rule_namespace_selector,block,optional"`
+}
+
+func setDefaultArguments(args *Arguments) {
+	if args.SyncInterval == 0 {
+		args.SyncInterval = 30 * time.Second
+	}
+
+	if args.MimirNameSpacePrefix == "" {
+		args.MimirNameSpacePrefix = "agent"
+	}
 }
 
 type LabelSelector struct {

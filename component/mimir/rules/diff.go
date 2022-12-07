@@ -48,10 +48,6 @@ func diffRuleState(desired map[string][]mimirClient.RuleGroup, actual map[string
 			continue
 		}
 
-		if !isManagedMimirNamespace(namespace) {
-			continue
-		}
-
 		subDiff, err := diffRuleNamespaceState(nil, actualRuleGroups)
 		if err != nil {
 			return nil, err

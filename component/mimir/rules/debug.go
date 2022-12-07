@@ -23,7 +23,7 @@ type DebugMimirNamespace struct {
 func (c *Component) DebugInfo() interface{} {
 	var output DebugInfo
 	for ns := range c.currentState {
-		if !isManagedMimirNamespace(ns) {
+		if !isManagedMimirNamespace(c.args.MimirNameSpacePrefix, ns) {
 			continue
 		}
 

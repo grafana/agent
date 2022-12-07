@@ -321,9 +321,3 @@ func (c *Component) startRuleInformer() {
 	factory.Start(c.informerStopChan)
 	factory.WaitForCacheSync(c.informerStopChan)
 }
-
-func setDefaultArguments(args *Arguments) {
-	if args.SyncInterval == 0 {
-		args.SyncInterval = 30 * time.Second
-	}
-}

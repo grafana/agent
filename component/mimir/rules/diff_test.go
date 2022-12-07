@@ -32,15 +32,6 @@ groups:
     expr: 1
 `))
 
-	ruleGroupsB := parseRuleGroups(t, []byte(`
-groups:
-- name: rule-group-b
-  interval: 1m
-  rules:
-  - record: rule_b
-    expr: 2
-`))
-
 	ruleGroupsAModified := parseRuleGroups(t, []byte(`
 groups:
 - name: rule-group-a
@@ -51,12 +42,6 @@ groups:
 `))
 
 	managedNamespace := "agent/namespace/name/12345678-1234-1234-1234-123456789012"
-	unmanagedNamespace := "integrations/kubernetes"
-
-	_ = ruleGroupsB
-	_ = ruleGroupsA
-	_ = ruleGroupsAModified
-	_ = unmanagedNamespace
 
 	type testCase struct {
 		name     string
@@ -127,17 +112,6 @@ groups:
 			},
 			actual: map[string][]mimirClient.RuleGroup{
 				managedNamespace: ruleGroupsA,
-			},
-			expected: map[string][]RuleGroupDiff{},
-		},
-		{
-			name: "unmanaged namespaces",
-			desired: map[string][]mimirClient.RuleGroup{
-				managedNamespace: ruleGroupsA,
-			},
-			actual: map[string][]mimirClient.RuleGroup{
-				managedNamespace:   ruleGroupsA,
-				unmanagedNamespace: ruleGroupsB,
 			},
 			expected: map[string][]RuleGroupDiff{},
 		},
