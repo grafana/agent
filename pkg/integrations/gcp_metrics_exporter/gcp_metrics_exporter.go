@@ -21,7 +21,7 @@ import (
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeSingleton, metricsutils.NewNamedShim("gcp_metrics_exporter"))
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.NewNamedShim("gcp_metrics_exporter"))
 }
 
 type Config struct {
