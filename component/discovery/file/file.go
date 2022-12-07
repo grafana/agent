@@ -115,7 +115,7 @@ func (c *Component) Run(ctx context.Context) error {
 	// Trigger initial check
 	update()
 	defer watchDog.Stop()
-	for true {
+	for {
 		select {
 		case fe := <-c.watcher.Events:
 			c.fsnotifyTrigger(fe)
@@ -134,7 +134,6 @@ func (c *Component) Run(ctx context.Context) error {
 			return nil
 		}
 	}
-	return nil
 }
 
 // reconcileWatchesWithWatcher checks for any new directories that have been added along with verifying
