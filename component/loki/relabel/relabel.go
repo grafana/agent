@@ -183,34 +183,30 @@ func (c *Component) relabel(e loki.Entry) model.LabelSet {
 
 	// Let's look in the cache for the hash of the entry's labels.
 	val, found := c.cache.Get(hash)
-	if !found {
-		// We've never seen this hash; initialize it in the cache with a new
-		// cacheItem and return the relabeled result.
-		c.metrics.cacheMisses.Inc()
-		relabeled := c.process(e)
-
-		c.cache.Add(hash, []cacheItem{{e.Labels, relabeled}})
-		c.metrics.cacheSize.Set(float64(c.cache.Len()))
-
-		return relabeled
-	}
 
 	// We've seen this hash before; let's see if we've already relabeled this
-	// specific entry before.
-	for _, ci := range val.([]cacheItem) {
-		if e.Labels.Equal(ci.original) {
-			c.metrics.cacheHits.Inc()
-			return ci.relabeled
+	// specific entry before and can return early, or if it's a collision.
+	if found {
+		for _, ci := range val.([]cacheItem) {
+			if e.Labels.Equal(ci.original) {
+				c.metrics.cacheHits.Inc()
+				return ci.relabeled
+			}
 		}
 	}
 
-	// Rainy path; we have a collision where we have seen the hash but not
-	// for _this_ specific entry. Relabel it from scratch and append it to the
-	// slice stored in the cache key.
+	// Seems like it's either a new entry or a hash collision.
 	c.metrics.cacheMisses.Inc()
 	relabeled := c.process(e)
 
-	val = append(val.([]cacheItem), cacheItem{e.Labels, relabeled})
+	// In case it's a new hash, initialize it as a new cacheItem.
+	// If it was a collision, append the result to the cached slice.
+	if !found {
+		val = []cacheItem{{e.Labels, relabeled}}
+	} else {
+		val = append(val.([]cacheItem), cacheItem{e.Labels, relabeled})
+	}
+
 	c.cache.Add(hash, val)
 	c.metrics.cacheSize.Set(float64(c.cache.Len()))
 
