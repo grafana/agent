@@ -15,7 +15,7 @@ entries before they're passed to a downstream component. These stages are
 applied to each log entry in order of their appearance in the configuration
 file. All stages within a `loki.process` block have access to the log entry's
 label set, the log line, the log timestamp, as well as a shared map of
-'extracted' values; this allows results of one stage to be used in a subsequent
+'extracted' values so that the results of one stage can be used in a subsequent
 one.
 
 Multiple `loki.process` components can be specified by giving them
@@ -50,7 +50,7 @@ Hierarchy      | Block      | Description | Required
 -------------- | ---------- | ----------- | --------
 stage          | [stage][]  | Processing stage to run. | no
 stage > json   | [json][]   | Configures a JSON processing stage.  | no
-stage > labels | [labels][] | Configures a Labels processing stage. | no
+stage > labels | [labels][] | Configures a labels processing stage. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `stage > json`
 refers to a `json` block defined inside of a `stage` block.
@@ -66,8 +66,8 @@ through. As such, each block must have exactly _one_ inner block to match the
 type of stage to configure. Multiple processing stages must be defined in
 different blocks and are applied on the incoming log entries in top-down order.
 
-This block does not support any arguments and is configured only via inner
-blocks.
+The `stage` block does not support any arguments and is configured only via
+inner blocks.
 
 ### json block
 
@@ -89,8 +89,8 @@ parse as JSON. By default, this is the log line itself, but it can also be a
 previously extracted value.
 
 The `expressions` field is the set of key-value pairs of MESPath expressions to
-run. The map key defines the name with which the data is extracted as, while
-the map value is the expression used to populate the value.
+run. The map key defines the name with which the data is extracted, while the
+map value is the expression used to populate the value.
 
 Here's a given log line and two JSON stages to run.
 
@@ -129,7 +129,7 @@ username: agent
 
 ### labels block
 
-The `labels` inner block configures a Labels processing stage that can read
+The `labels` inner block configures a labels processing stage that can read
 data from the extracted values map and set new labels on incoming log entries.
 
 The following arguments are supported:
@@ -138,7 +138,7 @@ Name                  | Type          | Description                             
 --------------------- | --------------| ----------------------------------------- | -------------- | --------
 `values`              | `map(string)` | Configures a `labels` processing stage.   | `{}`           | no
 
-In a Labels stage, the map's keys define the label to set and the values are
+In a labels stage, the map's keys define the label to set and the values are
 how to look them up.  If the value is empty, it is inferred to be the same as
 the key.
 
@@ -175,7 +175,7 @@ Name | Type | Description
 ## Example
 
 This example creates a `loki.process` component that extracts the `environment`
-value from a JSON log line and sets it as a label.
+value from a JSON log line and sets it as a label named 'env'.
 ```river
 loki.process "local" {
   forward_to = [loki.write.onprem.receiver]
