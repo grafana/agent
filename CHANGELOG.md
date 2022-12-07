@@ -87,6 +87,9 @@ Main (unreleased)
 - Fix issue where on checking whether to restart integrations the Integration Manager was comparing
   configs with secret values scrubbed, preventing reloads if only secrets were updated. (@spartan0x117)
 
+- Fix issue where branch names that were invalid Kubernetes labels would cause operator tests
+  to fail. (@spartan0x117)
+
 ### Other changes
 
 - Grafana Agent Flow has graduated from experimental to beta.
