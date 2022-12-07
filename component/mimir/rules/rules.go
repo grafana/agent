@@ -60,7 +60,7 @@ type Component struct {
 	namespaceSelector labels.Selector
 	ruleSelector      labels.Selector
 
-	currentState []mimirClient.RuleGroup
+	currentState map[string][]mimirClient.RuleGroup
 }
 
 type ConfigUpdate struct {
@@ -69,6 +69,7 @@ type ConfigUpdate struct {
 }
 
 var _ component.Component = (*Component)(nil)
+var _ component.DebugComponent = (*Component)(nil)
 
 func NewComponent(o component.Options, c Arguments) (*Component, error) {
 	setDefaultArguments(&c)

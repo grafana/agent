@@ -3,6 +3,7 @@ package rules
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/ghodss/yaml"
@@ -70,13 +71,13 @@ func (c *Component) processEvent(ctx context.Context, e Event) error {
 }
 
 func (c *Component) syncMimir(ctx context.Context) {
-	rulesByNamespace, err := c.mimirClient.ListRules(ctx, c.args.MimirRuleNamespace)
+	rulesByNamespace, err := c.mimirClient.ListRules(ctx, "")
 	if err != nil {
 		level.Error(c.log).Log("msg", "failed to list rules from mimir", "err", err)
 		return
 	}
 
-	c.currentState = rulesByNamespace[c.args.MimirRuleNamespace]
+	c.currentState = rulesByNamespace
 }
 
 func (c *Component) reconcileState(ctx context.Context) error {
@@ -85,21 +86,29 @@ func (c *Component) reconcileState(ctx context.Context) error {
 
 	desiredState, err := c.loadStateFromK8s()
 
-	diffs, err := diffRuleStates(desiredState, c.currentState)
+	diffs, err := diffRuleState(desiredState, c.currentState)
 	if err != nil {
 		return err
 	}
 
-	return c.applyChanges(ctx, diffs)
+	for ns, diff := range diffs {
+		err = c.applyChanges(ctx, ns, diff)
+		if err != nil {
+			level.Error(c.log).Log("msg", "failed to apply changes", "mimir-namespace", ns, "err", err)
+			continue
+		}
+	}
+
+	return nil
 }
 
-func (c *Component) loadStateFromK8s() ([]rulefmt.RuleGroup, error) {
+func (c *Component) loadStateFromK8s() (map[string][]rulefmt.RuleGroup, error) {
 	matchedNamespaces, err := c.namespaceLister.List(c.namespaceSelector)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list namespaces: %w", err)
 	}
 
-	desiredState := []rulefmt.RuleGroup{}
+	desiredState := map[string][]rulefmt.RuleGroup{}
 	for _, ns := range matchedNamespaces {
 		crdState, err := c.ruleLister.PrometheusRules(ns.Name).List(c.ruleSelector)
 		if err != nil {
@@ -107,12 +116,14 @@ func (c *Component) loadStateFromK8s() ([]rulefmt.RuleGroup, error) {
 		}
 
 		for _, pr := range crdState {
+			mimirNs := mimirNamespaceForRuleCRD(pr)
+
 			groups, err := convertCRDRuleGroupToRuleGroup(pr.Spec)
 			if err != nil {
 				return nil, fmt.Errorf("failed to convert rule group: %w", err)
 			}
 
-			desiredState = append(desiredState, groups.Groups...)
+			desiredState[mimirNs] = groups.Groups
 		}
 	}
 
@@ -133,7 +144,7 @@ func convertCRDRuleGroupToRuleGroup(crd promv1.PrometheusRuleSpec) (*rulefmt.Rul
 	return groups, nil
 }
 
-func (c *Component) applyChanges(ctx context.Context, diffs []RuleGroupDiff) error {
+func (c *Component) applyChanges(ctx context.Context, namespace string, diffs []RuleGroupDiff) error {
 	if len(diffs) == 0 {
 		return nil
 	}
@@ -144,19 +155,19 @@ func (c *Component) applyChanges(ctx context.Context, diffs []RuleGroupDiff) err
 		switch diff.Kind {
 		case RuleGroupDiffKindAdd:
 			level.Info(c.log).Log("msg", "adding rule group", "group", diff.Desired.Name)
-			err := c.mimirClient.CreateRuleGroup(ctx, c.args.MimirRuleNamespace, diff.Desired)
+			err := c.mimirClient.CreateRuleGroup(ctx, namespace, diff.Desired)
 			if err != nil {
 				return err
 			}
 		case RuleGroupDiffKindRemove:
 			level.Info(c.log).Log("msg", "removing rule group", "group", diff.Actual.Name)
-			err := c.mimirClient.DeleteRuleGroup(ctx, c.args.MimirRuleNamespace, diff.Actual.Name)
+			err := c.mimirClient.DeleteRuleGroup(ctx, namespace, diff.Actual.Name)
 			if err != nil {
 				return err
 			}
 		case RuleGroupDiffKindUpdate:
 			level.Info(c.log).Log("msg", "updating rule group", "group", diff.Desired.Name)
-			err := c.mimirClient.CreateRuleGroup(ctx, c.args.MimirRuleNamespace, diff.Desired)
+			err := c.mimirClient.CreateRuleGroup(ctx, namespace, diff.Desired)
 			if err != nil {
 				return err
 			}
@@ -168,4 +179,21 @@ func (c *Component) applyChanges(ctx context.Context, diffs []RuleGroupDiff) err
 	c.syncMimir(ctx)
 
 	return nil
+}
+
+// mimirNamespaceForRuleCRD returns the namespace that the rule CRD should be
+// stored in mimir. This function, along with isManagedNamespace, is used to
+// determine if a rule CRD is managed by the agent.
+func mimirNamespaceForRuleCRD(pr *promv1.PrometheusRule) string {
+	return fmt.Sprintf("agent/%s/%s/%s", pr.Namespace, pr.Name, pr.UID)
+}
+
+// isManagedMimirNamespace returns true if the namespace is managed by the agent.
+// Unmanaged namespaces are left as is by the operator.
+func isManagedMimirNamespace(namespace string) bool {
+	namespacePart := `.+`
+	namePart := `.+`
+	uuidPart := `[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}`
+	managedNamespaceRegex := regexp.MustCompile(fmt.Sprintf("^(agent/)?%s/%s/%s$", namespacePart, namePart, uuidPart))
+	return managedNamespaceRegex.MatchString(namespace)
 }

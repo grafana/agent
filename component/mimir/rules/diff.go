@@ -23,7 +23,42 @@ type RuleGroupDiff struct {
 	Desired mimirClient.RuleGroup
 }
 
-func diffRuleStates(desired []rulefmt.RuleGroup, actual []mimirClient.RuleGroup) ([]RuleGroupDiff, error) {
+func diffRuleState(desired map[string][]rulefmt.RuleGroup, actual map[string][]mimirClient.RuleGroup) (map[string][]RuleGroupDiff, error) {
+	seen := map[string]bool{}
+
+	diff := make(map[string][]RuleGroupDiff)
+
+	for namespace, desiredRuleGroups := range desired {
+		seen[namespace] = true
+
+		actualRuleGroups := actual[namespace]
+		subDiff, err := diffRuleNamespaceState(desiredRuleGroups, actualRuleGroups)
+		if err != nil {
+			return nil, err
+		}
+		diff[namespace] = subDiff
+	}
+
+	for namespace, actualRuleGroups := range actual {
+		if seen[namespace] {
+			continue
+		}
+
+		if !isManagedMimirNamespace(namespace) {
+			continue
+		}
+
+		subDiff, err := diffRuleNamespaceState(nil, actualRuleGroups)
+		if err != nil {
+			return nil, err
+		}
+		diff[namespace] = subDiff
+	}
+
+	return diff, nil
+}
+
+func diffRuleNamespaceState(desired []rulefmt.RuleGroup, actual []mimirClient.RuleGroup) ([]RuleGroupDiff, error) {
 	var diff []RuleGroupDiff
 
 	seenGroups := map[string]bool{}

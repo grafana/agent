@@ -7,9 +7,8 @@ import (
 )
 
 type Arguments struct {
-	ClientParams       ClientArguments `river:"client,block"`
-	SyncInterval       time.Duration   `river:"sync_interval,attr,optional"`
-	MimirRuleNamespace string          `river:"mimir_rule_namespace,attr"`
+	ClientParams ClientArguments `river:"client,block"`
+	SyncInterval time.Duration   `river:"sync_interval,attr,optional"`
 
 	RuleSelector          LabelSelector `river:"rule_selector,block,optional"`
 	RuleNamespaceSelector LabelSelector `river:"rule_namespace_selector,block,optional"`
