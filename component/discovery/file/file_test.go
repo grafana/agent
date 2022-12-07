@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -19,6 +20,7 @@ import (
 )
 
 func TestFile(t *testing.T) {
+	var mut sync.Mutex
 	dir := path.Join(os.TempDir(), "agent_testing", "t1")
 	err := os.MkdirAll(dir, 0755)
 	require.NoError(t, err)
@@ -28,7 +30,9 @@ func TestFile(t *testing.T) {
 	})
 	foundFiles := make([]discovery.Target, 0)
 	c := createComponent(t, dir, func(e component.Exports) {
+		mut.Lock()
 		foundFiles = e.(Exports).Targets
+		mut.Unlock()
 	}, []string{path.Join(dir, "*.txt")}, nil)
 	ct := context.Background()
 	ct, _ = context.WithTimeout(ct, 5*time.Second)
@@ -36,11 +40,15 @@ func TestFile(t *testing.T) {
 	go c.Run(ct)
 	time.Sleep(20 * time.Millisecond)
 	ct.Done()
+	mut.Lock()
 	require.Len(t, foundFiles, 1)
 	require.True(t, contains(foundFiles, "t1.txt"))
+	mut.Unlock()
 }
 
 func TestAddingFile(t *testing.T) {
+	var mut sync.Mutex
+
 	dir := path.Join(os.TempDir(), "agent_testing", "t2")
 	err := os.MkdirAll(dir, 0755)
 	require.NoError(t, err)
@@ -50,7 +58,9 @@ func TestAddingFile(t *testing.T) {
 	})
 	foundFiles := make([]discovery.Target, 0)
 	c := createComponent(t, dir, func(e component.Exports) {
+		mut.Lock()
 		foundFiles = e.(Exports).Targets
+		mut.Unlock()
 	}, []string{path.Join(dir, "*.txt")}, nil)
 
 	ct := context.Background()
@@ -60,12 +70,16 @@ func TestAddingFile(t *testing.T) {
 	time.Sleep(20 * time.Millisecond)
 	writeFile(t, dir, "t2.txt")
 	ct.Done()
+	mut.Lock()
 	require.Len(t, foundFiles, 2)
 	require.True(t, contains(foundFiles, "t1.txt"))
 	require.True(t, contains(foundFiles, "t2.txt"))
+	mut.Unlock()
 }
 
 func TestAddingFileInSubDir(t *testing.T) {
+	var mut sync.Mutex
+
 	dir := path.Join(os.TempDir(), "agent_testing", "t3")
 	os.MkdirAll(dir, 0755)
 	writeFile(t, dir, "t1.txt")
@@ -74,7 +88,9 @@ func TestAddingFileInSubDir(t *testing.T) {
 	})
 	foundFiles := make([]discovery.Target, 0)
 	c := createComponent(t, dir, func(e component.Exports) {
+		mut.Lock()
 		foundFiles = e.(Exports).Targets
+		mut.Unlock()
 	}, []string{path.Join(dir, "**", "*.txt")}, nil)
 
 	ct := context.Background()
@@ -90,13 +106,17 @@ func TestAddingFileInSubDir(t *testing.T) {
 	require.NoError(t, err)
 	time.Sleep(20 * time.Millisecond)
 	ct.Done()
+	mut.Lock()
 	require.Len(t, foundFiles, 3)
 	require.True(t, contains(foundFiles, "t1.txt"))
 	require.True(t, contains(foundFiles, "t2.txt"))
 	require.True(t, contains(foundFiles, "t3.txt"))
+	mut.Unlock()
 }
 
 func TestAddingRemovingFileInSubDir(t *testing.T) {
+	var mut sync.Mutex
+
 	dir := path.Join(os.TempDir(), "agent_testing", "t3")
 	os.MkdirAll(dir, 0755)
 	writeFile(t, dir, "t1.txt")
@@ -105,7 +125,9 @@ func TestAddingRemovingFileInSubDir(t *testing.T) {
 	})
 	foundFiles := make([]discovery.Target, 0)
 	c := createComponent(t, dir, func(e component.Exports) {
+		mut.Lock()
 		foundFiles = e.(Exports).Targets
+		mut.Unlock()
 	}, []string{path.Join(dir, "**", "*.txt")}, nil)
 
 	ct := context.Background()
@@ -116,23 +138,32 @@ func TestAddingRemovingFileInSubDir(t *testing.T) {
 	writeFile(t, dir, "t2.txt")
 	subdir := path.Join(dir, "subdir")
 	os.Mkdir(subdir, 0755)
-	time.Sleep(20 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 	err := ioutil.WriteFile(path.Join(subdir, "t3.txt"), []byte("asdf"), 0664)
 	require.NoError(t, err)
-	time.Sleep(20 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
+
+	mut.Lock()
 	require.Len(t, foundFiles, 3)
 	require.True(t, contains(foundFiles, "t1.txt"))
 	require.True(t, contains(foundFiles, "t2.txt"))
 	require.True(t, contains(foundFiles, "t3.txt"))
+	mut.Unlock()
+
 	err = os.RemoveAll(subdir)
 	require.NoError(t, err)
 	time.Sleep(1000 * time.Millisecond)
+	mut.Lock()
 	require.Len(t, foundFiles, 2)
 	require.True(t, contains(foundFiles, "t1.txt"))
 	require.True(t, contains(foundFiles, "t2.txt"))
+	mut.Unlock()
+
 }
 
 func TestExclude(t *testing.T) {
+	var mut sync.Mutex
+
 	dir := path.Join(os.TempDir(), "agent_testing", "t3")
 	os.MkdirAll(dir, 0755)
 	writeFile(t, dir, "t1.txt")
@@ -141,7 +172,9 @@ func TestExclude(t *testing.T) {
 	})
 	foundFiles := make([]discovery.Target, 0)
 	c := createComponent(t, dir, func(e component.Exports) {
+		mut.Lock()
 		foundFiles = e.(Exports).Targets
+		mut.Unlock()
 	}, []string{path.Join(dir, "**/*.txt")}, []string{path.Join(dir, "**/*.bad")})
 	ct := context.Background()
 	ct, _ = context.WithTimeout(ct, 40*time.Second)
@@ -152,9 +185,11 @@ func TestExclude(t *testing.T) {
 	os.Mkdir(subdir, 0755)
 	writeFile(t, subdir, "t3.txt")
 	time.Sleep(100 * time.Millisecond)
+	mut.Lock()
 	require.Len(t, foundFiles, 2)
 	require.True(t, contains(foundFiles, "t1.txt"))
 	require.True(t, contains(foundFiles, "t3.txt"))
+	mut.Unlock()
 }
 
 func createComponent(t *testing.T, dir string, foundFiles func(e component.Exports), paths []string, excluded []string) *Component {

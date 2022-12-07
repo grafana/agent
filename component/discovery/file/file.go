@@ -101,9 +101,10 @@ func (c *Component) Run(ctx context.Context) error {
 	update := func() {
 		c.mut.Lock()
 		defer c.mut.Unlock()
+
 		// See if there is anything new we need to check.
 		c.reconcileWatchesWithWatcher()
-		// Update the exports with the targets. Should only be called if changes occured.
+		// Update the exports with the targets. Should only be called if changes occurred.
 		c.checkOnStateChanged()
 		// Check to see if our ticker timer needs to be reset.
 		if timerDuration != c.args.UpdatePeriod {
