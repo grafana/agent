@@ -62,20 +62,34 @@ func (c *Component) eventLoop(ctx context.Context) {
 			return
 		}
 
-		evt := event.(Event)
-		err := c.processEvent(ctx, evt)
+		err := c.processEvent(ctx, event.(Event))
 
 		if err != nil {
-			// TODO: retry limits?
-			level.Error(c.log).Log("msg", "failed to process event", "err", err)
-			// c.queue.AddRateLimited(event)
-		} else {
-			c.queue.Forget(event)
-			c.queue.Done(event)
+			retries := c.queue.NumRequeues(event)
+			if retries < 5 {
+				c.queue.AddRateLimited(event)
+				level.Error(c.log).Log(
+					"msg", "failed to process event, will retry",
+					"retries", fmt.Sprintf("%d/5", retries),
+					"err", err,
+				)
+				continue
+			} else {
+				level.Error(c.log).Log(
+					"msg", "failed to process event, max retries exceeded",
+					"retries", fmt.Sprintf("%d/5", retries),
+					"err", err,
+				)
+			}
 		}
+
+		c.queue.Forget(event)
 	}
 }
+
 func (c *Component) processEvent(ctx context.Context, e Event) error {
+	defer c.queue.Done(e)
+
 	switch e.Type {
 	case EventTypeResourceChanged:
 		level.Info(c.log).Log("msg", "processing event", "type", e.Type, "key", e.ObjectKey)
@@ -103,6 +117,8 @@ func (c *Component) syncMimir(ctx context.Context) {
 	}
 
 	c.currentState = rulesByNamespace
+
+	return
 }
 
 func (c *Component) reconcileState(ctx context.Context) error {
@@ -116,15 +132,16 @@ func (c *Component) reconcileState(ctx context.Context) error {
 		return err
 	}
 
+	errs := multierror.New()
 	for ns, diff := range diffs {
 		err = c.applyChanges(ctx, ns, diff)
 		if err != nil {
-			level.Error(c.log).Log("msg", "failed to apply changes", "mimir-namespace", ns, "err", err)
+			errs = append(errs, err)
 			continue
 		}
 	}
 
-	return nil
+	return errs.Err()
 }
 
 func (c *Component) loadStateFromK8s() (map[string][]mimirClient.RuleGroup, error) {
@@ -182,33 +199,32 @@ func (c *Component) applyChanges(ctx context.Context, namespace string, diffs []
 		return nil
 	}
 
-	level.Info(c.log).Log("msg", "applying rule changes", "num_changes", len(diffs))
-
 	for _, diff := range diffs {
 		switch diff.Kind {
 		case RuleGroupDiffKindAdd:
-			level.Info(c.log).Log("msg", "adding rule group", "group", diff.Desired.Name)
 			err := c.mimirClient.CreateRuleGroup(ctx, namespace, diff.Desired)
 			if err != nil {
 				return err
 			}
+			level.Info(c.log).Log("msg", "added rule group", "namespace", namespace, "group", diff.Desired.Name)
 		case RuleGroupDiffKindRemove:
-			level.Info(c.log).Log("msg", "removing rule group", "group", diff.Actual.Name)
 			err := c.mimirClient.DeleteRuleGroup(ctx, namespace, diff.Actual.Name)
 			if err != nil {
 				return err
 			}
+			level.Info(c.log).Log("msg", "removed rule group", "namespace", namespace, "group", diff.Actual.Name)
 		case RuleGroupDiffKindUpdate:
-			level.Info(c.log).Log("msg", "updating rule group", "group", diff.Desired.Name)
 			err := c.mimirClient.CreateRuleGroup(ctx, namespace, diff.Desired)
 			if err != nil {
 				return err
 			}
+			level.Info(c.log).Log("msg", "updated rule group", "namespace", namespace, "group", diff.Desired.Name)
 		default:
 			level.Error(c.log).Log("msg", "unknown rule group diff kind", "kind", diff.Kind)
 		}
 	}
 
+	// resync mimir state after applying changes
 	c.syncMimir(ctx)
 
 	return nil
