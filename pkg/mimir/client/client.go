@@ -112,12 +112,6 @@ func (r *MimirClient) doRequest(path, method string, payload []byte) (*http.Resp
 
 	if (r.user != "" || r.key != "") && r.authToken != "" {
 		err := errors.New("atmost one of basic auth or auth token should be configured")
-		level.Error(r.logger).Log(
-			"msg", "error during setting up request to mimir api",
-			"url", req.URL.String(),
-			"method", req.Method,
-			"error", err,
-		)
 		return nil, err
 	}
 
@@ -133,24 +127,12 @@ func (r *MimirClient) doRequest(path, method string, payload []byte) (*http.Resp
 
 	req.Header.Add("X-Scope-OrgID", r.id)
 
-	level.Debug(r.logger).Log(
-		"msg", "sending request to Grafana Mimir API",
-		"url", req.URL.String(),
-		"method", req.Method,
-	)
-
 	resp, err := r.Client.Do(req)
 	if err != nil {
-		level.Error(r.logger).Log(
-			"msg", "error during request to Grafana Mimir API",
-			"url", req.URL.String(),
-			"method", req.Method,
-			"error", err,
-		)
 		return nil, err
 	}
 
-	if err := checkResponse(r.logger, resp); err != nil {
+	if err := checkResponse(resp); err != nil {
 		_ = resp.Body.Close()
 		return nil, errors.Wrapf(err, "%s request to %s failed", req.Method, req.URL.String())
 	}
@@ -159,8 +141,7 @@ func (r *MimirClient) doRequest(path, method string, payload []byte) (*http.Resp
 }
 
 // checkResponse checks an API response for errors.
-func checkResponse(logger log.Logger, r *http.Response) error {
-	level.Debug(logger).Log("msg", "checking response", "status", r.Status)
+func checkResponse(r *http.Response) error {
 	if 200 <= r.StatusCode && r.StatusCode <= 299 {
 		return nil
 	}
@@ -178,11 +159,8 @@ func checkResponse(logger log.Logger, r *http.Response) error {
 	}
 
 	if r.StatusCode == http.StatusNotFound {
-		level.Debug(logger).Log("msg", msg, "status", r.Status)
 		return ErrResourceNotFound
 	}
-
-	level.Error(logger).Log("msg", msg, "status", r.Status)
 
 	return errors.New(errMsg)
 }
