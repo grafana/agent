@@ -10,11 +10,7 @@ fi
 set -o nounset
 
 WIP=$(git diff --quiet || echo '-WIP')
-
-# In order to be a valid Kubernetes label, this replaces '/' with '-', then replaces
-# any other invalid characters with '.', and removes all non-alphanumeric characters
-# from the beginning of the string. 
-BRANCH=$(git rev-parse --abbrev-ref HEAD | sed 's#/#-#g' | sed 's/[^A-Za-z0-9\._-]/./g' | sed 's/^[^A-Za-z0-9]*//' | head -c51)
+BRANCH=$(git rev-parse --abbrev-ref HEAD | sed 's#/#-#g')
 
 # When 7 chars are not enough to be unique, git automatically uses more.
 # We are forcing to 7 here, as we are doing for grafana/grafana as well.
