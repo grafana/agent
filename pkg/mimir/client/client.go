@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 
 	"github.com/grafana/dskit/crypto/tls"
 	"github.com/pkg/errors"
@@ -101,18 +100,6 @@ func New(cfg Config) (*MimirClient, error) {
 		apiPath:   path,
 		authToken: cfg.AuthToken,
 	}, nil
-}
-
-// Query executes a PromQL query against the Mimir cluster.
-func (r *MimirClient) Query(ctx context.Context, query string) (*http.Response, error) {
-	req := fmt.Sprintf("/prometheus/api/v1/query?query=%s&time=%d", url.QueryEscape(query), time.Now().Unix())
-
-	res, err := r.doRequest(req, "GET", nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
 }
 
 func (r *MimirClient) doRequest(path, method string, payload []byte) (*http.Response, error) {
