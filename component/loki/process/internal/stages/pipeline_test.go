@@ -5,10 +5,7 @@ package stages
 // new code without being able to slowly review, examine and test them.
 
 import (
-	"github.com/prometheus/client_golang/prometheus"
-
 	"github.com/grafana/agent/pkg/river"
-	util_log "github.com/grafana/loki/pkg/util/log"
 )
 
 // Configs defines multiple StageConfigs as consequent blocks.
@@ -43,9 +40,9 @@ func loadConfig(yml string) []StageConfig {
 	return config.Stages
 }
 
-func newPipelineFromConfig(cfg, name string) (*Pipeline, error) {
-	return NewPipeline(util_log.Logger, loadConfig(cfg), &name, prometheus.DefaultRegisterer)
-}
+// func newPipelineFromConfig(cfg, name string) (*Pipeline, error) {
+// 	return NewPipeline(util_log.Logger, loadConfig(cfg), &name, prometheus.DefaultRegisterer)
+// }
 
 // TODO(@tpaschalis) Comment these out until we port over the remaining
 // stages and use these tests to verify their behavior.
