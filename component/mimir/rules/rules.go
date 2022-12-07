@@ -69,7 +69,6 @@ var _ component.Component = (*Component)(nil)
 var _ component.DebugComponent = (*Component)(nil)
 
 func NewComponent(o component.Options, c Arguments) (*Component, error) {
-	setDefaultArguments(&c)
 	return &Component{
 		log:           o.Logger,
 		opts:          o,
