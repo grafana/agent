@@ -10,9 +10,10 @@ import (
 	"net/url"
 	"strings"
 
+	log "github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/dskit/crypto/tls"
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -51,31 +52,31 @@ type MimirClient struct {
 	Client    http.Client
 	apiPath   string
 	authToken string
+	logger    log.Logger
 }
 
 // New returns a new MimirClient.
-func New(cfg Config) (*MimirClient, error) {
+func New(logger log.Logger, cfg Config) (*MimirClient, error) {
 	endpoint, err := url.Parse(cfg.Address)
 	if err != nil {
 		return nil, err
 	}
 
-	log.WithFields(log.Fields{
-		"address": cfg.Address,
-		"id":      cfg.ID,
-	}).Debugln("New ruler client created")
+	level.Debug(logger).Log("msg", "New Mimir client created", "address", cfg.Address, "id", cfg.ID)
 
 	client := http.Client{}
 
 	// Setup TLS client
 	tlsConfig, err := cfg.TLS.GetTLSConfig()
 	if err != nil {
-		log.WithError(err).WithFields(log.Fields{
-			"tls-ca":   cfg.TLS.CAPath,
-			"tls-cert": cfg.TLS.CertPath,
-			"tls-key":  cfg.TLS.KeyPath,
-		}).Errorf("error loading tls files")
-		return nil, fmt.Errorf("client initialization unsuccessful")
+		level.Error(logger).Log(
+			"msg", "error loading TLS files",
+			"tls-ca", cfg.TLS.CAPath,
+			"tls-cert", cfg.TLS.CertPath,
+			"tls-key", cfg.TLS.KeyPath,
+			"err", err,
+		)
+		return nil, fmt.Errorf("Mimir client initialization unsuccessful")
 	}
 
 	if tlsConfig != nil {
@@ -99,6 +100,7 @@ func New(cfg Config) (*MimirClient, error) {
 		Client:    client,
 		apiPath:   path,
 		authToken: cfg.AuthToken,
+		logger:    logger,
 	}, nil
 }
 
@@ -110,11 +112,12 @@ func (r *MimirClient) doRequest(path, method string, payload []byte) (*http.Resp
 
 	if (r.user != "" || r.key != "") && r.authToken != "" {
 		err := errors.New("atmost one of basic auth or auth token should be configured")
-		log.WithFields(log.Fields{
-			"url":    req.URL.String(),
-			"method": req.Method,
-			"error":  err,
-		}).Errorln("error during request to Mimir api")
+		level.Error(r.logger).Log(
+			"msg", "error during setting up request to mimir api",
+			"url", req.URL.String(),
+			"method", req.Method,
+			"error", err,
+		)
 		return nil, err
 	}
 
@@ -130,34 +133,34 @@ func (r *MimirClient) doRequest(path, method string, payload []byte) (*http.Resp
 
 	req.Header.Add("X-Scope-OrgID", r.id)
 
-	log.WithFields(log.Fields{
-		"url":    req.URL.String(),
-		"method": req.Method,
-	}).Debugln("sending request to Mimir api")
+	level.Debug(r.logger).Log(
+		"msg", "sending request to Grafana Mimir API",
+		"url", req.URL.String(),
+		"method", req.Method,
+	)
 
 	resp, err := r.Client.Do(req)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"url":    req.URL.String(),
-			"method": req.Method,
-			"error":  err.Error(),
-		}).Errorln("error during request to Mimir api")
+		level.Error(r.logger).Log(
+			"msg", "error during request to Grafana Mimir API",
+			"url", req.URL.String(),
+			"method", req.Method,
+			"error", err,
+		)
 		return nil, err
 	}
 
-	err = checkResponse(resp)
-	if err != nil {
-		return nil, err
+	if err := checkResponse(r.logger, resp); err != nil {
+		_ = resp.Body.Close()
+		return nil, errors.Wrapf(err, "%s request to %s failed", req.Method, req.URL.String())
 	}
 
 	return resp, nil
 }
 
-// checkResponse checks the API response for errors
-func checkResponse(r *http.Response) error {
-	log.WithFields(log.Fields{
-		"status": r.Status,
-	}).Debugln("checking response")
+// checkResponse checks an API response for errors.
+func checkResponse(logger log.Logger, r *http.Response) error {
+	level.Debug(logger).Log("msg", "checking response", "status", r.Status)
 	if 200 <= r.StatusCode && r.StatusCode <= 299 {
 		return nil
 	}
@@ -175,17 +178,11 @@ func checkResponse(r *http.Response) error {
 	}
 
 	if r.StatusCode == http.StatusNotFound {
-		log.WithFields(log.Fields{
-			"status": r.Status,
-			"msg":    msg,
-		}).Debugln(errMsg)
+		level.Debug(logger).Log("msg", msg, "status", r.Status)
 		return ErrResourceNotFound
 	}
 
-	log.WithFields(log.Fields{
-		"status": r.Status,
-		"msg":    msg,
-	}).Errorln(errMsg)
+	level.Error(logger).Log("msg", msg, "status", r.Status)
 
 	return errors.New(errMsg)
 }

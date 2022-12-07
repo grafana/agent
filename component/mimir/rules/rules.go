@@ -156,7 +156,7 @@ func (c *Component) init() error {
 		return fmt.Errorf("failed to create prometheus operator client: %w", err)
 	}
 
-	c.mimirClient, err = mimirClient.New(mimirClient.Config{
+	c.mimirClient, err = mimirClient.New(c.log, mimirClient.Config{
 		User:    c.args.ClientParams.User,
 		Key:     string(c.args.ClientParams.Key),
 		Address: c.args.ClientParams.Address,
