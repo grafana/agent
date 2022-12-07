@@ -79,7 +79,6 @@ desiredGroups:
 					continue desiredGroups
 				}
 
-				// TODO: check if the rules are the same
 				diff = append(diff, RuleGroupDiff{
 					Kind:    RuleGroupDiffKindUpdate,
 					Actual:  actualRuleGroup,
