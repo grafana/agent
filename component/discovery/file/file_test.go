@@ -148,6 +148,14 @@ func TestExclude(t *testing.T) {
 }
 
 func createComponent(t *testing.T, dir string, paths []string, excluded []string) *Component {
+	tPaths := make([]discovery.Target, 0)
+	for _, p := range paths {
+		tPaths = append(tPaths, discovery.Target{"__path__": p})
+	}
+	ePaths := make([]discovery.Target, 0)
+	for _, p := range excluded {
+		ePaths = append(ePaths, discovery.Target{"__path_exclude__": p})
+	}
 	l := util.TestLogger(t)
 	c, err := New(component.Options{
 		ID:       "test",
@@ -161,8 +169,8 @@ func createComponent(t *testing.T, dir string, paths []string, excluded []string
 		HTTPListenAddr: "",
 		HTTPPath:       "",
 	}, Arguments{
-		Paths:         paths,
-		ExcludedPaths: excluded,
+		Paths:         tPaths,
+		ExcludedPaths: ePaths,
 		UpdatePeriod:  1 * time.Second,
 	})
 
