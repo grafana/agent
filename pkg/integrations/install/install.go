@@ -12,7 +12,6 @@ import (
 	_ "github.com/grafana/agent/pkg/integrations/cadvisor"               // register cadvisor
 	_ "github.com/grafana/agent/pkg/integrations/consul_exporter"        // register consul_exporter
 	_ "github.com/grafana/agent/pkg/integrations/dnsmasq_exporter"       // register dnsmasq_exporter
-	_ "github.com/grafana/agent/pkg/integrations/ebpf_exporter"          // register ebpf_exporter
 	_ "github.com/grafana/agent/pkg/integrations/elasticsearch_exporter" // register elasticsearch_exporter
 	_ "github.com/grafana/agent/pkg/integrations/github_exporter"        // register github_exporter
 	_ "github.com/grafana/agent/pkg/integrations/kafka_exporter"         // register kafka_exporter

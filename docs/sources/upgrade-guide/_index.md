@@ -14,6 +14,20 @@ releases and how to migrate to newer versions.
 
 These changes will come in a future version.
 
+### Breaking change: `ebpf_exporter` integration removed
+
+The `ebpf_exporter` version bundled in the Agent used [bcc][] to compile eBPF
+programs at runtime. This made it hard to run successfully, as the
+dynamic linking approach required a compiler, the correct kernel headers, as
+well as an exact match of the libbpf toolchain on the host system.  For these
+reasons, we've decided to remove the `ebpf_exporter` integration.
+
+Running the `ebpf_exporter` integration is now deprecated and will result in
+configuration errors. To continue using the same configuration file, remove the
+`ebpf` block.
+
+[bcc]: https://github.com/iovisor/bcc
+
 ### Deprecation: `EXPERIMENTAL_ENABLE_FLOW` environment variable changed
 
 As part of graduating Grafana Agent Flow to beta, the

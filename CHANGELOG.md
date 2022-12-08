@@ -10,8 +10,13 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
-> **DEPRECATIONS**: This release has deprecations. Please read entries
+> **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
+
+### Breaking changes
+
+- The `ebpf_exporter` integration has been removed due to issues with static
+  linking. It may be brought back once these are resolved. (@tpaschalis)
 
 ### Deprecations
 

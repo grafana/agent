@@ -10,11 +10,6 @@ The `loki.relabel` component rewrites the label set of each log entry passed to
 its receiver by applying one or more relabeling `rule`s and forwards the
 results to the list of receivers in the component's arguments.
 
-<!-- TODO(@tpaschalis) Add note about loki.transform
-  To manipulate the log entry itself, you can look at the loki.transform
-  component which allows you to run one or more 'stages' on the log entries.
- -->
-
 If no labels remain after the relabeling rules are applied, then the log
 entries are dropped.
 
@@ -22,6 +17,9 @@ The most common use of `loki.relabel` is to filter log entries or standardize
 the label set that is passed to one or more downstream receivers. The `rule`
 blocks are applied to the label set of each log entry in order of their
 appearance in the configuration file.
+
+If you're looking for a way to process the log entry contents, take a look at
+the `loki.process` component instead.
 
 Multiple `loki.relabel` components can be specified by giving them
 different labels.

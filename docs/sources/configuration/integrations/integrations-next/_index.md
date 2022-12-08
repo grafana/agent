@@ -82,7 +82,6 @@ integrations:
   [eventhandler: <eventhandler_config>]
   [snmp: <snmp_exporter_config>]
   [blackbox: <blackbox_config>]
-  [ebpf: <ebpf_config>]
 
   # Configs for integrations that do support multiple instances. Note that
   # these must be arrays.
