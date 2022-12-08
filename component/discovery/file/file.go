@@ -289,6 +289,17 @@ func (c *Component) removeFromWatched(fp string) {
 	c.watchesUpdated = true
 }
 
+func (c *Component) getWatchedFiles() []discovery.Target {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+
+	foundFiles := make([]discovery.Target, 0)
+	for k, _ := range c.watchedFiles {
+		foundFiles = append(foundFiles, discovery.Target{"__path__": k})
+	}
+	return foundFiles
+}
+
 func getPaths(paths []string) ([]string, error) {
 	allMatchingPaths := make([]string, 0)
 	for _, p := range paths {
