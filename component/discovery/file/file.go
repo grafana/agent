@@ -294,7 +294,7 @@ func (c *Component) getWatchedFiles() []discovery.Target {
 	defer c.mut.Unlock()
 
 	foundFiles := make([]discovery.Target, 0)
-	for k, _ := range c.watchedFiles {
+	for k := range c.watchedFiles {
 		foundFiles = append(foundFiles, discovery.Target{"__path__": k})
 	}
 	return foundFiles

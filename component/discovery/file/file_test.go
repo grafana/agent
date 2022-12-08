@@ -90,7 +90,6 @@ func TestAddingFileInSubDir(t *testing.T) {
 }
 
 func TestAddingRemovingFileInSubDir(t *testing.T) {
-
 	dir := path.Join(os.TempDir(), "agent_testing", "t3")
 	os.MkdirAll(dir, 0755)
 	writeFile(t, dir, "t1.txt")
