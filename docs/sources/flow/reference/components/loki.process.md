@@ -176,6 +176,7 @@ Name | Type | Description
 
 This example creates a `loki.process` component that extracts the `environment`
 value from a JSON log line and sets it as a label named 'env'.
+
 ```river
 loki.process "local" {
   forward_to = [loki.write.onprem.receiver]
