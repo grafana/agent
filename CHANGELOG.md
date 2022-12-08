@@ -10,17 +10,23 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+> **BREAKING CHANGES**: This release has breaking changes. Please read entries
+> carefully and consult the [upgrade guide](https://grafana.com/docs/agent/latest/upgrade-guide/)
+> for specific instructions.
+
 > **DEPRECATIONS**: This release has deprecations. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
+
+### Breaking changes
+
+- The `ebpf_exporter` integration has been removed due to issues with static
+  linking. It may be brought back once these are resolved. (@tpaschalis)
 
 ### Deprecations
 
 - The `EXPERIMENTAL_ENABLE_FLOW` environment variable is deprecated in favor of
   `AGENT_MODE=flow`. Support for `EXPERIMENTAL_ENABLE_FLOW` will be removed in
   v0.32. (@rfratto)
-
-- The `ebpf_exporter` integration has been removed due to issues with static
-  linking. It may be brought back once these are resolved. (@tpaschalis)
 
 ### Features
 
