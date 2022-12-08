@@ -48,6 +48,9 @@ Main (unreleased)
   - `loki.relabel` receives log entries from other `loki` components and
     rewrites their label set. (@tpaschalis)
 
+  - `loki.process` receives log entries from other `loki` components and runs
+    one or more processing stages. (@tpaschalis)
+
 ### Enhancements
 
 - Integrations: Always use direct connection in mongodb_exporter integration. (@v-zhuravlev)
