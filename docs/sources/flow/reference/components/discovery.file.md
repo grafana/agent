@@ -22,16 +22,16 @@ discovery.file "LABEL" {
 
 The following arguments are supported:
 
-Name | Type           | Description                                                              | Default | Required
----- |----------------|--------------------------------------------------------------------------|-----| --------
-`paths` | `list(map(string))` | Doublestar compatible paths to search, looks for keys with `__path__`.    |     | yes
-`exclude_paths` | `list(map(string))` | Doublestar compatible paths to exclude, exclude_paths supercedes paths, looks for keys with `__path_exclude__` . |     | no
-`update_period` | `duration`     | How often to sync filesystem and targets.                                | `"10s"` | no
+Name | Type           | Description                                                                                                      | Default | Required
+---- |----------------|------------------------------------------------------------------------------------------------------------------|-----| --------
+`paths` | `list(map(string))` | Doublestar-compatible paths to search, looks for keys with `__path__`.                                           |     | yes
+`exclude_paths` | `list(map(string))` | Doublestar-compatible paths to exclude, exclude_paths supercedes paths, looks for keys with `__path_exclude__` . |     | no
+`update_period` | `duration`     | How often to sync filesystem and targets.                                                                        | `"10s"` | no
 
 `paths` and `exclude_paths` use [doublestar][] style paths.
 * `/tmp/**/*.log` will match all subfolders of `tmp` and include any files that end in `*.log`.
 * `/tmp/apache/*.log` will match only files in `/tmp/apache/` that end in `*.log`.
-* `/tmp/**` will match all subfolders of `tmp` and `tmp` itself and all files.
+* `/tmp/**` will match all subfolders of `tmp`, `tmp` itself, and all files.
 
 
 ## Exported fields
@@ -62,12 +62,12 @@ values.
 
 ## Examples
 
-This example discovers all files and folders under `/tmp/logs` and the absolute paths are 
+This example discovers all files and folders under `/tmp/logs`. The absolute paths are 
 used by `loki.source.file.files` targets.
 
 ```river
 discovery.file "files" {
-    paths = [{"__path__": /tmp/logs/**/*.log"}]
+    paths = [{"__path__" = "/tmp/logs/**/*.log"}]
 }
 loki.source.file "files" {
     targets = discovery.file.files.targets
