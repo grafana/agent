@@ -11,6 +11,8 @@ import (
 	mimirClient "github.com/grafana/agent/pkg/mimir/client"
 	"github.com/grafana/dskit/crypto/tls"
 	promListers "github.com/prometheus-operator/prometheus-operator/pkg/client/listers/monitoring/v1"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/weaveworks/common/instrument"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/informers"
@@ -59,6 +61,60 @@ type Component struct {
 	ruleSelector      labels.Selector
 
 	currentState map[string][]mimirClient.RuleGroup
+
+	metrics *metrics
+}
+
+type metrics struct {
+	configUpdatesTotal prometheus.Counter
+
+	eventsTotal   *prometheus.CounterVec
+	eventsFailed  *prometheus.CounterVec
+	eventsRetried *prometheus.CounterVec
+
+	mimirClientTiming *prometheus.HistogramVec
+}
+
+func (m *metrics) Register(r prometheus.Registerer) error {
+	r.MustRegister(
+		m.configUpdatesTotal,
+		m.eventsTotal,
+		m.eventsFailed,
+		m.eventsRetried,
+		m.mimirClientTiming,
+	)
+	return nil
+}
+
+func newMetrics() *metrics {
+	return &metrics{
+		configUpdatesTotal: prometheus.NewCounter(prometheus.CounterOpts{
+			Subsystem: "mimir_rules",
+			Name:      "config_updates_total",
+			Help:      "Total number of times the configuration has been updated.",
+		}),
+		eventsTotal: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Subsystem: "mimir_rules",
+			Name:      "events_total",
+			Help:      "Total number of events processed, partitioned by event type.",
+		}, []string{"type"}),
+		eventsFailed: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Subsystem: "mimir_rules",
+			Name:      "events_failed_total",
+			Help:      "Total number of events that failed to be processed, even after retries, partitioned by event type.",
+		}, []string{"type"}),
+		eventsRetried: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Subsystem: "mimir_rules",
+			Name:      "events_retried_total",
+			Help:      "Total number of retries across all events, partitioned by event type.",
+		}, []string{"type"}),
+		mimirClientTiming: prometheus.NewHistogramVec(prometheus.HistogramOpts{
+			Subsystem: "mimir_rules",
+			Name:      "mimir_client_request_duration_seconds",
+			Help:      "Duration of requests to the Mimir API.",
+			Buckets:   instrument.DefBuckets,
+		}, instrument.HistogramCollectorBuckets),
+	}
 }
 
 type ConfigUpdate struct {
@@ -71,12 +127,17 @@ var _ component.DebugComponent = (*Component)(nil)
 
 func NewComponent(o component.Options, c Arguments) (*Component, error) {
 	setDefaultArguments(&c)
+
+	metrics := newMetrics()
+	metrics.Register(o.Registerer)
+
 	return &Component{
 		log:           o.Logger,
 		opts:          o,
 		args:          c,
 		configUpdates: make(chan ConfigUpdate),
 		ticker:        time.NewTicker(c.SyncInterval),
+		metrics:       metrics,
 	}, nil
 }
 
@@ -89,6 +150,7 @@ func (c *Component) Run(ctx context.Context) error {
 	for {
 		select {
 		case update := <-c.configUpdates:
+			c.metrics.configUpdatesTotal.Inc()
 			c.shutdown()
 
 			c.args = update.args
@@ -173,7 +235,7 @@ func (c *Component) init() error {
 		},
 		UseLegacyRoutes: c.args.ClientParams.UseLegacyRoutes,
 		AuthToken:       string(c.args.ClientParams.AuthToken),
-	})
+	}, c.metrics.mimirClientTiming)
 	if err != nil {
 		return err
 	}

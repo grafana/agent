@@ -62,11 +62,14 @@ func (c *Component) eventLoop(ctx context.Context) {
 			return
 		}
 
-		err := c.processEvent(ctx, event.(Event))
+		evt := event.(Event)
+		c.metrics.eventsTotal.WithLabelValues(string(evt.Type)).Inc()
+		err := c.processEvent(ctx, evt)
 
 		if err != nil {
 			retries := c.queue.NumRequeues(event)
 			if retries < 5 {
+				c.metrics.eventsRetried.WithLabelValues(string(evt.Type)).Inc()
 				c.queue.AddRateLimited(event)
 				level.Error(c.log).Log(
 					"msg", "failed to process event, will retry",
@@ -75,6 +78,7 @@ func (c *Component) eventLoop(ctx context.Context) {
 				)
 				continue
 			} else {
+				c.metrics.eventsFailed.WithLabelValues(string(evt.Type)).Inc()
 				level.Error(c.log).Log(
 					"msg", "failed to process event, max retries exceeded",
 					"retries", fmt.Sprintf("%d/5", retries),
