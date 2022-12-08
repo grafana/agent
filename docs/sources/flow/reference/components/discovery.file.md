@@ -62,7 +62,7 @@ values.
 
 ## Examples
 
-This example discovers all files and folders under `/tmp/logs` and the absolute paths are 
+This example discovers all files and folders under `/tmp/logs`. The absolute paths are 
 used by `loki.source.file.files` targets.
 
 ```river
