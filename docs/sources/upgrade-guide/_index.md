@@ -16,19 +16,15 @@ These changes will come in a future version.
 
 ### Breaking change: `ebpf_exporter` integration removed
 
-The `ebpf_exporter` version bundled in the Agent has been using [bcc][] to
-compile eBPF programs at runtime. This made it hard to run successfully, as the
+The `ebpf_exporter` version bundled in the Agent used [bcc][] to compile eBPF
+programs at runtime. This made it hard to run successfully, as the
 dynamic linking approach required a compiler, the correct kernel headers, as
-as well as exactly-matching version of the libbpf toolchain on the host system.
-For these reasons, we've decided to remove the `ebpf_exporter` integration.
+well as an exact match of the libbpf toolchain on the host system.  For these
+reasons, we've decided to remove the `ebpf_exporter` integration.
 
 Running the `ebpf_exporter` integration is now deprecated and will result in
 configuration errors. To continue using the same configuration file, remove the
 `ebpf` block.
-
-In the future, we might consider looking into v2 of `cloudflare/ebpf_exporter`
-which makes use of CO-RE and may lighten the burden of running ebpf programs
-and exporting metrics from them.
 
 [bcc]: https://github.com/iovisor/bcc
 

@@ -11,10 +11,6 @@ Main (unreleased)
 -----------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
-> carefully and consult the [upgrade guide](https://grafana.com/docs/agent/latest/upgrade-guide/)
-> for specific instructions.
-
-> **DEPRECATIONS**: This release has deprecations. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
 
 ### Breaking changes
