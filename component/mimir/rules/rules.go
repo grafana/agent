@@ -18,6 +18,7 @@ import (
 	coreListers "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/util/workqueue"
+	_ "k8s.io/component-base/metrics/prometheus/workqueue"
 	controller "sigs.k8s.io/controller-runtime"
 
 	promExternalVersions "github.com/prometheus-operator/prometheus-operator/pkg/client/informers/externalversions"
@@ -113,7 +114,7 @@ func (c *Component) startup(ctx context.Context) error {
 		return err
 	}
 
-	c.queue = workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
+	c.queue = workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "mimir.rules")
 	c.informerStopChan = make(chan struct{})
 
 	c.startNamespaceInformer()
