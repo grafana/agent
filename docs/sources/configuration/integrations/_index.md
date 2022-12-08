@@ -104,9 +104,6 @@ mongodb_exporter: <mongodb_exporter_config>
 # Controls the github_exporter integration
 github_exporter: <github_exporter_config>
 
-# Controls the ebpf integration
-ebpf: <ebpf_config>
-
 # Controls the blackbox_exporter integration
 blackbox: <blackbox_config>
 

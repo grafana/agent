@@ -19,6 +19,9 @@ Main (unreleased)
   `AGENT_MODE=flow`. Support for `EXPERIMENTAL_ENABLE_FLOW` will be removed in
   v0.32. (@rfratto)
 
+- The `ebpf_exporter` integration has been removed due to issues with static
+  linking. It may be brought back once these are resolved. (@tpaschalis)
+
 ### Features
 
 - `grafana-agent-operator` supports oauth2 as an authentication method for

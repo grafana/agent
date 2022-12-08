@@ -5,7 +5,6 @@ go 1.19
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.4.2
 	github.com/Shopify/sarama v1.37.2
-	github.com/cloudflare/ebpf_exporter v1.2.5
 	github.com/cortexproject/cortex v1.11.0
 	github.com/davidmparrott/kafka_exporter/v2 v2.0.1
 	github.com/docker/docker v20.10.21+incompatible
