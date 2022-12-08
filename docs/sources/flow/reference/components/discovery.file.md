@@ -31,7 +31,7 @@ Name | Type           | Description                                             
 `paths` and `exclude_paths` use [doublestar][] style paths.
 * `/tmp/**/*.log` will match all subfolders of `tmp` and include any files that end in `*.log`.
 * `/tmp/apache/*.log` will match only files in `/tmp/apache/` that end in `*.log`.
-* `/tmp/**` will match all subfolders of `tmp` and `tmp` itself and all files.
+* `/tmp/**` will match all subfolders of `tmp`, `tmp` itself, and all files.
 
 
 ## Exported fields
