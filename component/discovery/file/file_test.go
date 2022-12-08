@@ -1,7 +1,6 @@
 package file
 
 import (
-	"io/ioutil"
 	"os"
 	"path"
 	"strings"
@@ -78,7 +77,7 @@ func TestAddingFileInSubDir(t *testing.T) {
 	subdir := path.Join(dir, "subdir")
 	os.Mkdir(subdir, 0755)
 	time.Sleep(20 * time.Millisecond)
-	err := ioutil.WriteFile(path.Join(subdir, "t3.txt"), []byte("asdf"), 0664)
+	err := os.WriteFile(path.Join(subdir, "t3.txt"), []byte("asdf"), 0664)
 	require.NoError(t, err)
 	time.Sleep(20 * time.Millisecond)
 	ct.Done()
@@ -107,7 +106,7 @@ func TestAddingRemovingFileInSubDir(t *testing.T) {
 	subdir := path.Join(dir, "subdir")
 	os.Mkdir(subdir, 0755)
 	time.Sleep(100 * time.Millisecond)
-	err := ioutil.WriteFile(path.Join(subdir, "t3.txt"), []byte("asdf"), 0664)
+	err := os.WriteFile(path.Join(subdir, "t3.txt"), []byte("asdf"), 0664)
 	require.NoError(t, err)
 	time.Sleep(100 * time.Millisecond)
 	foundFiles := c.getWatchedFiles()
@@ -183,7 +182,7 @@ func contains(sources []discovery.Target, match string) bool {
 }
 
 func writeFile(t *testing.T, dir string, name string) {
-	err := ioutil.WriteFile(path.Join(dir, name), []byte("asdf"), 0664)
+	err := os.WriteFile(path.Join(dir, name), []byte("asdf"), 0664)
 	require.NoError(t, err)
 	time.Sleep(20 * time.Millisecond)
 }
