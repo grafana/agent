@@ -24,8 +24,8 @@ The following arguments are supported:
 
 Name | Type           | Description                                                              | Default | Required
 ---- |----------------|--------------------------------------------------------------------------|-----| --------
-`paths` | `list(string)` | Doublestar compatible paths to search.                                   |     | yes
-`exclude_paths` | `list(string)` | Doublestar compatible paths to exclude, exclude_paths supercedes paths . |     | no
+`paths` | `list(map(string))` | Doublestar compatible paths to search, looks for keys with `__path__`.    |     | yes
+`exclude_paths` | `list(map(string))` | Doublestar compatible paths to exclude, exclude_paths supercedes paths, looks for keys with `__path_exclude__` . |     | no
 `update_period` | `duration`     | How often to sync filesystem and targets.                                | `"10s"` | no
 
 `paths` and `exclude_paths` use [doublestar][] style paths.
@@ -67,7 +67,7 @@ used by `loki.source.file.files` targets.
 
 ```river
 discovery.file "files" {
-    paths = ["/tmp/logs/**/*.log"]
+    paths = [{"__path__": /tmp/logs/**/*.log"}]
 }
 loki.source.file "files" {
     targets = discovery.file.files.targets

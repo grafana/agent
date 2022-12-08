@@ -29,9 +29,37 @@ func init() {
 // Arguments holds values which are used to configure the discovery.file
 // component.
 type Arguments struct {
-	Paths         []string      `river:"paths,attr"`
-	ExcludedPaths []string      `river:"excluded_paths,attr,optional"`
-	UpdatePeriod  time.Duration `river:"update_period,attr,optional"`
+	Paths         []discovery.Target `river:"paths,attr"`
+	ExcludedPaths []discovery.Target `river:"excluded_paths,attr,optional"`
+	UpdatePeriod  time.Duration      `river:"update_period,attr,optional"`
+}
+
+func (a *Arguments) getPaths() []string {
+	paths := make([]string, 0)
+	index := 0
+	for _, v := range a.Paths {
+		val, found := v["__path__"]
+		if !found {
+			continue
+		}
+		paths = append(paths, val)
+		index++
+	}
+	return paths
+}
+
+func (a *Arguments) getExcluded() []string {
+	paths := make([]string, 0)
+	index := 0
+	for _, v := range a.Paths {
+		val, found := v["__path_exclude__"]
+		if !found {
+			continue
+		}
+		paths = append(paths, val)
+		index++
+	}
+	return paths
 }
 
 // Exports exposes targets.
@@ -139,7 +167,9 @@ func (c *Component) Run(ctx context.Context) error {
 // reconcileWatchesWithWatcher checks for any new directories that have been added along with verifying
 // that the args and watchers are in sync.
 func (c *Component) reconcileWatchesWithWatcher() {
-	expandedPaths, err := getPaths(c.args.Paths)
+	includedPaths := c.args.getPaths()
+	excludedPaths := c.args.getExcluded()
+	expandedPaths, err := getPaths(includedPaths)
 	if err != nil {
 		level.Error(c.opts.Logger).Log("msg", "error expanding paths", "err", err)
 		return
@@ -167,7 +197,7 @@ func (c *Component) reconcileWatchesWithWatcher() {
 			}
 		} else {
 			exclude := false
-			for _, excluded := range c.args.ExcludedPaths {
+			for _, excluded := range excludedPaths {
 				if match, _ := doublestar.Match(excluded, n); match {
 					exclude = true
 					break
@@ -199,7 +229,7 @@ func (c *Component) reconcileWatchesWithWatcher() {
 			filesToRemove = append(filesToRemove, p)
 		}
 		// Scan to see if we need to exclude any new files.
-		for _, exclude := range c.args.ExcludedPaths {
+		for _, exclude := range excludedPaths {
 			matched, _ := doublestar.PathMatch(exclude, p)
 			if matched {
 				filesToRemove = append(filesToRemove, p)
@@ -213,7 +243,7 @@ func (c *Component) reconcileWatchesWithWatcher() {
 	for _, p := range filesToRemove {
 		cleaned := filepath.Dir(p)
 		// Check to see if there are paths we no longer need to watch.
-		for _, exclude := range c.args.ExcludedPaths {
+		for _, exclude := range excludedPaths {
 			excludeDir, _ := doublestar.PathMatch(exclude, cleaned)
 			if excludeDir {
 				_ = c.watcher.Remove(cleaned)
@@ -250,7 +280,7 @@ func (c *Component) fsnotifyTrigger(fe fsnotify.Event) {
 				level.Error(c.opts.Logger).Log("msg", "error adding to watcher", "folder", fe.Name, "err", err)
 			}
 		} else {
-			for _, p := range c.args.Paths {
+			for _, p := range c.args.getPaths() {
 				match, err := doublestar.Match(p, fe.Name)
 				if err != nil {
 					level.Error(c.opts.Logger).Log("msg", "error matching pattern", "err", err)
