@@ -52,6 +52,9 @@ func (m *fakeMimirClient) DeleteRuleGroup(ctx context.Context, namespace, group 
 
 func (m *fakeMimirClient) deleteLocked(namespace, group string) {
 	for ns, v := range m.rules {
+		if namespace != "" && namespace != ns {
+			continue
+		}
 		for i, g := range v {
 			if g.Name == group {
 				m.rules[ns] = append(m.rules[ns][:i], m.rules[ns][i+1:]...)
