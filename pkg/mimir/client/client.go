@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,7 +12,6 @@ import (
 	"strings"
 
 	log "github.com/go-kit/log"
-	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/config"
 	weaveworksClient "github.com/weaveworks/common/http/client"
@@ -98,7 +98,7 @@ func (r *MimirClient) doRequest(operation, path, method string, payload []byte) 
 
 	if err := checkResponse(resp); err != nil {
 		_ = resp.Body.Close()
-		return nil, errors.Wrapf(err, "%s request to %s failed", req.Method, req.URL.String())
+		return nil, fmt.Errorf("error %s %s: %w", method, path, err)
 	}
 
 	return resp, nil

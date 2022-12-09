@@ -10,7 +10,6 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	mimirClient "github.com/grafana/agent/pkg/mimir/client"
-	"github.com/pkg/errors"
 	promListers "github.com/prometheus-operator/prometheus-operator/pkg/client/listers/monitoring/v1"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/weaveworks/common/instrument"
@@ -131,7 +130,10 @@ var _ component.HealthComponent = (*Component)(nil)
 
 func NewComponent(o component.Options, args Arguments) (*Component, error) {
 	metrics := newMetrics()
-	metrics.Register(o.Registerer)
+	err := metrics.Register(o.Registerer)
+	if err != nil {
+		return nil, fmt.Errorf("registering metrics failed: %w", err)
+	}
 
 	c := &Component{
 		log:           o.Logger,
@@ -142,16 +144,20 @@ func NewComponent(o component.Options, args Arguments) (*Component, error) {
 		metrics:       metrics,
 	}
 
-	err := c.init()
+	err = c.init()
 	if err != nil {
-		return nil, errors.Wrap(err, "initializing component")
+		return nil, fmt.Errorf("initializing component failed: %w", err)
 	}
 
 	return c, nil
 }
 
 func (c *Component) Run(ctx context.Context) error {
-	c.startup(ctx)
+	err := c.startup(ctx)
+	if err != nil {
+		level.Error(c.log).Log("msg", "starting up component failed", "err", err)
+		c.reportUnhealthy(err)
+	}
 
 	for {
 		select {
@@ -161,13 +167,22 @@ func (c *Component) Run(ctx context.Context) error {
 
 			c.args = update.args
 			err := c.init()
-			update.err <- err
 			if err != nil {
 				level.Error(c.log).Log("msg", "updating configuration failed", "err", err)
 				c.reportUnhealthy(err)
+				update.err <- err
+				continue
 			}
 
-			c.startup(ctx)
+			err = c.startup(ctx)
+			if err != nil {
+				level.Error(c.log).Log("msg", "updating configuration failed", "err", err)
+				c.reportUnhealthy(err)
+				update.err <- err
+				continue
+			}
+
+			update.err <- nil
 		case <-ctx.Done():
 			c.shutdown()
 			return nil
@@ -180,14 +195,18 @@ func (c *Component) Run(ctx context.Context) error {
 }
 
 // startup launches the informers and starts the event loop.
-func (c *Component) startup(ctx context.Context) {
+func (c *Component) startup(ctx context.Context) error {
 	c.queue = workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "mimir.rules.kubernetes")
 	c.informerStopChan = make(chan struct{})
 
 	c.startNamespaceInformer()
 	c.startRuleInformer()
-	c.syncMimir(ctx)
+	err := c.syncMimir(ctx)
+	if err != nil {
+		return err
+	}
 	go c.eventLoop(ctx)
+	return nil
 }
 
 func (c *Component) shutdown() {

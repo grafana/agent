@@ -158,7 +158,6 @@ func requireEqualRuleDiffs(t *testing.T, expected, actual map[string][]ruleGroup
 				t.Logf("actual diff: %s", summarizeDiff(actualDiff))
 				t.Fail()
 			}
-
 		}
 	}
 }

@@ -139,6 +139,9 @@ func (c *Component) reconcileState(ctx context.Context) error {
 	defer cancel()
 
 	desiredState, err := c.loadStateFromK8s()
+	if err != nil {
+		return err
+	}
 
 	diffs, err := diffRuleState(desiredState, c.currentState)
 	if err != nil {
@@ -238,16 +241,14 @@ func (c *Component) applyChanges(ctx context.Context, namespace string, diffs []
 	}
 
 	// resync mimir state after applying changes
-	c.syncMimir(ctx)
-
-	return nil
+	return c.syncMimir(ctx)
 }
 
 // mimirNamespaceForRuleCRD returns the namespace that the rule CRD should be
 // stored in mimir. This function, along with isManagedNamespace, is used to
 // determine if a rule CRD is managed by the agent.
 func mimirNamespaceForRuleCRD(prefix string, pr *promv1.PrometheusRule) string {
-	return fmt.Sprintf("agent/%s/%s/%s", pr.Namespace, pr.Name, pr.UID)
+	return fmt.Sprintf("%s/%s/%s/%s", prefix, pr.Namespace, pr.Name, pr.UID)
 }
 
 // isManagedMimirNamespace returns true if the namespace is managed by the agent.

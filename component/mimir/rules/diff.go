@@ -31,10 +31,7 @@ func diffRuleState(desired map[string][]mimirClient.RuleGroup, actual map[string
 		seen[namespace] = true
 
 		actualRuleGroups := actual[namespace]
-		subDiff, err := diffRuleNamespaceState(desiredRuleGroups, actualRuleGroups)
-		if err != nil {
-			return nil, err
-		}
+		subDiff := diffRuleNamespaceState(desiredRuleGroups, actualRuleGroups)
 
 		if len(subDiff) == 0 {
 			continue
@@ -48,10 +45,7 @@ func diffRuleState(desired map[string][]mimirClient.RuleGroup, actual map[string
 			continue
 		}
 
-		subDiff, err := diffRuleNamespaceState(nil, actualRuleGroups)
-		if err != nil {
-			return nil, err
-		}
+		subDiff := diffRuleNamespaceState(nil, actualRuleGroups)
 
 		diff[namespace] = subDiff
 	}
@@ -59,7 +53,7 @@ func diffRuleState(desired map[string][]mimirClient.RuleGroup, actual map[string
 	return diff, nil
 }
 
-func diffRuleNamespaceState(desired []mimirClient.RuleGroup, actual []mimirClient.RuleGroup) ([]ruleGroupDiff, error) {
+func diffRuleNamespaceState(desired []mimirClient.RuleGroup, actual []mimirClient.RuleGroup) []ruleGroupDiff {
 	var diff []ruleGroupDiff
 
 	seenGroups := map[string]bool{}
@@ -100,7 +94,7 @@ desiredGroups:
 		})
 	}
 
-	return diff, nil
+	return diff
 }
 
 func equalRuleGroups(a, b mimirClient.RuleGroup) bool {

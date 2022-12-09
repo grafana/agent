@@ -91,5 +91,4 @@ func TestBuildURL(t *testing.T) {
 			require.Equal(t, tt.resultURL, req.URL.String())
 		})
 	}
-
 }
