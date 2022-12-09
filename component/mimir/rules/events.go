@@ -17,26 +17,29 @@ import (
 
 // This type must be hashable, so it is kept simple. The indexer will maintain a
 // cache of current state, so this is mostly used for logging.
-type Event struct {
-	Type      EventType
-	ObjectKey string
+type event struct {
+	typ       eventType
+	objectKey string
 }
 
-type EventType string
+type eventType string
 
 const (
-	EventTypeResourceChanged EventType = "resource-changed"
-	EventTypeSyncMimir       EventType = "sync-mimir"
+	eventTypeResourceChanged eventType = "resource-changed"
+	eventTypeSyncMimir       eventType = "sync-mimir"
 )
 
+// OnAdd implements the cache.ResourceEventHandler interface.
 func (c *Component) OnAdd(obj interface{}) {
 	c.publishEvent(obj)
 }
 
+// OnUpdate implements the cache.ResourceEventHandler interface.
 func (c *Component) OnUpdate(oldObj, newObj interface{}) {
 	c.publishEvent(newObj)
 }
 
+// OnDelete implements the cache.ResourceEventHandler interface.
 func (c *Component) OnDelete(obj interface{}) {
 	c.publishEvent(obj)
 }
@@ -48,29 +51,29 @@ func (c *Component) publishEvent(obj interface{}) {
 		return
 	}
 
-	c.queue.AddRateLimited(Event{
-		Type:      EventTypeResourceChanged,
-		ObjectKey: key,
+	c.queue.AddRateLimited(event{
+		typ:       eventTypeResourceChanged,
+		objectKey: key,
 	})
 }
 
 func (c *Component) eventLoop(ctx context.Context) {
 	for {
-		event, shutdown := c.queue.Get()
+		eventInterface, shutdown := c.queue.Get()
 		if shutdown {
 			level.Info(c.log).Log("msg", "shutting down event loop")
 			return
 		}
 
-		evt := event.(Event)
-		c.metrics.eventsTotal.WithLabelValues(string(evt.Type)).Inc()
+		evt := eventInterface.(event)
+		c.metrics.eventsTotal.WithLabelValues(string(evt.typ)).Inc()
 		err := c.processEvent(ctx, evt)
 
 		if err != nil {
-			retries := c.queue.NumRequeues(event)
+			retries := c.queue.NumRequeues(evt)
 			if retries < 5 {
-				c.metrics.eventsRetried.WithLabelValues(string(evt.Type)).Inc()
-				c.queue.AddRateLimited(event)
+				c.metrics.eventsRetried.WithLabelValues(string(evt.typ)).Inc()
+				c.queue.AddRateLimited(evt)
 				level.Error(c.log).Log(
 					"msg", "failed to process event, will retry",
 					"retries", fmt.Sprintf("%d/5", retries),
@@ -78,40 +81,46 @@ func (c *Component) eventLoop(ctx context.Context) {
 				)
 				continue
 			} else {
-				c.metrics.eventsFailed.WithLabelValues(string(evt.Type)).Inc()
+				c.metrics.eventsFailed.WithLabelValues(string(evt.typ)).Inc()
 				level.Error(c.log).Log(
 					"msg", "failed to process event, max retries exceeded",
 					"retries", fmt.Sprintf("%d/5", retries),
 					"err", err,
 				)
+				c.reportUnhealthy(err)
 			}
+		} else {
+			c.reportHealthy()
 		}
 
-		c.queue.Forget(event)
+		c.queue.Forget(evt)
 	}
 }
 
-func (c *Component) processEvent(ctx context.Context, e Event) error {
+func (c *Component) processEvent(ctx context.Context, e event) error {
 	defer c.queue.Done(e)
 
-	switch e.Type {
-	case EventTypeResourceChanged:
-		level.Info(c.log).Log("msg", "processing event", "type", e.Type, "key", e.ObjectKey)
-	case EventTypeSyncMimir:
+	switch e.typ {
+	case eventTypeResourceChanged:
+		level.Info(c.log).Log("msg", "processing event", "type", e.typ, "key", e.objectKey)
+	case eventTypeSyncMimir:
 		level.Debug(c.log).Log("msg", "syncing current state from ruler")
-		c.syncMimir(ctx)
+		err := c.syncMimir(ctx)
+		if err != nil {
+			return err
+		}
 	default:
-		return fmt.Errorf("unknown event type: %s", e.Type)
+		return fmt.Errorf("unknown event type: %s", e.typ)
 	}
 
 	return c.reconcileState(ctx)
 }
 
-func (c *Component) syncMimir(ctx context.Context) {
+func (c *Component) syncMimir(ctx context.Context) error {
 	rulesByNamespace, err := c.mimirClient.ListRules(ctx, "")
 	if err != nil {
 		level.Error(c.log).Log("msg", "failed to list rules from mimir", "err", err)
-		return
+		return err
 	}
 
 	for ns := range rulesByNamespace {
@@ -122,7 +131,7 @@ func (c *Component) syncMimir(ctx context.Context) {
 
 	c.currentState = rulesByNamespace
 
-	return
+	return nil
 }
 
 func (c *Component) reconcileState(ctx context.Context) error {
@@ -198,26 +207,26 @@ func convertCRDRuleGroupToRuleGroup(crd promv1.PrometheusRuleSpec) ([]mimirClien
 	return mimirGroups, nil
 }
 
-func (c *Component) applyChanges(ctx context.Context, namespace string, diffs []RuleGroupDiff) error {
+func (c *Component) applyChanges(ctx context.Context, namespace string, diffs []ruleGroupDiff) error {
 	if len(diffs) == 0 {
 		return nil
 	}
 
 	for _, diff := range diffs {
 		switch diff.Kind {
-		case RuleGroupDiffKindAdd:
+		case ruleGroupDiffKindAdd:
 			err := c.mimirClient.CreateRuleGroup(ctx, namespace, diff.Desired)
 			if err != nil {
 				return err
 			}
 			level.Info(c.log).Log("msg", "added rule group", "namespace", namespace, "group", diff.Desired.Name)
-		case RuleGroupDiffKindRemove:
+		case ruleGroupDiffKindRemove:
 			err := c.mimirClient.DeleteRuleGroup(ctx, namespace, diff.Actual.Name)
 			if err != nil {
 				return err
 			}
 			level.Info(c.log).Log("msg", "removed rule group", "namespace", namespace, "group", diff.Actual.Name)
-		case RuleGroupDiffKindUpdate:
+		case ruleGroupDiffKindUpdate:
 			err := c.mimirClient.CreateRuleGroup(ctx, namespace, diff.Desired)
 			if err != nil {
 				return err

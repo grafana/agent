@@ -117,6 +117,7 @@ func TestEventLoop(t *testing.T) {
 		ruleSelector:      labels.Everything(),
 		mimirClient:       newFakeMimirClient(),
 		args:              Arguments{MimirNameSpacePrefix: "agent"},
+		metrics:           newMetrics(),
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -133,7 +134,7 @@ func TestEventLoop(t *testing.T) {
 	require.Eventually(t, func() bool {
 		return len(handler.currentState) == 1
 	}, time.Second, 10*time.Millisecond)
-	handler.queue.AddRateLimited(Event{Type: EventTypeSyncMimir})
+	handler.queue.AddRateLimited(event{typ: eventTypeSyncMimir})
 
 	// Update the rule in kubernetes
 	rule.Spec.Groups[0].Rules = append(rule.Spec.Groups[0].Rules, v1.Rule{
@@ -148,7 +149,7 @@ func TestEventLoop(t *testing.T) {
 		rules := handler.currentState[mimirNamespaceForRuleCRD("agent", rule)][0].Rules
 		return len(rules) == 2
 	}, time.Second, 10*time.Millisecond)
-	handler.queue.AddRateLimited(Event{Type: EventTypeSyncMimir})
+	handler.queue.AddRateLimited(event{typ: eventTypeSyncMimir})
 
 	// Remove the rule from kubernetes
 	ruleIndexer.Delete(rule)

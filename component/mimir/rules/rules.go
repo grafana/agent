@@ -3,13 +3,14 @@ package rules
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	mimirClient "github.com/grafana/agent/pkg/mimir/client"
-	"github.com/grafana/dskit/crypto/tls"
+	"github.com/pkg/errors"
 	promListers "github.com/prometheus-operator/prometheus-operator/pkg/client/listers/monitoring/v1"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/weaveworks/common/instrument"
@@ -29,9 +30,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "mimir.rules",
+		Name:    "mimir.rules.kubernetes",
 		Args:    Arguments{},
-		Exports: Exports{},
+		Exports: nil,
 		Build: func(o component.Options, c component.Arguments) (component.Component, error) {
 			return NewComponent(o, c.(Arguments))
 		},
@@ -62,7 +63,9 @@ type Component struct {
 
 	currentState map[string][]mimirClient.RuleGroup
 
-	metrics *metrics
+	metrics   *metrics
+	healthMut sync.RWMutex
+	health    component.Health
 }
 
 type metrics struct {
@@ -124,28 +127,31 @@ type ConfigUpdate struct {
 
 var _ component.Component = (*Component)(nil)
 var _ component.DebugComponent = (*Component)(nil)
+var _ component.HealthComponent = (*Component)(nil)
 
-func NewComponent(o component.Options, c Arguments) (*Component, error) {
-	setDefaultArguments(&c)
-
+func NewComponent(o component.Options, args Arguments) (*Component, error) {
 	metrics := newMetrics()
 	metrics.Register(o.Registerer)
 
-	return &Component{
+	c := &Component{
 		log:           o.Logger,
 		opts:          o,
-		args:          c,
+		args:          args,
 		configUpdates: make(chan ConfigUpdate),
-		ticker:        time.NewTicker(c.SyncInterval),
+		ticker:        time.NewTicker(args.SyncInterval),
 		metrics:       metrics,
-	}, nil
+	}
+
+	err := c.init()
+	if err != nil {
+		return nil, errors.Wrap(err, "initializing component")
+	}
+
+	return c, nil
 }
 
 func (c *Component) Run(ctx context.Context) error {
-	err := c.startup(ctx)
-	if err != nil {
-		return err
-	}
+	c.startup(ctx)
 
 	for {
 		select {
@@ -154,36 +160,34 @@ func (c *Component) Run(ctx context.Context) error {
 			c.shutdown()
 
 			c.args = update.args
-			err := c.startup(ctx)
+			err := c.init()
 			update.err <- err
 			if err != nil {
-				return err
+				level.Error(c.log).Log("msg", "updating configuration failed", "err", err)
+				c.reportUnhealthy(err)
 			}
+
+			c.startup(ctx)
 		case <-ctx.Done():
 			c.shutdown()
 			return nil
 		case <-c.ticker.C:
-			c.queue.Add(Event{
-				Type: EventTypeSyncMimir,
+			c.queue.Add(event{
+				typ: eventTypeSyncMimir,
 			})
 		}
 	}
 }
 
-func (c *Component) startup(ctx context.Context) error {
-	err := c.init()
-	if err != nil {
-		return err
-	}
-
-	c.queue = workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "mimir.rules")
+// startup launches the informers and starts the event loop.
+func (c *Component) startup(ctx context.Context) {
+	c.queue = workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "mimir.rules.kubernetes")
 	c.informerStopChan = make(chan struct{})
 
 	c.startNamespaceInformer()
 	c.startRuleInformer()
 	c.syncMimir(ctx)
 	go c.eventLoop(ctx)
-	return nil
 }
 
 func (c *Component) shutdown() {
@@ -203,12 +207,12 @@ func (c *Component) Update(newConfig component.Arguments) error {
 func (c *Component) init() error {
 	level.Info(c.log).Log("msg", "initializing with new configuration")
 
-	setDefaultArguments(&c.args)
-
 	// TODO: allow overriding some stuff in RestConfig and k8s client options?
-	restConfig := controller.GetConfigOrDie()
+	restConfig, err := controller.GetConfig()
+	if err != nil {
+		return fmt.Errorf("failed to get k8s config: %w", err)
+	}
 
-	var err error
 	c.k8sClient, err = kubernetes.NewForConfig(restConfig)
 	if err != nil {
 		return fmt.Errorf("failed to create k8s client: %w", err)
@@ -219,22 +223,13 @@ func (c *Component) init() error {
 		return fmt.Errorf("failed to create prometheus operator client: %w", err)
 	}
 
+	httpClient := c.args.HTTPClientConfig.Convert()
+
 	c.mimirClient, err = mimirClient.New(c.log, mimirClient.Config{
-		User:    c.args.ClientParams.User,
-		Key:     string(c.args.ClientParams.Key),
-		Address: c.args.ClientParams.Address,
-		ID:      c.args.ClientParams.ID,
-		TLS: tls.ClientConfig{
-			CertPath:           c.args.ClientParams.TLS.CertPath,
-			KeyPath:            c.args.ClientParams.TLS.KeyPath,
-			CAPath:             c.args.ClientParams.TLS.CAPath,
-			ServerName:         c.args.ClientParams.TLS.ServerName,
-			InsecureSkipVerify: c.args.ClientParams.TLS.InsecureSkipVerify,
-			CipherSuites:       c.args.ClientParams.TLS.CipherSuites,
-			MinVersion:         c.args.ClientParams.TLS.MinVersion,
-		},
-		UseLegacyRoutes: c.args.ClientParams.UseLegacyRoutes,
-		AuthToken:       string(c.args.ClientParams.AuthToken),
+		ID:               c.args.TenantID,
+		Address:          c.args.Address,
+		UseLegacyRoutes:  c.args.UseLegacyRoutes,
+		HTTPClientConfig: *httpClient,
 	}, c.metrics.mimirClientTiming)
 	if err != nil {
 		return err

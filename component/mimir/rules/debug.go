@@ -4,20 +4,20 @@ import "fmt"
 
 type DebugInfo struct {
 	Error               string                   `river:"error,attr,optional"`
-	PrometheusRules     []DebugK8sPrometheusRule `river:"prometheusRules,attr,optional"`
-	MimirRuleNamespaces []DebugMimirNamespace    `river:"mimirRuleNamespaces,attr,optional"`
+	PrometheusRules     []DebugK8sPrometheusRule `river:"prometheus_rule,block,optional"`
+	MimirRuleNamespaces []DebugMimirNamespace    `river:"mimir_rule_namespace,block,optional"`
 }
 
 type DebugK8sPrometheusRule struct {
 	Namespace     string `river:"namespace,attr"`
 	Name          string `river:"name,attr"`
 	UID           string `river:"uid,attr"`
-	NumRuleGroups int    `river:"numRuleGroups,attr"`
+	NumRuleGroups int    `river:"num_rule_groups,attr"`
 }
 
 type DebugMimirNamespace struct {
 	Name          string `river:"name,attr"`
-	NumRuleGroups int    `river:"numRuleGroups,attr"`
+	NumRuleGroups int    `river:"num_rule_groups,attr"`
 }
 
 func (c *Component) DebugInfo() interface{} {

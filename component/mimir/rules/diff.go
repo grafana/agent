@@ -8,24 +8,24 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type RuleGroupDiffKind string
+type ruleGroupDiffKind string
 
 const (
-	RuleGroupDiffKindAdd    RuleGroupDiffKind = "add"
-	RuleGroupDiffKindRemove RuleGroupDiffKind = "remove"
-	RuleGroupDiffKindUpdate RuleGroupDiffKind = "update"
+	ruleGroupDiffKindAdd    ruleGroupDiffKind = "add"
+	ruleGroupDiffKindRemove ruleGroupDiffKind = "remove"
+	ruleGroupDiffKindUpdate ruleGroupDiffKind = "update"
 )
 
-type RuleGroupDiff struct {
-	Kind    RuleGroupDiffKind
+type ruleGroupDiff struct {
+	Kind    ruleGroupDiffKind
 	Actual  mimirClient.RuleGroup
 	Desired mimirClient.RuleGroup
 }
 
-func diffRuleState(desired map[string][]mimirClient.RuleGroup, actual map[string][]mimirClient.RuleGroup) (map[string][]RuleGroupDiff, error) {
+func diffRuleState(desired map[string][]mimirClient.RuleGroup, actual map[string][]mimirClient.RuleGroup) (map[string][]ruleGroupDiff, error) {
 	seen := map[string]bool{}
 
-	diff := make(map[string][]RuleGroupDiff)
+	diff := make(map[string][]ruleGroupDiff)
 
 	for namespace, desiredRuleGroups := range desired {
 		seen[namespace] = true
@@ -59,8 +59,8 @@ func diffRuleState(desired map[string][]mimirClient.RuleGroup, actual map[string
 	return diff, nil
 }
 
-func diffRuleNamespaceState(desired []mimirClient.RuleGroup, actual []mimirClient.RuleGroup) ([]RuleGroupDiff, error) {
-	var diff []RuleGroupDiff
+func diffRuleNamespaceState(desired []mimirClient.RuleGroup, actual []mimirClient.RuleGroup) ([]ruleGroupDiff, error) {
+	var diff []ruleGroupDiff
 
 	seenGroups := map[string]bool{}
 
@@ -74,8 +74,8 @@ desiredGroups:
 					continue desiredGroups
 				}
 
-				diff = append(diff, RuleGroupDiff{
-					Kind:    RuleGroupDiffKindUpdate,
+				diff = append(diff, ruleGroupDiff{
+					Kind:    ruleGroupDiffKindUpdate,
 					Actual:  actualRuleGroup,
 					Desired: desiredRuleGroup,
 				})
@@ -83,8 +83,8 @@ desiredGroups:
 			}
 		}
 
-		diff = append(diff, RuleGroupDiff{
-			Kind:    RuleGroupDiffKindAdd,
+		diff = append(diff, ruleGroupDiff{
+			Kind:    ruleGroupDiffKindAdd,
 			Desired: desiredRuleGroup,
 		})
 	}
@@ -94,8 +94,8 @@ desiredGroups:
 			continue
 		}
 
-		diff = append(diff, RuleGroupDiff{
-			Kind:   RuleGroupDiffKindRemove,
+		diff = append(diff, ruleGroupDiff{
+			Kind:   ruleGroupDiffKindRemove,
 			Actual: actualRuleGroup,
 		})
 	}

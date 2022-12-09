@@ -47,7 +47,7 @@ groups:
 		name     string
 		desired  map[string][]mimirClient.RuleGroup
 		actual   map[string][]mimirClient.RuleGroup
-		expected map[string][]RuleGroupDiff
+		expected map[string][]ruleGroupDiff
 	}
 
 	testCases := []testCase{
@@ -55,7 +55,7 @@ groups:
 			name:     "empty sets",
 			desired:  map[string][]mimirClient.RuleGroup{},
 			actual:   map[string][]mimirClient.RuleGroup{},
-			expected: map[string][]RuleGroupDiff{},
+			expected: map[string][]ruleGroupDiff{},
 		},
 		{
 			name: "add rule group",
@@ -63,10 +63,10 @@ groups:
 				managedNamespace: ruleGroupsA,
 			},
 			actual: map[string][]mimirClient.RuleGroup{},
-			expected: map[string][]RuleGroupDiff{
+			expected: map[string][]ruleGroupDiff{
 				managedNamespace: {
 					{
-						Kind:    RuleGroupDiffKindAdd,
+						Kind:    ruleGroupDiffKindAdd,
 						Desired: ruleGroupsA[0],
 					},
 				},
@@ -78,10 +78,10 @@ groups:
 			actual: map[string][]mimirClient.RuleGroup{
 				managedNamespace: ruleGroupsA,
 			},
-			expected: map[string][]RuleGroupDiff{
+			expected: map[string][]ruleGroupDiff{
 				managedNamespace: {
 					{
-						Kind:   RuleGroupDiffKindRemove,
+						Kind:   ruleGroupDiffKindRemove,
 						Actual: ruleGroupsA[0],
 					},
 				},
@@ -95,10 +95,10 @@ groups:
 			actual: map[string][]mimirClient.RuleGroup{
 				managedNamespace: ruleGroupsAModified,
 			},
-			expected: map[string][]RuleGroupDiff{
+			expected: map[string][]ruleGroupDiff{
 				managedNamespace: {
 					{
-						Kind:    RuleGroupDiffKindUpdate,
+						Kind:    ruleGroupDiffKindUpdate,
 						Desired: ruleGroupsA[0],
 						Actual:  ruleGroupsAModified[0],
 					},
@@ -113,7 +113,7 @@ groups:
 			actual: map[string][]mimirClient.RuleGroup{
 				managedNamespace: ruleGroupsA,
 			},
-			expected: map[string][]RuleGroupDiff{},
+			expected: map[string][]ruleGroupDiff{},
 		},
 	}
 
@@ -126,16 +126,16 @@ groups:
 	}
 }
 
-func requireEqualRuleDiffs(t *testing.T, expected, actual map[string][]RuleGroupDiff) {
+func requireEqualRuleDiffs(t *testing.T, expected, actual map[string][]ruleGroupDiff) {
 	require.Equal(t, len(expected), len(actual))
 
-	var summarizeDiff = func(diff RuleGroupDiff) string {
+	var summarizeDiff = func(diff ruleGroupDiff) string {
 		switch diff.Kind {
-		case RuleGroupDiffKindAdd:
+		case ruleGroupDiffKindAdd:
 			return fmt.Sprintf("add: %s", diff.Desired.Name)
-		case RuleGroupDiffKindRemove:
+		case ruleGroupDiffKindRemove:
 			return fmt.Sprintf("remove: %s", diff.Actual.Name)
-		case RuleGroupDiffKindUpdate:
+		case ruleGroupDiffKindUpdate:
 			return fmt.Sprintf("update: %s", diff.Desired.Name)
 		}
 		panic("unreachable")
