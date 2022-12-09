@@ -143,11 +143,7 @@ func (c *Component) reconcileState(ctx context.Context) error {
 		return err
 	}
 
-	diffs, err := diffRuleState(desiredState, c.currentState)
-	if err != nil {
-		return err
-	}
-
+	diffs := diffRuleState(desiredState, c.currentState)
 	errs := multierror.New()
 	for ns, diff := range diffs {
 		err = c.applyChanges(ctx, ns, diff)

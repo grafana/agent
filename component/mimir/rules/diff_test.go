@@ -119,8 +119,7 @@ groups:
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			actual, err := diffRuleState(tc.desired, tc.actual)
-			require.NoError(t, err)
+			actual := diffRuleState(tc.desired, tc.actual)
 			requireEqualRuleDiffs(t, tc.expected, actual)
 		})
 	}

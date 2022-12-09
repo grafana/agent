@@ -22,7 +22,7 @@ type ruleGroupDiff struct {
 	Desired mimirClient.RuleGroup
 }
 
-func diffRuleState(desired map[string][]mimirClient.RuleGroup, actual map[string][]mimirClient.RuleGroup) (map[string][]ruleGroupDiff, error) {
+func diffRuleState(desired map[string][]mimirClient.RuleGroup, actual map[string][]mimirClient.RuleGroup) map[string][]ruleGroupDiff {
 	seen := map[string]bool{}
 
 	diff := make(map[string][]ruleGroupDiff)
@@ -50,7 +50,7 @@ func diffRuleState(desired map[string][]mimirClient.RuleGroup, actual map[string
 		diff[namespace] = subDiff
 	}
 
-	return diff, nil
+	return diff
 }
 
 func diffRuleNamespaceState(desired []mimirClient.RuleGroup, actual []mimirClient.RuleGroup) []ruleGroupDiff {
