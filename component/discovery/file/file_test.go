@@ -131,7 +131,7 @@ func TestExclude(t *testing.T) {
 	t.Cleanup(func() {
 		os.RemoveAll(dir)
 	})
-	c := createComponent(t, dir, []string{path.Join(dir, "**/*.txt")}, []string{path.Join(dir, "**/*.bad")})
+	c := createComponent(t, dir, []string{path.Join(dir, "**", "*.txt")}, []string{path.Join(dir, "**", "*.bad")})
 	ct := context.Background()
 	ct, _ = context.WithTimeout(ct, 40*time.Second)
 	c.args.UpdatePeriod = 10 * time.Millisecond
