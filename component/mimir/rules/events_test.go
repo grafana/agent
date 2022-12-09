@@ -3,6 +3,7 @@ package rules
 import (
 	"context"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
@@ -22,7 +23,8 @@ import (
 )
 
 type fakeMimirClient struct {
-	rules map[string][]mimirClient.RuleGroup
+	rulesMut sync.RWMutex
+	rules    map[string][]mimirClient.RuleGroup
 }
 
 var _ mimirClient.Interface = &fakeMimirClient{}
@@ -34,12 +36,21 @@ func newFakeMimirClient() *fakeMimirClient {
 }
 
 func (m *fakeMimirClient) CreateRuleGroup(ctx context.Context, namespace string, rule mimirClient.RuleGroup) error {
-	m.DeleteRuleGroup(ctx, namespace, rule.Name)
+	m.rulesMut.Lock()
+	defer m.rulesMut.Unlock()
+	m.deleteLocked(namespace, rule.Name)
 	m.rules[namespace] = append(m.rules[namespace], rule)
 	return nil
 }
 
 func (m *fakeMimirClient) DeleteRuleGroup(ctx context.Context, namespace, group string) error {
+	m.rulesMut.Lock()
+	defer m.rulesMut.Unlock()
+	m.deleteLocked(namespace, group)
+	return nil
+}
+
+func (m *fakeMimirClient) deleteLocked(namespace, group string) {
 	for ns, v := range m.rules {
 		for i, g := range v {
 			if g.Name == group {
@@ -49,14 +60,15 @@ func (m *fakeMimirClient) DeleteRuleGroup(ctx context.Context, namespace, group 
 					delete(m.rules, ns)
 				}
 
-				return nil
+				return
 			}
 		}
 	}
-	return nil
 }
 
 func (m *fakeMimirClient) ListRules(ctx context.Context, namespace string) (map[string][]mimirClient.RuleGroup, error) {
+	m.rulesMut.RLock()
+	defer m.rulesMut.RUnlock()
 	output := make(map[string][]mimirClient.RuleGroup)
 	for ns, v := range m.rules {
 		if namespace != "" && namespace != ns {
@@ -132,7 +144,9 @@ func TestEventLoop(t *testing.T) {
 
 	// Wait for the rule to be added to mimir
 	require.Eventually(t, func() bool {
-		return len(handler.currentState) == 1
+		rules, err := handler.mimirClient.ListRules(ctx, "")
+		require.NoError(t, err)
+		return len(rules) == 1
 	}, time.Second, 10*time.Millisecond)
 	handler.queue.AddRateLimited(event{typ: eventTypeSyncMimir})
 
@@ -146,7 +160,9 @@ func TestEventLoop(t *testing.T) {
 
 	// Wait for the rule to be updated in mimir
 	require.Eventually(t, func() bool {
-		rules := handler.currentState[mimirNamespaceForRuleCRD("agent", rule)][0].Rules
+		allRules, err := handler.mimirClient.ListRules(ctx, "")
+		require.NoError(t, err)
+		rules := allRules[mimirNamespaceForRuleCRD("agent", rule)][0].Rules
 		return len(rules) == 2
 	}, time.Second, 10*time.Millisecond)
 	handler.queue.AddRateLimited(event{typ: eventTypeSyncMimir})
@@ -157,6 +173,8 @@ func TestEventLoop(t *testing.T) {
 
 	// Wait for the rule to be removed from mimir
 	require.Eventually(t, func() bool {
-		return len(handler.currentState) == 0
+		rules, err := handler.mimirClient.ListRules(ctx, "")
+		require.NoError(t, err)
+		return len(rules) == 0
 	}, time.Second, 10*time.Millisecond)
 }
