@@ -19,7 +19,9 @@ blocks are applied to the label set of each log entry in order of their
 appearance in the configuration file.
 
 If you're looking for a way to process the log entry contents, take a look at
-the `loki.process` component instead.
+[the `loki.process` component][loki.process] instead.
+
+[loki.process]: {{< relref "./loki.process.md" >}}
 
 Multiple `loki.relabel` components can be specified by giving them
 different labels.
