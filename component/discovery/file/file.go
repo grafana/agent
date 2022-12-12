@@ -94,7 +94,6 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		return nil, err
 	}
 	c.watcher = watcher
-	// Call to Update() to start readers and set receivers once at the start.
 	if err := c.Update(args); err != nil {
 		return nil, err
 	}
@@ -325,7 +324,17 @@ func (c *Component) getWatchedFiles() []discovery.Target {
 
 	foundFiles := make([]discovery.Target, 0)
 	for k := range c.watchedFiles {
-		foundFiles = append(foundFiles, discovery.Target{"__path__": k})
+		// This means that if a single file matches multiple outputs it will create targets with same path but different labels.
+		for _, inc := range c.args.Paths {
+			if match, _ := doublestar.PathMatch(inc["__path__"], k); match {
+				dt := discovery.Target{}
+				for dk, v := range inc {
+					dt[dk] = v
+				}
+				dt["__path__"] = k
+				foundFiles = append(foundFiles, dt)
+			}
+		}
 	}
 	return foundFiles
 }
