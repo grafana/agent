@@ -10,7 +10,6 @@ import (
 	"github.com/grafana/agent/component/discovery"
 
 	"github.com/bmatcuk/doublestar"
-	"github.com/fsnotify/fsnotify"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 )
@@ -75,7 +74,6 @@ type Component struct {
 
 	mut            sync.RWMutex
 	args           Arguments
-	watcher        *fsnotify.Watcher
 	watchesUpdated bool
 	watchedFiles   map[string]struct{}
 }
@@ -89,11 +87,6 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		watchedFiles: make(map[string]struct{}),
 	}
 
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		return nil, err
-	}
-	c.watcher = watcher
 	if err := c.Update(args); err != nil {
 		return nil, err
 	}
@@ -144,20 +137,10 @@ func (c *Component) Run(ctx context.Context) error {
 	defer watchDog.Stop()
 	for {
 		select {
-		case fe := <-c.watcher.Events:
-			c.fsnotifyTrigger(fe)
-		case err := <-c.watcher.Errors:
-			level.Error(c.opts.Logger).Log("msg", "error with fsnotify", "err", err)
 		case <-watchDog.C:
 			// This triggers a check for any new paths, along with pushing new targets.
 			update()
 		case <-ctx.Done():
-			c.mut.Lock()
-			err := c.watcher.Close()
-			if err != nil {
-				level.Error(c.opts.Logger).Log("msg", "error closing watcher", "err", err)
-			}
-			c.mut.Unlock()
 			return nil
 		}
 	}
@@ -173,11 +156,6 @@ func (c *Component) reconcileWatchesWithWatcher() {
 		level.Error(c.opts.Logger).Log("msg", "error expanding paths", "err", err)
 		return
 	}
-	alreadyWatching := c.watcher.WatchList()
-	alreadyWatchingDir := make(map[string]struct{})
-	for _, p := range alreadyWatching {
-		alreadyWatchingDir[p] = struct{}{}
-	}
 	// Ensure all the paths are added.
 	for _, n := range expandedPaths {
 		fi, fileErr := os.Stat(n)
@@ -186,32 +164,20 @@ func (c *Component) reconcileWatchesWithWatcher() {
 			continue
 		}
 		if fi.IsDir() {
-			// Check to see if we are already watching.
-			if _, found := alreadyWatchingDir[n]; found {
-				continue
-			}
-			err = c.watcher.Add(n)
-			if err != nil {
-				level.Error(c.opts.Logger).Log("msg", "error adding path to watcher", "err", err)
-			}
-		} else {
-			exclude := false
-			for _, excluded := range excludedPaths {
-				if match, _ := doublestar.Match(excluded, n); match {
-					exclude = true
-					break
-				}
-			}
-			if exclude {
-				continue
-			}
-			c.addToWatchedFiles(n)
-			dir := filepath.Dir(n)
-			err = c.watcher.Add(dir)
-			if err != nil {
-				level.Error(c.opts.Logger).Log("msg", "error adding path to watcher", "err", err)
+			continue
+		}
+		exclude := false
+		for _, excluded := range excludedPaths {
+			if match, _ := doublestar.Match(excluded, n); match {
+				exclude = true
+				break
 			}
 		}
+		if exclude {
+			continue
+		}
+		c.addToWatchedFiles(n)
+
 	}
 	// Find all the removed paths.
 	filesToRemove := make([]string, 0)
@@ -223,7 +189,6 @@ func (c *Component) reconcileWatchesWithWatcher() {
 				break
 			}
 		}
-
 		if !found {
 			filesToRemove = append(filesToRemove, p)
 		}
@@ -235,20 +200,11 @@ func (c *Component) reconcileWatchesWithWatcher() {
 			}
 		}
 	}
-
 	if len(filesToRemove) > 0 {
 		c.watchesUpdated = true
 	}
 	for _, p := range filesToRemove {
-		cleaned := filepath.Dir(p)
-		// Check to see if there are paths we no longer need to watch.
-		for _, exclude := range excludedPaths {
-			excludeDir, _ := doublestar.PathMatch(exclude, cleaned)
-			if excludeDir {
-				_ = c.watcher.Remove(cleaned)
-			}
-		}
-		delete(c.watchedFiles, p)
+		c.removeFromWatched(p)
 	}
 }
 
@@ -265,39 +221,6 @@ func (c *Component) checkOnStateChanged() {
 		i++
 	}
 	c.opts.OnStateChange(Exports{Targets: output})
-}
-
-func (c *Component) fsnotifyTrigger(fe fsnotify.Event) {
-	c.mut.Lock()
-	defer c.mut.Unlock()
-
-	if fe.Has(fsnotify.Create) {
-		fi, _ := os.Stat(fe.Name)
-		if fi.IsDir() {
-			err := c.watcher.Add(fe.Name)
-			if err != nil {
-				level.Error(c.opts.Logger).Log("msg", "error adding to watcher", "folder", fe.Name, "err", err)
-			}
-		} else {
-			for _, p := range c.args.getPaths() {
-				match, err := doublestar.Match(p, fe.Name)
-				if err != nil {
-					level.Error(c.opts.Logger).Log("msg", "error matching pattern", "err", err)
-				}
-				if match {
-					c.addToWatchedFiles(p)
-					break
-				}
-			}
-		}
-	} else if fe.Has(fsnotify.Remove) {
-		for k := range c.watchedFiles {
-			if k == fe.Name {
-				c.removeFromWatched(k)
-				break
-			}
-		}
-	}
 }
 
 func (c *Component) addToWatchedFiles(fp string) {
