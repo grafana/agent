@@ -74,3 +74,51 @@ loki.source.file "files" {
     forward_to = []
 }
 ```
+
+### Kubernetes
+
+This example finds all the logs on pods and monitors them.
+
+```river
+discovery.kubernetes "k8s" {
+  role = "pod"
+}
+
+discovery.relabel "k8s" {
+  targets = discovery.kubernetes.k8s.targets
+ 
+  rule {
+    source_labels = ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_label_name"]
+    target_label  = "job"
+    separator     = "/"
+  }
+
+  rule {
+    source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
+    target_label  = "__path__"
+    separator     = "/" 
+    replacement   = "/var/log/pods/*$1/*.log"
+  } 
+}
+
+discovery.file "files" {
+    paths = discovery.relabel.k8s.output
+}
+
+loki.source.file "files" {
+    targets = discovery.file.files.targets
+    forward_to = [loki.write.endpoint.receiver]
+}
+
+loki.write "endpoint" {
+    endpoint {
+        url = "LOKI_PATH"
+        http_client_config {
+            basic_auth {
+                username = USERNAME
+                password = "PASSWORD"
+            }
+        }
+    }
+}
+```
