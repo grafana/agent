@@ -1,0 +1,8 @@
+FROM grafana/agent-build-image:latest-windows
+
+COPY . /src/agent
+WORKDIR /src/agent
+
+RUN go build ./cmd/agent
+
+ENTRYPOINT "ping -t localhost"
