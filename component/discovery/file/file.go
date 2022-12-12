@@ -177,7 +177,6 @@ func (c *Component) reconcileWatchesWithWatcher() {
 			continue
 		}
 		c.addToWatchedFiles(n)
-
 	}
 	// Find all the removed paths.
 	filesToRemove := make([]string, 0)
