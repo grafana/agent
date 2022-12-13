@@ -17,8 +17,8 @@ import (
 )
 
 const (
-	rulerAPIPath  = "/api/v1/rules"
-	legacyAPIPath = "/api/prom/rules"
+	rulerAPIPath  = "/prometheus/config/v1/rules"
+	legacyAPIPath = "/api/v1/rules"
 )
 
 var (
@@ -26,7 +26,7 @@ var (
 	ErrResourceNotFound = errors.New("requested resource not found")
 )
 
-// Config is used to configure a Ruler Client
+// Config is used to configure a MimirClient.
 type Config struct {
 	User            string `yaml:"user"`
 	Key             string `yaml:"key"`
@@ -37,8 +37,8 @@ type Config struct {
 	AuthToken       string `yaml:"auth_token"`
 }
 
-// CortexClient is used to get and load rules into a cortex ruler
-type CortexClient struct {
+// MimirClient is a client to the Mimir API.
+type MimirClient struct {
 	user      string
 	key       string
 	id        string
@@ -48,8 +48,8 @@ type CortexClient struct {
 	authToken string
 }
 
-// New returns a new Client
-func New(cfg Config) (*CortexClient, error) {
+// New returns a new MimirClient.
+func New(cfg Config) (*MimirClient, error) {
 	endpoint, err := url.Parse(cfg.Address)
 	if err != nil {
 		return nil, err
@@ -86,7 +86,7 @@ func New(cfg Config) (*CortexClient, error) {
 		path = legacyAPIPath
 	}
 
-	return &CortexClient{
+	return &MimirClient{
 		user:      cfg.User,
 		key:       cfg.Key,
 		id:        cfg.ID,
@@ -97,13 +97,11 @@ func New(cfg Config) (*CortexClient, error) {
 	}, nil
 }
 
-// Query executes a PromQL query against the Cortex cluster.
-func (r *CortexClient) Query(ctx context.Context, query string) (*http.Response, error) {
+// Query executes a PromQL query against the Mimir cluster.
+func (r *MimirClient) Query(ctx context.Context, query string) (*http.Response, error) {
+	req := fmt.Sprintf("/prometheus/api/v1/query?query=%s&time=%d", url.QueryEscape(query), time.Now().Unix())
 
-	query = fmt.Sprintf("query=%s&time=%d", query, time.Now().Unix())
-	escapedQuery := url.PathEscape(query)
-
-	res, err := r.doRequest("/api/prom/api/v1/query?"+escapedQuery, "GET", nil)
+	res, err := r.doRequest(req, "GET", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +109,7 @@ func (r *CortexClient) Query(ctx context.Context, query string) (*http.Response,
 	return res, nil
 }
 
-func (r *CortexClient) doRequest(path, method string, payload []byte) (*http.Response, error) {
+func (r *MimirClient) doRequest(path, method string, payload []byte) (*http.Response, error) {
 	req, err := buildRequest(path, method, *r.endpoint, payload)
 	if err != nil {
 		return nil, err
@@ -123,7 +121,7 @@ func (r *CortexClient) doRequest(path, method string, payload []byte) (*http.Res
 			"url":    req.URL.String(),
 			"method": req.Method,
 			"error":  err,
-		}).Errorln("error during request to cortex api")
+		}).Errorln("error during request to Mimir api")
 		return nil, err
 	}
 
@@ -142,7 +140,7 @@ func (r *CortexClient) doRequest(path, method string, payload []byte) (*http.Res
 	log.WithFields(log.Fields{
 		"url":    req.URL.String(),
 		"method": req.Method,
-	}).Debugln("sending request to cortex api")
+	}).Debugln("sending request to Mimir api")
 
 	resp, err := r.Client.Do(req)
 	if err != nil {
@@ -150,7 +148,7 @@ func (r *CortexClient) doRequest(path, method string, payload []byte) (*http.Res
 			"url":    req.URL.String(),
 			"method": req.Method,
 			"error":  err.Error(),
-		}).Errorln("error during request to cortex api")
+		}).Errorln("error during request to Mimir api")
 		return nil, err
 	}
 

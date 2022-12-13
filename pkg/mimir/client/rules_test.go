@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCortexClient_X(t *testing.T) {
+func TestMimirClient_X(t *testing.T) {
 	requestCh := make(chan *http.Request, 1)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -36,31 +36,31 @@ func TestCortexClient_X(t *testing.T) {
 			test:       "regular-characters",
 			namespace:  "my-namespace",
 			name:       "my-name",
-			expURLPath: "/api/v1/rules/my-namespace/my-name",
+			expURLPath: "/prometheus/config/v1/rules/my-namespace/my-name",
 		},
 		{
 			test:       "special-characters-spaces",
 			namespace:  "My: Namespace",
 			name:       "My: Name",
-			expURLPath: "/api/v1/rules/My:%20Namespace/My:%20Name",
+			expURLPath: "/prometheus/config/v1/rules/My:%20Namespace/My:%20Name",
 		},
 		{
 			test:       "special-characters-slashes",
 			namespace:  "My/Namespace",
 			name:       "My/Name",
-			expURLPath: "/api/v1/rules/My%2FNamespace/My%2FName",
+			expURLPath: "/prometheus/config/v1/rules/My%2FNamespace/My%2FName",
 		},
 		{
 			test:       "special-characters-slash-first",
 			namespace:  "My/Namespace",
 			name:       "/first-char-slash",
-			expURLPath: "/api/v1/rules/My%2FNamespace/%2Ffirst-char-slash",
+			expURLPath: "/prometheus/config/v1/rules/My%2FNamespace/%2Ffirst-char-slash",
 		},
 		{
-			test:       "special-characters-slash-first",
+			test:       "special-characters-slash-last",
 			namespace:  "My/Namespace",
 			name:       "last-char-slash/",
-			expURLPath: "/api/v1/rules/My%2FNamespace/last-char-slash%2F",
+			expURLPath: "/prometheus/config/v1/rules/My%2FNamespace/last-char-slash%2F",
 		},
 	} {
 		t.Run(tc.test, func(t *testing.T) {
@@ -69,7 +69,6 @@ func TestCortexClient_X(t *testing.T) {
 
 			req := <-requestCh
 			require.Equal(t, tc.expURLPath, req.URL.EscapedPath())
-
 		})
 	}
 
