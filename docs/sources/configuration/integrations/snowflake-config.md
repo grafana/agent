@@ -13,7 +13,7 @@ which is an embedded version of
 Full reference of options:
 
 ```yaml
-  # Enables the apache_http integration, allowing the Agent to automatically
+  # Enables the snowflake integration, allowing the Agent to automatically
   # collect metrics for the specified snowflake account.
   [enabled: <boolean> | default = false]
 
@@ -24,8 +24,8 @@ Full reference of options:
   [instance: <string>]
 
   # Automatically collect metrics from this integration. If disabled,
-  # the snowflake integration will be run but not scraped and thus not
-  # remote-written. Metrics for the integration will be exposed at
+  # the snowflake integration is run but not scraped and thus not
+  # remote-written. Metrics for the integration are exposed at
   # /integrations/snowflake/metrics and can be scraped by an external
   # process.
   [scrape_integration: <boolean> | default = <integrations_config.scrape_integrations>]
@@ -42,25 +42,25 @@ Full reference of options:
   relabel_configs:
     [- <relabel_config> ... ]
 
-  # Relabel metrics coming from the integration, allowing to drop series
-  # from the integration that you don't care about.
+  # Relabel metrics coming from the integration, lets you drop series
+  # from the integration that you don't care about from the integration.
   metric_relabel_configs:
     [ - <relabel_config> ... ]
 
-  # How frequent to truncate the WAL for this integration.
+  # How frequently the WAL is truncated for this integration.
   [wal_truncate_frequency: <duration> | default = "60m"]
 
   #
   # Exporter-specific configuration options
   #
      
-  # The account name of the snowflake account to monitor
+  # The account name of the snowflake account to monitor.
   account_name: <string>
 
   # Username for the database user used to scrape metrics.
   username: <string>
 
-  # Password for the database user used to scrape metrics
+  # Password for the database user used to scrape metrics.
   password: <string>
 
   # The warehouse to use when querying metrics. 

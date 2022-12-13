@@ -86,7 +86,7 @@ postgres_exporter: <postgres_exporter_config>
 # Controls the snmp_exporter integration
 snmp_exporter: <snmp_exporter_config>
 
-# Controls the snmp_exporter integration
+# Controls the snowflake integration
 snowflake: <snowflake_config>
 
 # Controls the statsd_exporter integration

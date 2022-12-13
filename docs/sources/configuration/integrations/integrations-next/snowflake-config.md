@@ -34,13 +34,13 @@ Configuration reference:
   # The default value for this integration is the configured account_name.
   [instance: <string> | default = <account_name>]
 
-  # The account name of the snowflake account to monitor
+  # The account name of the snowflake account to monitor.
   account_name: <string>
 
   # Username for the database user used to scrape metrics.
   username: <string>
 
-  # Password for the database user used to scrape metrics
+  # Password for the database user used to scrape metrics.
   password: <string>
 
   # The warehouse to use when querying metrics. 
