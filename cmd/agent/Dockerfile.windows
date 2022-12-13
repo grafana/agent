@@ -3,6 +3,16 @@ FROM grafana/agent-build-image:latest-windows
 COPY . /src/agent
 WORKDIR /src/agent
 
-RUN go build ./cmd/agent
+SHELL ["powershell", "-command"]
 
-ENTRYPOINT "ping -t localhost"
+# Make the agent. This little trick is to execute a bash command in windows
+RUN "New-Item -Path 'C:\Program Files\Git\cmd\git-make-agent' -ItemType File"
+RUN "Add-Content -Path 'C:\Program Files\Git\cmd\git-make-agent' -Value '#!/bin/bash'"
+RUN "Add-Content -Path 'C:\Program Files\Git\cmd\git-make-agent' -Value 'make agent'"
+RUN git make-agent
+
+RUN go env
+
+ENTRYPOINT ["ping -t -a localhost"]
+#ENTRYPOINT ["/src/agent"]
+#CMD ["--config.file=/src/agent/cmd/agent/agent-local-config.yaml", "--metrics.wal-directory=/src/agent/data"]
