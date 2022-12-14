@@ -29,9 +29,8 @@ func init() {
 // Arguments holds values which are used to configure the discovery.file
 // component.
 type Arguments struct {
-	Paths         []discovery.Target `river:"paths,attr"`
-	ExcludedPaths []discovery.Target `river:"excluded_paths,attr,optional"`
-	UpdatePeriod  time.Duration      `river:"update_period,attr,optional"`
+	Paths        []discovery.Target `river:"paths,attr"`
+	UpdatePeriod time.Duration      `river:"update_period,attr,optional"`
 }
 
 func (a *Arguments) getPaths() []string {

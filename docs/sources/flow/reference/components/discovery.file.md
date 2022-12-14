@@ -6,7 +6,7 @@ title: discovery.file
 
 # discovery.file
 
-`discovery.file` discovers files on the local filesystem using the [doublestar][] library.
+`discovery.file` discovers files on the local filesystem using glob patterns and the [doublestar][] library.
 
 [doublestar]: https://github.com/bmatcuk/doublestar
 
@@ -14,7 +14,7 @@ title: discovery.file
 
 ```river
 discovery.file "LABEL" {
-  paths = ["DOUBLESTAR_PATH"]
+  paths = [{"__path__" = "DOUBLESTAR_PATH"}]
 }
 ```
 
@@ -22,13 +22,12 @@ discovery.file "LABEL" {
 
 The following arguments are supported:
 
-Name | Type           | Description                                                              | Default | Required
----- |----------------|--------------------------------------------------------------------------|-----| --------
-`paths` | `list(string)` | Doublestar-compatible paths to search.                                   |     | yes
-`exclude_paths` | `list(string)` | Doublestar-compatible paths to exclude, exclude_paths supersedes paths . |     | no
-`update_period` | `duration`     | How often to sync filesystem and targets.                                | `"10s"` | no
+Name            | Type                | Description                                                                                   | Default | Required
+--------------- | ------------------- | --------------------------------------------------------------------------------------------- |---------| --------
+`paths`         | `list(map(string))` | Doublestar-compatible paths to search, looks for keys with `__path__` and `__exclude_path__`. |         | yes
+`update_period` | `duration`          | How often to sync filesystem and targets.                                                     | `"10s"` | no
 
-`paths` and `exclude_paths` use [doublestar][] style paths.
+`paths` uses [doublestar][] style paths.
 * `/tmp/**/*.log` will match all subfolders of `tmp` and include any files that end in `*.log`.
 * `/tmp/apache/*.log` will match only files in `/tmp/apache/` that end in `*.log`.
 * `/tmp/**` will match all subfolders of `tmp`, `tmp` itself, and all files.
