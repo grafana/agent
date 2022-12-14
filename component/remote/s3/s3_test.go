@@ -63,12 +63,15 @@ func TestWatchingFile(t *testing.T) {
 	go s3File.Run(ctx)
 
 	require.Eventually(t, func() bool {
+		health := s3File.CurrentHealth()
 		// This is due to race detector
 		mut.Lock()
 		defer mut.Unlock()
 		t.Logf("Output: %s", output)
+		t.Logf("S3 health: %s", health.Health)
+		t.Logf("S3 health message: %s", health.Message)
 		return output == "success!"
-	}, 10*time.Second, 100*time.Millisecond)
+	}, 2*time.Second, 100*time.Millisecond)
 
 	cancel()
 }
