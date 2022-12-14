@@ -1,6 +1,3 @@
-//go:build linux
-// +build linux
-
 package s3
 
 import (
@@ -66,8 +63,9 @@ func TestWatchingFile(t *testing.T) {
 		// This is due to race detector
 		mut.Lock()
 		defer mut.Unlock()
+		t.Logf("Output: %s", output)
 		return output == "success!"
-	}, 10*time.Second, 100*time.Millisecond, "Failed to watch file, output = %s", output)
+	}, 10*time.Second, 100*time.Millisecond)
 
 	cancel()
 }
