@@ -169,8 +169,8 @@ func TestMultiLabels(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 	foundFiles := c.getWatchedFiles()
 	require.Len(t, foundFiles, 2)
-	require.True(t, contains(foundFiles, "t1.txt"))
-	require.True(t, contains(foundFiles, "t1.txt"))
+	require.True(t, contains([]discovery.Target{foundFiles[0]}, "t1.txt"))
+	require.True(t, contains([]discovery.Target{foundFiles[1]}, "t1.txt"))
 }
 
 func createComponent(t *testing.T, dir string, paths []string, excluded []string) *Component {
