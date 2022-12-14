@@ -16,7 +16,7 @@ import (
 
 // writePositionFile is a fall back for Windows because renameio does not support Windows.
 // See https://github.com/google/renameio#windows-support
-func writePositionFile(filename string, positions map[string]string) error {
+func writePositionFile(filename string, positions map[Entry]string) error {
 	buf, err := yaml.Marshal(File{
 		Positions: positions,
 	})
