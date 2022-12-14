@@ -1,3 +1,6 @@
+//go:build linux
+// +build linux
+
 package s3
 
 import (
@@ -47,7 +50,7 @@ func TestWatchingFile(t *testing.T) {
 		Registerer: prometheus.NewRegistry(),
 	}, Arguments{
 		Path:          "s3://mybucket/test.txt",
-		PollFrequency: 10 * time.Second,
+		PollFrequency: 1 * time.Second,
 		IsSecret:      false,
 		Options: ClientOptions{
 			Endpoint:     srv.URL,
