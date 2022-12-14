@@ -1,6 +1,7 @@
 package file
 
 import (
+	"os"
 	"path/filepath"
 
 	"github.com/go-kit/log"
@@ -33,6 +34,14 @@ func (w *watch) getPaths() ([]discovery.Target, error) {
 		abs, err := filepath.Abs(m)
 		if err != nil {
 			level.Error(w.log).Log("msg", "error getting absolute path", "path", m, "err", err)
+			continue
+		}
+		fi, err := os.Stat(abs)
+		if err != nil {
+			level.Error(w.log).Log("msg", "error getting os stat", "path", abs, "err", err)
+			continue
+		}
+		if fi.IsDir() {
 			continue
 		}
 		dt := discovery.Target{}

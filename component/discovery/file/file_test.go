@@ -40,6 +40,27 @@ func TestFile(t *testing.T) {
 	require.True(t, contains(foundFiles, "t1.txt"))
 }
 
+func TestDirectoryFile(t *testing.T) {
+	dir := path.Join(os.TempDir(), "agent_testing", "t1")
+	subdir := path.Join(dir, "subdir")
+	err := os.MkdirAll(subdir, 0755)
+	require.NoError(t, err)
+	writeFile(t, subdir, "t1.txt")
+	t.Cleanup(func() {
+		os.RemoveAll(dir)
+	})
+	c := createComponent(t, dir, []string{path.Join(dir, "**/")}, nil)
+	ct := context.Background()
+	ct, _ = context.WithTimeout(ct, 5*time.Second)
+	c.args.SyncPeriod = 10 * time.Millisecond
+	go c.Run(ct)
+	time.Sleep(20 * time.Millisecond)
+	ct.Done()
+	foundFiles := c.getWatchedFiles()
+	require.Len(t, foundFiles, 1)
+	require.True(t, contains(foundFiles, "t1.txt"))
+}
+
 func TestAddingFile(t *testing.T) {
 	dir := path.Join(os.TempDir(), "agent_testing", "t2")
 	err := os.MkdirAll(dir, 0755)
