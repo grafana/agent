@@ -150,13 +150,48 @@ func TestExclude(t *testing.T) {
 	require.True(t, contains(foundFiles, "t3.txt"))
 }
 
+func TestMultiLabels(t *testing.T) {
+	dir := path.Join(os.TempDir(), "agent_testing", "t3")
+	os.MkdirAll(dir, 0755)
+	writeFile(t, dir, "t1.txt")
+	t.Cleanup(func() {
+		os.RemoveAll(dir)
+	})
+	c := createComponentWithLabels(t, dir, []string{path.Join(dir, "**", "*.txt"), path.Join(dir, "**", "*.txt")}, nil, map[string]string{
+		"foo":   "bar",
+		"fruit": "apple",
+	})
+	c.args.Paths[0]["newlabel"] = "test"
+	ct := context.Background()
+	ct, _ = context.WithTimeout(ct, 40*time.Second)
+	c.args.UpdatePeriod = 10 * time.Millisecond
+	go c.Run(ct)
+	time.Sleep(100 * time.Millisecond)
+	foundFiles := c.getWatchedFiles()
+	require.Len(t, foundFiles, 2)
+	require.True(t, contains(foundFiles, "t1.txt"))
+	require.True(t, contains(foundFiles, "t1.txt"))
+}
+
 func createComponent(t *testing.T, dir string, paths []string, excluded []string) *Component {
+	return createComponentWithLabels(t, dir, paths, excluded, nil)
+}
+
+func createComponentWithLabels(t *testing.T, dir string, paths []string, excluded []string, labels map[string]string) *Component {
 	tPaths := make([]discovery.Target, 0)
 	for _, p := range paths {
-		tPaths = append(tPaths, discovery.Target{"__path__": p})
+		tar := discovery.Target{"__path__": p}
+		for k, v := range labels {
+			tar[k] = v
+		}
+		tPaths = append(tPaths, tar)
 	}
 	for _, p := range excluded {
-		tPaths = append(tPaths, discovery.Target{"__path_exclude__": p})
+		tar := discovery.Target{"__path_exclude__": p}
+		for k, v := range labels {
+			tar[k] = v
+		}
+		tPaths = append(tPaths, tar)
 	}
 	l := util.TestLogger(t)
 	c, err := New(component.Options{
