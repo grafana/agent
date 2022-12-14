@@ -61,12 +61,14 @@ func TestWatchingFile(t *testing.T) {
 	require.NoError(t, err)
 	ctx, cancel := context.WithCancel(context.Background())
 	go s3File.Run(ctx)
-	time.Sleep(1 * time.Second)
 
-	// This is due to race detector
-	mut.Lock()
-	require.True(t, output == "success!")
-	mut.Unlock()
+	require.Eventually(t, func() bool {
+		// This is due to race detector
+		mut.Lock()
+		defer mut.Unlock()
+		return output == "success!"
+	}, 10*time.Second, 100*time.Millisecond, "Failed to watch file, output = %s", output)
+
 	cancel()
 }
 
