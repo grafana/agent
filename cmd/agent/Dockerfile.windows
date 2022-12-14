@@ -1,18 +1,28 @@
-FROM grafana/agent-build-image:latest-windows
+FROM grafana/agent-build-image:latest-windows as builder
 
 COPY . /src/agent
 WORKDIR /src/agent
 
-SHELL ["powershell", "-command"]
+SHELL ["cmd", "/C"]
+
+# Make the ui. This little trick is to execute a bash command in windows
+RUN powershell "New-Item -Path 'C:\src\agent\make-generate-ui.sh' -ItemType File; \
+    Add-Content -Path 'C:\src\agent\make-generate-ui.sh' -Value '#!/bin/bash'; \
+    Add-Content -Path 'C:\src\agent\make-generate-ui.sh' -Value 'make generate-ui'"
+RUN "C:\Program Files\git\bin\bash.exe" make-generate-ui.sh
 
 # Make the agent. This little trick is to execute a bash command in windows
-RUN "New-Item -Path 'C:\Program Files\Git\cmd\git-make-agent' -ItemType File"
-RUN "Add-Content -Path 'C:\Program Files\Git\cmd\git-make-agent' -Value '#!/bin/bash'"
-RUN "Add-Content -Path 'C:\Program Files\Git\cmd\git-make-agent' -Value 'make agent'"
-RUN git make-agent
+RUN powershell "New-Item -Path 'C:\src\agent\make-agent.sh' -ItemType File; \
+    Add-Content -Path 'C:\src\agent\make-agent.sh' -Value '#!/bin/bash'; \
+    Add-Content -Path 'C:\src\agent\make-agent.sh' -Value 'make agent'"
+RUN "C:\Program Files\git\bin\bash.exe" make-agent.sh
 
-RUN go env
+# Use the smallest container possible for the final image
+FROM mcr.microsoft.com/windows/nanoserver:1809
 
-ENTRYPOINT ["ping -t -a localhost"]
-#ENTRYPOINT ["/src/agent"]
-#CMD ["--config.file=/src/agent/cmd/agent/agent-local-config.yaml", "--metrics.wal-directory=/src/agent/data"]
+COPY --from=builder /src/agent/build/agent /agent
+COPY --from=builder /src/agent/cmd/agent/agent-local-config.yaml /agent.yaml
+
+#ENTRYPOINT "ping -t localhost"
+ENTRYPOINT ["/agent"]
+CMD ["--config.file=/agent.yaml", "--metrics.wal-directory=/data"]
