@@ -40,18 +40,20 @@ var _ component.Component = (*Component)(nil)
 type Component struct {
 	opts component.Options
 
-	mut     sync.RWMutex
-	args    Arguments
-	watches []watch
+	mut      sync.RWMutex
+	args     Arguments
+	watches  []watch
+	watchDog *time.Ticker
 }
 
 // New creates a new discovery.file component.
 func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{
-		opts:    o,
-		mut:     sync.RWMutex{},
-		args:    args,
-		watches: make([]watch, 0),
+		opts:     o,
+		mut:      sync.RWMutex{},
+		args:     args,
+		watches:  make([]watch, 0),
+		watchDog: time.NewTicker(args.SyncPeriod),
 	}
 
 	if err := c.Update(args); err != nil {
@@ -76,6 +78,10 @@ func (c *Component) Update(args component.Arguments) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 
+	// Check to see if our ticker timer needs to be reset.
+	if args.(Arguments).SyncPeriod != c.args.SyncPeriod {
+		c.watchDog.Reset(c.args.SyncPeriod)
+	}
 	c.args = args.(Arguments)
 	c.watches = c.watches[:0]
 	for _, v := range c.args.PathTargets {
@@ -84,13 +90,12 @@ func (c *Component) Update(args component.Arguments) error {
 			log:    c.opts.Logger,
 		})
 	}
+
 	return nil
 }
 
 // Run satisfies the component interface.
 func (c *Component) Run(ctx context.Context) error {
-	watchDog := time.NewTicker(c.args.SyncPeriod)
-	timerDuration := c.args.SyncPeriod
 	update := func() {
 		c.mut.Lock()
 		defer c.mut.Unlock()
@@ -99,18 +104,13 @@ func (c *Component) Run(ctx context.Context) error {
 		// The component node checks to see if exports have actually changed.
 		c.opts.OnStateChange(Exports{Targets: paths})
 
-		// Check to see if our ticker timer needs to be reset.
-		if timerDuration != c.args.SyncPeriod {
-			watchDog.Reset(c.args.SyncPeriod)
-			timerDuration = c.args.SyncPeriod
-		}
 	}
 	// Trigger initial check
 	update()
-	defer watchDog.Stop()
+	defer c.watchDog.Stop()
 	for {
 		select {
-		case <-watchDog.C:
+		case <-c.watchDog.C:
 			// This triggers a check for any new paths, along with pushing new targets.
 			update()
 		case <-ctx.Done():
