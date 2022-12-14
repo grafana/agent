@@ -56,6 +56,8 @@ Main (unreleased)
   - `loki.process` receives log entries from other `loki` components and runs
     one or more processing stages. (@tpaschalis)
 
+- Integrations: Introduce the `snowflake` integration. (@binaryfissiongames)
+
 ### Enhancements
 
 - Integrations: Always use direct connection in mongodb_exporter integration. (@v-zhuravlev)
