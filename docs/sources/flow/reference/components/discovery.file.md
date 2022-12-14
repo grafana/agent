@@ -14,7 +14,7 @@ title: discovery.file
 
 ```river
 discovery.file "LABEL" {
-  paths = [{"__path__" = "DOUBLESTAR_PATH"}]
+  path_targets = [{"__path__" = "DOUBLESTAR_PATH"}]
 }
 ```
 
@@ -24,10 +24,10 @@ The following arguments are supported:
 
 Name | Type           | Description                                                                                  | Default | Required
 ---- |----------------|----------------------------------------------------------------------------------------------|-----| --------
-`paths` | `list(map(string))` | Doublestar-compatible paths to search, looks for keys with `__path__` and `__exclude_path__`. |     | yes
-`update_period` | `duration`     | How often to sync filesystem and targets.                                                    | `"10s"` | no
+`path_targets` | `list(map(string))` | Doublestar-compatible paths to search, looks for keys with `__path__` and `__exclude_path__`. |     | yes
+`sync_period` | `duration`     | How often to sync filesystem and targets.                                                    | `"10s"` | no
 
-`paths` uses [doublestar][] style paths.
+`path_targets` uses [doublestar][] style paths.
 * `/tmp/**/*.log` will match all subfolders of `tmp` and include any files that end in `*.log`.
 * `/tmp/apache/*.log` will match only files in `/tmp/apache/` that end in `*.log`.
 * `/tmp/**` will match all subfolders of `tmp`, `tmp` itself, and all files.
@@ -66,7 +66,7 @@ used by `loki.source.file.files` targets.
 
 ```river
 discovery.file "files" {
-    paths = [{"__path__" = "/tmp/logs/**/*.log"}]
+    path_targets = [{"__path__" = "/tmp/logs/**/*.log"}]
 }
 loki.source.file "files" {
     targets = discovery.file.files.targets
@@ -101,7 +101,7 @@ discovery.relabel "k8s" {
 }
 
 discovery.file "files" {
-    paths = discovery.relabel.k8s.output
+    path_targets = discovery.relabel.k8s.output
 }
 
 loki.source.file "files" {
