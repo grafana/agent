@@ -3,13 +3,17 @@ package file
 import (
 	"path/filepath"
 
+	"github.com/go-kit/kit/log"
+
 	"github.com/bmatcuk/doublestar"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/discovery"
 )
 
 // watch handles a single discovery.target for file watching.
 type watch struct {
 	target discovery.Target
+	log    log.Logger
 }
 
 func (w *watch) getPaths() ([]discovery.Target, error) {
@@ -26,7 +30,11 @@ func (w *watch) getPaths() ([]discovery.Target, error) {
 				continue
 			}
 		}
-		abs, _ := filepath.Abs(m)
+		abs, err := filepath.Abs(m)
+		if err != nil {
+			level.Error(w.log).Log("msg", "error getting absolute path", "path", m, "err", err)
+			continue
+		}
 		dt := discovery.Target{}
 		for dk, v := range w.target {
 			dt[dk] = v

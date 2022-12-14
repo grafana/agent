@@ -81,6 +81,7 @@ func (c *Component) Update(args component.Arguments) error {
 	for _, v := range c.args.PathTargets {
 		c.watches = append(c.watches, watch{
 			target: v,
+			log:    c.opts.Logger,
 		})
 	}
 	return nil
