@@ -1,4 +1,4 @@
-FROM library/golang:1.19.4-nanoserver-1809
+FROM library/golang:1.19.4-windowsservercore-1809
 
 # below commands run from windows cmd.exe prefixed with `powershell -command`
 SHELL ["powershell", "-command"]
@@ -13,7 +13,7 @@ RUN Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointMa
 # TDM GCC - gcc compiler in windows
 # make - building with a Makefile
 # docker - building images
-#RUN choco install golang --version 1.19.4 -y
+# git - bash for windows
 
 # TDM GCC doesn't currently have a way to silently install
 RUN choco install 7zip --version 22.1 -y

@@ -20,9 +20,9 @@ RUN "C:\Program Files\git\bin\bash.exe" make-agent.sh
 # Use the smallest container possible for the final image
 FROM mcr.microsoft.com/windows/nanoserver:1809
 
-COPY --from=builder /src/agent/build/agent /agent
-COPY --from=builder /src/agent/cmd/agent/agent-local-config.yaml /agent.yaml
+COPY --from=builder /src/agent/build/agent /bin/agent
+COPY --from=builder /src/agent/cmd/agent/agent-local-config.yaml /etc/agent/agent.yaml
 
 #ENTRYPOINT "ping -t localhost"
-ENTRYPOINT ["/agent"]
-CMD ["--config.file=/agent.yaml", "--metrics.wal-directory=/data"]
+ENTRYPOINT ["/bin/agent"]
+CMD ["--config.file=/etc/agent/agent.yaml", "--metrics.wal-directory=/etc/agent/data"]
