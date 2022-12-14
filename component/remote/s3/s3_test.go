@@ -1,6 +1,3 @@
-//go:build linux
-// +build linux
-
 package s3
 
 import (
@@ -61,12 +58,13 @@ func TestWatchingFile(t *testing.T) {
 	require.NoError(t, err)
 	ctx, cancel := context.WithCancel(context.Background())
 	go s3File.Run(ctx)
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(1 * time.Millisecond)
 
 	// This is due to race detector
 	mut.Lock()
 	require.True(t, output == "success!")
 	mut.Unlock()
+	t.Log("msg", s3File.health.Message)
 	cancel()
 }
 
