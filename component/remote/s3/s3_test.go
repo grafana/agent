@@ -61,7 +61,7 @@ func TestWatchingFile(t *testing.T) {
 	require.NoError(t, err)
 	ctx, cancel := context.WithCancel(context.Background())
 	go s3File.Run(ctx)
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(1 * time.Second)
 
 	// This is due to race detector
 	mut.Lock()
