@@ -103,7 +103,6 @@ func (c *Component) Run(ctx context.Context) error {
 		paths := c.getWatchedFiles()
 		// The component node checks to see if exports have actually changed.
 		c.opts.OnStateChange(Exports{Targets: paths})
-
 	}
 	// Trigger initial check
 	update()
