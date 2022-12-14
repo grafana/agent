@@ -31,7 +31,7 @@ func TestFile(t *testing.T) {
 	c := createComponent(t, dir, []string{path.Join(dir, "*.txt")}, nil)
 	ct := context.Background()
 	ct, _ = context.WithTimeout(ct, 5*time.Second)
-	c.args.UpdatePeriod = 10 * time.Millisecond
+	c.args.SyncPeriod = 10 * time.Millisecond
 	go c.Run(ct)
 	time.Sleep(20 * time.Millisecond)
 	ct.Done()
@@ -52,7 +52,7 @@ func TestAddingFile(t *testing.T) {
 
 	ct := context.Background()
 	ct, _ = context.WithTimeout(ct, 40*time.Second)
-	c.args.UpdatePeriod = 10 * time.Millisecond
+	c.args.SyncPeriod = 10 * time.Millisecond
 	go c.Run(ct)
 	time.Sleep(20 * time.Millisecond)
 	writeFile(t, dir, "t2.txt")
@@ -73,7 +73,7 @@ func TestAddingFileInSubDir(t *testing.T) {
 	c := createComponent(t, dir, []string{path.Join(dir, "**", "*.txt")}, nil)
 	ct := context.Background()
 	ct, _ = context.WithTimeout(ct, 40*time.Second)
-	c.args.UpdatePeriod = 10 * time.Millisecond
+	c.args.SyncPeriod = 10 * time.Millisecond
 	go c.Run(ct)
 	time.Sleep(20 * time.Millisecond)
 	writeFile(t, dir, "t2.txt")
@@ -102,7 +102,7 @@ func TestAddingRemovingFileInSubDir(t *testing.T) {
 
 	ct := context.Background()
 	ct, _ = context.WithTimeout(ct, 40*time.Second)
-	c.args.UpdatePeriod = 10 * time.Millisecond
+	c.args.SyncPeriod = 10 * time.Millisecond
 	go c.Run(ct)
 	time.Sleep(20 * time.Millisecond)
 	writeFile(t, dir, "t2.txt")
@@ -137,7 +137,7 @@ func TestExclude(t *testing.T) {
 	c := createComponent(t, dir, []string{path.Join(dir, "**", "*.txt")}, []string{path.Join(dir, "**", "*.bad")})
 	ct := context.Background()
 	ct, _ = context.WithTimeout(ct, 40*time.Second)
-	c.args.UpdatePeriod = 10 * time.Millisecond
+	c.args.SyncPeriod = 10 * time.Millisecond
 	go c.Run(ct)
 	time.Sleep(100 * time.Millisecond)
 	subdir := path.Join(dir, "subdir")
@@ -161,10 +161,10 @@ func TestMultiLabels(t *testing.T) {
 		"foo":   "bar",
 		"fruit": "apple",
 	})
-	c.args.Paths[0]["newlabel"] = "test"
+	c.args.PathTargets[0]["newlabel"] = "test"
 	ct := context.Background()
 	ct, _ = context.WithTimeout(ct, 40*time.Second)
-	c.args.UpdatePeriod = 10 * time.Millisecond
+	c.args.SyncPeriod = 10 * time.Millisecond
 	go c.Run(ct)
 	time.Sleep(100 * time.Millisecond)
 	foundFiles := c.getWatchedFiles()
@@ -206,8 +206,8 @@ func createComponentWithLabels(t *testing.T, dir string, paths []string, exclude
 		HTTPListenAddr: "",
 		HTTPPath:       "",
 	}, Arguments{
-		Paths:        tPaths,
-		UpdatePeriod: 1 * time.Second,
+		PathTargets: tPaths,
+		SyncPeriod:  1 * time.Second,
 	})
 
 	require.NoError(t, err)
