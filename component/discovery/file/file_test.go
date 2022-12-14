@@ -155,9 +155,8 @@ func createComponent(t *testing.T, dir string, paths []string, excluded []string
 	for _, p := range paths {
 		tPaths = append(tPaths, discovery.Target{"__path__": p})
 	}
-	ePaths := make([]discovery.Target, 0)
 	for _, p := range excluded {
-		ePaths = append(ePaths, discovery.Target{"__path_exclude__": p})
+		tPaths = append(tPaths, discovery.Target{"__path_exclude__": p})
 	}
 	l := util.TestLogger(t)
 	c, err := New(component.Options{
@@ -172,9 +171,8 @@ func createComponent(t *testing.T, dir string, paths []string, excluded []string
 		HTTPListenAddr: "",
 		HTTPPath:       "",
 	}, Arguments{
-		Paths:         tPaths,
-		ExcludedPaths: ePaths,
-		UpdatePeriod:  1 * time.Second,
+		Paths:        tPaths,
+		UpdatePeriod: 1 * time.Second,
 	})
 
 	require.NoError(t, err)
