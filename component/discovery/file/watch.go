@@ -9,7 +9,7 @@ import (
 
 // watch handles a single discovery.target for file watching.
 type watch struct {
-	targets discovery.Target
+	target discovery.Target
 }
 
 func (w *watch) getPaths() ([]discovery.Target, error) {
@@ -28,7 +28,7 @@ func (w *watch) getPaths() ([]discovery.Target, error) {
 		}
 		abs, _ := filepath.Abs(m)
 		dt := discovery.Target{}
-		for dk, v := range w.targets {
+		for dk, v := range w.target {
 			dt[dk] = v
 		}
 		dt["__path__"] = abs
@@ -39,9 +39,9 @@ func (w *watch) getPaths() ([]discovery.Target, error) {
 }
 
 func (w *watch) getPath() string {
-	return w.targets["__path__"]
+	return w.target["__path__"]
 }
 
 func (w *watch) getExcludePath() string {
-	return w.targets["__path_exclude__"]
+	return w.target["__path_exclude__"]
 }

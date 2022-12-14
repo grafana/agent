@@ -80,7 +80,7 @@ func (c *Component) Update(args component.Arguments) error {
 	c.watches = c.watches[:0]
 	for _, v := range c.args.PathTargets {
 		c.watches = append(c.watches, watch{
-			targets: v,
+			target: v,
 		})
 	}
 	return nil
