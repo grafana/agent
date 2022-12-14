@@ -35,6 +35,7 @@ const (
 
 // Arguments holds values which are used to configure the loki.source.file
 // component.
+// TODO(@tpaschalis) Allow users to configure the encoding of the tailed files.
 type Arguments struct {
 	Targets   []discovery.Target  `river:"targets,attr"`
 	ForwardTo []loki.LogsReceiver `river:"forward_to,attr"`
@@ -184,13 +185,14 @@ func (c *Component) Update(args component.Arguments) error {
 
 // DebugInfo returns information about the status of tailed targets.
 // TODO(@tpaschalis) Decorate with more debug information once it's made
-// available, such as the label set and the last time a log line was read.
+// available, such as the last time a log line was read.
 func (c *Component) DebugInfo() interface{} {
 	var res readerDebugInfo
 	for e, reader := range c.readers {
 		offset, _ := c.posFile.Get(e.Path, e.Labels)
 		res.TargetsInfo = append(res.TargetsInfo, targetInfo{
 			Path:       e.Path,
+			Labels:     e.Labels,
 			IsRunning:  reader.IsRunning(),
 			ReadOffset: offset,
 		})
