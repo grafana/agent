@@ -19,10 +19,10 @@ func (w *watch) getPaths() ([]discovery.Target, error) {
 	if err != nil {
 		return nil, err
 	}
+	exclude := w.getExcludePath()
 	for _, m := range matches {
-		exclude := w.getExcludePath()
 		if exclude != "" {
-			if match, _ := doublestar.PathMatch(m, exclude); match {
+			if match, _ := doublestar.PathMatch(exclude, m); match {
 				continue
 			}
 		}
