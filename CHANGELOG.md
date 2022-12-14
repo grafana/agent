@@ -57,6 +57,7 @@ Main (unreleased)
     one or more processing stages. (@tpaschalis)
 
 - Integrations: Introduce the `snowflake` integration. (@binaryfissiongames)
+
 ### Enhancements
 
 - Integrations: Always use direct connection in mongodb_exporter integration. (@v-zhuravlev)
