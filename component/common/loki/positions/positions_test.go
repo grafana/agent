@@ -44,7 +44,9 @@ func TestReadPositionsOK(t *testing.T) {
 	}()
 
 	yaml := []byte(`positions:
-  /tmp/random.log: "17623"
+  ? path: /tmp/random.log
+    labels: '{job="tmp"}'
+  : "17623"
 `)
 	err := os.WriteFile(temp, yaml, 0644)
 	if err != nil {
@@ -56,7 +58,10 @@ func TestReadPositionsOK(t *testing.T) {
 	}, log.NewNopLogger())
 
 	require.NoError(t, err)
-	require.Equal(t, "17623", pos["/tmp/random.log"])
+	require.Equal(t, "17623", pos[Entry{
+		Path:   "/tmp/random.log",
+		Labels: `{job="tmp"}`,
+	}])
 }
 
 func TestReadPositionsEmptyFile(t *testing.T) {
@@ -105,7 +110,9 @@ func TestReadPositionsFromBadYaml(t *testing.T) {
 	}()
 
 	badYaml := []byte(`positions:
-  /tmp/random.log: "176
+  ? path: /tmp/random.log
+    labels: "{}"
+  : "176
 `)
 	err := os.WriteFile(temp, badYaml, 0644)
 	if err != nil {
@@ -127,7 +134,9 @@ func TestReadPositionsFromBadYamlIgnoreCorruption(t *testing.T) {
 	}()
 
 	badYaml := []byte(`positions:
-  /tmp/random.log: "176
+  ? path: /tmp/random.log
+    labels: "{}"
+  : "176
 `)
 	err := os.WriteFile(temp, badYaml, 0644)
 	if err != nil {
@@ -140,7 +149,7 @@ func TestReadPositionsFromBadYamlIgnoreCorruption(t *testing.T) {
 	}, log.NewNopLogger())
 
 	require.NoError(t, err)
-	require.Equal(t, map[string]string{}, out)
+	require.Equal(t, map[Entry]string{}, out)
 }
 
 func Test_ReadOnly(t *testing.T) {
@@ -149,7 +158,9 @@ func Test_ReadOnly(t *testing.T) {
 		_ = os.Remove(temp)
 	}()
 	yaml := []byte(`positions:
-  /tmp/random.log: "17623"
+  ? path: /tmp/random.log
+    labels: '{job="tmp"}'
+  : "17623"
 `)
 	err := os.WriteFile(temp, yaml, 0644)
 	if err != nil {
@@ -164,9 +175,9 @@ func Test_ReadOnly(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer p.Stop()
-	p.Put("/foo/bar/f", 12132132)
-	p.PutString("/foo/f", "100")
-	pos, err := p.Get("/tmp/random.log")
+	p.Put("/foo/bar/f", "", 12132132)
+	p.PutString("/foo/f", "", "100")
+	pos, err := p.Get("/tmp/random.log", `{job="tmp"}`)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -179,7 +190,7 @@ func Test_ReadOnly(t *testing.T) {
 	}, log.NewNopLogger())
 
 	require.NoError(t, err)
-	require.Equal(t, map[string]string{
-		"/tmp/random.log": "17623",
+	require.Equal(t, map[Entry]string{
+		{Path: "/tmp/random.log", Labels: `{job="tmp"}`}: "17623",
 	}, out)
 }

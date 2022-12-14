@@ -54,7 +54,7 @@ type Component struct {
 	handler   loki.LogsReceiver
 	receivers []loki.LogsReceiver
 	posFile   positions.Positions
-	readers   map[string]reader
+	readers   map[positions.Entry]reader
 }
 
 // New creates a new loki.source.file component.
@@ -80,7 +80,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		handler:   make(loki.LogsReceiver),
 		receivers: args.ForwardTo,
 		posFile:   positionsFile,
-		readers:   make(map[string]reader),
+		readers:   make(map[positions.Entry]reader),
 	}
 
 	// Call to Update() to start readers and set receivers once at the start.
@@ -124,7 +124,7 @@ func (c *Component) Update(args component.Arguments) error {
 	c.args = newArgs
 	c.receivers = newArgs.ForwardTo
 
-	oldPaths := make(map[string]struct{})
+	oldPaths := make(map[positions.Entry]struct{})
 
 	// Stop all readers and recreate them below. This avoids the issue we saw
 	// with stranded wrapped handlers staying behind until they were GC'ed and
@@ -144,7 +144,7 @@ func (c *Component) Update(args component.Arguments) error {
 		oldPaths[p] = struct{}{}
 		r.Stop()
 	}
-	c.readers = make(map[string]reader)
+	c.readers = make(map[positions.Entry]reader)
 
 	if len(newArgs.Targets) == 0 {
 		level.Debug(c.opts.Logger).Log("msg", "no files targets were passed, nothing will be tailed")
@@ -153,7 +153,6 @@ func (c *Component) Update(args component.Arguments) error {
 
 	for _, target := range newArgs.Targets {
 		path := target[pathLabel]
-		c.reportSize(path)
 
 		var labels = make(model.LabelSet)
 		for k, v := range target {
@@ -163,20 +162,21 @@ func (c *Component) Update(args component.Arguments) error {
 			labels[model.LabelName(k)] = model.LabelValue(v)
 		}
 
+		c.reportSize(path, labels.String())
 		handler := loki.AddLabelsMiddleware(labels).Wrap(loki.NewEntryHandler(c.handler, func() {}))
 
-		reader, err := c.startTailing(path, handler)
+		reader, err := c.startTailing(path, labels, handler)
 		if err != nil {
 			continue
 		}
 
-		c.readers[path] = reader
+		c.readers[positions.Entry{Path: path, Labels: labels.String()}] = reader
 	}
 
-	// Remove from the positions file any paths that had a Reader before, but
+	// Remove from the positions file any entries that had a Reader before, but
 	// are no longer in the updated set of Targets.
-	for path := range missing(c.readers, oldPaths) {
-		c.posFile.Remove(path)
+	for r := range missing(c.readers, oldPaths) {
+		c.posFile.Remove(r.Path, r.Labels)
 	}
 
 	return nil
@@ -187,11 +187,10 @@ func (c *Component) Update(args component.Arguments) error {
 // available, such as the label set and the last time a log line was read.
 func (c *Component) DebugInfo() interface{} {
 	var res readerDebugInfo
-	for _, reader := range c.readers {
-		path := reader.Path()
-		offset, _ := c.posFile.Get(path)
+	for e, reader := range c.readers {
+		offset, _ := c.posFile.Get(e.Path, e.Labels)
 		res.TargetsInfo = append(res.TargetsInfo, targetInfo{
-			Path:       path,
+			Path:       e.Path,
 			IsRunning:  reader.IsRunning(),
 			ReadOffset: offset,
 		})
@@ -205,13 +204,14 @@ type readerDebugInfo struct {
 
 type targetInfo struct {
 	Path       string `river:"path,attr"`
+	Labels     string `river:"labels,attr"`
 	IsRunning  bool   `river:"is_running,attr"`
 	ReadOffset int64  `river:"read_offset,attr"`
 }
 
 // Returns the elements from set b which are missing from set a
-func missing(as map[string]reader, bs map[string]struct{}) map[string]struct{} {
-	c := map[string]struct{}{}
+func missing(as map[positions.Entry]reader, bs map[positions.Entry]struct{}) map[positions.Entry]struct{} {
+	c := map[positions.Entry]struct{}{}
 	for a := range bs {
 		if _, ok := as[a]; !ok {
 			c[a] = struct{}{}
@@ -223,7 +223,7 @@ func missing(as map[string]reader, bs map[string]struct{}) map[string]struct{} {
 // startTailing starts and returns a reader for the given path. For most files,
 // this will be a tailer implementation. If the file suffix alludes to it being
 // a compressed file, then a decompressor will be started instead.
-func (c *Component) startTailing(path string, handler loki.EntryHandler) (reader, error) {
+func (c *Component) startTailing(path string, labels model.LabelSet, handler loki.EntryHandler) (reader, error) {
 	fi, err := os.Stat(path)
 	if err != nil {
 		level.Error(c.opts.Logger).Log("msg", "failed to tail file, stat failed", "error", err, "filename", path)
@@ -246,6 +246,7 @@ func (c *Component) startTailing(path string, handler loki.EntryHandler) (reader
 			handler,
 			c.posFile,
 			path,
+			labels.String(),
 			"",
 		)
 		if err != nil {
@@ -261,6 +262,7 @@ func (c *Component) startTailing(path string, handler loki.EntryHandler) (reader
 			handler,
 			c.posFile,
 			path,
+			labels.String(),
 			"",
 		)
 		if err != nil {
@@ -273,10 +275,10 @@ func (c *Component) startTailing(path string, handler loki.EntryHandler) (reader
 	return reader, nil
 }
 
-func (c *Component) reportSize(path string) {
+func (c *Component) reportSize(path, labels string) {
 	// Ask the reader to update the size if a reader exists, this keeps
 	// position and size metrics in sync.
-	if reader, ok := c.readers[path]; ok {
+	if reader, ok := c.readers[positions.Entry{Path: path, Labels: labels}]; ok {
 		err := reader.MarkPositionAndSize()
 		if err != nil {
 			level.Warn(c.opts.Logger).Log("msg", "failed to get file size from existing reader, ", "file", path, "error", err)
