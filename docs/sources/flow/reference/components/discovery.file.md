@@ -24,7 +24,7 @@ The following arguments are supported:
 
 Name            | Type                | Description                                                                                | Default | Required
 --------------- | ------------------- | ------------------------------------------------------------------------------------------ |---------| --------
-`path_targets`  | `list(map(string))` | Targets to expand; looks for glob patterns on the  `__path__` and `__exclude_path__` keys. |         | yes
+`path_targets`  | `list(map(string))` | Targets to expand; looks for glob patterns on the  `__path__` and `__path_exclude__` keys. |         | yes
 `sync_period`   | `duration`          | How often to sync filesystem and targets.                                                  | `"10s"` | no
 
 `path_targets` uses [doublestar][] style paths.
