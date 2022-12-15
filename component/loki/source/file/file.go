@@ -60,7 +60,7 @@ type Component struct {
 
 // New creates a new loki.source.file component.
 func New(o component.Options, args Arguments) (*Component, error) {
-	err := os.Mkdir(o.DataPath, 0750)
+	err := os.MkdirAll(o.DataPath, 0750)
 	if err != nil && !os.IsExist(err) {
 		return nil, err
 	}
