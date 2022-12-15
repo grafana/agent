@@ -10,6 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+
+v0.30.0-rc.0 (2022-12-15)
+--------------------
+
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
 
@@ -55,6 +59,11 @@ Main (unreleased)
 
   - `loki.process` receives log entries from other `loki` components and runs
     one or more processing stages. (@tpaschalis)
+
+  - `discovery.file` discovers files on the filesystem following glob
+    patterns. (@mattdurham)
+
+- Integrations: Introduce the `snowflake` integration. (@binaryfissiongames)
 
 ### Enhancements
 

@@ -46,7 +46,8 @@ type decompressor struct {
 	handler   loki.EntryHandler
 	positions positions.Positions
 
-	path string
+	path   string
+	labels string
 
 	posAndSizeMtx sync.Mutex
 	stopOnce      sync.Once
@@ -62,10 +63,10 @@ type decompressor struct {
 	size     int64
 }
 
-func newDecompressor(metrics *metrics, logger log.Logger, handler loki.EntryHandler, positions positions.Positions, path string, encodingFormat string) (*decompressor, error) {
+func newDecompressor(metrics *metrics, logger log.Logger, handler loki.EntryHandler, positions positions.Positions, path string, labels string, encodingFormat string) (*decompressor, error) {
 	logger = log.With(logger, "component", "decompressor")
 
-	pos, err := positions.Get(path)
+	pos, err := positions.Get(path, labels)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get positions: %w", err)
 	}
@@ -86,6 +87,7 @@ func newDecompressor(metrics *metrics, logger log.Logger, handler loki.EntryHand
 		handler:   loki.AddLabelsMiddleware(model.LabelSet{filenameLabel: model.LabelValue(path)}).Wrap(handler),
 		positions: positions,
 		path:      path,
+		labels:    labels,
 		running:   atomic.NewBool(false),
 		posquit:   make(chan struct{}),
 		posdone:   make(chan struct{}),
@@ -249,7 +251,7 @@ func (d *decompressor) MarkPositionAndSize() error {
 
 	d.metrics.totalBytes.WithLabelValues(d.path).Set(float64(d.size))
 	d.metrics.readBytes.WithLabelValues(d.path).Set(float64(d.position))
-	d.positions.Put(d.path, d.position)
+	d.positions.Put(d.path, d.labels, d.position)
 
 	return nil
 }

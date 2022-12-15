@@ -115,6 +115,9 @@ integrations:
   redis_configs:
     [- <redis_exporter_config> ...]
 
+  snowflake_configs:
+    [- <snowflake_config> ...]
+
   app_agent_receiver_configs:
     [- <app_agent_receiver_config>]
 
