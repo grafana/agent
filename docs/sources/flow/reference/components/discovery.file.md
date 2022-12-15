@@ -22,11 +22,10 @@ discovery.file "LABEL" {
 
 The following arguments are supported:
 
-<<<<<<< HEAD
-Name            | Type                | Description                                                                                   | Default | Required
---------------- | ------------------- | --------------------------------------------------------------------------------------------- |---------| --------
-`path_targets`  | `list(map(string))` | Doublestar-compatible paths to search, looks for keys with `__path__` and `__exclude_path__`. |         | yes
-`sync_period`   | `duration`          | How often to sync filesystem and targets.                                                     | `"10s"` | no
+Name            | Type                | Description                                                                                | Default | Required
+--------------- | ------------------- | ------------------------------------------------------------------------------------------ |---------| --------
+`path_targets`  | `list(map(string))` | Targets to expand; looks for glob patterns on the  `__path__` and `__exclude_path__` keys. |         | yes
+`sync_period`   | `duration`          | How often to sync filesystem and targets.                                                  | `"10s"` | no
 
 `path_targets` uses [doublestar][] style paths.
 * `/tmp/**/*.log` will match all subfolders of `tmp` and include any files that end in `*.log`.
@@ -66,12 +65,12 @@ This example discovers all files and folders under `/tmp/logs`. The absolute pat
 used by `loki.source.file.files` targets.
 
 ```river
-discovery.file "files" {
+discovery.file "tmp" {
     path_targets = [{"__path__" = "/tmp/logs/**/*.log"}]
 }
 
 loki.source.file "files" {
-    targets    = discovery.file.files.targets
+    targets    = discovery.file.tmp.targets
     forward_to = [ /* ... */ ]
 }
 ```
@@ -102,12 +101,12 @@ discovery.relabel "k8s" {
   } 
 }
 
-discovery.file "files" {
+discovery.file "pods" {
     path_targets = discovery.relabel.k8s.output
 }
 
-loki.source.file "files" {
-    targets = discovery.file.files.targets
+loki.source.file "pods" {
+    targets = discovery.file.pods.targets
     forward_to = [loki.write.endpoint.receiver]
 }
 
@@ -123,4 +122,3 @@ loki.write "endpoint" {
     }
 }
 ```
->>>>>>> d4db4e88 (Add K8s example)
