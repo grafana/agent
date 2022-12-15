@@ -56,6 +56,9 @@ Main (unreleased)
   - `loki.process` receives log entries from other `loki` components and runs
     one or more processing stages. (@tpaschalis)
 
+  - `discovery.file` discovers files on the filesystem following glob
+    patterns. (@mattdurham)
+
 - Integrations: Introduce the `snowflake` integration. (@binaryfissiongames)
 
 ### Enhancements
