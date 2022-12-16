@@ -24,7 +24,7 @@ type Exports struct {
 type Discoverer discovery.Discoverer
 
 // Creator is a function provided by an implementation to create a concrete Discoverer instance.
-type Creator func(component.Arguments, component.Options) (Discoverer, error)
+type Creator func(component.Arguments) (Discoverer, error)
 
 // Component is a reusable component for any discovery implementation.
 // it will handle dynamic updates and exporting targets appropriately for a scrape implementation.
@@ -78,7 +78,7 @@ func (c *Component) Run(ctx context.Context) error {
 
 // Update implements component.Compnoent.
 func (c *Component) Update(args component.Arguments) error {
-	disc, err := c.creator(args, c.opts)
+	disc, err := c.creator(args)
 	if err != nil {
 		return err
 	}

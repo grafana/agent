@@ -69,7 +69,7 @@ RUN corepack enable
 RUN apt-get update                                \
  && apt-get install -qy                           \
       build-essential file zip unzip gettext git  \
-      musl libsystemd-dev nsis libbpfcc-dev:amd64 \
+      musl libsystemd-dev nsis                    \
       rpm ruby ruby-dev rubygems                  \
       protobuf-compiler libprotobuf-dev           \
  && gem install --no-document fpm                 \

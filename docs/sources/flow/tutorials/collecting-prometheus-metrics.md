@@ -15,7 +15,7 @@ Grafana Agent is a telemetry collector with the primary goal of moving telemetry
 
 ## Run the example
 
-Run the following `curl https://raw.githubusercontent.com/grafana/agent/main/docs/sources/flow/tutorials/assets/runt.sh -O && bash ./runt.sh agent.river`. 
+Run the following `curl https://raw.githubusercontent.com/grafana/agent/main/docs/sources/flow/tutorials/assets/runt.sh -O && bash ./runt.sh agent.river`.
 
 The `runt.sh` script does:
 
@@ -78,5 +78,5 @@ prometheus.remote_write "prom" {
 
 To try out the Grafana Agent without using Docker:
 1. Download the Grafana Agent.
-1. Set the environment variable `EXPERIMENTAL_ENABLE_FLOW=true`.
+1. Set the environment variable `AGENT_MODE=flow`.
 1. Run the agent with `agent run <path_to_flow_config>`.

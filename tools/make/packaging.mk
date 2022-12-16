@@ -30,7 +30,7 @@ dist-agent-binaries: dist/agent-linux-amd64   \
                      dist/agent-windows-amd64.exe \
                      dist/agent-freebsd-amd64
 
-dist/agent-linux-amd64: GO_TAGS += noebpf builtinassets
+dist/agent-linux-amd64: GO_TAGS += builtinassets
 dist/agent-linux-amd64: GOOS    := linux
 dist/agent-linux-amd64: GOARCH  := amd64
 dist/agent-linux-amd64: generate-ui
@@ -100,7 +100,6 @@ dist-agentctl-binaries: dist/agentctl-linux-amd64   \
                         dist/agentctl-windows-amd64.exe \
                         dist/agentctl-freebsd-amd64
 
-dist/agentctl-linux-amd64: GO_TAGS += noebpf
 dist/agentctl-linux-amd64: GOOS    := linux
 dist/agentctl-linux-amd64: GOARCH  := amd64
 dist/agentctl-linux-amd64:
@@ -146,7 +145,7 @@ dist/agentctl-windows-amd64.exe:
 dist/agentctl-freebsd-amd64: GO_TAGS += builtinassets
 dist/agentctl-freebsd-amd64: GOOS    := freebsd
 dist/agentctl-freebsd-amd64: GOARCH  := amd64
-dist/agentctl-freebsd-amd64: generate-ui
+dist/agentctl-freebsd-amd64:
 	$(PACKAGING_VARS) AGENTCTL_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agentctl
 
 #

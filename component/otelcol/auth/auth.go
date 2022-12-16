@@ -10,13 +10,18 @@ import (
 	"os"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/otelcol/internal/lazycollector"
 	"github.com/grafana/agent/component/otelcol/internal/scheduler"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util/zapadapter"
+	"github.com/prometheus/client_golang/prometheus"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelconfig "go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/otel/metric"
+	sdkprometheus "go.opentelemetry.io/otel/exporters/prometheus"
+	"go.opentelemetry.io/otel/sdk/metric"
+
+	_ "github.com/grafana/agent/component/otelcol/internal/featuregate" // Enable needed feature gates
 )
 
 // Arguments is an extension of component.Arguments which contains necessary
@@ -65,7 +70,8 @@ type Auth struct {
 	opts    component.Options
 	factory otelcomponent.ExtensionFactory
 
-	sched *scheduler.Scheduler
+	sched     *scheduler.Scheduler
+	collector *lazycollector.Collector
 }
 
 var (
@@ -82,6 +88,11 @@ var (
 func New(opts component.Options, f otelcomponent.ExtensionFactory, args Arguments) (*Auth, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
+	// Create a lazy collector where metrics from the upstream component will be
+	// forwarded.
+	collector := lazycollector.New()
+	opts.Registerer.MustRegister(collector)
+
 	r := &Auth{
 		ctx:    ctx,
 		cancel: cancel,
@@ -89,7 +100,8 @@ func New(opts component.Options, f otelcomponent.ExtensionFactory, args Argument
 		opts:    opts,
 		factory: f,
 
-		sched: scheduler.New(opts.Logger),
+		sched:     scheduler.New(opts.Logger),
+		collector: collector,
 	}
 	if err := r.Update(args); err != nil {
 		return nil, err
@@ -115,14 +127,20 @@ func (a *Auth) Update(args component.Arguments) error {
 		scheduler.WithHostExporters(rargs.Exporters()),
 	)
 
+	reg := prometheus.NewRegistry()
+	a.collector.Set(reg)
+
+	promExporter, err := sdkprometheus.New(sdkprometheus.WithRegisterer(reg), sdkprometheus.WithoutTargetInfo())
+	if err != nil {
+		return err
+	}
+
 	settings := otelcomponent.ExtensionCreateSettings{
 		TelemetrySettings: otelcomponent.TelemetrySettings{
 			Logger: zapadapter.New(a.opts.Logger),
 
 			TracerProvider: a.opts.Tracer,
-
-			// TODO(rfratto): expose metrics statistics.
-			MeterProvider: metric.NewNoopMeterProvider(),
+			MeterProvider:  metric.NewMeterProvider(metric.WithReader(promExporter)),
 		},
 
 		BuildInfo: otelcomponent.BuildInfo{
