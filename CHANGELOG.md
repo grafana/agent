@@ -29,6 +29,8 @@ Main (unreleased)
 
 ### Enhancements
 
+- Update agent-loki.yaml to use environment variables in the configuration file (@go4real)
+
 - Update OpenTelemetry Collector dependency to v0.63.1. (@tpaschalis)
 
 - riverfmt: Permit empty blocks with both curly braces on the same line.
