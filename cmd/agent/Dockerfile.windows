@@ -23,6 +23,5 @@ FROM mcr.microsoft.com/windows/nanoserver:1809
 COPY --from=builder /src/agent/build/agent /bin/agent
 COPY --from=builder /src/agent/cmd/agent/agent-local-config.yaml /etc/agent/agent.yaml
 
-#ENTRYPOINT "ping -t localhost"
 ENTRYPOINT ["/bin/agent"]
 CMD ["--config.file=/etc/agent/agent.yaml", "--metrics.wal-directory=/etc/agent/data"]

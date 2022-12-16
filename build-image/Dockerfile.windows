@@ -1,8 +1,8 @@
 FROM library/golang:1.19.4-windowsservercore-1809
 
-# below commands run from windows cmd.exe prefixed with `powershell -command`
 SHELL ["powershell", "-command"]
 
+# Install chocolatey for package management
 RUN Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 
 #
