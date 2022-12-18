@@ -9,6 +9,7 @@ internal API changes are not present.
 
 Main (unreleased)
 -----------------
+### Enhancements
 
 v0.31.0-rc.0 (2023-01-26)
 --------------------
@@ -76,6 +77,7 @@ v0.31.0-rc.0 (2023-01-26)
 ### Enhancements
 
 - Handle faro-web-sdk `View` meta in app_agent_receiver. (@rlankfo)
+- Update Prometheus Node Exporter integration to v1.5.0. (@Thor77)
 
 - Flow: the targets in debug info from `loki.source.file` are now individual blocks. (@rfratto)
 
