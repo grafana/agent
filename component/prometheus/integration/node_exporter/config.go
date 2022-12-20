@@ -16,7 +16,7 @@ var DefaultConfig = Config{
 	RootFSPath: node_integration.DefaultConfig.RootFSPath,
 	SysFSPath:  node_integration.DefaultConfig.SysFSPath,
 	Disk: DiskStatsConfig{
-		IgnoredDevices: node_integration.DefaultConfig.DiskStatsIgnoredDevices,
+		DeviceExclude: node_integration.DefaultConfig.DiskStatsDeviceExclude,
 	},
 	EthTool: EthToolConfig{
 		MetricsInclude: ".*",
@@ -113,8 +113,7 @@ func (c *Config) Convert() *node_integration.Config {
 		CPUEnableCPUGuest:                c.CPU.EnableCPUGuest,
 		CPUEnableCPUInfo:                 c.CPU.EnableCPUInfo,
 		CPUFlagsInclude:                  c.CPU.FlagsInclude,
-		DiskStatsIgnoredDevices:          c.Disk.IgnoredDevices,
-		EthtoolDeviceExclude:             c.EthTool.DeviceExclude,
+		DiskStatsDeviceExclude:           c.Disk.DeviceExclude,
 		EthtoolDeviceInclude:             c.EthTool.DeviceInclude,
 		EthtoolMetricsInclude:            c.EthTool.MetricsInclude,
 		FilesystemFSTypesExclude:         c.Filesystem.FSTypesExclude,
@@ -245,7 +244,8 @@ type CPUConfig struct {
 
 // DiskStatsConfig contains config specific to the diskstats collector.
 type DiskStatsConfig struct {
-	IgnoredDevices string `river:"ignored_devices,attr,optional"`
+	DeviceExclude string `river:"device_exclude,attr,optional"`
+	DeviceInclude string `river:"device_include,attr,optional"`
 }
 
 // NTPConfig contains config specific to the ntp collector.

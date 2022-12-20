@@ -26,7 +26,7 @@ var (
 		ProcFSPath: procfs.DefaultMountPoint,
 		RootFSPath: "/",
 
-		DiskStatsIgnoredDevices: "^(ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$",
+		DiskStatsDeviceExclude: "^(ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$",
 
 		EthtoolMetricsInclude: ".*",
 
@@ -102,7 +102,8 @@ type Config struct {
 	CPUEnableCPUGuest                bool                `yaml:"enable_cpu_guest_seconds_metric,omitempty"`
 	CPUEnableCPUInfo                 bool                `yaml:"enable_cpu_info_metric,omitempty"`
 	CPUFlagsInclude                  string              `yaml:"cpu_flags_include,omitempty"`
-	DiskStatsIgnoredDevices          string              `yaml:"diskstats_ignored_devices,omitempty"`
+	DiskStatsDeviceExclude           string              `yaml:"diskstats_device_exclude,omitempty"`
+	DiskStatsDeviceInclude           string              `yaml:"diskstats_device_include,omitempty"`
 	EthtoolDeviceExclude             string              `yaml:"ethtool_device_exclude,omitempty"`
 	EthtoolDeviceInclude             string              `yaml:"ethtool_device_include,omitempty"`
 	EthtoolMetricsInclude            string              `yaml:"ethtool_metrics_include,omitempty"`
@@ -154,6 +155,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		SystemdUnitBlacklist         string `yaml:"systemd_unit_blacklist,omitempty"`
 		FilesystemIgnoredMountPoints string `yaml:"filesystem_ignored_mount_points,omitempty"`
 		FilesystemIgnoredFSTypes     string `yaml:"filesystem_ignored_fs_types,omitempty"`
+		DiskStatsIgnoredDevices      string `yaml:"diskstats_ignored_devices,omitempty"`
 	}
 
 	var fc config // our full config (schema + deprecated names)
@@ -189,6 +191,10 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		{
 			OldName: "filesystem_ignored_fs_types", NewName: "filesystem_fs_types_exclude",
 			OldValue: &fc.FilesystemIgnoredFSTypes, NewValue: &fc.FilesystemFSTypesExclude,
+		},
+		{
+			OldName: "diskstats_ignored_devices", NewName: "diskstats_device_exclude",
+			OldValue: &fc.DiskStatsIgnoredDevices, NewValue: &fc.DiskStatsDeviceExclude,
 		},
 	}
 
@@ -311,7 +317,8 @@ func MapConfigToNodeExporterFlags(c *Config) (accepted []string, ignored []strin
 	}
 
 	if collectors[CollectorDiskstats] {
-		flags.add("--collector.diskstats.ignored-devices", c.DiskStatsIgnoredDevices)
+		flags.add("--collector.diskstats.device-include", c.DiskStatsDeviceInclude)
+		flags.add("--collector.diskstats.device-exclude", c.DiskStatsDeviceExclude)
 	}
 
 	if collectors[CollectorEthtool] {
