@@ -11,7 +11,7 @@ Main (unreleased)
 -----------------
 
 
-v0.30.0-rc.0 (2022-12-15)
+v0.30.0 (2022-12-20)
 --------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
