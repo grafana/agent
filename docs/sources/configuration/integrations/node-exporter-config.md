@@ -365,6 +365,16 @@ the Agent is running on is a no-op.
   # variable.
   [supervisord_url: <string> | default = "http://localhost:9001/RPC2"]
 
+  # Numeric sysctl values to expose.
+  # For sysctl with multiple numeric values,
+  # an optional mapping can be given to expose each value as its own metric.
+  sysctl_include:
+    [- <string>]
+
+  # String sysctl values to expose.
+  sysctl_include_info:
+    [- <string>]
+
   # Regexp of systemd units to include. Units must both match include and not
   # match exclude to be collected.
   [systemd_unit_include: <string> | default = ".+"]

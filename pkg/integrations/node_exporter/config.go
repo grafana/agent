@@ -128,6 +128,8 @@ type Config struct {
 	PowersupplyIgnoredSupplies       string              `yaml:"powersupply_ignored_supplies,omitempty"`
 	RunitServiceDir                  string              `yaml:"runit_service_dir,omitempty"`
 	SupervisordURL                   string              `yaml:"supervisord_url,omitempty"`
+	SysctlInclude                    flagext.StringSlice `yaml:"sysctl_include,omitempty"`
+	SysctlIncludeInfo                flagext.StringSlice `yaml:"sysctl_include_info,omitempty"`
 	SystemdEnableRestartsMetrics     bool                `yaml:"systemd_enable_restarts_metrics,omitempty"`
 	SystemdEnableStartTimeMetrics    bool                `yaml:"systemd_enable_start_time_metrics,omitempty"`
 	SystemdEnableTaskMetrics         bool                `yaml:"systemd_enable_task_metrics,omitempty"`
@@ -394,6 +396,16 @@ func MapConfigToNodeExporterFlags(c *Config) (accepted []string, ignored []strin
 
 	if collectors[CollectorSupervisord] {
 		flags.add("--collector.supervisord.url", c.SupervisordURL)
+	}
+
+	if collectors[CollectorSysctl] {
+		for _, numValue := range c.SysctlInclude {
+			flags.add("--collector.sysctl.include", numValue)
+		}
+
+		for _, stringValue := range c.SysctlIncludeInfo {
+			flags.add("--collector.sysctl.include-info", stringValue)
+		}
 	}
 
 	if collectors[CollectorSystemd] {
