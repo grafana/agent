@@ -114,6 +114,7 @@ func (c *Config) Convert() *node_integration.Config {
 		CPUEnableCPUInfo:                 c.CPU.EnableCPUInfo,
 		CPUFlagsInclude:                  c.CPU.FlagsInclude,
 		DiskStatsDeviceExclude:           c.Disk.DeviceExclude,
+		DiskStatsDeviceInclude:           c.Disk.DeviceInclude,
 		EthtoolDeviceExclude:             c.EthTool.DeviceExclude,
 		EthtoolDeviceInclude:             c.EthTool.DeviceInclude,
 		EthtoolMetricsInclude:            c.EthTool.MetricsInclude,
