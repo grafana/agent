@@ -37,6 +37,10 @@
   background-color: #f4f5f5;
 }
 
+.table tr:nth-child(even) {
+  background-color: white;
+}
+
 .table tr:hover {background-color: #ddd;}
 
 .table th {
