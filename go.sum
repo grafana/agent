@@ -2604,6 +2604,10 @@ github.com/prometheus/procfs v0.7.4-0.20211011103944-1a7a2bd3279f/go.mod h1:cz+a
 github.com/prometheus/procfs v0.8.0 h1:ODq8ZFEaYeCaZOJlZZdJA2AbQR98dSHSM1KW/You5mo=
 github.com/prometheus/procfs v0.8.0/go.mod h1:z7EfXMXOkbkqb9IINtpCn86r/to3BnA0uaxHdg830/4=
 github.com/prometheus/tsdb v0.7.1/go.mod h1:qhTCs0VvXwvX/y3TZrWD7rabWM+ijKTux40TwIPHuXU=
+github.com/ptodev/opentelemetry-collector-contrib/external/coreinternal v0.0.0-20221221165912-a26b520a0adf h1:O6DmTdqjrU5ucN8DhJPHiV5J4QnBLSXNDEb5LDXXVPA=
+github.com/ptodev/opentelemetry-collector-contrib/external/coreinternal v0.0.0-20221221165912-a26b520a0adf/go.mod h1:t6OIp1i9JNsKokA/e8gq99RZ8WzxGZFD/ndLN8nlbBc=
+github.com/ptodev/opentelemetry-collector-contrib/processor/attributesprocessor v0.0.0-20221221165912-a26b520a0adf h1:aVzYb0TQ2Ap6zClflwTIcE0U3RQQPFojHd3qTtHAP1I=
+github.com/ptodev/opentelemetry-collector-contrib/processor/attributesprocessor v0.0.0-20221221165912-a26b520a0adf/go.mod h1:7ZuYh9HCR5n4338uRfgxK6Z9QTHzSi8jl+x8d4SufWQ=
 github.com/rafaeljusto/redigomock v0.0.0-20190202135759-257e089e14a1/go.mod h1:JaY6n2sDr+z2WTsXkOmNRUfDy6FN0L6Nk7x06ndm4tY=
 github.com/rancher/k3d/v5 v5.2.2 h1:9F+wqmRZz5Gl7o70g0OSPLYVyCOrz/rJPVQhxmaI2Bo=
 github.com/rancher/k3d/v5 v5.2.2/go.mod h1:wf9CUngX+Klerdc1rKlQV5OKzTQesCwoYGDMcB56DLQ=

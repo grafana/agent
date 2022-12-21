@@ -1,0 +1,110 @@
+// Package attributes provides an otelcol.processor.attributes component.
+package attributes
+
+import (
+	"fmt"
+
+	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/otelcol"
+	"github.com/grafana/agent/component/otelcol/processor"
+	"github.com/grafana/agent/pkg/river"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor"
+	otelcomponent "go.opentelemetry.io/collector/component"
+	otelconfig "go.opentelemetry.io/collector/config"
+)
+
+func init() {
+	component.Register(component.Registration{
+		Name:    "otelcol.processor.attributes",
+		Args:    Arguments{},
+		Exports: otelcol.ConsumerExports{},
+
+		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
+			fact := attributesprocessor.NewFactory()
+			return processor.New(opts, fact, args.(Arguments))
+		},
+	})
+}
+
+// Arguments configures the otelcol.processor.attributes component.
+type Arguments struct {
+	ProcessorTypes ProcessorTypes `river:"processor_types,block"`
+
+	Match otelcol.MatchConfig `river:"match,block,optional"`
+
+	Actions otelcol.AttrActionSettings `river:"actions,block,optional"`
+
+	// Output configures where to send processed data. Required.
+	Output *otelcol.ConsumerArguments `river:"output,block"`
+}
+
+var (
+	_ processor.Arguments = Arguments{}
+	_ river.Unmarshaler   = (*Arguments)(nil)
+)
+
+type ProcessorTypes struct {
+	Traces  bool `river:"traces,attr,optional"`
+	Metrics bool `river:"metrics,attr,optional"`
+	Logs    bool `river:"logs,attr,optional"`
+}
+
+// DefaultArguments holds default settings for Arguments.
+// TODO: There should either be no default, or the default config should not change any data
+// var DefaultArguments = Arguments{
+// 	Timeout:       200 * time.Millisecond,
+// 	SendBatchSize: 8192,
+// }
+
+// UnmarshalRiver implements river.Unmarshaler. It applies defaults to args and
+// validates settings provided by the user.
+func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+	*args = Arguments{}
+
+	type arguments Arguments
+	if err := f((*arguments)(args)); err != nil {
+		return err
+	}
+
+	procTypes := args.ProcessorTypes
+	if !procTypes.Logs && !procTypes.Metrics && !procTypes.Traces {
+		return fmt.Errorf("At least one processor type must be specified in the 'processor_types' config section!")
+	}
+	return nil
+}
+
+// Convert implements processor.Arguments.
+func (args Arguments) Convert() otelconfig.Processor {
+	return &attributesprocessor.Config{
+		ProcessorSettings: otelconfig.NewProcessorSettings(otelconfig.NewComponentID("attributes")),
+		MatchConfig:       *args.Match.Convert(),
+		Settings:          *args.Actions.Convert(),
+	}
+}
+
+// Extensions implements processor.Arguments.
+func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+	return nil
+}
+
+// Exporters implements processor.Arguments.
+func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+	return nil
+}
+
+// NextConsumers implements processor.Arguments.
+func (args Arguments) NextConsumers() *otelcol.ConsumerArguments {
+	return args.Output
+}
+
+func (args Arguments) AreTracesEnabled() bool {
+	return args.ProcessorTypes.Traces
+}
+
+func (args Arguments) AreMetricsEnabled() bool {
+	return args.ProcessorTypes.Metrics
+}
+
+func (args Arguments) AreLogsEnabled() bool {
+	return args.ProcessorTypes.Logs
+}
