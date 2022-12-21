@@ -1,7 +1,8 @@
-import styles from './Page.module.css';
-import { IconProp } from '@fortawesome/fontawesome-svg-core';
 import { FC, ReactNode } from 'react';
+import { IconProp } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
+import styles from './Page.module.css';
 
 export interface PageProps {
   name: string;

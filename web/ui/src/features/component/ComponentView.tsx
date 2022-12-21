@@ -1,13 +1,16 @@
 import { FC, Fragment, ReactElement } from 'react';
+import { Link } from 'react-router-dom';
+import { faCubes, faLink } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
 import { RiverValue } from '../../features/river-js/RiverValue';
 import { AttrStmt, Body, StmtType } from '../../features/river-js/types';
-import { ComponentDetail, ComponentInfo } from './types';
-import styles from './ComponentView.module.css';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCubes, faLink } from '@fortawesome/free-solid-svg-icons';
+
 import ComponentList from './ComponentList';
 import { HealthLabel } from './HealthLabel';
-import { Link } from 'react-router-dom';
+import { ComponentDetail, ComponentInfo } from './types';
+
+import styles from './ComponentView.module.css';
 
 export interface ComponentViewProps {
   component: ComponentDetail;
