@@ -94,6 +94,10 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlo
 	wireDiags := l.wireGraphEdges(&newGraph)
 	diags = append(diags, wireDiags...)
 
+	if diags.HasErrors() {
+		return diags
+	}
+
 	// Validate graph to detect cycles
 	err := dag.Validate(&newGraph)
 	if err != nil {
