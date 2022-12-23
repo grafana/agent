@@ -10,6 +10,14 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+v0.30.1 (2022-12-23)
+--------------------
+
+### Bugfixes
+
+- Fix issue where journald support was accidentally removed. (@tpaschalis)
+
+- Fix issue where some traces' metrics where not collected. (@marctc)
 
 v0.30.0 (2022-12-20)
 --------------------
