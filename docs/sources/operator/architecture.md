@@ -1,11 +1,11 @@
 ---
 aliases:
 - /docs/agent/latest/operator/architecture/
-title: Operator architecture
+title: Agent Operator architecture
 weight: 300
 ---
 
-# Operator architecture
+# Agent Operator architecture
 
 This guide gives a high-level overview of how the Grafana Agent Operator
 works.

@@ -1,13 +1,13 @@
 ---
 aliases:
 - /docs/agent/latest/operator/getting-started/
-title: Installing Grafana Agent Operator
+title: Install Grafana Agent Operator without Helm
 weight: 100
 ---
 
-# Installing Grafana Agent Operator
+# Install Grafana Agent Operator without Helm
 
-In this guide you'll learn how to deploy the [Grafana Agent Operator]({{< relref "./_index.md" >}}) into your Kubernetes cluster. This guide does *not* use Helm. To learn how to deploy Agent Operator using the [grafana-agent-operator Helm chart](https://github.com/grafana/helm-charts/tree/main/charts/agent-operator), please see [Installing Grafana Agent Operator with Helm]({{< relref "./helm-getting-started.md" >}}).
+In this guide, you'll learn how to deploy [Grafana Agent Operator]({{< relref "./_index.md" >}}) into your Kubernetes cluster. This guide does not use Helm. To learn how to deploy Agent Operator using the [grafana-agent-operator Helm chart](https://github.com/grafana/helm-charts/tree/main/charts/agent-operator), see [Install Grafana Agent Operator with Helm]({{< relref "./helm-getting-started.md" >}}).
 
 > **Note:** Agent Operator is currently in beta and its custom resources are subject to change as the project evolves. It currently supports the metrics and logs subsystems of Grafana Agent. Integrations and traces support is coming soon.
 
