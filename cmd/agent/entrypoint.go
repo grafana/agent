@@ -352,6 +352,24 @@ func (ep *Entrypoint) TriggerReload() bool {
 	return true
 }
 
+// Triggers a reload of the config on each tick of the ticker until the context
+// completes.
+func (ep *Entrypoint) PollConfig(ctx context.Context, t *time.Ticker) error {
+	for {
+		select {
+		case <-ctx.Done():
+			level.Info(ep.log).Log("msg", "[TESTING] CONTEXT DONE")
+			return ctx.Err()
+		case <-t.C:
+			ok := ep.TriggerReload()
+			level.Info(ep.log).Log("msg", "[TESTING] Finished reloading config")
+			if !ok {
+				level.Error(ep.log).Log("msg", "config reload did not succeed")
+			}
+		}
+	}
+}
+
 // Stop stops the Entrypoint and all subsystems.
 func (ep *Entrypoint) Stop() {
 	ep.mut.Lock()
@@ -397,6 +415,20 @@ func (ep *Entrypoint) Start() error {
 			return ep.reloadServer.Serve(ep.reloadListener)
 		}, func(e error) {
 			ep.reloadServer.Close()
+		})
+	}
+
+	if ep.cfg.AgentManagement.Enabled {
+		managementContext, managementCancel := context.WithCancel(context.Background())
+		defer managementCancel()
+
+		// By this point ep.cfg.Validate() has already been called, so the configured time must be valid
+		sleepTime, _ := ep.cfg.AgentManagement.SleepTime()
+		t := time.NewTicker(sleepTime)
+		g.Add(func() error {
+			return ep.PollConfig(managementContext, t)
+		}, func(e error) {
+			managementCancel()
 		})
 	}
 

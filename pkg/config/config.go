@@ -6,9 +6,12 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"unicode"
+
+	"github.com/imdario/mergo"
 
 	"github.com/drone/envsubst/v2"
 	"github.com/go-kit/log"
@@ -31,12 +34,14 @@ var (
 	featIntegrationsNext = features.Feature("integrations-next")
 	featDynamicConfig    = features.Feature("dynamic-config")
 	featExtraMetrics     = features.Feature("extra-scrape-metrics")
+	featAgentManagement  = features.Feature("agent-management")
 
 	allFeatures = []features.Feature{
 		featRemoteConfigs,
 		featIntegrationsNext,
 		featDynamicConfig,
 		featExtraMetrics,
+		featAgentManagement,
 	}
 )
 
@@ -61,11 +66,12 @@ var DefaultConfig = Config{
 
 // Config contains underlying configurations for the agent
 type Config struct {
-	Server       server.Config         `yaml:"server,omitempty"`
-	Metrics      metrics.Config        `yaml:"metrics,omitempty"`
-	Integrations VersionedIntegrations `yaml:"integrations,omitempty"`
-	Traces       traces.Config         `yaml:"traces,omitempty"`
-	Logs         *logs.Config          `yaml:"logs,omitempty"`
+	Server          server.Config         `yaml:"server,omitempty"`
+	Metrics         metrics.Config        `yaml:"metrics,omitempty"`
+	Integrations    VersionedIntegrations `yaml:"integrations,omitempty"`
+	Traces          traces.Config         `yaml:"traces,omitempty"`
+	Logs            *logs.Config          `yaml:"logs,omitempty"`
+	AgentManagement AgentManagement       `yaml:"agent_management,omitempty"`
 
 	// Flag-only fields
 	ServerFlags server.Flags `yaml:"-"`
@@ -193,6 +199,12 @@ func (c *Config) Validate(fs *flag.FlagSet) error {
 		return err
 	}
 
+	if c.AgentManagement.Enabled {
+		if err := c.AgentManagement.Validate(); err != nil {
+			return fmt.Errorf("invalid agent management config: %w", err)
+		}
+	}
+
 	c.Metrics.ServiceConfig.APIEnableGetConfiguration = c.EnableConfigEndpoints
 
 	// Don't validate flags if there's no FlagSet. Used for testing.
@@ -217,6 +229,10 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 		"path to file containing basic auth password for fetching remote config. (requires remote-configs experiment to be enabled")
 
 	f.BoolVar(&c.EnableConfigEndpoints, "config.enable-read-api", false, "Enables the /-/config and /agent/api/v1/configs/{name} APIs. Be aware that secrets could be exposed by enabling these endpoints!")
+
+	f.StringVar(&c.AgentManagement.RemoteConfiguration.Labels, "agentmanagement.labels", "", "comma-separated list of key:value pairs to be used as labels when querying the agent managemeny API")
+	f.StringVar(&c.AgentManagement.RemoteConfiguration.BaseConfigId, "agentmanagement.base_config_id", "", "base config id for querying the agent management API")
+	f.StringVar(&c.AgentManagement.RemoteConfiguration.Namespace, "agentmanagement.namespace", "", "namespace for querying the agent management API")
 }
 
 // LoadFile reads a file and passes the contents to Load
@@ -230,6 +246,33 @@ func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 	instrumentation.ConfigMetrics.InstrumentConfig(buf)
 
 	return LoadBytes(buf, expandEnvVars, c)
+}
+
+// 1. Read local initial config.
+// 2. Get the remote config.
+//    a) Fetch from remote. If this fails or is invalid:
+//    b) Read the remote config from cache. If this fails, return empty config.
+// 4. Merge the initial and remote config.
+
+func LoadFromAgentManagementAPI(path string, expandEnvVars bool, c *Config) error {
+	// Keep the Remote Configuration that has been set up with CLI flags
+	rc := c.AgentManagement.RemoteConfiguration
+
+	// Load the initial config from disk
+	err := LoadFile(path, expandEnvVars, c)
+	c.AgentManagement.RemoteConfiguration = rc
+	if err != nil {
+		return fmt.Errorf("failed to load initial config: %w", err)
+	}
+
+	remoteConfig, err := GetRemoteConfig(filepath.Dir(path), expandEnvVars, c)
+	if err != nil {
+		return err
+	}
+	if err = mergo.Merge(c, remoteConfig); err != nil {
+		return fmt.Errorf("error trying to merge initial and remote configs: %w", err)
+	}
+	return nil
 }
 
 // LoadRemote reads a config from url
@@ -337,6 +380,9 @@ func Load(fs *flag.FlagSet, args []string) (*Config, error) {
 			if features.Enabled(fs, featRemoteConfigs) {
 				return LoadRemote(path, expandArgs, c)
 			}
+			if features.Enabled(fs, featAgentManagement) {
+				return LoadFromAgentManagementAPI(path, expandArgs, c)
+			}
 			return LoadFile(path, expandArgs, c)
 		case fileTypeDynamic:
 			if !features.Enabled(fs, featDynamicConfig) {
@@ -425,6 +471,8 @@ func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
 	} else {
 		cfg.EnabledFeatures = features.GetAllEnabled(fs)
 	}
+
+	cfg.AgentManagement.Enabled = features.Enabled(fs, featAgentManagement)
 
 	if disableSupportBundles {
 		cfg.DisableSupportBundle = true
