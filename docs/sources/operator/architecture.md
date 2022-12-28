@@ -5,21 +5,17 @@ title: Agent Operator architecture
 weight: 300
 ---
 
-# Agent Operator architecture
+# Grafana Agent Operator architecture
 
-This guide gives a high-level overview of how the Grafana Agent Operator
-works.
+Grafana Agent Operator works by watching for Kubernetes [custom resources](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) that specify how to collect telemetry data from your Kubernetes cluster and where to send it. Agent Operator manages corresponding Grafana Agent deployments in your cluster by watching for changes against the custom resources.
 
-The Grafana Agent Operator works in two phases:
+Grafana Agent Operator works in two phases&mdash;it discovers a hierarchy of custom resources and it reconciles that hierarchy into a Grafana Agent deployment.
 
-1. Discover a hierarchy of custom resources
-2. Reconcile that hierarchy into a Grafana Agent deployment
+## Custom resource hierarchy
 
-## Custom Resource Hierarchy
-
-The root of the custom resource hierarchy is the `GrafanaAgent` resource. It is
-primary resource the Operator looks for, and is called the "root" because it
-discovers many other sub-resources.
+The root of the custom resource hierarchy is the `GrafanaAgent` resource&mdash;the primary resource Agent Operator looks for. `GrafanaAgent` is called the _root_ because it
+discovers other sub-resources, `MetricsInstance` and `LogsInstance`. The `GrafanaAgent` resource endows them with Pod attributes defined in the GrafanaAgent specification, for example, Pod requests, limits, affinities, and tolerations, and defines the Grafana Agent image. You can only define Pod attributes at the `GrafanaAgent` level. They are propagated to MetricsInstance and LogsInstance Pods. 
+.
 
 The full hierarchy of custom resources is as follows:
 
@@ -31,28 +27,45 @@ The full hierarchy of custom resources is as follows:
     - `LogsInstance`
         - `PodLogs`
 
-Most of the resources above have the ability to reference a ConfigMap or a
+The following table describes these custom resources:
+
+| Custom resource | description |
+|---|---|
+| `GrafanaAgent` | Discovers one or more `MetricsInstance` and `LogsInstance` resources. |
+| `MetricsInstance` | Defines where to ship collected metrics. This rolls out a Grafana Agent StatefulSet that will scrape and ship metrics to a `remote_write` endpoint. |
+| `ServiceMonitor` | Collects cAdvisor and kubelet metrics. This configures the `MetricsInstance` / Agent StatefulSet |
+| `LogsInstance` | Defines where to ship collected logs. This rolls out a Grafana Agent DaemonSet that will tail log files on your cluster nodes. |
+| `PodLogs` | Collects container logs from Kubernetes Pods. This configures the `LogsInstance` / Agent DaemonSet. |
+
+Most of the Grafana Agent Operator resources have the ability to reference a ConfigMap or a
 Secret. All referenced ConfigMaps or Secrets are added into the resource
 hierarchy.
 
 When a hierarchy is established, each item is watched for changes. Any changed
-item will cause a reconcile of the root GrafanaAgent resource, either
+item causes a reconcile of the root `GrafanaAgent` resource, either
 creating, modifying, or deleting the corresponding Grafana Agent deployment.
 
 A single resource can belong to multiple hierarchies. For example, if two
-GrafanaAgents use the same Probe, modifying that Probe will cause both
-GrafanaAgents to be reconciled.
+`GrafanaAgents` use the same Probe, modifying that Probe causes both
+`GrafanaAgents` to be reconciled.
 
-### Build the Hierarchy
+To set up monitoring, Grafana Agent Operator works in the following two phases:
+
+- Builds (discovers) a hierarchy of custom resources.
+- Reconciles that hierarchy into a Grafana Agent deployment.
+
+Agent Operator also performs [sharding and replication](#sharding-and-replication) and adds [labels](#added-labels) to every metric.
+
+## How Agent Operator builds the custom resource hierarchy
 
 Grafana Agent Operator builds the hierarchy using label matching on the custom resources. The following figure illustrates the matching. The `GrafanaAgent` picks up the `MetricsInstance`
 and `LogsInstance` that match the label `instance: primary`. The instances pick up the resources the same way.
 
 {{<figure class="float-right" src="../../assets/hierarchy.svg" >}}
 
-### Debug the Hierarchy
+### To validate the Secrets
 
-The generated configurations are saved in secrets. To download and
+The generated configurations are saved in Secrets. To download and
 validate them manually, use the following commands:
 
 ```
@@ -60,24 +73,24 @@ $ kubectl get secrets <???>-logs-config -o json | jq -r '.data."agent.yml"' | ba
 $ kubectl get secrets <???>-config -o json | jq -r '.data."agent.yml"' | base64 --decode
 ```
 
-## Reconcile
+## How Agent Operator reconciles the custom resource hierarchy
 
 When a resource hierarchy is created, updated, or deleted, a reconcile occurs.
-When a GrafanaAgent resource is deleted, the corresponding Grafana Agent
+When a `GrafanaAgent` resource is deleted, the corresponding Grafana Agent
 deployment will also be deleted.
 
-Reconciling creates a few cluster resources:
+Reconciling creates the following cluster resources:
 
-1. A Secret is generated holding the
-   [configuration]({{< relref "../configuration/_index.md" >}}) of the Grafana Agent.
-2. Another Secret is created holding all referenced Secrets or ConfigMaps from
-   the resource hierarchy. This ensures that Secrets referenced from a custom
+1. A Secret that holds the Grafana Agent
+   [configuration]({{< relref "../configuration/_index.md" >}}) is generated.
+2. A Secret that holds all referenced Secrets or ConfigMaps from
+   the resource hierarchy is generated. This ensures that Secrets referenced from a custom
    resource in another namespace can still be read.
-3. A Service is created to govern the created StatefulSets.
+3. A Service is created to govern the StatefulSets that are generated.
 4. One StatefulSet per Prometheus shard is created.
 
 PodMonitors, Probes, and ServiceMonitors are turned into individual scrape jobs
-which all use Kubernetes SD.
+which all use Kubernetes Service Discovery (SD).
 
 ## Sharding and replication
 
@@ -94,7 +107,7 @@ the creation of a StatefulSet with a hashmod + keep relabel_config per job:
   action: keep
 ```
 
-This allows for some decent horizontal scaling capabilities, where each shard
+This allows for horizontal scaling capabilities, where each shard
 will handle roughly 1/N of the total scrape load. Note that this does not use
 consistent hashing, which means changing the number of shards will cause
 anywhere between 1/N to N targets to reshuffle.
@@ -102,14 +115,14 @@ anywhere between 1/N to N targets to reshuffle.
 The sharding mechanism is borrowed from the Prometheus Operator.
 
 The number of replicas can be defined, similarly to the number of shards. This
-creates duplicate shards. This must be paired with a remote_write system that
+creates duplicate shards. This must be paired with a `remote_write` system that
 can perform HA duplication. Grafana Cloud and Cortex provide this out of the
 box, and the Grafana Agent Operator defaults support these two systems.
 
 The total number of created metrics pods will be product of `numShards *
 numReplicas`.
 
-## Labels
+## Added labels
 
 Two labels are added by default to every metric:
 

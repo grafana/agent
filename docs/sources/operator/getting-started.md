@@ -2,23 +2,25 @@
 aliases:
 - /docs/agent/latest/operator/getting-started/
 title: Install Grafana Agent Operator without Helm
-weight: 100
+weight: 110
 ---
 
 # Install Grafana Agent Operator without Helm
 
 In this guide, you'll learn how to deploy [Grafana Agent Operator]({{< relref "./_index.md" >}}) into your Kubernetes cluster. This guide does not use Helm. To learn how to deploy Agent Operator using the [grafana-agent-operator Helm chart](https://github.com/grafana/helm-charts/tree/main/charts/agent-operator), see [Install Grafana Agent Operator with Helm]({{< relref "./helm-getting-started.md" >}}).
 
-> **Note:** Agent Operator is currently in beta and its custom resources are subject to change as the project evolves. It currently supports the metrics and logs subsystems of Grafana Agent. Integrations and traces support is coming soon.
+> **Note**: If you are shipping your data to Grafana Cloud, use [Kubernetes Monitoring](https://grafana.com/docs/grafana-cloud/kubernetes-monitoring/) to set up Agent Operator. Kubernetes Monitoring provides a simplified approach and preconfigured dashboards and alerts.
 
-By the end of this guide, you'll have deloyed Agent Operator into your cluster.
+By the end of this guide, you'll have deloyed Grafana Agent Operator into your cluster.
 
-## Prerequisites
+## Before you begin
 
 Before you begin, make sure that you have the following available to you:
 
 - A Kubernetes cluster
 - The `kubectl` command-line client installed and configured on your machine
+
+> **Note:** Agent Operator is currently in beta and its custom resources are subject to change.
 
 ## Step 1: Deploy CustomResourceDefinitions
 
@@ -157,6 +159,6 @@ Afterwards, you can run the operator using `go run`:
 go run ./cmd/agent-operator
 ```
 
-## Conclusion
+## Deploy the Grafana Agent Operator resources
 
-With Agent Operator up and running, you can move on to setting up a `GrafanaAgent` custom resource. This will discover `MetricsInstance` and `LogsInstance` custom resources and endow them with Pod attributes (like requests and limits) defined in the `GrafanaAgent` spec. To learn how to do this, please see [Custom Resource Quickstart]({{< relref "./custom-resource-quickstart.md" >}}).
+Agent Operator is now up and running. Next, you need to install a Grafana Agent for Agent Operator to run for you. To do so, follow the instructions in the [Deploy the Grafana Agent Operator resources]({{< relref "./deploy-agent-operator-resources.md" >}}) topic.
