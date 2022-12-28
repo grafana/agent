@@ -24,9 +24,9 @@ type BasicAuth struct {
 }
 
 type RemoteConfiguration struct {
-	Labels       string `yaml:"-"` // Passed in via the CLI with -agentmanagement.labels="key:value,key2:value2"
-	Namespace    string `yaml:"-"` // Passed in via the CLI with -agentmanagement.namespace=<namespace>
-	BaseConfigId string `yaml:"-"` // Passed in via the CLI with -agentmanagement.base_config_id=<id>
+	Labels       []string `yaml:"labels"`
+	Namespace    string   `yaml:"namespace"`
+	BaseConfigId string   `yaml:"base_config_id"`
 }
 
 type AgentManagement struct {
@@ -36,7 +36,7 @@ type AgentManagement struct {
 	Protocol        string    `yaml:"protocol"`
 	PollingInterval string    `yaml:"polling_interval"`
 
-	RemoteConfiguration RemoteConfiguration `yaml:"-"`
+	RemoteConfiguration RemoteConfiguration `yaml:"remote_configuration"`
 }
 
 func tryLog(log *server.Logger, lvl string, keyvals ...interface{}) {
@@ -168,10 +168,10 @@ func (am *AgentManagement) FullUrl() (string, error) {
 func (am *AgentManagement) LabelMap() map[string]string {
 	labelMap := map[string]string{}
 
-	if am.RemoteConfiguration.Labels == "" {
+	if len(am.RemoteConfiguration.Labels) == 0 {
 		return labelMap
 	}
-	pairs := strings.Split(am.RemoteConfiguration.Labels, ",")
+	pairs := am.RemoteConfiguration.Labels
 	sort.Strings(pairs)
 	for _, pair := range pairs {
 		split := strings.Split(pair, ":")
