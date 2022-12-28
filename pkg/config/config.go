@@ -254,7 +254,7 @@ func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 //    b) Read the remote config from cache. If this fails, return empty config.
 // 4. Merge the initial and remote config.
 
-func LoadFromAgentManagementAPI(path string, expandEnvVars bool, c *Config) error {
+func LoadFromAgentManagementAPI(path string, expandEnvVars bool, c *Config, log *server.Logger) error {
 	// Keep the Remote Configuration that has been set up with CLI flags
 	rc := c.AgentManagement.RemoteConfiguration
 
@@ -265,7 +265,7 @@ func LoadFromAgentManagementAPI(path string, expandEnvVars bool, c *Config) erro
 		return fmt.Errorf("failed to load initial config: %w", err)
 	}
 
-	remoteConfig, err := GetRemoteConfig(filepath.Dir(path), expandEnvVars, c)
+	remoteConfig, err := GetRemoteConfig(filepath.Dir(path), expandEnvVars, c, log)
 	if err != nil {
 		return err
 	}
@@ -373,7 +373,7 @@ func getenv(name string) string {
 // Load loads a config file from a flagset. Flags will be registered
 // to the flagset before parsing them with the values specified by
 // args.
-func Load(fs *flag.FlagSet, args []string) (*Config, error) {
+func Load(fs *flag.FlagSet, args []string, log *server.Logger) (*Config, error) {
 	cfg, error := load(fs, args, func(path, fileType string, expandArgs bool, c *Config) error {
 		switch fileType {
 		case fileTypeYAML:
@@ -381,7 +381,7 @@ func Load(fs *flag.FlagSet, args []string) (*Config, error) {
 				return LoadRemote(path, expandArgs, c)
 			}
 			if features.Enabled(fs, featAgentManagement) {
-				return LoadFromAgentManagementAPI(path, expandArgs, c)
+				return LoadFromAgentManagementAPI(path, expandArgs, c, log)
 			}
 			return LoadFile(path, expandArgs, c)
 		case fileTypeDynamic:

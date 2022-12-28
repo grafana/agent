@@ -51,11 +51,11 @@ func main() {
 		return
 	}
 
-	reloader := func() (*config.Config, error) {
+	reloader := func(log *server.Logger) (*config.Config, error) {
 		fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-		return config.Load(fs, os.Args[1:])
+		return config.Load(fs, os.Args[1:], log)
 	}
-	cfg, err := reloader()
+	cfg, err := reloader(nil)
 	if err != nil {
 		log.Fatalln(err)
 	}

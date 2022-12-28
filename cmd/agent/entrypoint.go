@@ -53,7 +53,7 @@ type Entrypoint struct {
 }
 
 // Reloader is any function that returns a new config.
-type Reloader = func() (*config.Config, error)
+type Reloader = func(log *server.Logger) (*config.Config, error)
 
 // NewEntrypoint creates a new Entrypoint.
 func NewEntrypoint(logger *server.Logger, cfg *config.Config, reloader Reloader) (*Entrypoint, error) {
@@ -336,7 +336,7 @@ func (ep *Entrypoint) supportHandler(rw http.ResponseWriter, r *http.Request) {
 func (ep *Entrypoint) TriggerReload() bool {
 	level.Info(ep.log).Log("msg", "reload of config file requested")
 
-	cfg, err := ep.reloader()
+	cfg, err := ep.reloader(ep.log)
 	if err != nil {
 		level.Error(ep.log).Log("msg", "failed to reload config file", "err", err)
 		return false
