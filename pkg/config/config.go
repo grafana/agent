@@ -244,12 +244,12 @@ func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 	return LoadBytes(buf, expandEnvVars, c)
 }
 
-// 1. Read local initial config.
-// 2. Get the remote config.
-//    a) Fetch from remote. If this fails or is invalid:
-//    b) Read the remote config from cache. If this fails, return empty config.
-// 4. Merge the initial and remote config.
-
+// Loads and merges a config from an Agent Management API.
+//  1. Read local initial config.
+//  2. Get the remote config.
+//     a) Fetch from remote. If this fails or is invalid:
+//     b) Read the remote config from cache. If this fails, return an error.
+//  4. Merge the initial and remote config into c.
 func LoadFromAgentManagementAPI(path string, expandEnvVars bool, c *Config, log *server.Logger) error {
 	// Load the initial config from disk
 	err := LoadFile(path, expandEnvVars, c)
