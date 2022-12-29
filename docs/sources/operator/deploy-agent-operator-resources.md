@@ -39,7 +39,7 @@ Before you begin, make sure that you have deployed the Grafana Agent Operator CR
 
 In this section, you'll roll out a `GrafanaAgent` resource. See [Grafana Agent Operator architecture]({{< relref "./architecture.md" >}}) for a discussion of the resources in the `GrafanaAgent` resource hierarchy.
 
-> **Note:** Due to the variety of possible deployment architectures, the official Agent Operator Helm chart does not provide built-in templates for the custom resources described in this guide. You must configure and deploy these manually. You also might want to template and add the following manifests to your own in-house Helm charts and GitOps flows.
+> **Note:** Due to the variety of possible deployment architectures, the official Agent Operator Helm chart does not provide built-in templates for the custom resources described in this guide. You must configure and deploy these manually as described in this section. We recommend templating and adding the following manifests to your own in-house Helm charts and GitOps flows.
 
 To deploy the `GrafanaAgent` resource:
 
@@ -128,29 +128,25 @@ To deploy the `GrafanaAgent` resource:
       namespace: default
     ```
 
-1. Customize the manifests as needed.
-
-    Here are some details about the `GrafanaAgent` resource to help you customize the manifests:
-    
-    The `GrafanaAgent` resource:
+    In the first manifest, the `GrafanaAgent` resource:
     
     - Specifies an Agent image version.
-    - Specifies `MetricsInstance` and `LogsInstance` selectors. These search for `MetricsInstances` and `LogsInstances` in the **same namespace** with labels matching `agent: grafana-agent-metrics` and `agent: grafana-agent-logs`, respectively. 
+    - Specifies `MetricsInstance` and `LogsInstance` selectors. These search for `MetricsInstances` and `LogsInstances` in the same namespace with labels matching `agent: grafana-agent-metrics` and `agent: grafana-agent-logs`, respectively. 
     - Sets a `cluster: cloud` label for all metrics shipped to your Prometheus-compatible endpoint. Change this label to your cluster name. To search for `MetricsInstances` or `LogsInstances` in a *different* namespace, use the `instanceNamespaceSelector` field. To learn more about this field, see the `GrafanaAgent` [CRD specification](https://github.com/grafana/agent/blob/main/production/operator/crds/monitoring.grafana.com_grafanaagents.yaml#L3789).
 
-1. After customizing the manifests in your file as needed, roll them out to your cluster using `kubectl apply -f` followed by the filename.
+1. Customize the manifests as needed and roll them out to your cluster using `kubectl apply -f` followed by the filename.
 
     This step creates a `ServiceAccount`, `ClusterRole`, and `ClusterRoleBinding` for the `GrafanaAgent` resource. 
 
-    Deploying a `GrafanaAgent` resource on its own does not spin up Agent Pods. Agent Operator creates Agent Pods once `MetricsInstance` and `LogsIntance` resources have been created. Follow the instructions in the [Deploy a MetricsInstance resource] and [Deploy LogsInstance and PodLogs resources] sections to create these resources. 
+    Deploying a `GrafanaAgent` resource on its own does not spin up Agent Pods. Agent Operator creates Agent Pods once `MetricsInstance` and `LogsIntance` resources have been created. Follow the instructions in the [Deploy a MetricsInstance resource](#deploy-a-metricsinstance-resource) and [Deploy LogsInstance and PodLogs resources](#deploy-logsinstance-and-podlogs-resources) sections to create these resources. 
 
 ### Disable feature flags reporting
 
-If you would like to disable the [reporting]({{< relref "../configuration/flags.md/#report-information-usage" >}}) usage of feature flags to Grafana, set `disableReporting` field to `true`.
+To disable the [reporting]({{< relref "../configuration/flags.md/#report-information-usage" >}}) usage of feature flags to Grafana, set `disableReporting` field to `true`.
 
 ### Disable support bundle generation
 
-If you would like to disable the [support bundles functionality]({{< relref "../configuration/flags.md/#support-bundles" >}}), set the `disableSupportBundle` field to `true`.
+To disable the [support bundles functionality]({{< relref "../configuration/flags.md/#support-bundles" >}}), set the `disableSupportBundle` field to `true`.
 
 ## Deploy a MetricsInstance resource
 
@@ -237,11 +233,11 @@ To deploy a `MetricsInstance` resource:
 
 If you're using Grafana Cloud, you can find your hosted Prometheus endpoint username and password in the [Grafana Cloud Portal](https://grafana.com/profile/org ). If you want to base64-encode these values yourself, use `data` instead of `stringData`.
 
-Once you've rolled out the `MetricsInstance` and its Secret, you can confirm that the `MetricsInstance` Agent is up and running with `kubectl get pod`. Since you haven't defined any monitors yet, this Agent does not have any scrape targets defined. In the next section, you'll create scrape targets for the cAdvisor and kubelet endpoints exposed by the `kubelet` service in the cluster.
+Once you've rolled out the `MetricsInstance` and its Secret, you can confirm that the `MetricsInstance` Agent is up and running using `kubectl get pod`. Since you haven't defined any monitors yet, this Agent doesn't have any scrape targets defined. In the next section, you'll create scrape targets for the cAdvisor and kubelet endpoints exposed by the `kubelet` service in the cluster.
 
 ## Create ServiceMonitors for kubelet and cAdvisor endpoints
 
-Next, you'll create ServiceMonitors for kubelet and cAdvisor metrics exposed by the `kubelet` service. Every Node in your cluster exposes kubelet and cadvisor metrics at `/metrics` and `/metrics/cadvisor` respectively. Agent Operator creates a `kubelet` service that exposes these Node endpoints so that they can be scraped using ServiceMonitors.
+Next, you'll create ServiceMonitors for kubelet and cAdvisor metrics exposed by the `kubelet` service. Every Node in your cluster exposes kubelet and cAdvisor metrics at `/metrics` and `/metrics/cadvisor`, respectively. Agent Operator creates a `kubelet` service that exposes these Node endpoints so that they can be scraped using ServiceMonitors.
 
 To scrape the kubelet and cAdvisor endpoints:
 
@@ -331,7 +327,7 @@ These two ServiceMonitors configure Agent to scrape all the kubelet and cAdvisor
 
 ## Deploy LogsInstance and PodLogs resources
 
-Next, you'll deploy a `LogsInstance` resource to collect logs from your cluster Nodes and ship these to your remote Loki endpoint. Agent Operator will deploy a DaemonSet of Agents in your cluster that will tail log files defined in PodLogs resources.
+Next, you'll deploy a `LogsInstance` resource to collect logs from your cluster Nodes and ship these to your remote Loki endpoint. Agent Operator deploys a DaemonSet of Agents in your cluster that will tail log files defined in `PodLogs` resources.
 
 To deploy the `LogsInstance` resource into your cluster:
 
@@ -364,7 +360,7 @@ To deploy the `LogsInstance` resource into your cluster:
           instance: primary
     ```
 
-    This `LogsInstance` will pick up `PodLogs` resources with the `instance: primary` label. Be sure to set the Loki URL to the correct push endpoint. For Grafana Cloud, this will look similar to `logs-prod-us-central1.grafana.net/loki/api/v1/push`, however check the [Grafana Cloud Portal](https://grafana.com/profile/org) to confirm.
+    This `LogsInstance` picks up `PodLogs` resources with the `instance: primary` label. Be sure to set the Loki URL to the correct push endpoint. For Grafana Cloud, this will look similar to `logs-prod-us-central1.grafana.net/loki/api/v1/push`, however check the [Grafana Cloud Portal](https://grafana.com/profile/org) to confirm.
 
     Also note that this example uses the `agent: grafana-agent-logs` label, which associates this `LogsInstance` with the `GrafanaAgent` resource defined earlier. This means that it will inherit requests, limits, affinities and other properties defined in the `GrafanaAgent` custom resource.
 
@@ -422,7 +418,7 @@ The DaemonSet of logging agents should be tailing your container logs, applying 
 
 ## Summary
 
-At this point, you've rolled out the following into your cluster:
+You've now rolled out the following into your cluster:
 
 - A `GrafanaAgent` resource that discovers one or more `MetricsInstance` and `LogsInstances` resources.
 - A `MetricsInstance` resource that defines where to ship collected metrics.

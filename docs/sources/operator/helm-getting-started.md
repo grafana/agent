@@ -39,7 +39,7 @@ To install the Agent Operator Helm chart:
     helm install my-release grafana/grafana-agent-operator
     ```
 
-    If you want to modify the default parameters, you can create a `values.yaml` file and pass it in to `helm install`:
+    If you want to modify the default parameters, you can create a `values.yaml` file and pass it to `helm install`:
 
     ```bash
     helm install my-release grafana/grafana-agent-operator -f values.yaml
@@ -59,8 +59,8 @@ To install the Agent Operator Helm chart:
     kubectl get svc
     ```
 
-    You should see an Agent Operator Pod in `RUNNING` state, and a `kubelet` Service.
+    You should see an Agent Operator Pod in `RUNNING` state, and a `kubelet` service.
 
 ## Deploy the Grafana Agent Operator resources
 
- Agent Operator is now up and running. Next, you need to install a Grafana Agent for Agent Operator to run for you. To do so, follow the instructions in the [Deploy the Grafana Agent Operator resources]({{< relref "./deploy-agent-operator-resources.md" >}}) topic.
+ Agent Operator is now up and running. Next, you need to install a Grafana Agent for Agent Operator to run for you. To do so, follow the instructions in the [Deploy the Grafana Agent Operator resources]({{< relref "./deploy-agent-operator-resources.md" >}}) topic. To learn more about the custom resources Agent Operator provides and their hierarchy, see [Grafana Agent Operator architecture]({{< relref "./architecture/" >}}).
