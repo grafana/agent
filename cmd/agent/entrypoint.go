@@ -358,11 +358,9 @@ func (ep *Entrypoint) PollConfig(ctx context.Context, t *time.Ticker) error {
 	for {
 		select {
 		case <-ctx.Done():
-			level.Info(ep.log).Log("msg", "[TESTING] CONTEXT DONE")
 			return ctx.Err()
 		case <-t.C:
 			ok := ep.TriggerReload()
-			level.Info(ep.log).Log("msg", "[TESTING] Finished reloading config")
 			if !ok {
 				level.Error(ep.log).Log("msg", "config reload did not succeed")
 			}

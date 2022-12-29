@@ -181,9 +181,9 @@ func (am *AgentManagement) Validate() error {
 	}
 
 	if am.RemoteConfiguration.BaseConfigId == "" {
-		return errors.New("base config id must be specified on the CLI with -agentmanagement.base_config_id=<id>")
+		return errors.New("base_config_id must be specified in 'remote_configuration' block of the config")
 	} else if am.RemoteConfiguration.Namespace == "" {
-		return errors.New("namespace must be specified on the CLI with -agentmanagement.namespace=<namespace>")
+		return errors.New("namespace must be specified in 'remote_configuration' block of the config")
 	}
 
 	return nil
