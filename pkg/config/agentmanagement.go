@@ -39,45 +39,27 @@ type AgentManagement struct {
 	RemoteConfiguration RemoteConfiguration `yaml:"remote_configuration"`
 }
 
-func tryLog(log *server.Logger, lvl string, keyvals ...interface{}) {
-	if log == nil {
-		return
-	}
-
-	switch lvl {
-	case "info":
-		level.Info(log).Log(keyvals...)
-	case "debug":
-		level.Debug(log).Log(keyvals...)
-	case "warn":
-		level.Warn(log).Log(keyvals...)
-	case "error":
-		level.Error(log).Log(keyvals...)
-	}
-}
-
 // Gets the remote config specified in the initial config, falling back to a local, cached copy
 // of the remote config if the request to the remote fails. If both fail, an empty config and an
 // error will be returned.
 func GetRemoteConfig(dir string, expandEnvVars bool, initialConfig *Config, log *server.Logger) (*Config, error) {
 	remoteConfigBytes, err := FetchFromApi(initialConfig)
 	if err != nil {
-		tryLog(log, "error", "msg", "could not fetch from API, falling back to cache", "err", err)
+		level.Error(log).Log("msg", "could not fetch from API, falling back to cache", "err", err)
 		return GetCachedRemoteConfig(dir, expandEnvVars)
 	}
 	var remoteConfig Config
 
 	err = LoadBytes(remoteConfigBytes, expandEnvVars, &remoteConfig)
 	if err != nil {
-		tryLog(log, "error", "msg", "could not load the response from the API, falling back to cache", "err", err)
+		level.Error(log).Log("msg", "could not load the response from the API, falling back to cache", "err", err)
 		return GetCachedRemoteConfig(dir, expandEnvVars)
 	}
-	tryLog(log, "info", "msg", "fetched and loaded new config from remote API")
+	level.Info(log).Log("msg", "fetched and loaded new config from remote API")
 	instrumentation.ConfigMetrics.InstrumentConfig(remoteConfigBytes)
 
-	tryLog(log, "debug", "msg", "caching remote config")
 	if err = cacheRemoteConfig(dir, remoteConfigBytes); err != nil {
-		tryLog(log, "error", "err", fmt.Errorf("could not cache config locally: %w", err))
+		level.Error(log).Log("err", fmt.Errorf("could not cache config locally: %w", err))
 	}
 	return &remoteConfig, nil
 }
