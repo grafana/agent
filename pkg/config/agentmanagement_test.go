@@ -71,7 +71,7 @@ func TestValidateInvalidPollingInterval(t *testing.T) {
 
 func TestGetCachedRemoteConfig(t *testing.T) {
 	cwd := filepath.Clean("./testdata/")
-	_, err := GetCachedRemoteConfig(cwd, false)
+	_, err := getCachedRemoteConfig(cwd, false)
 	assert.NoError(t, err)
 }
 
@@ -110,19 +110,19 @@ func TestGetLabelMap(t *testing.T) {
 			Namespace:    "test_namespace",
 		},
 	}
-	m := c.LabelMap()
+	m := c.labelMap()
 	assert.Contains(t, m, "key1")
 	assert.Equal(t, "value1", m["key1"])
 
 	c.RemoteConfiguration.Labels = []string{"key2:value2", "key3:value3"}
-	m = c.LabelMap()
+	m = c.labelMap()
 	assert.Contains(t, m, "key2")
 	assert.Contains(t, m, "key3")
 	assert.Equal(t, "value2", m["key2"])
 	assert.Equal(t, "value3", m["key3"])
 
 	c.RemoteConfiguration.Labels = []string{}
-	assert.Equal(t, 0, len(c.LabelMap()))
+	assert.Equal(t, 0, len(c.labelMap()))
 }
 
 func TestFullUrl(t *testing.T) {
@@ -141,7 +141,7 @@ func TestFullUrl(t *testing.T) {
 			BaseConfigId: "test_config",
 		},
 	}
-	actual, err := c.FullUrl()
+	actual, err := c.fullUrl()
 	assert.NoError(t, err)
 	assert.Equal(t, "https://localhost:1234/example/api/test_namespace/test_config/remote_config?a=A&b=B", actual)
 }

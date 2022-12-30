@@ -3,8 +3,6 @@ package config
 import (
 	"errors"
 	"fmt"
-	"io"
-	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -43,17 +41,17 @@ type AgentManagement struct {
 // of the remote config if the request to the remote fails. If both fail, an empty config and an
 // error will be returned.
 func GetRemoteConfig(dir string, expandEnvVars bool, initialConfig *Config, log *server.Logger) (*Config, error) {
-	remoteConfigBytes, err := FetchFromApi(initialConfig)
+	remoteConfigBytes, err := fetchFromApi(initialConfig)
 	if err != nil {
 		level.Error(log).Log("msg", "could not fetch from API, falling back to cache", "err", err)
-		return GetCachedRemoteConfig(dir, expandEnvVars)
+		return getCachedRemoteConfig(dir, expandEnvVars)
 	}
 	var remoteConfig Config
 
 	err = LoadBytes(remoteConfigBytes, expandEnvVars, &remoteConfig)
 	if err != nil {
 		level.Error(log).Log("msg", "could not load the response from the API, falling back to cache", "err", err)
-		return GetCachedRemoteConfig(dir, expandEnvVars)
+		return getCachedRemoteConfig(dir, expandEnvVars)
 	}
 	level.Info(log).Log("msg", "fetched and loaded new config from remote API")
 	instrumentation.ConfigMetrics.InstrumentConfig(remoteConfigBytes)
@@ -64,7 +62,7 @@ func GetRemoteConfig(dir string, expandEnvVars bool, initialConfig *Config, log 
 	return &remoteConfig, nil
 }
 
-func GetCachedRemoteConfig(dir string, expandEnvVars bool) (*Config, error) {
+func getCachedRemoteConfig(dir string, expandEnvVars bool) (*Config, error) {
 	cachePath := filepath.Join(dir, "remote-config-cache.yaml")
 	var cachedConfig Config
 	if err := LoadFile(cachePath, expandEnvVars, &cachedConfig); err != nil {
@@ -79,17 +77,17 @@ func cacheRemoteConfig(dir string, remoteConfigBytes []byte) error {
 }
 
 // Fetches the raw bytes from the API based on the protocol specified in c.
-func FetchFromApi(c *Config) ([]byte, error) {
+func fetchFromApi(c *Config) ([]byte, error) {
 	switch p := c.AgentManagement.Protocol; {
 	case p == "http":
-		return FetchConfig(c)
+		return fetchConfig(c)
 	default:
 		return nil, fmt.Errorf("unsupported procotol for agent management api: %s", p)
 	}
 }
 
 // Fetches the raw bytes of the config from the API specified in c.
-func FetchConfig(c *Config) ([]byte, error) {
+func fetchConfig(c *Config) ([]byte, error) {
 	httpClientConfig := &config.HTTPClientConfig{
 		BasicAuth: &config.BasicAuth{
 			Username:     c.AgentManagement.BasicAuth.Username,
@@ -107,7 +105,7 @@ func FetchConfig(c *Config) ([]byte, error) {
 		HTTPClientConfig: httpClientConfig,
 	}
 
-	url, err := c.AgentManagement.FullUrl()
+	url, err := c.AgentManagement.fullUrl()
 	if err != nil {
 		return nil, fmt.Errorf("error trying to create full url: %w", err)
 	}
@@ -125,8 +123,8 @@ func FetchConfig(c *Config) ([]byte, error) {
 
 // Fully creates and returns the URL that should be used when querying the Agent Management API,
 // including the namespace, base config id, and any labels that have been specified.
-func (am *AgentManagement) FullUrl() (string, error) {
-	labelMap := am.LabelMap()
+func (am *AgentManagement) fullUrl() (string, error) {
+	labelMap := am.labelMap()
 	fullPath, err := url.JoinPath(am.Url, am.RemoteConfiguration.Namespace, am.RemoteConfiguration.BaseConfigId, "remote_config")
 	if err != nil {
 		return "", fmt.Errorf("error trying to join url: %w", err)
@@ -147,7 +145,7 @@ func (am *AgentManagement) FullUrl() (string, error) {
 // key:value pairs into a map.
 //
 // e.g. "key1:value1,key2:value2" -> {"key1": "value2", "key2": "value2"}
-func (am *AgentManagement) LabelMap() map[string]string {
+func (am *AgentManagement) labelMap() map[string]string {
 	labelMap := map[string]string{}
 
 	if len(am.RemoteConfiguration.Labels) == 0 {
@@ -187,42 +185,4 @@ func (am *AgentManagement) Validate() error {
 	}
 
 	return nil
-}
-
-// Fetches the config from the Agent Management API specified in c via an HTTP GET request.
-func FetchConfigHTTPRaw(c *Config, tenantId string) ([]byte, error) {
-	am := c.AgentManagement
-
-	url, err := am.FullUrl()
-	if err != nil {
-		return nil, fmt.Errorf("error trying to create full url: %w", err)
-	}
-
-	client := &http.Client{
-		Timeout: 10 * time.Second,
-	}
-
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, fmt.Errorf("error trying to create http request: %w", err)
-	}
-
-	req.Header.Add("X-Scope-OrgID", tenantId)
-
-	// Lifted from Prometheus code and updated to use os.ReadFile instead of ioutils
-	bs, err := os.ReadFile(am.BasicAuth.PasswordFile)
-	if err != nil {
-		return nil, fmt.Errorf("unable to read basic auth password file %s: %s", am.BasicAuth.PasswordFile, err)
-	}
-	req.SetBasicAuth(am.BasicAuth.Username, strings.TrimSpace(string(bs)))
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("unable to complete http request: %w", err)
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("non-200 response code from agent management API: %d", resp.StatusCode)
-	}
-	return io.ReadAll(resp.Body)
 }
