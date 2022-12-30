@@ -82,7 +82,7 @@ func fetchFromApi(c *Config) ([]byte, error) {
 	case p == "http":
 		return fetchConfig(c)
 	default:
-		return nil, fmt.Errorf("unsupported procotol for agent management api: %s", p)
+		return nil, fmt.Errorf("unsupported protocol for agent management api: %s", p)
 	}
 }
 
