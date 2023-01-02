@@ -10,6 +10,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
+	"k8s.io/utils/pointer"
 
 	"github.com/grafana/agent/component"
 	component_config "github.com/grafana/agent/component/common/config"
@@ -97,27 +98,27 @@ func NewDefaultArguments() Arguments {
 		Scheme:           "http",
 		HTTPClientConfig: component_config.DefaultHTTPClientConfig,
 		ScrapeInterval:   15 * time.Second,
-		ScrapeTimeout:    15 * time.Second,
+		ScrapeTimeout:    15*time.Second + (3 * time.Second),
 		ProfilingConfig: &ProfilingConfig{
 			PprofConfig: PprofConfig{
 				pprofMemory: &PprofProfilingConfig{
-					Enabled: trueValue(),
+					Enabled: pointer.Bool(true),
 					Path:    "/debug/pprof/allocs",
 				},
 				pprofBlock: &PprofProfilingConfig{
-					Enabled: trueValue(),
+					Enabled: pointer.Bool(true),
 					Path:    "/debug/pprof/block",
 				},
 				pprofGoroutine: &PprofProfilingConfig{
-					Enabled: trueValue(),
+					Enabled: pointer.Bool(true),
 					Path:    "/debug/pprof/goroutine",
 				},
 				pprofMutex: &PprofProfilingConfig{
-					Enabled: trueValue(),
+					Enabled: pointer.Bool(true),
 					Path:    "/debug/pprof/mutex",
 				},
 				pprofProcessCPU: &PprofProfilingConfig{
-					Enabled: trueValue(),
+					Enabled: pointer.Bool(true),
 					Delta:   true,
 					Path:    "/debug/pprof/profile",
 				},
@@ -143,19 +144,18 @@ func (arg *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 				continue
 			}
 			if arg.ProfilingConfig.PprofConfig[pt].Enabled == nil {
-				arg.ProfilingConfig.PprofConfig[pt].Enabled = trueValue()
+				arg.ProfilingConfig.PprofConfig[pt].Enabled = pointer.Bool(true)
 			}
 			if arg.ProfilingConfig.PprofConfig[pt].Path == "" {
 				arg.ProfilingConfig.PprofConfig[pt].Path = pc.Path
 			}
 		}
 	}
-
-	if arg.ScrapeTimeout > arg.ScrapeInterval {
-		return fmt.Errorf("scrape timeout must be larger or equal to inverval")
-	}
 	if arg.ScrapeTimeout == 0 {
-		arg.ScrapeTimeout = arg.ScrapeInterval
+		arg.ScrapeTimeout = arg.ScrapeInterval + (3 * time.Second)
+	}
+	if arg.ScrapeTimeout <= arg.ScrapeInterval {
+		return fmt.Errorf("scrape timeout must be greater than the interval")
 	}
 
 	if cfg, ok := arg.ProfilingConfig.PprofConfig[pprofProcessCPU]; ok {
@@ -231,6 +231,7 @@ func (c *Component) Run(ctx context.Context) error {
 			case targetSetsChan <- promTargets:
 				level.Debug(c.opts.Logger).Log("msg", "passed new targets to scrape manager")
 			case <-ctx.Done():
+				return nil
 			}
 		}
 	}
@@ -302,9 +303,4 @@ func (c *Component) DebugInfo() interface{} {
 	}
 
 	return scrape.ScraperStatus{TargetStatus: res}
-}
-
-func trueValue() *bool {
-	a := true
-	return &a
 }

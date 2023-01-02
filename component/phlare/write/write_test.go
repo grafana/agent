@@ -174,7 +174,6 @@ func Test_Write_Update(t *testing.T) {
 	}
 	wg.Add(1)
 	require.NoError(t, c.Update(argument))
-	require.NoError(t, c.Update(argument)) // second with the same config shouldn't trigger a state change
 	wg.Wait()
 	err = export.Receiver.Appender().Append(context.Background(), labels.FromMap(map[string]string{
 		"__name__": "test",

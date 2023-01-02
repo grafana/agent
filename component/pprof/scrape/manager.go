@@ -2,7 +2,6 @@ package scrape
 
 import (
 	"errors"
-	"reflect"
 	"sync"
 	"time"
 
@@ -111,9 +110,6 @@ func (m *Manager) reload() {
 func (m *Manager) ApplyConfig(cfg Arguments) error {
 	m.mtxScrape.Lock()
 	defer m.mtxScrape.Unlock()
-	if reflect.DeepEqual(m.config, cfg) {
-		return nil
-	}
 	// Cleanup and reload pool if the configuration has changed.
 	var failed bool
 	m.config = cfg

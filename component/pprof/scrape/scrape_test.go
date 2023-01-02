@@ -16,6 +16,7 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/goleak"
+	"k8s.io/utils/pointer"
 )
 
 func TestComponent(t *testing.T) {
@@ -112,7 +113,7 @@ func TestUnmarshalConfig(t *testing.T) {
 					},
 				}
 				r.ProfilingConfig.PprofConfig["fgprof"] = &PprofProfilingConfig{
-					Enabled: trueValue(),
+					Enabled: pointer.Bool(true),
 					Path:    "/debug/fgprof",
 					Delta:   true,
 				}
@@ -126,6 +127,7 @@ func TestUnmarshalConfig(t *testing.T) {
 			targets    = []
 			forward_to = null
 			scrape_timeout = "1s"
+			scrape_interval = "0.5s"
 			`,
 			expectedErr: "process_cpu scrape_timeout must be at least 2 seconds",
 		},
@@ -134,9 +136,9 @@ func TestUnmarshalConfig(t *testing.T) {
 			targets    = []
 			forward_to = null
 			scrape_timeout = "4s"
-			scrape_interval = "2s"
+			scrape_interval = "5s"
 			`,
-			expectedErr: "scrape timeout must be larger or equal to inverval",
+			expectedErr: "scrape timeout must be greater than the interval",
 		},
 	} {
 		tt := tt

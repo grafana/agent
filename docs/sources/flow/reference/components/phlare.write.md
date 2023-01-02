@@ -6,8 +6,8 @@ title: phlare.write
 
 # phlare.write
 
-`phlare.write` forward over the network profiles sent from other components to a series of
-user-supplied endpoints. Profiles are sent over the network using [Phlare' Push API](https://grafana.com/oss/phlare/).
+`phlare.write` receives performance profiles from other components and forwards them
+to a series of user-supplied endpoints using [Phlare' Push API](https://grafana.com/oss/phlare/).
 
 Multiple `phlare.write` components can be specified by giving them
 different labels.

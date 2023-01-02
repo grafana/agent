@@ -3,7 +3,6 @@ package write
 import (
 	"context"
 	"fmt"
-	"reflect"
 	"strings"
 	"time"
 
@@ -11,6 +10,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/oklog/run"
 	commonconfig "github.com/prometheus/common/config"
+	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 	"go.uber.org/multierr"
 
@@ -79,18 +79,18 @@ func (r *EndpointOptions) UnmarshalRiver(f func(v interface{}) error) error {
 	return f((*arguments)(r))
 }
 
-// Component is the prometheus.remote_write component.
+// Component is the phlare.write component.
 type Component struct {
 	opts component.Options
 	cfg  Arguments
 }
 
-// Exports are the set of fields exposed by the phalre.write component.
+// Exports are the set of fields exposed by the phlare.write component.
 type Exports struct {
 	Receiver pprof.Appendable `river:"receiver,attr"`
 }
 
-// NewComponent creates a new prometheus.remote_write component.
+// NewComponent creates a new phlare.write component.
 func NewComponent(o component.Options, c Arguments) (*Component, error) {
 	receiver, err := NewFanOut(o, c)
 	if err != nil {
@@ -115,9 +115,6 @@ func (c *Component) Run(ctx context.Context) error {
 
 // Update implements Component.
 func (c *Component) Update(newConfig component.Arguments) error {
-	if reflect.DeepEqual(c.cfg, newConfig) {
-		return nil
-	}
 	c.cfg = newConfig.(Arguments)
 	level.Debug(c.opts.Logger).Log("msg", "updating phlare.write config", "old", c.cfg, "new", newConfig)
 	receiver, err := NewFanOut(c.opts, newConfig.(Arguments))
@@ -206,7 +203,7 @@ func (f *fanOutClient) Append(ctx context.Context, lbs labels.Labels, samples []
 
 	for _, label := range lbs {
 		// only __name__ is required as a private label.
-		if strings.HasPrefix(label.Name, "__") && label.Name != labels.MetricName {
+		if strings.HasPrefix(label.Name, model.ReservedLabelPrefix) && label.Name != labels.MetricName {
 			continue
 		}
 		lbsBuilder.Set(label.Name, label.Value)
