@@ -129,7 +129,7 @@ phlare.write "staging" {
 }
 
 
-pprof.scrape "default" {
+phlare.scrape "default" {
   targets = [
     {"__address__" = "phlare:4100", "app"="phlare"},
     {"__address__" = "agent:12345", "app"="agent"},

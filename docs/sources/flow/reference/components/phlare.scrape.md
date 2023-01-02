@@ -1,21 +1,21 @@
 ---
 aliases:
-- /docs/agent/latest/flow/reference/components/pprof.scrape
-title: pprof.scrape
+- /docs/agent/latest/flow/reference/components/phlare.scrape
+title: phlare.scrape
 ---
 
-# pprof.scrape
+# phlare.scrape
 
-`pprof.scrape` configures a [pprof] scraping job for a given set of
+`phlare.scrape` configures a [pprof] scraping job for a given set of
 `targets`. The scraped performance profiles are forwarded to the list of receivers passed in
 `forward_to`.
 
-Multiple `pprof.scrape` components can be specified by giving them different labels.
+Multiple `phlare.scrape` components can be specified by giving them different labels.
 
 ## Usage
 
 ```
-pprof.scrape "LABEL" {
+phlare.scrape "LABEL" {
   targets    = TARGET_LIST
   forward_to = RECEIVER_LIST
 }
@@ -50,7 +50,7 @@ Name | Type | Description | Default | Required
 
 ## Blocks
 
-The following blocks are supported inside the definition of `pprof.scrape`:
+The following blocks are supported inside the definition of `phlare.scrape`:
 
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
@@ -150,26 +150,26 @@ Name | Type | Description | Default | Required
 
 ## Exported fields
 
-`pprof.scrape` does not export any fields that can be referenced by other
+`phlare.scrape` does not export any fields that can be referenced by other
 components.
 
 ## Component health
 
-`pprof.scrape` is only reported as unhealthy if given an invalid
+`phlare.scrape` is only reported as unhealthy if given an invalid
 configuration.
 
 ## Debug information
 
-`pprof.scrape` reports the status of the last scrape for each configured
+`phlare.scrape` reports the status of the last scrape for each configured
 scrape job on the component's debug endpoint.
 
 ## Debug metrics
 
-* `agent_pprof_fanout_latency` (histogram): Write latency for sending to direct and indirect components.
+* `phlare_fanout_latency` (histogram): Write latency for sending to direct and indirect components.
 
 ## Scraping behavior
 
-The `pprof.scrape` component borrows the scraping behavior of Prometheus.
+The `phlare.scrape` component borrows the scraping behavior of Prometheus.
 Prometheus, and by extent this component, uses a pull model for scraping
 profiles from a given set of _targets_.
 Each scrape target is defined as a set of key-value pairs called _labels_.
@@ -191,7 +191,7 @@ to each receiver listed in the component's `forward_to` argument.
 Labels coming from targets, that start with a double underscore `__` are
 treated as _internal_, and are removed prior to scraping.
 
-The `pprof.scrape` component regards a scrape as successful if it
+The `phlare.scrape` component regards a scrape as successful if it
 responded with an HTTP `200 OK` status code and returned a body of valid [pprof] profile.
 
 If the scrape request fails, the component's debug UI section contains more
@@ -212,7 +212,7 @@ The following example sets up the scrape job with certain attributes (profiling 
 The exposed profiles are sent over to the provided list of receivers, as defined by other components.
 
 ```river
-pprof.scrape "local" {
+phlare.scrape "local" {
   targets    = [
     {"__address__" = "localhost:4100", "app"="phlare"},
     {"__address__" = "localhost:12345", "app"="agent"},

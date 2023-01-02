@@ -11,9 +11,9 @@ import (
 
 	"github.com/bufbuild/connect-go"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/phlare"
 	pushv1 "github.com/grafana/agent/component/phlare/push/v1"
 	"github.com/grafana/agent/component/phlare/push/v1/pushv1connect"
-	"github.com/grafana/agent/component/pprof"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
@@ -74,7 +74,7 @@ func Test_Write_FanOut(t *testing.T) {
 			s.Close()
 		}
 	}()
-	createReceiver := func(t *testing.T, arg Arguments) pprof.Appendable {
+	createReceiver := func(t *testing.T, arg Arguments) phlare.Appendable {
 		var wg sync.WaitGroup
 		wg.Add(1)
 		c, err := NewComponent(component.Options{
@@ -103,7 +103,7 @@ func Test_Write_FanOut(t *testing.T) {
 			"__type__": "type",
 			"job":      "foo",
 			"foo":      "bar",
-		}), []*pprof.RawSample{
+		}), []*phlare.RawSample{
 			{RawProfile: []byte("pprofraw")},
 		})
 		require.EqualErrorf(t, err, "unknown: test", "expected error to be test")
@@ -119,7 +119,7 @@ func Test_Write_FanOut(t *testing.T) {
 			"__type__": "type",
 			"job":      "foo",
 			"foo":      "bar",
-		}), []*pprof.RawSample{
+		}), []*phlare.RawSample{
 			{RawProfile: []byte("pprofraw")},
 		})
 		require.NoError(t, err)
@@ -153,7 +153,7 @@ func Test_Write_Update(t *testing.T) {
 	// First one is a noop
 	err = export.Receiver.Appender().Append(context.Background(), labels.FromMap(map[string]string{
 		"__name__": "test",
-	}), []*pprof.RawSample{
+	}), []*phlare.RawSample{
 		{RawProfile: []byte("pprofraw")},
 	})
 	require.NoError(t, err)
@@ -177,7 +177,7 @@ func Test_Write_Update(t *testing.T) {
 	wg.Wait()
 	err = export.Receiver.Appender().Append(context.Background(), labels.FromMap(map[string]string{
 		"__name__": "test",
-	}), []*pprof.RawSample{
+	}), []*phlare.RawSample{
 		{RawProfile: []byte("pprofraw")},
 	})
 	require.NoError(t, err)

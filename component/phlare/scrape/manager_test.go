@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/component/pprof"
+	"github.com/grafana/agent/component/phlare"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
@@ -16,7 +16,7 @@ import (
 func TestManager(t *testing.T) {
 	reloadInterval = time.Millisecond
 
-	m := NewManager(pprof.AppendableFunc(func(ctx context.Context, labels labels.Labels, samples []*pprof.RawSample) error {
+	m := NewManager(phlare.AppendableFunc(func(ctx context.Context, labels labels.Labels, samples []*phlare.RawSample) error {
 		return nil
 	}), util.TestLogger(t))
 

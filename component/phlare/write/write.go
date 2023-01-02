@@ -16,9 +16,9 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/config"
+	"github.com/grafana/agent/component/phlare"
 	pushv1 "github.com/grafana/agent/component/phlare/push/v1"
 	pushv1connect "github.com/grafana/agent/component/phlare/push/v1/pushv1connect"
-	"github.com/grafana/agent/component/pprof"
 	"github.com/grafana/agent/pkg/build"
 )
 
@@ -87,7 +87,7 @@ type Component struct {
 
 // Exports are the set of fields exposed by the phlare.write component.
 type Exports struct {
-	Receiver pprof.Appendable `river:"receiver,attr"`
+	Receiver phlare.Appendable `river:"receiver,attr"`
 }
 
 // NewComponent creates a new phlare.write component.
@@ -187,13 +187,13 @@ func (f *fanOutClient) Push(ctx context.Context, req *connect.Request[pushv1.Pus
 	return connect.NewResponse(&pushv1.PushResponse{}), nil
 }
 
-// Append implements the pprof.Appendable interface.
-func (f *fanOutClient) Appender() pprof.Appender {
+// Append implements the phlare.Appendable interface.
+func (f *fanOutClient) Appender() phlare.Appender {
 	return f
 }
 
 // Append implements the Appender interface.
-func (f *fanOutClient) Append(ctx context.Context, lbs labels.Labels, samples []*pprof.RawSample) error {
+func (f *fanOutClient) Append(ctx context.Context, lbs labels.Labels, samples []*phlare.RawSample) error {
 	// todo(ctovena): we should probably pool the label pair arrays and label builder to avoid allocs.
 	var (
 		protoLabels  = make([]*pushv1.LabelPair, 0, len(lbs)+len(f.config.ExternalLabels))

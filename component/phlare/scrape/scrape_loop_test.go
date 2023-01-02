@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/component/pprof"
+	"github.com/grafana/agent/component/phlare"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
@@ -32,8 +32,8 @@ func TestScrapePool(t *testing.T) {
 	args.ProfilingConfig.PprofConfig[pprofGoroutine].Enabled = falseValue()
 	args.ProfilingConfig.PprofConfig[pprofMemory].Enabled = falseValue()
 
-	p, err := newScrapePool(args, pprof.AppendableFunc(
-		func(ctx context.Context, labels labels.Labels, samples []*pprof.RawSample) error {
+	p, err := newScrapePool(args, phlare.AppendableFunc(
+		func(ctx context.Context, labels labels.Labels, samples []*phlare.RawSample) error {
 			return nil
 		}),
 		util.TestLogger(t))
@@ -173,7 +173,7 @@ func TestScrapeLoop(t *testing.T) {
 				"seconds": []string{"1"},
 			}),
 		server.Client(),
-		pprof.AppendableFunc(func(_ context.Context, labels labels.Labels, samples []*pprof.RawSample) error {
+		phlare.AppendableFunc(func(_ context.Context, labels labels.Labels, samples []*phlare.RawSample) error {
 			appendTotal.Inc()
 			require.Equal(t, []byte("ok"), samples[0].RawProfile)
 			return nil
