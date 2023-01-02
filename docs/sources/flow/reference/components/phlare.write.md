@@ -99,7 +99,7 @@ The following fields are exported and can be referenced by other components:
 
 Name | Type | Description
 ---- | ---- | -----------
-`receiver` | `receiver` | A value which other components can use to send profiles to.
+`receiver` | `receiver` | A value that other components can use to send profiles to.
 
 ## Component health
 
