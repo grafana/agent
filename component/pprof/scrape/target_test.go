@@ -57,7 +57,7 @@ func Test_targetsFromGroup(t *testing.T) {
 				model.SchemeLabel:     "http",
 				"foo":                 "bar",
 			}),
-			url.Values{"seconds": []string{"17"}}),
+			url.Values{"seconds": []string{"15"}}),
 	}
 	require.NoError(t, err)
 	sort.Sort(Targets(active))
