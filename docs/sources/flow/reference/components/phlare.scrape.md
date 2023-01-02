@@ -26,13 +26,14 @@ phlare.scrape "LABEL" {
 The component configures and starts a new scrape job to scrape all of the
 input targets. Multiple scrape jobs can be spawned for a single input target
 when scraping multiple profile types.
+
 The list of arguments that can be used to configure the block is
 presented below.
 
 The scrape job name defaults to the component's unique identifier.
 
-Any omitted fields take on their default values. In case that conflicting
-attributes are being passed (eg. defining both a BearerToken and
+Any omitted fields take on their default values. If conflicting
+attributes are being passed (e.g., defining both a BearerToken and
 BearerTokenFile or configuring both Basic Authorization and OAuth2 at the same
 time), the component reports an error.
 
@@ -106,9 +107,9 @@ The block contains the following attributes:
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `path_prefix`                  | `string`     | The path prefix to use when scraping targets. | | no
-`pprof_config`               | `map(PprofProfilingConfig)` | The pprof profile endpoints configuration. | see below | no
+`pprof_config`               | `map(PprofProfilingConfig)` | The pprof profile endpoints configuration. | See below. | no
 
-By default the `pprof_config` contains the default [go pprof endpoint](https://pkg.go.dev/net/http/pprof) configuration:
+By default, the `pprof_config` contains the default [go pprof endpoint](https://pkg.go.dev/net/http/pprof) configuration:
 
 ```river
 profiling_config {
@@ -145,8 +146,8 @@ the `PprofProfilingConfig` attribute contains the following attributes:
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `enabled`                  | `boolean`     | Enable this profile type to be scraped. | False | no
-`path`               | `string` | the path to the profile type on the target. | | no
-`delta`               | `boolean` | Whether to scrape the  profile as a delta. When scraping a delta profile, the query params `seconds` is automatically added. | False | no
+`path`               | `string` | The path to the profile type on the target. | | no
+`delta`               | `boolean` | Whether to scrape the  profile as a delta. When scraping a delta profile, the query param `seconds` is automatically added. | False | no
 
 ## Exported fields
 
@@ -170,9 +171,10 @@ scrape job on the component's debug endpoint.
 ## Scraping behavior
 
 The `phlare.scrape` component borrows the scraping behavior of Prometheus.
-Prometheus, and by extent this component, uses a pull model for scraping
+Prometheus, and by extension, this component, uses a pull model for scraping
 profiles from a given set of _targets_.
 Each scrape target is defined as a set of key-value pairs called _labels_.
+
 The set of targets can either be _static_, or dynamically provided periodically
 by a service discovery component such as `discovery.kubernetes`. The special
 label `__address__` _must always_ be present and corresponds to the
@@ -232,7 +234,7 @@ phlare.scrape "local" {
 }
 ```
 
-Here's the the endpoints that are being scraped every 15 seconds:
+Here are the the endpoints that are being scraped every 15 seconds:
 
 ```
 http://localhost:4100/debug/pprof/allocs
