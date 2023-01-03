@@ -10,6 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Bugfixes
+
+- Remove `include_exporter_metrics` from all integrations except redis and node_exporter. (@mattdurham)
+
 v0.30.1 (2022-12-23)
 --------------------
 
