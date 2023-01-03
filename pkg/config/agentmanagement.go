@@ -6,8 +6,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"sort"
-	"strings"
 	"time"
 
 	"github.com/go-kit/log/level"
@@ -16,15 +14,17 @@ import (
 	"github.com/prometheus/common/config"
 )
 
+type labelMap map[string]string
+
+type RemoteConfiguration struct {
+	Labels       labelMap `yaml:"labels"`
+	Namespace    string   `yaml:"namespace"`
+	BaseConfigId string   `yaml:"base_config_id"`
+}
+
 type BasicAuth struct {
 	Username     string `yaml:"username"`
 	PasswordFile string `yaml:"password_file"`
-}
-
-type RemoteConfiguration struct {
-	Labels       []string `yaml:"labels"`
-	Namespace    string   `yaml:"namespace"`
-	BaseConfigId string   `yaml:"base_config_id"`
 }
 
 type AgentManagement struct {
@@ -124,7 +124,6 @@ func fetchConfig(c *Config) ([]byte, error) {
 // Fully creates and returns the URL that should be used when querying the Agent Management API,
 // including the namespace, base config id, and any labels that have been specified.
 func (am *AgentManagement) fullUrl() (string, error) {
-	labelMap := am.labelMap()
 	fullPath, err := url.JoinPath(am.Url, am.RemoteConfiguration.Namespace, am.RemoteConfiguration.BaseConfigId, "remote_config")
 	if err != nil {
 		return "", fmt.Errorf("error trying to join url: %w", err)
@@ -134,33 +133,11 @@ func (am *AgentManagement) fullUrl() (string, error) {
 		return "", fmt.Errorf("error trying to parse url: %w", err)
 	}
 	q := u.Query()
-	for label, value := range labelMap {
+	for label, value := range am.RemoteConfiguration.Labels {
 		q.Add(label, value)
 	}
 	u.RawQuery = q.Encode()
 	return u.String(), nil
-}
-
-// Parses the AgentManagement.RemoteConfiguration.Label string representing a list of comma-separated
-// key:value pairs into a map.
-//
-// e.g. "key1:value1,key2:value2" -> {"key1": "value2", "key2": "value2"}
-func (am *AgentManagement) labelMap() map[string]string {
-	labelMap := map[string]string{}
-
-	if len(am.RemoteConfiguration.Labels) == 0 {
-		return labelMap
-	}
-	pairs := am.RemoteConfiguration.Labels
-	sort.Strings(pairs)
-	for _, pair := range pairs {
-		split := strings.Split(pair, ":")
-		if len(split) != 2 {
-			return nil
-		}
-		labelMap[split[0]] = split[1]
-	}
-	return labelMap
 }
 
 // Returns the duration in between config fetches.

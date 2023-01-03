@@ -100,31 +100,6 @@ func TestSleepTime(t *testing.T) {
 	assert.Equal(t, time.Second*15, st)
 }
 
-func TestGetLabelMap(t *testing.T) {
-	labels := []string{"key1:value1"}
-
-	c := &AgentManagement{
-		RemoteConfiguration: RemoteConfiguration{
-			Labels:       labels,
-			BaseConfigId: "test_config",
-			Namespace:    "test_namespace",
-		},
-	}
-	m := c.labelMap()
-	assert.Contains(t, m, "key1")
-	assert.Equal(t, "value1", m["key1"])
-
-	c.RemoteConfiguration.Labels = []string{"key2:value2", "key3:value3"}
-	m = c.labelMap()
-	assert.Contains(t, m, "key2")
-	assert.Contains(t, m, "key3")
-	assert.Equal(t, "value2", m["key2"])
-	assert.Equal(t, "value3", m["key3"])
-
-	c.RemoteConfiguration.Labels = []string{}
-	assert.Equal(t, 0, len(c.labelMap()))
-}
-
 func TestFullUrl(t *testing.T) {
 	c := &AgentManagement{
 		Enabled: true,
@@ -136,7 +111,7 @@ func TestFullUrl(t *testing.T) {
 		Protocol:        "https",
 		PollingInterval: "1m",
 		RemoteConfiguration: RemoteConfiguration{
-			Labels:       []string{"b:B", "a:A"},
+			Labels:       labelMap{"b": "B", "a": "A"},
 			Namespace:    "test_namespace",
 			BaseConfigId: "test_config",
 		},
