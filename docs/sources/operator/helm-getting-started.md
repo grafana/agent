@@ -6,7 +6,7 @@ weight: 100
 ---
 # Install Grafana Agent Operator with Helm
 
-In this guide, you'll learn how to deploy [Grafana Agent Operator]({{< relref "./_index.md" >}}) into your Kubernetes cluster using the [grafana-agent-operator Helm chart](https://github.com/grafana/helm-charts/tree/main/charts/agent-operator). To learn how to deploy Agent Operator without using Helm, see [Install Grafana Agent Operator without Helm]({{< relref "./getting-started.md" >}}).
+In this guide, you'll learn how to deploy [Grafana Agent Operator]({{< relref "./_index.md" >}}) into your Kubernetes cluster using the [grafana-agent-operator Helm chart](https://github.com/grafana/helm-charts/tree/main/charts/agent-operator). To learn how to deploy Agent Operator without using Helm, see [Install Grafana Agent Operator]({{< relref "./getting-started.md" >}}).
 
 > **Note**: If you are shipping your data to Grafana Cloud, use [Kubernetes Monitoring](https://grafana.com/docs/grafana-cloud/kubernetes-monitoring/) to set up Agent Operator. Kubernetes Monitoring provides a simplified approach and preconfigured dashboards and alerts.
 
@@ -59,7 +59,7 @@ To install the Agent Operator Helm chart:
     kubectl get svc
     ```
 
-    You should see an Agent Operator Pod in `RUNNING` state, and a `kubelet` service.
+    You should see an Agent Operator Pod in `RUNNING` state, and a `kubelet` service. Depending on your setup, this could take a moment.
 
 ## Deploy the Grafana Agent Operator resources
 

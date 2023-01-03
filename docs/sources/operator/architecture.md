@@ -14,8 +14,7 @@ Grafana Agent Operator works in two phases&mdash;it discovers a hierarchy of cus
 ## Custom resource hierarchy
 
 The root of the custom resource hierarchy is the `GrafanaAgent` resource&mdash;the primary resource Agent Operator looks for. `GrafanaAgent` is called the _root_ because it
-discovers other sub-resources, `MetricsInstance` and `LogsInstance`. The `GrafanaAgent` resource endows them with Pod attributes defined in the GrafanaAgent specification, for example, Pod requests, limits, affinities, and tolerations, and defines the Grafana Agent image. You can only define Pod attributes at the `GrafanaAgent` level. They are propagated to MetricsInstance and LogsInstance Pods. 
-.
+discovers other sub-resources, `MetricsInstance` and `LogsInstance`. The `GrafanaAgent` resource endows them with Pod attributes defined in the GrafanaAgent specification, for example, Pod requests, limits, affinities, and tolerations, and defines the Grafana Agent image. You can only define Pod attributes at the `GrafanaAgent` level. They are propagated to MetricsInstance and LogsInstance Pods.
 
 The full hierarchy of custom resources is as follows:
 
@@ -33,12 +32,12 @@ The following table describes these custom resources:
 |---|---|
 | `GrafanaAgent` | Discovers one or more `MetricsInstance` and `LogsInstance` resources. |
 | `MetricsInstance` | Defines where to ship collected metrics. This rolls out a Grafana Agent StatefulSet that will scrape and ship metrics to a `remote_write` endpoint. |
-| `ServiceMonitor` | Collects cAdvisor and kubelet metrics. This configures the `MetricsInstance` / Agent StatefulSet |
-| `LogsInstance` | Defines where to ship collected logs. This rolls out a Grafana Agent DaemonSet that will tail log files on your cluster nodes. |
+| `ServiceMonitor` | Collects [cAdvisor](https://github.com/google/cadvisor) and [kubelet metrics](https://github.com/kubernetes/kube-state-metrics). This configures the `MetricsInstance` / Agent StatefulSet |
+| `LogsInstance` | Defines where to ship collected logs. This rolls out a Grafana Agent [DaemonSet](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/) that will tail log files on your cluster nodes. |
 | `PodLogs` | Collects container logs from Kubernetes Pods. This configures the `LogsInstance` / Agent DaemonSet. |
 
-Most of the Grafana Agent Operator resources have the ability to reference a ConfigMap or a
-Secret. All referenced ConfigMaps or Secrets are added into the resource
+Most of the Grafana Agent Operator resources have the ability to reference a [ConfigMap](https://kubernetes.io/docs/concepts/configuration/configmap/) or a
+[Secret](https://kubernetes.io/docs/concepts/configuration/secret/). All referenced ConfigMaps or Secrets are added into the resource
 hierarchy.
 
 When a hierarchy is established, each item is watched for changes. Any changed
@@ -115,11 +114,11 @@ anywhere between 1/N to N targets to reshuffle.
 The sharding mechanism is borrowed from the Prometheus Operator.
 
 The number of replicas can be defined, similarly to the number of shards. This
-creates duplicate shards. This must be paired with a `remote_write` system that
-can perform HA duplication. Grafana Cloud and Cortex provide this out of the
+creates deduplicate shards. This must be paired with a `remote_write` system that
+can perform HA deduplication. [Grafana Cloud](https://grafana.com/docs/grafana-cloud/) and [Mimir](https://grafana.com/docs/mimir/latest/) provide this out of the
 box, and the Grafana Agent Operator defaults support these two systems.
 
-The total number of created metrics pods will be product of `numShards *
+The total number of created metrics pods will be the product of `numShards *
 numReplicas`.
 
 ## Added labels

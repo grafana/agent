@@ -9,8 +9,8 @@ weight: 120
 
 To start collecting telemetry data, you need to roll out Grafana Agent Operator custom resources into your Kubernetes cluster. Before you can create the custom resources, you must first apply the Agent Custom Resource Definitions (CRDs) and install Agent Operator, with or without Helm. If you haven't yet taken these steps, follow the instructions in one of the following topics:
 
+- [Install Agent Operator]({{< relref "./getting-started/" >}})
 - [Install Agent Operator with Helm]({{< relref "./helm-getting-started/" >}})
-- [Install Agent Operator without Helm]({{< relref "./getting-started/" >}})
 
 Follow the steps in this guide to roll out the Grafana Agent Operator custom resources to:
 
@@ -86,7 +86,7 @@ To deploy the `GrafanaAgent` resource:
     rules:
     - apiGroups:
       - ""
-    resources:
+      resources:
       - nodes
       - nodes/proxy
       - nodes/metrics
@@ -132,7 +132,7 @@ To deploy the `GrafanaAgent` resource:
     
     - Specifies an Agent image version.
     - Specifies `MetricsInstance` and `LogsInstance` selectors. These search for `MetricsInstances` and `LogsInstances` in the same namespace with labels matching `agent: grafana-agent-metrics` and `agent: grafana-agent-logs`, respectively. 
-    - Sets a `cluster: cloud` label for all metrics shipped to your Prometheus-compatible endpoint. Change this label to your cluster name. To search for `MetricsInstances` or `LogsInstances` in a *different* namespace, use the `instanceNamespaceSelector` field. To learn more about this field, see the `GrafanaAgent` [CRD specification](https://github.com/grafana/agent/blob/main/production/operator/crds/monitoring.grafana.com_grafanaagents.yaml#L3789).
+    - Sets a `cluster: cloud` label for all metrics shipped to your Prometheus-compatible endpoint. Change this label to your cluster name. To search for `MetricsInstances` or `LogsInstances` in a *different* namespace, use the `instanceNamespaceSelector` field. To learn more about this field, see the `GrafanaAgent` [CRD specification](https://github.com/grafana/agent/blob/main/production/operator/crds/monitoring.grafana.com_grafanaagents.yaml).
 
 1. Customize the manifests as needed and roll them out to your cluster using `kubectl apply -f` followed by the filename.
 
@@ -218,7 +218,7 @@ To deploy a `MetricsInstance` resource:
 
     This step associates the `MetricsInstance` resource with the `agent: grafana-agent` `GrafanaAgent` resource deployed in the previous step. The `MetricsInstance` resource watches for creation and updates to `*Monitors` with the `instance: primary` label.
 
-1. Once you've rolled out the manifest, create the `basicAuth` credentials using a Kubernetes Secret:
+1. Once you've rolled out the manifest, create the `basicAuth` credentials [using a Kubernetes Secret](https://kubernetes.io/docs/tasks/configmap-secret/managing-secret-using-config-file/):
 
     ```yaml
     apiVersion: v1
@@ -231,7 +231,7 @@ To deploy a `MetricsInstance` resource:
       password: 'your_cloud_prometheus_API_key'
     ```
 
-If you're using Grafana Cloud, you can find your hosted Prometheus endpoint username and password in the [Grafana Cloud Portal](https://grafana.com/profile/org ). If you want to base64-encode these values yourself, use `data` instead of `stringData`.
+If you're using Grafana Cloud, you can find your hosted Loki endpoint username and password by clicking **Details** on the Loki tile on the [Grafana Cloud Portal](https://grafana.com/profile/org). If you want to base64-encode these values yourself, use `data` instead of `stringData`.
 
 Once you've rolled out the `MetricsInstance` and its Secret, you can confirm that the `MetricsInstance` Agent is up and running using `kubectl get pod`. Since you haven't defined any monitors yet, this Agent doesn't have any scrape targets defined. In the next section, you'll create scrape targets for the cAdvisor and kubelet endpoints exposed by the `kubelet` service in the cluster.
 
@@ -299,8 +299,8 @@ To scrape the kubelet and cAdvisor endpoints:
         metricRelabelings:
         - action: keep
           regex: kubelet_cgroup_manager_duration_seconds_count|go_goroutines|kubelet_pod_start_duration_seconds_count|kubelet_runtime_operations_total|kubelet_pleg_relist_duration_seconds_bucket|volume_manager_total_volumes|kubelet_volume_stats_capacity_bytes|container_cpu_usage_seconds_total|container_network_transmit_bytes_total|kubelet_runtime_operations_errors_total|container_network_receive_bytes_total|container_memory_swap|container_network_receive_packets_total|container_cpu_cfs_periods_total|container_cpu_cfs_throttled_periods_total|kubelet_running_pod_count|node_namespace_pod_container:container_cpu_usage_seconds_total:sum_rate|container_memory_working_set_bytes|storage_operation_errors_total|kubelet_pleg_relist_duration_seconds_count|kubelet_running_pods|rest_client_request_duration_seconds_bucket|process_resident_memory_bytes|storage_operation_duration_seconds_count|kubelet_running_containers|kubelet_runtime_operations_duration_seconds_bucket|kubelet_node_config_error|kubelet_cgroup_manager_duration_seconds_bucket|kubelet_running_container_count|kubelet_volume_stats_available_bytes|kubelet_volume_stats_inodes|container_memory_rss|kubelet_pod_worker_duration_seconds_count|kubelet_node_name|kubelet_pleg_relist_interval_seconds_bucket|container_network_receive_packets_dropped_total|kubelet_pod_worker_duration_seconds_bucket|container_start_time_seconds|container_network_transmit_packets_dropped_total|process_cpu_seconds_total|storage_operation_duration_seconds_bucket|container_memory_cache|container_network_transmit_packets_total|kubelet_volume_stats_inodes_used|up|rest_client_requests_total
-      sourceLabels:
-      - __name__
+          sourceLabels:
+          - __name__
         path: /metrics/cadvisor
         port: https-metrics
         relabelings:
@@ -323,7 +323,7 @@ To scrape the kubelet and cAdvisor endpoints:
 
 These two ServiceMonitors configure Agent to scrape all the kubelet and cAdvisor endpoints in your Kubernetes cluster (one of each per Node). In addition, it defines a `job` label which you can update (it is preset here for compatibility with Grafana Cloud's Kubernetes integration). It also provides an allowlist containing a core set of Kubernetes metrics to reduce remote metrics usage. If you don't need this allowlist, you can omit it, however, your metrics usage will increase significantly.
 
- When you're done, Agent should now be shipping kubelet and cAdvisor metrics to your remote Prometheus endpoint.
+ When you're done, Agent should now be shipping kubelet and cAdvisor metrics to your remote Prometheus endpoint. To check this in Grafana Cloud, go to your dashboards, select **Integration - Kubernetes**, then select **Kubernetes / Kubelet**.
 
 ## Deploy LogsInstance and PodLogs resources
 
@@ -360,14 +360,14 @@ To deploy the `LogsInstance` resource into your cluster:
           instance: primary
     ```
 
-    This `LogsInstance` picks up `PodLogs` resources with the `instance: primary` label. Be sure to set the Loki URL to the correct push endpoint. For Grafana Cloud, this will look similar to `logs-prod-us-central1.grafana.net/loki/api/v1/push`, however check the [Grafana Cloud Portal](https://grafana.com/profile/org) to confirm.
+    This `LogsInstance` picks up `PodLogs` resources with the `instance: primary` label. Be sure to set the Loki URL to the correct push endpoint. For Grafana Cloud, this will look similar to `logs-prod-us-central1.grafana.net/loki/api/v1/push`, however check the [Grafana Cloud Portal](https://grafana.com/profile/org) to confirm by clicking **Details** on the Loki tile.
 
     Also note that this example uses the `agent: grafana-agent-logs` label, which associates this `LogsInstance` with the `GrafanaAgent` resource defined earlier. This means that it will inherit requests, limits, affinities and other properties defined in the `GrafanaAgent` custom resource.
 
 1. To create the Secret for the `LogsInstance` resource, copy the following Secret manifest to a file, then roll it out in your cluster using `kubectl apply -f` followed by the filename.
 
     ```yaml
-    piVersion: v1
+    apiVersion: v1
     kind: Secret
     metadata:
       name: primary-credentials-logs
@@ -377,7 +377,7 @@ To deploy the `LogsInstance` resource into your cluster:
       password: 'your_password_here'
     ```
 
-    If you're using Grafana Cloud, you can find your hosted Loki endpoint username and password in the [Grafana Cloud Portal](https://grafana.com/profile/org). If you want to base64-encode these values yourself, use `data` instead of `stringData`.
+    If you're using Grafana Cloud, you can find your hosted Loki endpoint username and password by clicking **Details** on the Loki tile on the [Grafana Cloud Portal](https://grafana.com/profile/org). If you want to base64-encode these values yourself, use `data` instead of `stringData`.
 
 1. Copy the following `PodLogs` manifest to a file, then roll it to your cluster using `kubectl apply -f` followed by the filename. The manifest defines your logging targets. Agent Operator  turns this into Agent configuration for the logs subsystem, and rolls it out to the DaemonSet of logging Agents.
 
