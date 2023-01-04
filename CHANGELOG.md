@@ -16,10 +16,18 @@ Main (unreleased)
 
   - `otelcol.receiver.kafka` receives telemetry data from Kafka. (@rfratto)
 
+### Enhancements
+
+- Handle faro-web-sdk `View` meta in app_agent_receiver. (@rlankfo)
+
 ### Bugfixes
 
 - Flow UI: Fix the issue with messy layout on the component list page while
   browser window resize (@xiyu95)
+
+### Other changes
+
+- Use Go 1.19.4 for builds. (@erikbaranowski)
 
 v0.30.1 (2022-12-23)
 --------------------
