@@ -23,10 +23,31 @@
         "objects": "always-multiline",
         "imports": "always-multiline"
       }
-    ]
+    ],
+    "sort-imports": "off", // disabled in favor of simple-import-sort see https://github.com/lydell/eslint-plugin-simple-import-sort/#usage
+    "import/order": "off", // disabled in favor of simple-import-sort see https://github.com/lydell/eslint-plugin-simple-import-sort/#usage
+    "simple-import-sort/imports": ["error", {
+      "groups": [
+        // Packages. `react` related packages come first.
+        ["^react", "^@?\\w"],
+        // Internal packages @grafana as a separate group.
+        ["^@grafana"],
+        ["^(@|@common)(/.*|$)"],
+        // Side effect imports.
+        ["^\\u0000"],
+        // Parent imports. Put `..` last.
+        ["^\\.\\.(?!/?$)", "^\\.\\./?$"],
+        // Other relative imports. Put same-folder imports and `.` last.
+        ["^\\./(?=.*/)(?!/?$)", "^\\.(?!/?$)", "^\\./?$"],
+        // Style imports.
+        ["^.+\\.s?css$"]
+      ]
+    }],
+    "simple-import-sort/exports": "off"
   },
   "plugins": [
-    "prettier"
+    "prettier",
+    "simple-import-sort"
   ],
   "ignorePatterns": ["src/vendor/**"]
 }
