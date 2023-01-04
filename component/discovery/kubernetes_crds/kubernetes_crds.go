@@ -263,13 +263,6 @@ func (c *Component) run(ctx context.Context, componentCfg *Config) {
 			return
 		case m := <-c.discovery.SyncCh():
 			targetSetsChan <- m
-			for j, up := range m {
-				for _, g := range up {
-					for _, t := range g.Targets {
-						log.Println(t)
-					}
-				}
-			}
 		}
 	}
 }
