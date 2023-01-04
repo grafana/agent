@@ -1,37 +1,39 @@
-import { FC } from 'react';
+import React from 'react';
 import { NavLink } from 'react-router-dom';
+
 import { HealthLabel } from './HealthLabel';
 import { ComponentInfo } from './types';
+
 import styles from './ComponentList.module.css';
 
 interface ComponentListProps {
   components: ComponentInfo[];
 }
 
-const ComponentList: FC<ComponentListProps> = ({ components }) => {
+const ComponentList = ({ components }: ComponentListProps) => {
   return (
     <div className={styles.list}>
-      <header>
-        <ul>
-          <li>Health</li>
-          <li>ID</li>
-        </ul>
-      </header>
-      {components.map((component) => {
-        return (
-          <ul key={component.id}>
-            <li>
-              <HealthLabel health={component.health.state} />
-            </li>
-            <li className={styles.text}>{component.id}</li>
-            <li>
-              <NavLink to={'/component/' + component.id} className={styles.viewButton}>
-                View
-              </NavLink>
-            </li>
-          </ul>
-        );
-      })}
+      <table className={styles.table}>
+        <tr>
+          <th>Health</th>
+          <th>ID</th>
+        </tr>
+        {components.map((component) => {
+          return (
+            <tr>
+              <td>
+                <HealthLabel health={component.health.state} />
+              </td>
+              <td>
+                {component.id}
+                <NavLink to={'/component/' + component.id} className={styles.viewButton}>
+                  View
+                </NavLink>
+              </td>
+            </tr>
+          );
+        })}
+      </table>
     </div>
   );
 };

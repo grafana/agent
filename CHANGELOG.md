@@ -16,6 +16,11 @@ Main (unreleased)
 
   - `otelcol.receiver.kafka` receives telemetry data from Kafka. (@rfratto)
 
+### Bugfixes
+
+- Flow UI: Fix the issue with messy layout on the component list page while
+  browser window resize (@xiyu95)
+
 v0.30.1 (2022-12-23)
 --------------------
 
