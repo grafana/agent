@@ -28,7 +28,7 @@ RUN mkdir C:\\TDM-GCC-64; \
     Remove-Item -Path C:\\Windows\\temp\\TDM-GCC-64.exe -Force
 
 RUN choco install make --version 4.3 -y
-RUN choco install docker -y
+RUN choco install docker-cli --version 20.10.22 -y
 RUN choco install git --version 2.39.0 -y
 
 #
