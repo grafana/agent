@@ -972,8 +972,8 @@ v0.19.0 (2021-09-29)
 - Reduced verbosity of tracing autologging by not logging `STATUS_CODE_UNSET`
   status codes. (@mapno)
 
-- Operator: rename Prometheus_CRDs to Metrics_ and Prometheus*fields to
-  Metrics*. (@rfratto)
+- Operator: rename `Prometheus*` CRDs to `Metrics*` and `Prometheus*` fields to
+  `Metrics*`. (@rfratto)
 
 - Operator: CRDs are no longer referenced using a hyphen in the name to be
   consistent with how Kubernetes refers to resources. (@rfratto)
