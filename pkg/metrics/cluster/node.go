@@ -120,7 +120,7 @@ func (n *node) ApplyConfig(cfg Config) error {
 	}
 	n.ring = r
 
-	lc, err := ring.NewLifecycler(cfg.Lifecycler, n, "agent", agentKey, false, n.log, prometheus.WrapRegistererWithPrefix("agent_dskit_", n.reg))
+	lc, err := ring.NewLifecycler(cfg.Lifecycler.LifecyclerConfig, n, "agent", agentKey, false, n.log, prometheus.WrapRegistererWithPrefix("agent_dskit_", n.reg))
 	if err != nil {
 		return fmt.Errorf("failed to create lifecycler: %w", err)
 	}
