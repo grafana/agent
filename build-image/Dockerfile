@@ -19,7 +19,7 @@ FROM alpine:3.16 as docker
 RUN apk add --no-cache docker-cli docker-cli-buildx
 
 # Dependency: Go and Go dependencies
-FROM golang:1.19.3-bullseye as golang
+FROM golang:1.19.4-bullseye as golang
 
 # Keep in sync with cmd/agent-operator/DEVELOPERS.md
 ENV CONTROLLER_GEN_VERSION v0.8.0
