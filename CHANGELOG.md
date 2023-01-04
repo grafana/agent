@@ -10,6 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Other changes
+
+- Use Go 1.19.4 for builds. (@erikbaranowski)
+
 v0.30.1 (2022-12-23)
 --------------------
 
