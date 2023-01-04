@@ -23,7 +23,7 @@ Main (unreleased)
 
 ### Enhancements
 
-- Handle faro-web-sdk `View` meta in agent_app_receiver. (@rlankfo)
+- Handle faro-web-sdk `View` meta in app_agent_receiver. (@rlankfo)
 
 v0.30.1 (2022-12-23)
 --------------------
