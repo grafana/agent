@@ -250,7 +250,7 @@ func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 //     a) Fetch from remote. If this fails or is invalid:
 //     b) Read the remote config from cache. If this fails, return an error.
 //  4. Merge the initial and remote config into c.
-func LoadFromAgentManagementAPI(path string, expandEnvVars bool, c *Config, log *server.Logger) error {
+func loadFromAgentManagementAPI(path string, expandEnvVars bool, c *Config, log *server.Logger) error {
 	// Load the initial config from disk
 	err := LoadFile(path, expandEnvVars, c)
 	if err != nil {
@@ -373,7 +373,7 @@ func Load(fs *flag.FlagSet, args []string, log *server.Logger) (*Config, error) 
 				return LoadRemote(path, expandArgs, c)
 			}
 			if features.Enabled(fs, featAgentManagement) {
-				return LoadFromAgentManagementAPI(path, expandArgs, c, log)
+				return loadFromAgentManagementAPI(path, expandArgs, c, log)
 			}
 			return LoadFile(path, expandArgs, c)
 		case fileTypeDynamic:
