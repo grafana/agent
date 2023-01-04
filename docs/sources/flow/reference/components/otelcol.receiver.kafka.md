@@ -21,7 +21,7 @@ different labels.
 
 ```river
 otelcol.receiver.kafka "LABEL" {
-  brokers = ["BROKER_ADDR"]
+  brokers          = ["BROKER_ADDR"]
   protocol_version = "PROTOCOL_VERSION"
 
   output {
@@ -78,8 +78,9 @@ autocommit | [autocommit][] | Configures how to automatically commit updated top
 message_marking | [message_marking][] | Configures when Kafka messages are marked as read. | no
 output | [output][] | Configures where to send received telemetry data. | yes
 
-The `>` symbol indicates deeper levels of nesting. For example, `authentication
-> tls` refers to a `tls` block defined inside an `authentication` block.
+The `>` symbol indicates deeper levels of nesting. For example,
+`authentication > tls` refers to a `tls` block defined inside an
+`authentication` block.
 
 [authentication]: #authentication-block
 [plaintext]: #plaintext-block
@@ -118,11 +119,11 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`username` | `string` | Username to use for `PLAIN` authentication. | | yes
-`password` | `secret` | Password to use for `PLAIN` authentication. | | yes
-`mechanism` | `string` | Mechanism to use when authenticating. | | yes
+`username` | `string` | Username to use for SASL authentication. | | yes
+`password` | `secret` | Password to use for SASL authentication. | | yes
+`mechanism` | `string` | SASL mechanism to use when authenticating. | | yes
 
-The `mechanism` argument may be set to one of the following strings:
+The `mechanism` argument can be set to one of the following strings:
 
 * `"PLAIN"`
 * `"AWS_MSK_IAM"`
@@ -197,7 +198,7 @@ Name | Type | Description | Default | Required
 If the `include_all_topics` argument is `true`, `otelcol.receiver.kafka`
 maintains a full set of metadata for all topics rather than the minimal set
 that has been necessary so far. Including the full set of metadata is more
-convenient for users, can consume a substantial amount of memory if you have
+convenient for users but can consume a substantial amount of memory if you have
 many topics and partitions.
 
 Retrieving metadata may fail if the Kafka broker is starting up at the same
@@ -279,7 +280,8 @@ finally sending it to an OTLP-capable endpoint:
 
 ```river
 otelcol.receiver.kafka "default" {
-  brokers = ["localhost:9092"]
+  brokers          = ["localhost:9092"]
+  protocol_version = "2.0.0"
 
   output {
     metrics = [otelcol.processor.batch.default.input]
