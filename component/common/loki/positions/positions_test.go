@@ -232,6 +232,7 @@ positions:
 	}
 	require.Equal(t, int64(10030), pos)
 	p.(*positions).save()
+	time.Sleep(100 * time.Millisecond)
 	out, err := readPositionsFile(Config{
 		PositionsFile:     temp,
 		IgnoreInvalidYaml: true,
