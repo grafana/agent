@@ -16,6 +16,10 @@ Main (unreleased)
 
   - `otelcol.receiver.kafka` receives telemetry data from Kafka. (@rfratto)
 
+### Enhancements
+
+- Handle faro-web-sdk `View` meta in app_agent_receiver. (@rlankfo)
+
 ### Bugfixes
 
 - Flow UI: Fix the issue with messy layout on the component list page while
