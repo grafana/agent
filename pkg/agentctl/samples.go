@@ -9,7 +9,7 @@ import (
 	"github.com/prometheus/prometheus/promql/parser"
 	"github.com/prometheus/prometheus/tsdb/chunks"
 	"github.com/prometheus/prometheus/tsdb/record"
-	"github.com/prometheus/prometheus/tsdb/wal"
+	"github.com/prometheus/prometheus/tsdb/wlog"
 )
 
 // SampleStats are statistics for samples for a series within the WAL. Each
@@ -26,7 +26,7 @@ type SampleStats struct {
 // FindSamples searches the WAL and returns a summary of samples of series
 // matching the given label selector.
 func FindSamples(walDir string, selectorStr string) ([]*SampleStats, error) {
-	w, err := wal.Open(nil, walDir)
+	w, err := wlog.Open(nil, walDir)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func FindSamples(walDir string, selectorStr string) ([]*SampleStats, error) {
 	)
 
 	// get the references matching label selector
-	err = walIterate(w, func(r *wal.Reader) error {
+	err = walIterate(w, func(r *wlog.Reader) error {
 		return collectSeries(r, selector, labelsByRef)
 	})
 	if err != nil {
@@ -54,7 +54,7 @@ func FindSamples(walDir string, selectorStr string) ([]*SampleStats, error) {
 	}
 
 	// find related samples
-	err = walIterate(w, func(r *wal.Reader) error {
+	err = walIterate(w, func(r *wlog.Reader) error {
 		return collectSamples(r, labelsByRef, minTSByRef, maxTSByRef, sampleCountByRef)
 	})
 	if err != nil {
@@ -74,7 +74,7 @@ func FindSamples(walDir string, selectorStr string) ([]*SampleStats, error) {
 	return series, nil
 }
 
-func collectSeries(r *wal.Reader, selector labels.Selector, labelsByRef map[chunks.HeadSeriesRef]labels.Labels) error {
+func collectSeries(r *wlog.Reader, selector labels.Selector, labelsByRef map[chunks.HeadSeriesRef]labels.Labels) error {
 	var dec record.Decoder
 
 	for r.Next() {
@@ -97,7 +97,7 @@ func collectSeries(r *wal.Reader, selector labels.Selector, labelsByRef map[chun
 	return r.Err()
 }
 
-func collectSamples(r *wal.Reader, labelsByRef map[chunks.HeadSeriesRef]labels.Labels, minTS, maxTS, sampleCount map[chunks.HeadSeriesRef]int64) error {
+func collectSamples(r *wlog.Reader, labelsByRef map[chunks.HeadSeriesRef]labels.Labels, minTS, maxTS, sampleCount map[chunks.HeadSeriesRef]int64) error {
 	var dec record.Decoder
 
 	for r.Next() {

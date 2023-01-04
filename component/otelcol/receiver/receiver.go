@@ -10,12 +10,17 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/internal/fanoutconsumer"
+	"github.com/grafana/agent/component/otelcol/internal/lazycollector"
 	"github.com/grafana/agent/component/otelcol/internal/scheduler"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/util/zapadapter"
+	"github.com/prometheus/client_golang/prometheus"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelconfig "go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/otel/metric"
+	sdkprometheus "go.opentelemetry.io/otel/exporters/prometheus"
+	"go.opentelemetry.io/otel/sdk/metric"
+
+	_ "github.com/grafana/agent/component/otelcol/internal/featuregate" // Enable needed feature gates
 )
 
 // Arguments is an extension of component.Arguments which contains necessary
@@ -48,7 +53,8 @@ type Receiver struct {
 	opts    component.Options
 	factory otelcomponent.ReceiverFactory
 
-	sched *scheduler.Scheduler
+	sched     *scheduler.Scheduler
+	collector *lazycollector.Collector
 }
 
 var (
@@ -66,6 +72,11 @@ var (
 func New(opts component.Options, f otelcomponent.ReceiverFactory, args Arguments) (*Receiver, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
+	// Create a lazy collector where metrics from the upstream component will be
+	// forwarded.
+	collector := lazycollector.New()
+	opts.Registerer.MustRegister(collector)
+
 	r := &Receiver{
 		ctx:    ctx,
 		cancel: cancel,
@@ -73,7 +84,8 @@ func New(opts component.Options, f otelcomponent.ReceiverFactory, args Arguments
 		opts:    opts,
 		factory: f,
 
-		sched: scheduler.New(opts.Logger),
+		sched:     scheduler.New(opts.Logger),
+		collector: collector,
 	}
 	if err := r.Update(args); err != nil {
 		return nil, err
@@ -99,14 +111,20 @@ func (r *Receiver) Update(args component.Arguments) error {
 		scheduler.WithHostExporters(rargs.Exporters()),
 	)
 
+	reg := prometheus.NewRegistry()
+	r.collector.Set(reg)
+
+	promExporter, err := sdkprometheus.New(sdkprometheus.WithRegisterer(reg), sdkprometheus.WithoutTargetInfo())
+	if err != nil {
+		return err
+	}
+
 	settings := otelcomponent.ReceiverCreateSettings{
 		TelemetrySettings: otelcomponent.TelemetrySettings{
 			Logger: zapadapter.New(r.opts.Logger),
 
 			TracerProvider: r.opts.Tracer,
-
-			// TODO(rfratto): expose metrics statistics.
-			MeterProvider: metric.NewNoopMeterProvider(),
+			MeterProvider:  metric.NewMeterProvider(metric.WithReader(promExporter)),
 		},
 
 		BuildInfo: otelcomponent.BuildInfo{

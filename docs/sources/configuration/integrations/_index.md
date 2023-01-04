@@ -86,6 +86,9 @@ postgres_exporter: <postgres_exporter_config>
 # Controls the snmp_exporter integration
 snmp_exporter: <snmp_exporter_config>
 
+# Controls the snowflake integration
+snowflake: <snowflake_config>
+
 # Controls the statsd_exporter integration
 statsd_exporter: <statsd_exporter_config>
 
@@ -103,9 +106,6 @@ mongodb_exporter: <mongodb_exporter_config>
 
 # Controls the github_exporter integration
 github_exporter: <github_exporter_config>
-
-# Controls the ebpf integration
-ebpf: <ebpf_config>
 
 # Controls the blackbox_exporter integration
 blackbox: <blackbox_config>

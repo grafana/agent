@@ -10,13 +10,18 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/internal/fanoutconsumer"
+	"github.com/grafana/agent/component/otelcol/internal/lazycollector"
 	"github.com/grafana/agent/component/otelcol/internal/lazyconsumer"
 	"github.com/grafana/agent/component/otelcol/internal/scheduler"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/util/zapadapter"
+	"github.com/prometheus/client_golang/prometheus"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelconfig "go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/otel/metric"
+	sdkprometheus "go.opentelemetry.io/otel/exporters/prometheus"
+	"go.opentelemetry.io/otel/sdk/metric"
+
+	_ "github.com/grafana/agent/component/otelcol/internal/featuregate" // Enable needed feature gates
 )
 
 // Arguments is an extension of component.Arguments which contains necessary
@@ -50,7 +55,8 @@ type Processor struct {
 	factory  otelcomponent.ProcessorFactory
 	consumer *lazyconsumer.Consumer
 
-	sched *scheduler.Scheduler
+	sched     *scheduler.Scheduler
+	collector *lazycollector.Collector
 }
 
 var (
@@ -69,6 +75,11 @@ func New(opts component.Options, f otelcomponent.ProcessorFactory, args Argument
 
 	consumer := lazyconsumer.New(ctx)
 
+	// Create a lazy collector where metrics from the upstream component will be
+	// forwarded.
+	collector := lazycollector.New()
+	opts.Registerer.MustRegister(collector)
+
 	// Immediately set our state with our consumer. The exports will never change
 	// throughout the lifetime of our component.
 	//
@@ -84,7 +95,8 @@ func New(opts component.Options, f otelcomponent.ProcessorFactory, args Argument
 		factory:  f,
 		consumer: consumer,
 
-		sched: scheduler.New(opts.Logger),
+		sched:     scheduler.New(opts.Logger),
+		collector: collector,
 	}
 	if err := p.Update(args); err != nil {
 		return nil, err
@@ -110,14 +122,20 @@ func (p *Processor) Update(args component.Arguments) error {
 		scheduler.WithHostExporters(pargs.Exporters()),
 	)
 
+	reg := prometheus.NewRegistry()
+	p.collector.Set(reg)
+
+	promExporter, err := sdkprometheus.New(sdkprometheus.WithRegisterer(reg), sdkprometheus.WithoutTargetInfo())
+	if err != nil {
+		return err
+	}
+
 	settings := otelcomponent.ProcessorCreateSettings{
 		TelemetrySettings: otelcomponent.TelemetrySettings{
 			Logger: zapadapter.New(p.opts.Logger),
 
 			TracerProvider: p.opts.Tracer,
-
-			// TODO(rfratto): expose metrics statistics.
-			MeterProvider: metric.NewNoopMeterProvider(),
+			MeterProvider:  metric.NewMeterProvider(metric.WithReader(promExporter)),
 		},
 
 		BuildInfo: otelcomponent.BuildInfo{

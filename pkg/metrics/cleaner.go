@@ -12,7 +12,7 @@ import (
 	"github.com/grafana/agent/pkg/metrics/wal"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
-	promwal "github.com/prometheus/prometheus/tsdb/wal"
+	promwal "github.com/prometheus/prometheus/tsdb/wlog"
 )
 
 // Default settings for the WAL cleaner.
