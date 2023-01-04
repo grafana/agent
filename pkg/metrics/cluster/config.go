@@ -18,7 +18,7 @@ var DefaultConfig = *flagutil.DefaultConfigFromFlags(&Config{}).(*Config)
 
 // KVConfig wraps the kv.Config type to allow defining IsZero, which is required to make omitempty work when marshalling YAML.
 type KVConfig struct {
-	kv.Config
+	kv.Config `yaml:",inline"`
 }
 
 func (k KVConfig) IsZero() bool {
@@ -27,7 +27,7 @@ func (k KVConfig) IsZero() bool {
 
 // LifecyclerConfig wraps the ring.LifecyclerConfig type to allow defining IsZero, which is required to make omitempty work when marshalling YAML.
 type LifecyclerConfig struct {
-	ring.LifecyclerConfig
+	ring.LifecyclerConfig `yaml:",inline"`
 }
 
 func (l LifecyclerConfig) IsZero() bool {

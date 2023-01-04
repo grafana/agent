@@ -8,7 +8,7 @@ import (
 
 // LogLevel wraps the logging.Level type to allow defining IsZero, which is required to make omitempty work when marshalling YAML.
 type LogLevel struct {
-	logging.Level
+	logging.Level `yaml:",inline"`
 }
 
 func (l LogLevel) IsZero() bool {
