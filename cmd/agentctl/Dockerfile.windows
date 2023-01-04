@@ -3,13 +3,9 @@ FROM grafana/agent-build-image:latest-windows as builder
 COPY . /src/agent
 WORKDIR /src/agent
 
-SHELL ["cmd", "/C"]
+SHELL ["cmd", "/S", "/C"]
 
-# Make the agentctl. This little trick is to execute a bash command in windows
-RUN powershell "New-Item -Path 'C:\src\agent\make-agentctl.sh' -ItemType File; \
-    Add-Content -Path 'C:\src\agent\make-agentctl.sh' -Value '#!/bin/bash'; \
-    Add-Content -Path 'C:\src\agent\make-agentctl.sh' -Value 'make agentctl'"
-RUN "C:\Program Files\git\bin\bash.exe" make-agentctl.sh
+RUN powershell "Invoke-Expression ""C:\'Program Files'\git\bin\bash.exe -c 'make agentctl'"""
 
 # Use the smallest container possible for the final image
 FROM mcr.microsoft.com/windows/nanoserver:1809

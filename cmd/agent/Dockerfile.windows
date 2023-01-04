@@ -3,19 +3,10 @@ FROM grafana/agent-build-image:latest-windows as builder
 COPY . /src/agent
 WORKDIR /src/agent
 
-SHELL ["cmd", "/C"]
+SHELL ["cmd", "/S", "/C"]
 
-# Make the ui. This little trick is to execute a bash command in windows
-RUN powershell "New-Item -Path 'C:\src\agent\make-generate-ui.sh' -ItemType File; \
-    Add-Content -Path 'C:\src\agent\make-generate-ui.sh' -Value '#!/bin/bash'; \
-    Add-Content -Path 'C:\src\agent\make-generate-ui.sh' -Value 'make generate-ui'"
-RUN "C:\Program Files\git\bin\bash.exe" make-generate-ui.sh
-
-# Make the agent. This little trick is to execute a bash command in windows
-RUN powershell "New-Item -Path 'C:\src\agent\make-agent.sh' -ItemType File; \
-    Add-Content -Path 'C:\src\agent\make-agent.sh' -Value '#!/bin/bash'; \
-    Add-Content -Path 'C:\src\agent\make-agent.sh' -Value 'make agent'"
-RUN "C:\Program Files\git\bin\bash.exe" make-agent.sh
+RUN powershell "Invoke-Expression ""C:\'Program Files'\git\bin\bash.exe -c 'make generate-ui'"""
+RUN powershell "Invoke-Expression ""C:\'Program Files'\git\bin\bash.exe -c 'make agent'"""
 
 # Use the smallest container possible for the final image
 FROM mcr.microsoft.com/windows/nanoserver:1809
