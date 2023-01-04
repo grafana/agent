@@ -11,7 +11,7 @@ internal API changes are not present.
 
 ### Enhancements
 
-- Flow UI: Add eslint rule for better development format
+- Flow UI: Add eslint rule for better development format (@xiyu95)
 
 ### Bugfixes
 
