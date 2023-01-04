@@ -17,10 +17,14 @@ var Analyzer = &analysis.Analyzer{
 	Run:  run,
 }
 
-var componentPattern string = "./component/..."
+var (
+	componentPattern = "./component/..."
+	checkPackage     = "github.com/grafana/agent/component/all"
+)
 
 func init() {
 	Analyzer.Flags.StringVar(&componentPattern, "components", componentPattern, "Pattern where components are defined")
+	Analyzer.Flags.StringVar(&checkPackage, "import-package", checkPackage, "Package that should import components")
 }
 
 func run(p *analysis.Pass) (interface{}, error) {
@@ -34,7 +38,12 @@ func run(p *analysis.Pass) (interface{}, error) {
 	//    imported.
 	//
 	// This linter should only be run against a single package to check for
-	// imports.
+	// imports. The import-package flag is checked and all other packages are
+	// ignored.
+
+	if p.Pkg.Path() != checkPackage {
+		return nil, nil
+	}
 
 	imports := make(map[string]struct{})
 	for _, dep := range p.Pkg.Imports() {
