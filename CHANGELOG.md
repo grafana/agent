@@ -21,6 +21,10 @@ Main (unreleased)
 - Flow UI: Fix the issue with messy layout on the component list page while
   browser window resize (@xiyu95)
 
+### Enhancements
+
+- Handle faro-web-sdk `View` meta in agent_app_receiver. (@rlankfo)
+
 v0.30.1 (2022-12-23)
 --------------------
 
