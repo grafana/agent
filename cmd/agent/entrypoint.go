@@ -354,11 +354,11 @@ func (ep *Entrypoint) TriggerReload() bool {
 
 // Triggers a reload of the config on each tick of the ticker until the context
 // completes.
-func (ep *Entrypoint) PollConfig(ctx context.Context, t *time.Ticker) error {
+func (ep *Entrypoint) pollConfig(ctx context.Context, t *time.Ticker) error {
 	for {
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			return nil
 		case <-t.C:
 			ok := ep.TriggerReload()
 			if !ok {
@@ -424,7 +424,7 @@ func (ep *Entrypoint) Start() error {
 		sleepTime, _ := ep.cfg.AgentManagement.SleepTime()
 		t := time.NewTicker(sleepTime)
 		g.Add(func() error {
-			return ep.PollConfig(managementContext, t)
+			return ep.pollConfig(managementContext, t)
 		}, func(e error) {
 			managementCancel()
 		})
