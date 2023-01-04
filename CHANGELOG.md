@@ -9,11 +9,17 @@ internal API changes are not present.
 
 ## Main (unreleased)
 
+## v0.30.1 (2022-12-23)
+
 ### Enhancements
 
 - Flow UI: Add eslint rule for better development format (@xiyu95)
 
 ### Bugfixes
+
+- Fix issue where journald support was accidentally removed. (@tpaschalis)
+
+- Fix issue where some traces' metrics where not collected. (@marctc)
 
 - Flow UI: Fix the issue with messy layout on the component list page while
   browser window resize (@xiyu95)
