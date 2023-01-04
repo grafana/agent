@@ -112,7 +112,7 @@ isn't defined, the Agent will use Go's [os.Hostname](https://golang.org/pkg/os/#
 to determine the hostname.
 
 The following meta-labels are used to determine if a target is running on the
-same machine as the target:
+same machine as the Agent:
 
 - `__address__`
 - `__meta_consul_node`

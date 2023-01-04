@@ -14,7 +14,7 @@ releases and how to migrate to newer versions.
 
 These changes will come in a future version.
 
-## v0.30.0-rc.0
+## v0.30.0
 
 ### Breaking change: `ebpf_exporter` integration removed
 

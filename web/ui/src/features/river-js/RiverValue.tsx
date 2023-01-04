@@ -1,5 +1,7 @@
-import { FC, ReactElement, Fragment } from 'react';
+import { FC, Fragment, ReactElement } from 'react';
+
 import { ObjectField, Value, ValueType } from './types';
+
 import styles from './RiverValue.module.css';
 
 export interface RiverValueProps {

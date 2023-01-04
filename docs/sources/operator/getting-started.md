@@ -1,162 +1,151 @@
 ---
 aliases:
 - /docs/agent/latest/operator/getting-started/
-title: Installing Grafana Agent Operator
-weight: 100
+title: Install Grafana Agent Operator
+weight: 110
 ---
 
-# Installing Grafana Agent Operator
+# Install Grafana Agent Operator
 
-In this guide you'll learn how to deploy the [Grafana Agent Operator]({{< relref "./_index.md" >}}) into your Kubernetes cluster. This guide does *not* use Helm. To learn how to deploy Agent Operator using the [grafana-agent-operator Helm chart](https://github.com/grafana/helm-charts/tree/main/charts/agent-operator), please see [Installing Grafana Agent Operator with Helm]({{< relref "./helm-getting-started.md" >}}).
+In this guide, you'll learn how to deploy [Grafana Agent Operator]({{< relref "./_index.md" >}}) into your Kubernetes cluster. This guide does not use Helm. To learn how to deploy Agent Operator using the [grafana-agent-operator Helm chart](https://github.com/grafana/helm-charts/tree/main/charts/agent-operator), see [Install Grafana Agent Operator with Helm]({{< relref "./helm-getting-started.md" >}}).
 
-> **Note:** Agent Operator is currently in beta and its custom resources are subject to change as the project evolves. It currently supports the metrics and logs subsystems of Grafana Agent. Integrations and traces support is coming soon.
+> **Note**: If you are shipping your data to Grafana Cloud, use [Kubernetes Monitoring](https://grafana.com/docs/grafana-cloud/kubernetes-monitoring/) to set up Agent Operator. Kubernetes Monitoring provides a simplified approach and preconfigured dashboards and alerts.
+## Before you begin
 
-By the end of this guide, you'll have deloyed Agent Operator into your cluster.
-
-## Prerequisites
-
-Before you begin, make sure that you have the following available to you:
+To deploy Agent Operator, make sure that you have the following:
 
 - A Kubernetes cluster
 - The `kubectl` command-line client installed and configured on your machine
 
-## Step 1: Deploy CustomResourceDefinitions
+> **Note:** Agent Operator is currently in beta and its custom resources are subject to change.
 
-Before you can write custom resources to describe a Grafana Agent deployment,
-you _must_ deploy the
-[CustomResourceDefinitions](https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/)
-to the cluster first. These definitions describe the schema that the custom
-resources will conform to. This is also required for the operator to run; it
-will fail if it can't find the custom resource definitions of objects it is
-looking to use.
+## Deploy the Agent Operator Custom Resource Definitions (CRDs)
 
-The current set of CustomResourceDefinitions can be found in
-[production/operator/crds](https://github.com/grafana/agent/tree/main/production/operator/crds). Apply them from the
-root of this repository using:
+Before you can create the custom resources for a Grafana Agent deployment,
+you need to deploy the
+[Custom Resource Definitions](https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/)
+to the cluster. These definitions describe the schema that the custom
+resources will conform to. This is also required for Grafana Agent Operator to run; it
+will fail if it can't find the Custom Resource Definitions of objects it is
+looking to use. To learn more about the custom resources Agent Operator provides and their hierarchy, see [Grafana Agent Operator architecture]({{< relref "./architecture/" >}}).
 
-```
-kubectl apply -f production/operator/crds
-```
+You can find the set of Custom Resource Definitions for Grafana Agent Operator in the Grafana Agent repository under
+[production/operator/crds](https://github.com/grafana/agent/tree/main/production/operator/crds). 
 
-This step _must_ be done before installing the Operator, as the Operator will
+To deploy the CRDs:
+
+1. Clone the agent repo and then apply the CRDs from the root of the agent repository:
+    ```
+    kubectl apply -f production/operator/crds
+    ```
+
+    This step _must_ be completed before installing Agent Operator&mdash;it will
 fail to start if the CRDs do not exist.
 
-### Find information on the supported values for the CustomResourceDefinitions
+2. To check that the CRDs are deployed to your Kubernetes cluster and to access documentation for each resource, use `kubectl explain <resource>`.
 
-Once you've deployed the CustomResourceDefinitions
-to your Kubernetes cluster, use `kubectl explain <resource>` to get access to
-the documentation for each resource. For example, `kubectl explain GrafanaAgent`
-will describe the GrafanaAgent CRD, and `kubectl explain GrafanaAgent.spec` will
-give you information on its spec field.
+    For example, `kubectl explain GrafanaAgent` describes the GrafanaAgent CRD, and `kubectl explain GrafanaAgent.spec` gives you information on its spec field.
 
-## Step 2: Install Agent Operator
+## Install Grafana Agent Operator
 
-Use the following deployment to run the Operator, changing values as desired:
+Next, install Agent Operator by applying the Agent Operator deployment schema.
 
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: grafana-agent-operator
-  namespace: default
-  labels:
-    app: grafana-agent-operator
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: grafana-agent-operator
-  template:
+To install Agent Operator:
+
+1. Copy the following deployment schema to a file, updating the namespace if needed:
+
+    ```yaml
+    apiVersion: apps/v1
+    kind: Deployment
     metadata:
+      name: grafana-agent-operator
+      namespace: default
       labels:
         app: grafana-agent-operator
     spec:
-      serviceAccountName: grafana-agent-operator
-      containers:
-      - name: operator
-        image: grafana/agent-operator:v0.30.0-rc.0
-        args:
-        - --kubelet-service=default/kubelet
----
+      replicas: 1
+      selector:
+        matchLabels:
+          app: grafana-agent-operator
+      template:
+        metadata:
+          labels:
+            app: grafana-agent-operator
+        spec:
+          serviceAccountName: grafana-agent-operator
+          containers:
+          - name: operator
+            image: grafana/agent-operator:v0.30.1
+            args:
+            - --kubelet-service=default/kubelet
+    ---
 
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: grafana-agent-operator
-  namespace: default
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      name: grafana-agent-operator
+      namespace: default
 
----
+    ---
 
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: grafana-agent-operator
-rules:
-- apiGroups: [monitoring.grafana.com]
-  resources:
-  - grafanaagents
-  - metricsinstances
-  - logsinstances
-  - podlogs
-  - integrations
-  verbs: [get, list, watch]
-- apiGroups: [monitoring.coreos.com]
-  resources:
-  - podmonitors
-  - probes
-  - servicemonitors
-  verbs: [get, list, watch]
-- apiGroups: [""]
-  resources:
-  - namespaces
-  - nodes
-  verbs: [get, list, watch]
-- apiGroups: [""]
-  resources:
-  - secrets
-  - services
-  - configmaps
-  - endpoints
-  verbs: [get, list, watch, create, update, patch, delete]
-- apiGroups: ["apps"]
-  resources:
-  - statefulsets
-  - daemonsets
-  - deployments
-  verbs: [get, list, watch, create, update, patch, delete]
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      name: grafana-agent-operator
+    rules:
+    - apiGroups: [monitoring.grafana.com]
+      resources:
+      - grafanaagents
+      - metricsinstances
+      - logsinstances
+      - podlogs
+      - integrations
+      verbs: [get, list, watch]
+    - apiGroups: [monitoring.coreos.com]
+      resources:
+      - podmonitors
+      - probes
+      - servicemonitors
+      verbs: [get, list, watch]
+    - apiGroups: [""]
+      resources:
+      - namespaces
+      - nodes
+      verbs: [get, list, watch]
+    - apiGroups: [""]
+      resources:
+      - secrets
+      - services
+      - configmaps
+      - endpoints
+      verbs: [get, list, watch, create, update, patch, delete]
+    - apiGroups: ["apps"]
+      resources:
+      - statefulsets
+      - daemonsets
+      - deployments
+      verbs: [get, list, watch, create, update, patch, delete]
 
----
+    ---
 
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: grafana-agent-operator
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: grafana-agent-operator
-subjects:
-- kind: ServiceAccount
-  name: grafana-agent-operator
-  namespace: default
-```
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      name: grafana-agent-operator
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: grafana-agent-operator
+    subjects:
+    - kind: ServiceAccount
+      name: grafana-agent-operator
+      namespace: default
+    ```
 
-### Run Operator locally
+2. Roll out the deployment in your cluster using `kubectl apply -f` followed by your  deployment filename.
 
-Before running locally, _make sure your kubectl context is correct!_
-Running locally uses your current kubectl context, and you probably don't want
-to accidentally deploy a new Grafana Agent to prod.
+> **Note**: If you want to run Agent Operator locally, make sure your kubectl context is correct. Running locally uses your current kubectl context. If it is set to your production environment, you could accidentally deploy a new Grafana Agent to production. Install CRDs on the cluster prior to running locally. Afterwards, you can run Agent Operator using `go run ./cmd/agent-operator`.
 
-CRDs should be installed on the cluster prior to running locally. If you haven't
-done this yet, follow [deploying CustomResourceDefinitions](#step-1-deploy-customresourcedefinitions)
-first.
+## Deploy the Grafana Agent Operator resources
 
-Afterwards, you can run the operator using `go run`:
-
-```
-go run ./cmd/agent-operator
-```
-
-## Conclusion
-
-With Agent Operator up and running, you can move on to setting up a `GrafanaAgent` custom resource. This will discover `MetricsInstance` and `LogsInstance` custom resources and endow them with Pod attributes (like requests and limits) defined in the `GrafanaAgent` spec. To learn how to do this, please see [Custom Resource Quickstart]({{< relref "./custom-resource-quickstart.md" >}}).
+Agent Operator is now up and running. Next, you need to install a Grafana Agent for Agent Operator to run for you. To do so, follow the instructions in the [Deploy the Grafana Agent Operator resources]({{< relref "./deploy-agent-operator-resources.md" >}}) topic.
