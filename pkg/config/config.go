@@ -257,7 +257,7 @@ func LoadFromAgentManagementAPI(path string, expandEnvVars bool, c *Config, log 
 		return fmt.Errorf("failed to load initial config: %w", err)
 	}
 
-	remoteConfig, err := GetRemoteConfig(filepath.Dir(path), expandEnvVars, c, log)
+	remoteConfig, err := getRemoteConfig(filepath.Dir(path), expandEnvVars, c, log)
 	if err != nil {
 		return err
 	}
