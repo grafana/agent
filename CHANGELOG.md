@@ -7,7 +7,8 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-## Main (unreleased)
+Main (unreleased)
+-----------------
 
 ## v0.30.1 (2022-12-23)
 
