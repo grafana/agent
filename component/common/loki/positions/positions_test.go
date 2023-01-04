@@ -269,7 +269,7 @@ positions:
 	if err != nil {
 		t.Fatal(err)
 	}
-
+	time.Sleep(100 * time.Millisecond)
 	pos, err := readPositionsFile(Config{
 		PositionsFile: temp,
 	}, log.NewNopLogger())
