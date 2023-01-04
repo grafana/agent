@@ -59,6 +59,9 @@ func TestUnmarshalPayloadJSON(t *testing.T) {
 			OS:      "linux",
 			Mobile:  false,
 		},
+		View: View{
+			Name: "foobar",
+		},
 	}, payload.Meta)
 
 	require.Len(t, payload.Exceptions, 1)
