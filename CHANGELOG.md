@@ -16,6 +16,10 @@ Main (unreleased)
 
   - `otelcol.receiver.kafka` receives telemetry data from Kafka. (@rfratto)
 
+  - `phlare.scrape` collects application performance profiles. (@cyriltovena)
+
+  - `phlare.write` sends application performance profiles to Grafana Phlare. (@cyriltovena)
+
 ### Bugfixes
 
 - Flow UI: Fix the issue with messy layout on the component list page while
@@ -48,8 +52,6 @@ v0.30.0 (2022-12-20)
   v0.32. (@rfratto)
 
 ### Features
-
-- Grafana Agent Flow: Add `phlare.scrape` and `phlare.write` components to support continuous profiling. (@cyriltovena)
 
 - `grafana-agent-operator` supports oauth2 as an authentication method for
   remote_write. (@timo-42)
