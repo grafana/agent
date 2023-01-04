@@ -123,7 +123,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.1
 	github.com/bufbuild/connect-go v1.4.1
 	github.com/fatih/color v1.13.0
-	github.com/grafana/phlare/api v0.1.0
+	github.com/grafana/phlare/api v0.1.1
 	github.com/grafana/vmware_exporter v0.0.2-beta
 	github.com/jaegertracing/jaeger v1.38.1
 	github.com/mackerelio/go-osstat v0.2.3
