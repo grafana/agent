@@ -64,7 +64,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
 	defer func() {
-		level.Info(c.opts.Logger).Log("msg", "loki.source.syslog component shutting down, stopping")
+		level.Info(c.opts.Logger).Log("msg", "loki.source.syslog component shutting down, stopping listeners")
 		for _, l := range c.listeners {
 			err := l.Stop()
 			if err != nil {
@@ -108,7 +108,7 @@ func (c *Component) Update(args component.Arguments) error {
 		for _, cfg := range newArgs.SyslogListeners {
 			t, err := st.NewSyslogTarget(c.metrics, c.opts.Logger, entryHandler, nil, cfg.Convert())
 			if err != nil {
-				level.Error(c.opts.Logger).Log("msg", "failed to create syslog target with provided config", "err", err)
+				level.Error(c.opts.Logger).Log("msg", "failed to create syslog listener with provided config", "err", err)
 				continue
 			}
 			c.listeners = append(c.listeners, t)
@@ -118,12 +118,12 @@ func (c *Component) Update(args component.Arguments) error {
 	return nil
 }
 
-// DebugInfo returns information about the status of tailed targets.
+// DebugInfo returns information about the status of listeners.
 func (c *Component) DebugInfo() interface{} {
 	var res readerDebugInfo
 
 	for _, t := range c.listeners {
-		res.TargetsInfo = append(res.TargetsInfo, targetInfo{
+		res.ListenersInfo = append(res.ListenersInfo, listenerInfo{
 			Type:          string(t.Type()),
 			Ready:         t.Ready(),
 			ListenAddress: t.ListenAddress().String(),
@@ -134,10 +134,10 @@ func (c *Component) DebugInfo() interface{} {
 }
 
 type readerDebugInfo struct {
-	TargetsInfo []targetInfo `river:"targets_info,attr"`
+	ListenersInfo []listenerInfo `river:"listeners_info,attr"`
 }
 
-type targetInfo struct {
+type listenerInfo struct {
 	Type          string `river:"type,attr"`
 	Ready         bool   `river:"ready,attr"`
 	ListenAddress string `river:"listen_address,attr"`
