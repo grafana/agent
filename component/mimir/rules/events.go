@@ -9,7 +9,7 @@ import (
 	"github.com/ghodss/yaml" // Used for CRD compatibility instead of gopkg.in/yaml.v2
 	"github.com/go-kit/log/level"
 	mimirClient "github.com/grafana/agent/pkg/mimir/client"
-	"github.com/grafana/dskit/multierror"
+	"github.com/hashicorp/go-multierror"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/prometheus/prometheus/model/rulefmt"
 	"k8s.io/client-go/tools/cache"
@@ -144,16 +144,16 @@ func (c *Component) reconcileState(ctx context.Context) error {
 	}
 
 	diffs := diffRuleState(desiredState, c.currentState)
-	errs := multierror.New()
+	var result error
 	for ns, diff := range diffs {
 		err = c.applyChanges(ctx, ns, diff)
 		if err != nil {
-			errs = append(errs, err)
+			result = multierror.Append(result, err)
 			continue
 		}
 	}
 
-	return errs.Err()
+	return result
 }
 
 func (c *Component) loadStateFromK8s() (map[string][]mimirClient.RuleGroup, error) {
@@ -192,7 +192,7 @@ func convertCRDRuleGroupToRuleGroup(crd promv1.PrometheusRuleSpec) ([]mimirClien
 
 	groups, errs := rulefmt.Parse(buf)
 	if len(errs) > 0 {
-		return nil, multierror.New(errs...).Err()
+		return nil, multierror.Append(nil, errs...)
 	}
 
 	mimirGroups := make([]mimirClient.RuleGroup, len(groups.Groups))
