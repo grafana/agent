@@ -62,6 +62,13 @@ http_client_config > oauth2 | [oauth2][] | Configure OAuth2 for authenticating t
 http_client_config > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to targets via OAuth2. | no
 http_client_config > tls_config | [tls_config][] | Configure TLS settings for connecting to targets. | no
 profiling_config | [profiling_config][] | Configure profiling settings for the scrape job. | no
+profiling_config > profile.memory | [profile.memory][] | Collect memory profiles. | no
+profiling_config > profile.block | [profile.block][] | Collect profiles on blocks. | no
+profiling_config > profile.goroutine | [profile.goroutine][] | Collect goroutine profiles. | no
+profiling_config > profile.mutex | [profile.mutex][] | Collect mutex profiles. | no
+profiling_config > profile.process_cpu | [profile.process_cpu][] | Collect CPU profiles. | no
+profiling_config > profile.fgprof | [profile.fgprof][] | Collect [fgprof][] profiles. | no
+profiling_config > profile.custom | [profile.custom][] | Collect custom profiles. | no
 
 The `>` symbol indicates deeper levels of nesting. For example,
 `http_client_config > basic_auth` refers to a `basic_auth` block defined inside
@@ -73,7 +80,16 @@ an `http_client_config` block.
 [oauth2]: #oauth2-block
 [tls_config]: #tls_config-block
 [profiling_config]: #profiling_config-block
+[profile.memory]: #profile.memory-block
+[profile.block]: #profile.block-block
+[profile.goroutine]: #profile.goroutine-block
+[profile.mutex]: #profile.mutex-block
+[profile.process_cpu]: #profile.process_cpu-block
+[profile.fgprof]: #profile.fgprof-block
+[profile.custom]: #profile.custom-block
 [pprof]: https://github.com/google/pprof/blob/main/doc/README.md
+
+[fgprof]: https://github.com/felixge/fgprof
 
 ### http_client_config block
 
@@ -100,54 +116,131 @@ endpoints.
 
 ### profiling_config block
 
-The `profiling_config` block configures the profiling settings when scraping targets.
+The `profiling_config` block configures the profiling settings when scraping
+targets.
 
 The block contains the following attributes:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`path_prefix`                  | `string`     | The path prefix to use when scraping targets. | | no
-`pprof_config`               | `map(PprofProfilingConfig)` | The pprof profile endpoints configuration. | See below. | no
+`path_prefix` | `string` | The path prefix to use when scraping targets. | | no
 
-By default, the `pprof_config` contains the default [go pprof endpoint](https://pkg.go.dev/net/http/pprof) configuration:
+### profile.memory block
 
-```river
-profiling_config {
-  pprof_config = {
-    memory = {
-      path = "/debug/pprof/allocs",
-      enabled = true,
-    }
-    block = {
-      path = "/debug/pprof/block",
-      enabled = true,
-    }
-    goroutine = {
-      path = "/debug/pprof/goroutine",
-      enabled = true,
-    },
-    mutex = {
-      path = "/debug/pprof/mutex",
-      enabled = true,
-    },
-    process_cpu = {
-      path = "/debug/pprof/profile",
-      enabled = true,
-      delta = true,
-    },
-  }
-}
-```
+The `profile.memory` block collects profiles on memory consumption.
 
-You can use the `pprof_config` to override the default configuration or add new pprof endpoints.
-
-the `PprofProfilingConfig` attribute contains the following attributes:
+It accepts the following arguments:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`enabled`                  | `boolean`     | Enable this profile type to be scraped. | False | no
-`path`               | `string` | The path to the profile type on the target. | | no
-`delta`               | `boolean` | Whether to scrape the  profile as a delta. When scraping a delta profile, the query param `seconds` is automatically added. | False | no
+`enabled` | `boolean` | Enable this profile type to be scraped. | `false` | no
+`path` | `string` | The path to the profile type on the target. | `"/debug/pprof/memory"` | no
+`delta` | `boolean` | Whether to scrape the profile as a delta. | `false` | no
+
+When the `delta` argument is `true`, a `seconds` query parameter is
+automatically added to requests.
+
+### profile.block block
+
+The `profile.block` block collects profiles on process blocking.
+
+It accepts the following arguments:
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`enabled` | `boolean` | Enable this profile type to be scraped. | `false` | no
+`path` | `string` | The path to the profile type on the target. | `"/debug/pprof/block"` | no
+`delta` | `boolean` | Whether to scrape the profile as a delta. | `false` | no
+
+When the `delta` argument is `true`, a `seconds` query parameter is
+automatically added to requests.
+
+### profile.goroutine block
+
+The `profile.goroutine` block collects profiles on the number of goroutines.
+
+It accepts the following arguments:
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`enabled` | `boolean` | Enable this profile type to be scraped. | `false` | no
+`path` | `string` | The path to the profile type on the target. | `"/debug/pprof/goroutine"` | no
+`delta` | `boolean` | Whether to scrape the profile as a delta. | `false` | no
+
+When the `delta` argument is `true`, a `seconds` query parameter is
+automatically added to requests.
+
+### profile.mutex block
+
+The `profile.mutex` block collects profiles on mutexes.
+
+It accepts the following arguments:
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`enabled` | `boolean` | Enable this profile type to be scraped. | `false` | no
+`path` | `string` | The path to the profile type on the target. | `"/debug/pprof/mutex"` | no
+`delta` | `boolean` | Whether to scrape the profile as a delta. | `false` | no
+
+When the `delta` argument is `true`, a `seconds` query parameter is
+automatically added to requests.
+
+### profile.process_cpu block
+
+The `profile.process_cpu` block collects profiles on CPU consumption for the
+process.
+
+It accepts the following arguments:
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`enabled` | `boolean` | Enable this profile type to be scraped. | `false` | no
+`path` | `string` | The path to the profile type on the target. | `"/debug/pprof/profile"` | no
+`delta` | `boolean` | Whether to scrape the profile as a delta. | `true` | no
+
+When the `delta` argument is `true`, a `seconds` query parameter is
+automatically added to requests.
+
+### profile.fgprof block
+
+The `profile.fgprof` block collects profiles from an [fgprof][] endpoint.
+
+It accepts the following arguments:
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`enabled` | `boolean` | Enable this profile type to be scraped. | `false` | no
+`path` | `string` | The path to the profile type on the target. | `"/debug/fgprof"` | no
+`delta` | `boolean` | Whether to scrape the profile as a delta. | `true` | no
+
+When the `delta` argument is `true`, a `seconds` query parameter is
+automatically added to requests.
+
+### profile.custom block
+
+The `profile.custom` block allows for collecting profiles from custom
+endpoints. Blocks must be specified with a label:
+
+```river
+profile.custom "PROFILE_TYPE" {
+  enabled = true
+  path    = "PROFILE_PATH"
+}
+```
+
+Multiple `profile.custom` blocks can be specified. Labels assigned to
+`profile.custom` blocks must be unique across the component.
+
+The `profile.custom` block accepts the following arguments:
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`enabled` | `boolean` | Enable this profile type to be scraped. | | yes
+`path` | `string` | The path to the profile type on the target. | | yes
+`delta` | `boolean` | Whether to scrape the profile as a delta. | `false` | no
+
+When the `delta` argument is `true`, a `seconds` query parameter is
+automatically added to requests.
 
 ## Exported fields
 
@@ -221,14 +314,14 @@ phlare.scrape "local" {
   ]
   forward_to = [phlare.write.local.receiver]
   profiling_config {
-    pprof_config = {
-      fgprof = {
-        path = "/debug/fgprof",
-        delta = true,
-        enabled = true,
-      },
-      block = { enabled = false },
-      mutex = { enabled = false },
+    profile.fgprof {
+      enabled = true
+    }
+    profile.block {
+      enabled = false
+    }
+    profile.mutex {
+      enabled = false
     }
   }
 }

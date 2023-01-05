@@ -16,7 +16,6 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/goleak"
-	"k8s.io/utils/pointer"
 )
 
 func TestComponent(t *testing.T) {
@@ -90,14 +89,16 @@ func TestUnmarshalConfig(t *testing.T) {
 			forward_to = null
 			profiling_config {
 				path_prefix = "v1/"
-				pprof_config = {
-				   fgprof = {
-						path = "/debug/fgprof",
-						delta = true,
-					   enabled = true,
-				   },
-				   block = { enabled = false },
-			   }
+
+				profile.block {
+					enabled = false
+				}
+
+				profile.custom "something" {
+					enabled = true
+					path    = "/debug/fgprof"
+					delta   = true 
+				}
 		   }
 		   `,
 			expected: func() Arguments {
@@ -112,12 +113,13 @@ func TestUnmarshalConfig(t *testing.T) {
 						"foo":         "buzz",
 					},
 				}
-				r.ProfilingConfig.PprofConfig["fgprof"] = &PprofProfilingConfig{
-					Enabled: pointer.Bool(true),
+				r.ProfilingConfig.Block.Enabled = false
+				r.ProfilingConfig.Custom = append(r.ProfilingConfig.Custom, CustomProfilingTarget{
+					Enabled: true,
 					Path:    "/debug/fgprof",
 					Delta:   true,
-				}
-				r.ProfilingConfig.PprofConfig["block"].Enabled = falseValue()
+					Name:    "something",
+				})
 				r.ProfilingConfig.PprofPrefix = "v1/"
 				return r
 			},
@@ -138,7 +140,7 @@ func TestUnmarshalConfig(t *testing.T) {
 			scrape_timeout = "4s"
 			scrape_interval = "5s"
 			`,
-			expectedErr: "scrape timeout must be greater than the interval",
+			expectedErr: "scrape_timeout must be greater than scrape_interval",
 		},
 	} {
 		tt := tt
@@ -155,9 +157,4 @@ func TestUnmarshalConfig(t *testing.T) {
 			require.Equal(t, tt.expected(), arg)
 		})
 	}
-}
-
-func falseValue() *bool {
-	a := false
-	return &a
 }

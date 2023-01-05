@@ -57,6 +57,7 @@ func TestManager(t *testing.T) {
 			},
 		},
 	}
+
 	require.Eventually(t, func() bool {
 		return len(m.TargetsActive()["group2"]) == 10
 	}, time.Second, 10*time.Millisecond)

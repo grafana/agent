@@ -10,7 +10,6 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
-	"k8s.io/utils/pointer"
 
 	"github.com/grafana/agent/component"
 	component_config "github.com/grafana/agent/component/common/config"
@@ -25,6 +24,7 @@ const (
 	pprofGoroutine  string = "goroutine"
 	pprofMutex      string = "mutex"
 	pprofProcessCPU string = "process_cpu"
+	pprofFgprof     string = "fgprof"
 )
 
 func init() {
@@ -74,20 +74,98 @@ type Arguments struct {
 
 	HTTPClientConfig component_config.HTTPClientConfig `river:"http_client_config,block,optional"`
 
-	ProfilingConfig *ProfilingConfig `river:"profiling_config,block,optional"`
+	ProfilingConfig ProfilingConfig `river:"profiling_config,block,optional"`
 }
 
 type ProfilingConfig struct {
-	PprofConfig PprofConfig `river:"pprof_config,attr,optional"`
-	PprofPrefix string      `river:"path_prefix,attr,optional"`
+	Memory     ProfilingTarget         `river:"profile.memory,block,optional"`
+	Block      ProfilingTarget         `river:"profile.block,block,optional"`
+	Goroutine  ProfilingTarget         `river:"profile.goroutine,block,optional"`
+	Mutex      ProfilingTarget         `river:"profile.mutex,block,optional"`
+	ProcessCPU ProfilingTarget         `river:"profile.process_cpu,block,optional"`
+	FGProf     ProfilingTarget         `river:"profile.fgprof,block,optional"`
+	Custom     []CustomProfilingTarget `river:"profile.custom,block,optional"`
+
+	PprofPrefix string `river:"path_prefix,attr,optional"`
 }
 
-type PprofConfig map[string]*PprofProfilingConfig
+// AllTargets returns the set of all standard and custom profiling targets,
+// regardless of whether they're enabled. The key in the map indicates the name
+// of the target.
+func (cfg ProfilingConfig) AllTargets() map[string]ProfilingTarget {
+	targets := map[string]ProfilingTarget{
+		pprofMemory:     cfg.Memory,
+		pprofBlock:      cfg.Block,
+		pprofGoroutine:  cfg.Goroutine,
+		pprofMutex:      cfg.Mutex,
+		pprofProcessCPU: cfg.ProcessCPU,
+		pprofFgprof:     cfg.FGProf,
+	}
 
-type PprofProfilingConfig struct {
-	Enabled *bool  `river:"enabled,attr,optional"`
+	for _, custom := range cfg.Custom {
+		targets[custom.Name] = ProfilingTarget{
+			Enabled: custom.Enabled,
+			Path:    custom.Path,
+			Delta:   custom.Delta,
+		}
+	}
+
+	return targets
+}
+
+var DefaultProfilingConfig = ProfilingConfig{
+	Memory: ProfilingTarget{
+		Enabled: true,
+		Path:    "/debug/pprof/allocs",
+	},
+	Block: ProfilingTarget{
+		Enabled: true,
+		Path:    "/debug/pprof/block",
+	},
+	Goroutine: ProfilingTarget{
+		Enabled: true,
+		Path:    "/debug/pprof/goroutine",
+	},
+	Mutex: ProfilingTarget{
+		Enabled: true,
+		Path:    "/debug/pprof/mutex",
+	},
+	ProcessCPU: ProfilingTarget{
+		Enabled: true,
+		Path:    "/debug/pprof/profile",
+		Delta:   true,
+	},
+	FGProf: ProfilingTarget{
+		Enabled: false,
+		Path:    "/debug/fgprof",
+		Delta:   true,
+	},
+}
+
+// UnmarshalRiver implements river.Unmarshaler and applies defaults before
+// unmarshaling.
+func (cfg *ProfilingConfig) UnmarshalRiver(f func(interface{}) error) error {
+	*cfg = DefaultProfilingConfig
+
+	type args ProfilingConfig
+	if err := f((*args)(cfg)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+type ProfilingTarget struct {
+	Enabled bool   `river:"enabled,attr,optional"`
 	Path    string `river:"path,attr,optional"`
 	Delta   bool   `river:"delta,attr,optional"`
+}
+
+type CustomProfilingTarget struct {
+	Enabled bool   `river:"enabled,attr"`
+	Path    string `river:"path,attr"`
+	Delta   bool   `river:"delta,attr,optional"`
+	Name    string `river:",label"`
 }
 
 var DefaultArguments = NewDefaultArguments()
@@ -99,31 +177,7 @@ func NewDefaultArguments() Arguments {
 		HTTPClientConfig: component_config.DefaultHTTPClientConfig,
 		ScrapeInterval:   15 * time.Second,
 		ScrapeTimeout:    15*time.Second + (3 * time.Second),
-		ProfilingConfig: &ProfilingConfig{
-			PprofConfig: PprofConfig{
-				pprofMemory: &PprofProfilingConfig{
-					Enabled: pointer.Bool(true),
-					Path:    "/debug/pprof/allocs",
-				},
-				pprofBlock: &PprofProfilingConfig{
-					Enabled: pointer.Bool(true),
-					Path:    "/debug/pprof/block",
-				},
-				pprofGoroutine: &PprofProfilingConfig{
-					Enabled: pointer.Bool(true),
-					Path:    "/debug/pprof/goroutine",
-				},
-				pprofMutex: &PprofProfilingConfig{
-					Enabled: pointer.Bool(true),
-					Path:    "/debug/pprof/mutex",
-				},
-				pprofProcessCPU: &PprofProfilingConfig{
-					Enabled: pointer.Bool(true),
-					Delta:   true,
-					Path:    "/debug/pprof/profile",
-				},
-			},
-		},
+		ProfilingConfig:  DefaultProfilingConfig,
 	}
 }
 
@@ -135,31 +189,16 @@ func (arg *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	if err := f((*args)(arg)); err != nil {
 		return err
 	}
-	if arg.ProfilingConfig == nil || arg.ProfilingConfig.PprofConfig == nil {
-		arg.ProfilingConfig = DefaultArguments.ProfilingConfig
-	} else {
-		for pt, pc := range DefaultArguments.ProfilingConfig.PprofConfig {
-			if arg.ProfilingConfig.PprofConfig[pt] == nil {
-				arg.ProfilingConfig.PprofConfig[pt] = pc
-				continue
-			}
-			if arg.ProfilingConfig.PprofConfig[pt].Enabled == nil {
-				arg.ProfilingConfig.PprofConfig[pt].Enabled = pointer.Bool(true)
-			}
-			if arg.ProfilingConfig.PprofConfig[pt].Path == "" {
-				arg.ProfilingConfig.PprofConfig[pt].Path = pc.Path
-			}
-		}
-	}
-	if arg.ScrapeTimeout == 0 {
-		arg.ScrapeTimeout = arg.ScrapeInterval + (3 * time.Second)
+
+	if arg.ScrapeTimeout <= 0 {
+		return fmt.Errorf("scrape_timeout must be greater than 0")
 	}
 	if arg.ScrapeTimeout <= arg.ScrapeInterval {
-		return fmt.Errorf("scrape timeout must be greater than the interval")
+		return fmt.Errorf("scrape_timeout must be greater than scrape_interval")
 	}
 
-	if cfg, ok := arg.ProfilingConfig.PprofConfig[pprofProcessCPU]; ok {
-		if *cfg.Enabled && arg.ScrapeTimeout < time.Second*2 {
+	if cfg, ok := arg.ProfilingConfig.ProcessCPU, true; ok {
+		if cfg.Enabled && arg.ScrapeTimeout < time.Second*2 {
 			return fmt.Errorf("%v scrape_timeout must be at least 2 seconds", pprofProcessCPU)
 		}
 	}

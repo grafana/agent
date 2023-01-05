@@ -28,9 +28,9 @@ func TestScrapePool(t *testing.T) {
 	args.Targets = []discovery.Target{
 		{"instance": "foo"},
 	}
-	args.ProfilingConfig.PprofConfig[pprofBlock].Enabled = falseValue()
-	args.ProfilingConfig.PprofConfig[pprofGoroutine].Enabled = falseValue()
-	args.ProfilingConfig.PprofConfig[pprofMemory].Enabled = falseValue()
+	args.ProfilingConfig.Block.Enabled = false
+	args.ProfilingConfig.Goroutine.Enabled = false
+	args.ProfilingConfig.Memory.Enabled = false
 
 	p, err := newScrapePool(args, phlare.AppendableFunc(
 		func(ctx context.Context, labels labels.Labels, samples []*phlare.RawSample) error {

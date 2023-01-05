@@ -13,9 +13,9 @@ import (
 
 func Test_targetsFromGroup(t *testing.T) {
 	args := NewDefaultArguments()
-	args.ProfilingConfig.PprofConfig[pprofBlock].Enabled = falseValue()
-	args.ProfilingConfig.PprofConfig[pprofGoroutine].Enabled = falseValue()
-	args.ProfilingConfig.PprofConfig[pprofMutex].Enabled = falseValue()
+	args.ProfilingConfig.Block.Enabled = false
+	args.ProfilingConfig.Goroutine.Enabled = false
+	args.ProfilingConfig.Mutex.Enabled = false
 
 	active, dropped, err := targetsFromGroup(&targetgroup.Group{
 		Targets: []model.LabelSet{

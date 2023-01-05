@@ -205,9 +205,9 @@ func (t *Target) Health() TargetHealth {
 // LabelsByProfiles returns the labels for a given ProfilingConfig.
 func LabelsByProfiles(lset labels.Labels, c *ProfilingConfig) []labels.Labels {
 	res := []labels.Labels{}
-	add := func(profileType string, cfgs ...PprofProfilingConfig) {
+	add := func(profileType string, cfgs ...ProfilingTarget) {
 		for _, p := range cfgs {
-			if *p.Enabled {
+			if p.Enabled {
 				l := lset.Copy()
 				l = append(l, labels.Label{Name: ProfilePath, Value: p.Path}, labels.Label{Name: ProfileName, Value: profileType})
 				res = append(res, l)
@@ -215,10 +215,8 @@ func LabelsByProfiles(lset labels.Labels, c *ProfilingConfig) []labels.Labels {
 		}
 	}
 
-	if c.PprofConfig != nil {
-		for profilingType, profilingConfig := range c.PprofConfig {
-			add(profilingType, *profilingConfig)
-		}
+	for profilingType, profilingConfig := range c.AllTargets() {
+		add(profilingType, profilingConfig)
 	}
 
 	return res
@@ -354,7 +352,7 @@ func targetsFromGroup(group *targetgroup.Group, cfg Arguments) ([]*Target, []*Ta
 		}
 
 		lset := labels.New(lbls...)
-		lsets := LabelsByProfiles(lset, cfg.ProfilingConfig)
+		lsets := LabelsByProfiles(lset, &cfg.ProfilingConfig)
 
 		for _, lset := range lsets {
 			var profType string
@@ -392,7 +390,7 @@ func targetsFromGroup(group *targetgroup.Group, cfg Arguments) ([]*Target, []*Ta
 					params = url.Values{}
 				}
 
-				if pcfg, found := cfg.ProfilingConfig.PprofConfig[profType]; found && pcfg.Delta {
+				if pcfg, found := cfg.ProfilingConfig.AllTargets()[profType]; found && pcfg.Delta {
 					params.Add("seconds", strconv.Itoa(int((cfg.ScrapeInterval)/time.Second)))
 				}
 				targets = append(targets, NewTarget(lbls, origLabels, params))
