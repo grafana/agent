@@ -34,24 +34,23 @@ type Component struct {
 	opts    component.Options
 	metrics *st.Metrics
 
-	mut     sync.RWMutex
-	lc      []ListenerConfig
-	fanout  []loki.LogsReceiver
-	targets []*st.SyslogTarget
+	mut       sync.RWMutex
+	lc        []ListenerConfig
+	fanout    []loki.LogsReceiver
+	listeners []*st.SyslogTarget
 
 	handler loki.LogsReceiver
 }
 
 // New creates a new loki.source.syslog component.
 func New(o component.Options, args Arguments) (*Component, error) {
-
 	c := &Component{
 		opts:    o,
 		metrics: st.NewMetrics(o.Registerer),
 		handler: make(loki.LogsReceiver),
 		fanout:  args.ForwardTo,
 
-		targets: []*st.SyslogTarget{},
+		listeners: []*st.SyslogTarget{},
 	}
 
 	// Call to Update() to start readers and set receivers once at the start.
@@ -65,9 +64,12 @@ func New(o component.Options, args Arguments) (*Component, error) {
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
 	defer func() {
-		level.Info(c.opts.Logger).Log("msg", "loki.source.syslog component shutting down, stopping targets")
-		for _, r := range c.targets {
-			r.Stop()
+		level.Info(c.opts.Logger).Log("msg", "loki.source.syslog component shutting down, stopping")
+		for _, l := range c.listeners {
+			err := l.Stop()
+			if err != nil {
+				level.Error(c.opts.Logger).Log("msg", "error while stopping syslog listener", "err", err)
+			}
 		}
 	}()
 
@@ -94,10 +96,13 @@ func (c *Component) Update(args component.Arguments) error {
 	c.fanout = newArgs.ForwardTo
 
 	if configsChanged(c.lc, newArgs.SyslogListeners) {
-		for _, t := range c.targets {
-			t.Stop()
+		for _, l := range c.listeners {
+			err := l.Stop()
+			if err != nil {
+				level.Error(c.opts.Logger).Log("msg", "error while stopping syslog listener", "err", err)
+			}
 		}
-		c.targets = make([]*st.SyslogTarget, 0)
+		c.listeners = make([]*st.SyslogTarget, 0)
 		entryHandler := loki.NewEntryHandler(c.handler, func() {})
 
 		for _, cfg := range newArgs.SyslogListeners {
@@ -106,7 +111,7 @@ func (c *Component) Update(args component.Arguments) error {
 				level.Error(c.opts.Logger).Log("msg", "failed to create syslog target with provided config", "err", err)
 				continue
 			}
-			c.targets = append(c.targets, t)
+			c.listeners = append(c.listeners, t)
 		}
 	}
 
@@ -117,7 +122,7 @@ func (c *Component) Update(args component.Arguments) error {
 func (c *Component) DebugInfo() interface{} {
 	var res readerDebugInfo
 
-	for _, t := range c.targets {
+	for _, t := range c.listeners {
 		res.TargetsInfo = append(res.TargetsInfo, targetInfo{
 			Type:          string(t.Type()),
 			Ready:         t.Ready(),

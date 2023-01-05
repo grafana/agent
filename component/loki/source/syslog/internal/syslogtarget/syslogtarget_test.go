@@ -353,7 +353,6 @@ func Benchmark_SyslogTarget(b *testing.B) {
 			require.Eventuallyf(b, func() bool {
 				return len(client.Received()) == len(messages)*b.N
 			}, 15*time.Second, time.Second, "expected: %d got:%d", len(messages)*b.N, len(client.Received()))
-
 		})
 	}
 }

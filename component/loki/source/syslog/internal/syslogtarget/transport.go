@@ -261,7 +261,6 @@ func (t *TCPTransport) acceptConnections() {
 		t.openConnections.Add(1)
 		go t.handleConnection(c)
 	}
-
 }
 
 func (t *TCPTransport) handleConnection(cn net.Conn) {
