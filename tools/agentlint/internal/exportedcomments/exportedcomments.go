@@ -105,13 +105,30 @@ func isExportedReceiverType(ty types.Type) bool {
 }
 
 func lintGenDecl(pass *analysis.Pass, fn *ast.GenDecl) {
-	// Ignore any gen decl with comments
+	// Ignore any gen decl with comments:
+	//
+	//   // Comment
+	//   var (
+	//     SomeVariable1 bool
+	//     SomeVariable2 int
+	//   )
 	if fn.Doc != nil {
 		return
 	}
 
 	for _, spec := range fn.Specs {
 		res := analyzeSpec(spec)
+
+		// Even if the group didn't have a comment, the individual specification
+		// still might:
+		//
+		//   var (
+		//     // Comment
+		//     SomeVariable1 bool
+		//   )
+		//
+		// We only want to report an error if there's not a comment on the grouping
+		// AND on the individual spec.
 		if res.Exported && !res.HasDoc {
 			pass.Report(analysis.Diagnostic{
 				Pos:     spec.Pos(),
