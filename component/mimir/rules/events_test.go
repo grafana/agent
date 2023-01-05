@@ -123,7 +123,7 @@ func TestEventLoop(t *testing.T) {
 		},
 	}
 
-	handler := Component{
+	component := Component{
 		log:               log.NewLogfmtLogger(os.Stdout),
 		queue:             workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter()),
 		namespaceLister:   nsLister,
@@ -134,24 +134,25 @@ func TestEventLoop(t *testing.T) {
 		args:              Arguments{MimirNameSpacePrefix: "agent"},
 		metrics:           newMetrics(),
 	}
+	eventHandler := newQueuedEventHandler(component.log, component.queue)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	go handler.eventLoop(ctx)
+	go component.eventLoop(ctx)
 
 	// Add a namespace and rule to kubernetes
 	nsIndexer.Add(ns)
 	ruleIndexer.Add(rule)
-	handler.OnAdd(rule)
+	eventHandler.OnAdd(rule)
 
 	// Wait for the rule to be added to mimir
 	require.Eventually(t, func() bool {
-		rules, err := handler.mimirClient.ListRules(ctx, "")
+		rules, err := component.mimirClient.ListRules(ctx, "")
 		require.NoError(t, err)
 		return len(rules) == 1
 	}, time.Second, 10*time.Millisecond)
-	handler.queue.AddRateLimited(event{typ: eventTypeSyncMimir})
+	component.queue.AddRateLimited(event{typ: eventTypeSyncMimir})
 
 	// Update the rule in kubernetes
 	rule.Spec.Groups[0].Rules = append(rule.Spec.Groups[0].Rules, v1.Rule{
@@ -159,24 +160,24 @@ func TestEventLoop(t *testing.T) {
 		Expr:  intstr.FromString("expr2"),
 	})
 	ruleIndexer.Update(rule)
-	handler.OnUpdate(rule, rule)
+	eventHandler.OnUpdate(rule, rule)
 
 	// Wait for the rule to be updated in mimir
 	require.Eventually(t, func() bool {
-		allRules, err := handler.mimirClient.ListRules(ctx, "")
+		allRules, err := component.mimirClient.ListRules(ctx, "")
 		require.NoError(t, err)
 		rules := allRules[mimirNamespaceForRuleCRD("agent", rule)][0].Rules
 		return len(rules) == 2
 	}, time.Second, 10*time.Millisecond)
-	handler.queue.AddRateLimited(event{typ: eventTypeSyncMimir})
+	component.queue.AddRateLimited(event{typ: eventTypeSyncMimir})
 
 	// Remove the rule from kubernetes
 	ruleIndexer.Delete(rule)
-	handler.OnDelete(rule)
+	eventHandler.OnDelete(rule)
 
 	// Wait for the rule to be removed from mimir
 	require.Eventually(t, func() bool {
-		rules, err := handler.mimirClient.ListRules(ctx, "")
+		rules, err := component.mimirClient.ListRules(ctx, "")
 		require.NoError(t, err)
 		return len(rules) == 0
 	}, time.Second, 10*time.Millisecond)

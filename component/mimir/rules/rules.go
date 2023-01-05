@@ -298,7 +298,7 @@ func (c *Component) startNamespaceInformer() {
 	namespaces := factory.Core().V1().Namespaces()
 	c.namespaceLister = namespaces.Lister()
 	c.namespaceInformer = namespaces.Informer()
-	c.namespaceInformer.AddEventHandler(c)
+	c.namespaceInformer.AddEventHandler(newQueuedEventHandler(c.log, c.queue))
 
 	factory.Start(c.informerStopChan)
 	factory.WaitForCacheSync(c.informerStopChan)
@@ -316,7 +316,7 @@ func (c *Component) startRuleInformer() {
 	promRules := factory.Monitoring().V1().PrometheusRules()
 	c.ruleLister = promRules.Lister()
 	c.ruleInformer = promRules.Informer()
-	c.ruleInformer.AddEventHandler(c)
+	c.ruleInformer.AddEventHandler(newQueuedEventHandler(c.log, c.queue))
 
 	factory.Start(c.informerStopChan)
 	factory.WaitForCacheSync(c.informerStopChan)

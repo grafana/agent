@@ -7,12 +7,14 @@ import (
 	"time"
 
 	"github.com/ghodss/yaml" // Used for CRD compatibility instead of gopkg.in/yaml.v2
+	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	mimirClient "github.com/grafana/agent/pkg/mimir/client"
 	"github.com/hashicorp/go-multierror"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/prometheus/prometheus/model/rulefmt"
 	"k8s.io/client-go/tools/cache"
+	"k8s.io/client-go/util/workqueue"
 )
 
 // This type must be hashable, so it is kept simple. The indexer will maintain a
@@ -29,22 +31,34 @@ const (
 	eventTypeSyncMimir       eventType = "sync-mimir"
 )
 
+type queuedEventHandler struct {
+	log   log.Logger
+	queue workqueue.RateLimitingInterface
+}
+
+func newQueuedEventHandler(log log.Logger, queue workqueue.RateLimitingInterface) *queuedEventHandler {
+	return &queuedEventHandler{
+		log:   log,
+		queue: queue,
+	}
+}
+
 // OnAdd implements the cache.ResourceEventHandler interface.
-func (c *Component) OnAdd(obj interface{}) {
+func (c *queuedEventHandler) OnAdd(obj interface{}) {
 	c.publishEvent(obj)
 }
 
 // OnUpdate implements the cache.ResourceEventHandler interface.
-func (c *Component) OnUpdate(oldObj, newObj interface{}) {
+func (c *queuedEventHandler) OnUpdate(oldObj, newObj interface{}) {
 	c.publishEvent(newObj)
 }
 
 // OnDelete implements the cache.ResourceEventHandler interface.
-func (c *Component) OnDelete(obj interface{}) {
+func (c *queuedEventHandler) OnDelete(obj interface{}) {
 	c.publishEvent(obj)
 }
 
-func (c *Component) publishEvent(obj interface{}) {
+func (c *queuedEventHandler) publishEvent(obj interface{}) {
 	key, err := cache.MetaNamespaceKeyFunc(obj)
 	if err != nil {
 		level.Error(c.log).Log("msg", "failed to get key for object", "err", err)
