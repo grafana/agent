@@ -11,8 +11,6 @@ import (
 	"testing"
 	"unicode"
 
-	"github.com/imdario/mergo"
-
 	"github.com/drone/envsubst/v2"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -261,10 +259,19 @@ func loadFromAgentManagementAPI(path string, expandEnvVars bool, c *Config, log 
 	if err != nil {
 		return err
 	}
-	if err = mergo.Merge(c, remoteConfig); err != nil {
-		return fmt.Errorf("error trying to merge initial and remote configs: %w", err)
-	}
+	mergeEffectiveConfig(c, remoteConfig)
 	return nil
+}
+
+// Overwrites any values in initialConfig with those in remoteConfig
+func mergeEffectiveConfig(initialConfig *Config, remoteConfig *Config) {
+	initialConfig.Server = remoteConfig.Server
+	initialConfig.Metrics = remoteConfig.Metrics
+	initialConfig.Integrations = remoteConfig.Integrations
+	initialConfig.Traces = remoteConfig.Traces
+	if remoteConfig.Logs != nil {
+		initialConfig.Logs = remoteConfig.Logs
+	}
 }
 
 // LoadRemote reads a config from url
