@@ -56,7 +56,7 @@ refers to a `tls_config` block defined inside a `config` block.
 ### listener block
 
 The `listener` block defines the listen address and protocol where the listener
-will expect syslog messages to, as well as its behavior when receiving
+expects syslog messages to be sent to, as well as its behavior when receiving
 messages.
 
 The following arguments can be used to configure a `listener`. Only the
@@ -65,28 +65,28 @@ values.
 
 Name                     | Type          | Description | Default | Required
 ------------------------ | ------------- | ----------- | ------- | --------
-`address`                | `string`      | The `<host:port>` address to listen on for syslog messages. | | yes
-`protocol`               | `string`      | The protocol to listen on for syslog messages. Must be either `tcp` or `udp`. | `tcp` | no
+`address`                | `string`      | The `<host:port>` address to listen to for syslog messages. | | yes
+`protocol`               | `string`      | The protocol to listen to for syslog messages. Must be either `tcp` or `udp`. | `tcp` | no
 `idle_timeout`           | `duration`    | The idle timeout for tcp connections. | `"120s"` | no
 `label_structured_data`  | `bool`        | Whether to translate syslog structured data to loki labels. | `false` | no
 `labels`                 | `map(string)` | The labels to associate with each received syslog record. | `{}` | no
 `use_incoming_timestamp` | `bool`        | Whether to set the timestamp to the incoming syslog record timestamp. | `false` | no
-`use_rfc5424_message`    | `bool`        | Whether the full RFC5424-formatted syslog message should be forwarded. | `false` | no
+`use_rfc5424_message`    | `bool`        | Whether to forward the full RFC5424-formatted syslog message. | `false` | no
 `max_message_length`     | `int`         | The maximum limit to the length of syslog messages. | `8192` | no
 
-By default, the component will assign the log entry timestamp as the time it
+By default, the component assigns the log entry timestamp as the time it
 was processed.
 
-The `labels` map will be applied to every message that the component reads.
+The `labels` map is applied to every message that the component reads.
 
-All header fields from the parsed RFC5424 messages will be brought in as
+All header fields from the parsed RFC5424 messages are brought in as
 internal labels, prefixed with `__syslog_`.
 
-If `label_structured_data` is set, structured data in the syslog header will
-also be translated to internal labels in the form of
-`__syslog_message_sd_<ID>_<KEY>`. A structured data entry of `[example@99999
-test="yes"]` would become the label `__syslog_message_sd_example_99999_test`
-with the value `"yes"`.
+If `label_structured_data` is set, structured data in the syslog header is also
+translated to internal labels in the form of
+`__syslog_message_sd_<ID>_<KEY>`. For example, a  structured data entry of
+`[example@99999 test="yes"]` becomes the label 
+`__syslog_message_sd_example_99999_test` with the value `"yes"`.
 
 ### tls_config block
 
@@ -115,9 +115,8 @@ configuration.
 
 ## Example
 
-This example collects listens for Syslog messages in valid RFC5424 format over
-TCP and UDP in the specified ports and forwards them to a `loki.write`
-component.
+This example listens for Syslog messages in valid RFC5424 format over TCP and
+UDP in the specified ports and forwards them to a `loki.write` component.
 
 ```river
 loki.source.syslog "local" {
