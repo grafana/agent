@@ -20,8 +20,8 @@ different labels.
 
 ```river
 loki.source.syslog "LABEL" {
-  config {
-    listen_address = "LISTEN_ADDRESS"
+  listener {
+    address = "LISTEN_ADDRESS"
   }
   ...
 
