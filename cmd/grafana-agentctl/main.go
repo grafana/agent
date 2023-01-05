@@ -1,4 +1,5 @@
-// Command agentctl provides utilities for interacting with Grafana Agent
+// Command grafana-agentctl provides utilities for interacting with Grafana
+// Agent.
 package main
 
 import (
