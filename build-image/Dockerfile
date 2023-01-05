@@ -21,7 +21,7 @@ RUN apk add --no-cache docker-cli docker-cli-buildx
 # Dependency: Go and Go dependencies
 FROM golang:1.19.4-bullseye as golang
 
-# Keep in sync with cmd/agent-operator/DEVELOPERS.md
+# Keep in sync with cmd/grafana-agent-operator/DEVELOPERS.md
 ENV CONTROLLER_GEN_VERSION v0.8.0
 
 RUN go install sigs.k8s.io/controller-tools/cmd/controller-gen@$CONTROLLER_GEN_VERSION \
