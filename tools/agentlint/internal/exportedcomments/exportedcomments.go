@@ -11,6 +11,7 @@ import (
 	"golang.org/x/tools/go/analysis"
 )
 
+// Analyzer implements the exportedcomments analyzer.
 var Analyzer = &analysis.Analyzer{
 	Name: "exportedcomments",
 	Doc:  "ensure eported identifiers have documentation",

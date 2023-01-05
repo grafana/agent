@@ -11,6 +11,7 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
+// Analyzer implements the findcomponents analyzer.
 var Analyzer = &analysis.Analyzer{
 	Name: "findcomponents",
 	Doc:  "ensure Flow components are imported",
