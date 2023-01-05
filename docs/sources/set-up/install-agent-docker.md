@@ -21,7 +21,7 @@ Install Grafana Agent and get it up and running on Docker.
 docker run \
   -v /tmp/agent:/etc/agent/data \
   -v /path/to/config.yaml:/etc/agent/agent.yaml \
-  grafana/agent:latest
+  grafana/agent:v0.30.1
 ```
 
 2. Replace `/tmp/agent` with the folder you want to store WAL data in.
@@ -40,7 +40,7 @@ container through a bind mount for the flags to work properly.
 docker run ^
   -v c:\agent-data:c:\etc\agent\data ^
   -v c:\workspace\config\agent:c:\etc\agent ^
-  grafana/agent:latest-windows
+  grafana/agent:v0.30.1-windows
 ```
 
 2. Replace `c:\agent-data` with the folder you want to store WAL data in.
