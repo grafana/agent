@@ -194,7 +194,8 @@ Section "uninstall"
     Pop $0
 
     # Remove files
-    delete $INSTDIR\grafana-agent-windows-amd64.exe
+    delete $INSTDIR\agent-windows-amd64.exe         # Old binary name, left in for upgrades
+    delete $INSTDIR\grafana-agent-windows-amd64.exe # New binary name
     delete $INSTDIR\logo.ico
     delete $INSTDIR\agent-config.yaml
 
