@@ -14,18 +14,18 @@ import (
 	"github.com/grafana/agent/component/phlare"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
-	pushv1alpha1 "github.com/grafana/phlare/api/gen/proto/go/push/v1alpha1"
-	pushv1alpha1connect "github.com/grafana/phlare/api/gen/proto/go/push/v1alpha1/pushv1alpha1connect"
-	typesv1alpha1 "github.com/grafana/phlare/api/gen/proto/go/types/v1alpha1"
+	pushv1 "github.com/grafana/phlare/api/gen/proto/go/push/v1"
+	pushv1connect "github.com/grafana/phlare/api/gen/proto/go/push/v1/pushv1connect"
+	typesv1 "github.com/grafana/phlare/api/gen/proto/go/types/v1"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
 )
 
-type PushFunc func(context.Context, *connect.Request[pushv1alpha1.PushRequest]) (*connect.Response[pushv1alpha1.PushResponse], error)
+type PushFunc func(context.Context, *connect.Request[pushv1.PushRequest]) (*connect.Response[pushv1.PushResponse], error)
 
-func (p PushFunc) Push(ctx context.Context, r *connect.Request[pushv1alpha1.PushRequest]) (*connect.Response[pushv1alpha1.PushResponse], error) {
+func (p PushFunc) Push(ctx context.Context, r *connect.Request[pushv1.PushRequest]) (*connect.Response[pushv1.PushResponse], error) {
 	return p(ctx, r)
 }
 
@@ -39,18 +39,18 @@ func Test_Write_FanOut(t *testing.T) {
 	)
 	argument.ExternalLabels = map[string]string{"foo": "buzz"}
 	handlerFn := func(err error) http.Handler {
-		_, handler := pushv1alpha1connect.NewPusherServiceHandler(PushFunc(
-			func(_ context.Context, req *connect.Request[pushv1alpha1.PushRequest]) (*connect.Response[pushv1alpha1.PushResponse], error) {
+		_, handler := pushv1connect.NewPusherServiceHandler(PushFunc(
+			func(_ context.Context, req *connect.Request[pushv1.PushRequest]) (*connect.Response[pushv1.PushResponse], error) {
 				pushTotal.Inc()
 				require.Equal(t, "test", req.Header()["X-Test-Header"][0])
 				require.Contains(t, req.Header()["User-Agent"][0], "GrafanaAgent/")
-				require.Equal(t, []*typesv1alpha1.LabelPair{
+				require.Equal(t, []*typesv1.LabelPair{
 					{Name: "__name__", Value: "test"},
 					{Name: "foo", Value: "buzz"},
 					{Name: "job", Value: "foo"},
 				}, req.Msg.Series[0].Labels)
 				require.Equal(t, []byte("pprofraw"), req.Msg.Series[0].Samples[0].RawProfile)
-				return &connect.Response[pushv1alpha1.PushResponse]{}, err
+				return &connect.Response[pushv1.PushResponse]{}, err
 			},
 		))
 		return handler
@@ -159,10 +159,10 @@ func Test_Write_Update(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	_, handler := pushv1alpha1connect.NewPusherServiceHandler(PushFunc(
-		func(_ context.Context, req *connect.Request[pushv1alpha1.PushRequest]) (*connect.Response[pushv1alpha1.PushResponse], error) {
+	_, handler := pushv1connect.NewPusherServiceHandler(PushFunc(
+		func(_ context.Context, req *connect.Request[pushv1.PushRequest]) (*connect.Response[pushv1.PushResponse], error) {
 			pushTotal.Inc()
-			return &connect.Response[pushv1alpha1.PushResponse]{}, err
+			return &connect.Response[pushv1.PushResponse]{}, err
 		},
 	))
 	server := httptest.NewServer(handler)

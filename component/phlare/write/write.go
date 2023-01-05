@@ -18,9 +18,9 @@ import (
 	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/phlare"
 	"github.com/grafana/agent/pkg/build"
-	pushv1alpha1 "github.com/grafana/phlare/api/gen/proto/go/push/v1alpha1"
-	pushv1alpha1connect "github.com/grafana/phlare/api/gen/proto/go/push/v1alpha1/pushv1alpha1connect"
-	typesv1alpha1 "github.com/grafana/phlare/api/gen/proto/go/types/v1alpha1"
+	pushv1 "github.com/grafana/phlare/api/gen/proto/go/push/v1"
+	pushv1connect "github.com/grafana/phlare/api/gen/proto/go/push/v1/pushv1connect"
+	typesv1 "github.com/grafana/phlare/api/gen/proto/go/types/v1"
 )
 
 var (
@@ -128,7 +128,7 @@ func (c *Component) Update(newConfig component.Arguments) error {
 
 type fanOutClient struct {
 	// The list of push clients to fan out to.
-	clients []pushv1alpha1connect.PusherServiceClient
+	clients []pushv1connect.PusherServiceClient
 
 	config Arguments
 	opts   component.Options
@@ -136,13 +136,13 @@ type fanOutClient struct {
 
 // NewFanOut creates a new fan out client that will fan out to all endpoints.
 func NewFanOut(opts component.Options, config Arguments) (*fanOutClient, error) {
-	clients := make([]pushv1alpha1connect.PusherServiceClient, 0, len(config.Endpoints))
+	clients := make([]pushv1connect.PusherServiceClient, 0, len(config.Endpoints))
 	for _, endpoint := range config.Endpoints {
 		httpClient, err := commonconfig.NewClientFromConfig(*endpoint.HTTPClientConfig.Convert(), endpoint.Name)
 		if err != nil {
 			return nil, err
 		}
-		clients = append(clients, pushv1alpha1connect.NewPusherServiceClient(httpClient, endpoint.URL, WithUserAgent(userAgent)))
+		clients = append(clients, pushv1connect.NewPusherServiceClient(httpClient, endpoint.URL, WithUserAgent(userAgent)))
 	}
 	return &fanOutClient{
 		clients: clients,
@@ -152,7 +152,7 @@ func NewFanOut(opts component.Options, config Arguments) (*fanOutClient, error) 
 }
 
 // Push implements the PusherServiceClient interface.
-func (f *fanOutClient) Push(ctx context.Context, req *connect.Request[pushv1alpha1.PushRequest]) (*connect.Response[pushv1alpha1.PushResponse], error) {
+func (f *fanOutClient) Push(ctx context.Context, req *connect.Request[pushv1.PushRequest]) (*connect.Response[pushv1.PushResponse], error) {
 	// Don't flow the context down to the `run.Group`.
 	// We want to fan out to all even in case of failures to one.
 	var (
@@ -185,7 +185,7 @@ func (f *fanOutClient) Push(ctx context.Context, req *connect.Request[pushv1alph
 	if errs != nil {
 		return nil, errs
 	}
-	return connect.NewResponse(&pushv1alpha1.PushResponse{}), nil
+	return connect.NewResponse(&pushv1.PushResponse{}), nil
 }
 
 // Append implements the phlare.Appendable interface.
@@ -197,8 +197,8 @@ func (f *fanOutClient) Appender() phlare.Appender {
 func (f *fanOutClient) Append(ctx context.Context, lbs labels.Labels, samples []*phlare.RawSample) error {
 	// todo(ctovena): we should probably pool the label pair arrays and label builder to avoid allocs.
 	var (
-		protoLabels  = make([]*typesv1alpha1.LabelPair, 0, len(lbs)+len(f.config.ExternalLabels))
-		protoSamples = make([]*pushv1alpha1.RawSample, 0, len(samples))
+		protoLabels  = make([]*typesv1.LabelPair, 0, len(lbs)+len(f.config.ExternalLabels))
+		protoSamples = make([]*pushv1.RawSample, 0, len(samples))
 		lbsBuilder   = labels.NewBuilder(nil)
 	)
 
@@ -213,19 +213,19 @@ func (f *fanOutClient) Append(ctx context.Context, lbs labels.Labels, samples []
 		lbsBuilder.Set(name, value)
 	}
 	for _, l := range lbsBuilder.Labels(lbs) {
-		protoLabels = append(protoLabels, &typesv1alpha1.LabelPair{
+		protoLabels = append(protoLabels, &typesv1.LabelPair{
 			Name:  l.Name,
 			Value: l.Value,
 		})
 	}
 	for _, sample := range samples {
-		protoSamples = append(protoSamples, &pushv1alpha1.RawSample{
+		protoSamples = append(protoSamples, &pushv1.RawSample{
 			RawProfile: sample.RawProfile,
 		})
 	}
 	// push to all clients
-	_, err := f.Push(ctx, connect.NewRequest(&pushv1alpha1.PushRequest{
-		Series: []*pushv1alpha1.RawProfileSeries{
+	_, err := f.Push(ctx, connect.NewRequest(&pushv1.PushRequest{
+		Series: []*pushv1.RawProfileSeries{
 			{Labels: protoLabels, Samples: protoSamples},
 		},
 	}))
