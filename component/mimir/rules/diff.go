@@ -5,7 +5,7 @@ import (
 
 	mimirClient "github.com/grafana/agent/pkg/mimir/client"
 
-	"gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v3" // Used for prometheus rulefmt compatibility instead of gopkg.in/yaml.v2
 )
 
 type ruleGroupDiffKind string

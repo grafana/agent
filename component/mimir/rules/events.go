@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/ghodss/yaml"
+	"github.com/ghodss/yaml" // Used for CRD compatibility instead of gopkg.in/yaml.v2
 	"github.com/go-kit/log/level"
 	mimirClient "github.com/grafana/agent/pkg/mimir/client"
 	"github.com/grafana/dskit/multierror"
