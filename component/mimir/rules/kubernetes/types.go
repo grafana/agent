@@ -9,9 +9,9 @@ import (
 
 type Arguments struct {
 	Address              string                  `river:"address,attr"`
-	TenantID             string                  `river:"tenant_id,attr"`
+	TenantID             string                  `river:"tenant_id,attr,optional"`
 	UseLegacyRoutes      bool                    `river:"use_legacy_routes,attr,optional"`
-	HTTPClientConfig     config.HTTPClientConfig `river:"client,block,optional"`
+	HTTPClientConfig     config.HTTPClientConfig `river:"http_client_config,block,optional"`
 	SyncInterval         time.Duration           `river:"sync_interval,attr,optional"`
 	MimirNameSpacePrefix string                  `river:"mimir_namespace_prefix,attr,optional"`
 
@@ -50,5 +50,5 @@ type LabelSelector struct {
 type MatchExpression struct {
 	Key      string   `river:"key,attr"`
 	Operator string   `river:"operator,attr"`
-	Values   []string `river:"values,attr"`
+	Values   []string `river:"values,attr,optional"`
 }
