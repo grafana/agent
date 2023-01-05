@@ -60,7 +60,7 @@ will expect syslog messages to, as well as its behavior when receiving
 messages.
 
 The following arguments can be used to configure a `listener`. Only the
-`listen_address` field is required and any omitted fields take their default
+`address` field is required and any omitted fields take their default
 values.
 
 Name                     | Type          | Description | Default | Required
