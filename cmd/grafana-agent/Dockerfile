@@ -39,7 +39,7 @@ RUN <<EOF
 EOF
 
 COPY --from=build /src/agent/build/grafana-agent /bin/grafana-agent
-COPY cmd/agent/agent-local-config.yaml /etc/agent/agent.yaml
+COPY cmd/grafana-agent/agent-local-config.yaml /etc/agent/agent.yaml
 
 RUN ln -sv /bin/grafana-agent /bin/agent
 

@@ -21,9 +21,9 @@
 ## Targets for building binaries:
 ##
 ##   binaries  Compiles all binaries.
-##   agent     Compiles cmd/agent to $(AGENT_BINARY)
-##   agentctl  Compiles cmd/agentctl to $(AGENTCTL_BINARY)
-##   operator  Compiles cmd/agent-operator to $(OPERATOR_BINARY)
+##   agent     Compiles cmd/grafana-agent to $(AGENT_BINARY)
+##   agentctl  Compiles cmd/grafana-agentctl to $(AGENTCTL_BINARY)
+##   operator  Compiles cmd/grafana-agent-operator to $(OPERATOR_BINARY)
 ##   crow      Compiles tools/crow to $(CROW_BINARY)
 ##   smoke     Compiles tools/smoke to $(SMOKE_BINARY)
 ##
@@ -225,11 +225,11 @@ endif
 images: agent-image agentctl-image operator-image crow-image smoke-image
 
 agent-image:
-	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(AGENT_IMAGE) -f cmd/agent/Dockerfile .
+	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(AGENT_IMAGE) -f cmd/grafana-agent/Dockerfile .
 agentctl-image:
-	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(AGENTCTL_IMAGE) -f cmd/agentctl/Dockerfile .
+	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(AGENTCTL_IMAGE) -f cmd/grafana-agentctl/Dockerfile .
 operator-image:
-	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(OPERATOR_IMAGE) -f cmd/agent-operator/Dockerfile .
+	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(OPERATOR_IMAGE) -f cmd/grafana-agent-operator/Dockerfile .
 crow-image:
 	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(CROW_IMAGE) -f tools/crow/Dockerfile .
 smoke-image:
