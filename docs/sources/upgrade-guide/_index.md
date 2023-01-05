@@ -14,6 +14,8 @@ releases and how to migrate to newer versions.
 
 These changes will come in a future version.
 
+## v0.30.0
+
 ### Breaking change: `ebpf_exporter` integration removed
 
 The `ebpf_exporter` version bundled in the Agent used [bcc][] to compile eBPF

@@ -71,7 +71,7 @@ func New(
 		return nil, fmt.Errorf("failed to initialize node membership: %w", err)
 	}
 
-	c.store, err = configstore.NewRemote(l, reg, cfg.KVStore, cfg.Enabled)
+	c.store, err = configstore.NewRemote(l, reg, cfg.KVStore.Config, cfg.Enabled)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize configstore: %w", err)
 	}

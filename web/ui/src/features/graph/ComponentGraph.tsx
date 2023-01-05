@@ -1,11 +1,12 @@
 import { FC, useEffect, useRef } from 'react';
-import * as d3 from 'd3';
-import * as d3Zoom from 'd3-zoom';
-import { IdOperator, ParentIdsOperator } from 'd3-dag/dist/dag/create';
-import { NodeSizeAccessor, sugiyama, dagStratify, decrossTwoLayer, layeringCoffmanGraham, coordSimplex } from 'd3-dag';
-import { Point } from 'd3-dag/dist/dag';
-import { ComponentHealthState, ComponentInfo } from './types';
 import { useHref } from 'react-router-dom';
+import * as d3 from 'd3';
+import { coordSimplex, dagStratify, decrossTwoLayer, layeringCoffmanGraham, NodeSizeAccessor, sugiyama } from 'd3-dag';
+import { Point } from 'd3-dag/dist/dag';
+import { IdOperator, ParentIdsOperator } from 'd3-dag/dist/dag/create';
+import * as d3Zoom from 'd3-zoom';
+
+import { ComponentHealthState, ComponentInfo } from '../component/types';
 
 let canvas: HTMLCanvasElement | undefined;
 

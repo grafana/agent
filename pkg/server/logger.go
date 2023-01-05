@@ -72,7 +72,7 @@ func (l *Logger) ApplyConfig(cfg *Config) error {
 }
 
 func defaultLogger(cfg *Config) (log.Logger, error) {
-	return makeDefaultLogger(cfg.LogLevel, cfg.LogFormat)
+	return makeDefaultLogger(cfg.LogLevel.Level, cfg.LogFormat)
 }
 
 func makeDefaultLogger(lvl logging.Level, fmt logging.Format) (log.Logger, error) {

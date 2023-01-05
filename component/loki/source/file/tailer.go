@@ -29,8 +29,9 @@ type tailer struct {
 	handler   loki.EntryHandler
 	positions positions.Positions
 
-	path string
-	tail *tail.Tail
+	path   string
+	labels string
+	tail   *tail.Tail
 
 	posAndSizeMtx sync.Mutex
 	stopOnce      sync.Once
@@ -43,20 +44,20 @@ type tailer struct {
 	decoder *encoding.Decoder
 }
 
-func newTailer(metrics *metrics, logger log.Logger, handler loki.EntryHandler, positions positions.Positions, path string, encoding string) (*tailer, error) {
+func newTailer(metrics *metrics, logger log.Logger, handler loki.EntryHandler, positions positions.Positions, path string, labels string, encoding string) (*tailer, error) {
 	// Simple check to make sure the file we are tailing doesn't
 	// have a position already saved which is past the end of the file.
 	fi, err := os.Stat(path)
 	if err != nil {
 		return nil, err
 	}
-	pos, err := positions.Get(path)
+	pos, err := positions.Get(path, labels)
 	if err != nil {
 		return nil, err
 	}
 
 	if fi.Size() < pos {
-		positions.Remove(path)
+		positions.Remove(path, labels)
 	}
 
 	tail, err := tail.TailFile(path, tail.Config{
@@ -81,6 +82,7 @@ func newTailer(metrics *metrics, logger log.Logger, handler loki.EntryHandler, p
 		handler:   loki.AddLabelsMiddleware(model.LabelSet{filenameLabel: model.LabelValue(path)}).Wrap(handler),
 		positions: positions,
 		path:      path,
+		labels:    labels,
 		tail:      tail,
 		running:   atomic.NewBool(false),
 		posquit:   make(chan struct{}),
@@ -214,7 +216,7 @@ func (t *tailer) MarkPositionAndSize() error {
 		return err
 	}
 	t.metrics.readBytes.WithLabelValues(t.path).Set(float64(pos))
-	t.positions.Put(t.path, pos)
+	t.positions.Put(t.path, t.labels, pos)
 
 	return nil
 }

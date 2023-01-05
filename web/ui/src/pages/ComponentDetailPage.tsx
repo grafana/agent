@@ -1,10 +1,11 @@
 import { FC, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+
 import { ComponentView } from '../features/component/ComponentView';
 import { ComponentDetail, componentInfoByID } from '../features/component/types';
 import { useComponentInfo } from '../hooks/componentInfo';
 
-export const ComponentDetailPage: FC = () => {
+const ComponentDetailPage: FC = () => {
   const { id } = useParams();
 
   const components = useComponentInfo();
@@ -30,3 +31,5 @@ export const ComponentDetailPage: FC = () => {
 
   return component ? <ComponentView component={component} info={infoByID} /> : <div></div>;
 };
+
+export default ComponentDetailPage;

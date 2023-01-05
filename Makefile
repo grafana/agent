@@ -88,21 +88,22 @@
 
 include tools/make/*.mk
 
-AGENT_IMAGE     ?= grafana/agent:latest
-AGENTCTL_IMAGE  ?= grafana/agentctl:latest
-OPERATOR_IMAGE  ?= grafana/agent-operator:latest
-CROW_IMAGE      ?= us.gcr.io/kubernetes-dev/grafana/agent-crow:latest
-SMOKE_IMAGE     ?= us.gcr.io/kubernetes-dev/grafana/agent-smoke:latest
-AGENT_BINARY    ?= build/agent
-AGENTCTL_BINARY ?= build/agentctl
-OPERATOR_BINARY ?= build/agent-operator
-CROW_BINARY     ?= build/agent-crow
-SMOKE_BINARY    ?= build/agent-smoke
-GOOS            ?= $(shell go env GOOS)
-GOARCH          ?= $(shell go env GOARCH)
-GOARM           ?= $(shell go env GOARM)
-CGO_ENABLED     ?= 1
-RELEASE_BUILD   ?= 0
+AGENT_IMAGE      ?= grafana/agent:latest
+AGENTCTL_IMAGE   ?= grafana/agentctl:latest
+OPERATOR_IMAGE   ?= grafana/agent-operator:latest
+CROW_IMAGE       ?= us.gcr.io/kubernetes-dev/grafana/agent-crow:latest
+SMOKE_IMAGE      ?= us.gcr.io/kubernetes-dev/grafana/agent-smoke:latest
+AGENT_BINARY     ?= build/agent
+AGENTCTL_BINARY  ?= build/agentctl
+OPERATOR_BINARY  ?= build/agent-operator
+CROW_BINARY      ?= build/agent-crow
+SMOKE_BINARY     ?= build/agent-smoke
+AGENTLINT_BINARY ?= build/agentlint
+GOOS             ?= $(shell go env GOOS)
+GOARCH           ?= $(shell go env GOARCH)
+GOARM            ?= $(shell go env GOARM)
+CGO_ENABLED      ?= 1
+RELEASE_BUILD    ?= 0
 
 # List of all environment variables which will propagate to the build
 # container. USE_CONTAINER must _not_ be included to avoid infinite recursion.
@@ -146,8 +147,9 @@ endif
 #
 
 .PHONY: lint
-lint:
+lint: agentlint
 	golangci-lint run -v --timeout=10m
+	$(AGENTLINT_BINARY) ./...
 
 .PHONY: test
 # We have to run test twice: once for all packages with -race and then once
@@ -200,6 +202,13 @@ ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
 	$(GO_ENV) go build $(GO_FLAGS) -o $(SMOKE_BINARY) ./tools/smoke
+endif
+
+agentlint:
+ifeq ($(USE_CONTAINER),1)
+	$(RERUN_IN_CONTAINER)
+else
+	cd ./tools/agentlint && $(GO_ENV) go build $(GO_FLAGS) -o ../../$(AGENTLINT_BINARY) .
 endif
 
 #
