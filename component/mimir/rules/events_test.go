@@ -11,6 +11,7 @@ import (
 	mimirClient "github.com/grafana/agent/pkg/mimir/client"
 	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	promListers "github.com/prometheus-operator/prometheus-operator/pkg/client/listers/monitoring/v1"
+	"github.com/prometheus/prometheus/model/rulefmt"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -24,18 +25,18 @@ import (
 
 type fakeMimirClient struct {
 	rulesMut sync.RWMutex
-	rules    map[string][]mimirClient.RuleGroup
+	rules    map[string][]rulefmt.RuleGroup
 }
 
 var _ mimirClient.Interface = &fakeMimirClient{}
 
 func newFakeMimirClient() *fakeMimirClient {
 	return &fakeMimirClient{
-		rules: make(map[string][]mimirClient.RuleGroup),
+		rules: make(map[string][]rulefmt.RuleGroup),
 	}
 }
 
-func (m *fakeMimirClient) CreateRuleGroup(ctx context.Context, namespace string, rule mimirClient.RuleGroup) error {
+func (m *fakeMimirClient) CreateRuleGroup(ctx context.Context, namespace string, rule rulefmt.RuleGroup) error {
 	m.rulesMut.Lock()
 	defer m.rulesMut.Unlock()
 	m.deleteLocked(namespace, rule.Name)
@@ -69,10 +70,10 @@ func (m *fakeMimirClient) deleteLocked(namespace, group string) {
 	}
 }
 
-func (m *fakeMimirClient) ListRules(ctx context.Context, namespace string) (map[string][]mimirClient.RuleGroup, error) {
+func (m *fakeMimirClient) ListRules(ctx context.Context, namespace string) (map[string][]rulefmt.RuleGroup, error) {
 	m.rulesMut.RLock()
 	defer m.rulesMut.RUnlock()
-	output := make(map[string][]mimirClient.RuleGroup)
+	output := make(map[string][]rulefmt.RuleGroup)
 	for ns, v := range m.rules {
 		if namespace != "" && namespace != ns {
 			continue

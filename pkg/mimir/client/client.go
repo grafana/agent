@@ -14,6 +14,7 @@ import (
 	log "github.com/go-kit/log"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/config"
+	"github.com/prometheus/prometheus/model/rulefmt"
 	weaveworksClient "github.com/weaveworks/common/http/client"
 	"github.com/weaveworks/common/instrument"
 	"github.com/weaveworks/common/user"
@@ -38,9 +39,9 @@ type Config struct {
 }
 
 type Interface interface {
-	CreateRuleGroup(ctx context.Context, namespace string, rg RuleGroup) error
+	CreateRuleGroup(ctx context.Context, namespace string, rg rulefmt.RuleGroup) error
 	DeleteRuleGroup(ctx context.Context, namespace, groupName string) error
-	ListRules(ctx context.Context, namespace string) (map[string][]RuleGroup, error)
+	ListRules(ctx context.Context, namespace string) (map[string][]rulefmt.RuleGroup, error)
 }
 
 // MimirClient is a client to the Mimir API.

@@ -9,20 +9,13 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// RuleGroup is a list of sequentially evaluated recording and alerting rules.
-type RuleGroup struct {
-	rulefmt.RuleGroup `yaml:",inline"`
-	// RWConfigs is used by the remote write forwarding ruler
-	RWConfigs []RemoteWriteConfig `yaml:"remote_write,omitempty"`
-}
-
 // RemoteWriteConfig is used to specify a remote write endpoint
 type RemoteWriteConfig struct {
 	URL string `json:"url,omitempty"`
 }
 
 // CreateRuleGroup creates a new rule group
-func (r *MimirClient) CreateRuleGroup(ctx context.Context, namespace string, rg RuleGroup) error {
+func (r *MimirClient) CreateRuleGroup(ctx context.Context, namespace string, rg rulefmt.RuleGroup) error {
 	payload, err := yaml.Marshal(&rg)
 	if err != nil {
 		return err
@@ -60,7 +53,7 @@ func (r *MimirClient) DeleteRuleGroup(ctx context.Context, namespace, groupName 
 }
 
 // ListRules retrieves a rule group
-func (r *MimirClient) ListRules(ctx context.Context, namespace string) (map[string][]RuleGroup, error) {
+func (r *MimirClient) ListRules(ctx context.Context, namespace string) (map[string][]rulefmt.RuleGroup, error) {
 	path := r.apiPath
 	op := r.apiPath
 	if namespace != "" {
@@ -80,7 +73,7 @@ func (r *MimirClient) ListRules(ctx context.Context, namespace string) (map[stri
 		return nil, err
 	}
 
-	ruleSet := map[string][]RuleGroup{}
+	ruleSet := map[string][]rulefmt.RuleGroup{}
 	err = yaml.Unmarshal(body, &ruleSet)
 	if err != nil {
 		return nil, err

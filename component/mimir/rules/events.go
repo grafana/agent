@@ -9,7 +9,6 @@ import (
 	"github.com/ghodss/yaml" // Used for CRD compatibility instead of gopkg.in/yaml.v2
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	mimirClient "github.com/grafana/agent/pkg/mimir/client"
 	"github.com/hashicorp/go-multierror"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/prometheus/prometheus/model/rulefmt"
@@ -170,13 +169,13 @@ func (c *Component) reconcileState(ctx context.Context) error {
 	return result
 }
 
-func (c *Component) loadStateFromK8s() (map[string][]mimirClient.RuleGroup, error) {
+func (c *Component) loadStateFromK8s() (map[string][]rulefmt.RuleGroup, error) {
 	matchedNamespaces, err := c.namespaceLister.List(c.namespaceSelector)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list namespaces: %w", err)
 	}
 
-	desiredState := map[string][]mimirClient.RuleGroup{}
+	desiredState := map[string][]rulefmt.RuleGroup{}
 	for _, ns := range matchedNamespaces {
 		crdState, err := c.ruleLister.PrometheusRules(ns.Name).List(c.ruleSelector)
 		if err != nil {
@@ -198,7 +197,7 @@ func (c *Component) loadStateFromK8s() (map[string][]mimirClient.RuleGroup, erro
 	return desiredState, nil
 }
 
-func convertCRDRuleGroupToRuleGroup(crd promv1.PrometheusRuleSpec) ([]mimirClient.RuleGroup, error) {
+func convertCRDRuleGroupToRuleGroup(crd promv1.PrometheusRuleSpec) ([]rulefmt.RuleGroup, error) {
 	buf, err := yaml.Marshal(crd)
 	if err != nil {
 		return nil, err
@@ -209,15 +208,7 @@ func convertCRDRuleGroupToRuleGroup(crd promv1.PrometheusRuleSpec) ([]mimirClien
 		return nil, multierror.Append(nil, errs...)
 	}
 
-	mimirGroups := make([]mimirClient.RuleGroup, len(groups.Groups))
-	for i, g := range groups.Groups {
-		mimirGroups[i] = mimirClient.RuleGroup{
-			RuleGroup: g,
-			// TODO: allow setting remote write configs?
-		}
-	}
-
-	return mimirGroups, nil
+	return groups.Groups, nil
 }
 
 func (c *Component) applyChanges(ctx context.Context, namespace string, diffs []ruleGroupDiff) error {

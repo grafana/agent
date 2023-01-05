@@ -12,6 +12,7 @@ import (
 	mimirClient "github.com/grafana/agent/pkg/mimir/client"
 	promListers "github.com/prometheus-operator/prometheus-operator/pkg/client/listers/monitoring/v1"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/prometheus/model/rulefmt"
 	"github.com/weaveworks/common/instrument"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -60,7 +61,7 @@ type Component struct {
 	namespaceSelector labels.Selector
 	ruleSelector      labels.Selector
 
-	currentState map[string][]mimirClient.RuleGroup
+	currentState map[string][]rulefmt.RuleGroup
 
 	metrics   *metrics
 	healthMut sync.RWMutex
