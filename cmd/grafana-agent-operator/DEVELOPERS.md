@@ -66,7 +66,7 @@ An example Prometheus server is provided in `./example-prometheus.yaml`. Deploy
 it with the following, from the root of the repository:
 
 ```
-kubectl apply -f ./cmd/agent-operator/example-prometheus.yaml
+kubectl apply -f ./cmd/grafana-agent-operator/example-prometheus.yaml
 ```
 
 You can view it at http://prometheus.k3d.localhost:30080 once the k3d cluster is
@@ -88,16 +88,16 @@ Now that the CRDs are applied, you can run the operator from the root of the
 repository:
 
 ```
-go run ./cmd/agent-operator
+go run ./cmd/grafana-agent-operator
 ```
 
 ### Apply a GrafanaAgent custom resource
 
 Finally, you can apply an example GrafanaAgent custom resource. One is [provided
-for you](../../cmd/agent-operator/agent-example-config.yaml). From the root of the repository, run:
+for you](../../cmd/grafana-agent-operator/agent-example-config.yaml). From the root of the repository, run:
 
 ```
-kubectl apply -f ./cmd/agent-operator/agent-example-config.yaml
+kubectl apply -f ./cmd/grafana-agent-operator/agent-example-config.yaml
 ```
 
 If you are running the operator, you should see it pick up the change and start

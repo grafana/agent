@@ -16,17 +16,11 @@ ARG VERSION
 COPY . /src/agent
 WORKDIR /src/agent
 
-# Build the UI before building the agent, which will then bake the final UI
-# into the binary.
-RUN --mount=type=cache,target=/src/agent/web/ui/node_modules,sharing=locked \
-   make generate-ui
-
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
     GOOS=$TARGETOS GOARCH=$TARGETARCH GOARM=${TARGETVARIANT#v} \
     RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} \
-    GO_TAGS="builtinassets promtail_journal_enabled" \
-    make agent
+    make agentctl
 
 FROM ubuntu:jammy
 
@@ -38,8 +32,6 @@ RUN <<EOF
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 EOF
 
-COPY --from=build /src/agent/build/agent /bin/agent
-COPY cmd/agent/agent-local-config.yaml /etc/agent/agent.yaml
-
-ENTRYPOINT ["/bin/agent"]
-CMD ["--config.file=/etc/agent/agent.yaml", "--metrics.wal-directory=/etc/agent/data"]
+COPY --from=build /src/agent/build/grafana-agentctl /bin/grafana-agentctl
+RUN ln -sv /bin/grafana-agentctl /bin/agentctl
+ENTRYPOINT ["/bin/agentctl"]

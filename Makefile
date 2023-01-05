@@ -72,11 +72,11 @@
 ##   CROW_IMAGE       Image name:tag built by `make crow-image`
 ##   SMOKE_IMAGE      Image name:tag built by `make smoke-image`
 ##   BUILD_IMAGE      Image name:tag used by USE_CONTAINER=1
-##   AGENT_BINARY     Output path of `make agent` (default build/agent)
-##   AGENTCTL_BINARY  Output path of `make agentctl` (default build/agentctl)
-##   OPERATOR_BINARY  Output path of `make operator` (default build/agent-operator)
-##   CROW_BINARY      Output path of `make crow` (default build/agent-crow)
-##   SMOKE_BINARY     Output path of `make smoke` (default build/agent-smoke)
+##   AGENT_BINARY     Output path of `make agent` (default build/grafana-agent)
+##   AGENTCTL_BINARY  Output path of `make agentctl` (default build/grafana-agentctl)
+##   OPERATOR_BINARY  Output path of `make operator` (default build/grafana-agent-operator)
+##   CROW_BINARY      Output path of `make crow` (default build/grafana-agent-crow)
+##   SMOKE_BINARY     Output path of `make smoke` (default build/grafana-agent-smoke)
 ##   GOOS             Override OS to build binaries for
 ##   GOARCH           Override target architecture to build binaries for
 ##   GOARM            Override ARM version (6 or 7) when GOARCH=arm
@@ -93,9 +93,9 @@ AGENTCTL_IMAGE   ?= grafana/agentctl:latest
 OPERATOR_IMAGE   ?= grafana/agent-operator:latest
 CROW_IMAGE       ?= us.gcr.io/kubernetes-dev/grafana/agent-crow:latest
 SMOKE_IMAGE      ?= us.gcr.io/kubernetes-dev/grafana/agent-smoke:latest
-AGENT_BINARY     ?= build/agent
-AGENTCTL_BINARY  ?= build/agentctl
-OPERATOR_BINARY  ?= build/agent-operator
+AGENT_BINARY     ?= build/grafana-agent
+AGENTCTL_BINARY  ?= build/grafana-agentctl
+OPERATOR_BINARY  ?= build/grafana-agent-operator
 CROW_BINARY      ?= build/agent-crow
 SMOKE_BINARY     ?= build/agent-smoke
 AGENTLINT_BINARY ?= build/agentlint
@@ -173,21 +173,21 @@ agent:
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
-	$(GO_ENV) go build $(GO_FLAGS) -o $(AGENT_BINARY) ./cmd/agent
+	$(GO_ENV) go build $(GO_FLAGS) -o $(AGENT_BINARY) ./cmd/grafana-agent
 endif
 
 agentctl:
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
-	$(GO_ENV) go build $(GO_FLAGS) -o $(AGENTCTL_BINARY) ./cmd/agentctl
+	$(GO_ENV) go build $(GO_FLAGS) -o $(AGENTCTL_BINARY) ./cmd/grafana-agentctl
 endif
 
 operator:
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
-	$(GO_ENV) go build $(GO_FLAGS) -o $(OPERATOR_BINARY) ./cmd/agent-operator
+	$(GO_ENV) go build $(GO_FLAGS) -o $(OPERATOR_BINARY) ./cmd/grafana-agent-operator
 endif
 
 crow:
