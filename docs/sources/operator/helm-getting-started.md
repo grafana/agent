@@ -1,67 +1,66 @@
 ---
 aliases:
 - /docs/agent/latest/operator/helm-getting-started/
-title: Installing Grafana Agent Operator with Helm
-weight: 110
+title: Install Grafana Agent Operator with Helm
+weight: 100
 ---
-# Installing Grafana Agent Operator with Helm
+# Install Grafana Agent Operator with Helm
 
-In this guide you'll learn how to deploy the [Grafana Agent Operator]({{< relref "./_index.md" >}}) into your Kubernetes cluster using the [grafana-agent-operator Helm chart](https://github.com/grafana/helm-charts/tree/main/charts/agent-operator).
+In this guide, you'll learn how to deploy [Grafana Agent Operator]({{< relref "./_index.md" >}}) into your Kubernetes cluster using the [grafana-agent-operator Helm chart](https://github.com/grafana/helm-charts/tree/main/charts/agent-operator). To learn how to deploy Agent Operator without using Helm, see [Install Grafana Agent Operator]({{< relref "./getting-started.md" >}}).
 
-> **Note:** Agent Operator is currently in beta and its custom resources are subject to change as the project evolves. It currently supports the metrics and logs subsystems of Grafana Agent. Integrations and traces support is coming soon.
+> **Note**: If you are shipping your data to Grafana Cloud, use [Kubernetes Monitoring](https://grafana.com/docs/grafana-cloud/kubernetes-monitoring/) to set up Agent Operator. Kubernetes Monitoring provides a simplified approach and preconfigured dashboards and alerts.
 
-By the end of this guide, you'll have deloyed Agent Operator into your cluster.
+## Before you begin
 
-## Prerequisites
-
-Before you begin, make sure that you have the following available to you:
+To deploy Agent Operator with Helm, make sure that you have the following:
 
 - A Kubernetes cluster
 - The `kubectl` command-line client installed and configured on your machine
 - The `helm` command-line client installed and configured on your machine
 
-## Install Agent Operator Helm Chart
+> **Note:** Agent Operator is currently in beta and its custom resources are subject to change.
 
-In this step you'll install the [grafana-agent-operator Helm chart](https://github.com/grafana/helm-charts/tree/main/charts/agent-operator) into your Kubernetes cluster. This will install the latest version of Agent Operator and its [Custom Resource Definitions](https://github.com/grafana/agent/tree/main/production/operator/crds) (CRDs). By default the chart will configure the operator to maintain a Service that allows you scrape kubelets using a `ServiceMonitor`.
+## Install the Agent Operator Helm Chart
 
-Begin by adding and updating the `grafana` Helm chart repo:
+In this section, you'll install the [grafana-agent-operator Helm chart](https://github.com/grafana/helm-charts/tree/main/charts/agent-operator) into your Kubernetes cluster. This will install the latest version of Agent Operator and its [Custom Resource Definitions](https://github.com/grafana/agent/tree/main/production/operator/crds) (CRDs). The chart configures Operator to maintain a Service that lets you scrape kubelets using a `ServiceMonitor`.
 
-```bash
-helm repo add grafana https://grafana.github.io/helm-charts
-helm repo update
-```
+To install the Agent Operator Helm chart:
 
-Next, install the chart:
+1. Add and update the `grafana` Helm chart repo:
 
-```bash
-helm install my-release grafana/grafana-agent-operator
-```
+    ```bash
+    helm repo add grafana https://grafana.github.io/helm-charts
+    helm repo update
+    ```
 
-Replace `my-release` with your desired release name.
+1. Install the chart, replacing `my-release` with your release name:
 
-If you want to modify the default parameters, you can create a `values.yaml` file and pass it in to `helm install`:
+    ```bash
+    helm install my-release grafana/grafana-agent-operator
+    ```
 
-```bash
-helm install my-release grafana/grafana-agent-operator -f values.yaml
-```
+    If you want to modify the default parameters, you can create a `values.yaml` file and pass it to `helm install`:
 
-A list of configurable template parameters can be found in the [Helm chart repository](https://github.com/grafana/helm-charts/blob/main/charts/agent-operator/values.yaml).
+    ```bash
+    helm install my-release grafana/grafana-agent-operator -f values.yaml
+    ```
 
-If you want to deploy Agent Operator into a namespace other than `default`, use the `-n` flag:
+    If you want to deploy Agent Operator into a namespace other than `default`, use the `-n` flag:
 
-```bash
-helm install my-release grafana/grafana-agent-operator -f values.yaml -n my-namespace
-```
+    ```bash
+    helm install my-release grafana/grafana-agent-operator -f values.yaml -n my-namespace
+    ```
+    You can find a list of configurable template parameters in the [Helm chart repository](https://github.com/grafana/helm-charts/blob/main/charts/agent-operator/values.yaml).
 
-Once you've successfully deployed the Helm release, confirm that Agent Operator is up and running:
+1. Once you've successfully deployed the Helm release, confirm that Agent Operator is up and running:
 
-```bash
-kubectl get pod
-kubectl get svc
-```
+    ```bash
+    kubectl get pod
+    kubectl get svc
+    ```
 
-You should see an Agent Operator Pod in `RUNNING` state, and a `kubelet` Service.
+    You should see an Agent Operator Pod in `RUNNING` state, and a `kubelet` service. Depending on your setup, this could take a moment.
 
-## Conclusion
+## Deploy the Grafana Agent Operator resources
 
-With Agent Operator up and running, you can move on to setting up a `GrafanaAgent` custom resource. This will discover `MetricsInstance` and `LogsInstance` custom resources and endow them with Pod attributes (like requests and limits) defined in the `GrafanaAgent` spec. To learn how to do this, please see [Custom Resource Quickstart]({{< relref "./custom-resource-quickstart.md" >}}).
+ Agent Operator is now up and running. Next, you need to install a Grafana Agent for Agent Operator to run for you. To do so, follow the instructions in the [Deploy the Grafana Agent Operator resources]({{< relref "./deploy-agent-operator-resources.md" >}}) topic. To learn more about the custom resources Agent Operator provides and their hierarchy, see [Grafana Agent Operator architecture]({{< relref "./architecture/" >}}).
