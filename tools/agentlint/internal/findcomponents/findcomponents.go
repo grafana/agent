@@ -1,5 +1,5 @@
-// Package findcomponents exposes an Analyzer which will set a fact about
-// whether a package declares a Flow component.
+// Package findcomponents exposes an Analyzer which ensures that created Flow
+// components are imported by a registry package.
 package findcomponents
 
 import (
