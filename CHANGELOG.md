@@ -42,6 +42,9 @@ Main (unreleased)
   This value is a function that returns the currently configured rules.
   (@tpaschalis)
 
+  - `loki.source.syslog` listens for Syslog messages over TCP and UDP
+    connections and forwards them to other `loki` components. (@tpaschalis)
+
 ### Enhancements
 
 - Handle faro-web-sdk `View` meta in app_agent_receiver. (@rlankfo)
