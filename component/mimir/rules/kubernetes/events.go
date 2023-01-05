@@ -169,13 +169,13 @@ func (c *Component) reconcileState(ctx context.Context) error {
 	return result
 }
 
-func (c *Component) loadStateFromK8s() (map[string][]rulefmt.RuleGroup, error) {
+func (c *Component) loadStateFromK8s() (ruleGroupsByNamespace, error) {
 	matchedNamespaces, err := c.namespaceLister.List(c.namespaceSelector)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list namespaces: %w", err)
 	}
 
-	desiredState := map[string][]rulefmt.RuleGroup{}
+	desiredState := make(ruleGroupsByNamespace)
 	for _, ns := range matchedNamespaces {
 		crdState, err := c.ruleLister.PrometheusRules(ns.Name).List(c.ruleSelector)
 		if err != nil {

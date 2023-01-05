@@ -21,13 +21,16 @@ type ruleGroupDiff struct {
 	Desired rulefmt.RuleGroup
 }
 
-func diffRuleState(desired map[string][]rulefmt.RuleGroup, actual map[string][]rulefmt.RuleGroup) map[string][]ruleGroupDiff {
-	seen := map[string]bool{}
+type ruleGroupsByNamespace map[string][]rulefmt.RuleGroup
+type ruleGroupDiffsByNamespace map[string][]ruleGroupDiff
 
-	diff := make(map[string][]ruleGroupDiff)
+func diffRuleState(desired, actual ruleGroupsByNamespace) ruleGroupDiffsByNamespace {
+	seenNamespaces := map[string]bool{}
+
+	diff := make(ruleGroupDiffsByNamespace)
 
 	for namespace, desiredRuleGroups := range desired {
-		seen[namespace] = true
+		seenNamespaces[namespace] = true
 
 		actualRuleGroups := actual[namespace]
 		subDiff := diffRuleNamespaceState(desiredRuleGroups, actualRuleGroups)
@@ -40,7 +43,7 @@ func diffRuleState(desired map[string][]rulefmt.RuleGroup, actual map[string][]r
 	}
 
 	for namespace, actualRuleGroups := range actual {
-		if seen[namespace] {
+		if seenNamespaces[namespace] {
 			continue
 		}
 
