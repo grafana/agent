@@ -82,7 +82,7 @@ trigger:
 
 steps:
   - name: lint
-    image: grafana/agent-build-image:0.17.0
+    image: grafana/agent-build-image:0.18.0
     commands:
       - make lint
 
@@ -105,7 +105,7 @@ trigger:
 
 steps:
   - name: test
-    image: grafana/agent-build-image:0.17.0
+    image: grafana/agent-build-image:0.18.0
     volumes:
       - name: docker
         path: /var/run/docker.sock
@@ -142,7 +142,7 @@ trigger:
     - refs/tags/v*
 steps:
   - name: test
-    image: grafana/agent-build-image:0.17.0-windows
+    image: grafana/agent-build-image:0.18.0-windows
     commands:
       - go test -tags="nodocker,nonetwork" ./...
 
@@ -160,7 +160,7 @@ trigger:
     - refs/heads/dev.*
 steps:
   - name: Build Containers
-    image: grafana/agent-build-image:0.17.0
+    image: grafana/agent-build-image:0.18.0
     volumes:
       - name: docker
         path: /var/run/docker.sock
@@ -263,7 +263,7 @@ trigger:
 
 steps:
   - name: create-release
-    image: grafana/agent-build-image:0.17.0
+    image: grafana/agent-build-image:0.18.0
     volumes:
       - name: docker
         path: /var/run/docker.sock
