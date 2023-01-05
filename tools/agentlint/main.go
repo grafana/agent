@@ -3,10 +3,14 @@
 package main
 
 import (
+	"github.com/grafana/agent/tools/agentlint/internal/exportedcomments"
 	"github.com/grafana/agent/tools/agentlint/internal/findcomponents"
 	"golang.org/x/tools/go/analysis/multichecker"
 )
 
 func main() {
-	multichecker.Main(findcomponents.Analyzer)
+	multichecker.Main(
+		findcomponents.Analyzer,
+		exportedcomments.Analyzer,
+	)
 }
