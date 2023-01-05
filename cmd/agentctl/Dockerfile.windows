@@ -1,4 +1,4 @@
-FROM grafana/agent-build-image:latest-windows as builder
+FROM grafana/agent-build-image:v0.30.1-windows as builder
 
 COPY . /src/agent
 WORKDIR /src/agent
