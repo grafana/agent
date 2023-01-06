@@ -20,7 +20,7 @@ const ComponentBody = ({ partition }: ComponentBodyProps) => {
     return partition.attrs.map((attr) => {
       return (
         <tr key={attr.name}>
-          <td>{attr.name}</td>
+          <td className={styles.nameColumn}>{attr.name}</td>
           <td>
             <RiverValue value={attr.value} />
           </td>

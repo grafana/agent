@@ -142,3 +142,9 @@ em.informative {
   box-sizing: border-box;
   color: rgba(36, 41, 46, 0.75);
 }
+
+td.nameColumn {
+  font-family: 'Fira Code', monospace;
+  font-size: 14px;
+  vertical-align: top;
+}
