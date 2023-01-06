@@ -36,7 +36,7 @@ Name | Type | Description | Default | Required
 
 If `parse_string_tags` is `true`, string tags and binary annotations are
 converted to `int`, `bool`, and `float` if possible. String tags and binary
-annotations that can not be converted remain unchanged.
+annotations that cannot be converted remain unchanged.
 
 ## Blocks
 
@@ -100,15 +100,15 @@ Name | Type | Description | Default | Required
 `allowed_headers` | `list(string)` | Accepted headers from CORS requests. | `["X-Requested-With"]` | no
 `max_age` | `number` | Configures the `Access-Control-Max-Age` response header. | | no
 
-The `allowed_headers` specifies which headers are acceptable from a CORS
-request. The following headers are always implicitly allowed:
+The `allowed_headers` argument specifies which headers are acceptable from a
+CORS request. The following headers are always implicitly allowed:
 
 * `Accept`
 * `Accept-Language`
 * `Content-Type`
 * `Content-Language`
 
-If `allowed_headers` includes `"*"`, all headers will be permitted.
+If `allowed_headers` includes `"*"`, all headers are permitted.
 
 ### output block
 
