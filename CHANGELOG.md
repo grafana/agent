@@ -26,6 +26,10 @@ v0.31.0-rc.0 (2023-01-26)
   - `agentctl` is now `grafana-agentctl`.
   - `agent-operator` is now `grafana-agent-operator`.
 
+- Node Exporter configuration options changed to align with new upstream version (@Thor77):
+  - `diskstats_ignored_devices` is now `diskstats_device_exclude` in agent configuration.
+  - `ignored_devices` is now `device_exclude` in flow configuration.
+
 ### Deprecations
 
 - A symbolic link in Docker containers from the old binary name to the new
@@ -77,6 +81,7 @@ v0.31.0-rc.0 (2023-01-26)
 ### Enhancements
 
 - Handle faro-web-sdk `View` meta in app_agent_receiver. (@rlankfo)
+
 - Update Prometheus Node Exporter integration to v1.5.0. (@Thor77)
 
 - Flow: the targets in debug info from `loki.source.file` are now individual blocks. (@rfratto)
