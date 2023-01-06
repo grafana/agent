@@ -19,7 +19,7 @@ services:
     environment:
       AGENT_MODE: "flow"
     entrypoint:
-      - /bin/agent
+      - /bin/grafana-agent
       - run
       - --server.http.listen-addr=0.0.0.0:12345
       - /etc/agent-config/$CONFIG_FILE
