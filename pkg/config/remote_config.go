@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/grafana/agent/pkg/config/instrumentation"
 	"github.com/prometheus/common/config"
 )
 
@@ -88,6 +89,8 @@ func (p httpProvider) retrieve() ([]byte, error) {
 		return nil, fmt.Errorf("request failed: %w", err)
 	}
 	defer response.Body.Close()
+
+	instrumentation.RemoteConfigMetrics.RemoteConfigFetch(response.StatusCode)
 
 	if response.StatusCode/100 != 2 {
 		return nil, fmt.Errorf("error fetching config: status code: %d", response.StatusCode)
