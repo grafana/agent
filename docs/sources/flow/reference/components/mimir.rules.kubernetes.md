@@ -161,11 +161,13 @@ actually exist.
 
 ## Debug metrics
 
-* `mimir_rules_config_updates_total` (counter): Number of times the configuration has been updated.
-* `mimir_rules_events_total` (counter): Number of events processed, partitioned by event type.
-* `mimir_rules_events_failed_total` (counter): Number of events that failed to be processed, partitioned by event type.
-* `mimir_rules_events_retried_total` (counter): Number of events that were retried, partitioned by event type.
-* `mimir_rules_client_request_duration_seconds` (histogram): Duration of requests to the Mimir API.
+Metric Name                                   | Type        | Description
+----------------------------------------------|-------------|-------------------------------------------------------------------------
+`mimir_rules_config_updates_total`            | `counter`   | Number of times the configuration has been updated.
+`mimir_rules_events_total`                    | `counter`   | Number of events processed, partitioned by event type.
+`mimir_rules_events_failed_total`             | `counter`   | Number of events that failed to be processed, partitioned by event type.
+`mimir_rules_events_retried_total`            | `counter`   | Number of events that were retried, partitioned by event type.
+`mimir_rules_client_request_duration_seconds` | `histogram` | Duration of requests to the Mimir API.
 
 ## Example
 
