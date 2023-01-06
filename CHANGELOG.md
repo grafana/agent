@@ -40,9 +40,9 @@ Main (unreleased)
 ### Bugfixes
 
 - Flow UI: Fix the issue with messy layout on the component list page while
-  browser window resize (@xiyu95)
+  browser window resize. (@xiyu95)
 - Flow UI: Fix the issue with long string going out of bound in the component
-  detail page (@xiyu95)
+  detail page. (@xiyu95)
 
 ### Other changes
 
