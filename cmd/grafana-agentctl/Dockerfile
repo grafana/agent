@@ -32,5 +32,6 @@ RUN <<EOF
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 EOF
 
-COPY --from=build /src/agent/build/agentctl /bin/agentctl
+COPY --from=build /src/agent/build/grafana-agentctl /bin/grafana-agentctl
+RUN ln -sv /bin/grafana-agentctl /bin/agentctl
 ENTRYPOINT ["/bin/agentctl"]

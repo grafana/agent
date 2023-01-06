@@ -10,6 +10,23 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+> **BREAKING CHANGES**: This release has breaking changes. Please read entries
+> carefully and consult the [upgrade guide][] for specific instructions.
+
+### Breaking changes
+
+- Release binaries (including inside Docker containers) have been renamed to be
+  prefixed with `grafana-` (@rfratto):
+
+  - `agent` is now `grafana-agent`.
+  - `agentctl` is now `grafana-agentctl`.
+  - `agent-operator` is now `grafana-agent-operator`.
+
+### Deprecations
+
+- A symbolic link in Docker containers from the old binary name to the new
+  binary name has been added. These symbolic links will be removed in v0.33. (@rfratto)
+
 ### Features
 
 - New Grafana Agent Flow components:

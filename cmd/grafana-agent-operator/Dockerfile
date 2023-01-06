@@ -31,5 +31,6 @@ RUN <<EOF
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 EOF
 
-COPY --from=build /src/agent/build/agent-operator /bin/agent-operator
-ENTRYPOINT ["/bin/agent-operator"]
+COPY --from=build /src/agent/build/agent-operator /bin/grafana-agent-operator
+RUN ln -sv /bin/grafana-agent-operator /bin/agent-operator
+ENTRYPOINT ["/bin/grafana-agent-operator"]

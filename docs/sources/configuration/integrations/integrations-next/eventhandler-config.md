@@ -213,7 +213,7 @@ spec:
         - -enable-features=integrations-next
         - -server.http.address=0.0.0.0:12345
         command:
-        - /bin/agent
+        - /bin/grafana-agent
         env:
         - name: HOSTNAME
           valueFrom:
