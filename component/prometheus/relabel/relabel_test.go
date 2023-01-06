@@ -56,11 +56,10 @@ func TestUpdateReset(t *testing.T) {
 }
 
 func TestNil(t *testing.T) {
-	fanout, err := prometheus.NewInterceptor(func(ref storage.SeriesRef, l labels.Labels, tt int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
+	fanout := prometheus.NewInterceptor(nil, prometheus.WithAppendHook(func(ref storage.SeriesRef, _ labels.Labels, _ int64, _ float64, _ storage.Appender) (storage.SeriesRef, error) {
 		require.True(t, false)
 		return ref, nil
-	}, nil, "1")
-	require.NoError(t, err)
+	}))
 	relabeller, err := New(component.Options{
 		ID:     "1",
 		Logger: util.TestLogger(t),
@@ -87,11 +86,10 @@ func TestNil(t *testing.T) {
 func BenchmarkCache(b *testing.B) {
 	l := log.NewSyncLogger(log.NewLogfmtLogger(os.Stderr))
 
-	fanout, err := prometheus.NewInterceptor(func(ref storage.SeriesRef, l labels.Labels, tt int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
+	fanout := prometheus.NewInterceptor(nil, prometheus.WithAppendHook(func(ref storage.SeriesRef, l labels.Labels, _ int64, _ float64, _ storage.Appender) (storage.SeriesRef, error) {
 		require.True(b, l.Has("new_label"))
 		return ref, nil
-	}, nil, "1")
-	require.NoError(b, err)
+	}))
 	var entry storage.Appendable
 	_, _ = New(component.Options{
 		ID:     "1",
@@ -124,11 +122,10 @@ func BenchmarkCache(b *testing.B) {
 }
 
 func generateRelabel(t *testing.T) *Component {
-	fanout, err := prometheus.NewInterceptor(func(ref storage.SeriesRef, l labels.Labels, tt int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
+	fanout := prometheus.NewInterceptor(nil, prometheus.WithAppendHook(func(ref storage.SeriesRef, l labels.Labels, _ int64, _ float64, _ storage.Appender) (storage.SeriesRef, error) {
 		require.True(t, l.Has("new_label"))
 		return ref, nil
-	}, nil, "1")
-	require.NoError(t, err)
+	}))
 	relabeller, err := New(component.Options{
 		ID:     "1",
 		Logger: util.TestLogger(t),

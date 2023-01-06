@@ -1,6 +1,8 @@
 import { FC } from 'react';
-import styles from './HealthLabel.module.css';
+
 import { ComponentHealthState } from './types';
+
+import styles from './HealthLabel.module.css';
 
 interface HealthLabelProps {
   health: ComponentHealthState;

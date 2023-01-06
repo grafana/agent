@@ -83,14 +83,10 @@ The Makefile provides several targets:
 * `lint`: run linting checks
 
 ### Compile on Linux
-Compiling Grafana Agent on Linux requires a couple of extra dependencies:
+Compiling Grafana Agent on Linux requires extra dependencies:
 
 * [systemd headers](https://packages.debian.org/sid/libsystemd-dev) for Promtail
    * Can be installed on Debian-based distributions with: ```sudo apt-get install libsystemd-dev```
-* [bcc tools](https://packages.debian.org/sid/libbpfcc-dev) for the eBPF integration on AMD64 systems
-   * Can be installed on Debian-based distributions with: ```sudo apt-get install libbpfcc-dev```
-
-If you have issues installing the bcc tooling, you can use `-tags=noebpf` to compile Grafana Agent without the eBPF integration.
 
 ## Pull Request Checklist
 

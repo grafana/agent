@@ -82,7 +82,6 @@ integrations:
   [eventhandler: <eventhandler_config>]
   [snmp: <snmp_exporter_config>]
   [blackbox: <blackbox_config>]
-  [ebpf: <ebpf_config>]
 
   # Configs for integrations that do support multiple instances. Note that
   # these must be arrays.
@@ -115,6 +114,9 @@ integrations:
 
   redis_configs:
     [- <redis_exporter_config> ...]
+
+  snowflake_configs:
+    [- <snowflake_config> ...]
 
   app_agent_receiver_configs:
     [- <app_agent_receiver_config>]

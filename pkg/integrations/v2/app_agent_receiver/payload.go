@@ -285,6 +285,7 @@ type Meta struct {
 	Session Session `json:"session,omitempty"`
 	Page    Page    `json:"page,omitempty"`
 	Browser Browser `json:"browser,omitempty"`
+	View    View    `json:"view,omitempty"`
 }
 
 // KeyVal produces key->value representation of the app event metadatga
@@ -296,6 +297,7 @@ func (m Meta) KeyVal() *KeyVal {
 	MergeKeyValWithPrefix(kv, m.Session.KeyVal(), "session_")
 	MergeKeyValWithPrefix(kv, m.Page.KeyVal(), "page_")
 	MergeKeyValWithPrefix(kv, m.Browser.KeyVal(), "browser_")
+	MergeKeyValWithPrefix(kv, m.View.KeyVal(), "view_")
 	return kv
 }
 
@@ -385,5 +387,16 @@ func (b Browser) KeyVal() *KeyVal {
 	KeyValAdd(kv, "version", b.Version)
 	KeyValAdd(kv, "os", b.OS)
 	KeyValAdd(kv, "mobile", fmt.Sprintf("%v", b.Mobile))
+	return kv
+}
+
+// View holds metadata about a view
+type View struct {
+	Name string `json:"name,omitempty"`
+}
+
+func (v View) KeyVal() *KeyVal {
+	kv := NewKeyVal()
+	KeyValAdd(kv, "name", v.Name)
 	return kv
 }

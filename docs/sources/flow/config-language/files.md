@@ -15,7 +15,7 @@ Windows-style line endings (CRLF), but formatters may replace all line endings
 with Unix-style ones.
 
 ## Community tooling
+
 There is experimental support for River in
 [vim](https://github.com/rfratto/vim-river) and in
 [VSCode](https://github.com/rfratto/vscode-river).
-

@@ -12,7 +12,6 @@ import (
 	_ "github.com/grafana/agent/pkg/integrations/cadvisor"               // register cadvisor
 	_ "github.com/grafana/agent/pkg/integrations/consul_exporter"        // register consul_exporter
 	_ "github.com/grafana/agent/pkg/integrations/dnsmasq_exporter"       // register dnsmasq_exporter
-	_ "github.com/grafana/agent/pkg/integrations/ebpf_exporter"          // register ebpf_exporter
 	_ "github.com/grafana/agent/pkg/integrations/elasticsearch_exporter" // register elasticsearch_exporter
 	_ "github.com/grafana/agent/pkg/integrations/github_exporter"        // register github_exporter
 	_ "github.com/grafana/agent/pkg/integrations/kafka_exporter"         // register kafka_exporter
@@ -24,6 +23,7 @@ import (
 	_ "github.com/grafana/agent/pkg/integrations/process_exporter"       // register process_exporter
 	_ "github.com/grafana/agent/pkg/integrations/redis_exporter"         // register redis_exporter
 	_ "github.com/grafana/agent/pkg/integrations/snmp_exporter"          // register snmp_exporter
+	_ "github.com/grafana/agent/pkg/integrations/snowflake_exporter"     // register snowflake_exporter
 	_ "github.com/grafana/agent/pkg/integrations/statsd_exporter"        // register statsd_exporter
 	_ "github.com/grafana/agent/pkg/integrations/windows_exporter"       // register windows_exporter
 
@@ -37,5 +37,6 @@ import (
 	_ "github.com/grafana/agent/pkg/integrations/v2/blackbox_exporter"  // register blackbox_exporter
 	_ "github.com/grafana/agent/pkg/integrations/v2/eventhandler"       // register eventhandler
 	_ "github.com/grafana/agent/pkg/integrations/v2/snmp_exporter"      // register snmp_exporter
+	_ "github.com/grafana/agent/pkg/integrations/v2/snowflake"          // register snowflake
 	_ "github.com/grafana/agent/pkg/integrations/v2/vmware_exporter"    // register vmware_exporter
 )

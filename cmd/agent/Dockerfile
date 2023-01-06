@@ -25,20 +25,15 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
     GOOS=$TARGETOS GOARCH=$TARGETARCH GOARM=${TARGETVARIANT#v} \
     RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} \
-    GO_TAGS=builtinassets \
+    GO_TAGS="builtinassets promtail_journal_enabled" \
     make agent
 
 FROM ubuntu:jammy
 
-# Install dependencies needed at runtime. On x86_64 (arm64), libbpfcc is also
-# needed for the eBPF integration.
+# Install dependencies needed at runtime.
 RUN <<EOF
   apt-get update
   apt-get install -qy libsystemd-dev tzdata ca-certificates
-
-  if [ `uname -m` = "x86_64" ]; then
-    apt-get install -qy libbpfcc
-  fi
 
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 EOF

@@ -7,14 +7,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func isFlowEnabled() bool {
-	key, found := os.LookupEnv("EXPERIMENTAL_ENABLE_FLOW")
-	if !found {
-		return false
-	}
-	return key == "true" || key == "1"
-}
-
 func runFlow() {
 	var cmd = &cobra.Command{
 		Use:     "agent [global options] <subcommand>",

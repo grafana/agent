@@ -63,6 +63,7 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		// configurable in the future.
 		CompatibleMode: true,
 		CollectAll:     true,
+		DirectConnect:  true,
 	})
 
 	return integrations.NewHandlerIntegration(c.Name(), exp.Handler()), nil

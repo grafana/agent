@@ -51,14 +51,26 @@ type positions struct {
 	logger    log.Logger
 	cfg       Config
 	mtx       sync.Mutex
-	positions map[string]string
+	positions map[Entry]string
 	quit      chan struct{}
 	done      chan struct{}
 }
 
+// Entry desribes a positions file entry consisting of an absolute file path and
+// the matching label set.
+// An entry expects the string representation of a LabelSet or a Labels slice
+// so that it can be utilized as a YAML key. The caller should make sure that
+// the order and structure of the passed string representation is reproducible,
+// and maintains the same format for both reading and writing from/to the
+// positions file.
+type Entry struct {
+	Path   string `yaml:"path"`
+	Labels string `yaml:"labels"`
+}
+
 // File format for the positions data.
 type File struct {
-	Positions map[string]string `yaml:"positions"`
+	Positions map[Entry]string `yaml:"positions"`
 }
 
 type Positions interface {
@@ -66,18 +78,18 @@ type Positions interface {
 	// JournalTarget writes a journal cursor to the positions file, while
 	// FileTarget writes an integer offset. Use Get to read the integer
 	// offset.
-	GetString(path string) string
+	GetString(path, labels string) string
 	// Get returns how far we've read through a file. Returns an error
 	// if the value stored for the file is not an integer.
-	Get(path string) (int64, error)
+	Get(path, labels string) (int64, error)
 	// PutString records (asynchronously) how far we've read through a file.
 	// Unlike Put, it records a string offset and is only useful for
 	// JournalTargets which doesn't have integer offsets.
-	PutString(path string, pos string)
+	PutString(path, labels string, pos string)
 	// Put records (asynchronously) how far we've read through a file.
-	Put(path string, pos int64)
+	Put(path, labels string, pos int64)
 	// Remove removes the position tracking for a filepath
-	Remove(path string)
+	Remove(path, labels string)
 	// SyncPeriod returns how often the positions file gets resynced
 	SyncPeriod() time.Duration
 	// Stop the Position tracker.
@@ -108,40 +120,40 @@ func (p *positions) Stop() {
 	<-p.done
 }
 
-func (p *positions) PutString(path string, pos string) {
+func (p *positions) PutString(path, labels string, pos string) {
 	p.mtx.Lock()
 	defer p.mtx.Unlock()
-	p.positions[path] = pos
+	p.positions[Entry{path, labels}] = pos
 }
 
-func (p *positions) Put(path string, pos int64) {
-	p.PutString(path, strconv.FormatInt(pos, 10))
+func (p *positions) Put(path, labels string, pos int64) {
+	p.PutString(path, labels, strconv.FormatInt(pos, 10))
 }
 
-func (p *positions) GetString(path string) string {
+func (p *positions) GetString(path, labels string) string {
 	p.mtx.Lock()
 	defer p.mtx.Unlock()
-	return p.positions[path]
+	return p.positions[Entry{path, labels}]
 }
 
-func (p *positions) Get(path string) (int64, error) {
+func (p *positions) Get(path, labels string) (int64, error) {
 	p.mtx.Lock()
 	defer p.mtx.Unlock()
-	pos, ok := p.positions[path]
+	pos, ok := p.positions[Entry{path, labels}]
 	if !ok {
 		return 0, nil
 	}
 	return strconv.ParseInt(pos, 10, 64)
 }
 
-func (p *positions) Remove(path string) {
+func (p *positions) Remove(path, labels string) {
 	p.mtx.Lock()
 	defer p.mtx.Unlock()
-	p.remove(path)
+	p.remove(path, labels)
 }
 
-func (p *positions) remove(path string) {
-	delete(p.positions, path)
+func (p *positions) remove(path, labels string) {
+	delete(p.positions, Entry{path, labels})
 }
 
 func (p *positions) SyncPeriod() time.Duration {
@@ -172,7 +184,7 @@ func (p *positions) save() {
 		return
 	}
 	p.mtx.Lock()
-	positions := make(map[string]string, len(p.positions))
+	positions := make(map[Entry]string, len(p.positions))
 	for k, v := range p.positions {
 		positions[k] = v
 	}
@@ -191,16 +203,16 @@ func CursorKey(key string) string {
 func (p *positions) cleanup() {
 	p.mtx.Lock()
 	defer p.mtx.Unlock()
-	toRemove := []string{}
+	toRemove := []Entry{}
 	for k := range p.positions {
 		// If the position file is prefixed with cursor, it's a
 		// cursor and not a file on disk.
 		// We still have to support journal files, so we keep the previous check to avoid breaking change.
-		if strings.HasPrefix(k, cursorKeyPrefix) || strings.HasPrefix(k, journalKeyPrefix) {
+		if strings.HasPrefix(k.Path, cursorKeyPrefix) || strings.HasPrefix(k.Path, journalKeyPrefix) {
 			continue
 		}
 
-		if _, err := os.Stat(k); err != nil {
+		if _, err := os.Stat(k.Path); err != nil {
 			if os.IsNotExist(err) {
 				// File no longer exists.
 				toRemove = append(toRemove, k)
@@ -212,16 +224,16 @@ func (p *positions) cleanup() {
 		}
 	}
 	for _, tr := range toRemove {
-		p.remove(tr)
+		p.remove(tr.Path, tr.Labels)
 	}
 }
 
-func readPositionsFile(cfg Config, logger log.Logger) (map[string]string, error) {
+func readPositionsFile(cfg Config, logger log.Logger) (map[Entry]string, error) {
 	cleanfn := filepath.Clean(cfg.PositionsFile)
 	buf, err := os.ReadFile(cleanfn)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return map[string]string{}, nil
+			return map[Entry]string{}, nil
 		}
 		return nil, err
 	}
@@ -232,7 +244,7 @@ func readPositionsFile(cfg Config, logger log.Logger) (map[string]string, error)
 		// return empty if cfg option enabled
 		if cfg.IgnoreInvalidYaml {
 			level.Debug(logger).Log("msg", "ignoring invalid positions file", "file", cleanfn, "error", err)
-			return map[string]string{}, nil
+			return map[Entry]string{}, nil
 		}
 
 		return nil, fmt.Errorf("invalid yaml positions file [%s]: %v", cleanfn, err)
@@ -240,7 +252,7 @@ func readPositionsFile(cfg Config, logger log.Logger) (map[string]string, error)
 
 	// p.Positions will be nil if the file exists but is empty
 	if p.Positions == nil {
-		p.Positions = map[string]string{}
+		p.Positions = map[Entry]string{}
 	}
 
 	return p.Positions, nil

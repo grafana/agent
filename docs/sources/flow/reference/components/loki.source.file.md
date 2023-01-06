@@ -82,8 +82,6 @@ If a file is removed from the `targets` list, its positions file entry is also
 removed. When it's added back on, `loki.source.file` starts reading it from the
 beginning.
 
-<!-- TODO(@tpaschalis) Add example section once loki.write is up and running.
-
 ## Example
 
 This example collects log entries from the files specified in the targets
@@ -106,4 +104,3 @@ loki.write "local" {
   }
 }
 ```
--->

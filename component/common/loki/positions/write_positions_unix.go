@@ -15,7 +15,7 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
-func writePositionFile(filename string, positions map[string]string) error {
+func writePositionFile(filename string, positions map[Entry]string) error {
 	buf, err := yaml.Marshal(File{
 		Positions: positions,
 	})

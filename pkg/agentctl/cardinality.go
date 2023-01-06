@@ -2,7 +2,7 @@ package agentctl
 
 import (
 	"github.com/prometheus/prometheus/tsdb/record"
-	"github.com/prometheus/prometheus/tsdb/wal"
+	"github.com/prometheus/prometheus/tsdb/wlog"
 )
 
 // Cardinality represents some metric by name and the number of times that metric is used
@@ -16,7 +16,7 @@ type Cardinality struct {
 // series within the WAL for any given series with the label job=<job> and
 // instance=<instance>. All other series are ignored.
 func FindCardinality(walDir string, job string, instance string) ([]Cardinality, error) {
-	w, err := wal.Open(nil, walDir)
+	w, err := wlog.Open(nil, walDir)
 	if err != nil {
 		return nil, err
 	}
@@ -24,7 +24,7 @@ func FindCardinality(walDir string, job string, instance string) ([]Cardinality,
 
 	cardinality := map[string]int{}
 
-	err = walIterate(w, func(r *wal.Reader) error {
+	err = walIterate(w, func(r *wlog.Reader) error {
 		return collectCardinality(r, job, instance, cardinality)
 	})
 	if err != nil {
@@ -38,7 +38,7 @@ func FindCardinality(walDir string, job string, instance string) ([]Cardinality,
 	return res, nil
 }
 
-func collectCardinality(r *wal.Reader, job, instance string, cardinality map[string]int) error {
+func collectCardinality(r *wlog.Reader, job, instance string, cardinality map[string]int) error {
 	var dec record.Decoder
 
 	for r.Next() {

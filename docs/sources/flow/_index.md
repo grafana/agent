@@ -5,27 +5,27 @@ title: Grafana Agent Flow
 weight: 900
 ---
 
-# Grafana Agent Flow (Experimental)
+# Grafana Agent Flow (Beta)
 
-Grafana Agent Flow is a _component-based_ experimental revision of Grafana
-Agent with a focus on ease-of-use, debuggability, and ability to adapt to the
-needs of power users.
+Grafana Agent Flow is a _component-based_ revision of Grafana Agent with a
+focus on ease-of-use, debuggability, and ability to adapt to the needs of power
+users.
 
-Components allow for reusability, composability, and focus on a single task. 
+Components allow for reusability, composability, and focus on a single task.
 
 * **Reusability** allows for the output of components to be reused as the input for multiple other components.
 * **Composability** allows for components to be chained together to form a pipeline.
 * **Single task** means the scope of a component is limited to one narrow task and thus has fewer side effects.
 
-> **EXPERIMENTAL**: Grafana Agent Flow is an [experimental][] feature.
-> Experimental features are subject to frequent breaking changes and are
-> subject for removal if the experiment doesn't work out.
+> **BETA**: Grafana Agent Flow is a [beta][] feature.
+> Beta features are subject to frequent breaking changes while the feature is
+> being matured.
 >
 > You should only use Grafana Agent Flow if you are okay with bleeding edge
 > functionality and want to provide feedback to the developers. It is not
 > recommended to use Grafana Agent Flow in production.
 
-[experimental]: {{< relref "../operation-guide#stability" >}}
+[beta]: {{< relref "../operation-guide#stability" >}}
 
 ## Features
 
