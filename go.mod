@@ -81,7 +81,7 @@ require (
 	github.com/prometheus/statsd_exporter v0.22.8
 	github.com/rancher/k3d/v5 v5.2.2
 	github.com/rfratto/ckit v0.0.0-20220401221852-009169323240
-	github.com/rs/cors v1.8.2
+	github.com/rs/cors v1.8.3
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.1
@@ -120,6 +120,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.17.2
 	github.com/aws/aws-sdk-go-v2/config v1.17.8
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.11
+	github.com/bmatcuk/doublestar v1.2.2
 	github.com/fatih/color v1.13.0
 	github.com/google/go-cmp v0.5.9
 	github.com/google/renameio/v2 v2.0.0
@@ -130,6 +131,7 @@ require (
 	github.com/jaegertracing/jaeger v1.38.1
 	github.com/jmespath/go-jmespath v0.4.0
 	github.com/mackerelio/go-osstat v0.2.3
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.63.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.61.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension v0.61.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension v0.61.0
@@ -219,7 +221,6 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver v3.5.2-0.20180723201105-3c1074078d32+incompatible // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
-	github.com/bmatcuk/doublestar v1.2.2 // indirect
 	github.com/bradfitz/gomemcache v0.0.0-20190913173617-a41fca850d0b // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
 	github.com/c2h5oh/datasize v0.0.0-20200112174442-28bbd4740fee // indirect
@@ -417,7 +418,6 @@ require (
 	github.com/ncabatoff/go-seq v0.0.0-20180805175032-b08ef85ed833 // indirect
 	github.com/nicolai86/scaleway-sdk v1.10.2-0.20180628010248-798f60e20bb2 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.63.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.63.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/sharedcomponent v0.63.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal v0.63.0 // indirect
