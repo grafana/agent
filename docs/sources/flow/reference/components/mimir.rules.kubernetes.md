@@ -6,15 +6,15 @@ title: mimir.rules.kubernetes
 
 # mimir.rules.kubernetes
 
-`mimir.rules.kubernetes` discovers `PrometheusRule` kubernetes resources and
+`mimir.rules.kubernetes` discovers `PrometheusRule` Kubernetes resources and
 loads them into a Mimir instance.
 
 * Multiple `mimir.rules.kubernetes` components can be specified by giving them
   different labels.
 * [Kubernetes label selectors][] can be used to limit the `Namespace` and
   `PrometheusRule` resources considered during reconciliation.
-* Compatible with the Ruler APIs of Grafana Mimir, Grafana Cloud, and Grafana Enterprise Metrics
-* Compatible with the `PrometheusRule` CRD from the [prometheus-operator][]
+* Compatible with the Ruler APIs of Grafana Mimir, Grafana Cloud, and Grafana Enterprise Metrics.
+* Compatible with the `PrometheusRule` CRD from the [prometheus-operator][].
 
 [Kubernetes label selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors
 [prometheus-operator]: https://prometheus-operator.dev/
@@ -34,17 +34,17 @@ mimir.rules.kubernetes "LABEL" {
 Name                     | Type       | Description                                             | Default | Required
 -------------------------|------------|---------------------------------------------------------|---------|---------
 `address`                | `string`   | URL of the Mimir ruler.                                 |         | yes
-`tenant_id`              | `string`   | Mimir tenant ID                                         |         | no
-`use_legacy_routes`      | `bool`     | Whether to use deprecated ruler API endpoints           | false   | no
-`sync_interval`          | `duration` | Amount of time between reconciliations with Mimir       | "30s"   | no
-`mimir_namespace_prefix` | `string`   | Prefix used to differentiate multiple agent deployments | "agent" | no
+`tenant_id`              | `string`   | Mimir tenant ID.                                         |         | no
+`use_legacy_routes`      | `bool`     | Whether to use deprecated ruler API endpoints.           | false   | no
+`sync_interval`          | `duration` | Amount of time between reconciliations with Mimir.       | "30s"   | no
+`mimir_namespace_prefix` | `string`   | Prefix used to differentiate multiple agent deployments. | "agent" | no
 
 If no `tenant_id` is provided, the component assumes that the Mimir instance at
-`address` is running in single-tenant mode and no X-Scope-OrgID header is sent.
+`address` is running in single-tenant mode and no `X-Scope-OrgID` header is sent.
 
 The `sync_interval` argument determines how often Mimir's ruler API is accessed
-to reload the current state of rules. Interaction with the kubernetes API works
-differently. Updates are processed as events from the kubernetes API server
+to reload the current state of rules. Interaction with the Kubernetes API works
+differently. Updates are processed as events from the Kubernetes API server
 according to the informer pattern.
 
 The `mimir_namespace_prefix` argument can be used to separate the rules managed
@@ -58,10 +58,10 @@ The following blocks are supported inside the definition of
 
 Hierarchy                                  | Block                  | Description                                              | Required
 -------------------------------------------|------------------------|----------------------------------------------------------|---------
-rule_namespace_selector                    | [label_selector][]     | Label selector for `Namespace` resources                 | no
-rule_namespace_selector > match_expression | [match_expression][]   | Label match expression for `Namespace` resources         | no
-rule_selector                              | [label_selector][]     | Label selector for `PrometheusRule` resources            | no
-rule_selector > match_expression           | [match_expression][]   | Label match expression for `PrometheusRule` resources    | no
+rule_namespace_selector                    | [label_selector][]     | Label selector for `Namespace` resources.                 | no
+rule_namespace_selector > match_expression | [match_expression][]   | Label match expression for `Namespace` resources.         | no
+rule_selector                              | [label_selector][]     | Label selector for `PrometheusRule` resources.            | no
+rule_selector > match_expression           | [match_expression][]   | Label match expression for `PrometheusRule` resources.    | no
 http_client_config                         | [http_client_config][] | HTTP client settings when connecting to the endpoint.    | no
 http_client_config > basic_auth            | [basic_auth][]         | Configure basic_auth for authenticating to the endpoint. | no
 http_client_config > authorization         | [authorization][]      | Configure generic authorization to the endpoint.         | no
@@ -84,25 +84,33 @@ an `http_client_config` block.
 
 ### label_selector block
 
-The `label_selector` block describes a kubernetes label selector for rule or namespace discovery.
+The `label_selector` block describes a Kubernetes label selector for rule or namespace discovery.
 
 The following arguments are supported:
 
 Name           | Type          | Description                                       | Default                     | Required
 ---------------|---------------|---------------------------------------------------|-----------------------------|---------
-`match_labels` | `map(string)` | Label keys and values used to discover resources. | empty (match all resources) | yes
+`match_labels` | `map(string)` | Label keys and values used to discover resources. | `{}` | yes
+
+When the `match_labels` argument is empty, all resources will be matched. 
 
 ### match_expression block
 
-The `match_expression` block describes a kubernetes label match expression for rule or namespace discovery.
+The `match_expression` block describes a Kubernetes label match expression for rule or namespace discovery.
 
 The following arguments are supported:
 
 Name       | Type       | Description                                        | Default | Required
 -----------|------------|----------------------------------------------------|---------|---------
 `key`      | `string`   | The label name to match against.                   |         | yes
-`operator` | `string`   | The operator used when matching. (in,notin,exists) |         | yes
+`operator` | `string`   | The operator to use when matching. |         | yes
 `values`   | `[]string` | The values used when matching.                     |         | no
+
+The `operator` argument should be one of the following strings:
+
+* `"in"` 
+* `"notin"` 
+* `"exists"` 
 
 ### http_client_config block
 
@@ -139,7 +147,7 @@ The `http_client_config` configures settings used to connect to the Mimir API.
 `mimir.rules.kubernetes` exposes resource-level debug information.
 
 The following are exposed per discovered `PrometheusRule` resource:
-* The kubernetes namespace.
+* The Kubernetes namespace.
 * The resource name.
 * The resource uid.
 * The number of rule groups.
@@ -187,7 +195,7 @@ mimir.rules.kubernetes "local" {
 This example creates a `mimir.rules.kubernetes` component that loads discovered
 rules to Grafana Cloud.
 
-```
+```river
 mimir.rules.kubernetes "default" {
     address = "GRAFANA_CLOUD_METRICS_URL"
     http_client_config {

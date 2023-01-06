@@ -107,7 +107,7 @@ v0.30.0 (2022-12-20)
   - `discovery.file` discovers files on the filesystem following glob
     patterns. (@mattdurham)
 
-  - `mimir.rules.kubernetes` discovers `PrometheusRule` kubernetes resources and
+  - `mimir.rules.kubernetes` discovers `PrometheusRule` Kubernetes resources and
     loads them into a Mimir instance. (@Logiraptor)
 
 - Integrations: Introduce the `snowflake` integration. (@binaryfissiongames)
