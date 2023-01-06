@@ -15,7 +15,6 @@ import (
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
-	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/prometheus/prometheus/scrape"
 	"github.com/prometheus/prometheus/storage"
 	"k8s.io/client-go/rest"
@@ -49,6 +48,9 @@ type Config struct {
 	ApiServerConfig *APIServerConfig `river:"api_server,block,optional"`
 
 	ForwardTo []storage.Appendable `river:"forward_to,attr"`
+
+	// OverrideHonorLabels controls how conflicts in labels are handled
+	OverrideHonorLabels bool
 }
 
 // APIServerConfig defines a host and auth methods to access apiserver.
@@ -112,21 +114,6 @@ func (c *Component) apply() {
 	c.discovery.ApplyConfig(c.discoveryConfigs)
 	scs := []*config.ScrapeConfig{}
 	for _, sc := range c.scrapeConfigs {
-		// set defaults from prom defaults. TODO: better way to do this
-		for _, r := range sc.RelabelConfigs {
-			if r.Action == "" {
-				r.Action = "replace"
-			}
-			if r.Separator == "" {
-				r.Separator = ";"
-			}
-			if r.Regex.Regexp == nil {
-				r.Regex = relabel.MustNewRegexp("(.*)")
-			}
-			if r.Replacement == "" {
-				r.Replacement = "$1"
-			}
-		}
 		scs = append(scs, sc)
 	}
 	err := c.scraper.ApplyConfig(&config.Config{

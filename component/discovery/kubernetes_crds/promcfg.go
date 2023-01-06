@@ -84,7 +84,10 @@ func (cg *configGenerator) generateK8SSDConfig(
 }
 
 func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodMetricsEndpoint, i int) *config.ScrapeConfig {
-	cfg := &config.ScrapeConfig{}
+	c := config.DefaultScrapeConfig
+	cfg := &c
+	cfg.ScrapeInterval = config.DefaultGlobalConfig.ScrapeInterval
+	cfg.ScrapeTimeout = config.DefaultGlobalConfig.ScrapeTimeout
 	cfg.JobName = fmt.Sprintf("podMonitor/%s/%s/%d", m.Namespace, m.Name, i)
 	cg.addHonorLabels(cfg, ep.HonorLabels)
 	cg.addHonorTimestamps(cfg, ep.HonorTimestamps)
@@ -148,7 +151,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 	relabels := cg.initRelabelings(cfg)
 
 	if ep.FilterRunning == nil || *ep.FilterRunning {
-		relabels = append(relabels, &relabel.Config{
+		relabels.Add(&relabel.Config{
 			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_phase"},
 			Action:       "drop",
 			// TODO: maybe mustNewRegexp needs error handling
@@ -165,7 +168,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 	sort.Strings(labelKeys)
 
 	for _, k := range labelKeys {
-		relabels = append(relabels, &relabel.Config{
+		relabels.Add(&relabel.Config{
 			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_label_" + sanitizeLabelName(k), "__meta_kubernetes_pod_labelpresent_" + sanitizeLabelName(k)},
 			Action:       "keep",
 			Regex:        relabel.MustNewRegexp(fmt.Sprintf("(%s);true", m.Spec.Selector.MatchLabels[k])),
@@ -177,25 +180,25 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 	for _, exp := range m.Spec.Selector.MatchExpressions {
 		switch exp.Operator {
 		case metav1.LabelSelectorOpIn:
-			relabels = append(relabels, &relabel.Config{
+			relabels.Add(&relabel.Config{
 				SourceLabels: model.LabelNames{"__meta_kubernetes_pod_label_" + sanitizeLabelName(exp.Key), "__meta_kubernetes_pod_labelpresent_" + sanitizeLabelName(exp.Key)},
 				Action:       "keep",
 				Regex:        relabel.MustNewRegexp(fmt.Sprintf("(%s);true", strings.Join(exp.Values, "|"))),
 			})
 		case metav1.LabelSelectorOpNotIn:
-			relabels = append(relabels, &relabel.Config{
+			relabels.Add(&relabel.Config{
 				SourceLabels: model.LabelNames{"__meta_kubernetes_pod_label_" + sanitizeLabelName(exp.Key), "__meta_kubernetes_pod_labelpresent_" + sanitizeLabelName(exp.Key)},
 				Action:       "drop",
 				Regex:        relabel.MustNewRegexp(fmt.Sprintf("(%s);true", strings.Join(exp.Values, "|"))),
 			})
 		case metav1.LabelSelectorOpExists:
-			relabels = append(relabels, &relabel.Config{
+			relabels.Add(&relabel.Config{
 				SourceLabels: model.LabelNames{"__meta_kubernetes_pod_labelpresent_" + sanitizeLabelName(exp.Key)},
 				Action:       "keep",
 				Regex:        relabel.MustNewRegexp("true"),
 			})
 		case metav1.LabelSelectorOpDoesNotExist:
-			relabels = append(relabels, &relabel.Config{
+			relabels.Add(&relabel.Config{
 				SourceLabels: model.LabelNames{"__meta_kubernetes_pod_labelpresent_" + sanitizeLabelName(exp.Key)},
 				Action:       "drop",
 				Regex:        relabel.MustNewRegexp("true"),
@@ -205,7 +208,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 
 	// Filter targets based on correct port for the endpoint.
 	if ep.Port != "" {
-		relabels = append(relabels, &relabel.Config{
+		relabels.Add(&relabel.Config{
 			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_container_port_name"},
 			Action:       "keep",
 			Regex:        relabel.MustNewRegexp(ep.Port),
@@ -215,14 +218,14 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 		// 	level.Warn(cg.logger).Log("msg", "'targetPort' is deprecated, use 'port' instead.")
 		//nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
 		if ep.TargetPort.StrVal != "" {
-			relabels = append(relabels, &relabel.Config{
+			relabels.Add(&relabel.Config{
 				SourceLabels: model.LabelNames{"__meta_kubernetes_pod_container_port_name"},
 				Action:       "keep",
 				Regex:        relabel.MustNewRegexp(ep.TargetPort.String()),
 			})
 		}
 	} else if ep.TargetPort.IntVal != 0 { //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
-		relabels = append(relabels, &relabel.Config{
+		relabels.Add(&relabel.Config{
 			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_container_port_number"},
 			Action:       "keep",
 			Regex:        relabel.MustNewRegexp(ep.TargetPort.String()),
@@ -230,7 +233,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 	}
 
 	// Relabel namespace and pod and service labels into proper labels.
-	relabels = append(relabels, &relabel.Config{
+	relabels.Add(&relabel.Config{
 		SourceLabels: model.LabelNames{"__meta_kubernetes_namespace"},
 		TargetLabel:  "namespace",
 	}, &relabel.Config{
@@ -243,7 +246,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 
 	// Relabel targetLabels from Pod onto target.
 	for _, l := range m.Spec.PodTargetLabels {
-		relabels = append(relabels, &relabel.Config{
+		relabels.Add(&relabel.Config{
 			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_label_" + sanitizeLabelName(l)},
 			Replacement:  "${1}",
 			Regex:        relabel.MustNewRegexp("(.+)"),
@@ -257,12 +260,12 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 	// endpoints, therefore the endpoints labels is filled with the ports name or
 	// as a fallback the port number.
 
-	relabels = append(relabels, &relabel.Config{
+	relabels.Add(&relabel.Config{
 		Replacement: fmt.Sprintf("%s/%s", m.GetNamespace(), m.GetName()),
 		TargetLabel: "job",
 	})
 	if m.Spec.JobLabel != "" {
-		relabels = append(relabels, &relabel.Config{
+		relabels.Add(&relabel.Config{
 			Replacement:  "${1}",
 			TargetLabel:  "job",
 			Regex:        relabel.MustNewRegexp("(.+)"),
@@ -271,12 +274,12 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 	}
 
 	if ep.Port != "" {
-		relabels = append(relabels, &relabel.Config{
+		relabels.Add(&relabel.Config{
 			Replacement: ep.Port,
 			TargetLabel: "endpoint",
 		})
 	} else if ep.TargetPort != nil && ep.TargetPort.String() != "" { //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
-		relabels = append(relabels, &relabel.Config{
+		relabels.Add(&relabel.Config{
 			Replacement: ep.Port,
 			TargetLabel: ep.TargetPort.String(), //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
 		})
@@ -287,7 +290,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 	//relabelings = append(relabelings, generateRelabelConfig(labeler.GetRelabelingConfigs(m.TypeMeta, m.ObjectMeta, ep.RelabelConfigs))...)
 	// relabelings = generateAddressShardingRelabelingRules(relabelings, shards)
 
-	cfg.RelabelConfigs = relabels
+	cfg.RelabelConfigs = relabels.configs
 
 	// TODO: limits include stuff from global config
 	// cfg = cg.AddLimitsToYAML(cfg, sampleLimitKey, m.Spec.SampleLimit, cg.spec.EnforcedSampleLimit)
@@ -305,14 +308,37 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 	return cfg
 }
 
-func (cg *configGenerator) initRelabelings(cfg *config.ScrapeConfig) []*relabel.Config {
-	// Relabel prometheus job name into a meta label
-	return []*relabel.Config{
-		{
-			SourceLabels: model.LabelNames{"job"},
-			TargetLabel:  "__tmp_prometheus_job_name",
-		},
+type relabeler struct {
+	configs []*relabel.Config
+}
+
+func (r *relabeler) Add(cfgs ...*relabel.Config) {
+	for _, cfg := range cfgs {
+		// set defaults from prom defaults.
+		if cfg.Action == "" {
+			cfg.Action = relabel.DefaultRelabelConfig.Action
+		}
+		if cfg.Separator == "" {
+			cfg.Separator = relabel.DefaultRelabelConfig.Separator
+		}
+		if cfg.Regex.Regexp == nil {
+			cfg.Regex = relabel.DefaultRelabelConfig.Regex
+		}
+		if cfg.Replacement == "" {
+			cfg.Replacement = relabel.DefaultRelabelConfig.Replacement
+		}
+		r.configs = append(r.configs, cfg)
 	}
+}
+
+func (cg *configGenerator) initRelabelings(cfg *config.ScrapeConfig) relabeler {
+	r := relabeler{}
+	// Relabel prometheus job name into a meta label
+	r.Add(&relabel.Config{
+		SourceLabels: model.LabelNames{"job"},
+		TargetLabel:  "__tmp_prometheus_job_name",
+	})
+	return r
 }
 
 // addHonorTimestamps adds the honor_timestamps field into scrape configurations.
@@ -334,10 +360,9 @@ func (cg *configGenerator) addHonorTimestamps(cfg *config.ScrapeConfig, userHono
 	//return cg.WithMinimumVersion("2.9.0").AppendMapItem(cfg, "honor_timestamps", honor && !cg.spec.OverrideHonorTimestamps)
 }
 func (cg *configGenerator) addHonorLabels(cfg *config.ScrapeConfig, honorLabels bool) {
-	//TODO:
-	//if cg.spec.OverrideHonorLabels {
-	//	honorLabels = false
-	//}
+	if cg.config.OverrideHonorLabels {
+		cfg.HonorLabels = false
+	}
 	cfg.HonorLabels = honorLabels
 }
 
