@@ -5,7 +5,6 @@ import Table from '../widget/Table';
 
 import { PartitionedBody } from './types';
 
-import tableStyles from './ComponentList.module.css';
 import styles from './ComponentView.module.css';
 
 interface ComponentBodyProps {
@@ -54,8 +53,8 @@ const ComponentBody = ({ partition }: ComponentBodyProps) => {
           {partition.attrs.length === 0 ? (
             <em className={styles.informative}>(No set attributes in this block)</em>
           ) : (
-            <div className={tableStyles.list}>
-              <Table tableHeaders={tableHeaders} renderTableData={renderTableData} />
+            <div className={styles.list}>
+              <Table tableHeaders={tableHeaders} renderTableData={renderTableData} style={{ width: '200px' }} />
             </div>
           )}
         </div>

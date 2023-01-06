@@ -13,6 +13,7 @@ interface ComponentListProps {
 
 const ComponentList = ({ components }: ComponentListProps) => {
   const tableHeaders = ['Health', 'ID'];
+  const tableStyles = { width: '100px' };
 
   const renderTableData = () => {
     return components.map(({ health, id }) => (
@@ -21,7 +22,7 @@ const ComponentList = ({ components }: ComponentListProps) => {
           <HealthLabel health={health.state} />
         </td>
         <td>
-          {id}
+          <span>{id}</span>
           <NavLink to={'/component/' + id} className={styles.viewButton}>
             View
           </NavLink>
@@ -32,7 +33,7 @@ const ComponentList = ({ components }: ComponentListProps) => {
 
   return (
     <div className={styles.list}>
-      <Table tableHeaders={tableHeaders} renderTableData={renderTableData} />
+      <Table tableHeaders={tableHeaders} renderTableData={renderTableData} style={tableStyles} />
     </div>
   );
 };
