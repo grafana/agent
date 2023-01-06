@@ -36,12 +36,12 @@ container through a bind mount for the flags to work properly.
 ### Steps (Windows Container)
 
 1. Copy and paste the following commands into your command line.
-```
-docker run ^
-  -v c:\agent-data:c:\etc\agent\data ^
-  -v c:\workspace\config\agent:c:\etc\agent ^
-  grafana/agent:v0.30.1-windows
-```
+    ```
+    docker run ^
+      -v c:\agent-data:c:\etc\agent\data ^
+      -v c:\workspace\config\agent:c:\etc\agent ^
+      grafana/agent:v0.30.1-windows
+    ```
 
 2. Replace `c:\agent-data` with the folder you want to store WAL data in.
 
