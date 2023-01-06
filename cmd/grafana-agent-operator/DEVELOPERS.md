@@ -37,7 +37,7 @@ script manually, you must also install `controller-gen` and `gen-crd-api-referen
 Ensure to keep the version in sync with what's defined in the `Dockerfile`.
 
 ```
-go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.6.2
+go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.9.2
 go install github.com/ahmetb/gen-crd-api-reference-docs@v0.3.1-0.20220618162802-424739b250f5
 ```
 
