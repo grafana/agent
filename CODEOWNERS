@@ -1,4 +1,4 @@
-/cmd/agent-operator @captncraig @marctc
+/cmd/grafana-agent-operator @captncraig @marctc
 /pkg/integrations/ @rgeyer @gaantunes @captncraig @marctc
 /pkg/operator @captncraig @marctc
 /pkg/traces/ @joe-elliott @mapno

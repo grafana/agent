@@ -1,5 +1,5 @@
 Unicode true
-# This installs two files, agent-windows-amd64.exe and logo.ico, creates a start menu shortcut, builds an uninstaller, and
+# This installs two files, grafana-agent-windows-amd64.exe and logo.ico, creates a start menu shortcut, builds an uninstaller, and
 # adds uninstall information to the registry for Add/Remove Programs
 
 !define APPNAME "Grafana Agent"
@@ -101,7 +101,7 @@ Function Install
     # Files for the install directory - to build the installer, these should be in the same directory as the install script (this file)
     setOutPath $INSTDIR
     # Files added here should be removed by the uninstaller (see section "uninstall")
-    file "agent-windows-amd64.exe"
+    file "grafana-agent-windows-amd64.exe"
     file "logo.ico"
     # Add any other files for the install directory (license files, app data, etc) here
 
@@ -126,10 +126,10 @@ Function Install
 
     # Create our batch file, since services cant run with parameters, nsexec is used to suppress console output, instead goes
     # to NSIS log window
-    nsExec::ExecToLog 'sc create "Grafana Agent" binpath= "\"$INSTDIR\agent-windows-amd64.exe\""'
+    nsExec::ExecToLog 'sc create "Grafana Agent" binpath= "\"$INSTDIR\grafana-agent-windows-amd64.exe\""'
     Pop $0
     # These separate create and config commands are needed, on the config the binpath is required
-    nsExec::ExecToLog 'sc config "Grafana Agent" start= auto binpath= "\"$INSTDIR\agent-windows-amd64.exe\" -config.file=\"$INSTDIR\agent-config.yaml\""'
+    nsExec::ExecToLog 'sc config "Grafana Agent" start= auto binpath= "\"$INSTDIR\grafana-agent-windows-amd64.exe\" -config.file=\"$INSTDIR\agent-config.yaml\""'
     Pop $0
     nsExec::ExecToLog `sc start "Grafana Agent"`
     Pop $0
@@ -194,7 +194,8 @@ Section "uninstall"
     Pop $0
 
     # Remove files
-    delete $INSTDIR\agent-windows-amd64.exe
+    delete $INSTDIR\agent-windows-amd64.exe         # Old binary name, left in for upgrades
+    delete $INSTDIR\grafana-agent-windows-amd64.exe # New binary name
     delete $INSTDIR\logo.ico
     delete $INSTDIR\agent-config.yaml
 

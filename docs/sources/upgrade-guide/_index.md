@@ -14,6 +14,31 @@ releases and how to migrate to newer versions.
 
 These changes will come in a future version.
 
+### Breaking change: binary names are now prefixed with `grafana-`
+
+As first announced in v0.29, release binary names are now prefixed with
+`grafana-`:
+
+- `agent` is now `grafana-agent`.
+- `agentctl` is now `grafana-agentctl`.
+- `agent-operator` is now `grafana-agent-operator`.
+
+For the `grafana/agent` Docker container, the entrypoint is now
+`/bin/grafana-agent`. A symbolic link from `/bin/agent` to the new binary has
+been added.
+
+For the `grafana/agentctl` Docker container, the entrypoint is now
+`/bin/grafana-agentctl`. A symbolic link from `/bin/agentctl` to the new binary
+has been added.
+
+For the `grafana/agent-operator` Docker container, the entrypoint is now
+`/bin/grafana-agent-operator`. A symbolic link from `/bin/agent-operator` to
+the new binary has been added.
+
+These symbolic links will be removed in v0.33. Custom entrypoints must be
+updated prior to v0.33 to use the new binaries before the symbolic links get
+removed.
+
 ## v0.30.0
 
 ### Breaking change: `ebpf_exporter` integration removed
