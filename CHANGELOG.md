@@ -32,6 +32,8 @@ Main (unreleased)
 - New Grafana Agent Flow components:
 
   - `otelcol.receiver.kafka` receives telemetry data from Kafka. (@rfratto)
+  - `phlare.scrape` collects application performance profiles. (@cyriltovena)
+  - `phlare.write` sends application performance profiles to Grafana Phlare. (@cyriltovena)
 
 ### Enhancements
 
@@ -440,7 +442,6 @@ v0.25.1 (2022-06-16)
 
 - Unwrap replayWAL error before attempting corruption repair. (@rlankfo)
 
-
 v0.25.0 (2022-06-06)
 --------------------
 
@@ -479,7 +480,7 @@ v0.25.0 (2022-06-06)
 
 - Enable `proxy_url` support on `oauth2` for metrics and logs (update **prometheus/common** dependency to `v0.33.0`). (@martin-jaeger-maersk)
 
-- `extra-scrape-metrics` can now be enabled with the `--enable-features=extra-scrape-metrics` feature flag. See https://prometheus.io/docs/prometheus/2.31/feature_flags/#extra-scrape-metrics for details. (@rlankfo)
+- `extra-scrape-metrics` can now be enabled with the `--enable-features=extra-scrape-metrics` feature flag. See <https://prometheus.io/docs/prometheus/2.31/feature_flags/#extra-scrape-metrics> for details. (@rlankfo)
 
 - Resolved issue in v2 integrations where if an instance name was a prefix of another the route handler would fail to
   match requests on the longer name (@mattdurham)
@@ -895,7 +896,7 @@ v0.21.0 (2021-11-17)
 v0.20.1 (2021-12-08)
 --------------------
 
-> *NOTE*: The fixes in this patch are only present in v0.20.1 and >=v0.21.2.
+> _NOTE_: The fixes in this patch are only present in v0.20.1 and >=v0.21.2.
 
 ### Security fixes
 
@@ -994,8 +995,8 @@ v0.19.0 (2021-09-29)
 - Reduced verbosity of tracing autologging by not logging `STATUS_CODE_UNSET`
   status codes. (@mapno)
 
-- Operator: rename Prometheus* CRDs to Metrics* and Prometheus* fields to
-  Metrics*. (@rfratto)
+- Operator: rename `Prometheus*` CRDs to `Metrics*` and `Prometheus*` fields to
+  `Metrics*`. (@rfratto)
 
 - Operator: CRDs are no longer referenced using a hyphen in the name to be
   consistent with how Kubernetes refers to resources. (@rfratto)
@@ -1254,7 +1255,7 @@ v0.14.0 (2021-05-24)
 
 ### Security fixes
 
-* The Scraping service API will now reject configs that read credentials from
+- The Scraping service API will now reject configs that read credentials from
   disk by default. This prevents malicious users from reading arbitrary files
   and sending their contents over the network. The old behavior can be
   re-enabled by setting `dangerous_allow_reading_files: true` in the scraping
@@ -1262,7 +1263,7 @@ v0.14.0 (2021-05-24)
 
 ### Breaking changes
 
-* Configuration for SigV4 has changed. (@rfratto)
+- Configuration for SigV4 has changed. (@rfratto)
 
 ### Deprecations
 
@@ -1415,9 +1416,9 @@ v0.12.0 (2021-02-05)
 
 ### Breaking Changes
 
-* The configuration format for the `loki` block has changed. (@rfratto)
+- The configuration format for the `loki` block has changed. (@rfratto)
 
-* The configuration format for the `tempo` block has changed. (@rfratto)
+- The configuration format for the `tempo` block has changed. (@rfratto)
 
 ### Features
 
@@ -1601,7 +1602,7 @@ v0.8.0 (2020-11-06)
 ### Enhancements
 
 - Add `<integration name>_build_info` metric to all integrations. The build
-  info displayed will match the build information of the Agent and *not* the
+  info displayed will match the build information of the Agent and _not_ the
   embedded exporter. This metric is used by community dashboards, so adding it
   to the Agent increases compatibility with existing dashboards that depend on
   it existing. (@rfratto)
@@ -1980,7 +1981,7 @@ v0.1.0 (2020-03-16)
 
 ### Features
 
-* Support for scraping Prometheus metrics and sharding the agent through the
+- Support for scraping Prometheus metrics and sharding the agent through the
   presence of a `host_filter` flag within the Agent configuration file.
 
 [upgrade guide]: https://grafana.com/docs/agent/latest/upgrade-guide/
