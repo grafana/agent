@@ -1,5 +1,4 @@
 import React, { FC, Fragment, ReactElement } from 'react';
-import { greatestIndex } from 'd3';
 
 import { ObjectField, Value, ValueType } from './types';
 

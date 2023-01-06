@@ -11,10 +11,14 @@ interface ComponentListProps {
   components: ComponentInfo[];
 }
 
+const TABLEHEADERS = ['Health', 'ID'];
+
 const ComponentList = ({ components }: ComponentListProps) => {
-  const tableHeaders = ['Health', 'ID'];
   const tableStyles = { width: '100px' };
 
+  /**
+   * Custom renderer for table data
+   */
   const renderTableData = () => {
     return components.map(({ health, id }) => (
       <tr key={id}>
@@ -33,7 +37,7 @@ const ComponentList = ({ components }: ComponentListProps) => {
 
   return (
     <div className={styles.list}>
-      <Table tableHeaders={tableHeaders} renderTableData={renderTableData} style={tableStyles} />
+      <Table tableHeaders={TABLEHEADERS} renderTableData={renderTableData} style={tableStyles} />
     </div>
   );
 };

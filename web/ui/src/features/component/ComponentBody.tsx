@@ -11,9 +11,10 @@ interface ComponentBodyProps {
   partition: PartitionedBody;
 }
 
+const TABLEHEADERS = ['Name', 'Value'];
+
 const ComponentBody = ({ partition }: ComponentBodyProps) => {
   const sectionClass = partition.key.length === 1 ? '' : styles.nested;
-  const tableHeaders = ['Name', 'Value'];
 
   const renderTableData = () => {
     return partition.attrs.map((attr) => {
@@ -54,7 +55,7 @@ const ComponentBody = ({ partition }: ComponentBodyProps) => {
             <em className={styles.informative}>(No set attributes in this block)</em>
           ) : (
             <div className={styles.list}>
-              <Table tableHeaders={tableHeaders} renderTableData={renderTableData} style={{ width: '200px' }} />
+              <Table tableHeaders={TABLEHEADERS} renderTableData={renderTableData} style={{ width: '200px' }} />
             </div>
           )}
         </div>

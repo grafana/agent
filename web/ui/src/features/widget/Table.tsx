@@ -8,6 +8,10 @@ interface Props {
   renderTableData: () => JSX.Element[];
 }
 
+/**
+ * Simple table component that accept a custom header, and custom render
+ * function for the table data
+ */
 const Table = ({ tableHeaders, style = {}, renderTableData }: Props) => {
   return (
     <table className={styles.table}>
