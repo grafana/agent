@@ -86,11 +86,12 @@ func newHTTPProvider(opts *remoteOpts) (*httpProvider, error) {
 func (p httpProvider) retrieve() ([]byte, error) {
 	response, err := p.httpClient.Get(p.myURL.String())
 	if err != nil {
+		instrumentation.RemoteConfigMetrics.RemoteConfigFetchError()
 		return nil, fmt.Errorf("request failed: %w", err)
 	}
 	defer response.Body.Close()
 
-	instrumentation.RemoteConfigMetrics.RemoteConfigFetch(response.StatusCode)
+	instrumentation.RemoteConfigMetrics.InstrumentRemoteConfigFetch(response.StatusCode)
 
 	if response.StatusCode/100 != 2 {
 		return nil, fmt.Errorf("error fetching config: status code: %d", response.StatusCode)
