@@ -57,9 +57,9 @@ spec:
     spec:
       containers:
       - args:
+        - -config.expand-env=true
         - -config.file=/etc/agent/agent.yaml
         - -server.http.address=0.0.0.0:80
-        - -config.expand-env
         command:
         - /bin/agent
         env:
