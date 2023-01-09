@@ -34,16 +34,18 @@ Main (unreleased)
   - `otelcol.receiver.kafka` receives telemetry data from Kafka. (@rfratto)
   - `phlare.scrape` collects application performance profiles. (@cyriltovena)
   - `phlare.write` sends application performance profiles to Grafana Phlare. (@cyriltovena)
-
   - `otelcol.receiver.zipkin` receives Zipkin-formatted traces. (@rfratto)
 
 ### Enhancements
 
 - Handle faro-web-sdk `View` meta in app_agent_receiver. (@rlankfo)
 
+- Flow: the targets in debug info from `loki.source.file` are now individual blocks. (@rfratto)
+
 ### Bugfixes
 
 - Flow UI: Fix the issue with messy layout on the component list page while browser window resize. (@xiyu95)
+
 - Flow UI: Fix the issue with long string going out of bound in the component detail page. (@xiyu95)
 
 ### Other changes

@@ -201,7 +201,7 @@ func (c *Component) DebugInfo() interface{} {
 }
 
 type readerDebugInfo struct {
-	TargetsInfo []targetInfo `river:"targets_info,attr"`
+	TargetsInfo []targetInfo `river:"targets_info,block"`
 }
 
 type targetInfo struct {
