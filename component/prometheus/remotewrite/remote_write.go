@@ -6,6 +6,7 @@ import (
 	"math"
 	"path/filepath"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/prometheus/prometheus/model/exemplar"
@@ -50,6 +51,7 @@ type Component struct {
 	walStore    *wal.Storage
 	remoteStore *remote.Storage
 	storage     storage.Storage
+	isRunning   atomic.Bool
 
 	mut sync.RWMutex
 	cfg Arguments
@@ -86,6 +88,10 @@ func NewComponent(o component.Options, c Arguments) (*Component, error) {
 		// ID" to ensure Flow compatibility.
 
 		prometheus.WithAppendHook(func(globalRef storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
+			if !res.isRunning.Load() {
+				return 0, fmt.Errorf("%s is not running", o.ID)
+			}
+
 			localID := prometheus.GlobalRefMapping.GetLocalRefID(res.opts.ID, uint64(globalRef))
 			newRef, nextErr := next.Append(storage.SeriesRef(localID), l, t, v)
 			if localID == 0 {
@@ -94,6 +100,10 @@ func NewComponent(o component.Options, c Arguments) (*Component, error) {
 			return globalRef, nextErr
 		}),
 		prometheus.WithMetadataHook(func(globalRef storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error) {
+			if !res.isRunning.Load() {
+				return 0, fmt.Errorf("%s is not running", o.ID)
+			}
+
 			localID := prometheus.GlobalRefMapping.GetLocalRefID(res.opts.ID, uint64(globalRef))
 			newRef, nextErr := next.UpdateMetadata(storage.SeriesRef(localID), l, m)
 			if localID == 0 {
@@ -102,6 +112,10 @@ func NewComponent(o component.Options, c Arguments) (*Component, error) {
 			return globalRef, nextErr
 		}),
 		prometheus.WithExemplarHook(func(globalRef storage.SeriesRef, l labels.Labels, e exemplar.Exemplar, next storage.Appender) (storage.SeriesRef, error) {
+			if !res.isRunning.Load() {
+				return 0, fmt.Errorf("%s is not running", o.ID)
+			}
+
 			localID := prometheus.GlobalRefMapping.GetLocalRefID(res.opts.ID, uint64(globalRef))
 			newRef, nextErr := next.AppendExemplar(storage.SeriesRef(localID), l, e)
 			if localID == 0 {
@@ -127,7 +141,11 @@ var _ component.Component = (*Component)(nil)
 
 // Run implements Component.
 func (c *Component) Run(ctx context.Context) error {
+	c.isRunning.Store(true)
+
 	defer func() {
+		c.isRunning.Store(false)
+
 		level.Debug(c.log).Log("msg", "closing storage")
 		err := c.storage.Close()
 		level.Debug(c.log).Log("msg", "storage closed")
