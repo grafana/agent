@@ -46,11 +46,14 @@ Name              | Type                 | Description                          
 
 The following blocks are supported inside the definition of `loki.process`:
 
-Hierarchy      | Block      | Description | Required
--------------- | ---------- | ----------- | --------
-stage          | [stage][]  | Processing stage to run. | no
-stage > json   | [json][]   | Configures a JSON processing stage.  | no
-stage > labels | [labels][] | Configures a labels processing stage. | no
+Hierarchy        | Block      | Description | Required
+---------------- | ---------- | ----------- | --------
+`stage`          | [stage][]  | Processing stage to run. | no
+`stage > json`   | [json][]   | Configures a JSON processing stage.  | no
+`stage > labels` | [labels][] | Configures a labels processing stage. | no
+`stage > labelallow`   | [labelallow][]    | Configures a labelallow processing stage. | no
+`stage > labeldrop`    | [labeldrop][]     | Configures a labeldrop processing stage. | no
+`stage > static_labels`| [static_labels][] | Configures a static_labels processing stage. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `stage > json`
 refers to a `json` block defined inside of a `stage` block.
@@ -58,6 +61,9 @@ refers to a `json` block defined inside of a `stage` block.
 [stage]: #stage-block
 [json]: #json-block
 [labels]: #labels-block
+[labelallow]: #labelallow-block
+[labeldrop]: #labeldrop-block
+[static_labels]: #static_labels-block
 
 ### stage block
 
@@ -148,6 +154,68 @@ stage {
 		values = {
 			env  = "",         // Sets up an 'env' label, based on the 'env' extracted value.
 			user = "username", // Sets up a 'user' label, based on the 'username' extracted value.
+		}
+	}
+}
+```
+
+### labelallow block
+
+The `labelallow` inner block configures a labelallow processing stage that
+filters the label set of an incoming log entry to only keep a subset of them.
+
+The following arguments are supported:
+
+Name        | Type          | Description                                   | Default        | Required
+----------- | --------------| --------------------------------------------- | -------------- | --------
+`values`    | `map(string)` | Configures a `labelallow` processing stage.   | `{}`           | no
+
+
+```river
+stage {
+	labelallow {
+		values = [ "kubernetes_pod_name", "kubernetes_container_name" ]
+	}
+}
+```
+
+### labeldrop block
+
+The `labeldrop` inner block configures a labeldrop processing stage that drops
+labels from incoming log entries.
+
+The following arguments are supported:
+
+Name         | Type          | Description                                  | Default        | Required
+------------ | --------------| -------------------------------------------- | -------------- | --------
+`values`     | `map(string)` | Configures a `labeldrop` processing stage.   | `{}`           | no
+
+```river
+stage {
+	labeldrop {
+		values = [ "kubernetes_node_name", "kubernetes_namespace" ]
+	}
+}
+```
+
+### static_labels block
+
+The `static_labels` inner block configures a static_labels processing stage
+that adds a static set of labels to incoming log entries.
+
+The following arguments are supported:
+
+Name         | Type          | Description                                      | Default        | Required
+------------ | --------------| ------------------------------------------------ | -------------- | --------
+`values`     | `map(string)` | Configures a `static_labels` processing stage.   | `{}`           | no
+
+
+```river
+stage {
+	static_labels {
+		values = {
+			foo = "fooval",
+			bar = "barval",
 		}
 	}
 }

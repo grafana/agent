@@ -20,8 +20,11 @@ import (
 // We define these as pointers types so we can use reflection to check that
 // exactly one is set.
 type StageConfig struct {
-	JSONConfig   *JSONConfig   `river:"json,block,optional"`
-	LabelsConfig *LabelsConfig `river:"labels,block,optional"`
+	JSONConfig         *JSONConfig         `river:"json,block,optional"`
+	LabelsConfig       *LabelsConfig       `river:"labels,block,optional"`
+	LabelAllowConfig   *LabelAllowConfig   `river:"labelallow,block,optional"`
+	LabelDropConfig    *LabelDropConfig    `river:"labeldrop,block,optional"`
+	StaticLabelsConfig *StaticLabelsConfig `river:"static_labels,block,optional"`
 }
 
 // UnmarshalRiver implements river.Unmarshaler.
