@@ -5,13 +5,12 @@ package stages
 // new code without being able to slowly review, examine and test them.
 
 import (
+	"errors"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/prometheus/common/model"
 )
 
-// Config Errors.
 const (
 	// ErrEmptyLabelAllowStageConfig error returned if config is empty
 	ErrEmptyLabelAllowStageConfig = "labelallow stage config cannot be empty"
@@ -50,7 +49,7 @@ type labelAllowStage struct {
 	labels map[string]struct{}
 }
 
-// Process implements Stage
+// Process implements Stage.
 func (l *labelAllowStage) Process(labels model.LabelSet, extracted map[string]interface{}, t *time.Time, entry *string) {
 	for label := range labels {
 		if _, ok := l.labels[string(label)]; !ok {
@@ -59,7 +58,7 @@ func (l *labelAllowStage) Process(labels model.LabelSet, extracted map[string]in
 	}
 }
 
-// Name implements Stage
+// Name implements Stage.
 func (l *labelAllowStage) Name() string {
 	return StageTypeLabelAllow
 }

@@ -5,13 +5,13 @@ package stages
 // new code without being able to slowly review, examine and test them.
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"time"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/pkg/errors"
 	"github.com/prometheus/common/model"
 )
 
@@ -43,20 +43,20 @@ func newStaticLabelsStage(logger log.Logger, config *StaticLabelsConfig) (Stage,
 		return nil, err
 	}
 
-	return toStage(&StaticLabelStage{
+	return toStage(&staticLabelStage{
 		Config: *config,
 		logger: logger,
 	}), nil
 }
 
-type StaticLabelStage struct {
+// staticLabelStage implements Stage.
+type staticLabelStage struct {
 	Config StaticLabelsConfig
 	logger log.Logger
 }
 
-// Process implements Stage
-func (l *StaticLabelStage) Process(labels model.LabelSet, extracted map[string]interface{}, t *time.Time, entry *string) {
-
+// Process implements Stage.
+func (l *staticLabelStage) Process(labels model.LabelSet, extracted map[string]interface{}, t *time.Time, entry *string) {
 	for lName, lSrc := range l.Config.Values {
 		if lSrc == nil || *lSrc == "" {
 			continue
@@ -76,7 +76,7 @@ func (l *StaticLabelStage) Process(labels model.LabelSet, extracted map[string]i
 	}
 }
 
-// Name implements Stage
-func (l *StaticLabelStage) Name() string {
+// Name implements Stage.
+func (l *staticLabelStage) Name() string {
 	return StageTypeStaticLabels
 }
