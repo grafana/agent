@@ -121,6 +121,8 @@ v0.30.0 (2022-12-20)
 
 ### Enhancements
 
+- Update agent-loki.yaml to use environment variables in the configuration file (@go4real)
+
 - Integrations: Always use direct connection in mongodb_exporter integration. (@v-zhuravlev)
 
 - Update OpenTelemetry Collector dependency to v0.63.1. (@tpaschalis)
