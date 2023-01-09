@@ -10,6 +10,12 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Bugfixes
+
+- Flow: `prometheus.relabel` will no longer modify the labels of the original
+  metrics, which could lead to relabel rules applying incorrectly on subsequent
+  relabels. (@rfratto)
+
 v0.30.1 (2022-12-23)
 --------------------
 
