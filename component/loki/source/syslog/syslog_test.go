@@ -1,1 +1,125 @@
 package syslog
+
+import (
+	"context"
+	"fmt"
+	"io"
+	"net"
+	"os"
+	"testing"
+	"time"
+
+	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/phayes/freeport"
+	"github.com/prometheus/common/model"
+	"github.com/stretchr/testify/require"
+)
+
+func Test(t *testing.T) {
+	// Create opts for component
+	l, err := logging.New(os.Stderr, logging.DefaultOptions)
+	require.NoError(t, err)
+
+	opts := component.Options{Logger: l}
+
+	ch1, ch2 := make(chan loki.Entry), make(chan loki.Entry)
+	args := Arguments{}
+	tcpListenerAddr, udpListenerAddr := getFreeAddr(t), getFreeAddr(t)
+
+	args.SyslogListeners = []ListenerConfig{
+		{
+			ListenAddress:  tcpListenerAddr,
+			ListenProtocol: "tcp",
+			Labels:         map[string]string{"protocol": "tcp"},
+		},
+		{
+			ListenAddress:  udpListenerAddr,
+			ListenProtocol: "udp",
+			Labels:         map[string]string{"protocol": "udp"},
+		},
+	}
+	args.ForwardTo = []loki.LogsReceiver{ch1, ch2}
+
+	// Create and run the component.
+	c, err := New(opts, args)
+	require.NoError(t, err)
+
+	go c.Run(context.Background())
+	time.Sleep(200 * time.Millisecond)
+
+	// Create and send a Syslog message over TCP to the first listener.
+	msg := `<165>1 2023-01-05T09:13:17.001Z host1 app - id1 [exampleSDID@32473 iut="3" eventSource="Application" eventID="1011"][examplePriority@32473 class="high"] An application event log entry...`
+	con, err := net.Dial("tcp", tcpListenerAddr)
+	require.NoError(t, err)
+
+	writeMessageToStream(con, msg, fmtNewline)
+	err = con.Close()
+	require.NoError(t, err)
+
+	wantLabelSet := model.LabelSet{"protocol": "tcp"}
+
+	for i := 0; i < 2; i++ {
+		select {
+		case logEntry := <-ch1:
+			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
+			require.Equal(t, "An application event log entry...", logEntry.Line)
+			require.Equal(t, wantLabelSet, logEntry.Labels)
+		case logEntry := <-ch2:
+			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
+			require.Equal(t, "An application event log entry...", logEntry.Line)
+			require.Equal(t, wantLabelSet, logEntry.Labels)
+		case <-time.After(5 * time.Second):
+			require.FailNow(t, "failed waiting for log line")
+		}
+	}
+
+	// Create and send a Syslog message over UDP to the second listener.
+	con, err = net.Dial("udp", udpListenerAddr)
+	require.NoError(t, err)
+	writeMessageToStream(con, msg, fmtOctetCounting)
+	err = con.Close()
+	require.NoError(t, err)
+
+	wantLabelSet = model.LabelSet{"protocol": "udp"}
+
+	for i := 0; i < 2; i++ {
+		select {
+		case logEntry := <-ch1:
+			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
+			require.Equal(t, "An application event log entry...", logEntry.Line)
+			require.Equal(t, wantLabelSet, logEntry.Labels)
+		case logEntry := <-ch2:
+			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
+			require.Equal(t, "An application event log entry...", logEntry.Line)
+			require.Equal(t, wantLabelSet, logEntry.Labels)
+		case <-time.After(5 * time.Second):
+			require.FailNow(t, "failed waiting for log line")
+		}
+	}
+}
+
+func getFreeAddr(t *testing.T) string {
+	t.Helper()
+
+	portNumber, err := freeport.GetFreePort()
+	require.NoError(t, err)
+
+	return fmt.Sprintf("127.0.0.1:%d", portNumber)
+}
+
+func writeMessageToStream(w io.Writer, msg string, formatter formatFunc) error {
+	_, err := fmt.Fprint(w, formatter(msg))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+type formatFunc func(string) string
+
+var (
+	fmtOctetCounting = func(s string) string { return fmt.Sprintf("%d %s", len(s), s) }
+	fmtNewline       = func(s string) string { return s + "\n" }
+)
