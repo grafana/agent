@@ -1,6 +1,7 @@
 package relabel
 
 import (
+	"fmt"
 	"math"
 	"os"
 	"testing"
@@ -12,6 +13,8 @@ import (
 	"github.com/grafana/agent/component"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/prometheus"
+	"github.com/grafana/agent/pkg/flow/componenttest"
+	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
 	prom "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/labels"
@@ -147,4 +150,51 @@ func generateRelabel(t *testing.T) *Component {
 	require.NotNil(t, relabeller)
 	require.NoError(t, err)
 	return relabeller
+}
+
+func TestRuleGetter(t *testing.T) {
+	// Set up the component Arguments.
+	originalCfg := `rule {
+         action       = "keep"
+		 source_labels = ["__name__"]
+         regex        = "up"
+       }
+		forward_to = []`
+	var args Arguments
+	require.NoError(t, river.Unmarshal([]byte(originalCfg), &args))
+
+	// Set up and start the component.
+	tc, err := componenttest.NewControllerFromID(nil, "prometheus.relabel")
+	require.NoError(t, err)
+	go func() {
+		err = tc.Run(componenttest.TestContext(t), args)
+		require.NoError(t, err)
+	}()
+	require.NoError(t, tc.WaitExports(time.Second))
+
+	// Use the getter to retrieve the original relabeling rules.
+	exports := tc.Exports().(Exports)
+	fmt.Println("exports:", exports.Receiver, "exports.rules", exports.Rules)
+	gotOriginal := exports.Rules()
+
+	// Update the component with new relabeling rules and retrieve them.
+	updatedCfg := `rule {
+         action       = "drop"
+		 source_labels = ["__name__"]
+         regex        = "up"
+       }
+		forward_to = []`
+	require.NoError(t, river.Unmarshal([]byte(updatedCfg), &args))
+
+	require.NoError(t, tc.Update(args))
+	gotUpdated := exports.Rules()
+
+	require.NotEqual(t, gotOriginal, gotUpdated)
+	require.Len(t, gotOriginal, 1)
+	require.Len(t, gotUpdated, 1)
+
+	require.Equal(t, gotOriginal[0].Action, relabel.Keep)
+	require.Equal(t, gotUpdated[0].Action, relabel.Drop)
+	require.Equal(t, gotUpdated[0].SourceLabels, gotOriginal[0].SourceLabels)
+	require.Equal(t, gotUpdated[0].Regex, gotOriginal[0].Regex)
 }

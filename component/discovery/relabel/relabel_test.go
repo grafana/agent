@@ -8,6 +8,7 @@ import (
 	"github.com/grafana/agent/component/discovery/relabel"
 	"github.com/grafana/agent/pkg/flow/componenttest"
 	"github.com/grafana/agent/pkg/river"
+	prom_relabel "github.com/prometheus/prometheus/model/relabel"
 	"github.com/stretchr/testify/require"
 )
 
@@ -54,10 +55,8 @@ rule {
 	regex  = "__meta(.*)|__tmp(.*)|instance"
 }
 `
-	expectedExports := relabel.Exports{
-		Output: []discovery.Target{
-			map[string]string{"__address__": "localhost", "app": "backend", "destination": "localhost/one", "meta_bar": "bar", "meta_foo": "foo", "name": "one"},
-		},
+	expectedOutput := []discovery.Target{
+		map[string]string{"__address__": "localhost", "app": "backend", "destination": "localhost/one", "meta_bar": "bar", "meta_foo": "foo", "name": "one"},
 	}
 
 	var args relabel.Arguments
@@ -71,5 +70,55 @@ rule {
 	}()
 
 	require.NoError(t, tc.WaitExports(time.Second))
-	require.Equal(t, expectedExports, tc.Exports())
+	require.Equal(t, expectedOutput, tc.Exports().(relabel.Exports).Output)
+	require.NotNil(t, tc.Exports().(relabel.Exports).Rules)
+}
+
+func TestRuleGetter(t *testing.T) {
+	originalCfg := `
+targets = []
+
+rule {
+	action        = "keep"
+	source_labels = ["__name__"]
+	regex         = "up"
+}`
+	var args relabel.Arguments
+	require.NoError(t, river.Unmarshal([]byte(originalCfg), &args))
+
+	tc, err := componenttest.NewControllerFromID(nil, "discovery.relabel")
+	require.NoError(t, err)
+	go func() {
+		err = tc.Run(componenttest.TestContext(t), args)
+		require.NoError(t, err)
+	}()
+
+	require.NoError(t, tc.WaitExports(time.Second))
+
+	// Use the getter to retrieve the original relabeling rules.
+	exports := tc.Exports().(relabel.Exports)
+	gotOriginal := exports.Rules()
+
+	// Update the component with new relabeling rules and retrieve them.
+	updatedCfg := `
+targets = []
+
+rule {
+	action        = "drop"
+	source_labels = ["__name__"]
+	regex         = "up"
+}`
+	require.NoError(t, river.Unmarshal([]byte(updatedCfg), &args))
+
+	require.NoError(t, tc.Update(args))
+	gotUpdated := exports.Rules()
+
+	require.NotEqual(t, gotOriginal, gotUpdated)
+	require.Len(t, gotOriginal, 1)
+	require.Len(t, gotUpdated, 1)
+
+	require.Equal(t, gotOriginal[0].Action, prom_relabel.Keep)
+	require.Equal(t, gotUpdated[0].Action, prom_relabel.Drop)
+	require.Equal(t, gotUpdated[0].SourceLabels, gotOriginal[0].SourceLabels)
+	require.Equal(t, gotUpdated[0].Regex, gotOriginal[0].Regex)
 }

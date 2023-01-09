@@ -58,7 +58,8 @@ func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 
 // Exports holds values which are exported by the loki.relabel component.
 type Exports struct {
-	Receiver loki.LogsReceiver `river:"receiver,attr"`
+	Receiver loki.LogsReceiver  `river:"receiver,attr"`
+	Rules    flow_relabel.Rules `river:"rules,attr"`
 }
 
 // Component implements the loki.relabel component.
@@ -96,7 +97,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	// Create and immediately export the receiver which remains the same for
 	// the component's lifetime.
 	c.receiver = make(loki.LogsReceiver)
-	o.OnStateChange(Exports{Receiver: c.receiver})
+	o.OnStateChange(Exports{Receiver: c.receiver, Rules: c.getRules})
 
 	// Call to Update() to set the relabelling rules once at the start.
 	if err := c.Update(args); err != nil {
@@ -228,4 +229,11 @@ func (c *Component) process(e loki.Entry) model.LabelSet {
 		relabeled[model.LabelName(lbls[i].Name)] = model.LabelValue(lbls[i].Value)
 	}
 	return relabeled
+}
+
+func (c *Component) getRules() []*relabel.Config {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+
+	return c.rcs
 }

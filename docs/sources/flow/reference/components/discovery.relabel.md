@@ -75,6 +75,7 @@ The following fields are exported and can be referenced by other components:
 Name | Type | Description
 ---- | ---- | -----------
 `output` | `list(map(string))` | The set of targets after applying relabeling.
+`rules`    | `relabel.Rules` | A function that returns the currently configured relabeling rules.
 
 ## Component health
 

@@ -184,3 +184,6 @@ func ComponentToPromRelabelConfigs(rcs []*Config) []*relabel.Config {
 
 	return res
 }
+
+// Rules returns the relabel configs in use for a relabeling component.
+type Rules func() []*relabel.Config

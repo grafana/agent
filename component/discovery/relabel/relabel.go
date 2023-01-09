@@ -34,11 +34,13 @@ type Arguments struct {
 // Exports holds values which are exported by the discovery.relabel component.
 type Exports struct {
 	Output []discovery.Target `river:"output,attr"`
+	Rules  flow_relabel.Rules `river:"rules,attr"`
 }
 
 // Component implements the discovery.relabel component.
 type Component struct {
 	opts component.Options
+	rcs  []*relabel.Config
 }
 
 var _ component.Component = (*Component)(nil)
@@ -67,6 +69,7 @@ func (c *Component) Update(args component.Arguments) error {
 
 	targets := make([]discovery.Target, 0, len(newArgs.Targets))
 	relabelConfigs := flow_relabel.ComponentToPromRelabelConfigs(newArgs.RelabelConfigs)
+	c.rcs = relabelConfigs
 
 	for _, t := range newArgs.Targets {
 		lset := componentMapToPromLabels(t)
@@ -78,9 +81,14 @@ func (c *Component) Update(args component.Arguments) error {
 
 	c.opts.OnStateChange(Exports{
 		Output: targets,
+		Rules:  c.getRules,
 	})
 
 	return nil
+}
+
+func (c *Component) getRules() []*relabel.Config {
+	return c.rcs
 }
 
 func componentMapToPromLabels(ls discovery.Target) labels.Labels {

@@ -14,7 +14,7 @@ import (
 )
 
 // LogsReceiver is an alias for chan Entry which will be used for component
-// communication
+// communication.
 type LogsReceiver chan Entry
 
 // Entry is a log entry with labels.

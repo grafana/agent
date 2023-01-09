@@ -72,6 +72,7 @@ The following fields are exported and can be referenced by other components:
 Name | Type | Description
 ---- | ---- | -----------
 `receiver` | `receiver` | The input receiver where samples are sent to be relabeled.
+`rules`    | `relabel.Rules` | A function that returns the currently configured relabeling rules.
 
 ## Component health
 
