@@ -48,6 +48,10 @@ Main (unreleased)
 
 - Flow UI: Fix the issue with long string going out of bound in the component detail page. (@xiyu95)
 
+- Flow: `prometheus.relabel` will no longer modify the labels of the original
+  metrics, which could lead to relabel rules applying incorrectly on subsequent
+  relabels. (@rfratto)
+
 ### Other changes
 
 - Use Go 1.19.4 for builds. (@erikbaranowski)
