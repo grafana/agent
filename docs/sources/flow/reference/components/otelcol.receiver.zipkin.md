@@ -60,8 +60,7 @@ refers to a `tls` block defined inside a `grpc` block.
 
 ### http block
 
-The `http` block configures the HTTP server used by the component. If the
-`http` block isn't specified, an HTTP server isn't started.
+The `http` block configures the HTTP server used by the component.
 
 The following arguments are supported:
 
