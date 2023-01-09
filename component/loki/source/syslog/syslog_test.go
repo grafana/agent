@@ -53,7 +53,6 @@ func Test(t *testing.T) {
 	msg := `<165>1 2023-01-05T09:13:17.001Z host1 app - id1 [exampleSDID@32473 iut="3" eventSource="Application" eventID="1011"][examplePriority@32473 class="high"] An application event log entry...`
 	con, err := net.Dial("tcp", tcpListenerAddr)
 	require.NoError(t, err)
-
 	writeMessageToStream(con, msg, fmtNewline)
 	err = con.Close()
 	require.NoError(t, err)
@@ -75,7 +74,7 @@ func Test(t *testing.T) {
 		}
 	}
 
-	// Create and send a Syslog message over UDP to the second listener.
+	// Send a Syslog message over UDP to the second listener.
 	con, err = net.Dial("udp", udpListenerAddr)
 	require.NoError(t, err)
 	writeMessageToStream(con, msg, fmtOctetCounting)
