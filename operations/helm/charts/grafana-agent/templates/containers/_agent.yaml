@@ -1,0 +1,58 @@
+{{- define "grafana-agent.container" -}}
+- name: grafana-agent
+  image: {{ .Values.image.repository }}:{{ include "grafana-agent.imageTag" . }}
+  args:
+    - run
+    - /etc/agent/{{ include "grafana-agent.config-map.key" . }}
+    - --storage.path={{ .Values.agent.storagePath }}
+    - --server.http.listen-addr={{ .Values.agent.listenAddr }}:{{ .Values.agent.listenPort }}
+    {{- if not .Values.agent.enableReporting }}
+    - --disable-reporting
+    {{- end}}
+    {{- range .Values.agent.extraArgs }}
+    - {{ . }}
+    {{- end}}
+  env:
+    - name: AGENT_MODE
+      value: {{ .Values.agent.mode }}
+    - name: HOSTNAME
+      valueFrom:
+        fieldRef:
+          fieldPath: spec.nodeName
+    {{- range .Values.agent.extraEnv }}
+    - {{- toYaml . | nindent 6 }}
+    {{- end }}
+  ports:
+    - containerPort: {{ .Values.agent.listenPort }}
+      name: http-metrics
+  readinessProbe:
+    httpGet:
+      path: /-/ready
+      port: {{ .Values.agent.listenPort }}
+    initialDelaySeconds: 10
+    timeoutSeconds: 1
+  {{- with .Values.agent.resources }}
+  resources:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.agent.securityContext }}
+  securityContext:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  volumeMounts:
+    - name: config
+      mountPath: /etc/agent
+    {{- if .Values.agent.mounts.varlog }}
+    - name: varlog
+      mountPath: /var/log
+      readOnly: true
+    {{- end }}
+    {{- if .Values.agent.mounts.dockercontainers }}
+    - name: dockercontainers
+      mountPath: /var/lib/docker/containers
+      readOnly: true
+    {{- end }}
+    {{- range .Values.agent.mounts.extra }}
+    - {{- toYaml . | nindent 6 }}
+    {{- end }}
+{{- end }}

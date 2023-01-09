@@ -1,0 +1,25 @@
+{{- define "grafana-agent.watch-container" -}}
+{{- if .Values.configReloader.enabled -}}
+- name: config-reloader
+  image: {{ .Values.configReloader.image.repository }}:{{ .Values.configReloader.image.tag }}
+  {{- if .Values.configReloader.customArgs }}
+  args:
+    {{- toYaml .Values.configReloader.customArgs | nindent 4 }}
+  {{- else }}
+  args:
+    - -v
+    - -p=/etc/agent/config.river
+    - curl
+    - -X
+    - POST
+    - --fail
+    - -o
+    - '-'
+    - -sS
+    - http://localhost:{{ .Values.agent.listenPort }}/-/reload
+  {{- end }}
+  volumeMounts:
+    - name: config
+      mountPath: /etc/agent
+{{- end }}
+{{- end -}}
