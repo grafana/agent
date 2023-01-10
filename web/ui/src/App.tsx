@@ -1,10 +1,7 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Navbar from './features/layout/Navbar';
-import PageComponentList from './pages/PageComponentList';
-import Graph from './pages/Graph';
-import styles from './App.module.css';
-import { ComponentDetailPage } from './pages/ComponentDetailPage';
 import { PathPrefixContext } from './contexts/PathPrefixContext';
+import Router from './Router';
+
+import styles from './App.module.css';
 
 /**
  * getBasePath retrieves the base path of the application by looking at the
@@ -28,17 +25,7 @@ function App() {
   return (
     <PathPrefixContext.Provider value={basePath}>
       <div className={styles.app}>
-        <BrowserRouter basename={basePath}>
-          <Navbar />
-          <main>
-            <Routes>
-              <Route path="/" element={<PageComponentList />} />
-              <Route path="/components" element={<PageComponentList />} />
-              <Route path="/component/:id" element={<ComponentDetailPage />} />
-              <Route path="/graph" element={<Graph />} />
-            </Routes>
-          </main>
-        </BrowserRouter>
+        <Router basePath={basePath} />
       </div>
     </PathPrefixContext.Provider>
   );
