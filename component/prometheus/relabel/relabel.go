@@ -42,12 +42,14 @@ type Arguments struct {
 // Exports holds values which are exported by the prometheus.relabel component.
 type Exports struct {
 	Receiver storage.Appendable `river:"receiver,attr"`
+	Rules    flow_relabel.Rules `river:"rules,attr"`
 }
 
 // Component implements the prometheus.relabel component.
 type Component struct {
 	mut              sync.RWMutex
 	opts             component.Options
+	mrcFlow          []*flow_relabel.Config
 	mrc              []*relabel.Config
 	receiver         *prometheus.Interceptor
 	metricsProcessed prometheus_client.Counter
@@ -129,7 +131,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 	// Immediately export the receiver which remains the same for the component
 	// lifetime.
-	o.OnStateChange(Exports{Receiver: c.receiver})
+	o.OnStateChange(Exports{Rules: c.getRules})
 
 	// Call to Update() to set the relabelling rules once at the start.
 	if err = c.Update(args); err != nil {
@@ -153,8 +155,8 @@ func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 	c.clearCache()
 	c.mrc = flow_relabel.ComponentToPromRelabelConfigs(newArgs.MetricRelabelConfigs)
+	c.mrcFlow = newArgs.MetricRelabelConfigs
 	c.fanout.UpdateChildren(newArgs.ForwardTo)
-	c.opts.OnStateChange(Exports{Receiver: c.receiver})
 
 	return nil
 }
@@ -173,7 +175,9 @@ func (c *Component) relabel(val float64, lbls labels.Labels) labels.Labels {
 			relabelled = newLbls.labels
 		}
 	} else {
-		relabelled = relabel.Process(lbls, c.mrc...)
+		// Relabel against a copy of the labels to prevent modifying the original
+		// slice.
+		relabelled = relabel.Process(lbls.Copy(), c.mrc...)
 		c.cacheMisses.Inc()
 		c.cacheSize.Inc()
 		c.addToCache(globalRef, relabelled)
@@ -234,4 +238,11 @@ func (c *Component) addToCache(originalID uint64, lbls labels.Labels) {
 type labelAndID struct {
 	labels labels.Labels
 	id     uint64
+}
+
+func (c *Component) getRules() []*flow_relabel.Config {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+
+	return c.mrcFlow
 }

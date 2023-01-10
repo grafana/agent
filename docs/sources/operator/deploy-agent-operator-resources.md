@@ -426,4 +426,10 @@ You've now rolled out the following into your cluster:
 - A `LogsInstance` resource that defines where to ship collected logs.
 - A `PodLogs` resource to collect container logs from Kubernetes Pods.
 
+## What's next
+
 You can verify that everything is working correctly by navigating to your Grafana instance and querying your Loki and Prometheus data sources.
+
+> Tip: You can deploy multiple GrafanaAgent resources to isolate allocated resources to the agent pods. By default, the GrafanaAgent resource determines the resources of all deployed agent containers. However, you might want different memory limits for metrics versus logs. 
+
+

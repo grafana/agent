@@ -10,20 +10,52 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+> **BREAKING CHANGES**: This release has breaking changes. Please read entries
+> carefully and consult the [upgrade guide][] for specific instructions.
+
+### Breaking changes
+
+- Release binaries (including inside Docker containers) have been renamed to be
+  prefixed with `grafana-` (@rfratto):
+
+  - `agent` is now `grafana-agent`.
+  - `agentctl` is now `grafana-agentctl`.
+  - `agent-operator` is now `grafana-agent-operator`.
+
+### Deprecations
+
+- A symbolic link in Docker containers from the old binary name to the new
+  binary name has been added. These symbolic links will be removed in v0.33. (@rfratto)
+
 ### Features
 
 - New Grafana Agent Flow components:
 
   - `otelcol.receiver.kafka` receives telemetry data from Kafka. (@rfratto)
+  - `phlare.scrape` collects application performance profiles. (@cyriltovena)
+  - `phlare.write` sends application performance profiles to Grafana Phlare. (@cyriltovena)
+  - `otelcol.receiver.zipkin` receives Zipkin-formatted traces. (@rfratto)
+
+- Flow components which work with relabeling rules (`discovery.relabel`,
+  `prometheus.relabel` and `loki.relabel`) now export a new value named Rules.
+  This value is a function that returns the currently configured rules.
+  (@tpaschalis)
 
 ### Enhancements
 
 - Handle faro-web-sdk `View` meta in app_agent_receiver. (@rlankfo)
 
+- Flow: the targets in debug info from `loki.source.file` are now individual blocks. (@rfratto)
+
 ### Bugfixes
 
-- Flow UI: Fix the issue with messy layout on the component list page while
-  browser window resize (@xiyu95)
+- Flow UI: Fix the issue with messy layout on the component list page while browser window resize. (@xiyu95)
+
+- Flow UI: Fix the issue with long string going out of bound in the component detail page. (@xiyu95)
+
+- Flow: `prometheus.relabel` will no longer modify the labels of the original
+  metrics, which could lead to relabel rules applying incorrectly on subsequent
+  relabels. (@rfratto)
 
 ### Other changes
 
@@ -90,9 +122,15 @@ v0.30.0 (2022-12-20)
   - `discovery.file` discovers files on the filesystem following glob
     patterns. (@mattdurham)
 
+  - `mimir.rules.kubernetes` discovers `PrometheusRule` Kubernetes resources and
+    loads them into a Mimir instance. (@Logiraptor)
+
 - Integrations: Introduce the `snowflake` integration. (@binaryfissiongames)
 
+
 ### Enhancements
+
+- Update agent-loki.yaml to use environment variables in the configuration file (@go4real)
 
 - Integrations: Always use direct connection in mongodb_exporter integration. (@v-zhuravlev)
 
@@ -423,7 +461,6 @@ v0.25.1 (2022-06-16)
 
 - Unwrap replayWAL error before attempting corruption repair. (@rlankfo)
 
-
 v0.25.0 (2022-06-06)
 --------------------
 
@@ -462,7 +499,7 @@ v0.25.0 (2022-06-06)
 
 - Enable `proxy_url` support on `oauth2` for metrics and logs (update **prometheus/common** dependency to `v0.33.0`). (@martin-jaeger-maersk)
 
-- `extra-scrape-metrics` can now be enabled with the `--enable-features=extra-scrape-metrics` feature flag. See https://prometheus.io/docs/prometheus/2.31/feature_flags/#extra-scrape-metrics for details. (@rlankfo)
+- `extra-scrape-metrics` can now be enabled with the `--enable-features=extra-scrape-metrics` feature flag. See <https://prometheus.io/docs/prometheus/2.31/feature_flags/#extra-scrape-metrics> for details. (@rlankfo)
 
 - Resolved issue in v2 integrations where if an instance name was a prefix of another the route handler would fail to
   match requests on the longer name (@mattdurham)
@@ -878,7 +915,7 @@ v0.21.0 (2021-11-17)
 v0.20.1 (2021-12-08)
 --------------------
 
-> *NOTE*: The fixes in this patch are only present in v0.20.1 and >=v0.21.2.
+> _NOTE_: The fixes in this patch are only present in v0.20.1 and >=v0.21.2.
 
 ### Security fixes
 
@@ -977,8 +1014,8 @@ v0.19.0 (2021-09-29)
 - Reduced verbosity of tracing autologging by not logging `STATUS_CODE_UNSET`
   status codes. (@mapno)
 
-- Operator: rename Prometheus* CRDs to Metrics* and Prometheus* fields to
-  Metrics*. (@rfratto)
+- Operator: rename `Prometheus*` CRDs to `Metrics*` and `Prometheus*` fields to
+  `Metrics*`. (@rfratto)
 
 - Operator: CRDs are no longer referenced using a hyphen in the name to be
   consistent with how Kubernetes refers to resources. (@rfratto)
@@ -1237,7 +1274,7 @@ v0.14.0 (2021-05-24)
 
 ### Security fixes
 
-* The Scraping service API will now reject configs that read credentials from
+- The Scraping service API will now reject configs that read credentials from
   disk by default. This prevents malicious users from reading arbitrary files
   and sending their contents over the network. The old behavior can be
   re-enabled by setting `dangerous_allow_reading_files: true` in the scraping
@@ -1245,7 +1282,7 @@ v0.14.0 (2021-05-24)
 
 ### Breaking changes
 
-* Configuration for SigV4 has changed. (@rfratto)
+- Configuration for SigV4 has changed. (@rfratto)
 
 ### Deprecations
 
@@ -1398,9 +1435,9 @@ v0.12.0 (2021-02-05)
 
 ### Breaking Changes
 
-* The configuration format for the `loki` block has changed. (@rfratto)
+- The configuration format for the `loki` block has changed. (@rfratto)
 
-* The configuration format for the `tempo` block has changed. (@rfratto)
+- The configuration format for the `tempo` block has changed. (@rfratto)
 
 ### Features
 
@@ -1584,7 +1621,7 @@ v0.8.0 (2020-11-06)
 ### Enhancements
 
 - Add `<integration name>_build_info` metric to all integrations. The build
-  info displayed will match the build information of the Agent and *not* the
+  info displayed will match the build information of the Agent and _not_ the
   embedded exporter. This metric is used by community dashboards, so adding it
   to the Agent increases compatibility with existing dashboards that depend on
   it existing. (@rfratto)
@@ -1963,7 +2000,7 @@ v0.1.0 (2020-03-16)
 
 ### Features
 
-* Support for scraping Prometheus metrics and sharding the agent through the
+- Support for scraping Prometheus metrics and sharding the agent through the
   presence of a `host_filter` flag within the Agent configuration file.
 
 [upgrade guide]: https://grafana.com/docs/agent/latest/upgrade-guide/

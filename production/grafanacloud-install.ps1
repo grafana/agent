@@ -49,7 +49,7 @@ $headers = @{
     Authorization = $AUTH_TOKEN
 }
 
-$response = Invoke-WebRequest $CONFIG_URI -Method 'GET' -Headers $headers
+$response = Invoke-WebRequest $CONFIG_URI -Method 'GET' -Headers $headers -UseBasicParsing
 
 $jsonObj = $response | ConvertFrom-Json
 if ($jsonObj.status -eq "success") {

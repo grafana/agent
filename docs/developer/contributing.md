@@ -34,7 +34,7 @@ compiling and testing your changes do:
 
 ```bash
 # For building:
-go build ./cmd/agent/
+go build ./cmd/grafana-agent/
 ./agent -config.file=<config-file>
 
 # For testing:
@@ -62,7 +62,7 @@ To build Grafana Agent from source code, please install the following tools:
 
 You can directly use the go tool to download and install the agent binary into your GOPATH:
 
-    $ GO111MODULE=on go install github.com/grafana/agent/cmd/agent
+    $ GO111MODULE=on go install github.com/grafana/agent/cmd/grafana-agent
     $ agent -config.file=your_config.yml
 
 An example of the above configuration file can be found [here][example-config].
@@ -187,6 +187,6 @@ pull request.
 [CLA]: https://cla-assistant.io/grafana/agent
 [good-first-issue]: https://github.com/grafana/agent/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22
 [community-slack]: https://slack.grafana.com/
-[example-config]: ../../cmd/agent/agent-local-config.yaml
+[example-config]: ../../cmd/grafana-agent/agent-local-config.yaml
 [go-modules]: https://golang.org/cmd/go/#hdr-Modules__module_versions__and_more
 

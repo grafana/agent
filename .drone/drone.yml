@@ -82,7 +82,7 @@ trigger:
 
 steps:
   - name: lint
-    image: grafana/agent-build-image:0.18.0
+    image: grafana/agent-build-image:0.19.0
     commands:
       - make lint
 
@@ -105,7 +105,7 @@ trigger:
 
 steps:
   - name: test
-    image: grafana/agent-build-image:0.18.0
+    image: grafana/agent-build-image:0.19.0
     volumes:
       - name: docker
         path: /var/run/docker.sock
@@ -142,7 +142,7 @@ trigger:
     - refs/tags/v*
 steps:
   - name: test
-    image: grafana/agent-build-image:0.18.0-windows
+    image: grafana/agent-build-image:0.19.0-windows
     commands:
       - go test -tags="nodocker,nonetwork" ./...
 
@@ -160,7 +160,7 @@ trigger:
     - refs/heads/dev.*
 steps:
   - name: Build Containers
-    image: grafana/agent-build-image:0.18.0
+    image: grafana/agent-build-image:0.19.0
     volumes:
       - name: docker
         path: /var/run/docker.sock
@@ -208,7 +208,7 @@ trigger:
     - refs/heads/dev.*
 steps:
   - name: Build Containers
-    image: grafana/agent-build-image:0.18.0-windows
+    image: grafana/agent-build-image:0.19.0-windows
     volumes:
       - name: docker
         path: //./pipe/docker_engine/
@@ -297,7 +297,7 @@ trigger:
 
 steps:
   - name: create-release
-    image: grafana/agent-build-image:0.18.0
+    image: grafana/agent-build-image:0.19.0
     volumes:
       - name: docker
         path: /var/run/docker.sock
@@ -376,6 +376,6 @@ get:
 
 ---
 kind: signature
-hmac: bc08fc1da9ef0f0f5c88519ec5cfcb352657cc876a52ebbe748c5f3429f613f2
+hmac: 775235d2ab8a1ff11990f693c0f3dd528728a23bb9a598481113362d686dad2b
 
 ...
