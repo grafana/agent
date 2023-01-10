@@ -2,6 +2,7 @@ package relabel
 
 import (
 	"context"
+	"sync"
 
 	"github.com/grafana/agent/component"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
@@ -40,7 +41,9 @@ type Exports struct {
 // Component implements the discovery.relabel component.
 type Component struct {
 	opts component.Options
-	rcs  []*relabel.Config
+
+	mut sync.RWMutex
+	rcs []*relabel.Config
 }
 
 var _ component.Component = (*Component)(nil)
@@ -65,6 +68,9 @@ func (c *Component) Run(ctx context.Context) error {
 
 // Update implements component.Component.
 func (c *Component) Update(args component.Arguments) error {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+
 	newArgs := args.(Arguments)
 
 	targets := make([]discovery.Target, 0, len(newArgs.Targets))
@@ -88,6 +94,9 @@ func (c *Component) Update(args component.Arguments) error {
 }
 
 func (c *Component) getRules() []*relabel.Config {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+
 	return c.rcs
 }
 
