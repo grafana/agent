@@ -15,8 +15,8 @@ import (
 	"github.com/prometheus/common/model"
 )
 
-// ErrEmptyStaticLabelStageConfig error returned if config is empty
-const ErrEmptyStaticLabelStageConfig = "static_labels stage config cannot be empty"
+// ErrEmptyStaticLabelStageConfig error returned if the config is empty.
+var ErrEmptyStaticLabelStageConfig = errors.New("static_labels stage config cannot be empty")
 
 // StaticLabelsConfig contains a map of static labels to be set.
 type StaticLabelsConfig struct {
@@ -37,7 +37,7 @@ func newStaticLabelsStage(logger log.Logger, config StaticLabelsConfig) (Stage, 
 
 func validateLabelStaticConfig(c StaticLabelsConfig) error {
 	if c.Values == nil {
-		return errors.New(ErrEmptyStaticLabelStageConfig)
+		return ErrEmptyStaticLabelStageConfig
 	}
 	for labelName := range c.Values {
 		if !model.LabelName(labelName).IsValid() {

@@ -161,8 +161,8 @@ stage {
 
 ### label_keep block
 
-The `label_keep` inner block configures a label_keep processing stage that
-filters the label set of an incoming log entry to only keep a subset.
+The `label_keep` inner block configures a processing stage that filters the
+label set of an incoming log entry down to a subset.
 
 The following arguments are supported:
 
