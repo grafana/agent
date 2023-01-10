@@ -123,8 +123,9 @@ func TestJSONLabelsStage(t *testing.T) {
 
 func TestStaticLabelsLabelAllowLabelDrop(t *testing.T) {
 	// The following stages manipulate the label set of a log entry.
-	// The first stage will define a static set of labels on to the entry.
-	// The second stage will drop some of these labels.
+	// The first stage will define a static set of labels (foo, bar, baz, qux)
+	// to add to the entry along the `filename` and `dev` labels.
+	// The second stage will drop the foo and bar labels.
 	// The third stage will keep only a subset of the remaining labels.
 	stg := `
 stage {
@@ -172,7 +173,7 @@ stage {
 	ts := time.Now()
 	logline := `{"log":"log message\n","stream":"stderr","time":"2022-01-09T08:37:45.8233626Z"}`
 	logEntry := loki.Entry{
-		Labels: model.LabelSet{"filename": "/var/log/pods/agent/agent/1.log"},
+		Labels: model.LabelSet{"filename": "/var/log/pods/agent/agent/1.log", "env": "dev"},
 		Entry: logproto.Entry{
 			Timestamp: ts,
 			Line:      logline,

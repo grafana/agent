@@ -11,32 +11,26 @@ import (
 	"github.com/prometheus/common/model"
 )
 
-const (
-	// ErrEmptyLabelDropStageConfig error returned if config is empty
-	ErrEmptyLabelDropStageConfig = "labeldrop stage config cannot be empty"
-)
+// ErrEmptyLabelDropStageConfig error returned if config is empty.
+const ErrEmptyLabelDropStageConfig = "labeldrop stage config cannot be empty"
 
-// LabelDropConfig is a slice of labels to be dropped
+// LabelDropConfig contains the slice of labels to be dropped.
 type LabelDropConfig struct {
 	Values []string `river:"values,attr"`
 }
 
 func validateLabelDropConfig(c LabelDropConfig) error {
-	if c.Values == nil || len(c.Values) < 1 {
-		return errors.New(ErrEmptyLabelDropStageConfig)
-	}
 
 	return nil
 }
 
-func newLabelDropStage(config *LabelDropConfig) (Stage, error) {
-	err := validateLabelDropConfig(*config)
-	if err != nil {
-		return nil, err
+func newLabelDropStage(config LabelDropConfig) (Stage, error) {
+	if len(config.Values) < 1 {
+		return nil, errors.New(ErrEmptyLabelDropStageConfig)
 	}
 
 	return toStage(&labelDropStage{
-		config: *config,
+		config: config,
 	}), nil
 }
 

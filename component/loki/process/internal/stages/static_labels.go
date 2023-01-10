@@ -15,14 +15,24 @@ import (
 	"github.com/prometheus/common/model"
 )
 
-const (
-	// ErrEmptyStaticLabelStageConfig error returned if config is empty
-	ErrEmptyStaticLabelStageConfig = "static_labels stage config cannot be empty"
-)
+// ErrEmptyStaticLabelStageConfig error returned if config is empty
+const ErrEmptyStaticLabelStageConfig = "static_labels stage config cannot be empty"
 
-// StaticLabelsConfig is a map of static labels to be set.
+// StaticLabelsConfig contains a map of static labels to be set.
 type StaticLabelsConfig struct {
 	Values map[string]*string `river:"values,attr"`
+}
+
+func newStaticLabelsStage(logger log.Logger, config StaticLabelsConfig) (Stage, error) {
+	err := validateLabelStaticConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	return toStage(&staticLabelStage{
+		Config: config,
+		logger: logger,
+	}), nil
 }
 
 func validateLabelStaticConfig(c StaticLabelsConfig) error {
@@ -35,18 +45,6 @@ func validateLabelStaticConfig(c StaticLabelsConfig) error {
 		}
 	}
 	return nil
-}
-
-func newStaticLabelsStage(logger log.Logger, config *StaticLabelsConfig) (Stage, error) {
-	err := validateLabelStaticConfig(*config)
-	if err != nil {
-		return nil, err
-	}
-
-	return toStage(&staticLabelStage{
-		Config: *config,
-		logger: logger,
-	}), nil
 }
 
 // staticLabelStage implements Stage.

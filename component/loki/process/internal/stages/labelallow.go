@@ -11,28 +11,17 @@ import (
 	"github.com/prometheus/common/model"
 )
 
-const (
-	// ErrEmptyLabelAllowStageConfig error returned if config is empty
-	ErrEmptyLabelAllowStageConfig = "labelallow stage config cannot be empty"
-)
+// ErrEmptyLabelAllowStageConfig error is returned if config is empty.
+const ErrEmptyLabelAllowStageConfig = "labelallow stage config cannot be empty"
 
-// LabelAllowConfig represents a LabelAllow Stage configuration.
+// LabelAllowConfig contains the slice of labels to allow through.
 type LabelAllowConfig struct {
 	Values []string `river:"values,attr"`
 }
 
-func validateLabelAllowConfig(c LabelAllowConfig) error {
-	if c.Values == nil || len(c.Values) < 1 {
-		return errors.New(ErrEmptyLabelAllowStageConfig)
-	}
-
-	return nil
-}
-
-func newLabelAllowStage(config *LabelAllowConfig) (Stage, error) {
-	err := validateLabelAllowConfig(*config)
-	if err != nil {
-		return nil, err
+func newLabelAllowStage(config LabelAllowConfig) (Stage, error) {
+	if len(config.Values) < 1 {
+		return nil, errors.New(ErrEmptyLabelAllowStageConfig)
 	}
 
 	labelMap := make(map[string]struct{})

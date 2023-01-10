@@ -199,17 +199,17 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 	// 		return nil, err
 	// 	}
 	case cfg.LabelAllowConfig != nil:
-		s, err = newLabelAllowStage(cfg.LabelAllowConfig)
+		s, err = newLabelAllowStage(*cfg.LabelAllowConfig)
 		if err != nil {
 			return nil, err
 		}
 	case cfg.LabelDropConfig != nil:
-		s, err = newLabelDropStage(cfg.LabelDropConfig)
+		s, err = newLabelDropStage(*cfg.LabelDropConfig)
 		if err != nil {
 			return nil, err
 		}
 	case cfg.StaticLabelsConfig != nil:
-		s, err = newStaticLabelsStage(logger, cfg.StaticLabelsConfig)
+		s, err = newStaticLabelsStage(logger, *cfg.StaticLabelsConfig)
 		if err != nil {
 			return nil, err
 		}
