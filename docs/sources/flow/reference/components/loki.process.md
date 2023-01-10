@@ -101,9 +101,9 @@ stage {
 
 Docker log entries are formatted as JSON with the following keys:
 
-1) `log`: The content of log line
-2) `stream`: Either `stdout` or `stderr`
-3) `time`: The timestamp string of the log line
+* `log`: The content of log line
+* `stream`: Either `stdout` or `stderr`
+* `time`: The timestamp string of the log line
 
 Then, given the following log line, the following key-value pairs would be
 created in the shared map of extracted data:
@@ -133,10 +133,10 @@ stage {
 CRI specifies log lines as single space-delimited values with the following
 components:
 
-1) `time`: The timestamp string of the log
-2) `stream`: Either `stdout` or `stderr`
-3) `flags`: CRI flags including `F` or `P`
-4) `log`: The contents of the log line
+* `time`: The timestamp string of the log
+* `stream`: Either `stdout` or `stderr`
+* `flags`: CRI flags including `F` or `P`
+* `log`: The contents of the log line
 
 Given the following log line, the following key-value pairs would be created in
 the shared map of extracted data:
