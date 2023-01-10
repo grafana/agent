@@ -1,20 +1,14 @@
 {{ define "type" }}
 
-# {{.Name.Name}}{{ if eq .Kind "Alias" }}(<code>{{.Underlying}}</code> alias){{ end }}
-{{ with (typeReferences .) }}
-*Appears on:*
-{{- $prev := "" -}}
-{{- range . -}}
-  {{- if $prev -}}, {{ end -}}
-  {{- $prev = . -}}
-  [{{ typeDisplayName . }}]({{ linkForType . }})
-{{- end -}}
-{{ end }}
+### {{.Name.Name}}{{ if eq .Kind "Alias" }}(`{{.Underlying}}` alias){{ end }}
 
-{{ safe (renderComments .CommentLines) }}
+{{ with (typeReferences .) }}
+(*Appears on: * {{- $prev := "" -}}{{ range . -}}{{- if $prev -}}, {{ end -}}{{- $prev = . -}}[{{ typeDisplayName . }}]({{ linkForType . }}){{ end }}{{ end }}{{ .CommentLines }})
 
 {{ with (constantsOfType .) }}
-## Values
+
+#### Values
+
 |Value|Description|
 |-|-|
 {{- range . -}}
@@ -23,12 +17,14 @@
 {{ end }}
 
 {{ if .Members }}
-## Fields
+
+#### Fields
+
 |Field|Description|
 |-|-|
 {{ if isExportedType . }}
-|apiVersion|string<br/><code>{{apiGroup .}}</code>|
-|kind|string<br/><code>{{.Name.Name}}</code>|
+|apiVersion|string<br/>`{{apiGroup .}}`|
+|kind|string<br/>`{{.Name.Name}}`|
 {{ end }}
 {{ template "members" .}}
 {{ end }}

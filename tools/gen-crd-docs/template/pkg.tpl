@@ -12,14 +12,14 @@ weight: 500
 ## Packages:
 
 {{ range . }}
-*   [{{ packageDisplayName . }}](#{{- packageAnchorID . -}})
+* [{{ packageDisplayName . }}](#{{- packageAnchorID . -}})
 {{ end }}
 
 {{ end}} 
 
 {{ range .packages }}
 
-## [{{ packageDisplayName . }}](#{{- packageAnchorID . -}})
+[{{ packageDisplayName . }}](#{{- packageAnchorID . -}})
 
 {{ with (index .GoPackages 0 )}}
 {{ with .DocComments }}
@@ -30,12 +30,11 @@ weight: 500
 {{ end }} 
 
 ## Resource Types:
-
-{{- range (visibleTypes (sortedTypes .Types)) -}} 
+{{ range (visibleTypes (sortedTypes .Types)) }} 
 {{ if isExportedType . -}}
-*   [{{ typeDisplayName . }}]({{ linkForType . }})
+* [{{ typeDisplayName . }}]({{ linkForType . }}) 
 {{- end }} 
-{{- end -}}
+{{ end }}
 
 {{ range (visibleTypes (sortedTypes .Types))}} 
 {{ template "type" . }} 
