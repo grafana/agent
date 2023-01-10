@@ -2,13 +2,15 @@ package windowsevent
 
 import (
 	"context"
-	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/loki/clients/pkg/promtail/api"
-	"github.com/grafana/loki/clients/pkg/promtail/targets/windows"
 	"os"
 	"path"
 	"sync"
+
+	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/loki/clients/pkg/promtail/api"
+	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
+	"github.com/grafana/loki/clients/pkg/promtail/targets/windows"
 )
 
 func init() {
@@ -129,4 +131,18 @@ func (c *Component) Update(args component.Arguments) error {
 	c.args = newArgs
 	c.receivers = newArgs.ForwardTo
 	return nil
+}
+
+func convertConfig(arg Arguments) *scrapeconfig.WindowsEventsTargetConfig {
+	return &scrapeconfig.WindowsEventsTargetConfig{
+		Locale:               uint32(arg.Locale),
+		EventlogName:         arg.EventLogName,
+		Query:                arg.XPathQuery,
+		UseIncomingTimestamp: arg.UseIncomingTimestamp,
+		BookmarkPath:         arg.BookmarkPath,
+		PollInterval:         arg.PollInterval,
+		ExcludeEventData:     arg.ExcludeEventData,
+		ExcludeEventMessage:  false,
+		ExcludeUserData:      arg.ExcludeUserdata,
+	}
 }
