@@ -36,6 +36,11 @@ Main (unreleased)
   - `phlare.write` sends application performance profiles to Grafana Phlare. (@cyriltovena)
   - `otelcol.receiver.zipkin` receives Zipkin-formatted traces. (@rfratto)
 
+- Flow components which work with relabeling rules (`discovery.relabel`,
+  `prometheus.relabel` and `loki.relabel`) now export a new value named Rules.
+  This value is a function that returns the currently configured rules.
+  (@tpaschalis)
+
 ### Enhancements
 
 - Handle faro-web-sdk `View` meta in app_agent_receiver. (@rlankfo)
