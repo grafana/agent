@@ -14,34 +14,22 @@ import (
 	"github.com/prometheus/common/model"
 )
 
-// Config Errors
+// Config Errors.
 const (
 	ErrEmptyOutputStageConfig = "output stage config cannot be empty"
 	ErrOutputSourceRequired   = "output source value is required if output is specified"
 )
 
-// OutputConfig represents an Output Stage configuration which sets the log
-// line to an entry of the the extracted value map.
+// OutputConfig initializes a configuration stage which sets the log line to a
+// value from the extracted map.
 type OutputConfig struct {
 	Source string `river:"source,attr"`
 }
 
-// validateOutput validates the outputStage config
-func validateOutputConfig(cfg *OutputConfig) error {
-	if cfg == nil {
-		return errors.New(ErrEmptyOutputStageConfig)
-	}
-	if cfg.Source == "" {
-		return errors.New(ErrOutputSourceRequired)
-	}
-	return nil
-}
-
 // newOutputStage creates a new outputStage
-func newOutputStage(logger log.Logger, config *OutputConfig) (Stage, error) {
-	err := validateOutputConfig(config)
-	if err != nil {
-		return nil, err
+func newOutputStage(logger log.Logger, config OutputConfig) (Stage, error) {
+	if config.Source == "" {
+		return nil, errors.New(ErrOutputSourceRequired)
 	}
 	return toStage(&outputStage{
 		config: config,
@@ -51,15 +39,12 @@ func newOutputStage(logger log.Logger, config *OutputConfig) (Stage, error) {
 
 // outputStage will mutate the incoming entry and set it from extracted data
 type outputStage struct {
-	config *OutputConfig
+	config OutputConfig
 	logger log.Logger
 }
 
 // Process implements Stage
 func (o *outputStage) Process(labels model.LabelSet, extracted map[string]interface{}, t *time.Time, entry *string) {
-	if o.config == nil {
-		return
-	}
 	if v, ok := extracted[o.config.Source]; ok {
 		s, err := getString(v)
 		if err != nil {

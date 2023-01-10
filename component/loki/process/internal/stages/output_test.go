@@ -6,16 +6,16 @@ package stages
 
 import (
 	"bytes"
-	"errors"
+	"io"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
-
-	util_log "github.com/grafana/loki/pkg/util/log"
+	"github.com/stretchr/testify/require"
 )
 
 var testOutputRiver = `
@@ -52,12 +52,11 @@ var testOutputLogLineWithMissingKey = `
 `
 
 func TestPipeline_Output(t *testing.T) {
-	pl, err := NewPipeline(util_log.Logger, loadConfig(testOutputRiver), nil, prometheus.DefaultRegisterer)
-	if err != nil {
-		t.Fatal(err)
-	}
-	out := processEntries(pl, newEntry(nil, nil, testOutputLogLine, time.Now()))[0]
+	logger, _ := logging.New(io.Discard, logging.DefaultOptions)
+	pl, err := NewPipeline(logger, loadConfig(testOutputRiver), nil, prometheus.DefaultRegisterer)
+	require.NoError(t, err)
 
+	out := processEntries(pl, newEntry(nil, nil, testOutputLogLine, time.Now()))[0]
 	assert.Equal(t, "this is a log line", out.Line)
 }
 
@@ -66,10 +65,8 @@ func TestPipelineWithMissingKey_Output(t *testing.T) {
 	w := log.NewSyncWriter(&buf)
 	logger := log.NewLogfmtLogger(w)
 	pl, err := NewPipeline(logger, loadConfig(testOutputRiver), nil, prometheus.DefaultRegisterer)
-	if err != nil {
-		t.Fatal(err)
-	}
-	Debug = true
+	require.NoError(t, err)
+
 	_ = processEntries(pl, newEntry(nil, nil, testOutputLogLineWithMissingKey, time.Now()))
 	expectedLog := "level=debug msg=\"extracted output could not be converted to a string\" err=\"Can't convert <nil> to string\" type=null"
 	if !(strings.Contains(buf.String(), expectedLog)) {
@@ -78,66 +75,24 @@ func TestPipelineWithMissingKey_Output(t *testing.T) {
 }
 
 func TestOutputValidation(t *testing.T) {
-	tests := map[string]struct {
-		config *OutputConfig
-		err    error
-	}{
-		"missing config": {
-			config: nil,
-			err:    errors.New(ErrEmptyOutputStageConfig),
-		},
-		"missing source": {
-			config: &OutputConfig{
-				Source: "",
-			},
-			err: errors.New(ErrOutputSourceRequired),
-		},
-	}
-	for name, test := range tests {
-		test := test
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-			err := validateOutputConfig(test.config)
-			if (err != nil) != (test.err != nil) {
-				t.Errorf("validateOutputConfig() expected error = %v, actual error = %v", test.err, err)
-				return
-			}
-			if (err != nil) && (err.Error() != test.err.Error()) {
-				t.Errorf("validateOutputConfig() expected error = %v, actual error = %v", test.err, err)
-				return
-			}
-		})
-	}
+	emptyConfig := OutputConfig{Source: ""}
+	_, err := newOutputStage(nil, emptyConfig)
+	require.EqualError(t, err, ErrOutputSourceRequired)
 }
 
 func TestOutputStage_Process(t *testing.T) {
-	tests := map[string]struct {
-		config         *OutputConfig
-		extracted      map[string]interface{}
-		expectedOutput string
-	}{
-		"sets output": {
-			&OutputConfig{
-				Source: "out",
-			},
-			map[string]interface{}{
-				"something": "notimportant",
-				"out":       "outmessage",
-			},
-			"outmessage",
-		},
+	cfg := OutputConfig{
+		Source: "out",
 	}
-	for name, test := range tests {
-		test := test
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-			st, err := newOutputStage(util_log.Logger, test.config)
-			if err != nil {
-				t.Fatal(err)
-			}
-			out := processEntries(st, newEntry(test.extracted, nil, "replaceme", time.Time{}))[0]
+	extractedValues := map[string]interface{}{
+		"something": "notimportant",
+		"out":       "outmessage",
+	}
+	wantOutput := "outmessage"
 
-			assert.Equal(t, test.expectedOutput, out.Line)
-		})
-	}
+	st, err := newOutputStage(nil, cfg)
+	require.NoError(t, err)
+	out := processEntries(st, newEntry(extractedValues, nil, "replaceme", time.Time{}))[0]
+
+	assert.Equal(t, wantOutput, out.Line)
 }

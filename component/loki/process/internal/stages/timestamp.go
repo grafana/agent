@@ -14,8 +14,6 @@ import (
 	"github.com/go-kit/log/level"
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/prometheus/common/model"
-
-	"github.com/grafana/loki/pkg/util"
 )
 
 // Config errors.
@@ -42,27 +40,22 @@ const (
 	maxLastKnownTimestampsCacheSize = 10000
 )
 
-var (
-	TimestampActionOnFailureOptions = []string{TimestampActionOnFailureSkip, TimestampActionOnFailureFudge}
-)
+// TimestampActionOnFailureOptions defines the available options for the
+// `action_on_failure` field.
+var TimestampActionOnFailureOptions = []string{TimestampActionOnFailureSkip, TimestampActionOnFailureFudge}
 
-// TimestampConfig configures timestamp extraction
+// TimestampConfig configures a processing stage for timestamp extraction.
 type TimestampConfig struct {
 	Source          string   `river:"source,attr"`
 	Format          string   `river:"format,attr"`
 	FallbackFormats []string `river:"fallback_formats,attr,optional"`
 	Location        *string  `river:"location,attr,optional"`
-	ActionOnFailure *string  `river:"action_on_failure,attr,optional"`
+	ActionOnFailure string   `river:"action_on_failure,attr,optional"`
 }
 
-// parser can convert the time string into a time.Time value
 type parser func(string) (time.Time, error)
 
-// validateTimestampConfig validates a timestampStage configuration
-func validateTimestampConfig(cfg *TimestampConfig) (parser, error) {
-	if cfg == nil {
-		return nil, errors.New(ErrEmptyTimestampStageConfig)
-	}
+func validateTimestampConfig(cfg TimestampConfig) (parser, error) {
 	if cfg.Source == "" {
 		return nil, errors.New(ErrTimestampSourceRequired)
 	}
@@ -79,10 +72,10 @@ func validateTimestampConfig(cfg *TimestampConfig) (parser, error) {
 	}
 
 	// Validate the action on failure and enforce the default
-	if cfg.ActionOnFailure == nil {
-		cfg.ActionOnFailure = util.StringRef(TimestampActionOnFailureDefault)
+	if cfg.ActionOnFailure == "" {
+		cfg.ActionOnFailure = TimestampActionOnFailureDefault
 	} else {
-		if !util.StringsContain(TimestampActionOnFailureOptions, *cfg.ActionOnFailure) {
+		if !stringsContain(TimestampActionOnFailureOptions, cfg.ActionOnFailure) {
 			return nil, fmt.Errorf(ErrInvalidActionOnFailure, TimestampActionOnFailureOptions)
 		}
 	}
@@ -107,14 +100,14 @@ func validateTimestampConfig(cfg *TimestampConfig) (parser, error) {
 }
 
 // newTimestampStage creates a new timestamp extraction pipeline stage.
-func newTimestampStage(logger log.Logger, config *TimestampConfig) (Stage, error) {
+func newTimestampStage(logger log.Logger, config TimestampConfig) (Stage, error) {
 	parser, err := validateTimestampConfig(config)
 	if err != nil {
 		return nil, err
 	}
 
 	var lastKnownTimestamps *lru.Cache
-	if *config.ActionOnFailure == TimestampActionOnFailureFudge {
+	if config.ActionOnFailure == TimestampActionOnFailureFudge {
 		lastKnownTimestamps, err = lru.New(maxLastKnownTimestampsCacheSize)
 		if err != nil {
 			return nil, err
@@ -122,14 +115,13 @@ func newTimestampStage(logger log.Logger, config *TimestampConfig) (Stage, error
 	}
 
 	return toStage(&timestampStage{
-		config:              config,
+		config:              &config,
 		logger:              logger,
 		parser:              parser,
 		lastKnownTimestamps: lastKnownTimestamps,
 	}), nil
 }
 
-// timestampStage will set the timestamp using extracted data
 type timestampStage struct {
 	config *TimestampConfig
 	logger log.Logger
@@ -140,12 +132,12 @@ type timestampStage struct {
 	lastKnownTimestamps *lru.Cache
 }
 
-// Name implements Stage
+// Name implements Stage.
 func (ts *timestampStage) Name() string {
 	return StageTypeTimestamp
 }
 
-// Process implements Stage
+// Process implements Stage.
 func (ts *timestampStage) Process(labels model.LabelSet, extracted map[string]interface{}, t *time.Time, entry *string) {
 	if ts.config == nil {
 		return
@@ -162,38 +154,30 @@ func (ts *timestampStage) Process(labels model.LabelSet, extracted map[string]in
 
 	// The timestamp has been correctly parsed, so we should store it in the map
 	// containing the last known timestamp used by the "fudge" action on failure.
-	if *ts.config.ActionOnFailure == TimestampActionOnFailureFudge {
+	if ts.config.ActionOnFailure == TimestampActionOnFailureFudge {
 		ts.lastKnownTimestamps.Add(labels.String(), *t)
 	}
 }
 
 func (ts *timestampStage) parseTimestampFromSource(extracted map[string]interface{}) (*time.Time, error) {
-	// Ensure the extracted data contains the timestamp source
+	// Ensure the extracted data contains the timestamp source.
 	v, ok := extracted[ts.config.Source]
 	if !ok {
-		if Debug {
-			level.Debug(ts.logger).Log("msg", ErrTimestampSourceMissing)
-		}
-
+		level.Debug(ts.logger).Log("msg", ErrTimestampSourceMissing)
 		return nil, errors.New(ErrTimestampSourceMissing)
 	}
 
-	// Convert the timestamp source to string (if it's not a string yet)
+	// Convert the timestamp source to string (if it's not a string yet).
 	s, err := getString(v)
 	if err != nil {
-		if Debug {
-			level.Debug(ts.logger).Log("msg", ErrTimestampConversionFailed, "err", err, "type", reflect.TypeOf(v))
-		}
-
+		level.Debug(ts.logger).Log("msg", ErrTimestampConversionFailed, "err", err, "type", reflect.TypeOf(v))
 		return nil, errors.New(ErrTimestampConversionFailed)
 	}
 
 	// Parse the timestamp source according to the configured format
 	parsedTs, err := ts.parser(s)
 	if err != nil {
-		if Debug {
-			level.Debug(ts.logger).Log("msg", ErrTimestampParsingFailed, "err", err, "format", ts.config.Format, "value", s)
-		}
+		level.Debug(ts.logger).Log("msg", ErrTimestampParsingFailed, "err", err, "format", ts.config.Format, "value", s)
 
 		return nil, errors.New(ErrTimestampParsingFailed)
 	}
@@ -202,7 +186,7 @@ func (ts *timestampStage) parseTimestampFromSource(extracted map[string]interfac
 }
 
 func (ts *timestampStage) processActionOnFailure(labels model.LabelSet, t *time.Time) {
-	switch *ts.config.ActionOnFailure {
+	switch ts.config.ActionOnFailure {
 	case TimestampActionOnFailureFudge:
 		ts.processActionOnFailureFudge(labels, t)
 	case TimestampActionOnFailureSkip:

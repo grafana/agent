@@ -7,18 +7,16 @@ package stages
 import (
 	"bytes"
 	"errors"
-	"reflect"
+	"io"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/yaml.v2"
-
-	util_log "github.com/grafana/loki/pkg/util/log"
 )
 
 var protocolStr = "protocol"
@@ -124,7 +122,8 @@ func TestPipeline_Regex(t *testing.T) {
 		t.Run(testName, func(t *testing.T) {
 			t.Parallel()
 
-			pl, err := NewPipeline(util_log.Logger, loadConfig(testData.config), nil, prometheus.DefaultRegisterer)
+			logger, _ := logging.New(io.Discard, logging.DefaultOptions)
+			pl, err := NewPipeline(logger, loadConfig(testData.config), nil, prometheus.DefaultRegisterer)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -148,34 +147,6 @@ func TestPipelineWithMissingKey_Regex(t *testing.T) {
 	expectedLog := "level=debug component=stage type=regex msg=\"failed to convert source value to string\" source=time err=\"Can't convert <nil> to string\" type=null"
 	if !(strings.Contains(buf.String(), expectedLog)) {
 		t.Errorf("\nexpected: %s\n+actual: %s", expectedLog, buf.String())
-	}
-}
-
-var regexCfg = `regex:
-  expression: "regexexpression"`
-
-// nolint
-func TestRegexMapStructure(t *testing.T) {
-	t.Parallel()
-
-	// testing that we can use yaml data into mapstructure.
-	var mapstruct map[interface{}]interface{}
-	if err := yaml.Unmarshal([]byte(regexCfg), &mapstruct); err != nil {
-		t.Fatalf("error while un-marshalling config: %s", err)
-	}
-	p, ok := mapstruct["regex"].(map[interface{}]interface{})
-	if !ok {
-		t.Fatalf("could not read parser %+v", mapstruct["regex"])
-	}
-	got, err := parseRegexConfig(p)
-	if err != nil {
-		t.Fatalf("could not create parser from yaml: %s", err)
-	}
-	want := &RegexConfig{
-		Expression: "regexexpression",
-	}
-	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("want: %+v got: %+v", want, got)
 	}
 }
 
@@ -227,7 +198,7 @@ func TestRegexConfig_validate(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to create config: %s", err)
 			}
-			_, err = validateRegexConfig(c)
+			_, err = validateRegexConfig(*c)
 			if (err != nil) != (tt.err != nil) {
 				t.Errorf("RegexConfig.validate() expected error = %v, actual error = %v", tt.err, err)
 				return
@@ -342,7 +313,8 @@ func TestRegexParser_Parse(t *testing.T) {
 		tt := tt
 		t.Run(tName, func(t *testing.T) {
 			t.Parallel()
-			p, err := New(util_log.Logger, nil, StageConfig{RegexConfig: &tt.config}, nil)
+			logger, _ := logging.New(io.Discard, logging.DefaultOptions)
+			p, err := New(logger, nil, StageConfig{RegexConfig: &tt.config}, nil)
 			if err != nil {
 				t.Fatalf("failed to create regex parser: %s", err)
 			}
@@ -366,7 +338,8 @@ func BenchmarkRegexStage(b *testing.B) {
 	}
 	for _, bm := range benchmarks {
 		b.Run(bm.name, func(b *testing.B) {
-			stage, err := New(util_log.Logger, nil, StageConfig{RegexConfig: &bm.config}, nil)
+			logger, _ := logging.New(io.Discard, logging.DefaultOptions)
+			stage, err := New(logger, nil, StageConfig{RegexConfig: &bm.config}, nil)
 			if err != nil {
 				panic(err)
 			}

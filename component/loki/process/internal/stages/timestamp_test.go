@@ -8,18 +8,17 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	lokiutil "github.com/grafana/loki/pkg/util"
-	util_log "github.com/grafana/loki/pkg/util/log"
 )
 
 var testTimestampRiver = `
@@ -53,10 +52,10 @@ var testTimestampLogLineWithMissingKey = `
 `
 
 func TestTimestampPipeline(t *testing.T) {
-	pl, err := NewPipeline(util_log.Logger, loadConfig(testTimestampRiver), nil, prometheus.DefaultRegisterer)
-	if err != nil {
-		t.Fatal(err)
-	}
+	logger, _ := logging.New(io.Discard, logging.DefaultOptions)
+	pl, err := NewPipeline(logger, loadConfig(testTimestampRiver), nil, prometheus.DefaultRegisterer)
+	require.NoError(t, err)
+
 	out := processEntries(pl, newEntry(nil, nil, testTimestampLogLine, time.Now()))[0]
 	assert.Equal(t, time.Date(2012, 11, 01, 22, 8, 41, 0, time.FixedZone("", -4*60*60)).Unix(), out.Timestamp.Unix())
 }
@@ -72,12 +71,9 @@ func TestPipelineWithMissingKey_Timestamp(t *testing.T) {
 	w := log.NewSyncWriter(&buf)
 	logger := log.NewLogfmtLogger(w)
 	pl, err := NewPipeline(logger, loadConfig(testTimestampRiver), nil, prometheus.DefaultRegisterer)
-	if err != nil {
-		t.Fatal(err)
-	}
-	Debug = true
-	_ = processEntries(pl, newEntry(nil, nil, testTimestampLogLineWithMissingKey, time.Now()))
+	require.NoError(t, err)
 
+	_ = processEntries(pl, newEntry(nil, nil, testTimestampLogLineWithMissingKey, time.Now()))
 	expectedLog := fmt.Sprintf("level=debug msg=\"%s\" err=\"Can't convert <nil> to string\" type=null", ErrTimestampConversionFailed)
 	if !(strings.Contains(buf.String(), expectedLog)) {
 		t.Errorf("\nexpected: %s\n+actual: %s", expectedLog, buf.String())
@@ -93,10 +89,6 @@ func TestTimestampValidation(t *testing.T) {
 		testString   string
 		expectedTime time.Time
 	}{
-		"missing config": {
-			config: nil,
-			err:    errors.New(ErrEmptyTimestampStageConfig),
-		},
 		"missing source": {
 			config: &TimestampConfig{},
 			err:    errors.New(ErrTimestampSourceRequired),
@@ -165,7 +157,7 @@ func TestTimestampValidation(t *testing.T) {
 			config: &TimestampConfig{
 				Source:          "source1",
 				Format:          time.RFC3339,
-				ActionOnFailure: lokiutil.StringRef("foo"),
+				ActionOnFailure: "foo",
 			},
 			err: fmt.Errorf(ErrInvalidActionOnFailure, TimestampActionOnFailureOptions),
 		},
@@ -184,7 +176,7 @@ func TestTimestampValidation(t *testing.T) {
 		test := test
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			parser, err := validateTimestampConfig(test.config)
+			parser, err := validateTimestampConfig(*test.config)
 			if (err != nil) != (test.err != nil) {
 				t.Errorf("validateOutputConfig() expected error = %v, actual error = %v", test.err, err)
 				return
@@ -305,10 +297,10 @@ func TestTimestampStage_Process(t *testing.T) {
 		test := test
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			st, err := newTimestampStage(util_log.Logger, &test.config)
-			if err != nil {
-				t.Fatal(err)
-			}
+			logger, _ := logging.New(io.Discard, logging.DefaultOptions)
+			st, err := newTimestampStage(logger, test.config)
+			require.NoError(t, err)
+
 			out := processEntries(st, newEntry(test.extracted, nil, "hello world", time.Now()))[0]
 			assert.Equal(t, test.expected.UnixNano(), out.Timestamp.UnixNano())
 		})
@@ -333,7 +325,7 @@ func TestTimestampStage_ProcessActionOnFailure(t *testing.T) {
 			config: TimestampConfig{
 				Source:          "time",
 				Format:          time.RFC3339Nano,
-				ActionOnFailure: lokiutil.StringRef(TimestampActionOnFailureFudge),
+				ActionOnFailure: TimestampActionOnFailureFudge,
 			},
 			inputEntries: []inputEntry{
 				{timestamp: time.Unix(1, 0), extracted: map[string]interface{}{"time": "2019-10-01T01:02:03.400000000Z"}},
@@ -348,7 +340,7 @@ func TestTimestampStage_ProcessActionOnFailure(t *testing.T) {
 			config: TimestampConfig{
 				Source:          "time",
 				Format:          time.RFC3339Nano,
-				ActionOnFailure: lokiutil.StringRef(TimestampActionOnFailureFudge),
+				ActionOnFailure: TimestampActionOnFailureFudge,
 			},
 			inputEntries: []inputEntry{
 				{timestamp: time.Unix(1, 0), extracted: map[string]interface{}{"time": "2019-10-01T01:02:03.400000000Z"}},
@@ -365,7 +357,7 @@ func TestTimestampStage_ProcessActionOnFailure(t *testing.T) {
 			config: TimestampConfig{
 				Source:          "time",
 				Format:          time.RFC3339Nano,
-				ActionOnFailure: lokiutil.StringRef(TimestampActionOnFailureFudge),
+				ActionOnFailure: TimestampActionOnFailureFudge,
 			},
 			inputEntries: []inputEntry{
 				{timestamp: time.Unix(1, 0), labels: model.LabelSet{"filename": "/1.log"}, extracted: map[string]interface{}{"time": "2019-10-01T01:02:03.400000000Z"}},
@@ -386,7 +378,7 @@ func TestTimestampStage_ProcessActionOnFailure(t *testing.T) {
 			config: TimestampConfig{
 				Source:          "time",
 				Format:          time.RFC3339Nano,
-				ActionOnFailure: lokiutil.StringRef(TimestampActionOnFailureFudge),
+				ActionOnFailure: TimestampActionOnFailureFudge,
 			},
 			inputEntries: []inputEntry{
 				{timestamp: time.Unix(1, 0), labels: model.LabelSet{"filename": "/1.log"}, extracted: map[string]interface{}{"time": "2019-10-01T01:02:03.400000000Z"}},
@@ -401,7 +393,7 @@ func TestTimestampStage_ProcessActionOnFailure(t *testing.T) {
 			config: TimestampConfig{
 				Source:          "time",
 				Format:          time.RFC3339Nano,
-				ActionOnFailure: lokiutil.StringRef(TimestampActionOnFailureSkip),
+				ActionOnFailure: TimestampActionOnFailureSkip,
 			},
 			inputEntries: []inputEntry{
 				{timestamp: time.Unix(1, 0), extracted: map[string]interface{}{"time": "2019-10-01T01:02:03.400000000Z"}},
@@ -416,7 +408,7 @@ func TestTimestampStage_ProcessActionOnFailure(t *testing.T) {
 			config: TimestampConfig{
 				Source:          "time",
 				Format:          time.RFC3339Nano,
-				ActionOnFailure: lokiutil.StringRef(TimestampActionOnFailureFudge),
+				ActionOnFailure: TimestampActionOnFailureFudge,
 			},
 			inputEntries: []inputEntry{
 				{timestamp: time.Unix(1, 0), labels: model.LabelSet{"app": "m", "uniq0": "1", "uniq1": "1"}, extracted: map[string]interface{}{"time": "2019-10-01T01:02:03.400000000Z"}},
@@ -446,7 +438,8 @@ func TestTimestampStage_ProcessActionOnFailure(t *testing.T) {
 			// Ensure the test has been correctly set
 			require.Equal(t, len(testData.inputEntries), len(testData.expectedTimestamps))
 
-			s, err := newTimestampStage(util_log.Logger, &testData.config)
+			logger, _ := logging.New(io.Discard, logging.DefaultOptions)
+			s, err := newTimestampStage(logger, testData.config)
 			require.NoError(t, err)
 
 			for i, inputEntry := range testData.inputEntries {

@@ -12,10 +12,9 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-const (
-	RFC3339Nano         = "RFC3339Nano"
-	MaxPartialLinesSize = 100 // Max buffer size to hold partial lines.
-)
+// MaxPartialLinesSize is the max buffer size to hold partial lines when
+// parsing the CRI stage format.
+const MaxPartialLinesSize = 100
 
 // DockerConfig is an empty struct that is used to enable a pre-defined
 // pipeline for decoding entries that are using the Docker logs format.
@@ -25,7 +24,8 @@ type DockerConfig struct{}
 // for decoding entries that are using the CRI logging format.
 type CRIConfig struct{}
 
-// NewDocker creates a Docker json log format specific pipeline stage.
+// NewDocker creates a predefined pipeline for parsing entries in the Docker
+// json log format.
 func NewDocker(logger log.Logger, registerer prometheus.Registerer) (Stage, error) {
 	stages := []StageConfig{
 		{
@@ -35,21 +35,25 @@ func NewDocker(logger log.Logger, registerer prometheus.Registerer) (Stage, erro
 					"stream":    "stream",
 					"timestamp": "time",
 				},
-			}},
+			},
+		},
 		{
 			LabelsConfig: &LabelsConfig{
 				Values: map[string]*string{"stream": nil},
-			}},
+			},
+		},
 		{
 			TimestampConfig: &TimestampConfig{
 				Source: "timestamp",
-				Format: RFC3339Nano,
-			}},
+				Format: "RFC3339Nano",
+			},
+		},
 		{
 			OutputConfig: &OutputConfig{
 				"output",
 			},
-		}}
+		},
+	}
 	return NewPipeline(logger, stages, nil, registerer)
 }
 
@@ -60,12 +64,12 @@ type cri struct {
 	base            *Pipeline
 }
 
-// implement Stage interface
+// Name implement the Stage interface.
 func (c *cri) Name() string {
 	return "cri"
 }
 
-// implements Stage interface
+// Run implements the Stage interface.
 func (c *cri) Run(entry chan Entry) chan Entry {
 	entry = c.base.Run(entry)
 
@@ -94,7 +98,8 @@ func (c *cri) Run(entry chan Entry) chan Entry {
 	return in
 }
 
-// NewCRI creates a CRI format specific pipeline stage
+// NewCRI creates a predefined pipeline for parsing entries in the CRI log
+// format.
 func NewCRI(logger log.Logger, registerer prometheus.Registerer) (Stage, error) {
 	base := []StageConfig{
 		{
@@ -110,7 +115,7 @@ func NewCRI(logger log.Logger, registerer prometheus.Registerer) (Stage, error) 
 		{
 			TimestampConfig: &TimestampConfig{
 				Source: "time",
-				Format: RFC3339Nano,
+				Format: "RFC3339Nano",
 			},
 		},
 		{

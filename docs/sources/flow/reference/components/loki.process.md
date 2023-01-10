@@ -387,7 +387,7 @@ The following arguments are supported:
 Name                | Type           | Description                                                 | Default   | Required
 ------------------- | -------------- | ----------------------------------------------------------- | --------- | --------
 `source`            | `string`       | Name from extracted values map to use for the timestamp.    |           | yes
-`format`            | `string`       | Determines how to parse the time string.                    | `""`      | yes
+`format`            | `string`       | Determines how to parse the source string.                  |           | yes
 `fallback_formats`  | `list(string)` | Fallback formats to try if the `format` field fails.        | `[]`      | no
 `location`          | `string`       | IANA Timezone Database location to use when parsing.        | `""`      | no
 `action_on_failure` | `string`       | What to do when the timestamp can't be extracted or parsed. | `"fudge"` | no
@@ -450,7 +450,7 @@ The `fallback_formats` field allows to define one or more format fields to try
 and parse the timestamp with, if parsing with `format` fails.
 
 The `location` field must be a valid IANA Timezone Database location and
-determines in which timezone the timestamp value will be interpreted to be in.
+determines in which timezone the timestamp value is interpreted to be in.
 
 The `action_on_failure` field defines what should happen when the source field
 doesn't exist in the shared extracted map, or if the timestamp parsing fails.
@@ -460,11 +460,23 @@ The supported actions are:
 * fudge (default): change the timestamp to the last known timestamp, summing up 1 nanosecond (to guarantee log entries ordering)
 * skip: do not change the timestamp and keep the time when the log entry has been scraped
 
+The following stage fetches the `time` value from the shared values map, parses
+it as a RFC3339 format and set is as the log entry's timestamp.
+
+```
+stage {
+	timestamp {
+		source = "time"
+		format = "RFC3339"
+	}
+}
+```
+
 
 ### output block
 
 The `output` inner block configures a processing stage that reads from the
-extracted map and changes the content of the log line that will be forwarded
+extracted map and changes the content of the log entry that is forwarded
 to the next component.
 
 The following arguments are supported:
@@ -498,14 +510,14 @@ stage {
 }
 ```
 
-The first stage will extract the following key-value pairs into the shared map:
+The first stage extracts the following key-value pairs into the shared map:
 ```
 user: John Doe
 message: hello, world!
 ```
 
-Then, the second stage will add `user="John Doe"` to the label set of the log
-entry, and the final output stage will change the log line from the original
+Then, the second stage adds `user="John Doe"` to the label set of the log
+entry, and the final output stage changes the log line from the original
 JSON to `hello, world!`.
 
 

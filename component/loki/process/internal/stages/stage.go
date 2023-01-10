@@ -149,17 +149,17 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 	// 		return nil, err
 	// 	}
 	case cfg.RegexConfig != nil:
-		s, err = newRegexStage(logger, cfg.RegexConfig)
+		s, err = newRegexStage(logger, *cfg.RegexConfig)
 		if err != nil {
 			return nil, err
 		}
 	case cfg.TimestampConfig != nil:
-		s, err = newTimestampStage(logger, cfg.TimestampConfig)
+		s, err = newTimestampStage(logger, *cfg.TimestampConfig)
 		if err != nil {
 			return nil, err
 		}
 	case cfg.OutputConfig != nil:
-		s, err = newOutputStage(logger, cfg.OutputConfig)
+		s, err = newOutputStage(logger, *cfg.OutputConfig)
 		if err != nil {
 			return nil, err
 		}

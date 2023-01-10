@@ -25,9 +25,7 @@ var (
 
 func TestNewDocker(t *testing.T) {
 	loc, err := time.LoadLocation("UTC")
-	if err != nil {
-		t.Fatal("could not parse timezone", err)
-	}
+	require.NoError(t, err, "could not parse timezone")
 
 	tests := map[string]struct {
 		entry          string
@@ -92,7 +90,7 @@ var (
 	criTestTime2   = time.Now()
 )
 
-func TestCRI_tags(t *testing.T) {
+func TestCriTags(t *testing.T) {
 	cases := []struct {
 		name            string
 		lines           []string
