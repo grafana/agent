@@ -1,10 +1,10 @@
 //go:build !windows
-// +build !windows
 
 package windowsevent
 
 import (
 	"context"
+
 	"github.com/grafana/agent/component"
 )
 
@@ -32,6 +32,6 @@ func (f *FakeComponent) Run(ctx context.Context) error {
 	return nil
 }
 
-func (f *FakeComponent) Update(args component.Arguments) error {
+func (f *FakeComponent) Update(_ component.Arguments) error {
 	return nil
 }

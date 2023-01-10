@@ -29,19 +29,21 @@ log entries to the list of receivers passed in `forward_to`.
 
 Name         | Type                 | Description                                                                    | Default                    | Required
 ------------ |----------------------|--------------------------------------------------------------------------------|----------------------------| --------
-`locale`    | `number`             | Locale ID for event rendering.                                                 | 0 (Windows default locale) | no
+`locale`    | `number`             | Locale ID for event rendering. 0 default is Windows Locale.                    | `0` | no
 `eventlog_name`    | `string`             | Event log to read from.                                                        |                            | see below
-`xpath_query`    | `string`             | Event log to read from.                                                        | *                          | see below
-`bookmark_path`    | `string`             | Used to keep position in event log.                                            | DATA_PATH/bookmark.xml     | no
-`poll_interval`    | `time.duration`      | How often to poll the event log.                                               | 3s                         | no
-`exclude_event_data`    | `bool`               | Exclude event data.                                                            | false                      | no
-`exclude_user_data`    | `bool`               | Exclude user data.                                                             | false                      | no
-`user_incoming_timestamp`    | `bool`               | When false will assign the current timestamp to the log when it was processed. | false                      | no
+`xpath_query`    | `string`             | Event log to read from.                                                        | `"*"`                          | see below
+`bookmark_path`    | `string`             | Used to keep position in event log.                                            | `"DATA_PATH/bookmark.xml"`     | no
+`poll_interval`    | `time.duration`      | How often to poll the event log.                                               | `"3s"`                         | no
+`exclude_event_data`    | `bool`               | Exclude event data.                                                            | `false`                      | no
+`exclude_user_data`    | `bool`               | Exclude user data.                                                             | `false`                      | no
+`user_incoming_timestamp`    | `bool`               | When false will assign the current timestamp to the log when it was processed. | `false`                      | no
 `forward_to` | `list(LogsReceiver)` | List of receivers to send log entries to.                                      |                            | yes
 
 
 > **NOTE**: eventlog_name is required if xpath_query does not specify the event log.
 > The xpath_query can be defined in [short or xml form](https://docs.microsoft.com/en-us/windows/win32/wes/consuming-events).
+> When using the XML form you can specify the event_log in the xpath_query. 
+> If using short form, eventlog_name must be defined.
 
 
 ## Component health

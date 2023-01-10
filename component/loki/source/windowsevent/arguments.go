@@ -1,9 +1,9 @@
 package windowsevent
 
 import (
-	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	"time"
+
+	"github.com/grafana/agent/component/common/loki"
 )
 
 // Arguments holds values which are used to configure the loki.source.windowsevent
@@ -18,20 +18,6 @@ type Arguments struct {
 	ExcludeUserdata      bool                `river:"exclude_user_data,attr,optional"`
 	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`
 	ForwardTo            []loki.LogsReceiver `river:"forward_to,attr"`
-}
-
-func convertConfig(arg Arguments) *scrapeconfig.WindowsEventsTargetConfig {
-	return &scrapeconfig.WindowsEventsTargetConfig{
-		Locale:               uint32(arg.Locale),
-		EventlogName:         arg.EventLogName,
-		Query:                arg.XPathQuery,
-		UseIncomingTimestamp: arg.UseIncomingTimestamp,
-		BookmarkPath:         arg.BookmarkPath,
-		PollInterval:         arg.PollInterval,
-		ExcludeEventData:     arg.ExcludeEventData,
-		ExcludeEventMessage:  false,
-		ExcludeUserData:      arg.ExcludeUserdata,
-	}
 }
 
 func defaultArgs() Arguments {
