@@ -1,7 +1,7 @@
 //go:build !windows
 // +build !windows
 
-package windowsevents
+package windowsevent
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "loki.source.windowsevents",
+		Name: "loki.source.windowsevent",
 		Args: Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
@@ -23,7 +23,7 @@ var (
 	_ component.Component = (*FakeComponent)(nil)
 )
 
-// FakeComponent implements the loki.source.windowsevents component for non-windows environments.
+// FakeComponent implements the loki.source.windowsevent component for non-windows environments.
 type FakeComponent struct {
 }
 

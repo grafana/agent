@@ -1,16 +1,11 @@
-package windowsevents
+package windowsevent
 
 import (
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
-	"github.com/prometheus/common/model"
 	"time"
 )
 
 func convertConfig(arg Arguments) *scrapeconfig.WindowsEventsTargetConfig {
-	lbls := model.LabelSet{}
-	for k, v := range arg.Labels {
-		lbls[model.LabelName(k)] = model.LabelValue(v)
-	}
 	return &scrapeconfig.WindowsEventsTargetConfig{
 		Locale:               uint32(arg.Locale),
 		EventlogName:         arg.EventLogName,
@@ -21,7 +16,6 @@ func convertConfig(arg Arguments) *scrapeconfig.WindowsEventsTargetConfig {
 		ExcludeEventData:     arg.ExcludeEventData,
 		ExcludeEventMessage:  false,
 		ExcludeUserData:      arg.ExcludeUserdata,
-		Labels:               lbls,
 	}
 }
 
@@ -34,7 +28,6 @@ func defaultArgs() Arguments {
 		PollInterval:         3 * time.Second,
 		ExcludeEventData:     false,
 		ExcludeUserdata:      false,
-		Labels:               nil,
 		UseIncomingTimestamp: false,
 	}
 }

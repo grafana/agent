@@ -1,4 +1,4 @@
-package windowsevents
+package windowsevent
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "loki.source.windowsevents",
+		Name: "loki.source.windowsevent",
 		Args: Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
@@ -23,7 +23,7 @@ func init() {
 	})
 }
 
-// Arguments holds values which are used to configure the loki.source.windowsevents
+// Arguments holds values which are used to configure the loki.source.windowsevent
 // component.
 type Arguments struct {
 	Locale               int                 `river:"locale,attr,optional"`
@@ -33,7 +33,6 @@ type Arguments struct {
 	PollInterval         time.Duration       `river:"poll_interval,attr,optional"`
 	ExcludeEventData     bool                `river:"exclude_event_data,attr,optional"`
 	ExcludeUserdata      bool                `river:"exclude_user_data,attr,optional"`
-	Labels               map[string]string   `river:"labels,attr,optional"`
 	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`
 	ForwardTo            []loki.LogsReceiver `river:"forward_to,attr"`
 }
@@ -42,7 +41,7 @@ var (
 	_ component.Component = (*Component)(nil)
 )
 
-// Component implements the loki.source.windowsevents component.
+// Component implements the loki.source.windowsevent component.
 type Component struct {
 	opts component.Options
 
@@ -63,7 +62,7 @@ func (c *Component) Stop() {
 	c.cancelFunc()
 }
 
-// New creates a new loki.source.windowsevents component.
+// New creates a new loki.source.windowsevent component.
 func New(o component.Options, args Arguments) (*Component, error) {
 
 	c := &Component{

@@ -15,6 +15,7 @@ Main (unreleased)
 - New Grafana Agent Flow components:
 
   - `otelcol.receiver.kafka` receives telemetry data from Kafka. (@rfratto)
+  - `loki.source.windowsevent` reads logs from Windows Event Log. (@mattdurham)
 
 ### Enhancements
 
