@@ -13,7 +13,7 @@ import (
 	"github.com/grafana/loki/pkg/logproto"
 )
 
-// LogsReceiver is an alias for chan Entry which will be used for component
+// LogsReceiver is an alias for chan Entry which is used for component
 // communication.
 type LogsReceiver chan Entry
 
