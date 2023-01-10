@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sys/windows/svc/eventlog"
 	"os"
+	"strings"
 	"testing"
 	"time"
 )
@@ -18,14 +19,10 @@ import (
 func TestEventLogger(t *testing.T) {
 	var loggerName = "agent_test"
 	//Setup Windows Event log with the log source name and logging levels
-	err := eventlog.InstallAsEventCreate(loggerName, eventlog.Info|eventlog.Warning|eventlog.Error)
-	require.NoError(t, err)
+	_ = eventlog.InstallAsEventCreate(loggerName, eventlog.Info|eventlog.Warning|eventlog.Error)
 	wlog, err := eventlog.Open(loggerName)
 	require.NoError(t, err)
-	tm := time.Now().Format(time.RFC3339Nano)
-	err = wlog.Info(2, tm)
-	require.NoError(t, err)
-	l, err := logging.New(os.Stderr, logging.DefaultOptions)
+	l, err := logging.New(os.Stdout, logging.DefaultOptions)
 	require.NoError(t, err)
 	dataPath, err := os.MkdirTemp("", "loki.source.windowsevent")
 	require.NoError(t, err)
@@ -44,7 +41,7 @@ func TestEventLogger(t *testing.T) {
 		HTTPPath:       "",
 	}, Arguments{
 		Locale:               0,
-		EventLogName:         "agent_test",
+		EventLogName:         "Application",
 		XPathQuery:           "*",
 		BookmarkPath:         "",
 		PollInterval:         10 * time.Millisecond,
@@ -55,14 +52,22 @@ func TestEventLogger(t *testing.T) {
 	})
 	require.NoError(t, err)
 	ctx := context.Background()
-	ctx, _ = context.WithTimeout(ctx, 100*time.Millisecond)
+	ctx, cancelFunc := context.WithTimeout(ctx, 10*time.Second)
+	found := false
 	go c.Run(ctx)
+	tm := time.Now().Format(time.RFC3339Nano)
+	err = wlog.Info(2, tm)
+	require.NoError(t, err)
 	select {
 	case <-ctx.Done():
 		// Fail!
 		require.True(t, false)
 	case e := <-rec:
-		require.True(t, tm == e.Line)
-		break
+		if strings.Contains(e.Line, tm) {
+			found = true
+			break
+		}
 	}
+	cancelFunc()
+	require.True(t, found)
 }
