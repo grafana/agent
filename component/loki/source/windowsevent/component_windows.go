@@ -30,13 +30,11 @@ var (
 type Component struct {
 	opts component.Options
 
-	mut        sync.RWMutex
-	args       Arguments
-	target     *windows.Target
-	handler    chan api.Entry
-	doneCtx    context.Context
-	cancelFunc context.CancelFunc
-	receivers  []loki.LogsReceiver
+	mut       sync.RWMutex
+	args      Arguments
+	target    *windows.Target
+	handler   chan api.Entry
+	receivers []loki.LogsReceiver
 }
 
 func (c *Component) Chan() chan<- api.Entry {
@@ -44,7 +42,7 @@ func (c *Component) Chan() chan<- api.Entry {
 }
 
 func (c *Component) Stop() {
-	c.cancelFunc()
+	// This is a noop.
 }
 
 // New creates a new loki.source.windowsevent component.
@@ -66,11 +64,16 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
+	defer func() {
+		c.mut.Lock()
+		defer c.mut.Unlock()
+		if c.target != nil {
+			_ = c.target.Stop()
+		}
+	}()
 	for {
 		select {
 		case <-ctx.Done():
-			return nil
-		case <-c.doneCtx.Done():
 			return nil
 		case entry := <-c.handler:
 			lokiEntry := loki.Entry{
@@ -82,6 +85,7 @@ func (c *Component) Run(ctx context.Context) error {
 			}
 		}
 	}
+
 }
 
 // Update implements component.Component.
@@ -109,17 +113,16 @@ func (c *Component) Update(args component.Arguments) error {
 		}
 	}
 
-	// Close the original target.
+	winTarget, err := windows.New(c.opts.Logger, c, nil, convertConfig(newArgs))
+	if err != nil {
+		return err
+	}
+	// Stop the original target.
 	if c.target != nil {
 		err := c.target.Stop()
 		if err != nil {
 			return err
 		}
-	}
-	c.doneCtx, c.cancelFunc = context.WithCancel(context.Background())
-	winTarget, err := windows.New(c.opts.Logger, c, nil, convertConfig(newArgs))
-	if err != nil {
-		return err
 	}
 	c.target = winTarget
 
