@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.8.0
+    controller-gen.kubebuilder.io/version: v0.9.2
   creationTimestamp: null
   name: metricsinstances.monitoring.grafana.com
 spec:
@@ -66,6 +66,7 @@ spec:
                 required:
                 - key
                 type: object
+                x-kubernetes-map-type: atomic
               maxWALTime:
                 description: MaxWALTime is the maximum amount of time that series
                   and samples can exist in the WAL before being forcibly deleted.
@@ -120,6 +121,7 @@ spec:
                       are ANDed.
                     type: object
                 type: object
+                x-kubernetes-map-type: atomic
               podMonitorSelector:
                 description: PodMonitorSelector determines which PodMonitors to selected
                   for target discovery. Experimental.
@@ -165,6 +167,7 @@ spec:
                       are ANDed.
                     type: object
                 type: object
+                x-kubernetes-map-type: atomic
               probeNamespaceSelector:
                 description: ProbeNamespaceSelector is the set of labels that determines
                   which namespaces to watch for Probe discovery. If nil, it only checks
@@ -211,6 +214,7 @@ spec:
                       are ANDed.
                     type: object
                 type: object
+                x-kubernetes-map-type: atomic
               probeSelector:
                 description: ProbeSelector determines which Probes to select for target
                   discovery.
@@ -256,6 +260,7 @@ spec:
                       are ANDed.
                     type: object
                 type: object
+                x-kubernetes-map-type: atomic
               remoteFlushDeadline:
                 description: RemoteFlushDeadline is the deadline for flushing data
                   when an instance shuts down.
@@ -288,6 +293,7 @@ spec:
                           required:
                           - key
                           type: object
+                          x-kubernetes-map-type: atomic
                         username:
                           description: The secret in the service monitor namespace
                             that contains the username for authentication.
@@ -307,6 +313,7 @@ spec:
                           required:
                           - key
                           type: object
+                          x-kubernetes-map-type: atomic
                       type: object
                     bearerToken:
                       description: BearerToken used for remote_write.
@@ -365,6 +372,7 @@ spec:
                               required:
                               - key
                               type: object
+                              x-kubernetes-map-type: atomic
                             secret:
                               description: Secret containing data to use for the targets.
                               properties:
@@ -384,6 +392,7 @@ spec:
                               required:
                               - key
                               type: object
+                              x-kubernetes-map-type: atomic
                           type: object
                         clientSecret:
                           description: The secret containing the OAuth2 client secret
@@ -403,6 +412,7 @@ spec:
                           required:
                           - key
                           type: object
+                          x-kubernetes-map-type: atomic
                         endpointParams:
                           additionalProperties:
                             type: string
@@ -494,6 +504,7 @@ spec:
                           required:
                           - key
                           type: object
+                          x-kubernetes-map-type: atomic
                         profile:
                           description: Profile is the named AWS profile to use for
                             authentication.
@@ -526,6 +537,7 @@ spec:
                           required:
                           - key
                           type: object
+                          x-kubernetes-map-type: atomic
                       type: object
                     tlsConfig:
                       description: TLSConfig to use for remote_write.
@@ -553,6 +565,7 @@ spec:
                               required:
                               - key
                               type: object
+                              x-kubernetes-map-type: atomic
                             secret:
                               description: Secret containing data to use for the targets.
                               properties:
@@ -572,6 +585,7 @@ spec:
                               required:
                               - key
                               type: object
+                              x-kubernetes-map-type: atomic
                           type: object
                         caFile:
                           description: Path to the CA cert in the Prometheus container
@@ -599,6 +613,7 @@ spec:
                               required:
                               - key
                               type: object
+                              x-kubernetes-map-type: atomic
                             secret:
                               description: Secret containing data to use for the targets.
                               properties:
@@ -618,6 +633,7 @@ spec:
                               required:
                               - key
                               type: object
+                              x-kubernetes-map-type: atomic
                           type: object
                         certFile:
                           description: Path to the client cert file in the Prometheus
@@ -649,6 +665,7 @@ spec:
                           required:
                           - key
                           type: object
+                          x-kubernetes-map-type: atomic
                         serverName:
                           description: Used to verify the hostname for the targets.
                           type: string
@@ -777,6 +794,7 @@ spec:
                       are ANDed.
                     type: object
                 type: object
+                x-kubernetes-map-type: atomic
               serviceMonitorSelector:
                 description: ServiceMonitorSelector determines which ServiceMonitors
                   to select for target discovery.
@@ -822,6 +840,7 @@ spec:
                       are ANDed.
                     type: object
                 type: object
+                x-kubernetes-map-type: atomic
               walTruncateFrequency:
                 description: WALTruncateFrequency specifies how frequently to run
                   the WAL truncation process. Higher values cause the WAL to increase
@@ -836,9 +855,3 @@ spec:
         type: object
     served: true
     storage: true
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []
