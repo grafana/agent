@@ -10,6 +10,6 @@ RUN powershell "Invoke-Expression ""C:\'Program Files'\git\bin\bash.exe -c 'make
 # Use the smallest container possible for the final image
 FROM mcr.microsoft.com/windows/nanoserver:1809
 
-COPY --from=builder /src/agent/build/agentctl /bin/agentctl
+COPY --from=builder /src/agent/build/grafana-agentctl /bin/grafana-agentctl
 
-ENTRYPOINT ["/bin/agentctl"]
+ENTRYPOINT ["/bin/grafana-agentctl"]

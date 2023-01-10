@@ -38,16 +38,16 @@ container through a bind mount for the flags to work properly.
 1. Copy and paste the following commands into your command line.
     ```
     docker run ^
-      -v c:\agent-data:c:\etc\agent\data ^
-      -v c:\workspace\config\agent:c:\etc\agent ^
+      -v c:\grafana-agent-data:c:\etc\grafana-agent\data ^
+      -v c:\workspace\config\grafana-agent:c:\etc\grafana-agent ^
       grafana/agent:v0.30.1-windows
     ```
 
-2. Replace `c:\agent-data` with the folder you want to store WAL data in.
+2. Replace `c:\grafana-agent-data` with the folder you want to store WAL data in.
 
     WAL data is where metrics are stored before they are sent to Prometheus. Old WAL data is cleaned up every hour and is used for recovery if the process happens to crash.
 
-3. Replace `c:\workspace\config\agent` with a path containing to a valid configuration file. The config file must be named agent.yaml inside the directory.
+3. Replace `c:\workspace\config\grafana-agent` with a path containing to a valid configuration file. The config file must be named grafana-agent.yaml inside the directory.
 
 Note that using paths on your host machine must be exposed to the Docker
 container through a bind mount for the flags to work properly.
