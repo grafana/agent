@@ -102,7 +102,7 @@ func (c *Component) Update(args component.Arguments) error {
 		newArgs.BookmarkPath = path.Join(c.opts.DataPath, "bookmark.xml")
 	}
 
-	// Create the bookmark file and parent folders if they dont exist.
+	// Create the bookmark file and parent folders if they don't exist.
 	_, err := os.Stat(newArgs.BookmarkPath)
 	if os.IsNotExist(err) {
 		err := os.MkdirAll(path.Dir(newArgs.BookmarkPath), 644)
