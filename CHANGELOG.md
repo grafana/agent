@@ -37,8 +37,8 @@ Main (unreleased)
   - `otelcol.receiver.zipkin` receives Zipkin-formatted traces. (@rfratto)
 
 - Flow components which work with relabeling rules (`discovery.relabel`,
-  `prometheus.relabel` and `loki.relabel`) now export a new field named Rules.
-  The exported value is a method that returns the currently configured rules.
+  `prometheus.relabel` and `loki.relabel`) now export a new value named Rules.
+  This value is a function that returns the currently configured rules.
   (@tpaschalis)
 
 ### Enhancements
