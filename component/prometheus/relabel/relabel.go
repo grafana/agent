@@ -49,6 +49,7 @@ type Exports struct {
 type Component struct {
 	mut              sync.RWMutex
 	opts             component.Options
+	mrcFlow          []*flow_relabel.Config
 	mrc              []*relabel.Config
 	receiver         *prometheus.Interceptor
 	metricsProcessed prometheus_client.Counter
@@ -236,9 +237,9 @@ type labelAndID struct {
 	id     uint64
 }
 
-func (c *Component) getRules() []*relabel.Config {
+func (c *Component) getRules() []*flow_relabel.Config {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
 
-	return c.mrc
+	return c.mrcFlow
 }

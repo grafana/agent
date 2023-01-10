@@ -42,8 +42,9 @@ type Exports struct {
 type Component struct {
 	opts component.Options
 
-	mut sync.RWMutex
-	rcs []*relabel.Config
+	mut     sync.RWMutex
+	rcs     []*relabel.Config
+	rcsFlow []*flow_relabel.Config
 }
 
 var _ component.Component = (*Component)(nil)
@@ -93,11 +94,11 @@ func (c *Component) Update(args component.Arguments) error {
 	return nil
 }
 
-func (c *Component) getRules() []*relabel.Config {
+func (c *Component) getRules() []*flow_relabel.Config {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
 
-	return c.rcs
+	return c.rcsFlow
 }
 
 func componentMapToPromLabels(ls discovery.Target) labels.Labels {
