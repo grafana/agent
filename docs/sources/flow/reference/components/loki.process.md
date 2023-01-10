@@ -48,12 +48,12 @@ The following blocks are supported inside the definition of `loki.process`:
 
 Hierarchy        | Block      | Description | Required
 ---------------- | ---------- | ----------- | --------
-`stage`          | [stage][]  | Processing stage to run. | no
-`stage > json`   | [json][]   | Configures a JSON processing stage.  | no
-`stage > labels` | [labels][] | Configures a labels processing stage. | no
-`stage > label_keep`   | [label_keep][]    | Configures a label_keep processing stage. | no
-`stage > label_drop`   | [label_drop][]    | Configures a label_drop processing stage. | no
-`stage > static_labels`| [static_labels][] | Configures a static_labels processing stage. | no
+stage          | [stage][]  | Processing stage to run. | no
+stage > json   | [json][]   | Configures a JSON processing stage.  | no
+stage > labels | [labels][] | Configures a labels processing stage. | no
+stage > label_keep   | [label_keep][]    | Configures a `label_keep` processing stage. | no
+stage > label_drop   | [label_drop][]    | Configures a `label_drop` processing stage. | no
+stage > static_labels | [static_labels][] | Configures a `static_labels` processing stage. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `stage > json`
 refers to a `json` block defined inside of a `stage` block.
