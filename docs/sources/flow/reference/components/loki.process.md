@@ -51,8 +51,8 @@ Hierarchy        | Block      | Description | Required
 `stage`          | [stage][]  | Processing stage to run. | no
 `stage > json`   | [json][]   | Configures a JSON processing stage.  | no
 `stage > labels` | [labels][] | Configures a labels processing stage. | no
-`stage > labelallow`   | [labelallow][]    | Configures a labelallow processing stage. | no
-`stage > labeldrop`    | [labeldrop][]     | Configures a labeldrop processing stage. | no
+`stage > label_keep`   | [label_keep][]    | Configures a label_keep processing stage. | no
+`stage > label_drop`   | [label_drop][]    | Configures a label_drop processing stage. | no
 `stage > static_labels`| [static_labels][] | Configures a static_labels processing stage. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `stage > json`
@@ -61,8 +61,8 @@ refers to a `json` block defined inside of a `stage` block.
 [stage]: #stage-block
 [json]: #json-block
 [labels]: #labels-block
-[labelallow]: #labelallow-block
-[labeldrop]: #labeldrop-block
+[label_keep]: #label_keep-block
+[label_drop]: #label_drop-block
 [static_labels]: #static_labels-block
 
 ### stage block
@@ -159,40 +159,40 @@ stage {
 }
 ```
 
-### labelallow block
+### label_keep block
 
-The `labelallow` inner block configures a labelallow processing stage that
-filters the label set of an incoming log entry to only keep a subset of them.
+The `label_keep` inner block configures a label_keep processing stage that
+filters the label set of an incoming log entry to only keep a subset.
 
 The following arguments are supported:
 
-Name        | Type          | Description                                   | Default        | Required
------------ | --------------| --------------------------------------------- | -------------- | --------
-`values`    | `map(string)` | Configures a `labelallow` processing stage.   | `{}`           | no
+Name        | Type           | Description                                   | Default        | Required
+----------- | -------------- | --------------------------------------------- | -------------- | --------
+`values`    | `list(string)` | Configures a `label_keep` processing stage.   | `{}`           | no
 
 
 ```river
 stage {
-	labelallow {
+	label_keep {
 		values = [ "kubernetes_pod_name", "kubernetes_container_name" ]
 	}
 }
 ```
 
-### labeldrop block
+### label_drop block
 
-The `labeldrop` inner block configures a labeldrop processing stage that drops
-labels from incoming log entries.
+The `label_drop` inner block configures a processing stage that drops labels
+from incoming log entries.
 
 The following arguments are supported:
 
-Name         | Type          | Description                                  | Default        | Required
------------- | --------------| -------------------------------------------- | -------------- | --------
-`values`     | `map(string)` | Configures a `labeldrop` processing stage.   | `{}`           | no
+Name         | Type           | Description                                  | Default        | Required
+------------ | -------------- | -------------------------------------------- | -------------- | --------
+`values`     | `list(string)` | Configures a `label_drop` processing stage.   | `{}`           | no
 
 ```river
 stage {
-	labeldrop {
+	label_drop {
 		values = [ "kubernetes_node_name", "kubernetes_namespace" ]
 	}
 }

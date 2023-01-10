@@ -134,12 +134,12 @@ stage {
   }
 }
 stage {
-  labeldrop {
+  label_drop {
     values = [ "foo", "bar" ]
   }
 }
 stage {
-  labelallow {
+  label_keep {
     values = [ "foo", "baz", "filename" ]
   }
 }`

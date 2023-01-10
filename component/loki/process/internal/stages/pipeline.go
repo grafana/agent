@@ -22,8 +22,8 @@ import (
 type StageConfig struct {
 	JSONConfig         *JSONConfig         `river:"json,block,optional"`
 	LabelsConfig       *LabelsConfig       `river:"labels,block,optional"`
-	LabelAllowConfig   *LabelAllowConfig   `river:"labelallow,block,optional"`
-	LabelDropConfig    *LabelDropConfig    `river:"labeldrop,block,optional"`
+	LabelAllowConfig   *LabelAllowConfig   `river:"label_keep,block,optional"`
+	LabelDropConfig    *LabelDropConfig    `river:"label_drop,block,optional"`
 	StaticLabelsConfig *StaticLabelsConfig `river:"static_labels,block,optional"`
 }
 
