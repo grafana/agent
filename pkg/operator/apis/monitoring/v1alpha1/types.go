@@ -84,7 +84,7 @@ type GrafanaAgentSpec struct {
 	// Paused prevents actions except for deletion to be performed on the
 	// underlying managed objects.
 	Paused bool `json:"paused,omitempty"`
-	// Image, when specified, overrides the image used to run Agent. Specify 
+	// Image, when specified, overrides the image used to run Agent. Specify
 	// the image along with a tag. You still need to set the version to ensure
 	// Grafana Agent Operator knows which version of Grafana Agent is being
 	// configured.
@@ -102,7 +102,7 @@ type GrafanaAgentSpec struct {
 	Volumes []v1.Volume `json:"volumes,omitempty"`
 	// VolumeMounts lets you configure additional VolumeMounts on the output
 	// StatefulSet definition. Specified VolumeMounts are appended to other
-	// VolumeMounts generated as a result of StorageSpec objects 
+	// VolumeMounts generated as a result of StorageSpec objects
 	// in the Grafana Agent container.
 	VolumeMounts []v1.VolumeMount `json:"volumeMounts,omitempty"`
 	// Resources holds requests and limits for individual pods.
@@ -132,7 +132,7 @@ type GrafanaAgentSpec struct {
 	// Containers lets you inject additional containers or modify operator-generated
 	// containers. This can be used to add an authentication
 	// proxy to a Grafana Agent pod or to change the behavior of an
-	// operator-generated container. Containers described here modify an 
+	// operator-generated container. Containers described here modify an
 	// operator-generated container if they share the same name and if modifications are done
 	// via a strategic merge patch. The current container names are:
 	// `grafana-agent` and `config-reloader`. Overriding containers is entirely
@@ -145,7 +145,7 @@ type GrafanaAgentSpec struct {
 	// of an initContainer cause the pod to restart.
 	// More info: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
 	// Using initContainers for any use case other than secret fetching is
-	// entirely outside the scope of what the Grafana Agent maintainers 
+	// entirely outside the scope of what the Grafana Agent maintainers
 	// support and by doing so, you accept that this behavior may break at any
 	// time without notice.
 	InitContainers []v1.Container `json:"initContainers,omitempty"`
@@ -183,7 +183,7 @@ type GrafanaAgentSpec struct {
 // +kubebuilder:object:generate=false
 
 // ObjectSelector is a set of selectors to use for finding an object in the
-// resource hierarchy. When NamespaceSelector is nil, search for objects 
+// resource hierarchy. When NamespaceSelector is nil, search for objects
 // directly in the ParentNamespace.
 type ObjectSelector struct {
 	ObjectType        client.Object
