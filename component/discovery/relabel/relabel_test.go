@@ -4,11 +4,11 @@ import (
 	"testing"
 	"time"
 
+	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/discovery/relabel"
 	"github.com/grafana/agent/pkg/flow/componenttest"
 	"github.com/grafana/agent/pkg/river"
-	prom_relabel "github.com/prometheus/prometheus/model/relabel"
 	"github.com/stretchr/testify/require"
 )
 
@@ -117,8 +117,8 @@ rule {
 	require.Len(t, gotOriginal, 1)
 	require.Len(t, gotUpdated, 1)
 
-	require.Equal(t, gotOriginal[0].Action, prom_relabel.Keep)
-	require.Equal(t, gotUpdated[0].Action, prom_relabel.Drop)
+	require.Equal(t, gotOriginal[0].Action, flow_relabel.Keep)
+	require.Equal(t, gotUpdated[0].Action, flow_relabel.Drop)
 	require.Equal(t, gotUpdated[0].SourceLabels, gotOriginal[0].SourceLabels)
 	require.Equal(t, gotUpdated[0].Regex, gotOriginal[0].Regex)
 }

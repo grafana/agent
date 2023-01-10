@@ -155,6 +155,7 @@ func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 	c.clearCache()
 	c.mrc = flow_relabel.ComponentToPromRelabelConfigs(newArgs.MetricRelabelConfigs)
+	c.mrcFlow = newArgs.MetricRelabelConfigs
 	c.fanout.UpdateChildren(newArgs.ForwardTo)
 
 	return nil

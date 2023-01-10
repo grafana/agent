@@ -77,6 +77,7 @@ func (c *Component) Update(args component.Arguments) error {
 	targets := make([]discovery.Target, 0, len(newArgs.Targets))
 	relabelConfigs := flow_relabel.ComponentToPromRelabelConfigs(newArgs.RelabelConfigs)
 	c.rcs = relabelConfigs
+	c.rcsFlow = newArgs.RelabelConfigs
 
 	for _, t := range newArgs.Targets {
 		lset := componentMapToPromLabels(t)

@@ -193,8 +193,8 @@ func TestRuleGetter(t *testing.T) {
 	require.Len(t, gotOriginal, 1)
 	require.Len(t, gotUpdated, 1)
 
-	require.Equal(t, gotOriginal[0].Action, relabel.Keep)
-	require.Equal(t, gotUpdated[0].Action, relabel.Drop)
+	require.Equal(t, gotOriginal[0].Action, flow_relabel.Keep)
+	require.Equal(t, gotUpdated[0].Action, flow_relabel.Drop)
 	require.Equal(t, gotUpdated[0].SourceLabels, gotOriginal[0].SourceLabels)
 	require.Equal(t, gotUpdated[0].Regex, gotOriginal[0].Regex)
 }
