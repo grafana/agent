@@ -56,8 +56,6 @@ Main (unreleased)
 
 - Use Go 1.19.4 for builds. (@erikbaranowski)
 
-- Update `agent-build-image` version to `0.19.0`. (@spartan0x117)
-
 v0.30.1 (2022-12-23)
 --------------------
 
