@@ -15,7 +15,8 @@ exported as-is.
 The most common use of `discovery.relabel` is to filter targets or standardize
 the target label set that is passed to a downstream component. The `rule`
 blocks are applied to the label set of each target in order of their appearance
-in the configuration file.
+in the configuration file. The configured rules can be retrieved by calling the
+function in the `rules` export field.
 
 Target labels which start with a double underscore `__` are considered
 internal, and may be removed by other Flow components prior to telemetry
