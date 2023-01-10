@@ -171,7 +171,7 @@ positions:
 		t.Fatal(err)
 	}
 	p, err := New(util_log.Logger, Config{
-		SyncPeriod:    20 * time.Nanosecond,
+		SyncPeriod:    20 * time.Second,
 		PositionsFile: temp,
 		ReadOnly:      true,
 	})
@@ -215,7 +215,7 @@ positions:
 		t.Fatal(err)
 	}
 	p, err := New(util_log.Logger, Config{
-		SyncPeriod:    20 * time.Nanosecond,
+		SyncPeriod:    20 * time.Second,
 		PositionsFile: temp,
 	})
 	if err != nil {

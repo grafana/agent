@@ -148,11 +148,6 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 		if err != nil {
 			return nil, err
 		}
-	// case StageTypeLabelDrop:
-	// 	s, err = newLabelDropStage(cfg)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
 	// case StageTypeTimestamp:
 	// 	s, err = newTimestampStage(logger, cfg)
 	// 	if err != nil {
@@ -203,16 +198,21 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 	// 	if err != nil {
 	// 		return nil, err
 	// 	}
-	// case StageTypeLabelAllow:
-	// 	s, err = newLabelAllowStage(cfg)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// case StageTypeStaticLabels:
-	// 	s, err = newStaticLabelsStage(logger, cfg)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
+	case cfg.LabelAllowConfig != nil:
+		s, err = newLabelAllowStage(*cfg.LabelAllowConfig)
+		if err != nil {
+			return nil, err
+		}
+	case cfg.LabelDropConfig != nil:
+		s, err = newLabelDropStage(*cfg.LabelDropConfig)
+		if err != nil {
+			return nil, err
+		}
+	case cfg.StaticLabelsConfig != nil:
+		s, err = newStaticLabelsStage(logger, *cfg.StaticLabelsConfig)
+		if err != nil {
+			return nil, err
+		}
 	default:
 		panic("unreacheable; should have decoded into one of the StageConfig fields")
 	}

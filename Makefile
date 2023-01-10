@@ -21,9 +21,9 @@
 ## Targets for building binaries:
 ##
 ##   binaries  Compiles all binaries.
-##   agent     Compiles cmd/agent to $(AGENT_BINARY)
-##   agentctl  Compiles cmd/agentctl to $(AGENTCTL_BINARY)
-##   operator  Compiles cmd/agent-operator to $(OPERATOR_BINARY)
+##   agent     Compiles cmd/grafana-agent to $(AGENT_BINARY)
+##   agentctl  Compiles cmd/grafana-agentctl to $(AGENTCTL_BINARY)
+##   operator  Compiles cmd/grafana-agent-operator to $(OPERATOR_BINARY)
 ##   crow      Compiles tools/crow to $(CROW_BINARY)
 ##   smoke     Compiles tools/smoke to $(SMOKE_BINARY)
 ##
@@ -72,11 +72,11 @@
 ##   CROW_IMAGE       Image name:tag built by `make crow-image`
 ##   SMOKE_IMAGE      Image name:tag built by `make smoke-image`
 ##   BUILD_IMAGE      Image name:tag used by USE_CONTAINER=1
-##   AGENT_BINARY     Output path of `make agent` (default build/agent)
-##   AGENTCTL_BINARY  Output path of `make agentctl` (default build/agentctl)
-##   OPERATOR_BINARY  Output path of `make operator` (default build/agent-operator)
-##   CROW_BINARY      Output path of `make crow` (default build/agent-crow)
-##   SMOKE_BINARY     Output path of `make smoke` (default build/agent-smoke)
+##   AGENT_BINARY     Output path of `make agent` (default build/grafana-agent)
+##   AGENTCTL_BINARY  Output path of `make agentctl` (default build/grafana-agentctl)
+##   OPERATOR_BINARY  Output path of `make operator` (default build/grafana-agent-operator)
+##   CROW_BINARY      Output path of `make crow` (default build/grafana-agent-crow)
+##   SMOKE_BINARY     Output path of `make smoke` (default build/grafana-agent-smoke)
 ##   GOOS             Override OS to build binaries for
 ##   GOARCH           Override target architecture to build binaries for
 ##   GOARM            Override ARM version (6 or 7) when GOARCH=arm
@@ -88,21 +88,22 @@
 
 include tools/make/*.mk
 
-AGENT_IMAGE     ?= grafana/agent:latest
-AGENTCTL_IMAGE  ?= grafana/agentctl:latest
-OPERATOR_IMAGE  ?= grafana/agent-operator:latest
-CROW_IMAGE      ?= us.gcr.io/kubernetes-dev/grafana/agent-crow:latest
-SMOKE_IMAGE     ?= us.gcr.io/kubernetes-dev/grafana/agent-smoke:latest
-AGENT_BINARY    ?= build/agent
-AGENTCTL_BINARY ?= build/agentctl
-OPERATOR_BINARY ?= build/agent-operator
-CROW_BINARY     ?= build/agent-crow
-SMOKE_BINARY    ?= build/agent-smoke
-GOOS            ?= $(shell go env GOOS)
-GOARCH          ?= $(shell go env GOARCH)
-GOARM           ?= $(shell go env GOARM)
-CGO_ENABLED     ?= 1
-RELEASE_BUILD   ?= 0
+AGENT_IMAGE      ?= grafana/agent:latest
+AGENTCTL_IMAGE   ?= grafana/agentctl:latest
+OPERATOR_IMAGE   ?= grafana/agent-operator:latest
+CROW_IMAGE       ?= us.gcr.io/kubernetes-dev/grafana/agent-crow:latest
+SMOKE_IMAGE      ?= us.gcr.io/kubernetes-dev/grafana/agent-smoke:latest
+AGENT_BINARY     ?= build/grafana-agent
+AGENTCTL_BINARY  ?= build/grafana-agentctl
+OPERATOR_BINARY  ?= build/grafana-agent-operator
+CROW_BINARY      ?= build/agent-crow
+SMOKE_BINARY     ?= build/agent-smoke
+AGENTLINT_BINARY ?= build/agentlint
+GOOS             ?= $(shell go env GOOS)
+GOARCH           ?= $(shell go env GOARCH)
+GOARM            ?= $(shell go env GOARM)
+CGO_ENABLED      ?= 1
+RELEASE_BUILD    ?= 0
 
 # List of all environment variables which will propagate to the build
 # container. USE_CONTAINER must _not_ be included to avoid infinite recursion.
@@ -146,8 +147,9 @@ endif
 #
 
 .PHONY: lint
-lint:
+lint: agentlint
 	golangci-lint run -v --timeout=10m
+	$(AGENTLINT_BINARY) ./...
 
 .PHONY: test
 # We have to run test twice: once for all packages with -race and then once
@@ -171,21 +173,21 @@ agent:
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
-	$(GO_ENV) go build $(GO_FLAGS) -o $(AGENT_BINARY) ./cmd/agent
+	$(GO_ENV) go build $(GO_FLAGS) -o $(AGENT_BINARY) ./cmd/grafana-agent
 endif
 
 agentctl:
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
-	$(GO_ENV) go build $(GO_FLAGS) -o $(AGENTCTL_BINARY) ./cmd/agentctl
+	$(GO_ENV) go build $(GO_FLAGS) -o $(AGENTCTL_BINARY) ./cmd/grafana-agentctl
 endif
 
 operator:
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
-	$(GO_ENV) go build $(GO_FLAGS) -o $(OPERATOR_BINARY) ./cmd/agent-operator
+	$(GO_ENV) go build $(GO_FLAGS) -o $(OPERATOR_BINARY) ./cmd/grafana-agent-operator
 endif
 
 crow:
@@ -202,6 +204,13 @@ else
 	$(GO_ENV) go build $(GO_FLAGS) -o $(SMOKE_BINARY) ./tools/smoke
 endif
 
+agentlint:
+ifeq ($(USE_CONTAINER),1)
+	$(RERUN_IN_CONTAINER)
+else
+	cd ./tools/agentlint && $(GO_ENV) go build $(GO_FLAGS) -o ../../$(AGENTLINT_BINARY) .
+endif
+
 #
 # Targets for building Docker images
 #
@@ -216,11 +225,11 @@ endif
 images: agent-image agentctl-image operator-image crow-image smoke-image
 
 agent-image:
-	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(AGENT_IMAGE) -f cmd/agent/Dockerfile .
+	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(AGENT_IMAGE) -f cmd/grafana-agent/Dockerfile .
 agentctl-image:
-	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(AGENTCTL_IMAGE) -f cmd/agentctl/Dockerfile .
+	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(AGENTCTL_IMAGE) -f cmd/grafana-agentctl/Dockerfile .
 operator-image:
-	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(OPERATOR_IMAGE) -f cmd/agent-operator/Dockerfile .
+	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(OPERATOR_IMAGE) -f cmd/grafana-agent-operator/Dockerfile .
 crow-image:
 	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(CROW_IMAGE) -f tools/crow/Dockerfile .
 smoke-image:
