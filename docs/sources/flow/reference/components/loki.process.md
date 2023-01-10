@@ -56,6 +56,9 @@ stage > labels | [labels][] | Configures a labels processing stage. | no
 stage > label_keep   | [label_keep][]    | Configures a `label_keep` processing stage. | no
 stage > label_drop   | [label_drop][]    | Configures a `label_drop` processing stage. | no
 stage > static_labels | [static_labels][] | Configures a `static_labels` processing stage. | no
+stage > regex        | [regex][]         | Configures a `regex` processing stage. | no
+stage > timestamp    | [timestamp][]     | Configures a `timestamp` processing stage. | no
+stage > output       | [output][]        | Configures an `output` processing stage. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `stage > json`
 refers to a `json` block defined inside of a `stage` block.
