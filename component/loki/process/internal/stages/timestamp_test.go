@@ -6,7 +6,6 @@ package stages
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -91,13 +90,13 @@ func TestTimestampValidation(t *testing.T) {
 	}{
 		"missing source": {
 			config: &TimestampConfig{},
-			err:    errors.New(ErrTimestampSourceRequired),
+			err:    ErrTimestampSourceRequired,
 		},
 		"missing format": {
 			config: &TimestampConfig{
 				Source: "source1",
 			},
-			err: errors.New(ErrTimestampFormatRequired),
+			err: ErrTimestampFormatRequired,
 		},
 		"invalid location": {
 			config: &TimestampConfig{
@@ -105,7 +104,7 @@ func TestTimestampValidation(t *testing.T) {
 				Format:   "2006-01-02",
 				Location: &invalidLocationString,
 			},
-			err: fmt.Errorf(ErrInvalidLocation, ""),
+			err: fmt.Errorf(ErrInvalidLocation.Error(), ""),
 		},
 		"standard format": {
 			config: &TimestampConfig{
@@ -159,7 +158,7 @@ func TestTimestampValidation(t *testing.T) {
 				Format:          time.RFC3339,
 				ActionOnFailure: "foo",
 			},
-			err: fmt.Errorf(ErrInvalidActionOnFailure, TimestampActionOnFailureOptions),
+			err: fmt.Errorf(ErrInvalidActionOnFailure.Error(), TimestampActionOnFailureOptions),
 		},
 		"fallback formats contains the format": {
 			config: &TimestampConfig{

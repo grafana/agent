@@ -77,7 +77,7 @@ func TestPipelineWithMissingKey_Output(t *testing.T) {
 func TestOutputValidation(t *testing.T) {
 	emptyConfig := OutputConfig{Source: ""}
 	_, err := newOutputStage(nil, emptyConfig)
-	require.EqualError(t, err, ErrOutputSourceRequired)
+	require.Equal(t, err, ErrOutputSourceRequired)
 }
 
 func TestOutputStage_Process(t *testing.T) {

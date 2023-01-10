@@ -76,7 +76,7 @@ func validateTimestampConfig(cfg TimestampConfig) (parser, error) {
 		cfg.ActionOnFailure = TimestampActionOnFailureDefault
 	} else {
 		if !stringsContain(TimestampActionOnFailureOptions, cfg.ActionOnFailure) {
-			return nil, fmt.Errorf("%v: %w", ErrInvalidActionOnFailure, TimestampActionOnFailureOptions)
+			return nil, fmt.Errorf(ErrInvalidActionOnFailure.Error(), TimestampActionOnFailureOptions)
 		}
 	}
 
