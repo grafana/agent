@@ -856,11 +856,11 @@ spec:
                     type: object
                 type: object
               apiServer:
-                description: APIServerConfig allows specifying a host and auth methods
-                  to access the Kubernetes API server. If left empty, the Agent will
-                  assume that it is running inside of the cluster and will discover
-                  API servers automatically and use the pod's CA certificate and bearer
-                  token file at /var/run/secrets/kubernetes.io/serviceaccount.
+                description: APIServerConfig lets you specify a host and auth methods
+                  to access the Kubernetes API server. If left empty, the Agent assumes
+                  that it is running inside of the cluster and will discover API servers
+                  automatically and use the pod's CA certificate and bearer token
+                  file at /var/run/secrets/kubernetes.io/serviceaccount.
                 properties:
                   authorization:
                     description: Authorization section for accessing apiserver
@@ -950,8 +950,8 @@ spec:
                     description: TLS Config to use for accessing apiserver.
                     properties:
                       ca:
-                        description: Struct containing the CA cert to use for the
-                          targets.
+                        description: Certificate authority used when verifying server
+                          certificates.
                         properties:
                           configMap:
                             description: ConfigMap containing data to use for the
@@ -997,8 +997,7 @@ spec:
                           to use for the targets.
                         type: string
                       cert:
-                        description: Struct containing the client cert file for the
-                          targets.
+                        description: Client certificate to present when doing client-authentication.
                         properties:
                           configMap:
                             description: ConfigMap containing data to use for the
@@ -1077,23 +1076,23 @@ spec:
                 - host
                 type: object
               configMaps:
-                description: ConfigMaps is a liset of config maps in the same namespace
+                description: ConfigMaps is a list of config maps in the same namespace
                   as the GrafanaAgent object which will be mounted into each running
                   Grafana Agent pod. The ConfigMaps are mounted into /etc/grafana-agent/extra-configmaps/<configmap-name>.
                 items:
                   type: string
                 type: array
               containers:
-                description: 'Containers allows injecting additional containers or
-                  modifying operator generated containers. This can be used to allow
-                  adding an authentication proxy to a Grafana Agent pod or to change
-                  the behavior of an operator-generated container. Containers described
-                  here modify an operator generated container if they share the same
-                  name and modifications are done via a strategic merge patch. The
-                  current container names are: `grafana-agent` and `config-reloader`.
-                  Overriding containers is entirely outside the scope of what the
-                  Grafana Agent team will support and by doing so, you accept that
-                  this behavior may break at any time without notice.'
+                description: 'Containers lets you inject additional containers or
+                  modify operator-generated containers. This can be used to add an
+                  authentication proxy to a Grafana Agent pod or to change the behavior
+                  of an operator-generated container. Containers described here modify
+                  an operator-generated container if they share the same name and
+                  if modifications are done via a strategic merge patch. The current
+                  container names are: `grafana-agent` and `config-reloader`. Overriding
+                  containers is entirely outside the scope of what the Grafana Agent
+                  team supports and by doing so, you accept that this behavior may
+                  break at any time without notice.'
                 items:
                   description: A single application container that you want to run
                     within a pod.
@@ -2311,7 +2310,7 @@ spec:
                 type: array
               disableReporting:
                 default: false
-                description: disableReporting disable reporting of enabled feature
+                description: disableReporting disables reporting of enabled feature
                   flags to Grafana.
                 type: boolean
               disableSupportBundle:
@@ -2322,17 +2321,17 @@ spec:
               enableConfigReadAPI:
                 default: false
                 description: enableConfigReadAPI enables the read API for viewing
-                  currently running config port 8080 on the agent.
+                  the currently running config port 8080 on the agent.
                 type: boolean
               image:
                 description: Image, when specified, overrides the image used to run
-                  the Agent. It should be specified along with a tag. Version must
-                  still be set to ensure the Grafana Agent Operator knows which version
+                  Agent. Specify the image along with a tag. You still need to set
+                  the version to ensure Grafana Agent Operator knows which version
                   of Grafana Agent is being configured.
                 type: string
               imagePullSecrets:
                 description: 'ImagePullSecrets holds an optional list of references
-                  to secrets within the same namespace to use for pulling the Grafana
+                  to Secrets within the same namespace used for pulling the Grafana
                   Agent image from registries. More info: https://kubernetes.io/docs/user-guide/images#specifying-imagepullsecrets-on-a-pod'
                 items:
                   description: LocalObjectReference contains enough information to
@@ -2345,15 +2344,15 @@ spec:
                   type: object
                 type: array
               initContainers:
-                description: 'InitContainers allows adding initContainers to the pod
+                description: 'InitContainers let you add initContainers to the pod
                   definition. These can be used to, for example, fetch secrets for
                   injection into the Grafana Agent configuration from external sources.
-                  Any errors during the execution of an initContainer will lead to
-                  a restart of the pod. More info: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+                  Errors during the execution of an initContainer cause the pod to
+                  restart. More info: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
                   Using initContainers for any use case other than secret fetching
                   is entirely outside the scope of what the Grafana Agent maintainers
-                  will support and by doing so, you accept that this behavior may
-                  break at any time without notice.'
+                  support and by doing so, you accept that this behavior may break
+                  at any time without notice.'
                 items:
                   description: A single application container that you want to run
                     within a pod.
@@ -3571,8 +3570,7 @@ spec:
                 type: array
               integrations:
                 description: Integrations controls the integration subsystem of the
-                  Agent and settings unique to integration-specific pods that are
-                  deployed.
+                  Agent and settings unique to deployed integration-specific pods.
                 properties:
                   namespaceSelector:
                     description: "Label selector for namespaces to search when discovering
@@ -3785,8 +3783,8 @@ spec:
                             when the protocol of the URL is https.
                           properties:
                             ca:
-                              description: Struct containing the CA cert to use for
-                                the targets.
+                              description: Certificate authority used when verifying
+                                server certificates.
                               properties:
                                 configMap:
                                   description: ConfigMap containing data to use for
@@ -3835,8 +3833,8 @@ spec:
                                 to use for the targets.
                               type: string
                             cert:
-                              description: Struct containing the client cert file
-                                for the targets.
+                              description: Client certificate to present when doing
+                                client-authentication.
                               properties:
                                 configMap:
                                   description: ConfigMap containing data to use for
@@ -4041,7 +4039,7 @@ spec:
                   arbitraryFSAccessThroughSMs:
                     description: ArbitraryFSAccessThroughSMs configures whether configuration
                       based on a ServiceMonitor can access arbitrary files on the
-                      file system of the Grafana Agent container e.g. bearer token
+                      file system of the Grafana Agent container, e.g., bearer token
                       files.
                     properties:
                       deny:
@@ -4050,17 +4048,16 @@ spec:
                   enforcedNamespaceLabel:
                     description: EnforcedNamespaceLabel enforces adding a namespace
                       label of origin for each metric that is user-created. The label
-                      value will always be the namespace of the object that is being
-                      created.
+                      value is always the namespace of the object that is being created.
                     type: string
                   enforcedSampleLimit:
-                    description: EnforcedSampleLimit defines global limit on the number
-                      of scraped samples that will be accepted. This overrides any
-                      SampleLimit set per ServiceMonitor and/or PodMonitor. It is
-                      meant to be used by admins to enforce the SampleLimit to keep
-                      the overall number of samples and series under the desired limit.
-                      Note that if a SampleLimit from a ServiceMonitor or PodMonitor
-                      is lower, that value will be used instead.
+                    description: EnforcedSampleLimit defines a global limit on the
+                      number of scraped samples that are accepted. This overrides
+                      any SampleLimit set per ServiceMonitor and/or PodMonitor. It
+                      is meant to be used by admins to enforce the SampleLimit to
+                      keep the overall number of samples and series under the desired
+                      limit. Note that if a SampleLimit from a ServiceMonitor or PodMonitor
+                      is lower, that value is used instead.
                     format: int64
                     type: integer
                   enforcedTargetLimit:
@@ -4069,8 +4066,8 @@ spec:
                       per ServiceMonitor and/or PodMonitor. It is meant to be used
                       by admins to enforce the TargetLimit to keep the overall number
                       of targets under the desired limit. Note that if a TargetLimit
-                      from a ServiceMonitor or PodMonitor is higher, that value will
-                      be used instead.
+                      from a ServiceMonitor or PodMonitor is higher, that value is
+                      used instead.
                     format: int64
                     type: integer
                   externalLabels:
@@ -4080,14 +4077,14 @@ spec:
                       when sending data over remote_write.
                     type: object
                   ignoreNamespaceSelectors:
-                    description: IgnoreNamespaceSelectors, if true, will ignore NamespaceSelector
-                      settings from the PodMonitor and ServiceMonitor configs, and
-                      they will only discover endpoints within their current namespace.
+                    description: IgnoreNamespaceSelectors, if true, ignores NamespaceSelector
+                      settings from the PodMonitor and ServiceMonitor configs, so
+                      that they only discover endpoints within their current namespace.
                     type: boolean
                   instanceNamespaceSelector:
-                    description: InstanceNamespaceSelector are the set of labels to
-                      determine which namespaces to watch for MetricsInstances. If
-                      not provided, only checks own namespace.
+                    description: InstanceNamespaceSelector is the set of labels that
+                      determines which namespaces to watch for MetricsInstances. If
+                      not provided, it only checks its own namespace.
                     properties:
                       matchExpressions:
                         description: matchExpressions is a list of label selector
@@ -4180,20 +4177,21 @@ spec:
                   metricsExternalLabelName:
                     description: MetricsExternalLabelName is the name of the external
                       label used to denote Grafana Agent cluster. Defaults to "cluster."
-                      External label will _not_ be added when value is set to the
+                      The external label is _not_ added when the value is set to the
                       empty string.
                     type: string
                   overrideHonorLabels:
                     description: OverrideHonorLabels, if true, overrides all configured
-                      honor_labels read from ServiceMonitor or PodMonitor to false.
+                      honor_labels read from ServiceMonitor or PodMonitor and sets
+                      them to false.
                     type: boolean
                   overrideHonorTimestamps:
-                    description: OverrideHonorTimestamps allows to globally enforce
-                      honoring timestamps in all scrape configs.
+                    description: OverrideHonorTimestamps allows global enforcement
+                      for honoring timestamps in all scrape configs.
                     type: boolean
                   remoteWrite:
                     description: RemoteWrite controls default remote_write settings
-                      for all instances. If an instance does not provide its own remoteWrite
+                      for all instances. If an instance does not provide its own RemoteWrite
                       settings, these will be used instead.
                     items:
                       description: RemoteWriteSpec defines the remote_write configuration
@@ -4372,11 +4370,11 @@ spec:
                           properties:
                             batchSendDeadline:
                               description: BatchSendDeadline is the maximum time a
-                                sample will wait in buffer.
+                                sample will wait in the buffer.
                               type: string
                             capacity:
                               description: Capacity is the number of samples to buffer
-                                per shard before we start dropping them.
+                                per shard before samples start being dropped.
                               type: integer
                             maxBackoff:
                               description: MaxBackoff is the maximum retry delay.
@@ -4391,15 +4389,15 @@ spec:
                               type: integer
                             maxShards:
                               description: MaxShards is the maximum number of shards,
-                                i.e. amount of concurrency.
+                                i.e., the amount of concurrency.
                               type: integer
                             minBackoff:
                               description: MinBackoff is the initial retry delay.
-                                Gets doubled for every retry.
+                                MinBackoff is doubled for every retry.
                               type: string
                             minShards:
                               description: MinShards is the minimum number of shards,
-                                i.e. amount of concurrency.
+                                i.e., the amount of concurrency.
                               type: integer
                             retryOnRateLimit:
                               description: RetryOnRateLimit retries requests when
@@ -4412,12 +4410,12 @@ spec:
                           type: string
                         sigv4:
                           description: SigV4 configures SigV4-based authentication
-                            to the remote_write endpoint. Will be used if SigV4 is
-                            defined, even with an empty object.
+                            to the remote_write endpoint. SigV4-based authentication
+                            is used if SigV4 is defined, even with an empty object.
                           properties:
                             accessKey:
                               description: AccessKey holds the secret of the AWS API
-                                access key to use for signing. If not provided, The
+                                access key to use for signing. If not provided, the
                                 environment variable AWS_ACCESS_KEY_ID is used.
                               properties:
                                 key:
@@ -4475,8 +4473,8 @@ spec:
                           description: TLSConfig to use for remote_write.
                           properties:
                             ca:
-                              description: Struct containing the CA cert to use for
-                                the targets.
+                              description: Certificate authority used when verifying
+                                server certificates.
                               properties:
                                 configMap:
                                   description: ConfigMap containing data to use for
@@ -4525,8 +4523,8 @@ spec:
                                 to use for the targets.
                               type: string
                             cert:
-                              description: Struct containing the client cert file
-                                for the targets.
+                              description: Client certificate to present when doing
+                                client-authentication.
                               properties:
                                 configMap:
                                   description: ConfigMap containing data to use for
@@ -4621,15 +4619,27 @@ spec:
                               action:
                                 default: replace
                                 description: Action to perform based on regex matching.
-                                  Default is 'replace'
+                                  Default is 'replace'. uppercase and lowercase actions
+                                  require Prometheus >= 2.36.
                                 enum:
                                 - replace
+                                - Replace
                                 - keep
+                                - Keep
                                 - drop
+                                - Drop
                                 - hashmod
+                                - HashMod
                                 - labelmap
+                                - LabelMap
                                 - labeldrop
+                                - LabelDrop
                                 - labelkeep
+                                - LabelKeep
+                                - lowercase
+                                - Lowercase
+                                - uppercase
+                                - Uppercase
                                 type: string
                               modulus:
                                 description: Modulus to take of the hash of the source
@@ -4675,9 +4685,9 @@ spec:
                     type: array
                   replicaExternalLabelName:
                     description: ReplicaExternalLabelName is the name of the metrics
-                      external label used to denote replica name. Defaults to __replica__.
-                      External label will _not_ be added when value is set to the
-                      empty string.
+                      external label used to denote the replica name. Defaults to
+                      __replica__. The external label is _not_ added when the value
+                      is set to the empty string.
                     type: string
                   replicas:
                     description: Replicas of each shard to deploy for metrics pods.
@@ -4695,9 +4705,9 @@ spec:
                   shards:
                     description: Shards to distribute targets onto. Number of replicas
                       multiplied by the number of shards is the total number of pods
-                      created. Note that scaling down shards will not reshard data
-                      onto remaining instances, it must be manually moved. Increasing
-                      shards will not reshard data either but it will continue to
+                      created. Note that scaling down shards does not reshard data
+                      onto remaining instances; it must be manually moved. Increasing
+                      shards does not reshard data either, but it will continue to
                       be available from the same instances. Sharding is performed
                       on the content of the __address__ target meta-label.
                     format: int32
@@ -5717,10 +5727,10 @@ spec:
                 description: Version of Grafana Agent to be deployed.
                 type: string
               volumeMounts:
-                description: VolumeMounts allows configuration of additional VolumeMounts
-                  on the output StatefulSet definition. VolumEMounts specified will
-                  be appended to other VolumeMounts in the Grafana Agent container
-                  that are generated as a result of StorageSpec objects.
+                description: VolumeMounts lets you configure additional VolumeMounts
+                  on the output StatefulSet definition. Specified VolumeMounts are
+                  appended to other VolumeMounts generated as a result of StorageSpec
+                  objects in the Grafana Agent container.
                 items:
                   description: VolumeMount describes a mounting of a Volume within
                     a container.
@@ -5760,7 +5770,7 @@ spec:
                 type: array
               volumes:
                 description: Volumes allows configuration of additional volumes on
-                  the output StatefulSet definition. Volumes specified will be appended
+                  the output StatefulSet definition. The volumes specified are appended
                   to other volumes that are generated as a result of StorageSpec objects.
                 items:
                   description: Volume represents a named volume in a pod that may

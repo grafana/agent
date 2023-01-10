@@ -217,8 +217,8 @@ github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.APISer
 </em>
 </td>
 <td>
-<p>APIServerConfig allows specifying a host and auth methods to access the
-Kubernetes API server. If left empty, the Agent will assume that it is
+<p>APIServerConfig lets you specify a host and auth methods to access the
+Kubernetes API server. If left empty, the Agent assumes that it is
 running inside of the cluster and will discover API servers automatically
 and use the pod&rsquo;s CA certificate and bearer token file at
 /var/run/secrets/kubernetes.io/serviceaccount.</p>
@@ -269,9 +269,9 @@ string
 </em>
 </td>
 <td>
-<p>Image, when specified, overrides the image used to run the Agent. It
-should be specified along with a tag. Version must still be set to ensure
-the Grafana Agent Operator knows which version of Grafana Agent is being
+<p>Image, when specified, overrides the image used to run Agent. Specify
+the image along with a tag. You still need to set the version to ensure
+Grafana Agent Operator knows which version of Grafana Agent is being
 configured.</p>
 </td>
 </tr>
@@ -285,8 +285,8 @@ configured.</p>
 </em>
 </td>
 <td>
-<p>ImagePullSecrets holds an optional list of references to secrets within
-the same namespace to use for pulling the Grafana Agent image from
+<p>ImagePullSecrets holds an optional list of references to Secrets within
+the same namespace used for pulling the Grafana Agent image from
 registries.
 More info: <a href="https://kubernetes.io/docs/user-guide/images#specifying-imagepullsecrets-on-a-pod">https://kubernetes.io/docs/user-guide/images#specifying-imagepullsecrets-on-a-pod</a></p>
 </td>
@@ -315,7 +315,7 @@ github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.Storag
 </td>
 <td>
 <p>Volumes allows configuration of additional volumes on the output
-StatefulSet definition. Volumes specified will be appended to other
+StatefulSet definition. The volumes specified are appended to other
 volumes that are generated as a result of StorageSpec objects.</p>
 </td>
 </tr>
@@ -329,10 +329,10 @@ volumes that are generated as a result of StorageSpec objects.</p>
 </em>
 </td>
 <td>
-<p>VolumeMounts allows configuration of additional VolumeMounts on the output
-StatefulSet definition. VolumEMounts specified will be appended to other
-VolumeMounts in the Grafana Agent container that are generated as a result
-of StorageSpec objects.</p>
+<p>VolumeMounts lets you configure additional VolumeMounts on the output
+StatefulSet definition. Specified VolumeMounts are appended to other
+VolumeMounts generated as a result of StorageSpec objects
+in the Grafana Agent container.</p>
 </td>
 </tr>
 <tr>
@@ -391,7 +391,7 @@ The secrets are mounted into /etc/grafana-agent/extra-secrets/<secret-name>.</p>
 </em>
 </td>
 <td>
-<p>ConfigMaps is a liset of config maps in the same namespace as the
+<p>ConfigMaps is a list of config maps in the same namespace as the
 GrafanaAgent object which will be mounted into each running Grafana Agent
 pod.
 The ConfigMaps are mounted into /etc/grafana-agent/extra-configmaps/<configmap-name>.</p>
@@ -460,14 +460,14 @@ settings. When unspecified, defaults to the default PodSecurityContext.</p>
 </em>
 </td>
 <td>
-<p>Containers allows injecting additional containers or modifying operator
-generated containers. This can be used to allow adding an authentication
+<p>Containers lets you inject additional containers or modify operator-generated
+containers. This can be used to add an authentication
 proxy to a Grafana Agent pod or to change the behavior of an
-operator-generated container. Containers described here modify an operator
-generated container if they share the same name and modifications are done
+operator-generated container. Containers described here modify an
+operator-generated container if they share the same name and if modifications are done
 via a strategic merge patch. The current container names are:
 <code>grafana-agent</code> and <code>config-reloader</code>. Overriding containers is entirely
-outside the scope of what the Grafana Agent team will support and by doing
+outside the scope of what the Grafana Agent team supports and by doing
 so, you accept that this behavior may break at any time without notice.</p>
 </td>
 </tr>
@@ -481,13 +481,13 @@ so, you accept that this behavior may break at any time without notice.</p>
 </em>
 </td>
 <td>
-<p>InitContainers allows adding initContainers to the pod definition. These
+<p>InitContainers let you add initContainers to the pod definition. These
 can be used to, for example, fetch secrets for injection into the Grafana
-Agent configuration from external sources. Any errors during the execution
-of an initContainer will lead to a restart of the pod.
+Agent configuration from external sources. Errors during the execution
+of an initContainer cause the pod to restart.
 More info: <a href="https://kubernetes.io/docs/concepts/workloads/pods/init-containers/">https://kubernetes.io/docs/concepts/workloads/pods/init-containers/</a>
 Using initContainers for any use case other than secret fetching is
-entirely outside the scope of what the Grafana Agent maintainers will
+entirely outside the scope of what the Grafana Agent maintainers
 support and by doing so, you accept that this behavior may break at any
 time without notice.</p>
 </td>
@@ -553,7 +553,7 @@ IntegrationsSubsystemSpec
 </td>
 <td>
 <p>Integrations controls the integration subsystem of the Agent and settings
-unique to integration-specific pods that are deployed.</p>
+unique to deployed integration-specific pods.</p>
 </td>
 </tr>
 <tr>
@@ -564,7 +564,7 @@ bool
 </em>
 </td>
 <td>
-<p>enableConfigReadAPI enables the read API for viewing currently running
+<p>enableConfigReadAPI enables the read API for viewing the currently running
 config port 8080 on the agent.</p>
 </td>
 </tr>
@@ -576,7 +576,7 @@ bool
 </em>
 </td>
 <td>
-<p>disableReporting disable reporting of enabled feature flags to Grafana.</p>
+<p>disableReporting disables reporting of enabled feature flags to Grafana.</p>
 </td>
 </tr>
 <tr>
@@ -952,8 +952,8 @@ github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.APISer
 </em>
 </td>
 <td>
-<p>APIServerConfig allows specifying a host and auth methods to access the
-Kubernetes API server. If left empty, the Agent will assume that it is
+<p>APIServerConfig lets you specify a host and auth methods to access the
+Kubernetes API server. If left empty, the Agent assumes that it is
 running inside of the cluster and will discover API servers automatically
 and use the pod&rsquo;s CA certificate and bearer token file at
 /var/run/secrets/kubernetes.io/serviceaccount.</p>
@@ -1004,9 +1004,9 @@ string
 </em>
 </td>
 <td>
-<p>Image, when specified, overrides the image used to run the Agent. It
-should be specified along with a tag. Version must still be set to ensure
-the Grafana Agent Operator knows which version of Grafana Agent is being
+<p>Image, when specified, overrides the image used to run Agent. Specify
+the image along with a tag. You still need to set the version to ensure
+Grafana Agent Operator knows which version of Grafana Agent is being
 configured.</p>
 </td>
 </tr>
@@ -1020,8 +1020,8 @@ configured.</p>
 </em>
 </td>
 <td>
-<p>ImagePullSecrets holds an optional list of references to secrets within
-the same namespace to use for pulling the Grafana Agent image from
+<p>ImagePullSecrets holds an optional list of references to Secrets within
+the same namespace used for pulling the Grafana Agent image from
 registries.
 More info: <a href="https://kubernetes.io/docs/user-guide/images#specifying-imagepullsecrets-on-a-pod">https://kubernetes.io/docs/user-guide/images#specifying-imagepullsecrets-on-a-pod</a></p>
 </td>
@@ -1050,7 +1050,7 @@ github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.Storag
 </td>
 <td>
 <p>Volumes allows configuration of additional volumes on the output
-StatefulSet definition. Volumes specified will be appended to other
+StatefulSet definition. The volumes specified are appended to other
 volumes that are generated as a result of StorageSpec objects.</p>
 </td>
 </tr>
@@ -1064,10 +1064,10 @@ volumes that are generated as a result of StorageSpec objects.</p>
 </em>
 </td>
 <td>
-<p>VolumeMounts allows configuration of additional VolumeMounts on the output
-StatefulSet definition. VolumEMounts specified will be appended to other
-VolumeMounts in the Grafana Agent container that are generated as a result
-of StorageSpec objects.</p>
+<p>VolumeMounts lets you configure additional VolumeMounts on the output
+StatefulSet definition. Specified VolumeMounts are appended to other
+VolumeMounts generated as a result of StorageSpec objects
+in the Grafana Agent container.</p>
 </td>
 </tr>
 <tr>
@@ -1126,7 +1126,7 @@ The secrets are mounted into /etc/grafana-agent/extra-secrets/<secret-name>.</p>
 </em>
 </td>
 <td>
-<p>ConfigMaps is a liset of config maps in the same namespace as the
+<p>ConfigMaps is a list of config maps in the same namespace as the
 GrafanaAgent object which will be mounted into each running Grafana Agent
 pod.
 The ConfigMaps are mounted into /etc/grafana-agent/extra-configmaps/<configmap-name>.</p>
@@ -1195,14 +1195,14 @@ settings. When unspecified, defaults to the default PodSecurityContext.</p>
 </em>
 </td>
 <td>
-<p>Containers allows injecting additional containers or modifying operator
-generated containers. This can be used to allow adding an authentication
+<p>Containers lets you inject additional containers or modify operator-generated
+containers. This can be used to add an authentication
 proxy to a Grafana Agent pod or to change the behavior of an
-operator-generated container. Containers described here modify an operator
-generated container if they share the same name and modifications are done
+operator-generated container. Containers described here modify an
+operator-generated container if they share the same name and if modifications are done
 via a strategic merge patch. The current container names are:
 <code>grafana-agent</code> and <code>config-reloader</code>. Overriding containers is entirely
-outside the scope of what the Grafana Agent team will support and by doing
+outside the scope of what the Grafana Agent team supports and by doing
 so, you accept that this behavior may break at any time without notice.</p>
 </td>
 </tr>
@@ -1216,13 +1216,13 @@ so, you accept that this behavior may break at any time without notice.</p>
 </em>
 </td>
 <td>
-<p>InitContainers allows adding initContainers to the pod definition. These
+<p>InitContainers let you add initContainers to the pod definition. These
 can be used to, for example, fetch secrets for injection into the Grafana
-Agent configuration from external sources. Any errors during the execution
-of an initContainer will lead to a restart of the pod.
+Agent configuration from external sources. Errors during the execution
+of an initContainer cause the pod to restart.
 More info: <a href="https://kubernetes.io/docs/concepts/workloads/pods/init-containers/">https://kubernetes.io/docs/concepts/workloads/pods/init-containers/</a>
 Using initContainers for any use case other than secret fetching is
-entirely outside the scope of what the Grafana Agent maintainers will
+entirely outside the scope of what the Grafana Agent maintainers
 support and by doing so, you accept that this behavior may break at any
 time without notice.</p>
 </td>
@@ -1288,7 +1288,7 @@ IntegrationsSubsystemSpec
 </td>
 <td>
 <p>Integrations controls the integration subsystem of the Agent and settings
-unique to integration-specific pods that are deployed.</p>
+unique to deployed integration-specific pods.</p>
 </td>
 </tr>
 <tr>
@@ -1299,7 +1299,7 @@ bool
 </em>
 </td>
 <td>
-<p>enableConfigReadAPI enables the read API for viewing currently running
+<p>enableConfigReadAPI enables the read API for viewing the currently running
 config port 8080 on the agent.</p>
 </td>
 </tr>
@@ -1311,7 +1311,7 @@ bool
 </em>
 </td>
 <td>
-<p>disableReporting disable reporting of enabled feature flags to Grafana.</p>
+<p>disableReporting disables reporting of enabled feature flags to Grafana.</p>
 </td>
 </tr>
 <tr>
@@ -2532,10 +2532,10 @@ string
 </em>
 </td>
 <td>
-<p>WALTruncateFrequency specifies how frequently the WAL truncation process
-should run. Higher values causes the WAL to increase and for old series to
-stay in the WAL for longer, but reduces the chances of data loss when
-remote_write is failing for longer than the given frequency.</p>
+<p>WALTruncateFrequency specifies how frequently to run the WAL truncation process.
+Higher values cause the WAL to increase and for old series to
+stay in the WAL longer, but reduces the chance of data loss when
+remote_write fails for longer than the given frequency.</p>
 </td>
 </tr>
 <tr>
@@ -2546,7 +2546,7 @@ string
 </em>
 </td>
 <td>
-<p>MinWALTime is the minimum amount of time series and samples may exist in
+<p>MinWALTime is the minimum amount of time that series and samples can exist in
 the WAL before being considered for deletion.</p>
 </td>
 </tr>
@@ -2558,7 +2558,7 @@ string
 </em>
 </td>
 <td>
-<p>MaxWALTime is the maximum amount of time series and asmples may exist in
+<p>MaxWALTime is the maximum amount of time that series and samples can exist in
 the WAL before being forcibly deleted.</p>
 </td>
 </tr>
@@ -2595,7 +2595,7 @@ Kubernetes meta/v1.LabelSelector
 </em>
 </td>
 <td>
-<p>ServiceMonitorSelector determines which ServiceMonitors should be selected
+<p>ServiceMonitorSelector determines which ServiceMonitors to select
 for target discovery.</p>
 </td>
 </tr>
@@ -2609,9 +2609,8 @@ Kubernetes meta/v1.LabelSelector
 </em>
 </td>
 <td>
-<p>ServiceMonitorNamespaceSelector are the set of labels to determine which
-namespaces to watch for ServiceMonitor discovery. If nil, only checks own
-namespace.</p>
+<p>ServiceMonitorNamespaceSelector is the set of labels that determine which
+namespaces to watch for ServiceMonitor discovery. If nil, it only checks its own namespace.</p>
 </td>
 </tr>
 <tr>
@@ -2624,7 +2623,7 @@ Kubernetes meta/v1.LabelSelector
 </em>
 </td>
 <td>
-<p>PodMonitorSelector determines which PodMonitors should be selected for target
+<p>PodMonitorSelector determines which PodMonitors to selected for target
 discovery. Experimental.</p>
 </td>
 </tr>
@@ -2639,7 +2638,7 @@ Kubernetes meta/v1.LabelSelector
 </td>
 <td>
 <p>PodMonitorNamespaceSelector are the set of labels to determine which
-namespaces to watch for PodMonitor discovery. If nil, only checks own
+namespaces to watch for PodMonitor discovery. If nil, it only checks its own
 namespace.</p>
 </td>
 </tr>
@@ -2653,7 +2652,7 @@ Kubernetes meta/v1.LabelSelector
 </em>
 </td>
 <td>
-<p>ProbeSelector determines which Probes should be selected for target
+<p>ProbeSelector determines which Probes to select for target
 discovery.</p>
 </td>
 </tr>
@@ -2667,8 +2666,8 @@ Kubernetes meta/v1.LabelSelector
 </em>
 </td>
 <td>
-<p>ProbeNamespaceSelector are the set of labels to determine which namespaces
-to watch for Probe discovery. If nil, only checks own namespace.</p>
+<p>ProbeNamespaceSelector is the set of labels that determines which namespaces
+to watch for Probe discovery. If nil, it only checks own namespace.</p>
 </td>
 </tr>
 <tr>
@@ -2694,17 +2693,17 @@ Kubernetes core/v1.SecretKeySelector
 </em>
 </td>
 <td>
-<p>AdditionalScrapeConfigs allows specifying a key of a Secret containing
-additional Grafana Agent Prometheus scrape configurations. SCrape
-configurations specified are appended to the configurations generated by
-the Grafana Agent Operator. Job configurations specified must have the
-form as specified in the official Prometheus documentation:
+<p>AdditionalScrapeConfigs lets you specify a key of a Secret containing
+additional Grafana Agent Prometheus scrape configurations. The specified scrape
+configurations are appended to the configurations generated by
+Grafana Agent Operator. Specified job configurations must have the
+form specified in the official Prometheus documentation:
 <a href="https://prometheus.io/docs/prometheus/latest/configuration/configuration/#scrape_config">https://prometheus.io/docs/prometheus/latest/configuration/configuration/#scrape_config</a>.
-As scrape configs are appended, the user is responsible to make sure it is
-valid. Note that using this feature may expose the possibility to break
-upgrades of Grafana Agent. It is advised to review both Grafana Agent and
-Prometheus release notes to ensure that no incompatible scrape configs are
-going to break Grafana Agent after the upgrade.</p>
+As scrape configs are appended, you must make sure the configuration is still
+valid. Note that it&rsquo;s possible that this feature will break future
+upgrades of Grafana Agent. Review both Grafana Agent and
+Prometheus release notes to ensure that no incompatible scrape configs will
+break Grafana Agent after the upgrade.</p>
 </td>
 </tr>
 </table>
@@ -2718,7 +2717,7 @@ going to break Grafana Agent after the upgrade.</p>
 (<em>Appears on: </em><a href="#monitoring.grafana.com/v1alpha1.MetricsInstance">MetricsInstance</a>)
 </p>
 <div>
-<p>MetricsInstanceSpec controls how an individual instance will be used to discover PodMonitors.</p>
+<p>MetricsInstanceSpec controls how an individual instance is used to discover PodMonitors.</p>
 </div>
 <table>
 <thead>
@@ -2736,10 +2735,10 @@ string
 </em>
 </td>
 <td>
-<p>WALTruncateFrequency specifies how frequently the WAL truncation process
-should run. Higher values causes the WAL to increase and for old series to
-stay in the WAL for longer, but reduces the chances of data loss when
-remote_write is failing for longer than the given frequency.</p>
+<p>WALTruncateFrequency specifies how frequently to run the WAL truncation process.
+Higher values cause the WAL to increase and for old series to
+stay in the WAL longer, but reduces the chance of data loss when
+remote_write fails for longer than the given frequency.</p>
 </td>
 </tr>
 <tr>
@@ -2750,7 +2749,7 @@ string
 </em>
 </td>
 <td>
-<p>MinWALTime is the minimum amount of time series and samples may exist in
+<p>MinWALTime is the minimum amount of time that series and samples can exist in
 the WAL before being considered for deletion.</p>
 </td>
 </tr>
@@ -2762,7 +2761,7 @@ string
 </em>
 </td>
 <td>
-<p>MaxWALTime is the maximum amount of time series and asmples may exist in
+<p>MaxWALTime is the maximum amount of time that series and samples can exist in
 the WAL before being forcibly deleted.</p>
 </td>
 </tr>
@@ -2799,7 +2798,7 @@ Kubernetes meta/v1.LabelSelector
 </em>
 </td>
 <td>
-<p>ServiceMonitorSelector determines which ServiceMonitors should be selected
+<p>ServiceMonitorSelector determines which ServiceMonitors to select
 for target discovery.</p>
 </td>
 </tr>
@@ -2813,9 +2812,8 @@ Kubernetes meta/v1.LabelSelector
 </em>
 </td>
 <td>
-<p>ServiceMonitorNamespaceSelector are the set of labels to determine which
-namespaces to watch for ServiceMonitor discovery. If nil, only checks own
-namespace.</p>
+<p>ServiceMonitorNamespaceSelector is the set of labels that determine which
+namespaces to watch for ServiceMonitor discovery. If nil, it only checks its own namespace.</p>
 </td>
 </tr>
 <tr>
@@ -2828,7 +2826,7 @@ Kubernetes meta/v1.LabelSelector
 </em>
 </td>
 <td>
-<p>PodMonitorSelector determines which PodMonitors should be selected for target
+<p>PodMonitorSelector determines which PodMonitors to selected for target
 discovery. Experimental.</p>
 </td>
 </tr>
@@ -2843,7 +2841,7 @@ Kubernetes meta/v1.LabelSelector
 </td>
 <td>
 <p>PodMonitorNamespaceSelector are the set of labels to determine which
-namespaces to watch for PodMonitor discovery. If nil, only checks own
+namespaces to watch for PodMonitor discovery. If nil, it only checks its own
 namespace.</p>
 </td>
 </tr>
@@ -2857,7 +2855,7 @@ Kubernetes meta/v1.LabelSelector
 </em>
 </td>
 <td>
-<p>ProbeSelector determines which Probes should be selected for target
+<p>ProbeSelector determines which Probes to select for target
 discovery.</p>
 </td>
 </tr>
@@ -2871,8 +2869,8 @@ Kubernetes meta/v1.LabelSelector
 </em>
 </td>
 <td>
-<p>ProbeNamespaceSelector are the set of labels to determine which namespaces
-to watch for Probe discovery. If nil, only checks own namespace.</p>
+<p>ProbeNamespaceSelector is the set of labels that determines which namespaces
+to watch for Probe discovery. If nil, it only checks own namespace.</p>
 </td>
 </tr>
 <tr>
@@ -2898,17 +2896,17 @@ Kubernetes core/v1.SecretKeySelector
 </em>
 </td>
 <td>
-<p>AdditionalScrapeConfigs allows specifying a key of a Secret containing
-additional Grafana Agent Prometheus scrape configurations. SCrape
-configurations specified are appended to the configurations generated by
-the Grafana Agent Operator. Job configurations specified must have the
-form as specified in the official Prometheus documentation:
+<p>AdditionalScrapeConfigs lets you specify a key of a Secret containing
+additional Grafana Agent Prometheus scrape configurations. The specified scrape
+configurations are appended to the configurations generated by
+Grafana Agent Operator. Specified job configurations must have the
+form specified in the official Prometheus documentation:
 <a href="https://prometheus.io/docs/prometheus/latest/configuration/configuration/#scrape_config">https://prometheus.io/docs/prometheus/latest/configuration/configuration/#scrape_config</a>.
-As scrape configs are appended, the user is responsible to make sure it is
-valid. Note that using this feature may expose the possibility to break
-upgrades of Grafana Agent. It is advised to review both Grafana Agent and
-Prometheus release notes to ensure that no incompatible scrape configs are
-going to break Grafana Agent after the upgrade.</p>
+As scrape configs are appended, you must make sure the configuration is still
+valid. Note that it&rsquo;s possible that this feature will break future
+upgrades of Grafana Agent. Review both Grafana Agent and
+Prometheus release notes to ensure that no incompatible scrape configs will
+break Grafana Agent after the upgrade.</p>
 </td>
 </tr>
 </tbody>
@@ -3091,7 +3089,7 @@ Metrics subsystem.</p>
 </td>
 <td>
 <p>RemoteWrite controls default remote_write settings for all instances. If
-an instance does not provide its own remoteWrite settings, these will be
+an instance does not provide its own RemoteWrite settings, these will be
 used instead.</p>
 </td>
 </tr>
@@ -3117,8 +3115,8 @@ int32
 <td>
 <p>Shards to distribute targets onto. Number of replicas multiplied by the
 number of shards is the total number of pods created. Note that scaling
-down shards will not reshard data onto remaining instances, it must be
-manually moved. Increasing shards will not reshard data either but it will
+down shards does not reshard data onto remaining instances; it must be
+manually moved. Increasing shards does not reshard data either, but it will
 continue to be available from the same instances. Sharding is performed on
 the content of the <strong>address</strong> target meta-label.</p>
 </td>
@@ -3132,8 +3130,8 @@ string
 </td>
 <td>
 <p>ReplicaExternalLabelName is the name of the metrics external label used
-to denote replica name. Defaults to <strong>replica</strong>. External label will <em>not</em>
-be added when value is set to the empty string.</p>
+to denote the replica name. Defaults to <strong>replica</strong>. The external label is <em>not</em>
+added when the value is set to the empty string.</p>
 </td>
 </tr>
 <tr>
@@ -3145,8 +3143,8 @@ string
 </td>
 <td>
 <p>MetricsExternalLabelName is the name of the external label used to
-denote Grafana Agent cluster. Defaults to &ldquo;cluster.&rdquo; External label will
-<em>not</em> be added when value is set to the empty string.</p>
+denote Grafana Agent cluster. Defaults to &ldquo;cluster.&rdquo; The external label is
+<em>not</em> added when the value is set to the empty string.</p>
 </td>
 </tr>
 <tr>
@@ -3196,7 +3194,7 @@ github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.Arbitr
 <td>
 <p>ArbitraryFSAccessThroughSMs configures whether configuration based on a
 ServiceMonitor can access arbitrary files on the file system of the
-Grafana Agent container e.g. bearer token files.</p>
+Grafana Agent container, e.g., bearer token files.</p>
 </td>
 </tr>
 <tr>
@@ -3208,7 +3206,7 @@ bool
 </td>
 <td>
 <p>OverrideHonorLabels, if true, overrides all configured honor_labels read
-from ServiceMonitor or PodMonitor to false.</p>
+from ServiceMonitor or PodMonitor and sets them to false.</p>
 </td>
 </tr>
 <tr>
@@ -3219,7 +3217,7 @@ bool
 </em>
 </td>
 <td>
-<p>OverrideHonorTimestamps allows to globally enforce honoring timestamps in all scrape configs.</p>
+<p>OverrideHonorTimestamps allows global enforcement for honoring timestamps in all scrape configs.</p>
 </td>
 </tr>
 <tr>
@@ -3230,8 +3228,8 @@ bool
 </em>
 </td>
 <td>
-<p>IgnoreNamespaceSelectors, if true, will ignore NamespaceSelector settings
-from the PodMonitor and ServiceMonitor configs, and they will only
+<p>IgnoreNamespaceSelectors, if true, ignores NamespaceSelector settings
+from the PodMonitor and ServiceMonitor configs, so that they only
 discover endpoints within their current namespace.</p>
 </td>
 </tr>
@@ -3244,7 +3242,7 @@ string
 </td>
 <td>
 <p>EnforcedNamespaceLabel enforces adding a namespace label of origin for
-each metric that is user-created. The label value will always be the
+each metric that is user-created. The label value is always the
 namespace of the object that is being created.</p>
 </td>
 </tr>
@@ -3256,12 +3254,12 @@ uint64
 </em>
 </td>
 <td>
-<p>EnforcedSampleLimit defines global limit on the number of scraped samples
-that will be accepted. This overrides any SampleLimit set per
+<p>EnforcedSampleLimit defines a global limit on the number of scraped samples
+that are accepted. This overrides any SampleLimit set per
 ServiceMonitor and/or PodMonitor. It is meant to be used by admins to
 enforce the SampleLimit to keep the overall number of samples and series
 under the desired limit. Note that if a SampleLimit from a ServiceMonitor
-or PodMonitor is lower, that value will be used instead.</p>
+or PodMonitor is lower, that value is used instead.</p>
 </td>
 </tr>
 <tr>
@@ -3276,8 +3274,7 @@ uint64
 targets. This overrides any TargetLimit set per ServiceMonitor and/or
 PodMonitor. It is meant to be used by admins to enforce the TargetLimit to
 keep the overall number of targets under the desired limit. Note that if a
-TargetLimit from a ServiceMonitor or PodMonitor is higher, that value will
-be used instead.</p>
+TargetLimit from a ServiceMonitor or PodMonitor is higher, that value is used instead.</p>
 </td>
 </tr>
 <tr>
@@ -3305,8 +3302,8 @@ Kubernetes meta/v1.LabelSelector
 </em>
 </td>
 <td>
-<p>InstanceNamespaceSelector are the set of labels to determine which
-namespaces to watch for MetricsInstances. If not provided, only checks own namespace.</p>
+<p>InstanceNamespaceSelector is the set of labels that determines which
+namespaces to watch for MetricsInstances. If not provided, it only checks its own namespace.</p>
 </td>
 </tr>
 </tbody>
@@ -3370,8 +3367,8 @@ the number of lines surpasses this value. Defaults to 128.</p>
 </h3>
 <div>
 <p>ObjectSelector is a set of selectors to use for finding an object in the
-resource hierarchy. When NamespaceSelector is nil, objects should be
-searched directly in the ParentNamespace.</p>
+resource hierarchy. When NamespaceSelector is nil, search for objects
+directly in the ParentNamespace.</p>
 </div>
 <table>
 <thead>
@@ -4020,7 +4017,7 @@ int
 </em>
 </td>
 <td>
-<p>Capacity is the number of samples to buffer per shard before we start dropping them.</p>
+<p>Capacity is the number of samples to buffer per shard before samples start being dropped.</p>
 </td>
 </tr>
 <tr>
@@ -4031,7 +4028,7 @@ int
 </em>
 </td>
 <td>
-<p>MinShards is the minimum number of shards, i.e. amount of concurrency.</p>
+<p>MinShards is the minimum number of shards, i.e., the amount of concurrency.</p>
 </td>
 </tr>
 <tr>
@@ -4042,7 +4039,7 @@ int
 </em>
 </td>
 <td>
-<p>MaxShards is the maximum number of shards, i.e. amount of concurrency.</p>
+<p>MaxShards is the maximum number of shards, i.e., the amount of concurrency.</p>
 </td>
 </tr>
 <tr>
@@ -4064,7 +4061,7 @@ string
 </em>
 </td>
 <td>
-<p>BatchSendDeadline is the maximum time a sample will wait in buffer.</p>
+<p>BatchSendDeadline is the maximum time a sample will wait in the buffer.</p>
 </td>
 </tr>
 <tr>
@@ -4086,7 +4083,7 @@ string
 </em>
 </td>
 <td>
-<p>MinBackoff is the initial retry delay. Gets doubled for every retry.</p>
+<p>MinBackoff is the initial retry delay. MinBackoff is doubled for every retry.</p>
 </td>
 </tr>
 <tr>
@@ -4292,7 +4289,7 @@ SigV4Config
 </td>
 <td>
 <p>SigV4 configures SigV4-based authentication to the remote_write endpoint.
-Will be used if SigV4 is defined, even with an empty object.</p>
+SigV4-based authentication is used if SigV4 is defined, even with an empty object.</p>
 </td>
 </tr>
 <tr>
@@ -4440,7 +4437,7 @@ Kubernetes core/v1.SecretKeySelector
 </td>
 <td>
 <p>AccessKey holds the secret of the AWS API access key to use for signing.
-If not provided, The environment variable AWS_ACCESS_KEY_ID is used.</p>
+If not provided, the environment variable AWS_ACCESS_KEY_ID is used.</p>
 </td>
 </tr>
 <tr>
@@ -4661,5 +4658,5 @@ Can be skip or fudge. Defaults to fudge.</p>
 <hr/>
 <p><em>
 Generated with <code>gen-crd-api-reference-docs</code>
-on git commit <code>a0a1ae0d</code>.
+on git commit <code>67029492</code>.
 </em></p>
