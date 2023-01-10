@@ -196,7 +196,7 @@ volumes:
 ---
 kind: pipeline
 type: docker
-name: Windows Containerize
+name: Windows-Containerize
 platform:
   os: windows
   arch: amd64
@@ -211,31 +211,21 @@ steps:
     image: grafana/agent-build-image:0.18.0-windows
     volumes:
       - name: docker
-        path: /var/run/docker.sock
+        path: //./pipe/docker_engine/
     environment:
       DOCKER_LOGIN:
         from_secret: DOCKER_LOGIN
       DOCKER_PASSWORD:
         from_secret: DOCKER_PASSWORD
     commands:
-      - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-
-      # Create a buildx worker container for multiplatform builds.
-      #- docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-      #- docker buildx create --name multiarch --driver docker-container --use
-
-      #- ./tools/ci/docker-containers
-
-      # Remove the buildx worker container.
-      #- docker buildx rm multiarch
-
+      - 'Invoke-Expression "C:\''Program Files''\git\bin\bash.exe -c ''.\\\\tools\\\\ci\\\\docker-containers-windows''"'
 depends_on:
   - Windows-Test
 
 volumes:
-  - name: docker
-    host:
-      path: /var/run/docker.sock
+- name: docker
+  host:
+    path: //./pipe/docker_engine/
 
 ---
 kind: pipeline
