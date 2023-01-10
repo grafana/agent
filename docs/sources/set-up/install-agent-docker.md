@@ -14,7 +14,7 @@ Install Grafana Agent and get it up and running on Docker.
  - Ensure that you have Docker installed.
  - Ensure that you have created a configuration file. In the case of Docker, you install and run the Grafana Agent with a single command. You therefore need to create a configuration file before running Grafana Agent on Docker. For more information on creating a configuration file, refer to [Create a configuration file]({{< relref "../configuration/create-config-file/" >}}).
 
-### Steps
+### Run Agent in a Linux Container
 
 1. Copy and paste the following commands into your command line.
 ```
@@ -33,7 +33,7 @@ docker run \
 Note that using paths on your host machine must be exposed to the Docker
 container through a bind mount for the flags to work properly.
 
-### Steps (Windows Container)
+### Run Agent in a Windows Container
 
 1. Copy and paste the following commands into your command line.
     ```
