@@ -19,11 +19,6 @@ type LabelDropConfig struct {
 	Values []string `river:"values,attr"`
 }
 
-func validateLabelDropConfig(c LabelDropConfig) error {
-
-	return nil
-}
-
 func newLabelDropStage(config LabelDropConfig) (Stage, error) {
 	if len(config.Values) < 1 {
 		return nil, errors.New(ErrEmptyLabelDropStageConfig)
@@ -38,14 +33,14 @@ type labelDropStage struct {
 	config LabelDropConfig
 }
 
-// Process implements Stage
+// Process implements Stage.
 func (l *labelDropStage) Process(labels model.LabelSet, extracted map[string]interface{}, t *time.Time, entry *string) {
 	for _, label := range l.config.Values {
 		delete(labels, model.LabelName(label))
 	}
 }
 
-// Name implements Stage
+// Name implements Stage.
 func (l *labelDropStage) Name() string {
 	return StageTypeLabelDrop
 }

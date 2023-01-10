@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_staticLabelStage_Process(t *testing.T) {
+func Test_StaticLabels(t *testing.T) {
 	staticVal := "val"
 
 	tests := []struct {
