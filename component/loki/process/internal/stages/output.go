@@ -15,9 +15,9 @@ import (
 )
 
 // Config Errors.
-const (
-	ErrEmptyOutputStageConfig = "output stage config cannot be empty"
-	ErrOutputSourceRequired   = "output source value is required if output is specified"
+var (
+	ErrEmptyOutputStageConfig = errors.New("output stage config cannot be empty")
+	ErrOutputSourceRequired   = errors.New("output source value is required if output is specified")
 )
 
 // OutputConfig initializes a configuration stage which sets the log line to a
@@ -29,7 +29,7 @@ type OutputConfig struct {
 // newOutputStage creates a new outputStage
 func newOutputStage(logger log.Logger, config OutputConfig) (Stage, error) {
 	if config.Source == "" {
-		return nil, errors.New(ErrOutputSourceRequired)
+		return nil, ErrOutputSourceRequired
 	}
 	return toStage(&outputStage{
 		config: config,

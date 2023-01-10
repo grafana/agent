@@ -18,10 +18,10 @@ import (
 )
 
 // Config Errors.
-const (
-	ErrExpressionRequired    = "expression is required"
-	ErrCouldNotCompileRegex  = "could not compile regular expression"
-	ErrEmptyRegexStageSource = "empty source"
+var (
+	ErrExpressionRequired    = errors.New("expression is required")
+	ErrCouldNotCompileRegex  = errors.New("could not compile regular expression")
+	ErrEmptyRegexStageSource = errors.New("empty source")
 )
 
 // RegexConfig configures a processing stage uses regular expressions to
@@ -34,11 +34,11 @@ type RegexConfig struct {
 // validateRegexConfig validates the config and return a regex
 func validateRegexConfig(c RegexConfig) (*regexp.Regexp, error) {
 	if c.Expression == "" {
-		return nil, errors.New(ErrExpressionRequired)
+		return nil, ErrExpressionRequired
 	}
 
 	if c.Source != nil && *c.Source == "" {
-		return nil, errors.New(ErrEmptyRegexStageSource)
+		return nil, ErrEmptyRegexStageSource
 	}
 
 	expr, err := regexp.Compile(c.Expression)

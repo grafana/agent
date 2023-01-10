@@ -17,15 +17,15 @@ import (
 )
 
 // Config errors.
-const (
-	ErrEmptyTimestampStageConfig = "timestamp stage config cannot be empty"
-	ErrTimestampSourceRequired   = "timestamp source value is required if timestamp is specified"
-	ErrTimestampFormatRequired   = "timestamp format is required"
-	ErrInvalidLocation           = "invalid location specified: %v"
-	ErrInvalidActionOnFailure    = "invalid action on failure (supported values are %v)"
-	ErrTimestampSourceMissing    = "extracted data did not contain a timestamp"
-	ErrTimestampConversionFailed = "failed to convert extracted time to string"
-	ErrTimestampParsingFailed    = "failed to parse time"
+var (
+	ErrEmptyTimestampStageConfig = errors.New("timestamp stage config cannot be empty")
+	ErrTimestampSourceRequired   = errors.New("timestamp source value is required if timestamp is specified")
+	ErrTimestampFormatRequired   = errors.New("timestamp format is required")
+	ErrInvalidLocation           = errors.New("invalid location specified: %v")
+	ErrInvalidActionOnFailure    = errors.New("invalid action on failure (supported values are %v)")
+	ErrTimestampSourceMissing    = errors.New("extracted data did not contain a timestamp")
+	ErrTimestampConversionFailed = errors.New("failed to convert extracted time to string")
+	ErrTimestampParsingFailed    = errors.New("failed to parse time")
 
 	Unix   = "Unix"
 	UnixMs = "UnixMs"
@@ -57,17 +57,17 @@ type parser func(string) (time.Time, error)
 
 func validateTimestampConfig(cfg TimestampConfig) (parser, error) {
 	if cfg.Source == "" {
-		return nil, errors.New(ErrTimestampSourceRequired)
+		return nil, ErrTimestampSourceRequired
 	}
 	if cfg.Format == "" {
-		return nil, errors.New(ErrTimestampFormatRequired)
+		return nil, ErrTimestampFormatRequired
 	}
 	var loc *time.Location
 	var err error
 	if cfg.Location != nil {
 		loc, err = time.LoadLocation(*cfg.Location)
 		if err != nil {
-			return nil, fmt.Errorf(ErrInvalidLocation, err)
+			return nil, fmt.Errorf("%v: %w", ErrInvalidLocation, err)
 		}
 	}
 
@@ -76,7 +76,7 @@ func validateTimestampConfig(cfg TimestampConfig) (parser, error) {
 		cfg.ActionOnFailure = TimestampActionOnFailureDefault
 	} else {
 		if !stringsContain(TimestampActionOnFailureOptions, cfg.ActionOnFailure) {
-			return nil, fmt.Errorf(ErrInvalidActionOnFailure, TimestampActionOnFailureOptions)
+			return nil, fmt.Errorf("%v: %w", ErrInvalidActionOnFailure, TimestampActionOnFailureOptions)
 		}
 	}
 
@@ -164,14 +164,14 @@ func (ts *timestampStage) parseTimestampFromSource(extracted map[string]interfac
 	v, ok := extracted[ts.config.Source]
 	if !ok {
 		level.Debug(ts.logger).Log("msg", ErrTimestampSourceMissing)
-		return nil, errors.New(ErrTimestampSourceMissing)
+		return nil, ErrTimestampSourceMissing
 	}
 
 	// Convert the timestamp source to string (if it's not a string yet).
 	s, err := getString(v)
 	if err != nil {
 		level.Debug(ts.logger).Log("msg", ErrTimestampConversionFailed, "err", err, "type", reflect.TypeOf(v))
-		return nil, errors.New(ErrTimestampConversionFailed)
+		return nil, ErrTimestampConversionFailed
 	}
 
 	// Parse the timestamp source according to the configured format
@@ -179,7 +179,7 @@ func (ts *timestampStage) parseTimestampFromSource(extracted map[string]interfac
 	if err != nil {
 		level.Debug(ts.logger).Log("msg", ErrTimestampParsingFailed, "err", err, "format", ts.config.Format, "value", s)
 
-		return nil, errors.New(ErrTimestampParsingFailed)
+		return nil, ErrTimestampParsingFailed
 	}
 
 	return &parsedTs, nil
