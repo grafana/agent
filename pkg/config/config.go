@@ -175,6 +175,10 @@ func (c *Config) LogDeprecations(l log.Logger) {
 
 // Validate validates the config, flags, and sets default values.
 func (c *Config) Validate(fs *flag.FlagSet) error {
+	if err := c.Server.ApplyDefaults(); err != nil {
+		return err
+	}
+
 	if err := c.Metrics.ApplyDefaults(); err != nil {
 		return err
 	}

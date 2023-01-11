@@ -13,6 +13,7 @@ import (
 
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/grafana/agent/pkg/server"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/common/model"
 	promCfg "github.com/prometheus/prometheus/config"
@@ -516,4 +517,17 @@ agent_management:
 	rc.AgentManagement = AgentManagementConfig{}
 
 	assert.True(t, util.CompareYAML(ic, rc))
+}
+
+func TestConfig_EmptyServerConfig(t *testing.T) {
+	// Since we are testing defaults via config.Load, we need a file instead of a string.
+	// This test file has an empty server stanza, we expect default values out.
+	logger := server.NewLogger(&server.DefaultConfig)
+	fs := flag.NewFlagSet("", flag.ExitOnError)
+	c, err := Load(fs, []string{"--config.file", "./testdata/server_empty.yml"}, logger)
+	require.NoError(t, err)
+	require.Equal(t, server.DefaultLogLevel.String(), c.Server.LogLevel.String())
+	require.Equal(t, server.DefaultLogFormat.String(), c.Server.LogFormat.String())
+	require.Equal(t, server.DefaultGRPCConfig, c.Server.GRPC)
+	require.Equal(t, server.DefaultHTTPConfig, c.Server.HTTP)
 }

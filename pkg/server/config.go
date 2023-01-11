@@ -32,6 +32,18 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*config)(c))
 }
 
+// ApplyDefaults applies default values to the Config and validates it.
+func (c *Config) ApplyDefaults() error {
+	// In some circumstances, the YAML parser may leave the following fields uninitialized.
+	if c.LogLevel.String() == "" {
+		c.LogLevel.Set(DefaultLogLevel.String())
+	}
+	if c.LogFormat.String() == "" {
+		c.LogFormat.Set(DefaultLogFormat.String())
+	}
+	return nil
+}
+
 // HTTPConfig holds dynamic configuration options for the HTTP server.
 type HTTPConfig struct {
 	TLSConfig TLSConfig `yaml:"http_tls_config,omitempty"`
