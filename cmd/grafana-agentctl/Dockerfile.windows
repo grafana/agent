@@ -1,11 +1,13 @@
 FROM grafana/agent-build-image:0.19.0-windows as builder
+ARG VERSION=latest-windows
+ARG RELEASE_BUILD=1
 
 COPY . /src/agent
 WORKDIR /src/agent
 
 SHELL ["cmd", "/S", "/C"]
 
-RUN powershell "Invoke-Expression ""C:\'Program Files'\git\bin\bash.exe -c 'make agentctl'"""
+RUN powershell "Invoke-Expression ""C:\'Program Files'\git\bin\bash.exe -c 'RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} make agentctl'"""
 
 # Use the smallest container possible for the final image
 FROM mcr.microsoft.com/windows/nanoserver:1809
