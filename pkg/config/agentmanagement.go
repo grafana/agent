@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/go-kit/log/level"
@@ -28,7 +27,7 @@ type AgentManagement struct {
 	BasicAuth       config.BasicAuth `yaml:"basic_auth"`
 	Protocol        string           `yaml:"protocol"`
 	PollingInterval string           `yaml:"polling_interval"`
-	CacheLocation string `yaml:"remote_config_cache_location"`
+	CacheLocation   string           `yaml:"remote_config_cache_location"`
 
 	RemoteConfiguration RemoteConfiguration `yaml:"remote_configuration"`
 }
@@ -66,8 +65,7 @@ func getCachedRemoteConfig(cachePath string, expandEnvVars bool) (*Config, error
 	return &cachedConfig, nil
 }
 
-func cacheRemoteConfig(dir string, remoteConfigBytes []byte) error {
-	cachePath := filepath.Join(dir, "remote-config-cache.yaml") // TODO: Fix this
+func cacheRemoteConfig(cachePath string, remoteConfigBytes []byte) error {
 	return os.WriteFile(cachePath, remoteConfigBytes, 0666)
 }
 
