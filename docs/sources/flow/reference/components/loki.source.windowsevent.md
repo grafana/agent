@@ -33,7 +33,7 @@ Name         | Type                 | Description                               
 `eventlog_name`    | `string`             | Event log to read from.                                                        |                            | See below.
 `xpath_query`    | `string`             | Event log to read from.                                                        | `"*"`                          | See below.
 `bookmark_path`    | `string`             | Keeps position in event log.                                            | `"DATA_PATH/bookmark.xml"`     | no
-`poll_interval`    | `time.duration`      | How often to poll the event log.                                               | `"3s"`                         | no
+`poll_interval`    | `duration`      | How often to poll the event log.                                               | `"3s"`                         | no
 `exclude_event_data`    | `bool`               | Exclude event data.                                                            | `false`                      | no
 `exclude_user_data`    | `bool`               | Exclude user data.                                                             | `false`                      | no
 `user_incoming_timestamp`    | `bool`               | When false, assigns the current timestamp to the log when it was processed. | `false`                      | no
