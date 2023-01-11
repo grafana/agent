@@ -62,6 +62,9 @@ Main (unreleased)
   seconds per file to finish flushing read logs to the client, after which it
   will drop them, resulting in losing logs. (@rfratto)
 
+- Operator: Fix the handling of the enableHttp2 field as a boolean in
+  `pod_monitor` and `service_monitor` templates. (@tpaschalis)
+
 ### Other changes
 
 - Use Go 1.19.4 for builds. (@erikbaranowski)
