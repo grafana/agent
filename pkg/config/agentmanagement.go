@@ -28,6 +28,7 @@ type AgentManagement struct {
 	BasicAuth       config.BasicAuth `yaml:"basic_auth"`
 	Protocol        string           `yaml:"protocol"`
 	PollingInterval string           `yaml:"polling_interval"`
+	CacheLocation string `yaml:"remote_config_cache_location"`
 
 	RemoteConfiguration RemoteConfiguration `yaml:"remote_configuration"`
 }
@@ -35,30 +36,29 @@ type AgentManagement struct {
 // Gets the remote config specified in the initial config, falling back to a local, cached copy
 // of the remote config if the request to the remote fails. If both fail, an empty config and an
 // error will be returned.
-func getRemoteConfig(dir string, expandEnvVars bool, initialConfig *Config, log *server.Logger) (*Config, error) {
+func getRemoteConfig(expandEnvVars bool, initialConfig *Config, log *server.Logger) (*Config, error) {
 	remoteConfigBytes, err := fetchFromApi(initialConfig)
 	if err != nil {
 		level.Error(log).Log("msg", "could not fetch from API, falling back to cache", "err", err)
-		return getCachedRemoteConfig(dir, expandEnvVars)
+		return getCachedRemoteConfig(initialConfig.AgentManagement.CacheLocation, expandEnvVars)
 	}
 	var remoteConfig Config
 
 	err = LoadBytes(remoteConfigBytes, expandEnvVars, &remoteConfig)
 	if err != nil {
 		level.Error(log).Log("msg", "could not load the response from the API, falling back to cache", "err", err)
-		return getCachedRemoteConfig(dir, expandEnvVars)
+		return getCachedRemoteConfig(initialConfig.AgentManagement.CacheLocation, expandEnvVars)
 	}
 	level.Info(log).Log("msg", "fetched and loaded new config from remote API")
 	instrumentation.ConfigMetrics.InstrumentConfig(remoteConfigBytes)
 
-	if err = cacheRemoteConfig(dir, remoteConfigBytes); err != nil {
+	if err = cacheRemoteConfig(initialConfig.AgentManagement.CacheLocation, remoteConfigBytes); err != nil {
 		level.Error(log).Log("err", fmt.Errorf("could not cache config locally: %w", err))
 	}
 	return &remoteConfig, nil
 }
 
-func getCachedRemoteConfig(dir string, expandEnvVars bool) (*Config, error) {
-	cachePath := filepath.Join(dir, "remote-config-cache.yaml")
+func getCachedRemoteConfig(cachePath string, expandEnvVars bool) (*Config, error) {
 	var cachedConfig Config
 	if err := LoadFile(cachePath, expandEnvVars, &cachedConfig); err != nil {
 		return nil, fmt.Errorf("error trying to load cached remote config from file: %w", err)
@@ -151,6 +151,10 @@ func (am *AgentManagement) Validate() error {
 		return errors.New("base_config_id must be specified in 'remote_configuration' block of the config")
 	} else if am.RemoteConfiguration.Namespace == "" {
 		return errors.New("namespace must be specified in 'remote_configuration' block of the config")
+	}
+
+	if am.CacheLocation == "" {
+		return errors.New("path to cache must be specified in 'remote_config_cache_location'")
 	}
 
 	return nil

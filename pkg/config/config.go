@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 	"unicode"
@@ -255,7 +254,7 @@ func loadFromAgentManagementAPI(path string, expandEnvVars bool, c *Config, log 
 		return fmt.Errorf("failed to load initial config: %w", err)
 	}
 
-	remoteConfig, err := getRemoteConfig(filepath.Dir(path), expandEnvVars, c, log)
+	remoteConfig, err := getRemoteConfig(expandEnvVars, c, log)
 	if err != nil {
 		return err
 	}

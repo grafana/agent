@@ -19,6 +19,7 @@ func TestValidateValidConfig(t *testing.T) {
 		},
 		Protocol:        "https",
 		PollingInterval: "1m",
+		CacheLocation:   "/test/path/remote-config-cache.yaml",
 		RemoteConfiguration: RemoteConfiguration{
 			BaseConfigId: "test_config",
 			Namespace:    "test_namespace",
@@ -34,6 +35,7 @@ func TestValidateInvalidBasicAuth(t *testing.T) {
 		BasicAuth:       config.BasicAuth{},
 		Protocol:        "https",
 		PollingInterval: "1m",
+		CacheLocation:   "/test/path/remote-config-cache.yaml",
 		RemoteConfiguration: RemoteConfiguration{
 			BaseConfigId: "test_config",
 			Namespace:    "test_namespace",
@@ -59,6 +61,7 @@ func TestValidateInvalidPollingInterval(t *testing.T) {
 		},
 		Protocol:        "https",
 		PollingInterval: "1?",
+		CacheLocation:   "/test/path/remote-config-cache.yaml",
 		RemoteConfiguration: RemoteConfiguration{
 			BaseConfigId: "test_config",
 			Namespace:    "test_namespace",
@@ -70,8 +73,26 @@ func TestValidateInvalidPollingInterval(t *testing.T) {
 	assert.Error(t, invalidConfig.Validate())
 }
 
+func TestMissingCacheLocation(t *testing.T) {
+	invalidConfig := &AgentManagement{
+		Enabled: true,
+		Url:     "https://localhost:1234",
+		BasicAuth: config.BasicAuth{
+			Username:     "test",
+			PasswordFile: "/test/path",
+		},
+		Protocol:        "https",
+		PollingInterval: "1?",
+		RemoteConfiguration: RemoteConfiguration{
+			BaseConfigId: "test_config",
+			Namespace:    "test_namespace",
+		},
+	}
+	assert.Error(t, invalidConfig.Validate())
+}
+
 func TestGetCachedRemoteConfig(t *testing.T) {
-	cwd := filepath.Clean("./testdata/")
+	cwd := filepath.Clean("./testdata/remote-config-cache.yaml")
 	_, err := getCachedRemoteConfig(cwd, false)
 	assert.NoError(t, err)
 }
@@ -86,6 +107,7 @@ func TestSleepTime(t *testing.T) {
 		},
 		Protocol:        "https",
 		PollingInterval: "1m",
+		CacheLocation:   "/test/path/remote-config-cache.yaml",
 		RemoteConfiguration: RemoteConfiguration{
 			BaseConfigId: "test_config",
 			Namespace:    "test_namespace",
@@ -111,6 +133,7 @@ func TestFullUrl(t *testing.T) {
 		},
 		Protocol:        "https",
 		PollingInterval: "1m",
+		CacheLocation:   "/test/path/remote-config-cache.yaml",
 		RemoteConfiguration: RemoteConfiguration{
 			Labels:       labelMap{"b": "B", "a": "A"},
 			Namespace:    "test_namespace",
