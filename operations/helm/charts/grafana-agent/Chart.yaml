@@ -3,4 +3,4 @@ name: grafana-agent
 description: "Grafana Agent"
 type: application
 version: 0.1.0-rc.0
-appVersion: "v0.30.1"
+appVersion: "v0.30.2"
