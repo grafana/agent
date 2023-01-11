@@ -427,8 +427,8 @@ UnixNs: 1562708916000000123
 ```
 
 Otherwise, the field accepts a custom format string that defines how an
-arbitrary reference point in history (Mon Jan 2 15:04:05 -0700 MST 2006) should
-be interpreted by the stage.
+arbitrary reference point in history should
+be interpreted by the stage. The arbitrary reference point is Mon Jan 2 15:04:05 -0700 MST 2006.
 
 The string value of the field is passed directly to the layout parameter in
 Go's [`time.Parse`](https://pkg.go.dev/time#Parse) function.
