@@ -21,6 +21,9 @@ v0.30.2 (2023-01-11)
   file to finish flushing read logs to the client, after which it will drop
   them, resulting in lost logs. (@rfratto)
 
+- Operator: Fix the handling of the enableHttp2 field as a boolean in
+  `pod_monitor` and `service_monitor` templates. (@tpaschalis)
+
 v0.30.1 (2022-12-23)
 --------------------
 
