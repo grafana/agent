@@ -36,6 +36,11 @@ Main (unreleased)
   - `phlare.write` sends application performance profiles to Grafana Phlare. (@cyriltovena)
   - `otelcol.receiver.zipkin` receives Zipkin-formatted traces. (@rfratto)
 
+- Flow components which work with relabeling rules (`discovery.relabel`,
+  `prometheus.relabel` and `loki.relabel`) now export a new value named Rules.
+  This value is a function that returns the currently configured rules.
+  (@tpaschalis)
+
 - New experimental feature: agent-management. Polls configured remote API to fetch new configs. (@spartan0x117)
 
 ### Enhancements
@@ -53,6 +58,11 @@ Main (unreleased)
 - Flow: `prometheus.relabel` will no longer modify the labels of the original
   metrics, which could lead to relabel rules applying incorrectly on subsequent
   relabels. (@rfratto)
+
+- Flow: `loki.source.file` will no longer deadlock other components if log
+  lines are unable to be sent to Loki. `loki.source.file` will wait for 5
+  seconds per file to finish flushing read logs to the client, after which it
+  will drop them, resulting in losing logs. (@rfratto)
 
 ### Other changes
 

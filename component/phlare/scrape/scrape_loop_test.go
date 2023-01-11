@@ -155,6 +155,12 @@ func TestScrapeLoop(t *testing.T) {
 	defer goleak.VerifyNone(t)
 	down := atomic.NewBool(false)
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// The test was failing on Windows, as the scrape loop was too fast for
+		// the Windows timer resolution.
+		// This used to lead the `t.lastScrapeDuration = time.Since(start)` to
+		// be recorded as zero. The small delay here allows the timer to record
+		// the time since the last scrape properly.
+		time.Sleep(2 * time.Millisecond)
 		if down.Load() {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
