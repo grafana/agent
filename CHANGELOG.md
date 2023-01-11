@@ -13,13 +13,13 @@ v0.30.2 (2023-01-11)
 ### Bugfixes
 
 - Flow: `prometheus.relabel` will no longer modify the labels of the original
-  metrics, which could lead to relabel rules applying incorrectly on subsequent
-  relabels. (@rfratto)
+  metrics, which could lead to the incorrect application of relabel rules on
+  subsequent relabels. (@rfratto)
 
 - Flow: `loki.source.file` will no longer deadlock other components if log
-  lines are unable to be sent to Loki. `loki.source.file` will wait for 5
-  seconds per file to finish flushing read logs to the client, after which it
-  will drop them, resulting in losing logs. (@rfratto)
+  lines cannot be sent to Loki. `loki.source.file` will wait for 5 seconds per
+  file to finish flushing read logs to the client, after which it will drop
+  them, resulting in lost logs. (@rfratto)
 
 v0.30.1 (2022-12-23)
 --------------------
