@@ -16,6 +16,11 @@ Main (unreleased)
   metrics, which could lead to relabel rules applying incorrectly on subsequent
   relabels. (@rfratto)
 
+- Flow: `loki.source.file` will no longer deadlock other components if log
+  lines are unable to be sent to Loki. `loki.source.file` will wait for 5
+  seconds per file to finish flushing read logs to the client, after which it
+  will drop them, resulting in losing logs. (@rfratto)
+
 v0.30.1 (2022-12-23)
 --------------------
 
