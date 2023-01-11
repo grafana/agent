@@ -36,14 +36,13 @@ Main (unreleased)
   - `phlare.write` sends application performance profiles to Grafana Phlare. (@cyriltovena)
   - `otelcol.receiver.zipkin` receives Zipkin-formatted traces. (@rfratto)
   - `loki.source.windowsevent` reads logs from Windows Event Log. (@mattdurham)
+  - `loki.source.syslog` listens for Syslog messages over TCP and UDP
+    connections and forwards them to other `loki` components. (@tpaschalis)
 
 - Flow components which work with relabeling rules (`discovery.relabel`,
   `prometheus.relabel` and `loki.relabel`) now export a new value named Rules.
   This value is a function that returns the currently configured rules.
   (@tpaschalis)
-
-  - `loki.source.syslog` listens for Syslog messages over TCP and UDP
-    connections and forwards them to other `loki` components. (@tpaschalis)
 
 ### Enhancements
 
