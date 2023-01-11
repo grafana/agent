@@ -4,16 +4,17 @@ package windowsevent
 
 import (
 	"context"
+	"os"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sys/windows/svc/eventlog"
-	"os"
-	"strings"
-	"testing"
-	"time"
 )
 
 func TestEventLogger(t *testing.T) {
@@ -44,7 +45,7 @@ func TestEventLogger(t *testing.T) {
 		EventLogName:         "Application",
 		XPathQuery:           "*",
 		BookmarkPath:         "",
-		PollInterval:         10 * time.Millisecond,
+		PollInterval:         10 * time.Minute,
 		ExcludeEventData:     false,
 		ExcludeUserdata:      false,
 		UseIncomingTimestamp: false,
