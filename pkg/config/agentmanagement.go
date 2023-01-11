@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/config/instrumentation"
 	"github.com/grafana/agent/pkg/server"
 	"github.com/prometheus/common/config"
 )
@@ -48,8 +47,7 @@ func getRemoteConfig(expandEnvVars bool, initialConfig *Config, log *server.Logg
 		level.Error(log).Log("msg", "could not load the response from the API, falling back to cache", "err", err)
 		return getCachedRemoteConfig(initialConfig.AgentManagement.CacheLocation, expandEnvVars)
 	}
-	level.Info(log).Log("msg", "fetched and loaded new config from remote API")
-	instrumentation.ConfigMetrics.InstrumentConfig(remoteConfigBytes)
+	level.Info(log).Log("msg", "fetched and loaded remote config from API")
 
 	if err = cacheRemoteConfig(initialConfig.AgentManagement.CacheLocation, remoteConfigBytes); err != nil {
 		level.Error(log).Log("err", fmt.Errorf("could not cache config locally: %w", err))
