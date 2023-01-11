@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/prometheus/common/config"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -12,7 +13,7 @@ func TestValidateValidConfig(t *testing.T) {
 	validConfigPolling := &AgentManagement{
 		Enabled: true,
 		Url:     "https://localhost:1234",
-		BasicAuth: BasicAuth{
+		BasicAuth: config.BasicAuth{
 			Username:     "test",
 			PasswordFile: "/test/path",
 		},
@@ -30,7 +31,7 @@ func TestValidateInvalidBasicAuth(t *testing.T) {
 	invalidConfig := &AgentManagement{
 		Enabled:         true,
 		Url:             "https://localhost:1234",
-		BasicAuth:       BasicAuth{},
+		BasicAuth:       config.BasicAuth{},
 		Protocol:        "https",
 		PollingInterval: "1m",
 		RemoteConfiguration: RemoteConfiguration{
@@ -52,7 +53,7 @@ func TestValidateInvalidPollingInterval(t *testing.T) {
 	invalidConfig := &AgentManagement{
 		Enabled: true,
 		Url:     "https://localhost:1234",
-		BasicAuth: BasicAuth{
+		BasicAuth: config.BasicAuth{
 			Username:     "test",
 			PasswordFile: "/test/path",
 		},
@@ -79,7 +80,7 @@ func TestSleepTime(t *testing.T) {
 	c := &AgentManagement{
 		Enabled: true,
 		Url:     "https://localhost:1234",
-		BasicAuth: BasicAuth{
+		BasicAuth: config.BasicAuth{
 			Username:     "test",
 			PasswordFile: "/test/path",
 		},
@@ -104,7 +105,7 @@ func TestFullUrl(t *testing.T) {
 	c := &AgentManagement{
 		Enabled: true,
 		Url:     "https://localhost:1234/example/api",
-		BasicAuth: BasicAuth{
+		BasicAuth: config.BasicAuth{
 			Username:     "test",
 			PasswordFile: "/test/path",
 		},

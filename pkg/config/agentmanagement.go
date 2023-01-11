@@ -22,17 +22,12 @@ type RemoteConfiguration struct {
 	BaseConfigId string   `yaml:"base_config_id"`
 }
 
-type BasicAuth struct {
-	Username     string `yaml:"username"`
-	PasswordFile string `yaml:"password_file"`
-}
-
 type AgentManagement struct {
-	Enabled         bool      `yaml:"-"`
-	Url             string    `yaml:"api_url"`
-	BasicAuth       BasicAuth `yaml:"basic_auth"`
-	Protocol        string    `yaml:"protocol"`
-	PollingInterval string    `yaml:"polling_interval"`
+	Enabled         bool             `yaml:"-"`
+	Url             string           `yaml:"api_url"`
+	BasicAuth       config.BasicAuth `yaml:"basic_auth"`
+	Protocol        string           `yaml:"protocol"`
+	PollingInterval string           `yaml:"polling_interval"`
 
 	RemoteConfiguration RemoteConfiguration `yaml:"remote_configuration"`
 }
@@ -89,10 +84,7 @@ func fetchFromApi(c *Config) ([]byte, error) {
 // Fetches the raw bytes of the config from the API specified in c.
 func fetchConfig(c *Config) ([]byte, error) {
 	httpClientConfig := &config.HTTPClientConfig{
-		BasicAuth: &config.BasicAuth{
-			Username:     c.AgentManagement.BasicAuth.Username,
-			PasswordFile: c.AgentManagement.BasicAuth.PasswordFile,
-		},
+		BasicAuth: &c.AgentManagement.BasicAuth,
 	}
 
 	dir, err := os.Getwd()
