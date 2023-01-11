@@ -35,15 +35,19 @@ type Component struct {
 	mut       sync.RWMutex
 	args      Arguments
 	target    *windows.Target
-	handler   chan api.Entry
+	handle    *handler
 	receivers []loki.LogsReceiver
 }
 
-func (c *Component) Chan() chan<- api.Entry {
-	return c.handler
+type handler struct {
+	handler chan api.Entry
 }
 
-func (c *Component) Stop() {
+func (h *handler) Chan() chan<- api.Entry {
+	return h.handler
+}
+
+func (h *handler) Stop() {
 	// This is a noop.
 }
 
@@ -53,7 +57,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{
 		opts:      o,
 		receivers: args.ForwardTo,
-		handler:   make(chan api.Entry),
+		handle:    &handler{handler: make(chan api.Entry)},
 		args:      args,
 	}
 
@@ -77,7 +81,8 @@ func (c *Component) Run(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			return nil
-		case entry := <-c.handler:
+		case entry := <-c.handle.handler:
+			c.mut.RLock()
 			lokiEntry := loki.Entry{
 				Labels: entry.Labels,
 				Entry:  entry.Entry,
@@ -85,6 +90,7 @@ func (c *Component) Run(ctx context.Context) error {
 			for _, receiver := range c.receivers {
 				receiver <- lokiEntry
 			}
+			c.mut.RUnlock()
 		}
 	}
 
@@ -115,7 +121,7 @@ func (c *Component) Update(args component.Arguments) error {
 		}
 	}
 
-	winTarget, err := windows.New(c.opts.Logger, c, nil, convertConfig(newArgs))
+	winTarget, err := windows.New(c.opts.Logger, c.handle, nil, convertConfig(newArgs))
 	if err != nil {
 		return err
 	}
