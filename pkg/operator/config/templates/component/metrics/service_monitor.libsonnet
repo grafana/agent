@@ -63,7 +63,7 @@ function(
   proxy_url: optionals.string(endpoint.ProxyURL),
   params: optionals.object(endpoint.Params),
   scheme: optionals.string(endpoint.Scheme),
-  enable_http2: optionals.string(endpoint.EnableHttp2),
+  enable_http2: optionals.bool(endpoint.EnableHttp2),
 
   tls_config:
     if endpoint.TLSConfig != null then new_tls_config(meta.Namespace, endpoint.TLSConfig),

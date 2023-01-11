@@ -7,8 +7,22 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-Main (unreleased)
------------------
+v0.30.2 (2023-01-11)
+--------------------
+
+### Bugfixes
+
+- Flow: `prometheus.relabel` will no longer modify the labels of the original
+  metrics, which could lead to the incorrect application of relabel rules on
+  subsequent relabels. (@rfratto)
+
+- Flow: `loki.source.file` will no longer deadlock other components if log
+  lines cannot be sent to Loki. `loki.source.file` will wait for 5 seconds per
+  file to finish flushing read logs to the client, after which it will drop
+  them, resulting in lost logs. (@rfratto)
+
+- Operator: Fix the handling of the enableHttp2 field as a boolean in
+  `pod_monitor` and `service_monitor` templates. (@tpaschalis)
 
 v0.30.1 (2022-12-23)
 --------------------
