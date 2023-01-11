@@ -86,7 +86,7 @@ func newHTTPProvider(opts *remoteOpts) (*httpProvider, error) {
 func (p httpProvider) retrieve() ([]byte, error) {
 	response, err := p.httpClient.Get(p.myURL.String())
 	if err != nil {
-		instrumentation.RemoteConfigMetrics.RemoteConfigFetchError()
+		instrumentation.RemoteConfigMetrics.InstrumentRemoteConfigFetchError()
 		return nil, fmt.Errorf("request failed: %w", err)
 	}
 	defer response.Body.Close()
