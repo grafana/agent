@@ -5,6 +5,7 @@ package stages
 // new code without being able to slowly review, examine and test them.
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -51,18 +52,18 @@ func toLabelSet(lbs map[string]string) model.LabelSet {
 	return res
 }
 
-// func assertLabels(t *testing.T, expect map[string]string, got model.LabelSet) {
-// 	if len(expect) != len(got) {
-// 		t.Fatalf("labels are not equal in size want: %s got: %s", expect, got)
-// 	}
-// 	for k, v := range expect {
-// 		gotV, ok := got[model.LabelName(k)]
-// 		if !ok {
-// 			t.Fatalf("missing expected label key: %s", k)
-// 		}
-// 		assert.Equal(t, model.LabelValue(v), gotV, "mismatch label value")
-// 	}
-// }
+func assertLabels(t *testing.T, expect map[string]string, got model.LabelSet) {
+	if len(expect) != len(got) {
+		t.Fatalf("labels are not equal in size want: %s got: %s", expect, got)
+	}
+	for k, v := range expect {
+		gotV, ok := got[model.LabelName(k)]
+		if !ok {
+			t.Fatalf("missing expected label key: %s", k)
+		}
+		assert.Equal(t, model.LabelValue(v), gotV, "mismatch label value")
+	}
+}
 
 // Verify the formatting of float conversion to make sure there are not any trailing zeros,
 // and also make sure unix timestamps are converted properly
@@ -97,150 +98,149 @@ func TestGetString(t *testing.T) {
 
 // TODO(@tpaschalis) Comment these out until we port over the remaining
 // stages and use these tests to verify their behavior.
-//
-// var (
-// 	location, _ = time.LoadLocation("America/New_York")
-// )
+var (
+	location, _ = time.LoadLocation("America/New_York")
+)
 
-// func TestConvertDateLayout(t *testing.T) {
-// 	t.Parallel()
+func TestConvertDateLayout(t *testing.T) {
+	t.Parallel()
 
-// 	tests := map[string]struct {
-// 		layout    string
-// 		location  *time.Location
-// 		timestamp string
-// 		expected  time.Time
-// 	}{
-// 		"custom layout with short year": {
-// 			"06 Jan 02 15:04:05",
-// 			nil,
-// 			"19 Jul 15 01:02:03",
-// 			time.Date(2019, 7, 15, 1, 2, 3, 0, time.UTC),
-// 		},
-// 		"custom layout with long year": {
-// 			"2006 Jan 02 15:04:05",
-// 			nil,
-// 			"2019 Jul 15 01:02:03",
-// 			time.Date(2019, 7, 15, 1, 2, 3, 0, time.UTC),
-// 		},
-// 		"custom layout with short year and location": {
-// 			"06 Jan 02 15:04:05",
-// 			location,
-// 			"19 Jul 15 01:02:03",
-// 			time.Date(2019, 7, 15, 1, 2, 3, 0, location),
-// 		},
-// 		"custom layout with long year and location": {
-// 			"2006 Jan 02 15:04:05",
-// 			location,
-// 			"2019 Jul 15 01:02:03",
-// 			time.Date(2019, 7, 15, 1, 2, 3, 0, location),
-// 		},
-// 		"custom layout without year": {
-// 			"Jan 02 15:04:05",
-// 			nil,
-// 			"Jul 15 01:02:03",
-// 			time.Date(time.Now().Year(), 7, 15, 1, 2, 3, 0, time.UTC),
-// 		},
-// 		"custom layout without year and location": {
-// 			"Jan 02 15:04:05",
-// 			location,
-// 			"Jul 15 01:02:03",
-// 			time.Date(time.Now().Year(), 7, 15, 1, 2, 3, 0, location),
-// 		},
-// 	}
+	tests := map[string]struct {
+		layout    string
+		location  *time.Location
+		timestamp string
+		expected  time.Time
+	}{
+		"custom layout with short year": {
+			"06 Jan 02 15:04:05",
+			nil,
+			"19 Jul 15 01:02:03",
+			time.Date(2019, 7, 15, 1, 2, 3, 0, time.UTC),
+		},
+		"custom layout with long year": {
+			"2006 Jan 02 15:04:05",
+			nil,
+			"2019 Jul 15 01:02:03",
+			time.Date(2019, 7, 15, 1, 2, 3, 0, time.UTC),
+		},
+		"custom layout with short year and location": {
+			"06 Jan 02 15:04:05",
+			location,
+			"19 Jul 15 01:02:03",
+			time.Date(2019, 7, 15, 1, 2, 3, 0, location),
+		},
+		"custom layout with long year and location": {
+			"2006 Jan 02 15:04:05",
+			location,
+			"2019 Jul 15 01:02:03",
+			time.Date(2019, 7, 15, 1, 2, 3, 0, location),
+		},
+		"custom layout without year": {
+			"Jan 02 15:04:05",
+			nil,
+			"Jul 15 01:02:03",
+			time.Date(time.Now().Year(), 7, 15, 1, 2, 3, 0, time.UTC),
+		},
+		"custom layout without year and location": {
+			"Jan 02 15:04:05",
+			location,
+			"Jul 15 01:02:03",
+			time.Date(time.Now().Year(), 7, 15, 1, 2, 3, 0, location),
+		},
+	}
 
-// 	for testName, testData := range tests {
-// 		testData := testData
+	for testName, testData := range tests {
+		testData := testData
 
-// 		t.Run(testName, func(t *testing.T) {
-// 			t.Parallel()
+		t.Run(testName, func(t *testing.T) {
+			t.Parallel()
 
-// 			parser := convertDateLayout(testData.layout, testData.location)
-// 			parsed, err := parser(testData.timestamp)
-// 			if err != nil {
-// 				t.Errorf("convertDateLayout() parser returned an unexpected error = %v", err)
-// 				return
-// 			}
+			parser := convertDateLayout(testData.layout, testData.location)
+			parsed, err := parser(testData.timestamp)
+			if err != nil {
+				t.Errorf("convertDateLayout() parser returned an unexpected error = %v", err)
+				return
+			}
 
-// 			assert.Equal(t, testData.expected, parsed)
-// 		})
-// 	}
-// }
+			assert.Equal(t, testData.expected, parsed)
+		})
+	}
+}
 
-// func TestParseTimestampWithoutYear(t *testing.T) {
-// 	t.Parallel()
+func TestParseTimestampWithoutYear(t *testing.T) {
+	t.Parallel()
 
-// 	tests := map[string]struct {
-// 		layout    string
-// 		location  *time.Location
-// 		timestamp string
-// 		now       time.Time
-// 		expected  time.Time
-// 		err       error
-// 	}{
-// 		"parse timestamp within current year": {
-// 			"Jan 02 15:04:05",
-// 			nil,
-// 			"Jul 15 01:02:03",
-// 			time.Date(2019, 7, 14, 0, 0, 0, 0, time.UTC),
-// 			time.Date(2019, 7, 15, 1, 2, 3, 0, time.UTC),
-// 			nil,
-// 		},
-// 		"parse timestamp with location DST": {
-// 			"Jan 02 15:04:05",
-// 			location,
-// 			"Jul 15 01:02:03",
-// 			time.Date(2019, 7, 14, 0, 0, 0, 0, time.UTC),
-// 			time.Date(2019, 7, 15, 1, 2, 3, 0, location),
-// 			nil,
-// 		},
-// 		"parse timestamp with location non DST": {
-// 			"Jan 02 15:04:05",
-// 			location,
-// 			"Jan 15 01:02:03",
-// 			time.Date(2019, 7, 14, 0, 0, 0, 0, time.UTC),
-// 			time.Date(2019, 1, 15, 1, 2, 3, 0, location),
-// 			nil,
-// 		},
-// 		"parse timestamp on 31th Dec and today is 1st Jan": {
-// 			"Jan 02 15:04:05",
-// 			nil,
-// 			"Dec 31 23:59:59",
-// 			time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC),
-// 			time.Date(2018, 12, 31, 23, 59, 59, 0, time.UTC),
-// 			nil,
-// 		},
-// 		"parse timestamp on 1st Jan and today is 31st Dec": {
-// 			"Jan 02 15:04:05",
-// 			nil,
-// 			"Jan 01 01:02:03",
-// 			time.Date(2018, 12, 31, 23, 59, 59, 0, time.UTC),
-// 			time.Date(2019, 1, 1, 1, 2, 3, 0, time.UTC),
-// 			nil,
-// 		},
-// 		"error if the input layout actually includes the year component": {
-// 			"2006 Jan 02 15:04:05",
-// 			nil,
-// 			"2019 Jan 01 01:02:03",
-// 			time.Date(2019, 1, 1, 1, 2, 3, 0, time.UTC),
-// 			time.Date(2019, 1, 1, 1, 2, 3, 0, time.UTC),
-// 			fmt.Errorf(ErrTimestampContainsYear, "2019 Jan 01 01:02:03"),
-// 		},
-// 	}
+	tests := map[string]struct {
+		layout    string
+		location  *time.Location
+		timestamp string
+		now       time.Time
+		expected  time.Time
+		err       error
+	}{
+		"parse timestamp within current year": {
+			"Jan 02 15:04:05",
+			nil,
+			"Jul 15 01:02:03",
+			time.Date(2019, 7, 14, 0, 0, 0, 0, time.UTC),
+			time.Date(2019, 7, 15, 1, 2, 3, 0, time.UTC),
+			nil,
+		},
+		"parse timestamp with location DST": {
+			"Jan 02 15:04:05",
+			location,
+			"Jul 15 01:02:03",
+			time.Date(2019, 7, 14, 0, 0, 0, 0, time.UTC),
+			time.Date(2019, 7, 15, 1, 2, 3, 0, location),
+			nil,
+		},
+		"parse timestamp with location non DST": {
+			"Jan 02 15:04:05",
+			location,
+			"Jan 15 01:02:03",
+			time.Date(2019, 7, 14, 0, 0, 0, 0, time.UTC),
+			time.Date(2019, 1, 15, 1, 2, 3, 0, location),
+			nil,
+		},
+		"parse timestamp on 31th Dec and today is 1st Jan": {
+			"Jan 02 15:04:05",
+			nil,
+			"Dec 31 23:59:59",
+			time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC),
+			time.Date(2018, 12, 31, 23, 59, 59, 0, time.UTC),
+			nil,
+		},
+		"parse timestamp on 1st Jan and today is 31st Dec": {
+			"Jan 02 15:04:05",
+			nil,
+			"Jan 01 01:02:03",
+			time.Date(2018, 12, 31, 23, 59, 59, 0, time.UTC),
+			time.Date(2019, 1, 1, 1, 2, 3, 0, time.UTC),
+			nil,
+		},
+		"error if the input layout actually includes the year component": {
+			"2006 Jan 02 15:04:05",
+			nil,
+			"2019 Jan 01 01:02:03",
+			time.Date(2019, 1, 1, 1, 2, 3, 0, time.UTC),
+			time.Date(2019, 1, 1, 1, 2, 3, 0, time.UTC),
+			fmt.Errorf(ErrTimestampContainsYear, "2019 Jan 01 01:02:03"),
+		},
+	}
 
-// 	for testName, testData := range tests {
-// 		testData := testData
+	for testName, testData := range tests {
+		testData := testData
 
-// 		t.Run(testName, func(t *testing.T) {
-// 			t.Parallel()
+		t.Run(testName, func(t *testing.T) {
+			t.Parallel()
 
-// 			parsed, err := parseTimestampWithoutYear(testData.layout, testData.location, testData.timestamp, testData.now)
-// 			if ((err != nil) != (testData.err != nil)) || (err != nil && testData.err != nil && err.Error() != testData.err.Error()) {
-// 				t.Errorf("parseTimestampWithoutYear() expected error = %v, actual error = %v", testData.err, err)
-// 				return
-// 			}
+			parsed, err := parseTimestampWithoutYear(testData.layout, testData.location, testData.timestamp, testData.now)
+			if ((err != nil) != (testData.err != nil)) || (err != nil && testData.err != nil && err.Error() != testData.err.Error()) {
+				t.Errorf("parseTimestampWithoutYear() expected error = %v, actual error = %v", testData.err, err)
+				return
+			}
 
-// 			assert.Equal(t, testData.expected, parsed)
-// 		})
-// 	}
-// }
+			assert.Equal(t, testData.expected, parsed)
+		})
+	}
+}

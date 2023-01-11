@@ -30,6 +30,11 @@ type StageConfig struct {
 	LabelAllowConfig   *LabelAllowConfig   `river:"label_keep,block,optional"`
 	LabelDropConfig    *LabelDropConfig    `river:"label_drop,block,optional"`
 	StaticLabelsConfig *StaticLabelsConfig `river:"static_labels,block,optional"`
+	DockerConfig       *DockerConfig       `river:"docker,block,optional"`
+	CRIConfig          *CRIConfig          `river:"cri,block,optional"`
+	RegexConfig        *RegexConfig        `river:"regex,block,optional"`
+	TimestampConfig    *TimestampConfig    `river:"timestamp,block,optional"`
+	OutputConfig       *OutputConfig       `river:"output,block,optional"`
 }
 
 // UnmarshalRiver implements river.Unmarshaler.
