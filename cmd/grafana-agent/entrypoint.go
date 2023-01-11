@@ -352,7 +352,7 @@ func (ep *Entrypoint) TriggerReload() bool {
 	return true
 }
 
-// Triggers a reload of the config on each tick of the ticker until the context
+// pollConfig triggers a reload of the config on each tick of the ticker until the context
 // completes.
 func (ep *Entrypoint) pollConfig(ctx context.Context, t *time.Ticker) error {
 	for {

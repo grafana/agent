@@ -241,7 +241,7 @@ func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 	return LoadBytes(buf, expandEnvVars, c)
 }
 
-// Loads and merges a config from an Agent Management API.
+// loadFromAgentManagementAPI loads and merges a config from an Agent Management API.
 //  1. Read local initial config.
 //  2. Get the remote config.
 //     a) Fetch from remote. If this fails or is invalid:
@@ -262,7 +262,7 @@ func loadFromAgentManagementAPI(path string, expandEnvVars bool, c *Config, log 
 	return nil
 }
 
-// Overwrites any values in initialConfig with those in remoteConfig
+// mergeEffectiveConfig overwrites any values in initialConfig with those in remoteConfig
 func mergeEffectiveConfig(initialConfig *Config, remoteConfig *Config) {
 	initialConfig.Server = remoteConfig.Server
 	initialConfig.Metrics = remoteConfig.Metrics

@@ -33,7 +33,7 @@ type AgentManagement struct {
 	RemoteConfiguration RemoteConfiguration `yaml:"remote_configuration"`
 }
 
-// Gets the remote config specified in the initial config, falling back to a local, cached copy
+// getRemoteConfig gets the remote config specified in the initial config, falling back to a local, cached copy
 // of the remote config if the request to the remote fails. If both fail, an empty config and an
 // error will be returned.
 func getRemoteConfig(expandEnvVars bool, initialConfig *Config, log *server.Logger) (*Config, error) {
@@ -67,11 +67,11 @@ func getCachedRemoteConfig(cachePath string, expandEnvVars bool) (*Config, error
 }
 
 func cacheRemoteConfig(dir string, remoteConfigBytes []byte) error {
-	cachePath := filepath.Join(dir, "remote-config-cache.yaml")
+	cachePath := filepath.Join(dir, "remote-config-cache.yaml") // TODO: Fix this
 	return os.WriteFile(cachePath, remoteConfigBytes, 0666)
 }
 
-// Fetches the raw bytes from the API based on the protocol specified in c.
+// fetchFromApi fetches the raw bytes from the API based on the protocol specified in c.
 func fetchFromApi(c *Config) ([]byte, error) {
 	switch p := c.AgentManagement.Protocol; {
 	case p == "http":
@@ -81,7 +81,7 @@ func fetchFromApi(c *Config) ([]byte, error) {
 	}
 }
 
-// Fetches the raw bytes of the config from the API specified in c.
+// fetchConfig fetches the raw bytes of the config from the API specified in c.
 func fetchConfig(c *Config) ([]byte, error) {
 	httpClientConfig := &config.HTTPClientConfig{
 		BasicAuth: &c.AgentManagement.BasicAuth,
@@ -113,7 +113,7 @@ func fetchConfig(c *Config) ([]byte, error) {
 	return bb, nil
 }
 
-// Fully creates and returns the URL that should be used when querying the Agent Management API,
+// fullUrl creates and returns the URL that should be used when querying the Agent Management API,
 // including the namespace, base config id, and any labels that have been specified.
 func (am *AgentManagement) fullUrl() (string, error) {
 	fullPath, err := url.JoinPath(am.Url, am.RemoteConfiguration.Namespace, am.RemoteConfiguration.BaseConfigId, "remote_config")
@@ -132,12 +132,12 @@ func (am *AgentManagement) fullUrl() (string, error) {
 	return u.String(), nil
 }
 
-// Returns the duration in between config fetches.
+// SleepTime returns the parsed duration in between config fetches.
 func (am *AgentManagement) SleepTime() (time.Duration, error) {
 	return time.ParseDuration(am.PollingInterval)
 }
 
-// Validates portions of the agent_management config
+// Validate checks that necessary portions of the config have been set.
 func (am *AgentManagement) Validate() error {
 	if am.BasicAuth.Username == "" || am.BasicAuth.PasswordFile == "" {
 		return errors.New("both username and password_file fields must be specified")
