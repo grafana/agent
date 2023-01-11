@@ -31,7 +31,6 @@ type FakeComponent struct {
 }
 
 func (f *FakeComponent) Run(ctx context.Context) error {
-
 	<-ctx.Done()
 	return nil
 }
