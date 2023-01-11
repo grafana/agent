@@ -45,7 +45,7 @@ func TestEventLogger(t *testing.T) {
 		EventLogName:         "Application",
 		XPathQuery:           "*",
 		BookmarkPath:         "",
-		PollInterval:         10 * time.Minute,
+		PollInterval:         10 * time.Millisecond,
 		ExcludeEventData:     false,
 		ExcludeUserdata:      false,
 		UseIncomingTimestamp: false,
