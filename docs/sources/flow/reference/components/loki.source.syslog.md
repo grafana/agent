@@ -33,9 +33,14 @@ loki.source.syslog "LABEL" {
 
 `loki.source.syslog` supports the following arguments:
 
-Name         | Type                   | Description          | Default | Required
------------- | ---------------------- | -------------------- | ------- | --------
-`forward_to` | `list(LogsReceiver)`   | List of receivers to send log entries to. | | yes
+Name            | Type                   | Description          | Default | Required
+--------------- | ---------------------- | -------------------- | ------- | --------
+`forward_to`    | `list(LogsReceiver)`   | List of receivers to send log entries to. |      | yes
+`relabel_rules` | `RelabelRules`         | Relabeling rules to apply on log entries. | "{}" | no
+
+The `relabel_rules` field can make use of the `rules` export value from a
+`loki.relabel` component to apply one or more relabeling rules to log entries
+before they're forwarded to the list of receivers in `forward_to`.
 
 ## Blocks
 

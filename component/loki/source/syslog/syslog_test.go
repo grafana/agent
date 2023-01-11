@@ -11,7 +11,9 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
+	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/regexp"
 	"github.com/phayes/freeport"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
@@ -99,6 +101,74 @@ func Test(t *testing.T) {
 	}
 }
 
+func TestWithRelabelRules(t *testing.T) {
+	// Create opts for component.
+	l, err := logging.New(os.Stderr, logging.DefaultOptions)
+	require.NoError(t, err)
+
+	opts := component.Options{Logger: l}
+
+	ch1 := make(chan loki.Entry)
+	args := Arguments{}
+	tcpListenerAddr := getFreeAddr(t)
+
+	args.SyslogListeners = []ListenerConfig{
+		{
+			ListenAddress: tcpListenerAddr,
+			Labels:        map[string]string{"protocol": "tcp"},
+		},
+	}
+	args.ForwardTo = []loki.LogsReceiver{ch1}
+
+	// Create a handler which will be used to retrieve relabeling rules.
+	args.RelabelRules = func() []*flow_relabel.Config {
+		return []*flow_relabel.Config{
+			{
+				SourceLabels: []string{"__name__"},
+				Regex:        mustNewRegexp("__syslog_(.*)"),
+				Action:       flow_relabel.LabelMap,
+				Replacement:  "syslog_${1}",
+			},
+		}
+	}
+
+	// Create and run the component.
+	c, err := New(opts, args)
+	require.NoError(t, err)
+
+	go c.Run(context.Background())
+	time.Sleep(200 * time.Millisecond)
+
+	// Create and send a Syslog message over TCP to the first listener.
+	msg := `<165>1 2023-01-05T09:13:17.001Z host1 app - id1 [exampleSDID@32473 iut="3" eventSource="Application" eventID="1011"][examplePriority@32473 class="high"] An application event log entry...`
+	con, err := net.Dial("tcp", tcpListenerAddr)
+	require.NoError(t, err)
+	writeMessageToStream(con, msg, fmtNewline)
+	err = con.Close()
+	require.NoError(t, err)
+
+	// The entry should've had the relabeling rules applied to it.
+	wantLabelSet := model.LabelSet{
+		"protocol":                     "tcp",
+		"syslog_connection_hostname":   "localhost",
+		"syslog_connection_ip_address": "127.0.0.1",
+		"syslog_message_app_name":      "app",
+		"syslog_message_facility":      "local4",
+		"syslog_message_hostname":      "host1",
+		"syslog_message_msg_id":        "id1",
+		"syslog_message_severity":      "notice",
+	}
+
+	select {
+	case logEntry := <-ch1:
+		require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
+		require.Equal(t, "An application event log entry...", logEntry.Line)
+		require.Equal(t, wantLabelSet, logEntry.Labels)
+	case <-time.After(5 * time.Second):
+		require.FailNow(t, "failed waiting for log line")
+	}
+}
+
 func getFreeAddr(t *testing.T) string {
 	t.Helper()
 
@@ -122,3 +192,11 @@ var (
 	fmtOctetCounting = func(s string) string { return fmt.Sprintf("%d %s", len(s), s) }
 	fmtNewline       = func(s string) string { return s + "\n" }
 )
+
+func mustNewRegexp(s string) flow_relabel.Regexp {
+	re, err := regexp.Compile("^(?:" + s + ")$")
+	if err != nil {
+		panic(err)
+	}
+	return flow_relabel.Regexp{Regexp: re}
+}
