@@ -90,7 +90,7 @@ inner blocks.
 The `docker` inner block enables a predefined pipeline which reads log lines in
 the standard format of Docker log files.
 
-The `docker` block does not support any arguments or inner blocks, but is
+The `docker` block does not support any arguments or inner blocks, so it is
 always empty.
 
 ```river
@@ -105,8 +105,8 @@ Docker log entries are formatted as JSON with the following keys:
 * `stream`: Either `stdout` or `stderr`
 * `time`: The timestamp string of the log line
 
-Then, given the following log line, the following key-value pairs would be
-created in the shared map of extracted data:
+Given the following log line, the subsequent key-value pairs are created in the
+shared map of extracted data:
 
 ```
 {"log":"log message\n","stream":"stderr","time":"2019-04-30T02:12:41.8443515Z"}
@@ -121,7 +121,7 @@ timestamp: 2019-04-30T02:12:41.8443515
 The `cri` inner block enables a predefined pipeline which reads log lines using
 the CRI logging format.
 
-The `cri` block does not support any arguments or inner blocks, but is always
+The `cri` block does not support any arguments or inner blocks, so it is always
 empty.
 
 ```river
@@ -138,8 +138,8 @@ components:
 * `flags`: CRI flags including `F` or `P`
 * `log`: The contents of the log line
 
-Given the following log line, the following key-value pairs would be created in
-the shared map of extracted data:
+Given the following log line, the subsequent key-value pairs are created in the
+shared map of extracted data:
 ```
 "2019-04-30T02:12:41.8443515Z stdout F message"
 
@@ -328,10 +328,12 @@ expression: "\w*" (backslash must be escaped)
 If the `source` is empty, then the stage uses attempts to parse the log line
 itself.
 
-Given the following log line and regex stage, the extracted values are:
+Given the following log line and regex stage, the extracted values are shown
+below:
 
 ```
 2019-01-01T01:00:00.000000001Z stderr P i'm a log message!
+
 stage {
   regex {
     expression = "^(?s)(?P<time>\\S+?) (?P<stream>stdout|stderr) (?P<flags>\\S+?) (?P<content>.*)$"
@@ -366,13 +368,13 @@ stage {
 }
 ```
 
-The first stage would add the following key-value pairs into the extracted map:
+The first stage adds the following key-value pair into the extracted map:
 ```
 time: 2022-01-01T01:00:00.000000001Z
 ```
 
-Then, the regex stage would parse the value for time from the shared values and
-append the following key-value pairs back into the extracted values map:
+Then, the regex stage parses the value for time from the shared values and
+appends the subsequent key-value pair back into the extracted values map:
 ```
 year: 2022
 ```
@@ -413,8 +415,11 @@ RFC1123: Mon, 02 Jan 2006 15:04:05 MST
 RFC1123Z: Mon, 02 Jan 2006 15:04:05 -0700
 RFC3339: 2006-01-02T15:04:05-07:00
 RFC3339Nano: 2006-01-02T15:04:05.999999999-07:00
+```
 
-Additionally, support for common Unix timestamps is supported with the following format values:
+Additionally, support for common Unix timestamps is supported with the
+following format values:
+```
 Unix: 1562708916 or with fractions 1562708916.000000123
 UnixMs: 1562708916414
 UnixUs: 1562708916414123
@@ -428,11 +433,11 @@ be interpreted by the stage.
 The string value of the field is passed directly to the layout parameter in
 Go's [`time.Parse`](https://pkg.go.dev/time#Parse) function.
 
-If the custom format has no year component the stage uses the current year,
+If the custom format has no year component, the stage uses the current year,
 according to the system's clock.
 
-The following table shows the supported reference values which should be used
-when defining a custom format.
+The following table shows the supported reference values to use when defining a
+custom format.
 
 Timestamp Component | Format value 
 ------------------- | --------------
@@ -449,8 +454,8 @@ Timezone name       | MST
 Timezone offset     | -0700, -070000 (with seconds), -07, 07:00, -07:00:00 (with seconds)
 Timezone ISO-8601   | Z0700 (Z for UTC or time offset), Z070000, Z07, Z07:00, Z07:00:00
 
-The `fallback_formats` field allows to define one or more format fields to try
-and parse the timestamp with, if parsing with `format` fails.
+The `fallback_formats` field defines one or more format fields to try and parse
+the timestamp with, if parsing with `format` fails.
 
 The `location` field must be a valid IANA Timezone Database location and
 determines in which timezone the timestamp value is interpreted to be in.
@@ -460,11 +465,13 @@ doesn't exist in the shared extracted map, or if the timestamp parsing fails.
 
 The supported actions are:
 
-* fudge (default): change the timestamp to the last known timestamp, summing up 1 nanosecond (to guarantee log entries ordering)
-* skip: do not change the timestamp and keep the time when the log entry has been scraped
+* fudge (default): Change the timestamp to the last known timestamp, summing up
+  1 nanosecond (to guarantee log entries ordering).
+* skip: Do not change the timestamp and keep the time when the log entry was
+  scraped.
 
 The following stage fetches the `time` value from the shared values map, parses
-it as a RFC3339 format and set is as the log entry's timestamp.
+it as a RFC3339 format, and sets it as the log entry's timestamp.
 
 ```
 stage {
@@ -489,8 +496,8 @@ Name                | Type           | Description                              
 `source`            | `string`       | Name from extracted data to use for the log entry.    |           | yes
 
 
-Let's see how this would work for the following log line and three-stage
-pipeline
+Let's see how this works for the following log line and three-stage pipeline:
+
 ```
 {"user": "John Doe", "message": "hello, world!"}
 
