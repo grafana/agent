@@ -49,20 +49,20 @@ fi
 docker build \
   -t "$AGENT_IMAGE:$TAG1" \
   -t "$AGENT_IMAGE:$TAG2" \
-  --build-arg VERSION=$VERSION \
+  --build-arg VERSION="$VERSION" \
   -f ./cmd/grafana-agent/Dockerfile.windows \
   .
 
 docker build \
   -t "$AGENTCTL_IMAGE:$TAG1" \
   -t "$AGENTCTL_IMAGE:$TAG2" \
-  --build-arg VERSION=$VERSION \
+  --build-arg VERSION="$VERSION" \
   -f ./cmd/grafana-agentctl/Dockerfile.windows \
   .
 
 # Push images only if we have docker credentials and a drone tag is set
 if [ -n "$DOCKER_LOGIN" ] && [ -n "$DOCKER_PASSWORD" ] && [ -n "$DRONE_TAG" ]; then
-  docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
+  docker login -u "$DOCKER_LOGIN" -p "$DOCKER_PASSWORD"
   docker push "$AGENT_IMAGE:$TAG1"
   docker push "$AGENTCTL_IMAGE:$TAG1"
 
