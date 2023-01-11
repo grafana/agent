@@ -57,6 +57,11 @@ Main (unreleased)
   metrics, which could lead to relabel rules applying incorrectly on subsequent
   relabels. (@rfratto)
 
+- Flow: `loki.source.file` will no longer deadlock other components if log
+  lines are unable to be sent to Loki. `loki.source.file` will wait for 5
+  seconds per file to finish flushing read logs to the client, after which it
+  will drop them, resulting in losing logs. (@rfratto)
+
 ### Other changes
 
 - Use Go 1.19.4 for builds. (@erikbaranowski)
