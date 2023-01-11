@@ -29,7 +29,6 @@ else
   VERSION=$(./tools/image-tag)
 fi
 
-TAG1=$VERSION
 TAG1=$VERSION-windows
 TAG2=$TAG1
 
@@ -42,10 +41,8 @@ TAG2=$TAG1
 # version. This effectively acts as a no-op because it will tag the same Docker
 # image twice.
 if [ -n "$DRONE_TAG" ] && [[ "$DRONE_TAG" != *"-rc."* ]]; then
-  TAG2=latest
   TAG2=latest-windows
 elif [ -n "$DRONE_BRANCH" ]; then
-  TAG2=$DRONE_BRANCH
   TAG2=$DRONE_BRANCH-windows
 fi
 
