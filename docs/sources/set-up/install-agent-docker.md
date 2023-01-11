@@ -40,7 +40,7 @@ container through a bind mount for the flags to work properly.
     docker run ^
       -v c:\grafana-agent-data:c:\etc\grafana-agent\data ^
       -v c:\workspace\config\grafana-agent:c:\etc\grafana-agent ^
-      grafana/agent:v0.30.1-windows
+      grafana/agent:v0.30.2-windows
     ```
 
 2. Replace `c:\grafana-agent-data` with the folder you want to store WAL data in.
