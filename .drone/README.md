@@ -3,7 +3,6 @@
 # Table of Contents
 1. [Release Preperation](#release-preperation)
 2. [Local Development Drone Setup](#local-development-drone-setup)
-2. [Pipelines](#pipelines)
 
 # Release Preperation
 
