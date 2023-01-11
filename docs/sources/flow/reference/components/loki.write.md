@@ -147,7 +147,7 @@ local Loki instance:
 
 ```river
 loki.write "local" {
-    client {
+    endpoint {
         url = "loki:3100"
     }
 }
