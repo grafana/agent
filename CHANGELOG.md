@@ -35,6 +35,8 @@ Main (unreleased)
   - `phlare.scrape` collects application performance profiles. (@cyriltovena)
   - `phlare.write` sends application performance profiles to Grafana Phlare. (@cyriltovena)
   - `otelcol.receiver.zipkin` receives Zipkin-formatted traces. (@rfratto)
+  - `loki.source.windowsevent` reads logs from Windows Event Log. (@mattdurham)
+
 
 - Flow components which work with relabeling rules (`discovery.relabel`,
   `prometheus.relabel` and `loki.relabel`) now export a new value named Rules.
