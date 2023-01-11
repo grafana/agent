@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 #
 # This script builds and pushes windows Docker containers. Maintainers
-# should *not* run this locally since it pushes the containers.
+# can run this without pushing to a remote repo as long as DOCKER_LOGIN, 
+# DOCKER_PASSWORD or DRONE_TAG are not set. For pushing to personal repos
+# set those 3 env vars and update the *_IMAGE values below to point to your repos
 #
 # This script expects to be run from the repo root and has checks for running
 # from a Drone trigger.
@@ -25,12 +27,10 @@ export AGENTCTL_IMAGE=grafana/agentctl
 if [ -n "$DRONE_TAG" ]; then
   VERSION=$DRONE_TAG
 else
-  git config --global --add safe.directory C:/drone/src/
   VERSION=$(./tools/image-tag)
 fi
 
-TAG1=$VERSION-windows
-TAG2=$TAG1
+VERSION_TAG=$VERSION-windows
 
 # We also need to know which "branch tag" to update. Branch tags are used as a
 # secondary tag for Docker containers. The branch tag is "latest" when being
@@ -41,35 +41,39 @@ TAG2=$TAG1
 # version. This effectively acts as a no-op because it will tag the same Docker
 # image twice.
 if [ -n "$DRONE_TAG" ] && [[ "$DRONE_TAG" != *"-rc."* ]]; then
-  TAG2=latest-windows
+  BRANCH_TAG=latest-windows
 elif [ -n "$DRONE_BRANCH" ]; then
-  TAG2=$DRONE_BRANCH-windows
+  BRANCH_TAG=$DRONE_BRANCH-windows
+else
+  BRANCH_TAG=$VERSION_TAG
 fi
 
 # Build all of our images
 docker build \
-  -t "$AGENT_IMAGE:$TAG1" \
-  -t "$AGENT_IMAGE:$TAG2" \
+  -t "$AGENT_IMAGE:$VERSION_TAG" \
+  -t "$AGENT_IMAGE:$BRANCH_TAG" \
   --build-arg VERSION="$VERSION" \
+  --build-arg RELEASE_BUILD=1 \
   -f ./cmd/grafana-agent/Dockerfile.windows \
   .
 
 docker build \
-  -t "$AGENTCTL_IMAGE:$TAG1" \
-  -t "$AGENTCTL_IMAGE:$TAG2" \
+  -t "$AGENTCTL_IMAGE:$VERSION_TAG" \
+  -t "$AGENTCTL_IMAGE:$BRANCH_TAG" \
   --build-arg VERSION="$VERSION" \
+  --build-arg RELEASE_BUILD=1 \
   -f ./cmd/grafana-agentctl/Dockerfile.windows \
   .
 
 # Push images only if we have docker credentials and a drone tag is set
 if [ -n "$DOCKER_LOGIN" ] && [ -n "$DOCKER_PASSWORD" ] && [ -n "$DRONE_TAG" ]; then
   docker login -u "$DOCKER_LOGIN" -p "$DOCKER_PASSWORD"
-  docker push "$AGENT_IMAGE:$TAG1"
-  docker push "$AGENTCTL_IMAGE:$TAG1"
+  docker push "$AGENT_IMAGE:$VERSION_TAG"
+  docker push "$AGENTCTL_IMAGE:$VERSION_TAG"
 
-  # If TAG2 never got set to something unique, no need to push it
-  if [[ "$TAG1" != "$TAG2" ]]; then
-    docker push "$AGENT_IMAGE:$TAG2"
-    docker push "$AGENTCTL_IMAGE:$TAG2"
+  # If BRANCH_TAG never got set to something unique, no need to push it
+  if [[ "$VERSION_TAG" != "$BRANCH_TAG" ]]; then
+    docker push "$AGENT_IMAGE:$BRANCH_TAG"
+    docker push "$AGENTCTL_IMAGE:$BRANCH_TAG"
   fi
 fi

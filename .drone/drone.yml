@@ -218,6 +218,7 @@ steps:
       DOCKER_PASSWORD:
         from_secret: DOCKER_PASSWORD
     commands:
+      - git config --global --add safe.directory C:/drone/src/
       - 'Invoke-Expression "C:\''Program Files''\git\bin\bash.exe -c ''.\\\\tools\\\\ci\\\\docker-containers-windows''"'
 depends_on:
   - Windows-Test
