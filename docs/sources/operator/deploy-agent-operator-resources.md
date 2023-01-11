@@ -54,7 +54,7 @@ To deploy the `GrafanaAgent` resource:
       labels:
         app: grafana-agent
     spec:
-      image: grafana/agent:v0.30.1
+      image: grafana/agent:v0.30.2
       logLevel: info
       serviceAccountName: grafana-agent
       metrics:
@@ -129,16 +129,16 @@ To deploy the `GrafanaAgent` resource:
     ```
 
     In the first manifest, the `GrafanaAgent` resource:
-    
+
     - Specifies an Agent image version.
-    - Specifies `MetricsInstance` and `LogsInstance` selectors. These search for `MetricsInstances` and `LogsInstances` in the same namespace with labels matching `agent: grafana-agent-metrics` and `agent: grafana-agent-logs`, respectively. 
+    - Specifies `MetricsInstance` and `LogsInstance` selectors. These search for `MetricsInstances` and `LogsInstances` in the same namespace with labels matching `agent: grafana-agent-metrics` and `agent: grafana-agent-logs`, respectively.
     - Sets a `cluster: cloud` label for all metrics shipped to your Prometheus-compatible endpoint. Change this label to your cluster name. To search for `MetricsInstances` or `LogsInstances` in a *different* namespace, use the `instanceNamespaceSelector` field. To learn more about this field, see the `GrafanaAgent` [CRD specification](https://github.com/grafana/agent/blob/main/production/operator/crds/monitoring.grafana.com_grafanaagents.yaml).
 
 1. Customize the manifests as needed and roll them out to your cluster using `kubectl apply -f` followed by the filename.
 
-    This step creates a `ServiceAccount`, `ClusterRole`, and `ClusterRoleBinding` for the `GrafanaAgent` resource. 
+    This step creates a `ServiceAccount`, `ClusterRole`, and `ClusterRoleBinding` for the `GrafanaAgent` resource.
 
-    Deploying a `GrafanaAgent` resource on its own does not spin up Agent Pods. Agent Operator creates Agent Pods once `MetricsInstance` and `LogsIntance` resources have been created. Follow the instructions in the [Deploy a MetricsInstance resource](#deploy-a-metricsinstance-resource) and [Deploy LogsInstance and PodLogs resources](#deploy-logsinstance-and-podlogs-resources) sections to create these resources. 
+    Deploying a `GrafanaAgent` resource on its own does not spin up Agent Pods. Agent Operator creates Agent Pods once `MetricsInstance` and `LogsIntance` resources have been created. Follow the instructions in the [Deploy a MetricsInstance resource](#deploy-a-metricsinstance-resource) and [Deploy LogsInstance and PodLogs resources](#deploy-logsinstance-and-podlogs-resources) sections to create these resources.
 
 ### Disable feature flags reporting
 
@@ -214,7 +214,7 @@ To deploy a `MetricsInstance` resource:
           instance: primary
     ```
 
-1. Replace the `remote_write` URL and customize the namespace and label configuration as necessary. 
+1. Replace the `remote_write` URL and customize the namespace and label configuration as necessary.
 
     This step associates the `MetricsInstance` resource with the `agent: grafana-agent` `GrafanaAgent` resource deployed in the previous step. The `MetricsInstance` resource watches for creation and updates to `*Monitors` with the `instance: primary` label.
 
@@ -430,6 +430,6 @@ You've now rolled out the following into your cluster:
 
 You can verify that everything is working correctly by navigating to your Grafana instance and querying your Loki and Prometheus data sources.
 
-> Tip: You can deploy multiple GrafanaAgent resources to isolate allocated resources to the agent pods. By default, the GrafanaAgent resource determines the resources of all deployed agent containers. However, you might want different memory limits for metrics versus logs. 
+> Tip: You can deploy multiple GrafanaAgent resources to isolate allocated resources to the agent pods. By default, the GrafanaAgent resource determines the resources of all deployed agent containers. However, you might want different memory limits for metrics versus logs.
 
 

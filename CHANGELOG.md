@@ -37,7 +37,6 @@ Main (unreleased)
   - `otelcol.receiver.zipkin` receives Zipkin-formatted traces. (@rfratto)
   - `loki.source.windowsevent` reads logs from Windows Event Log. (@mattdurham)
 
-
 - Flow components which work with relabeling rules (`discovery.relabel`,
   `prometheus.relabel` and `loki.relabel`) now export a new value named Rules.
   This value is a function that returns the currently configured rules.
@@ -55,21 +54,26 @@ Main (unreleased)
 
 - Flow UI: Fix the issue with long string going out of bound in the component detail page. (@xiyu95)
 
-- Flow: `prometheus.relabel` will no longer modify the labels of the original
-  metrics, which could lead to relabel rules applying incorrectly on subsequent
-  relabels. (@rfratto)
-
-- Flow: `loki.source.file` will no longer deadlock other components if log
-  lines are unable to be sent to Loki. `loki.source.file` will wait for 5
-  seconds per file to finish flushing read logs to the client, after which it
-  will drop them, resulting in losing logs. (@rfratto)
-
-- Operator: Fix the handling of the enableHttp2 field as a boolean in
-  `pod_monitor` and `service_monitor` templates. (@tpaschalis)
-
 ### Other changes
 
 - Use Go 1.19.4 for builds. (@erikbaranowski)
+
+v0.30.2 (2023-01-11)
+--------------------
+
+### Bugfixes
+
+- Flow: `prometheus.relabel` will no longer modify the labels of the original
+  metrics, which could lead to the incorrect application of relabel rules on
+  subsequent relabels. (@rfratto)
+
+- Flow: `loki.source.file` will no longer deadlock other components if log
+  lines cannot be sent to Loki. `loki.source.file` will wait for 5 seconds per
+  file to finish flushing read logs to the client, after which it will drop
+  them, resulting in lost logs. (@rfratto)
+
+- Operator: Fix the handling of the enableHttp2 field as a boolean in
+  `pod_monitor` and `service_monitor` templates. (@tpaschalis)
 
 v0.30.1 (2022-12-23)
 --------------------
