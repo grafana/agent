@@ -5,3 +5,6 @@ pkg/operator/crds/*.yaml linguist-generated=true
 # for 1.19, but in the meantime we have to disable autocrlf for Fuzz files and
 # ensure that \n is the only end-of-line character used.
 **/testdata/fuzz/Fuzz*/** -text eol=lf
+
+# Needed to build the UI in windows
+web/ui/** -text eol=lf
