@@ -10,8 +10,16 @@ internal API changes are not present.
 Unreleased
 ----------
 
-0.2.0 (2023-1-12)
-----------
+0.2.1 (2023-01-12)
+------------------
+
+### Other changes
+
+- Updated documentation to remove warning about the chart not being ready for
+  use.
+
+0.2.0 (2023-01-12)
+------------------
 
 ### Features
 
