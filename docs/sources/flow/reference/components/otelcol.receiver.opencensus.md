@@ -22,10 +22,6 @@ different labels.
 
 ```river
 otelcol.receiver.opencensus "LABEL" {
-  cors_allowed_origins = [ ... ]
-
-  grpc { ... }
-
   output {
     metrics = [...]
     logs    = [...]
@@ -33,12 +29,6 @@ otelcol.receiver.opencensus "LABEL" {
   }
 }
 ```
-
-In order to use plain HTTP/JSON, specify the `endpoint` attribute
-inside the `grpc` block of this component. There is no HTTP-specific block.
-The HTTP/JSON address is the same as gRPC as the protocol is recognized and processed accordingly.
-
-To write traces with HTTP/JSON, `POST` to `[address]/v1/trace`. The JSON message format parallels the gRPC protobuf format, see this [OpenApi spec for it](https://github.com/census-instrumentation/opencensus-proto/blob/master/gen-openapi/opencensus/proto/agent/trace/v1/trace_service.swagger.json).
 
 ## Arguments
 
@@ -49,8 +39,7 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `cors_allowed_origins`     | `list(string)` | A list of allowed Cross-Origin Resource Sharing (CORS) origins. |  | no
 
-`cors_allowed_origins` are the allowed CORS origins for HTTP/JSON requests to gRPC-gateway adapter 
-for the OpenCensus receiver. See [github.com/rs/cors](github.com/rs/cors).
+`cors_allowed_origins` are the allowed [CORS](github.com/rs/cors) origins for HTTP/JSON requests.
 An empty list means that CORS is not enabled at all. A wildcard (*) can be
 used to match any origin or one or more characters of an origin.
 
@@ -94,6 +83,11 @@ Name | Type | Description | Default | Required
 `read_buffer_size` | `string` | Size of the read buffer the gRPC server will use for reading from clients. | `"512KiB"` | no
 `write_buffer_size` | `string` | Size of the write buffer the gRPC server will use for writing to clients. | | no
 `include_metadata` | `boolean` | Propagate incoming connection metadata to downstream consumers. | | no
+
+In order to use plain HTTP/JSON, specify the `endpoint` attribute. There is no HTTP-specific block.
+The HTTP/JSON address is the same as gRPC as the protocol is recognized and processed accordingly.
+
+To write traces with HTTP/JSON, `POST` to `[address]/v1/trace`. The JSON message format parallels the gRPC protobuf format, see this [OpenApi spec for it](https://github.com/census-instrumentation/opencensus-proto/blob/master/gen-openapi/opencensus/proto/agent/trace/v1/trace_service.swagger.json).
 
 Note that `max_recv_msg_size`, `read_buffer_size` and `write_buffer_size` are formatted in a special way, 
 so that the units are included in the string - e.g. "512KiB" or "1024KB".
@@ -176,59 +170,57 @@ finally sending it to an OTLP-capable endpoint:
 
 ```river
 otelcol.receiver.opencensus "default" {
-  cors_allowed_origins = ["https://*.test.com", "https://test.com"]
+	cors_allowed_origins = ["https://*.test.com", "https://test.com"]
 
-  grpc {
-    endpoint = "0.0.0.0:9090"
-    transport = "tcp"
+	grpc {
+		endpoint  = "0.0.0.0:9090"
+		transport = "tcp"
 
-    max_recv_msg_size = "32KB"
-    max_concurrent_streams = "16"
-    read_buffer_size = "1024KB"
-    write_buffer_size = "1024KB"
-    include_metadata = true
+		max_recv_msg_size      = "32KB"
+		max_concurrent_streams = "16"
+		read_buffer_size       = "1024KB"
+		write_buffer_size      = "1024KB"
+		include_metadata       = true
 
-    tls {
-      cert_file = "test.crt"
-      key_file = "test.key"
-    }
+		tls {
+			cert_file = "test.crt"
+			key_file  = "test.key"
+		}
 
-    keepalive {
+		keepalive {
+			server_parameters {
+				max_connection_idle      = "11s"
+				max_connection_age       = "12s"
+				max_connection_age_grace = "13s"
+				time                     = "30s"
+				timeout                  = "5s"
+			}
 
-      server_parameters {
-         max_connection_idle = "11s"
-         max_connection_age = "12s"
-         max_connection_age_grace = "13s"
-         time = "30s"
-         timeout = "5s"
-      }
+			enforcement_policy {
+				min_time              = "10s"
+				permit_without_stream = true
+			}
+		}
+	}
 
-      enforcement_policy {
-        min_time = "10s"
-        permit_without_stream = true
-      }
-
-    }
-  }
-
-  output {
-    metrics = [otelcol.processor.batch.default.input]
-    logs    = [otelcol.processor.batch.default.input]
-    traces  = [otelcol.processor.batch.default.input]
-  }
+	output {
+		metrics = [otelcol.processor.batch.default.input]
+		logs    = [otelcol.processor.batch.default.input]
+		traces  = [otelcol.processor.batch.default.input]
+	}
 }
 
 otelcol.processor.batch "default" {
-  output {
-    metrics = [otelcol.exporter.otlp.default.input]
-    logs    = [otelcol.exporter.otlp.default.input]
-    traces  = [otelcol.exporter.otlp.default.input]
-  }
+	output {
+		metrics = [otelcol.exporter.otlp.default.input]
+		logs    = [otelcol.exporter.otlp.default.input]
+		traces  = [otelcol.exporter.otlp.default.input]
+	}
 }
 
 otelcol.exporter.otlp "default" {
-  client {
-    endpoint = env("OTLP_ENDPOINT")
-  }
+	client {
+		endpoint = env("OTLP_ENDPOINT")
+	}
 }
 ```

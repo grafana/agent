@@ -42,8 +42,6 @@ func Test(t *testing.T) {
 	}()
 
 	require.NoError(t, ctrl.WaitRunning(time.Second))
-
-	time.Sleep(100 * time.Millisecond)
 }
 
 func TestArguments_UnmarshalRiver(t *testing.T) {
@@ -79,7 +77,6 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 
 }
 
-// TODO: This function was copy pasted from otlp_test.go. Reuse it somehow without pasting?
 func getFreeAddr(t *testing.T) string {
 	t.Helper()
 
