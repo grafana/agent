@@ -10,6 +10,7 @@ import (
 	_ "github.com/grafana/agent/pkg/integrations/apache_http"            // register apache_exporter
 	_ "github.com/grafana/agent/pkg/integrations/blackbox_exporter"      // register blackbox_exporter
 	_ "github.com/grafana/agent/pkg/integrations/cadvisor"               // register cadvisor
+	_ "github.com/grafana/agent/pkg/integrations/cloudwatch_exporter"    // register cloudwatch_exporter
 	_ "github.com/grafana/agent/pkg/integrations/consul_exporter"        // register consul_exporter
 	_ "github.com/grafana/agent/pkg/integrations/dnsmasq_exporter"       // register dnsmasq_exporter
 	_ "github.com/grafana/agent/pkg/integrations/elasticsearch_exporter" // register elasticsearch_exporter
