@@ -24,7 +24,7 @@ weight: 500
 {{ with (index .GoPackages 0 )}}
 {{ with .DocComments }}
 
-{{ safe (renderComments .) }}
+{{ . }}
 
 {{ end }} 
 {{ end }} 
@@ -40,7 +40,4 @@ weight: 500
 {{ template "type" . }} 
 {{ end }}
 {{ end }}
-
-_Generated with `gen-crd-api-reference-docs` {{ with .gitCommit }} on git commit `{{ . }}`{{end}}._
-
 {{ end }}
