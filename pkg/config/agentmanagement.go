@@ -34,6 +34,9 @@ type AgentManagement struct {
 // of the remote config if the request to the remote fails. If both fail, an empty config and an
 // error will be returned.
 func getRemoteConfig(expandEnvVars bool, initialConfig *Config, log *server.Logger) (*Config, error) {
+	if err := initialConfig.AgentManagement.Validate(); err != nil {
+		return nil, fmt.Errorf("invalid initial config: %w", err)
+	}
 	remoteConfigBytes, err := fetchFromApi(initialConfig)
 	if err != nil {
 		level.Error(log).Log("msg", "could not fetch from API, falling back to cache", "err", err)
