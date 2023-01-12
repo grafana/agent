@@ -51,7 +51,7 @@ func (c *Component) Run(ctx context.Context) error {
 				Labels: entry.Labels,
 				Entry:  entry.Entry,
 			}
-			lokiEntry.Labels["source"] = model.LabelValue(c.o.ID)
+			lokiEntry.Labels["job"] = model.LabelValue(c.o.ID)
 			for _, r := range c.receivers {
 				r <- lokiEntry
 			}
