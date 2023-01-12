@@ -17,7 +17,6 @@ type labelMap map[string]string
 type RemoteConfiguration struct {
 	Labels       labelMap `yaml:"labels"`
 	Namespace    string   `yaml:"namespace"`
-	BaseConfigId string   `yaml:"base_config_id"`
 }
 
 type AgentManagement struct {
@@ -112,7 +111,7 @@ func fetchConfig(c *Config) ([]byte, error) {
 // fullUrl creates and returns the URL that should be used when querying the Agent Management API,
 // including the namespace, base config id, and any labels that have been specified.
 func (am *AgentManagement) fullUrl() (string, error) {
-	fullPath, err := url.JoinPath(am.Url, am.RemoteConfiguration.Namespace, am.RemoteConfiguration.BaseConfigId, "remote_config")
+	fullPath, err := url.JoinPath(am.Url, "namespace", am.RemoteConfiguration.Namespace, "remote_config")
 	if err != nil {
 		return "", fmt.Errorf("error trying to join url: %w", err)
 	}
@@ -143,9 +142,7 @@ func (am *AgentManagement) Validate() error {
 		return fmt.Errorf("error trying to parse polling interval: %w", err)
 	}
 
-	if am.RemoteConfiguration.BaseConfigId == "" {
-		return errors.New("base_config_id must be specified in 'remote_configuration' block of the config")
-	} else if am.RemoteConfiguration.Namespace == "" {
+	if am.RemoteConfiguration.Namespace == "" {
 		return errors.New("namespace must be specified in 'remote_configuration' block of the config")
 	}
 
