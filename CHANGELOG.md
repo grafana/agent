@@ -38,6 +38,7 @@ Main (unreleased)
   - `loki.source.windowsevent` reads logs from Windows Event Log. (@mattdurham)
   - `loki.source.syslog` listens for Syslog messages over TCP and UDP
     connections and forwards them to other `loki` components. (@tpaschalis)
+  - `loki.source.gelf` listens for Graylog logs. (@mattdurham)
 
 - Flow components which work with relabeling rules (`discovery.relabel`,
   `prometheus.relabel` and `loki.relabel`) now export a new value named Rules.
