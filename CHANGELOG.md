@@ -60,6 +60,8 @@ Main (unreleased)
 
 - Use Go 1.19.4 for builds. (@erikbaranowski)
 
+- New windows containers for agent and agentctl. These can be found moving forward with the ${Version}-windows tags for grafana/agent and grafana/agentctl docker images (@erikbaranowski)
+
 v0.30.2 (2023-01-11)
 --------------------
 
