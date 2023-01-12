@@ -50,6 +50,8 @@ Main (unreleased)
 
 - Flow: the targets in debug info from `loki.source.file` are now individual blocks. (@rfratto)
 
+- Add option to disable usage stats reporting in config file via `enable_usage_report` field. (@marctc)
+
 ### Bugfixes
 
 - Flow UI: Fix the issue with messy layout on the component list page while browser window resize. (@xiyu95)

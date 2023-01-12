@@ -459,3 +459,26 @@ func TestAgent_OmmitEmptyFields(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "{}\n", string(yml))
 }
+
+func TestConfig_DisableReporting(t *testing.T) {
+	cfg := `
+enable_usage_report: false
+`
+
+	var c Config
+	err := LoadBytes([]byte(cfg), false, &c)
+	require.NoError(t, err)
+	require.False(t, c.EnableUsageReport)
+}
+
+func TestConfig_ReportingEnableDefault(t *testing.T) {
+	cfg := `
+server:
+  log_level: info
+`
+
+	var c Config
+	err := LoadBytes([]byte(cfg), false, &c)
+	require.NoError(t, err)
+	require.True(t, c.EnableUsageReport)
+}

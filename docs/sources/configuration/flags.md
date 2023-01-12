@@ -56,7 +56,7 @@ The usage information includes the following details:
 This list may change over time. All newly reported data will also be documented in the CHANGELOG.
 
 If you would like to disable the reporting, Grafana Agent provides the flag `-disable-reporting`
-to stop the reporting.
+to stop the reporting or set `enable_usage_report` to false in the config.
 
 ## Support bundles
 Grafana Agent allows the exporting of 'support bundles' on the `/-/support`

@@ -84,7 +84,7 @@ type Config struct {
 	DisableSupportBundle bool `yaml:"-"`
 
 	// Report enabled features options
-	EnableUsageReport bool     `yaml:"-"`
+	EnableUsageReport bool     `yaml:"enable_usage_report,omitempty"`
 	EnabledFeatures   []string `yaml:"-"`
 }
 
