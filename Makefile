@@ -48,6 +48,8 @@
 ##
 ##   generate             Generate everything.
 ##   generate-crds        Generate Grafana Agent Operator CRDs ands its documentation.
+##   generate-helm-docs   Generate Helm chart documentation.
+##   generate-helm-tests  Generate Helm chart tests.
 ##   generate-manifests   Generate production/kubernetes YAML manifests.
 ##   generate-dashboards  Generate dashboards in example/docker-compose after
 ##                        changing Jsonnet.
@@ -239,8 +241,8 @@ smoke-image:
 # Targets for generating assets
 #
 
-.PHONY: generate generate-crds generate-manifests generate-dashboards generate-protos generate-ui
-generate: generate-crds generate-manifests generate-dashboards generate-protos generate-ui
+.PHONY: generate generate-crds generate-helm-docs generate-helm-tests generate-manifests generate-dashboards generate-protos generate-ui
+generate: generate-crds generate-helm-docs generate-helm-tests generate-manifests generate-dashboards generate-protos generate-ui
 
 generate-crds:
 ifeq ($(USE_CONTAINER),1)
@@ -248,6 +250,20 @@ ifeq ($(USE_CONTAINER),1)
 else
 	bash ./tools/generate-crds.bash
 	gen-crd-api-reference-docs -config tools/gen-crd-docs/config.json -api-dir "github.com/grafana/agent/pkg/operator/apis/monitoring/" -out-file docs/sources/operator/api.md -template-dir tools/gen-crd-docs/template
+endif
+
+generate-helm-docs:
+ifeq ($(USE_CONTAINER),1)
+	$(RERUN_IN_CONTAINER)
+else
+	cd operations/helm/charts/grafana-agent && helm-docs
+endif
+
+generate-helm-tests:
+ifeq ($(USE_CONTAINER),1)
+	$(RERUN_IN_CONTAINER)
+else
+	bash ./operations/helm/scripts/rebuild-tests.sh
 endif
 
 generate-manifests:
