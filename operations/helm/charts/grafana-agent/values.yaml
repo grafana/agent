@@ -41,6 +41,9 @@ agent:
   # -- Extra args to pass to `agent run`: https://grafana.com/docs/agent/latest/flow/reference/cli/run/
   extraArgs: []
 
+  # -- Extra ports to expose on the Agent
+  extraPorts: []
+
   mounts:
     # -- Mount /var/log from the host into the container for log collection.
     varlog: false

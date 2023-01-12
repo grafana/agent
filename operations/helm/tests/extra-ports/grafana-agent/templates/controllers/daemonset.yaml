@@ -41,6 +41,9 @@ spec:
             ports:
               - containerPort: 80
                 name: http-metrics
+              - containerPort: 14268
+                name: jaeger-thrift
+                protocol: TCP
             readinessProbe:
               httpGet:
                 path: /-/ready
