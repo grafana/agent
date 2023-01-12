@@ -81,7 +81,7 @@ otelcol.exporter.loki "default" {
 }
 
 loki.write "local" {
-    client {
+    endpoint {
         url = "loki:3100"
     }
 }
