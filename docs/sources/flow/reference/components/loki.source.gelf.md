@@ -33,7 +33,7 @@ Name         | Type                 | Description                               
 
 
 > **NOTE**: GELF logs can be sent uncompressed or compressed with GZIP or ZLIB. 
-> A `job` label will be added with the full name of the component. 
+> A `source` label will be added with the full name of the component. 
 
 Incoming messages have the following labels added:
 * `__gelf_message_level`: The GELF level as a string.
