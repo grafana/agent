@@ -50,6 +50,8 @@ Main (unreleased)
 
 - Flow: the targets in debug info from `loki.source.file` are now individual blocks. (@rfratto)
 
+- Grafana Agent Operator: add [promtail limit stage](https://grafana.com/docs/loki/latest/clients/promtail/stages/limit/) to the operator. (@spartan0x117)
+
 ### Bugfixes
 
 - Flow UI: Fix the issue with messy layout on the component list page while browser window resize. (@xiyu95)
