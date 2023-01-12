@@ -292,7 +292,7 @@ generate-ui:
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
-	cd ./web/ui && yarn && yarn run build
+	cd ./web/ui && yarn && yarn run build --network-timeout=1200000
 endif
 
 #
