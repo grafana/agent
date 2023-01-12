@@ -7,7 +7,10 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-0.1.0 (unreleased)
+Unreleased
+----------
+
+0.1.0 (2023-01-11)
 ------------------
 
 ### Features
