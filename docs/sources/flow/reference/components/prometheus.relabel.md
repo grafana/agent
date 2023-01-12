@@ -22,9 +22,10 @@ labels remain after the relabeling rules are applied, then the metric is
 dropped.
 
 The most common use of `prometheus.relabel` is to filter Prometheus metrics or
-standardize the label set that will be passed to one or more downstream
-receivers. The `rule` blocks are applied to the label set of
-each metric in order of their appearance in the configuration file.
+standardize the label set that is passed to one or more downstream
+receivers. The `rule` blocks are applied to the label set of each metric in
+order of their appearance in the configuration file. The configured rules can
+be retrieved by calling the function in the `rules` export field.
 
 Multiple `prometheus.relabel` components can be specified by giving them
 different labels.
@@ -72,6 +73,7 @@ The following fields are exported and can be referenced by other components:
 Name | Type | Description
 ---- | ---- | -----------
 `receiver` | `receiver` | The input receiver where samples are sent to be relabeled.
+`rules`    | `RelabelRules` | A function that returns the currently configured relabeling rules.
 
 ## Component health
 

@@ -6,33 +6,7 @@
   color: rgba(36, 41, 46, 0.75);
 }
 
-.list ul {
-  display: grid;
-  grid-template-columns: 128px 1fr auto;
-  margin: 0px;
-  list-style-type: none;
-  padding: 0px;
-}
-
-.list li {
-  text-decoration: none;
-  padding: 8px;
-}
-
-.list header {
-  background-color: #f4f5f5;
-}
-
-.list ul:nth-child(odd) {
-  background-color: #f4f5f5;
-}
-
-.list .text {
-  padding: 10px 8px;
-}
-
 .list .viewButton {
-  display: inline-block;
   background: none;
   background-color: rgb(56, 133, 220);
   color: #ffffff;
@@ -45,4 +19,6 @@
   padding: 0px 15px;
   line-height: 24px;
   font-size: 0.8em;
+
+  float: right;
 }

@@ -49,7 +49,7 @@ func Test_node_Join(t *testing.T) {
 
 	nodeConfig := DefaultConfig
 	nodeConfig.Enabled = true
-	nodeConfig.Lifecycler = testLifecyclerConfig(t)
+	nodeConfig.Lifecycler.LifecyclerConfig = testLifecyclerConfig(t)
 
 	n, err := newNode(reg, logger, nodeConfig, local)
 	require.NoError(t, err)
@@ -99,7 +99,7 @@ func Test_node_Leave(t *testing.T) {
 
 	nodeConfig := DefaultConfig
 	nodeConfig.Enabled = true
-	nodeConfig.Lifecycler = testLifecyclerConfig(t)
+	nodeConfig.Lifecycler.LifecyclerConfig = testLifecyclerConfig(t)
 
 	n, err := newNode(reg, logger, nodeConfig, local)
 	require.NoError(t, err)
@@ -132,7 +132,7 @@ func Test_node_ApplyConfig(t *testing.T) {
 
 	nodeConfig := DefaultConfig
 	nodeConfig.Enabled = true
-	nodeConfig.Lifecycler = testLifecyclerConfig(t)
+	nodeConfig.Lifecycler.LifecyclerConfig = testLifecyclerConfig(t)
 
 	n, err := newNode(reg, logger, nodeConfig, local)
 	require.NoError(t, err)

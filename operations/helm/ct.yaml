@@ -1,0 +1,6 @@
+remote: origin
+target-branch: main
+chart-dirs:
+  - operations/helm/charts
+helm-extra-args: --timeout 600s
+validate-maintainers: false

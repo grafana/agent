@@ -184,3 +184,10 @@ func ComponentToPromRelabelConfigs(rcs []*Config) []*relabel.Config {
 
 	return res
 }
+
+// Rules returns the relabel configs in use for a relabeling component.
+type Rules func() []*Config
+
+// RiverCapsule marks the alias defined above as a "capsule type" so that it
+// cannot be invoked by River code.
+func (r Rules) RiverCapsule() {}

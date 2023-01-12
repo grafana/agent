@@ -1,37 +1,43 @@
-import { FC } from 'react';
+import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { HealthLabel } from './HealthLabel';
-import { ComponentInfo } from './types';
+
+import { HealthLabel } from '../component/HealthLabel';
+import { ComponentInfo } from '../component/types';
+import Table from '../widget/Table';
+
 import styles from './ComponentList.module.css';
 
 interface ComponentListProps {
   components: ComponentInfo[];
 }
 
-const ComponentList: FC<ComponentListProps> = ({ components }) => {
+const TABLEHEADERS = ['Health', 'ID'];
+
+const ComponentList = ({ components }: ComponentListProps) => {
+  const tableStyles = { width: '100px' };
+
+  /**
+   * Custom renderer for table data
+   */
+  const renderTableData = () => {
+    return components.map(({ health, id }) => (
+      <tr key={id}>
+        <td>
+          <HealthLabel health={health.state} />
+        </td>
+        <td>
+          <span>{id}</span>
+          <NavLink to={'/component/' + id} className={styles.viewButton}>
+            View
+          </NavLink>
+        </td>
+      </tr>
+    ));
+  };
+
   return (
     <div className={styles.list}>
-      <header>
-        <ul>
-          <li>Health</li>
-          <li>ID</li>
-        </ul>
-      </header>
-      {components.map((component) => {
-        return (
-          <ul key={component.id}>
-            <li>
-              <HealthLabel health={component.health.state} />
-            </li>
-            <li className={styles.text}>{component.id}</li>
-            <li>
-              <NavLink to={'/component/' + component.id} className={styles.viewButton}>
-                View
-              </NavLink>
-            </li>
-          </ul>
-        );
-      })}
+      <Table tableHeaders={TABLEHEADERS} renderTableData={renderTableData} style={tableStyles} />
     </div>
   );
 };

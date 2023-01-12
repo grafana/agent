@@ -1,0 +1,119 @@
+# -- Overrides the chart's name. Used to change the infix in the resource names.
+nameOverride: null
+
+# -- Overrides the chart's computed fullname. Used to change the full prefix of
+# resource names.
+fullnameOverride: null
+
+# Various agent settings.
+agent:
+  # -- Mode to run Grafana Agent in. Can be "flow" or "static".
+  mode: 'flow'
+
+  configMap:
+    # -- Create a new ConfigMap for the config file.
+    create: true
+    # -- Content to assign to the new ConfigMap.
+    content: ""
+
+    # -- Name of existing ConfigMap to use. Used when create is false.
+    name: null
+    # -- Key in ConfigMap to get config from.
+    key: null
+
+  # -- Path to where Grafana Agent stores data (for example, the Write-Ahead Log).
+  # By default, data is lost between reboots.
+  storagePath: /tmp/agent
+
+  # -- Address to listen for traffic on. 0.0.0.0 exposes the UI to other
+  # containers.
+  listenAddr: 0.0.0.0
+  # -- Port to listen for traffic on.
+  listenPort: 80
+
+  # -- Enables sending Grafana Labs anonymous usage stats to help improve Grafana
+  # Agent.
+  enableReporting: true
+
+  # -- Extra environment variables to pass to the agent container.
+  extraEnv: []
+
+  # -- Extra args to pass to `agent run`: https://grafana.com/docs/agent/latest/flow/reference/cli/run/
+  extraArgs: []
+
+  mounts:
+    # -- Mount /var/log from the host into the container for log collection.
+    varlog: false
+    # -- Mount /var/lib/docker/containers from the host into the container for log
+    # collection.
+    dockercontainers: false
+
+    # -- Extra volume mounts to add into the Grafana Agent container. Does not
+    # affect the watch container.
+    extra: []
+
+  # -- Security context to apply to the Grafana Agent container.
+  securityContext: {}
+
+  # -- Resource requests and limits to apply to the Grafana Agent container.
+  resources: {}
+
+image:
+  # -- Grafana Agent image repository.
+  repository: grafana/agent
+  # -- (string) Grafana Agent image tag. When empty, the Chart's appVersion is
+  # used.
+  tag: null
+  # -- Grafana Agent image pull policy.
+  pullPolicy: IfNotPresent
+  # -- Optional set of image pull secrets.
+  pullSecrets: []
+
+rbac:
+  # -- Whether to create RBAC resources for the agent.
+  create: true
+
+serviceAccount:
+  # -- Whether to create a service account for the Grafana Agent deployment.
+  create: true
+  # -- Annotations to add to the created service account.
+  annotations: {}
+  # -- The name of the existing service account to use when
+  # serviceAccount.create is false.
+  name: null
+
+# Options for the extra controler used for config reloading.
+configReloader:
+  # -- Enables automatically reloading when the agent config changes.
+  enabled: true
+  image:
+    # -- Repository to get config reloader image from.
+    repository: weaveworks/watch
+    # -- Tag of image to use for config reloading.
+    tag: master-5fc29a9
+  # -- Override the args passed to the container.
+  customArgs: []
+
+controller:
+  # -- Type of controller to use for deploying Grafana Agent in the cluster.
+  # Must be one of 'daemonset', 'deployment', or 'statefulset'.
+  type: 'daemonset'
+
+  # -- Number of pods to deploy. Ignored when controller.type is 'daemonset'.
+  replicas: 1
+
+  # -- Update strategy for updating deployed Pods.
+  updateStrategy: {}
+
+  # -- Tolerations to apply to Grafana Agent pods.
+  tolerations: []
+
+  # -- Extra pod annotations to add.
+  podAnnotations: {}
+
+  volumes:
+    # -- Extra volumes to add to the Grafana Agent pod.
+    extra: []
+
+  # -- volumeClaimTemplates to add when controller.type is 'statefulset'.
+  volumeClaimTemplates: []
