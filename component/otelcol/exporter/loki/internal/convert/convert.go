@@ -68,10 +68,13 @@ func (conv *Converter) ConsumeLogs(ctx context.Context, ld plog.Logs) error {
 			for k := 0; k < logs.Len(); k++ {
 				conv.metrics.entriesTotal.Inc()
 
+				// we may remove attributes, so to avoid mutating the original
+				// log entry, we make our own copy and change that instead.
 				log := plog.NewLogRecord()
 				logs.At(k).CopyTo(log)
 
-				// we may remove resources, so we make a copy and change our version
+				// similarly, we may remove resources, so to avoid mutating the
+				// original log entry, we make and use our own copy instead.
 				resource := pcommon.NewResource()
 				rls.At(i).Resource().CopyTo(resource)
 
