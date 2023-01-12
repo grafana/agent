@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 	"sync"
-	"sync/atomic"
+
+	"go.uber.org/atomic"
 
 	"github.com/prometheus/prometheus/storage"
 
