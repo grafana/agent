@@ -50,7 +50,7 @@ Main (unreleased)
 
 - Flow: the targets in debug info from `loki.source.file` are now individual blocks. (@rfratto)
 
-- Add option to disable usage stats reporting in config file via `enable_usage_report` field. (@marctc)
+- Add option to disable usage stats reporting in config file via the `enable_usage_report` field. (@marctc)
 
 ### Bugfixes
 
