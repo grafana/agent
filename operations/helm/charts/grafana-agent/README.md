@@ -1,13 +1,6 @@
 # Grafana Agent Helm chart
 
-![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.2.0](https://img.shields.io/badge/Version-0.2.0-informational?style=flat-square) ![AppVersion: v0.30.2](https://img.shields.io/badge/AppVersion-v0.30.2-informational?style=flat-square)
-
-> **EXPERIMENTAL**: This is an experimental Helm chart for Grafana Agent. It is
-> undergoing active development and it is not recommended to use this chart in
-> production.
->
-> The intent is to upstream this Helm chart into grafana/agent once it's ready
-> for adoption.
+![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.2.1](https://img.shields.io/badge/Version-0.2.1-informational?style=flat-square) ![AppVersion: v0.30.2](https://img.shields.io/badge/AppVersion-v0.30.2-informational?style=flat-square)
 
 Helm chart for deploying [Grafana Agent][] to Kubernetes.
 
