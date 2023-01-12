@@ -149,6 +149,96 @@ steps:
 ---
 kind: pipeline
 type: docker
+name: Verify Container (grafana/agent)
+platform:
+  os: linux
+  arch: amd64
+trigger:
+  event: [pull_request]
+steps:
+  - name: Build container
+    image: grafana/agent-build-image:0.19.0
+    volumes:
+      - name: docker
+        path: /var/run/docker.sock
+    commands:
+      - make agent-image
+volumes:
+  - name: docker
+    host:
+      path: /var/run/docker.sock
+
+---
+kind: pipeline
+type: docker
+name: Verify Container (grafana/agentctl)
+platform:
+  os: linux
+  arch: amd64
+trigger:
+  event: [pull_request]
+steps:
+  - name: Build container
+    image: grafana/agent-build-image:0.19.0
+    volumes:
+      - name: docker
+        path: /var/run/docker.sock
+    commands:
+      - make agentctl-image
+volumes:
+  - name: docker
+    host:
+      path: /var/run/docker.sock
+
+---
+kind: pipeline
+type: docker
+name: Verify Container (grafana/agent-operator)
+platform:
+  os: linux
+  arch: amd64
+trigger:
+  event: [pull_request]
+steps:
+  - name: Build container
+    image: grafana/agent-build-image:0.19.0
+    volumes:
+      - name: docker
+        path: /var/run/docker.sock
+    commands:
+      - make operator-image
+volumes:
+  - name: docker
+    host:
+      path: /var/run/docker.sock
+
+---
+kind: pipeline
+type: docker
+name: Verify Windows Containers
+platform:
+  os: windows
+  arch: amd64
+  version: "1809"
+trigger:
+  event: [pull_request]
+steps:
+  - name: Build container
+    image: grafana/agent-build-image:0.19.0-windows
+    volumes:
+      - name: docker
+        path: //./pipe/docker_engine/
+    commands:
+      - git config --global --add safe.directory C:/drone/src/
+      - '& "C:/Program Files/git/bin/bash.exe" -c ./tools/ci/docker-containers-windows'
+volumes:
+- name: docker
+  host:
+    path: //./pipe/docker_engine/
+
+---
+kind: pipeline
+type: docker
 name: Containerize
 platform:
   os: linux
@@ -377,6 +467,6 @@ get:
 
 ---
 kind: signature
-hmac: 8880e687afcbe8c6db514963c36dc48e69780082669bc190732d2e042871dcae
+hmac: 61489753c517810cccce9c906d2d2350f5dc4e2e72415b73ca19b3d593ad99c7
 
 ...
