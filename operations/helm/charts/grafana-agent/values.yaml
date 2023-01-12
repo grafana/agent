@@ -43,9 +43,9 @@ agent:
 
   # -- Extra ports to expose on the Agent
   # Example:  
-  # - name: authenticated
-  #     port: 8081
-  #     targetPort: 8081
+  # - name: jaeger-thrift
+  #     port: 14268
+  #     targetPort: 14268
   #     protocol: TCP
   extraPorts: []
 
