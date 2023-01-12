@@ -9,6 +9,10 @@ internal API changes are not present.
 
 Unreleased
 ----------
+
+0.2.0 (2023-1-12)
+----------
+
 ### Features
 
 - Introduce supporting extra ports on the Grafana Agent created by Helm Chart.
