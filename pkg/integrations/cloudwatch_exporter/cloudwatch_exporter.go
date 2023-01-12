@@ -23,7 +23,12 @@ const (
 )
 
 type Config struct {
-	Jobs []Job `yaml:"jobs"`
+	STSRegion string `yaml:"stsRegion"`
+	Jobs      []Job  `yaml:"jobs"`
+}
+
+func init() {
+	integrations.RegisterIntegration(&Config{})
 }
 
 func (c Config) ToExporterConfig() (yaceConf.ScrapeConf, error) {
@@ -59,6 +64,7 @@ func (c Config) ToExporterConfig() (yaceConf.ScrapeConf, error) {
 		})
 	}
 	return yaceConf.ScrapeConf{
+		StsRegion: c.STSRegion,
 		Discovery: yaceConf.Discovery{
 			ExportedTagsOnMetrics: nil,
 			Jobs:                  discoveryJobs,
@@ -96,12 +102,13 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
 	expoterConfig, _ := c.ToExporterConfig()
 	collector := newCloudwatchCollector(l, expoterConfig)
-	var r integrations.Integration = integrations.NewCollectorIntegration(
+
+	l.Log("msg", "creating new cloudwatch integration")
+
+	return integrations.NewCollectorIntegration(
 		c.Name(),
 		integrations.WithCollectors(collector),
-	)
-	var r2 error = nil
-	return r, r2
+	), nil
 }
 
 // cloudwatchCollector
@@ -124,9 +131,12 @@ func newCloudwatchCollector(logger log.Logger, conf yaceConf.ScrapeConf) *cloudw
 }
 
 func (c *cloudwatchCollector) Describe(desc chan<- *prometheus.Desc) {
+	c.logger.Info("running describe in cloudwatch_exporter")
 }
 
 func (c *cloudwatchCollector) Collect(ch chan<- prometheus.Metric) {
+	c.logger.Info("running collect in cloudwatch_exporter")
+
 	reg := prometheus.NewRegistry()
 	cwSemaphore := make(chan struct{}, cloudWatchConcurrency)
 	tagSemaphore := make(chan struct{}, tagConcurrency)
