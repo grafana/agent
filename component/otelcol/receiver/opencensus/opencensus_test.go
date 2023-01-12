@@ -74,7 +74,6 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 		require.Equal(t, otelArgs.CorsOrigins[0], "https://*.test.com")
 		require.Equal(t, otelArgs.CorsOrigins[1], "https://test.com")
 	})
-
 }
 
 func getFreeAddr(t *testing.T) string {
