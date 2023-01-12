@@ -129,6 +129,10 @@ func TestWithRelabelRules(t *testing.T) {
 				Action:       flow_relabel.LabelMap,
 				Replacement:  "syslog_${1}",
 			},
+			{
+				Regex:  mustNewRegexp("syslog_connection_hostname"),
+				Action: flow_relabel.LabelDrop,
+			},
 		}
 	}
 
@@ -150,7 +154,6 @@ func TestWithRelabelRules(t *testing.T) {
 	// The entry should've had the relabeling rules applied to it.
 	wantLabelSet := model.LabelSet{
 		"protocol":                     "tcp",
-		"syslog_connection_hostname":   "localhost",
 		"syslog_connection_ip_address": "127.0.0.1",
 		"syslog_message_app_name":      "app",
 		"syslog_message_facility":      "local4",
