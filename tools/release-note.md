@@ -18,9 +18,7 @@ Install directions [here.](https://grafana.com/docs/grafana-cloud/quickstart/age
 
 * https://hub.docker.com/r/grafana/agent
 
-```bash
-docker pull "grafana/agent:${VERSION}"
-```
+Docker containers are published as `grafana/agent:${VERSION}`. For Windows Docker containers, use `grafana/agent:${VERSION}-windows` instead. 
 
 #### Windows installer
 
@@ -49,9 +47,7 @@ chmod a+x "agent-linux-amd64"
 
 `agentctl`, a tool for helping you interact with the Agent, is available as a Docker image:
 
-```bash
-docker pull "grafana/agentctl:${VERSION}"
-```
+Docker containers are published as `grafana/agentctl:${VERSION}`. For Windows Docker containers, use `grafana/agentctl:${VERSION}-windows` instead. 
 
 Or as a binary. Like before, choose the assets below that matches your operating system. For example, with `linux` on `amd64`:
 
