@@ -40,3 +40,4 @@ data:
     discovery.kubernetes "ingresses" {
     	role = "ingress"
     }
+    

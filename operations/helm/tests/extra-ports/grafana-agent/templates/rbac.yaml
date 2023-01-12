@@ -52,3 +52,4 @@ subjects:
   - kind: ServiceAccount
     name: grafana-agent
     namespace: default
+    
