@@ -15,8 +15,8 @@ import (
 type labelMap map[string]string
 
 type RemoteConfiguration struct {
-	Labels       labelMap `yaml:"labels"`
-	Namespace    string   `yaml:"namespace"`
+	Labels    labelMap `yaml:"labels"`
+	Namespace string   `yaml:"namespace"`
 }
 
 type AgentManagement struct {
