@@ -1,0 +1,102 @@
+# Grafana Agent Helm chart
+
+{{ template "chart.typeBadge" . }}{{ template "chart.versionBadge" . }}{{ template "chart.appVersionBadge" . }}
+
+Helm chart for deploying [Grafana Agent][] to Kubernetes.
+
+[Grafana Agent]: https://grafana.com/docs/agent/latest/
+
+## Usage
+
+This chart installs one instance of Grafana Agent into your Kubernetes cluster
+using a specific Kubernetes controller. By default, DaemonSet is used. The
+`controller.type` value can be used to change the controller to either a
+StatefulSet or Deployment.
+
+Creating multiple installations of the Helm chart with different controllers is
+useful if just using the default DaemonSet isn't sufficient.
+
+## Flow mode is the default
+
+By default, [Grafana Agent Flow][Flow] is deployed. To opt out of Flow mode and
+use the older mode (called "static mode"), set the `agent.mode` value to
+`static`.
+
+[Flow]: https://grafana.com/docs/agent/latest/flow/
+
+{{ template "chart.valuesSection" . }}
+
+### agent.extraArgs
+
+`agent.extraArgs` allows for passing extra arguments to the Grafana Agent
+container. The list of available arguments is documented on [agent run][].
+
+> **WARNING**: Using `agent.extraArgs` does not have a stable API. Things may
+> break between Chart upgrade if an argument gets added to the template.
+
+[agent run]: https://grafana.com/docs/agent/latest/flow/reference/cli/run/
+
+### agent.listenAddr
+
+`agent.listenAddr` allows for restricting which address the agent listens on
+for network traffic on its HTTP server. By default, this is `0.0.0.0` to allow
+its UI to be exposed when port-forwarding and to expose its metrics to other
+agents in the cluster.
+
+### config
+
+`config` holds the Grafana Agent configuration to use.
+
+If `config` is not provided, a [default configuration file][default-config] is
+used. When provided, `config` must hold a valid River configuration file.
+
+[default-config]: ./config/example.river
+
+### controller.securityContext
+
+`controller.securityContext` sets the securityContext passed to the Grafana
+Agent container.
+
+By default, Grafana Agent containers are not able to collect telemetry from the
+host node or other specific types of privileged telemetry data. See [Collecting
+logs from other containers][#collecting-logs-from-other-containers] and
+[Collecting host node telemetry][#collecting-host-node-telemetry] below for
+more information on how to enable these capabilities.
+
+### rbac.create
+
+`rbac.create` enables the creation of ClusterRole and ClusterRoleBindings for
+the Grafana Agent containers to use. The default permission set allows Flow
+components like [discovery.kubernetes][] to work properly.
+
+[discovery.kubernetes]: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.kubernetes/
+
+## Collecting logs from other containers
+
+Currently, the only way to collect logs from other contains is to mount
+`/var/lib/docker/containers` from the host and read the log files directly.
+This capability is disabled by default.
+
+To expose logs from other containers to Grafana Agent:
+
+* Set `agent.mounts.dockercontainers` to `true`.
+* Set `controller.securityContext` to:
+  ```yaml
+  privileged: true
+  runAsUser: 0
+  ```
+
+## Collecting host node telemetry
+
+Telemetry from the host, such as host-specific log files (from `/var/logs`) or
+metrics from `/proc` and `/sys` are not accessible to Grafana Agent containers.
+
+To expose this information to Grafana Agent for telemetry collection:
+
+* Set `agent.mounts.dockercontainers` to `true`.
+* Mount `/proc` and `/sys` from the host into the container.
+* Set `controller.securityContext` to:
+  ```yaml
+  privileged: true
+  runAsUser: 0
+  ```

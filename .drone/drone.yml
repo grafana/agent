@@ -196,6 +196,41 @@ volumes:
 ---
 kind: pipeline
 type: docker
+name: Windows-Containerize
+platform:
+  os: windows
+  arch: amd64
+  version: "1809"
+trigger:
+  ref:
+    - refs/heads/main
+    - refs/tags/v*
+    - refs/heads/dev.*
+steps:
+  - name: Build Containers
+    image: grafana/agent-build-image:0.19.0-windows
+    volumes:
+      - name: docker
+        path: //./pipe/docker_engine/
+    environment:
+      DOCKER_LOGIN:
+        from_secret: DOCKER_LOGIN
+      DOCKER_PASSWORD:
+        from_secret: DOCKER_PASSWORD
+    commands:
+      - git config --global --add safe.directory C:/drone/src/
+      - 'Invoke-Expression "C:\''Program Files''\git\bin\bash.exe -c ''.\\\\tools\\\\ci\\\\docker-containers-windows''"'
+depends_on:
+  - Windows-Test
+
+volumes:
+- name: docker
+  host:
+    path: //./pipe/docker_engine/
+
+---
+kind: pipeline
+type: docker
 name: Deploy-To-Deployment-Tools
 platform:
   os: linux
@@ -342,6 +377,6 @@ get:
 
 ---
 kind: signature
-hmac: 775235d2ab8a1ff11990f693c0f3dd528728a23bb9a598481113362d686dad2b
+hmac: 8880e687afcbe8c6db514963c36dc48e69780082669bc190732d2e042871dcae
 
 ...

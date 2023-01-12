@@ -5,7 +5,9 @@ package loki
 // to relabeling, stages and finally batched in a client to be written to Loki.
 
 import (
+	"context"
 	"sync"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
@@ -13,8 +15,16 @@ import (
 	"github.com/grafana/loki/pkg/logproto"
 )
 
-// LogsReceiver is an alias for chan Entry which will be used for component
-// communication
+// finalEntryTimeout is how long NewEntryMutatorHandler will wait before giving
+// up on sending the final log entry. If this timeout is reached, the final log
+// entry is permanently lost.
+//
+// This timeout can only be reached if the loki.write client is backlogged due
+// to an outage or erroring (such as limits being hit).
+const finalEntryTimeout = 5 * time.Second
+
+// LogsReceiver is an alias for chan Entry which is used for component
+// communication.
 type LogsReceiver chan Entry
 
 // Entry is a log entry with labels.
@@ -77,17 +87,53 @@ func NewEntryHandler(entries chan<- Entry, stop func()) EntryHandler {
 
 // NewEntryMutatorHandler creates a EntryHandler that mutates incoming entries from another EntryHandler.
 func NewEntryMutatorHandler(next EntryHandler, f EntryMutatorFunc) EntryHandler {
-	in, wg, once := make(chan Entry), sync.WaitGroup{}, sync.Once{}
-	nextChan := next.Chan()
+	var (
+		ctx, cancel = context.WithCancel(context.Background())
+
+		in       = make(chan Entry)
+		nextChan = next.Chan()
+	)
+
+	var wg sync.WaitGroup
 	wg.Add(1)
+
 	go func() {
 		defer wg.Done()
+		defer cancel()
+
 		for e := range in {
-			nextChan <- f(e)
+			select {
+			case <-ctx.Done():
+				// This is a hard stop to the reading goroutine. Anything not forwarded
+				// to nextChan at this point will probably be permanently lost, since
+				// the positions file has likely already updated to a byte offset past
+				// the read entry.
+				//
+				// TODO(rfratto): revisit whether this logic is necessary after we have
+				// a WAL for logs.
+				return
+			case nextChan <- f(e):
+				// no-op; log entry has been queued for sending.
+			}
 		}
 	}()
+
+	var closeOnce sync.Once
 	return NewEntryHandler(in, func() {
-		once.Do(func() { close(in) })
+		closeOnce.Do(func() {
+			close(in)
+
+			select {
+			case <-ctx.Done():
+				// The goroutine above exited on its own so we don't have to wait for
+				// the timeout.
+			case <-time.After(finalEntryTimeout):
+				// We reached the timeout for sending the final entry to nextChan;
+				// request a hard stop from the reading goroutine.
+				cancel()
+			}
+		})
+
 		wg.Wait()
 	})
 }
