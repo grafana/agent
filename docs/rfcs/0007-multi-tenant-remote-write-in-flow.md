@@ -65,7 +65,7 @@ There are various places where the label can be set:
   * the contents of another label
 * The label might already exist on the scraped metric itself.
 * The label might already be set when converting from an OpenTelemetry metric.
-* In prometheus.remotewrite through an external_label field.
+* In prometheus.remote_write through an external_labels field.
 
 #### Step 2 - Remote write using the tenant HTTP header
 
@@ -130,6 +130,7 @@ Above, ```__tenant__``` is a label which could be created by relabeling another 
   * The value for the HTTP header could be a label value (e.g. a ```__tenant__``` label used for sharding), but how to we represent this in River config? We do not know what the label value is at the time of creating the config. Only the label name.
 * It’s a very generic feature and might complicate the code as the feature gets extended. We could try to manage this risk by having few and simple sharding policies.
 * We need to come up with a cleanup policy for unnecessary shards. Potentially this should be configurable.
+* Caching of series refs is per WAL, so if tenants have a lot of overlap with series, this can lead to ballooning memory usage.
 
 ### Solution 3 - A non-generic, tenant-specific configuration for the Agent
 
@@ -178,11 +179,25 @@ Refer to the Prometheus documentation [here](https://prometheus.io/docs/promethe
 #### Pros
 
 * Grafana customers who use Prometheus instead of the Agent would be able to fulfill their multi-tenancy needs too.
-* Little work required on the Agent side
+* Little work required on the Agent side.
 
 #### Cons
 
 * It would be slow to merge such a major feature into Prometheus
+
+### Solution 4 - Use the "cortex-tenant" product
+
+There is a third party product called [cortex-tenant](https://github.com/blind-oracle/cortex-tenant), which acts as a very simple gateway between the Agent and the DB. It already exists and has been the de-facto solution to this problem for the last few years for some customers.
+
+#### Pros
+
+* The software already exists.
+* No additional Agent work is required.
+
+#### Cons
+
+* No WAL, so the resiliency is limited.
+* Third party product with no official Grafana support.
 
 ## Edge cases to keep in mind
 
