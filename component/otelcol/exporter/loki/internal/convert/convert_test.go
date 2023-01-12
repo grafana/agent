@@ -75,7 +75,7 @@ func TestConverter(t *testing.T) {
 }`,
 			expectLine:      `{"body":"hello world","traceid":"0102030405060708090a0b0c0d0e0f10","spanid":"1112131415161718","severity":"Error","attributes":{"sdkVersion":"1.0.1"},"resources":{"host.name":"testHost"}}`,
 			expectLabels:    `{exporter="OTLP", level="ERROR"}`,
-			expectTimestamp: time.Date(2023, time.January, 4, 12, 10, 31, 972869000, time.Local),
+			expectTimestamp: time.Date(2023, time.January, 4, 10, 10, 31, 972869000, time.UTC),
 		},
 		{
 			name: "log line with logfmt format hint in resource attributes",
@@ -137,7 +137,7 @@ func TestConverter(t *testing.T) {
 }`,
 			expectLine:      `msg="hello world" traceID=0102030405060708090a0b0c0d0e0f10 spanID=1112131415161718 severity=Error attribute_sdkVersion=1.0.1 resource_host.name=testHost`,
 			expectLabels:    `{exporter="OTLP", level="ERROR"}`,
-			expectTimestamp: time.Date(2023, time.January, 4, 12, 10, 31, 972869000, time.Local),
+			expectTimestamp: time.Date(2023, time.January, 4, 10, 10, 31, 972869000, time.UTC),
 		},
 		{
 			name: "log line with logfmt format hint in log attributes",
@@ -199,7 +199,7 @@ func TestConverter(t *testing.T) {
 }`,
 			expectLine:      `msg="hello world" traceID=0102030405060708090a0b0c0d0e0f10 spanID=1112131415161718 severity=Error attribute_sdkVersion=1.0.1 resource_host.name=testHost`,
 			expectLabels:    `{exporter="OTLP", level="ERROR"}`,
-			expectTimestamp: time.Date(2023, time.January, 4, 12, 10, 31, 972869000, time.Local),
+			expectTimestamp: time.Date(2023, time.January, 4, 10, 10, 31, 972869000, time.UTC),
 		},
 		{
 			name: "resource attributes converted to labels",
@@ -285,7 +285,7 @@ func TestConverter(t *testing.T) {
 }`,
 			expectLine:      `msg="hello world" traceID=0102030405060708090a0b0c0d0e0f10 spanID=1112131415161718 severity=Error attribute_sdkVersion=1.0.1 resource_host.name=testHost resource_mylabel_3=value_3`,
 			expectLabels:    `{exporter="OTLP", level="ERROR", mylabel_1="value_1", mylabel_2="42"}`,
-			expectTimestamp: time.Date(2023, time.January, 4, 12, 10, 31, 972869000, time.Local),
+			expectTimestamp: time.Date(2023, time.January, 4, 10, 10, 31, 972869000, time.UTC),
 		},
 		{
 			name: "log attributes converted to labels",
@@ -371,7 +371,7 @@ func TestConverter(t *testing.T) {
 }`,
 			expectLine:      `msg="hello world" traceID=0102030405060708090a0b0c0d0e0f10 spanID=1112131415161718 severity=Error attribute_sdkVersion=1.0.1 attribute_mylabel_3=value_3 resource_host.name=testHost`,
 			expectLabels:    `{exporter="OTLP", level="ERROR", mylabel_1="value_1", mylabel_2="42"}`,
-			expectTimestamp: time.Date(2023, time.January, 4, 12, 10, 31, 972869000, time.Local),
+			expectTimestamp: time.Date(2023, time.January, 4, 10, 10, 31, 972869000, time.UTC),
 		},
 		{
 			name: "tenant resource attribute converted to label",
@@ -445,7 +445,7 @@ func TestConverter(t *testing.T) {
 }`,
 			expectLine:      `{"body":"hello world","traceid":"0102030405060708090a0b0c0d0e0f10","spanid":"1112131415161718","severity":"Error","attributes":{"sdkVersion":"1.0.1"},"resources":{"host.name":"testHost"}}`,
 			expectLabels:    `{exporter="OTLP", level="ERROR", tenant.id="tenant_2"}`,
-			expectTimestamp: time.Date(2023, time.January, 4, 12, 10, 31, 972869000, time.Local),
+			expectTimestamp: time.Date(2023, time.January, 4, 10, 10, 31, 972869000, time.UTC),
 		},
 	}
 
@@ -467,11 +467,11 @@ func TestConverter(t *testing.T) {
 				case l := <-ch1:
 					require.Equal(t, tc.expectLine, l.Line)
 					require.Equal(t, tc.expectLabels, l.Labels.String())
-					require.Equal(t, tc.expectTimestamp, l.Timestamp)
+					require.Equal(t, tc.expectTimestamp, l.Timestamp.UTC())
 				case l := <-ch2:
 					require.Equal(t, tc.expectLine, l.Line)
 					require.Equal(t, tc.expectLabels, l.Labels.String())
-					require.Equal(t, tc.expectTimestamp, l.Timestamp)
+					require.Equal(t, tc.expectTimestamp, l.Timestamp.UTC())
 				case <-time.After(time.Second):
 					require.FailNow(t, "failed waiting for logs")
 				}
