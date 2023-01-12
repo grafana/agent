@@ -3,7 +3,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: release-name-grafana-agent
+  name: grafana-agent
   labels:
     helm.sh/chart: grafana-agent-0.1.0
     app.kubernetes.io/name: grafana-agent
@@ -37,7 +37,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: release-name-grafana-agent
+  name: grafana-agent
   labels:
     helm.sh/chart: grafana-agent-0.1.0
     app.kubernetes.io/name: grafana-agent
@@ -47,8 +47,8 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: release-name-grafana-agent
+  name: grafana-agent
 subjects:
   - kind: ServiceAccount
-    name: release-name-grafana-agent
+    name: grafana-agent
     namespace: default
