@@ -21,7 +21,7 @@ func TestValidateValidConfig(t *testing.T) {
 		PollingInterval: "1m",
 		CacheLocation:   "/test/path/remote-config-cache.yaml",
 		RemoteConfiguration: RemoteConfiguration{
-			Namespace:    "test_namespace",
+			Namespace: "test_namespace",
 		},
 	}
 	assert.NoError(t, validConfigPolling.Validate())
@@ -36,7 +36,7 @@ func TestValidateInvalidBasicAuth(t *testing.T) {
 		PollingInterval: "1m",
 		CacheLocation:   "/test/path/remote-config-cache.yaml",
 		RemoteConfiguration: RemoteConfiguration{
-			Namespace:    "test_namespace",
+			Namespace: "test_namespace",
 		},
 	}
 	assert.Error(t, invalidConfig.Validate())
@@ -61,7 +61,7 @@ func TestValidateInvalidPollingInterval(t *testing.T) {
 		PollingInterval: "1?",
 		CacheLocation:   "/test/path/remote-config-cache.yaml",
 		RemoteConfiguration: RemoteConfiguration{
-			Namespace:    "test_namespace",
+			Namespace: "test_namespace",
 		},
 	}
 	assert.Error(t, invalidConfig.Validate())
@@ -81,7 +81,7 @@ func TestMissingCacheLocation(t *testing.T) {
 		Protocol:        "https",
 		PollingInterval: "1?",
 		RemoteConfiguration: RemoteConfiguration{
-			Namespace:    "test_namespace",
+			Namespace: "test_namespace",
 		},
 	}
 	assert.Error(t, invalidConfig.Validate())
@@ -105,7 +105,7 @@ func TestSleepTime(t *testing.T) {
 		PollingInterval: "1m",
 		CacheLocation:   "/test/path/remote-config-cache.yaml",
 		RemoteConfiguration: RemoteConfiguration{
-			Namespace:    "test_namespace",
+			Namespace: "test_namespace",
 		},
 	}
 	st, err := c.SleepTime()
@@ -130,8 +130,8 @@ func TestFullUrl(t *testing.T) {
 		PollingInterval: "1m",
 		CacheLocation:   "/test/path/remote-config-cache.yaml",
 		RemoteConfiguration: RemoteConfiguration{
-			Labels:       labelMap{"b": "B", "a": "A"},
-			Namespace:    "test_namespace",
+			Labels:    labelMap{"b": "B", "a": "A"},
+			Namespace: "test_namespace",
 		},
 	}
 	actual, err := c.fullUrl()
