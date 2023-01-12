@@ -8,24 +8,12 @@ title: Custom Resource Definition Reference
 weight: 500
 ---
 # Custom Resource Definition Reference
-
-## Packages:
-
-{{ range . }}
-* [{{ packageDisplayName . }}](#{{- packageAnchorID . -}})
-{{ end }}
-
 {{ end}} 
 
 {{ range .packages }}
-
-[{{ packageDisplayName . }}](#{{- packageAnchorID . -}})
-
 {{ with (index .GoPackages 0 )}}
 {{ with .DocComments }}
-
 {{ . }}
-
 {{ end }} 
 {{ end }} 
 

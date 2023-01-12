@@ -5,9 +5,6 @@ title: Custom Resource Definition Reference
 weight: 500
 ---
 # Custom Resource Definition Reference
-## Packages:
-* [monitoring.grafana.com/v1alpha1](#monitoring.grafana.com/v1alpha1)
-[monitoring.grafana.com/v1alpha1](#monitoring.grafana.com/v1alpha1)
 ## Resource Types:
 * [Deployment](#monitoring.grafana.com/v1alpha1.Deployment) 
 * [GrafanaAgent](#monitoring.grafana.com/v1alpha1.GrafanaAgent) 
