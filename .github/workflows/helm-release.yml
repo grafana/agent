@@ -137,7 +137,7 @@ jobs:
           name: ${{ steps.parse-chart.outputs.packagename }}
           repository: grafana/helm-charts
           tag_name: ${{ steps.parse-chart.outputs.packagename }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_BOT_ACCESS_TOKEN }}
           body: |
             ${{ steps.parse-chart.outputs.desc }}
 
