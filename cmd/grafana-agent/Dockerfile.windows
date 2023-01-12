@@ -1,5 +1,5 @@
 FROM grafana/agent-build-image:0.19.0-windows as builder
-ARG VERSION=
+ARG VERSION
 ARG RELEASE_BUILD=1
 
 COPY . /src/agent
