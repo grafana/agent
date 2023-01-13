@@ -1,5 +1,28 @@
 ---
 kind: pipeline
+name: Check Linux build image
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - docker buildx build -t grafana/agent-build-image:latest ./build-image
+  image: docker
+  name: Build
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+trigger:
+  event:
+    include:
+    - pull_request
+type: docker
+volumes:
+- host:
+    path: /var/run/docker.sock
+  name: docker
+---
+kind: pipeline
 name: Create Linux build image
 platform:
   arch: amd64
@@ -34,6 +57,30 @@ volumes:
   name: docker
 ---
 kind: pipeline
+name: Check Windows build image
+platform:
+  arch: amd64
+  os: windows
+  version: "1809"
+steps:
+- commands:
+  - docker build -t grafana/agent-build-image:latest ./build-image/windows
+  image: docker:windowsservercore-1809
+  name: Build
+  volumes:
+  - name: docker
+    path: //./pipe/docker_engine/
+trigger:
+  event:
+    include:
+    - pull_request
+type: docker
+volumes:
+- host:
+    path: //./pipe/docker_engine/
+  name: docker
+---
+kind: pipeline
 name: Create Windows build image
 platform:
   arch: amd64
@@ -50,7 +97,7 @@ steps:
       from_secret: DOCKER_LOGIN
     DOCKER_PASSWORD:
       from_secret: DOCKER_PASSWORD
-  image: docker
+  image: docker:windowsservercore-1809
   name: Build
   volumes:
   - name: docker
@@ -405,6 +452,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: 0ad8688e80c70151916926d92a9624a9bc476b896b3a0a15e134b1a612352a20
+hmac: f222515d9297e752c558d25eb7395a3aa275f26c9445a69dcea1069280c66f41
 
 ...

@@ -7,7 +7,6 @@ local linux_containers = [
   { name: 'grafana/agent-operator', make: 'make operator-image' },
 ];
 
-
 (
   std.map(function(container) pipelines.linux('Check Linux container (%s)' % container.name) {
     trigger: {

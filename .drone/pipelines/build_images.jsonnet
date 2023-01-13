@@ -1,6 +1,10 @@
 local pipelines = import '../util/pipelines.jsonnet';
 
 local locals = {
+  on_pr: {
+    event: { include: ['pull_request'] },
+    // paths: { include: ['build-image/**'] },
+  },
   on_build_image_tag: {
     event: ['tag'],
     ref: ['refs/tags/build-image/v*'],
@@ -12,6 +16,25 @@ local locals = {
 };
 
 [
+  pipelines.linux('Check Linux build image') {
+    trigger: locals.on_pr,
+    steps: [{
+      name: 'Build',
+      image: 'docker',
+      volumes: [{
+        name: 'docker',
+        path: '/var/run/docker.sock',
+      }],
+      commands: [
+        'docker buildx build -t grafana/agent-build-image:latest ./build-image',
+      ],
+    }],
+    volumes: [{
+      name: 'docker',
+      host: { path: '/var/run/docker.sock' },
+    }],
+  },
+
   pipelines.linux('Create Linux build image') {
     trigger: locals.on_build_image_tag,
     steps: [{
@@ -36,11 +59,30 @@ local locals = {
     }],
   },
 
+  pipelines.windows('Check Windows build image') {
+    trigger: locals.on_pr,
+    steps: [{
+      name: 'Build',
+      image: 'docker:windowsservercore-1809',
+      volumes: [{
+        name: 'docker',
+        path: '//./pipe/docker_engine/',
+      }],
+      commands: [
+        'docker build -t grafana/agent-build-image:latest ./build-image/windows',
+      ],
+    }],
+    volumes: [{
+      name: 'docker',
+      host: { path: '//./pipe/docker_engine/' },
+    }],
+  },
+
   pipelines.windows('Create Windows build image') {
     trigger: locals.on_build_image_tag,
     steps: [{
       name: 'Build',
-      image: 'docker',
+      image: 'docker:windowsservercore-1809',
       volumes: [{
         name: 'docker',
         path: '//./pipe/docker_engine/',
