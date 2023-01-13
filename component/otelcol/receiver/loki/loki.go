@@ -84,13 +84,17 @@ func (c *Component) Run(ctx context.Context) error {
 			return nil
 		case entry := <-c.receiver:
 			stanzaEntry, err := parsePromtailEntry(entry)
+			// TODO(@tpaschalis) Is there any more handling to be done for the
+			// errors here?
 			if err != nil {
-				// TODO(@tpaschalis) Is there any more handling to be done here?
 				level.Error(c.opts.Logger).Log("msg", "failed to parse loki entry", "err", err)
 				continue
 			}
 			plogEntry := adapter.Convert(stanzaEntry)
-			c.logsSink.ConsumeLogs(ctx, plogEntry)
+			err = c.logsSink.ConsumeLogs(ctx, plogEntry)
+			if err != nil {
+				level.Error(c.opts.Logger).Log("msg", "failed to consume log entries", "err", err)
+			}
 		}
 	}
 }
