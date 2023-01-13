@@ -70,6 +70,8 @@ Main (unreleased)
 
 - Flow UI: Fix the issue with long string going out of bound in the component detail page. (@xiyu95)
 
+- Flow UI: Display the values of all attributes unless they are nil. (@ptodev)
+
 - Flow: `prometheus.relabel` and `prometheus.remote_write` will now error if they have exited. (@ptodev)
 
 - Flow: Fix issue where negative numbers would convert to floating-point values
