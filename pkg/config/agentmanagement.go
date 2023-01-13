@@ -5,12 +5,15 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/server"
 	"github.com/prometheus/common/config"
 )
+
+const cacheFilename = "remote-config-cache.yaml"
 
 type labelMap map[string]string
 
@@ -20,12 +23,12 @@ type RemoteConfiguration struct {
 }
 
 type AgentManagement struct {
-	Enabled         bool             `yaml:"-"`
+	Enabled         bool             `yaml:"-"` // Derived from enable-features=agent-management
 	Url             string           `yaml:"api_url"`
 	BasicAuth       config.BasicAuth `yaml:"basic_auth"`
 	Protocol        string           `yaml:"protocol"`
 	PollingInterval string           `yaml:"polling_interval"`
-	CacheLocation   string           `yaml:"remote_config_cache_location"`
+	CacheLocation   string           `yaml:"-"` // Derived from -agentmanagement.cache_location
 
 	RemoteConfiguration RemoteConfiguration `yaml:"remote_configuration"`
 }
@@ -58,6 +61,7 @@ func getRemoteConfig(expandEnvVars bool, initialConfig *Config, log *server.Logg
 }
 
 func getCachedRemoteConfig(cachePath string, expandEnvVars bool) (*Config, error) {
+	cachePath = filepath.Join(cachePath, cacheFilename)
 	var cachedConfig Config
 	if err := LoadFile(cachePath, expandEnvVars, &cachedConfig); err != nil {
 		return nil, fmt.Errorf("error trying to load cached remote config from file: %w", err)
@@ -66,6 +70,7 @@ func getCachedRemoteConfig(cachePath string, expandEnvVars bool) (*Config, error
 }
 
 func cacheRemoteConfig(cachePath string, remoteConfigBytes []byte) error {
+	cachePath = filepath.Join(cachePath, cacheFilename)
 	return os.WriteFile(cachePath, remoteConfigBytes, 0666)
 }
 

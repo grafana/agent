@@ -19,7 +19,7 @@ func TestValidateValidConfig(t *testing.T) {
 		},
 		Protocol:        "https",
 		PollingInterval: "1m",
-		CacheLocation:   "/test/path/remote-config-cache.yaml",
+		CacheLocation:   "/test/path/",
 		RemoteConfiguration: RemoteConfiguration{
 			Namespace: "test_namespace",
 		},
@@ -34,7 +34,7 @@ func TestValidateInvalidBasicAuth(t *testing.T) {
 		BasicAuth:       config.BasicAuth{},
 		Protocol:        "https",
 		PollingInterval: "1m",
-		CacheLocation:   "/test/path/remote-config-cache.yaml",
+		CacheLocation:   "/test/path/",
 		RemoteConfiguration: RemoteConfiguration{
 			Namespace: "test_namespace",
 		},
@@ -59,7 +59,7 @@ func TestValidateInvalidPollingInterval(t *testing.T) {
 		},
 		Protocol:        "https",
 		PollingInterval: "1?",
-		CacheLocation:   "/test/path/remote-config-cache.yaml",
+		CacheLocation:   "/test/path/",
 		RemoteConfiguration: RemoteConfiguration{
 			Namespace: "test_namespace",
 		},
@@ -88,7 +88,7 @@ func TestMissingCacheLocation(t *testing.T) {
 }
 
 func TestGetCachedRemoteConfig(t *testing.T) {
-	cwd := filepath.Clean("./testdata/remote-config-cache.yaml")
+	cwd := filepath.Clean("./testdata/")
 	_, err := getCachedRemoteConfig(cwd, false)
 	assert.NoError(t, err)
 }
@@ -103,7 +103,7 @@ func TestSleepTime(t *testing.T) {
 		},
 		Protocol:        "https",
 		PollingInterval: "1m",
-		CacheLocation:   "/test/path/remote-config-cache.yaml",
+		CacheLocation:   "/test/path/",
 		RemoteConfiguration: RemoteConfiguration{
 			Namespace: "test_namespace",
 		},
@@ -128,7 +128,7 @@ func TestFullUrl(t *testing.T) {
 		},
 		Protocol:        "https",
 		PollingInterval: "1m",
-		CacheLocation:   "/test/path/remote-config-cache.yaml",
+		CacheLocation:   "/test/path/",
 		RemoteConfiguration: RemoteConfiguration{
 			Labels:    labelMap{"b": "B", "a": "A"},
 			Namespace: "test_namespace",
