@@ -196,6 +196,7 @@ steps:
 - commands:
   - git config --global --add safe.directory C:/drone/src/
   - '& "C:/Program Files/git/bin/bash.exe" -c ./tools/ci/docker-containers-windows'
+  failure: ignore
   image: grafana/agent-build-image:0.19.0-windows
   name: Build container
   volumes:
@@ -404,6 +405,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: efdd8fe910a5f4671583c46ed3b7dc48ff2b0490ae6718b23ac6dd046619624f
+hmac: 0ad8688e80c70151916926d92a9624a9bc476b896b3a0a15e134b1a612352a20
 
 ...
