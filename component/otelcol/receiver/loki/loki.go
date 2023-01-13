@@ -83,15 +83,11 @@ func (c *Component) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case entry := <-c.receiver:
-			stanzaEntry, err := parsePromtailEntry(entry)
-			// TODO(@tpaschalis) Is there any more handling to be done for the
-			// errors here?
-			if err != nil {
-				level.Error(c.opts.Logger).Log("msg", "failed to parse loki entry", "err", err)
-				continue
-			}
+			stanzaEntry := parsePromtailEntry(entry)
 			plogEntry := adapter.Convert(stanzaEntry)
-			err = c.logsSink.ConsumeLogs(ctx, plogEntry)
+
+			// TODO(@tpaschalis) Is there any more handling to be done here?
+			err := c.logsSink.ConsumeLogs(ctx, plogEntry)
 			if err != nil {
 				level.Error(c.opts.Logger).Log("msg", "failed to consume log entries", "err", err)
 			}
@@ -111,7 +107,7 @@ func (c *Component) Update(newConfig component.Arguments) error {
 }
 
 // parsePromtailEntry creates new stanza.Entry from promtail entry
-func parsePromtailEntry(inputEntry loki.Entry) (*entry.Entry, error) {
+func parsePromtailEntry(inputEntry loki.Entry) *entry.Entry {
 	outputEntry := entry.New()
 	outputEntry.Body = inputEntry.Entry.Line
 	outputEntry.Timestamp = inputEntry.Entry.Timestamp
@@ -148,7 +144,7 @@ func parsePromtailEntry(inputEntry loki.Entry) (*entry.Entry, error) {
 		// when transforming back from OTel -> Loki.
 		outputEntry.AddAttribute(hintAttributes, strings.Join(lbls, ","))
 	}
-	return outputEntry, nil
+	return outputEntry
 }
 
 // NewEntry will create a new entry.
