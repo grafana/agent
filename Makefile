@@ -307,6 +307,7 @@ endif
 # This will only work for maintainers.
 .PHONY: drone
 drone:
+	drone jsonnet -V BUILD_IMAGE_VERSION=$(BUILD_IMAGE_VERSION) --stream --format --source .drone/drone.jsonnet --target .drone/drone.yml
 	drone lint .drone/drone.yml --trusted
 	drone --server https://drone.grafana.net sign --save grafana/agent .drone/drone.yml
 
