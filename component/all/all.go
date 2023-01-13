@@ -17,6 +17,7 @@ import (
 	_ "github.com/grafana/agent/component/otelcol/auth/basic"                   // Import otelcol.auth.basic
 	_ "github.com/grafana/agent/component/otelcol/auth/bearer"                  // Import otelcol.auth.bearer
 	_ "github.com/grafana/agent/component/otelcol/auth/headers"                 // Import otelcol.auth.headers
+	_ "github.com/grafana/agent/component/otelcol/exporter/loki"                // Import otelcol.exporter.loki
 	_ "github.com/grafana/agent/component/otelcol/exporter/otlp"                // Import otelcol.exporter.otlp
 	_ "github.com/grafana/agent/component/otelcol/exporter/otlphttp"            // Import otelcol.exporter.otlphttp
 	_ "github.com/grafana/agent/component/otelcol/exporter/prometheus"          // Import otelcol.exporter.prometheus
