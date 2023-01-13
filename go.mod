@@ -130,6 +130,7 @@ require (
 	github.com/grafana/snowflake-prometheus-exporter v0.0.0-20221213150626-862cad8e9538
 	github.com/grafana/vmware_exporter v0.0.4-beta
 	github.com/hashicorp/golang-lru v0.5.4
+	github.com/heroku/x v0.0.50
 	github.com/hpcloud/tail v1.0.0
 	github.com/influxdata/go-syslog/v3 v3.0.1-0.20201128200927-a1889d947b48
 	github.com/jaegertracing/jaeger v1.38.1
@@ -357,7 +358,6 @@ require (
 	github.com/hashicorp/vault/sdk v0.3.0 // indirect
 	github.com/hashicorp/vic v1.5.1-0.20190403131502-bbfe86ec9443 // indirect
 	github.com/hashicorp/yamux v0.0.0-20190923154419-df201c70410d // indirect
-	github.com/heroku/x v0.0.50 // indirect
 	github.com/hetznercloud/hcloud-go v1.35.3 // indirect
 	github.com/hodgesds/perf-utils v0.4.0 // indirect
 	github.com/huandu/xstrings v1.3.1 // indirect

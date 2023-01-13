@@ -10,6 +10,7 @@ import (
 	_ "github.com/grafana/agent/component/loki/process"                         // Import loki.process
 	_ "github.com/grafana/agent/component/loki/relabel"                         // Import loki.relabel
 	_ "github.com/grafana/agent/component/loki/source/file"                     // Import loki.source.file
+	_ "github.com/grafana/agent/component/loki/source/heroku"                   // Import loki.source.heroku
 	_ "github.com/grafana/agent/component/loki/source/syslog"                   // Import loki.source.syslog
 	_ "github.com/grafana/agent/component/loki/source/windowsevent"             // Import loki.source.windowsevent
 	_ "github.com/grafana/agent/component/loki/write"                           // Import loki.write
