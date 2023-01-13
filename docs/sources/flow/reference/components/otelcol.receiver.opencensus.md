@@ -39,7 +39,7 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `cors_allowed_origins`     | `list(string)` | A list of allowed Cross-Origin Resource Sharing (CORS) origins. |  | no
 
-`cors_allowed_origins` are the allowed [CORS](github.com/rs/cors) origins for HTTP/JSON requests.
+`cors_allowed_origins` are the allowed [CORS](https://github.com/rs/cors) origins for HTTP/JSON requests.
 An empty list means that CORS is not enabled at all. A wildcard (*) can be
 used to match any origin or one or more characters of an origin.
 
@@ -70,7 +70,7 @@ refers to a `tls` block defined inside a `grpc` block.
 ### grpc block
 
 The `grpc` block configures the gRPC/HTTP server used by the component. If the
-`grpc` block isn't provided, a server will be started using default parameters.
+`grpc` block isn't provided, a server using default parameters is started.
 
 The following arguments are supported:
 
@@ -85,12 +85,12 @@ Name | Type | Description | Default | Required
 `include_metadata` | `boolean` | Propagate incoming connection metadata to downstream consumers. | | no
 
 In order to use plain HTTP/JSON, specify the `endpoint` attribute. There is no HTTP-specific block.
-The HTTP/JSON address is the same as gRPC as the protocol is recognized and processed accordingly.
+The HTTP/JSON address is the same as gRPC, as the protocol is recognized and processed accordingly.
 
-To write traces with HTTP/JSON, `POST` to `[address]/v1/trace`. The JSON message format parallels the gRPC protobuf format, see this [OpenApi spec for it](https://github.com/census-instrumentation/opencensus-proto/blob/master/gen-openapi/opencensus/proto/agent/trace/v1/trace_service.swagger.json).
+To write traces with HTTP/JSON, `POST` to `[address]/v1/trace`. The JSON message format parallels the gRPC protobuf format. For details, refer to its [OpenApi specification](https://github.com/census-instrumentation/opencensus-proto/blob/master/gen-openapi/opencensus/proto/agent/trace/v1/trace_service.swagger.json).
 
 Note that `max_recv_msg_size`, `read_buffer_size` and `write_buffer_size` are formatted in a special way, 
-so that the units are included in the string - e.g. "512KiB" or "1024KB".
+so that the units are included in the string, e.g., "512KiB" or "1024KB".
 
 ### tls block
 
