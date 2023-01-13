@@ -2,8 +2,7 @@ package cloudwatch_exporter
 
 import (
 	"context"
-	"time"
-
+	"fmt"
 	"github.com/grafana/agent/pkg/integrations"
 
 	"github.com/go-kit/log"
@@ -11,6 +10,7 @@ import (
 	yaceConf "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/config"
 	yaceLog "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/logger"
 	yaceModel "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/model"
+	yaceSvc "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/services"
 	yaceSess "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/session"
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -22,16 +22,11 @@ const (
 	labelsSnakeCase       = false
 )
 
-type Config struct {
-	STSRegion string `yaml:"stsRegion"`
-	Jobs      []Job  `yaml:"jobs"`
-}
-
 func init() {
 	integrations.RegisterIntegration(&Config{})
 }
 
-func (c Config) ToExporterConfig() (yaceConf.ScrapeConf, error) {
+func (c Config) ToYACEConfig() (yaceConf.ScrapeConf, error) {
 	var nilToZero = true
 	discoveryJobs := []*yaceConf.Job{}
 	for _, job := range c.Jobs {
@@ -63,31 +58,14 @@ func (c Config) ToExporterConfig() (yaceConf.ScrapeConf, error) {
 			Metrics:        metrics,
 		})
 	}
-	return yaceConf.ScrapeConf{
+	conf := yaceConf.ScrapeConf{
 		StsRegion: c.STSRegion,
 		Discovery: yaceConf.Discovery{
 			ExportedTagsOnMetrics: nil,
 			Jobs:                  discoveryJobs,
 		},
-	}, nil
-}
-
-type Job struct {
-	Regions        []string      `yaml:"regions"`
-	Type           string        `yaml:"type"`
-	Roles          []Role        `yaml:"roles"`
-	Metrics        []Metric      `yaml:"metrics"`
-	ScrapeInterval time.Duration `yaml:"scrapeInterval"`
-}
-
-type Role struct {
-	RoleArn    string `yaml:"roleArn"`
-	ExternalID string `yaml:"externalID"`
-}
-
-type Metric struct {
-	Name       string
-	Statistics []string
+	}
+	return conf, conf.Validate(yaceSvc.CheckServiceName)
 }
 
 func (c *Config) Name() string {
@@ -100,8 +78,11 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 }
 
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
-	expoterConfig, _ := c.ToExporterConfig()
-	collector := newCloudwatchCollector(l, expoterConfig)
+	exporterConfig, err := c.ToYACEConfig()
+	if err != nil {
+		return nil, fmt.Errorf("invalid cloudwatch exporter configuration: %w", err)
+	}
+	collector := newCloudwatchCollector(l, exporterConfig)
 
 	l.Log("msg", "creating new cloudwatch integration")
 
