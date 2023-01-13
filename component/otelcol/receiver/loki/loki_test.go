@@ -66,7 +66,7 @@ func Test(t *testing.T) {
 		"filename":              "/var/log/app/errors.log",
 		"log.file.name":         "errors.log",
 		"log.file.path":         "/var/log/app/errors.log",
-		"loki.attribute.labels": "filename,filename,log.file.path,log.file.name,env",
+		"loki.attribute.labels": "filename,env",
 	}
 
 	// Wait for our client to get the log.
