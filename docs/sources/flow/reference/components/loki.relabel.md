@@ -16,8 +16,7 @@ entries are dropped.
 The most common use of `loki.relabel` is to filter log entries or standardize
 the label set that is passed to one or more downstream receivers. The `rule`
 blocks are applied to the label set of each log entry in order of their
-appearance in the configuration file. The configured rules can be retrieved by
-calling the function in the `rules` export field.
+appearance in the configuration file.
 
 If you're looking for a way to process the log entry contents, take a look at
 [the `loki.process` component][loki.process] instead.
@@ -71,7 +70,6 @@ The following fields are exported and can be referenced by other components:
 Name | Type | Description
 ---- | ---- | -----------
 `receiver` | `receiver` | The input receiver where log lines are sent to be relabeled.
-`rules`    | `RelabelRules` | A function that returns the currently configured relabeling rules.
 
 ## Component health
 
