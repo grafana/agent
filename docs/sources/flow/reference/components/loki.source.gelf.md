@@ -6,7 +6,7 @@ title: loki.source.gelf
 
 # loki.source.gelf
 
-`loki.source.gelf` reads [Graylog Logs](https://github.com/Graylog2/graylog2-server) from an UDP listener and forwards them to other
+`loki.source.gelf` reads [Graylog Extended Long Format (GELF) logs](https://github.com/Graylog2/graylog2-server) from a UDP listener and forwards them to other
 `loki.*` components. 
 
 Multiple `loki.source.gelf` components can be specified by giving them
@@ -33,7 +33,7 @@ Name         | Type                 | Description                               
 
 
 > **NOTE**: GELF logs can be sent uncompressed or compressed with GZIP or ZLIB. 
-> A `job` label will be added with the full name of the component `loki.source.gelf.LABEL`. 
+> A `job` label is added with the full name of the component `loki.source.gelf.LABEL`. 
 
 Incoming messages have the following labels added:
 * `__gelf_message_level`: The GELF level as a string.
@@ -49,8 +49,8 @@ configuration.
 
 ## Debug Metrics
 
-* `gelf_target_entries_total` (counter): Total number of successful entries sent to the gelf target.
-* `gelf_target_parsing_errors_total` (counter): Total number of parsing errors while receiving gelf messages.
+* `gelf_target_entries_total` (counter): Total number of successful entries sent to the GELF target.
+* `gelf_target_parsing_errors_total` (counter): Total number of parsing errors while receiving GELF messages.
 
 ## Example
 
