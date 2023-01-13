@@ -48,6 +48,7 @@
 ##
 ##   generate             Generate everything.
 ##   generate-crds        Generate Grafana Agent Operator CRDs ands its documentation.
+##   generate-drone       Generate the Drone YAML from Jsonnet.
 ##   generate-helm-docs   Generate Helm chart documentation.
 ##   generate-helm-tests  Generate Helm chart tests.
 ##   generate-manifests   Generate production/kubernetes YAML manifests.
@@ -241,8 +242,8 @@ smoke-image:
 # Targets for generating assets
 #
 
-.PHONY: generate generate-crds generate-helm-docs generate-helm-tests generate-manifests generate-dashboards generate-protos generate-ui
-generate: generate-crds generate-helm-docs generate-helm-tests generate-manifests generate-dashboards generate-protos generate-ui
+.PHONY: generate generate-crds generate-drone generate-helm-docs generate-helm-tests generate-manifests generate-dashboards generate-protos generate-ui
+generate: generate-crds generate-drone generate-helm-docs generate-helm-tests generate-manifests generate-dashboards generate-protos generate-ui
 
 generate-crds:
 ifeq ($(USE_CONTAINER),1)
@@ -251,6 +252,9 @@ else
 	bash ./tools/generate-crds.bash
 	gen-crd-api-reference-docs -config tools/gen-crd-docs/config.json -api-dir "github.com/grafana/agent/pkg/operator/apis/monitoring/" -out-file docs/sources/operator/api.md -template-dir tools/gen-crd-docs/template
 endif
+
+generate-drone:
+	drone jsonnet -V BUILD_IMAGE_VERSION=$(BUILD_IMAGE_VERSION) --stream --format --source .drone/drone.jsonnet --target .drone/drone.yml
 
 generate-helm-docs:
 ifeq ($(USE_CONTAINER),1)
@@ -306,8 +310,7 @@ endif
 #
 # This will only work for maintainers.
 .PHONY: drone
-drone:
-	drone jsonnet -V BUILD_IMAGE_VERSION=$(BUILD_IMAGE_VERSION) --stream --format --source .drone/drone.jsonnet --target .drone/drone.yml
+drone: generate-drone
 	drone lint .drone/drone.yml --trusted
 	drone --server https://drone.grafana.net sign --save grafana/agent .drone/drone.yml
 
