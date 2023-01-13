@@ -99,7 +99,7 @@ func (c *Component) Update(args component.Arguments) error {
 	c.fanout = newArgs.ForwardTo
 
 	var rcs []*relabel.Config
-	if len(newArgs.RelabelRules.GetAll()) > 0 {
+	if newArgs.RelabelRules != nil && len(newArgs.RelabelRules.GetAll()) > 0 {
 		rcs = flow_relabel.ComponentToPromRelabelConfigs(newArgs.RelabelRules.GetAll())
 	}
 
