@@ -16,6 +16,9 @@ trigger:
   event:
     include:
     - pull_request
+  paths:
+    include:
+    - build-image/**
 type: docker
 volumes:
 - host:
@@ -74,6 +77,9 @@ trigger:
   event:
     include:
     - pull_request
+  paths:
+    include:
+    - build-image/**
 type: docker
 volumes:
 - host:
@@ -452,6 +458,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: f222515d9297e752c558d25eb7395a3aa275f26c9445a69dcea1069280c66f41
+hmac: 116c22bc56a3f0542e95b4136ba14229f87085417f4bd003220a5e6318343486
 
 ...

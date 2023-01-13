@@ -3,7 +3,7 @@ local pipelines = import '../util/pipelines.jsonnet';
 local locals = {
   on_pr: {
     event: { include: ['pull_request'] },
-    // paths: { include: ['build-image/**'] },
+    paths: { include: ['build-image/**'] },
   },
   on_build_image_tag: {
     event: ['tag'],
