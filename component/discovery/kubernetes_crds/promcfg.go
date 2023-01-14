@@ -3,12 +3,14 @@ package kubernetes_crds
 // SEE https://github.com/prometheus-operator/prometheus-operator/blob/main/pkg/prometheus/promcfg.go
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"regexp"
 	"sort"
 	"strings"
 
+	"github.com/alecthomas/units"
 	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	commonConfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
@@ -19,68 +21,66 @@ import (
 )
 
 type configGenerator struct {
-	config *Config
+	config  *Config
+	secrets *secretManager
 }
 
+// the k8s sd config is mostly dependent on our local config for accessing the kubernetes cluster.
+// if undefined it will default to an in-cluster config
 func (cg *configGenerator) generateK8SSDConfig(
 	namespaceSelector v1.NamespaceSelector,
 	namespace string,
-	//apiserverConfig *v1.APIServerConfig,
-	//store *assets.Store,
 	role promk8s.Role,
 	attachMetadata *v1.AttachMetadata,
 ) *promk8s.SDConfig {
 	cfg := &promk8s.SDConfig{
 		Role: role,
 	}
-
 	namespaces := cg.getNamespacesFromNamespaceSelector(namespaceSelector, namespace)
 	if len(namespaces) != 0 {
 		cfg.NamespaceDiscovery.Names = namespaces
 	}
-
 	if cg.config.KubeConfig != "" {
 		cfg.KubeConfig = cg.config.KubeConfig
 	}
-	// if apiserverConfig != nil {
-	// 	k8sSDConfig = append(k8sSDConfig, yaml.MapItem{
-	// 		Key: "api_server", Value: apiserverConfig.Host,
-	// 	})
+	if cg.config.ApiServerConfig != nil {
+		apiCfg := cg.config.ApiServerConfig
+		cfg.APIServer = apiCfg.Host.Convert()
 
-	// 	if apiserverConfig.BasicAuth != nil && store.BasicAuthAssets != nil {
-	// 		if s, ok := store.BasicAuthAssets["apiserver"]; ok {
-	// 			k8sSDConfig = append(k8sSDConfig, yaml.MapItem{
-	// 				Key: "basic_auth", Value: yaml.MapSlice{
-	// 					{Key: "username", Value: s.Username},
-	// 					{Key: "password", Value: s.Password},
-	// 				},
-	// 			})
-	// 		}
-	// 	}
+		if apiCfg.BasicAuth != nil {
+			cfg.HTTPClientConfig.BasicAuth = apiCfg.BasicAuth.Convert()
+		}
 
-	// 	if apiserverConfig.BearerToken != "" {
-	// 		k8sSDConfig = append(k8sSDConfig, yaml.MapItem{Key: "bearer_token", Value: apiserverConfig.BearerToken})
-	// 	}
-
-	// 	if apiserverConfig.BearerTokenFile != "" {
-	// 		k8sSDConfig = append(k8sSDConfig, yaml.MapItem{Key: "bearer_token_file", Value: apiserverConfig.BearerTokenFile})
-	// 	}
-
-	// 	k8sSDConfig = cg.addAuthorizationToYaml(k8sSDConfig, "apiserver/auth", store, apiserverConfig.Authorization)
-
-	// 	// TODO: If we want to support secret refs for k8s service discovery tls
-	// 	// config as well, make sure to path the right namespace here.
-	// 	k8sSDConfig = addTLStoYaml(k8sSDConfig, "", apiserverConfig.TLSConfig)
-	// }
-
-	// TODO:
+		if apiCfg.BearerToken != "" {
+			cfg.HTTPClientConfig.BearerToken = commonConfig.Secret(apiCfg.BearerToken)
+		}
+		if apiCfg.BearerTokenFile != "" {
+			cfg.HTTPClientConfig.BearerTokenFile = apiCfg.BearerTokenFile
+		}
+		if apiCfg.TLSConfig != nil {
+			cfg.HTTPClientConfig.TLSConfig = *apiCfg.TLSConfig.Convert()
+		}
+		if apiCfg.Authorization != nil {
+			if apiCfg.Authorization.Type == "" {
+				apiCfg.Authorization.Type = "Bearer"
+			}
+			cfg.HTTPClientConfig.Authorization = apiCfg.Authorization.Convert()
+		}
+	}
 	if attachMetadata != nil {
-
-		//k8sSDConfig = cg.WithMinimumVersion("2.35.0").AppendMapItem(k8sSDConfig, "attach_metadata", yaml.MapSlice{
-		//	{Key: "node", Value: attachMetadata.Node},
-		//})
+		cfg.AttachMetadata.Node = attachMetadata.Node
 	}
 	return cfg
+}
+
+func (cg *configGenerator) getSecretData(ns, name, key string) commonConfig.Secret {
+	tok, err := cg.secrets.GetSecretData(context.Background(), ns, name, key)
+	if err != nil {
+		// TODO: log error or die
+	} else {
+		return commonConfig.Secret(tok)
+	}
+	return commonConfig.Secret("")
 }
 
 func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodMetricsEndpoint, i int) *config.ScrapeConfig {
@@ -120,29 +120,21 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 	if ep.EnableHttp2 != nil {
 		cfg.HTTPClientConfig.EnableHTTP2 = *ep.EnableHttp2
 	}
-	//if ep.TLSConfig != nil {
-	//TODO:
-	//cfg = addSafeTLStoYaml(cfg, m.Namespace, ep.TLSConfig.SafeTLSConfig)
-	//}
+	if ep.TLSConfig != nil {
+		cg.addSafeTLStoYaml(cfg, m.Namespace, ep.TLSConfig.SafeTLSConfig)
+	}
 
-	//TODO: Secret store needs to be figured out
-	// if ep.BearerTokenSecret.Name != "" {
-	// 	if s, ok := store.TokenAssets[fmt.Sprintf("podMonitor/%s/%s/%d", m.Namespace, m.Name, i)]; ok {
-	// 		cfg = append(cfg, yaml.MapItem{Key: "bearer_token", Value: s})
-	// 	}
-	// }
+	if ep.BearerTokenSecret.Name != "" {
+		bts := ep.BearerTokenSecret
+		cfg.HTTPClientConfig.BearerToken = cg.getSecretData(m.Namespace, bts.Name, bts.Key)
+	}
 
-	// TODO:
-	// if ep.BasicAuth != nil {
-	// 	if s, ok := store.BasicAuthAssets[fmt.Sprintf("podMonitor/%s/%s/%d", m.Namespace, m.Name, i)]; ok {
-	// 		cfg = append(cfg, yaml.MapItem{
-	// 			Key: "basic_auth", Value: yaml.MapSlice{
-	// 				{Key: "username", Value: s.Username},
-	// 				{Key: "password", Value: s.Password},
-	// 			},
-	// 		})
-	// 	}
-	// }
+	if ep.BasicAuth != nil {
+		cfg.HTTPClientConfig.BasicAuth = &commonConfig.BasicAuth{
+			Username: string(cg.getSecretData(m.Namespace, ep.BasicAuth.Username.Name, ep.BasicAuth.Username.Key)),
+			Password: cg.getSecretData(m.Namespace, ep.BasicAuth.Password.Name, ep.BasicAuth.Password.Key),
+		}
+	}
 
 	// TODO:
 	//assetKey := fmt.Sprintf("podMonitor/%s/%s/%d", m.Namespace, m.Name, i)
@@ -154,8 +146,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 		relabels.Add(&relabel.Config{
 			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_phase"},
 			Action:       "drop",
-			// TODO: maybe mustNewRegexp needs error handling
-			Regex: relabel.MustNewRegexp("(Failed|Succeeded)"),
+			Regex:        relabel.MustNewRegexp("(Failed|Succeeded)"),
 		})
 	}
 
@@ -214,8 +205,6 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 			Regex:        relabel.MustNewRegexp(ep.Port),
 		})
 	} else if ep.TargetPort != nil { //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
-		//TODO: logging
-		// 	level.Warn(cg.logger).Log("msg", "'targetPort' is deprecated, use 'port' instead.")
 		//nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
 		if ep.TargetPort.StrVal != "" {
 			relabels.Add(&relabel.Config{
@@ -292,20 +281,72 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 
 	cfg.RelabelConfigs = relabels.configs
 
-	// TODO: limits include stuff from global config
-	// cfg = cg.AddLimitsToYAML(cfg, sampleLimitKey, m.Spec.SampleLimit, cg.spec.EnforcedSampleLimit)
-	// cfg = cg.AddLimitsToYAML(cfg, targetLimitKey, m.Spec.TargetLimit, cg.spec.EnforcedTargetLimit)
-	// cfg = cg.AddLimitsToYAML(cfg, labelLimitKey, m.Spec.LabelLimit, cg.spec.EnforcedLabelLimit)
-	// cfg = cg.AddLimitsToYAML(cfg, labelNameLengthLimitKey, m.Spec.LabelNameLengthLimit, cg.spec.EnforcedLabelNameLengthLimit)
-	// cfg = cg.AddLimitsToYAML(cfg, labelValueLengthLimitKey, m.Spec.LabelValueLengthLimit, cg.spec.EnforcedLabelValueLengthLimit)
-	// if cg.spec.EnforcedBodySizeLimit != "" {
+	cg.addLimits(cfg, limitFuncs[sampleLimitKey], m.Spec.SampleLimit, cg.config.EnforcedSampleLimit)
+	cg.addLimits(cfg, limitFuncs[targetLimitKey], m.Spec.TargetLimit, cg.config.EnforcedTargetLimit)
+	cg.addLimits(cfg, limitFuncs[labelLimitKey], m.Spec.LabelLimit, cg.config.EnforcedLabelLimit)
+	cg.addLimits(cfg, limitFuncs[labelNameLengthLimitKey], m.Spec.LabelNameLengthLimit, cg.config.EnforcedLabelNameLengthLimit)
+	cg.addLimits(cfg, limitFuncs[labelValueLengthLimitKey], m.Spec.LabelValueLengthLimit, cg.config.EnforcedLabelValueLengthLimit)
+	// TODO: body size is a parsed byte thing.
+	//if cg.config.EnforcedBodySizeLimit != "" {
 	// 	cfg = cg.WithMinimumVersion("2.28.0").AppendMapItem(cfg, "body_size_limit", cg.spec.EnforcedBodySizeLimit)
-	// }
+	//}
 
 	// TODO: metric relabeling configs are a little tricky
 	// cfg = append(cfg, yaml.MapItem{Key: "metric_relabel_configs", Value: generateRelabelConfig(labeler.GetRelabelingConfigs(m.TypeMeta, m.ObjectMeta, ep.MetricRelabelConfigs))})
-
 	return cfg
+}
+
+const (
+	sampleLimitKey           = "sampleLimit"
+	targetLimitKey           = "targetLimit"
+	labelLimitKey            = "labelLimit"
+	labelNameLengthLimitKey  = "labelNameLengthLimit"
+	labelValueLengthLimitKey = "labelValueLengthLimit"
+	bodySizeLimitKey         = "bodySizeLimit"
+)
+
+type limitSetterFunc func(*config.ScrapeConfig, uint)
+
+var limitFuncs = map[string]limitSetterFunc{
+	sampleLimitKey:           func(cfg *config.ScrapeConfig, limit uint) { cfg.SampleLimit = limit },
+	targetLimitKey:           func(cfg *config.ScrapeConfig, limit uint) { cfg.TargetLimit = limit },
+	labelLimitKey:            func(cfg *config.ScrapeConfig, limit uint) { cfg.LabelLimit = limit },
+	labelNameLengthLimitKey:  func(cfg *config.ScrapeConfig, limit uint) { cfg.LabelNameLengthLimit = limit },
+	labelValueLengthLimitKey: func(cfg *config.ScrapeConfig, limit uint) { cfg.LabelValueLengthLimit = limit },
+	bodySizeLimitKey:         func(cfg *config.ScrapeConfig, limit uint) { cfg.BodySizeLimit = units.Base2Bytes(limit) },
+}
+
+func (cg *configGenerator) addLimits(cfg *config.ScrapeConfig, f limitSetterFunc, userLimit uint64, enforcedLimit *uint64) {
+	if userLimit == 0 && enforcedLimit == nil {
+		return
+	}
+	limit := userLimit
+	if enforcedLimit != nil {
+		if *enforcedLimit > 0 && userLimit > 0 && userLimit > *enforcedLimit {
+			limit = *enforcedLimit
+		}
+	}
+	f(cfg, uint(limit))
+}
+
+func (cg *configGenerator) addSafeTLStoYaml(cfg *config.ScrapeConfig, namespace string, tls v1.SafeTLSConfig) {
+	cfg.HTTPClientConfig.TLSConfig.InsecureSkipVerify = tls.InsecureSkipVerify
+	// TODO: secret mapping
+	// pathForSelector := func(sel v1.SecretOrConfigMap) string {
+	// 	return path.Join(tlsAssetsDir, assets.TLSAssetKeyFromSelector(namespace, sel).String())
+	// }
+	// if tls.CA.Secret != nil || tls.CA.ConfigMap != nil {
+	// 	tlsConfig = append(tlsConfig, yaml.MapItem{Key: "ca_file", Value: pathForSelector(tls.CA)})
+	// }
+	// if tls.Cert.Secret != nil || tls.Cert.ConfigMap != nil {
+	// 	tlsConfig = append(tlsConfig, yaml.MapItem{Key: "cert_file", Value: pathForSelector(tls.Cert)})
+	// }
+	// if tls.KeySecret != nil {
+	// 	tlsConfig = append(tlsConfig, yaml.MapItem{Key: "key_file", Value: pathForSelector(v1.SecretOrConfigMap{Secret: tls.KeySecret})})
+	// }
+	if tls.ServerName != "" {
+		cfg.HTTPClientConfig.TLSConfig.ServerName = tls.ServerName
+	}
 }
 
 type relabeler struct {
@@ -344,20 +385,12 @@ func (cg *configGenerator) initRelabelings(cfg *config.ScrapeConfig) relabeler {
 // addHonorTimestamps adds the honor_timestamps field into scrape configurations.
 // honor_timestamps is false only when the user specified it or when the global
 // override applies.
-// For backwards compatibility with Prometheus <2.9.0 we don't set
-// honor_timestamps.
 func (cg *configGenerator) addHonorTimestamps(cfg *config.ScrapeConfig, userHonorTimestamps *bool) {
-	//TODO: for now I haven't added the full configGenerator concept. We may still need some of this global config
-	// Fast path.
-	if userHonorTimestamps == nil { //&& !cg.spec.OverrideHonorTimestamps {
-		return
+	if userHonorTimestamps != nil && *userHonorTimestamps {
+		cfg.HonorTimestamps = true
+	} else if cg.config.OverrideHonorTimestamps {
+		cfg.HonorTimestamps = true
 	}
-	honor := false
-	if userHonorTimestamps != nil {
-		honor = *userHonorTimestamps
-	}
-	cfg.HonorTimestamps = honor
-	//return cg.WithMinimumVersion("2.9.0").AppendMapItem(cfg, "honor_timestamps", honor && !cg.spec.OverrideHonorTimestamps)
 }
 func (cg *configGenerator) addHonorLabels(cfg *config.ScrapeConfig, honorLabels bool) {
 	if cg.config.OverrideHonorLabels {

@@ -96,8 +96,8 @@ require (
 	go.uber.org/atomic v1.10.0
 	go.uber.org/multierr v1.8.0
 	go.uber.org/zap v1.23.0
-	golang.org/x/net v0.2.0
-	golang.org/x/sys v0.2.0
+	golang.org/x/net v0.4.0
+	golang.org/x/sys v0.3.0
 	golang.org/x/time v0.2.0
 	google.golang.org/grpc v1.51.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
@@ -154,7 +154,7 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v0.33.0
 	go.opentelemetry.io/proto/otlp v0.19.0
 	golang.org/x/exp v0.0.0-20221031165847-c99f073a8326
-	golang.org/x/text v0.4.0
+	golang.org/x/text v0.5.0
 	google.golang.org/protobuf v1.28.1
 )
 
@@ -446,6 +446,7 @@ require (
 	github.com/prometheus/alertmanager v0.24.0 // indirect
 	github.com/prometheus/common/sigv4 v0.1.0 // indirect
 	github.com/prometheus/exporter-toolkit v0.8.2 // indirect
+	github.com/psanford/memfs v0.0.0-20210214183328-a001468d78ef // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/renier/xmlrpc v0.0.0-20170708154548-ce4a1a486c03 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
@@ -518,9 +519,9 @@ require (
 	gocloud.dev v0.24.0 // indirect
 	golang.org/x/crypto v0.1.0 // indirect
 	golang.org/x/mod v0.6.0 // indirect
-	golang.org/x/oauth2 v0.2.0 // indirect
+	golang.org/x/oauth2 v0.3.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/term v0.2.0 // indirect
+	golang.org/x/term v0.3.0 // indirect
 	golang.org/x/tools v0.2.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
@@ -624,3 +625,5 @@ exclude (
 )
 
 replace github.com/github/smimesign => github.com/grafana/smimesign v0.2.1-0.20220408144937-2a5adf3481d3
+
+replace github.com/prometheus/common => github.com/grafana/prometheus-common v0.39.1-0.20230111192453-8c43edfa1d03
