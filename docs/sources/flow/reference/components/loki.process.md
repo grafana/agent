@@ -62,6 +62,8 @@ stage > timestamp    | [timestamp][]     | Configures a `timestamp` processing s
 stage > output       | [output][]        | Configures an `output` processing stage. | no
 stage > replace      | [replace][]       | Configures a `replace` processing stage. | no
 stage > multiline    | [multiline][]     | Configures a `multiline` processing stage. | no
+stage > match        | [match][]         | Configures a `match` processing stage. | no
+stage > drop         | [drop][]          | Configures a `drop` processing stage. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `stage > json`
 refers to a `json` block defined inside of a `stage` block.
@@ -80,6 +82,8 @@ refers to a `json` block defined inside of a `stage` block.
 [output]: #output-block
 [replace]: #replace-block
 [multiline]: #multiline-block
+[match]: #match-block
+[drop]: #drop-block
 
 ### stage block
 
@@ -362,7 +366,7 @@ Name          | Type      | Description                                         
 `source`      | `string`  | Name from extracted data to parse. If empty, uses the log message.  | `""`    | no
 
 
-The `expression` field needs to be a Go RE2 regex string. Every capture group (re) is set into the extracted map, so it must be named like: `(?P<name>re)`. The name of the capture group is then used as the key in the extracted map.
+The `expression` field needs to be a RE2 regex string. Every capture group (re) is set into the extracted map, so it must be named like: `(?P<name>re)`. The name of the capture group is then used as the key in the extracted map.
 
 <!--
 We don't care about YAML, what does River do instead???
@@ -765,6 +769,183 @@ All 'blocks' that form log entries of separate web requests start with a
 timestamp in square brackets. The stage detects this with the regular
 expression in `firstline` to collapse all lines of the traceback into a single
 block and thus a single Loki log entry.
+
+
+### match block
+
+The `match` inner block configures a filtering stage that can conditionally
+either apply a nested set of processing stages or drop an entry when a log
+entry matches a configurable LogQL stream selector and filter expressions.
+
+The following arguments are supported:
+
+Name            | Type      | Description                                                         | Default | Required
+--------------- | --------- | ------------------------------------------------------------------- | ------- | --------
+`selector`      | `string`  | The LogQL stream selector and filter expressions to use.            |         | yes
+`pipeline_name` | `string`  | A custom name to use for the nested pipeline.                       | `""`    | no
+`action`        | `string`  | The action to take when the selector matches the log line. Supported values are "keep" and "drop" | `"keep"` | no
+`drop_counter_reason` | `string` | A custom reason to report for dropped lines.                   | `"match_stage"` | no 
+
+The `match` block supports a number of `stage` inner blocks, same as
+the top-level one. These are used to construct the  nested set of stages to run
+if the selector matches the labels and content of the log entries.
+
+The following blocks are supported inside the definition of `stage > match`:
+
+Hierarchy      | Block      | Description | Required
+-------------- | ---------- | ----------- | --------
+stage          | [stage][]  | Processing stage to run. | no
+
+
+If the specified action is `"drop"`, the metric
+`loki_process_dropped_lines_total` is incremented with every line dropped.
+By default, the reason label is `match_stage`, but a custom reason can be
+provided by using the `drop_counter_reason` argument.
+
+Let's see this in action, with the following log lines and stages
+```
+{ "time":"2023-01-18T17:08:41+00:00", "app":"foo", "component": ["parser","type"], "level" : "WARN", "message" : "app1 log line" }
+{ "time":"2023-01-18T17:08:42+00:00", "app":"bar", "component": ["parser","type"], "level" : "ERROR", "message" : "foo noisy error" }
+
+stage {
+	json {
+		expressions = { "appname" = "app" }
+	}
+}
+
+stage {
+	labels {
+		values = { "applbl" = "appname" }
+	}
+}
+
+stage {
+	match {
+		selector = '{applbl="foo"}'
+		stage {
+			json {
+				expressions = { "msg" = "message" }
+			}
+		}
+	}
+}
+
+stage {
+	match {
+		selector = '{applbl="qux"}'
+		stage {
+			json {
+				expressions = { "msg" = "msg" }
+			}
+		}
+	}
+}
+
+stage {
+	match {
+		selector = '{applbl="bar"} |~ ".*noisy error.*"'
+		action   = "drop"
+
+		drop_counter_reason = "discard_noisy_errors"
+	}
+}
+
+stage {
+	output {
+		source = "msg"
+	}
+}
+```
+
+The first two stages parse the log lines as JSON, decode the `app` value into
+the shared extracted map as `appname`, and use its value as the `applbl` label.
+
+The third stage uses the LogQL selector to only execute the nested stages on
+lines where the `applbl="foo"`. So, for the first line, the nested JSON stage
+adds `msg="app1 log line"` into the extracted map.
+
+The fourth stage uses the LogQL selector to only execute on lines where
+`applbl="qux"; that means it won't match on any of our input, and the nested
+json stage does not run.
+
+The fifth stage drops any entries from on lines where `applbl` is set to
+'bar' and the line contents that matches the regex `.*noisy error.*`. It also
+increments the `loki_process_dropped_lines_total` metric with a label
+reason="discard_noisy_errors".
+
+The final output stage changes the contents of the log line to be the value of
+`msg` from the extracted map. In this case, the first log entry's content is
+is changed to `app1 log line`.
+
+
+### drop block
+
+The `drop` inner block configures a filtering stage that drops log entries
+based on several options. If multiple options are provided, they're treated
+as AND clauses and must _all_ be true for the log entry to be dropped.
+To drop entries with an OR clause, specify multiple `drop` blocks in sequence.
+
+The following arguments are supported:
+
+Name                  | Type       | Description                                           | Default   | Required
+--------------------- | ---------- | ----------------------------------------------------- | --------- | --------
+`source`              | `string`   | Name from extracted data to parse. If empty or not defined, it uses the log message.    | `""` | no
+`expression`          | `string`   | A valid RE2 regular expression. | `""` | no
+`value`               | `string`   | If both `source` and `value` are specified, the stage drops lines where `value` exactly matches the source content. | `""` | no
+`older_than`          | `duration` | If specified, the stage drops lines whose timestamp is older than the current time minus this duration. | `""` | no
+`longer_than`         | `string`   | If specified, the stage drops lines whose size exceeds the configured value. | `""` | no
+`drop_counter_reason` | `string`   | A custom reason to report for dropped lines. | `"drop_stage"` | no
+
+The `expression` field needs to be a RE2 regex string. If `source` is empty or
+not provided, the regex attempts to match the log line itself. If source is
+provided, the regex attempts to match the corresponding value from the
+extracted map.
+
+On the other hand, the `value` field can only work with values from the
+extracted map, and must be specified together with `source`. Entries are
+dropped when there is an exact match between the two.
+
+Whenever an entry is dropped, the metric `loki_process_dropped_lines_total`
+is incremented. By default, the reason label is `drop_stage`, but a custom
+one can be provided by using the `drop_counter_reason` argument.
+
+The following stage drops log entries that contain the word `debug` _and_ are
+longer than 1KB.
+
+```
+stage {
+	drop {
+		expression  = ".*debug.*"
+		longer_than = "1KB"
+	}
+}
+```
+
+The following stages drop entries that are 24h or older, are longer than
+8KB, _or_ the extracted value of 'app' is equal to foo.
+
+```
+stage {
+	drop {
+		older_than  = "24h"
+		drop_reason = "too old"
+	}
+}
+
+stage {
+	drop {
+		older_than  = "8KB"
+		longer_than = "too long"
+	}
+}
+
+stage {
+	drop {
+		source = "app"
+		value  = "foo"
+	}
+}
+```
 
 
 ## Exported fields

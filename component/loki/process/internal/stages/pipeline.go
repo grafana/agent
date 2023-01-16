@@ -38,6 +38,8 @@ type StageConfig struct {
 	OutputConfig       *OutputConfig       `river:"output,block,optional"`
 	ReplaceConfig      *ReplaceConfig      `river:"replace,block,optional"`
 	MultilineConfig    *MultilineConfig    `river:"multiline,block,optional"`
+	MatchConfig        *MatchConfig        `river:"match,block,optional"`
+	DropConfig         *DropConfig         `river:"drop,block,optional"`
 }
 
 // UnmarshalRiver implements river.Unmarshaler.
@@ -192,24 +194,4 @@ func (p *Pipeline) Size() int {
 func SetReadLineRateLimiter(rateVal float64, burstVal int, drop bool) {
 	rateLimiter = rate.NewLimiter(rate.Limit(rateVal), burstVal)
 	rateLimiterDrop = drop
-}
-
-// TODO(@tpaschalis) This is a helper from the metrics stage. Remove this
-// copy when we port it over, or remove it entirely in favor of a central
-// metrics struct.
-func getDropCountMetric(registerer prometheus.Registerer) *prometheus.CounterVec {
-	dropCount := prometheus.NewCounterVec(prometheus.CounterOpts{
-		Name: "loki_process_dropped_lines_total",
-		Help: "A count of all log lines dropped as a result of a pipeline stage",
-	}, []string{"reason"})
-	err := registerer.Register(dropCount)
-	if err != nil {
-		if existing, ok := err.(prometheus.AlreadyRegisteredError); ok {
-			dropCount = existing.ExistingCollector.(*prometheus.CounterVec)
-		} else {
-			// Same behavior as MustRegister if the error is not for AlreadyRegistered
-			panic(err)
-		}
-	}
-	return dropCount
 }
