@@ -1,0 +1,25 @@
+stsRegion: us-east-2
+discovery:
+  jobs:
+    - type: AWS/EC2
+      regions:
+        - us-east-2
+      roles:
+        - roleArn: arn:aws:iam::878167871295:role/yace_testing
+      period: 5m
+      customTags:
+        - key: alias
+          value: tesis
+      metrics:
+        - name: CPUUtilization
+          statistics:
+            - Maximum
+            - Average
+        - name: NetworkIn
+          statistics:
+            - Sum
+            - Average
+        - name: NetworkOut
+          statistics:
+            - Sum
+            - Average

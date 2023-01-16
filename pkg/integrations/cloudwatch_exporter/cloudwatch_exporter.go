@@ -4,68 +4,99 @@ import (
 	"context"
 	"fmt"
 	"github.com/grafana/agent/pkg/integrations"
+	"time"
 
 	"github.com/go-kit/log"
 	yace "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg"
 	yaceConf "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/config"
 	yaceLog "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/logger"
 	yaceModel "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/model"
-	yaceSvc "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/services"
 	yaceSess "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/session"
 	"github.com/prometheus/client_golang/prometheus"
-)
-
-const (
-	metricsPerQuery       = 500
-	cloudWatchConcurrency = 5
-	tagConcurrency        = 5
-	labelsSnakeCase       = false
 )
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
 }
 
-func (c Config) ToYACEConfig() (yaceConf.ScrapeConf, error) {
-	var nilToZero = true
-	discoveryJobs := []*yaceConf.Job{}
-	for _, job := range c.Jobs {
-		lengthSeconds := int64(job.ScrapeInterval.Seconds())
-		periodSeconds := lengthSeconds
-		roundingPeriod := lengthSeconds
-		roles := []yaceConf.Role{}
-		for _, role := range job.Roles {
-			roles = append(roles, yaceConf.Role{
-				RoleArn:    role.RoleArn,
-				ExternalID: role.ExternalID,
-			})
-		}
-		metrics := []*yaceConf.Metric{}
-		for _, metric := range job.Metrics {
-			metrics = append(metrics, &yaceConf.Metric{
-				Name:       metric.Name,
-				Statistics: metric.Statistics,
-				Period:     periodSeconds,
-				Length:     lengthSeconds,
-			})
-		}
-		discoveryJobs = append(discoveryJobs, &yaceConf.Job{
-			Regions:        job.Regions,
-			Type:           job.Type,
-			Roles:          roles,
-			NilToZero:      &nilToZero,
-			RoundingPeriod: &roundingPeriod,
-			Metrics:        metrics,
-		})
-	}
-	conf := yaceConf.ScrapeConf{
-		StsRegion: c.STSRegion,
-		Discovery: yaceConf.Discovery{
-			ExportedTagsOnMetrics: nil,
-			Jobs:                  discoveryJobs,
-		},
-	}
-	return conf, conf.Validate(yaceSvc.CheckServiceName)
+type Config struct {
+	STSRegion       string               `yaml:"stsRegion"`
+	Discovery       DiscoveryConfig      `yaml:"discovery"`
+	Static          []StaticJob          `yaml:"static"`
+	CustomNamespace []CustomNamespaceJob `yaml:"customNamespace"`
+}
+
+// Discovery Jobs
+
+type DiscoveryConfig struct {
+	ExportedTags TagsPerNamespace `yaml:"exportedTags"`
+	Jobs         []*DiscoveryJob  `yaml:"jobs"`
+}
+
+// TagsPerNamespace represents for each namespace, a list of tags that will be exported as labels in each metric.
+type TagsPerNamespace map[string][]string
+
+type DiscoveryJob struct {
+	InlineRegionAndRoles `yaml:",inline"`
+	InlineCustomTags     `yaml:",inline"`
+	Type                 string        `yaml:"type"`
+	Metrics              []Metric      `yaml:"metrics"`
+	Period               time.Duration `yaml:"period"`
+}
+
+// Static Jobs
+
+type StaticJob struct {
+	InlineRegionAndRoles `yaml:",inline"`
+	InlineCustomTags     `yaml:",inline"`
+	Name                 string      `yaml:"name"`
+	Namespace            string      `yaml:"namespace"`
+	Dimensions           []Dimension `yaml:"dimensions"`
+	Metrics              []Metric    `yaml:"metrics"`
+}
+
+// Custom Namespace Jobs
+
+type CustomNamespaceJob struct {
+	InlineRegionAndRoles `yaml:",inline"`
+	InlineCustomTags     `yaml:",inline"`
+	Name                 string        `yaml:"name"`
+	Namespace            string        `yaml:"namespace"`
+	Metrics              []Metric      `yaml:"metrics"`
+	Period               time.Duration `yaml:"period"`
+}
+
+// Supporting types
+
+// InlineRegionAndRoles exposes for each supported job, the AWS regions and IAM roles in which the agent should perform the
+// scrape.
+type InlineRegionAndRoles struct {
+	Regions []string `yaml:"regions"`
+	Roles   []Role   `yaml:"roles"`
+}
+
+type InlineCustomTags struct {
+	CustomTags []Tag `yaml:"customTags"`
+}
+
+type Role struct {
+	RoleArn    string `yaml:"roleArn"`
+	ExternalID string `yaml:"externalID"`
+}
+
+type Dimension struct {
+	Name  string `yaml:"name"`
+	Value string `yaml:"value"`
+}
+
+type Tag struct {
+	Key   string `yaml:"key"`
+	Value string `yaml:"value"`
+}
+
+type Metric struct {
+	Name       string   `yaml:"name"`
+	Statistics []string `yaml:"statistics"`
 }
 
 func (c *Config) Name() string {
@@ -78,7 +109,7 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 }
 
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
-	exporterConfig, err := c.ToYACEConfig()
+	exporterConfig, err := ToYACEConfig(c)
 	if err != nil {
 		return nil, fmt.Errorf("invalid cloudwatch exporter configuration: %w", err)
 	}
