@@ -10,6 +10,21 @@ internal API changes are not present.
 Unreleased
 ----------
 
+0.2.1 (2023-01-12)
+------------------
+
+### Other changes
+
+- Updated documentation to remove warning about the chart not being ready for
+  use.
+
+0.2.0 (2023-01-12)
+------------------
+
+### Features
+
+- Introduce supporting extra ports on the Grafana Agent created by Helm Chart.
+
 0.1.0 (2023-01-11)
 ------------------
 

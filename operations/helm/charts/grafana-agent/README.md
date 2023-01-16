@@ -1,13 +1,6 @@
 # Grafana Agent Helm chart
 
-![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![AppVersion: v0.30.2](https://img.shields.io/badge/AppVersion-v0.30.2-informational?style=flat-square)
-
-> **EXPERIMENTAL**: This is an experimental Helm chart for Grafana Agent. It is
-> undergoing active development and it is not recommended to use this chart in
-> production.
->
-> The intent is to upstream this Helm chart into grafana/agent once it's ready
-> for adoption.
+![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.2.1](https://img.shields.io/badge/Version-0.2.1-informational?style=flat-square) ![AppVersion: v0.30.2](https://img.shields.io/badge/AppVersion-v0.30.2-informational?style=flat-square)
 
 Helm chart for deploying [Grafana Agent][] to Kubernetes.
 
@@ -42,6 +35,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | agent.enableReporting | bool | `true` | Enables sending Grafana Labs anonymous usage stats to help improve Grafana Agent. |
 | agent.extraArgs | list | `[]` | Extra args to pass to `agent run`: https://grafana.com/docs/agent/latest/flow/reference/cli/run/ |
 | agent.extraEnv | list | `[]` | Extra environment variables to pass to the agent container. |
+| agent.extraPorts | list | `[]` | Extra ports to expose on the Agent |
 | agent.listenAddr | string | `"0.0.0.0"` | Address to listen for traffic on. 0.0.0.0 exposes the UI to other containers. |
 | agent.listenPort | int | `80` | Port to listen for traffic on. |
 | agent.mode | string | `"flow"` | Mode to run Grafana Agent in. Can be "flow" or "static". |

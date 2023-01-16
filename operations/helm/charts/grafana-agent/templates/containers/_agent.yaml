@@ -25,6 +25,11 @@
   ports:
     - containerPort: {{ .Values.agent.listenPort }}
       name: http-metrics
+    {{- range $portMap := .Values.agent.extraPorts }}
+    - containerPort: {{ $portMap.targetPort }}
+      name: {{ $portMap.name }}
+      protocol: {{ coalesce $portMap.protocol "TCP" }} 
+    {{- end }}
   readinessProbe:
     httpGet:
       path: /-/ready

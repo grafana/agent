@@ -2,7 +2,10 @@ package relabel
 
 import (
 	"context"
+	"fmt"
 	"sync"
+
+	"go.uber.org/atomic"
 
 	"github.com/prometheus/prometheus/storage"
 
@@ -58,6 +61,7 @@ type Component struct {
 	cacheMisses      prometheus_client.Counter
 	cacheSize        prometheus_client.Gauge
 	fanout           *prometheus.Fanout
+	exited           atomic.Bool
 
 	cacheMut sync.RWMutex
 	cache    map[uint64]*labelAndID
@@ -106,6 +110,10 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	c.receiver = prometheus.NewInterceptor(
 		c.fanout,
 		prometheus.WithAppendHook(func(_ storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
+			if c.exited.Load() {
+				return 0, fmt.Errorf("%s has exited", o.ID)
+			}
+
 			newLbl := c.relabel(v, l)
 			if newLbl == nil {
 				return 0, nil
@@ -114,6 +122,10 @@ func New(o component.Options, args Arguments) (*Component, error) {
 			return next.Append(0, newLbl, t, v)
 		}),
 		prometheus.WithExemplarHook(func(_ storage.SeriesRef, l labels.Labels, e exemplar.Exemplar, next storage.Appender) (storage.SeriesRef, error) {
+			if c.exited.Load() {
+				return 0, fmt.Errorf("%s has exited", o.ID)
+			}
+
 			newLbl := c.relabel(0, l)
 			if newLbl == nil {
 				return 0, nil
@@ -121,6 +133,10 @@ func New(o component.Options, args Arguments) (*Component, error) {
 			return next.AppendExemplar(0, l, e)
 		}),
 		prometheus.WithMetadataHook(func(_ storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error) {
+			if c.exited.Load() {
+				return 0, fmt.Errorf("%s has exited", o.ID)
+			}
+
 			newLbl := c.relabel(0, l)
 			if newLbl == nil {
 				return 0, nil
@@ -143,6 +159,8 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
+	defer c.exited.Store(true)
+
 	<-ctx.Done()
 	return nil
 }

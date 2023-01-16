@@ -36,6 +36,11 @@ Main (unreleased)
   - `phlare.write` sends application performance profiles to Grafana Phlare. (@cyriltovena)
   - `otelcol.receiver.zipkin` receives Zipkin-formatted traces. (@rfratto)
   - `loki.source.windowsevent` reads logs from Windows Event Log. (@mattdurham)
+  - `loki.source.syslog` listens for Syslog messages over TCP and UDP
+    connections and forwards them to other `loki` components. (@tpaschalis)
+  - `otelcol.exporter.loki` forwards OTLP-formatted data to compatible `loki`
+    receivers. (@tpaschalis)
+
 
 - Flow components which work with relabeling rules (`discovery.relabel`,
   `prometheus.relabel` and `loki.relabel`) now export a new value named Rules.
@@ -54,9 +59,13 @@ Main (unreleased)
 
 - Flow UI: Fix the issue with long string going out of bound in the component detail page. (@xiyu95)
 
+- Flow: `prometheus.relabel` and `prometheus.remote_write` will now error if they have exited. (@ptodev)
+
 ### Other changes
 
 - Use Go 1.19.4 for builds. (@erikbaranowski)
+
+- New windows containers for agent and agentctl. These can be found moving forward with the ${Version}-windows tags for grafana/agent and grafana/agentctl docker images (@erikbaranowski)
 
 v0.30.2 (2023-01-11)
 --------------------
