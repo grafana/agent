@@ -346,3 +346,10 @@ func TestAgent_MarshalYAMLOmitDefaultServiceConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.NotContains(t, string(yml), "scraping_service")
 }
+
+func TestAgent_MarshalYAMLOmitGlobalConfig(t *testing.T) {
+	cfg := DefaultConfig
+	yml, err := yaml.Marshal(&cfg)
+	require.NoError(t, err)
+	require.NotContains(t, string(yml), "global")
+}
