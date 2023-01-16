@@ -52,6 +52,7 @@ stage          | [stage][]  | Processing stage to run. | no
 stage > docker | [docker][] | Configures a pre-defined Docker log format pipeline. | no
 stage > cri    | [cri][]    | Configures a pre-defined CRI-format pipeline. | no
 stage > json   | [json][]   | Configures a JSON processing stage.  | no
+stage > logfmt | [logfmt][] | Configures a logfmt processing stage. | no
 stage > labels | [labels][] | Configures a labels processing stage. | no
 stage > label_keep   | [label_keep][]    | Configures a `label_keep` processing stage. | no
 stage > label_drop   | [label_drop][]    | Configures a `label_drop` processing stage. | no
@@ -59,6 +60,8 @@ stage > static_labels | [static_labels][] | Configures a `static_labels` process
 stage > regex        | [regex][]         | Configures a `regex` processing stage. | no
 stage > timestamp    | [timestamp][]     | Configures a `timestamp` processing stage. | no
 stage > output       | [output][]        | Configures an `output` processing stage. | no
+stage > replace      | [replace][]       | Configures a `replace` processing stage. | no
+stage > multiline    | [multiline][]     | Configures a `multiline` processing stage. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `stage > json`
 refers to a `json` block defined inside of a `stage` block.
@@ -67,6 +70,7 @@ refers to a `json` block defined inside of a `stage` block.
 [docker]: #docker-block
 [cri]: #cri-block
 [json]: #json-block
+[logfmt]: #logfmt-block
 [labels]: #labels-block
 [label_keep]: #label_keep-block
 [label_drop]: #label_drop-block
@@ -74,6 +78,8 @@ refers to a `json` block defined inside of a `stage` block.
 [regex]: #regex-block
 [timestamp]: #timestamp-block
 [output]: #output-block
+[replace]: #replace-block
+[multiline]: #multiline-block
 
 ### stage block
 
@@ -205,6 +211,54 @@ following key-value pair to the set of extracted data.
 ```
 username: agent
 ```
+
+### logfmt block
+
+The `logfmt` inner block configures a processing stage that reads incoming log
+lines as logfmt and extracts values from them.
+
+The following arguments are supported:
+
+Name       | Type          | Description | Default | Required
+---------- | ------------- | ----------- | ------- | --------
+`mapping`  | `map(string)` | Key-value pairs of logmft fields to extract. | | yes
+`source`   | `string`      | Source of the data to parse as logfmt. | `""` | no
+
+
+The `source` field defines the source of data to parse as logfmt. When `source`
+is missing or empty, the stage parses the log line itself, but it can also be
+used to parse a previously extracted value.
+
+This stage uses the [go-logfmt](https://github.com/go-logfmt/logfmt)
+unmarshaler, so that numeric or boolean types are unmarshalled into their
+correct form. The stage does not perform any other type conversions. If the
+extracted value is a complex type, it is treated as a string.
+
+Let's see how this works on the following log line and stage.
+
+```
+time=2012-11-01T22:08:41+00:00 app=loki level=WARN duration=125 message="this is a log line" extra="user=foo"
+
+stage {
+	logfmt {
+		mapping = { "extra" = "" }
+	}
+}
+
+stage {
+	logfmt {
+		mapping = { "username" = "user" }
+		source  = "extra"
+	}
+}
+```
+
+The first stage parses the log line itself and inserts the `extra` key in the
+set of extracted data, with the value of `user=foo`.
+
+Following that, the second stage parses the contents of `extra` and appends the
+`username: foo` key-value pair in the set of extracted data.
+
 
 ### labels block
 
@@ -529,6 +583,188 @@ message: hello, world!
 Then, the second stage adds `user="John Doe"` to the label set of the log
 entry, and the final output stage changes the log line from the original
 JSON to `hello, world!`.
+
+### replace block
+
+The `replace` inner block configures a stage that parses a log line using a
+regular expression and replaces the log line contents. Named capture groups in
+the regex also support adding data into the shared extracted map.
+
+The following arguments are supported:
+
+Name           | Type      | Description                                        | Default   | Required
+-------------- | --------- | -------------------------------------------------- | --------- | --------
+`expression`   | `string`  | Name from extracted data to use for the log entry. |           | yes
+`source`       | `string`  | Source of the data to parse. If empty, it uses the log message. | | no
+`replace`      | `string`  | Value to which the captured group is replaced.     |           | no
+
+
+The `source` field defines the source of data to parse using `expression`. When
+`source` is missing or empty, the stage parses the log line itself, but it can
+also be used to parse a previously extracted value. The replaced value is
+assigned back to the `source` key.
+
+The `expression` must be a valid RE2 regex. Every named capture group
+`(?P<name>re)` is set into the extracted map with its name.
+
+Because of how River treats backslashes in double-quoted strings, note that all
+backslashes in a regex expression must be escaped like `"\\w*"`.
+
+Let's see the how this works with the following log line and stage. Since
+`source` is ommitted, the replacement happens on the log line itself.
+
+```
+2023-01-01T01:00:00.000000001Z stderr P i'm a log message who has sensitive information with password xyz!
+
+stage {
+	replace {
+		expression = "password (\\S+)"
+		replace    = "*****"
+	}
+}
+```
+
+The log line is transformed to 
+```
+2023-01-01T01:00:00.000000001Z stderr P i'm a log message who has sensitive information with password *****!
+```
+
+If `replace` was empty, then the captured value would be omitted instead.
+
+How about when `source` is defined?
+```
+{"time":"2023-01-01T01:00:00.000000001Z", "level": "info", "msg":"11.11.11.11 - \"POST /loki/api/push/ HTTP/1.1\" 200 932 \"-\" \"Mozilla/5.0\"}
+
+stage {
+	json {
+		expressions = { "level" = "", "msg" = "" }
+	}
+}
+
+stage {
+	replace {
+		expression = "\\S+ - \"POST (\\S+) .*"
+		source     = "msg"
+		replace    = "redacted_url"
+	}
+}
+```
+
+The JSON stage adds the following key-value pairs into the extracted map:
+```
+time: 2023-01-01T01:00:00.000000001Z
+level: info
+msg: "11.11.11.11 - "POST /loki/api/push/ HTTP/1.1" 200 932 "-" "Mozilla/5.0"
+```
+
+The replace stage would then act on the `msg` value, with the capture group
+matching against `/loki/api/push` which would then be replaced by `redacted_url`.
+
+The `msg` value is finally transformed into:
+```
+msg: "11.11.11.11 - "POST redacted_url HTTP/1.1" 200 932 "-" "Mozilla/5.0"
+```
+
+The `replace` field can use a set of templating functions, by utilizing Go's
+[text/template](https://pkg.go.dev/text/template) package.
+
+Let's see how this works along with named capture groups with a sample log line
+and stage
+```
+11.11.11.11 - agent [01/Jan/2023:00:00:01 +0200]
+
+stage {
+	replace {
+		expression = "^(?P<ip>\\S+) (?P<identd>\\S+) (?P<user>\\S+) \\[(?P<timestamp>[\\w:/]+\\s[+\\-]\\d{4})\\]"
+		replace    = "{{ .Value | ToUpper }}"
+	}
+}
+```
+
+Since source is empty, the regex parses the log line itself and extracts the
+named capture groups to the shared map of values. The replace field acts on
+these extracted values and converts them to Uppercase:
+```
+ip: 11.11.11.11
+identd: -
+user: FRANK
+timestamp: 01/JAN/2023:00:00:01 +0200
+```
+
+and the log line becomes:
+```
+11.11.11.11 - FRANK [01/JAN/2023:00:00:01 +0200] 
+```
+
+Here's the full list of available functions, along with a couple examples of
+more complex replace fields.
+```
+ToLower, ToUpper, Replace, Trim, TrimLeftTrimRight, TrimPrefix, TrimSuffix, TrimSpace, Hash, Sha2Hash, regexReplaceAll, regexReplaceAllLiteral
+
+"{{ if eq .Value \"200\" }}{{ Replace .Value \"200\" \"HttpStatusOk\" -1 }}{{ else }}{{ .Value | ToUpper }}{{ end }}"
+"*IP4*{{ .Value | Hash "salt" }}*"
+```
+
+
+### multiline block
+
+The `multiline` inner block merges multiple lines into a single block before
+passing it on to the next stage in the pipeline.
+
+The following arguments are supported:
+
+Name                | Type           | Description                                           | Default  | Required
+------------------- | -------------- | ----------------------------------------------------- | -------- | --------
+`firstline`         | `string`       | Name from extracted data to use for the log entry.    |          | yes
+`max_wait_time`     | `duration`     | The maximum time to wait for a multiline block.       |  `"3s"`  | no 
+`max_lines`         | `int`          | The maximum number of lines a block can have.         |  `128`   | no
+
+
+A new block is identified by the RE2 regular expression passed in `firstline`.
+
+
+Any line that does _not_ match the expression is considered to be part of the
+block of the previous match. If no new logs arrive with `max_wait_time`, the
+block is sent on. The `max_lines` field defines the maximum number of lines a
+block can have. If this is exceeded, a new block is started.
+
+Let's see how this works in practice with an example stage and a stream of log
+entries from a Flask web service.
+
+```
+stage {
+	multiline {
+		firstline     = "^\[\d{4}-\d{2}-\d{2} \d{1,2}:\d{2}:\d{2}\]"
+		max_wait_time = "10s"
+	}
+}
+
+[2023-01-18 17:41:21] "GET /hello HTTP/1.1" 200 -
+[2023-01-18 17:41:25] ERROR in app: Exception on /error [GET]
+Traceback (most recent call last):
+  File "/home/pallets/.pyenv/versions/3.8.5/lib/python3.8/site-packages/flask/app.py", line 2447, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/pallets/.pyenv/versions/3.8.5/lib/python3.8/site-packages/flask/app.py", line 1952, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/pallets/.pyenv/versions/3.8.5/lib/python3.8/site-packages/flask/app.py", line 1821, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/home/pallets/.pyenv/versions/3.8.5/lib/python3.8/site-packages/flask/_compat.py", line 39, in reraise
+    raise value
+  File "/home/pallets/.pyenv/versions/3.8.5/lib/python3.8/site-packages/flask/app.py", line 1950, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/pallets/.pyenv/versions/3.8.5/lib/python3.8/site-packages/flask/app.py", line 1936, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "/home/pallets/src/deployment_tools/hello.py", line 10, in error
+    raise Exception("Sorry, this route always breaks")
+Exception: Sorry, this route always breaks
+[2023-01-18 17:42:24] "GET /error HTTP/1.1" 500 -
+[2023-01-18 17:42:29] "GET /hello HTTP/1.1" 200 -
+```
+
+As we can see, all 'blocks' that form log entries of separate web requests
+start with a timestamp in square brackets. The stage detects this with the
+regular expression in `firstline` to collapse all lines of the traceback into a
+single block and thus a single Loki log entry.
 
 
 ## Exported fields
