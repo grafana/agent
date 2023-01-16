@@ -84,12 +84,12 @@ for network traffic on its HTTP server. By default, this is `0.0.0.0` to allow
 its UI to be exposed when port-forwarding and to expose its metrics to other
 agents in the cluster.
 
-### config
+### agent.configMap.config
 
-`config` holds the Grafana Agent configuration to use.
+`agent.configMap.content` holds the Grafana Agent configuration to use.
 
-If `config` is not provided, a [default configuration file][default-config] is
-used. When provided, `config` must hold a valid River configuration file.
+If `agent.configMap.content` is not provided, a [default configuration file][default-config] is
+used. When provided, `agent.configMap.content` must hold a valid River configuration file.
 
 [default-config]: ./config/example.river
 
