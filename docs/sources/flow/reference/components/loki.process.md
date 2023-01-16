@@ -865,7 +865,7 @@ lines where the `applbl="foo"`. So, for the first line, the nested JSON stage
 adds `msg="app1 log line"` into the extracted map.
 
 The fourth stage uses the LogQL selector to only execute on lines where
-`applbl="qux"; that means it won't match on any of our input, and the nested
+`applbl="qux"`; that means it won't match on any of our input, and the nested
 json stage does not run.
 
 The fifth stage drops any entries from on lines where `applbl` is set to
