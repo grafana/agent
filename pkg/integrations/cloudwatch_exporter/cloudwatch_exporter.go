@@ -49,10 +49,11 @@ type DiscoveryJob struct {
 type StaticJob struct {
 	InlineRegionAndRoles `yaml:",inline"`
 	InlineCustomTags     `yaml:",inline"`
-	Name                 string      `yaml:"name"`
-	Namespace            string      `yaml:"namespace"`
-	Dimensions           []Dimension `yaml:"dimensions"`
-	Metrics              []Metric    `yaml:"metrics"`
+	Name                 string        `yaml:"name"`
+	Namespace            string        `yaml:"namespace"`
+	Dimensions           []Dimension   `yaml:"dimensions"`
+	Metrics              []Metric      `yaml:"metrics"`
+	Period               time.Duration `yaml:"period"`
 }
 
 // Custom Namespace Jobs
