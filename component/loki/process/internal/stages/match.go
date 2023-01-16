@@ -5,11 +5,11 @@ package stages
 // new code without being able to slowly review, examine and test them.
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/loki/clients/pkg/logentry/logql"
-	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
@@ -83,13 +83,13 @@ func newMatcherStage(logger log.Logger, jobName *string, config MatchConfig, reg
 		var err error
 		pl, err = NewPipeline(logger, config.Stages, nPtr, registerer)
 		if err != nil {
-			return nil, errors.Wrapf(err, "match stage failed to create pipeline from config: %v", config)
+			return nil, fmt.Errorf("%v: %w", err, fmt.Errorf("match stage failed to create pipeline from config: %v", config))
 		}
 	}
 
 	filter, err := selector.Filter()
 	if err != nil {
-		return nil, errors.Wrap(err, "error parsing pipeline")
+		return nil, fmt.Errorf("%v: %w", "error parsing pipeline", err)
 	}
 
 	dropReason := "match_stage"

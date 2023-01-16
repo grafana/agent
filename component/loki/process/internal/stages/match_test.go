@@ -184,7 +184,6 @@ func TestMatcher(t *testing.T) {
 				return
 			}
 			if s != nil {
-
 				out := processEntries(s, newEntry(map[string]interface{}{
 					"test_label": "unimportant value",
 				}, toLabelSet(tt.labels), "foo", time.Now()))
@@ -201,7 +200,6 @@ func TestMatcher(t *testing.T) {
 						t.Error("stage ran but should have not")
 					}
 				}
-
 			}
 		})
 	}
