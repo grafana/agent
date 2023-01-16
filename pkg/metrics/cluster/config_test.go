@@ -7,9 +7,23 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func TestAgent_OmmitEmptyFields(t *testing.T) {
+func TestConfig_MarshalYAMLOmitEmptyFields(t *testing.T) {
 	var cfg Config
 	yml, err := yaml.Marshal(&cfg)
 	require.NoError(t, err)
 	require.Equal(t, "{}\n", string(yml))
+}
+
+func TestConfig_MarshalYAMLOmitDefaultKVConfig(t *testing.T) {
+	cfg := DefaultConfig
+	yml, err := yaml.Marshal(&cfg)
+	require.NoError(t, err)
+	require.NotContains(t, string(yml), "kvstore")
+}
+
+func TestConfig_MarshalYAMLOmitDefaultLifecyclerConfig(t *testing.T) {
+	cfg := DefaultConfig
+	yml, err := yaml.Marshal(&cfg)
+	require.NoError(t, err)
+	require.NotContains(t, string(yml), "lifecycler")
 }

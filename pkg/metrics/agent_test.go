@@ -332,3 +332,17 @@ func makeInstanceConfig(name string) instance.Config {
 	cfg.Name = name
 	return cfg
 }
+
+func TestAgent_MarshalYAMLOmitDefaultServiceClientConfig(t *testing.T) {
+	cfg := DefaultConfig
+	yml, err := yaml.Marshal(&cfg)
+	require.NoError(t, err)
+	require.NotContains(t, string(yml), "scraping_service_client")
+}
+
+func TestAgent_MarshalYAMLOmitDefaultServiceConfig(t *testing.T) {
+	cfg := DefaultConfig
+	yml, err := yaml.Marshal(&cfg)
+	require.NoError(t, err)
+	require.NotContains(t, string(yml), "scraping_service")
+}
