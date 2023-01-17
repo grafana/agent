@@ -127,7 +127,7 @@ platform:
 steps:
 - commands:
   - make lint
-  image: grafana/agent-build-image:0.19.0
+  image: grafana/agent-build-image:0.20.0
   name: Lint
 trigger:
   event:
@@ -143,7 +143,7 @@ steps:
 - commands:
   - make binaries
   - K8S_USE_DOCKER_NETWORK=1 make test
-  image: grafana/agent-build-image:0.19.0
+  image: grafana/agent-build-image:0.20.0
   name: Run Go tests
   volumes:
   - name: docker
@@ -166,7 +166,7 @@ platform:
 steps:
 - commands:
   - go test -tags="nodocker,nonetwork" ./...
-  image: grafana/agent-build-image:0.19.0-windows
+  image: grafana/agent-build-image:0.20.0-windows
   name: Run Go tests
 trigger:
   event:
@@ -181,7 +181,7 @@ platform:
 steps:
 - commands:
   - make agent-image
-  image: grafana/agent-build-image:0.19.0
+  image: grafana/agent-build-image:0.20.0
   name: Build container
   volumes:
   - name: docker
@@ -203,7 +203,7 @@ platform:
 steps:
 - commands:
   - make agentctl-image
-  image: grafana/agent-build-image:0.19.0
+  image: grafana/agent-build-image:0.20.0
   name: Build container
   volumes:
   - name: docker
@@ -225,7 +225,7 @@ platform:
 steps:
 - commands:
   - make operator-image
-  image: grafana/agent-build-image:0.19.0
+  image: grafana/agent-build-image:0.20.0
   name: Build container
   volumes:
   - name: docker
@@ -250,7 +250,7 @@ steps:
   - git config --global --add safe.directory C:/drone/src/
   - '& "C:/Program Files/git/bin/bash.exe" -c ./tools/ci/docker-containers-windows'
   failure: ignore
-  image: grafana/agent-build-image:0.19.0-windows
+  image: grafana/agent-build-image:0.20.0-windows
   name: Build container
   volumes:
   - name: docker
@@ -285,7 +285,7 @@ steps:
       from_secret: DOCKER_PASSWORD
     GCR_CREDS:
       from_secret: gcr_admin
-  image: grafana/agent-build-image:0.19.0
+  image: grafana/agent-build-image:0.20.0
   name: Build containers
   volumes:
   - name: docker
@@ -364,7 +364,7 @@ steps:
       from_secret: DOCKER_LOGIN
     DOCKER_PASSWORD:
       from_secret: DOCKER_PASSWORD
-  image: grafana/agent-build-image:0.19.0-windows
+  image: grafana/agent-build-image:0.20.0-windows
   name: Build containers
   volumes:
   - name: docker
@@ -407,7 +407,7 @@ steps:
       from_secret: gpg_private_key
     GPG_PUBLIC_KEY:
       from_secret: gpg_public_key
-  image: grafana/agent-build-image:0.19.0
+  image: grafana/agent-build-image:0.20.0
   name: Publish release
   volumes:
   - name: docker
@@ -458,6 +458,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: 116c22bc56a3f0542e95b4136ba14229f87085417f4bd003220a5e6318343486
+hmac: e086449cbb6b651ce45d95c56f2a3b90ce498c502327d946c83efdd78ed8310e
 
 ...
