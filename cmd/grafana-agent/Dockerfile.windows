@@ -9,7 +9,6 @@ SHELL ["cmd", "/C"]
 
 RUN "C:\Program Files\git\bin\bash.exe" -c 'RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} make generate-ui'
 RUN "C:\Program Files\git\bin\bash.exe" -c 'RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} make agent'
-#RUN powershell "Invoke-Expression ""C:\'Program Files'\git\bin\bash.exe -c 'RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} make generate-ui && make agent'"""
 
 # Use the smallest container possible for the final image
 FROM mcr.microsoft.com/windows/nanoserver:1809
