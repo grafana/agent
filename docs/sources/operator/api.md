@@ -1817,8 +1817,8 @@ bool
 </em>
 </td>
 <td>
-<p>When drop is true, log lines that exceed the current rate limit will be discarded.
-When drop is false, log lines that exceed the current rate limit will only wait
+<p>When drop is true, log lines that exceed the current rate limit are discarded.
+When drop is false, log lines that exceed the current rate limit wait
 to enter the back pressure mode.</p>
 <p>Defaults to false.</p>
 </td>
