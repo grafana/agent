@@ -8,7 +8,7 @@
   {{- else }}
   args:
     - -v
-    - -p=/etc/agent/config.river
+    - -p=/etc/agent/{{ include "grafana-agent.config-map.key" . }}
     - curl
     - -X
     - POST

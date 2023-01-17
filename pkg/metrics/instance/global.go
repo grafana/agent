@@ -1,6 +1,7 @@
 package instance
 
 import (
+	"reflect"
 	"time"
 
 	"github.com/prometheus/prometheus/config"
@@ -27,4 +28,8 @@ func (c *GlobalConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	type plain GlobalConfig
 	return unmarshal((*plain)(c))
+}
+
+func (c GlobalConfig) IsZero() bool {
+	return reflect.DeepEqual(c, GlobalConfig{}) || reflect.DeepEqual(c, DefaultGlobalConfig)
 }

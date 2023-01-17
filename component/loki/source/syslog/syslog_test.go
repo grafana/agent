@@ -121,19 +121,21 @@ func TestWithRelabelRules(t *testing.T) {
 	args.ForwardTo = []loki.LogsReceiver{ch1}
 
 	// Create a handler which will be used to retrieve relabeling rules.
-	args.RelabelRules = func() []*flow_relabel.Config {
-		return []*flow_relabel.Config{
-			{
-				SourceLabels: []string{"__name__"},
-				Regex:        mustNewRegexp("__syslog_(.*)"),
-				Action:       flow_relabel.LabelMap,
-				Replacement:  "syslog_${1}",
-			},
-			{
-				Regex:  mustNewRegexp("syslog_connection_hostname"),
-				Action: flow_relabel.LabelDrop,
-			},
-		}
+	args.RelabelRules = &flow_relabel.Rules{
+		GetAll: func() []*flow_relabel.Config {
+			return []*flow_relabel.Config{
+				{
+					SourceLabels: []string{"__name__"},
+					Regex:        mustNewRegexp("__syslog_(.*)"),
+					Action:       flow_relabel.LabelMap,
+					Replacement:  "syslog_${1}",
+				},
+				{
+					Regex:  mustNewRegexp("syslog_connection_hostname"),
+					Action: flow_relabel.LabelDrop,
+				},
+			}
+		},
 	}
 
 	// Create and run the component.
