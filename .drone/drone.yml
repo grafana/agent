@@ -165,13 +165,21 @@ platform:
   version: "1809"
 steps:
 - commands:
+  - docker inspect $Env:DRONE_DOCKER_NETWORK_ID
   - go test -tags="nodocker,nonetwork" ./...
   image: grafana/agent-build-image:0.20.0-windows
   name: Run Go tests
+  volumes:
+  - name: docker
+    path: //./pipe/docker_engine/
 trigger:
   event:
   - pull_request
 type: docker
+volumes:
+- host:
+    path: //./pipe/docker_engine/
+  name: docker
 ---
 kind: pipeline
 name: Check Linux container (grafana/agent)
@@ -458,6 +466,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: e086449cbb6b651ce45d95c56f2a3b90ce498c502327d946c83efdd78ed8310e
+hmac: 3a17cc47049fe533a5698c2baf789b48ae3b1af20b1b7857610a87d6b046c67c
 
 ...

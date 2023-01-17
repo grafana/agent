@@ -52,7 +52,18 @@ local pipelines = import '../util/pipelines.jsonnet';
     steps: [{
       name: 'Run Go tests',
       image: build_image.windows,
-      commands: ['go test -tags="nodocker,nonetwork" ./...'],
+      volumes: [{
+        name: 'docker',
+        path: '//./pipe/docker_engine/',
+      }],
+      commands: [
+        'docker inspect $Env:DRONE_DOCKER_NETWORK_ID',
+        'go test -tags="nodocker,nonetwork" ./...',
+      ],
+    }],
+    volumes: [{
+      name: 'docker',
+      host: { path: '//./pipe/docker_engine/' },
     }],
   },
 ]
