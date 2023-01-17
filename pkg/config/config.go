@@ -224,7 +224,6 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 		"basic auth username for fetching remote config. (requires remote-configs experiment to be enabled")
 	f.StringVar(&c.BasicAuthPassFile, "config.url.basic-auth-password-file", "",
 		"path to file containing basic auth password for fetching remote config. (requires remote-configs experiment to be enabled")
-	f.StringVar(&c.AgentManagement.CacheLocation, "agentmanagement.cache-location", "", "Path to writeable directory where remote configs will be cached to disk")
 
 	f.BoolVar(&c.EnableConfigEndpoints, "config.enable-read-api", false, "Enables the /-/config and /agent/api/v1/configs/{name} APIs. Be aware that secrets could be exposed by enabling these endpoints!")
 }
@@ -249,11 +248,8 @@ func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 //     b) Read the remote config from cache. If this fails, return an error.
 //  4. Merge the initial and remote config into c.
 func loadFromAgentManagementAPI(path string, expandEnvVars bool, c *Config, log *server.Logger) error {
-	// Save the cache location as it will otherwise be clobbered
-	cacheLocation := c.AgentManagement.CacheLocation
 	// Load the initial config from disk
 	err := LoadFile(path, expandEnvVars, c)
-	c.AgentManagement.CacheLocation = cacheLocation
 	if err != nil {
 		return fmt.Errorf("failed to load initial config: %w", err)
 	}

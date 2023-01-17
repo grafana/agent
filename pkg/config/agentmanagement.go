@@ -28,7 +28,7 @@ type AgentManagement struct {
 	BasicAuth       config.BasicAuth `yaml:"basic_auth"`
 	Protocol        string           `yaml:"protocol"`
 	PollingInterval string           `yaml:"polling_interval"`
-	CacheLocation   string           `yaml:"-"` // Derived from -agentmanagement.cache_location
+	CacheLocation   string           `yaml:"remote_config_cache_location"`
 
 	RemoteConfiguration RemoteConfiguration `yaml:"remote_configuration"`
 }
@@ -155,7 +155,7 @@ func (am *AgentManagement) Validate() error {
 	}
 
 	if am.CacheLocation == "" {
-		return errors.New("path to cache must be specified in 'remote_config_cache_location'")
+		return errors.New("path to cache must be specified in 'agent_management.remote_config_cache_location'")
 	}
 
 	return nil
