@@ -773,12 +773,12 @@ Name            | Type      | Description                                       
 --------------- | --------- | ------------------------------------------------------------------- | ------- | --------
 `selector`      | `string`  | The LogQL stream selector and filter expressions to use.            |         | yes
 `pipeline_name` | `string`  | A custom name to use for the nested pipeline.                       | `""`    | no
-`action`        | `string`  | The action to take when the selector matches the log line. Supported values are "keep" and "drop" | `"keep"` | no
+`action`        | `string`  | The action to take when the selector matches the log line. Supported values are `"keep"` and `"drop"` | `"keep"` | no
 `drop_counter_reason` | `string` | A custom reason to report for dropped lines.                   | `"match_stage"` | no 
 
-The `match` block supports a number of `stage` inner blocks, same as
-the top-level one. These are used to construct the  nested set of stages to run
-if the selector matches the labels and content of the log entries.
+The `match` block supports a number of `stage` inner blocks, like the top-level
+block. These are used to construct the nested set of stages to run if the
+selector matches the labels and content of the log entries.
 
 The following blocks are supported inside the definition of `stage > match`:
 
@@ -789,7 +789,7 @@ stage          | [stage][]  | Processing stage to run. | no
 
 If the specified action is `"drop"`, the metric
 `loki_process_dropped_lines_total` is incremented with every line dropped.
-By default, the reason label is `match_stage`, but a custom reason can be
+By default, the reason label is `"match_stage"`, but a custom reason can be
 provided by using the `drop_counter_reason` argument.
 
 Let's see this in action, with the following log lines and stages
@@ -855,17 +855,17 @@ lines where the `applbl="foo"`. So, for the first line, the nested JSON stage
 adds `msg="app1 log line"` into the extracted map.
 
 The fourth stage uses the LogQL selector to only execute on lines where
-`applbl="qux"`; that means it won't match on any of our input, and the nested
-json stage does not run.
+`applbl="qux"`; that means it won't match any of the input, and the nested
+JSON stage does not run.
 
-The fifth stage drops any entries from on lines where `applbl` is set to
-'bar' and the line contents that matches the regex `.*noisy error.*`. It also
-increments the `loki_process_dropped_lines_total` metric with a label
-reason="discard_noisy_errors".
+The fifth stage drops entries from lines where `applbl` is set to 'bar' and the
+line contents matches the regex `.*noisy error.*`. It also increments the
+`loki_process_dropped_lines_total` metric with a label
+`drop_counter_reason="discard_noisy_errors"`.
 
 The final output stage changes the contents of the log line to be the value of
 `msg` from the extracted map. In this case, the first log entry's content is
-is changed to `app1 log line`.
+changed to `app1 log line`.
 
 
 ### drop block
@@ -891,13 +891,13 @@ not provided, the regex attempts to match the log line itself. If source is
 provided, the regex attempts to match the corresponding value from the
 extracted map.
 
-On the other hand, the `value` field can only work with values from the
-extracted map, and must be specified together with `source`. Entries are
-dropped when there is an exact match between the two.
+The `value` field can only work with values from the extracted map, and must be
+specified together with `source`. Entries are dropped when there is an exact
+match between the two.
 
 Whenever an entry is dropped, the metric `loki_process_dropped_lines_total`
-is incremented. By default, the reason label is `drop_stage`, but a custom
-one can be provided by using the `drop_counter_reason` argument.
+is incremented. By default, the reason label is `"drop_stage"`, but you can
+provide a custom label using the `drop_counter_reason` argument.
 
 The following stage drops log entries that contain the word `debug` _and_ are
 longer than 1KB.
@@ -911,8 +911,9 @@ stage {
 }
 ```
 
-The following stages drop entries that are 24h or older, are longer than
-8KB, _or_ the extracted value of 'app' is equal to foo.
+On the following example, we define multiple `drop` blocks so `loki.process`
+will drop entries that are either 24h or older, are longer than 8KB, _or_ the
+extracted value of 'app' is equal to foo.
 
 ```
 stage {
@@ -925,7 +926,7 @@ stage {
 stage {
 	drop {
 		older_than  = "8KB"
-		longer_than = "too long"
+		drop_reason = "too long"
 	}
 }
 
