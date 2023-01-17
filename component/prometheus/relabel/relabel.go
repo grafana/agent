@@ -44,8 +44,8 @@ type Arguments struct {
 
 // Exports holds values which are exported by the prometheus.relabel component.
 type Exports struct {
-	Receiver storage.Appendable `river:"receiver,attr"`
-	Rules    flow_relabel.Rules `river:"rules,attr"`
+	Receiver storage.Appendable  `river:"receiver,attr"`
+	Rules    *flow_relabel.Rules `river:"rules,attr"`
 }
 
 // Component implements the prometheus.relabel component.
@@ -147,7 +147,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 	// Immediately export the receiver which remains the same for the component
 	// lifetime.
-	o.OnStateChange(Exports{Rules: c.getRules})
+	o.OnStateChange(Exports{Receiver: c.receiver, Rules: getRules(c)})
 
 	// Call to Update() to set the relabelling rules once at the start.
 	if err = c.Update(args); err != nil {
@@ -258,9 +258,13 @@ type labelAndID struct {
 	id     uint64
 }
 
-func (c *Component) getRules() []*flow_relabel.Config {
-	c.mut.RLock()
-	defer c.mut.RUnlock()
+func getRules(c *Component) *flow_relabel.Rules {
+	return &flow_relabel.Rules{
+		GetAll: func() []*flow_relabel.Config {
+			c.mut.RLock()
+			defer c.mut.RUnlock()
 
-	return c.mrcFlow
+			return c.mrcFlow
+		},
+	}
 }
