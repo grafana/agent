@@ -14,16 +14,10 @@ func TestConfig_MarshalYAMLOmitEmptyFields(t *testing.T) {
 	require.Equal(t, "{}\n", string(yml))
 }
 
-func TestConfig_MarshalYAMLOmitDefaultKVConfig(t *testing.T) {
+func TestConfig_MarshalYAMLOmitDefaultConfigFields(t *testing.T) {
 	cfg := DefaultConfig
 	yml, err := yaml.Marshal(&cfg)
 	require.NoError(t, err)
 	require.NotContains(t, string(yml), "kvstore")
-}
-
-func TestConfig_MarshalYAMLOmitDefaultLifecyclerConfig(t *testing.T) {
-	cfg := DefaultConfig
-	yml, err := yaml.Marshal(&cfg)
-	require.NoError(t, err)
 	require.NotContains(t, string(yml), "lifecycler")
 }
