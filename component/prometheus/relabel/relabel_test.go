@@ -1,7 +1,6 @@
 package relabel
 
 import (
-	"fmt"
 	"math"
 	"os"
 	"testing"
@@ -174,7 +173,6 @@ func TestRuleGetter(t *testing.T) {
 
 	// Use the getter to retrieve the original relabeling rules.
 	exports := tc.Exports().(Exports)
-	fmt.Println("exports:", exports.Receiver, "exports.rules", exports.Rules)
 	gotOriginal := exports.Rules.GetAll()
 
 	// Update the component with new relabeling rules and retrieve them.
