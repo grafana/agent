@@ -27,11 +27,6 @@ var (
 	ErrMultilineStageInvalidMaxWaitTime = errors.New("multiline stage `max_wait_time` parse error")
 )
 
-const (
-	maxLineDefault uint64 = 128
-	maxWaitDefault        = 3 * time.Second
-)
-
 // MultilineConfig contains the configuration for a Multiline stage.
 type MultilineConfig struct {
 	Expression  string        `river:"firstline,attr"`
