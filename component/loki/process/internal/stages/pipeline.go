@@ -26,6 +26,7 @@ type StageConfig struct {
 	// hand. This will be fixed once we've gained confidence in the ported
 	// processing stages and the package is made non-internal.
 	JSONConfig         *JSONConfig         `river:"json,block,optional"`
+	LogfmtConfig       *LogfmtConfig       `river:"logfmt,block,optional"`
 	LabelsConfig       *LabelsConfig       `river:"labels,block,optional"`
 	LabelAllowConfig   *LabelAllowConfig   `river:"label_keep,block,optional"`
 	LabelDropConfig    *LabelDropConfig    `river:"label_drop,block,optional"`
@@ -35,6 +36,8 @@ type StageConfig struct {
 	RegexConfig        *RegexConfig        `river:"regex,block,optional"`
 	TimestampConfig    *TimestampConfig    `river:"timestamp,block,optional"`
 	OutputConfig       *OutputConfig       `river:"output,block,optional"`
+	ReplaceConfig      *ReplaceConfig      `river:"replace,block,optional"`
+	MultilineConfig    *MultilineConfig    `river:"multiline,block,optional"`
 }
 
 // UnmarshalRiver implements river.Unmarshaler.

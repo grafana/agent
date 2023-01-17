@@ -124,15 +124,15 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 			return nil, err
 		}
 	case cfg.JSONConfig != nil:
-		s, err = newJSONStage(logger, cfg.JSONConfig)
+		s, err = newJSONStage(logger, *cfg.JSONConfig)
 		if err != nil {
 			return nil, err
 		}
-	// case StageTypeLogfmt:
-	// 	s, err = newLogfmtStage(logger, cfg)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
+	case cfg.LogfmtConfig != nil:
+		s, err = newLogfmtStage(logger, *cfg.LogfmtConfig)
+		if err != nil {
+			return nil, err
+		}
 	// case StageTypeMetric:
 	// 	s, err = newMetricStage(logger, cfg, registerer)
 	// 	if err != nil {
@@ -174,30 +174,30 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 	// 		return nil, err
 	// 	}
 	// case StageTypeTenant:
-	// 	s, err = newTenantStage(logger, cfg)
+	// 	s, err = newTenantStage(logger, cfg.TenantConfig)
 	// 	if err != nil {
 	// 		return nil, err
 	// 	}
-	// case StageTypeReplace:
-	// 	s, err = newReplaceStage(logger, cfg)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
+	case cfg.ReplaceConfig != nil:
+		s, err = newReplaceStage(logger, *cfg.ReplaceConfig)
+		if err != nil {
+			return nil, err
+		}
 	// case StageTypeDrop:
 	// 	s, err = newDropStage(logger, cfg, registerer)
 	// 	if err != nil {
 	// 		return nil, err
 	// 	}
-	// case StageTypeLimit:
-	// 	s, err = newLimitStage(logger, cfg, registerer)
+	// case cfg.LimitConfig != nil:
+	// 	s, err = newLimitStage(logger, *cfg.LimitConfig, registerer)
 	// 	if err != nil {
 	// 		return nil, err
 	// 	}
-	// case StageTypeMultiline:
-	// 	s, err = newMultilineStage(logger, cfg)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
+	case cfg.MultilineConfig != nil:
+		s, err = newMultilineStage(logger, *cfg.MultilineConfig)
+		if err != nil {
+			return nil, err
+		}
 	// case StageTypePack:
 	// 	s, err = newPackStage(logger, cfg, registerer)
 	// 	if err != nil {
