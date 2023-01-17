@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/grafana/agent/pkg/integrations"
+	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
+	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"time"
 
 	"github.com/go-kit/log"
@@ -17,6 +19,7 @@ import (
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.NewNamedShim("cloudwatch_exporter"))
 }
 
 type Config struct {
