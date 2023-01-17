@@ -87,7 +87,7 @@ func TestMultilineStageMultiStreams(t *testing.T) {
 
 func TestMultilineStageMaxWaitTime(t *testing.T) {
 	logger, _ := logging.New(io.Discard, logging.DefaultOptions)
-	mcfg := MultilineConfig{Expression: "^START", MaxWaitTime: 2 * time.Second}
+	mcfg := MultilineConfig{Expression: "^START", MaxWaitTime: 100 * time.Millisecond}
 	err := validateMultilineConfig(&mcfg)
 	require.NoError(t, err)
 
@@ -116,7 +116,7 @@ func TestMultilineStageMaxWaitTime(t *testing.T) {
 		in <- simpleEntry("START line", "label")
 
 		// Trigger flush due to max wait timeout
-		time.Sleep(4 * time.Second)
+		time.Sleep(150 * time.Millisecond)
 
 		in <- simpleEntry("not a start line hitting timeout", "label")
 
@@ -124,12 +124,16 @@ func TestMultilineStageMaxWaitTime(t *testing.T) {
 		close(in)
 	}()
 
-	require.Eventually(t, func() bool { mu.Lock(); defer mu.Unlock(); return len(res) == 2 }, 6*time.Second, time.Second)
+	require.Eventually(t, func() bool { mu.Lock(); defer mu.Unlock(); return len(res) == 2 }, 2*time.Second, 200*time.Millisecond)
 	require.Equal(t, "START line", res[0].Line)
 	require.Equal(t, "not a start line hitting timeout", res[1].Line)
 }
 
 func simpleEntry(line, label string) Entry {
+	// We're adding a small wait time here, because on Windows, timers have a
+	// smaller resolution than on Linux. This can mess with the ordering of log
+	// lines, making the test Flaky on Windows runners.
+	time.Sleep(1 * time.Millisecond)
 	return Entry{
 		Extracted: map[string]interface{}{},
 		Entry: loki.Entry{
