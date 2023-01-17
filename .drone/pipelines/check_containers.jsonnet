@@ -44,10 +44,6 @@ local linux_containers = [
         'git config --global --add safe.directory C:/drone/src/',
         '& "C:/Program Files/git/bin/bash.exe" -c ./tools/ci/docker-containers-windows',
       ],
-
-      // TODO(rfratto): remove me once Windows containers are building
-      // properly.
-      failure: 'ignore',
     }],
     volumes: [{
       name: 'docker',
