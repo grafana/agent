@@ -7,8 +7,11 @@ WORKDIR /src/agent
 
 SHELL ["cmd", "/C"]
 
-RUN "C:\Program Files\git\bin\bash.exe" -c 'RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} make generate-ui'
-RUN "C:\Program Files\git\bin\bash.exe" -c 'RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} make agent'
+RUN --mount=type=cache,target=/src/agent/web/ui/node_modules,sharing=locked \
+   "C:\Program Files\git\bin\bash.exe" -c 'RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} make generate-ui'
+RUN --mount=type=cache,target=/Users/ContainerAdministrator/AppData/Local/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+   "C:\Program Files\git\bin\bash.exe" -c 'RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} make agent'
 
 # Use the smallest container possible for the final image
 FROM mcr.microsoft.com/windows/nanoserver:1809
