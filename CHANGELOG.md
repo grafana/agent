@@ -10,6 +10,8 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+- Integrations: Introduce the `oracledb` integration. (@schmikei)
+
 v0.30.1 (2022-12-23)
 --------------------
 

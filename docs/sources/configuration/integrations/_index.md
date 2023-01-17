@@ -68,6 +68,9 @@ process_exporter: <process_exporter_config>
 # Controls the mysqld_exporter integration
 mysqld_exporter: <mysqld_exporter_config>
 
+# Controls the oracledb integration
+oracledb: <oracledb_config>
+
 # Controls the redis_exporter integration
 redis_exporter: <redis_exporter_config>
 
