@@ -147,7 +147,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 	// Immediately export the receiver which remains the same for the component
 	// lifetime.
-	o.OnStateChange(Exports{Rules: getRules(c)})
+	o.OnStateChange(Exports{Receiver: c.receiver, Rules: getRules(c)})
 
 	// Call to Update() to set the relabelling rules once at the start.
 	if err = c.Update(args); err != nil {
