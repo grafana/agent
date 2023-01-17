@@ -7,4 +7,4 @@ pkg/operator/crds/*.yaml linguist-generated=true
 **/testdata/fuzz/Fuzz*/** -text eol=lf
 
 # Needed to build the UI in windows
-* text eol=lf
+#* text eol=lf
