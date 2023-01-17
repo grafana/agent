@@ -1,9 +1,3 @@
-# syntax=docker/dockerfile:1.4
-
-# NOTE: This Dockerfile can only be built using BuildKit. BuildKit is used by
-# default when running `docker buildx build` or when DOCKER_BUILDKIT=1 is set
-# in environment variables.
-
 FROM grafana/agent-build-image:0.20.0-windows as builder
 ARG VERSION
 ARG RELEASE_BUILD=1
@@ -13,9 +7,7 @@ WORKDIR /src/agent
 
 SHELL ["cmd", "/C"]
 
-RUN --mount=type=cache,target=/Users/ContainerAdministrator/AppData/Local/go-build \
-    --mount=type=cache,target=/go/pkg/mod \
-   "C:\Program Files\git\bin\bash.exe" -c 'RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} make agentctl'
+RUN "C:\Program Files\git\bin\bash.exe" -c 'RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} make agentctl'
 
 # Use the smallest container possible for the final image
 FROM mcr.microsoft.com/windows/nanoserver:1809
