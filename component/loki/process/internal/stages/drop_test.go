@@ -300,7 +300,6 @@ func TestDropStage(t *testing.T) {
 	}
 }
 
-// TestDropPipeline is used to verify we properly parse the yaml config and create a working pipeline
 func TestDropPipeline(t *testing.T) {
 	registry := prometheus.NewRegistry()
 	plName := "test_pipeline"

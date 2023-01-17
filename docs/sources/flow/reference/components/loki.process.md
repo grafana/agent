@@ -366,25 +366,15 @@ Name          | Type      | Description                                         
 `source`      | `string`  | Name from extracted data to parse. If empty, uses the log message.  | `""`    | no
 
 
-The `expression` field needs to be a RE2 regex string. Every capture group (re) is set into the extracted map, so it must be named like: `(?P<name>re)`. The name of the capture group is then used as the key in the extracted map.
+The `expression` field needs to be a RE2 regex string. Every capture group (re)
+is set into the extracted map, so it must be named like: `(?P<name>re)`. The
+name of the capture group is then used as the key in the extracted map.
 
-<!--
-We don't care about YAML, what does River do instead???
+Because of how River treats backslashes in double-quoted strings, all
+backslashes in an `expression` must be escaped like `"\\S+"`.
 
-Because of how YAML treats backslashes in double-quoted strings, note that all backslashes in a regex expression must be escaped when using double quotes. For example, all of these are valid:
-
-expression: \w*
-expression: '\w*'
-expression: "\\w*"
-But these are not:
-
-expression: \\w* (only escape backslashes when using double quotes)
-expression: '\\w*' (only escape backslashes when using double quotes)
-expression: "\w*" (backslash must be escaped)
--->
-
-If the `source` is empty, then the stage uses attempts to parse the log line
-itself.
+If the `source` is empty or missing, then the stage parses the log line itself.
+If it's set, the stage parses a previously extracted value with the same name.
 
 Given the following log line and regex stage, the extracted values are shown
 below:
