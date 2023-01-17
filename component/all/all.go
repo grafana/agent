@@ -25,6 +25,7 @@ import (
 	_ "github.com/grafana/agent/component/otelcol/processor/memorylimiter"      // Import otelcol.processor.memory_limiter
 	_ "github.com/grafana/agent/component/otelcol/receiver/jaeger"              // Import otelcol.receiver.jaeger
 	_ "github.com/grafana/agent/component/otelcol/receiver/kafka"               // Import otelcol.receiver.kafka
+	_ "github.com/grafana/agent/component/otelcol/receiver/opencensus"          // Import otelcol.receiver.opencensus
 	_ "github.com/grafana/agent/component/otelcol/receiver/otlp"                // Import otelcol.receiver.otlp
 	_ "github.com/grafana/agent/component/otelcol/receiver/prometheus"          // Import otelcol.receiver.prometheus
 	_ "github.com/grafana/agent/component/otelcol/receiver/zipkin"              // Import otelcol.receiver.zipkin
