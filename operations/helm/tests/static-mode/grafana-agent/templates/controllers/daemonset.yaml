@@ -27,7 +27,7 @@ spec:
           - name: grafana-agent
             image: grafana/agent:v0.30.2
             args:
-              - -config-file=/etc/agent/config.yaml
+              - -config.file=/etc/agent/config.yaml
               - -server.http.address=0.0.0.0:80
             env:
               - name: AGENT_MODE

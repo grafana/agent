@@ -12,7 +12,7 @@
     {{- end}}
     {{- end}}
     {{- if eq .Values.agent.mode "static"}}
-    - -config-file=/etc/agent/{{ include "grafana-agent.config-map.key" . }}
+    - -config.file=/etc/agent/{{ include "grafana-agent.config-map.key" . }}
     - -server.http.address={{ .Values.agent.listenAddr }}:{{ .Values.agent.listenPort }}
     {{- end}}
     {{- range .Values.agent.extraArgs }}
