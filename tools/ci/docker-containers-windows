@@ -49,6 +49,8 @@ else
 fi
 
 # Build all of our images
+DOCKER_BUILDKIT=1
+
 docker build \
   -t "$AGENT_IMAGE:$VERSION_TAG" \
   -t "$AGENT_IMAGE:$BRANCH_TAG" \

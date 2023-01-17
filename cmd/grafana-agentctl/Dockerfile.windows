@@ -1,3 +1,7 @@
+# NOTE: This Dockerfile can only be built using BuildKit. BuildKit is used by
+# default when running `docker buildx build` or when DOCKER_BUILDKIT=1 is set
+# in environment variables.
+
 FROM grafana/agent-build-image:0.20.0-windows as builder
 ARG VERSION
 ARG RELEASE_BUILD=1
