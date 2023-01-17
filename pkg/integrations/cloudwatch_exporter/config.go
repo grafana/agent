@@ -26,41 +26,33 @@ func ToYACEConfig(c *Config) (yaceConf.ScrapeConf, error) {
 	for _, stat := range c.Static {
 		staticJobs = append(staticJobs, toYACEStaticJob(stat))
 	}
-	customNSJobs := []*yaceConf.CustomNamespace{}
-	for _, ns := range c.CustomNamespace {
-		customNSJobs = append(customNSJobs, toYACECustomNSJob(ns))
-	}
 	conf := yaceConf.ScrapeConf{
-		StsRegion: c.STSRegion,
+		ApiVersion: "v1alpha1",
+		StsRegion:  c.STSRegion,
 		Discovery: yaceConf.Discovery{
 			ExportedTagsOnMetrics: nil,
 			Jobs:                  discoveryJobs,
 		},
-		Static:          staticJobs,
-		CustomNamespace: customNSJobs,
+		Static: staticJobs,
 	}
-	return conf, conf.Validate(yaceSvc.CheckServiceName)
+	if err := conf.Validate(yaceSvc.CheckServiceName); err != nil {
+		return conf, err
+	}
+	patchYACEDefaults(&conf)
+
+	return conf, nil
 }
 
-func toYACECustomNSJob(job CustomNamespaceJob) *yaceConf.CustomNamespace {
-	length, period, roundingPeriod := toYACETimeParameters(job.Period)
-	return &yaceConf.CustomNamespace{
-		Regions:                   job.Regions,
-		Name:                      job.Name,
-		Namespace:                 job.Namespace,
-		Roles:                     toYACERoles(job.Roles),
-		Metrics:                   toYACEMetrics(job.Metrics),
-		Statistics:                nil,
-		NilToZero:                 &nilToZero,
-		Period:                    period,
-		Length:                    length,
-		Delay:                     0,
-		AddCloudwatchTimestamp:    &addCloudwatchTimestamp,
-		CustomTags:                toYACECustomTags(job.CustomTags),
-		DimensionNameRequirements: nil,
-		RoundingPeriod:            &roundingPeriod,
+// patchYACEDefaults overrides some default values YACE applies after validation.
+func patchYACEDefaults(yc *yaceConf.ScrapeConf) {
+	// YACE doesn't allow during validation a zero-delay in each metrics scrape. Override this behaviour since it's taken
+	// into account by the rounding period.
+	// https://github.com/nerdswords/yet-another-cloudwatch-exporter/blob/7e5949124bb5f26353eeff298724a5897de2a2a4/pkg/config/config.go#L320
+	for _, job := range yc.Discovery.Jobs {
+		for _, metric := range job.Metrics {
+			metric.Delay = 0
+		}
 	}
-
 }
 
 func toYACEStaticJob(job StaticJob) *yaceConf.Static {
@@ -73,7 +65,6 @@ func toYACEStaticJob(job StaticJob) *yaceConf.Static {
 		Dimensions: toYACEDimensions(job.Dimensions),
 		Metrics:    toYACEMetrics(job.Metrics),
 	}
-
 }
 
 func toYACEDimensions(dim []Dimension) []yaceConf.Dimension {
@@ -96,9 +87,6 @@ func toYACETimeParameters(period time.Duration) (length, yacePeriod, roundingPer
 
 func toYACEDiscoveryJob(job *DiscoveryJob) *yaceConf.Job {
 	roles := toYACERoles(job.Roles)
-	periodSeconds := int64(job.Period.Seconds())
-	lengthSeconds := periodSeconds
-	roundingPeriod := periodSeconds
 	return &yaceConf.Job{
 		Regions:                job.Regions,
 		Roles:                  roles,
@@ -106,10 +94,10 @@ func toYACEDiscoveryJob(job *DiscoveryJob) *yaceConf.Job {
 		Type:                   job.Type,
 		NilToZero:              &nilToZero,
 		Metrics:                toYACEMetrics(job.Metrics),
-		Period:                 periodSeconds,
-		Length:                 lengthSeconds,
+		Period:                 0,
+		Length:                 0,
 		Delay:                  0,
-		RoundingPeriod:         &roundingPeriod,
+		RoundingPeriod:         nil,
 		AddCloudwatchTimestamp: &addCloudwatchTimestamp,
 	}
 }
@@ -117,9 +105,16 @@ func toYACEDiscoveryJob(job *DiscoveryJob) *yaceConf.Job {
 func toYACEMetrics(metrics []Metric) []*yaceConf.Metric {
 	yaceMetrics := []*yaceConf.Metric{}
 	for _, metric := range metrics {
+		periodSeconds := int64(metric.Period.Seconds())
+		lengthSeconds := periodSeconds
 		yaceMetrics = append(yaceMetrics, &yaceConf.Metric{
-			Name:       metric.Name,
-			Statistics: metric.Statistics,
+			Name:                   metric.Name,
+			Statistics:             metric.Statistics,
+			Period:                 periodSeconds,
+			Length:                 lengthSeconds,
+			NilToZero:              &nilToZero,
+			AddCloudwatchTimestamp: &addCloudwatchTimestamp,
+			Delay:                  0,
 		})
 	}
 	return yaceMetrics
@@ -127,6 +122,11 @@ func toYACEMetrics(metrics []Metric) []*yaceConf.Metric {
 
 func toYACERoles(roles []Role) []yaceConf.Role {
 	yaceRoles := []yaceConf.Role{}
+	// YACE defaults to an empty role, which means the environment configured role is used
+	// https://github.com/nerdswords/yet-another-cloudwatch-exporter/blob/30aeceb2324763cdd024a1311045f83a09c1df36/pkg/config/config.go#L111
+	if len(roles) == 0 {
+		yaceRoles = append(yaceRoles, yaceConf.Role{})
+	}
 	for _, role := range roles {
 		yaceRoles = append(yaceRoles, yaceConf.Role{
 			RoleArn:    role.RoleArn,

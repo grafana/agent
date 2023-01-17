@@ -17,15 +17,30 @@ discovery:
         - us-east-2
       roles:
         - roleArn: arn:aws:iam::878167871295:role/yace_testing
-      period: 5m
       customTags:
         - key: alias
           value: tesis
       metrics:
         - name: CPUUtilization
+          period: 5m
           statistics:
             - Maximum
             - Average
+static:
+  - regions:
+      - us-east-2
+    name: custom_tesis_metrics
+    namespace: CoolApp
+    dimensions:
+      - name: PURCHASES_SERVICE
+        value: CoolService
+      - name: APP_VERSION
+        value: 1.0
+    metrics:
+      - name: KPIs
+        period: 5m
+        statistics:
+          - Average
 `
 
 var roundingPeriod5Minutes = int64(300)
@@ -33,7 +48,8 @@ var truePtr = true
 var falsePtr = false
 
 var expectedConfig = yaceConf.ScrapeConf{
-	StsRegion: "us-east-2",
+	ApiVersion: "v1alpha1",
+	StsRegion:  "us-east-2",
 	Discovery: yaceConf.Discovery{
 		Jobs: []*yaceConf.Job{
 			{
@@ -55,25 +71,52 @@ var expectedConfig = yaceConf.ScrapeConf{
 						Name:       "CPUUtilization",
 						Statistics: []string{"Maximum", "Average"},
 						// Defaults get configured from general settings
-						Period: 300,
-						Length: 300,
-						// Default YACE delay applied
-						Delay:                  300,
+						Period:                 300,
+						Length:                 300,
+						Delay:                  0,
 						NilToZero:              &nilToZero,
 						AddCloudwatchTimestamp: &addCloudwatchTimestamp,
 					},
 				},
-				Period:                 300,
-				Length:                 300,
+				Period:                 0,
+				Length:                 0,
 				Delay:                  0,
-				RoundingPeriod:         &roundingPeriod5Minutes,
+				RoundingPeriod:         nil,
 				AddCloudwatchTimestamp: &falsePtr,
 				NilToZero:              &nilToZero,
 			},
 		},
 	},
-	Static:          []*yaceConf.Static{},
-	CustomNamespace: []*yaceConf.CustomNamespace{},
+	Static: []*yaceConf.Static{
+		{
+			Name:       "custom_tesis_metrics",
+			Regions:    []string{"us-east-2"},
+			Roles:      []yaceConf.Role{{}},
+			Namespace:  "CoolApp",
+			CustomTags: []yaceModel.Tag{},
+			Dimensions: []yaceConf.Dimension{
+				{
+					Name:  "PURCHASES_SERVICE",
+					Value: "CoolService",
+				},
+				{
+					Name:  "APP_VERSION",
+					Value: "1.0",
+				},
+			},
+			Metrics: []*yaceConf.Metric{
+				{
+					Name:                   "KPIs",
+					Period:                 300,
+					Length:                 300,
+					Statistics:             []string{"Average"},
+					Delay:                  0,
+					NilToZero:              &nilToZero,
+					AddCloudwatchTimestamp: &addCloudwatchTimestamp,
+				},
+			},
+		},
+	},
 }
 
 func TestTranslateConfigToYACEConfig(t *testing.T) {

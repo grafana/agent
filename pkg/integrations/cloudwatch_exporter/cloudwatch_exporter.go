@@ -20,10 +20,9 @@ func init() {
 }
 
 type Config struct {
-	STSRegion       string               `yaml:"stsRegion"`
-	Discovery       DiscoveryConfig      `yaml:"discovery"`
-	Static          []StaticJob          `yaml:"static"`
-	CustomNamespace []CustomNamespaceJob `yaml:"customNamespace"`
+	STSRegion string          `yaml:"stsRegion"`
+	Discovery DiscoveryConfig `yaml:"discovery"`
+	Static    []StaticJob     `yaml:"static"`
 }
 
 // Discovery Jobs
@@ -39,9 +38,8 @@ type TagsPerNamespace map[string][]string
 type DiscoveryJob struct {
 	InlineRegionAndRoles `yaml:",inline"`
 	InlineCustomTags     `yaml:",inline"`
-	Type                 string        `yaml:"type"`
-	Metrics              []Metric      `yaml:"metrics"`
-	Period               time.Duration `yaml:"period"`
+	Type                 string   `yaml:"type"`
+	Metrics              []Metric `yaml:"metrics"`
 }
 
 // Static Jobs
@@ -49,22 +47,10 @@ type DiscoveryJob struct {
 type StaticJob struct {
 	InlineRegionAndRoles `yaml:",inline"`
 	InlineCustomTags     `yaml:",inline"`
-	Name                 string        `yaml:"name"`
-	Namespace            string        `yaml:"namespace"`
-	Dimensions           []Dimension   `yaml:"dimensions"`
-	Metrics              []Metric      `yaml:"metrics"`
-	Period               time.Duration `yaml:"period"`
-}
-
-// Custom Namespace Jobs
-
-type CustomNamespaceJob struct {
-	InlineRegionAndRoles `yaml:",inline"`
-	InlineCustomTags     `yaml:",inline"`
-	Name                 string        `yaml:"name"`
-	Namespace            string        `yaml:"namespace"`
-	Metrics              []Metric      `yaml:"metrics"`
-	Period               time.Duration `yaml:"period"`
+	Name                 string      `yaml:"name"`
+	Namespace            string      `yaml:"namespace"`
+	Dimensions           []Dimension `yaml:"dimensions"`
+	Metrics              []Metric    `yaml:"metrics"`
 }
 
 // Supporting types
@@ -96,8 +82,9 @@ type Tag struct {
 }
 
 type Metric struct {
-	Name       string   `yaml:"name"`
-	Statistics []string `yaml:"statistics"`
+	Name       string        `yaml:"name"`
+	Statistics []string      `yaml:"statistics"`
+	Period     time.Duration `yaml:"period"`
 }
 
 func (c *Config) Name() string {
