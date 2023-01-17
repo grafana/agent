@@ -109,8 +109,6 @@ spec:
         - -config.expand-env=true
         - -config.file=/etc/agent/agent.yaml
         - -server.http.address=0.0.0.0:80
-        command:
-        - /bin/grafana-agent
         env:
         - name: HOSTNAME
           valueFrom:

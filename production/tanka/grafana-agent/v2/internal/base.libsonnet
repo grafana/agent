@@ -48,7 +48,6 @@ function(name='grafana-agent', namespace='') {
   container::
     container.new(name, this._images.agent) +
     container.withPorts(containerPort.new('http-metrics', this._config.agent_port)) +
-    container.withCommand('/bin/grafana-agent') +
     container.withArgsMixin(k.util.mapToFlags(this._config.agent_args)) +
     // `HOSTNAME` is required for promtail (logs) otherwise it will silently do nothing
     container.withEnvMixin([
