@@ -360,8 +360,8 @@ type LimitStageSpec struct {
 	// The cap in the quantity of burst lines that Promtail will push to Loki.
 	Burst int `json:"burst,omitempty"`
 
-	// When drop is true, log lines that exceed the current rate limit will be discarded.
-	// When drop is false, log lines that exceed the current rate limit will only wait
+	// When drop is true, log lines that exceed the current rate limit are discarded.
+	// When drop is false, log lines that exceed the current rate limit wait
 	// to enter the back pressure mode.
 	//
 	// Defaults to false.
