@@ -22,7 +22,7 @@ type KVConfig struct {
 }
 
 func (k KVConfig) IsZero() bool {
-	return reflect.DeepEqual(k, KVConfig{})
+	return reflect.DeepEqual(k, KVConfig{}) || reflect.DeepEqual(k, DefaultConfig.KVStore)
 }
 
 // LifecyclerConfig wraps the ring.LifecyclerConfig type to allow defining IsZero, which is required to make omitempty work when marshalling YAML.
@@ -31,7 +31,7 @@ type LifecyclerConfig struct {
 }
 
 func (l LifecyclerConfig) IsZero() bool {
-	return reflect.DeepEqual(l, LifecyclerConfig{})
+	return reflect.DeepEqual(l, LifecyclerConfig{}) || reflect.DeepEqual(l, DefaultConfig.Lifecycler)
 }
 
 // Config describes how to instantiate a scraping service Server instance.
@@ -61,6 +61,10 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	}
 	c.Lifecycler.RingConfig.ReplicationFactor = 1
 	return nil
+}
+
+func (c Config) IsZero() bool {
+	return reflect.DeepEqual(c, Config{}) || reflect.DeepEqual(c, DefaultConfig)
 }
 
 // RegisterFlags adds the flags required to config the Server to the given

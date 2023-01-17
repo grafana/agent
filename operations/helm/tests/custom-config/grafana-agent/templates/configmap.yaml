@@ -11,7 +11,11 @@ metadata:
     app.kubernetes.io/version: "v0.30.2"
     app.kubernetes.io/managed-by: Helm
 data:
-  config.yaml: |- 
-    server:
-      log_level: info
-      log_format: logfmt
+  config.river:   |-
+    logging {
+      level  = "warn"
+      format = "logfmt"
+    }
+    discovery.kubernetes "custom_pods" {
+      role = "pod"
+    }
