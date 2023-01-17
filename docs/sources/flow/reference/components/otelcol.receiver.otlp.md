@@ -160,15 +160,15 @@ Name | Type | Description | Default | Required
 `allowed_headers` | `list(string)` | Accepted headers from CORS requests. | `["X-Requested-With"]` | no
 `max_age` | `number` | Configures the `Access-Control-Max-Age` response header. | | no
 
-The `allowed_headers` specifies which headers are acceptable from a CORS
-request. The following headers are always implicitly allowed:
+The `allowed_headers` argument specifies which headers are acceptable from a
+CORS request. The following headers are always implicitly allowed:
 
 * `Accept`
 * `Accept-Language`
 * `Content-Type`
 * `Content-Language`
 
-If `allowed_headers` includes `"*"`, all headers will be permitted.
+If `allowed_headers` includes `"*"`, all headers are permitted.
 
 ### output block
 

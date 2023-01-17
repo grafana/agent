@@ -2,6 +2,7 @@ package cluster
 
 import (
 	"flag"
+	"reflect"
 	"strings"
 	"time"
 
@@ -15,16 +16,34 @@ import (
 // DefaultConfig provides default values for the config
 var DefaultConfig = *flagutil.DefaultConfigFromFlags(&Config{}).(*Config)
 
+// KVConfig wraps the kv.Config type to allow defining IsZero, which is required to make omitempty work when marshalling YAML.
+type KVConfig struct {
+	kv.Config `yaml:",inline"`
+}
+
+func (k KVConfig) IsZero() bool {
+	return reflect.DeepEqual(k, KVConfig{}) || reflect.DeepEqual(k, DefaultConfig.KVStore)
+}
+
+// LifecyclerConfig wraps the ring.LifecyclerConfig type to allow defining IsZero, which is required to make omitempty work when marshalling YAML.
+type LifecyclerConfig struct {
+	ring.LifecyclerConfig `yaml:",inline"`
+}
+
+func (l LifecyclerConfig) IsZero() bool {
+	return reflect.DeepEqual(l, LifecyclerConfig{}) || reflect.DeepEqual(l, DefaultConfig.Lifecycler)
+}
+
 // Config describes how to instantiate a scraping service Server instance.
 type Config struct {
-	Enabled                    bool                  `yaml:"enabled"`
-	ReshardInterval            time.Duration         `yaml:"reshard_interval"`
-	ReshardTimeout             time.Duration         `yaml:"reshard_timeout"`
-	ClusterReshardEventTimeout time.Duration         `yaml:"cluster_reshard_event_timeout"`
-	KVStore                    kv.Config             `yaml:"kvstore"`
-	Lifecycler                 ring.LifecyclerConfig `yaml:"lifecycler"`
+	Enabled                    bool             `yaml:"enabled,omitempty"`
+	ReshardInterval            time.Duration    `yaml:"reshard_interval,omitempty"`
+	ReshardTimeout             time.Duration    `yaml:"reshard_timeout,omitempty"`
+	ClusterReshardEventTimeout time.Duration    `yaml:"cluster_reshard_event_timeout,omitempty"`
+	KVStore                    KVConfig         `yaml:"kvstore,omitempty"`
+	Lifecycler                 LifecyclerConfig `yaml:"lifecycler,omitempty"`
 
-	DangerousAllowReadingFiles bool `yaml:"dangerous_allow_reading_files"`
+	DangerousAllowReadingFiles bool `yaml:"dangerous_allow_reading_files,omitempty"`
 
 	// TODO(rfratto): deprecate scraping_service_client in Agent and replace with this.
 	Client                    client.Config `yaml:"-"`
@@ -42,6 +61,10 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	}
 	c.Lifecycler.RingConfig.ReplicationFactor = 1
 	return nil
+}
+
+func (c Config) IsZero() bool {
+	return reflect.DeepEqual(c, Config{}) || reflect.DeepEqual(c, DefaultConfig)
 }
 
 // RegisterFlags adds the flags required to config the Server to the given

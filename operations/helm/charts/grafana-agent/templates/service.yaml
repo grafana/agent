@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "grafana-agent.fullname" . }}
+  labels:
+    {{- include "grafana-agent.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    {{- include "grafana-agent.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: http-metrics
+      port: {{ .Values.agent.listenPort }}
+      targetPort: {{ .Values.agent.listenPort }}
+      protocol: "TCP"
+{{- range $portMap := .Values.agent.extraPorts }}
+    - name: {{ $portMap.name }}
+      port: {{ $portMap.port }}
+      targetPort: {{ $portMap.targetPort }}
+      protocol: {{ coalesce $portMap.protocol "TCP" }} 
+{{- end }}

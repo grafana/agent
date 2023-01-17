@@ -2,7 +2,10 @@ package relabel
 
 import (
 	"context"
+	"fmt"
 	"sync"
+
+	"go.uber.org/atomic"
 
 	"github.com/prometheus/prometheus/storage"
 
@@ -41,13 +44,15 @@ type Arguments struct {
 
 // Exports holds values which are exported by the prometheus.relabel component.
 type Exports struct {
-	Receiver storage.Appendable `river:"receiver,attr"`
+	Receiver storage.Appendable  `river:"receiver,attr"`
+	Rules    *flow_relabel.Rules `river:"rules,attr"`
 }
 
 // Component implements the prometheus.relabel component.
 type Component struct {
 	mut              sync.RWMutex
 	opts             component.Options
+	mrcFlow          []*flow_relabel.Config
 	mrc              []*relabel.Config
 	receiver         *prometheus.Interceptor
 	metricsProcessed prometheus_client.Counter
@@ -56,6 +61,7 @@ type Component struct {
 	cacheMisses      prometheus_client.Counter
 	cacheSize        prometheus_client.Gauge
 	fanout           *prometheus.Fanout
+	exited           atomic.Bool
 
 	cacheMut sync.RWMutex
 	cache    map[uint64]*labelAndID
@@ -104,6 +110,10 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	c.receiver = prometheus.NewInterceptor(
 		c.fanout,
 		prometheus.WithAppendHook(func(_ storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
+			if c.exited.Load() {
+				return 0, fmt.Errorf("%s has exited", o.ID)
+			}
+
 			newLbl := c.relabel(v, l)
 			if newLbl == nil {
 				return 0, nil
@@ -112,6 +122,10 @@ func New(o component.Options, args Arguments) (*Component, error) {
 			return next.Append(0, newLbl, t, v)
 		}),
 		prometheus.WithExemplarHook(func(_ storage.SeriesRef, l labels.Labels, e exemplar.Exemplar, next storage.Appender) (storage.SeriesRef, error) {
+			if c.exited.Load() {
+				return 0, fmt.Errorf("%s has exited", o.ID)
+			}
+
 			newLbl := c.relabel(0, l)
 			if newLbl == nil {
 				return 0, nil
@@ -119,6 +133,10 @@ func New(o component.Options, args Arguments) (*Component, error) {
 			return next.AppendExemplar(0, l, e)
 		}),
 		prometheus.WithMetadataHook(func(_ storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error) {
+			if c.exited.Load() {
+				return 0, fmt.Errorf("%s has exited", o.ID)
+			}
+
 			newLbl := c.relabel(0, l)
 			if newLbl == nil {
 				return 0, nil
@@ -129,7 +147,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 	// Immediately export the receiver which remains the same for the component
 	// lifetime.
-	o.OnStateChange(Exports{Receiver: c.receiver})
+	o.OnStateChange(Exports{Receiver: c.receiver, Rules: getRules(c)})
 
 	// Call to Update() to set the relabelling rules once at the start.
 	if err = c.Update(args); err != nil {
@@ -141,6 +159,8 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
+	defer c.exited.Store(true)
+
 	<-ctx.Done()
 	return nil
 }
@@ -153,8 +173,8 @@ func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 	c.clearCache()
 	c.mrc = flow_relabel.ComponentToPromRelabelConfigs(newArgs.MetricRelabelConfigs)
+	c.mrcFlow = newArgs.MetricRelabelConfigs
 	c.fanout.UpdateChildren(newArgs.ForwardTo)
-	c.opts.OnStateChange(Exports{Receiver: c.receiver})
 
 	return nil
 }
@@ -173,7 +193,9 @@ func (c *Component) relabel(val float64, lbls labels.Labels) labels.Labels {
 			relabelled = newLbls.labels
 		}
 	} else {
-		relabelled = relabel.Process(lbls, c.mrc...)
+		// Relabel against a copy of the labels to prevent modifying the original
+		// slice.
+		relabelled = relabel.Process(lbls.Copy(), c.mrc...)
 		c.cacheMisses.Inc()
 		c.cacheSize.Inc()
 		c.addToCache(globalRef, relabelled)
@@ -234,4 +256,15 @@ func (c *Component) addToCache(originalID uint64, lbls labels.Labels) {
 type labelAndID struct {
 	labels labels.Labels
 	id     uint64
+}
+
+func getRules(c *Component) *flow_relabel.Rules {
+	return &flow_relabel.Rules{
+		GetAll: func() []*flow_relabel.Config {
+			c.mut.RLock()
+			defer c.mut.RUnlock()
+
+			return c.mrcFlow
+		},
+	}
 }

@@ -7,6 +7,7 @@ package stages
 import (
 	"errors"
 	"fmt"
+	"io"
 	"reflect"
 	"testing"
 	"time"
@@ -14,11 +15,11 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river"
-	util_log "github.com/grafana/loki/pkg/util/log"
 )
 
-var testJSONYamlSingleStageWithoutSource = `
+var testJSONRiverSingleStageWithoutSource = `
 stage {
   json {
     expressions = {"out" = "message", "app" = "", "nested" = "", duration = "", unknown = "" }
@@ -26,7 +27,7 @@ stage {
 }
 `
 
-var testJSONYamlMultiStageWithSource = `
+var testJSONRiverMultiStageWithSource = `
 stage {
   json {
     expressions = { "extra" = "" }
@@ -55,6 +56,7 @@ var testJSONLogLine = `
 
 func TestPipeline_JSON(t *testing.T) {
 	t.Parallel()
+	logger, _ := logging.New(io.Discard, logging.DefaultOptions)
 
 	tests := map[string]struct {
 		config          string
@@ -62,7 +64,7 @@ func TestPipeline_JSON(t *testing.T) {
 		expectedExtract map[string]interface{}
 	}{
 		"successfully run a pipeline with 1 json stage without source": {
-			testJSONYamlSingleStageWithoutSource,
+			testJSONRiverSingleStageWithoutSource,
 			testJSONLogLine,
 			map[string]interface{}{
 				"out":      "this is a log line",
@@ -73,7 +75,7 @@ func TestPipeline_JSON(t *testing.T) {
 			},
 		},
 		"successfully run a pipeline with 2 json stages with source": {
-			testJSONYamlMultiStageWithSource,
+			testJSONRiverMultiStageWithSource,
 			testJSONLogLine,
 			map[string]interface{}{
 				"extra": "{\"user\":\"marco\"}",
@@ -88,7 +90,7 @@ func TestPipeline_JSON(t *testing.T) {
 		t.Run(testName, func(t *testing.T) {
 			t.Parallel()
 
-			pl, err := NewPipeline(util_log.Logger, loadConfig(testData.config), nil, prometheus.DefaultRegisterer)
+			pl, err := NewPipeline(logger, loadConfig(testData.config), nil, prometheus.DefaultRegisterer)
 			assert.NoError(t, err, "Expected pipeline creation to not result in error")
 			out := processEntries(pl, newEntry(nil, nil, testData.entry, time.Now()))[0]
 			assert.Equal(t, testData.expectedExtract, out.Extracted)
@@ -96,7 +98,7 @@ func TestPipeline_JSON(t *testing.T) {
 	}
 }
 
-var cfg = `
+var jsonCfg = `
   expressions = {
     key1 = "expression1",
     key2 = "expression2.expression2",
@@ -104,12 +106,12 @@ var cfg = `
 `
 
 // nolint
-func TestYamlMapStructure(t *testing.T) {
+func TestRiver(t *testing.T) {
 	t.Parallel()
 
-	// testing that we can use yaml data into mapstructure.
+	// testing that we can use river data into the config structure.
 	var got JSONConfig
-	err := river.Unmarshal([]byte(cfg), &got)
+	err := river.Unmarshal([]byte(jsonCfg), &got)
 	assert.NoError(t, err, "error while un-marshalling config: %s", err)
 
 	want := JSONConfig{
@@ -221,6 +223,7 @@ var logFixture = `
 
 func TestJSONParser_Parse(t *testing.T) {
 	t.Parallel()
+	logger, _ := logging.New(io.Discard, logging.DefaultOptions)
 
 	var logString = "log"
 	tests := map[string]struct {
@@ -349,7 +352,7 @@ func TestJSONParser_Parse(t *testing.T) {
 		tt := tt
 		t.Run(tName, func(t *testing.T) {
 			t.Parallel()
-			p, err := New(util_log.Logger, nil, tt.config, nil)
+			p, err := New(logger, nil, tt.config, nil)
 			assert.NoError(t, err, "failed to create json parser: %s", err)
 			out := processEntries(p, newEntry(tt.extracted, nil, tt.entry, time.Now()))[0]
 
@@ -359,12 +362,13 @@ func TestJSONParser_Parse(t *testing.T) {
 }
 
 func TestValidateJSONDrop(t *testing.T) {
+	logger, _ := logging.New(io.Discard, logging.DefaultOptions)
 	labels := map[string]string{"foo": "bar"}
 	matchConfig := &JSONConfig{
 		DropMalformed: true,
 		Expressions:   map[string]string{"page": "page"},
 	}
-	s, err := newJSONStage(util_log.Logger, matchConfig)
+	s, err := newJSONStage(logger, *matchConfig)
 	assert.NoError(t, err, "withMatcher() error = %v", err)
 	assert.NotNil(t, s, "newJSONStage failed to create the pipeline stage and was nil")
 	out := processEntries(s, newEntry(map[string]interface{}{

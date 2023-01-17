@@ -113,31 +113,26 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 		err error
 	)
 	switch {
-	// case StageTypeDocker:
-	// 	s, err = NewDocker(logger, registerer)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// case StageTypeCRI:
-	// 	s, err = NewCRI(logger, registerer)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	case cfg.JSONConfig != nil:
-		s, err = newJSONStage(logger, cfg.JSONConfig)
+	case cfg.DockerConfig != nil:
+		s, err = NewDocker(logger, registerer)
 		if err != nil {
 			return nil, err
 		}
-	// case StageTypeLogfmt:
-	// 	s, err = newLogfmtStage(logger, cfg)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// case StageTypeRegex:
-	// 	s, err = newRegexStage(logger, cfg)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
+	case cfg.CRIConfig != nil:
+		s, err = NewCRI(logger, registerer)
+		if err != nil {
+			return nil, err
+		}
+	case cfg.JSONConfig != nil:
+		s, err = newJSONStage(logger, *cfg.JSONConfig)
+		if err != nil {
+			return nil, err
+		}
+	case cfg.LogfmtConfig != nil:
+		s, err = newLogfmtStage(logger, *cfg.LogfmtConfig)
+		if err != nil {
+			return nil, err
+		}
 	// case StageTypeMetric:
 	// 	s, err = newMetricStage(logger, cfg, registerer)
 	// 	if err != nil {
@@ -153,16 +148,21 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 	// 	if err != nil {
 	// 		return nil, err
 	// 	}
-	// case StageTypeTimestamp:
-	// 	s, err = newTimestampStage(logger, cfg)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// case StageTypeOutput:
-	// 	s, err = newOutputStage(logger, cfg)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
+	case cfg.RegexConfig != nil:
+		s, err = newRegexStage(logger, *cfg.RegexConfig)
+		if err != nil {
+			return nil, err
+		}
+	case cfg.TimestampConfig != nil:
+		s, err = newTimestampStage(logger, *cfg.TimestampConfig)
+		if err != nil {
+			return nil, err
+		}
+	case cfg.OutputConfig != nil:
+		s, err = newOutputStage(logger, *cfg.OutputConfig)
+		if err != nil {
+			return nil, err
+		}
 	// case StageTypeMatch:
 	// 	s, err = newMatcherStage(logger, jobName, cfg, registerer)
 	// 	if err != nil {
@@ -174,45 +174,50 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 	// 		return nil, err
 	// 	}
 	// case StageTypeTenant:
-	// 	s, err = newTenantStage(logger, cfg)
+	// 	s, err = newTenantStage(logger, cfg.TenantConfig)
 	// 	if err != nil {
 	// 		return nil, err
 	// 	}
-	// case StageTypeReplace:
-	// 	s, err = newReplaceStage(logger, cfg)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
+	case cfg.ReplaceConfig != nil:
+		s, err = newReplaceStage(logger, *cfg.ReplaceConfig)
+		if err != nil {
+			return nil, err
+		}
 	// case StageTypeDrop:
 	// 	s, err = newDropStage(logger, cfg, registerer)
 	// 	if err != nil {
 	// 		return nil, err
 	// 	}
-	// case StageTypeLimit:
-	// 	s, err = newLimitStage(logger, cfg, registerer)
+	// case cfg.LimitConfig != nil:
+	// 	s, err = newLimitStage(logger, *cfg.LimitConfig, registerer)
 	// 	if err != nil {
 	// 		return nil, err
 	// 	}
-	// case StageTypeMultiline:
-	// 	s, err = newMultilineStage(logger, cfg)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
+	case cfg.MultilineConfig != nil:
+		s, err = newMultilineStage(logger, *cfg.MultilineConfig)
+		if err != nil {
+			return nil, err
+		}
 	// case StageTypePack:
 	// 	s, err = newPackStage(logger, cfg, registerer)
 	// 	if err != nil {
 	// 		return nil, err
 	// 	}
-	// case StageTypeLabelAllow:
-	// 	s, err = newLabelAllowStage(cfg)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// case StageTypeStaticLabels:
-	// 	s, err = newStaticLabelsStage(logger, cfg)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
+	case cfg.LabelAllowConfig != nil:
+		s, err = newLabelAllowStage(*cfg.LabelAllowConfig)
+		if err != nil {
+			return nil, err
+		}
+	case cfg.LabelDropConfig != nil:
+		s, err = newLabelDropStage(*cfg.LabelDropConfig)
+		if err != nil {
+			return nil, err
+		}
+	case cfg.StaticLabelsConfig != nil:
+		s, err = newStaticLabelsStage(logger, *cfg.StaticLabelsConfig)
+		if err != nil {
+			return nil, err
+		}
 	default:
 		panic("unreacheable; should have decoded into one of the StageConfig fields")
 	}

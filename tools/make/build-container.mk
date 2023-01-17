@@ -33,9 +33,10 @@
 # Callers should set the PROPAGATE_VARS global variable to specify which
 # variable names should be passed through to the container.
 
-USE_CONTAINER ?= 0
-BUILD_IMAGE   ?= grafana/agent-build-image:0.17.0
-DOCKER_OPTS   ?= -it
+USE_CONTAINER       ?= 0
+BUILD_IMAGE_VERSION ?= 0.20.0
+BUILD_IMAGE         ?= grafana/agent-build-image:$(BUILD_IMAGE_VERSION)
+DOCKER_OPTS         ?= -it
 
 #
 # Build container cache. `make build-container-cache` will create two Docker
