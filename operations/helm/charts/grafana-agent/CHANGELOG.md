@@ -10,6 +10,12 @@ internal API changes are not present.
 Unreleased
 ----------
 
+0.2.2 (2023-01-17)
+------------------
+
+### Bug fix
+- Updated configmap template to use correct variable for populating configmap content
+
 0.2.1 (2023-01-12)
 ------------------
 
