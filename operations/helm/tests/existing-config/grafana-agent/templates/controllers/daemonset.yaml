@@ -54,7 +54,7 @@ spec:
             image: weaveworks/watch:master-5fc29a9
             args:
               - -v
-              - -p=/etc/agent/config.river
+              - -p=/etc/agent/my-config.river
               - curl
               - -X
               - POST
