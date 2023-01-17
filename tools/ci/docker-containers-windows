@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #
 # This script builds and pushes windows Docker containers. Maintainers
-# can run this without pushing to a remote repo as long as DOCKER_LOGIN, 
-# DOCKER_PASSWORD or DRONE_TAG are not set. For pushing to personal repos
-# set those 3 env vars and update the *_IMAGE values below to point to your repos
+# can run this without pushing to a remote repo as long as DOCKER_LOGIN or 
+# DOCKER_PASSWORD are not set. For pushing to personal repos
+# set those 2 env vars and update the *_IMAGE values below to point to your repos
 #
 # This script expects to be run from the repo root and has checks for running
 # from a Drone trigger.
@@ -66,7 +66,7 @@ docker build \
   .
 
 # Push images only if we have docker credentials and a drone tag is set
-if [ -n "$DOCKER_LOGIN" ] && [ -n "$DOCKER_PASSWORD" ] && [ -n "$DRONE_TAG" ]; then
+if [ -n "$DOCKER_LOGIN" ] && [ -n "$DOCKER_PASSWORD" ]; then
   docker login -u "$DOCKER_LOGIN" -p "$DOCKER_PASSWORD"
   docker push "$AGENT_IMAGE:$VERSION_TAG"
   docker push "$AGENTCTL_IMAGE:$VERSION_TAG"
