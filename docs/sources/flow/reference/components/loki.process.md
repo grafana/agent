@@ -234,7 +234,7 @@ unmarshaler, so that numeric or boolean types are unmarshalled into their
 correct form. The stage does not perform any other type conversions. If the
 extracted value is a complex type, it is treated as a string.
 
-Let's see how this works on the following log line and stage.
+Let's see how this works on the following log line and stages.
 
 ```
 time=2012-11-01T22:08:41+00:00 app=loki level=WARN duration=125 message="this is a log line" extra="user=foo"
@@ -256,8 +256,8 @@ stage {
 The first stage parses the log line itself and inserts the `extra` key in the
 set of extracted data, with the value of `user=foo`.
 
-Following that, the second stage parses the contents of `extra` and appends the
-`username: foo` key-value pair in the set of extracted data.
+The second stage parses the contents of `extra` and appends the `username: foo`
+key-value pair to the set of extracted data.
 
 
 ### labels block
@@ -596,7 +596,7 @@ Name           | Type      | Description                                        
 -------------- | --------- | -------------------------------------------------- | --------- | --------
 `expression`   | `string`  | Name from extracted data to use for the log entry. |           | yes
 `source`       | `string`  | Source of the data to parse. If empty, it uses the log message. | | no
-`replace`      | `string`  | Value to which the captured group is replaced.     |           | no
+`replace`      | `string`  | Value replaced by the capture group.               |           | no
 
 
 The `source` field defines the source of data to parse using `expression`. When
@@ -610,8 +610,8 @@ The `expression` must be a valid RE2 regex. Every named capture group
 Because of how River treats backslashes in double-quoted strings, note that all
 backslashes in a regex expression must be escaped like `"\\w*"`.
 
-Let's see the how this works with the following log line and stage. Since
-`source` is ommitted, the replacement happens on the log line itself.
+Let's see how this works with the following log line and stage. Since `source`
+is omitted, the replacement occurs  on the log line itself.
 
 ```
 2023-01-01T01:00:00.000000001Z stderr P i'm a log message who has sensitive information with password xyz!
@@ -629,9 +629,9 @@ The log line is transformed to
 2023-01-01T01:00:00.000000001Z stderr P i'm a log message who has sensitive information with password *****!
 ```
 
-If `replace` was empty, then the captured value would be omitted instead.
+If `replace` is empty, then the captured value is omitted instead.
 
-How about when `source` is defined?
+In the following example, `source` is defined.
 ```
 {"time":"2023-01-01T01:00:00.000000001Z", "level": "info", "msg":"11.11.11.11 - \"POST /loki/api/push/ HTTP/1.1\" 200 932 \"-\" \"Mozilla/5.0\"}
 
@@ -657,8 +657,8 @@ level: info
 msg: "11.11.11.11 - "POST /loki/api/push/ HTTP/1.1" 200 932 "-" "Mozilla/5.0"
 ```
 
-The replace stage would then act on the `msg` value, with the capture group
-matching against `/loki/api/push` which would then be replaced by `redacted_url`.
+The `replace` stage acts on the `msg` value. The capture group matches against
+`/loki/api/push` and is replaced by `redacted_url`.
 
 The `msg` value is finally transformed into:
 ```
@@ -668,8 +668,8 @@ msg: "11.11.11.11 - "POST redacted_url HTTP/1.1" 200 932 "-" "Mozilla/5.0"
 The `replace` field can use a set of templating functions, by utilizing Go's
 [text/template](https://pkg.go.dev/text/template) package.
 
-Let's see how this works along with named capture groups with a sample log line
-and stage
+Let's see how this works with named capture groups with a sample log line
+and stage.
 ```
 11.11.11.11 - agent [01/Jan/2023:00:00:01 +0200]
 
@@ -681,9 +681,9 @@ stage {
 }
 ```
 
-Since source is empty, the regex parses the log line itself and extracts the
-named capture groups to the shared map of values. The replace field acts on
-these extracted values and converts them to Uppercase:
+Since `source` is empty, the regex parses the log line itself and extracts the
+named capture groups to the shared map of values. The `replace` field acts on
+these extracted values and converts them to uppercase:
 ```
 ip: 11.11.11.11
 identd: -
@@ -696,8 +696,8 @@ and the log line becomes:
 11.11.11.11 - FRANK [01/JAN/2023:00:00:01 +0200] 
 ```
 
-Here's the full list of available functions, along with a couple examples of
-more complex replace fields.
+The following list contains available functions with examples of
+more complex `replace` fields.
 ```
 ToLower, ToUpper, Replace, Trim, TrimLeftTrimRight, TrimPrefix, TrimSuffix, TrimSpace, Hash, Sha2Hash, regexReplaceAll, regexReplaceAllLiteral
 
@@ -761,10 +761,10 @@ Exception: Sorry, this route always breaks
 [2023-01-18 17:42:29] "GET /hello HTTP/1.1" 200 -
 ```
 
-As we can see, all 'blocks' that form log entries of separate web requests
-start with a timestamp in square brackets. The stage detects this with the
-regular expression in `firstline` to collapse all lines of the traceback into a
-single block and thus a single Loki log entry.
+All 'blocks' that form log entries of separate web requests start with a
+timestamp in square brackets. The stage detects this with the regular
+expression in `firstline` to collapse all lines of the traceback into a single
+block and thus a single Loki log entry.
 
 
 ## Exported fields
