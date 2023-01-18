@@ -241,6 +241,9 @@ type PipelineStageSpec struct {
 	// to use for the value of the label. If the value is not provided, it
 	// defaults to match the key.
 	Labels map[string]string `json:"labels,omitempty"`
+	// Limit is a rate-limiting stage that throttles logs based on
+	// several options.
+	Limit *LimitStageSpec `json:"limit,omitempty"`
 	// Match is a filtering stage that conditionally applies a set of stages
 	// or drop entries when a log entry matches a configurable LogQL stream
 	// selector and filter expressions.
@@ -346,6 +349,23 @@ type JSONStageSpec struct {
 	// quotes, which then must be wrapped again in single quotes in YAML
 	// so they get passed to the JMESPath parser.
 	Expressions map[string]string `json:"expressions,omitempty"`
+}
+
+// The limit stage is a rate-limiting stage that throttles logs based on
+// several options.
+type LimitStageSpec struct {
+	// The rate limit in lines per second that Promtail will push to Loki.
+	Rate int `json:"rate,omitempty"`
+
+	// The cap in the quantity of burst lines that Promtail will push to Loki.
+	Burst int `json:"burst,omitempty"`
+
+	// When drop is true, log lines that exceed the current rate limit are discarded.
+	// When drop is false, log lines that exceed the current rate limit wait
+	// to enter the back pressure mode.
+	//
+	// Defaults to false.
+	Drop bool `json:"drop,omitempty"`
 }
 
 // MatchStageSpec is a filtering stage that conditionally applies a set of

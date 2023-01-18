@@ -156,6 +156,25 @@ spec:
                         of the label. If the value is not provided, it defaults to
                         match the key."
                       type: object
+                    limit:
+                      description: Limit is a rate-limiting stage that throttles logs
+                        based on several options.
+                      properties:
+                        burst:
+                          description: The cap in the quantity of burst lines that
+                            Promtail will push to Loki.
+                          type: integer
+                        drop:
+                          description: "When drop is true, log lines that exceed the
+                            current rate limit are discarded. When drop is false,
+                            log lines that exceed the current rate limit wait to enter
+                            the back pressure mode. \n Defaults to false."
+                          type: boolean
+                        rate:
+                          description: The rate limit in lines per second that Promtail
+                            will push to Loki.
+                          type: integer
+                      type: object
                     match:
                       description: Match is a filtering stage that conditionally applies
                         a set of stages or drop entries when a log entry matches a
