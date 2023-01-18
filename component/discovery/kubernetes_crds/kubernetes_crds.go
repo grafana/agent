@@ -94,7 +94,8 @@ func (c *Component) clearConfigs(kind string, ns string, name string) {
 
 func (c *Component) addConfig(pm *v1.PodMonitor) {
 	for i, ep := range pm.Spec.PodMetricsEndpoints {
-		pmc := c.cg.generatePodMonitorConfig(pm, ep, i)
+		// TODO: need to pass in number of shards
+		pmc := c.cg.generatePodMonitorConfig(pm, ep, i, 1)
 		c.mut.Lock()
 		c.discoveryConfigs[pmc.JobName] = pmc.ServiceDiscoveryConfigs
 		c.scrapeConfigs[pmc.JobName] = pmc

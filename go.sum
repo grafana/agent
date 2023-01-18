@@ -1046,6 +1046,8 @@ github.com/edsrzf/mmap-go v1.1.0/go.mod h1:19H/e8pUPLicwkyNgOykDXkJ9F0MHE+Z52B8E
 github.com/efficientgo/e2e v0.11.2-0.20211027134903-67d538984a47/go.mod h1:vDnF4AAEZmO0mvyFIATeDJPFaSRM7ywaOnKd61zaSoE=
 github.com/efficientgo/tools/core v0.0.0-20210129205121-421d0828c9a6/go.mod h1:OmVcnJopJL8d3X3sSXTiypGoUSgFq1aDGmlrdi9dn/M=
 github.com/efficientgo/tools/core v0.0.0-20210829154005-c7bad8450208/go.mod h1:OmVcnJopJL8d3X3sSXTiypGoUSgFq1aDGmlrdi9dn/M=
+github.com/efficientgo/tools/core v0.0.0-20220817170617-6c25e3b627dd h1:svR6KxSP1xiPw10RN4Pd7g6BAVkEcNN628PAqZH31mM=
+github.com/efficientgo/tools/core v0.0.0-20220817170617-6c25e3b627dd/go.mod h1:OmVcnJopJL8d3X3sSXTiypGoUSgFq1aDGmlrdi9dn/M=
 github.com/efficientgo/tools/extkingpin v0.0.0-20210609125236-d73259166f20/go.mod h1:ZV0utlglOczUWv3ih2AbqPSoLoFzdplUYxwV62eZi6Q=
 github.com/elastic/go-sysinfo v1.1.1/go.mod h1:i1ZYdU10oLNfRzq4vq62BEwD2fH8KaWh6eh0ikPT9F0=
 github.com/elastic/go-windows v1.0.0/go.mod h1:TsU0Nrp7/y3+VwE82FoZF8gC/XFg/Elz6CcloAxnPgU=
@@ -1253,6 +1255,8 @@ github.com/go-openapi/runtime v0.19.16/go.mod h1:5P9104EJgYcizotuXhEuUrzVc+j1RiS
 github.com/go-openapi/runtime v0.19.24/go.mod h1:Lm9YGCeecBnUUkFTxPC4s1+lwrkJ0pthx8YvyjCfkgk=
 github.com/go-openapi/runtime v0.19.29/go.mod h1:BvrQtn6iVb2QmiVXRsFAm6ZCAZBpbVKFfN6QWCp582M=
 github.com/go-openapi/runtime v0.23.1/go.mod h1:AKurw9fNre+h3ELZfk6ILsfvPN+bvvlaU/M9q/r9hpk=
+github.com/go-openapi/runtime v0.24.0 h1:vTgDijpGLCgJOJTdAp5kG+O+nRsVCbH417YQ3O0iZo0=
+github.com/go-openapi/runtime v0.24.0/go.mod h1:AKurw9fNre+h3ELZfk6ILsfvPN+bvvlaU/M9q/r9hpk=
 github.com/go-openapi/spec v0.0.0-20160808142527-6aced65f8501/go.mod h1:J8+jY1nAiCcj+friV/PDoE1/3eeccG9LYBs0tYvLOWc=
 github.com/go-openapi/spec v0.17.0/go.mod h1:XkF/MOi14NmjsfZ8VtAKf8pIlbZzyoTvZsdfssdxcBI=
 github.com/go-openapi/spec v0.18.0/go.mod h1:XkF/MOi14NmjsfZ8VtAKf8pIlbZzyoTvZsdfssdxcBI=
@@ -2504,6 +2508,8 @@ github.com/pquerna/cachecontrol v0.0.0-20171018203845-0dec1b30a021/go.mod h1:prY
 github.com/prashantv/gostub v1.1.0/go.mod h1:A5zLQHz7ieHGG7is6LLXLz7I8+3LZzsrV0P1IAHhP5U=
 github.com/prometheus-community/elasticsearch_exporter v1.5.0 h1:1k8CK7aPMdmJ/LcFDnGPyhSRrWw6zmH2zMyaOAKlBOc=
 github.com/prometheus-community/elasticsearch_exporter v1.5.0/go.mod h1:ZITzMapK/TzzsaKOBlNCatKGcCfp/6xIQg2ucoLHA5c=
+github.com/prometheus-community/prom-label-proxy v0.5.0 h1:f9RqZ+xwznh/7XbTEr0LD8KutbPMLwvS2c8AKndAMxg=
+github.com/prometheus-community/prom-label-proxy v0.5.0/go.mod h1:qiIPYa/ju9u4wq3LjvL3ofzd3jcyW0Rt5jkZ6QgF4nc=
 github.com/prometheus-operator/prometheus-operator v0.61.1 h1:byPe1OQHzTQ2js3hjc/Zf1nI7t854VRHjg8zxFHGH6g=
 github.com/prometheus-operator/prometheus-operator v0.61.1/go.mod h1:fNWiLmBou1oPiL8JEU0N9Qykm585HxU9bAebmjBalmM=
 github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.61.1 h1:ViIkBYnAUumtx9D7PiVPc1n8kNvwm+WMepDZWTZCBPc=

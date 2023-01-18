@@ -11,7 +11,9 @@ import (
 	"strings"
 
 	"github.com/alecthomas/units"
+	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	namespacelabeler "github.com/prometheus-operator/prometheus-operator/pkg/namespace-labeler"
 	commonConfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
@@ -83,7 +85,7 @@ func (cg *configGenerator) getSecretData(ns, name, key string) commonConfig.Secr
 	return commonConfig.Secret("")
 }
 
-func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodMetricsEndpoint, i int) *config.ScrapeConfig {
+func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodMetricsEndpoint, i int, shards int) *config.ScrapeConfig {
 	c := config.DefaultScrapeConfig
 	cfg := &c
 	cfg.ScrapeInterval = config.DefaultGlobalConfig.ScrapeInterval
@@ -274,10 +276,9 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 		})
 	}
 
-	// TODO: more relabeling including global config stuff. And some sharding questions
-	// labeler := namespacelabeler.New(cg.spec.EnforcedNamespaceLabel, cg.spec.ExcludedFromEnforcement, false)
-	//relabelings = append(relabelings, generateRelabelConfig(labeler.GetRelabelingConfigs(m.TypeMeta, m.ObjectMeta, ep.RelabelConfigs))...)
-	// relabelings = generateAddressShardingRelabelingRules(relabelings, shards)
+	labeler := namespacelabeler.New(cg.config.EnforcedNamespaceLabel, cg.config.ExcludedFromEnforcement, false)
+	relabels.addFromMonitoring(labeler.GetRelabelingConfigs(m.TypeMeta, m.ObjectMeta, ep.RelabelConfigs)...)
+	relabels.generateAddressShardingRelabelingRules(shards)
 
 	cfg.RelabelConfigs = relabels.configs
 
@@ -372,6 +373,39 @@ func (r *relabeler) Add(cfgs ...*relabel.Config) {
 	}
 }
 
+// addFromMonitoring converts from an externally generated monitoringv1 RelabelConfig
+func (r *relabeler) addFromMonitoring(cfgs ...*monitoringv1.RelabelConfig) {
+	for _, c := range cfgs {
+		cfg := &relabel.Config{}
+		for _, l := range c.SourceLabels {
+			cfg.SourceLabels = append(cfg.SourceLabels, model.LabelName(l))
+		}
+		if c.Separator != "" {
+			cfg.Separator = c.Separator
+		}
+		if c.TargetLabel != "" {
+			cfg.TargetLabel = c.TargetLabel
+		}
+		if c.Regex != "" {
+			if r, err := relabel.NewRegexp(c.Regex); err != nil {
+				cfg.Regex = r
+			} else {
+				// TODO: LOG ERROR?
+			}
+		}
+		if c.Modulus != 0 {
+			cfg.Modulus = c.Modulus
+		}
+		if c.Replacement != "" {
+			cfg.Replacement = c.Replacement
+		}
+		if c.Action != "" {
+			cfg.Action = relabel.Action(c.Action)
+		}
+		r.configs = append(r.configs, cfg)
+	}
+}
+
 func (cg *configGenerator) initRelabelings(cfg *config.ScrapeConfig) relabeler {
 	r := relabeler{}
 	// Relabel prometheus job name into a meta label
@@ -418,4 +452,28 @@ func (cg *configGenerator) getNamespacesFromNamespaceSelector(nsel v1.NamespaceS
 		return []string{namespace}
 	}
 	return nsel.MatchNames
+}
+
+func (r *relabeler) generateAddressShardingRelabelingRules(shards int) {
+	r.generateAddressShardingRelabelingRulesWithSourceLabel(shards, "__address__")
+}
+
+func (r *relabeler) generateAddressShardingRelabelingRulesForProbes(shards int) {
+	r.generateAddressShardingRelabelingRulesWithSourceLabel(shards, "__param_target")
+}
+
+func (r *relabeler) generateAddressShardingRelabelingRulesWithSourceLabel(shards int, shardLabel string) {
+
+	r.Add(
+		&relabel.Config{
+			SourceLabels: model.LabelNames{model.LabelName(shardLabel)},
+			TargetLabel:  "__tmp_hash",
+			Modulus:      uint64(shards),
+			Action:       relabel.HashMod,
+		},
+		&relabel.Config{
+			SourceLabels: model.LabelNames{model.LabelName("__tmp_hash")},
+			Regex:        relabel.MustNewRegexp("$(SHARD)"),
+			Action:       relabel.Keep,
+		})
 }

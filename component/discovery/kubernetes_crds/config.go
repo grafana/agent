@@ -4,6 +4,7 @@ import (
 	"log"
 
 	commonConfig "github.com/grafana/agent/component/common/config"
+	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/prometheus/prometheus/storage"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -30,6 +31,9 @@ type Config struct {
 	EnforcedLabelNameLengthLimit  *uint64
 	EnforcedLabelValueLengthLimit *uint64
 	//TODO: EnforcedBodySizeLimit         string
+
+	EnforcedNamespaceLabel  string
+	ExcludedFromEnforcement []monitoringv1.ObjectReference
 }
 
 // APIServerConfig defines a host and auth methods to access apiserver.
