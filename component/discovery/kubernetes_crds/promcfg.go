@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/alecthomas/units"
-	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	namespacelabeler "github.com/prometheus-operator/prometheus-operator/pkg/namespace-labeler"
 	commonConfig "github.com/prometheus/common/config"
@@ -277,8 +276,10 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 	}
 
 	labeler := namespacelabeler.New(cg.config.EnforcedNamespaceLabel, cg.config.ExcludedFromEnforcement, false)
-	relabels.addFromMonitoring(labeler.GetRelabelingConfigs(m.TypeMeta, m.ObjectMeta, ep.RelabelConfigs)...)
-	relabels.generateAddressShardingRelabelingRules(shards)
+	relabels.addFromV1(labeler.GetRelabelingConfigs(m.TypeMeta, m.ObjectMeta, ep.RelabelConfigs)...)
+	if shards > 0 {
+		relabels.generateAddressShardingRelabelingRules(shards)
+	}
 
 	cfg.RelabelConfigs = relabels.configs
 
@@ -374,7 +375,7 @@ func (r *relabeler) Add(cfgs ...*relabel.Config) {
 }
 
 // addFromMonitoring converts from an externally generated monitoringv1 RelabelConfig
-func (r *relabeler) addFromMonitoring(cfgs ...*monitoringv1.RelabelConfig) {
+func (r *relabeler) addFromV1(cfgs ...*v1.RelabelConfig) {
 	for _, c := range cfgs {
 		cfg := &relabel.Config{}
 		for _, l := range c.SourceLabels {
