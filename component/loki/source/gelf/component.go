@@ -4,13 +4,15 @@ import (
 	"context"
 	"sync"
 
+	flow_relabel "github.com/grafana/agent/component/common/relabel"
+	"github.com/grafana/agent/component/loki/source/gelf/internal/target"
+	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
+
 	"github.com/prometheus/common/model"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/loki/clients/pkg/promtail/api"
-	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
-	"github.com/grafana/loki/clients/pkg/promtail/targets/gelf"
 )
 
 func init() {
@@ -29,9 +31,9 @@ var _ component.Component = (*Component)(nil)
 // Component is a receiver for graylog formatted log files.
 type Component struct {
 	mut       sync.RWMutex
-	target    *gelf.Target
+	target    *target.Target
 	o         component.Options
-	metrics   *gelf.Metrics
+	metrics   *target.Metrics
 	handler   *handler
 	receivers []loki.LogsReceiver
 }
@@ -51,7 +53,9 @@ func (c *Component) Run(ctx context.Context) error {
 				Labels: entry.Labels,
 				Entry:  entry.Entry,
 			}
-			lokiEntry.Labels["job"] = model.LabelValue(c.o.ID)
+			if lokiEntry.Labels["job"] == "" {
+				lokiEntry.Labels["job"] = model.LabelValue(c.o.ID)
+			}
 			for _, r := range c.receivers {
 				r <- lokiEntry
 			}
@@ -71,7 +75,8 @@ func (c *Component) Update(args component.Arguments) error {
 		c.target.Stop()
 	}
 	c.receivers = newArgs.Receivers
-	t, err := gelf.NewTarget(c.metrics, c.o.Logger, c.handler, nil, convertConfig(newArgs))
+	rcs := flow_relabel.ComponentToPromRelabelConfigs(newArgs.RelabelConfigs)
+	t, err := target.NewTarget(c.metrics, c.o.Logger, c.handler, rcs, convertConfig(newArgs))
 	if err != nil {
 		return err
 	}
@@ -82,9 +87,10 @@ func (c *Component) Update(args component.Arguments) error {
 // Arguments are the arguments for the component.
 type Arguments struct {
 	// ListenAddress only supports UDP.
-	ListenAddress        string              `river:"listen_address,attr,optional"`
-	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`
-	Receivers            []loki.LogsReceiver `river:"forward_to,attr"`
+	ListenAddress        string                 `river:"listen_address,attr,optional"`
+	UseIncomingTimestamp bool                   `river:"use_incoming_timestamp,attr,optional"`
+	RelabelConfigs       []*flow_relabel.Config `river:"rule,block,optional"`
+	Receivers            []loki.LogsReceiver    `river:"forward_to,attr"`
 }
 
 func defaultArgs() Arguments {
@@ -116,7 +122,7 @@ func convertConfig(a Arguments) *scrapeconfig.GelfTargetConfig {
 
 // New creates a new gelf component.
 func New(o component.Options, args Arguments) (component.Component, error) {
-	metrics := gelf.NewMetrics(o.Registerer)
+	metrics := target.NewMetrics(o.Registerer)
 	c := &Component{
 		o:       o,
 		metrics: metrics,

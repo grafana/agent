@@ -35,11 +35,37 @@ Name         | Type                 | Description                               
 > **NOTE**: GELF logs can be sent uncompressed or compressed with GZIP or ZLIB. 
 > A `job` label is added with the full name of the component `loki.source.gelf.LABEL`. 
 
-Incoming messages have the following labels added:
+
+## Blocks
+
+The following blocks are supported inside the definition of `loki.source.gelf`:
+
+Hierarchy | Name | Description | Required
+--------- | ---- | ----------- | --------
+rule | [rule][] | Relabeling rules to apply to received log entries. | no
+
+[rule]: #rule-block
+
+### rule block
+
+{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" >}}
+
+Incoming messages have the following labels available:
 * `__gelf_message_level`: The GELF level as a string.
 * `__gelf_message_host`: The host sending the GELF message.
 * `__gelf_message_host`: The GELF level message version sent by the client.
 * `__gelf_message_facility`: The GELF facility.
+
+These labels are stripped unless a rule is created to retain the labels. An example rule is 
+below.
+
+```river
+rule {
+		action      = "labelmap"
+		regex       = "__gelf_(.*)"
+		replacement = "gelf_${1}"
+	}
+```
 
 
 ## Component health
