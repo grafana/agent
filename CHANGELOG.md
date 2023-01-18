@@ -48,6 +48,8 @@ Main (unreleased)
   This value is a function that returns the currently configured rules.
   (@tpaschalis)
 
+- New experimental feature: agent-management. Polls configured remote API to fetch new configs. (@spartan0x117)
+
 ### Enhancements
 
 - Handle faro-web-sdk `View` meta in app_agent_receiver. (@rlankfo)
