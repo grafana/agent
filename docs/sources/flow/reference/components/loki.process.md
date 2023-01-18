@@ -366,12 +366,13 @@ Name          | Type      | Description                                         
 `source`      | `string`  | Name from extracted data to parse. If empty, uses the log message.  | `""`    | no
 
 
-The `expression` field needs to be a RE2 regex string. Every capture group (re)
-is set into the extracted map, so it must be named like: `(?P<name>re)`. The
-name of the capture group is then used as the key in the extracted map.
+The `expression` field needs to be a RE2 regex string. Every matched capture
+group is added to the extracted map, so it must be named like: `(?P<name>re)`.
+The name of the capture group is then used as the key in the extracted map for
+the matched value.
 
-Because of how River treats backslashes in double-quoted strings, all
-backslashes in an `expression` must be escaped like `"\\S+"`.
+Because of how River strings work, any backslashes in `expression` must be
+escaped with a double backslash; for example `"\\w"` or `"\\S+"`.
 
 If the `source` is empty or missing, then the stage parses the log line itself.
 If it's set, the stage parses a previously extracted value with the same name.
