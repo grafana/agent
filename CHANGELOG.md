@@ -65,6 +65,9 @@ Main (unreleased)
 - Flow UI: Fix the issue with long string going out of bound in the component detail page. (@xiyu95)
 
 - Flow: `prometheus.relabel` and `prometheus.remote_write` will now error if they have exited. (@ptodev)
+0
+- Flow: Fix issue where negative numbers would convert to floating-point values
+  incorrectly, treating the sign flag as part of the number. (@rfratto)
 
 ### Other changes
 
