@@ -17,6 +17,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/google/uuid"
+	"github.com/grafana/agent/component/loki/source/heroku/internal/fake"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"
@@ -24,7 +25,6 @@ import (
 	"github.com/weaveworks/common/server"
 
 	lokiClient "github.com/grafana/loki/clients/pkg/promtail/client"
-	"github.com/grafana/loki/clients/pkg/promtail/client/fake"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 )
 
@@ -285,7 +285,7 @@ func TestHerokuDrainTarget(t *testing.T) {
 
 			prometheus.DefaultRegisterer = prometheus.NewRegistry()
 			metrics := NewMetrics(prometheus.DefaultRegisterer)
-			pt, err := NewHerokuTarget(metrics, logger, eh, "test_job", config, tc.args.RelabelConfigs)
+			pt, err := NewHerokuTarget(metrics, logger, eh, "test_job", tc.args.RelabelConfigs, config)
 			require.NoError(t, err)
 			defer func() {
 				_ = pt.Stop()
@@ -346,7 +346,7 @@ func TestHerokuDrainTarget_UseIncomingTimestamp(t *testing.T) {
 
 	prometheus.DefaultRegisterer = prometheus.NewRegistry()
 	metrics := NewMetrics(prometheus.DefaultRegisterer)
-	pt, err := NewHerokuTarget(metrics, logger, eh, "test_job", config, nil)
+	pt, err := NewHerokuTarget(metrics, logger, eh, "test_job", nil, config)
 	require.NoError(t, err)
 	defer func() {
 		_ = pt.Stop()
@@ -389,7 +389,7 @@ func TestHerokuDrainTarget_ErrorOnNotPrometheusCompatibleJobName(t *testing.T) {
 
 	prometheus.DefaultRegisterer = prometheus.NewRegistry()
 	metrics := NewMetrics(prometheus.DefaultRegisterer)
-	pt, err := NewHerokuTarget(metrics, logger, eh, "test-job", config, nil)
+	pt, err := NewHerokuTarget(metrics, logger, eh, "test-job", nil, config)
 	require.Error(t, err, "expected an error from creating a heroku target with an invalid job name")
 	// Cleanup target in the case test failed and target started correctly
 	if err == nil {
@@ -424,7 +424,7 @@ func TestHerokuDrainTarget_UseTenantIDHeaderIfPresent(t *testing.T) {
 			Regex:        relabel.MustNewRegexp("(.*)"),
 		},
 	}
-	pt, err := NewHerokuTarget(metrics, logger, eh, "test_job", config, tenantIDRelabelConfig)
+	pt, err := NewHerokuTarget(metrics, logger, eh, "test_job", tenantIDRelabelConfig, config)
 	require.NoError(t, err)
 	defer func() {
 		_ = pt.Stop()

@@ -19,7 +19,7 @@ import (
 	"github.com/weaveworks/common/logging"
 	"github.com/weaveworks/common/server"
 
-	"github.com/grafana/loki/clients/pkg/promtail/api"
+	"github.com/grafana/agent/component/common/loki"
 	lokiClient "github.com/grafana/loki/clients/pkg/promtail/client"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/serverutils"
@@ -31,7 +31,7 @@ import (
 
 type HerokuTarget struct {
 	logger         log.Logger
-	handler        api.EntryHandler
+	handler        loki.EntryHandler
 	config         *scrapeconfig.HerokuDrainTargetConfig
 	jobName        string
 	server         *server.Server
@@ -40,7 +40,7 @@ type HerokuTarget struct {
 }
 
 // NewTarget creates a brand new Heroku Drain target, capable of receiving logs from a Heroku application through an HTTP drain.
-func NewHerokuTarget(metrics *Metrics, logger log.Logger, handler api.EntryHandler, jobName string, config *scrapeconfig.HerokuDrainTargetConfig, relabel []*relabel.Config) (*HerokuTarget, error) {
+func NewHerokuTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandler, jobName string, relabel []*relabel.Config, config *scrapeconfig.HerokuDrainTargetConfig) (*HerokuTarget, error) {
 	wrappedLogger := log.With(logger, "component", "heroku_drain")
 
 	ht := &HerokuTarget{
@@ -149,7 +149,7 @@ func (h *HerokuTarget) drain(w http.ResponseWriter, r *http.Request) {
 			filtered[lokiClient.ReservedLabelTenantID] = model.LabelValue(tenantIDHeaderValue)
 		}
 
-		entries <- api.Entry{
+		entries <- loki.Entry{
 			Labels: filtered,
 			Entry: logproto.Entry{
 				Timestamp: ts,
@@ -178,6 +178,14 @@ func (h *HerokuTarget) DiscoveredLabels() model.LabelSet {
 
 func (h *HerokuTarget) Labels() model.LabelSet {
 	return h.config.Labels
+}
+
+func (h *HerokuTarget) ListenAddress() string {
+	return h.config.Server.HTTPListenAddress
+}
+
+func (h *HerokuTarget) ListenPort() int {
+	return h.config.Server.HTTPListenPort
 }
 
 func (h *HerokuTarget) Ready() bool {

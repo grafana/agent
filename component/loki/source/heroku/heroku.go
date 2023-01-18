@@ -27,9 +27,9 @@ func init() {
 // Arguments holds values which are used to configure the loki.source.heroku
 // component.
 type Arguments struct {
-	HerokuListeners []ListenerConfig    `river:"listener,block"`
-	ForwardTo       []loki.LogsReceiver `river:"forward_to,attr"`
-	RelabelRules    flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
+	HerokuListener ListenerConfig      `river:"listener,block"`
+	ForwardTo      []loki.LogsReceiver `river:"forward_to,attr"`
+	RelabelRules   flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
 }
 
 // Component implements the loki.source.heroku component.
@@ -37,10 +37,10 @@ type Component struct {
 	opts    component.Options
 	metrics *st.Metrics
 
-	mut       sync.RWMutex
-	lc        []ListenerConfig
-	fanout    []loki.LogsReceiver
-	listeners []*st.HerokuTarget
+	mut      sync.RWMutex
+	lc       ListenerConfig
+	fanout   []loki.LogsReceiver
+	listener *st.HerokuTarget
 
 	handler loki.LogsReceiver
 }
@@ -48,12 +48,13 @@ type Component struct {
 // New creates a new loki.source.heroku component.
 func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{
-		opts:    o,
-		metrics: st.NewMetrics(o.Registerer),
-		handler: make(loki.LogsReceiver),
-		fanout:  args.ForwardTo,
-
-		listeners: []*st.HerokuTarget{},
+		opts:     o,
+		metrics:  st.NewMetrics(o.Registerer),
+		mut:      sync.RWMutex{},
+		lc:       ListenerConfig{},
+		fanout:   args.ForwardTo,
+		listener: nil,
+		handler:  make(loki.LogsReceiver),
 	}
 
 	// Call to Update() to start readers and set receivers once at the start.
@@ -68,8 +69,8 @@ func New(o component.Options, args Arguments) (*Component, error) {
 func (c *Component) Run(ctx context.Context) error {
 	defer func() {
 		level.Info(c.opts.Logger).Log("msg", "loki.source.heroku component shutting down, stopping listeners")
-		for _, l := range c.listeners {
-			err := l.Stop()
+		if c.listener != nil {
+			err := c.listener.Stop()
 			if err != nil {
 				level.Error(c.opts.Logger).Log("msg", "error while stopping heroku listener", "err", err)
 			}
@@ -103,24 +104,22 @@ func (c *Component) Update(args component.Arguments) error {
 		rcs = flow_relabel.ComponentToPromRelabelConfigs(newArgs.RelabelRules())
 	}
 
-	if configsChanged(c.lc, newArgs.HerokuListeners) {
-		for _, l := range c.listeners {
-			err := l.Stop()
+	if configsChanged(c.lc, newArgs.HerokuListener) {
+		if c.listener != nil {
+			err := c.listener.Stop()
 			if err != nil {
 				level.Error(c.opts.Logger).Log("msg", "error while stopping heroku listener", "err", err)
 			}
 		}
-		c.listeners = make([]*st.HerokuTarget, 0)
-		entryHandler := loki.NewEntryHandler(c.handler, func() {})
 
-		for _, cfg := range newArgs.HerokuListeners {
-			t, err := st.NewHerokuTarget(c.metrics, c.opts.Logger, entryHandler, rcs, cfg.Convert())
-			if err != nil {
-				level.Error(c.opts.Logger).Log("msg", "failed to create heroku listener with provided config", "err", err)
-				continue
-			}
-			c.listeners = append(c.listeners, t)
+		entryHandler := loki.NewEntryHandler(c.handler, func() {})
+		t, err := st.NewHerokuTarget(c.metrics, c.opts.Logger, entryHandler, "job_name_todo", rcs, newArgs.HerokuListener.Convert())
+		if err != nil {
+			level.Error(c.opts.Logger).Log("msg", "failed to create heroku listener with provided config", "err", err)
+			return err
 		}
+
+		c.listener = t
 	}
 
 	return nil
@@ -130,36 +129,29 @@ func (c *Component) Update(args component.Arguments) error {
 func (c *Component) DebugInfo() interface{} {
 	var res readerDebugInfo
 
-	for _, t := range c.listeners {
-		res.ListenersInfo = append(res.ListenersInfo, listenerInfo{
-			Type:  string(t.Type()),
-			Ready: t.Ready(),
-			// TODO ListenAddress: t.ListenAddress().String(),
-			Labels: t.Labels().String(),
-		})
+	res.ListenersInfo = listenerInfo{
+		Type:          string(c.listener.Type()),
+		Ready:         c.listener.Ready(),
+		ListenAddress: c.listener.ListenAddress(),
+		ListenPort:    c.listener.ListenPort(),
+		Labels:        c.listener.Labels().String(),
 	}
+
 	return res
 }
 
 type readerDebugInfo struct {
-	ListenersInfo []listenerInfo `river:"listeners_info,attr"`
+	ListenersInfo listenerInfo `river:"listeners_info,attr"`
 }
 
 type listenerInfo struct {
 	Type          string `river:"type,attr"`
 	Ready         bool   `river:"ready,attr"`
 	ListenAddress string `river:"listen_address,attr"`
+	ListenPort    int    `river:"listen_port,attr"`
 	Labels        string `river:"labels,attr"`
 }
 
-func configsChanged(prev, next []ListenerConfig) bool {
-	if len(prev) != len(next) {
-		return true
-	}
-	for i := range prev {
-		if !reflect.DeepEqual(prev[i], next[i]) {
-			return true
-		}
-	}
-	return false
+func configsChanged(prev, next ListenerConfig) bool {
+	return !reflect.DeepEqual(prev, next)
 }
