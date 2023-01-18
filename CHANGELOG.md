@@ -54,6 +54,10 @@ Main (unreleased)
 
 - Introduce global configuration for logs. (@jcreixell)
 
+- New metric for prometheus.scrape - `agent_prometheus_scrape_targets_gauge`. (@ptodev)
+
+- New metric for prometheus.scrape and prometheus.relabel - `agent_prometheus_fanout_samples_count`. (@ptodev)
+
 ### Enhancements
 
 - Handle faro-web-sdk `View` meta in app_agent_receiver. (@rlankfo)

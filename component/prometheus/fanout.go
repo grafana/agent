@@ -26,8 +26,9 @@ type Fanout struct {
 	// children is where to fan out.
 	children []storage.Appendable
 	// ComponentID is what component this belongs to.
-	componentID  string
-	writeLatency prometheus.Histogram
+	componentID    string
+	writeLatency   prometheus.Histogram
+	samplesCounter prometheus.Counter
 }
 
 // NewFanout creates a fanout appendable.
@@ -37,10 +38,18 @@ func NewFanout(children []storage.Appendable, componentID string, register prome
 		Help: "Write latency for sending to direct and indirect components",
 	})
 	_ = register.Register(wl)
+
+	s := prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "agent_prometheus_fanout_samples_count",
+		Help: "Number of outgoing samples",
+	})
+	_ = register.Register(s)
+
 	return &Fanout{
-		children:     children,
-		componentID:  componentID,
-		writeLatency: wl,
+		children:       children,
+		componentID:    componentID,
+		writeLatency:   wl,
+		samplesCounter: s,
 	}
 }
 
@@ -69,11 +78,17 @@ func (f *Fanout) Appender(ctx context.Context) storage.Appender {
 		componentID:  f.componentID,
 		writeLatency: f.writeLatency,
 	}
+
+	updated := false
 	for _, x := range f.children {
 		if x == nil {
 			continue
 		}
 		app.children = append(app.children, x.Appender(ctx))
+		updated = true
+	}
+	if updated {
+		f.samplesCounter.Inc()
 	}
 	return app
 }
@@ -157,7 +172,7 @@ func (a *appender) AppendExemplar(ref storage.SeriesRef, l labels.Labels, e exem
 	return ref, multiErr
 }
 
-// UpdateMetadata satisifies the Appender interface.
+// UpdateMetadata satisfies the Appender interface.
 func (a *appender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata) (storage.SeriesRef, error) {
 	if a.start.IsZero() {
 		a.start = time.Now()
