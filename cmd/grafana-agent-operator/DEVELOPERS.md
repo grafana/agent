@@ -44,8 +44,7 @@ go install github.com/ahmetb/gen-crd-api-reference-docs@v0.3.1-0.20220618162802-
 Use the following to run the script in a container:
 
 ```
-docker build -t grafana/agent-build-image:latest ./build-image
-BUILD_IMAGE=grafana/agent-build-image:latest USE_CONTAINER=1 make generate-crds
+USE_CONTAINER=1 make generate-crds
 ```
 ## Testing Locally
 

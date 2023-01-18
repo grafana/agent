@@ -1770,6 +1770,61 @@ so they get passed to the JMESPath parser.</p>
 </tr>
 </tbody>
 </table>
+<h3 id="monitoring.grafana.com/v1alpha1.LimitStageSpec">LimitStageSpec
+</h3>
+<p>
+(<em>Appears on: </em><a href="#monitoring.grafana.com/v1alpha1.PipelineStageSpec">PipelineStageSpec</a>)
+</p>
+<div>
+<p>The limit stage is a rate-limiting stage that throttles logs based on
+several options.</p>
+</div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>rate</code><br/>
+<em>
+int
+</em>
+</td>
+<td>
+<p>The rate limit in lines per second that Promtail will push to Loki.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>burst</code><br/>
+<em>
+int
+</em>
+</td>
+<td>
+<p>The cap in the quantity of burst lines that Promtail will push to Loki.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>drop</code><br/>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>When drop is true, log lines that exceed the current rate limit are discarded.
+When drop is false, log lines that exceed the current rate limit wait
+to enter the back pressure mode.</p>
+<p>Defaults to false.</p>
+</td>
+</tr>
+</tbody>
+</table>
 <h3 id="monitoring.grafana.com/v1alpha1.LogsBackoffConfigSpec">LogsBackoffConfigSpec
 </h3>
 <p>
@@ -3618,6 +3673,20 @@ defaults to match the key.</p>
 </tr>
 <tr>
 <td>
+<code>limit</code><br/>
+<em>
+<a href="#monitoring.grafana.com/v1alpha1.LimitStageSpec">
+LimitStageSpec
+</a>
+</em>
+</td>
+<td>
+<p>Limit is a rate-limiting stage that throttles logs based on
+several options.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>match</code><br/>
 <em>
 <a href="#monitoring.grafana.com/v1alpha1.MatchStageSpec">
@@ -4658,5 +4727,5 @@ Can be skip or fudge. Defaults to fudge.</p>
 <hr/>
 <p><em>
 Generated with <code>gen-crd-api-reference-docs</code>
-on git commit <code>411513cb</code>.
+on git commit <code>b889c458</code>.
 </em></p>

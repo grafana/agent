@@ -70,13 +70,13 @@ type jsonStage struct {
 }
 
 // newJSONStage creates a new json pipeline stage from a config.
-func newJSONStage(logger log.Logger, cfg *JSONConfig) (Stage, error) {
-	expressions, err := validateJSONConfig(cfg)
+func newJSONStage(logger log.Logger, cfg JSONConfig) (Stage, error) {
+	expressions, err := validateJSONConfig(&cfg)
 	if err != nil {
 		return nil, err
 	}
 	return &jsonStage{
-		cfg:         cfg,
+		cfg:         &cfg,
 		expressions: expressions,
 		logger:      log.With(logger, "component", "stage", "type", "json"),
 	}, nil

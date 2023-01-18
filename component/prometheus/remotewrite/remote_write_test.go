@@ -63,7 +63,7 @@ func Test(t *testing.T) {
 	var args remotewrite.Arguments
 	require.NoError(t, river.Unmarshal([]byte(cfg), &args))
 
-	// Create our component and wait for it to generate exports so we can write
+	// Create our component and wait for it to start running so we can write
 	// metrics to the WAL.
 	tc, err := componenttest.NewControllerFromID(util.TestLogger(t), "prometheus.remote_write")
 	require.NoError(t, err)
@@ -71,7 +71,7 @@ func Test(t *testing.T) {
 		err = tc.Run(componenttest.TestContext(t), args)
 		require.NoError(t, err)
 	}()
-	require.NoError(t, tc.WaitExports(time.Second))
+	require.NoError(t, tc.WaitRunning(time.Second))
 
 	// We need to use a future timestamp since remote_write will ignore any
 	// sample which is earlier than the time when it started. Adding a minute

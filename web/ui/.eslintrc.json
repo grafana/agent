@@ -43,7 +43,13 @@
         ["^.+\\.s?css$"]
       ]
     }],
-    "simple-import-sort/exports": "off"
+    "simple-import-sort/exports": "off",
+    "prettier/prettier": [
+      "error",
+      {
+        "endOfLine": "auto"
+      }
+    ]
   },
   "plugins": [
     "prettier",

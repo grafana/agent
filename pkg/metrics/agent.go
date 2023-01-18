@@ -44,7 +44,7 @@ type Config struct {
 	WALCleanupPeriod       time.Duration         `yaml:"wal_cleanup_period,omitempty"`
 	ServiceConfig          cluster.Config        `yaml:"scraping_service,omitempty"`
 	ServiceClientConfig    client.Config         `yaml:"scraping_service_client,omitempty"`
-	Configs                []instance.Config     `yaml:"configs,omitempty,omitempty"`
+	Configs                []instance.Config     `yaml:"configs,omitempty"`
 	InstanceRestartBackoff time.Duration         `yaml:"instance_restart_backoff,omitempty"`
 	InstanceMode           instance.Mode         `yaml:"instance_mode,omitempty"`
 	DisableKeepAlives      bool                  `yaml:"http_disable_keepalives,omitempty"`

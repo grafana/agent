@@ -35,15 +35,20 @@ Main (unreleased)
   - `phlare.scrape` collects application performance profiles. (@cyriltovena)
   - `phlare.write` sends application performance profiles to Grafana Phlare. (@cyriltovena)
   - `otelcol.receiver.zipkin` receives Zipkin-formatted traces. (@rfratto)
+  - `otelcol.receiver.opencensus` receives OpenConsensus-formatted traces or metrics. (@ptodev)
   - `loki.source.windowsevent` reads logs from Windows Event Log. (@mattdurham)
   - `loki.source.syslog` listens for Syslog messages over TCP and UDP
     connections and forwards them to other `loki` components. (@tpaschalis)
-  - `loki.source.gelf` listens for Graylog logs. (@mattdurham)
+  - `otelcol.exporter.loki` forwards OTLP-formatted data to compatible `loki`
+    receivers. (@tpaschalis)
+
 
 - Flow components which work with relabeling rules (`discovery.relabel`,
   `prometheus.relabel` and `loki.relabel`) now export a new value named Rules.
   This value is a function that returns the currently configured rules.
   (@tpaschalis)
+
+- New experimental feature: agent-management. Polls configured remote API to fetch new configs. (@spartan0x117)
 
 ### Enhancements
 
@@ -51,15 +56,21 @@ Main (unreleased)
 
 - Flow: the targets in debug info from `loki.source.file` are now individual blocks. (@rfratto)
 
+- Grafana Agent Operator: add [promtail limit stage](https://grafana.com/docs/loki/latest/clients/promtail/stages/limit/) to the operator. (@spartan0x117)
+
 ### Bugfixes
 
 - Flow UI: Fix the issue with messy layout on the component list page while browser window resize. (@xiyu95)
 
 - Flow UI: Fix the issue with long string going out of bound in the component detail page. (@xiyu95)
 
+- Flow: `prometheus.relabel` and `prometheus.remote_write` will now error if they have exited. (@ptodev)
+
 ### Other changes
 
 - Use Go 1.19.4 for builds. (@erikbaranowski)
+
+- New windows containers for agent and agentctl. These can be found moving forward with the ${Version}-windows tags for grafana/agent and grafana/agentctl docker images (@erikbaranowski)
 
 v0.30.2 (2023-01-11)
 --------------------
