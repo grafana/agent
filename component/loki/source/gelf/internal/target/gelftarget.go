@@ -1,5 +1,9 @@
 package target
 
+// This code is copied from Promtail. The target package is used to
+// configure and run the targets that can read gelf entries and forward them
+// to other loki components.
+
 import (
 	"bytes"
 	"context"
