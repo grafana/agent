@@ -50,6 +50,8 @@ Main (unreleased)
 
 - New experimental feature: agent-management. Polls configured remote API to fetch new configs. (@spartan0x117)
 
+- Introduce global configuration for logs. (@jcreixell)
+
 ### Enhancements
 
 - Handle faro-web-sdk `View` meta in app_agent_receiver. (@rlankfo)
