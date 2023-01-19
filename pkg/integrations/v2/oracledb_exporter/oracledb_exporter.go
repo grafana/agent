@@ -13,26 +13,31 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
+	// required driver for integration
+	_ "github.com/sijms/go-ora/v2"
+	"github.com/xo/dburl"
+
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
 )
 
 // DefaultConfig is the default config for the oracledb v2 integration
 var DefaultConfig = Config{
-	DSN:            os.Getenv("DATA_SOURCE_NAME"),
-	ScrapeInterval: 0,
+	ConnectionString: os.Getenv("DATA_SOURCE_NAME"),
+	MaxOpenConns:     10,
+	MaxIdleConns:     0,
+	QueryTimeout:     "5",
+	ScrapeInterval:   0,
 }
 
 // Config is the configuration for the oracledb v2 integration
 type Config struct {
-	DSN                    string               `yaml:"dsn,omitempty"`
-	SID                    string               `yaml:"sid,omitempty"`
-	MaxIdleConns           int                  `yaml:"max_idle_connections,omitempty"`
-	MaxOpenConns           int                  `yaml:"max_open_connections,omitempty"`
-	ScrapeInterval         time.Duration        `yaml:"scrape_interval,omitempty"`
-	DefaultFileMetricsPath string               `yaml:"default_file_metrics_path,omitempty"`
-	CustomMetricsPath      string               `yaml:"custom_metrics_path,omitempty"`
-	QueryTimeout           string               `yaml:"query_timeout,omitempty"`
-	Common                 common.MetricsConfig `yaml:",inline"`
+	ConnectionString  string               `yaml:"connection_string,omitempty"`
+	MaxIdleConns      int                  `yaml:"max_idle_connections,omitempty"`
+	MaxOpenConns      int                  `yaml:"max_open_connections,omitempty"`
+	ScrapeInterval    time.Duration        `yaml:"scrape_interval,omitempty"`
+	CustomMetricsPath string               `yaml:"custom_metrics_path,omitempty"`
+	QueryTimeout      string               `yaml:"query_timeout,omitempty"`
+	Common            common.MetricsConfig `yaml:",inline"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
@@ -50,7 +55,7 @@ func (c *Config) Name() string {
 
 // InstanceKey returns the addr of the oracle instance.
 func (c *Config) InstanceKey(agentKey string) (string, error) {
-	return c.DSN, nil
+	return c.ConnectionString, nil
 }
 
 // ApplyDefaults applies the integrations
@@ -64,7 +69,12 @@ func (c *Config) Identifier(globals integrations_v2.Globals) (string, error) {
 	if c.Common.InstanceKey != nil {
 		return *c.Common.InstanceKey, nil
 	}
-	return c.DSN, nil
+
+	u, err := dburl.Parse(c.ConnectionString)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s:%s", u.Hostname(), u.Port()), nil
 }
 
 func init() {
@@ -83,13 +93,12 @@ func (c *Config) NewIntegration(logger log.Logger, globals integrations_v2.Globa
 
 func createHandler(logger log.Logger, c *Config) (http.HandlerFunc, error) {
 	oeExporter, err := oe.NewExporter(logger, &oe.Config{
-		DSN:                c.DSN,
-		DefaultFileMetrics: c.DefaultFileMetricsPath,
-		MaxIdleConns:       c.MaxIdleConns,
-		MaxOpenConns:       c.MaxOpenConns,
-		CustomMetrics:      c.CustomMetricsPath,
-		QueryTimeout:       c.QueryTimeout,
-		ScrapeInterval:     c.ScrapeInterval,
+		DSN:            c.ConnectionString,
+		MaxIdleConns:   c.MaxIdleConns,
+		MaxOpenConns:   c.MaxOpenConns,
+		CustomMetrics:  c.CustomMetricsPath,
+		QueryTimeout:   c.QueryTimeout,
+		ScrapeInterval: c.ScrapeInterval,
 	})
 	if err != nil {
 		return nil, err
