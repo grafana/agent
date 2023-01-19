@@ -140,9 +140,45 @@ func TestFullUrl(t *testing.T) {
 	assert.Equal(t, "https://localhost:1234/example/api/namespace/test_namespace/remote_config?a=A&b=B", actual)
 }
 
-func TestDefaultConfig(t *testing.T) {
-	empty := `agent_management:`
+func TestBareConfig(t *testing.T) {
+	cfg := `
+protocol: http
+`
 	var am AgentManagement
-	yaml.Unmarshal([]byte(empty), &am)
-	assert.Equal(t, "data-agent/", am.CacheLocation)
+	err := yaml.UnmarshalStrict([]byte(cfg), &am)
+	assert.NoError(t, err)
+	assert.Equal(t, defaultConfig.CacheLocation, am.CacheLocation)
+}
+
+func TestUnmarshal(t *testing.T) {
+	cfg := `
+api_url: http://localhost:8080
+basic_auth:
+  username: test_user
+  password_file: /tmp/test/passfile
+protocol: http
+polling_interval: 1m
+remote_configuration:
+  namespace: test_namespace
+  labels:
+    l1: label1`
+
+	var am AgentManagement
+	err := yaml.UnmarshalStrict([]byte(cfg), &am)
+	assert.NoError(t, err)
+	expected := AgentManagement{
+		Url: "http://localhost:8080",
+		BasicAuth: config.BasicAuth{
+			Username:     "test_user",
+			PasswordFile: "/tmp/test/passfile",
+		},
+		Protocol:        "http",
+		PollingInterval: "1m",
+		CacheLocation:   defaultConfig.CacheLocation,
+		RemoteConfiguration: remoteConfiguration{
+			Labels:    labelMap{"l1": "label1"},
+			Namespace: "test_namespace",
+		},
+	}
+	assert.Equal(t, expected, am)
 }
