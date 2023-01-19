@@ -72,5 +72,4 @@ func Test_generatePodTemplate(t *testing.T) {
 			*tmpl.Spec.Containers[1].SecurityContext.Privileged,
 			"privileged is needed if pod options say so.")
 	})
-
 }
