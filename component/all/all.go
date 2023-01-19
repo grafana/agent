@@ -11,18 +11,27 @@ import (
 	_ "github.com/grafana/agent/component/loki/process"                         // Import loki.process
 	_ "github.com/grafana/agent/component/loki/relabel"                         // Import loki.relabel
 	_ "github.com/grafana/agent/component/loki/source/file"                     // Import loki.source.file
+	_ "github.com/grafana/agent/component/loki/source/syslog"                   // Import loki.source.syslog
+	_ "github.com/grafana/agent/component/loki/source/windowsevent"             // Import loki.source.windowsevent
 	_ "github.com/grafana/agent/component/loki/write"                           // Import loki.write
+	_ "github.com/grafana/agent/component/mimir/rules/kubernetes"               // Import mimir.rules.kubernetes
 	_ "github.com/grafana/agent/component/otelcol/auth/basic"                   // Import otelcol.auth.basic
 	_ "github.com/grafana/agent/component/otelcol/auth/bearer"                  // Import otelcol.auth.bearer
 	_ "github.com/grafana/agent/component/otelcol/auth/headers"                 // Import otelcol.auth.headers
+	_ "github.com/grafana/agent/component/otelcol/exporter/loki"                // Import otelcol.exporter.loki
 	_ "github.com/grafana/agent/component/otelcol/exporter/otlp"                // Import otelcol.exporter.otlp
 	_ "github.com/grafana/agent/component/otelcol/exporter/otlphttp"            // Import otelcol.exporter.otlphttp
 	_ "github.com/grafana/agent/component/otelcol/exporter/prometheus"          // Import otelcol.exporter.prometheus
 	_ "github.com/grafana/agent/component/otelcol/processor/batch"              // Import otelcol.processor.batch
 	_ "github.com/grafana/agent/component/otelcol/processor/memorylimiter"      // Import otelcol.processor.memory_limiter
 	_ "github.com/grafana/agent/component/otelcol/receiver/jaeger"              // Import otelcol.receiver.jaeger
+	_ "github.com/grafana/agent/component/otelcol/receiver/kafka"               // Import otelcol.receiver.kafka
+	_ "github.com/grafana/agent/component/otelcol/receiver/opencensus"          // Import otelcol.receiver.opencensus
 	_ "github.com/grafana/agent/component/otelcol/receiver/otlp"                // Import otelcol.receiver.otlp
 	_ "github.com/grafana/agent/component/otelcol/receiver/prometheus"          // Import otelcol.receiver.prometheus
+	_ "github.com/grafana/agent/component/otelcol/receiver/zipkin"              // Import otelcol.receiver.zipkin
+	_ "github.com/grafana/agent/component/phlare/scrape"                        // Import phlare.scrape
+	_ "github.com/grafana/agent/component/phlare/write"                         // Import phlare.write
 	_ "github.com/grafana/agent/component/prometheus/integration/node_exporter" // Import prometheus.integration.node_exporter
 	_ "github.com/grafana/agent/component/prometheus/relabel"                   // Import prometheus.relabel
 	_ "github.com/grafana/agent/component/prometheus/remotewrite"               // Import prometheus.remote_write

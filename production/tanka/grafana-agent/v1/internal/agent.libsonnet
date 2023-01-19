@@ -43,7 +43,6 @@ local serviceAccount = k.core.v1.serviceAccount;
     container::
       container.new('agent', image) +
       container.withPorts(k.core.v1.containerPort.new('http-metrics', self.listen_port)) +
-      container.withCommand('/bin/agent') +
       container.withArgsMixin(k.util.mapToFlags({
         'config.file': '/etc/agent/agent.yaml',
         'server.http.address': '0.0.0.0:' + this.listen_port,

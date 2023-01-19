@@ -9,7 +9,6 @@ import (
 	prom_operator "github.com/prometheus-operator/prometheus-operator/pkg/operator"
 	apps_v1 "k8s.io/api/apps/v1"
 	core_v1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	k8s_errors "k8s.io/apimachinery/pkg/api/errors"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -62,14 +61,14 @@ func governingServiceName(agentName string) string {
 	return fmt.Sprintf("%s-operated", agentName)
 }
 
-func generateMetricsStatefulSetService(cfg *Config, d gragent.Deployment) *v1.Service {
+func generateMetricsStatefulSetService(cfg *Config, d gragent.Deployment) *core_v1.Service {
 	d = *d.DeepCopy()
 
 	if d.Agent.Spec.PortName == "" {
 		d.Agent.Spec.PortName = defaultPortName
 	}
 
-	return &v1.Service{
+	return &core_v1.Service{
 		ObjectMeta: meta_v1.ObjectMeta{
 			Name:      governingServiceName(d.Agent.Name),
 			Namespace: d.Agent.Namespace,
@@ -87,9 +86,9 @@ func generateMetricsStatefulSetService(cfg *Config, d gragent.Deployment) *v1.Se
 				"operated-agent":       "true",
 			}),
 		},
-		Spec: v1.ServiceSpec{
+		Spec: core_v1.ServiceSpec{
 			ClusterIP: "None",
-			Ports: []v1.ServicePort{{
+			Ports: []core_v1.ServicePort{{
 				Name:       d.Agent.Spec.PortName,
 				Port:       8080,
 				TargetPort: intstr.FromString(d.Agent.Spec.PortName),
@@ -140,7 +139,7 @@ func generateMetricsStatefulSet(
 			pvcTemplate.Name = fmt.Sprintf("%s-wal", name)
 		}
 		if storageSpec.VolumeClaimTemplate.Spec.AccessModes == nil {
-			pvcTemplate.Spec.AccessModes = []v1.PersistentVolumeAccessMode{v1.ReadWriteOnce}
+			pvcTemplate.Spec.AccessModes = []core_v1.PersistentVolumeAccessMode{core_v1.ReadWriteOnce}
 		} else {
 			pvcTemplate.Spec.AccessModes = storageSpec.VolumeClaimTemplate.Spec.AccessModes
 		}
@@ -174,12 +173,12 @@ func metricsPodTemplateOptions(name string, d gragent.Deployment, shard int32) p
 			shardLabelName: fmt.Sprintf("%d", shard),
 			agentTypeLabel: "metrics",
 		},
-		ExtraVolumeMounts: []v1.VolumeMount{{
+		ExtraVolumeMounts: []core_v1.VolumeMount{{
 			Name:      walVolumeName,
 			ReadOnly:  false,
 			MountPath: "/var/lib/grafana-agent/data",
 		}},
-		ExtraEnvVars: []v1.EnvVar{
+		ExtraEnvVars: []core_v1.EnvVar{
 			{
 				Name:  "SHARD",
 				Value: fmt.Sprintf("%d", shard),
@@ -194,17 +193,17 @@ func metricsPodTemplateOptions(name string, d gragent.Deployment, shard int32) p
 	// Add volumes if there's no PVC template
 	storageSpec := d.Agent.Spec.Storage
 	if storageSpec == nil {
-		opts.ExtraVolumes = append(opts.ExtraVolumes, v1.Volume{
+		opts.ExtraVolumes = append(opts.ExtraVolumes, core_v1.Volume{
 			Name: walVolumeName,
-			VolumeSource: v1.VolumeSource{
-				EmptyDir: &v1.EmptyDirVolumeSource{},
+			VolumeSource: core_v1.VolumeSource{
+				EmptyDir: &core_v1.EmptyDirVolumeSource{},
 			},
 		})
 	} else if storageSpec.EmptyDir != nil {
 		emptyDir := storageSpec.EmptyDir
-		opts.ExtraVolumes = append(opts.ExtraVolumes, v1.Volume{
+		opts.ExtraVolumes = append(opts.ExtraVolumes, core_v1.Volume{
 			Name: walVolumeName,
-			VolumeSource: v1.VolumeSource{
+			VolumeSource: core_v1.VolumeSource{
 				EmptyDir: emptyDir,
 			},
 		})

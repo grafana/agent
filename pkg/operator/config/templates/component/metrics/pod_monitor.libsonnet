@@ -63,7 +63,7 @@ function(
   proxy_url: optionals.string(endpoint.ProxyURL),
   params: optionals.object(endpoint.Params),
   scheme: optionals.string(endpoint.Scheme),
-  enable_http2: optionals.string(endpoint.EnableHttp2),
+  enable_http2: optionals.bool(endpoint.EnableHttp2,true),
 
   // NOTE(rfratto): unlike ServiceMonitor, pod monitors explicitly use
   // SafeTLSConfig.

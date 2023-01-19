@@ -30,7 +30,7 @@ will fail if it can't find the Custom Resource Definitions of objects it is
 looking to use. To learn more about the custom resources Agent Operator provides and their hierarchy, see [Grafana Agent Operator architecture]({{< relref "./architecture/" >}}).
 
 You can find the set of Custom Resource Definitions for Grafana Agent Operator in the Grafana Agent repository under
-[production/operator/crds](https://github.com/grafana/agent/tree/main/production/operator/crds). 
+[production/operator/crds](https://github.com/grafana/agent/tree/main/production/operator/crds).
 
 To deploy the CRDs:
 
@@ -75,7 +75,7 @@ To install Agent Operator:
           serviceAccountName: grafana-agent-operator
           containers:
           - name: operator
-            image: grafana/agent-operator:v0.30.1
+            image: grafana/agent-operator:v0.30.2
             args:
             - --kubelet-service=default/kubelet
     ---
@@ -144,7 +144,7 @@ To install Agent Operator:
 
 2. Roll out the deployment in your cluster using `kubectl apply -f` followed by your  deployment filename.
 
-> **Note**: If you want to run Agent Operator locally, make sure your kubectl context is correct. Running locally uses your current kubectl context. If it is set to your production environment, you could accidentally deploy a new Grafana Agent to production. Install CRDs on the cluster prior to running locally. Afterwards, you can run Agent Operator using `go run ./cmd/agent-operator`.
+> **Note**: If you want to run Agent Operator locally, make sure your kubectl context is correct. Running locally uses your current kubectl context. If it is set to your production environment, you could accidentally deploy a new Grafana Agent to production. Install CRDs on the cluster prior to running locally. Afterwards, you can run Agent Operator using `go run ./cmd/grafana-agent-operator`.
 
 ## Deploy the Grafana Agent Operator resources
 

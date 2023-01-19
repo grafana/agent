@@ -36,6 +36,7 @@ func generateLogsDaemonSet(
 
 func logsPodTemplateOptions() podTemplateOptions {
 	return podTemplateOptions{
+		Privileged: true,
 		ExtraSelectorLabels: map[string]string{
 			agentTypeLabel: "logs",
 		},

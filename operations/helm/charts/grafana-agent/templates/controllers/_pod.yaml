@@ -1,0 +1,39 @@
+{{- define "grafana-agent.pod-template" -}}
+metadata:
+  {{- with .Values.podAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  labels:
+    {{- include "grafana-agent.selectorLabels" . | nindent 4 }}
+spec:
+  serviceAccount: {{ include "grafana-agent.serviceAccountName" . }}
+  {{- with .Values.image.pullSecrets }}
+  imagePullSecrets:
+    {{- toYaml . | nindent 6 }}
+  {{- end }}
+  containers:
+    {{- include "grafana-agent.container" . | nindent 6 }}
+    {{- include "grafana-agent.watch-container" . | nindent 6 }}
+  {{- with .Values.tolerations }}
+  tolerations:
+    {{- toYaml . | nindent 6 }}
+  {{- end }}
+  volumes:
+    - name: config
+      configMap:
+        name: {{ include "grafana-agent.config-map.name" . }}
+    {{- if .Values.agent.mounts.varlog }}
+    - name: varlog
+      hostPath:
+        path: /var/log
+    {{- end }}
+    {{- if .Values.agent.mounts.dockercontainers }}
+    - name: dockercontainers
+      hostPath:
+        path: /var/lib/docker/containers
+    {{- end }}
+    {{- range .Values.controller.volumes.extra }}
+    - {{ toYaml . | nindent 6 }}
+    {{- end }}
+{{- end }}

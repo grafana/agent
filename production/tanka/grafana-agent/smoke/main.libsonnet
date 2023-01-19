@@ -41,7 +41,6 @@ local util = k.util;
 
     container::
       container.new('agent-smoke', this._config.image) +
-      container.withCommand('/bin/grafana-agent-smoke') +
       container.withPorts([
         containerPort.newNamed(name='remote-write', containerPort=19090),
       ]) +

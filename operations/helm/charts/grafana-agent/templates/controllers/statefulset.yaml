@@ -1,0 +1,27 @@
+{{- if eq .Values.controller.type "statefulset" }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "grafana-agent.fullname" . }}
+  labels:
+    {{- include "grafana-agent.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.controller.replicas }}
+  minReadySeconds: 10
+  serviceName: {{ include "grafana-agent.fullname" . }}
+  selector:
+    matchLabels:
+      {{- include "grafana-agent.selectorLabels" . | nindent 6 }}
+  template:
+    {{- include "grafana-agent.pod-template" . | nindent 4 }}
+  {{- with .Values.controller.updateStrategy }}
+  updateStrategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.controller.volumeClaimTemplates }}
+  volumeClaimTemplates:
+    {{- range . }}
+    - {{ toYaml . | nindent 6 }}
+    {{- end }}
+  {{- end }}
+{{- end }}

@@ -89,6 +89,8 @@ func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 // Convert implements receiver.Arguments.
 func (args Arguments) Convert() otelconfig.Receiver {
 	return &kafkareceiver.Config{
+		ReceiverSettings: otelconfig.NewReceiverSettings(otelconfig.NewComponentID("kafka")),
+
 		Brokers:         args.Brokers,
 		ProtocolVersion: args.ProtocolVersion,
 		Topic:           args.Topic,

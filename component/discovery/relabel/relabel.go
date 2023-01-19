@@ -2,6 +2,7 @@ package relabel
 
 import (
 	"context"
+	"sync"
 
 	"github.com/grafana/agent/component"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
@@ -33,12 +34,17 @@ type Arguments struct {
 
 // Exports holds values which are exported by the discovery.relabel component.
 type Exports struct {
-	Output []discovery.Target `river:"output,attr"`
+	Output []discovery.Target  `river:"output,attr"`
+	Rules  *flow_relabel.Rules `river:"rules,attr"`
 }
 
 // Component implements the discovery.relabel component.
 type Component struct {
 	opts component.Options
+
+	mut     sync.RWMutex
+	rcs     []*relabel.Config
+	rcsFlow []*flow_relabel.Config
 }
 
 var _ component.Component = (*Component)(nil)
@@ -63,10 +69,15 @@ func (c *Component) Run(ctx context.Context) error {
 
 // Update implements component.Component.
 func (c *Component) Update(args component.Arguments) error {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+
 	newArgs := args.(Arguments)
 
 	targets := make([]discovery.Target, 0, len(newArgs.Targets))
 	relabelConfigs := flow_relabel.ComponentToPromRelabelConfigs(newArgs.RelabelConfigs)
+	c.rcs = relabelConfigs
+	c.rcsFlow = newArgs.RelabelConfigs
 
 	for _, t := range newArgs.Targets {
 		lset := componentMapToPromLabels(t)
@@ -78,9 +89,21 @@ func (c *Component) Update(args component.Arguments) error {
 
 	c.opts.OnStateChange(Exports{
 		Output: targets,
+		Rules:  getRules(c),
 	})
 
 	return nil
+}
+
+func getRules(c *Component) *flow_relabel.Rules {
+	return &flow_relabel.Rules{
+		GetAll: func() []*flow_relabel.Config {
+			c.mut.RLock()
+			defer c.mut.RUnlock()
+
+			return c.rcsFlow
+		},
+	}
 }
 
 func componentMapToPromLabels(ls discovery.Target) labels.Labels {

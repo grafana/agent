@@ -37,7 +37,6 @@ k + config {
   agent_container::
     container.new('agent', $._images.agent) +
     container.withPorts($.core.v1.containerPort.new('http-metrics', 80)) +
-    container.withCommand('/bin/agent') +
     container.withArgsMixin($.util.mapToFlags($.agent_args)) +
     container.withEnv([
       $.core.v1.envVar.fromFieldPath('HOSTNAME', 'spec.nodeName'),

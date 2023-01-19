@@ -10,5 +10,5 @@ Name | Type | Description | Default | Required
 `credential` | `secret` | Secret value. | | no
 `credentials_file` | `string` | File containing the secret value. | | no
 
-`credential` and `credentials_file` are mututally exclusive and only one can be
+`credential` and `credentials_file` are mutually exclusive and only one can be
 provided inside of an `authorization` block.
