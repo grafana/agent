@@ -138,7 +138,7 @@ func (c *Component) Update(args component.Arguments) error {
 		c.target = t
 	}
 	if newArgs.PushTarget != nil {
-		t, err := gt.NewPushTarget(c.metrics, c.opts.Logger, entryHandler, jobName, newArgs.PushTarget, rcs)
+		t, err := gt.NewPushTarget(c.metrics, c.opts.Logger, entryHandler, jobName, newArgs.PushTarget, rcs, c.opts.Registerer)
 		if err != nil {
 			level.Error(c.opts.Logger).Log("msg", "failed to create gcplog target with provided config", "err", err)
 			return err

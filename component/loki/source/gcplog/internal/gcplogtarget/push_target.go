@@ -16,6 +16,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/serverutils"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/weaveworks/common/logging"
@@ -37,7 +38,7 @@ type PushTarget struct {
 }
 
 // NewPushTarget constructs a PushTarget.
-func NewPushTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandler, jobName string, config *PushConfig, relabel []*relabel.Config) (*PushTarget, error) {
+func NewPushTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandler, jobName string, config *PushConfig, relabel []*relabel.Config, reg prometheus.Registerer) (*PushTarget, error) {
 	pt := &PushTarget{
 		logger:         logger,
 		jobName:        jobName,
@@ -61,6 +62,7 @@ func NewPushTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandle
 	}
 
 	pt.serverConfig = mergedServerConfigs
+	pt.serverConfig.Registerer = reg
 
 	err = pt.run()
 	if err != nil {
@@ -87,7 +89,6 @@ func (p *PushTarget) run() error {
 	p.serverConfig.RegisterInstrumentation = false
 
 	p.serverConfig.Log = logging.GoKit(p.logger)
-
 	srv, err := server.New(p.serverConfig)
 	if err != nil {
 		return err
