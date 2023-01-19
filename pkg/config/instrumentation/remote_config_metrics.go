@@ -28,7 +28,7 @@ func newRemoteConfigMetrics() *remoteConfigMetrics {
 			Name: "remote_config_fetches_total",
 			Help: "Number of fetch requests for the remote config by HTTP status code",
 		},
-		[]string{"code"},
+		[]string{"status_code"},
 	)
 	remoteConfigMetrics.fetchErrors = promauto.NewCounter(
 		prometheus.CounterOpts{
