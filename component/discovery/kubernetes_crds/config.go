@@ -4,8 +4,8 @@ import (
 	"log"
 
 	commonConfig "github.com/grafana/agent/component/common/config"
+	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/prometheus/prometheus/storage"
-	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
@@ -33,7 +33,7 @@ type Config struct {
 	//TODO: EnforcedBodySizeLimit         string
 
 	EnforcedNamespaceLabel  string
-	ExcludedFromEnforcement []v1.ObjectReference
+	ExcludedFromEnforcement ObjectReferences
 }
 
 // APIServerConfig defines a host and auth methods to access apiserver.
@@ -54,6 +54,30 @@ type APIServerConfig struct {
 	TLSConfig *commonConfig.TLSConfig `json:"tlsConfig,omitempty"`
 	// Authorization section for accessing apiserver
 	Authorization *commonConfig.Authorization `json:"authorization,omitempty"`
+}
+
+type ObjectReferences []ObjectReference
+
+func (o ObjectReferences) Convert() []monitoringv1.ObjectReference {
+	ors := make([]monitoringv1.ObjectReference, len(o))
+	for i, or := range o {
+		obj := monitoringv1.ObjectReference{
+			Group:     or.Group,
+			Resource:  or.Resource,
+			Namespace: or.Namespace,
+			Name:      or.Name,
+		}
+		ors[i] = obj
+	}
+	return ors
+}
+
+// TODO: river
+type ObjectReference struct {
+	Group     string `json:"group"`
+	Resource  string `json:"resource"`
+	Namespace string `json:"namespace"`
+	Name      string `json:"name,omitempty"`
 }
 
 func (c *Config) restConfig() (*rest.Config, error) {

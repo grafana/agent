@@ -84,6 +84,16 @@ func (cg *configGenerator) getSecretData(ns, name, key string) commonConfig.Secr
 	return commonConfig.Secret("")
 }
 
+func (cg *configGenerator) getConfigMapData(ns, name, key string) string {
+	tok, err := cg.secrets.GetConfigMapData(context.Background(), ns, name, key)
+	if err != nil {
+		// TODO: log error or die
+	} else {
+		return tok
+	}
+	return ""
+}
+
 func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodMetricsEndpoint, i int, shards int) *config.ScrapeConfig {
 	c := config.DefaultScrapeConfig
 	cfg := &c
@@ -137,12 +147,10 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 		}
 	}
 
-	// TODO:
-	//assetKey := fmt.Sprintf("podMonitor/%s/%s/%d", m.Namespace, m.Name, i)
-	//cfg = cg.addOAuth2ToYaml(cfg, ep.OAuth2, store.OAuth2Assets, assetKey)
-	//cfg = cg.addSafeAuthorizationToYaml(cfg, fmt.Sprintf("podMonitor/auth/%s/%s/%d", m.Namespace, m.Name, i), store, ep.Authorization)
-	relabels := cg.initRelabelings(cfg)
+	cg.addOAuth2(cfg, ep.OAuth2, m.Namespace)
+	cg.addSafeAuthorization(cfg, ep.Authorization, m.Namespace)
 
+	relabels := cg.initRelabelings(cfg)
 	if ep.FilterRunning == nil || *ep.FilterRunning {
 		relabels.Add(&relabel.Config{
 			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_phase"},
@@ -275,7 +283,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 		})
 	}
 
-	labeler := namespacelabeler.New(cg.config.EnforcedNamespaceLabel, cg.config.ExcludedFromEnforcement, false)
+	labeler := namespacelabeler.New(cg.config.EnforcedNamespaceLabel, cg.config.ExcludedFromEnforcement.Convert(), false)
 	relabels.addFromV1(labeler.GetRelabelingConfigs(m.TypeMeta, m.ObjectMeta, ep.RelabelConfigs)...)
 	if shards > 0 {
 		relabels.generateAddressShardingRelabelingRules(shards)
@@ -455,6 +463,41 @@ func (cg *configGenerator) getNamespacesFromNamespaceSelector(nsel v1.NamespaceS
 		return []string{namespace}
 	}
 	return nsel.MatchNames
+}
+
+func (cg *configGenerator) addOAuth2(cfg *config.ScrapeConfig, oauth2 *v1.OAuth2, ns string) {
+	if oauth2 == nil {
+		return
+	}
+	if oauth2.ClientID.Secret != nil {
+		s := oauth2.ClientID.Secret
+		cfg.HTTPClientConfig.OAuth2.ClientID = string(cg.getSecretData(ns, s.Name, s.Key))
+	} else if oauth2.ClientID.ConfigMap != nil {
+
+	}
+	cfg.HTTPClientConfig.OAuth2.ClientSecret = cg.getSecretData(ns, oauth2.ClientSecret.Name, oauth2.ClientSecret.Key)
+	cfg.HTTPClientConfig.OAuth2.TokenURL = oauth2.TokenURL
+	if len(oauth2.Scopes) > 0 {
+		cfg.HTTPClientConfig.OAuth2.Scopes = oauth2.Scopes
+	}
+
+	if len(oauth2.EndpointParams) > 0 {
+		cfg.HTTPClientConfig.OAuth2.EndpointParams = oauth2.EndpointParams
+	}
+}
+
+func (cg *configGenerator) addSafeAuthorization(cfg *config.ScrapeConfig, auth *v1.SafeAuthorization, ns string) {
+	if auth == nil {
+		return
+	}
+	if auth.Type == "" {
+		auth.Type = "Bearer"
+	}
+	cfg.HTTPClientConfig.Authorization.Type = strings.TrimSpace(auth.Type)
+
+	if auth.Credentials != nil {
+		cfg.HTTPClientConfig.Authorization.Credentials = cg.getSecretData(ns, auth.Credentials.Name, auth.Credentials.Key)
+	}
 }
 
 func (r *relabeler) generateAddressShardingRelabelingRules(shards int) {

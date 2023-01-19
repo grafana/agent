@@ -20,3 +20,11 @@ func (sm *secretManager) GetSecretData(ctx context.Context, namespace string, se
 	}
 	return string(secret.Data[field]), nil
 }
+
+func (sm *secretManager) GetConfigMapData(ctx context.Context, namespace string, name string, field string) (string, error) {
+	cmap, err := sm.client.CoreV1().ConfigMaps(namespace).Get(ctx, name, v1.GetOptions{})
+	if err != nil {
+		return "", err
+	}
+	return cmap.Data[field], nil
+}
