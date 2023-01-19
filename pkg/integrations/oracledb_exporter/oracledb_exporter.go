@@ -1,6 +1,7 @@
 package oracledbexporter
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -31,8 +32,11 @@ type Config struct {
 	QueryTimeout      string        `yaml:"query_timeout,omitempty"`
 }
 
-// Validate returns
+// Validate returnsif the configuration is valid
 func (c *Config) Validate() error {
+	if c.ConnectionString == "" {
+		return errors.New("no connection string was provided")
+	}
 	return nil
 }
 
@@ -70,6 +74,10 @@ func init() {
 // New creates a new oracledb integration. The integrationscrapes metrics
 // from an OracleDB exporter running with the https://github.com/iamseth/oracledb_exporter
 func New(logger log.Logger, c *Config) (integrations.Integration, error) {
+	if err := c.Validate(); err != nil {
+		return nil, fmt.Errorf("invalid config: %w", err)
+	}
+
 	oeExporter, err := oe.NewExporter(logger, &oe.Config{
 		DSN:            c.ConnectionString,
 		MaxIdleConns:   c.MaxIdleConns,
