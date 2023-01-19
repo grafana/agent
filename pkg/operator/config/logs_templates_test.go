@@ -253,6 +253,22 @@ func TestLogsStages(t *testing.T) {
 			`),
 		},
 		{
+			name: "limit",
+			input: map[string]interface{}{"spec": &gragent.PipelineStageSpec{
+				Limit: &gragent.LimitStageSpec{
+					Rate:  10,
+					Burst: 20,
+					Drop:  false,
+				},
+			}},
+			expect: util.Untab(`
+				limit:
+					rate: 10
+					burst: 20
+					drop: false
+			`),
+		},
+		{
 			name: "match",
 			input: map[string]interface{}{"spec": &gragent.PipelineStageSpec{
 				Match: &gragent.MatchStageSpec{

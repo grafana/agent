@@ -53,7 +53,7 @@ type Entrypoint struct {
 }
 
 // Reloader is any function that returns a new config.
-type Reloader = func() (*config.Config, error)
+type Reloader = func(log *server.Logger) (*config.Config, error)
 
 // NewEntrypoint creates a new Entrypoint.
 func NewEntrypoint(logger *server.Logger, cfg *config.Config, reloader Reloader) (*Entrypoint, error) {
@@ -336,7 +336,7 @@ func (ep *Entrypoint) supportHandler(rw http.ResponseWriter, r *http.Request) {
 func (ep *Entrypoint) TriggerReload() bool {
 	level.Info(ep.log).Log("msg", "reload of config file requested")
 
-	cfg, err := ep.reloader()
+	cfg, err := ep.reloader(ep.log)
 	if err != nil {
 		level.Error(ep.log).Log("msg", "failed to reload config file", "err", err)
 		return false
@@ -350,6 +350,22 @@ func (ep *Entrypoint) TriggerReload() bool {
 	}
 
 	return true
+}
+
+// pollConfig triggers a reload of the config on each tick of the ticker until the context
+// completes.
+func (ep *Entrypoint) pollConfig(ctx context.Context, t *time.Ticker) error {
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-t.C:
+			ok := ep.TriggerReload()
+			if !ok {
+				level.Error(ep.log).Log("msg", "config reload did not succeed")
+			}
+		}
+	}
 }
 
 // Stop stops the Entrypoint and all subsystems.
@@ -397,6 +413,20 @@ func (ep *Entrypoint) Start() error {
 			return ep.reloadServer.Serve(ep.reloadListener)
 		}, func(e error) {
 			ep.reloadServer.Close()
+		})
+	}
+
+	if ep.cfg.AgentManagement.Enabled {
+		managementContext, managementCancel := context.WithCancel(context.Background())
+		defer managementCancel()
+
+		// By this point ep.cfg.Validate() has already been called, so the configured time must be valid
+		sleepTime, _ := ep.cfg.AgentManagement.SleepTime()
+		t := time.NewTicker(sleepTime)
+		g.Add(func() error {
+			return ep.pollConfig(managementContext, t)
+		}, func(e error) {
+			managementCancel()
 		})
 	}
 

@@ -163,11 +163,11 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 		if err != nil {
 			return nil, err
 		}
-	// case StageTypeMatch:
-	// 	s, err = newMatcherStage(logger, jobName, cfg, registerer)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
+	case cfg.MatchConfig != nil:
+		s, err = newMatcherStage(logger, jobName, *cfg.MatchConfig, registerer)
+		if err != nil {
+			return nil, err
+		}
 	// case StageTypeTemplate:
 	// 	s, err = newTemplateStage(logger, cfg)
 	// 	if err != nil {
@@ -183,13 +183,18 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 		if err != nil {
 			return nil, err
 		}
-	// case StageTypeDrop:
-	// 	s, err = newDropStage(logger, cfg, registerer)
+	// case StageTypeLimit:
+	// 	s, err = newLimitStage(logger, cfg, registerer)
 	// 	if err != nil {
 	// 		return nil, err
 	// 	}
-	// case cfg.LimitConfig != nil:
-	// 	s, err = newLimitStage(logger, *cfg.LimitConfig, registerer)
+	case cfg.DropConfig != nil:
+		s, err = newDropStage(logger, *cfg.DropConfig, registerer)
+		if err != nil {
+			return nil, err
+		}
+	// case StageTypeLimit:
+	// 	s, err = newLimitStage(logger, cfg, registerer)
 	// 	if err != nil {
 	// 		return nil, err
 	// 	}

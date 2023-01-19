@@ -50,11 +50,15 @@ Main (unreleased)
   This value is a function that returns the currently configured rules.
   (@tpaschalis)
 
+- New experimental feature: agent-management. Polls configured remote API to fetch new configs. (@spartan0x117)
+
 ### Enhancements
 
 - Handle faro-web-sdk `View` meta in app_agent_receiver. (@rlankfo)
 
 - Flow: the targets in debug info from `loki.source.file` are now individual blocks. (@rfratto)
+
+- Grafana Agent Operator: add [promtail limit stage](https://grafana.com/docs/loki/latest/clients/promtail/stages/limit/) to the operator. (@spartan0x117)
 
 ### Bugfixes
 
