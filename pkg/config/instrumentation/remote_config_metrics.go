@@ -40,9 +40,9 @@ func newRemoteConfigMetrics() *remoteConfigMetrics {
 	return &remoteConfigMetrics
 }
 
-func InstrumentRemoteConfigFetch(code int) {
+func InstrumentRemoteConfigFetch(statusCode int) {
 	metricsInitializer.Do(initializeRemoteConfigMetrics)
-	metrics.fetchStatusCodes.WithLabelValues(fmt.Sprintf("%d", code)).Inc()
+	metrics.fetchStatusCodes.WithLabelValues(fmt.Sprintf("%d", statusCode)).Inc()
 }
 
 func InstrumentRemoteConfigFetchError() {
