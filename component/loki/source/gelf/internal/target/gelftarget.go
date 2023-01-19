@@ -11,6 +11,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/grafana/agent/component/common/loki"
+
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/go-gelf/v2/gelf"
@@ -18,7 +20,6 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/relabel"
 
-	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
 
@@ -41,7 +42,7 @@ var SeverityLevels = map[int32]string{
 type Target struct {
 	metrics       *Metrics
 	logger        log.Logger
-	handler       api.EntryHandler
+	handler       loki.EntryHandler
 	config        *scrapeconfig.GelfTargetConfig
 	relabelConfig []*relabel.Config
 	gelfReader    *gelf.Reader
@@ -56,7 +57,7 @@ type Target struct {
 func NewTarget(
 	metrics *Metrics,
 	logger log.Logger,
-	handler api.EntryHandler,
+	handler loki.EntryHandler,
 	relabel []*relabel.Config,
 	config *scrapeconfig.GelfTargetConfig,
 ) (*Target, error) {
@@ -150,7 +151,7 @@ func (t *Target) handleMessage(msg *gelf.Message) {
 		t.metrics.gelfErrors.Inc()
 		return
 	}
-	t.handler.Chan() <- api.Entry{
+	t.handler.Chan() <- loki.Entry{
 		Labels: filtered,
 		Entry: logproto.Entry{
 			Timestamp: timestamp,

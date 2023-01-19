@@ -12,7 +12,6 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/loki/clients/pkg/promtail/api"
 )
 
 func init() {
@@ -126,7 +125,7 @@ func New(o component.Options, args Arguments) (component.Component, error) {
 	c := &Component{
 		o:       o,
 		metrics: metrics,
-		handler: &handler{c: make(chan api.Entry)},
+		handler: &handler{c: make(chan loki.Entry)},
 	}
 	// Call to Update() to start readers and set receivers once at the start.
 	if err := c.Update(args); err != nil {
@@ -136,10 +135,10 @@ func New(o component.Options, args Arguments) (component.Component, error) {
 }
 
 type handler struct {
-	c chan api.Entry
+	c chan loki.Entry
 }
 
-func (h *handler) Chan() chan<- api.Entry {
+func (h *handler) Chan() chan<- loki.Entry {
 	return h.c
 }
 func (handler) Stop() {
