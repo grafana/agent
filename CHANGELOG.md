@@ -41,6 +41,7 @@ Main (unreleased)
     connections and forwards them to other `loki` components. (@tpaschalis)
   - `loki.source.cloudflare` reads logs from Cloudflare's Logpull API and
     forwards them to other `loki` components. (@tpaschalis)
+  - `loki.source.gcplog` reads logs from GCP cloud resources. (@tpaschalis)
   - `otelcol.exporter.loki` forwards OTLP-formatted data to compatible `loki`
     receivers. (@tpaschalis)
   - `loki.source.gelf` listens for Graylog logs. (@mattdurham)
