@@ -52,8 +52,25 @@ func Test_generatePodTemplate(t *testing.T) {
 		tmpl, _, err := generatePodTemplate(cfg, "agent", deploy, podTemplateOptions{})
 		require.NoError(t, err)
 		require.Equal(t, "config-reloader", tmpl.Spec.Containers[0].Name)
-		assert.False(t, tmpl.Spec.Containers[0].SecurityContext.Privileged != nil &&
-			*tmpl.Spec.Containers[0].SecurityContext.Privileged,
-			"privileged is not required. Fargate cannot schedule privileged containers.")
+		for i := range tmpl.Spec.Containers {
+			assert.False(t, tmpl.Spec.Containers[i].SecurityContext.Privileged != nil &&
+				*tmpl.Spec.Containers[i].SecurityContext.Privileged,
+				"privileged is not required. Fargate cannot schedule privileged containers.")
+		}
 	})
+
+	t.Run("security ctx does contain privilege for logs daemonset", func(t *testing.T) {
+		deploy := gragent.Deployment{
+			Agent: &gragent.GrafanaAgent{
+				ObjectMeta: v1.ObjectMeta{Name: name, Namespace: name},
+			},
+		}
+
+		tmpl, _, err := generatePodTemplate(cfg, "agent", deploy, podTemplateOptions{Privileged: true})
+		require.NoError(t, err)
+		assert.True(t, tmpl.Spec.Containers[1].SecurityContext.Privileged != nil &&
+			*tmpl.Spec.Containers[1].SecurityContext.Privileged,
+			"privileged is needed if pod options say so.")
+	})
+
 }

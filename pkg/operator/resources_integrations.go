@@ -11,7 +11,7 @@ import (
 )
 
 func newIntegrationsDaemonSet(cfg *Config, name string, d gragent.Deployment) (*apps_v1.DaemonSet, error) {
-	opts := integrationsPodTemplateOptions(name, d)
+	opts := integrationsPodTemplateOptions(name, d, true)
 	tmpl, selector, err := generatePodTemplate(cfg, name, d, opts)
 	if err != nil {
 		return nil, err
@@ -32,7 +32,7 @@ func newIntegrationsDaemonSet(cfg *Config, name string, d gragent.Deployment) (*
 }
 
 func newIntegrationsDeployment(cfg *Config, name string, d gragent.Deployment) (*apps_v1.Deployment, error) {
-	opts := integrationsPodTemplateOptions(name, d)
+	opts := integrationsPodTemplateOptions(name, d, false)
 	tmpl, selector, err := generatePodTemplate(cfg, name, d, opts)
 	if err != nil {
 		return nil, err
@@ -52,7 +52,7 @@ func newIntegrationsDeployment(cfg *Config, name string, d gragent.Deployment) (
 	}, nil
 }
 
-func integrationsPodTemplateOptions(name string, d gragent.Deployment) podTemplateOptions {
+func integrationsPodTemplateOptions(name string, d gragent.Deployment, daemonset bool) podTemplateOptions {
 	// Integrations expect that the metrics and logs instances exist. This means
 	// that we have to merge the podTemplateOptions used for metrics and logs
 	// with the options used for integrations.
@@ -66,6 +66,7 @@ func integrationsPodTemplateOptions(name string, d gragent.Deployment) podTempla
 		ExtraSelectorLabels: map[string]string{
 			agentTypeLabel: "integrations",
 		},
+		Privileged: daemonset,
 	}
 
 	// We need to iterate over all of our integrations to append extra Volumes,

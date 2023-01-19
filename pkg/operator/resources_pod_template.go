@@ -18,6 +18,7 @@ type podTemplateOptions struct {
 	ExtraVolumes        []core_v1.Volume
 	ExtraVolumeMounts   []core_v1.VolumeMount
 	ExtraEnvVars        []core_v1.EnvVar
+	Privileged          bool
 }
 
 func generatePodTemplate(
@@ -231,7 +232,10 @@ func generatePodTemplate(
 				PeriodSeconds:    5,
 				FailureThreshold: 120, // Allow up to 10m on startup for data recovery
 			},
-			Resources:                d.Agent.Spec.Resources,
+			Resources: d.Agent.Spec.Resources,
+			SecurityContext: &core_v1.SecurityContext{
+				Privileged: pointer.Bool(opts.Privileged),
+			},
 			TerminationMessagePolicy: core_v1.TerminationMessageFallbackToLogsOnError,
 		},
 	}
