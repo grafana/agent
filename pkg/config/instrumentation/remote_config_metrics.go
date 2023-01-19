@@ -2,6 +2,7 @@ package instrumentation
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -12,7 +13,12 @@ type remoteConfigMetrics struct {
 	fetchErrors      prometheus.Counter
 }
 
-var RemoteConfigMetrics = newRemoteConfigMetrics()
+var metrics *remoteConfigMetrics
+var metricsInitializer sync.Once
+
+func initializeRemoteConfigMetrics() {
+	metrics = newRemoteConfigMetrics()
+}
 
 func newRemoteConfigMetrics() *remoteConfigMetrics {
 	var remoteConfigMetrics remoteConfigMetrics
@@ -22,7 +28,7 @@ func newRemoteConfigMetrics() *remoteConfigMetrics {
 			Name: "remote_config_fetches_total",
 			Help: "Number of fetch requests for the remote config by HTTP status code",
 		},
-		[]string{"code"},
+		[]string{"status_code"},
 	)
 	remoteConfigMetrics.fetchErrors = promauto.NewCounter(
 		prometheus.CounterOpts{
@@ -34,10 +40,12 @@ func newRemoteConfigMetrics() *remoteConfigMetrics {
 	return &remoteConfigMetrics
 }
 
-func (r *remoteConfigMetrics) InstrumentRemoteConfigFetch(code int) {
-	r.fetchStatusCodes.WithLabelValues(fmt.Sprintf("%d", code)).Inc()
+func InstrumentRemoteConfigFetch(statusCode int) {
+	metricsInitializer.Do(initializeRemoteConfigMetrics)
+	metrics.fetchStatusCodes.WithLabelValues(fmt.Sprintf("%d", statusCode)).Inc()
 }
 
-func (r *remoteConfigMetrics) InstrumentRemoteConfigFetchError() {
-	r.fetchErrors.Inc()
+func InstrumentRemoteConfigFetchError() {
+	metricsInitializer.Do(initializeRemoteConfigMetrics)
+	metrics.fetchErrors.Inc()
 }
