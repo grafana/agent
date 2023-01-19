@@ -170,7 +170,7 @@ func TestPushTarget(t *testing.T) {
 
 			prometheus.DefaultRegisterer = prometheus.NewRegistry()
 			metrics := NewMetrics(prometheus.DefaultRegisterer)
-			pt, err := NewPushTarget(metrics, logger, eh, outerName+"_test_job", config, tc.args.RelabelConfigs)
+			pt, err := NewPushTarget(metrics, logger, eh, outerName+"_test_job", config, tc.args.RelabelConfigs, nil)
 			require.NoError(t, err)
 			defer func() {
 				_ = pt.Stop()
@@ -233,7 +233,7 @@ func TestPushTarget_UseIncomingTimestamp(t *testing.T) {
 
 	prometheus.DefaultRegisterer = prometheus.NewRegistry()
 	metrics := NewMetrics(prometheus.DefaultRegisterer)
-	pt, err := NewPushTarget(metrics, logger, eh, t.Name()+"_test_job", config, nil)
+	pt, err := NewPushTarget(metrics, logger, eh, t.Name()+"_test_job", config, nil, nil)
 	require.NoError(t, err)
 	defer func() {
 		_ = pt.Stop()
@@ -286,7 +286,7 @@ func TestPushTarget_UseTenantIDHeaderIfPresent(t *testing.T) {
 			Action:       relabel.Replace,
 		},
 	}
-	pt, err := NewPushTarget(metrics, logger, eh, t.Name()+"_test_job", config, tenantIDRelabelConfig)
+	pt, err := NewPushTarget(metrics, logger, eh, t.Name()+"_test_job", config, tenantIDRelabelConfig, nil)
 	require.NoError(t, err)
 	defer func() {
 		_ = pt.Stop()
@@ -306,7 +306,6 @@ func TestPushTarget_UseTenantIDHeaderIfPresent(t *testing.T) {
 
 	// Make sure we didn't timeout
 	require.Equal(t, 1, len(eh.Received()))
-	fmt.Println("~~~~", eh.Received()[0].Labels.String())
 
 	require.Equal(t, model.LabelValue("42"), eh.Received()[0].Labels[ReservedLabelTenantID])
 	require.Equal(t, model.LabelValue("42"), eh.Received()[0].Labels["tenant_id"])
@@ -330,7 +329,7 @@ func TestPushTarget_ErroneousPayloadsAreRejected(t *testing.T) {
 
 	prometheus.DefaultRegisterer = prometheus.NewRegistry()
 	metrics := NewMetrics(prometheus.DefaultRegisterer)
-	pt, err := NewPushTarget(metrics, logger, eh, t.Name()+"_test_job", config, nil)
+	pt, err := NewPushTarget(metrics, logger, eh, t.Name()+"_test_job", config, nil, nil)
 	require.NoError(t, err)
 	defer func() {
 		_ = pt.Stop()
@@ -421,7 +420,7 @@ func TestPushTarget_UsePushTimeout(t *testing.T) {
 			Action:       relabel.Replace,
 		},
 	}
-	pt, err := NewPushTarget(metrics, logger, eh, t.Name()+"_test_job", config, tenantIDRelabelConfig)
+	pt, err := NewPushTarget(metrics, logger, eh, t.Name()+"_test_job", config, tenantIDRelabelConfig, nil)
 	require.NoError(t, err)
 	defer func() {
 		_ = pt.Stop()

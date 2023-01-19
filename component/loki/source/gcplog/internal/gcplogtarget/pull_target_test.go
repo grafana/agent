@@ -121,8 +121,8 @@ func testPullTarget(ctx context.Context, t *testing.T) (*PullTarget, *fake.Clien
 		jobName:       t.Name() + "job-test-gcplogtarget",
 		ctx:           ctx,
 		cancel:        cancel,
-		PSClient:      mockpubsubClient,
-		Msgs:          make(chan *pubsub.Message),
+		ps:            mockpubsubClient,
+		msgs:          make(chan *pubsub.Message),
 	}
 
 	// cleanup

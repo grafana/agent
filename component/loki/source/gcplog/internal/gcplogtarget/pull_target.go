@@ -21,7 +21,6 @@ import (
 // PullTarget represents a target that scrapes logs from a GCP project id and
 // subscription and converts them to Loki log entries.
 type PullTarget struct {
-	// why was this here above?? nolint:revive
 	metrics       *Metrics
 	logger        log.Logger
 	handler       loki.EntryHandler
@@ -41,11 +40,11 @@ type PullTarget struct {
 
 // NewPullTarget returns the new instance of PullTarget.
 func NewPullTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandler, jobName string, config *PullConfig, relabel []*relabel.Config, clientOptions ...option.ClientOption) (*PullTarget, error) {
-	// why was this here above?? nolint:revive,govet
 	ctx, cancel := context.WithCancel(context.Background())
 
 	ps, err := pubsub.NewClient(ctx, config.ProjectID, clientOptions...)
 	if err != nil {
+		cancel()
 		return nil, err
 	}
 
