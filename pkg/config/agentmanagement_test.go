@@ -7,6 +7,7 @@ import (
 
 	"github.com/prometheus/common/config"
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/yaml.v2"
 )
 
 func TestValidateValidConfig(t *testing.T) {
@@ -20,7 +21,7 @@ func TestValidateValidConfig(t *testing.T) {
 		Protocol:        "https",
 		PollingInterval: "1m",
 		CacheLocation:   "/test/path/",
-		RemoteConfiguration: RemoteConfiguration{
+		RemoteConfiguration: remoteConfiguration{
 			Namespace: "test_namespace",
 		},
 	}
@@ -35,7 +36,7 @@ func TestValidateInvalidBasicAuth(t *testing.T) {
 		Protocol:        "https",
 		PollingInterval: "1m",
 		CacheLocation:   "/test/path/",
-		RemoteConfiguration: RemoteConfiguration{
+		RemoteConfiguration: remoteConfiguration{
 			Namespace: "test_namespace",
 		},
 	}
@@ -60,7 +61,7 @@ func TestValidateInvalidPollingInterval(t *testing.T) {
 		Protocol:        "https",
 		PollingInterval: "1?",
 		CacheLocation:   "/test/path/",
-		RemoteConfiguration: RemoteConfiguration{
+		RemoteConfiguration: remoteConfiguration{
 			Namespace: "test_namespace",
 		},
 	}
@@ -80,7 +81,7 @@ func TestMissingCacheLocation(t *testing.T) {
 		},
 		Protocol:        "https",
 		PollingInterval: "1?",
-		RemoteConfiguration: RemoteConfiguration{
+		RemoteConfiguration: remoteConfiguration{
 			Namespace: "test_namespace",
 		},
 	}
@@ -104,7 +105,7 @@ func TestSleepTime(t *testing.T) {
 		Protocol:        "https",
 		PollingInterval: "1m",
 		CacheLocation:   "/test/path/",
-		RemoteConfiguration: RemoteConfiguration{
+		RemoteConfiguration: remoteConfiguration{
 			Namespace: "test_namespace",
 		},
 	}
@@ -129,7 +130,7 @@ func TestFullUrl(t *testing.T) {
 		Protocol:        "https",
 		PollingInterval: "1m",
 		CacheLocation:   "/test/path/",
-		RemoteConfiguration: RemoteConfiguration{
+		RemoteConfiguration: remoteConfiguration{
 			Labels:    labelMap{"b": "B", "a": "A"},
 			Namespace: "test_namespace",
 		},
@@ -137,4 +138,11 @@ func TestFullUrl(t *testing.T) {
 	actual, err := c.fullUrl()
 	assert.NoError(t, err)
 	assert.Equal(t, "https://localhost:1234/example/api/namespace/test_namespace/remote_config?a=A&b=B", actual)
+}
+
+func TestDefaultConfig(t *testing.T) {
+	empty := `agent_management:`
+	var am AgentManagement
+	yaml.Unmarshal([]byte(empty), &am)
+	assert.Equal(t, "data-agent/", am.CacheLocation)
 }

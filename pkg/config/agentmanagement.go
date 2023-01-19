@@ -15,9 +15,13 @@ import (
 
 const cacheFilename = "remote-config-cache.yaml"
 
+var defaultConfig = AgentManagement{
+	CacheLocation: "data-agent/",
+}
+
 type labelMap map[string]string
 
-type RemoteConfiguration struct {
+type remoteConfiguration struct {
 	Labels    labelMap `yaml:"labels"`
 	Namespace string   `yaml:"namespace"`
 }
@@ -30,7 +34,14 @@ type AgentManagement struct {
 	PollingInterval string           `yaml:"polling_interval"`
 	CacheLocation   string           `yaml:"remote_config_cache_location"`
 
-	RemoteConfiguration RemoteConfiguration `yaml:"remote_configuration"`
+	RemoteConfiguration remoteConfiguration `yaml:"remote_configuration"`
+}
+
+// UnmarshalYAML implements yaml.Unmarshaler.
+func (am *AgentManagement) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*am = defaultConfig
+	type plain AgentManagement
+	return unmarshal((*plain)(am))
 }
 
 // getRemoteConfig gets the remote config specified in the initial config, falling back to a local, cached copy
