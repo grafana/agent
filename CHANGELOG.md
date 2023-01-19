@@ -66,6 +66,8 @@ Main (unreleased)
 
 - Flow: `prometheus.relabel` and `prometheus.remote_write` will now error if they have exited. (@ptodev)
 
+- Agent Management: Fix `remote_config_fetch_errors_total` metric being registered even when `remote-configs` and `agent-management` features were not enabled. (@spartan0x117)
+
 ### Other changes
 
 - Use Go 1.19.4 for builds. (@erikbaranowski)
