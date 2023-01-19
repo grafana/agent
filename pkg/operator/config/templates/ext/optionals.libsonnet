@@ -14,12 +14,12 @@
       assert std.isNumber(value) : 'number must only be called with numbers';
       if value == 0 then null else value,
 
-  // bool returns null if value is false, otherwise returns value.
-  bool(value)::
+  // bool returns a value only if the value is present, and not equal to the defaut. otherwise returns null.
+  bool(value, defaultValue = false)::
     if value == null then null
     else
       assert std.isBoolean(value) : 'bool must only be called with booleans';
-      if value == false then null else value,
+      if value == defaultValue then null else value,
 
   // object returns null if there are no keys in the object.
   object(value)::
