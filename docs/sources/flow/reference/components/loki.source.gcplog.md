@@ -1,0 +1,164 @@
+---
+aliases:
+- /docs/agent/latest/flow/reference/components/loki.source.gcplog
+title: loki.source.gcplog
+---
+
+# loki.source.gcplog
+
+`loki.source.gcplog` retrieves logs from cloud resources such as GCS buckets,
+load balancers, or Kubernetes cluster running on GCP by making use of Pub/Sub
+[subscriptions](https://cloud.google.com/pubsub/docs/subscriber).
+
+The component starts a new gcplog 'target' with either the 'push' or 'pull'
+strategy, reads log entries and forwards them to the list of receivers in
+`forward_to`.
+
+Multiple `loki.source.gcplog` components can be specified by giving them
+different labels.
+
+## Usage
+
+```river
+loki.source.gcplog "LABEL" {
+  pull {
+    project_id   = "PROJECT_ID"
+    subscription = "SUB_ID"
+  }
+
+  forward_to = RECEIVER_LIST
+}
+```
+
+## Arguments
+
+`loki.source.gcplog` supports the following arguments:
+
+Name            | Type                 | Description          | Default | Required
+--------------- | -------------------- | -------------------- | ------- | --------
+`forward_to`    | `list(LogsReceiver)` | List of receivers to send log entries to. |      | yes
+`relabel_rules` | `RelabelRules`       | Relabeling rules to apply on log entries. | "{}" | no
+
+## Blocks
+
+The following blocks are supported inside the definition of
+`loki.source.gcplog`:
+
+Hierarchy | Name | Description | Required
+--------- | ---- | ----------- | --------
+pull      | [pull][] | Configures a target to pull entries from a GCP Pub/Sub subscription. | no
+push      | [push][] | Configures a server to receive entries as GCP Pub/Sub push requests. | no
+
+The `pull` and `push` inner blocks are mutually exclusive; a component must
+contain exactly one of the two in its definition.
+
+[pull]: #pull-block
+[push]: #push-block
+
+### pull block
+
+The `pull` block defines which GCP project id and subscription ID the target
+reads log entries from.
+
+The following arguments can be used to configure the `pull` block. Any omitted
+fields take their default values.
+
+Name                     | Type          | Description | Default | Required
+------------------------ | ------------- | ----------- | ------- | --------
+`project_id`             | `string`      | The GCP project id the subscription belongs to.       |         | yes
+`subscription`           | `string`      | The subscription name to pull logs from.              |         | yes
+`labels`                 | `map(string)` | Additional labels to associate with incoming entries. | `"{}"`  | no
+`use_incoming_timestamp` | `bool`        | Whether to use the incoming entry timestamp.          | `false` | no
+
+To make use of the `pull` strategy, the GCP project must have been
+[configured](https://grafana.com/docs/loki/next/clients/promtail/gcplog-cloud/)
+to forward its cloud resource logs onto a Pub/Sub topic for
+`loki.source.gcplog` to consume.
+
+Typically, the component will also need to have its
+[credentials](https://cloud.google.com/docs/authentication/application-default-credentials)
+configured. One way to do it is to point the `GOOGLE_APPLICATION_CREDENTIALS`
+environment variable to the location of a credential configuration JSON file or
+a service account key.
+
+### push block
+
+The `push` block defines the configuration of the HTTP server to receive
+push requests from GCP's Pub/Sub servers.
+
+The following arguments can be used to configure the `push` block. Any omitted
+fields take their default values.
+
+Name                     | Type          | Description | Default | Required
+------------------------ | ------------- | ----------- | ------- | --------
+`http_listen_address`    | `string`      | The address the server listens to.  |         | yes
+`http_listen_port`       | `int`         | The port the server listens to.  |    `0`     | no
+`push_timeout`           | `duration`    | Sets a maximum processing time for each incoming GCP log entry. |  `"0s"`  | no
+`labels`                 | `map(string)` | Additional labels to associate with incoming entries. | `"{}"`  | no
+`use_incoming_timestamp` | `bool`        | Whether to use the incoming entry timestamp.          | `false` | no
+
+When using the `push` strategy, if no `http_listen_port` is defined, or the
+port is set to zero, then a random port will be allocated.
+
+The server will listen for POST requests from GCP's Push subscriptions on
+`HOST:PORT/gcp/api/v1/push`.
+
+By default, for both strategies the component assigns the log entry timestamp
+as the time it was processed, except if `use_incoming_timestamp` is set to
+true.
+
+The `labels` map is applied to every entry that passes through the component.
+
+
+## Exported fields
+
+`loki.source.gcplog` does not export any fields.
+
+## Component health
+
+`loki.source.gcplog` is only reported as unhealthy if given an invalid
+configuration.
+
+## Debug information
+
+`loki.source.gcplog` exposes some debug information per gcplog listener:
+* Whether the listener is currently running.
+* The listen address.
+* The labels that the listener applies to incoming log entries.
+
+## Debug metrics
+
+When using the `pull` strategy, the component exposes the following debug
+metrics:
+* `loki_source_gcplog_pull_entries_total` (counter): Number of entries received by the gcplog target.
+* `loki_source_gcplog_pull_parsing_errors_total` (counter): Total number of parsing errors while receiving gcplog messages.
+* `loki_source_gcplog_pull_last_success_scrape` (gauge): Timestamp of target's last successful poll.
+
+When using the `push` strategy, the component exposes the following debug
+metrics:
+* `loki_source_gcplog_push_entries_total` (counter): Number of entries received by the gcplog target.
+* `loki_source_gcplog_push_entries_total` (counter): Number of parsing errors while receiving gcplog messages.
+
+
+## Example
+
+This example listens for GCP's Pub/Sub PushRequests on `localhost:51895` and
+forwards them to a `loki.write` component.
+
+```river
+loki.source.gcplog "local" {
+  push {
+    http_listen_address = "localhost"
+    http_listen_port    = 51895
+  }
+
+  forward_to = [loki.write.local.receiver]
+}
+
+loki.write "local" {
+  endpoint {
+    url = "loki:3100/api/v1/push"
+  }
+}
+```
+
