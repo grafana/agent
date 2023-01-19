@@ -42,8 +42,8 @@ func (p *PushConfig) UnmarshalRiver(f func(v interface{}) error) error {
 	if err != nil {
 		return err
 	}
-	if p.PushTimeout <= 0 {
-		return fmt.Errorf("poll_frequency must be greater than 30s")
+	if p.PushTimeout < 0 {
+		return fmt.Errorf("push_timeout must be greater than zero")
 	}
 	return nil
 }
