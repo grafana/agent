@@ -137,7 +137,7 @@ require (
 	github.com/jmespath/go-jmespath v0.4.0
 	github.com/mackerelio/go-osstat v0.2.3
 	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f
-	github.com/observiq/oracledb_exporter v0.0.0-20230119171613-cd828926ffac
+	github.com/observiq/oracledb_exporter v0.0.0-20230119190025-90935c40f8bb
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.63.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.61.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension v0.61.0

@@ -1,6 +1,7 @@
 package oracledbexporter
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -25,7 +26,7 @@ var DefaultConfig = Config{
 	ConnectionString: os.Getenv("DATA_SOURCE_NAME"),
 	MaxOpenConns:     10,
 	MaxIdleConns:     0,
-	QueryTimeout:     "5",
+	QueryTimeout:     5,
 	ScrapeInterval:   0,
 }
 
@@ -36,7 +37,7 @@ type Config struct {
 	MaxOpenConns      int                  `yaml:"max_open_connections,omitempty"`
 	ScrapeInterval    time.Duration        `yaml:"scrape_interval,omitempty"`
 	CustomMetricsPath string               `yaml:"custom_metrics_path,omitempty"`
-	QueryTimeout      string               `yaml:"query_timeout,omitempty"`
+	QueryTimeout      int                  `yaml:"query_timeout,omitempty"`
 	Common            common.MetricsConfig `yaml:",inline"`
 }
 
@@ -46,6 +47,16 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	type plain Config
 	return unmarshal((*plain)(c))
+}
+
+func (c *Config) Validate() error {
+	if c.ConnectionString == "" {
+		return errors.New("no connection string was provided")
+	}
+	if _, err := dburl.Parse(c.ConnectionString); err != nil {
+		return fmt.Errorf("unable to parse connection string: %w", err)
+	}
+	return nil
 }
 
 // Name returns the integration name this config is associated with.

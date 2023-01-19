@@ -2291,8 +2291,8 @@ github.com/nsqio/go-nsq v1.0.7/go.mod h1:XP5zaUs3pqf+Q71EqUJs3HYfBIqfK6G83WQMdNN
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
 github.com/nxadm/tail v1.4.8 h1:nPr65rt6Y5JFSKQO7qToXr7pePgD6Gwiw05lkbyAQTE=
 github.com/nxadm/tail v1.4.8/go.mod h1:+ncqLTQzXmGhMZNUePPaPqPvBxHAIsmXswZKocGu+AU=
-github.com/observiq/oracledb_exporter v0.0.0-20230119171613-cd828926ffac h1:I6xyvBkxR/tAB4vuJEG7hDAn6OqGBVr6ZCmCLL90ECY=
-github.com/observiq/oracledb_exporter v0.0.0-20230119171613-cd828926ffac/go.mod h1:hDXbOnGO1Qcia8jDWRDPqNUwqubbDh700ryfh1zRQRk=
+github.com/observiq/oracledb_exporter v0.0.0-20230119190025-90935c40f8bb h1:qGFeIqJXB72JU5r4S0GS/ru4ANEWYCtWptVkXuOTU3U=
+github.com/observiq/oracledb_exporter v0.0.0-20230119190025-90935c40f8bb/go.mod h1:hDXbOnGO1Qcia8jDWRDPqNUwqubbDh700ryfh1zRQRk=
 github.com/oklog/oklog v0.3.2/go.mod h1:FCV+B7mhrz4o+ueLpx+KqkyXRGMWOYEvfiXtdGtbWGs=
 github.com/oklog/run v0.0.0-20180308005104-6934b124db28/go.mod h1:dlhp/R75TPv97u0XWUtDeV/lRKWPKSdTuV0TZvrmrQA=
 github.com/oklog/run v1.0.0/go.mod h1:dlhp/R75TPv97u0XWUtDeV/lRKWPKSdTuV0TZvrmrQA=
