@@ -17,6 +17,9 @@ discovery:
       - type
   jobs:
     - type: AWS/EC2
+      search_tags:
+        - key: instance_type
+          value: spot
       regions:
         - us-east-2
       roles:
@@ -70,6 +73,12 @@ var expectedConfig = yaceConf.ScrapeConf{
 					{
 						Key:   "alias",
 						Value: "tesis",
+					},
+				},
+				SearchTags: []yaceModel.Tag{
+					{
+						Key:   "instance_type",
+						Value: "spot",
 					},
 				},
 				Metrics: []*yaceConf.Metric{

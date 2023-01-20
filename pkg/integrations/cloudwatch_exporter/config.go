@@ -68,7 +68,7 @@ func toYACEStaticJob(job StaticJob) *yaceConf.Static {
 		Regions:    job.Regions,
 		Roles:      toYACERoles(job.Roles),
 		Namespace:  job.Namespace,
-		CustomTags: toYACECustomTags(job.CustomTags),
+		CustomTags: toYACETags(job.CustomTags),
 		Dimensions: toYACEDimensions(job.Dimensions),
 		Metrics:    toYACEMetrics(job.Metrics),
 	}
@@ -90,9 +90,10 @@ func toYACEDiscoveryJob(job *DiscoveryJob) *yaceConf.Job {
 	return &yaceConf.Job{
 		Regions:    job.Regions,
 		Roles:      roles,
-		CustomTags: toYACECustomTags(job.CustomTags),
+		CustomTags: toYACETags(job.CustomTags),
 		Type:       job.Type,
 		Metrics:    toYACEMetrics(job.Metrics),
+		SearchTags: toYACETags(job.SearchTags),
 
 		// Set to zero job-wide scraping time settings. This should be configured at the metric level to make the data
 		// being fetched more explicit.
@@ -153,7 +154,7 @@ func toYACERoles(roles []Role) []yaceConf.Role {
 	return yaceRoles
 }
 
-func toYACECustomTags(tags []Tag) []yaceModel.Tag {
+func toYACETags(tags []Tag) []yaceModel.Tag {
 	outTags := []yaceModel.Tag{}
 	for _, t := range tags {
 		outTags = append(outTags, yaceModel.Tag{

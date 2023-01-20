@@ -18,7 +18,7 @@ func main() {
 	var sb strings.Builder
 	for _, supportedSvc := range yaceSvc.SupportedServices {
 		sb.WriteString(
-			fmt.Sprintf("- Namespace: \"%s\" or Alias: \"%s\"\n", supportedSvc.Namespace, supportedSvc.Alias),
+			fmt.Sprintf("- Namespace: `%s` or Alias: `%s`\n", supportedSvc.Namespace, supportedSvc.Alias),
 		)
 	}
 	doc := strings.Replace(docTemplate, servicesListReplacement, sb.String(), 1)

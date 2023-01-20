@@ -35,6 +35,7 @@ type TagsPerNamespace map[string][]string
 type DiscoveryJob struct {
 	InlineRegionAndRoles `yaml:",inline"`
 	InlineCustomTags     `yaml:",inline"`
+	SearchTags           []Tag    `yaml:"search_tags"`
 	Type                 string   `yaml:"type"`
 	Metrics              []Metric `yaml:"metrics"`
 }
