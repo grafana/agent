@@ -141,9 +141,3 @@ func (t *PullTarget) Stop() error {
 	t.ps.Close()
 	return nil
 }
-
-// Used to add a mock pubsub clients for testing.
-func (t *PullTarget) setPubSubClientAndMessageChan(cl *pubsub.Client, ch chan *pubsub.Message) {
-	t.ps = cl
-	t.msgs = ch
-}
