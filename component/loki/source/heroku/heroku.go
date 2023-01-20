@@ -11,7 +11,9 @@ import (
 	"github.com/grafana/agent/component/common/loki"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	ht "github.com/grafana/agent/component/loki/source/heroku/internal/herokutarget"
+	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"
+	sv "github.com/weaveworks/common/server"
 )
 
 func init() {
@@ -33,6 +35,31 @@ type Arguments struct {
 	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`
 	ForwardTo            []loki.LogsReceiver `river:"forward_to,attr"`
 	RelabelRules         flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
+}
+
+// ListenerConfig defines a heroku listener.
+type ListenerConfig struct {
+	ListenAddress string `river:"address,attr,optional"`
+	ListenPort    int    `river:"port,attr"`
+	// TODO - add the rest of the server config from Promtail
+}
+
+// DefaultListenerConfig provides the default arguments for a heroku listener.
+var DefaultListenerConfig = ListenerConfig{
+	ListenAddress: "0.0.0.0",
+}
+
+// UnmarshalRiver implements river.Unmarshaler.
+func (lc *ListenerConfig) UnmarshalRiver(f func(interface{}) error) error {
+	*lc = DefaultListenerConfig
+
+	type herokucfg ListenerConfig
+	err := f((*herokucfg)(lc))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Component implements the loki.source.heroku component.
@@ -129,6 +156,23 @@ func (c *Component) Update(args component.Arguments) error {
 	}
 
 	return nil
+}
+
+// Convert is used to bridge between the River and Promtail types.
+func (args *Arguments) Convert() *ht.HerokuDrainTargetConfig {
+	lbls := make(model.LabelSet, len(args.Labels))
+	for k, v := range args.Labels {
+		lbls[model.LabelName(k)] = model.LabelValue(v)
+	}
+
+	return &ht.HerokuDrainTargetConfig{
+		Server: sv.Config{
+			HTTPListenAddress: args.HerokuListener.ListenAddress,
+			HTTPListenPort:    args.HerokuListener.ListenPort,
+		},
+		Labels:               lbls,
+		UseIncomingTimestamp: args.UseIncomingTimestamp,
+	}
 }
 
 // DebugInfo returns information about the status of listener.
