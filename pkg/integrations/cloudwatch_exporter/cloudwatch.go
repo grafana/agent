@@ -17,14 +17,14 @@ func init() {
 
 // Config is the configuration for the CloudWatch metrics integration
 type Config struct {
-	STSRegion string          `yaml:"stsRegion"`
+	STSRegion string          `yaml:"sts_region"`
 	Discovery DiscoveryConfig `yaml:"discovery"`
 	Static    []StaticJob     `yaml:"static"`
 }
 
 // DiscoveryConfig configures scraping jobs that will auto-discover metrics dimensions for a given service.
 type DiscoveryConfig struct {
-	ExportedTags TagsPerNamespace `yaml:"exportedTags"`
+	ExportedTags TagsPerNamespace `yaml:"exported_tags"`
 	Jobs         []*DiscoveryJob  `yaml:"jobs"`
 }
 
@@ -57,12 +57,12 @@ type InlineRegionAndRoles struct {
 }
 
 type InlineCustomTags struct {
-	CustomTags []Tag `yaml:"customTags"`
+	CustomTags []Tag `yaml:"custom_tags"`
 }
 
 type Role struct {
-	RoleArn    string `yaml:"roleArn"`
-	ExternalID string `yaml:"externalID"`
+	RoleArn    string `yaml:"role_arn"`
+	ExternalID string `yaml:"external_id"`
 }
 
 type Dimension struct {
@@ -86,7 +86,6 @@ func (c *Config) Name() string {
 	return "cloudwatch_exporter"
 }
 
-// todo: fix me
 func (c *Config) InstanceKey(agentKey string) (string, error) {
 	return c.Name(), nil
 }

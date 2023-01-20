@@ -9,9 +9,9 @@ import (
 )
 
 const configString = `
-stsRegion: us-east-2
+sts_region: us-east-2
 discovery:
-  exportedTags:
+  exported_tags:
     AWS/EC2:
       - name
       - type
@@ -20,8 +20,8 @@ discovery:
       regions:
         - us-east-2
       roles:
-        - roleArn: arn:aws:iam::878167871295:role/yace_testing
-      customTags:
+        - role_arn: arn:aws:iam::878167871295:role/yace_testing
+      custom_tags:
         - key: alias
           value: tesis
       metrics:
