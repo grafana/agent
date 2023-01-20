@@ -21,7 +21,7 @@ var defaultConfig = AgentManagement{
 
 type labelMap map[string]string
 
-type remoteConfiguration struct {
+type RemoteConfiguration struct {
 	Labels    labelMap `yaml:"labels"`
 	Namespace string   `yaml:"namespace"`
 }
@@ -34,7 +34,7 @@ type AgentManagement struct {
 	PollingInterval string           `yaml:"polling_interval"`
 	CacheLocation   string           `yaml:"remote_config_cache_location"`
 
-	RemoteConfiguration remoteConfiguration `yaml:"remote_configuration"`
+	RemoteConfiguration RemoteConfiguration `yaml:"remote_configuration"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
