@@ -123,6 +123,9 @@ func (c *Component) Update(args component.Arguments) error {
 
 // DebugInfo returns information about the status of targets.
 func (c *Component) DebugInfo() interface{} {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+
 	lbls := make(map[string]string, len(c.target.Labels()))
 	for k, v := range c.target.Labels() {
 		lbls[string(k)] = string(v)
