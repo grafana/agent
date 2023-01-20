@@ -202,7 +202,7 @@ configuration.
 
 ## Debug metrics
 * `loki_source_cloudflare_target_entries_total` (counter): Total number of successful entries sent via the cloudflare target.
-* `loki_source_cloudflare_target_last_requested_end_timestamp` (gauge): The last cloudflare request end timestamp fetched. This allows to calculate how far the target is behind.
+* `loki_source_cloudflare_target_last_requested_end_timestamp` (gauge): The last cloudflare request end timestamp fetched, for calculating how far behind the target is.
 
 ## Example
 
