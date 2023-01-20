@@ -13,7 +13,11 @@ const (
 	labelsSnakeCase       = false
 )
 
+// Since we are gathering metrics from CloudWatch and writing them in prometheus during each scrape, the timestamp
+// used should be the scrape one
 var addCloudwatchTimestamp = false
+
+// Avoid producing absence of values in metrics
 var nilToZero = true
 
 // ToYACEConfig converts a Config into YACE's config model. Note that the conversion is not direct, some values
@@ -36,6 +40,8 @@ func ToYACEConfig(c *Config) (yaceConf.ScrapeConf, error) {
 		},
 		Static: staticJobs,
 	}
+	// Run the exporter's config validation. Between other things, it will check that the service for which a discovery
+	// job is instantiated, it's supported.
 	if err := conf.Validate(yaceSvc.CheckServiceName); err != nil {
 		return conf, err
 	}
@@ -82,16 +88,23 @@ func toYACEDimensions(dim []Dimension) []yaceConf.Dimension {
 func toYACEDiscoveryJob(job *DiscoveryJob) *yaceConf.Job {
 	roles := toYACERoles(job.Roles)
 	return &yaceConf.Job{
-		Regions:                job.Regions,
-		Roles:                  roles,
-		CustomTags:             toYACECustomTags(job.CustomTags),
-		Type:                   job.Type,
+		Regions:    job.Regions,
+		Roles:      roles,
+		CustomTags: toYACECustomTags(job.CustomTags),
+		Type:       job.Type,
+		Metrics:    toYACEMetrics(job.Metrics),
+
+		// Set to zero job-wide scraping time settings. This should be configured at the metric level to make the data
+		// being fetched more explicit.
+		Period: 0,
+		Length: 0,
+		Delay:  0,
+
+		// By setting RoundingPeriod to nil, the exporter will align the start and end times for retrieving CloudWatch
+		// metrics, with the smallest period in the retrieved batch.
+		RoundingPeriod: nil,
+
 		NilToZero:              &nilToZero,
-		Metrics:                toYACEMetrics(job.Metrics),
-		Period:                 0,
-		Length:                 0,
-		Delay:                  0,
-		RoundingPeriod:         nil,
 		AddCloudwatchTimestamp: &addCloudwatchTimestamp,
 	}
 }
@@ -102,13 +115,23 @@ func toYACEMetrics(metrics []Metric) []*yaceConf.Metric {
 		periodSeconds := int64(metric.Period.Seconds())
 		lengthSeconds := periodSeconds
 		yaceMetrics = append(yaceMetrics, &yaceConf.Metric{
-			Name:                   metric.Name,
-			Statistics:             metric.Statistics,
-			Period:                 periodSeconds,
-			Length:                 lengthSeconds,
+			Name:       metric.Name,
+			Statistics: metric.Statistics,
+
+			// Length dictates the size of the window for whom we request metrics, that is, endTime - startTime. Period
+			// dictates the size of the buckets in which we aggregate data, inside that window. Since data will be scraped
+			// by the agent every so often, dictated by the scrapedInterval, CloudWatch should return a single datapoint
+			// for each requested metric. That is if Period >= Length, but is Period > Length, we will be getting not enough
+			// data to fill the whole aggregation bucket. Therefore, Period == Length.
+			Period: periodSeconds,
+			Length: lengthSeconds,
+
+			// Delay moves back the time window for whom CloudWatch is requested data. Since we are already adjusting
+			// this with RoundingPeriod (see toYACEDiscoveryJob), we should omit this setting.
+			Delay: 0,
+
 			NilToZero:              &nilToZero,
 			AddCloudwatchTimestamp: &addCloudwatchTimestamp,
-			Delay:                  0,
 		})
 	}
 	return yaceMetrics
