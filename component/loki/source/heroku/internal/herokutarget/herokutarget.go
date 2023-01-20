@@ -13,6 +13,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	herokuEncoding "github.com/heroku/x/logplex/encoding"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/relabel"
@@ -20,46 +21,50 @@ import (
 	"github.com/weaveworks/common/server"
 
 	"github.com/grafana/agent/component/common/loki"
-	lokiClient "github.com/grafana/loki/clients/pkg/promtail/client"
-	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
-	"github.com/grafana/loki/clients/pkg/promtail/targets/serverutils"
-	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
 
 	"github.com/grafana/loki/pkg/logproto"
 	util_log "github.com/grafana/loki/pkg/util/log"
 )
 
+const ReservedLabelTenantID = "__tenant_id__"
+
+// HerokuDrainTargetConfig describes a scrape config to listen and consume heroku logs, in the HTTPS drain manner.
+type HerokuDrainTargetConfig struct {
+	// Server is the weaveworks server config for listening connections
+	Server server.Config
+
+	// Labels optionally holds labels to associate with each record received on the push api.
+	Labels model.LabelSet
+
+	// UseIncomingTimestamp sets the timestamp to the incoming heroku log entry timestamp. If false,
+	// promtail will assign the current timestamp to the log entry when it was processed.
+	UseIncomingTimestamp bool
+}
+
 type HerokuTarget struct {
 	logger         log.Logger
 	handler        loki.EntryHandler
-	config         *scrapeconfig.HerokuDrainTargetConfig
-	jobName        string
+	config         *HerokuDrainTargetConfig
 	server         *server.Server
 	metrics        *Metrics
 	relabelConfigs []*relabel.Config
 }
 
 // NewTarget creates a brand new Heroku Drain target, capable of receiving logs from a Heroku application through an HTTP drain.
-func NewHerokuTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandler, jobName string, relabel []*relabel.Config, config *scrapeconfig.HerokuDrainTargetConfig) (*HerokuTarget, error) {
+func NewHerokuTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandler, relabel []*relabel.Config, config *HerokuDrainTargetConfig, reg prometheus.Registerer) (*HerokuTarget, error) {
 	wrappedLogger := log.With(logger, "component", "heroku_drain")
 
 	ht := &HerokuTarget{
 		metrics:        metrics,
 		logger:         wrappedLogger,
 		handler:        handler,
-		jobName:        jobName,
 		config:         config,
 		relabelConfigs: relabel,
 	}
 
-	mergedServerConfigs, err := serverutils.MergeWithDefaults(config.Server)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse configs and override defaults when configuring heroku drain target: %w", err)
-	}
-	// Set the config to the new combined config.
-	config.Server = mergedServerConfigs
+	config.Server.Registerer = reg
 
-	err = ht.run()
+	err := ht.run()
 	if err != nil {
 		return nil, err
 	}
@@ -68,15 +73,9 @@ func NewHerokuTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHand
 }
 
 func (h *HerokuTarget) run() error {
-	level.Info(h.logger).Log("msg", "starting heroku drain target", "job", h.jobName)
+	level.Info(h.logger).Log("msg", "starting heroku drain target")
 
-	// To prevent metric collisions because all metrics are going to be registered in the global Prometheus registry.
-
-	tentativeServerMetricNamespace := "promtail_heroku_drain_target_" + h.jobName
-	if !model.IsValidMetricName(model.LabelValue(tentativeServerMetricNamespace)) {
-		return fmt.Errorf("invalid prometheus-compatible job name: %s", h.jobName)
-	}
-	h.config.Server.MetricsNamespace = tentativeServerMetricNamespace
+	h.config.Server.MetricsNamespace = "loki_source_heroku_drain_target"
 
 	// We don't want the /debug and /metrics endpoints running, since this is not the main promtail HTTP server.
 	// We want this target to expose the least surface area possible, hence disabling WeaveWorks HTTP server metrics
@@ -92,7 +91,7 @@ func (h *HerokuTarget) run() error {
 	}
 
 	h.server = srv
-	h.server.HTTP.Path("/heroku/api/v1/drain").Methods("POST").Handler(http.HandlerFunc(h.drain))
+	h.server.HTTP.Path(h.Endpoint()).Methods("POST").Handler(http.HandlerFunc(h.drain))
 
 	go func() {
 		err := srv.Run()
@@ -130,7 +129,7 @@ func (h *HerokuTarget) drain(w http.ResponseWriter, r *http.Request) {
 		tenantIDHeaderValue := r.Header.Get("X-Scope-OrgID")
 		if tenantIDHeaderValue != "" {
 			// If present, first inject the tenant ID in, so it can be relabeled if necessary
-			lb.Set(lokiClient.ReservedLabelTenantID, tenantIDHeaderValue)
+			lb.Set(ReservedLabelTenantID, tenantIDHeaderValue)
 		}
 
 		processed := relabel.Process(lb.Labels(nil), h.relabelConfigs...)
@@ -146,7 +145,7 @@ func (h *HerokuTarget) drain(w http.ResponseWriter, r *http.Request) {
 
 		// Then, inject it as the reserved label, so it's used by the remote write client
 		if tenantIDHeaderValue != "" {
-			filtered[lokiClient.ReservedLabelTenantID] = model.LabelValue(tenantIDHeaderValue)
+			filtered[ReservedLabelTenantID] = model.LabelValue(tenantIDHeaderValue)
 		}
 
 		entries <- loki.Entry{
@@ -168,14 +167,6 @@ func (h *HerokuTarget) drain(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *HerokuTarget) Type() target.TargetType {
-	return target.HerokuDrainTargetType
-}
-
-func (h *HerokuTarget) DiscoveredLabels() model.LabelSet {
-	return nil
-}
-
 func (h *HerokuTarget) Labels() model.LabelSet {
 	return h.config.Labels
 }
@@ -188,6 +179,10 @@ func (h *HerokuTarget) ListenPort() int {
 	return h.config.Server.HTTPListenPort
 }
 
+func (h *HerokuTarget) Endpoint() string {
+	return "/heroku/api/v1/drain"
+}
+
 func (h *HerokuTarget) Ready() bool {
 	return true
 }
@@ -197,7 +192,7 @@ func (h *HerokuTarget) Details() interface{} {
 }
 
 func (h *HerokuTarget) Stop() error {
-	level.Info(h.logger).Log("msg", "stopping heroku drain target", "job", h.jobName)
+	level.Info(h.logger).Log("msg", "stopping heroku drain target")
 	h.server.Shutdown()
 	h.handler.Stop()
 	return nil

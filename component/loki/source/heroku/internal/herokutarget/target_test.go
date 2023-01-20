@@ -23,9 +23,6 @@ import (
 	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/common/server"
-
-	lokiClient "github.com/grafana/loki/clients/pkg/promtail/client"
-	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 )
 
 const localhost = "127.0.0.1"
@@ -277,7 +274,7 @@ func TestHerokuDrainTarget(t *testing.T) {
 
 			serverConfig, port, err := getServerConfigWithAvailablePort()
 			require.NoError(t, err, "error generating server config or finding open port")
-			config := &scrapeconfig.HerokuDrainTargetConfig{
+			config := &HerokuDrainTargetConfig{
 				Server:               serverConfig,
 				Labels:               tc.args.Labels,
 				UseIncomingTimestamp: false,
@@ -285,7 +282,7 @@ func TestHerokuDrainTarget(t *testing.T) {
 
 			prometheus.DefaultRegisterer = prometheus.NewRegistry()
 			metrics := NewMetrics(prometheus.DefaultRegisterer)
-			pt, err := NewHerokuTarget(metrics, logger, eh, "test_job", tc.args.RelabelConfigs, config)
+			pt, err := NewHerokuTarget(metrics, logger, eh, tc.args.RelabelConfigs, config, prometheus.DefaultRegisterer)
 			require.NoError(t, err)
 			defer func() {
 				_ = pt.Stop()
@@ -338,7 +335,7 @@ func TestHerokuDrainTarget_UseIncomingTimestamp(t *testing.T) {
 
 	serverConfig, port, err := getServerConfigWithAvailablePort()
 	require.NoError(t, err, "error generating server config or finding open port")
-	config := &scrapeconfig.HerokuDrainTargetConfig{
+	config := &HerokuDrainTargetConfig{
 		Server:               serverConfig,
 		Labels:               nil,
 		UseIncomingTimestamp: true,
@@ -346,7 +343,7 @@ func TestHerokuDrainTarget_UseIncomingTimestamp(t *testing.T) {
 
 	prometheus.DefaultRegisterer = prometheus.NewRegistry()
 	metrics := NewMetrics(prometheus.DefaultRegisterer)
-	pt, err := NewHerokuTarget(metrics, logger, eh, "test_job", nil, config)
+	pt, err := NewHerokuTarget(metrics, logger, eh, nil, config, prometheus.DefaultRegisterer)
 	require.NoError(t, err)
 	defer func() {
 		_ = pt.Stop()
@@ -371,32 +368,6 @@ func TestHerokuDrainTarget_UseIncomingTimestamp(t *testing.T) {
 	require.Equal(t, expectedTs, eh.Received()[0].Timestamp, "expected entry timestamp to be overridden by received one")
 }
 
-func TestHerokuDrainTarget_ErrorOnNotPrometheusCompatibleJobName(t *testing.T) {
-	w := log.NewSyncWriter(os.Stderr)
-	logger := log.NewLogfmtLogger(w)
-
-	// Create fake promtail client
-	eh := fake.New(func() {})
-	defer eh.Stop()
-
-	serverConfig, _, err := getServerConfigWithAvailablePort()
-	require.NoError(t, err, "error generating server config or finding open port")
-	config := &scrapeconfig.HerokuDrainTargetConfig{
-		Server:               serverConfig,
-		Labels:               nil,
-		UseIncomingTimestamp: true,
-	}
-
-	prometheus.DefaultRegisterer = prometheus.NewRegistry()
-	metrics := NewMetrics(prometheus.DefaultRegisterer)
-	pt, err := NewHerokuTarget(metrics, logger, eh, "test-job", nil, config)
-	require.Error(t, err, "expected an error from creating a heroku target with an invalid job name")
-	// Cleanup target in the case test failed and target started correctly
-	if err == nil {
-		_ = pt.Stop()
-	}
-}
-
 func TestHerokuDrainTarget_UseTenantIDHeaderIfPresent(t *testing.T) {
 	w := log.NewSyncWriter(os.Stderr)
 	logger := log.NewLogfmtLogger(w)
@@ -407,7 +378,7 @@ func TestHerokuDrainTarget_UseTenantIDHeaderIfPresent(t *testing.T) {
 
 	serverConfig, port, err := getServerConfigWithAvailablePort()
 	require.NoError(t, err, "error generating server config or finding open port")
-	config := &scrapeconfig.HerokuDrainTargetConfig{
+	config := &HerokuDrainTargetConfig{
 		Server:               serverConfig,
 		Labels:               nil,
 		UseIncomingTimestamp: true,
@@ -424,7 +395,7 @@ func TestHerokuDrainTarget_UseTenantIDHeaderIfPresent(t *testing.T) {
 			Regex:        relabel.MustNewRegexp("(.*)"),
 		},
 	}
-	pt, err := NewHerokuTarget(metrics, logger, eh, "test_job", tenantIDRelabelConfig, config)
+	pt, err := NewHerokuTarget(metrics, logger, eh, tenantIDRelabelConfig, config, prometheus.DefaultRegisterer)
 	require.NoError(t, err)
 	defer func() {
 		_ = pt.Stop()
@@ -445,7 +416,7 @@ func TestHerokuDrainTarget_UseTenantIDHeaderIfPresent(t *testing.T) {
 	// Make sure we didn't timeout
 	require.Equal(t, 1, len(eh.Received()))
 
-	require.Equal(t, model.LabelValue("42"), eh.Received()[0].Labels[lokiClient.ReservedLabelTenantID])
+	require.Equal(t, model.LabelValue("42"), eh.Received()[0].Labels[ReservedLabelTenantID])
 	require.Equal(t, model.LabelValue("42"), eh.Received()[0].Labels["tenant_id"])
 }
 

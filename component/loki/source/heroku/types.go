@@ -1,25 +1,22 @@
 package heroku
 
 import (
+	"github.com/grafana/agent/component/loki/source/heroku/internal/herokutarget"
 	"github.com/grafana/agent/pkg/river"
-	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	"github.com/prometheus/common/model"
 	sv "github.com/weaveworks/common/server"
 )
 
 // ListenerConfig defines a heroku listener.
 type ListenerConfig struct {
-	ListenAddress        string            `river:"address,attr"`
-	ListenPort           int               `river:"port,attr"`
-	Labels               map[string]string `river:"labels,attr,optional"`
-	UseIncomingTimestamp bool              `river:"use_incoming_timestamp,attr,optional"`
+	ListenAddress string `river:"address,attr,optional"`
+	ListenPort    int    `river:"port,attr"`
+	// TODO - add the rest of the server config from Promtail
 }
 
 // DefaultListenerConfig provides the default arguments for a heroku listener.
 var DefaultListenerConfig = ListenerConfig{
-	ListenAddress:        "localhost",
-	ListenPort:           8080,
-	UseIncomingTimestamp: true,
+	ListenAddress: "0.0.0.0",
 }
 
 var _ river.Unmarshaler = (*ListenerConfig)(nil)
@@ -38,31 +35,18 @@ func (sc *ListenerConfig) UnmarshalRiver(f func(interface{}) error) error {
 }
 
 // Convert is used to bridge between the River and Promtail types.
-// func (sc ListenerConfig) Convert() *scrapeconfig.HerokuDrainTargetConfig {
-// 	lbls := make(model.LabelSet, len(sc.Labels))
-// 	for k, v := range sc.Labels {
-// 		lbls[model.LabelName(k)] = model.LabelValue(v)
-// 	}
-
-// 	return &scrapeconfig.HerokuDrainTargetConfig{
-// 		Labels:               lbls,
-// 		UseIncomingTimestamp: sc.UseIncomingTimestamp,
-// 	}
-// }
-
-// Convert is used to bridge between the River and Promtail types.
-func (sc ListenerConfig) Convert() *scrapeconfig.HerokuDrainTargetConfig {
-	lbls := make(model.LabelSet, len(sc.Labels))
-	for k, v := range sc.Labels {
+func (args *Arguments) Convert() *herokutarget.HerokuDrainTargetConfig {
+	lbls := make(model.LabelSet, len(args.Labels))
+	for k, v := range args.Labels {
 		lbls[model.LabelName(k)] = model.LabelValue(v)
 	}
 
-	return &scrapeconfig.HerokuDrainTargetConfig{
+	return &herokutarget.HerokuDrainTargetConfig{
 		Server: sv.Config{
-			HTTPListenAddress: sc.ListenAddress,
-			HTTPListenPort:    sc.ListenPort,
+			HTTPListenAddress: args.HerokuListener.ListenAddress,
+			HTTPListenPort:    args.HerokuListener.ListenPort,
 		},
 		Labels:               lbls,
-		UseIncomingTimestamp: sc.UseIncomingTimestamp,
+		UseIncomingTimestamp: args.UseIncomingTimestamp,
 	}
 }

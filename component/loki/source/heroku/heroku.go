@@ -2,6 +2,7 @@ package heroku
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"sync"
 
@@ -9,7 +10,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
-	st "github.com/grafana/agent/component/loki/source/heroku/internal/herokutarget"
+	ht "github.com/grafana/agent/component/loki/source/heroku/internal/herokutarget"
 	"github.com/prometheus/prometheus/model/relabel"
 )
 
@@ -27,20 +28,22 @@ func init() {
 // Arguments holds values which are used to configure the loki.source.heroku
 // component.
 type Arguments struct {
-	HerokuListener ListenerConfig      `river:"listener,block"`
-	ForwardTo      []loki.LogsReceiver `river:"forward_to,attr"`
-	RelabelRules   flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
+	HerokuListener       ListenerConfig      `river:"listener,block"`
+	Labels               map[string]string   `river:"labels,attr,optional"`
+	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`
+	ForwardTo            []loki.LogsReceiver `river:"forward_to,attr"`
+	RelabelRules         flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
 }
 
 // Component implements the loki.source.heroku component.
 type Component struct {
 	opts    component.Options
-	metrics *st.Metrics
+	metrics *ht.Metrics
 
-	mut      sync.RWMutex
-	lc       ListenerConfig
-	fanout   []loki.LogsReceiver
-	listener *st.HerokuTarget
+	mut    sync.RWMutex
+	lc     ListenerConfig
+	fanout []loki.LogsReceiver
+	target *ht.HerokuTarget
 
 	handler loki.LogsReceiver
 }
@@ -48,13 +51,13 @@ type Component struct {
 // New creates a new loki.source.heroku component.
 func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{
-		opts:     o,
-		metrics:  st.NewMetrics(o.Registerer),
-		mut:      sync.RWMutex{},
-		lc:       ListenerConfig{},
-		fanout:   args.ForwardTo,
-		listener: nil,
-		handler:  make(loki.LogsReceiver),
+		opts:    o,
+		metrics: ht.NewMetrics(o.Registerer),
+		mut:     sync.RWMutex{},
+		lc:      ListenerConfig{},
+		fanout:  args.ForwardTo,
+		target:  nil,
+		handler: make(loki.LogsReceiver),
 	}
 
 	// Call to Update() to start readers and set receivers once at the start.
@@ -68,9 +71,12 @@ func New(o component.Options, args Arguments) (*Component, error) {
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
 	defer func() {
-		level.Info(c.opts.Logger).Log("msg", "loki.source.heroku component shutting down, stopping listeners")
-		if c.listener != nil {
-			err := c.listener.Stop()
+		c.mut.Lock()
+		defer c.mut.Unlock()
+
+		level.Info(c.opts.Logger).Log("msg", "loki.source.heroku component shutting down, stopping listener")
+		if c.target != nil {
+			err := c.target.Stop()
 			if err != nil {
 				level.Error(c.opts.Logger).Log("msg", "error while stopping heroku listener", "err", err)
 			}
@@ -105,51 +111,39 @@ func (c *Component) Update(args component.Arguments) error {
 	}
 
 	if configsChanged(c.lc, newArgs.HerokuListener) {
-		if c.listener != nil {
-			err := c.listener.Stop()
+		if c.target != nil {
+			err := c.target.Stop()
 			if err != nil {
 				level.Error(c.opts.Logger).Log("msg", "error while stopping heroku listener", "err", err)
 			}
 		}
 
 		entryHandler := loki.NewEntryHandler(c.handler, func() {})
-		t, err := st.NewHerokuTarget(c.metrics, c.opts.Logger, entryHandler, "job_name_todo", rcs, newArgs.HerokuListener.Convert())
+		t, err := ht.NewHerokuTarget(c.metrics, c.opts.Logger, entryHandler, rcs, newArgs.Convert(), c.opts.Registerer)
 		if err != nil {
 			level.Error(c.opts.Logger).Log("msg", "failed to create heroku listener with provided config", "err", err)
 			return err
 		}
 
-		c.listener = t
+		c.target = t
 	}
 
 	return nil
 }
 
-// DebugInfo returns information about the status of listeners.
+// DebugInfo returns information about the status of listener.
 func (c *Component) DebugInfo() interface{} {
-	var res readerDebugInfo
-
-	res.ListenersInfo = listenerInfo{
-		Type:          string(c.listener.Type()),
-		Ready:         c.listener.Ready(),
-		ListenAddress: c.listener.ListenAddress(),
-		ListenPort:    c.listener.ListenPort(),
-		Labels:        c.listener.Labels().String(),
+	var res readerDebugInfo = readerDebugInfo{
+		Ready:   c.target.Ready(),
+		Address: fmt.Sprintf("%s:%d", c.target.ListenAddress(), c.target.ListenPort()),
 	}
 
 	return res
 }
 
 type readerDebugInfo struct {
-	ListenersInfo listenerInfo `river:"listeners_info,attr"`
-}
-
-type listenerInfo struct {
-	Type          string `river:"type,attr"`
-	Ready         bool   `river:"ready,attr"`
-	ListenAddress string `river:"listen_address,attr"`
-	ListenPort    int    `river:"listen_port,attr"`
-	Labels        string `river:"labels,attr"`
+	Ready   bool   `river:"ready,attr"`
+	Address string `river:"address,attr"`
 }
 
 func configsChanged(prev, next ListenerConfig) bool {
