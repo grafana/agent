@@ -343,19 +343,35 @@ func (cg *configGenerator) addLimits(cfg *config.ScrapeConfig, f limitSetterFunc
 
 func (cg *configGenerator) addSafeTLStoYaml(cfg *config.ScrapeConfig, namespace string, tls v1.SafeTLSConfig) {
 	cfg.HTTPClientConfig.TLSConfig.InsecureSkipVerify = tls.InsecureSkipVerify
-	// TODO: secret mapping
-	// pathForSelector := func(sel v1.SecretOrConfigMap) string {
-	// 	return path.Join(tlsAssetsDir, assets.TLSAssetKeyFromSelector(namespace, sel).String())
-	// }
-	// if tls.CA.Secret != nil || tls.CA.ConfigMap != nil {
-	// 	tlsConfig = append(tlsConfig, yaml.MapItem{Key: "ca_file", Value: pathForSelector(tls.CA)})
-	// }
-	// if tls.Cert.Secret != nil || tls.Cert.ConfigMap != nil {
-	// 	tlsConfig = append(tlsConfig, yaml.MapItem{Key: "cert_file", Value: pathForSelector(tls.Cert)})
-	// }
-	// if tls.KeySecret != nil {
-	// 	tlsConfig = append(tlsConfig, yaml.MapItem{Key: "key_file", Value: pathForSelector(v1.SecretOrConfigMap{Secret: tls.KeySecret})})
-	// }
+	var err error
+	if tls.CA.Secret != nil {
+		cfg.HTTPClientConfig.TLSConfig.CAFile, err = cg.secrets.StoreSecretData(context.Background(), namespace, tls.CA.Secret.Name, tls.CA.Secret.Key)
+		if err != nil {
+			// log error
+		}
+	} else if tls.CA.ConfigMap != nil {
+		cfg.HTTPClientConfig.TLSConfig.CAFile, err = cg.secrets.StoreConfigMapData(context.Background(), namespace, tls.CA.ConfigMap.Name, tls.CA.ConfigMap.Key)
+		if err != nil {
+			// log error
+		}
+	}
+	if tls.Cert.Secret != nil {
+		cfg.HTTPClientConfig.TLSConfig.CertFile, err = cg.secrets.StoreSecretData(context.Background(), namespace, tls.Cert.Secret.Name, tls.Cert.Secret.Key)
+		if err != nil {
+			// log error
+		}
+	} else if tls.Cert.ConfigMap != nil {
+		cfg.HTTPClientConfig.TLSConfig.CertFile, err = cg.secrets.StoreConfigMapData(context.Background(), namespace, tls.Cert.ConfigMap.Name, tls.Cert.ConfigMap.Key)
+		if err != nil {
+			// log error
+		}
+	}
+	if tls.KeySecret != nil {
+		cfg.HTTPClientConfig.TLSConfig.KeyFile, err = cg.secrets.StoreSecretData(context.Background(), namespace, tls.KeySecret.Name, tls.KeySecret.Key)
+		if err != nil {
+			// log error
+		}
+	}
 	if tls.ServerName != "" {
 		cfg.HTTPClientConfig.TLSConfig.ServerName = tls.ServerName
 	}
@@ -473,7 +489,8 @@ func (cg *configGenerator) addOAuth2(cfg *config.ScrapeConfig, oauth2 *v1.OAuth2
 		s := oauth2.ClientID.Secret
 		cfg.HTTPClientConfig.OAuth2.ClientID = string(cg.getSecretData(ns, s.Name, s.Key))
 	} else if oauth2.ClientID.ConfigMap != nil {
-
+		cm := oauth2.ClientID.ConfigMap
+		cfg.HTTPClientConfig.OAuth2.ClientID = cg.getConfigMapData(ns, cm.Name, cm.Key)
 	}
 	cfg.HTTPClientConfig.OAuth2.ClientSecret = cg.getSecretData(ns, oauth2.ClientSecret.Name, oauth2.ClientSecret.Key)
 	cfg.HTTPClientConfig.OAuth2.TokenURL = oauth2.TokenURL
