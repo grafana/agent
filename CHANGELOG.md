@@ -68,6 +68,9 @@ Main (unreleased)
 
 - Flow: `prometheus.relabel` and `prometheus.remote_write` will now error if they have exited. (@ptodev)
 
+- Flow: Fix issue where negative numbers would convert to floating-point values
+  incorrectly, treating the sign flag as part of the number. (@rfratto)
+
 ### Other changes
 
 - Use Go 1.19.4 for builds. (@erikbaranowski)
