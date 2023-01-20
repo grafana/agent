@@ -51,9 +51,9 @@ config | [config][] | Configures how to connect and retrieve logs from Cloudflar
 
 ### config block
 
-The `config` block defines the API token and Zone ID to pull logs from, as well
+The `config` block defines the API token and zone ID to pull logs from, as well
 as the time range to pull logs for, how many workers to make use of, as well
-as the set of fields to fetch and an optional label set to apply to incoming
+as the set of fields to fetch and an optional labelset to apply to incoming
 log entries.
 
 The following arguments can be used to configure a `config`. 
@@ -61,7 +61,7 @@ The following arguments can be used to configure a `config`.
 Name           | Type          | Description | Default | Required
 -------------- | ------------- | ----------- | ------- | --------
 `api_token`    | `string`      | The API token to authenticate with. |  | yes
-`zone_id`      | `string`      | The Cloudflare zone id to use.      |  | yes
+`zone_id`      | `string`      | The Cloudflare zone ID to use.      |  | yes
 `labels`       | `map(string)` | The labels to associate with incoming log entries. | `{}` | no
 `workers`      | `int`         | The number of workers to use for parsing logs.     |  `3` | no
 `pull_range`   | `duration`    | The timeframe to fetch for each pull request.      | `"1m"` | no
@@ -77,7 +77,7 @@ and the fields they include:
 "ClientIP", "ClientRequestHost", "ClientRequestMethod", "ClientRequestURI", "EdgeEndTimestamp", "EdgeResponseBytes", "EdgeRequestHost", "EdgeResponseStatus", "EdgeStartTimestamp", "RayID"
 ```
 
-* `minimal` includes all default fields and adds:
+* `minimal` includes all `default` fields and adds:
 ```
 "ZoneID", "ClientSSLProtocol", "ClientRequestProtocol", "ClientRequestPath", "ClientRequestUserAgent", "ClientRequestReferer", "EdgeColoCode", "ClientCountry", "CacheCacheStatus", "CacheResponseStatus", "EdgeResponseContentType
 ```
@@ -97,11 +97,11 @@ file. If a position is found in the file for a given zone ID, the component
 restarts pulling logs from that timestamp. When no position is found, the
 component starts pulling logs from the current time.
 
-Logs are fetched using multiple `workers` which request the last available pull
-range (configured via `pull_range`) repeatedly. It is possible to fall behind
-due to having too many log lines to process for each pull; adding more workers,
-decreasing the pull range, or decreasing the quantity of fields fetched can
-mitigate this performance issue.
+Logs are fetched using multiple `workers` which request the last available
+`pull_range` repeatedly. It is possible to fall behind due to having too many
+log lines to process for each pull; adding more workers, decreasing the pull
+range, or decreasing the quantity of fields fetched can mitigate this
+performance issue.
 
 The last timestamp fetched by the component is recorded in the
 `loki_source_cloudflare_target_last_requested_end_timestamp` debug metric.
@@ -192,7 +192,7 @@ configuration.
 
 `loki.source.cloudflare` exposes the following debug information:
 * Whether the target is ready and reading logs from the API.
-* The Cloudflare Zone ID.
+* The Cloudflare zone ID.
 * The last error reported, if any.
 * The stored positions file entry, as the combination of zone_id, labels and
   last fetched timestamp.
@@ -213,7 +213,7 @@ This example pulls logs from Cloudflare's API and forwards them to a
 loki.source.cloudflare "dev" {
   config {
     zone_id   = env("CF_ZONE_ID")
-    api_token = env("CF_TOKEN")
+    api_token = local.file.api.content
   }
 
   forward_to = [loki.write.local.receiver]
