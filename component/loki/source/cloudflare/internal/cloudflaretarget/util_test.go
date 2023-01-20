@@ -7,6 +7,7 @@ package cloudflaretarget
 import (
 	"context"
 	"errors"
+	"sync"
 	"time"
 
 	"github.com/grafana/cloudflare-go"
@@ -16,16 +17,19 @@ import (
 var ErrorLogpullReceived = errors.New("error logpull received")
 
 type fakeCloudflareClient struct {
+	mut sync.RWMutex
 	mock.Mock
 }
 
 func (f *fakeCloudflareClient) CallCount() int {
 	var actualCalls int
+	f.mut.RLock()
 	for _, call := range f.Calls {
 		if call.Method == "LogpullReceived" {
 			actualCalls++
 		}
 	}
+	f.mut.RUnlock()
 	return actualCalls
 }
 
@@ -63,6 +67,9 @@ func newFakeCloudflareClient() *fakeCloudflareClient {
 }
 
 func (f *fakeCloudflareClient) LogpullReceived(ctx context.Context, start, end time.Time) (cloudflare.LogpullReceivedIterator, error) {
+	f.mut.Lock()
+	defer f.mut.Unlock()
+
 	r := f.Called(ctx, start, end)
 	if r.Get(0) != nil {
 		it := r.Get(0).(cloudflare.LogpullReceivedIterator)
