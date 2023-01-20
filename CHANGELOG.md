@@ -35,6 +35,7 @@ Main (unreleased)
   - `phlare.scrape` collects application performance profiles. (@cyriltovena)
   - `phlare.write` sends application performance profiles to Grafana Phlare. (@cyriltovena)
   - `otelcol.receiver.zipkin` receives Zipkin-formatted traces. (@rfratto)
+  - `loki.source.heroku` listens for Heroku messages over TCP a connection and forwards them to other `loki` components. (@erikbaranowski)
   - `loki.source.windowsevent` reads logs from Windows Event Log. (@mattdurham)
   - `loki.source.syslog` listens for Syslog messages over TCP and UDP
     connections and forwards them to other `loki` components. (@tpaschalis)
