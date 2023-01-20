@@ -30,12 +30,12 @@ var (
 
 // Config is the configuration for the oracledb v2 integration
 type Config struct {
-	ConnectionString  string        `yaml:"connection_string,omitempty"`
-	MaxIdleConns      int           `yaml:"max_idle_connections,omitempty"`
-	MaxOpenConns      int           `yaml:"max_open_connections,omitempty"`
-	ScrapeInterval    time.Duration `yaml:"scrape_interval,omitempty"`
-	CustomMetricsPath string        `yaml:"custom_metrics_path,omitempty"`
-	QueryTimeout      int           `yaml:"query_timeout,omitempty"`
+	ConnectionString  string        `yaml:"connection_string"`
+	MaxIdleConns      int           `yaml:"max_idle_connections"`
+	MaxOpenConns      int           `yaml:"max_open_connections"`
+	ScrapeInterval    time.Duration `yaml:"scrape_interval"`
+	CustomMetricsPath string        `yaml:"custom_metrics_path"`
+	QueryTimeout      int           `yaml:"query_timeout"`
 }
 
 // Validate returnsif the configuration is valid
