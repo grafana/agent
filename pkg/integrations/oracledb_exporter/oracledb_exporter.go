@@ -22,6 +22,10 @@ var DefaultConfig = Config{
 	ScrapeInterval:   0,
 }
 
+var (
+	errNoConnectionString = errors.New("no connection string was provided")
+)
+
 // Config is the configuration for the oracledb v2 integration
 type Config struct {
 	ConnectionString  string        `yaml:"connection_string,omitempty"`
@@ -35,7 +39,7 @@ type Config struct {
 // Validate returnsif the configuration is valid
 func (c *Config) Validate() error {
 	if c.ConnectionString == "" {
-		return errors.New("no connection string was provided")
+		return errNoConnectionString
 	}
 	if _, err := dburl.Parse(c.ConnectionString); err != nil {
 		return fmt.Errorf("unable to parse connection string: %w", err)

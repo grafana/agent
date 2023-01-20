@@ -1,6 +1,6 @@
 ---
 aliases:
-- /docs/agent/latest/configuration/integrations/oracledb-config/
+- /docs/agent/latest/configuration/integrations/integrations-next/oracledb-config/
 title: oracledb
 ---
 
@@ -67,4 +67,25 @@ Full reference of options:
   # the OracleDB instance.
   [query_timeout: <int> | default = 5]
 
+```
+
+## Quick configuration example
+
+```yaml
+integrations:
+  oracledb:
+    enabled: true
+    connection_string: oracle://user:password@localhost:1521/orcl.localnet
+    scrape_interval: 1m
+    scrape_timeout: 1m
+    scrape_integration: true
+    max_idle_connections: 0
+    max_open_connections: 10
+    query_timeout: 5
+    
+
+metrics:
+  wal_directory: /tmp/grafana-agent-wal
+server:
+  log_level: debug
 ```

@@ -5,18 +5,16 @@ import (
 	"testing"
 	"time"
 
-	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
-	"github.com/grafana/agent/pkg/integrations/v2/common"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )
 
-func TestOracleDBConfigUnmarshal(t *testing.T) {
+func TestOracleDBConfig(t *testing.T) {
 	strConfig := `
 enabled: true
 connection_string: oracle://user:password@localhost:1521/orcl.localnet
-scrape_interval: 1m
-scrape_timeout: 1m
+scrape_interval: "1m"
+scrape_timeout: "1m"
 scrape_integration: true
 max_idle_connections: 0
 max_open_connections: 10
@@ -31,7 +29,6 @@ query_timeout: 5`
 		MaxOpenConns:     10,
 		ScrapeInterval:   1 * time.Minute,
 		QueryTimeout:     5,
-		Common:           common.MetricsConfig{},
 	}, c)
 }
 
@@ -79,24 +76,12 @@ func TestConfigValidate(t *testing.T) {
 	}
 }
 
-func TestConfig_Identifier(t *testing.T) {
-	t.Run("Identifier is in common config", func(t *testing.T) {
-		c := DefaultConfig
+func TestConfig_InstanceKey(t *testing.T) {
+	c := DefaultConfig
+	c.ConnectionString = "oracle://user:password@localhost:1521/orcl.localnet"
 
-		ik := "my-oracledb-instance-key"
-		c.Common.InstanceKey = &ik
-
-		id, err := c.Identifier(integrations_v2.Globals{})
-		require.NoError(t, err)
-		require.Equal(t, ik, id)
-	})
-
-	t.Run("Identifier is not in common config", func(t *testing.T) {
-		c := DefaultConfig
-		c.ConnectionString = "oracle://user:password@localhost:1521/orcl.localnet"
-
-		id, err := c.Identifier(integrations_v2.Globals{})
-		require.NoError(t, err)
-		require.Equal(t, "localhost:1521", id)
-	})
+	ik := "agent-key"
+	id, err := c.InstanceKey(ik)
+	require.NoError(t, err)
+	require.Equal(t, "localhost:1521", id)
 }

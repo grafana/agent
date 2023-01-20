@@ -28,27 +28,32 @@ var DefaultConfig = Config{
 	MaxIdleConns:     0,
 	QueryTimeout:     5,
 	ScrapeInterval:   0,
+	Common:           common.MetricsConfig{},
 }
+
+var (
+	errNoConnectionString = errors.New("no connection string was provided")
+)
 
 // Config is the configuration for the oracledb v2 integration
 type Config struct {
-	ConnectionString  string               `yaml:"connection_string,omitempty"`
-	MaxIdleConns      int                  `yaml:"max_idle_connections,omitempty"`
-	MaxOpenConns      int                  `yaml:"max_open_connections,omitempty"`
-	ScrapeInterval    time.Duration        `yaml:"scrape_interval,omitempty"`
-	CustomMetricsPath string               `yaml:"custom_metrics_path,omitempty"`
-	QueryTimeout      int                  `yaml:"query_timeout,omitempty"`
+	ConnectionString  string               `yaml:"connection_string"`
+	MaxIdleConns      int                  `yaml:"max_idle_connections"`
+	MaxOpenConns      int                  `yaml:"max_open_connections"`
+	ScrapeInterval    time.Duration        `yaml:"scrape_interval"`
+	CustomMetricsPath string               `yaml:"custom_metrics_path"`
+	QueryTimeout      int                  `yaml:"query_timeout"`
 	Common            common.MetricsConfig `yaml:",inline"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = DefaultConfig
-
 	type plain Config
 	return unmarshal((*plain)(c))
 }
 
+// Validate returns errors if the configuration is invalid and the exporter could not function with it
 func (c *Config) Validate() error {
 	if c.ConnectionString == "" {
 		return errors.New("no connection string was provided")
@@ -62,11 +67,6 @@ func (c *Config) Validate() error {
 // Name returns the integration name this config is associated with.
 func (c *Config) Name() string {
 	return "oracledb"
-}
-
-// InstanceKey returns the addr of the oracle instance.
-func (c *Config) InstanceKey(agentKey string) (string, error) {
-	return c.ConnectionString, nil
 }
 
 // ApplyDefaults applies the integrations
