@@ -169,6 +169,7 @@ func Test_RetryErrorIterating(t *testing.T) {
 	// retries as fast as possible.
 	defaultBackoff.MinBackoff = 0
 	defaultBackoff.MaxBackoff = 0
+	metrics := NewMetrics(prometheus.NewRegistry())
 	ta := &Target{
 		logger:  logger,
 		handler: client,
@@ -176,7 +177,7 @@ func Test_RetryErrorIterating(t *testing.T) {
 		config: &Config{
 			Labels: make(model.LabelSet),
 		},
-		metrics: NewMetrics(prometheus.DefaultRegisterer),
+		metrics: metrics,
 	}
 
 	require.NoError(t, ta.pull(context.Background(), start, end))

@@ -7,7 +7,6 @@ package cloudflaretarget
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/grafana/cloudflare-go"
@@ -72,6 +71,5 @@ func (f *fakeCloudflareClient) LogpullReceived(ctx context.Context, start, end t
 		}
 		return it, nil
 	}
-	fmt.Println("Called a mock with", start.Unix(), end.Unix())
 	return nil, r.Error(1)
 }
