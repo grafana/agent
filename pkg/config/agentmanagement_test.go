@@ -158,6 +158,7 @@ basic_auth:
   password_file: /tmp/test/passfile
 protocol: http
 polling_interval: 1m
+remote_config_cache_location: /tmp/agent-management/
 remote_configuration:
   namespace: test_namespace
   labels:
@@ -174,7 +175,7 @@ remote_configuration:
 		},
 		Protocol:        "http",
 		PollingInterval: "1m",
-		CacheLocation:   defaultConfig.CacheLocation,
+		CacheLocation:   "/tmp/agent-management/",
 		RemoteConfiguration: RemoteConfiguration{
 			Labels:    labelMap{"l1": "label1"},
 			Namespace: "test_namespace",
