@@ -56,7 +56,7 @@ contain exactly one of the two in its definition.
 
 ### pull block
 
-The `pull` block defines which GCP project id and subscription ID to read log
+The `pull` block defines which GCP project ID and subscription to read log
 entries from.
 
 The following arguments can be used to configure the `pull` block. Any omitted
