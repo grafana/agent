@@ -6,7 +6,7 @@ title: loki.source.heroku
 
 # loki.source.heroku
 
-`loki.source.heroku` listens for heroku messages over TCP connections
+`loki.source.heroku` listens for Heroku messages over TCP connections
 and forwards them to other `loki.*` components.
 
 The component starts a new heroku listener for the given `listener`
@@ -87,7 +87,7 @@ The following internal labels are available for relabeling:
 - `__heroku_drain_proc`
 - `__heroku_drain_log_id`
 
-All url query params will be tranlated to `__heroku_drain_param_<name>`
+All url query params will be translated to `__heroku_drain_param_<name>`
 
 If the `X-Scope-OrgID` header is set it will be translated to `__tenant_id__`
 
