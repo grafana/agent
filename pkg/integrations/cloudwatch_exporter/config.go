@@ -4,7 +4,6 @@ import (
 	yaceConf "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/config"
 	yaceModel "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/model"
 	yaceSvc "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/services"
-	"time"
 )
 
 const (
@@ -17,6 +16,8 @@ const (
 var addCloudwatchTimestamp = false
 var nilToZero = true
 
+// ToYACEConfig converts a Config into YACE's config model. Note that the conversion is not direct, some values
+// have been opinionated to simplify the config model the agent exposes for this integration.
 func ToYACEConfig(c *Config) (yaceConf.ScrapeConf, error) {
 	discoveryJobs := []*yaceConf.Job{}
 	for _, job := range c.Discovery.Jobs {
@@ -30,7 +31,7 @@ func ToYACEConfig(c *Config) (yaceConf.ScrapeConf, error) {
 		ApiVersion: "v1alpha1",
 		StsRegion:  c.STSRegion,
 		Discovery: yaceConf.Discovery{
-			ExportedTagsOnMetrics: nil,
+			ExportedTagsOnMetrics: yaceConf.ExportedTagsOnMetrics(c.Discovery.ExportedTags),
 			Jobs:                  discoveryJobs,
 		},
 		Static: staticJobs,
@@ -76,13 +77,6 @@ func toYACEDimensions(dim []Dimension) []yaceConf.Dimension {
 		})
 	}
 	return yaceDims
-}
-
-func toYACETimeParameters(period time.Duration) (length, yacePeriod, roundingPeriod int64) {
-	yacePeriod = int64(period.Seconds())
-	length = yacePeriod
-	roundingPeriod = yacePeriod
-	return
 }
 
 func toYACEDiscoveryJob(job *DiscoveryJob) *yaceConf.Job {

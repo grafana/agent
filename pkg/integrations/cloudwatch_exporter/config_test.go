@@ -11,6 +11,10 @@ import (
 const configString = `
 stsRegion: us-east-2
 discovery:
+  exportedTags:
+    AWS/EC2:
+      - name
+      - type
   jobs:
     - type: AWS/EC2
       regions:
@@ -43,7 +47,6 @@ static:
           - Average
 `
 
-var roundingPeriod5Minutes = int64(300)
 var truePtr = true
 var falsePtr = false
 
@@ -51,6 +54,9 @@ var expectedConfig = yaceConf.ScrapeConf{
 	ApiVersion: "v1alpha1",
 	StsRegion:  "us-east-2",
 	Discovery: yaceConf.Discovery{
+		ExportedTagsOnMetrics: map[string][]string{
+			"AWS/EC2": {"name", "type"},
+		},
 		Jobs: []*yaceConf.Job{
 			{
 				Type:    "AWS/EC2",
