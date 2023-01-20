@@ -41,6 +41,8 @@ Main (unreleased)
     connections and forwards them to other `loki` components. (@tpaschalis)
   - `otelcol.exporter.loki` forwards OTLP-formatted data to compatible `loki`
     receivers. (@tpaschalis)
+  - `loki.source.gelf` listens for Graylog logs. (@mattdurham)
+
 
 
 - Flow components which work with relabeling rules (`discovery.relabel`,
