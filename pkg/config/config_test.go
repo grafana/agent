@@ -459,3 +459,46 @@ func TestAgent_OmmitEmptyFields(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "{}\n", string(yml))
 }
+
+func TestAgentManagement_MergeEffectiveConfig(t *testing.T) {
+	initialCfg := `
+agent_management:
+  api_url: "http://localhost"
+  basic_auth:
+    username: "initial_user"
+  protocol: "http"
+  polling_interval: "1m"
+  remote_config_cache_location: "/etc"
+  remote_configuration:
+    namespace: "new_namespace"`
+	remoteCfg := `
+server:
+  log_level: debug
+metrics:
+  wal_directory: /tmp
+  global:
+    scrape_interval: 5m
+integrations:
+  scrape_integrations: true
+
+agent_management:
+  api_url: "http://localhost:80"
+  basic_auth:
+    username: "new_user"
+  protocol: "http"
+  polling_interval: "10s"
+  remote_config_cache_location: "/etc"
+  remote_configuration:
+    namespace: "new_namespace"`
+
+	var ic, rc Config
+	err := LoadBytes([]byte(initialCfg), false, &ic)
+	assert.NoError(t, err)
+	err = LoadBytes([]byte(remoteCfg), false, &rc)
+	assert.NoError(t, err)
+	initialAgentManagement := ic.AgentManagement
+	mergeEffectiveConfig(&ic, &rc)
+	// agent_management configuration should not be overwritten by the remote config
+	assert.Equal(t, initialAgentManagement, ic.AgentManagement)
+	// TODO: everything else should be what is in the remote config
+}
