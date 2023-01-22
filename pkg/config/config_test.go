@@ -471,6 +471,7 @@ agent_management:
   remote_config_cache_location: "/etc"
   remote_configuration:
     namespace: "new_namespace"`
+
 	remoteCfg := `
 server:
   log_level: debug
@@ -496,9 +497,19 @@ agent_management:
 	assert.NoError(t, err)
 	err = LoadBytes([]byte(remoteCfg), false, &rc)
 	assert.NoError(t, err)
+
+	// keep a copy of the initial config's agent management block to ensure it isn't
+	// overwritten by the remote config's
 	initialAgentManagement := ic.AgentManagement
 	mergeEffectiveConfig(&ic, &rc)
+
 	// agent_management configuration should not be overwritten by the remote config
 	assert.Equal(t, initialAgentManagement, ic.AgentManagement)
-	// TODO: everything else should be what is in the remote config
+
+	// since these elements are purposefully different for the previous portion of the test,
+	// unset them before comparing the rest of the config
+	ic.AgentManagement = AgentManagement{}
+	rc.AgentManagement = AgentManagement{}
+
+	assert.True(t, util.CompareYAML(ic, rc))
 }
