@@ -462,6 +462,10 @@ func TestAgent_OmmitEmptyFields(t *testing.T) {
 
 func TestAgentManagement_MergeEffectiveConfig(t *testing.T) {
 	initialCfg := `
+server:
+  log_level: info
+logs:
+  positions_directory: /tmp
 agent_management:
   api_url: "http://localhost"
   basic_auth:
