@@ -3,10 +3,11 @@ package main
 import (
 	_ "embed"
 	"fmt"
-	yaceSvc "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/services"
 	"log"
 	"os"
 	"strings"
+
+	yaceConf "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/config"
 )
 
 //go:embed template.md
@@ -58,7 +59,7 @@ func checkServicesDocSection(path string, expectedDoc string) error {
 
 func generateServicesDocSection() string {
 	var sb strings.Builder
-	for _, supportedSvc := range yaceSvc.SupportedServices {
+	for _, supportedSvc := range yaceConf.SupportedServices {
 		sb.WriteString(
 			fmt.Sprintf("- Namespace: `%s` or Alias: `%s`\n", supportedSvc.Namespace, supportedSvc.Alias),
 		)

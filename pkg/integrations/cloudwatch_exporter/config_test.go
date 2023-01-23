@@ -54,7 +54,7 @@ var truePtr = true
 var falsePtr = false
 
 var expectedConfig = yaceConf.ScrapeConf{
-	ApiVersion: "v1alpha1",
+	APIVersion: "v1alpha1",
 	StsRegion:  "us-east-2",
 	Discovery: yaceConf.Discovery{
 		ExportedTagsOnMetrics: map[string][]string{
@@ -93,12 +93,14 @@ var expectedConfig = yaceConf.ScrapeConf{
 						AddCloudwatchTimestamp: &addCloudwatchTimestamp,
 					},
 				},
-				Period:                 0,
-				Length:                 0,
-				Delay:                  0,
-				RoundingPeriod:         nil,
-				AddCloudwatchTimestamp: &falsePtr,
-				NilToZero:              &nilToZero,
+				RoundingPeriod: nil,
+				JobLevelMetricFields: yaceConf.JobLevelMetricFields{
+					Period:                 0,
+					Length:                 0,
+					Delay:                  0,
+					AddCloudwatchTimestamp: &falsePtr,
+					NilToZero:              &nilToZero,
+				},
 			},
 		},
 	},

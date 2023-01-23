@@ -97,14 +97,17 @@ func toYACEDiscoveryJob(job *DiscoveryJob) *yaceConf.Job {
 		// By setting RoundingPeriod to nil, the exporter will align the start and end times for retrieving CloudWatch
 		// metrics, with the smallest period in the retrieved batch.
 		RoundingPeriod: nil,
+
+		JobLevelMetricFields: yaceConf.JobLevelMetricFields{
+			// Set to zero job-wide scraping time settings. This should be configured at the metric level to make the data
+			// being fetched more explicit.
+			Period:                 0,
+			Length:                 0,
+			Delay:                  0,
+			NilToZero:              &nilToZero,
+			AddCloudwatchTimestamp: &addCloudwatchTimestamp,
+		},
 	}
-	// Set to zero job-wide scraping time settings. This should be configured at the metric level to make the data
-	// being fetched more explicit.
-	yaceJob.Period = 0
-	yaceJob.Length = 0
-	yaceJob.Delay = 0
-	yaceJob.NilToZero = &nilToZero
-	yaceJob.AddCloudwatchTimestamp = &addCloudwatchTimestamp
 	return &yaceJob
 }
 
