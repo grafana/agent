@@ -133,7 +133,7 @@ It accepts the following arguments:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`enabled` | `boolean` | Enable this profile type to be scraped. | `false` | no
+`enabled` | `boolean` | Enable this profile type to be scraped. | `true` | no
 `path` | `string` | The path to the profile type on the target. | `"/debug/pprof/memory"` | no
 `delta` | `boolean` | Whether to scrape the profile as a delta. | `false` | no
 
@@ -148,7 +148,7 @@ It accepts the following arguments:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`enabled` | `boolean` | Enable this profile type to be scraped. | `false` | no
+`enabled` | `boolean` | Enable this profile type to be scraped. | `true` | no
 `path` | `string` | The path to the profile type on the target. | `"/debug/pprof/block"` | no
 `delta` | `boolean` | Whether to scrape the profile as a delta. | `false` | no
 
@@ -163,7 +163,7 @@ It accepts the following arguments:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`enabled` | `boolean` | Enable this profile type to be scraped. | `false` | no
+`enabled` | `boolean` | Enable this profile type to be scraped. | `true` | no
 `path` | `string` | The path to the profile type on the target. | `"/debug/pprof/goroutine"` | no
 `delta` | `boolean` | Whether to scrape the profile as a delta. | `false` | no
 
@@ -178,7 +178,7 @@ It accepts the following arguments:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`enabled` | `boolean` | Enable this profile type to be scraped. | `false` | no
+`enabled` | `boolean` | Enable this profile type to be scraped. | `true` | no
 `path` | `string` | The path to the profile type on the target. | `"/debug/pprof/mutex"` | no
 `delta` | `boolean` | Whether to scrape the profile as a delta. | `false` | no
 
@@ -194,7 +194,7 @@ It accepts the following arguments:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`enabled` | `boolean` | Enable this profile type to be scraped. | `false` | no
+`enabled` | `boolean` | Enable this profile type to be scraped. | `true` | no
 `path` | `string` | The path to the profile type on the target. | `"/debug/pprof/profile"` | no
 `delta` | `boolean` | Whether to scrape the profile as a delta. | `true` | no
 
