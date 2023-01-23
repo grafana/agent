@@ -19,16 +19,12 @@ const DIVISION_LENGTH = 63;
 export const RiverValue: FC<RiverValueProps> = ({ value, name, nthChild }) => {
   return (
     <div className={styles.value}>
-      <ValueRenderer value={value} indentLevel={0} nthChild={nthChild} name={name} />
+      <ValueRenderer value={value} nthChild={nthChild} name={name} />
     </div>
   );
 };
 
-type valueRendererProps = RiverValueProps & {
-  indentLevel: number;
-};
-
-const ValueRenderer: FC<valueRendererProps> = ({ value, name, nthChild, indentLevel }) => {
+const ValueRenderer: FC<RiverValueProps> = ({ value, name, nthChild }) => {
   const backgroundColor = nthChild && nthChild % 2 === 1 ? '#f4f5f5' : 'white';
 
   /**
@@ -50,7 +46,7 @@ const ValueRenderer: FC<valueRendererProps> = ({ value, name, nthChild, indentLe
         <div key={key} className={styles['grid-layout']} style={{ backgroundColor: backgroundColor, gridTemplateColumns }}>
           <div className={`${styles['grid-item']} ${styles['grid-key']}`}>{key}</div>
           <div className={styles['grid-item']}>=</div>
-          <ValueRenderer value={value} indentLevel={0} name={name} />
+          <ValueRenderer value={value} name={name} />
         </div>
       );
     });
@@ -78,7 +74,7 @@ const ValueRenderer: FC<valueRendererProps> = ({ value, name, nthChild, indentLe
           {value.value.map((element, idx) => {
             return (
               <Fragment key={idx.toString()}>
-                <ValueRenderer value={element} indentLevel={indentLevel} name={name} />
+                <ValueRenderer value={element} name={name} />
                 {idx + 1 < value.value.length ? <span>, </span> : null}
               </Fragment>
             );
