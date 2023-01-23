@@ -9,6 +9,7 @@ import (
 	_ "github.com/grafana/agent/component/local/file"                           // Import local.file
 	_ "github.com/grafana/agent/component/loki/process"                         // Import loki.process
 	_ "github.com/grafana/agent/component/loki/relabel"                         // Import loki.relabel
+	_ "github.com/grafana/agent/component/loki/source/cloudflare"               // Import loki.source.cloudflare
 	_ "github.com/grafana/agent/component/loki/source/file"                     // Import loki.source.file
 	_ "github.com/grafana/agent/component/loki/source/gelf"                     // Import loki.source.gelf
 	_ "github.com/grafana/agent/component/loki/source/syslog"                   // Import loki.source.syslog

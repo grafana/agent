@@ -39,6 +39,8 @@ Main (unreleased)
   - `loki.source.windowsevent` reads logs from Windows Event Log. (@mattdurham)
   - `loki.source.syslog` listens for Syslog messages over TCP and UDP
     connections and forwards them to other `loki` components. (@tpaschalis)
+  - `loki.source.cloudflare` reads logs from Cloudflare's Logpull API and
+    forwards them to other `loki` components. (@tpaschalis)
   - `otelcol.exporter.loki` forwards OTLP-formatted data to compatible `loki`
     receivers. (@tpaschalis)
   - `loki.source.gelf` listens for Graylog logs. (@mattdurham)
