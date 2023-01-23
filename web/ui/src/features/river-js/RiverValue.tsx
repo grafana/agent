@@ -1,4 +1,5 @@
 import React, { FC, Fragment, ReactElement } from 'react';
+import { gray } from 'd3';
 
 import { ObjectField, Value, ValueType } from './types';
 
@@ -13,9 +14,9 @@ export interface RiverValueProps {
  */
 export const RiverValue: FC<RiverValueProps> = (props) => {
   return (
-    <p className={styles.value}>
+    <div className={styles.value}>
       <ValueRenderer value={props.value} indentLevel={0} />
-    </p>
+    </div>
   );
 };
 
@@ -80,19 +81,26 @@ const ValueRenderer: FC<valueRendererProps> = (props) => {
             // partition.
             const keyLength = partitionKeyLength(partition);
 
-            return partition.map((element, index) => {
+            console.log({ partitions });
+
+            const newPartition = partition.map(({ key, value }) => {
+              return {
+                key,
+                value: typeof value === 'object' && 'value' in value && (value.value as string),
+              };
+            });
+
+            return newPartition.map(({ key, value }) => {
               return (
-                <Fragment key={index.toString()}>
-                  {getLinePrefix(props.indentLevel + 1)}
-                  <span>{partitionKey(element, keyLength)} = </span>
-                  <ValueRenderer value={element.value} indentLevel={props.indentLevel + 1} />
-                  <span>,</span>
-                  <br />
-                </Fragment>
+                <div key={key} className={styles['grid-layout']}>
+                  <div className={`${styles['grid-item']} ${styles['grid-key']}`}>{key}</div>
+                  <div className={styles['grid-item']}>=</div>
+                  <div className={`${styles['grid-item']} ${styles['grid-value']}`}>"{value}"</div>
+                </div>
               );
             });
           })}
-          {getLinePrefix(props.indentLevel)}
+
           <span>&#125;</span>
         </>
       );
@@ -186,12 +194,12 @@ function partitionKey(field: ObjectField, keyLength: number): string {
   return key;
 }
 
-function getLinePrefix(indentLevel: number): ReactElement | null {
-  if (indentLevel === 0) {
-    return null;
-  }
-  return <span>{'\t'.repeat(indentLevel)}</span>;
-}
+// function getLinePrefix(indentLevel: number): ReactElement | null {
+//   if (indentLevel === 0) {
+//     return null;
+//   }
+//   return <span>{'\t'.repeat(indentLevel)}</span>;
+// }
 
 /**
  * validIdentifier reports whether the input is a valid River identifier.

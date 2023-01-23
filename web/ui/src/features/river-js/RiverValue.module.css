@@ -17,3 +17,24 @@
 .value span.special {
   color: gray;
 }
+
+.grid-layout {
+  display: grid;
+  grid-template-columns: 60% 1% 39%;
+  padding: 2px;
+}
+
+.grid-item {
+  background-color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  word-break: break-all;
+  white-space: pre-line;
+}
+
+.grid-key {
+  margin-left: 20px;
+}
+
+.grid-value {
+  color: green;
+}

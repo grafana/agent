@@ -13,15 +13,21 @@ interface Props {
  * function for the table data
  */
 const Table = ({ tableHeaders, style = {}, renderTableData }: Props) => {
+  const renderHeader = () => {
+    return (
+      <tr>
+        {tableHeaders.map((header) => (
+          <th key={header}>{header}</th>
+        ))}
+      </tr>
+    );
+  };
+
   return (
     <table className={styles.table}>
-      <col span={1} style={style} />
+      <colgroup span={1} style={style} />
       <tbody>
-        <tr>
-          {tableHeaders.map((header) => (
-            <th key={header}>{header}</th>
-          ))}
-        </tr>
+        {tableHeaders && tableHeaders.length !== 0 ? renderHeader() : null}
         {renderTableData()}
       </tbody>
     </table>
