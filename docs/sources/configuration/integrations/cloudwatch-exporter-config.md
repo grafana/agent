@@ -17,26 +17,51 @@ two kind of jobs: [`discovery`](#discovery_job) and [`static`](#static_job).
 Configuration reference:
 
 ```yaml
-  autoscrape:
-    # Enables autoscrape of integrations.
-      [ enable: <boolean> | default = true ]
+  #
+  # Common Integration Settings
+  #
+    
+  # Enables the elasticsearch_exporter integration, allowing the Agent to automatically
+  # collect system metrics from the configured ElasticSearch server address
+  [enabled: <boolean> | default = false]
 
-      # Specifies the metrics instance name to send metrics to. Instance
-      # names are located at metrics.configs[].name from the top-level config.
-      # The instance must exist.
-      #
-      # As it is common to use the name "default" for your primary instance,
-      # we assume the same here.
-      [ metrics_instance: <string> | default = "default" ]
+  # Sets an explicit value for the instance label when the integration is
+  # self-scraped. Overrides inferred values.
+  #
+  # The default value for this integration is inferred from the hostname portion
+  # of address.
+  [instance: <string>]
 
-      # Autoscrape interval and timeout. Defaults are inherited from the global
-      # section of the top-level metrics config.
-      [ scrape_interval: <duration> | default = <metrics.global.scrape_interval> ]
-      [ scrape_timeout: <duration> | default = <metrics.global.scrape_timeout> ]
+  # Automatically collect metrics from this integration. If disabled,
+  # the elasticsearch_exporter integration will be run but not scraped and thus not
+  # remote-written. Metrics for the integration will be exposed at
+  # /integrations/elasticsearch_exporter/metrics and can be scraped by an external
+  # process.
+  [scrape_integration: <boolean> | default = <integrations_config.scrape_integrations>]
 
-  # Integration instance name. 
-  # The default value for this integration is "cloudwatch_exporter".
-  [ instance: <string> | default = "cloudwatch_exporter" ]
+  # How often should the metrics be collected? Defaults to
+  # prometheus.global.scrape_interval.
+  [scrape_interval: <duration> | default = <global_config.scrape_interval>]
+
+  # The timeout before considering the scrape a failure. Defaults to
+  # prometheus.global.scrape_timeout.
+  [scrape_timeout: <duration> | default = <global_config.scrape_timeout>]
+
+  # Allows for relabeling labels on the target.
+  relabel_configs:
+    [- <relabel_config> ... ]
+
+  # Relabel metrics coming from the integration, allowing to drop series
+  # from the integration that you don't care about.
+  metric_relabel_configs:
+    [ - <relabel_config> ... ]
+
+  # How frequent to truncate the WAL for this integration.
+  [wal_truncate_frequency: <duration> | default = "60m"]
+
+  #
+  # Exporter-specific configuration options
+  #
 
   # AWS region to use when calling STS (https://docs.aws.amazon.com/STS/latest/APIReference/welcome.html) for retrieving
   # account information.
