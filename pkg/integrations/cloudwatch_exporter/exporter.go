@@ -3,40 +3,41 @@ package cloudwatch_exporter
 import (
 	"context"
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/pkg/integrations/config"
 	yace "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg"
 	yaceConf "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/config"
 	yaceLog "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/logger"
 	yaceModel "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/model"
 	yaceSess "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/session"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"net/http"
 )
 
-// cloudwatchCollector wraps YACE entrypoint around a Collector implementation
-type cloudwatchCollector struct {
+// exporter wraps YACE entrypoint around an Integration implementation
+type exporter struct {
+	name         string
 	logger       yaceLoggerWrapper
 	sessionCache yaceSess.SessionCache
 	scrapeConf   yaceConf.ScrapeConf
 }
 
-// newCloudwatchCollector creates a new YACE wrapper
-func newCloudwatchCollector(logger log.Logger, conf yaceConf.ScrapeConf) *cloudwatchCollector {
+// newCloudwatchExporter creates a new YACE wrapper, that implements Integration
+func newCloudwatchExporter(name string, logger log.Logger, conf yaceConf.ScrapeConf) (*exporter, error) {
 	loggerWrapper := yaceLoggerWrapper{
 		debug: false,
 		log:   logger,
 	}
-	return &cloudwatchCollector{
+	return &exporter{
+		name:         name,
 		logger:       loggerWrapper,
 		sessionCache: yaceSess.NewSessionCache(conf, true, loggerWrapper),
 		scrapeConf:   conf,
-	}
+	}, nil
 }
 
-func (c *cloudwatchCollector) Describe(desc chan<- *prometheus.Desc) {
-	c.logger.Debug("Running describe in cloudwatch_exporter")
-}
-
-func (c *cloudwatchCollector) Collect(ch chan<- prometheus.Metric) {
-	c.logger.Debug("Running collect in cloudwatch_exporter")
+func (e *exporter) MetricsHandler() (http.Handler, error) {
+	e.logger.Debug("Running collect in cloudwatch_exporter")
 
 	reg := prometheus.NewRegistry()
 	cwSemaphore := make(chan struct{}, cloudWatchConcurrency)
@@ -44,22 +45,34 @@ func (c *cloudwatchCollector) Collect(ch chan<- prometheus.Metric) {
 	observedMetricLabels := map[string]yaceModel.LabelSet{}
 	yace.UpdateMetrics(
 		context.Background(),
-		c.scrapeConf,
+		e.scrapeConf,
 		reg,
 		metricsPerQuery,
 		labelsSnakeCase,
 		cwSemaphore,
 		tagSemaphore,
-		c.sessionCache,
+		e.sessionCache,
 		observedMetricLabels,
-		c.logger,
+		e.logger,
 	)
 
 	// close concurrency channels
 	close(cwSemaphore)
 	close(tagSemaphore)
 
-	reg.Collect(ch)
+	return promhttp.HandlerFor(reg, promhttp.HandlerOpts{}), nil
+}
+
+func (e *exporter) ScrapeConfigs() []config.ScrapeConfig {
+	return []config.ScrapeConfig{{
+		JobName:     e.name,
+		MetricsPath: "/metrics",
+	}}
+}
+
+func (e *exporter) Run(ctx context.Context) error {
+	<-ctx.Done()
+	return nil
 }
 
 // yaceLoggerWrapper is wrapper implementation of yaceLog.Logger, based out of a log.Logger.

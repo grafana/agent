@@ -12,7 +12,7 @@ import (
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.NewNamedShim("cloudwatch_exporter"))
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.NewNamedShim("cloudwatch"))
 }
 
 // Config is the configuration for the CloudWatch metrics integration
@@ -97,10 +97,5 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 	if err != nil {
 		return nil, fmt.Errorf("invalid cloudwatch exporter configuration: %w", err)
 	}
-	collector := newCloudwatchCollector(l, exporterConfig)
-
-	return integrations.NewCollectorIntegration(
-		c.Name(),
-		integrations.WithCollectors(collector),
-	), nil
+	return newCloudwatchExporter(c.Name(), l, exporterConfig)
 }
