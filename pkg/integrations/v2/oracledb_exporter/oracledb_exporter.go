@@ -23,12 +23,12 @@ import (
 
 // DefaultConfig is the default config for the oracledb v2 integration
 var DefaultConfig = Config{
-	ConnectionString: os.Getenv("DATA_SOURCE_NAME"),
-	MaxOpenConns:     10,
-	MaxIdleConns:     0,
-	QueryTimeout:     5,
-	ScrapeInterval:   0,
-	Common:           common.MetricsConfig{},
+	ConnectionString:      os.Getenv("DATA_SOURCE_NAME"),
+	MaxOpenConns:          10,
+	MaxIdleConns:          0,
+	QueryTimeout:          5,
+	MetricsScrapeInterval: 0,
+	Common:                common.MetricsConfig{},
 }
 
 var (
@@ -37,13 +37,12 @@ var (
 
 // Config is the configuration for the oracledb v2 integration
 type Config struct {
-	ConnectionString  string               `yaml:"connection_string"`
-	MaxIdleConns      int                  `yaml:"max_idle_connections"`
-	MaxOpenConns      int                  `yaml:"max_open_connections"`
-	ScrapeInterval    time.Duration        `yaml:"scrape_interval"`
-	CustomMetricsPath string               `yaml:"custom_metrics_path"`
-	QueryTimeout      int                  `yaml:"query_timeout"`
-	Common            common.MetricsConfig `yaml:",inline"`
+	ConnectionString      string               `yaml:"connection_string"`
+	MaxIdleConns          int                  `yaml:"max_idle_connections"`
+	MaxOpenConns          int                  `yaml:"max_open_connections"`
+	MetricsScrapeInterval time.Duration        `yaml:"metrics_scrape_interval"`
+	QueryTimeout          int                  `yaml:"query_timeout"`
+	Common                common.MetricsConfig `yaml:",inline"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
@@ -96,20 +95,25 @@ func init() {
 func (c *Config) NewIntegration(logger log.Logger, globals integrations_v2.Globals) (integrations_v2.Integration, error) {
 	handler, err := createHandler(logger, c)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create http handler")
+		return nil, fmt.Errorf("failed to create http handler, %w", err)
 	}
 
 	return metricsutils.NewMetricsHandlerIntegration(logger, c, c.Common, globals, handler)
 }
 
 func createHandler(logger log.Logger, c *Config) (http.HandlerFunc, error) {
+	if err := c.Validate(); err != nil {
+		return nil, fmt.Errorf("invalid config: %w", err)
+	}
+
 	oeExporter, err := oe.NewExporter(logger, &oe.Config{
-		DSN:            c.ConnectionString,
-		MaxIdleConns:   c.MaxIdleConns,
-		MaxOpenConns:   c.MaxOpenConns,
-		CustomMetrics:  c.CustomMetricsPath,
+		DSN:          c.ConnectionString,
+		MaxIdleConns: c.MaxIdleConns,
+		MaxOpenConns: c.MaxOpenConns,
+		// no custom metrics for this integration
+		CustomMetrics:  "",
 		QueryTimeout:   c.QueryTimeout,
-		ScrapeInterval: c.ScrapeInterval,
+		ScrapeInterval: c.MetricsScrapeInterval,
 	})
 	if err != nil {
 		return nil, err

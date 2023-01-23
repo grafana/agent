@@ -10,8 +10,6 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
-- Integrations: Introduce the `oracledb` integration. (@schmikei)
-
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
 
@@ -55,6 +53,9 @@ Main (unreleased)
   (@tpaschalis)
 
 - New experimental feature: agent-management. Polls configured remote API to fetch new configs. (@spartan0x117)
+
+- Integrations: Introduce the `oracledb` integration. (@schmikei)
+
 
 - Introduce global configuration for logs. (@jcreixell)
 

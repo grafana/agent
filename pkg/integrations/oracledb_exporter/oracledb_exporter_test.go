@@ -13,7 +13,7 @@ func TestOracleDBConfig(t *testing.T) {
 	strConfig := `
 enabled: true
 connection_string: oracle://user:password@localhost:1521/orcl.localnet
-scrape_interval: "1m"
+metric_scrape_interval: "1m"
 scrape_timeout: "1m"
 scrape_integration: true
 max_idle_connections: 0
@@ -24,11 +24,11 @@ query_timeout: 5`
 	require.NoError(t, yaml.Unmarshal([]byte(strConfig), &c))
 
 	require.Equal(t, Config{
-		ConnectionString: "oracle://user:password@localhost:1521/orcl.localnet",
-		MaxIdleConns:     0,
-		MaxOpenConns:     10,
-		ScrapeInterval:   1 * time.Minute,
-		QueryTimeout:     5,
+		ConnectionString:     "oracle://user:password@localhost:1521/orcl.localnet",
+		MaxIdleConns:         0,
+		MaxOpenConns:         10,
+		MetricScrapeInterval: 1 * time.Minute,
+		QueryTimeout:         5,
 	}, c)
 }
 

@@ -13,20 +13,20 @@ which is an embedded version of a forked version of the
 Full reference of options:
 
 ```yaml
-  # Enables the snowflake integration, allowing the Agent to automatically
-  # collect metrics for the specified snowflake account.
+  # Enables the oracledb integration, allowing the Agent to automatically
+  # collect metrics for the specified oracledb instance.
   [enabled: <boolean> | default = false]
 
   # Sets an explicit value for the instance label when the integration is
   # self-scraped. Overrides inferred values.
   #
-  # The default value for this integration is the configured account_name.
+  # The default value for this integration is the configured host:port of the conneciton string.
   [instance: <string>]
 
   # Automatically collect metrics from this integration. If disabled,
-  # the snowflake integration is run but not scraped and thus not
+  # the oracledb integration is run but not scraped and thus not
   # remote-written. Metrics for the integration are exposed at
-  # /integrations/snowflake/metrics and can be scraped by an external
+  # /integrations/oracledb/metrics and can be scraped by an external
   # process.
   [scrape_integration: <boolean> | default = <integrations_config.scrape_integrations>]
 
@@ -55,7 +55,7 @@ Full reference of options:
   #
      
   # The connection string used to connect to the OracleDB instance in the format 
-  # of <MONITOR_USER>/<PASSWORD>@//<HOST>:<PORT>/<SERVICE>.
+  # of oracle://<MONITOR_USER>:<PASSWORD>@//<HOST>:<PORT>/<SERVICE>.
   # i.e. "oracle://user:password@localhost:1521/orcl.localnet"
   [connection_string: <string>]
 
@@ -63,8 +63,11 @@ Full reference of options:
   [max_idle_connections: <int>]
   # The maximum amount of connections allowed to be open by the exporter.
   [max_open_connections: <int>]
+
+  # This is the interval between each scrape. Default of 0 is to scrape on collect requests. 
+  [metrics_scrape_interval: <duration> | default = "0"]
+  
   # The number of seconds that will act as the query timeout when the exporter is querying against
   # the OracleDB instance.
   [query_timeout: <int> | default = 5]
-
 ```

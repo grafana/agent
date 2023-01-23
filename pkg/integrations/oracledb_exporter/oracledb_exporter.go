@@ -17,11 +17,11 @@ import (
 
 // DefaultConfig is the default config for the oracledb v2 integration
 var DefaultConfig = Config{
-	ConnectionString: os.Getenv("DATA_SOURCE_NAME"),
-	MaxOpenConns:     10,
-	MaxIdleConns:     0,
-	QueryTimeout:     5,
-	ScrapeInterval:   0,
+	ConnectionString:     os.Getenv("DATA_SOURCE_NAME"),
+	MaxOpenConns:         10,
+	MaxIdleConns:         0,
+	QueryTimeout:         5,
+	MetricScrapeInterval: 0,
 }
 
 var (
@@ -30,12 +30,11 @@ var (
 
 // Config is the configuration for the oracledb v2 integration
 type Config struct {
-	ConnectionString  string        `yaml:"connection_string"`
-	MaxIdleConns      int           `yaml:"max_idle_connections"`
-	MaxOpenConns      int           `yaml:"max_open_connections"`
-	ScrapeInterval    time.Duration `yaml:"scrape_interval"`
-	CustomMetricsPath string        `yaml:"custom_metrics_path"`
-	QueryTimeout      int           `yaml:"query_timeout"`
+	ConnectionString     string        `yaml:"connection_string"`
+	MaxIdleConns         int           `yaml:"max_idle_connections"`
+	MaxOpenConns         int           `yaml:"max_open_connections"`
+	MetricScrapeInterval time.Duration `yaml:"metric_scrape_interval"`
+	QueryTimeout         int           `yaml:"query_timeout"`
 }
 
 // Validate returnsif the configuration is valid
@@ -88,12 +87,13 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	}
 
 	oeExporter, err := oe.NewExporter(logger, &oe.Config{
-		DSN:            c.ConnectionString,
-		MaxIdleConns:   c.MaxIdleConns,
-		MaxOpenConns:   c.MaxOpenConns,
-		CustomMetrics:  c.CustomMetricsPath,
+		DSN:          c.ConnectionString,
+		MaxIdleConns: c.MaxIdleConns,
+		MaxOpenConns: c.MaxOpenConns,
+		// no custom metrics file for this integration
+		CustomMetrics:  "",
 		QueryTimeout:   c.QueryTimeout,
-		ScrapeInterval: c.ScrapeInterval,
+		ScrapeInterval: c.MetricScrapeInterval,
 	})
 
 	if err != nil {

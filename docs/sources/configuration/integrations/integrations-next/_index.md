@@ -108,6 +108,9 @@ integrations:
 
   mysql_configs:
     [- <mysqld_exporter_config> ...]
+  
+  oracldb_configs:
+    [ - <oracledb_exporter_config> ...]
 
   postgres_configs:
     [- <postgres_exporter_config> ...]
