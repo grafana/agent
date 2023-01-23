@@ -268,9 +268,7 @@ func mergeEffectiveConfig(initialConfig *Config, remoteConfig *Config) {
 	initialConfig.Metrics = remoteConfig.Metrics
 	initialConfig.Integrations = remoteConfig.Integrations
 	initialConfig.Traces = remoteConfig.Traces
-	if remoteConfig.Logs != nil {
-		initialConfig.Logs = remoteConfig.Logs
-	}
+	initialConfig.Logs = remoteConfig.Logs
 }
 
 // LoadRemote reads a config from url
