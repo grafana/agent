@@ -49,7 +49,7 @@ Full reference of options:
   #
      
   # The connection string used to connect to the OracleDB instance in the format 
-  # of oracle://<MONITOR_USER>:<PASSWORD>@//<HOST>:<PORT>/<SERVICE>.
+  # of oracle://<MONITOR_USER>:<PASSWORD>@<HOST>:<PORT>/<SERVICE>.
   # i.e. "oracle://user:password@localhost:1521/orcl.localnet"
   # If not inside the YAML this value by default is read from the environment variable `$DATA_SOURCE_NAME`
   [connection_string: <string>]

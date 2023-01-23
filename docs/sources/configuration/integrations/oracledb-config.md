@@ -6,7 +6,7 @@ title: oracledb
 
 # oracledb_config
 
-The `oracledb_config` block configures the `oracle` integration,
+The `oracledb_config` block configures the `oracledb` integration,
 which is an embedded version of a forked version of the
 [`oracledb_exporter`](https://github.com/observiq/oracledb_exporter). This allows the collection of third party [OracleDB](https://www.oracle.com/database/) metrics.
 
@@ -20,7 +20,7 @@ Full reference of options:
   # Sets an explicit value for the instance label when the integration is
   # self-scraped. Overrides inferred values.
   #
-  # The default value for this integration is the configured host:port of the conneciton string.
+  # The default value for this integration is the configured host:port of the connection string.
   [instance: <string>]
 
   # Automatically collect metrics from this integration. If disabled,
@@ -55,7 +55,7 @@ Full reference of options:
   #
      
   # The connection string used to connect to the OracleDB instance in the format 
-  # of oracle://<MONITOR_USER>:<PASSWORD>@//<HOST>:<PORT>/<SERVICE>.
+  # of oracle://<MONITOR_USER>:<PASSWORD>@<HOST>:<PORT>/<SERVICE>.
   # i.e. "oracle://user:password@localhost:1521/orcl.localnet"
   [connection_string: <string>]
 
