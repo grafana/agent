@@ -34,7 +34,7 @@ type Arguments struct {
 	Labels               map[string]string   `river:"labels,attr,optional"`
 	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`
 	ForwardTo            []loki.LogsReceiver `river:"forward_to,attr"`
-	RelabelRules         flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
+	RelabelRules         *flow_relabel.Rules `river:"relabel_rules,attr,optional"`
 }
 
 // ListenerConfig defines a heroku listener.
@@ -133,8 +133,8 @@ func (c *Component) Update(args component.Arguments) error {
 	c.fanout = newArgs.ForwardTo
 
 	var rcs []*relabel.Config
-	if newArgs.RelabelRules != nil {
-		rcs = flow_relabel.ComponentToPromRelabelConfigs(newArgs.RelabelRules())
+	if newArgs.RelabelRules != nil && len(newArgs.RelabelRules.GetAll()) > 0 {
+		rcs = flow_relabel.ComponentToPromRelabelConfigs(newArgs.RelabelRules.GetAll())
 	}
 
 	if configsChanged(c.lc, newArgs.HerokuListener) {
@@ -177,6 +177,9 @@ func (args *Arguments) Convert() *ht.HerokuDrainTargetConfig {
 
 // DebugInfo returns information about the status of listener.
 func (c *Component) DebugInfo() interface{} {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+
 	var res readerDebugInfo = readerDebugInfo{
 		Ready:   c.target.Ready(),
 		Address: fmt.Sprintf("%s:%d", c.target.ListenAddress(), c.target.ListenPort()),
