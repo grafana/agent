@@ -110,7 +110,12 @@ func (nv Number) Uint() uint64 {
 
 // Float converts the Number into a float64.
 func (nv Number) Float() float64 {
-	if nv.k == NumberKindFloat {
+	switch nv.k {
+	case NumberKindInt:
+		// Convert nv.value to an int64 before converting to a float64 so the sign
+		// flag gets handled correctly.
+		return float64(int64(nv.value))
+	case NumberKindFloat:
 		return math.Float64frombits(nv.value)
 	}
 	return float64(nv.value)

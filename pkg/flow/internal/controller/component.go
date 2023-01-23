@@ -232,28 +232,28 @@ func (cn *ComponentNode) evaluate(scope *vm.Scope) error {
 	cn.doingEval.Store(true)
 	defer cn.doingEval.Store(false)
 
-	args := cn.reg.CloneArguments()
-	if err := cn.eval.Evaluate(scope, args); err != nil {
+	argsPointer := cn.reg.CloneArguments()
+	if err := cn.eval.Evaluate(scope, argsPointer); err != nil {
 		return fmt.Errorf("decoding River: %w", err)
 	}
 
 	// args is always a pointer to the args type, so we want to deference it since
 	// components expect a non-pointer.
-	argsCopy := reflect.ValueOf(args).Elem().Interface()
+	argsCopyValue := reflect.ValueOf(argsPointer).Elem().Interface()
 
 	if cn.managed == nil {
 		// We haven't built the managed component successfully yet.
-		managed, err := cn.reg.Build(cn.managedOpts, argsCopy)
+		managed, err := cn.reg.Build(cn.managedOpts, argsCopyValue)
 		if err != nil {
 			return fmt.Errorf("building component: %w", err)
 		}
 		cn.managed = managed
-		cn.args = argsCopy
+		cn.args = argsCopyValue
 
 		return nil
 	}
 
-	if reflect.DeepEqual(cn.args, args) {
+	if reflect.DeepEqual(cn.args, argsCopyValue) {
 		// Ignore components which haven't changed. This reduces the cost of
 		// calling evaluate for components where evaluation is expensive (e.g., if
 		// re-evaluating requires re-starting some internal logic).
@@ -261,11 +261,11 @@ func (cn *ComponentNode) evaluate(scope *vm.Scope) error {
 	}
 
 	// Update the existing managed component
-	if err := cn.managed.Update(argsCopy); err != nil {
+	if err := cn.managed.Update(argsCopyValue); err != nil {
 		return fmt.Errorf("updating component: %w", err)
 	}
 
-	cn.args = argsCopy
+	cn.args = argsCopyValue
 	return nil
 }
 
@@ -288,12 +288,12 @@ func (cn *ComponentNode) Run(ctx context.Context) error {
 	err := cn.managed.Run(ctx)
 
 	var exitMsg string
-	log := cn.managedOpts.Logger
+	logger := cn.managedOpts.Logger
 	if err != nil {
-		level.Error(log).Log("msg", "component exited with error", "err", err)
+		level.Error(logger).Log("msg", "component exited with error", "err", err)
 		exitMsg = fmt.Sprintf("component shut down with error: %s", err)
 	} else {
-		level.Info(log).Log("msg", "component exited")
+		level.Info(logger).Log("msg", "component exited")
 		exitMsg = "component shut down normally"
 	}
 
