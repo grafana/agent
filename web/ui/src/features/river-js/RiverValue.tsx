@@ -11,7 +11,7 @@ export interface RiverValueProps {
 }
 
 // TO track the length of the object key value pair
-const DIVISION_LENGTH = 63;
+const DIVISION_LENGTH = 20;
 
 /**
  * RiverValue emits a paragraph which represents a River value.
