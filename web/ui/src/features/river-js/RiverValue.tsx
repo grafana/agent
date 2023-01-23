@@ -15,8 +15,6 @@ export interface RiverValueProps {
  * RiverValue emits a paragraph which represents a River value.
  */
 export const RiverValue: FC<RiverValueProps> = ({ value, name, nthChild }) => {
-  console.log({ name, nthChild });
-
   return (
     <div className={styles.value}>
       <ValueRenderer value={value} indentLevel={0} nthChild={nthChild} name={name} />
@@ -28,8 +26,38 @@ type valueRendererProps = RiverValueProps & {
   indentLevel: number;
 };
 
+type SimplifiedPartition = {
+  key: string;
+  value: string | false;
+};
+
 const ValueRenderer: FC<valueRendererProps> = ({ value, name, nthChild, indentLevel }) => {
-  // const value = value;
+  const backgroundColor = nthChild && nthChild % 2 === 1 ? '#f4f5f5' : 'white';
+  const renderGrid = (simplifiedPartition: SimplifiedPartition[], gridTemplateColumns?: string) => {
+    return simplifiedPartition.map(({ key, value }) => {
+      return (
+        <div key={key} className={styles['grid-layout']} style={{ backgroundColor: backgroundColor, gridTemplateColumns }}>
+          <div className={`${styles['grid-item']} ${styles['grid-key']}`}>{key}</div>
+          <div className={styles['grid-item']}>=</div>
+          <div className={`${styles['grid-item']} ${styles['grid-value']}`}>"{value}"</div>
+        </div>
+      );
+    });
+  };
+
+  const renderDefault = (partition: ObjectField[], indentLevel: number, keyLength: number) => {
+    return partition.map((element, index) => {
+      return (
+        <Fragment key={index.toString()}>
+          {getLinePrefix(indentLevel + 1)}
+          <span>{partitionKey(element, keyLength)} = </span>
+          <ValueRenderer value={element.value} indentLevel={indentLevel + 1} name={name} />
+          <span>,</span>
+          <br />
+        </Fragment>
+      );
+    });
+  };
 
   switch (value.type) {
     case ValueType.NULL:
@@ -53,7 +81,7 @@ const ValueRenderer: FC<valueRendererProps> = ({ value, name, nthChild, indentLe
           {value.value.map((element, idx) => {
             return (
               <Fragment key={idx.toString()}>
-                <ValueRenderer value={element} indentLevel={indentLevel} />
+                <ValueRenderer value={element} indentLevel={indentLevel} name={name} />
                 {idx + 1 < value.value.length ? <span>, </span> : null}
               </Fragment>
             );
@@ -74,7 +102,6 @@ const ValueRenderer: FC<valueRendererProps> = ({ value, name, nthChild, indentLe
       }
 
       const partitions = partitionFields(value.value);
-      const backgroundColor = nthChild && nthChild % 2 === 1 ? '#f4f5f5' : 'white';
 
       return (
         <>
@@ -85,24 +112,25 @@ const ValueRenderer: FC<valueRendererProps> = ({ value, name, nthChild, indentLe
             // partition.
             const keyLength = partitionKeyLength(partition);
 
-            const newPartition = partition.map(({ key, value }) => {
+            // Loop through the partition and return a simpler object with key and value pair
+            const simplifiedPartition = partition.map(({ key, value }) => {
               return {
                 key,
                 value: typeof value === 'object' && 'value' in value && (value.value as string),
               };
             });
 
-            return newPartition.map(({ key, value }) => {
-              return (
-                <div key={key} className={styles['grid-layout']} style={{ backgroundColor: backgroundColor }}>
-                  <div className={`${styles['grid-item']} ${styles['grid-key']}`}>{key}</div>
-                  <div className={styles['grid-item']}>=</div>
-                  <div className={`${styles['grid-item']} ${styles['grid-value']}`}>"{value}"</div>
-                </div>
-              );
-            });
-          })}
+            const gridTemplateColumns = '10% 1% 69%';
 
+            switch (name) {
+              case 'targets':
+                return renderGrid(simplifiedPartition);
+              case 'labels':
+                return renderGrid(simplifiedPartition, gridTemplateColumns);
+              default:
+                return renderDefault(partition, indentLevel, keyLength);
+            }
+          })}
           <span>&#125;</span>
         </>
       );
@@ -196,12 +224,12 @@ function partitionKey(field: ObjectField, keyLength: number): string {
   return key;
 }
 
-// function getLinePrefix(indentLevel: number): ReactElement | null {
-//   if (indentLevel === 0) {
-//     return null;
-//   }
-//   return <span>{'\t'.repeat(indentLevel)}</span>;
-// }
+function getLinePrefix(indentLevel: number): ReactElement | null {
+  if (indentLevel === 0) {
+    return null;
+  }
+  return <span>{'\t'.repeat(indentLevel)}</span>;
+}
 
 /**
  * validIdentifier reports whether the input is a valid River identifier.
