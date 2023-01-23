@@ -21,7 +21,7 @@ func TestConfig_UnmarshalYaml(t *testing.T) {
 		require.Equal(t, Config{
 			ConnectionString:   "sqlserver://user:pass@localhost:1433",
 			MaxIdleConnections: 3,
-			MaxConnections:     3,
+			MaxOpenConnections: 3,
 			Timeout:            10 * time.Second,
 		}, c)
 	})
@@ -30,7 +30,7 @@ func TestConfig_UnmarshalYaml(t *testing.T) {
 		strConfig := `
 connection_string: "sqlserver://user:pass@localhost:1433"
 max_idle_connections: 5
-max_connections: 6
+max_open_connections: 6
 timeout: 1m
 `
 
@@ -41,7 +41,7 @@ timeout: 1m
 		require.Equal(t, Config{
 			ConnectionString:   "sqlserver://user:pass@localhost:1433",
 			MaxIdleConnections: 5,
-			MaxConnections:     6,
+			MaxOpenConnections: 6,
 			Timeout:            time.Minute,
 		}, c)
 	})
@@ -58,7 +58,7 @@ func TestConfig_validate(t *testing.T) {
 			input: Config{
 				ConnectionString:   "sqlserver://user:pass@localhost:1433",
 				MaxIdleConnections: 3,
-				MaxConnections:     3,
+				MaxOpenConnections: 3,
 				Timeout:            10 * time.Second,
 			},
 		},
@@ -67,7 +67,7 @@ func TestConfig_validate(t *testing.T) {
 			input: Config{
 				ConnectionString:   "mysql://user:pass@localhost:1433",
 				MaxIdleConnections: 3,
-				MaxConnections:     3,
+				MaxOpenConnections: 3,
 				Timeout:            10 * time.Second,
 			},
 			err: "scheme of provided connection_string URL must be sqlserver",
@@ -77,7 +77,7 @@ func TestConfig_validate(t *testing.T) {
 			input: Config{
 				ConnectionString:   "\u0001",
 				MaxIdleConnections: 3,
-				MaxConnections:     3,
+				MaxOpenConnections: 3,
 				Timeout:            10 * time.Second,
 			},
 			err: "failed to parse connection_string",
@@ -86,7 +86,7 @@ func TestConfig_validate(t *testing.T) {
 			name: "missing connection_string",
 			input: Config{
 				MaxIdleConnections: 3,
-				MaxConnections:     3,
+				MaxOpenConnections: 3,
 				Timeout:            10 * time.Second,
 			},
 			err: "the connection_string parameter is required",
@@ -96,7 +96,7 @@ func TestConfig_validate(t *testing.T) {
 			input: Config{
 				ConnectionString:   "sqlserver://user:pass@localhost:1433",
 				MaxIdleConnections: 3,
-				MaxConnections:     0,
+				MaxOpenConnections: 0,
 				Timeout:            10 * time.Second,
 			},
 			err: "max_connections must be at least 1",
@@ -106,7 +106,7 @@ func TestConfig_validate(t *testing.T) {
 			input: Config{
 				ConnectionString:   "sqlserver://user:pass@localhost:1433",
 				MaxIdleConnections: 0,
-				MaxConnections:     3,
+				MaxOpenConnections: 3,
 				Timeout:            10 * time.Second,
 			},
 			err: "max_idle_connection must be at least 1",
@@ -116,7 +116,7 @@ func TestConfig_validate(t *testing.T) {
 			input: Config{
 				ConnectionString:   "sqlserver://user:pass@localhost:1433",
 				MaxIdleConnections: 3,
-				MaxConnections:     3,
+				MaxOpenConnections: 3,
 				Timeout:            0,
 			},
 			err: "timeout must be positive",
@@ -141,7 +141,7 @@ func TestConfig_NewIntegration(t *testing.T) {
 		c := &Config{
 			ConnectionString:   "sqlserver://user:pass@localhost:1433",
 			MaxIdleConnections: 3,
-			MaxConnections:     3,
+			MaxOpenConnections: 3,
 			Timeout:            10 * time.Second,
 		}
 
@@ -154,7 +154,7 @@ func TestConfig_NewIntegration(t *testing.T) {
 		c := &Config{
 			ConnectionString:   "mysql://user:pass@localhost:1433",
 			MaxIdleConnections: 3,
-			MaxConnections:     3,
+			MaxOpenConnections: 3,
 			Timeout:            10 * time.Second,
 		}
 
@@ -169,7 +169,7 @@ func TestConfig_AgentKey(t *testing.T) {
 		c := Config{
 			ConnectionString:   "mssql://user:pass@localhost:1433",
 			MaxIdleConnections: 3,
-			MaxConnections:     3,
+			MaxOpenConnections: 3,
 			Timeout:            10 * time.Second,
 		}
 
@@ -183,7 +183,7 @@ func TestConfig_AgentKey(t *testing.T) {
 		c := Config{
 			ConnectionString:   "\u0001",
 			MaxIdleConnections: 3,
-			MaxConnections:     3,
+			MaxOpenConnections: 3,
 			Timeout:            10 * time.Second,
 		}
 

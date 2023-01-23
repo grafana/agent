@@ -67,7 +67,7 @@ Full reference of options:
   connection_string: <string>
 
   # The maximum number of open database connections to the mssql instance.
-  [max_connections: <int> | default = 3]
+  [max_open_connections: <int> | default = 3]
 
   # The maximum number of idle database connections to the mssql instance.
   [max_idle_connections: <int> | default = 3]

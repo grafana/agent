@@ -19,7 +19,7 @@ import (
 // DefaultConfig is the default config for the mssql integration
 var DefaultConfig = Config{
 	MaxIdleConnections: 3,
-	MaxConnections:     3,
+	MaxOpenConnections: 3,
 	Timeout:            10 * time.Second,
 }
 
@@ -27,7 +27,7 @@ var DefaultConfig = Config{
 type Config struct {
 	ConnectionString   string        `yaml:"connection_string,omitempty"`
 	MaxIdleConnections int           `yaml:"max_idle_connections,omitempty"`
-	MaxConnections     int           `yaml:"max_connections,omitempty"`
+	MaxOpenConnections int           `yaml:"max_open_connections,omitempty"`
 	Timeout            time.Duration `yaml:"timeout,omitempty"`
 }
 
@@ -45,7 +45,7 @@ func (c Config) validate() error {
 		return errors.New("scheme of provided connection_string URL must be sqlserver")
 	}
 
-	if c.MaxConnections < 1 {
+	if c.MaxOpenConnections < 1 {
 		return errors.New("max_connections must be at least 1")
 	}
 
@@ -106,7 +106,7 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 		&config.GlobalConfig{
 			ScrapeTimeout: model.Duration(c.Timeout),
 			TimeoutOffset: model.Duration(500 * time.Millisecond),
-			MaxConns:      c.MaxConnections,
+			MaxConns:      c.MaxOpenConnections,
 			MaxIdleConns:  c.MaxIdleConnections,
 		},
 	)
