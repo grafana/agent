@@ -4,7 +4,6 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"sync"
 
 	"github.com/burningalchemist/sql_exporter"
 	"github.com/burningalchemist/sql_exporter/config"
@@ -54,16 +53,8 @@ func NewTargetCollectorAdapter(t sql_exporter.Target, l log.Logger) TargetCollec
 func (t TargetCollectorAdapter) Collect(m chan<- prometheus.Metric) {
 	sqlMetrics := make(chan sql_exporter.Metric, 1000)
 
-	var wg sync.WaitGroup
-	wg.Add(1)
 	go func() {
-		defer wg.Done()
 		t.target.Collect(context.Background(), sqlMetrics)
-	}()
-
-	// Close the channel after the target is fully collected
-	go func() {
-		wg.Wait()
 		close(sqlMetrics)
 	}()
 

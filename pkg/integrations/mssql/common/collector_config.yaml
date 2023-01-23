@@ -181,4 +181,3 @@ queries:
         memory_utilization_percentage,
         page_fault_count
       FROM sys.dm_os_process_memory
-      
