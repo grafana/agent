@@ -20,11 +20,15 @@
 
 .grid-layout {
   display: grid;
-  grid-template-columns: 60% 1% 39%;
-  padding: 2px;
+  grid-template-columns: max-content 2% auto;
+}
+
+.grid-layout:hover {
+  background-color: #ddd;
 }
 
 .grid-item {
+  padding: 0px 5px;
   font-size: 13px;
   word-break: break-all;
   white-space: pre-line;

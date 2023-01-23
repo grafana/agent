@@ -17,12 +17,12 @@ const ComponentBody = ({ partition }: ComponentBodyProps) => {
   const sectionClass = partition.key.length === 1 ? '' : styles.nested;
 
   const renderTableData = () => {
-    return partition.attrs.map(({ name, value }, index) => {
+    return partition.attrs.map(({ name, value }) => {
       return (
         <tr key={name}>
           <td className={styles.nameColumn}>{name}</td>
           <td>
-            <RiverValue value={value} name={name} nthChild={index} />
+            <RiverValue value={value} name={name} />
           </td>
         </tr>
       );

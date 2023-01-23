@@ -7,47 +7,31 @@ import styles from './RiverValue.module.css';
 export interface RiverValueProps {
   value: Value;
   name?: string;
-  nthChild?: number;
 }
-
-// TO track the length of the object key value pair
-const DIVISION_LENGTH = 20;
 
 /**
  * RiverValue emits a paragraph which represents a River value.
  */
-export const RiverValue: FC<RiverValueProps> = ({ value, name, nthChild }) => {
+export const RiverValue: FC<RiverValueProps> = ({ value, name }) => {
   return (
     <div className={styles.value}>
-      <ValueRenderer value={value} nthChild={nthChild} name={name} />
+      <ValueRenderer value={value} name={name} />
     </div>
   );
 };
 
-const ValueRenderer: FC<RiverValueProps> = ({ value, name, nthChild }) => {
-  const backgroundColor = nthChild && nthChild % 2 === 1 ? '#f4f5f5' : 'white';
-
+const ValueRenderer: FC<RiverValueProps> = ({ value, name }) => {
   /**
    * Renderer for the river format for target and label object
    */
   const renderGrid = (partition: ObjectField[]) => {
-    // const gridTemplateColumns = '10% 1% 69%';
-
-    let maxLength = 0;
-
-    partition.forEach(({ key }) => {
-      return key.length > maxLength ? (maxLength = key.length) : maxLength;
-    });
-
-    const gridTemplateColumns = maxLength < DIVISION_LENGTH ? '10% 1% 89%' : undefined;
-
     return partition.map(({ key, value }) => {
       return (
-        <div key={key} className={styles['grid-layout']} style={{ backgroundColor: backgroundColor, gridTemplateColumns }}>
+        <>
           <div className={`${styles['grid-item']} ${styles['grid-key']}`}>{key}</div>
           <div className={styles['grid-item']}>=</div>
           <ValueRenderer value={value} name={name} />
-        </div>
+        </>
       );
     });
   };
@@ -100,9 +84,11 @@ const ValueRenderer: FC<RiverValueProps> = ({ value, name, nthChild }) => {
         <>
           <span>&#123;</span>
           <br />
-          {partitions.map((partition) => {
-            return renderGrid(partition);
-          })}
+          <div className={styles['grid-layout']}>
+            {partitions.map((partition) => {
+              return renderGrid(partition);
+            })}
+          </div>
           <span>&#125;</span>
         </>
       );
