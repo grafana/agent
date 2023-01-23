@@ -20,10 +20,8 @@ different labels.
 
 ```river
 loki.source.cloudflare "LABEL" {
-  config {
-    zone_id   = "ZONE_ID"
-    api_token = "API_TOKEN"
-  }
+  zone_id   = "ZONE_ID"
+  api_token = "API_TOKEN"
 
   forward_to = RECEIVER_LIST
 }
@@ -33,39 +31,15 @@ loki.source.cloudflare "LABEL" {
 
 `loki.source.cloudflare` supports the following arguments:
 
-Name            | Type                   | Description          | Default | Required
---------------- | ---------------------- | -------------------- | ------- | --------
-`forward_to`    | `list(LogsReceiver)`   | List of receivers to send log entries to. |      | yes
-
-## Blocks
-
-The following blocks are supported inside the definition of
-`loki.source.cloudflare`:
-
-Hierarchy | Name | Description | Required
---------- | ---- | ----------- | --------
-config | [config][] | Configures how to connect and retrieve logs from Cloudflare's API. | no
-
-
-[config]: #config-block
-
-### config block
-
-The `config` block defines the API token and zone ID to pull logs from, as well
-as the time range to pull logs for, how many workers to make use of, as well
-as the set of fields to fetch and an optional labelset to apply to incoming
-log entries.
-
-The following arguments can be used to configure a `config`. 
-
-Name           | Type          | Description | Default | Required
--------------- | ------------- | ----------- | ------- | --------
-`api_token`    | `string`      | The API token to authenticate with. |  | yes
-`zone_id`      | `string`      | The Cloudflare zone ID to use.      |  | yes
-`labels`       | `map(string)` | The labels to associate with incoming log entries. | `{}` | no
-`workers`      | `int`         | The number of workers to use for parsing logs.     |  `3` | no
-`pull_range`   | `duration`    | The timeframe to fetch for each pull request.      | `"1m"` | no
-`fields_type`  | `string`      | The set of fields to fetch for log entries.        | `"default"` | no
+Name            | Type                 | Description          | Default | Required
+--------------- | -------------------- | -------------------- | ------- | --------
+`forward_to`    | `list(LogsReceiver)` | List of receivers to send log entries to. |      | yes
+`api_token`     | `string`             | The API token to authenticate with. |  | yes
+`zone_id`       | `string`             | The Cloudflare zone ID to use.      |  | yes
+`labels`        | `map(string)`        | The labels to associate with incoming log entries. | `{}` | no
+`workers`       | `int`                | The number of workers to use for parsing logs.     |  `3` | no
+`pull_range`    | `duration`           | The timeframe to fetch for each pull request.      | `"1m"` | no
+`fields_type`   | `string`             | The set of fields to fetch for log entries.        | `"default"` | no
 
 
 By default `loki.source.cloudflare` fetches logs with the `default` set of
@@ -198,7 +172,6 @@ configuration.
   last fetched timestamp.
 * The last timestamp fetched.
 * The set of fields being fetched.
-* The labels that the component applies to incoming log entries.
 
 ## Debug metrics
 * `loki_source_cloudflare_target_entries_total` (counter): Total number of successful entries sent via the cloudflare target.
@@ -211,10 +184,8 @@ This example pulls logs from Cloudflare's API and forwards them to a
 
 ```river
 loki.source.cloudflare "dev" {
-  config {
-    zone_id   = env("CF_ZONE_ID")
-    api_token = local.file.api.content
-  }
+  zone_id   = env("CF_ZONE_ID")
+  api_token = local.file.api.content
 
   forward_to = [loki.write.local.receiver]
 }
