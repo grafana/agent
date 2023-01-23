@@ -248,8 +248,13 @@ func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 //     b) Read the remote config from cache. If this fails, return an error.
 //  4. Merge the initial and remote config into c.
 func loadFromAgentManagementAPI(path string, expandEnvVars bool, c *Config, log *server.Logger) error {
-	// Load the initial config from disk
-	err := LoadFile(path, expandEnvVars, c)
+	// Load the initial config from disk without instrumenting the config hash
+	buf, err := os.ReadFile(path)
+	if err != nil {
+		return fmt.Errorf("error reading initial config file %w", err)
+	}
+
+	err = LoadBytes(buf, expandEnvVars, c)
 	if err != nil {
 		return fmt.Errorf("failed to load initial config: %w", err)
 	}
@@ -259,6 +264,14 @@ func loadFromAgentManagementAPI(path string, expandEnvVars bool, c *Config, log 
 		return err
 	}
 	mergeEffectiveConfig(c, remoteConfig)
+
+	effectiveConfigBytes, err := yaml.Marshal(c)
+	if err != nil {
+		level.Warn(log).Log("msg", "error marshalling config for instrumenting config version", "err", err)
+	} else {
+		instrumentation.ConfigMetrics.InstrumentConfig(effectiveConfigBytes)
+	}
+
 	return nil
 }
 
