@@ -151,6 +151,16 @@ pushed tag. To publish the release:
 
 4. Publish the release!
 
+### Update Agent Operator Helm chart version
+
+The [Grafana Agent Operator Helm chart](https://github.com/grafana/helm-charts/tree/main/charts/agent-operator) 
+needs to be manually updated after the release is published. These are the required steps:
+
+1. Copy the content of the last CRDs into helm-charts: from agent's repo `production/operator/crds/` to
+helm-charts' repo `charts/agent-operator/crds`.
+2. Update references of agent-operator app version in helm-charts pointing to release version and bump helm chart version.
+You can use this [pull-request](https://github.com/grafana/helm-charts/pull/1831) as reference.
+
 ## Maintaining older release branches
 
 Older release branches are maintained on a best-effort basis. The release
