@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus"
@@ -36,34 +37,49 @@ func init() {
 	})
 }
 
-// TODO: make new type for most of the settable fields for run, that we just replace entirely on update.
-// less locking that way.
 type Component struct {
-	opts      component.Options
-	discovery *discovery.Manager
-	scraper   *scrape.Manager
-
-	config           *Config
-	cg               configGenerator
-	discoveryConfigs map[string]discovery.Configs
-	scrapeConfigs    map[string]*config.ScrapeConfig
+	opts   component.Options
+	config *Config
 
 	onUpdate chan struct{}
 	mut      sync.Mutex
 }
 
-func New(o component.Options, args component.Arguments) (*Component, error) {
+// crdManager is all of the fields required to run the component.
+// on update, this entire thing will be recreated and restarted
+type crdManager struct {
+	opts   component.Options
+	logger log.Logger
+	config *Config
 
+	discovery        *discovery.Manager
+	scraper          *scrape.Manager
+	cg               configGenerator
+	discoveryConfigs map[string]discovery.Configs
+	scrapeConfigs    map[string]*config.ScrapeConfig
+
+	mut sync.Mutex
+}
+
+func New(o component.Options, args component.Arguments) (*Component, error) {
 	c := &Component{
-		opts:             o,
-		discoveryConfigs: map[string]discovery.Configs{},
-		scrapeConfigs:    map[string]*config.ScrapeConfig{},
-		onUpdate:         make(chan struct{}, 1),
+		opts:     o,
+		onUpdate: make(chan struct{}, 1),
 	}
 	return c, c.Update(args)
 }
 
-func (c *Component) apply() {
+func newManager(opts component.Options, logger log.Logger, cfg *Config) *crdManager {
+	return &crdManager{
+		opts:             opts,
+		logger:           logger,
+		config:           cfg,
+		discoveryConfigs: map[string]discovery.Configs{},
+		scrapeConfigs:    map[string]*config.ScrapeConfig{},
+	}
+}
+
+func (c *crdManager) apply() {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 	c.discovery.ApplyConfig(c.discoveryConfigs)
@@ -75,12 +91,12 @@ func (c *Component) apply() {
 		ScrapeConfigs: scs,
 	})
 	if err != nil {
-		level.Error(c.opts.Logger).Log("msg", "error applying scrape configs", "err", err)
+		level.Error(c.logger).Log("msg", "error applying scrape configs", "err", err)
 	}
-	level.Debug(c.opts.Logger).Log("msg", "scrape config was updated")
+	level.Debug(c.logger).Log("msg", "scrape config was updated")
 }
 
-func (c *Component) clearConfigs(kind string, ns string, name string) {
+func (c *crdManager) clearConfigs(kind string, ns string, name string) {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 	prefix := fmt.Sprintf("%s/%s/%s", kind, ns, name)
@@ -92,7 +108,7 @@ func (c *Component) clearConfigs(kind string, ns string, name string) {
 	}
 }
 
-func (c *Component) addConfig(pm *v1.PodMonitor) {
+func (c *crdManager) addConfig(pm *v1.PodMonitor) {
 	for i, ep := range pm.Spec.PodMetricsEndpoints {
 		// TODO: need to pass in number of shards
 		pmc := c.cg.generatePodMonitorConfig(pm, ep, i, 0)
@@ -104,19 +120,19 @@ func (c *Component) addConfig(pm *v1.PodMonitor) {
 	c.apply()
 }
 
-func (c *Component) onAddPodMonitor(obj interface{}) {
+func (c *crdManager) onAddPodMonitor(obj interface{}) {
 	pm := obj.(*v1.PodMonitor)
-	level.Info(c.opts.Logger).Log("msg", "found pod monitor", "name", pm.Name)
+	level.Info(c.logger).Log("msg", "found pod monitor", "name", pm.Name)
 	c.addConfig(pm)
 }
 
-func (c *Component) onUpdatePodMonitor(oldObj, newObj interface{}) {
+func (c *crdManager) onUpdatePodMonitor(oldObj, newObj interface{}) {
 	pm := oldObj.(*v1.PodMonitor)
-	level.Info(c.opts.Logger).Log("msg", "found pod monitor", "name", pm.Name)
+	level.Info(c.logger).Log("msg", "found pod monitor", "name", pm.Name)
 	c.clearConfigs("podMonitor", pm.Namespace, pm.Name)
 	c.addConfig(newObj.(*v1.PodMonitor))
 }
-func (c *Component) onDeletePodMonitor(obj interface{}) {
+func (c *crdManager) onDeletePodMonitor(obj interface{}) {
 	pm := obj.(*v1.PodMonitor)
 	c.clearConfigs("podMonitor", pm.Namespace, pm.Name)
 	c.apply()
@@ -144,23 +160,24 @@ func (c *Component) Run(ctx context.Context) error {
 			c.mut.Lock()
 			componentCfg := c.config
 			c.mut.Unlock()
-			go c.run(innerCtx, componentCfg)
+			crdMan := newManager(c.opts, c.opts.Logger, componentCfg)
+			go crdMan.run(innerCtx)
 		}
 	}
 }
 
-func (c *Component) run(ctx context.Context, componentCfg *Config) {
+func (c *crdManager) run(ctx context.Context) {
 
-	config, err := componentCfg.restConfig()
+	config, err := c.config.restConfig()
 	if err != nil {
-		level.Error(c.opts.Logger).Log("msg", "failed to create rest config", "err", err)
+		level.Error(c.logger).Log("msg", "failed to create rest config", "err", err)
 		return
 	}
 	clientset, err := kubernetes.NewForConfig(config)
 
 	promClientset := versioned.New(clientset.RESTClient())
 	if err != nil {
-		level.Error(c.opts.Logger).Log("msg", "failed to create rest client", "err", err)
+		level.Error(c.logger).Log("msg", "failed to create rest client", "err", err)
 		return
 	}
 
@@ -182,34 +199,34 @@ func (c *Component) run(ctx context.Context, componentCfg *Config) {
 		DeleteFunc: c.onDeletePodMonitor,
 	})
 	inf.SetWatchErrorHandler(func(r *cache.Reflector, err error) {
-		level.Error(c.opts.Logger).Log("msg", "kubernetes watcher error", "err", err)
+		level.Error(c.logger).Log("msg", "kubernetes watcher error", "err", err)
 	})
 	factory.Start(ctx.Done())
 
-	level.Info(c.opts.Logger).Log("msg", "Informer factory started")
+	level.Info(c.logger).Log("msg", "Informer factory started")
 
-	c.discovery = discovery.NewManager(ctx, c.opts.Logger, discovery.Name(c.opts.ID))
+	c.discovery = discovery.NewManager(ctx, c.logger, discovery.Name(c.opts.ID))
 	go func() {
 		err := c.discovery.Run()
 		if err != nil {
-			level.Error(c.opts.Logger).Log("msg", "discovery manager stopped", "err", err)
+			level.Error(c.logger).Log("msg", "discovery manager stopped", "err", err)
 		}
 	}()
 
-	flowAppendable := prometheus.NewFanout(componentCfg.ForwardTo, c.opts.ID, c.opts.Registerer)
+	flowAppendable := prometheus.NewFanout(c.config.ForwardTo, c.opts.ID, c.opts.Registerer)
 	opts := &scrape.Options{
 		HTTPClientOptions: []promCommonConfig.HTTPClientOption{
 			promCommonConfig.WithFS(fs),
 		},
 	}
-	c.scraper = scrape.NewManager(opts, c.opts.Logger, flowAppendable)
+	c.scraper = scrape.NewManager(opts, c.logger, flowAppendable)
 	defer c.scraper.Stop()
 	targetSetsChan := make(chan map[string][]*targetgroup.Group)
 	go func() {
 		err := c.scraper.Run(targetSetsChan)
-		level.Info(c.opts.Logger).Log("msg", "scrape manager stopped")
+		level.Info(c.logger).Log("msg", "scrape manager stopped")
 		if err != nil {
-			level.Error(c.opts.Logger).Log("msg", "scrape manager failed", "err", err)
+			level.Error(c.logger).Log("msg", "scrape manager failed", "err", err)
 		}
 	}()
 	for {
@@ -227,8 +244,6 @@ func (c *Component) Update(args component.Arguments) error {
 	c.mut.Lock()
 	cfg := args.(Config)
 	c.config = &cfg
-	c.discoveryConfigs = map[string]discovery.Configs{}
-	c.scrapeConfigs = map[string]*config.ScrapeConfig{}
 	c.mut.Unlock()
 	select {
 	case c.onUpdate <- struct{}{}:

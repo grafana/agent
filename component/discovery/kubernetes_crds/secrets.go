@@ -43,6 +43,7 @@ func (sm *secretManager) StoreSecretData(ctx context.Context, namespace string, 
 	return fname, nil
 }
 
+// save the config map field to the file system and return the file path
 func (sm *secretManager) StoreConfigMapData(ctx context.Context, namespace string, name string, field string) (string, error) {
 	content, err := sm.GetConfigMapData(ctx, namespace, name, field)
 	if err != nil {
