@@ -46,7 +46,6 @@ timeout: 1m
 			Timeout:            time.Minute,
 		}, c)
 	})
-
 }
 
 func TestConfig_validate(t *testing.T) {

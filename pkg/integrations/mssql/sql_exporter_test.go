@@ -45,7 +45,6 @@ timeout: 1m
 			Timeout:            time.Minute,
 		}, c)
 	})
-
 }
 
 func TestConfig_validate(t *testing.T) {
@@ -193,5 +192,4 @@ func TestConfig_AgentKey(t *testing.T) {
 		require.Error(t, err)
 		require.ErrorContains(t, err, "failed to parse connection string URL")
 	})
-
 }
