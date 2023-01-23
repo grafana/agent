@@ -41,7 +41,6 @@ loki.source.heroku "LABEL" {
 
 Name                     | Type                   | Description          | Default | Required
 ------------------------ | ---------------------- | -------------------- | ------- | --------
-`listener`               | [listener]             | Configures a listener for Heroku messages.                |         | yes
 `use_incoming_timestamp` | `bool`                 | Whether or not to use the timestamp received from Heroku. | `false` | no
 `labels`                 | `map(string)`          | The labels to associate with each received Heroku record. | `{}`    | no
 `forward_to`             | `list(LogsReceiver)`   | List of receivers to send log entries to.                 |         | yes
@@ -53,8 +52,11 @@ before they're forwarded to the list of receivers in `forward_to`.
 
 ## Blocks
 
-The following blocks are supported inside the definition of
-`loki.source.heroku`:
+The following blocks are supported inside the definition of `loki.source.heroku`:
+
+Hierarchy | Name | Description | Required
+--------- | ---- | ----------- | --------
+listener | [listener] | Configures a listener for Heroku messages. | yes
 
 [listener]: #listener-block
 
