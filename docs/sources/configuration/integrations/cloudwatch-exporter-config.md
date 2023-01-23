@@ -5,7 +5,7 @@ aliases:
 
 ---
 
-# cloudwatch_exporter_config
+# cloudwatch_exporter
 
 The `cloudwatch_exporter_config` block configures the `cloudwatch_exporter` integration, which is an embedded version of
 [`YACE`](https://github.com/nerdswords/yet-another-cloudwatch-exporter/). This allows the collection
@@ -170,7 +170,9 @@ Configuration reference:
 Represents an [AWS IAM Role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html). Required when configuring a job. If omitted
 the AWS role that the credentials configured in the environment posses will be used. 
 
-Useful when scraping metrics from different AWS accounts with a single pair of credentials.
+Useful when scraping metrics from different AWS accounts with a single pair of credentials. In this case, a different role
+is configured for the agent to assume prior to calling AWS APIs, therefore, the credentials configured in the system need
+permission to assume the target role. See [this documentation](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_permissions-to-switch.html) on how to configure this.
 
 ```yaml
   # AWS IAM Role ARN the exporter should assume to perform AWS API calls.
@@ -207,34 +209,31 @@ Represents an [AWS Tag](https://docs.aws.amazon.com/general/latest/gr/aws_taggin
   # List of statistic types, e.g. "Minimum", "Maximum", etc.
   statistics: [ <string> ]
   
-  
-  period: <duration>
+  # See the `Period` section below.
+  period: [ <duration> | default = 5m ]
 ```
 
-# Quick configuration example
+# Period
 
-```yaml
-integrations:
-  snowflake_configs:
-    - account_name: XXXXXXX-YYYYYYY
-      username: snowflake-user
-      password: snowflake-pass
-      warehouse: SNOWFLAKE_WAREHOUSE
-      role: ACCOUNTADMIN
-      autoscrape:
-        enable: true
-        metrics_instance: default
-        scrape_interval: 30m
+Period controls how much back in time CloudWatch metrics are considered, during each agent scrape. We can split how these 
+settings affects the produced values in two different scenarios.
 
-metrics:
-  wal_directory: /tmp/grafana-agent-wal
-server:
-  log_level: debug
-```
+If all metrics within a job (discovery or static) have the same `Period` value configured, CloudWatch APIs will be requested
+for metrics from the scrape time, to `Periods` seconds in the past. The values of these are exported to Prometheus.
+
+![](../assets/single-period-time-model.png)
+
+On the other hand, if metrics with different `Periods` are configured under an individual job, this works differently.
+First, two variables are calculated aggregating all periods: `length`, taking the maximum value of all periods, and 
+the new `period` value, taking the minimum of all periods. Then, CloudWatch APIs will be requested for metrics from
+`now - length` to `now`, aggregating each in samples for `period` seconds. For each metrics, the most recent sample
+is exported to CloudWatch.
+
+![](../assets/multiple-period-time-model.png)
 
 # IAM
 
-The following IAM permissions are required for the CloudWatch integrations to work.
+The following IAM permissions are required for the CloudWatch integration to work.
 ```
 "tag:GetResources",
 "cloudwatch:GetMetricData",
@@ -260,6 +259,8 @@ The following IAM permissions are required to discover tagged [Database Migratio
 "dms:DescribeReplicationInstances",
 "dms:DescribeReplicationTasks"
 ```
+
+For simplicity, one can use the following AWS IAM Policy for all features of this integration to work.
 
 ```json
 {
