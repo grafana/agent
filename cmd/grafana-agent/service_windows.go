@@ -29,11 +29,14 @@ func (m *AgentService) Execute(args []string, serviceRequests <-chan svc.ChangeR
 	// registry key `Computer\HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Services\<servicename>\ImagePath`
 	// oddly enough args is blank
 
-	reloader := func() (*config.Config, error) {
+	// Set up logging using default values before loading the config
+	logger := server.NewWindowsEventLogger(&server.DefaultConfig)
+
+	reloader := func(log *server.Logger) (*config.Config, error) {
 		fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-		return config.Load(fs, os.Args[1:])
+		return config.Load(fs, os.Args[1:], log)
 	}
-	cfg, err := reloader()
+	cfg, err := reloader(logger)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -44,7 +47,7 @@ func (m *AgentService) Execute(args []string, serviceRequests <-chan svc.ChangeR
 	changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
 
 	// After this point we can start using go-kit logging.
-	logger := server.NewWindowsEventLogger(&cfg.Server)
+	logger = server.NewWindowsEventLogger(&cfg.Server)
 	util_log.Logger = logger
 
 	entrypointExit := make(chan error)

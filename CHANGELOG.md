@@ -35,12 +35,17 @@ Main (unreleased)
   - `phlare.scrape` collects application performance profiles. (@cyriltovena)
   - `phlare.write` sends application performance profiles to Grafana Phlare. (@cyriltovena)
   - `otelcol.receiver.zipkin` receives Zipkin-formatted traces. (@rfratto)
+  - `otelcol.receiver.opencensus` receives OpenConsensus-formatted traces or metrics. (@ptodev)
   - `loki.source.heroku` listens for Heroku messages over TCP a connection and forwards them to other `loki` components. (@erikbaranowski)
   - `loki.source.windowsevent` reads logs from Windows Event Log. (@mattdurham)
   - `loki.source.syslog` listens for Syslog messages over TCP and UDP
     connections and forwards them to other `loki` components. (@tpaschalis)
+  - `loki.source.cloudflare` reads logs from Cloudflare's Logpull API and
+    forwards them to other `loki` components. (@tpaschalis)
   - `otelcol.exporter.loki` forwards OTLP-formatted data to compatible `loki`
     receivers. (@tpaschalis)
+  - `loki.source.gelf` listens for Graylog logs. (@mattdurham)
+
 
 
 - Flow components which work with relabeling rules (`discovery.relabel`,
@@ -48,11 +53,17 @@ Main (unreleased)
   This value is a function that returns the currently configured rules.
   (@tpaschalis)
 
+- New experimental feature: agent-management. Polls configured remote API to fetch new configs. (@spartan0x117)
+
+- Introduce global configuration for logs. (@jcreixell)
+
 ### Enhancements
 
 - Handle faro-web-sdk `View` meta in app_agent_receiver. (@rlankfo)
 
 - Flow: the targets in debug info from `loki.source.file` are now individual blocks. (@rfratto)
+
+- Grafana Agent Operator: add [promtail limit stage](https://grafana.com/docs/loki/latest/clients/promtail/stages/limit/) to the operator. (@spartan0x117)
 
 ### Bugfixes
 
@@ -61,6 +72,9 @@ Main (unreleased)
 - Flow UI: Fix the issue with long string going out of bound in the component detail page. (@xiyu95)
 
 - Flow: `prometheus.relabel` and `prometheus.remote_write` will now error if they have exited. (@ptodev)
+
+- Flow: Fix issue where negative numbers would convert to floating-point values
+  incorrectly, treating the sign flag as part of the number. (@rfratto)
 
 ### Other changes
 

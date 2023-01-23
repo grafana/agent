@@ -243,6 +243,7 @@ func TestKubeSDConfig(t *testing.T) {
 }
 
 func TestPodMonitor(t *testing.T) {
+	var falseVal = false
 	tt := []struct {
 		name   string
 		input  map[string]interface{}
@@ -259,7 +260,8 @@ func TestPodMonitor(t *testing.T) {
 					},
 				},
 				"endpoint": prom_v1.PodMetricsEndpoint{
-					Port: "metrics",
+					Port:        "metrics",
+					EnableHttp2: &falseVal,
 				},
 				"index":                    0,
 				"apiServer":                prom_v1.APIServerConfig{},
@@ -273,6 +275,7 @@ func TestPodMonitor(t *testing.T) {
 			},
 			expect: util.Untab(`
 				job_name: podMonitor/operator/podmonitor/0
+				enable_http2: false
 				honor_labels: false
 				kubernetes_sd_configs:
 				- role: pod

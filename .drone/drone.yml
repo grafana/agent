@@ -1,382 +1,462 @@
 ---
 kind: pipeline
-type: docker
-name: Create Linux build image
+name: Check Linux build image
 platform:
-  os: linux
   arch: amd64
-trigger:
-  event: [tag]
-  ref: [refs/tags/build-image/v*]
+  os: linux
 steps:
-  - name: Build
-    image: docker
-    volumes:
-      - name: docker
-        path: /var/run/docker.sock
-    environment:
-      DOCKER_LOGIN:
-        from_secret: DOCKER_LOGIN
-      DOCKER_PASSWORD:
-        from_secret: DOCKER_PASSWORD
-    commands:
-    - export IMAGE_TAG=${DRONE_TAG##build-image/v}
-    - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-    - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-    - docker buildx create --name multiarch --driver docker-container --use
-    - docker buildx build --push --platform linux/amd64,linux/arm64 -t grafana/agent-build-image:$IMAGE_TAG ./build-image
-volumes:
+- commands:
+  - docker buildx build -t grafana/agent-build-image:latest ./build-image
+  image: docker
+  name: Build
+  volumes:
   - name: docker
-    host:
-      path: /var/run/docker.sock
-
+    path: /var/run/docker.sock
+trigger:
+  event:
+    include:
+    - pull_request
+  paths:
+    include:
+    - build-image/**
+type: docker
+volumes:
+- host:
+    path: /var/run/docker.sock
+  name: docker
 ---
 kind: pipeline
+name: Create Linux build image
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - export IMAGE_TAG=${DRONE_TAG##build-image/v}
+  - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
+  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  - docker buildx create --name multiarch --driver docker-container --use
+  - docker buildx build --push --platform linux/amd64,linux/arm64 -t grafana/agent-build-image:$IMAGE_TAG
+    ./build-image
+  environment:
+    DOCKER_LOGIN:
+      from_secret: DOCKER_LOGIN
+    DOCKER_PASSWORD:
+      from_secret: DOCKER_PASSWORD
+  image: docker
+  name: Build
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+trigger:
+  event:
+  - tag
+  ref:
+  - refs/tags/build-image/v*
 type: docker
+volumes:
+- host:
+    path: /var/run/docker.sock
+  name: docker
+---
+kind: pipeline
+name: Check Windows build image
+platform:
+  arch: amd64
+  os: windows
+  version: "1809"
+steps:
+- commands:
+  - docker build -t grafana/agent-build-image:latest ./build-image/windows
+  image: docker:windowsservercore-1809
+  name: Build
+  volumes:
+  - name: docker
+    path: //./pipe/docker_engine/
+trigger:
+  event:
+    include:
+    - pull_request
+  paths:
+    include:
+    - build-image/**
+type: docker
+volumes:
+- host:
+    path: //./pipe/docker_engine/
+  name: docker
+---
+kind: pipeline
 name: Create Windows build image
 platform:
-  os: windows
   arch: amd64
+  os: windows
   version: "1809"
-trigger:
-  event: [tag]
-  ref: [refs/tags/build-image/v*]
 steps:
-  - name: Build
-    image: docker:windowsservercore-1809
-    volumes:
-      - name: docker
-        path: //./pipe/docker_engine/
-    environment:
-      DOCKER_LOGIN:
-        from_secret: DOCKER_LOGIN
-      DOCKER_PASSWORD:
-        from_secret: DOCKER_PASSWORD
-    commands:
-      # NOTE(rfratto): the variable syntax is parsed ahead of time by Drone,
-      # and not by Windows (where the syntax obviously wouldn't work).
-      - $IMAGE_TAG="${DRONE_TAG##build-image/v}-windows"
-      - docker login -u $Env:DOCKER_LOGIN -p $Env:DOCKER_PASSWORD
-      - docker build -t grafana/agent-build-image:$IMAGE_TAG ./build-image/windows
-      - docker push grafana/agent-build-image:$IMAGE_TAG
-volumes:
-- name: docker
-  host:
+- commands:
+  - $IMAGE_TAG="${DRONE_TAG##build-image/v}-windows"
+  - docker login -u $Env:DOCKER_LOGIN -p $Env:DOCKER_PASSWORD
+  - docker build -t grafana/agent-build-image:$IMAGE_TAG ./build-image/windows
+  - docker push grafana/agent-build-image:$IMAGE_TAG
+  environment:
+    DOCKER_LOGIN:
+      from_secret: DOCKER_LOGIN
+    DOCKER_PASSWORD:
+      from_secret: DOCKER_PASSWORD
+  image: docker:windowsservercore-1809
+  name: Build
+  volumes:
+  - name: docker
     path: //./pipe/docker_engine/
-
+trigger:
+  event:
+  - tag
+  ref:
+  - refs/tags/build-image/v*
+type: docker
+volumes:
+- host:
+    path: //./pipe/docker_engine/
+  name: docker
 ---
 kind: pipeline
 name: Lint
 platform:
-  os: linux
   arch: amd64
+  os: linux
+steps:
+- commands:
+  - make lint
+  image: grafana/agent-build-image:0.20.0
+  name: Lint
 trigger:
   event:
-    - push
-    - pull_request
-    - tag
-  ref:
-    - refs/heads/main
-    - refs/pull/*/head
-    - refs/tags/v*
-
-steps:
-  - name: lint
-    image: grafana/agent-build-image:0.19.0
-    commands:
-      - make lint
-
+  - pull_request
+type: docker
 ---
 kind: pipeline
-type: docker
 name: Test
 platform:
+  arch: amd64
   os: linux
-  arch: amd64
-trigger:
-  event:
-    - push
-    - pull_request
-    - tag
-  ref:
-    - refs/heads/main
-    - refs/pull/*/head
-    - refs/tags/v*
-
 steps:
-  - name: test
-    image: grafana/agent-build-image:0.19.0
-    volumes:
-      - name: docker
-        path: /var/run/docker.sock
-    commands:
-      # Ensure the binaries can build and also run Go tests.
-      #
-      # The operator tests require K8S_USE_DOCKER_NETWORK=1 to be set when
-      # tests are being run inside of a Docker container so it can access the
-      # created k3d cluster properly.
-      - make binaries
-      - K8S_USE_DOCKER_NETWORK=1 make test
-
-volumes:
- - name: docker
-   host:
-     path: /var/run/docker.sock
-
----
-kind: pipeline
-type: docker
-name: Windows-Test
-platform:
-  arch: amd64
-  os: windows
-  version: "1809"
-trigger:
-  event:
-    - push
-    - pull_request
-    - tag
-  ref:
-    - refs/heads/main
-    - refs/pull/*/head
-    - refs/tags/v*
-steps:
-  - name: test
-    image: grafana/agent-build-image:0.19.0-windows
-    commands:
-      - go test -tags="nodocker,nonetwork" ./...
-
----
-kind: pipeline
-type: docker
-name: Containerize
-platform:
-  os: linux
-  arch: amd64
-trigger:
-  ref:
-    - refs/heads/main
-    - refs/tags/v*
-    - refs/heads/dev.*
-steps:
-  - name: Build Containers
-    image: grafana/agent-build-image:0.19.0
-    volumes:
-      - name: docker
-        path: /var/run/docker.sock
-    environment:
-      DOCKER_LOGIN:
-        from_secret: DOCKER_LOGIN
-      DOCKER_PASSWORD:
-        from_secret: DOCKER_PASSWORD
-      GCR_CREDS:
-        from_secret: gcr_admin
-    commands:
-      - mkdir -p $HOME/.docker
-      - printenv GCR_CREDS > $HOME/.docker/config.json
-      - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-
-      # Create a buildx worker container for multiplatform builds.
-      - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-      - docker buildx create --name multiarch --driver docker-container --use
-
-      - ./tools/ci/docker-containers
-
-      # Remove the buildx worker container.
-      - docker buildx rm multiarch
-
-depends_on:
-  - Test
-
-volumes:
+- commands:
+  - make binaries
+  - K8S_USE_DOCKER_NETWORK=1 make test
+  image: grafana/agent-build-image:0.20.0
+  name: Run Go tests
+  volumes:
   - name: docker
-    host:
-      path: /var/run/docker.sock
-
+    path: /var/run/docker.sock
+trigger:
+  event:
+  - pull_request
+type: docker
+volumes:
+- host:
+    path: /var/run/docker.sock
+  name: docker
 ---
 kind: pipeline
-type: docker
-name: Windows-Containerize
+name: Test (Windows)
 platform:
-  os: windows
   arch: amd64
+  os: windows
   version: "1809"
-trigger:
-  ref:
-    - refs/heads/main
-    - refs/tags/v*
-    - refs/heads/dev.*
 steps:
-  - name: Build Containers
-    image: grafana/agent-build-image:0.19.0-windows
-    volumes:
-      - name: docker
-        path: //./pipe/docker_engine/
-    environment:
-      DOCKER_LOGIN:
-        from_secret: DOCKER_LOGIN
-      DOCKER_PASSWORD:
-        from_secret: DOCKER_PASSWORD
-    commands:
-      - git config --global --add safe.directory C:/drone/src/
-      - 'Invoke-Expression "C:\''Program Files''\git\bin\bash.exe -c ''.\\\\tools\\\\ci\\\\docker-containers-windows''"'
-depends_on:
-  - Windows-Test
-
+- commands:
+  - go test -tags="nodocker,nonetwork" ./...
+  image: grafana/agent-build-image:0.20.0-windows
+  name: Run Go tests
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Check Linux container (grafana/agent)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - make agent-image
+  image: grafana/agent-build-image:0.20.0
+  name: Build container
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+trigger:
+  event:
+  - pull_request
+type: docker
 volumes:
-- name: docker
-  host:
+- host:
+    path: /var/run/docker.sock
+  name: docker
+---
+kind: pipeline
+name: Check Linux container (grafana/agentctl)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - make agentctl-image
+  image: grafana/agent-build-image:0.20.0
+  name: Build container
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+trigger:
+  event:
+  - pull_request
+type: docker
+volumes:
+- host:
+    path: /var/run/docker.sock
+  name: docker
+---
+kind: pipeline
+name: Check Linux container (grafana/agent-operator)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - make operator-image
+  image: grafana/agent-build-image:0.20.0
+  name: Build container
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+trigger:
+  event:
+  - pull_request
+type: docker
+volumes:
+- host:
+    path: /var/run/docker.sock
+  name: docker
+---
+kind: pipeline
+name: Check Windows containers
+platform:
+  arch: amd64
+  os: windows
+  version: "1809"
+steps:
+- commands:
+  - git config --global --add safe.directory C:/drone/src/
+  - '& "C:/Program Files/git/bin/bash.exe" -c ./tools/ci/docker-containers-windows'
+  image: grafana/agent-build-image:0.20.0-windows
+  name: Build container
+  volumes:
+  - name: docker
     path: //./pipe/docker_engine/
-
+trigger:
+  event:
+  - pull_request
+type: docker
+volumes:
+- host:
+    path: //./pipe/docker_engine/
+  name: docker
 ---
 kind: pipeline
-type: docker
-name: Deploy-To-Deployment-Tools
+name: Publish Linux Docker containers
 platform:
-  os: linux
   arch: amd64
+  os: linux
+steps:
+- commands:
+  - mkdir -p $HOME/.docker
+  - printenv GCR_CREDS > $HOME/.docker/config.json
+  - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
+  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  - docker buildx create --name multiarch --driver docker-container --use
+  - ./tools/ci/docker-containers
+  - docker buildx rm multiarch
+  environment:
+    DOCKER_LOGIN:
+      from_secret: DOCKER_LOGIN
+    DOCKER_PASSWORD:
+      from_secret: DOCKER_PASSWORD
+    GCR_CREDS:
+      from_secret: gcr_admin
+  image: grafana/agent-build-image:0.20.0
+  name: Build containers
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
 trigger:
   ref:
-    - refs/heads/main
-
+  - refs/heads/main
+  - refs/tags/v*
+  - refs/heads/dev.*
+type: docker
+volumes:
+- host:
+    path: /var/run/docker.sock
+  name: docker
+---
+depends_on:
+- Publish Linux Docker containers
 image_pull_secrets:
-  - dockerconfigjson
-
-steps:
-  - name: put image tag in a file
-    image: alpine
-    commands:
-      - apk update && apk add git
-      - echo "$(sh ./tools/image-tag)" > .tag-only
-      - echo "grafana/agent:$(sh ./tools/image-tag)" > .image-tag
-  - name: Update Deployment Tools
-    image: us.gcr.io/kubernetes-dev/drone/plugins/updater
-    settings:
-      config_json: |-
-        {
-          "destination_branch": "master",
-          "pull_request_branch_prefix": "cd-agent",
-          "pull_request_enabled": false,
-          "pull_request_team_reviewers": [
-            "agent-squad"
-          ],
-          "repo_name": "deployment_tools",
-          "update_jsonnet_attribute_configs": [
-            {
-              "file_path": "ksonnet/environments/kowalski/dev-us-central-0.kowalski-dev/main.jsonnet",
-              "jsonnet_key": "agent_image",
-              "jsonnet_value_file": ".image-tag"
-            },
-            {
-              "file_path": "ksonnet/environments/grafana-agent/waves/agent.libsonnet",
-              "jsonnet_key": "dev_canary",
-              "jsonnet_value_file": ".image-tag"
-            }
-          ]
-        }
-      github_token:
-        from_secret: gh_token
-
-depends_on:
-  - Containerize
-
-volumes:
-  - name: docker
-    host:
-      path: /var/run/docker.sock
-
----
+- dockerconfigjson
 kind: pipeline
-type: docker
-name: Release
+name: Deploy to deployment_tools
 platform:
-  os: linux
   arch: amd64
+  os: linux
+steps:
+- commands:
+  - apk update && apk add git
+  - echo "$(sh ./tools/image-tag)" > .tag-only
+  - echo "grafana/agent:$(sh ./tools/image-tag)" > .image-tag
+  image: alpine
+  name: Create .image-tag
+- image: us.gcr.io/kubernetes-dev/drone/plugins/updater
+  name: Update deployment_tools
+  settings:
+    config_json: |
+      {
+        "destination_branch": "master",
+        "pull_request_branch_prefix": "cd-agent",
+        "pull_request_enabled": false,
+        "pull_request_team_reviewers": [
+          "agent-squad"
+        ],
+        "repo_name": "deployment_tools",
+        "update_jsonnet_attribute_configs": [
+          {
+            "file_path": "ksonnet/environments/kowalski/dev-us-central-0.kowalski-dev/main.jsonnet",
+            "jsonnet_key": "agent_image",
+            "jsonnet_value_file": ".image-tag"
+          },
+          {
+            "file_path": "ksonnet/environments/grafana-agent/waves/agent.libsonnet",
+            "jsonnet_key": "dev_canary",
+            "jsonnet_value_file": ".image-tag"
+          }
+        ]
+      }
+    github_token:
+      from_secret: gh_token
 trigger:
   ref:
-    - refs/tags/v*
-
-steps:
-  - name: create-release
-    image: grafana/agent-build-image:0.19.0
-    volumes:
-      - name: docker
-        path: /var/run/docker.sock
-    environment:
-      DOCKER_LOGIN:
-        from_secret: DOCKER_LOGIN
-      DOCKER_PASSWORD:
-        from_secret: DOCKER_PASSWORD
-      GITHUB_TOKEN:
-        from_secret: GITHUB_KEY
-      GPG_PRIVATE_KEY:
-        from_secret: gpg_private_key
-      GPG_PUBLIC_KEY:
-        from_secret: gpg_public_key
-      GPG_PASSPHRASE:
-        from_secret: gpg_passphrase
-    commands:
-      - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-      - make -j4 RELEASE_BUILD=1 VERSION=${DRONE_TAG} dist
-      - VERSION=${DRONE_TAG} RELEASE_DOC_TAG=$(echo ${DRONE_TAG} | awk -F '.' '{print $1"."$2}') ./tools/release
-depends_on:
-  - Test
-
-volumes:
-  - name: docker
-    host:
-      path: /var/run/docker.sock
-
+  - refs/heads/main
+type: docker
 ---
+kind: pipeline
+name: Publish Windows Docker containers
+platform:
+  arch: amd64
+  os: windows
+  version: "1809"
+steps:
+- commands:
+  - git config --global --add safe.directory C:/drone/src/
+  - '& "C:/Program Files/git/bin/bash.exe" -c ./tools/ci/docker-containers-windows'
+  environment:
+    DOCKER_LOGIN:
+      from_secret: DOCKER_LOGIN
+    DOCKER_PASSWORD:
+      from_secret: DOCKER_PASSWORD
+  image: grafana/agent-build-image:0.20.0-windows
+  name: Build containers
+  volumes:
+  - name: docker
+    path: //./pipe/docker_engine/
+trigger:
+  ref:
+  - refs/heads/main
+  - refs/tags/v*
+  - refs/heads/dev.*
+type: docker
+volumes:
+- host:
+    path: //./pipe/docker_engine/
+  name: docker
+---
+depends_on:
+- Publish Linux Docker containers
+- Publish Windows Docker containers
+kind: pipeline
+name: Publish release
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
+  - make -j4 RELEASE_BUILD=1 VERSION=${DRONE_TAG} dist
+  - |
+    VERSION ${DRONE_TAG} RELEASE_DOC_TAG=$(echo ${DRONE_TAG} | awk -F '.' '{print $1"."$2}') ./tools/release
+  environment:
+    DOCKER_LOGIN:
+      from_secret: DOCKER_LOGIN
+    DOCKER_PASSWORD:
+      from_secret: DOCKER_PASSWORD
+    GITHUB_TOKEN:
+      from_secret: GITHUB_KEY
+    GPG_PASSPHRASE:
+      from_secret: gpg_passphrase
+    GPG_PRIVATE_KEY:
+      from_secret: gpg_private_key
+    GPG_PUBLIC_KEY:
+      from_secret: gpg_public_key
+  image: grafana/agent-build-image:0.20.0
+  name: Publish release
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+trigger:
+  ref:
+  - refs/tags/v*
+type: docker
+volumes:
+- host:
+    path: /var/run/docker.sock
+  name: docker
+---
+get:
+  name: .dockerconfigjson
+  path: secret/data/common/gcr
 kind: secret
 name: dockerconfigjson
-
-get:
-  path: secret/data/common/gcr
-  name: .dockerconfigjson
-
 ---
-kind: secret
-name: gcr_admin
-
 get:
   name: .dockerconfigjson
   path: infra/data/ci/gcr-admin
-
+kind: secret
+name: gcr_admin
 ---
+get:
+  name: pat
+  path: infra/data/ci/github/grafanabot
 kind: secret
 name: gh_token
-
-get:
-  path: infra/data/ci/github/grafanabot
-  name: pat
-
 ---
-kind: secret
-name: gpg_public_key
-
 get:
   name: public-key
   path: infra/data/ci/packages-publish/gpg
-
----
 kind: secret
-name: gpg_private_key
-
+name: gpg_public_key
+---
 get:
   name: private-key
   path: infra/data/ci/packages-publish/gpg
-
----
 kind: secret
-name: gpg_passphrase
-
+name: gpg_private_key
+---
 get:
   name: passphrase
   path: infra/data/ci/packages-publish/gpg
-
+kind: secret
+name: gpg_passphrase
 ---
 kind: signature
-hmac: 8880e687afcbe8c6db514963c36dc48e69780082669bc190732d2e042871dcae
+hmac: 9012ab3c553d2488901d9266471a6e04dcded1a9b36b9c822efed1e654c66151
 
 ...

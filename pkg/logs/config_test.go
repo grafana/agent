@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	pc "github.com/prometheus/common/config"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )
@@ -105,13 +106,25 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 
 func TestConfig_ApplyDefaults_Defaults(t *testing.T) {
 	cfgText := untab(`
-		positions_directory: /tmp
-		configs:
-		- name: config-a
-			positions:
-				filename: /config-a.yml
-		- name: config-b
-	`)
+    positions_directory: /tmp
+    global:
+      clients:
+        - basic_auth:
+            password: password_default
+            username: username_default
+          url: https://default.com
+    configs:
+    - name: config-a
+      positions:
+        filename: /config-a.yml
+    - name: config-b
+    - name: config-c
+      clients:
+      - basic_auth:
+          password: password
+          username: username
+        url: https://example.com
+  `)
 	var cfg Config
 	err := yaml.UnmarshalStrict([]byte(cfgText), &cfg)
 	require.NoError(t, err)
@@ -119,10 +132,24 @@ func TestConfig_ApplyDefaults_Defaults(t *testing.T) {
 	var (
 		pathA = cfg.Configs[0].PositionsConfig.PositionsFile
 		pathB = cfg.Configs[1].PositionsConfig.PositionsFile
+
+		clientB = cfg.Configs[1].ClientConfigs[0]
+		clientC = cfg.Configs[2].ClientConfigs[0]
 	)
 
 	require.Equal(t, "/config-a.yml", pathA)
 	require.Equal(t, filepath.Join("/tmp", "config-b.yml"), pathB)
+	require.Equal(t, "https://default.com", clientB.URL.String())
+	require.Equal(t, &pc.BasicAuth{
+		Password: "password_default",
+		Username: "username_default",
+	}, clientB.Client.BasicAuth)
+
+	require.Equal(t, "https://example.com", clientC.URL.String())
+	require.Equal(t, &pc.BasicAuth{
+		Password: "password",
+		Username: "username",
+	}, clientC.Client.BasicAuth)
 }
 
 // untab is a utility function to make it easier to write YAML tests, where some editors

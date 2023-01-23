@@ -31,12 +31,14 @@ var (
 	featIntegrationsNext = features.Feature("integrations-next")
 	featDynamicConfig    = features.Feature("dynamic-config")
 	featExtraMetrics     = features.Feature("extra-scrape-metrics")
+	featAgentManagement  = features.Feature("agent-management")
 
 	allFeatures = []features.Feature{
 		featRemoteConfigs,
 		featIntegrationsNext,
 		featDynamicConfig,
 		featExtraMetrics,
+		featAgentManagement,
 	}
 )
 
@@ -61,11 +63,12 @@ var DefaultConfig = Config{
 
 // Config contains underlying configurations for the agent
 type Config struct {
-	Server       server.Config         `yaml:"server,omitempty"`
-	Metrics      metrics.Config        `yaml:"metrics,omitempty"`
-	Integrations VersionedIntegrations `yaml:"integrations,omitempty"`
-	Traces       traces.Config         `yaml:"traces,omitempty"`
-	Logs         *logs.Config          `yaml:"logs,omitempty"`
+	Server          server.Config         `yaml:"server,omitempty"`
+	Metrics         metrics.Config        `yaml:"metrics,omitempty"`
+	Integrations    VersionedIntegrations `yaml:"integrations,omitempty"`
+	Traces          traces.Config         `yaml:"traces,omitempty"`
+	Logs            *logs.Config          `yaml:"logs,omitempty"`
+	AgentManagement AgentManagement       `yaml:"agent_management,omitempty"`
 
 	// Flag-only fields
 	ServerFlags server.Flags `yaml:"-"`
@@ -193,6 +196,12 @@ func (c *Config) Validate(fs *flag.FlagSet) error {
 		return err
 	}
 
+	if c.AgentManagement.Enabled {
+		if err := c.AgentManagement.Validate(); err != nil {
+			return fmt.Errorf("invalid agent management config: %w", err)
+		}
+	}
+
 	c.Metrics.ServiceConfig.APIEnableGetConfiguration = c.EnableConfigEndpoints
 
 	// Don't validate flags if there's no FlagSet. Used for testing.
@@ -230,6 +239,49 @@ func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 	instrumentation.ConfigMetrics.InstrumentConfig(buf)
 
 	return LoadBytes(buf, expandEnvVars, c)
+}
+
+// loadFromAgentManagementAPI loads and merges a config from an Agent Management API.
+//  1. Read local initial config.
+//  2. Get the remote config.
+//     a) Fetch from remote. If this fails or is invalid:
+//     b) Read the remote config from cache. If this fails, return an error.
+//  4. Merge the initial and remote config into c.
+func loadFromAgentManagementAPI(path string, expandEnvVars bool, c *Config, log *server.Logger) error {
+	// Load the initial config from disk without instrumenting the config hash
+	buf, err := os.ReadFile(path)
+	if err != nil {
+		return fmt.Errorf("error reading initial config file %w", err)
+	}
+
+	err = LoadBytes(buf, expandEnvVars, c)
+	if err != nil {
+		return fmt.Errorf("failed to load initial config: %w", err)
+	}
+
+	remoteConfig, err := getRemoteConfig(expandEnvVars, c, log)
+	if err != nil {
+		return err
+	}
+	mergeEffectiveConfig(c, remoteConfig)
+
+	effectiveConfigBytes, err := yaml.Marshal(c)
+	if err != nil {
+		level.Warn(log).Log("msg", "error marshalling config for instrumenting config version", "err", err)
+	} else {
+		instrumentation.ConfigMetrics.InstrumentConfig(effectiveConfigBytes)
+	}
+
+	return nil
+}
+
+// mergeEffectiveConfig overwrites any values in initialConfig with those in remoteConfig
+func mergeEffectiveConfig(initialConfig *Config, remoteConfig *Config) {
+	initialConfig.Server = remoteConfig.Server
+	initialConfig.Metrics = remoteConfig.Metrics
+	initialConfig.Integrations = remoteConfig.Integrations
+	initialConfig.Traces = remoteConfig.Traces
+	initialConfig.Logs = remoteConfig.Logs
 }
 
 // LoadRemote reads a config from url
@@ -330,12 +382,15 @@ func getenv(name string) string {
 // Load loads a config file from a flagset. Flags will be registered
 // to the flagset before parsing them with the values specified by
 // args.
-func Load(fs *flag.FlagSet, args []string) (*Config, error) {
+func Load(fs *flag.FlagSet, args []string, log *server.Logger) (*Config, error) {
 	cfg, error := load(fs, args, func(path, fileType string, expandArgs bool, c *Config) error {
 		switch fileType {
 		case fileTypeYAML:
 			if features.Enabled(fs, featRemoteConfigs) {
 				return LoadRemote(path, expandArgs, c)
+			}
+			if features.Enabled(fs, featAgentManagement) {
+				return loadFromAgentManagementAPI(path, expandArgs, c, log)
 			}
 			return LoadFile(path, expandArgs, c)
 		case fileTypeDynamic:
@@ -425,6 +480,8 @@ func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
 	} else {
 		cfg.EnabledFeatures = features.GetAllEnabled(fs)
 	}
+
+	cfg.AgentManagement.Enabled = features.Enabled(fs, featAgentManagement)
 
 	if disableSupportBundles {
 		cfg.DisableSupportBundle = true

@@ -49,7 +49,7 @@ The following blocks are supported inside the definition of
 
 Hierarchy | Name | Description | Required
 --------- | ---- | ----------- | --------
-listener | [config][] | Configures a listener for IETF Syslog (RFC5424) messages. | no
+listener | [listener][] | Configures a listener for IETF Syslog (RFC5424) messages. | no
 listener > tls_config | [tls_config][] | Configures TLS settings for connecting to the endpoint for TCP connections. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `config > tls_config` 

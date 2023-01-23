@@ -3,6 +3,7 @@ package client
 import (
 	"flag"
 	"io"
+	"reflect"
 
 	"github.com/grafana/agent/pkg/agentproto"
 	"github.com/grafana/agent/pkg/util"
@@ -36,6 +37,10 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	type plain Config
 	return unmarshal((*plain)(c))
+}
+
+func (c Config) IsZero() bool {
+	return reflect.DeepEqual(c, Config{}) || reflect.DeepEqual(c, DefaultConfig)
 }
 
 // RegisterFlags registers flags to the provided flag set.
