@@ -66,6 +66,8 @@ Main (unreleased)
 
 - Flow: `prometheus.relabel` and `prometheus.remote_write` will now error if they have exited. (@ptodev)
 
+- Flow UI: Fix the layout for the object value in component detail page. (@xiyu95)
+
 ### Other changes
 
 - Use Go 1.19.4 for builds. (@erikbaranowski)
