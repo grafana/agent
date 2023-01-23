@@ -85,10 +85,12 @@ func New(o component.Options, args Arguments) (*Component, error) {
 func (c *Component) Run(ctx context.Context) error {
 	defer func() {
 		level.Info(c.opts.Logger).Log("msg", "loki.source.gcplog component shutting down, stopping the targets")
+		c.mut.RLock()
 		err := c.target.Stop()
 		if err != nil {
 			level.Error(c.opts.Logger).Log("msg", "error while stopping gcplog target", "err", err)
 		}
+		c.mut.RUnlock()
 	}()
 
 	for {
@@ -151,9 +153,9 @@ func (c *Component) Update(args component.Arguments) error {
 
 // DebugInfo returns information about the status of targets.
 func (c *Component) DebugInfo() interface{} {
-	var res targetDebugInfo
-	res.Details = c.target.Details()
-	return res
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+	return targetDebugInfo{Details: c.target.Details()}
 }
 
 type targetDebugInfo struct {
