@@ -141,7 +141,7 @@ require (
 	github.com/jmespath/go-jmespath v0.4.0
 	github.com/mackerelio/go-osstat v0.2.3
 	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f
-	github.com/observiq/oracledb_exporter v0.0.0-20230119190025-90935c40f8bb
+	github.com/observiq/oracledb_exporter v0.0.0-20230123144034-6896822027ad
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.63.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.61.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension v0.61.0
@@ -154,7 +154,7 @@ require (
 	github.com/prometheus/blackbox_exporter v0.22.1-0.20220920154026-3446984d6a6e
 	github.com/prometheus/client_model v0.3.0
 	github.com/shirou/gopsutil/v3 v3.22.9
-	github.com/sijms/go-ora/v2 v2.5.23
+	github.com/sijms/go-ora/v2 v2.5.24
 	github.com/xo/dburl v0.13.0
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.63.0
 	go.opentelemetry.io/collector/exporter/otlphttpexporter v0.0.0-00010101000000-000000000000
@@ -168,7 +168,7 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v0.33.0
 	go.opentelemetry.io/proto/otlp v0.19.0
 	go.uber.org/goleak v1.2.0
-	golang.org/x/crypto v0.1.0
+	golang.org/x/crypto v0.5.0
 	golang.org/x/exp v0.0.0-20221031165847-c99f073a8326
 	golang.org/x/text v0.6.0
 	google.golang.org/protobuf v1.28.1
@@ -528,7 +528,7 @@ require (
 	go4.org/unsafe/assume-no-moving-gc v0.0.0-20220617031537-928513b29760 // indirect
 	gocloud.dev v0.24.0 // indirect
 	golang.org/x/mod v0.7.0 // indirect
-	golang.org/x/oauth2 v0.3.0 // indirect
+	golang.org/x/oauth2 v0.4.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/term v0.4.0 // indirect
 	golang.org/x/tools v0.4.0 // indirect
