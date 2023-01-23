@@ -2,6 +2,7 @@ package relabel
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/grafana/agent/component"
@@ -34,8 +35,8 @@ type Arguments struct {
 
 // Exports holds values which are exported by the discovery.relabel component.
 type Exports struct {
-	Output []discovery.Target  `river:"output,attr"`
-	Rules  *flow_relabel.Rules `river:"rules,attr"`
+	Output []discovery.Target `river:"output,attr"`
+	Rules  flow_relabel.Rules `river:"rules,attr"`
 }
 
 // Component implements the discovery.relabel component.
@@ -87,23 +88,13 @@ func (c *Component) Update(args component.Arguments) error {
 		}
 	}
 
+	fmt.Println("calling OnStateChange!")
 	c.opts.OnStateChange(Exports{
 		Output: targets,
-		Rules:  getRules(c),
+		Rules:  c.rcsFlow,
 	})
 
 	return nil
-}
-
-func getRules(c *Component) *flow_relabel.Rules {
-	return &flow_relabel.Rules{
-		GetAll: func() []*flow_relabel.Config {
-			c.mut.RLock()
-			defer c.mut.RUnlock()
-
-			return c.rcsFlow
-		},
-	}
 }
 
 func componentMapToPromLabels(ls discovery.Target) labels.Labels {
