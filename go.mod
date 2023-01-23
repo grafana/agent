@@ -676,3 +676,6 @@ exclude (
 )
 
 replace github.com/github/smimesign => github.com/grafana/smimesign v0.2.1-0.20220408144937-2a5adf3481d3
+
+// To be used until upstream PR of fixes is merged https://github.com/webdevops/azure-metrics-exporter/pull/41
+replace github.com/webdevops/azure-metrics-exporter => github.com/kgeckhart/azure-metrics-exporter v0.0.0-20230123164250-61031f994417

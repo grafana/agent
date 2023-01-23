@@ -26,7 +26,7 @@ import (
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.NewNamedShim("azure_exporter"))
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.NewNamedShim("azure"))
 }
 
 // DefaultConfig holds the default settings for the azure_exporter integration.
@@ -109,12 +109,9 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 		Timespan: c.Timespan,
 		Interval: to.Ptr[string](c.Timespan),
 
-		//TODO fix the bug in the OSS exporter where if this is empty it creates an empty metric
-		//https://github.com/webdevops/azure-metrics-exporter/blob/9333e682d754352aceb6c137c1787b08d756d8a0/metrics/insights.go#L104-L107
-		Name:  "not_used",
+		// Unused settings just here to capture they are intentionally not set
+		Name:  "",
 		Cache: nil,
-		//TODO can be removed from OSS exporter
-		Target: nil,
 	}
 
 	// Dimensions can only be retrieved via an obscure manner of including a "metric filter" on the query
@@ -142,16 +139,6 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 		// set the value as high as possible to hopefully prevent issues
 		settings.MetricTop = to.Ptr[int32](math.MaxInt32)
 		settings.MetricOrderBy = "" // Order is only relevant if top won't return all the results our high value should prevent this
-	}
-
-	// This attempts to simplify a really awkward use case azure has where the resource identifiers for storage accounts
-	// need to be suffixed with <type>/default. The exporter works around this by making you manually provide it as a "ResourceSubPath"
-	// OSS Grafana worked around it more programmatically, https://github.com/grafana/grafana/blob/76868bad0498a0692acf7f0f7da5846ce642cf29/pkg/tsdb/azuremonitor/metrics/url-builder.go#L36-L39,
-	// which is mirrored here
-	//TODO apply this change to the OSS exporter
-	if strings.HasPrefix(strings.ToLower(settings.MetricNamespace), "microsoft.storage/storageaccounts/") {
-		splitNamespace := strings.Split(settings.MetricNamespace, "/")
-		settings.ResourceSubPath = fmt.Sprintf("/%s/default", splitNamespace[len(splitNamespace)-1])
 	}
 
 	concurrencyConfig := azure_config.Opts{
@@ -238,7 +225,7 @@ type Exporter struct {
 func (e Exporter) MetricsHandler() (http.Handler, error) {
 	reg := prometheus.NewRegistry()
 	ctx := context.Background()
-	prober := metrics.NewMetricProber(ctx, e.logEntry, nil, nil, e.Settings, e.ConcurrencyConfig)
+	prober := metrics.NewMetricProber(ctx, e.logEntry, nil, e.Settings, e.ConcurrencyConfig)
 
 	client, err := armclient.NewArmClientWithCloudName(e.cfg.AzureCloudEnvironment, e.logger)
 	if err != nil {

@@ -29,7 +29,6 @@ func TestConfig_NewIntegration_ConfigToSettings(t *testing.T) {
 		AzureCloudEnvironment:    "azurecloud",
 	}
 	baseSettings := metrics.RequestMetricSettings{
-		Name:            "not_used",
 		Subscriptions:   []string{"subscriptionA"},
 		ResourceType:    "resourceType",
 		Filter:          "filter_me",
@@ -41,13 +40,12 @@ func TestConfig_NewIntegration_ConfigToSettings(t *testing.T) {
 		MetricTemplate:  "name_template_me",
 		HelpTemplate:    "help_template_me",
 		TagLabels:       []string{"tag_me"},
-		//unused
-		Target:          nil,
-		MetricTop:       nil,
-		MetricFilter:    "",
-		MetricOrderBy:   "",
-		Cache:           nil,
-		ResourceSubPath: "",
+		//Should not be set
+		Name:          "",
+		MetricTop:     nil,
+		MetricFilter:  "",
+		MetricOrderBy: "",
+		Cache:         nil,
 	}
 
 	baseConfigValid := t.Run("maps expected fields", func(t *testing.T) {
@@ -68,18 +66,6 @@ func TestConfig_NewIntegration_ConfigToSettings(t *testing.T) {
 		configModifier   func(azure_exporter.Config) azure_exporter.Config
 		settingsModifier func(metrics.RequestMetricSettings) metrics.RequestMetricSettings
 	}{
-		{
-			name: "maps ResourceSubPath for the storageaccounts MetricNamespace",
-			configModifier: func(config azure_exporter.Config) azure_exporter.Config {
-				config.MetricNamespace = "microsoft.storage/storageaccounts/blobby"
-				return config
-			},
-			settingsModifier: func(settings metrics.RequestMetricSettings) metrics.RequestMetricSettings {
-				settings.MetricNamespace = "microsoft.storage/storageaccounts/blobby"
-				settings.ResourceSubPath = "/blobby/default"
-				return settings
-			},
-		},
 		{
 			name: "can set a metric filter for a single dimension",
 			configModifier: func(config azure_exporter.Config) azure_exporter.Config {
