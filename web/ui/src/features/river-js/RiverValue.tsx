@@ -1,5 +1,4 @@
 import React, { FC, Fragment, ReactElement } from 'react';
-import { gray } from 'd3';
 
 import { ObjectField, Value, ValueType } from './types';
 
@@ -33,6 +32,10 @@ type SimplifiedPartition = {
 
 const ValueRenderer: FC<valueRendererProps> = ({ value, name, nthChild, indentLevel }) => {
   const backgroundColor = nthChild && nthChild % 2 === 1 ? '#f4f5f5' : 'white';
+
+  /**
+   * Renderer for the river format for target and label object
+   */
   const renderGrid = (simplifiedPartition: SimplifiedPartition[], gridTemplateColumns?: string) => {
     return simplifiedPartition.map(({ key, value }) => {
       return (
