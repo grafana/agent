@@ -77,7 +77,12 @@ func Test(t *testing.T) {
 	case otelLogs = <-logCh:
 		require.Equal(t, 1, otelLogs.LogRecordCount())
 		require.Equal(t, "It's super effective!", otelLogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0).Body().AsString())
-		require.Equal(t, wantAttributes, otelLogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0).Attributes().AsRaw())
+		require.Equal(t, wantAttributes["env"], otelLogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0).Attributes().AsRaw()["env"])
+		require.Equal(t, wantAttributes["filename"], otelLogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0).Attributes().AsRaw()["filename"])
+		require.Equal(t, wantAttributes["log.file.name"], otelLogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0).Attributes().AsRaw()["log.file.name"])
+		require.Equal(t, wantAttributes["log.file.path"], otelLogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0).Attributes().AsRaw()["log.file.path"])
+		require.Contains(t, otelLogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0).Attributes().AsRaw()["loki.attribute.labels"], "env")
+		require.Contains(t, otelLogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0).Attributes().AsRaw()["loki.attribute.labels"], "filename")
 	}
 }
 
