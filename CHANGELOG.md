@@ -56,7 +56,7 @@ Main (unreleased)
 
 - New metric for prometheus.scrape - `agent_prometheus_scrape_targets_gauge`. (@ptodev)
 
-- New metric for prometheus.scrape and prometheus.relabel - `agent_prometheus_fanout_samples_count`. (@ptodev)
+- New metric for prometheus.scrape and prometheus.relabel - `agent_prometheus_forwarded_samples_total`. (@ptodev)
 
 ### Enhancements
 

@@ -40,8 +40,8 @@ func NewFanout(children []storage.Appendable, componentID string, register prome
 	_ = register.Register(wl)
 
 	s := prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "agent_prometheus_fanout_samples_count",
-		Help: "Number of outgoing samples",
+		Name: "agent_prometheus_forwarded_samples_total",
+		Help: "Total number of samples sent to downstream components.",
 	})
 	_ = register.Register(s)
 
@@ -74,30 +74,27 @@ func (f *Fanout) Appender(ctx context.Context) storage.Appender {
 	ctx = scrape.ContextWithMetricMetadataStore(ctx, NoopMetadataStore{})
 
 	app := &appender{
-		children:     make([]storage.Appender, 0),
-		componentID:  f.componentID,
-		writeLatency: f.writeLatency,
+		children:       make([]storage.Appender, 0),
+		componentID:    f.componentID,
+		writeLatency:   f.writeLatency,
+		samplesCounter: f.samplesCounter,
 	}
 
-	updated := false
 	for _, x := range f.children {
 		if x == nil {
 			continue
 		}
 		app.children = append(app.children, x.Appender(ctx))
-		updated = true
-	}
-	if updated {
-		f.samplesCounter.Inc()
 	}
 	return app
 }
 
 type appender struct {
-	children     []storage.Appender
-	componentID  string
-	writeLatency prometheus.Histogram
-	start        time.Time
+	children       []storage.Appender
+	componentID    string
+	writeLatency   prometheus.Histogram
+	samplesCounter prometheus.Counter
+	start          time.Time
 }
 
 var _ storage.Appender = (*appender)(nil)
@@ -111,11 +108,17 @@ func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v flo
 		ref = storage.SeriesRef(GlobalRefMapping.GetOrAddGlobalRefID(l))
 	}
 	var multiErr error
+	updated := false
 	for _, x := range a.children {
 		_, err := x.Append(ref, l, t, v)
 		if err != nil {
 			multiErr = multierror.Append(multiErr, err)
+		} else {
+			updated = true
 		}
+	}
+	if updated {
+		a.samplesCounter.Inc()
 	}
 	return ref, multiErr
 }

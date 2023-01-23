@@ -112,7 +112,7 @@ type Component struct {
 	args         Arguments
 	scraper      *scrape.Manager
 	appendable   *prometheus.Fanout
-	targetsGauge *client_prometheus.GaugeVec
+	targetsGauge client_prometheus.Gauge
 }
 
 var (
@@ -124,12 +124,21 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	flowAppendable := prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer)
 	scrapeOptions := &scrape.Options{ExtraMetrics: args.ExtraMetrics}
 	scraper := scrape.NewManager(scrapeOptions, o.Logger, flowAppendable)
+
+	targetsGauge := client_prometheus.NewGauge(client_prometheus.GaugeOpts{
+		Name: "agent_prometheus_scrape_targets_gauge",
+		Help: "Number of targets this component is configured to scrape"})
+	err := o.Registerer.Register(targetsGauge)
+	if err != nil {
+		return nil, err
+	}
+
 	c := &Component{
 		opts:          o,
 		reloadTargets: make(chan struct{}, 1),
 		scraper:       scraper,
 		appendable:    flowAppendable,
-		targetsGauge:  getTargetsGaugeMetric(o.Registerer),
+		targetsGauge:  targetsGauge,
 	}
 
 	// Call to Update() to set the receivers and targets once at the start.
@@ -203,7 +212,7 @@ func (c *Component) Update(args component.Arguments) error {
 	default:
 	}
 
-	c.targetsGauge.WithLabelValues().Set(float64(len(c.args.Targets)))
+	c.targetsGauge.Set(float64(len(c.args.Targets)))
 	return nil
 }
 
@@ -298,21 +307,4 @@ func convertLabelSet(tg discovery.Target) model.LabelSet {
 		lset[model.LabelName(k)] = model.LabelValue(v)
 	}
 	return lset
-}
-
-func getTargetsGaugeMetric(registerer client_prometheus.Registerer) *client_prometheus.GaugeVec {
-	targetsGauge := client_prometheus.NewGaugeVec(client_prometheus.GaugeOpts{
-		Name: "agent_prometheus_scrape_targets_gauge",
-		Help: "A gauge of all scrape targets this component is configured to scrape",
-	}, []string{})
-	err := registerer.Register(targetsGauge)
-	if err != nil {
-		if existing, ok := err.(client_prometheus.AlreadyRegisteredError); ok {
-			targetsGauge = existing.ExistingCollector.(*client_prometheus.GaugeVec)
-		} else {
-			// Same behavior as MustRegister if the error is not for AlreadyRegistered
-			panic(err)
-		}
-	}
-	return targetsGauge
 }
