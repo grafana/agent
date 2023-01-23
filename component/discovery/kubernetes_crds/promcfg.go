@@ -469,11 +469,9 @@ func sanitizeLabelName(name string) model.LabelName {
 }
 
 func (cg *configGenerator) getNamespacesFromNamespaceSelector(nsel v1.NamespaceSelector, namespace string) []string {
-	// TODO:
-	//if cg.spec.IgnoreNamespaceSelectors {
-	//	return []string{namespace}
-	//} else
-	if nsel.Any {
+	if cg.config.IgnoreNamespaceSelectors {
+		return []string{namespace}
+	} else if nsel.Any {
 		return []string{}
 	} else if len(nsel.MatchNames) == 0 {
 		return []string{namespace}

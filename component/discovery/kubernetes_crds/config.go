@@ -22,8 +22,9 @@ type Config struct {
 	ForwardTo []storage.Appendable `river:"forward_to,attr"`
 
 	// OverrideHonorLabels controls how conflicts in labels are handled
-	OverrideHonorLabels     bool
-	OverrideHonorTimestamps bool
+	OverrideHonorLabels      bool
+	OverrideHonorTimestamps  bool
+	IgnoreNamespaceSelectors bool
 
 	EnforcedSampleLimit           *uint64
 	EnforcedTargetLimit           *uint64

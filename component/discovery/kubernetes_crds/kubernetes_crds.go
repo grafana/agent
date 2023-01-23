@@ -58,6 +58,7 @@ type crdManager struct {
 	discoveryConfigs map[string]discovery.Configs
 	scrapeConfigs    map[string]*config.ScrapeConfig
 
+	// TODO: mutex only needed here if informer calls event handlers concurrently
 	mut sync.Mutex
 }
 
