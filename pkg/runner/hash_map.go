@@ -54,18 +54,18 @@ func (hm *hashMap) Delete(t Task) (deleted bool) {
 
 	hash := t.Hash()
 
-	var rem []Task
+	var remaining []Task
 	for _, s := range hm.lookup[hash] {
 		if s.Equals(t) {
 			deleted = true
 			continue
 		}
-		rem = append(rem, s)
+		remaining = append(remaining, s)
 	}
-	if len(rem) == 0 {
+	if len(remaining) == 0 {
 		delete(hm.lookup, hash)
 	} else {
-		hm.lookup[hash] = rem
+		hm.lookup[hash] = remaining
 	}
 
 	return deleted
