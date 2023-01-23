@@ -1,4 +1,4 @@
-import React, { FC, Fragment, ReactElement } from 'react';
+import React, { FC, Fragment } from 'react';
 
 import { ObjectField, Value, ValueType } from './types';
 
@@ -9,6 +9,9 @@ export interface RiverValueProps {
   name?: string;
   nthChild?: number;
 }
+
+// TO track the length of the object key value pair
+const DIVISION_LENGTH = 63;
 
 /**
  * RiverValue emits a paragraph which represents a River value.
@@ -25,39 +28,30 @@ type valueRendererProps = RiverValueProps & {
   indentLevel: number;
 };
 
-type SimplifiedPartition = {
-  key: string;
-  value: string | false;
-};
-
 const ValueRenderer: FC<valueRendererProps> = ({ value, name, nthChild, indentLevel }) => {
   const backgroundColor = nthChild && nthChild % 2 === 1 ? '#f4f5f5' : 'white';
 
   /**
    * Renderer for the river format for target and label object
    */
-  const renderGrid = (simplifiedPartition: SimplifiedPartition[], gridTemplateColumns?: string) => {
-    return simplifiedPartition.map(({ key, value }) => {
+  const renderGrid = (partition: ObjectField[]) => {
+    // const gridTemplateColumns = '10% 1% 69%';
+
+    let maxLength = 0;
+
+    partition.forEach(({ key }) => {
+      return key.length > maxLength ? (maxLength = key.length) : maxLength;
+    });
+
+    const gridTemplateColumns = maxLength < DIVISION_LENGTH ? '10% 1% 89%' : undefined;
+
+    return partition.map(({ key, value }) => {
       return (
         <div key={key} className={styles['grid-layout']} style={{ backgroundColor: backgroundColor, gridTemplateColumns }}>
           <div className={`${styles['grid-item']} ${styles['grid-key']}`}>{key}</div>
           <div className={styles['grid-item']}>=</div>
-          <div className={`${styles['grid-item']} ${styles['grid-value']}`}>"{value}"</div>
+          <ValueRenderer value={value} indentLevel={0} name={name} />
         </div>
-      );
-    });
-  };
-
-  const renderDefault = (partition: ObjectField[], indentLevel: number, keyLength: number) => {
-    return partition.map((element, index) => {
-      return (
-        <Fragment key={index.toString()}>
-          {getLinePrefix(indentLevel + 1)}
-          <span>{partitionKey(element, keyLength)} = </span>
-          <ValueRenderer value={element.value} indentLevel={indentLevel + 1} name={name} />
-          <span>,</span>
-          <br />
-        </Fragment>
       );
     });
   };
@@ -111,28 +105,7 @@ const ValueRenderer: FC<valueRendererProps> = ({ value, name, nthChild, indentLe
           <span>&#123;</span>
           <br />
           {partitions.map((partition) => {
-            // Find the maximum field length across all fields in this
-            // partition.
-            const keyLength = partitionKeyLength(partition);
-
-            // Loop through the partition and return a simpler object with key and value pair
-            const simplifiedPartition = partition.map(({ key, value }) => {
-              return {
-                key,
-                value: typeof value === 'object' && 'value' in value && (value.value as string),
-              };
-            });
-
-            const gridTemplateColumns = '10% 1% 69%';
-
-            switch (name) {
-              case 'targets':
-                return renderGrid(simplifiedPartition);
-              case 'labels':
-                return renderGrid(simplifiedPartition, gridTemplateColumns);
-              default:
-                return renderDefault(partition, indentLevel, keyLength);
-            }
+            return renderGrid(partition);
           })}
           <span>&#125;</span>
         </>
@@ -191,54 +164,6 @@ function multilinedValue(value: Value): boolean {
 
   // Other values never cross line barriers.
   return false;
-}
-
-/**
- * partitionKeyLength returns the length of keys within the partition. The
- * length is determined by the longest field name in the partition.
- */
-function partitionKeyLength(partition: ObjectField[]): number {
-  let keyLength = 0;
-
-  partition.forEach((f) => {
-    const fieldLength = partitionKey(f, 0).length;
-    if (fieldLength > keyLength) {
-      keyLength = fieldLength;
-    }
-  });
-
-  return keyLength;
-}
-
-/**
- * partitionKey returns the text to use to display a key for a field within a
- * partition.
- */
-function partitionKey(field: ObjectField, keyLength: number): string {
-  let key = field.key;
-  if (!validIdentifier(key)) {
-    // Keys which aren't valid identifiers should be wrapped in quotes.
-    key = `"${key}"`;
-  }
-
-  if (key.length < keyLength) {
-    return key + ' '.repeat(keyLength - key.length);
-  }
-  return key;
-}
-
-function getLinePrefix(indentLevel: number): ReactElement | null {
-  if (indentLevel === 0) {
-    return null;
-  }
-  return <span>{'\t'.repeat(indentLevel)}</span>;
-}
-
-/**
- * validIdentifier reports whether the input is a valid River identifier.
- */
-function validIdentifier(input: string): boolean {
-  return /^[_a-z][_a-z0-9]*$/i.test(input);
 }
 
 /**
