@@ -56,7 +56,6 @@ Main (unreleased)
 
 - Integrations: Introduce the `oracledb` integration. (@schmikei)
 
-
 - Introduce global configuration for logs. (@jcreixell)
 
 ### Enhancements
