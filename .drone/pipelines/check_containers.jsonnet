@@ -2,15 +2,16 @@ local build_image = import '../util/build_image.jsonnet';
 local pipelines = import '../util/pipelines.jsonnet';
 
 local linux_containers = [
-  { name: 'grafana/agent', make: 'make agent-image' },
-  { name: 'grafana/agentctl', make: 'make agentctl-image' },
-  { name: 'grafana/agent-operator', make: 'make operator-image' },
+  { name: 'grafana/agent', make: 'make agent-image', path: 'cmd/grafana-agent/Dockerfile' },
+  { name: 'grafana/agentctl', make: 'make agentctl-image', path: 'cmd/grafana-agentctl/Dockerfile' },
+  { name: 'grafana/agent-operator', make: 'make operator-image', path: 'cmd/grafana-agent-operator/Dockerfile' },
 ];
 
 (
   std.map(function(container) pipelines.linux('Check Linux container (%s)' % container.name) {
     trigger: {
       event: ['pull_request'],
+      paths: [container.path],
     },
     steps: [{
       name: 'Build container',
@@ -32,6 +33,7 @@ local linux_containers = [
   pipelines.windows('Check Windows containers') {
     trigger: {
       event: ['pull_request'],
+      paths: ['**/Dockerfile.windows'],
     },
     steps: [{
       name: 'Build container',
