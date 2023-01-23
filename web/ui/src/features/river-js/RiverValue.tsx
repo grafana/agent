@@ -7,15 +7,19 @@ import styles from './RiverValue.module.css';
 
 export interface RiverValueProps {
   value: Value;
+  name?: string;
+  nthChild?: number;
 }
 
 /**
  * RiverValue emits a paragraph which represents a River value.
  */
-export const RiverValue: FC<RiverValueProps> = (props) => {
+export const RiverValue: FC<RiverValueProps> = ({ value, name, nthChild }) => {
+  console.log({ name, nthChild });
+
   return (
     <div className={styles.value}>
-      <ValueRenderer value={props.value} indentLevel={0} />
+      <ValueRenderer value={value} indentLevel={0} nthChild={nthChild} name={name} />
     </div>
   );
 };
@@ -24,8 +28,8 @@ type valueRendererProps = RiverValueProps & {
   indentLevel: number;
 };
 
-const ValueRenderer: FC<valueRendererProps> = (props) => {
-  const value = props.value;
+const ValueRenderer: FC<valueRendererProps> = ({ value, name, nthChild, indentLevel }) => {
+  // const value = value;
 
   switch (value.type) {
     case ValueType.NULL:
@@ -42,7 +46,6 @@ const ValueRenderer: FC<valueRendererProps> = (props) => {
         return <span className={styles.literal}>true</span>;
       }
       return <span className={styles.literal}>false</span>;
-
     case ValueType.ARRAY:
       return (
         <>
@@ -50,7 +53,7 @@ const ValueRenderer: FC<valueRendererProps> = (props) => {
           {value.value.map((element, idx) => {
             return (
               <Fragment key={idx.toString()}>
-                <ValueRenderer value={element} indentLevel={props.indentLevel} />
+                <ValueRenderer value={element} indentLevel={indentLevel} />
                 {idx + 1 < value.value.length ? <span>, </span> : null}
               </Fragment>
             );
@@ -71,6 +74,7 @@ const ValueRenderer: FC<valueRendererProps> = (props) => {
       }
 
       const partitions = partitionFields(value.value);
+      const backgroundColor = nthChild && nthChild % 2 === 1 ? '#f4f5f5' : 'white';
 
       return (
         <>
@@ -81,8 +85,6 @@ const ValueRenderer: FC<valueRendererProps> = (props) => {
             // partition.
             const keyLength = partitionKeyLength(partition);
 
-            console.log({ partitions });
-
             const newPartition = partition.map(({ key, value }) => {
               return {
                 key,
@@ -92,7 +94,7 @@ const ValueRenderer: FC<valueRendererProps> = (props) => {
 
             return newPartition.map(({ key, value }) => {
               return (
-                <div key={key} className={styles['grid-layout']}>
+                <div key={key} className={styles['grid-layout']} style={{ backgroundColor: backgroundColor }}>
                   <div className={`${styles['grid-item']} ${styles['grid-key']}`}>{key}</div>
                   <div className={styles['grid-item']}>=</div>
                   <div className={`${styles['grid-item']} ${styles['grid-value']}`}>"{value}"</div>
