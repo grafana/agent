@@ -27,6 +27,8 @@ Main (unreleased)
 
 - Integrations: Introduce `cloudwatch metrics` integration. (@thepalbi)
 
+- Integrations: Introduce an `azure` integration. (@kgeckhart)
+
 ### Enhancements
 
 - Update Prometheus Node Exporter integration to v1.5.0. (@Thor77)
