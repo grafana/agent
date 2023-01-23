@@ -3,7 +3,6 @@ package cloudwatch_exporter
 import (
 	yaceConf "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/config"
 	yaceModel "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/model"
-	yaceSvc "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/services"
 )
 
 const (
@@ -32,7 +31,7 @@ func ToYACEConfig(c *Config) (yaceConf.ScrapeConf, error) {
 		staticJobs = append(staticJobs, toYACEStaticJob(stat))
 	}
 	conf := yaceConf.ScrapeConf{
-		ApiVersion: "v1alpha1",
+		APIVersion: "v1alpha1",
 		StsRegion:  c.STSRegion,
 		Discovery: yaceConf.Discovery{
 			ExportedTagsOnMetrics: yaceConf.ExportedTagsOnMetrics(c.Discovery.ExportedTags),
@@ -42,7 +41,7 @@ func ToYACEConfig(c *Config) (yaceConf.ScrapeConf, error) {
 	}
 	// Run the exporter's config validation. Between other things, it will check that the service for which a discovery
 	// job is instantiated, it's supported.
-	if err := conf.Validate(yaceSvc.CheckServiceName); err != nil {
+	if err := conf.Validate(); err != nil {
 		return conf, err
 	}
 	patchYACEDefaults(&conf)
@@ -87,7 +86,7 @@ func toYACEDimensions(dim []Dimension) []yaceConf.Dimension {
 
 func toYACEDiscoveryJob(job *DiscoveryJob) *yaceConf.Job {
 	roles := toYACERoles(job.Roles)
-	return &yaceConf.Job{
+	yaceJob := yaceConf.Job{
 		Regions:    job.Regions,
 		Roles:      roles,
 		CustomTags: toYACETags(job.CustomTags),
@@ -95,19 +94,18 @@ func toYACEDiscoveryJob(job *DiscoveryJob) *yaceConf.Job {
 		Metrics:    toYACEMetrics(job.Metrics),
 		SearchTags: toYACETags(job.SearchTags),
 
-		// Set to zero job-wide scraping time settings. This should be configured at the metric level to make the data
-		// being fetched more explicit.
-		Period: 0,
-		Length: 0,
-		Delay:  0,
-
 		// By setting RoundingPeriod to nil, the exporter will align the start and end times for retrieving CloudWatch
 		// metrics, with the smallest period in the retrieved batch.
 		RoundingPeriod: nil,
-
-		NilToZero:              &nilToZero,
-		AddCloudwatchTimestamp: &addCloudwatchTimestamp,
 	}
+	// Set to zero job-wide scraping time settings. This should be configured at the metric level to make the data
+	// being fetched more explicit.
+	yaceJob.Period = 0
+	yaceJob.Length = 0
+	yaceJob.Delay = 0
+	yaceJob.NilToZero = &nilToZero
+	yaceJob.AddCloudwatchTimestamp = &addCloudwatchTimestamp
+	return &yaceJob
 }
 
 func toYACEMetrics(metrics []Metric) []*yaceConf.Metric {
