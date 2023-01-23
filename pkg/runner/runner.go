@@ -32,7 +32,7 @@ type Worker interface {
 	// Run starts a Worker, blocking until the provided ctx is canceled or a
 	// fatal error occurs. Run is guaranteed to be called exactly once for any
 	// given Worker.
-	Run(ctx context.Context) error
+	Run(ctx context.Context)
 }
 
 // The Runner manages a set of running Workers based on an active set of tasks.
@@ -160,7 +160,7 @@ func (s *Runner[TaskType]) ApplyTasks(ctx context.Context, tt []TaskType) error 
 		go func() {
 			defer s.running.Done()
 			defer close(newWorker.Exited)
-			_ = newWorker.Worker.Run(workerCtx)
+			newWorker.Worker.Run(workerCtx)
 			s.workers.Delete(newTask)
 		}()
 

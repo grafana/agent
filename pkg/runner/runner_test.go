@@ -108,10 +108,9 @@ type genericWorker struct {
 
 var _ runner.Worker = (*genericWorker)(nil)
 
-func (w *genericWorker) Run(ctx context.Context) error {
+func (w *genericWorker) Run(ctx context.Context) {
 	w.workerCount.Inc()
 	defer w.workerCount.Dec()
 
 	<-ctx.Done()
-	return nil
 }
