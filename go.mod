@@ -619,8 +619,6 @@ replace github.com/hairyhenderson/gomplate/v3 => github.com/mattdurham/gomplate/
 // Required until https://github.com/weaveworks/common/pull/240 is merged
 replace google.golang.org/grpc => google.golang.org/grpc v1.45.0
 
-replace github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal => github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.64.0
-
 // Required to ensure compatible hashicorp lib is loaded for dynamic configuration, this solves an ambigous import
 exclude github.com/hashicorp/vault v0.10.3
 

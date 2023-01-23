@@ -2372,8 +2372,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssette
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension v0.63.0 h1:rF8UuIGWZMi0LugBGrPzQCpQiwi96AA0xY5beCEskVA=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension v0.63.0/go.mod h1:cKToSzuvHNDTPH94Y24z3LsNP/f9adbzobUOpfAJ4CI=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/common v0.63.0 h1:NsaYjgHJVTkjef8ZTkuYWATDFvBZU7wfVcMQsXUHbVM=
-github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.64.0 h1:q/eqvFPeeAxZ+By7v7kZCboH0Qd8SlGoZhSJm0+Ep7I=
-github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.64.0/go.mod h1:ObdNIb1QMMQpLDrqEGf2IP9WjTD0+Y3PNOiDmnoJnlI=
+github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.63.0 h1:2jXMdfJ36Hs7QuzlhvC9wi9xFCJ9q0a40qjPaFEsDI8=
+github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.63.0/go.mod h1:Vo92E1v3sPewq/74L573iW9dCJl40na+Heum93YGbPQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/sharedcomponent v0.63.0 h1:fFwJGoSCkiKmAT8fbIzMZwhoabB5S/7VOvD5B/jZuCQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/sharedcomponent v0.63.0/go.mod h1:vbltCC8k3EUnIwhh6QARUcSKqpXMrMaEs0gdqRVWAl8=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal v0.63.0 h1:qSdRMT9BUNEM3u/OKjg+btzTQQZeXzzgp9GGVf1CXFY=
