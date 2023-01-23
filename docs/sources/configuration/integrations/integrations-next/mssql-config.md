@@ -10,6 +10,13 @@ The `mssql_configs` block configures the `mssql` integration,
 which is an embedded version of [`sql_exporter`](https://github.com/burningalchemist/sql_exporter).
 This allows the collection of [Microsoft SQL Server](https://www.microsoft.com/en-us/sql-server) metrics.
 
+It is recommended to have a dedicated user set up for the purpose of monitoring an mssql instance.
+The user for monitoring must have the following grants in order to populate the metrics:
+```
+GRANT VIEW ANY DEFINITION TO <MONITOR_USER>
+GRANT VIEW SERVER STATE TO <MONITOR_USER>
+```
+
 Configuration reference:
 
 ```yaml
