@@ -11,79 +11,8 @@ The `cloudwatch_exporter_config` block configures the `cloudwatch_exporter` inte
 [`YACE`](https://github.com/nerdswords/yet-another-cloudwatch-exporter/). This allows the collection
 of [AWS CloudWatch](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/WhatIsCloudWatch.html) metrics.
 
-This integration allows the user to scrape CloudWatch metrics in two different way, called jobs.
-
-# discovery_job
-
-A discovery allows one to just define the AWS service to scrape, and the metrics under that namespace to retrieve from
-it. The agent will retrieve a list of AWS resources from which to scrape these metrics, label them appropriately, and
-get export them. For example, if we wanted to scrape `AWS/EC2` metrics:
-
-```yaml
-sts_region: us-east-2
-discovery:
-  jobs:
-    - type: AWS/EC2
-      regions:
-        - us-east-2
-      metrics:
-        - name: CPUUtilization
-          period: 5m
-          statistics:
-            - Average
-        - name: NetworkPacketsIn
-          period: 5m
-          statistics:
-            - Average
-```
-
-```yaml
-  # List of AWS regions.
-  regions: [ <string> ]
-
-  # List of IAM roles to assume. Defaults to the role on the environment configured AWS role.
-  roles: [ <aws_role> ]
-
-  # Cloudwatch service alias ("alb", "ec2", etc) or namespace name ("AWS/EC2", "AWS/S3", etc). See section below for all 
-  # supported.
-  type: <string>
-
-  # List of Key/Value pairs to use for tag filtering (all must match). Value can be a regex.
-  seach_tags: [ <aws_tag> ]
-
-  # Custom tags to be added as a list of Key/Value pairs. When exported, the label name follows the following format:
-  # `custom_tag_{Key}`.
-  custom_tags: [ <aws_tag> ]
-
-  # List of metric definitions to scrape.
-  metrics: [ <metric> ] 
-```
-
-# static_job
-
-```yaml
-  # List of AWS regions.
-  regions: [ <string> ]
-
-  # List of IAM roles to assume. Defaults to the role on the environment configured AWS role.
-  roles: [ <aws_role> ]
-
-  # Identifier of the static scraping job.
-  name: <string>
-
-  # CloudWatch namespace
-  namespace: <string>
-
-  # CloudWatch metric dimensions as a list of Name/Value pairs. Must uniquely define a single metric.
-  dimensions: [ <aws_dimension> ]
-
-  # Custom tags to be added as a list of Key/Value pairs. When exported, the label name follows the following format:
-  # `custom_tag_{Key}`.
-  custom_tags: [ <aws_tag> ]
-
-  # List of metric definitions to scrape.
-  metrics: [ <metric> ] 
-```
+This integration allows one to scrape CloudWatch metrics is a set of configurations which we will call `jobs`. There are 
+two kind of jobs: [`discovery`](#discovery_job) and [`static`](#static_job).
 
 Configuration reference:
 
@@ -114,7 +43,8 @@ Configuration reference:
   sts_region: <string>
 
   discovery:
-    # List of tags (value) per service (key) to export to all metrics
+    # List of tags (value) per service (key) to export in all metrics. For example defining the ["name", "type"] under
+    # AWS/EC2 will export the name and type tags and its values as labels in all metrics. Affects all discovery jobs.
     exported_tags:
       { <string>: [ <string> ] }
 
@@ -125,7 +55,122 @@ Configuration reference:
   static: [ <static_job> ]
 ```
 
+# discovery_job
+
+A discovery job allows one to just define the AWS service to scrape, and the metrics under that service/namespace to retrieve.
+The agent will find AWS resources in the specified service for which to scrape these metrics, label them appropriately, and
+export them to Prometheus. For example, if we wanted to scrape CPU utilization and network traffic metrics, from all AWS
+EC2 instances:
+
+```yaml
+sts_region: us-east-2
+discovery:
+  jobs:
+    - type: AWS/EC2
+      regions:
+        - us-east-2
+      metrics:
+        - name: CPUUtilization
+          period: 5m
+          statistics:
+            - Average
+        - name: NetworkPacketsIn
+          period: 5m
+          statistics:
+            - Average
+```
+
+Configuration reference:
+
+```yaml
+  # List of AWS regions.
+  regions: [ <string> ]
+
+  # List of IAM roles to assume. Defaults to the role on the environment configured AWS role.
+  roles: [ <aws_role> ]
+
+  # Cloudwatch service alias ("alb", "ec2", etc) or namespace name ("AWS/EC2", "AWS/S3", etc). See section below for all 
+  # supported.
+  type: <string>
+
+  # List of `Key/Value` pairs to use for tag filtering (all must match). Value can be a regex.
+  seach_tags: [ <aws_tag> ]
+
+  # Custom tags to be added as a list of `Key/Value` pairs. When exported to Prometheus format, the label name follows
+  # the following format: `custom_tag_{Key}`.
+  custom_tags: [ <aws_tag> ]
+
+  # List of metric definitions to scrape.
+  metrics: [ <metric> ] 
+```
+
+# static_job
+
+A static job allows one to scrape an individual CloudWatch metric. For that, them metrics needs to be fully qualified. That
+means, the following attributes of a CW metric need to be specified in order for the agent to find it:
+1. `namespace`: For example `AWS/EC2`, `AWS/EBS`, `CoolApp` if it were a custom metric, etc.
+2. `dimensions`: CloudWatch identifies a metrics by a set of dimensions. For example, all `AWS/EC2` metrics are identified by the `InstanceId` dimension.
+3. `metrics`: Metric name and statistics.
+
+For example, if one wants to scrape the same metrics in the discovery example, but for a specific AWS EC2 instance:
+
+```yaml
+sts_region: us-east-2
+static:
+  - name: single_ec2_instance
+    regions:
+      - us-east-2
+    namespace: AWS/EC2
+    dimensions:
+      - Name: InstanceId
+        Value: i-0e43cee369aa44b52
+    metrics:
+      - name: CPUUtilization
+        period: 5m
+        statistics:
+          - Average
+      - name: NetworkPacketsIn
+        period: 5m
+        statistics:
+          - Average
+```
+
+All dimensions need to be specified when scraping single metrics like the example above. For example `AWS/Logs` metrics
+require `Resource`, `Service`, `Class`, and `Type` dimensions to be specified. Same applies to CloudWatch custom metrics,
+all dimensions attached to a metric when saved in CloudWatch are required.
+
+Configuration reference:
+
+```yaml
+  # List of AWS regions.
+  regions: [ <string> ]
+
+  # List of IAM roles to assume. Defaults to the role on the environment configured AWS role.
+  roles: [ <aws_role> ]
+
+  # Identifier of the static scraping job. When exported to Prometheus format corresponds to the `name` label.
+  name: <string>
+
+  # CloudWatch namespace
+  namespace: <string>
+
+  # CloudWatch metric dimensions as a list of Name/Value pairs. Must uniquely define a single metric.
+  dimensions: [ <aws_dimension> ]
+
+  # Custom tags to be added as a list of Key/Value pairs. When exported, the label name follows the following format:
+  # `custom_tag_{Key}`.
+  custom_tags: [ <aws_tag> ]
+
+  # List of metric definitions to scrape.
+  metrics: [ <metric> ] 
+```
+
 # aws_role
+
+Represents an [AWS IAM Role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html). Required when configuring a job. If omitted
+the AWS role that the credentials configured in the environment posses will be used. 
+
+Useful when scraping metrics from different AWS accounts with a single pair of credentials.
 
 ```yaml
   # AWS IAM Role ARN the exporter should assume to perform AWS API calls.
@@ -137,12 +182,16 @@ Configuration reference:
 
 # aws_dimension
 
+Represents an [AWS CloudWatch Dimension](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html#Dimension).
+
 ```yaml
   name: <string>
   value: <string>
 ```
 
 # aws_tag
+
+Represents an [AWS Tag](https://docs.aws.amazon.com/general/latest/gr/aws_tagging.html).
 
 ```yaml
   key: <string>
@@ -160,11 +209,6 @@ Configuration reference:
   
   
   period: <duration>
-```
-
-```yaml
-  role_arn: <string>
-  external_id: <string>
 ```
 
 # Quick configuration example
