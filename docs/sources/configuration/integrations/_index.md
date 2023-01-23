@@ -80,6 +80,9 @@ elasticsearch_exporter: <elasticsearch_exporter_config>
 # Controls the memcached_exporter integration
 memcached_exporter: <memcached_exporter_config>
 
+# Controls the mssql integration
+mssql: <mssql_config>
+
 # Controls the postgres_exporter integration
 postgres_exporter: <postgres_exporter_config>
 

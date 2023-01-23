@@ -17,6 +17,7 @@ import (
 	_ "github.com/grafana/agent/pkg/integrations/kafka_exporter"         // register kafka_exporter
 	_ "github.com/grafana/agent/pkg/integrations/memcached_exporter"     // register memcached_exporter
 	_ "github.com/grafana/agent/pkg/integrations/mongodb_exporter"       // register mongodb_exporter
+	_ "github.com/grafana/agent/pkg/integrations/mssql"                  // register mssql
 	_ "github.com/grafana/agent/pkg/integrations/mysqld_exporter"        // register mysqld_exporter
 	_ "github.com/grafana/agent/pkg/integrations/node_exporter"          // register node_exporter
 	_ "github.com/grafana/agent/pkg/integrations/postgres_exporter"      // register postgres_exporter
@@ -36,6 +37,7 @@ import (
 	_ "github.com/grafana/agent/pkg/integrations/v2/app_agent_receiver" // register app_agent_receiver
 	_ "github.com/grafana/agent/pkg/integrations/v2/blackbox_exporter"  // register blackbox_exporter
 	_ "github.com/grafana/agent/pkg/integrations/v2/eventhandler"       // register eventhandler
+	_ "github.com/grafana/agent/pkg/integrations/v2/mssql"              // register mssql
 	_ "github.com/grafana/agent/pkg/integrations/v2/snmp_exporter"      // register snmp_exporter
 	_ "github.com/grafana/agent/pkg/integrations/v2/snowflake"          // register snowflake
 	_ "github.com/grafana/agent/pkg/integrations/v2/vmware_exporter"    // register vmware_exporter

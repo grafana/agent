@@ -63,6 +63,8 @@ Main (unreleased)
 
 - Introduce global configuration for logs. (@jcreixell)
 
+- Integrations: Introduce the `mssql` integration. (@binaryfissiongames)
+
 ### Enhancements
 
 - Handle faro-web-sdk `View` meta in app_agent_receiver. (@rlankfo)
