@@ -2,6 +2,7 @@ package cloudflare
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
@@ -12,6 +13,8 @@ import (
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
 	cft "github.com/grafana/agent/component/loki/source/cloudflare/internal/cloudflaretarget"
+	"github.com/grafana/agent/pkg/river"
+	"github.com/prometheus/common/model"
 )
 
 func init() {
@@ -28,8 +31,56 @@ func init() {
 // Arguments holds values which are used to configure the
 // loki.source.cloudflare component.
 type Arguments struct {
-	Config    Config              `river:"config,block"`
-	ForwardTo []loki.LogsReceiver `river:"forward_to,attr"`
+	APIToken   string              `river:"api_token,attr"`
+	ZoneID     string              `river:"zone_id,attr"`
+	Labels     map[string]string   `river:"labels,attr,optional"`
+	Workers    int                 `river:"workers,attr,optional"`
+	PullRange  time.Duration       `river:"pull_range,attr,optional"`
+	FieldsType string              `river:"fields_type,attr,optional"`
+	ForwardTo  []loki.LogsReceiver `river:"forward_to,attr"`
+}
+
+// Convert returns a cloudflaretarget Config struct from the Arguments.
+func (c Arguments) Convert() *cft.Config {
+	lbls := make(model.LabelSet, len(c.Labels))
+	for k, v := range c.Labels {
+		lbls[model.LabelName(k)] = model.LabelValue(v)
+	}
+	return &cft.Config{
+		APIToken:   c.APIToken,
+		ZoneID:     c.APIToken,
+		Labels:     lbls,
+		Workers:    c.Workers,
+		PullRange:  model.Duration(c.PullRange),
+		FieldsType: c.FieldsType,
+	}
+}
+
+// DefaultArguments sets the configuration defaults.
+var DefaultArguments = Arguments{
+	Workers:    3,
+	PullRange:  1 * time.Minute,
+	FieldsType: string(cft.FieldsTypeDefault),
+}
+
+var _ river.Unmarshaler = (*Arguments)(nil)
+
+// UnmarshalRiver implements the unmarshaller
+func (c *Arguments) UnmarshalRiver(f func(v interface{}) error) error {
+	*c = DefaultArguments
+	type args Arguments
+	err := f((*args)(c))
+	if err != nil {
+		return err
+	}
+	if c.PullRange < 0 {
+		return fmt.Errorf("pull_range must be a positive duration")
+	}
+	_, err = cft.Fields(cft.FieldsType(c.FieldsType))
+	if err != nil {
+		return fmt.Errorf("invalid fields_type set; the available values are 'default', 'minimal', 'extended' and 'all'")
+	}
+	return nil
 }
 
 // Component implements the loki.source.cloudflare component.
@@ -80,8 +131,10 @@ func New(o component.Options, args Arguments) (*Component, error) {
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
 	defer func() {
+		c.mut.RLock()
 		level.Info(c.opts.Logger).Log("msg", "loki.source.cloudflare component shutting down, stopping the target")
 		c.target.Stop()
+		c.mut.RUnlock()
 	}()
 
 	for {
@@ -111,7 +164,7 @@ func (c *Component) Update(args component.Arguments) error {
 	}
 	entryHandler := loki.NewEntryHandler(c.handler, func() {})
 
-	t, err := cft.NewTarget(c.metrics, c.opts.Logger, entryHandler, c.posFile, newArgs.Config.Convert())
+	t, err := cft.NewTarget(c.metrics, c.opts.Logger, entryHandler, c.posFile, newArgs.Convert())
 	if err != nil {
 		level.Error(c.opts.Logger).Log("msg", "failed to create cloudflare target with provided config", "err", err)
 		return err
@@ -132,13 +185,11 @@ func (c *Component) DebugInfo() interface{} {
 	}
 	return targetDebugInfo{
 		Ready:   c.target.Ready(),
-		Labels:  lbls,
 		Details: c.target.Details(),
 	}
 }
 
 type targetDebugInfo struct {
 	Ready   bool              `river:"ready,attr"`
-	Labels  map[string]string `river:"labels,attr"`
 	Details map[string]string `river:"target_info,attr"`
 }
