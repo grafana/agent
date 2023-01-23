@@ -88,7 +88,9 @@ func (l yaceLoggerWrapper) Info(message string, keyvals ...interface{}) {
 }
 
 func (l yaceLoggerWrapper) Debug(message string, keyvals ...interface{}) {
-	l.log.Log(append([]interface{}{"level", "debug", "msg", message}, keyvals...)...)
+	if l.debug {
+		l.log.Log(append([]interface{}{"level", "debug", "msg", message}, keyvals...)...)
+	}
 }
 
 func (l yaceLoggerWrapper) Error(err error, message string, keyvals ...interface{}) {

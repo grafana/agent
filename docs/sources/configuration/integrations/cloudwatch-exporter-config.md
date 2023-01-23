@@ -5,7 +5,7 @@ aliases:
 
 ---
 
-# cloudwatch_exporter
+# cloudwatch_exporter_config
 
 The `cloudwatch_exporter_config` block configures the `cloudwatch_exporter` integration, which is an embedded version of
 [`YACE`](https://github.com/nerdswords/yet-another-cloudwatch-exporter/). This allows the collection
@@ -147,8 +147,8 @@ static:
       - us-east-2
     namespace: AWS/EC2
     dimensions:
-      - Name: InstanceId
-        Value: i-0e43cee369aa44b52
+      - name: InstanceId
+        value: i-0e43cee369aa44b52
     metrics:
       - name: CPUUtilization
         period: 5m
