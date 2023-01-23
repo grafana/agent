@@ -32,8 +32,8 @@ func init() {
 // DefaultConfig holds the default settings for the azure_exporter integration.
 var DefaultConfig = Config{
 	Timespan:              "PT1M",
-	MetricNameTemplate:    "azure_metric_{metric}_{aggregation}",
-	MetricHelpTemplate:    "Azure monitor metric",
+	MetricNameTemplate:    "azure_{metric}_{aggregation}_{unit}",
+	MetricHelpTemplate:    "Azure metrics for {metric} with aggregation {aggregation} as {unit}",
 	IncludedResourceTags:  []string{"owner"},
 	AzureCloudEnvironment: "azurecloud",
 }
@@ -73,6 +73,8 @@ type Config struct {
 	MetricHelpTemplate string `yaml:"metric_help_template"`
 
 	AzureCloudEnvironment string `yaml:"azure_cloud_environment"`
+
+	Common config.Common `yaml:",inline"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config.
@@ -84,7 +86,14 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 
 func (c *Config) InstanceKey(_ string) (string, error) {
-	return c.Name(), nil
+	if c.Common.InstanceKey != nil {
+		return *c.Common.InstanceKey, nil
+	}
+
+	// This will ensure compatibility for running multiple instances in v2 without setting an explicit InstanceKey
+	instanceKey := fmt.Sprintf("%s:%s:%s", c.Name(), strings.Join(c.Subscriptions, ","), c.ResourceType)
+
+	return instanceKey, nil
 }
 
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
