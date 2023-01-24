@@ -143,11 +143,6 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 		if err != nil {
 			return nil, err
 		}
-	// case StageTypeLabelDrop:
-	// 	s, err = newLabelDropStage(cfg)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
 	case cfg.RegexConfig != nil:
 		s, err = newRegexStage(logger, *cfg.RegexConfig)
 		if err != nil {
@@ -173,11 +168,11 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 		if err != nil {
 			return nil, err
 		}
-	// case StageTypeTenant:
-	// 	s, err = newTenantStage(logger, cfg.TenantConfig)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
+	case cfg.TenantConfig != nil:
+		s, err = newTenantStage(logger, *cfg.TenantConfig)
+		if err != nil {
+			return nil, err
+		}
 	case cfg.ReplaceConfig != nil:
 		s, err = newReplaceStage(logger, *cfg.ReplaceConfig)
 		if err != nil {

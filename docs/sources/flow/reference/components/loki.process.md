@@ -64,6 +64,7 @@ stage > match        | [match][]         | Configures a `match` processing stage
 stage > drop         | [drop][]          | Configures a `drop` processing stage. | no
 stage > pack         | [pack][]          | Configures a `pack` processing stage. | no
 stage > template     | [template][]      | Configures a `template` processing stage. | no
+stage > tenant       | [tenant][]        | Configures a `tenant` processing stage. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `stage > json`
 refers to a `json` block defined inside of a `stage` block.
@@ -86,6 +87,7 @@ refers to a `json` block defined inside of a `stage` block.
 [drop]: #drop-block
 [pack]: #pack-block
 [template]: #template-block
+[tenant]: #tenant-block
 
 ### stage block
 
@@ -1191,6 +1193,59 @@ stage {
 
 We recommend using Hash as it has a stronger hashing algorithm which we plan to
 keep strong over time without requiring client config changes.
+
+### tenant block
+
+The `tenant` inner block sets the tenant ID for the log entry picking it from a
+field in the extracted data map, a label or a provided value.
+
+The following arguments are supported:
+
+Name      | Type      | Description                 | Default   | Required
+--------- | --------- | --------------------------- | --------- | --------
+`label`   | `string`  | The label to set as tenant ID.  | `""`  | no
+`source`  | `string`  | The name from the extracted value to use as tenant ID.  | `""`  | no
+`value`   | `string`  | The value to set as the tenant ID.  | `""`  | no
+
+The block expects only one of `label`, `source` or `value` to be provided.
+
+The following stage hardcodes the tenant ID as `team-a`.
+```
+stage {
+	tenant {
+		value = "team-a"
+	}
+}
+```
+
+This stage extracts the tenant ID from the `customer_id` field after
+parsing the log entry as JSON in the shared extracted map.
+```
+stage {
+	json {
+		expressions = { "customer_id" = "" }
+	}
+}
+stage {
+	tenant {
+		source = "customer_id"
+	}
+}
+```
+
+The final example extracts the tenant ID from a label set by a previous stage.
+```
+stage {
+	labels {
+		"namespace" = "k8s_namespace"
+	}
+}
+stage {
+	tenant {
+		label = "namespace"
+	}
+}
+```
 
 
 ## Exported fields
