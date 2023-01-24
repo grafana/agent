@@ -1,11 +1,12 @@
 package cloudwatch_exporter
 
 import (
+	"testing"
+
 	yaceConf "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/config"
 	yaceModel "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/model"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
-	"testing"
 )
 
 const configString = `
@@ -50,7 +51,6 @@ static:
           - Average
 `
 
-var truePtr = true
 var falsePtr = false
 
 var expectedConfig = yaceConf.ScrapeConf{

@@ -2,10 +2,11 @@ package cloudwatch_exporter
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/grafana/agent/pkg/integrations"
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
-	"time"
 
 	"github.com/go-kit/log"
 )
@@ -97,5 +98,5 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 	if err != nil {
 		return nil, fmt.Errorf("invalid cloudwatch exporter configuration: %w", err)
 	}
-	return newCloudwatchExporter(c.Name(), l, exporterConfig)
+	return newCloudwatchExporter(c.Name(), l, exporterConfig), nil
 }

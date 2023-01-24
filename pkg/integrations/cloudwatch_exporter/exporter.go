@@ -2,8 +2,11 @@ package cloudwatch_exporter
 
 import (
 	"context"
-	"github.com/go-kit/log"
+	"net/http"
+
 	"github.com/grafana/agent/pkg/integrations/config"
+
+	"github.com/go-kit/log"
 	yace "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg"
 	yaceConf "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/config"
 	yaceLog "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/logger"
@@ -11,7 +14,6 @@ import (
 	yaceSess "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/session"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"net/http"
 )
 
 // exporter wraps YACE entrypoint around an Integration implementation
@@ -23,7 +25,7 @@ type exporter struct {
 }
 
 // newCloudwatchExporter creates a new YACE wrapper, that implements Integration
-func newCloudwatchExporter(name string, logger log.Logger, conf yaceConf.ScrapeConf) (*exporter, error) {
+func newCloudwatchExporter(name string, logger log.Logger, conf yaceConf.ScrapeConf) *exporter {
 	loggerWrapper := yaceLoggerWrapper{
 		debug: false,
 		log:   logger,
@@ -33,7 +35,7 @@ func newCloudwatchExporter(name string, logger log.Logger, conf yaceConf.ScrapeC
 		logger:       loggerWrapper,
 		sessionCache: yaceSess.NewSessionCache(conf, true, loggerWrapper),
 		scrapeConf:   conf,
-	}, nil
+	}
 }
 
 func (e *exporter) MetricsHandler() (http.Handler, error) {

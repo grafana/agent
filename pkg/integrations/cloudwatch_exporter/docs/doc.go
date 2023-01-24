@@ -27,7 +27,6 @@ func main() {
 	switch argsWithoutProgram[0] {
 	case "generate":
 		fmt.Println(doc)
-		break
 	case "check":
 		if len(argsWithoutProgram) < 2 {
 			log.Println("Missing arguments: check <file>")
@@ -39,7 +38,6 @@ func main() {
 			os.Exit(1)
 		}
 		log.Println("Check successful!")
-		break
 	default:
 		log.Printf("Unknown command: %s\n", argsWithoutProgram[0])
 		os.Exit(1)
