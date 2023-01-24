@@ -1,12 +1,15 @@
 package cloudwatch_exporter
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"time"
 
 	"github.com/grafana/agent/pkg/integrations"
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
+	"gopkg.in/yaml.v3"
 
 	"github.com/go-kit/log"
 )
@@ -89,7 +92,7 @@ func (c *Config) Name() string {
 }
 
 func (c *Config) InstanceKey(agentKey string) (string, error) {
-	return c.Name(), nil
+	return getHash(c)
 }
 
 // NewIntegration creates a new integration from the config.
@@ -99,4 +102,14 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 		return nil, fmt.Errorf("invalid cloudwatch exporter configuration: %w", err)
 	}
 	return newCloudwatchExporter(c.Name(), l, exporterConfig), nil
+}
+
+// getHash calculates the MD5 hash of the yaml representation of the config
+func getHash(c *Config) (string, error) {
+	bytes, err := yaml.Marshal(c)
+	if err != nil {
+		return "", err
+	}
+	hash := md5.Sum(bytes)
+	return hex.EncodeToString(hash[:]), nil
 }
