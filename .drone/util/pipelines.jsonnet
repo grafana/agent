@@ -13,6 +13,9 @@
     kind: 'pipeline',
     type: 'docker',
     name: name,
+    node: {
+      type: 'windows-aws',
+    },
     platform: {
       arch: 'amd64',
       os: 'windows',
