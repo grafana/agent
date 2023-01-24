@@ -56,6 +56,8 @@ Main (unreleased)
 
 - Introduce global configuration for logs. (@jcreixell)
 
+- Integrations: Introduce `cloudwatch metrics` integration. (@thepalbi)
+
 ### Enhancements
 
 - Handle faro-web-sdk `View` meta in app_agent_receiver. (@rlankfo)
