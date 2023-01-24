@@ -195,8 +195,6 @@ steps:
 trigger:
   event:
   - pull_request
-  paths:
-  - cmd/grafana-agent/Dockerfile
 type: docker
 volumes:
 - host:
@@ -219,8 +217,6 @@ steps:
 trigger:
   event:
   - pull_request
-  paths:
-  - cmd/grafana-agentctl/Dockerfile
 type: docker
 volumes:
 - host:
@@ -243,8 +239,6 @@ steps:
 trigger:
   event:
   - pull_request
-  paths:
-  - cmd/grafana-agent-operator/Dockerfile
 type: docker
 volumes:
 - host:
@@ -261,15 +255,10 @@ platform:
   version: "1809"
 steps:
 - commands:
-  - git config --global --add safe.directory C:/drone/src
-  - '& "C:/Program Files/git/bin/bash.exe" -c "echo nodeLinker: node-modules > .yarnrc.yml"'
-  - '& "C:/Program Files/git/bin/bash.exe" -c "make generate-ui"'
-  - '& "C:/Program Files/git/bin/bash.exe" -c "make agent"'
-  - '& "C:/Program Files/git/bin/bash.exe" -c "cp build/grafana-agent grafana-agent-output"'
+  - git config --global --add safe.directory C:/drone/src/
   - '& "C:/Program Files/git/bin/bash.exe" -c ./tools/ci/docker-containers-windows'
   image: grafana/agent-build-image:0.20.0-windows
   name: Build container
-  user: NT Authority\System
   volumes:
   - name: docker
     path: //./pipe/docker_engine/
@@ -478,6 +467,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: e61bfd503981eb6de950ccaa26f144abddb36e4a8e2f63b60d9d0578adb9e1fb
+hmac: 7c04c6ec3699970d5f4fbdf6edc9d5bbff38085551d67ab470421a2b8a8a458f
 
 ...
