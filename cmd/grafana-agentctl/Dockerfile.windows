@@ -7,7 +7,7 @@ WORKDIR /src/agent
 
 SHELL ["cmd", "/C"]
 
-RUN "C:\Program Files\git\bin\bash.exe" -c "RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} make agentctl && go clean -cache -modcache"
+RUN "C:\Program Files\git\bin\bash.exe" -c 'RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} make agentctl && go clean -cache -modcache '
 
 # Use the smallest container possible for the final image
 FROM mcr.microsoft.com/windows/nanoserver:1809
