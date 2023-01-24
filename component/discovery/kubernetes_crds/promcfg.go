@@ -135,21 +135,18 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 	if ep.TLSConfig != nil {
 		cfg.HTTPClientConfig.TLSConfig = cg.generateSafeTLS(m.Namespace, ep.TLSConfig.SafeTLSConfig)
 	}
-
 	if ep.BearerTokenSecret.Name != "" {
 		bts := ep.BearerTokenSecret
 		cfg.HTTPClientConfig.BearerToken = cg.getSecretData(m.Namespace, bts.Name, bts.Key)
 	}
-
 	if ep.BasicAuth != nil {
 		cfg.HTTPClientConfig.BasicAuth = &commonConfig.BasicAuth{
 			Username: string(cg.getSecretData(m.Namespace, ep.BasicAuth.Username.Name, ep.BasicAuth.Username.Key)),
 			Password: cg.getSecretData(m.Namespace, ep.BasicAuth.Password.Name, ep.BasicAuth.Password.Key),
 		}
 	}
-
 	cfg.HTTPClientConfig.OAuth2 = cg.generateOAuth2(ep.OAuth2, m.Namespace)
-	cg.addSafeAuthorization(cfg, ep.Authorization, m.Namespace)
+	cfg.HTTPClientConfig.Authorization = cg.generateSafeAuthorization(ep.Authorization, m.Namespace)
 
 	relabels := cg.initRelabelings(cfg)
 	if ep.FilterRunning == nil || *ep.FilterRunning {
@@ -441,16 +438,17 @@ func (cg *configGenerator) generateOAuth2(oauth2 *v1.OAuth2, ns string) *commonC
 	return oa2
 }
 
-func (cg *configGenerator) addSafeAuthorization(cfg *config.ScrapeConfig, auth *v1.SafeAuthorization, ns string) {
+func (cg *configGenerator) generateSafeAuthorization(auth *v1.SafeAuthorization, ns string) *commonConfig.Authorization {
 	if auth == nil {
-		return
+		return nil
 	}
+	az := &commonConfig.Authorization{}
 	if auth.Type == "" {
 		auth.Type = "Bearer"
 	}
-	cfg.HTTPClientConfig.Authorization.Type = strings.TrimSpace(auth.Type)
-
+	az.Type = strings.TrimSpace(auth.Type)
 	if auth.Credentials != nil {
-		cfg.HTTPClientConfig.Authorization.Credentials = cg.getSecretData(ns, auth.Credentials.Name, auth.Credentials.Key)
+		az.Credentials = cg.getSecretData(ns, auth.Credentials.Name, auth.Credentials.Key)
 	}
+	return az
 }
