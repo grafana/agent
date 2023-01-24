@@ -42,9 +42,14 @@ local linux_containers = [
         path: '//./pipe/docker_engine/',
       }],
       commands: [
-        'git config --global --add safe.directory C:/drone/src/',
+        'git config --global --add safe.directory C:/drone/src',
+        '& "C:/Program Files/git/bin/bash.exe" -c "echo nodeLinker: node-modules > .yarnrc.yml"',
+        '& "C:/Program Files/git/bin/bash.exe" -c "make generate-ui"',
+        '& "C:/Program Files/git/bin/bash.exe" -c "make agent"',
+        '& "C:/Program Files/git/bin/bash.exe" -c "cp build/grafana-agent grafana-agent-output"',
         '& "C:/Program Files/git/bin/bash.exe" -c ./tools/ci/docker-containers-windows',
       ],
+      user: 'NT Authority\\System',
     }],
     volumes: [{
       name: 'docker',

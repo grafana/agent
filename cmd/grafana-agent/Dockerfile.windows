@@ -1,22 +1,8 @@
-FROM grafana/agent-build-image:0.20.0-windows as builder
-ARG VERSION
-ARG RELEASE_BUILD=1
-
-COPY . /src/agent
-WORKDIR /src/agent
-
-# $ProgressPreference: https://github.com/PowerShell/PowerShell/issues/2138#issuecomment-251261324
-SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
-SHELL ["cmd", "/C"]
-
-RUN "C:\Program Files\git\bin\bash.exe" -c 'RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} make generate-ui'
-RUN "C:\Program Files\git\bin\bash.exe" -c 'RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} make agent'
-
 # Use the smallest container possible for the final image
 FROM mcr.microsoft.com/windows/nanoserver:1809
 
-COPY --from=builder /src/agent/build/grafana-agent /bin/grafana-agent
-COPY --from=builder /src/agent/cmd/grafana-agent/agent-local-config.yaml /etc/agent/grafana-agent.yaml
+COPY ./grafana-agent-output /bin/grafana-agent
+COPY ./cmd/grafana-agent/agent-local-config.yaml /etc/agent/grafana-agent.yaml
 
 ENTRYPOINT ["/bin/grafana-agent"]
 CMD ["--config.file=/etc/grafana-agent/grafana-agent.yaml", "--metrics.wal-directory=/etc/grafana-agent/data"]
