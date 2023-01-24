@@ -10,7 +10,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/alecthomas/units"
 	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	namespacelabeler "github.com/prometheus-operator/prometheus-operator/pkg/namespace-labeler"
 	commonConfig "github.com/prometheus/common/config"
@@ -94,14 +93,16 @@ func (cg *configGenerator) getConfigMapData(ns, name, key string) string {
 	return ""
 }
 
-func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodMetricsEndpoint, i int, shards int) *config.ScrapeConfig {
+func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodMetricsEndpoint, i int) *config.ScrapeConfig {
 	c := config.DefaultScrapeConfig
 	cfg := &c
 	cfg.ScrapeInterval = config.DefaultGlobalConfig.ScrapeInterval
 	cfg.ScrapeTimeout = config.DefaultGlobalConfig.ScrapeTimeout
 	cfg.JobName = fmt.Sprintf("podMonitor/%s/%s/%d", m.Namespace, m.Name, i)
-	cg.addHonorLabels(cfg, ep.HonorLabels)
-	cg.addHonorTimestamps(cfg, ep.HonorTimestamps)
+	cfg.HonorLabels = ep.HonorLabels
+	if ep.HonorTimestamps != nil {
+		cfg.HonorTimestamps = *ep.HonorTimestamps
+	}
 
 	cfg.ServiceDiscoveryConfigs = append(cfg.ServiceDiscoveryConfigs, cg.generateK8SSDConfig(m.Spec.NamespaceSelector, m.Namespace, promk8s.RolePod, m.Spec.AttachMetadata))
 
@@ -132,7 +133,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 		cfg.HTTPClientConfig.EnableHTTP2 = *ep.EnableHttp2
 	}
 	if ep.TLSConfig != nil {
-		cg.addSafeTLStoYaml(cfg, m.Namespace, ep.TLSConfig.SafeTLSConfig)
+		cfg.HTTPClientConfig.TLSConfig = cg.generateSafeTLS(m.Namespace, ep.TLSConfig.SafeTLSConfig)
 	}
 
 	if ep.BearerTokenSecret.Name != "" {
@@ -147,7 +148,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 		}
 	}
 
-	cg.addOAuth2(cfg, ep.OAuth2, m.Namespace)
+	cfg.HTTPClientConfig.OAuth2 = cg.generateOAuth2(ep.OAuth2, m.Namespace)
 	cg.addSafeAuthorization(cfg, ep.Authorization, m.Namespace)
 
 	relabels := cg.initRelabelings(cfg)
@@ -278,28 +279,15 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 		})
 	} else if ep.TargetPort != nil && ep.TargetPort.String() != "" { //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
 		relabels.Add(&relabel.Config{
-			Replacement: ep.Port,
-			TargetLabel: ep.TargetPort.String(), //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
+			TargetLabel: "endpoint",
+			Replacement: ep.TargetPort.String(), //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
 		})
 	}
 
-	labeler := namespacelabeler.New(cg.config.EnforcedNamespaceLabel, cg.config.ExcludedFromEnforcement.Convert(), false)
+	labeler := namespacelabeler.New("", nil, false)
 	relabels.addFromV1(labeler.GetRelabelingConfigs(m.TypeMeta, m.ObjectMeta, ep.RelabelConfigs)...)
-	if shards > 0 {
-		relabels.generateAddressShardingRelabelingRules(shards)
-	}
 
 	cfg.RelabelConfigs = relabels.configs
-
-	cg.addLimits(cfg, limitFuncs[sampleLimitKey], m.Spec.SampleLimit, cg.config.EnforcedSampleLimit)
-	cg.addLimits(cfg, limitFuncs[targetLimitKey], m.Spec.TargetLimit, cg.config.EnforcedTargetLimit)
-	cg.addLimits(cfg, limitFuncs[labelLimitKey], m.Spec.LabelLimit, cg.config.EnforcedLabelLimit)
-	cg.addLimits(cfg, limitFuncs[labelNameLengthLimitKey], m.Spec.LabelNameLengthLimit, cg.config.EnforcedLabelNameLengthLimit)
-	cg.addLimits(cfg, limitFuncs[labelValueLengthLimitKey], m.Spec.LabelValueLengthLimit, cg.config.EnforcedLabelValueLengthLimit)
-	// TODO: body size is a parsed byte thing.
-	//if cg.config.EnforcedBodySizeLimit != "" {
-	// 	cfg = cg.WithMinimumVersion("2.28.0").AppendMapItem(cfg, "body_size_limit", cg.spec.EnforcedBodySizeLimit)
-	//}
 
 	metricRelabels := relabeler{}
 	metricRelabels.addFromV1(labeler.GetRelabelingConfigs(m.TypeMeta, m.ObjectMeta, ep.MetricRelabelConfigs)...)
@@ -308,73 +296,43 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 	return cfg
 }
 
-const (
-	sampleLimitKey           = "sampleLimit"
-	targetLimitKey           = "targetLimit"
-	labelLimitKey            = "labelLimit"
-	labelNameLengthLimitKey  = "labelNameLengthLimit"
-	labelValueLengthLimitKey = "labelValueLengthLimit"
-	bodySizeLimitKey         = "bodySizeLimit"
-)
-
-type limitSetterFunc func(*config.ScrapeConfig, uint)
-
-var limitFuncs = map[string]limitSetterFunc{
-	sampleLimitKey:           func(cfg *config.ScrapeConfig, limit uint) { cfg.SampleLimit = limit },
-	targetLimitKey:           func(cfg *config.ScrapeConfig, limit uint) { cfg.TargetLimit = limit },
-	labelLimitKey:            func(cfg *config.ScrapeConfig, limit uint) { cfg.LabelLimit = limit },
-	labelNameLengthLimitKey:  func(cfg *config.ScrapeConfig, limit uint) { cfg.LabelNameLengthLimit = limit },
-	labelValueLengthLimitKey: func(cfg *config.ScrapeConfig, limit uint) { cfg.LabelValueLengthLimit = limit },
-	bodySizeLimitKey:         func(cfg *config.ScrapeConfig, limit uint) { cfg.BodySizeLimit = units.Base2Bytes(limit) },
-}
-
-func (cg *configGenerator) addLimits(cfg *config.ScrapeConfig, f limitSetterFunc, userLimit uint64, enforcedLimit *uint64) {
-	if userLimit == 0 && enforcedLimit == nil {
-		return
-	}
-	limit := userLimit
-	if enforcedLimit != nil {
-		if *enforcedLimit > 0 && userLimit > 0 && userLimit > *enforcedLimit {
-			limit = *enforcedLimit
-		}
-	}
-	f(cfg, uint(limit))
-}
-
-func (cg *configGenerator) addSafeTLStoYaml(cfg *config.ScrapeConfig, namespace string, tls v1.SafeTLSConfig) {
-	cfg.HTTPClientConfig.TLSConfig.InsecureSkipVerify = tls.InsecureSkipVerify
+func (cg *configGenerator) generateSafeTLS(namespace string, tls v1.SafeTLSConfig) commonConfig.TLSConfig {
+	tc := commonConfig.TLSConfig{}
+	tc.InsecureSkipVerify = tls.InsecureSkipVerify
+	ctx := context.Background()
 	var err error
 	if tls.CA.Secret != nil {
-		cfg.HTTPClientConfig.TLSConfig.CAFile, err = cg.secrets.StoreSecretData(context.Background(), namespace, tls.CA.Secret.Name, tls.CA.Secret.Key)
+		tc.CAFile, err = cg.secrets.StoreSecretData(ctx, namespace, tls.CA.Secret.Name, tls.CA.Secret.Key)
 		if err != nil {
 			// log error
 		}
 	} else if tls.CA.ConfigMap != nil {
-		cfg.HTTPClientConfig.TLSConfig.CAFile, err = cg.secrets.StoreConfigMapData(context.Background(), namespace, tls.CA.ConfigMap.Name, tls.CA.ConfigMap.Key)
+		tc.CAFile, err = cg.secrets.StoreConfigMapData(ctx, namespace, tls.CA.ConfigMap.Name, tls.CA.ConfigMap.Key)
 		if err != nil {
 			// log error
 		}
 	}
 	if tls.Cert.Secret != nil {
-		cfg.HTTPClientConfig.TLSConfig.CertFile, err = cg.secrets.StoreSecretData(context.Background(), namespace, tls.Cert.Secret.Name, tls.Cert.Secret.Key)
+		tc.CertFile, err = cg.secrets.StoreSecretData(ctx, namespace, tls.Cert.Secret.Name, tls.Cert.Secret.Key)
 		if err != nil {
 			// log error
 		}
 	} else if tls.Cert.ConfigMap != nil {
-		cfg.HTTPClientConfig.TLSConfig.CertFile, err = cg.secrets.StoreConfigMapData(context.Background(), namespace, tls.Cert.ConfigMap.Name, tls.Cert.ConfigMap.Key)
+		tc.CertFile, err = cg.secrets.StoreConfigMapData(ctx, namespace, tls.Cert.ConfigMap.Name, tls.Cert.ConfigMap.Key)
 		if err != nil {
 			// log error
 		}
 	}
 	if tls.KeySecret != nil {
-		cfg.HTTPClientConfig.TLSConfig.KeyFile, err = cg.secrets.StoreSecretData(context.Background(), namespace, tls.KeySecret.Name, tls.KeySecret.Key)
+		tc.KeyFile, err = cg.secrets.StoreSecretData(ctx, namespace, tls.KeySecret.Name, tls.KeySecret.Key)
 		if err != nil {
 			// log error
 		}
 	}
 	if tls.ServerName != "" {
-		cfg.HTTPClientConfig.TLSConfig.ServerName = tls.ServerName
+		tc.ServerName = tls.ServerName
 	}
+	return tc
 }
 
 type relabeler struct {
@@ -443,23 +401,6 @@ func (cg *configGenerator) initRelabelings(cfg *config.ScrapeConfig) relabeler {
 	return r
 }
 
-// addHonorTimestamps adds the honor_timestamps field into scrape configurations.
-// honor_timestamps is false only when the user specified it or when the global
-// override applies.
-func (cg *configGenerator) addHonorTimestamps(cfg *config.ScrapeConfig, userHonorTimestamps *bool) {
-	if userHonorTimestamps != nil && *userHonorTimestamps {
-		cfg.HonorTimestamps = true
-	} else if cg.config.OverrideHonorTimestamps {
-		cfg.HonorTimestamps = true
-	}
-}
-func (cg *configGenerator) addHonorLabels(cfg *config.ScrapeConfig, honorLabels bool) {
-	if cg.config.OverrideHonorLabels {
-		cfg.HonorLabels = false
-	}
-	cfg.HonorLabels = honorLabels
-}
-
 var (
 	invalidLabelCharRE = regexp.MustCompile(`[^a-zA-Z0-9_]`)
 )
@@ -469,9 +410,7 @@ func sanitizeLabelName(name string) model.LabelName {
 }
 
 func (cg *configGenerator) getNamespacesFromNamespaceSelector(nsel v1.NamespaceSelector, namespace string) []string {
-	if cg.config.IgnoreNamespaceSelectors {
-		return []string{namespace}
-	} else if nsel.Any {
+	if nsel.Any {
 		return []string{}
 	} else if len(nsel.MatchNames) == 0 {
 		return []string{namespace}
@@ -479,26 +418,27 @@ func (cg *configGenerator) getNamespacesFromNamespaceSelector(nsel v1.NamespaceS
 	return nsel.MatchNames
 }
 
-func (cg *configGenerator) addOAuth2(cfg *config.ScrapeConfig, oauth2 *v1.OAuth2, ns string) {
+func (cg *configGenerator) generateOAuth2(oauth2 *v1.OAuth2, ns string) *commonConfig.OAuth2 {
 	if oauth2 == nil {
-		return
+		return nil
 	}
+	oa2 := &commonConfig.OAuth2{}
 	if oauth2.ClientID.Secret != nil {
 		s := oauth2.ClientID.Secret
-		cfg.HTTPClientConfig.OAuth2.ClientID = string(cg.getSecretData(ns, s.Name, s.Key))
+		oa2.ClientID = string(cg.getSecretData(ns, s.Name, s.Key))
 	} else if oauth2.ClientID.ConfigMap != nil {
 		cm := oauth2.ClientID.ConfigMap
-		cfg.HTTPClientConfig.OAuth2.ClientID = cg.getConfigMapData(ns, cm.Name, cm.Key)
+		oa2.ClientID = cg.getConfigMapData(ns, cm.Name, cm.Key)
 	}
-	cfg.HTTPClientConfig.OAuth2.ClientSecret = cg.getSecretData(ns, oauth2.ClientSecret.Name, oauth2.ClientSecret.Key)
-	cfg.HTTPClientConfig.OAuth2.TokenURL = oauth2.TokenURL
+	oa2.ClientSecret = cg.getSecretData(ns, oauth2.ClientSecret.Name, oauth2.ClientSecret.Key)
+	oa2.TokenURL = oauth2.TokenURL
 	if len(oauth2.Scopes) > 0 {
-		cfg.HTTPClientConfig.OAuth2.Scopes = oauth2.Scopes
+		oa2.Scopes = oauth2.Scopes
 	}
-
 	if len(oauth2.EndpointParams) > 0 {
-		cfg.HTTPClientConfig.OAuth2.EndpointParams = oauth2.EndpointParams
+		oa2.EndpointParams = oauth2.EndpointParams
 	}
+	return oa2
 }
 
 func (cg *configGenerator) addSafeAuthorization(cfg *config.ScrapeConfig, auth *v1.SafeAuthorization, ns string) {
@@ -513,28 +453,4 @@ func (cg *configGenerator) addSafeAuthorization(cfg *config.ScrapeConfig, auth *
 	if auth.Credentials != nil {
 		cfg.HTTPClientConfig.Authorization.Credentials = cg.getSecretData(ns, auth.Credentials.Name, auth.Credentials.Key)
 	}
-}
-
-func (r *relabeler) generateAddressShardingRelabelingRules(shards int) {
-	r.generateAddressShardingRelabelingRulesWithSourceLabel(shards, "__address__")
-}
-
-func (r *relabeler) generateAddressShardingRelabelingRulesForProbes(shards int) {
-	r.generateAddressShardingRelabelingRulesWithSourceLabel(shards, "__param_target")
-}
-
-func (r *relabeler) generateAddressShardingRelabelingRulesWithSourceLabel(shards int, shardLabel string) {
-
-	r.Add(
-		&relabel.Config{
-			SourceLabels: model.LabelNames{model.LabelName(shardLabel)},
-			TargetLabel:  "__tmp_hash",
-			Modulus:      uint64(shards),
-			Action:       relabel.HashMod,
-		},
-		&relabel.Config{
-			SourceLabels: model.LabelNames{model.LabelName("__tmp_hash")},
-			Regex:        relabel.MustNewRegexp("$(SHARD)"),
-			Action:       relabel.Keep,
-		})
 }

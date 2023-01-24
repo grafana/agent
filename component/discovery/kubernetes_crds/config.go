@@ -20,21 +20,6 @@ type Config struct {
 	ApiServerConfig *APIServerConfig `river:"api_server,block,optional"`
 
 	ForwardTo []storage.Appendable `river:"forward_to,attr"`
-
-	// OverrideHonorLabels controls how conflicts in labels are handled
-	OverrideHonorLabels      bool
-	OverrideHonorTimestamps  bool
-	IgnoreNamespaceSelectors bool
-
-	EnforcedSampleLimit           *uint64
-	EnforcedTargetLimit           *uint64
-	EnforcedLabelLimit            *uint64
-	EnforcedLabelNameLengthLimit  *uint64
-	EnforcedLabelValueLengthLimit *uint64
-	//TODO: EnforcedBodySizeLimit         string
-
-	EnforcedNamespaceLabel  string
-	ExcludedFromEnforcement ObjectReferences
 }
 
 // APIServerConfig defines a host and auth methods to access apiserver.
@@ -43,7 +28,6 @@ type Config struct {
 type APIServerConfig struct {
 	// Host of apiserver.
 	// A valid string consisting of a hostname or IP followed by an optional port number
-	// TODO: parse url
 	Host commonConfig.URL `json:"host"`
 	// BasicAuth allow an endpoint to authenticate over basic authentication
 	BasicAuth *commonConfig.BasicAuth `json:"basicAuth,omitempty"`
