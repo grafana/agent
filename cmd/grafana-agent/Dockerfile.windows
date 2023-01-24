@@ -7,6 +7,8 @@ WORKDIR /src/agent
 
 SHELL ["cmd", "/C"]
 
+RUN go help clean
+
 RUN "C:\Program Files\git\bin\bash.exe" -c 'RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} make generate-ui && rm -rf web/ui/node_modules && yarn cache clean --all'
 RUN "C:\Program Files\git\bin\bash.exe" -c 'RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} make agent && go clean -cache -modcache'
 
