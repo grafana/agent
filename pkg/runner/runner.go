@@ -118,19 +118,22 @@ func (s *Runner[TaskType]) ApplyTasks(ctx context.Context, tt []TaskType) error 
 	var stopping sync.WaitGroup
 	for w := range s.workers.Iterate() {
 		if newTasks.Has(w.(*workerTask).Task) {
+			// Task still exists.
 			continue
 		}
 
+		// Stop and remove the task from s.workers.
 		stopping.Add(1)
-		go func(w *scheduledWorker) {
+		go func(w *workerTask) {
 			defer stopping.Done()
-			w.Cancel()
+			defer s.workers.Delete(w)
+			w.Worker.Cancel()
 
 			select {
 			case <-ctx.Done():
-			case <-w.Exited:
+			case <-w.Worker.Exited:
 			}
-		}(w.(*workerTask).Worker)
+		}(w.(*workerTask))
 	}
 
 	// Ensure that every defined task in newTasks has a worker associated with
@@ -161,7 +164,6 @@ func (s *Runner[TaskType]) ApplyTasks(ctx context.Context, tt []TaskType) error 
 			defer s.running.Done()
 			defer close(newWorker.Exited)
 			newWorker.Worker.Run(workerCtx)
-			s.workers.Delete(newTask)
 		}()
 
 		_ = s.workers.Add(newTask)
