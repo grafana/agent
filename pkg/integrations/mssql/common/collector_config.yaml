@@ -73,11 +73,17 @@ metrics:
   - metric_name: mssql_buffer_cache_hit_ratio
     type: gauge
     help: 'Ratio of requests that hit the buffer cache'
-    values: [cntr_value]
+    values: [BufferCacheHitRatio]
     query: |
-      SELECT cntr_value
-      FROM sys.dm_os_performance_counters
-      WHERE [counter_name] = 'Buffer cache hit ratio'
+      SELECT (a.cntr_value * 1.0 / b.cntr_value) * 100.0 as BufferCacheHitRatio
+      FROM sys.dm_os_performance_counters  a
+      JOIN  (SELECT cntr_value, OBJECT_NAME 
+          FROM sys.dm_os_performance_counters  
+          WHERE counter_name = 'Buffer cache hit ratio base'
+              AND OBJECT_NAME = 'SQLServer:Buffer Manager') b ON  a.OBJECT_NAME = b.OBJECT_NAME
+      WHERE a.counter_name = 'Buffer cache hit ratio'
+      AND a.OBJECT_NAME = 'SQLServer:Buffer Manager'
+
   - metric_name: mssql_checkpoint_pages_sec
     type: gauge
     help: 'Checkpoint Pages Per Second'
