@@ -40,7 +40,7 @@ func TestPush(t *testing.T) {
 		},
 	}
 	args.ForwardTo = []loki.LogsReceiver{ch1, ch2}
-	args.RelabelRules = rulesExport
+	args.RelabelRules = exportedRules
 
 	// Create and run the component.
 	c, err := New(opts, args)
@@ -92,7 +92,7 @@ const testPushPayload = `
 	"subscription": "projects/test-project/subscriptions/test"
 }`
 
-var rulesExport = flow_relabel.Rules{
+var exportedRules = flow_relabel.Rules{
 	{
 		SourceLabels: []string{"__gcp_message_id"},
 		Regex:        mustNewRegexp("(.*)"),
