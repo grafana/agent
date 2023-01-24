@@ -127,11 +127,6 @@ func getRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, lo
 		return configProvider.GetCachedRemoteConfig(expandEnvVars)
 	}
 
-	if err = remoteConfig.Validate(nil); err != nil {
-		level.Error(log).Log("msg", "fetched remote config was invalid, falling back to cache", "err", err)
-		return configProvider.GetCachedRemoteConfig(expandEnvVars)
-	}
-
 	level.Info(log).Log("msg", "fetched and loaded remote config from API")
 
 	if err = configProvider.CacheRemoteConfig(remoteConfigBytes); err != nil {
