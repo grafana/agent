@@ -173,6 +173,17 @@ func (s *Runner[TaskType]) ApplyTasks(ctx context.Context, tt []TaskType) error 
 	return ctx.Err()
 }
 
+// Tasks returns the current set of running Tasks. Tasks are included even if
+// their associated runner has terminated.
+func (s *Runner[TaskType]) Tasks() []TaskType {
+	var res []TaskType
+	for task := range s.workers.Iterate() {
+		workerTask := task.(*workerTask)
+		res = append(res, workerTask.Task.(TaskType))
+	}
+	return res
+}
+
 // Stop the Schduler and all running Workers. Close blocks until all running
 // Workers exit.
 func (s *Runner[TaskType]) Stop() {
