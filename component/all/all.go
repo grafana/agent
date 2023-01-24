@@ -2,6 +2,7 @@
 package all
 
 import (
+	_ "github.com/grafana/agent/component/discovery/dns"                        // Import discovery.dns
 	_ "github.com/grafana/agent/component/discovery/docker"                     // Import discovery.docker
 	_ "github.com/grafana/agent/component/discovery/file"                       // Import discovery.file
 	_ "github.com/grafana/agent/component/discovery/kubernetes"                 // Import discovery.kubernetes
