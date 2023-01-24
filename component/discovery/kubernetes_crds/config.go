@@ -1,10 +1,8 @@
 package kubernetes_crds
 
 import (
-	"log"
-
 	commonConfig "github.com/grafana/agent/component/common/config"
-	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	promConfig "github.com/prometheus/common/config"
 	"github.com/prometheus/prometheus/storage"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -28,41 +26,8 @@ type Config struct {
 type APIServerConfig struct {
 	// Host of apiserver.
 	// A valid string consisting of a hostname or IP followed by an optional port number
-	Host commonConfig.URL `json:"host"`
-	// BasicAuth allow an endpoint to authenticate over basic authentication
-	BasicAuth *commonConfig.BasicAuth `json:"basicAuth,omitempty"`
-	// Bearer token for accessing apiserver.
-	BearerToken string `json:"bearerToken,omitempty"`
-	// File to read bearer token for accessing apiserver.
-	BearerTokenFile string `json:"bearerTokenFile,omitempty"`
-	// TLS Config to use for accessing apiserver.
-	TLSConfig *commonConfig.TLSConfig `json:"tlsConfig,omitempty"`
-	// Authorization section for accessing apiserver
-	Authorization *commonConfig.Authorization `json:"authorization,omitempty"`
-}
-
-type ObjectReferences []ObjectReference
-
-func (o ObjectReferences) Convert() []monitoringv1.ObjectReference {
-	ors := make([]monitoringv1.ObjectReference, len(o))
-	for i, or := range o {
-		obj := monitoringv1.ObjectReference{
-			Group:     or.Group,
-			Resource:  or.Resource,
-			Namespace: or.Namespace,
-			Name:      or.Name,
-		}
-		ors[i] = obj
-	}
-	return ors
-}
-
-// TODO: river
-type ObjectReference struct {
-	Group     string `json:"group"`
-	Resource  string `json:"resource"`
-	Namespace string `json:"namespace"`
-	Name      string `json:"name,omitempty"`
+	Host             commonConfig.URL              `river:"host,attr,optional"`
+	HTTPClientConfig commonConfig.HTTPClientConfig `river:"http_client_config,block,optional"`
 }
 
 func (c *Config) restConfig() (*rest.Config, error) {
@@ -72,7 +37,12 @@ func (c *Config) restConfig() (*rest.Config, error) {
 	if c.ApiServerConfig == nil {
 		return rest.InClusterConfig()
 	}
-	// TODO
-	log.Fatal("Convert apiserverconfig directly")
-	return nil, nil
+	rt, err := promConfig.NewRoundTripperFromConfig(*c.ApiServerConfig.HTTPClientConfig.Convert(), "kubernetes_sd")
+	if err != nil {
+		return nil, err
+	}
+	return &rest.Config{
+		Host:      c.ApiServerConfig.Host.String(),
+		Transport: rt,
+	}, nil
 }
