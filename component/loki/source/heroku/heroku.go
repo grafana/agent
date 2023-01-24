@@ -34,7 +34,7 @@ type Arguments struct {
 	Labels               map[string]string   `river:"labels,attr,optional"`
 	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`
 	ForwardTo            []loki.LogsReceiver `river:"forward_to,attr"`
-	RelabelRules         *flow_relabel.Rules `river:"relabel_rules,attr,optional"`
+	RelabelRules         flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
 }
 
 // ListenerConfig defines a heroku listener.
@@ -68,7 +68,7 @@ type Component struct {
 	metrics *ht.Metrics
 
 	mut    sync.RWMutex
-	lc     ListenerConfig
+	args   Arguments
 	fanout []loki.LogsReceiver
 	target *ht.HerokuTarget
 
@@ -81,7 +81,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		opts:    o,
 		metrics: ht.NewMetrics(o.Registerer),
 		mut:     sync.RWMutex{},
-		lc:      ListenerConfig{},
+		args:    Arguments{},
 		fanout:  args.ForwardTo,
 		target:  nil,
 		handler: make(loki.LogsReceiver),
@@ -133,11 +133,11 @@ func (c *Component) Update(args component.Arguments) error {
 	c.fanout = newArgs.ForwardTo
 
 	var rcs []*relabel.Config
-	if newArgs.RelabelRules != nil && len(newArgs.RelabelRules.GetAll()) > 0 {
-		rcs = flow_relabel.ComponentToPromRelabelConfigs(newArgs.RelabelRules.GetAll())
+	if newArgs.RelabelRules != nil && len(newArgs.RelabelRules) > 0 {
+		rcs = flow_relabel.ComponentToPromRelabelConfigs(newArgs.RelabelRules)
 	}
 
-	if configsChanged(c.lc, newArgs.HerokuListener) {
+	if configsChanged(c.args, newArgs) {
 		if c.target != nil {
 			err := c.target.Stop()
 			if err != nil {
@@ -153,6 +153,7 @@ func (c *Component) Update(args component.Arguments) error {
 		}
 
 		c.target = t
+		c.args = newArgs
 	}
 
 	return nil
@@ -193,6 +194,6 @@ type readerDebugInfo struct {
 	Address string `river:"address,attr"`
 }
 
-func configsChanged(prev, next ListenerConfig) bool {
+func configsChanged(prev, next Arguments) bool {
 	return !reflect.DeepEqual(prev, next)
 }

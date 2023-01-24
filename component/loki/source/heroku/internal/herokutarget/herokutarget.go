@@ -91,7 +91,8 @@ func (h *HerokuTarget) run() error {
 	}
 
 	h.server = srv
-	h.server.HTTP.Path(h.Endpoint()).Methods("POST").Handler(http.HandlerFunc(h.drain))
+	h.server.HTTP.Path(h.DrainEndpoint()).Methods("POST").Handler(http.HandlerFunc(h.drain))
+	h.server.HTTP.Path(h.HealthyEndpoint()).Methods("GET").Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) }))
 
 	go func() {
 		err := srv.Run()
@@ -179,11 +180,25 @@ func (h *HerokuTarget) ListenPort() int {
 	return h.config.Server.HTTPListenPort
 }
 
-func (h *HerokuTarget) Endpoint() string {
+func (h *HerokuTarget) DrainEndpoint() string {
 	return "/heroku/api/v1/drain"
 }
 
+func (h *HerokuTarget) HealthyEndpoint() string {
+	return "/healthy"
+}
+
 func (h *HerokuTarget) Ready() bool {
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s:%d%s", h.ListenAddress(), h.ListenPort(), h.HealthyEndpoint()), nil)
+	if err != nil {
+		return false
+	}
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil || res.StatusCode != http.StatusOK {
+		return false
+	}
+
 	return true
 }
 

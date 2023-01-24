@@ -78,38 +78,34 @@ const port = 42421
 const testPayload = `270 <158>1 2022-06-13T14:52:23.622778+00:00 host heroku router - at=info method=GET path="/" host=cryptic-cliffs-27764.herokuapp.com request_id=59da6323-2bc4-4143-8677-cc66ccfb115f fwd="181.167.87.140" dyno=web.1 connect=0ms service=3ms status=200 bytes=6979 protocol=https
 `
 
-var rulesExport = &flow_relabel.Rules{
-	GetAll: func() []*flow_relabel.Config {
-		return []*flow_relabel.Config{
-			{
-				SourceLabels: []string{"__heroku_drain_host"},
-				Regex:        newRegexp(),
-				Action:       flow_relabel.Replace,
-				Replacement:  "$1",
-				TargetLabel:  "host",
-			},
-			{
-				SourceLabels: []string{"__heroku_drain_app"},
-				Regex:        newRegexp(),
-				Action:       flow_relabel.Replace,
-				Replacement:  "$1",
-				TargetLabel:  "app",
-			},
-			{
-				SourceLabels: []string{"__heroku_drain_proc"},
-				Regex:        newRegexp(),
-				Action:       flow_relabel.Replace,
-				Replacement:  "$1",
-				TargetLabel:  "proc",
-			},
-			{
-				SourceLabels: []string{"__heroku_drain_log_id"},
-				Regex:        newRegexp(),
-				Action:       flow_relabel.Replace,
-				Replacement:  "$1",
-				TargetLabel:  "log_id",
-			},
-		}
+var rulesExport = flow_relabel.Rules{
+	{
+		SourceLabels: []string{"__heroku_drain_host"},
+		Regex:        newRegexp(),
+		Action:       flow_relabel.Replace,
+		Replacement:  "$1",
+		TargetLabel:  "host",
+	},
+	{
+		SourceLabels: []string{"__heroku_drain_app"},
+		Regex:        newRegexp(),
+		Action:       flow_relabel.Replace,
+		Replacement:  "$1",
+		TargetLabel:  "app",
+	},
+	{
+		SourceLabels: []string{"__heroku_drain_proc"},
+		Regex:        newRegexp(),
+		Action:       flow_relabel.Replace,
+		Replacement:  "$1",
+		TargetLabel:  "proc",
+	},
+	{
+		SourceLabels: []string{"__heroku_drain_log_id"},
+		Regex:        newRegexp(),
+		Action:       flow_relabel.Replace,
+		Replacement:  "$1",
+		TargetLabel:  "log_id",
 	},
 }
 
@@ -122,5 +118,5 @@ func newRegexp() flow_relabel.Regexp {
 }
 
 func getEndpoint(target *herokutarget.HerokuTarget) string {
-	return fmt.Sprintf("http://%s:%d%s", address, port, target.Endpoint())
+	return fmt.Sprintf("http://%s:%d%s", address, port, target.DrainEndpoint())
 }
