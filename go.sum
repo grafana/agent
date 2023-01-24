@@ -2099,8 +2099,8 @@ github.com/kevinburke/ssh_config v1.1.0 h1:pH/t1WS9NzT8go394IqZeJTMHVm6Cr6ZJ6AQ+
 github.com/kevinburke/ssh_config v1.1.0/go.mod h1:CT57kijsi8u/K/BOFA39wgDQJ9CxiF4nAY/ojJ6r6mM=
 github.com/keybase/go-crypto v0.0.0-20180614160407-5114a9a81e1b/go.mod h1:ghbZscTyKdM07+Fw3KSi0hcJm+AlEUWj8QLlPtijN/M=
 github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19/go.mod h1:hY+WOq6m2FpbvyrI93sMaypsttvaIL5nhVR92dTMUcQ=
-github.com/kgeckhart/azure-metrics-exporter v0.0.0-20230123164250-61031f994417 h1:CwVUHJKu7vVUezZ1v6IRb7chkJa6T7EF/KqHjPN1NFo=
-github.com/kgeckhart/azure-metrics-exporter v0.0.0-20230123164250-61031f994417/go.mod h1:9NYoVo5c6XSTXJi/lfUDbKIDCblpz2e14fAJBx4mrmQ=
+github.com/kgeckhart/azure-metrics-exporter v0.0.0-20230124174512-16e25d5c8d3b h1:xcWOP8kuh2oIIXiyMf8Pq2VB+fx4GnrToTzrbtqHXxM=
+github.com/kgeckhart/azure-metrics-exporter v0.0.0-20230124174512-16e25d5c8d3b/go.mod h1:9NYoVo5c6XSTXJi/lfUDbKIDCblpz2e14fAJBx4mrmQ=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=
 github.com/kisielk/errcheck v1.2.0/go.mod h1:/BMXB+zMLi60iA8Vv6Ksmxu/1UDYcXs4uQLJ+jE2L00=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=

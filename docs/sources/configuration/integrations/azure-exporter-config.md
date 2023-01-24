@@ -6,15 +6,27 @@ title: azure_exporter_config
 
 # azure_exporter_config
 
+## Overview
 The `azure_exporter_config` block configures the `azure_exporter` integration, which is an embedded version of
 [`azure-metrics-exporter`](https://github.com/webdevops/azure-metrics-exporter). This allows for
-the collection of metrics from [Azure Resource Monitor](https://azure.microsoft.com/en-us/products/monitor). The
-exporter takes uses [Azure Resource Graph](https://azure.microsoft.com/en-us/get-started/azure-portal/resource-graph/#overview) 
-queries to identify resources for gathering metrics
+the collection of metrics from [Azure Monitor](https://azure.microsoft.com/en-us/products/monitor). The
+exporter uses [Azure Resource Graph](https://azure.microsoft.com/en-us/get-started/azure-portal/resource-graph/#overview) 
+queries to identify resources for gathering metrics. 
 
-By default, metrics for this integration are exposed with the template `azure_metric_{metric}_{aggregation}_{unit}`
+The exporter supports all metrics defined by [Azure Monitor](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/metrics-supported).
+Metrics for this integration are exposed with the template `azure_{type}_{metric}_{aggregation}_{unit}`. As an example
+the Egress metric for BlobService would be exported as `azure_microsoft_storage_storageaccounts_blobservices_egress_total_bytes`.
 
-Full reference of options:
+## Authentication
+
+The agent will need to be running in an environment which has access to azure. The exporter uses the Azure SDK for go and supports
+providing authentication via https://learn.microsoft.com/en-us/azure/developer/go/azure-sdk-authentication?tabs=bash#2-authenticate-with-azure.
+
+The account used by the agent will need,
+* [Read access to the resources which will be queried by Resource Graph](https://learn.microsoft.com/en-us/azure/governance/resource-graph/overview#permissions-in-azure-resource-graph)
+* Permissions to call the [Microsoft.Insights Metrics API](https://learn.microsoft.com/en-us/rest/api/monitor/metrics/list) which should be the `Microsoft.Insights/Metrics/Read` permission
+
+## Configuration options:
 
 ```yaml
   #
