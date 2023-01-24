@@ -193,21 +193,16 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 		if err != nil {
 			return nil, err
 		}
-	// case StageTypeLimit:
-	// 	s, err = newLimitStage(logger, cfg, registerer)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
 	case cfg.MultilineConfig != nil:
 		s, err = newMultilineStage(logger, *cfg.MultilineConfig)
 		if err != nil {
 			return nil, err
 		}
-	// case StageTypePack:
-	// 	s, err = newPackStage(logger, cfg, registerer)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
+	case cfg.PackConfig != nil:
+		s, err = newPackStage(logger, *cfg.PackConfig, registerer)
+		if err != nil {
+			return nil, err
+		}
 	case cfg.LabelAllowConfig != nil:
 		s, err = newLabelAllowStage(*cfg.LabelAllowConfig)
 		if err != nil {

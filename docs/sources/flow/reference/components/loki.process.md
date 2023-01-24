@@ -62,6 +62,7 @@ stage > replace      | [replace][]       | Configures a `replace` processing sta
 stage > multiline    | [multiline][]     | Configures a `multiline` processing stage. | no
 stage > match        | [match][]         | Configures a `match` processing stage. | no
 stage > drop         | [drop][]          | Configures a `drop` processing stage. | no
+stage > pack         | [pack][]          | Configures a `pack` processing stage. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `stage > json`
 refers to a `json` block defined inside of a `stage` block.
@@ -82,6 +83,7 @@ refers to a `json` block defined inside of a `stage` block.
 [multiline]: #multiline-block
 [match]: #match-block
 [drop]: #drop-block
+[pack]: #pack-block
 
 ### stage block
 
@@ -911,7 +913,7 @@ stage {
 ```
 
 On the following example, we define multiple `drop` blocks so `loki.process`
-will drop entries that are either 24h or older, are longer than 8KB, _or_ the
+drops entries that are either 24h or older, are longer than 8KB, _or_ the
 extracted value of 'app' is equal to foo.
 
 ```
@@ -936,6 +938,58 @@ stage {
 	}
 }
 ```
+
+### pack block
+
+The `pack` inner block configures a transforming stage that replaces the log
+entry with a JSON object that embeds extracted values and labels alongside it.
+
+The following arguments are supported:
+
+Name                  | Type            | Description                                           | Default   | Required
+--------------------- | --------------- | ----------------------------------------------------- | --------- | --------
+`labels`              | `list(string)`  | The values from the extracted data and labels to pack with the log entry.    |  | yes
+`ingest_timestamp`    | `bool`          | Whether to replace the log entry timestamp with the time the `pack` stage run.  | `true | no
+
+This stage allows to embed extracted values and labels together with the log
+line, by packing them into a JSON object. The original message is stored under
+the `_entry` key, and all other keys retain their values. This is useful in
+cases where we _do_ want to keep a certain label or metadata, but we wouldn't
+want it to be indexed as a label eg. due to high cardinality.
+
+The querying capabilities of Loki make it easy to still access this data and
+filter/aggregate on it at query time.
+
+For example consider the following log entry and processing stage:
+```
+log_line: "something went wrong"
+labels:   { "level" = "error", "env" = "dev", "user_id" = "f8fas0r" }
+
+stage {
+	pack {
+		labels = ["env", "user_id"]
+	}
+}
+```
+
+This would transform the log entry into the following JSON object. The two
+embedded labels are removed from the original log entry.
+```
+{
+	"_entry": "something went wrong",
+	"env": "dev",
+	"user_id": "f8fas0r",
+		
+}
+```
+
+At query time, Loki's `unpack` parser allows access to these embedded labels
+and replaces the log line with the original one stored in `_entry`
+automatically.
+
+When combining several log streams to use with the `pack` stage,
+`ingest_timestamp` can be set to true to avoid interlaced timestamps and
+out-of-order ingestion issues.
 
 
 ## Exported fields

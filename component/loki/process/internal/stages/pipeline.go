@@ -40,6 +40,7 @@ type StageConfig struct {
 	MultilineConfig    *MultilineConfig    `river:"multiline,block,optional"`
 	MatchConfig        *MatchConfig        `river:"match,block,optional"`
 	DropConfig         *DropConfig         `river:"drop,block,optional"`
+	PackConfig         *PackConfig         `river:"pack,block,optional"`
 }
 
 // UnmarshalRiver implements river.Unmarshaler.
