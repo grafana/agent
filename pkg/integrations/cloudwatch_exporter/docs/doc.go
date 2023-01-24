@@ -18,6 +18,7 @@ const servicesListReplacement = "{{SERVICE_LIST}}"
 // main is used for programmatically generating a documentation section containing all AWS services supported in cloudwatch
 // exporter discovery jobs.
 func main() {
+	programName := os.Args[0]
 	argsWithoutProgram := os.Args[1:]
 	if len(argsWithoutProgram) < 1 {
 		log.Println("Missing arguments: generate OR check <file>")
@@ -35,6 +36,7 @@ func main() {
 		fileToCheck := argsWithoutProgram[1]
 		if err := checkServicesDocSection(fileToCheck, doc); err != nil {
 			log.Printf("Check failed: %s\n", err)
+			log.Printf("Try updating %s with the services section produced by `%s generate`\n", fileToCheck, programName)
 			os.Exit(1)
 		}
 		log.Println("Check successful!")
