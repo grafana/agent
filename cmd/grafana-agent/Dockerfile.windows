@@ -7,7 +7,7 @@ WORKDIR /src/agent
 
 SHELL ["cmd", "/C"]
 
-RUN "C:\Program Files\git\bin\bash.exe" -c 'RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} make generate-ui' && rmdir /s /q "C:\src\agent\web\ui\node_modules"
+RUN "C:\Program Files\git\bin\bash.exe" -c 'RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} make generate-ui'
 RUN "C:\Program Files\git\bin\bash.exe" -c 'RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} make agent'
 
 # Use the smallest container possible for the final image
