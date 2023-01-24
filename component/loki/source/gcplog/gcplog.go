@@ -34,7 +34,7 @@ type Arguments struct {
 	PullTarget   *gt.PullConfig      `river:"pull,block,optional"`
 	PushTarget   *gt.PushConfig      `river:"push,block,optional"`
 	ForwardTo    []loki.LogsReceiver `river:"forward_to,attr"`
-	RelabelRules *flow_relabel.Rules `river:"relabel_rules,attr,optional"`
+	RelabelRules flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
 }
 
 // UnmarshalRiver implements the unmarshaller
@@ -116,8 +116,8 @@ func (c *Component) Update(args component.Arguments) error {
 	c.fanout = newArgs.ForwardTo
 
 	var rcs []*relabel.Config
-	if newArgs.RelabelRules != nil && len(newArgs.RelabelRules.GetAll()) > 0 {
-		rcs = flow_relabel.ComponentToPromRelabelConfigs(newArgs.RelabelRules.GetAll())
+	if newArgs.RelabelRules != nil && len(newArgs.RelabelRules) > 0 {
+		rcs = flow_relabel.ComponentToPromRelabelConfigs(newArgs.RelabelRules)
 	}
 
 	if c.target != nil {

@@ -92,24 +92,20 @@ const testPushPayload = `
 	"subscription": "projects/test-project/subscriptions/test"
 }`
 
-var rulesExport = &flow_relabel.Rules{
-	GetAll: func() []*flow_relabel.Config {
-		return []*flow_relabel.Config{
-			{
-				SourceLabels: []string{"__gcp_message_id"},
-				Regex:        mustNewRegexp("(.*)"),
-				Action:       flow_relabel.Replace,
-				Replacement:  "$1",
-				TargetLabel:  "message_id",
-			},
-			{
-				SourceLabels: []string{"__gcp_resource_type"},
-				Regex:        mustNewRegexp("(.*)"),
-				Action:       flow_relabel.Replace,
-				Replacement:  "$1",
-				TargetLabel:  "resource_type",
-			},
-		}
+var rulesExport = flow_relabel.Rules{
+	{
+		SourceLabels: []string{"__gcp_message_id"},
+		Regex:        mustNewRegexp("(.*)"),
+		Action:       flow_relabel.Replace,
+		Replacement:  "$1",
+		TargetLabel:  "message_id",
+	},
+	{
+		SourceLabels: []string{"__gcp_resource_type"},
+		Regex:        mustNewRegexp("(.*)"),
+		Action:       flow_relabel.Replace,
+		Replacement:  "$1",
+		TargetLabel:  "resource_type",
 	},
 }
 
