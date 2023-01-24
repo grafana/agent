@@ -33,7 +33,6 @@ local linux_containers = [
   pipelines.windows('Check Windows containers') {
     trigger: {
       event: ['pull_request'],
-      paths: ['**/Dockerfile.windows'],
     },
     steps: [{
       name: 'Build container',

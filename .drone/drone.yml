@@ -195,8 +195,6 @@ steps:
 trigger:
   event:
   - pull_request
-  paths:
-  - cmd/grafana-agent/Dockerfile
 type: docker
 volumes:
 - host:
@@ -219,8 +217,6 @@ steps:
 trigger:
   event:
   - pull_request
-  paths:
-  - cmd/grafana-agentctl/Dockerfile
 type: docker
 volumes:
 - host:
@@ -243,8 +239,6 @@ steps:
 trigger:
   event:
   - pull_request
-  paths:
-  - cmd/grafana-agent-operator/Dockerfile
 type: docker
 volumes:
 - host:
@@ -271,8 +265,6 @@ steps:
 trigger:
   event:
   - pull_request
-  paths:
-  - '**/Dockerfile.windows'
 type: docker
 volumes:
 - host:
@@ -475,6 +467,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: 9299a25f974b877bdf37672844ce7747bbb3a796dd553c745520851d3b14516e
+hmac: 7c04c6ec3699970d5f4fbdf6edc9d5bbff38085551d67ab470421a2b8a8a458f
 
 ...
