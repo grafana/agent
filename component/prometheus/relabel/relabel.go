@@ -52,7 +52,6 @@ type Exports struct {
 type Component struct {
 	mut              sync.RWMutex
 	opts             component.Options
-	mrcFlow          []*flow_relabel.Config
 	mrc              []*relabel.Config
 	receiver         *prometheus.Interceptor
 	metricsProcessed prometheus_client.Counter
@@ -173,7 +172,6 @@ func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 	c.clearCache()
 	c.mrc = flow_relabel.ComponentToPromRelabelConfigs(newArgs.MetricRelabelConfigs)
-	c.mrcFlow = newArgs.MetricRelabelConfigs
 	c.fanout.UpdateChildren(newArgs.ForwardTo)
 
 	c.opts.OnStateChange(Exports{Receiver: c.receiver, Rules: newArgs.MetricRelabelConfigs})

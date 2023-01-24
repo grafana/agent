@@ -69,7 +69,6 @@ type Component struct {
 
 	mut      sync.RWMutex
 	rcs      []*relabel.Config
-	rcsFlow  []*flow_relabel.Config
 	receiver loki.LogsReceiver
 	fanout   []loki.LogsReceiver
 
@@ -154,7 +153,6 @@ func (c *Component) Update(args component.Arguments) error {
 		}
 	}
 	c.rcs = newRCS
-	c.rcsFlow = newArgs.RelabelConfigs
 	c.fanout = newArgs.ForwardTo
 
 	c.opts.OnStateChange(Exports{Receiver: c.receiver, Rules: newArgs.RelabelConfigs})
