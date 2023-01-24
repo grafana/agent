@@ -41,6 +41,7 @@ type StageConfig struct {
 	MatchConfig        *MatchConfig        `river:"match,block,optional"`
 	DropConfig         *DropConfig         `river:"drop,block,optional"`
 	PackConfig         *PackConfig         `river:"pack,block,optional"`
+	TemplateConfig     *TemplateConfig     `river:"template,block,optional"`
 }
 
 // UnmarshalRiver implements river.Unmarshaler.

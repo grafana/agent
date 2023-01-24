@@ -63,6 +63,7 @@ stage > multiline    | [multiline][]     | Configures a `multiline` processing s
 stage > match        | [match][]         | Configures a `match` processing stage. | no
 stage > drop         | [drop][]          | Configures a `drop` processing stage. | no
 stage > pack         | [pack][]          | Configures a `pack` processing stage. | no
+stage > template     | [template][]      | Configures a `template` processing stage. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `stage > json`
 refers to a `json` block defined inside of a `stage` block.
@@ -84,6 +85,7 @@ refers to a `json` block defined inside of a `stage` block.
 [match]: #match-block
 [drop]: #drop-block
 [pack]: #pack-block
+[template]: #template-block
 
 ### stage block
 
@@ -990,6 +992,205 @@ automatically.
 When combining several log streams to use with the `pack` stage,
 `ingest_timestamp` can be set to true to avoid interlaced timestamps and
 out-of-order ingestion issues.
+
+
+### template block
+
+The `template` inner block configures a transforming stage that allows users to
+manipulate the values in the extracted map by using Go's `text/template`
+[package](https://pkg.go.dev/text/template) syntax. This stage is primarily
+useful for manipulating and standardizing data from previous stages before
+setting them as labels in a subsequent stage. Example use cases are replacing
+spaces with underscores, converting uppercase strings to lowercase, or hashing
+a value.
+
+The template stage can also create new keys in the extracted map.
+
+The following arguments are supported:
+
+Name       | Type      | Description                 | Default   | Required
+---------- | --------- | --------------------------- | --------- | --------
+`source`   | `string`  | Name from extracted data to parse. If the key doesn't exist, a new entry is created.  |   | yes
+`template` | `string`  | Go template string to use.  |   | yes
+
+The template string can be any valid template that can be used by Go's `text/template`. Furthermore, it supports all functions from the [sprig package](http://masterminds.github.io/sprig/) as well as the following list of custom functions.
+```
+ToLower, ToUpper, Replace, Trim, TrimLeftTrimRight, TrimPrefix, TrimSuffix, TrimSpace, Hash, Sha2Hash, regexReplaceAll, regexReplaceAllLiteral
+```
+
+
+Assuming no data is present on the extracted map, the following stage simply
+adds the `new_key: "hello_world"`key-value pair to the shared map.
+```
+stage {
+	template {
+		source   = "new_key"
+		template = "hello_world"
+	}
+}
+```
+
+If the `source` value is available, it can be referred to as `.Value`.
+The next stage takes the current value of `app` from the extracted map,
+converts it to lowercase, and adds a suffix to its value.
+```
+stage {
+	template {
+		source   = "app"
+		template = "{{ ToLower .Value }}_some_suffix"
+	}
+}
+```
+
+Any previously extracted keys are available for `template` to expand and use.
+The next stage takes the current values for `level`, `app` and `module` and
+creates a new key named `output_message`.
+```
+stage {
+	template {
+		source   = "output_msg"
+		template = "{{ .level }} for app {{ ToUpper .app }} in module {{.module}}"
+	}
+}
+```
+
+A special key named `Entry` can be used to reference the current line; this can
+be useful when you need to append/prepend something to the log line, like this
+stage does
+```
+stage {
+	template {
+		source   = "message"
+		template = "{{.app }}: {{ .Entry }}"
+	}
+}
+stage {
+	output {
+		source = "message"
+	}
+}
+```
+
+#### Supported functions
+As mentioned before, the `template` stage supports all functions from the
+[sprig package](http://masterminds.github.io/sprig/) as well as the following
+custom functions
+
+##### ToLower & ToUpper
+`ToLower` and `ToUpper` convert the entire string respectively to lowercase and
+uppercase.
+
+Examples:
+```
+stage {
+	template {
+		source   = "out"
+		template = "{{ ToLower .app }}"
+	}
+}
+stage {
+	template {
+		source   = "out"
+		template = "{{ .app | ToUpper }}"
+	}
+}
+
+##### Replace
+`Replace` returns a copy of the string `s` with the first `n` non-overlapping
+instances of `old` replaced by `new`. If `old` is empty, it matches at the
+beginning of the string and after each UTF-8 sequence, yielding up to k+1
+replacements for a k-rune string. If n < 0, there is no limit on the number of
+replacements.
+
+This example below will replace the first two words loki by Loki:
+```
+stage {
+	template {
+		source   = "output"
+		template = "{{ Replace .Value "loki" "Loki" 2 }}"
+	}
+}
+```
+
+##### Trim, TrimLeft, TrimRight, TrimSpace, TrimPrefix, TrimSuffix
+* `Trim` returns a slice of the string `s` with all leading and trailing Unicode
+  code points contained in `cutset` removed.
+* `TrimLeft` and `TrimRight` are the same as Trim except that it respectively
+  trim only leading and trailing characters.
+* `TrimSpace` returns a slice of the string s, with all leading and trailing
+white space removed, as defined by Unicode.
+* `TrimPrefix` and `TrimSuffix` will trim respectively the prefix or suffix
+  supplied.
+Examples:
+```
+stage {
+	template {
+		source   = "output"
+		template = "{{ Trim .Value ",. " }}"
+	}
+}
+stage {
+	template {
+		source   = "output"
+		template = "{{ TrimSpace .Value }}"
+	}
+}
+stage {
+	template {
+		source   = "output"
+		template = "{{ TrimPrefix .Value "--" }}"
+	}
+}
+```
+
+##### Regex
+`regexReplaceAll` returns a copy of the input string, replacing matches of the
+Regexp with the replacement string. Inside the replacement string, `$` signs
+are interpreted as in Expand, so for instance $1 represents the first captured
+submatch.
+
+`regexReplaceAllLiteral` returns a copy of the input string, replacing matches
+of the Regexp with the replacement string. The replacement string is
+substituted directly, without using Expand.
+
+
+```
+stage {
+	template {
+		source   = "output"
+		template = "{{ regexReplaceAll "(a*)bc" .Value "${1}a" }}"
+	}
+}
+stage {
+	template {
+		source   = "output"
+		template = "{{ regexReplaceAllLiteral "(ts=)" .Value "timestamp=" }}"
+	}
+}
+```
+
+##### Hash and Sha2Hash
+`Hash` returns a `Sha3_256` hash of the string, represented as a hexadecimal number of 64 digits. You can use it to obfuscate sensitive data / PII in the logs. It requires a (fixed) salt value, to add complexity to low input domains (e.g. all possible Social Security Numbers).
+`Sha2Hash` returns a `Sha2_256` of the string which is faster and less CPU-intensive than `Hash`, however it is less secure.
+
+Examples:
+```
+stage {
+	template {
+		source   = "output"
+		template = "{{ Hash .Value "salt" }}"
+	}
+}
+stage {
+	template {
+		source   = "output"
+		template = "{{ Sha2Hash .Value "salt" }}"
+	}
+}
+```
+
+We recommend using Hash as it has a stronger hashing algorithm which we plan to
+keep strong over time without requiring client config changes.
 
 
 ## Exported fields

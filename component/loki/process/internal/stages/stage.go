@@ -168,11 +168,11 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 		if err != nil {
 			return nil, err
 		}
-	// case StageTypeTemplate:
-	// 	s, err = newTemplateStage(logger, cfg)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
+	case cfg.TemplateConfig != nil:
+		s, err = newTemplateStage(logger, *cfg.TemplateConfig)
+		if err != nil {
+			return nil, err
+		}
 	// case StageTypeTenant:
 	// 	s, err = newTenantStage(logger, cfg.TenantConfig)
 	// 	if err != nil {
