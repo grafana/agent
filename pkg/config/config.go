@@ -247,7 +247,7 @@ func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 //     a) Fetch from remote. If this fails or is invalid:
 //     b) Read the remote config from cache. If this fails, return an error.
 //  4. Merge the initial and remote config into c.
-func loadFromAgentManagementAPI(path string, expandEnvVars bool, c *Config, log *server.Logger) error {
+func loadFromAgentManagementAPI(path string, expandEnvVars bool, c *Config, log *server.Logger, fs *flag.FlagSet, args []string) error {
 	// Load the initial config from disk without instrumenting the config hash
 	buf, err := os.ReadFile(path)
 	if err != nil {
@@ -259,7 +259,11 @@ func loadFromAgentManagementAPI(path string, expandEnvVars bool, c *Config, log 
 		return fmt.Errorf("failed to load initial config: %w", err)
 	}
 
-	remoteConfig, err := getRemoteConfig(expandEnvVars, c, log)
+	configProvider, err := newRemoteConfigProvider(c)
+	if err != nil {
+		return err
+	}
+	remoteConfig, err := getRemoteConfig(expandEnvVars, configProvider, log, fs, args, path)
 	if err != nil {
 		return err
 	}
@@ -390,7 +394,7 @@ func Load(fs *flag.FlagSet, args []string, log *server.Logger) (*Config, error) 
 				return LoadRemote(path, expandArgs, c)
 			}
 			if features.Enabled(fs, featAgentManagement) {
-				return loadFromAgentManagementAPI(path, expandArgs, c, log)
+				return loadFromAgentManagementAPI(path, expandArgs, c, log, fs, args)
 			}
 			return LoadFile(path, expandArgs, c)
 		case fileTypeDynamic:
@@ -414,6 +418,26 @@ func Load(fs *flag.FlagSet, args []string, log *server.Logger) (*Config, error) 
 }
 
 type loaderFunc func(path string, fileType string, expandArgs bool, target *Config) error
+
+func applyIntegrationValuesFromFlagset(fs *flag.FlagSet, args []string, path string, cfg *Config) error {
+	// Parse the flags again to override any YAML values with command line flag
+	// values.
+	if err := fs.Parse(args); err != nil {
+		return fmt.Errorf("error parsing flags: %w", err)
+	}
+
+	// Complete unmarshaling integrations using the version from the flag. This
+	// MUST be called before ApplyDefaults.
+	version := integrationsVersion1
+	if features.Enabled(fs, featIntegrationsNext) {
+		version = integrationsVersion2
+	}
+
+	if err := cfg.Integrations.setVersion(version); err != nil {
+		return fmt.Errorf("error loading config file %s: %w", path, err)
+	}
+	return nil
+}
 
 // load allows for tests to inject a function for retrieving the config file that
 // doesn't require having a literal file on disk.
@@ -454,21 +478,8 @@ func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
 		return nil, fmt.Errorf("error loading config file %s: %w", file, err)
 	}
 
-	// Parse the flags again to override any YAML values with command line flag
-	// values.
-	if err := fs.Parse(args); err != nil {
-		return nil, fmt.Errorf("error parsing flags: %w", err)
-	}
-
-	// Complete unmarshaling integrations using the version from the flag. This
-	// MUST be called before ApplyDefaults.
-	version := integrationsVersion1
-	if features.Enabled(fs, featIntegrationsNext) {
-		version = integrationsVersion2
-	}
-
-	if err := cfg.Integrations.setVersion(version); err != nil {
-		return nil, fmt.Errorf("error loading config file %s: %w", file, err)
+	if err := applyIntegrationValuesFromFlagset(fs, args, file, &cfg); err != nil {
+		return nil, err
 	}
 
 	if features.Enabled(fs, featExtraMetrics) {
