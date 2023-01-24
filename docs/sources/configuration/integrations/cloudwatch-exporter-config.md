@@ -21,25 +21,24 @@ Configuration reference:
   # Common Integration Settings
   #
     
-  # Enables the elasticsearch_exporter integration, allowing the Agent to automatically
-  # collect system metrics from the configured ElasticSearch server address
+  # Enables the cloudwatch_exporter integration, allowing the Agent to automatically
+  # collect CloudWatch metrics as configured.
   [enabled: <boolean> | default = false]
 
   # Sets an explicit value for the instance label when the integration is
   # self-scraped. Overrides inferred values.
   #
-  # The default value for this integration is inferred from the hostname portion
-  # of address.
+  # The default value for this integration is a hash of the whole integration configuration.
   [instance: <string>]
 
   # Automatically collect metrics from this integration. If disabled,
-  # the elasticsearch_exporter integration will be run but not scraped and thus not
-  # remote-written. Metrics for the integration will be exposed at
-  # /integrations/elasticsearch_exporter/metrics and can be scraped by an external
+  # the cloudwatch_exporter integration is run but not scraped and thus not
+  # remote-written. Metrics for the integration are exposed at
+  # /integrations/cloudwatch_exporter/metrics and can be scraped by an external
   # process.
   [scrape_integration: <boolean> | default = <integrations_config.scrape_integrations>]
 
-  # How often should the metrics be collected? Defaults to
+  # How often should the metrics be collected. Defaults to
   # prometheus.global.scrape_interval.
   [scrape_interval: <duration> | default = <global_config.scrape_interval>]
 
@@ -316,7 +315,7 @@ For simplicity, one can use the following AWS IAM Policy for all features of thi
 # Supported services in discovery jobs
 
 The following is a list of AWS services that are supported in `cloudwatch_exporter` discovery jobs. When configuring a
-discovery job, the `type` field of each `dicsovery_job` must match either one of the desired job namespace or alias.
+discovery job, the `type` field of each `discovery_job` must match either one of the desired job namespace or alias.
 
 - Namespace: `AWS/CertificateManager` or Alias: `acm`
 - Namespace: `AmazonMWAA` or Alias: `airflow`
