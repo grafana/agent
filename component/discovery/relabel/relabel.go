@@ -2,7 +2,6 @@ package relabel
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"github.com/grafana/agent/component"
@@ -86,7 +85,6 @@ func (c *Component) Update(args component.Arguments) error {
 		}
 	}
 
-	fmt.Println("calling OnStateChange!")
 	c.opts.OnStateChange(Exports{
 		Output: targets,
 		Rules:  newArgs.RelabelConfigs,
