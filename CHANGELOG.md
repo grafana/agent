@@ -45,8 +45,6 @@ Main (unreleased)
     receivers. (@tpaschalis)
   - `loki.source.gelf` listens for Graylog logs. (@mattdurham)
 
-
-
 - Flow components which work with relabeling rules (`discovery.relabel`,
   `prometheus.relabel` and `loki.relabel`) now export a new value named Rules.
   This value is a function that returns the currently configured rules.
@@ -74,6 +72,9 @@ Main (unreleased)
 
 - Flow: Fix issue where negative numbers would convert to floating-point values
   incorrectly, treating the sign flag as part of the number. (@rfratto)
+
+- Flow: fix a goroutine leak when `loki.source.file` is passed more than one
+  target with identical set of public labels. (@rfratto)
 
 ### Other changes
 

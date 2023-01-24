@@ -163,6 +163,12 @@ func (c *Component) Update(args component.Arguments) error {
 			labels[model.LabelName(k)] = model.LabelValue(v)
 		}
 
+		// Deduplicate targets which have the same public label set.
+		readersKey := positions.Entry{Path: path, Labels: labels.String()}
+		if _, exist := c.readers[readersKey]; exist {
+			continue
+		}
+
 		c.reportSize(path, labels.String())
 		handler := loki.AddLabelsMiddleware(labels).Wrap(loki.NewEntryHandler(c.handler, func() {}))
 
@@ -171,7 +177,7 @@ func (c *Component) Update(args component.Arguments) error {
 			continue
 		}
 
-		c.readers[positions.Entry{Path: path, Labels: labels.String()}] = reader
+		c.readers[readersKey] = reader
 	}
 
 	// Remove from the positions file any entries that had a Reader before, but
