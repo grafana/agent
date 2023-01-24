@@ -10,6 +10,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	namespacelabeler "github.com/prometheus-operator/prometheus-operator/pkg/namespace-labeler"
 	commonConfig "github.com/prometheus/common/config"
@@ -23,6 +25,7 @@ import (
 type configGenerator struct {
 	config  *Config
 	secrets *secretManager
+	logger  log.Logger
 }
 
 // the k8s sd config is mostly dependent on our local config for accessing the kubernetes cluster.
@@ -45,26 +48,25 @@ func (cg *configGenerator) generateK8SSDConfig(
 	}
 	if cg.config.ApiServerConfig != nil {
 		apiCfg := cg.config.ApiServerConfig
+		hCfg := apiCfg.HTTPClientConfig
 		cfg.APIServer = apiCfg.Host.Convert()
 
-		if apiCfg.BasicAuth != nil {
-			cfg.HTTPClientConfig.BasicAuth = apiCfg.BasicAuth.Convert()
+		if hCfg.BasicAuth != nil {
+			cfg.HTTPClientConfig.BasicAuth = hCfg.BasicAuth.Convert()
 		}
 
-		if apiCfg.BearerToken != "" {
-			cfg.HTTPClientConfig.BearerToken = commonConfig.Secret(apiCfg.BearerToken)
+		if hCfg.BearerToken != "" {
+			cfg.HTTPClientConfig.BearerToken = commonConfig.Secret(hCfg.BearerToken)
 		}
-		if apiCfg.BearerTokenFile != "" {
-			cfg.HTTPClientConfig.BearerTokenFile = apiCfg.BearerTokenFile
+		if hCfg.BearerTokenFile != "" {
+			cfg.HTTPClientConfig.BearerTokenFile = hCfg.BearerTokenFile
 		}
-		if apiCfg.TLSConfig != nil {
-			cfg.HTTPClientConfig.TLSConfig = *apiCfg.TLSConfig.Convert()
-		}
-		if apiCfg.Authorization != nil {
-			if apiCfg.Authorization.Type == "" {
-				apiCfg.Authorization.Type = "Bearer"
+		cfg.HTTPClientConfig.TLSConfig = *hCfg.TLSConfig.Convert()
+		if hCfg.Authorization != nil {
+			if hCfg.Authorization.Type == "" {
+				hCfg.Authorization.Type = "Bearer"
 			}
-			cfg.HTTPClientConfig.Authorization = apiCfg.Authorization.Convert()
+			cfg.HTTPClientConfig.Authorization = hCfg.Authorization.Convert()
 		}
 	}
 	if attachMetadata != nil {
@@ -76,7 +78,7 @@ func (cg *configGenerator) generateK8SSDConfig(
 func (cg *configGenerator) getSecretData(ns, name, key string) commonConfig.Secret {
 	tok, err := cg.secrets.GetSecretData(context.Background(), ns, name, key)
 	if err != nil {
-		// TODO: log error or die
+		level.Error(cg.logger).Log("msg", "failed to fetch secret data", "err", err, "secret", fmt.Sprintf("%s/%s", ns, name))
 	} else {
 		return commonConfig.Secret(tok)
 	}
@@ -86,11 +88,19 @@ func (cg *configGenerator) getSecretData(ns, name, key string) commonConfig.Secr
 func (cg *configGenerator) getConfigMapData(ns, name, key string) string {
 	tok, err := cg.secrets.GetConfigMapData(context.Background(), ns, name, key)
 	if err != nil {
-		// TODO: log error or die
+		level.Error(cg.logger).Log("msg", "failed to fetch configmap data", "err", err, "configmap", fmt.Sprintf("%s/%s", ns, name))
 	} else {
 		return tok
 	}
 	return ""
+}
+
+func parseRegexp(s string, l log.Logger) relabel.Regexp {
+	r, err := relabel.NewRegexp(s)
+	if err != nil {
+		level.Error(l).Log("msg", "failed to parse regex", "err", err)
+	}
+	return r
 }
 
 func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodMetricsEndpoint, i int) *config.ScrapeConfig {
@@ -107,8 +117,11 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 	cfg.ServiceDiscoveryConfigs = append(cfg.ServiceDiscoveryConfigs, cg.generateK8SSDConfig(m.Spec.NamespaceSelector, m.Namespace, promk8s.RolePod, m.Spec.AttachMetadata))
 
 	if ep.Interval != "" {
-		// TODO: correct way to convert the durations?
-		cfg.ScrapeInterval, _ = model.ParseDuration(string(ep.Interval))
+		var err error
+		cfg.ScrapeInterval, err = model.ParseDuration(string(ep.Interval))
+		if err != nil {
+			level.Error(cg.logger).Log("msg", "failed to fetch parse Interval from podMonitor", "err", err)
+		}
 	}
 	if ep.ScrapeTimeout != "" {
 		cfg.ScrapeInterval, _ = model.ParseDuration(string(ep.ScrapeTimeout))
@@ -117,8 +130,11 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 		cfg.MetricsPath = ep.Path
 	}
 	if ep.ProxyURL != nil {
-		u, _ := url.Parse(*ep.ProxyURL)
-		cfg.HTTPClientConfig.ProxyURL = commonConfig.URL{URL: u}
+		if u, err := url.Parse(*ep.ProxyURL); err != nil {
+			level.Error(cg.logger).Log("msg", "failed to fetch parse ProxyURL from podMonitor", "err", err)
+		} else {
+			cfg.HTTPClientConfig.ProxyURL = commonConfig.URL{URL: u}
+		}
 	}
 	if ep.Params != nil {
 		cfg.Params = ep.Params
@@ -153,7 +169,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 		relabels.Add(&relabel.Config{
 			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_phase"},
 			Action:       "drop",
-			Regex:        relabel.MustNewRegexp("(Failed|Succeeded)"),
+			Regex:        parseRegexp("(Failed|Succeeded)", cg.logger),
 		})
 	}
 
@@ -169,7 +185,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 		relabels.Add(&relabel.Config{
 			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_label_" + sanitizeLabelName(k), "__meta_kubernetes_pod_labelpresent_" + sanitizeLabelName(k)},
 			Action:       "keep",
-			Regex:        relabel.MustNewRegexp(fmt.Sprintf("(%s);true", m.Spec.Selector.MatchLabels[k])),
+			Regex:        parseRegexp(fmt.Sprintf("(%s);true", m.Spec.Selector.MatchLabels[k]), cg.logger),
 		})
 	}
 
@@ -181,25 +197,25 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 			relabels.Add(&relabel.Config{
 				SourceLabels: model.LabelNames{"__meta_kubernetes_pod_label_" + sanitizeLabelName(exp.Key), "__meta_kubernetes_pod_labelpresent_" + sanitizeLabelName(exp.Key)},
 				Action:       "keep",
-				Regex:        relabel.MustNewRegexp(fmt.Sprintf("(%s);true", strings.Join(exp.Values, "|"))),
+				Regex:        parseRegexp(fmt.Sprintf("(%s);true", strings.Join(exp.Values, "|")), cg.logger),
 			})
 		case metav1.LabelSelectorOpNotIn:
 			relabels.Add(&relabel.Config{
 				SourceLabels: model.LabelNames{"__meta_kubernetes_pod_label_" + sanitizeLabelName(exp.Key), "__meta_kubernetes_pod_labelpresent_" + sanitizeLabelName(exp.Key)},
 				Action:       "drop",
-				Regex:        relabel.MustNewRegexp(fmt.Sprintf("(%s);true", strings.Join(exp.Values, "|"))),
+				Regex:        parseRegexp(fmt.Sprintf("(%s);true", strings.Join(exp.Values, "|")), cg.logger),
 			})
 		case metav1.LabelSelectorOpExists:
 			relabels.Add(&relabel.Config{
 				SourceLabels: model.LabelNames{"__meta_kubernetes_pod_labelpresent_" + sanitizeLabelName(exp.Key)},
 				Action:       "keep",
-				Regex:        relabel.MustNewRegexp("true"),
+				Regex:        parseRegexp("true", cg.logger),
 			})
 		case metav1.LabelSelectorOpDoesNotExist:
 			relabels.Add(&relabel.Config{
 				SourceLabels: model.LabelNames{"__meta_kubernetes_pod_labelpresent_" + sanitizeLabelName(exp.Key)},
 				Action:       "drop",
-				Regex:        relabel.MustNewRegexp("true"),
+				Regex:        parseRegexp("true", cg.logger),
 			})
 		}
 	}
@@ -209,7 +225,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 		relabels.Add(&relabel.Config{
 			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_container_port_name"},
 			Action:       "keep",
-			Regex:        relabel.MustNewRegexp(ep.Port),
+			Regex:        parseRegexp(ep.Port, cg.logger),
 		})
 	} else if ep.TargetPort != nil { //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
 		//nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
@@ -217,14 +233,14 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 			relabels.Add(&relabel.Config{
 				SourceLabels: model.LabelNames{"__meta_kubernetes_pod_container_port_name"},
 				Action:       "keep",
-				Regex:        relabel.MustNewRegexp(ep.TargetPort.String()),
+				Regex:        parseRegexp(ep.TargetPort.String(), cg.logger),
 			})
 		}
 	} else if ep.TargetPort.IntVal != 0 { //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
 		relabels.Add(&relabel.Config{
 			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_container_port_number"},
 			Action:       "keep",
-			Regex:        relabel.MustNewRegexp(ep.TargetPort.String()),
+			Regex:        parseRegexp(ep.TargetPort.String(), cg.logger),
 		})
 	}
 
@@ -245,7 +261,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 		relabels.Add(&relabel.Config{
 			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_label_" + sanitizeLabelName(l)},
 			Replacement:  "${1}",
-			Regex:        relabel.MustNewRegexp("(.+)"),
+			Regex:        parseRegexp("(.+)", cg.logger),
 			TargetLabel:  string(sanitizeLabelName(l)),
 		})
 	}
@@ -264,7 +280,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 		relabels.Add(&relabel.Config{
 			Replacement:  "${1}",
 			TargetLabel:  "job",
-			Regex:        relabel.MustNewRegexp("(.+)"),
+			Regex:        parseRegexp("(.+)", cg.logger),
 			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_label_" + sanitizeLabelName(m.Spec.JobLabel)},
 		})
 	}
@@ -301,29 +317,29 @@ func (cg *configGenerator) generateSafeTLS(namespace string, tls v1.SafeTLSConfi
 	if tls.CA.Secret != nil {
 		tc.CAFile, err = cg.secrets.StoreSecretData(ctx, namespace, tls.CA.Secret.Name, tls.CA.Secret.Key)
 		if err != nil {
-			// log error
+			level.Error(cg.logger).Log("msg", "failed to store secret data", "err", err, "secret", fmt.Sprintf("%s/%s", namespace, tls.CA.Secret.Name))
 		}
 	} else if tls.CA.ConfigMap != nil {
 		tc.CAFile, err = cg.secrets.StoreConfigMapData(ctx, namespace, tls.CA.ConfigMap.Name, tls.CA.ConfigMap.Key)
 		if err != nil {
-			// log error
+			level.Error(cg.logger).Log("msg", "failed to store configmap data", "err", err, "configmap", fmt.Sprintf("%s/%s", namespace, tls.CA.ConfigMap.Name))
 		}
 	}
 	if tls.Cert.Secret != nil {
 		tc.CertFile, err = cg.secrets.StoreSecretData(ctx, namespace, tls.Cert.Secret.Name, tls.Cert.Secret.Key)
 		if err != nil {
-			// log error
+			level.Error(cg.logger).Log("msg", "failed to store secret data", "err", err, "secret", fmt.Sprintf("%s/%s", namespace, tls.Cert.Secret.Name))
 		}
 	} else if tls.Cert.ConfigMap != nil {
 		tc.CertFile, err = cg.secrets.StoreConfigMapData(ctx, namespace, tls.Cert.ConfigMap.Name, tls.Cert.ConfigMap.Key)
 		if err != nil {
-			// log error
+			level.Error(cg.logger).Log("msg", "failed to store configmap data", "err", err, "configmap", fmt.Sprintf("%s/%s", namespace, tls.Cert.ConfigMap.Name))
 		}
 	}
 	if tls.KeySecret != nil {
 		tc.KeyFile, err = cg.secrets.StoreSecretData(ctx, namespace, tls.KeySecret.Name, tls.KeySecret.Key)
 		if err != nil {
-			// log error
+			level.Error(cg.logger).Log("msg", "failed to store secret data", "err", err, "secret", fmt.Sprintf("%s/%s", namespace, tls.KeySecret.Name))
 		}
 	}
 	if tls.ServerName != "" {
@@ -334,6 +350,7 @@ func (cg *configGenerator) generateSafeTLS(namespace string, tls v1.SafeTLSConfi
 
 type relabeler struct {
 	configs []*relabel.Config
+	logger  log.Logger
 }
 
 func (r *relabeler) Add(cfgs ...*relabel.Config) {
@@ -369,11 +386,7 @@ func (r *relabeler) addFromV1(cfgs ...*v1.RelabelConfig) {
 			cfg.TargetLabel = c.TargetLabel
 		}
 		if c.Regex != "" {
-			if r, err := relabel.NewRegexp(c.Regex); err != nil {
-				cfg.Regex = r
-			} else {
-				// TODO: LOG ERROR?
-			}
+			cfg.Regex = parseRegexp(c.Regex, r.logger)
 		}
 		if c.Modulus != 0 {
 			cfg.Modulus = c.Modulus
@@ -389,7 +402,9 @@ func (r *relabeler) addFromV1(cfgs ...*v1.RelabelConfig) {
 }
 
 func (cg *configGenerator) initRelabelings(cfg *config.ScrapeConfig) relabeler {
-	r := relabeler{}
+	r := relabeler{
+		logger: cg.logger,
+	}
 	// Relabel prometheus job name into a meta label
 	r.Add(&relabel.Config{
 		SourceLabels: model.LabelNames{"job"},

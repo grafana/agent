@@ -189,6 +189,7 @@ func (c *crdManager) run(ctx context.Context) {
 	c.cg = configGenerator{
 		config:  c.config,
 		secrets: sm,
+		logger:  c.logger,
 	}
 
 	factory := promop.NewSharedInformerFactory(promClientset, 5*time.Minute)
