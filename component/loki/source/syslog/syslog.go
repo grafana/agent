@@ -122,6 +122,7 @@ func (c *Component) Update(args component.Arguments) error {
 			c.listeners = append(c.listeners, t)
 		}
 	}
+	c.lc = newArgs.SyslogListeners
 
 	return nil
 }
