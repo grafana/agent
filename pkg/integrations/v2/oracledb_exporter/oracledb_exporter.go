@@ -33,6 +33,7 @@ var DefaultConfig = Config{
 
 var (
 	errNoConnectionString = errors.New("no connection string was provided")
+	errNoHostname         = errors.New("no hostname in connection string")
 )
 
 // Config is the configuration for the oracledb v2 integration
@@ -55,10 +56,20 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 // Validate returns errors if the configuration is invalid and the exporter could not function with it
 func (c *Config) Validate() error {
 	if c.ConnectionString == "" {
-		return errors.New("no connection string was provided")
+		return errNoConnectionString
 	}
-	if _, err := dburl.Parse(c.ConnectionString); err != nil {
+	u, err := dburl.Parse(c.ConnectionString)
+	if err != nil {
 		return fmt.Errorf("unable to parse connection string: %w", err)
+	}
+
+	if u.Scheme != "oracle" {
+		return fmt.Errorf("unexpected scheme of type '%s'. Was expecting 'oracle': %w", u.Scheme, err)
+	}
+
+	// hostname is required for identification
+	if u.Hostname() == "" {
+		return errNoHostname
 	}
 	return nil
 }

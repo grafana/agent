@@ -7,6 +7,7 @@ import (
 
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/common"
+	go_ora "github.com/sijms/go-ora/v2"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )
@@ -50,11 +51,37 @@ func TestConfigValidate(t *testing.T) {
 			},
 		},
 		{
+			name: "go_ora built connection string",
+			getConfig: func() Config {
+				c := DefaultConfig
+				c.ConnectionString = go_ora.BuildUrl("localhost", 1521, "service", "user", "pass", nil)
+				return c
+			},
+		},
+		{
+			name: "no hostname",
+			getConfig: func() Config {
+				c := DefaultConfig
+				c.ConnectionString = go_ora.BuildUrl("", 1521, "service", "user", "pass", nil)
+				return c
+			},
+			expectedErr: errNoHostname,
+		},
+		{
 			name: "no connection string",
 			getConfig: func() Config {
 				return DefaultConfig
 			},
 			expectedErr: errNoConnectionString,
+		},
+		{
+			name: "invalid scheme - cockroachdb",
+			getConfig: func() Config {
+				c := DefaultConfig
+				c.ConnectionString = "postgres://maxroach@localhost:26257/movr?password=pwd"
+				return c
+			},
+			expectedErr: errors.New("unexpected scheme of type 'postgres'. Was expecting 'oracle'"),
 		},
 		{
 			name: "invalid connection string",
