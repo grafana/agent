@@ -37,7 +37,7 @@ type Config struct {
 	QueryTimeout         int           `yaml:"query_timeout"`
 }
 
-// Validate returnsif the configuration is valid
+// Validate returns if the configuration is valid
 func (c *Config) Validate() error {
 	if c.ConnectionString == "" {
 		return errNoConnectionString
@@ -79,7 +79,7 @@ func init() {
 	integrations.RegisterIntegration(&Config{})
 }
 
-// New creates a new oracledb integration. The integrationscrapes metrics
+// New creates a new oracledb integration. The integration scrapes metrics
 // from an OracleDB exporter running with the https://github.com/iamseth/oracledb_exporter
 func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	if err := c.Validate(); err != nil {
