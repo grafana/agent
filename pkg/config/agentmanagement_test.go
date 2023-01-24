@@ -10,7 +10,6 @@ import (
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/common/config"
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/yaml.v2"
 )
 
 // testRemoteConfigProvider is an implementation of remoteConfigProvider that can be
@@ -177,8 +176,7 @@ func TestGetRemoteConfig_InvalidInitialConfig(t *testing.T) {
 func TestGetRemoteConfig_UnmarshallableRemoteConfig(t *testing.T) {
 	brokenCfg := `completely invalid config (maybe it got corrupted, maybe it was somehow set this way)`
 
-	invalidCfgBytes, err := yaml.Marshal(brokenCfg)
-	assert.NoError(t, err)
+	invalidCfgBytes := []byte(brokenCfg)
 
 	am := validAgentManagement
 	logger := server.NewLogger(&server.DefaultConfig)
