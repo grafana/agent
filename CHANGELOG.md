@@ -45,12 +45,9 @@ Main (unreleased)
     receivers. (@tpaschalis)
   - `loki.source.gelf` listens for Graylog logs. (@mattdurham)
 
-
-
 - Flow components which work with relabeling rules (`discovery.relabel`,
   `prometheus.relabel` and `loki.relabel`) now export a new value named Rules.
-  This value is a function that returns the currently configured rules.
-  (@tpaschalis)
+  This value returns a copy of the currently configured rules. (@tpaschalis)
 
 - New experimental feature: agent-management. Polls configured remote API to fetch new configs. (@spartan0x117)
 
