@@ -54,7 +54,7 @@ func TestConfigValidate(t *testing.T) {
 			expectedErr: errNoConnectionString,
 		},
 		{
-			name: "invalid conneciton string",
+			name: "invalid connection string",
 			getConfig: func() Config {
 				c := DefaultConfig
 				c.ConnectionString = "localhost:1521"
