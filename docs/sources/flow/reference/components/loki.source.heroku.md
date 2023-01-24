@@ -25,13 +25,11 @@ different labels.
 
 ```river
 loki.source.heroku "LABEL" {
-  listener {
-    address = "LISTEN_ADDRESS"
-    port = PORT
-  }
-  ...
-
-  forward_to = RECEIVER_LIST
+    listener {
+        address = "LISTEN_ADDRESS"
+        port    = PORT
+    }
+    forward_to = RECEIVER_LIST
 }
 ```
 
@@ -70,20 +68,11 @@ Name                     | Type          | Description | Default | Required
 `address`                | `string`      | The `<host>` address to listen to for heroku messages. | `0.0.0.0` | no
 `port`                   | `int`         | The `<port>` to listen to for heroku messages. | | yes
 
-Example Block
-
-```river
-listener {
-  address  = "127.0.0.1"
-  port = 8080
-}
-```
-
 ## Labels
 
 The `labels` map is applied to every message that the component reads.
 
-The following internal labels are available for relabeling:
+The following internal labels all prefixed with `__` are available but will be discarded if not relabeled:
 - `__heroku_drain_host`
 - `__heroku_drain_app`
 - `__heroku_drain_proc`
@@ -118,19 +107,19 @@ This example listens for Heroku messages over TCP in the specified port and forw
 
 ```river
 loki.source.heroku "local" {
-  listener {
-    address  = "127.0.0.1"
-    port = 8080
-  }
-  use_incoming_timestamp = true
-  labels   = { component = "loki.source.heroku"} 
-  forward_to = [loki.write.local.receiver]
+    listener {
+        address = "0.0.0.0"
+        port    = 8080
+    }
+    use_incoming_timestamp = true
+    labels                 = {component = "loki.source.heroku"}
+    forward_to             = [loki.write.local.receiver]
 }
 
 loki.write "local" {
-  endpoint {
-    url = "loki:3100/api/v1/push"
-  }
+    endpoint {
+        url = "loki:3100/api/v1/push"
+    }
 }
 ```
 
