@@ -9,7 +9,7 @@ WORKDIR /src/agent
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 SHELL ["cmd", "/C"]
 
-RUN "C:\Program Files\git\bin\bash.exe" -c 'RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} make generate-ui'
+RUN "C:\Program Files\git\bin\bash.exe" -c 'RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} make generate-ui && rm -rf web/ui/node_modules && yarn cache clean --all'
 RUN "C:\Program Files\git\bin\bash.exe" -c 'RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} make agent'
 
 # Use the smallest container possible for the final image
