@@ -110,7 +110,7 @@ github_exporter: <github_exporter_config>
 # Controls the blackbox_exporter integration
 blackbox: <blackbox_config>
 
-# Controls the CloudWatch exporeter integration
+# Controls the CloudWatch exporter integration
 cloudwatch_exporter: <cloudwatch_exporter_config>
 
 # Automatically collect metrics from enabled integrations. If disabled,
