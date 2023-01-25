@@ -90,11 +90,19 @@ func (m *Manager) SyncTargets(ctx context.Context, targets []*Target) error {
 }
 
 func entryForTarget(t *Target) positions.Entry {
+	// The positions entry is keyed by UID to ensure that positions from
+	// completely distinct "namespace/name:container" instances don't interfere
+	// with each other.
+	//
+	// While it's still technically possible for two containers to have the same
+	// "namespace/name:container" string and UID, it's so wildly unlikely that
+	// it's probably not worth handling.
+	//
 	// The path is fed into positions.CursorKey to treat it as a "cursor";
 	// otherise positions.Positions will try to read the path as a file and
 	// delete the entry when it can't find it.
 	return positions.Entry{
-		Path:   positions.CursorKey(t.String()),
+		Path:   positions.CursorKey(t.String() + ":" + t.UID()),
 		Labels: t.Labels().String(),
 	}
 }
