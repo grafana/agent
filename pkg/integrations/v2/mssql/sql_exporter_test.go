@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/pkg/integrations/mssql/common"
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
@@ -20,10 +21,12 @@ func TestConfig_UnmarshalYaml(t *testing.T) {
 		require.NoError(t, yaml.UnmarshalStrict([]byte(strConfig), &c))
 
 		require.Equal(t, Config{
-			ConnectionString:   "sqlserver://user:pass@localhost:1433",
-			MaxIdleConnections: 3,
-			MaxOpenConnections: 3,
-			Timeout:            10 * time.Second,
+			Config: common.Config{
+				ConnectionString:   "sqlserver://user:pass@localhost:1433",
+				MaxIdleConnections: 3,
+				MaxOpenConnections: 3,
+				Timeout:            10 * time.Second,
+			},
 		}, c)
 	})
 
@@ -40,105 +43,19 @@ timeout: 1m
 		require.NoError(t, yaml.UnmarshalStrict([]byte(strConfig), &c))
 
 		require.Equal(t, Config{
-			ConnectionString:   "sqlserver://user:pass@localhost:1433",
-			MaxIdleConnections: 5,
-			MaxOpenConnections: 6,
-			Timeout:            time.Minute,
+			Config: common.Config{
+				ConnectionString:   "sqlserver://user:pass@localhost:1433",
+				MaxIdleConnections: 5,
+				MaxOpenConnections: 6,
+				Timeout:            time.Minute,
+			},
 		}, c)
 	})
 }
 
-func TestConfig_validate(t *testing.T) {
-	testCases := []struct {
-		name  string
-		input Config
-		err   string
-	}{
-		{
-			name: "valid config",
-			input: Config{
-				ConnectionString:   "sqlserver://user:pass@localhost:1433",
-				MaxIdleConnections: 3,
-				MaxOpenConnections: 3,
-				Timeout:            10 * time.Second,
-			},
-		},
-		{
-			name: "incorrect connection_string scheme",
-			input: Config{
-				ConnectionString:   "mysql://user:pass@localhost:1433",
-				MaxIdleConnections: 3,
-				MaxOpenConnections: 3,
-				Timeout:            10 * time.Second,
-			},
-			err: "scheme of provided connection_string URL must be sqlserver",
-		},
-		{
-			name: "invalid URL",
-			input: Config{
-				ConnectionString:   "\u0001",
-				MaxIdleConnections: 3,
-				MaxOpenConnections: 3,
-				Timeout:            10 * time.Second,
-			},
-			err: "failed to parse connection_string",
-		},
-		{
-			name: "missing connection_string",
-			input: Config{
-				MaxIdleConnections: 3,
-				MaxOpenConnections: 3,
-				Timeout:            10 * time.Second,
-			},
-			err: "the connection_string parameter is required",
-		},
-		{
-			name: "max connections is less than 1",
-			input: Config{
-				ConnectionString:   "sqlserver://user:pass@localhost:1433",
-				MaxIdleConnections: 3,
-				MaxOpenConnections: 0,
-				Timeout:            10 * time.Second,
-			},
-			err: "max_connections must be at least 1",
-		},
-		{
-			name: "max idle connections is less than 1",
-			input: Config{
-				ConnectionString:   "sqlserver://user:pass@localhost:1433",
-				MaxIdleConnections: 0,
-				MaxOpenConnections: 3,
-				Timeout:            10 * time.Second,
-			},
-			err: "max_idle_connection must be at least 1",
-		},
-		{
-			name: "timeout is not positive",
-			input: Config{
-				ConnectionString:   "sqlserver://user:pass@localhost:1433",
-				MaxIdleConnections: 3,
-				MaxOpenConnections: 3,
-				Timeout:            0,
-			},
-			err: "timeout must be positive",
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			err := tc.input.validate()
-			if tc.err == "" {
-				require.NoError(t, err)
-			} else {
-				require.Error(t, err)
-				require.ErrorContains(t, err, tc.err)
-			}
-		})
-	}
-}
 func TestConfig_Identifier(t *testing.T) {
 	t.Run("Identifier is in common config", func(t *testing.T) {
-		c := DefaultConfig
+		c := Config{}
 
 		ik := "mssql-instance-key"
 		c.Common.InstanceKey = &ik
@@ -149,8 +66,8 @@ func TestConfig_Identifier(t *testing.T) {
 	})
 
 	t.Run("Identifier is not in common config", func(t *testing.T) {
-		c := DefaultConfig
-		c.ConnectionString = "sqlserver://user:pass@localhost:1433"
+		c := Config{}
+		c.Config.ConnectionString = "sqlserver://user:pass@localhost:1433"
 
 		id, err := c.Identifier(integrations_v2.Globals{})
 		require.NoError(t, err)
@@ -158,8 +75,8 @@ func TestConfig_Identifier(t *testing.T) {
 	})
 
 	t.Run("Identifier is not in common config, invalid URL", func(t *testing.T) {
-		c := DefaultConfig
-		c.ConnectionString = "\u0001"
+		c := Config{}
+		c.Config.ConnectionString = "\u0001"
 
 		_, err := c.Identifier(integrations_v2.Globals{})
 		require.Error(t, err)
@@ -170,10 +87,12 @@ func TestConfig_Identifier(t *testing.T) {
 func TestConfig_NewIntegration(t *testing.T) {
 	t.Run("integration with valid config", func(t *testing.T) {
 		c := &Config{
-			ConnectionString:   "sqlserver://user:pass@localhost:1433",
-			MaxIdleConnections: 3,
-			MaxOpenConnections: 3,
-			Timeout:            10 * time.Second,
+			Config: common.Config{
+				ConnectionString:   "sqlserver://user:pass@localhost:1433",
+				MaxIdleConnections: 3,
+				MaxOpenConnections: 3,
+				Timeout:            10 * time.Second,
+			},
 		}
 
 		i, err := c.NewIntegration(log.NewJSONLogger(os.Stdout), integrations_v2.Globals{})
@@ -183,10 +102,12 @@ func TestConfig_NewIntegration(t *testing.T) {
 
 	t.Run("integration with invalid config", func(t *testing.T) {
 		c := &Config{
-			ConnectionString:   "\u0001",
-			MaxIdleConnections: 3,
-			MaxOpenConnections: 3,
-			Timeout:            10 * time.Second,
+			Config: common.Config{
+				ConnectionString:   "\u0001",
+				MaxIdleConnections: 3,
+				MaxOpenConnections: 3,
+				Timeout:            10 * time.Second,
+			},
 		}
 
 		i, err := c.NewIntegration(log.NewJSONLogger(os.Stdout), integrations_v2.Globals{})
@@ -196,7 +117,7 @@ func TestConfig_NewIntegration(t *testing.T) {
 }
 
 func TestConfig_ApplyDefaults(t *testing.T) {
-	c := DefaultConfig
+	c := Config{}
 
 	err := c.ApplyDefaults(integrations_v2.Globals{})
 	require.NoError(t, err)

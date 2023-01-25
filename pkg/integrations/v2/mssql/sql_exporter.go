@@ -1,7 +1,6 @@
 package mssql_exporter
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -20,49 +19,14 @@ import (
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 )
 
-// DefaultConfig is the default config for the mssql v2 integration
-var DefaultConfig = Config{
-	MaxIdleConnections: 3,
-	MaxOpenConnections: 3,
-	Timeout:            10 * time.Second,
-}
-
 // Config is the configuration for the mssql v2 integration
 type Config struct {
-	ConnectionString   string               `yaml:"connection_string,omitempty"`
-	MaxIdleConnections int                  `yaml:"max_idle_connections,omitempty"`
-	MaxOpenConnections int                  `yaml:"max_open_connections,omitempty"`
-	Timeout            time.Duration        `yaml:"timeout,omitempty"`
-	Common             common.MetricsConfig `yaml:",inline"`
+	Config mssql_common.Config  `yaml:",inline"`
+	Common common.MetricsConfig `yaml:",inline"`
 }
 
 func (c Config) validate() error {
-	if c.ConnectionString == "" {
-		return errors.New("the connection_string parameter is required")
-	}
-
-	url, err := url.Parse(c.ConnectionString)
-	if err != nil {
-		return fmt.Errorf("failed to parse connection_string: %w", err)
-	}
-
-	if url.Scheme != "sqlserver" {
-		return errors.New("scheme of provided connection_string URL must be sqlserver")
-	}
-
-	if c.MaxOpenConnections < 1 {
-		return errors.New("max_connections must be at least 1")
-	}
-
-	if c.MaxIdleConnections < 1 {
-		return errors.New("max_idle_connection must be at least 1")
-	}
-
-	if c.Timeout <= 0 {
-		return errors.New("timeout must be positive")
-	}
-
-	return nil
+	return c.Config.Validate()
 }
 
 // ApplyDefaults applies the integration's default configuration.
@@ -77,7 +41,7 @@ func (c *Config) Identifier(globals integrations_v2.Globals) (string, error) {
 		return *c.Common.InstanceKey, nil
 	}
 
-	url, err := url.Parse(c.ConnectionString)
+	url, err := url.Parse(c.Config.ConnectionString)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse connection string URL: %w", err)
 	}
@@ -87,7 +51,7 @@ func (c *Config) Identifier(globals integrations_v2.Globals) (string, error) {
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*c = DefaultConfig
+	c.Config = mssql_common.DefaultConfig
 
 	type plain Config
 	return unmarshal((*plain)(c))
@@ -121,16 +85,16 @@ func createHandler(logger log.Logger, c *Config) (http.HandlerFunc, error) {
 	t, err := sql_exporter.NewTarget(
 		"mssqlintegration",
 		"",
-		c.ConnectionString,
+		c.Config.ConnectionString,
 		[]*config.CollectorConfig{
 			&mssql_common.CollectorConfig,
 		},
 		prometheus.Labels{},
 		&config.GlobalConfig{
-			ScrapeTimeout: model.Duration(c.Timeout),
+			ScrapeTimeout: model.Duration(c.Config.Timeout),
 			TimeoutOffset: model.Duration(500 * time.Millisecond),
-			MaxConns:      c.MaxOpenConnections,
-			MaxIdleConns:  c.MaxIdleConnections,
+			MaxConns:      c.Config.MaxOpenConnections,
+			MaxIdleConns:  c.Config.MaxIdleConnections,
 		},
 	)
 

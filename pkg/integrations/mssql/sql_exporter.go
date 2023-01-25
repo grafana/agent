@@ -1,7 +1,6 @@
 package mssql
 
 import (
-	"errors"
 	"fmt"
 	"net/url"
 	"time"
@@ -16,48 +15,11 @@ import (
 	"github.com/prometheus/common/model"
 )
 
-// DefaultConfig is the default config for the mssql integration
-var DefaultConfig = Config{
-	MaxIdleConnections: 3,
-	MaxOpenConnections: 3,
-	Timeout:            10 * time.Second,
-}
+type Config common.Config
 
-// Config is the configuration for the mssql integration
-type Config struct {
-	ConnectionString   string        `yaml:"connection_string,omitempty"`
-	MaxIdleConnections int           `yaml:"max_idle_connections,omitempty"`
-	MaxOpenConnections int           `yaml:"max_open_connections,omitempty"`
-	Timeout            time.Duration `yaml:"timeout,omitempty"`
-}
-
-func (c Config) validate() error {
-	if c.ConnectionString == "" {
-		return errors.New("the connection_string parameter is required")
-	}
-
-	url, err := url.Parse(c.ConnectionString)
-	if err != nil {
-		return fmt.Errorf("failed to parse connection_string: %w", err)
-	}
-
-	if url.Scheme != "sqlserver" {
-		return errors.New("scheme of provided connection_string URL must be sqlserver")
-	}
-
-	if c.MaxOpenConnections < 1 {
-		return errors.New("max_connections must be at least 1")
-	}
-
-	if c.MaxIdleConnections < 1 {
-		return errors.New("max_idle_connection must be at least 1")
-	}
-
-	if c.Timeout <= 0 {
-		return errors.New("timeout must be positive")
-	}
-
-	return nil
+// Validate validates the config.
+func (c Config) Validate() error {
+	return common.Config(c).Validate()
 }
 
 // Identifier returns a string that identifies the integration.
@@ -72,10 +34,8 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*c = DefaultConfig
-
-	type plain Config
-	return unmarshal((*plain)(c))
+	// Use common unmarshal logic
+	return unmarshal((*common.Config)(c))
 }
 
 // Name returns the name of the integration this config is for.
@@ -89,8 +49,7 @@ func init() {
 
 // NewIntegration creates a new integration from the config.
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
-	err := c.validate()
-	if err != nil {
+	if err := c.Validate(); err != nil {
 		return nil, fmt.Errorf("failed to validate config: %w", err)
 	}
 
