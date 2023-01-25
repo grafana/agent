@@ -61,6 +61,8 @@ volumes:
 ---
 kind: pipeline
 name: Check Windows build image
+node:
+  type: windows-aws
 platform:
   arch: amd64
   os: windows
@@ -88,6 +90,8 @@ volumes:
 ---
 kind: pipeline
 name: Create Windows build image
+node:
+  type: windows-aws
 platform:
   arch: amd64
   os: windows
@@ -159,6 +163,8 @@ volumes:
 ---
 kind: pipeline
 name: Test (Windows)
+node:
+  type: windows-aws
 platform:
   arch: amd64
   os: windows
@@ -247,6 +253,8 @@ volumes:
 ---
 kind: pipeline
 name: Check Windows containers
+node:
+  type: windows-aws
 platform:
   arch: amd64
   os: windows
@@ -356,6 +364,8 @@ type: docker
 ---
 kind: pipeline
 name: Publish Windows Docker containers
+node:
+  type: windows-aws
 platform:
   arch: amd64
   os: windows
@@ -463,6 +473,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: 2f6398f1c883da45b44b021e7f5fb269ce0ed0f9b7e79a7bcd151e2ee1307187
+hmac: 3cf41f92803bbdb258b53fb3a0928a921bddab73cd428fe516b6849aca419f4e
 
 ...
