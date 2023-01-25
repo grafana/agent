@@ -137,7 +137,7 @@ func (c *Component) Update(args component.Arguments) error {
 		rcs = flow_relabel.ComponentToPromRelabelConfigs(newArgs.RelabelRules)
 	}
 
-	if configsChanged(c.args, newArgs) {
+	if listenerChanged(c.args.HerokuListener, newArgs.HerokuListener) || relabelRulesChanged(c.args.RelabelRules, newArgs.RelabelRules) {
 		if c.target != nil {
 			err := c.target.Stop()
 			if err != nil {
@@ -194,6 +194,9 @@ type readerDebugInfo struct {
 	Address string `river:"address,attr"`
 }
 
-func configsChanged(prev, next Arguments) bool {
+func listenerChanged(prev, next ListenerConfig) bool {
+	return !reflect.DeepEqual(prev, next)
+}
+func relabelRulesChanged(prev, next flow_relabel.Rules) bool {
 	return !reflect.DeepEqual(prev, next)
 }

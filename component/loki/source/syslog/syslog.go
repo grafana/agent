@@ -103,7 +103,7 @@ func (c *Component) Update(args component.Arguments) error {
 		rcs = flow_relabel.ComponentToPromRelabelConfigs(newArgs.RelabelRules)
 	}
 
-	if configsChanged(c.args, newArgs) {
+	if listenersChanged(c.args.SyslogListeners, newArgs.SyslogListeners) || relabelRulesChanged(c.args.RelabelRules, newArgs.RelabelRules) {
 		for _, l := range c.targets {
 			err := l.Stop()
 			if err != nil {
@@ -124,7 +124,6 @@ func (c *Component) Update(args component.Arguments) error {
 
 		c.args = newArgs
 	}
-	c.lc = newArgs.SyslogListeners
 
 	return nil
 }
@@ -155,6 +154,9 @@ type listenerInfo struct {
 	Labels        string `river:"labels,attr"`
 }
 
-func configsChanged(prev, next Arguments) bool {
+func listenersChanged(prev, next []ListenerConfig) bool {
+	return !reflect.DeepEqual(prev, next)
+}
+func relabelRulesChanged(prev, next flow_relabel.Rules) bool {
 	return !reflect.DeepEqual(prev, next)
 }
