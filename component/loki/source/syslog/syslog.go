@@ -37,10 +37,10 @@ type Component struct {
 	opts    component.Options
 	metrics *st.Metrics
 
-	mut       sync.RWMutex
-	lc        []ListenerConfig
-	fanout    []loki.LogsReceiver
-	listeners []*st.SyslogTarget
+	mut     sync.RWMutex
+	args    Arguments
+	fanout  []loki.LogsReceiver
+	targets []*st.SyslogTarget
 
 	handler loki.LogsReceiver
 }
@@ -53,7 +53,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		handler: make(loki.LogsReceiver),
 		fanout:  args.ForwardTo,
 
-		listeners: []*st.SyslogTarget{},
+		targets: []*st.SyslogTarget{},
 	}
 
 	// Call to Update() to start readers and set receivers once at the start.
@@ -68,7 +68,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 func (c *Component) Run(ctx context.Context) error {
 	defer func() {
 		level.Info(c.opts.Logger).Log("msg", "loki.source.syslog component shutting down, stopping listeners")
-		for _, l := range c.listeners {
+		for _, l := range c.targets {
 			err := l.Stop()
 			if err != nil {
 				level.Error(c.opts.Logger).Log("msg", "error while stopping syslog listener", "err", err)
@@ -103,14 +103,14 @@ func (c *Component) Update(args component.Arguments) error {
 		rcs = flow_relabel.ComponentToPromRelabelConfigs(newArgs.RelabelRules)
 	}
 
-	if configsChanged(c.lc, newArgs.SyslogListeners) {
-		for _, l := range c.listeners {
+	if configsChanged(c.args, newArgs) {
+		for _, l := range c.targets {
 			err := l.Stop()
 			if err != nil {
 				level.Error(c.opts.Logger).Log("msg", "error while stopping syslog listener", "err", err)
 			}
 		}
-		c.listeners = make([]*st.SyslogTarget, 0)
+		c.targets = make([]*st.SyslogTarget, 0)
 		entryHandler := loki.NewEntryHandler(c.handler, func() {})
 
 		for _, cfg := range newArgs.SyslogListeners {
@@ -119,9 +119,12 @@ func (c *Component) Update(args component.Arguments) error {
 				level.Error(c.opts.Logger).Log("msg", "failed to create syslog listener with provided config", "err", err)
 				continue
 			}
-			c.listeners = append(c.listeners, t)
+			c.targets = append(c.targets, t)
 		}
+
+		c.args = newArgs
 	}
+	c.lc = newArgs.SyslogListeners
 
 	return nil
 }
@@ -130,7 +133,7 @@ func (c *Component) Update(args component.Arguments) error {
 func (c *Component) DebugInfo() interface{} {
 	var res readerDebugInfo
 
-	for _, t := range c.listeners {
+	for _, t := range c.targets {
 		res.ListenersInfo = append(res.ListenersInfo, listenerInfo{
 			Type:          string(t.Type()),
 			Ready:         t.Ready(),
@@ -152,14 +155,6 @@ type listenerInfo struct {
 	Labels        string `river:"labels,attr"`
 }
 
-func configsChanged(prev, next []ListenerConfig) bool {
-	if len(prev) != len(next) {
-		return true
-	}
-	for i := range prev {
-		if !reflect.DeepEqual(prev[i], next[i]) {
-			return true
-		}
-	}
-	return false
+func configsChanged(prev, next Arguments) bool {
+	return !reflect.DeepEqual(prev, next)
 }

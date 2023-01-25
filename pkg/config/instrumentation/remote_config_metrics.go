@@ -9,8 +9,9 @@ import (
 )
 
 type remoteConfigMetrics struct {
-	fetchStatusCodes *prometheus.CounterVec
-	fetchErrors      prometheus.Counter
+	fetchStatusCodes   *prometheus.CounterVec
+	fetchErrors        prometheus.Counter
+	invalidConfigFetch *prometheus.CounterVec
 }
 
 var metrics *remoteConfigMetrics
@@ -37,6 +38,14 @@ func newRemoteConfigMetrics() *remoteConfigMetrics {
 		},
 	)
 
+	remoteConfigMetrics.invalidConfigFetch = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "agent_remote_config_invalid_total",
+			Help: "Number of validation errors by reason (i.e. invalid yaml or an invalid agent config)",
+		},
+		[]string{"reason"},
+	)
+
 	return &remoteConfigMetrics
 }
 
@@ -48,4 +57,9 @@ func InstrumentRemoteConfigFetch(statusCode int) {
 func InstrumentRemoteConfigFetchError() {
 	metricsInitializer.Do(initializeRemoteConfigMetrics)
 	metrics.fetchErrors.Inc()
+}
+
+func InstrumentInvalidRemoteConfig(reason string) {
+	metricsInitializer.Do(initializeRemoteConfigMetrics)
+	metrics.invalidConfigFetch.WithLabelValues(reason).Inc()
 }

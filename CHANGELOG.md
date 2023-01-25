@@ -36,14 +36,19 @@ Main (unreleased)
   - `phlare.write` sends application performance profiles to Grafana Phlare. (@cyriltovena)
   - `otelcol.receiver.zipkin` receives Zipkin-formatted traces. (@rfratto)
   - `otelcol.receiver.opencensus` receives OpenConsensus-formatted traces or metrics. (@ptodev)
+  - `loki.source.heroku` listens for Heroku messages over TCP a connection and forwards them to other `loki` components. (@erikbaranowski)
   - `loki.source.windowsevent` reads logs from Windows Event Log. (@mattdurham)
   - `loki.source.syslog` listens for Syslog messages over TCP and UDP
     connections and forwards them to other `loki` components. (@tpaschalis)
   - `loki.source.cloudflare` reads logs from Cloudflare's Logpull API and
     forwards them to other `loki` components. (@tpaschalis)
+  - `loki.source.gcplog` reads logs from GCP cloud resources using Pub/Sub
+    subscriptions and forwards them to other `loki` components. (@tpaschalis)
   - `otelcol.exporter.loki` forwards OTLP-formatted data to compatible `loki`
     receivers. (@tpaschalis)
   - `loki.source.gelf` listens for Graylog logs. (@mattdurham)
+  - `otelcol.receiver.loki` receives Loki logs, converts them to the OTLP log
+    format and forwards them to other `otelcol` components. (@tpaschalis)
 
 - Flow components which work with relabeling rules (`discovery.relabel`,
   `prometheus.relabel` and `loki.relabel`) now export a new value named Rules.

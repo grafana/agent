@@ -11,7 +11,9 @@ import (
 	_ "github.com/grafana/agent/component/loki/relabel"                         // Import loki.relabel
 	_ "github.com/grafana/agent/component/loki/source/cloudflare"               // Import loki.source.cloudflare
 	_ "github.com/grafana/agent/component/loki/source/file"                     // Import loki.source.file
+	_ "github.com/grafana/agent/component/loki/source/gcplog"                   // Import loki.source.gcplog
 	_ "github.com/grafana/agent/component/loki/source/gelf"                     // Import loki.source.gelf
+	_ "github.com/grafana/agent/component/loki/source/heroku"                   // Import loki.source.heroku
 	_ "github.com/grafana/agent/component/loki/source/syslog"                   // Import loki.source.syslog
 	_ "github.com/grafana/agent/component/loki/source/windowsevent"             // Import loki.source.windowsevent
 	_ "github.com/grafana/agent/component/loki/write"                           // Import loki.write
@@ -27,6 +29,7 @@ import (
 	_ "github.com/grafana/agent/component/otelcol/processor/memorylimiter"      // Import otelcol.processor.memory_limiter
 	_ "github.com/grafana/agent/component/otelcol/receiver/jaeger"              // Import otelcol.receiver.jaeger
 	_ "github.com/grafana/agent/component/otelcol/receiver/kafka"               // Import otelcol.receiver.kafka
+	_ "github.com/grafana/agent/component/otelcol/receiver/loki"                // Import otelcol.receiver.loki
 	_ "github.com/grafana/agent/component/otelcol/receiver/opencensus"          // Import otelcol.receiver.opencensus
 	_ "github.com/grafana/agent/component/otelcol/receiver/otlp"                // Import otelcol.receiver.otlp
 	_ "github.com/grafana/agent/component/otelcol/receiver/prometheus"          // Import otelcol.receiver.prometheus
