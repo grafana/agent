@@ -9,9 +9,9 @@ title: loki.source.kubernetes
 `loki.source.kubernetes` tails logs from Kubernetes containers using the
 Kubernetes API. It has the following benefits over `loki.source.file`:
 
-* It works without a privileged container
-* It works without a root user
-* It works without needing access to the filesystem of the Kubernetes node
+* It works without a privileged container.
+* It works without a root user.
+* It works without needing access to the filesystem of the Kubernetes node.
 * It doesn't require a DaemonSet to collect logs, so one agent could collect
   logs for the whole cluster.
 
@@ -81,7 +81,7 @@ inside a `client` block.
 ### client block
 
 The `client` block configures the Kubernetes client used to tail logs from
-containers. If the `client` block isn't provided, default in-cluster
+containers. If the `client` block isn't provided, the default in-cluster
 configuration with the service account of the running Grafana Agent pod is
 used.
 
@@ -89,8 +89,8 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`api_server` | `string` | URL of Kubernetes API server. | | no
-`kubeconfig_file` | `string` | Path of kubeconfig file to use for connecting to Kubernetes. | | no
+`api_server` | `string` | URL of the Kubernetes API server. | | no
+`kubeconfig_file` | `string` | Path of the `kubeconfig` file to use for connecting to Kubernetes. | | no
 
 ### http_client_config block
 
