@@ -40,7 +40,7 @@ func (t *testRemoteConfigProvider) CacheRemoteConfig(r []byte) error {
 	return nil
 }
 
-var validAgentManagement = AgentManagementConfig{
+var validAgentManagementConfig = AgentManagementConfig{
 	Enabled: true,
 	Url:     "https://localhost:1234/example/api",
 	BasicAuth: config.BasicAuth{
@@ -57,7 +57,7 @@ var validAgentManagement = AgentManagementConfig{
 }
 
 func TestValidateValidConfig(t *testing.T) {
-	assert.NoError(t, validAgentManagement.Validate())
+	assert.NoError(t, validAgentManagementConfig.Validate())
 }
 
 func TestValidateInvalidBasicAuth(t *testing.T) {
@@ -121,7 +121,7 @@ func TestMissingCacheLocation(t *testing.T) {
 }
 
 func TestSleepTime(t *testing.T) {
-	c := validAgentManagement
+	c := validAgentManagementConfig
 	st, err := c.SleepTime()
 	assert.NoError(t, err)
 	assert.Equal(t, time.Minute*1, st)
@@ -133,7 +133,7 @@ func TestSleepTime(t *testing.T) {
 }
 
 func TestFullUrl(t *testing.T) {
-	c := validAgentManagement
+	c := validAgentManagementConfig
 	actual, err := c.fullUrl()
 	assert.NoError(t, err)
 	assert.Equal(t, "https://localhost:1234/example/api/namespace/test_namespace/remote_config?a=A&b=B", actual)
@@ -141,7 +141,7 @@ func TestFullUrl(t *testing.T) {
 
 func TestGetRemoteConfig_InvalidInitialConfig(t *testing.T) {
 	// this is invalid because it is missing the password file
-	invalidAgentManagement := &AgentManagementConfig{
+	invalidAgentManagementConfig := &AgentManagementConfig{
 		Enabled: true,
 		Url:     "https://localhost:1234/example/api",
 		BasicAuth: config.BasicAuth{
@@ -157,7 +157,7 @@ func TestGetRemoteConfig_InvalidInitialConfig(t *testing.T) {
 	}
 
 	logger := server.NewLogger(&server.DefaultConfig)
-	testProvider := testRemoteConfigProvider{InitialConfig: invalidAgentManagement}
+	testProvider := testRemoteConfigProvider{InitialConfig: invalidAgentManagementConfig}
 
 	// a nil flagset is being used for testing because it should not reach flag validation
 	_, err := getRemoteConfig(true, &testProvider, logger, nil, []string{}, "test")
@@ -170,7 +170,7 @@ func TestGetRemoteConfig_UnmarshallableRemoteConfig(t *testing.T) {
 
 	invalidCfgBytes := []byte(brokenCfg)
 
-	am := validAgentManagement
+	am := validAgentManagementConfig
 	logger := server.NewLogger(&server.DefaultConfig)
 	testProvider := testRemoteConfigProvider{InitialConfig: &am}
 	testProvider.fetchedConfigBytesToReturn = invalidCfgBytes
@@ -186,7 +186,7 @@ func TestGetRemoteConfig_UnmarshallableRemoteConfig(t *testing.T) {
 }
 
 func TestGetRemoteConfig_RemoteFetchFails(t *testing.T) {
-	am := validAgentManagement
+	am := validAgentManagementConfig
 	logger := server.NewLogger(&server.DefaultConfig)
 	testProvider := testRemoteConfigProvider{InitialConfig: &am}
 	testProvider.fetchedConfigErrorToReturn = errors.New("connection refused")
@@ -231,7 +231,7 @@ metrics:
           - localhost:12345`
 	invalidCfgBytes := []byte(invalidConfig)
 
-	am := validAgentManagement
+	am := validAgentManagementConfig
 	logger := server.NewLogger(&server.DefaultConfig)
 	testProvider := testRemoteConfigProvider{InitialConfig: &am}
 	testProvider.fetchedConfigBytesToReturn = invalidCfgBytes
