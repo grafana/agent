@@ -7,7 +7,7 @@ title: otelcol.exporter.jaeger
 # otelcol.exporter.jaeger
 
 `otelcol.exporter.jaeger` accepts telemetry data from other `otelcol` components
-and writes them over the network using the OTLP gRPC protocol.
+and writes them over the network using the Jaeger protocol. 
 
 > **NOTE**: `otelcol.exporter.jaeger` is a wrapper over the upstream
 > OpenTelemetry Collector `jaeger` exporter. Bug reports or feature requests will
