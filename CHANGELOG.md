@@ -47,7 +47,6 @@ Main (unreleased)
     receivers. (@tpaschalis)
   - `otelcol.exporter.jaeger` forwards OTLP-formatted data to compatible `jaeger`
     receivers. (@erikbaranowski)
-  - `loki.source.gelf` listens for Graylog logs. (@mattdurham)
 
 
   - `otelcol.receiver.kafka` receives telemetry data from Kafka. (@rfratto)
