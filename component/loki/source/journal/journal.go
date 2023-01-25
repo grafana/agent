@@ -1,9 +1,21 @@
+//go:build linux && cgo && promtail_journal_enabled
+// +build linux,cgo,promtail_journal_enabled
+
 package journal
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"sync"
 	"time"
+
+	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/component/common/loki/positions"
+	flow_relabel "github.com/grafana/agent/component/common/relabel"
+	"github.com/grafana/agent/component/loki/source/journal/internal/target"
+	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
+	"github.com/prometheus/common/model"
 
 	"github.com/grafana/agent/component"
 )
@@ -21,49 +33,106 @@ func init() {
 
 var _ component.Component = (*Component)(nil)
 
-// Component
+// Component represents reading from a journal
 type Component struct {
-	mut sync.RWMutex
-}
-
-// Run starts the component.
-func (c *Component) Run(ctx context.Context) error {
-	return nil
-}
-
-// Update updates the fields of the component.
-func (c *Component) Update(args component.Arguments) error {
-
-	c.mut.Lock()
-	defer c.mut.Unlock()
-
-	return nil
-}
-
-// Arguments are the arguments for the component.
-type Arguments struct {
-	FormatAsJson bool          `river:"format_as_json,attr,optional"`
-	MaxAge       time.Duration `river:"max_age,attr,optional"`
-	Path         string        `river:"path,attr,optional"`
-}
-
-func defaultArgs() Arguments {
-	return Arguments{}
-}
-
-// UnmarshalRiver implements river.Unmarshaler.
-func (r *Arguments) UnmarshalRiver(f func(v interface{}) error) error {
-	*r = defaultArgs()
-
-	type arguments Arguments
-	if err := f((*arguments)(r)); err != nil {
-		return err
-	}
-
-	return nil
+	mut       sync.RWMutex
+	t         *target.JournalTarget
+	metrics   *target.Metrics
+	o         component.Options
+	handler   *handler
+	positions positions.Positions
+	receivers []loki.LogsReceiver
 }
 
 // New creates a new  component.
 func New(o component.Options, args Arguments) (component.Component, error) {
-	return c, nil
+	positionsFile, err := positions.New(o.Logger, positions.Config{
+		SyncPeriod:        10 * time.Second,
+		PositionsFile:     filepath.Join(o.DataPath, "positions.yml"),
+		IgnoreInvalidYaml: false,
+		ReadOnly:          false,
+	})
+	if err != nil {
+		return nil, err
+	}
+	err = os.MkdirAll(o.DataPath, 0644)
+	if err != nil {
+		return nil, err
+	}
+	c := &Component{
+		metrics:   target.NewMetrics(o.Registerer),
+		o:         o,
+		handler:   &handler{c: make(chan loki.Entry)},
+		positions: positionsFile,
+		receivers: args.Receivers,
+	}
+	err = c.Update(args)
+	return c, err
+}
+
+// Run starts the component.
+func (c *Component) Run(ctx context.Context) error {
+	defer func() {
+		if c.t != nil {
+			c.t.Stop()
+		}
+	}()
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case entry := <-c.handler.c:
+			c.mut.RLock()
+			lokiEntry := loki.Entry{
+				Labels: entry.Labels,
+				Entry:  entry.Entry,
+			}
+			for _, r := range c.receivers {
+				r <- lokiEntry
+			}
+			c.mut.RUnlock()
+		}
+	}
+}
+
+// Update updates the fields of the component.
+func (c *Component) Update(args component.Arguments) error {
+	newArgs := args.(Arguments)
+	c.mut.Lock()
+	defer c.mut.Unlock()
+	if c.t != nil {
+		err := c.t.Stop()
+		if err != nil {
+			return err
+		}
+	}
+	rcs := flow_relabel.ComponentToPromRelabelConfigs(newArgs.RelabelConfigs)
+
+	newTarget, err := target.NewJournalTarget(c.metrics, c.o.Logger, c.handler, c.positions, c.o.ID, rcs, convertArgs(c.o.ID, newArgs))
+	c.t = newTarget
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func convertArgs(job string, a Arguments) *scrapeconfig.JournalTargetConfig {
+	return &scrapeconfig.JournalTargetConfig{
+		MaxAge:  a.MaxAge.String(),
+		JSON:    a.FormatAsJson,
+		Labels:  model.LabelSet{"job": model.LabelValue(job)},
+		Path:    a.Path,
+		Matches: "",
+	}
+}
+
+type handler struct {
+	c chan loki.Entry
+}
+
+func (h *handler) Chan() chan<- loki.Entry {
+	return h.c
+}
+func (handler) Stop() {
+	// noop.
 }

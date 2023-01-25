@@ -12,6 +12,7 @@ import (
 	_ "github.com/grafana/agent/component/loki/source/cloudflare"               // Import loki.source.cloudflare
 	_ "github.com/grafana/agent/component/loki/source/file"                     // Import loki.source.file
 	_ "github.com/grafana/agent/component/loki/source/gelf"                     // Import loki.source.gelf
+	_ "github.com/grafana/agent/component/loki/source/journal"                  // Import loki.source.journal
 	_ "github.com/grafana/agent/component/loki/source/syslog"                   // Import loki.source.syslog
 	_ "github.com/grafana/agent/component/loki/source/windowsevent"             // Import loki.source.windowsevent
 	_ "github.com/grafana/agent/component/loki/write"                           // Import loki.write

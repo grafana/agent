@@ -1,4 +1,8 @@
-package journal
+package target
+
+// This code is copied from Promtail with minor edits. The target package is used to
+// configure and run the targets that can read journal entries and forward them
+// to other loki components.
 
 import "github.com/prometheus/client_golang/prometheus"
 
@@ -9,11 +13,6 @@ type Metrics struct {
 	journalErrors *prometheus.CounterVec
 	journalLines  prometheus.Counter
 }
-
-const (
-	noMessageError   = "no_message"
-	emptyLabelsError = "empty_labels"
-)
 
 // NewMetrics creates a new set of journal target metrics. If reg is non-nil, the
 // metrics will be registered.

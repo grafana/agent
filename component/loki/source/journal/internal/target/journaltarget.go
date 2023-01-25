@@ -1,7 +1,11 @@
 //go:build linux && cgo && promtail_journal_enabled
 // +build linux,cgo,promtail_journal_enabled
 
-package journal
+package target
+
+// This code is copied from Promtail with minor edits. The target package is used to
+// configure and run the targets that can read journal entries and forward them
+// to other loki components.
 
 import (
 	"fmt"
@@ -9,6 +13,9 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/component/common/loki/positions"
 
 	"github.com/coreos/go-systemd/sdjournal"
 	"github.com/go-kit/log"
@@ -19,8 +26,6 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/relabel"
 
-	"github.com/grafana/loki/clients/pkg/promtail/api"
-	"github.com/grafana/loki/clients/pkg/promtail/positions"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
 
@@ -38,6 +43,11 @@ const (
 	// will be read by the journal reader if there is no saved position
 	// newer than the "max_age" time.
 	journalDefaultMaxAgeTime = time.Hour * 7
+)
+
+const (
+	noMessageError   = "no_message"
+	emptyLabelsError = "empty_labels"
 )
 
 type journalReader interface {
@@ -91,7 +101,7 @@ var defaultJournalEntryFunc = func(c sdjournal.JournalReaderConfig, cursor strin
 type JournalTarget struct {
 	metrics       *Metrics
 	logger        log.Logger
-	handler       api.EntryHandler
+	handler       loki.EntryHandler
 	positions     positions.Positions
 	positionPath  string
 	relabelConfig []*relabel.Config
@@ -106,7 +116,7 @@ type JournalTarget struct {
 func NewJournalTarget(
 	metrics *Metrics,
 	logger log.Logger,
-	handler api.EntryHandler,
+	handler loki.EntryHandler,
 	positions positions.Positions,
 	jobName string,
 	relabelConfig []*relabel.Config,
@@ -129,7 +139,7 @@ func NewJournalTarget(
 func journalTargetWithReader(
 	metrics *Metrics,
 	logger log.Logger,
-	handler api.EntryHandler,
+	handler loki.EntryHandler,
 	pos positions.Positions,
 	jobName string,
 	relabelConfig []*relabel.Config,
@@ -139,7 +149,7 @@ func journalTargetWithReader(
 ) (*JournalTarget, error) {
 
 	positionPath := positions.CursorKey(jobName)
-	position := pos.GetString(positionPath)
+	position := pos.GetString(positionPath, "")
 
 	if readerFunc == nil {
 		readerFunc = defaultJournalReaderFunc
@@ -307,15 +317,15 @@ func (t *JournalTarget) formatter(entry *sdjournal.JournalEntry) (string, error)
 	processedLabels := relabel.Process(labels.FromMap(entryLabels), t.relabelConfig...)
 
 	processedLabelsMap := processedLabels.Map()
-	labels := make(model.LabelSet, len(processedLabelsMap))
+	lbls := make(model.LabelSet, len(processedLabelsMap))
 	for k, v := range processedLabelsMap {
 		if k[0:2] == "__" {
 			continue
 		}
 
-		labels[model.LabelName(k)] = model.LabelValue(v)
+		lbls[model.LabelName(k)] = model.LabelValue(v)
 	}
-	if len(labels) == 0 {
+	if len(lbls) == 0 {
 		// No labels, drop journal entry
 		level.Debug(t.logger).Log("msg", "received journal entry with no labels", "unit", entry.Fields["_SYSTEMD_UNIT"])
 		t.metrics.journalErrors.WithLabelValues(emptyLabelsError).Inc()
@@ -323,9 +333,9 @@ func (t *JournalTarget) formatter(entry *sdjournal.JournalEntry) (string, error)
 	}
 
 	t.metrics.journalLines.Inc()
-	t.positions.PutString(t.positionPath, entry.Cursor)
-	t.handler.Chan() <- api.Entry{
-		Labels: labels,
+	t.positions.PutString(t.positionPath, "", entry.Cursor)
+	t.handler.Chan() <- loki.Entry{
+		Labels: lbls,
 		Entry: logproto.Entry{
 			Line:      msg,
 			Timestamp: ts,
@@ -361,7 +371,7 @@ func (t *JournalTarget) Labels() model.LabelSet {
 // Details returns target-specific details.
 func (t *JournalTarget) Details() interface{} {
 	return map[string]string{
-		"position": t.positions.GetString(t.positionPath),
+		"position": t.positions.GetString(t.positionPath, ""),
 	}
 }
 
