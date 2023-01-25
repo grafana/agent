@@ -2,9 +2,10 @@ package azure_exporter
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"errors"
 	"fmt"
-	"math"
 	"net/http"
 	"strings"
 
@@ -17,6 +18,7 @@ import (
 	"github.com/webdevops/azure-metrics-exporter/metrics"
 	"github.com/webdevops/go-common/azuresdk/armclient"
 	"github.com/webdevops/go-common/azuresdk/cloudconfig"
+	"gopkg.in/yaml.v3"
 
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
@@ -40,7 +42,7 @@ var DefaultConfig = Config{
 
 type Config struct {
 	Subscriptions            []string `yaml:"subscriptions"`               // Required
-	ResourceGraphQueryFilter string   `yaml:"resource_graph_query_filter"` // Required
+	ResourceGraphQueryFilter string   `yaml:"resource_graph_query_filter"` // Optional
 
 	// Valid values can be derived from https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/metrics-supported
 	// Required: Root level names ex. Microsoft.DataShare/accounts
@@ -73,8 +75,6 @@ type Config struct {
 	MetricHelpTemplate string `yaml:"metric_help_template"`
 
 	AzureCloudEnvironment string `yaml:"azure_cloud_environment"`
-
-	Common config.Common `yaml:",inline"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config.
@@ -86,14 +86,9 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 
 func (c *Config) InstanceKey(_ string) (string, error) {
-	if c.Common.InstanceKey != nil {
-		return *c.Common.InstanceKey, nil
-	}
-
-	// This will ensure compatibility for running multiple instances in v2 without setting an explicit InstanceKey
-	instanceKey := fmt.Sprintf("%s:%s:%s", c.Name(), strings.Join(c.Subscriptions, ","), c.ResourceType)
-
-	return instanceKey, nil
+	// Running the integration in v2 as a TypeMultiplex requires the instance key is unique per instance
+	// There's no good unique identifier in the config, so we use a hash instead
+	return getHash(c)
 }
 
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
@@ -144,9 +139,10 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 		settings.MetricFilter = builder.String()
 
 		// The metric filter introduces a secondary complexity where data is limited by a "top" parameter (default 10)
-		// We don't get any knowledge if the result is cut off and there's no support for paging
-		// set the value as high as possible to hopefully prevent issues
-		settings.MetricTop = to.Ptr[int32](math.MaxInt32)
+		// We don't get any knowledge if the result is cut off and there's no support for paging, so we set the value as
+		// high as possible to hopefully prevent issues. The API doesn't have a documented limit but any higher values
+		// cause an OOM from the API
+		settings.MetricTop = to.Ptr[int32](100_000_000)
 		settings.MetricOrderBy = "" // Order is only relevant if top won't return all the results our high value should prevent this
 	}
 
@@ -164,9 +160,9 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 	logEntry := logrusLogger.WithFields(logrus.Fields{
 		"resource_type":               c.ResourceType,
 		"resource_graph_query_filter": c.ResourceGraphQueryFilter,
-		"subscriptions":               c.Subscriptions,
+		"subscriptions":               strings.Join(c.Subscriptions, ","),
 		"metric_namespace":            c.MetricNamespace,
-		"metrics":                     c.Metrics,
+		"metrics":                     strings.Join(c.Metrics, ","),
 	})
 	return Exporter{
 		cfg:               c,
@@ -260,4 +256,14 @@ func (e Exporter) ScrapeConfigs() []config.ScrapeConfig {
 func (e Exporter) Run(ctx context.Context) error {
 	<-ctx.Done()
 	return ctx.Err()
+}
+
+// getHash calculates the MD5 hash of the yaml representation of the config
+func getHash(c *Config) (string, error) {
+	bytes, err := yaml.Marshal(c)
+	if err != nil {
+		return "", err
+	}
+	hash := md5.Sum(bytes)
+	return hex.EncodeToString(hash[:]), nil
 }

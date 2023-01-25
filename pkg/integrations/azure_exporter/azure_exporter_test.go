@@ -1,7 +1,6 @@
 package azure_exporter_test
 
 import (
-	"math"
 	"os"
 	"testing"
 
@@ -74,7 +73,7 @@ func TestConfig_NewIntegration_ConfigToSettings(t *testing.T) {
 			},
 			settingsModifier: func(settings metrics.RequestMetricSettings) metrics.RequestMetricSettings {
 				settings.MetricFilter = "dimension1 eq '*'"
-				settings.MetricTop = to.Ptr[int32](math.MaxInt32)
+				settings.MetricTop = to.Ptr[int32](100_000_000)
 				return settings
 			},
 		},
@@ -86,7 +85,7 @@ func TestConfig_NewIntegration_ConfigToSettings(t *testing.T) {
 			},
 			settingsModifier: func(settings metrics.RequestMetricSettings) metrics.RequestMetricSettings {
 				settings.MetricFilter = "dimension1 eq '*' and dimension2 eq '*' and dimension3 eq '*'"
-				settings.MetricTop = to.Ptr[int32](math.MaxInt32)
+				settings.MetricTop = to.Ptr[int32](100_000_000)
 				return settings
 			},
 		},
