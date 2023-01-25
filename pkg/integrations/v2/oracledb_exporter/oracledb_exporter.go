@@ -10,7 +10,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations/v2/common"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
-	oe "github.com/observiq/oracledb_exporter/collector"
+	oe "github.com/iamseth/oracledb_exporter/collector"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 

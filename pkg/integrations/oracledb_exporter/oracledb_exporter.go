@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
-	oe "github.com/observiq/oracledb_exporter/collector"
+	oe "github.com/iamseth/oracledb_exporter/collector"
 
 	// required driver for integration
 	_ "github.com/sijms/go-ora/v2"
