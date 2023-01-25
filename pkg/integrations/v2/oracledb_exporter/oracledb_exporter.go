@@ -1,7 +1,6 @@
 package oracledbexporter
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -31,11 +30,6 @@ var DefaultConfig = Config{
 	MetricsScrapeInterval: 0,
 	Common:                common.MetricsConfig{},
 }
-
-var (
-	errNoConnectionString = errors.New("no connection string was provided")
-	errNoHostname         = errors.New("no hostname in connection string")
-)
 
 // Config is the configuration for the oracledb v2 integration
 type Config struct {
