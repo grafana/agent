@@ -68,7 +68,7 @@ type Config struct {
 	Integrations    VersionedIntegrations `yaml:"integrations,omitempty"`
 	Traces          traces.Config         `yaml:"traces,omitempty"`
 	Logs            *logs.Config          `yaml:"logs,omitempty"`
-	AgentManagement AgentManagement       `yaml:"agent_management,omitempty"`
+	AgentManagement AgentManagementConfig `yaml:"agent_management,omitempty"`
 
 	// Flag-only fields
 	ServerFlags server.Flags `yaml:"-"`

@@ -18,7 +18,7 @@ import (
 const cacheFilename = "remote-config-cache.yaml"
 
 type remoteConfigProvider interface {
-	AgentManagementConfig() *AgentManagement
+	ValidateInitialConfig() error
 
 	GetCachedRemoteConfig(expandEnvVars bool) (*Config, error)
 	CacheRemoteConfig(remoteConfigBytes []byte) error
@@ -27,23 +27,23 @@ type remoteConfigProvider interface {
 }
 
 type remoteConfigHTTPProvider struct {
-	AgentManagement AgentManagement
+	InitialConfig *AgentManagementConfig
 }
 
 func newRemoteConfigHTTPProvider(c *Config) remoteConfigHTTPProvider {
 	return remoteConfigHTTPProvider{
-		AgentManagement: c.AgentManagement,
+		InitialConfig: &c.AgentManagement,
 	}
 }
 
-func (r remoteConfigHTTPProvider) AgentManagementConfig() *AgentManagement {
-	return &r.AgentManagement
+func (r remoteConfigHTTPProvider) ValidateInitialConfig() error {
+	return r.InitialConfig.Validate()
 }
 
 // GetCachedRemoteConfig retrieves the cached remote config from the location specified
 // in r.AgentManagement.CacheLocation
 func (r remoteConfigHTTPProvider) GetCachedRemoteConfig(expandEnvVars bool) (*Config, error) {
-	cachePath := filepath.Join(r.AgentManagement.CacheLocation, cacheFilename)
+	cachePath := filepath.Join(r.InitialConfig.CacheLocation, cacheFilename)
 	var cachedConfig Config
 	if err := LoadFile(cachePath, expandEnvVars, &cachedConfig); err != nil {
 		return nil, fmt.Errorf("error trying to load cached remote config from file: %w", err)
@@ -54,7 +54,7 @@ func (r remoteConfigHTTPProvider) GetCachedRemoteConfig(expandEnvVars bool) (*Co
 // CacheRemoteConfig caches the remote config to the location specified in
 // r.AgentManagement.CacheLocation
 func (r remoteConfigHTTPProvider) CacheRemoteConfig(remoteConfigBytes []byte) error {
-	cachePath := filepath.Join(r.AgentManagement.CacheLocation, cacheFilename)
+	cachePath := filepath.Join(r.InitialConfig.CacheLocation, cacheFilename)
 	return os.WriteFile(cachePath, remoteConfigBytes, 0666)
 }
 
@@ -62,7 +62,7 @@ func (r remoteConfigHTTPProvider) CacheRemoteConfig(remoteConfigBytes []byte) er
 // the values in r.AgentManagement.
 func (r remoteConfigHTTPProvider) FetchRemoteConfig() ([]byte, error) {
 	httpClientConfig := &config.HTTPClientConfig{
-		BasicAuth: &r.AgentManagement.BasicAuth,
+		BasicAuth: &r.InitialConfig.BasicAuth,
 	}
 
 	dir, err := os.Getwd()
@@ -75,7 +75,7 @@ func (r remoteConfigHTTPProvider) FetchRemoteConfig() ([]byte, error) {
 		HTTPClientConfig: httpClientConfig,
 	}
 
-	url, err := r.AgentManagement.fullUrl()
+	url, err := r.InitialConfig.fullUrl()
 	if err != nil {
 		return nil, fmt.Errorf("error trying to create full url: %w", err)
 	}
@@ -98,7 +98,7 @@ type RemoteConfiguration struct {
 	Namespace string   `yaml:"namespace"`
 }
 
-type AgentManagement struct {
+type AgentManagementConfig struct {
 	Enabled         bool             `yaml:"-"` // Derived from enable-features=agent-management
 	Url             string           `yaml:"api_url"`
 	BasicAuth       config.BasicAuth `yaml:"basic_auth"`
@@ -115,7 +115,7 @@ type AgentManagement struct {
 //
 // It also validates that the response from the API is a semantically correct config by calling config.Validate().
 func getRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, log *server.Logger, fs *flag.FlagSet, args []string, configPath string) (*Config, error) {
-	if err := configProvider.AgentManagementConfig().Validate(); err != nil {
+	if err := configProvider.ValidateInitialConfig(); err != nil {
 		return nil, fmt.Errorf("invalid initial config: %w", err)
 	}
 	remoteConfigBytes, err := configProvider.FetchRemoteConfig()
@@ -165,7 +165,7 @@ func newRemoteConfigProvider(c *Config) (remoteConfigHTTPProvider, error) {
 
 // fullUrl creates and returns the URL that should be used when querying the Agent Management API,
 // including the namespace, base config id, and any labels that have been specified.
-func (am *AgentManagement) fullUrl() (string, error) {
+func (am *AgentManagementConfig) fullUrl() (string, error) {
 	fullPath, err := url.JoinPath(am.Url, "namespace", am.RemoteConfiguration.Namespace, "remote_config")
 	if err != nil {
 		return "", fmt.Errorf("error trying to join url: %w", err)
@@ -183,12 +183,12 @@ func (am *AgentManagement) fullUrl() (string, error) {
 }
 
 // SleepTime returns the parsed duration in between config fetches.
-func (am *AgentManagement) SleepTime() (time.Duration, error) {
+func (am *AgentManagementConfig) SleepTime() (time.Duration, error) {
 	return time.ParseDuration(am.PollingInterval)
 }
 
 // Validate checks that necessary portions of the config have been set.
-func (am *AgentManagement) Validate() error {
+func (am *AgentManagementConfig) Validate() error {
 	if am.BasicAuth.Username == "" || am.BasicAuth.PasswordFile == "" {
 		return errors.New("both username and password_file fields must be specified")
 	}

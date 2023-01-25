@@ -17,7 +17,7 @@ import (
 // used for testing. It allows setting the values to return for both fetching the
 // remote config bytes & errors as well as the cached config & errors.
 type testRemoteConfigProvider struct {
-	AgentManagement *AgentManagement
+	InitialConfig *AgentManagementConfig
 
 	fetchedConfigBytesToReturn []byte
 	fetchedConfigErrorToReturn error
@@ -27,8 +27,8 @@ type testRemoteConfigProvider struct {
 	didCacheRemoteConfig      bool
 }
 
-func (t *testRemoteConfigProvider) AgentManagementConfig() *AgentManagement {
-	return t.AgentManagement
+func (t *testRemoteConfigProvider) ValidateInitialConfig() error {
+	return t.InitialConfig.Validate()
 }
 
 func (t *testRemoteConfigProvider) GetCachedRemoteConfig(expandEnvVars bool) (*Config, error) {
@@ -44,7 +44,7 @@ func (t *testRemoteConfigProvider) CacheRemoteConfig(r []byte) error {
 	return nil
 }
 
-var validAgentManagement = AgentManagement{
+var validAgentManagement = AgentManagementConfig{
 	Enabled: true,
 	Url:     "https://localhost:1234/example/api",
 	BasicAuth: config.BasicAuth{
@@ -65,7 +65,7 @@ func TestValidateValidConfig(t *testing.T) {
 }
 
 func TestValidateInvalidBasicAuth(t *testing.T) {
-	invalidConfig := &AgentManagement{
+	invalidConfig := &AgentManagementConfig{
 		Enabled:         true,
 		Url:             "https://localhost:1234",
 		BasicAuth:       config.BasicAuth{},
@@ -87,7 +87,7 @@ func TestValidateInvalidBasicAuth(t *testing.T) {
 }
 
 func TestValidateInvalidPollingInterval(t *testing.T) {
-	invalidConfig := &AgentManagement{
+	invalidConfig := &AgentManagementConfig{
 		Enabled: true,
 		Url:     "https://localhost:1234",
 		BasicAuth: config.BasicAuth{
@@ -108,7 +108,7 @@ func TestValidateInvalidPollingInterval(t *testing.T) {
 }
 
 func TestMissingCacheLocation(t *testing.T) {
-	invalidConfig := &AgentManagement{
+	invalidConfig := &AgentManagementConfig{
 		Enabled: true,
 		Url:     "https://localhost:1234",
 		BasicAuth: config.BasicAuth{
@@ -151,7 +151,7 @@ func TestFullUrl(t *testing.T) {
 
 func TestGetRemoteConfig_InvalidInitialConfig(t *testing.T) {
 	// this is invalid because it is missing the password file
-	invalidAgentManagement := &AgentManagement{
+	invalidAgentManagement := &AgentManagementConfig{
 		Enabled: true,
 		Url:     "https://localhost:1234/example/api",
 		BasicAuth: config.BasicAuth{
@@ -167,7 +167,7 @@ func TestGetRemoteConfig_InvalidInitialConfig(t *testing.T) {
 	}
 
 	logger := server.NewLogger(&server.DefaultConfig)
-	testProvider := testRemoteConfigProvider{AgentManagement: invalidAgentManagement}
+	testProvider := testRemoteConfigProvider{InitialConfig: invalidAgentManagement}
 
 	// a nil flagset is being used for testing because it should not reach flag validation
 	_, err := getRemoteConfig(true, &testProvider, logger, nil, []string{}, "test")
@@ -182,7 +182,7 @@ func TestGetRemoteConfig_UnmarshallableRemoteConfig(t *testing.T) {
 
 	am := validAgentManagement
 	logger := server.NewLogger(&server.DefaultConfig)
-	testProvider := testRemoteConfigProvider{AgentManagement: &am}
+	testProvider := testRemoteConfigProvider{InitialConfig: &am}
 	testProvider.fetchedConfigBytesToReturn = invalidCfgBytes
 	testProvider.cachedConfigToReturn = &DefaultConfig
 
@@ -198,7 +198,7 @@ func TestGetRemoteConfig_UnmarshallableRemoteConfig(t *testing.T) {
 func TestGetRemoteConfig_RemoteFetchFails(t *testing.T) {
 	am := validAgentManagement
 	logger := server.NewLogger(&server.DefaultConfig)
-	testProvider := testRemoteConfigProvider{AgentManagement: &am}
+	testProvider := testRemoteConfigProvider{InitialConfig: &am}
 	testProvider.fetchedConfigErrorToReturn = errors.New("connection refused")
 	testProvider.cachedConfigToReturn = &DefaultConfig
 
@@ -243,7 +243,7 @@ metrics:
 
 	am := validAgentManagement
 	logger := server.NewLogger(&server.DefaultConfig)
-	testProvider := testRemoteConfigProvider{AgentManagement: &am}
+	testProvider := testRemoteConfigProvider{InitialConfig: &am}
 	testProvider.fetchedConfigBytesToReturn = invalidCfgBytes
 	testProvider.cachedConfigToReturn = &DefaultConfig
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
