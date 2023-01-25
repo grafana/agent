@@ -10,7 +10,7 @@ title: loki.source.journal
 `loki.*` components. 
 
 Multiple `loki.source.journal` components can be specified by giving them
-different labels and ports.
+different labels.
 
 ## Usage
 
