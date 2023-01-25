@@ -110,6 +110,9 @@ v0.31.0 (2023-01-31)
 
 - Grafana Agent Operator: add [promtail limit stage](https://grafana.com/docs/loki/latest/clients/promtail/stages/limit/) to the operator. (@spartan0x117)
 
+- Flow: The `loki.process` component now implements all the same processing
+  stages as Promtail's pipelines. (@tpaschalis)
+
 ### Bugfixes
 
 - Flow UI: Fix the issue with messy layout on the component list page while browser window resize. (@xiyu95)
