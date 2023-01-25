@@ -133,7 +133,7 @@ discovery.kubernetes "pods" {
   role = "pod"
 }
 
-loki.source.kubernetes "tmpfiles" {
+loki.source.kubernetes "pods" {
   targets    = discovery.kubernetes.pods.targets
   forward_to = [loki.write.local.receiver]
 }
