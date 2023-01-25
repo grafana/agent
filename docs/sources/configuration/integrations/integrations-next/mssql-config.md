@@ -4,7 +4,7 @@ aliases:
 title: mssql_config
 ---
 
-# mssql_config (beta)
+# mssql_config
 
 The `mssql_configs` block configures the `mssql` integration,
 which is an embedded version of [`sql_exporter`](https://github.com/burningalchemist/sql_exporter).
