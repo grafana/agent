@@ -12,10 +12,12 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
 	"github.com/grafana/agent/component/loki/source/kubernetes"
 	"github.com/grafana/agent/component/loki/source/kubernetes/kubetail"
+	"github.com/grafana/agent/pkg/river"
 	"github.com/oklog/run"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -42,6 +44,23 @@ type Arguments struct {
 
 	Selector          LabelSelector `river:"selector,block,optional"`
 	NamespaceSelector LabelSelector `river:"namespace_selector,block,optional"`
+}
+
+var _ river.Unmarshaler = (*Arguments)(nil)
+
+// DefaultArguments holds default settings for loki.source.kubernetes.
+var DefaultArguments = Arguments{
+	Client: kubernetes.ClientArguments{
+		HTTPClientConfig: config.DefaultHTTPClientConfig,
+	},
+}
+
+// UnmarshalRiver implements river.Unmarshaler and applies defaults.
+func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+	*args = DefaultArguments
+
+	type arguments Arguments
+	return f((*arguments)(args))
 }
 
 // Component implements the loki.source.podlogs component.
@@ -268,8 +287,29 @@ func (c *Component) updateController(args Arguments) error {
 
 // DebugInfo returns debug information for loki.source.podlogs.
 func (c *Component) DebugInfo() interface{} {
-	c.mut.RLock()
-	defer c.mut.RUnlock()
+	var info DebugInfo
 
-	return c.reconciler.DebugInfo()
+	info.DiscoveredPodLogs = c.reconciler.DebugInfo()
+
+	for _, target := range c.tailer.Targets() {
+		var lastError string
+		if err := target.LastError(); err != nil {
+			lastError = err.Error()
+		}
+
+		info.Targets = append(info.Targets, kubernetes.DebugInfoTarget{
+			Labels:          target.Labels().Map(),
+			DiscoveryLabels: target.DiscoveryLabels().Map(),
+			LastError:       lastError,
+			UpdateTime:      target.LastEntry().Local(),
+		})
+	}
+
+	return info
+}
+
+// DebugInfo stores debug information for loki.source.podlogs.
+type DebugInfo struct {
+	DiscoveredPodLogs []DiscoveredPodLogs          `river:"pod_logs,block"`
+	Targets           []kubernetes.DebugInfoTarget `river:"target,block,optional"`
 }

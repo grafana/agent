@@ -33,7 +33,7 @@ type reconciler struct {
 	podLogsNamespaceSelector labels.Selector
 
 	debugMut  sync.RWMutex
-	debugInfo DebugInfo
+	debugInfo []DiscoveredPodLogs
 }
 
 // newReconciler creates a new reconciler which synchronizes targets with the
@@ -60,7 +60,7 @@ func (r *reconciler) UpdateSelectors(podLogs, namespace labels.Selector) {
 // Reconcile synchronizes the set of running kubetail targets with the set of
 // discovered PodLogs.
 func (r *reconciler) Reconcile(ctx context.Context, cli client.Client) error {
-	var newDebugInfo DebugInfo
+	var newDebugInfo []DiscoveredPodLogs
 	var newTasks []*kubetail.Target
 
 	listOpts := []client.ListOption{
@@ -87,7 +87,7 @@ func (r *reconciler) Reconcile(ctx context.Context, cli client.Client) error {
 		targets, discoveredPodLogs := r.reconcilePodLogs(ctx, cli, podLogs)
 
 		newTasks = append(newTasks, targets...)
-		newDebugInfo.DiscoveredPodLogs = append(newDebugInfo.DiscoveredPodLogs, discoveredPodLogs)
+		newDebugInfo = append(newDebugInfo, discoveredPodLogs)
 	}
 
 	if err := r.tailer.SyncTargets(ctx, newTasks); err != nil {
@@ -177,7 +177,7 @@ func (r *reconciler) reconcilePodLogs(ctx context.Context, cli client.Client, po
 			finalLabels, err := kubetail.PrepareLabels(processedLabels, defaultJob)
 
 			if err != nil {
-				discoveredPod.Target = append(discoveredPod.Target, DiscoveredTarget{
+				discoveredPod.Containers = append(discoveredPod.Containers, DiscoveredContainer{
 					DiscoveredLabels: targetLabels.Map(),
 					Labels:           processedLabels.Map(),
 					ReconcileError:   fmt.Sprintf("invalid labels: %s", err),
@@ -190,7 +190,7 @@ func (r *reconciler) reconcilePodLogs(ctx context.Context, cli client.Client, po
 				targets = append(targets, target)
 			}
 
-			discoveredPod.Target = append(discoveredPod.Target, DiscoveredTarget{
+			discoveredPod.Containers = append(discoveredPod.Containers, DiscoveredContainer{
 				DiscoveredLabels: targetLabels.Map(),
 				Labels:           target.Labels().Map(),
 			})
@@ -210,7 +210,7 @@ func (r *reconciler) reconcilePodLogs(ctx context.Context, cli client.Client, po
 }
 
 // DebugInfo returns the current debug information for the reconciler.
-func (r *reconciler) DebugInfo() DebugInfo {
+func (r *reconciler) DebugInfo() []DiscoveredPodLogs {
 	r.debugMut.RLock()
 	defer r.debugMut.RUnlock()
 
@@ -306,11 +306,6 @@ func podReady(pod *corev1.Pod) model.LabelValue {
 	return model.LabelValue(strings.ToLower(string(corev1.ConditionUnknown)))
 }
 
-// DebugInfo stores debug information for loki.source.podlogs.
-type DebugInfo struct {
-	DiscoveredPodLogs []DiscoveredPodLogs `river:"pod_logs,block"`
-}
-
 type DiscoveredPodLogs struct {
 	Namespace      string    `river:"namespace,attr"`
 	Name           string    `river:"name,attr"`
@@ -325,10 +320,10 @@ type DiscoveredPod struct {
 	Name           string `river:"name,attr"`
 	ReconcileError string `river:"reconcile_error,attr,optional"`
 
-	Target []DiscoveredTarget `river:"target,block"`
+	Containers []DiscoveredContainer `river:"container,block"`
 }
 
-type DiscoveredTarget struct {
+type DiscoveredContainer struct {
 	DiscoveredLabels map[string]string `river:"discovered_labels,attr"`
 	Labels           map[string]string `river:"labels,attr"`
 	ReconcileError   string            `river:"reconcile_error,attr,optional"`

@@ -35,6 +35,7 @@ func newController(l log.Logger, reconciler *reconciler) *controller {
 	return &controller{
 		log:        l,
 		reconciler: reconciler,
+		reloadCh:   make(chan struct{}, 1),
 
 		reconcileCh: make(chan struct{}, 1),
 		doneCh:      make(chan struct{}),
@@ -123,6 +124,9 @@ func (ctrl *controller) Run(ctx context.Context) error {
 }
 
 func (ctrl *controller) run(ctx context.Context, informers cache.Informers, client client.Client) error {
+	level.Info(ctrl.log).Log("msg", "starting controller")
+	defer level.Info(ctrl.log).Log("msg", "controller exiting")
+
 	go func() {
 		err := ctrl.informers.Start(ctx)
 		if err != nil && ctx.Err() != nil {
