@@ -22,7 +22,7 @@ func TestTargetCollectorAdapter_Collect(t *testing.T) {
 		},
 	}
 
-	tca := NewCollector(target, log.NewJSONLogger(os.Stdout))
+	tca := NewTargetCollectorAdapter(target, log.NewJSONLogger(os.Stdout))
 	metricChan := make(chan prometheus.Metric, 1)
 	tca.Collect(metricChan)
 
@@ -58,7 +58,7 @@ func TestTargetCollectorAdapter_Collect(t *testing.T) {
 
 func TestSqlPrometheusMetricAdapter_Write(t *testing.T) {
 	metricDesc := mockMetricDesc()
-	metric := prometheusMetric{
+	metric := sqlPrometheusMetricAdapter{
 		Metric: sql_exporter.NewMetric(metricDesc, 1, "labelval1", "labelval2"),
 		logger: log.NewJSONLogger(os.Stdout),
 	}
@@ -86,7 +86,7 @@ func TestSqlPrometheusMetricAdapter_Write(t *testing.T) {
 func TestSqlPrometheusMetricAdapter_Desc(t *testing.T) {
 	t.Run("AutomaticMetricDesc", func(t *testing.T) {
 		metricDesc := mockMetricDesc()
-		metric := prometheusMetric{
+		metric := sqlPrometheusMetricAdapter{
 			Metric: sql_exporter.NewMetric(metricDesc, 1, "labelval1", "labelval2"),
 			logger: log.NewJSONLogger(os.Stdout),
 		}
@@ -105,7 +105,7 @@ func TestSqlPrometheusMetricAdapter_Desc(t *testing.T) {
 
 	t.Run("InvalidMetricDesc", func(t *testing.T) {
 		metricErr := errors.New("", "some error")
-		metric := prometheusMetric{
+		metric := sqlPrometheusMetricAdapter{
 			Metric: sql_exporter.NewInvalidMetric(metricErr),
 			logger: log.NewJSONLogger(os.Stdout),
 		}

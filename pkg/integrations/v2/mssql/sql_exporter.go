@@ -98,7 +98,7 @@ func createHandler(logger log.Logger, c *Config) (http.HandlerFunc, error) {
 		return nil, fmt.Errorf("failed to create mssql target: %w", err)
 	}
 
-	col := mssql_common.NewCollector(t, logger)
+	col := mssql_common.NewTargetCollectorAdapter(t, logger)
 
 	registry := prometheus.NewRegistry()
 	registry.MustRegister(col)

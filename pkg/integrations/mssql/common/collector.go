@@ -34,15 +34,15 @@ func init() {
 	}
 }
 
-// Collector adapts sql_exporter.Target to prometheus.Collector
-type Collector struct {
+// TargetCollectorAdapter adapts sql_exporter.Target to prometheus.Collector
+type TargetCollectorAdapter struct {
 	target sql_exporter.Target
 	logger log.Logger
 }
 
-// NewCollector creates a new Collector
-func NewCollector(t sql_exporter.Target, l log.Logger) Collector {
-	return Collector{
+// NewTargetCollectorAdapter creates a new TargetCollectorAdapter
+func NewTargetCollectorAdapter(t sql_exporter.Target, l log.Logger) TargetCollectorAdapter {
+	return TargetCollectorAdapter{
 		target: t,
 		logger: l,
 	}
@@ -50,7 +50,7 @@ func NewCollector(t sql_exporter.Target, l log.Logger) Collector {
 
 // Collect calls the collect function of the underlying sql_exporter.Target, converting each
 // returned sql_exporter.Metric to a prometheus.Metric.
-func (t Collector) Collect(m chan<- prometheus.Metric) {
+func (t TargetCollectorAdapter) Collect(m chan<- prometheus.Metric) {
 	sqlMetrics := make(chan sql_exporter.Metric, 1000)
 
 	go func() {
@@ -59,7 +59,7 @@ func (t Collector) Collect(m chan<- prometheus.Metric) {
 	}()
 
 	for metric := range sqlMetrics {
-		m <- prometheusMetric{
+		m <- sqlPrometheusMetricAdapter{
 			Metric: metric,
 			logger: t.logger,
 		}
@@ -67,22 +67,22 @@ func (t Collector) Collect(m chan<- prometheus.Metric) {
 }
 
 // Describe is an empty method, which marks the prometheus.Collector as "unchecked"
-func (t Collector) Describe(chan<- *prometheus.Desc) {}
+func (t TargetCollectorAdapter) Describe(chan<- *prometheus.Desc) {}
 
-// prometheusMetric adapts sql_exporter.Metric to prometheus.Metric
-type prometheusMetric struct {
+// sqlPrometheusMetricAdapter adapts sql_exporter.Metric to prometheus.Metric
+type sqlPrometheusMetricAdapter struct {
 	sql_exporter.Metric
 	logger log.Logger
 }
 
 // Write writes the sql_exporter.Metric to the prometheus metric pb
-func (s prometheusMetric) Write(m *dto.Metric) error {
+func (s sqlPrometheusMetricAdapter) Write(m *dto.Metric) error {
 	return s.Metric.Write(m)
 }
 
 // Desc converts the underlying sql_exporter.Metric description to
 // a prometheus.Desc.
-func (s prometheusMetric) Desc() *prometheus.Desc {
+func (s sqlPrometheusMetricAdapter) Desc() *prometheus.Desc {
 	sqlDesc := s.Metric.Desc()
 
 	if sqlDesc == nil {
