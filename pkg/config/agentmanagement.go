@@ -134,10 +134,10 @@ func getRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, lo
 
 	// this is done in order to validate the config semantically
 	if err = applyIntegrationValuesFromFlagset(fs, args, configPath, &remoteConfig); err != nil {
-		level.Error(log).Log("msg", "could not apply integration version to config", "err", err)
+		level.Error(log).Log("msg", "could not load integrations from config, falling back to cache", "err", err)
+		instrumentation.InstrumentInvalidRemoteConfig("invalid_integrations_config")
 		return configProvider.GetCachedRemoteConfig(expandEnvVars)
 	}
-
 	if err = remoteConfig.Validate(fs); err != nil {
 		level.Error(log).Log("msg", "invalid config received from the API, falling back to cache", "err", err)
 		instrumentation.InstrumentInvalidRemoteConfig("invalid_agent_config")
