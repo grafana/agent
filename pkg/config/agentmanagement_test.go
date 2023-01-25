@@ -139,7 +139,7 @@ func TestFullUrl(t *testing.T) {
 	assert.Equal(t, "https://localhost:1234/example/api/namespace/test_namespace/remote_config?a=A&b=B", actual)
 }
 
-func TestGetRemoteConfig_InvalidInitialConfig(t *testing.T) {
+func TestNewRemoteConfigHTTPProvider_InvalidInitialConfig(t *testing.T) {
 	// this is invalid because it is missing the password file
 	invalidAgentManagementConfig := &AgentManagementConfig{
 		Enabled: true,
@@ -156,13 +156,11 @@ func TestGetRemoteConfig_InvalidInitialConfig(t *testing.T) {
 		},
 	}
 
-	logger := server.NewLogger(&server.DefaultConfig)
-	testProvider := testRemoteConfigProvider{InitialConfig: invalidAgentManagementConfig}
-
-	// a nil flagset is being used for testing because it should not reach flag validation
-	_, err := getRemoteConfig(true, &testProvider, logger, nil, []string{}, "test")
+	cfg := Config{
+		AgentManagement: *invalidAgentManagementConfig,
+	}
+	_, err := newRemoteConfigHTTPProvider(&cfg)
 	assert.Error(t, err)
-	assert.False(t, testProvider.didCacheRemoteConfig)
 }
 
 func TestGetRemoteConfig_UnmarshallableRemoteConfig(t *testing.T) {
