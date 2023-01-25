@@ -130,7 +130,7 @@ Configuration reference:
 
 # static_job
 
-A static job allows one to scrape an individual CloudWatch metric. For that, them metrics needs to be fully qualified. That
+A static job allows one to scrape an individual CloudWatch metric. For that, metrics needs to be fully qualified, specifying the following:
 means, the following attributes of a CW metric need to be specified in order for the agent to find it:
 1. `namespace`: For example `AWS/EC2`, `AWS/EBS`, `CoolApp` if it were a custom metric, etc.
 2. `dimensions`: CloudWatch identifies a metrics by a set of dimensions. For example, all `AWS/EC2` metrics are identified by the `InstanceId` dimension.
