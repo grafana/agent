@@ -26,7 +26,62 @@ The account used by the agent will need,
 * [Read access to the resources which will be queried by Resource Graph](https://learn.microsoft.com/en-us/azure/governance/resource-graph/overview#permissions-in-azure-resource-graph)
 * Permissions to call the [Microsoft.Insights Metrics API](https://learn.microsoft.com/en-us/rest/api/monitor/metrics/list) which should be the `Microsoft.Insights/Metrics/Read` permission
 
-## Configuration options:
+## Configuration
+
+### Examples
+
+#### Azure Kubernetes Service Node Metrics
+```yaml
+  azure_exporter:
+    enabled: true
+    scrape_interval: 60s
+    subscriptions:
+      - <subscription_id>
+    resource_type: microsoft.containerservice/managedclusters
+    metrics:
+      - node_cpu_usage_millicores
+      - node_cpu_usage_percentage
+      - node_disk_usage_bytes
+      - node_disk_usage_percentage
+      - node_memory_rss_bytes
+      - node_memory_rss_percentage
+      - node_memory_working_set_bytes
+      - node_memory_working_set_percentage
+      - node_network_in_bytes
+      - node_network_out_bytes
+    included_resource_tags:
+      - environment
+    included_dimensions:
+      - node
+      - nodepool
+```
+
+#### Blob Storage Metrics
+```yaml
+  azure_exporter:
+    enabled: true
+    scrape_interval: 60s
+    subscriptions:
+      - <subscription_id>
+    resource_type: Microsoft.Storage/storageAccounts
+    metric_namespace: Microsoft.Storage/storageAccounts/blobServices
+    metrics:
+      - Availability
+      - BlobCapacity
+      - BlobCount
+      - ContainerCount
+      - Egress
+      - IndexCapacity
+      - Ingress
+      - SuccessE2ELatency
+      - SuccessServerLatency
+      - Transactions
+    timespan: PT1H
+    resource_graph_query_filter: where location == "westeurope"
+```
+
+
+### Config Reference
 
 ```yaml
   #
@@ -78,10 +133,6 @@ The account used by the agent will need,
   # Ex: Microsoft.Cache/redis
   [resource_type: <string>]
 
-  # Required: The [kusto query](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/) filter to apply when searching for resources
-  # This value will be embedded in to a template query of the form `Resources | where type =~ "<resource_type>" <resource_graph_query_filter> | project id, tags`
-  [resource_graph_query_filter: <string>]
-
   # Required: The metrics to scrape from resources
   # Valid values can be found in the `Metric` column for the`resource_type` https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/metrics-supported
   # Example: 
@@ -90,6 +141,10 @@ The account used by the agent will need,
   #     - allcachehits
   metrics:
     [ - <string> ... ]
+
+  # Optional: The [kusto query](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/) filter to apply when searching for resources
+  # This value will be embedded in to a template query of the form `Resources | where type =~ "<resource_type>" <resource_graph_query_filter> | project id, tags`
+  [resource_graph_query_filter: <string>]
   
   # Optional: Aggregation to apply for the metrics produced. Valid values are minimum, maximum, average, total, and count
   # If no aggregation is specified the value for `Aggregation Type` on the `Metric` is used from https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/metrics-supported 
