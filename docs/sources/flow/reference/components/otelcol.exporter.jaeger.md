@@ -159,10 +159,23 @@ information.
 
 ## Example
 
-This example creates an exporter to send data to a locally running Jaeger server without TLS:
+This example accepts OTLP traces over gRPC, sends them to a batch processor and forwards to Jaeger without TLS:
 
 ```river
-otelcol.exporter.jaeger "jaeger" {
+otelcol.receiver.otlp "default" {
+    grpc {}
+    output {
+        traces  = [otelcol.processor.batch.default.input]
+    }
+}
+
+otelcol.processor.batch "default" {
+    output {
+        traces  = [otelcol.exporter.jaeger.default.input]
+    }
+}
+
+otelcol.exporter.jaeger "default" {
     client {
         endpoint = "jaeger:14250"
         tls {
