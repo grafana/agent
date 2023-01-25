@@ -1,9 +1,11 @@
-package gcp_metrics_exporter
+package gcp_exporter
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/PuerkitoBio/rehttp"
@@ -21,7 +23,7 @@ import (
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.NewNamedShim("gcp_metrics_exporter"))
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.NewNamedShim("gcp"))
 }
 
 type Config struct {
@@ -39,12 +41,8 @@ type Config struct {
 	RequestOffset time.Duration `yaml:"request_offset"`
 	// Offset for the Google Stackdriver Monitoring Metrics interval into the past by the ingest delay from the metric's metadata.
 	IngestDelay bool `yaml:"ingest_delay"`
-	// Fill missing metrics labels with empty string to avoid label dimensions inconsistent failure.
-	FillMissingLabels bool `yaml:"fill_missing_labels"`
 	// Drop metrics from attached projects and fetch `project_id` only.
 	DropDelegatedProjects bool `yaml:"drop_delegated_projects"`
-	// If enabled will treat all DELTA metrics as an in-memory counter instead of a gauge.
-	AggregateDeltas bool `yaml:"aggregate_deltas"`
 }
 
 var DefaultConfig = Config{
@@ -52,9 +50,7 @@ var DefaultConfig = Config{
 	RequestInterval:       5 * time.Minute,
 	RequestOffset:         0,
 	IngestDelay:           false,
-	FillMissingLabels:     true,
 	DropDelegatedProjects: false,
-	AggregateDeltas:       false,
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
@@ -66,14 +62,19 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 
 func (c *Config) Name() string {
-	return "gcp_metrics_exporter"
+	return "gcp_exporter"
 }
 
 func (c *Config) InstanceKey(_ string) (string, error) {
+	//TODO make this v2 compatible
 	return c.Name(), nil
 }
 
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
+	if err := validateConfig(c); err != nil {
+		return nil, err
+	}
+
 	svc, err := createMonitoringService(context.Background(), c.ClientTimeout)
 	if err != nil {
 		return nil, err
@@ -88,9 +89,9 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 			RequestInterval:       c.RequestInterval,
 			RequestOffset:         c.RequestOffset,
 			IngestDelay:           c.IngestDelay,
-			FillMissingLabels:     c.FillMissingLabels,
+			FillMissingLabels:     true,
 			DropDelegatedProjects: c.DropDelegatedProjects,
-			AggregateDeltas:       c.AggregateDeltas,
+			AggregateDeltas:       true,
 		},
 		l,
 		collectors.NewInMemoryDeltaCounterStore(l, 30*time.Minute),
@@ -103,6 +104,53 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 	return integrations.NewCollectorIntegration(
 		c.Name(), integrations.WithCollectors(monitoringCollector),
 	), nil
+}
+
+func validateConfig(c *Config) error {
+	var configErrors []string
+
+	if c.ProjectID == "" {
+		configErrors = append(configErrors, "project_id is a required field")
+	}
+
+	if c.MetricPrefixes == nil || len(c.MetricPrefixes) == 0 {
+		configErrors = append(configErrors, "at least 1 metrics_prefixes is required")
+	}
+
+	if len(c.ExtraFilters) > 0 {
+		filterPrefixToFilter := map[string][]string{}
+		for _, filter := range c.ExtraFilters {
+			splitFilter := strings.Split(filter, ":")
+			if len(splitFilter) <= 1 {
+				configErrors = append(configErrors, fmt.Sprintf("%s is an invalid filter a filter must be of the form <metric_type>:<filter_expression>", filter))
+				continue
+			}
+			filterPrefix := splitFilter[0]
+			if _, exists := filterPrefixToFilter[filterPrefix]; !exists {
+				filterPrefixToFilter[filterPrefix] = []string{}
+			}
+			filterPrefixToFilter[filterPrefix] = append(filterPrefixToFilter[filterPrefix], filter)
+		}
+
+		for filterPrefix, filters := range filterPrefixToFilter {
+			validFilterPrefix := false
+			for _, metricPrefix := range c.MetricPrefixes {
+				if strings.HasPrefix(filterPrefix, metricPrefix) {
+					validFilterPrefix = true
+					break
+				}
+			}
+			if !validFilterPrefix {
+				configErrors = append(configErrors, fmt.Sprintf("No metric_prefixes started with %s which means the extra_filters %s will not have any effect", filterPrefix, strings.Join(filters, ",")))
+			}
+		}
+	}
+
+	if len(configErrors) != 0 {
+		return errors.New(strings.Join(configErrors, "\n"))
+	}
+
+	return nil
 }
 
 func createMonitoringService(ctx context.Context, httpTimeout time.Duration) (*monitoring.Service, error) {
