@@ -87,7 +87,7 @@ func TestConfigValidate(t *testing.T) {
 				c.ConnectionString = "localhost:1521"
 				return c
 			},
-			expectedErr: errors.New("unable to parse connection string"),
+			expectedErr: errors.New("unexpected scheme of type 'localhost'. Was expecting 'oracle'"),
 		},
 	}
 
