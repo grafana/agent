@@ -72,7 +72,7 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 		return nil, fmt.Errorf("failed to create mssql target: %w", err)
 	}
 
-	col := common.NewTargetCollectorAdapter(t, l)
+	col := common.NewCollector(t, l)
 
 	return integrations.NewCollectorIntegration(
 		c.Name(),
