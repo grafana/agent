@@ -43,6 +43,8 @@ type StageConfig struct {
 	PackConfig         *PackConfig         `river:"pack,block,optional"`
 	TemplateConfig     *TemplateConfig     `river:"template,block,optional"`
 	TenantConfig       *TenantConfig       `river:"tenant,block,optional"`
+	LimitConfig        *LimitConfig        `river:"limit,block,optional"`
+	MetricConfig       *MetricConfig       `river:"metric,block,optional"`
 }
 
 // UnmarshalRiver implements river.Unmarshaler.

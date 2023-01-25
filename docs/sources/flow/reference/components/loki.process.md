@@ -65,6 +65,7 @@ stage > drop         | [drop][]          | Configures a `drop` processing stage.
 stage > pack         | [pack][]          | Configures a `pack` processing stage. | no
 stage > template     | [template][]      | Configures a `template` processing stage. | no
 stage > tenant       | [tenant][]        | Configures a `tenant` processing stage. | no
+stage > limit        | [limit][]         | Configures a `limit` processing stage. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `stage > json`
 refers to a `json` block defined inside of a `stage` block.
@@ -88,6 +89,7 @@ refers to a `json` block defined inside of a `stage` block.
 [pack]: #pack-block
 [template]: #template-block
 [tenant]: #tenant-block
+[limit]: #limit-block
 
 ### stage block
 
@@ -1246,6 +1248,56 @@ stage {
 	}
 }
 ```
+
+### limit block
+
+The `limit` inner block configures a rate-limiting stage that throttles logs
+based on several options.
+
+The following arguments are supported:
+
+Name            | Type     | Description | Default | Required
+--------------- | -------- | ----------- | ------- | --------
+`rate`          | `int`    | The maximum rate of lines per second that the stage will forward. | | yes
+`burst`         | `int`    | The cap in the quantity of burst lines that the stage will forward. | | yes
+`by_label_name` | `string` | The label to use when for rate-limiting on a label name. | `""` | no
+`drop`          | `bool`   | Whether to discard or backpressure lines that exceed the rate limit. | `false` | no
+`max_distinct_labels` | `int` | How many unique values to keep track of when rate-limiting `by_label_name`. | `10000` | no
+
+The rate limiting is implemented as a 'token bucket' of size `burst`, initially
+full and refilled at `rate` tokens per second. Every time a log entry comes
+through, it consumes one token. When `drop` is set to true, incoming entries
+that exceed the rate-limit will be dropped, otherwise they will be queued until
+more tokens are available.
+
+```
+stage {
+	limit {
+		rate  = 5
+		burst = 10
+	}
+}
+```
+
+If `by_label_name` is set, then `drop` must be set to `true`. This enables the
+stage to rate-limit not by the number of lines but by the number of labels.
+
+The following example rate-limits entries from each unique `namespace` value
+independently. Any entries without the `namespace` label will not be
+rate-limited. The stage will keep track of up to `max_distinct_labels` unique
+values, defaulting at 10000.
+```
+stage {
+	limit {
+		rate  = 10
+		burst = 10
+		drop  = true
+		
+		by_label_name = "namespace"
+	}
+}
+```
+
 
 
 ## Exported fields
