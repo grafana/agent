@@ -512,8 +512,8 @@ agent_management:
 
 	// since these elements are purposefully different for the previous portion of the test,
 	// unset them before comparing the rest of the config
-	ic.AgentManagement = AgentManagement{}
-	rc.AgentManagement = AgentManagement{}
+	ic.AgentManagement = AgentManagementConfig{}
+	rc.AgentManagement = AgentManagementConfig{}
 
 	assert.True(t, util.CompareYAML(ic, rc))
 }

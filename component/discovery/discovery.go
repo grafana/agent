@@ -2,17 +2,29 @@ package discovery
 
 import (
 	"context"
+	"sort"
 	"sync"
 	"time"
 
 	"github.com/grafana/agent/component"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
+	"github.com/prometheus/prometheus/model/labels"
 )
 
 // Target refers to a singular discovered endpoint found by a discovery
 // component.
 type Target map[string]string
+
+// Labels converts Target into a set of sorted labels.
+func (t Target) Labels() labels.Labels {
+	var lset labels.Labels
+	for k, v := range t {
+		lset = append(lset, labels.Label{Name: k, Value: v})
+	}
+	sort.Sort(lset)
+	return lset
+}
 
 // Exports holds values which are exported by all discovery components.
 type Exports struct {

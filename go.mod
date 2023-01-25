@@ -115,6 +115,7 @@ require (
 )
 
 require (
+	cloud.google.com/go/pubsub v1.27.1
 	github.com/Lusitaniae/apache_exporter v0.11.1-0.20220518131644-f9522724dab4
 	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137
@@ -125,6 +126,7 @@ require (
 	github.com/bmatcuk/doublestar v1.2.2
 	github.com/bufbuild/connect-go v1.4.1
 	github.com/buger/jsonparser v1.1.1
+	github.com/cespare/xxhash/v2 v2.2.0
 	github.com/cloudflare/cloudflare-go v0.27.0
 	github.com/fatih/color v1.13.0
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
@@ -135,8 +137,9 @@ require (
 	github.com/grafana/snowflake-prometheus-exporter v0.0.0-20221213150626-862cad8e9538
 	github.com/grafana/vmware_exporter v0.0.4-beta
 	github.com/hashicorp/golang-lru v0.6.0
+	github.com/heroku/x v0.0.50
 	github.com/hpcloud/tail v1.0.0
-	github.com/influxdata/go-syslog/v3 v3.0.1-0.20201128200927-a1889d947b48
+	github.com/influxdata/go-syslog/v3 v3.0.1-0.20210608084020-ac565dc76ba6
 	github.com/jaegertracing/jaeger v1.38.1
 	github.com/jmespath/go-jmespath v0.4.0
 	github.com/mackerelio/go-osstat v0.2.3
@@ -145,6 +148,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.61.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension v0.61.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension v0.61.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza v0.63.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/loki v0.63.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.63.0
 	github.com/phayes/freeport v0.0.0-20220201140144-74d24b5ae9f5
@@ -168,7 +172,9 @@ require (
 	golang.org/x/crypto v0.1.0
 	golang.org/x/exp v0.0.0-20221031165847-c99f073a8326
 	golang.org/x/text v0.5.0
+	google.golang.org/api v0.103.0
 	google.golang.org/protobuf v1.28.1
+	gotest.tools v2.2.0+incompatible
 	k8s.io/component-base v0.25.4
 )
 
@@ -177,7 +183,6 @@ require (
 	cloud.google.com/go/compute v1.13.0 // indirect
 	cloud.google.com/go/compute/metadata v0.2.1 // indirect
 	cloud.google.com/go/iam v0.8.0 // indirect
-	cloud.google.com/go/pubsub v1.27.1 // indirect
 	cloud.google.com/go/storage v1.27.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.1 // indirect
@@ -196,7 +201,6 @@ require (
 	github.com/Azure/go-autorest/autorest/validation v0.3.1 // indirect
 	github.com/Azure/go-autorest/logger v0.2.1 // indirect
 	github.com/Azure/go-autorest/tracing v0.6.0 // indirect
-	github.com/BurntSushi/toml v1.2.1 // indirect
 	github.com/GehirnInc/crypt v0.0.0-20200316065508-bb7000b8a962 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.1.1 // indirect
@@ -242,7 +246,6 @@ require (
 	github.com/cenkalti/backoff/v4 v4.2.0 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.4.1 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
-	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/checkpoint-restore/go-criu/v5 v5.3.0 // indirect
 	github.com/cilium/ebpf v0.7.0 // indirect
 	github.com/cncf/xds/go v0.0.0-20220314180256-7f1daf1720fc // indirect
@@ -361,7 +364,6 @@ require (
 	github.com/hashicorp/vault/sdk v0.3.0 // indirect
 	github.com/hashicorp/vic v1.5.1-0.20190403131502-bbfe86ec9443 // indirect
 	github.com/hashicorp/yamux v0.0.0-20190923154419-df201c70410d // indirect
-	github.com/heroku/x v0.0.50 // indirect
 	github.com/hetznercloud/hcloud-go v1.35.3 // indirect
 	github.com/hodgesds/perf-utils v0.4.0 // indirect
 	github.com/huandu/xstrings v1.3.1 // indirect
@@ -427,6 +429,7 @@ require (
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/ncabatoff/go-seq v0.0.0-20180805175032-b08ef85ed833 // indirect
 	github.com/nicolai86/scaleway-sdk v1.10.2-0.20180628010248-798f60e20bb2 // indirect
+	github.com/observiq/ctimefmt v1.0.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.63.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/sharedcomponent v0.63.0 // indirect
@@ -524,16 +527,14 @@ require (
 	go4.org/intern v0.0.0-20211027215823-ae77deb06f29 // indirect
 	go4.org/unsafe/assume-no-moving-gc v0.0.0-20220617031537-928513b29760 // indirect
 	gocloud.dev v0.24.0 // indirect
-	golang.org/x/exp/typeparams v0.0.0-20221031165847-c99f073a8326 // indirect
 	golang.org/x/mod v0.7.0 // indirect
 	golang.org/x/oauth2 v0.3.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/term v0.3.0 // indirect
 	golang.org/x/tools v0.4.0 // indirect
-	golang.org/x/tools/gopls v0.11.0 // indirect
-	golang.org/x/vuln v0.0.0-20221109205719-3af8368ee4fe // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
+	gonum.org/v1/gonum v0.12.0 // indirect
 	google.golang.org/api v0.103.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20221227171554-f9683d7f8bef // indirect
@@ -545,11 +546,8 @@ require (
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
-	honnef.co/go/tools v0.3.3 // indirect
 	inet.af/netaddr v0.0.0-20211027220019-c74959edd3b6 // indirect
 	k8s.io/kube-openapi v0.0.0-20221123214604-86e75ddd809a // indirect
-	mvdan.cc/gofumpt v0.4.0 // indirect
-	mvdan.cc/xurls/v2 v2.4.0 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 )
