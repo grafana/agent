@@ -29,6 +29,10 @@ func (af *attributeField) hasValue() bool {
 
 // MarshalJSON implements json marshaller.
 func (af *attributeField) MarshalJSON() ([]byte, error) {
+	if af.valField == nil {
+		return nil, fmt.Errorf("the value of the attribute field is nil")
+	}
+
 	if af.valField.hasValue() {
 		af.field.Value = af.valField
 	} else {
@@ -43,7 +47,7 @@ func (af *attributeField) convertAttribute(val value.Value, f rivertags.Field) e
 	if !f.IsAttr() {
 		return fmt.Errorf("convertAttribute requires a field that is an attribute got %T", val.Interface())
 	}
-	if !val.Reflect().IsValid() || val.Reflect().IsZero() {
+	if !val.Reflect().IsValid() {
 		return nil
 	}
 	af.Type = attrType

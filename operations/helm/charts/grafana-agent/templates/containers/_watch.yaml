@@ -7,16 +7,8 @@
     {{- toYaml .Values.configReloader.customArgs | nindent 4 }}
   {{- else }}
   args:
-    - -v
-    - -p=/etc/agent/{{ include "grafana-agent.config-map.key" . }}
-    - curl
-    - -X
-    - POST
-    - --fail
-    - -o
-    - '-'
-    - -sS
-    - http://localhost:{{ .Values.agent.listenPort }}/-/reload
+    - --volume-dir=/etc/agent
+    - --webhook-url=http://localhost:{{ .Values.agent.listenPort }}/-/reload
   {{- end }}
   volumeMounts:
     - name: config

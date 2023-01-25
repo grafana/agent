@@ -4,14 +4,13 @@ import (
 	"context"
 	"sync"
 
+	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/common/loki"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/loki/source/gelf/internal/target"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
-
 	"github.com/prometheus/common/model"
-
-	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/common/loki"
+	"github.com/prometheus/prometheus/model/relabel"
 )
 
 func init() {
@@ -74,7 +73,12 @@ func (c *Component) Update(args component.Arguments) error {
 		c.target.Stop()
 	}
 	c.receivers = newArgs.Receivers
-	rcs := flow_relabel.ComponentToPromRelabelConfigs(newArgs.RelabelConfigs)
+
+	var rcs []*relabel.Config
+	if newArgs.RelabelRules != nil && len(newArgs.RelabelRules) > 0 {
+		rcs = flow_relabel.ComponentToPromRelabelConfigs(newArgs.RelabelRules)
+	}
+
 	t, err := target.NewTarget(c.metrics, c.o.Logger, c.handler, rcs, convertConfig(newArgs))
 	if err != nil {
 		return err
@@ -86,10 +90,10 @@ func (c *Component) Update(args component.Arguments) error {
 // Arguments are the arguments for the component.
 type Arguments struct {
 	// ListenAddress only supports UDP.
-	ListenAddress        string                 `river:"listen_address,attr,optional"`
-	UseIncomingTimestamp bool                   `river:"use_incoming_timestamp,attr,optional"`
-	RelabelConfigs       []*flow_relabel.Config `river:"rule,block,optional"`
-	Receivers            []loki.LogsReceiver    `river:"forward_to,attr"`
+	ListenAddress        string              `river:"listen_address,attr,optional"`
+	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`
+	RelabelRules         flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
+	Receivers            []loki.LogsReceiver `river:"forward_to,attr"`
 }
 
 func defaultArgs() Arguments {
