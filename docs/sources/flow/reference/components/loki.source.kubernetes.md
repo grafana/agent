@@ -121,7 +121,7 @@ target:
 
 ## Debug metrics
 
-`loki.source.kubernetes` does not exist any component-specific debug metrics.
+`loki.source.kubernetes` does not expose any component-specific debug metrics.
 
 ## Example
 

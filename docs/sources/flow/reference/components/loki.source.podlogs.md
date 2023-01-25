@@ -218,7 +218,7 @@ configuration.
 
 ## Debug metrics
 
-`loki.source.podlogs` does not exist any component-specific debug metrics.
+`loki.source.podlogs` does not expose any component-specific debug metrics.
 
 ## Example
 
