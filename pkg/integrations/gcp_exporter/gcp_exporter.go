@@ -2,6 +2,8 @@ package gcp_exporter
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net/http"
@@ -15,6 +17,7 @@ import (
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/monitoring/v3"
 	"google.golang.org/api/option"
+	"gopkg.in/yaml.v3"
 
 	"github.com/grafana/agent/pkg/integrations"
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
@@ -66,12 +69,18 @@ func (c *Config) Name() string {
 }
 
 func (c *Config) InstanceKey(_ string) (string, error) {
-	//TODO make this v2 compatible
-	return c.Name(), nil
+	// We use a hash of the config so our key is unique when leveraged with v2
+	// The config itself doesn't have anything which can uniquely identify it.
+	bytes, err := yaml.Marshal(c)
+	if err != nil {
+		return "", err
+	}
+	hash := md5.Sum(bytes)
+	return hex.EncodeToString(hash[:]), nil
 }
 
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
-	if err := validateConfig(c); err != nil {
+	if err := c.Validate(); err != nil {
 		return nil, err
 	}
 
@@ -106,7 +115,7 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 	), nil
 }
 
-func validateConfig(c *Config) error {
+func (c *Config) Validate() error {
 	var configErrors []string
 
 	if c.ProjectID == "" {
