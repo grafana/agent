@@ -43,6 +43,8 @@ Main (unreleased)
     forwards them to other `loki` components. (@tpaschalis)
   - `otelcol.exporter.loki` forwards OTLP-formatted data to compatible `loki`
     receivers. (@tpaschalis)
+  - `otelcol.exporter.jaeger` forwards OTLP-formatted data to compatible `jaeger`
+    receivers. (@erikbaranowski)
   - `loki.source.gelf` listens for Graylog logs. (@mattdurham)
 
 
