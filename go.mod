@@ -136,7 +136,7 @@ require (
 	github.com/grafana/vmware_exporter v0.0.4-beta
 	github.com/hashicorp/golang-lru v0.6.0
 	github.com/hpcloud/tail v1.0.0
-	github.com/influxdata/go-syslog/v3 v3.0.1-0.20201128200927-a1889d947b48
+	github.com/influxdata/go-syslog/v3 v3.0.1-0.20210608084020-ac565dc76ba6
 	github.com/jaegertracing/jaeger v1.38.1
 	github.com/jmespath/go-jmespath v0.4.0
 	github.com/mackerelio/go-osstat v0.2.3
@@ -145,6 +145,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.61.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension v0.61.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension v0.61.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza v0.63.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/loki v0.63.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.63.0
 	github.com/phayes/freeport v0.0.0-20220201140144-74d24b5ae9f5
@@ -428,6 +429,7 @@ require (
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/ncabatoff/go-seq v0.0.0-20180805175032-b08ef85ed833 // indirect
 	github.com/nicolai86/scaleway-sdk v1.10.2-0.20180628010248-798f60e20bb2 // indirect
+	github.com/observiq/ctimefmt v1.0.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.63.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/sharedcomponent v0.63.0 // indirect
@@ -533,6 +535,8 @@ require (
 	golang.org/x/tools v0.4.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
+	gonum.org/v1/gonum v0.12.0 // indirect
+	google.golang.org/api v0.103.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20221227171554-f9683d7f8bef // indirect
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect
