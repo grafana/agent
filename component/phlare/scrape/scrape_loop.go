@@ -104,6 +104,7 @@ func (tg *scrapePool) reload(cfg Arguments) error {
 	if tg.config.ScrapeInterval == cfg.ScrapeInterval &&
 		tg.config.ScrapeTimeout == cfg.ScrapeTimeout &&
 		reflect.DeepEqual(tg.config.HTTPClientConfig, cfg.HTTPClientConfig) {
+
 		tg.config = cfg
 		return nil
 	}
