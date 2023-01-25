@@ -27,10 +27,6 @@ type testRemoteConfigProvider struct {
 	didCacheRemoteConfig      bool
 }
 
-func (t *testRemoteConfigProvider) ValidateInitialConfig() error {
-	return t.InitialConfig.Validate()
-}
-
 func (t *testRemoteConfigProvider) GetCachedRemoteConfig(expandEnvVars bool) (*Config, error) {
 	return t.cachedConfigToReturn, t.cachedConfigErrorToReturn
 }

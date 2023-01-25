@@ -18,11 +18,8 @@ import (
 const cacheFilename = "remote-config-cache.yaml"
 
 type remoteConfigProvider interface {
-	ValidateInitialConfig() error
-
 	GetCachedRemoteConfig(expandEnvVars bool) (*Config, error)
 	CacheRemoteConfig(remoteConfigBytes []byte) error
-
 	FetchRemoteConfig() ([]byte, error)
 }
 
@@ -30,14 +27,14 @@ type remoteConfigHTTPProvider struct {
 	InitialConfig *AgentManagementConfig
 }
 
-func newRemoteConfigHTTPProvider(c *Config) remoteConfigHTTPProvider {
-	return remoteConfigHTTPProvider{
-		InitialConfig: &c.AgentManagement,
+func newRemoteConfigHTTPProvider(c *Config) (*remoteConfigHTTPProvider, error) {
+	err := c.AgentManagement.Validate()
+	if err != nil {
+		return nil, err
 	}
-}
-
-func (r remoteConfigHTTPProvider) ValidateInitialConfig() error {
-	return r.InitialConfig.Validate()
+	return &remoteConfigHTTPProvider{
+		InitialConfig: &c.AgentManagement,
+	}, nil
 }
 
 // GetCachedRemoteConfig retrieves the cached remote config from the location specified
@@ -115,9 +112,6 @@ type AgentManagementConfig struct {
 //
 // It also validates that the response from the API is a semantically correct config by calling config.Validate().
 func getRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, log *server.Logger, fs *flag.FlagSet, args []string, configPath string) (*Config, error) {
-	if err := configProvider.ValidateInitialConfig(); err != nil {
-		return nil, fmt.Errorf("invalid initial config: %w", err)
-	}
 	remoteConfigBytes, err := configProvider.FetchRemoteConfig()
 	if err != nil {
 		level.Error(log).Log("msg", "could not fetch from API, falling back to cache", "err", err)
@@ -154,12 +148,12 @@ func getRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, lo
 
 // newRemoteConfigProvider creates a remoteConfigProvider based on the protocol
 // specified in c.AgentManagement
-func newRemoteConfigProvider(c *Config) (remoteConfigHTTPProvider, error) {
+func newRemoteConfigProvider(c *Config) (*remoteConfigHTTPProvider, error) {
 	switch p := c.AgentManagement.Protocol; {
 	case p == "http":
-		return newRemoteConfigHTTPProvider(c), nil
+		return newRemoteConfigHTTPProvider(c)
 	default:
-		return remoteConfigHTTPProvider{}, fmt.Errorf("unsupported protocol for agent management api: %s", p)
+		return nil, fmt.Errorf("unsupported protocol for agent management api: %s", p)
 	}
 }
 
