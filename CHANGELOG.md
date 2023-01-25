@@ -40,6 +40,9 @@ Main (unreleased)
     forwards them to other `loki` components. (@erikbaranowski)
   - `loki.source.kubernetes` collects logs from Kubernetes pods using the
     Kubernetes API. (@rfratto)
+  - `loki.source.podlogs` discovers PodLogs resources on Kubernetes and
+    uses the Kubernetes API to collect logs from the pods specified by the
+    PodLogs resource. (@rfratto)
   - `loki.source.syslog` listens for Syslog messages over TCP and UDP
     connections and forwards them to other `loki` components. (@tpaschalis)
   - `loki.source.windowsevent` reads logs from Windows Event Log. (@mattdurham)

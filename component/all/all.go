@@ -15,8 +15,10 @@ import (
 	_ "github.com/grafana/agent/component/loki/source/gelf"                     // Import loki.source.gelf
 	_ "github.com/grafana/agent/component/loki/source/heroku"                   // Import loki.source.heroku
 	_ "github.com/grafana/agent/component/loki/source/kubernetes"               // Import loki.source.kubernetes
+	_ "github.com/grafana/agent/component/loki/source/podlogs"                  // Import loki.source.podlogs
 	_ "github.com/grafana/agent/component/loki/source/syslog"                   // Import loki.source.syslog
 	_ "github.com/grafana/agent/component/loki/source/windowsevent"             // Import loki.source.windowsevent
+	_ "github.com/grafana/agent/component/loki/stdout"                          // Import loki.stdout
 	_ "github.com/grafana/agent/component/loki/write"                           // Import loki.write
 	_ "github.com/grafana/agent/component/mimir/rules/kubernetes"               // Import mimir.rules.kubernetes
 	_ "github.com/grafana/agent/component/otelcol/auth/basic"                   // Import otelcol.auth.basic
