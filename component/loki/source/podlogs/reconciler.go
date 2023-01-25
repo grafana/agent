@@ -270,14 +270,14 @@ func buildTargetLabels(opts discoveredContainer) promlabels.Labels {
 	targetLabels.Set("__meta_kubernetes_pod_container_image", opts.Container.Image)
 	targetLabels.Set("__meta_kubernetes_pod_ready", string(podReady(opts.Pod)))
 	targetLabels.Set("__meta_kubernetes_pod_phase", string(opts.Pod.Status.Phase))
-	targetLabels.Set("__meta_kubernetes_pod_node_name", string(opts.Pod.Spec.NodeName))
-	targetLabels.Set("__meta_kubernetes_pod_node_name", string(opts.Pod.Status.HostIP))
+	targetLabels.Set("__meta_kubernetes_pod_node_name", opts.Pod.Spec.NodeName)
+	targetLabels.Set("__meta_kubernetes_pod_host_ip", opts.Pod.Status.HostIP)
 	targetLabels.Set("__meta_kubernetes_pod_uid", string(opts.Pod.UID))
 
 	for _, ref := range opts.Pod.GetOwnerReferences() {
 		if ref.Controller != nil && *ref.Controller {
-			targetLabels.Set("__meta_kubernetes_pod_controller_kind", string(ref.Kind))
-			targetLabels.Set("__meta_kubernetes_pod_controller_name", string(ref.Name))
+			targetLabels.Set("__meta_kubernetes_pod_controller_kind", ref.Kind)
+			targetLabels.Set("__meta_kubernetes_pod_controller_name", ref.Name)
 			break
 		}
 	}

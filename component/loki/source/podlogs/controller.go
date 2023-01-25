@@ -128,17 +128,17 @@ func (ctrl *controller) run(ctx context.Context, informers cache.Informers, clie
 	defer level.Info(ctrl.log).Log("msg", "controller exiting")
 
 	go func() {
-		err := ctrl.informers.Start(ctx)
+		err := informers.Start(ctx)
 		if err != nil && ctx.Err() != nil {
 			level.Error(ctrl.log).Log("msg", "failed to start informers", "err", err)
 		}
 	}()
 
-	if !ctrl.informers.WaitForCacheSync(ctx) {
+	if !informers.WaitForCacheSync(ctx) {
 		return fmt.Errorf("informer caches failed to sync")
 	}
 
-	if err := ctrl.configureInformers(ctx); err != nil {
+	if err := ctrl.configureInformers(ctx, informers); err != nil {
 		return fmt.Errorf("failed to configure informers: %w", err)
 	}
 
@@ -155,7 +155,7 @@ func (ctrl *controller) run(ctx context.Context, informers cache.Informers, clie
 }
 
 // configureInformers starts the informers used by this controller to perform reconciles.
-func (ctrl *controller) configureInformers(ctx context.Context) error {
+func (ctrl *controller) configureInformers(ctx context.Context, informers cache.Informers) error {
 	// We want to re-reconcile the set of PodLogs whenever namespaces, pods, or
 	// PodLogs changes. Reconciling on namespaces and pods is important so that
 	// we can reevaluate selectors defined in PodLogs.
@@ -165,7 +165,7 @@ func (ctrl *controller) configureInformers(ctx context.Context) error {
 		&monitoringv1alpha2.PodLogs{},
 	}
 	for _, ty := range types {
-		informer, err := ctrl.informers.GetInformer(ctx, ty)
+		informer, err := informers.GetInformer(ctx, ty)
 		if err != nil {
 			return err
 		}
