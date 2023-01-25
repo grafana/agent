@@ -34,8 +34,10 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	// Use common unmarshal logic
-	return unmarshal((*common.Config)(c))
+	*c = Config(common.DefaultConfig)
+
+	type plain Config
+	return unmarshal((*plain)(c))
 }
 
 // Name returns the name of the integration this config is for.

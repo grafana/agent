@@ -50,11 +50,3 @@ func (c Config) Validate() error {
 
 	return nil
 }
-
-// UnmarshalYAML implements yaml.Unmarshaler for Config
-func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*c = DefaultConfig
-
-	type plain Config
-	return unmarshal((*plain)(c))
-}

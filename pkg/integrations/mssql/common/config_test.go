@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v2"
 )
 
 func TestConfig_validate(t *testing.T) {
@@ -95,41 +94,4 @@ func TestConfig_validate(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestConfig_UnmarshalYaml(t *testing.T) {
-	t.Run("only required values", func(t *testing.T) {
-		strConfig := `connection_string: "sqlserver://user:pass@localhost:1433"`
-
-		var c Config
-
-		require.NoError(t, yaml.UnmarshalStrict([]byte(strConfig), &c))
-
-		require.Equal(t, Config{
-			ConnectionString:   "sqlserver://user:pass@localhost:1433",
-			MaxIdleConnections: 3,
-			MaxOpenConnections: 3,
-			Timeout:            10 * time.Second,
-		}, c)
-	})
-
-	t.Run("all values", func(t *testing.T) {
-		strConfig := `
-connection_string: "sqlserver://user:pass@localhost:1433"
-max_idle_connections: 5
-max_open_connections: 6
-timeout: 1m
-`
-
-		var c Config
-
-		require.NoError(t, yaml.UnmarshalStrict([]byte(strConfig), &c))
-
-		require.Equal(t, Config{
-			ConnectionString:   "sqlserver://user:pass@localhost:1433",
-			MaxIdleConnections: 5,
-			MaxOpenConnections: 6,
-			Timeout:            time.Minute,
-		}, c)
-	})
 }
