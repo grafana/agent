@@ -1,4 +1,4 @@
-package snowflake_exporter
+package mssql_exporter
 
 import (
 	"errors"
@@ -126,7 +126,6 @@ func createHandler(logger log.Logger, c *Config) (http.HandlerFunc, error) {
 			&mssql_common.CollectorConfig,
 		},
 		prometheus.Labels{},
-		// TODO: Evaluate if these need to be configurable
 		&config.GlobalConfig{
 			ScrapeTimeout: model.Duration(c.Timeout),
 			TimeoutOffset: model.Duration(500 * time.Millisecond),

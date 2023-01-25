@@ -89,7 +89,6 @@ func init() {
 
 // NewIntegration creates a new integration from the config.
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
-	fmt.Printf("Configured scrape interval: %s\n", c.Timeout)
 	err := c.validate()
 	if err != nil {
 		return nil, fmt.Errorf("failed to validate config: %w", err)

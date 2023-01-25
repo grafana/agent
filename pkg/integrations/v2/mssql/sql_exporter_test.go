@@ -1,4 +1,4 @@
-package snowflake_exporter
+package mssql_exporter
 
 import (
 	"os"
