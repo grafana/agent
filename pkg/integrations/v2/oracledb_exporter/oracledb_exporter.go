@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 
@@ -16,8 +17,8 @@ import (
 
 	// required driver for integration
 	_ "github.com/sijms/go-ora/v2"
-	"github.com/xo/dburl"
 
+	oe_v1 "github.com/grafana/agent/pkg/integrations/oracledb_exporter"
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
 )
 
@@ -53,27 +54,6 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
-// Validate returns errors if the configuration is invalid and the exporter could not function with it
-func (c *Config) Validate() error {
-	if c.ConnectionString == "" {
-		return errNoConnectionString
-	}
-	u, err := dburl.Parse(c.ConnectionString)
-	if err != nil {
-		return fmt.Errorf("unable to parse connection string: %w", err)
-	}
-
-	if u.Scheme != "oracle" {
-		return fmt.Errorf("unexpected scheme of type '%s'. Was expecting 'oracle': %w", u.Scheme, err)
-	}
-
-	// hostname is required for identification
-	if u.Hostname() == "" {
-		return errNoHostname
-	}
-	return nil
-}
-
 // Name returns the integration name this config is associated with.
 func (c *Config) Name() string {
 	return "oracledb"
@@ -91,7 +71,7 @@ func (c *Config) Identifier(globals integrations_v2.Globals) (string, error) {
 		return *c.Common.InstanceKey, nil
 	}
 
-	u, err := dburl.Parse(c.ConnectionString)
+	u, err := url.Parse(c.ConnectionString)
 	if err != nil {
 		return "", err
 	}
@@ -113,7 +93,7 @@ func (c *Config) NewIntegration(logger log.Logger, globals integrations_v2.Globa
 }
 
 func createHandler(logger log.Logger, c *Config) (http.HandlerFunc, error) {
-	if err := c.Validate(); err != nil {
+	if err := oe_v1.ValidateConnString(c.ConnectionString); err != nil {
 		return nil, fmt.Errorf("invalid config: %w", err)
 	}
 

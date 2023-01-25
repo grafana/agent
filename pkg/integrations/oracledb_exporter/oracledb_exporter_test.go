@@ -95,10 +95,10 @@ func TestConfigValidate(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			cfg := tc.getConfig()
 			if tc.expectedErr == nil {
-				require.NoError(t, cfg.Validate())
+				require.NoError(t, ValidateConnString(cfg.ConnectionString))
 				return
 			}
-			require.ErrorContains(t, cfg.Validate(), tc.expectedErr.Error())
+			require.ErrorContains(t, ValidateConnString(cfg.ConnectionString), tc.expectedErr.Error())
 		})
 	}
 }

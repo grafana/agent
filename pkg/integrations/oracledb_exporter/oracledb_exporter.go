@@ -3,6 +3,7 @@ package oracledbexporter
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"time"
 
@@ -12,7 +13,6 @@ import (
 
 	// required driver for integration
 	_ "github.com/sijms/go-ora/v2"
-	"github.com/xo/dburl"
 )
 
 // DefaultConfig is the default config for the oracledb v2 integration
@@ -38,12 +38,13 @@ type Config struct {
 	QueryTimeout         int           `yaml:"query_timeout"`
 }
 
-// Validate returns if the configuration is valid
-func (c *Config) Validate() error {
-	if c.ConnectionString == "" {
+// ValidateConnString attempts to ensure the connection string supplied is valid
+// to connect to an OracleDB instance
+func ValidateConnString(connStr string) error {
+	if connStr == "" {
 		return errNoConnectionString
 	}
-	u, err := dburl.Parse(c.ConnectionString)
+	u, err := url.Parse(connStr)
 	if err != nil {
 		return fmt.Errorf("unable to parse connection string: %w", err)
 	}
@@ -74,7 +75,7 @@ func (c *Config) Name() string {
 
 // InstanceKey returns the addr of the oracle instance.
 func (c *Config) InstanceKey(agentKey string) (string, error) {
-	u, err := dburl.Parse(c.ConnectionString)
+	u, err := url.Parse(c.ConnectionString)
 	if err != nil {
 		return "", err
 	}
@@ -93,8 +94,8 @@ func init() {
 // New creates a new oracledb integration. The integration scrapes metrics
 // from an OracleDB exporter running with the https://github.com/iamseth/oracledb_exporter
 func New(logger log.Logger, c *Config) (integrations.Integration, error) {
-	if err := c.Validate(); err != nil {
-		return nil, fmt.Errorf("invalid config: %w", err)
+	if err := ValidateConnString(c.ConnectionString); err != nil {
+		return nil, fmt.Errorf("invalid connection string: %w", err)
 	}
 
 	oeExporter, err := oe.NewExporter(logger, &oe.Config{
