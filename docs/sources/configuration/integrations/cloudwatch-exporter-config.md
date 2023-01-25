@@ -131,7 +131,6 @@ Configuration reference:
 # static_job
 
 A static job allows one to scrape an individual CloudWatch metric. For that, metrics needs to be fully qualified, specifying the following:
-means, the following attributes of a CW metric need to be specified in order for the agent to find it:
 1. `namespace`: For example `AWS/EC2`, `AWS/EBS`, `CoolApp` if it were a custom metric, etc.
 2. `dimensions`: CloudWatch identifies a metrics by a set of dimensions. For example, all `AWS/EC2` metrics are identified by the `InstanceId` dimension.
 3. `metrics`: Metric name and statistics.
@@ -194,7 +193,7 @@ Configuration reference:
 Represents an [AWS IAM Role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html). Required when configuring a job. If omitted
 the AWS role that the credentials configured in the environment posses will be used. 
 
-Useful when scraping metrics from different AWS accounts with a single pair of credentials. In this case, a different role
+This is useful when scraping metrics from different AWS accounts with a single pair of credentials. In this case, a different role
 is configured for the agent to assume prior to calling AWS APIs, therefore, the credentials configured in the system need
 permission to assume the target role. See [this documentation](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_permissions-to-switch.html) on how to configure this.
 
@@ -239,7 +238,7 @@ Represents an [AWS Tag](https://docs.aws.amazon.com/general/latest/gr/aws_taggin
 
 # Period
 
-Period controls how much back in time CloudWatch metrics are considered, during each agent scrape. We can split how these 
+Period controls how far back in time CloudWatch metrics are considered, during each agent scrape. We can split how these 
 settings affects the produced values in two different scenarios.
 
 If all metrics within a job (discovery or static) have the same `Period` value configured, CloudWatch APIs will be requested
@@ -315,7 +314,7 @@ For simplicity, one can use the following AWS IAM Policy for all features of thi
 # Supported services in discovery jobs
 
 The following is a list of AWS services that are supported in `cloudwatch_exporter` discovery jobs. When configuring a
-discovery job, the `type` field of each `discovery_job` must match either one of the desired job namespace or alias.
+discovery job, the `type` field of each `discovery_job` must match either the desired job namespace or alias.
 
 - Namespace: `AWS/CertificateManager` or Alias: `acm`
 - Namespace: `AmazonMWAA` or Alias: `airflow`
