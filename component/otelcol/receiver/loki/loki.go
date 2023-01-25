@@ -146,11 +146,3 @@ func parsePromtailEntry(inputEntry loki.Entry) *entry.Entry {
 	}
 	return outputEntry
 }
-
-// NewEntry will create a new entry.
-func NewEntry(value interface{}) (*entry.Entry, error) {
-	entry := entry.New()
-	entry.Body = value
-
-	return entry, nil
-}
