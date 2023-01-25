@@ -13,6 +13,7 @@ import (
 	_ "github.com/grafana/agent/component/loki/source/file"                     // Import loki.source.file
 	_ "github.com/grafana/agent/component/loki/source/gcplog"                   // Import loki.source.gcplog
 	_ "github.com/grafana/agent/component/loki/source/gelf"                     // Import loki.source.gelf
+	_ "github.com/grafana/agent/component/loki/source/heroku"                   // Import loki.source.heroku
 	_ "github.com/grafana/agent/component/loki/source/syslog"                   // Import loki.source.syslog
 	_ "github.com/grafana/agent/component/loki/source/windowsevent"             // Import loki.source.windowsevent
 	_ "github.com/grafana/agent/component/loki/write"                           // Import loki.write
