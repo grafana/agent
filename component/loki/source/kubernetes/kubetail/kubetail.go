@@ -90,10 +90,11 @@ func (m *Manager) SyncTargets(ctx context.Context, targets []*Target) error {
 }
 
 func entryForTarget(t *Target) positions.Entry {
-	// Prefix the path with "cursor-" so it doesn't get automatically deleted by
-	// positions.Positions, which otherwise will try to read the path as a file.
+	// The path is fed into positions.CursorKey to treat it as a "cursor";
+	// otherise positions.Positions will try to read the path as a file and
+	// delete the entry when it can't find it.
 	return positions.Entry{
-		Path:   "cursor-" + t.String(),
+		Path:   positions.CursorKey(t.String()),
 		Labels: t.Labels().String(),
 	}
 }

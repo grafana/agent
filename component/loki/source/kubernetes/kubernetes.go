@@ -241,6 +241,7 @@ func (c *Component) Update(args component.Arguments) error {
 		if err != nil {
 			// TODO(rfratto): should this set the health of the component?
 			level.Error(c.log).Log("msg", "failed to process input target", "target", lset.String(), "err", err)
+			continue
 		}
 		targets = append(targets, kubetail.NewTarget(lset, processed))
 	}

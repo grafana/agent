@@ -254,9 +254,9 @@ func (t *tailer) containerTerminated(ctx context.Context) (terminated bool, err 
 		switch {
 		case containerInfo.State.Waiting != nil || containerInfo.State.Running != nil:
 			return false, nil // Container will restart
-		case restartPolicy == corev1.RestartPolicyAlways:
+		case containerInfo.State.Terminated != nil && restartPolicy == corev1.RestartPolicyAlways:
 			return false, nil // Container will restart
-		case containerInfo.State.Terminated != nil && restartPolicy == corev1.RestartPolicyOnFailure && containerInfo.State.Terminated.ExitCode != 0:
+		case containerInfo.State.Terminated != nil && containerInfo.State.Terminated.ExitCode != 0 && restartPolicy != corev1.RestartPolicyNever:
 			return false, nil // Container will restart
 		default:
 			return true, nil // Container will *not* restart
@@ -284,7 +284,12 @@ func (t *tailer) containerTerminated(ctx context.Context) (terminated bool, err 
 		// Ephemeral containers never restart.
 		//
 		// https://kubernetes.io/docs/concepts/workloads/pods/ephemeral-containers/
-		return true, nil
+		switch {
+		case containerInfo.State.Waiting != nil || containerInfo.State.Running != nil:
+			return false, nil // Container is running or is about to run
+		default:
+			return true, nil // Container will *not* restart
+		}
 	}
 
 	return false, nil
