@@ -12,7 +12,6 @@ import (
 
 func TestOracleDBConfigUnmarshal(t *testing.T) {
 	strConfig := `
-enabled: true
 connection_string: oracle://user:password@localhost:1521/orcl.localnet
 instance: my-oracledb
 metrics_scrape_interval: 1m
