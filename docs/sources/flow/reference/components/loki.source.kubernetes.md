@@ -7,12 +7,17 @@ title: loki.source.kubernetes
 # loki.source.kubernetes
 
 `loki.source.kubernetes` tails logs from Kubernetes containers using the
-Kubernetes API.
+Kubernetes API. It has the following benefits over `loki.source.file`:
 
-Unlike `loki.source.file`, `loki.source.kubernetes` can collect container logs
-without needing a privileged container, a root user, or a `hostPath` volume
-mount. However, it leads to more network traffic and may increase CPU
-consumption of Kubelets.
+* It works without a privileged container
+* It works without a root user
+* It works without needing access to the filesystem of the Kubernetes node
+* It doesn't require a DaemonSet to collect logs, so one agent could collect
+  logs for the whole cluster.
+
+> **NOTE**: Because `loki.source.kubernetes` uses the Kubernetes API to tail
+> logs, it uses more network traffic and CPU consumption of Kubelets than
+> `loki.source.file`.
 
 Multiple `loki.source.kubernetes` components can be specified by giving them
 different labels.
