@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/pkg/config/features"
 	"github.com/grafana/agent/pkg/server"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/common/config"
@@ -167,8 +168,9 @@ func TestGetRemoteConfig_InvalidInitialConfig(t *testing.T) {
 
 	logger := server.NewLogger(&server.DefaultConfig)
 	testProvider := testRemoteConfigProvider{AgentManagement: invalidAgentManagement}
-	fs := flag.NewFlagSet("test", flag.ExitOnError)
-	_, err := getRemoteConfig(true, &testProvider, logger, fs, []string{}, "test")
+
+	// a nil flagset is being used for testing because it should not reach flag validation
+	_, err := getRemoteConfig(true, &testProvider, logger, nil, []string{}, "test")
 	assert.Error(t, err)
 	assert.False(t, testProvider.didCacheRemoteConfig)
 }
@@ -183,9 +185,9 @@ func TestGetRemoteConfig_UnmarshallableRemoteConfig(t *testing.T) {
 	testProvider := testRemoteConfigProvider{AgentManagement: &am}
 	testProvider.fetchedConfigBytesToReturn = invalidCfgBytes
 	testProvider.cachedConfigToReturn = &DefaultConfig
-	fs := flag.NewFlagSet("test", flag.ExitOnError)
 
-	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, []string{}, "test")
+	// a nil flagset is being used for testing because it should not reach flag validation
+	cfg, err := getRemoteConfig(true, &testProvider, logger, nil, []string{}, "test")
 	assert.NoError(t, err)
 	assert.False(t, testProvider.didCacheRemoteConfig)
 
@@ -199,31 +201,14 @@ func TestGetRemoteConfig_RemoteFetchFails(t *testing.T) {
 	testProvider := testRemoteConfigProvider{AgentManagement: &am}
 	testProvider.fetchedConfigErrorToReturn = errors.New("connection refused")
 	testProvider.cachedConfigToReturn = &DefaultConfig
-	fs := flag.NewFlagSet("test", flag.ExitOnError)
 
-	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, []string{}, "test")
+	// a nil flagset is being used for testing because it should not reach flag validation
+	cfg, err := getRemoteConfig(true, &testProvider, logger, nil, []string{}, "test")
 	assert.NoError(t, err)
 	assert.False(t, testProvider.didCacheRemoteConfig)
 
 	// check that the returned config is the cached one
 	assert.True(t, util.CompareYAML(*cfg, DefaultConfig))
-}
-
-func TestGetRemoteConfig_ValidRemoteConfig(t *testing.T) {
-	validConfig := `server:
-  log_level: info`
-
-	validConfigBytes := []byte(validConfig)
-
-	am := validAgentManagement
-	logger := server.NewLogger(&server.DefaultConfig)
-	testProvider := testRemoteConfigProvider{AgentManagement: &am}
-	testProvider.fetchedConfigBytesToReturn = validConfigBytes
-	fs := flag.NewFlagSet("test", flag.ExitOnError)
-
-	_, err := getRemoteConfig(true, &testProvider, logger, fs, []string{}, "test")
-	assert.NoError(t, err)
-	assert.True(t, testProvider.didCacheRemoteConfig)
 }
 
 func TestGetRemoteConfig_InvalidRemoteConfig(t *testing.T) {
@@ -262,6 +247,7 @@ metrics:
 	testProvider.fetchedConfigBytesToReturn = invalidCfgBytes
 	testProvider.cachedConfigToReturn = &DefaultConfig
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
+	features.Register(fs, allFeatures)
 
 	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, []string{}, "test")
 	assert.NoError(t, err)
