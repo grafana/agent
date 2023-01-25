@@ -21,9 +21,6 @@ type PodLogs struct {
 
 // PodLogsSpec defines how to collect logs for a Pod.
 type PodLogsSpec struct {
-	// The label to use to retrieve the job name from.
-	JobLabel string `json:"jobLabel,omitempty"`
-
 	// Selector to select Pod objects. Required.
 	Selector metav1.LabelSelector `json:"selector"`
 	// Selector to select which namespaces the Pod objects are discovered from.
