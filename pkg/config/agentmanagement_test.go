@@ -124,12 +124,6 @@ func TestMissingCacheLocation(t *testing.T) {
 	assert.Error(t, invalidConfig.Validate())
 }
 
-// func TestGetCachedRemoteConfig(t *testing.T) {
-// 	cwd := filepath.Clean("./testdata/")
-// 	_, err := getCachedRemoteConfig(cwd, false)
-// 	assert.NoError(t, err)
-// }
-
 func TestSleepTime(t *testing.T) {
 	c := validAgentManagement
 	st, err := c.SleepTime()
