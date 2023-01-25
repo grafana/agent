@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/pkg/integrations/mssql/common"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )
@@ -19,10 +20,12 @@ func TestConfig_UnmarshalYaml(t *testing.T) {
 		require.NoError(t, yaml.UnmarshalStrict([]byte(strConfig), &c))
 
 		require.Equal(t, Config{
-			ConnectionString:   "sqlserver://user:pass@localhost:1433",
-			MaxIdleConnections: 3,
-			MaxOpenConnections: 3,
-			Timeout:            10 * time.Second,
+			Config: common.Config{
+				ConnectionString:   "sqlserver://user:pass@localhost:1433",
+				MaxIdleConnections: 3,
+				MaxOpenConnections: 3,
+				Timeout:            10 * time.Second,
+			},
 		}, c)
 	})
 
@@ -39,10 +42,12 @@ timeout: 1m
 		require.NoError(t, yaml.UnmarshalStrict([]byte(strConfig), &c))
 
 		require.Equal(t, Config{
-			ConnectionString:   "sqlserver://user:pass@localhost:1433",
-			MaxIdleConnections: 5,
-			MaxOpenConnections: 6,
-			Timeout:            time.Minute,
+			Config: common.Config{
+				ConnectionString:   "sqlserver://user:pass@localhost:1433",
+				MaxIdleConnections: 5,
+				MaxOpenConnections: 6,
+				Timeout:            time.Minute,
+			},
 		}, c)
 	})
 }
@@ -50,10 +55,12 @@ timeout: 1m
 func TestConfig_NewIntegration(t *testing.T) {
 	t.Run("integration with valid config", func(t *testing.T) {
 		c := &Config{
-			ConnectionString:   "sqlserver://user:pass@localhost:1433",
-			MaxIdleConnections: 3,
-			MaxOpenConnections: 3,
-			Timeout:            10 * time.Second,
+			Config: common.Config{
+				ConnectionString:   "sqlserver://user:pass@localhost:1433",
+				MaxIdleConnections: 3,
+				MaxOpenConnections: 3,
+				Timeout:            10 * time.Second,
+			},
 		}
 
 		i, err := c.NewIntegration(log.NewJSONLogger(os.Stdout))
@@ -63,10 +70,12 @@ func TestConfig_NewIntegration(t *testing.T) {
 
 	t.Run("integration with invalid config", func(t *testing.T) {
 		c := &Config{
-			ConnectionString:   "mysql://user:pass@localhost:1433",
-			MaxIdleConnections: 3,
-			MaxOpenConnections: 3,
-			Timeout:            10 * time.Second,
+			Config: common.Config{
+				ConnectionString:   "mysql://user:pass@localhost:1433",
+				MaxIdleConnections: 3,
+				MaxOpenConnections: 3,
+				Timeout:            10 * time.Second,
+			},
 		}
 
 		i, err := c.NewIntegration(log.NewJSONLogger(os.Stdout))
@@ -78,10 +87,12 @@ func TestConfig_NewIntegration(t *testing.T) {
 func TestConfig_AgentKey(t *testing.T) {
 	t.Run("valid url", func(t *testing.T) {
 		c := Config{
-			ConnectionString:   "mssql://user:pass@localhost:1433",
-			MaxIdleConnections: 3,
-			MaxOpenConnections: 3,
-			Timeout:            10 * time.Second,
+			Config: common.Config{
+				ConnectionString:   "mssql://user:pass@localhost:1433",
+				MaxIdleConnections: 3,
+				MaxOpenConnections: 3,
+				Timeout:            10 * time.Second,
+			},
 		}
 
 		ik, err := c.InstanceKey("agent-key")
@@ -92,10 +103,12 @@ func TestConfig_AgentKey(t *testing.T) {
 
 	t.Run("invalid url", func(t *testing.T) {
 		c := Config{
-			ConnectionString:   "\u0001",
-			MaxIdleConnections: 3,
-			MaxOpenConnections: 3,
-			Timeout:            10 * time.Second,
+			Config: common.Config{
+				ConnectionString:   "\u0001",
+				MaxIdleConnections: 3,
+				MaxOpenConnections: 3,
+				Timeout:            10 * time.Second,
+			},
 		}
 
 		_, err := c.InstanceKey("agent-key")

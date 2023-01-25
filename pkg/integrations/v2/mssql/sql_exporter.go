@@ -25,10 +25,6 @@ type Config struct {
 	Common common.MetricsConfig `yaml:",inline"`
 }
 
-func (c Config) validate() error {
-	return c.Config.Validate()
-}
-
 // ApplyDefaults applies the integration's default configuration.
 func (c *Config) ApplyDefaults(globals integrations_v2.Globals) error {
 	c.Common.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
@@ -68,7 +64,7 @@ func init() {
 
 // NewIntegration creates a new v2 integration from the config.
 func (c *Config) NewIntegration(l log.Logger, globals integrations_v2.Globals) (integrations_v2.Integration, error) {
-	err := c.validate()
+	err := c.Config.Validate()
 	if err != nil {
 		return nil, fmt.Errorf("failed to validate config: %w", err)
 	}

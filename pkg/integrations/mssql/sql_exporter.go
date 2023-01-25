@@ -15,11 +15,8 @@ import (
 	"github.com/prometheus/common/model"
 )
 
-type Config common.Config
-
-// Validate validates the config.
-func (c Config) Validate() error {
-	return common.Config(c).Validate()
+type Config struct {
+	common.Config `yaml:",inline"`
 }
 
 // Identifier returns a string that identifies the integration.
@@ -34,7 +31,7 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*c = Config(common.DefaultConfig)
+	c.Config = common.DefaultConfig
 
 	type plain Config
 	return unmarshal((*plain)(c))
@@ -51,7 +48,7 @@ func init() {
 
 // NewIntegration creates a new integration from the config.
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
-	if err := c.Validate(); err != nil {
+	if err := c.Config.Validate(); err != nil {
 		return nil, fmt.Errorf("failed to validate config: %w", err)
 	}
 
