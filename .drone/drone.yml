@@ -463,3 +463,8 @@ get:
   path: infra/data/ci/packages-publish/gpg
 kind: secret
 name: gpg_passphrase
+---
+kind: signature
+hmac: c6496402d38b36cc5b32f691691f33214d25941b69a39c77f6b95de0d3c5eb83
+
+...
