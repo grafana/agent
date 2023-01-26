@@ -17,17 +17,19 @@ import (
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/scrape"
 	"github.com/psanford/memfs"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 
 	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
-	promop "github.com/prometheus-operator/prometheus-operator/pkg/client/informers/externalversions"
 	"github.com/prometheus-operator/prometheus-operator/pkg/client/versioned"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "discovery.kubernetes_crds",
+		Name:    "prometheus.crds",
 		Args:    Config{},
 		Exports: struct{}{},
 
@@ -58,7 +60,6 @@ type crdManager struct {
 	discoveryConfigs map[string]discovery.Configs
 	scrapeConfigs    map[string]*config.ScrapeConfig
 
-	// TODO: mutex only needed here if informer calls event handlers concurrently
 	mut sync.Mutex
 }
 
@@ -192,19 +193,33 @@ func (c *crdManager) run(ctx context.Context) {
 		logger:  c.logger,
 	}
 
-	factory := promop.NewSharedInformerFactory(promClientset, 5*time.Minute)
-	inf := factory.Monitoring().V1().PodMonitors().Informer()
-	inf.AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc:    c.onAddPodMonitor,
-		UpdateFunc: c.onUpdatePodMonitor,
-		DeleteFunc: c.onDeletePodMonitor,
-	})
-	inf.SetWatchErrorHandler(func(r *cache.Reflector, err error) {
-		level.Error(c.logger).Log("msg", "kubernetes watcher error", "err", err)
-	})
-	factory.Start(ctx.Done())
+	for _, namespace := range c.config.Namespaces {
+		pms := promClientset.MonitoringV1().PodMonitors(namespace)
+		plw := &cache.ListWatch{
+			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
+				//options.FieldSelector = d.selectors.pod.field
+				//options.LabelSelector = d.selectors.pod.label
+				return pms.List(ctx, options)
+			},
+			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
+				//options.FieldSelector = d.selectors.pod.field
+				//options.LabelSelector = d.selectors.pod.label
+				return pms.Watch(ctx, options)
+			},
+		}
+		inf := cache.NewSharedInformer(plw, &v1.PodMonitor{}, 5*time.Minute)
+		inf.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc:    c.onAddPodMonitor,
+			UpdateFunc: c.onUpdatePodMonitor,
+			DeleteFunc: c.onDeletePodMonitor,
+		})
+		inf.SetWatchErrorHandler(func(r *cache.Reflector, err error) {
+			level.Error(c.logger).Log("msg", "kubernetes watcher error", "err", err)
+		})
+		go inf.Run(ctx.Done())
+	}
 
-	level.Info(c.logger).Log("msg", "Informer factory started")
+	level.Info(c.logger).Log("msg", "PodMonitor informers  started")
 
 	c.discovery = discovery.NewManager(ctx, c.logger, discovery.Name(c.opts.ID))
 	go func() {
@@ -235,6 +250,7 @@ func (c *crdManager) run(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case m := <-c.discovery.SyncCh():
+			//TODO: are there cases where we modify targets?
 			targetSetsChan <- m
 		}
 	}
