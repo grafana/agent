@@ -43,6 +43,8 @@ Main (unreleased)
   - `loki.source.syslog` listens for Syslog messages over TCP and UDP
     connections and forwards them to other `loki` components. (@tpaschalis)
   - `loki.source.windowsevent` reads logs from Windows Event Log. (@mattdurham)
+  - `otelcol.exporter.jaeger` forwards OpenTelemetry data to a Jaeger server.
+    (@erikbaranowski)
   - `otelcol.exporter.loki` forwards OTLP-formatted data to compatible `loki`
     receivers. (@tpaschalis)
   - `otelcol.receiver.kafka` receives telemetry data from Kafka. (@rfratto)
