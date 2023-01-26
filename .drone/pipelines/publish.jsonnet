@@ -151,7 +151,7 @@ local pipelines = import '../util/pipelines.jsonnet';
         'docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD',
         'make -j4 RELEASE_BUILD=1 VERSION=${DRONE_TAG} dist',
         |||
-          VERSION ${DRONE_TAG} RELEASE_DOC_TAG=$(echo ${DRONE_TAG} | awk -F '.' '{print $1"."$2}') ./tools/release
+          VERSION=${DRONE_TAG} RELEASE_DOC_TAG=$(echo ${DRONE_TAG} | awk -F '.' '{print $1"."$2}') ./tools/release
         |||,
       ],
     }],
