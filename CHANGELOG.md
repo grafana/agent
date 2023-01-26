@@ -89,6 +89,9 @@ Main (unreleased)
 - Flow: fix a goroutine leak when `loki.source.file` is passed more than one
   target with identical set of public labels. (@rfratto)
 
+- Fix issue where removing and re-adding log instance configurations causes an
+  error due to double registration of metrics (@spartan0x117, @jcreixell)
+
 ### Other changes
 
 - Use Go 1.19.4 for builds. (@erikbaranowski)
