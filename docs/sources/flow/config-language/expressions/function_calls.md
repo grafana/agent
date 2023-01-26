@@ -6,7 +6,7 @@ title: Function calls
 weight: 400
 ---
 
-# Function Calls
+# Function calls
 Function calls is one more River feature that lets users build richer
 expressions.
 
