@@ -8,7 +8,7 @@ title: loki.source.podlogs
 
 `loki.source.podlogs` discovers `PodLogs` resources on Kubernetes and, using
 the Kubernetes API, tails logs from Kubernetes containers of Pods specified by
-the discovered `PodLogs`.
+the discovered them.
 
 `loki.source.podlogs` is similar to `loki.source.kubernetes`, but uses custom
 resources rather than being fed targets from another Flow component.
@@ -45,9 +45,7 @@ Name | Type | Description | Default | Required
 `forward_to` | `list(LogsReceiver)` | List of receivers to send log entries to. | | yes
 
 `loki.source.podlogs` searches for `PodLogs` resources on Kubernetes. Each
-`PodLogs` resource describes a set of pods to collect logs from.
-`loki.source.podlogs` discovers pods based on the `PodLogs` resources, and
-tails logs from the resulting pods.
+`PodLogs` resource describes a set of pods to tail logs from.
 
 ## PodLogs custom resource
 
@@ -137,6 +135,9 @@ namespace_selector > match_expression | [match_expression][] | Label selector ex
 The `>` symbol indicates deeper levels of nesting. For example, `client >
 http_client_config` refers to an `http_client_config` block defined
 inside a `client` block.
+
+Both `selector` and `namespace_selector` can make use of multiple
+`match_expression` inner blocks, which are treated as AND clauses.
 
 [client]: #client-block
 [http_client_config]: #http_client_config-block

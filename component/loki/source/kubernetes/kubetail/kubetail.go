@@ -141,12 +141,12 @@ func (m *Manager) UpdateOptions(ctx context.Context, newOptions *Options) error 
 	}
 
 	switch newOptions {
-	default:
-		if err := m.runner.ApplyTasks(ctx, tasks); err != nil {
-			return err
-		}
 	case nil:
 		if err := m.runner.ApplyTasks(ctx, nil); err != nil {
+			return err
+		}
+	default:
+		if err := m.runner.ApplyTasks(ctx, tasks); err != nil {
 			return err
 		}
 	}

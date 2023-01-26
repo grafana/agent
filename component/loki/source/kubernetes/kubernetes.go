@@ -128,7 +128,6 @@ func (args *ClientArguments) BuildRESTConfig(l log.Logger) (*rest.Config, error)
 	cfg.ContentType = "application/vnd.kubernetes.protobuf"
 
 	return cfg, nil
-	//return kubernetes.NewForConfig(cfg)
 }
 
 // Component implements the loki.source.kubernetes component.

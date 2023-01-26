@@ -48,9 +48,3 @@ func (me *MatchExpression) buildExpression() metav1.LabelSelectorRequirement {
 		Values:   me.Values,
 	}
 }
-
-// NamespaceSelector defines a selector to find namespaces.
-type NamespaceSelector struct {
-	All        bool     `river:"all,attr,optional"`
-	MatchNames []string `river:"match_names,attr,optional"`
-}
