@@ -20,7 +20,7 @@ metrics:
   #
   # Collected from sys.dm_os_performance_counters
   #
-  - metric_name: mssql_deadlocks
+  - metric_name: mssql_deadlocks_total
     type: counter
     help: 'Number of lock requests that resulted in a deadlock.'
     values: [cntr_value]
@@ -28,7 +28,7 @@ metrics:
       SELECT cntr_value
       FROM sys.dm_os_performance_counters WITH (NOLOCK)
       WHERE counter_name = 'Number of Deadlocks/sec' AND instance_name = '_Total'
-  - metric_name: mssql_user_errors
+  - metric_name: mssql_user_errors_total
     type: counter
     help: 'Number of user errors.'
     values: [cntr_value]
@@ -36,7 +36,7 @@ metrics:
       SELECT cntr_value
       FROM sys.dm_os_performance_counters WITH (NOLOCK)
       WHERE counter_name = 'Errors/sec' AND instance_name = 'User Errors'
-  - metric_name: mssql_kill_connection_errors
+  - metric_name: mssql_kill_connection_errors_total
     type: counter
     help: 'Number of severe errors that caused SQL Server to kill the connection.'
     values: [cntr_value]
@@ -52,7 +52,7 @@ metrics:
       SELECT top(1) cntr_value
       FROM sys.dm_os_performance_counters WITH (NOLOCK)
       WHERE counter_name = 'Page life expectancy'
-  - metric_name: mssql_batch_requests
+  - metric_name: mssql_batch_requests_total
     type: counter
     help: 'Number of command batches received.'
     values: [cntr_value]
@@ -60,7 +60,7 @@ metrics:
       SELECT cntr_value
       FROM sys.dm_os_performance_counters WITH (NOLOCK)
       WHERE counter_name = 'Batch Requests/sec'
-  - metric_name: mssql_log_growths
+  - metric_name: mssql_log_growths_total
     type: counter
     help: 'Number of times the transaction log has been expanded, per database.'
     key_labels:
@@ -95,7 +95,7 @@ metrics:
   #
   # Collected from sys.dm_io_virtual_file_stats
   #
-  - metric_name: mssql_io_stall_seconds
+  - metric_name: mssql_io_stall_seconds_total
     type: counter
     help: 'Stall time in seconds per database and I/O operation.'
     key_labels:
@@ -104,14 +104,6 @@ metrics:
     values:
       - read
       - write
-    query_ref: mssql_io_stall
-  - metric_name: mssql_io_stall_total_seconds
-    type: counter
-    help: 'Total stall time in seconds per database.'
-    key_labels:
-      - db
-    values:
-      - io_stall
     query_ref: mssql_io_stall
 
   #
@@ -135,7 +127,7 @@ metrics:
     values: [memory_utilization_percentage]
     query_ref: mssql_process_memory
 
-  - metric_name: mssql_page_fault_count
+  - metric_name: mssql_page_fault_count_total
     type: counter
     help: 'The number of page faults that were incurred by the SQL Server process.'
     values: [page_fault_count]
@@ -172,7 +164,6 @@ queries:
         cast(DB_Name(a.database_id) as varchar) AS [db],
         sum(io_stall_read_ms) / 1000.0 AS [read],
         sum(io_stall_write_ms) / 1000.0 AS [write],
-        sum(io_stall) / 1000.0 AS io_stall
       FROM
         sys.dm_io_virtual_file_stats(null, null) a
       INNER JOIN sys.master_files b ON a.database_id = b.database_id AND a.file_id = b.file_id
