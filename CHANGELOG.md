@@ -38,6 +38,7 @@ Main (unreleased)
   - `loki.source.gelf` listens for Graylog logs. (@mattdurham)
   - `loki.source.heroku` listens for Heroku messages over TCP a connection and
     forwards them to other `loki` components. (@erikbaranowski)
+  - `loki.source.journal` read messages from systemd journal. (@mattdurham)
   - `loki.source.kubernetes` collects logs from Kubernetes pods using the
     Kubernetes API. (@rfratto)
   - `loki.source.podlogs` discovers PodLogs resources on Kubernetes and
@@ -59,6 +60,7 @@ Main (unreleased)
   - `phlare.scrape` collects application performance profiles. (@cyriltovena)
   - `phlare.write` sends application performance profiles to Grafana Phlare.
     (@cyriltovena)
+
 
 - Flow components which work with relabeling rules (`discovery.relabel`,
   `prometheus.relabel` and `loki.relabel`) now export a new value named Rules.
