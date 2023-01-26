@@ -42,11 +42,11 @@ The following blocks are supported inside the definition of `loki.source.journal
 
 Hierarchy | Name | Description | Required
 --------- | ---- | ----------- | --------
-rule | [rule][] | Relabeling rules to apply to received log entries. | no
+relabel_rules | [relabel_rules][] | Relabeling rules to apply to received log entries. | no
 
-[rule]: #rule-block
+[relabel_rules]: #relabel_rules
 
-### rule block
+### relabel_rules block
 
 {{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" >}}
 
