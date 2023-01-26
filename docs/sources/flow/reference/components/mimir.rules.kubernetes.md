@@ -15,9 +15,16 @@ loads them into a Mimir instance.
   `PrometheusRule` resources considered during reconciliation.
 * Compatible with the Ruler APIs of Grafana Mimir, Grafana Cloud, and Grafana Enterprise Metrics.
 * Compatible with the `PrometheusRule` CRD from the [prometheus-operator][].
+* This component accesses the Kubernetes REST API from [within a Pod][].
+
+> **NOTE**: This component requires [Role-based access control (RBAC)][] to be setup 
+> in Kubernetes in oder for the Agent to access it via the Kubernetes REST API.
+> For an example RBAC configuration please click [here](#example).
 
 [Kubernetes label selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors
 [prometheus-operator]: https://prometheus-operator.dev/
+[within a Pod]: https://kubernetes.io/docs/tasks/run-application/access-api-from-pod/
+[Role-based access control (RBAC)]: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
 
 ## Usage
 
@@ -209,4 +216,39 @@ mimir.rules.kubernetes "default" {
         }
     }
 }
+```
+
+Below is an example RBAC configuration for Kubernetes - it authorizes the Agent to query the Kubernetes REST API:
+
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: grafana-agent
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: grafana-agent
+rules:
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["monitoring.coreos.com"]
+  resources: ["prometheusrules"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: grafana-agent
+subjects:
+- kind: ServiceAccount
+  name: grafana-agent
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: grafana-agent
+  apiGroup: rbac.authorization.k8s.io
 ```
