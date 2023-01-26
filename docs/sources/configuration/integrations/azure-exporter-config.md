@@ -80,6 +80,82 @@ The account used by the agent will need,
     resource_graph_query_filter: where location == "westeurope"
 ```
 
+#### Multiple Azure Services in a single config
+
+The Azure Metrics API has rather strict limitations on the amount of parameters which can be supplied. Due to this you cannot
+gather metrics from multiple `resource_types` in the same `azure_exporter` instance. If you need metrics from multiple resources 
+you can enable `integration-next` or configure the agent so that it exposes the exporter via `azure_exporter` config but data is
+configured through metrics scrape_configs. Below you can find an example configuration which combines the two examples above
+in a single agent configuration. Note: this is not a full configuration pieces have been removed for simplicity
+
+```yaml 
+integrations:
+  azure_exporter:
+    enabled: true
+    scrape_integration: false
+    azure_cloud_environment: azurecloud
+
+metrics:
+  configs:
+    - name: integrations
+      scrape_configs:
+        - job_name: azure-blob-storage
+          scrape_interval: 1m
+          scrape_timeout: 50s
+          static_configs:
+            - targets: ["localhost:12345"]
+          metrics_path: /integrations/azure_exporter/metrics
+          params:
+            subscriptions:
+              - 179c4f30-ebd8-489e-92bc-fb64588dadb3
+            resource_type: ["Microsoft.Storage/storageAccounts"]
+            metric_namespace: ["Microsoft.Storage/storageAccounts/blobServices"]
+            metrics:
+              - Availability
+              - BlobCapacity
+              - BlobCount
+              - ContainerCount
+              - Egress
+              - IndexCapacity
+              - Ingress
+              - SuccessE2ELatency
+              - SuccessServerLatency
+              - Transactions
+            timespan: ["PT1H"]
+            resource_graph_query_filter: ["where location == 'westeurope'"]
+        - job_name: azure-kubernetes-node
+          scrape_interval: 1m
+          scrape_timeout: 50s
+          static_configs:
+            - targets: ["localhost:12345"]
+          metrics_path: /integrations/azure_exporter/metrics
+          params:
+            subscriptions:
+              - 179c4f30-ebd8-489e-92bc-fb64588dadb3
+            resource_type: ["microsoft.containerservice/managedclusters"]
+            resource_graph_query_filter: [" where location == 'westeurope'"]
+            metrics:
+              - node_cpu_usage_millicores
+              - node_cpu_usage_percentage
+              - node_disk_usage_bytes
+              - node_disk_usage_percentage
+              - node_memory_rss_bytes
+              - node_memory_rss_percentage
+              - node_memory_working_set_bytes
+              - node_memory_working_set_percentage
+              - node_network_in_bytes
+              - node_network_out_bytes
+            included_resource_tags:
+              - environment
+            included_dimensions:
+              - node
+              - nodepool
+```
+
+As you can all `azure_exporter` specific configuration settings have been moved to the `scrape_config`. This method supports all
+available configuration options except `azure_cloud_environment` which must be configured on the `azure_exporter`. 
+just note that when using this methods fields which support a singular value, like `resource_graph_query_filter`
+must be put in to an array `resource_graph_query_filter: ["where location == 'westeurope'"]`
 
 ### Config Reference
 

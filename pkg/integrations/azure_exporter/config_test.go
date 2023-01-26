@@ -1,19 +1,18 @@
 package azure_exporter_test
 
 import (
-	"os"
+	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
-	"github.com/go-kit/log"
 	"github.com/stretchr/testify/require"
 	"github.com/webdevops/azure-metrics-exporter/metrics"
 
 	"github.com/grafana/agent/pkg/integrations/azure_exporter"
 )
 
-func TestConfig_NewIntegration_ConfigToSettings(t *testing.T) {
-	logger := log.NewJSONLogger(os.Stdout)
+func TestConfig_ToScrapeSettings(t *testing.T) {
 	baseConfig := azure_exporter.Config{
 		Subscriptions:            []string{"subscriptionA"},
 		ResourceType:             "resourceType",
@@ -48,22 +47,18 @@ func TestConfig_NewIntegration_ConfigToSettings(t *testing.T) {
 	}
 
 	baseConfigValid := t.Run("maps expected fields", func(t *testing.T) {
-		integration, err := baseConfig.NewIntegration(logger)
+		settings, err := baseConfig.ToScrapeSettings()
 		require.NoError(t, err)
-		require.NotNil(t, integration)
-		require.IsType(t, integration, azure_exporter.Exporter{})
-
-		azureExporter := integration.(azure_exporter.Exporter)
-		require.Equal(t, &baseSettings, azureExporter.Settings)
+		require.Equal(t, &baseSettings, settings)
 	})
 	if !baseConfigValid {
 		return
 	}
 
 	tests := []struct {
-		name             string
-		configModifier   func(azure_exporter.Config) azure_exporter.Config
-		settingsModifier func(metrics.RequestMetricSettings) metrics.RequestMetricSettings
+		name               string
+		configModifier     func(azure_exporter.Config) azure_exporter.Config
+		toExpectedSettings func(metrics.RequestMetricSettings) metrics.RequestMetricSettings
 	}{
 		{
 			name: "can set a metric filter for a single dimension",
@@ -71,7 +66,7 @@ func TestConfig_NewIntegration_ConfigToSettings(t *testing.T) {
 				config.IncludedDimensions = []string{"dimension1"}
 				return config
 			},
-			settingsModifier: func(settings metrics.RequestMetricSettings) metrics.RequestMetricSettings {
+			toExpectedSettings: func(settings metrics.RequestMetricSettings) metrics.RequestMetricSettings {
 				settings.MetricFilter = "dimension1 eq '*'"
 				settings.MetricTop = to.Ptr[int32](100_000_000)
 				return settings
@@ -83,7 +78,7 @@ func TestConfig_NewIntegration_ConfigToSettings(t *testing.T) {
 				config.IncludedDimensions = []string{"dimension1", "dimension2", "dimension3"}
 				return config
 			},
-			settingsModifier: func(settings metrics.RequestMetricSettings) metrics.RequestMetricSettings {
+			toExpectedSettings: func(settings metrics.RequestMetricSettings) metrics.RequestMetricSettings {
 				settings.MetricFilter = "dimension1 eq '*' and dimension2 eq '*' and dimension3 eq '*'"
 				settings.MetricTop = to.Ptr[int32](100_000_000)
 				return settings
@@ -95,7 +90,7 @@ func TestConfig_NewIntegration_ConfigToSettings(t *testing.T) {
 				config.Timespan = "timespan-value"
 				return config
 			},
-			settingsModifier: func(settings metrics.RequestMetricSettings) metrics.RequestMetricSettings {
+			toExpectedSettings: func(settings metrics.RequestMetricSettings) metrics.RequestMetricSettings {
 				settings.Timespan = "timespan-value"
 				settings.Interval = to.Ptr[string]("timespan-value")
 				return settings
@@ -105,20 +100,15 @@ func TestConfig_NewIntegration_ConfigToSettings(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fullConfig := tt.configModifier(baseConfig)
-			integration, err := fullConfig.NewIntegration(logger)
+			expectedSettings := tt.toExpectedSettings(baseSettings)
+			settings, err := fullConfig.ToScrapeSettings()
 			require.NoError(t, err)
-			require.NotNil(t, integration)
-			require.IsType(t, integration, azure_exporter.Exporter{})
-
-			azureExporter := integration.(azure_exporter.Exporter)
-			expectedSettings := tt.settingsModifier(baseSettings)
-			require.Equal(t, &expectedSettings, azureExporter.Settings)
+			require.Equal(t, &expectedSettings, settings)
 		})
 	}
 }
 
-func TestConfig_NewIntegration_Invalid_Config(t *testing.T) {
-	logger := log.NewJSONLogger(os.Stdout)
+func TestConfig_Validate(t *testing.T) {
 	baseConfig := azure_exporter.Config{
 		Subscriptions:         []string{"subscriptionA"},
 		ResourceType:          "resourceType",
@@ -127,7 +117,7 @@ func TestConfig_NewIntegration_Invalid_Config(t *testing.T) {
 	}
 
 	baseConfigValid := t.Run("Base Config is Valid", func(t *testing.T) {
-		_, err := baseConfig.NewIntegration(logger)
+		err := baseConfig.Validate()
 		require.NoError(t, err, "Base config was not valid but needs to be for these tests")
 	})
 	if !baseConfigValid {
@@ -135,54 +125,54 @@ func TestConfig_NewIntegration_Invalid_Config(t *testing.T) {
 	}
 
 	tests := []struct {
-		name           string
-		configModifier func(azure_exporter.Config) azure_exporter.Config
+		name            string
+		toInvalidConfig func(azure_exporter.Config) azure_exporter.Config
 	}{
 		{
 			name: "nil Subscriptions",
-			configModifier: func(config azure_exporter.Config) azure_exporter.Config {
+			toInvalidConfig: func(config azure_exporter.Config) azure_exporter.Config {
 				config.Subscriptions = nil
 				return config
 			},
 		},
 		{
 			name: "empty Subscriptions",
-			configModifier: func(config azure_exporter.Config) azure_exporter.Config {
+			toInvalidConfig: func(config azure_exporter.Config) azure_exporter.Config {
 				config.Subscriptions = []string{}
 				return config
 			},
 		},
 		{
 			name: "empty ResourceType",
-			configModifier: func(config azure_exporter.Config) azure_exporter.Config {
+			toInvalidConfig: func(config azure_exporter.Config) azure_exporter.Config {
 				config.ResourceType = ""
 				return config
 			},
 		},
 		{
 			name: "nil metrics",
-			configModifier: func(config azure_exporter.Config) azure_exporter.Config {
+			toInvalidConfig: func(config azure_exporter.Config) azure_exporter.Config {
 				config.Metrics = nil
 				return config
 			},
 		},
 		{
 			name: "empty metrics",
-			configModifier: func(config azure_exporter.Config) azure_exporter.Config {
+			toInvalidConfig: func(config azure_exporter.Config) azure_exporter.Config {
 				config.Metrics = []string{}
 				return config
 			},
 		},
 		{
 			name: "invalid aggregation",
-			configModifier: func(config azure_exporter.Config) azure_exporter.Config {
+			toInvalidConfig: func(config azure_exporter.Config) azure_exporter.Config {
 				config.MetricAggregations = []string{"I'm Invalid"}
 				return config
 			},
 		},
 		{
 			name: "invalid azure_cloud_environment",
-			configModifier: func(config azure_exporter.Config) azure_exporter.Config {
+			toInvalidConfig: func(config azure_exporter.Config) azure_exporter.Config {
 				config.AzureCloudEnvironment = "Not Real"
 				return config
 			},
@@ -190,9 +180,51 @@ func TestConfig_NewIntegration_Invalid_Config(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			invalidConfig := tt.configModifier(baseConfig)
-			_, err := invalidConfig.NewIntegration(logger)
+			invalidConfig := tt.toInvalidConfig(baseConfig)
+			err := invalidConfig.Validate()
 			require.Error(t, err)
+		})
+	}
+}
+
+func TestMergeConfigWithQueryParams_MapsAllExpectedFieldsByYamlNameFromConfig(t *testing.T) {
+	// We want to be sure all expected fields are mappable by the yaml name and reflect allows us to do that programmatically
+	thing := reflect.TypeOf(azure_exporter.Config{})
+	var mappableFields []reflect.StructField
+	for i := 0; i < thing.NumField(); i++ {
+		field := thing.Field(i)
+		//Not available to be mapped via query param
+		if field.Name == "AzureCloudEnvironment" {
+			continue
+		}
+
+		mappableFields = append(mappableFields, field)
+	}
+
+	for _, mappableField := range mappableFields {
+		yamlFieldName := mappableField.Tag.Get("yaml")
+		t.Run(fmt.Sprintf("Can map %s from query param", yamlFieldName), func(t *testing.T) {
+			urlParams := map[string][]string{}
+			var fieldValue any
+
+			switch mappableField.Type.String() {
+			case "string":
+				value := "fake string 1"
+				urlParams[yamlFieldName] = []string{value}
+				fieldValue = value
+			case "[]string":
+				value := []string{"fake string 1", "fake string 2"}
+				fieldValue = value
+				urlParams[yamlFieldName] = value
+			default:
+				t.Fatalf("Attempting to map %s, discovered unexpected type %s", mappableField.Name, mappableField.Type.String())
+			}
+
+			expectedConfig := &azure_exporter.Config{}
+			reflect.ValueOf(expectedConfig).Elem().FieldByName(mappableField.Name).Set(reflect.ValueOf(fieldValue))
+
+			actualConfig := azure_exporter.MergeConfigWithQueryParams(azure_exporter.Config{}, urlParams)
+			require.Equal(t, *expectedConfig, actualConfig)
 		})
 	}
 }
