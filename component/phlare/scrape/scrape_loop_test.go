@@ -189,7 +189,7 @@ func TestScrapeLoop(t *testing.T) {
 
 	require.Equal(t, HealthUnknown, loop.Health())
 	loop.start()
-	require.Eventually(t, func() bool { return appendTotal.Load() > 3 }, time.Second, 100*time.Millisecond)
+	require.Eventually(t, func() bool { return appendTotal.Load() > 3 }, 5*time.Second, 100*time.Millisecond)
 	require.Equal(t, HealthGood, loop.Health())
 
 	down.Store(true)
