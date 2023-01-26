@@ -121,7 +121,7 @@ target:
 
 ## Debug metrics
 
-`loki.source.kubernetes` does not exist any component-specific debug metrics.
+`loki.source.kubernetes` does not expose any component-specific debug metrics.
 
 ## Example
 
@@ -133,7 +133,7 @@ discovery.kubernetes "pods" {
   role = "pod"
 }
 
-loki.source.kubernetes "tmpfiles" {
+loki.source.kubernetes "pods" {
   targets    = discovery.kubernetes.pods.targets
   forward_to = [loki.write.local.receiver]
 }

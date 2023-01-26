@@ -91,7 +91,8 @@ func (args *ClientArguments) UnmarshalRiver(f func(interface{}) error) error {
 	return nil
 }
 
-func (args *ClientArguments) buildClient(l log.Logger) (*kubernetes.Clientset, error) {
+// BuildRESTConfig converts ClientArguments to a Kubernetes REST config.
+func (args *ClientArguments) BuildRESTConfig(l log.Logger) (*rest.Config, error) {
 	var (
 		cfg *rest.Config
 		err error
@@ -126,7 +127,7 @@ func (args *ClientArguments) buildClient(l log.Logger) (*kubernetes.Clientset, e
 	cfg.UserAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
 	cfg.ContentType = "application/vnd.kubernetes.protobuf"
 
-	return kubernetes.NewForConfig(cfg)
+	return cfg, nil
 }
 
 // Component implements the loki.source.kubernetes component.
@@ -182,6 +183,17 @@ func New(o component.Options, args Arguments) (*Component, error) {
 func (c *Component) Run(ctx context.Context) error {
 	defer c.positions.Stop()
 
+	defer func() {
+		c.mut.Lock()
+		defer c.mut.Unlock()
+
+		// Guard for safety, but it's not possible for Run to be called without
+		// c.tailer being initialized.
+		if c.tailer != nil {
+			c.tailer.Stop()
+		}
+	}()
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -202,11 +214,13 @@ func (c *Component) Run(ctx context.Context) error {
 func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 
+	// Update the receivers before anything else, just in case something fails.
+	c.receiversMut.Lock()
+	c.receivers = newArgs.ForwardTo
+	c.receiversMut.Unlock()
+
 	c.mut.Lock()
 	defer c.mut.Unlock()
-
-	// Update the receivers before anything else, just in case something fails.
-	c.receivers = newArgs.ForwardTo
 
 	managerOpts, err := c.getTailerOptions(newArgs)
 	if err != nil {
@@ -251,6 +265,8 @@ func (c *Component) Update(args component.Arguments) error {
 	// TODO(rfratto): should we have a generous update timeout to prevent this
 	// from potentially hanging forever?
 	_ = c.tailer.SyncTargets(context.Background(), targets)
+
+	c.args = newArgs
 	return nil
 }
 
@@ -260,11 +276,15 @@ func (c *Component) Update(args component.Arguments) error {
 //
 // getTailerOptions must only be called when c.mut is held.
 func (c *Component) getTailerOptions(args Arguments) (*kubetail.Options, error) {
-	if reflect.DeepEqual(c.args.Client, args.Client) {
+	if reflect.DeepEqual(c.args.Client, args.Client) && c.lastOptions != nil {
 		return c.lastOptions, nil
 	}
 
-	clientSet, err := args.Client.buildClient(c.log)
+	cfg, err := args.Client.BuildRESTConfig(c.log)
+	if err != nil {
+		return c.lastOptions, fmt.Errorf("building Kubernetes config: %w", err)
+	}
+	clientSet, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		return c.lastOptions, fmt.Errorf("building Kubernetes client: %w", err)
 	}
