@@ -1,6 +1,13 @@
 name: Check docs
 on: [pull_request]
 jobs:
+  doc-validator:
+    runs-on: "ubuntu-latest"
+    container:
+      image: "grafana/doc-validator:v1.9.0"
+    steps:
+    - name: "Run doc-validator tool"
+      run: "doc-validator --skip-image-validation ./docs/sources /docs/agent/latest"
   build-technical-documentation:
     runs-on: "ubuntu-latest"
     steps:
