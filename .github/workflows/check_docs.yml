@@ -1,5 +1,8 @@
-name: Check docs
-on: [pull_request]
+name: "Check docs"
+on:
+  pull_request:
+    paths: ["docs/sources/**"]
+  workflow_dispatch:
 jobs:
   doc-validator:
     runs-on: "ubuntu-latest"
