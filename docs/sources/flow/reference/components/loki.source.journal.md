@@ -30,11 +30,11 @@ Name         | Type   | Description                                             
 ------------ |--------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------| --------
 `format_as_json`    | `bool` | When true, log messages from the journal are passed through the pipeline as a JSON message with all of the journal entries' original  fields. When false, the log message is the text content of the MESSAGE field from the journal entry. | `false` | no
 `max_age`    | `duration` | The oldest relative time from process start that will be read                                                                                                                                                                              | `"7h"` | no
-`path` | 'string' | Path to a directory to read entries from. Defaults to system paths (/var/log/journal and /run/log/journal) when empty.                                                                                                                     | `""` | no
+`path` | `string` | Path to a directory to read entries from. Defaults to system paths (/var/log/journal and /run/log/journal) when empty.                                                                                                                     | `""` | no
+`matches` | `string` | Journal matches to filter. Character (+) is not supported, only logical AND matches will be added. | `""` | no
 `forward_to` | `list(LogsReceiver)` | List of receivers to send log entries to.                                                                                                                                                                                                  | | yes
 
 > **NOTE**:  A `job` label is added with the full name of the component `loki.source.journal.LABEL`. 
-
 
 ## Blocks
 

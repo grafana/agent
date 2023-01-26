@@ -126,6 +126,6 @@ func convertArgs(job string, a Arguments) *scrapeconfig.JournalTargetConfig {
 		JSON:    a.FormatAsJson,
 		Labels:  model.LabelSet{"job": model.LabelValue(job)},
 		Path:    a.Path,
-		Matches: "",
+		Matches: a.Matches,
 	}
 }

@@ -13,6 +13,7 @@ type Arguments struct {
 	MaxAge       time.Duration       `river:"max_age,attr,optional"`
 	Path         string              `river:"path,attr,optional"`
 	RelabelRules flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
+	Matches      string              `river:"matches,attr,optional"`
 	Receivers    []loki.LogsReceiver `river:"forward_to,attr"`
 }
 
