@@ -51,7 +51,7 @@ func NewTargetCollectorAdapter(t sql_exporter.Target, l log.Logger) TargetCollec
 // Collect calls the collect function of the underlying sql_exporter.Target, converting each
 // returned sql_exporter.Metric to a prometheus.Metric.
 func (t TargetCollectorAdapter) Collect(m chan<- prometheus.Metric) {
-	sqlMetrics := make(chan sql_exporter.Metric, 1000)
+	sqlMetrics := make(chan sql_exporter.Metric)
 
 	go func() {
 		t.target.Collect(context.Background(), sqlMetrics)
