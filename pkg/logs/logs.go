@@ -215,4 +215,5 @@ func (i *Instance) Stop() {
 		i.promtail.Shutdown()
 		i.promtail = nil
 	}
+	i.reg.UnregisterAll()
 }
