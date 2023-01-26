@@ -400,7 +400,7 @@ steps:
   - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
   - make -j4 RELEASE_BUILD=1 VERSION=${DRONE_TAG} dist
   - |
-    VERSION ${DRONE_TAG} RELEASE_DOC_TAG=$(echo ${DRONE_TAG} | awk -F '.' '{print $1"."$2}') ./tools/release
+    VERSION=${DRONE_TAG} RELEASE_DOC_TAG=$(echo ${DRONE_TAG} | awk -F '.' '{print $1"."$2}') ./tools/release
   environment:
     DOCKER_LOGIN:
       from_secret: DOCKER_LOGIN
@@ -463,8 +463,3 @@ get:
   path: infra/data/ci/packages-publish/gpg
 kind: secret
 name: gpg_passphrase
----
-kind: signature
-hmac: c9d0152efc10b7ac63abd427c798edeaf72e8f013dd28e968977c9bb89e9c80d
-
-...
