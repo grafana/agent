@@ -18,7 +18,7 @@ loads them into a Mimir instance.
 * This component accesses the Kubernetes REST API from [within a Pod][].
 
 > **NOTE**: This component requires [Role-based access control (RBAC)][] to be setup 
-> in Kubernetes in oder for the Agent to access it via the Kubernetes REST API.
+> in Kubernetes in order for the Agent to access it via the Kubernetes REST API.
 > For an example RBAC configuration please click [here](#example).
 
 [Kubernetes label selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors
