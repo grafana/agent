@@ -153,9 +153,8 @@ configs:
 	t.Run("re-apply previous config", func(t *testing.T) {
 		// Applying a nil config should remove all instances.
 		l.ApplyConfig(nil, false)
-		//
+
 		// Re-Apply the previous config and write a new line.
-		//
 		var newCfg Config
 		dec = yaml.NewDecoder(strings.NewReader(cfgText))
 		dec.SetStrict(true)
