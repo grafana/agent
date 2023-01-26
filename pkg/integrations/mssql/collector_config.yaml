@@ -163,7 +163,7 @@ queries:
       SELECT
         cast(DB_Name(a.database_id) as varchar) AS [db],
         sum(io_stall_read_ms) / 1000.0 AS [read],
-        sum(io_stall_write_ms) / 1000.0 AS [write],
+        sum(io_stall_write_ms) / 1000.0 AS [write]
       FROM
         sys.dm_io_virtual_file_stats(null, null) a
       INNER JOIN sys.master_files b ON a.database_id = b.database_id AND a.file_id = b.file_id

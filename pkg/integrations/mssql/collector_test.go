@@ -1,4 +1,4 @@
-package common
+package mssql
 
 import (
 	"context"
@@ -22,7 +22,7 @@ func TestTargetCollectorAdapter_Collect(t *testing.T) {
 		},
 	}
 
-	tca := NewTargetCollectorAdapter(target, log.NewJSONLogger(os.Stdout))
+	tca := newTargetCollectorAdapter(target, log.NewJSONLogger(os.Stdout))
 	metricChan := make(chan prometheus.Metric, 1)
 	tca.Collect(metricChan)
 

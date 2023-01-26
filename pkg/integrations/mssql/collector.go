@@ -1,4 +1,4 @@
-package common
+package mssql
 
 import (
 	"context"
@@ -22,27 +22,27 @@ import (
 //go:embed collector_config.yaml
 var collectorConfigBytes []byte
 
-// CollectorConfig is a config that can be used to construct a
+// collectorConfig is a config that can be used to construct a
 // sql_exporter.Target that scrapes metrics from an instance of mssql
-var CollectorConfig config.CollectorConfig
+var collectorConfig config.CollectorConfig
 
 // initialize static collector config
 func init() {
-	err := yaml.Unmarshal(collectorConfigBytes, &CollectorConfig)
+	err := yaml.Unmarshal(collectorConfigBytes, &collectorConfig)
 	if err != nil {
 		panic(fmt.Errorf("failed to unmarshal mssql integration collector config: %w", err))
 	}
 }
 
-// TargetCollectorAdapter adapts sql_exporter.Target to prometheus.Collector
-type TargetCollectorAdapter struct {
+// targetCollectorAdapter adapts sql_exporter.Target to prometheus.Collector
+type targetCollectorAdapter struct {
 	target sql_exporter.Target
 	logger log.Logger
 }
 
-// NewTargetCollectorAdapter creates a new TargetCollectorAdapter
-func NewTargetCollectorAdapter(t sql_exporter.Target, l log.Logger) TargetCollectorAdapter {
-	return TargetCollectorAdapter{
+// newTargetCollectorAdapter creates a new TargetCollectorAdapter
+func newTargetCollectorAdapter(t sql_exporter.Target, l log.Logger) targetCollectorAdapter {
+	return targetCollectorAdapter{
 		target: t,
 		logger: l,
 	}
@@ -50,7 +50,7 @@ func NewTargetCollectorAdapter(t sql_exporter.Target, l log.Logger) TargetCollec
 
 // Collect calls the collect function of the underlying sql_exporter.Target, converting each
 // returned sql_exporter.Metric to a prometheus.Metric.
-func (t TargetCollectorAdapter) Collect(m chan<- prometheus.Metric) {
+func (t targetCollectorAdapter) Collect(m chan<- prometheus.Metric) {
 	sqlMetrics := make(chan sql_exporter.Metric)
 
 	go func() {
@@ -67,7 +67,7 @@ func (t TargetCollectorAdapter) Collect(m chan<- prometheus.Metric) {
 }
 
 // Describe is an empty method, which marks the prometheus.Collector as "unchecked"
-func (t TargetCollectorAdapter) Describe(chan<- *prometheus.Desc) {}
+func (t targetCollectorAdapter) Describe(chan<- *prometheus.Desc) {}
 
 // sqlPrometheusMetricAdapter adapts sql_exporter.Metric to prometheus.Metric
 type sqlPrometheusMetricAdapter struct {
