@@ -92,6 +92,7 @@ type Config struct {
 	Powersupply PowersupplyConfig `river:"powersupply,block,optional"`
 	Runit       RunitConfig       `river:"runit,block,optional"`
 	Supervisord SupervisordConfig `river:"supervisord,block,optional"`
+	Sysctl      SysctlConfig      `river:"sysctl,block,option"`
 	Systemd     SystemdConfig     `river:"systemd,block,optional"`
 	Tapestats   TapestatsConfig   `river:"tapestats,block,optional"`
 	Textfile    TextfileConfig    `river:"textfile,block,optional"`
@@ -139,6 +140,8 @@ func (c *Config) Convert() *node_integration.Config {
 		PowersupplyIgnoredSupplies:       c.Powersupply.IgnoredSupplies,
 		RunitServiceDir:                  c.Runit.ServiceDir,
 		SupervisordURL:                   c.Supervisord.URL,
+		SysctlInclude:                    c.Sysctl.Include,
+		SysctlIncludeInfo:                c.Sysctl.IncludeInfo,
 		SystemdEnableRestartsMetrics:     c.Systemd.EnableRestartsMetrics,
 		SystemdEnableStartTimeMetrics:    c.Systemd.EnableStartTimeMetrics,
 		SystemdEnableTaskMetrics:         c.Systemd.EnableTaskMetrics,
@@ -267,4 +270,10 @@ type SystemdConfig struct {
 	EnableTaskMetrics      bool   `river:"task_metrics,attr,optional"`
 	UnitExclude            string `river:"unit_exclude,attr,optional"`
 	UnitInclude            string `river:"unit_include,attr,optional"`
+}
+
+// SysctlConfig contains config specific to the sysctl collector.
+type SysctlConfig struct {
+	Include     []string `river:"include,attr,optional"`
+	IncludeInfo []string `river:"include_info,attr,optional"`
 }
