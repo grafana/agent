@@ -60,7 +60,7 @@ Full reference of options:
   [max_open_connections: <int>]
 
   # This is the interval between each scrape. Default of 0 is to scrape on collect requests. 
-  [metrics_scrape_interval: <duration> | default = "0"]
+  [metric_scrape_interval: <duration> | default = "0"]
 
   # The number of seconds that will act as the query timeout when the exporter is querying against
   # the OracleDB instance.
@@ -74,7 +74,7 @@ Full reference of options:
 integrations:
   oracledb_configs:
   - connection_string: oracle://user:password@localhost:1521/orcl.localnet
-    metrics_scrape_interval: 1m
+    metric_scrape_interval: 1m
     max_idle_connections: 0
     max_open_connections: 10
     query_timeout: 5

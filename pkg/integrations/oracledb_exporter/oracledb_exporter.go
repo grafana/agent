@@ -13,6 +13,9 @@ import (
 
 	// required driver for integration
 	_ "github.com/sijms/go-ora/v2"
+
+	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
+	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 )
 
 // DefaultConfig is the default config for the oracledb v2 integration
@@ -40,7 +43,7 @@ type Config struct {
 
 // ValidateConnString attempts to ensure the connection string supplied is valid
 // to connect to an OracleDB instance
-func ValidateConnString(connStr string) error {
+func validateConnString(connStr string) error {
 	if connStr == "" {
 		return errNoConnectionString
 	}
@@ -89,12 +92,13 @@ func (c *Config) NewIntegration(logger log.Logger) (integrations.Integration, er
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.NewNamedShim("oracledb"))
 }
 
 // New creates a new oracledb integration. The integration scrapes metrics
 // from an OracleDB exporter running with the https://github.com/iamseth/oracledb_exporter
 func New(logger log.Logger, c *Config) (integrations.Integration, error) {
-	if err := ValidateConnString(c.ConnectionString); err != nil {
+	if err := validateConnString(c.ConnectionString); err != nil {
 		return nil, fmt.Errorf("invalid connection string: %w", err)
 	}
 
