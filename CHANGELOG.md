@@ -82,8 +82,6 @@ Main (unreleased)
 
 - Flow UI: Fix the issue with messy layout on the component list page while browser window resize. (@xiyu95)
 
-- Flow UI: Fix the issue with long string going out of bound in the component detail page. (@xiyu95)
-
 - Flow UI: Display the values of all attributes unless they are nil. (@ptodev)
 
 - Flow: `prometheus.relabel` and `prometheus.remote_write` will now error if they have exited. (@ptodev)
