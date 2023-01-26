@@ -21,14 +21,12 @@ func NewMetrics(reg prometheus.Registerer) *Metrics {
 	m.reg = reg
 
 	m.journalErrors = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "agent",
-		Name:      "loki_source_journal_target_parsing_errors_total",
-		Help:      "Total number of parsing errors while reading journal messages",
+		Name: "loki_source_journal_target_parsing_errors_total",
+		Help: "Total number of parsing errors while reading journal messages",
 	}, []string{"error"})
 	m.journalLines = prometheus.NewCounter(prometheus.CounterOpts{
-		Namespace: "agent",
-		Name:      "loki_source_journal_target_lines_total",
-		Help:      "Total number of successful journal lines read",
+		Name: "loki_source_journal_target_lines_total",
+		Help: "Total number of successful journal lines read",
 	})
 
 	if reg != nil {

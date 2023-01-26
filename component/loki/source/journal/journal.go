@@ -39,7 +39,7 @@ type Component struct {
 	t         *target.JournalTarget
 	metrics   *target.Metrics
 	o         component.Options
-	handler   *handler
+	handler   chan loki.Entry
 	positions positions.Positions
 	receivers []loki.LogsReceiver
 }
@@ -62,7 +62,7 @@ func New(o component.Options, args Arguments) (component.Component, error) {
 	c := &Component{
 		metrics:   target.NewMetrics(o.Registerer),
 		o:         o,
-		handler:   &handler{c: make(chan loki.Entry)},
+		handler:   make(chan loki.Entry),
 		positions: positionsFile,
 		receivers: args.Receivers,
 	}
@@ -73,15 +73,18 @@ func New(o component.Options, args Arguments) (component.Component, error) {
 // Run starts the component.
 func (c *Component) Run(ctx context.Context) error {
 	defer func() {
+		c.mut.RLock()
 		if c.t != nil {
 			c.t.Stop()
 		}
+		c.mut.RUnlock()
+
 	}()
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
-		case entry := <-c.handler.c:
+		case entry := <-c.handler:
 			c.mut.RLock()
 			lokiEntry := loki.Entry{
 				Labels: entry.Labels,
@@ -106,13 +109,14 @@ func (c *Component) Update(args component.Arguments) error {
 			return err
 		}
 	}
-	rcs := flow_relabel.ComponentToPromRelabelConfigs(newArgs.RelabelConfigs)
+	rcs := flow_relabel.ComponentToPromRelabelConfigs(newArgs.RelabelRules)
+	entryHandler := loki.NewEntryHandler(c.handler, func() {})
 
-	newTarget, err := target.NewJournalTarget(c.metrics, c.o.Logger, c.handler, c.positions, c.o.ID, rcs, convertArgs(c.o.ID, newArgs))
-	c.t = newTarget
+	newTarget, err := target.NewJournalTarget(c.metrics, c.o.Logger, entryHandler, c.positions, c.o.ID, rcs, convertArgs(c.o.ID, newArgs))
 	if err != nil {
 		return err
 	}
+	c.t = newTarget
 	return nil
 }
 
@@ -124,15 +128,4 @@ func convertArgs(job string, a Arguments) *scrapeconfig.JournalTargetConfig {
 		Path:    a.Path,
 		Matches: "",
 	}
-}
-
-type handler struct {
-	c chan loki.Entry
-}
-
-func (h *handler) Chan() chan<- loki.Entry {
-	return h.c
-}
-func (handler) Stop() {
-	// noop.
 }
