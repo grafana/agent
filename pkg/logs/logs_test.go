@@ -170,7 +170,6 @@ configs:
 			require.Equal(t, "Hello again!", req.Streams[0].Entries[0].Line)
 		}
 	})
-
 }
 
 func TestLogs_PositionsDirectory(t *testing.T) {
