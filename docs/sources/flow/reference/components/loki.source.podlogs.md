@@ -136,9 +136,6 @@ The `>` symbol indicates deeper levels of nesting. For example, `client >
 http_client_config` refers to an `http_client_config` block defined
 inside a `client` block.
 
-Both `selector` and `namespace_selector` can make use of multiple
-`match_expression` inner blocks, which are treated as AND clauses.
-
 [client]: #client-block
 [http_client_config]: #http_client_config-block
 [selector]: #selector-block
@@ -197,6 +194,9 @@ The `operator` argument must be one of the following strings:
 * `"NotIn"`
 * `"Exists"`
 * `"DoesNotExist"`
+
+Both `selector` and `namespace_selector` can make use of multiple
+`match_expression` inner blocks which are treated as AND clauses.
 
 ## Exported fields
 
