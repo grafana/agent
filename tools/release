@@ -5,9 +5,9 @@ set -x
 
 # Zip up all the agent binaries to reduce the download size. DEBs, RPMs, and
 # Windows installers aren't included to be easier to work with.
-for i in $(find dist/ -type f -name 'grafana-agent-*' -not -name '*.deb' -not -name '*.rpm' -not -name '*.exe'); do
-  zip -j -m "$i.zip" "$i"
-done
+find dist/ -type f \
+  -name 'grafana-agent*' -not -name '*.deb' -not -name '*.rpm' -not -name '*.exe' \
+  -exec zip -j -m "{}.zip" "{}" \;
 
 # Sign the RPM packages. DEB packages aren't signed.
 ./packaging/rpm/gpg-sign.sh
