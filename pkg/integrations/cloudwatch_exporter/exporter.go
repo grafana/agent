@@ -39,30 +39,34 @@ func newCloudwatchExporter(name string, logger log.Logger, conf yaceConf.ScrapeC
 }
 
 func (e *exporter) MetricsHandler() (http.Handler, error) {
-	e.logger.Debug("Running collect in cloudwatch_exporter")
+	// Wrapping in a handler so in every execution, a new registry is created and yace's entrypoint called
+	h := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		e.logger.Debug("Running collect in cloudwatch_exporter")
 
-	reg := prometheus.NewRegistry()
-	cwSemaphore := make(chan struct{}, cloudWatchConcurrency)
-	tagSemaphore := make(chan struct{}, tagConcurrency)
-	observedMetricLabels := map[string]yaceModel.LabelSet{}
-	yace.UpdateMetrics(
-		context.Background(),
-		e.scrapeConf,
-		reg,
-		metricsPerQuery,
-		labelsSnakeCase,
-		cwSemaphore,
-		tagSemaphore,
-		e.sessionCache,
-		observedMetricLabels,
-		e.logger,
-	)
+		reg := prometheus.NewRegistry()
+		cwSemaphore := make(chan struct{}, cloudWatchConcurrency)
+		tagSemaphore := make(chan struct{}, tagConcurrency)
+		observedMetricLabels := map[string]yaceModel.LabelSet{}
+		yace.UpdateMetrics(
+			context.Background(),
+			e.scrapeConf,
+			reg,
+			metricsPerQuery,
+			labelsSnakeCase,
+			cwSemaphore,
+			tagSemaphore,
+			e.sessionCache,
+			observedMetricLabels,
+			e.logger,
+		)
 
-	// close concurrency channels
-	close(cwSemaphore)
-	close(tagSemaphore)
+		// close concurrency channels
+		close(cwSemaphore)
+		close(tagSemaphore)
 
-	return promhttp.HandlerFor(reg, promhttp.HandlerOpts{}), nil
+		promhttp.HandlerFor(reg, promhttp.HandlerOpts{}).ServeHTTP(w, req)
+	})
+	return h, nil
 }
 
 func (e *exporter) ScrapeConfigs() []config.ScrapeConfig {
