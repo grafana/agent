@@ -63,7 +63,8 @@ v0.31.0-rc.0 (2023-01-26)
   - `phlare.scrape` collects application performance profiles. (@cyriltovena)
   - `phlare.write` sends application performance profiles to Grafana Phlare.
     (@cyriltovena)
-
+  - `mimir.rules.kubernetes` discovers `PrometheusRule` Kubernetes resources and
+    loads them into a Mimir instance. (@Logiraptor)
 
 - Flow components which work with relabeling rules (`discovery.relabel`,
   `prometheus.relabel` and `loki.relabel`) now export a new value named Rules.
@@ -183,9 +184,6 @@ v0.30.0 (2022-12-20)
 
   - `discovery.file` discovers files on the filesystem following glob
     patterns. (@mattdurham)
-
-  - `mimir.rules.kubernetes` discovers `PrometheusRule` Kubernetes resources and
-    loads them into a Mimir instance. (@Logiraptor)
 
 - Integrations: Introduce the `snowflake` integration. (@binaryfissiongames)
 
