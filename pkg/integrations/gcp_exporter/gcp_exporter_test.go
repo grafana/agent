@@ -10,7 +10,7 @@ import (
 
 func TestConfig_Validate(t *testing.T) {
 	baseConfig := gcp_exporter.Config{
-		ProjectID:             "project1",
+		ProjectIDs:            []string{"project1"},
 		MetricPrefixes:        []string{"prefix1"},
 		ExtraFilters:          nil,
 		ClientTimeout:         0,
@@ -28,13 +28,23 @@ func TestConfig_Validate(t *testing.T) {
 	tests := []struct {
 		name           string
 		configModifier func(config gcp_exporter.Config) gcp_exporter.Config
+		shouldError    bool
 	}{
 		{
-			name: "empty ProjectID",
+			name: "nil ProjectIDs",
 			configModifier: func(config gcp_exporter.Config) gcp_exporter.Config {
-				config.ProjectID = ""
+				config.ProjectIDs = nil
 				return config
 			},
+			shouldError: true,
+		},
+		{
+			name: "empty ProjectIDs",
+			configModifier: func(config gcp_exporter.Config) gcp_exporter.Config {
+				config.ProjectIDs = []string{}
+				return config
+			},
+			shouldError: true,
 		},
 		{
 			name: "nil MetricPrefixes",
@@ -42,6 +52,7 @@ func TestConfig_Validate(t *testing.T) {
 				config.MetricPrefixes = nil
 				return config
 			},
+			shouldError: true,
 		},
 		{
 			name: "empty MetricPrefixes",
@@ -49,6 +60,7 @@ func TestConfig_Validate(t *testing.T) {
 				config.MetricPrefixes = []string{}
 				return config
 			},
+			shouldError: true,
 		},
 		{
 			name: "extraFilter which does not match a MetricPrefix",
@@ -57,6 +69,7 @@ func TestConfig_Validate(t *testing.T) {
 				config.ExtraFilters = []string{`logging:resource.name==\"my_resource"`}
 				return config
 			},
+			shouldError: true,
 		},
 		{
 			name: "1 extraFilter which matches a MetricPrefix and 1 which does not",
@@ -71,13 +84,38 @@ func TestConfig_Validate(t *testing.T) {
 				}
 				return config
 			},
+			shouldError: true,
+		},
+		{
+			name: "extra filter with shorter prefix than metric prefix",
+			configModifier: func(config gcp_exporter.Config) gcp_exporter.Config {
+				config.MetricPrefixes = []string{
+					"loadbalancing.googleapis.com/https/total_latencies",
+					"loadbalancing.googleapis.com/https/request_bytes_count",
+				}
+				config.ExtraFilters = []string{
+					`loadbalancing.googleapis.com:resource.labels.backend_target_name="something"`,
+				}
+				return config
+			},
+			shouldError: false,
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		testName := tt.name
+		if tt.shouldError {
+			testName = testName + " should error"
+		} else {
+			testName = testName + " should succeed"
+		}
+		t.Run(testName, func(t *testing.T) {
 			config := tt.configModifier(baseConfig)
 			err := config.Validate()
-			require.Error(t, err)
+			if tt.shouldError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
 		})
 	}
 }

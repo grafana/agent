@@ -14,6 +14,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/prometheus-community/stackdriver_exporter/collectors"
 	"github.com/prometheus-community/stackdriver_exporter/utils"
+	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/monitoring/v3"
 	"google.golang.org/api/option"
@@ -31,13 +32,11 @@ func init() {
 
 type Config struct {
 	// Google Cloud project ID from where we want to scrape metrics from
-	ProjectID string `yaml:"project_id"`
+	ProjectIDs []string `yaml:"project_ids"`
 	// Comma separated Google Monitoring Metric Type prefixes.
 	MetricPrefixes []string `yaml:"metrics_prefixes"`
 	// Filters. i.e: pubsub.googleapis.com/subscription:resource.labels.subscription_id=monitoring.regex.full_match("my-subs-prefix.*")
 	ExtraFilters []string `yaml:"extra_filters"`
-	// How long should the collector wait for a result from the API.
-	ClientTimeout time.Duration `yaml:"client_timeout"`
 	// Interval to request the Google Monitoring Metrics for. Only the most recent data point is used.
 	RequestInterval time.Duration `yaml:"request_interval"`
 	// Offset for the Google Stackdriver Monitoring Metrics interval into the past.
@@ -46,6 +45,8 @@ type Config struct {
 	IngestDelay bool `yaml:"ingest_delay"`
 	// Drop metrics from attached projects and fetch `project_id` only.
 	DropDelegatedProjects bool `yaml:"drop_delegated_projects"`
+	// How long should the collector wait for a result from the API.
+	ClientTimeout time.Duration `yaml:"gcp_client_timeout"`
 }
 
 var DefaultConfig = Config{
@@ -89,37 +90,47 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 		return nil, err
 	}
 
-	monitoringCollector, err := collectors.NewMonitoringCollector(
-		c.ProjectID,
-		svc,
-		collectors.MonitoringCollectorOptions{
-			MetricTypePrefixes:    c.MetricPrefixes,
-			ExtraFilters:          parseMetricExtraFilters(c.ExtraFilters),
-			RequestInterval:       c.RequestInterval,
-			RequestOffset:         c.RequestOffset,
-			IngestDelay:           c.IngestDelay,
-			FillMissingLabels:     true,
-			DropDelegatedProjects: c.DropDelegatedProjects,
-			AggregateDeltas:       true,
-		},
-		l,
-		collectors.NewInMemoryDeltaCounterStore(l, 30*time.Minute),
-		collectors.NewInMemoryDeltaDistributionStore(l, 30*time.Minute),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create monitoring collector: %w", err)
+	var gcpCollectors []prometheus.Collector
+	for _, projectID := range c.ProjectIDs {
+		monitoringCollector, err := collectors.NewMonitoringCollector(
+			projectID,
+			svc,
+			collectors.MonitoringCollectorOptions{
+				MetricTypePrefixes:    c.MetricPrefixes,
+				ExtraFilters:          parseMetricExtraFilters(c.ExtraFilters),
+				RequestInterval:       c.RequestInterval,
+				RequestOffset:         c.RequestOffset,
+				IngestDelay:           c.IngestDelay,
+				DropDelegatedProjects: c.DropDelegatedProjects,
+
+				// If FillMissingLabels ensures all metrics with the same name have the same label set. It's not often
+				// that GCP metrics have different labels but if it happens the prom registry will panic.
+				FillMissingLabels: true,
+
+				// If AggregateDeltas is disabled the data produced is not useful at all. See https://github.com/prometheus-community/stackdriver_exporter#what-to-know-about-aggregating-delta-metrics
+				// for more info
+				AggregateDeltas: true,
+			},
+			l,
+			collectors.NewInMemoryDeltaCounterStore(l, 30*time.Minute),
+			collectors.NewInMemoryDeltaDistributionStore(l, 30*time.Minute),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create monitoring collector: %w", err)
+		}
+		gcpCollectors = append(gcpCollectors, monitoringCollector)
 	}
 
 	return integrations.NewCollectorIntegration(
-		c.Name(), integrations.WithCollectors(monitoringCollector),
+		c.Name(), integrations.WithCollectors(gcpCollectors...),
 	), nil
 }
 
 func (c *Config) Validate() error {
 	var configErrors []string
 
-	if c.ProjectID == "" {
-		configErrors = append(configErrors, "project_id is a required field")
+	if c.ProjectIDs == nil || len(c.ProjectIDs) == 0 {
+		configErrors = append(configErrors, "no project_ids defined and no default was found in the gcloud config")
 	}
 
 	if c.MetricPrefixes == nil || len(c.MetricPrefixes) == 0 {
@@ -144,7 +155,7 @@ func (c *Config) Validate() error {
 		for filterPrefix, filters := range filterPrefixToFilter {
 			validFilterPrefix := false
 			for _, metricPrefix := range c.MetricPrefixes {
-				if strings.HasPrefix(filterPrefix, metricPrefix) {
+				if strings.HasPrefix(metricPrefix, filterPrefix) {
 					validFilterPrefix = true
 					break
 				}
@@ -156,7 +167,7 @@ func (c *Config) Validate() error {
 	}
 
 	if len(configErrors) != 0 {
-		return errors.New(strings.Join(configErrors, "\n"))
+		return errors.New(strings.Join(configErrors, ","))
 	}
 
 	return nil
@@ -169,7 +180,6 @@ func createMonitoringService(ctx context.Context, httpTimeout time.Duration) (*m
 	}
 
 	googleClient.Timeout = httpTimeout
-	// TODO(daniele) - using the default flags from stackdriver CLI
 	googleClient.Transport = rehttp.NewTransport(
 		googleClient.Transport,
 		rehttp.RetryAll(
