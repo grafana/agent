@@ -11,6 +11,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus"
+	promop "github.com/prometheus-operator/prometheus-operator/pkg/client/informers/externalversions"
 	promCommonConfig "github.com/prometheus/common/config"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
@@ -18,8 +19,6 @@ import (
 	"github.com/prometheus/prometheus/scrape"
 	"github.com/psanford/memfs"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 
@@ -193,21 +192,21 @@ func (c *crdManager) run(ctx context.Context) {
 		logger:  c.logger,
 	}
 
+	// run an informer for each namespace they specify. By default this will be a single
+	// informer for all namespaces
 	for _, namespace := range c.config.Namespaces {
-		pms := promClientset.MonitoringV1().PodMonitors(namespace)
-		plw := &cache.ListWatch{
-			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
-				//options.FieldSelector = d.selectors.pod.field
-				//options.LabelSelector = d.selectors.pod.label
-				return pms.List(ctx, options)
-			},
-			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
-				//options.FieldSelector = d.selectors.pod.field
-				//options.LabelSelector = d.selectors.pod.label
-				return pms.Watch(ctx, options)
-			},
-		}
-		inf := cache.NewSharedInformer(plw, &v1.PodMonitor{}, 5*time.Minute)
+		factory := promop.NewSharedInformerFactoryWithOptions(promClientset,
+			5*time.Minute,
+			promop.WithNamespace(namespace),
+			promop.WithTweakListOptions(func(opts *metav1.ListOptions) {
+				if c.config.FieldSelector != "" {
+					opts.FieldSelector = c.config.FieldSelector
+				}
+				if c.config.LabelSelector != "" {
+					opts.LabelSelector = c.config.LabelSelector
+				}
+			}))
+		inf := factory.Monitoring().V1().PodMonitors().Informer()
 		inf.AddEventHandler(cache.ResourceEventHandlerFuncs{
 			AddFunc:    c.onAddPodMonitor,
 			UpdateFunc: c.onUpdatePodMonitor,
@@ -216,9 +215,8 @@ func (c *crdManager) run(ctx context.Context) {
 		inf.SetWatchErrorHandler(func(r *cache.Reflector, err error) {
 			level.Error(c.logger).Log("msg", "kubernetes watcher error", "err", err)
 		})
-		go inf.Run(ctx.Done())
+		factory.Start(ctx.Done())
 	}
-
 	level.Info(c.logger).Log("msg", "PodMonitor informers  started")
 
 	c.discovery = discovery.NewManager(ctx, c.logger, discovery.Name(c.opts.ID))

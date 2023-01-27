@@ -22,7 +22,9 @@ type Config struct {
 
 	ForwardTo []storage.Appendable `river:"forward_to,attr"`
 
-	Namespaces []string `river:"namespaces,attr,optional"`
+	Namespaces    []string `river:"namespaces,attr,optional"`
+	LabelSelector string   `river:"label_selector,optional"`
+	FieldSelector string   `river:"field_selector,optional"`
 }
 
 func (args *Config) UnmarshalRiver(f func(interface{}) error) error {
