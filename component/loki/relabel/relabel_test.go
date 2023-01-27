@@ -302,7 +302,7 @@ func TestRuleGetter(t *testing.T) {
 
 	// Use the getter to retrieve the original relabeling rules.
 	exports := tc.Exports().(Exports)
-	gotOriginal := exports.Rules()
+	gotOriginal := exports.Rules
 
 	// Update the component with new relabeling rules and retrieve them.
 	updatedCfg := `rule {
@@ -314,7 +314,8 @@ func TestRuleGetter(t *testing.T) {
 	require.NoError(t, river.Unmarshal([]byte(updatedCfg), &args))
 
 	require.NoError(t, tc.Update(args))
-	gotUpdated := exports.Rules()
+	exports = tc.Exports().(Exports)
+	gotUpdated := exports.Rules
 
 	require.NotEqual(t, gotOriginal, gotUpdated)
 	require.Len(t, gotOriginal, 1)

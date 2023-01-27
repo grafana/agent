@@ -78,14 +78,12 @@ spec:
         - -config.file=/etc/agent/agent.yaml
         - -enable-features=integrations-next
         - -server.http.address=0.0.0.0:80
-        command:
-        - /bin/grafana-agent
         env:
         - name: HOSTNAME
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        image: grafana/agent:v0.30.2
+        image: grafana/agent:v0.31.0-rc.0
         imagePullPolicy: IfNotPresent
         name: grafana-agent
         ports:

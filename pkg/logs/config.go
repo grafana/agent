@@ -14,6 +14,7 @@ import (
 // Config controls the configuration of the Loki log scraper.
 type Config struct {
 	PositionsDirectory string            `yaml:"positions_directory,omitempty"`
+	Global             GlobalConfig      `yaml:"global,omitempty"`
 	Configs            []*InstanceConfig `yaml:"configs,omitempty"`
 }
 
@@ -42,6 +43,8 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 //
 //  1. If a positions config is empty, it will be generated based on
 //     the InstanceConfig name and Config.PositionsDirectory.
+//  2. If an InstanceConfigs's ClientConfigs is empty, it will be generated based on
+//     the Config.GlobalConfig.ClientConfigs.
 func (c *Config) ApplyDefaults() error {
 	var (
 		names     = map[string]struct{}{}
@@ -67,6 +70,10 @@ func (c *Config) ApplyDefaults() error {
 			return fmt.Errorf("Loki configs %s and %s must have different positions file paths", orig, ic.Name)
 		}
 		positions[ic.PositionsConfig.PositionsFile] = ic.Name
+
+		if len(ic.ClientConfigs) == 0 {
+			ic.ClientConfigs = c.Global.ClientConfigs
+		}
 	}
 
 	return nil

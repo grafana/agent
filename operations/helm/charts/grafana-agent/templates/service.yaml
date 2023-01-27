@@ -14,3 +14,9 @@ spec:
       port: {{ .Values.agent.listenPort }}
       targetPort: {{ .Values.agent.listenPort }}
       protocol: "TCP"
+{{- range $portMap := .Values.agent.extraPorts }}
+    - name: {{ $portMap.name }}
+      port: {{ $portMap.port }}
+      targetPort: {{ $portMap.targetPort }}
+      protocol: {{ coalesce $portMap.protocol "TCP" }} 
+{{- end }}

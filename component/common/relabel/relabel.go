@@ -161,7 +161,7 @@ func (rc *Config) UnmarshalRiver(f func(interface{}) error) error {
 	return nil
 }
 
-// ComponentToPromRelabelConfigs bridges the Compnoent-based configuration of
+// ComponentToPromRelabelConfigs bridges the Component-based configuration of
 // relabeling steps to the Prometheus implementation.
 func ComponentToPromRelabelConfigs(rcs []*Config) []*relabel.Config {
 	res := make([]*relabel.Config, len(rcs))
@@ -186,7 +186,7 @@ func ComponentToPromRelabelConfigs(rcs []*Config) []*relabel.Config {
 }
 
 // Rules returns the relabel configs in use for a relabeling component.
-type Rules func() []*Config
+type Rules []*Config
 
 // RiverCapsule marks the alias defined above as a "capsule type" so that it
 // cannot be invoked by River code.

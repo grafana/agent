@@ -26,6 +26,7 @@ type StageConfig struct {
 	// hand. This will be fixed once we've gained confidence in the ported
 	// processing stages and the package is made non-internal.
 	JSONConfig         *JSONConfig         `river:"json,block,optional"`
+	LogfmtConfig       *LogfmtConfig       `river:"logfmt,block,optional"`
 	LabelsConfig       *LabelsConfig       `river:"labels,block,optional"`
 	LabelAllowConfig   *LabelAllowConfig   `river:"label_keep,block,optional"`
 	LabelDropConfig    *LabelDropConfig    `river:"label_drop,block,optional"`
@@ -35,6 +36,10 @@ type StageConfig struct {
 	RegexConfig        *RegexConfig        `river:"regex,block,optional"`
 	TimestampConfig    *TimestampConfig    `river:"timestamp,block,optional"`
 	OutputConfig       *OutputConfig       `river:"output,block,optional"`
+	ReplaceConfig      *ReplaceConfig      `river:"replace,block,optional"`
+	MultilineConfig    *MultilineConfig    `river:"multiline,block,optional"`
+	MatchConfig        *MatchConfig        `river:"match,block,optional"`
+	DropConfig         *DropConfig         `river:"drop,block,optional"`
 }
 
 // UnmarshalRiver implements river.Unmarshaler.
@@ -189,24 +194,4 @@ func (p *Pipeline) Size() int {
 func SetReadLineRateLimiter(rateVal float64, burstVal int, drop bool) {
 	rateLimiter = rate.NewLimiter(rate.Limit(rateVal), burstVal)
 	rateLimiterDrop = drop
-}
-
-// TODO(@tpaschalis) This is a helper from the metrics stage. Remove this
-// copy when we port it over, or remove it entirely in favor of a central
-// metrics struct.
-func getDropCountMetric(registerer prometheus.Registerer) *prometheus.CounterVec {
-	dropCount := prometheus.NewCounterVec(prometheus.CounterOpts{
-		Name: "loki_process_dropped_lines_total",
-		Help: "A count of all log lines dropped as a result of a pipeline stage",
-	}, []string{"reason"})
-	err := registerer.Register(dropCount)
-	if err != nil {
-		if existing, ok := err.(prometheus.AlreadyRegisteredError); ok {
-			dropCount = existing.ExistingCollector.(*prometheus.CounterVec)
-		} else {
-			// Same behavior as MustRegister if the error is not for AlreadyRegistered
-			panic(err)
-		}
-	}
-	return dropCount
 }

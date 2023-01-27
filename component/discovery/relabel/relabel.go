@@ -42,9 +42,8 @@ type Exports struct {
 type Component struct {
 	opts component.Options
 
-	mut     sync.RWMutex
-	rcs     []*relabel.Config
-	rcsFlow []*flow_relabel.Config
+	mut sync.RWMutex
+	rcs []*relabel.Config
 }
 
 var _ component.Component = (*Component)(nil)
@@ -77,7 +76,6 @@ func (c *Component) Update(args component.Arguments) error {
 	targets := make([]discovery.Target, 0, len(newArgs.Targets))
 	relabelConfigs := flow_relabel.ComponentToPromRelabelConfigs(newArgs.RelabelConfigs)
 	c.rcs = relabelConfigs
-	c.rcsFlow = newArgs.RelabelConfigs
 
 	for _, t := range newArgs.Targets {
 		lset := componentMapToPromLabels(t)
@@ -89,17 +87,10 @@ func (c *Component) Update(args component.Arguments) error {
 
 	c.opts.OnStateChange(Exports{
 		Output: targets,
-		Rules:  c.getRules,
+		Rules:  newArgs.RelabelConfigs,
 	})
 
 	return nil
-}
-
-func (c *Component) getRules() []*flow_relabel.Config {
-	c.mut.RLock()
-	defer c.mut.RUnlock()
-
-	return c.rcsFlow
 }
 
 func componentMapToPromLabels(ls discovery.Target) labels.Labels {

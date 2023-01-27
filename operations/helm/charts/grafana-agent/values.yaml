@@ -41,6 +41,9 @@ agent:
   # -- Extra args to pass to `agent run`: https://grafana.com/docs/agent/latest/flow/reference/cli/run/
   extraArgs: []
 
+  # -- Extra ports to expose on the Agent
+  extraPorts: []
+
   mounts:
     # -- Mount /var/log from the host into the container for log collection.
     varlog: false
@@ -88,9 +91,9 @@ configReloader:
   enabled: true
   image:
     # -- Repository to get config reloader image from.
-    repository: weaveworks/watch
+    repository: jimmidyson/configmap-reload
     # -- Tag of image to use for config reloading.
-    tag: master-5fc29a9
+    tag: v0.8.0
   # -- Override the args passed to the container.
   customArgs: []
 

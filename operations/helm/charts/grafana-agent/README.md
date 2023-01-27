@@ -1,13 +1,6 @@
 # Grafana Agent Helm chart
 
-![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![AppVersion: v0.30.2](https://img.shields.io/badge/AppVersion-v0.30.2-informational?style=flat-square)
-
-> **EXPERIMENTAL**: This is an experimental Helm chart for Grafana Agent. It is
-> undergoing active development and it is not recommended to use this chart in
-> production.
->
-> The intent is to upstream this Helm chart into grafana/agent once it's ready
-> for adoption.
+![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.3.0](https://img.shields.io/badge/Version-0.3.0-informational?style=flat-square) ![AppVersion: v0.30.2](https://img.shields.io/badge/AppVersion-v0.30.2-informational?style=flat-square)
 
 Helm chart for deploying [Grafana Agent][] to Kubernetes.
 
@@ -42,6 +35,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | agent.enableReporting | bool | `true` | Enables sending Grafana Labs anonymous usage stats to help improve Grafana Agent. |
 | agent.extraArgs | list | `[]` | Extra args to pass to `agent run`: https://grafana.com/docs/agent/latest/flow/reference/cli/run/ |
 | agent.extraEnv | list | `[]` | Extra environment variables to pass to the agent container. |
+| agent.extraPorts | list | `[]` | Extra ports to expose on the Agent |
 | agent.listenAddr | string | `"0.0.0.0"` | Address to listen for traffic on. 0.0.0.0 exposes the UI to other containers. |
 | agent.listenPort | int | `80` | Port to listen for traffic on. |
 | agent.mode | string | `"flow"` | Mode to run Grafana Agent in. Can be "flow" or "static". |
@@ -53,8 +47,8 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | agent.storagePath | string | `"/tmp/agent"` | Path to where Grafana Agent stores data (for example, the Write-Ahead Log). By default, data is lost between reboots. |
 | configReloader.customArgs | list | `[]` | Override the args passed to the container. |
 | configReloader.enabled | bool | `true` | Enables automatically reloading when the agent config changes. |
-| configReloader.image.repository | string | `"weaveworks/watch"` | Repository to get config reloader image from. |
-| configReloader.image.tag | string | `"master-5fc29a9"` | Tag of image to use for config reloading. |
+| configReloader.image.repository | string | `"jimmidyson/configmap-reload"` | Repository to get config reloader image from. |
+| configReloader.image.tag | string | `"v0.8.0"` | Tag of image to use for config reloading. |
 | controller.podAnnotations | object | `{}` | Extra pod annotations to add. |
 | controller.replicas | int | `1` | Number of pods to deploy. Ignored when controller.type is 'daemonset'. |
 | controller.tolerations | list | `[]` | Tolerations to apply to Grafana Agent pods. |
@@ -90,12 +84,12 @@ for network traffic on its HTTP server. By default, this is `0.0.0.0` to allow
 its UI to be exposed when port-forwarding and to expose its metrics to other
 agents in the cluster.
 
-### config
+### agent.configMap.config
 
-`config` holds the Grafana Agent configuration to use.
+`agent.configMap.content` holds the Grafana Agent configuration to use.
 
-If `config` is not provided, a [default configuration file][default-config] is
-used. When provided, `config` must hold a valid River configuration file.
+If `agent.configMap.content` is not provided, a [default configuration file][default-config] is
+used. When provided, `agent.configMap.content` must hold a valid River configuration file.
 
 [default-config]: ./config/example.river
 

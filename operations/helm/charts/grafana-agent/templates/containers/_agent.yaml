@@ -2,12 +2,18 @@
 - name: grafana-agent
   image: {{ .Values.image.repository }}:{{ include "grafana-agent.imageTag" . }}
   args:
+    {{- if eq .Values.agent.mode "flow"}}
     - run
     - /etc/agent/{{ include "grafana-agent.config-map.key" . }}
     - --storage.path={{ .Values.agent.storagePath }}
     - --server.http.listen-addr={{ .Values.agent.listenAddr }}:{{ .Values.agent.listenPort }}
     {{- if not .Values.agent.enableReporting }}
     - --disable-reporting
+    {{- end}}
+    {{- end}}
+    {{- if eq .Values.agent.mode "static"}}
+    - -config.file=/etc/agent/{{ include "grafana-agent.config-map.key" . }}
+    - -server.http.address={{ .Values.agent.listenAddr }}:{{ .Values.agent.listenPort }}
     {{- end}}
     {{- range .Values.agent.extraArgs }}
     - {{ . }}
@@ -25,6 +31,11 @@
   ports:
     - containerPort: {{ .Values.agent.listenPort }}
       name: http-metrics
+    {{- range $portMap := .Values.agent.extraPorts }}
+    - containerPort: {{ $portMap.targetPort }}
+      name: {{ $portMap.name }}
+      protocol: {{ coalesce $portMap.protocol "TCP" }} 
+    {{- end }}
   readinessProbe:
     httpGet:
       path: /-/ready

@@ -200,6 +200,15 @@ JSONStageSpec is a parsing stage that reads the log line as JSON and accepts JME
 |-|-|
 |`source`<br/>_string_|  Name from the extracted data to parse as JSON. If empty, uses entire log message.  |
 |`expressions`<br/>_map[string]string_|  Set of the key/value pairs of JMESPath expressions. The key will be the key in the extracted data while the expression will be the value, evaluated as a JMESPath from the source data.  Literal JMESPath expressions can be used by wrapping a key in double quotes, which then must be wrapped again in single quotes in YAML so they get passed to the JMESPath parser.  |
+### LimitStageSpec <a name="monitoring.grafana.com/v1alpha1.LimitStageSpec"></a>
+(Appears on:[PipelineStageSpec](#monitoring.grafana.com/v1alpha1.PipelineStageSpec))
+The limit stage is a rate-limiting stage that throttles logs based on several options. 
+#### Fields
+|Field|Description|
+|-|-|
+|`rate`<br/>_int_|  The rate limit in lines per second that Promtail will push to Loki.  |
+|`burst`<br/>_int_|  The cap in the quantity of burst lines that Promtail will push to Loki.  |
+|`drop`<br/>_bool_|  When drop is true, log lines that exceed the current rate limit are discarded. When drop is false, log lines that exceed the current rate limit wait to enter the back pressure mode.  Defaults to false.  |
 ### LogsBackoffConfigSpec <a name="monitoring.grafana.com/v1alpha1.LogsBackoffConfigSpec"></a>
 (Appears on:[LogsClientSpec](#monitoring.grafana.com/v1alpha1.LogsClientSpec))
 LogsBackoffConfigSpec configures timing for retrying failed requests. 
@@ -414,6 +423,7 @@ PipelineStageSpec defines an individual pipeline stage. Each stage type is mutua
 |`labelAllow`<br/>_[]string_|  LabelAllow is an action stage that only allows the provided labels to be included in the label set that is sent to Loki with the log entry.  |
 |`labelDrop`<br/>_[]string_|  LabelDrop is an action stage that drops labels from the label set that is sent to Loki with the log entry.  |
 |`labels`<br/>_map[string]string_|  Labels is an action stage that takes data from the extracted map and modifies the label set that is sent to Loki with the log entry.  The key is REQUIRED and represents the name for the label that will be created. Value is optional and will be the name from extracted data to use for the value of the label. If the value is not provided, it defaults to match the key.  |
+|`limit`<br/>_[LimitStageSpec](#monitoring.grafana.com/v1alpha1.LimitStageSpec)_|  Limit is a rate-limiting stage that throttles logs based on several options.  |
 |`match`<br/>_[MatchStageSpec](#monitoring.grafana.com/v1alpha1.MatchStageSpec)_|  Match is a filtering stage that conditionally applies a set of stages or drop entries when a log entry matches a configurable LogQL stream selector and filter expressions.  |
 |`metrics`<br/>_[map[string]github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1.MetricsStageSpec](#monitoring.grafana.com/v1alpha1.MetricsStageSpec)_|  Metrics is an action stage that supports defining and updating metrics based on data from the extracted map. Created metrics are not pushed to Loki or Prometheus and are instead exposed via the /metrics endpoint of the Grafana Agent pod. The Grafana Agent Operator should be configured with a MetricsInstance that discovers the logging DaemonSet to collect metrics created by this stage.  |
 |`multiline`<br/>_[MultilineStageSpec](#monitoring.grafana.com/v1alpha1.MultilineStageSpec)_|  Multiline stage merges multiple lines into a multiline block before passing it on to the next stage in the pipeline.  |
