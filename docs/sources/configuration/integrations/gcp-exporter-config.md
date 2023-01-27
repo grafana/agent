@@ -1,7 +1,7 @@
 ---
 aliases:
 - /docs/agent/latest/configuration/integrations/gcp-exporter-config/
-  title: gcp_exporter_config
+title: gcp_exporter_config
 ---
 
 # gcp_exporter_config
