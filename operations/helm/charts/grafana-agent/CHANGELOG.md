@@ -13,6 +13,7 @@ Unreleased
 ### Bugfixes
 
 - Fix `podAnnotations` values reference in pod template (should be `controller.podAnnotations`)
+- Ensure the service gets a clusterIP assigned
 
 0.3.0 (2023-01-23)
 ------------------
