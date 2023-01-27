@@ -124,5 +124,5 @@ controller:
 service:
   # -- Service type
   type: ClusterIP
-  # -- Cluster IP, can be set to None
-  clusterIP: null
+  # -- Cluster IP, can be set to None, empty "" or an IP address
+  clusterIP: ""
