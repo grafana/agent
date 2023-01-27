@@ -120,3 +120,9 @@ controller:
 
   # -- volumeClaimTemplates to add when controller.type is 'statefulset'.
   volumeClaimTemplates: []
+
+service:
+  # -- Service type
+  type: ClusterIP
+  # -- Cluster IP, can be set to None
+  clusterIP: null
