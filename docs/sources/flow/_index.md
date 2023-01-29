@@ -20,10 +20,6 @@ Components allow for reusability, composability, and focus on a single task.
 > **BETA**: Grafana Agent Flow is a [beta][] feature.
 > Beta features are subject to frequent breaking changes while the feature is
 > being matured.
->
-> You should only use Grafana Agent Flow if you are okay with bleeding edge
-> functionality and want to provide feedback to the developers. It is not
-> recommended to use Grafana Agent Flow in production.
 
 [beta]: {{< relref "../operation-guide#stability" >}}
 
@@ -90,8 +86,6 @@ The goal of Grafana Agent Flow is to eventually support the same use cases that
 Grafana Agent does today. Some functionality may be missing while Grafana Agent
 Flow is still in development:
 
-* Logging-specific components
-* Tracing-specific components
 * An equivalent list of integrations
 * An equivalent to the scraping service
 
