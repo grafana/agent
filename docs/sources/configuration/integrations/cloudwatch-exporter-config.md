@@ -150,7 +150,7 @@ Configuration reference:
   static: [ <static_job> ]
 ```
 
-# discovery_job
+### discovery_job
 
 A discovery job allows one to just define the AWS service to scrape, and the metrics under that service/namespace to retrieve.
 The agent will find AWS resources in the specified service for which to scrape these metrics, label them appropriately, and
@@ -199,7 +199,7 @@ Configuration reference:
   metrics: [ <metric> ] 
 ```
 
-# static_job
+### static_job
 
 A static job allows one to scrape an individual CloudWatch metric. For that, metrics needs to be fully qualified, specifying the following:
 1. `namespace`: For example `AWS/EC2`, `AWS/EBS`, `CoolApp` if it were a custom metric, etc.
@@ -259,7 +259,7 @@ Configuration reference:
   metrics: [ <metric> ] 
 ```
 
-# aws_role
+### aws_role
 
 Represents an [AWS IAM Role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html). Required when configuring a job. If omitted
 the AWS role that the credentials configured in the environment posses will be used. 
@@ -276,7 +276,7 @@ permission to assume the target role. See [this documentation](https://docs.aws.
   external_id: <string>
 ```
 
-# aws_dimension
+### aws_dimension
 
 Represents an [AWS CloudWatch Dimension](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html#Dimension).
 
@@ -285,7 +285,7 @@ Represents an [AWS CloudWatch Dimension](https://docs.aws.amazon.com/AmazonCloud
   value: <string>
 ```
 
-# aws_tag
+### aws_tag
 
 Represents an [AWS Tag](https://docs.aws.amazon.com/general/latest/gr/aws_tagging.html).
 
@@ -294,7 +294,7 @@ Represents an [AWS Tag](https://docs.aws.amazon.com/general/latest/gr/aws_taggin
   value: <string>
 ```
 
-# metric
+### metric
 
 Represents an AWS Metrics to scrape, under the context of a job. To see available metrics, AWS does not keep a documentation page with all available metrics.
 Follow [this guide](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/viewing_metrics_with_cloudwatch.html) on how to explore metrics, to easily
@@ -311,7 +311,7 @@ pick the ones you need.
   period: [ <duration> | default = 5m ]
 ```
 
-# Period
+### Period
 
 Period controls how far back in time CloudWatch metrics are considered, during each agent scrape. We can split how these 
 settings affects the produced values in two different scenarios.
@@ -329,7 +329,7 @@ is exported to CloudWatch.
 
 ![](../assets/multiple-period-time-model.png)
 
-# Supported services in discovery jobs
+## Supported services in discovery jobs
 
 The following is a list of AWS services that are supported in `cloudwatch_exporter` discovery jobs. When configuring a
 discovery job, the `type` field of each `discovery_job` must match either the desired job namespace or alias.
