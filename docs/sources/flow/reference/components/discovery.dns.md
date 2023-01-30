@@ -6,7 +6,7 @@ title: discovery.dns
 
 # discovery.dns
 
-`discovery.dns` discovers scrape targets from dns records.
+`discovery.dns` discovers scrape targets from DNS records.
 
 ## Usage
 
