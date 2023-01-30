@@ -218,7 +218,7 @@ mimir.rules.kubernetes "default" {
 }
 ```
 
-Below is an example RBAC configuration for Kubernetes - it authorizes the Agent to query the Kubernetes REST API:
+The following example is an RBAC configuration for Kubernetes. It authorizes the Agent to query the Kubernetes REST API:
 
 ```yaml
 apiVersion: v1
