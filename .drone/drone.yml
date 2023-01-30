@@ -189,6 +189,8 @@ steps:
 trigger:
   event:
   - pull_request
+  paths:
+  - cmd/grafana-agent/Dockerfile
 type: docker
 volumes:
 - host:
@@ -211,6 +213,8 @@ steps:
 trigger:
   event:
   - pull_request
+  paths:
+  - cmd/grafana-agentctl/Dockerfile
 type: docker
 volumes:
 - host:
@@ -233,6 +237,8 @@ steps:
 trigger:
   event:
   - pull_request
+  paths:
+  - cmd/grafana-agent-operator/Dockerfile
 type: docker
 volumes:
 - host:
@@ -257,6 +263,8 @@ steps:
 trigger:
   event:
   - pull_request
+  paths:
+  - '**/Dockerfile.windows'
 type: docker
 volumes:
 - host:
@@ -392,7 +400,7 @@ steps:
   - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
   - make -j4 RELEASE_BUILD=1 VERSION=${DRONE_TAG} dist
   - |
-    VERSION ${DRONE_TAG} RELEASE_DOC_TAG=$(echo ${DRONE_TAG} | awk -F '.' '{print $1"."$2}') ./tools/release
+    VERSION=${DRONE_TAG} RELEASE_DOC_TAG=$(echo ${DRONE_TAG} | awk -F '.' '{print $1"."$2}') ./tools/release
   environment:
     DOCKER_LOGIN:
       from_secret: DOCKER_LOGIN
@@ -457,6 +465,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: 9012ab3c553d2488901d9266471a6e04dcded1a9b36b9c822efed1e654c66151
+hmac: c6496402d38b36cc5b32f691691f33214d25941b69a39c77f6b95de0d3c5eb83
 
 ...

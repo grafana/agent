@@ -30,25 +30,11 @@ Name         | Type                 | Description                               
 ------------ |----------------------|--------------------------------------------------------------------------------|----------------------------| --------
 `listen_address`    | `string`             | UDP address and port to listen for Graylog messages.                    | `0.0.0.0:12201` | no
 `use_incoming_timestamp`    | `bool`             | When false, assigns the current timestamp to the log when it was processed | `false`                            | no
+`relabel_rules` | `RelabelRules`         | Relabeling rules to apply on log entries. | "{}" | no
 
 
 > **NOTE**: GELF logs can be sent uncompressed or compressed with GZIP or ZLIB. 
 > A `job` label is added with the full name of the component `loki.source.gelf.LABEL`. 
-
-
-## Blocks
-
-The following blocks are supported inside the definition of `loki.source.gelf`:
-
-Hierarchy | Name | Description | Required
---------- | ---- | ----------- | --------
-rule | [rule][] | Relabeling rules to apply to received log entries. | no
-
-[rule]: #rule-block
-
-### rule block
-
-{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" >}}
 
 Incoming messages have the following labels available:
 * `__gelf_message_level`: The GELF level as a string.
@@ -56,8 +42,9 @@ Incoming messages have the following labels available:
 * `__gelf_message_host`: The GELF level message version sent by the client.
 * `__gelf_message_facility`: The GELF facility.
 
-These labels are stripped unless a rule is created to retain the labels. An example rule is 
-below.
+These labels are stripped unless relabeling is used to retain the labels with a
+`loki.relabel` component and its Rules export as the `relabel_rules` argument.
+An example rule is presented below.
 
 ```river
 rule {

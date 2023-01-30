@@ -9,6 +9,18 @@ internal API changes are not present.
 
 Main (unreleased)
 -----------------
+### Breaking changes
+
+- Node Exporter configuration options changed to align with new upstream version (@Thor77):
+  - `diskstats_ignored_devices` is now `diskstats_device_exclude` in agent configuration.
+  - `ignored_devices` is now `device_exclude` in flow configuration.
+
+### Enhancements
+
+- Update Prometheus Node Exporter integration to v1.5.0. (@Thor77)
+
+v0.31.0-rc.0 (2023-01-26)
+--------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -31,26 +43,41 @@ Main (unreleased)
 
 - New Grafana Agent Flow components:
 
-  - `otelcol.receiver.kafka` receives telemetry data from Kafka. (@rfratto)
-  - `phlare.scrape` collects application performance profiles. (@cyriltovena)
-  - `phlare.write` sends application performance profiles to Grafana Phlare. (@cyriltovena)
-  - `otelcol.receiver.zipkin` receives Zipkin-formatted traces. (@rfratto)
-  - `otelcol.receiver.opencensus` receives OpenConsensus-formatted traces or metrics. (@ptodev)
-  - `loki.source.windowsevent` reads logs from Windows Event Log. (@mattdurham)
-  - `loki.source.syslog` listens for Syslog messages over TCP and UDP
-    connections and forwards them to other `loki` components. (@tpaschalis)
   - `loki.source.cloudflare` reads logs from Cloudflare's Logpull API and
     forwards them to other `loki` components. (@tpaschalis)
+  - `loki.source.gcplog` reads logs from GCP cloud resources using Pub/Sub
+    subscriptions and forwards them to other `loki` components. (@tpaschalis)
+  - `loki.source.gelf` listens for Graylog logs. (@mattdurham)
+  - `loki.source.heroku` listens for Heroku messages over TCP a connection and
+    forwards them to other `loki` components. (@erikbaranowski)
+  - `loki.source.journal` read messages from systemd journal. (@mattdurham)
+  - `loki.source.kubernetes` collects logs from Kubernetes pods using the
+    Kubernetes API. (@rfratto)
+  - `loki.source.podlogs` discovers PodLogs resources on Kubernetes and
+    uses the Kubernetes API to collect logs from the pods specified by the
+    PodLogs resource. (@rfratto)
+  - `loki.source.syslog` listens for Syslog messages over TCP and UDP
+    connections and forwards them to other `loki` components. (@tpaschalis)
+  - `loki.source.windowsevent` reads logs from Windows Event Log. (@mattdurham)
+  - `otelcol.exporter.jaeger` forwards OpenTelemetry data to a Jaeger server.
+    (@erikbaranowski)
   - `otelcol.exporter.loki` forwards OTLP-formatted data to compatible `loki`
     receivers. (@tpaschalis)
-  - `loki.source.gelf` listens for Graylog logs. (@mattdurham)
-
-
+  - `otelcol.receiver.kafka` receives telemetry data from Kafka. (@rfratto)
+  - `otelcol.receiver.loki` receives Loki logs, converts them to the OTLP log
+    format and forwards them to other `otelcol` components. (@tpaschalis)
+  - `otelcol.receiver.opencensus` receives OpenConsensus-formatted traces or
+    metrics. (@ptodev)
+  - `otelcol.receiver.zipkin` receives Zipkin-formatted traces. (@rfratto)
+  - `phlare.scrape` collects application performance profiles. (@cyriltovena)
+  - `phlare.write` sends application performance profiles to Grafana Phlare.
+    (@cyriltovena)
+  - `mimir.rules.kubernetes` discovers `PrometheusRule` Kubernetes resources and
+    loads them into a Mimir instance. (@Logiraptor)
 
 - Flow components which work with relabeling rules (`discovery.relabel`,
   `prometheus.relabel` and `loki.relabel`) now export a new value named Rules.
-  This value is a function that returns the currently configured rules.
-  (@tpaschalis)
+  This value returns a copy of the currently configured rules. (@tpaschalis)
 
 - New experimental feature: agent-management. Polls configured remote API to fetch new configs. (@spartan0x117)
 
@@ -72,10 +99,18 @@ Main (unreleased)
 
 - Flow UI: Fix the issue with long string going out of bound in the component detail page. (@xiyu95)
 
+- Flow UI: Display the values of all attributes unless they are nil. (@ptodev)
+
 - Flow: `prometheus.relabel` and `prometheus.remote_write` will now error if they have exited. (@ptodev)
 
 - Flow: Fix issue where negative numbers would convert to floating-point values
   incorrectly, treating the sign flag as part of the number. (@rfratto)
+
+- Flow: fix a goroutine leak when `loki.source.file` is passed more than one
+  target with identical set of public labels. (@rfratto)
+
+- Fix issue where removing and re-adding log instance configurations causes an
+  error due to double registration of metrics (@spartan0x117, @jcreixell)
 
 ### Other changes
 
@@ -160,9 +195,6 @@ v0.30.0 (2022-12-20)
 
   - `discovery.file` discovers files on the filesystem following glob
     patterns. (@mattdurham)
-
-  - `mimir.rules.kubernetes` discovers `PrometheusRule` Kubernetes resources and
-    loads them into a Mimir instance. (@Logiraptor)
 
 - Integrations: Introduce the `snowflake` integration. (@binaryfissiongames)
 

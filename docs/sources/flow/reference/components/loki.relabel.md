@@ -71,7 +71,7 @@ The following fields are exported and can be referenced by other components:
 Name | Type | Description
 ---- | ---- | -----------
 `receiver` | `receiver` | The input receiver where log lines are sent to be relabeled.
-`rules`    | `RelabelRules` | A function that returns the currently configured relabeling rules.
+`rules`    | `RelabelRules` | The currently configured relabeling rules.
 
 ## Component health
 
