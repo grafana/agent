@@ -14,6 +14,9 @@ import (
 	_ "github.com/grafana/agent/component/loki/source/gcplog"                   // Import loki.source.gcplog
 	_ "github.com/grafana/agent/component/loki/source/gelf"                     // Import loki.source.gelf
 	_ "github.com/grafana/agent/component/loki/source/heroku"                   // Import loki.source.heroku
+	_ "github.com/grafana/agent/component/loki/source/journal"                  // Import loki.source.journal
+	_ "github.com/grafana/agent/component/loki/source/kubernetes"               // Import loki.source.kubernetes
+	_ "github.com/grafana/agent/component/loki/source/podlogs"                  // Import loki.source.podlogs
 	_ "github.com/grafana/agent/component/loki/source/syslog"                   // Import loki.source.syslog
 	_ "github.com/grafana/agent/component/loki/source/windowsevent"             // Import loki.source.windowsevent
 	_ "github.com/grafana/agent/component/loki/write"                           // Import loki.write
@@ -21,6 +24,7 @@ import (
 	_ "github.com/grafana/agent/component/otelcol/auth/basic"                   // Import otelcol.auth.basic
 	_ "github.com/grafana/agent/component/otelcol/auth/bearer"                  // Import otelcol.auth.bearer
 	_ "github.com/grafana/agent/component/otelcol/auth/headers"                 // Import otelcol.auth.headers
+	_ "github.com/grafana/agent/component/otelcol/exporter/jaeger"              // Import otelcol.exporter.jaeger
 	_ "github.com/grafana/agent/component/otelcol/exporter/loki"                // Import otelcol.exporter.loki
 	_ "github.com/grafana/agent/component/otelcol/exporter/otlp"                // Import otelcol.exporter.otlp
 	_ "github.com/grafana/agent/component/otelcol/exporter/otlphttp"            // Import otelcol.exporter.otlphttp

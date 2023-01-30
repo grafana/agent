@@ -26,7 +26,7 @@ var (
 		ProcFSPath: procfs.DefaultMountPoint,
 		RootFSPath: "/",
 
-		DiskStatsIgnoredDevices: "^(ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$",
+		DiskStatsDeviceExclude: "^(ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$",
 
 		EthtoolMetricsInclude: ".*",
 
@@ -102,7 +102,8 @@ type Config struct {
 	CPUEnableCPUGuest                bool                `yaml:"enable_cpu_guest_seconds_metric,omitempty"`
 	CPUEnableCPUInfo                 bool                `yaml:"enable_cpu_info_metric,omitempty"`
 	CPUFlagsInclude                  string              `yaml:"cpu_flags_include,omitempty"`
-	DiskStatsIgnoredDevices          string              `yaml:"diskstats_ignored_devices,omitempty"`
+	DiskStatsDeviceExclude           string              `yaml:"diskstats_device_exclude,omitempty"`
+	DiskStatsDeviceInclude           string              `yaml:"diskstats_device_include,omitempty"`
 	EthtoolDeviceExclude             string              `yaml:"ethtool_device_exclude,omitempty"`
 	EthtoolDeviceInclude             string              `yaml:"ethtool_device_include,omitempty"`
 	EthtoolMetricsInclude            string              `yaml:"ethtool_metrics_include,omitempty"`
@@ -127,6 +128,8 @@ type Config struct {
 	PowersupplyIgnoredSupplies       string              `yaml:"powersupply_ignored_supplies,omitempty"`
 	RunitServiceDir                  string              `yaml:"runit_service_dir,omitempty"`
 	SupervisordURL                   string              `yaml:"supervisord_url,omitempty"`
+	SysctlInclude                    flagext.StringSlice `yaml:"sysctl_include,omitempty"`
+	SysctlIncludeInfo                flagext.StringSlice `yaml:"sysctl_include_info,omitempty"`
 	SystemdEnableRestartsMetrics     bool                `yaml:"systemd_enable_restarts_metrics,omitempty"`
 	SystemdEnableStartTimeMetrics    bool                `yaml:"systemd_enable_start_time_metrics,omitempty"`
 	SystemdEnableTaskMetrics         bool                `yaml:"systemd_enable_task_metrics,omitempty"`
@@ -154,6 +157,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		SystemdUnitBlacklist         string `yaml:"systemd_unit_blacklist,omitempty"`
 		FilesystemIgnoredMountPoints string `yaml:"filesystem_ignored_mount_points,omitempty"`
 		FilesystemIgnoredFSTypes     string `yaml:"filesystem_ignored_fs_types,omitempty"`
+		DiskStatsIgnoredDevices      string `yaml:"diskstats_ignored_devices,omitempty"`
 	}
 
 	var fc config // our full config (schema + deprecated names)
@@ -189,6 +193,10 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		{
 			OldName: "filesystem_ignored_fs_types", NewName: "filesystem_fs_types_exclude",
 			OldValue: &fc.FilesystemIgnoredFSTypes, NewValue: &fc.FilesystemFSTypesExclude,
+		},
+		{
+			OldName: "diskstats_ignored_devices", NewName: "diskstats_device_exclude",
+			OldValue: &fc.DiskStatsIgnoredDevices, NewValue: &fc.DiskStatsDeviceExclude,
 		},
 	}
 
@@ -311,7 +319,8 @@ func MapConfigToNodeExporterFlags(c *Config) (accepted []string, ignored []strin
 	}
 
 	if collectors[CollectorDiskstats] {
-		flags.add("--collector.diskstats.ignored-devices", c.DiskStatsIgnoredDevices)
+		flags.add("--collector.diskstats.device-include", c.DiskStatsDeviceInclude)
+		flags.add("--collector.diskstats.device-exclude", c.DiskStatsDeviceExclude)
 	}
 
 	if collectors[CollectorEthtool] {
@@ -387,6 +396,16 @@ func MapConfigToNodeExporterFlags(c *Config) (accepted []string, ignored []strin
 
 	if collectors[CollectorSupervisord] {
 		flags.add("--collector.supervisord.url", c.SupervisordURL)
+	}
+
+	if collectors[CollectorSysctl] {
+		for _, numValue := range c.SysctlInclude {
+			flags.add("--collector.sysctl.include", numValue)
+		}
+
+		for _, stringValue := range c.SysctlIncludeInfo {
+			flags.add("--collector.sysctl.include-info", stringValue)
+		}
 	}
 
 	if collectors[CollectorSystemd] {

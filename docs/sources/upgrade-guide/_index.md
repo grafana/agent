@@ -39,6 +39,17 @@ These symbolic links will be removed in v0.33. Custom entrypoints must be
 updated prior to v0.33 to use the new binaries before the symbolic links get
 removed.
 
+### Breaking change: node exporter configuration options changed
+
+With the upgrade of the Node Exporter integration to upstream v1.5.0
+the diskstats collector has new configuration options to configure device selection.
+
+- `diskstats_ignored_devices` is now `diskstats_device_exclude` in agent configuration.
+- `ignored_devices` is now `device_exclude` in flow configuration.
+
+Additionally there's new `diskstats_device_exclude` and `device_include` (flow) option
+to explicitly select devices to include.
+
 ## v0.30.0
 
 ### Breaking change: `ebpf_exporter` integration removed

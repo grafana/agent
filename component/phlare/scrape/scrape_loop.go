@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"reflect"
 	"sync"
 	"time"
 
@@ -99,7 +100,16 @@ Outer:
 func (tg *scrapePool) reload(cfg Arguments) error {
 	tg.mtx.Lock()
 	defer tg.mtx.Unlock()
+
+	if tg.config.ScrapeInterval == cfg.ScrapeInterval &&
+		tg.config.ScrapeTimeout == cfg.ScrapeTimeout &&
+		reflect.DeepEqual(tg.config.HTTPClientConfig, cfg.HTTPClientConfig) {
+
+		tg.config = cfg
+		return nil
+	}
 	tg.config = cfg
+
 	scrapeClient, err := commonconfig.NewClientFromConfig(*cfg.HTTPClientConfig.Convert(), cfg.JobName)
 	if err != nil {
 		return err
@@ -149,7 +159,8 @@ type scrapeLoop struct {
 	req               *http.Request
 	logger            log.Logger
 	interval, timeout time.Duration
-	cancel            context.CancelFunc
+	graceShut         chan struct{}
+	once              sync.Once
 	wg                sync.WaitGroup
 }
 
@@ -165,46 +176,39 @@ func newScrapeLoop(t *Target, scrapeClient *http.Client, appendable phlare.Appen
 }
 
 func (t *scrapeLoop) start() {
-	ctx, cancel := context.WithCancel(context.Background())
-	t.cancel = cancel
+	t.graceShut = make(chan struct{})
+	t.once = sync.Once{}
 	t.wg.Add(1)
 
 	go func() {
-		defer func() {
-			cancel()
-			t.wg.Done()
-		}()
+		defer t.wg.Done()
+
 		select {
 		case <-time.After(t.offset(t.interval)):
-		case <-ctx.Done():
+		case <-t.graceShut:
 			return
 		}
 		ticker := time.NewTicker(t.interval)
 		defer ticker.Stop()
 
-		tick := func() {
+		for {
 			select {
-			case <-ctx.Done():
+			case <-t.graceShut:
 				return
 			case <-ticker.C:
 			}
-		}
-		for ; true; tick() {
-			if ctx.Err() != nil {
-				return
-			}
-			t.scrape(ctx)
+			t.scrape()
 		}
 	}()
 }
 
-func (t *scrapeLoop) scrape(ctx context.Context) {
+func (t *scrapeLoop) scrape() {
 	var (
 		start             = time.Now()
 		b                 = payloadBuffers.Get(t.lastScrapeSize).([]byte)
 		buf               = bytes.NewBuffer(b)
 		profileType       string
-		scrapeCtx, cancel = context.WithTimeout(ctx, t.timeout)
+		scrapeCtx, cancel = context.WithTimeout(context.Background(), t.timeout)
 	)
 	defer cancel()
 
@@ -234,7 +238,7 @@ func (t *scrapeLoop) scrape(ctx context.Context) {
 	t.lastScrapeDuration = time.Since(start)
 	t.lastError = nil
 	t.lastScrape = start
-	if err := t.appendable.Appender().Append(ctx, t.labels, []*phlare.RawSample{{RawProfile: b}}); err != nil {
+	if err := t.appendable.Appender().Append(context.Background(), t.labels, []*phlare.RawSample{{RawProfile: b}}); err != nil {
 		level.Error(t.logger).Log("msg", "push failed", "labels", t.Labels().String(), "err", err)
 	}
 }
@@ -284,6 +288,8 @@ func (t *scrapeLoop) fetchProfile(ctx context.Context, profileType string, buf i
 }
 
 func (t *scrapeLoop) stop() {
-	t.cancel()
+	t.once.Do(func() {
+		close(t.graceShut)
+	})
 	t.wg.Wait()
 }
