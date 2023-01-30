@@ -1,115 +1,119 @@
 package cloudwatch_exporter
 
 import (
-	"crypto/md5"
-	"encoding/hex"
-	"fmt"
-	"time"
-
-	"github.com/grafana/agent/pkg/integrations"
-	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
-	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
-	"gopkg.in/yaml.v2"
+	"context"
+	"net/http"
 
 	"github.com/go-kit/log"
+	yace "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg"
+	yaceConf "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/config"
+	yaceLog "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/logger"
+	yaceModel "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/model"
+	yaceSess "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/session"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+
+	"github.com/grafana/agent/pkg/integrations/config"
 )
 
-func init() {
-	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.NewNamedShim("cloudwatch"))
+// exporter wraps YACE entrypoint around an Integration implementation
+type exporter struct {
+	name         string
+	logger       yaceLoggerWrapper
+	sessionCache yaceSess.SessionCache
+	scrapeConf   yaceConf.ScrapeConf
 }
 
-// Config is the configuration for the CloudWatch metrics integration
-type Config struct {
-	STSRegion string          `yaml:"sts_region"`
-	Discovery DiscoveryConfig `yaml:"discovery"`
-	Static    []StaticJob     `yaml:"static"`
-}
-
-// DiscoveryConfig configures scraping jobs that will auto-discover metrics dimensions for a given service.
-type DiscoveryConfig struct {
-	ExportedTags TagsPerNamespace `yaml:"exported_tags"`
-	Jobs         []*DiscoveryJob  `yaml:"jobs"`
-}
-
-// TagsPerNamespace represents for each namespace, a list of tags that will be exported as labels in each metric.
-type TagsPerNamespace map[string][]string
-
-// DiscoveryJob configures a discovery job for a given service.
-type DiscoveryJob struct {
-	InlineRegionAndRoles `yaml:",inline"`
-	InlineCustomTags     `yaml:",inline"`
-	SearchTags           []Tag    `yaml:"search_tags"`
-	Type                 string   `yaml:"type"`
-	Metrics              []Metric `yaml:"metrics"`
-}
-
-// StaticJob will scrape metrics that match all defined dimensions.
-type StaticJob struct {
-	InlineRegionAndRoles `yaml:",inline"`
-	InlineCustomTags     `yaml:",inline"`
-	Name                 string      `yaml:"name"`
-	Namespace            string      `yaml:"namespace"`
-	Dimensions           []Dimension `yaml:"dimensions"`
-	Metrics              []Metric    `yaml:"metrics"`
-}
-
-// InlineRegionAndRoles exposes for each supported job, the AWS regions and IAM roles in which the agent should perform the
-// scrape.
-type InlineRegionAndRoles struct {
-	Regions []string `yaml:"regions"`
-	Roles   []Role   `yaml:"roles"`
-}
-
-type InlineCustomTags struct {
-	CustomTags []Tag `yaml:"custom_tags"`
-}
-
-type Role struct {
-	RoleArn    string `yaml:"role_arn"`
-	ExternalID string `yaml:"external_id"`
-}
-
-type Dimension struct {
-	Name  string `yaml:"name"`
-	Value string `yaml:"value"`
-}
-
-type Tag struct {
-	Key   string `yaml:"key"`
-	Value string `yaml:"value"`
-}
-
-type Metric struct {
-	Name       string        `yaml:"name"`
-	Statistics []string      `yaml:"statistics"`
-	Period     time.Duration `yaml:"period"`
-}
-
-// Name returns the name of the integration this config is for.
-func (c *Config) Name() string {
-	return "cloudwatch_exporter"
-}
-
-func (c *Config) InstanceKey(agentKey string) (string, error) {
-	return getHash(c)
-}
-
-// NewIntegration creates a new integration from the config.
-func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
-	exporterConfig, err := ToYACEConfig(c)
-	if err != nil {
-		return nil, fmt.Errorf("invalid cloudwatch exporter configuration: %w", err)
+// newCloudwatchExporter creates a new YACE wrapper, that implements Integration
+func newCloudwatchExporter(name string, logger log.Logger, conf yaceConf.ScrapeConf) *exporter {
+	loggerWrapper := yaceLoggerWrapper{
+		debug: false,
+		log:   logger,
 	}
-	return newCloudwatchExporter(c.Name(), l, exporterConfig), nil
+	return &exporter{
+		name:         name,
+		logger:       loggerWrapper,
+		sessionCache: yaceSess.NewSessionCache(conf, true, loggerWrapper),
+		scrapeConf:   conf,
+	}
 }
 
-// getHash calculates the MD5 hash of the yaml representation of the config
-func getHash(c *Config) (string, error) {
-	bytes, err := yaml.Marshal(c)
-	if err != nil {
-		return "", err
+func (e *exporter) MetricsHandler() (http.Handler, error) {
+	// Wrapping in a handler so in every execution, a new registry is created and yace's entrypoint called
+	h := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		e.logger.Debug("Running collect in cloudwatch_exporter")
+
+		reg := prometheus.NewRegistry()
+		cwSemaphore := make(chan struct{}, cloudWatchConcurrency)
+		tagSemaphore := make(chan struct{}, tagConcurrency)
+		observedMetricLabels := map[string]yaceModel.LabelSet{}
+		yace.UpdateMetrics(
+			context.Background(),
+			e.scrapeConf,
+			reg,
+			metricsPerQuery,
+			labelsSnakeCase,
+			cwSemaphore,
+			tagSemaphore,
+			e.sessionCache,
+			observedMetricLabels,
+			e.logger,
+		)
+
+		// close concurrency channels
+		close(cwSemaphore)
+		close(tagSemaphore)
+
+		promhttp.HandlerFor(reg, promhttp.HandlerOpts{}).ServeHTTP(w, req)
+	})
+	return h, nil
+}
+
+func (e *exporter) ScrapeConfigs() []config.ScrapeConfig {
+	return []config.ScrapeConfig{{
+		JobName:     e.name,
+		MetricsPath: "/metrics",
+	}}
+}
+
+func (e *exporter) Run(ctx context.Context) error {
+	<-ctx.Done()
+	return nil
+}
+
+// yaceLoggerWrapper is wrapper implementation of yaceLog.Logger, based out of a log.Logger.
+type yaceLoggerWrapper struct {
+	log log.Logger
+
+	// debug is just used for development purposes
+	debug bool
+}
+
+func (l yaceLoggerWrapper) Info(message string, keyvals ...interface{}) {
+	l.log.Log(append([]interface{}{"level", "info", "msg", message}, keyvals...)...)
+}
+
+func (l yaceLoggerWrapper) Debug(message string, keyvals ...interface{}) {
+	if l.debug {
+		l.log.Log(append([]interface{}{"level", "debug", "msg", message}, keyvals...)...)
 	}
-	hash := md5.Sum(bytes)
-	return hex.EncodeToString(hash[:]), nil
+}
+
+func (l yaceLoggerWrapper) Error(err error, message string, keyvals ...interface{}) {
+	l.log.Log(append([]interface{}{"level", "error", "msg", message, "err", err}, keyvals...)...)
+}
+
+func (l yaceLoggerWrapper) Warn(message string, keyvals ...interface{}) {
+	l.log.Log(append([]interface{}{"level", "warn", "msg", message}, keyvals...)...)
+}
+
+func (l yaceLoggerWrapper) With(keyvals ...interface{}) yaceLog.Logger {
+	withLog := log.With(l.log, keyvals)
+	return yaceLoggerWrapper{
+		log: withLog,
+	}
+}
+
+func (l yaceLoggerWrapper) IsDebugEnabled() bool {
+	return l.debug
 }
