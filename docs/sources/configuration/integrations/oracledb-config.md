@@ -1,7 +1,7 @@
 ---
 aliases:
 - /docs/agent/latest/configuration/integrations/oracledb-config/
-title: oracledb
+title: oracledb_config
 ---
 
 # oracledb_config
@@ -43,7 +43,7 @@ Full reference of options:
     [- <relabel_config> ... ]
 
   # Relabel metrics coming from the integration, lets you drop series
-  # from the integration that you don't care about from the integration.
+  # that you don't care about from the integration.
   metric_relabel_configs:
     [ - <relabel_config> ... ]
 
@@ -59,7 +59,7 @@ Full reference of options:
   # i.e. "oracle://user:password@localhost:1521/orcl.localnet"
   [connection_string: <string>]
 
-  # The maximum amount of connections allowed to be idle of the exporter.
+  # The maximum amount of connections of the exporter allowed to be idle.
   [max_idle_connections: <int>]
   # The maximum amount of connections allowed to be open by the exporter.
   [max_open_connections: <int>]
@@ -72,7 +72,7 @@ Full reference of options:
   [query_timeout: <int> | default = 5]
 ```
 
-## Quick configuration example
+## Configuration example
 
 ```yaml
 integrations:
