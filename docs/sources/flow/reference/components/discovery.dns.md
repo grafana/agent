@@ -23,7 +23,7 @@ The following arguments are supported:
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `names` | `list(string)` | DNS names to look up. | | yes
-`port` | `number` | Port to use for collecting metrics. Not used for SRV records | `0` | no
+`port` | `number` | Port to use for collecting metrics. Not used for SRV records. | `0` | no
 `refresh_interval` | `duration` | How often to query dns for updates. | `"30s"` | no
 `type` | `string` | Type of dns record to query. Must be one of SRV, A, AAAA, or MX | `"SRV"` | no
 
