@@ -138,6 +138,20 @@ func (c *crdManager) onDeletePodMonitor(obj interface{}) {
 	c.apply()
 }
 
+func (c *crdManager) onAddServiceMonitor(obj interface{}) {
+}
+func (c *crdManager) onUpdateServiceMonitor(oldObj, newObj interface{}) {
+}
+func (c *crdManager) onDeleteServiceMonitor(obj interface{}) {
+}
+
+func (c *crdManager) onAddProbe(obj interface{}) {
+}
+func (c *crdManager) onUpdateProbe(oldObj, newObj interface{}) {
+}
+func (c *crdManager) onDeleteProbe(obj interface{}) {
+}
+
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
 	// innerCtx gets passed to things we create, so we can restart everything anytime we get an update.
@@ -200,19 +214,41 @@ func (c *crdManager) run(ctx context.Context) {
 					opts.LabelSelector = c.config.LabelSelector
 				}
 			}))
-		inf := factory.Monitoring().V1().PodMonitors().Informer()
-		inf.AddEventHandler(cache.ResourceEventHandlerFuncs{
+
+		pminf := factory.Monitoring().V1().PodMonitors().Informer()
+		pminf.AddEventHandler(cache.ResourceEventHandlerFuncs{
 			AddFunc:    c.onAddPodMonitor,
 			UpdateFunc: c.onUpdatePodMonitor,
 			DeleteFunc: c.onDeletePodMonitor,
 		})
-		inf.SetWatchErrorHandler(func(r *cache.Reflector, err error) {
-			level.Error(c.logger).Log("msg", "kubernetes watcher error", "err", err)
+		pminf.SetWatchErrorHandler(func(r *cache.Reflector, err error) {
+			level.Error(c.logger).Log("msg", "pod monitor watcher error", "err", err)
 		})
+
+		sminf := factory.Monitoring().V1().ServiceMonitors().Informer()
+		sminf.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc:    c.onAddServiceMonitor,
+			UpdateFunc: c.onUpdateServiceMonitor,
+			DeleteFunc: c.onDeleteServiceMonitor,
+		})
+		sminf.SetWatchErrorHandler(func(r *cache.Reflector, err error) {
+			level.Error(c.logger).Log("msg", "service monitor watcher error", "err", err)
+		})
+
+		probeinf := factory.Monitoring().V1().Probes().Informer()
+		probeinf.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc:    c.onAddProbe,
+			UpdateFunc: c.onUpdateProbe,
+			DeleteFunc: c.onDeleteProbe,
+		})
+		probeinf.SetWatchErrorHandler(func(r *cache.Reflector, err error) {
+			level.Error(c.logger).Log("msg", "probe watcher error", "err", err)
+		})
+
 		factory.Start(ctx.Done())
 	}
 
-	level.Info(c.logger).Log("msg", "PodMonitor informers  started")
+	level.Info(c.logger).Log("msg", "informers  started")
 
 	c.discovery = discovery.NewManager(ctx, c.logger, discovery.Name(c.opts.ID))
 	go func() {
