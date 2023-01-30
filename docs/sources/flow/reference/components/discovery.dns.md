@@ -29,7 +29,7 @@ Name | Type | Description | Default | Required
 
 ## Exported fields
 
-The following fields are exported and can be referenced by other components:
+The following field is exported and can be referenced by other components:
 
 Name | Type | Description
 ---- | ---- | -----------
