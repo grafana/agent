@@ -635,6 +635,9 @@ replace (
 	github.com/prometheus/mysqld_exporter => github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a
 	github.com/prometheus/snmp_exporter => github.com/grafana/snmp_exporter v0.20.1-0.20220405135227-49087c510bb1
 	github.com/prometheus/statsd_exporter => github.com/grafana/statsd_exporter v0.18.1-0.20211118164740-8e806158da0b
+
+	// To be used until upstream PR of fixes is merged https://github.com/webdevops/azure-metrics-exporter/pull/41
+	github.com/webdevops/azure-metrics-exporter => github.com/kgeckhart/azure-metrics-exporter v0.0.0-20230124174512-16e25d5c8d3b
 )
 
 // Required for redis_exporter, which is incompatible with v2.0.0+incompatible.
@@ -676,6 +679,3 @@ exclude (
 )
 
 replace github.com/github/smimesign => github.com/grafana/smimesign v0.2.1-0.20220408144937-2a5adf3481d3
-
-// To be used until upstream PR of fixes is merged https://github.com/webdevops/azure-metrics-exporter/pull/41
-replace github.com/webdevops/azure-metrics-exporter => github.com/kgeckhart/azure-metrics-exporter v0.0.0-20230124174512-16e25d5c8d3b
