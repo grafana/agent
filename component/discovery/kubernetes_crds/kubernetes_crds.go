@@ -11,13 +11,13 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus"
+	"github.com/grafana/agent/pkg/util/k8sfs"
 	promop "github.com/prometheus-operator/prometheus-operator/pkg/client/informers/externalversions"
 	promCommonConfig "github.com/prometheus/common/config"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/scrape"
-	"github.com/psanford/memfs"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
@@ -181,19 +181,13 @@ func (c *crdManager) run(ctx context.Context) {
 		return
 	}
 
-	fs := memfs.New()
-	sm := &secretManager{
-		fs:     fs,
-		client: clientset,
-	}
+	fs := k8sfs.New(clientset)
 	c.cg = configGenerator{
-		config:  c.config,
-		secrets: sm,
-		logger:  c.logger,
+		config:   c.config,
+		logger:   c.logger,
+		secretfs: fs,
 	}
 
-	// run an informer for each namespace they specify. By default this will be a single
-	// informer for all namespaces
 	for _, namespace := range c.config.Namespaces {
 		factory := promop.NewSharedInformerFactoryWithOptions(promClientset,
 			5*time.Minute,
@@ -217,6 +211,7 @@ func (c *crdManager) run(ctx context.Context) {
 		})
 		factory.Start(ctx.Done())
 	}
+
 	level.Info(c.logger).Log("msg", "PodMonitor informers  started")
 
 	c.discovery = discovery.NewManager(ctx, c.logger, discovery.Name(c.opts.ID))

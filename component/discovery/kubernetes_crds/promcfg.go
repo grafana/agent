@@ -3,7 +3,6 @@ package kubernetes_crds
 // SEE https://github.com/prometheus-operator/prometheus-operator/blob/main/pkg/prometheus/promcfg.go
 
 import (
-	"context"
 	"fmt"
 	"net/url"
 	"regexp"
@@ -12,6 +11,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/util/k8sfs"
 	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	namespacelabeler "github.com/prometheus-operator/prometheus-operator/pkg/namespace-labeler"
 	commonConfig "github.com/prometheus/common/config"
@@ -23,9 +23,9 @@ import (
 )
 
 type configGenerator struct {
-	config  *Config
-	secrets *secretManager
-	logger  log.Logger
+	config   *Config
+	logger   log.Logger
+	secretfs *k8sfs.FS
 }
 
 // the k8s sd config is mostly dependent on our local config for accessing the kubernetes cluster.
@@ -73,26 +73,6 @@ func (cg *configGenerator) generateK8SSDConfig(
 		cfg.AttachMetadata.Node = attachMetadata.Node
 	}
 	return cfg
-}
-
-func (cg *configGenerator) getSecretData(ns, name, key string) commonConfig.Secret {
-	tok, err := cg.secrets.GetSecretData(context.Background(), ns, name, key)
-	if err != nil {
-		level.Error(cg.logger).Log("msg", "failed to fetch secret data", "err", err, "secret", fmt.Sprintf("%s/%s", ns, name))
-	} else {
-		return commonConfig.Secret(tok)
-	}
-	return commonConfig.Secret("")
-}
-
-func (cg *configGenerator) getConfigMapData(ns, name, key string) string {
-	tok, err := cg.secrets.GetConfigMapData(context.Background(), ns, name, key)
-	if err != nil {
-		level.Error(cg.logger).Log("msg", "failed to fetch configmap data", "err", err, "configmap", fmt.Sprintf("%s/%s", ns, name))
-	} else {
-		return tok
-	}
-	return ""
 }
 
 func parseRegexp(s string, l log.Logger) relabel.Regexp {
@@ -153,12 +133,16 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 	}
 	if ep.BearerTokenSecret.Name != "" {
 		bts := ep.BearerTokenSecret
-		cfg.HTTPClientConfig.BearerToken = cg.getSecretData(m.Namespace, bts.Name, bts.Key)
+		cfg.HTTPClientConfig.BearerTokenFile = k8sfs.SecretFilename(m.Namespace, bts.Name, bts.Key)
 	}
 	if ep.BasicAuth != nil {
+		uname, err := cg.secretfs.ReadSecret(m.Namespace, ep.BasicAuth.Username.Name, ep.BasicAuth.Username.Key)
+		if err != nil {
+			level.Error(cg.logger).Log("msg", "failed to fetch basic auth username", "err", err)
+		}
 		cfg.HTTPClientConfig.BasicAuth = &commonConfig.BasicAuth{
-			Username: string(cg.getSecretData(m.Namespace, ep.BasicAuth.Username.Name, ep.BasicAuth.Username.Key)),
-			Password: cg.getSecretData(m.Namespace, ep.BasicAuth.Password.Name, ep.BasicAuth.Password.Key),
+			Username:     uname,
+			PasswordFile: k8sfs.SecretFilename(m.Namespace, ep.BasicAuth.Password.Name, ep.BasicAuth.Password.Key),
 		}
 	}
 	cfg.HTTPClientConfig.OAuth2 = cg.generateOAuth2(ep.OAuth2, m.Namespace)
@@ -312,35 +296,18 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 func (cg *configGenerator) generateSafeTLS(namespace string, tls v1.SafeTLSConfig) commonConfig.TLSConfig {
 	tc := commonConfig.TLSConfig{}
 	tc.InsecureSkipVerify = tls.InsecureSkipVerify
-	ctx := context.Background()
-	var err error
 	if tls.CA.Secret != nil {
-		tc.CAFile, err = cg.secrets.StoreSecretData(ctx, namespace, tls.CA.Secret.Name, tls.CA.Secret.Key)
-		if err != nil {
-			level.Error(cg.logger).Log("msg", "failed to store secret data", "err", err, "secret", fmt.Sprintf("%s/%s", namespace, tls.CA.Secret.Name))
-		}
+		tc.CAFile = k8sfs.SecretFilename(namespace, tls.CA.Secret.Name, tls.CA.Secret.Key)
 	} else if tls.CA.ConfigMap != nil {
-		tc.CAFile, err = cg.secrets.StoreConfigMapData(ctx, namespace, tls.CA.ConfigMap.Name, tls.CA.ConfigMap.Key)
-		if err != nil {
-			level.Error(cg.logger).Log("msg", "failed to store configmap data", "err", err, "configmap", fmt.Sprintf("%s/%s", namespace, tls.CA.ConfigMap.Name))
-		}
+		tc.CAFile = k8sfs.ConfigMapFilename(namespace, tls.CA.ConfigMap.Name, tls.CA.ConfigMap.Key)
 	}
 	if tls.Cert.Secret != nil {
-		tc.CertFile, err = cg.secrets.StoreSecretData(ctx, namespace, tls.Cert.Secret.Name, tls.Cert.Secret.Key)
-		if err != nil {
-			level.Error(cg.logger).Log("msg", "failed to store secret data", "err", err, "secret", fmt.Sprintf("%s/%s", namespace, tls.Cert.Secret.Name))
-		}
+		tc.CertFile = k8sfs.SecretFilename(namespace, tls.Cert.Secret.Name, tls.Cert.Secret.Key)
 	} else if tls.Cert.ConfigMap != nil {
-		tc.CertFile, err = cg.secrets.StoreConfigMapData(ctx, namespace, tls.Cert.ConfigMap.Name, tls.Cert.ConfigMap.Key)
-		if err != nil {
-			level.Error(cg.logger).Log("msg", "failed to store configmap data", "err", err, "configmap", fmt.Sprintf("%s/%s", namespace, tls.Cert.ConfigMap.Name))
-		}
+		tc.CertFile = k8sfs.ConfigMapFilename(namespace, tls.Cert.ConfigMap.Name, tls.Cert.ConfigMap.Key)
 	}
 	if tls.KeySecret != nil {
-		tc.KeyFile, err = cg.secrets.StoreSecretData(ctx, namespace, tls.KeySecret.Name, tls.KeySecret.Key)
-		if err != nil {
-			level.Error(cg.logger).Log("msg", "failed to store secret data", "err", err, "secret", fmt.Sprintf("%s/%s", namespace, tls.KeySecret.Name))
-		}
+		tc.KeyFile = k8sfs.SecretFilename(namespace, tls.KeySecret.Name, tls.KeySecret.Key)
 	}
 	if tls.ServerName != "" {
 		tc.ServerName = tls.ServerName
@@ -434,15 +401,19 @@ func (cg *configGenerator) generateOAuth2(oauth2 *v1.OAuth2, ns string) *commonC
 	if oauth2 == nil {
 		return nil
 	}
+	var err error
 	oa2 := &commonConfig.OAuth2{}
 	if oauth2.ClientID.Secret != nil {
 		s := oauth2.ClientID.Secret
-		oa2.ClientID = string(cg.getSecretData(ns, s.Name, s.Key))
+		oa2.ClientID, err = cg.secretfs.ReadSecret(ns, s.Name, s.Key)
 	} else if oauth2.ClientID.ConfigMap != nil {
 		cm := oauth2.ClientID.ConfigMap
-		oa2.ClientID = cg.getConfigMapData(ns, cm.Name, cm.Key)
+		oa2.ClientID, err = cg.secretfs.ReadConfigMap(ns, cm.Name, cm.Key)
 	}
-	oa2.ClientSecret = cg.getSecretData(ns, oauth2.ClientSecret.Name, oauth2.ClientSecret.Key)
+	if err != nil {
+		level.Error(cg.logger).Log("msg", "failed to fetch oauth clientid", "err", err)
+	}
+	oa2.ClientSecretFile = k8sfs.SecretFilename(ns, oauth2.ClientSecret.Name, oauth2.ClientSecret.Key)
 	oa2.TokenURL = oauth2.TokenURL
 	if len(oauth2.Scopes) > 0 {
 		oa2.Scopes = oauth2.Scopes
@@ -463,7 +434,7 @@ func (cg *configGenerator) generateSafeAuthorization(auth *v1.SafeAuthorization,
 	}
 	az.Type = strings.TrimSpace(auth.Type)
 	if auth.Credentials != nil {
-		az.Credentials = cg.getSecretData(ns, auth.Credentials.Name, auth.Credentials.Key)
+		az.CredentialsFile = k8sfs.SecretFilename(ns, auth.Credentials.Name, auth.Credentials.Key)
 	}
 	return az
 }
