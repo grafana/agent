@@ -59,7 +59,7 @@ values.
 
 ## Examples
 
-This simple example discovers targets from an A record
+This example discovers targets from an A record.
 
 ```river
 discovery.dns "dns_lookup" {
