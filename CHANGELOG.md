@@ -9,6 +9,15 @@ internal API changes are not present.
 
 Main (unreleased)
 -----------------
+### Breaking changes
+
+- Node Exporter configuration options changed to align with new upstream version (@Thor77):
+  - `diskstats_ignored_devices` is now `diskstats_device_exclude` in agent configuration.
+  - `ignored_devices` is now `device_exclude` in flow configuration.
+
+### Enhancements
+
+- Update Prometheus Node Exporter integration to v1.5.0. (@Thor77)
 
 v0.31.0-rc.0 (2023-01-26)
 --------------------

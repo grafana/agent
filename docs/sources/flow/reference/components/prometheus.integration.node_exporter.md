@@ -76,6 +76,7 @@ perf | [perf][] | Configures the perf collector. | no
 powersupply | [powersupply][] | Configures the powersupply collector. | no
 runit | [runit][] | Configures the runit collector. | no
 supervisord | [supervisord][] | Configures the supervisord collector. | no
+sysctl | [sysctl][] | Configures the sysctl collector. | no
 systemd | [systemd][] | Configures the systemd collector. | no
 tapestats | [tapestats][] | Configures the tapestats collector. | no
 textfile | [textfile][] | Configures the textfile collector. | no
@@ -95,6 +96,7 @@ vmstat | [vmstat][] | Configures the vmstat collector. | no
 [powersupply]: #powersupply-block
 [runit]: #runit-block
 [supervisord]: #supervisord-block
+[sysctl]: #sysctl-block
 [systemd]: #systemd-block
 [tapestats]: #tapestats-block
 [textfile]: #textfile-block
@@ -116,7 +118,8 @@ Name | Type | Description | Default | Required
 ### disk block
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`ignored_devices` | `string` | Regexp of devices to ignore for diskstats. | `"^(ram\|loop\|fd\|(h\|s\|v\|xv)d[a-z]\|nvme\\d+n\\d+p)\\d+$"` | no
+`device_exclude` | `string` | Regexp of devices to exclude for diskstats (mutually exclusive with `device_include`). | `"^(ram\|loop\|fd\|(h\|s\|v\|xv)d[a-z]\|nvme\\d+n\\d+p)\\d+$"` | no
+`device_include` | `string` | Regexp of devices to include for diskstats (mutually exclusive with `device_exclude`). | | no
 
 ### ethtool block
 Name | Type | Description | Default | Required
@@ -200,6 +203,12 @@ name | type | description | default | required
 
 Setting `SUPERVISORD_URL` in the environment overrides the default value.
 An explicit value in the block takes precedence over the environment variable.
+
+### sysctl block
+name | type | description | default | required
+---- | ---- | ----------- | ------- | --------
+`include` | `list(string)` | Numeric sysctl values to expose. | `[]` | no
+`include_info` | `list(string)` | String sysctl values to expose. | `[]` | no
 
 ### systemd block
 name | type | description | default | required
@@ -318,6 +327,7 @@ or disable collectors that are expensive to run.
 | `softnet`          | Exposes statistics from `/proc/net/softnet_stat`. | Linux | yes |
 | `stat`             | Exposes various statistics from `/proc/stat`. This includes boot time, forks and interrupts. | Linux | yes |
 | `supervisord`      | Exposes service status from supervisord. | any | no |
+| `sysctl`           | Expose sysctl values from `/proc/sys`. | Linux | no |
 | `systemd`          | Exposes service and system status from systemd. | Linux | no |
 | `tapestats`        | Exposes tape device stats. | Linux | yes |
 | `tcpstat`          | Exposes TCP connection status information from `/proc/net/tcp` and `/proc/net/tcp6`. (Warning: The current version has potential performance issues in high load situations.) | Linux | no |
