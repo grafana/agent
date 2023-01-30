@@ -14,71 +14,27 @@ metrics data from [GCP Cloud Monitoring (formerly stackdriver)](https://cloud.go
 The exporter supports all metrics available via [GCP's monitoring API](https://cloud.google.com/monitoring/api/metrics_gcp). Metrics
 exporter by this integration will follow the template `stackdriver_<monitored_resource>_<metric_type_prefix>_<metric_type>`. 
 
-As an example,
-for this load balancing metric
+The following example shows a load balancing metric:
+
 ![gcp-exporter-config-metric](gcp-exporter-config-metric.png)
+
+The following list shows its attributes:
 metric_type_prefix = `loadbalancing.googleapis.com/`\
 metric_type = `https/backend_latencies`\
 monitored_resource = `https_lb_rule`\
-which will result in a final metric name of `stackdriver_https_lb_rule_loadbalancing_googleapis_com_https_backend_latencies`
+
+These attributes result in a final metric name of:
+`stackdriver_https_lb_rule_loadbalancing_googleapis_com_https_backend_latencies`
 
 ## Authentication
 
-The agent will need to be running in an environment which has access to the GCP project it is scraping. The exporter
-uses the Google Golang Client Library, which offers a variety of way to [provide credentials](https://developers.google.com/identity/protocols/application-default-credentials).
-You will need to choose the option which works best for you.
+The agent must be running in an environment with access to the GCP project it is scraping. The exporter
+uses the Google Golang Client Library, which offers a variety of ways to [provide credentials](https://developers.google.com/identity/protocols/application-default-credentials). Choose the option that works best for you.
 
-After deciding how the agent will obtain credentials you will need to ensure the account is set up with the IAM role `roles/monitoring.viewer`.
-Since the exporter gathers all of its data from GCP Monitoring APIs this is the only permission needed.
+After deciding how the agent will obtain credentials, ensure the account is set up with the IAM role `roles/monitoring.viewer`.
+Since the exporter gathers all of its data from [GCP monitoring APIs](https://cloud.google.com/monitoring/api/v3), this is the only permission needed.
 
-## Configuration Examples
-
-Below are some working example configurations you can check out the [Config Reference](#config-reference) to see a full
-overview of configuration options and what they do.
-
-### Multiple prefixes
-```yaml
-  gcp_exporter:
-    enabled: true
-    project_ids:
-      - <project_id>
-    metrics_prefixes:
-      - run.googleapis.com/
-      - cloudfunctions.googleapis.com/
-      - compute.googleapis.com/nat
-      - logging.googleapis.com/billing
-      - logging.googleapis.com/exports
-      - serviceruntime.googleapis.com/quota/
-      - storage.googleapis.com/
-      - pubsub.googleapis.com/subscription
-```
-
-### Load Balancing with Filter
-```yaml
-  gcp_exporter:
-    enabled: true
-    project_ids:
-      - <project_id>
-    metrics_prefixes:
-      - loadbalancing.googleapis.com
-    extra_filters:
-      - loadbalancing.googleapis.com:resource.labels.backend_target_name="sample-value"
-```
-
-### Subset of Load Balancing metrics with Filter
-```yaml
-  gcp_exporter:
-    enabled: true
-    project_ids: 
-      - <project_id>
-    metrics_prefixes:
-      - loadbalancing.googleapis.com/https/request_bytes_count
-      - loadbalancing.googleapis.com/https/total_latencies
-    extra_filters:
-      - loadbalancing.googleapis.com:resource.labels.backend_target_name="sample-value"
-```
-
-### Config Reference
+## Configuration reference
 
 ```yaml
   #
@@ -182,3 +138,49 @@ overview of configuration options and what they do.
   [gcp_client_timeout: <duration> | default = "15s"]
 ```
 
+## Configuration Examples
+
+The following examples show working configurations. See the [Config Reference](#config-reference) for a full 
+overview of the configuration options and what they do.
+
+### Multiple prefixes
+```yaml
+  gcp_exporter:
+    enabled: true
+    project_ids:
+      - <project_id>
+    metrics_prefixes:
+      - run.googleapis.com/
+      - cloudfunctions.googleapis.com/
+      - compute.googleapis.com/nat
+      - logging.googleapis.com/billing
+      - logging.googleapis.com/exports
+      - serviceruntime.googleapis.com/quota/
+      - storage.googleapis.com/
+      - pubsub.googleapis.com/subscription
+```
+
+### Load balancing with a filter
+```yaml
+  gcp_exporter:
+    enabled: true
+    project_ids:
+      - <project_id>
+    metrics_prefixes:
+      - loadbalancing.googleapis.com
+    extra_filters:
+      - loadbalancing.googleapis.com:resource.labels.backend_target_name="sample-value"
+```
+
+### Subset of load balancing metrics with a filter
+```yaml
+  gcp_exporter:
+    enabled: true
+    project_ids: 
+      - <project_id>
+    metrics_prefixes:
+      - loadbalancing.googleapis.com/https/request_bytes_count
+      - loadbalancing.googleapis.com/https/total_latencies
+    extra_filters:
+      - loadbalancing.googleapis.com:resource.labels.backend_target_name="sample-value"
+```
