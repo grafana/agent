@@ -10,34 +10,40 @@ type PolicyCfg struct {
 	Type                string              `river:"type,attr"`
 	LatencyCfg          LatencyCfg          `river:"latency,block,optional"`
 	NumericAttributeCfg NumericAttributeCfg `river:"numeric_attribute,block,optional"`
-
-	//sharedPolicyCfg `river:"shared_policy,block"`
+	ProbabilisticCfg    ProbabilisticCfg    `river:"probabilistic,block,optional"`
+	StatusCodeCfg       StatusCodeCfg       `river:"status_code,block,optional"`
+	StringAttributeCfg  StringAttributeCfg  `river:"string_attribute,block,optional"`
+	RateLimitingCfg     RateLimitingCfg     `river:"rate_limiting,block,optional"`
+	SpanCountCfg        SpanCountCfg        `river:"span_count,block,optional"`
+	TraceStateCfg       TraceStateCfg       `river:"trace_state,block,optional"`
 
 	// Configs for defining composite policy
-	// TODO CompositeCfg tsp.CompositeCfg `mapstructure:"composite"`
+	CompositeCfg CompositeCfg `river:"composite,block,optional"`
 
 	// Configs for defining and policy
-	// TODO AndCfg tsp.AndCfg `mapstructure:"and"`
+	AndCfg AndCfg `river:"and,block,optional"`
 }
 
-func (args Arguments) convertPolicyCfg() []tsp.PolicyCfg {
-	otelCfg := []tsp.PolicyCfg{}
+func (policyCfg PolicyCfg) Convert() tsp.PolicyCfg {
+	otelCfg := tsp.PolicyCfg{}
 
-	for _, policy := range args.PolicyCfgs {
-		var otelPolicy tsp.PolicyCfg
+	err := mapstructure.Decode(map[string]interface{}{
+		"name":              policyCfg.Name,
+		"type":              policyCfg.Type,
+		"latency":           policyCfg.LatencyCfg.Convert(),
+		"numeric_attribute": policyCfg.NumericAttributeCfg.Convert(),
+		"probabilistic":     policyCfg.ProbabilisticCfg.Convert(),
+		"status_code":       policyCfg.StatusCodeCfg.Convert(),
+		"string_attribute":  policyCfg.StringAttributeCfg.Convert(),
+		"rate_limiting":     policyCfg.RateLimitingCfg.Convert(),
+		"span_count":        policyCfg.SpanCountCfg.Convert(),
+		"trace_state":       policyCfg.TraceStateCfg.Convert(),
+		"composite":         policyCfg.CompositeCfg.Convert(),
+		"and":               policyCfg.AndCfg.Convert(),
+	}, &otelCfg)
 
-		err := mapstructure.Decode(map[string]interface{}{
-			"name":              policy.Name,
-			"type":              policy.Type,
-			"latency":           policy.convertLatencyCfg(),
-			"numeric_attribute": policy.convertNumericAttributeCfg(),
-		}, &otelPolicy)
-
-		if err != nil {
-			panic(err)
-		}
-
-		otelCfg = append(otelCfg, otelPolicy)
+	if err != nil {
+		panic(err)
 	}
 
 	return otelCfg
@@ -50,11 +56,11 @@ type LatencyCfg struct {
 	ThresholdMs int64 `river:"threshold_ms,attr"`
 }
 
-func (pol PolicyCfg) convertLatencyCfg() tsp.LatencyCfg {
+func (latencyCfg LatencyCfg) Convert() tsp.LatencyCfg {
 	otelCfg := tsp.LatencyCfg{}
 
 	err := mapstructure.Decode(map[string]interface{}{
-		"threshold_ms": pol.LatencyCfg.ThresholdMs,
+		"threshold_ms": latencyCfg.ThresholdMs,
 	}, &otelCfg)
 
 	if err != nil {
@@ -75,13 +81,320 @@ type NumericAttributeCfg struct {
 	MaxValue int64 `river:"max_value,attr"`
 }
 
-func (pol PolicyCfg) convertNumericAttributeCfg() tsp.NumericAttributeCfg {
+func (numericAttributeCfg NumericAttributeCfg) Convert() tsp.NumericAttributeCfg {
 	otelCfg := tsp.NumericAttributeCfg{}
 
 	err := mapstructure.Decode(map[string]interface{}{
-		"key":       pol.NumericAttributeCfg.Key,
-		"min_value": pol.NumericAttributeCfg.MinValue,
-		"max_value": pol.NumericAttributeCfg.MaxValue,
+		"key":       numericAttributeCfg.Key,
+		"min_value": numericAttributeCfg.MinValue,
+		"max_value": numericAttributeCfg.MaxValue,
+	}, &otelCfg)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return otelCfg
+}
+
+// ProbabilisticCfg holds the configurable settings to create a probabilistic
+// sampling policy evaluator.
+type ProbabilisticCfg struct {
+	// HashSalt allows one to configure the hashing salts. This is important in scenarios where multiple layers of collectors
+	// have different sampling rates: if they use the same salt all passing one layer may pass the other even if they have
+	// different sampling rates, configuring different salts avoids that.
+	HashSalt string `river:"hash_salt,attr,optional"`
+	// SamplingPercentage is the percentage rate at which traces are going to be sampled. Defaults to zero, i.e.: no sample.
+	// Values greater or equal 100 are treated as "sample all traces".
+	SamplingPercentage float64 `river:"sampling_percentage,attr"`
+}
+
+func (probabilisticCfg ProbabilisticCfg) Convert() tsp.ProbabilisticCfg {
+	otelCfg := tsp.ProbabilisticCfg{}
+
+	err := mapstructure.Decode(map[string]interface{}{
+		"hash_salt":           probabilisticCfg.HashSalt,
+		"sampling_percentage": probabilisticCfg.SamplingPercentage,
+	}, &otelCfg)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return otelCfg
+}
+
+// StatusCodeCfg holds the configurable settings to create a status code filter sampling
+// policy evaluator.
+type StatusCodeCfg struct {
+	StatusCodes []string `river:"status_codes,attr"`
+}
+
+func (statusCodeCfg StatusCodeCfg) Convert() tsp.StatusCodeCfg {
+	otelCfg := tsp.StatusCodeCfg{}
+
+	err := mapstructure.Decode(map[string]interface{}{
+		"status_codes": statusCodeCfg.StatusCodes,
+	}, &otelCfg)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return otelCfg
+}
+
+// StringAttributeCfg holds the configurable settings to create a string attribute filter
+// sampling policy evaluator.
+type StringAttributeCfg struct {
+	// Tag that the filter is going to be matching against.
+	Key string `river:"key,attr"`
+	// Values indicate the set of values or regular expressions to use when matching against attribute values.
+	// StringAttribute Policy will apply exact value match on Values unless EnabledRegexMatching is true.
+	Values []string `river:"values,attr"`
+	// EnabledRegexMatching determines whether match attribute values by regexp string.
+	EnabledRegexMatching bool `river:"enabled_regex_matching,attr,optional"`
+	// CacheMaxSize is the maximum number of attribute entries of LRU Cache that stores the matched result
+	// from the regular expressions defined in Values.
+	// CacheMaxSize will not be used if EnabledRegexMatching is set to false.
+	CacheMaxSize int `river:"cache_max_size,attr,optional"`
+	// InvertMatch indicates that values or regular expressions must not match against attribute values.
+	// If InvertMatch is true and Values is equal to 'acme', all other values will be sampled except 'acme'.
+	// Also, if the specified Key does not match on any resource or span attributes, data will be sampled.
+	InvertMatch bool `river:"invert_match,attr,optional"`
+}
+
+func (stringAttributeCfg StringAttributeCfg) Convert() tsp.StringAttributeCfg {
+	otelCfg := tsp.StringAttributeCfg{}
+
+	err := mapstructure.Decode(map[string]interface{}{
+		"key":                    stringAttributeCfg.Key,
+		"values":                 stringAttributeCfg.Values,
+		"enabled_regex_matching": stringAttributeCfg.EnabledRegexMatching,
+		"cache_max_size":         stringAttributeCfg.CacheMaxSize,
+		"invert_match":           stringAttributeCfg.InvertMatch,
+	}, &otelCfg)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return otelCfg
+}
+
+// RateLimitingCfg holds the configurable settings to create a rate limiting
+// sampling policy evaluator.
+type RateLimitingCfg struct {
+	// SpansPerSecond sets the limit on the maximum nuber of spans that can be processed each second.
+	SpansPerSecond int64 `river:"spans_per_second,attr"`
+}
+
+func (rateLimitingCfg RateLimitingCfg) Convert() tsp.RateLimitingCfg {
+	otelCfg := tsp.RateLimitingCfg{}
+
+	err := mapstructure.Decode(map[string]interface{}{
+		"spans_per_second": rateLimitingCfg.SpansPerSecond,
+	}, &otelCfg)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return otelCfg
+}
+
+// SpanCountCfg holds the configurable settings to create a Span Count filter sampling policy
+// sampling policy evaluator
+type SpanCountCfg struct {
+	// Minimum number of spans in a Trace
+	MinSpans int32 `river:"min_spans,attr"`
+}
+
+func (spanCountCfg SpanCountCfg) Convert() tsp.SpanCountCfg {
+	otelCfg := tsp.SpanCountCfg{}
+
+	err := mapstructure.Decode(map[string]interface{}{
+		"min_spans": spanCountCfg.MinSpans,
+	}, &otelCfg)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return otelCfg
+}
+
+type TraceStateCfg struct {
+	// Tag that the filter is going to be matching against.
+	Key string `river:"key,attr"`
+	// Values indicate the set of values to use when matching against trace_state values.
+	Values []string `river:"values,attr"`
+}
+
+func (traceStateCfg TraceStateCfg) Convert() tsp.TraceStateCfg {
+	otelCfg := tsp.TraceStateCfg{}
+
+	err := mapstructure.Decode(map[string]interface{}{
+		"key":    traceStateCfg.Key,
+		"values": traceStateCfg.Values,
+	}, &otelCfg)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return otelCfg
+}
+
+// CompositeCfg holds the configurable settings to create a composite
+// sampling policy evaluator.
+type CompositeCfg struct {
+	MaxTotalSpansPerSecond int64                   `river:"max_total_spans_per_second,attr"`
+	PolicyOrder            []string                `river:"policy_order,attr"`
+	SubPolicyCfg           []CompositeSubPolicyCfg `river:"composite_sub_policy,block,optional"`
+	RateAllocation         []RateAllocationCfg     `river:"rate_allocation,block,optional"`
+}
+
+func (compositeCfg CompositeCfg) Convert() tsp.CompositeCfg {
+	var otelConfig tsp.CompositeCfg
+
+	otelCompositeSubPolicyCfg := []tsp.CompositeSubPolicyCfg{}
+	for _, subPolicyCfg := range compositeCfg.SubPolicyCfg {
+		otelCompositeSubPolicyCfg = append(otelCompositeSubPolicyCfg, subPolicyCfg.Convert())
+	}
+
+	otelRateAllocationCfg := []tsp.RateAllocationCfg{}
+	for _, rateAllocation := range compositeCfg.RateAllocation {
+		otelRateAllocationCfg = append(otelRateAllocationCfg, rateAllocation.Convert())
+	}
+
+	err := mapstructure.Decode(map[string]interface{}{
+		"max_total_spans_per_second": compositeCfg.MaxTotalSpansPerSecond,
+		"policy_order":               compositeCfg.PolicyOrder,
+		"composite_sub_policy":       otelCompositeSubPolicyCfg,
+		"rate_allocation":            otelRateAllocationCfg,
+	}, &otelConfig)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return otelConfig
+}
+
+// CompositeSubPolicyCfg holds the common configuration to all policies under composite policy.
+type CompositeSubPolicyCfg struct {
+	Name                string              `river:"name,attr"`
+	Type                string              `river:"type,attr"`
+	LatencyCfg          LatencyCfg          `river:"latency,block,optional"`
+	NumericAttributeCfg NumericAttributeCfg `river:"numeric_attribute,block,optional"`
+	ProbabilisticCfg    ProbabilisticCfg    `river:"probabilistic,block,optional"`
+	StatusCodeCfg       StatusCodeCfg       `river:"status_code,block,optional"`
+	StringAttributeCfg  StringAttributeCfg  `river:"string_attribute,block,optional"`
+	RateLimitingCfg     RateLimitingCfg     `river:"rate_limiting,block,optional"`
+	SpanCountCfg        SpanCountCfg        `river:"span_count,block,optional"`
+	TraceStateCfg       TraceStateCfg       `river:"trace_state,block,optional"`
+
+	// Configs for and policy evaluator.
+	AndCfg AndCfg `river:"and,block,optional"`
+}
+
+func (compositeSubPolicyCfg CompositeSubPolicyCfg) Convert() tsp.CompositeSubPolicyCfg {
+	otelCfg := tsp.CompositeSubPolicyCfg{}
+
+	err := mapstructure.Decode(map[string]interface{}{
+		"name":              compositeSubPolicyCfg.Name,
+		"type":              compositeSubPolicyCfg.Type,
+		"latency":           compositeSubPolicyCfg.LatencyCfg.Convert(),
+		"numeric_attribute": compositeSubPolicyCfg.NumericAttributeCfg.Convert(),
+		"probabilistic":     compositeSubPolicyCfg.ProbabilisticCfg.Convert(),
+		"status_code":       compositeSubPolicyCfg.StatusCodeCfg.Convert(),
+		"string_attribute":  compositeSubPolicyCfg.StringAttributeCfg.Convert(),
+		"rate_limiting":     compositeSubPolicyCfg.RateLimitingCfg.Convert(),
+		"span_count":        compositeSubPolicyCfg.SpanCountCfg.Convert(),
+		"trace_state":       compositeSubPolicyCfg.TraceStateCfg.Convert(),
+		"and":               compositeSubPolicyCfg.AndCfg.Convert(),
+	}, &otelCfg)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return otelCfg
+}
+
+// RateAllocationCfg  used within composite policy
+type RateAllocationCfg struct {
+	Policy  string `river:"policy,attr"`
+	Percent int64  `river:"percent,attr"`
+}
+
+func (rateAllocationCfg RateAllocationCfg) Convert() tsp.RateAllocationCfg {
+	otelCfg := tsp.RateAllocationCfg{}
+
+	err := mapstructure.Decode(map[string]interface{}{
+		"policy":  rateAllocationCfg.Policy,
+		"percent": rateAllocationCfg.Percent,
+	}, &otelCfg)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return otelCfg
+}
+
+type AndCfg struct {
+	SubPolicyCfg []AndSubPolicyCfg `river:"and_sub_policy,block"`
+}
+
+func (andCfg AndCfg) Convert() tsp.AndCfg {
+	var otelConfig tsp.AndCfg
+
+	otelPolicyCfgs := []tsp.AndSubPolicyCfg{}
+	for _, subPolicyCfg := range andCfg.SubPolicyCfg {
+		otelPolicyCfgs = append(otelPolicyCfgs, subPolicyCfg.Convert())
+	}
+
+	err := mapstructure.Decode(map[string]interface{}{
+		"and_sub_policy": otelPolicyCfgs,
+	}, &otelConfig)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return otelConfig
+}
+
+// AndSubPolicyCfg holds the common configuration to all policies under and policy.
+type AndSubPolicyCfg struct {
+	Name                string              `river:"name,attr"`
+	Type                string              `river:"type,attr"`
+	LatencyCfg          LatencyCfg          `river:"latency,block,optional"`
+	NumericAttributeCfg NumericAttributeCfg `river:"numeric_attribute,block,optional"`
+	ProbabilisticCfg    ProbabilisticCfg    `river:"probabilistic,block,optional"`
+	StatusCodeCfg       StatusCodeCfg       `river:"status_code,block,optional"`
+	StringAttributeCfg  StringAttributeCfg  `river:"string_attribute,block,optional"`
+	RateLimitingCfg     RateLimitingCfg     `river:"rate_limiting,block,optional"`
+	SpanCountCfg        SpanCountCfg        `river:"span_count,block,optional"`
+	TraceStateCfg       TraceStateCfg       `river:"trace_state,block,optional"`
+}
+
+func (andSubPolicyCfg AndSubPolicyCfg) Convert() tsp.AndSubPolicyCfg {
+	otelCfg := tsp.AndSubPolicyCfg{}
+
+	err := mapstructure.Decode(map[string]interface{}{
+		"name":              andSubPolicyCfg.Name,
+		"type":              andSubPolicyCfg.Type,
+		"latency":           andSubPolicyCfg.LatencyCfg.Convert(),
+		"numeric_attribute": andSubPolicyCfg.NumericAttributeCfg.Convert(),
+		"probabilistic":     andSubPolicyCfg.ProbabilisticCfg.Convert(),
+		"status_code":       andSubPolicyCfg.StatusCodeCfg.Convert(),
+		"string_attribute":  andSubPolicyCfg.StringAttributeCfg.Convert(),
+		"rate_limiting":     andSubPolicyCfg.RateLimitingCfg.Convert(),
+		"span_count":        andSubPolicyCfg.SpanCountCfg.Convert(),
+		"trace_state":       andSubPolicyCfg.TraceStateCfg.Convert(),
 	}, &otelCfg)
 
 	if err != nil {

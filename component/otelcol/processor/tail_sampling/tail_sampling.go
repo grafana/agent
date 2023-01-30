@@ -76,11 +76,16 @@ func (args Arguments) Convert() otelconfig.Processor {
 	// TODO: Get rid of mapstructure once tailsamplingprocessor.Config has all public types
 	var otelConfig tsp.Config
 
+	otelPolicyCfgs := []tsp.PolicyCfg{}
+	for _, policyCfg := range args.PolicyCfgs {
+		otelPolicyCfgs = append(otelPolicyCfgs, policyCfg.Convert())
+	}
+
 	err := mapstructure.Decode(map[string]interface{}{
 		"decision_wait":               args.DecisionWait,
 		"num_traces":                  args.NumTraces,
 		"expected_new_traces_per_sec": args.ExpectedNewTracesPerSec,
-		"policies":                    args.convertPolicyCfg(),
+		"policies":                    otelPolicyCfgs,
 	}, &otelConfig)
 
 	if err != nil {
