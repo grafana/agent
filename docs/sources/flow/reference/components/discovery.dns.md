@@ -37,10 +37,10 @@ Name | Type | Description
 
 Each target includes the following labels:
 
-* `__meta_dns_name`: the record name that produced the discovered target.
-* `__meta_dns_srv_record_target`: the target field of the SRV record
-* `__meta_dns_srv_record_port`: the port field of the SRV record
-* `__meta_dns_mx_record_target`: the target field of the MX record
+* `__meta_dns_name`: Name of the record that produced the discovered target.
+* `__meta_dns_srv_record_target`: Target field of the SRV record.
+* `__meta_dns_srv_record_port`: Port field of the SRV record.
+* `__meta_dns_mx_record_target`: Target field of the MX record.
 
 
 ## Component health
