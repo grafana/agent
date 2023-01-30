@@ -1,5 +1,4 @@
 // package k8sfs implements an fs.FS that lazily reads data from secrets and configmaps in a kubernetes cluster.
-// It uses a caching kubernetes client to reduce reads, but still give up to date information on demand.
 package k8sfs
 
 import (
@@ -43,27 +42,19 @@ func (f *FS) Open(name string) (fs.File, error) {
 // TODO: hook this all up to a caching informer
 
 func (f *FS) openSecret(ns, name, key string) (*file, error) {
-	secret, err := f.client.CoreV1().Secrets(ns).Get(context.Background(), name, v1.GetOptions{})
+	dat, err := f.ReadSecret(ns, name, key)
 	if err != nil {
 		return nil, err
 	}
-	dat, ok := secret.Data[key]
-	if !ok {
-		return nil, fmt.Errorf("secret %s/%s has no field %s", ns, name, key)
-	}
-	return newFile(string(dat)), nil
+	return newFile(dat), nil
 }
 
 func (f *FS) openConfigMap(ns, name, key string) (*file, error) {
-	cmap, err := f.client.CoreV1().ConfigMaps(ns).Get(context.Background(), name, v1.GetOptions{})
+	dat, err := f.ReadConfigMap(ns, name, key)
 	if err != nil {
 		return nil, err
 	}
-	dat, ok := cmap.Data[key]
-	if !ok {
-		return nil, fmt.Errorf("configmap %s/%s has no field %s", ns, name, key)
-	}
-	return newFile(string(dat)), nil
+	return newFile(dat), nil
 }
 
 func (f *FS) ReadSecret(ns, name, key string) (string, error) {
