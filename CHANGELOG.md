@@ -7,10 +7,7 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-Main (unreleased)
------------------
-
-v0.31.0-rc.0 (2023-01-26)
+v0.31.0 (2023-01-31)
 --------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
