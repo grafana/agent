@@ -85,6 +85,10 @@ v0.31.0-rc.0 (2023-01-26)
 
 - Introduce global configuration for logs. (@jcreixell)
 
+- New metric for prometheus.scrape - `agent_prometheus_scrape_targets_gauge`. (@ptodev)
+
+- New metric for prometheus.scrape and prometheus.relabel - `agent_prometheus_forwarded_samples_total`. (@ptodev)
+
 ### Enhancements
 
 - Handle faro-web-sdk `View` meta in app_agent_receiver. (@rlankfo)
