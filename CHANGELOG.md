@@ -31,6 +31,13 @@ Main (unreleased)
 
 - Update Prometheus Node Exporter integration to v1.5.0. (@Thor77)
 
+- Grafana Agent Flow will now reload the config file when `SIGHUP` is sent to
+  the process. (@rfratto)
+
+- If using the official RPM and DEB packages for Grafana Agent, invoking
+  `systemctl reload grafana-agent` will now reload the configuration file.
+  (@rfratto)
+
 v0.31.0 (2023-01-31)
 --------------------
 
