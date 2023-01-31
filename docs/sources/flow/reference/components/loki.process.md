@@ -66,6 +66,7 @@ stage > pack         | [pack][]          | Configures a `pack` processing stage.
 stage > template     | [template][]      | Configures a `template` processing stage. | no
 stage > tenant       | [tenant][]        | Configures a `tenant` processing stage. | no
 stage > limit        | [limit][]         | Configures a `limit` processing stage. | no
+stage > metrics      | [metrics][]       | Configures a `metrics` stage. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `stage > json`
 refers to a `json` block defined inside of a `stage` block.
@@ -90,6 +91,7 @@ refers to a `json` block defined inside of a `stage` block.
 [template]: #template-block
 [tenant]: #tenant-block
 [limit]: #limit-block
+[metrics]: #metrics-block
 
 ### stage block
 
@@ -1098,6 +1100,7 @@ stage {
 		template = "{{ .app | ToUpper }}"
 	}
 }
+```
 
 ##### Replace
 `Replace` returns a copy of the string `s` with the first `n` non-overlapping
@@ -1106,7 +1109,7 @@ beginning of the string and after each UTF-8 sequence, yielding up to k+1
 replacements for a k-rune string. If n < 0, there is no limit on the number of
 replacements.
 
-This example below will replace the first two words loki by Loki:
+This example below replaces the first two instances of the `loki` word by `Loki`:
 ```
 stage {
 	template {
@@ -1123,7 +1126,7 @@ stage {
   trim only leading and trailing characters.
 * `TrimSpace` returns a slice of the string s, with all leading and trailing
 white space removed, as defined by Unicode.
-* `TrimPrefix` and `TrimSuffix` will trim respectively the prefix or suffix
+* `TrimPrefix` and `TrimSuffix` trim respectively the prefix or suffix
   supplied.
 Examples:
 ```
@@ -1258,8 +1261,8 @@ The following arguments are supported:
 
 Name            | Type     | Description | Default | Required
 --------------- | -------- | ----------- | ------- | --------
-`rate`          | `int`    | The maximum rate of lines per second that the stage will forward. | | yes
-`burst`         | `int`    | The cap in the quantity of burst lines that the stage will forward. | | yes
+`rate`          | `int`    | The maximum rate of lines per second that the stage forwards. | | yes
+`burst`         | `int`    | The cap in the quantity of burst lines that the stage forwards. | | yes
 `by_label_name` | `string` | The label to use when for rate-limiting on a label name. | `""` | no
 `drop`          | `bool`   | Whether to discard or backpressure lines that exceed the rate limit. | `false` | no
 `max_distinct_labels` | `int` | How many unique values to keep track of when rate-limiting `by_label_name`. | `10000` | no
@@ -1267,7 +1270,7 @@ Name            | Type     | Description | Default | Required
 The rate limiting is implemented as a 'token bucket' of size `burst`, initially
 full and refilled at `rate` tokens per second. Every time a log entry comes
 through, it consumes one token. When `drop` is set to true, incoming entries
-that exceed the rate-limit will be dropped, otherwise they will be queued until
+that exceed the rate-limit is dropped, otherwise they are queued until
 more tokens are available.
 
 ```
@@ -1283,8 +1286,8 @@ If `by_label_name` is set, then `drop` must be set to `true`. This enables the
 stage to rate-limit not by the number of lines but by the number of labels.
 
 The following example rate-limits entries from each unique `namespace` value
-independently. Any entries without the `namespace` label will not be
-rate-limited. The stage will keep track of up to `max_distinct_labels` unique
+independently. Any entries without the `namespace` label is not rate-limited.
+The stage keeps track of up to `max_distinct_labels` unique
 values, defaulting at 10000.
 ```
 stage {
@@ -1297,6 +1300,238 @@ stage {
 	}
 }
 ```
+
+### metrics block
+
+The `metrics` inner block configures stage that allows for defining and
+updating metrics based on values from the shared extracted map. The created
+metrics are available at the Agent's root /metrics endpoint.
+
+The `metrics` block does not support any arguments and is only configured via
+a number of nested inner `metric` blocks, one for each metric that should be
+generated.
+
+The following blocks are supported inside the definition of `stage > metrics`:
+
+Hierarchy      | Block       | Description         | Required
+-------------- | ----------- | ------------------- | --------
+metric         | [metric][]  | Metric to generate. | no
+metric > counter | [counter][] | Defines a `counter` metric. | no
+metric > gauge   | [gauge][]   | Defines a `gauge` metric. | no
+metric > histogram | [histogram][] | Defines a `histogram` metric. | no
+
+[metric]: #metric-block
+[counter]: #counter-block
+[gauge]: #gauge-block
+[histogram]: #histogram-block
+
+#### metric block
+
+The metric block does not support any arguments. Each instance of the `metric`
+block must contain exactly one inner block, to define either a `counter`, a
+`gauge`, or a `histogram` metric.
+
+#### counter block
+`counter` defines a metric whose value only goes up.
+
+The following arguments are supported:
+
+Name            | Type       | Description | Default | Required
+--------------- | ---------- | ----------- | ------- | --------
+`name`          | `string`   | The metric name. | | yes
+`action`        | `string`   | The action to take. Valid actions are `set`, `inc`, `dec`,` add`, or `sub`. | | yes
+`description`   | `string`   | The metric's description and help text. | `""` | no
+`source`        | `string`   | Key from the extracted data map to use for the metric. Defaults to the metric name. | `""` | no
+`prefix`        | `string`   | The prefix to the metric name. | `"loki_process_custom_"` | no
+`idle_duration` | `duration` | Maximum amount of time to wait until the metric is marked as 'stale' and removed. | `"5m"` | no
+`value`         | `string`   | If set, the metric only changes if `source` exactly matches the `value`. | `""` | no
+`match_all`     | `bool`     | If set to true, all log lines are counted, without attemptng to match the `source` to the extracted map. | `false` | no
+`count_entry_bytes`     | `bool`     | If set to true, all log lines bytes. | `false` | no
+
+A counter cannot set both `match_all` to true _and_ a `value`.
+A counter cannot set `count_entry_bytes` without also setting `match_all=true`
+_or_ `action=add`.
+The valid `action` values are `inc` and `add`. The `inc` action increases the
+metric value by 1 for each log line that passed the filter. The `add` action
+converts the extracted value to a positive float and adds it to the metric.
+
+
+#### gauge block
+Defines a gauge metric whose value can go up or down.
+
+The following arguments are supported:
+
+Name            | Type       | Description | Default | Required
+--------------- | ---------- | ----------- | ------- | --------
+`name`          | `string`   | The metric name. | | yes
+`action`        | `string`   | The action to take. Valid actions are `inc` and `add`. | | yes
+`description`   | `string`   | The metric's description and help text. | `""` | no
+`source`        | `string`   | Key from the extracted data map to use for the metric. Defaults to the metric name. | `""` | no
+`prefix`        | `string`   | The prefix to the metric name. | `"loki_process_custom_"` | no
+`idle_duration` | `duration` | Maximum amount of time to wait until the metric is marked as 'stale' and removed. | `"5m"` | no
+`value`         | `string`   | If set, the metric only changes if `source` exactly matches the `value`. | `""` | no
+
+
+The valid `action` values are `inc`, `dec`, `set`, `add`, or `sub`.
+`inc` and `dec` increment and decrement the metric's value by 1 respectively.
+If `set`, `add, or `sub` is chosen, the extracted value must be convertible
+to a positive float and is set, added or subtracted to the metric's value.
+
+
+#### histogram block
+Defines a histogram metric whose values are recorded in predefined buckets.
+
+
+The following arguments are supported:
+
+Name            | Type          | Description | Default | Required
+--------------- | ------------- | ----------- | ------- | --------
+`name`          | `string`      | The metric name. | | yes
+`buckets`       | `list(float)` | The action to take. Valid actions are `set`, `inc`, `dec`,` add`, or `sub`. | | yes
+`description`   | `string`      | The metric's description and help text. | `""` | no
+`source`        | `string`      | Key from the extracted data map to use for the metric. Defaults to the metric name. | `""` | no
+`prefix`        | `string`      | The prefix to the metric name. | `"loki_process_custom_"` | no
+`idle_duration` | `duration`    | Maximum amount of time to wait until the metric is marked as 'stale' and removed. | `"5m"` | no
+`value`         | `string`      | If set, the metric only changes if `source` exactly matches the `value`. | `""` | no
+
+#### metrics behavior
+
+If `value` is not present, all incoming log entries match.
+
+Label values on created metrics can be dynamic, which can cause exported
+metrics to explode in cardinality, or go stale, for example when a stream stops
+receiving new logs. To prevent unbounded growth of the /metrics endpoint, any
+metrics which have not been updated within `idle_duration` are removed. The
+`idle_duration` must be greater or equal to `"1s"`, and it defaults to `"5m"`
+
+The metric values extracted from the log data are internally converted to
+floats. The supported values are the following:
+
+* integers, floating point numbers
+* string - two types of string formats are supported:
+    * strings that represent floating point numbers: e.g., "0.804" is converted to 0.804.
+    * duration format strings. Valid time units are “ns”, “us”, “ms”, “s”, “m”, “h”. Values in this format are converted as a floating point number of seconds. E.g., "0.5ms" is converted to 0.0005.
+* boolean:
+    * true is converted to 1
+    * false is converted to 0
+
+The following pipeline creates a counter which increments every time any log line is received by using the `match_all` parameter, plus a second counter which adds the byte size of these log lines by using the `count_entry_bytes` parameter.
+
+These two metrics disappear after 24 hours, if no new entries are received, to avoid building up metrics which no longer serve any use. These two metrics are a good starting point to track the volume of log streams in both the number of entries and their byte size, to identify sources of high-volume or high-cardinality data.
+```
+stage {
+	metrics {
+		metric {
+			counter {
+				name        = "log_lines_total"
+				description = "total number of log lines"
+				prefix      = "my_custom_tracking_"
+
+				match_all         = true
+				action            = "inc"
+				max_idle_duration = "24h"
+			}
+		}
+	}
+}
+stage {
+	metrics {
+		metric {
+			counter {
+				name        = "log_bytes_total"	
+				description = "total bytes of log lines"
+				prefix      = "my_custom_tracking_"
+
+				match_all         = true
+				count_entry_bytes = true
+				action            = "add"
+				max_idle_duration = "24h"
+			}
+		}
+	}
+}
+```
+
+Here, the first stage uses a regex to extract text in the format
+`order_status=<string>` in the log line.
+The second stage, defines a counter which increments the `successful_orders_total` and `failed_orders_total` based on the previously extracted values.
+
+```
+stage {
+	regex {
+		expression = "^.* order_status=(?P<order_status>.*?) .*$"
+	}
+}
+stage {
+	metrics {
+		metric {
+			counter {
+				name        = "successful_orders_total"	
+				description = "successful orders"
+				source      = "order_status"
+				value       = "success"
+				action      = "inc"
+			}
+		}
+	}
+}
+stage {
+	metrics {
+		metric {
+			counter {
+				name        = "failed_orders_total"	
+				description = "failed orders"
+				source      = "order_status"
+				value       = "fail"
+				action      = "inc"
+			}
+		}
+	}
+}
+```
+
+In this example, the first stage extracts text in the format of `retries=<value>`, from the log line. The second stage creates a Gauge whose current metric value is increased by the number extracted from the retries field.
+
+```
+stage {
+	regex {
+		expression = "^.* retries=(?P<retries>\\d+) .*$"
+	}
+}
+stage {
+	metrics {
+		metric {
+			gauge {
+				name        = "retries_total"
+				description = "total_retries"
+				source      = "retries"
+				action      = "add"
+			}
+		}
+	}
+}
+```
+
+
+The following example a histogram that reads response_time from the extracted
+map and places it into a bucket, both increasing the count of the bucket and
+the sum for that particular bucket
+
+```
+stage {
+	metrics {
+		metric {
+			histogram {
+				name = "http_response_time_seconds"
+				description = "recorded response times"
+				source = "response_time"
+				buckets = [0.001,0.0025,0.005,0.010,0.025,0.050]
+			}
+		}
+	}
+}
+```
+
 
 
 

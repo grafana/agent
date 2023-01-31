@@ -133,11 +133,11 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 		if err != nil {
 			return nil, err
 		}
-	// case cfg.MetricConfig != nil:
-	// 	s, err = newMetricStage(logger, *cfg.MetricConfig, registerer)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
+	case cfg.MetricsConfig != nil:
+		s, err = newMetricStage(logger, *cfg.MetricsConfig, registerer)
+		if err != nil {
+			return nil, err
+		}
 	case cfg.LabelsConfig != nil:
 		s, err = newLabelStage(logger, *cfg.LabelsConfig)
 		if err != nil {

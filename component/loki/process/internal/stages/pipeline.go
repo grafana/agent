@@ -44,12 +44,11 @@ type StageConfig struct {
 	TemplateConfig     *TemplateConfig     `river:"template,block,optional"`
 	TenantConfig       *TenantConfig       `river:"tenant,block,optional"`
 	LimitConfig        *LimitConfig        `river:"limit,block,optional"`
-	MetricConfig       *MetricConfig       `river:"metric,block,optional"`
+	MetricsConfig      *MetricsConfig      `river:"metrics,block,optional"`
 }
 
 // UnmarshalRiver implements river.Unmarshaler.
 func (arg *StageConfig) UnmarshalRiver(f func(interface{}) error) error {
-	// *arg = DefaultArguments
 	type args StageConfig
 	if err := f((*args)(arg)); err != nil {
 		return err
