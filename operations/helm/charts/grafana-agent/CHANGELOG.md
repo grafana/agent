@@ -10,6 +10,18 @@ internal API changes are not present.
 Unreleased
 ----------
 
+0.4.0 (2023-01-31)
+------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.31.0. (@rfratto)
+- Install PodLogs CRD for the `loki.source.podlogs` Flow component. (@rfratto)
+- Update RBAC rules to permit `loki.source.podlogs` and `mimir.rules.kubernetes` to work by default. (@rfratto)
+
+0.3.1 (2023-01-31)
+------------------
+
 ### Bugfixes
 
 - Fix `podAnnotations` values reference in pod template (should be `controller.podAnnotations`).
