@@ -38,8 +38,11 @@ Main (unreleased)
   `systemctl reload grafana-agent` will now reload the configuration file.
   (@rfratto)
 
+- Flow: The `loki.process` component now implements all the same processing
+  stages as Promtail's pipelines. (@tpaschalis)
+
 v0.31.0 (2023-01-31)
---------------------
+=======
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -109,9 +112,6 @@ v0.31.0 (2023-01-31)
 - Flow: the targets in debug info from `loki.source.file` are now individual blocks. (@rfratto)
 
 - Grafana Agent Operator: add [promtail limit stage](https://grafana.com/docs/loki/latest/clients/promtail/stages/limit/) to the operator. (@spartan0x117)
-
-- Flow: The `loki.process` component now implements all the same processing
-  stages as Promtail's pipelines. (@tpaschalis)
 
 ### Bugfixes
 
