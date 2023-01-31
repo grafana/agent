@@ -1,6 +1,6 @@
 ---
 aliases:
-- /docs/agent/latest/dynamic-configuration/looping
+- ../../../dynamic-configuration/looping/
 title: Looping
 weight: 200
 ---

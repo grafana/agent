@@ -1,6 +1,6 @@
 ---
 aliases:
-- /docs/agent/latest/concepts/components
+- ../../concepts/components/
 title: Components
 weight: 100
 ---

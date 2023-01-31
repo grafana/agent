@@ -16,6 +16,7 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/build"
+	client_prometheus "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
@@ -107,10 +108,11 @@ type Component struct {
 
 	reloadTargets chan struct{}
 
-	mut        sync.RWMutex
-	args       Arguments
-	scraper    *scrape.Manager
-	appendable *prometheus.Fanout
+	mut          sync.RWMutex
+	args         Arguments
+	scraper      *scrape.Manager
+	appendable   *prometheus.Fanout
+	targetsGauge client_prometheus.Gauge
 }
 
 var (
@@ -122,11 +124,21 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	flowAppendable := prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer)
 	scrapeOptions := &scrape.Options{ExtraMetrics: args.ExtraMetrics}
 	scraper := scrape.NewManager(scrapeOptions, o.Logger, flowAppendable)
+
+	targetsGauge := client_prometheus.NewGauge(client_prometheus.GaugeOpts{
+		Name: "agent_prometheus_scrape_targets_gauge",
+		Help: "Number of targets this component is configured to scrape"})
+	err := o.Registerer.Register(targetsGauge)
+	if err != nil {
+		return nil, err
+	}
+
 	c := &Component{
 		opts:          o,
 		reloadTargets: make(chan struct{}, 1),
 		scraper:       scraper,
 		appendable:    flowAppendable,
+		targetsGauge:  targetsGauge,
 	}
 
 	// Call to Update() to set the receivers and targets once at the start.
@@ -200,6 +212,7 @@ func (c *Component) Update(args component.Arguments) error {
 	default:
 	}
 
+	c.targetsGauge.Set(float64(len(c.args.Targets)))
 	return nil
 }
 
