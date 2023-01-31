@@ -19,6 +19,10 @@ local filename = 'agent-flow-controller.json';
         label_values(agent_component_controller_running_components_total{cluster="$cluster"}, namespace)
       |||),
     ]) +
+    // TODO(@tpaschalis) Make the annotation optional.
+    dashboard.withAnnotations([
+      dashboard.newLokiAnnotation('Deployments', '{cluster="$cluster", container="kube-diff-logger"} | json | namespace_extracted="grafana-agent" | name_extracted=~"grafana-agent.*"', 'rgba(0, 211, 255, 1)'),
+    ]) +
     dashboard.withPanelsMixin([
       // Running agents
       (

@@ -40,6 +40,10 @@ local stackedPanelMixin = {
         label_values(prometheus_remote_storage_sent_batch_duration_seconds_sum{cluster="$cluster", namespace="$namespace", instance=~"$instance", component_id=~"$component"}, url)
       |||),
     ]) +
+    // TODO(@tpaschalis) Make the annotation optional.
+    dashboard.withAnnotations([
+      dashboard.newLokiAnnotation('Deployments', '{cluster="$cluster", container="kube-diff-logger"} | json | namespace_extracted="grafana-agent" | name_extracted=~"grafana-agent.*"', 'rgba(0, 211, 255, 1)'),
+    ]) +
     dashboard.withPanelsMixin([
       // WAL delay
       (
