@@ -23,6 +23,8 @@ Main (unreleased)
 
 - New metric for prometheus.scrape and prometheus.relabel - `agent_prometheus_forwarded_samples_total`. (@ptodev)
 
+- Integrations: Introduce `cloudwatch metrics` integration. (@thepalbi)
+
 ### Enhancements
 
 - Update Prometheus Node Exporter integration to v1.5.0. (@Thor77)
@@ -90,8 +92,6 @@ v0.31.0 (2023-01-31)
 - New experimental feature: agent-management. Polls configured remote API to fetch new configs. (@spartan0x117)
 
 - Introduce global configuration for logs. (@jcreixell)
-
-- Integrations: Introduce `cloudwatch metrics` integration. (@thepalbi)
 
 - New metric for prometheus.scrape - `agent_prometheus_scrape_targets_gauge`. (@ptodev)
 
