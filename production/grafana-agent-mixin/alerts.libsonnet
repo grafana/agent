@@ -242,12 +242,12 @@ local _config = config._config;
           {
             alert: 'AgentManagementBadAPIRequests',
             expr: |||
-              100 * sum(rate(agent_remote_config_fetches_total{status_code!~"2.."}[5m])) by (%(group_by_cluster)s)
+              100 * sum(rate(agent_remote_config_fetches_total{status_code="(4|5).."}[10m])) by (%(group_by_cluster)s)
                 /
-              sum(rate(agent_remote_config_fetches_total[5m])) by (%(group_by_cluster)s)
+              sum(rate(agent_remote_config_fetches_total[10m])) by (%(group_by_cluster)s)
                 > 5
             ||| % _config,
-            'for': '10m',
+            'for': '20m',
             labels: {
               severity: 'warning',
             },
@@ -260,12 +260,12 @@ local _config = config._config;
           {
             alert: 'AgentManagementBadAPIRequests',
             expr: |||
-              100 * sum(rate(agent_remote_config_fetches_total{status_code!~"2.."}[5m])) by (%(group_by_cluster)s)
+              100 * sum(rate(agent_remote_config_fetches_total{status_code="(4|5).."}[10m])) by (%(group_by_cluster)s)
                 /
-              sum(rate(agent_remote_config_fetches_total[5m])) by (%(group_by_cluster)s)
+              sum(rate(agent_remote_config_fetches_total[10m])) by (%(group_by_cluster)s)
                 > 10
             ||| % _config,
-            'for': '10m',
+            'for': '20m',
             labels: {
               severity: 'critical',
             },
@@ -278,12 +278,12 @@ local _config = config._config;
           {
             alert: 'AgentManagementRequestFailures',
             expr: |||
-              100 * sum(rate(agent_remote_config_fetch_errors_total[5m])) by (%(group_by_cluster)s)
+              100 * sum(rate(agent_remote_config_fetch_errors_total[10m])) by (%(group_by_cluster)s)
                 /
-              sum(rate(agent_remote_config_fetches_total[5m])) by (%(group_by_cluster)s)
+              sum(rate(agent_remote_config_fetches_total[10m])) by (%(group_by_cluster)s)
                 > 5
             ||| % _config,
-            'for': '10m',
+            'for': '20m',
             labels: {
               severity: 'warning',
             },
@@ -296,12 +296,12 @@ local _config = config._config;
           {
             alert: 'AgentManagementRequestFailures',
             expr: |||
-              100 * sum(rate(agent_remote_config_fetch_errors_total[5m])) by (%(group_by_cluster)s)
+              100 * sum(rate(agent_remote_config_fetch_errors_total[10m])) by (%(group_by_cluster)s)
                 /
-              sum(rate(agent_remote_config_fetches_total[5m])) by (%(group_by_cluster)s)
+              sum(rate(agent_remote_config_fetches_total[10m])) by (%(group_by_cluster)s)
                 > 10
             ||| % _config,
-            'for': '10m',
+            'for': '20m',
             labels: {
               severity: 'critical',
             },
@@ -314,12 +314,12 @@ local _config = config._config;
           {
             alert: 'AgentManagementInvalidAPIResponses',
             expr: |||
-              100 * sum(rate(agent_remote_config_invalid_total{reason=~".+"}[5m])) by (%(group_by_cluster)s)
+              100 * sum(rate(agent_remote_config_invalid_total{reason=~".+"}[10m])) by (%(group_by_cluster)s)
                 /
-              sum(rate(agent_remote_config_fetches_total[5m])) by (%(group_by_cluster)s)
+              sum(rate(agent_remote_config_fetches_total[10m])) by (%(group_by_cluster)s)
                 > 5
             ||| % _config,
-            'for': '10m',
+            'for': '20m',
             labels: {
               severity: 'warning',
             },
@@ -332,12 +332,12 @@ local _config = config._config;
           {
             alert: 'AgentManagementInvalidAPIResponses',
             expr: |||
-              100 * sum(rate(agent_remote_config_invalid_total{reason=~".+"}[5m])) by (%(group_by_cluster)s)
+              100 * sum(rate(agent_remote_config_invalid_total{reason=~".+"}[10m])) by (%(group_by_cluster)s)
                 /
-              sum(rate(agent_remote_config_fetches_total[5m])) by (%(group_by_cluster)s)
+              sum(rate(agent_remote_config_fetches_total[10m])) by (%(group_by_cluster)s)
                 > 10
             ||| % _config,
-            'for': '10m',
+            'for': '20m',
             labels: {
               severity: 'critical',
             },
