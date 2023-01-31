@@ -56,7 +56,7 @@ func init() {
 }
 
 // New creates a new apache_http integration. The integration scrapes metrics
-// from a Apache HTTP server.
+// from an Apache HTTP server.
 func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	conf := &ae.Config{
 		ScrapeURI:    c.ApacheAddr,

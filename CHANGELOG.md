@@ -25,6 +25,8 @@ Main (unreleased)
 
 - Integrations: Introduce the `mssql` integration. (@binaryfissiongames)
 
+- Integrations: Introduce `cloudwatch metrics` integration. (@thepalbi)
+
 ### Enhancements
 
 - Update Prometheus Node Exporter integration to v1.5.0. (@Thor77)

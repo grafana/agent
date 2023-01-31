@@ -114,6 +114,9 @@ github_exporter: <github_exporter_config>
 # Controls the blackbox_exporter integration
 blackbox: <blackbox_config>
 
+# Controls the CloudWatch exporter integration
+cloudwatch_exporter: <cloudwatch_exporter_config>
+
 # Automatically collect metrics from enabled integrations. If disabled,
 # integrations will be run but not scraped and thus not remote_written. Metrics
 # for integrations will be exposed at /integrations/<integration_key>/metrics
