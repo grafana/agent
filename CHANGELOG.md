@@ -15,6 +15,10 @@ Main (unreleased)
   - `diskstats_ignored_devices` is now `diskstats_device_exclude` in agent configuration.
   - `ignored_devices` is now `device_exclude` in flow configuration.
 
+### Features
+
+- Integrations: Introduce the `mssql` integration. (@binaryfissiongames)
+
 ### Enhancements
 
 - Update Prometheus Node Exporter integration to v1.5.0. (@Thor77)
@@ -88,8 +92,6 @@ v0.31.0-rc.0 (2023-01-26)
 - New metric for prometheus.scrape - `agent_prometheus_scrape_targets_gauge`. (@ptodev)
 
 - New metric for prometheus.scrape and prometheus.relabel - `agent_prometheus_forwarded_samples_total`. (@ptodev)
-
-- Integrations: Introduce the `mssql` integration. (@binaryfissiongames)
 
 ### Enhancements
 
