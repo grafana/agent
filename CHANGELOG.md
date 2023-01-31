@@ -19,7 +19,7 @@ Main (unreleased)
 
 - Update Prometheus Node Exporter integration to v1.5.0. (@Thor77)
 
-v0.31.0 (2023-01-26)
+v0.31.0 (2023-01-31)
 --------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
