@@ -1,6 +1,6 @@
 ---
 aliases:
-- /docs/agent/latest/flow/reference/standard-library
+- standard-library/
 title: Standard library
 weight: 400
 ---
