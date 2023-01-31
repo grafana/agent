@@ -23,12 +23,12 @@ local os_arch_tuples = [
 local targets = [
   'agent',
   'agentctl',
-  'agent-operator',
+  'operator',
 ];
 
 std.flatMap(function(target) (
   std.map(function(platform) (
-    pipelines.linux('Crosscompile / %s (%s)' % [target, platform.name]) {
+    pipelines.linux('Build %s (%s)' % [target, platform.name]) {
       local env = {
         GOOS: platform.os,
         GOARCH: platform.arch,

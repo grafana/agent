@@ -271,7 +271,7 @@ volumes:
   name: docker
 ---
 kind: pipeline
-name: Crosscompile / agent (Linux amd64)
+name: Build agent (Linux amd64)
 platform:
   arch: amd64
   os: linux
@@ -286,7 +286,7 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Crosscompile / agent (Linux arm64)
+name: Build agent (Linux arm64)
 platform:
   arch: amd64
   os: linux
@@ -301,7 +301,7 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Crosscompile / agent (Linux armv6)
+name: Build agent (Linux armv6)
 platform:
   arch: amd64
   os: linux
@@ -316,7 +316,7 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Crosscompile / agent (Linux armv7)
+name: Build agent (Linux armv7)
 platform:
   arch: amd64
   os: linux
@@ -331,7 +331,7 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Crosscompile / agent (Linux ppc64le)
+name: Build agent (Linux ppc64le)
 platform:
   arch: amd64
   os: linux
@@ -346,7 +346,7 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Crosscompile / agent (macOS Intel)
+name: Build agent (macOS Intel)
 platform:
   arch: amd64
   os: linux
@@ -361,7 +361,7 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Crosscompile / agent (macOS Apple Silicon)
+name: Build agent (macOS Apple Silicon)
 platform:
   arch: amd64
   os: linux
@@ -376,7 +376,7 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Crosscompile / agent (Windows amd64)
+name: Build agent (Windows amd64)
 platform:
   arch: amd64
   os: linux
@@ -391,7 +391,7 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Crosscompile / agent (FreeBSD amd64)
+name: Build agent (FreeBSD amd64)
 platform:
   arch: amd64
   os: linux
@@ -406,7 +406,7 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Crosscompile / agentctl (Linux amd64)
+name: Build agentctl (Linux amd64)
 platform:
   arch: amd64
   os: linux
@@ -421,7 +421,7 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Crosscompile / agentctl (Linux arm64)
+name: Build agentctl (Linux arm64)
 platform:
   arch: amd64
   os: linux
@@ -436,7 +436,7 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Crosscompile / agentctl (Linux armv6)
+name: Build agentctl (Linux armv6)
 platform:
   arch: amd64
   os: linux
@@ -451,7 +451,7 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Crosscompile / agentctl (Linux armv7)
+name: Build agentctl (Linux armv7)
 platform:
   arch: amd64
   os: linux
@@ -466,7 +466,7 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Crosscompile / agentctl (Linux ppc64le)
+name: Build agentctl (Linux ppc64le)
 platform:
   arch: amd64
   os: linux
@@ -481,7 +481,7 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Crosscompile / agentctl (macOS Intel)
+name: Build agentctl (macOS Intel)
 platform:
   arch: amd64
   os: linux
@@ -496,7 +496,7 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Crosscompile / agentctl (macOS Apple Silicon)
+name: Build agentctl (macOS Apple Silicon)
 platform:
   arch: amd64
   os: linux
@@ -511,7 +511,7 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Crosscompile / agentctl (Windows amd64)
+name: Build agentctl (Windows amd64)
 platform:
   arch: amd64
   os: linux
@@ -526,7 +526,7 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Crosscompile / agentctl (FreeBSD amd64)
+name: Build agentctl (FreeBSD amd64)
 platform:
   arch: amd64
   os: linux
@@ -541,13 +541,13 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Crosscompile / agent-operator (Linux amd64)
+name: Build operator (Linux amd64)
 platform:
   arch: amd64
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=amd64 GOARM= make agent-operator
+  - GOOS=linux GOARCH=amd64 GOARM= make operator
   image: grafana/agent-build-image:0.20.0
   name: Build
 trigger:
@@ -556,13 +556,13 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Crosscompile / agent-operator (Linux arm64)
+name: Build operator (Linux arm64)
 platform:
   arch: amd64
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm64 GOARM= make agent-operator
+  - GOOS=linux GOARCH=arm64 GOARM= make operator
   image: grafana/agent-build-image:0.20.0
   name: Build
 trigger:
@@ -571,13 +571,13 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Crosscompile / agent-operator (Linux armv6)
+name: Build operator (Linux armv6)
 platform:
   arch: amd64
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm GOARM=6 make agent-operator
+  - GOOS=linux GOARCH=arm GOARM=6 make operator
   image: grafana/agent-build-image:0.20.0
   name: Build
 trigger:
@@ -586,13 +586,13 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Crosscompile / agent-operator (Linux armv7)
+name: Build operator (Linux armv7)
 platform:
   arch: amd64
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm GOARM=7 make agent-operator
+  - GOOS=linux GOARCH=arm GOARM=7 make operator
   image: grafana/agent-build-image:0.20.0
   name: Build
 trigger:
@@ -601,13 +601,13 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Crosscompile / agent-operator (Linux ppc64le)
+name: Build operator (Linux ppc64le)
 platform:
   arch: amd64
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=ppc64le GOARM= make agent-operator
+  - GOOS=linux GOARCH=ppc64le GOARM= make operator
   image: grafana/agent-build-image:0.20.0
   name: Build
 trigger:
@@ -616,13 +616,13 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Crosscompile / agent-operator (macOS Intel)
+name: Build operator (macOS Intel)
 platform:
   arch: amd64
   os: linux
 steps:
 - commands:
-  - GOOS=darwin GOARCH=amd64 GOARM= make agent-operator
+  - GOOS=darwin GOARCH=amd64 GOARM= make operator
   image: grafana/agent-build-image:0.20.0
   name: Build
 trigger:
@@ -631,13 +631,13 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Crosscompile / agent-operator (macOS Apple Silicon)
+name: Build operator (macOS Apple Silicon)
 platform:
   arch: amd64
   os: linux
 steps:
 - commands:
-  - GOOS=darwin GOARCH=arm64 GOARM= make agent-operator
+  - GOOS=darwin GOARCH=arm64 GOARM= make operator
   image: grafana/agent-build-image:0.20.0
   name: Build
 trigger:
@@ -646,13 +646,13 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Crosscompile / agent-operator (Windows amd64)
+name: Build operator (Windows amd64)
 platform:
   arch: amd64
   os: linux
 steps:
 - commands:
-  - GOOS=windows GOARCH=amd64 GOARM= make agent-operator
+  - GOOS=windows GOARCH=amd64 GOARM= make operator
   image: grafana/agent-build-image:0.20.0
   name: Build
 trigger:
@@ -661,13 +661,13 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Crosscompile / agent-operator (FreeBSD amd64)
+name: Build operator (FreeBSD amd64)
 platform:
   arch: amd64
   os: linux
 steps:
 - commands:
-  - GOOS=freebsd GOARCH=amd64 GOARM= make agent-operator
+  - GOOS=freebsd GOARCH=amd64 GOARM= make operator
   image: grafana/agent-build-image:0.20.0
   name: Build
 trigger:
@@ -869,6 +869,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: 5ee438a241a900a2b7b2659886ad5dd90ee46054260f0ff1b2ff9cc3a6e5a522
+hmac: 17cde87032156d004090679d1cf5eddc215f36fa4153a9041ed885911f3f1938
 
 ...
