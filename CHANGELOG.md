@@ -19,10 +19,6 @@ Main (unreleased)
 
 - Integrations: Introduce the `oracledb` integration. (@schmikei)
 
-- New metric for prometheus.scrape - `agent_prometheus_scrape_targets_gauge`. (@ptodev)
-
-- New metric for prometheus.scrape and prometheus.relabel - `agent_prometheus_forwarded_samples_total`. (@ptodev)
-
 - Integrations: Introduce the `mssql` integration. (@binaryfissiongames)
 
 - Integrations: Introduce `cloudwatch metrics` integration. (@thepalbi)
