@@ -109,7 +109,7 @@ func (c *crdManager) clearConfigs(kind string, ns string, name string) {
 	}
 }
 
-func (c *crdManager) addConfig(pm *v1.PodMonitor) {
+func (c *crdManager) addPodMonitor(pm *v1.PodMonitor) {
 	for i, ep := range pm.Spec.PodMetricsEndpoints {
 		pmc := c.cg.generatePodMonitorConfig(pm, ep, i)
 		c.mut.Lock()
@@ -120,17 +120,28 @@ func (c *crdManager) addConfig(pm *v1.PodMonitor) {
 	c.apply()
 }
 
+func (c *crdManager) addServiceMonitor(sm *v1.ServiceMonitor) {
+	for i, ep := range sm.Spec.Endpoints {
+		smc := c.cg.generateServiceMonitorConfig(sm, ep, i)
+		c.mut.Lock()
+		c.discoveryConfigs[smc.JobName] = smc.ServiceDiscoveryConfigs
+		c.scrapeConfigs[smc.JobName] = smc
+		c.mut.Unlock()
+	}
+	c.apply()
+}
+
 func (c *crdManager) onAddPodMonitor(obj interface{}) {
 	pm := obj.(*v1.PodMonitor)
 	level.Info(c.logger).Log("msg", "found pod monitor", "name", pm.Name)
-	c.addConfig(pm)
+	c.addPodMonitor(pm)
 }
 
 func (c *crdManager) onUpdatePodMonitor(oldObj, newObj interface{}) {
 	pm := oldObj.(*v1.PodMonitor)
 	level.Info(c.logger).Log("msg", "found pod monitor", "name", pm.Name)
 	c.clearConfigs("podMonitor", pm.Namespace, pm.Name)
-	c.addConfig(newObj.(*v1.PodMonitor))
+	c.addPodMonitor(newObj.(*v1.PodMonitor))
 }
 func (c *crdManager) onDeletePodMonitor(obj interface{}) {
 	pm := obj.(*v1.PodMonitor)
@@ -139,10 +150,20 @@ func (c *crdManager) onDeletePodMonitor(obj interface{}) {
 }
 
 func (c *crdManager) onAddServiceMonitor(obj interface{}) {
+	sm := obj.(*v1.ServiceMonitor)
+	level.Info(c.logger).Log("msg", "found service monitor", "name", sm.Name)
+	c.addServiceMonitor(sm)
 }
 func (c *crdManager) onUpdateServiceMonitor(oldObj, newObj interface{}) {
+	sm := oldObj.(*v1.PodMonitor)
+	level.Info(c.logger).Log("msg", "found service monitor", "name", sm.Name)
+	c.clearConfigs("serviceMonitor", sm.Namespace, sm.Name)
+	c.addServiceMonitor(newObj.(*v1.ServiceMonitor))
 }
 func (c *crdManager) onDeleteServiceMonitor(obj interface{}) {
+	sm := obj.(*v1.ServiceMonitor)
+	c.clearConfigs("serviceMonitor", sm.Namespace, sm.Name)
+	c.apply()
 }
 
 func (c *crdManager) onAddProbe(obj interface{}) {

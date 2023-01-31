@@ -290,6 +290,8 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 	metricRelabels.addFromV1(labeler.GetRelabelingConfigs(m.TypeMeta, m.ObjectMeta, ep.MetricRelabelConfigs)...)
 	cfg.MetricRelabelConfigs = metricRelabels.configs
 
+	// TODO: limits from spec
+
 	return cfg
 }
 
