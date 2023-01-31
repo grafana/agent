@@ -10,7 +10,7 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
-v0.31.0 (2023-01-26)
+v0.31.0 (2023-01-31)
 --------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
