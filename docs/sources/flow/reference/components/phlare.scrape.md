@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/flow/reference/components/phlare.scrape
 title: phlare.scrape
 ---
 

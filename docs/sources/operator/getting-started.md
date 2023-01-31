@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/operator/getting-started/
 title: Install Grafana Agent Operator
 weight: 110
 ---

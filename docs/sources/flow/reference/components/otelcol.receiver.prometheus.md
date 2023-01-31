@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/flow/reference/components/otelcol.receiver.prometheus
 title: otelcol.receiver.prometheus
 ---
 

@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/flow/reference/components/prometheus.scrape
 title: prometheus.scrape
 ---
 
@@ -122,6 +120,8 @@ scrape job on the component's debug endpoint.
 ## Debug metrics
 
 * `agent_prometheus_fanout_latency` (histogram): Write latency for sending to direct and indirect components.
+* `agent_prometheus_scrape_targets_gauge` (gauge): Number of targets this component is configured to scrape.
+* `agent_prometheus_forwarded_samples_total` (counter): Total number of samples sent to downstream components.
 
 ## Scraping behavior
 

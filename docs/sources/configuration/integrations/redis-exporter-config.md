@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/configuration/integrations/redis-exporter-config/
 title: redis_exporter_config
 ---
 
