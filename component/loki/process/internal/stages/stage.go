@@ -194,10 +194,7 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 			return nil, err
 		}
 	case cfg.PackConfig != nil:
-		s, err = newPackStage(logger, *cfg.PackConfig, registerer)
-		if err != nil {
-			return nil, err
-		}
+		s = newPackStage(logger, *cfg.PackConfig, registerer)
 	case cfg.LabelAllowConfig != nil:
 		s, err = newLabelAllowStage(*cfg.LabelAllowConfig)
 		if err != nil {

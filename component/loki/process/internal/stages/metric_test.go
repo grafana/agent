@@ -542,7 +542,7 @@ func metricNames(sc StageConfig) []string {
 			if config.Counter.Prefix != "" {
 				customPrefix = config.Counter.Prefix
 			} else {
-				customPrefix = "loki_process_custom_"
+				customPrefix = defaultMetricsPrefix
 			}
 			result = append(result, customPrefix+config.Counter.Name)
 		case config.Gauge != nil:
@@ -550,7 +550,7 @@ func metricNames(sc StageConfig) []string {
 			if config.Gauge.Prefix != "" {
 				customPrefix = config.Gauge.Prefix
 			} else {
-				customPrefix = "loki_process_custom_"
+				customPrefix = defaultMetricsPrefix
 			}
 			result = append(result, customPrefix+config.Gauge.Name)
 		case config.Histogram != nil:
@@ -558,7 +558,7 @@ func metricNames(sc StageConfig) []string {
 			if config.Histogram.Prefix != "" {
 				customPrefix = config.Histogram.Prefix
 			} else {
-				customPrefix = "loki_process_custom_"
+				customPrefix = defaultMetricsPrefix
 			}
 			result = append(result, customPrefix+config.Histogram.Name)
 		}

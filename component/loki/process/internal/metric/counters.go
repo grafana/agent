@@ -50,7 +50,7 @@ func (c *CounterConfig) UnmarshalRiver(f func(v interface{}) error) error {
 	if c.Source == "" {
 		c.Source = c.Name
 	}
-	if c.Action != "inc" && c.Action != "add" {
+	if c.Action != CounterInc && c.Action != CounterAdd {
 		return fmt.Errorf("the 'action' counter field must be either 'inc' or 'add'")
 	}
 

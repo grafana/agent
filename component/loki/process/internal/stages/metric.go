@@ -20,6 +20,8 @@ const (
 	MetricTypeCounter   = "counter"
 	MetricTypeGauge     = "gauge"
 	MetricTypeHistogram = "histogram"
+
+	defaultMetricsPrefix = "loki_process_custom_"
 )
 
 // Configuration errors.
@@ -123,7 +125,7 @@ func newMetricStage(logger log.Logger, config MetricsConfig, registry prometheus
 			if cfg.Counter.Prefix != "" {
 				customPrefix = cfg.Counter.Prefix
 			} else {
-				customPrefix = "loki_process_custom_"
+				customPrefix = defaultMetricsPrefix
 			}
 			collector, err = metric.NewCounters(customPrefix+cfg.Counter.Name, cfg.Counter)
 			if err != nil {
@@ -136,7 +138,7 @@ func newMetricStage(logger log.Logger, config MetricsConfig, registry prometheus
 			if cfg.Gauge.Prefix != "" {
 				customPrefix = cfg.Gauge.Prefix
 			} else {
-				customPrefix = "loki_process_custom_"
+				customPrefix = defaultMetricsPrefix
 			}
 			collector, err = metric.NewGauges(customPrefix+cfg.Gauge.Name, cfg.Gauge)
 			if err != nil {
@@ -149,7 +151,7 @@ func newMetricStage(logger log.Logger, config MetricsConfig, registry prometheus
 			if cfg.Histogram.Prefix != "" {
 				customPrefix = cfg.Histogram.Prefix
 			} else {
-				customPrefix = "loki_process_custom_"
+				customPrefix = defaultMetricsPrefix
 			}
 			collector, err = metric.NewHistograms(customPrefix+cfg.Histogram.Name, cfg.Histogram)
 			if err != nil {

@@ -45,7 +45,7 @@ stage {
 // create a working pipeline.
 func TestPackPipeline(t *testing.T) {
 	registry := prometheus.NewRegistry()
-	plName := "test_pipeline"
+	plName := "test_pack_pipeline"
 	logger, _ := logging.New(io.Discard, logging.DefaultOptions)
 	pl, err := NewPipeline(logger, loadConfig(testPackRiver), &plName, registry)
 	require.NoError(t, err)
@@ -342,8 +342,7 @@ func TestPackStage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			logger, _ := logging.New(io.Discard, logging.DefaultOptions)
-			m, err := newPackStage(logger, *tt.config, prometheus.DefaultRegisterer)
-			require.NoError(t, err)
+			m := newPackStage(logger, *tt.config, prometheus.DefaultRegisterer)
 			// Normal pipeline operation will put all the labels into the extracted map
 			// replicate that here.
 			for labelName, labelValue := range tt.inputEntry.Labels {

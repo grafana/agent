@@ -118,12 +118,12 @@ func (p *PackConfig) UnmarshalRiver(f func(v interface{}) error) error {
 }
 
 // newPackStage creates a DropStage from config
-func newPackStage(logger log.Logger, config PackConfig, registerer prometheus.Registerer) (Stage, error) {
+func newPackStage(logger log.Logger, config PackConfig, registerer prometheus.Registerer) Stage {
 	return &packStage{
 		logger:    log.With(logger, "component", "stage", "type", "pack"),
 		cfg:       &config,
 		dropCount: getDropCountMetric(registerer),
-	}, nil
+	}
 }
 
 // packStage applies Label matchers to determine if the include stages should be run
