@@ -49,7 +49,7 @@ Full reference of options:
     [- <relabel_config> ... ]
 
   # Relabel metrics coming from the integration, lets you drop series
-  # from the integration that you don't care about from the integration.
+  # that you don't care about from the integration.
   metric_relabel_configs:
     [ - <relabel_config> ... ]
 
