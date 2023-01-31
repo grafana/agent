@@ -1,6 +1,6 @@
 ---
 aliases:
-- /docs/agent/latest/set-up/create-config-file/
+- ../set-up/create-config-file/
 title: Create a config file
 weight: 50
 ---

@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/configuration/integrations/integrations-next/app-agent-receiver-config/
 title: app_agent_config
 ---
 

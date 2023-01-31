@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/flow/reference/components/otelcol.processor.batch
 title: otelcol.processor.batch
 ---
 

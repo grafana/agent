@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/configuration/integrations/integrations-next/
 title: Integrations Revamp
 weight: 100
 ---

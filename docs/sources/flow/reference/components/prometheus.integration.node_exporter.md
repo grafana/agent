@@ -6,8 +6,6 @@
 # Ideally, in the future, we can fix the overflow issue with css rather than
 # injecting special characters.
 
-aliases:
-- /docs/agent/latest/flow/reference/components/prometheus.integration.node_exporter
 title: prometheus.​integration.​node_exporter
 ---
 

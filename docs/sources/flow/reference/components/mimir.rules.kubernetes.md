@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/flow/reference/components/mimir.rules.kubernetes
 title: mimir.rules.kubernetes
 ---
 
