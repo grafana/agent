@@ -7,23 +7,22 @@ title: azure_exporter_config
 # azure_exporter_config
 
 ## Overview
-The `azure_exporter_config` block configures the `azure_exporter` integration, which is an embedded version of
-[`azure-metrics-exporter`](https://github.com/webdevops/azure-metrics-exporter). This allows for
-the collection of metrics from [Azure Monitor](https://azure.microsoft.com/en-us/products/monitor). The
+The `azure_exporter_config` block configures the `azure_exporter` integration, an embedded version of
+[`azure-metrics-exporter`](https://github.com/webdevops/azure-metrics-exporter), used to
+collect metrics from [Azure Monitor](https://azure.microsoft.com/en-us/products/monitor). The
 exporter uses [Azure Resource Graph](https://azure.microsoft.com/en-us/get-started/azure-portal/resource-graph/#overview) 
 queries to identify resources for gathering metrics. 
 
 The exporter supports all metrics defined by [Azure Monitor](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/metrics-supported).
-Metrics for this integration are exposed with the template `azure_{type}_{metric}_{aggregation}_{unit}`. As an example
+Metrics for this integration are exposed with the template `azure_{type}_{metric}_{aggregation}_{unit}`. As an example,
 the Egress metric for BlobService would be exported as `azure_microsoft_storage_storageaccounts_blobservices_egress_total_bytes`.
 
 ## Authentication
 
-The agent will need to be running in an environment which has access to azure. The exporter uses the Azure SDK for go and supports
-providing authentication via https://learn.microsoft.com/en-us/azure/developer/go/azure-sdk-authentication?tabs=bash#2-authenticate-with-azure.
+The agent must be running in an environment with access to Azure. The exporter uses the Azure SDK for go and supports authentication via https://learn.microsoft.com/en-us/azure/developer/go/azure-sdk-authentication?tabs=bash#2-authenticate-with-azure.
 
-The account used by the agent will need,
-* [Read access to the resources which will be queried by Resource Graph](https://learn.microsoft.com/en-us/azure/governance/resource-graph/overview#permissions-in-azure-resource-graph)
+The account used by Grafana Agent needs:
+* [Read access to the resources that will be queried by Resource Graph](https://learn.microsoft.com/en-us/azure/governance/resource-graph/overview#permissions-in-azure-resource-graph)
 * Permissions to call the [Microsoft.Insights Metrics API](https://learn.microsoft.com/en-us/rest/api/monitor/metrics/list) which should be the `Microsoft.Insights/Metrics/Read` permission
 
 ## Configuration
@@ -191,11 +190,11 @@ The account used by the agent will need,
 
 ### Multiple Azure Services in a single config
 
-The Azure Metrics API has rather strict limitations on the amount of parameters which can be supplied. Due to this you cannot
-gather metrics from multiple `resource_types` in the same `azure_exporter` instance. If you need metrics from multiple resources 
-you can enable `integration-next` or configure the agent so that it exposes the exporter via `azure_exporter` config but data is
-configured through metrics scrape_configs. Below you can find an example configuration which combines the two examples above
-in a single agent configuration. Note: this is not a full configuration pieces have been removed for simplicity
+The Azure Metrics API has rather strict limitations on the number of parameters which can be supplied. Due to this, you cannot
+gather metrics from multiple `resource_types` in the same `azure_exporter` instance. If you need metrics from multiple resources, 
+you can enable `integration-next` or configure Agent to expose the exporter via the `azure_exporter` config with data configured through metrics scrape_configs. The following example configuration combines the two examples above in a single Agent configuration. 
+
+> **Note**: This is not a complete configuration; blocks have been removed for simplicity.
 
 ```yaml 
 integrations:
@@ -261,7 +260,5 @@ metrics:
               - nodepool
 ```
 
-As you can see all `azure_exporter` specific configuration settings have been moved to the `scrape_config`. This method supports all
-available configuration options except `azure_cloud_environment` which must be configured on the `azure_exporter`. 
-just note that when using this methods fields which support a singular value, like `resource_graph_query_filter`
-must be put in to an array `resource_graph_query_filter: ["where location == 'westeurope'"]`
+In this example, all `azure_exporter`-specific configuration settings have been moved to the `scrape_config`. This method supports all available configuration options except `azure_cloud_environment`, which must be configured on the `azure_exporter`. For this method, if a field supports a singular value like `resource_graph_query_filter`, you
+must be put it into an array, for example, `resource_graph_query_filter: ["where location == 'westeurope'"]`.
