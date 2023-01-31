@@ -37,7 +37,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 		var err error
 		cfg.ScrapeInterval, err = model.ParseDuration(string(ep.Interval))
 		if err != nil {
-			level.Error(cg.logger).Log("msg", "failed to fetch parse Interval from podMonitor", "err", err)
+			level.Error(cg.logger).Log("msg", "failed to parse Interval from podMonitor", "err", err)
 		}
 	}
 	if ep.ScrapeTimeout != "" {
@@ -48,7 +48,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 	}
 	if ep.ProxyURL != nil {
 		if u, err := url.Parse(*ep.ProxyURL); err != nil {
-			level.Error(cg.logger).Log("msg", "failed to fetch parse ProxyURL from podMonitor", "err", err)
+			level.Error(cg.logger).Log("msg", "failed to parse ProxyURL from podMonitor", "err", err)
 		} else {
 			cfg.HTTPClientConfig.ProxyURL = commonConfig.URL{URL: u}
 		}

@@ -131,6 +131,15 @@ func (c *crdManager) addServiceMonitor(sm *v1.ServiceMonitor) {
 	c.apply()
 }
 
+func (c *crdManager) addProbe(p *v1.Probe) {
+	probe := c.cg.generateProbeConfig(p)
+	c.mut.Lock()
+	c.discoveryConfigs[probe.JobName] = probe.ServiceDiscoveryConfigs
+	c.scrapeConfigs[probe.JobName] = probe
+	c.mut.Unlock()
+	c.apply()
+}
+
 func (c *crdManager) onAddPodMonitor(obj interface{}) {
 	pm := obj.(*v1.PodMonitor)
 	level.Info(c.logger).Log("msg", "found pod monitor", "name", pm.Name)
@@ -139,7 +148,6 @@ func (c *crdManager) onAddPodMonitor(obj interface{}) {
 
 func (c *crdManager) onUpdatePodMonitor(oldObj, newObj interface{}) {
 	pm := oldObj.(*v1.PodMonitor)
-	level.Info(c.logger).Log("msg", "found pod monitor", "name", pm.Name)
 	c.clearConfigs("podMonitor", pm.Namespace, pm.Name)
 	c.addPodMonitor(newObj.(*v1.PodMonitor))
 }
@@ -156,7 +164,6 @@ func (c *crdManager) onAddServiceMonitor(obj interface{}) {
 }
 func (c *crdManager) onUpdateServiceMonitor(oldObj, newObj interface{}) {
 	sm := oldObj.(*v1.PodMonitor)
-	level.Info(c.logger).Log("msg", "found service monitor", "name", sm.Name)
 	c.clearConfigs("serviceMonitor", sm.Namespace, sm.Name)
 	c.addServiceMonitor(newObj.(*v1.ServiceMonitor))
 }
@@ -167,10 +174,19 @@ func (c *crdManager) onDeleteServiceMonitor(obj interface{}) {
 }
 
 func (c *crdManager) onAddProbe(obj interface{}) {
+	p := obj.(*v1.Probe)
+	level.Info(c.logger).Log("msg", "found probe", "name", p.Name)
+	c.addProbe(p)
 }
 func (c *crdManager) onUpdateProbe(oldObj, newObj interface{}) {
+	p := oldObj.(*v1.Probe)
+	c.clearConfigs("probe", p.Namespace, p.Name)
+	c.addProbe(newObj.(*v1.Probe))
 }
 func (c *crdManager) onDeleteProbe(obj interface{}) {
+	p := obj.(*v1.Probe)
+	c.clearConfigs("probe", p.Namespace, p.Name)
+	c.apply()
 }
 
 // Run implements component.Component.
