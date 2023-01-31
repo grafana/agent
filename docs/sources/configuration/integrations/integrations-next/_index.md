@@ -104,6 +104,9 @@ integrations:
   mongodb_configs:
     [- <mongodb_exporter_config> ...]
 
+  mssql_configs:
+    [- <mssql_config> ...]
+
   mysql_configs:
     [- <mysqld_exporter_config> ...]
   
