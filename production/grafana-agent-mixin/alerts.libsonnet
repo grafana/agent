@@ -247,7 +247,7 @@ local _config = config._config;
               sum(rate(agent_remote_config_fetches_total[10m])) by (%(group_by_cluster)s)
                 > 5
             ||| % _config,
-            'for': '20m',
+            'for': '10m',
             labels: {
               severity: 'warning',
             },
@@ -265,7 +265,7 @@ local _config = config._config;
               sum(rate(agent_remote_config_fetches_total[10m])) by (%(group_by_cluster)s)
                 > 10
             ||| % _config,
-            'for': '20m',
+            'for': '10m',
             labels: {
               severity: 'critical',
             },
@@ -283,7 +283,7 @@ local _config = config._config;
               sum(rate(agent_remote_config_fetches_total[10m])) by (%(group_by_cluster)s)
                 > 5
             ||| % _config,
-            'for': '20m',
+            'for': '10m',
             labels: {
               severity: 'warning',
             },
@@ -301,7 +301,7 @@ local _config = config._config;
               sum(rate(agent_remote_config_fetches_total[10m])) by (%(group_by_cluster)s)
                 > 10
             ||| % _config,
-            'for': '20m',
+            'for': '10m',
             labels: {
               severity: 'critical',
             },
@@ -319,7 +319,7 @@ local _config = config._config;
               sum(rate(agent_remote_config_fetches_total[10m])) by (%(group_by_cluster)s)
                 > 5
             ||| % _config,
-            'for': '20m',
+            'for': '10m',
             labels: {
               severity: 'warning',
             },
@@ -337,7 +337,7 @@ local _config = config._config;
               sum(rate(agent_remote_config_fetches_total[10m])) by (%(group_by_cluster)s)
                 > 10
             ||| % _config,
-            'for': '20m',
+            'for': '10m',
             labels: {
               severity: 'critical',
             },
