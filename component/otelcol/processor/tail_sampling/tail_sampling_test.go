@@ -5,16 +5,200 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/internal/fakeconsumer"
 	"github.com/grafana/agent/pkg/flow/componenttest"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/dskit/backoff"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 )
 
-const exampleConfig = `
+func TestBadRiverConfig(t *testing.T) {
+	var args Arguments
+	require.Error(t, river.Unmarshal([]byte(exampleBadRiverConfig), &args), "num_traces must be greater than zero")
+}
+
+func TestBadOtelConfig(t *testing.T) {
+	ctx := componenttest.TestContext(t)
+	l := util.TestLogger(t)
+
+	ctrl, err := componenttest.NewControllerFromID(l, "otelcol.processor.tail_sampling")
+	require.NoError(t, err)
+
+	var args Arguments
+	require.NoError(t, river.Unmarshal([]byte(exampleBadOtelConfig), &args))
+
+	// Override our arguments so traces get forwarded to traceCh.
+	traceCh := make(chan ptrace.Traces)
+	args.Output = makeTracesOutput(traceCh)
+
+	go func() {
+		err := ctrl.Run(ctx, args)
+		require.Error(t, err, "unknown sampling policy type bad_type")
+	}()
+
+	require.Error(t, ctrl.WaitRunning(time.Second), "component never started")
+}
+
+func TestBigConfig(t *testing.T) {
+	ctx := componenttest.TestContext(t)
+	l := util.TestLogger(t)
+
+	ctrl, err := componenttest.NewControllerFromID(l, "otelcol.processor.tail_sampling")
+	require.NoError(t, err)
+
+	var args Arguments
+	require.NoError(t, river.Unmarshal([]byte(exampleBigConfig), &args))
+
+	// Override our arguments so traces get forwarded to traceCh.
+	traceCh := make(chan ptrace.Traces)
+	args.Output = makeTracesOutput(traceCh)
+
+	go func() {
+		err := ctrl.Run(ctx, args)
+		require.NoError(t, err)
+	}()
+
+	require.NoError(t, ctrl.WaitRunning(time.Second), "component never started")
+	require.NoError(t, ctrl.WaitExports(time.Second), "component never exported anything")
+}
+
+func Test(t *testing.T) {
+	ctx := componenttest.TestContext(t)
+	l := util.TestLogger(t)
+
+	ctrl, err := componenttest.NewControllerFromID(l, "otelcol.processor.tail_sampling")
+	require.NoError(t, err)
+
+	var args Arguments
+	require.NoError(t, river.Unmarshal([]byte(exampleSmallConfig), &args))
+
+	// Override our arguments so traces get forwarded to traceCh.
+	traceCh := make(chan ptrace.Traces)
+	args.Output = makeTracesOutput(traceCh)
+
+	go func() {
+		err := ctrl.Run(ctx, args)
+		require.NoError(t, err)
+	}()
+
+	require.NoError(t, ctrl.WaitRunning(time.Second), "component never started")
+	require.NoError(t, ctrl.WaitExports(time.Second), "component never exported anything")
+
+	// Send traces in the background to our processor.
+	go func() {
+		exports := ctrl.Exports().(otelcol.ConsumerExports)
+
+		exports.Input.Capabilities()
+
+		bo := backoff.New(ctx, backoff.Config{
+			MinBackoff: 10 * time.Millisecond,
+			MaxBackoff: 100 * time.Millisecond,
+		})
+		for bo.Ongoing() {
+			err := exports.Input.ConsumeTraces(ctx, createTestTraces())
+			if err != nil {
+				level.Error(l).Log("msg", "failed to send traces", "err", err)
+				bo.Wait()
+				continue
+			}
+
+			return
+		}
+	}()
+
+	// Wait for our processor to finish and forward data to traceCh.
+	select {
+	case <-time.After(time.Second * 10):
+		require.FailNow(t, "failed waiting for traces")
+	case tr := <-traceCh:
+		require.Equal(t, 1, tr.SpanCount())
+	}
+}
+
+// makeTracesOutput returns ConsumerArguments which will forward traces to the
+// provided channel.
+func makeTracesOutput(ch chan ptrace.Traces) *otelcol.ConsumerArguments {
+	traceConsumer := fakeconsumer.Consumer{
+		ConsumeTracesFunc: func(ctx context.Context, t ptrace.Traces) error {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case ch <- t:
+				return nil
+			}
+		},
+	}
+
+	return &otelcol.ConsumerArguments{
+		Traces: []otelcol.Consumer{&traceConsumer},
+	}
+}
+
+func createTestTraces() ptrace.Traces {
+	// Matches format from the protobuf definition:
+	// https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto
+	var bb = `{
+		"resource_spans": [{
+			"scope_spans": [{
+				"spans": [{
+					"name": "TestSpan"
+				}]
+			}]
+		}]
+	}`
+
+	decoder := &ptrace.JSONUnmarshaler{}
+	data, err := decoder.UnmarshalTraces([]byte(bb))
+	if err != nil {
+		panic(err)
+	}
+	return data
+}
+
+const exampleSmallConfig = `
+  decision_wait               = "1s"
+  num_traces                  = 1
+  expected_new_traces_per_sec = 1
+  policy {
+    name = "test-policy-1"
+    type = "always_sample"
+  }
+  output { 
+	// no-op: will be overridden by test code.
+  }
+`
+
+const exampleBadRiverConfig = `
+  decision_wait               = "10s"
+  num_traces                  = 0
+  expected_new_traces_per_sec = 10
+  policy {
+    name = "test-policy-1"
+    type = "always_sample"
+  }
+  output { 
+	// no-op: will be overridden by test code.
+  }
+`
+
+const exampleBadOtelConfig = `
+  decision_wait               = "10s"
+  num_traces                  = 100
+  expected_new_traces_per_sec = 10
+  policy {
+    name = "test-policy-1"
+    type = "bad_type"
+  }
+  output { 
+	// no-op: will be overridden by test code.
+  }
+`
+
+const exampleBigConfig = `
   decision_wait               = "10s"
   num_traces                  = 100
   expected_new_traces_per_sec = 10
@@ -167,45 +351,3 @@ const exampleConfig = `
 	// no-op: will be overridden by test code.
   }
 `
-
-func Test(t *testing.T) {
-	ctx := componenttest.TestContext(t)
-	l := util.TestLogger(t)
-
-	ctrl, err := componenttest.NewControllerFromID(l, "otelcol.processor.tail_sampling")
-	require.NoError(t, err)
-
-	var args Arguments
-	require.NoError(t, river.Unmarshal([]byte(exampleConfig), &args))
-
-	// Override our arguments so traces get forwarded to traceCh.
-	traceCh := make(chan ptrace.Traces)
-	args.Output = makeTracesOutput(traceCh)
-
-	go func() {
-		err := ctrl.Run(ctx, args)
-		require.NoError(t, err)
-	}()
-
-	require.NoError(t, ctrl.WaitRunning(time.Second), "component never started")
-	require.NoError(t, ctrl.WaitExports(time.Second), "component never exported anything")
-}
-
-// makeTracesOutput returns ConsumerArguments which will forward traces to the
-// provided channel.
-func makeTracesOutput(ch chan ptrace.Traces) *otelcol.ConsumerArguments {
-	traceConsumer := fakeconsumer.Consumer{
-		ConsumeTracesFunc: func(ctx context.Context, t ptrace.Traces) error {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			case ch <- t:
-				return nil
-			}
-		},
-	}
-
-	return &otelcol.ConsumerArguments{
-		Traces: []otelcol.Consumer{&traceConsumer},
-	}
-}
