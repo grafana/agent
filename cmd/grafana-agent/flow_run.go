@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"sync"
+	"syscall"
 
 	"github.com/grafana/agent/web/api"
 	"github.com/grafana/agent/web/ui"
@@ -256,8 +257,22 @@ func (fr *flowRun) Run(configFile string) error {
 		return err
 	}
 
-	<-ctx.Done()
-	return f.Close()
+	reloadSignal := make(chan os.Signal, 1)
+	signal.Notify(reloadSignal, syscall.SIGHUP)
+	defer signal.Stop(reloadSignal)
+
+	for {
+		select {
+		case <-ctx.Done():
+			return f.Close()
+		case <-reloadSignal:
+			if err := reload(); err != nil {
+				level.Error(l).Log("msg", "failed to reload config", "err", err)
+			} else {
+				level.Info(l).Log("msg", "config reloaded")
+			}
+		}
+	}
 }
 
 // getEnabledComponentsFunc returns a function that gets the current enabled components
