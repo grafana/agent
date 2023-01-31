@@ -16,11 +16,6 @@ import (
 	"github.com/prometheus/common/model"
 )
 
-var (
-	reallyTrue  = true
-	reallyFalse = false
-)
-
 // Packed keeps track of the labels and log entry.
 type Packed struct {
 	Labels map[string]string `json:",inline"`

@@ -112,7 +112,6 @@ type cfgCollector struct {
 
 // newMetricStage creates a new set of metrics to process for each log entry
 func newMetricStage(logger log.Logger, config MetricsConfig, registry prometheus.Registerer) (Stage, error) {
-	// metrics := map[string]prometheus.Collector{}
 	metrics := map[string]cfgCollector{}
 	for _, cfg := range config.Metrics {
 		var collector prometheus.Collector
@@ -130,10 +129,8 @@ func newMetricStage(logger log.Logger, config MetricsConfig, registry prometheus
 			if err != nil {
 				return nil, err
 			}
-			if collector != nil {
-				registry.MustRegister(collector)
-				metrics[cfg.Counter.Name] = cfgCollector{cfg: cfg, collector: collector}
-			}
+			registry.MustRegister(collector)
+			metrics[cfg.Counter.Name] = cfgCollector{cfg: cfg, collector: collector}
 		case cfg.Gauge != nil:
 			customPrefix := ""
 			if cfg.Gauge.Prefix != "" {
@@ -145,10 +142,8 @@ func newMetricStage(logger log.Logger, config MetricsConfig, registry prometheus
 			if err != nil {
 				return nil, err
 			}
-			if collector != nil {
-				registry.MustRegister(collector)
-				metrics[cfg.Gauge.Name] = cfgCollector{cfg: cfg, collector: collector}
-			}
+			registry.MustRegister(collector)
+			metrics[cfg.Gauge.Name] = cfgCollector{cfg: cfg, collector: collector}
 		case cfg.Histogram != nil:
 			customPrefix := ""
 			if cfg.Histogram.Prefix != "" {
@@ -160,35 +155,11 @@ func newMetricStage(logger log.Logger, config MetricsConfig, registry prometheus
 			if err != nil {
 				return nil, err
 			}
-			if collector != nil {
-				registry.MustRegister(collector)
-				metrics[cfg.Histogram.Name] = cfgCollector{cfg: cfg, collector: collector}
-			}
+			registry.MustRegister(collector)
+			metrics[cfg.Histogram.Name] = cfgCollector{cfg: cfg, collector: collector}
 		default:
 			return nil, fmt.Errorf("undefined stage type in '%v', exiting", cfg)
 		}
-
-		// switch strings.ToLower(cfg.MetricType) {
-		// case MetricTypeCounter:
-		// 	collector, err = metric.NewCounters(customPrefix+name, cfg.Description, cfg.Config, cfg.maxIdleSec)
-		// 	if err != nil {
-		// 		return nil, err
-		// 	}
-		// case MetricTypeGauge:
-		// 	collector, err = metric.NewGauges(customPrefix+name, cfg.Description, cfg.Config, cfg.maxIdleSec)
-		// 	if err != nil {
-		// 		return nil, err
-		// 	}
-		// case MetricTypeHistogram:
-		// 	collector, err = metric.NewHistograms(customPrefix+name, cfg.Description, cfg.Config, cfg.maxIdleSec)
-		// 	if err != nil {
-		// 		return nil, err
-		// 	}
-		// }
-		// if collector != nil {
-		// 	registry.MustRegister(collector)
-		// 	metrics[name] = collector
-		// }
 	}
 	return toStage(&metricStage{
 		logger:  logger,

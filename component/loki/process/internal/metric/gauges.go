@@ -52,7 +52,6 @@ func (g *GaugeConfig) UnmarshalRiver(f func(v interface{}) error) error {
 	}
 
 	if g.Source == "" {
-		fmt.Println("Source is empty, using the name in Gauge")
 		g.Source = g.Name
 	}
 

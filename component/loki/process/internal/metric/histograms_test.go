@@ -11,11 +11,11 @@ import (
 func TestHistogramExpiration(t *testing.T) {
 	t.Parallel()
 	cfg := &HistogramConfig{
-Description:"HELP ME!!!!!",
-IdleDuration: 1 * time.Second,
-}
+		Description:  "HELP ME!!!!!",
+		IdleDuration: 1 * time.Second,
+	}
 
-	hist, err := NewHistograms("test1",  cfg)
+	hist, err := NewHistograms("test1", cfg)
 	assert.Nil(t, err)
 
 	// Create a label and increment the histogram

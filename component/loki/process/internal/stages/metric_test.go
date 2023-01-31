@@ -413,8 +413,6 @@ loki_process_custom_payload_size_bytes_count{test="app"} 1
 	}
 }
 
-var metricTestInvalidIdle = "10f"
-
 var (
 	labelFoo = model.LabelSet(map[model.LabelName]model.LabelValue{"foo": "bar", "bar": "foo"})
 	labelFu  = model.LabelSet(map[model.LabelName]model.LabelValue{"fu": "baz", "baz": "fu"})
@@ -440,42 +438,42 @@ func TestMetricStage_Process(t *testing.T) {
 	trueVal := "true"
 	metricsStageConfig := StageConfig{MetricsConfig: &MetricsConfig{
 		Metrics: []MetricConfig{
-			MetricConfig{
+			{
 				Counter: &metric.CounterConfig{
 					Name:        "total_keys",
 					Description: "the total keys per doc",
 					Source:      "total_keys",
 					Action:      metric.CounterAdd,
 				}},
-			MetricConfig{
+			{
 				Histogram: &metric.HistogramConfig{
 					Name:        "keys_per_line",
 					Description: "keys per doc",
 					Source:      "keys_per_line",
 					Buckets:     []float64{1, 3, 5, 10},
 				}},
-			MetricConfig{
+			{
 				Gauge: &metric.GaugeConfig{
 					Name:        "numeric_float",
 					Description: "numeric_float",
 					Source:      "numeric_float",
 					Action:      metric.GaugeAdd,
 				}},
-			MetricConfig{
+			{
 				Gauge: &metric.GaugeConfig{
 					Name:        "numeric_integer",
 					Description: "numeric.integer",
 					Source:      "numeric_integer",
 					Action:      metric.GaugeAdd,
 				}},
-			MetricConfig{
+			{
 				Gauge: &metric.GaugeConfig{
 					Name:        "numeric_string",
 					Description: "numeric.string",
 					Source:      "numeric_string",
 					Action:      metric.GaugeAdd,
 				}},
-			MetricConfig{
+			{
 				Counter: &metric.CounterConfig{
 					Name:        "contains_warn",
 					Description: "contains_warn",
@@ -483,7 +481,7 @@ func TestMetricStage_Process(t *testing.T) {
 					Value:       trueVal,
 					Action:      metric.CounterInc,
 				}},
-			MetricConfig{
+			{
 				Counter: &metric.CounterConfig{
 					Name:        "contains_false",
 					Description: "contains_false",
@@ -491,14 +489,14 @@ func TestMetricStage_Process(t *testing.T) {
 					Value:       trueVal,
 					Action:      metric.CounterAdd,
 				}},
-			MetricConfig{
+			{
 				Counter: &metric.CounterConfig{
 					Name:        "matches",
 					Source:      timeSource,
 					Description: "all matches",
 					Action:      metric.CounterInc,
 				}},
-			MetricConfig{
+			{
 				Histogram: &metric.HistogramConfig{
 					Name:        "response_time_seconds",
 					Source:      timeSource,
