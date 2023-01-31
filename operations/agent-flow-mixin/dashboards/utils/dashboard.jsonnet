@@ -71,6 +71,19 @@
     sort: 2,
   },
 
+  newLokiAnnotation(name, source, expression, color):: {
+    name: name,
+    datasource: {
+      type: 'loki',
+      uid: source,
+    },
+    enable: true,
+    expr: expression,
+    iconColor: color,
+    instant: false,
+    titleFormat: '{{cluster}}/{{namespace}}',
+  },
+
   newMultiTemplateVariable(name, query):: $.newTemplateVariable(name, query) {
     allValue: '.*',
     includeAll: true,
@@ -78,6 +91,12 @@
   },
 
   withPanelsMixin(panels):: { panels+: panels },
+
+  withAnnotations(annotations):: {
+    annotations+: {
+      list+: annotations,
+    },
+  },
 
   withDocsLink(url, desc):: {
     links+: [{
