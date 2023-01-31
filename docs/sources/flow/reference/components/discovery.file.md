@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/flow/reference/components/discovery.file
 title: discovery.file
 ---
 

@@ -5,8 +5,8 @@ metadata:
   labels:
     {{- include "grafana-agent.labels" . | nindent 4 }}
 spec:
-  type: ClusterIP
-  clusterIP: None
+  type: {{ .Values.service.type }}
+  clusterIP: {{ .Values.service.clusterIP }}
   selector:
     {{- include "grafana-agent.selectorLabels" . | nindent 4 }}
   ports:

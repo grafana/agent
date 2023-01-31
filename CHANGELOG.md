@@ -9,8 +9,29 @@ internal API changes are not present.
 
 Main (unreleased)
 -----------------
+### Breaking changes
 
-v0.31.0-rc.0 (2023-01-26)
+- Node Exporter configuration options changed to align with new upstream version (@Thor77):
+  - `diskstats_ignored_devices` is now `diskstats_device_exclude` in agent configuration.
+  - `ignored_devices` is now `device_exclude` in flow configuration.
+
+### Features
+
+- Integrations: Introduce the `oracledb` integration. (@schmikei)
+
+- New metric for prometheus.scrape - `agent_prometheus_scrape_targets_gauge`. (@ptodev)
+
+- New metric for prometheus.scrape and prometheus.relabel - `agent_prometheus_forwarded_samples_total`. (@ptodev)
+
+- Integrations: Introduce the `mssql` integration. (@binaryfissiongames)
+
+- Integrations: Introduce `cloudwatch metrics` integration. (@thepalbi)
+
+### Enhancements
+
+- Update Prometheus Node Exporter integration to v1.5.0. (@Thor77)
+
+v0.31.0 (2023-01-31)
 --------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
@@ -63,7 +84,8 @@ v0.31.0-rc.0 (2023-01-26)
   - `phlare.scrape` collects application performance profiles. (@cyriltovena)
   - `phlare.write` sends application performance profiles to Grafana Phlare.
     (@cyriltovena)
-
+  - `mimir.rules.kubernetes` discovers `PrometheusRule` Kubernetes resources and
+    loads them into a Mimir instance. (@Logiraptor)
 
 - Flow components which work with relabeling rules (`discovery.relabel`,
   `prometheus.relabel` and `loki.relabel`) now export a new value named Rules.
@@ -183,9 +205,6 @@ v0.30.0 (2022-12-20)
 
   - `discovery.file` discovers files on the filesystem following glob
     patterns. (@mattdurham)
-
-  - `mimir.rules.kubernetes` discovers `PrometheusRule` Kubernetes resources and
-    loads them into a Mimir instance. (@Logiraptor)
 
 - Integrations: Introduce the `snowflake` integration. (@binaryfissiongames)
 

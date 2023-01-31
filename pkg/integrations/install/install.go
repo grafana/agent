@@ -10,6 +10,7 @@ import (
 	_ "github.com/grafana/agent/pkg/integrations/apache_http"            // register apache_exporter
 	_ "github.com/grafana/agent/pkg/integrations/blackbox_exporter"      // register blackbox_exporter
 	_ "github.com/grafana/agent/pkg/integrations/cadvisor"               // register cadvisor
+	_ "github.com/grafana/agent/pkg/integrations/cloudwatch_exporter"    // register cloudwatch_exporter
 	_ "github.com/grafana/agent/pkg/integrations/consul_exporter"        // register consul_exporter
 	_ "github.com/grafana/agent/pkg/integrations/dnsmasq_exporter"       // register dnsmasq_exporter
 	_ "github.com/grafana/agent/pkg/integrations/elasticsearch_exporter" // register elasticsearch_exporter
@@ -17,8 +18,10 @@ import (
 	_ "github.com/grafana/agent/pkg/integrations/kafka_exporter"         // register kafka_exporter
 	_ "github.com/grafana/agent/pkg/integrations/memcached_exporter"     // register memcached_exporter
 	_ "github.com/grafana/agent/pkg/integrations/mongodb_exporter"       // register mongodb_exporter
+	_ "github.com/grafana/agent/pkg/integrations/mssql"                  // register mssql
 	_ "github.com/grafana/agent/pkg/integrations/mysqld_exporter"        // register mysqld_exporter
 	_ "github.com/grafana/agent/pkg/integrations/node_exporter"          // register node_exporter
+	_ "github.com/grafana/agent/pkg/integrations/oracledb_exporter"      // register oracledb_exporter
 	_ "github.com/grafana/agent/pkg/integrations/postgres_exporter"      // register postgres_exporter
 	_ "github.com/grafana/agent/pkg/integrations/process_exporter"       // register process_exporter
 	_ "github.com/grafana/agent/pkg/integrations/redis_exporter"         // register redis_exporter

@@ -1,7 +1,6 @@
 ---
 aliases:
-- /docs/agent/latest/configuration/logs-config/
-- /docs/agent/latest/configuration/loki-config/
+- loki-config/
 title: logs_config
 weight: 300
 ---

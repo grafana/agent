@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/configuration/integrations/
 title: integrations_config
 weight: 500
 ---
@@ -68,6 +66,9 @@ process_exporter: <process_exporter_config>
 # Controls the mysqld_exporter integration
 mysqld_exporter: <mysqld_exporter_config>
 
+# Controls the oracledb integration
+oracledb: <oracledb_config>
+
 # Controls the redis_exporter integration
 redis_exporter: <redis_exporter_config>
 
@@ -79,6 +80,9 @@ elasticsearch_exporter: <elasticsearch_exporter_config>
 
 # Controls the memcached_exporter integration
 memcached_exporter: <memcached_exporter_config>
+
+# Controls the mssql integration
+mssql: <mssql_config>
 
 # Controls the postgres_exporter integration
 postgres_exporter: <postgres_exporter_config>
@@ -109,6 +113,9 @@ github_exporter: <github_exporter_config>
 
 # Controls the blackbox_exporter integration
 blackbox: <blackbox_config>
+
+# Controls the CloudWatch exporter integration
+cloudwatch_exporter: <cloudwatch_exporter_config>
 
 # Automatically collect metrics from enabled integrations. If disabled,
 # integrations will be run but not scraped and thus not remote_written. Metrics
