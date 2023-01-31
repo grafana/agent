@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/configuration/dynamic-config/
 title: dynamic_config
 weight: 500
 ---

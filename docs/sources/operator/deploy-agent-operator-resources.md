@@ -1,6 +1,5 @@
 ---
 aliases:
-- /docs/agent/latest/operator/deploy-agent-operator-resources/
 - custom-resource-quickstart/
 title: Deploy the Agent Operator resources
 weight: 120

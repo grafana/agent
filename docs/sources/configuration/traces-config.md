@@ -1,7 +1,6 @@
 ---
 aliases:
 - tempo-config/
-- /docs/agent/latest/configuration/traces-config/
 title: traces_config
 weight: 400
 ---
