@@ -17,6 +17,7 @@ import (
 	_ "github.com/grafana/agent/pkg/integrations/kafka_exporter"         // register kafka_exporter
 	_ "github.com/grafana/agent/pkg/integrations/memcached_exporter"     // register memcached_exporter
 	_ "github.com/grafana/agent/pkg/integrations/mongodb_exporter"       // register mongodb_exporter
+	_ "github.com/grafana/agent/pkg/integrations/mssql"                  // register mssql
 	_ "github.com/grafana/agent/pkg/integrations/mysqld_exporter"        // register mysqld_exporter
 	_ "github.com/grafana/agent/pkg/integrations/node_exporter"          // register node_exporter
 	_ "github.com/grafana/agent/pkg/integrations/oracledb_exporter"      // register oracledb_exporter

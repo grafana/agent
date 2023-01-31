@@ -23,6 +23,8 @@ Main (unreleased)
 
 - New metric for prometheus.scrape and prometheus.relabel - `agent_prometheus_forwarded_samples_total`. (@ptodev)
 
+- Integrations: Introduce the `mssql` integration. (@binaryfissiongames)
+
 ### Enhancements
 
 - Update Prometheus Node Exporter integration to v1.5.0. (@Thor77)
