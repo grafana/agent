@@ -4,11 +4,9 @@ title: mssql_config
 
 # mssql_config
 
-The `mssql_configs` block configures the `mssql` integration,
-which is an embedded version of [`sql_exporter`](https://github.com/burningalchemist/sql_exporter).
-This allows the collection of [Microsoft SQL Server](https://www.microsoft.com/en-us/sql-server) metrics.
+The `mssql_configs` block configures the `mssql` integration, an embedded version of [`sql_exporter`](https://github.com/burningalchemist/sql_exporter) that lets you collect [Microsoft SQL Server](https://www.microsoft.com/en-us/sql-server) metrics.
 
-It is recommended to have a dedicated user set up for the purpose of monitoring an mssql instance.
+It is recommended that you have a dedicated user set up for monitoring an mssql instance.
 The user for monitoring must have the following grants in order to populate the metrics:
 ```
 GRANT VIEW ANY DEFINITION TO <MONITOR_USER>
@@ -30,7 +28,7 @@ Full reference of options:
   [instance: <string>]
 
   # Automatically collect metrics from this integration. If disabled,
-  # the snowflake integration is run but not scraped and thus not
+  # the mssql integration is run but not scraped and thus not
   # remote-written. Metrics for the integration are exposed at
   # /integrations/mssql/metrics and can be scraped by an external
   # process.
