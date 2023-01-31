@@ -1,3 +1,6 @@
+//go:build !race
+// +build !race
+
 package tail_sampling
 
 import (
