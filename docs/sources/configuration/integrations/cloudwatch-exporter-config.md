@@ -12,16 +12,14 @@ aliases:
 The `cloudwatch_exporter_config` block configures the `cloudwatch_exporter` integration, which is an embedded version of
 [`YACE`](https://github.com/nerdswords/yet-another-cloudwatch-exporter/). Use the `cloudwatch_exporter` to collect  [AWS CloudWatch](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/WhatIsCloudWatch.html) metrics.
 
-This integration allows one to scrape CloudWatch metrics in a set of configurations which we will call `jobs`. There are 
+This integration lets you scrape CloudWatch metrics in a set of configurations that we will call *jobs*. There are 
 two kind of jobs: [`discovery`](#discovery_job) and [`static`](#static_job).
 
 ## Authentication
 
-The agent will need to be running in an environment which has access to AWS. The exporter uses the [AWS SDK for Go](https://aws.github.io/aws-sdk-go-v2/docs/getting-started/) and supports
-providing authentication via [AWS's default credential chain](https://aws.github.io/aws-sdk-go-v2/docs/configuring-sdk/#specifying-credentials). Regardless of the method used to acquire the credentials,
+The agent must be running in an environment with access to AWS. The exporter uses the [AWS SDK for Go](https://aws.github.io/aws-sdk-go-v2/docs/getting-started/) and
+provides authentication via [AWS's default credential chain](https://aws.github.io/aws-sdk-go-v2/docs/configuring-sdk/#specifying-credentials). Regardless of the method used to acquire the credentials,
 some permissions are needed for the exporter to work.
-
-The following IAM permissions are required for the integration to work.
 ```
 "tag:GetResources",
 "cloudwatch:GetMetricData",
@@ -48,7 +46,7 @@ The following IAM permissions are required to discover tagged [Database Migratio
 "dms:DescribeReplicationTasks"
 ```
 
-For simplicity, one can use the following AWS IAM Policy for all features of this integration to work.
+To use all of the integration features, use the following AWS IAM Policy:
 
 ```json
 {
