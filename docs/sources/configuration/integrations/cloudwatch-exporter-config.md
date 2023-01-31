@@ -10,8 +10,7 @@ aliases:
 ## Overview
 
 The `cloudwatch_exporter_config` block configures the `cloudwatch_exporter` integration, which is an embedded version of
-[`YACE`](https://github.com/nerdswords/yet-another-cloudwatch-exporter/). This allows the collection
-of [AWS CloudWatch](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/WhatIsCloudWatch.html) metrics.
+[`YACE`](https://github.com/nerdswords/yet-another-cloudwatch-exporter/). Use the `cloudwatch_exporter` to collect  [AWS CloudWatch](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/WhatIsCloudWatch.html) metrics.
 
 This integration allows one to scrape CloudWatch metrics in a set of configurations which we will call `jobs`. There are 
 two kind of jobs: [`discovery`](#discovery_job) and [`static`](#static_job).
