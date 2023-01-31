@@ -316,7 +316,7 @@ settings affects the produced values in two different scenarios.
 If all metrics within a job (discovery or static) have the same `Period` value configured, CloudWatch APIs will be requested
 for metrics from the scrape time, to `Periods` seconds in the past. The values of these are exported to Prometheus.
 
-![](../assets/single-period-time-model.png)
+![](https://grafana.com/media/docs/agent/cloudwatch-single-period-time-model.png)
 
 On the other hand, if metrics with different `Periods` are configured under an individual job, this works differently.
 First, two variables are calculated aggregating all periods: `length`, taking the maximum value of all periods, and 
@@ -324,7 +324,7 @@ the new `period` value, taking the minimum of all periods. Then, CloudWatch APIs
 `now - length` to `now`, aggregating each in samples for `period` seconds. For each metrics, the most recent sample
 is exported to CloudWatch.
 
-![](../assets/multiple-period-time-model.png)
+![](https://grafana.com/media/docs/agent/cloudwatch-multiple-period-time-model.png)
 
 ## Supported services in discovery jobs
 
