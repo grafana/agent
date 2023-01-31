@@ -17,13 +17,19 @@ Main (unreleased)
 
 ### Features
 
+- Integrations: Introduce the `oracledb` integration. (@schmikei)
+
+- New metric for prometheus.scrape - `agent_prometheus_scrape_targets_gauge`. (@ptodev)
+
+- New metric for prometheus.scrape and prometheus.relabel - `agent_prometheus_forwarded_samples_total`. (@ptodev)
+
 - Integrations: Introduce the `mssql` integration. (@binaryfissiongames)
 
 ### Enhancements
 
 - Update Prometheus Node Exporter integration to v1.5.0. (@Thor77)
 
-v0.31.0-rc.0 (2023-01-26)
+v0.31.0 (2023-01-31)
 --------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
@@ -85,13 +91,7 @@ v0.31.0-rc.0 (2023-01-26)
 
 - New experimental feature: agent-management. Polls configured remote API to fetch new configs. (@spartan0x117)
 
-- Integrations: Introduce the `oracledb` integration. (@schmikei)
-
 - Introduce global configuration for logs. (@jcreixell)
-
-- New metric for prometheus.scrape - `agent_prometheus_scrape_targets_gauge`. (@ptodev)
-
-- New metric for prometheus.scrape and prometheus.relabel - `agent_prometheus_forwarded_samples_total`. (@ptodev)
 
 ### Enhancements
 
