@@ -16,12 +16,12 @@ exporter by this integration will follow the template `stackdriver_<monitored_re
 
 The following example shows a load balancing metric:
 
-![gcp-exporter-config-metric](gcp-exporter-config-metric.png)
+![gcp-exporter-config-metric-example](https://grafana.com/media/docs/agent/gcp-exporter-config-metric-example.png)
 
-The following list shows its attributes:
+The following list shows its attributes: \
+monitored_resource = `https_lb_rule`\
 metric_type_prefix = `loadbalancing.googleapis.com/`\
 metric_type = `https/backend_latencies`\
-monitored_resource = `https_lb_rule`\
 
 These attributes result in a final metric name of:
 `stackdriver_https_lb_rule_loadbalancing_googleapis_com_https_backend_latencies`
