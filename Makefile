@@ -83,8 +83,8 @@
 ##   GOOS             Override OS to build binaries for
 ##   GOARCH           Override target architecture to build binaries for
 ##   GOARM            Override ARM version (6 or 7) when GOARCH=arm
-##   CGO_ENABLED      Set to 0 to disable Cgo for builds
-##   RELEASE_BUILD    Set to 1 to build release binaries
+##   CGO_ENABLED      Set to 0 to disable Cgo for binaries that support Cgo.
+##   RELEASE_BUILD    Set to 1 to build release binaries.
 ##   VERSION          Version to inject into built binaries.
 ##   GO_TAGS          Extra tags to use when building.
 ##   DOCKER_PLATFORM  Overrides platform to build Docker images for (defaults to host platform).
@@ -120,7 +120,8 @@ PROPAGATE_VARS := \
 # Constants for targets
 #
 
-GO_ENV := GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CGO_ENABLED=$(CGO_ENABLED)
+CGO_ENV := GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CGO_ENABLED=$(CGO_ENABLED)
+GO_ENV  := GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM)
 
 VERSION      ?= $(shell ./tools/image-tag)
 GIT_REVISION := $(shell git rev-parse --short HEAD)
@@ -158,8 +159,8 @@ lint: agentlint
 # We have to run test twice: once for all packages with -race and then once
 # more without -race for packages that have known race detection issues.
 test:
-	$(GO_ENV) go test $(GO_FLAGS) -race ./...
-	$(GO_ENV) go test $(GO_FLAGS) ./pkg/integrations/node_exporter ./pkg/logs ./pkg/operator ./pkg/util/k8s
+	$(CGO_ENV) go test $(GO_FLAGS) -race ./...
+	$(CGO_ENV) go test $(GO_FLAGS) ./pkg/integrations/node_exporter ./pkg/logs ./pkg/operator ./pkg/util/k8s
 
 test-packages:
 	docker pull $(BUILD_IMAGE)
@@ -176,7 +177,7 @@ agent:
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
-	$(GO_ENV) go build $(GO_FLAGS) -o $(AGENT_BINARY) ./cmd/grafana-agent
+	$(CGO_ENV) go build $(GO_FLAGS) -o $(AGENT_BINARY) ./cmd/grafana-agent
 endif
 
 agentctl:
