@@ -141,7 +141,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - make binaries
   - K8S_USE_DOCKER_NETWORK=1 make test
   image: grafana/agent-build-image:0.20.0
   name: Run Go tests
@@ -270,6 +269,411 @@ volumes:
 - host:
     path: //./pipe/docker_engine/
   name: docker
+---
+kind: pipeline
+name: Crosscompile / agent (Linux amd64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=linux GOARCH=amd64 GOARM= make agent
+  image: grafana/agent-build-image:0.20.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Crosscompile / agent (Linux arm64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=linux GOARCH=arm64 GOARM= make agent
+  image: grafana/agent-build-image:0.20.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Crosscompile / agent (Linux armv6)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=linux GOARCH=arm GOARM=6 make agent
+  image: grafana/agent-build-image:0.20.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Crosscompile / agent (Linux armv7)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=linux GOARCH=arm GOARM=7 make agent
+  image: grafana/agent-build-image:0.20.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Crosscompile / agent (Linux ppc64le)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=linux GOARCH=ppc64le GOARM= make agent
+  image: grafana/agent-build-image:0.20.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Crosscompile / agent (macOS Intel)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=darwin GOARCH=amd64 GOARM= make agent
+  image: grafana/agent-build-image:0.20.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Crosscompile / agent (macOS Apple Silicon)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=darwin GOARCH=arm64 GOARM= make agent
+  image: grafana/agent-build-image:0.20.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Crosscompile / agent (Windows amd64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=windows GOARCH=amd64 GOARM= make agent
+  image: grafana/agent-build-image:0.20.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Crosscompile / agent (FreeBSD amd64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=freebsd GOARCH=amd64 GOARM= make agent
+  image: grafana/agent-build-image:0.20.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Crosscompile / agentctl (Linux amd64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=linux GOARCH=amd64 GOARM= make agentctl
+  image: grafana/agent-build-image:0.20.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Crosscompile / agentctl (Linux arm64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=linux GOARCH=arm64 GOARM= make agentctl
+  image: grafana/agent-build-image:0.20.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Crosscompile / agentctl (Linux armv6)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=linux GOARCH=arm GOARM=6 make agentctl
+  image: grafana/agent-build-image:0.20.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Crosscompile / agentctl (Linux armv7)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=linux GOARCH=arm GOARM=7 make agentctl
+  image: grafana/agent-build-image:0.20.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Crosscompile / agentctl (Linux ppc64le)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=linux GOARCH=ppc64le GOARM= make agentctl
+  image: grafana/agent-build-image:0.20.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Crosscompile / agentctl (macOS Intel)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=darwin GOARCH=amd64 GOARM= make agentctl
+  image: grafana/agent-build-image:0.20.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Crosscompile / agentctl (macOS Apple Silicon)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=darwin GOARCH=arm64 GOARM= make agentctl
+  image: grafana/agent-build-image:0.20.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Crosscompile / agentctl (Windows amd64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=windows GOARCH=amd64 GOARM= make agentctl
+  image: grafana/agent-build-image:0.20.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Crosscompile / agentctl (FreeBSD amd64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=freebsd GOARCH=amd64 GOARM= make agentctl
+  image: grafana/agent-build-image:0.20.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Crosscompile / agent-operator (Linux amd64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=linux GOARCH=amd64 GOARM= make agent-operator
+  image: grafana/agent-build-image:0.20.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Crosscompile / agent-operator (Linux arm64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=linux GOARCH=arm64 GOARM= make agent-operator
+  image: grafana/agent-build-image:0.20.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Crosscompile / agent-operator (Linux armv6)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=linux GOARCH=arm GOARM=6 make agent-operator
+  image: grafana/agent-build-image:0.20.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Crosscompile / agent-operator (Linux armv7)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=linux GOARCH=arm GOARM=7 make agent-operator
+  image: grafana/agent-build-image:0.20.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Crosscompile / agent-operator (Linux ppc64le)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=linux GOARCH=ppc64le GOARM= make agent-operator
+  image: grafana/agent-build-image:0.20.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Crosscompile / agent-operator (macOS Intel)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=darwin GOARCH=amd64 GOARM= make agent-operator
+  image: grafana/agent-build-image:0.20.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Crosscompile / agent-operator (macOS Apple Silicon)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=darwin GOARCH=arm64 GOARM= make agent-operator
+  image: grafana/agent-build-image:0.20.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Crosscompile / agent-operator (Windows amd64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=windows GOARCH=amd64 GOARM= make agent-operator
+  image: grafana/agent-build-image:0.20.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Crosscompile / agent-operator (FreeBSD amd64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=freebsd GOARCH=amd64 GOARM= make agent-operator
+  image: grafana/agent-build-image:0.20.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
 ---
 kind: pipeline
 name: Publish Linux Docker containers
@@ -465,6 +869,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: c6496402d38b36cc5b32f691691f33214d25941b69a39c77f6b95de0d3c5eb83
+hmac: 5ee438a241a900a2b7b2659886ad5dd90ee46054260f0ff1b2ff9cc3a6e5a522
 
 ...
