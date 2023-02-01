@@ -442,7 +442,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm GOARM=6 make agentctl
+  - GOOS=linux GOARCH=arm GOARM=6 CGO_ENABLED=0 make agentctl
   image: grafana/agent-build-image:0.20.0
   name: Build
 trigger:
@@ -457,7 +457,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm GOARM=7 make agentctl
+  - GOOS=linux GOARCH=arm GOARM=7 CGO_ENABLED=0 make agentctl
   image: grafana/agent-build-image:0.20.0
   name: Build
 trigger:
@@ -869,6 +869,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: 17cde87032156d004090679d1cf5eddc215f36fa4153a9041ed885911f3f1938
+hmac: 64ab9b77f80ee505a0e87c2a90d7d0c03f502c334720cf0308e18197160575f9
 
 ...
