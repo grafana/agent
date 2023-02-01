@@ -2,7 +2,7 @@
 
 * Date: 2023-01-27
 * Author: Matt Durham @mattdurham
-* PR: [grafana/agent#XXXX](https://github.com/grafana/agent/pull/XXXX)
+* PR: [grafana/agent#2898](https://github.com/grafana/agent/pull/2898)
 * Status: Draft
 
 ## RFC Goals
