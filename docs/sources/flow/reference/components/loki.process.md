@@ -1305,8 +1305,8 @@ stage {
 
 ### metrics block
 
-The `metrics` inner block configures stage that allows for defining and
-updating metrics based on values from the shared extracted map. The created
+The `metrics` inner block configures stage that allows to define and
+update metrics based on values from the shared extracted map. The created
 metrics are available at the Agent's root /metrics endpoint.
 
 The `metrics` block does not support any arguments and is only configured via
