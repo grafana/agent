@@ -962,13 +962,13 @@ Name                  | Type            | Description                           
 This stage allows to embed extracted values and labels together with the log
 line, by packing them into a JSON object. The original message is stored under
 the `_entry` key, and all other keys retain their values. This is useful in
-cases where we _do_ want to keep a certain label or metadata, but we wouldn't
-want it to be indexed as a label eg. due to high cardinality.
+cases where you _do_ want to keep a certain label or metadata, but you don't
+want it to be indexed as a label due to high cardinality.
 
-The querying capabilities of Loki make it easy to still access this data and
-filter/aggregate on it at query time.
+The querying capabilities of Loki make it easy to still access this data so it can 
+be filtered and aggregated at query time.
 
-For example consider the following log entry and processing stage:
+For example, consider the following log entry and processing stage:
 ```
 log_line: "something went wrong"
 labels:   { "level" = "error", "env" = "dev", "user_id" = "f8fas0r" }
@@ -980,19 +980,18 @@ stage {
 }
 ```
 
-This would transform the log entry into the following JSON object. The two
-embedded labels are removed from the original log entry.
-```
+The stage transforms the log entry into the following JSON object, where the two 
+embedded labels are removed from the original log entry:
+```json
 {
 	"_entry": "something went wrong",
 	"env": "dev",
 	"user_id": "f8fas0r",
 		
 }
-```
 
-At query time, Loki's `unpack` parser allows access to these embedded labels
-and replaces the log line with the original one stored in `_entry`
+At query time, Loki's `unpack` parser can be used to access these embedded labels
+and replace the log line with the original one stored in `_entry`
 automatically.
 
 When combining several log streams to use with the `pack` stage,
@@ -1019,7 +1018,7 @@ Name       | Type      | Description                 | Default   | Required
 `source`   | `string`  | Name from extracted data to parse. If the key doesn't exist, a new entry is created.  |   | yes
 `template` | `string`  | Go template string to use.  |   | yes
 
-The template string can be any valid template that can be used by Go's `text/template`. Furthermore, it supports all functions from the [sprig package](http://masterminds.github.io/sprig/) as well as the following list of custom functions.
+The template string can be any valid template that can be used by Go's `text/template`. Furthermore, it supports all functions from the [sprig package](http://masterminds.github.io/sprig/) as well as the following list of custom functions:
 ```
 ToLower, ToUpper, Replace, Trim, TrimLeftTrimRight, TrimPrefix, TrimSuffix, TrimSpace, Hash, Sha2Hash, regexReplaceAll, regexReplaceAllLiteral
 ```
@@ -1027,7 +1026,7 @@ ToLower, ToUpper, Replace, Trim, TrimLeftTrimRight, TrimPrefix, TrimSuffix, Trim
 
 Assuming no data is present on the extracted map, the following stage simply
 adds the `new_key: "hello_world"`key-value pair to the shared map.
-```
+```river
 stage {
 	template {
 		source   = "new_key"
@@ -1036,10 +1035,10 @@ stage {
 }
 ```
 
-If the `source` value is available, it can be referred to as `.Value`.
+If the `source` value exists in the extract fields, its value can be referred to as `.Value` in the template.
 The next stage takes the current value of `app` from the extracted map,
-converts it to lowercase, and adds a suffix to its value.
-```
+converts it to lowercase, and adds a suffix to its value:
+```river
 stage {
 	template {
 		source   = "app"
@@ -1050,8 +1049,8 @@ stage {
 
 Any previously extracted keys are available for `template` to expand and use.
 The next stage takes the current values for `level`, `app` and `module` and
-creates a new key named `output_message`.
-```
+creates a new key named `output_message`:
+```river
 stage {
 	template {
 		source   = "output_msg"
@@ -1061,9 +1060,8 @@ stage {
 ```
 
 A special key named `Entry` can be used to reference the current line; this can
-be useful when you need to append/prepend something to the log line, like this
-stage does
-```
+be useful when you need to append/prepend something to the log line, like this snippet:
+```river
 stage {
 	template {
 		source   = "message"
@@ -1087,7 +1085,7 @@ custom functions
 uppercase.
 
 Examples:
-```
+```river
 stage {
 	template {
 		source   = "out"
@@ -1110,7 +1108,7 @@ replacements for a k-rune string. If n < 0, there is no limit on the number of
 replacements.
 
 This example below replaces the first two instances of the `loki` word by `Loki`:
-```
+```river
 stage {
 	template {
 		source   = "output"
@@ -1129,7 +1127,7 @@ white space removed, as defined by Unicode.
 * `TrimPrefix` and `TrimSuffix` trim respectively the prefix or suffix
   supplied.
 Examples:
-```
+```river
 stage {
 	template {
 		source   = "output"
@@ -1161,7 +1159,7 @@ of the Regexp with the replacement string. The replacement string is
 substituted directly, without using Expand.
 
 
-```
+```river
 stage {
 	template {
 		source   = "output"
@@ -1181,7 +1179,7 @@ stage {
 `Sha2Hash` returns a `Sha2_256` of the string which is faster and less CPU-intensive than `Hash`, however it is less secure.
 
 Examples:
-```
+```river
 stage {
 	template {
 		source   = "output"
@@ -1196,8 +1194,7 @@ stage {
 }
 ```
 
-We recommend using Hash as it has a stronger hashing algorithm which we plan to
-keep strong over time without requiring client config changes.
+We recommend using Hash as it has a stronger hashing algorithm. 
 
 ### tenant block
 
@@ -1214,8 +1211,8 @@ Name      | Type      | Description                 | Default   | Required
 
 The block expects only one of `label`, `source` or `value` to be provided.
 
-The following stage hardcodes the tenant ID as `team-a`.
-```
+The following stage assigns the fixed value `team-a` as the tenant ID:
+```river
 stage {
 	tenant {
 		value = "team-a"
@@ -1224,8 +1221,8 @@ stage {
 ```
 
 This stage extracts the tenant ID from the `customer_id` field after
-parsing the log entry as JSON in the shared extracted map.
-```
+parsing the log entry as JSON in the shared extracted map:
+```river
 stage {
 	json {
 		expressions = { "customer_id" = "" }
@@ -1238,8 +1235,8 @@ stage {
 }
 ```
 
-The final example extracts the tenant ID from a label set by a previous stage.
-```
+The final example extracts the tenant ID from a label set by a previous stage:
+```river
 stage {
 	labels {
 		"namespace" = "k8s_namespace"
@@ -1267,13 +1264,12 @@ Name            | Type     | Description | Default | Required
 `drop`          | `bool`   | Whether to discard or backpressure lines that exceed the rate limit. | `false` | no
 `max_distinct_labels` | `int` | How many unique values to keep track of when rate-limiting `by_label_name`. | `10000` | no
 
-The rate limiting is implemented as a 'token bucket' of size `burst`, initially
-full and refilled at `rate` tokens per second. Every time a log entry comes
-through, it consumes one token. When `drop` is set to true, incoming entries
-that exceed the rate-limit is dropped, otherwise they are queued until
+The rate limiting is implemented as a "token bucket" of size `burst`, initially
+full and refilled at `rate` tokens per second. Each received log entry consumes one token from the bucket. When `drop` is set to true, incoming entries
+that exceed the rate-limit are dropped, otherwise they are queued until
 more tokens are available.
 
-```
+```river
 stage {
 	limit {
 		rate  = 5
@@ -1289,7 +1285,7 @@ The following example rate-limits entries from each unique `namespace` value
 independently. Any entries without the `namespace` label is not rate-limited.
 The stage keeps track of up to `max_distinct_labels` unique
 values, defaulting at 10000.
-```
+```river
 stage {
 	limit {
 		rate  = 10
@@ -1418,7 +1414,7 @@ floats. The supported values are the following:
 The following pipeline creates a counter which increments every time any log line is received by using the `match_all` parameter, plus a second counter which adds the byte size of these log lines by using the `count_entry_bytes` parameter.
 
 These two metrics disappear after 24 hours, if no new entries are received, to avoid building up metrics which no longer serve any use. These two metrics are a good starting point to track the volume of log streams in both the number of entries and their byte size, to identify sources of high-volume or high-cardinality data.
-```
+```river
 stage {
 	metrics {
 		metric {
@@ -1456,7 +1452,7 @@ Here, the first stage uses a regex to extract text in the format
 `order_status=<string>` in the log line.
 The second stage, defines a counter which increments the `successful_orders_total` and `failed_orders_total` based on the previously extracted values.
 
-```
+```river
 stage {
 	regex {
 		expression = "^.* order_status=(?P<order_status>.*?) .*$"
@@ -1492,7 +1488,7 @@ stage {
 
 In this example, the first stage extracts text in the format of `retries=<value>`, from the log line. The second stage creates a Gauge whose current metric value is increased by the number extracted from the retries field.
 
-```
+```river
 stage {
 	regex {
 		expression = "^.* retries=(?P<retries>\\d+) .*$"
@@ -1515,9 +1511,9 @@ stage {
 
 The following example a histogram that reads response_time from the extracted
 map and places it into a bucket, both increasing the count of the bucket and
-the sum for that particular bucket
+the sum for that particular bucket:
 
-```
+```river
 stage {
 	metrics {
 		metric {
