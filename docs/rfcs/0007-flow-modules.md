@@ -151,7 +151,7 @@ If an error occurs while re-evaluating a module then the module marks itself as 
 
 * One failure mode can cascade
 
-#### Option 2: Modules Keep Last Good Value
+#### Option 2: Modules keep last good value
 
 If an error occurs while re-evaluating a module then the module marks itself as unhealthy and attempts to keep the original module. This may have an issue with cascading failures, if a module depends on a module then the system may enter an inconsistent state while applying and then rolling back the change.
 
@@ -179,16 +179,6 @@ Depend on filtering the `map(string)` input before loading the modules.
 ## Option 2: Filter
 
 Allow `filter_arguments` and `filter_exports` to only include modules that define arguments and exports in the filters. Modules may have additional arguments that can optionally be set.
-
-## Failure Modes
-
-### Fail All
-
-If any module fails to load then fail all.
-
-### Fail only the failed
-
-Allow modules that succeeded to run but mark component as unhealthy.
 
 ### Example
 
