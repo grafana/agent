@@ -5,6 +5,8 @@
 * PR: [grafana/agent#2898](https://github.com/grafana/agent/pull/2898)
 * Status: Draft
 
+[Formatted Link for ease of user](https://github.com/grafana/agent/blob/rfc_modules/docs/rfcs/0007-flow-modules.md)
+
 ## RFC Goals
 
 * Explain the use cases of modules
