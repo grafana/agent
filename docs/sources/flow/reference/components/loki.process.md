@@ -950,16 +950,16 @@ stage {
 ### pack block
 
 The `pack` inner block configures a transforming stage that replaces the log
-entry with a JSON object that embeds extracted values and labels alongside it.
+entry with a JSON object that embeds extracted values and labels with it.
 
 The following arguments are supported:
 
 Name                  | Type            | Description                                           | Default   | Required
 --------------------- | --------------- | ----------------------------------------------------- | --------- | --------
 `labels`              | `list(string)`  | The values from the extracted data and labels to pack with the log entry.    |  | yes
-`ingest_timestamp`    | `bool`          | Whether to replace the log entry timestamp with the time the `pack` stage run.  | `true | no
+`ingest_timestamp`    | `bool`          | Whether to replace the log entry timestamp with the time the `pack` stage runs.  | `true | no
 
-This stage allows to embed extracted values and labels together with the log
+This stage lets you embed extracted values and labels together with the log
 line, by packing them into a JSON object. The original message is stored under
 the `_entry` key, and all other keys retain their values. This is useful in
 cases where you _do_ want to keep a certain label or metadata, but you don't
@@ -996,8 +996,8 @@ At query time, Loki's [`unpack` parser](https://grafana.com/docs/loki/latest/log
 can be used to access these embedded labels and replace the log line with the
 original one stored in the `_entry` field automatically.
 
-When combining several log streams to use with the `pack` stage,
-`ingest_timestamp` can be set to true to avoid interlaced timestamps and
+When combining several log streams to use with the `pack` stage, you can set
+`ingest_timestamp` to true to avoid interlaced timestamps and
 out-of-order ingestion issues.
 
 
@@ -1082,13 +1082,11 @@ stage {
 ```
 
 #### Supported functions
-As mentioned before, the `template` stage supports all functions from the
-[sprig package](http://masterminds.github.io/sprig/) as well as the following
-custom functions
+In addition to supporting all functions from the [sprig package](http://masterminds.github.io/sprig/), the `template` stage supports the following custom functions.
 
-##### ToLower & ToUpper
-`ToLower` and `ToUpper` convert the entire string respectively to lowercase and
-uppercase.
+##### ToLower and ToUpper
+`ToLower` and `ToUpper` convert the entire string to lowercase and
+uppercase, respectively.
 
 Examples:
 ```river
@@ -1115,7 +1113,7 @@ non-overlapping instances of the second argument. If `<n>` is less than zero,
 there is no limit on the number of replacement. Finally, if `<old>` is empty,
 it matches before and after every UTF-8 character in the string.
 
-This example below replaces the first two instances of the `loki` word by `Loki`:
+This example replaces the first two instances of the `loki` word by `Loki`:
 ```river
 stage {
 	template {
@@ -1128,12 +1126,11 @@ stage {
 ##### Trim, TrimLeft, TrimRight, TrimSpace, TrimPrefix, TrimSuffix
 * `Trim` returns a slice of the string `s` with all leading and trailing Unicode
   code points contained in `cutset` removed.
-* `TrimLeft` and `TrimRight` are the same as Trim except that it respectively
-  trim only leading and trailing characters.
+* `TrimLeft` and `TrimRight` are the same as Trim except that they
+  trim only leading and trailing characters, respectively.
 * `TrimSpace` returns a slice of the string s, with all leading and trailing
 white space removed, as defined by Unicode.
-* `TrimPrefix` and `TrimSuffix` trim respectively the prefix or suffix
-  supplied.
+* `TrimPrefix` and `TrimSuffix` trim the supplied prefix or suffix, respectively.
 Examples:
 ```river
 stage {
@@ -1158,8 +1155,8 @@ stage {
 
 ##### Regex
 `regexReplaceAll` returns a copy of the input string, replacing matches of the
-Regexp with the replacement string. Inside the replacement string, `$` signs
-are interpreted as in Expand, so for instance $1 represents the first captured
+Regexp with the replacement string. Inside the replacement string, `$` characters
+are interpreted as in Expand functions, so for instance, $1 represents the first captured
 submatch.
 
 `regexReplaceAllLiteral` returns a copy of the input string, replacing matches
@@ -1183,7 +1180,7 @@ stage {
 ```
 
 ##### Hash and Sha2Hash
-`Hash` returns a `Sha3_256` hash of the string, represented as a hexadecimal number of 64 digits. You can use it to obfuscate sensitive data / PII in the logs. It requires a (fixed) salt value, to add complexity to low input domains (e.g. all possible Social Security Numbers).
+`Hash` returns a `Sha3_256` hash of the string, represented as a hexadecimal number of 64 digits. You can use it to obfuscate sensitive data and PII in the logs. It requires a (fixed) salt value, to add complexity to low input domains (e.g., all possible social security numbers).
 `Sha2Hash` returns a `Sha2_256` of the string which is faster and less CPU-intensive than `Hash`, however it is less secure.
 
 Examples:
@@ -1206,8 +1203,8 @@ We recommend using Hash as it has a stronger hashing algorithm.
 
 ### tenant block
 
-The `tenant` inner block sets the tenant ID for the log entry picking it from a
-field in the extracted data map, a label or a provided value.
+The `tenant` inner block sets the tenant ID for the log entry by obtaining it from a
+field in the extracted data map, a label, or a provided value.
 
 The following arguments are supported:
 
@@ -1268,9 +1265,9 @@ Name            | Type     | Description | Default | Required
 --------------- | -------- | ----------- | ------- | --------
 `rate`          | `int`    | The maximum rate of lines per second that the stage forwards. | | yes
 `burst`         | `int`    | The cap in the quantity of burst lines that the stage forwards. | | yes
-`by_label_name` | `string` | The label to use when for rate-limiting on a label name. | `""` | no
+`by_label_name` | `string` | The label to use when rate-limiting on a label name. | `""` | no
 `drop`          | `bool`   | Whether to discard or backpressure lines that exceed the rate limit. | `false` | no
-`max_distinct_labels` | `int` | How many unique values to keep track of when rate-limiting `by_label_name`. | `10000` | no
+`max_distinct_labels` | `int` | The number of unique values to keep track of when rate-limiting `by_label_name`. | `10000` | no
 
 The rate limiting is implemented as a "token bucket" of size `burst`, initially
 full and refilled at `rate` tokens per second. Each received log entry consumes one token from the bucket. When `drop` is set to true, incoming entries
@@ -1290,7 +1287,7 @@ If `by_label_name` is set, then `drop` must be set to `true`. This enables the
 stage to rate-limit not by the number of lines but by the number of labels.
 
 The following example rate-limits entries from each unique `namespace` value
-independently. Any entries without the `namespace` label is not rate-limited.
+independently. Any entries without the `namespace` label are not rate-limited.
 The stage keeps track of up to `max_distinct_labels` unique
 values, defaulting at 10000.
 ```river
@@ -1350,7 +1347,7 @@ Name            | Type       | Description | Default | Required
 `idle_duration` | `duration` | Maximum amount of time to wait until the metric is marked as 'stale' and removed. | `"5m"` | no
 `value`         | `string`   | If set, the metric only changes if `source` exactly matches the `value`. | `""` | no
 `match_all`     | `bool`     | If set to true, all log lines are counted, without attemptng to match the `source` to the extracted map. | `false` | no
-`count_entry_bytes`     | `bool`     | If set to true, all log lines bytes. | `false` | no
+`count_entry_bytes`     | `bool`     | If set to true, counts all log lines bytes. | `false` | no
 
 A counter cannot set both `match_all` to true _and_ a `value`.
 A counter cannot set `count_entry_bytes` without also setting `match_all=true`
@@ -1379,7 +1376,7 @@ Name            | Type       | Description | Default | Required
 The valid `action` values are `inc`, `dec`, `set`, `add`, or `sub`.
 `inc` and `dec` increment and decrement the metric's value by 1 respectively.
 If `set`, `add, or `sub` is chosen, the extracted value must be convertible
-to a positive float and is set, added or subtracted to the metric's value.
+to a positive float and is set, added to, or subtracted from the metric's value.
 
 
 #### histogram block
@@ -1403,25 +1400,26 @@ Name            | Type          | Description | Default | Required
 If `value` is not present, all incoming log entries match.
 
 Label values on created metrics can be dynamic, which can cause exported
-metrics to explode in cardinality, or go stale, for example when a stream stops
-receiving new logs. To prevent unbounded growth of the /metrics endpoint, any
+metrics to explode in cardinality or go stale, for example, when a stream stops
+receiving new logs. To prevent unbounded growth of the `/metrics` endpoint, any
 metrics which have not been updated within `idle_duration` are removed. The
-`idle_duration` must be greater or equal to `"1s"`, and it defaults to `"5m"`
+`idle_duration` must be greater or equal to `"1s"`, and it defaults to `"5m"`.
 
 The metric values extracted from the log data are internally converted to
 floats. The supported values are the following:
 
-* integers, floating point numbers
-* string - two types of string formats are supported:
-    * strings that represent floating point numbers: e.g., "0.804" is converted to 0.804.
-    * duration format strings. Valid time units are “ns”, “us”, “ms”, “s”, “m”, “h”. Values in this format are converted as a floating point number of seconds. E.g., "0.5ms" is converted to 0.0005.
+* integer
+* floating point number
+* string - Two types of string format are supported:
+    * Strings that represent floating point numbers, for example, "0.804" is converted to 0.804.
+    * Duration format strings. Valid time units are “ns”, “us”, “ms”, “s”, “m”, “h”. A value in this format is converted to a floating point number of seconds, for example, "0.5ms" is converted to 0.0005.
 * boolean:
-    * true is converted to 1
-    * false is converted to 0
+    * true is converted to 1.
+    * false is converted to 0.
 
-The following pipeline creates a counter which increments every time any log line is received by using the `match_all` parameter, plus a second counter which adds the byte size of these log lines by using the `count_entry_bytes` parameter.
+The following pipeline creates a counter which increments every time any log line is received by using the `match_all` parameter. The pipeline creates a second counter which adds the byte size of these log lines by using the `count_entry_bytes` parameter.
 
-These two metrics disappear after 24 hours, if no new entries are received, to avoid building up metrics which no longer serve any use. These two metrics are a good starting point to track the volume of log streams in both the number of entries and their byte size, to identify sources of high-volume or high-cardinality data.
+These two metrics disappear after 24 hours if no new entries are received, to avoid building up metrics which no longer serve any use. These two metrics are a good starting point to track the volume of log streams in both the number of entries and their byte size, to identify sources of high-volume or high-cardinality data.
 ```river
 stage {
 	metrics {
@@ -1494,7 +1492,7 @@ stage {
 }
 ```
 
-In this example, the first stage extracts text in the format of `retries=<value>`, from the log line. The second stage creates a Gauge whose current metric value is increased by the number extracted from the retries field.
+In this example, the first stage extracts text in the format of `retries=<value>`, from the log line. The second stage creates a gauge whose current metric value is increased by the number extracted from the retries field.
 
 ```river
 stage {
@@ -1517,7 +1515,7 @@ stage {
 ```
 
 
-The following example a histogram that reads response_time from the extracted
+The following example shows a histogram that reads `response_time` from the extracted
 map and places it into a bucket, both increasing the count of the bucket and
 the sum for that particular bucket:
 
