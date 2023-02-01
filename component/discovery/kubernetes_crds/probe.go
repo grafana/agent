@@ -9,6 +9,7 @@ import (
 	commonConfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
+	"github.com/prometheus/prometheus/model/relabel"
 )
 
 func (cg *configGenerator) generateProbeConfig(m *v1.Probe) *config.ScrapeConfig {
@@ -35,36 +36,24 @@ func (cg *configGenerator) generateProbeConfig(m *v1.Probe) *config.ScrapeConfig
 			cfg.HTTPClientConfig.ProxyURL = commonConfig.URL{URL: u}
 		}
 	}
+	if m.Spec.Module != "" {
+		cfg.Params.Set("module", m.Spec.Module)
+	}
+
+	relabels := cg.initRelabelings(cfg)
+
+	if m.Spec.JobName != "" {
+		relabels.Add(&relabel.Config{
+			TargetLabel: "job",
+			Replacement: m.Spec.JobName,
+		})
+	}
+	//labeler := namespacelabeler.New("", nil, false)
+	// TODO: staticConfig
+
+	// TODO: limits from spec
 	return cfg
 }
-
-// 	if m.Spec.Module != "" {
-// 		cfg = append(cfg, yaml.MapItem{Key: "params", Value: yaml.MapSlice{
-// 			{Key: "module", Value: []string{m.Spec.Module}},
-// 		}})
-// 	}
-
-// 	cfg = cg.AddLimitsToYAML(cfg, sampleLimitKey, m.Spec.SampleLimit, cg.spec.EnforcedSampleLimit)
-// 	cfg = cg.AddLimitsToYAML(cfg, targetLimitKey, m.Spec.TargetLimit, cg.spec.EnforcedTargetLimit)
-// 	cfg = cg.AddLimitsToYAML(cfg, labelLimitKey, m.Spec.LabelLimit, cg.spec.EnforcedLabelLimit)
-// 	cfg = cg.AddLimitsToYAML(cfg, labelNameLengthLimitKey, m.Spec.LabelNameLengthLimit, cg.spec.EnforcedLabelNameLengthLimit)
-// 	cfg = cg.AddLimitsToYAML(cfg, labelValueLengthLimitKey, m.Spec.LabelValueLengthLimit, cg.spec.EnforcedLabelValueLengthLimit)
-
-// 	if cg.spec.EnforcedBodySizeLimit != "" {
-// 		cfg = cg.WithMinimumVersion("2.28.0").AppendMapItem(cfg, "body_size_limit", cg.spec.EnforcedBodySizeLimit)
-// 	}
-
-// 	relabelings := initRelabelings()
-
-// 	if m.Spec.JobName != "" {
-// 		relabelings = append(relabelings, []yaml.MapSlice{
-// 			{
-// 				{Key: "target_label", Value: "job"},
-// 				{Key: "replacement", Value: m.Spec.JobName},
-// 			},
-// 		}...)
-// 	}
-// 	labeler := namespacelabeler.New(cg.spec.EnforcedNamespaceLabel, cg.spec.ExcludedFromEnforcement, false)
 
 // 	if m.Spec.Targets.StaticConfig != nil {
 // 		// Generate static_config section.
