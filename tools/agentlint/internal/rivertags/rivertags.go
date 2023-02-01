@@ -152,6 +152,12 @@ func getStructs(ti *types.Info) []*structInfo {
 	return res
 }
 
+// lookupField gets a field given an index. If a field has multiple names, each
+// name is counted as one index. For example,
+//
+//	Field1, Field2, Field3 int
+//
+// is one *ast.Field, but covers index 0 through 2.
 func lookupField(node *ast.StructType, index int) *ast.Field {
 	startIndex := 0
 
