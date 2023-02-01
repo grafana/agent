@@ -41,8 +41,9 @@ Main (unreleased)
 - Flow: The `loki.process` component now implements all the same processing
   stages as Promtail's pipelines. (@tpaschalis)
 
+
 v0.31.0 (2023-01-31)
-=======
+--------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
