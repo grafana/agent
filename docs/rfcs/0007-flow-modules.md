@@ -176,11 +176,6 @@ Exports are accessed via `module.multiple.LABEL.exports.NAME`, `exports` is a `m
 
 Depend on filtering the `map(string)` input before loading the modules.
 
-## Option 2: Filter
-
-Allow `filter_arguments` and `filter_exports` to only include modules that define arguments and exports in the filters. Modules may have additional arguments that can optionally be set.
-
-### Example
 
 #### Filter prior
 
@@ -204,6 +199,11 @@ prometheus.scrape "module" {
 }
 
 ```
+
+## Option 2: Filter
+
+Allow `filter_arguments` and `filter_exports` to only include modules that define arguments and exports in the filters. Modules may have additional arguments that can optionally be set.
+
 
 
 #### Filter by arguments and exports
