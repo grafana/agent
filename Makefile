@@ -121,7 +121,7 @@ PROPAGATE_VARS := \
 #
 
 CGO_ENV := GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CGO_ENABLED=$(CGO_ENABLED)
-GO_ENV  := GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM)
+GO_ENV  := GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CGO_ENABLED=0
 
 VERSION      ?= $(shell ./tools/image-tag)
 GIT_REVISION := $(shell git rev-parse --short HEAD)
@@ -134,7 +134,7 @@ GO_LDFLAGS   := -X $(VPREFIX).Branch=$(GIT_BRANCH)                        \
                 -X $(VPREFIX).BuildDate=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 DEFAULT_FLAGS    := $(GO_FLAGS)
-DEBUG_GO_FLAGS   := -ldflags "$(GO_LDFLAGS)" -tags "netgo $(GO_TAGS)"
+DEBUG_GO_FLAGS   := -ldflags "$(GO_LDFLAGS)"  -tags  "netgo $(GO_TAGS)"
 RELEASE_GO_FLAGS := -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo $(GO_TAGS)"
 
 ifeq ($(RELEASE_BUILD),1)
