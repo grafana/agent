@@ -263,8 +263,6 @@ steps:
 trigger:
   event:
   - pull_request
-  paths:
-  - '**/Dockerfile.windows'
 type: docker
 volumes:
 - host:
@@ -465,6 +463,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: c6496402d38b36cc5b32f691691f33214d25941b69a39c77f6b95de0d3c5eb83
+hmac: 63e602179ab4bc97a241eaab0b5e14b230e4c4af7cc8c7550c3e60140aeef1fe
 
 ...
