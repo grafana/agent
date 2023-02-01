@@ -44,7 +44,7 @@ func (c *CounterConfig) UnmarshalRiver(f func(v interface{}) error) error {
 	}
 
 	if c.MaxIdle < 1*time.Second {
-		return fmt.Errorf("idle duration must be greater than 1s")
+		return fmt.Errorf("max_idle_duration must be greater or equal than 1s")
 	}
 
 	if c.Source == "" {
