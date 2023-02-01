@@ -991,6 +991,7 @@ embedded labels are removed from the original log entry:
 	"env": "dev",
 	"user_id": "f8fas0r",
 }
+```
 
 At query time, Loki's [`unpack` parser](https://grafana.com/docs/loki/latest/logql/log_queries/#unpack)
 can be used to access these embedded labels and replace the log line with the
@@ -1020,7 +1021,7 @@ Name       | Type      | Description                 | Default   | Required
 `source`   | `string`  | Name from extracted data to parse. If the key doesn't exist, a new entry is created.  |   | yes
 `template` | `string`  | Go template string to use.  |   | yes
 
-The template string can be any valid template that can be used by Go's `text/template`. Furthermore, it supports all functions from the [sprig package](http://masterminds.github.io/sprig/) as well as the following list of custom functions:
+The template string can be any valid template that can be used by Go's `text/template`. It supports all functions from the [sprig package](http://masterminds.github.io/sprig/), as well as the following list of custom functions:
 ```
 ToLower, ToUpper, Replace, Trim, TrimLeftTrimRight, TrimPrefix, TrimSuffix, TrimSpace, Hash, Sha2Hash, regexReplaceAll, regexReplaceAllLiteral
 ```
