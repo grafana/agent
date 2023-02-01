@@ -6,21 +6,16 @@ package stages
 
 import (
 	"bytes"
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"reflect"
 	"regexp"
-	"strings"
 	"text/template"
 	"time"
 
-	"github.com/Masterminds/sprig/v3"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/prometheus/common/model"
-	"golang.org/x/crypto/sha3"
 )
 
 // Config Errors
@@ -28,36 +23,6 @@ var (
 	ErrEmptyReplaceStageConfig = errors.New("empty replace stage configuration")
 	ErrEmptyReplaceStageSource = errors.New("empty source in replace stage")
 )
-
-var extraFunctionMap = template.FuncMap{
-	"ToLower":    strings.ToLower,
-	"ToUpper":    strings.ToUpper,
-	"Replace":    strings.Replace,
-	"Trim":       strings.Trim,
-	"TrimLeft":   strings.TrimLeft,
-	"TrimRight":  strings.TrimRight,
-	"TrimPrefix": strings.TrimPrefix,
-	"TrimSuffix": strings.TrimSuffix,
-	"TrimSpace":  strings.TrimSpace,
-	"Hash": func(salt string, input string) string {
-		hash := sha3.Sum256([]byte(salt + input))
-		return hex.EncodeToString(hash[:])
-	},
-	"Sha2Hash": func(salt string, input string) string {
-		hash := sha256.Sum256([]byte(salt + input))
-		return hex.EncodeToString(hash[:])
-	},
-	"regexReplaceAll": func(regex string, s string, repl string) string {
-		r := regexp.MustCompile(regex)
-		return r.ReplaceAllString(s, repl)
-	},
-	"regexReplaceAllLiteral": func(regex string, s string, repl string) string {
-		r := regexp.MustCompile(regex)
-		return r.ReplaceAllLiteralString(s, repl)
-	},
-}
-
-var functionMap = sprig.TxtFuncMap()
 
 func init() {
 	for k, v := range extraFunctionMap {

@@ -82,7 +82,7 @@ var testMatchLogLineApp2 = `
 
 func TestMatchStage(t *testing.T) {
 	registry := prometheus.NewRegistry()
-	plName := "test_pipeline"
+	plName := "test_match_pipeline"
 	logger, _ := logging.New(io.Discard, logging.DefaultOptions)
 	pl, err := NewPipeline(logger, loadConfig(testMatchRiver), &plName, registry)
 	if err != nil {
