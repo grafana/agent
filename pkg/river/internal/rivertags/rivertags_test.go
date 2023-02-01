@@ -56,7 +56,7 @@ func Test_Get_Panics(t *testing.T) {
 
 	t.Run("Tagged fields must be exported", func(t *testing.T) {
 		type Struct struct {
-			attr string `river:"field,attr"` // nolint:unused
+			attr string `river:"field,attr"` // nolint:unused //nolint:rivertags
 		}
 		expect := `river: river tag found on unexported field at rivertags_test.Struct.attr`
 		expectPanic(t, expect, Struct{})
@@ -64,7 +64,7 @@ func Test_Get_Panics(t *testing.T) {
 
 	t.Run("Options are required", func(t *testing.T) {
 		type Struct struct {
-			Attr string `river:"field"`
+			Attr string `river:"field"` //nolint:rivertags
 		}
 		expect := `river: field rivertags_test.Struct.Attr tag is missing options`
 		expectPanic(t, expect, Struct{})
@@ -73,7 +73,7 @@ func Test_Get_Panics(t *testing.T) {
 	t.Run("Field names must be unique", func(t *testing.T) {
 		type Struct struct {
 			Attr  string `river:"field1,attr"`
-			Block string `river:"field1,block,optional"`
+			Block string `river:"field1,block,optional"` //nolint:rivertags
 		}
 		expect := `river: field name field1 already used by rivertags_test.Struct.Attr`
 		expectPanic(t, expect, Struct{})
@@ -81,7 +81,7 @@ func Test_Get_Panics(t *testing.T) {
 
 	t.Run("Name is required for non-label field", func(t *testing.T) {
 		type Struct struct {
-			Attr string `river:",attr"`
+			Attr string `river:",attr"` //nolint:rivertags
 		}
 		expect := `river: non-empty field name required at rivertags_test.Struct.Attr`
 		expectPanic(t, expect, Struct{})
