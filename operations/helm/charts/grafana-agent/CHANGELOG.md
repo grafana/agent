@@ -10,6 +10,10 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Breaking Change
+
+- Set the helm chart to deploy in static mode by default instead of flow
+
 0.4.0 (2023-01-31)
 ------------------
 
