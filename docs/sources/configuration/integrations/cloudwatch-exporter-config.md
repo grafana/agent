@@ -1,8 +1,5 @@
 ---
-aliases:
-
-- /docs/agent/latest/configuration/integrations/cloudwatch-exporter/ title: cloudwatch_exporter
-
+title: cloudwatch_exporter_config
 ---
 
 # cloudwatch_exporter_config
