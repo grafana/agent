@@ -350,8 +350,7 @@ local _config = config._config;
           {
             alert: 'AgentManagementFailureToReload',
             expr: |||
-              agent_config_last_load_successful
-                == 0
+              avg_over_time(agent_config_last_load_successful[10m]) < 0.9
             ||| % _config,
             'for': '10m',
             labels: {
@@ -366,8 +365,7 @@ local _config = config._config;
           {
             alert: 'AgentManagementFailureToReload',
             expr: |||
-              agent_config_last_load_successful
-                == 0
+              avg_over_time(agent_config_last_load_successful[10m]) < 0.9
             ||| % _config,
             'for': '30m',
             labels: {
