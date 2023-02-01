@@ -84,6 +84,7 @@ integrations.mysql "server1" {
     username = argument.username.value
     password = argument.password.value
 }
+
 ```
 
 ```river
@@ -268,6 +269,14 @@ The following arguments are supported:
 Name            | Type                | Description                                                                                | Default | Required
 --------------- | ------------------- | ------------------------------------------------------------------------------------------ |---------| --------
 `comment`  | `string` | Comment describing what the export is used for |    ""     | no
+
+## Exported fields
+
+The following fields are exported and can be referenced by other components:
+
+Name | Type | Description
+---- | ---- | -----------
+`value` | `any` | The represented value of the export.
 
 
 # Example Documentation for `module.single`
