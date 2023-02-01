@@ -38,7 +38,7 @@ By default, [Grafana Agent Static][Static] is deployed. To use the agent in [Flo
 | agent.extraPorts | list | `[]` | Extra ports to expose on the Agent |
 | agent.listenAddr | string | `"0.0.0.0"` | Address to listen for traffic on. 0.0.0.0 exposes the UI to other containers. |
 | agent.listenPort | int | `80` | Port to listen for traffic on. |
-| agent.mode | string | `"flow"` | Mode to run Grafana Agent in. Can be "flow" or "static". |
+| agent.mode | string | `"static"` | Mode to run Grafana Agent in. Can be "static" or "flow". |
 | agent.mounts.dockercontainers | bool | `false` | Mount /var/lib/docker/containers from the host into the container for log collection. |
 | agent.mounts.extra | list | `[]` | Extra volume mounts to add into the Grafana Agent container. Does not affect the watch container. |
 | agent.mounts.varlog | bool | `false` | Mount /var/log from the host into the container for log collection. |
