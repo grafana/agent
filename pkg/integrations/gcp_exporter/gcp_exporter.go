@@ -12,13 +12,14 @@ import (
 
 	"github.com/PuerkitoBio/rehttp"
 	"github.com/go-kit/log"
+	"github.com/grafana/dskit/multierror"
 	"github.com/prometheus-community/stackdriver_exporter/collectors"
 	"github.com/prometheus-community/stackdriver_exporter/utils"
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/monitoring/v3"
 	"google.golang.org/api/option"
-	"gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v2"
 
 	"github.com/grafana/agent/pkg/integrations"
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
@@ -127,14 +128,14 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 }
 
 func (c *Config) Validate() error {
-	var configErrors []string
+	configErrors := multierror.MultiError{}
 
 	if c.ProjectIDs == nil || len(c.ProjectIDs) == 0 {
-		configErrors = append(configErrors, "no project_ids defined and no default was found in the gcloud config")
+		configErrors.Add(errors.New("no project_ids defined"))
 	}
 
 	if c.MetricPrefixes == nil || len(c.MetricPrefixes) == 0 {
-		configErrors = append(configErrors, "at least 1 metrics_prefixes is required")
+		configErrors.Add(errors.New("at least 1 metrics_prefixes is required"))
 	}
 
 	if len(c.ExtraFilters) > 0 {
@@ -142,7 +143,7 @@ func (c *Config) Validate() error {
 		for _, filter := range c.ExtraFilters {
 			splitFilter := strings.Split(filter, ":")
 			if len(splitFilter) <= 1 {
-				configErrors = append(configErrors, fmt.Sprintf("%s is an invalid filter a filter must be of the form <metric_type>:<filter_expression>", filter))
+				configErrors.Add(fmt.Errorf("%s is an invalid filter a filter must be of the form <metric_type>:<filter_expression>", filter))
 				continue
 			}
 			filterPrefix := splitFilter[0]
@@ -161,16 +162,12 @@ func (c *Config) Validate() error {
 				}
 			}
 			if !validFilterPrefix {
-				configErrors = append(configErrors, fmt.Sprintf("No metric_prefixes started with %s which means the extra_filters %s will not have any effect", filterPrefix, strings.Join(filters, ",")))
+				configErrors.Add(fmt.Errorf("no metric_prefixes started with %s which means the extra_filters %s will not have any effect", filterPrefix, strings.Join(filters, ",")))
 			}
 		}
 	}
 
-	if len(configErrors) != 0 {
-		return errors.New(strings.Join(configErrors, ","))
-	}
-
-	return nil
+	return configErrors.Err()
 }
 
 func createMonitoringService(ctx context.Context, httpTimeout time.Duration) (*monitoring.Service, error) {

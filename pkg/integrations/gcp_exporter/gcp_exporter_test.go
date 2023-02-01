@@ -100,6 +100,21 @@ func TestConfig_Validate(t *testing.T) {
 			},
 			shouldError: false,
 		},
+		{
+			name: "2 extra filters which both match",
+			configModifier: func(config gcp_exporter.Config) gcp_exporter.Config {
+				config.MetricPrefixes = []string{
+					"loadbalancing.googleapis.com/https/total_latencies",
+					"loadbalancing.googleapis.com/https/request_bytes_count",
+				}
+				config.ExtraFilters = []string{
+					`loadbalancing.googleapis.com/https/total_latencies:resource.labels.backend_target_name="something"`,
+					`loadbalancing.googleapis.com/https/request_bytes_count:resource.labels.backend_target_name="something else"`,
+				}
+				return config
+			},
+			shouldError: false,
+		},
 	}
 	for _, tt := range tests {
 		testName := tt.name
