@@ -9,7 +9,6 @@ import (
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/processor"
 	"github.com/grafana/agent/pkg/river"
-	"github.com/mitchellh/mapstructure"
 	tsp "github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelconfig "go.opentelemetry.io/collector/config"
@@ -81,16 +80,12 @@ func (args Arguments) Convert() otelconfig.Processor {
 		otelPolicyCfgs = append(otelPolicyCfgs, policyCfg.Convert())
 	}
 
-	err := mapstructure.Decode(map[string]interface{}{
+	decodeMapStructure(map[string]interface{}{
 		"decision_wait":               args.DecisionWait,
 		"num_traces":                  args.NumTraces,
 		"expected_new_traces_per_sec": args.ExpectedNewTracesPerSec,
 		"policies":                    otelPolicyCfgs,
 	}, &otelConfig)
-
-	if err != nil {
-		panic(err)
-	}
 
 	otelConfig.ProcessorSettings = otelconfig.NewProcessorSettings(otelconfig.NewComponentID("tail_sampling"))
 
