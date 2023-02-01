@@ -16,13 +16,13 @@ StatefulSet or Deployment.
 Creating multiple installations of the Helm chart with different controllers is
 useful if just using the default DaemonSet isn't sufficient.
 
-## Flow mode is the default
+## Static mode is the default
 
-By default, [Grafana Agent Flow][Flow] is deployed. To opt out of Flow mode and
-use the older mode (called "static mode"), set the `agent.mode` value to
-`static`.
+By default, [Grafana Agent Static][Static] is deployed. To use the agent in [Flow] mode (currently in beta) set the `agent.mode` value to
+`flow`.
 
 [Flow]: https://grafana.com/docs/agent/latest/flow/
+[Static]: https://grafana.com/docs/agent/latest/
 
 ## Values
 

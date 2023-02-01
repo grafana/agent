@@ -8,7 +8,7 @@ fullnameOverride: null
 # Various agent settings.
 agent:
   # -- Mode to run Grafana Agent in. Can be "flow" or "static".
-  mode: 'flow'
+  mode: 'static'
 
   configMap:
     # -- Create a new ConfigMap for the config file.
