@@ -67,7 +67,10 @@ func TestPackPipeline(t *testing.T) {
 	testTime := time.Now()
 
 	// Submit these both separately to get a deterministic output
+	// Also, add a tiny delay so that the two entries don't end up with the
+	// same timestamp due to the Windows' lower-resolution timers.
 	out1 := processEntries(pl, newEntry(nil, l1Lbls, testMatchLogLineApp1, testTime))[0]
+	time.Sleep(1 * time.Millisecond)
 	out2 := processEntries(pl, newEntry(nil, l2Lbls, testRegexLogLine, testTime))[0]
 
 	// Expected labels should remove the packed labels
