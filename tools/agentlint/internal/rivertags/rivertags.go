@@ -17,7 +17,7 @@ var Analyzer = &analysis.Analyzer{
 	Run:  run,
 }
 
-var noLintRegex = regexp.MustCompile(`//\s*nolint:rivertags`)
+var noLintRegex = regexp.MustCompile(`//\s*nolint:(\S+)`)
 var riverTagRegex = regexp.MustCompile(`river:"([^"]*)"`)
 
 // Rules for river tag linting:
@@ -53,7 +53,7 @@ func run(p *analysis.Pass) (interface{}, error) {
 			// Ignore fields with //nolint:rivertags in them.
 			if comments := nodeField.Comment; comments != nil {
 				for _, comment := range comments.List {
-					if noLintRegex.MatchString(comment.Text) {
+					if lintingDisabled(comment.Text) {
 						continue NextField
 					}
 				}
@@ -108,6 +108,21 @@ func run(p *analysis.Pass) (interface{}, error) {
 	}
 
 	return nil, nil
+}
+
+func lintingDisabled(comment string) bool {
+	// Extract //nolint:A,B,C into A,B,C
+	matches := noLintRegex.FindAllStringSubmatch(comment, -1)
+	for _, match := range matches {
+		// Iterate over A,B,C by comma and see if our linter is included.
+		for _, disabledLinter := range strings.Split(match[1], ",") {
+			if disabledLinter == "rivertags" {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 func getStructs(ti *types.Info) []*structInfo {
