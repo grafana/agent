@@ -12,9 +12,9 @@ import (
 func TestCounterExpiration(t *testing.T) {
 	t.Parallel()
 	cfg := &CounterConfig{
-		Action:       "inc",
-		Description:  "HELP ME!!!!!",
-		IdleDuration: 1 * time.Second,
+		Action:      "inc",
+		Description: "HELP ME!!!!!",
+		MaxIdle:     1 * time.Second,
 	}
 
 	cnt, err := NewCounters("test1", cfg)

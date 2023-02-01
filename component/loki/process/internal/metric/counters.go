@@ -16,12 +16,12 @@ const (
 // CounterConfig defines a counter metric whose value only goes up.
 type CounterConfig struct {
 	// Shared fields
-	Name         string        `river:"name,attr"`
-	Description  string        `river:"description,attr,optional"`
-	Source       string        `river:"source,attr,optional"`
-	Prefix       string        `river:"prefix,attr,optional"`
-	IdleDuration time.Duration `river:"max_idle_duration,attr,optional"`
-	Value        string        `river:"value,attr,optional"`
+	Name        string        `river:"name,attr"`
+	Description string        `river:"description,attr,optional"`
+	Source      string        `river:"source,attr,optional"`
+	Prefix      string        `river:"prefix,attr,optional"`
+	MaxIdle     time.Duration `river:"max_idle_duration,attr,optional"`
+	Value       string        `river:"value,attr,optional"`
 
 	// Counter-specific fields
 	Action          string `river:"action,attr"`
@@ -31,7 +31,7 @@ type CounterConfig struct {
 
 // DefaultCounterConfig sets the default for a Counter.
 var DefaultCounterConfig = CounterConfig{
-	IdleDuration: 5 * time.Minute,
+	MaxIdle: 5 * time.Minute,
 }
 
 // UnmarshalRiver implements the unmarshaller
@@ -43,7 +43,7 @@ func (c *CounterConfig) UnmarshalRiver(f func(v interface{}) error) error {
 		return err
 	}
 
-	if c.IdleDuration < 1*time.Second {
+	if c.MaxIdle < 1*time.Second {
 		return fmt.Errorf("idle duration must be greater than 1s")
 	}
 
@@ -80,7 +80,7 @@ func NewCounters(name string, config *CounterConfig) (*Counters, error) {
 			}),
 				0,
 			}
-		}, int64(config.IdleDuration.Seconds())),
+		}, int64(config.MaxIdle.Seconds())),
 		Cfg: config,
 	}, nil
 }

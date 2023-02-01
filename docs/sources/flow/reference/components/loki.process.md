@@ -968,11 +968,14 @@ want it to be indexed as a label due to high cardinality.
 The querying capabilities of Loki make it easy to still access this data so it can 
 be filtered and aggregated at query time.
 
-For example, consider the following log entry and processing stage:
+For example, consider the following log entry:
 ```
 log_line: "something went wrong"
 labels:   { "level" = "error", "env" = "dev", "user_id" = "f8fas0r" }
+```
 
+and this processing stage:
+```river
 stage {
 	pack {
 		labels = ["env", "user_id"]
@@ -987,12 +990,11 @@ embedded labels are removed from the original log entry:
 	"_entry": "something went wrong",
 	"env": "dev",
 	"user_id": "f8fas0r",
-		
 }
 
-At query time, Loki's `unpack` parser can be used to access these embedded labels
-and replace the log line with the original one stored in `_entry`
-automatically.
+At query time, Loki's [`unpack` parser](https://grafana.com/docs/loki/latest/logql/log_queries/#unpack)
+can be used to access these embedded labels and replace the log line with the
+original one stored in the `_entry` field automatically.
 
 When combining several log streams to use with the `pack` stage,
 `ingest_timestamp` can be set to true to avoid interlaced timestamps and
@@ -1023,6 +1025,10 @@ The template string can be any valid template that can be used by Go's `text/tem
 ToLower, ToUpper, Replace, Trim, TrimLeftTrimRight, TrimPrefix, TrimSuffix, TrimSpace, Hash, Sha2Hash, regexReplaceAll, regexReplaceAllLiteral
 ```
 
+More details on each of these functions can be found in the [supported
+functions][] section below.
+
+[supported functions]: #supported-functions
 
 Assuming no data is present on the extracted map, the following stage simply
 adds the `new_key: "hello_world"`key-value pair to the shared map.
@@ -1101,11 +1107,13 @@ stage {
 ```
 
 ##### Replace
-`Replace` returns a copy of the string `s` with the first `n` non-overlapping
-instances of `old` replaced by `new`. If `old` is empty, it matches at the
-beginning of the string and after each UTF-8 sequence, yielding up to k+1
-replacements for a k-rune string. If n < 0, there is no limit on the number of
-replacements.
+The `Replace` function syntax is defined as `{{ Replace <string> <old> <new> <n> }}`.
+
+The function returns a copy of the input string, with instances of the `<old>`
+argument being replaced by `<new>`. The function replaces up to `<n>`
+non-overlapping instances of the second argument. If `<n>` is less than zero,
+there is no limit on the number of replacement. Finally, if `<old>` is empty,
+it matches before and after every UTF-8 character in the string.
 
 This example below replaces the first two instances of the `loki` word by `Loki`:
 ```river

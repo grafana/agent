@@ -11,8 +11,8 @@ import (
 func TestHistogramExpiration(t *testing.T) {
 	t.Parallel()
 	cfg := &HistogramConfig{
-		Description:  "HELP ME!!!!!",
-		IdleDuration: 1 * time.Second,
+		Description: "HELP ME!!!!!",
+		MaxIdle:     1 * time.Second,
 	}
 
 	hist, err := NewHistograms("test1", cfg)

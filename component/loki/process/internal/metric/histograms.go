@@ -10,18 +10,18 @@ import (
 
 // DefaultHistogramConfig sets the defaults for a Histogram.
 var DefaultHistogramConfig = HistogramConfig{
-	IdleDuration: 5 * time.Minute,
+	MaxIdle: 5 * time.Minute,
 }
 
 // HistogramConfig defines a histogram metric whose values are bucketed.
 type HistogramConfig struct {
 	// Shared fields
-	Name         string        `river:"name,attr"`
-	Description  string        `river:"description,attr,optional"`
-	Source       string        `river:"source,attr,optional"`
-	Prefix       string        `river:"prefix,attr,optional"`
-	IdleDuration time.Duration `river:"max_idle_duration,attr,optional"`
-	Value        string        `river:"value,attr,optional"`
+	Name        string        `river:"name,attr"`
+	Description string        `river:"description,attr,optional"`
+	Source      string        `river:"source,attr,optional"`
+	Prefix      string        `river:"prefix,attr,optional"`
+	MaxIdle     time.Duration `river:"max_idle_duration,attr,optional"`
+	Value       string        `river:"value,attr,optional"`
 
 	// Histogram-specific fields
 	Buckets []float64 `river:"buckets,attr"`
@@ -36,7 +36,7 @@ func (h *HistogramConfig) UnmarshalRiver(f func(v interface{}) error) error {
 		return err
 	}
 
-	if h.IdleDuration < 1*time.Second {
+	if h.MaxIdle < 1*time.Second {
 		return fmt.Errorf("idle duration must be greater than 1s")
 	}
 
@@ -64,7 +64,7 @@ func NewHistograms(name string, config *HistogramConfig) (*Histograms, error) {
 			}),
 				0,
 			}
-		}, int64(config.IdleDuration.Seconds())),
+		}, int64(config.MaxIdle.Seconds())),
 		Cfg: config,
 	}, nil
 }

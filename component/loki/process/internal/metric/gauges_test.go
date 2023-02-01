@@ -11,9 +11,9 @@ import (
 func TestGaugeExpiration(t *testing.T) {
 	t.Parallel()
 	cfg := &GaugeConfig{
-		Description:  "HELP ME!!!!!",
-		Action:       "inc",
-		IdleDuration: 1 * time.Second,
+		Description: "HELP ME!!!!!",
+		Action:      "inc",
+		MaxIdle:     1 * time.Second,
 	}
 
 	gag, err := NewGauges("test1", cfg)

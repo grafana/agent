@@ -21,18 +21,18 @@ const (
 
 // DefaultGaugeConfig sets the defaults for a Gauge.
 var DefaultGaugeConfig = GaugeConfig{
-	IdleDuration: 5 * time.Minute,
+	MaxIdle: 5 * time.Minute,
 }
 
 // GaugeConfig defines a gauge metric whose value can go up or down.
 type GaugeConfig struct {
 	// Shared fields
-	Name         string        `river:"name,attr"`
-	Description  string        `river:"description,attr,optional"`
-	Source       string        `river:"source,attr,optional"`
-	Prefix       string        `river:"prefix,attr,optional"`
-	IdleDuration time.Duration `river:"max_idle_duration,attr,optional"`
-	Value        string        `river:"value,attr,optional"`
+	Name        string        `river:"name,attr"`
+	Description string        `river:"description,attr,optional"`
+	Source      string        `river:"source,attr,optional"`
+	Prefix      string        `river:"prefix,attr,optional"`
+	MaxIdle     time.Duration `river:"max_idle_duration,attr,optional"`
+	Value       string        `river:"value,attr,optional"`
 
 	// Gauge-specific fields
 	Action string `river:"action,attr"`
@@ -47,7 +47,7 @@ func (g *GaugeConfig) UnmarshalRiver(f func(v interface{}) error) error {
 		return err
 	}
 
-	if g.IdleDuration < 1*time.Second {
+	if g.MaxIdle < 1*time.Second {
 		return fmt.Errorf("idle duration must be greater than 1s")
 	}
 
@@ -79,7 +79,7 @@ func NewGauges(name string, config *GaugeConfig) (*Gauges, error) {
 			}),
 				0,
 			}
-		}, int64(config.IdleDuration.Seconds())),
+		}, int64(config.MaxIdle.Seconds())),
 		Cfg: config,
 	}, nil
 }
