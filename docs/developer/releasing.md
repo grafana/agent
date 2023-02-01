@@ -62,26 +62,26 @@ export GPG_TTY=$(tty)
 
 ## Performing Releases
 
-The lifetime of a release branch is sheparded by a single person, picked from a
-rota of project maintainers and contributors. The release shepard is
+The lifetime of a release branch is shepherded by a single person, picked from a
+rota of project maintainers and contributors. The release shepherd is
 responsible for managing all releases that compose the release branch.
 
-For a new release branch, the release shepard will:
+For a **new release branch**, the release shepherd will:
 
 1. Gather consensus on which commit should be used as a base for the release
    branch.
 
-2. Create and push the release branch from the selected base commit.
+2. Create and push the release branch from the selected base commit. 
+
+   The name of the release branch should be the name of the stable version we intend 
+   to release, e.g. `release-v0.31`. Release branches do not contain the `-rc.N` release 
+   candidate suffix, i.e. there is no `release-v0.31-rc.0`.
 
 3. Create a PR to cherry-pick additional commits into the release branch as
    needed.
 
-4. Create a PR to [update code](#updating-code) for the upcoming release
-   candidate. A new section in the changelog should be added for the release
-   candidate, documenting all changes introduced by the release candidate.
-
-4. Update the changelog with a new section for the upcoming release candidate,
-   documenting changes that will be introduced in that release candidate.
+4. Create a PR to [update code](#updating-code) using the `-rc.N` release
+   candidate version.
 
 5. Tag the release candidate using the tag naming convention `vX.Y.0-rc.N`.
 
@@ -94,17 +94,28 @@ For a new release branch, the release shepard will:
    fixes are available, cherry-picking the fixes into the release branch and
    starting a new release candidate.
 
-7. Create a PR to update code for the upcoming stable release. The changelog
-   sections for the release candidates should be replaced with a single section
-   for the stable release.
+7. Create a PR to [update code](#updating-code) again - this time using the stable
+   release version. 
 
 8. Create the stable release tag.
 
-9. Force-push the `release` branch to point at the stable release tag. This
-   branch is used to externally reference files in the repository for a stable
-   release.
+9. Make sure [Homebrew is updated](#updating-homebrew).
 
-For patch releases, the release shepard will:
+10. Force-push the `release` branch to point at the stable release tag. This
+   branch is used to externally reference files in the repository for a stable
+   release, e.g. the "[latest](https://grafana.com/docs/agent/latest/)" documentation.
+
+11. Make sure the documentation is updated:
+    1. A new version of the documentation should be visible on the 
+    [version switcher](https://grafana.com/docs/versions/?project=/docs/agent/).
+    2. The "[latest](https://grafana.com/docs/agent/latest/)" one should be identical to the latest version.
+
+12. [Publish the release](#publishing-the-release)
+
+13. Post a comment on the community Slack channel to let the rest of the community 
+know about the release. You can post about release candidates too.
+
+For **patch releases**, the release shepherd will:
 
 1. Create a PR to cherry-pick relevant bug fixes into the release branch.
 
@@ -113,25 +124,55 @@ For patch releases, the release shepard will:
 
 3. Create the patch release tag.
 
-After the release shepard pushes a new tag, they must [publish the release](#publishing-the-release).
+4. [Publish the release](#publishing-the-release)
 
 ### Updating code
 
-The codebase must be updated whenever a new release is being made to reference
-the upcoming release tag:
+The codebase must be updated whenever a new release is being made to reference the upcoming release tag.
 
-* Modify `CHANGELOG.md` with a new version number and its release date.
-* Go through the entire repository and find references to the previous release
-  version, updating them to reference the new version.
-* Run `make generate-manifests` and `make generate-dashboards` to update
-  manifests in case they are stale.
+#### Update the changelog
 
 NOTE: Any time CHANGELOG.md is updated for a release, it should first be done
 via PR to the release branch, and then by a second PR to main.
 
+When creating a release **candidate** (an `-rc.N` version):
+
+* Add a new section in the changelog for the new release candidate and include 
+today's date. E.g. "v0.31.0-rc.0 (2023-01-26)".
+* All items form the "unreleased" section will move to a new section for the upcoming release version.
+* See [here](https://github.com/grafana/agent/pull/2838/files) for an example pull request.
+* Sanity check that the changelog doesn't contain features which don't belong to it. Sometimes features get added to the wrong version in the changelog due to bad merges.
+
+When creating a **stable** release:
+
+* Replace the version from the release candidate section to be the stable release instead 
+of the `-rc.N` version.
+* We do not leave release candidates in the changelog once there is a stable version for them.
+* Make sure to also update the **date** in the title.
+* See [here](https://github.com/grafana/agent/pull/2873/files) for an example pull request.
+
+#### Search and replace the old version with the new one
+
+Go through the entire repository and find references to the previous release
+  version, updating them to reference the new version **where necessary**.
+
+NOTE: There are files such as 
+"[pkg/operator/defaults.go](https://github.com/grafana/agent/blob/main/pkg/operator/defaults.go)", 
+where the version sometimes should not be replaced but added to a list of versions.
+At the time of this writing, `defaults.go` is the only such file.
+
+#### Update defaults.go
+
+Add the new version to the "[pkg/operator/defaults.go](https://github.com/grafana/agent/blob/main/pkg/operator/defaults.go)" file. If there is a release candidate (`-rc.N`) version, remove it.
+
+#### Update manifests and dashboards
+
+Run `make generate-manifests` and `make generate-dashboards` to update
+manifests in case they are stale.
+
 ### Merge freezes
 
-Release shepards may request a merge freeze to main for any reason during the
+Release shepherds may request a merge freeze to main for any reason during the
 release process.
 
 ### Publishing the Release
@@ -146,10 +187,26 @@ pushed tag. To publish the release:
    CHANGELOG. Add a link to the CHANGELOG, noting that the full list of changes
    can be found there. Refer to other releases for help with formatting this.
 
-3. Optionally, have other team members review the release draft if you wish
+3. Tick the appropriate boxes at the bottom of the release page:
+
+      * For release candidates:
+
+         1. Tick the checkbox to "set as pre-release".
+
+      * For stable releases:
+
+         1. Tick the checkbox to "set as the latest release".
+
+         2. Tick the check box to "add a discussion" under the category for "announcements".
+
+4. Optionally, have other team members review the release draft if you wish
    to feel more comfortable with it.
 
-4. Publish the release!
+5. Publish the release!
+
+NOTE: Release candidates should be retained on the 
+[GitHub releases page](https://github.com/grafana/agent/releases).
+Please do not remove them.
 
 ### Update Agent Operator Helm chart version
 
@@ -161,8 +218,31 @@ helm-charts' repo `charts/agent-operator/crds`.
 2. Update references of agent-operator app version in helm-charts pointing to release version and bump helm chart version.
 You can use this [pull-request](https://github.com/grafana/helm-charts/pull/1831) as reference.
 
+### Updating Homebrew
+[Homebrew](https://brew.sh/) is a package manager for MacOS. It installs binaries 
+(aka "[bottles](https://docs.brew.sh/Bottles)") from either the main Homebrew repository 
+or a third-party one (aka a "[tap](https://docs.brew.sh/Taps)").
+
+For every Agent release we need to update two Brew repositories:
+* [homebrew/homebrew-core](https://github.com/Homebrew/homebrew-core) is the main one which 
+Brew installations use by default
+* [grafana/homebrew-grafana](https://github.com/grafana/homebrew-grafana) is a "tap" - 
+a Third-Party Repository from Grafana.
+
+When a release tag is published to the Agent repository, GitHub actions are triggered automatically 
+to update both of the above repositories. PRs are created automatically:
+* If there are no issues, they will be merged automatically.
+* The merges are done from these two grafanabot forks:
+    * [grafanabot/homebrew-core](https://github.com/grafanabot/homebrew-core)
+    * [grafanabot/homebrew-grafana](https://github.com/grafanabot/homebrew-grafana/tree/master)
+* The GitHub actions will not fail if the PRs fail to merge.
+* The release shepherd needs to manually open the GitHub actions, 
+scroll to the end to find the PR and double check that it was merged.
+* If the CI fails the PR is not able to merge, the release shepherd can push a fix to 
+the same branch as the one that the PR is open for.
+
 ## Maintaining older release branches
 
 Older release branches are maintained on a best-effort basis. The release
-shepard for that branch determines whether an older release branch have a new
+shepherd for that branch determines whether an older release branch have a new
 patch release at their own discretion.
