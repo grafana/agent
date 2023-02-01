@@ -105,8 +105,13 @@ AGENTLINT_BINARY ?= build/agentlint
 GOOS             ?= $(shell go env GOOS)
 GOARCH           ?= $(shell go env GOARCH)
 GOARM            ?= $(shell go env GOARM)
-CGO_ENABLED      ?= 1
 RELEASE_BUILD    ?= 0
+ifdef CGO_ENABLED
+CGO_ENABLED := $(shell go env CGO_ENABLED)
+else
+CGO_ENABLED := 1
+endif
+
 
 # List of all environment variables which will propagate to the build
 # container. USE_CONTAINER must _not_ be included to avoid infinite recursion.
