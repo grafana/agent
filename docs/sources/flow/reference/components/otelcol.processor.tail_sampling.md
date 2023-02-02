@@ -105,7 +105,7 @@ Name | Type | Description | Default | Required
 `name` | `string` | The custom name given to the policy. | | yes
 `type` | `string` | The valid policy type for this policy. | | yes
 
-Each policy will result in a decision, and the processor will evaluate them to make a final decision:
+Each policy results in a decision, and the processor evaluates them to make a final decision:
 
 - When there's an "inverted not sample" decision, the trace is not sampled;
 - When there's a "sample" decision, the trace is sampled;
