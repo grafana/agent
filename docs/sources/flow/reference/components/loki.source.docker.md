@@ -52,37 +52,15 @@ configuration.
 
 ## Debug information
 
-`loki.source.docker` exposes some target-level debug information per reader:
- ????
-* A
-* B
-* C
+`loki.source.docker` exposes some debug information per target:
+* Whether the target is ready to tail entries.
+* The labels associated with the target.
+* The most recent time a log line was read.
 
 ## Debug metrics
+
 * `loki_source_docker_target_entries_total` (gauge): Total number of successful entries sent to the Docker target.
 * `loki_source_docker_target_parsing_errors_total` (gauge): Total number of parsing errors while receiving Docker messages.
-
-## Component behavior
-Each element in the list of `targets` as a set of key-value pairs called
-_labels_.
-The set of targets can either be _static_, or dynamically provided periodically
-by a service discovery component. The special label `__path__` _must always_ be
-present and must point to the absolute path of the file to read from.
-<!-- TODO(@tpaschalis) refer to discovery.fileglob -->
-
-The `__path__` value is  available as the `filename` label to each log entry
-the component reads. All other labels starting with a double underscore are
-considered _internal_ and are removed from the log entries before they're
-passed to other `loki.*` components.
-
-The component uses its data path (a directory named after the domain's
-fully qualified name) to store its _positions file_. The positions file is used
-to store read offsets, so that in case of a component or Agent restart,
-`loki.source.file` can pick up tailing from the same spot. 
-
-If a file is removed from the `targets` list, its positions file entry is also
-removed. When it's added back on, `loki.source.file` starts reading it from the
-beginning.
 
 ## Example
 
