@@ -83,7 +83,7 @@
 ##   GOOS             Override OS to build binaries for
 ##   GOARCH           Override target architecture to build binaries for
 ##   GOARM            Override ARM version (6 or 7) when GOARCH=arm
-##   CGO_ENABLED      Set to 0 to disable Cgo for binaries that support Cgo.
+##   CGO_ENABLED      Set to 0 to disable Cgo for binaries.
 ##   RELEASE_BUILD    Set to 1 to build release binaries.
 ##   VERSION          Version to inject into built binaries.
 ##   GO_TAGS          Extra tags to use when building.
@@ -105,13 +105,8 @@ AGENTLINT_BINARY ?= build/agentlint
 GOOS             ?= $(shell go env GOOS)
 GOARCH           ?= $(shell go env GOARCH)
 GOARM            ?= $(shell go env GOARM)
+CGO_ENABLED      ?= 1
 RELEASE_BUILD    ?= 0
-ifdef CGO_ENABLED
-CGO_ENABLED := $(shell go env CGO_ENABLED)
-else
-CGO_ENABLED := 1
-endif
-
 
 # List of all environment variables which will propagate to the build
 # container. USE_CONTAINER must _not_ be included to avoid infinite recursion.
@@ -125,7 +120,6 @@ PROPAGATE_VARS := \
 # Constants for targets
 #
 
-CGO_ENV := GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CGO_ENABLED=$(CGO_ENABLED) ASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH=go1.20
 GO_ENV  := GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CGO_ENABLED=$(CGO_ENABLED) ASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH=go1.20
 
 VERSION      ?= $(shell ./tools/image-tag)
@@ -164,8 +158,8 @@ lint: agentlint
 # We have to run test twice: once for all packages with -race and then once
 # more without -race for packages that have known race detection issues.
 test:
-	$(CGO_ENV) go test $(GO_FLAGS) -race ./...
-	$(CGO_ENV) go test $(GO_FLAGS) ./pkg/integrations/node_exporter ./pkg/logs ./pkg/operator ./pkg/util/k8s
+	$(GO_ENV) go test $(GO_FLAGS) -race ./...
+	$(GO_ENV) go test $(GO_FLAGS) ./pkg/integrations/node_exporter ./pkg/logs ./pkg/operator ./pkg/util/k8s
 
 test-packages:
 	docker pull $(BUILD_IMAGE)
@@ -182,7 +176,7 @@ agent:
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
-	$(CGO_ENV) go build $(GO_FLAGS) -o $(AGENT_BINARY) ./cmd/grafana-agent
+	$(GO_ENV) go build $(GO_FLAGS) -o $(AGENT_BINARY) ./cmd/grafana-agent
 endif
 
 agentctl:
