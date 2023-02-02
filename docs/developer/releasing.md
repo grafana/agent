@@ -66,7 +66,7 @@ The lifetime of a release branch is shepherded by a single person, picked from a
 rota of project maintainers and contributors. The release shepherd is
 responsible for managing all releases that compose the release branch.
 
-For a **new release branch**, the release shepherd will:
+For a **new release candidate**, the release shepherd will:
 
 1. Gather consensus on which commit should be used as a base for the release
    branch.
@@ -85,7 +85,11 @@ For a **new release branch**, the release shepherd will:
 
 5. Tag the release candidate using the tag naming convention `vX.Y.0-rc.N`.
 
-6. Run the release candidate in a testing environment for at least 48 hours. If
+6. [Publish the release candidate on Github](#publishing-the-release)
+
+7. Announce the release candidate on the community Slack channel.
+
+8. Run the release candidate in a testing environment for at least 48 hours. If
    you do not have a testing environment, one can be spawned locally using the
    sample environments in `example/k3d`.
 
@@ -94,26 +98,34 @@ For a **new release branch**, the release shepherd will:
    fixes are available, cherry-picking the fixes into the release branch and
    starting a new release candidate.
 
-7. Create a new PR to [update code](#updating-code) using the _stable_
-   release version. 
+   The `rc` version of the next release candidate would have to be incremented - 
+   e.g. from `v0.31.0-rc.0` to `v0.31.0-rc.1`.
 
-8. Create the stable release tag.
+If no new issues were found during the environment testing, the shepherd can continue with 
+creating a **stable release**:
 
-9. Make sure [Homebrew is updated](#updating-homebrew).
+1. Create a new PR to [update code](#updating-code) using the _stable_
+   release version (i.e. without `-rc.N`).
 
-10. Force-push the `release` branch to point at the stable release tag. This
+2. Create the stable release tag.
+
+3. Force-push the `release` branch to point at the stable release tag. This
    branch is used to externally reference files in the repository for a stable
    release, e.g. the "[latest](https://grafana.com/docs/agent/latest/)" documentation.
 
-11. Make sure the documentation is updated:
+4. Make sure the documentation is updated:
     1. A new version of the documentation should be visible on the 
     [version switcher](https://grafana.com/docs/versions/?project=/docs/agent/).
     2. The "[latest](https://grafana.com/docs/agent/latest/)" one should be identical to the latest version.
+    3. Check the "Upgrade guide" - the latest changes listed in it should be assigned to the latest version.
 
-12. [Publish the release](#publishing-the-release)
+5. [Publish the release on Github](#publishing-the-release)
 
-13. Post a comment on the community Slack channel to let the rest of the community 
-know about the release. You can post about release candidates too.
+6. [Update Agent Operator Helm chart version](#update-agent-operator-helm-chart-version)
+
+7. Make sure [Homebrew is updated](#updating-homebrew).
+
+8. Announce the release on community Slack channel.
 
 For **patch releases**, the release shepherd will:
 
@@ -126,16 +138,21 @@ For **patch releases**, the release shepherd will:
 
 4. [Publish the release](#publishing-the-release)
 
+5. [Update Agent Operator Helm chart version](#update-agent-operator-helm-chart-version)
+
 ### Updating code
 
 The codebase must be updated whenever a new release is being made to reference the upcoming release tag.
 
+NOTE: Any change done for a release should be done in `main` first and then moved to the release branch.
+
+NOTE: Branches used for PRs should have a name that doesn't start with `release-`, 
+otherwise branch protection rules apply to it. Alternatively, branches used for PRs 
+can come from forks.
+
 #### Update the changelog
 
-NOTE: Any time CHANGELOG.md is updated for a release, it should first be done
-via PR to the release branch, and then by a second PR to main.
-
-When creating a release **candidate** (an `-rc.N` version):
+When creating a release **candidate** (i.e. an `-rc.N` version):
 
 * Add a new section in the changelog for the new release candidate and include 
 today's date. E.g. "v0.31.0-rc.0 (2023-01-26)".
@@ -151,10 +168,17 @@ of the `-rc.N` version.
 * Make sure to also update the **date** in the title.
 * See [here](https://github.com/grafana/agent/pull/2873/files) for an example pull request.
 
+#### Update the "Upgrade guide"
+The "Upgrade guide" is located in `docs/sources/upgrade-guide/_index.md` and lists breaking changes 
+and deprecated features relevant to each release. Make sure that it is updated similarly to the changelog.
+
 #### Search and replace the old version with the new one
 
 Go through the entire repository and find references to the previous release
   version, updating them to reference the new version **where necessary**.
+
+NOTE: Please do not update the `operations/helm` directory. It is updated independently 
+from Agent releases for now.
 
 NOTE: There are files such as 
 "[pkg/operator/defaults.go](https://github.com/grafana/agent/blob/main/pkg/operator/defaults.go)", 
@@ -178,7 +202,12 @@ release process.
 ### Publishing the Release
 
 GitHub Actions will create release assets and open a release draft for every
-pushed tag. To publish the release:
+pushed tag.
+
+> **WARNING**: We should never force push a tag after the publish button is pressed 
+for a release.
+
+To publish the release:
 
 1. Go to the [GitHub releases page](https://github.com/grafana/agent/releases)
    and find the drafted release.
@@ -215,7 +244,12 @@ needs to be manually updated after the release is published. These are the requi
 
 1. Copy the content of the last CRDs into helm-charts: from agent's repo `production/operator/crds/` to
 helm-charts' repo `charts/agent-operator/crds`.
-2. Update references of agent-operator app version in helm-charts pointing to release version and bump helm chart version.
+2. Update references of agent-operator app version in helm-charts pointing to release version and bump 
+helm chart version.
+3. There is no need to update the README.md manually - running the 
+[helm-docs](https://github.com/norwoodj/helm-docs) utility in the `charts/agent-operator` directory 
+will update it automatically.
+
 You can use this [pull-request](https://github.com/grafana/helm-charts/pull/1831) as reference.
 
 ### Updating Homebrew
@@ -229,8 +263,8 @@ Brew installations use by default
 * [grafana/homebrew-grafana](https://github.com/grafana/homebrew-grafana) is a "tap" - 
 a Third-Party Repository from Grafana.
 
-When a release tag is published to the Agent repository, GitHub actions are triggered automatically 
-to update both of the above repositories. PRs are created automatically:
+When a new [release](https://github.com/grafana/agent/releases) is published, GitHub actions 
+are automatically triggered to update both of the above repositories. PRs are created automatically:
 * If there are no issues, they will be merged automatically.
 * The merges are done from these two grafanabot forks:
     * [grafanabot/homebrew-core](https://github.com/grafanabot/homebrew-core)
