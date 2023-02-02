@@ -295,8 +295,8 @@ information.
 
 ## Example
 
-This example batches trace data from the agent before sending it to
-[otelcol.exporter.otlp][] for further processing. This example shows an impracticle amount of policies for the purpose of demonstrating how to set each type up:
+This example batches trace data from Grafana Agent before sending it to
+[otelcol.exporter.otlp][] for further processing. This example shows an impractical number of policies for the purpose of demonstrating how to set up each type.
 
 ```river
 tracing {
