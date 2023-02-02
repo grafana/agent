@@ -1,4 +1,4 @@
-package mongodb_exporter //nolint:golint
+package integrations //nolint:golint
 
 import (
 	"encoding/json"
