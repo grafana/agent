@@ -38,6 +38,13 @@ Main (unreleased)
   `systemctl reload grafana-agent` will now reload the configuration file.
   (@rfratto)
 
+- Flow: The `loki.process` component now implements all the same processing
+  stages as Promtail's pipelines. (@tpaschalis)
+
+### Other changes
+
+- Use Go 1.20 for builds. (@rfratto)
+
 v0.31.0 (2023-01-31)
 --------------------
 

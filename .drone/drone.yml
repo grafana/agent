@@ -126,8 +126,9 @@ platform:
   os: linux
 steps:
 - commands:
+  - apt-get update -y && apt-get install -y libsystemd-dev
   - make lint
-  image: grafana/agent-build-image:0.20.0
+  image: golangci/golangci-lint:v1.50.1
   name: Lint
 trigger:
   event:
@@ -143,7 +144,7 @@ steps:
 - commands:
   - make binaries
   - K8S_USE_DOCKER_NETWORK=1 make test
-  image: grafana/agent-build-image:0.20.0
+  image: grafana/agent-build-image:0.21.0
   name: Run Go tests
   volumes:
   - name: docker
@@ -166,7 +167,9 @@ platform:
 steps:
 - commands:
   - go test -tags="nodocker,nonetwork" ./...
-  image: grafana/agent-build-image:0.20.0-windows
+  environment:
+    ASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH: go1.20
+  image: grafana/agent-build-image:0.21.0-windows
   name: Run Go tests
 trigger:
   event:
@@ -181,7 +184,7 @@ platform:
 steps:
 - commands:
   - make agent-image
-  image: grafana/agent-build-image:0.20.0
+  image: grafana/agent-build-image:0.21.0
   name: Build container
   volumes:
   - name: docker
@@ -205,7 +208,7 @@ platform:
 steps:
 - commands:
   - make agentctl-image
-  image: grafana/agent-build-image:0.20.0
+  image: grafana/agent-build-image:0.21.0
   name: Build container
   volumes:
   - name: docker
@@ -229,7 +232,7 @@ platform:
 steps:
 - commands:
   - make operator-image
-  image: grafana/agent-build-image:0.20.0
+  image: grafana/agent-build-image:0.21.0
   name: Build container
   volumes:
   - name: docker
@@ -255,7 +258,7 @@ steps:
 - commands:
   - git config --global --add safe.directory C:/drone/src/
   - '& "C:/Program Files/git/bin/bash.exe" -c ./tools/ci/docker-containers-windows'
-  image: grafana/agent-build-image:0.20.0-windows
+  image: grafana/agent-build-image:0.21.0-windows
   name: Build container
   volumes:
   - name: docker
@@ -292,7 +295,7 @@ steps:
       from_secret: DOCKER_PASSWORD
     GCR_CREDS:
       from_secret: gcr_admin
-  image: grafana/agent-build-image:0.20.0
+  image: grafana/agent-build-image:0.21.0
   name: Build containers
   volumes:
   - name: docker
@@ -371,7 +374,7 @@ steps:
       from_secret: DOCKER_LOGIN
     DOCKER_PASSWORD:
       from_secret: DOCKER_PASSWORD
-  image: grafana/agent-build-image:0.20.0-windows
+  image: grafana/agent-build-image:0.21.0-windows
   name: Build containers
   volumes:
   - name: docker
@@ -414,7 +417,7 @@ steps:
       from_secret: gpg_private_key
     GPG_PUBLIC_KEY:
       from_secret: gpg_public_key
-  image: grafana/agent-build-image:0.20.0
+  image: grafana/agent-build-image:0.21.0
   name: Publish release
   volumes:
   - name: docker
@@ -422,6 +425,33 @@ steps:
 trigger:
   ref:
   - refs/tags/v*
+type: docker
+volumes:
+- host:
+    path: /var/run/docker.sock
+  name: docker
+---
+kind: pipeline
+name: Test Linux system packages
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - DOCKER_OPTS="" make dist/grafana-agent-linux-amd64
+  - DOCKER_OPTS="" make dist/grafana-agentctl-linux-amd64
+  - DOCKER_OPTS="" make test-packages
+  image: grafana/agent-build-image:0.21.0
+  name: Test Linux system packages
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+trigger:
+  event:
+  - pull_request
+  paths:
+  - packaging/**
+  - Makefile
 type: docker
 volumes:
 - host:
@@ -465,6 +495,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: c6496402d38b36cc5b32f691691f33214d25941b69a39c77f6b95de0d3c5eb83
+hmac: 63e5ba75c42ba4a51c011624dce9f5ee731403bd6effb6d6b63b1b120e2eed3a
 
 ...
