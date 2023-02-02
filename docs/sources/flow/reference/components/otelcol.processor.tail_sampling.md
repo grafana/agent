@@ -61,84 +61,42 @@ The following blocks are supported inside the definition of
 
 Hierarchy | Block | Description  | Required
 --------- | ----- | -----------  | --------
-policy                                                                               | [policy] [] | Policies used to make a sampling decision. | yes
-policy > latency                                              | [latency] | TODO. | no
-policy > numeric_attribute                                    | [numeric_attribute] | TODO. | no
-policy > probabilistic                                        | [probabilistic] | TODO. | no
-policy > status_code                                          | [status_code] | TODO. | no
-policy > string_attribute                                     | [string_attribute] | TODO. | no
-policy > rate_limiting                                        | [rate_limiting] | TODO. | no
-policy > span_count                                           | [span_count] | TODO. | no
-policy > trace_state                                          | [trace_state] | TODO. | no
-policy > and                                                                         | [and] | TODO. | no
-policy > and > and_sub_policy                                                        | [and_sub_policy] [] | TODO. | no
-policy > and > and_sub_policy > latency                       | [latency] | TODO. | no
-policy > and > and_sub_policy > numeric_attribute             | [numeric_attribute] | TODO. | no
-policy > and > and_sub_policy > probabilistic                 | [probabilistic] | TODO. | no
-policy > and > and_sub_policy > status_code                   | [status_code] | TODO. | no
-policy > and > and_sub_policy > string_attribute              | [string_attribute] | TODO. | no
-policy > and > and_sub_policy > rate_limiting                 | [rate_limiting] | TODO. | no
-policy > and > and_sub_policy > span_count                    | [span_count] | TODO. | no
-policy > and > and_sub_policy > trace_state                   | [trace_state] | TODO. | no
-policy > composite                                                                   | [composite] | TODO.  | no
-policy > composite > composite_sub_policy                                            | [composite_sub_policy] [] | TODO.  | no
-policy > composite > composite_sub_policy > latency           | [latency] | TODO.  | no
-policy > composite > composite_sub_policy > numeric_attribute | [numeric_attribute] | TODO.  | no
-policy > composite > composite_sub_policy > probabilistic     | [probabilistic] | TODO.  | no
-policy > composite > composite_sub_policy > status_code       | [status_code] | TODO.  | no
-policy > composite > composite_sub_policy > string_attribute  | [string_attribute] | TODO.  | no
-policy > composite > composite_sub_policy > rate_limiting     | [rate_limiting] | TODO.  | no
-policy > composite > composite_sub_policy > span_count        | [span_count] | TODO.  | no
-policy > composite > composite_sub_policy > trace_state       | [trace_state] | TODO.  | no
-output                                                                               | [output] []       | Configures where to send received telemetry data. | yes
-
-
-## Blocks
-
-The following blocks are supported inside the definition of
-`otelcol.processor.tail_sampling`:
-
-Hierarchy | Block | Description  | Required | Squashed
---------- | ----- | -----------  | -------- | --------
-policy                                                                               | [policy] [] | Policies used to make a sampling decision. | yes | no
-policy > shared_policy_config                                                        | [shared_policy_config] | TODO. | no | yes
-policy > shared_policy_config > latency                                              | [latency] | TODO. | no | no
-policy > shared_policy_config > numeric_attribute                                    | [numeric_attribute] | TODO. | no | no
-policy > shared_policy_config > probabilistic                                        | [probabilistic] | TODO. | no | no
-policy > shared_policy_config > status_code                                          | [status_code] | TODO. | no | no
-policy > shared_policy_config > string_attribute                                     | [string_attribute] | TODO. | no | no
-policy > shared_policy_config > rate_limiting                                        | [rate_limiting] | TODO. | no | no
-policy > shared_policy_config > span_count                                           | [span_count] | TODO. | no | no
-policy > shared_policy_config > trace_state                                          | [trace_state] | TODO. | no | no
-policy > and                                                                         | [and] | TODO. | no | no
-policy > and > and_sub_policy                                                        | [and_sub_policy] [] | TODO. | no | no
-policy > and > and_sub_policy > shared_policy_config                                 | [shared_policy_config] | TODO. | no | yes
-policy > and > and_sub_policy > shared_policy_config > latency                       | [latency] | TODO. | no | no
-policy > and > and_sub_policy > shared_policy_config > numeric_attribute             | [numeric_attribute] | TODO. | no | no
-policy > and > and_sub_policy > shared_policy_config > probabilistic                 | [probabilistic] | TODO. | no | no
-policy > and > and_sub_policy > shared_policy_config > status_code                   | [status_code] | TODO. | no | no
-policy > and > and_sub_policy > shared_policy_config > string_attribute              | [string_attribute] | TODO. | no | no
-policy > and > and_sub_policy > shared_policy_config > rate_limiting                 | [rate_limiting] | TODO. | no | no
-policy > and > and_sub_policy > shared_policy_config > span_count                    | [span_count] | TODO. | no | no
-policy > and > and_sub_policy > shared_policy_config > trace_state                   | [trace_state] | TODO. | no | no
-policy > composite                                                                   | [composite] | TODO.  | no | no
-policy > composite > composite_sub_policy                                            | [composite_sub_policy] [] | TODO.  | no | no
-policy > composite > composite_sub_policy > shared_policy_config                     | [shared_policy_config] | TODO.  | no | yes
-policy > composite > composite_sub_policy > shared_policy_config > latency           | [latency] | TODO.  | no | no
-policy > composite > composite_sub_policy > shared_policy_config > numeric_attribute | [numeric_attribute] | TODO.  | no | no
-policy > composite > composite_sub_policy > shared_policy_config > probabilistic     | [probabilistic] | TODO.  | no | no
-policy > composite > composite_sub_policy > shared_policy_config > status_code       | [status_code] | TODO.  | no | no
-policy > composite > composite_sub_policy > shared_policy_config > string_attribute  | [string_attribute] | TODO.  | no | no
-policy > composite > composite_sub_policy > shared_policy_config > rate_limiting     | [rate_limiting] | TODO.  | no | no
-policy > composite > composite_sub_policy > shared_policy_config > span_count        | [span_count] | TODO.  | no | no
-policy > composite > composite_sub_policy > shared_policy_config > trace_state       | [trace_state] | TODO.  | no | no
-output                                                                               | [output] []       | Configures where to send received telemetry data. | yes | no
+policy                                                        | [policy] [] | Policies used to make a sampling decision. | yes
+policy > latency                                              | [latency] | The policy will sample based on the duration of the trace. | no
+policy > numeric_attribute                                    | [numeric_attribute] | The policy will sample based on number attributes (resource and record). | no
+policy > probabilistic                                        | [probabilistic] | The policy will sample a percentage of traces. | no
+policy > status_code                                          | [status_code] | The policy will sample based upon the status code. | no
+policy > string_attribute                                     | [string_attribute] | The policy will sample based on string attributes (resource and record) value matches. | no
+policy > rate_limiting                                        | [rate_limiting] | The policy will sample based on rate. | no
+policy > span_count                                           | [span_count] | The policy will sample based on the minimum number of spans within a batch. | no
+policy > trace_state                                          | [trace_state] | The policy will sample based on TraceState value matches. | no
+policy > and                                                  | [and] | The policy will sample based on multiple policies, creates an AND policy. | no
+policy > and > and_sub_policy                                 | [and_sub_policy] [] | A set of policies underneath an `and` policy type. | no
+policy > and > and_sub_policy > latency                       | [latency] | The policy will sample based on the duration of the trace. | no
+policy > and > and_sub_policy > numeric_attribute             | [numeric_attribute] | The policy will sample based on number attributes (resource and record). | no
+policy > and > and_sub_policy > probabilistic                 | [probabilistic] | The policy will sample a percentage of traces. | no
+policy > and > and_sub_policy > status_code                   | [status_code] | The policy will sample based upon the status code. | no
+policy > and > and_sub_policy > string_attribute              | [string_attribute] | The policy will sample based on string attributes (resource and record) value matches. | no
+policy > and > and_sub_policy > rate_limiting                 | [rate_limiting] | The policy will sample based on rate. | no
+policy > and > and_sub_policy > span_count                    | [span_count] | The policy will sample based on the minimum number of spans within a batch. | no
+policy > and > and_sub_policy > trace_state                   | [trace_state] | The policy will sample based on TraceState value matches. | no
+policy > composite                                            | [composite] | This policy will sample based on a combination of above samplers, with ordering and rate allocation per sampler. | no
+policy > composite > composite_sub_policy                     | [composite_sub_policy] [] | A set of policies underneath a `composite` policy type. | no
+policy > composite > composite_sub_policy > latency           | [latency] | The policy will sample based on the duration of the trace. | no
+policy > composite > composite_sub_policy > numeric_attribute | [numeric_attribute] | The policy will sample based on number attributes (resource and record). | no
+policy > composite > composite_sub_policy > probabilistic     | [probabilistic] | The policy will sample a percentage of traces. | no
+policy > composite > composite_sub_policy > status_code       | [status_code] | The policy will sample based upon the status code. | no
+policy > composite > composite_sub_policy > string_attribute  | [string_attribute] | The policy will sample based on string attributes (resource and record) value matches. | no
+policy > composite > composite_sub_policy > rate_limiting     | [rate_limiting] | The policy will sample based on rate. | no
+policy > composite > composite_sub_policy > span_count        | [span_count] | The policy will sample based on the minimum number of spans within a batch. | no
+policy > composite > composite_sub_policy > trace_state       | [trace_state] | The policy will sample based on TraceState value matches. | no
+output                                                        | [output] [] | Configures where to send received telemetry data. | yes
 
 [policy]: #policy-block
 
 ### policy block
 
-The `policy` block configures a sampling policy used by the component. At least 1 policy block is required.
+The `policy` block configures a sampling policy used by the component. At least 1 `policy` block is required.
 
 The following arguments are supported:
 
@@ -155,19 +113,6 @@ Each policy will result in a decision, and the processor will evaluate them to m
 - In all other cases, the trace is NOT sampled
 
 An "inverted" decision is the one made based on the "invert_match" attribute, such as the one from the string tag policy.
-
-[shared_policy_config]: #shared_policy_config-block
-
-### shared_policy_config block
-
-The `shared_policy_config` block configures the sampling policies used by the component. At least 1 policy block is required.
-
-The following arguments are supported:
-
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`name` | `string` | The custom name given to the policy. | | yes
-`type` | `string` | The valid policy type for this policy. | | yes
 
 [latency]: #latency-block
 
@@ -270,7 +215,7 @@ Name | Type | Description | Default | Required
 
 ### trace_state block
 
-The `trace_state` block configures a policy of type `trace_state`. The policy will sample based on TODO.
+The `trace_state` block configures a policy of type `trace_state`. The policy will sample based on TraceState value matches.
 
 The following arguments are supported:
 
@@ -283,25 +228,43 @@ Name | Type | Description | Default | Required
 
 ### and block
 
-TODO INFO
+The `and` block configures a policy of type `and`. The policy will sample based on multiple policies, creates an AND policy.
 
 [and_sub_policy]: #and_sub_policy-block
 
 ### and_sub_policy block
 
-TODO INFO
+The `and_sub_policy` block configures a sampling policy used by the `and` block. At least 1 `and_sub_policy` block is required inside an `and` block.
+
+The following arguments are supported:
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`name` | `string` | The custom name given to the policy. | | yes
+`type` | `string` | The valid policy type for this policy. | | yes
 
 [composite]: #composite-block
 
 ### composite block
 
-TODO INFO
+The `composite` block configures a policy of type `composite`. This policy will sample based on a combination of above samplers, with ordering and rate allocation per sampler. Rate allocation allocates certain percentages of spans per policy order. For example if we have set max_total_spans_per_second as 100 then we can set rate_allocation as follows
+
+1. test-composite-policy-1 = 50 % of max_total_spans_per_second = 50 spans_per_second
+2. test-composite-policy-2 = 25 % of max_total_spans_per_second = 25 spans_per_second
+3. To ensure remaining capacity is filled use always_sample as one of the policies
 
 [composite_sub_policy]: #composite_sub_policy-block
 
 ### composite_sub_policy block
 
-TODO INFO
+The `composite_sub_policy` block configures a sampling policy used by the `composite` block. At least 1 `composite_sub_policy` block is required inside a `composite` block.
+
+The following arguments are supported:
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`name` | `string` | The custom name given to the policy. | | yes
+`type` | `string` | The valid policy type for this policy. | | yes
 
 [output]: #output-block
 
