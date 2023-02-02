@@ -107,10 +107,10 @@ Name | Type | Description | Default | Required
 
 Each policy results in a decision, and the processor evaluates them to make a final decision:
 
-- When there's an "inverted not sample" decision, the trace is not sampled;
-- When there's a "sample" decision, the trace is sampled;
-- When there's a "inverted sample" decision and no "not sample" decisions, the trace is sampled;
-- In all other cases, the trace is NOT sampled
+- When there's an "inverted not sample" decision, the trace is not sampled.
+- When there's a "sample" decision, the trace is sampled.
+- When there's an "inverted sample" decision and no "not sample" decisions, the trace is sampled.
+- In all other cases, the trace is *not* sampled.
 
 An "inverted" decision is the one made based on the "invert_match" attribute, such as the one from the string tag policy.
 
