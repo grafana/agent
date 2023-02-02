@@ -94,7 +94,7 @@ For a **new release branch**, the release shepherd will:
    fixes are available, cherry-picking the fixes into the release branch and
    starting a new release candidate.
 
-7. Create a PR to [update code](#updating-code) again - this time using the stable
+7. Create a new PR to [update code](#updating-code) using the _stable_
    release version. 
 
 8. Create the stable release tag.
