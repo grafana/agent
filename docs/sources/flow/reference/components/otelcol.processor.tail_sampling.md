@@ -257,7 +257,7 @@ The `composite` block configures a policy of type `composite`. This policy sampl
 
 ### composite_sub_policy block
 
-The `composite_sub_policy` block configures a sampling policy used by the `composite` block. At least 1 `composite_sub_policy` block is required inside a `composite` block.
+The `composite_sub_policy` block configures a sampling policy used by the `composite` block. At least one`composite_sub_policy` block is required inside a `composite` block.
 
 The following arguments are supported:
 
