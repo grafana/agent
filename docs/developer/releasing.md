@@ -204,7 +204,7 @@ pushed tag. To publish the release:
 
 5. Publish the release!
 
-NOTE: Release candidates should be retained on the 
+> **NOTE**: Release candidates should be retained on the 
 [GitHub releases page](https://github.com/grafana/agent/releases).
 Please do not remove them.
 
