@@ -120,7 +120,7 @@ PROPAGATE_VARS := \
 # Constants for targets
 #
 
-GO_ENV := GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CGO_ENABLED=$(CGO_ENABLED) ASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH=go1.20
+GO_ENV := GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CGO_ENABLED=$(CGO_ENABLED)
 
 # Selectively pass -mlong-calls when building for 32-bit ARM targets (armv6,
 # armv7). This works around an issue where the text segment has gotten big
