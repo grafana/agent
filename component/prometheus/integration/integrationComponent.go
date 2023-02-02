@@ -111,7 +111,7 @@ func (c *Component) getHttpHandler(integration integrations.Integration) http.Ha
 	return h
 }
 
-// Handler serves node_exporter metrics endpoint.
+// Handler serves metrics endpoint from the integration implementation.
 func (c *Component) Handler() http.Handler {
 	c.mut.Lock()
 	defer c.mut.Unlock()
