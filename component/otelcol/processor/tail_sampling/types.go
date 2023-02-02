@@ -27,7 +27,7 @@ type PolicyCfg struct {
 func (policyCfg PolicyCfg) Convert() tsp.PolicyCfg {
 	var otelCfg tsp.PolicyCfg
 
-	decodeMapStructure(map[string]interface{}{
+	mustDecodeMapStructure(map[string]interface{}{
 		"name":              policyCfg.Name,
 		"type":              policyCfg.Type,
 		"latency":           policyCfg.LatencyCfg.Convert(),
@@ -55,7 +55,7 @@ type LatencyCfg struct {
 func (latencyCfg LatencyCfg) Convert() tsp.LatencyCfg {
 	otelCfg := tsp.LatencyCfg{}
 
-	decodeMapStructure(map[string]interface{}{
+	mustDecodeMapStructure(map[string]interface{}{
 		"threshold_ms": latencyCfg.ThresholdMs,
 	}, &otelCfg)
 
@@ -76,7 +76,7 @@ type NumericAttributeCfg struct {
 func (numericAttributeCfg NumericAttributeCfg) Convert() tsp.NumericAttributeCfg {
 	var otelCfg tsp.NumericAttributeCfg
 
-	decodeMapStructure(map[string]interface{}{
+	mustDecodeMapStructure(map[string]interface{}{
 		"key":       numericAttributeCfg.Key,
 		"min_value": numericAttributeCfg.MinValue,
 		"max_value": numericAttributeCfg.MaxValue,
@@ -100,7 +100,7 @@ type ProbabilisticCfg struct {
 func (probabilisticCfg ProbabilisticCfg) Convert() tsp.ProbabilisticCfg {
 	var otelCfg tsp.ProbabilisticCfg
 
-	decodeMapStructure(map[string]interface{}{
+	mustDecodeMapStructure(map[string]interface{}{
 		"hash_salt":           probabilisticCfg.HashSalt,
 		"sampling_percentage": probabilisticCfg.SamplingPercentage,
 	}, &otelCfg)
@@ -117,7 +117,7 @@ type StatusCodeCfg struct {
 func (statusCodeCfg StatusCodeCfg) Convert() tsp.StatusCodeCfg {
 	var otelCfg tsp.StatusCodeCfg
 
-	decodeMapStructure(map[string]interface{}{
+	mustDecodeMapStructure(map[string]interface{}{
 		"status_codes": statusCodeCfg.StatusCodes,
 	}, &otelCfg)
 
@@ -147,7 +147,7 @@ type StringAttributeCfg struct {
 func (stringAttributeCfg StringAttributeCfg) Convert() tsp.StringAttributeCfg {
 	var otelCfg tsp.StringAttributeCfg
 
-	decodeMapStructure(map[string]interface{}{
+	mustDecodeMapStructure(map[string]interface{}{
 		"key":                    stringAttributeCfg.Key,
 		"values":                 stringAttributeCfg.Values,
 		"enabled_regex_matching": stringAttributeCfg.EnabledRegexMatching,
@@ -168,7 +168,7 @@ type RateLimitingCfg struct {
 func (rateLimitingCfg RateLimitingCfg) Convert() tsp.RateLimitingCfg {
 	var otelCfg tsp.RateLimitingCfg
 
-	decodeMapStructure(map[string]interface{}{
+	mustDecodeMapStructure(map[string]interface{}{
 		"spans_per_second": rateLimitingCfg.SpansPerSecond,
 	}, &otelCfg)
 
@@ -185,7 +185,7 @@ type SpanCountCfg struct {
 func (spanCountCfg SpanCountCfg) Convert() tsp.SpanCountCfg {
 	var otelCfg tsp.SpanCountCfg
 
-	decodeMapStructure(map[string]interface{}{
+	mustDecodeMapStructure(map[string]interface{}{
 		"min_spans": spanCountCfg.MinSpans,
 	}, &otelCfg)
 
@@ -202,7 +202,7 @@ type TraceStateCfg struct {
 func (traceStateCfg TraceStateCfg) Convert() tsp.TraceStateCfg {
 	var otelCfg tsp.TraceStateCfg
 
-	decodeMapStructure(map[string]interface{}{
+	mustDecodeMapStructure(map[string]interface{}{
 		"key":    traceStateCfg.Key,
 		"values": traceStateCfg.Values,
 	}, &otelCfg)
@@ -222,17 +222,17 @@ type CompositeCfg struct {
 func (compositeCfg CompositeCfg) Convert() tsp.CompositeCfg {
 	var otelConfig tsp.CompositeCfg
 
-	otelCompositeSubPolicyCfg := []tsp.CompositeSubPolicyCfg{}
+	var otelCompositeSubPolicyCfg []tsp.CompositeSubPolicyCfg
 	for _, subPolicyCfg := range compositeCfg.SubPolicyCfg {
 		otelCompositeSubPolicyCfg = append(otelCompositeSubPolicyCfg, subPolicyCfg.Convert())
 	}
 
-	otelRateAllocationCfg := []tsp.RateAllocationCfg{}
+	var otelRateAllocationCfg []tsp.RateAllocationCfg
 	for _, rateAllocation := range compositeCfg.RateAllocation {
 		otelRateAllocationCfg = append(otelRateAllocationCfg, rateAllocation.Convert())
 	}
 
-	decodeMapStructure(map[string]interface{}{
+	mustDecodeMapStructure(map[string]interface{}{
 		"max_total_spans_per_second": compositeCfg.MaxTotalSpansPerSecond,
 		"policy_order":               compositeCfg.PolicyOrder,
 		"composite_sub_policy":       otelCompositeSubPolicyCfg,
@@ -262,7 +262,7 @@ type CompositeSubPolicyCfg struct {
 func (compositeSubPolicyCfg CompositeSubPolicyCfg) Convert() tsp.CompositeSubPolicyCfg {
 	var otelCfg tsp.CompositeSubPolicyCfg
 
-	decodeMapStructure(map[string]interface{}{
+	mustDecodeMapStructure(map[string]interface{}{
 		"name":              compositeSubPolicyCfg.Name,
 		"type":              compositeSubPolicyCfg.Type,
 		"latency":           compositeSubPolicyCfg.LatencyCfg.Convert(),
@@ -288,7 +288,7 @@ type RateAllocationCfg struct {
 func (rateAllocationCfg RateAllocationCfg) Convert() tsp.RateAllocationCfg {
 	var otelCfg tsp.RateAllocationCfg
 
-	decodeMapStructure(map[string]interface{}{
+	mustDecodeMapStructure(map[string]interface{}{
 		"policy":  rateAllocationCfg.Policy,
 		"percent": rateAllocationCfg.Percent,
 	}, &otelCfg)
@@ -303,12 +303,12 @@ type AndCfg struct {
 func (andCfg AndCfg) Convert() tsp.AndCfg {
 	var otelConfig tsp.AndCfg
 
-	otelPolicyCfgs := []tsp.AndSubPolicyCfg{}
+	var otelPolicyCfgs []tsp.AndSubPolicyCfg
 	for _, subPolicyCfg := range andCfg.SubPolicyCfg {
 		otelPolicyCfgs = append(otelPolicyCfgs, subPolicyCfg.Convert())
 	}
 
-	decodeMapStructure(map[string]interface{}{
+	mustDecodeMapStructure(map[string]interface{}{
 		"and_sub_policy": otelPolicyCfgs,
 	}, &otelConfig)
 
@@ -332,7 +332,7 @@ type AndSubPolicyCfg struct {
 func (andSubPolicyCfg AndSubPolicyCfg) Convert() tsp.AndSubPolicyCfg {
 	var otelCfg tsp.AndSubPolicyCfg
 
-	decodeMapStructure(map[string]interface{}{
+	mustDecodeMapStructure(map[string]interface{}{
 		"name":              andSubPolicyCfg.Name,
 		"type":              andSubPolicyCfg.Type,
 		"latency":           andSubPolicyCfg.LatencyCfg.Convert(),
@@ -348,7 +348,7 @@ func (andSubPolicyCfg AndSubPolicyCfg) Convert() tsp.AndSubPolicyCfg {
 	return otelCfg
 }
 
-func decodeMapStructure(source map[string]interface{}, otelCfg interface{}) {
+func mustDecodeMapStructure(source map[string]interface{}, otelCfg interface{}) {
 	err := mapstructure.Decode(source, otelCfg)
 
 	if err != nil {

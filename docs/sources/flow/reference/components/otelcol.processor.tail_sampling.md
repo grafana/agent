@@ -156,8 +156,8 @@ Name | Type | Description | Default | Required
 `hash_salt`           | `string` | See below. | | no
 
 Use `hash_salt` to configure the hashing salts. This is important in scenarios where multiple layers of collectors
-have different sampling rates. If they use the same salt all passing one layer may pass the other even if they have
-different sampling rates, configuring different salts avoids that.
+have different sampling rates. If multiple collectors use the same salt with different sampling rates, passing one 
+layer may pass the other even if the collectors have different sampling rates. Configuring different salts avoids that.
 
 ### status_code block
 
