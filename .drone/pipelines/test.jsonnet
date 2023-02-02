@@ -2,21 +2,22 @@ local build_image = import '../util/build_image.jsonnet';
 local pipelines = import '../util/pipelines.jsonnet';
 
 [
-  // TODO(rfratto): this is commented out while we're waiting for golangci-lint
-  // to support Go 1.20. In the meantime, it's replaced with a Github Action
-  // which uses Go 1.19.
-  /*
-    pipelines.linux('Lint') {
-      trigger: {
-        event: ['pull_request'],
-      },
-      steps: [{
-        name: 'Lint',
-        image: build_image.linux,
-        commands: ['make lint'],
-      }],
+  pipelines.linux('Lint') {
+    trigger: {
+      event: ['pull_request'],
     },
-    */
+    steps: [{
+      name: 'Lint',
+      // TODO(rfratto): the build image is swapped out for golangci-lint while
+      // we're waiting for golangci-lint to support Go 1.20. Replace back with
+      // build_image.linux when it works again.
+      image: 'golangci/golangci-lint:v1.50.1',
+      commands: [
+        'apt-get update -y && apt-get install -y libsystemd-dev',
+        'make lint',
+      ],
+    }],
+  },
 
   pipelines.linux('Test') {
     trigger: {

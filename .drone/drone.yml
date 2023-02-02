@@ -120,6 +120,22 @@ volumes:
   name: docker
 ---
 kind: pipeline
+name: Lint
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - apt-get update -y && apt-get install -y libsystemd-dev
+  - make lint
+  image: golangci/golangci-lint:v1.50.1
+  name: Lint
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
 name: Test
 platform:
   arch: amd64
@@ -452,6 +468,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: ea1190f143385c47f0f49a02e89a7caf2403240eabb5989a781fed25c81a3f70
+hmac: 19cf8546590838038f6fc4c4120a491a9cf0bdca08ef59bc02be715638645d26
 
 ...
