@@ -5,7 +5,7 @@ title: otelcol.​processor.tail_sampling
 # otelcol.processor.tail_sampling
 
 `otelcol.processor.tail_sampling` samples traces based on a set of defined 
-policies. All spans for a given trace MUST be received by the same collector
+policies. All spans for a given trace *must* be received by the same collector
 instance for effective sampling decisions.
 
 The `tail_sampling` component uses both soft and hard limits, where the hard limit
