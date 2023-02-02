@@ -120,21 +120,6 @@ volumes:
   name: docker
 ---
 kind: pipeline
-name: Lint
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - make lint
-  image: grafana/agent-build-image:0.21.0
-  name: Lint
-trigger:
-  event:
-  - pull_request
-type: docker
----
-kind: pipeline
 name: Test
 platform:
   arch: amd64
@@ -166,6 +151,8 @@ platform:
 steps:
 - commands:
   - go test -tags="nodocker,nonetwork" ./...
+  environment:
+    ASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH: go1.20
   image: grafana/agent-build-image:0.21.0-windows
   name: Run Go tests
 trigger:
@@ -465,6 +452,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: 9d30036077ddb7db1f87ea5387d5f898790a83d87eeba417009889b0d6dee701
+hmac: ea1190f143385c47f0f49a02e89a7caf2403240eabb5989a781fed25c81a3f70
 
 ...

@@ -1,0 +1,20 @@
+# TODO(rfratto): This workflow was temporarily added to Github Actions while
+# we're waiting for golangci-lint to support Go 1.20. We should remove this and
+# replace it with the Drone CI when 1.20 support is available.
+name: Lint
+on:
+  pull_request:
+jobs:
+  test:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/setup-go@v3
+      with:
+        go-version: 1.19
+    - uses: actions/checkout@v3
+    - name: golangci-lint
+      uses: golangci/golangci-lint-action@v3
+      with:
+        version: v1.50.1
+        args: -v --timeout=10m

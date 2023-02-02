@@ -2,16 +2,21 @@ local build_image = import '../util/build_image.jsonnet';
 local pipelines = import '../util/pipelines.jsonnet';
 
 [
-  pipelines.linux('Lint') {
-    trigger: {
-      event: ['pull_request'],
+  // TODO(rfratto): this is commented out while we're waiting for golangci-lint
+  // to support Go 1.20. In the meantime, it's replaced with a Github Action
+  // which uses Go 1.19.
+  /*
+    pipelines.linux('Lint') {
+      trigger: {
+        event: ['pull_request'],
+      },
+      steps: [{
+        name: 'Lint',
+        image: build_image.linux,
+        commands: ['make lint'],
+      }],
     },
-    steps: [{
-      name: 'Lint',
-      image: build_image.linux,
-      commands: ['make lint'],
-    }],
-  },
+    */
 
   pipelines.linux('Test') {
     trigger: {
@@ -52,6 +57,9 @@ local pipelines = import '../util/pipelines.jsonnet';
     steps: [{
       name: 'Run Go tests',
       image: build_image.windows,
+      environment: {
+        ASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH: 'go1.20',
+      },
       commands: ['go test -tags="nodocker,nonetwork" ./...'],
     }],
   },
