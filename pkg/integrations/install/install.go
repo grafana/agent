@@ -8,6 +8,7 @@ import (
 
 	_ "github.com/grafana/agent/pkg/integrations/agent"                  // register agent
 	_ "github.com/grafana/agent/pkg/integrations/apache_http"            // register apache_exporter
+	_ "github.com/grafana/agent/pkg/integrations/azure_exporter"         // register azure_exporter
 	_ "github.com/grafana/agent/pkg/integrations/blackbox_exporter"      // register blackbox_exporter
 	_ "github.com/grafana/agent/pkg/integrations/cadvisor"               // register cadvisor
 	_ "github.com/grafana/agent/pkg/integrations/cloudwatch_exporter"    // register cloudwatch_exporter

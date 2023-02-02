@@ -27,9 +27,25 @@ Main (unreleased)
 
 - Integrations: Introduce `cloudwatch metrics` integration. (@thepalbi)
 
+- Integrations: Introduce an `azure` integration. (@kgeckhart)
+
 ### Enhancements
 
 - Update Prometheus Node Exporter integration to v1.5.0. (@Thor77)
+
+- Grafana Agent Flow will now reload the config file when `SIGHUP` is sent to
+  the process. (@rfratto)
+
+- If using the official RPM and DEB packages for Grafana Agent, invoking
+  `systemctl reload grafana-agent` will now reload the configuration file.
+  (@rfratto)
+
+- Flow: The `loki.process` component now implements all the same processing
+  stages as Promtail's pipelines. (@tpaschalis)
+
+### Other changes
+
+- Use Go 1.20 for builds. (@rfratto)
 
 v0.31.0 (2023-01-31)
 --------------------

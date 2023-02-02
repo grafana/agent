@@ -92,7 +92,7 @@ type Config struct {
 	Powersupply PowersupplyConfig `river:"powersupply,block,optional"`
 	Runit       RunitConfig       `river:"runit,block,optional"`
 	Supervisord SupervisordConfig `river:"supervisord,block,optional"`
-	Sysctl      SysctlConfig      `river:"sysctl,block,option"`
+	Sysctl      SysctlConfig      `river:"sysctl,block,optional"`
 	Systemd     SystemdConfig     `river:"systemd,block,optional"`
 	Tapestats   TapestatsConfig   `river:"tapestats,block,optional"`
 	Textfile    TextfileConfig    `river:"textfile,block,optional"`
