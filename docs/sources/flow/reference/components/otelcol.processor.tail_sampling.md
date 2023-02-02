@@ -249,9 +249,9 @@ Name | Type | Description | Default | Required
 
 The `composite` block configures a policy of type `composite`. This policy samples based on a combination of the above samplers, with ordering and rate allocation per sampler. Rate allocation allocates certain percentages of spans per policy order. For example, if `max_total_spans_per_second` is set to 100, then `rate_allocation` is set as follows:
 
-1. test-composite-policy-1 = 50 % of max_total_spans_per_second = 50 spans_per_second
-2. test-composite-policy-2 = 25 % of max_total_spans_per_second = 25 spans_per_second
-3. To ensure remaining capacity is filled use always_sample as one of the policies
+1. test-composite-policy-1 = 50% of max_total_spans_per_second = 50 spans_per_second
+2. test-composite-policy-2 = 25% of max_total_spans_per_second = 25 spans_per_second
+3. To ensure remaining capacity is filled, use always_sample as one of the policies.
 
 [composite_sub_policy]: #composite_sub_policy-block
 
