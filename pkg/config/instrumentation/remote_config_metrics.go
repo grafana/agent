@@ -14,11 +14,11 @@ type remoteConfigMetrics struct {
 	invalidConfigFetch *prometheus.CounterVec
 }
 
-var metrics *remoteConfigMetrics
-var metricsInitializer sync.Once
+var remoteConfMetrics *remoteConfigMetrics
+var remoteConfMetricsInitializer sync.Once
 
 func initializeRemoteConfigMetrics() {
-	metrics = newRemoteConfigMetrics()
+	remoteConfMetrics = newRemoteConfigMetrics()
 }
 
 func newRemoteConfigMetrics() *remoteConfigMetrics {
@@ -50,16 +50,16 @@ func newRemoteConfigMetrics() *remoteConfigMetrics {
 }
 
 func InstrumentRemoteConfigFetch(statusCode int) {
-	metricsInitializer.Do(initializeRemoteConfigMetrics)
-	metrics.fetchStatusCodes.WithLabelValues(fmt.Sprintf("%d", statusCode)).Inc()
+	remoteConfMetricsInitializer.Do(initializeRemoteConfigMetrics)
+	remoteConfMetrics.fetchStatusCodes.WithLabelValues(fmt.Sprintf("%d", statusCode)).Inc()
 }
 
 func InstrumentRemoteConfigFetchError() {
-	metricsInitializer.Do(initializeRemoteConfigMetrics)
-	metrics.fetchErrors.Inc()
+	remoteConfMetricsInitializer.Do(initializeRemoteConfigMetrics)
+	remoteConfMetrics.fetchErrors.Inc()
 }
 
 func InstrumentInvalidRemoteConfig(reason string) {
-	metricsInitializer.Do(initializeRemoteConfigMetrics)
-	metrics.invalidConfigFetch.WithLabelValues(reason).Inc()
+	remoteConfMetricsInitializer.Do(initializeRemoteConfigMetrics)
+	remoteConfMetrics.invalidConfigFetch.WithLabelValues(reason).Inc()
 }
