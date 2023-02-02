@@ -96,7 +96,7 @@ output                                                        | [output] [] | Co
 
 ### policy block
 
-The `policy` block configures a sampling policy used by the component. At least 1 `policy` block is required.
+The `policy` block configures a sampling policy used by the component. At least one `policy` block is required.
 
 The following arguments are supported:
 
