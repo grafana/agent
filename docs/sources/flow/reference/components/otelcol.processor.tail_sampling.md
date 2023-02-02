@@ -70,7 +70,7 @@ policy > string_attribute                                     | [string_attribut
 policy > rate_limiting                                        | [rate_limiting] | The policy will sample based on rate. | no
 policy > span_count                                           | [span_count] | The policy will sample based on the minimum number of spans within a batch. | no
 policy > trace_state                                          | [trace_state] | The policy will sample based on TraceState value matches. | no
-policy > and                                                  | [and] | The policy will sample based on multiple policies, creates an AND policy. | no
+policy > and                                                  | [and] | The policy will sample based on multiple policies, creates an `and` policy. | no
 policy > and > and_sub_policy                                 | [and_sub_policy] [] | A set of policies underneath an `and` policy type. | no
 policy > and > and_sub_policy > latency                       | [latency] | The policy will sample based on the duration of the trace. | no
 policy > and > and_sub_policy > numeric_attribute             | [numeric_attribute] | The policy will sample based on number attributes (resource and record). | no
