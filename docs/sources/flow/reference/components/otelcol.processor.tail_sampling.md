@@ -118,25 +118,25 @@ An "inverted" decision is the one made based on the "invert_match" attribute, su
 
 ### latency block
 
-The `latency` block configures a policy of type `latency`. The policy will sample based on the duration of the trace. The duration is determined by looking at the earliest start time and latest end time, without taking into consideration what happened in between.
+The `latency` block configures a policy of type `latency`. The policy samples based on the duration of the trace. The duration is determined by looking at the earliest start time and latest end time, without taking into consideration what happened in between.
 
 The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`threshold_ms` | `number` | The latency threshold for sampling in milliseconds. | | yes
+`threshold_ms` | `number` | The latency threshold for sampling, in milliseconds. | | yes
 
 [numeric_attribute]: #numeric_attribute-block
 
 ### numeric_attribute block
 
-The `numeric_attribute` block configures a policy of type `numeric_attribute`. The policy will sample based on number attributes (resource and record).
+The `numeric_attribute` block configures a policy of type `numeric_attribute`. The policy samples based on number attributes (resource and record).
 
 The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`key`       | `string` | Tag that the filter is going to be matching against. | | yes
+`key`       | `string` | Tag that the filter is matched against. | | yes
 `min_value` | `number` | The minimum value of the attribute to be considered a match. | | yes
 `max_value` | `number` | The maximum value of the attribute to be considered a match. | | yes
 
@@ -144,30 +144,30 @@ Name | Type | Description | Default | Required
 
 ### probabilistic block
 
-The `probabilistic` block configures a policy of type `probabilistic`. The policy will sample a percentage of traces.
+The `probabilistic` block configures a policy of type `probabilistic`. The policy samples a percentage of traces.
 
 The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`sampling_percentage` | `number` | The percentage rate at which traces are going to be sampled. | | yes
+`sampling_percentage` | `number` | The percentage rate at which traces are sampled. | | yes
 `hash_salt`           | `string` | See below. | | no
 
-`hash_salt` allows one to configure the hashing salts. This is important in scenarios where multiple layers of collectors
-have different sampling rates: if they use the same salt all passing one layer may pass the other even if they have
+Use `hash_salt` to configure the hashing salts. This is important in scenarios where multiple layers of collectors
+have different sampling rates. If they use the same salt all passing one layer may pass the other even if they have
 different sampling rates, configuring different salts avoids that.
 
 [status_code]: #status_code-block
 
 ### status_code block
 
-The `status_code` block configures a policy of type `status_code`. The policy will sample based upon the status code.
+The `status_code` block configures a policy of type `status_code`. The policy samples based upon the status code.
 
 The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`status_codes` | `string` [] | holds the configurable settings to create a status code filter sampling policy evaluator. | | yes
+`status_codes` | `string` [] | Holds the configurable settings to create a status code filter sampling policy evaluator. | | yes
 
 `status_codes` values must be "OK", "ERROR" or "UNSET".
 
@@ -175,60 +175,60 @@ Name | Type | Description | Default | Required
 
 ### string_attribute block
 
-The `string_attribute` block configures a policy of type `string_attribute`. The policy will sample based on string attributes (resource and record) value matches, both exact and regex value matches are supported.
+The `string_attribute` block configures a policy of type `string_attribute`. The policy samples based on string attributes (resource and record) value matches. Both exact and regex value matches are supported.
 
 The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`key`                    | `string`    | Tag that the filter is going to be matching against. | | yes
-`values`                 | `string` [] | Values indicate the set of values or regular expressions to use when matching against attribute values. | | yes
-`enabled_regex_matching` | `bool`      | Determines whether match attribute values by regexp string. | false | no
-`cache_max_size`         | `string`    | The maximum number of attribute entries of LRU Cache that stores the matched result from the regular expressions defined in Values. | | no
+`key`                    | `string`    | Tag that the filter is matched against. | | yes
+`values`                 | `string` [] | Set of values or regular expressions to use when matching against attribute values. | | yes
+`enabled_regex_matching` | `bool`      | Determines whether to match attribute values by regexp string. | false | no
+`cache_max_size`         | `string`    | The maximum number of attribute entries of Least Recently Used (LRU) Cache that stores the matched result from the regular expressions defined in `values.` | | no
 `invert_match`           | `bool`      | Indicates that values or regular expressions must not match against attribute values. | false | no
 
 [rate_limiting]: #rate_limiting-block
 
 ### rate_limiting block
 
-The `rate_limiting` block configures a policy of type `rate_limiting`. The policy will sample based on rate.
+The `rate_limiting` block configures a policy of type `rate_limiting`. The policy samples based on rate.
 
 The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`spans_per_second` | `number` | Sets the limit on the maximum number of spans that can be processed each second. | | yes
+`spans_per_second` | `number` | Sets the maximum number of spans that can be processed each second. | | yes
 
 [span_count]: #span_count-block
 
 ### span_count block
 
-The `span_count` block configures a policy of type `span_count`. The policy will sample based on the minimum number of spans within a batch. If all traces within the batch have less number of spans than the threshold, the batch will not be sampled.
+The `span_count` block configures a policy of type `span_count`. The policy samples based on the minimum number of spans within a batch. If all traces within the batch have fewer spans than the threshold, the batch is not sampled.
 
 The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`min_spans` | `number` | Minimum number of spans in a Trace. | | yes
+`min_spans` | `number` | Minimum number of spans in a trace. | | yes
 
 [trace_state]: #trace_state-block
 
 ### trace_state block
 
-The `trace_state` block configures a policy of type `trace_state`. The policy will sample based on TraceState value matches.
+The `trace_state` block configures a policy of type `trace_state`. The policy samples based on TraceState value matches.
 
 The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`key`                    | `string`    | Tag that the filter is going to be matching against. | | yes
-`values`                 | `string` [] | Values indicate the set of values to use when matching against trace_state values. | | yes
+`key`                    | `string`    | Tag that the filter is matched against. | | yes
+`values`                 | `string` [] | Set of values to use when matching against trace_state values. | | yes
 
 [and]: #and-block
 
 ### and block
 
-The `and` block configures a policy of type `and`. The policy will sample based on multiple policies, creates an AND policy.
+The `and` block configures a policy of type `and`. The policy samples based on multiple policies by creating an `and` policy.
 
 [and_sub_policy]: #and_sub_policy-block
 
