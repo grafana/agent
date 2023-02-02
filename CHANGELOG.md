@@ -31,7 +31,7 @@ Main (unreleased)
 
 - New Grafana Agent Flow components:
     - `otelcol.processor.tail_sampling` samples traces based on a set of defined policies from `otelcol` components before
-    forwarding it to other `otelcol` components. (@erikbaranowski)
+    forwarding them to other `otelcol` components. (@erikbaranowski)
 
 ### Enhancements
 
