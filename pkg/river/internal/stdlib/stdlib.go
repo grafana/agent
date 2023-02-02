@@ -15,6 +15,9 @@ import (
 // least one non-error return value, with an optionally supported error return
 // value as the second return value.
 var Functions = map[string]interface{}{
+	// See constants.go for the definition.
+	"constants": constants,
+
 	"env": os.Getenv,
 
 	// concat is implemented as a raw function so it can bypass allocations
