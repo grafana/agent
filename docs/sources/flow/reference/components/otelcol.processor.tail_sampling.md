@@ -16,7 +16,7 @@ limit, the processor forces a garbage collection in order to try and free
 memory. When usage is below the soft limit, no data is dropped and no forced
 garbage collection is performed.
 
-> **NOTE**: `otelcol.processor.tail_sampling` is a wrapper over the upstream
+> **Note**: `otelcol.processor.tail_sampling` is a wrapper over the upstream
 > OpenTelemetry Collector Contrib `tail_sampling` processor. Bug reports or feature
 > requests will be redirected to the upstream repository, if necessary.
 
