@@ -120,7 +120,13 @@ PROPAGATE_VARS := \
 # Constants for targets
 #
 
-GO_ENV  := GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CGO_ENABLED=$(CGO_ENABLED) ASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH=go1.20
+GO_ENV := GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CGO_ENABLED=$(CGO_ENABLED) ASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH=go1.20
+
+ifeq ($(GOARCH),arm)
+ifeq ($(GOOS),linux)
+GO_ENV += CGO_CFLAGS="-mlong-calls"
+endif
+endif
 
 VERSION      ?= $(shell ./tools/image-tag)
 GIT_REVISION := $(shell git rev-parse --short HEAD)
