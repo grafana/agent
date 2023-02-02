@@ -234,7 +234,7 @@ The `and` block configures a policy of type `and`. The policy will sample based 
 
 ### and_sub_policy block
 
-The `and_sub_policy` block configures a sampling policy used by the `and` block. At least 1 `and_sub_policy` block is required inside an `and` block.
+The `and_sub_policy` block configures a sampling policy used by the `and` block. At least one `and_sub_policy` block is required inside an `and` block.
 
 The following arguments are supported:
 
