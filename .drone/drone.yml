@@ -431,6 +431,33 @@ volumes:
     path: /var/run/docker.sock
   name: docker
 ---
+kind: pipeline
+name: Test Linux system packages
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - DOCKER_OPTS="" make dist/grafana-agent-linux-amd64
+  - DOCKER_OPTS="" make dist/grafana-agentctl-linux-amd64
+  - DOCKER_OPTS="" make test-packages
+  image: grafana/agent-build-image:0.21.0
+  name: Test Linux system packages
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+trigger:
+  event:
+  - pull_request
+  paths:
+  - packaging/**
+  - Makefile
+type: docker
+volumes:
+- host:
+    path: /var/run/docker.sock
+  name: docker
+---
 get:
   name: .dockerconfigjson
   path: secret/data/common/gcr
@@ -468,6 +495,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: 19cf8546590838038f6fc4c4120a491a9cf0bdca08ef59bc02be715638645d26
+hmac: 63e5ba75c42ba4a51c011624dce9f5ee731403bd6effb6d6b63b1b120e2eed3a
 
 ...
