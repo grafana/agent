@@ -304,6 +304,10 @@ type SpanMetricsConfig struct {
 	MetricsInstance string `yaml:"metrics_instance"`
 	// HandlerEndpoint is the address where a prometheus exporter will be exposed
 	HandlerEndpoint string `yaml:"handler_endpoint"`
+
+	// DimensionsCacheSize defines the size of cache for storing Dimensions, which helps to avoid cache memory growing
+	// indefinitely over the lifetime of the collector.
+	DimensionsCacheSize int `yaml:"dimensions_cache_size"`
 }
 
 // tailSamplingConfig is the configuration for tail-based sampling
@@ -662,11 +666,15 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 		}
 
 		processorNames = append(processorNames, "spanmetrics")
-		processors["spanmetrics"] = map[string]interface{}{
+		spanMetrics := map[string]interface{}{
 			"metrics_exporter":          exporterName,
 			"latency_histogram_buckets": c.SpanMetrics.LatencyHistogramBuckets,
 			"dimensions":                c.SpanMetrics.Dimensions,
 		}
+		if c.SpanMetrics.DimensionsCacheSize != 0 {
+			spanMetrics["dimensions_cache_size"] = c.SpanMetrics.DimensionsCacheSize
+		}
+		processors["spanmetrics"] = spanMetrics
 
 		pipelines[spanMetricsPipelineName] = map[string]interface{}{
 			"receivers": []string{noopreceiver.TypeStr},

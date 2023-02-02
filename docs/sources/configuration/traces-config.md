@@ -234,6 +234,8 @@ spanmetrics:
   [ metrics_instance: <string> ]
   # handler_endpoint defines the endpoint where the OTel prometheus exporter will be exposed.
   [ handler_endpoint: <string> ]
+  # dimensions_cache_size defines the size of cache for storing Dimensions
+  [ dimensions_cache_size: <int> ]
 
 # tail_sampling supports tail-based sampling of traces in the agent.
 #

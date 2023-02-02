@@ -538,6 +538,7 @@ spanmetrics:
       default: GET
     - name: http.status_code
   metrics_instance: traces
+  dimensions_cache_size: 10000
 `,
 			expectedConfig: `
 receivers:
@@ -563,6 +564,7 @@ processors:
       - name: http.method
         default: GET
       - name: http.status_code
+    dimensions_cache_size: 10000
 extensions: {}
 service:
   pipelines:
