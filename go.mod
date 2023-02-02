@@ -8,6 +8,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.2.0
 	github.com/Lusitaniae/apache_exporter v0.11.1-0.20220518131644-f9522724dab4
 	github.com/Masterminds/sprig/v3 v3.2.2
+	github.com/PuerkitoBio/rehttp v1.1.0
 	github.com/Shopify/sarama v1.37.2
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137
 	github.com/aws/aws-sdk-go v1.44.182
@@ -112,6 +113,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2
 	github.com/prometheus-community/elasticsearch_exporter v1.5.0
 	github.com/prometheus-community/postgres_exporter v0.11.1
+	github.com/prometheus-community/stackdriver_exporter v0.13.0
 	github.com/prometheus-community/windows_exporter v0.0.0-00010101000000-000000000000
 	github.com/prometheus-operator/prometheus-operator v0.62.0
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.62.0
@@ -128,6 +130,7 @@ require (
 	github.com/prometheus/prometheus v1.99.0
 	github.com/prometheus/snmp_exporter v0.20.1-0.20220111173215-83399c23888f
 	github.com/prometheus/statsd_exporter v0.22.8
+	github.com/prometheus/tsdb v0.7.1
 	github.com/rancher/k3d/v5 v5.2.2
 	github.com/rfratto/ckit v0.0.0-20220401221852-009169323240
 	github.com/rs/cors v1.8.3
@@ -164,6 +167,7 @@ require (
 	golang.org/x/crypto v0.3.0
 	golang.org/x/exp v0.0.0-20221031165847-c99f073a8326
 	golang.org/x/net v0.5.0
+	golang.org/x/oauth2 v0.4.0
 	golang.org/x/sys v0.4.0
 	golang.org/x/text v0.6.0
 	golang.org/x/time v0.2.0
@@ -183,13 +187,6 @@ require (
 	k8s.io/utils v0.0.0-20221128185143-99ec85e7a448
 	sigs.k8s.io/controller-runtime v0.13.1
 	sigs.k8s.io/yaml v1.3.0
-)
-
-require (
-	github.com/PuerkitoBio/rehttp v1.1.0
-	github.com/prometheus-community/stackdriver_exporter v0.13.0
-	github.com/prometheus/tsdb v0.7.1
-	golang.org/x/oauth2 v0.4.0
 )
 
 require (
