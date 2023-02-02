@@ -59,9 +59,6 @@ type Component struct {
 	opts    component.Options
 	metrics *dt.Metrics
 
-	host   string
-	client client.APIClient
-
 	mut           sync.RWMutex
 	args          Arguments
 	manager       *Manager
@@ -92,7 +89,6 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{
 		opts:    o,
 		metrics: dt.NewMetrics(o.Registerer),
-		host:    args.Host,
 
 		handler:   make(loki.LogsReceiver),
 		receivers: args.ForwardTo,
@@ -220,7 +216,7 @@ func (c *Component) getManagerOptions(args Arguments) (*Options, error) {
 	}
 
 	opts := []client.Opt{
-		client.WithHost(c.host),
+		client.WithHost(c.args.Host),
 		client.WithAPIVersionNegotiation(),
 	}
 	client, err := client.NewClientWithOpts(opts...)
