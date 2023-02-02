@@ -117,9 +117,9 @@ prometheus.scrape "scraper" {
 ## Limitations
 
 * Duplicate modules cannot be nested, this may or may not be enforced by the system
-* Singleton components are not supported at this time. Example node_exporter.
+* Singleton components are not supported at this time. Example [node_exporter](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.integration.node_exporter/).
 * Modules will not prevent competing resources, such as starting a server on the same port
-* Component-like objects will not be supported. Example direct access to logging level 
+* [Configuration blocks](https://grafana.com/docs/agent/latest/flow/reference/config-blocks/#configuration-blocks) will not be supported. 
 * Arguments and exports within a module must be unique
 
 ## Proposal
