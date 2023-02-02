@@ -133,21 +133,16 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 		if err != nil {
 			return nil, err
 		}
-	// case StageTypeMetric:
-	// 	s, err = newMetricStage(logger, cfg, registerer)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
+	case cfg.MetricsConfig != nil:
+		s, err = newMetricStage(logger, *cfg.MetricsConfig, registerer)
+		if err != nil {
+			return nil, err
+		}
 	case cfg.LabelsConfig != nil:
 		s, err = newLabelStage(logger, *cfg.LabelsConfig)
 		if err != nil {
 			return nil, err
 		}
-	// case StageTypeLabelDrop:
-	// 	s, err = newLabelDropStage(cfg)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
 	case cfg.RegexConfig != nil:
 		s, err = newRegexStage(logger, *cfg.RegexConfig)
 		if err != nil {
@@ -168,46 +163,38 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 		if err != nil {
 			return nil, err
 		}
-	// case StageTypeTemplate:
-	// 	s, err = newTemplateStage(logger, cfg)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// case StageTypeTenant:
-	// 	s, err = newTenantStage(logger, cfg.TenantConfig)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
+	case cfg.TemplateConfig != nil:
+		s, err = newTemplateStage(logger, *cfg.TemplateConfig)
+		if err != nil {
+			return nil, err
+		}
+	case cfg.TenantConfig != nil:
+		s, err = newTenantStage(logger, *cfg.TenantConfig)
+		if err != nil {
+			return nil, err
+		}
 	case cfg.ReplaceConfig != nil:
 		s, err = newReplaceStage(logger, *cfg.ReplaceConfig)
 		if err != nil {
 			return nil, err
 		}
-	// case StageTypeLimit:
-	// 	s, err = newLimitStage(logger, cfg, registerer)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
+	case cfg.LimitConfig != nil:
+		s, err = newLimitStage(logger, *cfg.LimitConfig, registerer)
+		if err != nil {
+			return nil, err
+		}
 	case cfg.DropConfig != nil:
 		s, err = newDropStage(logger, *cfg.DropConfig, registerer)
 		if err != nil {
 			return nil, err
 		}
-	// case StageTypeLimit:
-	// 	s, err = newLimitStage(logger, cfg, registerer)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
 	case cfg.MultilineConfig != nil:
 		s, err = newMultilineStage(logger, *cfg.MultilineConfig)
 		if err != nil {
 			return nil, err
 		}
-	// case StageTypePack:
-	// 	s, err = newPackStage(logger, cfg, registerer)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
+	case cfg.PackConfig != nil:
+		s = newPackStage(logger, *cfg.PackConfig, registerer)
 	case cfg.LabelAllowConfig != nil:
 		s, err = newLabelAllowStage(*cfg.LabelAllowConfig)
 		if err != nil {
