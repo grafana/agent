@@ -53,6 +53,8 @@ Modules cannot directly access children or parent modules except through predefi
 
 *Note* should security be a non-goal? For example can a submodule spawn a `local.file`, should there be the ability to pass a deny list of modules, and/or allow list? 
 
+*Note* should metadata be a non-goal? Metadata would allow better filtering the ability to tag modules, also will allow programmatic access to things that might otherwise be in comments. 
+
 ### Add additional capabilities to load strings
 
 Modules will not care about the source of the string that represents the river syntax, nor will modules have any inherent reload semantics. The component supplying the string will be responsible for the source and will notify the module when the input changes so that it can utilize the new river configuration.
