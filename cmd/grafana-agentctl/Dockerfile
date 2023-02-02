@@ -4,7 +4,7 @@
 # default when running `docker buildx build` or when DOCKER_BUILDKIT=1 is set
 # in environment variables.
 
-FROM --platform=$BUILDPLATFORM grafana/agent-build-image:0.20.0 as build
+FROM --platform=$BUILDPLATFORM grafana/agent-build-image:0.21.0 as build
 ARG BUILDPLATFORM
 ARG TARGETPLATFORM
 ARG TARGETOS
@@ -18,8 +18,8 @@ WORKDIR /src/agent
 
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
-    GOOS=$TARGETOS GOARCH=$TARGETARCH GOARM=${TARGETVARIANT#v} \
-    RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} \
+    GOOS="$TARGETOS" GOARCH="$TARGETARCH" GOARM="${TARGETVARIANT#v}" \
+    RELEASE_BUILD="${RELEASE_BUILD}" VERSION="${VERSION}" \
     make agentctl
 
 FROM ubuntu:jammy
