@@ -27,6 +27,10 @@ Main (unreleased)
 
 - Integrations: Introduce `cloudwatch metrics` integration. (@thepalbi)
 
+- New Grafana Agent Flow components:
+    - `otelcol.processor.tail_sampling` samples traces based on a set of defined policies from `otelcol` components before
+    forwarding it to other `otelcol` components. (@erikbaranowski)
+
 ### Enhancements
 
 - Update Prometheus Node Exporter integration to v1.5.0. (@Thor77)
