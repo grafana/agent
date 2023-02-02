@@ -62,7 +62,7 @@ func TestDockerTarget(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	_, err = NewTarget(
+	tgt, err := NewTarget(
 		NewMetrics(prometheus.NewRegistry()),
 		logger,
 		entryHandler,
@@ -73,6 +73,7 @@ func TestDockerTarget(t *testing.T) {
 		client,
 	)
 	require.NoError(t, err)
+	tgt.StartIfNotRunning()
 
 	require.Eventually(t, func() bool {
 		return len(entryHandler.Received()) >= 5
