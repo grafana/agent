@@ -236,7 +236,7 @@ func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 		return fmt.Errorf("error reading config file %w", err)
 	}
 
-	instrumentation.ConfigMetrics.InstrumentConfig(buf)
+	instrumentation.InstrumentConfig(buf)
 
 	return LoadBytes(buf, expandEnvVars, c)
 }
@@ -273,7 +273,7 @@ func loadFromAgentManagementAPI(path string, expandEnvVars bool, c *Config, log 
 	if err != nil {
 		level.Warn(log).Log("msg", "error marshalling config for instrumenting config version", "err", err)
 	} else {
-		instrumentation.ConfigMetrics.InstrumentConfig(effectiveConfigBytes)
+		instrumentation.InstrumentConfig(effectiveConfigBytes)
 	}
 
 	return nil
@@ -321,7 +321,7 @@ func LoadRemote(url string, expandEnvVars bool, c *Config) error {
 		return fmt.Errorf("error retrieving remote config: %w", err)
 	}
 
-	instrumentation.ConfigMetrics.InstrumentConfig(bb)
+	instrumentation.InstrumentConfig(bb)
 
 	return LoadBytes(bb, expandEnvVars, c)
 }
@@ -413,7 +413,7 @@ func Load(fs *flag.FlagSet, args []string, log *server.Logger) (*Config, error) 
 		}
 	})
 
-	instrumentation.ConfigMetrics.InstrumentLoad(error == nil)
+	instrumentation.InstrumentLoad(error == nil)
 	return cfg, error
 }
 

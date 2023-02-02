@@ -146,7 +146,7 @@ func (fr *flowRun) Run(configFile string) error {
 
 	reload := func() error {
 		flowCfg, err := loadFlowFile(configFile)
-		defer instrumentation.ConfigMetrics.InstrumentLoad(err == nil)
+		defer instrumentation.InstrumentLoad(err == nil)
 
 		if err != nil {
 			return fmt.Errorf("reading config file %q: %w", configFile, err)
@@ -293,7 +293,7 @@ func loadFlowFile(filename string) (*flow.File, error) {
 		return nil, err
 	}
 
-	instrumentation.ConfigMetrics.InstrumentConfig(bb)
+	instrumentation.InstrumentConfig(bb)
 
 	return flow.ReadFile(filename, bb)
 }
