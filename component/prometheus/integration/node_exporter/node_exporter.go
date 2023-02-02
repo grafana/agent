@@ -13,7 +13,7 @@ func init() {
 		Args:      Config{},
 		Exports:   integration.Exports{},
 		Singleton: true,
-		Build:     integration.New(createIntegration),
+		Build:     integration.New(createIntegration, "node_exporter"),
 	})
 }
 

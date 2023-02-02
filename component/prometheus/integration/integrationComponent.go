@@ -34,7 +34,7 @@ type Component struct {
 	metricsHandler http.Handler
 }
 
-func New(creator Creator) func(component.Options, component.Arguments) (component.Component, error) {
+func New(creator Creator, name string) func(component.Options, component.Arguments) (component.Component, error) {
 	return func(opts component.Options, args component.Arguments) (component.Component, error) {
 		c := &Component{
 			opts:    opts,
@@ -49,7 +49,7 @@ func New(creator Creator) func(component.Options, component.Arguments) (componen
 			model.AddressLabel:     opts.HTTPListenAddr,
 			model.SchemeLabel:      "http",
 			model.MetricsPathLabel: path.Join(opts.HTTPPath, "metrics"),
-			"name":                 "node_exporter",
+			"name":                 name,
 		}}
 		opts.OnStateChange(Exports{
 			Targets: targets,

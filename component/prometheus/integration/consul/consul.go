@@ -14,7 +14,7 @@ func init() {
 		Name:    "prometheus.integration.consul",
 		Args:    Config{},
 		Exports: integration.Exports{},
-		Build:   integration.New(createIntegration),
+		Build:   integration.New(createIntegration, "consul"),
 	})
 }
 
