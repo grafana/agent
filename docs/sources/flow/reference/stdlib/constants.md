@@ -18,7 +18,7 @@ Grafana Agent is running on:
 
 ```
 > constants.hostname
-"my-hostaname"
+"my-hostname"
 
 > constants.os
 "linux"
