@@ -280,7 +280,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=amd64 GOARM= make agent
+  - GOOS=linux GOARCH=amd64 GOARM= CGO_CFLAGS="${CGO_CFLAGS} -mlong-calls" make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -295,7 +295,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm64 GOARM= make agent
+  - GOOS=linux GOARCH=arm64 GOARM= CGO_CFLAGS="${CGO_CFLAGS} -mlong-calls" make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -310,7 +310,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm GOARM=6 make agent
+  - GOOS=linux GOARCH=arm GOARM=6 CGO_CFLAGS="${CGO_CFLAGS} -mlong-calls" make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -325,7 +325,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm GOARM=7 make agent
+  - GOOS=linux GOARCH=arm GOARM=7 CGO_CFLAGS="${CGO_CFLAGS} -mlong-calls" make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -340,7 +340,8 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=ppc64le GOARM= make agent
+  - GOOS=linux GOARCH=ppc64le GOARM= CGO_CFLAGS="${CGO_CFLAGS} -mlong-calls" make
+    agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -355,7 +356,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=darwin GOARCH=amd64 GOARM= make agent
+  - GOOS=darwin GOARCH=amd64 GOARM= CGO_CFLAGS="${CGO_CFLAGS} -mlong-calls" make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -370,7 +371,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=darwin GOARCH=arm64 GOARM= make agent
+  - GOOS=darwin GOARCH=arm64 GOARM= CGO_CFLAGS="${CGO_CFLAGS} -mlong-calls" make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -385,7 +386,8 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=windows GOARCH=amd64 GOARM= make agent
+  - GOOS=windows GOARCH=amd64 GOARM= CGO_CFLAGS="${CGO_CFLAGS} -mlong-calls" make
+    agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -400,7 +402,8 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=freebsd GOARCH=amd64 GOARM= make agent
+  - GOOS=freebsd GOARCH=amd64 GOARM= CGO_CFLAGS="${CGO_CFLAGS} -mlong-calls" make
+    agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -415,7 +418,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=amd64 GOARM= make agentctl
+  - GOOS=linux GOARCH=amd64 GOARM= CGO_CFLAGS="${CGO_CFLAGS} -mlong-calls" make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -430,7 +433,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm64 GOARM= make agentctl
+  - GOOS=linux GOARCH=arm64 GOARM= CGO_CFLAGS="${CGO_CFLAGS} -mlong-calls" make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -445,7 +448,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm GOARM=6 make agentctl
+  - GOOS=linux GOARCH=arm GOARM=6 CGO_CFLAGS="${CGO_CFLAGS} -mlong-calls" make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -460,7 +463,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm GOARM=7 make agentctl
+  - GOOS=linux GOARCH=arm GOARM=7 CGO_CFLAGS="${CGO_CFLAGS} -mlong-calls" make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -475,7 +478,8 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=ppc64le GOARM= make agentctl
+  - GOOS=linux GOARCH=ppc64le GOARM= CGO_CFLAGS="${CGO_CFLAGS} -mlong-calls" make
+    agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -490,7 +494,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=darwin GOARCH=amd64 GOARM= make agentctl
+  - GOOS=darwin GOARCH=amd64 GOARM= CGO_CFLAGS="${CGO_CFLAGS} -mlong-calls" make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -505,7 +509,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=darwin GOARCH=arm64 GOARM= make agentctl
+  - GOOS=darwin GOARCH=arm64 GOARM= CGO_CFLAGS="${CGO_CFLAGS} -mlong-calls" make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -520,7 +524,8 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=windows GOARCH=amd64 GOARM= make agentctl
+  - GOOS=windows GOARCH=amd64 GOARM= CGO_CFLAGS="${CGO_CFLAGS} -mlong-calls" make
+    agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -535,7 +540,8 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=freebsd GOARCH=amd64 GOARM= make agentctl
+  - GOOS=freebsd GOARCH=amd64 GOARM= CGO_CFLAGS="${CGO_CFLAGS} -mlong-calls" make
+    agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -550,7 +556,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=amd64 GOARM= make operator
+  - GOOS=linux GOARCH=amd64 GOARM= CGO_CFLAGS="${CGO_CFLAGS} -mlong-calls" make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -565,7 +571,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm64 GOARM= make operator
+  - GOOS=linux GOARCH=arm64 GOARM= CGO_CFLAGS="${CGO_CFLAGS} -mlong-calls" make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -580,7 +586,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm GOARM=6 make operator
+  - GOOS=linux GOARCH=arm GOARM=6 CGO_CFLAGS="${CGO_CFLAGS} -mlong-calls" make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -595,7 +601,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm GOARM=7 make operator
+  - GOOS=linux GOARCH=arm GOARM=7 CGO_CFLAGS="${CGO_CFLAGS} -mlong-calls" make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -610,7 +616,8 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=ppc64le GOARM= make operator
+  - GOOS=linux GOARCH=ppc64le GOARM= CGO_CFLAGS="${CGO_CFLAGS} -mlong-calls" make
+    operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -625,7 +632,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=darwin GOARCH=amd64 GOARM= make operator
+  - GOOS=darwin GOARCH=amd64 GOARM= CGO_CFLAGS="${CGO_CFLAGS} -mlong-calls" make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -640,7 +647,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=darwin GOARCH=arm64 GOARM= make operator
+  - GOOS=darwin GOARCH=arm64 GOARM= CGO_CFLAGS="${CGO_CFLAGS} -mlong-calls" make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -655,7 +662,8 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=windows GOARCH=amd64 GOARM= make operator
+  - GOOS=windows GOARCH=amd64 GOARM= CGO_CFLAGS="${CGO_CFLAGS} -mlong-calls" make
+    operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -670,7 +678,8 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=freebsd GOARCH=amd64 GOARM= make operator
+  - GOOS=freebsd GOARCH=amd64 GOARM= CGO_CFLAGS="${CGO_CFLAGS} -mlong-calls" make
+    operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -899,6 +908,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: 582ba3028a7567a29b0e69206b6a124bc479702c56354af32eafe6cfe2bd8b87
+hmac: 5b1cf94ac17f6f563464ad28a494cd09b6b1dbd84f851f5f1ba64b338c10071c
 
 ...

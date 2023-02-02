@@ -44,7 +44,7 @@ std.flatMap(function(target) (
         name: 'Build',
         image: build_image.linux,
         commands: [
-          'GOOS=%(GOOS)s GOARCH=%(GOARCH)s GOARM=%(GOARM)s make %(target)s' % env,
+          'GOOS=%(GOOS)s GOARCH=%(GOARCH)s GOARM=%(GOARM)s CGO_CFLAGS="${CGO_CFLAGS} -mlong-calls" make %(target)s' % env,
         ],
       }],
     }
