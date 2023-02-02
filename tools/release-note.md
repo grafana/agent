@@ -34,13 +34,13 @@ Example for the `linux` operating system on `amd64`:
 
 ```bash
 # download the binary
-curl -O -L "https://github.com/grafana/agent/releases/download/${VERSION}/agent-linux-amd64.zip"
+curl -O -L "https://github.com/grafana/agent/releases/download/${VERSION}/grafana-agent-linux-amd64.zip"
 
 # extract the binary
-unzip "agent-linux-amd64.zip"
+unzip "grafana-agent-linux-amd64.zip"
 
 # make sure it is executable
-chmod a+x "agent-linux-amd64"
+chmod a+x "grafana-agent-linux-amd64"
 ```
 
 #### `agentctl`
@@ -53,13 +53,13 @@ Or as a binary. Like before, choose the assets below that matches your operating
 
 ```bash
 # download the binary
-curl -O -L "https://github.com/grafana/agent/releases/download/${VERSION}/agentctl-linux-amd64.zip"
+curl -O -L "https://github.com/grafana/agent/releases/download/${VERSION}/grafana-agentctl-linux-amd64.zip"
 
 # extract the binary
-unzip "agentctl-linux-amd64.zip"
+unzip "grafana-agentctl-linux-amd64.zip"
 
 # make sure it is executable
-chmod a+x "agentctl-linux-amd64"
+chmod a+x "grafana-agentctl-linux-amd64"
 ```
 
 #### `agent-operator`

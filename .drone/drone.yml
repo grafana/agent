@@ -126,8 +126,9 @@ platform:
   os: linux
 steps:
 - commands:
+  - apt-get update -y && apt-get install -y libsystemd-dev
   - make lint
-  image: grafana/agent-build-image:0.20.0
+  image: golangci/golangci-lint:v1.50.1
   name: Lint
 trigger:
   event:
@@ -141,9 +142,8 @@ platform:
   os: linux
 steps:
 - commands:
-  - make binaries
   - K8S_USE_DOCKER_NETWORK=1 make test
-  image: grafana/agent-build-image:0.20.0
+  image: grafana/agent-build-image:0.21.0
   name: Run Go tests
   volumes:
   - name: docker
@@ -166,7 +166,9 @@ platform:
 steps:
 - commands:
   - go test -tags="nodocker,nonetwork" ./...
-  image: grafana/agent-build-image:0.20.0-windows
+  environment:
+    ASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH: go1.20
+  image: grafana/agent-build-image:0.21.0-windows
   name: Run Go tests
 trigger:
   event:
@@ -181,7 +183,7 @@ platform:
 steps:
 - commands:
   - make agent-image
-  image: grafana/agent-build-image:0.20.0
+  image: grafana/agent-build-image:0.21.0
   name: Build container
   volumes:
   - name: docker
@@ -205,7 +207,7 @@ platform:
 steps:
 - commands:
   - make agentctl-image
-  image: grafana/agent-build-image:0.20.0
+  image: grafana/agent-build-image:0.21.0
   name: Build container
   volumes:
   - name: docker
@@ -229,7 +231,7 @@ platform:
 steps:
 - commands:
   - make operator-image
-  image: grafana/agent-build-image:0.20.0
+  image: grafana/agent-build-image:0.21.0
   name: Build container
   volumes:
   - name: docker
@@ -255,7 +257,7 @@ steps:
 - commands:
   - git config --global --add safe.directory C:/drone/src/
   - '& "C:/Program Files/git/bin/bash.exe" -c ./tools/ci/docker-containers-windows'
-  image: grafana/agent-build-image:0.20.0-windows
+  image: grafana/agent-build-image:0.21.0-windows
   name: Build container
   volumes:
   - name: docker
@@ -270,6 +272,411 @@ volumes:
 - host:
     path: //./pipe/docker_engine/
   name: docker
+---
+kind: pipeline
+name: Build agent (Linux amd64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=linux GOARCH=amd64 GOARM= make agent
+  image: grafana/agent-build-image:0.21.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build agent (Linux arm64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=linux GOARCH=arm64 GOARM= make agent
+  image: grafana/agent-build-image:0.21.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build agent (Linux armv6)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=linux GOARCH=arm GOARM=6 make agent
+  image: grafana/agent-build-image:0.21.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build agent (Linux armv7)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=linux GOARCH=arm GOARM=7 make agent
+  image: grafana/agent-build-image:0.21.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build agent (Linux ppc64le)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=linux GOARCH=ppc64le GOARM= make agent
+  image: grafana/agent-build-image:0.21.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build agent (macOS Intel)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=darwin GOARCH=amd64 GOARM= make agent
+  image: grafana/agent-build-image:0.21.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build agent (macOS Apple Silicon)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=darwin GOARCH=arm64 GOARM= make agent
+  image: grafana/agent-build-image:0.21.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build agent (Windows amd64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=windows GOARCH=amd64 GOARM= make agent
+  image: grafana/agent-build-image:0.21.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build agent (FreeBSD amd64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=freebsd GOARCH=amd64 GOARM= make agent
+  image: grafana/agent-build-image:0.21.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build agentctl (Linux amd64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=linux GOARCH=amd64 GOARM= make agentctl
+  image: grafana/agent-build-image:0.21.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build agentctl (Linux arm64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=linux GOARCH=arm64 GOARM= make agentctl
+  image: grafana/agent-build-image:0.21.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build agentctl (Linux armv6)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=linux GOARCH=arm GOARM=6 make agentctl
+  image: grafana/agent-build-image:0.21.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build agentctl (Linux armv7)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=linux GOARCH=arm GOARM=7 make agentctl
+  image: grafana/agent-build-image:0.21.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build agentctl (Linux ppc64le)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=linux GOARCH=ppc64le GOARM= make agentctl
+  image: grafana/agent-build-image:0.21.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build agentctl (macOS Intel)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=darwin GOARCH=amd64 GOARM= make agentctl
+  image: grafana/agent-build-image:0.21.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build agentctl (macOS Apple Silicon)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=darwin GOARCH=arm64 GOARM= make agentctl
+  image: grafana/agent-build-image:0.21.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build agentctl (Windows amd64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=windows GOARCH=amd64 GOARM= make agentctl
+  image: grafana/agent-build-image:0.21.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build agentctl (FreeBSD amd64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=freebsd GOARCH=amd64 GOARM= make agentctl
+  image: grafana/agent-build-image:0.21.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build operator (Linux amd64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=linux GOARCH=amd64 GOARM= make operator
+  image: grafana/agent-build-image:0.21.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build operator (Linux arm64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=linux GOARCH=arm64 GOARM= make operator
+  image: grafana/agent-build-image:0.21.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build operator (Linux armv6)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=linux GOARCH=arm GOARM=6 make operator
+  image: grafana/agent-build-image:0.21.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build operator (Linux armv7)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=linux GOARCH=arm GOARM=7 make operator
+  image: grafana/agent-build-image:0.21.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build operator (Linux ppc64le)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=linux GOARCH=ppc64le GOARM= make operator
+  image: grafana/agent-build-image:0.21.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build operator (macOS Intel)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=darwin GOARCH=amd64 GOARM= make operator
+  image: grafana/agent-build-image:0.21.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build operator (macOS Apple Silicon)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=darwin GOARCH=arm64 GOARM= make operator
+  image: grafana/agent-build-image:0.21.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build operator (Windows amd64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=windows GOARCH=amd64 GOARM= make operator
+  image: grafana/agent-build-image:0.21.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build operator (FreeBSD amd64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - GOOS=freebsd GOARCH=amd64 GOARM= make operator
+  image: grafana/agent-build-image:0.21.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
 ---
 kind: pipeline
 name: Publish Linux Docker containers
@@ -292,7 +699,7 @@ steps:
       from_secret: DOCKER_PASSWORD
     GCR_CREDS:
       from_secret: gcr_admin
-  image: grafana/agent-build-image:0.20.0
+  image: grafana/agent-build-image:0.21.0
   name: Build containers
   volumes:
   - name: docker
@@ -371,7 +778,7 @@ steps:
       from_secret: DOCKER_LOGIN
     DOCKER_PASSWORD:
       from_secret: DOCKER_PASSWORD
-  image: grafana/agent-build-image:0.20.0-windows
+  image: grafana/agent-build-image:0.21.0-windows
   name: Build containers
   volumes:
   - name: docker
@@ -414,7 +821,7 @@ steps:
       from_secret: gpg_private_key
     GPG_PUBLIC_KEY:
       from_secret: gpg_public_key
-  image: grafana/agent-build-image:0.20.0
+  image: grafana/agent-build-image:0.21.0
   name: Publish release
   volumes:
   - name: docker
@@ -422,6 +829,33 @@ steps:
 trigger:
   ref:
   - refs/tags/v*
+type: docker
+volumes:
+- host:
+    path: /var/run/docker.sock
+  name: docker
+---
+kind: pipeline
+name: Test Linux system packages
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - DOCKER_OPTS="" make dist/grafana-agent-linux-amd64
+  - DOCKER_OPTS="" make dist/grafana-agentctl-linux-amd64
+  - DOCKER_OPTS="" make test-packages
+  image: grafana/agent-build-image:0.21.0
+  name: Test Linux system packages
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+trigger:
+  event:
+  - pull_request
+  paths:
+  - packaging/**
+  - Makefile
 type: docker
 volumes:
 - host:
@@ -465,6 +899,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: c6496402d38b36cc5b32f691691f33214d25941b69a39c77f6b95de0d3c5eb83
+hmac: 582ba3028a7567a29b0e69206b6a124bc479702c56354af32eafe6cfe2bd8b87
 
 ...
