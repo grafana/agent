@@ -83,7 +83,7 @@
 ##   GOOS             Override OS to build binaries for
 ##   GOARCH           Override target architecture to build binaries for
 ##   GOARM            Override ARM version (6 or 7) when GOARCH=arm
-##   CGO_ENABLED      Set to 0 to disable Cgo for binaries that support Cgo.
+##   CGO_ENABLED      Set to 0 to disable Cgo for binaries.
 ##   RELEASE_BUILD    Set to 1 to build release binaries.
 ##   VERSION          Version to inject into built binaries.
 ##   GO_TAGS          Extra tags to use when building.
@@ -120,8 +120,16 @@ PROPAGATE_VARS := \
 # Constants for targets
 #
 
-CGO_ENV := GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CGO_ENABLED=$(CGO_ENABLED) ASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH=go1.20
-GO_ENV  := GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) ASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH=go1.20
+GO_ENV := GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CGO_ENABLED=$(CGO_ENABLED) ASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH=go1.20
+
+# Selectively pass -mlong-calls when building for 32-bit ARM targets (armv6,
+# armv7). This works around an issue where the text segment has gotten big
+# enough (>32MB) that "relocation truncated to fit" errors occur.
+ifeq ($(GOARCH),arm)
+ifeq ($(GOOS),linux)
+GO_ENV += CGO_CFLAGS="$(CGO_CFLAGS) -mlong-calls"
+endif
+endif
 
 VERSION      ?= $(shell ./tools/image-tag)
 GIT_REVISION := $(shell git rev-parse --short HEAD)
@@ -159,8 +167,8 @@ lint: agentlint
 # We have to run test twice: once for all packages with -race and then once
 # more without -race for packages that have known race detection issues.
 test:
-	$(CGO_ENV) go test $(GO_FLAGS) -race ./...
-	$(CGO_ENV) go test $(GO_FLAGS) ./pkg/integrations/node_exporter ./pkg/logs ./pkg/operator ./pkg/util/k8s
+	$(GO_ENV) go test $(GO_FLAGS) -race ./...
+	$(GO_ENV) go test $(GO_FLAGS) ./pkg/integrations/node_exporter ./pkg/logs ./pkg/operator ./pkg/util/k8s
 
 test-packages:
 	docker pull $(BUILD_IMAGE)
@@ -177,7 +185,7 @@ agent:
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
-	$(CGO_ENV) go build $(GO_FLAGS) -o $(AGENT_BINARY) ./cmd/grafana-agent
+	$(GO_ENV) go build $(GO_FLAGS) -o $(AGENT_BINARY) ./cmd/grafana-agent
 endif
 
 agentctl:
