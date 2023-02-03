@@ -17,17 +17,12 @@ Main (unreleased)
 
 ### Features
 
-- Integrations: Introduce the `oracledb` integration. (@schmikei)
+- New integrations: introduce the `oracledb` integration. (@schmikei)
 
-- New metric for prometheus.scrape - `agent_prometheus_scrape_targets_gauge`. (@ptodev)
-
-- New metric for prometheus.scrape and prometheus.relabel - `agent_prometheus_forwarded_samples_total`. (@ptodev)
-
-- Integrations: Introduce the `mssql` integration. (@binaryfissiongames)
-
-- Integrations: Introduce `cloudwatch metrics` integration. (@thepalbi)
-
-- Integrations: Introduce an `azure` integration. (@kgeckhart)
+  - `oracledb` (@schmikei)
+  - `mssql` (@binaryfissiongames)
+  - `cloudwatch metrics` (@thepalbi)
+  - `azure` (@kgeckhart)
 
 - Integrations: Introduce a `gcp` integration. (@kgeckhart and @ferruvich)
 
@@ -42,8 +37,15 @@ Main (unreleased)
   `systemctl reload grafana-agent` will now reload the configuration file.
   (@rfratto)
 
-- Flow: The `loki.process` component now implements all the same processing
+- Flow: the `loki.process` component now implements all the same processing
   stages as Promtail's pipelines. (@tpaschalis)
+
+- Flow: new metric for `prometheus.scrape` - `agent_prometheus_scrape_targets_gauge`. (@ptodev)
+
+- Flow: new metric for `prometheus.scrape` and `prometheus.relabel` - `agent_prometheus_forwarded_samples_total`. (@ptodev)
+
+- Flow: add `constants` into the standard library to expose the hostname, OS,
+  and architecture of the system Grafana Agent is running on. (@rfratto)
 
 ### Other changes
 

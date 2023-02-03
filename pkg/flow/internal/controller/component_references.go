@@ -48,7 +48,7 @@ func ComponentReferences(cn dag.Node, g *dag.Graph) ([]Reference, diag.Diagnosti
 		//
 		// Any call to an stdlib function is ignored.
 		var emptyScope vm.Scope
-		if _, ok := emptyScope.Lookup(t[0].Name); ok && len(t) == 1 {
+		if _, ok := emptyScope.Lookup(t[0].Name); ok {
 			continue
 		}
 

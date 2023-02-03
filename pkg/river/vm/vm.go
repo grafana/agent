@@ -552,8 +552,8 @@ func (s *Scope) Lookup(name string) (interface{}, bool) {
 		}
 		s = s.Parent
 	}
-	if fn, ok := stdlib.Functions[name]; ok {
-		return fn, true
+	if ident, ok := stdlib.Identifiers[name]; ok {
+		return ident, true
 	}
 	return nil, false
 }
