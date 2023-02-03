@@ -1,6 +1,6 @@
 # Grafana Agent Helm chart
 
-![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.4.0](https://img.shields.io/badge/Version-0.4.0-informational?style=flat-square) ![AppVersion: v0.31.0](https://img.shields.io/badge/AppVersion-v0.31.0-informational?style=flat-square)
+![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.5.0](https://img.shields.io/badge/Version-0.5.0-informational?style=flat-square) ![AppVersion: v0.31.0](https://img.shields.io/badge/AppVersion-v0.31.0-informational?style=flat-square)
 
 Helm chart for deploying [Grafana Agent][] to Kubernetes.
 
@@ -36,6 +36,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | agent.extraArgs | list | `[]` | Extra args to pass to `agent run`: https://grafana.com/docs/agent/latest/flow/reference/cli/run/ |
 | agent.extraEnv | list | `[]` | Extra environment variables to pass to the agent container. |
 | agent.extraPorts | list | `[]` | Extra ports to expose on the Agent |
+| agent.faroPort | int | `8080` | Port to listen for faro traffic on. |
 | agent.listenAddr | string | `"0.0.0.0"` | Address to listen for traffic on. 0.0.0.0 exposes the UI to other containers. |
 | agent.listenPort | int | `80` | Port to listen for traffic on. |
 | agent.mode | string | `"flow"` | Mode to run Grafana Agent in. Can be "flow" or "static". |
@@ -45,6 +46,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | agent.resources | object | `{}` | Resource requests and limits to apply to the Grafana Agent container. |
 | agent.securityContext | object | `{}` | Security context to apply to the Grafana Agent container. |
 | agent.storagePath | string | `"/tmp/agent"` | Path to where Grafana Agent stores data (for example, the Write-Ahead Log). By default, data is lost between reboots. |
+| agent.structuredConfig | object | `{}` |  |
 | configReloader.customArgs | list | `[]` | Override the args passed to the container. |
 | configReloader.enabled | bool | `true` | Enables automatically reloading when the agent config changes. |
 | configReloader.image.repository | string | `"jimmidyson/configmap-reload"` | Repository to get config reloader image from. |
@@ -61,6 +63,14 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | image.pullSecrets | list | `[]` | Optional set of image pull secrets. |
 | image.repository | string | `"grafana/agent"` | Grafana Agent image repository. |
 | image.tag | string | `nil` | Grafana Agent image tag. When empty, the Chart's appVersion is used. |
+| ingress.annotations | object | `{}` |  |
+| ingress.enabled | bool | `false` | Enables ingress for the agent (faro port) |
+| ingress.extraPaths | list | `[]` |  |
+| ingress.hosts[0] | string | `"chart-example.local"` |  |
+| ingress.labels | object | `{}` |  |
+| ingress.path | string | `"/"` |  |
+| ingress.pathType | string | `"Prefix"` |  |
+| ingress.tls | list | `[]` |  |
 | nameOverride | string | `nil` | Overrides the chart's name. Used to change the infix in the resource names. |
 | rbac.create | bool | `true` | Whether to create RBAC resources for the agent. |
 | service.clusterIP | string | `""` | Cluster IP, can be set to None, empty "" or an IP address |

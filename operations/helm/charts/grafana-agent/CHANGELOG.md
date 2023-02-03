@@ -10,6 +10,10 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Enhancements
+- Helm Chart: Add ingress and support for agent-receiver. (@ts-mini)
+- Helm chart: Add support for structuredConfig in values.yaml (@ts-mini)
+
 ### Documentation
 - Update Helm Chart documentation to reference new `loki.source.kubernetes` component. 
 
