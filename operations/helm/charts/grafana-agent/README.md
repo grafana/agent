@@ -36,7 +36,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | agent.extraArgs | list | `[]` | Extra args to pass to `agent run`: https://grafana.com/docs/agent/latest/flow/reference/cli/run/ |
 | agent.extraEnv | list | `[]` | Extra environment variables to pass to the agent container. |
 | agent.extraPorts | list | `[]` | Extra ports to expose on the Agent |
-| agent.faroPort | int | `8080` | Port to listen for faro traffic on. |
+| agent.faroPort | int | `12347` | Port to listen for faro traffic on. |
 | agent.listenAddr | string | `"0.0.0.0"` | Address to listen for traffic on. 0.0.0.0 exposes the UI to other containers. |
 | agent.listenPort | int | `80` | Port to listen for traffic on. |
 | agent.mode | string | `"flow"` | Mode to run Grafana Agent in. Can be "flow" or "static". |
@@ -46,7 +46,6 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | agent.resources | object | `{}` | Resource requests and limits to apply to the Grafana Agent container. |
 | agent.securityContext | object | `{}` | Security context to apply to the Grafana Agent container. |
 | agent.storagePath | string | `"/tmp/agent"` | Path to where Grafana Agent stores data (for example, the Write-Ahead Log). By default, data is lost between reboots. |
-| agent.structuredConfig | object | `{}` |  |
 | configReloader.customArgs | list | `[]` | Override the args passed to the container. |
 | configReloader.enabled | bool | `true` | Enables automatically reloading when the agent config changes. |
 | configReloader.image.repository | string | `"jimmidyson/configmap-reload"` | Repository to get config reloader image from. |

@@ -9,7 +9,6 @@ fullnameOverride: null
 agent:
   # -- Mode to run Grafana Agent in. Can be "flow" or "static".
   mode: 'flow'
-  structuredConfig: {}
   configMap:
     # -- Create a new ConfigMap for the config file.
     create: true
