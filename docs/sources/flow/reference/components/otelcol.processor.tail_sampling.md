@@ -48,6 +48,12 @@ Name | Type | Description | Default | Required
 `num_traces`                  | `int`      | Number of traces kept in memory. | `50000` | no
 `expected_new_traces_per_sec` | `int`      | Expected number of new traces (helps in allocating data structures). | `0` | no
 
+`decision_wait` determines the number of batches to maintain on a channel. Its value must convert to a number of seconds greater than zero.
+
+`num_traces` determines the buffer size of the trace delete channel which is composed of trace ids. Increasing the number will increase the memory usage of the component while decreasing the number will lower the maximum amount of traces kept in memory.
+
+`expected_new_traces_per_sec` determines the initial slice sizing of the current batch. A larger number will use more memory but be more efficient when adding traces to the batch.
+
 ## Blocks
 
 The following blocks are supported inside the definition of
