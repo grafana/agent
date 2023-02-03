@@ -34,7 +34,8 @@ Name            | Type                 | Description          | Default | Requir
 `host`          | `string`             | Address of the Docker daemon. | | yes
 `targets`       | `list(map(string))`  | List of containers to read logs from. | | yes
 `forward_to`    | `list(LogsReceiver)` | List of receivers to send log entries to. | | yes
-`relabel_rules` | `RelabelRules`       | Relabeling rules to apply on log entries. | "{}" | no
+`labels`        | `map(string)`        | The default set of labels to apply on entries. | `"{}"` | no
+`relabel_rules` | `RelabelRules`       | Relabeling rules to apply on log entries. | `"{}"` | no
 
 ## Blocks
 
