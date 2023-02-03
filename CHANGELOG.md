@@ -29,6 +29,8 @@ Main (unreleased)
 
 - Integrations: Introduce an `azure` integration. (@kgeckhart)
 
+- Integrations: Introduce a `gcp` integration. (@kgeckhart and @ferruvich)
+
 ### Enhancements
 
 - Update Prometheus Node Exporter integration to v1.5.0. (@Thor77)
