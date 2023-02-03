@@ -236,11 +236,13 @@ func (c *Component) getManagerOptions(args Arguments) (*Options, error) {
 func (c *Component) DebugInfo() interface{} {
 	var res readerDebugInfo
 	for _, tgt := range c.manager.Targets() {
-		offset, _ := c.posFile.Get(positions.CursorKey(tgt.Name()), tgt.Labels().String())
+		details := tgt.Details().(map[string]string)
 		res.TargetsInfo = append(res.TargetsInfo, targetInfo{
 			Labels:     tgt.Labels().String(),
-			IsReady:    tgt.Ready(),
-			ReadOffset: offset,
+			ID:         details["id"],
+			LastError:  details["error"],
+			IsRunning:  details["running"],
+			ReadOffset: details["position"],
 		})
 	}
 	return res
@@ -251,7 +253,9 @@ type readerDebugInfo struct {
 }
 
 type targetInfo struct {
+	ID         string `river:"id,attr"`
+	LastError  string `river:"last_error,attr"`
 	Labels     string `river:"labels,attr"`
-	IsReady    bool   `river:"is_running,attr"`
-	ReadOffset int64  `river:"read_offset,attr"`
+	IsRunning  string `river:"is_running,attr"`
+	ReadOffset string `river:"read_offset,attr"`
 }
