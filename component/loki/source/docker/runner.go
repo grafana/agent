@@ -105,8 +105,11 @@ func (t *tailer) Run(ctx context.Context) {
 	case err := <-chErr:
 		// Error setting up the Wait request from the client; either failed to
 		// read from /containers/{containerID}/wait, or couldn't parse the
-		// response. Stop the target and exit the task after logging.
+		// response. Stop the target and exit the task after logging; if it was
+		// a transient error, the target will be retried on the next discovery
+		// refresh.
 		level.Error(t.log).Log("msg", "could not set up a wait request to the Docker client", "error", err)
+		t.target.Stop()
 		return
 	case <-ch:
 		t.target.Stop()
