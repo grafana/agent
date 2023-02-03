@@ -26,6 +26,10 @@ Main (unreleased)
 
 - Integrations: Introduce a `gcp` integration. (@kgeckhart and @ferruvich)
 
+- New Grafana Agent Flow components:
+    - `otelcol.processor.tail_sampling` samples traces based on a set of defined policies from `otelcol` components before
+    forwarding them to other `otelcol` components. (@erikbaranowski)
+
 ### Enhancements
 
 - Update Prometheus Node Exporter integration to v1.5.0. (@Thor77)
