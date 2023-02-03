@@ -10,6 +10,9 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Documentation
+- Update Helm Chart documentation to reference new `loki.source.kubernetes` component. 
+
 0.4.0 (2023-01-31)
 ------------------
 

@@ -73,8 +73,24 @@ components like [discovery.kubernetes][] to work properly.
 
 ## Collecting logs from other containers
 
-Currently, the only way to collect logs from other contains is to mount
-`/var/lib/docker/containers` from the host and read the log files directly.
+There are two ways to collect logs from other containers within the cluster
+the agent is deployed in. 
+
+### Versions >= 0.31.x
+
+The recommended way for collecting container logs on Kubernetes is to make use of 
+the [loki.source.kubernetes][] component introduced in 0.31.0. This component 
+does not require mounting the hosts filesystem into the Agent, nor requires
+additional security contexts to work correctly.
+
+[loki.source.kubernetes]: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.kubernetes/
+
+### Versions < 0.31.x
+
+For those running the Agent on versions prior to 0.31.0, the only way to collect logs 
+from other containers is to mount `/var/lib/docker/containers` from the host and read 
+the log files directly.
+
 This capability is disabled by default.
 
 To expose logs from other containers to Grafana Agent:

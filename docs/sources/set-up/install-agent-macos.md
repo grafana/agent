@@ -21,6 +21,7 @@ Use Homebrew to install the most recent released version of Grafana using the Ho
    The brew page downloads and enters the files into:
 - /usr/local/Cellar/grafana-agent/[version] (Homebrew v2)
 - /opt/homebrew/Cellar/grafana-agent/[version] (Homebrew v3)
+- Grafana Agent logs should be located in `/opt/homebrew/var/log/` though this path may differ depending on the version of Homebrew.
   
 2. Start Grafana Agent using the command:
 

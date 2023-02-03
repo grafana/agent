@@ -29,6 +29,8 @@ Main (unreleased)
 
 - Integrations: Introduce an `azure` integration. (@kgeckhart)
 
+- Integrations: Introduce a `gcp` integration. (@kgeckhart and @ferruvich)
+
 - New Grafana Agent Flow components:
     - `otelcol.processor.tail_sampling` samples traces based on a set of defined policies from `otelcol` components before
     forwarding them to other `otelcol` components. (@erikbaranowski)
