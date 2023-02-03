@@ -24,6 +24,8 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 
 FROM ubuntu:jammy
 
+LABEL org.opencontainers.image.source="https://github.com/grafana/agent"
+
 # Install dependencies needed at runtime.
 RUN <<EOF
   apt-get update
