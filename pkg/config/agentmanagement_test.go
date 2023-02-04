@@ -132,6 +132,36 @@ func TestSleepTime(t *testing.T) {
 	assert.Equal(t, time.Second*15, st)
 }
 
+func TestJitterTime(t *testing.T) {
+	zero := time.Duration(0)
+	// test both durations negative
+	min, max := -1*time.Second, -1*time.Second
+	assert.Equal(t, zero, jitterTime(min, max))
+
+	// invalid min, valid max
+	min, max = -1*time.Second, 10*time.Second
+	assert.Equal(t, zero, jitterTime(min, max))
+
+	// valid min, invalid max
+	min, max = 1*time.Second, -1*time.Second
+	assert.Equal(t, zero, jitterTime(min, max))
+
+	// equal min and max
+	min = time.Second
+	max = min
+	assert.Equal(t, min, jitterTime(min, max))
+
+	// test max < min
+	min, max = 10*time.Second, 1*time.Second
+	assert.Equal(t, max, jitterTime(min, max))
+
+	// test a typical case
+	min, max = 100*time.Millisecond, 10*time.Second
+	j := jitterTime(min, max)
+	assert.GreaterOrEqual(t, j, min)
+	assert.Less(t, j, max)
+}
+
 func TestFullUrl(t *testing.T) {
 	c := validAgentManagementConfig
 	actual, err := c.fullUrl()

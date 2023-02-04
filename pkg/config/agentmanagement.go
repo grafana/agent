@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"math/rand"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -57,6 +58,8 @@ func (r remoteConfigHTTPProvider) CacheRemoteConfig(remoteConfigBytes []byte) er
 
 // FetchRemoteConfig fetches the raw bytes of the config from a remote API using
 // the values in r.AgentManagement.
+//
+// Sleeps for a short period of time to apply jitter to API requests.
 func (r remoteConfigHTTPProvider) FetchRemoteConfig() ([]byte, error) {
 	httpClientConfig := &config.HTTPClientConfig{
 		BasicAuth: &r.InitialConfig.BasicAuth,
@@ -81,6 +84,7 @@ func (r remoteConfigHTTPProvider) FetchRemoteConfig() ([]byte, error) {
 		return nil, fmt.Errorf("error reading remote config: %w", err)
 	}
 
+	time.Sleep(jitterTime(time.Duration(0), 10*time.Second))
 	bb, err := rc.retrieve()
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving remote config: %w", err)
@@ -179,6 +183,21 @@ func (am *AgentManagementConfig) fullUrl() (string, error) {
 // SleepTime returns the parsed duration in between config fetches.
 func (am *AgentManagementConfig) SleepTime() (time.Duration, error) {
 	return time.ParseDuration(am.PollingInterval)
+}
+
+// jitterTime returns a random duration in the range [minJitterDuration, maxJitterDuration).
+func jitterTime(minJitterDuration time.Duration, maxJitterDuration time.Duration) time.Duration {
+	// If either duration is negative, or the maximum duration is 0 return no jitter.
+	if minJitterDuration < 0 || maxJitterDuration <= 0 {
+		return time.Duration(0)
+	}
+
+	// Always return the lower of the two if they are non-negative but invalid.
+	if maxJitterDuration <= minJitterDuration {
+		return maxJitterDuration
+	}
+
+	return minJitterDuration + time.Duration(rand.Int63n(int64(maxJitterDuration-minJitterDuration)))
 }
 
 // Validate checks that necessary portions of the config have been set.
