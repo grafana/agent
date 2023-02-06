@@ -360,6 +360,10 @@ func (ep *Entrypoint) pollConfig(ctx context.Context, t *time.Ticker) error {
 		case <-ctx.Done():
 			return nil
 		case <-t.C:
+			// Sleep for random amount of time to provide jitter to API requests
+			jitter := ep.cfg.AgentManagement.JitterTime()
+			time.Sleep(jitter)
+
 			ok := ep.TriggerReload()
 			if !ok {
 				level.Error(ep.log).Log("msg", "config reload did not succeed")

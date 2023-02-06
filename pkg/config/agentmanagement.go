@@ -16,11 +16,7 @@ import (
 	"github.com/prometheus/common/config"
 )
 
-const (
-	cacheFilename     = "remote-config-cache.yaml"
-	httpMinJitterTime = time.Duration(0)
-	httpMaxJitterTime = 10 * time.Second
-)
+const cacheFilename = "remote-config-cache.yaml"
 
 type remoteConfigProvider interface {
 	GetCachedRemoteConfig(expandEnvVars bool) (*Config, error)
@@ -87,9 +83,6 @@ func (r remoteConfigHTTPProvider) FetchRemoteConfig() ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error reading remote config: %w", err)
 	}
-
-	// sleep for random time to add jitter to API requests
-	time.Sleep(jitterTime(httpMinJitterTime, httpMaxJitterTime))
 
 	bb, err := rc.retrieve()
 	if err != nil {
@@ -191,19 +184,10 @@ func (am *AgentManagementConfig) SleepTime() (time.Duration, error) {
 	return time.ParseDuration(am.PollingInterval)
 }
 
-// jitterTime returns a random duration in the range [minJitterDuration, maxJitterDuration).
-func jitterTime(minJitterDuration time.Duration, maxJitterDuration time.Duration) time.Duration {
-	// If either duration is negative, or the maximum duration is 0 return no jitter.
-	if minJitterDuration < 0 || maxJitterDuration <= 0 {
-		return time.Duration(0)
-	}
-
-	// Always return the lower of the two if they are non-negative but invalid.
-	if maxJitterDuration <= minJitterDuration {
-		return maxJitterDuration
-	}
-
-	return minJitterDuration + time.Duration(rand.Int63n(int64(maxJitterDuration-minJitterDuration)))
+// jitterTime returns a random duration in the range [0, am.PollingInterval).
+func (am *AgentManagementConfig) JitterTime() time.Duration {
+	maxJitterDuration, _ := am.SleepTime()
+	return time.Duration(rand.Int63n(int64(maxJitterDuration)))
 }
 
 // Validate checks that necessary portions of the config have been set.
