@@ -16,7 +16,11 @@ import (
 	"github.com/prometheus/common/config"
 )
 
-const cacheFilename = "remote-config-cache.yaml"
+const (
+	cacheFilename     = "remote-config-cache.yaml"
+	httpMinJitterTime = time.Duration(0)
+	httpMaxJitterTime = 10 * time.Second
+)
 
 type remoteConfigProvider interface {
 	GetCachedRemoteConfig(expandEnvVars bool) (*Config, error)
@@ -84,7 +88,9 @@ func (r remoteConfigHTTPProvider) FetchRemoteConfig() ([]byte, error) {
 		return nil, fmt.Errorf("error reading remote config: %w", err)
 	}
 
-	time.Sleep(jitterTime(time.Duration(0), 10*time.Second))
+	// sleep for random time to add jitter to API requests
+	time.Sleep(jitterTime(httpMinJitterTime, httpMaxJitterTime))
+
 	bb, err := rc.retrieve()
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving remote config: %w", err)
