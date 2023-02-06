@@ -91,6 +91,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		metrics: dt.NewMetrics(o.Registerer),
 
 		handler:   make(loki.LogsReceiver),
+		manager:   newManager(o.Logger, nil),
 		receivers: args.ForwardTo,
 		posFile:   positionsFile,
 	}
@@ -147,17 +148,11 @@ func (c *Component) Update(args component.Arguments) error {
 		return err
 	}
 
-	switch {
-	case c.manager == nil:
-		// First call to Update; build the tailer.
-		c.manager = newManager(c.opts.Logger, managerOpts)
-	case managerOpts != c.lastOptions:
+	if managerOpts != c.lastOptions {
 		// Options changed; pass it to the tailer.
 		// This will never fail because it only fails if the context gets canceled.
 		_ = c.manager.updateOptions(context.Background(), managerOpts)
 		c.lastOptions = managerOpts
-	default:
-		// No-op: manager already exists and options didn't change.
 	}
 
 	defaultLabels := make(model.LabelSet, len(newArgs.Labels))
