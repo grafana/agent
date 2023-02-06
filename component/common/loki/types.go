@@ -147,3 +147,55 @@ func AddLabelsMiddleware(additionalLabels model.LabelSet) EntryMiddleware {
 		})
 	})
 }
+
+// LogsFanout is an abstraction for fanning out log entries to multiple
+// receivers.
+type LogsFanout struct {
+	mut       sync.RWMutex
+	receivers []LogsReceiver
+}
+
+// NewFanout creates new LogsFanout.
+func NewFanout(r []LogsReceiver) *LogsFanout {
+	return &LogsFanout{
+		receivers: r,
+	}
+}
+
+// UpdateReceivers updates where LogsFanout should send entries to.
+func (f *LogsFanout) UpdateReceivers(r []LogsReceiver) {
+	f.mut.Lock()
+	f.receivers = r
+	f.mut.Unlock()
+}
+
+// Send fans out entries to each receiver, blocking until the entry is through.
+func (f *LogsFanout) Send(ctx context.Context, e Entry) {
+	f.mut.RLock()
+	receivers := f.receivers
+	f.mut.RUnlock()
+	for _, r := range receivers {
+		select {
+		case r <- e:
+		case <-ctx.Done():
+			return
+		}
+	}
+}
+
+// SendWithTimeout fans out entries to each receiver, waiting up to d time for
+// blocked receivers.
+func (f *LogsFanout) SendWithTimeout(ctx context.Context, e Entry, d time.Duration) {
+	f.mut.RLock()
+	receivers := f.receivers
+	f.mut.RUnlock()
+	for _, r := range receivers {
+		select {
+		case r <- e:
+		case <-ctx.Done():
+			return
+		case <-time.After(d):
+			return
+		}
+	}
+}
