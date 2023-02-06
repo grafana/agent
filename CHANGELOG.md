@@ -17,7 +17,7 @@ Main (unreleased)
 
 ### Features
 
-- New integrations: 
+- New integrations:
 
   - `oracledb` (@schmikei)
   - `mssql` (@binaryfissiongames)
@@ -54,7 +54,23 @@ Main (unreleased)
 
 ### Other changes
 
-- Use Go 1.20 for builds. (@rfratto)
+- Use Go 1.20 for builds. Official release binaries are still produced using Go
+  1.19. (@rfratto)
+
+v0.31.1 (2023-02-06)
+--------------------
+
+> **BREAKING CHANGES**: This release has breaking changes. Please read entries
+> carefully and consult the [upgrade guide][] for specific instructions.
+
+### Breaking changes
+
+- All release Windows `.exe` files are now published as a zip archive.
+  Previously, `grafana-agent-installer.exe` was unzipped. (@rfratto)
+
+### Other changes
+
+- Support Go 1.20 for builds. (@rfratto)
 
 v0.31.0 (2023-01-31)
 --------------------
@@ -70,9 +86,6 @@ v0.31.0 (2023-01-31)
   - `agent` is now `grafana-agent`.
   - `agentctl` is now `grafana-agentctl`.
   - `agent-operator` is now `grafana-agent-operator`.
-
-- All release Windows `.exe` files are now published as a zip archive.
-  Previously, `grafana-agent-installer.exe` was unzipped. (@rfratto)
 
 ### Deprecations
 
