@@ -8,7 +8,7 @@ weight: 800
 This guide describes all breaking changes that have happened in prior
 releases and how to migrate to newer versions.
 
-## Unreleased changes
+## v0.31.0
 
 These changes will come in a future version.
 
@@ -20,6 +20,9 @@ As first announced in v0.29, release binary names are now prefixed with
 - `agent` is now `grafana-agent`.
 - `agentctl` is now `grafana-agentctl`.
 - `agent-operator` is now `grafana-agent-operator`.
+
+Additionally, all release Windows `.exe` files are now published as a zip
+archive. Previously, `grafana-agent-installer.exe` was unzipped.
 
 For the `grafana/agent` Docker container, the entrypoint is now
 `/bin/grafana-agent`. A symbolic link from `/bin/agent` to the new binary has

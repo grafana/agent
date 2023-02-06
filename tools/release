@@ -3,10 +3,10 @@
 # This script should be run from the root of the repository.
 set -x
 
-# Zip up all the agent binaries to reduce the download size. DEBs, RPMs, and
-# Windows installers aren't included to be easier to work with.
+# Zip up all the agent binaries to reduce the download size. DEBs and RPMs
+# aren't included to be easier to work with.
 find dist/ -type f \
-  -name 'grafana-agent*' -not -name '*.deb' -not -name '*.rpm' -not -name '*.exe' \
+  -name 'grafana-agent*' -not -name '*.deb' -not -name '*.rpm' \
   -exec zip -j -m "{}.zip" "{}" \;
 
 # Sign the RPM packages. DEB packages aren't signed.

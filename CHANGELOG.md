@@ -71,6 +71,9 @@ v0.31.0 (2023-01-31)
   - `agentctl` is now `grafana-agentctl`.
   - `agent-operator` is now `grafana-agent-operator`.
 
+- All release Windows `.exe` files are now published as a zip archive.
+  Previously, `grafana-agent-installer.exe` was unzipped. (@rfratto)
+
 ### Deprecations
 
 - A symbolic link in Docker containers from the old binary name to the new
