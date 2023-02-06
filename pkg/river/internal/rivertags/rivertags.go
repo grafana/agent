@@ -18,6 +18,7 @@ const (
 
 	FlagOptional // FlagOptional marks a field optional for decoding/encoding
 	FlagLabel    // FlagLabel will store block labels in the field
+	FlagSquash   // FlagSquash will expose inner fields from a struct as outer fields.
 )
 
 // String returns the flags as a string.
@@ -35,6 +36,9 @@ func (f Flags) String() string {
 	}
 	if f&FlagLabel != 0 {
 		attrs = append(attrs, "label")
+	}
+	if f&FlagSquash != 0 {
+		attrs = append(attrs, "squash")
 	}
 
 	return fmt.Sprintf("Flags(%s)", strings.Join(attrs, ","))
@@ -89,8 +93,11 @@ func (f Field) IsOptional() bool { return f.Flags&FlagOptional != 0 }
 //	// represents.
 //	Field string `river:",label"`
 //
-// With the exception of the `river:",label"` tag, all tagged fields must have a
-// unique name.
+//	// Attributes and blocks inside of Field are exposed as top-level fields.
+//	Field struct{} `river:",squash"`
+//
+// With the exception of the `river:",label"` and `river:",squash" tags, all
+// tagged fields must have a unique name.
 //
 // The type of tagged fields may be any Go type, with the exception of
 // `river:",label"` tags, which must be strings.
@@ -152,6 +159,8 @@ func Get(ty reflect.Type) []Field {
 			tf.Flags |= FlagBlock | FlagOptional
 		case "label":
 			tf.Flags |= FlagLabel
+		case "squash":
+			tf.Flags |= FlagSquash
 		default:
 			panic(fmt.Sprintf("river: unrecognized river tag format %q at %s", tag, printPathToField(ty, tf.Index)))
 		}
@@ -174,7 +183,27 @@ func Get(ty reflect.Type) []Field {
 			usedLabelField = tf.Index
 		}
 
-		if fullName == "" && tf.Flags&FlagLabel == 0 /* (e.g., *not* a label) */ {
+		if tf.Flags&FlagSquash != 0 {
+			if fullName != "" {
+				panic(fmt.Sprintf("river: squash field at %s must not have a name", printPathToField(ty, tf.Index)))
+			}
+
+			// Get the inner fields from the squashed struct and append each of them.
+			// The index of the squashed field is prepended to the index of the inner
+			// struct.
+			innerFields := Get(deferenceType(field.Type))
+			for _, innerField := range innerFields {
+				fields = append(fields, Field{
+					Name:  innerField.Name,
+					Index: append(field.Index, innerField.Index...),
+					Flags: innerField.Flags,
+				})
+			}
+
+			continue
+		}
+
+		if fullName == "" && tf.Flags&(FlagLabel|FlagSquash) == 0 /* (e.g., *not* a label or squash) */ {
 			panic(fmt.Sprintf("river: non-empty field name required at %s", printPathToField(ty, tf.Index)))
 		}
 
@@ -202,4 +231,11 @@ func printPathToField(structTy reflect.Type, path []int) string {
 	}
 
 	return sb.String()
+}
+
+func deferenceType(ty reflect.Type) reflect.Type {
+	for ty.Kind() == reflect.Pointer {
+		ty = ty.Elem()
+	}
+	return ty
 }
