@@ -22,8 +22,7 @@ During this time the Agent team saw a lot of potential in modules outside of scr
 
 ## Goals
 
-* Support single module loading via `module.single`
-* Support multiple module loading via `module.multiple`
+* Support single module loading via `module.string`
 * Enable re-use of common patterns
 * Allow loading a module from a string
 * Allow modules to load other modules
@@ -35,7 +34,7 @@ Common functionality can be wrapped in a set of common components that form a mo
 
 ### Allow loading a module from a string
 
-Modules will not care about the source of a string. In the case of a `module.single` the module will take in one string of valid river configuration. In the case of `module.multiple` the module will take in a `map(string)` where the key uniquely denotes the module.
+Modules will not care about the source of a string. In the case of a `module.string` the module will take in one string of valid river configuration.
 
 ### Allow modules to load other modules
 
@@ -47,13 +46,15 @@ Modules cannot directly access children or parent modules except through predefi
 
 ## Non Goals
 
+Non goals represent capabilities that are not going to be done in the initial release of modules but may come in later versions.  
+
 * Add additional capabilities to load strings
 * Any type of versioning
 * Any user interface work beyond ensuring it works as the UI currently does
+* Any sort of security for modules and what modules are allowed
+* Any sort of metadata
 
-*Note* should security be a non-goal? For example can a submodule spawn a `local.file`, should there be the ability to pass a deny list of modules, and/or allow list? 
 
-*Note* should metadata be a non-goal? Metadata would allow better filtering the ability to tag modules, also will allow programmatic access to things that might otherwise be in comments. 
 
 ### Add additional capabilities to load strings
 
@@ -100,7 +101,7 @@ local.file "mysql" {
     filename = "/test/mysql.river"
 }
 
-module.single "mysql" {
+module.string "mysql" {
     content = local.file.mysql.content
     arguments = {
         {
@@ -111,24 +112,24 @@ module.single "mysql" {
 }
 
 prometheus.scrape "scraper" {
-    targets = module.single.mysql.exports.targets
+    targets = module.string.mysql.exports.targets
 }
 
 ```
 
 ## Limitations
 
-* Duplicate modules cannot be nested, this may or may not be enforced by the system
+* A module cannot directly or indirectly load itself, this will not be enforced by the system
 * Singleton components are not supported at this time. Example [node_exporter](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.integration.node_exporter/).
 * Modules will not prevent competing resources, such as starting a server on the same port
 * [Configuration blocks](https://grafana.com/docs/agent/latest/flow/reference/config-blocks/#configuration-blocks) will not be supported. 
-* Arguments and exports within a module must be unique
+* Names of arguments and exports within a module must be unique across that module.
 
 ## Proposal
 
 Add the ability to load `modules` as subgraphs to the primary `graph`. Modules may call other modules within a reasonable stack size depth. Modules are represented as a river string that is interpreted with a defined set of arguments and exports.
 
-The initial component will be `module.single` that will load a single module. Internally these modules will be namespaced so they cannot affect children or parent graphs except via arguments and exports.
+The initial component will be `module.string` that will load a single module. Internally these modules will be namespaced so they cannot affect children or parent graphs except via arguments and exports.
 
 Modules will have access to any standard function and any other component exempting singletons. Internally each component in the module will have an `id` that is prepended with the parent's `id` for identification purposes outside of the module. Within the module a component can reference another sibling component normally. There are no known limits on the datatype that a module can use as an argument or export.
 
@@ -137,7 +138,7 @@ Modules will have access to any standard function and any other component exempt
 ### Component Options
 
 
-Given the above example, the `id` of `integrations.mysql "server1"` would be `module.single.mysql.integrations.mysql.server1`. The `data-agent` field would also be prefixed. There are some inherent issues, deeply nested metrics are likely to run into Prometheus label value limits. On Windows platforms there could be issues with the `data-agent` length. These are issues that currently exist in Agent Flow but are more easily hit using deeply nested modules.
+Given the above example, the `id` of `integrations.mysql "server1"` would be `module.string.mysql.integrations.mysql.server1`. The `data-agent` field would also be prefixed. There are some inherent issues, deeply nested metrics are likely to run into Prometheus label value limits. On Windows platforms there could be issues with the `data-agent` length. These are issues that currently exist in Agent Flow but are more easily hit using deeply nested modules.
 
 
 ### Failure Modes
@@ -170,72 +171,7 @@ For example, `Module A` has two sub-modules `Module B` and `Module C`. During re
 * Can create undefined behavior
 * Complex to unload and reload
 
-## `modules.multiple`: Allowing multiple modules to be loaded at once
-
-Note: This feels the most experimental of the topics listed.
-
-Exports are accessed via `module.multiple.LABEL.exports.NAME`, `exports` is a `map(array)`. The `exports` label is used to prevent any collision if other fields are added to `modules.multiple`
-
-## Option 1: No filter 
-
-Depend on filtering the `map(string)` input before loading the modules.
-
-
-#### Filter prior
-
-Assume all files in `/configs/*river` are appropriate for the `module.multiple.load`. This has the advantage of being simplifying the usage of modules and development. This also mirrors `module.single` in the being simple and pushing verisoning/usage to other components. Downside is users are unable to put all configs in one folder and magically work.
-
-```river
-
-// Note this doesnt exist and should only be used for representative purposes.
-local.files "loadfolder" {
-    folder_path = "/configs" # Assume this outputs a map(string)
-    filter = "*.river"
-}
-
-module.multiple "load" {
-    source = local.files.loadfolder.contents
-}
-
-prometheus.scrape "module" {
-    // The module.multiple coalesces multiple exports into an array. 
-    targets = module.multiple.load.exports.targets
-}
-
-```
-
-## Option 2: Filter
-
-Allow `filter_arguments` and `filter_exports` to only include modules that define arguments and exports in the filters. Modules may have additional arguments that can optionally be set.
-
-
-
-#### Filter by arguments and exports
-
-Pass all files to both `load` and `load2` filtering if they have the appropriate input. This can lead to duplicate loading of modules if a module defines both `input1` and `input2`.
-
-```river
-
-// Note this doesnt exist and should only be used for representative purposes.
-local.files "loadfolder" {
-    folder_path = "/configs" # Assume this outputs a map(string)
-    filter = "*.river"
-}
-
-module.multiple "load" {
-    source = local.files.loadfolder.contents
-    filter = ["input1"]
-}
-
-module.multiple "load2" {
-    source = local.files.loadfolder.contents
-    filter = ["input2"]
-}
-
-```
-
-
-# Example Documentation for `argument`
+# Possible Example Documentation for `argument`
 
 ## Arguments
 
@@ -275,15 +211,16 @@ Name | Type | Description
 `value` | `any` | The represented value of the export.
 
 
-# Example Documentation for `module.single`
+# Example Documentation for `module.string`
 
 ## Arguments
 
 The following arguments are supported:
 
-Name            | Type                | Description                                                                                | Default | Required
---------------- | ------------------- | ------------------------------------------------------------------------------------------ |---------| --------
+Name            | Type            | Description                                                                                                                   | Default | Required
+--------------- | --------------- |-------------------------------------------------------------------------------------------------------------------------------|---------| --------
 `arguments`  | `map(string)` | Map of items to pass to module. It is possible to include arguments that are not needed. Any required arguments are required. |    "'{}'"     | no
+`content`  | `string` | River configuration to be loaded.                                                                                             |    "''"     | yes
 
 ## Exported fields
 
