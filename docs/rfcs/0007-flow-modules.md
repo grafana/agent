@@ -18,7 +18,7 @@
 
 One of the primary goals for the production usage of Agent Flow is parity with the static subsystem. One of the features of the static subsystem is [scraping service](https://github.com/grafana/agent/blob/main/docs/sources/configuration/scraping-service.md). Scraping service allows a user to run a fleet of agents and have thousands of scrape configurations distributed among running Agents. Through discussions within the Agent Team, we did not want to limit dynamically loading content to only scrape configs but allow most components to be loaded and used.
 
-During this time the Agent team saw a lot of potential in modules outside of scraping service. Packaging up sets of components for specific workflows, publishing common use cases and allowing better usage for internal customers in the Agent as a Service model.
+During this time the Agent team saw a lot of potential in the idea of "modules." Modules package up sets of components for specific workflows, publishing common use cases and allowing better usage for internal customers in the Agent as a Service model.
 
 ## Goals
 
