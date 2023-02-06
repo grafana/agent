@@ -15,52 +15,53 @@ import (
 	"github.com/prometheus/common/model"
 )
 
-// A Manager manages a set of running tailers.
-type Manager struct {
+// A manager manages a set of running tailers.
+type manager struct {
 	log log.Logger
 
 	mut   sync.Mutex
-	opts  *Options
+	opts  *options
 	tasks []*tailerTask
 
 	runner *runner.Runner[*tailerTask]
 }
 
-// NewManager returns a new Manager which manages a set of running tailers.
+// newManager returns a new Manager which manages a set of running tailers.
 // Options must not be modified after passing it to a Manager.
 //
-// If NewManager is called with a nil set of options, no targets will be
+// If newManager is called with a nil set of options, no targets will be
 // scheduled for running until UpdateOptions is called.
-func NewManager(l log.Logger, opts *Options) *Manager {
-	return &Manager{
-		log: l,
+func newManager(l log.Logger, opts *options) *manager {
+	return &manager{
+		log:  l,
+		opts: opts,
 		runner: runner.New(func(t *tailerTask) runner.Worker {
 			return newTailer(l, t)
 		}),
 	}
 }
 
-// Options passed to all tailers.
-type Options struct {
-	// Client to use to request logs from Docker.
-	Client client.APIClient
+// options passed to all tailers.
+type options struct {
+	// client to use to request logs from Docker.
+	client client.APIClient
 
-	// Handler to send discovered logs to.
-	Handler loki.EntryHandler
+	// handler to send discovered logs to.
+	handler loki.EntryHandler
 
-	// Positions interface so tailers can save/restore offsets in log files.
-	Positions positions.Positions
+	// positions interface so tailers can save/restore offsets in log files.
+	positions positions.Positions
 }
 
 // tailerTask is the payload used to create tailers. It implements runner.Task.
 type tailerTask struct {
-	Options *Options
-	Target  *dt.Target
+	options *options
+	target  *dt.Target
 }
 
 var _ runner.Task = (*tailerTask)(nil)
 
-func (tt *tailerTask) Hash() uint64 { return tt.Target.Hash() }
+func (tt *tailerTask) Hash() uint64 { return tt.target.Hash() }
 
 func (tt *tailerTask) Equals(other runner.Task) bool {
 	otherTask := other.(*tailerTask)
@@ -71,14 +72,14 @@ func (tt *tailerTask) Equals(other runner.Task) bool {
 	}
 
 	// Slow path: check individual fields which are part of the task.
-	return tt.Options == otherTask.Options &&
-		tt.Target.Labels().String() == otherTask.Target.Labels().String()
+	return tt.options == otherTask.options &&
+		tt.target.Labels().String() == otherTask.target.Labels().String()
 }
 
 // A tailer tails the logs of a docker container. It is created by a [Manager].
 type tailer struct {
 	log    log.Logger
-	opts   *Options
+	opts   *options
 	target *dt.Target
 
 	lset model.LabelSet
@@ -88,16 +89,16 @@ type tailer struct {
 // the task.
 func newTailer(l log.Logger, task *tailerTask) *tailer {
 	return &tailer{
-		log:    log.WithPrefix(l, "target", task.Target.Name()),
-		opts:   task.Options,
-		target: task.Target,
+		log:    log.WithPrefix(l, "target", task.target.Name()),
+		opts:   task.options,
+		target: task.target,
 
-		lset: task.Target.Labels(),
+		lset: task.target.Labels(),
 	}
 }
 
 func (t *tailer) Run(ctx context.Context) {
-	ch, chErr := t.opts.Client.ContainerWait(ctx, t.target.Name(), container.WaitConditionNextExit)
+	ch, chErr := t.opts.client.ContainerWait(ctx, t.target.Name(), container.WaitConditionNextExit)
 
 	t.target.StartIfNotRunning()
 
@@ -117,9 +118,9 @@ func (t *tailer) Run(ctx context.Context) {
 	}
 }
 
-// SyncTargets synchronizes the set of running tailers to the set specified by
+// syncTargets synchronizes the set of running tailers to the set specified by
 // targets.
-func (m *Manager) SyncTargets(ctx context.Context, targets []*dt.Target) error {
+func (m *manager) syncTargets(ctx context.Context, targets []*dt.Target) error {
 	m.mut.Lock()
 	defer m.mut.Unlock()
 
@@ -127,8 +128,8 @@ func (m *Manager) SyncTargets(ctx context.Context, targets []*dt.Target) error {
 	tasks := make([]*tailerTask, 0, len(targets))
 	for _, target := range targets {
 		tasks = append(tasks, &tailerTask{
-			Options: m.opts,
-			Target:  target,
+			options: m.opts,
+			target:  target,
 		})
 	}
 
@@ -153,7 +154,7 @@ func (m *Manager) SyncTargets(ctx context.Context, targets []*dt.Target) error {
 	}
 
 	for _, task := range m.tasks {
-		ent := entryForTarget(task.Target)
+		ent := entryForTarget(task.target)
 
 		// The task from the last call to SyncTargets is no longer in newEntries;
 		// remove it from the positions file. We do this _after_ calling ApplyTasks
@@ -161,7 +162,7 @@ func (m *Manager) SyncTargets(ctx context.Context, targets []*dt.Target) error {
 		// might write its position again during shutdown after we removed it.
 		if _, found := newEntries[ent]; !found {
 			level.Info(m.log).Log("msg", "removing entry from positions file", "path", ent.Path, "labels", ent.Labels)
-			m.opts.Positions.Remove(ent.Path, ent.Labels)
+			m.opts.positions.Remove(ent.Path, ent.Labels)
 		}
 	}
 
@@ -180,13 +181,13 @@ func entryForTarget(t *dt.Target) positions.Entry {
 	}
 }
 
-// UpdateOptions updates the Options shared with all Tailers. All Tailers will
+// updateOptions updates the Options shared with all Tailers. All Tailers will
 // be updated with the new set of Options. Options should not be modified after
-// passing to UpdateOptions.
+// passing to updateOptions.
 //
-// If newOptions is nil, all tasks will be cleared until UpdateOptions is
+// If newOptions is nil, all tasks will be cleared until updateOptions is
 // called again with a non-nil set of options.
-func (m *Manager) UpdateOptions(ctx context.Context, newOptions *Options) error {
+func (m *manager) updateOptions(ctx context.Context, newOptions *options) error {
 	m.mut.Lock()
 	defer m.mut.Unlock()
 
@@ -195,8 +196,8 @@ func (m *Manager) UpdateOptions(ctx context.Context, newOptions *Options) error 
 	tasks := make([]*tailerTask, 0, len(m.tasks))
 	for _, oldTask := range m.tasks {
 		tasks = append(tasks, &tailerTask{
-			Options: newOptions,
-			Target:  oldTask.Target,
+			options: newOptions,
+			target:  oldTask.target,
 		})
 	}
 
@@ -216,21 +217,21 @@ func (m *Manager) UpdateOptions(ctx context.Context, newOptions *Options) error 
 	return nil
 }
 
-// Targets returns the set of targets which are actively being tailed. Targets
+// targets returns the set of targets which are actively being tailed. targets
 // for tailers which have terminated are not included. The returned set of
 // targets are deduplicated.
-func (m *Manager) Targets() []*dt.Target {
+func (m *manager) targets() []*dt.Target {
 	tasks := m.runner.Tasks()
 
 	targets := make([]*dt.Target, 0, len(tasks))
 	for _, task := range tasks {
-		targets = append(targets, task.Target)
+		targets = append(targets, task.target)
 	}
 	return targets
 }
 
-// Stop stops the manager and all running Tailers. It blocks until all Tailers
+// stop stops the manager and all running Tailers. It blocks until all Tailers
 // have exited.
-func (m *Manager) Stop() {
+func (m *manager) stop() {
 	m.runner.Stop()
 }

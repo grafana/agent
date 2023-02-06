@@ -65,7 +65,7 @@ configuration.
 
 ## Example
 
-This example collects log entries from the files specified in the targets
+This example collects log entries from the files specified in the `targets`
 argument and forwards them to a `loki.write` component to be written to Loki.
 
 ```river

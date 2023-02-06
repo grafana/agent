@@ -61,8 +61,8 @@ type Component struct {
 
 	mut           sync.RWMutex
 	args          Arguments
-	manager       *Manager
-	lastOptions   *Options
+	manager       *manager
+	lastOptions   *options
 	handler       loki.LogsReceiver
 	receivers     []loki.LogsReceiver
 	posFile       positions.Positions
@@ -114,7 +114,7 @@ func (c *Component) Run(ctx context.Context) error {
 		// Guard for safety, but it's not possible for Run to be called without
 		// c.tailer being initialized.
 		if c.manager != nil {
-			c.manager.Stop()
+			c.manager.stop()
 		}
 	}()
 
@@ -123,7 +123,10 @@ func (c *Component) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case entry := <-c.handler:
-			for _, receiver := range c.receivers {
+			c.mut.RLock()
+			receivers := c.receivers
+			c.mut.RUnlock()
+			for _, receiver := range receivers {
 				receiver <- entry
 			}
 		}
@@ -147,11 +150,11 @@ func (c *Component) Update(args component.Arguments) error {
 	switch {
 	case c.manager == nil:
 		// First call to Update; build the tailer.
-		c.manager = NewManager(c.opts.Logger, managerOpts)
+		c.manager = newManager(c.opts.Logger, managerOpts)
 	case managerOpts != c.lastOptions:
 		// Options changed; pass it to the tailer.
 		// This will never fail because it only fails if the context gets canceled.
-		_ = c.manager.UpdateOptions(context.Background(), managerOpts)
+		_ = c.manager.updateOptions(context.Background(), managerOpts)
 		c.lastOptions = managerOpts
 	default:
 		// No-op: manager already exists and options didn't change.
@@ -187,12 +190,12 @@ func (c *Component) Update(args component.Arguments) error {
 		tgt, err := dt.NewTarget(
 			c.metrics,
 			log.With(c.opts.Logger, "target", fmt.Sprintf("docker/%s", containerID)),
-			c.manager.opts.Handler,
-			c.manager.opts.Positions,
+			c.manager.opts.handler,
+			c.manager.opts.positions,
 			containerID,
 			labels.Merge(c.defaultLabels),
 			c.rcs,
-			c.manager.opts.Client,
+			c.manager.opts.client,
 		)
 		if err != nil {
 			return err
@@ -200,7 +203,7 @@ func (c *Component) Update(args component.Arguments) error {
 		targets = append(targets, tgt)
 
 		// This will never fail because it only fails if the context gets canceled.
-		_ = c.manager.SyncTargets(context.Background(), targets)
+		_ = c.manager.syncTargets(context.Background(), targets)
 	}
 	return nil
 }
@@ -210,7 +213,7 @@ func (c *Component) Update(args component.Arguments) error {
 // c.lastOptions must be updated by the caller.
 //
 // getTailerOptions must only be called when c.mut is held.
-func (c *Component) getManagerOptions(args Arguments) (*Options, error) {
+func (c *Component) getManagerOptions(args Arguments) (*options, error) {
 	if reflect.DeepEqual(c.args.Host, args.Host) && c.lastOptions != nil {
 		return c.lastOptions, nil
 	}
@@ -225,17 +228,17 @@ func (c *Component) getManagerOptions(args Arguments) (*Options, error) {
 		return c.lastOptions, fmt.Errorf("failed to build docker client: %w", err)
 	}
 
-	return &Options{
-		Client:    client,
-		Handler:   loki.NewEntryHandler(c.handler, func() {}),
-		Positions: c.posFile,
+	return &options{
+		client:    client,
+		handler:   loki.NewEntryHandler(c.handler, func() {}),
+		positions: c.posFile,
 	}, nil
 }
 
 // DebugInfo returns information about the status of tailed targets.
 func (c *Component) DebugInfo() interface{} {
 	var res readerDebugInfo
-	for _, tgt := range c.manager.Targets() {
+	for _, tgt := range c.manager.targets() {
 		details := tgt.Details().(map[string]string)
 		res.TargetsInfo = append(res.TargetsInfo, targetInfo{
 			Labels:     tgt.Labels().String(),
