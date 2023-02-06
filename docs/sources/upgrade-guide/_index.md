@@ -21,12 +21,8 @@ As first announced in v0.29, release binary names are now prefixed with
 - `agentctl` is now `grafana-agentctl`.
 - `agent-operator` is now `grafana-agent-operator`.
 
-In addition, some release executables which used to be a `zip` archive 
-are now published unzipped:
-
-- `grafana-agent-installer.exe`
-- `grafana-agent-windows-amd64.exe`
-- `grafana-agentctl-windows-amd64.exe`
+Additionally, all release Windows `.exe` files are now published as a zip
+archive. Previously, `grafana-agent-installer.exe` was unzipped.
 
 For the `grafana/agent` Docker container, the entrypoint is now
 `/bin/grafana-agent`. A symbolic link from `/bin/agent` to the new binary has
