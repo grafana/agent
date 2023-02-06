@@ -384,3 +384,73 @@ func TestDecode_CustomConvert(t *testing.T) {
 		require.EqualError(t, err, "expected string, got capsule")
 	})
 }
+
+func TestDecode_SquashedFields(t *testing.T) {
+	type InnerStruct struct {
+		InnerField1 string `river:"inner_field_1,attr,optional"`
+		InnerField2 string `river:"inner_field_2,attr,optional"`
+	}
+
+	type OuterStruct struct {
+		OuterField1 string      `river:"outer_field_1,attr,optional"`
+		Inner       InnerStruct `river:",squash"`
+		OuterField2 string      `river:"outer_field_2,attr,optional"`
+	}
+
+	var (
+		in = map[string]string{
+			"outer_field_1": "value1",
+			"outer_field_2": "value2",
+			"inner_field_1": "value3",
+			"inner_field_2": "value4",
+		}
+		expect = OuterStruct{
+			OuterField1: "value1",
+			Inner: InnerStruct{
+				InnerField1: "value3",
+				InnerField2: "value4",
+			},
+			OuterField2: "value2",
+		}
+	)
+
+	var out OuterStruct
+	err := value.Decode(value.Encode(in), &out)
+	require.NoError(t, err)
+	require.Equal(t, expect, out)
+}
+
+func TestDecode_SquashedFields_Pointer(t *testing.T) {
+	type InnerStruct struct {
+		InnerField1 string `river:"inner_field_1,attr,optional"`
+		InnerField2 string `river:"inner_field_2,attr,optional"`
+	}
+
+	type OuterStruct struct {
+		OuterField1 string       `river:"outer_field_1,attr,optional"`
+		Inner       *InnerStruct `river:",squash"`
+		OuterField2 string       `river:"outer_field_2,attr,optional"`
+	}
+
+	var (
+		in = map[string]string{
+			"outer_field_1": "value1",
+			"outer_field_2": "value2",
+			"inner_field_1": "value3",
+			"inner_field_2": "value4",
+		}
+		expect = OuterStruct{
+			OuterField1: "value1",
+			Inner: &InnerStruct{
+				InnerField1: "value3",
+				InnerField2: "value4",
+			},
+			OuterField2: "value2",
+		}
+	)
+
+	var out OuterStruct
+	err := value.Decode(value.Encode(in), &out)
+	require.NoError(t, err)
+	require.Equal(t, expect, out)
+}

@@ -8,6 +8,7 @@ import (
 
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/diag"
+	"github.com/grafana/agent/pkg/river/internal/reflectutil"
 	"github.com/grafana/agent/pkg/river/internal/rivertags"
 	"github.com/grafana/agent/pkg/river/internal/stdlib"
 	"github.com/grafana/agent/pkg/river/internal/value"
@@ -195,7 +196,7 @@ func (vm *Evaluator) evaluateBlockOrBody(scope *Scope, assoc map[value.Value]ast
 			return fmt.Errorf("%q may only be used as a block or an attribute, but found both", fullName)
 		}
 
-		field := rv.FieldByIndex(tf.Index)
+		field := reflectutil.FieldWalk(rv, tf.Index, true)
 
 		// Decode.
 		switch {
@@ -338,7 +339,7 @@ func (vm *Evaluator) evaluateBlockLabel(node *ast.BlockStmt, tfs []rivertags.Fie
 	}
 
 	var (
-		field     = rv.FieldByIndex(labelField.Index)
+		field     = reflectutil.FieldWalk(rv, labelField.Index, true)
 		fieldType = field.Type()
 	)
 	if !reflect.TypeOf(node.Label).AssignableTo(fieldType) {
