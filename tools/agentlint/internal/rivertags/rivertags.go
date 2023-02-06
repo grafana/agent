@@ -32,6 +32,7 @@ var riverTagRegex = regexp.MustCompile(`river:"([^"]*)"`)
 //   - block
 //   - block,optional
 //   - label
+//   - squash
 // - Attribute and block tags must have a non-empty value NAME.
 // - Fields marked as blocks must be the appropriate type.
 // - Label tags must have an empty value for NAME.
@@ -229,6 +230,11 @@ func lintRiverTag(ty *types.Var, tag string) (diagnostics []string) {
 	case "label":
 		if name != "" {
 			diagnostics = append(diagnostics, "label field must have an empty value for name")
+		}
+
+	case "squash":
+		if name != "" {
+			diagnostics = append(diagnostics, "squash field must have an empty value for name")
 		}
 
 	default:
