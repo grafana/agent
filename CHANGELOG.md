@@ -57,6 +57,9 @@ Main (unreleased)
 - Use Go 1.20 for builds. Official release binaries are still produced using Go
   1.19. (@rfratto)
 
+- In the Agent Operator, upgrade the `prometheus-config-reloader` dependency
+  from version 0.47.0 to version 0.62.0. (@ptodev)
+
 v0.31.1 (2023-02-06)
 --------------------
 
