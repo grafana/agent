@@ -95,7 +95,10 @@ func (c *Component) Update(args component.Arguments) error {
 	c.mut.Lock()
 	c.integration = integration
 	c.mut.Unlock()
-	c.reload <- struct{}{}
+	select {
+	case c.reload <- struct{}{}:
+	default:
+	}
 	return err
 }
 
