@@ -13,7 +13,7 @@ Grafana Agent is open source and its source code is available on GitHub at https
 
 Grafana Agent is for engineers, operators, or administrators who want to collect and forward telemetry data for analysis and on-call alerting. Those operating Grafana Agent must install and configure Grafana Agent to properly collect telemetry data and monitor the health of running agents.
 
-## Features
+## Why use Grafana Agent?
 
 There are other ways of sending metrics, logs and traces to the Grafana Stack, Grafana Cloud or Grafana Enterprise, but there are a few advantages of using Grafana Agent. These features are outlined below.
 
