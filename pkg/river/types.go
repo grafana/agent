@@ -20,7 +20,9 @@ var (
 // decode into another type or provide pre-decoding logic.
 type Unmarshaler interface {
 	// UnmarshalRiver is invoked when decoding a River value into a Go value. f
-	// should be called with a pointer to a value to decode into.
+	// should be called with a pointer to a value to decode into. UnmarshalRiver
+	// will not be called on types which are squashed into the parent struct
+	// using `river:",squash"`.
 	UnmarshalRiver(f func(v interface{}) error) error
 }
 

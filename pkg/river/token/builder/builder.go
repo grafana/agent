@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/grafana/agent/pkg/river/internal/reflectutil"
 	"github.com/grafana/agent/pkg/river/internal/rivertags"
 	"github.com/grafana/agent/pkg/river/token"
 )
@@ -136,7 +137,7 @@ func getBlockLabel(rv reflect.Value) string {
 	tags := rivertags.Get(rv.Type())
 	for _, tag := range tags {
 		if tag.Flags&rivertags.FlagLabel != 0 {
-			return rv.FieldByIndex(tag.Index).String()
+			return reflectutil.FieldWalk(rv, tag.Index, false).String()
 		}
 	}
 
@@ -157,7 +158,7 @@ func (b *Body) encodeFields(rv reflect.Value) {
 	fields := rivertags.Get(rv.Type())
 
 	for _, field := range fields {
-		fieldVal := rv.FieldByIndex(field.Index)
+		fieldVal := reflectutil.FieldWalk(rv, field.Index, false)
 		b.encodeField(field, fieldVal)
 	}
 }

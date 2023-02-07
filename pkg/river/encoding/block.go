@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/grafana/agent/pkg/river/internal/reflectutil"
 	"github.com/grafana/agent/pkg/river/internal/rivertags"
 	"github.com/grafana/agent/pkg/river/internal/value"
 )
@@ -57,7 +58,7 @@ func getBlockLabel(rv reflect.Value) string {
 	tags := rivertags.Get(rv.Type())
 	for _, tag := range tags {
 		if tag.Flags&rivertags.FlagLabel != 0 {
-			return rv.FieldByIndex(tag.Index).String()
+			return reflectutil.FieldWalk(rv, tag.Index, false).String()
 		}
 	}
 
@@ -70,7 +71,7 @@ func getFieldsForBlock(input interface{}) ([]interface{}, error) {
 	rt := rivertags.Get(reflectVal.Type())
 	var fields []interface{}
 	for _, t := range rt {
-		fieldRef := reflectVal.FieldByIndex(t.Index)
+		fieldRef := reflectutil.FieldWalk(reflectVal, t.Index, false)
 		fieldVal := value.FromRaw(fieldRef)
 
 		if t.IsBlock() && (fieldRef.Kind() == reflect.Array || fieldRef.Kind() == reflect.Slice) {
