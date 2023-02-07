@@ -1,6 +1,9 @@
 package config
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -37,14 +40,47 @@ func newRemoteConfigHTTPProvider(c *Config) (*remoteConfigHTTPProvider, error) {
 	}, nil
 }
 
+type remoteConfigCache struct {
+	UrlHash string `json:"url_hash"`
+	Config  string `json:"config"`
+}
+
+func hashUrl(u string) string {
+	hashed := sha256.Sum256([]byte(u))
+	return hex.EncodeToString(hashed[:])
+}
+
 // GetCachedRemoteConfig retrieves the cached remote config from the location specified
 // in r.AgentManagement.CacheLocation
 func (r remoteConfigHTTPProvider) GetCachedRemoteConfig(expandEnvVars bool) (*Config, error) {
 	cachePath := filepath.Join(r.InitialConfig.CacheLocation, cacheFilename)
-	var cachedConfig Config
-	if err := LoadFile(cachePath, expandEnvVars, &cachedConfig); err != nil {
+	curUrl, err := r.InitialConfig.fullUrl()
+	if err != nil {
+		return nil, fmt.Errorf("unable to create full url: %w", err)
+	}
+	var configCache remoteConfigCache
+
+	buf, err := os.ReadFile(cachePath)
+
+	if err != nil {
+		return nil, fmt.Errorf("error reading remote config cache: %w", err)
+	}
+
+	if err := json.Unmarshal(buf, &configCache); err != nil {
 		return nil, fmt.Errorf("error trying to load cached remote config from file: %w", err)
 	}
+
+	// If a different url was used when caching the config, it is no longer valid
+	if !(configCache.UrlHash == hashUrl(curUrl)) {
+		return nil, errors.New("invalid remote config cache: url hashes don't match")
+	}
+
+	var cachedConfig Config
+
+	if err = LoadBytes([]byte(configCache.Config), expandEnvVars, &cachedConfig); err != nil {
+		return nil, fmt.Errorf("unable to load cached config: %w", err)
+	}
+
 	return &cachedConfig, nil
 }
 
@@ -52,7 +88,19 @@ func (r remoteConfigHTTPProvider) GetCachedRemoteConfig(expandEnvVars bool) (*Co
 // r.AgentManagement.CacheLocation
 func (r remoteConfigHTTPProvider) CacheRemoteConfig(remoteConfigBytes []byte) error {
 	cachePath := filepath.Join(r.InitialConfig.CacheLocation, cacheFilename)
-	return os.WriteFile(cachePath, remoteConfigBytes, 0666)
+	u, err := r.InitialConfig.fullUrl()
+	if err != nil {
+		return fmt.Errorf("unable to create full url: %w", err)
+	}
+	configCache := remoteConfigCache{
+		UrlHash: hashUrl(u),
+		Config:  string(remoteConfigBytes),
+	}
+	marshalled, err := json.Marshal(configCache)
+	if err != nil {
+		return fmt.Errorf("could not marshal remote config cache: %w", err)
+	}
+	return os.WriteFile(cachePath, marshalled, 0666)
 }
 
 // FetchRemoteConfig fetches the raw bytes of the config from a remote API using
