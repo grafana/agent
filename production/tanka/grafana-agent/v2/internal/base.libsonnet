@@ -23,7 +23,6 @@ function(name='grafana-agent', namespace='') {
     agent_args: {
       'config.file': '/etc/agent/agent.yaml',
       'server.http.address': '0.0.0.0:80',
-      'config.expand-env': 'true',
     },
   },
 
