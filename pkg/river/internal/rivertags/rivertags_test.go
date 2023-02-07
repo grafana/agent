@@ -95,6 +95,37 @@ func TestSquash(t *testing.T) {
 	assert.Equal(t, expect, structPointerActual)
 }
 
+func TestDeepSquash(t *testing.T) {
+	type Inner2Struct struct {
+		InnerField1 string `river:"inner_field_1,attr"`
+		InnerField2 string `river:"inner_field_2,attr"`
+	}
+
+	type InnerStruct struct {
+		Inner2Struct Inner2Struct `river:",squash"`
+	}
+
+	type Struct struct {
+		Inner InnerStruct `river:",squash"`
+	}
+
+	expect := []rivertags.Field{
+		{
+			Name:  []string{"inner_field_1"},
+			Index: []int{0, 0, 0},
+			Flags: rivertags.FlagAttr,
+		},
+		{
+			Name:  []string{"inner_field_2"},
+			Index: []int{0, 0, 1},
+			Flags: rivertags.FlagAttr,
+		},
+	}
+
+	structActual := rivertags.Get(reflect.TypeOf(Struct{}))
+	assert.Equal(t, expect, structActual)
+}
+
 func Test_Get_Panics(t *testing.T) {
 	expectPanic := func(t *testing.T, expect string, v interface{}) {
 		t.Helper()
