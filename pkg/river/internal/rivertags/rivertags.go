@@ -148,22 +148,11 @@ func Get(ty reflect.Type) []Field {
 		}
 		usedNames[fullName] = tf.Index
 
-		switch options[1] {
-		case "attr":
-			tf.Flags |= FlagAttr
-		case "attr,optional":
-			tf.Flags |= FlagAttr | FlagOptional
-		case "block":
-			tf.Flags |= FlagBlock
-		case "block,optional":
-			tf.Flags |= FlagBlock | FlagOptional
-		case "label":
-			tf.Flags |= FlagLabel
-		case "squash":
-			tf.Flags |= FlagSquash
-		default:
+		flags, ok := parseFlags(options[1])
+		if !ok {
 			panic(fmt.Sprintf("river: unrecognized river tag format %q at %s", tag, printPathToField(ty, tf.Index)))
 		}
+		tf.Flags = flags
 
 		if len(tf.Name) > 1 && tf.Flags&FlagBlock == 0 {
 			panic(fmt.Sprintf("river: field names with `.` may only be used by blocks (found at %s)", printPathToField(ty, tf.Index)))
@@ -211,6 +200,27 @@ func Get(ty reflect.Type) []Field {
 	}
 
 	return fields
+}
+
+func parseFlags(input string) (f Flags, ok bool) {
+	switch input {
+	case "attr":
+		f |= FlagAttr
+	case "attr,optional":
+		f |= FlagAttr | FlagOptional
+	case "block":
+		f |= FlagBlock
+	case "block,optional":
+		f |= FlagBlock | FlagOptional
+	case "label":
+		f |= FlagLabel
+	case "squash":
+		f |= FlagSquash
+	default:
+		return
+	}
+
+	return f, true
 }
 
 func printPathToField(structTy reflect.Type, path []int) string {
