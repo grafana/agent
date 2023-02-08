@@ -10,8 +10,6 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/relabel"
-
-	"github.com/grafana/loki/pkg/util"
 )
 
 func format(lbs labels.Labels, cfg []*relabel.Config) model.LabelSet {
@@ -19,11 +17,21 @@ func format(lbs labels.Labels, cfg []*relabel.Config) model.LabelSet {
 		return nil
 	}
 	processed := relabel.Process(lbs, cfg...)
-	labelOut := model.LabelSet(util.LabelsToMetric(processed))
+	labelOut := model.LabelSet(LabelsToMetric(processed))
 	for k := range labelOut {
 		if strings.HasPrefix(string(k), "__") {
 			delete(labelOut, k)
 		}
 	}
 	return labelOut
+}
+
+// LabelsToMetric converts a Labels to Metric
+// Don't do this on any performance sensitive paths.
+func LabelsToMetric(ls labels.Labels) model.Metric {
+	m := make(model.Metric, len(ls))
+	for _, l := range ls {
+		m[model.LabelName(l.Name)] = model.LabelValue(l.Value)
+	}
+	return m
 }

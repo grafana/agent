@@ -14,8 +14,7 @@ import (
 	"github.com/Shopify/sarama"
 	"github.com/prometheus/common/model"
 
-	"github.com/grafana/agent/component/common/loki"
-
+	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
 	"github.com/grafana/loki/pkg/logproto"
 )
@@ -35,7 +34,7 @@ type KafkaTarget struct {
 	details              ConsumerDetails
 	claim                sarama.ConsumerGroupClaim
 	session              sarama.ConsumerGroupSession
-	client               loki.EntryHandler
+	client               api.EntryHandler
 	relabelConfig        []*relabel.Config
 	useIncomingTimestamp bool
 }
@@ -45,7 +44,7 @@ func NewKafkaTarget(
 	claim sarama.ConsumerGroupClaim,
 	discoveredLabels, lbs model.LabelSet,
 	relabelConfig []*relabel.Config,
-	client loki.EntryHandler,
+	client api.EntryHandler,
 	useIncomingTimestamp bool,
 ) *KafkaTarget {
 	return &KafkaTarget{
@@ -84,7 +83,7 @@ func (t *KafkaTarget) run() {
 		if len(lbs) > 0 {
 			out = out.Merge(lbs)
 		}
-		t.client.Chan() <- loki.Entry{
+		t.client.Chan() <- api.Entry{
 			Entry: logproto.Entry{
 				Line:      string(message.Value),
 				Timestamp: timestamp(t.useIncomingTimestamp, message.Timestamp),
@@ -121,6 +120,11 @@ func (t *KafkaTarget) Labels() model.LabelSet {
 // Details returns target-specific details.
 func (t *KafkaTarget) Details() interface{} {
 	return t.details
+}
+
+func (t *KafkaTarget) Stop() error {
+	// TODO
+	return nil
 }
 
 type ConsumerDetails struct {

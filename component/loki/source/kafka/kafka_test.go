@@ -1,5 +1,6 @@
 package kafka
 
+/*
 import (
 	"context"
 	"fmt"
@@ -120,3 +121,4 @@ func newRegexp() flow_relabel.Regexp {
 func getEndpoint(target *kafkatarget.KafkaTarget) string {
 	return fmt.Sprintf("http://%s:%d%s", address, port, target.DrainEndpoint())
 }
+*/

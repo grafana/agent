@@ -2,7 +2,6 @@ package kafka
 
 import (
 	"context"
-	"fmt"
 	"reflect"
 	"sync"
 
@@ -11,9 +10,8 @@ import (
 	"github.com/grafana/agent/component/common/loki"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	kt "github.com/grafana/agent/component/loki/source/kafka/internal/kafkatarget"
-	"github.com/prometheus/common/model"
+	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/prometheus/prometheus/model/relabel"
-	sv "github.com/weaveworks/common/server"
 )
 
 func init() {
@@ -143,12 +141,8 @@ func (c *Component) Update(args component.Arguments) error {
 			}
 		}
 
-		entryHandler := loki.NewEntryHandler(c.handler, func() {})
-		t, err := kt.NewKafkaTarget(c.metrics, c.opts.Logger, entryHandler, rcs, newArgs.Convert(), c.opts.Registerer)
-		if err != nil {
-			level.Error(c.opts.Logger).Log("msg", "failed to create kafka listener with provided config", "err", err)
-			return err
-		}
+		entryHandler := api.NewEntryHandler(c.handler, func() {})
+		t := kt.NewKafkaTarget(session, claim, discoveredLabels, rcs, entryHandler, useIncomingTimestamp)
 
 		c.target = t
 		c.args = newArgs
@@ -158,6 +152,7 @@ func (c *Component) Update(args component.Arguments) error {
 }
 
 // Convert is used to bridge between the River and Promtail types.
+/*
 func (args *Arguments) Convert() *kt.KafkaDrainTargetConfig {
 	lbls := make(model.LabelSet, len(args.Labels))
 	for k, v := range args.Labels {
@@ -173,6 +168,7 @@ func (args *Arguments) Convert() *kt.KafkaDrainTargetConfig {
 		UseIncomingTimestamp: args.UseIncomingTimestamp,
 	}
 }
+*/
 
 // DebugInfo returns information about the status of listener.
 func (c *Component) DebugInfo() interface{} {
@@ -180,16 +176,14 @@ func (c *Component) DebugInfo() interface{} {
 	defer c.mut.RUnlock()
 
 	var res readerDebugInfo = readerDebugInfo{
-		Ready:   c.target.Ready(),
-		Address: fmt.Sprintf("%s:%d", c.target.ListenAddress(), c.target.ListenPort()),
+		Ready: c.target.Ready(),
 	}
 
 	return res
 }
 
 type readerDebugInfo struct {
-	Ready   bool   `river:"ready,attr"`
-	Address string `river:"address,attr"`
+	Ready bool `river:"ready,attr"`
 }
 
 func listenerChanged(prev, next ListenerConfig) bool {
