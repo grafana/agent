@@ -15,8 +15,8 @@ local service = k.core.v1.service;
 (import './lib/traces.libsonnet') +
 {
   _images:: {
-    agent: 'grafana/agent:v0.31.1',
-    agentctl: 'grafana/agentctl:v0.31.1',
+    agent: 'grafana/agent:v0.31.2',
+    agentctl: 'grafana/agentctl:v0.31.2',
   },
 
   // new creates a new DaemonSet deployment of the grafana-agent. By default,

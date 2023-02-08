@@ -7,6 +7,14 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+v0.31.2 (2023-02-08)
+--------------------
+
+### Other changes
+
+- In the Agent Operator, upgrade the `prometheus-config-reloader` dependency
+  from version 0.47.0 to version 0.62.0. (@ptodev)
+
 v0.31.1 (2023-02-06)
 --------------------
 
