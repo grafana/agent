@@ -7,8 +7,11 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-Unreleased
+Unreleased 
 ----------
+
+0.5.0 (2023-02-08)
+------------------
 
 ### Enhancements
 - Helm Chart: Add ingress and support for agent-receiver. (@ts-mini)
