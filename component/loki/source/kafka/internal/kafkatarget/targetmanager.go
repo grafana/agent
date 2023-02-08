@@ -9,7 +9,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/grafana/loki/clients/pkg/promtail/api"
+	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
 )
@@ -24,7 +24,7 @@ type TargetManager struct {
 func NewTargetManager(
 	reg prometheus.Registerer,
 	logger log.Logger,
-	pushClient api.EntryHandler,
+	pushClient loki.EntryHandler,
 	scrapeConfigs []scrapeconfig.Config,
 ) (*TargetManager, error) {
 	tm := &TargetManager{

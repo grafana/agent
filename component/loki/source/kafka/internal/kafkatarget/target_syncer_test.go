@@ -20,7 +20,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/grafana/loki/clients/pkg/promtail/client/fake"
+	"github.com/grafana/agent/component/loki/source/kafka/internal/fake"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 )
 

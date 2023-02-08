@@ -19,9 +19,10 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 
 	"github.com/grafana/loki/clients/pkg/logentry/stages"
-	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
+
+	"github.com/grafana/agent/component/common/loki"
 
 	"github.com/grafana/loki/pkg/util"
 )
@@ -37,7 +38,7 @@ type TargetSyncer struct {
 	cfg      scrapeconfig.Config
 	pipeline *stages.Pipeline
 	reg      prometheus.Registerer
-	client   api.EntryHandler
+	client   loki.EntryHandler
 
 	topicManager TopicManager
 	consumer
@@ -53,7 +54,7 @@ func NewSyncer(
 	reg prometheus.Registerer,
 	logger log.Logger,
 	cfg scrapeconfig.Config,
-	pushClient api.EntryHandler,
+	pushClient loki.EntryHandler,
 ) (*TargetSyncer, error) {
 	if err := validateConfig(&cfg); err != nil {
 		return nil, err

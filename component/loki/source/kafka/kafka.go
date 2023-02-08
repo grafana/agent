@@ -5,13 +5,17 @@ import (
 	"reflect"
 	"sync"
 
+	"github.com/Shopify/sarama"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/dskit/flagext"
+
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/common/loki"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	kt "github.com/grafana/agent/component/loki/source/kafka/internal/kafkatarget"
-	"github.com/grafana/loki/clients/pkg/promtail/api"
-	"github.com/prometheus/prometheus/model/relabel"
+	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
+	"github.com/prometheus/common/model"
 )
 
 func init() {
@@ -28,11 +32,51 @@ func init() {
 // Arguments holds values which are used to configure the loki.source.kafka
 // component.
 type Arguments struct {
-	KafkaListener        ListenerConfig      `river:"listener,block"`
 	Labels               map[string]string   `river:"labels,attr,optional"`
 	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`
-	ForwardTo            []loki.LogsReceiver `river:"forward_to,attr"`
-	RelabelRules         flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
+	Brokers              []string            `river:"brokers,attr"`
+	GroupID              string              `river:"group_id,attr"`
+	Topics               []string            `river:"topics,attr"`
+	Version              string              `river:"version,attr"`
+	Assignor             string              `river:"assignor,attr"`
+	Authentication       KafkaAuthentication `river:"authentication"`
+
+	ForwardTo    []loki.LogsReceiver `river:"forward_to,attr"`
+	RelabelRules flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
+}
+
+// KafkaAuthentication describe the configuration for authentication with Kafka brokers
+type KafkaAuthentication struct {
+	// Type is authentication type
+	// Possible values: none, sasl and ssl (defaults to none).
+	Type KafkaAuthenticationType `river:"type,attr"`
+
+	// TLSConfig is used for TLS encryption and authentication with Kafka brokers
+	TLSConfig config.TLSConfig `river:"tls_config,block,optional"`
+
+	// SASLConfig is used for SASL authentication with Kafka brokers
+	SASLConfig KafkaSASLConfig `yaml:"sasl_config,omitempty"`
+}
+
+// KafkaAuthenticationType specifies method to authenticate with Kafka brokers
+type KafkaAuthenticationType string
+
+// KafkaSASLConfig describe the SASL configuration for authentication with Kafka brokers
+type KafkaSASLConfig struct {
+	// SASL mechanism. Supports PLAIN, SCRAM-SHA-256 and SCRAM-SHA-512
+	Mechanism sarama.SASLMechanism `river:"mechanism,attr"`
+
+	// SASL Username
+	User string `river:"user,attr"`
+
+	// SASL Password for the User
+	Password flagext.Secret `river:"password,attr"`
+
+	// UseTLS sets whether TLS is used with SASL
+	UseTLS bool `river:"use_tls,attr"`
+
+	// TLSConfig is used for SASL over TLS. It is used only when UseTLS is true
+	TLSConfig config.TLSConfig `river:"tls_config,block,optional"`
 }
 
 // ListenerConfig defines a kafka listener.
@@ -67,7 +111,7 @@ type Component struct {
 	mut    sync.RWMutex
 	args   Arguments
 	fanout []loki.LogsReceiver
-	target *kt.KafkaTarget
+	target *kt.TargetSyncer
 
 	handler loki.LogsReceiver
 }
@@ -128,12 +172,14 @@ func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 	c.fanout = newArgs.ForwardTo
 
+	/* TODO
 	var rcs []*relabel.Config
 	if newArgs.RelabelRules != nil && len(newArgs.RelabelRules) > 0 {
 		rcs = flow_relabel.ComponentToPromRelabelConfigs(newArgs.RelabelRules)
 	}
+	*/
 
-	if listenerChanged(c.args.KafkaListener, newArgs.KafkaListener) || relabelRulesChanged(c.args.RelabelRules, newArgs.RelabelRules) {
+	if listenerChanged(c.args, newArgs) || relabelRulesChanged(c.args.RelabelRules, newArgs.RelabelRules) {
 		if c.target != nil {
 			err := c.target.Stop()
 			if err != nil {
@@ -141,8 +187,12 @@ func (c *Component) Update(args component.Arguments) error {
 			}
 		}
 
-		entryHandler := api.NewEntryHandler(c.handler, func() {})
-		t := kt.NewKafkaTarget(session, claim, discoveredLabels, rcs, entryHandler, useIncomingTimestamp)
+		entryHandler := loki.NewEntryHandler(c.handler, func() {})
+		t, err := kt.NewSyncer(c.opts.Registerer, c.opts.Logger, c.args.Convert(), entryHandler)
+		if err != nil {
+			level.Error(c.opts.Logger).Log("msg", "failed to create kafka client with provided config", "err", err)
+			return err
+		}
 
 		c.target = t
 		c.args = newArgs
@@ -152,23 +202,14 @@ func (c *Component) Update(args component.Arguments) error {
 }
 
 // Convert is used to bridge between the River and Promtail types.
-/*
-func (args *Arguments) Convert() *kt.KafkaDrainTargetConfig {
+func (args *Arguments) Convert() scrapeconfig.Config {
 	lbls := make(model.LabelSet, len(args.Labels))
 	for k, v := range args.Labels {
 		lbls[model.LabelName(k)] = model.LabelValue(v)
 	}
 
-	return &kt.KafkaDrainTargetConfig{
-		Server: sv.Config{
-			HTTPListenAddress: args.KafkaListener.ListenAddress,
-			HTTPListenPort:    args.KafkaListener.ListenPort,
-		},
-		Labels:               lbls,
-		UseIncomingTimestamp: args.UseIncomingTimestamp,
-	}
+	return scrapeconfig.Config{}
 }
-*/
 
 // DebugInfo returns information about the status of listener.
 func (c *Component) DebugInfo() interface{} {
@@ -176,17 +217,17 @@ func (c *Component) DebugInfo() interface{} {
 	defer c.mut.RUnlock()
 
 	var res readerDebugInfo = readerDebugInfo{
-		Ready: c.target.Ready(),
+		//Ready: c.target.Ready(),
 	}
 
 	return res
 }
 
 type readerDebugInfo struct {
-	Ready bool `river:"ready,attr"`
+	//Ready bool `river:"ready,attr"`
 }
 
-func listenerChanged(prev, next ListenerConfig) bool {
+func listenerChanged(prev, next Arguments) bool {
 	return !reflect.DeepEqual(prev, next)
 }
 func relabelRulesChanged(prev, next flow_relabel.Rules) bool {
