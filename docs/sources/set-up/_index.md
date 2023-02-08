@@ -16,8 +16,8 @@ To get started with Grafana Agent Operator, refer to the Operator-specific
 
 ## Installation options
 
-Grafana Agent is currently distributed in plain binary form, Docker container images, a Windows installer, a Homebrew package, and a Kubernetes install script. 
-
+Grafana Agent is distributed in plain binary form, Linux packages, Docker container images, a Windows installer, a Homebrew package, and a Kubernetes install script. These are found at https://grafana.com/grafana/download
+ 
 The following architectures receive active support.
 
  - macOS: Intel Mac or Apple Silicon 
