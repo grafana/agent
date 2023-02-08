@@ -22,7 +22,7 @@ Docker containers are published as `grafana/agent:${VERSION}`. For Windows Docke
 
 #### Windows installer
 
-The Windows installer is provided as a [release asset](https://github.com/grafana/agent/releases/download/${VERSION}/grafana-agent-installer.exe) for x64 machines.
+The Windows installer is provided as a [release asset](https://github.com/grafana/agent/releases/download/${VERSION}/grafana-agent-installer.exe.zip) for x64 machines.
 
 #### Binary
 
