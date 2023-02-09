@@ -71,19 +71,24 @@ For a **new release candidate**, the release shepherd will:
 1. Gather consensus on which commit should be used as a base for the release
    branch.
 
-2. Create and push the release branch from the selected base commit. 
+2. Create and push the release branch from the selected base commit:
 
-   The name of the release branch should be the name of the stable version we intend 
-   to release, e.g. `release-v0.31`. Release branches do not contain the `-rc.N` release 
-   candidate suffix, i.e. there is no `release-v0.31-rc.0`.
+   * The name of the release branch should be the name of the stable version we intend 
+   to release, e.g. `release-v0.31`.
+   * Release branches do not contain the `-rc.N` release candidate suffix. I.e. there 
+   is no branch called `release-v0.31-rc.0`.
+   * Release branches do not contain the patch version. I.e. there is no branch called 
+   `release-v0.31.0` or `release-v0.31.4`.
 
 3. Create a PR to cherry-pick additional commits into the release branch as
    needed.
 
-4. Create a PR to [update code](#updating-code) using the `-rc.N` release
+4. Create a PR to [update code](#updating-code) on `main` using the `-rc.N` release
    candidate version.
 
-5. Tag the release candidate using the tag naming convention `vX.Y.0-rc.N`.
+5. Create a PR to cherry pick the update from step 4 to the release branch.
+
+5. [Create a tag](#create-a-tag).
 
 6. [Publish the release candidate on Github](#publishing-the-release)
 
@@ -104,45 +109,52 @@ For a **new release candidate**, the release shepherd will:
 If no new issues were found during the environment testing, the shepherd can continue with 
 creating a **stable release**:
 
-1. Create a new PR to [update code](#updating-code) using the _stable_
-   release version (i.e. without `-rc.N`).
+1. Create a PR to [update code](#updating-code) on `main` using the _stable_
+   release version (i.e. without the `-rc.N` suffix).
 
-2. Create the stable release tag.
+2. Cherry pick the commit from step 1 to the release branch.
 
-3. Force-push the `release` branch to point at the stable release tag. This
+3. [Create a tag](#create-a-tag).
+
+4. Force-push the `release` branch to point at the stable release tag. This
    branch is used to externally reference files in the repository for a stable
    release, e.g. the "[latest](https://grafana.com/docs/agent/latest/)" documentation.
 
-4. Make sure the documentation is updated:
+5. Make sure the documentation is updated:
     1. A new version of the documentation should be visible on the 
     [version switcher](https://grafana.com/docs/versions/?project=/docs/agent/).
     2. The "[latest](https://grafana.com/docs/agent/latest/)" one should be identical to the latest version.
-    3. Check the "Upgrade guide" - the latest changes listed in it should be assigned to the latest version.
+    3. Check the "Upgrade guide" to see if it includes the latest version.
 
-5. [Publish the release on Github](#publishing-the-release)
+6. [Publish the release on Github](#publishing-the-release)
 
-6. [Update Agent Operator Helm chart version](#update-agent-operator-helm-chart-version)
+7. [Update Agent Operator Helm chart version](#update-agent-operator-helm-chart-version)
 
-7. Make sure [Homebrew is updated](#updating-homebrew).
+8. Make sure [Homebrew is updated](#updating-homebrew).
 
-8. Announce the release on community Slack channel.
+9. Announce the release on community Slack channel.
 
 For **patch releases**, the release shepherd will:
 
-1. Create a PR to cherry-pick relevant bug fixes into the release branch.
+1. Merge the fixes we need for the patch to `main`.
+   
+2. Cherry-pick the fixes from `main` into the release branch.
 
-2. Create a PR to update code for the upcoming patch release. A new changelog
-   section should be dded for the patch release.
+3. Follow the same instructions as the ones for a stable release.
 
-3. Create the patch release tag.
+Some notes on patch releases:
 
-4. [Publish the release](#publishing-the-release)
+- When creating patch releases, there is no need for a release candidate.
 
-5. [Update Agent Operator Helm chart version](#update-agent-operator-helm-chart-version)
+- Changes made to patch releases are not listed in the changelog for the next stable version.
+
+- The tag of the patch release does yet not exist at the time when we update code for the 
+main branch to reference it.
+
 
 ### Updating code
 
-The codebase must be updated whenever a new release is being made to reference the upcoming release tag.
+The codebase must be updated to reference the upcoming release tag whenever a new release is being made.
 
 NOTE: Any change done for a release should be done in `main` first and then moved to the release branch.
 
@@ -167,6 +179,12 @@ of the `-rc.N` version.
 * We do not leave release candidates in the changelog once there is a stable version for them.
 * Make sure to also update the **date** in the title.
 * See [here](https://github.com/grafana/agent/pull/2873/files) for an example pull request.
+
+When creating a **patch** release:
+
+* Add a new section to the changelog for the patch release.
+* In the changelog, **move** the fixes which were cherry picked onto the release branch 
+from the "unreleased" section to the section for the new patch release.
 
 #### Update the "Upgrade guide"
 The "Upgrade guide" is located in `docs/sources/upgrade-guide/_index.md` and lists breaking changes 
@@ -198,6 +216,26 @@ manifests in case they are stale.
 
 Release shepherds may request a merge freeze to main for any reason during the
 release process.
+
+### Create a tag
+Remember to **checkout** and **pull** the release branch before creating the tag!
+
+The naming conventions are:
+* For release candidates: `vX.Y.0-rc.N`. Here, `N` is the version of the release 
+candidate for this stable release.
+* For stable releases: `vX.Y.0`.
+* For patch releases: `vX.Y.N`. Here, `X` and `Y` are the versions of the stable release. 
+`N` is incremented. 
+
+Example commands:
+```
+git checkout release-v0.31
+git pull
+git tag v0.31.2
+git push origin --tags
+```
+
+After the push double check that the tag on GitHub corresponds to the tip of the release branch on GitHub.
 
 ### Publishing the Release
 
@@ -280,3 +318,11 @@ the same branch as the one that the PR is open for.
 Older release branches are maintained on a best-effort basis. The release
 shepherd for that branch determines whether an older release branch have a new
 patch release at their own discretion.
+
+Note that patching an old release branch works differently from patching the latest release:
+- `main` would not be updated to reference the patch version
+- The change applied to the old release branch would have to be listed in two sections 
+in the changelog:
+   1. The patch release's section
+   2. The "unreleased" section
+- When publishing the release on GitHub, it should not be marked as "the latest".
