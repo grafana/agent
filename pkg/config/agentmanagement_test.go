@@ -3,7 +3,6 @@ package config
 import (
 	"errors"
 	"flag"
-	"os"
 	"testing"
 	"time"
 
@@ -356,10 +355,8 @@ snippets:
     hostname: machine-1
     team: team-a
 `
-	os.Setenv("SCRAPE_INTERVAL", "15s")
-	defer os.Unsetenv("SCRAPE_INTERVAL")
-	os.Setenv("LOG_FORMAT", "json")
-	defer os.Unsetenv("LOG_FORMAT")
+	t.Setenv("SCRAPE_INTERVAL", "15s")
+	t.Setenv("LOG_FORMAT", "json")
 
 	cfgBytes := []byte(validConfig)
 	am := validAgentManagementConfig
