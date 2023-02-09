@@ -86,7 +86,12 @@ func (c *Component) Run(ctx context.Context) error {
 			integration := c.integration
 			c.metricsHandler = c.getHttpHandler(integration)
 			c.mut.Unlock()
-			go integration.Run(newCtx)
+			go func() {
+				if err := integration.Run(newCtx); err != nil {
+					level.Error(c.opts.Logger).Log("msg", "error running integration", "err", err)
+				}
+			}()
+
 		}
 	}
 }
