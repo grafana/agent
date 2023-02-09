@@ -2,6 +2,7 @@ package integration
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"path"
 	"sync"
@@ -45,11 +46,15 @@ func New(creator Creator, name string) func(component.Options, component.Argumen
 		if err := c.Update(args); err != nil {
 			return nil, err
 		}
+		jobName := fmt.Sprintf("integrations/%s", name)
 		targets := []discovery.Target{{
-			model.AddressLabel:     opts.HTTPListenAddr,
-			model.SchemeLabel:      "http",
-			model.MetricsPathLabel: path.Join(opts.HTTPPath, "metrics"),
-			"name":                 name,
+			model.AddressLabel:                  opts.HTTPListenAddr,
+			model.SchemeLabel:                   "http",
+			model.MetricsPathLabel:              path.Join(opts.HTTPPath, "metrics"),
+			"instance":                          opts.ID,
+			"job":                               jobName,
+			"__meta_agent_integration_name":     jobName,
+			"__meta_agent_integration_instance": opts.ID,
 		}}
 		opts.OnStateChange(Exports{
 			Targets: targets,
