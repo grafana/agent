@@ -30,6 +30,8 @@ Main (unreleased)
     forwarding them to other `otelcol` components. (@erikbaranowski)
   - `loki.source.docker` reads logs from Docker containers and forwards them to
     other `loki` components. (@tpaschalis)
+  - `prometheus.integration.apache` collects metrics from an apache web server (@captncraig)
+  - `prometheus.integration.consul` collects metrics from a consul installation (@captncraig)
 
 ### Enhancements
 
