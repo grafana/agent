@@ -26,7 +26,7 @@ All arguments are optional. Omitted fields take their default values.
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`scrape_uri`    | `string` | URI to apache stub status page. | `http://localhost/server-status?auto` | no
+`scrape_uri`    | `string` | URI to Apache stub status page. | `http://localhost/server-status?auto` | no
 `host_override` | `string` | Override for HTTP Host header.  | | no
 `insecure`      | `bool`   | Ignore server certificate if using https. | false | no
 
@@ -37,8 +37,8 @@ Name      | Type                | Description
 --------- | ------------------- | -----------
 `targets` | `list(map(string))` | The targets that can be used to collect `consul` metrics.
 
-For example, the `targets` could either be passed to a `prometheus.relabel`
-component to rewrite the metrics' label set, or to a `prometheus.scrape`
+For example, the `targets` can either be passed to a `prometheus.relabel`
+component to rewrite the metric's label set, or to a `prometheus.scrape`
 component that collects the exposed metrics.
 
 ## Component health
