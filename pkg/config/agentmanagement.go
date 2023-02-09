@@ -118,7 +118,7 @@ func getRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, lo
 		return configProvider.GetCachedRemoteConfig(expandEnvVars)
 	}
 
-	expandedRemoteConfigBytes, err := ExpandEnvVars(remoteConfigBytes, expandEnvVars)
+	expandedRemoteConfigBytes, err := performEnvVarExpansion(remoteConfigBytes, expandEnvVars)
 	if err != nil {
 		level.Error(log).Log("msg", "could not expand env vars for remote config, falling back to cache", "err", err)
 		return configProvider.GetCachedRemoteConfig(expandEnvVars)

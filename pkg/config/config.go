@@ -348,7 +348,7 @@ func LoadDynamicConfiguration(url string, expandvar bool, c *Config) error {
 	return nil
 }
 
-func ExpandEnvVars(buf []byte, expandEnvVars bool) ([]byte, error) {
+func performEnvVarExpansion(buf []byte, expandEnvVars bool) ([]byte, error) {
 	// (Optionally) expand with environment variables
 	if expandEnvVars {
 		s, err := envsubst.Eval(string(buf), getenv)
@@ -364,7 +364,7 @@ func ExpandEnvVars(buf []byte, expandEnvVars bool) ([]byte, error) {
 // applied to the file and must be done manually if LoadBytes
 // is called directly.
 func LoadBytes(buf []byte, expandEnvVars bool, c *Config) error {
-	expandedBuf, err := ExpandEnvVars(buf, expandEnvVars)
+	expandedBuf, err := performEnvVarExpansion(buf, expandEnvVars)
 	if err != nil {
 		return err
 	}

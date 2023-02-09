@@ -3,6 +3,7 @@ package config
 import (
 	"testing"
 
+	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/stretchr/testify/require"
 )
 
@@ -92,5 +93,11 @@ logs:
 		require.NoError(t, err)
 		require.Equal(t, len(c.Logs.Configs), 1)
 		require.Equal(t, len(c.Metrics.Configs), 1)
+		// check some fields to make sure the config was parsed correctly
+		require.Equal(t, "prometheus", c.Metrics.Configs[0].ScrapeConfigs[0].JobName)
+		require.Equal(t, "loki", c.Logs.Configs[0].ScrapeConfig[0].JobName)
+
+		// make sure defaults are applied
+		require.Equal(t, instance.DefaultConfig.WALTruncateFrequency, c.Metrics.Configs[0].WALTruncateFrequency)
 	})
 }
