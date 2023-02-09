@@ -122,11 +122,6 @@ func (t *KafkaTarget) Details() interface{} {
 	return t.details
 }
 
-func (t *KafkaTarget) Stop() error {
-	// TODO
-	return nil
-}
-
 type ConsumerDetails struct {
 
 	// MemberID returns the cluster member ID.

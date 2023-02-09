@@ -37,7 +37,7 @@ type Arguments struct {
 	GroupID              string              `river:"group_id,attr,optional"`
 	Assignor             string              `river:"assignor,attr,optional"`
 	Version              string              `river:"version,attr,optional"`
-	Authentication       KafkaAuthentication `river:"authentication,attr,optional"`
+	Authentication       KafkaAuthentication `river:"authentication,block,optional"`
 	Labels               map[string]string   `river:"labels,attr,optional"`
 	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`
 
