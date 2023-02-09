@@ -47,6 +47,7 @@ jobs:
         github_pat: "grafanabot:${{ secrets.PUBLISH_TO_WEBSITE_TOKEN }}"
         source_folder: docs/sources
         target_folder: 'content/docs/agent/next'
+        allow_no_changes: true
     - shell: bash
       run: |
         test -n "${{ steps.publish_next.outputs.commit_hash }}"
