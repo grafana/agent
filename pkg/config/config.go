@@ -2,7 +2,6 @@ package config
 
 import (
 	"bytes"
-	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -29,24 +28,21 @@ import (
 var (
 	featRemoteConfigs    = features.Feature("remote-configs")
 	featIntegrationsNext = features.Feature("integrations-next")
-	featDynamicConfig    = features.Feature("dynamic-config")
 	featExtraMetrics     = features.Feature("extra-scrape-metrics")
 	featAgentManagement  = features.Feature("agent-management")
 
 	allFeatures = []features.Feature{
 		featRemoteConfigs,
 		featIntegrationsNext,
-		featDynamicConfig,
 		featExtraMetrics,
 		featAgentManagement,
 	}
 )
 
 var (
-	fileTypeYAML    = "yaml"
-	fileTypeDynamic = "dynamic"
+	fileTypeYAML = "yaml"
 
-	fileTypes = []string{fileTypeYAML, fileTypeDynamic}
+	fileTypes = []string{fileTypeYAML}
 )
 
 // DefaultConfig holds default settings for all the subsystems.
@@ -326,28 +322,6 @@ func LoadRemote(url string, expandEnvVars bool, c *Config) error {
 	return LoadBytes(bb, expandEnvVars, c)
 }
 
-// LoadDynamicConfiguration is used to load configuration from a variety of sources using
-// dynamic loader, this is a templated approach
-func LoadDynamicConfiguration(url string, expandvar bool, c *Config) error {
-	if expandvar {
-		return errors.New("expand var is not supported when using dynamic configuration, use gomplate env instead")
-	}
-	cmf, err := NewDynamicLoader()
-	if err != nil {
-		return err
-	}
-	err = cmf.LoadConfigByPath(url)
-	if err != nil {
-		return err
-	}
-
-	err = cmf.ProcessConfigs(c)
-	if err != nil {
-		return fmt.Errorf("error processing config templates %w", err)
-	}
-	return nil
-}
-
 func ExpandEnvVars(buf []byte, expandEnvVars bool) ([]byte, error) {
 	// (Optionally) expand with environment variables
 	if expandEnvVars {
@@ -395,37 +369,21 @@ func getenv(name string) string {
 // to the flagset before parsing them with the values specified by
 // args.
 func Load(fs *flag.FlagSet, args []string, log *server.Logger) (*Config, error) {
-	cfg, error := load(fs, args, func(path, fileType string, expandArgs bool, c *Config) error {
-		switch fileType {
-		case fileTypeYAML:
-			if features.Enabled(fs, featRemoteConfigs) {
-				return LoadRemote(path, expandArgs, c)
-			}
-			if features.Enabled(fs, featAgentManagement) {
-				return loadFromAgentManagementAPI(path, expandArgs, c, log, fs, args)
-			}
-			return LoadFile(path, expandArgs, c)
-		case fileTypeDynamic:
-			if !features.Enabled(fs, featDynamicConfig) {
-				return fmt.Errorf("feature %q must be enabled to use file type %s", featDynamicConfig, fileTypeDynamic)
-			} else if !features.Enabled(fs, featIntegrationsNext) {
-				return fmt.Errorf("feature %q must be enabled to use file type %s", featIntegrationsNext, fileTypeDynamic)
-			} else if features.Enabled(fs, featRemoteConfigs) {
-				return fmt.Errorf("feature %q can not be enabled with file type %s", featRemoteConfigs, fileTypeDynamic)
-			} else if expandArgs {
-				return fmt.Errorf("-config.expand-env can not be used with file type %s", fileTypeDynamic)
-			}
-			return LoadDynamicConfiguration(path, expandArgs, c)
-		default:
-			return fmt.Errorf("unknown file type %q. accepted values: %s", fileType, strings.Join(fileTypes, ", "))
+	cfg, error := load(fs, args, func(path string, expandArgs bool, c *Config) error {
+		if features.Enabled(fs, featRemoteConfigs) {
+			return LoadRemote(path, expandArgs, c)
 		}
+		if features.Enabled(fs, featAgentManagement) {
+			return loadFromAgentManagementAPI(path, expandArgs, c, log, fs, args)
+		}
+		return LoadFile(path, expandArgs, c)
 	})
 
 	instrumentation.InstrumentLoad(error == nil)
 	return cfg, error
 }
 
-type loaderFunc func(path string, fileType string, expandArgs bool, target *Config) error
+type loaderFunc func(path string, expandArgs bool, target *Config) error
 
 func applyIntegrationValuesFromFlagset(fs *flag.FlagSet, args []string, path string, cfg *Config) error {
 	// Parse the flags again to override any YAML values with command line flag
@@ -455,14 +413,12 @@ func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
 
 		printVersion          bool
 		file                  string
-		fileType              string
 		configExpandEnv       bool
 		disableReporting      bool
 		disableSupportBundles bool
 	)
 
 	fs.StringVar(&file, "config.file", "", "configuration file to load")
-	fs.StringVar(&fileType, "config.file.type", "yaml", fmt.Sprintf("Type of file pointed to by -config.file flag. Supported values: %s. %s requires dynamic-config and integrations-next features to be enabled.", strings.Join(fileTypes, ", "), fileTypeDynamic))
 	fs.BoolVar(&printVersion, "version", false, "Print this build's version information.")
 	fs.BoolVar(&configExpandEnv, "config.expand-env", false, "Expands ${var} in config according to the values of the environment variables.")
 	fs.BoolVar(&disableReporting, "disable-reporting", false, "Disable reporting of enabled feature flags to Grafana.")
@@ -482,7 +438,7 @@ func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
 
 	if file == "" {
 		return nil, fmt.Errorf("-config.file flag required")
-	} else if err := loader(file, fileType, configExpandEnv, &cfg); err != nil {
+	} else if err := loader(file, configExpandEnv, &cfg); err != nil {
 		return nil, fmt.Errorf("error loading config file %s: %w", file, err)
 	}
 
