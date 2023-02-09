@@ -78,7 +78,7 @@ func TestVM_Block_Attributes(t *testing.T) {
 		eval := vm.New(parseBlock(t, input))
 
 		err := eval.Evaluate(nil, &block{})
-		require.EqualError(t, err, `"number" must be an attribute, but is used as a block`)
+		require.EqualError(t, err, `2:4: "number" must be an attribute, but is used as a block`)
 	})
 
 	t.Run("Fails if required attributes are not present", func(t *testing.T) {
@@ -307,7 +307,7 @@ func TestVM_Block_Children_Blocks(t *testing.T) {
 		eval := vm.New(parseBlock(t, input))
 
 		err := eval.Evaluate(nil, &block{})
-		require.EqualError(t, err, `"child" must be a block, but is used as an attribute`)
+		require.EqualError(t, err, `2:4: "child" must be a block, but is used as an attribute`)
 	})
 
 	t.Run("Fails if required children blocks are not present", func(t *testing.T) {
