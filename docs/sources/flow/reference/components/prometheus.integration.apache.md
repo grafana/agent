@@ -26,7 +26,7 @@ All arguments are optional. Omitted fields take their default values.
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`scrape_uri`    | `string` | URI to apache stub status page. | `http://localhost/server-status?auto` | no
+`scrape_uri`    | `string` | URI to Apache stub status page. | `http://localhost/server-status?auto` | no
 `host_override` | `string` | Override for HTTP Host header.  | | no
 `insecure`      | `bool`   | Ignore server certificate if using https. | false | no
 
