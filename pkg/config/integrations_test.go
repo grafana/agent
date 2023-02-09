@@ -20,7 +20,7 @@ integrations:
     enabled: true`
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
-	c, err := load(fs, []string{"-config.file", "test"}, func(_, _ string, _ bool, c *Config) error {
+	c, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
 		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
@@ -38,7 +38,7 @@ integrations:
       enable: false`
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
-	c, err := load(fs, []string{"-config.file", "test", "-enable-features=integrations-next"}, func(_, _ string, _ bool, c *Config) error {
+	c, err := load(fs, []string{"-config.file", "test", "-enable-features=integrations-next"}, func(_ string, _ bool, c *Config) error {
 		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
@@ -57,7 +57,7 @@ integrations:
     enabled: true`
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
-	c, err := load(fs, []string{"-config.file", "test"}, func(_, _ string, _ bool, c *Config) error {
+	c, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
 		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
@@ -83,7 +83,7 @@ integrations:
       enable: false`
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
-	c, err := load(fs, []string{"-config.file", "test", "-enable-features=integrations-next"}, func(_, _ string, _ bool, c *Config) error {
+	c, err := load(fs, []string{"-config.file", "test", "-enable-features=integrations-next"}, func(_ string, _ bool, c *Config) error {
 		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
@@ -106,7 +106,7 @@ integrations:
   - redis_addr: "redis-1:6379"`
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
-	c, err := load(fs, []string{"-config.file", "test", "-enable-features=integrations-next"}, func(_, _ string, _ bool, c *Config) error {
+	c, err := load(fs, []string{"-config.file", "test", "-enable-features=integrations-next"}, func(_ string, _ bool, c *Config) error {
 		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
