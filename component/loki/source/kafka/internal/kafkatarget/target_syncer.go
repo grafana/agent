@@ -297,7 +297,8 @@ func (ts *TargetSyncer) NewTarget(session sarama.ConsumerGroupSession, claim sar
 		discoveredLabels,
 		labelOut,
 		ts.cfg.RelabelConfigs,
-		ts.pipeline.Wrap(ts.client),
+		// TODO ts.pipeline.Wrap(ts.client),
+		ts.client,
 		ts.cfg.KafkaConfig.UseIncomingTimestamp,
 	)
 

@@ -32,14 +32,14 @@ func init() {
 // Arguments holds values which are used to configure the loki.source.kafka
 // component.
 type Arguments struct {
+	Brokers              []string            `river:"brokers,attr"`
+	Topics               []string            `river:"topics,attr"`
+	GroupID              string              `river:"group_id,attr,optional"`
+	Assignor             string              `river:"assignor,attr,optional"`
+	Version              string              `river:"version,attr,optional"`
+	Authentication       KafkaAuthentication `river:"authentication,attr,optional"`
 	Labels               map[string]string   `river:"labels,attr,optional"`
 	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`
-	Brokers              []string            `river:"brokers,attr"`
-	GroupID              string              `river:"group_id,attr"`
-	Topics               []string            `river:"topics,attr"`
-	Version              string              `river:"version,attr"`
-	Assignor             string              `river:"assignor,attr"`
-	Authentication       KafkaAuthentication `river:"authentication"`
 
 	ForwardTo    []loki.LogsReceiver `river:"forward_to,attr"`
 	RelabelRules flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
@@ -49,13 +49,13 @@ type Arguments struct {
 type KafkaAuthentication struct {
 	// Type is authentication type
 	// Possible values: none, sasl and ssl (defaults to none).
-	Type KafkaAuthenticationType `river:"type,attr"`
+	Type KafkaAuthenticationType `river:"type,attr,optional"`
 
 	// TLSConfig is used for TLS encryption and authentication with Kafka brokers
 	TLSConfig config.TLSConfig `river:"tls_config,block,optional"`
 
 	// SASLConfig is used for SASL authentication with Kafka brokers
-	SASLConfig KafkaSASLConfig `yaml:"sasl_config,omitempty"`
+	SASLConfig KafkaSASLConfig `river:"sasl_config,block,optional"`
 }
 
 // KafkaAuthenticationType specifies method to authenticate with Kafka brokers
@@ -64,7 +64,7 @@ type KafkaAuthenticationType string
 // KafkaSASLConfig describe the SASL configuration for authentication with Kafka brokers
 type KafkaSASLConfig struct {
 	// SASL mechanism. Supports PLAIN, SCRAM-SHA-256 and SCRAM-SHA-512
-	Mechanism sarama.SASLMechanism `river:"mechanism,attr"`
+	Mechanism sarama.SASLMechanism `river:"mechanism,attr,optional"`
 
 	// SASL Username
 	User string `river:"user,attr"`
@@ -73,7 +73,7 @@ type KafkaSASLConfig struct {
 	Password flagext.Secret `river:"password,attr"`
 
 	// UseTLS sets whether TLS is used with SASL
-	UseTLS bool `river:"use_tls,attr"`
+	UseTLS bool `river:"use_tls,attr,optional"`
 
 	// TLSConfig is used for SASL over TLS. It is used only when UseTLS is true
 	TLSConfig config.TLSConfig `river:"tls_config,block,optional"`
@@ -87,16 +87,26 @@ type ListenerConfig struct {
 }
 
 // DefaultListenerConfig provides the default arguments for a kafka listener.
-var DefaultListenerConfig = ListenerConfig{
-	ListenAddress: "0.0.0.0",
+var DefaultArguments = Arguments{
+	GroupID:  "promtail",
+	Assignor: "range",
+	Version:  "2.2.1",
+	Authentication: KafkaAuthentication{
+		Type: "none",
+		SASLConfig: KafkaSASLConfig{
+			Mechanism: sarama.SASLTypePlaintext,
+			UseTLS:    false,
+		},
+	},
+	UseIncomingTimestamp: false,
 }
 
 // UnmarshalRiver implements river.Unmarshaler.
-func (lc *ListenerConfig) UnmarshalRiver(f func(interface{}) error) error {
-	*lc = DefaultListenerConfig
+func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+	*a = DefaultArguments
 
-	type kafkacfg ListenerConfig
-	err := f((*kafkacfg)(lc))
+	type kafkacfg Arguments
+	err := f((*kafkacfg)(a))
 	if err != nil {
 		return err
 	}
@@ -188,7 +198,7 @@ func (c *Component) Update(args component.Arguments) error {
 		}
 
 		entryHandler := loki.NewEntryHandler(c.handler, func() {})
-		t, err := kt.NewSyncer(c.opts.Registerer, c.opts.Logger, c.args.Convert(), entryHandler)
+		t, err := kt.NewSyncer(c.opts.Registerer, c.opts.Logger, newArgs.Convert(), entryHandler)
 		if err != nil {
 			level.Error(c.opts.Logger).Log("msg", "failed to create kafka client with provided config", "err", err)
 			return err
@@ -208,7 +218,33 @@ func (args *Arguments) Convert() scrapeconfig.Config {
 		lbls[model.LabelName(k)] = model.LabelValue(v)
 	}
 
-	return scrapeconfig.Config{}
+	return scrapeconfig.Config{
+		KafkaConfig: &scrapeconfig.KafkaTargetConfig{
+			Labels:               lbls,
+			UseIncomingTimestamp: args.UseIncomingTimestamp,
+			Brokers:              args.Brokers,
+			GroupID:              args.GroupID,
+			Topics:               args.Topics,
+			Version:              args.Version,
+			Assignor:             args.Assignor,
+			Authentication:       args.Authentication.Convert(),
+		},
+		//RelabelConfigs: args.RelabelRules,
+	}
+}
+
+func (auth KafkaAuthentication) Convert() scrapeconfig.KafkaAuthentication {
+	return scrapeconfig.KafkaAuthentication{
+		Type:      scrapeconfig.KafkaAuthenticationType(auth.Type),
+		TLSConfig: *auth.TLSConfig.Convert(),
+		SASLConfig: scrapeconfig.KafkaSASLConfig{
+			Mechanism: auth.SASLConfig.Mechanism,
+			User:      auth.SASLConfig.User,
+			Password:  auth.SASLConfig.Password,
+			UseTLS:    auth.SASLConfig.UseTLS,
+			TLSConfig: *auth.SASLConfig.TLSConfig.Convert(),
+		},
+	}
 }
 
 // DebugInfo returns information about the status of listener.

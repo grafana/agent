@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
 
-	"github.com/grafana/loki/clients/pkg/promtail/client/fake"
+	"github.com/grafana/agent/component/loki/source/kafka/internal/fake"
 )
 
 // Consumergroup handler
@@ -156,6 +156,7 @@ func Test_TargetRun(t *testing.T) {
 					closed = true
 				},
 			)
+
 			tg := NewKafkaTarget(session, claim, tt.inDiscoveredLS, tt.inLS, tt.relabels, fc, true)
 
 			var wg sync.WaitGroup
