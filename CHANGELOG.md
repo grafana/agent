@@ -17,17 +17,19 @@ Main (unreleased)
 
 ### Features
 
-- Integrations: Introduce the `oracledb` integration. (@schmikei)
+- New integrations:
 
-- New metric for prometheus.scrape - `agent_prometheus_scrape_targets_gauge`. (@ptodev)
+  - `oracledb` (@schmikei)
+  - `mssql` (@binaryfissiongames)
+  - `cloudwatch metrics` (@thepalbi)
+  - `azure` (@kgeckhart)
+  - `gcp` (@kgeckhart, @ferruvich)
 
-- New metric for prometheus.scrape and prometheus.relabel - `agent_prometheus_forwarded_samples_total`. (@ptodev)
-
-- Integrations: Introduce the `mssql` integration. (@binaryfissiongames)
-
-- Integrations: Introduce `cloudwatch metrics` integration. (@thepalbi)
-
-- Integrations: Introduce an `azure` integration. (@kgeckhart)
+- New Grafana Agent Flow components:
+  - `otelcol.processor.tail_sampling` samples traces based on a set of defined policies from `otelcol` components before
+    forwarding them to other `otelcol` components. (@erikbaranowski)
+  - `loki.source.docker` reads logs from Docker containers and forwards them to
+    other `loki` components. (@tpaschalis)
 
 ### Enhancements
 
@@ -40,12 +42,43 @@ Main (unreleased)
   `systemctl reload grafana-agent` will now reload the configuration file.
   (@rfratto)
 
-- Flow: The `loki.process` component now implements all the same processing
+- Flow: the `loki.process` component now implements all the same processing
   stages as Promtail's pipelines. (@tpaschalis)
+
+- Flow: new metric for `prometheus.scrape` - `agent_prometheus_scrape_targets_gauge`. (@ptodev)
+
+- Flow: new metric for `prometheus.scrape` and `prometheus.relabel` - `agent_prometheus_forwarded_samples_total`. (@ptodev)
+
+- Flow: add `constants` into the standard library to expose the hostname, OS,
+  and architecture of the system Grafana Agent is running on. (@rfratto)
 
 ### Other changes
 
-- Use Go 1.20 for builds. (@rfratto)
+- Use Go 1.20 for builds. Official release binaries are still produced using Go
+  1.19. (@rfratto)
+
+v0.31.2 (2023-02-08)
+--------------------
+
+### Other changes
+
+- In the Agent Operator, upgrade the `prometheus-config-reloader` dependency
+  from version 0.47.0 to version 0.62.0. (@ptodev)
+
+v0.31.1 (2023-02-06)
+--------------------
+
+> **BREAKING CHANGES**: This release has breaking changes. Please read entries
+> carefully and consult the [upgrade guide][] for specific instructions.
+
+### Breaking changes
+
+- All release Windows `.exe` files are now published as a zip archive.
+  Previously, `grafana-agent-installer.exe` was unzipped. (@rfratto)
+
+### Other changes
+
+- Support Go 1.20 for builds. (@rfratto)
 
 v0.31.0 (2023-01-31)
 --------------------

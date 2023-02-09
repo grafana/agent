@@ -8,9 +8,17 @@ weight: 800
 This guide describes all breaking changes that have happened in prior
 releases and how to migrate to newer versions.
 
-## Unreleased changes
+## v0.31.1
 
-These changes will come in a future version.
+### Breaking change: all Windows executables are now zipped
+
+All release Windows `.exe` files are now zipped. Prior to v0.31, only
+`grafana-agent-installer.exe` was unzipped.
+
+This fixes an issue from v0.31.0 where all `.exe` files were accidentally left
+unzipped.
+
+## v0.31.0
 
 ### Breaking change: binary names are now prefixed with `grafana-`
 

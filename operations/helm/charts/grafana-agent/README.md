@@ -1,6 +1,6 @@
 # Grafana Agent Helm chart
 
-![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.4.0](https://img.shields.io/badge/Version-0.4.0-informational?style=flat-square) ![AppVersion: v0.31.0](https://img.shields.io/badge/AppVersion-v0.31.0-informational?style=flat-square)
+![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.5.0](https://img.shields.io/badge/Version-0.5.0-informational?style=flat-square) ![AppVersion: v0.31.0](https://img.shields.io/badge/AppVersion-v0.31.0-informational?style=flat-square)
 
 Helm chart for deploying [Grafana Agent][] to Kubernetes.
 
@@ -36,6 +36,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | agent.extraArgs | list | `[]` | Extra args to pass to `agent run`: https://grafana.com/docs/agent/latest/flow/reference/cli/run/ |
 | agent.extraEnv | list | `[]` | Extra environment variables to pass to the agent container. |
 | agent.extraPorts | list | `[]` | Extra ports to expose on the Agent |
+| agent.faroPort | int | `12347` | Port to listen for faro traffic on. |
 | agent.listenAddr | string | `"0.0.0.0"` | Address to listen for traffic on. 0.0.0.0 exposes the UI to other containers. |
 | agent.listenPort | int | `80` | Port to listen for traffic on. |
 | agent.mode | string | `"flow"` | Mode to run Grafana Agent in. Can be "flow" or "static". |
@@ -61,6 +62,14 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | image.pullSecrets | list | `[]` | Optional set of image pull secrets. |
 | image.repository | string | `"grafana/agent"` | Grafana Agent image repository. |
 | image.tag | string | `nil` | Grafana Agent image tag. When empty, the Chart's appVersion is used. |
+| ingress.annotations | object | `{}` |  |
+| ingress.enabled | bool | `false` | Enables ingress for the agent (faro port) |
+| ingress.extraPaths | list | `[]` |  |
+| ingress.hosts[0] | string | `"chart-example.local"` |  |
+| ingress.labels | object | `{}` |  |
+| ingress.path | string | `"/"` |  |
+| ingress.pathType | string | `"Prefix"` |  |
+| ingress.tls | list | `[]` |  |
 | nameOverride | string | `nil` | Overrides the chart's name. Used to change the infix in the resource names. |
 | rbac.create | bool | `true` | Whether to create RBAC resources for the agent. |
 | service.clusterIP | string | `""` | Cluster IP, can be set to None, empty "" or an IP address |
@@ -116,8 +125,24 @@ components like [discovery.kubernetes][] to work properly.
 
 ## Collecting logs from other containers
 
-Currently, the only way to collect logs from other contains is to mount
-`/var/lib/docker/containers` from the host and read the log files directly.
+There are two ways to collect logs from other containers within the cluster
+the agent is deployed in.
+
+### Versions >= 0.31.x
+
+The recommended way for collecting container logs on Kubernetes is to make use of
+the [loki.source.kubernetes][] component introduced in 0.31.0. This component
+does not require mounting the hosts filesystem into the Agent, nor requires
+additional security contexts to work correctly.
+
+[loki.source.kubernetes]: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.kubernetes/
+
+### Versions < 0.31.x
+
+For those running the Agent on versions prior to 0.31.0, the only way to collect logs
+from other containers is to mount `/var/lib/docker/containers` from the host and read
+the log files directly.
+
 This capability is disabled by default.
 
 To expose logs from other containers to Grafana Agent:
