@@ -21,9 +21,9 @@ Grafana Agent is distributed in plain binary form, Linux packages, Docker contai
 The following architectures receive active support.
 
  - macOS: Either Intel Mac or Apple Silicon
- - Windows: An x64 machine
- - Linux: AMD64, ARM64, ARMv6, or ARMv7 machines
- - FreeBSD: An AMD64 machine
+ - Windows: An x86-64 machine
+ - Linux: x86-64, ARM64, ARMv6, or ARMv7 machines
+ - FreeBSD: An x86-64 machine
 
 In addition, best-effort support is provided for Linux: ppc64le.
 
