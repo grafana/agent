@@ -348,20 +348,28 @@ func LoadDynamicConfiguration(url string, expandvar bool, c *Config) error {
 	return nil
 }
 
-// LoadBytes unmarshals a config from a buffer. Defaults are not
-// applied to the file and must be done manually if LoadBytes
-// is called directly.
-func LoadBytes(buf []byte, expandEnvVars bool, c *Config) error {
+func ExpandEnvVars(buf []byte, expandEnvVars bool) ([]byte, error) {
 	// (Optionally) expand with environment variables
 	if expandEnvVars {
 		s, err := envsubst.Eval(string(buf), getenv)
 		if err != nil {
-			return fmt.Errorf("unable to substitute config with environment variables: %w", err)
+			return nil, fmt.Errorf("unable to substitute config with environment variables: %w", err)
 		}
-		buf = []byte(s)
+		return []byte(s), nil
+	}
+	return buf, nil
+}
+
+// LoadBytes unmarshals a config from a buffer. Defaults are not
+// applied to the file and must be done manually if LoadBytes
+// is called directly.
+func LoadBytes(buf []byte, expandEnvVars bool, c *Config) error {
+	expandedBuf, err := ExpandEnvVars(buf, expandEnvVars)
+	if err != nil {
+		return err
 	}
 	// Unmarshal yaml config
-	return yaml.UnmarshalStrict(buf, c)
+	return yaml.UnmarshalStrict(expandedBuf, c)
 }
 
 // getenv is a wrapper around os.Getenv that ignores patterns that are numeric

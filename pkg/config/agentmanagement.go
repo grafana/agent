@@ -117,22 +117,34 @@ func getRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, lo
 		level.Error(log).Log("msg", "could not fetch from API, falling back to cache", "err", err)
 		return configProvider.GetCachedRemoteConfig(expandEnvVars)
 	}
-	var remoteConfig Config
 
-	err = LoadBytes(remoteConfigBytes, expandEnvVars, &remoteConfig)
+	expandedRemoteConfigBytes, err := ExpandEnvVars(remoteConfigBytes, expandEnvVars)
 	if err != nil {
-		level.Error(log).Log("msg", "could not load the response from the API, falling back to cache", "err", err)
+		level.Error(log).Log("msg", "could not expand env vars for remote config, falling back to cache", "err", err)
+		return configProvider.GetCachedRemoteConfig(expandEnvVars)
+	}
+
+	remoteConfig, err := NewRemoteConfig(expandedRemoteConfigBytes)
+	if err != nil {
+		level.Error(log).Log("msg", "could not unmarshal remote config, falling back to cache", "err", err)
 		instrumentation.InstrumentInvalidRemoteConfig("invalid_yaml")
 		return configProvider.GetCachedRemoteConfig(expandEnvVars)
 	}
 
+	config, err := remoteConfig.BuildAgentConfig()
+	if err != nil {
+		level.Error(log).Log("msg", "could not build agent config, falling back to cache", "err", err)
+		instrumentation.InstrumentInvalidRemoteConfig("invalid_remote_config")
+		return configProvider.GetCachedRemoteConfig(expandEnvVars)
+	}
+
 	// this is done in order to validate the config semantically
-	if err = applyIntegrationValuesFromFlagset(fs, args, configPath, &remoteConfig); err != nil {
+	if err = applyIntegrationValuesFromFlagset(fs, args, configPath, config); err != nil {
 		level.Error(log).Log("msg", "could not load integrations from config, falling back to cache", "err", err)
 		instrumentation.InstrumentInvalidRemoteConfig("invalid_integrations_config")
 		return configProvider.GetCachedRemoteConfig(expandEnvVars)
 	}
-	if err = remoteConfig.Validate(fs); err != nil {
+	if err = config.Validate(fs); err != nil {
 		level.Error(log).Log("msg", "invalid config received from the API, falling back to cache", "err", err)
 		instrumentation.InstrumentInvalidRemoteConfig("invalid_agent_config")
 		return configProvider.GetCachedRemoteConfig(expandEnvVars)
@@ -143,7 +155,7 @@ func getRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, lo
 	if err = configProvider.CacheRemoteConfig(remoteConfigBytes); err != nil {
 		level.Error(log).Log("err", fmt.Errorf("could not cache config locally: %w", err))
 	}
-	return &remoteConfig, nil
+	return config, nil
 }
 
 // newRemoteConfigProvider creates a remoteConfigProvider based on the protocol
