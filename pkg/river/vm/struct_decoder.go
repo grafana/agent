@@ -12,12 +12,12 @@ import (
 	"github.com/grafana/agent/pkg/river/internal/value"
 )
 
-// structDecoder
+// structDecoder decodes a series of AST statements into a Go value.
 type structDecoder struct {
-	VM    *Evaluator
-	Scope *Scope
-	Assoc map[value.Value]ast.Node
-	Tags  []rivertags.Field
+	VM      *Evaluator
+	Scope   *Scope
+	Assoc   map[value.Value]ast.Node
+	TagInfo *tagInfo
 }
 
 // Decode decodes the list of statements into the struct value specified by rv.
@@ -28,10 +28,8 @@ func (st *structDecoder) Decode(stmts ast.Body, rv reflect.Value) error {
 		panic(fmt.Sprintf("river/vm: structDecoder expects struct, got %s", rv.Kind()))
 	}
 
-	tfLookup := buildTagLookup(st.Tags)
-
 	state := decodeOptions{
-		Tags:       tfLookup,
+		Tags:       st.TagInfo.TagLookup,
 		SeenAttrs:  make(map[string]struct{}),
 		SeenBlocks: make(map[string]struct{}),
 
@@ -69,7 +67,7 @@ func (st *structDecoder) Decode(stmts ast.Body, rv reflect.Value) error {
 		}
 	}
 
-	for _, tf := range st.Tags {
+	for _, tf := range st.TagInfo.Tags {
 		// Ignore any optional tags.
 		if tf.IsOptional() {
 			continue
@@ -252,13 +250,4 @@ func (st *structDecoder) decodeBlock(block *ast.BlockStmt, rv reflect.Value, sta
 
 	state.SeenBlocks[fullName] = struct{}{}
 	return nil
-}
-
-func buildTagLookup(tfs []rivertags.Field) map[string]rivertags.Field {
-	res := make(map[string]rivertags.Field, len(tfs))
-	for _, tf := range tfs {
-		fullName := strings.Join(tf.Name, ".")
-		res[fullName] = tf
-	}
-	return res
 }

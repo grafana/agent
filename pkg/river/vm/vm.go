@@ -109,13 +109,13 @@ func (vm *Evaluator) evaluateBlockOrBody(scope *Scope, assoc map[value.Value]ast
 		panic(fmt.Sprintf("river/vm: can only evaluate blocks into structs, got %s", rv.Kind()))
 	}
 
-	tfs := rivertags.Get(rv.Type())
+	ti := getCachedTagInfo(rv.Type())
 
 	var stmts ast.Body
 	switch node := node.(type) {
 	case *ast.BlockStmt:
 		// Decode the block label first.
-		if err := vm.evaluateBlockLabel(node, tfs, rv); err != nil {
+		if err := vm.evaluateBlockLabel(node, ti.Tags, rv); err != nil {
 			return err
 		}
 		stmts = node.Body
@@ -126,10 +126,10 @@ func (vm *Evaluator) evaluateBlockOrBody(scope *Scope, assoc map[value.Value]ast
 	}
 
 	sd := structDecoder{
-		VM:    vm,
-		Scope: scope,
-		Assoc: assoc,
-		Tags:  tfs,
+		VM:      vm,
+		Scope:   scope,
+		Assoc:   assoc,
+		TagInfo: ti,
 	}
 	return sd.Decode(stmts, rv)
 }
