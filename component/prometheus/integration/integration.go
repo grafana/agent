@@ -112,7 +112,7 @@ func (c *Component) Update(args component.Arguments) error {
 	return err
 }
 
-// get the http handler once and save it, so we don't create uneccesary garbage
+// get the http handler once and save it, so we don't create extra garbage
 func (c *Component) getHttpHandler(integration integrations.Integration) http.Handler {
 	h, err := integration.MetricsHandler()
 	if err != nil {
