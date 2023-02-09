@@ -53,6 +53,7 @@ import (
 	"time"
 
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -218,7 +219,7 @@ func (c *Flow) LoadFile(file *File) error {
 	c.loadMut.Lock()
 	defer c.loadMut.Unlock()
 
-	diags := c.loader.Apply(nil, file.Components, file.ConfigBlocks)
+	diags, _ := c.loader.Apply(c, nil, nil, file.Components, file.ConfigBlocks)
 	if !c.loadedOnce.Load() && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.
@@ -232,6 +233,25 @@ func (c *Flow) LoadFile(file *File) error {
 		// A refresh is already scheduled
 	}
 	return diags.ErrorOrNil()
+}
+
+// LoadSubgraph allows a component to load a subgraph with the calling component as the parent.
+// This returns all the components both new and old. EXTREME care should be taken by the caller
+// since the component is shared.
+func (c *Flow) LoadSubgraph(parent component.DelegateComponent, config []byte) ([]component.Component, error) {
+	c.loadMut.Lock()
+	defer c.loadMut.Unlock()
+
+	file, err := ReadFile(parent.ID(), config)
+	if err != nil {
+		return nil, err
+	}
+	diags, comps := c.loader.Apply(c, parent, nil, file.Components, file.ConfigBlocks)
+
+	if diags.HasErrors() {
+		return nil, diags.ErrorOrNil()
+	}
+	return comps, nil
 }
 
 // Ready returns whether the Flow controller has finished its initial load.

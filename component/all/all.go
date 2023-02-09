@@ -2,26 +2,27 @@
 package all
 
 import (
-	_ "github.com/grafana/agent/component/discovery/docker"                     // Import discovery.docker
-	_ "github.com/grafana/agent/component/discovery/file"                       // Import discovery.file
-	_ "github.com/grafana/agent/component/discovery/kubernetes"                 // Import discovery.kubernetes
-	_ "github.com/grafana/agent/component/discovery/relabel"                    // Import discovery.relabel
-	_ "github.com/grafana/agent/component/local/file"                           // Import local.file
-	_ "github.com/grafana/agent/component/loki/process"                         // Import loki.process
-	_ "github.com/grafana/agent/component/loki/relabel"                         // Import loki.relabel
-	_ "github.com/grafana/agent/component/loki/source/cloudflare"               // Import loki.source.cloudflare
-	_ "github.com/grafana/agent/component/loki/source/docker"                   // Import loki.source.docker
-	_ "github.com/grafana/agent/component/loki/source/file"                     // Import loki.source.file
-	_ "github.com/grafana/agent/component/loki/source/gcplog"                   // Import loki.source.gcplog
-	_ "github.com/grafana/agent/component/loki/source/gelf"                     // Import loki.source.gelf
-	_ "github.com/grafana/agent/component/loki/source/heroku"                   // Import loki.source.heroku
-	_ "github.com/grafana/agent/component/loki/source/journal"                  // Import loki.source.journal
-	_ "github.com/grafana/agent/component/loki/source/kubernetes"               // Import loki.source.kubernetes
-	_ "github.com/grafana/agent/component/loki/source/podlogs"                  // Import loki.source.podlogs
-	_ "github.com/grafana/agent/component/loki/source/syslog"                   // Import loki.source.syslog
-	_ "github.com/grafana/agent/component/loki/source/windowsevent"             // Import loki.source.windowsevent
-	_ "github.com/grafana/agent/component/loki/write"                           // Import loki.write
-	_ "github.com/grafana/agent/component/mimir/rules/kubernetes"               // Import mimir.rules.kubernetes
+	_ "github.com/grafana/agent/component/discovery/docker"         // Import discovery.docker
+	_ "github.com/grafana/agent/component/discovery/file"           // Import discovery.file
+	_ "github.com/grafana/agent/component/discovery/kubernetes"     // Import discovery.kubernetes
+	_ "github.com/grafana/agent/component/discovery/relabel"        // Import discovery.relabel
+	_ "github.com/grafana/agent/component/local/file"               // Import local.file
+	_ "github.com/grafana/agent/component/loki/process"             // Import loki.process
+	_ "github.com/grafana/agent/component/loki/relabel"             // Import loki.relabel
+	_ "github.com/grafana/agent/component/loki/source/cloudflare"   // Import loki.source.cloudflare
+	_ "github.com/grafana/agent/component/loki/source/docker"       // Import loki.source.docker
+	_ "github.com/grafana/agent/component/loki/source/file"         // Import loki.source.file
+	_ "github.com/grafana/agent/component/loki/source/gcplog"       // Import loki.source.gcplog
+	_ "github.com/grafana/agent/component/loki/source/gelf"         // Import loki.source.gelf
+	_ "github.com/grafana/agent/component/loki/source/heroku"       // Import loki.source.heroku
+	_ "github.com/grafana/agent/component/loki/source/journal"      // Import loki.source.journal
+	_ "github.com/grafana/agent/component/loki/source/kubernetes"   // Import loki.source.kubernetes
+	_ "github.com/grafana/agent/component/loki/source/podlogs"      // Import loki.source.podlogs
+	_ "github.com/grafana/agent/component/loki/source/syslog"       // Import loki.source.syslog
+	_ "github.com/grafana/agent/component/loki/source/windowsevent" // Import loki.source.windowsevent
+	_ "github.com/grafana/agent/component/loki/write"               // Import loki.write
+	_ "github.com/grafana/agent/component/mimir/rules/kubernetes"   // Import mimir.rules.kubernetes
+
 	_ "github.com/grafana/agent/component/otelcol/auth/basic"                   // Import otelcol.auth.basic
 	_ "github.com/grafana/agent/component/otelcol/auth/bearer"                  // Import otelcol.auth.bearer
 	_ "github.com/grafana/agent/component/otelcol/auth/headers"                 // Import otelcol.auth.headers

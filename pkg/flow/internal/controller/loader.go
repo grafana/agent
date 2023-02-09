@@ -29,13 +29,14 @@ type Loader struct {
 	tracer  trace.TracerProvider
 	globals ComponentGlobals
 
-	mut           sync.RWMutex
-	graph         *dag.Graph
-	originalGraph *dag.Graph
-	components    []*ComponentNode
-	cache         *valueCache
-	blocks        []*ast.BlockStmt // Most recently loaded blocks, used for writing
-	cm            *controllerMetrics
+	mut                sync.RWMutex
+	graph              *dag.Graph
+	originalGraph      *dag.Graph
+	components         []*ComponentNode
+	cache              *valueCache
+	blocks             []*ast.BlockStmt // Most recently loaded blocks, used for writing
+	cm                 *controllerMetrics
+	delegateComponents []*ComponentNode
 }
 
 // NewLoader creates a new Loader. Components built by the Loader will be built
@@ -70,7 +71,7 @@ func NewLoader(globals ComponentGlobals) *Loader {
 // The provided parentContext can be used to provide global variables and
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
-func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) diag.Diagnostics {
+func (l *Loader) Apply(delegate component.DelegateHandler, parent component.DelegateComponent, parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) (diag.Diagnostics, []component.Component) {
 	start := time.Now()
 	l.mut.Lock()
 	defer l.mut.Unlock()
@@ -88,7 +89,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlo
 	newGraph.Add(c)
 
 	// Handle the rest of the graph as ComponentNodes.
-	populateDiags := l.populateGraph(&newGraph, blocks)
+	populateDiags := l.populateGraph(delegate, parent, &newGraph, blocks)
 	diags = append(diags, populateDiags...)
 
 	wireDiags := l.wireGraphEdges(&newGraph)
@@ -98,7 +99,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlo
 	err := dag.Validate(&newGraph)
 	if err != nil {
 		diags = append(diags, multierrToDiags(err)...)
-		return diags
+		return diags, nil
 	}
 	// Copy the original graph, this is so we can have access to the original graph for things like displaying a UI or
 	// debug information.
@@ -107,8 +108,9 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlo
 	dag.Reduce(&newGraph)
 
 	var (
-		components   = make([]*ComponentNode, 0, len(blocks))
-		componentIDs = make([]ComponentID, 0, len(blocks))
+		returnComponents = make([]component.Component, 0, len(blocks))
+		components       = make([]*ComponentNode, 0, len(blocks))
+		componentIDs     = make([]ComponentID, 0, len(blocks))
 	)
 
 	tracer := l.tracer.Tracer("")
@@ -137,6 +139,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlo
 		case *ComponentNode:
 			components = append(components, c)
 			componentIDs = append(componentIDs, c.ID())
+			returnComponents = append(returnComponents, c.managed)
 
 			if err = l.evaluate(logger, parentScope, c); err != nil {
 				var evalDiags diag.Diagnostics
@@ -178,10 +181,10 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlo
 	l.cache.SyncIDs(componentIDs)
 	l.blocks = blocks
 	l.cm.componentEvaluationTime.Observe(time.Since(start).Seconds())
-	return diags
+	return diags, returnComponents
 }
 
-func (l *Loader) populateGraph(g *dag.Graph, blocks []*ast.BlockStmt) diag.Diagnostics {
+func (l *Loader) populateGraph(delegate component.DelegateHandler, parent component.DelegateComponent, g *dag.Graph, blocks []*ast.BlockStmt) diag.Diagnostics {
 	// Fill our graph with components.
 	var (
 		diags    diag.Diagnostics
@@ -189,7 +192,7 @@ func (l *Loader) populateGraph(g *dag.Graph, blocks []*ast.BlockStmt) diag.Diagn
 	)
 	for _, block := range blocks {
 		var c *ComponentNode
-		id := BlockComponentID(block).String()
+		id := BlockComponentID(parent, block).String()
 
 		if orig, redefined := blockMap[id]; redefined {
 			diags.Add(diag.Diagnostic{
@@ -240,7 +243,7 @@ func (l *Loader) populateGraph(g *dag.Graph, blocks []*ast.BlockStmt) diag.Diagn
 			}
 
 			// Create a new component
-			c = NewComponentNode(l.globals, block)
+			c = NewComponentNode(delegate, parent, l.globals, block)
 		}
 
 		g.Add(c)

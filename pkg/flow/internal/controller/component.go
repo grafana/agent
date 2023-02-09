@@ -28,8 +28,12 @@ import (
 type ComponentID []string
 
 // BlockComponentID returns the ComponentID specified by an River block.
-func BlockComponentID(b *ast.BlockStmt) ComponentID {
-	id := make(ComponentID, 0, len(b.Name)+1) // add 1 for the optional label
+func BlockComponentID(parent component.DelegateComponent, b *ast.BlockStmt) ComponentID {
+	id := make(ComponentID, 0)
+	// IDs should be pre-pended with the parent if it exists.
+	if parent != nil {
+		id = append(id, parent.IDs()...)
+	}
 	id = append(id, b.Name...)
 	if b.Label != "" {
 		id = append(id, b.Label)
@@ -85,8 +89,9 @@ type ComponentNode struct {
 	mut     sync.RWMutex
 	block   *ast.BlockStmt // Current River block to derive args from
 	eval    *vm.Evaluator
-	managed component.Component // Inner managed component
-	args    component.Arguments // Evaluated arguments for the managed component
+	managed component.Component         // Inner managed component
+	args    component.Arguments         // Evaluated arguments for the managed component
+	parent  component.DelegateComponent // ComponentNode might have a parent node, for instance modules
 
 	doingEval atomic.Bool
 
@@ -106,9 +111,9 @@ var _ dag.Node = (*ComponentNode)(nil)
 
 // NewComponentNode creates a new ComponentNode from an initial ast.BlockStmt.
 // The underlying managed component isn't created until Evaluate is called.
-func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode {
+func NewComponentNode(delegate component.DelegateHandler, parent component.DelegateComponent, globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode {
 	var (
-		id     = BlockComponentID(b)
+		id     = BlockComponentID(parent, b)
 		nodeID = id.String()
 	)
 
@@ -134,6 +139,7 @@ func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode
 		reg:             reg,
 		exportsType:     getExportsType(reg),
 		onExportsChange: globals.OnExportsChange,
+		parent:          parent,
 
 		block: b,
 		eval:  vm.New(b.Body),
@@ -145,12 +151,12 @@ func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode
 		evalHealth: initHealth,
 		runHealth:  initHealth,
 	}
-	cn.managedOpts = getManagedOptions(globals, cn)
+	cn.managedOpts = getManagedOptions(globals, cn, delegate)
 
 	return cn
 }
 
-func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Options {
+func getManagedOptions(globals ComponentGlobals, cn *ComponentNode, delegate component.DelegateHandler) component.Options {
 	wrapped := newWrappedRegisterer()
 	cn.register = wrapped
 	return component.Options{
@@ -164,6 +170,7 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 		Tracer:         wrapTracer(globals.TraceProvider, cn.nodeID),
 		HTTPListenAddr: globals.HTTPListenAddr,
 		HTTPPath:       fmt.Sprintf("/component/%s/", cn.nodeID),
+		Delegate:       delegate,
 	}
 }
 
@@ -195,7 +202,7 @@ func (cn *ComponentNode) NodeID() string { return cn.nodeID }
 // UpdateBlock will panic if the block does not match the component ID of the
 // ComponentNode.
 func (cn *ComponentNode) UpdateBlock(b *ast.BlockStmt) {
-	if !BlockComponentID(b).Equals(cn.id) {
+	if !BlockComponentID(cn.parent, b).Equals(cn.id) {
 		panic("UpdateBlock called with an River block with a different component ID")
 	}
 

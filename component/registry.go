@@ -23,6 +23,8 @@ var (
 	registered = map[string]Registration{}
 	// Parsed names for components
 	parsedNames = map[string]parsedName{}
+	// Components that are delegates
+	delegates = map[string]struct{}{}
 )
 
 // Options are provided to a component when it is being constructed. Options
@@ -67,6 +69,13 @@ type Options struct {
 	// HTTPPath is the base path that requests need in order to route to this component.
 	// Requests received by a component handler will have this already trimmed off.
 	HTTPPath string
+
+	// Delegate allows a component to load components dynamically and should be treated with extreme care.
+	Delegate DelegateHandler
+}
+
+type DelegateHandler interface {
+	LoadSubgraph(parent DelegateComponent, config []byte) ([]Component, error)
 }
 
 // Registration describes a single component.
@@ -142,6 +151,17 @@ func Register(r Registration) {
 
 	registered[r.Name] = r
 	parsedNames[r.Name] = parsed
+}
+
+type DelegateRegistration struct {
+	Registration
+}
+
+// RegisterDelegate register components that need to handle lifecycle events.
+// The most common example of this are modules.
+func RegisterDelegate(r Registration) {
+	Register(r)
+	delegates[r.Name] = struct{}{}
 }
 
 var identifierRegex = regexp.MustCompile("^[A-Za-z][0-9A-Za-z_]*$")
