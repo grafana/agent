@@ -308,7 +308,7 @@ func LoadRemote(url string, expandEnvVars bool, c *Config) error {
 		remoteOpts.HTTPClientConfig.SetDirectory(dir)
 	}
 
-	rc, err := newRemoteConfig(url, remoteOpts)
+	rc, err := newRemoteProvider(url, remoteOpts)
 	if err != nil {
 		return fmt.Errorf("error reading remote config: %w", err)
 	}

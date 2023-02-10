@@ -22,12 +22,12 @@ type testRemoteConfigProvider struct {
 	fetchedConfigBytesToReturn []byte
 	fetchedConfigErrorToReturn error
 
-	cachedConfigToReturn      *Config
+	cachedConfigToReturn      []byte
 	cachedConfigErrorToReturn error
 	didCacheRemoteConfig      bool
 }
 
-func (t *testRemoteConfigProvider) GetCachedRemoteConfig(expandEnvVars bool) (*Config, error) {
+func (t *testRemoteConfigProvider) GetCachedRemoteConfig() ([]byte, error) {
 	return t.cachedConfigToReturn, t.cachedConfigErrorToReturn
 }
 
@@ -55,6 +55,11 @@ var validAgentManagementConfig = AgentManagementConfig{
 		Namespace: "test_namespace",
 	},
 }
+
+var cachedConfig = []byte(`
+base_config: |
+snippets: []
+`)
 
 func TestValidateValidConfig(t *testing.T) {
 	assert.NoError(t, validAgentManagementConfig.Validate())
@@ -172,15 +177,23 @@ func TestGetRemoteConfig_UnmarshallableRemoteConfig(t *testing.T) {
 	logger := server.NewLogger(&server.DefaultConfig)
 	testProvider := testRemoteConfigProvider{InitialConfig: &am}
 	testProvider.fetchedConfigBytesToReturn = invalidCfgBytes
-	testProvider.cachedConfigToReturn = &DefaultConfig
+	testProvider.cachedConfigToReturn = cachedConfig
 
-	// a nil flagset is being used for testing because it should not reach flag validation
-	cfg, err := getRemoteConfig(true, &testProvider, logger, nil, []string{}, "test")
+	// flagset is required because some default values are extracted from it.
+	// In addition, some flags are defined as dependencies for validation
+	fs := flag.NewFlagSet("test", flag.ExitOnError)
+	features.Register(fs, allFeatures)
+	DefaultConfig.RegisterFlags(fs)
+
+	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, []string{}, "test")
 	assert.NoError(t, err)
 	assert.False(t, testProvider.didCacheRemoteConfig)
 
 	// check that the returned config is the cached one
-	assert.True(t, util.CompareYAML(*cfg, DefaultConfig))
+	// Note: Validate is required for the comparison as it mutates the config (probably needs refactor)
+	expected := DefaultConfig
+	expected.Validate(fs)
+	assert.True(t, util.CompareYAML(*cfg, expected))
 }
 
 func TestGetRemoteConfig_RemoteFetchFails(t *testing.T) {
@@ -188,15 +201,23 @@ func TestGetRemoteConfig_RemoteFetchFails(t *testing.T) {
 	logger := server.NewLogger(&server.DefaultConfig)
 	testProvider := testRemoteConfigProvider{InitialConfig: &am}
 	testProvider.fetchedConfigErrorToReturn = errors.New("connection refused")
-	testProvider.cachedConfigToReturn = &DefaultConfig
+	testProvider.cachedConfigToReturn = cachedConfig
 
-	// a nil flagset is being used for testing because it should not reach flag validation
-	cfg, err := getRemoteConfig(true, &testProvider, logger, nil, []string{}, "test")
+	// flagset is required because some default values are extracted from it.
+	// In addition, some flags are defined as dependencies for validation
+	fs := flag.NewFlagSet("test", flag.ExitOnError)
+	features.Register(fs, allFeatures)
+	DefaultConfig.RegisterFlags(fs)
+
+	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, []string{}, "test")
 	assert.NoError(t, err)
 	assert.False(t, testProvider.didCacheRemoteConfig)
 
 	// check that the returned config is the cached one
-	assert.True(t, util.CompareYAML(*cfg, DefaultConfig))
+	// Note: Validate is required for the comparison as it mutates the config (probably needs refactor)
+	expected := DefaultConfig
+	expected.Validate(fs)
+	assert.True(t, util.CompareYAML(*cfg, expected))
 }
 
 func TestGetRemoteConfig_SemanticallyInvalidBaseConfig(t *testing.T) {
@@ -224,16 +245,23 @@ snippets: []
 	logger := server.NewLogger(&server.DefaultConfig)
 	testProvider := testRemoteConfigProvider{InitialConfig: &am}
 	testProvider.fetchedConfigBytesToReturn = invalidCfgBytes
-	testProvider.cachedConfigToReturn = &DefaultConfig
+	testProvider.cachedConfigToReturn = cachedConfig
+
+	// flagset is required because some default values are extracted from it.
+	// In addition, some flags are defined as dependencies for validation
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
 	features.Register(fs, allFeatures)
+	DefaultConfig.RegisterFlags(fs)
 
 	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, []string{}, "test")
 	assert.NoError(t, err)
 	assert.False(t, testProvider.didCacheRemoteConfig)
 
 	// check that the returned config is the cached one
-	assert.True(t, util.CompareYAML(*cfg, DefaultConfig))
+	// Note: Validate is required for the comparison as it mutates the config (probably needs refactor)
+	expected := DefaultConfig
+	expected.Validate(fs)
+	assert.True(t, util.CompareYAML(*cfg, expected))
 }
 
 func TestGetRemoteConfig_InvalidSnippet(t *testing.T) {
@@ -254,16 +282,47 @@ snippets:
 	logger := server.NewLogger(&server.DefaultConfig)
 	testProvider := testRemoteConfigProvider{InitialConfig: &am}
 	testProvider.fetchedConfigBytesToReturn = invalidCfgBytes
-	testProvider.cachedConfigToReturn = &DefaultConfig
+	testProvider.cachedConfigToReturn = cachedConfig
+
+	// flagset is required because some default values are extracted from it.
+	// In addition, some flags are defined as dependencies for validation
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
 	features.Register(fs, allFeatures)
+	DefaultConfig.RegisterFlags(fs)
 
 	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, []string{}, "test")
 	assert.NoError(t, err)
 	assert.False(t, testProvider.didCacheRemoteConfig)
 
 	// check that the returned config is the cached one
-	assert.True(t, util.CompareYAML(*cfg, DefaultConfig))
+	// Note: Validate is required for the comparison as it mutates the config (probably needs refactor)
+	expected := DefaultConfig
+	expected.Validate(fs)
+	assert.True(t, util.CompareYAML(*cfg, expected))
+}
+
+func TestGetRemoteConfig_EmptyBaseConfig(t *testing.T) {
+	validConfig := `
+base_config: ""
+snippets: []
+`
+	cfgBytes := []byte(validConfig)
+	am := validAgentManagementConfig
+	logger := server.NewLogger(&server.DefaultConfig)
+	testProvider := testRemoteConfigProvider{InitialConfig: &am}
+	testProvider.fetchedConfigBytesToReturn = cfgBytes
+	testProvider.cachedConfigToReturn = cachedConfig
+
+	fs := flag.NewFlagSet("test", flag.ExitOnError)
+	features.Register(fs, allFeatures)
+	DefaultConfig.RegisterFlags(fs)
+
+	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, []string{}, "test")
+	assert.NoError(t, err)
+	assert.True(t, testProvider.didCacheRemoteConfig)
+
+	// check that the returned config is not the cached one
+	assert.NotEqual(t, "debug", cfg.Server.LogLevel.String())
 }
 
 func TestGetRemoteConfig_ValidBaseConfig(t *testing.T) {
@@ -306,7 +365,7 @@ snippets:
 	logger := server.NewLogger(&server.DefaultConfig)
 	testProvider := testRemoteConfigProvider{InitialConfig: &am}
 	testProvider.fetchedConfigBytesToReturn = cfgBytes
-	testProvider.cachedConfigToReturn = &DefaultConfig
+	testProvider.cachedConfigToReturn = cachedConfig
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
 	features.Register(fs, allFeatures)
@@ -363,7 +422,7 @@ snippets:
 	logger := server.NewLogger(&server.DefaultConfig)
 	testProvider := testRemoteConfigProvider{InitialConfig: &am}
 	testProvider.fetchedConfigBytesToReturn = cfgBytes
-	testProvider.cachedConfigToReturn = &DefaultConfig
+	testProvider.cachedConfigToReturn = cachedConfig
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
 	var configExpandEnv bool
