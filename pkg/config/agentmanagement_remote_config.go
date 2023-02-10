@@ -63,6 +63,7 @@ func appendSnippets(c *Config, snippets []Snippet) error {
 		Name:         "Logs Snippets",
 		ScrapeConfig: []scrapeconfig.Config{},
 	}
+	logsConfigs.Initialize()
 
 	for _, snippet := range snippets {
 		var snippetContent SnippetContent

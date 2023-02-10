@@ -2,6 +2,7 @@ package config
 
 import (
 	"testing"
+	"time"
 
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/stretchr/testify/require"
@@ -93,11 +94,25 @@ logs:
 		require.NoError(t, err)
 		require.Equal(t, len(c.Logs.Configs), 1)
 		require.Equal(t, len(c.Metrics.Configs), 1)
+
 		// check some fields to make sure the config was parsed correctly
 		require.Equal(t, "prometheus", c.Metrics.Configs[0].ScrapeConfigs[0].JobName)
 		require.Equal(t, "loki", c.Logs.Configs[0].ScrapeConfig[0].JobName)
 
-		// make sure defaults are applied
+		// make sure defaults for metric snippets are applied
 		require.Equal(t, instance.DefaultConfig.WALTruncateFrequency, c.Metrics.Configs[0].WALTruncateFrequency)
+		require.Equal(t, instance.DefaultConfig.HostFilter, c.Metrics.Configs[0].HostFilter)
+		require.Equal(t, instance.DefaultConfig.MinWALTime, c.Metrics.Configs[0].MinWALTime)
+		require.Equal(t, instance.DefaultConfig.MaxWALTime, c.Metrics.Configs[0].MaxWALTime)
+		require.Equal(t, instance.DefaultConfig.RemoteFlushDeadline, c.Metrics.Configs[0].RemoteFlushDeadline)
+		require.Equal(t, instance.DefaultConfig.WriteStaleOnShutdown, c.Metrics.Configs[0].WriteStaleOnShutdown)
+		require.Equal(t, instance.DefaultGlobalConfig, c.Metrics.Global)
+
+		// make sure defaults for log snippets are applied
+		require.Equal(t, 10*time.Second, c.Logs.Configs[0].PositionsConfig.SyncPeriod)
+		require.Equal(t, "", c.Logs.Configs[0].PositionsConfig.PositionsFile)
+		require.Equal(t, false, c.Logs.Configs[0].PositionsConfig.IgnoreInvalidYaml)
+		require.Equal(t, false, c.Logs.Configs[0].TargetConfig.Stdin)
+
 	})
 }
