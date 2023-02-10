@@ -6,6 +6,8 @@ weight: 130
 
 Install Grafana Agent and get it up and running on macOS. 
 
+> **Note:** If you intend to ship your data to Grafana Cloud, you can set up Grafana Agent using a Grafana Cloud integration. See [how to install an integration](/docs/grafana-cloud/data-configuration/integrations/install-and-manage-integrations/) and details about the [macOS integration](/docs/grafana-cloud/data-configuration/integrations/integration-reference/integration-macos-node/). 
+
 ### Overview
 Use Homebrew to install the most recent released version of Grafana using the Homebrew package. You can also install Grafana Agent on macOS using the macOS binary.
 
