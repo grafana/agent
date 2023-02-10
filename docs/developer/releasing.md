@@ -207,11 +207,6 @@ At the time of this writing, `defaults.go` is the only such file.
 
 Add the new version to the "[pkg/operator/defaults.go](https://github.com/grafana/agent/blob/main/pkg/operator/defaults.go)" file. If there is a release candidate (`-rc.N`) version, remove it.
 
-#### Update manifests and dashboards
-
-Run `make generate-manifests` and `make generate-dashboards` to update
-manifests in case they are stale.
-
 ### Merge freezes
 
 Release shepherds may request a merge freeze to main for any reason during the
