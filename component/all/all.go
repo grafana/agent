@@ -42,6 +42,8 @@ import (
 	_ "github.com/grafana/agent/component/otelcol/receiver/zipkin"              // Import otelcol.receiver.zipkin
 	_ "github.com/grafana/agent/component/phlare/scrape"                        // Import phlare.scrape
 	_ "github.com/grafana/agent/component/phlare/write"                         // Import phlare.write
+	_ "github.com/grafana/agent/component/prometheus/integration/apache"        // Import prometheus.integration.apache
+	_ "github.com/grafana/agent/component/prometheus/integration/consul"        // Import prometheus.integration.consul
 	_ "github.com/grafana/agent/component/prometheus/integration/node_exporter" // Import prometheus.integration.node_exporter
 	_ "github.com/grafana/agent/component/prometheus/relabel"                   // Import prometheus.relabel
 	_ "github.com/grafana/agent/component/prometheus/remotewrite"               // Import prometheus.remote_write
