@@ -91,7 +91,6 @@ func (c *Component) Run(ctx context.Context) error {
 					level.Error(c.opts.Logger).Log("msg", "error running integration", "err", err)
 				}
 			}()
-
 		}
 	}
 }
