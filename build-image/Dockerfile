@@ -80,7 +80,7 @@ COPY --from=golangci /bin/golangci-lint              /usr/local/bin
 COPY --from=docker   /usr/bin/docker                 /usr/bin/docker
 COPY --from=docker   /usr/libexec/docker/cli-plugins /usr/libexec/docker/cli-plugins
 COPY --from=golang   /usr/local/go                   /usr/local/go
-COPY --from=golang   /go/bin                         /go/bin
+COPY bin /go/bin
 
 # Set CC to viceroycc to ensure that the cross compilers are used for all C
 # compilation.
