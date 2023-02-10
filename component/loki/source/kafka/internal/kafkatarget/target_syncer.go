@@ -18,13 +18,10 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 
-	"github.com/grafana/loki/clients/pkg/logentry/stages"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
 
 	"github.com/grafana/agent/component/common/loki"
-
-	"github.com/grafana/loki/pkg/util"
 )
 
 var TopicPollInterval = 30 * time.Second
@@ -34,11 +31,10 @@ type TopicManager interface {
 }
 
 type TargetSyncer struct {
-	logger   log.Logger
-	cfg      scrapeconfig.Config
-	pipeline *stages.Pipeline
-	reg      prometheus.Registerer
-	client   loki.EntryHandler
+	logger log.Logger
+	cfg    scrapeconfig.Config
+	reg    prometheus.Registerer
+	client loki.EntryHandler
 
 	topicManager TopicManager
 	consumer
@@ -56,6 +52,7 @@ func NewSyncer(
 	cfg scrapeconfig.Config,
 	pushClient loki.EntryHandler,
 ) (*TargetSyncer, error) {
+
 	if err := validateConfig(&cfg); err != nil {
 		return nil, err
 	}
@@ -93,10 +90,6 @@ func NewSyncer(
 	if err != nil {
 		return nil, fmt.Errorf("error creating topic manager: %w", err)
 	}
-	pipeline, err := stages.NewPipeline(log.With(logger, "component", "kafka_pipeline"), cfg.PipelineStages, &cfg.JobName, reg)
-	if err != nil {
-		return nil, fmt.Errorf("error creating pipeline: %w", err)
-	}
 	ctx, cancel := context.WithCancel(context.Background())
 	t := &TargetSyncer{
 		logger:       logger,
@@ -106,7 +99,6 @@ func NewSyncer(
 		cfg:          cfg,
 		reg:          reg,
 		client:       pushClient,
-		pipeline:     pipeline,
 		close: func() error {
 			if err := group.Close(); err != nil {
 				level.Warn(logger).Log("msg", "error while closing consumer group", "err", err)
@@ -164,7 +156,7 @@ func withSASLAuthentication(cfg sarama.Config, authCfg scrapeconfig.KafkaAuthent
 		sarama.SASLTypeSCRAMSHA256,
 		sarama.SASLTypePlaintext,
 	}
-	if !util.StringsContain(supportedMechanism, string(authCfg.SASLConfig.Mechanism)) {
+	if !StringsContain(supportedMechanism, string(authCfg.SASLConfig.Mechanism)) {
 		return nil, fmt.Errorf("error unsupported sasl mechanism: %s", authCfg.SASLConfig.Mechanism)
 	}
 
@@ -236,7 +228,6 @@ func (ts *TargetSyncer) loop() {
 			if ok {
 				topicChanged <- newTopics
 			}
-
 		}
 	}()
 }
@@ -297,7 +288,6 @@ func (ts *TargetSyncer) NewTarget(session sarama.ConsumerGroupSession, claim sar
 		discoveredLabels,
 		labelOut,
 		ts.cfg.RelabelConfigs,
-		// TODO ts.pipeline.Wrap(ts.client),
 		ts.client,
 		ts.cfg.KafkaConfig.UseIncomingTimestamp,
 	)
@@ -324,4 +314,15 @@ func validateConfig(cfg *scrapeconfig.Config) error {
 		cfg.KafkaConfig.GroupID = "promtail"
 	}
 	return nil
+}
+
+// StringsContain returns true if the search value is within the list of input values.
+func StringsContain(values []string, search string) bool {
+	for _, v := range values {
+		if search == v {
+			return true
+		}
+	}
+
+	return false
 }

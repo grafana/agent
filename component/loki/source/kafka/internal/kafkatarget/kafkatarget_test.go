@@ -1,5 +1,9 @@
 package kafkatarget
 
+// This code is copied from Promtail. The kafkatarget package is used to
+// configure and run the targets that can read kafka entries and forward them
+// to other loki components.
+
 import (
 	"context"
 	"fmt"

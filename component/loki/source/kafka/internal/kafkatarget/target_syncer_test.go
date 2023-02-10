@@ -7,8 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/loki/clients/pkg/logentry/stages"
-
 	"github.com/grafana/dskit/flagext"
 	"github.com/prometheus/common/config"
 
@@ -106,9 +104,6 @@ func Test_NewTarget(t *testing.T) {
 			},
 		},
 	}
-	pipeline, err := stages.NewPipeline(ts.logger, ts.cfg.PipelineStages, &ts.cfg.JobName, ts.reg)
-	require.NoError(t, err)
-	ts.pipeline = pipeline
 	tg, err := ts.NewTarget(&testSession{}, newTestClaim("foo", 10, 1))
 
 	require.NoError(t, err)

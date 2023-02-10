@@ -47,6 +47,7 @@ func NewKafkaTarget(
 	client loki.EntryHandler,
 	useIncomingTimestamp bool,
 ) *KafkaTarget {
+
 	return &KafkaTarget{
 		discoveredLabels:     discoveredLabels,
 		lbs:                  lbs,
