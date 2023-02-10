@@ -291,26 +291,16 @@ will update it automatically.
 You can use this [pull-request](https://github.com/grafana/helm-charts/pull/1831) as reference.
 
 ### Updating Homebrew
-[Homebrew](https://brew.sh/) is a package manager for MacOS. It installs binaries 
-(aka "[bottles](https://docs.brew.sh/Bottles)") from either the main Homebrew repository 
-or a third-party one (aka a "[tap](https://docs.brew.sh/Taps)").
-
-For every Agent release we need to update two Brew repositories:
-* [homebrew/homebrew-core](https://github.com/Homebrew/homebrew-core) is the main one which 
-Brew installations use by default
-* [grafana/homebrew-grafana](https://github.com/grafana/homebrew-grafana) is a "tap" - 
-a Third-Party Repository from Grafana.
+For every Agent release we need to update the [homebrew/homebrew-core](https://github.com/Homebrew/homebrew-core) repository.
 
 When a new [release](https://github.com/grafana/agent/releases) is published, GitHub actions 
-are automatically triggered to update both of the above repositories. PRs are created automatically:
+are automatically triggered to create a PR for the above repository:
 * If there are no issues, they will be merged automatically.
-* The merges are done from these two grafanabot forks:
-    * [grafanabot/homebrew-core](https://github.com/grafanabot/homebrew-core)
-    * [grafanabot/homebrew-grafana](https://github.com/grafanabot/homebrew-grafana/tree/master)
+* The merge is done from the [grafanabot/homebrew-core](https://github.com/grafanabot/homebrew-core) fork.
 * The GitHub actions will not fail if the PRs fail to merge.
 * The release shepherd needs to manually open the GitHub actions, 
 scroll to the end to find the PR and double check that it was merged.
-* If the CI fails the PR is not able to merge, the release shepherd can push a fix to 
+* If the CI fails, the PR will not be able to merge. The release shepherd can then push a fix to 
 the same branch as the one that the PR is open for.
 
 ## Maintaining older release branches
