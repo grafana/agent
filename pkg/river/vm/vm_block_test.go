@@ -151,6 +151,78 @@ func TestVM_Block_Attributes(t *testing.T) {
 		require.Equal(t, 25, **actual.NumberC)
 		require.Equal(t, 30, ***actual.NumberD)
 	})
+
+	t.Run("Supports squashed attributes", func(t *testing.T) {
+		type InnerStruct struct {
+			InnerField1 string `river:"inner_field_1,attr,optional"`
+			InnerField2 string `river:"inner_field_2,attr,optional"`
+		}
+
+		type OuterStruct struct {
+			OuterField1 string      `river:"outer_field_1,attr,optional"`
+			Inner       InnerStruct `river:",squash"`
+			OuterField2 string      `river:"outer_field_2,attr,optional"`
+		}
+
+		var (
+			input = `some_block {
+				outer_field_1 = "value1"
+				outer_field_2 = "value2"
+				inner_field_1 = "value3"
+				inner_field_2 = "value4"
+			}`
+
+			expect = OuterStruct{
+				OuterField1: "value1",
+				Inner: InnerStruct{
+					InnerField1: "value3",
+					InnerField2: "value4",
+				},
+				OuterField2: "value2",
+			}
+		)
+		eval := vm.New(parseBlock(t, input))
+
+		var actual OuterStruct
+		require.NoError(t, eval.Evaluate(nil, &actual))
+		require.Equal(t, expect, actual)
+	})
+
+	t.Run("Supports squashed attributes in pointers", func(t *testing.T) {
+		type InnerStruct struct {
+			InnerField1 string `river:"inner_field_1,attr,optional"`
+			InnerField2 string `river:"inner_field_2,attr,optional"`
+		}
+
+		type OuterStruct struct {
+			OuterField1 string       `river:"outer_field_1,attr,optional"`
+			Inner       *InnerStruct `river:",squash"`
+			OuterField2 string       `river:"outer_field_2,attr,optional"`
+		}
+
+		var (
+			input = `some_block {
+				outer_field_1 = "value1"
+				outer_field_2 = "value2"
+				inner_field_1 = "value3"
+				inner_field_2 = "value4"
+			}`
+
+			expect = OuterStruct{
+				OuterField1: "value1",
+				Inner: &InnerStruct{
+					InnerField1: "value3",
+					InnerField2: "value4",
+				},
+				OuterField2: "value2",
+			}
+		)
+		eval := vm.New(parseBlock(t, input))
+
+		var actual OuterStruct
+		require.NoError(t, eval.Evaluate(nil, &actual))
+		require.Equal(t, expect, actual)
+	})
 }
 
 func TestVM_Block_Children_Blocks(t *testing.T) {
@@ -307,6 +379,78 @@ func TestVM_Block_Children_Blocks(t *testing.T) {
 		require.Equal(t, false, (*actual.BlockB).Attr)
 		require.Equal(t, true, (**actual.BlockC).Attr)
 		require.Equal(t, false, (***actual.BlockD).Attr)
+	})
+
+	t.Run("Supports squashed blocks", func(t *testing.T) {
+		type InnerStruct struct {
+			Inner1 childBlock `river:"inner_block_1,block"`
+			Inner2 childBlock `river:"inner_block_2,block"`
+		}
+
+		type OuterStruct struct {
+			Outer1 childBlock  `river:"outer_block_1,block"`
+			Inner  InnerStruct `river:",squash"`
+			Outer2 childBlock  `river:"outer_block_2,block"`
+		}
+
+		var (
+			input = `some_block {
+				outer_block_1 { attr = true }
+				outer_block_2 { attr = false }
+				inner_block_1 { attr = true } 
+				inner_block_2 { attr = false } 
+			}`
+
+			expect = OuterStruct{
+				Outer1: childBlock{Attr: true},
+				Outer2: childBlock{Attr: false},
+				Inner: InnerStruct{
+					Inner1: childBlock{Attr: true},
+					Inner2: childBlock{Attr: false},
+				},
+			}
+		)
+		eval := vm.New(parseBlock(t, input))
+
+		var actual OuterStruct
+		require.NoError(t, eval.Evaluate(nil, &actual))
+		require.Equal(t, expect, actual)
+	})
+
+	t.Run("Supports squashed blocks in pointers", func(t *testing.T) {
+		type InnerStruct struct {
+			Inner1 *childBlock `river:"inner_block_1,block"`
+			Inner2 *childBlock `river:"inner_block_2,block"`
+		}
+
+		type OuterStruct struct {
+			Outer1 childBlock   `river:"outer_block_1,block"`
+			Inner  *InnerStruct `river:",squash"`
+			Outer2 childBlock   `river:"outer_block_2,block"`
+		}
+
+		var (
+			input = `some_block {
+				outer_block_1 { attr = true }
+				outer_block_2 { attr = false }
+				inner_block_1 { attr = true } 
+				inner_block_2 { attr = false } 
+			}`
+
+			expect = OuterStruct{
+				Outer1: childBlock{Attr: true},
+				Outer2: childBlock{Attr: false},
+				Inner: &InnerStruct{
+					Inner1: &childBlock{Attr: true},
+					Inner2: &childBlock{Attr: false},
+				},
+			}
+		)
+		eval := vm.New(parseBlock(t, input))
+
+		var actual OuterStruct
+		require.NoError(t, eval.Evaluate(nil, &actual))
+		require.Equal(t, expect, actual)
 	})
 
 	// TODO(rfratto): decode all blocks into a []*ast.BlockStmt field.

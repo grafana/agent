@@ -9,12 +9,11 @@ fullnameOverride: null
 agent:
   # -- Mode to run Grafana Agent in. Can be "flow" or "static".
   mode: 'flow'
-
   configMap:
     # -- Create a new ConfigMap for the config file.
     create: true
     # -- Content to assign to the new ConfigMap.
-    content: ""
+    content: ''
 
     # -- Name of existing ConfigMap to use. Used when create is false.
     name: null
@@ -30,6 +29,9 @@ agent:
   listenAddr: 0.0.0.0
   # -- Port to listen for traffic on.
   listenPort: 80
+
+  # -- Port to listen for faro traffic on.
+  faroPort: 12347
 
   # -- Enables sending Grafana Labs anonymous usage stats to help improve Grafana
   # Agent.
@@ -125,4 +127,43 @@ service:
   # -- Service type
   type: ClusterIP
   # -- Cluster IP, can be set to None, empty "" or an IP address
-  clusterIP: ""
+  clusterIP: ''
+
+ingress:
+  # -- Enables ingress for the agent (faro port)
+  enabled: false
+  # For Kubernetes >= 1.18 you should specify the ingress-controller via the field ingressClassName
+  # See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#specifying-the-class-of-an-ingress
+  # ingressClassName: nginx
+  # Values can be templated
+  annotations:
+    {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  labels: {}
+  path: /
+
+  # pathType is only for k8s >= 1.1=
+  pathType: Prefix
+
+  hosts:
+    - chart-example.local
+  ## Extra paths to prepend to every host configuration. This is useful when working with annotation based services.
+  extraPaths: []
+  # - path: /*
+  #   backend:
+  #     serviceName: ssl-redirect
+  #     servicePort: use-annotation
+  ## Or for k8s > 1.19
+  # - path: /*
+  #   pathType: Prefix
+  #   backend:
+  #     service:
+  #       name: ssl-redirect
+  #       port:
+  #         name: use-annotation
+
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local

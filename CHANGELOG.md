@@ -30,6 +30,8 @@ Main (unreleased)
     forwarding them to other `otelcol` components. (@erikbaranowski)
   - `loki.source.docker` reads logs from Docker containers and forwards them to
     other `loki` components. (@tpaschalis)
+  - `prometheus.integration.apache` collects metrics from an apache web server (@captncraig)
+  - `prometheus.integration.consul` collects metrics from a consul installation (@captncraig)
 
 ### Enhancements
 
@@ -56,6 +58,11 @@ Main (unreleased)
 
 - Use Go 1.20 for builds. Official release binaries are still produced using Go
   1.19. (@rfratto)
+
+v0.31.2 (2023-02-08)
+--------------------
+
+### Other changes
 
 - In the Agent Operator, upgrade the `prometheus-config-reloader` dependency
   from version 0.47.0 to version 0.62.0. (@ptodev)

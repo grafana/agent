@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/pkg/river/internal/rivertags"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -44,6 +45,85 @@ func TestEmbedded(t *testing.T) {
 		Field2 string `river:"parent_field_2,attr"`
 	}
 	require.PanicsWithValue(t, "river: anonymous fields not supported rivertags_test.Struct.InnerStruct", func() { rivertags.Get(reflect.TypeOf(Struct{})) })
+}
+
+func TestSquash(t *testing.T) {
+	type InnerStruct struct {
+		InnerField1 string `river:"inner_field_1,attr"`
+		InnerField2 string `river:"inner_field_2,attr"`
+	}
+
+	type Struct struct {
+		Field1 string      `river:"parent_field_1,attr"`
+		Inner  InnerStruct `river:",squash"`
+		Field2 string      `river:"parent_field_2,attr"`
+	}
+
+	type StructWithPointer struct {
+		Field1 string       `river:"parent_field_1,attr"`
+		Inner  *InnerStruct `river:",squash"`
+		Field2 string       `river:"parent_field_2,attr"`
+	}
+
+	expect := []rivertags.Field{
+		{
+			Name:  []string{"parent_field_1"},
+			Index: []int{0},
+			Flags: rivertags.FlagAttr,
+		},
+		{
+			Name:  []string{"inner_field_1"},
+			Index: []int{1, 0},
+			Flags: rivertags.FlagAttr,
+		},
+		{
+			Name:  []string{"inner_field_2"},
+			Index: []int{1, 1},
+			Flags: rivertags.FlagAttr,
+		},
+		{
+			Name:  []string{"parent_field_2"},
+			Index: []int{2},
+			Flags: rivertags.FlagAttr,
+		},
+	}
+
+	structActual := rivertags.Get(reflect.TypeOf(Struct{}))
+	assert.Equal(t, expect, structActual)
+
+	structPointerActual := rivertags.Get(reflect.TypeOf(StructWithPointer{}))
+	assert.Equal(t, expect, structPointerActual)
+}
+
+func TestDeepSquash(t *testing.T) {
+	type Inner2Struct struct {
+		InnerField1 string `river:"inner_field_1,attr"`
+		InnerField2 string `river:"inner_field_2,attr"`
+	}
+
+	type InnerStruct struct {
+		Inner2Struct Inner2Struct `river:",squash"`
+	}
+
+	type Struct struct {
+		Inner InnerStruct `river:",squash"`
+	}
+
+	expect := []rivertags.Field{
+		{
+			Name:  []string{"inner_field_1"},
+			Index: []int{0, 0, 0},
+			Flags: rivertags.FlagAttr,
+		},
+		{
+			Name:  []string{"inner_field_2"},
+			Index: []int{0, 0, 1},
+			Flags: rivertags.FlagAttr,
+		},
+	}
+
+	structActual := rivertags.Get(reflect.TypeOf(Struct{}))
+	assert.Equal(t, expect, structActual)
 }
 
 func Test_Get_Panics(t *testing.T) {

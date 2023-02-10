@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestValue_Keys_Block ensures that the struct tags for blocks are represented
-// correctly.
+// TestBlockRepresentation ensures that the struct tags for blocks are
+// represented correctly.
 func TestBlockRepresentation(t *testing.T) {
 	type UnlabledBlock struct {
 		Value int `river:"value,attr"`
@@ -94,6 +94,46 @@ func TestBlockRepresentation(t *testing.T) {
 		var actualVal OuterBlock2
 		require.NoError(t, value.Decode(value.Encode(val), &actualVal))
 		require.Equal(t, val, OuterBlock(actualVal))
+	})
+}
+
+// TestSquashedBlockRepresentation ensures that the struct tags for squashed
+// blocks are represented correctly.
+func TestSquashedBlockRepresentation(t *testing.T) {
+	type InnerStruct struct {
+		InnerField1 string `river:"inner_field_1,attr,optional"`
+		InnerField2 string `river:"inner_field_2,attr,optional"`
+	}
+
+	type OuterStruct struct {
+		OuterField1 string      `river:"outer_field_1,attr,optional"`
+		Inner       InnerStruct `river:",squash"`
+		OuterField2 string      `river:"outer_field_2,attr,optional"`
+	}
+
+	val := OuterStruct{
+		OuterField1: "value1",
+		Inner: InnerStruct{
+			InnerField1: "value3",
+			InnerField2: "value4",
+		},
+		OuterField2: "value2",
+	}
+
+	t.Run("Map decode", func(t *testing.T) {
+		var m map[string]interface{}
+		require.NoError(t, value.Decode(value.Encode(val), &m))
+
+		type object = map[string]interface{}
+
+		expect := object{
+			"outer_field_1": "value1",
+			"inner_field_1": "value3",
+			"inner_field_2": "value4",
+			"outer_field_2": "value2",
+		}
+
+		require.Equal(t, m, expect)
 	})
 }
 
