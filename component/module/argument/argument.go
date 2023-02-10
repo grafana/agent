@@ -2,6 +2,7 @@ package argument
 
 import (
 	"context"
+	"strings"
 	"sync"
 
 	"github.com/grafana/agent/component"
@@ -9,9 +10,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "module.argument",
-		Args: Arguments{},
-
+		Name:    "module.argument",
+		Args:    Arguments{},
+		Exports: Exports{},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
 		},
@@ -25,11 +26,13 @@ type Component struct {
 	mut  sync.RWMutex
 	args Arguments
 	opts component.Options
+	Name string
 }
 
 // Run starts the component.
 func (c *Component) Run(ctx context.Context) error {
-
+	<-ctx.Done()
+	return nil
 }
 
 // Update updates the fields of the component.
@@ -39,7 +42,7 @@ func (c *Component) Update(args component.Arguments) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 	c.args = newArgs
-	c.opts.OnStateChange{Ex}
+	c.opts.OnStateChange(Exports{Value: c.args.Value})
 
 	return nil
 }
@@ -71,5 +74,10 @@ func (r *Arguments) UnmarshalRiver(f func(v interface{}) error) error {
 
 // New creates a new  component.
 func New(o component.Options, args Arguments) (component.Component, error) {
-	return c, nil
+	splitName := strings.Split(o.ID, ".")
+	return &Component{
+		args: args,
+		opts: o,
+		Name: splitName[len(splitName)-1],
+	}, nil
 }

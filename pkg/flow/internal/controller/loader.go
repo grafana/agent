@@ -108,9 +108,8 @@ func (l *Loader) Apply(delegate component.DelegateHandler, parent component.Dele
 	dag.Reduce(&newGraph)
 
 	var (
-		returnComponents = make([]component.Component, 0, len(blocks))
-		components       = make([]*ComponentNode, 0, len(blocks))
-		componentIDs     = make([]ComponentID, 0, len(blocks))
+		components   = make([]*ComponentNode, 0, len(blocks))
+		componentIDs = make([]ComponentID, 0, len(blocks))
 	)
 
 	tracer := l.tracer.Tracer("")
@@ -139,7 +138,6 @@ func (l *Loader) Apply(delegate component.DelegateHandler, parent component.Dele
 		case *ComponentNode:
 			components = append(components, c)
 			componentIDs = append(componentIDs, c.ID())
-			returnComponents = append(returnComponents, c.managed)
 
 			if err = l.evaluate(logger, parentScope, c); err != nil {
 				var evalDiags diag.Diagnostics
@@ -181,6 +179,11 @@ func (l *Loader) Apply(delegate component.DelegateHandler, parent component.Dele
 	l.cache.SyncIDs(componentIDs)
 	l.blocks = blocks
 	l.cm.componentEvaluationTime.Observe(time.Since(start).Seconds())
+	returnComponents := make([]component.Component, 0, len(components))
+	for _, cmp := range components {
+		returnComponents = append(returnComponents, cmp.managed)
+	}
+
 	return diags, returnComponents
 }
 
@@ -192,7 +195,7 @@ func (l *Loader) populateGraph(delegate component.DelegateHandler, parent compon
 	)
 	for _, block := range blocks {
 		var c *ComponentNode
-		id := BlockComponentID(parent, block).String()
+		id := BlockComponentID(block).String()
 
 		if orig, redefined := blockMap[id]; redefined {
 			diags.Add(diag.Diagnostic{

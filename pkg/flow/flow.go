@@ -52,6 +52,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/grafana/agent/pkg/river/vm"
+
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
@@ -101,6 +103,9 @@ type Flow struct {
 
 	loadMut    sync.RWMutex
 	loadedOnce atomic.Bool
+
+	delegateMut    sync.Mutex
+	delegateScopes map[component.DelegateComponent]*vm.Scope
 }
 
 // New creates and starts a new Flow controller. Call Close to stop
@@ -164,6 +169,8 @@ func newFlow(o Options) (*Flow, context.Context) {
 		cancel:       cancel,
 		exited:       make(chan struct{}, 1),
 		loadFinished: make(chan struct{}, 1),
+
+		delegateScopes: make(map[component.DelegateComponent]*vm.Scope),
 	}, ctx
 }
 
@@ -246,7 +253,12 @@ func (c *Flow) LoadSubgraph(parent component.DelegateComponent, config []byte) (
 	if err != nil {
 		return nil, err
 	}
-	diags, comps := c.loader.Apply(c, parent, nil, file.Components, file.ConfigBlocks)
+	parentScope := &vm.Scope{
+		Parent:    nil,
+		Variables: make(map[string]interface{}),
+	}
+	c.delegateScopes[parent] = parentScope
+	diags, comps := c.loader.Apply(c, parent, parentScope, file.Components, file.ConfigBlocks)
 
 	if diags.HasErrors() {
 		return nil, diags.ErrorOrNil()

@@ -28,12 +28,8 @@ import (
 type ComponentID []string
 
 // BlockComponentID returns the ComponentID specified by an River block.
-func BlockComponentID(parent component.DelegateComponent, b *ast.BlockStmt) ComponentID {
+func BlockComponentID(b *ast.BlockStmt) ComponentID {
 	id := make(ComponentID, 0)
-	// IDs should be pre-pended with the parent if it exists.
-	if parent != nil {
-		id = append(id, parent.IDs()...)
-	}
 	id = append(id, b.Name...)
 	if b.Label != "" {
 		id = append(id, b.Label)
@@ -76,15 +72,17 @@ type ComponentGlobals struct {
 // arguments and exports. ComponentNode manages the arguments for the component
 // from a River block.
 type ComponentNode struct {
-	id              ComponentID
-	label           string
-	componentName   string
-	nodeID          string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
-	reg             component.Registration
-	managedOpts     component.Options
-	register        *wrappedRegisterer
-	exportsType     reflect.Type
-	onExportsChange func(cn *ComponentNode) // Informs controller that we changed our exports
+	id                ComponentID
+	label             string
+	componentName     string
+	nodeID            string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
+	namespaceID       []string
+	namespaceCachedID string
+	reg               component.Registration
+	managedOpts       component.Options
+	register          *wrappedRegisterer
+	exportsType       reflect.Type
+	onExportsChange   func(cn *ComponentNode) // Informs controller that we changed our exports
 
 	mut     sync.RWMutex
 	block   *ast.BlockStmt // Current River block to derive args from
@@ -113,9 +111,14 @@ var _ dag.Node = (*ComponentNode)(nil)
 // The underlying managed component isn't created until Evaluate is called.
 func NewComponentNode(delegate component.DelegateHandler, parent component.DelegateComponent, globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode {
 	var (
-		id     = BlockComponentID(parent, b)
-		nodeID = id.String()
+		id          = BlockComponentID(b)
+		nodeID      = id.String()
+		namespaceID = make([]string, 0)
 	)
+	if parent != nil {
+		namespaceID = append(namespaceID, parent.IDs()...)
+	}
+	namespaceID = append(namespaceID, id...)
 
 	reg, ok := component.Get(ComponentID(b.Name).String())
 	if !ok {
@@ -132,14 +135,16 @@ func NewComponentNode(delegate component.DelegateHandler, parent component.Deleg
 	}
 
 	cn := &ComponentNode{
-		id:              id,
-		label:           b.Label,
-		nodeID:          nodeID,
-		componentName:   strings.Join(b.Name, "."),
-		reg:             reg,
-		exportsType:     getExportsType(reg),
-		onExportsChange: globals.OnExportsChange,
-		parent:          parent,
+		id:                id,
+		label:             b.Label,
+		nodeID:            nodeID,
+		namespaceID:       namespaceID,
+		namespaceCachedID: strings.Join(namespaceID, "."),
+		componentName:     strings.Join(b.Name, "."),
+		reg:               reg,
+		exportsType:       getExportsType(reg),
+		onExportsChange:   globals.OnExportsChange,
+		parent:            parent,
 
 		block: b,
 		eval:  vm.New(b.Body),
@@ -162,12 +167,12 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode, delegate com
 	return component.Options{
 		ID:            cn.nodeID,
 		Logger:        log.With(globals.Logger, "component", cn.nodeID),
-		DataPath:      filepath.Join(globals.DataPath, cn.nodeID),
+		DataPath:      filepath.Join(globals.DataPath, cn.namespaceCachedID),
 		OnStateChange: cn.setExports,
 		Registerer: prometheus.WrapRegistererWith(prometheus.Labels{
 			"component_id": cn.nodeID,
 		}, wrapped),
-		Tracer:         wrapTracer(globals.TraceProvider, cn.nodeID),
+		Tracer:         wrapTracer(globals.TraceProvider, cn.namespaceCachedID),
 		HTTPListenAddr: globals.HTTPListenAddr,
 		HTTPPath:       fmt.Sprintf("/component/%s/", cn.nodeID),
 		Delegate:       delegate,
@@ -202,7 +207,7 @@ func (cn *ComponentNode) NodeID() string { return cn.nodeID }
 // UpdateBlock will panic if the block does not match the component ID of the
 // ComponentNode.
 func (cn *ComponentNode) UpdateBlock(b *ast.BlockStmt) {
-	if !BlockComponentID(cn.parent, b).Equals(cn.id) {
+	if !BlockComponentID(b).Equals(cn.id) {
 		panic("UpdateBlock called with an River block with a different component ID")
 	}
 

@@ -26,7 +26,8 @@ type Component struct {
 	mut    sync.RWMutex
 	args   Arguments
 	o      component.Options
-	name   string
+	Name   string
+	Value  interface{}
 	inform func(e Exports)
 }
 
@@ -45,9 +46,10 @@ func (c *Component) Update(args component.Arguments) error {
 	c.args = newArgs
 	// Inform the parent module of the change, Export components are ONLY meant to be used within the context
 	// of being in a submodule.
+	c.Value = c.args.Value
 	if c.inform != nil {
 		c.inform(Exports{
-			Name:  c.name,
+			Name:  c.Name,
 			Value: c.args.Value,
 		})
 	}
@@ -60,14 +62,14 @@ func (c *Component) UpdateInform(f func(e Exports)) {
 	c.inform = f
 	// Trigger an inform to be proactive.
 	c.inform(Exports{
-		Name:  c.name,
+		Name:  c.Name,
 		Value: c.args.Value,
 	})
 }
 
 // Arguments are the arguments for the component.
 type Arguments struct {
-	Value interface{} `river:"value,attr,required"`
+	Value interface{} `river:"value,attr"`
 }
 
 func defaultArgs() Arguments {
@@ -97,6 +99,6 @@ func New(o component.Options, args Arguments) (component.Component, error) {
 	return &Component{
 		o:    o,
 		args: args,
-		name: ids[len(ids)-1],
+		Name: ids[len(ids)-1],
 	}, nil
 }
