@@ -44,6 +44,8 @@ Name                     | Type                   | Description          | Defau
 `forward_to`             | `list(LogsReceiver)`   | List of receivers to send log entries to.                |              | yes
 `relabel_rules`          | `RelabelRules`         | Relabeling rules to apply on log entries.                | `{}`         | no
 
+`assignor` values can be either `"range"`, `"roundrobin"` or `"sticky"`.
+
 The `relabel_rules` field can make use of the `rules` export value from a
 `loki.relabel` component to apply one or more relabeling rules to log entries
 before they're forwarded to the list of receivers in `forward_to`.
@@ -65,31 +67,30 @@ authentication > sasl_config > tls_config | [tls_config] | Optional authenticati
 
 ### authentication block
 
-TODO
-
-The `listener` block defines the listen address and port where the listener
-expects Kafka messages to be sent to.
+The `authentication` block defines the authentication method when communicating with the kafka event brokers.
 
 Name                     | Type          | Description | Default | Required
 ------------------------ | ------------- | ----------- | ------- | --------
-`address`                | `string`      | The `<host>` address to listen to for kafka messages. | `0.0.0.0` | no
-`port`                   | `int`         | The `<port>` to listen to for kafka messages. | | yes
+`type`                   | `string`      | Type is authentication type. | `"none"` | no
 
-### sasl_config block
-
-TODO
-
-The `listener` block defines the listen address and port where the listener
-expects Kafka messages to be sent to.
-
-Name                     | Type          | Description | Default | Required
------------------------- | ------------- | ----------- | ------- | --------
-`address`                | `string`      | The `<host>` address to listen to for kafka messages. | `0.0.0.0` | no
-`port`                   | `int`         | The `<port>` to listen to for kafka messages. | | yes
+`type` supports the values `"none"`, `"ssl"`, and `"sasl"`. If `"ssl"` is used,
+you must set the `tls_config` block. If `"sasl"` is used, you must set the `sasl_config` block.
 
 ### tls_config block
 
 {{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
+
+### sasl_config block
+
+The `sasl_config` block defines the listen address and port where the listener
+expects Kafka messages to be sent to.
+
+Name                     | Type          | Description | Default | Required
+------------------------ | ------------- | ----------- | ------- | --------
+`mechanism` | `string` | Specifies the SASL mechanism the client uses to authenticate with the broker. | `"PLAIN""` | no
+`user`      | `string` | The user name to use for SASL authentication. | | no
+`password`  | `string` | The password to use for SASL authentication. | | no
+`use_tls`   | `bool`   | If true, SASL authentication is executed over TLS. | `false` | no
 
 ## Labels
 
