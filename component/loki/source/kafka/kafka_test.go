@@ -1,23 +1,17 @@
 package kafka
 
-/*
 import (
 	"context"
-	"fmt"
-	"net/http"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
-	"github.com/grafana/agent/component/loki/source/kafka/internal/kafkatarget"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/regexp"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
 )
 
@@ -29,12 +23,14 @@ func TestPush(t *testing.T) {
 
 	ch1, ch2 := make(chan loki.Entry), make(chan loki.Entry)
 	args := Arguments{
-		KafkaListener: ListenerConfig{
-			ListenAddress: address,
-			ListenPort:    port,
-		},
+		Brokers:              []string{"localhost:9092"},
+		Topics:               []string{"quickstart-events1"},
+		GroupID:              "promtail",
+		Assignor:             "range",
+		Version:              "2.2.1",
+		Authentication:       KafkaAuthentication{},
 		UseIncomingTimestamp: false,
-		Labels:               map[string]string{"foo": "bar"},
+		Labels:               map[string]string{"component": "loki.source.kafka", "foo": "bar"},
 		ForwardTo:            []loki.LogsReceiver{ch1, ch2},
 		RelabelRules:         rulesExport,
 	}
@@ -46,67 +42,60 @@ func TestPush(t *testing.T) {
 	go c.Run(context.Background())
 	time.Sleep(200 * time.Millisecond)
 
-	// Create a Kafka Drain Request and send it to the launched server.
-	req, err := http.NewRequest(http.MethodPost, getEndpoint(c.target), strings.NewReader(testPayload))
-	require.NoError(t, err)
-
-	res, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusNoContent, res.StatusCode)
-
 	// Check the received log entries
-	wantLabelSet := model.LabelSet{"foo": "bar", "host": "host", "app": "kafka", "proc": "router", "log_id": "-"}
-	wantLogLine := "at=info method=GET path=\"/\" host=cryptic-cliffs-27764.kafkaapp.com request_id=59da6323-2bc4-4143-8677-cc66ccfb115f fwd=\"181.167.87.140\" dyno=web.1 connect=0ms service=3ms status=200 bytes=6979 protocol=https\n"
+	/*
+		wantLabelSet := model.LabelSet{"component": "loki.source.kafka", "foo": "bar", "message_key": "TODO", "topic": "TODO", "partition": "TODO", "member_id": "TODO", "group_id": "TODO"}
 
-	for i := 0; i < 2; i++ {
-		select {
-		case logEntry := <-ch1:
-			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
-			require.Equal(t, wantLogLine, logEntry.Line)
-			require.Equal(t, wantLabelSet, logEntry.Labels)
-		case logEntry := <-ch2:
-			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
-			require.Equal(t, wantLogLine, logEntry.Line)
-			require.Equal(t, wantLabelSet, logEntry.Labels)
-		case <-time.After(5 * time.Second):
-			require.FailNow(t, "failed waiting for log line")
+		for i := 0; i < 2; i++ {
+			select {
+			case logEntry := <-ch1:
+				require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
+				require.Equal(t, wantLabelSet, logEntry.Labels)
+			case logEntry := <-ch2:
+				require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
+				require.Equal(t, wantLabelSet, logEntry.Labels)
+			case <-time.After(5 * time.Second):
+				require.FailNow(t, "failed waiting for log line")
+			}
 		}
-	}
+	*/
 }
-
-const address = "localhost"
-const port = 42421
-const testPayload = `270 <158>1 2022-06-13T14:52:23.622778+00:00 host kafka router - at=info method=GET path="/" host=cryptic-cliffs-27764.kafkaapp.com request_id=59da6323-2bc4-4143-8677-cc66ccfb115f fwd="181.167.87.140" dyno=web.1 connect=0ms service=3ms status=200 bytes=6979 protocol=https
-`
 
 var rulesExport = flow_relabel.Rules{
 	{
-		SourceLabels: []string{"__kafka_drain_host"},
+		SourceLabels: []string{"__meta_kafka_message_key"},
 		Regex:        newRegexp(),
 		Action:       flow_relabel.Replace,
 		Replacement:  "$1",
-		TargetLabel:  "host",
+		TargetLabel:  "message_key",
 	},
 	{
-		SourceLabels: []string{"__kafka_drain_app"},
+		SourceLabels: []string{"__meta_kafka_topic"},
 		Regex:        newRegexp(),
 		Action:       flow_relabel.Replace,
 		Replacement:  "$1",
-		TargetLabel:  "app",
+		TargetLabel:  "topic",
 	},
 	{
-		SourceLabels: []string{"__kafka_drain_proc"},
+		SourceLabels: []string{"__meta_kafka_partition"},
 		Regex:        newRegexp(),
 		Action:       flow_relabel.Replace,
 		Replacement:  "$1",
-		TargetLabel:  "proc",
+		TargetLabel:  "partition",
 	},
 	{
-		SourceLabels: []string{"__kafka_drain_log_id"},
+		SourceLabels: []string{"__meta_kafka_member_id"},
 		Regex:        newRegexp(),
 		Action:       flow_relabel.Replace,
 		Replacement:  "$1",
-		TargetLabel:  "log_id",
+		TargetLabel:  "member_id",
+	},
+	{
+		SourceLabels: []string{"__meta_kafka_group_id"},
+		Regex:        newRegexp(),
+		Action:       flow_relabel.Replace,
+		Replacement:  "$1",
+		TargetLabel:  "group_id",
 	},
 }
 
@@ -117,8 +106,3 @@ func newRegexp() flow_relabel.Regexp {
 	}
 	return flow_relabel.Regexp{Regexp: re}
 }
-
-func getEndpoint(target *kafkatarget.KafkaTarget) string {
-	return fmt.Sprintf("http://%s:%d%s", address, port, target.DrainEndpoint())
-}
-*/
