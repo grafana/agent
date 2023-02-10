@@ -39,8 +39,8 @@ type Arguments struct {
 	Assignor             string              `river:"assignor,attr,optional"`
 	Version              string              `river:"version,attr,optional"`
 	Authentication       KafkaAuthentication `river:"authentication,block,optional"`
-	Labels               map[string]string   `river:"labels,attr,optional"`
 	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`
+	Labels               map[string]string   `river:"labels,attr,optional"`
 
 	ForwardTo    []loki.LogsReceiver `river:"forward_to,attr"`
 	RelabelRules flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
