@@ -113,13 +113,13 @@ func getRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, lo
 	remoteConfigBytes, err := configProvider.FetchRemoteConfig()
 	if err != nil {
 		level.Error(log).Log("msg", "could not fetch from API, falling back to cache", "err", err)
-		return getCachedRemoteConfig(expandEnvVars, configProvider, log, fs, args, configPath)
+		return getCachedRemoteConfig(expandEnvVars, configProvider, fs, args, configPath)
 	}
 
-	config, err := loadRemoteConfig(remoteConfigBytes, expandEnvVars, configProvider, log, fs, args, configPath)
+	config, err := loadRemoteConfig(remoteConfigBytes, expandEnvVars, fs, args, configPath)
 	if err != nil {
 		level.Error(log).Log("msg", "could not load remote config, falling back to cache", "err", err)
-		return getCachedRemoteConfig(expandEnvVars, configProvider, log, fs, args, configPath)
+		return getCachedRemoteConfig(expandEnvVars, configProvider, fs, args, configPath)
 	}
 
 	level.Info(log).Log("msg", "fetched and loaded remote config from API")
@@ -130,16 +130,16 @@ func getRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, lo
 	return config, nil
 }
 
-func getCachedRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, log *server.Logger, fs *flag.FlagSet, args []string, configPath string) (*Config, error) {
+func getCachedRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, fs *flag.FlagSet, args []string, configPath string) (*Config, error) {
 	rc, err := configProvider.GetCachedRemoteConfig()
 	if err != nil {
 		return nil, fmt.Errorf("could not load cached config: %w", err)
 	}
-	return loadRemoteConfig(rc, expandEnvVars, configProvider, log, fs, args, configPath)
+	return loadRemoteConfig(rc, expandEnvVars, fs, args, configPath)
 }
 
 // loadRemoteConfig parses and validates the remote config, both syntactically and semantically.
-func loadRemoteConfig(remoteConfigBytes []byte, expandEnvVars bool, configProvider remoteConfigProvider, log *server.Logger, fs *flag.FlagSet, args []string, configPath string) (*Config, error) {
+func loadRemoteConfig(remoteConfigBytes []byte, expandEnvVars bool, fs *flag.FlagSet, args []string, configPath string) (*Config, error) {
 	expandedRemoteConfigBytes, err := performEnvVarExpansion(remoteConfigBytes, expandEnvVars)
 	if err != nil {
 		instrumentation.InstrumentInvalidRemoteConfig("env_var_expansion")

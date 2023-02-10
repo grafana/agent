@@ -113,6 +113,5 @@ logs:
 		require.Equal(t, "", c.Logs.Configs[0].PositionsConfig.PositionsFile)
 		require.Equal(t, false, c.Logs.Configs[0].PositionsConfig.IgnoreInvalidYaml)
 		require.Equal(t, false, c.Logs.Configs[0].TargetConfig.Stdin)
-
 	})
 }
