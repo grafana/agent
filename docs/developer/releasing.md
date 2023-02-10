@@ -140,13 +140,13 @@ For **patch releases**, the release shepherd will:
    
 2. Cherry-pick the fixes from `main` into the release branch.
 
-3. Follow the same instructions as the ones for a stable release.
+3. Follow the same instructions as the ones for a stable release, starting from step 1.
 
 Some notes on patch releases:
 
 - When creating patch releases, there is no need for a release candidate.
 
-- Changes made to patch releases are not listed in the changelog for the next stable version.
+- Changes made to patch releases are not listed in the CHANGELOG for the next stable version.
 
 - The tag of the patch release does yet not exist at the time when we update code for the 
 main branch to reference it.
@@ -162,33 +162,33 @@ NOTE: Branches used for PRs should have a name that doesn't start with `release-
 otherwise branch protection rules apply to it. Alternatively, branches used for PRs 
 can come from forks.
 
-#### Update the changelog
+#### Update the CHANGELOG
 
 When creating a release **candidate** (i.e. an `-rc.N` version):
 
-* Add a new section in the changelog for the new release candidate and include 
+* Add a new section in the CHANGELOG for the new release candidate and include 
 today's date. E.g. "v0.31.0-rc.0 (2023-01-26)".
 * All items form the "unreleased" section will move to a new section for the upcoming release version.
 * See [here](https://github.com/grafana/agent/pull/2838/files) for an example pull request.
-* Sanity check that the changelog doesn't contain features which don't belong to it. Sometimes features get added to the wrong version in the changelog due to bad merges.
+* Sanity check that the CHANGELOG doesn't contain features which don't belong to it. Sometimes features get added to the wrong version in the CHANGELOG due to bad merges.
 
 When creating a **stable** release:
 
 * Replace the version from the release candidate section to be the stable release instead 
 of the `-rc.N` version.
-* We do not leave release candidates in the changelog once there is a stable version for them.
+* We do not leave release candidates in the CHANGELOG once there is a stable version for them.
 * Make sure to also update the **date** in the title.
 * See [here](https://github.com/grafana/agent/pull/2873/files) for an example pull request.
 
 When creating a **patch** release:
 
-* Add a new section to the changelog for the patch release.
-* In the changelog, **move** the fixes which were cherry picked onto the release branch 
+* Add a new section to the CHANGELOG for the patch release.
+* In the CHANGELOG, **move** the fixes which were cherry picked onto the release branch 
 from the "unreleased" section to the section for the new patch release.
 
 #### Update the "Upgrade guide"
 The "Upgrade guide" is located in `docs/sources/upgrade-guide/_index.md` and lists breaking changes 
-and deprecated features relevant to each release. Make sure that it is updated similarly to the changelog.
+and deprecated features relevant to each release. Make sure that it is updated similarly to the CHANGELOG.
 
 #### Search and replace the old version with the new one
 
@@ -198,7 +198,7 @@ Go through the entire repository and find references to the previous release
 NOTE: Please do not update the `operations/helm` directory. It is updated independently 
 from Agent releases for now.
 
-NOTE: There are files such as 
+NOTE: There may be files such as 
 "[pkg/operator/defaults.go](https://github.com/grafana/agent/blob/main/pkg/operator/defaults.go)", 
 where the version sometimes should not be replaced but added to a list of versions.
 At the time of this writing, `defaults.go` is the only such file.
@@ -215,12 +215,7 @@ release process.
 ### Create a tag
 Remember to **checkout** and **pull** the release branch before creating the tag!
 
-The naming conventions are:
-* For release candidates: `vX.Y.0-rc.N`. Here, `N` is the version of the release 
-candidate for this stable release.
-* For stable releases: `vX.Y.0`.
-* For patch releases: `vX.Y.N`. Here, `X` and `Y` are the versions of the stable release. 
-`N` is incremented. 
+The tag naming conventions are [described here](#release-branches)
 
 Example commands:
 ```
@@ -249,22 +244,20 @@ To publish the release:
    CHANGELOG. Add a link to the CHANGELOG, noting that the full list of changes
    can be found there. Refer to other releases for help with formatting this.
 
-3. Tick the appropriate boxes at the bottom of the release page:
+3. At the bottom of the release page, tick the check box to "add a discussion" 
+under the category for "announcements".
 
-      * For release candidates:
+4. Also tick other boxes at the bottom of the release page:
 
-         1. Tick the checkbox to "set as pre-release".
+      * For release candidates, tick the checkbox to "set as pre-release".
 
-      * For stable releases:
+      * For stable releases and patch releases to the latest release branch, 
+      tick the checkbox to "set as the latest release".
 
-         1. Tick the checkbox to "set as the latest release".
-
-         2. Tick the check box to "add a discussion" under the category for "announcements".
-
-4. Optionally, have other team members review the release draft if you wish
+5. Optionally, have other team members review the release draft if you wish
    to feel more comfortable with it.
 
-5. Publish the release!
+6. Publish the release!
 
 > **NOTE**: Release candidates should be retained on the 
 [GitHub releases page](https://github.com/grafana/agent/releases).
@@ -307,7 +300,7 @@ patch release at their own discretion.
 Note that patching an old release branch works differently from patching the latest release:
 - `main` would not be updated to reference the patch version
 - The change applied to the old release branch would have to be listed in two sections 
-in the changelog:
+in the CHANGELOG:
    1. The patch release's section
    2. The "unreleased" section
-- When publishing the release on GitHub, it should not be marked as "the latest".
+- When publishing the release on GitHub, it should **not** be marked as "the latest".
