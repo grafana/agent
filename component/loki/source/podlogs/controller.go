@@ -179,27 +179,20 @@ func (ctrl *controller) configureInformers(ctx context.Context, informers cache.
 			informer, err := informers.GetInformer(ctx, ty)
 			if err != nil {
 				errChan <- err
-				cancel() // Cancel context now, since we have finished
 				return
 			}
 
 			informer.AddEventHandler(onChangeEventHandler{ChangeFunc: ctrl.RequestReconcile})
-			cancel() // Again cancel context, since we're done
 			errChan <- nil
 		}(informerCtx, ty, errChan)
 
-		select {
+		select { // Race the goroutine against the timeout; either the ctx times out, or errChan gets an err or nil
 		case <-informerCtx.Done():
-			switch informerCtx.Err() {
-			case context.DeadlineExceeded:
-				return fmt.Errorf("Timeout exceeded while configuring informers. Check the connection to the Kubernetes API is stable and that the Agent has appropriate RBAC permissions for namespaces, pods, and PodLogs.")
-			case context.Canceled:
-				// The go routine ended by our own accord, check whether it hit the err branch or not
-				if err := <-errChan; err != nil {
-					return err
-				}
+			return fmt.Errorf("Timeout exceeded while configuring informers. Check the connection to the Kubernetes API is stable and that the Agent has appropriate RBAC permissions for namespaces, pods, and PodLogs.")
+		case err := <-errChan:
+			if err != nil {
+				return err
 			}
-		default:
 		}
 	}
 
