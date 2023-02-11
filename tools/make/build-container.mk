@@ -35,7 +35,7 @@
 
 USE_CONTAINER       ?= 0
 BUILD_IMAGE_VERSION ?= 0.21.0
-BUILD_IMAGE         ?= tpaschalis/agent-build-image:$(BUILD_IMAGE_VERSION)-customgo
+BUILD_IMAGE         ?= grafana/agent-build-image:$(BUILD_IMAGE_VERSION)
 DOCKER_OPTS         ?= -it
 
 #
