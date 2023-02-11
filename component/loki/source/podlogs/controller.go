@@ -169,38 +169,21 @@ func (ctrl *controller) configureInformers(ctx context.Context, informers cache.
 		&monitoringv1alpha2.PodLogs{},
 	}
 
-	// Since we're giving every informer their own context, need a channel to pick up any errors
-	errChan := make(chan error)
 	informerCtx, cancel := context.WithTimeout(ctx, informerSyncTimeout)
 	defer cancel()
 
 	for _, ty := range types {
-		go func(ctx context.Context, ty client.Object, errChan chan error) {
-			informer, err := informers.GetInformer(ctx, ty)
-			if err != nil {
-				errChan <- err
-				return
-			}
-
-			informer.AddEventHandler(onChangeEventHandler{ChangeFunc: ctrl.RequestReconcile})
-			errChan <- nil
-		}(informerCtx, ty, errChan)
-
-		select { // Race the goroutine against the timeout; either the ctx times out, or errChan gets an err or nil
-		case <-informerCtx.Done():
-			switch informerCtx.Err() {
+		informer, err := informers.GetInformer(informerCtx, ty)
+		if err != nil {
+			switch err {
 			case context.DeadlineExceeded:
 				return fmt.Errorf("Timeout exceeded while configuring informers. Check the connection to the Kubernetes API is stable and that the Agent has appropriate RBAC permissions for namespaces, pods, and PodLogs.")
-			case context.Canceled:
-				return informerCtx.Err()
-			}
-		case err := <-errChan:
-			if err != nil {
+			default:
 				return err
 			}
 		}
+		informer.AddEventHandler(onChangeEventHandler{ChangeFunc: ctrl.RequestReconcile})
 	}
-
 	return nil
 }
 
