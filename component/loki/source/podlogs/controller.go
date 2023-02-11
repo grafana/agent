@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -28,6 +29,8 @@ type controller struct {
 	reconcileCh chan struct{}
 	doneCh      chan struct{}
 }
+
+const informerSyncTimeout = 10 * time.Second
 
 // newController creates a new, unstarted controller. The controller will
 // request a reconcile when the state of Kubernetes changes.
@@ -164,12 +167,40 @@ func (ctrl *controller) configureInformers(ctx context.Context, informers cache.
 		&corev1.Pod{},
 		&monitoringv1alpha2.PodLogs{},
 	}
+
+	// Since we're giving every informer their own context, need a channel to pick up any errors
+	errChan := make(chan error)
+
 	for _, ty := range types {
-		informer, err := informers.GetInformer(ctx, ty)
-		if err != nil {
-			return err
+		informerCtx, cancel := context.WithTimeout(ctx, informerSyncTimeout) // Each informer has its own timeout, resets everytime
+		defer cancel()
+
+		go func(ctx context.Context, ty client.Object, errChan chan error) {
+			informer, err := informers.GetInformer(ctx, ty)
+			if err != nil {
+				errChan <- err
+				cancel() // Cancel context now, since we have finished
+				return
+			}
+
+			informer.AddEventHandler(onChangeEventHandler{ChangeFunc: ctrl.RequestReconcile})
+			cancel() // Again cancel context, since we're done
+			errChan <- nil
+		}(informerCtx, ty, errChan)
+
+		select {
+		case <-informerCtx.Done():
+			switch informerCtx.Err() {
+			case context.DeadlineExceeded:
+				return fmt.Errorf("Timeout exceeded while configuring informers. Check the connection to the Kubernetes API is stable and that the Agent has appropriate RBAC permissions for namespaces, pods, and PodLogs.")
+			case context.Canceled:
+				// The go routine ended by our own accord, check whether it hit the err branch or not
+				if err := <-errChan; err != nil {
+					return err
+				}
+			}
+		default:
 		}
-		informer.AddEventHandler(onChangeEventHandler{ChangeFunc: ctrl.RequestReconcile})
 	}
 
 	return nil
