@@ -176,8 +176,9 @@ func (ctrl *controller) configureInformers(ctx context.Context, informers cache.
 	for _, ty := range types {
 		informer, err := informers.GetInformer(informerCtx, ty)
 		if err != nil {
-			if errors.Is(informerCtx.Err(), context.DeadlineExceeded) { // Check the context to prevent GetInformer returning a fake timeout; if GetInformer was cancelled due to timeout this is the same result
-				return fmt.Errorf("Timeout exceeded while configuring informers. Check the connection to the Kubernetes API is stable and that the Agent has appropriate RBAC permissions for %v", ty)
+			if errors.Is(informerCtx.Err(), context.DeadlineExceeded) { // Check the context to prevent GetInformer returning a fake timeout
+				return fmt.Errorf("Timeout exceeded while configuring informers. Check the connection"+
+					" to the Kubernetes API is stable and that the Agent has appropriate RBAC permissions for %v", ty)
 			}
 
 			return err
