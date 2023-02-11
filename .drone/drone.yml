@@ -136,6 +136,44 @@ trigger:
 type: docker
 ---
 kind: pipeline
+name: Test dashboards
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - make generate-dashboards
+  - ERR_MSG="Dashboard definitions are out of date. Please run 'make generate-dashboards'
+    and commit changes!"
+  - if ! git diff --exit-code; then echo $ERR_MSG >&2; exit 1; fi
+  - if [ ! -z "$(git status --porcelain)" ]; then echo $ERR_MSG >&2; exit 1; fi
+  image: grafana/agent-build-image:0.21.0
+  name: Regenerate dashboards
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Test manifests
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - make generate-manifests
+  - ERR_MSG="The environment manifests are out of date. Please run 'make generate-manifests'
+    and commit changes!"
+  - if ! git diff --exit-code; then echo $ERR_MSG >&2; exit 1; fi
+  - if [ ! -z "$(git status --porcelain)" ]; then echo $ERR_MSG >&2; exit 1; fi
+  image: grafana/agent-build-image:0.21.0
+  name: Regenerate environment manifests
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
 name: Test
 platform:
   arch: amd64
@@ -899,6 +937,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: 582ba3028a7567a29b0e69206b6a124bc479702c56354af32eafe6cfe2bd8b87
+hmac: 445c17d5ead5f2acc938ac147cc0c706c23adc79a40a8fb2fe10b52aa09894af
 
 ...
