@@ -30,6 +30,7 @@ type controller struct {
 	doneCh      chan struct{}
 }
 
+// Generous timeout period for configuring all informers
 const informerSyncTimeout = 10 * time.Second
 
 // newController creates a new, unstarted controller. The controller will
@@ -170,11 +171,10 @@ func (ctrl *controller) configureInformers(ctx context.Context, informers cache.
 
 	// Since we're giving every informer their own context, need a channel to pick up any errors
 	errChan := make(chan error)
+	informerCtx, cancel := context.WithTimeout(ctx, informerSyncTimeout)
+	defer cancel()
 
 	for _, ty := range types {
-		informerCtx, cancel := context.WithTimeout(ctx, informerSyncTimeout) // Each informer has its own timeout, resets everytime
-		defer cancel()
-
 		go func(ctx context.Context, ty client.Object, errChan chan error) {
 			informer, err := informers.GetInformer(ctx, ty)
 			if err != nil {
@@ -188,7 +188,12 @@ func (ctrl *controller) configureInformers(ctx context.Context, informers cache.
 
 		select { // Race the goroutine against the timeout; either the ctx times out, or errChan gets an err or nil
 		case <-informerCtx.Done():
-			return fmt.Errorf("Timeout exceeded while configuring informers. Check the connection to the Kubernetes API is stable and that the Agent has appropriate RBAC permissions for namespaces, pods, and PodLogs.")
+			switch informerCtx.Err() {
+			case context.DeadlineExceeded:
+				return fmt.Errorf("Timeout exceeded while configuring informers. Check the connection to the Kubernetes API is stable and that the Agent has appropriate RBAC permissions for namespaces, pods, and PodLogs.")
+			case context.Canceled:
+				return informerCtx.Err()
+			}
 		case err := <-errChan:
 			if err != nil {
 				return err
