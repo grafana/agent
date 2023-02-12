@@ -2,8 +2,10 @@ package podlogs
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -28,6 +30,9 @@ type controller struct {
 	reconcileCh chan struct{}
 	doneCh      chan struct{}
 }
+
+// Generous timeout period for configuring all informers
+const informerSyncTimeout = 10 * time.Second
 
 // newController creates a new, unstarted controller. The controller will
 // request a reconcile when the state of Kubernetes changes.
@@ -164,14 +169,22 @@ func (ctrl *controller) configureInformers(ctx context.Context, informers cache.
 		&corev1.Pod{},
 		&monitoringv1alpha2.PodLogs{},
 	}
+
+	informerCtx, cancel := context.WithTimeout(ctx, informerSyncTimeout)
+	defer cancel()
+
 	for _, ty := range types {
-		informer, err := informers.GetInformer(ctx, ty)
+		informer, err := informers.GetInformer(informerCtx, ty)
 		if err != nil {
+			if errors.Is(informerCtx.Err(), context.DeadlineExceeded) { // Check the context to prevent GetInformer returning a fake timeout
+				return fmt.Errorf("Timeout exceeded while configuring informers. Check the connection"+
+					" to the Kubernetes API is stable and that the Agent has appropriate RBAC permissions for %v", ty)
+			}
+
 			return err
 		}
 		informer.AddEventHandler(onChangeEventHandler{ChangeFunc: ctrl.RequestReconcile})
 	}
-
 	return nil
 }
 
