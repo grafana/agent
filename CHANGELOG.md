@@ -54,6 +54,8 @@ Main (unreleased)
 - Flow: add `constants` into the standard library to expose the hostname, OS,
   and architecture of the system Grafana Agent is running on. (@rfratto)
 
+- Flow: add timeout to loki.source.podlogs controller setup. (@polyrain)
+
 ### Other changes
 
 - Use Go 1.20 for builds. Official release binaries are still produced using Go
