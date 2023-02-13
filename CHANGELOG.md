@@ -9,6 +9,7 @@ internal API changes are not present.
 
 Main (unreleased)
 -----------------
+
 ### Breaking changes
 
 - Node Exporter configuration options changed to align with new upstream version (@Thor77):
@@ -54,10 +55,24 @@ Main (unreleased)
 - Flow: add `constants` into the standard library to expose the hostname, OS,
   and architecture of the system Grafana Agent is running on. (@rfratto)
 
+- Flow: add timeout to loki.source.podlogs controller setup. (@polyrain)
+
 ### Other changes
 
 - Use Go 1.20 for builds. Official release binaries are still produced using Go
   1.19. (@rfratto)
+
+v0.31.3 (2023-02-13)
+--------------------
+
+### Bugfixes
+
+- `loki.source.cloudflare`: fix issue where the `zone_id` argument
+  was being ignored, and the `api_token` argument was being used for the zone
+  instead. (@rfratto)
+
+- `loki.source.cloudflare`: fix issue where `api_token` argument was not marked
+  as a sensitive field. (@rfratto)
 
 v0.31.2 (2023-02-08)
 --------------------
