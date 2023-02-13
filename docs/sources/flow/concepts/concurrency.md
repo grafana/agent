@@ -38,11 +38,11 @@ This is the entrypoint for Flow. It determines the run mode and for flow launche
 
 # Tracer
 
-This task emits traces for itself that can be forwarded another component that accepts `otelcol` tracers. More details can be found [here](../reference/config-blocks/tracing.md)
+This task emits traces for itself that can be forwarded another component that accepts `otelcol` tracers. More details can be found [here](../reference/config-blocks/tracing.md).
 
 # Component Controller
 
-The Component Controller manages components at runtime. More details can be found [here](./component_controller.md)
+The Component Controller manages components at runtime. More details can be found [here](./component_controller.md).
 
 # HTTP Server
 
@@ -54,8 +54,8 @@ Starts an HTTP server with endpoints for:
 
 # Reporter
 
-This task reports occassional usage stats to grafana.com. It can be managed using the command line as documented [here](../reference/cli/run.md)
+This task reports occassional usage stats to grafana.com. It can be managed using the command line as documented [here](../reference/cli/run.md).
 
 # Component
 
-Components are the building blocks of Grafana Agent Flow. More details can be found [here](./components.md) and component specific details can be found [here](../reference/components/)
+Components are the building blocks of Grafana Agent Flow. More details can be found [here](./components.md) and component specific details can be found [here](../reference/components/).
