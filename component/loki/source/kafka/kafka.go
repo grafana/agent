@@ -198,10 +198,12 @@ func (args *Arguments) Convert() scrapeconfig.Config {
 }
 
 func (auth KafkaAuthentication) Convert() scrapeconfig.KafkaAuthentication {
-
 	var secret flagext.Secret
 	if auth.SASLConfig.Password != "" {
-		secret.Set(auth.SASLConfig.Password)
+		err := secret.Set(auth.SASLConfig.Password)
+		if err != nil {
+			panic("Unable to set kafka SASLConfig password")
+		}
 	}
 
 	return scrapeconfig.KafkaAuthentication{
