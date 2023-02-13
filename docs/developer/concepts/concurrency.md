@@ -23,24 +23,24 @@ This is the entrypoint for Flow. It determines the run mode and for flow launche
 
 # Tracer
 
-This task emits traces for itself that can be forwarded another component that accepts `otelcol` tracers. More details can be found [here](../../sources/flow/reference/config-blocks/tracing.md).
+The [Tracer](../../sources/flow/reference/config-blocks/tracing.md) emits traces for itself that can be forwarded another component that accepts `otelcol` tracers.
 
 # Component Controller
 
-The Component Controller manages components at runtime. More details can be found [here](../../sources/flow/concepts/component_controller.md).
+The [Component Controller](../../sources/flow/concepts/component_controller.md) manages components at runtime.
 
 # HTTP Server
 
 Starts an HTTP server with endpoints for:
-- Exposeses a Prometheus compatible /metrics endpoint
+- Prometheus compatible metrics for the [Component Controller](../../sources/flow/monitoring/controller_metrics.md) and its [Components](../../sources/flow/monitoring/component_metrics.md)
 - Reloading config
-- The Graph UI for debugging
+- The [Graph UI](../../sources/flow/monitoring/debugging.md) for debugging
 - etc.
 
 # Reporter
 
-This task reports occassional usage stats to grafana.com. It can be managed using the command line as documented [here](../../sources/flow/reference/cli/run.md).
+The Reporter sends occassional usage stats to grafana.com. It can be managed using the [command line](../../sources/flow/reference/cli/run.md).
 
 # Component
 
-Components are the building blocks of Grafana Agent Flow. More details can be found [here](../../sources/flow/concepts/components.md) and component specific details can be found [here](../../sources/flow/reference/components/).
+[Components](../../sources/flow/concepts/components.md) are the building blocks of Grafana Agent Flow. Component specific details can be found [here](../../sources/flow/reference/components/).
