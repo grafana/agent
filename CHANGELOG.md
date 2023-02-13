@@ -9,6 +9,7 @@ internal API changes are not present.
 
 Main (unreleased)
 -----------------
+
 ### Breaking changes
 
 - Node Exporter configuration options changed to align with new upstream version (@Thor77):
@@ -55,6 +56,15 @@ Main (unreleased)
   and architecture of the system Grafana Agent is running on. (@rfratto)
 
 - Flow: add timeout to loki.source.podlogs controller setup. (@polyrain)
+
+### Bugfixes
+
+- `loki.source.cloudflare`: fix issue where the `zone_id` argument
+  was being ignored, and the `api_token` argument was being used for the zone
+  instead. (@rfratto)
+
+- `loki.source.cloudflare`: fix issue where `api_token` argument was not marked
+  as a sensitive field. (@rfratto)
 
 ### Other changes
 
