@@ -79,12 +79,16 @@ RUN apt-get update                                \
 COPY --from=golangci /bin/golangci-lint              /usr/local/bin
 COPY --from=docker   /usr/bin/docker                 /usr/bin/docker
 COPY --from=docker   /usr/libexec/docker/cli-plugins /usr/libexec/docker/cli-plugins
-COPY --from=golang   /usr/local/go                   /usr/local/go
+#COPY --from=golang   /usr/local/go                   /usr/local/go
 COPY --from=golang   /go/bin                         /go/bin
+
+ADD go.tar.gz /usr/local/go
 
 # Set CC to viceroycc to ensure that the cross compilers are used for all C
 # compilation.
 ENV CC viceroycc
 
+ENV GOROOT /usr/local/go
 ENV GOPATH /go
-ENV PATH /usr/local/go/bin:/go/bin:$PATH
+ENV PATH /usr/local/go/bin/linux_amd64:/go/bin:$PATH
+ENV GOPROXY https://proxy.golang.org,direct

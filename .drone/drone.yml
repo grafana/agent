@@ -143,7 +143,7 @@ platform:
 steps:
 - commands:
   - K8S_USE_DOCKER_NETWORK=1 make test
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Run Go tests
   volumes:
   - name: docker
@@ -183,7 +183,7 @@ platform:
 steps:
 - commands:
   - make agent-image
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build container
   volumes:
   - name: docker
@@ -207,7 +207,7 @@ platform:
 steps:
 - commands:
   - make agentctl-image
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build container
   volumes:
   - name: docker
@@ -231,7 +231,7 @@ platform:
 steps:
 - commands:
   - make operator-image
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build container
   volumes:
   - name: docker
@@ -281,7 +281,7 @@ platform:
 steps:
 - commands:
   - GOOS=linux GOARCH=amd64 GOARM= make agent
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build
 trigger:
   event:
@@ -296,7 +296,7 @@ platform:
 steps:
 - commands:
   - GOOS=linux GOARCH=arm64 GOARM= make agent
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build
 trigger:
   event:
@@ -311,7 +311,7 @@ platform:
 steps:
 - commands:
   - GOOS=linux GOARCH=arm GOARM=6 make agent
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build
 trigger:
   event:
@@ -326,7 +326,7 @@ platform:
 steps:
 - commands:
   - GOOS=linux GOARCH=arm GOARM=7 make agent
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build
 trigger:
   event:
@@ -341,7 +341,7 @@ platform:
 steps:
 - commands:
   - GOOS=linux GOARCH=ppc64le GOARM= make agent
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build
 trigger:
   event:
@@ -356,7 +356,7 @@ platform:
 steps:
 - commands:
   - GOOS=darwin GOARCH=amd64 GOARM= make agent
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build
 trigger:
   event:
@@ -371,7 +371,7 @@ platform:
 steps:
 - commands:
   - GOOS=darwin GOARCH=arm64 GOARM= make agent
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build
 trigger:
   event:
@@ -386,7 +386,7 @@ platform:
 steps:
 - commands:
   - GOOS=windows GOARCH=amd64 GOARM= make agent
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build
 trigger:
   event:
@@ -401,7 +401,7 @@ platform:
 steps:
 - commands:
   - GOOS=freebsd GOARCH=amd64 GOARM= make agent
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build
 trigger:
   event:
@@ -416,7 +416,7 @@ platform:
 steps:
 - commands:
   - GOOS=linux GOARCH=amd64 GOARM= make agentctl
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build
 trigger:
   event:
@@ -431,7 +431,7 @@ platform:
 steps:
 - commands:
   - GOOS=linux GOARCH=arm64 GOARM= make agentctl
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build
 trigger:
   event:
@@ -446,7 +446,7 @@ platform:
 steps:
 - commands:
   - GOOS=linux GOARCH=arm GOARM=6 make agentctl
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build
 trigger:
   event:
@@ -461,7 +461,7 @@ platform:
 steps:
 - commands:
   - GOOS=linux GOARCH=arm GOARM=7 make agentctl
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build
 trigger:
   event:
@@ -476,7 +476,7 @@ platform:
 steps:
 - commands:
   - GOOS=linux GOARCH=ppc64le GOARM= make agentctl
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build
 trigger:
   event:
@@ -491,7 +491,7 @@ platform:
 steps:
 - commands:
   - GOOS=darwin GOARCH=amd64 GOARM= make agentctl
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build
 trigger:
   event:
@@ -506,7 +506,7 @@ platform:
 steps:
 - commands:
   - GOOS=darwin GOARCH=arm64 GOARM= make agentctl
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build
 trigger:
   event:
@@ -521,7 +521,7 @@ platform:
 steps:
 - commands:
   - GOOS=windows GOARCH=amd64 GOARM= make agentctl
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build
 trigger:
   event:
@@ -536,7 +536,7 @@ platform:
 steps:
 - commands:
   - GOOS=freebsd GOARCH=amd64 GOARM= make agentctl
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build
 trigger:
   event:
@@ -551,7 +551,7 @@ platform:
 steps:
 - commands:
   - GOOS=linux GOARCH=amd64 GOARM= make operator
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build
 trigger:
   event:
@@ -566,7 +566,7 @@ platform:
 steps:
 - commands:
   - GOOS=linux GOARCH=arm64 GOARM= make operator
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build
 trigger:
   event:
@@ -581,7 +581,7 @@ platform:
 steps:
 - commands:
   - GOOS=linux GOARCH=arm GOARM=6 make operator
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build
 trigger:
   event:
@@ -596,7 +596,7 @@ platform:
 steps:
 - commands:
   - GOOS=linux GOARCH=arm GOARM=7 make operator
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build
 trigger:
   event:
@@ -611,7 +611,7 @@ platform:
 steps:
 - commands:
   - GOOS=linux GOARCH=ppc64le GOARM= make operator
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build
 trigger:
   event:
@@ -626,7 +626,7 @@ platform:
 steps:
 - commands:
   - GOOS=darwin GOARCH=amd64 GOARM= make operator
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build
 trigger:
   event:
@@ -641,7 +641,7 @@ platform:
 steps:
 - commands:
   - GOOS=darwin GOARCH=arm64 GOARM= make operator
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build
 trigger:
   event:
@@ -656,7 +656,7 @@ platform:
 steps:
 - commands:
   - GOOS=windows GOARCH=amd64 GOARM= make operator
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build
 trigger:
   event:
@@ -671,7 +671,7 @@ platform:
 steps:
 - commands:
   - GOOS=freebsd GOARCH=amd64 GOARM= make operator
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build
 trigger:
   event:
@@ -699,7 +699,7 @@ steps:
       from_secret: DOCKER_PASSWORD
     GCR_CREDS:
       from_secret: gcr_admin
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build containers
   volumes:
   - name: docker
@@ -821,7 +821,7 @@ steps:
       from_secret: gpg_private_key
     GPG_PUBLIC_KEY:
       from_secret: gpg_public_key
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Publish release
   volumes:
   - name: docker
@@ -845,7 +845,7 @@ steps:
   - DOCKER_OPTS="" make dist/grafana-agent-linux-amd64
   - DOCKER_OPTS="" make dist/grafana-agentctl-linux-amd64
   - DOCKER_OPTS="" make test-packages
-  image: grafana/agent-build-image:0.21.0
+  image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Test Linux system packages
   volumes:
   - name: docker
@@ -899,6 +899,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: 582ba3028a7567a29b0e69206b6a124bc479702c56354af32eafe6cfe2bd8b87
+hmac: 44df5990cefc583acad5053017d316dc490102bf44c03747b36f9a2f6e7364ca
 
 ...

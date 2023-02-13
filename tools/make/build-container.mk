@@ -35,7 +35,7 @@
 
 USE_CONTAINER       ?= 0
 BUILD_IMAGE_VERSION ?= 0.21.0
-BUILD_IMAGE         ?= grafana/agent-build-image:$(BUILD_IMAGE_VERSION)
+BUILD_IMAGE         ?= rfratto/agent-build-image:$(BUILD_IMAGE_VERSION)-go-patch-5
 DOCKER_OPTS         ?= -it
 
 #
