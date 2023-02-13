@@ -7,6 +7,7 @@ package kafkatarget
 import (
 	"errors"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -15,6 +16,8 @@ import (
 type mockKafkaClient struct {
 	topics []string
 	err    error
+
+	mut sync.RWMutex
 }
 
 func (m *mockKafkaClient) RefreshMetadata(topics ...string) error {
@@ -22,7 +25,15 @@ func (m *mockKafkaClient) RefreshMetadata(topics ...string) error {
 }
 
 func (m *mockKafkaClient) Topics() ([]string, error) {
+	m.mut.RLock()
+	defer m.mut.RUnlock()
 	return m.topics, m.err
+}
+
+func (m *mockKafkaClient) UpdateTopics(topics []string) {
+	m.mut.Lock()
+	defer m.mut.Unlock()
+	m.topics = topics
 }
 
 func Test_NewTopicManager(t *testing.T) {

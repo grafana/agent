@@ -29,33 +29,47 @@ type testConsumerGroupHandler struct {
 	returnErr error
 
 	consuming atomic.Bool
+	mut       sync.RWMutex
 }
 
 func (c *testConsumerGroupHandler) Consume(ctx context.Context, topics []string, handler sarama.ConsumerGroupHandler) error {
 	if c.returnErr != nil {
 		return c.returnErr
 	}
+
+	c.mut.Lock()
+
 	c.ctx = ctx
 	c.topics = topics
 	c.handler = handler
+
+	c.mut.Unlock()
+
 	c.consuming.Store(true)
 	<-ctx.Done()
 	c.consuming.Store(false)
 	return nil
 }
 
-func (c testConsumerGroupHandler) Errors() <-chan error {
+func (c *testConsumerGroupHandler) GetTopics() []string {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+
+	return c.topics
+}
+
+func (c *testConsumerGroupHandler) Errors() <-chan error {
 	return nil
 }
 
-func (c testConsumerGroupHandler) Close() error {
+func (c *testConsumerGroupHandler) Close() error {
 	return nil
 }
 
-func (c testConsumerGroupHandler) Pause(partitions map[string][]int32)  {}
-func (c testConsumerGroupHandler) Resume(partitions map[string][]int32) {}
-func (c testConsumerGroupHandler) PauseAll()                            {}
-func (c testConsumerGroupHandler) ResumeAll()                           {}
+func (c *testConsumerGroupHandler) Pause(partitions map[string][]int32)  {}
+func (c *testConsumerGroupHandler) Resume(partitions map[string][]int32) {}
+func (c *testConsumerGroupHandler) PauseAll()                            {}
+func (c *testConsumerGroupHandler) ResumeAll()                           {}
 
 type testSession struct {
 	markedMessage []*sarama.ConsumerMessage
