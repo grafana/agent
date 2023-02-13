@@ -10,10 +10,10 @@ and forwards them to other `loki.*` components.
 The component starts a new kafka consumer group for the given arguments
 and fans out incoming entries to the list of receivers in `forward_to`.
 
-Before using `loki.source.kafka`, Kafka should have at least 1 Producer
-writing events to at least 1 Topic. Follow the steps in
+Before using `loki.source.kafka`, Kafka should have at least one producer
+writing events to at least one topic. Follow the steps in the
 [Kafka Quick Start](https://kafka.apache.org/documentation/#quickstart)
-to get off the ground with Kafka:
+to get started with Kafka.
 
 Multiple `loki.source.kafka` components can be specified by giving them
 different labels.
@@ -34,7 +34,7 @@ loki.source.kafka "LABEL" {
 
 Name                     | Type                   | Description          | Default | Required
 ------------------------ | ---------------------- | -------------------- | ------- | --------
-`brokers`                | `list(string)`         | The list of brokers to connect to kafka.                 |              | yes
+`brokers`                | `list(string)`         | The list of brokers to connect to Kafka.                 |              | yes
 `topics`                 | `list(string)`         | The list of Kafka topics to consume.                     |              | yes
 `group_id`               | `string`               | The Kafka consumer group id.                             | `"promtail"` | no
 `assignor`               | `string`               | The consumer group rebalancing strategy to use.          | `"range"`    | no
@@ -44,7 +44,7 @@ Name                     | Type                   | Description          | Defau
 `forward_to`             | `list(LogsReceiver)`   | List of receivers to send log entries to.                |              | yes
 `relabel_rules`          | `RelabelRules`         | Relabeling rules to apply on log entries.                | `{}`         | no
 
-`assignor` values can be either `"range"`, `"roundrobin"` or `"sticky"`.
+`assignor` values can be either `"range"`, `"roundrobin"`, or `"sticky"`.
 
 The `relabel_rules` field can make use of the `rules` export value from a
 `loki.relabel` component to apply one or more relabeling rules to log entries
@@ -67,11 +67,11 @@ authentication > sasl_config > tls_config | [tls_config] | Optional authenticati
 
 ### authentication block
 
-The `authentication` block defines the authentication method when communicating with the kafka event brokers.
+The `authentication` block defines the authentication method when communicating with the Kafka event brokers.
 
 Name                     | Type          | Description | Default | Required
 ------------------------ | ------------- | ----------- | ------- | --------
-`type`                   | `string`      | Type is authentication type. | `"none"` | no
+`type`                   | `string`      | Type of authentication. | `"none"` | no
 
 `type` supports the values `"none"`, `"ssl"`, and `"sasl"`. If `"ssl"` is used,
 you must set the `tls_config` block. If `"sasl"` is used, you must set the `sasl_config` block.
@@ -96,7 +96,7 @@ Name                     | Type          | Description | Default | Required
 
 The `labels` map is applied to every message that the component reads.
 
-The following internal labels all prefixed with `__` are available but will be discarded if not relabeled:
+The following internal labels prefixed with `__` are available but are discarded if not relabeled:
 - `__meta_kafka_message_key`
 - `__meta_kafka_topic`
 - `__meta_kafka_partition`
