@@ -20,14 +20,6 @@ C --> G[Component 2]
 C --> ...
 ```
 
-## Table of Contents
-- [Main](#main)
-- [Tracer](#tracer)
-- [Component Controller](#component-controller)
-- [HTTP Server](#http-server)
-- [Reporter](#reporter)
-- [Component](#component)
-
 # Main
 
 This is the entrypoint for Flow. It determines the run mode and for flow launches the following tasks:
