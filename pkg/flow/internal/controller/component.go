@@ -29,7 +29,7 @@ type ComponentID []string
 
 // BlockComponentID returns the ComponentID specified by an River block.
 func BlockComponentID(b *ast.BlockStmt) ComponentID {
-	id := make(ComponentID, 0, len(b.Name)+1) // add 1 for the optional label
+	id := make(ComponentID, 0)
 	id = append(id, b.Name...)
 	if b.Label != "" {
 		id = append(id, b.Label)
@@ -72,21 +72,24 @@ type ComponentGlobals struct {
 // arguments and exports. ComponentNode manages the arguments for the component
 // from a River block.
 type ComponentNode struct {
-	id              ComponentID
-	label           string
-	componentName   string
-	nodeID          string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
-	reg             component.Registration
-	managedOpts     component.Options
-	register        *wrappedRegisterer
-	exportsType     reflect.Type
-	onExportsChange func(cn *ComponentNode) // Informs controller that we changed our exports
+	id                ComponentID
+	label             string
+	componentName     string
+	nodeID            string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
+	namespaceID       []string
+	namespaceCachedID string
+	reg               component.Registration
+	managedOpts       component.Options
+	register          *wrappedRegisterer
+	exportsType       reflect.Type
+	onExportsChange   func(cn *ComponentNode) // Informs controller that we changed our exports
 
 	mut     sync.RWMutex
 	block   *ast.BlockStmt // Current River block to derive args from
 	eval    *vm.Evaluator
-	managed component.Component // Inner managed component
-	args    component.Arguments // Evaluated arguments for the managed component
+	managed component.Component         // Inner managed component
+	args    component.Arguments         // Evaluated arguments for the managed component
+	parent  component.DelegateComponent // ComponentNode might have a parent node, for instance modules
 
 	doingEval atomic.Bool
 
@@ -106,11 +109,16 @@ var _ dag.Node = (*ComponentNode)(nil)
 
 // NewComponentNode creates a new ComponentNode from an initial ast.BlockStmt.
 // The underlying managed component isn't created until Evaluate is called.
-func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode {
+func NewComponentNode(delegate component.DelegateHandler, parent component.DelegateComponent, globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode {
 	var (
-		id     = BlockComponentID(b)
-		nodeID = id.String()
+		id          = BlockComponentID(b)
+		nodeID      = id.String()
+		namespaceID = make([]string, 0)
 	)
+	if parent != nil {
+		namespaceID = append(namespaceID, parent.IDs()...)
+	}
+	namespaceID = append(namespaceID, id...)
 
 	reg, ok := component.Get(ComponentID(b.Name).String())
 	if !ok {
@@ -127,13 +135,16 @@ func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode
 	}
 
 	cn := &ComponentNode{
-		id:              id,
-		label:           b.Label,
-		nodeID:          nodeID,
-		componentName:   strings.Join(b.Name, "."),
-		reg:             reg,
-		exportsType:     getExportsType(reg),
-		onExportsChange: globals.OnExportsChange,
+		id:                id,
+		label:             b.Label,
+		nodeID:            nodeID,
+		namespaceID:       namespaceID,
+		namespaceCachedID: strings.Join(namespaceID, "."),
+		componentName:     strings.Join(b.Name, "."),
+		reg:               reg,
+		exportsType:       getExportsType(reg),
+		onExportsChange:   globals.OnExportsChange,
+		parent:            parent,
 
 		block: b,
 		eval:  vm.New(b.Body),
@@ -145,25 +156,26 @@ func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode
 		evalHealth: initHealth,
 		runHealth:  initHealth,
 	}
-	cn.managedOpts = getManagedOptions(globals, cn)
+	cn.managedOpts = getManagedOptions(globals, cn, delegate)
 
 	return cn
 }
 
-func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Options {
+func getManagedOptions(globals ComponentGlobals, cn *ComponentNode, delegate component.DelegateHandler) component.Options {
 	wrapped := newWrappedRegisterer()
 	cn.register = wrapped
 	return component.Options{
 		ID:            cn.nodeID,
 		Logger:        log.With(globals.Logger, "component", cn.nodeID),
-		DataPath:      filepath.Join(globals.DataPath, cn.nodeID),
+		DataPath:      filepath.Join(globals.DataPath, cn.namespaceCachedID),
 		OnStateChange: cn.setExports,
 		Registerer: prometheus.WrapRegistererWith(prometheus.Labels{
 			"component_id": cn.nodeID,
 		}, wrapped),
-		Tracer:         wrapTracer(globals.TraceProvider, cn.nodeID),
+		Tracer:         wrapTracer(globals.TraceProvider, cn.namespaceCachedID),
 		HTTPListenAddr: globals.HTTPListenAddr,
 		HTTPPath:       fmt.Sprintf("/component/%s/", cn.nodeID),
+		Delegate:       delegate,
 	}
 }
 

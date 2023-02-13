@@ -125,3 +125,10 @@ type HTTPComponent interface {
 	// will receive a request to just `/metrics`.
 	Handler() http.Handler
 }
+
+type DelegateComponent interface {
+	Component
+
+	ID() string
+	IDs() []string
+}
