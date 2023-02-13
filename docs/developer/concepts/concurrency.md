@@ -43,4 +43,4 @@ The Reporter sends occassional usage stats to grafana.com. It can be managed usi
 
 # Component
 
-[Components](../../sources/flow/concepts/components.md) are the building blocks of Grafana Agent Flow. Component specific details can be found [here](../../sources/flow/reference/components/).
+[Components](../../sources/flow/concepts/components.md) are the building blocks of Grafana Agent Flow. Individual components are documented [here](../../sources/flow/reference/components/).
