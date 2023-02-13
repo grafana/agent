@@ -6,13 +6,13 @@ import (
 
 	"github.com/Shopify/sarama"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/dskit/flagext"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/common/loki"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	kt "github.com/grafana/agent/component/loki/source/kafka/internal/kafkatarget"
+	"github.com/grafana/dskit/flagext"
 
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 
@@ -48,21 +48,18 @@ type Arguments struct {
 
 // KafkaAuthentication describe the configuration for authentication with Kafka brokers
 type KafkaAuthentication struct {
-	Type       KafkaAuthenticationType `river:"type,attr,optional"`
-	TLSConfig  config.TLSConfig        `river:"tls_config,block,optional"`
-	SASLConfig KafkaSASLConfig         `river:"sasl_config,block,optional"`
+	Type       string           `river:"type,attr,optional"`
+	TLSConfig  config.TLSConfig `river:"tls_config,block,optional"`
+	SASLConfig KafkaSASLConfig  `river:"sasl_config,block,optional"`
 }
-
-// KafkaAuthenticationType specifies method to authenticate with Kafka brokers
-type KafkaAuthenticationType string
 
 // KafkaSASLConfig describe the SASL configuration for authentication with Kafka brokers
 type KafkaSASLConfig struct {
-	Mechanism sarama.SASLMechanism `river:"mechanism,attr,optional"`
-	User      string               `river:"user,attr"`
-	Password  flagext.Secret       `river:"password,attr"`
-	UseTLS    bool                 `river:"use_tls,attr,optional"`
-	TLSConfig config.TLSConfig     `river:"tls_config,block,optional"`
+	Mechanism string           `river:"mechanism,attr,optional"`
+	User      string           `river:"user,attr"`
+	Password  string           `river:"password,attr"`
+	UseTLS    bool             `river:"use_tls,attr,optional"`
+	TLSConfig config.TLSConfig `river:"tls_config,block,optional"`
 }
 
 // DefaultArguments provides the default arguments for a kafka component.
@@ -201,13 +198,19 @@ func (args *Arguments) Convert() scrapeconfig.Config {
 }
 
 func (auth KafkaAuthentication) Convert() scrapeconfig.KafkaAuthentication {
+
+	var secret flagext.Secret
+	if auth.SASLConfig.Password != "" {
+		secret.Set(auth.SASLConfig.Password)
+	}
+
 	return scrapeconfig.KafkaAuthentication{
 		Type:      scrapeconfig.KafkaAuthenticationType(auth.Type),
 		TLSConfig: *auth.TLSConfig.Convert(),
 		SASLConfig: scrapeconfig.KafkaSASLConfig{
-			Mechanism: auth.SASLConfig.Mechanism,
+			Mechanism: sarama.SASLMechanism(auth.SASLConfig.Mechanism),
 			User:      auth.SASLConfig.User,
-			Password:  auth.SASLConfig.Password,
+			Password:  secret,
 			UseTLS:    auth.SASLConfig.UseTLS,
 			TLSConfig: *auth.SASLConfig.TLSConfig.Convert(),
 		},
