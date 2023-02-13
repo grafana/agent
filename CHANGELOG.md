@@ -57,6 +57,14 @@ Main (unreleased)
 
 - Flow: add timeout to loki.source.podlogs controller setup. (@polyrain)
 
+### Other changes
+
+- Use Go 1.20 for builds. Official release binaries are still produced using Go
+  1.19. (@rfratto)
+
+v0.31.3 (2023-02-13)
+--------------------
+
 ### Bugfixes
 
 - `loki.source.cloudflare`: fix issue where the `zone_id` argument
@@ -65,11 +73,6 @@ Main (unreleased)
 
 - `loki.source.cloudflare`: fix issue where `api_token` argument was not marked
   as a sensitive field. (@rfratto)
-
-### Other changes
-
-- Use Go 1.20 for builds. Official release binaries are still produced using Go
-  1.19. (@rfratto)
 
 v0.31.2 (2023-02-08)
 --------------------
