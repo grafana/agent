@@ -62,6 +62,8 @@ Main (unreleased)
 - Use Go 1.20 for builds. Official release binaries are still produced using Go
   1.19. (@rfratto)
 
+- Grafana Agent Flow is now considered production ready. (@rfratto)
+
 v0.31.3 (2023-02-13)
 --------------------
 
