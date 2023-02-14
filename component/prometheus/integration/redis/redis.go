@@ -10,18 +10,6 @@ import (
 	config_util "github.com/prometheus/common/config"
 )
 
-// DefaultConfig holds non-zero default options for the Config when it is
-// unmarshaled from river.
-var DefaultConfig = Config{
-	IncludeExporterMetrics:  false,
-	Namespace:               "redis",
-	ConfigCommand:           "CONFIG",
-	ConnectionTimeout:       15 * time.Second,
-	SetClientName:           true,
-	CheckKeyGroupsBatchSize: 10000,
-	MaxDistinctKeyGroups:    100,
-}
-
 func init() {
 	component.Register(component.Registration{
 		Name:    "prometheus.integration.redis",
@@ -34,6 +22,55 @@ func init() {
 func createIntegration(opts component.Options, args component.Arguments) (integrations.Integration, error) {
 	cfg := args.(Config)
 	return cfg.Convert().NewIntegration(opts.Logger)
+}
+
+// DefaultConfig holds non-zero default options for the Config when it is
+// unmarshaled from river.
+var DefaultConfig = Config{
+	IncludeExporterMetrics:  false,
+	Namespace:               "redis",
+	ConfigCommand:           "CONFIG",
+	ConnectionTimeout:       15 * time.Second,
+	SetClientName:           true,
+	CheckKeyGroupsBatchSize: 10000,
+	MaxDistinctKeyGroups:    100,
+}
+
+type Config struct {
+	IncludeExporterMetrics bool `river:"include_exporter_metrics,attr,optional"`
+
+	// exporter-specific config.
+	//
+	// The exporter binary config differs to this, but these
+	// are the only fields that are relevant to the exporter struct.
+	RedisAddr               string             `river:"redis_addr,attr,optional"`
+	RedisUser               string             `river:"redis_user,attr,optional"`
+	RedisPassword           config_util.Secret `river:"redis_password,attr,optional"`
+	RedisPasswordFile       string             `river:"redis_password_file,attr,optional"`
+	RedisPasswordMapFile    string             `river:"redis_password_map_file,attr,optional"`
+	Namespace               string             `river:"namespace,attr,optional"`
+	ConfigCommand           string             `river:"config_command,attr,optional"`
+	CheckKeys               string             `river:"check_keys,attr,optional"`
+	CheckKeyGroups          string             `river:"check_key_groups,attr,optional"`
+	CheckKeyGroupsBatchSize int64              `river:"check_key_groups_batch_size,attr,optional"`
+	MaxDistinctKeyGroups    int64              `river:"max_distinct_key_groups,attr,optional"`
+	CheckSingleKeys         string             `river:"check_single_keys,attr,optional"`
+	CheckStreams            string             `river:"check_streams,attr,optional"`
+	CheckSingleStreams      string             `river:"check_single_streams,attr,optional"`
+	CountKeys               string             `river:"count_keys,attr,optional"`
+	ScriptPath              string             `river:"script_path,attr,optional"`
+	ConnectionTimeout       time.Duration      `river:"connection_timeout,attr,optional"`
+	TLSClientKeyFile        string             `river:"tls_client_key_file,attr,optional"`
+	TLSClientCertFile       string             `river:"tls_client_cert_file,attr,optional"`
+	TLSCaCertFile           string             `river:"tls_ca_cert_file,attr,optional"`
+	SetClientName           bool               `river:"set_client_name,attr,optional"`
+	IsTile38                bool               `river:"is_tile38,attr,optional"`
+	ExportClientList        bool               `river:"export_client_list,attr,optional"`
+	ExportClientPort        bool               `river:"export_client_port,attr,optional"`
+	RedisMetricsOnly        bool               `river:"redis_metrics_only,attr,optional"`
+	PingOnConnect           bool               `river:"ping_on_connect,attr,optional"`
+	InclSystemMetrics       bool               `river:"incl_system_metrics,attr,optional"`
+	SkipTLSVerification     bool               `river:"skip_tls_verification,attr,optional"`
 }
 
 // UnmarshalRiver implements River unmarshalling for Config.
@@ -76,41 +113,4 @@ func (c *Config) Convert() *redis_exporter.Config {
 		InclSystemMetrics:       c.InclSystemMetrics,
 		SkipTLSVerification:     c.SkipTLSVerification,
 	}
-}
-
-type Config struct {
-	IncludeExporterMetrics bool `river:"include_exporter_metrics,attr,optional"`
-
-	// exporter-specific config.
-	//
-	// The exporter binary config differs to this, but these
-	// are the only fields that are relevant to the exporter struct.
-	RedisAddr               string             `river:"redis_addr,attr,optional"`
-	RedisUser               string             `river:"redis_user,attr,optional"`
-	RedisPassword           config_util.Secret `river:"redis_password,attr,optional"`
-	RedisPasswordFile       string             `river:"redis_password_file,attr,optional"`
-	RedisPasswordMapFile    string             `river:"redis_password_map_file,attr,optional"`
-	Namespace               string             `river:"namespace,attr,optional"`
-	ConfigCommand           string             `river:"config_command,attr,optional"`
-	CheckKeys               string             `river:"check_keys,attr,optional"`
-	CheckKeyGroups          string             `river:"check_key_groups,attr,optional"`
-	CheckKeyGroupsBatchSize int64              `river:"check_key_groups_batch_size,attr,optional"`
-	MaxDistinctKeyGroups    int64              `river:"max_distinct_key_groups,attr,optional"`
-	CheckSingleKeys         string             `river:"check_single_keys,attr,optional"`
-	CheckStreams            string             `river:"check_streams,attr,optional"`
-	CheckSingleStreams      string             `river:"check_single_streams,attr,optional"`
-	CountKeys               string             `river:"count_keys,attr,optional"`
-	ScriptPath              string             `river:"script_path,attr,optional"`
-	ConnectionTimeout       time.Duration      `river:"connection_timeout,attr,optional"`
-	TLSClientKeyFile        string             `river:"tls_client_key_file,attr,optional"`
-	TLSClientCertFile       string             `river:"tls_client_cert_file,attr,optional"`
-	TLSCaCertFile           string             `river:"tls_ca_cert_file,attr,optional"`
-	SetClientName           bool               `river:"set_client_name,attr,optional"`
-	IsTile38                bool               `river:"is_tile38,attr,optional"`
-	ExportClientList        bool               `river:"export_client_list,attr,optional"`
-	ExportClientPort        bool               `river:"export_client_port,attr,optional"`
-	RedisMetricsOnly        bool               `river:"redis_metrics_only,attr,optional"`
-	PingOnConnect           bool               `river:"ping_on_connect,attr,optional"`
-	InclSystemMetrics       bool               `river:"incl_system_metrics,attr,optional"`
-	SkipTLSVerification     bool               `river:"skip_tls_verification,attr,optional"`
 }
