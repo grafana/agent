@@ -62,8 +62,6 @@ Main (unreleased)
 - Use Go 1.20 for builds. Official release binaries are still produced using Go
   1.19. (@rfratto)
 
-- Use river squash for otelcol.processor.tail_sampling code which doesn't impact the config or docs (@erikbaranowski)
-
 v0.31.3 (2023-02-13)
 --------------------
 
