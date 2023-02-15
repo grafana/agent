@@ -30,21 +30,37 @@ func (st *structDecoder) Decode(stmts ast.Body, rv reflect.Value) error {
 
 	state := decodeOptions{
 		Tags:       st.TagInfo.TagLookup,
+		EnumBlocks: st.TagInfo.EnumLookup,
 		SeenAttrs:  make(map[string]struct{}),
 		SeenBlocks: make(map[string]struct{}),
+		SeenEnums:  make(map[string]struct{}),
 
 		BlockCount: make(map[string]int),
 		BlockIndex: make(map[*ast.BlockStmt]int),
+
+		EnumCount: make(map[string]int),
+		EnumIndex: make(map[*ast.BlockStmt]int),
 	}
 
 	// Iterate over the set of blocks to populate block count and block index.
 	// Block index is its index in the set of blocks with the *same name*.
+	//
+	// If the block belongs to an enum, we populate enum count and enum index
+	// instead. The enum index is the index on the set of blocks for the *same
+	// enum*.
 	for _, stmt := range stmts {
 		switch stmt := stmt.(type) {
 		case *ast.BlockStmt:
 			fullName := strings.Join(stmt.Name, ".")
-			state.BlockIndex[stmt] = state.BlockCount[fullName]
-			state.BlockCount[fullName]++
+
+			if enumTf, isEnum := st.TagInfo.EnumLookup[fullName]; isEnum {
+				enumName := strings.Join(enumTf.EnumField.Name, ".")
+				state.EnumIndex[stmt] = state.EnumCount[enumName]
+				state.EnumCount[enumName]++
+			} else {
+				state.BlockIndex[stmt] = state.BlockCount[fullName]
+				state.BlockCount[fullName]++
+			}
 		}
 	}
 
@@ -95,8 +111,9 @@ func (st *structDecoder) Decode(stmts ast.Body, rv reflect.Value) error {
 
 type decodeOptions struct {
 	Tags       map[string]rivertags.Field
-	SeenAttrs  map[string]struct{}
-	SeenBlocks map[string]struct{}
+	EnumBlocks map[string]enumBlock
+
+	SeenAttrs, SeenBlocks, SeenEnums map[string]struct{}
 
 	// BlockCount and BlockIndex are used to determine:
 	//
@@ -114,6 +131,12 @@ type decodeOptions struct {
 	BlockCount map[string]int         // Number of times a block by full name is seen.
 	BlockIndex map[*ast.BlockStmt]int // Index of a block within a set of blocks with the same name.
 
+	// EnumCount and EnumIndex are similar to BlockCount/BlockIndex, but instead
+	// reference the number of blocks assigned to the same enum (EnumCount) and
+	// the index of a block within that enum slice (EnumIndex).
+
+	EnumCount map[string]int         // Number of times an enum group is seen by enum name.
+	EnumIndex map[*ast.BlockStmt]int // Index of a block within a set of enum blocks of the same enum.
 }
 
 func (st *structDecoder) decodeAttr(attr *ast.AttributeStmt, rv reflect.Value, state *decodeOptions) error {
@@ -165,8 +188,17 @@ func (st *structDecoder) decodeAttr(attr *ast.AttributeStmt, rv reflect.Value, s
 
 func (st *structDecoder) decodeBlock(block *ast.BlockStmt, rv reflect.Value, state *decodeOptions) error {
 	fullName := strings.Join(block.Name, ".")
-	tf, ok := state.Tags[fullName]
-	if !ok {
+
+	if _, isEnum := state.EnumBlocks[fullName]; isEnum {
+		return st.decodeEnumBlock(fullName, block, rv, state)
+	}
+	return st.decodeNormalBlock(fullName, block, rv, state)
+}
+
+// decodeNormalBlock decodes a standard (non-enum) block.
+func (st *structDecoder) decodeNormalBlock(fullName string, block *ast.BlockStmt, rv reflect.Value, state *decodeOptions) error {
+	tf, isBlock := state.Tags[fullName]
+	if !isBlock {
 		return diag.Diagnostics{{
 			Severity: diag.SeverityLevelError,
 			StartPos: ast.StartPos(block).Position(),
@@ -250,4 +282,42 @@ func (st *structDecoder) decodeBlock(block *ast.BlockStmt, rv reflect.Value, sta
 
 	state.SeenBlocks[fullName] = struct{}{}
 	return nil
+}
+
+func (st *structDecoder) decodeEnumBlock(fullName string, block *ast.BlockStmt, rv reflect.Value, state *decodeOptions) error {
+	tf, ok := state.EnumBlocks[fullName]
+	if !ok {
+		// decodeEnumBlock should only ever be called from decodeBlock, so this
+		// should never happen.
+		panic("decodeEnumBlock called with a non-enum block")
+	}
+
+	enumName := strings.Join(tf.EnumField.Name, ".")
+	enumField := reflectutil.GetOrAlloc(rv, tf.EnumField)
+	decodeField := prepareDecodeValue(enumField)
+
+	if decodeField.Kind() != reflect.Slice {
+		panic("river/vm: enum field must be a slice kind, got " + decodeField.Kind().String())
+	}
+
+	// If this is the first time we've seen the enum, reset its length to zero.
+	if _, seen := state.SeenEnums[enumName]; !seen {
+		count := state.EnumCount[enumName]
+		decodeField.Set(reflect.MakeSlice(decodeField.Type(), count, count))
+	}
+	state.SeenEnums[enumName] = struct{}{}
+
+	// Prepare the enum element to decode into.
+	enumIndex, ok := state.EnumIndex[block]
+	if !ok {
+		panic("river/vm: enum block not found in index lookup table")
+	}
+	enumElement := prepareDecodeValue(decodeField.Index(enumIndex))
+
+	// Prepare the block field to decode into.
+	enumBlock := reflectutil.GetOrAlloc(enumElement, tf.BlockField)
+	decodeBlock := prepareDecodeValue(enumBlock)
+
+	// Decode into the block field.
+	return st.VM.evaluateBlockOrBody(st.Scope, st.Assoc, block, decodeBlock)
 }
