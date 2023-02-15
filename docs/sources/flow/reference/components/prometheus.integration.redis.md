@@ -26,7 +26,7 @@ Omitted fields take their default values.
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`redis_addr`                  | `string`   | Address (host and port) of the Redis instance we should connect to. This could be a local Redis instance (e.g. `localhost:6379`), or the address of a remote server. | | yes
+`redis_addr`                  | `string`   | Address (host and port) of the Redis instance to connect to. This can be a local Redis instance (e.g., `localhost:6379`) or the address of a remote server. | | yes
 `redis_user`                  | `string`   | User name to use for authentication (Redis ACL for Redis 6.0 and newer).  | | no
 `redis_password`              | `string`   | Password of the redis instance. | | no
 `redis_password_file`         | `string`   | Path of a file containing a passord. If this is defined, it takes precedece over redis_password. | | no
