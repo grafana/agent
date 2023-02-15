@@ -49,13 +49,13 @@ func TestRiverConfig(t *testing.T) {
 		token_url = "token_url"
 		endpoint_params = {"param1" = "value1", "param2" = "value2"}
 		proxy_url = "http://0.0.0.0:11111"
-		tls_config = {
-			ca_file = "/path/to/file.ca",
-			cert_file = "/path/to/file.cert",
-			key_file = "/path/to/file.key",
-			server_name = "server_name",
-			insecure_skip_verify = false,
-			min_version = "TLS13",
+		tls_config {
+			ca_file = "/path/to/file.ca"
+			cert_file = "/path/to/file.cert"
+			key_file = "/path/to/file.key"
+			server_name = "server_name"
+			insecure_skip_verify = false
+			min_version = "TLS13"
 		}
 	}
 
