@@ -77,7 +77,7 @@ type Arguments struct {
 	// scrape to fail.
 	LabelValueLengthLimit uint `river:"label_value_length_limit,attr,optional"`
 
-	HTTPClientConfig component_config.HTTPClientConfig `river:"http_client_config,block,optional"`
+	HTTPClientConfig component_config.HTTPClientConfig `river:",squash"`
 
 	// Scrape Options
 	ExtraMetrics bool `river:"extra_metrics,attr,optional"`

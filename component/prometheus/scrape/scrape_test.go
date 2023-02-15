@@ -9,11 +9,70 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/river"
 	prometheus_client "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/stretchr/testify/require"
 )
+
+func TestRiverConfig(t *testing.T) {
+	var exampleRiverConfig = `
+	targets         = [{ "target1" = "target1" }]
+	forward_to      = []
+	scrape_interval = "10s"
+	job_name        = "local-flow"
+
+	bearer_token = "token"
+	bearer_token_file = "/path/to/file.token"
+	proxy_url = "http://0.0.0.0:11111"
+	follow_redirects = true
+	enable_http2 = true
+
+	basic_auth {
+		username = "user"
+		password = "password"
+		password_file = "/path/to/file.password"
+	}
+
+	authorization {
+		type = "Bearer"
+		credentials = "credential"
+		credentials_file = "/path/to/file.credentials"
+	}
+
+	oauth2 {
+		client_id = "client_id"
+		client_secret = "client_secret"
+		client_secret_file = "/path/to/file.oath2"
+		scopes = ["scope1", "scope2"]
+		token_url = "token_url"
+		endpoint_params = {"param1" = "value1", "param2" = "value2"}
+		proxy_url = "http://0.0.0.0:11111"
+		tls_config = {
+			ca_file = "/path/to/file.ca",
+			cert_file = "/path/to/file.cert",
+			key_file = "/path/to/file.key",
+			server_name = "server_name",
+			insecure_skip_verify = false,
+			min_version = "TLS13",
+		}
+	}
+
+	tls_config {
+		ca_file = "/path/to/file.ca"
+		cert_file = "/path/to/file.cert"
+		key_file = "/path/to/file.key"
+		server_name = "server_name"
+		insecure_skip_verify = false
+		min_version = "TLS13"
+	}
+`
+
+	var args Arguments
+	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
+	require.NoError(t, err)
+}
 
 func TestForwardingToAppendable(t *testing.T) {
 	l, err := logging.New(os.Stderr, logging.DefaultOptions)
