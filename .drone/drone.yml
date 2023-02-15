@@ -679,7 +679,7 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Publish Linux Docker containers
+name: Publish Linux agent container
 platform:
   arch: amd64
   os: linux
@@ -690,7 +690,7 @@ steps:
   - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
   - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
   - docker buildx create --name multiarch --driver docker-container --use
-  - ./tools/ci/docker-containers
+  - ./tools/ci/docker-containers agent
   - docker buildx rm multiarch
   environment:
     DOCKER_LOGIN:
@@ -700,7 +700,7 @@ steps:
     GCR_CREDS:
       from_secret: gcr_admin
   image: grafana/agent-build-image:0.21.0
-  name: Build containers
+  name: Publish container
   volumes:
   - name: docker
     path: /var/run/docker.sock
@@ -715,8 +715,224 @@ volumes:
     path: /var/run/docker.sock
   name: docker
 ---
+kind: pipeline
+name: Publish Linux agentctl container
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - mkdir -p $HOME/.docker
+  - printenv GCR_CREDS > $HOME/.docker/config.json
+  - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
+  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  - docker buildx create --name multiarch --driver docker-container --use
+  - ./tools/ci/docker-containers agentctl
+  - docker buildx rm multiarch
+  environment:
+    DOCKER_LOGIN:
+      from_secret: DOCKER_LOGIN
+    DOCKER_PASSWORD:
+      from_secret: DOCKER_PASSWORD
+    GCR_CREDS:
+      from_secret: gcr_admin
+  image: grafana/agent-build-image:0.21.0
+  name: Publish container
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+trigger:
+  ref:
+  - refs/heads/main
+  - refs/tags/v*
+  - refs/heads/dev.*
+type: docker
+volumes:
+- host:
+    path: /var/run/docker.sock
+  name: docker
+---
+kind: pipeline
+name: Publish Linux agent-operator container
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - mkdir -p $HOME/.docker
+  - printenv GCR_CREDS > $HOME/.docker/config.json
+  - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
+  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  - docker buildx create --name multiarch --driver docker-container --use
+  - ./tools/ci/docker-containers agent-operator
+  - docker buildx rm multiarch
+  environment:
+    DOCKER_LOGIN:
+      from_secret: DOCKER_LOGIN
+    DOCKER_PASSWORD:
+      from_secret: DOCKER_PASSWORD
+    GCR_CREDS:
+      from_secret: gcr_admin
+  image: grafana/agent-build-image:0.21.0
+  name: Publish container
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+trigger:
+  ref:
+  - refs/heads/main
+  - refs/tags/v*
+  - refs/heads/dev.*
+type: docker
+volumes:
+- host:
+    path: /var/run/docker.sock
+  name: docker
+---
+kind: pipeline
+name: Publish Linux smoke container
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - mkdir -p $HOME/.docker
+  - printenv GCR_CREDS > $HOME/.docker/config.json
+  - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
+  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  - docker buildx create --name multiarch --driver docker-container --use
+  - ./tools/ci/docker-containers smoke
+  - docker buildx rm multiarch
+  environment:
+    DOCKER_LOGIN:
+      from_secret: DOCKER_LOGIN
+    DOCKER_PASSWORD:
+      from_secret: DOCKER_PASSWORD
+    GCR_CREDS:
+      from_secret: gcr_admin
+  image: grafana/agent-build-image:0.21.0
+  name: Publish container
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+trigger:
+  ref:
+  - refs/heads/main
+  - refs/tags/v*
+  - refs/heads/dev.*
+type: docker
+volumes:
+- host:
+    path: /var/run/docker.sock
+  name: docker
+---
+kind: pipeline
+name: Publish Linux crow container
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - mkdir -p $HOME/.docker
+  - printenv GCR_CREDS > $HOME/.docker/config.json
+  - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
+  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  - docker buildx create --name multiarch --driver docker-container --use
+  - ./tools/ci/docker-containers crow
+  - docker buildx rm multiarch
+  environment:
+    DOCKER_LOGIN:
+      from_secret: DOCKER_LOGIN
+    DOCKER_PASSWORD:
+      from_secret: DOCKER_PASSWORD
+    GCR_CREDS:
+      from_secret: gcr_admin
+  image: grafana/agent-build-image:0.21.0
+  name: Publish container
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+trigger:
+  ref:
+  - refs/heads/main
+  - refs/tags/v*
+  - refs/heads/dev.*
+type: docker
+volumes:
+- host:
+    path: /var/run/docker.sock
+  name: docker
+---
+kind: pipeline
+name: Publish Windows agent container
+platform:
+  arch: amd64
+  os: windows
+  version: "1809"
+steps:
+- commands:
+  - git config --global --add safe.directory C:/drone/src/
+  - '& "C:/Program Files/git/bin/bash.exe" -c ./tools/ci/docker-containers-windows
+    agent'
+  environment:
+    DOCKER_LOGIN:
+      from_secret: DOCKER_LOGIN
+    DOCKER_PASSWORD:
+      from_secret: DOCKER_PASSWORD
+  image: grafana/agent-build-image:0.21.0-windows
+  name: Build containers
+  volumes:
+  - name: docker
+    path: //./pipe/docker_engine/
+trigger:
+  ref:
+  - refs/heads/main
+  - refs/tags/v*
+  - refs/heads/dev.*
+type: docker
+volumes:
+- host:
+    path: //./pipe/docker_engine/
+  name: docker
+---
+kind: pipeline
+name: Publish Windows agentctl container
+platform:
+  arch: amd64
+  os: windows
+  version: "1809"
+steps:
+- commands:
+  - git config --global --add safe.directory C:/drone/src/
+  - '& "C:/Program Files/git/bin/bash.exe" -c ./tools/ci/docker-containers-windows
+    agentctl'
+  environment:
+    DOCKER_LOGIN:
+      from_secret: DOCKER_LOGIN
+    DOCKER_PASSWORD:
+      from_secret: DOCKER_PASSWORD
+  image: grafana/agent-build-image:0.21.0-windows
+  name: Build containers
+  volumes:
+  - name: docker
+    path: //./pipe/docker_engine/
+trigger:
+  ref:
+  - refs/heads/main
+  - refs/tags/v*
+  - refs/heads/dev.*
+type: docker
+volumes:
+- host:
+    path: //./pipe/docker_engine/
+  name: docker
+---
 depends_on:
-- Publish Linux Docker containers
+- Publish Linux agent container
+- Publish Linux agentctl container
+- Publish Linux agent-operator container
+- Publish Linux smoke container
+- Publish Linux crow container
 image_pull_secrets:
 - dockerconfigjson
 kind: pipeline
@@ -763,40 +979,14 @@ trigger:
   - refs/heads/main
 type: docker
 ---
-kind: pipeline
-name: Publish Windows Docker containers
-platform:
-  arch: amd64
-  os: windows
-  version: "1809"
-steps:
-- commands:
-  - git config --global --add safe.directory C:/drone/src/
-  - '& "C:/Program Files/git/bin/bash.exe" -c ./tools/ci/docker-containers-windows'
-  environment:
-    DOCKER_LOGIN:
-      from_secret: DOCKER_LOGIN
-    DOCKER_PASSWORD:
-      from_secret: DOCKER_PASSWORD
-  image: grafana/agent-build-image:0.21.0-windows
-  name: Build containers
-  volumes:
-  - name: docker
-    path: //./pipe/docker_engine/
-trigger:
-  ref:
-  - refs/heads/main
-  - refs/tags/v*
-  - refs/heads/dev.*
-type: docker
-volumes:
-- host:
-    path: //./pipe/docker_engine/
-  name: docker
----
 depends_on:
-- Publish Linux Docker containers
-- Publish Windows Docker containers
+- Publish Linux agent container
+- Publish Linux agentctl container
+- Publish Linux agent-operator container
+- Publish Linux smoke container
+- Publish Linux crow container
+- Publish Windows agent container
+- Publish Windows agentctl container
 kind: pipeline
 name: Publish release
 platform:
@@ -899,6 +1089,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: 582ba3028a7567a29b0e69206b6a124bc479702c56354af32eafe6cfe2bd8b87
+hmac: 6879a23c75fb25825b40e5fcc24f4440dd49d7bd2978ff21e7254f58dabe8064
 
 ...
