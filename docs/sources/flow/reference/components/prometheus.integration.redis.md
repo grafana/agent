@@ -11,12 +11,12 @@ title: prometheus.​integration.redis
 
 # prometheus.integration.redis
 The `prometheus.integration.redis` component embeds
-[redis_exporter](https://github.com/oliver006/redis_exporter) for collecting metrics from a redis database.
+[redis_exporter](https://github.com/oliver006/redis_exporter) for collecting metrics from a Redis database.
 
 ## Usage
 
 ```river
-prometheus.integration.redis "LABEL"{
+prometheus.integration.redis "LABEL" {
 }
 ```
 
@@ -40,18 +40,18 @@ Name | Type | Description | Default | Required
 `check_single_keys`           | `string`   | Comma-separated list of single keys to export value and length/size. | | no
 `check_streams`               | `string`   | Comma-separated list of stream-patterns to export info about streams, groups, and consumers to search for with SCAN. | | no
 `check_single_streams`        | `string`   | Comma-separated list of single streams to export info about streams, groups, and consumers. | | no
-`count_keys`                  | `string`   | Comma separated list of individual keys to export counts for. | | no
+`count_keys`                  | `string`   | Comma-separated list of individual keys to export counts for. | | no
 `script_path`                 | `string`   | Path to Lua Redis script for collecting extra metrics. | | no
 `connection_timeout`          | `duration` | Timeout for connection to Redis instance (in Golang duration format). | `"15s"` | no
 `tls_client_key_file`         | `string`   | Name of the client key file (including full path) if the server requires TLS client authentication. | | no
 `tls_client_cert_file`        | `string`   | Name of the client certificate file (including full path) if the server requires TLS client authentication. | | no
 `tls_ca_cert_file`            | `string`   | Name of the CA certificate file (including full path) if the server requires TLS client authentication. | | no
 `set_client_name`             | `bool`     | Whether to set client name to redis_exporter. | `true` | no
-`is_tile38`                   | `bool`     | Whether to scrape Tile38 specific metrics. | | no
+`is_tile38`                   | `bool`     | Whether to scrape Tile38-specific metrics. | | no
 `export_client_list`          | `bool`     | Whether to scrape Client List specific metrics. | | no
 `export_client_port`          | `bool`     | Whether to include the client's port when exporting the client list. Note that including the port increases the cardinality of all Redis metrics. | | no
 `redis_metrics_only`          | `bool`     | Whether to just export metrics or to also export go runtime metrics. | | no
-`ping_on_connect`             | `bool`     | Whether to ping the redis instance after connecting. | | no
+`ping_on_connect`             | `bool`     | Whether to ping the Redis instance after connecting. | | no
 `incl_system_metrics`         | `bool`     | Whether to include system metrics, for example, redis_total_system_memory_bytes. | | no
 `skip_tls_verification`       | `bool`     | Whether to to skip TLS verification. | | no
 
@@ -94,7 +94,7 @@ prometheus.integration.redis "example" {
   redis_addr = "localhost:6379"
 }
 
-// Configure a prometheus.scrape component to collect redis metrics.
+// Configure a prometheus.scrape component to collect Redis metrics.
 prometheus.scrape "demo" {
   targets    = prometheus.integration.redis.example.targets
   forward_to = [ /* ... */ ]
