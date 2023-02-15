@@ -21,43 +21,12 @@ func TestRiverConfig(t *testing.T) {
 	targets         = [{ "target1" = "target1" }]
 	forward_to      = []
 	scrape_interval = "10s"
-	job_name        = "local-flow"
+	job_name        = "local"
 
 	bearer_token = "token"
-	bearer_token_file = "/path/to/file.token"
 	proxy_url = "http://0.0.0.0:11111"
 	follow_redirects = true
 	enable_http2 = true
-
-	basic_auth {
-		username = "user"
-		password = "password"
-		password_file = "/path/to/file.password"
-	}
-
-	authorization {
-		type = "Bearer"
-		credentials = "credential"
-		credentials_file = "/path/to/file.credentials"
-	}
-
-	oauth2 {
-		client_id = "client_id"
-		client_secret = "client_secret"
-		client_secret_file = "/path/to/file.oath2"
-		scopes = ["scope1", "scope2"]
-		token_url = "token_url"
-		endpoint_params = {"param1" = "value1", "param2" = "value2"}
-		proxy_url = "http://0.0.0.0:11111"
-		tls_config {
-			ca_file = "/path/to/file.ca"
-			cert_file = "/path/to/file.cert"
-			key_file = "/path/to/file.key"
-			server_name = "server_name"
-			insecure_skip_verify = false
-			min_version = "TLS13"
-		}
-	}
 
 	tls_config {
 		ca_file = "/path/to/file.ca"
@@ -72,6 +41,26 @@ func TestRiverConfig(t *testing.T) {
 	var args Arguments
 	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
 	require.NoError(t, err)
+}
+
+func TestBadRiverConfig(t *testing.T) {
+	var exampleRiverConfig = `
+	targets         = [{ "target1" = "target1" }]
+	forward_to      = []
+	scrape_interval = "10s"
+	job_name        = "local"
+
+	bearer_token = "token"
+	bearer_token_file = "/path/to/file.token"
+	proxy_url = "http://0.0.0.0:11111"
+	follow_redirects = true
+	enable_http2 = true
+`
+
+	// Make sure the squashed HTTPClientConfig Validate function is being utilized correctly
+	var args Arguments
+	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
+	require.ErrorContains(t, err, "at most one of bearer_token & bearer_token_file must be configured")
 }
 
 func TestForwardingToAppendable(t *testing.T) {

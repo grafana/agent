@@ -99,7 +99,12 @@ func (arg *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	*arg = DefaultArguments
 
 	type args Arguments
-	return f((*args)(arg))
+	err := f((*args)(arg))
+	if err != nil {
+		return err
+	}
+
+	return arg.HTTPClientConfig.Validate()
 }
 
 // Component implements the prometheus.scrape component.
