@@ -47,10 +47,10 @@ Main (unreleased)
 - Flow: the `loki.process` component now implements all the same processing
   stages as Promtail's pipelines. (@tpaschalis)
 
-- Flow: new metric for `prometheus.scrape` - 
+- Flow: new metric for `prometheus.scrape` -
   `agent_prometheus_scrape_targets_gauge`. (@ptodev)
 
-- Flow: new metric for `prometheus.scrape` and `prometheus.relabel` - 
+- Flow: new metric for `prometheus.scrape` and `prometheus.relabel` -
   `agent_prometheus_forwarded_samples_total`. (@ptodev)
 
 - Flow: add `constants` into the standard library to expose the hostname, OS,
@@ -60,9 +60,6 @@ Main (unreleased)
 
 - Use Go 1.20 for builds. Official release binaries are still produced using Go
   1.19. (@rfratto)
-
-- Check deployment manifests and dashboard definitions on every 
-  pull request (@ptodev)
 
 v0.31.2 (2023-02-08)
 --------------------
