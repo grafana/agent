@@ -104,6 +104,7 @@ func (arg *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 		return err
 	}
 
+	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
 	return arg.HTTPClientConfig.Validate()
 }
 
