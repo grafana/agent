@@ -6,11 +6,13 @@
 
 # Release Preparation
 
-When updating the `drone.yml` file the file must be regenerated and
-re-signed using `make drone`. This is limited to Grafana employees for security reasons.
+Drone configuration is generated from the `drone.jsonnet` file. Any time Drone
+Jsonnet configuration files are modified, the resulting `drone.yml` file must
+be regenerated and re-signed using `make drone`. Signing the drone
+configuration is limited to Grafana employees for security reasons.
 
 1. [Install Drone](https://docs.drone.io/cli/install/).
-2. Setup the Drone environment variables. Their contents are on 
+2. Setup the Drone environment variables. Their contents are on
 [your profile](https://drone.grafana.net/account) in the Grafana Drone web page.
     ```
     export DRONE_SERVER=<url>
