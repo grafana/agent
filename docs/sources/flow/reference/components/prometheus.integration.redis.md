@@ -39,7 +39,7 @@ Name | Type | Description | Default | Required
 `max_distinct_key_groups`     | `int`      | The maximum number of distinct key groups with the most memory utilization to present as distinct metrics per database. The leftover key groups are aggregated in the 'overflow' bucket. | `100` | no
 `check_single_keys`           | `string`   | Comma-separated list of single keys to export value and length/size. | | no
 `check_streams`               | `string`   | Comma-separated list of stream-patterns to export info about streams, groups, and consumers to search for with SCAN. | | no
-`check_single_streams`        | `string`   | Comma separated list of single streams to export info about streams, groups and consumers. | | no
+`check_single_streams`        | `string`   | Comma-separated list of single streams to export info about streams, groups, and consumers. | | no
 `count_keys`                  | `string`   | Comma separated list of individual keys to export counts for. | | no
 `script_path`                 | `string`   | Path to Lua Redis script for collecting extra metrics. | | no
 `connection_timeout`          | `duration` | Timeout for connection to Redis instance (in Golang duration format). | `"15s"` | no
