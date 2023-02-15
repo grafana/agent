@@ -314,13 +314,6 @@ func isStructType(ty reflect.Type) bool {
 	return ty.Kind() == reflect.Struct
 }
 
-func isStructSliceType(ty reflect.Type) bool {
-	if ty.Kind() != reflect.Slice {
-		return false
-	}
-	return isStructType(deferenceType(ty.Elem()))
-}
-
 // validateEnum ensures that an enum field is valid. Valid enum fields are
 // slices of structs containing nothing but non-slice blocks.
 func validateEnum(field reflect.StructField) error {

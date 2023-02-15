@@ -104,7 +104,6 @@ func getFieldsForBlock(namePrefix []string, input interface{}) ([]interface{}, e
 				}
 				fields = append(fields, innerFields...)
 			}
-
 		} else if t.IsAttr() {
 			af, err := newAttribute(fieldVal, t)
 			if err != nil {
