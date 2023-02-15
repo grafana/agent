@@ -49,7 +49,7 @@ Name | Type | Description | Default | Required
 `set_client_name`             | `bool`     | Whether to set client name to redis_exporter. | `true` | no
 `is_tile38`                   | `bool`     | Whether to scrape Tile38 specific metrics. | | no
 `export_client_list`          | `bool`     | Whether to scrape Client List specific metrics. | | no
-`export_client_port`          | `bool`     | Whether to include the client's port when exporting the client list. Note that including this will increase the cardinality of all redis metrics. | | no
+`export_client_port`          | `bool`     | Whether to include the client's port when exporting the client list. Note that including the port increases the cardinality of all Redis metrics. | | no
 `redis_metrics_only`          | `bool`     | Whether to also export go runtime metrics. | | no
 `ping_on_connect`             | `bool`     | Whether to ping the redis instance after connecting. | | no
 `incl_system_metrics`         | `bool`     | Whether to include system metrics, for example, redis_total_system_memory_bytes. | | no
