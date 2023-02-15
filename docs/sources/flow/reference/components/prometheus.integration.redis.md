@@ -33,8 +33,8 @@ Name | Type | Description | Default | Required
 `redis_password_map_file`     | `string`   | Path of a file containing a JSON object which maps Redis URIs to passwords (e.g., `{"redis://localhost:6379": "sample_password"}`). | | no
 `namespace`                   | `string`   | Namespace for the metrics.  | `"redis"` | no
 `config_command`              | `string`   | What to use for the CONFIG command. | `"CONFIG"` | no
-`check_keys`                  | `string`   | Comma separated list of key-patterns to export value and length/size, searched for with SCAN. | | no
-`check_key_groups`            | `string`   | Comma separated list of LUA regex for grouping keys. When unset, no key groups will be made. | | no
+`check_keys`                  | `string`   | Comma-separated list of key-patterns to export value and length/size, searched for with SCAN. | | no
+`check_key_groups`            | `string`   | Comma-separated list of Lua regular expressions (regex) for grouping keys. When unset, no key groups are made. | | no
 `check_key_groups_batch_size` | `int`      | Check key or key groups batch size hint for the underlying SCAN. Keeping the same name for backwards compatibility, but this applies to both key and key groups batch size configuration. | `10000` | no
 `max_distinct_key_groups`     | `int`      | The maximum number of distinct key groups with the most memory utilization to present as distinct metrics per database. The leftover key groups will be aggregated in the 'overflow' bucket. | `100` | no
 `check_single_keys`           | `string`   | Comma separated list of single keys to export value and length/size. | | no
