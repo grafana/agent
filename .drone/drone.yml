@@ -145,7 +145,6 @@ steps:
   - make generate-dashboards
   - ERR_MSG="Dashboard definitions are out of date. Please run 'make generate-dashboards'
     and commit changes!"
-  - if ! git diff --exit-code; then echo $ERR_MSG >&2; exit 1; fi
   - if [ ! -z "$(git status --porcelain)" ]; then echo $ERR_MSG >&2; exit 1; fi
   image: grafana/agent-build-image:0.21.0
   name: Regenerate dashboards
@@ -164,7 +163,6 @@ steps:
   - make generate-manifests
   - ERR_MSG="The environment manifests are out of date. Please run 'make generate-manifests'
     and commit changes!"
-  - if ! git diff --exit-code; then echo $ERR_MSG >&2; exit 1; fi
   - if [ ! -z "$(git status --porcelain)" ]; then echo $ERR_MSG >&2; exit 1; fi
   image: grafana/agent-build-image:0.21.0
   name: Regenerate environment manifests
@@ -937,6 +935,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: 445c17d5ead5f2acc938ac147cc0c706c23adc79a40a8fb2fe10b52aa09894af
+hmac: 07972f383c7b4e3ccc3a317e8af2490e90006345e536342916de14079eda8881
 
 ...

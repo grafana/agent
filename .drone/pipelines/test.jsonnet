@@ -30,9 +30,7 @@ local pipelines = import '../util/pipelines.jsonnet';
       commands: [
         'make generate-dashboards',
         'ERR_MSG="Dashboard definitions are out of date. Please run \'make generate-dashboards\' and commit changes!"',
-        // "git diff" checks if existing files were modified
-        'if ! git diff --exit-code; then echo $ERR_MSG >&2; exit 1; fi',
-        // "git status" checks if new (untracked) files were added
+        // "git status --porcelain" reports if there's any new, modified, or deleted files.
         'if [ ! -z "$(git status --porcelain)" ]; then echo $ERR_MSG >&2; exit 1; fi',
       ],
     }],
@@ -49,9 +47,7 @@ local pipelines = import '../util/pipelines.jsonnet';
       commands: [
         'make generate-manifests',
         'ERR_MSG="The environment manifests are out of date. Please run \'make generate-manifests\' and commit changes!"',
-        // "git diff" checks if existing files were modified
-        'if ! git diff --exit-code; then echo $ERR_MSG >&2; exit 1; fi',
-        // "git status" checks if new (untracked) files were added
+        // "git status --porcelain" reports if there's any new, modified, or deleted files.
         'if [ ! -z "$(git status --porcelain)" ]; then echo $ERR_MSG >&2; exit 1; fi',
       ],
     }],
