@@ -564,13 +564,13 @@ func (d *decoder) decodeObjectToStruct(val Value, rt reflect.Value, fields *obje
 		switch fields.Has(key) {
 		case objectKeyTypeInvalid:
 			return MissingKeyError{Value: value, Missing: key}
-		case objectKeyTypeNestedField:
+		case objectKeyTypeNestedField: // Block with multiple name fragments
 			next, _ := fields.NestedField(key)
-			// Recruse the call with the inner value.
+			// Recurse the call with the inner value.
 			if err := d.decodeObjectToStruct(value, rt, next, decodedLabel); err != nil {
 				return err
 			}
-		case objectKeyTypeField:
+		case objectKeyTypeField: // Single-name fragment
 			targetField, _ := fields.Field(key)
 			targetValue := reflectutil.GetOrAlloc(rt, targetField)
 
