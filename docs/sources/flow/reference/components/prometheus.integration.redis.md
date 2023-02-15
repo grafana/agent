@@ -28,7 +28,7 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `redis_addr`                  | `string`   | Address (host and port) of the Redis instance to connect to. This can be a local Redis instance (e.g., `localhost:6379`) or the address of a remote server. | | yes
 `redis_user`                  | `string`   | User name to use for authentication (Redis ACL for Redis 6.0 and newer).  | | no
-`redis_password`              | `string`   | Password of the redis instance. | | no
+`redis_password`              | `string`   | Password of the Redis instance. | | no
 `redis_password_file`         | `string`   | Path of a file containing a passord. If this is defined, it takes precedece over redis_password. | | no
 `redis_password_map_file`     | `string`   | Path of a file containing a JSON object which maps Redis URIs to passwords (e.g. `{"redis://localhost:6379": "sample_password"}`). | | no
 `namespace`                   | `string`   | Namespace for the metrics.  | `"redis"` | no
