@@ -30,7 +30,7 @@ Name | Type | Description | Default | Required
 `redis_user`                  | `string`   | User name to use for authentication (Redis ACL for Redis 6.0 and newer).  | | no
 `redis_password`              | `string`   | Password of the Redis instance. | | no
 `redis_password_file`         | `string`   | Path of a file containing a password. If defined, it takes precedence over redis_password. | | no
-`redis_password_map_file`     | `string`   | Path of a file containing a JSON object which maps Redis URIs to passwords (e.g. `{"redis://localhost:6379": "sample_password"}`). | | no
+`redis_password_map_file`     | `string`   | Path of a file containing a JSON object which maps Redis URIs to passwords (e.g., `{"redis://localhost:6379": "sample_password"}`). | | no
 `namespace`                   | `string`   | Namespace for the metrics.  | `"redis"` | no
 `config_command`              | `string`   | What to use for the CONFIG command. | `"CONFIG"` | no
 `check_keys`                  | `string`   | Comma separated list of key-patterns to export value and length/size, searched for with SCAN. | | no
