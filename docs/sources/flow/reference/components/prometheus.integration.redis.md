@@ -52,7 +52,7 @@ Name | Type | Description | Default | Required
 `export_client_port`          | `bool`     | Whether to include the client's port when exporting the client list. Note that including this will increase the cardinality of all redis metrics. | | no
 `redis_metrics_only`          | `bool`     | Whether to also export go runtime metrics. | | no
 `ping_on_connect`             | `bool`     | Whether to ping the redis instance after connecting. | | no
-`incl_system_metrics`         | `bool`     | Whether to include system metrics like e.g. redis_total_system_memory_bytes. | | no
+`incl_system_metrics`         | `bool`     | Whether to include system metrics, for example, redis_total_system_memory_bytes. | | no
 `skip_tls_verification`       | `bool`     | Whether to to skip TLS verification. | | no
 
 
