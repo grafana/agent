@@ -71,7 +71,7 @@ spec:
     metadata:
       labels:
         name: grafana-agent
-        spec:
+    spec:
       containers:
       - args:
         - -config.expand-env=true
@@ -80,9 +80,9 @@ spec:
         - -server.http.address=0.0.0.0:80
         env:
         - name: HOSTNAME
-           valueFrom:
+          valueFrom:
             fieldRef:
-              fieldPath: spec.nodeName  
+              fieldPath: spec.nodeName
         image: grafana/agent:v0.31.2
         imagePullPolicy: IfNotPresent
         name: grafana-agent
@@ -111,5 +111,5 @@ spec:
       accessModes:
       - ReadWriteOnce
       resources:
-             requests:
+        requests:
           storage: 5Gi
