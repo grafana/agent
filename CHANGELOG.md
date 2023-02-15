@@ -16,6 +16,9 @@ Main (unreleased)
   - `diskstats_ignored_devices` is now `diskstats_device_exclude` in agent configuration.
   - `ignored_devices` is now `device_exclude` in flow configuration.
 
+- A number of components were updated now that type squashing is implemented in river. Please review the component docs.
+  - `prometheus.scrape` (@erikbaranowski)
+
 ### Features
 
 - New integrations:
