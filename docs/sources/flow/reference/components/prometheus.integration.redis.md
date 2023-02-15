@@ -38,7 +38,7 @@ Name | Type | Description | Default | Required
 `check_key_groups_batch_size` | `int`      | Check key or key groups batch size hint for the underlying SCAN. The option name reflects key groups for backwards compatibility, but this applies to both key and key groups. | `10000` | no
 `max_distinct_key_groups`     | `int`      | The maximum number of distinct key groups with the most memory utilization to present as distinct metrics per database. The leftover key groups are aggregated in the 'overflow' bucket. | `100` | no
 `check_single_keys`           | `string`   | Comma-separated list of single keys to export value and length/size. | | no
-`check_streams`               | `string`   | Comma separated list of stream-patterns to export info about streams, groups and consumers, searched for with SCAN. | | no
+`check_streams`               | `string`   | Comma-separated list of stream-patterns to export info about streams, groups, and consumers to search for with SCAN. | | no
 `check_single_streams`        | `string`   | Comma separated list of single streams to export info about streams, groups and consumers. | | no
 `count_keys`                  | `string`   | Comma separated list of individual keys to export counts for. | | no
 `script_path`                 | `string`   | Path to Lua Redis script for collecting extra metrics. | | no
