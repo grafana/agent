@@ -11,7 +11,7 @@ title: prometheus.​integration.redis
 
 # prometheus.integration.redis
 The `prometheus.integration.redis` component embeds
-[redis_exporter](github.com/oliver006/redis_exporter) for collecting metrics from a redis database.
+[redis_exporter](https://github.com/oliver006/redis_exporter) for collecting metrics from a redis database.
 
 ## Usage
 
