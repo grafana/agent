@@ -60,12 +60,12 @@ Name | Type | Description | Default | Required
 `follow_redirects`         | `bool`     | Whether redirects returned by the server should be followed. | `true` | no
 `enable_http2`             | `bool`     | Whether HTTP2 is supported for requests. | `true` | no
 
-Only 1 of the following arguments or blocks can be provided
-- `bearer_token`
-- `bearer_token_file`
-- `basic_auth`
-- `authorization`
-- `oauth2`
+At most one of the following can be provided:
+- [`bearer_token` argument](#Arguments).
+- [`bearer_token_file` argument](#Arguments). 
+- [`basic_auth` block][basic_auth].
+- [`authorization` block][authorization].
+- [`oauth2` block][oauth2].
 
 ## Blocks
 
