@@ -64,7 +64,7 @@ Name      | Type                | Description
 --------- | ------------------- | -----------
 `targets` | `list(map(string))` | The targets that can be used to collect `redis` metrics.
 
-For example, the `targets` could either be passed to a `prometheus.relabel`
+For example, `targets` can either be passed to a `prometheus.relabel`
 component to rewrite the metrics' label set, or to a `prometheus.scrape`
 component that collects the exposed metrics.
 
