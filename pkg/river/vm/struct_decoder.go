@@ -154,7 +154,7 @@ func (st *structDecoder) decodeAttr(attr *ast.AttributeStmt, rv reflect.Value, s
 
 	// We're reconverting our reflect.Value back into an interface{}, so we
 	// need to also turn it back into a pointer for decoding.
-	field := reflectutil.FieldWalk(rv, tf.Index, true)
+	field := reflectutil.GetOrAlloc(rv, tf)
 	if err := value.Decode(val, field.Addr().Interface()); err != nil {
 		// TODO(rfratto): get error as diagnostics.
 		return err
@@ -182,7 +182,7 @@ func (st *structDecoder) decodeBlock(block *ast.BlockStmt, rv reflect.Value, sta
 		}}
 	}
 
-	field := reflectutil.FieldWalk(rv, tf.Index, true)
+	field := reflectutil.GetOrAlloc(rv, tf)
 	decodeField := prepareDecodeValue(field)
 
 	switch decodeField.Kind() {

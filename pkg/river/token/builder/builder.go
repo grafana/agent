@@ -137,7 +137,7 @@ func getBlockLabel(rv reflect.Value) string {
 	tags := rivertags.Get(rv.Type())
 	for _, tag := range tags {
 		if tag.Flags&rivertags.FlagLabel != 0 {
-			return reflectutil.FieldWalk(rv, tag.Index, false).String()
+			return reflectutil.Get(rv, tag).String()
 		}
 	}
 
@@ -158,7 +158,7 @@ func (b *Body) encodeFields(rv reflect.Value) {
 	fields := rivertags.Get(rv.Type())
 
 	for _, field := range fields {
-		fieldVal := reflectutil.FieldWalk(rv, field.Index, false)
+		fieldVal := reflectutil.Get(rv, field)
 		b.encodeField(field, fieldVal)
 	}
 }
