@@ -51,9 +51,11 @@ Main (unreleased)
 - Flow: the `loki.process` component now implements all the same processing
   stages as Promtail's pipelines. (@tpaschalis)
 
-- Flow: new metric for `prometheus.scrape` - `agent_prometheus_scrape_targets_gauge`. (@ptodev)
+- Flow: new metric for `prometheus.scrape` -
+  `agent_prometheus_scrape_targets_gauge`. (@ptodev)
 
-- Flow: new metric for `prometheus.scrape` and `prometheus.relabel` - `agent_prometheus_forwarded_samples_total`. (@ptodev)
+- Flow: new metric for `prometheus.scrape` and `prometheus.relabel` -
+  `agent_prometheus_forwarded_samples_total`. (@ptodev)
 
 - Flow: add `constants` into the standard library to expose the hostname, OS,
   and architecture of the system Grafana Agent is running on. (@rfratto)
