@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"strings"
 	"time"
 
 	"github.com/grafana/agent/component"
@@ -51,14 +52,14 @@ type Config struct {
 	RedisPasswordMapFile    string            `river:"redis_password_map_file,attr,optional"`
 	Namespace               string            `river:"namespace,attr,optional"`
 	ConfigCommand           string            `river:"config_command,attr,optional"`
-	CheckKeys               string            `river:"check_keys,attr,optional"`
-	CheckKeyGroups          string            `river:"check_key_groups,attr,optional"`
+	CheckKeys               []string          `river:"check_keys,attr,optional"`
+	CheckKeyGroups          []string          `river:"check_key_groups,attr,optional"`
 	CheckKeyGroupsBatchSize int64             `river:"check_key_groups_batch_size,attr,optional"`
 	MaxDistinctKeyGroups    int64             `river:"max_distinct_key_groups,attr,optional"`
-	CheckSingleKeys         string            `river:"check_single_keys,attr,optional"`
-	CheckStreams            string            `river:"check_streams,attr,optional"`
-	CheckSingleStreams      string            `river:"check_single_streams,attr,optional"`
-	CountKeys               string            `river:"count_keys,attr,optional"`
+	CheckSingleKeys         []string          `river:"check_single_keys,attr,optional"`
+	CheckStreams            []string          `river:"check_streams,attr,optional"`
+	CheckSingleStreams      []string          `river:"check_single_streams,attr,optional"`
+	CountKeys               []string          `river:"count_keys,attr,optional"`
 	ScriptPath              string            `river:"script_path,attr,optional"`
 	ConnectionTimeout       time.Duration     `river:"connection_timeout,attr,optional"`
 	TLSClientKeyFile        string            `river:"tls_client_key_file,attr,optional"`
@@ -92,14 +93,14 @@ func (c *Config) Convert() *redis_exporter.Config {
 		RedisPasswordMapFile:    c.RedisPasswordMapFile,
 		Namespace:               c.Namespace,
 		ConfigCommand:           c.ConfigCommand,
-		CheckKeys:               c.CheckKeys,
-		CheckKeyGroups:          c.CheckKeyGroups,
+		CheckKeys:               strings.Join(c.CheckKeys, ","),
+		CheckKeyGroups:          strings.Join(c.CheckKeyGroups, ","),
 		CheckKeyGroupsBatchSize: c.CheckKeyGroupsBatchSize,
 		MaxDistinctKeyGroups:    c.MaxDistinctKeyGroups,
-		CheckSingleKeys:         c.CheckSingleKeys,
-		CheckStreams:            c.CheckStreams,
-		CheckSingleStreams:      c.CheckSingleStreams,
-		CountKeys:               c.CountKeys,
+		CheckSingleKeys:         strings.Join(c.CheckSingleKeys, ","),
+		CheckStreams:            strings.Join(c.CheckStreams, ","),
+		CheckSingleStreams:      strings.Join(c.CheckSingleStreams, ","),
+		CountKeys:               strings.Join(c.CountKeys, ","),
 		ScriptPath:              c.ScriptPath,
 		ConnectionTimeout:       c.ConnectionTimeout,
 		TLSClientKeyFile:        c.TLSClientKeyFile,

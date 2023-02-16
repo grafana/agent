@@ -26,34 +26,34 @@ Omitted fields take their default values.
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`redis_addr`                  | `string`   | Address (host and port) of the Redis instance to connect to. This can be a local Redis instance (e.g., `localhost:6379`) or the address of a remote server. | | yes
-`redis_user`                  | `string`   | User name to use for authentication (Redis ACL for Redis 6.0 and newer).  | | no
-`redis_password`              | `string`   | Password of the Redis instance. | | no
-`redis_password_file`         | `string`   | Path of a file containing a password. If defined, it takes precedence over redis_password. | | no
-`redis_password_map_file`     | `string`   | Path of a file containing a JSON object which maps Redis URIs to passwords (e.g., `{"redis://localhost:6379": "sample_password"}`). | | no
-`namespace`                   | `string`   | Namespace for the metrics.  | `"redis"` | no
-`config_command`              | `string`   | What to use for the CONFIG command. | `"CONFIG"` | no
-`check_keys`                  | `string`   | Comma-separated list of key-patterns to export value and length/size, searched for with SCAN. | | no
-`check_key_groups`            | `string`   | Comma-separated list of Lua regular expressions (regex) for grouping keys. When unset, no key groups are made. | | no
-`check_key_groups_batch_size` | `int`      | Check key or key groups batch size hint for the underlying SCAN. The option name reflects key groups for backwards compatibility, but this applies to both key and key groups. | `10000` | no
-`max_distinct_key_groups`     | `int`      | The maximum number of distinct key groups with the most memory utilization to present as distinct metrics per database. The leftover key groups are aggregated in the 'overflow' bucket. | `100` | no
-`check_single_keys`           | `string`   | Comma-separated list of single keys to export value and length/size. | | no
-`check_streams`               | `string`   | Comma-separated list of stream-patterns to export info about streams, groups, and consumers to search for with SCAN. | | no
-`check_single_streams`        | `string`   | Comma-separated list of single streams to export info about streams, groups, and consumers. | | no
-`count_keys`                  | `string`   | Comma-separated list of individual keys to export counts for. | | no
-`script_path`                 | `string`   | Path to Lua Redis script for collecting extra metrics. | | no
-`connection_timeout`          | `duration` | Timeout for connection to Redis instance (in Golang duration format). | `"15s"` | no
-`tls_client_key_file`         | `string`   | Name of the client key file (including full path) if the server requires TLS client authentication. | | no
-`tls_client_cert_file`        | `string`   | Name of the client certificate file (including full path) if the server requires TLS client authentication. | | no
-`tls_ca_cert_file`            | `string`   | Name of the CA certificate file (including full path) if the server requires TLS client authentication. | | no
-`set_client_name`             | `bool`     | Whether to set client name to redis_exporter. | `true` | no
-`is_tile38`                   | `bool`     | Whether to scrape Tile38-specific metrics. | | no
-`export_client_list`          | `bool`     | Whether to scrape Client List specific metrics. | | no
-`export_client_port`          | `bool`     | Whether to include the client's port when exporting the client list. Note that including the port increases the cardinality of all Redis metrics. | | no
-`redis_metrics_only`          | `bool`     | Whether to just export metrics or to also export go runtime metrics. | | no
-`ping_on_connect`             | `bool`     | Whether to ping the Redis instance after connecting. | | no
-`incl_system_metrics`         | `bool`     | Whether to include system metrics, for example, redis_total_system_memory_bytes. | | no
-`skip_tls_verification`       | `bool`     | Whether to to skip TLS verification. | | no
+`redis_addr`                  | `string`    | Address (host and port) of the Redis instance to connect to. This can be a local Redis instance (e.g., `localhost:6379`) or the address of a remote server. | | yes
+`redis_user`                  | `string`       | User name to use for authentication (Redis ACL for Redis 6.0 and newer).  | | no
+`redis_password`              | `string`       | Password of the Redis instance. | | no
+`redis_password_file`         | `string`       | Path of a file containing a password. If defined, it takes precedence over redis_password. | | no
+`redis_password_map_file`     | `string`       | Path of a file containing a JSON object which maps Redis URIs to passwords (e.g., `{"redis://localhost:6379": "sample_password"}`). | | no
+`namespace`                   | `string`       | Namespace for the metrics.  | `"redis"` | no
+`config_command`              | `string`       | What to use for the CONFIG command. | `"CONFIG"` | no
+`check_keys`                  | `list(string)` | List of key-patterns to export value and length/size, searched for with SCAN. | | no
+`check_key_groups`            | `list(string)` | List of Lua regular expressions (regex) for grouping keys. When unset, no key groups are made. | | no
+`check_key_groups_batch_size` | `int`          | Check key or key groups batch size hint for the underlying SCAN. The option name reflects key groups for backwards compatibility, but this applies to both key and key groups. | `10000` | no
+`max_distinct_key_groups`     | `int`          | The maximum number of distinct key groups with the most memory utilization to present as distinct metrics per database. The leftover key groups are aggregated in the 'overflow' bucket. | `100` | no
+`check_single_keys`           | `list(string)` | List of single keys to export value and length/size. | | no
+`check_streams`               | `list(string)` | List of stream-patterns to export info about streams, groups, and consumers to search for with SCAN. | | no
+`check_single_streams`        | `list(string)` | List of single streams to export info about streams, groups, and consumers. | | no
+`count_keys`                  | `list(string)` | List of individual keys to export counts for. | | no
+`script_path`                 | `string`       | Path to Lua Redis script for collecting extra metrics. | | no
+`connection_timeout`          | `duration`     | Timeout for connection to Redis instance (in Golang duration format). | `"15s"` | no
+`tls_client_key_file`         | `string`       | Name of the client key file (including full path) if the server requires TLS client authentication. | | no
+`tls_client_cert_file`        | `string`       | Name of the client certificate file (including full path) if the server requires TLS client authentication. | | no
+`tls_ca_cert_file`            | `string`       | Name of the CA certificate file (including full path) if the server requires TLS client authentication. | | no
+`set_client_name`             | `bool`         | Whether to set client name to redis_exporter. | `true` | no
+`is_tile38`                   | `bool`         | Whether to scrape Tile38-specific metrics. | | no
+`export_client_list`          | `bool`         | Whether to scrape Client List specific metrics. | | no
+`export_client_port`          | `bool`         | Whether to include the client's port when exporting the client list. Note that including the port increases the cardinality of all Redis metrics. | | no
+`redis_metrics_only`          | `bool`         | Whether to just export metrics or to also export go runtime metrics. | | no
+`ping_on_connect`             | `bool`         | Whether to ping the Redis instance after connecting. | | no
+`incl_system_metrics`         | `bool`         | Whether to include system metrics, for example, redis_total_system_memory_bytes. | | no
+`skip_tls_verification`       | `bool`         | Whether to to skip TLS verification. | | no
 
 
 
