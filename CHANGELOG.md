@@ -59,6 +59,12 @@ Main (unreleased)
 
 - Flow: add timeout to loki.source.podlogs controller setup. (@polyrain)
 
+### Bugfixes
+
+- Flow: fix an error where some error messages that crossed multiple lines
+  added extra an extra `|` character when displaying the source file on the
+  starting line. (@rfratto)
+
 ### Other changes
 
 - Use Go 1.20 for builds. Official release binaries are still produced using Go
