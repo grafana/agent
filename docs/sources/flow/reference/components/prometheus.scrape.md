@@ -54,6 +54,7 @@ Name | Type | Description | Default | Required
 `label_limit`              | `uint`     | More than this many labels post metric-relabeling causes the scrape to fail. | | no
 `label_name_length_limit`  | `uint`     | More than this label name length post metric-relabeling causes the scrape to fail. | | no
 `label_value_length_limit` | `uint`     | More than this label value length post metric-relabeling causes the scrape to fail. | | no
+
 {{< docs/shared lookup="flow/reference/components/http-client-config-block.md" source="agent" >}}
 
 ## Blocks
