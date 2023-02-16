@@ -284,7 +284,7 @@ volumes:
   name: docker
 ---
 kind: pipeline
-name: Check Windows containers
+name: Check Windows container (grafana/agent)
 platform:
   arch: amd64
   os: windows
@@ -292,7 +292,8 @@ platform:
 steps:
 - commands:
   - git config --global --add safe.directory C:/drone/src/
-  - '& "C:/Program Files/git/bin/bash.exe" -c ./tools/ci/docker-containers-windows'
+  - '& "C:/Program Files/git/bin/bash.exe" -c ./tools/ci/docker-containers-windows
+    agent'
   image: grafana/agent-build-image:0.21.0-windows
   name: Build container
   volumes:
@@ -302,7 +303,34 @@ trigger:
   event:
   - pull_request
   paths:
-  - '**/Dockerfile.windows'
+  - cmd/grafana-agent/Dockerfile.windows
+type: docker
+volumes:
+- host:
+    path: //./pipe/docker_engine/
+  name: docker
+---
+kind: pipeline
+name: Check Windows container (grafana/agentctl)
+platform:
+  arch: amd64
+  os: windows
+  version: "1809"
+steps:
+- commands:
+  - git config --global --add safe.directory C:/drone/src/
+  - '& "C:/Program Files/git/bin/bash.exe" -c ./tools/ci/docker-containers-windows
+    agentctl'
+  image: grafana/agent-build-image:0.21.0-windows
+  name: Build container
+  volumes:
+  - name: docker
+    path: //./pipe/docker_engine/
+trigger:
+  event:
+  - pull_request
+  paths:
+  - cmd/grafana-agentctl/Dockerfile.windows
 type: docker
 volumes:
 - host:
@@ -1125,6 +1153,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: 6372837ad4f0f3991e5d8088b08944ac544b48059168498a4f458f17b5d990d1
+hmac: e258038a0713d5b28c845dd6fb5bc610abf76545e52cd70b2878708577865a68
 
 ...
