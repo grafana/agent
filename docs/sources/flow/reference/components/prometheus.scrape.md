@@ -54,8 +54,18 @@ Name | Type | Description | Default | Required
 `label_limit`              | `uint`     | More than this many labels post metric-relabeling causes the scrape to fail. | | no
 `label_name_length_limit`  | `uint`     | More than this label name length post metric-relabeling causes the scrape to fail. | | no
 `label_value_length_limit` | `uint`     | More than this label value length post metric-relabeling causes the scrape to fail. | | no
+`bearer_token` | `secret` | Bearer token to authenticate with. | | no
+`bearer_token_file` | `string` | File containing a bearer token to authenticate with. | | no
+`proxy_url` | `string` | HTTP proxy to proxy requests through. | | no
+`follow_redirects` | `bool` | Whether redirects returned by the server should be followed. | `true` | no
+`enable_http2` | `bool` | Whether HTTP2 is supported for requests. | `true` | no
 
-{{< docs/shared lookup="flow/reference/components/http-client-config-block.md" source="agent" >}}
+ At most one of the following can be provided:
+ - [`bearer_token` argument](#arguments).
+ - [`bearer_token_file` argument](#arguments). 
+ - [`basic_auth` block][basic_auth].
+ - [`authorization` block][authorization].
+ - [`oauth2` block][oauth2].
 
 ## Blocks
 
@@ -73,6 +83,7 @@ The `>` symbol indicates deeper levels of nesting. For example,
 `oauth2 > tls_config` refers to a `tls_config` block defined inside
 an `oauth2` block.
 
+[arguments]: #arguments
 [basic_auth]: #basic_auth-block
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
