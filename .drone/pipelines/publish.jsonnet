@@ -71,7 +71,7 @@ local windows_containers_jobs = std.map(function(container) (
       },
       commands: [
         'git config --global --add safe.directory C:/drone/src/',
-        '& "C:/Program Files/git/bin/bash.exe" -c ./tools/ci/docker-containers-windows %s' % container,
+        '& "C:/Program Files/git/bin/bash.exe" ./tools/ci/docker-containers-windows %s' % container,
       ],
     }],
     volumes: [{

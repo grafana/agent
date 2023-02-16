@@ -49,7 +49,7 @@ local windows_containers = [
       }],
       commands: [
         'git config --global --add safe.directory C:/drone/src/',
-        '& "C:/Program Files/git/bin/bash.exe" -c ./tools/ci/docker-containers-windows %s' % container.argument,
+        '& "C:/Program Files/git/bin/bash.exe" ./tools/ci/docker-containers-windows %s' % container.argument,
       ],
     }],
     volumes: [{
