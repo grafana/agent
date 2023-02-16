@@ -17,5 +17,3 @@ FROM mcr.microsoft.com/windows/nanoserver:1809
 COPY --from=builder /src/agent/build/grafana-agentctl /bin/grafana-agentctl
 
 ENTRYPOINT ["/bin/grafana-agentctl"]
-
-# testing check windows containers job
