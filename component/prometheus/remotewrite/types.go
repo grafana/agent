@@ -79,7 +79,7 @@ type EndpointOptions struct {
 	Headers              map[string]string       `river:"headers,attr,optional"`
 	SendExemplars        bool                    `river:"send_exemplars,attr,optional"`
 	SendNativeHistograms bool                    `river:"send_native_histograms,attr,optional"`
-	HTTPClientConfig     *types.HTTPClientConfig `river:"http_client_config,block,optional"`
+	HTTPClientConfig     *types.HTTPClientConfig `river:",squash"`
 	QueueOptions         *QueueOptions           `river:"queue_config,block,optional"`
 	MetadataOptions      *MetadataOptions        `river:"metadata_config,block,optional"`
 }
@@ -89,7 +89,17 @@ func (r *EndpointOptions) UnmarshalRiver(f func(v interface{}) error) error {
 	*r = DefaultEndpointOptions
 
 	type arguments EndpointOptions
-	return f((*arguments)(r))
+	err := f((*arguments)(r))
+	if err != nil {
+		return err
+	}
+
+	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
+	if r.HTTPClientConfig != nil {
+		return r.HTTPClientConfig.Validate()
+	}
+
+	return nil
 }
 
 // QueueOptions handles the low level queue config options for a remote_write
