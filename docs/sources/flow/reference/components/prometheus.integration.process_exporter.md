@@ -16,7 +16,7 @@ The `prometheus.integration.process_exporter` component embeds
 ## Usage
 
 ```river
-prometheus.integration.process_exporter "LABEL"{
+prometheus.integration.process_exporter "LABEL" {
 }
 ```
 
@@ -31,10 +31,17 @@ Name | Type | Description | Default | Required
 `track_threads`     | `bool`                   | Report on per-threadname metrics as well. | `true` | no
 `gather_smaps`      | `bool`                   | Gather metrics from the smaps file, which contains proportional resident memory size. | `true` | no
 `recheck_on_scrape` | `bool`                   | Recheck process names on each scrape. | `true` | no
-`process_names`     | `process_matcher_config` | A collection of matching rules to use for deciding which processes to monitor. Each config can match multiple processes, which will be tracked as a single process "group."
 
+## Blocks
+The following blocks are supported inside the definition of `prometheus.integration.process_exporter`:
 
-### `process_matcher_config`
+Hierarchy        | Block      | Description | Required
+---------------- | ---------- | ----------- | --------
+process_names          | [process_names][]  | A collection of matching rules to use for deciding which processes to monitor. Each config can match multiple processes, which will be tracked as a single process "group." | no
+
+[process_names]: #process_names-block
+
+### process_names block
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `name`       | `string`                         | The name to use for identifying the process group name in the metric. By default, it uses the base path of the executable. (See below for template variable details). | `{{.ExeBase}}` | no
