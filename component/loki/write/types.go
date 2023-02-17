@@ -25,7 +25,7 @@ type EndpointOptions struct {
 	MaxBackoff        time.Duration           `river:"max_backoff_period,attr,optional"`  // increase exponentially to this level
 	MaxBackoffRetries int                     `river:"max_backoff_retries,attr,optional"` // give up after this many; zero means infinite retries
 	TenantID          string                  `river:"tenant_id,attr,optional"`
-	HTTPClientConfig  *types.HTTPClientConfig `river:"http_client_config,block,optional"`
+	HTTPClientConfig  *types.HTTPClientConfig `river:",squash"`
 }
 
 // DefaultEndpointOptions defines the default settings for sending logs to a
@@ -53,6 +53,10 @@ func (r *EndpointOptions) UnmarshalRiver(f func(v interface{}) error) error {
 
 	if _, err := url.Parse(r.URL); err != nil {
 		return fmt.Errorf("failed to parse remote url %q: %w", r.URL, err)
+	}
+
+	if r.HTTPClientConfig != nil {
+		return r.HTTPClientConfig.Validate()
 	}
 
 	return nil
