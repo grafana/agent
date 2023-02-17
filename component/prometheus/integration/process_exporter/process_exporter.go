@@ -11,19 +11,20 @@ import (
 func init() {
 	component.Register(component.Registration{
 		Name:    "prometheus.integration.process_exporter",
-		Args:    Config{},
+		Args:    Arguments{},
 		Exports: integration.Exports{},
 		Build:   integration.New(createIntegration, "process_exporter"),
 	})
 }
 
 func createIntegration(opts component.Options, args component.Arguments) (integrations.Integration, error) {
-	cfg := args.(Config)
+	cfg := args.(Arguments)
 	return cfg.Convert().NewIntegration(opts.Logger)
 }
 
-// DefaultConfig holds the default settings for the process_exporter integration.
-var DefaultConfig = Config{
+// DefaultArguments holds the default arguments for the prometheus.integration.process_exporter
+// component.
+var DefaultArguments = Arguments{
 	ProcFSPath: "/proc",
 	Children:   true,
 	Threads:    true,
@@ -31,9 +32,9 @@ var DefaultConfig = Config{
 	Recheck:    false,
 }
 
-// Config is the base config for this component.
-type Config struct {
-	ProcessExporter MatcherRules `river:"process_names,block,optional"`
+// Arguments configures the prometheus.integration.process_exporter component
+type Arguments struct {
+	ProcessExporter []MatcherGroup `river:"process_names,block,optional"`
 
 	ProcFSPath string `river:"procfs_path,attr,optional"`
 	Children   bool   `river:"track_children,attr,optional"`
@@ -42,35 +43,34 @@ type Config struct {
 	Recheck    bool   `river:"recheck_on_scrape,attr,optional"`
 }
 
-// MatcherGroup and MatcherRules taken and converted to River from github.com/ncabatoff/process-exporter/config
+// MatcherGroup taken and converted to River from github.com/ncabatoff/process-exporter/config
 type MatcherGroup struct {
 	Name         string   `river:"name,attr,optional"`
 	CommRules    []string `river:"comm,attr,optional"`
 	ExeRules     []string `river:"exe,attr,optional"`
 	CmdlineRules []string `river:"cmdline,attr,optional"`
 }
-type MatcherRules []MatcherGroup
 
 // UnmarshalRiver implements River unmarshalling for Config.
-func (c *Config) UnmarshalRiver(f func(interface{}) error) error {
-	*c = DefaultConfig
+func (c *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+	*c = DefaultArguments
 
-	type cfg Config
+	type cfg Arguments
 	return f((*cfg)(c))
 }
 
-func (c *Config) Convert() *process_exporter.Config {
+func (a *Arguments) Convert() *process_exporter.Config {
 	return &process_exporter.Config{
-		ProcessExporter: c.ProcessExporter.Convert(),
-		ProcFSPath:      c.ProcFSPath,
-		Children:        c.Children,
-		Threads:         c.Threads,
-		SMaps:           c.SMaps,
-		Recheck:         c.Recheck,
+		ProcessExporter: convertMatcherGroups(a.ProcessExporter),
+		ProcFSPath:      a.ProcFSPath,
+		Children:        a.Children,
+		Threads:         a.Threads,
+		SMaps:           a.SMaps,
+		Recheck:         a.Recheck,
 	}
 }
 
-func (m MatcherRules) Convert() exporter_config.MatcherRules {
+func convertMatcherGroups(m []MatcherGroup) exporter_config.MatcherRules {
 	var out exporter_config.MatcherRules
 	for _, v := range m {
 		out = append(out, exporter_config.MatcherGroup(v))
