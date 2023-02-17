@@ -205,3 +205,22 @@ func Test_Unmarshal_Config(t *testing.T) {
 	require.Equal(t, time.Second*5, arg.Endpoints[1].RemoteTimeout)
 	require.Equal(t, "bar", arg.ExternalLabels["foo"])
 }
+
+func TestBadRiverConfig(t *testing.T) {
+	var exampleRiverConfig = `
+	endpoint {
+		url = "http://localhost:4100"
+		remote_timeout = "10s"
+		bearer_token = "token"
+		bearer_token_file = "/path/to/file.token"
+	}
+	external_labels = {
+		"foo" = "bar",
+	}
+`
+
+	// Make sure the squashed HTTPClientConfig Validate function is being utilized correctly
+	var args Arguments
+	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
+	require.ErrorContains(t, err, "at most one of bearer_token & bearer_token_file must be configured")
+}

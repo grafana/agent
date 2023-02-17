@@ -69,7 +69,7 @@ type EndpointOptions struct {
 	URL              string                   `river:"url,attr"`
 	RemoteTimeout    time.Duration            `river:"remote_timeout,attr,optional"`
 	Headers          map[string]string        `river:"headers,attr,optional"`
-	HTTPClientConfig *config.HTTPClientConfig `river:"http_client_config,block,optional"`
+	HTTPClientConfig *config.HTTPClientConfig `river:",squash"`
 }
 
 // UnmarshalRiver implements river.Unmarshaler.
@@ -77,7 +77,16 @@ func (r *EndpointOptions) UnmarshalRiver(f func(v interface{}) error) error {
 	*r = DefaultEndpointOptions()
 
 	type arguments EndpointOptions
-	return f((*arguments)(r))
+	err := f((*arguments)(r))
+	if err != nil {
+		return err
+	}
+
+	if r.HTTPClientConfig != nil {
+		return r.HTTPClientConfig.Validate()
+	}
+
+	return nil
 }
 
 // Component is the phlare.write component.
