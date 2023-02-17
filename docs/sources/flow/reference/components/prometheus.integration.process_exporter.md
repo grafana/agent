@@ -49,7 +49,7 @@ Name | Type | Description | Default | Required
 `exe`        | `list(string)`                   | A list of strings that match `argv[0]` for a process. If there are no slashes, only the basename of `argv[0]` needs to match. Otherwise, the name must be an exact match. For example, "postgres" may match any postgres binary, but `/usr/local/bin/postgres` will only match a postgres process with that exact path. If any of the strings match, the process will be tracked. | | no
 `cmdline`    | `list(string)`                   | A list of regular expressions applied to the `argv` of the process. Each regex here must match the corresponding argv for the process to be tracked. The first element that is matched is `argv[1]`. Regex captures are added to the .Matches map for use in the name. | | no
 
-The following template variables are available: 
+The `name` argument can use the following template variables: 
 - `{{.Comm}}`:      Basename of the original executable from /proc/\<pid\>/stat.
 - `{{.ExeBase}}`:   Basename of the executable from argv[0].
 - `{{.ExeFull}}`:   Fully qualified path of the executable.
