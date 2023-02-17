@@ -16,6 +16,9 @@ Main (unreleased)
   - `diskstats_ignored_devices` is now `diskstats_device_exclude` in agent configuration.
   - `ignored_devices` is now `device_exclude` in flow configuration.
 
+- Some blocks in Flow components have been merged with their parent block to make the block hierarchy smaller:
+  - `prometheus.scrape > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
+
 ### Features
 
 - New integrations:
@@ -75,6 +78,8 @@ v0.31.3 (2023-02-13)
 
 - `loki.source.cloudflare`: fix issue where `api_token` argument was not marked
   as a sensitive field. (@rfratto)
+
+- `oath2 > tls_config` was documented as a block but coded incorrectly as an attribute. This is now a block in code. This impacted `discovery.docker`, `discovery.kubernetes`, `loki.source.kubernetes`, `loki.write`, `mimir.rules.kubernetes`, `phlare.scrape`, `phlare.write`, `prometheus.remote_write`, `prometheus.scrape`, and `remote.http`  (@erikbaranowski)
 
 v0.31.2 (2023-02-08)
 --------------------
