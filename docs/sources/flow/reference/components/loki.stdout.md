@@ -38,7 +38,7 @@ Name | Type | Description
 
 ## Example
 
-This example creates a pipeline which reads log files from `/var/log` and
+This example creates a pipeline that reads log files from `/var/log` and
 prints log lines to stdout:
 
 ```river
