@@ -39,6 +39,8 @@ Name | Type | Description | Default | Required
  - [`authorization` block][authorization].
  - [`oauth2` block][oauth2].
 
+[arguments]: #arguments
+
 ## Blocks
 
 The following blocks are supported inside the definition of
@@ -56,7 +58,6 @@ The `>` symbol indicates deeper levels of nesting. For example,
 `oauth2 > tls_config` refers to a `tls_config` block defined inside
 an `oauth2` block.
 
-[arguments]: #arguments
 [filter]: #filter-block
 [basic_auth]: #basic_auth-block
 [authorization]: #authorization-block
