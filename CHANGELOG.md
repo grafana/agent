@@ -62,6 +62,13 @@ Main (unreleased)
 
 - Flow: add timeout to loki.source.podlogs controller setup. (@polyrain)
 
+- Flow: fix issues in `river fmt` where adding an inline comment on the same
+	line as a `[` or `{` would cause indentation issues on subsequent lines.
+	(@rfratto)
+
+- Flow: fix issues in `river fmt` where line comments in arrays would be given
+	the wrong identation level. (@rfratto)
+
 ### Other changes
 
 - Use Go 1.20 for builds. Official release binaries are still produced using Go
