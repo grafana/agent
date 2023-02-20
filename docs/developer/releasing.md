@@ -74,11 +74,11 @@ For a **new release candidate**, the release shepherd will:
 2. Create and push the release branch from the selected base commit:
 
    * The name of the release branch should be the name of the stable version we intend 
-   to release, e.g. `release-v0.31`.
-   * Release branches do not contain the `-rc.N` release candidate suffix. I.e. there 
-   is no branch called `release-v0.31-rc.0`.
-   * Release branches do not contain the patch version. I.e. there is no branch called 
-   `release-v0.31.0` or `release-v0.31.4`.
+   to release, such as `release-v0.31`.
+   * Release branches do not contain the `-rc.N` release candidate suffix. This means
+     there is no branch called `release-v0.31-rc.0`.
+   * Release branches do not contain the patch version. This means there is no 
+     branch called `release-v0.31.0` or `release-v0.31.4`.
 
 3. Create a PR to cherry-pick additional commits into the release branch as
    needed.
