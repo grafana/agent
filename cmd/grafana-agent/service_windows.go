@@ -47,7 +47,7 @@ func (m *AgentService) Execute(args []string, serviceRequests <-chan svc.ChangeR
 	changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
 
 	// After this point we can start using go-kit logging.
-	logger = server.NewWindowsEventLogger(&cfg.Server)
+	logger = server.NewWindowsEventLogger(cfg.Server)
 	util_log.Logger = logger
 
 	entrypointExit := make(chan error)
