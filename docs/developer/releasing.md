@@ -167,7 +167,7 @@ can come from forks.
 When creating a release **candidate** (i.e. an `-rc.N` version):
 
 * Add a new section in the CHANGELOG for the new release candidate and include 
-today's date. E.g. "v0.31.0-rc.0 (2023-01-26)".
+the date of the release, for example, "v0.31.0-rc.0 (2023-01-26)".
 * All items form the "unreleased" section will move to a new section for the upcoming release version.
 * See [here](https://github.com/grafana/agent/pull/2838/files) for an example pull request.
 * Sanity check that the CHANGELOG doesn't contain features which don't belong to it. Sometimes features get added to the wrong version in the CHANGELOG due to bad merges.
