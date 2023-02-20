@@ -35,13 +35,13 @@ type Loader struct {
 	components         []*ComponentNode
 	cache              *valueCache
 	blocks             []*ast.BlockStmt // Most recently loaded blocks, used for writing
-	cm                 *controllerMetrics
+	cm                 *ControllerMetrics
 	delegateComponents []*ComponentNode
 }
 
 // NewLoader creates a new Loader. Components built by the Loader will be built
 // with co for their options.
-func NewLoader(globals ComponentGlobals) *Loader {
+func NewLoader(globals ComponentGlobals, cm *ControllerMetrics) *Loader {
 	l := &Loader{
 		log:     globals.Logger,
 		tracer:  globals.TraceProvider,
@@ -50,11 +50,7 @@ func NewLoader(globals ComponentGlobals) *Loader {
 		graph:         &dag.Graph{},
 		originalGraph: &dag.Graph{},
 		cache:         newValueCache(),
-		cm:            newControllerMetrics(globals.Registerer),
-	}
-	cc := newControllerCollector(l)
-	if globals.Registerer != nil {
-		globals.Registerer.MustRegister(cc)
+		cm:            cm,
 	}
 	return l
 }

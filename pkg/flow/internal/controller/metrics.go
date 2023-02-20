@@ -2,17 +2,17 @@ package controller
 
 import "github.com/prometheus/client_golang/prometheus"
 
-// controllerMetrics contains the metrics for components controller
-type controllerMetrics struct {
+// ControllerMetrics contains the metrics for components controller
+type ControllerMetrics struct {
 	r prometheus.Registerer
 
 	controllerEvaluation    prometheus.Gauge
 	componentEvaluationTime prometheus.Histogram
 }
 
-// newControllerMetrics inits the metrics for the components controller
-func newControllerMetrics(r prometheus.Registerer) *controllerMetrics {
-	cm := controllerMetrics{r: r}
+// NewControllerMetrics inits the metrics for the components controller
+func NewControllerMetrics(r prometheus.Registerer) *ControllerMetrics {
+	cm := ControllerMetrics{r: r}
 
 	cm.controllerEvaluation = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: "agent_component_controller_evaluating",
@@ -36,13 +36,17 @@ func newControllerMetrics(r prometheus.Registerer) *controllerMetrics {
 }
 
 type controllerCollector struct {
-	l                      *Loader
+	ci                     ComponentInfos
 	runningComponentsTotal *prometheus.Desc
 }
 
-func newControllerCollector(l *Loader) prometheus.Collector {
+type ComponentInfos interface {
+	Components() []*ComponentNode
+}
+
+func NewControllerCollector(ci ComponentInfos) prometheus.Collector {
 	return &controllerCollector{
-		l: l,
+		ci: ci,
 		runningComponentsTotal: prometheus.NewDesc(
 			"agent_component_controller_running_components_total",
 			"Total number of running components.",
@@ -55,7 +59,7 @@ func newControllerCollector(l *Loader) prometheus.Collector {
 func (cc *controllerCollector) Collect(ch chan<- prometheus.Metric) {
 	componentsByHealth := make(map[string]int)
 
-	for _, component := range cc.l.Components() {
+	for _, component := range cc.ci.Components() {
 		health := component.CurrentHealth().Health.String()
 		componentsByHealth[health]++
 		component.register.Collect(ch)

@@ -76,7 +76,7 @@ type ComponentNode struct {
 	label             string
 	componentName     string
 	nodeID            string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
-	namespaceID       []string
+	namespaceID       ComponentID
 	namespaceCachedID string
 	reg               component.Registration
 	managedOpts       component.Options
@@ -166,15 +166,15 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode, delegate com
 	cn.register = wrapped
 	return component.Options{
 		ID:            cn.nodeID,
-		Logger:        log.With(globals.Logger, "component", cn.nodeID),
+		Logger:        log.With(globals.Logger, "component", cn.namespaceCachedID),
 		DataPath:      filepath.Join(globals.DataPath, cn.namespaceCachedID),
 		OnStateChange: cn.setExports,
 		Registerer: prometheus.WrapRegistererWith(prometheus.Labels{
-			"component_id": cn.nodeID,
+			"component_id": cn.namespaceCachedID,
 		}, wrapped),
-		Tracer:         wrapTracer(globals.TraceProvider, cn.namespaceCachedID),
+		Tracer:         WrapTracer(globals.TraceProvider, cn.namespaceCachedID),
 		HTTPListenAddr: globals.HTTPListenAddr,
-		HTTPPath:       fmt.Sprintf("/component/%s/", cn.nodeID),
+		HTTPPath:       fmt.Sprintf("/component/%s/", cn.namespaceCachedID),
 		Delegate:       delegate,
 	}
 }
