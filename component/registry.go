@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/regexp"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/trace"
@@ -75,7 +76,7 @@ type Options struct {
 }
 
 type DelegateHandler interface {
-	LoadSubgraph(parent DelegateComponent, config []byte) ([]Component, error)
+	LoadSubgraph(parent DelegateComponent, config []byte) ([]Component, diag.Diagnostics, error)
 }
 
 // Registration describes a single component.

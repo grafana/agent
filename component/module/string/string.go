@@ -14,7 +14,7 @@ func init() {
 	component.RegisterDelegate(component.Registration{
 		Name: "module.string",
 		Args: Arguments{},
-		Exports: Exports{Exports: func(_ string) interface{} {
+		Exports: Exports{Exports: func(name string) interface{} {
 			return nil
 		}},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
@@ -35,6 +35,7 @@ type Component struct {
 	components       []component.Component
 	argComponents    map[string]*argument.Component
 	exportComponents map[string]*export.Component
+	loadedOnce       bool
 }
 
 func (c *Component) ID() string {
@@ -46,7 +47,7 @@ func (c *Component) IDs() []string {
 
 // Run starts the component.
 func (c *Component) Run(ctx context.Context) error {
-	c.Update(c.args)
+	_ = c.Update(c.args)
 	<-ctx.Done()
 	return nil
 }
@@ -57,14 +58,17 @@ func (c *Component) Update(args component.Arguments) error {
 
 	c.mut.Lock()
 	defer c.mut.Unlock()
+
 	c.args = newArgs
 	for k, v := range newArgs.Arguments {
 		c.values[k] = v
 	}
-	// IF content has changed we need to rollback things
-	if c.args.Content != newArgs.Content || len(c.components) == 0 {
+
+	// If content has changed we need to rollback things
+	if c.args.Content != newArgs.Content || !c.loadedOnce {
 		// TODO insert teardown here
-		components, err := c.opts.Delegate.LoadSubgraph(c, []byte(c.args.Content))
+		// TODO do something with the diags
+		components, _, err := c.opts.Delegate.LoadSubgraph(c, []byte(c.args.Content))
 		if err != nil {
 			return err
 		}
@@ -82,20 +86,13 @@ func (c *Component) Update(args component.Arguments) error {
 				xv.UpdateInform(func(e export.Exports) {
 					c.values[e.Name] = e.Value
 					c.opts.OnStateChange(Exports{
-						Exports: func(name string) interface{} {
-							c.mut.Lock()
-							defer c.mut.Unlock()
-							v, found := c.values[name]
-							if !found {
-								return nil
-							}
-							return v
-						},
+						Exports: c.GetVal,
 					})
 				})
 				c.exportComponents[xv.Name] = xv
 			}
 		}
+		c.loadedOnce = true
 	}
 	for k, v := range c.argComponents {
 		modVal, found := c.values[k]
@@ -111,16 +108,9 @@ func (c *Component) Update(args component.Arguments) error {
 	for _, v := range c.exportComponents {
 		exportMap[v.Name] = v.Value
 	}
-	c.opts.OnStateChange(Exports{Exports: func(name string) interface{} {
-		c.mut.Lock()
-		defer c.mut.Unlock()
-		v, found := c.values[name]
-		if !found {
-			return nil
-		}
-		return v
-
-	}})
+	c.opts.OnStateChange(Exports{
+		Exports: c.GetVal,
+	})
 	return nil
 }
 
@@ -131,16 +121,18 @@ func (c *Component) Inform(e component.Exports) {
 	defer c.mut.Unlock()
 	c.values[ex.Name] = ex.Value
 	c.opts.OnStateChange(Exports{
-		Exports: func(name string) interface{} {
-			c.mut.Lock()
-			defer c.mut.Unlock()
-			v, found := c.values[name]
-			if !found {
-				return nil
-			}
-			return v
-		},
+		Exports: c.GetVal,
 	})
+}
+
+func (c *Component) GetVal(name string) interface{} {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+	v, found := c.values[name]
+	if !found {
+		return nil
+	}
+	return v
 }
 
 type Exports struct {
@@ -172,9 +164,11 @@ func (r *Arguments) UnmarshalRiver(f func(v interface{}) error) error {
 // New creates a new  component.
 func New(o component.Options, args Arguments) (component.Component, error) {
 	c := &Component{
-		args:   args,
-		values: make(map[string]interface{}),
-		opts:   o,
+		args:             args,
+		values:           make(map[string]interface{}),
+		argComponents:    make(map[string]*argument.Component),
+		exportComponents: make(map[string]*export.Component),
+		opts:             o,
 	}
 	return c, nil
 }
