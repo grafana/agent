@@ -28,7 +28,7 @@ func init() {
 type Arguments struct {
 	CorsAllowedOrigins []string `river:"cors_allowed_origins,attr,optional"`
 
-	GRPC *GRPCServerArguments `river:"grpc,block,optional"`
+	GRPC *GRPCServerArguments `river:",squash"`
 
 	// Output configures where to send received data. Required.
 	Output *otelcol.ConsumerArguments `river:"output,block"`

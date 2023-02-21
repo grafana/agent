@@ -25,10 +25,8 @@ func Test(t *testing.T) {
 	require.NoError(t, err)
 
 	cfg := fmt.Sprintf(`
-		grpc {
-			endpoint = "%s"
-			transport = "tcp"
-		}
+		endpoint = "%s"
+		transport = "tcp"
 
 		output { /* no-op */ }
 	`, httpAddr)
@@ -50,10 +48,8 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 		in := fmt.Sprintf(`
 		cors_allowed_origins = ["https://*.test.com", "https://test.com"]
 
-		grpc {
-			endpoint = "%s"
-			transport = "tcp"
-		}
+		endpoint = "%s"
+		transport = "tcp"
 
 		output { /* no-op */ }
 		`, httpAddr)
