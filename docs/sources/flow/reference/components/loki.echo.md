@@ -1,24 +1,24 @@
 ---
-title: loki.stdout
+title: loki.echo
 ---
 
-# loki.stdout
+# loki.echo
 
-`loki.stdout` receives log entries from other `loki` components and prints them
+`loki.echo` receives log entries from other `loki` components and prints them
 to the process' standard output (stdout).
 
-Multiple `loki.stdout` components can be specified by giving them
+Multiple `loki.echo` components can be specified by giving them
 different labels.
 
 ## Usage
 
 ```river
-loki.stdout "LABEL" {}
+loki.echo "LABEL" {}
 ```
 
 ## Arguments
 
-`loki.stdout` accepts no arguments.
+`loki.echo` accepts no arguments.
 
 ## Exported fields
 
@@ -30,16 +30,16 @@ Name | Type | Description
 
 ## Component health
 
-`loki.stdout` is only reported as unhealthy if given an invalid configuration.
+`loki.echo` is only reported as unhealthy if given an invalid configuration.
 
 ## Debug information
 
-`loki.stdout` does not expose any component-specific debug information.
+`loki.echo` does not expose any component-specific debug information.
 
 ## Example
 
 This example creates a pipeline that reads log files from `/var/log` and
-prints log lines to stdout:
+prints log lines to echo:
 
 ```river
 discovery.file "varlog" {
@@ -51,8 +51,8 @@ discovery.file "varlog" {
 
 loki.source.file "logs" {
   targets    = discovery.file.varlog.targets
-  forward_to = [loki.stdout.example.receiver]
+  forward_to = [loki.echo.example.receiver]
 }
 
-loki.stdout "example" { }
+loki.echo "example" { }
 ```

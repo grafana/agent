@@ -1,4 +1,4 @@
-package stdout
+package echo
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "loki.stdout",
+		Name:    "loki.echo",
 		Args:    Arguments{},
 		Exports: Exports{},
 
@@ -21,11 +21,11 @@ func init() {
 	})
 }
 
-// Arguments holds values which are used to configure the loki.stdout
+// Arguments holds values which are used to configure the loki.echo
 // component.
 type Arguments struct{}
 
-// Exports holds the values exported by the loki.stdout component.
+// Exports holds the values exported by the loki.echo component.
 type Exports struct {
 	Receiver loki.LogsReceiver `river:"receiver,attr"`
 }
@@ -54,7 +54,7 @@ type Component struct {
 	receiver loki.LogsReceiver
 }
 
-// New creates a new loki.stdout component.
+// New creates a new loki.echo component.
 func New(o component.Options, args Arguments) (*Component, error) {
 	ch := make(chan loki.Entry)
 	c := &Component{
