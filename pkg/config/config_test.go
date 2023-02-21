@@ -454,7 +454,7 @@ func TestLoadDynamicConfigurationExpandError(t *testing.T) {
 	assert.True(t, strings.Contains(err.Error(), "expand var is not supported when using dynamic configuration, use gomplate env instead"))
 }
 
-func TestAgent_OmmitEmptyFields(t *testing.T) {
+func TestAgent_OmitEmptyFields(t *testing.T) {
 	var cfg Config
 	yml, err := yaml.Marshal(&cfg)
 	require.NoError(t, err)
