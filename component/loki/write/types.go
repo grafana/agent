@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/alecthomas/units"
+	"github.com/grafana/agent/component/common/config"
 	types "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/loki/write/internal/client"
 	"github.com/grafana/dskit/backoff"
@@ -40,6 +41,7 @@ var DefaultEndpointOptions = EndpointOptions{
 	MinBackoff:        500 * time.Millisecond,
 	MaxBackoff:        5 * time.Minute,
 	MaxBackoffRetries: 10,
+	HTTPClientConfig:  &config.DefaultHTTPClientConfig,
 }
 
 // UnmarshalRiver implements river.Unmarshaler.
