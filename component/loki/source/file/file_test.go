@@ -13,9 +13,12 @@ import (
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 )
 
 func Test(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
 	// Create opts for component
 	l, err := logging.New(os.Stderr, logging.DefaultOptions)
 	require.NoError(t, err)
@@ -40,7 +43,9 @@ func Test(t *testing.T) {
 	c, err := New(opts, args)
 	require.NoError(t, err)
 
-	go c.Run(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go c.Run(ctx)
 	time.Sleep(100 * time.Millisecond)
 
 	_, err = f.Write([]byte("writing some text\n"))

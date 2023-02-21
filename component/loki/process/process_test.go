@@ -15,9 +15,12 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 )
 
 func TestJSONLabelsStage(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
 	// The following stages will attempt to parse input lines as JSON.
 	// The first stage _extract_ any fields found with the correct names:
 	// Since 'source' is empty, it implies that we want to parse the log line
@@ -35,33 +38,27 @@ func TestJSONLabelsStage(t *testing.T) {
 	// The third stage will set some labels from the extracted values above.
 	// Again, if the value is empty, it is inferred that we want to use the
 	// populate the label with extracted value of the same name.
-	stg := `stage {
-              json {
+	stg := `stage.json { 
 			    expressions    = {"output" = "log", stream = "stream", timestamp = "time", "extra" = "" }
 				drop_malformed = true
-			  }
 		    }
-			stage {
-			  json {
+			stage.json {
 			    expressions = { "user" = "" }
 				source      = "extra"
-			  }
 			}
-			stage { 
-			  labels {
+			stage.labels {
 			    values = { 
 				  stream = "",
 				  user   = "",
 				  ts     = "timestamp",
 			    }
-		      }
 			}`
 
 	// Unmarshal the River relabel rules into a custom struct, as we don't have
 	// an easy way to refer to a loki.LogsReceiver value for the forward_to
 	// argument.
 	type cfg struct {
-		Stages []stages.StageConfig `river:"stage,block"`
+		Stages []stages.StageConfig `river:"stage,enum"`
 	}
 	var stagesCfg cfg
 	err := river.Unmarshal([]byte(stg), &stagesCfg)
@@ -80,7 +77,9 @@ func TestJSONLabelsStage(t *testing.T) {
 
 	c, err := New(opts, args)
 	require.NoError(t, err)
-	go c.Run(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go c.Run(ctx)
 
 	// Send a log entry to the component's receiver.
 	ts := time.Now()
@@ -122,33 +121,29 @@ func TestJSONLabelsStage(t *testing.T) {
 }
 
 func TestStaticLabelsLabelAllowLabelDrop(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
 	// The following stages manipulate the label set of a log entry.
 	// The first stage will define a static set of labels (foo, bar, baz, qux)
 	// to add to the entry along the `filename` and `dev` labels.
 	// The second stage will drop the foo and bar labels.
 	// The third stage will keep only a subset of the remaining labels.
 	stg := `
-stage {
-  static_labels {
+stage.static_labels {
     values = { "foo" = "fooval", "bar" = "barval", "baz" = "bazval", "qux" = "quxval" }
-  }
 }
-stage {
-  label_drop {
+stage.label_drop {
     values = [ "foo", "bar" ]
-  }
 }
-stage {
-  label_keep {
+stage.label_keep {
     values = [ "foo", "baz", "filename" ]
-  }
 }`
 
 	// Unmarshal the River relabel rules into a custom struct, as we don't have
 	// an easy way to refer to a loki.LogsReceiver value for the forward_to
 	// argument.
 	type cfg struct {
-		Stages []stages.StageConfig `river:"stage,block"`
+		Stages []stages.StageConfig `river:"stage,enum"`
 	}
 	var stagesCfg cfg
 	err := river.Unmarshal([]byte(stg), &stagesCfg)
@@ -167,7 +162,9 @@ stage {
 
 	c, err := New(opts, args)
 	require.NoError(t, err)
-	go c.Run(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go c.Run(ctx)
 
 	// Send a log entry to the component's receiver.
 	ts := time.Now()
@@ -206,6 +203,8 @@ stage {
 }
 
 func TestRegexTimestampOutput(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
 	// The first stage will attempt to parse the input line using a regular
 	// expression with named capture groups. The three capture groups (time,
 	// stream and content) will be extracted in the shared map of values.
@@ -219,33 +218,25 @@ func TestRegexTimestampOutput(t *testing.T) {
 	//
 	// The fourth and final stage will set the `stream` value as the label.
 	stg := `
-stage {
-	regex {
+stage.regex {
 		expression = "^(?s)(?P<time>\\S+?) (?P<stream>stdout|stderr) (?P<content>.*)$"
-	}
 }
-stage {
-	timestamp {
+stage.timestamp {
 		source = "time"
 		format = "RFC3339"
-	}
 }
-stage {
-	output {
+stage.output {
 		source = "content"
-	}
 }
-stage {
-	labels {
+stage.labels {
 		values = { src = "stream" }
-	}
 }`
 
 	// Unmarshal the River relabel rules into a custom struct, as we don't have
 	// an easy way to refer to a loki.LogsReceiver value for the forward_to
 	// argument.
 	type cfg struct {
-		Stages []stages.StageConfig `river:"stage,block"`
+		Stages []stages.StageConfig `river:"stage,enum"`
 	}
 	var stagesCfg cfg
 	err := river.Unmarshal([]byte(stg), &stagesCfg)
@@ -264,7 +255,9 @@ stage {
 
 	c, err := New(opts, args)
 	require.NoError(t, err)
-	go c.Run(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go c.Run(ctx)
 
 	// Send a log entry to the component's receiver.
 	ts := time.Now()

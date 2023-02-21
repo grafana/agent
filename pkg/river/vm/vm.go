@@ -175,7 +175,7 @@ func (vm *Evaluator) evaluateBlockLabel(node *ast.BlockStmt, tfs []rivertags.Fie
 	}
 
 	var (
-		field     = reflectutil.FieldWalk(rv, labelField.Index, true)
+		field     = reflectutil.GetOrAlloc(rv, labelField)
 		fieldType = field.Type()
 	)
 	if !reflect.TypeOf(node.Label).AssignableTo(fieldType) {
