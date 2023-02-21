@@ -11,7 +11,7 @@ title: prometheus.​integration.​process_exporter
 
 # prometheus.integration.process_exporter
 The `prometheus.integration.process_exporter` component embeds
-[process_exporter](https://github.com/ncabatoff/process-exporter) for collecting process stats mined from `/proc`.
+[process_exporter](https://github.com/ncabatoff/process-exporter) for collecting process stats from `/proc`.
 
 ## Usage
 
