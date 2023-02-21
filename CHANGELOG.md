@@ -19,6 +19,8 @@ Main (unreleased)
 - Some blocks in Flow components have been merged with their parent block to make the block hierarchy smaller:
   - `prometheus.scrape > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
 
+- `remote.s3` `client_options` block has been renamed to `client`. (@mattdurham)
+
 ### Features
 
 - New integrations:
