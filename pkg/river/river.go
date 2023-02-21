@@ -89,6 +89,8 @@ import (
 //	// Field appears as a set of blocks starting with "example.". Only the
 //	// first set element in the struct will be encoded. Each field in struct
 //	// must be a block. The name of the block is prepended to the enum name.
+//	// When decoding, enum blocks are treated as optional blocks and can be
+//	// omitted from the source text.
 //	Field []struct{...} `river:"example,enum"`
 //
 //	// Field is equivalent to `river:"example,enum"`.
