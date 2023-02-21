@@ -24,6 +24,8 @@ Main (unreleased)
   element each (eg. a `stage > json` hierarchy), the configuration now supports
   defining each block as `stage.json` directly. (@tpaschalis)
 
+- `remote.s3` `client_options` block has been renamed to `client`. (@mattdurham)
+
 ### Features
 
 - New integrations:
@@ -35,14 +37,21 @@ Main (unreleased)
   - `gcp` (@kgeckhart, @ferruvich)
 
 - New Grafana Agent Flow components:
-  - `otelcol.processor.tail_sampling` samples traces based on a set of defined policies from `otelcol` components before
-    forwarding them to other `otelcol` components. (@erikbaranowski)
+
   - `loki.source.docker` reads logs from Docker containers and forwards them to
     other `loki` components. (@tpaschalis)
-  - `prometheus.integration.apache` collects metrics from an apache web server (@captncraig)
-  - `prometheus.integration.consul` collects metrics from a consul installation (@captncraig)
+  - `loki.echo` writes received logs to stdout. (@tpaschalis, @rfratto)
+  - `otelcol.processor.tail_sampling` samples traces based on a set of defined
+    policies from `otelcol` components before forwarding them to other
+    `otelcol` components. (@erikbaranowski)
+  - `prometheus.integration.apache` collects metrics from an apache web server
+    (@captncraig)
+  - `prometheus.integration.consul` collects metrics from a consul installation
+    (@captncraig)
 
 ### Enhancements
+
+- Flow: Support `keepequal` and `dropequal` actions for relabeling. (@ctovena)
 
 - Update Prometheus Node Exporter integration to v1.5.0. (@Thor77)
 
@@ -305,7 +314,6 @@ v0.30.0 (2022-12-20)
     patterns. (@mattdurham)
 
 - Integrations: Introduce the `snowflake` integration. (@binaryfissiongames)
-
 
 ### Enhancements
 
