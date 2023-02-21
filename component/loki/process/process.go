@@ -73,9 +73,11 @@ func New(o component.Options, args Arguments) (*Component, error) {
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
 	defer func() {
+		c.mut.RLock()
 		if c.entryHandler != nil {
 			c.entryHandler.Stop()
 		}
+		c.mut.RUnlock()
 	}()
 
 	for {
