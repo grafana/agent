@@ -16,47 +16,33 @@ import (
 )
 
 var testMatchRiver = `
-stage {
-	json {
+stage.json {
 		expressions = { "app" = "" }
-	}
 }
 
-stage {
-	labels {
+stage.labels {
 		values = { "app" = "" }
-	}
 }
 
-stage {
-	match {
+stage.match {
 		selector = "{app=\"loki\"}"
-		stage {
-			json {
+		stage.json {
 				expressions = { "msg" = "message" }
-			}
 		}
 		action = "keep"
-	}
 }
 
-stage {
-	match {
+stage.match {
 		pipeline_name = "app2"
 		selector = "{app=\"poki\"}"
-		stage {
-			json {
+		stage.json {
 				expressions = { "msg" = "msg" }
-			}
 		}
 		action = "keep"
-	}
 }
 
-stage {
-	output {
+stage.output {
 		source = "msg"
-	}
 }
 `
 

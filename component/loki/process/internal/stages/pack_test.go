@@ -18,27 +18,19 @@ import (
 
 // Not all these are tested but are here to make sure the different types marshal without error
 var testPackRiver = `
-stage {
-	match {
+stage.match {
 		selector = "{container=\"foo\"}"
-		stage {
-			pack {
+		stage.pack {
 				labels           = ["pod", "container"]
 				ingest_timestamp = false
-			}
 		}
-	}
 }
-stage {
-	match {
+stage.match {
 		selector = "{container=\"bar\"}"
-		stage {
-			pack {
+		stage.pack {
 				labels           = ["pod", "container"]
 				ingest_timestamp = true
-			}
 		}
-	}
 }`
 
 // TestDropPipeline is used to verify we properly parse the river config and
