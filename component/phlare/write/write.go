@@ -82,6 +82,7 @@ func (r *EndpointOptions) UnmarshalRiver(f func(v interface{}) error) error {
 		return err
 	}
 
+	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
 	if r.HTTPClientConfig != nil {
 		return r.HTTPClientConfig.Validate()
 	}

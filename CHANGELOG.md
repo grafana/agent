@@ -18,7 +18,7 @@ Main (unreleased)
 
 - Some blocks in Flow components have been merged with their parent block to make the block hierarchy smaller:
   - `prometheus.scrape > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
-  - `phlare.write > client > endpoint > http_client_config` is merged into the `client` block. (@erikbaranowski)
+  - `phlare.write > endpoint > http_client_config` is merged into the `endpoint` block. (@erikbaranowski)
 
 ### Features
 
