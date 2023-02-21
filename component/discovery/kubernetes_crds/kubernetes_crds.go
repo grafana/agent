@@ -119,33 +119,11 @@ func (c *crdManager) addPodMonitor(pm *v1.PodMonitor) {
 	}
 	c.apply()
 }
-
-func (c *crdManager) addServiceMonitor(sm *v1.ServiceMonitor) {
-	for i, ep := range sm.Spec.Endpoints {
-		smc := c.cg.generateServiceMonitorConfig(sm, ep, i)
-		c.mut.Lock()
-		c.discoveryConfigs[smc.JobName] = smc.ServiceDiscoveryConfigs
-		c.scrapeConfigs[smc.JobName] = smc
-		c.mut.Unlock()
-	}
-	c.apply()
-}
-
-func (c *crdManager) addProbe(p *v1.Probe) {
-	probe := c.cg.generateProbeConfig(p)
-	c.mut.Lock()
-	c.discoveryConfigs[probe.JobName] = probe.ServiceDiscoveryConfigs
-	c.scrapeConfigs[probe.JobName] = probe
-	c.mut.Unlock()
-	c.apply()
-}
-
 func (c *crdManager) onAddPodMonitor(obj interface{}) {
 	pm := obj.(*v1.PodMonitor)
 	level.Info(c.logger).Log("msg", "found pod monitor", "name", pm.Name)
 	c.addPodMonitor(pm)
 }
-
 func (c *crdManager) onUpdatePodMonitor(oldObj, newObj interface{}) {
 	pm := oldObj.(*v1.PodMonitor)
 	c.clearConfigs("podMonitor", pm.Namespace, pm.Name)
@@ -154,38 +132,6 @@ func (c *crdManager) onUpdatePodMonitor(oldObj, newObj interface{}) {
 func (c *crdManager) onDeletePodMonitor(obj interface{}) {
 	pm := obj.(*v1.PodMonitor)
 	c.clearConfigs("podMonitor", pm.Namespace, pm.Name)
-	c.apply()
-}
-
-func (c *crdManager) onAddServiceMonitor(obj interface{}) {
-	sm := obj.(*v1.ServiceMonitor)
-	level.Info(c.logger).Log("msg", "found service monitor", "name", sm.Name)
-	c.addServiceMonitor(sm)
-}
-func (c *crdManager) onUpdateServiceMonitor(oldObj, newObj interface{}) {
-	sm := oldObj.(*v1.PodMonitor)
-	c.clearConfigs("serviceMonitor", sm.Namespace, sm.Name)
-	c.addServiceMonitor(newObj.(*v1.ServiceMonitor))
-}
-func (c *crdManager) onDeleteServiceMonitor(obj interface{}) {
-	sm := obj.(*v1.ServiceMonitor)
-	c.clearConfigs("serviceMonitor", sm.Namespace, sm.Name)
-	c.apply()
-}
-
-func (c *crdManager) onAddProbe(obj interface{}) {
-	p := obj.(*v1.Probe)
-	level.Info(c.logger).Log("msg", "found probe", "name", p.Name)
-	c.addProbe(p)
-}
-func (c *crdManager) onUpdateProbe(oldObj, newObj interface{}) {
-	p := oldObj.(*v1.Probe)
-	c.clearConfigs("probe", p.Namespace, p.Name)
-	c.addProbe(newObj.(*v1.Probe))
-}
-func (c *crdManager) onDeleteProbe(obj interface{}) {
-	p := obj.(*v1.Probe)
-	c.clearConfigs("probe", p.Namespace, p.Name)
 	c.apply()
 }
 
@@ -260,26 +206,6 @@ func (c *crdManager) run(ctx context.Context) {
 		})
 		pminf.SetWatchErrorHandler(func(r *cache.Reflector, err error) {
 			level.Error(c.logger).Log("msg", "pod monitor watcher error", "err", err)
-		})
-
-		sminf := factory.Monitoring().V1().ServiceMonitors().Informer()
-		sminf.AddEventHandler(cache.ResourceEventHandlerFuncs{
-			AddFunc:    c.onAddServiceMonitor,
-			UpdateFunc: c.onUpdateServiceMonitor,
-			DeleteFunc: c.onDeleteServiceMonitor,
-		})
-		sminf.SetWatchErrorHandler(func(r *cache.Reflector, err error) {
-			level.Error(c.logger).Log("msg", "service monitor watcher error", "err", err)
-		})
-
-		probeinf := factory.Monitoring().V1().Probes().Informer()
-		probeinf.AddEventHandler(cache.ResourceEventHandlerFuncs{
-			AddFunc:    c.onAddProbe,
-			UpdateFunc: c.onUpdateProbe,
-			DeleteFunc: c.onDeleteProbe,
-		})
-		probeinf.SetWatchErrorHandler(func(r *cache.Reflector, err error) {
-			level.Error(c.logger).Log("msg", "probe watcher error", "err", err)
 		})
 
 		factory.Start(ctx.Done())
