@@ -19,6 +19,11 @@ Main (unreleased)
 - Some blocks in Flow components have been merged with their parent block to make the block hierarchy smaller:
   - `prometheus.scrape > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
 
+- The `loki.process` component now makes use of River's 'enum' blocks. Instead
+  of defining processing stages in nested a `stage` block containing one
+  element each (eg. a `stage > json` hierarchy), the configuration now supports
+  defining each block as `stage.json` directly. (@tpaschalis)
+
 ### Features
 
 - New integrations:
