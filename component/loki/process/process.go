@@ -42,12 +42,13 @@ var (
 type Component struct {
 	opts component.Options
 
-	mut        sync.RWMutex
-	receiver   loki.LogsReceiver
-	fanout     []loki.LogsReceiver
-	processIn  chan<- loki.Entry
-	processOut chan loki.Entry
-	stages     []stages.StageConfig
+	mut          sync.RWMutex
+	receiver     loki.LogsReceiver
+	fanout       []loki.LogsReceiver
+	processIn    chan<- loki.Entry
+	processOut   chan loki.Entry
+	entryHandler loki.EntryHandler
+	stages       []stages.StageConfig
 }
 
 // New creates a new loki.process component.
@@ -71,6 +72,12 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
+	defer func() {
+		if c.entryHandler != nil {
+			c.entryHandler.Stop()
+		}
+	}()
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -107,13 +114,20 @@ func (c *Component) Update(args component.Arguments) error {
 	defer c.mut.Unlock()
 
 	if stagesChanged(c.stages, newArgs.Stages) {
+		if c.entryHandler != nil {
+			c.entryHandler.Stop()
+		}
+
 		pipeline, err := stages.NewPipeline(c.opts.Logger, newArgs.Stages, &c.opts.ID, c.opts.Registerer)
 		if err != nil {
 			return err
 		}
 		c.processOut = make(chan loki.Entry)
-		entryHandler := loki.NewEntryHandler(c.processOut, func() {})
-		c.processIn = pipeline.Wrap(entryHandler).Chan()
+		c.entryHandler = loki.NewEntryHandler(c.processOut, func() {
+			close(c.processOut)
+			close(c.processIn)
+		})
+		c.processIn = pipeline.Wrap(c.entryHandler).Chan()
 		c.stages = newArgs.Stages
 	}
 
