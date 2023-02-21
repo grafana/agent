@@ -79,9 +79,9 @@ metrics:
   configs:
     - name: agent
       scrape_configs:
-        # PASTE scrape_configs SECTION HERE
-      remote_write:
-        # PASTE remote_write SECTION HERE
+      # PASTE scrape_configs SECTION HERE
+    remote_write:
+    # PASTE remote_write SECTION HERE
 ```
 
 For example, this configuration file configures the Grafana Agent to
@@ -97,11 +97,11 @@ metrics:
   configs:
     - name: agent
       scrape_configs:
-        - job_name: agent
-          static_configs:
-            - targets: ['127.0.0.1:12345']
+      - job_name: agent
+        static_configs:
+          - targets: ['127.0.0.1:12345']
       remote_write:
-        - url: http://localhost:9009/api/prom/push
+      - url: http://localhost:9009/api/prom/push
 ```
 
 Like with integrations, full configuration options can be found in the
@@ -144,9 +144,9 @@ metrics:
   configs:
     - name: default
       scrape_configs:
-        - job_name: agent
-          static_configs:
-            - targets: ['127.0.0.1:12345']
+      - job_name: agent
+        static_configs:
+          - targets: ['127.0.0.1:12345']
 
 logs:
   configs:
