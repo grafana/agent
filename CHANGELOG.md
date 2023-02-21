@@ -16,6 +16,9 @@ Main (unreleased)
   - `diskstats_ignored_devices` is now `diskstats_device_exclude` in agent configuration.
   - `ignored_devices` is now `device_exclude` in flow configuration.
 
+- Some blocks in Flow components have been merged with their parent block to make the block hierarchy smaller:
+  - `prometheus.scrape > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
+
 ### Features
 
 - New integrations:
@@ -27,12 +30,17 @@ Main (unreleased)
   - `gcp` (@kgeckhart, @ferruvich)
 
 - New Grafana Agent Flow components:
-  - `otelcol.processor.tail_sampling` samples traces based on a set of defined policies from `otelcol` components before
-    forwarding them to other `otelcol` components. (@erikbaranowski)
+
   - `loki.source.docker` reads logs from Docker containers and forwards them to
     other `loki` components. (@tpaschalis)
-  - `prometheus.integration.apache` collects metrics from an apache web server (@captncraig)
-  - `prometheus.integration.consul` collects metrics from a consul installation (@captncraig)
+  - `loki.echo` writes received logs to stdout. (@tpaschalis, @rfratto)
+  - `otelcol.processor.tail_sampling` samples traces based on a set of defined
+    policies from `otelcol` components before forwarding them to other
+    `otelcol` components. (@erikbaranowski)
+  - `prometheus.integration.apache` collects metrics from an apache web server
+    (@captncraig)
+  - `prometheus.integration.consul` collects metrics from a consul installation
+    (@captncraig)
   - `prometheus.integration.process_exporter` aggregates and collects metrics by mining `/proc` (@spartan0x117)
 
 ### Enhancements
@@ -60,6 +68,26 @@ Main (unreleased)
 
 - Flow: add timeout to loki.source.podlogs controller setup. (@polyrain)
 
+### Bugfixes
+
+- Fixed a reconciliation error in Grafana Agent Operator when using `tlsConfig`
+  on `Probe`. (@supergillis)
+
+- Fix issue where an empty `server:` config stanza would cause debug-level logging.
+  An empty `server:` is considered a misconfiguration, and thus will error out.
+  (@neomantra)
+
+- Flow: fix an error where some error messages that crossed multiple lines
+  added extra an extra `|` character when displaying the source file on the
+  starting line. (@rfratto)
+
+- Flow: fix issues in `river fmt` where adding an inline comment on the same
+  line as a `[` or `{` would cause indentation issues on subsequent lines.
+  (@rfratto)
+
+- Flow: fix issues in `river fmt` where line comments in arrays would be given
+  the wrong identation level. (@rfratto)
+
 ### Other changes
 
 - Use Go 1.20 for builds. Official release binaries are still produced using Go
@@ -76,6 +104,8 @@ v0.31.3 (2023-02-13)
 
 - `loki.source.cloudflare`: fix issue where `api_token` argument was not marked
   as a sensitive field. (@rfratto)
+
+- `oath2 > tls_config` was documented as a block but coded incorrectly as an attribute. This is now a block in code. This impacted `discovery.docker`, `discovery.kubernetes`, `loki.source.kubernetes`, `loki.write`, `mimir.rules.kubernetes`, `phlare.scrape`, `phlare.write`, `prometheus.remote_write`, `prometheus.scrape`, and `remote.http`  (@erikbaranowski)
 
 v0.31.2 (2023-02-08)
 --------------------

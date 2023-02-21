@@ -15,9 +15,12 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 )
 
 func TestJSONLabelsStage(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
 	// The following stages will attempt to parse input lines as JSON.
 	// The first stage _extract_ any fields found with the correct names:
 	// Since 'source' is empty, it implies that we want to parse the log line
@@ -80,7 +83,9 @@ func TestJSONLabelsStage(t *testing.T) {
 
 	c, err := New(opts, args)
 	require.NoError(t, err)
-	go c.Run(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go c.Run(ctx)
 
 	// Send a log entry to the component's receiver.
 	ts := time.Now()
@@ -122,6 +127,8 @@ func TestJSONLabelsStage(t *testing.T) {
 }
 
 func TestStaticLabelsLabelAllowLabelDrop(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
 	// The following stages manipulate the label set of a log entry.
 	// The first stage will define a static set of labels (foo, bar, baz, qux)
 	// to add to the entry along the `filename` and `dev` labels.
@@ -167,7 +174,9 @@ stage {
 
 	c, err := New(opts, args)
 	require.NoError(t, err)
-	go c.Run(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go c.Run(ctx)
 
 	// Send a log entry to the component's receiver.
 	ts := time.Now()
@@ -206,6 +215,8 @@ stage {
 }
 
 func TestRegexTimestampOutput(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
 	// The first stage will attempt to parse the input line using a regular
 	// expression with named capture groups. The three capture groups (time,
 	// stream and content) will be extracted in the shared map of values.
@@ -264,7 +275,9 @@ stage {
 
 	c, err := New(opts, args)
 	require.NoError(t, err)
-	go c.Run(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go c.Run(ctx)
 
 	// Send a log entry to the component's receiver.
 	ts := time.Now()

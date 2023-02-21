@@ -33,12 +33,12 @@ local linux_containers_jobs = std.map(function(container) (
 
         // Create a buildx worker container for multiplatform builds.
         'docker run --rm --privileged multiarch/qemu-user-static --reset -p yes',
-        'docker buildx create --name multiarch --driver docker-container --use',
+        'docker buildx create --name multiarch-agent-%s --driver docker-container --use' % container,
 
         './tools/ci/docker-containers %s' % container,
 
         // Remove the buildx worker container.
-        'docker buildx rm multiarch',
+        'docker buildx rm multiarch-agent-%s' % container,
       ],
     }],
     volumes: [{
