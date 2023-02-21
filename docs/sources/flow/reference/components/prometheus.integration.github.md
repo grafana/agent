@@ -28,7 +28,7 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `api_url`    | `string` | The full URI of the GitHub API. | `https://api.github.com` | no
 `repositories` | `list(string)` | A list of github repositories for which to collect metrics. | | no
-`organizations` | `list(string)` | A list of github organizations for which to collect metrics. | | no
+`organizations` | `list(string)` | GitHub organizations for which to collect metrics. | | no
 `users` | `list(string)` | A list of github users for which to collect metrics. | | no
 `api_token`    | `string` | A github authentication token that allows the API to be queried more often. Optional, but recommended. | | no
 `api_token_file`    | `string` | A path to a file containing a github authentication token that allows the API to be queried more often. If supplied, this supercedes `api_token`. Optional, but recommended.| | no
