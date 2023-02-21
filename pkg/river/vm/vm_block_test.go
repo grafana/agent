@@ -456,6 +456,104 @@ func TestVM_Block_Children_Blocks(t *testing.T) {
 	// TODO(rfratto): decode all blocks into a []*ast.BlockStmt field.
 }
 
+func TestVM_Block_Enum_Block(t *testing.T) {
+	type childBlock struct {
+		Attr int `river:"attr,attr"`
+	}
+
+	type enumBlock struct {
+		BlockA *childBlock `river:"a,block,optional"`
+		BlockB *childBlock `river:"b,block,optional"`
+		BlockC *childBlock `river:"c,block,optional"`
+		BlockD *childBlock `river:"d,block,optional"`
+	}
+
+	t.Run("Decodes enum blocks", func(t *testing.T) {
+		type block struct {
+			Value  int          `river:"value,attr"`
+			Blocks []*enumBlock `river:"child,enum,optional"`
+		}
+
+		input := `some_block {
+			value = 15
+
+			child.a { attr = 1 }
+		}`
+		eval := vm.New(parseBlock(t, input))
+
+		expect := block{
+			Value: 15,
+			Blocks: []*enumBlock{
+				{BlockA: &childBlock{Attr: 1}},
+			},
+		}
+
+		var actual block
+		require.NoError(t, eval.Evaluate(nil, &actual))
+		require.Equal(t, expect, actual)
+	})
+
+	t.Run("Decodes multiple enum blocks", func(t *testing.T) {
+		type block struct {
+			Value  int          `river:"value,attr"`
+			Blocks []*enumBlock `river:"child,enum,optional"`
+		}
+
+		input := `some_block {
+			value = 15
+
+			child.b { attr = 1 }
+			child.a { attr = 2 }
+			child.c { attr = 3 }
+		}`
+		eval := vm.New(parseBlock(t, input))
+
+		expect := block{
+			Value: 15,
+			Blocks: []*enumBlock{
+				{BlockB: &childBlock{Attr: 1}},
+				{BlockA: &childBlock{Attr: 2}},
+				{BlockC: &childBlock{Attr: 3}},
+			},
+		}
+
+		var actual block
+		require.NoError(t, eval.Evaluate(nil, &actual))
+		require.Equal(t, expect, actual)
+	})
+
+	t.Run("Decodes multiple enum blocks with repeating blocks", func(t *testing.T) {
+		type block struct {
+			Value  int          `river:"value,attr"`
+			Blocks []*enumBlock `river:"child,enum,optional"`
+		}
+
+		input := `some_block {
+			value = 15
+
+			child.a { attr = 1 }
+			child.b { attr = 2 }
+			child.c { attr = 3 }
+			child.a { attr = 4 }
+		}`
+		eval := vm.New(parseBlock(t, input))
+
+		expect := block{
+			Value: 15,
+			Blocks: []*enumBlock{
+				{BlockA: &childBlock{Attr: 1}},
+				{BlockB: &childBlock{Attr: 2}},
+				{BlockC: &childBlock{Attr: 3}},
+				{BlockA: &childBlock{Attr: 4}},
+			},
+		}
+
+		var actual block
+		require.NoError(t, eval.Evaluate(nil, &actual))
+		require.Equal(t, expect, actual)
+	})
+}
+
 func TestVM_Block_Label(t *testing.T) {
 	t.Run("Decodes label into string field", func(t *testing.T) {
 		type block struct {

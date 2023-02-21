@@ -40,72 +40,10 @@ type MetricConfig struct {
 	Histogram *metric.HistogramConfig `river:"histogram,block,optional"`
 }
 
-// UnmarshalRiver implements the unmarshaller
-func (mc *MetricConfig) UnmarshalRiver(f func(v interface{}) error) error {
-	*mc = MetricConfig{}
-	type metricCfg MetricConfig
-	err := f((*metricCfg)(mc))
-	if err != nil {
-		return err
-	}
-
-	nonEmpty := 0
-	v := reflect.Indirect(reflect.ValueOf(mc))
-	for i := 0; i < v.NumField(); i++ {
-		if !v.Field(i).IsNil() {
-			nonEmpty++
-		}
-	}
-
-	if nonEmpty != 1 {
-		return fmt.Errorf("exactly one of 'counter', 'gauge' or 'histogram' must be configured")
-	}
-
-	return nil
-}
-
 // MetricsConfig is a set of configured metrics.
 type MetricsConfig struct {
-	Metrics []MetricConfig `river:"metric,block,optional"`
+	Metrics []MetricConfig `river:"metric,enum,optional"`
 }
-
-// func validateMetricsConfig(cfg MetricsConfig) error {
-// 	for _, config := range cfg.Metrics {
-// If the source is not defined, default to the metric name
-// if config.Source == nil {
-// 	cp := cfg[name]
-// 	nm := name
-// 	cp.Source = &nm
-// 	cfg[name] = cp
-// }
-
-// config.MetricType = strings.ToLower(config.MetricType)
-// if config.MetricType != MetricTypeCounter &&
-// 	config.MetricType != MetricTypeGauge &&
-// 	config.MetricType != MetricTypeHistogram {
-// 	return ErrMetricsStageInvalidType
-// }
-
-// Set the idle duration for metrics
-// if config.IdleDuration != nil {
-// 	d, err := time.ParseDuration(*config.IdleDuration)
-// 	if err != nil {
-// 		return fmt.Errorf("%v: %w", ErrInvalidIdleDur, err)
-// 	}
-// 	if d < 1*time.Second {
-// 		return ErrSubSecIdleDur
-// 	}
-// 	cp := cfg[name]
-// 	cp.maxIdleSec = int64(d.Seconds())
-// 	cfg[name] = cp
-// } else {
-// 	cp := cfg[name]
-// 	cp.maxIdleSec = int64(5 * time.Minute.Seconds())
-// 	cfg[name] = cp
-// }
-// }
-// return nil
-// }
 
 type cfgCollector struct {
 	cfg       MetricConfig
