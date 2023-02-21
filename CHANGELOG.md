@@ -17,8 +17,8 @@ Main (unreleased)
   - `ignored_devices` is now `device_exclude` in flow configuration.
 
 - Some blocks in Flow components have been merged with their parent block to make the block hierarchy smaller:
-  - `prometheus.scrape > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
-  - `prometheus.remote_write > client > endpoint > http_client_config` is merged into the `endpoint` block. (@erikbaranowski)
+  - `prometheus.scrape > http_client_config` is merged into the `prometheus.scrape` block. (@erikbaranowski)
+  - `prometheus.remote_write > endpoint > http_client_config` is merged into the `endpoint` block. (@erikbaranowski)
 
 ### Features
 
