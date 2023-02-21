@@ -40,9 +40,12 @@ Main (unreleased)
 
 - New Grafana Agent Flow components:
 
+  - `loki.echo` writes received logs to stdout. (@tpaschalis, @rfratto)
   - `loki.source.docker` reads logs from Docker containers and forwards them to
     other `loki` components. (@tpaschalis)
-  - `loki.echo` writes received logs to stdout. (@tpaschalis, @rfratto)
+  - `loki.source.kubernetes_events` watches for Kubernetes Events and converts
+    them into log lines to forward to other `loki` components. It is the
+    equivalent of the `eventhandler` integration. (@rfratto)
   - `otelcol.processor.tail_sampling` samples traces based on a set of defined
     policies from `otelcol` components before forwarding them to other
     `otelcol` components. (@erikbaranowski)
