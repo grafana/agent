@@ -22,6 +22,7 @@ type Arguments struct {
 var DefaultArguments = Arguments{
 	SyncInterval:         30 * time.Second,
 	MimirNameSpacePrefix: "agent",
+	HTTPClientConfig:     config.DefaultHTTPClientConfig,
 }
 
 func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
