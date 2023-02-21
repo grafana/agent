@@ -69,6 +69,10 @@ Main (unreleased)
 - Flow: fix issues in `river fmt` where line comments in arrays would be given
   the wrong identation level. (@rfratto)
 
+### Bugfixes
+
+- Fixed a reconciliation error in Grafana Agent Operator when using `tlsConfig` on `Probe`. (@supergillis)
+
 ### Other changes
 
 - Use Go 1.20 for builds. Official release binaries are still produced using Go
