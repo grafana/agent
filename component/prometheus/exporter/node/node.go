@@ -9,11 +9,11 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:      "prometheus.exporter.node_exporter",
+		Name:      "prometheus.exporter.node",
 		Args:      Config{},
 		Exports:   exporter.Exports{},
 		Singleton: true,
-		Build:     exporter.New(createExporter, "node_exporter"),
+		Build:     exporter.New(createExporter, "node"),
 	})
 }
 
