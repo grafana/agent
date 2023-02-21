@@ -49,7 +49,7 @@ Main (unreleased)
   - `prometheus.integration.consul` collects metrics from a consul installation
     (@captncraig)
   - `prometheus.integration.github` collects metrics from GitHub (@jcreixell)
-  - `prometheus.integration.process_exporter` aggregates and collects metrics by mining `/proc` (@spartan0x117)
+  - `prometheus.integration.process_exporter` aggregates and collects metrics by scraping `/proc`. (@spartan0x117)
 
 
 ### Enhancements
