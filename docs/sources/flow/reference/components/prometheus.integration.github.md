@@ -16,7 +16,7 @@ The `prometheus.integration.github` component embeds
 ## Usage
 
 ```river
-prometheus.integration.github "LABEL"{
+prometheus.integration.github "LABEL" {
 }
 ```
 
