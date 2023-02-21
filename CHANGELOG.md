@@ -30,12 +30,17 @@ Main (unreleased)
   - `gcp` (@kgeckhart, @ferruvich)
 
 - New Grafana Agent Flow components:
-  - `otelcol.processor.tail_sampling` samples traces based on a set of defined policies from `otelcol` components before
-    forwarding them to other `otelcol` components. (@erikbaranowski)
+
   - `loki.source.docker` reads logs from Docker containers and forwards them to
     other `loki` components. (@tpaschalis)
-  - `prometheus.integration.apache` collects metrics from an apache web server (@captncraig)
-  - `prometheus.integration.consul` collects metrics from a consul installation (@captncraig)
+  - `loki.echo` writes received logs to stdout. (@tpaschalis, @rfratto)
+  - `otelcol.processor.tail_sampling` samples traces based on a set of defined
+    policies from `otelcol` components before forwarding them to other
+    `otelcol` components. (@erikbaranowski)
+  - `prometheus.integration.apache` collects metrics from an apache web server
+    (@captncraig)
+  - `prometheus.integration.consul` collects metrics from a consul installation
+    (@captncraig)
   - `prometheus.integration.github` collects metrics from GitHub (@jcreixell)
 
 ### Enhancements
@@ -65,7 +70,23 @@ Main (unreleased)
 
 ### Bugfixes
 
-- Fixed a reconciliation error in Grafana Agent Operator when using `tlsConfig` on `Probe`. (@supergillis)
+- Fixed a reconciliation error in Grafana Agent Operator when using `tlsConfig`
+  on `Probe`. (@supergillis)
+
+- Fix issue where an empty `server:` config stanza would cause debug-level logging.
+  An empty `server:` is considered a misconfiguration, and thus will error out.
+  (@neomantra)
+
+- Flow: fix an error where some error messages that crossed multiple lines
+  added extra an extra `|` character when displaying the source file on the
+  starting line. (@rfratto)
+
+- Flow: fix issues in `river fmt` where adding an inline comment on the same
+  line as a `[` or `{` would cause indentation issues on subsequent lines.
+  (@rfratto)
+
+- Flow: fix issues in `river fmt` where line comments in arrays would be given
+  the wrong identation level. (@rfratto)
 
 ### Other changes
 

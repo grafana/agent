@@ -454,3 +454,135 @@ func TestDecode_SquashedFields_Pointer(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, expect, out)
 }
+
+func TestDecode_Slice(t *testing.T) {
+	type Block struct {
+		Attr int `river:"attr,attr"`
+	}
+
+	type Struct struct {
+		Blocks []Block `river:"block.a,block,optional"`
+	}
+
+	var (
+		in = map[string]interface{}{
+			"block": map[string]interface{}{
+				"a": []map[string]interface{}{
+					{"attr": 1},
+					{"attr": 2},
+					{"attr": 3},
+					{"attr": 4},
+				},
+			},
+		}
+		expect = Struct{
+			Blocks: []Block{
+				{Attr: 1},
+				{Attr: 2},
+				{Attr: 3},
+				{Attr: 4},
+			},
+		}
+	)
+
+	var out Struct
+	err := value.Decode(value.Encode(in), &out)
+	require.NoError(t, err)
+	require.Equal(t, expect, out)
+}
+
+func TestDecode_SquashedSlice(t *testing.T) {
+	type Block struct {
+		Attr int `river:"attr,attr"`
+	}
+
+	type InnerStruct struct {
+		BlockA Block `river:"a,block,optional"`
+		BlockB Block `river:"b,block,optional"`
+		BlockC Block `river:"c,block,optional"`
+	}
+
+	type OuterStruct struct {
+		OuterField1 string        `river:"outer_field_1,attr,optional"`
+		Inner       []InnerStruct `river:"block,enum"`
+		OuterField2 string        `river:"outer_field_2,attr,optional"`
+	}
+
+	var (
+		in = map[string]interface{}{
+			"outer_field_1": "value1",
+			"outer_field_2": "value2",
+
+			"block": []map[string]interface{}{
+				{"a": map[string]interface{}{"attr": 1}},
+				{"b": map[string]interface{}{"attr": 2}},
+				{"c": map[string]interface{}{"attr": 3}},
+				{"a": map[string]interface{}{"attr": 4}},
+			},
+		}
+		expect = OuterStruct{
+			OuterField1: "value1",
+			OuterField2: "value2",
+
+			Inner: []InnerStruct{
+				{BlockA: Block{Attr: 1}},
+				{BlockB: Block{Attr: 2}},
+				{BlockC: Block{Attr: 3}},
+				{BlockA: Block{Attr: 4}},
+			},
+		}
+	)
+
+	var out OuterStruct
+	err := value.Decode(value.Encode(in), &out)
+	require.NoError(t, err)
+	require.Equal(t, expect, out)
+}
+
+func TestDecode_SquashedSlice_Pointer(t *testing.T) {
+	type Block struct {
+		Attr int `river:"attr,attr"`
+	}
+
+	type InnerStruct struct {
+		BlockA *Block `river:"a,block,optional"`
+		BlockB *Block `river:"b,block,optional"`
+		BlockC *Block `river:"c,block,optional"`
+	}
+
+	type OuterStruct struct {
+		OuterField1 string        `river:"outer_field_1,attr,optional"`
+		Inner       []InnerStruct `river:"block,enum"`
+		OuterField2 string        `river:"outer_field_2,attr,optional"`
+	}
+
+	var (
+		in = map[string]interface{}{
+			"outer_field_1": "value1",
+			"outer_field_2": "value2",
+
+			"block": []map[string]interface{}{
+				{"a": map[string]interface{}{"attr": 1}},
+				{"b": map[string]interface{}{"attr": 2}},
+				{"c": map[string]interface{}{"attr": 3}},
+				{"a": map[string]interface{}{"attr": 4}},
+			},
+		}
+		expect = OuterStruct{
+			OuterField1: "value1",
+			OuterField2: "value2",
+
+			Inner: []InnerStruct{
+				{BlockA: &Block{Attr: 1}},
+				{BlockB: &Block{Attr: 2}},
+				{BlockC: &Block{Attr: 3}},
+				{BlockA: &Block{Attr: 4}},
+			},
+		}
+	)
+
+	var out OuterStruct
+	err := value.Decode(value.Encode(in), &out)
+	require.NoError(t, err)
+	require.Equal(t, expect, out)
+}
