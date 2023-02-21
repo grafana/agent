@@ -16,33 +16,23 @@ import (
 )
 
 var testTemplateYaml = `
-stage {
-	json {
+stage.json {
 		expressions = { "app" = "app", "level" = "level" }
-	}
 }
-stage {
-	template {
+stage.template {
 		source = "app"
 		template = "{{ .Value | ToUpper }} doki"
-	}
 }
-stage {
-	template {
+stage.template {
 		source = "level"
 		template = "{{ if eq .Value \"WARN\" }}{{ Replace .Value \"WARN\" \"OK\" -1 }}{{ else }}{{ .Value }}{{ end }}"
-	}
 }
-stage {
-	template {
+stage.template {
 		source = "nonexistent"
 		template = "TEST"
-	}
 }
-stage {
-	labels {
+stage.labels {
 		values = { "app" = "", "level" = "", "type" = "nonexistent" }
-	}
 }
 `
 
