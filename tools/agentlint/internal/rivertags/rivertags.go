@@ -31,6 +31,8 @@ var riverTagRegex = regexp.MustCompile(`river:"([^"]*)"`)
 //   - attr,optional
 //   - block
 //   - block,optional
+//   - enum
+//   - enum,optional
 //   - label
 //   - squash
 // - Attribute and block tags must have a non-empty value NAME.
@@ -225,6 +227,26 @@ func lintRiverTag(ty *types.Var, tag string) (diagnostics []string) {
 		innerTy := getInnermostType(ty.Type())
 		if _, ok := innerTy.(*types.Struct); !ok {
 			diagnostics = append(diagnostics, "block fields must be a struct or a slice of structs")
+		}
+
+	case "enum", "enum,optional":
+		if len(nameParts) == 0 {
+			diagnostics = append(diagnostics, "block field must have a name")
+		}
+		for _, name := range nameParts {
+			diagnostics = append(diagnostics, validateFieldName(name)...)
+		}
+
+		_, isArray := ty.Type().(*types.Array)
+		_, isSlice := ty.Type().(*types.Slice)
+
+		if !isArray && !isSlice {
+			diagnostics = append(diagnostics, "enum fields must be a slice or array of structs")
+		} else {
+			innerTy := getInnermostType(ty.Type())
+			if _, ok := innerTy.(*types.Struct); !ok {
+				diagnostics = append(diagnostics, "enum fields must be a slice or array of structs")
+			}
 		}
 
 	case "label":

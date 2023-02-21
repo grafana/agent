@@ -7,6 +7,7 @@ import (
 	_ "github.com/grafana/agent/component/discovery/kubernetes"                 // Import discovery.kubernetes
 	_ "github.com/grafana/agent/component/discovery/relabel"                    // Import discovery.relabel
 	_ "github.com/grafana/agent/component/local/file"                           // Import local.file
+	_ "github.com/grafana/agent/component/loki/echo"                            // Import loki.echo
 	_ "github.com/grafana/agent/component/loki/process"                         // Import loki.process
 	_ "github.com/grafana/agent/component/loki/relabel"                         // Import loki.relabel
 	_ "github.com/grafana/agent/component/loki/source/cloudflare"               // Import loki.source.cloudflare
@@ -45,6 +46,7 @@ import (
 	_ "github.com/grafana/agent/component/phlare/write"                         // Import phlare.write
 	_ "github.com/grafana/agent/component/prometheus/integration/apache"        // Import prometheus.integration.apache
 	_ "github.com/grafana/agent/component/prometheus/integration/consul"        // Import prometheus.integration.consul
+	_ "github.com/grafana/agent/component/prometheus/integration/github"        // Import prometheus.integration.github
 	_ "github.com/grafana/agent/component/prometheus/integration/node_exporter" // Import prometheus.integration.node_exporter
 	_ "github.com/grafana/agent/component/prometheus/relabel"                   // Import prometheus.relabel
 	_ "github.com/grafana/agent/component/prometheus/remotewrite"               // Import prometheus.remote_write
