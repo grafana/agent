@@ -75,6 +75,8 @@ type Options struct {
 	Delegate DelegateHandler
 }
 
+// DelegateHandler allows the creation of subgraphs, it is used by components that need to instantiate
+// subgraphs. Modules are the most common use case of this system.
 type DelegateHandler interface {
 	LoadSubgraph(parent DelegateComponent, config []byte) ([]Component, diag.Diagnostics, error)
 }

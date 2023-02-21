@@ -4,6 +4,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/prometheus/client_golang/prometheus"
+
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
@@ -33,23 +35,18 @@ var testFile = `
 func TestController_LoadFile_Evaluation(t *testing.T) {
 	ctrl, _ := newFlow(testOptions(t))
 
-	// Use testFile from graph_builder_test.go.
-	f, err := ReadFile(t.Name(), []byte(testFile))
+	err := ctrl.LoadFile([]byte(testFile))
 	require.NoError(t, err)
-	require.NotNil(t, f)
-
-	err = ctrl.LoadFile(f)
-	require.NoError(t, err)
-	require.Len(t, ctrl.loader.Components(), 4)
+	require.Len(t, ctrl.graph.Components(), 4)
 
 	// Check the inputs and outputs of things that should be immediately resolved
 	// without having to run the components.
-	in, out := getFields(t, ctrl.loader.Graph(), "testcomponents.passthrough.static")
+	in, out := getFields(t, ctrl.graph.loader.Graph(), "testcomponents.passthrough.static")
 	require.Equal(t, "hello, world!", in.(testcomponents.PassthroughConfig).Input)
 	require.Equal(t, "hello, world!", out.(testcomponents.PassthroughExports).Output)
 
 	// Check the config node is present and has the default values applied.
-	opts := getConfigOpts(t, ctrl.loader.Graph())
+	opts := getConfigOpts(t, ctrl.graph.loader.Graph())
 	require.Equal(t, logging.DefaultOptions, opts)
 }
 
@@ -81,6 +78,6 @@ func testOptions(t *testing.T) Options {
 	return Options{
 		Logger:   l,
 		DataPath: t.TempDir(),
-		Reg:      nil,
+		Reg:      prometheus.NewRegistry(),
 	}
 }

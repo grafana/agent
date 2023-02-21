@@ -29,14 +29,13 @@ type Loader struct {
 	tracer  trace.TracerProvider
 	globals ComponentGlobals
 
-	mut                sync.RWMutex
-	graph              *dag.Graph
-	originalGraph      *dag.Graph
-	components         []*ComponentNode
-	cache              *valueCache
-	blocks             []*ast.BlockStmt // Most recently loaded blocks, used for writing
-	cm                 *ControllerMetrics
-	delegateComponents []*ComponentNode
+	mut           sync.RWMutex
+	graph         *dag.Graph
+	originalGraph *dag.Graph
+	components    []*ComponentNode
+	cache         *valueCache
+	blocks        []*ast.BlockStmt // Most recently loaded blocks, used for writing
+	cm            *ControllerMetrics
 }
 
 // NewLoader creates a new Loader. Components built by the Loader will be built

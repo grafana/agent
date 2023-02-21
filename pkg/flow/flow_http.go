@@ -51,7 +51,7 @@ func (f *Flow) ComponentJSON(w io.Writer, ci *ComponentInfo) error {
 
 	var foundComponent *controller.ComponentNode
 	for _, c := range f.graph.loader.Components() {
-		if c.ID().String() == ci.ID {
+		if c.NamespaceID() == ci.ID {
 			foundComponent = c
 			break
 		}

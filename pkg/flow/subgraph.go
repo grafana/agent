@@ -16,13 +16,16 @@ import (
 	"github.com/hashicorp/go-multierror"
 )
 
+// subgraph represents a namespace in the flow subsystem. The namespace is defined by the calling
+// delegate. In the case of normal operation that is the flow component with a namespace of "".
+// A parent delegate has a unique id that will propagate to child components to create a unique
+// namespace id that is parent.id + component.id.
 type subgraph struct {
 	mut          sync.Mutex
 	log          *logging.Logger
 	parent       component.DelegateComponent
 	parentGraph  *subgraph
 	scope        *vm.Scope
-	components   []*controller.ComponentNode
 	loader       *controller.Loader
 	updateQueue  *controller.Queue
 	sched        *controller.Scheduler
@@ -34,12 +37,15 @@ type subgraph struct {
 	cm           *controller.ControllerMetrics
 }
 
+// child represents a child subgraph with the created context and cancel func.
+// This is used when we need to stop the child for shutting down or reloading.
 type child struct {
 	graph  *subgraph
 	ctx    context.Context
 	cancel context.CancelFunc
 }
 
+// newSubgraph takes in a lot of arguments, we avoid using the
 func newSubgraph(
 	parent component.DelegateComponent,
 	parentGraph *subgraph,
@@ -50,6 +56,7 @@ func newSubgraph(
 	httplistener string,
 	cm *controller.ControllerMetrics,
 ) *subgraph {
+
 	sg := &subgraph{
 		parent:       parent,
 		sched:        controller.NewScheduler(),
@@ -87,7 +94,6 @@ func (s *subgraph) loadInitialSubgraph(flow *Flow, config []byte) ([]component.C
 	if err != nil {
 		return nil, nil, err
 	}
-	s.loader.Apply(s, flow, s.scope, file.Components, file.ConfigBlocks)
 	diags, comps := s.loader.Apply(s, flow, s.scope, file.Components, file.ConfigBlocks)
 	if diags.HasErrors() {
 		return nil, diags, diags.ErrorOrNil()
@@ -127,6 +133,8 @@ func (s *subgraph) LoadSubgraph(parent component.DelegateComponent, config []byt
 
 func (s *subgraph) Components() []*controller.ComponentNode {
 	// TODO should probably streamline this
+	s.mut.Lock()
+	defer s.mut.Unlock()
 	comps := make([]*controller.ComponentNode, 0)
 	comps = append(comps, s.loader.Components()...)
 	for _, x := range s.children {
@@ -139,11 +147,11 @@ func (s *subgraph) Components() []*controller.ComponentNode {
 func (s *subgraph) close() error {
 	var result error
 	for _, x := range s.children {
-		multierror.Append(result, x.graph.close())
+		result = multierror.Append(result, x.graph.close())
 	}
 	s.cancel()
 	<-s.exited
-	multierror.Append(result, s.sched.Close())
+	result = multierror.Append(result, s.sched.Close())
 	return result
 }
 
