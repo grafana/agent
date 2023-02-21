@@ -751,9 +751,9 @@ steps:
   - printenv GCR_CREDS > $HOME/.docker/config.json
   - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
   - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-  - docker buildx create --name multiarch --driver docker-container --use
+  - docker buildx create --name multiarch-agent-agent --driver docker-container --use
   - ./tools/ci/docker-containers agent
-  - docker buildx rm multiarch
+  - docker buildx rm multiarch-agent-agent
   environment:
     DOCKER_LOGIN:
       from_secret: DOCKER_LOGIN
@@ -788,9 +788,10 @@ steps:
   - printenv GCR_CREDS > $HOME/.docker/config.json
   - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
   - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-  - docker buildx create --name multiarch --driver docker-container --use
+  - docker buildx create --name multiarch-agent-agentctl --driver docker-container
+    --use
   - ./tools/ci/docker-containers agentctl
-  - docker buildx rm multiarch
+  - docker buildx rm multiarch-agent-agentctl
   environment:
     DOCKER_LOGIN:
       from_secret: DOCKER_LOGIN
@@ -825,9 +826,10 @@ steps:
   - printenv GCR_CREDS > $HOME/.docker/config.json
   - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
   - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-  - docker buildx create --name multiarch --driver docker-container --use
+  - docker buildx create --name multiarch-agent-agent-operator --driver docker-container
+    --use
   - ./tools/ci/docker-containers agent-operator
-  - docker buildx rm multiarch
+  - docker buildx rm multiarch-agent-agent-operator
   environment:
     DOCKER_LOGIN:
       from_secret: DOCKER_LOGIN
@@ -862,9 +864,9 @@ steps:
   - printenv GCR_CREDS > $HOME/.docker/config.json
   - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
   - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-  - docker buildx create --name multiarch --driver docker-container --use
+  - docker buildx create --name multiarch-agent-smoke --driver docker-container --use
   - ./tools/ci/docker-containers smoke
-  - docker buildx rm multiarch
+  - docker buildx rm multiarch-agent-smoke
   environment:
     DOCKER_LOGIN:
       from_secret: DOCKER_LOGIN
@@ -899,9 +901,9 @@ steps:
   - printenv GCR_CREDS > $HOME/.docker/config.json
   - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
   - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-  - docker buildx create --name multiarch --driver docker-container --use
+  - docker buildx create --name multiarch-agent-crow --driver docker-container --use
   - ./tools/ci/docker-containers crow
-  - docker buildx rm multiarch
+  - docker buildx rm multiarch-agent-crow
   environment:
     DOCKER_LOGIN:
       from_secret: DOCKER_LOGIN
@@ -1149,6 +1151,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: 0cf85f022b6a6b78ee33761853e3945d069a07e8207331143aaff7f68899b6f5
+hmac: 5e85b73dd2e075bffd57cf6fd5d943abcdd72356097b0e18d9a0520d733d7ea0
 
 ...

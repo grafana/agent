@@ -32,7 +32,7 @@ var (
 // MatchConfig contains the configuration for a matcherStage
 type MatchConfig struct {
 	Selector     string        `river:"selector,attr"`
-	Stages       []StageConfig `river:"stage,block,optional"`
+	Stages       []StageConfig `river:"stage,enum,optional"`
 	Action       string        `river:"action,attr,optional"`
 	PipelineName string        `river:"pipeline_name,attr,optional"`
 	DropReason   string        `river:"drop_counter_reason,attr,optional"`
