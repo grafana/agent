@@ -30,7 +30,7 @@ Name | Type | Description | Default | Required
 `repositories` | `list(string)` | GitHub repositories for which to collect metrics. | | no
 `organizations` | `list(string)` | GitHub organizations for which to collect metrics. | | no
 `users` | `list(string)` | A list of GitHub users for which to collect metrics. | | no
-`api_token`    | `string` | A github authentication token that allows the API to be queried more often. Optional, but recommended. | | no
+`api_token`    | `secret` | API token to use to authenticate against GitHub. | | no
 `api_token_file`    | `string` | A path to a file containing a github authentication token that allows the API to be queried more often. If supplied, this supercedes `api_token`. Optional, but recommended.| | no
 
 ## Exported fields
