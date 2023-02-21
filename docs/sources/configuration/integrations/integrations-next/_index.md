@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/configuration/integrations/integrations-next/
 title: Integrations Revamp
 weight: 100
 ---
@@ -106,8 +104,14 @@ integrations:
   mongodb_configs:
     [- <mongodb_exporter_config> ...]
 
+  mssql_configs:
+    [- <mssql_config> ...]
+
   mysql_configs:
     [- <mysqld_exporter_config> ...]
+  
+  oracledb_configs:
+    [ - <oracledb_exporter_config> ...]
 
   postgres_configs:
     [- <postgres_exporter_config> ...]

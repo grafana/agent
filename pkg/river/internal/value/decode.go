@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"reflect"
 	"time"
+
+	"github.com/grafana/agent/pkg/river/internal/reflectutil"
 )
 
 // Unmarshaler is a custom type which can be used to hook into the decoder.
@@ -478,7 +480,7 @@ func (d *decoder) decodeObject(val Value, rt reflect.Value) error {
 		for i, key := range keys {
 			// First decode the key into the label.
 			elem := res.Index(i)
-			elem.FieldByIndex(labelField.Index).Set(reflect.ValueOf(key))
+			reflectutil.FieldWalk(elem, labelField.Index, true).Set(reflect.ValueOf(key))
 
 			// Now decode the inner object.
 			value, _ := val.Key(key)
@@ -550,7 +552,7 @@ func (d *decoder) decodeObjectToStruct(val Value, rt reflect.Value, fields *obje
 			}
 
 			// Decode the key into the label.
-			rt.FieldByIndex(lf.Index).Set(reflect.ValueOf(key))
+			reflectutil.FieldWalk(rt, lf.Index, true).Set(reflect.ValueOf(key))
 
 			// ...and then code the rest of the object.
 			if err := d.decodeObjectToStruct(value, rt, fields, true); err != nil {
@@ -570,30 +572,13 @@ func (d *decoder) decodeObjectToStruct(val Value, rt reflect.Value, fields *obje
 			}
 		case objectKeyTypeField:
 			targetField, _ := fields.Field(key)
-			if err := d.decodeToField(value, rt, targetField.Index); err != nil {
+			targetValue := reflectutil.FieldWalk(rt, targetField.Index, true)
+
+			if err := d.decode(value, targetValue); err != nil {
 				return FieldError{Value: val, Field: key, Inner: err}
 			}
 		}
 	}
 
 	return nil
-}
-
-// decodeToField will decode val into a field within intoStruct indexed by the
-// index slice. decodeToField will allocate pointers as necessary while
-// traversing the struct fields.
-func (d *decoder) decodeToField(val Value, intoStruct reflect.Value, index []int) error {
-	curr := intoStruct
-	for _, next := range index {
-		for curr.Kind() == reflect.Pointer {
-			if curr.IsNil() {
-				curr.Set(reflect.New(curr.Type().Elem()))
-			}
-			curr = curr.Elem()
-		}
-
-		curr = curr.Field(next)
-	}
-
-	return d.decode(val, curr)
 }

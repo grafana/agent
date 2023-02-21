@@ -82,6 +82,10 @@ import (
 //	// converted into a block. When decoding, a block label must be provided.
 //	Field string `river:",label"`
 //
+//	// The inner attributes and blocks of Field are exposed as top-level
+//	// attributes and blocks of the outer struct.
+//	Field struct{...} `river:",squash"`
+//
 // If a river tag specifies a required or optional block, the name is permitted
 // to contain period `.` characters.
 //

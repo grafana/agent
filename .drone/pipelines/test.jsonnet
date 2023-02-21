@@ -8,8 +8,48 @@ local pipelines = import '../util/pipelines.jsonnet';
     },
     steps: [{
       name: 'Lint',
+      // TODO(rfratto): the build image is swapped out for golangci-lint while
+      // we're waiting for golangci-lint to support Go 1.20. Replace back with
+      // build_image.linux when it works again.
+      image: 'golangci/golangci-lint:v1.50.1',
+      commands: [
+        'apt-get update -y && apt-get install -y libsystemd-dev',
+        'make lint',
+      ],
+    }],
+  },
+
+  pipelines.linux('Test dashboards') {
+    trigger: {
+      event: ['pull_request'],
+    },
+    steps: [{
+      name: 'Regenerate dashboards',
       image: build_image.linux,
-      commands: ['make lint'],
+
+      commands: [
+        'make generate-dashboards',
+        'ERR_MSG="Dashboard definitions are out of date. Please run \'make generate-dashboards\' and commit changes!"',
+        // "git status --porcelain" reports if there's any new, modified, or deleted files.
+        'if [ ! -z "$(git status --porcelain)" ]; then echo $ERR_MSG >&2; exit 1; fi',
+      ],
+    }],
+  },
+
+  pipelines.linux('Test manifests') {
+    trigger: {
+      event: ['pull_request'],
+    },
+    steps: [{
+      name: 'Regenerate environment manifests',
+      image: build_image.linux,
+
+      commands: [
+        'make generate-manifests',
+        'ERR_MSG="The environment manifests are out of date. Please run \'make generate-manifests\' and commit changes!"',
+        // "git status --porcelain" reports if there's any new, modified, or deleted files.
+        'if [ ! -z "$(git status --porcelain)" ]; then echo $ERR_MSG >&2; exit 1; fi',
+      ],
     }],
   },
 
@@ -26,11 +66,6 @@ local pipelines = import '../util/pipelines.jsonnet';
       }],
 
       commands: [
-        // Make sure all the binaries can be built. We do this in the same
-        // step as running tests just to avoid having to redownload and
-        // rebuild the dependencies twice.
-        'make binaries',
-
         // The operator tests require K8S_USE_DOCKER_NETWORK=1 to be set when
         // tests are being run inside of a Docker container so it can access the
         // created k3d cluster properly.
@@ -52,6 +87,9 @@ local pipelines = import '../util/pipelines.jsonnet';
     steps: [{
       name: 'Run Go tests',
       image: build_image.windows,
+      environment: {
+        ASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH: 'go1.20',
+      },
       commands: ['go test -tags="nodocker,nonetwork" ./...'],
     }],
   },

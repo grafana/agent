@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/api/
 title: Grafana Agent API
 weight: 400
 ---
@@ -11,7 +9,7 @@ The API is divided into several parts:
 
 - [Config Management API](#config-management-api)
 - [Agent API](#agent-api)
-- [Integrations API](#integrations-api)
+- [Integrations API](#integrations-api-experimental)
 - [Ready/Healthy API](#ready--health-api)
 
 API endpoints are stable unless otherwise noted.

@@ -1,6 +1,6 @@
 ---
 aliases:
-- /docs/agent/latest/flow/configuration-language/standard-library/env
+- ../../configuration-language/standard-library/env/
 title: env
 ---
 

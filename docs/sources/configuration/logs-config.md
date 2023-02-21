@@ -1,7 +1,6 @@
 ---
 aliases:
-- /docs/agent/latest/configuration/logs-config/
-- /docs/agent/latest/configuration/loki-config/
+- loki-config/
 title: logs_config
 weight: 300
 ---
@@ -28,10 +27,28 @@ for the supported values for these fields.
 # This directory will be automatically created if it doesn't exist.
 [positions_directory: <string>]
 
+# Configure values for all Loki Promtail instances.
+[global: <global_config>]
+
 # Loki Promtail instances to run for log collection.
 configs:
   - [<logs_instance_config>]
 ```
+
+## global_config
+
+The `global_config` block configures global values for all launched Loki Promtail
+instances.
+
+```yaml
+clients:
+  - [<promtail.client_config>]
+```
+
+> **Note:** More information on the following types can be found on the
+> documentation for Promtail:
+>
+> * [`promtail.client_config`](https://grafana.com/docs/loki/latest/clients/promtail/configuration/#clients)
 
 ## logs_instance_config
 

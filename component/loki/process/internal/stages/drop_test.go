@@ -302,7 +302,7 @@ func TestDropStage(t *testing.T) {
 
 func TestDropPipeline(t *testing.T) {
 	registry := prometheus.NewRegistry()
-	plName := "test_pipeline"
+	plName := "test_drop_pipeline"
 	logger, _ := logging.New(io.Discard, logging.DefaultOptions)
 	pl, err := NewPipeline(logger, loadConfig(testDropRiver), &plName, registry)
 	require.NoError(t, err)

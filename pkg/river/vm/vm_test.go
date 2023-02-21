@@ -88,6 +88,7 @@ func TestVM_Evaluate(t *testing.T) {
 		{`5 % 3`, int(2)},
 		{`3 ^ 5`, int(243)},
 		{`3 + 5 * 2`, int(13)}, // Chain multiple binops
+		{`42.0^-2`, float64(0.0005668934240362812)},
 
 		// Identifier
 		{`foobar`, int(42)},

@@ -95,6 +95,10 @@ const (
 	CollectorXFS          = "xfs"
 	CollectorZFS          = "zfs"
 	CollectorZoneinfo     = "zoneinfo"
+	CollectorCGroups      = "cgroups"
+	CollectorSELinux      = "selinux"
+	CollectorSlabInfo     = "slabinfo"
+	CollectorSysctl       = "sysctl"
 )
 
 // Collectors holds a map of known collector names to their default
@@ -106,6 +110,7 @@ var Collectors = map[string]CollectorState{
 	CollectorBonding:      CollectorStateEnabled,
 	CollectorBootTime:     CollectorStateEnabled,
 	CollectorBuddyInfo:    CollectorStateDisabled,
+	CollectorCGroups:      CollectorStateDisabled,
 	CollectorCPU:          CollectorStateEnabled,
 	CollectorCPUFreq:      CollectorStateEnabled,
 	CollectorConntrack:    CollectorStateEnabled,
@@ -150,10 +155,13 @@ var Collectors = map[string]CollectorState{
 	CollectorRAPL:         CollectorStateEnabled,
 	CollectorRunit:        CollectorStateDisabled,
 	CollectorSchedstat:    CollectorStateEnabled,
+	CollectorSELinux:      CollectorStateEnabled,
+	CollectorSlabInfo:     CollectorStateDisabled,
 	CollectorSockstat:     CollectorStateEnabled,
 	CollectorSoftnet:      CollectorStateEnabled,
 	CollectorStat:         CollectorStateEnabled,
 	CollectorSupervisord:  CollectorStateDisabled,
+	CollectorSysctl:       CollectorStateDisabled,
 	CollectorSystemd:      CollectorStateDisabled,
 	CollectorTCPStat:      CollectorStateDisabled,
 	CollectorTapestats:    CollectorStateEnabled,

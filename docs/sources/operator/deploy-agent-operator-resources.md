@@ -1,7 +1,6 @@
 ---
 aliases:
-- /docs/agent/latest/operator/deploy-agent-operator-resources/
-- /docs/agent/latest/operator/custom-resource-quickstart/
+- custom-resource-quickstart/
 title: Deploy the Agent Operator resources
 weight: 120
 ---
@@ -54,7 +53,7 @@ To deploy the `GrafanaAgent` resource:
       labels:
         app: grafana-agent
     spec:
-      image: grafana/agent:v0.30.2
+      image: grafana/agent:v0.31.3
       logLevel: info
       serviceAccountName: grafana-agent
       metrics:

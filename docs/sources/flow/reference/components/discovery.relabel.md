@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/flow/reference/components/discovery.relabel
 title: discovery.relabel
 ---
 
@@ -76,7 +74,7 @@ The following fields are exported and can be referenced by other components:
 Name | Type | Description
 ---- | ---- | -----------
 `output` | `list(map(string))` | The set of targets after applying relabeling.
-`rules`    | `RelabelRules` | A function that returns the currently configured relabeling rules.
+`rules`    | `RelabelRules` | The currently configured relabeling rules.
 
 ## Component health
 

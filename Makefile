@@ -83,8 +83,8 @@
 ##   GOOS             Override OS to build binaries for
 ##   GOARCH           Override target architecture to build binaries for
 ##   GOARM            Override ARM version (6 or 7) when GOARCH=arm
-##   CGO_ENABLED      Set to 0 to disable Cgo for builds
-##   RELEASE_BUILD    Set to 1 to build release binaries
+##   CGO_ENABLED      Set to 0 to disable Cgo for binaries.
+##   RELEASE_BUILD    Set to 1 to build release binaries.
 ##   VERSION          Version to inject into built binaries.
 ##   GO_TAGS          Extra tags to use when building.
 ##   DOCKER_PLATFORM  Overrides platform to build Docker images for (defaults to host platform).
@@ -121,6 +121,15 @@ PROPAGATE_VARS := \
 #
 
 GO_ENV := GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CGO_ENABLED=$(CGO_ENABLED)
+
+# Selectively pass -mlong-calls when building for 32-bit ARM targets (armv6,
+# armv7). This works around an issue where the text segment has gotten big
+# enough (>32MB) that "relocation truncated to fit" errors occur.
+ifeq ($(GOARCH),arm)
+ifeq ($(GOOS),linux)
+GO_ENV += CGO_CFLAGS="$(CGO_CFLAGS) -mlong-calls"
+endif
+endif
 
 VERSION      ?= $(shell ./tools/image-tag)
 GIT_REVISION := $(shell git rev-parse --short HEAD)
@@ -159,7 +168,7 @@ lint: agentlint
 # more without -race for packages that have known race detection issues.
 test:
 	$(GO_ENV) go test $(GO_FLAGS) -race ./...
-	$(GO_ENV) go test $(GO_FLAGS) ./pkg/integrations/node_exporter ./pkg/logs ./pkg/operator ./pkg/util/k8s
+	$(GO_ENV) go test $(GO_FLAGS) ./pkg/integrations/node_exporter ./pkg/logs ./pkg/operator ./pkg/util/k8s ./component/otelcol/processor/tail_sampling
 
 test-packages:
 	docker pull $(BUILD_IMAGE)

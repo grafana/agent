@@ -1,6 +1,6 @@
 ---
 aliases:
-- /docs/agent/latest/flow/configuration-language/standard-library/discovery_target_decode
+- ../../configuration-language/standard-library/discovery_target_decode/
 title: discovery_target_decode
 ---
 

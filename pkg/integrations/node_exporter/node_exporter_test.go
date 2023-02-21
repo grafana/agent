@@ -94,7 +94,6 @@ func TestNodeExporter_IgnoredFlags(t *testing.T) {
 			"collector.cpu.guest",
 			"collector.cpu.info.flags-include",
 			"collector.cpu.info.bugs-include",
-			"collector.diskstats.ignored-devices",
 			"collector.filesystem.mount-timeout",
 		}
 	}

@@ -1,7 +1,6 @@
 ---
 aliases:
-- /docs/agent/latest/configuration/metrics-config/
-- /docs/agent/latest/configuration/prometheus-config/
+- prometheus-config/
 title: metrics_config
 weight: 200
 ---

@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/flow/reference/components/prometheus.relabel
 title: prometheus.relabel
 ---
 
@@ -73,7 +71,7 @@ The following fields are exported and can be referenced by other components:
 Name | Type | Description
 ---- | ---- | -----------
 `receiver` | `receiver` | The input receiver where samples are sent to be relabeled.
-`rules`    | `RelabelRules` | A function that returns the currently configured relabeling rules.
+`rules`    | `RelabelRules` | The currently configured relabeling rules.
 
 ## Component health
 
@@ -94,6 +92,7 @@ values.
 * `agent_prometheus_relabel_cache_hits` (counter): Total number of cache hits.
 * `agent_prometheus_relabel_cache_size` (gauge): Total size of relabel cache.
 * `agent_prometheus_fanout_latency` (histogram): Write latency for sending to direct and indirect components.
+* `agent_prometheus_forwarded_samples_total` (counter): Total number of samples sent to downstream components.
 
 ## Example
 

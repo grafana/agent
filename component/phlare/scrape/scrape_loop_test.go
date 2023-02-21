@@ -71,7 +71,7 @@ func TestScrapePool(t *testing.T) {
 				NewTarget(
 					labels.FromStrings("instance", "localhost:8080", "foo", "bar", model.AddressLabel, "localhost:8080", model.MetricNameLabel, pprofProcessCPU, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/profile"),
 					labels.FromStrings("foo", "bar", model.AddressLabel, "localhost:8080", model.MetricNameLabel, pprofProcessCPU, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/profile"),
-					url.Values{"seconds": []string{"15"}},
+					url.Values{"seconds": []string{"14"}},
 				),
 				NewTarget(
 					labels.FromStrings("instance", "localhost:9090", "foo", "bar", model.AddressLabel, "localhost:9090", model.MetricNameLabel, pprofMutex, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/mutex"),
@@ -81,7 +81,7 @@ func TestScrapePool(t *testing.T) {
 				NewTarget(
 					labels.FromStrings("instance", "localhost:9090", "foo", "bar", model.AddressLabel, "localhost:9090", model.MetricNameLabel, pprofProcessCPU, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/profile"),
 					labels.FromStrings("foo", "bar", model.AddressLabel, "localhost:9090", model.MetricNameLabel, pprofProcessCPU, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/profile"),
-					url.Values{"seconds": []string{"15"}},
+					url.Values{"seconds": []string{"14"}},
 				),
 			},
 		},
@@ -103,7 +103,7 @@ func TestScrapePool(t *testing.T) {
 				NewTarget(
 					labels.FromStrings("instance", "localhost:9090", model.AddressLabel, "localhost:9090", model.MetricNameLabel, pprofProcessCPU, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/profile"),
 					labels.FromStrings(model.AddressLabel, "localhost:9090", model.MetricNameLabel, pprofProcessCPU, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/profile"),
-					url.Values{"seconds": []string{"15"}},
+					url.Values{"seconds": []string{"14"}},
 				),
 			},
 		},
@@ -125,7 +125,7 @@ func TestScrapePool(t *testing.T) {
 				NewTarget(
 					labels.FromStrings("instance", "localhost:9090", model.AddressLabel, "localhost:9090", model.MetricNameLabel, pprofProcessCPU, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/profile"),
 					labels.FromStrings("__type__", "foo", model.AddressLabel, "localhost:9090", model.MetricNameLabel, pprofProcessCPU, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/profile"),
-					url.Values{"seconds": []string{"15"}},
+					url.Values{"seconds": []string{"14"}},
 				),
 			},
 		},
@@ -189,7 +189,7 @@ func TestScrapeLoop(t *testing.T) {
 
 	require.Equal(t, HealthUnknown, loop.Health())
 	loop.start()
-	require.Eventually(t, func() bool { return appendTotal.Load() > 3 }, time.Second, 100*time.Millisecond)
+	require.Eventually(t, func() bool { return appendTotal.Load() > 3 }, 5000*time.Millisecond, 100*time.Millisecond)
 	require.Equal(t, HealthGood, loop.Health())
 
 	down.Store(true)

@@ -16,7 +16,7 @@ var DefaultConfig = Config{
 	RootFSPath: node_integration.DefaultConfig.RootFSPath,
 	SysFSPath:  node_integration.DefaultConfig.SysFSPath,
 	Disk: DiskStatsConfig{
-		IgnoredDevices: node_integration.DefaultConfig.DiskStatsIgnoredDevices,
+		DeviceExclude: node_integration.DefaultConfig.DiskStatsDeviceExclude,
 	},
 	EthTool: EthToolConfig{
 		MetricsInclude: ".*",
@@ -92,6 +92,7 @@ type Config struct {
 	Powersupply PowersupplyConfig `river:"powersupply,block,optional"`
 	Runit       RunitConfig       `river:"runit,block,optional"`
 	Supervisord SupervisordConfig `river:"supervisord,block,optional"`
+	Sysctl      SysctlConfig      `river:"sysctl,block,optional"`
 	Systemd     SystemdConfig     `river:"systemd,block,optional"`
 	Tapestats   TapestatsConfig   `river:"tapestats,block,optional"`
 	Textfile    TextfileConfig    `river:"textfile,block,optional"`
@@ -113,7 +114,8 @@ func (c *Config) Convert() *node_integration.Config {
 		CPUEnableCPUGuest:                c.CPU.EnableCPUGuest,
 		CPUEnableCPUInfo:                 c.CPU.EnableCPUInfo,
 		CPUFlagsInclude:                  c.CPU.FlagsInclude,
-		DiskStatsIgnoredDevices:          c.Disk.IgnoredDevices,
+		DiskStatsDeviceExclude:           c.Disk.DeviceExclude,
+		DiskStatsDeviceInclude:           c.Disk.DeviceInclude,
 		EthtoolDeviceExclude:             c.EthTool.DeviceExclude,
 		EthtoolDeviceInclude:             c.EthTool.DeviceInclude,
 		EthtoolMetricsInclude:            c.EthTool.MetricsInclude,
@@ -138,6 +140,8 @@ func (c *Config) Convert() *node_integration.Config {
 		PowersupplyIgnoredSupplies:       c.Powersupply.IgnoredSupplies,
 		RunitServiceDir:                  c.Runit.ServiceDir,
 		SupervisordURL:                   c.Supervisord.URL,
+		SysctlInclude:                    c.Sysctl.Include,
+		SysctlIncludeInfo:                c.Sysctl.IncludeInfo,
 		SystemdEnableRestartsMetrics:     c.Systemd.EnableRestartsMetrics,
 		SystemdEnableStartTimeMetrics:    c.Systemd.EnableStartTimeMetrics,
 		SystemdEnableTaskMetrics:         c.Systemd.EnableTaskMetrics,
@@ -245,7 +249,8 @@ type CPUConfig struct {
 
 // DiskStatsConfig contains config specific to the diskstats collector.
 type DiskStatsConfig struct {
-	IgnoredDevices string `river:"ignored_devices,attr,optional"`
+	DeviceExclude string `river:"device_exclude,attr,optional"`
+	DeviceInclude string `river:"device_include,attr,optional"`
 }
 
 // NTPConfig contains config specific to the ntp collector.
@@ -265,4 +270,10 @@ type SystemdConfig struct {
 	EnableTaskMetrics      bool   `river:"task_metrics,attr,optional"`
 	UnitExclude            string `river:"unit_exclude,attr,optional"`
 	UnitInclude            string `river:"unit_include,attr,optional"`
+}
+
+// SysctlConfig contains config specific to the sysctl collector.
+type SysctlConfig struct {
+	Include     []string `river:"include,attr,optional"`
+	IncludeInfo []string `river:"include_info,attr,optional"`
 }

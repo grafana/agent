@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/flow/reference/components/loki.source.file
 title: loki.source.file
 ---
 
@@ -85,8 +83,7 @@ beginning.
 ## Example
 
 This example collects log entries from the files specified in the targets
-argument and forwards them to a `loki.write` component so they are can be 
-written to Loki.
+argument and forwards them to a `loki.write` component to be written to Loki.
 
 ```river
 loki.source.file "tmpfiles" {
