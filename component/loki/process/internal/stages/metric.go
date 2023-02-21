@@ -40,30 +40,6 @@ type MetricConfig struct {
 	Histogram *metric.HistogramConfig `river:"histogram,block,optional"`
 }
 
-// UnmarshalRiver implements the unmarshaller
-func (mc *MetricConfig) UnmarshalRiver(f func(v interface{}) error) error {
-	*mc = MetricConfig{}
-	type metricCfg MetricConfig
-	err := f((*metricCfg)(mc))
-	if err != nil {
-		return err
-	}
-
-	nonEmpty := 0
-	v := reflect.Indirect(reflect.ValueOf(mc))
-	for i := 0; i < v.NumField(); i++ {
-		if !v.Field(i).IsNil() {
-			nonEmpty++
-		}
-	}
-
-	if nonEmpty != 1 {
-		return fmt.Errorf("exactly one of 'counter', 'gauge' or 'histogram' must be configured")
-	}
-
-	return nil
-}
-
 // MetricsConfig is a set of configured metrics.
 type MetricsConfig struct {
 	Metrics []MetricConfig `river:"metric,enum,optional"`
