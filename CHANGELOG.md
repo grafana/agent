@@ -322,6 +322,9 @@ v0.30.0 (2022-12-20)
 
 ### Bugfixes
 
+- Fix issue where an empty `server:` config stanza would cause debug-level logging.
+  An empty `server:` is considered a misconfiguration, and thus will error out. (@neomantra)
+
 - Fix issue where whitespace was being sent as part of password when using a
   password file for `redis_exporter`. (@spartan0x117)
 
