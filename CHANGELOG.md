@@ -67,6 +67,10 @@ Main (unreleased)
 - Fixed a reconciliation error in Grafana Agent Operator when using `tlsConfig`
   on `Probe`. (@supergillis)
 
+- Fix issue where an empty `server:` config stanza would cause debug-level logging.
+  An empty `server:` is considered a misconfiguration, and thus will error out.
+  (@neomantra)
+
 - Flow: fix an error where some error messages that crossed multiple lines
   added extra an extra `|` character when displaying the source file on the
   starting line. (@rfratto)
@@ -333,9 +337,6 @@ v0.30.0 (2022-12-20)
   now exposed at the `/metrics` endpoint of Grafana Agent Flow. (@rfratto)
 
 ### Bugfixes
-
-- Fix issue where an empty `server:` config stanza would cause debug-level logging.
-  An empty `server:` is considered a misconfiguration, and thus will error out. (@neomantra)
 
 - Fix issue where whitespace was being sent as part of password when using a
   password file for `redis_exporter`. (@spartan0x117)
