@@ -19,6 +19,13 @@ Main (unreleased)
 - Some blocks in Flow components have been merged with their parent block to make the block hierarchy smaller:
   - `prometheus.scrape > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
 
+- The `loki.process` component now makes use of River's 'enum' blocks. Instead
+  of defining processing stages in nested a `stage` block containing one
+  element each (eg. a `stage > json` hierarchy), the configuration now supports
+  defining each block as `stage.json` directly. (@tpaschalis)
+
+- `remote.s3` `client_options` block has been renamed to `client`. (@mattdurham)
+
 ### Features
 
 - New integrations:
@@ -41,9 +48,13 @@ Main (unreleased)
     (@captncraig)
   - `prometheus.integration.consul` collects metrics from a consul installation
     (@captncraig)
+  - `prometheus.integration.github` collects metrics from GitHub (@jcreixell)
   - `prometheus.integration.process_exporter` aggregates and collects metrics by mining `/proc` (@spartan0x117)
 
+
 ### Enhancements
+
+- Flow: Support `keepequal` and `dropequal` actions for relabeling. (@ctovena)
 
 - Update Prometheus Node Exporter integration to v1.5.0. (@Thor77)
 
@@ -204,9 +215,8 @@ v0.31.0 (2023-01-31)
 
 ### Bugfixes
 
-- Flow UI: Fix the issue with messy layout on the component list page while browser window resize. (@xiyu95)
-
-- Flow UI: Fix the issue with long string going out of bound in the component detail page. (@xiyu95)
+- Flow UI: Fix the issue with messy layout on the component list page while
+  browser window resize (@xiyu95)
 
 - Flow UI: Display the values of all attributes unless they are nil. (@ptodev)
 
@@ -306,7 +316,6 @@ v0.30.0 (2022-12-20)
     patterns. (@mattdurham)
 
 - Integrations: Introduce the `snowflake` integration. (@binaryfissiongames)
-
 
 ### Enhancements
 
