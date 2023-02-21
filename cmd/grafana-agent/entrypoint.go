@@ -68,7 +68,7 @@ func NewEntrypoint(logger *server.Logger, cfg *config.Config, reloader Reloader)
 		err error
 	)
 
-	ep.srv, err = server.New(logger, reg, gatherer, cfg.Server, cfg.ServerFlags)
+	ep.srv, err = server.New(logger, reg, gatherer, *cfg.Server, cfg.ServerFlags)
 	if err != nil {
 		return nil, err
 	}
@@ -147,12 +147,12 @@ func (ep *Entrypoint) ApplyConfig(cfg config.Config) error {
 
 	var failed bool
 
-	if err := ep.log.ApplyConfig(&cfg.Server); err != nil {
+	if err := ep.log.ApplyConfig(cfg.Server); err != nil {
 		level.Error(ep.log).Log("msg", "failed to update logger", "err", err)
 		failed = true
 	}
 
-	if err := ep.srv.ApplyConfig(cfg.Server); err != nil {
+	if err := ep.srv.ApplyConfig(*cfg.Server); err != nil {
 		level.Error(ep.log).Log("msg", "failed to update server", "err", err)
 		failed = true
 	}

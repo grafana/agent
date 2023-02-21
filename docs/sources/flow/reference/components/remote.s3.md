@@ -11,7 +11,7 @@ recent content is always available.
 The most common use of `remote.s3` is to load secrets from files.
 
 Multiple `remote.s3` components can be specified using different name
-labels. By default, [AWS environment variables](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html) are used to authenticate against S3. The `key` and `secret` arguments inside `client_options` blocks can be used to provide custom authentication.
+labels. By default, [AWS environment variables](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html) are used to authenticate against S3. The `key` and `secret` arguments inside `client` blocks can be used to provide custom authentication.
 
 > **NOTE**: Other S3-compatible systems can be read  with `remote.s3` but may require specific
 > authentication environment variables. There is no  guarantee that `remote.s3` will work with non-AWS S3
@@ -41,15 +41,15 @@ Name | Type | Description | Default | Required
 
 ## Blocks
 
-Hierarchy | Name | Description | Required
---------- | ---- | ----------- | --------
-client_options | [client_options][] | Additional options for configuring the S3 client. | no
+Hierarchy | Name       | Description | Required
+--------- |------------| ----------- | --------
+client | [client][] | Additional options for configuring the S3 client. | no
 
-[client_options]: #client_options-block
+[client]: #client-block
 
-### client_options block
+### client block
 
-The `client_options` block customizes options to connect to the S3 server.
+The `client` block customizes options to connect to the S3 server.
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
