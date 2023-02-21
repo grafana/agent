@@ -36,6 +36,7 @@ Main (unreleased)
     other `loki` components. (@tpaschalis)
   - `prometheus.integration.apache` collects metrics from an apache web server (@captncraig)
   - `prometheus.integration.consul` collects metrics from a consul installation (@captncraig)
+  - `prometheus.integration.github` collects metrics from GitHub (@jcreixell)
 
 ### Enhancements
 

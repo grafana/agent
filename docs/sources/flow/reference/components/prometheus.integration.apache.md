@@ -35,7 +35,7 @@ The following fields are exported and can be referenced by other components.
 
 Name      | Type                | Description
 --------- | ------------------- | -----------
-`targets` | `list(map(string))` | The targets that can be used to collect `consul` metrics.
+`targets` | `list(map(string))` | The targets that can be used to collect `apache` metrics.
 
 For example, the `targets` can either be passed to a `prometheus.relabel`
 component to rewrite the metric's label set, or to a `prometheus.scrape`
@@ -67,7 +67,7 @@ prometheus.integration.apache "example" {
   scrape_uri = "http://web.example.com/server-status?auto"
 }
 
-// Configure a prometheus.scrape component to collect consul metrics.
+// Configure a prometheus.scrape component to collect apache metrics.
 prometheus.scrape "demo" {
   targets    = prometheus.integration.apache.example.targets
   forward_to = [ /* ... */ ]
