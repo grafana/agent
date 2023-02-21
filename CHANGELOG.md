@@ -62,6 +62,13 @@ Main (unreleased)
 
 - Flow: add timeout to loki.source.podlogs controller setup. (@polyrain)
 
+- Flow: fix issues in `river fmt` where adding an inline comment on the same
+  line as a `[` or `{` would cause indentation issues on subsequent lines.
+  (@rfratto)
+
+- Flow: fix issues in `river fmt` where line comments in arrays would be given
+  the wrong identation level. (@rfratto)
+
 ### Bugfixes
 
 - Fixed a reconciliation error in Grafana Agent Operator when using `tlsConfig` on `Probe`. (@supergillis)
