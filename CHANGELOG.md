@@ -18,7 +18,7 @@ Main (unreleased)
 
 - Some blocks in Flow components have been merged with their parent block to make the block hierarchy smaller:
   - `prometheus.scrape > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
-  - `discovery.kubernetes > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
+  - `discovery.kubernetes > http_client_config` is merged into the `discovery.kubernetes` block. (@erikbaranowski)
 
 ### Features
 
