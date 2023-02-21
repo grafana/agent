@@ -16,6 +16,9 @@ Main (unreleased)
   - `diskstats_ignored_devices` is now `diskstats_device_exclude` in agent configuration.
   - `ignored_devices` is now `device_exclude` in flow configuration.
 
+- Some blocks in Flow components have been merged with their parent block to make the block hierarchy smaller:
+  - `prometheus.scrape > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
+
 ### Features
 
 - New integrations:
@@ -61,9 +64,19 @@ Main (unreleased)
 
 ### Bugfixes
 
+- Fixed a reconciliation error in Grafana Agent Operator when using `tlsConfig`
+  on `Probe`. (@supergillis)
+
 - Flow: fix an error where some error messages that crossed multiple lines
   added extra an extra `|` character when displaying the source file on the
   starting line. (@rfratto)
+
+- Flow: fix issues in `river fmt` where adding an inline comment on the same
+  line as a `[` or `{` would cause indentation issues on subsequent lines.
+  (@rfratto)
+
+- Flow: fix issues in `river fmt` where line comments in arrays would be given
+  the wrong identation level. (@rfratto)
 
 ### Other changes
 
@@ -81,6 +94,8 @@ v0.31.3 (2023-02-13)
 
 - `loki.source.cloudflare`: fix issue where `api_token` argument was not marked
   as a sensitive field. (@rfratto)
+
+- `oath2 > tls_config` was documented as a block but coded incorrectly as an attribute. This is now a block in code. This impacted `discovery.docker`, `discovery.kubernetes`, `loki.source.kubernetes`, `loki.write`, `mimir.rules.kubernetes`, `phlare.scrape`, `phlare.write`, `prometheus.remote_write`, `prometheus.scrape`, and `remote.http`  (@erikbaranowski)
 
 v0.31.2 (2023-02-08)
 --------------------
@@ -318,6 +333,9 @@ v0.30.0 (2022-12-20)
   now exposed at the `/metrics` endpoint of Grafana Agent Flow. (@rfratto)
 
 ### Bugfixes
+
+- Fix issue where an empty `server:` config stanza would cause debug-level logging.
+  An empty `server:` is considered a misconfiguration, and thus will error out. (@neomantra)
 
 - Fix issue where whitespace was being sent as part of password when using a
   password file for `redis_exporter`. (@spartan0x117)
