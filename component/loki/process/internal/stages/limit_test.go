@@ -14,48 +14,36 @@ import (
 
 // Not all these are tested but are here to make sure the different types marshal without error
 var testLimitWaitRiver = `
-stage {
-	json {
+stage.json {
 		expressions = { "app" = "", "msg" = "" }
-	}
 }
-stage {
-	limit {
+stage.limit {
 		rate  = 1
 		burst = 1
 		drop  = false
-	}
 }`
 
 // Not all these are tested but are here to make sure the different types marshal without error
 var testLimitDropRiver = `
-stage {
-	json {
+stage.json {
 		expressions = { "app" = "", "msg" = "" }
-	}
 }
-stage {
-	limit {
+stage.limit {
 		rate  = 1
 		burst = 1
 		drop  = true
-	}
 }`
 
 var testLimitByLabelRiver = `
-stage {
-	json {
+stage.json {
 		expressions = { "app" = "", "msg" = "" }
-	}
 }
-stage {
-	limit {
+stage.limit {
 		rate  = 1
 		burst = 1
 		drop  = true
 		
 		by_label_name = "app"
-	}
 }`
 
 var testNonAppLogLine = `

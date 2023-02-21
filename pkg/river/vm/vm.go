@@ -109,13 +109,13 @@ func (vm *Evaluator) evaluateBlockOrBody(scope *Scope, assoc map[value.Value]ast
 		panic(fmt.Sprintf("river/vm: can only evaluate blocks into structs, got %s", rv.Kind()))
 	}
 
-	tfs := rivertags.Get(rv.Type())
+	ti := getCachedTagInfo(rv.Type())
 
 	var stmts ast.Body
 	switch node := node.(type) {
 	case *ast.BlockStmt:
 		// Decode the block label first.
-		if err := vm.evaluateBlockLabel(node, tfs, rv); err != nil {
+		if err := vm.evaluateBlockLabel(node, ti.Tags, rv); err != nil {
 			return err
 		}
 		stmts = node.Body
@@ -125,177 +125,13 @@ func (vm *Evaluator) evaluateBlockOrBody(scope *Scope, assoc map[value.Value]ast
 		panic(fmt.Sprintf("river/vm: unrecognized node type %T", node))
 	}
 
-	var (
-		foundAttrs  = make(map[string][]*ast.AttributeStmt, len(tfs))
-		foundBlocks = make(map[string][]*ast.BlockStmt, len(tfs))
-	)
-	for _, stmt := range stmts {
-		switch stmt := stmt.(type) {
-		case *ast.AttributeStmt:
-			name := stmt.Name.Name
-			foundAttrs[name] = append(foundAttrs[name], stmt)
-
-		case *ast.BlockStmt:
-			name := strings.Join(stmt.Name, ".")
-			foundBlocks[name] = append(foundBlocks[name], stmt)
-
-		default:
-			panic(fmt.Sprintf("river: unrecognized ast.Stmt type %T", stmt))
-		}
+	sd := structDecoder{
+		VM:      vm,
+		Scope:   scope,
+		Assoc:   assoc,
+		TagInfo: ti,
 	}
-
-	var (
-		consumedAttrs  = make(map[string]struct{}, len(foundAttrs))
-		consumedBlocks = make(map[string]struct{}, len(foundBlocks))
-	)
-	for _, tf := range tfs {
-		fullName := strings.Join(tf.Name, ".")
-
-		if tf.IsAttr() {
-			consumedAttrs[fullName] = struct{}{}
-		} else if tf.IsBlock() {
-			consumedBlocks[fullName] = struct{}{}
-		}
-
-		// Skip over fields that aren't attributes or blocks.
-		if !tf.IsAttr() && !tf.IsBlock() {
-			continue
-		}
-
-		var (
-			attrs  = foundAttrs[fullName]
-			blocks = foundBlocks[fullName]
-		)
-
-		// Validity checks for attributes and blocks
-		switch {
-		case len(attrs) == 0 && len(blocks) == 0 && tf.IsOptional():
-			// Optional field with no set values. Skip.
-			continue
-
-		case tf.IsAttr() && len(blocks) > 0:
-			return fmt.Errorf("%q must be an attribute, but is used as a block", fullName)
-		case tf.IsAttr() && len(attrs) == 0 && !tf.IsOptional():
-			return fmt.Errorf("missing required attribute %q", fullName)
-		case tf.IsAttr() && len(attrs) > 1:
-			// While blocks may be specified multiple times (when the struct field
-			// accepts a slice or an array), attributes may only ever be specified
-			// once.
-			return fmt.Errorf("attribute %q may only be set once", fullName)
-
-		case tf.IsBlock() && len(attrs) > 0:
-			return fmt.Errorf("%q must be a block, but is used as an attribute", fullName)
-		case tf.IsBlock() && len(blocks) == 0 && !tf.IsOptional():
-			// TODO(rfratto): does it ever make sense for children blocks to be required?
-			return fmt.Errorf("missing required block %q", fullName)
-
-		case len(attrs) > 0 && len(blocks) > 0:
-			// NOTE(rfratto): it's not possible to reach this condition given the
-			// statements above, but this is left in defensively in case there is a
-			// bug with the validity checks.
-			return fmt.Errorf("%q may only be used as a block or an attribute, but found both", fullName)
-		}
-
-		field := reflectutil.FieldWalk(rv, tf.Index, true)
-
-		// Decode.
-		switch {
-		case tf.IsBlock():
-			decodeField := prepareDecodeValue(field)
-
-			switch decodeField.Kind() {
-			case reflect.Slice:
-				// Reset the slice length to zero.
-				decodeField.Set(reflect.MakeSlice(decodeField.Type(), len(blocks), len(blocks)))
-
-				// Now, iterate over all of the block values and decode them
-				// individually into the slice.
-				for i, block := range blocks {
-					decodeElement := prepareDecodeValue(decodeField.Index(i))
-					err := vm.evaluateBlockOrBody(scope, assoc, block, decodeElement)
-					if err != nil {
-						return err
-					}
-				}
-
-			case reflect.Array:
-				if decodeField.Len() != len(blocks) {
-					return fmt.Errorf(
-						"block %q must be specified exactly %d times, but was specified %d times",
-						fullName,
-						decodeField.Len(),
-						len(blocks),
-					)
-				}
-
-				for i := 0; i < decodeField.Len(); i++ {
-					decodeElement := prepareDecodeValue(decodeField.Index(i))
-					err := vm.evaluateBlockOrBody(scope, assoc, blocks[i], decodeElement)
-					if err != nil {
-						return err
-					}
-				}
-
-			default:
-				if len(blocks) > 1 {
-					return fmt.Errorf("block %q may only be specified once", tf.Name)
-				}
-				err := vm.evaluateBlockOrBody(scope, assoc, blocks[0], decodeField)
-				if err != nil {
-					return err
-				}
-			}
-
-		case tf.IsAttr():
-			val, err := vm.evaluateExpr(scope, assoc, attrs[0].Value)
-			if err != nil {
-				return err
-			}
-
-			// We're reconverting our reflect.Value back into an interface{}, so we
-			// need to also turn it back into a pointer for decoding.
-			if err := value.Decode(val, field.Addr().Interface()); err != nil {
-				return err
-			}
-		}
-	}
-
-	var diags diag.Diagnostics
-
-	// Make sure that all of the attributes and blocks defined in the AST node
-	// matched up with a field from our struct.
-	for attrName, attrs := range foundAttrs {
-		if _, consumed := consumedAttrs[attrName]; consumed {
-			// Ignore accepted attributes.
-			continue
-		}
-
-		for _, attr := range attrs {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.SeverityLevelError,
-				StartPos: ast.StartPos(attr.Name).Position(),
-				EndPos:   ast.EndPos(attr.Name).Position(),
-				Message:  fmt.Sprintf("unrecognized attribute name %q", attrName),
-			})
-		}
-	}
-	for blockName, blocks := range foundBlocks {
-		if _, consumed := consumedBlocks[blockName]; consumed {
-			// Ignore accepted blocks.
-			continue
-		}
-
-		for _, block := range blocks {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.SeverityLevelError,
-				StartPos: block.NamePos.Position(),
-				EndPos:   block.NamePos.Add(len(blockName) - 1).Position(),
-				Message:  fmt.Sprintf("unrecognized block name %q", blockName),
-			})
-		}
-	}
-
-	return diags.ErrorOrNil()
+	return sd.Decode(stmts, rv)
 }
 
 func (vm *Evaluator) evaluateBlockLabel(node *ast.BlockStmt, tfs []rivertags.Field, rv reflect.Value) error {
@@ -339,7 +175,7 @@ func (vm *Evaluator) evaluateBlockLabel(node *ast.BlockStmt, tfs []rivertags.Fie
 	}
 
 	var (
-		field     = reflectutil.FieldWalk(rv, labelField.Index, true)
+		field     = reflectutil.GetOrAlloc(rv, labelField)
 		fieldType = field.Type()
 	)
 	if !reflect.TypeOf(node.Label).AssignableTo(fieldType) {

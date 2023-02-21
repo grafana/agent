@@ -44,7 +44,7 @@ func wrapStruct(val reflect.Value, keepLabel bool) structWrapper {
 
 	var label string
 	if f, ok := fields.LabelField(); ok && keepLabel {
-		label = reflectutil.FieldWalk(val, f.Index, false).String()
+		label = reflectutil.Get(val, f).String()
 	}
 
 	return structWrapper{
