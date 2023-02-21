@@ -63,7 +63,7 @@ The following fields are exported and can be referenced by other components.
 
 Name      | Type                | Description
 --------- | ------------------- | -----------
-`targets` | `list(map(string))` | The targets that can be used to collect `process_exporter` metrics.
+`targets` | `list(map(string))` | Targets that expose `process_exporter` metrics.
 
 For example, the `targets` can either be passed to a `prometheus.relabel`
 component to rewrite the metric's label set, or to a `prometheus.scrape`
