@@ -189,6 +189,9 @@ func getExportsType(reg component.Registration) reflect.Type {
 // ID returns the component ID of the managed component from its River block.
 func (cn *ComponentNode) ID() ComponentID { return cn.id }
 
+// NamespaceID returns the fully pathed name of the component.
+func (cn *ComponentNode) NamespaceID() string { return cn.namespaceCachedID }
+
 // Label returns the label for the block or "" if none was specified.
 func (cn *ComponentNode) Label() string { return cn.label }
 

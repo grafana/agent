@@ -103,7 +103,7 @@ type Flow struct {
 //
 // Implementations of Component should perform any necessary cleanup before
 // returning from Run.
-func (Flow) Run(ctx context.Context) error {
+func (f *Flow) Run(_ context.Context) error {
 	panic("not implemented") // TODO: Implement
 }
 
@@ -114,14 +114,14 @@ func (Flow) Run(ctx context.Context) error {
 // gracefully handle updating its config will still running.
 //
 // An error may be returned if the provided config is invalid.
-func (Flow) Update(args component.Arguments) error {
+func (f *Flow) Update(_ component.Arguments) error {
 	// This is a noop since this is the top level component.
 	return nil
 }
-func (Flow) ID() string {
+func (f *Flow) ID() string {
 	return ""
 }
-func (Flow) IDs() []string {
+func (f *Flow) IDs() []string {
 	return []string{}
 }
 
@@ -167,7 +167,7 @@ func newFlow(o Options) (*Flow, context.Context) {
 	cm := controller.NewControllerMetrics(o.Reg)
 	f.graph = newSubgraph(f, nil, log, tracer, o.DataPath, o.Reg, o.HTTPListenAddr, cm)
 	ci := controller.NewControllerCollector(f.graph)
-	o.Reg.Register(ci)
+	_ = o.Reg.Register(ci)
 	return f, ctx
 }
 
@@ -261,6 +261,7 @@ func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *ComponentInfo 
 			Message:     h.Message,
 			UpdatedTime: h.UpdateTime,
 		},
+		NamespaceID: cn.NamespaceID(),
 	}
 	return ci
 }
@@ -283,6 +284,7 @@ type ComponentInfo struct {
 	Arguments    json.RawMessage  `json:"arguments,omitempty"`
 	Exports      json.RawMessage  `json:"exports,omitempty"`
 	DebugInfo    json.RawMessage  `json:"debugInfo,omitempty"`
+	NamespaceID  string           `json:"namespace_id"`
 }
 
 // ComponentHealth represents the health of a component.

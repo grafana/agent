@@ -126,9 +126,8 @@ type HTTPComponent interface {
 	Handler() http.Handler
 }
 
+// DelegateComponent is the component called the DelegateHandler.
 type DelegateComponent interface {
-	Component
-
 	ID() string
 	IDs() []string
 }

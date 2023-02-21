@@ -21,7 +21,7 @@ func init() {
 
 var _ component.Component = (*Component)(nil)
 
-// Component
+// Component is the export component
 type Component struct {
 	mut    sync.RWMutex
 	args   Arguments
@@ -56,6 +56,8 @@ func (c *Component) Update(args component.Arguments) error {
 	return nil
 }
 
+// UpdateInform is the function used to notify the parent that a value has changed.
+// In almost all cases it is a module.* component.
 func (c *Component) UpdateInform(f func(e Exports)) {
 	c.mut.Lock()
 	defer c.mut.Unlock()

@@ -21,7 +21,7 @@ func init() {
 
 var _ component.Component = (*Component)(nil)
 
-// Component
+// Component is the argument component
 type Component struct {
 	mut  sync.RWMutex
 	args Arguments
