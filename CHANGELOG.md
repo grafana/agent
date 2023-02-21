@@ -44,8 +44,6 @@ Main (unreleased)
 
   - `loki.source.docker` reads logs from Docker containers and forwards them to
     other `loki` components. (@tpaschalis)
-  - `prometheus.integration.apache` collects metrics from an apache web server (@captncraig)
-  - `prometheus.integration.consul` collects metrics from a consul installation (@captncraig)
   - `loki.echo` writes received logs to stdout. (@tpaschalis, @rfratto)
   - `otelcol.processor.tail_sampling` samples traces based on a set of defined
     policies from `otelcol` components before forwarding them to other
