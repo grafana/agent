@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/alecthomas/units"
-	"github.com/grafana/agent/component/common/config"
 	types "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/loki/write/internal/client"
 	"github.com/grafana/dskit/backoff"
@@ -29,24 +28,28 @@ type EndpointOptions struct {
 	HTTPClientConfig  *types.HTTPClientConfig `river:",squash"`
 }
 
-// DefaultEndpointOptions defines the default settings for sending logs to a
+// GetDefaultEndpointOptions defines the default settings for sending logs to a
 // remote endpoint.
 // The backoff schedule with the default parameters:
 // 0.5s, 1s, 2s, 4s, 8s, 16s, 32s, 64s, 128s, 256s(4.267m)
 // For a total time of 511.5s (8.5m) before logs are lost.
-var DefaultEndpointOptions = EndpointOptions{
-	BatchWait:         1 * time.Second,
-	BatchSize:         1 * units.MiB,
-	RemoteTimeout:     10 * time.Second,
-	MinBackoff:        500 * time.Millisecond,
-	MaxBackoff:        5 * time.Minute,
-	MaxBackoffRetries: 10,
-	HTTPClientConfig:  &config.DefaultHTTPClientConfig,
+func GetDefaultEndpointOptions() EndpointOptions {
+	var defaultEndpointOptions = EndpointOptions{
+		BatchWait:         1 * time.Second,
+		BatchSize:         1 * units.MiB,
+		RemoteTimeout:     10 * time.Second,
+		MinBackoff:        500 * time.Millisecond,
+		MaxBackoff:        5 * time.Minute,
+		MaxBackoffRetries: 10,
+		HTTPClientConfig:  types.CloneDefaultHTTPClientConfig(),
+	}
+
+	return defaultEndpointOptions
 }
 
 // UnmarshalRiver implements river.Unmarshaler.
 func (r *EndpointOptions) UnmarshalRiver(f func(v interface{}) error) error {
-	*r = DefaultEndpointOptions
+	*r = GetDefaultEndpointOptions()
 
 	type arguments EndpointOptions
 	if err := f((*arguments)(r)); err != nil {
