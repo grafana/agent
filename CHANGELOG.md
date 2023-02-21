@@ -43,6 +43,7 @@ Main (unreleased)
     (@captncraig)
   - `prometheus.integration.consul` collects metrics from a consul installation
     (@captncraig)
+  - `prometheus.integration.github` collects metrics from GitHub (@jcreixell)
 
 ### Enhancements
 
