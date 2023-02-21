@@ -39,7 +39,7 @@ Main (unreleased)
 
 ### Enhancements
 
-- Flow: Add keepequal and dropequal relabeling config support (@ctovena)
+- Flow: Support `keepequal` and `dropequal` actions for relabeling. (@ctovena)
 
 - Update Prometheus Node Exporter integration to v1.5.0. (@Thor77)
 
