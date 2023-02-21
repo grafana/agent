@@ -18,7 +18,7 @@ import (
 )
 
 type configGenerator struct {
-	config   *Config
+	config   *Arguments
 	logger   log.Logger
 	secretfs *k8sfs.FS
 }

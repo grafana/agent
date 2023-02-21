@@ -11,7 +11,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-type Config struct {
+type Arguments struct {
 	// Local kubeconfig to access cluster
 	KubeConfig string `river:"kubeconfig_file,attr,optional"`
 	// APIServerConfig allows specifying a host and auth methods to access apiserver.
@@ -27,10 +27,8 @@ type Config struct {
 	FieldSelector string   `river:"field_selector,optional"`
 }
 
-func (args *Config) UnmarshalRiver(f func(interface{}) error) error {
-	*args = Config{}
-
-	type arguments Config
+func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+	type arguments Arguments
 	if err := f((*arguments)(args)); err != nil {
 		return err
 	}
@@ -48,7 +46,6 @@ func (args *Config) UnmarshalRiver(f func(interface{}) error) error {
 
 // APIServerConfig defines a host and auth methods to access apiserver.
 // More info: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#kubernetes_sd_config
-// TODO: river!
 type APIServerConfig struct {
 	// Host of apiserver.
 	// A valid string consisting of a hostname or IP followed by an optional port number
@@ -56,7 +53,7 @@ type APIServerConfig struct {
 	HTTPClientConfig commonConfig.HTTPClientConfig `river:"http_client_config,block,optional"`
 }
 
-func (c *Config) restConfig() (*rest.Config, error) {
+func (c *Arguments) restConfig() (*rest.Config, error) {
 	if c.KubeConfig != "" {
 		return clientcmd.BuildConfigFromFlags("", c.KubeConfig)
 	}

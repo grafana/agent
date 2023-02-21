@@ -29,7 +29,7 @@ import (
 func init() {
 	component.Register(component.Registration{
 		Name:    "prometheus.crds",
-		Args:    Config{},
+		Args:    Arguments{},
 		Exports: struct{}{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
@@ -40,7 +40,7 @@ func init() {
 
 type Component struct {
 	opts   component.Options
-	config *Config
+	config *Arguments
 
 	onUpdate chan struct{}
 	mut      sync.Mutex
@@ -51,7 +51,7 @@ type Component struct {
 type crdManager struct {
 	opts   component.Options
 	logger log.Logger
-	config *Config
+	config *Arguments
 
 	discovery        *discovery.Manager
 	scraper          *scrape.Manager
@@ -70,7 +70,7 @@ func New(o component.Options, args component.Arguments) (*Component, error) {
 	return c, c.Update(args)
 }
 
-func newManager(opts component.Options, logger log.Logger, cfg *Config) *crdManager {
+func newManager(opts component.Options, logger log.Logger, cfg *Arguments) *crdManager {
 	return &crdManager{
 		opts:             opts,
 		logger:           logger,
@@ -251,7 +251,7 @@ func (c *crdManager) run(ctx context.Context) {
 // Update implements component.Compnoent.
 func (c *Component) Update(args component.Arguments) error {
 	c.mut.Lock()
-	cfg := args.(Config)
+	cfg := args.(Arguments)
 	c.config = &cfg
 	c.mut.Unlock()
 	select {
