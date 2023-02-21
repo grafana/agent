@@ -60,7 +60,7 @@ var DefaultConfig = Config{
 	},
 }
 
-// Config is the base config for this integration.
+// Config is the base config for this exporter.
 type Config struct {
 	IncludeExporterMetrics bool   `river:"include_exporter_metrics,attr,optional"`
 	ProcFSPath             string `river:"procfs_path,attr,optional"`

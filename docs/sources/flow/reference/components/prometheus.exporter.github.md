@@ -6,17 +6,17 @@
 # Ideally, in the future, we can fix the overflow issue with css rather than
 # injecting special characters.
 
-title: prometheus.​integration.github
+title: prometheus.exporter.github
 ---
 
-# prometheus.integration.github
-The `prometheus.integration.github` component embeds
+# prometheus.exporter.github
+The `prometheus.exporter.github` component embeds
 [github_exporter](https://github.com/infinityworks/github-exporter) for collecting statistics from GitHub.
 
 ## Usage
 
 ```river
-prometheus.integration.github "LABEL" {
+prometheus.exporter.github "LABEL" {
 }
 ```
 
@@ -28,14 +28,14 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `api_url`    | `string` | The full URI of the GitHub API. | `https://api.github.com` | no
 `repositories` | `list(string)` | GitHub repositories for which to collect metrics. | | no
-`organizations` | `list(string)` | GitHub organizations for which to collect metrics. | | no
+`organizations` | `list(string)` | GitHub organizations for which to collect metrics. | | n
 `users` | `list(string)` | A list of GitHub users for which to collect metrics. | | no
 `api_token`    | `secret` | API token to use to authenticate against GitHub. | | no
 `api_token_file`    | `string` | File containing API token to use to authenticate against GitHub. | | no
 
-GitHub uses an aggressive rate limit for unauthenticated requests based on IP address. To allow more API requests, it is recommended to configure either `api_token` or `api_token_file` to authenticate against GitHub.
+GitHub uses an aggressive rate limit for unauthenticated requests based on IP address. To allow more API requests, it is recommended to configure either api_token or api_token_file to authenticate against GitHub.
 
-When provided, `api_token_file` takes precedence over `api_token`.
+When provided, api_token_file takes precedence over api_token.
 
 ## Exported fields
 The following fields are exported and can be referenced by other components.
@@ -50,34 +50,34 @@ component that collects the exposed metrics.
 
 ## Component health
 
-`prometheus.integration.github` is only reported as unhealthy if given
+`prometheus.exporter.github` is only reported as unhealthy if given
 an invalid configuration. In those cases, exported fields retain their last
 healthy values.
 
 ## Debug information
 
-`prometheus.integration.github` does not expose any component-specific
+`prometheus.exporter.github` does not expose any component-specific
 debug information.
 
 ## Debug metrics
 
-`prometheus.integration.github` does not expose any component-specific
+`prometheus.exporter.github` does not expose any component-specific
 debug metrics.
 
 ## Example
 
 This example uses a [`prometheus.scrape` component][scrape] to collect metrics
-from `prometheus.integration.github`:
+from `prometheus.exporter.github`:
 
 ```river
-prometheus.integration.github "example" {
+prometheus.exporter.github "example" {
   api_token_file = "/etc/github-api-token"
   repositories = ["grafana/agent"]
 }
 
 // Configure a prometheus.scrape component to collect github metrics.
 prometheus.scrape "demo" {
-  targets    = prometheus.integration.github.example.targets
+  targets    = prometheus.exporter.github.example.targets
   forward_to = [ /* ... */ ]
 }
 ```

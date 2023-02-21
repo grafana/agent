@@ -44,11 +44,11 @@ Main (unreleased)
   - `otelcol.processor.tail_sampling` samples traces based on a set of defined
     policies from `otelcol` components before forwarding them to other
     `otelcol` components. (@erikbaranowski)
-  - `prometheus.integration.apache` collects metrics from an apache web server
+  - `prometheus.exporter.apache` collects metrics from an apache web server
     (@captncraig)
-  - `prometheus.integration.consul` collects metrics from a consul installation
+  - `prometheus.exporter.consul` collects metrics from a consul installation
     (@captncraig)
-  - `prometheus.integration.github` collects metrics from GitHub (@jcreixell)
+  - `prometheus.exporter.github` collects metrics from GitHub (@jcreixell)
 
 ### Enhancements
 
