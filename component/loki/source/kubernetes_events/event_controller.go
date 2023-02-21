@@ -291,16 +291,16 @@ func eventTimestamp(event *corev1.Event) time.Time {
 	return event.EventTime.Time
 }
 
-func (ctrl *eventController) DebugInfo() interface{} {
-	type Info struct {
-		Namespace     string    `river:"namespace,attr"`
-		LastTimestamp time.Time `river:"last_event_timestamp,attr"`
-	}
-
+func (ctrl *eventController) DebugInfo() controllerInfo {
 	ts, _ := ctrl.task.Positions.Get(ctrl.positionsKey, "")
 
-	return Info{
+	return controllerInfo{
 		Namespace:     ctrl.task.Namespace,
 		LastTimestamp: time.UnixMicro(ts),
 	}
+}
+
+type controllerInfo struct {
+	Namespace     string    `river:"namespace,attr"`
+	LastTimestamp time.Time `river:"last_event_timestamp,attr"`
 }

@@ -247,7 +247,7 @@ func getNamespaces(args Arguments) []string {
 // DebugInfo implements [component.DebugComponent].
 func (c *Component) DebugInfo() interface{} {
 	type Info struct {
-		Controllers []interface{} `river:"event_controller,block,optional"`
+		Controllers []controllerInfo `river:"event_controller,block,optional"`
 	}
 
 	var info Info
