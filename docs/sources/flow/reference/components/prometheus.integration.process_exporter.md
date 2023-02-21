@@ -29,7 +29,7 @@ Name | Type | Description | Default | Required
 `procfs_path`       | `string`                 | procfs mountpoint. | `/proc` | no
 `track_children`    | `bool`                   | Whether to track a process' children. | `true` | no
 `track_threads`     | `bool`                   | Report metrics for a process' individual threads.  | `true` | no
-`gather_smaps`      | `bool`                   | Gather metrics from the smaps file, which contains proportional resident memory size. | `true` | no
+`gather_smaps`      | `bool`                   | Gather metrics from the smaps file for a process. | `true` | no
 `recheck_on_scrape` | `bool`                   | Recheck process names on each scrape. | `true` | no
 
 ## Blocks
