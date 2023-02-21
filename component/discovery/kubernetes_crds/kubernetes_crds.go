@@ -9,9 +9,8 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "prometheus.crds",
-		Args:    Arguments{},
-		Exports: struct{}{},
+		Name: "prometheus.crds",
+		Args: Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args)
@@ -42,6 +41,11 @@ func (c *Component) Run(ctx context.Context) error {
 	var innerCtx context.Context
 	// cancel is the func we use to trigger a stop to all downstream processors we create
 	var cancel func()
+	defer func() {
+		if cancel != nil {
+			cancel()
+		}
+	}()
 	for {
 		select {
 		case <-ctx.Done():
