@@ -21,10 +21,10 @@ Main (unreleased)
   - `loki.source.kubernetes > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
   - `loki.source.podlogs > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
 
-- The `loki.process` component now makes use of River's 'enum' blocks. Instead
-  of defining processing stages in nested a `stage` block containing one
-  element each (eg. a `stage > json` hierarchy), the configuration now supports
-  defining each block as `stage.json` directly. (@tpaschalis)
+- The `loki.process` component now uses a combined name for stages, simplifying
+  the block hierarchy. For example, the `stage > json` block hierarchy is now a
+  single block called `stage.json`. All stage blocks in `loki.process` have
+  been updated to use this simplified hierarchy. (@tpaschalis)
 
 - `remote.s3` `client_options` block has been renamed to `client`. (@mattdurham)
 
