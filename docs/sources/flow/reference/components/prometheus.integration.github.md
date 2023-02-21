@@ -27,7 +27,7 @@ All arguments are optional. Omitted fields take their default values.
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `api_url`    | `string` | The full URI of the GitHub API. | `https://api.github.com` | no
-`repositories` | `list(string)` | A list of github repositories for which to collect metrics. | | no
+`repositories` | `list(string)` | GitHub repositories for which to collect metrics. | | no
 `organizations` | `list(string)` | GitHub organizations for which to collect metrics. | | no
 `users` | `list(string)` | A list of github users for which to collect metrics. | | no
 `api_token`    | `string` | A github authentication token that allows the API to be queried more often. Optional, but recommended. | | no
