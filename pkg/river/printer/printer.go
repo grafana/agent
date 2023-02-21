@@ -352,6 +352,8 @@ func (p *printer) writeCommentSuffix(next token.Position, tok token.Token, lastC
 		return
 	}
 
+	var droppedFF bool
+
 	// If our final comment is a block comment and is on the same line as the
 	// next token, add a space as a suffix to separate them.
 	lastCommentPos := ast.EndPos(lastComment).Position()
@@ -368,15 +370,25 @@ func (p *printer) writeCommentSuffix(next token.Position, tok token.Token, lastC
 		case wsIndent, wsUnindent:
 			continue
 		case wsNewline, wsFormfeed:
+			if ws == wsFormfeed {
+				droppedFF = true
+			}
 			p.whitespace[i] = wsIgnore
 		}
 	}
+
 	p.writeWritespace(len(p.whitespace))
 
 	// Write newlines as long as the next token isn't EOF (so that there's no
 	// blank newlines at the end of the file).
 	if newlines > 0 {
-		p.writeByte('\n', newlineLimit(newlines))
+		ch := byte('\n')
+		if droppedFF {
+			// If we dropped a formfeed while writing comments, we should emit a new
+			// one.
+			ch = byte('\f')
+		}
+		p.writeByte(ch, newlineLimit(newlines))
 	}
 }
 
