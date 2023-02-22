@@ -38,6 +38,10 @@ Main (unreleased)
 - `remote.s3` `client_options` block has been renamed to `client`. (@mattdurham)
 - Renamed `prometheus.integration.node_exporter` to `prometheus.exporter.unix`. (@jcreixell)
 
+- As first announced in v0.30, support for the `EXPERIMENTAL_ENABLE_FLOW`
+  environment variable has been removed in favor of `AGENT_MODE=flow`.
+  (@rfratto)
+
 ### Features
 
 - New integrations:
