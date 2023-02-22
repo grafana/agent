@@ -7,7 +7,7 @@ title: loki.source.kafka
 `loki.source.kafka` reads messages from Kafka using a consumer group
 and forwards them to other `loki.*` components.
 
-The component starts a new kafka consumer group for the given arguments
+The component starts a new Kafka consumer group for the given arguments
 and fans out incoming entries to the list of receivers in `forward_to`.
 
 Before using `loki.source.kafka`, Kafka should have at least one producer
@@ -24,7 +24,7 @@ different labels.
 loki.source.kafka "LABEL" {
 	brokers    = BROKER_LIST
 	topics     = TOPIC_LIST
-    forward_to = RECEIVER_LIST
+	forward_to = RECEIVER_LIST
 }
 ```
 
