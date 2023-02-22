@@ -69,6 +69,7 @@ Main (unreleased)
     (@captncraig)
   - `prometheus.exporter.github` collects metrics from GitHub (@jcreixell)
   - `prometheus.exporter.redis` collects metrics from a redis database (@spartan0x117)
+  - `prometheus.exporter.process` aggregates and collects metrics by scraping `/proc`. (@spartan0x117)
 
 
 ### Enhancements
