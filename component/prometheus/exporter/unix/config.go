@@ -1,4 +1,4 @@
-package node_exporter
+package unix
 
 import (
 	"time"

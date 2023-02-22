@@ -1,4 +1,4 @@
-package node_exporter
+package unix
 
 import (
 	"github.com/grafana/agent/component"
@@ -9,11 +9,11 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:      "prometheus.exporter.node",
+		Name:      "prometheus.exporter.unix",
 		Args:      Config{},
 		Exports:   exporter.Exports{},
 		Singleton: true,
-		Build:     exporter.New(createExporter, "node"),
+		Build:     exporter.New(createExporter, "unix"),
 	})
 }
 

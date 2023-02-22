@@ -23,10 +23,10 @@ otelcol.exporter.otlp "tempo" {
 	}
 }
 
-prometheus.exporter.node { /* use defaults */ }
+prometheus.exporter.unix { /* use defaults */ }
 
 prometheus.scrape "default" {
-	targets    = prometheus.exporter.node.targets
+	targets    = prometheus.exporter.unix.targets
 	forward_to = [prometheus.remote_write.default.receiver]
 }
 

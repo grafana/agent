@@ -30,7 +30,7 @@ Main (unreleased)
   defining each block as `stage.json` directly. (@tpaschalis)
 
 - `remote.s3` `client_options` block has been renamed to `client`. (@mattdurham)
-- Renamed `prometheus.integration.node_exporter` to `prometheus.exporter.node`. (@jcreixell)
+- Renamed `prometheus.integration.node_exporter` to `prometheus.exporter.unix`. (@jcreixell)
 
 ### Features
 
