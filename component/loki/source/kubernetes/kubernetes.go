@@ -82,10 +82,10 @@ func (args *ClientArguments) UnmarshalRiver(f func(interface{}) error) error {
 		return fmt.Errorf("only one of api_server and kubeconfig_file can be set")
 	}
 	if args.KubeConfig != "" && !reflect.DeepEqual(args.HTTPClientConfig, config.DefaultHTTPClientConfig) {
-		return fmt.Errorf("http_client_config can not be configured when kubeconfig_file is set")
+		return fmt.Errorf("custom HTTP client configuration is not allowed when kubeconfig_file is set")
 	}
 	if args.APIServer.URL == nil && !reflect.DeepEqual(args.HTTPClientConfig, config.DefaultHTTPClientConfig) {
-		return fmt.Errorf("api_server must be set when http_client_config is provided")
+		return fmt.Errorf("api_server must be set when custom HTTP client configuration is provided")
 	}
 
 	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise

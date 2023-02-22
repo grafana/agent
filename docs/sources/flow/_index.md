@@ -55,11 +55,9 @@ prometheus.remote_write "default" {
   endpoint {
     url = "http://localhost:9009/api/prom/push"
 
-    http_client_config {
-      basic_auth {
-        username = "MY_USERNAME"
-        password = local.file.apikey.content
-      }
+    basic_auth {
+      username = "MY_USERNAME"
+      password = local.file.apikey.content
     }
   }
 }

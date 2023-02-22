@@ -27,7 +27,8 @@ Main (unreleased)
   - `otelcol.receiver.zipkin > http` is merged into the `otelcol.receiver.zipkin` block. (@ptodev)
   - `phlare.scrape > http_client_config` is merged into the `phlare.scrape` block. (@erikbaranowski)
   - `phlare.write > endpoint > http_client_config` is merged into the `endpoint` block. (@erikbaranowski)
-  - `prometheus.scrape > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
+  - `prometheus.remote_write > endpoint > http_client_config` is merged into the `endpoint` block. (@erikbaranowski)
+  - `prometheus.scrape > http_client_config` is merged into the `prometheus.scrape` block. (@erikbaranowski)
 
 - The `loki.process` component now uses a combined name for stages, simplifying
   the block hierarchy. For example, the `stage > json` block hierarchy is now a
