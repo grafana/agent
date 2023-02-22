@@ -125,11 +125,11 @@ func (c *Component) Run(ctx context.Context) error {
 		c.mut.Lock()
 		defer c.mut.Unlock()
 
-		level.Info(c.opts.Logger).Log("msg", "loki.source.kafka component shutting down, stopping listener")
+		level.Info(c.opts.Logger).Log("msg", "loki.source.kafka component shutting down, stopping target")
 		if c.target != nil {
 			err := c.target.Stop()
 			if err != nil {
-				level.Error(c.opts.Logger).Log("msg", "error while stopping kafka listener", "err", err)
+				level.Error(c.opts.Logger).Log("msg", "error while stopping kafka target", "err", err)
 			}
 		}
 	}()
@@ -159,7 +159,7 @@ func (c *Component) Update(args component.Arguments) error {
 	if c.target != nil {
 		err := c.target.Stop()
 		if err != nil {
-			level.Error(c.opts.Logger).Log("msg", "error while stopping kafka listener", "err", err)
+			level.Error(c.opts.Logger).Log("msg", "error while stopping kafka target", "err", err)
 		}
 	}
 
