@@ -22,12 +22,13 @@ Main (unreleased)
   - `loki.source.kubernetes > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
   - `loki.source.podlogs > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
   - `loki.write > endpoint > http_client_config` is merged into the `endpoint` block. (@erikbaranowski)
-  - `otelcol.receiver.zipkin > http` is merged into the `otelcol.receiver.zipkin` block. (@ptodev)
   - `mimir.rules.kubernetes > http_client_config` is merged into the `mimir.rules.kubernetes` block. (@erikbaranowski)
+  - `otelcol.receiver.opencensus > grpc` is merged into the `otelcol.receiver.opencensus` block. (@ptodev)
+  - `otelcol.receiver.zipkin > http` is merged into the `otelcol.receiver.zipkin` block. (@ptodev)
   - `phlare.scrape > http_client_config` is merged into the `phlare.scrape` block. (@erikbaranowski)
   - `phlare.write > endpoint > http_client_config` is merged into the `endpoint` block. (@erikbaranowski)
   - `prometheus.remote_write > endpoint > http_client_config` is merged into the `endpoint` block. (@erikbaranowski)
-  - `prometheus.scrape > http_client_config` is merged into the `prometheus.scrape` block. (@erikbaranowski)  
+  - `prometheus.scrape > http_client_config` is merged into the `prometheus.scrape` block. (@erikbaranowski)
 
 - The `loki.process` component now uses a combined name for stages, simplifying
   the block hierarchy. For example, the `stage > json` block hierarchy is now a
