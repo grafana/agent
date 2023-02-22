@@ -19,7 +19,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/grafana/agent/component/loki/source/kafka/internal/fake"
-	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 )
 
 func Test_TopicDiscovery(t *testing.T) {
@@ -49,10 +48,9 @@ func Test_TopicDiscovery(t *testing.T) {
 				return nil, nil
 			}),
 		},
-		cfg: scrapeconfig.Config{
-			JobName:        "foo",
+		cfg: Config{
 			RelabelConfigs: []*relabel.Config{},
-			KafkaConfig: &scrapeconfig.KafkaTargetConfig{
+			KafkaConfig: TargetConfig{
 				UseIncomingTimestamp: true,
 				Topics:               []string{"topic1", "topic2"},
 			},
@@ -90,8 +88,7 @@ func Test_NewTarget(t *testing.T) {
 		logger: log.NewNopLogger(),
 		reg:    prometheus.DefaultRegisterer,
 		client: fake.New(func() {}),
-		cfg: scrapeconfig.Config{
-			JobName: "foo",
+		cfg: Config{
 			RelabelConfigs: []*relabel.Config{
 				{
 					SourceLabels: model.LabelNames{"__meta_kafka_topic"},
@@ -101,7 +98,7 @@ func Test_NewTarget(t *testing.T) {
 					Regex:        relabel.MustNewRegexp("(.*)"),
 				},
 			},
-			KafkaConfig: &scrapeconfig.KafkaTargetConfig{
+			KafkaConfig: TargetConfig{
 				UseIncomingTimestamp: true,
 				GroupID:              "group_1",
 				Topics:               []string{"topic1", "topic2"},
@@ -127,9 +124,8 @@ func Test_NewDroppedTarget(t *testing.T) {
 	ts := &TargetSyncer{
 		logger: log.NewNopLogger(),
 		reg:    prometheus.DefaultRegisterer,
-		cfg: scrapeconfig.Config{
-			JobName: "foo",
-			KafkaConfig: &scrapeconfig.KafkaTargetConfig{
+		cfg: Config{
+			KafkaConfig: TargetConfig{
 				UseIncomingTimestamp: true,
 				GroupID:              "group1",
 				Topics:               []string{"topic1", "topic2"},
@@ -146,20 +142,13 @@ func Test_NewDroppedTarget(t *testing.T) {
 
 func Test_validateConfig(t *testing.T) {
 	tests := []struct {
-		cfg      *scrapeconfig.Config
+		cfg      *Config
 		wantErr  bool
-		expected *scrapeconfig.Config
+		expected *Config
 	}{
 		{
-			&scrapeconfig.Config{
-				KafkaConfig: nil,
-			},
-			true,
-			nil,
-		},
-		{
-			&scrapeconfig.Config{
-				KafkaConfig: &scrapeconfig.KafkaTargetConfig{
+			&Config{
+				KafkaConfig: TargetConfig{
 					GroupID: "foo",
 					Topics:  []string{"bar"},
 				},
@@ -168,8 +157,8 @@ func Test_validateConfig(t *testing.T) {
 			nil,
 		},
 		{
-			&scrapeconfig.Config{
-				KafkaConfig: &scrapeconfig.KafkaTargetConfig{
+			&Config{
+				KafkaConfig: TargetConfig{
 					Brokers: []string{"foo"},
 					GroupID: "bar",
 				},
@@ -178,8 +167,8 @@ func Test_validateConfig(t *testing.T) {
 			nil,
 		},
 		{
-			&scrapeconfig.Config{
-				KafkaConfig: &scrapeconfig.KafkaTargetConfig{
+			&Config{
+				KafkaConfig: TargetConfig{
 					Brokers: []string{"foo"},
 				},
 			},
@@ -187,15 +176,15 @@ func Test_validateConfig(t *testing.T) {
 			nil,
 		},
 		{
-			&scrapeconfig.Config{
-				KafkaConfig: &scrapeconfig.KafkaTargetConfig{
+			&Config{
+				KafkaConfig: TargetConfig{
 					Brokers: []string{"foo"},
 					Topics:  []string{"bar"},
 				},
 			},
 			false,
-			&scrapeconfig.Config{
-				KafkaConfig: &scrapeconfig.KafkaTargetConfig{
+			&Config{
+				KafkaConfig: TargetConfig{
 					Brokers: []string{"foo"},
 					Topics:  []string{"bar"},
 					GroupID: "promtail",
@@ -239,8 +228,8 @@ func Test_withAuthentication(t *testing.T) {
 	)
 
 	// no authentication
-	noAuthCfg, err := withAuthentication(*cfg, scrapeconfig.KafkaAuthentication{
-		Type: scrapeconfig.KafkaAuthenticationTypeNone,
+	noAuthCfg, err := withAuthentication(*cfg, Authentication{
+		Type: AuthenticationTypeNone,
 	})
 	assert.Nil(t, err)
 	assert.Equal(t, false, noAuthCfg.Net.TLS.Enable)
@@ -248,15 +237,15 @@ func Test_withAuthentication(t *testing.T) {
 	assert.NoError(t, noAuthCfg.Validate())
 
 	// specify unsupported auth type
-	illegalAuthTypeCfg, err := withAuthentication(*cfg, scrapeconfig.KafkaAuthentication{
+	illegalAuthTypeCfg, err := withAuthentication(*cfg, Authentication{
 		Type: "illegal",
 	})
 	assert.NotNil(t, err)
 	assert.Nil(t, illegalAuthTypeCfg)
 
 	// mTLS authentication
-	mTLSCfg, err := withAuthentication(*cfg, scrapeconfig.KafkaAuthentication{
-		Type:      scrapeconfig.KafkaAuthenticationTypeSSL,
+	mTLSCfg, err := withAuthentication(*cfg, Authentication{
+		Type:      AuthenticationTypeSSL,
 		TLSConfig: tlsConf,
 	})
 	assert.Nil(t, err)
@@ -269,10 +258,10 @@ func Test_withAuthentication(t *testing.T) {
 	assert.NoError(t, mTLSCfg.Validate())
 
 	// mTLS authentication expect ignore sasl
-	mTLSCfg, err = withAuthentication(*cfg, scrapeconfig.KafkaAuthentication{
-		Type:      scrapeconfig.KafkaAuthenticationTypeSSL,
+	mTLSCfg, err = withAuthentication(*cfg, Authentication{
+		Type:      AuthenticationTypeSSL,
 		TLSConfig: tlsConf,
-		SASLConfig: scrapeconfig.KafkaSASLConfig{
+		SASLConfig: SASLConfig{
 			Mechanism: sarama.SASLTypeSCRAMSHA256,
 			User:      "user",
 			Password:  flagext.SecretWithValue("pass"),
@@ -283,9 +272,9 @@ func Test_withAuthentication(t *testing.T) {
 	assert.Equal(t, false, mTLSCfg.Net.SASL.Enable)
 
 	// SASL/PLAIN
-	saslCfg, err := withAuthentication(*cfg, scrapeconfig.KafkaAuthentication{
-		Type: scrapeconfig.KafkaAuthenticationTypeSASL,
-		SASLConfig: scrapeconfig.KafkaSASLConfig{
+	saslCfg, err := withAuthentication(*cfg, Authentication{
+		Type: AuthenticationTypeSASL,
+		SASLConfig: SASLConfig{
 			Mechanism: sarama.SASLTypePlaintext,
 			User:      "user",
 			Password:  flagext.SecretWithValue("pass"),
@@ -300,9 +289,9 @@ func Test_withAuthentication(t *testing.T) {
 	assert.NoError(t, saslCfg.Validate())
 
 	// SASL/SCRAM
-	saslCfg, err = withAuthentication(*cfg, scrapeconfig.KafkaAuthentication{
-		Type: scrapeconfig.KafkaAuthenticationTypeSASL,
-		SASLConfig: scrapeconfig.KafkaSASLConfig{
+	saslCfg, err = withAuthentication(*cfg, Authentication{
+		Type: AuthenticationTypeSASL,
+		SASLConfig: SASLConfig{
 			Mechanism: sarama.SASLTypeSCRAMSHA512,
 			User:      "user",
 			Password:  flagext.SecretWithValue("pass"),
@@ -317,9 +306,9 @@ func Test_withAuthentication(t *testing.T) {
 	assert.NoError(t, saslCfg.Validate())
 
 	// SASL unsupported mechanism
-	_, err = withAuthentication(*cfg, scrapeconfig.KafkaAuthentication{
-		Type: scrapeconfig.KafkaAuthenticationTypeSASL,
-		SASLConfig: scrapeconfig.KafkaSASLConfig{
+	_, err = withAuthentication(*cfg, Authentication{
+		Type: AuthenticationTypeSASL,
+		SASLConfig: SASLConfig{
 			Mechanism: sarama.SASLTypeGSSAPI,
 			User:      "user",
 			Password:  flagext.SecretWithValue("pass"),
@@ -329,9 +318,9 @@ func Test_withAuthentication(t *testing.T) {
 	assert.Equal(t, err.Error(), "error unsupported sasl mechanism: GSSAPI")
 
 	// SASL over TLS
-	saslCfg, err = withAuthentication(*cfg, scrapeconfig.KafkaAuthentication{
-		Type: scrapeconfig.KafkaAuthenticationTypeSASL,
-		SASLConfig: scrapeconfig.KafkaSASLConfig{
+	saslCfg, err = withAuthentication(*cfg, Authentication{
+		Type: AuthenticationTypeSASL,
+		SASLConfig: SASLConfig{
 			Mechanism: sarama.SASLTypeSCRAMSHA512,
 			User:      "user",
 			Password:  flagext.SecretWithValue("pass"),

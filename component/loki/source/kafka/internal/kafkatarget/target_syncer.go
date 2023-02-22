@@ -18,7 +18,6 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 
-	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
 
 	"github.com/grafana/agent/component/common/loki"
@@ -32,7 +31,7 @@ type TopicManager interface {
 
 type TargetSyncer struct {
 	logger log.Logger
-	cfg    scrapeconfig.Config
+	cfg    Config
 	reg    prometheus.Registerer
 	client loki.EntryHandler
 
@@ -49,7 +48,7 @@ type TargetSyncer struct {
 func NewSyncer(
 	reg prometheus.Registerer,
 	logger log.Logger,
-	cfg scrapeconfig.Config,
+	cfg Config,
 	pushClient loki.EntryHandler,
 ) (*TargetSyncer, error) {
 
@@ -117,22 +116,22 @@ func NewSyncer(
 	return t, nil
 }
 
-func withAuthentication(cfg sarama.Config, authCfg scrapeconfig.KafkaAuthentication) (*sarama.Config, error) {
-	if len(authCfg.Type) == 0 || authCfg.Type == scrapeconfig.KafkaAuthenticationTypeNone {
+func withAuthentication(cfg sarama.Config, authCfg Authentication) (*sarama.Config, error) {
+	if len(authCfg.Type) == 0 || authCfg.Type == AuthenticationTypeNone {
 		return &cfg, nil
 	}
 
 	switch authCfg.Type {
-	case scrapeconfig.KafkaAuthenticationTypeSSL:
+	case AuthenticationTypeSSL:
 		return withSSLAuthentication(cfg, authCfg)
-	case scrapeconfig.KafkaAuthenticationTypeSASL:
+	case AuthenticationTypeSASL:
 		return withSASLAuthentication(cfg, authCfg)
 	default:
 		return nil, fmt.Errorf("unsupported authentication type %s", authCfg.Type)
 	}
 }
 
-func withSSLAuthentication(cfg sarama.Config, authCfg scrapeconfig.KafkaAuthentication) (*sarama.Config, error) {
+func withSSLAuthentication(cfg sarama.Config, authCfg Authentication) (*sarama.Config, error) {
 	cfg.Net.TLS.Enable = true
 	tc, err := createTLSConfig(authCfg.TLSConfig)
 	if err != nil {
@@ -142,7 +141,7 @@ func withSSLAuthentication(cfg sarama.Config, authCfg scrapeconfig.KafkaAuthenti
 	return &cfg, nil
 }
 
-func withSASLAuthentication(cfg sarama.Config, authCfg scrapeconfig.KafkaAuthentication) (*sarama.Config, error) {
+func withSASLAuthentication(cfg sarama.Config, authCfg Authentication) (*sarama.Config, error) {
 	cfg.Net.SASL.Enable = true
 	cfg.Net.SASL.User = authCfg.SASLConfig.User
 	cfg.Net.SASL.Password = authCfg.SASLConfig.Password.String()
@@ -295,10 +294,7 @@ func (ts *TargetSyncer) NewTarget(session sarama.ConsumerGroupSession, claim sar
 	return t, nil
 }
 
-func validateConfig(cfg *scrapeconfig.Config) error {
-	if cfg.KafkaConfig == nil {
-		return errors.New("the Kafka configuration is empty")
-	}
+func validateConfig(cfg *Config) error {
 	if cfg.KafkaConfig.Version == "" {
 		cfg.KafkaConfig.Version = "2.1.1"
 	}

@@ -14,8 +14,6 @@ import (
 	kt "github.com/grafana/agent/component/loki/source/kafka/internal/kafkatarget"
 	"github.com/grafana/dskit/flagext"
 
-	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
-
 	"github.com/prometheus/common/model"
 )
 
@@ -176,14 +174,14 @@ func (c *Component) Update(args component.Arguments) error {
 }
 
 // Convert is used to bridge between the River and Promtail types.
-func (args *Arguments) Convert() scrapeconfig.Config {
+func (args *Arguments) Convert() kt.Config {
 	lbls := make(model.LabelSet, len(args.Labels))
 	for k, v := range args.Labels {
 		lbls[model.LabelName(k)] = model.LabelValue(v)
 	}
 
-	return scrapeconfig.Config{
-		KafkaConfig: &scrapeconfig.KafkaTargetConfig{
+	return kt.Config{
+		KafkaConfig: kt.TargetConfig{
 			Labels:               lbls,
 			UseIncomingTimestamp: args.UseIncomingTimestamp,
 			Brokers:              args.Brokers,
@@ -197,7 +195,7 @@ func (args *Arguments) Convert() scrapeconfig.Config {
 	}
 }
 
-func (auth KafkaAuthentication) Convert() scrapeconfig.KafkaAuthentication {
+func (auth KafkaAuthentication) Convert() kt.Authentication {
 	var secret flagext.Secret
 	if auth.SASLConfig.Password != "" {
 		err := secret.Set(auth.SASLConfig.Password)
@@ -206,10 +204,10 @@ func (auth KafkaAuthentication) Convert() scrapeconfig.KafkaAuthentication {
 		}
 	}
 
-	return scrapeconfig.KafkaAuthentication{
-		Type:      scrapeconfig.KafkaAuthenticationType(auth.Type),
+	return kt.Authentication{
+		Type:      kt.AuthenticationType(auth.Type),
 		TLSConfig: *auth.TLSConfig.Convert(),
-		SASLConfig: scrapeconfig.KafkaSASLConfig{
+		SASLConfig: kt.SASLConfig{
 			Mechanism: sarama.SASLMechanism(auth.SASLConfig.Mechanism),
 			User:      auth.SASLConfig.User,
 			Password:  secret,
