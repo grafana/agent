@@ -19,6 +19,7 @@ import (
 	_ "github.com/grafana/agent/component/loki/source/journal"                  // Import loki.source.journal
 	_ "github.com/grafana/agent/component/loki/source/kafka"                    // Import loki.source.kafka
 	_ "github.com/grafana/agent/component/loki/source/kubernetes"               // Import loki.source.kubernetes
+	_ "github.com/grafana/agent/component/loki/source/kubernetes_events"        // Import loki.source.kubernetes_events
 	_ "github.com/grafana/agent/component/loki/source/podlogs"                  // Import loki.source.podlogs
 	_ "github.com/grafana/agent/component/loki/source/syslog"                   // Import loki.source.syslog
 	_ "github.com/grafana/agent/component/loki/source/windowsevent"             // Import loki.source.windowsevent
@@ -48,6 +49,7 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/integration/consul"        // Import prometheus.integration.consul
 	_ "github.com/grafana/agent/component/prometheus/integration/github"        // Import prometheus.integration.github
 	_ "github.com/grafana/agent/component/prometheus/integration/node_exporter" // Import prometheus.integration.node_exporter
+	_ "github.com/grafana/agent/component/prometheus/integration/redis"         // Import prometheus.integration.redis
 	_ "github.com/grafana/agent/component/prometheus/relabel"                   // Import prometheus.relabel
 	_ "github.com/grafana/agent/component/prometheus/remotewrite"               // Import prometheus.remote_write
 	_ "github.com/grafana/agent/component/prometheus/scrape"                    // Import prometheus.scrape

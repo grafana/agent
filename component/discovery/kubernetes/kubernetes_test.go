@@ -1,26 +1,16 @@
-package rules
+package kubernetes
 
 import (
 	"testing"
 
 	"github.com/grafana/agent/pkg/river"
 	"github.com/stretchr/testify/require"
-	"k8s.io/client-go/util/workqueue"
 )
-
-func TestEventTypeIsHashable(t *testing.T) {
-	// This test is here to ensure that the EventType type is hashable according to the workqueue implementation
-	queue := workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
-	queue.AddRateLimited(event{})
-}
 
 func TestRiverConfig(t *testing.T) {
 	var exampleRiverConfig = `
-	address = "GRAFANA_CLOUD_METRICS_URL"
-	basic_auth {
-		username = "GRAFANA_CLOUD_USER"
-		password = "GRAFANA_CLOUD_API_KEY"
-	}
+	role = "pod"
+    kubeconfig_file = "/etc/k8s/kubeconfig.yaml"
 `
 
 	var args Arguments
@@ -30,7 +20,10 @@ func TestRiverConfig(t *testing.T) {
 
 func TestBadRiverConfig(t *testing.T) {
 	var exampleRiverConfig = `
-	address = "GRAFANA_CLOUD_METRICS_URL"
+	role = "pod"
+    namespaces {
+		names = ["myapp"]
+	}
 	bearer_token = "token"
 	bearer_token_file = "/path/to/file.token"
 `
