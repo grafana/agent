@@ -3,7 +3,7 @@ title: Grafana Agent Flow
 weight: 900
 ---
 
-# Grafana Agent Flow (Beta)
+# Grafana Agent Flow
 
 Grafana Agent Flow is a _component-based_ revision of Grafana Agent with a
 focus on ease-of-use, debuggability, and ability to adapt to the needs of power
@@ -14,12 +14,6 @@ Components allow for reusability, composability, and focus on a single task.
 * **Reusability** allows for the output of components to be reused as the input for multiple other components.
 * **Composability** allows for components to be chained together to form a pipeline.
 * **Single task** means the scope of a component is limited to one narrow task and thus has fewer side effects.
-
-> **BETA**: Grafana Agent Flow is a [beta][] feature.
-> Beta features are subject to frequent breaking changes while the feature is
-> being matured.
-
-[beta]: {{< relref "../operation-guide#stability" >}}
 
 ## Features
 
@@ -76,18 +70,3 @@ prometheus.remote_write "default" {
 [configuration language]: {{< relref "./config-language/" >}}
 [reference documentation]: {{< relref "./reference" >}}
 
-## Current limitations
-
-The goal of Grafana Agent Flow is to eventually support the same use cases that
-Grafana Agent does today. Some functionality may be missing while Grafana Agent
-Flow is still in development:
-
-* An equivalent list of integrations
-* An equivalent to the scraping service
-
-## Provide feedback
-
-Feedback about Grafana Agent Flow and its configuration language can be
-provided in our dedicated [GitHub discussion for feedback][feedback].
-
-[feedback]: https://github.com/grafana/agent/discussions/1969

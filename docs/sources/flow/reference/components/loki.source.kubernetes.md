@@ -1,5 +1,7 @@
 ---
 title: loki.source.kubernetes
+labels:
+  stage: experimental
 ---
 
 # loki.source.kubernetes

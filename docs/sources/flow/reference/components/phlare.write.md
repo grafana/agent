@@ -1,5 +1,7 @@
 ---
 title: phlare.write
+labels:
+  stage: beta
 ---
 
 # phlare.write
@@ -77,7 +79,7 @@ Name | Type | Description | Default | Required
 
  At most one of the following can be provided:
  - [`bearer_token` argument][endpoint].
- - [`bearer_token_file` argument][endpoint]. 
+ - [`bearer_token_file` argument][endpoint].
  - [`basic_auth` block][basic_auth].
  - [`authorization` block][authorization].
  - [`oauth2` block][oauth2].

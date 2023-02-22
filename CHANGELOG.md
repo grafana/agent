@@ -119,6 +119,20 @@ Main (unreleased)
 - Use Go 1.20 for builds. Official release binaries are still produced using Go
   1.19. (@rfratto)
 
+- Grafana Agent Flow is now considered production ready. A subset of Flow
+  components are still marked as beta or experimental:
+
+  - `loki.echo` is explicitly marked as beta.
+  - `loki.source.kubernetes` is explicitly marked as experimental.
+  - `loki.source.podlogs` is explicitly marked as experimental.
+  - `mimir.rules.kubernetes` is explicitly marked as beta.
+  - `otelcol.exporter.loki` is explicitly marked as beta.
+  - `otelcol.exporter.prometheus` is explicitly marked as beta.
+  - `otelcol.receiver.loki` is explicitly marked as beta.
+  - `otelcol.receiver.prometheus` is explicitly marked as beta.
+  - `phlare.scrape` is explicitly marked as beta.
+  - `phlare.write` is explicitly marked as beta.
+
 v0.31.3 (2023-02-13)
 --------------------
 

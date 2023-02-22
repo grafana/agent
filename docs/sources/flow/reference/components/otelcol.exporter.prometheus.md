@@ -1,5 +1,7 @@
 ---
 title: otelcol.exporter.prometheus
+labels:
+  stage: beta
 ---
 
 # otelcol.exporter.prometheus

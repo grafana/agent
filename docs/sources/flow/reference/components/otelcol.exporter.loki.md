@@ -1,5 +1,7 @@
 ---
 title: otelcol.exporter.loki
+labels:
+  stage: beta
 ---
 
 # otelcol.exporter.loki
