@@ -111,6 +111,8 @@ func TestTwoTargets(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	_, err = f.Write([]byte("text\n"))
+	require.NoError(t, err)
+
 	_, err = f2.Write([]byte("text2\n"))
 	require.NoError(t, err)
 
