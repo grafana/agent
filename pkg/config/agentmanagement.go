@@ -71,7 +71,7 @@ func (r remoteConfigHTTPProvider) GetCachedRemoteConfig(expandEnvVars bool) (*Co
 	}
 
 	// If a different url was used when caching the config, it is no longer valid
-	if r.InitialConfig.InvalidateCacheOnUrlChange && !(configCache.UrlHash == hashUrl(curUrl)) {
+	if !(configCache.UrlHash == hashUrl(curUrl)) {
 		return nil, errors.New("invalid remote config cache: url hashes don't match")
 	}
 
@@ -144,13 +144,12 @@ type RemoteConfiguration struct {
 }
 
 type AgentManagementConfig struct {
-	Enabled                    bool             `yaml:"-"` // Derived from enable-features=agent-management
-	Url                        string           `yaml:"api_url"`
-	BasicAuth                  config.BasicAuth `yaml:"basic_auth"`
-	Protocol                   string           `yaml:"protocol"`
-	PollingInterval            string           `yaml:"polling_interval"`
-	CacheLocation              string           `yaml:"remote_config_cache_location"`
-	InvalidateCacheOnUrlChange bool             `yaml:"invalidate_cache_on_url_change"` // Whether to invalidate the cached config if the url hash is different
+	Enabled         bool             `yaml:"-"` // Derived from enable-features=agent-management
+	Url             string           `yaml:"api_url"`
+	BasicAuth       config.BasicAuth `yaml:"basic_auth"`
+	Protocol        string           `yaml:"protocol"`
+	PollingInterval string           `yaml:"polling_interval"`
+	CacheLocation   string           `yaml:"remote_config_cache_location"`
 
 	RemoteConfiguration RemoteConfiguration `yaml:"remote_configuration"`
 }
