@@ -4,8 +4,8 @@ aliases:
 headless: true
 ---
 
-> **EXPERIMENTAL**: This is an [experimental][] component. Experimental components
-> are subject to breaking changes changes during development, and may be
-> replaced with no equivalent replacement.
+> **EXPERIMENTAL**: This is an [experimental][] component. Experimental
+> components are subject to breaking changes changes during development, and
+> may be removed with no equivalent replacement.
 
 [experimental]: {{< relref "../../../operation-guide/_index.md#stability" >}}
