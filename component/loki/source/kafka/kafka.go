@@ -8,15 +8,9 @@ import (
 	"github.com/go-kit/log/level"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/common/loki"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	kt "github.com/grafana/agent/component/loki/source/kafka/internal/kafkatarget"
-	"github.com/grafana/dskit/flagext"
-
-	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
-
-	"github.com/prometheus/common/model"
 )
 
 func init() {
@@ -33,48 +27,26 @@ func init() {
 // Arguments holds values which are used to configure the loki.source.kafka
 // component.
 type Arguments struct {
-	Brokers              []string            `river:"brokers,attr"`
-	Topics               []string            `river:"topics,attr"`
-	GroupID              string              `river:"group_id,attr,optional"`
-	Assignor             string              `river:"assignor,attr,optional"`
-	Version              string              `river:"version,attr,optional"`
-	Authentication       KafkaAuthentication `river:"authentication,block,optional"`
-	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`
-	Labels               map[string]string   `river:"labels,attr,optional"`
-
-	ForwardTo    []loki.LogsReceiver `river:"forward_to,attr"`
-	RelabelRules flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
-}
-
-// KafkaAuthentication describe the configuration for authentication with Kafka brokers
-type KafkaAuthentication struct {
-	Type       string           `river:"type,attr,optional"`
-	TLSConfig  config.TLSConfig `river:"tls_config,block,optional"`
-	SASLConfig KafkaSASLConfig  `river:"sasl_config,block,optional"`
-}
-
-// KafkaSASLConfig describe the SASL configuration for authentication with Kafka brokers
-type KafkaSASLConfig struct {
-	Mechanism string           `river:"mechanism,attr,optional"`
-	User      string           `river:"user,attr"`
-	Password  string           `river:"password,attr"`
-	UseTLS    bool             `river:"use_tls,attr,optional"`
-	TLSConfig config.TLSConfig `river:"tls_config,block,optional"`
+	KafkaTargetConfig kt.KafkaTargetConfig `river:",squash"`
+	ForwardTo         []loki.LogsReceiver  `river:"forward_to,attr"`
+	RelabelRules      flow_relabel.Rules   `river:"relabel_rules,attr,optional"`
 }
 
 // DefaultArguments provides the default arguments for a kafka component.
 var DefaultArguments = Arguments{
-	GroupID:  "loki.source.kafka",
-	Assignor: "range",
-	Version:  "2.2.1",
-	Authentication: KafkaAuthentication{
-		Type: "none",
-		SASLConfig: KafkaSASLConfig{
-			Mechanism: sarama.SASLTypePlaintext,
-			UseTLS:    false,
+	KafkaTargetConfig: kt.KafkaTargetConfig{
+		GroupID:  "loki.source.kafka",
+		Assignor: "range",
+		Version:  "2.2.1",
+		Authentication: kt.KafkaAuthentication{
+			Type: "none",
+			SASLConfig: kt.KafkaSASLConfig{
+				Mechanism: sarama.SASLTypePlaintext,
+				UseTLS:    false,
+			},
 		},
+		UseIncomingTimestamp: false,
 	},
-	UseIncomingTimestamp: false,
 }
 
 // UnmarshalRiver implements river.Unmarshaler.
@@ -164,7 +136,7 @@ func (c *Component) Update(args component.Arguments) error {
 	}
 
 	entryHandler := loki.NewEntryHandler(c.handler, func() {})
-	t, err := kt.NewSyncer(c.opts.Registerer, c.opts.Logger, newArgs.Convert(), entryHandler)
+	t, err := kt.NewSyncer(c.opts.Registerer, c.opts.Logger, newArgs.KafkaTargetConfig, newArgs.RelabelRules, entryHandler)
 	if err != nil {
 		level.Error(c.opts.Logger).Log("msg", "failed to create kafka client with provided config", "err", err)
 		return err
@@ -176,6 +148,7 @@ func (c *Component) Update(args component.Arguments) error {
 }
 
 // Convert is used to bridge between the River and Promtail types.
+/*
 func (args *Arguments) Convert() scrapeconfig.Config {
 	lbls := make(model.LabelSet, len(args.Labels))
 	for k, v := range args.Labels {
@@ -185,36 +158,15 @@ func (args *Arguments) Convert() scrapeconfig.Config {
 	return scrapeconfig.Config{
 		KafkaConfig: &scrapeconfig.KafkaTargetConfig{
 			Labels:               lbls,
-			UseIncomingTimestamp: args.UseIncomingTimestamp,
-			Brokers:              args.Brokers,
-			GroupID:              args.GroupID,
-			Topics:               args.Topics,
-			Version:              args.Version,
-			Assignor:             args.Assignor,
-			Authentication:       args.Authentication.Convert(),
+			UseIncomingTimestamp: args.KafkaTargetConfig.UseIncomingTimestamp,
+			Brokers:              args.KafkaTargetConfig.Brokers,
+			GroupID:              args.KafkaTargetConfig.GroupID,
+			Topics:               args.KafkaTargetConfig.Topics,
+			Version:              args.KafkaTargetConfig.Version,
+			Assignor:             args.KafkaTargetConfig.Assignor,
+			Authentication:       args.KafkaTargetConfig.Authentication.Convert(),
 		},
 		RelabelConfigs: flow_relabel.ComponentToPromRelabelConfigs(args.RelabelRules),
 	}
 }
-
-func (auth KafkaAuthentication) Convert() scrapeconfig.KafkaAuthentication {
-	var secret flagext.Secret
-	if auth.SASLConfig.Password != "" {
-		err := secret.Set(auth.SASLConfig.Password)
-		if err != nil {
-			panic("Unable to set kafka SASLConfig password")
-		}
-	}
-
-	return scrapeconfig.KafkaAuthentication{
-		Type:      scrapeconfig.KafkaAuthenticationType(auth.Type),
-		TLSConfig: *auth.TLSConfig.Convert(),
-		SASLConfig: scrapeconfig.KafkaSASLConfig{
-			Mechanism: sarama.SASLMechanism(auth.SASLConfig.Mechanism),
-			User:      auth.SASLConfig.User,
-			Password:  secret,
-			UseTLS:    auth.SASLConfig.UseTLS,
-			TLSConfig: *auth.SASLConfig.TLSConfig.Convert(),
-		},
-	}
-}
+*/

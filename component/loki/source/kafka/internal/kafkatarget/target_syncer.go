@@ -22,6 +22,7 @@ import (
 	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
 
 	"github.com/grafana/agent/component/common/loki"
+	flow_relabel "github.com/grafana/agent/component/common/relabel"
 )
 
 var TopicPollInterval = 30 * time.Second
@@ -31,10 +32,12 @@ type TopicManager interface {
 }
 
 type TargetSyncer struct {
-	logger log.Logger
-	cfg    scrapeconfig.Config
-	reg    prometheus.Registerer
-	client loki.EntryHandler
+	logger       log.Logger
+	cfg          scrapeconfig.Config
+	kafkaConfig  KafkaTargetConfig
+	relabelRules flow_relabel.Rules
+	reg          prometheus.Registerer
+	client       loki.EntryHandler
 
 	topicManager TopicManager
 	consumer
@@ -49,14 +52,15 @@ type TargetSyncer struct {
 func NewSyncer(
 	reg prometheus.Registerer,
 	logger log.Logger,
-	cfg scrapeconfig.Config,
+	kafkaConfig KafkaTargetConfig,
+	relabelRules flow_relabel.Rules,
 	pushClient loki.EntryHandler,
 ) (*TargetSyncer, error) {
 
-	if err := validateConfig(&cfg); err != nil {
+	if err := validateConfig(&kafkaConfig); err != nil {
 		return nil, err
 	}
-	version, err := sarama.ParseKafkaVersion(cfg.KafkaConfig.Version)
+	version, err := sarama.ParseKafkaVersion(kafkaConfig.Version)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +68,7 @@ func NewSyncer(
 	config.Version = version
 	config.Consumer.Offsets.Initial = sarama.OffsetOldest
 
-	switch cfg.KafkaConfig.Assignor {
+	switch kafkaConfig.Assignor {
 	case sarama.StickyBalanceStrategyName:
 		config.Consumer.Group.Rebalance.Strategy = sarama.BalanceStrategySticky
 	case sarama.RoundRobinBalanceStrategyName:
@@ -72,21 +76,21 @@ func NewSyncer(
 	case sarama.RangeBalanceStrategyName, "":
 		config.Consumer.Group.Rebalance.Strategy = sarama.BalanceStrategyRange
 	default:
-		return nil, fmt.Errorf("unrecognized consumer group partition assignor: %s", cfg.KafkaConfig.Assignor)
+		return nil, fmt.Errorf("unrecognized consumer group partition assignor: %s", kafkaConfig.Assignor)
 	}
-	config, err = withAuthentication(*config, cfg.KafkaConfig.Authentication)
+	config, err = withAuthentication(*config, kafkaConfig.Authentication)
 	if err != nil {
 		return nil, fmt.Errorf("error setting up kafka authentication: %w", err)
 	}
-	client, err := sarama.NewClient(cfg.KafkaConfig.Brokers, config)
+	client, err := sarama.NewClient(kafkaConfig.Brokers, config)
 	if err != nil {
 		return nil, fmt.Errorf("error creating kafka client: %w", err)
 	}
-	group, err := sarama.NewConsumerGroup(cfg.KafkaConfig.Brokers, cfg.KafkaConfig.GroupID, config)
+	group, err := sarama.NewConsumerGroup(kafkaConfig.Brokers, kafkaConfig.GroupID, config)
 	if err != nil {
 		return nil, fmt.Errorf("error creating consumer group client: %w", err)
 	}
-	topicManager, err := newTopicManager(client, cfg.KafkaConfig.Topics)
+	topicManager, err := newTopicManager(client, kafkaConfig.Topics)
 	if err != nil {
 		return nil, fmt.Errorf("error creating topic manager: %w", err)
 	}
@@ -96,7 +100,8 @@ func NewSyncer(
 		ctx:          ctx,
 		cancel:       cancel,
 		topicManager: topicManager,
-		cfg:          cfg,
+		kafkaConfig:  kafkaConfig,
+		relabelRules: relabelRules,
 		reg:          reg,
 		client:       pushClient,
 		close: func() error {
@@ -117,8 +122,8 @@ func NewSyncer(
 	return t, nil
 }
 
-func withAuthentication(cfg sarama.Config, authCfg scrapeconfig.KafkaAuthentication) (*sarama.Config, error) {
-	if len(authCfg.Type) == 0 || authCfg.Type == scrapeconfig.KafkaAuthenticationTypeNone {
+func withAuthentication(cfg sarama.Config, authCfg KafkaAuthentication) (*sarama.Config, error) {
+	if len(authCfg.Type) == 0 || authCfg.Type == KafkaAuthenticationTypeNone {
 		return &cfg, nil
 	}
 
@@ -132,7 +137,7 @@ func withAuthentication(cfg sarama.Config, authCfg scrapeconfig.KafkaAuthenticat
 	}
 }
 
-func withSSLAuthentication(cfg sarama.Config, authCfg scrapeconfig.KafkaAuthentication) (*sarama.Config, error) {
+func withSSLAuthentication(cfg sarama.Config, authCfg KafkaAuthentication) (*sarama.Config, error) {
 	cfg.Net.TLS.Enable = true
 	tc, err := createTLSConfig(authCfg.TLSConfig)
 	if err != nil {
@@ -142,11 +147,11 @@ func withSSLAuthentication(cfg sarama.Config, authCfg scrapeconfig.KafkaAuthenti
 	return &cfg, nil
 }
 
-func withSASLAuthentication(cfg sarama.Config, authCfg scrapeconfig.KafkaAuthentication) (*sarama.Config, error) {
+func withSASLAuthentication(cfg sarama.Config, authCfg KafkaAuthentication) (*sarama.Config, error) {
 	cfg.Net.SASL.Enable = true
 	cfg.Net.SASL.User = authCfg.SASLConfig.User
-	cfg.Net.SASL.Password = authCfg.SASLConfig.Password.String()
-	cfg.Net.SASL.Mechanism = authCfg.SASLConfig.Mechanism
+	cfg.Net.SASL.Password = authCfg.SASLConfig.Password
+	cfg.Net.SASL.Mechanism = sarama.SASLMechanism(authCfg.SASLConfig.Mechanism)
 	if cfg.Net.SASL.Mechanism == "" {
 		cfg.Net.SASL.Mechanism = sarama.SASLTypePlaintext
 	}
@@ -295,23 +300,23 @@ func (ts *TargetSyncer) NewTarget(session sarama.ConsumerGroupSession, claim sar
 	return t, nil
 }
 
-func validateConfig(cfg *scrapeconfig.Config) error {
-	if cfg.KafkaConfig == nil {
+func validateConfig(kafkaConfig *KafkaTargetConfig) error {
+	if kafkaConfig == nil {
 		return errors.New("the Kafka configuration is empty")
 	}
-	if cfg.KafkaConfig.Version == "" {
-		cfg.KafkaConfig.Version = "2.1.1"
+	if kafkaConfig.Version == "" {
+		kafkaConfig.Version = "2.1.1"
 	}
-	if len(cfg.KafkaConfig.Brokers) == 0 {
+	if len(kafkaConfig.Brokers) == 0 {
 		return errors.New("no Kafka bootstrap brokers defined")
 	}
 
-	if len(cfg.KafkaConfig.Topics) == 0 {
+	if len(kafkaConfig.Topics) == 0 {
 		return errors.New("no topics given to be consumed")
 	}
 
-	if cfg.KafkaConfig.GroupID == "" {
-		cfg.KafkaConfig.GroupID = "promtail"
+	if kafkaConfig.GroupID == "" {
+		kafkaConfig.GroupID = "promtail"
 	}
 	return nil
 }
