@@ -64,7 +64,7 @@ type KafkaSASLConfig struct {
 
 // DefaultArguments provides the default arguments for a kafka component.
 var DefaultArguments = Arguments{
-	GroupID:  "promtail",
+	GroupID:  "loki.source.kafka",
 	Assignor: "range",
 	Version:  "2.2.1",
 	Authentication: KafkaAuthentication{

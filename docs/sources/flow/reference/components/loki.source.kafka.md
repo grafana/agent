@@ -88,8 +88,8 @@ expects Kafka messages to be sent to.
 Name                     | Type          | Description | Default | Required
 ------------------------ | ------------- | ----------- | ------- | --------
 `mechanism` | `string` | Specifies the SASL mechanism the client uses to authenticate with the broker. | `"PLAIN""` | no
-`user`      | `string` | The user name to use for SASL authentication. | | no
-`password`  | `string` | The password to use for SASL authentication. | | no
+`user`      | `string` | The user name to use for SASL authentication. | `""` | no
+`password`  | `string` | The password to use for SASL authentication. | `""` | no
 `use_tls`   | `bool`   | If true, SASL authentication is executed over TLS. | `false` | no
 
 ## Labels
