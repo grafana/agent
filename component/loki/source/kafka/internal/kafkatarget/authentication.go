@@ -11,11 +11,11 @@ import (
 	"crypto/x509"
 	"os"
 
-	"github.com/grafana/agent/component/common/config"
+	promconfig "github.com/prometheus/common/config"
 	"github.com/xdg-go/scram"
 )
 
-func createTLSConfig(cfg config.TLSConfig) (*tls.Config, error) {
+func createTLSConfig(cfg promconfig.TLSConfig) (*tls.Config, error) {
 	tc := &tls.Config{
 		InsecureSkipVerify: cfg.InsecureSkipVerify,
 		ServerName:         cfg.ServerName,
