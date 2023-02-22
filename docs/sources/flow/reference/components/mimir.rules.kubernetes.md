@@ -36,13 +36,27 @@ mimir.rules.kubernetes "LABEL" {
 
 `mimir.rules.kubernetes` supports the following arguments:
 
-Name                     | Type       | Description                                             | Default | Required
--------------------------|------------|---------------------------------------------------------|---------|---------
-`address`                | `string`   | URL of the Mimir ruler.                                 |         | yes
+Name                     | Type       | Description                                              | Default | Required
+-------------------------|------------|----------------------------------------------------------|---------|---------
+`address`                | `string`   | URL of the Mimir ruler.                                  |         | yes
 `tenant_id`              | `string`   | Mimir tenant ID.                                         |         | no
 `use_legacy_routes`      | `bool`     | Whether to use deprecated ruler API endpoints.           | false   | no
 `sync_interval`          | `duration` | Amount of time between reconciliations with Mimir.       | "30s"   | no
 `mimir_namespace_prefix` | `string`   | Prefix used to differentiate multiple agent deployments. | "agent" | no
+`bearer_token`           | `secret`   | Bearer token to authenticate with.                       |         | no
+`bearer_token_file`      | `string`   | File containing a bearer token to authenticate with.     |         | no
+`proxy_url`              | `string`   | HTTP proxy to proxy requests through.                    |         | no
+`follow_redirects`       | `bool`     | Whether redirects returned by the server should be followed. | `true` | no
+`enable_http2`           | `bool`     | Whether HTTP2 is supported for requests.                 | `true`  | no
+
+ At most one of the following can be provided:
+ - [`bearer_token` argument](#arguments).
+ - [`bearer_token_file` argument](#arguments). 
+ - [`basic_auth` block][basic_auth].
+ - [`authorization` block][authorization].
+ - [`oauth2` block][oauth2].
+
+ [arguments]: #arguments
 
 If no `tenant_id` is provided, the component assumes that the Mimir instance at
 `address` is running in single-tenant mode and no `X-Scope-OrgID` header is sent.
@@ -63,23 +77,20 @@ The following blocks are supported inside the definition of
 
 Hierarchy                                  | Block                  | Description                                              | Required
 -------------------------------------------|------------------------|----------------------------------------------------------|---------
-rule_namespace_selector                    | [label_selector][]     | Label selector for `Namespace` resources.                 | no
-rule_namespace_selector > match_expression | [match_expression][]   | Label match expression for `Namespace` resources.         | no
-rule_selector                              | [label_selector][]     | Label selector for `PrometheusRule` resources.            | no
-rule_selector > match_expression           | [match_expression][]   | Label match expression for `PrometheusRule` resources.    | no
-http_client_config                         | [http_client_config][] | HTTP client settings when connecting to the endpoint.    | no
-http_client_config > basic_auth            | [basic_auth][]         | Configure basic_auth for authenticating to the endpoint. | no
-http_client_config > authorization         | [authorization][]      | Configure generic authorization to the endpoint.         | no
-http_client_config > oauth2                | [oauth2][]             | Configure OAuth2 for authenticating to the endpoint.     | no
-http_client_config > oauth2 > tls_config   | [tls_config][]         | Configure TLS settings for connecting to the endpoint.   | no
-http_client_config > tls_config            | [tls_config][]         | Configure TLS settings for connecting to the endpoint.   | no
-
+rule_namespace_selector                    | [label_selector][]     | Label selector for `Namespace` resources.                | no
+rule_namespace_selector > match_expression | [match_expression][]   | Label match expression for `Namespace` resources.        | no
+rule_selector                              | [label_selector][]     | Label selector for `PrometheusRule` resources.           | no
+rule_selector > match_expression           | [match_expression][]   | Label match expression for `PrometheusRule` resources.   | no
+basic_auth                                 | [basic_auth][]         | Configure basic_auth for authenticating to the endpoint. | no
+authorization                              | [authorization][]      | Configure generic authorization to the endpoint.         | no
+oauth2                                     | [oauth2][]             | Configure OAuth2 for authenticating to the endpoint.     | no
+oauth2 > tls_config                        | [tls_config][]         | Configure TLS settings for connecting to the endpoint.   | no
+tls_config                                 | [tls_config][]         | Configure TLS settings for connecting to the endpoint.   | no
 
 The `>` symbol indicates deeper levels of nesting. For example,
-`http_client_config > basic_auth` refers to a `basic_auth` block defined inside
-an `http_client_config` block.
+`oauth2 > tls_config` refers to a `tls_config` block defined inside
+an `oauth2` block.
 
-[http_client_config]: #http_client_config-block
 [basic_auth]: #basic_auth-block
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
@@ -116,12 +127,6 @@ The `operator` argument should be one of the following strings:
 * `"in"` 
 * `"notin"` 
 * `"exists"` 
-
-### http_client_config block
-
-The `http_client_config` configures settings used to connect to the Mimir API.
-
-{{< docs/shared lookup="flow/reference/components/http-client-config-block.md" source="agent" >}}
 
 ### basic_auth block
 
@@ -205,13 +210,11 @@ rules to Grafana Cloud.
 ```river
 mimir.rules.kubernetes "default" {
     address = "GRAFANA_CLOUD_METRICS_URL"
-    http_client_config {
-        basic_auth {
-            username = "GRAFANA_CLOUD_USER"
-            password = "GRAFANA_CLOUD_API_KEY"
-            // Alternatively, load the password from a file:
-            // password_file = "GRAFANA_CLOUD_API_KEY_PATH"
-        }
+    basic_auth {
+        username = "GRAFANA_CLOUD_USER"
+        password = "GRAFANA_CLOUD_API_KEY"
+        // Alternatively, load the password from a file:
+        // password_file = "GRAFANA_CLOUD_API_KEY_PATH"
     }
 }
 ```

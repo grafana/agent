@@ -19,14 +19,17 @@ Main (unreleased)
 - Some blocks in Flow components have been merged with their parent block to make the block hierarchy smaller:
   - `prometheus.scrape > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
   - `phlare.write > endpoint > http_client_config` is merged into the `endpoint` block. (@erikbaranowski)
+  - `loki.write > endpoint > http_client_config` is merged into the `endpoint` block. (@erikbaranowski)
+  - `mimir.rules.kubernetes > http_client_config` is merged into the `mimir.rules.kubernetes` block. (@erikbaranowski)
   - `discovery.docker > http_client_config` is merged into the `discovery.docker` block. (@erikbaranowski)
   - `loki.source.kubernetes > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
   - `loki.source.podlogs > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
+  - `otelcol.receiver.zipkin > http` is merged into the `otelcol.receiver.zipkin` block. (@ptodev)
 
-- The `loki.process` component now makes use of River's 'enum' blocks. Instead
-  of defining processing stages in nested a `stage` block containing one
-  element each (eg. a `stage > json` hierarchy), the configuration now supports
-  defining each block as `stage.json` directly. (@tpaschalis)
+- The `loki.process` component now uses a combined name for stages, simplifying
+  the block hierarchy. For example, the `stage > json` block hierarchy is now a
+  single block called `stage.json`. All stage blocks in `loki.process` have
+  been updated to use this simplified hierarchy. (@tpaschalis)
 
 - `remote.s3` `client_options` block has been renamed to `client`. (@mattdurham)
 
@@ -42,9 +45,12 @@ Main (unreleased)
 
 - New Grafana Agent Flow components:
 
+  - `loki.echo` writes received logs to stdout. (@tpaschalis, @rfratto)
   - `loki.source.docker` reads logs from Docker containers and forwards them to
     other `loki` components. (@tpaschalis)
-  - `loki.echo` writes received logs to stdout. (@tpaschalis, @rfratto)
+  - `loki.source.kubernetes_events` watches for Kubernetes Events and converts
+    them into log lines to forward to other `loki` components. It is the
+    equivalent of the `eventhandler` integration. (@rfratto)
   - `otelcol.processor.tail_sampling` samples traces based on a set of defined
     policies from `otelcol` components before forwarding them to other
     `otelcol` components. (@erikbaranowski)
@@ -53,6 +59,8 @@ Main (unreleased)
   - `prometheus.integration.consul` collects metrics from a consul installation
     (@captncraig)
   - `prometheus.integration.github` collects metrics from GitHub (@jcreixell)
+  - `prometheus.integration.redis` collects metrics from a redis database (@spartan0x117)
+
 
 ### Enhancements
 
