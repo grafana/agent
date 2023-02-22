@@ -64,7 +64,7 @@ func Test_Write_FanOut(t *testing.T) {
 		}
 		argument.Endpoints = append(argument.Endpoints, &EndpointOptions{
 			URL:           servers[i].URL,
-			RemoteTimeout: DefaultEndpointOptions().RemoteTimeout,
+			RemoteTimeout: GetDefaultEndpointOptions().RemoteTimeout,
 			Headers: map[string]string{
 				"X-Test-Header": "test",
 			},
@@ -170,7 +170,7 @@ func Test_Write_Update(t *testing.T) {
 	argument.Endpoints = []*EndpointOptions{
 		{
 			URL:           server.URL,
-			RemoteTimeout: DefaultEndpointOptions().RemoteTimeout,
+			RemoteTimeout: GetDefaultEndpointOptions().RemoteTimeout,
 		},
 	}
 	wg.Add(1)

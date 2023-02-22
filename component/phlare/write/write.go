@@ -28,11 +28,6 @@ var (
 	DefaultArguments = func() Arguments {
 		return Arguments{}
 	}
-	DefaultEndpointOptions = func() EndpointOptions {
-		return EndpointOptions{
-			RemoteTimeout: 30 * time.Second,
-		}
-	}
 	_ component.Component = (*Component)(nil)
 )
 
@@ -72,9 +67,18 @@ type EndpointOptions struct {
 	HTTPClientConfig *config.HTTPClientConfig `river:",squash"`
 }
 
+func GetDefaultEndpointOptions() EndpointOptions {
+	var defaultEndpointOptions = EndpointOptions{
+		RemoteTimeout:    30 * time.Second,
+		HTTPClientConfig: config.CloneDefaultHTTPClientConfig(),
+	}
+
+	return defaultEndpointOptions
+}
+
 // UnmarshalRiver implements river.Unmarshaler.
 func (r *EndpointOptions) UnmarshalRiver(f func(v interface{}) error) error {
-	*r = DefaultEndpointOptions()
+	*r = GetDefaultEndpointOptions()
 
 	type arguments EndpointOptions
 	err := f((*arguments)(r))
