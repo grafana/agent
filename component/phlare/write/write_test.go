@@ -36,6 +36,7 @@ func Test_Write_FanOut(t *testing.T) {
 		pushTotal                      = atomic.NewInt32(0)
 		serverCount                    = int32(10)
 		servers     []*httptest.Server = make([]*httptest.Server, serverCount)
+		endpoints   []*EndpointOptions = make([]*EndpointOptions, 0, serverCount)
 	)
 	argument.ExternalLabels = map[string]string{"foo": "buzz"}
 	handlerFn := func(err error) http.Handler {
@@ -62,9 +63,12 @@ func Test_Write_FanOut(t *testing.T) {
 		} else {
 			servers[i] = httptest.NewServer(handlerFn(nil))
 		}
-		argument.Endpoints = append(argument.Endpoints, &EndpointOptions{
-			URL:           servers[i].URL,
-			RemoteTimeout: DefaultEndpointOptions().RemoteTimeout,
+		endpoints = append(endpoints, &EndpointOptions{
+			URL:               servers[i].URL,
+			RemoteTimeout:     DefaultEndpointOptions().RemoteTimeout,
+			MinBackoff:        100 * time.Millisecond,
+			MaxBackoff:        200 * time.Millisecond,
+			MaxBackoffRetries: 1,
 			Headers: map[string]string{
 				"X-Test-Header": "test",
 			},
@@ -76,6 +80,7 @@ func Test_Write_FanOut(t *testing.T) {
 		}
 	}()
 	createReceiver := func(t *testing.T, arg Arguments) phlare.Appendable {
+		t.Helper()
 		var wg sync.WaitGroup
 		wg.Add(1)
 		c, err := NewComponent(component.Options{
@@ -97,6 +102,7 @@ func Test_Write_FanOut(t *testing.T) {
 	}
 
 	t.Run("with_failure", func(t *testing.T) {
+		argument.Endpoints = endpoints
 		r := createReceiver(t, argument)
 		pushTotal.Store(0)
 		err := r.Appender().Append(context.Background(), labels.FromMap(map[string]string{
@@ -112,7 +118,7 @@ func Test_Write_FanOut(t *testing.T) {
 	})
 
 	t.Run("all_success", func(t *testing.T) {
-		argument.Endpoints = argument.Endpoints[1:]
+		argument.Endpoints = endpoints[1:]
 		r := createReceiver(t, argument)
 		pushTotal.Store(0)
 		err := r.Appender().Append(context.Background(), labels.FromMap(map[string]string{
@@ -125,6 +131,23 @@ func Test_Write_FanOut(t *testing.T) {
 		})
 		require.NoError(t, err)
 		require.Equal(t, serverCount-1, pushTotal.Load())
+	})
+
+	t.Run("with_backoff", func(t *testing.T) {
+		argument.Endpoints = endpoints[:1]
+		argument.Endpoints[0].MaxBackoffRetries = 3
+		r := createReceiver(t, argument)
+		pushTotal.Store(0)
+		err := r.Appender().Append(context.Background(), labels.FromMap(map[string]string{
+			"__name__": "test",
+			"__type__": "type",
+			"job":      "foo",
+			"foo":      "bar",
+		}), []*phlare.RawSample{
+			{RawProfile: []byte("pprofraw")},
+		})
+		require.Error(t, err)
+		require.Equal(t, int32(3), pushTotal.Load())
 	})
 }
 
@@ -195,6 +218,9 @@ func Test_Unmarshal_Config(t *testing.T) {
 	endpoint {
 		url = "http://localhost:4200"
 		remote_timeout = "5s"
+		min_backoff_period = "1s"
+		max_backoff_period = "10s"
+		max_backoff_retries = 10
 	}
 	external_labels = {
 		"foo" = "bar",
@@ -204,4 +230,7 @@ func Test_Unmarshal_Config(t *testing.T) {
 	require.Equal(t, time.Second*10, arg.Endpoints[0].RemoteTimeout)
 	require.Equal(t, time.Second*5, arg.Endpoints[1].RemoteTimeout)
 	require.Equal(t, "bar", arg.ExternalLabels["foo"])
+	require.Equal(t, time.Second, arg.Endpoints[1].MinBackoff)
+	require.Equal(t, time.Second*10, arg.Endpoints[1].MaxBackoff)
+	require.Equal(t, 10, arg.Endpoints[1].MaxBackoffRetries)
 }
