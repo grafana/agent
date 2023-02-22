@@ -16,7 +16,7 @@ the three categories:
 * Experimental: we are exploring a new use case and would like feedback.
   Experimental features are subject to frequent breaking changes during
   development. Experimental features may be removed with no equivalent
-  replacement. Experimental features are always hidden behind feature flags.
+  replacement. Experimental features may be hidden behind feature flags.
   Unless removed, experimental features will eventually graduate to beta.
 
 * Beta: we are working on maturing a specific feature. Beta features may be
