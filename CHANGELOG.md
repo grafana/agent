@@ -34,6 +34,7 @@ Main (unreleased)
   been updated to use this simplified hierarchy. (@tpaschalis)
 
 - `remote.s3` `client_options` block has been renamed to `client`. (@mattdurham)
+- Renamed `prometheus.integration.node_exporter` to `prometheus.exporter.unix`. (@jcreixell)
 
 ### Features
 
@@ -56,12 +57,12 @@ Main (unreleased)
   - `otelcol.processor.tail_sampling` samples traces based on a set of defined
     policies from `otelcol` components before forwarding them to other
     `otelcol` components. (@erikbaranowski)
-  - `prometheus.integration.apache` collects metrics from an apache web server
+  - `prometheus.exporter.apache` collects metrics from an apache web server
     (@captncraig)
-  - `prometheus.integration.consul` collects metrics from a consul installation
+  - `prometheus.exporter.consul` collects metrics from a consul installation
     (@captncraig)
-  - `prometheus.integration.github` collects metrics from GitHub (@jcreixell)
-  - `prometheus.integration.redis` collects metrics from a redis database (@spartan0x117)
+  - `prometheus.exporter.github` collects metrics from GitHub (@jcreixell)
+  - `prometheus.exporter.redis` collects metrics from a redis database (@spartan0x117)
 
 
 ### Enhancements

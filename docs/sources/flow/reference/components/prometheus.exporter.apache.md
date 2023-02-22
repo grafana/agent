@@ -6,17 +6,17 @@
 # Ideally, in the future, we can fix the overflow issue with css rather than
 # injecting special characters.
 
-title: prometheus.​integration.​apache
+title: prometheus.exporter.​apache
 ---
 
-# prometheus.integration.apache
-The `prometheus.integration.apache` component embeds
+# prometheus.exporter.apache
+The `prometheus.exporter.apache` component embeds
 [apache_exporter](https://github.com/Lusitaniae/apache_exporter) for collecting mod_status statistics from an apache server.
 
 ## Usage
 
 ```river
-prometheus.integration.apache "LABEL"{
+prometheus.exporter.apache "LABEL" {
 }
 ```
 
@@ -43,33 +43,33 @@ component that collects the exposed metrics.
 
 ## Component health
 
-`prometheus.integration.apache` is only reported as unhealthy if given
+`prometheus.exporter.apache` is only reported as unhealthy if given
 an invalid configuration. In those cases, exported fields retain their last
 healthy values.
 
 ## Debug information
 
-`prometheus.integration.apache` does not expose any component-specific
+`prometheus.exporter.apache` does not expose any component-specific
 debug information.
 
 ## Debug metrics
 
-`prometheus.integration.apache` does not expose any component-specific
+`prometheus.exporter.apache` does not expose any component-specific
 debug metrics.
 
 ## Example
 
 This example uses a [`prometheus.scrape` component][scrape] to collect metrics
-from `prometheus.integration.apache`:
+from `prometheus.exporter.apache`:
 
 ```river
-prometheus.integration.apache "example" {
+prometheus.exporter.apache "example" {
   scrape_uri = "http://web.example.com/server-status?auto"
 }
 
 // Configure a prometheus.scrape component to collect apache metrics.
 prometheus.scrape "demo" {
-  targets    = prometheus.integration.apache.example.targets
+  targets    = prometheus.exporter.apache.example.targets
   forward_to = [ /* ... */ ]
 }
 ```
