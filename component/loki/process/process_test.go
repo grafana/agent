@@ -38,33 +38,27 @@ func TestJSONLabelsStage(t *testing.T) {
 	// The third stage will set some labels from the extracted values above.
 	// Again, if the value is empty, it is inferred that we want to use the
 	// populate the label with extracted value of the same name.
-	stg := `stage {
-              json {
+	stg := `stage.json { 
 			    expressions    = {"output" = "log", stream = "stream", timestamp = "time", "extra" = "" }
 				drop_malformed = true
-			  }
 		    }
-			stage {
-			  json {
+			stage.json {
 			    expressions = { "user" = "" }
 				source      = "extra"
-			  }
 			}
-			stage { 
-			  labels {
+			stage.labels {
 			    values = { 
 				  stream = "",
 				  user   = "",
 				  ts     = "timestamp",
 			    }
-		      }
 			}`
 
 	// Unmarshal the River relabel rules into a custom struct, as we don't have
 	// an easy way to refer to a loki.LogsReceiver value for the forward_to
 	// argument.
 	type cfg struct {
-		Stages []stages.StageConfig `river:"stage,block"`
+		Stages []stages.StageConfig `river:"stage,enum"`
 	}
 	var stagesCfg cfg
 	err := river.Unmarshal([]byte(stg), &stagesCfg)
@@ -135,27 +129,21 @@ func TestStaticLabelsLabelAllowLabelDrop(t *testing.T) {
 	// The second stage will drop the foo and bar labels.
 	// The third stage will keep only a subset of the remaining labels.
 	stg := `
-stage {
-  static_labels {
+stage.static_labels {
     values = { "foo" = "fooval", "bar" = "barval", "baz" = "bazval", "qux" = "quxval" }
-  }
 }
-stage {
-  label_drop {
+stage.label_drop {
     values = [ "foo", "bar" ]
-  }
 }
-stage {
-  label_keep {
+stage.label_keep {
     values = [ "foo", "baz", "filename" ]
-  }
 }`
 
 	// Unmarshal the River relabel rules into a custom struct, as we don't have
 	// an easy way to refer to a loki.LogsReceiver value for the forward_to
 	// argument.
 	type cfg struct {
-		Stages []stages.StageConfig `river:"stage,block"`
+		Stages []stages.StageConfig `river:"stage,enum"`
 	}
 	var stagesCfg cfg
 	err := river.Unmarshal([]byte(stg), &stagesCfg)
@@ -230,33 +218,25 @@ func TestRegexTimestampOutput(t *testing.T) {
 	//
 	// The fourth and final stage will set the `stream` value as the label.
 	stg := `
-stage {
-	regex {
+stage.regex {
 		expression = "^(?s)(?P<time>\\S+?) (?P<stream>stdout|stderr) (?P<content>.*)$"
-	}
 }
-stage {
-	timestamp {
+stage.timestamp {
 		source = "time"
 		format = "RFC3339"
-	}
 }
-stage {
-	output {
+stage.output {
 		source = "content"
-	}
 }
-stage {
-	labels {
+stage.labels {
 		values = { src = "stream" }
-	}
 }`
 
 	// Unmarshal the River relabel rules into a custom struct, as we don't have
 	// an easy way to refer to a loki.LogsReceiver value for the forward_to
 	// argument.
 	type cfg struct {
-		Stages []stages.StageConfig `river:"stage,block"`
+		Stages []stages.StageConfig `river:"stage,enum"`
 	}
 	var stagesCfg cfg
 	err := river.Unmarshal([]byte(stg), &stagesCfg)

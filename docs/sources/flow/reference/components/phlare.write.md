@@ -66,7 +66,7 @@ Name | Type | Description | Default | Required
 `headers` | `map(string)` | Extra headers to deliver with the request. | | no
 `min_backoff_period`  | `duration` | Initial backoff time between retries. | `"500ms"`      | no
 `max_backoff_period`  | `duration` | Maximum backoff time between retries. | `"5m"`         | no
-`max_backoff_retries` | `int`      | Maximum number of retries.            | 10             | no
+`max_backoff_retries` | `int`      | Maximum number of retries. 0 to retry infinitely.      | 10             | no
 
 When multiple `endpoint` blocks are provided, profiles are concurrently forwarded to all
 configured locations.

@@ -18,6 +18,17 @@ Main (unreleased)
 
 - Some blocks in Flow components have been merged with their parent block to make the block hierarchy smaller:
   - `prometheus.scrape > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
+  - `mimir.rules.kubernetes > http_client_config` is merged into the `mimir.rules.kubernetes` block. (@erikbaranowski)
+  - `discovery.docker > http_client_config` is merged into the `discovery.docker` block. (@erikbaranowski)
+  - `loki.source.kubernetes > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
+  - `loki.source.podlogs > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
+
+- The `loki.process` component now makes use of River's 'enum' blocks. Instead
+  of defining processing stages in nested a `stage` block containing one
+  element each (eg. a `stage > json` hierarchy), the configuration now supports
+  defining each block as `stage.json` directly. (@tpaschalis)
+
+- `remote.s3` `client_options` block has been renamed to `client`. (@mattdurham)
 
 ### Features
 
@@ -41,10 +52,13 @@ Main (unreleased)
     (@captncraig)
   - `prometheus.integration.consul` collects metrics from a consul installation
     (@captncraig)
+  - `prometheus.integration.github` collects metrics from GitHub (@jcreixell)
 
 ### Enhancements
 
 - Flow: Add retries with backoff logic to Phlare write component. (@ctovena)
+
+- Flow: Support `keepequal` and `dropequal` actions for relabeling. (@ctovena)
 
 - Update Prometheus Node Exporter integration to v1.5.0. (@Thor77)
 
@@ -205,9 +219,8 @@ v0.31.0 (2023-01-31)
 
 ### Bugfixes
 
-- Flow UI: Fix the issue with messy layout on the component list page while browser window resize. (@xiyu95)
-
-- Flow UI: Fix the issue with long string going out of bound in the component detail page. (@xiyu95)
+- Flow UI: Fix the issue with messy layout on the component list page while
+  browser window resize (@xiyu95)
 
 - Flow UI: Display the values of all attributes unless they are nil. (@ptodev)
 

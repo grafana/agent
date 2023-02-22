@@ -25,7 +25,7 @@ func init() {
 // component.
 type Arguments struct {
 	ForwardTo []loki.LogsReceiver  `river:"forward_to,attr"`
-	Stages    []stages.StageConfig `river:"stage,block,optional"`
+	Stages    []stages.StageConfig `river:"stage,enum,optional"`
 }
 
 // Exports exposes the receiver that can be used to send log entries to
