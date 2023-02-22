@@ -123,6 +123,12 @@ func (h *HTTPClientConfig) Convert() *config.HTTPClientConfig {
 	}
 }
 
+// Clone creates a shallow clone of h.
+func CloneDefaultHTTPClientConfig() *HTTPClientConfig {
+	clone := DefaultHTTPClientConfig
+	return &clone
+}
+
 // DefaultHTTPClientConfig for initializing objects
 var DefaultHTTPClientConfig = HTTPClientConfig{
 	FollowRedirects: true,
