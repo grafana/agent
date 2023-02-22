@@ -89,6 +89,9 @@ Main (unreleased)
 - Flow: fix issues in `river fmt` where line comments in arrays would be given
   the wrong identation level. (@rfratto)
 
+- Flow: fix issues with `loki.file` and `loki.process` where deadlock contention or
+  logs fail to process. (@mattdurham)
+
 ### Other changes
 
 - Use Go 1.20 for builds. Official release binaries are still produced using Go

@@ -182,7 +182,6 @@ func (c *Component) Update(args component.Arguments) error {
 		}
 
 		c.reportSize(path, labels.String())
-		c.handler = make(loki.LogsReceiver)
 		c.entryHandler = loki.AddLabelsMiddleware(labels).Wrap(loki.NewEntryHandler(c.handler, func() { close(c.handler) }))
 
 		reader, err := c.startTailing(path, labels, c.entryHandler)
