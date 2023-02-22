@@ -1,6 +1,7 @@
 import React, { Fragment } from 'react';
 
 import { RiverValue } from '../../features/river-js/RiverValue';
+import { riverStringify } from '../river-js/stringify';
 import Table from '../widget/Table';
 
 import { PartitionedBody } from './types';
@@ -17,12 +18,12 @@ const ComponentBody = ({ partition }: ComponentBodyProps) => {
   const sectionClass = partition.key.length === 1 ? '' : styles.nested;
 
   const renderTableData = () => {
-    return partition.attrs.map((attr) => {
+    return partition.attrs.map(({ name, value }, index) => {
       return (
-        <tr key={attr.name}>
-          <td className={styles.nameColumn}>{attr.name}</td>
+        <tr key={name}>
+          <td className={styles.nameColumn}>{name}</td>
           <td>
-            <RiverValue value={attr.value} />
+            <RiverValue value={value} />
           </td>
         </tr>
       );

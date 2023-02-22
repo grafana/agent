@@ -12,6 +12,8 @@ export interface RiverValueProps {
  * RiverValue emits a paragraph which represents a River value.
  */
 export const RiverValue: FC<RiverValueProps> = (props) => {
+  console.log('prop value: ', props.value);
+
   return (
     <p className={styles.value}>
       <ValueRenderer value={props.value} indentLevel={0} />
@@ -86,7 +88,7 @@ const ValueRenderer: FC<valueRendererProps> = (props) => {
                   {getLinePrefix(props.indentLevel + 1)}
                   <span>{partitionKey(element, keyLength)} = </span>
                   <ValueRenderer value={element.value} indentLevel={props.indentLevel + 1} />
-                  <span>,</span>
+                  ,
                   <br />
                 </Fragment>
               );

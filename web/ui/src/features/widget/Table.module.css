@@ -4,7 +4,8 @@
   table-layout: fixed;
 }
 
-.table td, .table th{
+.table td,
+.table th {
   border: none;
   padding: 8px;
 }
@@ -17,13 +18,15 @@
   background-color: white;
 }
 
-.table tr:hover {background-color: #ddd;}
+.table tr:hover {
+  background-color: #ddd;
+}
 
 .table th {
   padding-top: 12px;
   padding-bottom: 12px;
   text-align: left;
-  background-color:#f4f5f5;
+  background-color: #f4f5f5;
   color: rgba(36, 41, 46, 0.75);
 }
 
@@ -31,7 +34,6 @@
   width: 2%;
 }
 
-.table span {
-  white-space: normal;
+/* .table span {
   word-break: break-all;
-}
+} */
