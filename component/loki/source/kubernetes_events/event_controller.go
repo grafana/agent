@@ -186,8 +186,8 @@ func (ctrl *eventController) onDelete(ctx context.Context, obj interface{}) {
 func (ctrl *eventController) handleEvent(ctx context.Context, event *corev1.Event) error {
 	eventTs := eventTimestamp(event)
 
-	// Events don't have any ordering guarantees, so we can't rely on comparing the timestamp of
-	// this event to any other event received.
+	// Events don't have any ordering guarantees, so we can't rely on comparing
+	// the timestamp of this event to any other event received.
 	//
 	// We use a best-effort attempt to not re-deliver any events we've already
 	// logged by checking the timestamp from when the worker started. This may

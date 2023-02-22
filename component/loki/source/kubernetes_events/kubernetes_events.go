@@ -138,6 +138,7 @@ func (c *Component) Run(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
+	defer c.positions.Stop()
 	defer c.runner.Stop()
 
 	var rg run.Group
@@ -162,7 +163,7 @@ func (c *Component) Run(ctx context.Context) error {
 		cancel()
 	})
 
-	// Runner to forard received logs.
+	// Runner to forward received logs.
 	rg.Add(func() error {
 		for {
 			select {
