@@ -88,13 +88,13 @@ For a **new release candidate**, the release shepherd will:
 
 5. Create a PR to cherry pick the update from step 4 to the release branch.
 
-5. [Create a tag](#create-a-tag).
+6. [Create a tag](#create-a-tag).
 
-6. [Publish the release candidate on Github](#publishing-the-release)
+7. [Publish the release candidate on Github](#publishing-the-release)
 
-7. Announce the release candidate on the community Slack channel.
+8. Announce the release candidate on the community Slack channel.
 
-8. Run the release candidate in a testing environment for at least 48 hours. If
+9. Run the release candidate in a testing environment for at least 48 hours. If
    you do not have a testing environment, one can be spawned locally using the
    sample environments in `example/k3d`.
 
