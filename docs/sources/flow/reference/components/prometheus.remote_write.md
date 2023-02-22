@@ -54,11 +54,10 @@ endpoint > metadata_config | [metadata_config][] | Configuration for how metric 
 wal | [wal][] | Configuration for the component's WAL. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `endpoint >
-http_client_config` refers to an `http_client_config` block defined inside an
+basic_auth` refers to a `basic_auth` block defined inside an
 `endpoint` block.
 
 [endpoint]: #endpoint-block
-[http_client_config]: #http_client_config-block
 [basic_auth]: #basic_auth-block
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
