@@ -1,5 +1,7 @@
 ---
 title: otelcol.receiver.loki
+labels:
+  stage: beta
 ---
 
 # otelcol.receiver.loki
@@ -78,8 +80,8 @@ loki.source.file "default" {
 
 otelcol.receiver.loki "default" {
   output {
-    logs = [otelcol.exporter.otlp.default.input] 
-  } 
+    logs = [otelcol.exporter.otlp.default.input]
+  }
 }
 
 otelcol.exporter.otlp "default" {

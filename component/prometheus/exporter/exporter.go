@@ -1,4 +1,4 @@
-package integration
+package exporter
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 	"github.com/prometheus/common/model"
 )
 
-// Creator is a function provided by an implementation to create a concrete integration instance.
+// Creator is a function provided by an implementation to create a concrete exporter instance.
 type Creator func(component.Options, component.Arguments) (integrations.Integration, error)
 
 // Exports are simply a list of targets for a scraper to consume.
@@ -31,7 +31,7 @@ type Component struct {
 
 	creator Creator
 
-	integration    integrations.Integration
+	exporter       integrations.Integration
 	metricsHandler http.Handler
 }
 
@@ -71,7 +71,7 @@ func (c *Component) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case <-c.reload:
-			// cancel any previously running integration
+			// cancel any previously running exporter
 			if cancel != nil {
 				cancel()
 			}
@@ -81,14 +81,14 @@ func (c *Component) Run(ctx context.Context) error {
 			newCtx, cancelFunc := context.WithCancel(ctx)
 			cancel = cancelFunc
 
-			// finally create and run new integration
+			// finally create and run new exporter
 			c.mut.Lock()
-			integration := c.integration
-			c.metricsHandler = c.getHttpHandler(integration)
+			exporter := c.exporter
+			c.metricsHandler = c.getHttpHandler(exporter)
 			c.mut.Unlock()
 			go func() {
-				if err := integration.Run(newCtx); err != nil {
-					level.Error(c.opts.Logger).Log("msg", "error running integration", "err", err)
+				if err := exporter.Run(newCtx); err != nil {
+					level.Error(c.opts.Logger).Log("msg", "error running exporter", "err", err)
 				}
 			}()
 		}
@@ -97,12 +97,12 @@ func (c *Component) Run(ctx context.Context) error {
 
 // Update implements component.Component.
 func (c *Component) Update(args component.Arguments) error {
-	integration, err := c.creator(c.opts, args)
+	exporter, err := c.creator(c.opts, args)
 	if err != nil {
 		return err
 	}
 	c.mut.Lock()
-	c.integration = integration
+	c.exporter = exporter
 	c.mut.Unlock()
 	select {
 	case c.reload <- struct{}{}:

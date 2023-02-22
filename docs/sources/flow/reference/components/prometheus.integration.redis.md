@@ -6,17 +6,17 @@
 # Ideally, in the future, we can fix the overflow issue with css rather than
 # injecting special characters.
 
-title: prometheus.​integration.redis
+title: prometheus.exporter.redis
 ---
 
-# prometheus.integration.redis
-The `prometheus.integration.redis` component embeds
+# prometheus.exporter.redis
+The `prometheus.exporter.redis` component embeds
 [redis_exporter](https://github.com/oliver006/redis_exporter) for collecting metrics from a Redis database.
 
 ## Usage
 
 ```river
-prometheus.integration.redis "LABEL" {
+prometheus.exporter.redis "LABEL" {
 }
 ```
 
@@ -78,33 +78,33 @@ component that collects the exposed metrics.
 
 ## Component health
 
-`prometheus.integration.redis` is only reported as unhealthy if given
+`prometheus.exporter.redis` is only reported as unhealthy if given
 an invalid configuration. In those cases, exported fields retain their last
 healthy values.
 
 ## Debug information
 
-`prometheus.integration.redis` does not expose any component-specific
+`prometheus.exporter.redis` does not expose any component-specific
 debug information.
 
 ## Debug metrics
 
-`prometheus.integration.redis` does not expose any component-specific
+`prometheus.exporter.redis` does not expose any component-specific
 debug metrics.
 
 ## Example
 
 This example uses a [`prometheus.scrape` component][scrape] to collect metrics
-from `prometheus.integration.redis`:
+from `prometheus.exporter.redis`:
 
 ```river
-prometheus.integration.redis "example" {
+prometheus.exporter.redis "example" {
   redis_addr = "localhost:6379"
 }
 
 // Configure a prometheus.scrape component to collect Redis metrics.
 prometheus.scrape "demo" {
-  targets    = prometheus.integration.redis.example.targets
+  targets    = prometheus.exporter.redis.example.targets
   forward_to = [ /* ... */ ]
 }
 ```

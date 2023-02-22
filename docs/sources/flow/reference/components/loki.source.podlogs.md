@@ -1,5 +1,7 @@
 ---
 title: loki.source.podlogs
+labels:
+  stage: experimental
 ---
 
 # loki.source.podlogs

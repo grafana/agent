@@ -6,17 +6,17 @@
 # Ideally, in the future, we can fix the overflow issue with css rather than
 # injecting special characters.
 
-title: prometheus.​integration.​consul
+title: prometheus.exporter.​consul
 ---
 
-# prometheus.integration.consul
-The `prometheus.integration.consul` component embeds
+# prometheus.exporter.consul
+The `prometheus.exporter.consul` component embeds
 [consul_exporter](github.com/prometheus/consul_exporter) for collecting metrics from a consul instal.
 
 ## Usage
 
 ```river
-prometheus.integration.consul "LABEL"{
+prometheus.exporter.consul "LABEL"{
 }
 ```
 
@@ -53,33 +53,33 @@ component that collects the exposed metrics.
 
 ## Component health
 
-`prometheus.integration.consul` is only reported as unhealthy if given
+`prometheus.exporter.consul` is only reported as unhealthy if given
 an invalid configuration. In those cases, exported fields retain their last
 healthy values.
 
 ## Debug information
 
-`prometheus.integration.consul` does not expose any component-specific
+`prometheus.exporter.consul` does not expose any component-specific
 debug information.
 
 ## Debug metrics
 
-`prometheus.integration.consul` does not expose any component-specific
+`prometheus.exporter.consul` does not expose any component-specific
 debug metrics.
 
 ## Example
 
 This example uses a [`prometheus.scrape` component][scrape] to collect metrics
-from `prometheus.integration.consul`:
+from `prometheus.exporter.consul`:
 
 ```river
-prometheus.integration.consul "example" {
+prometheus.exporter.consul "example" {
   server = "https://consul.example.com:8500"
 }
 
 // Configure a prometheus.scrape component to collect consul metrics.
 prometheus.scrape "demo" {
-  targets    = prometheus.integration.consul.example.targets
+  targets    = prometheus.exporter.consul.example.targets
   forward_to = [ /* ... */ ]
 }
 ```

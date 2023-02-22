@@ -28,13 +28,35 @@ func init() {
 type Arguments struct {
 	CorsAllowedOrigins []string `river:"cors_allowed_origins,attr,optional"`
 
-	GRPC *GRPCServerArguments `river:"grpc,block,optional"`
+	GRPC otelcol.GRPCServerArguments `river:",squash"`
 
 	// Output configures where to send received data. Required.
 	Output *otelcol.ConsumerArguments `river:"output,block"`
 }
 
-var _ receiver.Arguments = Arguments{}
+var (
+	_ receiver.Arguments = Arguments{}
+	_ river.Unmarshaler  = (*Arguments)(nil)
+)
+
+// Default server settings.
+var DefaultArguments = Arguments{
+	GRPC: otelcol.GRPCServerArguments{
+		Endpoint:  "0.0.0.0:4317",
+		Transport: "tcp",
+
+		ReadBufferSize: 512 * units.Kibibyte,
+		// We almost write 0 bytes, so no need to tune WriteBufferSize.
+	},
+}
+
+// UnmarshalRiver implements river.Unmarshaler and supplies defaults.
+func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+	*args = DefaultArguments
+
+	type arguments Arguments
+	return f((*arguments)(args))
+}
 
 // Convert implements receiver.Arguments.
 func (args Arguments) Convert() otelconfig.Receiver {
@@ -42,7 +64,7 @@ func (args Arguments) Convert() otelconfig.Receiver {
 		ReceiverSettings: otelconfig.NewReceiverSettings(otelconfig.NewComponentID("opencensus")),
 
 		CorsOrigins:        args.CorsAllowedOrigins,
-		GRPCServerSettings: *(*otelcol.GRPCServerArguments)(args.GRPC).Convert(),
+		GRPCServerSettings: *args.GRPC.Convert(),
 	}
 }
 
@@ -59,32 +81,4 @@ func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.Compone
 // NextConsumers implements receiver.Arguments.
 func (args Arguments) NextConsumers() *otelcol.ConsumerArguments {
 	return args.Output
-}
-
-type (
-	// GRPCServerArguments is used to configure otelcol.receiver.otlp with
-	// component-specific defaults.
-	GRPCServerArguments otelcol.GRPCServerArguments
-)
-
-var (
-	_ river.Unmarshaler = (*GRPCServerArguments)(nil)
-)
-
-// Default server settings.
-var (
-	DefaultGRPCServerArguments = GRPCServerArguments{
-		Endpoint:  "0.0.0.0:4317",
-		Transport: "tcp",
-
-		ReadBufferSize: 512 * units.Kibibyte,
-		// We almost write 0 bytes, so no need to tune WriteBufferSize.
-	}
-)
-
-// UnmarshalRiver implements river.Unmarshaler and supplies defaults.
-func (args *GRPCServerArguments) UnmarshalRiver(f func(interface{}) error) error {
-	*args = DefaultGRPCServerArguments
-	type arguments GRPCServerArguments
-	return f((*arguments)(args))
 }

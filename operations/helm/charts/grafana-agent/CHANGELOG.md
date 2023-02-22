@@ -9,6 +9,9 @@ internal API changes are not present.
 
 Unreleased
 ----------
+### Enhancements
+- Helm chart: Add support for templates inside of configMap.content (@ts-mini)
+
 
 0.6.0 (2023-02-13)
 ------------------
