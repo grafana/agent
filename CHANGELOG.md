@@ -44,6 +44,8 @@ Main (unreleased)
 
 ### Enhancements
 
+- Flow: Add retries with backoff logic to Phlare write component. (@ctovena)
+
 - Update Prometheus Node Exporter integration to v1.5.0. (@Thor77)
 
 - Grafana Agent Flow will now reload the config file when `SIGHUP` is sent to
@@ -305,7 +307,6 @@ v0.30.0 (2022-12-20)
     patterns. (@mattdurham)
 
 - Integrations: Introduce the `snowflake` integration. (@binaryfissiongames)
-
 
 ### Enhancements
 
