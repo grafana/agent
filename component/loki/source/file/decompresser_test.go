@@ -145,6 +145,7 @@ func BenchmarkReadlines(b *testing.B) {
 func TestGigantiqueGunzipFile(t *testing.T) {
 	file := "testdata/long-access.gz"
 	handler := newFakeClient(func() {})
+	defer handler.Stop()
 
 	d := &decompressor{
 		logger:  log.NewNopLogger(),
@@ -173,6 +174,7 @@ func TestOnelineFiles(t *testing.T) {
 	t.Run("gunzip file", func(t *testing.T) {
 		file := "testdata/onelinelog.log.gz"
 		handler := newFakeClient(func() {})
+		defer handler.Stop()
 
 		d := &decompressor{
 			logger:  log.NewNopLogger(),
@@ -196,6 +198,7 @@ func TestOnelineFiles(t *testing.T) {
 	t.Run("bzip2 file", func(t *testing.T) {
 		file := "testdata/onelinelog.log.bz2"
 		handler := newFakeClient(func() {})
+		defer handler.Stop()
 
 		d := &decompressor{
 			logger:  log.NewNopLogger(),
@@ -219,6 +222,7 @@ func TestOnelineFiles(t *testing.T) {
 	t.Run("tar.gz file", func(t *testing.T) {
 		file := "testdata/onelinelog.tar.gz"
 		handler := newFakeClient(func() {})
+		defer handler.Stop()
 
 		d := &decompressor{
 			logger:  log.NewNopLogger(),

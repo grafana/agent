@@ -142,6 +142,17 @@ func TestUnmarshalConfig(t *testing.T) {
 			`,
 			expectedErr: "scrape_timeout must be greater than scrape_interval",
 		},
+		"invalid HTTPClientConfig": {
+			in: `
+			targets    = []
+			forward_to = null
+			scrape_timeout = "5s"
+			scrape_interval = "1s"
+			bearer_token = "token"
+			bearer_token_file = "/path/to/file.token"
+			`,
+			expectedErr: "at most one of bearer_token & bearer_token_file must be configured",
+		},
 	} {
 		tt := tt
 		name := name

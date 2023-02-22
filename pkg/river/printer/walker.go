@@ -42,7 +42,7 @@ func (w *walker) walkStmts(ss []ast.Stmt) {
 
 		// Two blocks should always be separated by a blank line.
 		if _, isBlock := s.(*ast.BlockStmt); i > 0 && isBlock {
-			w.p.Write(wsNewline)
+			w.p.Write(wsFormfeed)
 			addedSpacing = true
 		}
 
@@ -110,6 +110,7 @@ func (w *walker) walkBlockStmt(s *ast.BlockStmt) {
 
 		w.p.Write(
 			wsBlank,
+			s.LabelPos,
 			&ast.LiteralExpr{Kind: token.STRING, Value: label},
 		)
 	}
@@ -120,8 +121,8 @@ func (w *walker) walkBlockStmt(s *ast.BlockStmt) {
 	)
 
 	if len(s.Body) > 0 {
-		// Add a newline before writing any statements.
-		w.p.Write(wsNewline)
+		// Add a formfeed to start a new row run before writing any statements.
+		w.p.Write(wsFormfeed)
 		w.walkStmts(s.Body)
 	} else {
 		// There's no statements, but add a blank line between the left and right
@@ -193,7 +194,10 @@ func (w *walker) walkArrayExpr(e *ast.ArrayExpr) {
 		// Add a newline if this element starts on a different line than the last
 		// element ended.
 		if differentLines(prevPos, elementPos) {
-			w.p.Write(wsFormfeed, wsIndent)
+			// Indent elements inside the array on different lines. The indent is
+			// done *before* the newline to make sure comments written before the
+			// newline are indented properly.
+			w.p.Write(wsIndent, wsFormfeed)
 			addedNewline = true
 		} else if i > 0 {
 			// Make sure a space is injected before the next element if two
@@ -215,12 +219,20 @@ func (w *walker) walkArrayExpr(e *ast.ArrayExpr) {
 		}
 	}
 
+	var addedSuffixNewline bool
+
 	// If the closing bracket is on a different line than the final element,
 	// we need to add a trailing comma.
 	if len(e.Elements) > 0 && differentLines(prevPos, e.RBrackPos) {
-		w.p.Write(token.COMMA, wsFormfeed)
+		// We add an indentation here so comments after the final element are
+		// indented.
+		w.p.Write(token.COMMA, wsIndent, wsFormfeed)
+		addedSuffixNewline = true
 	}
 
+	if addedSuffixNewline {
+		w.p.Write(wsUnindent)
+	}
 	w.p.Write(e.RBrackPos, token.RBRACK)
 }
 

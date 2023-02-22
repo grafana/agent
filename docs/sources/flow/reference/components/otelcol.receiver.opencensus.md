@@ -35,45 +35,7 @@ otelcol.receiver.opencensus "LABEL" {
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`cors_allowed_origins`     | `list(string)` | A list of allowed Cross-Origin Resource Sharing (CORS) origins. |  | no
-
-`cors_allowed_origins` are the allowed [CORS](https://github.com/rs/cors) origins for HTTP/JSON requests.
-An empty list means that CORS is not enabled at all. A wildcard (*) can be
-used to match any origin or one or more characters of an origin.
-
-## Blocks
-
-The following blocks are supported inside the definition of
-`otelcol.receiver.opencensus`:
-
-Hierarchy | Block | Description | Required
---------- | ----- | ----------- | --------
-grpc | [grpc][] | Configures the gRPC/HTTP server to receive telemetry data. | no
-grpc > tls | [tls][] | Configures TLS for the gRPC server. | no
-grpc > keepalive | [keepalive][] | Configures keepalive settings for the configured server. | no
-grpc > keepalive > server_parameters | [server_parameters][] | Server parameters used to configure keepalive settings. | no
-grpc > keepalive > enforcement_policy | [enforcement_policy][] | Enforcement policy for keepalive settings. | no
-output | [output][] | Configures where to send received telemetry data. | yes
-
-The `>` symbol indicates deeper levels of nesting. For example, `grpc > tls`
-refers to a `tls` block defined inside a `grpc` block.
-
-[grpc]: #grpc-block
-[tls]: #tls-block
-[keepalive]: #keepalive-block
-[server_parameters]: #server_parameters-block
-[enforcement_policy]: #enforcement_policy-block
-[output]: #output-block
-
-### grpc block
-
-The `grpc` block configures the gRPC/HTTP server used by the component. If the
-`grpc` block isn't provided, a server using default parameters is started.
-
-The following arguments are supported:
-
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
+`cors_allowed_origins` | `list(string)` | A list of allowed Cross-Origin Resource Sharing (CORS) origins. |  | no
 `endpoint` | `string` | `host:port` to listen for traffic on. | `"0.0.0.0:4317"` | no
 `transport` | `string` | Transport to use for the gRPC server. | `"tcp"` | no
 `max_recv_msg_size` | `string` | Maximum size of messages the server will accept. 0 disables a limit. | | no
@@ -82,13 +44,38 @@ Name | Type | Description | Default | Required
 `write_buffer_size` | `string` | Size of the write buffer the gRPC server will use for writing to clients. | | no
 `include_metadata` | `boolean` | Propagate incoming connection metadata to downstream consumers. | | no
 
-In order to use plain HTTP/JSON, specify the `endpoint` attribute. There is no HTTP-specific block.
-The HTTP/JSON address is the same as gRPC, as the protocol is recognized and processed accordingly.
+`cors_allowed_origins` are the allowed [CORS](https://github.com/rs/cors) origins for HTTP/JSON requests.
+An empty list means that CORS is not enabled at all. A wildcard (*) can be
+used to match any origin or one or more characters of an origin.
+
+The "endpoint" parameter is the same for both gRPC and HTTP/JSON, as the protocol is recognized and processed accordingly.
 
 To write traces with HTTP/JSON, `POST` to `[address]/v1/trace`. The JSON message format parallels the gRPC protobuf format. For details, refer to its [OpenApi specification](https://github.com/census-instrumentation/opencensus-proto/blob/master/gen-openapi/opencensus/proto/agent/trace/v1/trace_service.swagger.json).
 
-Note that `max_recv_msg_size`, `read_buffer_size` and `write_buffer_size` are formatted in a special way, 
-so that the units are included in the string, e.g., "512KiB" or "1024KB".
+Note that `max_recv_msg_size`, `read_buffer_size` and `write_buffer_size` are formatted in a way so that the units are included 
+in the string, such as "512KiB" or "1024KB".
+
+## Blocks
+
+The following blocks are supported inside the definition of
+`otelcol.receiver.opencensus`:
+
+Hierarchy | Block | Description | Required
+--------- | ----- | ----------- | --------
+tls | [tls][] | Configures TLS for the gRPC server. | no
+keepalive | [keepalive][] | Configures keepalive settings for the configured server. | no
+keepalive > server_parameters | [server_parameters][] | Server parameters used to configure keepalive settings. | no
+keepalive > enforcement_policy | [enforcement_policy][] | Enforcement policy for keepalive settings. | no
+output | [output][] | Configures where to send received telemetry data. | yes
+
+The `>` symbol indicates deeper levels of nesting. For example, `grpc > tls`
+refers to a `tls` block defined inside a `grpc` block.
+
+[tls]: #tls-block
+[keepalive]: #keepalive-block
+[server_parameters]: #server_parameters-block
+[enforcement_policy]: #enforcement_policy-block
+[output]: #output-block
 
 ### tls block
 
@@ -170,34 +157,32 @@ finally sending it to an OTLP-capable endpoint:
 otelcol.receiver.opencensus "default" {
 	cors_allowed_origins = ["https://*.test.com", "https://test.com"]
 
-	grpc {
-		endpoint  = "0.0.0.0:9090"
-		transport = "tcp"
+	endpoint  = "0.0.0.0:9090"
+	transport = "tcp"
 
-		max_recv_msg_size      = "32KB"
-		max_concurrent_streams = "16"
-		read_buffer_size       = "1024KB"
-		write_buffer_size      = "1024KB"
-		include_metadata       = true
+	max_recv_msg_size      = "32KB"
+	max_concurrent_streams = "16"
+	read_buffer_size       = "1024KB"
+	write_buffer_size      = "1024KB"
+	include_metadata       = true
 
-		tls {
-			cert_file = "test.crt"
-			key_file  = "test.key"
+	tls {
+		cert_file = "test.crt"
+		key_file  = "test.key"
+	}
+
+	keepalive {
+		server_parameters {
+			max_connection_idle      = "11s"
+			max_connection_age       = "12s"
+			max_connection_age_grace = "13s"
+			time                     = "30s"
+			timeout                  = "5s"
 		}
 
-		keepalive {
-			server_parameters {
-				max_connection_idle      = "11s"
-				max_connection_age       = "12s"
-				max_connection_age_grace = "13s"
-				time                     = "30s"
-				timeout                  = "5s"
-			}
-
-			enforcement_policy {
-				min_time              = "10s"
-				permit_without_stream = true
-			}
+		enforcement_policy {
+			min_time              = "10s"
+			permit_without_stream = true
 		}
 	}
 

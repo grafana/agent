@@ -1,11 +1,9 @@
 rw = prometheus/* ERROR "cannot use a block as an expression" */.remote_write "default" {
   endpoint {
     url = "some_url"
-    http_client_config {
-      basic_auth {
-        username = "username"
-        password = "password"
-      }
+	basic_auth {
+      username = "username"
+      password = "password"
     }
   }
 }
@@ -17,11 +15,9 @@ block {
 	rw_2 = prometheus/* ERROR "cannot use a block as an expression" */.remote_write "other" {
 		endpoint {
 			url = "other_url"
-			http_client_config {
-				basic_auth {
-					username = "username_2"
-					password = "password_2"
-				}
+			basic_auth {
+				username = "username_2"
+				password = "password_2"
 			}
 		}
 	}

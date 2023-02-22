@@ -25,10 +25,8 @@ func Test(t *testing.T) {
 	require.NoError(t, err)
 
 	cfg := fmt.Sprintf(`
-		grpc {
-			endpoint = "%s"
-			transport = "tcp"
-		}
+		endpoint = "%s"
+		transport = "tcp"
 
 		output { /* no-op */ }
 	`, httpAddr)
@@ -44,36 +42,48 @@ func Test(t *testing.T) {
 	require.NoError(t, ctrl.WaitRunning(time.Second))
 }
 
+func TestDefaultArguments_UnmarshalRiver(t *testing.T) {
+	in := `output { /* no-op */ }`
+
+	var args opencensus.Arguments
+	require.NoError(t, river.Unmarshal([]byte(in), &args))
+	args.Convert()
+	otelArgs, err := (args.Convert()).(*opencensusreceiver.Config)
+
+	require.True(t, err)
+
+	// Check the gRPC arguments
+	require.Equal(t, opencensus.DefaultArguments.GRPC.Endpoint, otelArgs.NetAddr.Endpoint)
+	require.Equal(t, opencensus.DefaultArguments.GRPC.Transport, otelArgs.NetAddr.Transport)
+	require.Equal(t, int(opencensus.DefaultArguments.GRPC.ReadBufferSize), otelArgs.ReadBufferSize)
+}
+
 func TestArguments_UnmarshalRiver(t *testing.T) {
-	t.Run("grpc", func(t *testing.T) {
-		httpAddr := getFreeAddr(t)
-		in := fmt.Sprintf(`
+	httpAddr := getFreeAddr(t)
+	in := fmt.Sprintf(`
 		cors_allowed_origins = ["https://*.test.com", "https://test.com"]
 
-		grpc {
-			endpoint = "%s"
-			transport = "tcp"
-		}
+		endpoint = "%s"
+		transport = "tcp"
 
 		output { /* no-op */ }
-		`, httpAddr)
+	`, httpAddr)
 
-		var args opencensus.Arguments
-		require.NoError(t, river.Unmarshal([]byte(in), &args))
-		args.Convert()
-		otelArgs, err := (args.Convert()).(*opencensusreceiver.Config)
+	var args opencensus.Arguments
+	require.NoError(t, river.Unmarshal([]byte(in), &args))
+	args.Convert()
+	otelArgs, err := (args.Convert()).(*opencensusreceiver.Config)
 
-		require.True(t, err)
+	require.True(t, err)
 
-		// Check the gRPC arguments
-		require.Equal(t, otelArgs.NetAddr.Endpoint, httpAddr)
-		require.Equal(t, otelArgs.NetAddr.Transport, "tcp")
+	// Check the gRPC arguments
+	require.Equal(t, otelArgs.NetAddr.Endpoint, httpAddr)
+	require.Equal(t, otelArgs.NetAddr.Transport, "tcp")
 
-		// Check the CORS arguments
-		require.Equal(t, len(otelArgs.CorsOrigins), 2)
-		require.Equal(t, otelArgs.CorsOrigins[0], "https://*.test.com")
-		require.Equal(t, otelArgs.CorsOrigins[1], "https://test.com")
-	})
+	// Check the CORS arguments
+	require.Equal(t, len(otelArgs.CorsOrigins), 2)
+	require.Equal(t, otelArgs.CorsOrigins[0], "https://*.test.com")
+	require.Equal(t, otelArgs.CorsOrigins[1], "https://test.com")
 }
 
 func getFreeAddr(t *testing.T) string {
