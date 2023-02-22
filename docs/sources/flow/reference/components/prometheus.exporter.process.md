@@ -6,17 +6,17 @@
 # Ideally, in the future, we can fix the overflow issue with css rather than
 # injecting special characters.
 
-title: prometheus.​integration.​process_exporter
+title: prometheus.exporter.​process_exporter
 ---
 
-# prometheus.integration.process_exporter
-The `prometheus.integration.process_exporter` component embeds
+# prometheus.exporter.process
+The `prometheus.exporter.process` component embeds
 [process_exporter](https://github.com/ncabatoff/process-exporter) for collecting process stats from `/proc`.
 
 ## Usage
 
 ```river
-prometheus.integration.process_exporter "LABEL" {
+prometheus.exporter.process "LABEL" {
 }
 ```
 
@@ -33,7 +33,7 @@ Name | Type | Description | Default | Required
 `recheck_on_scrape` | `bool`                   | Recheck process names on each scrape. | `true` | no
 
 ## Blocks
-The following blocks are supported inside the definition of `prometheus.integration.process_exporter`:
+The following blocks are supported inside the definition of `prometheus.exporter.process`:
 
 Hierarchy        | Block      | Description | Required
 ---------------- | ---------- | ----------- | --------
@@ -79,27 +79,27 @@ component that collects the exposed metrics.
 
 ## Component health
 
-`prometheus.integration.process_exporter` is only reported as unhealthy if given
+`prometheus.exporter.process` is only reported as unhealthy if given
 an invalid configuration. In those cases, exported fields retain their last
 healthy values.
 
 ## Debug information
 
-`prometheus.integration.process_exporter` does not expose any component-specific
+`prometheus.exporter.process` does not expose any component-specific
 debug information.
 
 ## Debug metrics
 
-`prometheus.integration.process_exporter` does not expose any component-specific
+`prometheus.exporter.process` does not expose any component-specific
 debug metrics.
 
 ## Example
 
 This example uses a [`prometheus.scrape` component][scrape] to collect metrics
-from `prometheus.integration.process_exporter`:
+from `prometheus.exporter.process`:
 
 ```river
-prometheus.integration.process_exporter "example" {
+prometheus.exporter.process "example" {
   track_children = false
   process_names {
     comm = ["grafana-agent"]
@@ -108,7 +108,7 @@ prometheus.integration.process_exporter "example" {
 
 // Configure a prometheus.scrape component to collect process_exporter metrics.
 prometheus.scrape "demo" {
-  targets    = prometheus.integration.process_exporter.example.targets
+  targets    = prometheus.exporter.process.example.targets
   forward_to = [ /* ... */ ]
 }
 ```
