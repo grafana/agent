@@ -17,14 +17,17 @@ Main (unreleased)
   - `ignored_devices` is now `device_exclude` in flow configuration.
 
 - Some blocks in Flow components have been merged with their parent block to make the block hierarchy smaller:
-  - `prometheus.scrape > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
-  - `loki.write > endpoint > http_client_config` is merged into the `endpoint` block. (@erikbaranowski)
-  - `mimir.rules.kubernetes > http_client_config` is merged into the `mimir.rules.kubernetes` block. (@erikbaranowski)
   - `discovery.docker > http_client_config` is merged into the `discovery.docker` block. (@erikbaranowski)
+  - `discovery.kubernetes > http_client_config` is merged into the `discovery.kubernetes` block. (@erikbaranowski)
   - `loki.source.kubernetes > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
   - `loki.source.podlogs > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
-  - `otelcol.receiver.zipkin > http` is merged into the `otelcol.receiver.zipkin` block. (@ptodev)
+  - `loki.write > endpoint > http_client_config` is merged into the `endpoint` block. (@erikbaranowski)
+  - `mimir.rules.kubernetes > http_client_config` is merged into the `mimir.rules.kubernetes` block. (@erikbaranowski)
   - `otelcol.receiver.opencensus > grpc` is merged into the `otelcol.receiver.opencensus` block. (@ptodev)
+  - `otelcol.receiver.zipkin > http` is merged into the `otelcol.receiver.zipkin` block. (@ptodev)
+  - `phlare.scrape > http_client_config` is merged into the `phlare.scrape` block. (@erikbaranowski)
+  - `phlare.write > endpoint > http_client_config` is merged into the `endpoint` block. (@erikbaranowski)
+  - `prometheus.scrape > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
 
 - The `loki.process` component now uses a combined name for stages, simplifying
   the block hierarchy. For example, the `stage > json` block hierarchy is now a
