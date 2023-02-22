@@ -37,12 +37,12 @@ The following blocks are supported inside the definition of `prometheus.exporter
 
 Hierarchy        | Block      | Description | Required
 ---------------- | ---------- | ----------- | --------
-process_names          | [process_names][]  | A collection of matching rules to use for deciding which processes to monitor. | no
+matcher          | [matcher][]  | A collection of matching rules to use for deciding which processes to monitor. | no
 
-[process_names]: #process_names-block
+[matcher]: #matcher-block
 
-### process_names block
-Each `process_names` block config can match multiple processes, which will be tracked as a single process "group."
+### matcher block
+Each `matcher` block config can match multiple processes, which will be tracked as a single process "group."
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
@@ -101,7 +101,7 @@ from `prometheus.exporter.process`:
 ```river
 prometheus.exporter.process "example" {
   track_children = false
-  process_names {
+  matcher {
     comm = ["grafana-agent"]
   }
 }

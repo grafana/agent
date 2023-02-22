@@ -10,7 +10,7 @@ import (
 
 func TestRiverConfigUnmarshal(t *testing.T) {
 	var exampleRiverConfig = `
-	process_names {
+	matcher {
 		name    = "flow"
 		comm    = ["grafana-agent"]
 		cmdline = ["*run*"]
@@ -42,7 +42,7 @@ func TestRiverConfigUnmarshal(t *testing.T) {
 
 func TestRiverConfigConvert(t *testing.T) {
 	var exampleRiverConfig = `
-	process_names {
+	matcher {
 		name    = "static"
 		comm    = ["grafana-agent"]
 		cmdline = ["*config.file*"]

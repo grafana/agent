@@ -34,7 +34,7 @@ var DefaultArguments = Arguments{
 
 // Arguments configures the prometheus.exporter.process component
 type Arguments struct {
-	ProcessExporter []MatcherGroup `river:"process_names,block,optional"`
+	ProcessExporter []MatcherGroup `river:"matcher,block,optional"`
 
 	ProcFSPath string `river:"procfs_path,attr,optional"`
 	Children   bool   `river:"track_children,attr,optional"`
