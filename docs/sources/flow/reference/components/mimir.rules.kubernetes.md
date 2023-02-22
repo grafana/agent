@@ -1,5 +1,7 @@
 ---
 title: mimir.rules.kubernetes
+labels:
+  stage: beta
 ---
 
 # mimir.rules.kubernetes
@@ -15,7 +17,7 @@ loads them into a Mimir instance.
 * Compatible with the `PrometheusRule` CRD from the [prometheus-operator][].
 * This component accesses the Kubernetes REST API from [within a Pod][].
 
-> **NOTE**: This component requires [Role-based access control (RBAC)][] to be setup 
+> **NOTE**: This component requires [Role-based access control (RBAC)][] to be setup
 > in Kubernetes in order for the Agent to access it via the Kubernetes REST API.
 > For an example RBAC configuration please click [here](#example).
 
@@ -51,7 +53,7 @@ Name                     | Type       | Description                             
 
  At most one of the following can be provided:
  - [`bearer_token` argument](#arguments).
- - [`bearer_token_file` argument](#arguments). 
+ - [`bearer_token_file` argument](#arguments).
  - [`basic_auth` block][basic_auth].
  - [`authorization` block][authorization].
  - [`oauth2` block][oauth2].
@@ -108,7 +110,7 @@ Name           | Type          | Description                                    
 ---------------|---------------|---------------------------------------------------|-----------------------------|---------
 `match_labels` | `map(string)` | Label keys and values used to discover resources. | `{}` | yes
 
-When the `match_labels` argument is empty, all resources will be matched. 
+When the `match_labels` argument is empty, all resources will be matched.
 
 ### match_expression block
 
@@ -124,9 +126,9 @@ Name       | Type       | Description                                        | D
 
 The `operator` argument should be one of the following strings:
 
-* `"in"` 
-* `"notin"` 
-* `"exists"` 
+* `"in"`
+* `"notin"`
+* `"exists"`
 
 ### basic_auth block
 

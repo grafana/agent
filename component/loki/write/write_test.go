@@ -19,6 +19,37 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestRiverConfig(t *testing.T) {
+	var exampleRiverConfig = `
+	endpoint {
+		name           = "test-url"
+		url            = "http://0.0.0.0:11111/loki/api/v1/push"
+		remote_timeout = "100ms"
+	}
+`
+
+	var args Arguments
+	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
+	require.NoError(t, err)
+}
+
+func TestBadRiverConfig(t *testing.T) {
+	var exampleRiverConfig = `
+	endpoint {
+		name           = "test-url"
+		url            = "http://0.0.0.0:11111/loki/api/v1/push"
+		remote_timeout = "100ms"
+		bearer_token = "token"
+		bearer_token_file = "/path/to/file.token"
+	}
+`
+
+	// Make sure the squashed HTTPClientConfig Validate function is being utilized correctly
+	var args Arguments
+	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
+	require.ErrorContains(t, err, "at most one of bearer_token & bearer_token_file must be configured")
+}
+
 func Test(t *testing.T) {
 	// Set up the server that will receive the log entry, and expose it on ch.
 	ch := make(chan logproto.PushRequest)

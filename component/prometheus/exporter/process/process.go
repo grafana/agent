@@ -1,8 +1,8 @@
-package process_exporter
+package process
 
 import (
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/prometheus/integration"
+	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/process_exporter"
 	exporter_config "github.com/ncabatoff/process-exporter/config"
@@ -10,10 +10,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "prometheus.integration.process_exporter",
+		Name:    "prometheus.exporter.process",
 		Args:    Arguments{},
-		Exports: integration.Exports{},
-		Build:   integration.New(createIntegration, "process_exporter"),
+		Exports: exporter.Exports{},
+		Build:   exporter.New(createIntegration, "process"),
 	})
 }
 
@@ -22,7 +22,7 @@ func createIntegration(opts component.Options, args component.Arguments) (integr
 	return cfg.Convert().NewIntegration(opts.Logger)
 }
 
-// DefaultArguments holds the default arguments for the prometheus.integration.process_exporter
+// DefaultArguments holds the default arguments for the prometheus.exporter.process
 // component.
 var DefaultArguments = Arguments{
 	ProcFSPath: "/proc",
@@ -32,7 +32,7 @@ var DefaultArguments = Arguments{
 	Recheck:    false,
 }
 
-// Arguments configures the prometheus.integration.process_exporter component
+// Arguments configures the prometheus.exporter.process component
 type Arguments struct {
 	ProcessExporter []MatcherGroup `river:"process_names,block,optional"`
 

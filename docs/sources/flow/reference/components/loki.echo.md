@@ -1,5 +1,7 @@
 ---
 title: loki.echo
+labels:
+  stage: beta
 ---
 
 # loki.echo

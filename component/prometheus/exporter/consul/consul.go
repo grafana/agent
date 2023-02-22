@@ -4,26 +4,26 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/prometheus/integration"
+	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/consul_exporter"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "prometheus.integration.consul",
+		Name:    "prometheus.exporter.consul",
 		Args:    Config{},
-		Exports: integration.Exports{},
-		Build:   integration.New(createIntegration, "consul"),
+		Exports: exporter.Exports{},
+		Build:   exporter.New(createExporter, "consul"),
 	})
 }
 
-func createIntegration(opts component.Options, args component.Arguments) (integrations.Integration, error) {
+func createExporter(opts component.Options, args component.Arguments) (integrations.Integration, error) {
 	cfg := args.(Config)
 	return cfg.Convert().NewIntegration(opts.Logger)
 }
 
-// DefaultConfig holds the default settings for the consul_exporter integration.
+// DefaultConfig holds the default settings for the consul_exporter exporter.
 var DefaultConfig = Config{
 	Server:        "http://localhost:8500",
 	Timeout:       500 * time.Millisecond,
@@ -32,7 +32,7 @@ var DefaultConfig = Config{
 	HealthSummary: true,
 }
 
-// Config controls the consul_exporter integration.
+// Config controls the consul_exporter exporter.
 type Config struct {
 	Server             string        `river:"server,attr,optional"`
 	CAFile             string        `river:"ca_file,attr,optional"`

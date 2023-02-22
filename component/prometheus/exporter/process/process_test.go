@@ -1,4 +1,4 @@
-package process_exporter
+package process
 
 import (
 	"testing"
