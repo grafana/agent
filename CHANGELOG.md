@@ -53,6 +53,8 @@ Main (unreleased)
   - `prometheus.integration.consul` collects metrics from a consul installation
     (@captncraig)
   - `prometheus.integration.github` collects metrics from GitHub (@jcreixell)
+  - `prometheus.integration.redis` collects metrics from a redis database (@spartan0x117)
+
 
 ### Enhancements
 
