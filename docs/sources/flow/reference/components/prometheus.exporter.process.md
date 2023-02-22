@@ -6,7 +6,7 @@
 # Ideally, in the future, we can fix the overflow issue with css rather than
 # injecting special characters.
 
-title: prometheus.exporter.​process_exporter
+title: prometheus.exporter.​process
 ---
 
 # prometheus.exporter.process
