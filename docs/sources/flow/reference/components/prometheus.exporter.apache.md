@@ -16,7 +16,7 @@ The `prometheus.exporter.apache` component embeds
 ## Usage
 
 ```river
-prometheus.exporter.apache "LABEL"{
+prometheus.exporter.apache "LABEL" {
 }
 ```
 
