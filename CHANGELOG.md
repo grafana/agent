@@ -57,6 +57,8 @@ Main (unreleased)
   - `loki.echo` writes received logs to stdout. (@tpaschalis, @rfratto)
   - `loki.source.docker` reads logs from Docker containers and forwards them to
     other `loki` components. (@tpaschalis)
+  - `loki.source.kafka` reads logs from Kafka events and forwards them to other
+    `loki` components. (@erikbaranowski)
   - `loki.source.kubernetes_events` watches for Kubernetes Events and converts
     them into log lines to forward to other `loki` components. It is the
     equivalent of the `eventhandler` integration. (@rfratto)
@@ -68,9 +70,10 @@ Main (unreleased)
   - `prometheus.exporter.consul` collects metrics from a consul installation
     (@captncraig)
   - `prometheus.exporter.github` collects metrics from GitHub (@jcreixell)
-  - `prometheus.exporter.redis` collects metrics from a redis database (@spartan0x117)
-  - `prometheus.exporter.process` aggregates and collects metrics by scraping `/proc`. (@spartan0x117)
-
+  - `prometheus.exporter.process` aggregates and collects metrics by scraping
+    `/proc`. (@spartan0x117)
+  - `prometheus.exporter.redis` collects metrics from a redis database
+    (@spartan0x117)
 
 ### Enhancements
 
