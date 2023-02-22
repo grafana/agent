@@ -28,7 +28,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| agent.configMap.content | string | `""` | Content to assign to the new ConfigMap. |
+| agent.configMap.content | string | `""` | Content to assign to the new ConfigMap.  This is passed into `tpl` allowing for templating from values. |
 | agent.configMap.create | bool | `true` | Create a new ConfigMap for the config file. |
 | agent.configMap.key | string | `nil` | Key in ConfigMap to get config from. |
 | agent.configMap.name | string | `nil` | Name of existing ConfigMap to use. Used when create is false. |
