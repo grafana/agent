@@ -22,6 +22,7 @@ Main (unreleased)
   - `discovery.docker > http_client_config` is merged into the `discovery.docker` block. (@erikbaranowski)
   - `loki.source.kubernetes > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
   - `loki.source.podlogs > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
+  - `otelcol.receiver.zipkin > http` is merged into the `otelcol.receiver.zipkin` block. (@ptodev)
 
 - The `loki.process` component now makes use of River's 'enum' blocks. Instead
   of defining processing stages in nested a `stage` block containing one
