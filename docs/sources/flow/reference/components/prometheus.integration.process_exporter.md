@@ -37,19 +37,21 @@ The following blocks are supported inside the definition of `prometheus.integrat
 
 Hierarchy        | Block      | Description | Required
 ---------------- | ---------- | ----------- | --------
-process_names          | [process_names][]  | A collection of matching rules to use for deciding which processes to monitor. Each config can match multiple processes, which will be tracked as a single process "group." | no
+process_names          | [process_names][]  | A collection of matching rules to use for deciding which processes to monitor. | no
 
 [process_names]: #process_names-block
 
 ### process_names block
+Each `process_names` block config can match multiple processes, which will be tracked as a single process "group."
+
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`name`       | `string`                         | The name to use for identifying the process group name in the metric. By default, it uses the base path of the executable. (See below for template variable details). | `{{.ExeBase}}` | no
-`comm`       | `list(string)`                   | A list of strings that match the base executable name for a process, truncated to 15 characters. It is derived from reading the second field of `/proc/<pid>/stat`, stripped of parens. | | no
-`exe`        | `list(string)`                   | A list of strings that match `argv[0]` for a process. If there are no slashes, only the basename of `argv[0]` needs to match. Otherwise, the name must be an exact match. For example, "postgres" may match any postgres binary, but `/usr/local/bin/postgres` will only match a postgres process with that exact path. If any of the strings match, the process will be tracked. | | no
-`cmdline`    | `list(string)`                   | A list of regular expressions applied to the `argv` of the process. Each regex here must match the corresponding argv for the process to be tracked. The first element that is matched is `argv[1]`. Regex captures are added to the .Matches map for use in the name. | | no
+`name`       | `string`        | The name to use for identifying the process group name in the metric. | `{{.ExeBase}}` | no
+`comm`       | `list(string)`  | A list of strings that match the base executable name for a process, truncated to 15 characters.  | | no
+`exe`        | `list(string)`  | A list of strings that match `argv[0]` for a process. | | no
+`cmdline`    | `list(string)`  | A list of regular expressions applied to the `argv` of the process. | | no
 
-The `name` argument can use the following template variables: 
+The `name` argument can use the following template variables. By default it uses the base path of the executable: 
 - `{{.Comm}}`:      Basename of the original executable from /proc/\<pid\>/stat.
 - `{{.ExeBase}}`:   Basename of the executable from argv[0].
 - `{{.ExeFull}}`:   Fully qualified path of the executable.
@@ -57,6 +59,12 @@ The `name` argument can use the following template variables:
 - `{{.Matches}}`:   Map containing all regex capture groups resulting from matching a process with the cmdline rule group.
 - `{{.PID}}`:       PID of the process. Note that the PID is copied from the first executable found.
 - `{{.StartTime}}`: The start time of the process. This is useful when combined with PID as PIDS get reused over time.
+
+The value that is used for matching `comm` list elements is derived from reading the second field of `/proc/<pid>/stat`, stripped of parens.
+
+For values in `exe`, if there are no slashes, only the basename of `argv[0]` needs to match. Otherwise, the name must be an exact match. For example, "postgres" may match any postgres binary, but `/usr/local/bin/postgres` will only match a postgres process with that exact path. If any of the strings match, the process will be tracked.
+
+Each regex in `cmdline` must match the corresponding argv for the process to be tracked. The first element that is matched is `argv[1]`. Regex captures are added to the .Matches map for use in the name.
 
 ## Exported fields
 The following fields are exported and can be referenced by other components.
