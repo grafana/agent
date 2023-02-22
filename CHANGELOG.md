@@ -24,6 +24,8 @@ Main (unreleased)
   - `loki.write > endpoint > http_client_config` is merged into the `endpoint` block. (@erikbaranowski)
   - `mimir.rules.kubernetes > http_client_config` is merged into the `mimir.rules.kubernetes` block. (@erikbaranowski)
   - `otelcol.receiver.zipkin > http` is merged into the `otelcol.receiver.zipkin` block. (@ptodev)
+  - `phlare.scrape > http_client_config` is merged into the `phlare.scrape` block. (@erikbaranowski)
+  - `prometheus.scrape > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
   - `prometheus.scrape > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
 
 - The `loki.process` component now uses a combined name for stages, simplifying
