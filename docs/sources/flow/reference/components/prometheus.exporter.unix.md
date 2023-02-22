@@ -6,11 +6,11 @@
 # Ideally, in the future, we can fix the overflow issue with css rather than
 # injecting special characters.
 
-title: prometheus.​integration.​node_exporter
+title: prometheus.exporter.unix
 ---
 
-# prometheus.integration.node_exporter
-The `prometheus.integration.node_exporter` component embeds
+# prometheus.exporter.unix
+The `prometheus.exporter.unix` component embeds
 [node_exporter](https://github.com/prometheus/node_exporter) which exposes a
 wide variety of hardware and OS metrics for \*nix-based systems.
 
@@ -18,13 +18,13 @@ The `node_exporter` itself is comprised of various _collectors_, which can be
 enabled and disabled at will. For more information on collectors, refer to the
 [`collectors-list`](#collectors-list) section.
 
-The `prometheus.integration.node_exporter` component can only appear once per
+The `prometheus.exporter.unix` component can only appear once per
 configuration file, and a block label must not be passed to it.
 
 ## Usage
 
 ```river
-prometheus.integration.node_exporter {
+prometheus.exporter.unix {
 }
 ```
 
@@ -56,7 +56,7 @@ of conflicts, it takes precedence over `enable_collectors`.
 ## Blocks
 
 The following blocks are supported inside the definiton of
-`prometheus.integration.node_exporter` to configure collector-specific options:
+`prometheus.exporter.unix` to configure collector-specific options:
 
 Hierarchy | Name | Description | Required
 --------- | ---- | ----------- | --------
@@ -237,7 +237,7 @@ The following fields are exported and can be referenced by other components.
 
 Name      | Type                | Description
 --------- | ------------------- | -----------
-`targets` | `list(map(string))` | The targets that can be used to collect `node_exporter` metrics.
+`targets` | `list(map(string))` | The targets that can be used to collect `unix` metrics.
 
 For example, the `targets` could either be passed to a `prometheus.relabel`
 component to rewrite the metrics' label set, or to a `prometheus.scrape`
@@ -245,18 +245,18 @@ component that collects the exposed metrics.
 
 ## Component health
 
-`prometheus.integration.node_exporter` is only reported as unhealthy if given
+`prometheus.exporter.unix` is only reported as unhealthy if given
 an invalid configuration. In those cases, exported fields retain their last
 healthy values.
 
 ## Debug information
 
-`prometheus.integration.node_exporter` does not expose any component-specific
+`prometheus.exporter.unix` does not expose any component-specific
 debug information.
 
 ## Debug metrics
 
-`prometheus.integration.node_exporter` does not expose any component-specific
+`prometheus.exporter.unix` does not expose any component-specific
 debug metrics.
 
 ## Collectors list
@@ -266,7 +266,7 @@ collector that is not supported by the host OS where Flow is running
 is a no-op.
 
 Users can choose to enable a subset of collectors to limit the amount of
-metrics exposed by the `prometheus.integration.node_exporter` component,
+metrics exposed by the `prometheus.exporter.unix` component,
 or disable collectors that are expensive to run.
 
 | Name             | Description | OS | Enabled by default |
@@ -354,15 +354,15 @@ properly.
 ## Example
 
 This example uses a [`prometheus.scrape` component][scrape] to collect metrics
-from `prometheus.integration.node_exporter`:
+from `prometheus.exporter.unix`:
 
 ```river
-prometheus.integration.node_exporter {
+prometheus.exporter.unix {
 }
 
-// Configure a prometheus.scrape component to collect node_exporter metrics.
+// Configure a prometheus.scrape component to collect unix metrics.
 prometheus.scrape "demo" {
-  targets    = prometheus.integration.node_exporter.targets
+  targets    = prometheus.exporter.unix.targets
   forward_to = [ /* ... */ ]
 }
 ```
