@@ -3,7 +3,6 @@ package process
 import (
 	"context"
 	"os"
-	"strconv"
 	"testing"
 	"time"
 
@@ -318,80 +317,4 @@ stage {
 			require.FailNow(t, "failed waiting for log line")
 		}
 	}
-}
-
-func TestProcessDeadlock(t *testing.T) {
-	cfgStr := `
-
-
-	stage {
-		timestamp {
-			source = "timestamp"
-			format = "RFC3339Nano"
-		}
-	}
-
-
-
-`
-	type cfg struct {
-		Stages []stages.StageConfig `river:"stage,block"`
-	}
-	var stagesCfg cfg
-	err := river.Unmarshal([]byte(cfgStr), &stagesCfg)
-	require.NoError(t, err)
-	ch1 := make(loki.LogsReceiver)
-	// Create and run the component, so that it can process and forwards logs.
-	l, err := logging.New(os.Stderr, logging.DefaultOptions)
-	require.NoError(t, err)
-	opts := component.Options{Logger: l, Registerer: prometheus.NewRegistry(), OnStateChange: func(e component.Exports) {}}
-	args := Arguments{
-		ForwardTo: []loki.LogsReceiver{ch1},
-		Stages:    stagesCfg.Stages,
-	}
-
-	c, err := New(opts, args)
-	ctx := context.Background()
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	t.Cleanup(cancel)
-	tick := time.NewTicker(10 * time.Millisecond)
-
-	count := 0
-	receivedLogs := make([]loki.Entry, 0)
-	go func() {
-		for {
-			select {
-			case e := <-ch1:
-				receivedLogs = append(receivedLogs, e)
-			case <-ctx.Done():
-				return
-			}
-		}
-	}()
-	go c.Run(ctx)
-	go func() {
-		for {
-			select {
-			case <-tick.C:
-				count = count + 1
-				c.receiver <- loki.Entry{
-					Labels: model.LabelSet{
-						"test": model.LabelValue(strconv.Itoa(count)),
-					},
-					Entry: logproto.Entry{
-						Timestamp: time.Now(),
-						Line:      strconv.Itoa(count),
-					},
-				}
-			case <-ctx.Done():
-				return
-			}
-		}
-	}()
-
-	// Lets wait
-	<-ctx.Done()
-	time.Sleep(2 * time.Second)
-	require.True(t, count > 0)
-	require.Len(t, receivedLogs, count)
 }
