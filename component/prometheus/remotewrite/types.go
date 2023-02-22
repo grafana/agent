@@ -23,6 +23,11 @@ var (
 		WALOptions: DefaultWALOptions,
 	}
 
+	DefaultEndpointOptions = EndpointOptions{
+		RemoteTimeout: 30 * time.Second,
+		SendExemplars: true,
+	}
+
 	DefaultQueueOptions = QueueOptions{
 		Capacity:          2500,
 		MaxShards:         200,
@@ -79,19 +84,9 @@ type EndpointOptions struct {
 	MetadataOptions      *MetadataOptions        `river:"metadata_config,block,optional"`
 }
 
-func GetDefaultEndpointOptions() EndpointOptions {
-	var defaultEndpointOptions = EndpointOptions{
-		RemoteTimeout:    30 * time.Second,
-		SendExemplars:    true,
-		HTTPClientConfig: types.CloneDefaultHTTPClientConfig(),
-	}
-
-	return defaultEndpointOptions
-}
-
 // UnmarshalRiver implements river.Unmarshaler.
 func (r *EndpointOptions) UnmarshalRiver(f func(v interface{}) error) error {
-	*r = GetDefaultEndpointOptions()
+	*r = DefaultEndpointOptions
 
 	type arguments EndpointOptions
 	return f((*arguments)(r))
