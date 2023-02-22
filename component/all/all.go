@@ -47,6 +47,7 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/exporter/consul"      // Import prometheus.exporter.consul
 	_ "github.com/grafana/agent/component/prometheus/exporter/github"      // Import prometheus.exporter.github
 	_ "github.com/grafana/agent/component/prometheus/exporter/node"        // Import prometheus.exporter.node
+	_ "github.com/grafana/agent/component/prometheus/exporter/redis"       // Import prometheus.exporter.redis
 	_ "github.com/grafana/agent/component/prometheus/relabel"              // Import prometheus.relabel
 	_ "github.com/grafana/agent/component/prometheus/remotewrite"          // Import prometheus.remote_write
 	_ "github.com/grafana/agent/component/prometheus/scrape"               // Import prometheus.scrape
