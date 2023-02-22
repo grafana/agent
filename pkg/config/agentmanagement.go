@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"math"
 	"math/rand"
 	"net/url"
 	"os"
@@ -99,12 +100,13 @@ type RemoteConfiguration struct {
 }
 
 type AgentManagementConfig struct {
-	Enabled         bool             `yaml:"-"` // Derived from enable-features=agent-management
-	Url             string           `yaml:"api_url"`
-	BasicAuth       config.BasicAuth `yaml:"basic_auth"`
-	Protocol        string           `yaml:"protocol"`
-	PollingInterval string           `yaml:"polling_interval"`
-	CacheLocation   string           `yaml:"remote_config_cache_location"`
+	Enabled           bool             `yaml:"-"` // Derived from enable-features=agent-management
+	Url               string           `yaml:"api_url"`
+	BasicAuth         config.BasicAuth `yaml:"basic_auth"`
+	Protocol          string           `yaml:"protocol"`
+	PollingInterval   time.Duration    `yaml:"polling_interval"`
+	CacheLocation     string           `yaml:"remote_config_cache_location"`
+	MaxJitterDuration time.Duration    `yaml:"max_jitter_duration"` // This has a minimum of 25% of the Polling interval
 
 	RemoteConfiguration RemoteConfiguration `yaml:"remote_configuration"`
 }
@@ -179,14 +181,22 @@ func (am *AgentManagementConfig) fullUrl() (string, error) {
 	return u.String(), nil
 }
 
-// SleepTime returns the parsed duration in between config fetches.
-func (am *AgentManagementConfig) SleepTime() (time.Duration, error) {
-	return time.ParseDuration(am.PollingInterval)
+// SleepTime returns the duration in between config fetches.
+func (am *AgentManagementConfig) SleepTime() time.Duration {
+	return am.PollingInterval
+}
+
+func (am *AgentManagementConfig) maxJitterDuration() time.Duration {
+	s := am.SleepTime()
+	// TODO: fix this
+	clippedMaxJitter := math.Max(float64(s)/4, float64(am.MaxJitterDuration))
+	clippedMaxJitter = math.Min(clippedMaxJitter, float64(s))
+	return time.Duration(math.Max(math.Max(0, float64(s)), clippedMaxJitter))
 }
 
 // jitterTime returns a random duration in the range [0, am.PollingInterval).
 func (am *AgentManagementConfig) JitterTime() time.Duration {
-	maxJitterDuration, _ := am.SleepTime()
+	maxJitterDuration := am.maxJitterDuration()
 	return time.Duration(rand.Int63n(int64(maxJitterDuration)))
 }
 
@@ -196,8 +206,8 @@ func (am *AgentManagementConfig) Validate() error {
 		return errors.New("both username and password_file fields must be specified")
 	}
 
-	if _, err := time.ParseDuration(am.PollingInterval); err != nil {
-		return fmt.Errorf("error trying to parse polling interval: %w", err)
+	if am.PollingInterval <= 0 {
+		return fmt.Errorf("polling interval must be >0")
 	}
 
 	if am.RemoteConfiguration.Namespace == "" {

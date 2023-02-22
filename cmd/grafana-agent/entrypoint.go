@@ -425,7 +425,7 @@ func (ep *Entrypoint) Start() error {
 		defer managementCancel()
 
 		// By this point ep.cfg.Validate() has already been called, so the configured time must be valid
-		sleepTime, _ := ep.cfg.AgentManagement.SleepTime()
+		sleepTime := ep.cfg.AgentManagement.SleepTime()
 		t := time.NewTicker(sleepTime)
 		g.Add(func() error {
 			return ep.pollConfig(managementContext, t)
