@@ -148,7 +148,7 @@ v0.32.0-rc.0 (2023-02-23)
 
 - Use Go 1.20 for builds. (@rfratto)
 
-- Grafana Agent Flow is now considered production ready. A subset of Flow
+- The beta label from Grafana Agent Flow has been removed. A subset of Flow
   components are still marked as beta or experimental:
 
   - `loki.echo` is explicitly marked as beta.
