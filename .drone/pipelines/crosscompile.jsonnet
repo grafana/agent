@@ -6,7 +6,7 @@ local os_arch_tuples = [
   { name: 'Linux amd64', os: 'linux', arch: 'amd64' },
   { name: 'Linux arm64', os: 'linux', arch: 'arm64' },
   { name: 'Linux armv6', os: 'linux', arch: 'arm', arm: '6', tags: 'promtail_journal_enabled' },
-  { name: 'Linux armv7', os: 'linux', arch: 'arm', arm: '7', tags: 'promtail_journal_enabled' },
+  { name: 'Linux armv7', os: 'linux', arch: 'arm', arm: '7' },
   { name: 'Linux ppc64le', os: 'linux', arch: 'ppc64le' },
 
   // Darwin

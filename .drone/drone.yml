@@ -393,7 +393,8 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=linux GOARCH=arm GOARM=7 GO_TAGS="promtail_journal_enabled" make agent
+  - GOOS=linux GOARCH=arm GOARM=7 GO_TAGS="builtinassets promtail_journal_enabled"
+    make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -544,7 +545,8 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=linux GOARCH=arm GOARM=7 GO_TAGS="promtail_journal_enabled" make agentctl
+  - GOOS=linux GOARCH=arm GOARM=7 GO_TAGS="builtinassets promtail_journal_enabled"
+    make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -695,7 +697,8 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=linux GOARCH=arm GOARM=7 GO_TAGS="promtail_journal_enabled" make operator
+  - GOOS=linux GOARCH=arm GOARM=7 GO_TAGS="builtinassets promtail_journal_enabled"
+    make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -1199,6 +1202,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: e19ee857f311b668b5f91252a4597004d64795245c01f4a0a973198b8763e01e
+hmac: 3a13fd175473adb0873959a4e67b7b2787161d9b69af0f1da3bf776671da8ce8
 
 ...
