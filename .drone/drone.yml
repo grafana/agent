@@ -377,7 +377,8 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=linux GOARCH=arm GOARM=6 GO_TAGS="promtail_journal_enabled" make agent
+  - GOOS=linux GOARCH=arm GOARM=6 GO_TAGS="builtinassets promtail_journal_enabled"
+    make agent
   image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build
 trigger:
@@ -529,7 +530,8 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=linux GOARCH=arm GOARM=6 GO_TAGS="promtail_journal_enabled" make agentctl
+  - GOOS=linux GOARCH=arm GOARM=6 GO_TAGS="builtinassets promtail_journal_enabled"
+    make agentctl
   image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build
 trigger:
@@ -681,7 +683,8 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=linux GOARCH=arm GOARM=6 GO_TAGS="promtail_journal_enabled" make operator
+  - GOOS=linux GOARCH=arm GOARM=6 GO_TAGS="builtinassets promtail_journal_enabled"
+    make operator
   image: rfratto/agent-build-image:0.21.0-go-patch-5
   name: Build
 trigger:
@@ -1202,6 +1205,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: 4f4e704d9465cc5ab5d44f317986d87dff0b3d8cb3216ea319359dd2c21dc05b
+hmac: beae544f78acdfd9e68f90a47c9c4859a821e012486ff58abe335c79fd237619
 
 ...
