@@ -6,7 +6,7 @@ This branch will be used for the Release Candidates, Stable Release and Patch Re
 1. Gather consensus on which commit should be used as a base for the release
    branch.
 
-2. Determine the new minor version prefix
+2. Determine the version prefix
 
     The release version prefix can be determined by looking at the last version and adding to it. 
 
@@ -20,11 +20,10 @@ This branch will be used for the Release Candidates, Stable Release and Patch Re
 
 3. Create and push the release branch from the selected base commit:
 
-    The name of the release branch should be `release-` suffixed with the release 
-    version prefix determined in step 2, such as `release-v0.31`.
+    The name of the release branch should be `release-` suffixed with the 
+    version prefix defined in step 2, such as `release-v0.31`.
 
-    Note: There is no branch such as `release-v0.31-rc.0` or 
-    `release-v0.31.0`. Only use the version prefix as shown above.
+        Note: There is no branch such as `release-v0.31-rc.0` or `release-v0.31.0`. Only use the version prefix as defined in step 2.
 
     If the consensus commit is the latest commit from main:
 
