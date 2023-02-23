@@ -14,15 +14,15 @@ Individual features of Grafana Agent may have stability falling under one of
 the three categories:
 
 * Experimental: we are exploring a new use case and would like feedback.
-  Experimental features are subject to frequent breaking changes during
-  development. Experimental features may be removed with no equivalent
-  replacement. Experimental features are always hidden behind feature flags.
-  Unless removed, experimental features will eventually graduate to beta.
+  Experimental features are subject to frequent breaking changes. Experimental
+  features may be removed with no equivalent replacement. Experimental features
+  may be hidden behind feature flags. Unless removed, experimental features
+  will eventually graduate to beta.
 
 * Beta: we are working on maturing a specific feature. Beta features may be
-  subject to some breaking changes during development. Beta features may be
-  replaced by equivalent functionality which covers that same use case. Beta
-  features can be used without feature flags. Unless replaced by equivalent
+  subject to some breaking changes. Beta features may be replaced by equivalent
+  functionality that covers that same use case. Beta features can be used
+  without a feature flag being set. Unless replaced with equivalent
   functionality, beta features will eventually graduate to stable.
 
 * Stable: we believe this functionality is stable, and breaking changes to

@@ -1,8 +1,12 @@
 ---
 title: otelcol.receiver.loki
+labels:
+  stage: beta
 ---
 
 # otelcol.receiver.loki
+
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
 
 `otelcol.receiver.loki` receives Loki log entries, converts them to the
 OpenTelemetry logs format, and forwards them to other `otelcol.*` components.
@@ -78,8 +82,8 @@ loki.source.file "default" {
 
 otelcol.receiver.loki "default" {
   output {
-    logs = [otelcol.exporter.otlp.default.input] 
-  } 
+    logs = [otelcol.exporter.otlp.default.input]
+  }
 }
 
 otelcol.exporter.otlp "default" {
