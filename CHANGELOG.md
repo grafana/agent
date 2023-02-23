@@ -10,6 +10,9 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+v0.32.0-rc.0 (2023-02-23)
+-------------------------
+
 ### Breaking changes
 
 - Node Exporter configuration options changed to align with new upstream version (@Thor77):
@@ -128,7 +131,7 @@ Main (unreleased)
 - Flow: fix issues with `loki.file` and `loki.process` where deadlock contention or
   logs fail to process. (@mattdurham)
 
-- Flow: `oath2 > tls_config` was documented as a block but coded incorrectly as
+- Flow: `oauth2 > tls_config` was documented as a block but coded incorrectly as
   an attribute. This is now a block in code. This impacted `discovery.docker`,
   `discovery.kubernetes`, `loki.source.kubernetes`, `loki.write`,
   `mimir.rules.kubernetes`, `phlare.scrape`, `phlare.write`,
