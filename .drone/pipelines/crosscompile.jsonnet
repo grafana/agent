@@ -44,7 +44,8 @@ std.flatMap(function(target) (
         name: 'Build',
         image: build_image.linux,
         commands: [
-          'GOOS=%(GOOS)s GOARCH=%(GOARCH)s GOARM=%(GOARM)s GO_TAGS="promtail_journal_enabled" make %(target)s' % env,
+          'make generate-ui',
+          'GOOS=%(GOOS)s GOARCH=%(GOARCH)s GOARM=%(GOARM)s GO_TAGS="builtinassets promtail_journal_enabled" make %(target)s' % env,
         ],
       }],
     }
