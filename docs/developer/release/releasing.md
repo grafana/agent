@@ -24,9 +24,11 @@ A typical release cycle is to have a Release Candidate published for at least 48
 hours followed by a Stable Release. Patch Releases may occur between the Stable Release
 and the start of a new Release Candidate.
 
+```mermaid
 flowchart LR
     A(Release Candidate) --> B(Stable Release)
     B --> C(Patch Release 1)
     C --> D(Patch Release 2)
     D --> E(...)
     E --> F(New Release Candidate)
+```
