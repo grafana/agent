@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/set-up/
 title: Set up Grafana Agent
 weight: 100
 ---

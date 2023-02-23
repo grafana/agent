@@ -65,7 +65,7 @@ func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	}
 
 	if args.CheckInterval <= 0 {
-		return fmt.Errorf("check_interval must me greater than zero")
+		return fmt.Errorf("check_interval must be greater than zero")
 	}
 
 	if args.MemoryLimit > 0 && args.MemoryLimitPercentage > 0 {

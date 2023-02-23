@@ -108,7 +108,7 @@ func (c *DynamicLoader) LoadConfigByPath(path string) error {
 		return fmt.Errorf("config path must start with file:// or s3://, not %s", path)
 	}
 
-	instrumentation.ConfigMetrics.InstrumentConfig(buf)
+	instrumentation.InstrumentConfig(buf)
 
 	cl := &LoaderConfig{}
 	err = yaml.Unmarshal(buf, cl)
@@ -131,7 +131,7 @@ func (c *DynamicLoader) ProcessConfigs(cfg *Config) error {
 	serverConfig, err := c.processServer()
 	returnErr = errorAppend(returnErr, err)
 	if serverConfig != nil {
-		cfg.Server = *serverConfig
+		cfg.Server = serverConfig
 	}
 
 	metricConfig, err := c.processMetrics()

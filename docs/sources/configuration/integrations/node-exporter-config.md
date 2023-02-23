@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/configuration/integrations/node-exporter-config/
 title: node_exporter_config
 ---
 
@@ -28,7 +26,7 @@ docker run \
   -v "/proc:/host/proc:ro,rslave" \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
-  grafana/agent:v0.30.2 \
+  grafana/agent:v0.32.0-rc.0 \
   --config.file=/etc/agent-config/agent.yaml
 ```
 
@@ -67,7 +65,7 @@ metadata:
   name: agent
 spec:
   containers:
-  - image: grafana/agent:v0.30.2
+  - image: grafana/agent:v0.32.0-rc.0
     name: agent
     args:
     - --config.file=/etc/agent-config/agent.yaml
@@ -116,6 +114,7 @@ the Agent is running on is a no-op.
 | boottime         | Exposes system boot time derived from the kern.boottime sysctl. | Darwin, Dragonfly, FreeBSD, NetBSD, OpenBSD, Solaris | yes |
 | btrfs            | Exposes statistics on btrfs. | Linux | yes |
 | buddyinfo        | Exposes statistics of memory fragments as reported by /proc/buddyinfo. | Linux | no |
+| cgroups          | Exposes number of active and enabled cgroups. | Linux | no |
 | conntrack        | Shows conntrack statistics (does nothing if no /proc/sys/net/netfilter/ present). | Linux | yes |
 | cpu              | Exposes CPU statistics. | Darwin, Dragonfly, FreeBSD, Linux, Solaris | yes |
 | cpufreq          | Exposes CPU frequency statistics. | Linux, Solaris | yes |
@@ -160,10 +159,13 @@ the Agent is running on is a no-op.
 | rapl             | Exposes various statistics from /sys/class/powercap. | Linux | yes |
 | runit            | Exposes service status from runit. | any | no |
 | schedstat        | Exposes task scheduler statistics from /proc/schedstat. | Linux | yes |
+| selinux          | Exposes SELinux statistics. | Linux | yes |
+| slabinfo         | Exposes slab statistics from `/proc/slabinfo`. | Linux | no |
 | sockstat         | Exposes various statistics from /proc/net/sockstat. | Linux | yes |
 | softnet          | Exposes statistics from /proc/net/softnet_stat. | Linux | yes |
 | stat             | Exposes various statistics from /proc/stat. This includes boot time, forks and interrupts. | Linux | yes |
 | supervisord      | Exposes service status from supervisord. | any | no |
+| sysctl           | Expose sysctl values from `/proc/sys`. | Linux | no |
 | systemd          | Exposes service and system status from systemd. | Linux | no |
 | tapestats        | Exposes tape device stats. | Linux | yes |
 | tcpstat          | Exposes TCP connection status information from /proc/net/tcp and /proc/net/tcp6. (Warning: the current version has potential performance issues in high load situations). | Linux | no |
@@ -274,8 +276,11 @@ the Agent is running on is a no-op.
   # Regexp of `flags` field in cpu info to filter.
   [cpu_flags_include: <string>]
 
-  # Regexmp of devices to ignore for diskstats.
-  [diskstats_ignored_devices: <string> | default = "^(ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$"]
+  # Regexp of devices to ignore for diskstats (mutually exclusive with diskstats_device_include).
+  [diskstats_device_exclude: <string> | default = "^(ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$"]
+
+  # Regexp of devices to include for diskstats (mutually exclusive with diskstats_device_exclude).
+  [diskstats_device_include: <string>]
 
   # Regexp of ethtool devices to exclude (mutually exclusive with ethtool_device_include)
   [ethtool_device_exclude: <string>]
@@ -357,6 +362,16 @@ the Agent is running on is a no-op.
   # An explicit value in the YAML config takes precedence over the environment
   # variable.
   [supervisord_url: <string> | default = "http://localhost:9001/RPC2"]
+
+  # Numeric sysctl values to expose.
+  # For sysctl with multiple numeric values,
+  # an optional mapping can be given to expose each value as its own metric.
+  sysctl_include:
+    [- <string>]
+
+  # String sysctl values to expose.
+  sysctl_include_info:
+    [- <string>]
 
   # Regexp of systemd units to include. Units must both match include and not
   # match exclude to be collected.

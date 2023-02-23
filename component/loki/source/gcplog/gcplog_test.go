@@ -2,6 +2,7 @@ package gcplog
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -14,6 +15,7 @@ import (
 	gt "github.com/grafana/agent/component/loki/source/gcplog/internal/gcplogtarget"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/regexp"
+	"github.com/phayes/freeport"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
@@ -32,9 +34,11 @@ func TestPush(t *testing.T) {
 	ch1, ch2 := make(chan loki.Entry), make(chan loki.Entry)
 	args := Arguments{}
 
+	port, err := freeport.GetFreePort()
+	require.NoError(t, err)
 	args.PushTarget = &gt.PushConfig{
 		HTTPListenAddress: "localhost",
-		HTTPListenPort:    42421,
+		HTTPListenPort:    port,
 		Labels: map[string]string{
 			"foo": "bar",
 		},
@@ -50,7 +54,7 @@ func TestPush(t *testing.T) {
 	time.Sleep(200 * time.Millisecond)
 
 	// Create a GCP PushRequest and send it to the launched server.
-	req, err := http.NewRequest(http.MethodPost, "http://localhost:42421/gcp/api/v1/push", strings.NewReader(testPushPayload))
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("http://localhost:%d/gcp/api/v1/push", port), strings.NewReader(testPushPayload))
 	require.NoError(t, err)
 
 	res, err := http.DefaultClient.Do(req)

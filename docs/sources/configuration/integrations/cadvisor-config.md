@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/configuration/integrations/cadvisor-config/
 title: cadvisor_config
 ---
 

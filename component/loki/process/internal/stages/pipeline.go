@@ -7,7 +7,6 @@ package stages
 import (
 	"context"
 	"fmt"
-	"reflect"
 	"sync"
 
 	"github.com/go-kit/log"
@@ -40,29 +39,11 @@ type StageConfig struct {
 	MultilineConfig    *MultilineConfig    `river:"multiline,block,optional"`
 	MatchConfig        *MatchConfig        `river:"match,block,optional"`
 	DropConfig         *DropConfig         `river:"drop,block,optional"`
-}
-
-// UnmarshalRiver implements river.Unmarshaler.
-func (arg *StageConfig) UnmarshalRiver(f func(interface{}) error) error {
-	// *arg = DefaultArguments
-	type args StageConfig
-	if err := f((*args)(arg)); err != nil {
-		return err
-	}
-
-	nonEmpty := 0
-	v := reflect.Indirect(reflect.ValueOf(arg))
-	for i := 0; i < v.NumField(); i++ {
-		if !v.Field(i).IsNil() {
-			nonEmpty++
-		}
-	}
-
-	if nonEmpty != 1 {
-		return fmt.Errorf("each stage block should contain exactly one stage definition, found %d", nonEmpty)
-	}
-
-	return nil
+	PackConfig         *PackConfig         `river:"pack,block,optional"`
+	TemplateConfig     *TemplateConfig     `river:"template,block,optional"`
+	TenantConfig       *TenantConfig       `river:"tenant,block,optional"`
+	LimitConfig        *LimitConfig        `river:"limit,block,optional"`
+	MetricsConfig      *MetricsConfig      `river:"metrics,block,optional"`
 }
 
 var rateLimiter *rate.Limiter

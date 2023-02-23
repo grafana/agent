@@ -1,6 +1,6 @@
 ---
 aliases:
-- /docs/agent/latest/flow/getting-started
+- getting-started/
 title: Getting started
 weight: 200
 ---
@@ -17,12 +17,6 @@ release.
 
 Grafana Agent Flow can be enabled by setting the `AGENT_MODE` environment
 variable to `flow`.
-
-> **NOTE**: In previous releases, the `EXPERIMENTAL_ENABLE_FLOW` environment
-> variable was set to `1` to enable Grafana Agent Flow. This environment
-> variable is deprecated and support for it will be removed in the v0.32
-> release. It is recommended to change to `AGENT_MODE=flow` as soon as
-> possible.
 
 Then, use the `agent run` command to start Grafana Agent Flow, replacing
 `FILE_PATH` with the path of a config file to use:

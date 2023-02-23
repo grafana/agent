@@ -25,26 +25,31 @@ type EndpointOptions struct {
 	MaxBackoff        time.Duration           `river:"max_backoff_period,attr,optional"`  // increase exponentially to this level
 	MaxBackoffRetries int                     `river:"max_backoff_retries,attr,optional"` // give up after this many; zero means infinite retries
 	TenantID          string                  `river:"tenant_id,attr,optional"`
-	HTTPClientConfig  *types.HTTPClientConfig `river:"http_client_config,block,optional"`
+	HTTPClientConfig  *types.HTTPClientConfig `river:",squash"`
 }
 
-// DefaultEndpointOptions defines the default settings for sending logs to a
+// GetDefaultEndpointOptions defines the default settings for sending logs to a
 // remote endpoint.
 // The backoff schedule with the default parameters:
 // 0.5s, 1s, 2s, 4s, 8s, 16s, 32s, 64s, 128s, 256s(4.267m)
 // For a total time of 511.5s (8.5m) before logs are lost.
-var DefaultEndpointOptions = EndpointOptions{
-	BatchWait:         1 * time.Second,
-	BatchSize:         1 * units.MiB,
-	RemoteTimeout:     10 * time.Second,
-	MinBackoff:        500 * time.Millisecond,
-	MaxBackoff:        5 * time.Minute,
-	MaxBackoffRetries: 10,
+func GetDefaultEndpointOptions() EndpointOptions {
+	var defaultEndpointOptions = EndpointOptions{
+		BatchWait:         1 * time.Second,
+		BatchSize:         1 * units.MiB,
+		RemoteTimeout:     10 * time.Second,
+		MinBackoff:        500 * time.Millisecond,
+		MaxBackoff:        5 * time.Minute,
+		MaxBackoffRetries: 10,
+		HTTPClientConfig:  types.CloneDefaultHTTPClientConfig(),
+	}
+
+	return defaultEndpointOptions
 }
 
 // UnmarshalRiver implements river.Unmarshaler.
 func (r *EndpointOptions) UnmarshalRiver(f func(v interface{}) error) error {
-	*r = DefaultEndpointOptions
+	*r = GetDefaultEndpointOptions()
 
 	type arguments EndpointOptions
 	if err := f((*arguments)(r)); err != nil {
@@ -53,6 +58,11 @@ func (r *EndpointOptions) UnmarshalRiver(f func(v interface{}) error) error {
 
 	if _, err := url.Parse(r.URL); err != nil {
 		return fmt.Errorf("failed to parse remote url %q: %w", r.URL, err)
+	}
+
+	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
+	if r.HTTPClientConfig != nil {
+		return r.HTTPClientConfig.Validate()
 	}
 
 	return nil

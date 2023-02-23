@@ -52,7 +52,7 @@ var (
 // DefaultConfig holds default settings for all the subsystems.
 var DefaultConfig = Config{
 	// All subsystems with a DefaultConfig should be listed here.
-	Server:                server.DefaultConfig,
+	Server:                &server.DefaultConfig,
 	ServerFlags:           server.DefaultFlags,
 	Metrics:               metrics.DefaultConfig,
 	Integrations:          DefaultVersionedIntegrations,
@@ -63,12 +63,12 @@ var DefaultConfig = Config{
 
 // Config contains underlying configurations for the agent
 type Config struct {
-	Server          server.Config         `yaml:"server,omitempty"`
+	Server          *server.Config        `yaml:"server,omitempty"`
 	Metrics         metrics.Config        `yaml:"metrics,omitempty"`
 	Integrations    VersionedIntegrations `yaml:"integrations,omitempty"`
 	Traces          traces.Config         `yaml:"traces,omitempty"`
 	Logs            *logs.Config          `yaml:"logs,omitempty"`
-	AgentManagement AgentManagement       `yaml:"agent_management,omitempty"`
+	AgentManagement AgentManagementConfig `yaml:"agent_management,omitempty"`
 
 	// Flag-only fields
 	ServerFlags server.Flags `yaml:"-"`
@@ -175,6 +175,10 @@ func (c *Config) LogDeprecations(l log.Logger) {
 
 // Validate validates the config, flags, and sets default values.
 func (c *Config) Validate(fs *flag.FlagSet) error {
+	if c.Server == nil {
+		return fmt.Errorf("an empty server config is invalid")
+	}
+
 	if err := c.Metrics.ApplyDefaults(); err != nil {
 		return err
 	}
@@ -236,7 +240,7 @@ func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 		return fmt.Errorf("error reading config file %w", err)
 	}
 
-	instrumentation.ConfigMetrics.InstrumentConfig(buf)
+	instrumentation.InstrumentConfig(buf)
 
 	return LoadBytes(buf, expandEnvVars, c)
 }
@@ -247,7 +251,7 @@ func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 //     a) Fetch from remote. If this fails or is invalid:
 //     b) Read the remote config from cache. If this fails, return an error.
 //  4. Merge the initial and remote config into c.
-func loadFromAgentManagementAPI(path string, expandEnvVars bool, c *Config, log *server.Logger) error {
+func loadFromAgentManagementAPI(path string, expandEnvVars bool, c *Config, log *server.Logger, fs *flag.FlagSet, args []string) error {
 	// Load the initial config from disk without instrumenting the config hash
 	buf, err := os.ReadFile(path)
 	if err != nil {
@@ -259,7 +263,11 @@ func loadFromAgentManagementAPI(path string, expandEnvVars bool, c *Config, log 
 		return fmt.Errorf("failed to load initial config: %w", err)
 	}
 
-	remoteConfig, err := getRemoteConfig(expandEnvVars, c, log)
+	configProvider, err := newRemoteConfigProvider(c)
+	if err != nil {
+		return err
+	}
+	remoteConfig, err := getRemoteConfig(expandEnvVars, configProvider, log, fs, args, path)
 	if err != nil {
 		return err
 	}
@@ -269,7 +277,7 @@ func loadFromAgentManagementAPI(path string, expandEnvVars bool, c *Config, log 
 	if err != nil {
 		level.Warn(log).Log("msg", "error marshalling config for instrumenting config version", "err", err)
 	} else {
-		instrumentation.ConfigMetrics.InstrumentConfig(effectiveConfigBytes)
+		instrumentation.InstrumentConfig(effectiveConfigBytes)
 	}
 
 	return nil
@@ -317,7 +325,7 @@ func LoadRemote(url string, expandEnvVars bool, c *Config) error {
 		return fmt.Errorf("error retrieving remote config: %w", err)
 	}
 
-	instrumentation.ConfigMetrics.InstrumentConfig(bb)
+	instrumentation.InstrumentConfig(bb)
 
 	return LoadBytes(bb, expandEnvVars, c)
 }
@@ -390,7 +398,7 @@ func Load(fs *flag.FlagSet, args []string, log *server.Logger) (*Config, error) 
 				return LoadRemote(path, expandArgs, c)
 			}
 			if features.Enabled(fs, featAgentManagement) {
-				return loadFromAgentManagementAPI(path, expandArgs, c, log)
+				return loadFromAgentManagementAPI(path, expandArgs, c, log, fs, args)
 			}
 			return LoadFile(path, expandArgs, c)
 		case fileTypeDynamic:
@@ -409,11 +417,31 @@ func Load(fs *flag.FlagSet, args []string, log *server.Logger) (*Config, error) 
 		}
 	})
 
-	instrumentation.ConfigMetrics.InstrumentLoad(error == nil)
+	instrumentation.InstrumentLoad(error == nil)
 	return cfg, error
 }
 
 type loaderFunc func(path string, fileType string, expandArgs bool, target *Config) error
+
+func applyIntegrationValuesFromFlagset(fs *flag.FlagSet, args []string, path string, cfg *Config) error {
+	// Parse the flags again to override any YAML values with command line flag
+	// values.
+	if err := fs.Parse(args); err != nil {
+		return fmt.Errorf("error parsing flags: %w", err)
+	}
+
+	// Complete unmarshaling integrations using the version from the flag. This
+	// MUST be called before ApplyDefaults.
+	version := integrationsVersion1
+	if features.Enabled(fs, featIntegrationsNext) {
+		version = integrationsVersion2
+	}
+
+	if err := cfg.Integrations.setVersion(version); err != nil {
+		return fmt.Errorf("error loading config file %s: %w", path, err)
+	}
+	return nil
+}
 
 // load allows for tests to inject a function for retrieving the config file that
 // doesn't require having a literal file on disk.
@@ -454,21 +482,8 @@ func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
 		return nil, fmt.Errorf("error loading config file %s: %w", file, err)
 	}
 
-	// Parse the flags again to override any YAML values with command line flag
-	// values.
-	if err := fs.Parse(args); err != nil {
-		return nil, fmt.Errorf("error parsing flags: %w", err)
-	}
-
-	// Complete unmarshaling integrations using the version from the flag. This
-	// MUST be called before ApplyDefaults.
-	version := integrationsVersion1
-	if features.Enabled(fs, featIntegrationsNext) {
-		version = integrationsVersion2
-	}
-
-	if err := cfg.Integrations.setVersion(version); err != nil {
-		return nil, fmt.Errorf("error loading config file %s: %w", file, err)
+	if err := applyIntegrationValuesFromFlagset(fs, args, file, &cfg); err != nil {
+		return nil, err
 	}
 
 	if features.Enabled(fs, featExtraMetrics) {

@@ -149,6 +149,27 @@ configs:
 		require.NoError(t, err)
 		require.Len(t, l.instances, 0)
 	})
+
+	t.Run("re-apply previous config", func(t *testing.T) {
+		// Applying a nil config should remove all instances.
+		l.ApplyConfig(nil, false)
+
+		// Re-Apply the previous config and write a new line.
+		var newCfg Config
+		dec = yaml.NewDecoder(strings.NewReader(cfgText))
+		dec.SetStrict(true)
+		require.NoError(t, dec.Decode(&newCfg))
+
+		require.NoError(t, l.ApplyConfig(&newCfg, false))
+
+		fmt.Fprintf(tmpFile, "Hello again!\n")
+		select {
+		case <-time.After(time.Second * 30):
+			require.FailNow(t, "timed out waiting for data to be pushed")
+		case req := <-pushes:
+			require.Equal(t, "Hello again!", req.Streams[0].Entries[0].Line)
+		}
+	})
 }
 
 func TestLogs_PositionsDirectory(t *testing.T) {

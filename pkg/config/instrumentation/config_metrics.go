@@ -3,11 +3,13 @@ package instrumentation
 import (
 	"crypto/sha256"
 	"fmt"
+	"sync"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
+// configMetrics exposes metrics related to configuration loading
 type configMetrics struct {
 	configHash               *prometheus.GaugeVec
 	configLoadSuccess        prometheus.Gauge
@@ -15,8 +17,12 @@ type configMetrics struct {
 	configLoadFailures       prometheus.Counter
 }
 
-// ConfigMetrics exposes metrics related to configuration loading
-var ConfigMetrics = newConfigMetrics()
+var confMetrics *configMetrics
+var configMetricsInitializer sync.Once
+
+func initializeConfigMetrics() {
+	confMetrics = newConfigMetrics()
+}
 
 func newConfigMetrics() *configMetrics {
 	var m configMetrics
@@ -45,19 +51,21 @@ func newConfigMetrics() *configMetrics {
 
 // Create a sha256 hash of the config before expansion and expose it via
 // the agent_config_hash metric.
-func (c *configMetrics) InstrumentConfig(buf []byte) {
+func InstrumentConfig(buf []byte) {
+	configMetricsInitializer.Do(initializeConfigMetrics)
 	hash := sha256.Sum256(buf)
-	c.configHash.Reset()
-	c.configHash.WithLabelValues(fmt.Sprintf("%x", hash)).Set(1)
+	confMetrics.configHash.Reset()
+	confMetrics.configHash.WithLabelValues(fmt.Sprintf("%x", hash)).Set(1)
 }
 
 // Expose metrics for load success / failures.
-func (c *configMetrics) InstrumentLoad(success bool) {
+func InstrumentLoad(success bool) {
+	configMetricsInitializer.Do(initializeConfigMetrics)
 	if success {
-		c.configLoadSuccessSeconds.SetToCurrentTime()
-		c.configLoadSuccess.Set(1)
+		confMetrics.configLoadSuccessSeconds.SetToCurrentTime()
+		confMetrics.configLoadSuccess.Set(1)
 	} else {
-		c.configLoadSuccess.Set(0)
-		c.configLoadFailures.Inc()
+		confMetrics.configLoadSuccess.Set(0)
+		confMetrics.configLoadFailures.Inc()
 	}
 }

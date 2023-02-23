@@ -16,47 +16,33 @@ import (
 )
 
 var testMatchRiver = `
-stage {
-	json {
+stage.json {
 		expressions = { "app" = "" }
-	}
 }
 
-stage {
-	labels {
+stage.labels {
 		values = { "app" = "" }
-	}
 }
 
-stage {
-	match {
+stage.match {
 		selector = "{app=\"loki\"}"
-		stage {
-			json {
+		stage.json {
 				expressions = { "msg" = "message" }
-			}
 		}
 		action = "keep"
-	}
 }
 
-stage {
-	match {
+stage.match {
 		pipeline_name = "app2"
 		selector = "{app=\"poki\"}"
-		stage {
-			json {
+		stage.json {
 				expressions = { "msg" = "msg" }
-			}
 		}
 		action = "keep"
-	}
 }
 
-stage {
-	output {
+stage.output {
 		source = "msg"
-	}
 }
 `
 
@@ -82,7 +68,7 @@ var testMatchLogLineApp2 = `
 
 func TestMatchStage(t *testing.T) {
 	registry := prometheus.NewRegistry()
-	plName := "test_pipeline"
+	plName := "test_match_pipeline"
 	logger, _ := logging.New(io.Discard, logging.DefaultOptions)
 	pl, err := NewPipeline(logger, loadConfig(testMatchRiver), &plName, registry)
 	if err != nil {

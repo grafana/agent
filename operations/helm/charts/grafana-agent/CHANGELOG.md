@@ -9,6 +9,44 @@ internal API changes are not present.
 
 Unreleased
 ----------
+### Enhancements
+- Helm chart: Add support for templates inside of configMap.content (@ts-mini)
+
+
+0.6.0 (2023-02-13)
+------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.31.3. (@rfratto)
+
+0.5.0 (2023-02-08)
+------------------
+
+### Enhancements
+
+- Helm Chart: Add ingress and support for agent-receiver. (@ts-mini)
+
+### Documentation
+
+- Update Helm Chart documentation to reference new `loki.source.kubernetes` component.
+
+0.4.0 (2023-01-31)
+------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.31.0. (@rfratto)
+- Install PodLogs CRD for the `loki.source.podlogs` Flow component. (@rfratto)
+- Update RBAC rules to permit `loki.source.podlogs` and `mimir.rules.kubernetes` to work by default. (@rfratto)
+
+0.3.1 (2023-01-31)
+------------------
+
+### Bugfixes
+
+- Fix `podAnnotations` values reference in pod template (should be `controller.podAnnotations`).
+- Ensure the service gets a clusterIP assigned by default.
 
 0.3.0 (2023-01-23)
 ------------------

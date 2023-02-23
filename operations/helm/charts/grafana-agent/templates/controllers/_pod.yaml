@@ -1,6 +1,6 @@
 {{- define "grafana-agent.pod-template" -}}
 metadata:
-  {{- with .Values.podAnnotations }}
+  {{- with .Values.controller.podAnnotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}

@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/README/
 draft: "True"
 ---
 
