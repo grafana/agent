@@ -299,7 +299,7 @@ Name        | Type           | Description                                   | D
 
 ```river
 stage.label_keep {
-		values = [ "kubernetes_pod_name", "kubernetes_container_name" ]
+		values = [ "kubernetes_pod_name", "kubernetes_pod_container_name" ]
 }
 ```
 
