@@ -146,8 +146,7 @@ Main (unreleased)
   - `loki.source.kubernetes` is explicitly marked as experimental.
   - `loki.source.podlogs` is explicitly marked as experimental.
   - `mimir.rules.kubernetes` is explicitly marked as beta.
-  - `otelcol.exporter.loki` is explicitly marked as beta.
-  - `otelcol.exporter.prometheus` is explicitly marked as beta.
+  - `otelcol.processor.tail_sampling` is explicitly marked as beta.
   - `otelcol.receiver.loki` is explicitly marked as beta.
   - `otelcol.receiver.prometheus` is explicitly marked as beta.
   - `phlare.scrape` is explicitly marked as beta.
