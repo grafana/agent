@@ -5,7 +5,7 @@ headless: true
 ---
 
 > **EXPERIMENTAL**: This is an [experimental][] component. Experimental
-> components are subject to breaking changes changes during development, and
-> may be removed with no equivalent replacement.
+> components are subject to frequent breaking changes, and may be removed with
+> no equivalent replacement.
 
 [experimental]: {{< relref "../../../operation-guide/_index.md#stability" >}}
