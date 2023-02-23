@@ -1,6 +1,6 @@
 # Prerequisites
 
-Before performing a release, make sure that you have completed the following prerequisites:
+Before performing a release, make sure that you have completed the following:
 
 ## Git Signature Verification
 
@@ -15,7 +15,7 @@ git config --global commit.gpgSign true
 git config --global tag.gpgSign true
 ```
 
-If you are on macOS or linux and using an encrypted GPG key, `gpg-agent` may be unable
+If you are on macOS or linux and using an encrypted GPG key, `gpg-agent` or `gpg` may be unable
 to prompt you for your private key passphrase. This will be denoted by an error
 when creating a commit or tag. To circumvent the error, add the following into
 your `~/.bash_profile`, `~/.bashrc` or `~/.zshrc`, depending on which shell you are using:
