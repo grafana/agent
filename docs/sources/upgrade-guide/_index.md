@@ -146,6 +146,26 @@ remote.s3 "example" {
 }
 ```
 
+### Breaking change: `prometheus.integration.node_exporter` component name changed
+
+This change only impacts Grafana Agent Flow users.
+
+The `prometheus.integration.node_exporter` component has been renamed to
+`prometheus.exporter.unix`. `unix` was chosen as a name to approximate the
+\*nix-like systems the exporter supports.
+
+Old configuration example:
+
+```river
+prometheus.integration.node_exporter { }
+```
+
+New configuration example:
+
+```river
+prometheus.exporter.unix { }
+```
+
 ### Breaking change: support for `EXPERIMENTAL_ENABLE_FLOW` environment variable removed
 
 This change only impacts Grafana Agent Flow users.

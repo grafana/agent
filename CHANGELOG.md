@@ -38,6 +38,7 @@ Main (unreleased)
   been updated to use this simplified hierarchy. (@tpaschalis)
 
 - `remote.s3` `client_options` block has been renamed to `client`. (@mattdurham)
+
 - Renamed `prometheus.integration.node_exporter` to `prometheus.exporter.unix`. (@jcreixell)
 
 - As first announced in v0.30, support for the `EXPERIMENTAL_ENABLE_FLOW`
