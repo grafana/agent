@@ -102,6 +102,8 @@ Main (unreleased)
 
 - Flow: add timeout to loki.source.podlogs controller setup. (@polyrain)
 
+- Grafana Agent Operator: `PodLog` crd now supports the `logfmt` pipeline stage. (@jzck)
+
 ### Bugfixes
 
 - Fixed a reconciliation error in Grafana Agent Operator when using `tlsConfig`

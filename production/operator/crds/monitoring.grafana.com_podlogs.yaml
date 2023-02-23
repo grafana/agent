@@ -175,6 +175,22 @@ spec:
                             will push to Loki.
                           type: integer
                       type: object
+                    logfmt:
+                      description: The logfmt stage is a parsing stage that reads the
+                        log line as logfmt and allows extraction of data into labels.
+                      properties:
+                        source:
+                          description: Name from the extracted data to parse as JSON.
+                            If empty, uses entire log message.
+                          type: string
+                        mapping:
+                          description:  Set of key/value pairs for mapping of logfmt
+                            fields to extracted labels. The YAML key will be the key
+                            in the extracted data, while the expression will be the
+                            YAML value. If the value is empty, then the logfmt field
+                            with the same name is extracted.
+                          type: object
+                      type: object
                     match:
                       description: Match is a filtering stage that conditionally applies
                         a set of stages or drop entries when a log entry matches a
