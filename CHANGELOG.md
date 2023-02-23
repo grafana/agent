@@ -7,6 +7,12 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+> **NOTE**: Builds for 32-bit ARM are unavailable as of v0.32.0 while we are
+> waiting for a Go patch release. 32-bit ARM builds will return when possible.
+>
+> 32-bit ARM users should continue to use the last minor release with 32-bit
+> ARM support (v0.31) until 32-bit ARM builds return.
+
 Main (unreleased)
 -----------------
 
@@ -14,6 +20,9 @@ v0.32.0-rc.0 (2023-02-23)
 -------------------------
 
 ### Breaking changes
+
+- Support for 32-bit ARM builds is temporarily removed while we await a Go
+  patch release to fix builds. (@rfratto)
 
 - Node Exporter configuration options changed to align with new upstream version (@Thor77):
 

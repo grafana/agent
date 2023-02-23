@@ -122,15 +122,6 @@ PROPAGATE_VARS := \
 
 GO_ENV := GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CGO_ENABLED=$(CGO_ENABLED)
 
-# Selectively pass -mlong-calls when building for 32-bit ARM targets (armv6,
-# armv7). This works around an issue where the text segment has gotten big
-# enough (>32MB) that "relocation truncated to fit" errors occur.
-ifeq ($(GOARCH),arm)
-ifeq ($(GOOS),linux)
-GO_ENV += CGO_CFLAGS="$(CGO_CFLAGS) -mlong-calls"
-endif
-endif
-
 VERSION      ?= $(shell ./tools/image-tag)
 GIT_REVISION := $(shell git rev-parse --short HEAD)
 GIT_BRANCH   := $(shell git rev-parse --abbrev-ref HEAD)

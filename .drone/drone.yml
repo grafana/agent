@@ -366,36 +366,6 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Build agent (Linux armv6)
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - GOOS=linux GOARCH=arm GOARM=6 make agent
-  image: grafana/agent-build-image:0.21.0
-  name: Build
-trigger:
-  event:
-  - pull_request
-type: docker
----
-kind: pipeline
-name: Build agent (Linux armv7)
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - GOOS=linux GOARCH=arm GOARM=7 make agent
-  image: grafana/agent-build-image:0.21.0
-  name: Build
-trigger:
-  event:
-  - pull_request
-type: docker
----
-kind: pipeline
 name: Build agent (Linux ppc64le)
 platform:
   arch: amd64
@@ -501,36 +471,6 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Build agentctl (Linux armv6)
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - GOOS=linux GOARCH=arm GOARM=6 make agentctl
-  image: grafana/agent-build-image:0.21.0
-  name: Build
-trigger:
-  event:
-  - pull_request
-type: docker
----
-kind: pipeline
-name: Build agentctl (Linux armv7)
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - GOOS=linux GOARCH=arm GOARM=7 make agentctl
-  image: grafana/agent-build-image:0.21.0
-  name: Build
-trigger:
-  event:
-  - pull_request
-type: docker
----
-kind: pipeline
 name: Build agentctl (Linux ppc64le)
 platform:
   arch: amd64
@@ -628,36 +568,6 @@ platform:
 steps:
 - commands:
   - GOOS=linux GOARCH=arm64 GOARM= make operator
-  image: grafana/agent-build-image:0.21.0
-  name: Build
-trigger:
-  event:
-  - pull_request
-type: docker
----
-kind: pipeline
-name: Build operator (Linux armv6)
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - GOOS=linux GOARCH=arm GOARM=6 make operator
-  image: grafana/agent-build-image:0.21.0
-  name: Build
-trigger:
-  event:
-  - pull_request
-type: docker
----
-kind: pipeline
-name: Build operator (Linux armv7)
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - GOOS=linux GOARCH=arm GOARM=7 make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -1151,6 +1061,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: 5e85b73dd2e075bffd57cf6fd5d943abcdd72356097b0e18d9a0520d733d7ea0
+hmac: d07ce3c2703871c8d97561742db55998aeba982721668616b88a9da4df8a81b8
 
 ...
