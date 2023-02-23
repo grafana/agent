@@ -342,7 +342,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=amd64 GOARM= make agent
+  - GOOS=linux GOARCH=amd64 GOARM= GO_TAGS="promtail_journal_enabled" make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -357,7 +357,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm64 GOARM= make agent
+  - GOOS=linux GOARCH=arm64 GOARM= GO_TAGS="promtail_journal_enabled" make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -372,7 +372,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm GOARM=6 make agent
+  - GOOS=linux GOARCH=arm GOARM=6 GO_TAGS="promtail_journal_enabled" make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -387,7 +387,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm GOARM=7 make agent
+  - GOOS=linux GOARCH=arm GOARM=7 GO_TAGS="promtail_journal_enabled" make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -402,7 +402,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=ppc64le GOARM= make agent
+  - GOOS=linux GOARCH=ppc64le GOARM= GO_TAGS="promtail_journal_enabled" make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -417,7 +417,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=darwin GOARCH=amd64 GOARM= make agent
+  - GOOS=darwin GOARCH=amd64 GOARM= GO_TAGS="promtail_journal_enabled" make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -432,7 +432,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=darwin GOARCH=arm64 GOARM= make agent
+  - GOOS=darwin GOARCH=arm64 GOARM= GO_TAGS="promtail_journal_enabled" make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -447,7 +447,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=windows GOARCH=amd64 GOARM= make agent
+  - GOOS=windows GOARCH=amd64 GOARM= GO_TAGS="promtail_journal_enabled" make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -462,7 +462,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=freebsd GOARCH=amd64 GOARM= make agent
+  - GOOS=freebsd GOARCH=amd64 GOARM= GO_TAGS="promtail_journal_enabled" make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -477,7 +477,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=amd64 GOARM= make agentctl
+  - GOOS=linux GOARCH=amd64 GOARM= GO_TAGS="promtail_journal_enabled" make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -492,7 +492,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm64 GOARM= make agentctl
+  - GOOS=linux GOARCH=arm64 GOARM= GO_TAGS="promtail_journal_enabled" make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -507,7 +507,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm GOARM=6 make agentctl
+  - GOOS=linux GOARCH=arm GOARM=6 GO_TAGS="promtail_journal_enabled" make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -522,7 +522,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm GOARM=7 make agentctl
+  - GOOS=linux GOARCH=arm GOARM=7 GO_TAGS="promtail_journal_enabled" make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -537,7 +537,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=ppc64le GOARM= make agentctl
+  - GOOS=linux GOARCH=ppc64le GOARM= GO_TAGS="promtail_journal_enabled" make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -552,7 +552,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=darwin GOARCH=amd64 GOARM= make agentctl
+  - GOOS=darwin GOARCH=amd64 GOARM= GO_TAGS="promtail_journal_enabled" make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -567,7 +567,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=darwin GOARCH=arm64 GOARM= make agentctl
+  - GOOS=darwin GOARCH=arm64 GOARM= GO_TAGS="promtail_journal_enabled" make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -582,7 +582,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=windows GOARCH=amd64 GOARM= make agentctl
+  - GOOS=windows GOARCH=amd64 GOARM= GO_TAGS="promtail_journal_enabled" make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -597,7 +597,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=freebsd GOARCH=amd64 GOARM= make agentctl
+  - GOOS=freebsd GOARCH=amd64 GOARM= GO_TAGS="promtail_journal_enabled" make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -612,7 +612,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=amd64 GOARM= make operator
+  - GOOS=linux GOARCH=amd64 GOARM= GO_TAGS="promtail_journal_enabled" make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -627,7 +627,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm64 GOARM= make operator
+  - GOOS=linux GOARCH=arm64 GOARM= GO_TAGS="promtail_journal_enabled" make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -642,7 +642,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm GOARM=6 make operator
+  - GOOS=linux GOARCH=arm GOARM=6 GO_TAGS="promtail_journal_enabled" make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -657,7 +657,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm GOARM=7 make operator
+  - GOOS=linux GOARCH=arm GOARM=7 GO_TAGS="promtail_journal_enabled" make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -672,7 +672,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=ppc64le GOARM= make operator
+  - GOOS=linux GOARCH=ppc64le GOARM= GO_TAGS="promtail_journal_enabled" make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -687,7 +687,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=darwin GOARCH=amd64 GOARM= make operator
+  - GOOS=darwin GOARCH=amd64 GOARM= GO_TAGS="promtail_journal_enabled" make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -702,7 +702,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=darwin GOARCH=arm64 GOARM= make operator
+  - GOOS=darwin GOARCH=arm64 GOARM= GO_TAGS="promtail_journal_enabled" make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -717,7 +717,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=windows GOARCH=amd64 GOARM= make operator
+  - GOOS=windows GOARCH=amd64 GOARM= GO_TAGS="promtail_journal_enabled" make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -732,7 +732,7 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=freebsd GOARCH=amd64 GOARM= make operator
+  - GOOS=freebsd GOARCH=amd64 GOARM= GO_TAGS="promtail_journal_enabled" make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -1151,6 +1151,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: 5e85b73dd2e075bffd57cf6fd5d943abcdd72356097b0e18d9a0520d733d7ea0
+hmac: a68d39ad608628104d6ffdce7ebd9eb9b3bbcbbc202363790fe93910c9b9daf4
 
 ...
