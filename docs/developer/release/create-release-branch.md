@@ -1,6 +1,7 @@
 # Create Release Branch
 
-This is the first step taken as release shephard after [Prerequisites](./prerequisites.md) are met. This branch will be used for the Release Candidates, Stable Release and Patch Releases.
+This is the first step taken as release shephard after [Prerequisites](./prerequisites.md) are met. 
+This branch will be used for the Release Candidates, Stable Release and Patch Releases.
 
 1. Gather consensus on which commit should be used as a base for the release
    branch.
@@ -19,12 +20,13 @@ This is the first step taken as release shephard after [Prerequisites](./prerequ
 
 3. Create and push the release branch from the selected base commit:
 
-    The name of the release branch should be the name of the stable version we intend 
-    to release prefixed with the release version prefix determined in step 2, such as `release-v0.31`.
+    The name of the release branch should be `release-` suffixed with the release 
+    version prefix determined in step 2, such as `release-v0.31`.
 
-    Note: There is no branch such as `release-v0.31-rc.0` or `release-v0.31.0`. Only use the version prefix as shown above.
+    Note: There is no branch such as `release-v0.31-rc.0` or 
+    `release-v0.31.0`. Only use the version prefix as shown above.
 
-    If the connsensus commit is the latest commit from main:
+    If the consensus commit is the latest commit from main:
 
     ```mermaid
     gitGraph
