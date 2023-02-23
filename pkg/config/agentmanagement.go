@@ -55,6 +55,21 @@ func hashInitialConfig(am AgentManagementConfig) (string, error) {
 	return hex.EncodeToString(hashed[:]), nil
 }
 
+// initialConfigHashCheck checks if the hash of initialConfig matches what is stored in configCache.InitialConfigHash.
+// If an error is encountered while hashing initialConfig or the hashes do not match, initialConfigHashCheck
+// returns an error. Otherwise, it returns nil.
+func initialConfigHashCheck(initialConfig AgentManagementConfig, configCache remoteConfigCache) error {
+	initialConfigHash, err := hashInitialConfig(initialConfig)
+	if err != nil {
+		return err
+	}
+
+	if !(configCache.InitialConfigHash == initialConfigHash) {
+		return errors.New("invalid remote config cache: initial config hashes don't match")
+	}
+	return nil
+}
+
 // GetCachedRemoteConfig retrieves the cached remote config from the location specified
 // in r.AgentManagement.CacheLocation
 func (r remoteConfigHTTPProvider) GetCachedRemoteConfig(expandEnvVars bool) (*Config, error) {
@@ -70,14 +85,8 @@ func (r remoteConfigHTTPProvider) GetCachedRemoteConfig(expandEnvVars bool) (*Co
 		return nil, fmt.Errorf("error trying to load cached remote config from file: %w", err)
 	}
 
-	initialConfigHash, err := hashInitialConfig(*r.InitialConfig)
-	if err != nil {
+	if err = initialConfigHashCheck(*r.InitialConfig, configCache); err != nil {
 		return nil, err
-	}
-
-	// If a different initial config was used when caching the config, it is no longer valid
-	if !(configCache.InitialConfigHash == initialConfigHash) {
-		return nil, errors.New("invalid remote config cache: initial config hashes don't match")
 	}
 
 	var cachedConfig Config
