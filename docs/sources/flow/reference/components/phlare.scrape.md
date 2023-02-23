@@ -6,6 +6,8 @@ labels:
 
 # phlare.scrape
 
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
+
 `phlare.scrape` configures a [pprof] scraping job for a given set of
 `targets`. The scraped performance profiles are forwarded to the list of receivers passed in
 `forward_to`.

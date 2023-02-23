@@ -6,6 +6,8 @@ labels:
 
 # loki.source.podlogs
 
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" >}}
+
 `loki.source.podlogs` discovers `PodLogs` resources on Kubernetes and, using
 the Kubernetes API, tails logs from Kubernetes containers of Pods specified by
 the discovered them.

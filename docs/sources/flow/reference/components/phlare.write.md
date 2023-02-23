@@ -6,6 +6,8 @@ labels:
 
 # phlare.write
 
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
+
 `phlare.write` receives performance profiles from other components and forwards them
 to a series of user-supplied endpoints using [Phlare' Push API](https://grafana.com/oss/phlare/).
 

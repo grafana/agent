@@ -6,6 +6,8 @@ labels:
 
 # mimir.rules.kubernetes
 
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
+
 `mimir.rules.kubernetes` discovers `PrometheusRule` Kubernetes resources and
 loads them into a Mimir instance.
 

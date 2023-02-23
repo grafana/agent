@@ -6,6 +6,8 @@ labels:
 
 # loki.echo
 
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
+
 `loki.echo` receives log entries from other `loki` components and prints them
 to the process' standard output (stdout).
 

@@ -6,6 +6,8 @@ labels:
 
 # loki.source.kubernetes
 
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" >}}
+
 `loki.source.kubernetes` tails logs from Kubernetes containers using the
 Kubernetes API. It has the following benefits over `loki.source.file`:
 

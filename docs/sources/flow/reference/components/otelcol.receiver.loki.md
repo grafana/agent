@@ -6,6 +6,8 @@ labels:
 
 # otelcol.receiver.loki
 
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
+
 `otelcol.receiver.loki` receives Loki log entries, converts them to the
 OpenTelemetry logs format, and forwards them to other `otelcol.*` components.
 

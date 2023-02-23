@@ -6,6 +6,8 @@ labels:
 
 # otelcol.exporter.prometheus
 
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
+
 `otelcol.exporter.prometheus` accepts OTLP-formatted metrics from other
 `otelcol` components, converts metrics to Prometheus-formatted metrics,
 and forwards the resulting metrics to `prometheus` components.
