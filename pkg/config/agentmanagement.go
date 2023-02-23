@@ -186,8 +186,7 @@ func (am *AgentManagementConfig) SleepTime() time.Duration {
 
 // jitterTime returns a random duration in the range [0, am.PollingInterval).
 func (am *AgentManagementConfig) JitterTime() time.Duration {
-	maxJitterDuration := am.SleepTime()
-	return time.Duration(rand.Int63n(int64(maxJitterDuration)))
+	return time.Duration(rand.Int63n(int64(am.PollingInterval)))
 }
 
 // Validate checks that necessary portions of the config have been set.

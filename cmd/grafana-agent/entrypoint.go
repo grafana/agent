@@ -364,9 +364,6 @@ func (ep *Entrypoint) pollConfig(ctx context.Context, sleepTime time.Duration) e
 		case <-ctx.Done():
 			return nil
 		case <-t.C:
-			jitter := ep.cfg.AgentManagement.JitterTime() / 10
-			time.Sleep(jitter)
-
 			ok := ep.TriggerReload()
 			if !ok {
 				level.Error(ep.log).Log("msg", "config reload did not succeed")
