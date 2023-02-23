@@ -7,6 +7,9 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+> **NOTE**: As of v0.32.0, builds for 32-bit ARMv6 currently don't support the
+> embedded Flow UI. The Flow UI will return to this target as soon as possible.
+
 Main (unreleased)
 -----------------
 
@@ -14,6 +17,9 @@ v0.32.0-rc.0 (2023-02-23)
 -------------------------
 
 ### Breaking changes
+
+- Support for the embedded Flow UI for 32-bit ARMv6 builds is temporarily
+  removed. (@rfratto)
 
 - Node Exporter configuration options changed to align with new upstream version (@Thor77):
 
@@ -142,7 +148,7 @@ v0.32.0-rc.0 (2023-02-23)
 
 - Use Go 1.20 for builds. (@rfratto)
 
-- Grafana Agent Flow is now considered production ready. A subset of Flow
+- The beta label from Grafana Agent Flow has been removed. A subset of Flow
   components are still marked as beta or experimental:
 
   - `loki.echo` is explicitly marked as beta.
