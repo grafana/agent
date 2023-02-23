@@ -22,8 +22,8 @@ the three categories:
 * Beta: we are working on maturing a specific feature. Beta features may be
   subject to some breaking changes. Beta features may be replaced by equivalent
   functionality that covers that same use case. Beta features can be used
-  without feature flags. Unless replaced by equivalent functionality, beta
-  features will eventually graduate to stable.
+  without a feature flag being set. Unless replaced with equivalent
+  functionality, beta features will eventually graduate to stable.
 
 * Stable: we believe this functionality is stable, and breaking changes to
   configuration will be rare and well-documented. We will communicate
