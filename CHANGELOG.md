@@ -17,18 +17,30 @@ Main (unreleased)
   - `ignored_devices` is now `device_exclude` in flow configuration.
 
 - Some blocks in Flow components have been merged with their parent block to make the block hierarchy smaller:
-  - `prometheus.scrape > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
-  - `mimir.rules.kubernetes > http_client_config` is merged into the `mimir.rules.kubernetes` block. (@erikbaranowski)
   - `discovery.docker > http_client_config` is merged into the `discovery.docker` block. (@erikbaranowski)
+  - `discovery.kubernetes > http_client_config` is merged into the `discovery.kubernetes` block. (@erikbaranowski)
   - `loki.source.kubernetes > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
   - `loki.source.podlogs > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
+  - `loki.write > endpoint > http_client_config` is merged into the `endpoint` block. (@erikbaranowski)
+  - `mimir.rules.kubernetes > http_client_config` is merged into the `mimir.rules.kubernetes` block. (@erikbaranowski)
+  - `otelcol.receiver.opencensus > grpc` is merged into the `otelcol.receiver.opencensus` block. (@ptodev)
+  - `otelcol.receiver.zipkin > http` is merged into the `otelcol.receiver.zipkin` block. (@ptodev)
+  - `phlare.scrape > http_client_config` is merged into the `phlare.scrape` block. (@erikbaranowski)
+  - `phlare.write > endpoint > http_client_config` is merged into the `endpoint` block. (@erikbaranowski)
+  - `prometheus.remote_write > endpoint > http_client_config` is merged into the `endpoint` block. (@erikbaranowski)
+  - `prometheus.scrape > http_client_config` is merged into the `prometheus.scrape` block. (@erikbaranowski)
 
-- The `loki.process` component now makes use of River's 'enum' blocks. Instead
-  of defining processing stages in nested a `stage` block containing one
-  element each (eg. a `stage > json` hierarchy), the configuration now supports
-  defining each block as `stage.json` directly. (@tpaschalis)
+- The `loki.process` component now uses a combined name for stages, simplifying
+  the block hierarchy. For example, the `stage > json` block hierarchy is now a
+  single block called `stage.json`. All stage blocks in `loki.process` have
+  been updated to use this simplified hierarchy. (@tpaschalis)
 
 - `remote.s3` `client_options` block has been renamed to `client`. (@mattdurham)
+- Renamed `prometheus.integration.node_exporter` to `prometheus.exporter.unix`. (@jcreixell)
+
+- As first announced in v0.30, support for the `EXPERIMENTAL_ENABLE_FLOW`
+  environment variable has been removed in favor of `AGENT_MODE=flow`.
+  (@rfratto)
 
 ### Features
 
@@ -42,17 +54,26 @@ Main (unreleased)
 
 - New Grafana Agent Flow components:
 
+  - `loki.echo` writes received logs to stdout. (@tpaschalis, @rfratto)
   - `loki.source.docker` reads logs from Docker containers and forwards them to
     other `loki` components. (@tpaschalis)
-  - `loki.echo` writes received logs to stdout. (@tpaschalis, @rfratto)
+  - `loki.source.kafka` reads logs from Kafka events and forwards them to other
+    `loki` components. (@erikbaranowski)
+  - `loki.source.kubernetes_events` watches for Kubernetes Events and converts
+    them into log lines to forward to other `loki` components. It is the
+    equivalent of the `eventhandler` integration. (@rfratto)
   - `otelcol.processor.tail_sampling` samples traces based on a set of defined
     policies from `otelcol` components before forwarding them to other
     `otelcol` components. (@erikbaranowski)
-  - `prometheus.integration.apache` collects metrics from an apache web server
+  - `prometheus.exporter.apache` collects metrics from an apache web server
     (@captncraig)
-  - `prometheus.integration.consul` collects metrics from a consul installation
+  - `prometheus.exporter.consul` collects metrics from a consul installation
     (@captncraig)
-  - `prometheus.integration.github` collects metrics from GitHub (@jcreixell)
+  - `prometheus.exporter.github` collects metrics from GitHub (@jcreixell)
+  - `prometheus.exporter.process` aggregates and collects metrics by scraping
+    `/proc`. (@spartan0x117)
+  - `prometheus.exporter.redis` collects metrics from a redis database
+    (@spartan0x117)
 
 ### Enhancements
 
@@ -107,6 +128,20 @@ Main (unreleased)
 
 - Use Go 1.20 for builds. Official release binaries are still produced using Go
   1.19. (@rfratto)
+
+- Grafana Agent Flow is now considered production ready. A subset of Flow
+  components are still marked as beta or experimental:
+
+  - `loki.echo` is explicitly marked as beta.
+  - `loki.source.kubernetes` is explicitly marked as experimental.
+  - `loki.source.podlogs` is explicitly marked as experimental.
+  - `mimir.rules.kubernetes` is explicitly marked as beta.
+  - `otelcol.exporter.loki` is explicitly marked as beta.
+  - `otelcol.exporter.prometheus` is explicitly marked as beta.
+  - `otelcol.receiver.loki` is explicitly marked as beta.
+  - `otelcol.receiver.prometheus` is explicitly marked as beta.
+  - `phlare.scrape` is explicitly marked as beta.
+  - `phlare.write` is explicitly marked as beta.
 
 v0.31.3 (2023-02-13)
 --------------------

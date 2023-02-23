@@ -549,7 +549,7 @@ spec:
     targetLabel: pod
   - action: replace
     sourceLabels:
-    - __meta_kubernetes_container_name
+    - __meta_kubernetes_pod_container_name
     targetLabel: container
   - replacement: /var/log/pods/*$1/*.log
     separator: /

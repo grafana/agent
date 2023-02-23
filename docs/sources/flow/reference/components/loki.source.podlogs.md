@@ -1,8 +1,12 @@
 ---
 title: loki.source.podlogs
+labels:
+  stage: experimental
 ---
 
 # loki.source.podlogs
+
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" >}}
 
 `loki.source.podlogs` discovers `PodLogs` resources on Kubernetes and, using
 the Kubernetes API, tails logs from Kubernetes containers of Pods specified by
@@ -166,7 +170,7 @@ Name | Type | Description | Default | Required
 
  At most one of the following can be provided:
  - [`bearer_token` argument][client].
- - [`bearer_token_file` argument][client]. 
+ - [`bearer_token_file` argument][client].
  - [`basic_auth` block][basic_auth].
  - [`authorization` block][authorization].
  - [`oauth2` block][oauth2].
@@ -249,7 +253,7 @@ configuration.
 ## Example
 
 This example discovers all `PodLogs` resources and forwards collected logs to a
-`loki.write` component so they are can be written to Loki.
+`loki.write` component so they are written to Loki.
 
 ```river
 loki.source.podlogs "default" {

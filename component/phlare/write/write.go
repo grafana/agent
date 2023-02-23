@@ -29,14 +29,6 @@ var (
 	DefaultArguments = func() Arguments {
 		return Arguments{}
 	}
-	DefaultEndpointOptions = func() EndpointOptions {
-		return EndpointOptions{
-			RemoteTimeout:     10 * time.Second,
-			MinBackoff:        500 * time.Millisecond,
-			MaxBackoff:        5 * time.Minute,
-			MaxBackoffRetries: 10,
-		}
-	}
 	_ component.Component = (*Component)(nil)
 )
 
@@ -73,18 +65,40 @@ type EndpointOptions struct {
 	URL               string                   `river:"url,attr"`
 	RemoteTimeout     time.Duration            `river:"remote_timeout,attr,optional"`
 	Headers           map[string]string        `river:"headers,attr,optional"`
-	HTTPClientConfig  *config.HTTPClientConfig `river:"http_client_config,block,optional"`
+	HTTPClientConfig  *config.HTTPClientConfig `river:",squash"`
 	MinBackoff        time.Duration            `river:"min_backoff_period,attr,optional"`  // start backoff at this level
 	MaxBackoff        time.Duration            `river:"max_backoff_period,attr,optional"`  // increase exponentially to this level
 	MaxBackoffRetries int                      `river:"max_backoff_retries,attr,optional"` // give up after this many; zero means infinite retries
 }
 
+func GetDefaultEndpointOptions() EndpointOptions {
+	defaultEndpointOptions := EndpointOptions{
+		RemoteTimeout:     10 * time.Second,
+		MinBackoff:        500 * time.Millisecond,
+		MaxBackoff:        5 * time.Minute,
+		MaxBackoffRetries: 10,
+		HTTPClientConfig:  config.CloneDefaultHTTPClientConfig(),
+	}
+
+	return defaultEndpointOptions
+}
+
 // UnmarshalRiver implements river.Unmarshaler.
 func (r *EndpointOptions) UnmarshalRiver(f func(v interface{}) error) error {
-	*r = DefaultEndpointOptions()
+	*r = GetDefaultEndpointOptions()
 
 	type arguments EndpointOptions
-	return f((*arguments)(r))
+	err := f((*arguments)(r))
+	if err != nil {
+		return err
+	}
+
+	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
+	if r.HTTPClientConfig != nil {
+		return r.HTTPClientConfig.Validate()
+	}
+
+	return nil
 }
 
 // Component is the phlare.write component.

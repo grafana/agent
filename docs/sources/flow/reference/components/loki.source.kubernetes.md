@@ -1,8 +1,12 @@
 ---
 title: loki.source.kubernetes
+labels:
+  stage: experimental
 ---
 
 # loki.source.kubernetes
+
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" >}}
 
 `loki.source.kubernetes` tails logs from Kubernetes containers using the
 Kubernetes API. It has the following benefits over `loki.source.file`:
@@ -104,7 +108,7 @@ Name | Type | Description | Default | Required
 
  At most one of the following can be provided:
  - [`bearer_token` argument][client].
- - [`bearer_token_file` argument][client]. 
+ - [`bearer_token_file` argument][client].
  - [`basic_auth` block][basic_auth].
  - [`authorization` block][authorization].
  - [`oauth2` block][oauth2].
@@ -152,7 +156,7 @@ target:
 ## Example
 
 This example collects logs from all Kubernetes pods and forwards them to a
-`loki.write` component so they are can be written to Loki.
+`loki.write` component so they are written to Loki.
 
 ```river
 discovery.kubernetes "pods" {
