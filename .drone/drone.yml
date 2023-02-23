@@ -343,7 +343,8 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=linux GOARCH=amd64 GOARM= GO_TAGS="builtinassets" make agent
+  - GOOS=linux GOARCH=amd64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -359,7 +360,8 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=linux GOARCH=arm64 GOARM= GO_TAGS="builtinassets" make agent
+  - GOOS=linux GOARCH=arm64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -375,7 +377,7 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=linux GOARCH=arm GOARM=6 GO_TAGS="builtinassets" make agent
+  - GOOS=linux GOARCH=arm GOARM=6 GO_TAGS="promtail_journal_enabled" make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -391,7 +393,7 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=linux GOARCH=arm GOARM=7 GO_TAGS="builtinassets" make agent
+  - GOOS=linux GOARCH=arm GOARM=7 GO_TAGS="promtail_journal_enabled" make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -407,7 +409,8 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=linux GOARCH=ppc64le GOARM= GO_TAGS="builtinassets" make agent
+  - GOOS=linux GOARCH=ppc64le GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -423,7 +426,8 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=darwin GOARCH=amd64 GOARM= GO_TAGS="builtinassets" make agent
+  - GOOS=darwin GOARCH=amd64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -439,7 +443,8 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=darwin GOARCH=arm64 GOARM= GO_TAGS="builtinassets" make agent
+  - GOOS=darwin GOARCH=arm64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -455,7 +460,8 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=windows GOARCH=amd64 GOARM= GO_TAGS="builtinassets" make agent
+  - GOOS=windows GOARCH=amd64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -471,7 +477,8 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=freebsd GOARCH=amd64 GOARM= GO_TAGS="builtinassets" make agent
+  - GOOS=freebsd GOARCH=amd64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -487,7 +494,8 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=linux GOARCH=amd64 GOARM= GO_TAGS="builtinassets" make agentctl
+  - GOOS=linux GOARCH=amd64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -503,7 +511,8 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=linux GOARCH=arm64 GOARM= GO_TAGS="builtinassets" make agentctl
+  - GOOS=linux GOARCH=arm64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -519,7 +528,7 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=linux GOARCH=arm GOARM=6 GO_TAGS="builtinassets" make agentctl
+  - GOOS=linux GOARCH=arm GOARM=6 GO_TAGS="promtail_journal_enabled" make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -535,7 +544,7 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=linux GOARCH=arm GOARM=7 GO_TAGS="builtinassets" make agentctl
+  - GOOS=linux GOARCH=arm GOARM=7 GO_TAGS="promtail_journal_enabled" make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -551,7 +560,8 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=linux GOARCH=ppc64le GOARM= GO_TAGS="builtinassets" make agentctl
+  - GOOS=linux GOARCH=ppc64le GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -567,7 +577,8 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=darwin GOARCH=amd64 GOARM= GO_TAGS="builtinassets" make agentctl
+  - GOOS=darwin GOARCH=amd64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -583,7 +594,8 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=darwin GOARCH=arm64 GOARM= GO_TAGS="builtinassets" make agentctl
+  - GOOS=darwin GOARCH=arm64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -599,7 +611,8 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=windows GOARCH=amd64 GOARM= GO_TAGS="builtinassets" make agentctl
+  - GOOS=windows GOARCH=amd64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -615,7 +628,8 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=freebsd GOARCH=amd64 GOARM= GO_TAGS="builtinassets" make agentctl
+  - GOOS=freebsd GOARCH=amd64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -631,7 +645,8 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=linux GOARCH=amd64 GOARM= GO_TAGS="builtinassets" make operator
+  - GOOS=linux GOARCH=amd64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -647,7 +662,8 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=linux GOARCH=arm64 GOARM= GO_TAGS="builtinassets" make operator
+  - GOOS=linux GOARCH=arm64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -663,7 +679,7 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=linux GOARCH=arm GOARM=6 GO_TAGS="builtinassets" make operator
+  - GOOS=linux GOARCH=arm GOARM=6 GO_TAGS="promtail_journal_enabled" make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -679,7 +695,7 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=linux GOARCH=arm GOARM=7 GO_TAGS="builtinassets" make operator
+  - GOOS=linux GOARCH=arm GOARM=7 GO_TAGS="promtail_journal_enabled" make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -695,7 +711,8 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=linux GOARCH=ppc64le GOARM= GO_TAGS="builtinassets" make operator
+  - GOOS=linux GOARCH=ppc64le GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -711,7 +728,8 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=darwin GOARCH=amd64 GOARM= GO_TAGS="builtinassets" make operator
+  - GOOS=darwin GOARCH=amd64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -727,7 +745,8 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=darwin GOARCH=arm64 GOARM= GO_TAGS="builtinassets" make operator
+  - GOOS=darwin GOARCH=arm64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -743,7 +762,8 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=windows GOARCH=amd64 GOARM= GO_TAGS="builtinassets" make operator
+  - GOOS=windows GOARCH=amd64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -759,7 +779,8 @@ platform:
 steps:
 - commands:
   - make generate-ui
-  - GOOS=freebsd GOARCH=amd64 GOARM= GO_TAGS="builtinassets" make operator
+  - GOOS=freebsd GOARCH=amd64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -1178,6 +1199,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: 5ffdb7c3b55910b2d65e43d3424c8dafec446a5cd6b8d17c9b4ee784b0d80d15
+hmac: e19ee857f311b668b5f91252a4597004d64795245c01f4a0a973198b8763e01e
 
 ...
