@@ -16,6 +16,7 @@ import (
 	"github.com/grafana/agent/pkg/config/instrumentation"
 	"github.com/grafana/agent/pkg/server"
 	"github.com/prometheus/common/config"
+	"gopkg.in/yaml.v2"
 )
 
 const cacheFilename = "remote-config-cache.yaml"
@@ -41,25 +42,24 @@ func newRemoteConfigHTTPProvider(c *Config) (*remoteConfigHTTPProvider, error) {
 }
 
 type remoteConfigCache struct {
-	UrlHash string `json:"url_hash"`
-	Config  string `json:"config"`
+	InitialConfigHash string `json:"initial_config_hash"`
+	Config            string `json:"config"`
 }
 
-func hashUrl(u string) string {
-	hashed := sha256.Sum256([]byte(u))
-	return hex.EncodeToString(hashed[:])
+func hashInitialConfig(am AgentManagementConfig) (string, error) {
+	marshalled, err := yaml.Marshal(am)
+	if err != nil {
+		return "", fmt.Errorf("could not marshal initial config: %w", err)
+	}
+	hashed := sha256.Sum256(marshalled)
+	return hex.EncodeToString(hashed[:]), nil
 }
 
 // GetCachedRemoteConfig retrieves the cached remote config from the location specified
 // in r.AgentManagement.CacheLocation
 func (r remoteConfigHTTPProvider) GetCachedRemoteConfig(expandEnvVars bool) (*Config, error) {
 	cachePath := filepath.Join(r.InitialConfig.CacheLocation, cacheFilename)
-	curUrl, err := r.InitialConfig.fullUrl()
-	if err != nil {
-		return nil, fmt.Errorf("unable to create full url: %w", err)
-	}
 	var configCache remoteConfigCache
-
 	buf, err := os.ReadFile(cachePath)
 
 	if err != nil {
@@ -70,9 +70,14 @@ func (r remoteConfigHTTPProvider) GetCachedRemoteConfig(expandEnvVars bool) (*Co
 		return nil, fmt.Errorf("error trying to load cached remote config from file: %w", err)
 	}
 
-	// If a different url was used when caching the config, it is no longer valid
-	if !(configCache.UrlHash == hashUrl(curUrl)) {
-		return nil, errors.New("invalid remote config cache: url hashes don't match")
+	initialConfigHash, err := hashInitialConfig(*r.InitialConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	// If a different initial config was used when caching the config, it is no longer valid
+	if !(configCache.InitialConfigHash == initialConfigHash) {
+		return nil, errors.New("invalid remote config cache: initial config hashes don't match")
 	}
 
 	var cachedConfig Config
@@ -88,13 +93,13 @@ func (r remoteConfigHTTPProvider) GetCachedRemoteConfig(expandEnvVars bool) (*Co
 // r.AgentManagement.CacheLocation
 func (r remoteConfigHTTPProvider) CacheRemoteConfig(remoteConfigBytes []byte) error {
 	cachePath := filepath.Join(r.InitialConfig.CacheLocation, cacheFilename)
-	u, err := r.InitialConfig.fullUrl()
+	initialConfigHash, err := hashInitialConfig(*r.InitialConfig)
 	if err != nil {
-		return fmt.Errorf("unable to create full url: %w", err)
+		return err
 	}
 	configCache := remoteConfigCache{
-		UrlHash: hashUrl(u),
-		Config:  string(remoteConfigBytes),
+		InitialConfigHash: initialConfigHash,
+		Config:            string(remoteConfigBytes),
 	}
 	marshalled, err := json.Marshal(configCache)
 	if err != nil {
