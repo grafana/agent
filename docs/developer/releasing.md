@@ -198,15 +198,6 @@ Go through the entire repository and find references to the previous release
 NOTE: Please do not update the `operations/helm` directory. It is updated independently 
 from Agent releases for now.
 
-NOTE: There may be files such as 
-"[pkg/operator/defaults.go](https://github.com/grafana/agent/blob/main/pkg/operator/defaults.go)", 
-where the version sometimes should not be replaced but added to a list of versions.
-At the time of this writing, `defaults.go` is the only such file.
-
-#### Update defaults.go
-
-Add the new version to the "[pkg/operator/defaults.go](https://github.com/grafana/agent/blob/main/pkg/operator/defaults.go)" file. If there is a release candidate (`-rc.N`) version, remove it.
-
 ### Merge freezes
 
 Release shepherds may request a merge freeze to main for any reason during the
