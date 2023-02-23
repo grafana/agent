@@ -175,13 +175,24 @@ func (s *Runner[TaskType]) ApplyTasks(ctx context.Context, tt []TaskType) error 
 	return ctx.Err()
 }
 
-// Tasks returns the current set of running Tasks. Tasks are included even if
-// their associated runner has terminated.
+// Tasks returns the current set of Tasks. Tasks are included even if their
+// associated Worker has terminated.
 func (s *Runner[TaskType]) Tasks() []TaskType {
 	var res []TaskType
 	for task := range s.workers.Iterate() {
 		workerTask := task.(*workerTask)
 		res = append(res, workerTask.Task.(TaskType))
+	}
+	return res
+}
+
+// Workers returns the current set of Workers. Workers are included even if
+// they have terminated.
+func (s *Runner[TaskType]) Workers() []Worker {
+	var res []Worker
+	for task := range s.workers.Iterate() {
+		workerTask := task.(*workerTask)
+		res = append(res, workerTask.Worker.Worker)
 	}
 	return res
 }

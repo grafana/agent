@@ -9,11 +9,59 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/river"
 	prometheus_client "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/stretchr/testify/require"
 )
+
+func TestRiverConfig(t *testing.T) {
+	var exampleRiverConfig = `
+	targets         = [{ "target1" = "target1" }]
+	forward_to      = []
+	scrape_interval = "10s"
+	job_name        = "local"
+
+	bearer_token = "token"
+	proxy_url = "http://0.0.0.0:11111"
+	follow_redirects = true
+	enable_http2 = true
+
+	tls_config {
+		ca_file = "/path/to/file.ca"
+		cert_file = "/path/to/file.cert"
+		key_file = "/path/to/file.key"
+		server_name = "server_name"
+		insecure_skip_verify = false
+		min_version = "TLS13"
+	}
+`
+
+	var args Arguments
+	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
+	require.NoError(t, err)
+}
+
+func TestBadRiverConfig(t *testing.T) {
+	var exampleRiverConfig = `
+	targets         = [{ "target1" = "target1" }]
+	forward_to      = []
+	scrape_interval = "10s"
+	job_name        = "local"
+
+	bearer_token = "token"
+	bearer_token_file = "/path/to/file.token"
+	proxy_url = "http://0.0.0.0:11111"
+	follow_redirects = true
+	enable_http2 = true
+`
+
+	// Make sure the squashed HTTPClientConfig Validate function is being utilized correctly
+	var args Arguments
+	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
+	require.ErrorContains(t, err, "at most one of bearer_token & bearer_token_file must be configured")
+}
 
 func TestForwardingToAppendable(t *testing.T) {
 	l, err := logging.New(os.Stderr, logging.DefaultOptions)

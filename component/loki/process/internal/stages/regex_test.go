@@ -22,38 +22,28 @@ import (
 var protocolStr = "protocol"
 
 var testRegexRiverSingleStageWithoutSource = `
-stage {
-  regex {
+stage.regex {
     expression =  "^(?P<ip>\\S+) (?P<identd>\\S+) (?P<user>\\S+) \\[(?P<timestamp>[\\w:/]+\\s[+\\-]\\d{4})\\] \"(?P<action>\\S+)\\s?(?P<path>\\S+)?\\s?(?P<protocol>\\S+)?\" (?P<status>\\d{3}|-) (?P<size>\\d+|-)\\s?\"?(?P<referer>[^\"]*)\"?\\s?\"?(?P<useragent>[^\"]*)?\"?$"
-  }
 }
 `
 
 var testRegexRiverMultiStageWithSource = `
-stage {
-  regex {
+stage.regex {
     expression = "^(?P<ip>\\S+) (?P<identd>\\S+) (?P<user>\\S+) \\[(?P<timestamp>[\\w:/]+\\s[+\\-]\\d{4})\\] \"(?P<action>\\S+)\\s?(?P<path>\\S+)?\\s?(?P<protocol>\\S+)?\" (?P<status>\\d{3}|-) (?P<size>\\d+|-)\\s?\"?(?P<referer>[^\"]*)\"?\\s?\"?(?P<useragent>[^\"]*)?\"?$"
-  }
 }
-stage {
-  regex {
+stage.regex {
     expression = "^HTTP\\/(?P<protocol_version>[0-9\\.]+)$"
     source     = "protocol"
-  }
 }
 `
 
 var testRegexRiverSourceWithMissingKey = `
-stage {
-  json {
+stage.json {
     expressions = { "time" = "" }
-  }
 }
-stage {
-  regex {
+stage.regex {
     expression = "^(?P<year>\\d+)"
     source     = "time"
-  }
 }
 `
 

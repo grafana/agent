@@ -52,7 +52,7 @@ var (
 // DefaultConfig holds default settings for all the subsystems.
 var DefaultConfig = Config{
 	// All subsystems with a DefaultConfig should be listed here.
-	Server:                server.DefaultConfig,
+	Server:                &server.DefaultConfig,
 	ServerFlags:           server.DefaultFlags,
 	Metrics:               metrics.DefaultConfig,
 	Integrations:          DefaultVersionedIntegrations,
@@ -63,7 +63,7 @@ var DefaultConfig = Config{
 
 // Config contains underlying configurations for the agent
 type Config struct {
-	Server          server.Config         `yaml:"server,omitempty"`
+	Server          *server.Config        `yaml:"server,omitempty"`
 	Metrics         metrics.Config        `yaml:"metrics,omitempty"`
 	Integrations    VersionedIntegrations `yaml:"integrations,omitempty"`
 	Traces          traces.Config         `yaml:"traces,omitempty"`
@@ -175,6 +175,10 @@ func (c *Config) LogDeprecations(l log.Logger) {
 
 // Validate validates the config, flags, and sets default values.
 func (c *Config) Validate(fs *flag.FlagSet) error {
+	if c.Server == nil {
+		return fmt.Errorf("an empty server config is invalid")
+	}
+
 	if err := c.Metrics.ApplyDefaults(); err != nil {
 		return err
 	}

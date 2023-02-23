@@ -40,7 +40,7 @@ Name         | Type                 | Description                               
 
 > **NOTE**: `eventlog_name` is required if `xpath_query` does not specify the event log.
 > You can define `xpath_query` in [short or xml form](https://docs.microsoft.com/en-us/windows/win32/wes/consuming-events).
-> When using the XML form you can specify `event_log` in the `xpath_query`. 
+> When using the XML form you can specify `event_log` in the `xpath_query`.
 > If using short form, you must define `eventlog_name`.
 
 
@@ -51,8 +51,8 @@ configuration.
 
 ## Example
 
-This example collects log entries from the Event Log specified in `eventlog_name` and 
-forwards them to a `loki.write` component so they are can be written to Loki.
+This example collects log entries from the Event Log specified in `eventlog_name` and
+forwards them to a `loki.write` component so they are written to Loki.
 
 ```river
 loki.source.windowsevent "application"  {
@@ -63,6 +63,6 @@ loki.source.windowsevent "application"  {
 loki.write "endpoint" {
     endpoint {
         url ="loki:3100/api/v1/push"
-    }  
+    }
 }
 ```

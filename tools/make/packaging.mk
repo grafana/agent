@@ -42,11 +42,11 @@ dist/grafana-agent-linux-arm64: GOARCH  := arm64
 dist/grafana-agent-linux-arm64: generate-ui
 	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
-dist/grafana-agent-linux-armv6: GO_TAGS += builtinassets promtail_journal_enabled
+dist/grafana-agent-linux-armv6: GO_TAGS += promtail_journal_enabled
 dist/grafana-agent-linux-armv6: GOOS    := linux
 dist/grafana-agent-linux-armv6: GOARCH  := arm
 dist/grafana-agent-linux-armv6: GOARM   := 6
-dist/grafana-agent-linux-armv6: generate-ui
+dist/grafana-agent-linux-armv6:
 	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
 dist/grafana-agent-linux-armv7: GO_TAGS += builtinassets promtail_journal_enabled
@@ -142,7 +142,6 @@ dist/grafana-agentctl-windows-amd64.exe: GOARCH := amd64
 dist/grafana-agentctl-windows-amd64.exe:
 	$(PACKAGING_VARS) AGENTCTL_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agentctl
 
-dist/grafana-agentctl-freebsd-amd64: GO_TAGS += builtinassets
 dist/grafana-agentctl-freebsd-amd64: GOOS    := freebsd
 dist/grafana-agentctl-freebsd-amd64: GOARCH  := amd64
 dist/grafana-agentctl-freebsd-amd64:

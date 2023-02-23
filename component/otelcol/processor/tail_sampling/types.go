@@ -6,16 +6,7 @@ import (
 )
 
 type PolicyCfg struct {
-	Name                string              `river:"name,attr"`
-	Type                string              `river:"type,attr"`
-	LatencyCfg          LatencyCfg          `river:"latency,block,optional"`
-	NumericAttributeCfg NumericAttributeCfg `river:"numeric_attribute,block,optional"`
-	ProbabilisticCfg    ProbabilisticCfg    `river:"probabilistic,block,optional"`
-	StatusCodeCfg       StatusCodeCfg       `river:"status_code,block,optional"`
-	StringAttributeCfg  StringAttributeCfg  `river:"string_attribute,block,optional"`
-	RateLimitingCfg     RateLimitingCfg     `river:"rate_limiting,block,optional"`
-	SpanCountCfg        SpanCountCfg        `river:"span_count,block,optional"`
-	TraceStateCfg       TraceStateCfg       `river:"trace_state,block,optional"`
+	SharedPolicyCfg SharedPolicyCfg `river:",squash"`
 
 	// Configs for defining composite policy
 	CompositeCfg CompositeCfg `river:"composite,block,optional"`
@@ -28,21 +19,35 @@ func (policyCfg PolicyCfg) Convert() tsp.PolicyCfg {
 	var otelCfg tsp.PolicyCfg
 
 	mustDecodeMapStructure(map[string]interface{}{
-		"name":              policyCfg.Name,
-		"type":              policyCfg.Type,
-		"latency":           policyCfg.LatencyCfg.Convert(),
-		"numeric_attribute": policyCfg.NumericAttributeCfg.Convert(),
-		"probabilistic":     policyCfg.ProbabilisticCfg.Convert(),
-		"status_code":       policyCfg.StatusCodeCfg.Convert(),
-		"string_attribute":  policyCfg.StringAttributeCfg.Convert(),
-		"rate_limiting":     policyCfg.RateLimitingCfg.Convert(),
-		"span_count":        policyCfg.SpanCountCfg.Convert(),
-		"trace_state":       policyCfg.TraceStateCfg.Convert(),
+		"name":              policyCfg.SharedPolicyCfg.Name,
+		"type":              policyCfg.SharedPolicyCfg.Type,
+		"latency":           policyCfg.SharedPolicyCfg.LatencyCfg.Convert(),
+		"numeric_attribute": policyCfg.SharedPolicyCfg.NumericAttributeCfg.Convert(),
+		"probabilistic":     policyCfg.SharedPolicyCfg.ProbabilisticCfg.Convert(),
+		"status_code":       policyCfg.SharedPolicyCfg.StatusCodeCfg.Convert(),
+		"string_attribute":  policyCfg.SharedPolicyCfg.StringAttributeCfg.Convert(),
+		"rate_limiting":     policyCfg.SharedPolicyCfg.RateLimitingCfg.Convert(),
+		"span_count":        policyCfg.SharedPolicyCfg.SpanCountCfg.Convert(),
+		"trace_state":       policyCfg.SharedPolicyCfg.TraceStateCfg.Convert(),
 		"composite":         policyCfg.CompositeCfg.Convert(),
 		"and":               policyCfg.AndCfg.Convert(),
 	}, &otelCfg)
 
 	return otelCfg
+}
+
+// This cannot currently have a Convert() because tsp.sharedPolicyCfg isn't public
+type SharedPolicyCfg struct {
+	Name                string              `river:"name,attr"`
+	Type                string              `river:"type,attr"`
+	LatencyCfg          LatencyCfg          `river:"latency,block,optional"`
+	NumericAttributeCfg NumericAttributeCfg `river:"numeric_attribute,block,optional"`
+	ProbabilisticCfg    ProbabilisticCfg    `river:"probabilistic,block,optional"`
+	StatusCodeCfg       StatusCodeCfg       `river:"status_code,block,optional"`
+	StringAttributeCfg  StringAttributeCfg  `river:"string_attribute,block,optional"`
+	RateLimitingCfg     RateLimitingCfg     `river:"rate_limiting,block,optional"`
+	SpanCountCfg        SpanCountCfg        `river:"span_count,block,optional"`
+	TraceStateCfg       TraceStateCfg       `river:"trace_state,block,optional"`
 }
 
 // LatencyCfg holds the configurable settings to create a latency filter sampling policy
@@ -244,16 +249,7 @@ func (compositeCfg CompositeCfg) Convert() tsp.CompositeCfg {
 
 // CompositeSubPolicyCfg holds the common configuration to all policies under composite policy.
 type CompositeSubPolicyCfg struct {
-	Name                string              `river:"name,attr"`
-	Type                string              `river:"type,attr"`
-	LatencyCfg          LatencyCfg          `river:"latency,block,optional"`
-	NumericAttributeCfg NumericAttributeCfg `river:"numeric_attribute,block,optional"`
-	ProbabilisticCfg    ProbabilisticCfg    `river:"probabilistic,block,optional"`
-	StatusCodeCfg       StatusCodeCfg       `river:"status_code,block,optional"`
-	StringAttributeCfg  StringAttributeCfg  `river:"string_attribute,block,optional"`
-	RateLimitingCfg     RateLimitingCfg     `river:"rate_limiting,block,optional"`
-	SpanCountCfg        SpanCountCfg        `river:"span_count,block,optional"`
-	TraceStateCfg       TraceStateCfg       `river:"trace_state,block,optional"`
+	SharedPolicyCfg SharedPolicyCfg `river:",squash"`
 
 	// Configs for and policy evaluator.
 	AndCfg AndCfg `river:"and,block,optional"`
@@ -263,16 +259,16 @@ func (compositeSubPolicyCfg CompositeSubPolicyCfg) Convert() tsp.CompositeSubPol
 	var otelCfg tsp.CompositeSubPolicyCfg
 
 	mustDecodeMapStructure(map[string]interface{}{
-		"name":              compositeSubPolicyCfg.Name,
-		"type":              compositeSubPolicyCfg.Type,
-		"latency":           compositeSubPolicyCfg.LatencyCfg.Convert(),
-		"numeric_attribute": compositeSubPolicyCfg.NumericAttributeCfg.Convert(),
-		"probabilistic":     compositeSubPolicyCfg.ProbabilisticCfg.Convert(),
-		"status_code":       compositeSubPolicyCfg.StatusCodeCfg.Convert(),
-		"string_attribute":  compositeSubPolicyCfg.StringAttributeCfg.Convert(),
-		"rate_limiting":     compositeSubPolicyCfg.RateLimitingCfg.Convert(),
-		"span_count":        compositeSubPolicyCfg.SpanCountCfg.Convert(),
-		"trace_state":       compositeSubPolicyCfg.TraceStateCfg.Convert(),
+		"name":              compositeSubPolicyCfg.SharedPolicyCfg.Name,
+		"type":              compositeSubPolicyCfg.SharedPolicyCfg.Type,
+		"latency":           compositeSubPolicyCfg.SharedPolicyCfg.LatencyCfg.Convert(),
+		"numeric_attribute": compositeSubPolicyCfg.SharedPolicyCfg.NumericAttributeCfg.Convert(),
+		"probabilistic":     compositeSubPolicyCfg.SharedPolicyCfg.ProbabilisticCfg.Convert(),
+		"status_code":       compositeSubPolicyCfg.SharedPolicyCfg.StatusCodeCfg.Convert(),
+		"string_attribute":  compositeSubPolicyCfg.SharedPolicyCfg.StringAttributeCfg.Convert(),
+		"rate_limiting":     compositeSubPolicyCfg.SharedPolicyCfg.RateLimitingCfg.Convert(),
+		"span_count":        compositeSubPolicyCfg.SharedPolicyCfg.SpanCountCfg.Convert(),
+		"trace_state":       compositeSubPolicyCfg.SharedPolicyCfg.TraceStateCfg.Convert(),
 		"and":               compositeSubPolicyCfg.AndCfg.Convert(),
 	}, &otelCfg)
 
@@ -317,32 +313,23 @@ func (andCfg AndCfg) Convert() tsp.AndCfg {
 
 // AndSubPolicyCfg holds the common configuration to all policies under and policy.
 type AndSubPolicyCfg struct {
-	Name                string              `river:"name,attr"`
-	Type                string              `river:"type,attr"`
-	LatencyCfg          LatencyCfg          `river:"latency,block,optional"`
-	NumericAttributeCfg NumericAttributeCfg `river:"numeric_attribute,block,optional"`
-	ProbabilisticCfg    ProbabilisticCfg    `river:"probabilistic,block,optional"`
-	StatusCodeCfg       StatusCodeCfg       `river:"status_code,block,optional"`
-	StringAttributeCfg  StringAttributeCfg  `river:"string_attribute,block,optional"`
-	RateLimitingCfg     RateLimitingCfg     `river:"rate_limiting,block,optional"`
-	SpanCountCfg        SpanCountCfg        `river:"span_count,block,optional"`
-	TraceStateCfg       TraceStateCfg       `river:"trace_state,block,optional"`
+	SharedPolicyCfg SharedPolicyCfg `river:",squash"`
 }
 
 func (andSubPolicyCfg AndSubPolicyCfg) Convert() tsp.AndSubPolicyCfg {
 	var otelCfg tsp.AndSubPolicyCfg
 
 	mustDecodeMapStructure(map[string]interface{}{
-		"name":              andSubPolicyCfg.Name,
-		"type":              andSubPolicyCfg.Type,
-		"latency":           andSubPolicyCfg.LatencyCfg.Convert(),
-		"numeric_attribute": andSubPolicyCfg.NumericAttributeCfg.Convert(),
-		"probabilistic":     andSubPolicyCfg.ProbabilisticCfg.Convert(),
-		"status_code":       andSubPolicyCfg.StatusCodeCfg.Convert(),
-		"string_attribute":  andSubPolicyCfg.StringAttributeCfg.Convert(),
-		"rate_limiting":     andSubPolicyCfg.RateLimitingCfg.Convert(),
-		"span_count":        andSubPolicyCfg.SpanCountCfg.Convert(),
-		"trace_state":       andSubPolicyCfg.TraceStateCfg.Convert(),
+		"name":              andSubPolicyCfg.SharedPolicyCfg.Name,
+		"type":              andSubPolicyCfg.SharedPolicyCfg.Type,
+		"latency":           andSubPolicyCfg.SharedPolicyCfg.LatencyCfg.Convert(),
+		"numeric_attribute": andSubPolicyCfg.SharedPolicyCfg.NumericAttributeCfg.Convert(),
+		"probabilistic":     andSubPolicyCfg.SharedPolicyCfg.ProbabilisticCfg.Convert(),
+		"status_code":       andSubPolicyCfg.SharedPolicyCfg.StatusCodeCfg.Convert(),
+		"string_attribute":  andSubPolicyCfg.SharedPolicyCfg.StringAttributeCfg.Convert(),
+		"rate_limiting":     andSubPolicyCfg.SharedPolicyCfg.RateLimitingCfg.Convert(),
+		"span_count":        andSubPolicyCfg.SharedPolicyCfg.SpanCountCfg.Convert(),
+		"trace_state":       andSubPolicyCfg.SharedPolicyCfg.TraceStateCfg.Convert(),
 	}, &otelCfg)
 
 	return otelCfg
