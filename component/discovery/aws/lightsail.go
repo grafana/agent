@@ -27,8 +27,8 @@ func init() {
 
 // LightsailArguments is the configuration for AWS Lightsail based service discovery.
 type LightsailArguments struct {
-	Endpoint        string            `river:"endpoint,attr"`
-	Region          string            `river:"region,attr"`
+	Endpoint        string            `river:"endpoint,attr,optional"`
+	Region          string            `river:"region,attr,optional"`
 	AccessKey       string            `river:"access_key,attr,optional"`
 	SecretKey       rivertypes.Secret `river:"secret_key,attr,optional"`
 	Profile         string            `river:"profile,attr,optional"`

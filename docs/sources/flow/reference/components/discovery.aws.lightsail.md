@@ -1,0 +1,74 @@
+---
+title: discovery.aws.lightsail
+---
+
+# discovery.aws.lightsail
+
+`discovery.aws.lightsail` allows retrieving scrape targets from AWS Lightsail instances. The private IP address is used by default, but may be changed to the public IP address with relabeling.
+
+## Usage
+
+```river
+discovery.aws.lightsail "LABEL" {
+}
+```
+
+## Arguments
+
+The following arguments are supported:
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`endpoint` | `string` | Custom endpoint to be used.| | no
+`region` | `string` | The AWS region. If blank, the region from the instance metadata is used. | | no
+`access_key` | `string` | The AWS API key ID. If blank, the environment variable `AWS_ACCESS_KEY_ID` is used. | | no
+`secret_key` | `string` | The AWS API key secret. If blank, the environment variable `AWS_SECRET_ACCESS_KEY` is used. | | no
+`profile` | `string` | Named AWS profile used to connect to the API. | | no
+`role_arn` | `string` | AWS Role ARN, an alternative to using AWS API keys. | | no
+`refresh_interval` | `string` | Refresh interval to re-read the instance list. | 60s | no
+`port` | `int` | The port to scrape metrics from. If using the public IP address, this must instead be specified in the relabeling rule. | 80 | no
+
+## Exported fields
+
+The following fields are exported and can be referenced by other components:
+
+Name | Type | Description
+---- | ---- | -----------
+`targets` | `list(map(string))` | The set of targets discovered from the docker API.
+
+Each target includes the following labels:
+
+* `__meta_lightsail_availability_zone`: the availability zone in which the instance is running
+* `__meta_lightsail_blueprint_id`: the Lightsail blueprint ID
+* `__meta_lightsail_bundle_id`: the Lightsail bundle ID
+* `__meta_lightsail_instance_name`: the name of the Lightsail instance
+* `__meta_lightsail_instance_state`: the state of the Lightsail instance
+* `__meta_lightsail_instance_support_code`: the support code of the Lightsail instance
+* `__meta_lightsail_ipv6_addresses`: comma separated list of IPv6 addresses assigned to the instance's network interfaces, if present
+* `__meta_lightsail_private_ip`: the private IP address of the instance
+* `__meta_lightsail_public_ip`: the public IP address of the instance, if available
+* `__meta_lightsail_region`: the region of the instance
+* `__meta_lightsail_tag_<tagkey>`: each tag value of the instance
+
+
+## Component health
+
+`discovery.aws.lightsail` is only reported as unhealthy when given an invalid
+configuration. In those cases, exported fields retain their last healthy
+values.
+
+## Debug information
+
+`discovery.aws.lightsail` does not expose any component-specific debug information.
+
+### Debug metrics
+
+`discovery.aws.lightsail` does not expose any component-specific debug metrics.
+
+## Examples
+
+```river
+discovery.aws.lightsail "lightsail" {
+  region = "us-east-1"
+}
+```
