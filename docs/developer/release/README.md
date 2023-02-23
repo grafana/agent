@@ -17,7 +17,7 @@ Once a release is scheduled, a release shepard is determined. This person will b
 responsible for ownership of the following actions:
 
 1. [Create Release Branch](./create-release-branch.md)
-2. [Update Version](./update-version)
+2. [Update Version](./update-version.md)
 2. [Create Release Candidate](./create-release-candidate.md)
 3. [Publish Release Candidate](./publish-release-candidate.md)
 
