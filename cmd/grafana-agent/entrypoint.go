@@ -354,14 +354,17 @@ func (ep *Entrypoint) TriggerReload() bool {
 
 // pollConfig triggers a reload of the config on each tick of the ticker until the context
 // completes.
-func (ep *Entrypoint) pollConfig(ctx context.Context, t *time.Ticker) error {
+func (ep *Entrypoint) pollConfig(ctx context.Context, sleepTime time.Duration) error {
+	// Add an initial jitter to requests
+	time.Sleep(ep.cfg.AgentManagement.JitterTime())
+
+	t := time.NewTicker(sleepTime)
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		case <-t.C:
-			// Sleep for random amount of time to provide jitter to API requests
-			jitter := ep.cfg.AgentManagement.JitterTime()
+			jitter := ep.cfg.AgentManagement.JitterTime() / 10
 			time.Sleep(jitter)
 
 			ok := ep.TriggerReload()
@@ -424,11 +427,9 @@ func (ep *Entrypoint) Start() error {
 		managementContext, managementCancel := context.WithCancel(context.Background())
 		defer managementCancel()
 
-		// By this point ep.cfg.Validate() has already been called, so the configured time must be valid
 		sleepTime := ep.cfg.AgentManagement.SleepTime()
-		t := time.NewTicker(sleepTime)
 		g.Add(func() error {
-			return ep.pollConfig(managementContext, t)
+			return ep.pollConfig(managementContext, sleepTime)
 		}, func(e error) {
 			managementCancel()
 		})

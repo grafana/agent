@@ -116,21 +116,6 @@ remote_configuration:
 	assert.Equal(t, time.Minute, am.SleepTime())
 }
 
-func TestMaxJitterDuration(t *testing.T) {
-	am := validAgentManagementConfig
-
-	// test jitter lower bound clipping if MaxJitterDuration is unset
-	assert.LessOrEqual(t, am.maxJitterDuration(), 15*time.Second)
-
-	// test jitter lower bound clipping if MaxJitterDuration is zero
-	am.MaxJitterDuration = 0
-	assert.LessOrEqual(t, am.maxJitterDuration(), 15*time.Second)
-
-	// test jitter upper bound clipping if MaxJitterDuration > PollingInterval
-	am.MaxJitterDuration = 5 * time.Minute
-	assert.LessOrEqual(t, am.maxJitterDuration(), am.PollingInterval)
-}
-
 func TestFuzzJitterTime(t *testing.T) {
 	am := validAgentManagementConfig
 	pollingInterval := 2 * time.Minute
