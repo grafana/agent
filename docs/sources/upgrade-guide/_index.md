@@ -10,7 +10,7 @@ releases and how to migrate to newer versions.
 
 ## v0.32.0
 
-### Breaking change: `node_exportera configuration options changed
+### Breaking change: `node_exporter` configuration options changed
 
 With the update of the `node_exporter` integration to use v1.5.0, configuration
 options for the `diskstats` collector have changed names:
