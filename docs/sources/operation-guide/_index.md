@@ -21,7 +21,7 @@ the three categories:
 
 * Beta: we are working on maturing a specific feature. Beta features may be
   subject to some breaking changes. Beta features may be replaced by equivalent
-  functionality which covers that same use case. Beta features can be used
+  functionality that covers that same use case. Beta features can be used
   without feature flags. Unless replaced by equivalent functionality, beta
   features will eventually graduate to stable.
 
