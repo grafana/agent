@@ -13,10 +13,12 @@ Main (unreleased)
 ### Breaking changes
 
 - Node Exporter configuration options changed to align with new upstream version (@Thor77):
+
   - `diskstats_ignored_devices` is now `diskstats_device_exclude` in agent configuration.
   - `ignored_devices` is now `device_exclude` in flow configuration.
 
 - Some blocks in Flow components have been merged with their parent block to make the block hierarchy smaller:
+
   - `discovery.docker > http_client_config` is merged into the `discovery.docker` block. (@erikbaranowski)
   - `discovery.kubernetes > http_client_config` is merged into the `discovery.kubernetes` block. (@erikbaranowski)
   - `loki.source.kubernetes > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
@@ -115,20 +117,26 @@ Main (unreleased)
   added extra an extra `|` character when displaying the source file on the
   starting line. (@rfratto)
 
-- Flow: fix issues in `river fmt` where adding an inline comment on the same
+- Flow: fix issues in `agent fmt` where adding an inline comment on the same
   line as a `[` or `{` would cause indentation issues on subsequent lines.
   (@rfratto)
 
-- Flow: fix issues in `river fmt` where line comments in arrays would be given
+- Flow: fix issues in `agent fmt` where line comments in arrays would be given
   the wrong identation level. (@rfratto)
 
 - Flow: fix issues with `loki.file` and `loki.process` where deadlock contention or
   logs fail to process. (@mattdurham)
 
+- Flow: `oath2 > tls_config` was documented as a block but coded incorrectly as
+  an attribute. This is now a block in code. This impacted `discovery.docker`,
+  `discovery.kubernetes`, `loki.source.kubernetes`, `loki.write`,
+  `mimir.rules.kubernetes`, `phlare.scrape`, `phlare.write`,
+  `prometheus.remote_write`, `prometheus.scrape`, and `remote.http`
+  (@erikbaranowski)
+
 ### Other changes
 
-- Use Go 1.20 for builds. Official release binaries are still produced using Go
-  1.19. (@rfratto)
+- Use Go 1.20 for builds. (@rfratto)
 
 - Grafana Agent Flow is now considered production ready. A subset of Flow
   components are still marked as beta or experimental:
@@ -156,8 +164,6 @@ v0.31.3 (2023-02-13)
 - `loki.source.cloudflare`: fix issue where `api_token` argument was not marked
   as a sensitive field. (@rfratto)
 
-- `oath2 > tls_config` was documented as a block but coded incorrectly as an attribute. This is now a block in code. This impacted `discovery.docker`, `discovery.kubernetes`, `loki.source.kubernetes`, `loki.write`, `mimir.rules.kubernetes`, `phlare.scrape`, `phlare.write`, `prometheus.remote_write`, `prometheus.scrape`, and `remote.http`  (@erikbaranowski)
-
 v0.31.2 (2023-02-08)
 --------------------
 
@@ -179,7 +185,8 @@ v0.31.1 (2023-02-06)
 
 ### Other changes
 
-- Support Go 1.20 for builds. (@rfratto)
+- Support Go 1.20 for builds. Official release binaries are still produced
+  using Go 1.19. (@rfratto)
 
 v0.31.0 (2023-01-31)
 --------------------
