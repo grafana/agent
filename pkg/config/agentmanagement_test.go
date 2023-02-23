@@ -156,6 +156,9 @@ func TestRemoteConfigHashCheck(t *testing.T) {
 	require.NoError(t, initialConfigHashCheck(ic, rcCache))
 	rcCache.InitialConfigHash = "abc"
 	require.Error(t, initialConfigHashCheck(ic, rcCache))
+
+	differentIc := validAgentManagementConfig
+	require.Error(t, initialConfigHashCheck(differentIc, rcCache))
 }
 
 func TestNewRemoteConfigHTTPProvider_InvalidInitialConfig(t *testing.T) {
