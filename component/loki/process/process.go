@@ -60,6 +60,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	// Create and immediately export the receiver which remains the same for
 	// the component's lifetime.
 	c.receiver = make(loki.LogsReceiver)
+	c.processOut = make(loki.LogsReceiver)
 	o.OnStateChange(Exports{Receiver: c.receiver})
 
 	// Call to Update() to start readers and set receivers once at the start.
@@ -77,35 +78,17 @@ func (c *Component) Run(ctx context.Context) error {
 		if c.entryHandler != nil {
 			c.entryHandler.Stop()
 		}
+		close(c.processOut)
+		close(c.processIn)
 		c.mut.RUnlock()
 	}()
+	wg := &sync.WaitGroup{}
+	wg.Add(2)
+	go c.handleIn(ctx, wg)
+	go c.handleOut(ctx, wg)
 
-	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		case entry := <-c.receiver:
-			c.mut.RLock()
-			select {
-			case <-ctx.Done():
-				return nil
-			case c.processIn <- entry:
-				// no-op
-			}
-			c.mut.RUnlock()
-		case entry := <-c.processOut:
-			c.mut.RLock()
-			for _, f := range c.fanout {
-				select {
-				case <-ctx.Done():
-					return nil
-				case f <- entry:
-					// no-op
-				}
-			}
-			c.mut.RUnlock()
-		}
-	}
+	wg.Wait()
+	return nil
 }
 
 // Update implements component.Component.
@@ -124,11 +107,7 @@ func (c *Component) Update(args component.Arguments) error {
 		if err != nil {
 			return err
 		}
-		c.processOut = make(chan loki.Entry)
-		c.entryHandler = loki.NewEntryHandler(c.processOut, func() {
-			close(c.processOut)
-			close(c.processIn)
-		})
+		c.entryHandler = loki.NewEntryHandler(c.processOut, func() {})
 		c.processIn = pipeline.Wrap(c.entryHandler).Chan()
 		c.stages = newArgs.Stages
 	}
@@ -136,6 +115,46 @@ func (c *Component) Update(args component.Arguments) error {
 	c.fanout = newArgs.ForwardTo
 
 	return nil
+}
+
+func (c *Component) handleIn(ctx context.Context, wg *sync.WaitGroup) {
+	defer wg.Done()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case entry := <-c.receiver:
+			c.mut.RLock()
+			select {
+			case <-ctx.Done():
+				return
+			case c.processIn <- entry:
+				// no-op
+			}
+			c.mut.RUnlock()
+		}
+	}
+}
+
+func (c *Component) handleOut(ctx context.Context, wg *sync.WaitGroup) {
+	defer wg.Done()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case entry := <-c.processOut:
+			c.mut.RLock()
+			for _, f := range c.fanout {
+				select {
+				case <-ctx.Done():
+					return
+				case f <- entry:
+					// no-op
+				}
+			}
+			c.mut.RUnlock()
+		}
+	}
 }
 
 func stagesChanged(prev, next []stages.StageConfig) bool {
