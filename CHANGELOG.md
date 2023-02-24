@@ -13,6 +13,12 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Features
+
+- New Grafana Agent Flow components:
+
+  - `prometheus.exporter.blackbox` collects metrics from Blackbox exporter (@marctc).
+
 v0.32.0-rc.0 (2023-02-23)
 -------------------------
 
