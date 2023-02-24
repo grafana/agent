@@ -798,13 +798,26 @@ platform:
   os: linux
 steps:
 - commands:
+  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  failure: ignore
+  image: grafana/agent-build-image:0.21.0
+  name: Configure QEMU
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+- commands:
+  - docker buildx create --name multiarch-agent-agent-${DRONE_COMMIT_SHA} --driver
+    docker-container --use
+  image: grafana/agent-build-image:0.21.0
+  name: Run docker buildx worker
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+- commands:
   - mkdir -p $HOME/.docker
   - printenv GCR_CREDS > $HOME/.docker/config.json
   - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-  - docker buildx create --name multiarch-agent-agent --driver docker-container --use
   - ./tools/ci/docker-containers agent
-  - docker buildx rm multiarch-agent-agent
   environment:
     DOCKER_LOGIN:
       from_secret: DOCKER_LOGIN
@@ -817,6 +830,17 @@ steps:
   volumes:
   - name: docker
     path: /var/run/docker.sock
+- commands:
+  - docker buildx rm multiarch-agent-agent-${DRONE_COMMIT_SHA}
+  image: grafana/agent-build-image:0.21.0
+  name: Remove docker buildx worker
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    status:
+    - failure
+    - success
 trigger:
   ref:
   - refs/heads/main
@@ -835,14 +859,26 @@ platform:
   os: linux
 steps:
 - commands:
+  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  failure: ignore
+  image: grafana/agent-build-image:0.21.0
+  name: Configure QEMU
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+- commands:
+  - docker buildx create --name multiarch-agent-agentctl-${DRONE_COMMIT_SHA} --driver
+    docker-container --use
+  image: grafana/agent-build-image:0.21.0
+  name: Run docker buildx worker
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+- commands:
   - mkdir -p $HOME/.docker
   - printenv GCR_CREDS > $HOME/.docker/config.json
   - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-  - docker buildx create --name multiarch-agent-agentctl --driver docker-container
-    --use
   - ./tools/ci/docker-containers agentctl
-  - docker buildx rm multiarch-agent-agentctl
   environment:
     DOCKER_LOGIN:
       from_secret: DOCKER_LOGIN
@@ -855,6 +891,17 @@ steps:
   volumes:
   - name: docker
     path: /var/run/docker.sock
+- commands:
+  - docker buildx rm multiarch-agent-agentctl-${DRONE_COMMIT_SHA}
+  image: grafana/agent-build-image:0.21.0
+  name: Remove docker buildx worker
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    status:
+    - failure
+    - success
 trigger:
   ref:
   - refs/heads/main
@@ -873,14 +920,26 @@ platform:
   os: linux
 steps:
 - commands:
+  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  failure: ignore
+  image: grafana/agent-build-image:0.21.0
+  name: Configure QEMU
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+- commands:
+  - docker buildx create --name multiarch-agent-agent-operator-${DRONE_COMMIT_SHA}
+    --driver docker-container --use
+  image: grafana/agent-build-image:0.21.0
+  name: Run docker buildx worker
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+- commands:
   - mkdir -p $HOME/.docker
   - printenv GCR_CREDS > $HOME/.docker/config.json
   - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-  - docker buildx create --name multiarch-agent-agent-operator --driver docker-container
-    --use
   - ./tools/ci/docker-containers agent-operator
-  - docker buildx rm multiarch-agent-agent-operator
   environment:
     DOCKER_LOGIN:
       from_secret: DOCKER_LOGIN
@@ -893,6 +952,17 @@ steps:
   volumes:
   - name: docker
     path: /var/run/docker.sock
+- commands:
+  - docker buildx rm multiarch-agent-agent-operator-${DRONE_COMMIT_SHA}
+  image: grafana/agent-build-image:0.21.0
+  name: Remove docker buildx worker
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    status:
+    - failure
+    - success
 trigger:
   ref:
   - refs/heads/main
@@ -911,13 +981,26 @@ platform:
   os: linux
 steps:
 - commands:
+  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  failure: ignore
+  image: grafana/agent-build-image:0.21.0
+  name: Configure QEMU
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+- commands:
+  - docker buildx create --name multiarch-agent-smoke-${DRONE_COMMIT_SHA} --driver
+    docker-container --use
+  image: grafana/agent-build-image:0.21.0
+  name: Run docker buildx worker
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+- commands:
   - mkdir -p $HOME/.docker
   - printenv GCR_CREDS > $HOME/.docker/config.json
   - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-  - docker buildx create --name multiarch-agent-smoke --driver docker-container --use
   - ./tools/ci/docker-containers smoke
-  - docker buildx rm multiarch-agent-smoke
   environment:
     DOCKER_LOGIN:
       from_secret: DOCKER_LOGIN
@@ -930,6 +1013,17 @@ steps:
   volumes:
   - name: docker
     path: /var/run/docker.sock
+- commands:
+  - docker buildx rm multiarch-agent-smoke-${DRONE_COMMIT_SHA}
+  image: grafana/agent-build-image:0.21.0
+  name: Remove docker buildx worker
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    status:
+    - failure
+    - success
 trigger:
   ref:
   - refs/heads/main
@@ -948,13 +1042,26 @@ platform:
   os: linux
 steps:
 - commands:
+  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  failure: ignore
+  image: grafana/agent-build-image:0.21.0
+  name: Configure QEMU
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+- commands:
+  - docker buildx create --name multiarch-agent-crow-${DRONE_COMMIT_SHA} --driver
+    docker-container --use
+  image: grafana/agent-build-image:0.21.0
+  name: Run docker buildx worker
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+- commands:
   - mkdir -p $HOME/.docker
   - printenv GCR_CREDS > $HOME/.docker/config.json
   - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-  - docker buildx create --name multiarch-agent-crow --driver docker-container --use
   - ./tools/ci/docker-containers crow
-  - docker buildx rm multiarch-agent-crow
   environment:
     DOCKER_LOGIN:
       from_secret: DOCKER_LOGIN
@@ -967,6 +1074,17 @@ steps:
   volumes:
   - name: docker
     path: /var/run/docker.sock
+- commands:
+  - docker buildx rm multiarch-agent-crow-${DRONE_COMMIT_SHA}
+  image: grafana/agent-build-image:0.21.0
+  name: Remove docker buildx worker
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    status:
+    - failure
+    - success
 trigger:
   ref:
   - refs/heads/main
@@ -1202,6 +1320,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: 3a13fd175473adb0873959a4e67b7b2787161d9b69af0f1da3bf776671da8ce8
+hmac: 0562e33e3d31c6c8e5d92a21348e46daed42aab737904922add137bcf252963d
 
 ...
