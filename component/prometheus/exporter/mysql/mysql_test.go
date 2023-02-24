@@ -16,19 +16,37 @@ func TestRiverConfigUnmarshal(t *testing.T) {
 	set_collectors = ["collector3", "collector4"]
 	lock_wait_timeout = 1
 	log_slow_filter = false
-	info_schema_processlist_min_time = 2
-	info_schema_processlist_processes_by_user = true
-	info_schema_processlist_processes_by_host = false
-	info_schema_tables_databases = "schema"
-	perf_schema_eventsstatements_limit = 3
-	perf_schema_eventsstatements_time_limit = 4
-	perf_schema_eventsstatements_digtext_text_limit = 5
-	perf_schema_file_instances_filter = "instances_filter"
-	perf_schema_file_instances_remove_prefix = "instances_remove"
-	heartbeat_database = "heartbeat_database"
-	heartbeat_table = "heartbeat_table"
-	heartbeat_utc = true
-	mysql_user_privileges = false
+
+	info_schema.processlist {
+		min_time = 2
+		processes_by_user = true
+		processes_by_host = false
+	}
+
+	info_schema.tables {
+		databases = "schema"
+	}
+
+	perf_schema.eventsstatements {
+		limit = 3
+		time_limit = 4
+		text_limit = 5
+	}
+
+	perf_schema.file_instances {
+		filter = "instances_filter"
+		remove_prefix = "instances_remove"
+	}
+
+	heartbeat {
+		database = "heartbeat_database"
+		table = "heartbeat_table"
+		utc = true
+	}
+
+	mysql.user {
+		privileges = false
+	}
 `
 
 	var args Arguments
@@ -41,19 +59,19 @@ func TestRiverConfigUnmarshal(t *testing.T) {
 	require.Equal(t, []string{"collector3", "collector4"}, args.SetCollectors)
 	require.Equal(t, 1, args.LockWaitTimeout)
 	require.False(t, args.LogSlowFilter)
-	require.Equal(t, 2, args.InfoSchemaProcessListMinTime)
-	require.True(t, args.InfoSchemaProcessListProcessesByUser)
-	require.False(t, args.InfoSchemaProcessListProcessesByHost)
-	require.Equal(t, "schema", args.InfoSchemaTablesDatabases)
-	require.Equal(t, 3, args.PerfSchemaEventsStatementsLimit)
-	require.Equal(t, 4, args.PerfSchemaEventsStatementsTimeLimit)
-	require.Equal(t, 5, args.PerfSchemaEventsStatementsTextLimit)
-	require.Equal(t, "instances_filter", args.PerfSchemaFileInstancesFilter)
-	require.Equal(t, "instances_remove", args.PerfSchemaFileInstancesRemovePrefix)
-	require.Equal(t, "heartbeat_database", args.HeartbeatDatabase)
-	require.Equal(t, "heartbeat_table", args.HeartbeatTable)
-	require.True(t, args.HeartbeatUTC)
-	require.False(t, args.MySQLUserPrivileges)
+	require.Equal(t, 2, args.InfoSchemaProcessList.MinTime)
+	require.True(t, args.InfoSchemaProcessList.ProcessesByUser)
+	require.False(t, args.InfoSchemaProcessList.ProcessesByHost)
+	require.Equal(t, "schema", args.InfoSchemaTables.Databases)
+	require.Equal(t, 3, args.PerfSchemaEventsStatements.Limit)
+	require.Equal(t, 4, args.PerfSchemaEventsStatements.TimeLimit)
+	require.Equal(t, 5, args.PerfSchemaEventsStatements.TextLimit)
+	require.Equal(t, "instances_filter", args.PerfSchemaFileInstances.Filter)
+	require.Equal(t, "instances_remove", args.PerfSchemaFileInstances.RemovePrefix)
+	require.Equal(t, "heartbeat_database", args.Heartbeat.Database)
+	require.Equal(t, "heartbeat_table", args.Heartbeat.Table)
+	require.True(t, args.Heartbeat.UTC)
+	require.False(t, args.MySQLUser.Privileges)
 }
 
 func TestRiverConfigConvert(t *testing.T) {
@@ -64,19 +82,37 @@ func TestRiverConfigConvert(t *testing.T) {
 	set_collectors = ["collector3", "collector4"]
 	lock_wait_timeout = 1
 	log_slow_filter = false
-	info_schema_processlist_min_time = 2
-	info_schema_processlist_processes_by_user = true
-	info_schema_processlist_processes_by_host = false
-	info_schema_tables_databases = "schema"
-	perf_schema_eventsstatements_limit = 3
-	perf_schema_eventsstatements_time_limit = 4
-	perf_schema_eventsstatements_digtext_text_limit = 5
-	perf_schema_file_instances_filter = "instances_filter"
-	perf_schema_file_instances_remove_prefix = "instances_remove"
-	heartbeat_database = "heartbeat_database"
-	heartbeat_table = "heartbeat_table"
-	heartbeat_utc = true
-	mysql_user_privileges = false
+	
+	info_schema.processlist {
+		min_time = 2
+		processes_by_user = true
+		processes_by_host = false
+	}
+
+	info_schema.tables {
+		databases = "schema"
+	}
+
+	perf_schema.eventsstatements {
+		limit = 3
+		time_limit = 4
+		text_limit = 5
+	}
+
+	perf_schema.file_instances {
+		filter = "instances_filter"
+		remove_prefix = "instances_remove"
+	}
+
+	heartbeat {
+		database = "heartbeat_database"
+		table = "heartbeat_table"
+		utc = true
+	}
+
+	mysql.user {
+		privileges = false
+	}
 `
 
 	var args Arguments

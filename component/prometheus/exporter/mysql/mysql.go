@@ -26,19 +26,26 @@ func createExporter(opts component.Options, args component.Arguments) (integrati
 // DefaultArguments holds the default settings for the mysqld_exporter integration.
 var DefaultArguments = Arguments{
 	LockWaitTimeout: 2,
-
-	InfoSchemaProcessListProcessesByUser: true,
-	InfoSchemaProcessListProcessesByHost: true,
-	InfoSchemaTablesDatabases:            "*",
-
-	PerfSchemaEventsStatementsLimit:     250,
-	PerfSchemaEventsStatementsTimeLimit: 86400,
-	PerfSchemaEventsStatementsTextLimit: 120,
-	PerfSchemaFileInstancesFilter:       ".*",
-	PerfSchemaFileInstancesRemovePrefix: "/var/lib/mysql",
-
-	HeartbeatDatabase: "heartbeat",
-	HeartbeatTable:    "heartbeat",
+	InfoSchemaProcessList: InfoSchemaProcessList{
+		ProcessesByUser: true,
+		ProcessesByHost: true,
+	},
+	InfoSchemaTables: InfoSchemaTables{
+		Databases: "*",
+	},
+	PerfSchemaEventsStatements: PerfSchemaEventsStatements{
+		Limit:     250,
+		TimeLimit: 86400,
+		TextLimit: 120,
+	},
+	PerfSchemaFileInstances: PerfSchemaFileInstances{
+		Filter:       ".*",
+		RemovePrefix: "/var/lib/mysql",
+	},
+	Heartbeat: Heartbeat{
+		Database: "heartbeat",
+		Table:    "heartbeat",
+	},
 }
 
 // Arguments controls the mysql component.
@@ -59,19 +66,46 @@ type Arguments struct {
 	LogSlowFilter   bool `river:"log_slow_filter,attr,optional"`
 
 	// Collector-specific config options
-	InfoSchemaProcessListMinTime         int    `river:"info_schema_processlist_min_time,attr,optional"`
-	InfoSchemaProcessListProcessesByUser bool   `river:"info_schema_processlist_processes_by_user,attr,optional"`
-	InfoSchemaProcessListProcessesByHost bool   `river:"info_schema_processlist_processes_by_host,attr,optional"`
-	InfoSchemaTablesDatabases            string `river:"info_schema_tables_databases,attr,optional"`
-	PerfSchemaEventsStatementsLimit      int    `river:"perf_schema_eventsstatements_limit,attr,optional"`
-	PerfSchemaEventsStatementsTimeLimit  int    `river:"perf_schema_eventsstatements_time_limit,attr,optional"`
-	PerfSchemaEventsStatementsTextLimit  int    `river:"perf_schema_eventsstatements_digtext_text_limit,attr,optional"`
-	PerfSchemaFileInstancesFilter        string `river:"perf_schema_file_instances_filter,attr,optional"`
-	PerfSchemaFileInstancesRemovePrefix  string `river:"perf_schema_file_instances_remove_prefix,attr,optional"`
-	HeartbeatDatabase                    string `river:"heartbeat_database,attr,optional"`
-	HeartbeatTable                       string `river:"heartbeat_table,attr,optional"`
-	HeartbeatUTC                         bool   `river:"heartbeat_utc,attr,optional"`
-	MySQLUserPrivileges                  bool   `river:"mysql_user_privileges,attr,optional"`
+	InfoSchemaProcessList      InfoSchemaProcessList      `river:"info_schema.processlist,block,optional"`
+	InfoSchemaTables           InfoSchemaTables           `river:"info_schema.tables,block,optional"`
+	PerfSchemaEventsStatements PerfSchemaEventsStatements `river:"perf_schema.eventsstatements,block,optional"`
+	PerfSchemaFileInstances    PerfSchemaFileInstances    `river:"perf_schema.file_instances,block,optional"`
+	Heartbeat                  Heartbeat                  `river:"heartbeat,block,optional"`
+	MySQLUser                  MySQLUser                  `river:"mysql.user,block,optional"`
+}
+
+// InfoSchemaProcessList configures the info_schema.processlist collector
+type InfoSchemaProcessList struct {
+	MinTime         int  `river:"min_time,attr,optional"`
+	ProcessesByUser bool `river:"processes_by_user,attr,optional"`
+	ProcessesByHost bool `river:"processes_by_host,attr,optional"`
+}
+
+// InfoSchemaTables configures the info_schema.tables collector
+type InfoSchemaTables struct {
+	Databases string `river:"databases,attr,optional"`
+}
+
+// PerfSchemaEventsStatements configures the perf_schema.eventsstatements collector
+type PerfSchemaEventsStatements struct {
+	Limit     int `river:"limit,attr,optional"`
+	TimeLimit int `river:"time_limit,attr,optional"`
+	TextLimit int `river:"text_limit,attr,optional"`
+}
+
+type PerfSchemaFileInstances struct {
+	Filter       string `river:"filter,attr,optional"`
+	RemovePrefix string `river:"remove_prefix,attr,optional"`
+}
+
+type Heartbeat struct {
+	Database string `river:"database,attr,optional"`
+	Table    string `river:"table,attr,optional"`
+	UTC      bool   `river:"utc,attr,optional"`
+}
+
+type MySQLUser struct {
+	Privileges bool `river:"privileges,attr,optional"`
 }
 
 // UnmarshalRiver implements River unmarshalling for Config.
@@ -90,18 +124,18 @@ func (a *Arguments) Convert() *mysqld_exporter.Config {
 		SetCollectors:                        a.SetCollectors,
 		LockWaitTimeout:                      a.LockWaitTimeout,
 		LogSlowFilter:                        a.LogSlowFilter,
-		InfoSchemaProcessListMinTime:         a.InfoSchemaProcessListMinTime,
-		InfoSchemaProcessListProcessesByUser: a.InfoSchemaProcessListProcessesByUser,
-		InfoSchemaProcessListProcessesByHost: a.InfoSchemaProcessListProcessesByHost,
-		InfoSchemaTablesDatabases:            a.InfoSchemaTablesDatabases,
-		PerfSchemaEventsStatementsLimit:      a.PerfSchemaEventsStatementsLimit,
-		PerfSchemaEventsStatementsTimeLimit:  a.PerfSchemaEventsStatementsTimeLimit,
-		PerfSchemaEventsStatementsTextLimit:  a.PerfSchemaEventsStatementsTextLimit,
-		PerfSchemaFileInstancesFilter:        a.PerfSchemaFileInstancesFilter,
-		PerfSchemaFileInstancesRemovePrefix:  a.PerfSchemaFileInstancesRemovePrefix,
-		HeartbeatDatabase:                    a.HeartbeatDatabase,
-		HeartbeatTable:                       a.HeartbeatTable,
-		HeartbeatUTC:                         a.HeartbeatUTC,
-		MySQLUserPrivileges:                  a.MySQLUserPrivileges,
+		InfoSchemaProcessListMinTime:         a.InfoSchemaProcessList.MinTime,
+		InfoSchemaProcessListProcessesByUser: a.InfoSchemaProcessList.ProcessesByUser,
+		InfoSchemaProcessListProcessesByHost: a.InfoSchemaProcessList.ProcessesByHost,
+		InfoSchemaTablesDatabases:            a.InfoSchemaTables.Databases,
+		PerfSchemaEventsStatementsLimit:      a.PerfSchemaEventsStatements.Limit,
+		PerfSchemaEventsStatementsTimeLimit:  a.PerfSchemaEventsStatements.TimeLimit,
+		PerfSchemaEventsStatementsTextLimit:  a.PerfSchemaEventsStatements.TextLimit,
+		PerfSchemaFileInstancesFilter:        a.PerfSchemaFileInstances.Filter,
+		PerfSchemaFileInstancesRemovePrefix:  a.PerfSchemaFileInstances.RemovePrefix,
+		HeartbeatDatabase:                    a.Heartbeat.Database,
+		HeartbeatTable:                       a.Heartbeat.Table,
+		HeartbeatUTC:                         a.Heartbeat.UTC,
+		MySQLUserPrivileges:                  a.MySQLUser.Privileges,
 	}
 }
