@@ -7,7 +7,7 @@ be used for the Release Candidates, Stable Release and Patch Releases.
 1. Gather consensus on which commit should be used as a base for the release
    branch.
 
-2. Determine the version prefix
+2. Determine the version prefix.
 
     The release version prefix can be determined by looking at the last version and adding to it. 
 
@@ -24,47 +24,10 @@ be used for the Release Candidates, Stable Release and Patch Releases.
     The name of the release branch should be `release-` suffixed with the 
     version prefix defined in step 2, such as `release-v0.31`.
 
-        Note: There is no branch such as `release-v0.31-rc.0` or `release-v0.31.0`. Only use the version prefix as defined in step 2.
+        Note: There is no branch such as `release-v0.31-rc.0` or `release-v0.31.0`.
 
-    If the consensus commit is the latest commit from main:
-
-    ```mermaid
-    gitGraph
-        commit id: "1"
-        commit id: "2"
-        commit id: "3"
-        branch release-v0.31
-        checkout release-v0.31
-        cherry-pick id: "3"
-    ```
-
-    If the consensus commit is not the latest commit from main:
-
-    ```mermaid
-    gitGraph
-        commit id: "1"
-        branch release-v0.31
-        checkout release-v0.31
-        cherry-pick id: "1"
-        checkout main
-        commit id: "2"
-        commit id: "3"
-    ```
+    - If the consensus commit is the latest commit from main you can branch from main.
+    - If the consensus commit is not the latest commit from main, branch from that instead.
 
 4. Create a PR to cherry-pick additional commits into the release branch as
    needed. 
-
-    ```mermaid
-    gitGraph
-        commit id: "1"
-        commit id: "2"
-        commit id: "3"
-        branch release-v0.31
-        checkout release-v0.31
-        cherry-pick id: "3"
-        checkout main
-        commit id: "4"
-        commit id: "5"
-        checkout release-v0.31
-        cherry-pick id: "5"
-    ```

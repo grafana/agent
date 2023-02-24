@@ -20,19 +20,19 @@ The version can be determined starting with the version prefix determined in [Cr
 
 ## Steps
 
-1. Create a branch from `main`
+1. Create a branch from `main`.
 
-    Note: This branch cannot be prefixed with `release-`
+    Note: This branch cannot be prefixed with `release-`.
 
-2. Update the `CHANGELOG.md`
+2. Update the `CHANGELOG.md`.
 
-    1. Modify Header:
+    1. Modify CHANGELOG Header
         - First RCV or a PRV
-            - Add a new header under `Main (unreleased)` for `[version] (YYYY-MM-DD)`
+            - Add a new header under `Main (unreleased)` for `[version] (YYYY-MM-DD)`.
         - Additional RCV or SRV
-            - Update the header `[previous RCV] (YYYY-MM-DD)` to `[version] (YYYY-MM-DD)`
+            - Update the header `[previous RCV] (YYYY-MM-DD)` to `[version] (YYYY-MM-DD)`.
 
-    2. Move the unreleased changes included in the release branch from `Main (unreleased)` to `[version] (YYYY-MM-DD)`
+    2. Move the unreleased changes included in the release branch from `Main (unreleased)` to `[version] (YYYY-MM-DD)`.
 
     3. Update **appropriate** places in the codebase that have the previous version with the new version determined above.
     
@@ -40,20 +40,20 @@ The version can be determined starting with the version prefix determined in [Cr
 
         NOTE: Please do not update the operations/helm directory. It is updated independently from Agent releases for now.
 
-3. Update the version in code
+3. Update the version in code.
 
     There are a number of places in code that the current version must be replaced with the new version.
 
-4. Create a PR to merge to main (must be merged before continuing)
+4. Create a PR to merge to main (must be merged before continuing).
 
     See [here](https://github.com/grafana/agent/pull/2838/files) for an example PR for the first RCV.
-    
+
     See [here](https://github.com/grafana/agent/pull/2873/files) for an example PR for a SRV.
 
-5. Create a branch from `release-[version prefix]`
+5. Create a branch from `release-[version prefix]`.
     
-    Note: This branch cannot be prefixed with `release-`
+    Note: This branch cannot be prefixed with `release-`.
 
 6. Cherry pick the change commit from the merged PR in step 4 from main into the new branch from step 5.
 
-7. Create a PR to merge to `release-[version prefix]` (must be merged before continuing)
+7. Create a PR to merge to `release-[version prefix]` (must be merged before continuing).
