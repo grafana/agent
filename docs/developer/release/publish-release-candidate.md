@@ -14,7 +14,7 @@ Actions will create release assets and open a release draft for every pushed tag
 
 4. Add any additional changes that you think are notable to the list.
 
-5. Add a footer to this section `For a full list of changes, please refer to the [CHANGELOG](https://github.com/grafana/agent/blob/[version]/CHANGELOG.md)!`
+5. Add a footer to the `Notable Changes` section `For a full list of changes, please refer to the [CHANGELOG](https://github.com/grafana/agent/blob/[version]/CHANGELOG.md)!`
 
 6. At the bottom of the release page, tick the check box to "add a discussion" 
 under the category for "announcements".

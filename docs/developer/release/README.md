@@ -29,7 +29,7 @@ responsible for ownership of the following workflows:
 
 1. [Create Release Branch](./create-release-branch.md)
 2. [Update Version in Code](./update-version-in-code.md)
-3. [Tag Releasee](./tag-release.md)
+3. [Tag Release](./tag-release.md)
 4. [Publish Release Candidate](./publish-release-candidate.md)
 
 [Actions]: #Actions
