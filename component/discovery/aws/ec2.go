@@ -16,7 +16,7 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "discovery.aws.ec2",
+		Name:    "discovery.ec2",
 		Args:    EC2Arguments{},
 		Exports: discovery.Exports{},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
@@ -98,7 +98,7 @@ func (args *EC2Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	return nil
 }
 
-// New creates a new discovery.aws.ec2 component.
+// New creates a new discovery.ec2 component.
 func NewEC2(opts component.Options, args EC2Arguments) (component.Component, error) {
 	return discovery.New(opts, args, func(args component.Arguments) (discovery.Discoverer, error) {
 		conf := args.(EC2Arguments).Convert()

@@ -16,7 +16,7 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "discovery.aws.lightsail",
+		Name:    "discovery.lightsail",
 		Args:    LightsailArguments{},
 		Exports: discovery.Exports{},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
@@ -79,7 +79,7 @@ func (args *LightsailArguments) UnmarshalRiver(f func(interface{}) error) error 
 	return nil
 }
 
-// New creates a new discovery.aws.lightsail component.
+// New creates a new discovery.lightsail component.
 func NewLightsail(opts component.Options, args LightsailArguments) (component.Component, error) {
 	return discovery.New(opts, args, func(args component.Arguments) (discovery.Discoverer, error) {
 		conf := args.(LightsailArguments).Convert()

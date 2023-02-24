@@ -1,15 +1,15 @@
 ---
-title: discovery.aws.lightsail
+title: discovery.lightsail
 ---
 
-# discovery.aws.lightsail
+# discovery.lightsail
 
-`discovery.aws.lightsail` allows retrieving scrape targets from AWS Lightsail instances. The private IP address is used by default, but may be changed to the public IP address with relabeling.
+`discovery.lightsail` allows retrieving scrape targets from lightsail instances. The private IP address is used by default, but may be changed to the public IP address with relabeling.
 
 ## Usage
 
 ```river
-discovery.aws.lightsail "LABEL" {
+discovery.lightsail "LABEL" {
 }
 ```
 
@@ -53,22 +53,22 @@ Each target includes the following labels:
 
 ## Component health
 
-`discovery.aws.lightsail` is only reported as unhealthy when given an invalid
+`discovery.lightsail` is only reported as unhealthy when given an invalid
 configuration. In those cases, exported fields retain their last healthy
 values.
 
 ## Debug information
 
-`discovery.aws.lightsail` does not expose any component-specific debug information.
+`discovery.lightsail` does not expose any component-specific debug information.
 
 ### Debug metrics
 
-`discovery.aws.lightsail` does not expose any component-specific debug metrics.
+`discovery.lightsail` does not expose any component-specific debug metrics.
 
 ## Examples
 
 ```river
-discovery.aws.lightsail "lightsail" {
+discovery.lightsail "lightsail" {
   region = "us-east-1"
 }
 ```

@@ -1,17 +1,17 @@
 ---
-title: discovery.aws.ec2
+title: discovery.ec2
 ---
 
-# discovery.aws.ec2
+# discovery.ec2
 
-`discovery.aws.ec2` allows retrieving scrape targets from AWS EC2 instances. The private IP address is used by default, but may be changed to the public IP address with relabeling.
+`discovery.ec2` allows retrieving scrape targets from ec2 instances. The private IP address is used by default, but may be changed to the public IP address with relabeling.
 
 The IAM credentials used must have the ec2:DescribeInstances permission to discover scrape targets, and may optionally have the ec2:DescribeAvailabilityZones permission if you want the availability zone ID available as a label.
 
 ## Usage
 
 ```river
-discovery.aws.ec2 "LABEL" {
+discovery.ec2 "LABEL" {
 }
 ```
 
@@ -33,7 +33,7 @@ Name | Type | Description | Default | Required
 ## Blocks
 
 The following blocks are supported inside the definition of
-`discovery.aws.ec2`:
+`discovery.ec2`:
 
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
@@ -89,22 +89,22 @@ Each target includes the following labels:
 
 ## Component health
 
-`discovery.aws.ec2` is only reported as unhealthy when given an invalid
+`discovery.ec2` is only reported as unhealthy when given an invalid
 configuration. In those cases, exported fields retain their last healthy
 values.
 
 ## Debug information
 
-`discovery.aws.ec2` does not expose any component-specific debug information.
+`discovery.ec2` does not expose any component-specific debug information.
 
 ### Debug metrics
 
-`discovery.aws.ec2` does not expose any component-specific debug metrics.
+`discovery.ec2` does not expose any component-specific debug metrics.
 
 ## Examples
 
 ```river
-discovery.aws.ec2 "ec2" {
+discovery.ec2 "ec2" {
   region = "us-east-1"
 }
 ```
