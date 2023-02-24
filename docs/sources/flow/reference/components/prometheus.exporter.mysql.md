@@ -48,7 +48,7 @@ Name | Type | Description | Default | Required
 `mysql_user_privileges`                           | `bool`         | Enable collecting user privileges from mysql.user. | `false` | no
 
 
-Set a `lock_wait_timeout` on the connection to avoid potentially long wait times for metadata locks. View more detailed documentation on `lock_wait_timeout` [here](https://dev.mysql.com/doc/refman/8.0/en/server-system-variables.html#sysvar_lock_wait_timeout).
+Set a `lock_wait_timeout` on the connection to avoid potentially long wait times for metadata locks. View more detailed documentation on `lock_wait_timeout` [in the MySQL documentation](https://dev.mysql.com/doc/refman/8.0/en/server-system-variables.html#sysvar_lock_wait_timeout).
 
 > **NOTE**: `log_slow_filter` is not supported by Oracle MySQL.
 
