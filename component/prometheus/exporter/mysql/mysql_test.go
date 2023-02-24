@@ -8,8 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-
-
 func TestRiverConfigUnmarshal(t *testing.T) {
 	var exampleRiverConfig = `
 	data_source_name = "DataSourceName"
@@ -57,8 +55,6 @@ func TestRiverConfigUnmarshal(t *testing.T) {
 	require.True(t, args.HeartbeatUTC)
 	require.False(t, args.MySQLUserPrivileges)
 }
-
-
 
 func TestRiverConfigConvert(t *testing.T) {
 	var exampleRiverConfig = `
