@@ -46,7 +46,7 @@ blackbox_target | [blackbox_target][] | Configures a blackbox target. | yes
 ### blackbox_target block
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`name` | `string` | Name of a blackbox_target. | | yes
+`name` | `string` | Name of the target. | | yes
 `address` | `string` | The address of the target to probe. | | yes
 `module`| `string` | Blackbox module to use to probe. | `""` | no
 
