@@ -130,7 +130,6 @@ require (
 	github.com/prometheus/prometheus v1.99.0
 	github.com/prometheus/snmp_exporter v0.20.1-0.20220111173215-83399c23888f
 	github.com/prometheus/statsd_exporter v0.22.8
-	github.com/prometheus/tsdb v0.7.1
 	github.com/rancher/k3d/v5 v5.2.2
 	github.com/rfratto/ckit v0.0.0-20220401221852-009169323240
 	github.com/rs/cors v1.8.3
@@ -145,6 +144,7 @@ require (
 	github.com/webdevops/azure-metrics-exporter v0.0.0-20221205214019-9333e682d754
 	github.com/webdevops/go-common v0.0.0-20221205213740-01078f6e07cd
 	github.com/wk8/go-ordered-map v0.2.0
+	github.com/xdg-go/scram v1.1.1
 	go.opencensus.io v0.24.0
 	go.opentelemetry.io/collector v0.63.1
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.63.0
@@ -166,10 +166,10 @@ require (
 	go.uber.org/zap v1.23.0
 	golang.org/x/crypto v0.3.0
 	golang.org/x/exp v0.0.0-20221031165847-c99f073a8326
-	golang.org/x/net v0.5.0
+	golang.org/x/net v0.7.0
 	golang.org/x/oauth2 v0.4.0
-	golang.org/x/sys v0.4.0
-	golang.org/x/text v0.6.0
+	golang.org/x/sys v0.5.0
+	golang.org/x/text v0.7.0
 	golang.org/x/time v0.2.0
 	google.golang.org/api v0.108.0
 	google.golang.org/grpc v1.51.0
@@ -548,7 +548,6 @@ require (
 	github.com/weaveworks/promrus v1.2.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.1 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
-	github.com/xdg-go/scram v1.1.1 // indirect
 	github.com/xdg-go/stringprep v1.0.3 // indirect
 	github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c // indirect
 	github.com/xdg/stringprep v1.0.0 // indirect
@@ -571,7 +570,7 @@ require (
 	gocloud.dev v0.24.0 // indirect
 	golang.org/x/mod v0.7.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/term v0.4.0 // indirect
+	golang.org/x/term v0.5.0 // indirect
 	golang.org/x/tools v0.4.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
