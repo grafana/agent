@@ -84,5 +84,4 @@ func TestBuildBlackboxTargets(t *testing.T) {
 	require.Equal(t, "integrations/blackbox/target_a", targets[0]["job"])
 	require.Equal(t, "http://example.com", targets[0]["__param_target"])
 	require.Equal(t, "http_2xx", targets[0]["__param_module"])
-
 }

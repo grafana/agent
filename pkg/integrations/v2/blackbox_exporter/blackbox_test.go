@@ -53,6 +53,7 @@ func TestBlackbox(t *testing.T) {
 				model.MetricsPathLabel: "/test/metrics",
 				"blackbox_target":      "1.1.1.1",
 				"__param_target":       "1.1.1.1",
+				"__param_module":       "icmp_ipv4",
 			}},
 		}}
 		require.Equal(t, expect, actual)
