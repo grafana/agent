@@ -1,7 +1,8 @@
 # Create Release Branch
 
-This is the first step taken as release shephard after [Prerequisites](./prerequisites.md) are met. 
-This branch will be used for the Release Candidates, Stable Release and Patch Releases.
+This is the first step taken as release shepherd for a new release 
+after [Prerequisites](./prerequisites.md) are met. This branch will 
+be used for the Release Candidates, Stable Release and Patch Releases.
 
 1. Gather consensus on which commit should be used as a base for the release
    branch.

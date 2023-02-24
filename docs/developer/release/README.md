@@ -8,18 +8,33 @@ The processes described here are for v0.24.0 and above.
 
 # Prerequisites
 
-These [Prerequisites](./prerequisites.md) should be done by the release shephard 
+These [Prerequisites](./prerequisites.md) should be done by the release shepherd 
 before taking any actions.
+
+# Workflows
+
+Once a release is scheduled, a release shepherd is determined. This person will be 
+responsible for ownership of the following workflows:
+
+- Release Candidate Release
+  - [Actions] 1-4
+- Additional Release Candidate[s]
+  - [Actions] 2-4
+- Stable Release
+  - [Actions] 2,TBD-TBD
+- Patch Release
+  - [Actions] 2,TBD-TBD
 
 # Actions
 
-Once a release is scheduled, a release shepard is determined. This person will be 
-responsible for ownership of the following actions:
-
 1. [Create Release Branch](./create-release-branch.md)
-2. [Update Version](./update-version.md)
-2. [Create Release Candidate](./create-release-candidate.md)
-3. [Publish Release Candidate](./publish-release-candidate.md)
+2. [Update Version in Code](./update-version-in-code.md)
+3. [Create Release Candidate](./create-release-candidate.md)
+4. [Publish Release Candidate](./publish-release-candidate.md)
+
+[Actions]: #Actions
+
+# Release Cycle
 
 A typical release cycle is to have a Release Candidate published for at least 48 
 hours followed by a Stable Release. 0 or more Patch Releases may occur between the Stable Release
@@ -27,15 +42,15 @@ and the creation of the next Release Candidate.
 
 ```mermaid
 flowchart LR
-    A(RC) -->|>48 hours| B(SR)
-    B --> C(PR 1)
-    C --> D(PR 2)
+    A(RCV) -->|>48 hours| B(SRV)
+    B --> C(PRV 1)
+    C --> D(PRV 2)
     D --> E(...)
-    E --> F(New RC)
+    E --> F(New RCV)
 ```
 
-RC = Release Candidate
+RCV = Release Candidate Version
 
-SR = Stable Release
+SRV = Stable Release Version
 
-PR = Patch Release
+PRV = Patch Release Version
