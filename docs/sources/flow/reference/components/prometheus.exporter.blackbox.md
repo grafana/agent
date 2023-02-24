@@ -1,0 +1,107 @@
+---
+# NOTE(rfratto): the title below has zero-width spaces injected into it to
+# prevent it from overflowing the sidebar on the rendered site. Be careful when
+# modifying this section to retain the spaces.
+#
+# Ideally, in the future, we can fix the overflow issue with css rather than
+# injecting special characters.
+
+title: prometheus.exporter.blackbox
+---
+
+# prometheus.exporter.blackbox
+The `prometheus.exporter.blackbox` component embeds
+[`blackbox_exporter`](https://github.com/prometheus/blackbox_exporter). This allows
+the collection of blackbox metrics (probes) and exposing them as Prometheus metrics.
+
+## Usage
+
+```river
+prometheus.exporter.blackbox "LABEL" {
+}
+```
+
+## Arguments
+The following arguments can be used to configure the exporter's behavior.
+Omitted fields take their default values.
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`config_file`                 | `string`       | Blackbox configuration file with custom modules | | yes
+`probe_timeout_offset`        | `float`        | Represents the offset to subtract from timeout in seconds when probing targets  | 0.5 | no
+
+If `config_file` is a YAML file with definition of blackbox modules to use. See https://github.com/prometheus/blackbox_exporter/blob/master/example.yml for more details how to generate custom file.
+
+## Blocks
+
+The following blocks are supported inside the definition of
+`prometheus.exporter.blackbox` to configure collector-specific options:
+
+Hierarchy | Name | Description | Required
+--------- | ---- | ----------- | --------
+blackbox_target | [blackbox_target][] | Configures a blackbox target. | yes
+
+[blackbox_target]: #blackbox_target-block
+
+### blackbox_target block
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`name` | `string` | Name of a blackbox_target. | | yes
+`address` | `string` | The address of the target to probe. | | yes
+`module`| `string` | Blackbox module to use to probe. | `""` | no
+
+## Exported fields
+The following fields are exported and can be referenced by other components.
+
+Name      | Type                | Description
+--------- | ------------------- | -----------
+`targets` | `list(map(string))` | The targets that can be used to collect `blackbox` metrics.
+
+For example, `targets` can either be passed to a `prometheus.relabel`
+component to rewrite the metrics' label set, or to a `prometheus.scrape`
+component that collects the exposed metrics.
+
+## Component health
+
+`prometheus.exporter.blackbox` is only reported as unhealthy if given
+an invalid configuration. In those cases, exported fields retain their last
+healthy values.
+
+## Debug information
+
+`prometheus.exporter.blackbox` does not expose any component-specific
+debug information.
+
+## Debug metrics
+
+`prometheus.exporter.blackbox` does not expose any component-specific
+debug metrics.
+
+## Example
+
+This example uses a [`prometheus.scrape` component][scrape] to collect metrics
+from `prometheus.exporter.blackbox`:
+
+```river
+prometheus.exporter.blackbox "example" { 
+	config_file        = "blackbox_modules.yml"
+	blackbox_target {
+		name = "example"
+		address = "http://example.com"
+		module = "http_2xx"
+	}
+	blackbox_target {
+		name = "grafana"
+		address = "http://grafana.com"
+		module = "http_2xx"
+	}	
+}
+
+// Configure a prometheus.scrape component to collect Blackbox metrics.
+prometheus.scrape "demo" {
+  targets    = prometheus.exporter.blackbox.example.targets
+  forward_to = [ /* ... */ ]
+}
+```
+
+[scrape]: {{< relref "./prometheus.scrape.md" >}}

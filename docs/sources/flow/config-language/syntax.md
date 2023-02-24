@@ -75,6 +75,21 @@ BLOCK_NAME "BLOCK_LABEL" {
 }
 ```
 
+#### Patter for creating repeated blocks
+
+If a block accepts multiple definitions of itself (i.e defined internally as slice), 
+in river needs to be defined as a repeated block.
+
+```river
+BLOCK_NAME {
+  IDENTIFIER = EXPRESSION_A // Attribute
+}
+
+BLOCK_NAME {
+  IDENTIFIER = EXPRESSION_B // Attribute
+}
+```
+
 #### Block naming rules
 
 The `BLOCK_NAME` has to be recognized by Flow as either a valid component

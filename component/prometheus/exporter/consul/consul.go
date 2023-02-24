@@ -14,7 +14,7 @@ func init() {
 		Name:    "prometheus.exporter.consul",
 		Args:    Config{},
 		Exports: exporter.Exports{},
-		Build:   exporter.New(createExporter, "consul"),
+		Build:   exporter.New(createExporter, "consul", nil),
 	})
 }
 

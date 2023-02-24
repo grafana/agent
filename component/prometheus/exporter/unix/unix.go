@@ -13,7 +13,7 @@ func init() {
 		Args:      Config{},
 		Exports:   exporter.Exports{},
 		Singleton: true,
-		Build:     exporter.New(createExporter, "unix"),
+		Build:     exporter.New(createExporter, "unix", nil),
 	})
 }
 

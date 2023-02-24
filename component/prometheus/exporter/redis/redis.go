@@ -17,7 +17,7 @@ func init() {
 		Name:    "prometheus.exporter.redis",
 		Args:    Config{},
 		Exports: exporter.Exports{},
-		Build:   exporter.New(createExporter, "redis"),
+		Build:   exporter.New(createExporter, "redis", nil),
 	})
 }
 

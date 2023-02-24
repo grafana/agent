@@ -46,6 +46,7 @@ import (
 	_ "github.com/grafana/agent/component/phlare/scrape"                   // Import phlare.scrape
 	_ "github.com/grafana/agent/component/phlare/write"                    // Import phlare.write
 	_ "github.com/grafana/agent/component/prometheus/exporter/apache"      // Import prometheus.exporter.apache
+	_ "github.com/grafana/agent/component/prometheus/exporter/blackbox"    // Import prometheus.exporter.blackbox
 	_ "github.com/grafana/agent/component/prometheus/exporter/consul"      // Import prometheus.exporter.consul
 	_ "github.com/grafana/agent/component/prometheus/exporter/github"      // Import prometheus.exporter.github
 	_ "github.com/grafana/agent/component/prometheus/exporter/process"     // Import prometheus.exporter.process

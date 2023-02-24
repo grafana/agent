@@ -14,7 +14,7 @@ func init() {
 		Name:    "prometheus.exporter.github",
 		Args:    Config{},
 		Exports: exporter.Exports{},
-		Build:   exporter.New(createExporter, "github"),
+		Build:   exporter.New(createExporter, "github", nil),
 	})
 }
 

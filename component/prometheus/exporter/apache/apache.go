@@ -12,7 +12,7 @@ func init() {
 		Name:    "prometheus.exporter.apache",
 		Args:    Config{},
 		Exports: exporter.Exports{},
-		Build:   exporter.New(createExporter, "apache"),
+		Build:   exporter.New(createExporter, "apache", nil),
 	})
 }
 

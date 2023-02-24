@@ -29,25 +29,24 @@ type Component struct {
 
 	reload chan struct{}
 
-	creator Creator
+	creator         Creator
+	multiTargetFunc func(discovery.Target, component.Arguments) []discovery.Target
+	baseTarget      discovery.Target
 
 	exporter       integrations.Integration
 	metricsHandler http.Handler
 }
 
-func New(creator Creator, name string) func(component.Options, component.Arguments) (component.Component, error) {
+func New(creator Creator, name string, multiTargetFunc func(discovery.Target, component.Arguments) []discovery.Target) func(component.Options, component.Arguments) (component.Component, error) {
 	return func(opts component.Options, args component.Arguments) (component.Component, error) {
 		c := &Component{
-			opts:    opts,
-			reload:  make(chan struct{}, 1),
-			creator: creator,
-		}
-		// Call to Update() to set the output once at the start.
-		if err := c.Update(args); err != nil {
-			return nil, err
+			opts:            opts,
+			reload:          make(chan struct{}, 1),
+			creator:         creator,
+			multiTargetFunc: multiTargetFunc,
 		}
 		jobName := fmt.Sprintf("integrations/%s", name)
-		targets := []discovery.Target{{
+		c.baseTarget = discovery.Target{
 			model.AddressLabel:                  opts.HTTPListenAddr,
 			model.SchemeLabel:                   "http",
 			model.MetricsPathLabel:              path.Join(opts.HTTPPath, "metrics"),
@@ -55,10 +54,13 @@ func New(creator Creator, name string) func(component.Options, component.Argumen
 			"job":                               jobName,
 			"__meta_agent_integration_name":     jobName,
 			"__meta_agent_integration_instance": opts.ID,
-		}}
-		opts.OnStateChange(Exports{
-			Targets: targets,
-		})
+		}
+
+		// Call to Update() to set the output once at the start.
+		if err := c.Update(args); err != nil {
+			return nil, err
+		}
+
 		return c, nil
 	}
 }
@@ -103,6 +105,17 @@ func (c *Component) Update(args component.Arguments) error {
 	}
 	c.mut.Lock()
 	c.exporter = exporter
+
+	var targets []discovery.Target
+	if c.multiTargetFunc == nil {
+		targets = []discovery.Target{c.baseTarget}
+	} else {
+		targets = c.multiTargetFunc(c.baseTarget, args)
+	}
+
+	c.opts.OnStateChange(Exports{
+		Targets: targets,
+	})
 	c.mut.Unlock()
 	select {
 	case c.reload <- struct{}{}:
