@@ -27,7 +27,7 @@ Omitted fields take their default values.
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`config_file`                 | `string`       | Blackbox configuration file with custom modules | | yes
+`config_file`                 | `string`       | Blackbox configuration file with custom modules. | | yes
 `probe_timeout_offset`        | `float`        | Represents the offset to subtract from timeout in seconds when probing targets  | 0.5 | no
 
 If `config_file` is a YAML file with definition of blackbox modules to use. See https://github.com/prometheus/blackbox_exporter/blob/master/example.yml for more details how to generate custom file.
