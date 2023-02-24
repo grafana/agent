@@ -13,6 +13,13 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Bugfixes
+
+- Flow: add a maximum connection lifetime of one hour when tailing logs from
+  `loki.source.kubernetes` and `loki.source.podlogs` to recover from an issue
+  where the Kubernetes API server stops responding with logs without closing
+  the TCP connection. (@rfratto)
+
 v0.32.0-rc.0 (2023-02-23)
 -------------------------
 
