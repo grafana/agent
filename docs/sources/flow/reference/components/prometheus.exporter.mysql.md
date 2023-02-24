@@ -11,7 +11,7 @@ title: prometheus.exporter.​mysql
 
 # prometheus.exporter.mysql
 The `prometheus.exporter.mysql` component embeds
-[mysqld_exporter](https://github.com/prometheus/mysqld_exporter) for collecting stats from a mysql server.
+[mysqld_exporter](https://github.com/prometheus/mysqld_exporter) for collecting stats from a MySQL server.
 
 ## Usage
 
