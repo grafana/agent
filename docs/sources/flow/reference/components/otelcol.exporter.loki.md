@@ -1,12 +1,8 @@
 ---
 title: otelcol.exporter.loki
-labels:
-  stage: beta
 ---
 
 # otelcol.exporter.loki
-
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
 
 `otelcol.exporter.loki` accepts OTLP-formatted logs from other `otelcol`
 components, converts them to Loki-formatted log entries, and forwards them
