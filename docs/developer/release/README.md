@@ -16,20 +16,20 @@ before taking any actions.
 Once a release is scheduled, a release shepherd is determined. This person will be 
 responsible for ownership of the following workflows:
 
-- Release Candidate Release
+- Release Candidate Publish
   - [Actions] 1-4
-- Additional Release Candidate[s]
+- Additional Release Candidate[s] Publish
   - [Actions] 2-4
-- Stable Release
+- Stable Release Publish
   - [Actions] 2,TBD-TBD
-- Patch Release
+- Patch Release Publish
   - [Actions] 2,TBD-TBD
 
 # Actions
 
 1. [Create Release Branch](./create-release-branch.md)
 2. [Update Version in Code](./update-version-in-code.md)
-3. [Create Release Candidate](./create-release-candidate.md)
+3. [Tag Releasee](./tag-release.md)
 4. [Publish Release Candidate](./publish-release-candidate.md)
 
 [Actions]: #Actions

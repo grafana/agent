@@ -8,15 +8,18 @@ The version can be determined starting with the version prefix determined in [Cr
 
 - Release Candidate Version (RCV)
 
-    The RCV will look like `[version prefix].x-rc.y`. For example, `v0.32.0-rc.0` is the first RCV for the v0.32.0 release.
+    - The RCV will look like `[version prefix].x-rc.y`.
+    - For example, `v0.32.0-rc.0` is the first RCV for the v0.32.0 release.
 
 - Stable Release Version (SRV)
 
-    The SRV will look like `[version prefix].x`. For example, `v0.32.0` is the SRV for the v0.32.0 release.
+    - The SRV will look like `[version prefix].0`.
+    - For example, `v0.32.0` is the SRV for the v0.32.0 release.
 
 - Patch Release Version (PRV)
 
-    The PRV will look like `[version prefix].x`. For example, `v0.32.1` is the first PRV for the v0.32.0 release.
+    - The PRV will look like `[version prefix].x`.
+    - For example, `v0.32.1` is the first PRV for the v0.32.0 release.
 
 ## Steps
 

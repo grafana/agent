@@ -1,0 +1,20 @@
+# Tag Release
+
+## Prerequisites
+
+All required commits for the release should exist on the release branch. This includes functionality and documentation such as the CHANGELOG.md.
+
+## Steps
+
+1. Make sure you are up to date on the release branch (git checkout, fetch and pull)
+
+2. Tag the release.
+
+    The version used for this Action should have been determined during the [Update Version in Code](./update-version-in-code.md) steps.
+
+    Example commands:
+
+    ```
+    git tag -s v0.32.0-rc.0
+    git push origin v0.32.0-rc.0
+    ```

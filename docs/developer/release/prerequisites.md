@@ -2,7 +2,7 @@
 
 Before performing a release, make sure that you have completed the following.
 
-## Git Signature Verification
+## Steps
 
 1. Follow the GitHub [instructions](https://docs.github.com/en/authentication/managing-commit-signature-verification) to set up GPG for signature verification.
 

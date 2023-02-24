@@ -1,13 +1,18 @@
 # Create Release Branch
 
 This is the first step taken as release shepherd for a new release 
-after [Prerequisites](./prerequisites.md) are met. This branch will 
-be used for the Release Candidates, Stable Release and Patch Releases.
+after [Prerequisites](./prerequisites.md) are met.
+
+A release branch is created for every major or minor release. That release
+branch is then used for all Release Candidates, the Stable Release, and all
+Patch Releases.
+
+## Steps
 
 1. Gather consensus on which commit should be used as a base for the release
    branch.
 
-2. Determine the version prefix.
+2. Determine the version and prefix.
 
     The release version prefix can be determined by looking at the last version and adding to it. 
 
@@ -22,9 +27,9 @@ be used for the Release Candidates, Stable Release and Patch Releases.
 3. Create and push the release branch from the selected base commit:
 
     The name of the release branch should be `release-` suffixed with the 
-    version prefix defined in step 2, such as `release-v0.31`.
+    version prefix defined in step 2, such as `release-v0.32`.
 
-        Note: There is no branch such as `release-v0.31-rc.0` or `release-v0.31.0`.
+        Note: There is no branch such as `release-v0.32-rc.0` or `release-v0.32.0`.
 
     - If the consensus commit is the latest commit from main you can branch from main.
     - If the consensus commit is not the latest commit from main, branch from that instead.
