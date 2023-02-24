@@ -9,7 +9,12 @@ internal API changes are not present.
 
 Unreleased
 ----------
+
+0.7.0 (2023-02-24)
+----------
+
 ### Enhancements
+
 - Helm chart: Add support for templates inside of configMap.content (@ts-mini)
 - Add the necessary rbac to support eventhandler integration (@nvanheuverzwijn)
 
