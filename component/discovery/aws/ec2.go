@@ -41,7 +41,7 @@ type EC2Arguments struct {
 	RoleARN         string            `river:"role_arn,attr,optional"`
 	RefreshInterval time.Duration     `river:"refresh_interval,attr,optional"`
 	Port            int               `river:"port,attr,optional"`
-	Filters         []*EC2Filter      `river:"filters,block,optional"`
+	Filters         []*EC2Filter      `river:"filter,block,optional"`
 }
 
 func (args EC2Arguments) Convert() *promaws.EC2SDConfig {

@@ -14,8 +14,8 @@ Main (unreleased)
 
 - New Grafana Agent Flow components:
 
-  - `discovery.aws.ec2` service discovery for aws ec2. (@captncraig)
-  - `discovery.aws.lightsail` service discovery for aws lightsail. (@captncraig)
+  - `discovery.ec2` service discovery for aws ec2. (@captncraig)
+  - `discovery.lightsail` service discovery for aws lightsail. (@captncraig)
 
 v0.32.0-rc.0 (2023-02-23)
 -------------------------
