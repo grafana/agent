@@ -16,7 +16,7 @@ Main (unreleased)
 ### Features
 
 - New Grafana Agent Flow components:
-  - `prometheus.exporter.mysql` collects metrics from a mysql database (@spartan0x117)
+  - `prometheus.exporter.mysql` collects metrics from a MySQL database. (@spartan0x117)
 
 v0.32.0-rc.0 (2023-02-23)
 -------------------------
