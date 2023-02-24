@@ -34,30 +34,79 @@ Name | Type | Description | Default | Required
 `set_collectors`                                  | `list(string)` | A list of [collectors][] to run. Fully overrides the default set. | | no
 `lock_wait_timeout`                               | `int`          | Timeout, in seconds, to acquire a metadata lock. | `2`| no
 `log_slow_filter`                                 | `bool`         | Used to avoid queries from scrapes being logged in the slow query log. | `false` | no
-`info_schema_processlist_min_time`                | `int`          | Minimum time a thread must be in each state to be counted. | `0` | no
-`info_schema_processlist_processes_by_user`       | `bool`         | Enable collecting the number of processes by user. | `true` | no
-`info_schema_processlist_processes_by_host`       | `bool`         | Enable collecting the number of processes by host. | `true` | no
-`info_schema_tables_databases`                    | `string`       | Regular expression to match databases to collect table stats for. | `"*"` | no
-`perf_schema_eventsstatements_limit`              | `int`          | Limit the number of events statements digests, in descending order by `last_seen`. | `250` | no
-`perf_schema_eventsstatements_time_limit`         | `int`          | Limit how old, in seconds, the `last_seen` events statements can be. | `86400` | no
-`perf_schema_eventsstatements_digtext_text_limit` | `int`          | Maximum length of the normalized statement text. | `120` | no
-`perf_schema_file_instances_filter`               | `string`       | Regular expression to select rows in `performance_schema.file_summary_by_instance`. | `".*"` | no
-`perf_schema_file_instances_remove_prefix`        | `string`       | Prefix to trim away from `file_name`.  | `"/var/lib/mysql"` | no
-`heartbeat_database`                              | `string`       | Database to collect heartbeat data from. | `"heartbeat"` | no
-`heartbeat_table`                                 | `string`       | Table to collect heartbeat data from. | `"heartbeat"` | no
-`heartbeat_utc`                                   | `bool`         | Use UTC for timestamps of the current server (`pt-heartbeat` is called with `--utc`). | `false` | no
-`mysql_user_privileges`                           | `bool`         | Enable collecting user privileges from mysql.user. | `false` | no
 
 
 Set a `lock_wait_timeout` on the connection to avoid potentially long wait times for metadata locks. View more detailed documentation on `lock_wait_timeout` [in the MySQL documentation](https://dev.mysql.com/doc/refman/8.0/en/server-system-variables.html#sysvar_lock_wait_timeout).
 
 > **NOTE**: `log_slow_filter` is not supported by Oracle MySQL.
 
-View more detailed documentation on the tables used in `perf_schema_file_instances_filter` and `perf_schema_file_instances_remove_prefix` [in the MySQL documentation](https://dev.mysql.com/doc/mysql-perfschema-excerpt/8.0/en/performance-schema-file-summary-tables.html).
 
 [collectors]: #supported-collectors
 
+## Blocks
+
+The following blocks are supported inside the definiton of
+`prometheus.exporter.mysql` to configure collector-specific options:
+
+Hierarchy | Name | Description | Required
+--------- | ---- | ----------- | --------
+info_schema.processlist      | [info_schema.processlist][] | Configures the `info_schema.processlist` collector. | no
+info_schema.tables           | [info_schema.tables][] | Configures the `info_schema.tables` collector. | no
+perf_schema.eventsstatements | [perf_schema.eventsstatements][] | Configures the `perf_schema.eventsstatements` collector. | no
+perf_schema.file_instances   | [perf_schema.file_instances][] | Configures the `perf_schema.file_instances` collector. | no
+heartbeat                    | [heartbeat][] | Configures the `heartbeat` collector. | no
+mysql.user                   | [mysql.user][] | Configures the `mysql.user` collector. | no
+
+[info_schema.processlist]: #info_schema.processlist-block
+[info_schema.tables]: #info_schema.tables-block
+[perf_schema.eventsstatements]: #perf_schema.eventsstatements-block
+[perf_schema.file_instances]: #perf_schema.file_instances-block
+[heartbeat]: #heartbeat-block
+[mysql.user]: #mysql.user-block
+
+
+### info_schema.processlist block
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`min_time`                      | `int`          | Minimum time a thread must be in each state to be counted. | `0` | no
+`processes_by_user`             | `bool`         | Enable collecting the number of processes by user. | `true` | no
+`processes_by_host`             | `bool`         | Enable collecting the number of processes by host. | `true` | no
+
+
+### info_schema.tables block
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`info_schema_tables_databases`  | `string`       | Regular expression to match databases to collect table stats for. | `"*"` | no
+
+### perf_schema.eventsstatements block
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`limit`                         | `int`          | Limit the number of events statements digests, in descending order by `last_seen`. | `250` | no
+`time_limit`                    | `int`          | Limit how old, in seconds, the `last_seen` events statements can be. | `86400` | no
+`text_limit`                    | `int`          | Maximum length of the normalized statement text. | `120` | no
+
+### perf_schema.file_instances block
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`filter`                        | `string`       | Regular expression to select rows in `performance_schema.file_summary_by_instance`. | `".*"` | no
+`remove_prefix`                 | `string`       | Prefix to trim away from `file_name`.  | `"/var/lib/mysql"` | no
+
+View more detailed documentation on the tables used in `perf_schema_file_instances_filter` and `perf_schema_file_instances_remove_prefix` [in the MySQL documentation](https://dev.mysql.com/doc/mysql-perfschema-excerpt/8.0/en/performance-schema-file-summary-tables.html).
+
+### heartbeat block
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`database`                      | `string`       | Database to collect heartbeat data from. | `"heartbeat"` | no
+`table`                         | `string`       | Table to collect heartbeat data from. | `"heartbeat"` | no
+`utc`                           | `bool`         | Use UTC for timestamps of the current server (`pt-heartbeat` is called with `--utc`). | `false` | no
+
+### mysql.user block
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`privileges`                    | `bool`         | Enable collecting user privileges from `mysql.user`. | `false` | no
+
 ### Supported Collectors
+The full list of supported collectors is:
 
 | Name                                             | Description | Enabled by default |
 | ------------------------------------------------ | ----------- | ------------------ |
