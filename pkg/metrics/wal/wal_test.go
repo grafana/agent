@@ -104,6 +104,9 @@ func TestStorage_DuplicateExemplarsIgnored(t *testing.T) {
 
 	s, err := NewStorage(log.NewNopLogger(), nil, walDir)
 	require.NoError(t, err)
+	defer func() {
+		require.NoError(t, s.Close())
+	}()
 
 	app := s.Appender(context.Background())
 
