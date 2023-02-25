@@ -62,7 +62,7 @@ The following fields are exported and can be referenced by other components:
 
 Name | Type | Description
 ---- | ---- | -----------
-`targets` | `list(map(string))` | The set of targets discovered from the docker API.
+`targets` | `list(map(string))` | The set of discovered EC2 targets.
 
 Each target includes the following labels:
 
