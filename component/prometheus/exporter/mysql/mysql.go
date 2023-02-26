@@ -93,17 +93,20 @@ type PerfSchemaEventsStatements struct {
 	TextLimit int `river:"text_limit,attr,optional"`
 }
 
+// PerfSchemaFileInstances configures the perf_schema.file_instances collector
 type PerfSchemaFileInstances struct {
 	Filter       string `river:"filter,attr,optional"`
 	RemovePrefix string `river:"remove_prefix,attr,optional"`
 }
 
+// Heartbeat controls the heartbeat collector
 type Heartbeat struct {
 	Database string `river:"database,attr,optional"`
 	Table    string `river:"table,attr,optional"`
 	UTC      bool   `river:"utc,attr,optional"`
 }
 
+// MySQLUser controls the mysql.user collector
 type MySQLUser struct {
 	Privileges bool `river:"privileges,attr,optional"`
 }
