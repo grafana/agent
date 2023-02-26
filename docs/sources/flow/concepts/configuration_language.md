@@ -69,8 +69,8 @@ formed by merging the component's name (e.g., `local.file`), label (e.g.,
 `password_file`), and export name (e.g., `content`), delimited by period.
 
 For components that don't use labels, like
-`prometheus.integration.node_exporter`, only combine the component name with
-export name: `prometheus.integration.node_exporter.targets`.
+`prometheus.exporter.unix`, only combine the component name with
+export name: `prometheus.exporter.unix.targets`.
 
 ## Blocks
 

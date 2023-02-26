@@ -175,6 +175,98 @@ func TestBuilder_AppendFrom(t *testing.T) {
 	require.Equal(t, expect, string(f.Bytes()))
 }
 
+func TestBuilder_AppendFrom_EnumSlice(t *testing.T) {
+	type InnerBlock struct {
+		Number int `river:"number,attr"`
+	}
+
+	type EnumBlock struct {
+		BlockA InnerBlock `river:"a,block,optional"`
+		BlockB InnerBlock `river:"b,block,optional"`
+		BlockC InnerBlock `river:"c,block,optional"`
+	}
+
+	type Structure struct {
+		Field string `river:"field,attr"`
+
+		OtherBlocks []EnumBlock `river:"block,enum"`
+	}
+
+	f := builder.NewFile()
+	f.Body().AppendFrom(Structure{
+		Field: "some_value",
+		OtherBlocks: []EnumBlock{
+			{BlockC: InnerBlock{Number: 1}},
+			{BlockB: InnerBlock{Number: 2}},
+			{BlockC: InnerBlock{Number: 3}},
+		},
+	})
+
+	expect := format(t, `
+		field = "some_value"
+	
+		block.c {
+			number = 1
+		}
+
+		block.b {
+			number = 2
+		}
+
+		block.c {
+			number = 3
+		}
+	`)
+
+	require.Equal(t, expect, string(f.Bytes()))
+}
+
+func TestBuilder_AppendFrom_EnumSlice_Pointer(t *testing.T) {
+	type InnerBlock struct {
+		Number int `river:"number,attr"`
+	}
+
+	type EnumBlock struct {
+		BlockA *InnerBlock `river:"a,block,optional"`
+		BlockB *InnerBlock `river:"b,block,optional"`
+		BlockC *InnerBlock `river:"c,block,optional"`
+	}
+
+	type Structure struct {
+		Field string `river:"field,attr"`
+
+		OtherBlocks []EnumBlock `river:"block,enum"`
+	}
+
+	f := builder.NewFile()
+	f.Body().AppendFrom(Structure{
+		Field: "some_value",
+		OtherBlocks: []EnumBlock{
+			{BlockC: &InnerBlock{Number: 1}},
+			{BlockB: &InnerBlock{Number: 2}},
+			{BlockC: &InnerBlock{Number: 3}},
+		},
+	})
+
+	expect := format(t, `
+		field = "some_value"
+	
+		block.c {
+			number = 1
+		}
+
+		block.b {
+			number = 2
+		}
+
+		block.c {
+			number = 3
+		}
+	`)
+
+	require.Equal(t, expect, string(f.Bytes()))
+}
+
 func TestBuilder_SkipOptional(t *testing.T) {
 	type Structure struct {
 		OptFieldA string `river:"opt_field_a,attr,optional"`

@@ -131,7 +131,7 @@ func (c *DynamicLoader) ProcessConfigs(cfg *Config) error {
 	serverConfig, err := c.processServer()
 	returnErr = errorAppend(returnErr, err)
 	if serverConfig != nil {
-		cfg.Server = *serverConfig
+		cfg.Server = serverConfig
 	}
 
 	metricConfig, err := c.processMetrics()

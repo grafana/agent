@@ -43,7 +43,8 @@ type Manager struct {
 // scheduled for running until UpdateOptions is called.
 func NewManager(l log.Logger, opts *Options) *Manager {
 	return &Manager{
-		log: l,
+		log:  l,
+		opts: opts,
 		runner: runner.New(func(t *tailerTask) runner.Worker {
 			return newTailer(l, t)
 		}),

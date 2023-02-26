@@ -10,11 +10,16 @@ import (
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 )
 
-// Functions returns the list of stdlib functions by name. The interface{}
-// value is always a River-compatible function value, where functions have at
-// least one non-error return value, with an optionally supported error return
-// value as the second return value.
-var Functions = map[string]interface{}{
+// Identifiers holds a list of stdlib identifiers by name. All interface{}
+// values are River-compatible values.
+//
+// Function identifiers are Go functions with exactly one one non-error return
+// value, with an optionally supported error return value as the second return
+// value.
+var Identifiers = map[string]interface{}{
+	// See constants.go for the definition.
+	"constants": constants,
+
 	"env": os.Getenv,
 
 	// concat is implemented as a raw function so it can bypass allocations

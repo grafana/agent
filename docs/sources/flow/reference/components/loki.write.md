@@ -37,19 +37,17 @@ The following blocks are supported inside the definition of
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
 endpoint | [endpoint][] | Location to send logs to. | no
-endpoint > http_client_config | [http_client_config][] | HTTP client settings when connecting to the endpoint. | no
-endpoint > http_client_config > basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
-endpoint > http_client_config > authorization | [authorization][] | Configure generic authorization to the endpoint. | no
-endpoint > http_client_config > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
-endpoint > http_client_config > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
-endpoint > http_client_config > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+endpoint > basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
+endpoint > authorization | [authorization][] | Configure generic authorization to the endpoint. | no
+endpoint > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
+endpoint > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+endpoint > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `endpoint >
-http_client_config` refers to an `http_client_config` block defined inside an
+basic_auth` refers to a `basic_auth` block defined inside an
 `endpoint` block.
 
 [endpoint]: #endpoint-block
-[http_client_config]: #http_client_config-block
 [basic_auth]: #basic_auth-block
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
@@ -64,16 +62,27 @@ The following arguments are supported:
 
 Name                  | Type       | Description                           | Default        | Required
 --------------------- | -----------| ------------------------------------- | -------------- | --------
-`url`                 | `string`   | Full URL to send logs to.             |                | yes
-`name`                | `string`   | Optional name to identify this endpoint with. |        | no
+`url`                 | `string`   | Full URL to send logs to. | | yes
+`name`                | `string`   | Optional name to identify this endpoint with. | | no
 `batch_wait`          | `bool`     | Maximum amount of time to wait before sending a batch. | `"1s"` | no
 `batch_size`          | `string`   | Maximum batch size of logs to accumulate before sending. | `"1MiB"` | no
-`remote_timeout`      | `duration` | Timeout for requests made to the URL. | `"10s"`        | no
-`tenant_id`           | `string`   | The tenant ID used by default to push logs. |  | no
-`min_backoff_period`  | `duration` | Initial backoff time between retries. | `"500ms"`      | no
-`max_backoff_period`  | `duration` | Maximum backoff time between retries. | `"5m"`         | no
-`max_backoff_retries` | `int`      | Maximum number of retries.            | 10             | no
+`remote_timeout`      | `duration` | Timeout for requests made to the URL. | `"10s"` | no
+`tenant_id`           | `string`   | The tenant ID used by default to push logs. | | no
+`min_backoff_period`  | `duration` | Initial backoff time between retries. | `"500ms"` | no
+`max_backoff_period`  | `duration` | Maximum backoff time between retries. | `"5m"` | no
+`max_backoff_retries` | `int`      | Maximum number of retries. | 10 | no
+`bearer_token`        | `secret`   | Bearer token to authenticate with. | | no
+`bearer_token_file`   | `string`   | File containing a bearer token to authenticate with. | | no
+`proxy_url`           | `string`   | HTTP proxy to proxy requests through. | | no
+`follow_redirects`    | `bool`     | Whether redirects returned by the server should be followed. | `true` | no
+`enable_http2`        | `bool`     | Whether HTTP2 is supported for requests. | `true` | no
 
+ At most one of the following can be provided:
+ - [`bearer_token` argument](#endpoint-block).
+ - [`bearer_token_file` argument](#endpoint-block). 
+ - [`basic_auth` block][basic_auth].
+ - [`authorization` block][authorization].
+ - [`oauth2` block][oauth2].
 
 If no `tenant_id` is provided, the component assumes that the Loki instance at
 `endpoint` is running in single-tenant mode and no X-Scope-OrgID header is
@@ -87,12 +96,6 @@ the rest.
 Endpoints can be named for easier identification in debug metrics by using the
 `name` argument. If the `name` argument isn't provided, a name is generated
 based on a hash of the endpoint settings.
-
-### http_client_config block
-
-The `http_client_config` configures settings used to connect to the Loki API.
-
-{{< docs/shared lookup="flow/reference/components/http-client-config-block.md" source="agent" >}}
 
 ### basic_auth block
 

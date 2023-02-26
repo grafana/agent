@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/grafana/agent/pkg/river/internal/reflectutil"
 	"github.com/grafana/agent/pkg/river/internal/rivertags"
 	"github.com/grafana/agent/pkg/river/token"
 )
@@ -136,7 +137,7 @@ func getBlockLabel(rv reflect.Value) string {
 	tags := rivertags.Get(rv.Type())
 	for _, tag := range tags {
 		if tag.Flags&rivertags.FlagLabel != 0 {
-			return rv.FieldByIndex(tag.Index).String()
+			return reflectutil.Get(rv, tag).String()
 		}
 	}
 
@@ -157,12 +158,12 @@ func (b *Body) encodeFields(rv reflect.Value) {
 	fields := rivertags.Get(rv.Type())
 
 	for _, field := range fields {
-		fieldVal := rv.FieldByIndex(field.Index)
-		b.encodeField(field, fieldVal)
+		fieldVal := reflectutil.Get(rv, field)
+		b.encodeField(nil, field, fieldVal)
 	}
 }
 
-func (b *Body) encodeField(field rivertags.Field, fieldValue reflect.Value) {
+func (b *Body) encodeField(prefix []string, field rivertags.Field, fieldValue reflect.Value) {
 	fieldName := strings.Join(field.Name, ".")
 
 	for fieldValue.Kind() == reflect.Pointer {
@@ -176,15 +177,17 @@ func (b *Body) encodeField(field rivertags.Field, fieldValue reflect.Value) {
 	}
 
 	switch {
-	case field.Flags&rivertags.FlagAttr != 0:
+	case field.IsAttr():
 		b.SetAttributeValue(fieldName, fieldValue.Interface())
 
-	case field.Flags&rivertags.FlagBlock != 0:
+	case field.IsBlock():
+		fullName := mergeStringSlice(prefix, field.Name)
+
 		switch {
 		case fieldValue.IsZero():
 			// It shouldn't be possible to have a required block which is unset, but
 			// we'll encode something anyway.
-			inner := NewBlock(field.Name, "")
+			inner := NewBlock(fullName, "")
 			b.AppendBlock(inner)
 
 		case fieldValue.Kind() == reflect.Slice, fieldValue.Kind() == reflect.Array:
@@ -194,14 +197,63 @@ func (b *Body) encodeField(field rivertags.Field, fieldValue reflect.Value) {
 				// Recursively call encodeField for each element in the slice/array.
 				// The recurisve call will hit the case below and add a new block for
 				// each field encountered.
-				b.encodeField(field, elem)
+				b.encodeField(prefix, field, elem)
 			}
 
 		case fieldValue.Kind() == reflect.Struct:
-			inner := NewBlock(field.Name, getBlockLabel(fieldValue))
+			inner := NewBlock(fullName, getBlockLabel(fieldValue))
 			inner.Body().encodeFields(fieldValue)
 			b.AppendBlock(inner)
 		}
+
+	case field.IsEnum():
+		// Blocks within an enum have a prefix set.
+		newPrefix := mergeStringSlice(prefix, field.Name)
+
+		switch {
+		case fieldValue.Kind() == reflect.Slice, fieldValue.Kind() == reflect.Array:
+			for i := 0; i < fieldValue.Len(); i++ {
+				b.encodeEnumElement(newPrefix, fieldValue.Index(i))
+			}
+
+		default:
+			panic(fmt.Sprintf("river/token/builder: unrecognized enum kind %s", fieldValue.Kind()))
+		}
+	}
+}
+
+func mergeStringSlice(a, b []string) []string {
+	if len(a) == 0 {
+		return b
+	} else if len(b) == 0 {
+		return a
+	}
+
+	res := make([]string, 0, len(a)+len(b))
+	res = append(res, a...)
+	res = append(res, b...)
+	return res
+}
+
+func (b *Body) encodeEnumElement(prefix []string, enumElement reflect.Value) {
+	for enumElement.Kind() == reflect.Pointer {
+		if enumElement.IsNil() {
+			return
+		}
+		enumElement = enumElement.Elem()
+	}
+
+	fields := rivertags.Get(enumElement.Type())
+
+	// Find the first non-zero field and encode it.
+	for _, field := range fields {
+		fieldVal := reflectutil.Get(enumElement, field)
+		if !fieldVal.IsValid() || fieldVal.IsZero() {
+			continue
+		}
+
+		b.encodeField(prefix, field, fieldVal)
+		break
 	}
 }
 

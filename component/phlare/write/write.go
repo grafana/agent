@@ -28,11 +28,6 @@ var (
 	DefaultArguments = func() Arguments {
 		return Arguments{}
 	}
-	DefaultEndpointOptions = func() EndpointOptions {
-		return EndpointOptions{
-			RemoteTimeout: 30 * time.Second,
-		}
-	}
 	_ component.Component = (*Component)(nil)
 )
 
@@ -69,15 +64,34 @@ type EndpointOptions struct {
 	URL              string                   `river:"url,attr"`
 	RemoteTimeout    time.Duration            `river:"remote_timeout,attr,optional"`
 	Headers          map[string]string        `river:"headers,attr,optional"`
-	HTTPClientConfig *config.HTTPClientConfig `river:"http_client_config,block,optional"`
+	HTTPClientConfig *config.HTTPClientConfig `river:",squash"`
+}
+
+func GetDefaultEndpointOptions() EndpointOptions {
+	var defaultEndpointOptions = EndpointOptions{
+		RemoteTimeout:    30 * time.Second,
+		HTTPClientConfig: config.CloneDefaultHTTPClientConfig(),
+	}
+
+	return defaultEndpointOptions
 }
 
 // UnmarshalRiver implements river.Unmarshaler.
 func (r *EndpointOptions) UnmarshalRiver(f func(v interface{}) error) error {
-	*r = DefaultEndpointOptions()
+	*r = GetDefaultEndpointOptions()
 
 	type arguments EndpointOptions
-	return f((*arguments)(r))
+	err := f((*arguments)(r))
+	if err != nil {
+		return err
+	}
+
+	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
+	if r.HTTPClientConfig != nil {
+		return r.HTTPClientConfig.Validate()
+	}
+
+	return nil
 }
 
 // Component is the phlare.write component.
