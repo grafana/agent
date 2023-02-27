@@ -22,6 +22,7 @@ func createExporter(opts component.Options, args component.Arguments) (integrati
 	return cfg.Convert().NewIntegration(opts.Logger)
 }
 
+// buildBlackboxTargets creates the exporter's discovery targets based on the defined blackbox targets.
 func buildBlackboxTargets(baseTarget discovery.Target, args component.Arguments) []discovery.Target {
 	var targets []discovery.Target
 
@@ -50,7 +51,7 @@ var DefaultConfig = Config{
 	ProbeTimeoutOffset: 0.5,
 }
 
-// BlackboxTarget defines a target device to be used by the integration.
+// BlackboxTarget defines a target to be used by the exporter.
 type BlackboxTarget struct {
 	Name   string `river:",label"`
 	Target string `river:"address,attr"`
@@ -59,6 +60,7 @@ type BlackboxTarget struct {
 
 type TargetBlock []BlackboxTarget
 
+// Convert converts the component's TargetBlock to a slice of integration's BlackboxTarget.
 func (t TargetBlock) Convert() []blackbox_exporter.BlackboxTarget {
 	targets := make([]blackbox_exporter.BlackboxTarget, 0, len(t))
 	for _, target := range t {
@@ -85,6 +87,7 @@ func (c *Config) UnmarshalRiver(f func(interface{}) error) error {
 	return f((*cfg)(c))
 }
 
+// Convert converts the component's Config to the integration's Config.
 func (c *Config) Convert() *blackbox_exporter.Config {
 	return &blackbox_exporter.Config{
 		BlackboxConfigFile: c.ConfigFile,
