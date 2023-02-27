@@ -10,8 +10,7 @@ weight: 200
 ## Install Grafana Agent
 
 To use Grafana Agent Flow, first [install Grafana Agent][]. Grafana Agent Flow
-is an operating mode which will be available in an upcoming Grafana Agent
-release.
+is a separate operating mode available when using the Grafana Agent binary.
 
 ## Running Grafana Agent Flow
 

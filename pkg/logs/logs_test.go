@@ -35,11 +35,7 @@ func TestLogs(t *testing.T) {
 	//
 	// Create a temporary file to tail
 	//
-	positionsDir, err := os.MkdirTemp(os.TempDir(), "positions-*")
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		_ = os.RemoveAll(positionsDir)
-	})
+	positionsDir := t.TempDir()
 
 	tmpFile, err := os.CreateTemp(os.TempDir(), "*.log")
 	require.NoError(t, err)
@@ -176,11 +172,7 @@ func TestLogs_PositionsDirectory(t *testing.T) {
 	//
 	// Create a temporary file to tail
 	//
-	positionsDir, err := os.MkdirTemp(os.TempDir(), "positions-*")
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		_ = os.RemoveAll(positionsDir)
-	})
+	positionsDir := t.TempDir()
 
 	//
 	// Launch Loki so it starts tailing the file and writes to our server.

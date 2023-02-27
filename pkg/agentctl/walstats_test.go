@@ -2,7 +2,6 @@ package agentctl
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -49,11 +48,7 @@ func TestWALStats(t *testing.T) {
 func setupTestWAL(t *testing.T) string {
 	l := log.NewNopLogger()
 
-	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		os.RemoveAll(walDir)
-	})
+	walDir := t.TempDir()
 
 	reg := prometheus.NewRegistry()
 	w, err := wlog.NewSize(log.NewNopLogger(), reg, filepath.Join(walDir, "wal"), wlog.DefaultSegmentSize, true)

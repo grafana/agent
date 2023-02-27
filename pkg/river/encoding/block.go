@@ -112,6 +112,9 @@ func getFieldsForBlock(namePrefix []string, input interface{}) ([]interface{}, e
 			if af.hasValue() {
 				fields = append(fields, af)
 			}
+		} else if t.IsLabel() {
+			// Label is inherent in the block already so this can be a noop
+			continue
 		} else {
 			panic(fmt.Sprintf("river/encoding: unrecognized field %#v", t))
 		}
