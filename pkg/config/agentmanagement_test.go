@@ -1,6 +1,8 @@
 package config
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"flag"
 	"testing"
@@ -144,7 +146,10 @@ func TestRemoteConfigHashCheck(t *testing.T) {
 	ic := AgentManagementConfig{
 		Protocol: "http",
 	}
-	icHash := "8c1b04d5d8b55fc1c62a496b6781d90e31661c8629f61f51ae7c72a9d396bd6f"
+	marshalled, err := yaml.Marshal(ic)
+	require.NoError(t, err)
+	icHashBytes := sha256.Sum256([]byte(marshalled))
+	icHash := hex.EncodeToString(icHashBytes[:])
 
 	rcCache := remoteConfigCache{
 		InitialConfigHash: icHash,
