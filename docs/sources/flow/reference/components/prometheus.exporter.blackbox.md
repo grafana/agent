@@ -18,6 +18,12 @@ the collection of blackbox metrics (probes) and exposing them as Prometheus metr
 
 ```river
 prometheus.exporter.blackbox "LABEL" {
+  blackbox_target {
+    name    = "TARGET_NAME" 
+    address = "TARGET_ADDRESS" 
+  }
+  
+  ...
 }
 ```
 
