@@ -32,6 +32,9 @@ func TestUnmarshalRiver(t *testing.T) {
 	require.Contains(t, "target_a", cfg.BlackboxTargets[0].Name)
 	require.Contains(t, "http://example.com", cfg.BlackboxTargets[0].Target)
 	require.Contains(t, "http_2xx", cfg.BlackboxTargets[0].Module)
+	require.Contains(t, "target_b", cfg.BlackboxTargets[1].Name)
+	require.Contains(t, "http://grafana.com", cfg.BlackboxTargets[1].Target)
+	require.Contains(t, "http_2xx", cfg.BlackboxTargets[1].Module)
 }
 
 func TestConvertConfig(t *testing.T) {
