@@ -144,6 +144,8 @@ v0.32.0-rc.0 (2023-02-23)
   `prometheus.remote_write`, `prometheus.scrape`, and `remote.http`
   (@erikbaranowski)
 
+- Flow: Fix issue where using `river:",label"` causes the UI to return nothing. (@mattdurham)
+
 ### Other changes
 
 - Use Go 1.20 for builds. (@rfratto)
