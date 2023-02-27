@@ -16,6 +16,9 @@ Main (unreleased)
 ### Features
 
 - New Grafana Agent Flow components:
+
+  - `discovery.ec2` service discovery for aws ec2. (@captncraig)
+  - `discovery.lightsail` service discovery for aws lightsail. (@captncraig)
   - `prometheus.exporter.mysql` collects metrics from a MySQL database. (@spartan0x117)
 
 ### Bugfixes
