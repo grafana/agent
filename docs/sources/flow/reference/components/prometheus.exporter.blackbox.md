@@ -91,14 +91,16 @@ from `prometheus.exporter.blackbox`:
 
 ```river
 prometheus.exporter.blackbox "example" { 
-	config_file        = "blackbox_modules.yml"
+	config_file = "blackbox_modules.yml"
+	
 	target "example" {
 		address = "http://example.com"
-		module = "http_2xx"
+		module  = "http_2xx"
 	}
+	
 	target "grafana" {
 		address = "http://grafana.com"
-		module = "http_2xx"
+		module  = "http_2xx"
 	}	
 }
 
