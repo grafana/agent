@@ -57,12 +57,12 @@ perf_schema.file_instances   | [perf_schema.file_instances][] | Configures the `
 heartbeat                    | [heartbeat][] | Configures the `heartbeat` collector. | no
 mysql.user                   | [mysql.user][] | Configures the `mysql.user` collector. | no
 
-[info_schema.processlist]: #info_schema.processlist-block
-[info_schema.tables]: #info_schema.tables-block
-[perf_schema.eventsstatements]: #perf_schema.eventsstatements-block
-[perf_schema.file_instances]: #perf_schema.file_instances-block
+[info_schema.processlist]: #info_schemaprocesslist-block
+[info_schema.tables]: #info_schematables-block
+[perf_schema.eventsstatements]: #perf_schemaeventsstatements-block
+[perf_schema.file_instances]: #perf_schemafile_instances-block
 [heartbeat]: #heartbeat-block
-[mysql.user]: #mysql.user-block
+[mysql.user]: #mysqluser-block
 
 
 ### info_schema.processlist block
