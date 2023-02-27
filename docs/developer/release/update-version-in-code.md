@@ -1,35 +1,35 @@
 # Update Version in Code
 
+This Action will typically follow [Create Release Branch](./create-release-branch.md) or if it is time to start a Stable Release or Patch Release.
+
 The codebase must be updated to reference the upcoming release tag whenever a new release is being made.
 
-## Version
+## Release Version
 
-The version can be determined starting with the version prefix determined in [Create Release Branch](./create-release-branch.md) step 2.
+The release version prefix was previously determined in [Create Release Branch](./create-release-branch.md).
 
 - Release Candidate Version (RCV)
 
-    - The RCV will look like `[version prefix].x-rc.y`.
+    - The RCV will look like `[release version prefix].x-rc.y`.
     - For example, `v0.32.0-rc.0` is the first RCV for the v0.32.0 release.
 
 - Stable Release Version (SRV)
 
-    - The SRV will look like `[version prefix].0`.
+    - The SRV will look like `[release version prefix].0`.
     - For example, `v0.32.0` is the SRV for the v0.32.0 release.
 
 - Patch Release Version (PRV)
 
-    - The PRV will look like `[version prefix].x`.
+    - The PRV will look like `[release version prefix].x`.
     - For example, `v0.32.1` is the first PRV for the v0.32.0 release.
 
 ## Steps
 
 1. Create a branch from `main`.
 
-    Note: This branch cannot be prefixed with `release-`.
-
 2. Update the `CHANGELOG.md`.
 
-    1. Modify CHANGELOG Header
+    1. Modify CHANGELOG.md Header
         - First RCV or a PRV
             - Add a new header under `Main (unreleased)` for `[version] (YYYY-MM-DD)`.
         - Additional RCV or SRV
@@ -43,20 +43,14 @@ The version can be determined starting with the version prefix determined in [Cr
 
         NOTE: Please do not update the operations/helm directory. It is updated independently from Agent releases for now.
 
-3. Update the version in code.
-
-    There are a number of places in code that the current version must be replaced with the new version.
-
-4. Create a PR to merge to main (must be merged before continuing).
+3. Create a PR to merge to main (must be merged before continuing).
 
     See [here](https://github.com/grafana/agent/pull/2838/files) for an example PR for the first RCV.
 
     See [here](https://github.com/grafana/agent/pull/2873/files) for an example PR for a SRV.
 
-5. Create a branch from `release-[version prefix]`.
-    
-    Note: This branch cannot be prefixed with `release-`.
+4. Create a branch from `release-[release version prefix]`.
 
-6. Cherry pick the change commit from the merged PR in step 4 from main into the new branch from step 5.
+5. Cherry pick the change commit from the merged PR in step 3 from main into the new branch from step 4.
 
-7. Create a PR to merge to `release-[version prefix]` (must be merged before continuing).
+6. Create a PR to merge to `release-[release version prefix]` (must be merged before continuing).

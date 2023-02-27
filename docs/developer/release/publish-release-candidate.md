@@ -1,4 +1,6 @@
-# Publish Release
+# Publish Release Candidate
+
+This action will typically follow [Tag Release](./tag-release.md) for a Release Candidate Version.
 
 ## Steps
 
