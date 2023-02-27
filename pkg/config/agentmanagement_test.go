@@ -144,7 +144,7 @@ func TestRemoteConfigHashCheck(t *testing.T) {
 	ic := AgentManagementConfig{
 		Protocol: "http",
 	}
-	icHash := "5e809f3ecaa0acd06932bb3cb8a1e9bfa055171a79c02b1bbed9e1ad97217fab"
+	icHash := "8c1b04d5d8b55fc1c62a496b6781d90e31661c8629f61f51ae7c72a9d396bd6f"
 
 	rcCache := remoteConfigCache{
 		InitialConfigHash: icHash,
