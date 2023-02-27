@@ -3,6 +3,8 @@
   font-family: 'Fira Code', monospace;
   tab-size: 4;
   margin: 0px;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .value span.literal {

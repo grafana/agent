@@ -12,12 +12,12 @@ export interface RiverValueProps {
  * RiverValue emits a paragraph which represents a River value.
  */
 export const RiverValue: FC<RiverValueProps> = (props) => {
-  console.log('prop value: ', props.value);
-
   return (
-    <p className={styles.value}>
-      <ValueRenderer value={props.value} indentLevel={0} />
-    </p>
+    <pre className={styles.value}>
+      <code>
+        <ValueRenderer value={props.value} indentLevel={0} />
+      </code>
+    </pre>
   );
 };
 

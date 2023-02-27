@@ -159,3 +159,8 @@ td.nameColumn {
   vertical-align: top;
   color: black;
 }
+
+.pre {
+  margin: 0;
+  font-size: 14px;
+}

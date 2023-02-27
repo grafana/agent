@@ -1,7 +1,8 @@
 import React, { Fragment } from 'react';
+import { a11yLight, CodeBlock } from 'react-code-blocks';
 
-import { RiverValue } from '../../features/river-js/RiverValue';
 import { riverStringify } from '../river-js/stringify';
+import { customTheme } from '../river-js/theme';
 import Table from '../widget/Table';
 
 import { PartitionedBody } from './types';
@@ -23,7 +24,22 @@ const ComponentBody = ({ partition }: ComponentBodyProps) => {
         <tr key={name}>
           <td className={styles.nameColumn}>{name}</td>
           <td>
-            <RiverValue value={value} />
+            <pre className={styles.pre}>
+              <CodeBlock
+                // style={{ lineHeight: 0 }}
+                text={riverStringify(value)}
+                language={'jsx'}
+                showLineNumbers={false}
+                theme={{
+                  ...a11yLight,
+                  backgroundColor: 'none',
+                  textColor: '#030300',
+                  stringColor: 'green',
+                  numberColor: 'blue',
+                }}
+                wrapLongLines={true}
+              />
+            </pre>
           </td>
         </tr>
       );
@@ -56,7 +72,7 @@ const ComponentBody = ({ partition }: ComponentBodyProps) => {
             <em className={styles.informative}>(No set attributes in this block)</em>
           ) : (
             <div className={styles.list}>
-              <Table tableHeaders={TABLEHEADERS} renderTableData={renderTableData} style={{ width: '200px' }} />
+              <Table tableHeaders={TABLEHEADERS} renderTableData={renderTableData} style={{ width: '220px' }} />
             </div>
           )}
         </div>
