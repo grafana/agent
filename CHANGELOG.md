@@ -13,6 +13,11 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Features
+
+- New Grafana Agent Flow components:
+  - `prometheus.exporter.mysql` collects metrics from a MySQL database. (@spartan0x117)
+
 ### Bugfixes
 
 - Flow: add a maximum connection lifetime of one hour when tailing logs from
@@ -22,7 +27,7 @@ Main (unreleased)
 
 - Flow: fix issue in `loki.source.kubernetes` where `__pod__uid__` meta label
   defaulted incorrectly to the container name, causing tailers to never
-  restart.
+  restart. (@rfratto)
 
 v0.32.0-rc.0 (2023-02-23)
 -------------------------
@@ -154,6 +159,8 @@ v0.32.0-rc.0 (2023-02-23)
   `mimir.rules.kubernetes`, `phlare.scrape`, `phlare.write`,
   `prometheus.remote_write`, `prometheus.scrape`, and `remote.http`
   (@erikbaranowski)
+
+- Flow: Fix issue where using `river:",label"` causes the UI to return nothing. (@mattdurham)
 
 ### Other changes
 
