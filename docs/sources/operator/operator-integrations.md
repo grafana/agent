@@ -1,12 +1,12 @@
 ---
-title: Agent Operator integrations
-weight: 100
+title: Set up Agent Operator integrations
+weight: 350
 ---
-# Agent Operator integrations
+# Set up Agent Operator integrations
 
 This topic provides examples of Agent Operator integrations, including [node_exporter](#agent-operator-nodeexporter-integration) and [mysqld_exporter](#agent-operator-mysqldexporter-integration). 
 
-## Agent Operator node_exporter integration
+## Set up an Agent Operator node_exporter integration
 
 The Agent Operator node_exporter integration lets you monitor your hardware and OS metrics from Unix-based machines, including Linux machines.
 
@@ -58,7 +58,7 @@ To set up a node_exporter integration:
 
 1. Customize the manifest as needed and roll it out to your cluster using `kubectl apply -f` followed by the filename.
 
-## Agent Operator mysqld_exporter integration
+## Set up an Agent Operator mysqld_exporter integration
 
 The Agent Operator mysqld_exporter integration is an embedded version of mysqld_exporter that lets you collect metrics from MySQL servers.
 
