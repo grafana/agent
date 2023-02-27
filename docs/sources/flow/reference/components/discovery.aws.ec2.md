@@ -26,7 +26,7 @@ Name | Type | Description | Default | Required
 `access_key` | `string` | The AWS API key ID. If blank, the environment variable `AWS_ACCESS_KEY_ID` is used. | | no
 `secret_key` | `string` | The AWS API key secret. If blank, the environment variable `AWS_SECRET_ACCESS_KEY` is used. | | no
 `profile` | `string` | Named AWS profile used to connect to the API. | | no
-`role_arn` | `string` | AWS Role ARN, an alternative to using AWS API keys. | | no
+`role_arn` | `string` | AWS Role Amazon Resource Name (ARN), an alternative to using AWS API keys. | | no
 `refresh_interval` | `string` | Refresh interval to re-read the instance list. | 60s | no
 `port` | `int` | The port to scrape metrics from. If using the public IP address, this must instead be specified in the relabeling rule. | 80 | no
 
