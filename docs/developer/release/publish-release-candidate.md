@@ -12,7 +12,7 @@ This action will typically follow [Tag Release](./tag-release.md) for a Release 
 
 4. Add a footer to the `Notable Changes` section
 
-    `For a full list of changes, please refer to the [CHANGELOG](https://github.com/grafana/agent/blob/[version]/CHANGELOG.md)!`
+    `For a full list of changes, please refer to the [CHANGELOG](https://github.com/grafana/agent/blob/[release version]/CHANGELOG.md)!`
 
 5. At the bottom of the release page, tick the check box to "add a discussion" 
 under the category for "announcements".
