@@ -51,8 +51,7 @@ Name | Type | Description | Default | Required
 `name` | `string` | Filter name to use. | | yes
 `values` | `list(string)` | Values to pass to the filter. | | yes
 
-Refer to [Filter API documentation][filter api] from the aws
-documentation for the list of supported filters and their meaning.
+Refer to the [Filter API AWS EC2 documentation][filter api] for the list of supported filters and their descriptions.
 
 [filter api]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Filter.html
 
