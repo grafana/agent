@@ -10,71 +10,83 @@ This topic provides examples of Agent Operator integrations, including [node_exp
 
 The Agent Operator node_exporter integration lets you monitor your hardware and OS metrics from Unix-based machines, including Linux machines.
 
-The following YAML file causes Agent Operator to create an instance of a grafana-agent-integrations-deploy resource that exports Node metrics.
+To set up a node_exporter integration:
 
-```yaml
-# Collect node_exporter metrics
-apiVersion: monitoring.grafana.com/v1alpha1
-kind: Integration
-metadata:
- name: node-exporter
- namespace: default
- labels:
-   agent: grafana-agent-integrations
-spec:
- name: node_exporter
- type:
-   allNodes: true
-   unique: true
- config:
-   autoscrape:
-     enable: true
-     metrics_instance: default/primary
-   rootfs_path: /default/node_exporter/rootfs
-   sysfs_path: /default/node_exporter/sys
-   procfs_path: /default/node_exporter/proc
- volumeMounts:
-   - mountPath: /default/node_exporter/proc
-     name: proc
-   - mountPath: /default/node_exporter/sys
-     name: sys
-   - mountPath: /default/node_exporter/rootfs
-     name: root
- volumes:
-   - name: proc
-     hostPath:
-       path: /proc
-   - name: sys
-     hostPath:
-       path: /sys
-   - name: root
-     hostPath:
-       path: /root
-```
- 
+1. Copy the following manifest to a file:  
+
+    ```yaml
+    # Collect node_exporter metrics
+    apiVersion: monitoring.grafana.com/v1alpha1
+    kind: Integration
+    metadata:
+     name: node-exporter
+     namespace: default
+     labels:
+       agent: grafana-agent-integrations
+    spec:
+     name: node_exporter
+     type:
+       allNodes: true
+       unique: true
+     config:
+       autoscrape:
+         enable: true
+         metrics_instance: default/primary
+       rootfs_path: /default/node_exporter/rootfs
+       sysfs_path: /default/node_exporter/sys
+       procfs_path: /default/node_exporter/proc
+     volumeMounts:
+       - mountPath: /default/node_exporter/proc
+         name: proc
+       - mountPath: /default/node_exporter/sys
+         name: sys
+       - mountPath: /default/node_exporter/rootfs
+         name: root
+     volumes:
+       - name: proc
+         hostPath:
+           path: /proc
+       - name: sys
+         hostPath:
+           path: /sys
+       - name: root
+         hostPath:
+           path: /root
+    ```
+
+    The manifest causes Agent Operator to create an instance of a grafana-agent-integrations-deploy resource that exports Node metrics.
+
+1. Customize the manifest as needed and roll it out to your cluster using `kubectl apply -f` followed by the filename.
+
 ## Agent Operator mysqld_exporter integration
 
 The Agent Operator mysqld_exporter integration is an embedded version of mysqld_exporter that lets you collect metrics from MySQL servers.
 
-The following YAML file causes Agent Operator to create an instance of a grafana-agent-integrations-deploy resource that exports MySQL metrics.
+To set up a mysqld_exporter integration:
 
-```yaml
-# Collect mysqld_exporter metrics
-apiVersion: monitoring.grafana.com/v1alpha1
-kind: Integration
-metadata:
- name: mysqld-exporter
- namespace: default
- labels:
-   agent: grafana-agent-integrations
-spec:
- name: mysql
- type:
-   allNodes: true
-   unique: true
- config:
-   autoscrape:
-     enable: true
-     metrics_instance: default/primary
-   data_source_name: root@(server-a:3306)/
-```
+1. Copy the following manifest to a file: 
+
+    ```yaml
+    # Collect mysqld_exporter metrics
+    apiVersion: monitoring.grafana.com/v1alpha1
+    kind: Integration
+    metadata:
+     name: mysqld-exporter
+     namespace: default
+     labels:
+       agent: grafana-agent-integrations
+    spec:
+     name: mysql
+     type:
+       allNodes: true
+       unique: true
+     config:
+       autoscrape:
+         enable: true
+         metrics_instance: default/primary
+       data_source_name: root@(server-a:3306)/
+    ```
+
+    The manifest causes Agent Operator to create an instance of a grafana-agent-integrations-deploy resource that exports MySQL metrics.
+
+1. Customize the manifest as needed and roll it out to your cluster using `kubectl apply -f` followed by the filename.
