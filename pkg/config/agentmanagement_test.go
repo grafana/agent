@@ -148,7 +148,7 @@ func TestRemoteConfigHashCheck(t *testing.T) {
 	}
 	marshalled, err := yaml.Marshal(ic)
 	require.NoError(t, err)
-	icHashBytes := sha256.Sum256([]byte(marshalled))
+	icHashBytes := sha256.Sum256(marshalled)
 	icHash := hex.EncodeToString(icHashBytes[:])
 
 	rcCache := remoteConfigCache{
