@@ -4,7 +4,7 @@ weight: 350
 ---
 # Set up Agent Operator integrations
 
-This topic provides examples of Agent Operator integrations, including [node_exporter](#agent-operator-nodeexporter-integration) and [mysqld_exporter](#agent-operator-mysqldexporter-integration). 
+This topic provides examples of setting up Agent Operator integrations, including [node_exporter](#agent-operator-nodeexporter-integration) and [mysqld_exporter](#agent-operator-mysqldexporter-integration). 
 
 ## Set up an Agent Operator node_exporter integration
 
@@ -54,9 +54,9 @@ To set up a node_exporter integration:
            path: /root
     ```
 
-    The manifest causes Agent Operator to create an instance of a grafana-agent-integrations-deploy resource that exports Node metrics.
-
 1. Customize the manifest as needed and roll it out to your cluster using `kubectl apply -f` followed by the filename.
+
+    The manifest causes Agent Operator to create an instance of a grafana-agent-integrations-deploy resource that exports Node metrics.
 
 ## Set up an Agent Operator mysqld_exporter integration
 
@@ -85,8 +85,8 @@ To set up a mysqld_exporter integration:
          enable: true
          metrics_instance: default/primary
        data_source_name: root@(server-a:3306)/
-    ```
-
-    The manifest causes Agent Operator to create an instance of a grafana-agent-integrations-deploy resource that exports MySQL metrics.
+    ``` 
 
 1. Customize the manifest as needed and roll it out to your cluster using `kubectl apply -f` followed by the filename.
+
+    The manifest causes Agent Operator to create an instance of a grafana-agent-integrations-deploy resource that exports MySQL metrics.
