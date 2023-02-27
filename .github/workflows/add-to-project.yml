@@ -8,7 +8,7 @@ jobs:
     name: Add issue to project
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/add-to-project@v0.4.0
+      - uses: actions/add-to-project@v0.4.1
         with:
           project-url: https://github.com/orgs/grafana/projects/269
           github-token: ${{ secrets.ADD_TO_PROJECT_GH_TOKEN }}
