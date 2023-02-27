@@ -4,13 +4,13 @@ This action will typically follow [Tag Release](./tag-release.md) for a Release 
 
 ## Steps
 
-1. You should see a new draft release created [here](https://github.com/grafana/agent/releases). If not go back to [Tag Release](./tag-release.md)
+1. You should see a new draft release created [here](https://github.com/grafana/agent/releases). If not go back to [Tag Release](./tag-release.md).
 
 2. Edit the release draft by filling in the `Notable Changes` section with all `Breaking Changes` and `Feature` from the CHANGELOG.md.
 
 3. Add any additional changes that you think are notable to the list.
 
-4. Add a footer to the `Notable Changes` section
+4. Add a footer to the `Notable Changes` section.
 
     `For a full list of changes, please refer to the [CHANGELOG](https://github.com/grafana/agent/blob/[release version]/CHANGELOG.md)!`
 
@@ -28,7 +28,7 @@ under the category for "announcements".
 
 8. Publish the release!
 
-9. Accounce the release in the Grafana Labs Community #agent channel
+9. Accounce the release in the Grafana Labs Community #agent channel.
 
     Example message:
 

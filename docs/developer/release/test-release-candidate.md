@@ -9,7 +9,7 @@ will involve overriding the deployed default version to point to the RCV.
 
 1. Create a branch from `main` for [grafana/deployment_tools](https://github.com/grafana/deployment_tools).
 
-2. Update [main.jsonnet](https://github.com/grafana/deployment_tools/blob/master/ksonnet/environments/grafana-agent/main.jsonnet)
+2. Update [main.jsonnet](https://github.com/grafana/deployment_tools/blob/master/ksonnet/environments/grafana-agent/main.jsonnet).
 
     ```
     local agentWaves = (import 'waves/agent.libsonnet'),
@@ -30,21 +30,21 @@ will involve overriding the deployed default version to point to the RCV.
 
     Wait for the build to complete after merge.
 
-4. Validate the new version has been deployed to dev_canary
+4. Validate the new version has been deployed to dev_canary.
 
-    1. Log in to the [Grafana Admin Home](https://admin-dev-us-central-0.grafana.net/grafana/?orgId=1)
+    1. Log in to the [Grafana Admin Home](https://admin-dev-us-central-0.grafana.net/grafana/?orgId=1).
 
-    2. Navigate to Explore in the left hand panel
+    2. Navigate to Explore in the left hand panel.
 
-    3. Run the following query and make sure there are hits for the [release version]
+    3. Run the following query to make sure there are hits for the [release version].
 
     ```
     agent_build_info{version="[release version]",cluster="dev-us-central-0",namespace="grafana-agent"}
     ```
 
-    *NOTE: The datasource should be set to `cortex-dev-01-dev-us-central-0`*
+    *NOTE: The datasource should be set to `cortex-dev-01-dev-us-central-0`*.
 
-    4. Run the following query and make sure there are 0 hits for any other version
+    4. Run the following query to make sure there are 0 hits for any other version.
 
     ```
     agent_build_info{version!="[release version]",cluster="dev-us-central-0",namespace="grafana-agent"}
@@ -52,10 +52,10 @@ will involve overriding the deployed default version to point to the RCV.
 
 5. Validate the new version is healthy in dev_canary
 
-    1. Go the the [Grafana Agent Flow/Controller Dashboard]
+    1. Go the the following Dashboard: `Grafana Agent Flow/Controller Dashboard`
 
-    2. Switch the `Loki Data Source` to `loki-dev` and `cluster` to `dev-us-central-0`
+    2. Switch the `Loki Data Source` to `loki-dev` and `cluster` to `dev-us-central-0`.
     
-    3. Make sure all components are health.
+    3. Make sure all components are healthy.
 
     4. Review the graphs for a time period before and after the new version to make sure nothing stands out.

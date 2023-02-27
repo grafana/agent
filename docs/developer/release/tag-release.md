@@ -8,7 +8,7 @@ All required commits for the release should exist on the release branch. This in
 
 ## Steps
 
-1. Make sure you are up to date on the release branch (git checkout, fetch and pull)
+1. Make sure you are up to date on the release branch (git checkout, fetch and pull).
 
 2. Tag the release.
 
