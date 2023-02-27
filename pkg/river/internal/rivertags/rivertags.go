@@ -103,6 +103,9 @@ func (f Field) IsEnum() bool { return f.Flags&FlagEnum != 0 }
 // IsOptional returns whether f is optional.
 func (f Field) IsOptional() bool { return f.Flags&FlagOptional != 0 }
 
+// IsLabel returns whether f is label.
+func (f Field) IsLabel() bool { return f.Flags&FlagLabel != 0 }
+
 // Get returns the list of tagged fields for some struct type ty. Get panics if
 // ty is not a struct type.
 //

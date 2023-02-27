@@ -15,7 +15,7 @@ import (
 
 func TestConfigMaker(t *testing.T) {
 	configStr := `wal_directory: /tmp/wal`
-	tDir := generatePath(t)
+	tDir := t.TempDir()
 	writeFile(t, tDir, "metrics-1.yml", configStr)
 	fileFS := generateFilePath(tDir)
 	loaderCfg := LoaderConfig{
@@ -31,7 +31,7 @@ func TestConfigMaker(t *testing.T) {
 
 func TestConfigMakerWithFakeFiles(t *testing.T) {
 	configStr := `wal_directory: /tmp/wal`
-	tDir := generatePath(t)
+	tDir := t.TempDir()
 	writeFile(t, tDir, "metrics-1.yml", configStr)
 	writeFile(t, tDir, "fake.yml", configStr)
 	fileFS := generateFilePath(tDir)
@@ -48,7 +48,7 @@ func TestConfigMakerWithFakeFiles(t *testing.T) {
 
 func TestConfigMakerWithMultipleMetrics(t *testing.T) {
 	configStr := `wal_directory: /tmp/wal`
-	tDir := generatePath(t)
+	tDir := t.TempDir()
 	writeFile(t, tDir, "metrics-1.yml", configStr)
 	writeFile(t, tDir, "metrics-2.yml", configStr)
 
@@ -65,7 +65,7 @@ func TestConfigMakerWithMultipleMetrics(t *testing.T) {
 
 func TestConfigMakerWithMetricsAndInstances(t *testing.T) {
 	configStr := `wal_directory: /tmp/wal`
-	tDir := generatePath(t)
+	tDir := t.TempDir()
 	writeFile(t, tDir, "metrics-1.yml", configStr)
 	writeFile(t, tDir, "metrics_instances-1.yml", "name: t1")
 	writeFile(t, tDir, "metrics_instances-2.yml", "name: t2")
@@ -91,7 +91,7 @@ func TestConfigMakerWithExporter(t *testing.T) {
 windows:
   enabled_collectors: one,two,three
 `
-	tDir := generatePath(t)
+	tDir := t.TempDir()
 	writeFile(t, tDir, "integrations-1.yml", configStr)
 	fileFS := generateFilePath(tDir)
 
@@ -116,7 +116,7 @@ node_exporter:
   autoscrape:
     enable: false
 `
-	tDir := generatePath(t)
+	tDir := t.TempDir()
 	writeFile(t, tDir, "integrations-1.yml", configStr)
 	fileFS := generateFilePath(tDir)
 
@@ -176,7 +176,7 @@ redis_configs:
       replacement: "apple"
 - redis_addr: localhost:6380
 `
-	tDir := generatePath(t)
+	tDir := t.TempDir()
 	writeFile(t, tDir, "integrations-1.yml", configStr)
 	fileFS := generateFilePath(tDir)
 
@@ -208,7 +208,7 @@ integrations:
 	addIntegration := `
 windows: {}
 `
-	tDir := generatePath(t)
+	tDir := t.TempDir()
 	writeFile(t, tDir, "agent-1.yml", configStr)
 	writeFile(t, tDir, "integrations-windows.yml", addIntegration)
 	fileFS := generateFilePath(tDir)
@@ -285,7 +285,7 @@ configs:
         source: filename
         expression: '\\temp\\Logs\\(?P<log_app>.+?)\\'
 `
-	tDir := generatePath(t)
+	tDir := t.TempDir()
 	writeFile(t, tDir, "a-1.yml", agentStr)
 	writeFile(t, tDir, "s-1.yml", serverStr)
 	writeFile(t, tDir, "m-1.yml", metricsStr)

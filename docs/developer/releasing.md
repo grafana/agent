@@ -212,8 +212,8 @@ Example commands:
 ```
 git checkout release-v0.31
 git pull
-git tag v0.31.2
-git push origin --tags
+git tag -s v0.31.2
+git push origin v0.31.2
 ```
 
 After the push double check that the tag on GitHub corresponds to the tip of the release branch on GitHub.
