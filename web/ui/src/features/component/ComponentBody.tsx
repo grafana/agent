@@ -2,7 +2,6 @@ import React, { Fragment } from 'react';
 import { a11yLight, CodeBlock } from 'react-code-blocks';
 
 import { riverStringify } from '../river-js/stringify';
-import { customTheme } from '../river-js/theme';
 import Table from '../widget/Table';
 
 import { PartitionedBody } from './types';
@@ -26,7 +25,6 @@ const ComponentBody = ({ partition }: ComponentBodyProps) => {
           <td>
             <pre className={styles.pre}>
               <CodeBlock
-                // style={{ lineHeight: 0 }}
                 text={riverStringify(value)}
                 language={'jsx'}
                 showLineNumbers={false}
