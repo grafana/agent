@@ -65,26 +65,26 @@ Name | Type | Description
 
 Each target includes the following labels:
 
-* `__meta_ec2_ami`: the EC2 Amazon Machine Image
-* `__meta_ec2_architecture`: the architecture of the instance
-* `__meta_ec2_availability_zone`: the availability zone in which the instance is running
-* `__meta_ec2_availability_zone_id`: the availability zone ID in which the instance is running (requires `ec2:DescribeAvailabilityZones`)
-* `__meta_ec2_instance_id`: the EC2 instance ID
-* `__meta_ec2_instance_lifecycle`: the lifecycle of the EC2 instance, set only for 'spot' or 'scheduled' instances, absent otherwise
-* `__meta_ec2_instance_state`: the state of the EC2 instance
-* `__meta_ec2_instance_type`: the type of the EC2 instance
-* `__meta_ec2_ipv6_addresses`: comma separated list of IPv6 addresses assigned to the instance's network interfaces, if present
-* `__meta_ec2_owner_id`: the ID of the AWS account that owns the EC2 instance
-* `__meta_ec2_platform`: the Operating System platform, set to 'windows' on Windows servers, absent otherwise
-* `__meta_ec2_primary_subnet_id`: the subnet ID of the primary network interface, if available
-* `__meta_ec2_private_dns_name`: the private DNS name of the instance, if available
-* `__meta_ec2_private_ip`: the private IP address of the instance, if present
-* `__meta_ec2_public_dns_name`: the public DNS name of the instance, if available
-* `__meta_ec2_public_ip`: the public IP address of the instance, if available
-* `__meta_ec2_region`: the region of the instance
-* `__meta_ec2_subnet_id`: comma separated list of subnets IDs in which the instance is running, if available
-* `__meta_ec2_tag_<tagkey>`: each tag value of the instance
-* `__meta_ec2_vpc_id`: the ID of the VPC in which the instance is running, if available
+* `__meta_ec2_ami`: The EC2 Amazon Machine Image.
+* `__meta_ec2_architecture`: The architecture of the instance.
+* `__meta_ec2_availability_zone`: The availability zone in which the instance is running.
+* `__meta_ec2_availability_zone_id`: The availability zone ID in which the instance is running (requires `ec2:DescribeAvailabilityZones`).
+* `__meta_ec2_instance_id`: The EC2 instance ID.
+* `__meta_ec2_instance_lifecycle`: The lifecycle of the EC2 instance, set only for 'spot' or 'scheduled' instances, absent otherwise.
+* `__meta_ec2_instance_state`: The state of the EC2 instance.
+* `__meta_ec2_instance_type`: The type of the EC2 instance.
+* `__meta_ec2_ipv6_addresses`: Comma-separated list of IPv6 addresses assigned to the instance's network interfaces, if present.
+* `__meta_ec2_owner_id`: The ID of the AWS account that owns the EC2 instance.
+* `__meta_ec2_platform`: The Operating System platform, set to 'windows' on Windows servers, absent otherwise.
+* `__meta_ec2_primary_subnet_id`: The subnet ID of the primary network interface, if available.
+* `__meta_ec2_private_dns_name`: The private DNS name of the instance, if available.
+* `__meta_ec2_private_ip`: The private IP address of the instance, if present.
+* `__meta_ec2_public_dns_name`: The public DNS name of the instance, if available.
+* `__meta_ec2_public_ip`: The public IP address of the instance, if available.
+* `__meta_ec2_region`: The region of the instance.
+* `__meta_ec2_subnet_id`: Comma-separated list of subnets IDs in which the instance is running, if available.
+* `__meta_ec2_tag_<tagkey>`: Each tag value of the instance.
+* `__meta_ec2_vpc_id`: The ID of the VPC in which the instance is running, if available.
 
 ## Component health
 

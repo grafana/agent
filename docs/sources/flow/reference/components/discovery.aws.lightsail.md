@@ -38,17 +38,17 @@ Name | Type | Description
 
 Each target includes the following labels:
 
-* `__meta_lightsail_availability_zone`: the availability zone in which the instance is running
-* `__meta_lightsail_blueprint_id`: the Lightsail blueprint ID
-* `__meta_lightsail_bundle_id`: the Lightsail bundle ID
-* `__meta_lightsail_instance_name`: the name of the Lightsail instance
-* `__meta_lightsail_instance_state`: the state of the Lightsail instance
-* `__meta_lightsail_instance_support_code`: the support code of the Lightsail instance
+* `__meta_lightsail_availability_zone`: The availability zone in which the instance is running.
+* `__meta_lightsail_blueprint_id`: The Lightsail blueprint ID.
+* `__meta_lightsail_bundle_id`: The Lightsail bundle ID.
+* `__meta_lightsail_instance_name`: The name of the Lightsail instance.
+* `__meta_lightsail_instance_state`: The state of the Lightsail instance.
+* `__meta_lightsail_instance_support_code`: The support code of the Lightsail instance.
 * `__meta_lightsail_ipv6_addresses`: Comma-separated list of IPv6 addresses assigned to the instance's network interfaces, if present.
-* `__meta_lightsail_private_ip`: the private IP address of the instance
-* `__meta_lightsail_public_ip`: the public IP address of the instance, if available
-* `__meta_lightsail_region`: the region of the instance
-* `__meta_lightsail_tag_<tagkey>`: each tag value of the instance
+* `__meta_lightsail_private_ip`: The private IP address of the instance.
+* `__meta_lightsail_public_ip`: The public IP address of the instance, if available.
+* `__meta_lightsail_region`: The region of the instance.
+* `__meta_lightsail_tag_<tagkey>`: Each tag value of the instance.
 
 
 ## Component health
