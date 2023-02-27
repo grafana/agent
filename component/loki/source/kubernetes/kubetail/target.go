@@ -208,7 +208,7 @@ func PrepareLabels(lset labels.Labels, defaultJob string) (res labels.Labels, er
 		lb.Set(LabelPodContainerName, podContainerName)
 	}
 	if !lset.Has(LabelPodUID) {
-		lb.Set(LabelPodUID, podUID)
+		lb.Set(LabelPodUID, podContainerName)
 	}
 
 	// Meta labels are deleted after relabelling. Other internal labels propagate

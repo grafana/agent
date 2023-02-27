@@ -359,11 +359,6 @@ func TestProbe(t *testing.T) {
 								},
 							},
 						},
-						TLSConfig: &prom_v1.ProbeTLSConfig{
-							SafeTLSConfig: prom_v1.SafeTLSConfig{
-								InsecureSkipVerify: true,
-							},
-						},
 					},
 				},
 				"apiServer":                prom_v1.APIServerConfig{},
@@ -407,8 +402,6 @@ func TestProbe(t *testing.T) {
 					target_label: instance
 				- replacement: ""
 					target_label: __address__
-				tls_config:
-					insecure_skip_verify: true
 			`),
 		},
 	}

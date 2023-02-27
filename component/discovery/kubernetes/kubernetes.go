@@ -25,7 +25,7 @@ type Arguments struct {
 	APIServer          config.URL              `river:"api_server,attr,optional"`
 	Role               string                  `river:"role,attr"`
 	KubeConfig         string                  `river:"kubeconfig_file,attr,optional"`
-	HTTPClientConfig   config.HTTPClientConfig `river:",squash"`
+	HTTPClientConfig   config.HTTPClientConfig `river:"http_client_config,block,optional"`
 	NamespaceDiscovery NamespaceDiscovery      `river:"namespaces,block,optional"`
 	Selectors          []SelectorConfig        `river:"selectors,block,optional"`
 }
@@ -39,13 +39,7 @@ var DefaultConfig = Arguments{
 func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	*args = DefaultConfig
 	type arguments Arguments
-	err := f((*arguments)(args))
-	if err != nil {
-		return err
-	}
-
-	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
-	return args.HTTPClientConfig.Validate()
+	return f((*arguments)(args))
 }
 
 // Convert converts Arguments to the Prometheus SD type.

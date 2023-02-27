@@ -13,7 +13,6 @@ import (
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
 	cft "github.com/grafana/agent/component/loki/source/cloudflare/internal/cloudflaretarget"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/prometheus/common/model"
 )
@@ -32,7 +31,7 @@ func init() {
 // Arguments holds values which are used to configure the
 // loki.source.cloudflare component.
 type Arguments struct {
-	APIToken   rivertypes.Secret   `river:"api_token,attr"`
+	APIToken   string              `river:"api_token,attr"`
 	ZoneID     string              `river:"zone_id,attr"`
 	Labels     map[string]string   `river:"labels,attr,optional"`
 	Workers    int                 `river:"workers,attr,optional"`
@@ -48,8 +47,8 @@ func (c Arguments) Convert() *cft.Config {
 		lbls[model.LabelName(k)] = model.LabelValue(v)
 	}
 	return &cft.Config{
-		APIToken:   string(c.APIToken),
-		ZoneID:     c.ZoneID,
+		APIToken:   c.APIToken,
+		ZoneID:     c.APIToken,
 		Labels:     lbls,
 		Workers:    c.Workers,
 		PullRange:  model.Duration(c.PullRange),

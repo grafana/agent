@@ -21,12 +21,16 @@ import (
 )
 
 var testTimestampRiver = `
-stage.json {
+stage {
+  json {
     expressions = { ts = "time" }
+  }
 }
-stage.timestamp {
+stage {
+  timestamp {
     source = "ts"
 	format = "RFC3339"
+  }
 }`
 
 var testTimestampLogLine = `

@@ -189,7 +189,9 @@ func TestInstance_Path(t *testing.T) {
 	scrapeAddr, closeSrv := getTestServer(t)
 	defer closeSrv()
 
-	walDir := t.TempDir()
+	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
+	require.NoError(t, err)
+	defer os.RemoveAll(walDir)
 
 	globalConfig := getTestGlobalConfig(t)
 
@@ -216,7 +218,9 @@ func TestInstance(t *testing.T) {
 	scrapeAddr, closeSrv := getTestServer(t)
 	defer closeSrv()
 
-	walDir := t.TempDir()
+	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
+	require.NoError(t, err)
+	defer os.RemoveAll(walDir)
 
 	globalConfig := getTestGlobalConfig(t)
 	cfg := getTestConfig(t, &globalConfig, scrapeAddr)
@@ -248,7 +252,9 @@ func TestInstance_Recreate(t *testing.T) {
 	scrapeAddr, closeSrv := getTestServer(t)
 	defer closeSrv()
 
-	walDir := t.TempDir()
+	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
+	require.NoError(t, err)
+	defer os.RemoveAll(walDir)
 
 	globalConfig := getTestGlobalConfig(t)
 

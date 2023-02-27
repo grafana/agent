@@ -19,11 +19,15 @@ import (
 )
 
 var testOutputRiver = `
-stage.json {
+stage {
+  json {
     expressions = { "out" = "message" }
+  }
 }
-stage.output {
+stage {
+  output {
     source = "out"
+  }
 }
 `
 

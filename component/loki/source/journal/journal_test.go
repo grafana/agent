@@ -22,7 +22,11 @@ func TestJournal(t *testing.T) {
 	// Create opts for component
 	l, err := logging.New(os.Stderr, logging.DefaultOptions)
 	require.NoError(t, err)
-	tmp := t.TempDir()
+	tmp, err := os.MkdirTemp("", "testjrnl")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_ = os.RemoveAll(tmp)
+	})
 	lr := make(loki.LogsReceiver)
 	c, err := New(component.Options{
 		ID:         "loki.source.journal.test",

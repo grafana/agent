@@ -111,9 +111,11 @@ loki.source.file "pods" {
 loki.write "endpoint" {
     endpoint {
         url = "LOKI_PATH"
-        basic_auth {
-            username = USERNAME
-            password = "PASSWORD"
+        http_client_config {
+            basic_auth {
+                username = USERNAME
+                password = "PASSWORD"
+            }
         }
     }
 }

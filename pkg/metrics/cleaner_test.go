@@ -29,10 +29,12 @@ func TestWALCleaner_getAllStorageNoRoot(t *testing.T) {
 }
 
 func TestWALCleaner_getAllStorageSuccess(t *testing.T) {
-	walRoot := t.TempDir()
+	walRoot, err := os.MkdirTemp(os.TempDir(), "getAllStorageSuccess")
+	require.NoError(t, err)
+	defer os.RemoveAll(walRoot)
 
 	walDir := filepath.Join(walRoot, "instance-1")
-	err := os.MkdirAll(walDir, 0755)
+	err = os.MkdirAll(walDir, 0755)
 	require.NoError(t, err)
 
 	logger := log.NewLogfmtLogger(os.Stderr)
@@ -49,10 +51,12 @@ func TestWALCleaner_getAllStorageSuccess(t *testing.T) {
 }
 
 func TestWALCleaner_getAbandonedStorageBeforeCutoff(t *testing.T) {
-	walRoot := t.TempDir()
+	walRoot, err := os.MkdirTemp(os.TempDir(), "getAbandonedStorageBeforeCutoff")
+	require.NoError(t, err)
+	defer os.RemoveAll(walRoot)
 
 	walDir := filepath.Join(walRoot, "instance-1")
-	err := os.MkdirAll(walDir, 0755)
+	err = os.MkdirAll(walDir, 0755)
 	require.NoError(t, err)
 
 	all := []string{walDir}
@@ -80,10 +84,12 @@ func TestWALCleaner_getAbandonedStorageBeforeCutoff(t *testing.T) {
 }
 
 func TestWALCleaner_getAbandonedStorageAfterCutoff(t *testing.T) {
-	walRoot := t.TempDir()
+	walRoot, err := os.MkdirTemp(os.TempDir(), "getAbandonedStorageAfterCutoff")
+	require.NoError(t, err)
+	defer os.RemoveAll(walRoot)
 
 	walDir := filepath.Join(walRoot, "instance-1")
-	err := os.MkdirAll(walDir, 0755)
+	err = os.MkdirAll(walDir, 0755)
 	require.NoError(t, err)
 
 	all := []string{walDir}
@@ -111,10 +117,12 @@ func TestWALCleaner_getAbandonedStorageAfterCutoff(t *testing.T) {
 }
 
 func TestWALCleaner_cleanup(t *testing.T) {
-	walRoot := t.TempDir()
+	walRoot, err := os.MkdirTemp(os.TempDir(), "cleanup")
+	require.NoError(t, err)
+	defer os.RemoveAll(walRoot)
 
 	walDir := filepath.Join(walRoot, "instance-1")
-	err := os.MkdirAll(walDir, 0755)
+	err = os.MkdirAll(walDir, 0755)
 	require.NoError(t, err)
 
 	now := time.Now()

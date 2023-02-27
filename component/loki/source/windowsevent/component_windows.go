@@ -115,11 +115,10 @@ func (c *Component) Update(args component.Arguments) error {
 		if err != nil {
 			return err
 		}
-		f, err := os.Create(newArgs.BookmarkPath)
+		_, err = os.Create(newArgs.BookmarkPath)
 		if err != nil {
 			return err
 		}
-		_ = f.Close()
 	}
 
 	winTarget, err := windows.New(c.opts.Logger, c.handle, nil, convertConfig(newArgs))

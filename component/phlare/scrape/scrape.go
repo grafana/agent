@@ -72,7 +72,7 @@ type Arguments struct {
 	// // scrape to fail.
 	// LabelValueLengthLimit uint `river:"label_value_length_limit,attr,optional"`
 
-	HTTPClientConfig component_config.HTTPClientConfig `river:",squash"`
+	HTTPClientConfig component_config.HTTPClientConfig `river:"http_client_config,block,optional"`
 
 	ProfilingConfig ProfilingConfig `river:"profiling_config,block,optional"`
 }
@@ -203,8 +203,7 @@ func (arg *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 		}
 	}
 
-	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
-	return arg.HTTPClientConfig.Validate()
+	return nil
 }
 
 // Component implements the pprof.scrape component.

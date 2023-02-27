@@ -108,11 +108,13 @@ prometheus.remote_write "prod" {
   endpoint {
     url = "https://prod:9090/api/v1/write"
 
-    basic_auth {
-      username = "admin"
+    http_client_config {
+      basic_auth {
+        username = "admin"
 
-      // Use our password file for authenticating with the production database.
-      password = local.file.api_key.content
+        // Use our password file for authenticating with the production database.
+        password = local.file.api_key.content
+      }
     }
   }
 }

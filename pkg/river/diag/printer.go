@@ -136,9 +136,7 @@ func (p *Printer) printRange(w io.Writer, file []byte, diag Diagnostic) {
 		fmt.Fprintf(w, " | ")
 
 		if multiline {
-			// Use 0 for the column number so we never consider the starting line for
-			// showing |.
-			if inRange(lineNum, 0, start, end) {
+			if inRange(lineNum, 1, start, end) {
 				fmt.Fprint(w, "| ")
 			} else {
 				fmt.Fprint(w, "  ")

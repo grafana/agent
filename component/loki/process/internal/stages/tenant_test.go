@@ -19,11 +19,15 @@ import (
 )
 
 var testTenantRiverExtractedData = `
-stage.json {
+stage {
+	json {
 		expressions = { "customer_id" = "" }
+	}
 }
-stage.tenant { 
+stage {
+	tenant { 
 		source = "customer_id"
+	}
 } `
 
 var testTenantLogLineWithMissingKey = `

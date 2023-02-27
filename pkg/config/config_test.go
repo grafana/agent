@@ -13,7 +13,6 @@ import (
 
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/instance"
-	"github.com/grafana/agent/pkg/server"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/common/model"
 	promCfg "github.com/prometheus/prometheus/config"
@@ -454,7 +453,7 @@ func TestLoadDynamicConfigurationExpandError(t *testing.T) {
 	assert.True(t, strings.Contains(err.Error(), "expand var is not supported when using dynamic configuration, use gomplate env instead"))
 }
 
-func TestAgent_OmitEmptyFields(t *testing.T) {
+func TestAgent_OmmitEmptyFields(t *testing.T) {
 	var cfg Config
 	yml, err := yaml.Marshal(&cfg)
 	require.NoError(t, err)
@@ -517,13 +516,4 @@ agent_management:
 	rc.AgentManagement = AgentManagementConfig{}
 
 	assert.True(t, util.CompareYAML(ic, rc))
-}
-
-func TestConfig_EmptyServerConfigFails(t *testing.T) {
-	// Since we are testing defaults via config.Load, we need a file instead of a string.
-	// This test file has an empty server stanza, we expect default values out.
-	logger := server.NewLogger(&server.DefaultConfig)
-	fs := flag.NewFlagSet("", flag.ExitOnError)
-	_, err := Load(fs, []string{"--config.file", "./testdata/server_empty.yml"}, logger)
-	require.Error(t, err)
 }

@@ -27,7 +27,7 @@ func init() {
 type Arguments struct {
 	ParseStringTags bool `river:"parse_string_tags,attr,optional"`
 
-	HTTPServer otelcol.HTTPServerArguments `river:",squash"`
+	HTTPServer otelcol.HTTPServerArguments `river:"http,block,optional"`
 
 	// Output configures where to send received data. Required.
 	Output *otelcol.ConsumerArguments `river:"output,block"`

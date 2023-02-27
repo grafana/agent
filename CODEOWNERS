@@ -1,5 +1,5 @@
-/cmd/grafana-agent-operator @captncraig @marctc @jcreixell
-/pkg/integrations/ @rgeyer @gaantunes @captncraig @marctc @jcreixell
-/pkg/operator @captncraig @marctc @jcreixell
+/cmd/grafana-agent-operator @captncraig @marctc
+/pkg/integrations/ @rgeyer @gaantunes @captncraig @marctc
+/pkg/operator @captncraig @marctc
 /pkg/traces/ @joe-elliott @mapno
 /docs/sources/ @karengermond

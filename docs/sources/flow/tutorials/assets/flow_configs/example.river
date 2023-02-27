@@ -1,9 +1,9 @@
-prometheus.exporter.unix {
+prometheus.integration.node_exporter {
 set_collectors = ["cpu", "diskstats"]
 }
 
 prometheus.scrape "my_scrape_job" {
-	targets    = prometheus.exporter.unix.targets
+	targets    = prometheus.integration.node_exporter.targets
 	forward_to = [prometheus.remote_write.default.receiver]
 }
 

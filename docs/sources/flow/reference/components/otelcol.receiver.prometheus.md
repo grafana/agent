@@ -1,12 +1,8 @@
 ---
 title: otelcol.receiver.prometheus
-labels:
-  stage: beta
 ---
 
 # otelcol.receiver.prometheus
-
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
 
 `otelcol.receiver.prometheus` receives Prometheus metrics, converts them to the
 OpenTelemetry metrics format, and forwards them to other `otelcol.*`
@@ -77,13 +73,13 @@ prometheus.scrape "default" {
     // Collect metrics from Grafana Agent's default HTTP listen address.
     targets = [{"__address__"   = "127.0.0.1:12345"}]
 
-    forward_to = [otelcol.receiver.prometheus.default.receiver]
+    forward_to = [otelcol.receiver.prometheus.default.receiver] 
 }
 
 otelcol.receiver.prometheus "default" {
   output {
-    metrics = [otelcol.exporter.otlp.default.input]
-  }
+    metrics = [otelcol.exporter.otlp.default.input] 
+  } 
 }
 
 otelcol.exporter.otlp "default" {

@@ -35,12 +35,12 @@ prometheus.scrape "agent" {
 	forward_to = [prometheus.relabel.service.receiver]
 }
 
-prometheus.exporter.unix {
+prometheus.integration.node_exporter {
 	set_collectors = ["cpu", "diskstats"]
 }
 
-prometheus.scrape "unix" {
-	targets    = prometheus.exporter.unix.targets
+prometheus.scrape "node" {
+	targets    = prometheus.integration.node_exporter.targets
 	forward_to = [prometheus.relabel.service.receiver]
 }
 
@@ -61,7 +61,7 @@ prometheus.remote_write "prom" {
 }
 ```
 
-In the above Flow block, `prometheus.relabel.service` is being forwarded metrics from two sources `prometheus.scrape.agent` and `prometheus.exporter.unix`. This allows for a single relabel component to be used with any number of inputs.
+In the above Flow block, `prometheus.relabel.service` is being forwarded metrics from two sources `prometheus.scrape.agent` and `prometheus.integration.node_exporter`. This allows for a single relabel component to be used with any number of inputs.
 
 ## Adding another relabel
 

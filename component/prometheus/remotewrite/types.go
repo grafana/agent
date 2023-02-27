@@ -23,6 +23,11 @@ var (
 		WALOptions: DefaultWALOptions,
 	}
 
+	DefaultEndpointOptions = EndpointOptions{
+		RemoteTimeout: 30 * time.Second,
+		SendExemplars: true,
+	}
+
 	DefaultQueueOptions = QueueOptions{
 		Capacity:          2500,
 		MaxShards:         200,
@@ -74,37 +79,17 @@ type EndpointOptions struct {
 	Headers              map[string]string       `river:"headers,attr,optional"`
 	SendExemplars        bool                    `river:"send_exemplars,attr,optional"`
 	SendNativeHistograms bool                    `river:"send_native_histograms,attr,optional"`
-	HTTPClientConfig     *types.HTTPClientConfig `river:",squash"`
+	HTTPClientConfig     *types.HTTPClientConfig `river:"http_client_config,block,optional"`
 	QueueOptions         *QueueOptions           `river:"queue_config,block,optional"`
 	MetadataOptions      *MetadataOptions        `river:"metadata_config,block,optional"`
 }
 
-func GetDefaultEndpointOptions() EndpointOptions {
-	var defaultEndpointOptions = EndpointOptions{
-		RemoteTimeout:    30 * time.Second,
-		SendExemplars:    true,
-		HTTPClientConfig: types.CloneDefaultHTTPClientConfig(),
-	}
-
-	return defaultEndpointOptions
-}
-
 // UnmarshalRiver implements river.Unmarshaler.
 func (r *EndpointOptions) UnmarshalRiver(f func(v interface{}) error) error {
-	*r = GetDefaultEndpointOptions()
+	*r = DefaultEndpointOptions
 
 	type arguments EndpointOptions
-	err := f((*arguments)(r))
-	if err != nil {
-		return err
-	}
-
-	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
-	if r.HTTPClientConfig != nil {
-		return r.HTTPClientConfig.Validate()
-	}
-
-	return nil
+	return f((*arguments)(r))
 }
 
 // QueueOptions handles the low level queue config options for a remote_write

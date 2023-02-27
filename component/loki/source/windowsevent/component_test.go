@@ -25,7 +25,9 @@ func TestEventLogger(t *testing.T) {
 	require.NoError(t, err)
 	l, err := logging.New(os.Stdout, logging.DefaultOptions)
 	require.NoError(t, err)
-	dataPath := t.TempDir()
+	dataPath, err := os.MkdirTemp("", "loki.source.windowsevent")
+	require.NoError(t, err)
+	defer os.RemoveAll(dataPath) // clean up
 	rec := make(loki.LogsReceiver)
 	c, err := New(component.Options{
 		ID:       "loki.source.windowsevent.test",

@@ -7,11 +7,6 @@ local linux_containers = [
   { name: 'grafana/agent-operator', make: 'make operator-image', path: 'cmd/grafana-agent-operator/Dockerfile' },
 ];
 
-local windows_containers = [
-  { name: 'grafana/agent', argument: 'agent', path: 'cmd/grafana-agent/Dockerfile.windows' },
-  { name: 'grafana/agentctl', argument: 'agentctl', path: 'cmd/grafana-agentctl/Dockerfile.windows' },
-];
-
 (
   std.map(function(container) pipelines.linux('Check Linux container (%s)' % container.name) {
     trigger: {
@@ -34,11 +29,11 @@ local windows_containers = [
       },
     }],
   }, linux_containers)
-) + (
-  std.map(function(container) pipelines.windows('Check Windows container (%s)' % container.name) {
+) + [
+  pipelines.windows('Check Windows containers') {
     trigger: {
       event: ['pull_request'],
-      paths: [container.path],
+      paths: ['**/Dockerfile.windows'],
     },
     steps: [{
       name: 'Build container',
@@ -49,7 +44,7 @@ local windows_containers = [
       }],
       commands: [
         'git config --global --add safe.directory C:/drone/src/',
-        '& "C:/Program Files/git/bin/bash.exe" ./tools/ci/docker-containers-windows %s' % container.argument,
+        '& "C:/Program Files/git/bin/bash.exe" -c ./tools/ci/docker-containers-windows',
       ],
     }],
     volumes: [{
@@ -58,5 +53,5 @@ local windows_containers = [
         path: '//./pipe/docker_engine/',
       },
     }],
-  }, windows_containers)
-)
+  },
+]

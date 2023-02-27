@@ -7,7 +7,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func TestConfig_OmitEmptyFields(t *testing.T) {
+func TestConfig_OmmitEmptyFields(t *testing.T) {
 	var cfg Config
 	yml, err := yaml.Marshal(&cfg)
 	require.NoError(t, err)

@@ -1,4 +1,4 @@
-import { FC, Fragment, ReactElement } from 'react';
+import React, { FC, Fragment, ReactElement } from 'react';
 
 import { ObjectField, Value, ValueType } from './types';
 

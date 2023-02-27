@@ -54,15 +54,6 @@ rules:
       - /metrics
     verbs:
       - get
-  # Rules which allow eventhandler to work.
-  - apiGroups:
-      - ""
-    resources:
-      - events
-    verbs:
-      - get
-      - list
-      - watch
 
 ---
 

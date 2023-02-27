@@ -9,8 +9,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/grafana/agent/pkg/river/internal/reflectutil"
 )
 
 // Go types used throughout the package.
@@ -332,7 +330,7 @@ func (v Value) Keys() []string {
 
 		keys := make([]string, v.rv.Len())
 		for i := range keys {
-			keys[i] = reflectutil.Get(v.rv.Index(i), labelField).String()
+			keys[i] = v.rv.Index(i).FieldByIndex(labelField.Index).String()
 		}
 		return keys
 
@@ -378,7 +376,7 @@ func (v Value) Key(key string) (index Value, ok bool) {
 		for i := 0; i < v.rv.Len(); i++ {
 			elem := v.rv.Index(i)
 
-			label := reflectutil.Get(elem, labelField).String()
+			label := elem.FieldByIndex(labelField.Index).String()
 			if label == key {
 				// We discard the label since the key here represents the label value.
 				ws := wrapStruct(elem, false)

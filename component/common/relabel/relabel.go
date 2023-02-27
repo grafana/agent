@@ -22,8 +22,6 @@ const (
 	LabelKeep Action = "labelkeep"
 	Lowercase Action = "lowercase"
 	Uppercase Action = "uppercase"
-	KeepEqual Action = "keepequal"
-	DropEqual Action = "dropequal"
 )
 
 var actions = map[Action]struct{}{
@@ -36,8 +34,6 @@ var actions = map[Action]struct{}{
 	LabelKeep: {},
 	Lowercase: {},
 	Uppercase: {},
-	KeepEqual: {},
-	DropEqual: {},
 }
 
 // String returns the string representation of the Action type.
@@ -135,11 +131,8 @@ func (rc *Config) UnmarshalRiver(f func(interface{}) error) error {
 	if rc.Modulus == 0 && rc.Action == HashMod {
 		return fmt.Errorf("relabel configuration for hashmod requires non-zero modulus")
 	}
-	if (rc.Action == Replace || rc.Action == KeepEqual || rc.Action == DropEqual || rc.Action == HashMod || rc.Action == Lowercase || rc.Action == Uppercase) && rc.TargetLabel == "" {
+	if (rc.Action == Replace || rc.Action == HashMod || rc.Action == Lowercase || rc.Action == Uppercase) && rc.TargetLabel == "" {
 		return fmt.Errorf("relabel configuration for %s action requires 'target_label' value", rc.Action)
-	}
-	if (rc.Action == KeepEqual || rc.Action == DropEqual) && rc.SourceLabels == nil {
-		return fmt.Errorf("relabel configuration for %s action requires 'source_labels' value", rc.Action)
 	}
 	if (rc.Action == Replace || rc.Action == Lowercase || rc.Action == Uppercase) && !relabelTarget.MatchString(rc.TargetLabel) {
 		return fmt.Errorf("%q is invalid 'target_label' for %s action", rc.TargetLabel, rc.Action)
@@ -162,16 +155,6 @@ func (rc *Config) UnmarshalRiver(f func(interface{}) error) error {
 			rc.Replacement != DefaultRelabelConfig.Replacement {
 
 			return fmt.Errorf("%s action requires only 'regex', and no other fields", rc.Action)
-		}
-	}
-
-	if rc.Action == KeepEqual || rc.Action == DropEqual {
-		if rc.Regex != DefaultRelabelConfig.Regex ||
-			rc.Modulus != DefaultRelabelConfig.Modulus ||
-			rc.Separator != DefaultRelabelConfig.Separator ||
-			rc.Replacement != DefaultRelabelConfig.Replacement {
-
-			return fmt.Errorf("%s action requires only 'source_labels' and 'target_label', and no other fields", rc.Action)
 		}
 	}
 

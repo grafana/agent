@@ -20,19 +20,25 @@ import (
 )
 
 var testJSONRiverSingleStageWithoutSource = `
-stage.json {
+stage {
+  json {
     expressions = {"out" = "message", "app" = "", "nested" = "", duration = "", unknown = "" }
+  }
 }
 `
 
 var testJSONRiverMultiStageWithSource = `
-stage.json {
+stage {
+  json {
     expressions = { "extra" = "" }
+  }
 }
 
-stage.json {
+stage {
+  json {
     expressions = { "user" = "" }
 	source      = "extra"
+  }
 }`
 
 var testJSONLogLine = `
