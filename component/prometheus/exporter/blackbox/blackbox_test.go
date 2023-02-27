@@ -13,13 +13,11 @@ import (
 func TestUnmarshalRiver(t *testing.T) {
 	riverCfg := `
 		config_file = "modules.yml"
-		blackbox_target {
-			name = "target_a"
+		target "target_a" {
 			address = "http://example.com"
 			module = "http_2xx"
 		}
-		blackbox_target {
-			name = "target_b"
+		target "target_b" {
 			address = "http://grafana.com"
 			module = "http_2xx"
 		}
@@ -27,20 +25,20 @@ func TestUnmarshalRiver(t *testing.T) {
 	var cfg Config
 	err := river.Unmarshal([]byte(riverCfg), &cfg)
 	require.NoError(t, err)
-	require.Equal(t, "modules.yml", cfg.BlackboxConfigFile)
-	require.Equal(t, 2, len(cfg.BlackboxTargets))
-	require.Contains(t, "target_a", cfg.BlackboxTargets[0].Name)
-	require.Contains(t, "http://example.com", cfg.BlackboxTargets[0].Target)
-	require.Contains(t, "http_2xx", cfg.BlackboxTargets[0].Module)
-	require.Contains(t, "target_b", cfg.BlackboxTargets[1].Name)
-	require.Contains(t, "http://grafana.com", cfg.BlackboxTargets[1].Target)
-	require.Contains(t, "http_2xx", cfg.BlackboxTargets[1].Module)
+	require.Equal(t, "modules.yml", cfg.ConfigFile)
+	require.Equal(t, 2, len(cfg.Targets))
+	require.Contains(t, "target_a", cfg.Targets[0].Name)
+	require.Contains(t, "http://example.com", cfg.Targets[0].Target)
+	require.Contains(t, "http_2xx", cfg.Targets[0].Module)
+	require.Contains(t, "target_b", cfg.Targets[1].Name)
+	require.Contains(t, "http://grafana.com", cfg.Targets[1].Target)
+	require.Contains(t, "http_2xx", cfg.Targets[1].Module)
 }
 
 func TestConvertConfig(t *testing.T) {
 	cfg := Config{
-		BlackboxConfigFile: "modules.yml",
-		BlackboxTargets:    BlackboxTargets{{Name: "target_a", Target: "http://example.com", Module: "http_2xx"}},
+		ConfigFile:         "modules.yml",
+		Targets:            TargetBlock{{Name: "target_a", Target: "http://example.com", Module: "http_2xx"}},
 		ProbeTimeoutOffset: 1.0,
 	}
 
@@ -54,7 +52,7 @@ func TestConvertConfig(t *testing.T) {
 }
 
 func TestConvertTargets(t *testing.T) {
-	targets := BlackboxTargets{{
+	targets := TargetBlock{{
 		Name:   "target_a",
 		Target: "http://example.com",
 		Module: "http_2xx",
@@ -69,8 +67,8 @@ func TestConvertTargets(t *testing.T) {
 
 func TestBuildBlackboxTargets(t *testing.T) {
 	cfg := Config{
-		BlackboxConfigFile: "modules.yml",
-		BlackboxTargets:    BlackboxTargets{{Name: "target_a", Target: "http://example.com", Module: "http_2xx"}},
+		ConfigFile:         "modules.yml",
+		Targets:            TargetBlock{{Name: "target_a", Target: "http://example.com", Module: "http_2xx"}},
 		ProbeTimeoutOffset: 1.0,
 	}
 	baseTarget := discovery.Target{

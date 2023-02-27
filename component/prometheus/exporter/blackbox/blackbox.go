@@ -26,7 +26,7 @@ func buildBlackboxTargets(baseTarget discovery.Target, args component.Arguments)
 	var targets []discovery.Target
 
 	cfg := args.(Config)
-	for _, tgt := range cfg.BlackboxTargets {
+	for _, tgt := range cfg.Targets {
 		target := make(discovery.Target)
 		for k, v := range baseTarget {
 			target[k] = v
@@ -52,14 +52,14 @@ var DefaultConfig = Config{
 
 // BlackboxTarget defines a target device to be used by the integration.
 type BlackboxTarget struct {
-	Name   string `river:"name,attr"`
+	Name   string `river:",label"`
 	Target string `river:"address,attr"`
-	Module string `river:"module,attr"`
+	Module string `river:"module,attr,optional"`
 }
 
-type BlackboxTargets []BlackboxTarget
+type TargetBlock []BlackboxTarget
 
-func (t BlackboxTargets) Convert() []blackbox_exporter.BlackboxTarget {
+func (t TargetBlock) Convert() []blackbox_exporter.BlackboxTarget {
 	targets := make([]blackbox_exporter.BlackboxTarget, 0, len(t))
 	for _, target := range t {
 		targets = append(targets, blackbox_exporter.BlackboxTarget{
@@ -72,9 +72,9 @@ func (t BlackboxTargets) Convert() []blackbox_exporter.BlackboxTarget {
 }
 
 type Config struct {
-	BlackboxConfigFile string          `river:"config_file,attr"`
-	BlackboxTargets    BlackboxTargets `river:"blackbox_target,block"`
-	ProbeTimeoutOffset float64         `river:"probe_timeout_offset,attr,optional"`
+	ConfigFile         string      `river:"config_file,attr"`
+	Targets            TargetBlock `river:"target,block"`
+	ProbeTimeoutOffset float64     `river:"probe_timeout_offset,attr,optional"`
 }
 
 // UnmarshalRiver implements River unmarshalling for Config.
@@ -87,8 +87,8 @@ func (c *Config) UnmarshalRiver(f func(interface{}) error) error {
 
 func (c *Config) Convert() *blackbox_exporter.Config {
 	return &blackbox_exporter.Config{
-		BlackboxConfigFile: c.BlackboxConfigFile,
-		BlackboxTargets:    c.BlackboxTargets.Convert(),
+		BlackboxConfigFile: c.ConfigFile,
+		BlackboxTargets:    c.Targets.Convert(),
 		ProbeTimeoutOffset: c.ProbeTimeoutOffset,
 	}
 }

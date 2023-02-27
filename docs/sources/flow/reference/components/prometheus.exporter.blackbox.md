@@ -18,8 +18,8 @@ the collection of blackbox metrics (probes) and exposing them as Prometheus metr
 
 ```river
 prometheus.exporter.blackbox "LABEL" {
-  blackbox_target {
-    name    = "TARGET_NAME" 
+  config_file = "PATH_BLACKBOX_CONFIG_FILE"
+  target "TARGET_NAME" {
     address = "TARGET_ADDRESS" 
   }
   
@@ -91,13 +91,11 @@ from `prometheus.exporter.blackbox`:
 ```river
 prometheus.exporter.blackbox "example" { 
 	config_file        = "blackbox_modules.yml"
-	blackbox_target {
-		name = "example"
+	target "example" {
 		address = "http://example.com"
 		module = "http_2xx"
 	}
-	blackbox_target {
-		name = "grafana"
+	target "grafana" {
 		address = "http://grafana.com"
 		module = "http_2xx"
 	}	
