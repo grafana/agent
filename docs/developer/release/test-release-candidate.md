@@ -52,10 +52,14 @@ will involve overriding the deployed default version to point to the RCV.
 
 5. Validate the new version is healthy in dev_canary
 
-    1. Go the the following Dashboard: `Grafana Agent Flow/Controller Dashboard`
+    1. Go the the following Dashboard: `Grafana Agent Flow/Controller Dashboard`.
 
-    2. Switch the `Loki Data Source` to `loki-dev` and `cluster` to `dev-us-central-0`.
-    
+    2. Select the Filters
+        - `Data Source` = `cortex-dev-01-dev-us-central-0`
+        - `Loki Data Source` = `loki-dev`
+        - `cluster` = `dev-us-central-0`
+        - `namespace` = `grafana-agent`
+
     3. Make sure all components are healthy.
 
-    4. Review the graphs for a time period before and after the new version to make sure nothing stands out.
+    4. Review the graphs for a time period before and after the new version started running to make sure nothing sticks out.
