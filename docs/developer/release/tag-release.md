@@ -20,3 +20,8 @@ All required commits for the release should exist on the release branch. This in
     git tag -s v0.32.0-rc.0
     git push origin v0.32.0-rc.0
     ```
+
+3. After a tag has been pushed, GitHub Actions will create release assets and open a release draft for every pushed tag.
+
+    - You can monitor this by viewing the drone build on the commit for the release tag.
+    - This will take ~20-40 minutes.

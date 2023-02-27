@@ -29,15 +29,15 @@ The release version prefix was previously determined in [Create Release Branch](
 
 2. Update the `CHANGELOG.md`.
 
-    1. Modify CHANGELOG.md Header
+    1. `CHANGELOG.md` Header
         - First RCV or a PRV
-            - Add a new header under `Main (unreleased)` for `[version] (YYYY-MM-DD)`.
+            - Add a new header under `Main (unreleased)` for `[release version] (YYYY-MM-DD)`.
         - Additional RCV or SRV
-            - Update the header `[previous RCV] (YYYY-MM-DD)` to `[version] (YYYY-MM-DD)`.
+            - Update the header `[previous RCV] (YYYY-MM-DD)` to `[release version] (YYYY-MM-DD)`.
 
-    2. Move the unreleased changes included in the release branch from `Main (unreleased)` to `[version] (YYYY-MM-DD)`.
+    2. Move the unreleased changes included in the release branch from `Main (unreleased)` to `[release version] (YYYY-MM-DD)`.
 
-    3. Update **appropriate** places in the codebase that have the previous version with the new version determined above.
+    3. Update appropriate places in the codebase that have the previous version with the new version determined above.
     
         *This will require some tribal knowledge not documented here (yet).*
 
