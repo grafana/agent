@@ -6,7 +6,7 @@ title: discovery.ec2
 
 `discovery.ec2` allows retrieving scrape targets from EC2 instances. The private IP address is used by default, but may be changed to the public IP address with relabeling.
 
-The IAM credentials used must have the ec2:DescribeInstances permission to discover scrape targets, and may optionally have the ec2:DescribeAvailabilityZones permission if you want the availability zone ID available as a label.
+The IAM credentials used must have the `ec2:DescribeInstances` permission to discover scrape targets, and may optionally have the `ec2:DescribeAvailabilityZones` permission to make the availability zone ID available as a label.
 
 ## Usage
 
