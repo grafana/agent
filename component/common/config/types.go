@@ -123,6 +123,12 @@ func (h *HTTPClientConfig) Convert() *config.HTTPClientConfig {
 	}
 }
 
+// Clone creates a shallow clone of h.
+func CloneDefaultHTTPClientConfig() *HTTPClientConfig {
+	clone := DefaultHTTPClientConfig
+	return &clone
+}
+
 // DefaultHTTPClientConfig for initializing objects
 var DefaultHTTPClientConfig = HTTPClientConfig{
 	FollowRedirects: true,
@@ -257,7 +263,7 @@ type OAuth2Config struct {
 	TokenURL         string            `river:"token_url,attr,optional"`
 	EndpointParams   map[string]string `river:"endpoint_params,attr,optional"`
 	ProxyURL         URL               `river:"proxy_url,attr,optional"`
-	TLSConfig        *TLSConfig        `river:"tls_config,attr,optional"`
+	TLSConfig        *TLSConfig        `river:"tls_config,block,optional"`
 }
 
 // Convert converts our type to the native prometheus type

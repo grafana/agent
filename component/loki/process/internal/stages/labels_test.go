@@ -20,15 +20,11 @@ import (
 	util_log "github.com/grafana/loki/pkg/util/log"
 )
 
-var testLabelsYaml = ` stage {
-                         json {
+var testLabelsYaml = ` stage.json {
                            expressions = { level = "", app_rename = "app" }
-                         }
                        }
-                       stage {
-                         labels { 
+                       stage.labels { 
                            values = {"level" = "", "app" = "app_rename" }
-                         }
                        }`
 
 var testLabelsLogLine = `

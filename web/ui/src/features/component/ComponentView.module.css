@@ -129,28 +129,39 @@ h6 {
   font-family: 'Fira Code', monospace;
 }
 
-.content div.sectionContent {
-  background-color: white;
+.content table {
+  text-align: left;
   border: 1px solid #e4e5e6;
+  width: 100%;
   border-radius: 3px;
-  padding: 16px;
+  border-spacing: 0;
 }
 
 .content section.nested {
   margin-left: 32px;
 }
 
-em.informative {
-  color: #555;
-  font-size: 14px;
+.content table thead tr {
+  background-color: #f4f5f5;
 }
 
-.list {
-  border: 1px solid #e4e5e6;
-  border-radius: 3px;
+.content table tbody tr:nth-child(even) {
+  background-color: #f4f5f5;
+}
 
-  box-sizing: border-box;
+.content table th,
+.content table td {
+  vertical-align: top;
+  padding: 8px;
+}
+
+.content table th {
   color: rgba(36, 41, 46, 0.75);
+  font-weight: normal;
+}
+
+th.nameColumn {
+  width: 150px;
 }
 
 td.nameColumn {

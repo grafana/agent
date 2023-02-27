@@ -31,6 +31,17 @@ Create chart name and version as used by the chart label.
 {{- end }}
 
 {{/*
+Allow the release namespace to be overridden for multi-namespace deployments in combined charts
+*/}}
+{{- define "grafana-agent.namespace" -}}
+{{- if .Values.namespaceOverride }}
+{{- .Values.namespaceOverride }}
+{{- else }}
+{{- .Release.Namespace }}
+{{- end }}
+{{- end }}
+
+{{/*
 Common labels
 */}}
 {{- define "grafana-agent.labels" -}}
@@ -71,3 +82,38 @@ Calculate name of image tag to use.
 {{- .Chart.AppVersion }}
 {{- end }}
 {{- end }}
+
+{{/*
+Return the appropriate apiVersion for ingress.
+*/}}
+{{- define "grafana-agent.ingress.apiVersion" -}}
+{{- if and ($.Capabilities.APIVersions.Has "networking.k8s.io/v1") (semverCompare ">= 1.19-0" .Capabilities.KubeVersion.Version) }}
+{{- print "networking.k8s.io/v1" }}
+{{- else if $.Capabilities.APIVersions.Has "networking.k8s.io/v1beta1" }}
+{{- print "networking.k8s.io/v1beta1" }}
+{{- else }}
+{{- print "extensions/v1beta1" }}
+{{- end }}
+{{- end }}
+
+{{/*
+Return if ingress is stable.
+*/}}
+{{- define "grafana-agent.ingress.isStable" -}}
+{{- eq (include "grafana-agent.ingress.apiVersion" .) "networking.k8s.io/v1" }}
+{{- end }}
+
+{{/*
+Return if ingress supports ingressClassName.
+*/}}
+{{- define "grafana-agent.ingress.supportsIngressClassName" -}}
+{{- or (eq (include "grafana-agent.ingress.isStable" .) "true") (and (eq (include "grafana-agent.ingress.apiVersion" .) "networking.k8s.io/v1beta1") (semverCompare ">= 1.18-0" .Capabilities.KubeVersion.Version)) }}
+{{- end }}
+{{/*
+Return if ingress supports pathType.
+*/}}
+{{- define "grafana-agent.ingress.supportsPathType" -}}
+{{- or (eq (include "grafana-agent.ingress.isStable" .) "true") (and (eq (include "grafana-agent.ingress.apiVersion" .) "networking.k8s.io/v1beta1") (semverCompare ">= 1.18-0" .Capabilities.KubeVersion.Version)) }}
+{{- end }}
+
+

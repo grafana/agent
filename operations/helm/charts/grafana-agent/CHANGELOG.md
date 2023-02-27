@@ -10,8 +10,39 @@ internal API changes are not present.
 Unreleased
 ----------
 
+0.7.1 (2023-02-24)
+------------------
+
+### Bugfixes
+
+- Fix issue where `.image.pullPolicy` was not being respected. (@rfratto)
+
+0.7.0 (2023-02-24)
+------------------
+
+### Enhancements
+
+- Helm chart: Add support for templates inside of configMap.content (@ts-mini)
+- Add the necessary rbac to support eventhandler integration (@nvanheuverzwijn)
+
+
+0.6.0 (2023-02-13)
+------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.31.3. (@rfratto)
+
+0.5.0 (2023-02-08)
+------------------
+
+### Enhancements
+
+- Helm Chart: Add ingress and support for agent-receiver. (@ts-mini)
+
 ### Documentation
-- Update Helm Chart documentation to reference new `loki.source.kubernetes` component. 
+
+- Update Helm Chart documentation to reference new `loki.source.kubernetes` component.
 
 0.4.0 (2023-01-31)
 ------------------

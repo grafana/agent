@@ -68,7 +68,7 @@ func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 type ClientArguments struct {
 	APIServer        config.URL              `river:"api_server,attr,optional"`
 	KubeConfig       string                  `river:"kubeconfig_file,attr,optional"`
-	HTTPClientConfig config.HTTPClientConfig `river:"http_client_config,block,optional"`
+	HTTPClientConfig config.HTTPClientConfig `river:",squash"`
 }
 
 // UnmarshalRiver unmarshals ClientArguments and performs validations.
@@ -82,13 +82,14 @@ func (args *ClientArguments) UnmarshalRiver(f func(interface{}) error) error {
 		return fmt.Errorf("only one of api_server and kubeconfig_file can be set")
 	}
 	if args.KubeConfig != "" && !reflect.DeepEqual(args.HTTPClientConfig, config.DefaultHTTPClientConfig) {
-		return fmt.Errorf("http_client_config can not be configured when kubeconfig_file is set")
+		return fmt.Errorf("custom HTTP client configuration is not allowed when kubeconfig_file is set")
 	}
 	if args.APIServer.URL == nil && !reflect.DeepEqual(args.HTTPClientConfig, config.DefaultHTTPClientConfig) {
-		return fmt.Errorf("api_server must be set when http_client_config is provided")
+		return fmt.Errorf("api_server must be set when custom HTTP client configuration is provided")
 	}
 
-	return nil
+	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
+	return args.HTTPClientConfig.Validate()
 }
 
 // BuildRESTConfig converts ClientArguments to a Kubernetes REST config.

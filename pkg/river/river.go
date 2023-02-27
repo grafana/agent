@@ -82,6 +82,20 @@ import (
 //	// converted into a block. When decoding, a block label must be provided.
 //	Field string `river:",label"`
 //
+//	// The inner attributes and blocks of Field are exposed as top-level
+//	// attributes and blocks of the outer struct.
+//	Field struct{...} `river:",squash"`
+//
+//	// Field appears as a set of blocks starting with "example.". Only the
+//	// first set element in the struct will be encoded. Each field in struct
+//	// must be a block. The name of the block is prepended to the enum name.
+//	// When decoding, enum blocks are treated as optional blocks and can be
+//	// omitted from the source text.
+//	Field []struct{...} `river:"example,enum"`
+//
+//	// Field is equivalent to `river:"example,enum"`.
+//	Field []struct{...} `river:"example,enum,optional"`
+//
 // If a river tag specifies a required or optional block, the name is permitted
 // to contain period `.` characters.
 //

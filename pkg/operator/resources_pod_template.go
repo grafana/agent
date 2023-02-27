@@ -199,7 +199,7 @@ func generatePodTemplate(
 	operatorContainers := []core_v1.Container{
 		{
 			Name:         "config-reloader",
-			Image:        "quay.io/prometheus-operator/prometheus-config-reloader:v0.47.0",
+			Image:        "quay.io/prometheus-operator/prometheus-config-reloader:v0.62.0",
 			VolumeMounts: volumeMounts,
 			Env:          envVars,
 			SecurityContext: &core_v1.SecurityContext{
