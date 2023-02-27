@@ -15,7 +15,7 @@ version and adding to it. Also, drop off the 3rd number as shown in the examples
 - v0.31.0 -> v0.32
 - v0.31.3 -> v0.32
 
-For a major version we jumped up the first number as shown in the examples below.
+For a major version we jump up the first number as shown in the examples below.
 
 - v0.10.0 -> v1.0
 - v0.31.0 -> v1.0
