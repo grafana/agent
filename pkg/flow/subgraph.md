@@ -6,7 +6,7 @@ With the change to modules we need the ability to load subgraphs. In essence eve
 
 A subgraph consists of a full running flow system. The primary parts of a subgraph are:
 * Delegate Component
-* Metrics Handler
+* Delegate Handler
 * Scheduler
 * Loader
 * Update Queue
@@ -45,9 +45,9 @@ Delegate Components own the subgraph lifecycle and can reload, stop and start th
 
 Delegate Component is an interface that exposes the full `ID` and the delimted `IDs`. These are used to build the name space.
 
-### Metrics Handler
+### Delegate Handler
 
-The metrics handler is an interface supported by the subgraph itself that allows a delegate component to instantiate a new subgraph. Whenever a component is created the current subgraph is passed via `component.options` that allows the delegate to call `LoadSubgraph`, when called this creates a new subgraph, adds that subgraph to the children of the current and then starts the subgraph.
+The delegate handler is an interface supported by the subgraph itself that allows a delegate component to instantiate a new subgraph. Whenever a component is created the current subgraph is passed via `component.options` that allows the delegate to call `LoadSubgraph`, when called this creates a new subgraph, adds that subgraph to the children of the current and then starts the subgraph.
 
 ### Scheduler
 
