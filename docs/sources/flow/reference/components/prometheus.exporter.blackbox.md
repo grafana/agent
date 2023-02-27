@@ -19,6 +19,7 @@ the collection of blackbox metrics (probes) and exposing them as Prometheus metr
 ```river
 prometheus.exporter.blackbox "LABEL" {
   config_file = "PATH_BLACKBOX_CONFIG_FILE"
+  
   target "TARGET_NAME" {
     address = "TARGET_ADDRESS" 
   }
