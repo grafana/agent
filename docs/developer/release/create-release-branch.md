@@ -30,13 +30,13 @@ For a major version we jump up the first number as shown in the examples below.
     The name of the release branch should be `release-[release version prefix]`
     defined above, such as `release-v0.32`.
 
-        Note: There is never a branch such as `release-v0.32-rc.0` or `release-v0.32.0`.
+        *NOTE: There is never a branch such as `release-v0.32-rc.0` or `release-v0.32.0`.*
 
     - If the consensus commit is the latest commit from main you can branch from main.
     - If the consensus commit is not the latest commit from main, branch from that instead.
 
-    NOTE: don't create any other branches that are prefixed with `release` when creating PRs or
-    those branches will collide with our automated release build publish rules.
+    *NOTE: don't create any other branches that are prefixed with `release` when creating PRs or
+    those branches will collide with our automated release build publish rules.*
 
 3. Create a PR to cherry-pick additional commits into the release branch as
    needed.

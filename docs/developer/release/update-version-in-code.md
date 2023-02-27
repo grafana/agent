@@ -38,10 +38,10 @@ The release version prefix was previously determined in [Create Release Branch](
     2. Move the unreleased changes included in the release branch from `Main (unreleased)` to `[release version] (YYYY-MM-DD)`.
 
     3. Update appropriate places in the codebase that have the previous version with the new version determined above.
-    
-        *This will require some tribal knowledge not documented here (yet).*
 
-        NOTE: Please do not update the operations/helm directory. It is updated independently from Agent releases for now.
+        *NOTE: Please do not update the operations/helm directory. It is updated independently from Agent releases for now.*
+    
+        *NOTE: This will require some tribal knowledge not documented here (yet).*
 
 3. Create a PR to merge to main (must be merged before continuing).
 
