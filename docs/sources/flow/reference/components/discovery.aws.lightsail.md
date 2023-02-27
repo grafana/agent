@@ -4,7 +4,7 @@ title: discovery.lightsail
 
 # discovery.lightsail
 
-`discovery.lightsail` allows retrieving scrape targets from lightsail instances. The private IP address is used by default, but may be changed to the public IP address with relabeling.
+`discovery.lightsail` allows retrieving scrape targets from Amazon Lightsail instances. The private IP address is used by default, but may be changed to the public IP address with relabeling.
 
 ## Usage
 
