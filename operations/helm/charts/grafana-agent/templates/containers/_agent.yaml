@@ -1,6 +1,7 @@
 {{- define "grafana-agent.container" -}}
 - name: grafana-agent
   image: {{ .Values.image.repository }}:{{ include "grafana-agent.imageTag" . }}
+  imagePullPolicy: {{ .Values.image.pullPolicy }}
   args:
     {{- if eq .Values.agent.mode "flow"}}
     - run

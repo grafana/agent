@@ -22,9 +22,7 @@ func Test(t *testing.T) {
 	// Create opts for component
 	l, err := logging.New(os.Stderr, logging.DefaultOptions)
 	require.NoError(t, err)
-	dataPath, err := os.MkdirTemp("", "loki.source.file")
-	require.NoError(t, err)
-	defer os.RemoveAll(dataPath) // clean up
+	dataPath := t.TempDir()
 
 	opts := component.Options{Logger: l, DataPath: dataPath}
 
@@ -32,7 +30,6 @@ func Test(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer os.Remove(f.Name())
 	defer f.Close()
 
 	ch1, ch2 := make(chan loki.Entry), make(chan loki.Entry)
@@ -75,9 +72,7 @@ func TestTwoTargets(t *testing.T) {
 	// Create opts for component
 	l, err := logging.New(os.Stderr, logging.DefaultOptions)
 	require.NoError(t, err)
-	dataPath, err := os.MkdirTemp("", "loki.source.file")
-	require.NoError(t, err)
-	defer os.RemoveAll(dataPath) // clean up
+	dataPath := t.TempDir()
 
 	opts := component.Options{Logger: l, DataPath: dataPath}
 
@@ -89,8 +84,6 @@ func TestTwoTargets(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer os.Remove(f.Name())
-	defer os.Remove(f2.Name())
 	defer f.Close()
 	defer f2.Close()
 

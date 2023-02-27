@@ -11,6 +11,7 @@ import (
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/common/config"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // testRemoteConfigProvider is an implementation of remoteConfigProvider that can be
@@ -137,6 +138,27 @@ func TestFullUrl(t *testing.T) {
 	actual, err := c.fullUrl()
 	assert.NoError(t, err)
 	assert.Equal(t, "https://localhost:1234/example/api/namespace/test_namespace/remote_config?a=A&b=B", actual)
+}
+
+func TestRemoteConfigHashCheck(t *testing.T) {
+	// not a truly valid Agent Management config, but used for testing against
+	// precomputed sha256 hash
+	ic := AgentManagementConfig{
+		Protocol: "http",
+	}
+	icHash := "5e809f3ecaa0acd06932bb3cb8a1e9bfa055171a79c02b1bbed9e1ad97217fab"
+
+	rcCache := remoteConfigCache{
+		InitialConfigHash: icHash,
+		Config:            "server:\\n log_level: debug",
+	}
+
+	require.NoError(t, initialConfigHashCheck(ic, rcCache))
+	rcCache.InitialConfigHash = "abc"
+	require.Error(t, initialConfigHashCheck(ic, rcCache))
+
+	differentIc := validAgentManagementConfig
+	require.Error(t, initialConfigHashCheck(differentIc, rcCache))
 }
 
 func TestNewRemoteConfigHTTPProvider_InvalidInitialConfig(t *testing.T) {

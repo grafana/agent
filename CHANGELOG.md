@@ -7,6 +7,9 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+> **NOTE**: As of v0.32.0, builds for 32-bit ARMv6 currently don't support the
+> embedded Flow UI. The Flow UI will return to this target as soon as possible.
+
 Main (unreleased)
 -----------------
 
@@ -16,11 +19,26 @@ Main (unreleased)
 
   - `discovery.ec2` service discovery for aws ec2. (@captncraig)
   - `discovery.lightsail` service discovery for aws lightsail. (@captncraig)
+  - `prometheus.exporter.mysql` collects metrics from a MySQL database. (@spartan0x117)
+
+### Bugfixes
+
+- Flow: add a maximum connection lifetime of one hour when tailing logs from
+  `loki.source.kubernetes` and `loki.source.podlogs` to recover from an issue
+  where the Kubernetes API server stops responding with logs without closing
+  the TCP connection. (@rfratto)
+
+- Flow: fix issue in `loki.source.kubernetes` where `__pod__uid__` meta label
+  defaulted incorrectly to the container name, causing tailers to never
+  restart. (@rfratto)
 
 v0.32.0-rc.0 (2023-02-23)
 -------------------------
 
 ### Breaking changes
+
+- Support for the embedded Flow UI for 32-bit ARMv6 builds is temporarily
+  removed. (@rfratto)
 
 - Node Exporter configuration options changed to align with new upstream version (@Thor77):
 
@@ -145,11 +163,13 @@ v0.32.0-rc.0 (2023-02-23)
   `prometheus.remote_write`, `prometheus.scrape`, and `remote.http`
   (@erikbaranowski)
 
+- Flow: Fix issue where using `river:",label"` causes the UI to return nothing. (@mattdurham)
+
 ### Other changes
 
 - Use Go 1.20 for builds. (@rfratto)
 
-- Grafana Agent Flow is now considered production ready. A subset of Flow
+- The beta label from Grafana Agent Flow has been removed. A subset of Flow
   components are still marked as beta or experimental:
 
   - `loki.echo` is explicitly marked as beta.
