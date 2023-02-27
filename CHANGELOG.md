@@ -20,6 +20,10 @@ Main (unreleased)
   where the Kubernetes API server stops responding with logs without closing
   the TCP connection. (@rfratto)
 
+- Flow: fix issue in `loki.source.kubernetes` where `__pod__uid__` meta label
+  defaulted incorrectly to the container name, causing tailers to never
+  restart.
+
 v0.32.0-rc.0 (2023-02-23)
 -------------------------
 
