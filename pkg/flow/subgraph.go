@@ -17,8 +17,9 @@ import (
 )
 
 // subgraph represents a namespace in the flow subsystem. The namespace is defined by the calling
-// delegate. In the case of normal operation that is the flow component with a namespace of "".
-// A parent delegate has a unique id that will propagate to child components to create a unique
+// owner. In the case of normal operation that is the flow component with a namespace of "".
+// This is defined as the main module, with `module.*` components loading submodules.
+// A parent owner has a unique id that will propagate to child components to create a unique
 // namespace id that is parent.id + component.id.
 type subgraph struct {
 	mut          sync.Mutex
@@ -86,11 +87,11 @@ func newSubgraph(
 
 // loadInitialSubgraph is a special case used for the main subpgraph, instead of using the delegate we
 // force passing in flow so only it can call this.
-func (s *subgraph) loadInitialSubgraph(flow *Flow, config []byte) ([]component.Component, diag.Diagnostics, error) {
+func (s *subgraph) loadInitialSubgraph(flow *Flow, config []byte, filename string) ([]component.Component, diag.Diagnostics, error) {
 	s.mut.Lock()
 	defer s.mut.Unlock()
 
-	file, err := ReadFile("", config)
+	file, err := ReadFile(filename, config)
 	if err != nil {
 		return nil, nil, err
 	}

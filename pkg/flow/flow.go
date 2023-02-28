@@ -158,11 +158,11 @@ func newFlow(o Options) (*Flow, context.Context) {
 //
 // The controller will only start running components after Load is called once
 // without any configuration errors.
-func (c *Flow) LoadFile(config []byte) error {
+func (c *Flow) LoadFile(config []byte, filename string) error {
 	c.loadMut.Lock()
 	defer c.loadMut.Unlock()
 
-	_, diags, err := c.graph.loadInitialSubgraph(c, config)
+	_, diags, err := c.graph.loadInitialSubgraph(c, config, filename)
 	if err != nil {
 		return err
 	}
