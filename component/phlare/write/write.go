@@ -2,6 +2,7 @@ package write
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -245,7 +246,7 @@ func (f *fanOutClient) Push(ctx context.Context, req *connect.Request[pushv1.Pus
 }
 
 func shouldRetry(err error) bool {
-	if err == context.DeadlineExceeded {
+	if errors.Is(err, context.DeadlineExceeded) {
 		return true
 	}
 	switch connect.CodeOf(err) {
