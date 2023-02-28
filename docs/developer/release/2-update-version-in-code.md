@@ -1,12 +1,10 @@
 # Update Version in Code
 
-This Action will typically follow [Create Release Branch](./create-release-branch.md) or if it is time to start a Stable Release or Patch Release.
-
 The codebase must be updated to reference the upcoming release tag whenever a new release is being made.
 
 ## Release Version
 
-The release version prefix was previously determined in [Create Release Branch](./create-release-branch.md). The `[release version]` is defined as follows.
+The release version prefix was previously determined in [Create Release Branch](./1-create-release-branch.md). The `[release version]` is defined as follows.
 
 - Release Candidate Version (RCV)
 
@@ -23,11 +21,11 @@ The release version prefix was previously determined in [Create Release Branch](
     - The PRV will look like `[release version prefix].x`.
     - For example, `v0.31.1` is the first PRV for the v0.31.0 release.
 
-*Note: This value will be referred to as `[release version]` in this documentation*
+*NOTE: This value will be referred to as `[release version]` in this documentation*
 
 ## Steps
 
-1. Create a branch from `main`.
+1. Create a branch from `main` for [grafana/agent](https://github.com/grafana/agent).
 
 2. Update the `CHANGELOG.md`.
 
@@ -47,13 +45,12 @@ The release version prefix was previously determined in [Create Release Branch](
 
 3. Create a PR to merge to main (must be merged before continuing).
 
-    See [here](https://github.com/grafana/agent/pull/3065) for an example PR for the first RCV
+    - RCV example PR [here](https://github.com/grafana/agent/pull/3065)
+    - SRV example PR [here](https://github.com/grafana/agent/pull/3119)
 
-    See [here](https://github.com/grafana/agent/pull/3119) for an example PR for a SRV
+4. Create a branch from `release-[release version prefix]` for [grafana/agent](https://github.com/grafana/agent).
 
-4. Create a branch from `release-[release version prefix]`.
-
-5. Cherry pick the commit on main from the merged PR in step 3 from main into the new branch from step 4.
+5. Cherry pick the commit on main from the merged PR in Step 3 from main into the new branch from Step 4.
 
     ```
     git cherry-pick -x [commit id]
@@ -63,6 +60,5 @@ The release version prefix was previously determined in [Create Release Branch](
 
 6. Create a PR to merge to `release-[release version prefix]` (must be merged before continuing).
 
-    See [here](https://github.com/grafana/agent/pull/3066) for an example PR for the first RCV.
-
-    See [here](https://github.com/grafana/agent/pull/3123) for an example PR for a SRV.
+    - RCV example PR [here](https://github.com/grafana/agent/pull/3066)
+    - SRV example PR [here](https://github.com/grafana/agent/pull/3123)

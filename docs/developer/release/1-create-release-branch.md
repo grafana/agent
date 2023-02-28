@@ -1,8 +1,5 @@
 # Create Release Branch
 
-This is the first step taken as release shepherd for a new release
-after [Prerequisites](./prerequisites.md) are met.
-
 A single release branch is created for every major or minor release. That release
 branch is then used for all Release Candidates, the Stable Release, and all
 Patch Releases.
@@ -20,7 +17,7 @@ For a major version we jump up the first number as shown in the examples below.
 - v0.10.0 -> v1.0
 - v0.31.0 -> v1.0
 
-*Note: This value will be referred to as `[release version prefix]` in this documentation*
+*NOTE: This value will be referred to as `[release version prefix]` in this documentation*
 
 ## Steps
 
@@ -42,3 +39,7 @@ For a major version we jump up the first number as shown in the examples below.
 
 3. Create a PR to cherry-pick additional commits into the release branch as
    needed.
+
+    ```
+    git cherry-pick -x [commit id]
+    ```

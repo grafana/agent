@@ -8,7 +8,7 @@ The processes described here are for v0.24.0 and above.
 
 # Prerequisites
 
-These [Prerequisites](./prerequisites.md) should be done by the release shepherd 
+These [Prerequisites](./PREREQUISITES.md) should be done by the release shepherd 
 before taking any actions.
 
 # Workflows
@@ -17,21 +17,24 @@ Once a release is scheduled, a release shepherd is determined. This person will 
 responsible for ownership of the following workflows:
 
 - Release Candidate Publish
-  - [Actions] 1-5
+  - [Actions] 1-3,5-6,8
 - Additional Release Candidate[s] Publish
-  - [Actions] 2-5
+  - [Actions] 2-3,5-6,8
 - Stable Release Publish
-  - [Actions] 2-3,TBD-TBD
+  - [Actions] 2-8
 - Patch Release Publish
-  - [Actions] 2-3,TBD-TBD
+  - [Actions] 2-8
 
 # Actions
 
-1. [Create Release Branch](./create-release-branch.md)
-2. [Update Version in Code](./update-version-in-code.md)
-3. [Tag Release](./tag-release.md)
-4. [Publish Release Candidate](./publish-release-candidate.md)
-5. [Test Release Candidate](./test-release-candidate.md)
+1. [Create Release Branch](./1-create-release-branch.md)
+2. [Update Version in Code](./2-update-version-in-code.md)
+3. [Tag Release](./3-tag-release.md)
+4. [Update Release Branch](./4-update-release-branch.md)
+5. [Publish Release](./5-publish-release.md)
+6. [Update Deployment Tools](./6-update-deployment-tools.md)
+7. [Update Helm Charts](./7-update-helm-charts.md)
+8. [Announce Release](./8-announce-release.md)
 
 [Actions]: #Actions
 

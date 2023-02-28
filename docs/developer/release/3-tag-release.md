@@ -1,6 +1,6 @@
 # Tag Release
 
-This Action will typically follow [Update Version in Code](./update-version-in-code.md). A tag is required to create GitHub artifacts and as a prerequisite for publishing.
+A tag is required to create GitHub artifacts and as a prerequisite for publishing.
 
 ## Prerequisites
 
@@ -12,7 +12,7 @@ All required commits for the release should exist on the release branch. This in
 
 2. Tag the release.
 
-    The release version was previously determined in [Update Version in Code](./update-version-in-code.md).
+    The release version was previously determined in [Update Version in Code](./2-update-version-in-code.md).
 
     Example commands:
 
