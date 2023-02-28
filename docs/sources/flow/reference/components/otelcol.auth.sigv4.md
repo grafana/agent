@@ -1,0 +1,171 @@
+---
+title: otelcol.auth.sigv4
+---
+
+# otelcol.auth.sigv4
+
+`otelcol.auth.sigv4` exposes a `handler` that can be used by other `otelcol`
+components to authenticate requests to AWS services using the AWS Signature Version 4 (SigV4) protocol. 
+See [here](https://docs.aws.amazon.com/general/latest/gr/signing-aws-api-requests.html) for more
+information about SigV4.
+
+> **NOTE**: `otelcol.auth.sigv4` is a wrapper over the upstream OpenTelemetry
+> Collector `sigv4auth` extension. Bug reports or feature requests will be
+> redirected to the upstream repository, if necessary.
+
+Multiple `otelcol.auth.sigv4` components can be specified by giving them
+different labels.
+
+> **NOTE**: The Agent must have valid AWS credentials as used by the 
+[AWS SDK for Go](https://aws.github.io/aws-sdk-go-v2/docs/configuring-sdk/#specifying-credentials).
+
+## Usage
+
+If the exporter URL does not contain enough information about the region and service, 
+the minimum arguments are:
+```river
+otelcol.auth.sigv4 "LABEL" {
+  region  = "REGION"
+  service = "SERVICE"
+}
+```
+
+In some cases the exporter URL does contain enough information about the region and service as 
+described [here](#arguments). In that case there is no need to specify any arguments to this component:
+```river
+otelcol.auth.sigv4 "LABEL" {
+}
+```
+
+## Arguments
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`region` | `string` | The AWS region for the service you are exporting to for AWS SigV4. | "" | no
+`service` | `string` | The AWS service for AWS SigV4. | "" | no
+
+Both `region` and `service` are required for the component to work, but if they are left empty their values 
+may be inferred from the exporter URL based on 
+[these](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.63.0/extension/sigv4authextension/signingroundtripper.go#L121) rules:
+
+* If the exporter URL starts with `aps-workspaces` and `service` is empty, `service` will be set to `aps`.
+* If the exporter URL starts with `search-` and `service` is empty, `service` will be set to `es`.
+* If the exporter URL starts with either `aps-workspaces` or `search-` and `region` is empty, `region` .
+will be set to the value between the first and second `.` character in the exporter URL.
+
+For concrete examples, see the [examples](#examples) section.
+
+The AWS regions are listed [here](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.RegionsAndAvailabilityZones.html).
+
+## Blocks
+
+The following blocks are supported inside the definition of
+`otelcol.auth.sigv4`:
+
+Hierarchy | Block | Description | Required
+--------- | ----- | ----------- | --------
+assume_role | [assume_role][] | Specifies the configuration needed to assume a role. | no
+
+[assume_role]: #assume_role-block
+
+### assume_role block
+
+The `assume_role` block specifies the configuration needed to assume a role.
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`arn` | `string` | The Amazon Resource Name (ARN) of a role to assume. | "" | no
+`session_name` | `string` | The name of a role session. | "" | no
+`sts_region` | `string` | The AWS region where STS is used to assume the configured role. | "" | no
+
+Note that if a role is intended to be assumed and `sts_region` is not provided, then `sts_region`
+will default to the value for `region` if `region` is provided.
+
+`region` can be differentiated from `sts_region` to handle cross region authentication. 
+
+## Exported fields
+
+The following fields are exported and can be referenced by other components:
+
+Name | Type | Description
+---- | ---- | -----------
+`handler` | `capsule(otelcol.Handler)` | A value that other components can use to authenticate requests.
+
+## Component health
+
+`otelcol.auth.sigv4` is only reported as unhealthy if given an invalid
+configuration.
+
+## Debug information
+
+`otelcol.auth.sigv4` does not expose any component-specific debug information.
+
+## Examples
+
+In the example below the exporter endpoint starts with `aps-workspaces`. Hence `service` is inferred to be `aps`
+and `region` is inferred to be `us-east-1`.
+
+```river
+otelcol.exporter.otlp "example" {
+  client {
+    endpoint = "https://aps-workspaces.us-east-1.amazonaws.com/workspaces/ws-XXX/api/v1/remote_write"
+    auth     = otelcol.auth.sigv4.creds.handler
+  }
+}
+
+otelcol.auth.sigv4 "creds" {
+}
+```
+
+In the example below the exporter endpoint starts with `search-`. Hence `service` is inferred to be `es`
+and `region` is inferred to be `us-east-1`.
+
+```river
+otelcol.exporter.otlp "example" {
+  client {
+    endpoint = "https://search-my-domain.us-east-1.es.amazonaws.com/_search?q=house"
+    auth     = otelcol.auth.sigv4.creds.handler
+  }
+}
+
+otelcol.auth.sigv4 "creds" {
+}
+```
+
+In the example below the exporter endpoint does not begin with `search-` or with `aps-workspaces`.
+Hence, we need to specify `region` and `service` explicitly.
+
+```river
+otelcol.exporter.otlp "example" {
+  client {
+    endpoint = "my-otlp-grpc-server:4317"
+    auth     = otelcol.auth.sigv4.creds.handler
+  }
+}
+
+otelcol.auth.sigv4 "creds" {
+    region = "example_region"
+    service = "example_service"
+}
+```
+
+In the example below we have also specified configuration to assume a role. `sts_region` has not been 
+provided, so it will default to the value of `region` which is `example_region`.
+
+```river
+otelcol.exporter.otlp "example" {
+  client {
+    endpoint = "my-otlp-grpc-server:4317"
+    auth     = otelcol.auth.sigv4.creds.handler
+  }
+}
+
+otelcol.auth.sigv4 "creds" {
+  region  = "example_region"
+  service = "example_service"
+  
+  assume_role {
+    session_name = "role_session_name"
+  }
+}
+```

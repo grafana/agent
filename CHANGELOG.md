@@ -39,6 +39,8 @@ Main (unreleased)
   - `prometheus.exporter.mysql` collects metrics from a MySQL database.
     (@spartan0x117)
   - `prometheus.exporter.postgres` collects metrics from a PostgreSQL database. (@spartan0x117)
+  - `otelcol.auth.sigv4` performs `sigv4` authentication for making requests to AWS services 
+    via `otelcol` components that support authentication extensions. (@ptodev)
 
 ### Enhancements
 
