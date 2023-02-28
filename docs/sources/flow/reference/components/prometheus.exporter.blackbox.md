@@ -11,8 +11,7 @@ title: prometheus.exporter.blackbox
 
 # prometheus.exporter.blackbox
 The `prometheus.exporter.blackbox` component embeds
-[`blackbox_exporter`](https://github.com/prometheus/blackbox_exporter). This allows
-the collection of blackbox metrics (probes) and exposing them as Prometheus metrics.
+[`blackbox_exporter`](https://github.com/prometheus/blackbox_exporter). `blackbox_exporter` lets you collect blackbox metrics (probes) and expose them as Prometheus metrics.
 
 ## Usage
 
