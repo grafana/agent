@@ -52,7 +52,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -90,23 +90,46 @@ type Flow struct {
 	tracer *tracing.Tracer
 	opts   Options
 
-	updateQueue *controller.Queue
-	sched       *controller.Scheduler
-	loader      *controller.Loader
-
-	cancel       context.CancelFunc
-	exited       chan struct{}
-	loadFinished chan struct{}
+	graph *subgraph
 
 	loadMut    sync.RWMutex
 	loadedOnce atomic.Bool
+	cancel     context.CancelFunc
+}
+
+// Run starts the component, blocking until ctx is canceled or the component
+// suffers a fatal error. Run is guaranteed to be called exactly once per
+// Component.
+//
+// Implementations of Component should perform any necessary cleanup before
+// returning from Run.
+func (f *Flow) Run(_ context.Context) error {
+	panic("not implemented") // TODO: Implement
+}
+
+// Update provides a new Config to the component. The type of newConfig will
+// always match the struct type which the component registers.
+//
+// Update will be called concurrently with Run. The component must be able to
+// gracefully handle updating its config will still running.
+//
+// An error may be returned if the provided config is invalid.
+func (f *Flow) Update(_ component.Arguments) error {
+	// This is a noop since this is the top level component.
+	return nil
+}
+func (f *Flow) ID() string {
+	return ""
+}
+func (f *Flow) IDs() []string {
+	return []string{}
 }
 
 // New creates and starts a new Flow controller. Call Close to stop
 // the controller.
 func New(o Options) *Flow {
 	c, ctx := newFlow(o)
-	go c.run(ctx)
+	go c.graph.run(ctx)
 	return c
 }
 
@@ -135,77 +158,17 @@ func newFlow(o Options) (*Flow, context.Context) {
 		}
 	}
 
-	var (
-		queue  = controller.NewQueue()
-		sched  = controller.NewScheduler()
-		loader = controller.NewLoader(controller.ComponentGlobals{
-			Logger:        log,
-			TraceProvider: tracer,
-			DataPath:      o.DataPath,
-			OnExportsChange: func(cn *controller.ComponentNode) {
-				// Changed components should be queued for reevaluation.
-				queue.Enqueue(cn)
-			},
-			Registerer:     o.Reg,
-			HTTPListenAddr: o.HTTPListenAddr,
-		})
-	)
-
-	return &Flow{
+	f := &Flow{
 		log:    log,
 		tracer: tracer,
 		opts:   o,
-
-		updateQueue: queue,
-		sched:       sched,
-		loader:      loader,
-
-		cancel:       cancel,
-		exited:       make(chan struct{}, 1),
-		loadFinished: make(chan struct{}, 1),
-	}, ctx
-}
-
-func (c *Flow) run(ctx context.Context) {
-	defer close(c.exited)
-	defer level.Debug(c.log).Log("msg", "flow controller exiting")
-
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-
-		case <-c.updateQueue.Chan():
-			// We need to pop _everything_ from the queue and evaluate each of them.
-			// If we only pop a single element, other components may sit waiting for
-			// evaluation forever.
-			for {
-				updated := c.updateQueue.TryDequeue()
-				if updated == nil {
-					break
-				}
-
-				level.Debug(c.log).Log("msg", "handling component with updated state", "node_id", updated.NodeID())
-				c.loader.EvaluateDependencies(nil, updated)
-			}
-
-		case <-c.loadFinished:
-			level.Info(c.log).Log("msg", "scheduling loaded components")
-
-			components := c.loader.Components()
-			runnables := make([]controller.RunnableNode, 0, len(components))
-			for _, uc := range components {
-				runnables = append(runnables, uc)
-			}
-			err := c.sched.Synchronize(runnables)
-			if err != nil {
-				level.Error(c.log).Log("msg", "failed to load components", "err", err)
-			}
-		}
+		cancel: cancel,
 	}
+	cm := controller.NewControllerMetrics(o.Reg)
+	f.graph = newSubgraph(f, nil, log, tracer, o.DataPath, o.Reg, o.HTTPListenAddr, cm)
+	ci := controller.NewControllerCollector(f.graph)
+	_ = o.Reg.Register(ci)
+	return f, ctx
 }
 
 // LoadFile synchronizes the state of the controller with the current config
@@ -214,11 +177,14 @@ func (c *Flow) run(ctx context.Context) {
 //
 // The controller will only start running components after Load is called once
 // without any configuration errors.
-func (c *Flow) LoadFile(file *File) error {
+func (c *Flow) LoadFile(config []byte) error {
 	c.loadMut.Lock()
 	defer c.loadMut.Unlock()
 
-	diags := c.loader.Apply(nil, file.Components, file.ConfigBlocks)
+	_, diags, err := c.graph.loadInitialSubgraph(c, config)
+	if err != nil {
+		return err
+	}
 	if !c.loadedOnce.Load() && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.
@@ -227,7 +193,7 @@ func (c *Flow) LoadFile(file *File) error {
 	c.loadedOnce.Store(true)
 
 	select {
-	case c.loadFinished <- struct{}{}:
+	case c.graph.loadFinished <- struct{}{}:
 	default:
 		// A refresh is already scheduled
 	}
@@ -244,9 +210,9 @@ func (c *Flow) ComponentInfos() []*ComponentInfo {
 	c.loadMut.RLock()
 	defer c.loadMut.RUnlock()
 
-	cns := c.loader.Components()
+	cns := c.graph.Components()
 	infos := make([]*ComponentInfo, len(cns))
-	edges := c.loader.OriginalGraph().Edges()
+	edges := c.graph.loader.OriginalGraph().Edges()
 	for i, com := range cns {
 		nn := newFromNode(com, edges)
 		infos[i] = nn
@@ -257,8 +223,7 @@ func (c *Flow) ComponentInfos() []*ComponentInfo {
 // Close closes the controller and all running components.
 func (c *Flow) Close() error {
 	c.cancel()
-	<-c.exited
-	return c.sched.Close()
+	return c.graph.close()
 }
 
 func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *ComponentInfo {
@@ -296,6 +261,7 @@ func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *ComponentInfo 
 			Message:     h.Message,
 			UpdatedTime: h.UpdateTime,
 		},
+		NamespaceID: cn.NamespaceID(),
 	}
 	return ci
 }
@@ -318,6 +284,7 @@ type ComponentInfo struct {
 	Arguments    json.RawMessage  `json:"arguments,omitempty"`
 	Exports      json.RawMessage  `json:"exports,omitempty"`
 	DebugInfo    json.RawMessage  `json:"debugInfo,omitempty"`
+	NamespaceID  string           `json:"namespace_id"`
 }
 
 // ComponentHealth represents the health of a component.

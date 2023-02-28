@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/regexp"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/trace"
@@ -67,6 +68,15 @@ type Options struct {
 	// HTTPPath is the base path that requests need in order to route to this component.
 	// Requests received by a component handler will have this already trimmed off.
 	HTTPPath string
+
+	// Subgraph allows a component to load components dynamically and should be treated with extreme care.
+	Subgraph SubgraphHandler
+}
+
+// SubgraphHandler allows the creation of subgraphs, it is used by components that need to instantiate
+// subgraphs. Modules are the most common use case of this system.
+type SubgraphHandler interface {
+	LoadSubgraph(parent SubgraphOwner, config []byte) ([]Component, diag.Diagnostics, error)
 }
 
 // Registration describes a single component.

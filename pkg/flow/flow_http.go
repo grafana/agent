@@ -22,7 +22,7 @@ func (f *Flow) ComponentHandler() http.HandlerFunc {
 
 		// find node with ID
 		var node *controller.ComponentNode
-		for _, n := range f.loader.Components() {
+		for _, n := range f.graph.loader.Components() {
 			if n.ID().String() == id {
 				node = n
 				break
@@ -50,8 +50,8 @@ func (f *Flow) ComponentJSON(w io.Writer, ci *ComponentInfo) error {
 	defer f.loadMut.RUnlock()
 
 	var foundComponent *controller.ComponentNode
-	for _, c := range f.loader.Components() {
-		if c.ID().String() == ci.ID {
+	for _, c := range f.graph.loader.Components() {
+		if c.NamespaceID() == ci.ID {
 			foundComponent = c
 			break
 		}

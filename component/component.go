@@ -125,3 +125,9 @@ type HTTPComponent interface {
 	// will receive a request to just `/metrics`.
 	Handler() http.Handler
 }
+
+// SubgraphOwner is the component calling the SubgraphHandler.
+type SubgraphOwner interface {
+	ID() string
+	IDs() []string
+}

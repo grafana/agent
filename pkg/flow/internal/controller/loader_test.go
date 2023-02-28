@@ -61,7 +61,7 @@ func TestLoader(t *testing.T) {
 	}
 
 	t.Run("New Graph", func(t *testing.T) {
-		l := controller.NewLoader(newGlobals())
+		l := controller.NewLoader(newGlobals(), controller.NewControllerMetrics(prometheus.DefaultRegisterer))
 		diags := applyFromContent(t, l, []byte(testFile))
 		require.NoError(t, diags.ErrorOrNil())
 		requireGraph(t, l.Graph(), testGraphDefinition)
@@ -79,7 +79,7 @@ func TestLoader(t *testing.T) {
 				frequency = "1m"
 			}
 		`
-		l := controller.NewLoader(newGlobals())
+		l := controller.NewLoader(newGlobals(), controller.NewControllerMetrics(prometheus.NewRegistry()))
 		diags := applyFromContent(t, l, []byte(startFile))
 		origGraph := l.Graph()
 		require.NoError(t, diags.ErrorOrNil())
@@ -98,7 +98,7 @@ func TestLoader(t *testing.T) {
 			doesnotexist "bad_component" {
 			}
 		`
-		l := controller.NewLoader(newGlobals())
+		l := controller.NewLoader(newGlobals(), controller.NewControllerMetrics(prometheus.NewRegistry()))
 		diags := applyFromContent(t, l, []byte(invalidFile))
 		require.ErrorContains(t, diags.ErrorOrNil(), `Unrecognized component name "doesnotexist`)
 	})
@@ -117,7 +117,7 @@ func TestLoader(t *testing.T) {
 				input = testcomponents.tick.doesnotexist.tick_time
 			}
 		`
-		l := controller.NewLoader(newGlobals())
+		l := controller.NewLoader(newGlobals(), controller.NewControllerMetrics(prometheus.NewRegistry()))
 		diags := applyFromContent(t, l, []byte(invalidFile))
 		require.Error(t, diags.ErrorOrNil())
 
@@ -152,7 +152,7 @@ func TestLoader(t *testing.T) {
 				input = testcomponents.passthrough.ticker.output
 			}
 		`
-		l := controller.NewLoader(newGlobals())
+		l := controller.NewLoader(newGlobals(), controller.NewControllerMetrics(prometheus.NewRegistry()))
 		diags := applyFromContent(t, l, []byte(invalidFile))
 		require.Error(t, diags.ErrorOrNil())
 	})
@@ -164,7 +164,7 @@ func TestLoader(t *testing.T) {
 			testcomponents.singleton "first" {
 			}
 		`
-		l := controller.NewLoader(newGlobals())
+		l := controller.NewLoader(newGlobals(), controller.NewControllerMetrics(prometheus.NewRegistry()))
 		diags := applyFromContent(t, l, []byte(invalidFile))
 		require.ErrorContains(t, diags[0], `Component "testcomponents.tick" must have a label`)
 		require.ErrorContains(t, diags[1], `Component "testcomponents.singleton" does not support labels`)
@@ -201,7 +201,7 @@ func TestScopeWithFailingComponent(t *testing.T) {
 		}
 	}
 
-	l := controller.NewLoader(newGlobals())
+	l := controller.NewLoader(newGlobals(), controller.NewControllerMetrics(prometheus.NewRegistry()))
 	diags := applyFromContent(t, l, []byte(testFile))
 	require.Error(t, diags.ErrorOrNil())
 	require.Len(t, diags, 1)
@@ -238,10 +238,23 @@ func applyFromContent(t *testing.T, l *controller.Loader, bb []byte) diag.Diagno
 		return diags
 	}
 
-	applyDiags := l.Apply(nil, blocks, nil)
+	applyDiags, _ := l.Apply(nil, &delegateComponent{}, nil, blocks, nil)
 	diags = append(diags, applyDiags...)
 
 	return diags
+}
+
+type delegateComponent struct {
+}
+
+// ID satisfies the DelegateComponent interface
+func (dc *delegateComponent) ID() string {
+	return ""
+}
+
+// IDs satisfies the DelegateComponent interface
+func (dc *delegateComponent) IDs() []string {
+	return []string{}
 }
 
 type graphDefinition struct {

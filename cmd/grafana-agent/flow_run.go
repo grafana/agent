@@ -287,7 +287,7 @@ func getEnabledComponentsFunc(f *flow.Flow) func() map[string]interface{} {
 	}
 }
 
-func loadFlowFile(filename string) (*flow.File, error) {
+func loadFlowFile(filename string) ([]byte, error) {
 	bb, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -295,7 +295,7 @@ func loadFlowFile(filename string) (*flow.File, error) {
 
 	instrumentation.InstrumentConfig(bb)
 
-	return flow.ReadFile(filename, bb)
+	return bb, nil
 }
 
 func interruptContext() (context.Context, context.CancelFunc) {
