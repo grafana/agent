@@ -17,7 +17,21 @@ Main (unreleased)
 
 - New Grafana Agent Flow components:
 
+  - `discovery.ec2` service discovery for aws ec2. (@captncraig)
+  - `discovery.lightsail` service discovery for aws lightsail. (@captncraig)
+  - `prometheus.exporter.mysql` collects metrics from a MySQL database. (@spartan0x117)
   - `prometheus.exporter.blackbox` collects metrics from Blackbox exporter (@marctc).
+
+### Bugfixes
+
+- Flow: add a maximum connection lifetime of one hour when tailing logs from
+  `loki.source.kubernetes` and `loki.source.podlogs` to recover from an issue
+  where the Kubernetes API server stops responding with logs without closing
+  the TCP connection. (@rfratto)
+
+- Flow: fix issue in `loki.source.kubernetes` where `__pod__uid__` meta label
+  defaulted incorrectly to the container name, causing tailers to never
+  restart. (@rfratto)
 
 v0.32.0-rc.0 (2023-02-23)
 -------------------------

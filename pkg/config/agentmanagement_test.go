@@ -1,6 +1,8 @@
 package config
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"flag"
 	"testing"
@@ -12,6 +14,7 @@ import (
 	"github.com/prometheus/common/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v2"
 )
 
 // testRemoteConfigProvider is an implementation of remoteConfigProvider that can be
@@ -49,7 +52,7 @@ var validAgentManagementConfig = AgentManagementConfig{
 		PasswordFile: "/test/path",
 	},
 	Protocol:        "https",
-	PollingInterval: "1m",
+	PollingInterval: time.Minute,
 	CacheLocation:   "/test/path/",
 	RemoteConfiguration: RemoteConfiguration{
 		Labels:    labelMap{"b": "B", "a": "A"},
@@ -67,7 +70,7 @@ func TestValidateInvalidBasicAuth(t *testing.T) {
 		Url:             "https://localhost:1234",
 		BasicAuth:       config.BasicAuth{},
 		Protocol:        "https",
-		PollingInterval: "1m",
+		PollingInterval: time.Minute,
 		CacheLocation:   "/test/path/",
 		RemoteConfiguration: RemoteConfiguration{
 			Namespace: "test_namespace",
@@ -83,27 +86,6 @@ func TestValidateInvalidBasicAuth(t *testing.T) {
 	assert.Error(t, invalidConfig.Validate()) // Should still error as there is no username set
 }
 
-func TestValidateInvalidPollingInterval(t *testing.T) {
-	invalidConfig := &AgentManagementConfig{
-		Enabled: true,
-		Url:     "https://localhost:1234",
-		BasicAuth: config.BasicAuth{
-			Username:     "test",
-			PasswordFile: "/test/path",
-		},
-		Protocol:        "https",
-		PollingInterval: "1?",
-		CacheLocation:   "/test/path/",
-		RemoteConfiguration: RemoteConfiguration{
-			Namespace: "test_namespace",
-		},
-	}
-	assert.Error(t, invalidConfig.Validate())
-
-	invalidConfig.PollingInterval = ""
-	assert.Error(t, invalidConfig.Validate())
-}
-
 func TestMissingCacheLocation(t *testing.T) {
 	invalidConfig := &AgentManagementConfig{
 		Enabled: true,
@@ -113,7 +95,7 @@ func TestMissingCacheLocation(t *testing.T) {
 			PasswordFile: "/test/path",
 		},
 		Protocol:        "https",
-		PollingInterval: "1?",
+		PollingInterval: 1 * time.Minute,
 		RemoteConfiguration: RemoteConfiguration{
 			Namespace: "test_namespace",
 		},
@@ -122,15 +104,33 @@ func TestMissingCacheLocation(t *testing.T) {
 }
 
 func TestSleepTime(t *testing.T) {
-	c := validAgentManagementConfig
-	st, err := c.SleepTime()
-	assert.NoError(t, err)
-	assert.Equal(t, time.Minute*1, st)
+	cfg := `
+api_url: "http://localhost"
+basic_auth:
+  username: "initial_user"
+protocol: "http"
+polling_interval: "1m"
+remote_config_cache_location: "/etc"
+remote_configuration:
+  namespace: "new_namespace"`
 
-	c.PollingInterval = "15s"
-	st, err = c.SleepTime()
-	assert.NoError(t, err)
-	assert.Equal(t, time.Second*15, st)
+	var am AgentManagementConfig
+	yaml.Unmarshal([]byte(cfg), &am)
+	assert.Equal(t, time.Minute, am.SleepTime())
+}
+
+func TestFuzzJitterTime(t *testing.T) {
+	am := validAgentManagementConfig
+	pollingInterval := 2 * time.Minute
+	am.PollingInterval = pollingInterval
+
+	zero := time.Duration(0)
+
+	for i := 0; i < 10_000; i++ {
+		j := am.JitterTime()
+		assert.GreaterOrEqual(t, j, zero)
+		assert.Less(t, j, pollingInterval)
+	}
 }
 
 func TestFullUrl(t *testing.T) {
@@ -146,7 +146,10 @@ func TestRemoteConfigHashCheck(t *testing.T) {
 	ic := AgentManagementConfig{
 		Protocol: "http",
 	}
-	icHash := "5e809f3ecaa0acd06932bb3cb8a1e9bfa055171a79c02b1bbed9e1ad97217fab"
+	marshalled, err := yaml.Marshal(ic)
+	require.NoError(t, err)
+	icHashBytes := sha256.Sum256(marshalled)
+	icHash := hex.EncodeToString(icHashBytes[:])
 
 	rcCache := remoteConfigCache{
 		InitialConfigHash: icHash,
@@ -170,7 +173,7 @@ func TestNewRemoteConfigHTTPProvider_InvalidInitialConfig(t *testing.T) {
 			Username: "test",
 		},
 		Protocol:        "https",
-		PollingInterval: "1m",
+		PollingInterval: time.Minute,
 		CacheLocation:   "/test/path/",
 		RemoteConfiguration: RemoteConfiguration{
 			Labels:    labelMap{"b": "B", "a": "A"},

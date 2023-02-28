@@ -10,8 +10,15 @@ internal API changes are not present.
 Unreleased
 ----------
 
+0.7.1 (2023-02-24)
+------------------
+
+### Bugfixes
+
+- Fix issue where `.image.pullPolicy` was not being respected. (@rfratto)
+
 0.7.0 (2023-02-24)
-----------
+------------------
 
 ### Enhancements
 

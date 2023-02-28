@@ -15,7 +15,7 @@ func init() {
 	component.Register(component.Registration{
 		Name:    "discovery.file",
 		Args:    Arguments{},
-		Exports: Exports{},
+		Exports: discovery.Exports{},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
 		},
@@ -27,11 +27,6 @@ func init() {
 type Arguments struct {
 	PathTargets []discovery.Target `river:"path_targets,attr"`
 	SyncPeriod  time.Duration      `river:"sync_period,attr,optional"`
-}
-
-// Exports exposes targets.
-type Exports struct {
-	Targets []discovery.Target `river:"targets,attr"`
 }
 
 var _ component.Component = (*Component)(nil)
@@ -102,7 +97,7 @@ func (c *Component) Run(ctx context.Context) error {
 
 		paths := c.getWatchedFiles()
 		// The component node checks to see if exports have actually changed.
-		c.opts.OnStateChange(Exports{Targets: paths})
+		c.opts.OnStateChange(discovery.Exports{Targets: paths})
 	}
 	// Trigger initial check
 	update()
