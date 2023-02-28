@@ -87,9 +87,8 @@ type ComponentNode struct {
 	mut     sync.RWMutex
 	block   *ast.BlockStmt // Current River block to derive args from
 	eval    *vm.Evaluator
-	managed component.Component     // Inner managed component
-	args    component.Arguments     // Evaluated arguments for the managed component
-	parent  component.SubgraphOwner // ComponentNode might have a parent node, for instance modules
+	managed component.Component // Inner managed component
+	args    component.Arguments // Evaluated arguments for the managed component
 
 	doingEval atomic.Bool
 
@@ -144,7 +143,6 @@ func NewComponentNode(delegate component.SubgraphHandler, parent component.Subgr
 		reg:               reg,
 		exportsType:       getExportsType(reg),
 		onExportsChange:   globals.OnExportsChange,
-		parent:            parent,
 
 		block: b,
 		eval:  vm.New(b.Body),
