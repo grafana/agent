@@ -37,7 +37,7 @@ Main (unreleased)
   defaulted incorrectly to the container name, causing tailers to never
   restart. (@rfratto)
 
-v0.32.0-rc.0 (2023-02-23)
+v0.32.0 (2023-02-28)
 -------------------------
 
 ### Breaking changes
