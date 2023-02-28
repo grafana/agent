@@ -319,7 +319,7 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 		span.SetStatus(codes.Ok, "")
 
 		duration := time.Since(start)
-		_ = level.Info(logger).Log("msg", "finished partial graph evaluation", "duration", duration)
+		level.Info(logger).Log("msg", "finished partial graph evaluation", "duration", duration)
 		l.cm.componentEvaluationTime.Observe(duration.Seconds())
 	}()
 
