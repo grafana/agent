@@ -37,7 +37,17 @@ type Component struct {
 	metricsHandler http.Handler
 }
 
-func New(creator Creator, name string, multiTargetFunc func(discovery.Target, component.Arguments) []discovery.Target) func(component.Options, component.Arguments) (component.Component, error) {
+// New creates a new exporter component.
+func New(creator Creator, name string) func(component.Options, component.Arguments) (component.Component, error) {
+	return newExporter(creator, name, nil)
+}
+
+// NewMultiTarget creates a new exporter component that supports multiple targets.
+func NewMultiTarget(creator Creator, name string, multiTargetFunc func(discovery.Target, component.Arguments) []discovery.Target) func(component.Options, component.Arguments) (component.Component, error) {
+	return newExporter(creator, name, multiTargetFunc)
+}
+
+func newExporter(creator Creator, name string, multiTargetFunc func(discovery.Target, component.Arguments) []discovery.Target) func(component.Options, component.Arguments) (component.Component, error) {
 	return func(opts component.Options, args component.Arguments) (component.Component, error) {
 		c := &Component{
 			opts:            opts,

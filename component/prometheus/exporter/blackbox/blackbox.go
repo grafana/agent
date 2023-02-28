@@ -15,7 +15,7 @@ func init() {
 		Name:    "prometheus.exporter.blackbox",
 		Args:    Config{},
 		Exports: exporter.Exports{},
-		Build:   exporter.New(createExporter, "blackbox", buildBlackboxTargets),
+		Build:   exporter.NewMultiTarget(createExporter, "blackbox", buildBlackboxTargets),
 	})
 }
 
