@@ -28,7 +28,7 @@ func init() {
 // EC2Filter is the configuration for filtering EC2 instances.
 type EC2Filter struct {
 	Name   string   `river:"name,attr"`
-	Values []string `yaml:"values,attr"`
+	Values []string `river:"values,attr"`
 }
 
 // EC2Arguments is the configuration for EC2 based service discovery.
