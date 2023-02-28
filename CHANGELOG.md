@@ -21,6 +21,10 @@ Main (unreleased)
   - `discovery.lightsail` service discovery for aws lightsail. (@captncraig)
   - `prometheus.exporter.mysql` collects metrics from a MySQL database. (@spartan0x117)
 
+### Enhancements
+
+- Flow: Add retries with backoff logic to Phlare write component. (@ctovena)
+
 ### Bugfixes
 
 - Flow: add a maximum connection lifetime of one hour when tailing logs from
