@@ -84,7 +84,7 @@ func run(p *analysis.Pass) (interface{}, error) {
 				jsonMatches := jsonTagRegex.FindAllStringSubmatch(s.Tag(i), -1)
 				yamlMatches := yamlTagRegex.FindAllStringSubmatch(s.Tag(i), -1)
 
-				if len(jsonMatches) != 0 || len(yamlMatches) != 0 {
+				if len(jsonMatches) > 0 || len(yamlMatches) > 0 {
 					p.Report(analysis.Diagnostic{
 						Pos:      field.Pos(),
 						Category: "rivertags",
