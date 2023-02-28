@@ -52,7 +52,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -97,30 +96,12 @@ type Flow struct {
 	cancel     context.CancelFunc
 }
 
-// Run starts the component, blocking until ctx is canceled or the component
-// suffers a fatal error. Run is guaranteed to be called exactly once per
-// Component.
-//
-// Implementations of Component should perform any necessary cleanup before
-// returning from Run.
-func (f *Flow) Run(_ context.Context) error {
-	panic("not implemented") // TODO: Implement
-}
-
-// Update provides a new Config to the component. The type of newConfig will
-// always match the struct type which the component registers.
-//
-// Update will be called concurrently with Run. The component must be able to
-// gracefully handle updating its config will still running.
-//
-// An error may be returned if the provided config is invalid.
-func (f *Flow) Update(_ component.Arguments) error {
-	// This is a noop since this is the top level component.
-	return nil
-}
+// ID is necessary for calling the subgraph
 func (f *Flow) ID() string {
 	return ""
 }
+
+// IDs is necessary for calling the subgraph
 func (f *Flow) IDs() []string {
 	return []string{}
 }
