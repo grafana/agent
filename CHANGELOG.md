@@ -38,7 +38,7 @@ Main (unreleased)
   restart. (@rfratto)
 
 v0.32.0 (2023-02-28)
--------------------------
+--------------------
 
 ### Breaking changes
 
