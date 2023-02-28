@@ -6,7 +6,7 @@ The codebase must be updated to reference the upcoming release tag whenever a ne
 
 ## Release Version
 
-The release version prefix was previously determined in [Create Release Branch](./create-release-branch.md).
+The release version prefix was previously determined in [Create Release Branch](./create-release-branch.md). The `[release version]` is defined as follows.
 
 - Release Candidate Version (RCV)
 
