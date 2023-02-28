@@ -36,7 +36,7 @@ Name | Type | Description | Default | Required
 `config_file`                 | `string`       | Blackbox configuration file with custom modules. | | yes
 `probe_timeout_offset`        | `duration`     | Offset in seconds to subtract from timeout when probing targets.  | `"0.5s"` | no
 
-The `config_file` argument optionally points to a YAML file defining which blackbox_exporter modules to use. See [blackbox_exporter]( https://github.com/prometheus/blackbox_exporter/blob/master/example.yml) for details on how to generate a config file.
+The `config_file` argument points to a YAML file defining which blackbox_exporter modules to use. See [blackbox_exporter]( https://github.com/prometheus/blackbox_exporter/blob/master/example.yml) for details on how to generate a config file.
 
 ## Blocks
 
