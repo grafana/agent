@@ -35,7 +35,7 @@ var testFile = `
 func TestController_LoadFile_Evaluation(t *testing.T) {
 	ctrl, _ := newFlow(testOptions(t))
 
-	err := ctrl.LoadFile([]byte(testFile))
+	err := ctrl.LoadFile([]byte(testFile), "")
 	require.NoError(t, err)
 	require.Len(t, ctrl.graph.Components(), 4)
 
