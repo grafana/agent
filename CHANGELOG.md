@@ -10,11 +10,8 @@ internal API changes are not present.
 > **NOTE**: As of v0.32.0, builds for 32-bit ARMv6 currently don't support the
 > embedded Flow UI. The Flow UI will return to this target as soon as possible.
 
-Main (unreleased)
------------------
-
-v0.32.0-rc.0 (2023-02-23)
--------------------------
+v0.32.0 (2023-02-28)
+--------------------
 
 ### Breaking changes
 
