@@ -11,14 +11,14 @@ title: prometheus.exporter.blackbox
 
 # prometheus.exporter.blackbox
 The `prometheus.exporter.blackbox` component embeds
-[`blackbox_exporter`](https://github.com/prometheus/blackbox_exporter). This allows
-the collection of blackbox metrics (probes) and exposing them as Prometheus metrics.
+[`blackbox_exporter`](https://github.com/prometheus/blackbox_exporter). `blackbox_exporter` lets you collect blackbox metrics (probes) and expose them as Prometheus metrics.
 
 ## Usage
 
 ```river
 prometheus.exporter.blackbox "LABEL" {
   config_file = "PATH_BLACKBOX_CONFIG_FILE"
+  
   target "TARGET_NAME" {
     address = "TARGET_ADDRESS" 
   }
@@ -90,14 +90,16 @@ from `prometheus.exporter.blackbox`:
 
 ```river
 prometheus.exporter.blackbox "example" { 
-	config_file        = "blackbox_modules.yml"
+	config_file = "blackbox_modules.yml"
+	
 	target "example" {
 		address = "http://example.com"
-		module = "http_2xx"
+		module  = "http_2xx"
 	}
+	
 	target "grafana" {
 		address = "http://grafana.com"
-		module = "http_2xx"
+		module  = "http_2xx"
 	}	
 }
 
