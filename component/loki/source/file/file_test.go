@@ -84,8 +84,11 @@ func TestTwoTargets(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	defer f.Close()
+	defer os.Remove(f.Name())
 	defer f2.Close()
+	defer os.Remove(f2.Name())
 
 	ch1 := make(chan loki.Entry)
 	args := Arguments{}
