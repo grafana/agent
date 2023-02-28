@@ -17,8 +17,8 @@ All required commits for the release should exist on the release branch. This in
     Example commands:
 
     ```
-    git tag -s v0.32.0-rc.0
-    git push origin v0.32.0-rc.0
+    git tag -s [release version]
+    git push origin [release version]
     ```
 
 3. After a tag has been pushed, GitHub Actions will create release assets and open a release draft for every pushed tag.

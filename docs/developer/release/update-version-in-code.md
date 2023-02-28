@@ -11,17 +11,19 @@ The release version prefix was previously determined in [Create Release Branch](
 - Release Candidate Version (RCV)
 
     - The RCV will look like `[release version prefix].x-rc.y`.
-    - For example, `v0.32.0-rc.0` is the first RCV for the v0.32.0 release.
+    - For example, `v0.31.0-rc.0` is the first RCV for the v0.31.0 release.
 
 - Stable Release Version (SRV)
 
     - The SRV will look like `[release version prefix].0`.
-    - For example, `v0.32.0` is the SRV for the v0.32.0 release.
+    - For example, `v0.31.0` is the SRV for the v0.31.0 release.
 
 - Patch Release Version (PRV)
 
     - The PRV will look like `[release version prefix].x`.
-    - For example, `v0.32.1` is the first PRV for the v0.32.0 release.
+    - For example, `v0.31.1` is the first PRV for the v0.31.0 release.
+
+*Note: This value will be referred to as `[release version]` in this documentation*
 
 ## Steps
 
@@ -33,9 +35,9 @@ The release version prefix was previously determined in [Create Release Branch](
         - First RCV or a PRV
             - Add a new header under `Main (unreleased)` for `[release version] (YYYY-MM-DD)`.
         - Additional RCV or SRV
-            - Update the header `[previous RCV] (YYYY-MM-DD)` to `[release version] (YYYY-MM-DD)`.
+            - Update the header `[previous RCV] (YYYY-MM-DD)` to `[release version] (YYYY-MM-DD)`. The date may need updating.
 
-    2. Move the unreleased changes included in the release branch from `Main (unreleased)` to `[release version] (YYYY-MM-DD)`.
+    2. Move the unreleased changes we want to add to the release branch from `Main (unreleased)` to `[release version] (YYYY-MM-DD)`.
 
     3. Update appropriate places in the codebase that have the previous version with the new version determined above.
 
@@ -45,12 +47,22 @@ The release version prefix was previously determined in [Create Release Branch](
 
 3. Create a PR to merge to main (must be merged before continuing).
 
-    See [here](https://github.com/grafana/agent/pull/2838/files) for an example PR for the first RCV.
+    See [here](https://github.com/grafana/agent/pull/3065) for an example PR for the first RCV
 
-    See [here](https://github.com/grafana/agent/pull/2873/files) for an example PR for a SRV.
+    See [here](https://github.com/grafana/agent/pull/3119) for an example PR for a SRV
 
 4. Create a branch from `release-[release version prefix]`.
 
-5. Cherry pick the change commit from the merged PR in step 3 from main into the new branch from step 4.
+5. Cherry pick the commit on main from the merged PR in step 3 from main into the new branch from step 4.
+
+    ```
+    git cherry-pick -x [commit id]
+    ```
+
+    For a SRV, delete the `Main (unreleased)` header and anything underneath it as part of the cherry-pick. Alternatively, do it after the cherry-pick is completed.
 
 6. Create a PR to merge to `release-[release version prefix]` (must be merged before continuing).
+
+    See [here](https://github.com/grafana/agent/pull/3066) for an example PR for the first RCV.
+
+    See [here](https://github.com/grafana/agent/pull/3123) for an example PR for a SRV.

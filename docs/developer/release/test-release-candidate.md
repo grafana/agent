@@ -19,8 +19,8 @@ will involve overriding the deployed default version to point to the RCV.
 
     ```
     local agentWaves = (import 'waves/agent.libsonnet') {
-        // Temporary override while testing v0.32.0-rc.0
-        dev_canary: 'grafana/agent:v0.32.0-rc.0',
+        // Temporary override while testing [release version]
+        dev_canary: 'grafana/agent:[release version]',
     },
     ```
 
@@ -52,9 +52,12 @@ will involve overriding the deployed default version to point to the RCV.
 
 5. Validate the new version is healthy in dev_canary
 
-    1. Go the the following Dashboard: `Grafana Agent Flow/Controller Dashboard`.
+    1. Do steps 2-4 for the following dashboards.
+        - `Grafana Agent Flow / Controller Dashboard`
+        - `Grafana Agent Flow / Resources`
+        - `Grafana Agent Flow / prometheus.remote_write`
 
-    2. Select the Filters
+    2. Select the Filters.
         - `Data Source` = `cortex-dev-01-dev-us-central-0`
         - `Loki Data Source` = `loki-dev`
         - `cluster` = `dev-us-central-0`

@@ -33,8 +33,8 @@ under the category for "announcements".
     Example message:
 
     ```
-    :grafana-agent: Grafana Agent v0.32.0-rc.0 is now available! :grafana-agent:
-    Release: https://github.com/grafana/agent/releases/tag/v0.32.0-rc.0
-    Full changelog: https://github.com/grafana/agent/blob/v0.32.0-rc.0/CHANGELOG.md
-    We'll be publishing v0.32.0 on Tuesday, February 28 if we haven't heard about any major issues.
+    :grafana-agent: Grafana Agent [release version] is now available! :grafana-agent:
+    Release: https://github.com/grafana/agent/releases/tag/[release version]
+    Full changelog: https://github.com/grafana/agent/blob/[release version]/CHANGELOG.md
+    We'll be publishing [stable release version] on Tuesday, January 31 if we haven't heard about any major issues.
     ```
