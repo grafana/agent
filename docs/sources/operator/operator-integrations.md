@@ -4,7 +4,15 @@ weight: 350
 ---
 # Set up Agent Operator integrations
 
-This topic provides examples of setting up Agent Operator integrations, including [node_exporter](#set-up-an-agent-operator-node_exporter-integration) and [mysqld_exporter](#set-up-an-agent-operator-mysqld_exporter-integration). 
+This topic provides examples of setting up Agent Operator integrations, including [node_exporter](#set-up-an-agent-operator-node_exporter-integration) and [mysqld_exporter](#set-up-an-agent-operator-mysqld_exporter-integration).
+
+It's important to mention that in order to make integrations work, the field `name` under `spec` section should contain the name of the integration to be installed according to the list of integration defined [here]({{< relref "../configuration/integrations/integrations-next/_index.md#config-changes" >}})
+
+## Before you begin
+
+Before you begin, make sure that you have deployed the Grafana Agent Operator CRDs and installed Agent Operator into your cluster. See [Install Grafana Agent Operator with Helm]({{< relref "./helm-getting-started.md" >}}) or [Install Grafana Agent Operator]({{< relref "./getting-started.md" >}}) for instructions.
+
+Also, make sure that you [Deploy the GrafanaAgent resource]({{< relref "./deploy-agent-operator-resources.md" >}}) and the used `yaml` has `integrations` definition under `spec`.
 
 ## Set up an Agent Operator node_exporter integration
 
@@ -54,7 +62,7 @@ To set up a node_exporter integration:
            path: /root
     ```
 
-1. Customize the manifest as needed and roll it out to your cluster using `kubectl apply -f` followed by the filename.
+2. Customize the manifest as needed and roll it out to your cluster using `kubectl apply -f` followed by the filename.
 
     The manifest causes Agent Operator to create an instance of a grafana-agent-integrations-deploy resource that exports Node metrics.
 
@@ -87,6 +95,6 @@ To set up a mysqld_exporter integration:
        data_source_name: root@(server-a:3306)/
     ``` 
 
-1. Customize the manifest as needed and roll it out to your cluster using `kubectl apply -f` followed by the filename.
+2. Customize the manifest as needed and roll it out to your cluster using `kubectl apply -f` followed by the filename.
 
     The manifest causes Agent Operator to create an instance of a grafana-agent-integrations-deploy resource that exports MySQL metrics.
