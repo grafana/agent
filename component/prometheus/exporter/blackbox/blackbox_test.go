@@ -2,6 +2,7 @@ package blackbox
 
 import (
 	"testing"
+	"time"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
@@ -21,12 +22,14 @@ func TestUnmarshalRiver(t *testing.T) {
 			address = "http://grafana.com"
 			module = "http_2xx"
 		}
+		probe_timeout_offset = "0.5s"
 `
 	var cfg Config
 	err := river.Unmarshal([]byte(riverCfg), &cfg)
 	require.NoError(t, err)
 	require.Equal(t, "modules.yml", cfg.ConfigFile)
 	require.Equal(t, 2, len(cfg.Targets))
+	require.Equal(t, 500*time.Millisecond, cfg.ProbeTimeoutOffset)
 	require.Contains(t, "target_a", cfg.Targets[0].Name)
 	require.Contains(t, "http://example.com", cfg.Targets[0].Target)
 	require.Contains(t, "http_2xx", cfg.Targets[0].Module)
@@ -39,7 +42,7 @@ func TestConvertConfig(t *testing.T) {
 	cfg := Config{
 		ConfigFile:         "modules.yml",
 		Targets:            TargetBlock{{Name: "target_a", Target: "http://example.com", Module: "http_2xx"}},
-		ProbeTimeoutOffset: 1.0,
+		ProbeTimeoutOffset: 1 * time.Second,
 	}
 
 	res := cfg.Convert()

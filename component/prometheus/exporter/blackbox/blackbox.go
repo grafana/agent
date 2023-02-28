@@ -1,6 +1,8 @@
 package blackbox
 
 import (
+	"time"
+
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter"
@@ -48,7 +50,7 @@ func buildBlackboxTargets(baseTarget discovery.Target, args component.Arguments)
 // DefaultConfig holds non-zero default options for the Config when it is
 // unmarshaled from river.
 var DefaultConfig = Config{
-	ProbeTimeoutOffset: 0.5,
+	ProbeTimeoutOffset: 500 * time.Millisecond,
 }
 
 // BlackboxTarget defines a target to be used by the exporter.
@@ -74,9 +76,9 @@ func (t TargetBlock) Convert() []blackbox_exporter.BlackboxTarget {
 }
 
 type Config struct {
-	ConfigFile         string      `river:"config_file,attr"`
-	Targets            TargetBlock `river:"target,block"`
-	ProbeTimeoutOffset float64     `river:"probe_timeout_offset,attr,optional"`
+	ConfigFile         string        `river:"config_file,attr"`
+	Targets            TargetBlock   `river:"target,block"`
+	ProbeTimeoutOffset time.Duration `river:"probe_timeout_offset,attr,optional"`
 }
 
 // UnmarshalRiver implements River unmarshalling for Config.
@@ -92,6 +94,6 @@ func (c *Config) Convert() *blackbox_exporter.Config {
 	return &blackbox_exporter.Config{
 		BlackboxConfigFile: c.ConfigFile,
 		BlackboxTargets:    c.Targets.Convert(),
-		ProbeTimeoutOffset: c.ProbeTimeoutOffset,
+		ProbeTimeoutOffset: c.ProbeTimeoutOffset.Seconds(),
 	}
 }
