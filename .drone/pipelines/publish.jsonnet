@@ -15,6 +15,19 @@ local linux_containers_jobs = std.map(function(container) (
       ],
     },
     steps: [{
+      // We only need to run this once per machine, so it's OK if it fails. It
+      // is also likely to fail when run in parallel on the same machine.
+      name: 'Configure QEMU',
+      image: build_image.linux,
+      failure: 'ignore',
+      volumes: [{
+        name: 'docker',
+        path: '/var/run/docker.sock',
+      }],
+      commands: [
+        'docker run --rm --privileged multiarch/qemu-user-static --reset -p yes',
+      ],
+    }, {
       name: 'Publish container',
       image: build_image.linux,
       volumes: [{
@@ -31,14 +44,12 @@ local linux_containers_jobs = std.map(function(container) (
         'printenv GCR_CREDS > $HOME/.docker/config.json',
         'docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD',
 
-        // Create a buildx worker container for multiplatform builds.
-        'docker run --rm --privileged multiarch/qemu-user-static --reset -p yes',
-        'docker buildx create --name multiarch-agent-%s --driver docker-container --use' % container,
+        // Create a buildx worker for our cross platform builds.
+        'docker buildx create --name multiarch-agent-%s-${DRONE_COMMIT_SHA} --driver docker-container --use' % container,
 
         './tools/ci/docker-containers %s' % container,
 
-        // Remove the buildx worker container.
-        'docker buildx rm multiarch-agent-%s' % container,
+        'docker buildx rm multiarch-agent-%s-${DRONE_COMMIT_SHA}' % container,
       ],
     }],
     volumes: [{

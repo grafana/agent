@@ -7,16 +7,46 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+> **NOTE**: As of v0.32.0, builds for 32-bit ARMv6 currently don't support the
+> embedded Flow UI. The Flow UI will return to this target as soon as possible.
+
 Main (unreleased)
 -----------------
 
+### Features
+
+- New Grafana Agent Flow components:
+
+  - `discovery.ec2` service discovery for aws ec2. (@captncraig)
+  - `discovery.lightsail` service discovery for aws lightsail. (@captncraig)
+  - `prometheus.exporter.mysql` collects metrics from a MySQL database. (@spartan0x117)
+
+### Bugfixes
+
+- Flow: add a maximum connection lifetime of one hour when tailing logs from
+  `loki.source.kubernetes` and `loki.source.podlogs` to recover from an issue
+  where the Kubernetes API server stops responding with logs without closing
+  the TCP connection. (@rfratto)
+
+- Flow: fix issue in `loki.source.kubernetes` where `__pod__uid__` meta label
+  defaulted incorrectly to the container name, causing tailers to never
+  restart. (@rfratto)
+
+v0.32.0-rc.0 (2023-02-23)
+-------------------------
+
 ### Breaking changes
 
+- Support for the embedded Flow UI for 32-bit ARMv6 builds is temporarily
+  removed. (@rfratto)
+
 - Node Exporter configuration options changed to align with new upstream version (@Thor77):
+
   - `diskstats_ignored_devices` is now `diskstats_device_exclude` in agent configuration.
   - `ignored_devices` is now `device_exclude` in flow configuration.
 
 - Some blocks in Flow components have been merged with their parent block to make the block hierarchy smaller:
+
   - `discovery.docker > http_client_config` is merged into the `discovery.docker` block. (@erikbaranowski)
   - `discovery.kubernetes > http_client_config` is merged into the `discovery.kubernetes` block. (@erikbaranowski)
   - `loki.source.kubernetes > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
@@ -36,6 +66,7 @@ Main (unreleased)
   been updated to use this simplified hierarchy. (@tpaschalis)
 
 - `remote.s3` `client_options` block has been renamed to `client`. (@mattdurham)
+
 - Renamed `prometheus.integration.node_exporter` to `prometheus.exporter.unix`. (@jcreixell)
 
 - As first announced in v0.30, support for the `EXPERIMENTAL_ENABLE_FLOW`
@@ -117,27 +148,37 @@ Main (unreleased)
   added extra an extra `|` character when displaying the source file on the
   starting line. (@rfratto)
 
-- Flow: fix issues in `river fmt` where adding an inline comment on the same
+- Flow: fix issues in `agent fmt` where adding an inline comment on the same
   line as a `[` or `{` would cause indentation issues on subsequent lines.
   (@rfratto)
 
-- Flow: fix issues in `river fmt` where line comments in arrays would be given
+- Flow: fix issues in `agent fmt` where line comments in arrays would be given
   the wrong identation level. (@rfratto)
+
+- Flow: fix issues with `loki.file` and `loki.process` where deadlock contention or
+  logs fail to process. (@mattdurham)
+
+- Flow: `oauth2 > tls_config` was documented as a block but coded incorrectly as
+  an attribute. This is now a block in code. This impacted `discovery.docker`,
+  `discovery.kubernetes`, `loki.source.kubernetes`, `loki.write`,
+  `mimir.rules.kubernetes`, `phlare.scrape`, `phlare.write`,
+  `prometheus.remote_write`, `prometheus.scrape`, and `remote.http`
+  (@erikbaranowski)
+
+- Flow: Fix issue where using `river:",label"` causes the UI to return nothing. (@mattdurham)
 
 ### Other changes
 
-- Use Go 1.20 for builds. Official release binaries are still produced using Go
-  1.19. (@rfratto)
+- Use Go 1.20 for builds. (@rfratto)
 
-- Grafana Agent Flow is now considered production ready. A subset of Flow
+- The beta label from Grafana Agent Flow has been removed. A subset of Flow
   components are still marked as beta or experimental:
 
   - `loki.echo` is explicitly marked as beta.
   - `loki.source.kubernetes` is explicitly marked as experimental.
   - `loki.source.podlogs` is explicitly marked as experimental.
   - `mimir.rules.kubernetes` is explicitly marked as beta.
-  - `otelcol.exporter.loki` is explicitly marked as beta.
-  - `otelcol.exporter.prometheus` is explicitly marked as beta.
+  - `otelcol.processor.tail_sampling` is explicitly marked as beta.
   - `otelcol.receiver.loki` is explicitly marked as beta.
   - `otelcol.receiver.prometheus` is explicitly marked as beta.
   - `phlare.scrape` is explicitly marked as beta.
@@ -154,8 +195,6 @@ v0.31.3 (2023-02-13)
 
 - `loki.source.cloudflare`: fix issue where `api_token` argument was not marked
   as a sensitive field. (@rfratto)
-
-- `oath2 > tls_config` was documented as a block but coded incorrectly as an attribute. This is now a block in code. This impacted `discovery.docker`, `discovery.kubernetes`, `loki.source.kubernetes`, `loki.write`, `mimir.rules.kubernetes`, `phlare.scrape`, `phlare.write`, `prometheus.remote_write`, `prometheus.scrape`, and `remote.http`  (@erikbaranowski)
 
 v0.31.2 (2023-02-08)
 --------------------
@@ -178,7 +217,8 @@ v0.31.1 (2023-02-06)
 
 ### Other changes
 
-- Support Go 1.20 for builds. (@rfratto)
+- Support Go 1.20 for builds. Official release binaries are still produced
+  using Go 1.19. (@rfratto)
 
 v0.31.0 (2023-01-31)
 --------------------

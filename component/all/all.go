@@ -2,6 +2,7 @@
 package all
 
 import (
+	_ "github.com/grafana/agent/component/discovery/aws"                   // Import discovery.aws.ec2 and discovery.aws.lightsail
 	_ "github.com/grafana/agent/component/discovery/docker"                // Import discovery.docker
 	_ "github.com/grafana/agent/component/discovery/file"                  // Import discovery.file
 	_ "github.com/grafana/agent/component/discovery/kubernetes"            // Import discovery.kubernetes
@@ -48,6 +49,7 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/exporter/apache"      // Import prometheus.exporter.apache
 	_ "github.com/grafana/agent/component/prometheus/exporter/consul"      // Import prometheus.exporter.consul
 	_ "github.com/grafana/agent/component/prometheus/exporter/github"      // Import prometheus.exporter.github
+	_ "github.com/grafana/agent/component/prometheus/exporter/mysql"       // Import prometheus.exporter.mysql
 	_ "github.com/grafana/agent/component/prometheus/exporter/process"     // Import prometheus.exporter.process
 	_ "github.com/grafana/agent/component/prometheus/exporter/redis"       // Import prometheus.exporter.redis
 	_ "github.com/grafana/agent/component/prometheus/exporter/unix"        // Import prometheus.exporter.unix

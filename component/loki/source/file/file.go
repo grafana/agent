@@ -108,6 +108,7 @@ func (c *Component) Run(ctx context.Context) error {
 		if c.entryHandler != nil {
 			c.entryHandler.Stop()
 		}
+		close(c.handler)
 		c.mut.RUnlock()
 	}()
 
@@ -182,8 +183,7 @@ func (c *Component) Update(args component.Arguments) error {
 		}
 
 		c.reportSize(path, labels.String())
-		c.handler = make(loki.LogsReceiver)
-		c.entryHandler = loki.AddLabelsMiddleware(labels).Wrap(loki.NewEntryHandler(c.handler, func() { close(c.handler) }))
+		c.entryHandler = loki.AddLabelsMiddleware(labels).Wrap(loki.NewEntryHandler(c.handler, func() {}))
 
 		reader, err := c.startTailing(path, labels, c.entryHandler)
 		if err != nil {
