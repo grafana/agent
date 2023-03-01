@@ -175,6 +175,7 @@ func (s *subgraph) close() error {
 
 func (s *subgraph) run(ctx context.Context) {
 	defer level.Debug(s.log).Log("msg", "subgraph exiting")
+	defer close(s.exited)
 
 	ctx, cancel := context.WithCancel(ctx)
 	s.cancel = cancel
