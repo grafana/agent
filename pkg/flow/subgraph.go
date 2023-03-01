@@ -112,6 +112,17 @@ func (s *subgraph) LoadSubgraph(parent component.SubgraphOwner, config []byte) (
 	s.mut.Lock()
 	defer s.mut.Unlock()
 
+	// Check to see if there is already a graph loaded
+	foundsg, found := s.children[parent]
+	if found {
+		// TODO figure out if we want to apply the old one back, we probably do
+		err := foundsg.graph.close()
+		if err != nil {
+			return nil, nil, err
+		}
+		delete(s.children, parent)
+	}
+
 	file, err := ReadFile(parent.ID(), config)
 	if err != nil {
 		return nil, nil, err
@@ -147,22 +158,26 @@ func (s *subgraph) Components() []*controller.ComponentNode {
 func (s *subgraph) close() error {
 	var result error
 	for _, x := range s.children {
-		result = multierror.Append(result, x.graph.close())
+		err := x.graph.close()
+		if err != nil {
+			result = multierror.Append(result, err)
+
+		}
 	}
 	s.cancel()
 	<-s.exited
-	result = multierror.Append(result, s.sched.Close())
+	err := s.sched.Close()
+	if err != nil {
+		result = multierror.Append(result, err)
+	}
 	return result
 }
 
 func (s *subgraph) run(ctx context.Context) {
-	defer close(s.exited)
 	defer level.Debug(s.log).Log("msg", "subgraph exiting")
 
 	ctx, cancel := context.WithCancel(ctx)
 	s.cancel = cancel
-	defer s.cancel()
-
 	s.loadFinished <- struct{}{}
 
 	for {
