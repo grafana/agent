@@ -228,9 +228,9 @@ func (t *scrapeLoop) scrape() {
 		}
 	}
 	err := t.fetchProfile(scrapeCtx, profileType, buf)
-	t.mtx.Lock()
-	defer t.mtx.Unlock()
 	if err != nil {
+		t.mtx.Lock()
+		defer t.mtx.Unlock()
 		level.Error(t.logger).Log("msg", "fetch profile failed", "target", t.Labels().String(), "err", err)
 		t.health = HealthBad
 		t.lastScrapeDuration = time.Since(start)
@@ -243,13 +243,23 @@ func (t *scrapeLoop) scrape() {
 	if len(b) > 0 {
 		t.lastScrapeSize = len(b)
 	}
+
+	if err := t.appendable.Appender().Append(context.Background(), t.labels, []*phlare.RawSample{{RawProfile: b}}); err != nil {
+		t.mtx.Lock()
+		defer t.mtx.Unlock()
+		level.Error(t.logger).Log("msg", "push failed", "labels", t.Labels().String(), "err", err)
+		t.health = HealthBad
+		t.lastScrapeDuration = time.Since(start)
+		t.lastError = err
+		t.lastScrape = start
+		return
+	}
+	t.mtx.Lock()
+	defer t.mtx.Unlock()
 	t.health = HealthGood
 	t.lastScrapeDuration = time.Since(start)
 	t.lastError = nil
 	t.lastScrape = start
-	if err := t.appendable.Appender().Append(context.Background(), t.labels, []*phlare.RawSample{{RawProfile: b}}); err != nil {
-		level.Error(t.logger).Log("msg", "push failed", "labels", t.Labels().String(), "err", err)
-	}
 }
 
 func (t *scrapeLoop) fetchProfile(ctx context.Context, profileType string, buf io.Writer) error {
