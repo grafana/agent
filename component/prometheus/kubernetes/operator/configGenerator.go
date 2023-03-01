@@ -6,9 +6,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/util/k8sfs"
+	"github.com/pkg/errors"
 	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	commonConfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
@@ -19,7 +18,6 @@ import (
 
 type configGenerator struct {
 	config   *Arguments
-	logger   log.Logger
 	secretfs *k8sfs.FS
 }
 
@@ -94,7 +92,6 @@ func (cg *configGenerator) generateSafeTLS(namespace string, tls v1.SafeTLSConfi
 
 type relabeler struct {
 	configs []*relabel.Config
-	logger  log.Logger
 }
 
 func (r *relabeler) Add(cfgs ...*relabel.Config) {
@@ -150,9 +147,7 @@ func (r *relabeler) addFromV1(cfgs ...*v1.RelabelConfig) (err error) {
 }
 
 func (cg *configGenerator) initRelabelings(cfg *config.ScrapeConfig) relabeler {
-	r := relabeler{
-		logger: cg.logger,
-	}
+	r := relabeler{}
 	// Relabel prometheus job name into a meta label
 	r.Add(&relabel.Config{
 		SourceLabels: model.LabelNames{"job"},
@@ -178,12 +173,13 @@ func (cg *configGenerator) getNamespacesFromNamespaceSelector(nsel v1.NamespaceS
 	return nsel.MatchNames
 }
 
-func (cg *configGenerator) generateOAuth2(oauth2 *v1.OAuth2, ns string) *commonConfig.OAuth2 {
+func (cg *configGenerator) generateOAuth2(oauth2 *v1.OAuth2, ns string) (*commonConfig.OAuth2, error) {
 	if oauth2 == nil {
-		return nil
+		return nil, nil
 	}
 	var err error
 	oa2 := &commonConfig.OAuth2{}
+	// clientID cannot be passed as file, so we must read it directly now
 	if oauth2.ClientID.Secret != nil {
 		s := oauth2.ClientID.Secret
 		oa2.ClientID, err = cg.secretfs.ReadSecret(ns, s.Name, s.Key)
@@ -192,7 +188,7 @@ func (cg *configGenerator) generateOAuth2(oauth2 *v1.OAuth2, ns string) *commonC
 		oa2.ClientID, err = cg.secretfs.ReadConfigMap(ns, cm.Name, cm.Key)
 	}
 	if err != nil {
-		level.Error(cg.logger).Log("msg", "failed to fetch oauth clientid", "err", err)
+		return nil, errors.Wrap(err, "fetching oauth2 client id")
 	}
 	oa2.ClientSecretFile = k8sfs.SecretFilename(ns, oauth2.ClientSecret.Name, oauth2.ClientSecret.Key)
 	oa2.TokenURL = oauth2.TokenURL
@@ -202,7 +198,7 @@ func (cg *configGenerator) generateOAuth2(oauth2 *v1.OAuth2, ns string) *commonC
 	if len(oauth2.EndpointParams) > 0 {
 		oa2.EndpointParams = oauth2.EndpointParams
 	}
-	return oa2
+	return oa2, nil
 }
 
 func (cg *configGenerator) generateSafeAuthorization(auth *v1.SafeAuthorization, ns string) *commonConfig.Authorization {

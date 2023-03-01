@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/util/k8sfs"
+	"github.com/pkg/errors"
 	promop "github.com/prometheus-operator/prometheus-operator/pkg/client/informers/externalversions"
 	promCommonConfig "github.com/prometheus/common/config"
 	"github.com/prometheus/prometheus/config"
@@ -111,19 +112,19 @@ func (c *crdManager) onDeletePodMonitor(obj interface{}) {
 	c.apply()
 }
 
-func (c *crdManager) run(ctx context.Context) {
+func (c *crdManager) run(ctx context.Context) error {
 
 	config, err := c.config.restConfig()
 	if err != nil {
-		level.Error(c.logger).Log("msg", "failed to create rest config", "err", err)
-		return
+		return errors.Wrap(err, "creating rest config")
 	}
 	clientset, err := kubernetes.NewForConfig(config)
-
+	if err != nil {
+		return errors.Wrap(err, "creating rest client")
+	}
 	promClientset := versioned.New(clientset.RESTClient())
 	if err != nil {
-		level.Error(c.logger).Log("msg", "failed to create rest client", "err", err)
-		return
+		return errors.Wrap(err, "creating prometheus clientset")
 	}
 
 	fs := k8sfs.New(clientset)
@@ -188,7 +189,7 @@ func (c *crdManager) run(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			return
+			return nil
 		case m := <-c.discovery.SyncCh():
 			//TODO: are there cases where we modify targets?
 			targetSetsChan <- m

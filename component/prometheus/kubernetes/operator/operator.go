@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 )
 
@@ -36,6 +37,7 @@ func New(o component.Options, args component.Arguments) (*Component, error) {
 
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
+
 	// innerCtx gets passed to things we create, so we can restart everything anytime we get an update.
 	// Ideally, this component has very little dynamic config, and won't have frequent updates.
 	var innerCtx context.Context
@@ -46,6 +48,7 @@ func (c *Component) Run(ctx context.Context) error {
 			cancel()
 		}
 	}()
+	errChan := make(chan error)
 	for {
 		select {
 		case <-ctx.Done():
@@ -53,6 +56,8 @@ func (c *Component) Run(ctx context.Context) error {
 				cancel()
 			}
 			return nil
+		case <-errChan:
+
 		case <-c.onUpdate:
 			if cancel != nil {
 				cancel()
@@ -62,7 +67,11 @@ func (c *Component) Run(ctx context.Context) error {
 			componentCfg := c.config
 			c.mut.Unlock()
 			crdMan := newManager(c.opts, c.opts.Logger, componentCfg)
-			go crdMan.run(innerCtx)
+			go func() {
+				if err := crdMan.run(innerCtx); err != nil {
+					level.Error(c.opts.Logger).Log("msg", "error running crd manager", "err", err)
+				}
+			}()
 		}
 	}
 }

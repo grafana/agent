@@ -90,7 +90,10 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 			PasswordFile: k8sfs.SecretFilename(m.Namespace, ep.BasicAuth.Password.Name, ep.BasicAuth.Password.Key),
 		}
 	}
-	cfg.HTTPClientConfig.OAuth2 = cg.generateOAuth2(ep.OAuth2, m.Namespace)
+	cfg.HTTPClientConfig.OAuth2, err = cg.generateOAuth2(ep.OAuth2, m.Namespace)
+	if err != nil {
+		return nil, err
+	}
 	cfg.HTTPClientConfig.Authorization = cg.generateSafeAuthorization(ep.Authorization, m.Namespace)
 
 	relabels := cg.initRelabelings(cfg)
