@@ -12,6 +12,10 @@ Before you begin, make sure that you have deployed the Grafana Agent Operator CR
 
 Also, make sure that you [deploy the GrafanaAgent resource]({{< relref "./deploy-agent-operator-resources.md" >}}) and the `yaml` you use has the `integrations` definition under `spec`.
 
+**Important:** The field `name` under the `spec` section of the manifest must contain the name of the integration to be installed according to the list of integrations defined [here]({{< relref "../configuration/integrations/integrations-next/_index.md#config-changes" >}}).
+
+**Important:** The value of `metrics_instance` field needs to be in the format of `<namespace>/<name>` from the `metadata` section from the `MetricsInstance` resource as it's explained in [deploy a MetricsInstance resource]({{< relref "./deploy-agent-operator-resources.md#deploy-a-metricsinstance-resource" >}})
+
 ## Set up an Agent Operator node_exporter integration
 
 The Agent Operator node_exporter integration lets you monitor your hardware and OS metrics from Unix-based machines, including Linux machines.
@@ -21,7 +25,6 @@ To set up a node_exporter integration:
 1. Copy the following manifest to a file:  
 
     ```yaml
-    # Collect node_exporter metrics
     apiVersion: monitoring.grafana.com/v1alpha1
     kind: Integration
     metadata:
@@ -60,8 +63,6 @@ To set up a node_exporter integration:
            path: /root
     ```
 
-    > **Important:** In order to make integrations work, the field `name` under the `spec` section of the manifest must contain the name of the integration to be installed according to the list of integrations defined [here]({{< relref "../configuration/integrations/integrations-next/_index.md#config-changes" >}}).
-
 2. Customize the manifest as needed and roll it out to your cluster using `kubectl apply -f` followed by the filename.
 
     The manifest causes Agent Operator to create an instance of a grafana-agent-integrations-deploy resource that exports Node metrics.
@@ -75,7 +76,6 @@ To set up a mysqld_exporter integration:
 1. Copy the following manifest to a file: 
 
     ```yaml
-    # Collect mysqld_exporter metrics
     apiVersion: monitoring.grafana.com/v1alpha1
     kind: Integration
     metadata:
@@ -94,7 +94,6 @@ To set up a mysqld_exporter integration:
          metrics_instance: default/primary
        data_source_name: root@(server-a:3306)/
     ``` 
-    > **Important:** In order to make integrations work, the field `name` under the `spec` section of the manifest must contain the name of the integration to be installed according to the list of integrations defined [here]({{< relref "../configuration/integrations/integrations-next/_index.md#config-changes" >}}).
 
 2. Customize the manifest as needed and roll it out to your cluster using `kubectl apply -f` followed by the filename.
 
