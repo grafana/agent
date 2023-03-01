@@ -112,7 +112,7 @@ func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode
 		nodeID = id.String()
 	)
 
-	reg, ok := component.Get2(ComponentID(b.Name).String())
+	reg, ok := component.Get(ComponentID(b.Name).String())
 	if !ok {
 		// NOTE(rfratto): It's normally not possible to get to this point; the
 		// blocks should have been validated by the graph loader in advance to

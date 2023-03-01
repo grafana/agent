@@ -186,7 +186,7 @@ func validatePrefixMatch(check parsedName, against map[string]parsedName) error 
 }
 
 // Get finds a registered component by name.
-func Get2(name string) (Registration, bool) {
+func Get(name string) (Registration, bool) {
 	r, ok := registered[name]
 	return r, ok
 }

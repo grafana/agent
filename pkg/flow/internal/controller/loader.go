@@ -208,7 +208,7 @@ func (l *Loader) populateGraph(g *dag.Graph, blocks []*ast.BlockStmt) diag.Diagn
 			c.UpdateBlock(block)
 		} else {
 			componentName := strings.Join(block.Name, ".")
-			registration, exists := component.Get2(componentName)
+			registration, exists := component.Get(componentName)
 			if !exists {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
