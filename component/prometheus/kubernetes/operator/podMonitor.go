@@ -8,8 +8,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/util/k8sfs"
+	"github.com/pkg/errors"
 	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	namespacelabeler "github.com/prometheus-operator/prometheus-operator/pkg/namespace-labeler"
 	commonConfig "github.com/prometheus/common/config"
@@ -20,9 +20,15 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodMetricsEndpoint, i int) *config.ScrapeConfig {
+var (
+	regexFilterRunning = relabel.MustNewRegexp("(Failed|Succeeded)")
+	regexTrue          = relabel.MustNewRegexp("true")
+	regexAnything      = relabel.MustNewRegexp("(.+)")
+)
+
+func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodMetricsEndpoint, i int) (cfg *config.ScrapeConfig, err error) {
 	c := config.DefaultScrapeConfig
-	cfg := &c
+	cfg = &c
 	cfg.ScrapeInterval = config.DefaultGlobalConfig.ScrapeInterval
 	cfg.ScrapeTimeout = config.DefaultGlobalConfig.ScrapeTimeout
 	cfg.JobName = fmt.Sprintf("podMonitor/%s/%s/%d", m.Namespace, m.Name, i)
@@ -34,21 +40,22 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 	cfg.ServiceDiscoveryConfigs = append(cfg.ServiceDiscoveryConfigs, cg.generateK8SSDConfig(m.Spec.NamespaceSelector, m.Namespace, promk8s.RolePod, m.Spec.AttachMetadata))
 
 	if ep.Interval != "" {
-		var err error
-		cfg.ScrapeInterval, err = model.ParseDuration(string(ep.Interval))
-		if err != nil {
-			level.Error(cg.logger).Log("msg", "failed to parse Interval from podMonitor", "err", err)
+		if cfg.ScrapeInterval, err = model.ParseDuration(string(ep.Interval)); err != nil {
+			return nil, errors.Wrap(err, "parsing interval from podMonitor")
 		}
 	}
 	if ep.ScrapeTimeout != "" {
-		cfg.ScrapeInterval, _ = model.ParseDuration(string(ep.ScrapeTimeout))
+		if cfg.ScrapeInterval, err = model.ParseDuration(string(ep.ScrapeTimeout)); err != nil {
+			return nil, errors.Wrap(err, "parsing timeout from podMonitor")
+		}
+
 	}
 	if ep.Path != "" {
 		cfg.MetricsPath = ep.Path
 	}
 	if ep.ProxyURL != nil {
 		if u, err := url.Parse(*ep.ProxyURL); err != nil {
-			level.Error(cg.logger).Log("msg", "failed to parse ProxyURL from podMonitor", "err", err)
+			return nil, errors.Wrap(err, "parsing ProxyURL from podMonitor")
 		} else {
 			cfg.HTTPClientConfig.ProxyURL = commonConfig.URL{URL: u}
 		}
@@ -73,9 +80,10 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 		cfg.HTTPClientConfig.BearerTokenFile = k8sfs.SecretFilename(m.Namespace, bts.Name, bts.Key)
 	}
 	if ep.BasicAuth != nil {
+		// no way to lazily load username from file or pass it directly. We need to look up the secret right away
 		uname, err := cg.secretfs.ReadSecret(m.Namespace, ep.BasicAuth.Username.Name, ep.BasicAuth.Username.Key)
 		if err != nil {
-			level.Error(cg.logger).Log("msg", "failed to fetch basic auth username", "err", err)
+			return nil, errors.Wrap(err, "fetching basic auth username from secret")
 		}
 		cfg.HTTPClientConfig.BasicAuth = &commonConfig.BasicAuth{
 			Username:     uname,
@@ -90,7 +98,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 		relabels.Add(&relabel.Config{
 			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_phase"},
 			Action:       "drop",
-			Regex:        parseRegexp("(Failed|Succeeded)", cg.logger),
+			Regex:        regexFilterRunning,
 		})
 	}
 
@@ -103,10 +111,14 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 	sort.Strings(labelKeys)
 
 	for _, k := range labelKeys {
+		regex, err := relabel.NewRegexp(fmt.Sprintf("(%s);true", m.Spec.Selector.MatchLabels[k]))
+		if err != nil {
+			return nil, errors.Wrap(err, "parsing MatchLabels regex")
+		}
 		relabels.Add(&relabel.Config{
 			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_label_" + sanitizeLabelName(k), "__meta_kubernetes_pod_labelpresent_" + sanitizeLabelName(k)},
 			Action:       "keep",
-			Regex:        parseRegexp(fmt.Sprintf("(%s);true", m.Spec.Selector.MatchLabels[k]), cg.logger),
+			Regex:        regex,
 		})
 	}
 
@@ -115,53 +127,73 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 	for _, exp := range m.Spec.Selector.MatchExpressions {
 		switch exp.Operator {
 		case metav1.LabelSelectorOpIn:
+			regex, err := relabel.NewRegexp(fmt.Sprintf("(%s);true", strings.Join(exp.Values, "|")))
+			if err != nil {
+				return nil, errors.Wrap(err, "parsing MatchExpressions regex")
+			}
 			relabels.Add(&relabel.Config{
 				SourceLabels: model.LabelNames{"__meta_kubernetes_pod_label_" + sanitizeLabelName(exp.Key), "__meta_kubernetes_pod_labelpresent_" + sanitizeLabelName(exp.Key)},
 				Action:       "keep",
-				Regex:        parseRegexp(fmt.Sprintf("(%s);true", strings.Join(exp.Values, "|")), cg.logger),
+				Regex:        regex,
 			})
 		case metav1.LabelSelectorOpNotIn:
+			regex, err := relabel.NewRegexp(fmt.Sprintf("(%s);true", strings.Join(exp.Values, "|")))
+			if err != nil {
+				return nil, errors.Wrap(err, "parsing MatchExpressions regex")
+			}
 			relabels.Add(&relabel.Config{
 				SourceLabels: model.LabelNames{"__meta_kubernetes_pod_label_" + sanitizeLabelName(exp.Key), "__meta_kubernetes_pod_labelpresent_" + sanitizeLabelName(exp.Key)},
 				Action:       "drop",
-				Regex:        parseRegexp(fmt.Sprintf("(%s);true", strings.Join(exp.Values, "|")), cg.logger),
+				Regex:        regex,
 			})
 		case metav1.LabelSelectorOpExists:
 			relabels.Add(&relabel.Config{
 				SourceLabels: model.LabelNames{"__meta_kubernetes_pod_labelpresent_" + sanitizeLabelName(exp.Key)},
 				Action:       "keep",
-				Regex:        parseRegexp("true", cg.logger),
+				Regex:        regexTrue,
 			})
 		case metav1.LabelSelectorOpDoesNotExist:
 			relabels.Add(&relabel.Config{
 				SourceLabels: model.LabelNames{"__meta_kubernetes_pod_labelpresent_" + sanitizeLabelName(exp.Key)},
 				Action:       "drop",
-				Regex:        parseRegexp("true", cg.logger),
+				Regex:        regexTrue,
 			})
 		}
 	}
 
 	// Filter targets based on correct port for the endpoint.
 	if ep.Port != "" {
+		regex, err := relabel.NewRegexp(ep.Port)
+		if err != nil {
+			return nil, errors.Wrap(err, "parsing Port as regex")
+		}
 		relabels.Add(&relabel.Config{
 			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_container_port_name"},
 			Action:       "keep",
-			Regex:        parseRegexp(ep.Port, cg.logger),
+			Regex:        regex,
 		})
 	} else if ep.TargetPort != nil { //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
 		//nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
+		regex, err := relabel.NewRegexp(ep.TargetPort.String())
+		if err != nil {
+			return nil, errors.Wrap(err, "parsing TargetPort as regex")
+		}
 		if ep.TargetPort.StrVal != "" {
 			relabels.Add(&relabel.Config{
 				SourceLabels: model.LabelNames{"__meta_kubernetes_pod_container_port_name"},
 				Action:       "keep",
-				Regex:        parseRegexp(ep.TargetPort.String(), cg.logger),
+				Regex:        regex,
 			})
 		}
 	} else if ep.TargetPort.IntVal != 0 { //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
+		regex, err := relabel.NewRegexp(ep.TargetPort.String())
+		if err != nil {
+			return nil, errors.Wrap(err, "parsing TargetPort as regex")
+		}
 		relabels.Add(&relabel.Config{
 			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_container_port_number"},
 			Action:       "keep",
-			Regex:        parseRegexp(ep.TargetPort.String(), cg.logger),
+			Regex:        regex,
 		})
 	}
 
@@ -182,7 +214,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 		relabels.Add(&relabel.Config{
 			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_label_" + sanitizeLabelName(l)},
 			Replacement:  "${1}",
-			Regex:        parseRegexp("(.+)", cg.logger),
+			Regex:        regexAnything,
 			TargetLabel:  string(sanitizeLabelName(l)),
 		})
 	}
@@ -201,7 +233,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 		relabels.Add(&relabel.Config{
 			Replacement:  "${1}",
 			TargetLabel:  "job",
-			Regex:        parseRegexp("(.+)", cg.logger),
+			Regex:        regexAnything,
 			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_label_" + sanitizeLabelName(m.Spec.JobLabel)},
 		})
 	}
@@ -219,7 +251,9 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 	}
 
 	labeler := namespacelabeler.New("", nil, false)
-	relabels.addFromV1(labeler.GetRelabelingConfigs(m.TypeMeta, m.ObjectMeta, ep.RelabelConfigs)...)
+	if err = relabels.addFromV1(labeler.GetRelabelingConfigs(m.TypeMeta, m.ObjectMeta, ep.RelabelConfigs)...); err != nil {
+		return nil, errors.Wrap(err, "Parsing relabelConfigs")
+	}
 
 	cfg.RelabelConfigs = relabels.configs
 
@@ -229,5 +263,5 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 
 	// TODO: limits from spec
 
-	return cfg
+	return cfg, nil
 }

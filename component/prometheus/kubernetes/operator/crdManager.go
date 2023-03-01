@@ -83,7 +83,11 @@ func (c *crdManager) clearConfigs(kind string, ns string, name string) {
 
 func (c *crdManager) addPodMonitor(pm *v1.PodMonitor) {
 	for i, ep := range pm.Spec.PodMetricsEndpoints {
-		pmc := c.cg.generatePodMonitorConfig(pm, ep, i)
+		pmc, err := c.cg.generatePodMonitorConfig(pm, ep, i)
+		if err != nil {
+			level.Error(c.logger).Log("name", pm.Name, "err", err, "msg", "error generating scrapeconfig from podmonitor")
+			continue
+		}
 		c.mut.Lock()
 		c.discoveryConfigs[pmc.JobName] = pmc.ServiceDiscoveryConfigs
 		c.scrapeConfigs[pmc.JobName] = pmc
