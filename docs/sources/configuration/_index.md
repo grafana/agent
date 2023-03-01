@@ -31,6 +31,8 @@ well-documented.
 The configuration file can be reloaded at runtime using the `/-/reload` API
 endpoint or sending a SIGHUP signal to the process.
 
+For default config file locations, refer to the Install Grafana Agent guides under "Set up Grafana Agent"
+
 ## Variable substitution
 
 You can use environment variables in the configuration file to set values that
