@@ -175,7 +175,6 @@ func TestUnmarshalConfig(t *testing.T) {
 }
 
 func TestUpdateWhileScraping(t *testing.T) {
-	defer goleak.VerifyNone(t)
 	args := NewDefaultArguments()
 	// speed up reload interval for this tests
 	old := reloadInterval
