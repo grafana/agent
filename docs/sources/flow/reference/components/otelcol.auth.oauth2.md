@@ -9,7 +9,7 @@ components to authenticate requests using oauth2 authentication.
 
 The authorization tokens can be used by HTTP and gRPC based OpenTelemetry exporters. 
 This component can fetch and refresh expired tokens automatically. For further details about 
-OAuth2 Client Credentials flow (2-legged workflow) see [here](https://datatracker.ietf.org/doc/html/rfc6749#section-4.4).
+OAuth 2.0 Client Credentials flow (2-legged workflow) see [here](https://datatracker.ietf.org/doc/html/rfc6749#section-4.4).
 
 > **NOTE**: `otelcol.auth.oauth2` is a wrapper over the upstream OpenTelemetry
 > Collector `oauth2client` extension. Bug reports or feature requests will be
