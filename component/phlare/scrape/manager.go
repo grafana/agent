@@ -114,6 +114,11 @@ func (m *Manager) reload() {
 
 // ApplyConfig resets the manager's target providers and job configurations as defined by the new cfg.
 func (m *Manager) ApplyConfig(cfg Arguments) error {
+	now := time.Now()
+	level.Warn(m.logger).Log("msg", "phlare Manager ApplyConfig")
+	defer func() {
+		level.Warn(m.logger).Log("msg", "phlare Manager ApplyConfig finished", "duration", time.Since(now))
+	}()
 	m.mtxScrape.Lock()
 	defer m.mtxScrape.Unlock()
 	// Cleanup and reload pool if the configuration has changed.

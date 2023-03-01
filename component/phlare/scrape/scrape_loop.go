@@ -98,6 +98,11 @@ Outer:
 }
 
 func (tg *scrapePool) reload(cfg Arguments) error {
+	now := time.Now()
+	level.Warn(tg.logger).Log("msg", "phlare scrapePool reload")
+	defer func() {
+		level.Warn(tg.logger).Log("msg", "phlare scrapePool reload finished", "duration", time.Since(now))
+	}()
 	tg.mtx.Lock()
 	defer tg.mtx.Unlock()
 
