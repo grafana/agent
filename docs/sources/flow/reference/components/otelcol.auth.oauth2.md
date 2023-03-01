@@ -86,7 +86,7 @@ configuration.
 
 ## Example
 
-This example configures [otelcol.exporter.otlp][] to use oauth2 authentication:
+This example configures [otelcol.exporter.otlp][] to use OAuth 2.0 for authentication:
 
 ```river
 otelcol.exporter.otlp "example" {
