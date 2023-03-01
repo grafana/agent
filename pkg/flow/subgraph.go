@@ -2,6 +2,7 @@ package flow
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -141,6 +142,22 @@ func (s *subgraph) LoadSubgraph(parent component.SubgraphOwner, config []byte) (
 	}
 	go sg.run(ctx)
 	return comps, diags, nil
+}
+
+// UnloadSubgraph is used when you no longer need to load the graph
+func (s *subgraph) UnloadSubgraph(parent component.SubgraphOwner) error {
+	foundsg, found := s.children[parent]
+	if !found {
+		return fmt.Errorf("unable to find subgraph with parent id %s", parent.ID())
+	}
+
+	// TODO figure out if we want to apply the old one back, we probably do
+	err := foundsg.graph.close()
+	if err != nil {
+		return err
+	}
+	delete(s.children, parent)
+	return nil
 }
 
 func (s *subgraph) Components() []*controller.ComponentNode {
