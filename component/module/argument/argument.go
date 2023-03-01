@@ -2,6 +2,7 @@ package argument
 
 import (
 	"context"
+	"reflect"
 	"strings"
 	"sync"
 
@@ -42,6 +43,9 @@ func (c *Component) Update(args component.Arguments) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 	c.args = newArgs
+	if reflect.ValueOf(c.args.Value).IsZero() {
+		c.args.Value = c.args.Default
+	}
 	c.opts.OnStateChange(Exports{Value: c.args.Value})
 
 	return nil
@@ -53,7 +57,8 @@ type Exports struct {
 
 // Arguments are the arguments for the component.
 type Arguments struct {
-	Value interface{} `river:"value,attr,optional"`
+	Value   interface{} `river:"value,attr,optional"`
+	Default interface{} `river:"default,attr,optional"`
 }
 
 func defaultArgs() Arguments {
