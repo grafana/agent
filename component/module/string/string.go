@@ -143,7 +143,7 @@ func (c *Component) Update(args component.Arguments) error {
 	c.opts.OnStateChange(Exports{
 		Exports: c.GetVal,
 	})
-	return nil
+	return c.opts.Subgraph.StartSubgraph(c)
 }
 
 // Inform is used by children export components to inform the parent to run.

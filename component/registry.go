@@ -78,6 +78,7 @@ type Options struct {
 type SubgraphHandler interface {
 	LoadSubgraph(parent SubgraphOwner, config []byte) ([]Component, diag.Diagnostics, error)
 	UnloadSubgraph(parent SubgraphOwner) error
+	StartSubgraph(parent SubgraphOwner) error
 }
 
 // Registration describes a single component.
