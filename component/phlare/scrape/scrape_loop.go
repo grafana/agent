@@ -92,7 +92,7 @@ Outer:
 				continue Outer
 			}
 		}
-		t.stop()
+		t.stop(false)
 		delete(tg.activeTargets, h)
 	}
 }
@@ -115,8 +115,12 @@ func (tg *scrapePool) reload(cfg Arguments) error {
 		return err
 	}
 	tg.scrapeClient = scrapeClient
-	for _, t := range tg.activeTargets {
-		t.reload(scrapeClient, cfg.ScrapeInterval, cfg.ScrapeTimeout)
+	for hash, t := range tg.activeTargets {
+		// restart the loop with the new configuration
+		t.stop(false)
+		loop := newScrapeLoop(t.Target, tg.scrapeClient, tg.appendable, tg.config.ScrapeInterval, tg.config.ScrapeTimeout, tg.logger)
+		tg.activeTargets[hash] = loop
+		loop.start()
 	}
 	return nil
 }
@@ -126,7 +130,7 @@ func (tg *scrapePool) stop() {
 	defer tg.mtx.Unlock()
 
 	for _, t := range tg.activeTargets {
-		t.stop()
+		t.stop(true)
 	}
 }
 
@@ -243,14 +247,6 @@ func (t *scrapeLoop) scrape() {
 	}
 }
 
-func (t *scrapeLoop) reload(scrapeClient *http.Client, interval, timeout time.Duration) {
-	t.stop()
-	t.scrapeClient = scrapeClient
-	t.interval = interval
-	t.timeout = timeout
-	t.start()
-}
-
 func (t *scrapeLoop) fetchProfile(ctx context.Context, profileType string, buf io.Writer) error {
 	if t.req == nil {
 		req, err := http.NewRequest("GET", t.URL().String(), nil)
@@ -287,9 +283,11 @@ func (t *scrapeLoop) fetchProfile(ctx context.Context, profileType string, buf i
 	return nil
 }
 
-func (t *scrapeLoop) stop() {
+func (t *scrapeLoop) stop(wait bool) {
 	t.once.Do(func() {
 		close(t.graceShut)
 	})
-	t.wg.Wait()
+	if wait {
+		t.wg.Wait()
+	}
 }
