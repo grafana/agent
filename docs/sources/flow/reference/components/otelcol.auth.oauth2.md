@@ -37,7 +37,9 @@ Name | Type | Description | Default | Required
 `token_url` | `string` | The server endpoint URL from which to get tokens. | | yes
 `endpoint_params` | `map(list(string))` | Additional parameters that are sent to the token endpoint. | `{}` | no
 `scopes` | `list(string)` | Requested permissions associated for the client. | `[]` | no
-`timeout` | `duration` | The timeout on the client connecting to `token_url` for both initial tokens and refreshing tokens. `"0s"` implies no timeout. | `"0s"` | no
+`timeout` | `duration` | The timeout on the client connecting to `token_url`. | `"0s"` | no
+
+`timeout` is used for both initial tokens and refreshing tokens. `"0s"` implies no timeout.
 
 ## Blocks
 
@@ -55,17 +57,7 @@ tls | [tls][] | TLS settings for the token client. | no
 The `tls` block configures TLS settings used for connecting to the token client. If the `tls` block isn't provided, 
 TLS won't be used for communication.
 
-The following arguments are supported:
-
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`ca_file` | `string` | Path to the CA file. | | no
-`cert_file` | `string` | Path to the TLS certificate. | | no
-`key_file` | `string` | Path to the TLS certificate key. | | no
-`min_version` | `string` | Minimum acceptable TLS version for connections. | `"TLS 1.2"` | no
-`max_version` | `string` | Maximum acceptable TLS version for connections. | `"TLS 1.3"` | no
-`reload_interval` | `duration` | Frequency to reload the certificates. | | no
-`client_ca_file` | `string` | Path to the CA file used to authenticate client certificates. | | no
+{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" >}}
 
 ## Exported fields
 
