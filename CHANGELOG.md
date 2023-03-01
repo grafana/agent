@@ -24,9 +24,11 @@ Main (unreleased)
 
 ### Enhancements
 
-- Flow: Add retries with backoff logic to Phlare write component. (@ctovena)
+- Flow: Add retries with backoff logic to Phlare write component. (@cyriltovena)
 
 ### Bugfixes
+
+- Flow: Fixes slow reloading of targets in `phlare.scrape` component. (@cyriltovena)
 
 - Flow: add a maximum connection lifetime of one hour when tailing logs from
   `loki.source.kubernetes` and `loki.source.podlogs` to recover from an issue
@@ -113,7 +115,7 @@ v0.32.0 (2023-02-28)
 
 ### Enhancements
 
-- Flow: Support `keepequal` and `dropequal` actions for relabeling. (@ctovena)
+- Flow: Support `keepequal` and `dropequal` actions for relabeling. (@cyriltovena)
 
 - Update Prometheus Node Exporter integration to v1.5.0. (@Thor77)
 
