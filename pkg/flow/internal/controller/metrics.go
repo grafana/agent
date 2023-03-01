@@ -1,18 +1,21 @@
 package controller
 
-import "github.com/prometheus/client_golang/prometheus"
+import (
+	"github.com/prometheus/client_golang/prometheus"
+	"sync"
+)
 
-// controllerMetrics contains the metrics for components controller
-type controllerMetrics struct {
+// ControllerMetrics contains the metrics for components controller
+type ControllerMetrics struct {
 	r prometheus.Registerer
 
 	controllerEvaluation    prometheus.Gauge
 	componentEvaluationTime prometheus.Histogram
 }
 
-// newControllerMetrics inits the metrics for the components controller
-func newControllerMetrics(r prometheus.Registerer) *controllerMetrics {
-	cm := controllerMetrics{r: r}
+// NewControllerMetrics inits the metrics for the components controller
+func NewControllerMetrics(r prometheus.Registerer) *ControllerMetrics {
+	cm := ControllerMetrics{r: r}
 
 	cm.controllerEvaluation = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: "agent_component_controller_evaluating",
@@ -35,14 +38,15 @@ func newControllerMetrics(r prometheus.Registerer) *controllerMetrics {
 	return &cm
 }
 
-type controllerCollector struct {
-	l                      *Loader
+type ControllerCollector struct {
+	mut                    sync.Mutex
+	l                      []*Loader
 	runningComponentsTotal *prometheus.Desc
 }
 
-func newControllerCollector(l *Loader) prometheus.Collector {
-	return &controllerCollector{
-		l: l,
+func NewControllerCollector() *ControllerCollector {
+	return &ControllerCollector{
+		l: make([]*Loader, 0),
 		runningComponentsTotal: prometheus.NewDesc(
 			"agent_component_controller_running_components_total",
 			"Total number of running components.",
@@ -52,13 +56,22 @@ func newControllerCollector(l *Loader) prometheus.Collector {
 	}
 }
 
-func (cc *controllerCollector) Collect(ch chan<- prometheus.Metric) {
-	componentsByHealth := make(map[string]int)
+func (cc *ControllerCollector) AddLoader(lod *Loader) {
+	cc.mut.Lock()
+	defer cc.mut.Unlock()
+	cc.l = append(cc.l, lod)
+}
 
-	for _, component := range cc.l.Components() {
-		health := component.CurrentHealth().Health.String()
-		componentsByHealth[health]++
-		component.register.Collect(ch)
+func (cc *ControllerCollector) Collect(ch chan<- prometheus.Metric) {
+	cc.mut.Lock()
+	defer cc.mut.Unlock()
+	componentsByHealth := make(map[string]int)
+	for _, l := range cc.l {
+		for _, component := range l.Components() {
+			health := component.CurrentHealth().Health.String()
+			componentsByHealth[health]++
+			component.register.Collect(ch)
+		}
 	}
 
 	for health, count := range componentsByHealth {
@@ -66,6 +79,6 @@ func (cc *controllerCollector) Collect(ch chan<- prometheus.Metric) {
 	}
 }
 
-func (cc *controllerCollector) Describe(ch chan<- *prometheus.Desc) {
+func (cc *ControllerCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- cc.runningComponentsTotal
 }

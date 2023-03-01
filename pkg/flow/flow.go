@@ -48,6 +48,9 @@ package flow
 import (
 	"context"
 	"encoding/json"
+	"github.com/go-kit/log"
+	"github.com/grafana/agent/component"
+	"go.opentelemetry.io/otel/trace"
 	"io"
 	"sync"
 	"time"
@@ -65,11 +68,11 @@ import (
 type Options struct {
 	// Logger for components to use. A no-op logger will be created if this is
 	// nil.
-	Logger *logging.Logger
+	Logger log.Logger
 
 	// Tracer for components to use. A no-op tracer will be created if this is
 	// nil.
-	Tracer *tracing.Tracer
+	Tracer trace.TracerProvider
 
 	// Directory where components can write data. Components will create
 	// subdirectories for component-specific data.
@@ -82,12 +85,21 @@ type Options struct {
 	// The controller does not itself listen here, but some components
 	// need to know this to set the correct targets.
 	HTTPListenAddr string
+
+	// ParentID references the owning ID, or "" if there is no parent.
+	ParentID string
+
+	// Hack for ControllerMetrics
+	Metrics interface{}
+
+	// Hack for controller health metrics
+	HealthMetrics interface{}
 }
 
 // Flow is the Flow system.
 type Flow struct {
-	log    *logging.Logger
-	tracer *tracing.Tracer
+	log    log.Logger
+	tracer trace.TracerProvider
 	opts   Options
 
 	updateQueue *controller.Queue
@@ -135,6 +147,21 @@ func newFlow(o Options) (*Flow, context.Context) {
 		}
 	}
 
+	var cm *controller.ControllerMetrics
+	if o.Metrics == nil {
+		cm = controller.NewControllerMetrics(o.Reg)
+	} else {
+		cm = o.Metrics.(*controller.ControllerMetrics)
+	}
+	var cc *controller.ControllerCollector
+	if o.HealthMetrics == nil {
+		cc = controller.NewControllerCollector()
+		if o.Reg != nil {
+			o.Reg.MustRegister(cc)
+		}
+	} else {
+		cc = o.HealthMetrics.(*controller.ControllerCollector)
+	}
 	var (
 		queue  = controller.NewQueue()
 		sched  = controller.NewScheduler()
@@ -148,8 +175,12 @@ func newFlow(o Options) (*Flow, context.Context) {
 			},
 			Registerer:     o.Reg,
 			HTTPListenAddr: o.HTTPListenAddr,
+			Metrics:        cm,
+			HealthMetrics:  cc,
 		})
 	)
+
+	cc.AddLoader(loader)
 
 	return &Flow{
 		log:    log,
@@ -214,15 +245,15 @@ func (c *Flow) run(ctx context.Context) {
 //
 // The controller will only start running components after Load is called once
 // without any configuration errors.
-func (c *Flow) LoadFile(file *File) error {
+func (c *Flow) LoadFile(file *File) ([]component.Component, error) {
 	c.loadMut.Lock()
 	defer c.loadMut.Unlock()
 
-	diags := c.loader.Apply(nil, file.Components, file.ConfigBlocks)
+	comps, diags := c.loader.Apply(nil, file.Components, file.ConfigBlocks, c.opts.ParentID)
 	if !c.loadedOnce.Load() && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.
-		return diags
+		return nil, diags
 	}
 	c.loadedOnce.Store(true)
 
@@ -231,7 +262,7 @@ func (c *Flow) LoadFile(file *File) error {
 	default:
 		// A refresh is already scheduled
 	}
-	return diags.ErrorOrNil()
+	return comps, diags.ErrorOrNil()
 }
 
 // Ready returns whether the Flow controller has finished its initial load.

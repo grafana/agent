@@ -64,6 +64,8 @@ type ComponentGlobals struct {
 	OnExportsChange func(cn *ComponentNode) // Invoked when the managed component updated its exports
 	Registerer      prometheus.Registerer   // Registerer for serving agent and component metrics
 	HTTPListenAddr  string                  // Base address for server
+	Metrics         interface{}             // Hack to get the controller.controllermetrics passed around
+	HealthMetrics   interface{}             //Hack for controllercollector
 }
 
 // ComponentNode is a controller node which manages a user-defined component.
@@ -106,7 +108,7 @@ var _ dag.Node = (*ComponentNode)(nil)
 
 // NewComponentNode creates a new ComponentNode from an initial ast.BlockStmt.
 // The underlying managed component isn't created until Evaluate is called.
-func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode {
+func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt, parentID string) *ComponentNode {
 	var (
 		id     = BlockComponentID(b)
 		nodeID = id.String()
@@ -145,25 +147,29 @@ func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode
 		evalHealth: initHealth,
 		runHealth:  initHealth,
 	}
-	cn.managedOpts = getManagedOptions(globals, cn)
+	cn.managedOpts = getManagedOptions(globals, cn, parentID)
 
 	return cn
 }
 
-func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Options {
+func getManagedOptions(globals ComponentGlobals, cn *ComponentNode, parentID string) component.Options {
 	wrapped := newWrappedRegisterer()
 	cn.register = wrapped
+	namespaceid := strings.Join([]string{parentID, cn.nodeID}, ".")
 	return component.Options{
 		ID:            cn.nodeID,
-		Logger:        log.With(globals.Logger, "component", cn.nodeID),
-		DataPath:      filepath.Join(globals.DataPath, cn.nodeID),
+		Logger:        log.With(globals.Logger, "component", namespaceid),
+		DataPath:      filepath.Join(globals.DataPath, namespaceid),
 		OnStateChange: cn.setExports,
 		Registerer: prometheus.WrapRegistererWith(prometheus.Labels{
-			"component_id": cn.nodeID,
+			"component_id": namespaceid,
 		}, wrapped),
-		Tracer:         wrapTracer(globals.TraceProvider, cn.nodeID),
+		Tracer:         WrapTracer(globals.TraceProvider, namespaceid),
 		HTTPListenAddr: globals.HTTPListenAddr,
-		HTTPPath:       fmt.Sprintf("/component/%s/", cn.nodeID),
+		HTTPPath:       fmt.Sprintf("/component/%s/", namespaceid),
+		ParentID:       parentID,
+		Metrics:        globals.Metrics,
+		HealthMetrics:  globals.HealthMetrics,
 	}
 }
 

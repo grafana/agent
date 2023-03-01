@@ -67,6 +67,15 @@ type Options struct {
 	// HTTPPath is the base path that requests need in order to route to this component.
 	// Requests received by a component handler will have this already trimmed off.
 	HTTPPath string
+
+	// ParentID is the owner of the module, will be "" if called from main module.
+	ParentID string
+
+	// Metrics is a hack to pass the controller.controllermetrics interface around
+	Metrics interface{}
+
+	// HealthMetrics is a hack
+	HealthMetrics interface{}
 }
 
 // Registration describes a single component.

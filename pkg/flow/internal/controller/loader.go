@@ -35,7 +35,7 @@ type Loader struct {
 	components    []*ComponentNode
 	cache         *valueCache
 	blocks        []*ast.BlockStmt // Most recently loaded blocks, used for writing
-	cm            *controllerMetrics
+	cm            *ControllerMetrics
 }
 
 // NewLoader creates a new Loader. Components built by the Loader will be built
@@ -49,11 +49,7 @@ func NewLoader(globals ComponentGlobals) *Loader {
 		graph:         &dag.Graph{},
 		originalGraph: &dag.Graph{},
 		cache:         newValueCache(),
-		cm:            newControllerMetrics(globals.Registerer),
-	}
-	cc := newControllerCollector(l)
-	if globals.Registerer != nil {
-		globals.Registerer.MustRegister(cc)
+		cm:            globals.Metrics.(*ControllerMetrics),
 	}
 	return l
 }
@@ -70,7 +66,7 @@ func NewLoader(globals ComponentGlobals) *Loader {
 // The provided parentContext can be used to provide global variables and
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
-func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) diag.Diagnostics {
+func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, parentID string) ([]component.Component, diag.Diagnostics) {
 	start := time.Now()
 	l.mut.Lock()
 	defer l.mut.Unlock()
@@ -88,7 +84,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlo
 	newGraph.Add(c)
 
 	// Handle the rest of the graph as ComponentNodes.
-	populateDiags := l.populateGraph(&newGraph, blocks)
+	populateDiags := l.populateGraph(&newGraph, blocks, parentID)
 	diags = append(diags, populateDiags...)
 
 	wireDiags := l.wireGraphEdges(&newGraph)
@@ -98,7 +94,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlo
 	err := dag.Validate(&newGraph)
 	if err != nil {
 		diags = append(diags, multierrToDiags(err)...)
-		return diags
+		return nil, diags
 	}
 	// Copy the original graph, this is so we can have access to the original graph for things like displaying a UI or
 	// debug information.
@@ -107,8 +103,9 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlo
 	dag.Reduce(&newGraph)
 
 	var (
-		components   = make([]*ComponentNode, 0, len(blocks))
-		componentIDs = make([]ComponentID, 0, len(blocks))
+		returnComponents = make([]component.Component, 0, len(blocks))
+		components       = make([]*ComponentNode, 0, len(blocks))
+		componentIDs     = make([]ComponentID, 0, len(blocks))
 	)
 
 	tracer := l.tracer.Tracer("")
@@ -151,6 +148,8 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlo
 					})
 				}
 			}
+			returnComponents = append(returnComponents, c.managed)
+
 		case *ConfigNode:
 			var errBlock *ast.BlockStmt
 			if errBlock, err = l.evaluateConfig(logger, parentScope, c); err != nil {
@@ -178,10 +177,10 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlo
 	l.cache.SyncIDs(componentIDs)
 	l.blocks = blocks
 	l.cm.componentEvaluationTime.Observe(time.Since(start).Seconds())
-	return diags
+	return returnComponents, diags
 }
 
-func (l *Loader) populateGraph(g *dag.Graph, blocks []*ast.BlockStmt) diag.Diagnostics {
+func (l *Loader) populateGraph(g *dag.Graph, blocks []*ast.BlockStmt, parentID string) diag.Diagnostics {
 	// Fill our graph with components.
 	var (
 		diags    diag.Diagnostics
@@ -240,7 +239,7 @@ func (l *Loader) populateGraph(g *dag.Graph, blocks []*ast.BlockStmt) diag.Diagn
 			}
 
 			// Create a new component
-			c = NewComponentNode(l.globals, block)
+			c = NewComponentNode(l.globals, block, parentID)
 		}
 
 		g.Add(c)
