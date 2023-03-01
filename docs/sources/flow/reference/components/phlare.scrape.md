@@ -1,8 +1,12 @@
 ---
 title: phlare.scrape
+labels:
+  stage: beta
 ---
 
 # phlare.scrape
+
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
 
 `phlare.scrape` configures a [pprof] scraping job for a given set of
 `targets`. The scraped performance profiles are forwarded to the list of receivers passed in
@@ -46,6 +50,20 @@ Name | Type | Description | Default | Required
 `scrape_interval`          | `duration` | How frequently to scrape the targets of this scrape config. | `"15s"` | no
 `scrape_timeout`           | `duration` | The timeout for scraping targets of this config. | `"15s"` | no
 `scheme`                   | `string`   | The URL scheme with which to fetch metrics from targets. | | no
+`bearer_token`             | `secret`   | Bearer token to authenticate with. | | no
+`bearer_token_file`        | `string`   | File containing a bearer token to authenticate with. | | no
+`proxy_url`                | `string`   | HTTP proxy to proxy requests through. | | no
+`follow_redirects`         | `bool`     | Whether redirects returned by the server should be followed. | `true` | no
+`enable_http2`             | `bool`     | Whether HTTP2 is supported for requests. | `true` | no
+
+ At most one of the following can be provided:
+ - [`bearer_token` argument](#arguments).
+ - [`bearer_token_file` argument](#arguments).
+ - [`basic_auth` block][basic_auth].
+ - [`authorization` block][authorization].
+ - [`oauth2` block][oauth2].
+
+ [arguments]: #arguments
 
 ## Blocks
 
@@ -53,12 +71,11 @@ The following blocks are supported inside the definition of `phlare.scrape`:
 
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
-http_client_config | [http_client_config][] | HTTP client settings when connecting to targets. | no
-http_client_config > basic_auth | [basic_auth][] | Configure basic_auth for authenticating to targets. | no
-http_client_config > authorization | [authorization][] | Configure generic authorization to targets. | no
-http_client_config > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to targets. | no
-http_client_config > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to targets via OAuth2. | no
-http_client_config > tls_config | [tls_config][] | Configure TLS settings for connecting to targets. | no
+basic_auth | [basic_auth][] | Configure basic_auth for authenticating to targets. | no
+authorization | [authorization][] | Configure generic authorization to targets. | no
+oauth2 | [oauth2][] | Configure OAuth2 for authenticating to targets. | no
+oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to targets via OAuth2. | no
+tls_config | [tls_config][] | Configure TLS settings for connecting to targets. | no
 profiling_config | [profiling_config][] | Configure profiling settings for the scrape job. | no
 profiling_config > profile.memory | [profile.memory][] | Collect memory profiles. | no
 profiling_config > profile.block | [profile.block][] | Collect profiles on blocks. | no
@@ -69,10 +86,9 @@ profiling_config > profile.fgprof | [profile.fgprof][] | Collect [fgprof][] prof
 profiling_config > profile.custom | [profile.custom][] | Collect custom profiles. | no
 
 The `>` symbol indicates deeper levels of nesting. For example,
-`http_client_config > basic_auth` refers to a `basic_auth` block defined inside
-an `http_client_config` block.
+`oauth2 > tls_config` refers to a `tls_config` block defined inside
+an `oauth2` block.
 
-[http_client_config]: #http_client_config-block
 [basic_auth]: #basic_auth-block
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
@@ -88,13 +104,6 @@ an `http_client_config` block.
 [pprof]: https://github.com/google/pprof/blob/main/doc/README.md
 
 [fgprof]: https://github.com/felixge/fgprof
-
-### http_client_config block
-
-The `http_client_config` block configures settings used to connect to
-endpoints.
-
-{{< docs/shared lookup="flow/reference/components/http-client-config-block.md" source="agent" >}}
 
 ### basic_auth block
 

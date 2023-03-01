@@ -342,7 +342,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=amd64 GOARM= make agent
+  - make generate-ui
+  - GOOS=linux GOARCH=amd64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -357,7 +359,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm64 GOARM= make agent
+  - make generate-ui
+  - GOOS=linux GOARCH=arm64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -372,7 +376,8 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm GOARM=6 make agent
+  - make generate-ui
+  - GOOS=linux GOARCH=arm GOARM=6 GO_TAGS="promtail_journal_enabled" make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -387,7 +392,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm GOARM=7 make agent
+  - make generate-ui
+  - GOOS=linux GOARCH=arm GOARM=7 GO_TAGS="builtinassets promtail_journal_enabled"
+    make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -402,7 +409,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=ppc64le GOARM= make agent
+  - make generate-ui
+  - GOOS=linux GOARCH=ppc64le GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -417,7 +426,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=darwin GOARCH=amd64 GOARM= make agent
+  - make generate-ui
+  - GOOS=darwin GOARCH=amd64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -432,7 +443,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=darwin GOARCH=arm64 GOARM= make agent
+  - make generate-ui
+  - GOOS=darwin GOARCH=arm64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -447,7 +460,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=windows GOARCH=amd64 GOARM= make agent
+  - make generate-ui
+  - GOOS=windows GOARCH=amd64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -462,7 +477,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=freebsd GOARCH=amd64 GOARM= make agent
+  - make generate-ui
+  - GOOS=freebsd GOARCH=amd64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make agent
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -477,7 +494,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=amd64 GOARM= make agentctl
+  - make generate-ui
+  - GOOS=linux GOARCH=amd64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -492,7 +511,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm64 GOARM= make agentctl
+  - make generate-ui
+  - GOOS=linux GOARCH=arm64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -507,7 +528,8 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm GOARM=6 make agentctl
+  - make generate-ui
+  - GOOS=linux GOARCH=arm GOARM=6 GO_TAGS="promtail_journal_enabled" make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -522,7 +544,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm GOARM=7 make agentctl
+  - make generate-ui
+  - GOOS=linux GOARCH=arm GOARM=7 GO_TAGS="builtinassets promtail_journal_enabled"
+    make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -537,7 +561,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=ppc64le GOARM= make agentctl
+  - make generate-ui
+  - GOOS=linux GOARCH=ppc64le GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -552,7 +578,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=darwin GOARCH=amd64 GOARM= make agentctl
+  - make generate-ui
+  - GOOS=darwin GOARCH=amd64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -567,7 +595,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=darwin GOARCH=arm64 GOARM= make agentctl
+  - make generate-ui
+  - GOOS=darwin GOARCH=arm64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -582,7 +612,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=windows GOARCH=amd64 GOARM= make agentctl
+  - make generate-ui
+  - GOOS=windows GOARCH=amd64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -597,7 +629,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=freebsd GOARCH=amd64 GOARM= make agentctl
+  - make generate-ui
+  - GOOS=freebsd GOARCH=amd64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make agentctl
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -612,7 +646,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=amd64 GOARM= make operator
+  - make generate-ui
+  - GOOS=linux GOARCH=amd64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -627,7 +663,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm64 GOARM= make operator
+  - make generate-ui
+  - GOOS=linux GOARCH=arm64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -642,7 +680,8 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm GOARM=6 make operator
+  - make generate-ui
+  - GOOS=linux GOARCH=arm GOARM=6 GO_TAGS="promtail_journal_enabled" make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -657,7 +696,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm GOARM=7 make operator
+  - make generate-ui
+  - GOOS=linux GOARCH=arm GOARM=7 GO_TAGS="builtinassets promtail_journal_enabled"
+    make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -672,7 +713,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=ppc64le GOARM= make operator
+  - make generate-ui
+  - GOOS=linux GOARCH=ppc64le GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -687,7 +730,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=darwin GOARCH=amd64 GOARM= make operator
+  - make generate-ui
+  - GOOS=darwin GOARCH=amd64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -702,7 +747,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=darwin GOARCH=arm64 GOARM= make operator
+  - make generate-ui
+  - GOOS=darwin GOARCH=arm64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -717,7 +764,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=windows GOARCH=amd64 GOARM= make operator
+  - make generate-ui
+  - GOOS=windows GOARCH=amd64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -732,7 +781,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=freebsd GOARCH=amd64 GOARM= make operator
+  - make generate-ui
+  - GOOS=freebsd GOARCH=amd64 GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make operator
   image: grafana/agent-build-image:0.21.0
   name: Build
 trigger:
@@ -747,13 +798,21 @@ platform:
   os: linux
 steps:
 - commands:
+  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  failure: ignore
+  image: grafana/agent-build-image:0.21.0
+  name: Configure QEMU
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+- commands:
   - mkdir -p $HOME/.docker
   - printenv GCR_CREDS > $HOME/.docker/config.json
   - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-  - docker buildx create --name multiarch-agent-agent --driver docker-container --use
+  - docker buildx create --name multiarch-agent-agent-${DRONE_COMMIT_SHA} --driver
+    docker-container --use
   - ./tools/ci/docker-containers agent
-  - docker buildx rm multiarch-agent-agent
+  - docker buildx rm multiarch-agent-agent-${DRONE_COMMIT_SHA}
   environment:
     DOCKER_LOGIN:
       from_secret: DOCKER_LOGIN
@@ -784,14 +843,21 @@ platform:
   os: linux
 steps:
 - commands:
+  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  failure: ignore
+  image: grafana/agent-build-image:0.21.0
+  name: Configure QEMU
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+- commands:
   - mkdir -p $HOME/.docker
   - printenv GCR_CREDS > $HOME/.docker/config.json
   - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-  - docker buildx create --name multiarch-agent-agentctl --driver docker-container
-    --use
+  - docker buildx create --name multiarch-agent-agentctl-${DRONE_COMMIT_SHA} --driver
+    docker-container --use
   - ./tools/ci/docker-containers agentctl
-  - docker buildx rm multiarch-agent-agentctl
+  - docker buildx rm multiarch-agent-agentctl-${DRONE_COMMIT_SHA}
   environment:
     DOCKER_LOGIN:
       from_secret: DOCKER_LOGIN
@@ -822,14 +888,21 @@ platform:
   os: linux
 steps:
 - commands:
+  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  failure: ignore
+  image: grafana/agent-build-image:0.21.0
+  name: Configure QEMU
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+- commands:
   - mkdir -p $HOME/.docker
   - printenv GCR_CREDS > $HOME/.docker/config.json
   - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-  - docker buildx create --name multiarch-agent-agent-operator --driver docker-container
-    --use
+  - docker buildx create --name multiarch-agent-agent-operator-${DRONE_COMMIT_SHA}
+    --driver docker-container --use
   - ./tools/ci/docker-containers agent-operator
-  - docker buildx rm multiarch-agent-agent-operator
+  - docker buildx rm multiarch-agent-agent-operator-${DRONE_COMMIT_SHA}
   environment:
     DOCKER_LOGIN:
       from_secret: DOCKER_LOGIN
@@ -860,13 +933,21 @@ platform:
   os: linux
 steps:
 - commands:
+  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  failure: ignore
+  image: grafana/agent-build-image:0.21.0
+  name: Configure QEMU
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+- commands:
   - mkdir -p $HOME/.docker
   - printenv GCR_CREDS > $HOME/.docker/config.json
   - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-  - docker buildx create --name multiarch-agent-smoke --driver docker-container --use
+  - docker buildx create --name multiarch-agent-smoke-${DRONE_COMMIT_SHA} --driver
+    docker-container --use
   - ./tools/ci/docker-containers smoke
-  - docker buildx rm multiarch-agent-smoke
+  - docker buildx rm multiarch-agent-smoke-${DRONE_COMMIT_SHA}
   environment:
     DOCKER_LOGIN:
       from_secret: DOCKER_LOGIN
@@ -897,13 +978,21 @@ platform:
   os: linux
 steps:
 - commands:
+  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  failure: ignore
+  image: grafana/agent-build-image:0.21.0
+  name: Configure QEMU
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+- commands:
   - mkdir -p $HOME/.docker
   - printenv GCR_CREDS > $HOME/.docker/config.json
   - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-  - docker buildx create --name multiarch-agent-crow --driver docker-container --use
+  - docker buildx create --name multiarch-agent-crow-${DRONE_COMMIT_SHA} --driver
+    docker-container --use
   - ./tools/ci/docker-containers crow
-  - docker buildx rm multiarch-agent-crow
+  - docker buildx rm multiarch-agent-crow-${DRONE_COMMIT_SHA}
   environment:
     DOCKER_LOGIN:
       from_secret: DOCKER_LOGIN
@@ -1151,6 +1240,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: 5e85b73dd2e075bffd57cf6fd5d943abcdd72356097b0e18d9a0520d733d7ea0
+hmac: 842f63c6803de3aa94ceef2b07d3a2ba1240822076084343534b29a732f4bbec
 
 ...

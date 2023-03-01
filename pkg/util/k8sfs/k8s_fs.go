@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io/fs"
+	"path"
 	"strings"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -22,7 +23,7 @@ func New(client *kubernetes.Clientset) *FS {
 }
 
 func (f *FS) Open(name string) (fs.File, error) {
-	parts := strings.Split(name, "_")
+	parts := strings.Split(name, "/")
 	if len(parts) != 4 {
 		return nil, fmt.Errorf("invalid file name")
 	}
@@ -96,9 +97,9 @@ func (f *file) Read(b []byte) (int, error) {
 func (f *file) Close() error { return nil }
 
 func SecretFilename(namespace, name, key string) string {
-	return fmt.Sprintf("secret_%s_%s_%s", namespace, name, key)
+	return path.Join("secret", namespace, name, key)
 }
 
 func ConfigMapFilename(namespace, name, key string) string {
-	return fmt.Sprintf("configmap_%s_%s_%s", namespace, name, key)
+	return path.Join("configmap", namespace, name, key)
 }

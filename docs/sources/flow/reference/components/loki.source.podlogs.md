@@ -1,8 +1,12 @@
 ---
 title: loki.source.podlogs
+labels:
+  stage: experimental
 ---
 
 # loki.source.podlogs
+
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" >}}
 
 `loki.source.podlogs` discovers `PodLogs` resources on Kubernetes and, using
 the Kubernetes API, tails logs from Kubernetes containers of Pods specified by
@@ -124,18 +128,25 @@ The following blocks are supported inside the definition of
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
 client | [client][] | Configures Kubernetes client used to tail logs. | no
-client > http_client_config | [http_client_config][] | HTTP client configuration for Kubernetes requests. | no
+client > basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
+client > authorization | [authorization][] | Configure generic authorization to the endpoint. | no
+client > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
+client > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+client > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
 selector | [selector][] | Label selector for which `PodLogs` to discover. | no
 selector > match_expression | [match_expression][] | Label selector expression for which `PodLogs` to discover. | no
 namespace_selector | [selector][] | Label selector for which namespaces to discover `PodLogs` in. | no
 namespace_selector > match_expression | [match_expression][] | Label selector expression for which namespaces to discover `PodLogs` in. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `client >
-http_client_config` refers to an `http_client_config` block defined
+basic_auth` refers to a `basic_auth` block defined
 inside a `client` block.
 
 [client]: #client-block
-[http_client_config]: #http_client_config-block
+[basic_auth]: #basic_auth-block
+[authorization]: #authorization-block
+[oauth2]: #oauth2-block
+[tls_config]: #tls_config-block
 [selector]: #selector-block
 [match_expression]: #match_expression-block
 
@@ -152,13 +163,33 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `api_server` | `string` | URL of the Kubernetes API server. | | no
 `kubeconfig_file` | `string` | Path of the `kubeconfig` file to use for connecting to Kubernetes. | | no
+`bearer_token_file` | `string` | File containing a bearer token to authenticate with. | | no
+`proxy_url` | `string` | HTTP proxy to proxy requests through. | | no
+`follow_redirects` | `bool` | Whether redirects returned by the server should be followed. | `true` | no
+`enable_http2` | `bool` | Whether HTTP2 is supported for requests. | `true` | no
 
-### http_client_config block
+ At most one of the following can be provided:
+ - [`bearer_token` argument][client].
+ - [`bearer_token_file` argument][client].
+ - [`basic_auth` block][basic_auth].
+ - [`authorization` block][authorization].
+ - [`oauth2` block][oauth2].
 
-The `http_client_config` block configures settings used to connect to the
-Kubernetes API server.
+### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/http-client-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" >}}
+
+### authorization block
+
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" >}}
+
+### oauth2 block
+
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" >}}
+
+### tls_config block
+
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
 
 ### selector block
 
@@ -222,7 +253,7 @@ configuration.
 ## Example
 
 This example discovers all `PodLogs` resources and forwards collected logs to a
-`loki.write` component so they are can be written to Loki.
+`loki.write` component so they are written to Loki.
 
 ```river
 loki.source.podlogs "default" {
