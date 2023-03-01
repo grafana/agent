@@ -77,6 +77,7 @@ type Options struct {
 // subgraphs. Modules are the most common use case of this system.
 type SubgraphHandler interface {
 	LoadSubgraph(parent SubgraphOwner, config []byte) ([]Component, diag.Diagnostics, error)
+	UnloadSubgraph(parent SubgraphOwner) error
 }
 
 // Registration describes a single component.
