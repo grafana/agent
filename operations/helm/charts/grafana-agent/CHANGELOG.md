@@ -10,8 +10,23 @@ internal API changes are not present.
 Unreleased
 ----------
 
+0.8.0 (2023-02-28)
+------------------
+
+- Update Grafana Agent version to v0.32.0. (@rfratto)
+
+### Enhancements
+
+
+0.7.1 (2023-02-27)
+------------------
+
+### Bugfixes
+
+- Fix issue where `.image.pullPolicy` was not being respected. (@rfratto)
+
 0.7.0 (2023-02-24)
-----------
+------------------
 
 ### Enhancements
 

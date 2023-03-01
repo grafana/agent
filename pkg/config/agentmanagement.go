@@ -7,6 +7,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"math/rand"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -119,6 +120,8 @@ func (r remoteConfigHTTPProvider) CacheRemoteConfig(remoteConfigBytes []byte) er
 
 // FetchRemoteConfig fetches the raw bytes of the config from a remote API using
 // the values in r.AgentManagement.
+//
+// Sleeps for a short period of time to apply jitter to API requests.
 func (r remoteConfigHTTPProvider) FetchRemoteConfig() ([]byte, error) {
 	httpClientConfig := &config.HTTPClientConfig{
 		BasicAuth: &r.InitialConfig.BasicAuth,
@@ -162,7 +165,7 @@ type AgentManagementConfig struct {
 	Url             string           `yaml:"api_url"`
 	BasicAuth       config.BasicAuth `yaml:"basic_auth"`
 	Protocol        string           `yaml:"protocol"`
-	PollingInterval string           `yaml:"polling_interval"`
+	PollingInterval time.Duration    `yaml:"polling_interval"`
 	CacheLocation   string           `yaml:"remote_config_cache_location"`
 
 	RemoteConfiguration RemoteConfiguration `yaml:"remote_configuration"`
@@ -238,9 +241,14 @@ func (am *AgentManagementConfig) fullUrl() (string, error) {
 	return u.String(), nil
 }
 
-// SleepTime returns the parsed duration in between config fetches.
-func (am *AgentManagementConfig) SleepTime() (time.Duration, error) {
-	return time.ParseDuration(am.PollingInterval)
+// SleepTime returns the duration in between config fetches.
+func (am *AgentManagementConfig) SleepTime() time.Duration {
+	return am.PollingInterval
+}
+
+// jitterTime returns a random duration in the range [0, am.PollingInterval).
+func (am *AgentManagementConfig) JitterTime() time.Duration {
+	return time.Duration(rand.Int63n(int64(am.PollingInterval)))
 }
 
 // Validate checks that necessary portions of the config have been set.
@@ -249,8 +257,8 @@ func (am *AgentManagementConfig) Validate() error {
 		return errors.New("both username and password_file fields must be specified")
 	}
 
-	if _, err := time.ParseDuration(am.PollingInterval); err != nil {
-		return fmt.Errorf("error trying to parse polling interval: %w", err)
+	if am.PollingInterval <= 0 {
+		return fmt.Errorf("polling interval must be >0")
 	}
 
 	if am.RemoteConfiguration.Namespace == "" {
