@@ -50,7 +50,8 @@ func New(o component.Options, args Arguments) (component.Component, error) {
 		exportComponents: make(map[string]*export.Component),
 		opts:             o,
 	}
-	return c, nil
+	err := c.Update(args)
+	return c, err
 }
 
 // ID satisfies the DelegateComponent interface
