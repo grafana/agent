@@ -128,6 +128,8 @@ type HTTPComponent interface {
 
 // SubgraphOwner is the component calling the SubgraphHandler.
 type SubgraphOwner interface {
+	// ID is the concatenated IDs of the owner, "module.string.mod1"
 	ID() string
+	// IDs is the separated IDs of the owner, []string{"module","string","mod1"}
 	IDs() []string
 }
