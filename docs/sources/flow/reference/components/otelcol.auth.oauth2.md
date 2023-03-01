@@ -35,7 +35,7 @@ Name | Type | Description | Default | Required
 `client_id` | `string` | The client identifier issued to the client. | | yes
 `client_secret` | `string` | The secret string associated with the client identifier. | | yes
 `token_url` | `string` | The server endpoint URL from which to get tokens. | | yes
-`endpoint_params` | `map([]string)` | Additional parameters that are sent to the token endpoint. | `{}` | no
+`endpoint_params` | `map(list(string))` | Additional parameters that are sent to the token endpoint. | `{}` | no
 `scopes` | `[]string` | Requested permissions associated for the client. | `[]` | no
 `timeout` | `duration` | The timeout on the client connecting to `token_url` for both initial tokens and refreshing tokens. `"0s"` implies no timeout. | `"0s"` | no
 
