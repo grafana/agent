@@ -178,7 +178,6 @@ func (s *subgraph) close() error {
 		err := x.graph.close()
 		if err != nil {
 			result = multierror.Append(result, err)
-
 		}
 	}
 	s.cancel()
