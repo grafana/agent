@@ -83,11 +83,6 @@ func (m *Manager) reloader() {
 }
 
 func (m *Manager) reload() {
-	now := time.Now()
-	level.Warn(m.logger).Log("msg", "phlare reloading scrape manager")
-	defer func() {
-		level.Warn(m.logger).Log("msg", "phlare reloaded scrape manager", "duration", time.Since(now))
-	}()
 	m.mtxScrape.Lock()
 	defer m.mtxScrape.Unlock()
 
