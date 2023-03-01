@@ -10,6 +10,8 @@ internal API changes are not present.
 Unreleased
 ----------
 
+- Add priorityClassName value. (@aglees)
+
 0.8.0 (2023-02-28)
 ------------------
 
