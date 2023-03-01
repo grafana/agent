@@ -80,9 +80,11 @@ func (r *Arguments) UnmarshalRiver(f func(v interface{}) error) error {
 // New creates a new  component.
 func New(o component.Options, args Arguments) (component.Component, error) {
 	splitName := strings.Split(o.ID, ".")
-	return &Component{
+	c := &Component{
 		args: args,
 		opts: o,
 		Name: splitName[len(splitName)-1],
-	}, nil
+	}
+	err := c.Update(args)
+	return c, err
 }
