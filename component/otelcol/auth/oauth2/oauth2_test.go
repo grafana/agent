@@ -97,6 +97,8 @@ func Test(t *testing.T) {
 				authHeader := r.Header.Get("Authorization")
 				expectedAuthHeader := fmt.Sprintf("%s %s", tt.tokenType, tt.accessToken)
 				assert.Equal(t, expectedAuthHeader, authHeader, "auth header didn't match")
+
+				//TODO: Also write checks for `endpoint_params`` and `scopes``
 			}))
 			defer srv.Close()
 			t.Logf("Created server which will require authentication on address %s", srv.URL)

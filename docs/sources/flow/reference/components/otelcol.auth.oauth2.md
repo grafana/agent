@@ -103,6 +103,7 @@ otelcol.auth.oauth2 "creds" {
 }
 ```
 
+Here is another example with some optional attributes specified:
 ```river
 otelcol.exporter.otlp "example" {
   client {
@@ -112,9 +113,12 @@ otelcol.exporter.otlp "example" {
 }
 
 otelcol.auth.oauth2 "creds" {
-    client_id     = "someclientid"
-    client_secret = "someclientsecret"
-    token_url     = "https://example.com/oauth2/default/v1/token"
+    client_id       = "someclientid2"
+    client_secret   = "someclientsecret2"
+    token_url       = "https://example.com/oauth2/default/v1/token"
+    endpoint_params = {"audience" = ["someaudience"]}
+    scopes          = ["api.metrics"]
+    timeout         = "1s"
 }
 ```
 
