@@ -14,7 +14,7 @@ Also, make sure that you [deploy the GrafanaAgent resource]({{< relref "./deploy
 
 **Important:** The field `name` under the `spec` section of the manifest must contain the name of the integration to be installed according to the list of integrations defined [here]({{< relref "../configuration/integrations/integrations-next/_index.md#config-changes" >}}).
 
-**Important:** The value of `metrics_instance` field needs to be in the format of `<namespace>/<name>` from the `metadata` section from the `MetricsInstance` resource as it's explained in [deploy a MetricsInstance resource]({{< relref "./deploy-agent-operator-resources.md#deploy-a-metricsinstance-resource" >}})
+**Important:** The value of the `metrics_instance` field needs to be in the format `<namespace>/<name>`, with namespace and name matching the values defined in the `metadata` section from the `MetricsInstance` resource as explained in [deploy a MetricsInstance resource]({{< relref "./deploy-agent-operator-resources.md#deploy-a-metricsinstance-resource" >}})
 
 ## Set up an Agent Operator node_exporter integration
 
