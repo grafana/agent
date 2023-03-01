@@ -222,15 +222,9 @@ func (t *scrapeLoop) scrape() {
 			break
 		}
 	}
-	err := t.fetchProfile(scrapeCtx, profileType, buf)
-	t.mtx.Lock()
-	defer t.mtx.Unlock()
-	if err != nil {
+	if err := t.fetchProfile(scrapeCtx, profileType, buf); err != nil {
 		level.Error(t.logger).Log("msg", "fetch profile failed", "target", t.Labels().String(), "err", err)
-		t.health = HealthBad
-		t.lastScrapeDuration = time.Since(start)
-		t.lastError = err
-		t.lastScrape = start
+		t.updateTargetStatus(start, err)
 		return
 	}
 
@@ -238,13 +232,26 @@ func (t *scrapeLoop) scrape() {
 	if len(b) > 0 {
 		t.lastScrapeSize = len(b)
 	}
-	t.health = HealthGood
-	t.lastScrapeDuration = time.Since(start)
-	t.lastError = nil
-	t.lastScrape = start
 	if err := t.appendable.Appender().Append(context.Background(), t.labels, []*phlare.RawSample{{RawProfile: b}}); err != nil {
 		level.Error(t.logger).Log("msg", "push failed", "labels", t.Labels().String(), "err", err)
+		t.updateTargetStatus(start, err)
+		return
 	}
+	t.updateTargetStatus(start, nil)
+}
+
+func (t *scrapeLoop) updateTargetStatus(start time.Time, err error) {
+	t.mtx.Lock()
+	defer t.mtx.Unlock()
+	if err != nil {
+		t.health = HealthBad
+		t.lastError = err
+	} else {
+		t.health = HealthGood
+		t.lastError = nil
+	}
+	t.lastScrape = start
+	t.lastScrapeDuration = time.Since(start)
 }
 
 func (t *scrapeLoop) fetchProfile(ctx context.Context, profileType string, buf io.Writer) error {
