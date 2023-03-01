@@ -70,7 +70,8 @@ func (c *Component) Run(ctx context.Context) error {
 		return err
 	}
 	<-ctx.Done()
-	return nil
+	err = c.opts.Subgraph.UnloadSubgraph(c)
+	return err
 }
 
 // Update updates the fields of the component.
