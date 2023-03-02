@@ -113,6 +113,9 @@ controller:
   # -- Tolerations to apply to Grafana Agent pods.
   tolerations: []
 
+  # -- priorityClassName to apply to Grafana Agent pods.
+  priorityClassName: ''
+
   # -- Extra pod annotations to add.
   podAnnotations: {}
 

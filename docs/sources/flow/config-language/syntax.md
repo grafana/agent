@@ -48,6 +48,8 @@ grouping any number of attributes or nested blocks using curly braces.
 Blocks have a _name_, an optional _label_ and a body that contains any number
 of arguments and nested unlabeled blocks.
 
+Some blocks support being defined more than once.
+
 #### Pattern for creating an unlabeled block
 
 ```river
