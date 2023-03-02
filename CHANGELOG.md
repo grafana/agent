@@ -19,8 +19,12 @@ Main (unreleased)
 
   - `discovery.ec2` service discovery for aws ec2. (@captncraig)
   - `discovery.lightsail` service discovery for aws lightsail. (@captncraig)
-  - `prometheus.exporter.mysql` collects metrics from a MySQL database. (@spartan0x117)
-  - `prometheus.exporter.blackbox` collects metrics from Blackbox exporter (@marctc).
+  - `otelcol.auth.oauth2` performs OAuth 2.0 authentication for HTTP and gRPC
+    based OpenTelemetry exporters. (@ptodev)
+  - `prometheus.exporter.blackbox` collects metrics from Blackbox exporter
+    (@marctc).
+  - `prometheus.exporter.mysql` collects metrics from a MySQL database.
+    (@spartan0x117)
 
 ### Enhancements
 
