@@ -113,12 +113,14 @@ func (c *Component) Update(args component.Arguments) error {
 				c.argComponents[cc.Name] = cc
 			case *export.Component:
 				// Add the callback so that if the exports value changes if can notify the parent
-				cc.UpdateInform(func(e export.Exports) {
+				name, val := cc.UpdateInform(func(e export.Exports) {
 					c.values[e.Name] = e.Value
 					c.opts.OnStateChange(Exports{
 						Exports: c.GetVal,
 					})
 				})
+				// Go ahead and fill in the value
+				c.values[name] = val
 				c.exportComponents[cc.Name] = cc
 			}
 		}
@@ -145,17 +147,6 @@ func (c *Component) Update(args component.Arguments) error {
 		Exports: c.GetVal,
 	})
 	return c.opts.Subgraph.StartSubgraph(c)
-}
-
-// Inform is used by children export components to inform the parent to run.
-func (c *Component) Inform(e component.Exports) {
-	ex := e.(export.Exports)
-	c.mut.Lock()
-	defer c.mut.Unlock()
-	c.values[ex.Name] = ex.Value
-	c.opts.OnStateChange(Exports{
-		Exports: c.GetVal,
-	})
 }
 
 func (c *Component) GetVal(name string) interface{} {

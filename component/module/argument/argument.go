@@ -43,7 +43,7 @@ func (c *Component) Update(args component.Arguments) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 	c.args = newArgs
-	if reflect.ValueOf(c.args.Value).IsZero() {
+	if c.args.Value == nil || reflect.ValueOf(c.args.Value).IsZero() {
 		c.args.Value = c.args.Default
 	}
 	c.opts.OnStateChange(Exports{Value: c.args.Value})

@@ -23,7 +23,7 @@ import (
 // A parent owner has a unique id that will propagate to child components to create a unique
 // namespace id that is parent.id + component.id.
 type subgraph struct {
-	mut          sync.Mutex
+	mut          sync.RWMutex
 	log          *logging.Logger
 	parent       component.SubgraphOwner
 	parentGraph  *subgraph
@@ -89,9 +89,6 @@ func newSubgraph(
 // loadInitialSubgraph is a special case used for the main subpgraph, instead of using the delegate we
 // force passing in flow so only it can call this.
 func (s *subgraph) loadInitialSubgraph(flow *Flow, config []byte, filename string) ([]component.Component, diag.Diagnostics, error) {
-	s.mut.Lock()
-	defer s.mut.Unlock()
-
 	file, err := ReadFile(filename, config)
 	if err != nil {
 		return nil, nil, err
@@ -110,15 +107,16 @@ func (s *subgraph) loadInitialSubgraph(flow *Flow, config []byte, filename strin
 // This returns all the components both new and old. EXTREME care should be taken by the caller
 // since the component is shared.
 func (s *subgraph) LoadSubgraph(parent component.SubgraphOwner, config []byte) ([]component.Component, diag.Diagnostics, error) {
-	s.mut.Lock()
-	defer s.mut.Unlock()
-
+	s.mut.RLock()
 	// Check to see if there is already a graph loaded
 	foundsg, found := s.children[parent]
+	s.mut.RUnlock()
+
 	if found {
 		// TODO figure out if we want to apply the old one back, we probably do
 		err := foundsg.graph.close()
 		if err != nil {
+
 			return nil, nil, err
 		}
 		delete(s.children, parent)
@@ -135,17 +133,22 @@ func (s *subgraph) LoadSubgraph(parent component.SubgraphOwner, config []byte) (
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 
+	s.mut.Lock()
 	s.children[parent] = child{
 		graph:  sg,
 		ctx:    ctx,
 		cancel: cancel,
 	}
+	s.mut.Unlock()
+
 	return comps, diags, nil
 }
 
 // UnloadSubgraph is used when you no longer need to load the graph
 func (s *subgraph) UnloadSubgraph(parent component.SubgraphOwner) error {
+	s.mut.RLock()
 	foundsg, found := s.children[parent]
+	s.mut.RUnlock()
 	if !found {
 		return fmt.Errorf("unable to find subgraph with parent id %s", parent.ID())
 	}
@@ -155,12 +158,17 @@ func (s *subgraph) UnloadSubgraph(parent component.SubgraphOwner) error {
 	if err != nil {
 		return err
 	}
+	s.mut.Lock()
 	delete(s.children, parent)
+	s.mut.Unlock()
 	return nil
 }
 
 func (s *subgraph) StartSubgraph(parent component.SubgraphOwner) error {
+	s.mut.RLock()
 	foundsg, found := s.children[parent]
+	s.mut.RUnlock()
+
 	if !found {
 		return fmt.Errorf("unable to find subgraph with parent id %s", parent.ID())
 	}
@@ -169,8 +177,9 @@ func (s *subgraph) StartSubgraph(parent component.SubgraphOwner) error {
 }
 
 func (s *subgraph) Components() []*controller.ComponentNode {
-	s.mut.Lock()
-	defer s.mut.Unlock()
+	s.mut.RLock()
+	defer s.mut.RUnlock()
+
 	comps := make([]*controller.ComponentNode, 0)
 	comps = append(comps, s.loader.Components()...)
 	for _, x := range s.children {
@@ -181,6 +190,9 @@ func (s *subgraph) Components() []*controller.ComponentNode {
 
 // close recursively closes all children
 func (s *subgraph) close() error {
+	s.mut.Lock()
+	defer s.mut.Unlock()
+
 	var result error
 	for _, x := range s.children {
 		err := x.graph.close()

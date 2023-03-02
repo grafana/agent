@@ -58,15 +58,11 @@ func (c *Component) Update(args component.Arguments) error {
 
 // UpdateInform is the function used to notify the parent that a value has changed.
 // In almost all cases it is a module.* component.
-func (c *Component) UpdateInform(f func(e Exports)) {
+func (c *Component) UpdateInform(f func(e Exports)) (string, interface{}) {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 	c.inform = f
-	// Trigger an inform to be proactive.
-	c.inform(Exports{
-		Name:  c.Name,
-		Value: c.args.Value,
-	})
+	return c.Name, c.args.Value
 }
 
 // Arguments are the arguments for the component.
