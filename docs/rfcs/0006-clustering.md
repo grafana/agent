@@ -1,8 +1,8 @@
 # Agent Clustering
 
-* Date: 2026-03-02
+* Date: 2023-03-02
 * Author: Paschalis Tsilias (@tpaschalis)
-* PR: [grafana/agent#XXX](https://github.com/grafana/agent/pull/XXX)
+* PR: [grafana/agent#3151](https://github.com/grafana/agent/pull/3151)
 * Status: Draft
 
 ## Summary - Background
@@ -58,29 +58,29 @@ Hashicorp’s memberlist for our cluster
   future will be the default mode of operation
 
 ## Implementation
-The feature will be behind a feature flag `--enable-features=clustering`.  An
+The feature will be behind a feature flag `--enable-features=clustering`. An
 agent can opt-in to clustering by passing a `--cluster.discover-peers`
 command-line flag with a comma-separated list of peers to connect to. Whenever
 an agent node receives a message about another node joining or leaving the
 cluster, it will propagate the message to its neighbors, and so on, until this
-information has reached all members of a group.  The gossip memberlist will be
-utilized for the peer list, health checking and distribution of tokens between
-the agent nodes.
+information has reached all members of the cluster. The gossip memberlist will
+be utilized for the peer list, health checking and distribution of tokens
+between the agent nodes.
 
 All nodes will have access to a shared ckit.Sharder interface implementation
 which will be used to expose methods for each individual agent’s Flow
-controller to determine ownership of resources.  As nodes enter and exit the
+controller to determine ownership of resources. As nodes enter and exit the
 cluster, the Sharder (eg. a consistent hashing ring) will redistribute tokens
 among the nodes in the cluster. The eventually consistent cluster state is when
 all nodes are working with the same configuration and have knowledge of each
-one of their peers in the cluster.  The Sharder will be used to determine
+one of their peers in the cluster.The Sharder will be used to determine
 ownership of resources by hashing a desired value and checking the peers
 responsible for the corresponding ring token.
 
 When all nodes in the cluster have an up-to-date image of their peers, they
 will be able to independently agree to the ownership of a resource without
 having to communicate with each other, as local hashing will provide the same
-results for all nodes.  For example, an agent node will be able to hash the
+results for all nodes. For example, an agent node will be able to hash the
 label set of a target and check which of the peers is responsible for scraping
 that target. Similarly, an agent node will be able to hash the fully qualified
 component name and decide whether a component needs to be scheduled on this
@@ -93,21 +93,26 @@ autoscaler will look out for is most likely memory usage. In the future we may
 allow scaling on different/custom metrics as well.
 
 We will start by creating the abstractions that will enable the two use-cases
-presented in the next section.  ## Use cases In the first iteration of agent
-clustering, we would like to start with the following use-cases. These two are
-distinct in the way that they make use of scheduling. 
+presented in the next section.
+
+## Use cases
+In the first iteration of agent clustering, we would like to start with the
+following use-cases. These two are distinct in the way that they make use of
+scheduling. 
 
 The first one makes sure that we have a way of notifying components of cluster
 changes and calling their Update method and continuously re-evaluate ownership
-of resources.  When this is implemented, we can start thinking about the second
+of resources. When this is implemented, we can start thinking about the second
 one that would provide a way to dynamically enable and disable components in
-the cluster.  ### Distributing scrape targets The main predictor for the size
-of an Agent deployment is the number of targets it is scraping/reading logs
-from.  Components that use the Flow concept of a “target” as their Arguments
-should be able to distribute the target load between themselves.  To do that we
-can introduce a layer of abstraction over the Targets definition that can
-interact with the Sharder provided by the clusterer and provide a simple API,
-for example: 
+the cluster.
+
+### Distributing scrape targets
+The main predictor for the size of an Agent deployment is the number of targets
+it is scraping/reading logs from. Components that use the Flow concept of a
+“target” as their Arguments should be able to distribute the target load
+between themselves. To do that we can introduce a layer of abstraction over
+the Targets definition that can interact with the Sharder provided by the
+clusterer and provide a simple API, for example: 
 ```go
 type Targets interface { 
     Get() []Target
@@ -118,12 +123,12 @@ When clustering is enabled, this API will allow the component to distribute the
 targets using a consistent hashing approach. Ownership is determined using the
 entire label set’s fingerprint/hash and where it belongs on the implementation
 exposed by the shared Sharder interface and each agent node will only scrape
-the targets that it is personally responsible for.  When clustering is
+the targets that it is personally responsible for. When clustering is
 disabled, the components should work as if they are a standalone node and
 scrape the entire target set.
 
 We will be using each component’s Arguments to enable/disable the clustering
-functionality.  The Targets abstraction will be registering and updating
+functionality. The Targets abstraction will be registering and updating
 metrics that will detail the distribution of the targets between nodes, as well
 as how they change over time.
 
@@ -146,9 +151,9 @@ prometheus.scrape "pods" {
 Distribution of load should happen automatically for these components without
 any manual handling from the component authors. Components that enable
 clustering will register themselves to the Flow controller to be notified and
-have their Update method called whenever the state of the cluster changes.  An
+have their Update method called whenever the state of the cluster changes. An
 idea of how this can work is to have something similar to how OnExportsChange
-works.  This abstraction will allow components to communicate back to the
+works. This abstraction will allow components to communicate back to the
 controller whether a clustering-related Argument has changed. The controller
 will keep a record of these components and when a cluster change is detected
 these will have their Update method called (or just queued for re-evaluation).
@@ -159,17 +164,17 @@ cluster and agree on the distribution of tokens. As long as the cluster can
 stabilize within a time period comparable to the scraping interval, this should
 not be an issue.
 
-Finally, Scaling the cluster up and down results in only 1/N targets’ ownership
+Finally, scaling the cluster up and down results in only 1/N targets’ ownership
 being transferred.
 
 ### Component scheduling
 The exposed clustering functionality can also allow
 for fine-grained scheduling of specific Flow components. The widely used
 example is that, in the context of an agent cluster, we would only need to run
-a MySQL exporter once per MySQL database.  I propose that we create a new
+a MySQL exporter once per MySQL database. I propose that we create a new
 health status called “Disabled”. Graph nodes should provide good hints in the
 UI in regards to which agent node the component was scheduled at and work
-similarly to Exited nodes.  Disabled components should be registered and built
+similarly to Exited nodes. Disabled components should be registered and built
 by the controller and _not_ have their Run method called. Downstream
 dependencies will get the evaluated values of the components exports, but an
 Disabled dependency should not have any other side-effects for now. This may
@@ -239,7 +244,7 @@ we’re aiming for.
 ### Configuration partition
 One of our axioms is that all agents in the same cluster run the same
 configuration file, can reach the same discovery APIs and remote endpoints, and
-have the same environment variable and network access.  In case that agents
+have the same environment variable and network access. In case that agents
 _cannot_ run the same configuration file (eg. due to different versions), or
 that network issues prevent them from discovering or remote-writing correctly,
 it will be hard to debug and understand where the problem lies.
@@ -247,7 +252,7 @@ it will be hard to debug and understand where the problem lies.
 At the very least, we should report what we can control, and that is the hash
 of the configuration file. Ideally, as a new configuration file is being
 applied to an agent cluster (eg. pods being rolled out), the state will
-eventually be consistent.  Is this enough, or should we limit clustering to
+eventually be consistent. Is this enough, or should we limit clustering to
 only nodes that have the same configuration hash?
 
 ### Networking failures
@@ -273,7 +278,7 @@ similarly the cluster will incur some extra load, but the first sample wins.
 In case a node goes unhealthy then both its targets and scheduled components
 will end up not scraping any metrics for a period of time. When the node is
 removed from the memberlist, then the component will be rescheduled on another
-node, and its targets will be redistributed elsewhere.  As long as the amount
+node, and its targets will be redistributed elsewhere. As long as the amount
 of time required for the cluster state to recover is (how much?) smaller than
 the typical scrape interval, then this behavior might not result in losing any
 scrape cycles.
@@ -284,10 +289,10 @@ how clustering works at the agent node level, as well as the component level.
 
 On the _node level_, we can introduce a new tab on the Flow UI page which shows
 the status of all nodes in the cluster and allows users to navigate to their UI
-page.  On the _component level_, the component’s debug info will contain
+page. On the _component level_, the component’s debug info will contain
 information regarding both the entire target set _and_ the targets the current
 node is responsible for, as well as an indication of the work that other
-components are doing, and provide a way to  navigate to that node’s UI.
+components are doing, and provide a way to navigate to that node’s UI.
 
 We will expose some clustering-specific internal metrics that provide a view of
 the cluster status, such as the hash of the configuration file applied, the
