@@ -2,12 +2,14 @@ package string
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"sync"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/module/argument"
 	"github.com/grafana/agent/component/module/export"
+	"github.com/grafana/agent/component/prometheus/exporter/unix"
 )
 
 func init() {
@@ -122,6 +124,8 @@ func (c *Component) Update(args component.Arguments) error {
 				// Go ahead and fill in the value
 				c.values[name] = val
 				c.exportComponents[cc.Name] = cc
+			case *unix.Component:
+				return fmt.Errorf("prometheus.exporter.unix must be in the top level river file (can't be within a module)")
 			}
 		}
 		c.loadedOnce = true

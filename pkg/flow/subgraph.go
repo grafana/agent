@@ -107,7 +107,6 @@ func (s *subgraph) loadInitialSubgraph(flow *Flow, config []byte, filename strin
 // This returns all the components both new and old. EXTREME care should be taken by the caller
 // since the component is shared.
 func (s *subgraph) LoadSubgraph(parent component.SubgraphOwner, config []byte) ([]component.Component, diag.Diagnostics, error) {
-
 	// Check to see if there is already a graph loaded
 	foundsg, found := s.getChild(parent)
 
@@ -115,7 +114,6 @@ func (s *subgraph) LoadSubgraph(parent component.SubgraphOwner, config []byte) (
 		// TODO figure out if we want to apply the old one back, we probably do
 		err := foundsg.graph.close()
 		if err != nil {
-
 			return nil, nil, err
 		}
 		delete(s.children, parent)
@@ -124,7 +122,10 @@ func (s *subgraph) LoadSubgraph(parent component.SubgraphOwner, config []byte) (
 	file, err := ReadFile(parent.ID(), config)
 	if err != nil {
 		return nil, nil, err
+	} else if len(file.ConfigBlocks) > 0 {
+		return nil, nil, fmt.Errorf("%s config block must be in the top level river file (can't be within a module)", file.ConfigBlocks[0].Name[0])
 	}
+
 	sg := newSubgraph(parent, s, s.log, s.globals.TraceProvider, s.globals.DataPath, s.globals.Registerer, s.globals.HTTPListenAddr, s.cm)
 	diags, comps := sg.loader.Apply(s, parent, s.scope, file.Components, file.ConfigBlocks)
 	if diags.HasErrors() {
@@ -211,7 +212,6 @@ func (s *subgraph) close() error {
 		if err != nil {
 			result = multierror.Append(result, err)
 		}
-
 	}
 	// zero out map
 	s.children = make(map[component.SubgraphOwner]child)
