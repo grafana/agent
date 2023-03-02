@@ -8,6 +8,7 @@ local os_arch_tuples = [
   { name: 'Linux armv6', os: 'linux', arch: 'arm', arm: '6', tags: 'promtail_journal_enabled' },
   { name: 'Linux armv7', os: 'linux', arch: 'arm', arm: '7' },
   { name: 'Linux ppc64le', os: 'linux', arch: 'ppc64le' },
+  { name: 'Linux s390x', os: 'linux', arch: 's390x' },
 
   // Darwin
   { name: 'macOS Intel', os: 'darwin', arch: 'amd64' },

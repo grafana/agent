@@ -420,6 +420,23 @@ trigger:
 type: docker
 ---
 kind: pipeline
+name: Build agent (Linux s390x)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - make generate-ui
+  - GOOS=linux GOARCH=s390x GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make agent
+  image: grafana/agent-build-image:0.22.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
 name: Build agent (macOS Intel)
 platform:
   arch: amd64
@@ -572,6 +589,23 @@ trigger:
 type: docker
 ---
 kind: pipeline
+name: Build agentctl (Linux s390x)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - make generate-ui
+  - GOOS=linux GOARCH=s390x GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make agentctl
+  image: grafana/agent-build-image:0.22.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
 name: Build agentctl (macOS Intel)
 platform:
   arch: amd64
@@ -715,6 +749,23 @@ steps:
 - commands:
   - make generate-ui
   - GOOS=linux GOARCH=ppc64le GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
+    make operator
+  image: grafana/agent-build-image:0.22.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build operator (Linux s390x)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - make generate-ui
+  - GOOS=linux GOARCH=s390x GOARM= GO_TAGS="builtinassets promtail_journal_enabled"
     make operator
   image: grafana/agent-build-image:0.22.0
   name: Build
@@ -1240,6 +1291,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: f5aab4aac7d01df071f1e4e8cbe1df772cee8220625100a00ffcdc96a0596a10
+hmac: f6ba364c99e6113001657a9acd45d9644abc265623ad237c0d872761f08396b1
 
 ...
