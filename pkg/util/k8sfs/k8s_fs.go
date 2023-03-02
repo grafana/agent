@@ -40,8 +40,6 @@ func (f *FS) Open(name string) (fs.File, error) {
 	return nil, fmt.Errorf("invalid object type")
 }
 
-// TODO: hook this all up to a caching informer
-
 func (f *FS) openSecret(ns, name, key string) (*file, error) {
 	dat, err := f.ReadSecret(ns, name, key)
 	if err != nil {

@@ -130,7 +130,6 @@ func (c *crdManager) run(ctx context.Context) error {
 	fs := k8sfs.New(clientset)
 	c.cg = configGenerator{
 		config:   c.config,
-		logger:   c.logger,
 		secretfs: fs,
 	}
 
