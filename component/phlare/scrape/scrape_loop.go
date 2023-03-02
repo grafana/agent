@@ -129,9 +129,15 @@ func (tg *scrapePool) stop() {
 	tg.mtx.Lock()
 	defer tg.mtx.Unlock()
 
+	wg := sync.WaitGroup{}
 	for _, t := range tg.activeTargets {
-		t.stop(true)
+		wg.Add(1)
+		go func(t *scrapeLoop) {
+			defer wg.Done()
+			t.stop(true)
+		}(t)
 	}
+	wg.Wait()
 }
 
 func (tg *scrapePool) ActiveTargets() []*Target {

@@ -189,8 +189,14 @@ func (m *Manager) Stop() {
 	m.mtxScrape.Lock()
 	defer m.mtxScrape.Unlock()
 
+	wg := sync.WaitGroup{}
 	for _, sp := range m.targetsGroups {
-		sp.stop()
+		wg.Add(1)
+		go func(sp *scrapePool) {
+			defer wg.Done()
+			sp.stop()
+		}(sp)
 	}
+	wg.Wait()
 	close(m.graceShut)
 }
