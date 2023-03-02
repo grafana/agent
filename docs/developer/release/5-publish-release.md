@@ -6,7 +6,7 @@ This is how to publish the release in GitHub.
 
 1. You should see a new draft release created [here](https://github.com/grafana/agent/releases). If not go back to [Tag Release](./3-tag-release.md).
 
-2. Edit the release draft by filling in the `Notable Changes` section with all `Breaking Changes` and `Feature` from the CHANGELOG.md.
+2. Edit the release draft by filling in the `Notable Changes` section with all `Breaking Changes` and `Features` from the CHANGELOG.md.
 
 3. Add any additional changes that you think are notable to the list.
 

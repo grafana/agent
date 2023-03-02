@@ -6,7 +6,7 @@ We must update [grafana/deployment_tools](https://github.com/grafana/deployment_
 
 1. Create a branch from `main` for [grafana/deployment_tools](https://github.com/grafana/deployment_tools).
 
-2. Open a PR to update Update [main.jsonnet](https://github.com/grafana/deployment_tools/blob/master/ksonnet/environments/grafana-agent/main.jsonnet).
+2. Open a PR to update [main.jsonnet](https://github.com/grafana/deployment_tools/blob/master/ksonnet/environments/grafana-agent/main.jsonnet).
 
     - RCV example PR [here](https://github.com/grafana/deployment_tools/pull/58203)
     - SRV example PR [here](https://github.com/grafana/deployment_tools/pull/58674)
@@ -35,7 +35,7 @@ We must update [grafana/deployment_tools](https://github.com/grafana/deployment_
 
 4. Validate the new version is healthy in dev_canary
 
-    1. Do steps 2-4 for the following dashboards.
+    1. Do steps 4.2-4.4 for the following dashboards.
         - `Grafana Agent Flow / Controller Dashboard`
         - `Grafana Agent Flow / Resources`
         - `Grafana Agent Flow / prometheus.remote_write`

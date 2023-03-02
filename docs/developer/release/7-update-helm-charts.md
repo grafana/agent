@@ -27,8 +27,8 @@ will update it automatically.*
 
 4. Update the code.
     
-    1. Update `Chart.yaml`
-    2. Update `CHANGELOG.md`
+    1. Update `Chart.yaml` with the new helm version and app version
+    2. Update `CHANGELOG.md` with a new section for the helm version
     3. Run `make generate-helm-docs generate-helm-tests` from the repo root
 
 5. Open a PR.
