@@ -107,10 +107,9 @@ func (s *subgraph) loadInitialSubgraph(flow *Flow, config []byte, filename strin
 // This returns all the components both new and old. EXTREME care should be taken by the caller
 // since the component is shared.
 func (s *subgraph) LoadSubgraph(parent component.SubgraphOwner, config []byte) ([]component.Component, diag.Diagnostics, error) {
-	s.mut.RLock()
+
 	// Check to see if there is already a graph loaded
-	foundsg, found := s.children[parent]
-	s.mut.RUnlock()
+	foundsg, found := s.getChild(parent)
 
 	if found {
 		// TODO figure out if we want to apply the old one back, we probably do
@@ -133,22 +132,18 @@ func (s *subgraph) LoadSubgraph(parent component.SubgraphOwner, config []byte) (
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 
-	s.mut.Lock()
-	s.children[parent] = child{
+	s.addChild(parent, child{
 		graph:  sg,
 		ctx:    ctx,
 		cancel: cancel,
-	}
-	s.mut.Unlock()
+	})
 
 	return comps, diags, nil
 }
 
 // UnloadSubgraph is used when you no longer need to load the graph
 func (s *subgraph) UnloadSubgraph(parent component.SubgraphOwner) error {
-	s.mut.RLock()
-	foundsg, found := s.children[parent]
-	s.mut.RUnlock()
+	foundsg, found := s.getChild(parent)
 	if !found {
 		return fmt.Errorf("unable to find subgraph with parent id %s", parent.ID())
 	}
@@ -158,17 +153,12 @@ func (s *subgraph) UnloadSubgraph(parent component.SubgraphOwner) error {
 	if err != nil {
 		return err
 	}
-	s.mut.Lock()
-	delete(s.children, parent)
-	s.mut.Unlock()
+	s.deleteChild(parent)
 	return nil
 }
 
 func (s *subgraph) StartSubgraph(parent component.SubgraphOwner) error {
-	s.mut.RLock()
-	foundsg, found := s.children[parent]
-	s.mut.RUnlock()
-
+	foundsg, found := s.getChild(parent)
 	if !found {
 		return fmt.Errorf("unable to find subgraph with parent id %s", parent.ID())
 	}
@@ -186,6 +176,28 @@ func (s *subgraph) Components() []*controller.ComponentNode {
 		comps = append(comps, x.graph.Components()...)
 	}
 	return comps
+}
+
+func (s *subgraph) getChild(parent component.SubgraphOwner) (child, bool) {
+	s.mut.RLock()
+	defer s.mut.RUnlock()
+
+	ch, found := s.children[parent]
+	return ch, found
+}
+
+func (s *subgraph) addChild(parent component.SubgraphOwner, ch child) {
+	s.mut.Lock()
+	defer s.mut.Unlock()
+
+	s.children[parent] = ch
+}
+
+func (s *subgraph) deleteChild(parent component.SubgraphOwner) {
+	s.mut.Lock()
+	defer s.mut.Unlock()
+
+	delete(s.children, parent)
 }
 
 // close recursively closes all children
