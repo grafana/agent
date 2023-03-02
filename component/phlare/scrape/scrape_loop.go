@@ -92,7 +92,7 @@ Outer:
 				continue Outer
 			}
 		}
-		t.stop()
+		t.stop(false)
 		delete(tg.activeTargets, h)
 	}
 }
@@ -115,8 +115,12 @@ func (tg *scrapePool) reload(cfg Arguments) error {
 		return err
 	}
 	tg.scrapeClient = scrapeClient
-	for _, t := range tg.activeTargets {
-		t.reload(scrapeClient, cfg.ScrapeInterval, cfg.ScrapeTimeout)
+	for hash, t := range tg.activeTargets {
+		// restart the loop with the new configuration
+		t.stop(false)
+		loop := newScrapeLoop(t.Target, tg.scrapeClient, tg.appendable, tg.config.ScrapeInterval, tg.config.ScrapeTimeout, tg.logger)
+		tg.activeTargets[hash] = loop
+		loop.start()
 	}
 	return nil
 }
@@ -126,7 +130,7 @@ func (tg *scrapePool) stop() {
 	defer tg.mtx.Unlock()
 
 	for _, t := range tg.activeTargets {
-		t.stop()
+		t.stop(true)
 	}
 }
 
@@ -218,15 +222,9 @@ func (t *scrapeLoop) scrape() {
 			break
 		}
 	}
-	err := t.fetchProfile(scrapeCtx, profileType, buf)
-	t.mtx.Lock()
-	defer t.mtx.Unlock()
-	if err != nil {
+	if err := t.fetchProfile(scrapeCtx, profileType, buf); err != nil {
 		level.Error(t.logger).Log("msg", "fetch profile failed", "target", t.Labels().String(), "err", err)
-		t.health = HealthBad
-		t.lastScrapeDuration = time.Since(start)
-		t.lastError = err
-		t.lastScrape = start
+		t.updateTargetStatus(start, err)
 		return
 	}
 
@@ -234,21 +232,26 @@ func (t *scrapeLoop) scrape() {
 	if len(b) > 0 {
 		t.lastScrapeSize = len(b)
 	}
-	t.health = HealthGood
-	t.lastScrapeDuration = time.Since(start)
-	t.lastError = nil
-	t.lastScrape = start
 	if err := t.appendable.Appender().Append(context.Background(), t.labels, []*phlare.RawSample{{RawProfile: b}}); err != nil {
 		level.Error(t.logger).Log("msg", "push failed", "labels", t.Labels().String(), "err", err)
+		t.updateTargetStatus(start, err)
+		return
 	}
+	t.updateTargetStatus(start, nil)
 }
 
-func (t *scrapeLoop) reload(scrapeClient *http.Client, interval, timeout time.Duration) {
-	t.stop()
-	t.scrapeClient = scrapeClient
-	t.interval = interval
-	t.timeout = timeout
-	t.start()
+func (t *scrapeLoop) updateTargetStatus(start time.Time, err error) {
+	t.mtx.Lock()
+	defer t.mtx.Unlock()
+	if err != nil {
+		t.health = HealthBad
+		t.lastError = err
+	} else {
+		t.health = HealthGood
+		t.lastError = nil
+	}
+	t.lastScrape = start
+	t.lastScrapeDuration = time.Since(start)
 }
 
 func (t *scrapeLoop) fetchProfile(ctx context.Context, profileType string, buf io.Writer) error {
@@ -287,9 +290,11 @@ func (t *scrapeLoop) fetchProfile(ctx context.Context, profileType string, buf i
 	return nil
 }
 
-func (t *scrapeLoop) stop() {
+func (t *scrapeLoop) stop(wait bool) {
 	t.once.Do(func() {
 		close(t.graceShut)
 	})
-	t.wg.Wait()
+	if wait {
+		t.wg.Wait()
+	}
 }
