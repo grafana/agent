@@ -9,7 +9,7 @@ components to authenticate requests using OAuth 2.0.
 
 The authorization tokens can be used by HTTP and gRPC based OpenTelemetry exporters. 
 This component can fetch and refresh expired tokens automatically. For further details about 
-OAuth 2.0 Client Credentials flow (2-legged workflow) see [here](https://datatracker.ietf.org/doc/html/rfc6749#section-4.4).
+OAuth 2.0 Client Credentials flow (2-legged workflow) see [this document](https://datatracker.ietf.org/doc/html/rfc6749#section-4.4).
 
 > **NOTE**: `otelcol.auth.oauth2` is a wrapper over the upstream OpenTelemetry
 > Collector `oauth2client` extension. Bug reports or feature requests will be
@@ -39,7 +39,7 @@ Name | Type | Description | Default | Required
 `scopes` | `list(string)` | Requested permissions associated for the client. | `[]` | no
 `timeout` | `duration` | The timeout on the client connecting to `token_url`. | `"0s"` | no
 
-`timeout` is used for both initial tokens and refreshing tokens. `"0s"` implies no timeout.
+The `timeout` argument is used both for requesting initial tokens and for refreshing tokens. `"0s"` implies no timeout.
 
 ## Blocks
 
@@ -110,7 +110,7 @@ otelcol.auth.oauth2 "creds" {
     token_url       = "https://example.com/oauth2/default/v1/token"
     endpoint_params = {"audience" = ["someaudience"]}
     scopes          = ["api.metrics"]
-    timeout         = "1s"
+    timeout         = "3600s"
 }
 ```
 
