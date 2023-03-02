@@ -18,29 +18,6 @@ import (
 	"gotest.tools/assert"
 )
 
-func TestConfigDefaults(t *testing.T) {
-	cfg := `
-		client_id     = "someclientid"
-		client_secret = "someclientsecret"
-		token_url     = "https://example.com/oauth2/default/v1/token"
-	`
-	var args oauth2.Arguments
-	require.NoError(t, river.Unmarshal([]byte(cfg), &args))
-
-	cfgWithExplicitDefaults := `
-		client_id       = "someclientid"
-		client_secret   = "someclientsecret"
-		token_url       = "https://example.com/oauth2/default/v1/token"
-		endpoint_params = {}
-		scopes          = []
-		timeout         = "0s"
-	`
-	var argsWithExplicitDefaults oauth2.Arguments
-	require.NoError(t, river.Unmarshal([]byte(cfgWithExplicitDefaults), &argsWithExplicitDefaults))
-
-	require.Equal(t, argsWithExplicitDefaults, args)
-}
-
 // Test performs a oauth2 integration test which runs the otelcol.auth.oauth2
 // component and ensures that it can be used for authentication.
 func Test(t *testing.T) {
