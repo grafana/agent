@@ -211,7 +211,10 @@ func (s *subgraph) close() error {
 		if err != nil {
 			result = multierror.Append(result, err)
 		}
+
 	}
+	// zero out map
+	s.children = make(map[component.SubgraphOwner]child)
 	s.cancel()
 	<-s.exited
 	err := s.sched.Close()
