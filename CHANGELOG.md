@@ -43,6 +43,11 @@ Main (unreleased)
   defaulted incorrectly to the container name, causing tailers to never
   restart. (@rfratto)
 
+### Other changes
+
+- Grafana Agent Docker containers and release binaries are now published for
+  s390x. (@rfratto)
+
 v0.32.0 (2023-02-28)
 --------------------
 

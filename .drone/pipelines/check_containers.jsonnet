@@ -16,7 +16,7 @@ local windows_containers = [
   std.map(function(container) pipelines.linux('Check Linux container (%s)' % container.name) {
     trigger: {
       event: ['pull_request'],
-      paths: [container.path],
+      paths: [container.path, 'tools/ci/docker-containers'],
     },
     steps: [{
       name: 'Build container',
@@ -38,7 +38,7 @@ local windows_containers = [
   std.map(function(container) pipelines.windows('Check Windows container (%s)' % container.name) {
     trigger: {
       event: ['pull_request'],
-      paths: [container.path],
+      paths: [container.path, 'tools/ci/docker-containers-windows'],
     },
     steps: [{
       name: 'Build container',
