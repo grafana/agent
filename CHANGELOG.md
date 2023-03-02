@@ -7,6 +7,14 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+v0.31.4 (2023-03-xx)
+--------------------
+
+### Bugfixes
+
+- Flow: Fixes slow reloading of targets in `phlare.scrape` component. (@cyriltovena)
+
+
 v0.31.3 (2023-02-13)
 --------------------
 
