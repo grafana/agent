@@ -2,7 +2,7 @@
 aliases:
 - getting-started/
 title: Getting started
-weight: 200
+weight: 100
 ---
 
 # Getting Started
