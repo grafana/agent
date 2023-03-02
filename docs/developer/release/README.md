@@ -8,7 +8,7 @@ The processes described here are for v0.24.0 and above.
 
 # Prerequisites
 
-These [Prerequisites](./PREREQUISITES.md) should be done by the release shepherd 
+These [Prerequisites](./prerequisites.md) should be done by the release shepherd 
 before taking any actions.
 
 # Workflows
