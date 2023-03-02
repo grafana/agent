@@ -10,6 +10,13 @@ internal API changes are not present.
 > **NOTE**: As of v0.32.0, builds for 32-bit ARMv6 currently don't support the
 > embedded Flow UI. The Flow UI will return to this target as soon as possible.
 
+v0.32.1 (2023-XX-XX)
+--------------------
+
+### Bugfixes
+
+- Flow: Fixes slow reloading of targets in `phlare.scrape` component. (@cyriltovena)
+
 v0.32.0 (2023-02-28)
 --------------------
 
