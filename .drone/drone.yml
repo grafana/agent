@@ -229,6 +229,7 @@ trigger:
   - pull_request
   paths:
   - cmd/grafana-agent/Dockerfile
+  - tools/ci/docker-containers
 type: docker
 volumes:
 - host:
@@ -253,6 +254,7 @@ trigger:
   - pull_request
   paths:
   - cmd/grafana-agentctl/Dockerfile
+  - tools/ci/docker-containers
 type: docker
 volumes:
 - host:
@@ -277,6 +279,7 @@ trigger:
   - pull_request
   paths:
   - cmd/grafana-agent-operator/Dockerfile
+  - tools/ci/docker-containers
 type: docker
 volumes:
 - host:
@@ -303,6 +306,7 @@ trigger:
   - pull_request
   paths:
   - cmd/grafana-agent/Dockerfile.windows
+  - tools/ci/docker-containers-windows
 type: docker
 volumes:
 - host:
@@ -329,6 +333,7 @@ trigger:
   - pull_request
   paths:
   - cmd/grafana-agentctl/Dockerfile.windows
+  - tools/ci/docker-containers-windows
 type: docker
 volumes:
 - host:
@@ -1291,6 +1296,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: f6ba364c99e6113001657a9acd45d9644abc265623ad237c0d872761f08396b1
+hmac: cf5001ca014ff74591d483f8d67c18228e1a3a4e3cd1e03f603822e44ac036b4
 
 ...
