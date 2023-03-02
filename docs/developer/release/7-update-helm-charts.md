@@ -9,7 +9,9 @@ Our helm charts require some version updates as well.
 2. Update the code.
 
     1. Copy the content of the last CRDs into helm-charts.
-        - Copy the contents from agent repo `production/operator/crds/` to replace the contents of helm-charts repo `charts/agent-operator/crds`
+        
+        Copy the contents from agent repo `production/operator/crds/` to replace the contents of helm-charts repo `charts/agent-operator/crds`
+        
     2. Update references of agent-operator app version in helm-charts pointing to release version.
     3. Bump up the helm chart version.
     
