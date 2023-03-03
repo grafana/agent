@@ -105,7 +105,7 @@ If your component supports labels, add the following as the last paragraph of
 the Title section:
 
 ```markdown
-Multiple `COMPONENT_NAME` components can be specified by giving them different
+Multiple `COMPONENT_NAME` components can be specified by giving them different 
 labels.
 ```
 
@@ -133,7 +133,7 @@ The Usage section should be composed of a single River code block, with no
 description. Use `YELLING_SNAKE_CASE` to refer to values the user must replace.
 For example:
 
-<code>
+````markdown
 ## Usage
 
 ```river
@@ -142,7 +142,7 @@ phlare.scrape "LABEL" {
   forward_to = RECEIVER_LIST
 }
 ```
-</code>
+````
 
 ### Arguments
 
@@ -154,8 +154,8 @@ If the component does not support any arguments, and is only configured through
 blocks, the content of the section should be the following paragraph:
 
 ```markdown
-The `COMPONENT_NAME` component does not support any arguments, and is
-configured fully through child blocks.
+The `COMPONENT_NAME` component does not support any arguments, and is configured 
+fully through child blocks.
 ```
 
 When arguments are supported by the component, the set of arguments should be
@@ -240,7 +240,7 @@ If the component does not support any blocks, the content of the section should
 be the following paragraph:
 
 ```markdown
-The `COMPONENT_NAME` component does not support any blocks, and is configured
+The `COMPONENT_NAME` component does not support any blocks, and is configured 
 fully through arguments.
 ```
 
@@ -469,7 +469,7 @@ there is only one example, call the section Example instead.
 The Examples section should be composed of a brief description of each example,
 followed by the example in a code block. For example:
 
-<code>
+````markdown
 This example reads a JSON array of objects from an endpoint and uses them for
 the set of scrape targets:
 
@@ -489,7 +489,7 @@ prometheus.remote_write "default" {
   }
 }
 ```
-</code>
+````
 
 Each example should be a full pipeline when possible, rather than just the
 individual component being documented.
