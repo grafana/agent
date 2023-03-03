@@ -18,7 +18,7 @@ func TestRiverConfigUnmarshal(t *testing.T) {
 	exclude_databases = ["exclude1", "exclude2"]
 	include_databases = ["include1"]
 	disable_default_metrics = true
-	query_path = "/tmp/queries.yaml"
+	custom_queries_path = "/tmp/queries.yaml"
 `
 
 	var args Arguments
@@ -31,7 +31,7 @@ func TestRiverConfigUnmarshal(t *testing.T) {
 	require.Equal(t, []string{"exclude1", "exclude2"}, args.ExcludeDatabases)
 	require.Equal(t, []string{"include1"}, args.IncludeDatabases)
 	require.True(t, args.DisableDefaultMetrics)
-	require.Equal(t, "/tmp/queries.yaml", args.QueryPath)
+	require.Equal(t, "/tmp/queries.yaml", args.CustomQueriesPath)
 }
 
 func TestRiverConfigConvert(t *testing.T) {
@@ -43,7 +43,7 @@ func TestRiverConfigConvert(t *testing.T) {
 	exclude_databases = ["exclude1", "exclude2"]
 	include_databases = ["include1"]
 	disable_default_metrics = true
-	query_path = "/tmp/queries.yaml"
+	custom_queries_path = "/tmp/queries.yaml"
 `
 
 	var args Arguments

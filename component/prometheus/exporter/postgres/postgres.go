@@ -38,7 +38,7 @@ type Arguments struct {
 	ExcludeDatabases       []string `river:"exclude_databases,attr,optional"`
 	IncludeDatabases       []string `river:"include_databases,attr,optional"`
 	DisableDefaultMetrics  bool     `river:"disable_default_metrics,attr,optional"`
-	QueryPath              string   `river:"query_path,attr,optional"`
+	CustomQueriesPath      string   `river:"custom_queries_path,attr,optional"`
 }
 
 // UnmarshalRiver implements River unmarshalling for Arguments.
@@ -57,7 +57,7 @@ func (a *Arguments) Convert() *postgres_exporter.Config {
 		ExcludeDatabases:       a.ExcludeDatabases,
 		IncludeDatabases:       a.IncludeDatabases,
 		DisableDefaultMetrics:  a.DisableDefaultMetrics,
-		QueryPath:              a.QueryPath,
+		QueryPath:              a.CustomQueriesPath,
 	}
 }
 
