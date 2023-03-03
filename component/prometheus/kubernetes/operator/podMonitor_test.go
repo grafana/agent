@@ -99,7 +99,12 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 						MatchLabels: map[string]string{"foo": "bar"},
 						// TODO: test a variety of matchexpressions
 					},
-					NamespaceSelector: v1.NamespaceSelector{Any: false, MatchNames: []string{"ns_a", "ns_b"}},
+					NamespaceSelector:     v1.NamespaceSelector{Any: false, MatchNames: []string{"ns_a", "ns_b"}},
+					SampleLimit:           101,
+					TargetLimit:           102,
+					LabelLimit:            103,
+					LabelNameLengthLimit:  104,
+					LabelValueLengthLimit: 105,
 				},
 			},
 			ep: v1.PodMetricsEndpoint{
@@ -164,6 +169,11 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 						},
 					},
 				},
+				SampleLimit:           101,
+				TargetLimit:           102,
+				LabelLimit:            103,
+				LabelNameLengthLimit:  104,
+				LabelValueLengthLimit: 105,
 			},
 		},
 	}

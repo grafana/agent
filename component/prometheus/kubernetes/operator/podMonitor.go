@@ -264,7 +264,11 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 	metricRelabels.addFromV1(labeler.GetRelabelingConfigs(m.TypeMeta, m.ObjectMeta, ep.MetricRelabelConfigs)...)
 	cfg.MetricRelabelConfigs = metricRelabels.configs
 
-	// TODO: limits from spec
+	cfg.SampleLimit = uint(m.Spec.SampleLimit)
+	cfg.TargetLimit = uint(m.Spec.TargetLimit)
+	cfg.LabelLimit = uint(m.Spec.LabelLimit)
+	cfg.LabelNameLengthLimit = uint(m.Spec.LabelNameLengthLimit)
+	cfg.LabelValueLengthLimit = uint(m.Spec.LabelValueLengthLimit)
 
 	return cfg, nil
 }
