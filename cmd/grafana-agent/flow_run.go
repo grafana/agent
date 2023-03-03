@@ -140,7 +140,7 @@ func (fr *flowRun) Run(configFile string) error {
 		Ch:    make(chan interface{}),
 		Flows: make(map[*flow.Flow]struct{}),
 	}
-	go notif.Run(ctx)
+	go notif.Run()
 
 	f := flow.New(flow.Options{
 		Logger:         l,

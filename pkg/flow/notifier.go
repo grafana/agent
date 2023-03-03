@@ -1,7 +1,6 @@
 package flow
 
 import (
-	"context"
 	"sync"
 )
 
@@ -19,11 +18,9 @@ type Notifier struct {
 	Flows map[*Flow]struct{}
 }
 
-func (n *Notifier) Run(ctx context.Context) {
+func (n *Notifier) Run() {
 	for {
 		select {
-		case <-ctx.Done():
-			return
 		case m := <-n.Ch:
 			n.handleMessage(m)
 		}
@@ -33,6 +30,7 @@ func (n *Notifier) Run(ctx context.Context) {
 func (n *Notifier) ComponentInfos() []*ComponentInfo {
 	n.mut.RLock()
 	defer n.mut.RUnlock()
+
 	infos := make([]*ComponentInfo, 0)
 	for k := range n.Flows {
 		infos = append(infos, k.ComponentInfos()...)
