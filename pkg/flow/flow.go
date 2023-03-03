@@ -155,7 +155,7 @@ func newFlow(o Options) (*Flow, context.Context) {
 		sched  = controller.NewScheduler()
 		loader = controller.NewLoader(controller.ComponentGlobals{
 			Logger:        log,
-			TraceProvider: controller.WrapTracer(o.Tracer, o.NamespaceID),
+			TraceProvider: tracer,
 			DataPath:      o.DataPath,
 			OnExportsChange: func(cn *controller.ComponentNode) {
 				// Changed components should be queued for reevaluation.
