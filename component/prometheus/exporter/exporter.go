@@ -152,3 +152,8 @@ func (c *Component) Handler() http.Handler {
 	defer c.mut.Unlock()
 	return c.metricsHandler
 }
+
+// return the ID of the component so we can differentiate prometheus.exporter components
+func (c *Component) GetId() string {
+	return c.opts.ID
+}

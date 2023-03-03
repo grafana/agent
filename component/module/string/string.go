@@ -11,6 +11,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/module/argument"
 	"github.com/grafana/agent/component/module/export"
+	"github.com/grafana/agent/component/prometheus/exporter"
 )
 
 func init() {
@@ -151,6 +152,10 @@ func (c *Component) newComponent(cmp component.Component) error {
 		// Go ahead and fill in the value
 		c.values[name] = val
 		c.exportComponents[cc.Name] = cc
+	case *exporter.Component:
+		if cc.GetId() == "prometheus.exporter.unix" {
+			return fmt.Errorf("prometheus.exporter.unix is a singleton and cannot be a component in a module")
+		}
 	}
 	return nil
 }
