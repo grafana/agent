@@ -1,6 +1,8 @@
 package operator
 
 import (
+	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -19,7 +21,7 @@ import (
 )
 
 func TestGeneratePodMonitorConfig(t *testing.T) {
-	//var falseVal = false
+	var falseVal = false
 	suite := []struct {
 		name                   string
 		m                      *v1.PodMonitor
@@ -83,28 +85,87 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 				},
 			},
 		},
-		// {
-		// 	name: "everything",
-		// 	m: &v1.PodMonitor{
-		// 		ObjectMeta: meta_v1.ObjectMeta{
-		// 			Namespace: "operator",
-		// 			Name:      "podmonitor",
-		// 		},
-		// 		Spec: v1.PodMonitorSpec{
-		// 			JobLabel:        "abc",
-		// 			PodTargetLabels: []string{"label_a", "label_b"},
-		// 			Selector: meta_v1.LabelSelector{
-		// 				MatchLabels: map[string]string{"foo": "bar"},
-		// 				// TODO: test a variety of matchexpressions
-		// 			},
-		// 			NamespaceSelector: v1.NamespaceSelector{Any: false, MatchNames: []string{"ns_a", "ns_b"}},
-		// 		},
-		// 	},
-		// 	ep: v1.PodMetricsEndpoint{
-		// 		Port:        "metrics",
-		// 		EnableHttp2: &falseVal,
-		// 	},
-		// },
+		{
+			name: "everything",
+			m: &v1.PodMonitor{
+				ObjectMeta: meta_v1.ObjectMeta{
+					Namespace: "operator",
+					Name:      "podmonitor",
+				},
+				Spec: v1.PodMonitorSpec{
+					JobLabel:        "abc",
+					PodTargetLabels: []string{"label_a", "label_b"},
+					Selector: meta_v1.LabelSelector{
+						MatchLabels: map[string]string{"foo": "bar"},
+						// TODO: test a variety of matchexpressions
+					},
+					NamespaceSelector: v1.NamespaceSelector{Any: false, MatchNames: []string{"ns_a", "ns_b"}},
+				},
+			},
+			ep: v1.PodMetricsEndpoint{
+				Port:        "metrics",
+				EnableHttp2: &falseVal,
+			},
+			expectedRelabels: util.Untab(`
+				- source_labels: [job]
+				  target_label: __tmp_prometheus_job_name
+				- source_labels: [__meta_kubernetes_pod_phase]
+				  regex: (Failed|Succeeded)
+				  action: drop
+				- action: keep
+				  regex: (bar);true
+				  source_labels: [__meta_kubernetes_pod_label_foo,__meta_kubernetes_pod_labelpresent_foo]
+				
+				- source_labels: [__meta_kubernetes_pod_container_port_name]
+				  regex: metrics
+				  action: keep
+				- source_labels: [__meta_kubernetes_namespace]
+				  target_label: namespace
+				- source_labels: [__meta_kubernetes_pod_container_name]
+				  target_label: container
+				- source_labels: [__meta_kubernetes_pod_name]
+				  target_label: pod
+				- source_labels: [__meta_kubernetes_pod_label_label_a]
+				  target_label: label_a
+				  replacement: "${1}"
+				  regex: "(.+)"
+				- source_labels: [__meta_kubernetes_pod_label_label_b]
+				  target_label: label_b
+				  replacement: "${1}"
+				  regex: "(.+)"
+				- target_label: job
+				  replacement: operator/podmonitor
+				- source_labels: [__meta_kubernetes_pod_label_abc]
+				  replacement: "${1}"
+				  regex: "(.+)"
+				  target_label: job
+				
+				- target_label: endpoint
+				  replacement: metrics
+			`),
+			expected: &config.ScrapeConfig{
+				JobName:         "podMonitor/operator/podmonitor/1",
+				HonorTimestamps: true,
+				ScrapeInterval:  model.Duration(time.Minute),
+				ScrapeTimeout:   model.Duration(10 * time.Second),
+				MetricsPath:     "/metrics",
+				Scheme:          "http",
+				HTTPClientConfig: commonConfig.HTTPClientConfig{
+					FollowRedirects: true,
+					EnableHTTP2:     false,
+				},
+				ServiceDiscoveryConfigs: discovery.Configs{
+					&promk8s.SDConfig{
+						Role: "pod",
+
+						NamespaceDiscovery: promk8s.NamespaceDiscovery{
+							IncludeOwnNamespace: false,
+							Names:               []string{"ns_a", "ns_b"},
+						},
+					},
+				},
+			},
+		},
 	}
 	for i, tc := range suite {
 		t.Run(tc.name, func(t *testing.T) {
@@ -119,22 +180,26 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 			cfg.MetricRelabelConfigs = nil
 			require.NoError(t, err)
 
-			require.Equal(t, tc.expected, cfg)
+			assert.Equal(t, tc.expected, cfg)
 
-			// load expected relabel configs
-			exRlcs := []*relabel.Config{}
-			err = yaml.Unmarshal([]byte(tc.expectedRelabels), &exRlcs)
-			require.NoError(t, err)
-			assert.Equal(t, exRlcs, rlcs)
-
-			if tc.expectedMetricRelabels == "" {
-				assert.Nil(t, mrlcs)
-			} else {
-				exMrlcs := []*relabel.Config{}
-				err = yaml.Unmarshal([]byte(tc.expectedMetricRelabels), &exMrlcs)
+			checkRelabels := func(actual []*relabel.Config, expected string) {
+				// round trip the expected to load defaults...
+				ex := []*relabel.Config{}
+				err := yaml.Unmarshal([]byte(expected), &ex)
 				require.NoError(t, err)
-				assert.Equal(t, exMrlcs, mrlcs)
+				y, err := yaml.Marshal(ex)
+				require.NoError(t, err)
+				expected = string(y)
+
+				y, err = yaml.Marshal(actual)
+				require.NoError(t, err)
+
+				if !assert.YAMLEq(t, expected, string(y)) {
+					fmt.Fprintln(os.Stderr, string(y))
+				}
 			}
+			checkRelabels(rlcs, tc.expectedRelabels)
+			checkRelabels(mrlcs, tc.expectedMetricRelabels)
 		})
 	}
 }
