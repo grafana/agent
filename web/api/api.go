@@ -19,11 +19,12 @@ import (
 // FlowAPI is a wrapper around the component API.
 type FlowAPI struct {
 	flow *flow.Flow
+	not  *flow.Notifier
 }
 
 // NewFlowAPI instantiates a new Flow API.
-func NewFlowAPI(flow *flow.Flow, r *mux.Router) *FlowAPI {
-	return &FlowAPI{flow: flow}
+func NewFlowAPI(flow *flow.Flow, noti *flow.Notifier) *FlowAPI {
+	return &FlowAPI{flow: flow, not: noti}
 }
 
 // RegisterRoutes registers all the API's routes.
@@ -34,7 +35,7 @@ func (f *FlowAPI) RegisterRoutes(urlPrefix string, r *mux.Router) {
 
 func (f *FlowAPI) listComponentsHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {
-		infos := f.flow.ComponentInfos()
+		infos := f.not.ComponentInfos()
 		bb, err := json.Marshal(infos)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -47,7 +48,7 @@ func (f *FlowAPI) listComponentsHandler() http.HandlerFunc {
 func (f *FlowAPI) listComponentHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		infos := f.flow.ComponentInfos()
+		infos := f.not.ComponentInfos()
 		requestedComponent := vars["id"]
 
 		for _, info := range infos {

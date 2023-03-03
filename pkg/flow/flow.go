@@ -52,12 +52,16 @@ import (
 	"sync"
 	"time"
 
+	"github.com/go-kit/log"
+	"github.com/grafana/agent/component"
+
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/prometheus/client_golang/prometheus"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/atomic"
 )
 
@@ -65,11 +69,11 @@ import (
 type Options struct {
 	// Logger for components to use. A no-op logger will be created if this is
 	// nil.
-	Logger *logging.Logger
+	Logger log.Logger
 
 	// Tracer for components to use. A no-op tracer will be created if this is
 	// nil.
-	Tracer *tracing.Tracer
+	Tracer trace.TracerProvider
 
 	// Directory where components can write data. Components will create
 	// subdirectories for component-specific data.
@@ -82,12 +86,22 @@ type Options struct {
 	// The controller does not itself listen here, but some components
 	// need to know this to set the correct targets.
 	HTTPListenAddr string
+
+	// NamespaceID is an id of the parent module, used to ensure uniqueness
+	NamespaceID string
+
+	// Callback is used when a component is created, so the caller can make any adjustments.
+	// Returning an error will halt the processing and propagate the error up.
+	Callback func(cmp component.Component) error
+
+	// Notify is used to notify the controller for flow events
+	Notify chan interface{}
 }
 
 // Flow is the Flow system.
 type Flow struct {
-	log    *logging.Logger
-	tracer *tracing.Tracer
+	log    log.Logger
+	tracer trace.TracerProvider
 	opts   Options
 
 	updateQueue *controller.Queue
@@ -106,6 +120,7 @@ type Flow struct {
 // the controller.
 func New(o Options) *Flow {
 	c, ctx := newFlow(o)
+	c.opts.Notify <- &NewFlow{F: c}
 	go c.run(ctx)
 	return c
 }
@@ -140,7 +155,7 @@ func newFlow(o Options) (*Flow, context.Context) {
 		sched  = controller.NewScheduler()
 		loader = controller.NewLoader(controller.ComponentGlobals{
 			Logger:        log,
-			TraceProvider: tracer,
+			TraceProvider: controller.WrapTracer(o.Tracer, o.NamespaceID),
 			DataPath:      o.DataPath,
 			OnExportsChange: func(cn *controller.ComponentNode) {
 				// Changed components should be queued for reevaluation.
@@ -148,7 +163,8 @@ func newFlow(o Options) (*Flow, context.Context) {
 			},
 			Registerer:     o.Reg,
 			HTTPListenAddr: o.HTTPListenAddr,
-		})
+			Notify:         o.Notify,
+		}, o.NamespaceID, o.Callback)
 	)
 
 	return &Flow{
@@ -168,6 +184,9 @@ func newFlow(o Options) (*Flow, context.Context) {
 
 func (c *Flow) run(ctx context.Context) {
 	defer close(c.exited)
+	defer func() {
+		c.opts.Notify <- &ClosedFlow{F: c}
+	}()
 	defer level.Debug(c.log).Log("msg", "flow controller exiting")
 
 	ctx, cancel := context.WithCancel(ctx)

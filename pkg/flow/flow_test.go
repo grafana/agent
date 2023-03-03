@@ -1,6 +1,7 @@
 package flow
 
 import (
+	"github.com/grafana/agent/pkg/flow/tracing"
 	"os"
 	"testing"
 
@@ -77,10 +78,13 @@ func testOptions(t *testing.T) Options {
 
 	l, err := logging.New(os.Stderr, logging.DefaultOptions)
 	require.NoError(t, err)
+	tr, err := tracing.New(tracing.DefaultOptions)
+	require.NoError(t, err)
 
 	return Options{
 		Logger:   l,
 		DataPath: t.TempDir(),
 		Reg:      nil,
+		Tracer:   tr,
 	}
 }

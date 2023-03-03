@@ -67,6 +67,12 @@ type Options struct {
 	// HTTPPath is the base path that requests need in order to route to this component.
 	// Requests received by a component handler will have this already trimmed off.
 	HTTPPath string
+
+	// Notify is used when creating new flow instances
+	Notify chan interface{}
+
+	// RootRegister is used by the modules to have a clean starting point.
+	RootRegister prometheus.Registerer
 }
 
 // Registration describes a single component.

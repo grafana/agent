@@ -136,12 +136,19 @@ func (fr *flowRun) Run(configFile string) error {
 	reg := prometheus.DefaultRegisterer
 	reg.MustRegister(newResourcesCollector(l))
 
+	notif := &flow.Notifier{
+		Ch:    make(chan interface{}),
+		Flows: make(map[*flow.Flow]struct{}),
+	}
+	go notif.Run(ctx)
+
 	f := flow.New(flow.Options{
 		Logger:         l,
 		Tracer:         t,
 		DataPath:       fr.storagePath,
 		Reg:            reg,
 		HTTPListenAddr: fr.httpListenAddr,
+		Notify:         notif.Ch,
 	})
 
 	reload := func() error {
@@ -195,7 +202,7 @@ func (fr *flowRun) Run(configFile string) error {
 		}).Methods(http.MethodGet, http.MethodPost)
 
 		// Register Routes must be the last
-		fa := api.NewFlowAPI(f, r)
+		fa := api.NewFlowAPI(f, notif)
 		fa.RegisterRoutes(fr.uiPrefix, r)
 
 		// NOTE(rfratto): keep this at the bottom of all other routes, otherwise it

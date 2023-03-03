@@ -36,11 +36,13 @@ type Loader struct {
 	cache         *valueCache
 	blocks        []*ast.BlockStmt // Most recently loaded blocks, used for writing
 	cm            *controllerMetrics
+	callback      func(cmp component.Component) error
+	namespaceid   string
 }
 
 // NewLoader creates a new Loader. Components built by the Loader will be built
 // with co for their options.
-func NewLoader(globals ComponentGlobals) *Loader {
+func NewLoader(globals ComponentGlobals, namespaceid string, callback func(cmp component.Component) error) *Loader {
 	l := &Loader{
 		log:     globals.Logger,
 		tracer:  globals.TraceProvider,
@@ -49,9 +51,11 @@ func NewLoader(globals ComponentGlobals) *Loader {
 		graph:         &dag.Graph{},
 		originalGraph: &dag.Graph{},
 		cache:         newValueCache(),
-		cm:            newControllerMetrics(globals.Registerer),
+		cm:            newControllerMetrics(globals.Registerer, namespaceid),
+		callback:      callback,
+		namespaceid:   namespaceid,
 	}
-	cc := newControllerCollector(l)
+	cc := newControllerCollector(l, namespaceid)
 	if globals.Registerer != nil {
 		globals.Registerer.MustRegister(cc)
 	}
@@ -245,7 +249,7 @@ func (l *Loader) populateGraph(g *dag.Graph, blocks []*ast.BlockStmt) diag.Diagn
 			}
 
 			// Create a new component
-			c = NewComponentNode(l.globals, block)
+			c = NewComponentNode(l.globals, block, l.namespaceid)
 		}
 
 		g.Add(c)
@@ -373,6 +377,14 @@ func (l *Loader) evaluate(logger log.Logger, parent *vm.Scope, c *ComponentNode)
 	l.cache.CacheExports(c.ID(), c.Exports())
 	if err != nil {
 		level.Error(logger).Log("msg", "failed to evaluate component", "component", c.NodeID(), "err", err)
+		return err
+	}
+	// Allow the caller to make any changes or trigger any behavior
+	if l.callback != nil {
+		err = l.callback(c.managed)
+	}
+	if err != nil {
+		level.Error(logger).Log("msg", "failed during callback for component", "component", c.NodeID(), "err", err)
 		return err
 	}
 	return nil

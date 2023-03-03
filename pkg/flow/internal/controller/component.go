@@ -64,6 +64,7 @@ type ComponentGlobals struct {
 	OnExportsChange func(cn *ComponentNode) // Invoked when the managed component updated its exports
 	Registerer      prometheus.Registerer   // Registerer for serving agent and component metrics
 	HTTPListenAddr  string                  // Base address for server
+	Notify          chan interface{}        //Notification used for new flow instances
 }
 
 // ComponentNode is a controller node which manages a user-defined component.
@@ -73,6 +74,7 @@ type ComponentGlobals struct {
 // from a River block.
 type ComponentNode struct {
 	id              ComponentID
+	namespaceID     string
 	label           string
 	componentName   string
 	nodeID          string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
@@ -106,7 +108,7 @@ var _ dag.Node = (*ComponentNode)(nil)
 
 // NewComponentNode creates a new ComponentNode from an initial ast.BlockStmt.
 // The underlying managed component isn't created until Evaluate is called.
-func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode {
+func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt, namespaceid string) *ComponentNode {
 	var (
 		id     = BlockComponentID(b)
 		nodeID = id.String()
@@ -127,6 +129,7 @@ func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode
 	}
 
 	cn := &ComponentNode{
+		namespaceID:     namespaceid,
 		id:              id,
 		label:           b.Label,
 		nodeID:          nodeID,
@@ -153,17 +156,23 @@ func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode
 func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Options {
 	wrapped := newWrappedRegisterer()
 	cn.register = wrapped
+	fullID := cn.nodeID
+	if cn.namespaceID != "" {
+		fullID = strings.Join([]string{cn.namespaceID, cn.nodeID}, ".")
+	}
 	return component.Options{
 		ID:            cn.nodeID,
-		Logger:        log.With(globals.Logger, "component", cn.nodeID),
-		DataPath:      filepath.Join(globals.DataPath, cn.nodeID),
+		Logger:        log.With(globals.Logger, "component", fullID),
+		DataPath:      filepath.Join(globals.DataPath, cn.namespaceID, cn.nodeID),
 		OnStateChange: cn.setExports,
 		Registerer: prometheus.WrapRegistererWith(prometheus.Labels{
-			"component_id": cn.nodeID,
+			"component_id": fullID,
 		}, wrapped),
-		Tracer:         wrapTracer(globals.TraceProvider, cn.nodeID),
+		Tracer:         WrapTracer(globals.TraceProvider, fullID),
 		HTTPListenAddr: globals.HTTPListenAddr,
-		HTTPPath:       fmt.Sprintf("/component/%s/", cn.nodeID),
+		HTTPPath:       fmt.Sprintf("/component/%s/", fullID),
+		Notify:         globals.Notify,
+		RootRegister:   globals.Registerer,
 	}
 }
 
