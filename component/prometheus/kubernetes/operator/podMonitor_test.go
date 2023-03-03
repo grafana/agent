@@ -108,8 +108,14 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 				},
 			},
 			ep: v1.PodMetricsEndpoint{
-				Port:        "metrics",
-				EnableHttp2: &falseVal,
+				Port:            "metrics",
+				EnableHttp2:     &falseVal,
+				Path:            "/foo",
+				Scheme:          "https",
+				ScrapeTimeout:   "17m",
+				Interval:        "1s",
+				HonorLabels:     true,
+				HonorTimestamps: &falseVal,
 			},
 			expectedRelabels: util.Untab(`
 				- source_labels: [job]
@@ -150,11 +156,12 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 			`),
 			expected: &config.ScrapeConfig{
 				JobName:         "podMonitor/operator/podmonitor/1",
-				HonorTimestamps: true,
-				ScrapeInterval:  model.Duration(time.Minute),
-				ScrapeTimeout:   model.Duration(10 * time.Second),
-				MetricsPath:     "/metrics",
-				Scheme:          "http",
+				HonorTimestamps: false,
+				HonorLabels:     true,
+				ScrapeInterval:  model.Duration(time.Second),
+				ScrapeTimeout:   model.Duration(17 * time.Minute),
+				MetricsPath:     "/foo",
+				Scheme:          "https",
 				HTTPClientConfig: commonConfig.HTTPClientConfig{
 					FollowRedirects: true,
 					EnableHTTP2:     false,

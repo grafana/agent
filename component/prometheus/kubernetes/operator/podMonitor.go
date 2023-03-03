@@ -45,7 +45,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 		}
 	}
 	if ep.ScrapeTimeout != "" {
-		if cfg.ScrapeInterval, err = model.ParseDuration(string(ep.ScrapeTimeout)); err != nil {
+		if cfg.ScrapeTimeout, err = model.ParseDuration(string(ep.ScrapeTimeout)); err != nil {
 			return nil, errors.Wrap(err, "parsing timeout from podMonitor")
 		}
 
