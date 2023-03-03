@@ -96,8 +96,8 @@ prometheus.remote_write "default" {
 }
 ```
 
-This example uses a `prometheus.exporter.postgres` component to collect custom queries from a set of
-specific databases, without any of the default metrics:
+This example uses a `prometheus.exporter.postgres` component to collect custom metrics from a set of
+specific databases, replacing default metrics with custom metrics derived from queries in `/etc/agent/custom-postgres-metrics.yaml`:
 
 ```river
 prometheus.exporter.postgres "example" {
