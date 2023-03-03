@@ -30,7 +30,8 @@ var DefaultArguments = Arguments{}
 // Arguments configures the prometheus.exporter.postgres component
 type Arguments struct {
 	// DataSourceNames to use to connect to Postgres. This is marked optional because it
-	// may also be supplied by the POSTGRES_EXPORTER_DATA_SOURCE_NAME env var
+	// may also be supplied by the POSTGRES_EXPORTER_DATA_SOURCE_NAME env var,
+	// though it is not recommended to do so.
 	DataSourceNames []rivertypes.Secret `river:"data_source_names,attr,optional"`
 
 	DisableSettingsMetrics bool     `river:"disable_settings_metrics,attr,optional"`
