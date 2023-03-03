@@ -89,6 +89,21 @@ container. The list of available arguments is documented on [agent run][].
 
 [agent run]: https://grafana.com/docs/agent/latest/flow/reference/cli/run/
 
+
+### agent.extraPorts
+`agent.extraPorts` allows for configuring specific open ports.
+
+The detained specification of ports can be found at the [Kubernetes Pod documents](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#ports).
+
+Port numbers specified must be 0 < x < 65535.
+
+| ChartPort | KubePort | Description |
+|-----------|----------|-------------|
+| targetPort | containerPort | Number of port to expose on the pod's IP address. |
+| hostPort | hostPort | (Optional) Number of port to expose on the host. Daemonsets taking traffic might find this useful. |
+| name | name | If specified, this must be an `IANA_SVC_NAME` and unique within the pod. Each named port in a pod must have a unique name. Name for the port that can be referred to by services.
+| protocol | protocol | Must be UDP, TCP, or SCTP. Defaults to "TCP". |
+
 ### agent.listenAddr
 
 `agent.listenAddr` allows for restricting which address the agent listens on

@@ -12,6 +12,7 @@ Unreleased
 
 ### Enhancements
 
+- Add hostPort specification to extraPorts and extraPort documentation. (@pnathan)
 - Selectively template ClusterIP. (@aglees)
 - Add priorityClassName value. (@aglees)
 
