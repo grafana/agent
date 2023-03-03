@@ -15,14 +15,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "module.string",
-		Args: Arguments{},
-		Exports: Exports{Exports: func(name string) interface{} {
-			// We have to instantiate the function with something so it's not nil and errors.
-			// On load all values accessing the item will be nil and once exports start to get
-			// filled in module.string will call OnStateChange which triggers a re-evaluation.
-			return nil
-		}},
+		Name:    "module.string",
+		Args:    Arguments{},
+		Exports: Exports{Exports: make(map[string]interface{})},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
 		},
@@ -123,18 +118,19 @@ func (c *Component) Update(args component.Arguments) error {
 			return err
 		}
 	}
-	// Fill out the export map so it exists
 	exportMap := make(map[string]interface{})
-	for _, v := range c.exportComponents {
-		exportMap[v.Name] = v.Value
+	for k, v := range c.values {
+		exportMap[k] = v
 	}
 	c.opts.OnStateChange(Exports{
-		Exports: c.GetVal,
+		Exports: exportMap,
 	})
 	return nil
 }
 
 // newComponent is called for each component when it is evaluated by the loader.
+// If this returns an error it will bubble up to the c.flow.LoadFile in this files Update function.
+// This is why no locks are needed because its only called implicitly by something locking.
 func (c *Component) newComponent(cmp component.Component) error {
 	switch cc := cmp.(type) {
 	case *argument.Component:
@@ -144,8 +140,12 @@ func (c *Component) newComponent(cmp component.Component) error {
 		// Add the callback so that if the exports value changes if can notify the parent
 		name, val := cc.UpdateInform(func(e export.Exports) {
 			c.values[e.Name] = e.Value
+			exportMap := make(map[string]interface{})
+			for k, v := range c.values {
+				exportMap[k] = v
+			}
 			c.opts.OnStateChange(Exports{
-				Exports: c.GetVal,
+				Exports: exportMap,
 			})
 		})
 		// Go ahead and fill in the value
@@ -155,22 +155,11 @@ func (c *Component) newComponent(cmp component.Component) error {
 	return nil
 }
 
-func (c *Component) GetVal(name string) interface{} {
-	c.mut.Lock()
-	defer c.mut.Unlock()
-
-	v, found := c.values[name]
-	if !found {
-		return nil
-	}
-	return v
-}
-
 // Exports exports the exports! We use a func since a map would not have the keys filled in on initial
 // load. So when accessing the map on load river loader throws an error of key not found. Alternative
 // would be to the ability to mark a map as a lazy map and not throw if key not found.
 type Exports struct {
-	Exports func(name string) interface{} `river:"exports,attr"`
+	Exports map[string]interface{} `river:"exports,attr"`
 }
 
 // Arguments are the arguments for the component.
