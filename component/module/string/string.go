@@ -8,6 +8,11 @@ import (
 	"sync"
 	"time"
 
+<<<<<<< HEAD
+=======
+	"go.uber.org/atomic"
+
+>>>>>>> 9d35748c (module.string: new component)
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component"
@@ -34,8 +39,13 @@ func init() {
 // Arguments holds values which are used to configure the module.string
 // component.
 type Arguments struct {
+<<<<<<< HEAD
 	// Content to load for the module.
 	Content rivertypes.OptionalSecret `river:"content,attr"`
+=======
+	// Source code to load for the module.
+	Source rivertypes.Secret `river:"source,attr"`
+>>>>>>> 9d35748c (module.string: new component)
 
 	// Arguments to pass into the module.
 	Arguments map[string]any `river:"arguments,attr,optional"`
@@ -43,8 +53,13 @@ type Arguments struct {
 
 // Exports holds values which are exported from the run module.
 type Exports struct {
+<<<<<<< HEAD
 	// Exports exported from the running module.
 	Exports map[string]any `river:"exports,attr"`
+=======
+	// Values exported from the running module.
+	Values map[string]any `river:"values,attr"`
+>>>>>>> 9d35748c (module.string: new component)
 }
 
 // Component implements the module.string component.
@@ -53,6 +68,13 @@ type Component struct {
 	log  log.Logger
 	ctrl *flow.Flow
 
+<<<<<<< HEAD
+=======
+	moduleArgs        atomic.Pointer[map[string]any]
+	file              atomic.Pointer[flow.File]
+	updateContollerCh chan struct{}
+
+>>>>>>> 9d35748c (module.string: new component)
 	healthMut sync.RWMutex
 	health    component.Health
 }
@@ -89,11 +111,20 @@ func New(o component.Options, args Arguments) (*Component, error) {
 			HTTPListenAddr: o.HTTPListenAddr,
 
 			OnExportsChange: func(exports map[string]any) {
+<<<<<<< HEAD
 				o.OnStateChange(Exports{Exports: exports})
 			},
 		}),
 	}
 
+=======
+				o.OnStateChange(Exports{Values: exports})
+			},
+		}),
+
+		updateContollerCh: make(chan struct{}, 1),
+	}
+>>>>>>> 9d35748c (module.string: new component)
 	if err := c.Update(args); err != nil {
 		return nil, err
 	}
@@ -102,8 +133,23 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
+<<<<<<< HEAD
 	c.ctrl.Run(ctx)
 	return nil
+=======
+Loop:
+	for {
+		select {
+		case <-ctx.Done():
+			break Loop
+		case <-c.updateContollerCh:
+			err := c.ctrl.LoadFile(c.file.Load(), *c.moduleArgs.Load())
+			c.updateHealth(err)
+		}
+	}
+
+	return c.ctrl.Close()
+>>>>>>> 9d35748c (module.string: new component)
 }
 
 func (c *Component) updateHealth(err error) {
@@ -129,13 +175,50 @@ func (c *Component) updateHealth(err error) {
 func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 
+<<<<<<< HEAD
 	f, err := flow.ReadFile(c.opts.ID, []byte(newArgs.Content.Value))
+=======
+	f, err := flow.ReadFile(c.opts.ID, []byte(newArgs.Source))
+>>>>>>> 9d35748c (module.string: new component)
 	if err != nil {
 		return err
 	}
 
+<<<<<<< HEAD
 	err = c.ctrl.LoadFile(f, newArgs.Arguments)
 	c.updateHealth(err)
+=======
+	// TODO(rfratto): sync exports with current set rather than updating it in
+	// full every time.
+	var emptyExports = map[string]any{}
+
+	for _, b := range f.ConfigBlocks {
+		if b.Name[0] == "export" {
+			emptyExports[b.Label] = nil
+		}
+	}
+
+	// Create an initial exported value which contains all the keys that
+	// correspond with the exports from our module so that sibling components can
+	// properly reference them by name, albeit with the zero value.
+	//
+	// Currently, this runs every time Update is called, so there will always be
+	// two calls to OnStateChange happening every time: once which sets everything
+	// to the zero value, and once where the evaluated concrete values are
+	// exposed (in the callback to OnExportsChange).
+	//
+	// TODO(rfratto): find a way to not override the last evaluated value with
+	// null.
+	c.opts.OnStateChange(Exports{Values: emptyExports})
+
+	c.file.Store(f)
+	c.moduleArgs.Store(&newArgs.Arguments)
+
+	select {
+	case c.updateContollerCh <- struct{}{}:
+	default: // no-op
+	}
+>>>>>>> 9d35748c (module.string: new component)
 
 	return nil
 }
