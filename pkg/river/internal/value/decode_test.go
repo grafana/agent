@@ -229,7 +229,7 @@ func TestDecode_CustomTypes(t *testing.T) {
 }
 
 type customUnmarshaler struct {
-	Called bool
+	Called bool `river:"called,attr,optional"`
 }
 
 func (cu *customUnmarshaler) UnmarshalRiver(f func(interface{}) error) error {

@@ -126,6 +126,9 @@ func RiverType(t reflect.Type) Type {
 		return TypeObject
 
 	case reflect.Struct:
+		if getCachedTags(t).Len() == 0 {
+			return TypeCapsule
+		}
 		return TypeObject
 
 	case reflect.Func:
