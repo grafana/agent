@@ -141,7 +141,7 @@ func (fr *flowRun) Run(configFile string) error {
 		Tracer:         t,
 		DataPath:       fr.storagePath,
 		Reg:            reg,
-		HTTPPathPrefix: "/component/",
+		HTTPPathPrefix: "/api/v0/component/",
 		HTTPListenAddr: fr.httpListenAddr,
 	})
 
@@ -174,7 +174,7 @@ func (fr *flowRun) Run(configFile string) error {
 
 		r.Handle("/metrics", promhttp.Handler())
 		r.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
-		r.PathPrefix("/component/{id}/").Handler(f.ComponentHandler())
+		r.PathPrefix("/api/v0/component/{id}/").Handler(f.ComponentHandler())
 
 		r.HandleFunc("/-/ready", func(w http.ResponseWriter, _ *http.Request) {
 			if f.Ready() {
