@@ -30,12 +30,12 @@ type Arguments struct {
 	// though it is not recommended to do so.
 	DataSourceNames []rivertypes.Secret `river:"data_source_names,attr,optional"`
 
-	DisableSettingsMetrics bool     `river:"disable_settings_metrics,attr,optional"`
-	AutodiscoverDatabases  bool     `river:"autodiscover_databases,attr,optional"`
-	ExcludeDatabases       []string `river:"exclude_databases,attr,optional"`
-	IncludeDatabases       []string `river:"include_databases,attr,optional"`
-	DisableDefaultMetrics  bool     `river:"disable_default_metrics,attr,optional"`
-	CustomQueriesPath      string   `river:"custom_queries_path,attr,optional"`
+	DisableSettingsMetrics  bool     `river:"disable_settings_metrics,attr,optional"`
+	AutodiscoverDatabases   bool     `river:"autodiscover_databases,attr,optional"`
+	ExcludeDatabases        []string `river:"exclude_databases,attr,optional"`
+	IncludeDatabases        []string `river:"include_databases,attr,optional"`
+	DisableDefaultMetrics   bool     `river:"disable_default_metrics,attr,optional"`
+	CustomQueriesConfigPath string   `river:"custom_queries_config_path,attr,optional"`
 }
 
 // UnmarshalRiver implements River unmarshalling for Arguments.
@@ -54,7 +54,7 @@ func (a *Arguments) Convert() *postgres_exporter.Config {
 		ExcludeDatabases:       a.ExcludeDatabases,
 		IncludeDatabases:       a.IncludeDatabases,
 		DisableDefaultMetrics:  a.DisableDefaultMetrics,
-		QueryPath:              a.CustomQueriesPath,
+		QueryPath:              a.CustomQueriesConfigPath,
 	}
 }
 
