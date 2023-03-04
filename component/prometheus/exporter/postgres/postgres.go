@@ -23,10 +23,6 @@ func createIntegration(opts component.Options, args component.Arguments) (integr
 	return cfg.Convert().NewIntegration(opts.Logger)
 }
 
-// DefaultArguments holds the default arguments for the prometheus.exporter.postgres
-// component.
-var DefaultArguments = Arguments{}
-
 // Arguments configures the prometheus.exporter.postgres component
 type Arguments struct {
 	// DataSourceNames to use to connect to Postgres. This is marked optional because it
@@ -44,7 +40,7 @@ type Arguments struct {
 
 // UnmarshalRiver implements River unmarshalling for Arguments.
 func (c *Arguments) UnmarshalRiver(f func(interface{}) error) error {
-	*c = DefaultArguments
+	*c = Arguments{}
 
 	type args Arguments
 	return f((*args)(c))
