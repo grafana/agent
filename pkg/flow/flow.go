@@ -48,6 +48,7 @@ package flow
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"sync"
 	"time"
@@ -57,6 +58,7 @@ import (
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
+	"github.com/grafana/agent/pkg/river/vm"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/atomic"
 )
@@ -238,11 +240,35 @@ func (c *Flow) run(ctx context.Context) {
 //
 // The controller will only start running components after Load is called once
 // without any configuration errors.
-func (c *Flow) LoadFile(file *File) error {
+func (c *Flow) LoadFile(file *File, args map[string]any) error {
 	c.loadMut.Lock()
 	defer c.loadMut.Unlock()
 
-	diags := c.loader.Apply(nil, file.Components, file.ConfigBlocks)
+	// Fill out the values for the scope so that argument.NAME.value can be used
+	// to reference expressions.
+	evalatedArgs := make(map[string]any, len(file.Arguments))
+
+	// TODO(rfratto): error on unrecognized args.
+	for _, arg := range file.Arguments {
+		val := arg.Default
+
+		if setVal, ok := args[arg.Name]; !ok && !arg.Optional {
+			return fmt.Errorf("required argument %q not set", arg.Name)
+		} else if ok {
+			val = setVal
+		}
+
+		evalatedArgs[arg.Name] = map[string]any{"value": val}
+	}
+
+	argumentScope := &vm.Scope{
+		Parent: nil,
+		Variables: map[string]interface{}{
+			"argument": evalatedArgs,
+		},
+	}
+
+	diags := c.loader.Apply(argumentScope, file.Components, file.ConfigBlocks)
 	if !c.loadedOnce.Load() && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.

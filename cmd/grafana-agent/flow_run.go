@@ -152,7 +152,7 @@ func (fr *flowRun) Run(configFile string) error {
 		if err != nil {
 			return fmt.Errorf("reading config file %q: %w", configFile, err)
 		}
-		if err := f.LoadFile(flowCfg); err != nil {
+		if err := f.LoadFile(flowCfg, nil); err != nil {
 			return fmt.Errorf("error during the initial gragent load: %w", err)
 		}
 

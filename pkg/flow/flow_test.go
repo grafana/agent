@@ -38,7 +38,7 @@ func TestController_LoadFile_Evaluation(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, f)
 
-	err = ctrl.LoadFile(f)
+	err = ctrl.LoadFile(f, nil)
 	require.NoError(t, err)
 	require.Len(t, ctrl.loader.Components(), 4)
 
