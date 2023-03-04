@@ -78,6 +78,10 @@ type Options struct {
 	// Reg is the prometheus register to use
 	Reg prometheus.Registerer
 
+	// HTTPPathPrefix is the path prefix given to managed components. May be
+	// empty. When provided, it should be an absolute path.
+	HTTPPathPrefix string
+
 	// HTTPListenAddr is the base address that the server is listening on.
 	// The controller does not itself listen here, but some components
 	// need to know this to set the correct targets.
@@ -147,6 +151,7 @@ func newFlow(o Options) (*Flow, context.Context) {
 				queue.Enqueue(cn)
 			},
 			Registerer:     o.Reg,
+			HTTPPathPrefix: o.HTTPPathPrefix,
 			HTTPListenAddr: o.HTTPListenAddr,
 		})
 	)

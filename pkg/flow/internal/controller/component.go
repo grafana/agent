@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"path"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -63,6 +64,7 @@ type ComponentGlobals struct {
 	DataPath        string                  // Shared directory where component data may be stored
 	OnExportsChange func(cn *ComponentNode) // Invoked when the managed component updated its exports
 	Registerer      prometheus.Registerer   // Registerer for serving agent and component metrics
+	HTTPPathPrefix  string                  // HTTP prefix for components.
 	HTTPListenAddr  string                  // Base address for server
 }
 
@@ -151,6 +153,12 @@ func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode
 }
 
 func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Options {
+	// Make sure the prefix is always absolute.
+	prefix := globals.HTTPPathPrefix
+	if !strings.HasPrefix(prefix, "/") {
+		prefix = "/" + prefix
+	}
+
 	wrapped := newWrappedRegisterer()
 	cn.register = wrapped
 	return component.Options{
@@ -163,7 +171,7 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 		}, wrapped),
 		Tracer:         wrapTracer(globals.TraceProvider, cn.nodeID),
 		HTTPListenAddr: globals.HTTPListenAddr,
-		HTTPPath:       fmt.Sprintf("/component/%s/", cn.nodeID),
+		HTTPPath:       path.Join(prefix, cn.nodeID) + "/",
 	}
 }
 

@@ -141,6 +141,7 @@ func (fr *flowRun) Run(configFile string) error {
 		Tracer:         t,
 		DataPath:       fr.storagePath,
 		Reg:            reg,
+		HTTPPathPrefix: "/component/",
 		HTTPListenAddr: fr.httpListenAddr,
 	})
 
