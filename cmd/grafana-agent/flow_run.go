@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path"
 	"sync"
 	"syscall"
 
@@ -197,7 +198,7 @@ func (fr *flowRun) Run(configFile string) error {
 
 		// Register Routes must be the last
 		fa := api.NewFlowAPI(f, r)
-		fa.RegisterRoutes(fr.uiPrefix, r)
+		fa.RegisterRoutes(path.Join(fr.uiPrefix, "/api/v0/web"), r)
 
 		// NOTE(rfratto): keep this at the bottom of all other routes, otherwise it
 		// will take precedence over anything else mapped in uiPrefix.
