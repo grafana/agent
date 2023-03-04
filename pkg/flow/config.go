@@ -93,6 +93,8 @@ func ReadFile(name string, bb []byte) (*File, error) {
 
 				args = append(args, arg)
 				namedArgs[arg.Name] = struct{}{}
+			case "export":
+				configs = append(configs, stmt)
 			default:
 				components = append(components, stmt)
 			}

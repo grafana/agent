@@ -106,6 +106,12 @@ type Options struct {
 	// The controller does not itself listen here, but some components
 	// need to know this to set the correct targets.
 	HTTPListenAddr string
+
+	// OnExportsChange is called when the exports of the controller change.
+	// Exports are controlled by "export" configuration blocks. If
+	// OnExportsChange is nil, export configuration blocks are not allowed in the
+	// loaded config file.
+	OnExportsChange func(exports map[string]any)
 }
 
 // Flow is the Flow system.
@@ -268,7 +274,7 @@ func (c *Flow) LoadFile(file *File, args map[string]any) error {
 		},
 	}
 
-	diags := c.loader.Apply(argumentScope, file.Components, file.ConfigBlocks)
+	diags := c.loader.Apply(argumentScope, file.Components, file.ConfigBlocks, c.opts.OnExportsChange)
 	if !c.loadedOnce.Load() && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.

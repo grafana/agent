@@ -238,7 +238,7 @@ func applyFromContent(t *testing.T, l *controller.Loader, bb []byte) diag.Diagno
 		return diags
 	}
 
-	applyDiags := l.Apply(nil, blocks, nil)
+	applyDiags := l.Apply(nil, blocks, nil, nil)
 	diags = append(diags, applyDiags...)
 
 	return diags
