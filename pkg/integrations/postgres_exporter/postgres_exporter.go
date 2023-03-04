@@ -108,14 +108,15 @@ func (c *Config) getDataSourceNames() ([]string, error) {
 	dsn := c.DataSourceNames
 	var stringDsn []string
 	if len(dsn) == 0 {
-		stringDsn = append(stringDsn, strings.Split(os.Getenv("POSTGRES_EXPORTER_DATA_SOURCE_NAME"), ",")...)
+		envDsn, present := os.LookupEnv("POSTGRES_EXPORTER_DATA_SOURCE_NAME")
+		if !present {
+			return nil, fmt.Errorf("cannot create postgres_exporter; neither postgres_exporter.data_source_name or $POSTGRES_EXPORTER_DATA_SOURCE_NAME is set")
+		}
+		stringDsn = append(stringDsn, strings.Split(envDsn, ",")...)
 	} else {
 		for _, d := range dsn {
 			stringDsn = append(stringDsn, string(d))
 		}
-	}
-	if len(stringDsn) == 0 {
-		return nil, fmt.Errorf("cannot create postgres_exporter; neither postgres_exporter.data_source_name or $POSTGRES_EXPORTER_DATA_SOURCE_NAME is set")
 	}
 	return stringDsn, nil
 }
