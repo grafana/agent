@@ -1,6 +1,6 @@
 # Update Version in Code
 
-The codebase must be updated to reference the upcoming release tag whenever a new release is being made.
+The project must be updated to reference the upcoming release tag whenever a new release is being made.
 
 ## Release Version
 
@@ -47,6 +47,7 @@ The release version prefix was previously determined in [Create Release Branch](
 
     - RCV example PR [here](https://github.com/grafana/agent/pull/3065)
     - SRV example PR [here](https://github.com/grafana/agent/pull/3119)
+    - PRV example PR [here](https://github.com/grafana/agent/pull/3191)
 
 4. Create a branch from `release-[release version prefix]` for [grafana/agent](https://github.com/grafana/agent).
 
@@ -62,3 +63,5 @@ The release version prefix was previously determined in [Create Release Branch](
 
     - RCV example PR [here](https://github.com/grafana/agent/pull/3066)
     - SRV example PR [here](https://github.com/grafana/agent/pull/3123)
+    - PRV example PR [here](https://github.com/grafana/agent/pull/3193)
+        - The `CHANGELOG.md` was updated in cherry-pick commits prior for this example. Make sure it is all set on this PR.

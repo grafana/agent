@@ -19,18 +19,18 @@ Our helm charts require some version updates as well.
 [helm-docs](https://github.com/norwoodj/helm-docs) utility in the `charts/agent-operator` directory 
 will update it automatically.*
 
-2. Open a PR.
+3. Open a PR.
 
     - Example PR [here](https://github.com/grafana/helm-charts/pull/2233)
 
-3. Create a branch from `main` for [grafana/agent](https://github.com/grafana/agent).
+4. Create a branch from `main` for [grafana/agent](https://github.com/grafana/agent).
 
-4. Update the code.
+5. Update the code.
     
     1. Update `Chart.yaml` with the new helm version and app version
     2. Update `CHANGELOG.md` with a new section for the helm version
     3. Run `make generate-helm-docs generate-helm-tests` from the repo root
 
-5. Open a PR.
+6. Open a PR.
 
     - PRV example PR [here](https://github.com/grafana/agent/pull/3126)

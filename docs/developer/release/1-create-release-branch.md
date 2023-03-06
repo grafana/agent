@@ -36,10 +36,3 @@ For a major version we jump up the first number as shown in the examples below.
 
     *NOTE: don't create any other branches that are prefixed with `release` when creating PRs or
     those branches will collide with our automated release build publish rules.*
-
-3. Create a PR to cherry-pick additional commits into the release branch as
-   needed.
-
-    ```
-    git cherry-pick -x [commit id]
-    ```
