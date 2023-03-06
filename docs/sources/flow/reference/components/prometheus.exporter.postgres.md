@@ -37,7 +37,7 @@ Name | Type | Description | Default | Required
 `autodiscover_databases`             | `bool`              | Whether to automatically discover databases to scrape metrics from. | `false` | no
 `exclude_databases`                  | `list(string)`      | A list of databases to ignore when `autodiscover_databases` is `true` | | no
 `include_databases`                  | `list(string)`      | Includes only specific databases (excluding all others) when autodiscover_databases is `true` | | no
-`custom_queries_path`                | `string`            | Path to YAML file containing custom queries to expose as metrics. | | no
+`custom_queries_config_path`         | `string`            | Path to YAML file containing custom queries to expose as metrics. | "" | no
 
 The format for connection strings in `data_source_names` can be found in the [official postgresql documentation](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING).
 
