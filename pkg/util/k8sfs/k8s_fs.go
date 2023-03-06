@@ -16,6 +16,12 @@ type FS struct {
 	client *kubernetes.Clientset
 }
 
+type SecretStore interface {
+	Open(name string) (fs.File, error)
+	ReadSecret(ns, name, key string) (string, error)
+	ReadConfigMap(ns, name, key string) (string, error)
+}
+
 func New(client *kubernetes.Clientset) *FS {
 	return &FS{
 		client: client,

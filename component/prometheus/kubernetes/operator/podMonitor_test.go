@@ -2,6 +2,7 @@ package operator
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"testing"
 	"time"
@@ -20,6 +21,20 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+type fakeSecretStore struct{}
+
+func (f fakeSecretStore) Open(name string) (fs.File, error) {
+	panic("no need to open files in this test suite")
+}
+
+func (f fakeSecretStore) ReadSecret(ns, name, key string) (string, error) {
+	return fmt.Sprintf("content of secret:%s/%s:%s", ns, name, key), nil
+}
+
+func (f fakeSecretStore) ReadConfigMap(ns, name, key string) (string, error) {
+	return fmt.Sprintf("content of configmap:%s/%s:%s", ns, name, key), nil
+}
 
 func TestGeneratePodMonitorConfig(t *testing.T) {
 	var falseVal = false
@@ -106,6 +121,7 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 					LabelLimit:            103,
 					LabelNameLengthLimit:  104,
 					LabelValueLengthLimit: 105,
+					AttachMetadata:        &v1.AttachMetadata{Node: true},
 				},
 			},
 			ep: v1.PodMetricsEndpoint{
@@ -122,19 +138,23 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 					LocalObjectReference: corev1.LocalObjectReference{Name: "verysecret"},
 					Key:                  "bts",
 				},
-				// TODO: mock the secret filesystem immediate calls
-				// BasicAuth: &v1.BasicAuth{
-				// 	Username: corev1.SecretKeySelector{
-				// 		LocalObjectReference: corev1.LocalObjectReference{Name: "verysecret"},
-				// 		Key:                  "username",
-				// 	},
-				// 	Password: corev1.SecretKeySelector{
-				// 		LocalObjectReference: corev1.LocalObjectReference{Name: "verysecret"},
-				// 		Key:                  "pass",
-				// 	},
-				// },
+				BasicAuth: &v1.BasicAuth{
+					Username: corev1.SecretKeySelector{
+						LocalObjectReference: corev1.LocalObjectReference{Name: "verysecret"},
+						Key:                  "username",
+					},
+					Password: corev1.SecretKeySelector{
+						LocalObjectReference: corev1.LocalObjectReference{Name: "verysecret"},
+						Key:                  "pass",
+					},
+				},
 				OAuth2: &v1.OAuth2{
-					// TODO: clientID must be read immediately
+					ClientID: v1.SecretOrConfigMap{
+						ConfigMap: &corev1.ConfigMapKeySelector{
+							LocalObjectReference: corev1.LocalObjectReference{Name: "notsosecret"},
+							Key:                  "oauthclientid",
+						},
+					},
 					ClientSecret: corev1.SecretKeySelector{
 						LocalObjectReference: corev1.LocalObjectReference{Name: "verysecret"},
 						Key:                  "oathsecret",
@@ -142,6 +162,34 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 					TokenURL:       "https://token.example.com",
 					Scopes:         []string{"some", "scope"},
 					EndpointParams: map[string]string{"w": "ut"},
+				},
+				TLSConfig: &v1.PodMetricsEndpointTLSConfig{
+					SafeTLSConfig: v1.SafeTLSConfig{
+						CA: v1.SecretOrConfigMap{
+							ConfigMap: &corev1.ConfigMapKeySelector{
+								LocalObjectReference: corev1.LocalObjectReference{Name: "notsosecret"},
+								Key:                  "ca",
+							},
+						},
+						Cert: v1.SecretOrConfigMap{
+							ConfigMap: &corev1.ConfigMapKeySelector{
+								LocalObjectReference: corev1.LocalObjectReference{Name: "notsosecret"},
+								Key:                  "cert",
+							},
+						},
+						KeySecret: &corev1.SecretKeySelector{
+							LocalObjectReference: corev1.LocalObjectReference{Name: "verysecret"},
+							Key:                  "tls_key",
+						},
+						ServerName:         "foo.com",
+						InsecureSkipVerify: true,
+					},
+				},
+				Authorization: &v1.SafeAuthorization{
+					Credentials: &corev1.SecretKeySelector{
+						LocalObjectReference: corev1.LocalObjectReference{Name: "verysecret"},
+						Key:                  "creds",
+					},
 				},
 			},
 			expectedRelabels: util.Untab(`
@@ -189,17 +237,33 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 					FollowRedirects: true,
 					EnableHTTP2:     false,
 					BearerTokenFile: "secret/operator/verysecret/bts",
+					BasicAuth: &commonConfig.BasicAuth{
+						Username:     "content of secret:operator/verysecret:username",
+						PasswordFile: "secret/operator/verysecret/pass",
+					},
 					OAuth2: &commonConfig.OAuth2{
+						ClientID:         "content of configmap:operator/notsosecret:oauthclientid",
 						ClientSecretFile: "secret/operator/verysecret/oathsecret",
 						TokenURL:         "https://token.example.com",
 						Scopes:           []string{"some", "scope"},
 						EndpointParams:   map[string]string{"w": "ut"},
 					},
+					TLSConfig: commonConfig.TLSConfig{
+						CAFile:             "configmap/operator/notsosecret/ca",
+						CertFile:           "configmap/operator/notsosecret/cert",
+						KeyFile:            "secret/operator/verysecret/tls_key",
+						ServerName:         "foo.com",
+						InsecureSkipVerify: true,
+					},
+					Authorization: &commonConfig.Authorization{
+						Type:            "Bearer",
+						CredentialsFile: "secret/operator/verysecret/creds",
+					},
 				},
 				ServiceDiscoveryConfigs: discovery.Configs{
 					&promk8s.SDConfig{
-						Role: "pod",
-
+						Role:           "pod",
+						AttachMetadata: promk8s.AttachMetadataConfig{Node: true},
 						NamespaceDiscovery: promk8s.NamespaceDiscovery{
 							IncludeOwnNamespace: false,
 							Names:               []string{"ns_a", "ns_b"},
@@ -217,7 +281,8 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 	for i, tc := range suite {
 		t.Run(tc.name, func(t *testing.T) {
 			cg := &configGenerator{
-				config: &tc.args,
+				config:   &tc.args,
+				secretfs: fakeSecretStore{},
 			}
 			cfg, err := cg.generatePodMonitorConfig(tc.m, tc.ep, i)
 			// check relabel configs seperately

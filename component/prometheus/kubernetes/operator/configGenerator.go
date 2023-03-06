@@ -18,7 +18,7 @@ import (
 
 type configGenerator struct {
 	config   *Arguments
-	secretfs *k8sfs.FS
+	secretfs k8sfs.SecretStore
 }
 
 // the k8s sd config is mostly dependent on our local config for accessing the kubernetes cluster.
