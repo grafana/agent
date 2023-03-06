@@ -33,4 +33,4 @@ will update it automatically.*
 
 5. Open a PR.
 
-    - Example PR [here](https://github.com/grafana/agent/pull/3126)
+    - PRV example PR [here](https://github.com/grafana/agent/pull/3126)

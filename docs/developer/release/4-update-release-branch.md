@@ -7,6 +7,7 @@ The `release` branch is a special branch that is used for grafana cloud to point
 1. Force push the release tag to the `release` branch
 
     ```
+    git fetch
     git checkout main
     git branch -f release [release version]
     git push -f origin refs/heads/release

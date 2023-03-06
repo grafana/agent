@@ -22,8 +22,10 @@ responsible for ownership of the following workflows:
   - [Actions] 2-3,5-6,8
 - Stable Release Publish
   - [Actions] 2-8
-- Patch Release Publish
-  - [Actions] 2-8
+- Patch Release Publish (latest version)
+  - [Actions] 2-5,7-8
+- Patch Release Publish (older version)
+  - TODO - This requires a number of similar but unconventional steps outside of this documentation.
 
 # Actions
 
