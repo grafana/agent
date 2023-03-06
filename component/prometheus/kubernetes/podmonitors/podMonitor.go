@@ -1,4 +1,4 @@
-package operator
+package podmonitors
 
 // SEE https://github.com/prometheus-operator/prometheus-operator/blob/main/pkg/prometheus/promcfg.go
 

@@ -1,16 +1,16 @@
 ---
-title: prometheus.kubernetes.operator
+title: prometheus.kubernetes.podmonitors
 ---
 
-# prometheus.kubernetes.operator
+# prometheus.kubernetes.podmonitors
 
-`prometheus.kubernetes.operator` discovers [podMonitor]() resources in your kubernetes cluster and scrape the targets they reference.
+`prometheus.kubernetes.podmonitors` discovers [podMonitor]() resources in your kubernetes cluster and scrape the targets they reference.
 
 
 ## Usage
 
 ```river
-prometheus.kubernetes.operator "LABEL" {
+prometheus.kubernetes.podmonitors "LABEL" {
 }
 ```
 
@@ -23,15 +23,15 @@ Name | Type | Description | Default | Required
 `kubeconfig_file` | `string` | Path of the file on disk to a kubernetes config  | | no
 `forward_to` | `list(MetricsReceiver)` | List of receivers to send scraped metrics to. | | yes
 `namespaces` | `list(string)` | List of namespaces to search for PodMonitor resources. If not specified, all namespaces will be searched. || no
-`label_selector` | string | [LabelSelector][] to filter which Monitor resources are discovered. || no
-`field_selector` | string | [FieldSelector][] to filter which Monitor resources are discovered. || no
+`label_selector` | string | [LabelSelector][] to filter which PodMonitor resources are discovered. || no
+`field_selector` | string | [FieldSelector][] to filter which PodMonitor resources are discovered. || no
 
 [LabelSelector]: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors
 [FieldSelector]: https://kubernetes.io/docs/concepts/overview/working-with-objects/field-selectors/
 
 ## Blocks
 
-The following blocks are supported inside the definition of `prometheus.kubernetes.operator`:
+The following blocks are supported inside the definition of `prometheus.kubernetes.podmonitors`:
 
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
@@ -51,7 +51,7 @@ Name | Type | Description | Default | Required
 
 ## Exported fields
 
-`prometheus.kubernetes.operator` does not export any fields. It will forward all metrics it scrapes to the receiver configures with the `forward_to` argument.
+`prometheus.kubernetes.podmonitors` does not export any fields. It will forward all metrics it scrapes to the receiver configures with the `forward_to` argument.
 
 ## Component health
 

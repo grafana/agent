@@ -1,4 +1,4 @@
-package operator
+package podmonitors
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "prometheus.kubernetes.operator",
+		Name: "prometheus.kubernetes.podmonitors",
 		Args: Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
