@@ -190,7 +190,9 @@ func (cg *configGenerator) generateOAuth2(oauth2 *v1.OAuth2, ns string) (*common
 	if err != nil {
 		return nil, errors.Wrap(err, "fetching oauth2 client id")
 	}
-	oa2.ClientSecretFile = k8sfs.SecretFilename(ns, oauth2.ClientSecret.Name, oauth2.ClientSecret.Key)
+	if oauth2.ClientSecret.Name != "" {
+		oa2.ClientSecretFile = k8sfs.SecretFilename(ns, oauth2.ClientSecret.Name, oauth2.ClientSecret.Key)
+	}
 	oa2.TokenURL = oauth2.TokenURL
 	if len(oauth2.Scopes) > 0 {
 		oa2.Scopes = oauth2.Scopes

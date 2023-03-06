@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
+	corev1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -116,17 +117,39 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 				Interval:        "1s",
 				HonorLabels:     true,
 				HonorTimestamps: &falseVal,
+				FilterRunning:   &falseVal,
+				BearerTokenSecret: corev1.SecretKeySelector{
+					LocalObjectReference: corev1.LocalObjectReference{Name: "verysecret"},
+					Key:                  "bts",
+				},
+				// TODO: mock the secret filesystem immediate calls
+				// BasicAuth: &v1.BasicAuth{
+				// 	Username: corev1.SecretKeySelector{
+				// 		LocalObjectReference: corev1.LocalObjectReference{Name: "verysecret"},
+				// 		Key:                  "username",
+				// 	},
+				// 	Password: corev1.SecretKeySelector{
+				// 		LocalObjectReference: corev1.LocalObjectReference{Name: "verysecret"},
+				// 		Key:                  "pass",
+				// 	},
+				// },
+				OAuth2: &v1.OAuth2{
+					// TODO: clientID must be read immediately
+					ClientSecret: corev1.SecretKeySelector{
+						LocalObjectReference: corev1.LocalObjectReference{Name: "verysecret"},
+						Key:                  "oathsecret",
+					},
+					TokenURL:       "https://token.example.com",
+					Scopes:         []string{"some", "scope"},
+					EndpointParams: map[string]string{"w": "ut"},
+				},
 			},
 			expectedRelabels: util.Untab(`
 				- source_labels: [job]
 				  target_label: __tmp_prometheus_job_name
-				- source_labels: [__meta_kubernetes_pod_phase]
-				  regex: (Failed|Succeeded)
-				  action: drop
 				- action: keep
 				  regex: (bar);true
-				  source_labels: [__meta_kubernetes_pod_label_foo,__meta_kubernetes_pod_labelpresent_foo]
-				
+				  source_labels: [__meta_kubernetes_pod_label_foo,__meta_kubernetes_pod_labelpresent_foo]		
 				- source_labels: [__meta_kubernetes_pod_container_port_name]
 				  regex: metrics
 				  action: keep
@@ -165,6 +188,13 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 				HTTPClientConfig: commonConfig.HTTPClientConfig{
 					FollowRedirects: true,
 					EnableHTTP2:     false,
+					BearerTokenFile: "secret/operator/verysecret/bts",
+					OAuth2: &commonConfig.OAuth2{
+						ClientSecretFile: "secret/operator/verysecret/oathsecret",
+						TokenURL:         "https://token.example.com",
+						Scopes:           []string{"some", "scope"},
+						EndpointParams:   map[string]string{"w": "ut"},
+					},
 				},
 				ServiceDiscoveryConfigs: discovery.Configs{
 					&promk8s.SDConfig{
@@ -200,7 +230,8 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 			assert.Equal(t, tc.expected, cfg)
 
 			checkRelabels := func(actual []*relabel.Config, expected string) {
-				// round trip the expected to load defaults...
+
+				// load the expected relabel rules as yaml so we get the defaults put in there.
 				ex := []*relabel.Config{}
 				err := yaml.Unmarshal([]byte(expected), &ex)
 				require.NoError(t, err)
