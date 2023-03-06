@@ -29,6 +29,7 @@ import (
 	_ "github.com/grafana/agent/component/otelcol/auth/basic"                // Import otelcol.auth.basic
 	_ "github.com/grafana/agent/component/otelcol/auth/bearer"               // Import otelcol.auth.bearer
 	_ "github.com/grafana/agent/component/otelcol/auth/headers"              // Import otelcol.auth.headers
+	_ "github.com/grafana/agent/component/otelcol/auth/oauth2"               // Import otelcol.auth.oauth2
 	_ "github.com/grafana/agent/component/otelcol/exporter/jaeger"           // Import otelcol.exporter.jaeger
 	_ "github.com/grafana/agent/component/otelcol/exporter/loki"             // Import otelcol.exporter.loki
 	_ "github.com/grafana/agent/component/otelcol/exporter/otlp"             // Import otelcol.exporter.otlp
@@ -54,7 +55,7 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/exporter/process"       // Import prometheus.exporter.process
 	_ "github.com/grafana/agent/component/prometheus/exporter/redis"         // Import prometheus.exporter.redis
 	_ "github.com/grafana/agent/component/prometheus/exporter/unix"          // Import prometheus.exporter.unix
-	_ "github.com/grafana/agent/component/prometheus/kubernetes/podmonitors" // Import prometheus.kubernetes.podmonitors
+	_ "github.com/grafana/agent/component/prometheus/kubernetes/podmonitors" // Import prometheus.exporter.apache
 	_ "github.com/grafana/agent/component/prometheus/relabel"                // Import prometheus.relabel
 	_ "github.com/grafana/agent/component/prometheus/remotewrite"            // Import prometheus.remote_write
 	_ "github.com/grafana/agent/component/prometheus/scrape"                 // Import prometheus.scrape
