@@ -9,7 +9,6 @@ import (
 	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	commonConfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
-	"github.com/prometheus/prometheus/config"
 	promk8s "github.com/prometheus/prometheus/discovery/kubernetes"
 	"github.com/prometheus/prometheus/model/relabel"
 )
@@ -20,12 +19,7 @@ type configGenerator struct {
 
 // the k8s sd config is mostly dependent on our local config for accessing the kubernetes cluster.
 // if undefined it will default to an in-cluster config
-func (cg *configGenerator) generateK8SSDConfig(
-	namespaceSelector v1.NamespaceSelector,
-	namespace string,
-	role promk8s.Role,
-	attachMetadata *v1.AttachMetadata,
-) *promk8s.SDConfig {
+func (cg *configGenerator) generateK8SSDConfig(namespaceSelector v1.NamespaceSelector, namespace string, role promk8s.Role, attachMetadata *v1.AttachMetadata) *promk8s.SDConfig {
 	cfg := &promk8s.SDConfig{
 		Role: role,
 	}
@@ -65,7 +59,7 @@ func (cg *configGenerator) generateK8SSDConfig(
 	return cfg
 }
 
-func (cg *configGenerator) generateSafeTLS(namespace string, tls v1.SafeTLSConfig) (commonConfig.TLSConfig, error) {
+func (cg *configGenerator) GenerateSafeTLS(namespace string, tls v1.SafeTLSConfig) (commonConfig.TLSConfig, error) {
 	tc := commonConfig.TLSConfig{}
 	tc.InsecureSkipVerify = tls.InsecureSkipVerify
 
@@ -140,7 +134,7 @@ func (r *relabeler) addFromV1(cfgs ...*v1.RelabelConfig) (err error) {
 	return nil
 }
 
-func (cg *configGenerator) initRelabelings(cfg *config.ScrapeConfig) relabeler {
+func (cg *configGenerator) initRelabelings() relabeler {
 	r := relabeler{}
 	// Relabel prometheus job name into a meta label
 	r.Add(&relabel.Config{
@@ -167,14 +161,14 @@ func (cg *configGenerator) getNamespacesFromNamespaceSelector(nsel v1.NamespaceS
 	return nsel.MatchNames
 }
 
-func (cg *configGenerator) generateOAuth2(oauth2 *v1.OAuth2, ns string) (*commonConfig.OAuth2, error) {
+func (cg *configGenerator) GenerateOAuth2(oauth2 *v1.OAuth2, namespace string) (*commonConfig.OAuth2, error) {
 	if oauth2 == nil {
 		return nil, nil
 	}
 	return nil, fmt.Errorf("oauth2 not supported yet")
 }
 
-func (cg *configGenerator) generateSafeAuthorization(auth *v1.SafeAuthorization, ns string) (*commonConfig.Authorization, error) {
+func (cg *configGenerator) GenerateSafeAuthorization(auth *v1.SafeAuthorization, ns string) (*commonConfig.Authorization, error) {
 	if auth == nil {
 		return nil, nil
 	}

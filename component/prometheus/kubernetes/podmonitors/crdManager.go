@@ -54,12 +54,15 @@ func newManager(opts component.Options, logger log.Logger, cfg *Arguments) *crdM
 func (c *crdManager) apply() {
 	c.mut.Lock()
 	defer c.mut.Unlock()
-	c.discovery.ApplyConfig(c.discoveryConfigs)
+	err := c.discovery.ApplyConfig(c.discoveryConfigs)
+	if err != nil {
+		level.Error(c.logger).Log("msg", "error applying discovery configs", "err", err)
+	}
 	scs := []*config.ScrapeConfig{}
 	for _, sc := range c.scrapeConfigs {
 		scs = append(scs, sc)
 	}
-	err := c.scraper.ApplyConfig(&config.Config{
+	err = c.scraper.ApplyConfig(&config.Config{
 		ScrapeConfigs: scs,
 	})
 	if err != nil {
@@ -111,7 +114,6 @@ func (c *crdManager) onDeletePodMonitor(obj interface{}) {
 }
 
 func (c *crdManager) run(ctx context.Context) error {
-
 	config, err := c.config.restConfig()
 	if err != nil {
 		return errors.Wrap(err, "creating rest config")
@@ -148,9 +150,12 @@ func (c *crdManager) run(ctx context.Context) error {
 			UpdateFunc: c.onUpdatePodMonitor,
 			DeleteFunc: c.onDeletePodMonitor,
 		})
-		pminf.SetWatchErrorHandler(func(r *cache.Reflector, err error) {
+		err = pminf.SetWatchErrorHandler(func(r *cache.Reflector, err error) {
 			level.Error(c.logger).Log("msg", "pod monitor watcher error", "err", err)
 		})
+		if err != nil {
+			return errors.Wrap(err, "setting watch handler")
+		}
 
 		factory.Start(ctx.Done())
 	}

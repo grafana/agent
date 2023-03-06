@@ -37,7 +37,6 @@ func New(o component.Options, args component.Arguments) (*Component, error) {
 
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
-
 	// innerCtx gets passed to things we create, so we can restart everything anytime we get an update.
 	// Ideally, this component has very little dynamic config, and won't have frequent updates.
 	var innerCtx context.Context

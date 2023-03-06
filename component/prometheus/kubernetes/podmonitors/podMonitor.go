@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+
 	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	namespacelabeler "github.com/prometheus-operator/prometheus-operator/pkg/namespace-labeler"
 	commonConfig "github.com/prometheus/common/config"
@@ -47,7 +48,6 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 		if cfg.ScrapeTimeout, err = model.ParseDuration(string(ep.ScrapeTimeout)); err != nil {
 			return nil, errors.Wrap(err, "parsing timeout from podMonitor")
 		}
-
 	}
 	if ep.Path != "" {
 		cfg.MetricsPath = ep.Path
@@ -72,7 +72,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 		cfg.HTTPClientConfig.EnableHTTP2 = *ep.EnableHttp2
 	}
 	if ep.TLSConfig != nil {
-		if cfg.HTTPClientConfig.TLSConfig, err = cg.generateSafeTLS(m.Namespace, ep.TLSConfig.SafeTLSConfig); err != nil {
+		if cfg.HTTPClientConfig.TLSConfig, err = cg.GenerateSafeTLS(m.Namespace, ep.TLSConfig.SafeTLSConfig); err != nil {
 			return nil, err
 		}
 	}
@@ -82,14 +82,14 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 	if ep.BasicAuth != nil {
 		return nil, fmt.Errorf("basic auth in podmonitors not supported yet")
 	}
-	if cfg.HTTPClientConfig.OAuth2, err = cg.generateOAuth2(ep.OAuth2, m.Namespace); err != nil {
+	if cfg.HTTPClientConfig.OAuth2, err = cg.GenerateOAuth2(ep.OAuth2, m.Namespace); err != nil {
 		return nil, err
 	}
-	if cfg.HTTPClientConfig.Authorization, err = cg.generateSafeAuthorization(ep.Authorization, m.Namespace); err != nil {
+	if cfg.HTTPClientConfig.Authorization, err = cg.GenerateSafeAuthorization(ep.Authorization, m.Namespace); err != nil {
 		return nil, err
 	}
 
-	relabels := cg.initRelabelings(cfg)
+	relabels := cg.initRelabelings()
 	if ep.FilterRunning == nil || *ep.FilterRunning {
 		relabels.Add(&relabel.Config{
 			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_phase"},
@@ -248,13 +248,15 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 
 	labeler := namespacelabeler.New("", nil, false)
 	if err = relabels.addFromV1(labeler.GetRelabelingConfigs(m.TypeMeta, m.ObjectMeta, ep.RelabelConfigs)...); err != nil {
-		return nil, errors.Wrap(err, "Parsing relabelConfigs")
+		return nil, errors.Wrap(err, "Parsing relabel configs")
 	}
 
 	cfg.RelabelConfigs = relabels.configs
 
 	metricRelabels := relabeler{}
-	metricRelabels.addFromV1(labeler.GetRelabelingConfigs(m.TypeMeta, m.ObjectMeta, ep.MetricRelabelConfigs)...)
+	if err = metricRelabels.addFromV1(labeler.GetRelabelingConfigs(m.TypeMeta, m.ObjectMeta, ep.MetricRelabelConfigs)...); err != nil {
+		return nil, errors.Wrap(err, "Parsing metric relabel configs")
+	}
 	cfg.MetricRelabelConfigs = metricRelabels.configs
 
 	cfg.SampleLimit = uint(m.Spec.SampleLimit)

@@ -199,7 +199,7 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 			}
 			cfg, err := cg.generatePodMonitorConfig(tc.m, tc.ep, i)
 			require.NoError(t, err)
-			// check relabel configs seperately
+			// check relabel configs separately
 			rlcs := cfg.RelabelConfigs
 			mrlcs := cfg.MetricRelabelConfigs
 			cfg.RelabelConfigs = nil
@@ -209,7 +209,6 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 			assert.Equal(t, tc.expected, cfg)
 
 			checkRelabels := func(actual []*relabel.Config, expected string) {
-
 				// load the expected relabel rules as yaml so we get the defaults put in there.
 				ex := []*relabel.Config{}
 				err := yaml.Unmarshal([]byte(expected), &ex)
