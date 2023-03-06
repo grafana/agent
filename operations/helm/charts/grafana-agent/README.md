@@ -89,8 +89,8 @@ container. The list of available arguments is documented on [agent run][].
 
 [agent run]: https://grafana.com/docs/agent/latest/flow/reference/cli/run/
 
-
 ### agent.extraPorts
+
 `agent.extraPorts` allows for configuring specific open ports.
 
 The detained specification of ports can be found at the [Kubernetes Pod documents](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#ports).
