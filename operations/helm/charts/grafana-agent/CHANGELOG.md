@@ -16,6 +16,13 @@ Unreleased
 - Selectively template ClusterIP. (@aglees)
 - Add priorityClassName value. (@aglees)
 
+0.8.1 (2023-03-06)
+------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.32.1. (@erikbaranowski)
+
 0.8.0 (2023-02-28)
 ------------------
 
