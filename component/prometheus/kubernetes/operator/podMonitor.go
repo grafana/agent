@@ -8,7 +8,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/grafana/agent/pkg/util/k8sfs"
 	"github.com/pkg/errors"
 	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	namespacelabeler "github.com/prometheus-operator/prometheus-operator/pkg/namespace-labeler"
@@ -73,28 +72,22 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 		cfg.HTTPClientConfig.EnableHTTP2 = *ep.EnableHttp2
 	}
 	if ep.TLSConfig != nil {
-		cfg.HTTPClientConfig.TLSConfig = cg.generateSafeTLS(m.Namespace, ep.TLSConfig.SafeTLSConfig)
+		if cfg.HTTPClientConfig.TLSConfig, err = cg.generateSafeTLS(m.Namespace, ep.TLSConfig.SafeTLSConfig); err != nil {
+			return nil, err
+		}
 	}
 	if ep.BearerTokenSecret.Name != "" {
-		bts := ep.BearerTokenSecret
-		cfg.HTTPClientConfig.BearerTokenFile = k8sfs.SecretFilename(m.Namespace, bts.Name, bts.Key)
+		return nil, fmt.Errorf("bearer tokens in podmonitors not supported yet")
 	}
 	if ep.BasicAuth != nil {
-		// no way to lazily load username from file or pass it directly. We need to look up the secret right away
-		uname, err := cg.secretfs.ReadSecret(m.Namespace, ep.BasicAuth.Username.Name, ep.BasicAuth.Username.Key)
-		if err != nil {
-			return nil, errors.Wrap(err, "fetching basic auth username from secret")
-		}
-		cfg.HTTPClientConfig.BasicAuth = &commonConfig.BasicAuth{
-			Username:     uname,
-			PasswordFile: k8sfs.SecretFilename(m.Namespace, ep.BasicAuth.Password.Name, ep.BasicAuth.Password.Key),
-		}
+		return nil, fmt.Errorf("basic auth in podmonitors not supported yet")
 	}
-	cfg.HTTPClientConfig.OAuth2, err = cg.generateOAuth2(ep.OAuth2, m.Namespace)
-	if err != nil {
+	if cfg.HTTPClientConfig.OAuth2, err = cg.generateOAuth2(ep.OAuth2, m.Namespace); err != nil {
 		return nil, err
 	}
-	cfg.HTTPClientConfig.Authorization = cg.generateSafeAuthorization(ep.Authorization, m.Namespace)
+	if cfg.HTTPClientConfig.Authorization, err = cg.generateSafeAuthorization(ep.Authorization, m.Namespace); err != nil {
+		return nil, err
+	}
 
 	relabels := cg.initRelabelings(cfg)
 	if ep.FilterRunning == nil || *ep.FilterRunning {

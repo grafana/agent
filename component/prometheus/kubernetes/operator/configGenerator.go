@@ -3,11 +3,9 @@ package operator
 // SEE https://github.com/prometheus-operator/prometheus-operator/blob/main/pkg/prometheus/promcfg.go
 
 import (
+	"fmt"
 	"regexp"
-	"strings"
 
-	"github.com/grafana/agent/pkg/util/k8sfs"
-	"github.com/pkg/errors"
 	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	commonConfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
@@ -17,8 +15,7 @@ import (
 )
 
 type configGenerator struct {
-	config   *Arguments
-	secretfs k8sfs.SecretStore
+	config *Arguments
 }
 
 // the k8s sd config is mostly dependent on our local config for accessing the kubernetes cluster.
@@ -68,26 +65,23 @@ func (cg *configGenerator) generateK8SSDConfig(
 	return cfg
 }
 
-func (cg *configGenerator) generateSafeTLS(namespace string, tls v1.SafeTLSConfig) commonConfig.TLSConfig {
+func (cg *configGenerator) generateSafeTLS(namespace string, tls v1.SafeTLSConfig) (commonConfig.TLSConfig, error) {
 	tc := commonConfig.TLSConfig{}
 	tc.InsecureSkipVerify = tls.InsecureSkipVerify
-	if tls.CA.Secret != nil {
-		tc.CAFile = k8sfs.SecretFilename(namespace, tls.CA.Secret.Name, tls.CA.Secret.Key)
-	} else if tls.CA.ConfigMap != nil {
-		tc.CAFile = k8sfs.ConfigMapFilename(namespace, tls.CA.ConfigMap.Name, tls.CA.ConfigMap.Key)
+
+	if tls.CA.Secret != nil || tls.CA.ConfigMap != nil {
+		return tc, fmt.Errorf("loading ca certs no supported yet")
 	}
-	if tls.Cert.Secret != nil {
-		tc.CertFile = k8sfs.SecretFilename(namespace, tls.Cert.Secret.Name, tls.Cert.Secret.Key)
-	} else if tls.Cert.ConfigMap != nil {
-		tc.CertFile = k8sfs.ConfigMapFilename(namespace, tls.Cert.ConfigMap.Name, tls.Cert.ConfigMap.Key)
+	if tls.Cert.Secret != nil || tls.Cert.ConfigMap != nil {
+		return tc, fmt.Errorf("loading tls certs no supported yet")
 	}
 	if tls.KeySecret != nil {
-		tc.KeyFile = k8sfs.SecretFilename(namespace, tls.KeySecret.Name, tls.KeySecret.Key)
+		return tc, fmt.Errorf("loading tls certs no supported yet")
 	}
 	if tls.ServerName != "" {
 		tc.ServerName = tls.ServerName
 	}
-	return tc
+	return tc, nil
 }
 
 type relabeler struct {
@@ -177,43 +171,12 @@ func (cg *configGenerator) generateOAuth2(oauth2 *v1.OAuth2, ns string) (*common
 	if oauth2 == nil {
 		return nil, nil
 	}
-	var err error
-	oa2 := &commonConfig.OAuth2{}
-	// clientID cannot be passed as file, so we must read it directly now
-	if oauth2.ClientID.Secret != nil {
-		s := oauth2.ClientID.Secret
-		oa2.ClientID, err = cg.secretfs.ReadSecret(ns, s.Name, s.Key)
-	} else if oauth2.ClientID.ConfigMap != nil {
-		cm := oauth2.ClientID.ConfigMap
-		oa2.ClientID, err = cg.secretfs.ReadConfigMap(ns, cm.Name, cm.Key)
-	}
-	if err != nil {
-		return nil, errors.Wrap(err, "fetching oauth2 client id")
-	}
-	if oauth2.ClientSecret.Name != "" {
-		oa2.ClientSecretFile = k8sfs.SecretFilename(ns, oauth2.ClientSecret.Name, oauth2.ClientSecret.Key)
-	}
-	oa2.TokenURL = oauth2.TokenURL
-	if len(oauth2.Scopes) > 0 {
-		oa2.Scopes = oauth2.Scopes
-	}
-	if len(oauth2.EndpointParams) > 0 {
-		oa2.EndpointParams = oauth2.EndpointParams
-	}
-	return oa2, nil
+	return nil, fmt.Errorf("oauth2 not supported yet")
 }
 
-func (cg *configGenerator) generateSafeAuthorization(auth *v1.SafeAuthorization, ns string) *commonConfig.Authorization {
+func (cg *configGenerator) generateSafeAuthorization(auth *v1.SafeAuthorization, ns string) (*commonConfig.Authorization, error) {
 	if auth == nil {
-		return nil
+		return nil, nil
 	}
-	az := &commonConfig.Authorization{}
-	if auth.Type == "" {
-		auth.Type = "Bearer"
-	}
-	az.Type = strings.TrimSpace(auth.Type)
-	if auth.Credentials != nil {
-		az.CredentialsFile = k8sfs.SecretFilename(ns, auth.Credentials.Name, auth.Credentials.Key)
-	}
-	return az
+	return nil, fmt.Errorf("authorization not supported yet")
 }

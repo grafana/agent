@@ -4,7 +4,8 @@ title: prometheus.kubernetes.operator
 
 # prometheus.kubernetes.operator
 
-`prometheus.kubernetes.operator` 
+`prometheus.kubernetes.operator` discovers [podMonitor]() resources in your kubernetes cluster and scrape the targets they reference.
+
 
 ## Usage
 

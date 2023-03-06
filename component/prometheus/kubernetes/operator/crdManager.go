@@ -11,10 +11,8 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus"
-	"github.com/grafana/agent/pkg/util/k8sfs"
 	"github.com/pkg/errors"
 	promop "github.com/prometheus-operator/prometheus-operator/pkg/client/informers/externalversions"
-	promCommonConfig "github.com/prometheus/common/config"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
@@ -127,10 +125,8 @@ func (c *crdManager) run(ctx context.Context) error {
 		return errors.Wrap(err, "creating prometheus clientset")
 	}
 
-	fs := k8sfs.New(clientset)
 	c.cg = configGenerator{
-		config:   c.config,
-		secretfs: fs,
+		config: c.config,
 	}
 
 	for _, namespace := range c.config.Namespaces {
@@ -170,11 +166,7 @@ func (c *crdManager) run(ctx context.Context) error {
 	}()
 
 	flowAppendable := prometheus.NewFanout(c.config.ForwardTo, c.opts.ID, c.opts.Registerer)
-	opts := &scrape.Options{
-		HTTPClientOptions: []promCommonConfig.HTTPClientOption{
-			promCommonConfig.WithFS(fs),
-		},
-	}
+	opts := &scrape.Options{}
 	c.scraper = scrape.NewManager(opts, c.logger, flowAppendable)
 	defer c.scraper.Stop()
 	targetSetsChan := make(chan map[string][]*targetgroup.Group)
