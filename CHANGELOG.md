@@ -30,6 +30,14 @@ Main (unreleased)
 
 - Flow: Add retries with backoff logic to Phlare write component. (@cyriltovena)
 
+### Other changes
+
+- Grafana Agent Docker containers and release binaries are now published for
+  s390x. (@rfratto)
+
+v0.32.1 (2023-03-06)
+--------------------
+
 ### Bugfixes
 
 - Flow: Fixes slow reloading of targets in `phlare.scrape` component. (@cyriltovena)
@@ -42,11 +50,6 @@ Main (unreleased)
 - Flow: fix issue in `loki.source.kubernetes` where `__pod__uid__` meta label
   defaulted incorrectly to the container name, causing tailers to never
   restart. (@rfratto)
-
-### Other changes
-
-- Grafana Agent Docker containers and release binaries are now published for
-  s390x. (@rfratto)
 
 v0.32.0 (2023-02-28)
 --------------------
