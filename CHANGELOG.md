@@ -15,6 +15,8 @@ v0.32.1 (2023-03-06)
 
 ### Bugfixes
 
+- Flow: Fixes slow reloading of targets in `phlare.scrape` component. (@cyriltovena)
+
 - Flow: add a maximum connection lifetime of one hour when tailing logs from
   `loki.source.kubernetes` and `loki.source.podlogs` to recover from an issue
   where the Kubernetes API server stops responding with logs without closing
