@@ -144,6 +144,7 @@ require (
 	github.com/webdevops/azure-metrics-exporter v0.0.0-20221205214019-9333e682d754
 	github.com/webdevops/go-common v0.0.0-20221205213740-01078f6e07cd
 	github.com/wk8/go-ordered-map v0.2.0
+	github.com/xdg-go/scram v1.1.1
 	go.opencensus.io v0.24.0
 	go.opentelemetry.io/collector v0.63.1
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.63.0
@@ -550,7 +551,6 @@ require (
 	github.com/weaveworks/promrus v1.2.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.1 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
-	github.com/xdg-go/scram v1.1.1 // indirect
 	github.com/xdg-go/stringprep v1.0.3 // indirect
 	github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c // indirect
 	github.com/xdg/stringprep v1.0.0 // indirect
@@ -681,5 +681,3 @@ exclude (
 )
 
 replace github.com/github/smimesign => github.com/grafana/smimesign v0.2.1-0.20220408144937-2a5adf3481d3
-
-replace github.com/prometheus/common => github.com/grafana/prometheus-common v0.39.1-0.20230111192453-8c43edfa1d03
