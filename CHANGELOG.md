@@ -13,14 +13,6 @@ internal API changes are not present.
 v0.32.1 (2023-03-06)
 --------------------
 
-### Other changes
-
-- Grafana Agent Docker containers and release binaries are now published for
-  s390x. (@rfratto)
-
-v0.32.1 (2023-03-06)
---------------------
-
 ### Bugfixes
 
 - Flow: Fixes slow reloading of targets in `phlare.scrape` component. (@cyriltovena)
