@@ -14,11 +14,11 @@ func init() {
 		Name:    "prometheus.exporter.postgres",
 		Args:    Arguments{},
 		Exports: exporter.Exports{},
-		Build:   exporter.New(createIntegration, "postgres"),
+		Build:   exporter.New(createExporter, "postgres"),
 	})
 }
 
-func createIntegration(opts component.Options, args component.Arguments) (integrations.Integration, error) {
+func createExporter(opts component.Options, args component.Arguments) (integrations.Integration, error) {
 	cfg := args.(Arguments)
 	return cfg.Convert().NewIntegration(opts.Logger)
 }
@@ -26,8 +26,10 @@ func createIntegration(opts component.Options, args component.Arguments) (integr
 // DefaultArguments holds the default arguments for the prometheus.exporter.postgres
 // component.
 var DefaultArguments = Arguments{
-	DisableSettingsMetrics:  false,
-	AutodiscoverDatabases:   false,
+	DisableSettingsMetrics: false,
+	AutoDiscovery: AutoDiscovery{
+		Enabled: false,
+	},
 	DisableDefaultMetrics:   false,
 	CustomQueriesConfigPath: "",
 }
@@ -39,12 +41,20 @@ type Arguments struct {
 	// though it is not recommended to do so.
 	DataSourceNames []rivertypes.Secret `river:"data_source_names,attr,optional"`
 
-	DisableSettingsMetrics  bool     `river:"disable_settings_metrics,attr,optional"`
-	AutodiscoverDatabases   bool     `river:"autodiscover_databases,attr,optional"`
-	ExcludeDatabases        []string `river:"exclude_databases,attr,optional"`
-	IncludeDatabases        []string `river:"include_databases,attr,optional"`
-	DisableDefaultMetrics   bool     `river:"disable_default_metrics,attr,optional"`
-	CustomQueriesConfigPath string   `river:"custom_queries_config_path,attr,optional"`
+	// Attributes
+	DisableSettingsMetrics  bool   `river:"disable_settings_metrics,attr,optional"`
+	DisableDefaultMetrics   bool   `river:"disable_default_metrics,attr,optional"`
+	CustomQueriesConfigPath string `river:"custom_queries_config_path,attr,optional"`
+
+	// Blocks
+	AutoDiscovery AutoDiscovery `river:"autodiscovery,block,optional"`
+}
+
+// Autodiscovery controls discovery of databases outside any specified in DataSourceNames.
+type AutoDiscovery struct {
+	Enabled           bool     `river:"enabled,attr,optional"`
+	DatabaseAllowlist []string `river:"database_allowlist,attr,optional"`
+	DatabaseDenylist  []string `river:"database_denylist,attr,optional"`
 }
 
 // UnmarshalRiver implements River unmarshalling for Arguments.
@@ -59,9 +69,9 @@ func (a *Arguments) Convert() *postgres_exporter.Config {
 	return &postgres_exporter.Config{
 		DataSourceNames:        a.convertDataSourceNames(),
 		DisableSettingsMetrics: a.DisableSettingsMetrics,
-		AutodiscoverDatabases:  a.AutodiscoverDatabases,
-		ExcludeDatabases:       a.ExcludeDatabases,
-		IncludeDatabases:       a.IncludeDatabases,
+		AutodiscoverDatabases:  a.AutoDiscovery.Enabled,
+		ExcludeDatabases:       a.AutoDiscovery.DatabaseDenylist,
+		IncludeDatabases:       a.AutoDiscovery.DatabaseAllowlist,
 		DisableDefaultMetrics:  a.DisableDefaultMetrics,
 		QueryPath:              a.CustomQueriesConfigPath,
 	}

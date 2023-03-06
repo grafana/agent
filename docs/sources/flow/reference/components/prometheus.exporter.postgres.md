@@ -34,9 +34,6 @@ Name | Type | Description | Default | Required
 `data_source_names`                  | `list(secret)`      | Specifies the Postgres server(s) to connect to.  |         | yes
 `disable_settings_metrics`           | `bool`              | Disables collection of metrics from pg_settings. | `false` | no
 `disable_default_metrics`            | `bool`              | When `true`, only exposes metrics supplied from `custom_queries_path`. | `false` | no
-`autodiscover_databases`             | `bool`              | Whether to automatically discover databases to scrape metrics from. | `false` | no
-`exclude_databases`                  | `list(string)`      | A list of databases to ignore when `autodiscover_databases` is `true` | | no
-`include_databases`                  | `list(string)`      | Includes only specific databases (excluding all others) when autodiscover_databases is `true` | | no
 `custom_queries_config_path`         | `string`            | Path to YAML file containing custom queries to expose as metrics. | "" | no
 
 The format for connection strings in `data_source_names` can be found in the [official postgresql documentation](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING).
@@ -46,7 +43,28 @@ See examples for the `custom_queries_path` file in the [postgres_exporter reposi
 **NOTE**: There are a number of environment variables that are not recommended for use, as they will affect _all_ `prometheus.exporter.postgres` components. A full list can be found in the [postgres_exporter repository](https://github.com/prometheus-community/postgres_exporter#environment-variables).
 
 ## Blocks
-The `prometheus.exporter.postgres` component does not support any blocks, and is configured fully through arguments.
+The following blocks are supported:
+
+Hierarchy                    | Block             | Description                         | Required |
+---------------------------- | ----------------- | ----------------------------------- | -------- |
+autodiscovery                | [autodiscovery][] | Database discovery settings.        | no       |
+
+[autodiscovery]: #autodiscovery-block
+
+### autodiscovery block
+The `autodiscovery` block configures discovery of databases, outside of any specified in `data_source_names`.
+
+The following arguments are supported:
+
+Name                 | Type           | Description                                                   | Default | Required |
+-------------------- | -------------- | ------------------------------------------------------------- | ------- | -------- |
+`enabled`            | `bool`         | Whether to autodiscover other databases                       | `false` | no       |
+`database_allowlist` | `list(string)` | List of databases to filter for, meaning only these databases will be scraped. | | no
+`database_denylist`  | `list(string)` | List of databases to filter out, meaning all other databases will be scraped. | | no
+
+If `enabled` is set to `true` and no allowlist or denylist is specified, the exporter will scrape from all databases.
+
+If `autodiscovery` is disabled, neither `database_allowlist` nor `database_denylist` will have any effect.
 
 ## Exported fields
 The following fields are exported and can be referenced by other components:
@@ -80,6 +98,8 @@ This minimal example uses a `prometheus.exporter.postgres` component to collect 
 server running locally with all default settings:
 
 ```river
+// Because no autodiscovery is defined, this will only scrape the 'database_name' database, as defined
+// in the DSN below.
 prometheus.exporter.postgres "example" {
   data_source_names = ["postgresql://username:password@localhost:5432/database_name?sslmode=disable"]
 }
@@ -102,12 +122,45 @@ specific databases, replacing default metrics with custom metrics derived from q
 ```river
 prometheus.exporter.postgres "example" {
   data_source_names       = ["postgresql://username:password@localhost:5432/database_name?sslmode=disable"]
+
+  // This block configures autodiscovery to check for databases outside of the 'database_name' db
+  // specified in the DSN above. The database_allowlist field means that only the 'frontend_app' and 'backend_app'
+  // databases will be scraped.
+  autodiscovery {
+    enabled = true
+    database_allowlist = ["frontend_app", "backend_app"]
+  }
   
   disable_default_metrics = true
-  autodiscover_databases  = true
-
-  include_databases       = ["payments", "users"]
   custom_queries_path     = "/etc/agent/custom-postgres-metrics.yaml"
+}
+
+prometheus.scrape "default" {
+  targets    = prometheus.exporter.postgres.example.targets
+  forward_to = [prometheus.remote_write.default.receiver]
+}
+
+prometheus.remote_write "default" {
+  client {
+    url = env("PROMETHEUS_URL")
+  }
+}
+```
+
+This example uses a `prometheus.exporter.postgres` component to collect custom metrics from all databases except
+for the `secrets` database.
+```river
+prometheus.exporter.postgres "example" {
+  data_source_names       = ["postgresql://username:password@localhost:5432/database_name?sslmode=disable"]
+
+  // The database_denylist field will filter out those databases from the list of databases to scrape, 
+  // meaning that all databases *except* these will be scraped.
+  //
+  // In this example it will scrape all databases except for the one named 'secrets'.
+  autodiscovery {
+    enabled = true
+    database_denylist = ["secrets"]
+  }
 }
 
 prometheus.scrape "default" {
