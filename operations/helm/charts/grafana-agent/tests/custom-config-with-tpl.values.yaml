@@ -1,0 +1,44 @@
+agent:
+  configMap:
+    content: |-
+      integrations:
+        app_agent_receiver_configs:
+          - instance: faro-1
+            server:
+              host: "0.0.0.0"
+              port: {{ .Values.agent.faroPort }}
+          - instance: faro-2
+            server:
+              host: "0.0.0.0"
+              port: {{ (index .Values.agent.extraPorts 0).port }}
+
+  extraPorts:
+    - name: faro-2
+      port: 12348
+      targetPort: 12348
+      protocol: TCP
+
+
+ingress:
+  enabled: true
+  # Using ingress-nginx
+  ingressClassName: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+  path: /faro-1/(.*)
+
+  # pathType is only for k8s >= 1.1=
+  pathType: Prefix
+
+  hosts:
+    - rum.chart-example.local
+  ## Extra paths to prepend to every host configuration. This is useful when working with annotation based services.
+  extraPaths:
+    - path: /faro-2/(.*)
+      pathType: Prefix
+      backend:
+        service:
+          name: grafana-agent
+          port:
+            name: 12348

@@ -18,9 +18,12 @@ spec:
   {{- if .Values.controller.priorityClassName }}
   priorityClassName: {{ .Values.controller.priorityClassName }}
   {{- end }}
-  {{- with .Values.tolerations }}
+  {{- if .Values.controller.hostNetwork }}
+  hostNetwork: {{ .Values.controller.hostNetwork }}
+  {{- end }}
+  {{- with .Values.controller.tolerations }}
   tolerations:
-    {{- toYaml . | nindent 6 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
   volumes:
     - name: config

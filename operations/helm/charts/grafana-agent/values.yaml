@@ -40,6 +40,9 @@ agent:
   # -- Extra environment variables to pass to the agent container.
   extraEnv: []
 
+  # -- Environment variables from ConfigMaps and Secrets to pass to the agent container.
+  envFrom: []
+
   # -- Extra args to pass to `agent run`: https://grafana.com/docs/agent/latest/flow/reference/cli/run/
   extraArgs: []
 
@@ -103,6 +106,9 @@ controller:
   # -- Type of controller to use for deploying Grafana Agent in the cluster.
   # Must be one of 'daemonset', 'deployment', or 'statefulset'.
   type: 'daemonset'
+
+  # -- Use the host network interface instead of the CRI providing a new one
+  hostNetwork: false
 
   # -- Number of pods to deploy. Ignored when controller.type is 'daemonset'.
   replicas: 1

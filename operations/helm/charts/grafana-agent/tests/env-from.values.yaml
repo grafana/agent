@@ -1,0 +1,6 @@
+# Specify extra ports for verifying rendering the template works
+agent:
+  envFrom:
+    - secretRef:
+        name: my-faro-api-keys
+        optional: false

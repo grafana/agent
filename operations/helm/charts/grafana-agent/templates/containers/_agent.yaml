@@ -26,9 +26,13 @@
       valueFrom:
         fieldRef:
           fieldPath: spec.nodeName
-    {{- range .Values.agent.extraEnv }}
-    - {{- toYaml . | nindent 6 }}
+    {{- with .Values.agent.extraEnv }}
+    {{- toYaml . | nindent 4 }}
     {{- end }}
+  {{- with .Values.agent.envFrom }}
+  envFrom:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   ports:
     - containerPort: {{ .Values.agent.listenPort }}
       name: http-metrics

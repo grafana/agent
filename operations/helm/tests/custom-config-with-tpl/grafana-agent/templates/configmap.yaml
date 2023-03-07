@@ -1,0 +1,24 @@
+---
+# Source: grafana-agent/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-agent
+  labels:
+    helm.sh/chart: grafana-agent-0.9.0
+    app.kubernetes.io/name: grafana-agent
+    app.kubernetes.io/instance: grafana-agent
+    app.kubernetes.io/version: "v0.32.0"
+    app.kubernetes.io/managed-by: Helm
+data:
+  config.river:   |-
+    integrations:
+      app_agent_receiver_configs:
+        - instance: faro-1
+          server:
+            host: "0.0.0.0"
+            port: 12347
+        - instance: faro-2
+          server:
+            host: "0.0.0.0"
+            port: 12348

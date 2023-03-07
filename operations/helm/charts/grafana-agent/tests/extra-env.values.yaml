@@ -1,0 +1,7 @@
+# Specify extra ports for verifying rendering the template works
+agent:
+  extraEnv:
+    - name: APP
+      value: my-app
+    - name: VERSION
+      value: "0.0.1"
