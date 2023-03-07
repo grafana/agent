@@ -63,6 +63,7 @@ func (vm *Evaluator) Evaluate(scope *Scope, v interface{}) (err error) {
 		}
 		return vm.evaluateBlockOrBody(scope, assoc, node.Body, rv)
 	default:
+		//TODO: Why isn't "ast.Expr" another "case" in the switch statement?
 		expr, ok := node.(ast.Expr)
 		if !ok {
 			panic(fmt.Sprintf("river/vm: unexpected value type %T", node))
@@ -76,7 +77,7 @@ func (vm *Evaluator) Evaluate(scope *Scope, v interface{}) (err error) {
 }
 
 func (vm *Evaluator) evaluateBlockOrBody(scope *Scope, assoc map[value.Value]ast.Node, node ast.Node, rv reflect.Value) error {
-	// TODO(rfratto): the errors returned by this function are missing context to
+	// TODO(paulin): the errors returned by this function are missing context to
 	// be able to print line numbers. We need to return decorated error types.
 
 	// Before decoding the block, we need to temporarily take the address of rv
@@ -131,6 +132,9 @@ func (vm *Evaluator) evaluateBlockOrBody(scope *Scope, assoc map[value.Value]ast
 		Assoc:   assoc,
 		TagInfo: ti,
 	}
+	//TODO(ptodev): if Decode() returns an error which is not a diagnostic, we should assume that
+	// it was because the error applies to the whole block and we should repackage this error here
+	// as a diagnostic with the start and end position of the block.
 	return sd.Decode(stmts, rv)
 }
 
@@ -274,6 +278,7 @@ func (vm *Evaluator) evaluateExpr(scope *Scope, assoc map[value.Value]ast.Node, 
 			}
 			return res, nil
 		default:
+			//TODO (ptodev): Should we convert value.Error to diagnostic ?
 			return value.Null, value.Error{
 				Value: val,
 				Inner: fmt.Errorf("cannot access field %q on value of type %s", expr.Name.Name, val.Type()),
@@ -299,6 +304,7 @@ func (vm *Evaluator) evaluateExpr(scope *Scope, assoc map[value.Value]ast.Node, 
 			intIndex := int(idx.Int())
 
 			if intIndex < 0 || intIndex >= val.Len() {
+				//TODO (ptodev): Should we convert value.Error to diagnostic ?
 				return value.Null, value.Error{
 					Value: idx,
 					Inner: fmt.Errorf("index %d is out of range of array with length %d", intIndex, val.Len()),
@@ -324,6 +330,7 @@ func (vm *Evaluator) evaluateExpr(scope *Scope, assoc map[value.Value]ast.Node, 
 			return field, nil
 
 		default:
+			//TODO (ptodev): Should we convert value.Error to diagnostic ?
 			return value.Null, value.Error{
 				Value: val,
 				Inner: fmt.Errorf("expected object or array, got %s", val.Type()),

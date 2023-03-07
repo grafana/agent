@@ -23,11 +23,13 @@ func evalBinop(lhs value.Value, op token.Token, rhs value.Value) (value.Value, e
 
 	// The type of lhs and rhs must be acceptable for the binary operator.
 	if !acceptableBinopType(lhs, op) {
+		//TODO (ptodev): Should we convert value.Error to diagnostic ?
 		return value.Null, value.Error{
 			Value: lhs,
 			Inner: fmt.Errorf("should be one of %v for binop %s, got %s", binopAllowedTypes[op], op, lhs.Type()),
 		}
 	} else if !acceptableBinopType(rhs, op) {
+		//TODO (ptodev): Should we convert value.Error to diagnostic ?
 		return value.Null, value.Error{
 			Value: rhs,
 			Inner: fmt.Errorf("should be one of %v for binop %s, got %s", binopAllowedTypes[op], op, rhs.Type()),

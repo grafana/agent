@@ -22,6 +22,7 @@ func (te TypeError) Error() string {
 }
 
 // Error returns the message of the decode error.
+// TODO: Should we also include the "Value" in the output string?
 func (de Error) Error() string { return de.Inner.Error() }
 
 // MissingKeyError is used for reporting that a value is missing a key.

@@ -67,13 +67,13 @@ func (st *structDecoder) Decode(stmts ast.Body, rv reflect.Value) error {
 	for _, stmt := range stmts {
 		switch stmt := stmt.(type) {
 		case *ast.AttributeStmt:
-			// TODO(rfratto): append to list of diagnostics instead of aborting early.
+			// TODO(ptodev): append to list of diagnostics instead of aborting early.
 			if err := st.decodeAttr(stmt, rv, &state); err != nil {
 				return err
 			}
 
 		case *ast.BlockStmt:
-			// TODO(rfratto): append to list of diagnostics instead of aborting early.
+			// TODO(ptodev): append to list of diagnostics instead of aborting early.
 			if err := st.decodeBlock(stmt, rv, &state); err != nil {
 				return err
 			}
@@ -94,13 +94,15 @@ func (st *structDecoder) Decode(stmts ast.Body, rv reflect.Value) error {
 		switch {
 		case tf.IsAttr():
 			if _, consumed := state.SeenAttrs[fullName]; !consumed {
-				// TODO(rfratto): change to diagnostics.
+				// TODO(ptodev): Leave it as a normal error here,
+				// and let the calling function add the diagnostic position information?
 				return fmt.Errorf("missing required attribute %q", fullName)
 			}
 
 		case tf.IsBlock():
 			if _, consumed := state.SeenBlocks[fullName]; !consumed {
-				// TODO(rfratto): change to diagnostics.
+				// TODO(ptodev): Leave it as a normal error here,
+				// and let the calling function add the diagnostic position information?
 				return fmt.Errorf("missing required block %q", fullName)
 			}
 		}
@@ -171,7 +173,7 @@ func (st *structDecoder) decodeAttr(attr *ast.AttributeStmt, rv reflect.Value, s
 	// Decode the attribute.
 	val, err := st.VM.evaluateExpr(st.Scope, st.Assoc, attr.Value)
 	if err != nil {
-		// TODO(rfratto): get error as diagnostics.
+		// TODO(ptodev): get error as diagnostics.
 		return err
 	}
 
@@ -179,7 +181,7 @@ func (st *structDecoder) decodeAttr(attr *ast.AttributeStmt, rv reflect.Value, s
 	// need to also turn it back into a pointer for decoding.
 	field := reflectutil.GetOrAlloc(rv, tf)
 	if err := value.Decode(val, field.Addr().Interface()); err != nil {
-		// TODO(rfratto): get error as diagnostics.
+		// TODO(ptodev): get error as diagnostics.
 		return err
 	}
 
@@ -233,7 +235,7 @@ func (st *structDecoder) decodeNormalBlock(fullName string, block *ast.BlockStmt
 		decodeElement := prepareDecodeValue(decodeField.Index(blockIndex))
 		err := st.VM.evaluateBlockOrBody(st.Scope, st.Assoc, block, decodeElement)
 		if err != nil {
-			// TODO(rfratto): get error as diagnostics.
+			// TODO(ptodev): get error as diagnostics.
 			return err
 		}
 
@@ -259,7 +261,7 @@ func (st *structDecoder) decodeNormalBlock(fullName string, block *ast.BlockStmt
 		decodeElement := prepareDecodeValue(decodeField.Index(blockIndex))
 		err := st.VM.evaluateBlockOrBody(st.Scope, st.Assoc, block, decodeElement)
 		if err != nil {
-			// TODO(rfratto): get error as diagnostics.
+			// TODO(ptodev): get error as diagnostics.
 			return err
 		}
 
@@ -275,7 +277,7 @@ func (st *structDecoder) decodeNormalBlock(fullName string, block *ast.BlockStmt
 
 		err := st.VM.evaluateBlockOrBody(st.Scope, st.Assoc, block, decodeField)
 		if err != nil {
-			// TODO(rfratto): get error as diagnostics.
+			// TODO(ptodev): get error as diagnostics.
 			return err
 		}
 	}

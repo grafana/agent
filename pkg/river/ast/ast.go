@@ -15,7 +15,7 @@ type Node interface {
 	astNode()
 }
 
-// Stmt is a type of statement wthin the body of a file or block.
+// Stmt is a type of statement within the body of a file or block.
 type Stmt interface {
 	Node
 	astStmt()
