@@ -10,6 +10,19 @@ internal API changes are not present.
 Unreleased
 ----------
 
+0.9.0 (2023-03-07)
+------------------
+
+### Enhancements
+
+- Add `agent.envFrom` value. (@carlosjgp)
+- Add `controller.hostNetwork` value. (@carlosjgp)
+
+### Bugfixes
+
+- Match `values.yaml` with value used on templates. `tolerations` => `controller.tolerations`. (@carlosjgp)
+- Fix indentation for `agent.extraEnv`. (@carlosjgp)
+
 0.8.1 (2023-03-06)
 ------------------
 
