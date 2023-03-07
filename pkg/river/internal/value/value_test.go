@@ -21,7 +21,7 @@ func TestInterfacePointerReceiver(t *testing.T) {
 		require.Equal(t, "Hello, world!", val.Text())
 	})
 
-	t.Run("From field", func(t *testing.T) {
+	t.Run("Struct Encode Key", func(t *testing.T) {
 		type Body struct {
 			Data pointerMarshaler `river:"data,attr"`
 		}
@@ -35,6 +35,26 @@ func TestInterfacePointerReceiver(t *testing.T) {
 		require.True(t, ok, "data key did not exist")
 		require.Equal(t, value.TypeString, val.Type())
 		require.Equal(t, "Hello, world!", val.Text())
+
+		val, ok = bodyVal.Key("missing")
+		require.False(t, ok, "missing key should not exist")
+		require.Equal(t, value.Null, val)
+	})
+
+	t.Run("Map Encode Key", func(t *testing.T) {
+		mapVar := map[string]string{"data": "Data"}
+
+		bodyVal := value.Encode(mapVar)
+		require.Equal(t, value.TypeObject, bodyVal.Type())
+
+		val, ok := bodyVal.Key("data")
+		require.True(t, ok, "data key did not exist")
+		require.Equal(t, value.TypeString, val.Type())
+		require.Equal(t, "Data", val.Text())
+
+		val, ok = bodyVal.Key("missing")
+		require.False(t, ok, "missing key should not exist")
+		require.Equal(t, value.Null, val)
 	})
 }
 
