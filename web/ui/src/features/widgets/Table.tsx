@@ -15,7 +15,7 @@ interface Props {
 const Table = ({ tableHeaders, style = {}, renderTableData }: Props) => {
   return (
     <table className={styles.table}>
-      <col span={1} style={style} />
+      <colgroup span={1} style={style} />
       <tbody>
         <tr>
           {tableHeaders.map((header) => (
