@@ -8,7 +8,6 @@ import (
 )
 
 func TestMap(t *testing.T) {
-
 	tt := []struct {
 		name    string
 		testMap map[string]interface{}
