@@ -68,3 +68,15 @@ Full reference of options:
   [role: <string> | default = "ACCOUNTADMIN"]
 
 ```
+## Quick configuration example
+
+```yaml
+integrations:
+  snowflake:
+    enabled: true
+    account_name: XXXXXXX-YYYYYYY
+    username: snowflake-user
+    password: snowflake-pass
+    warehouse: SNOWFLAKE_WAREHOUSE
+    role: ACCOUNTADMIN
+```
