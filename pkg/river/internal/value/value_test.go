@@ -13,55 +13,95 @@ import (
 // implement an interface for a pointer receiver are retained correctly
 // throughout values.
 func TestInterfacePointerReceiver(t *testing.T) {
-	t.Run("Encode", func(t *testing.T) {
-		pm := &pointerMarshaler{}
+	tt := []struct {
+		name         string
+		encodeTarget any
+		key          string
 
-		val := value.Encode(pm)
-		require.Equal(t, value.TypeString, val.Type())
-		require.Equal(t, "Hello, world!", val.Text())
-	})
+		expectBodyType value.Type
+		expectBodyText string
 
-	t.Run("Struct Encode Key", func(t *testing.T) {
-		type Body struct {
-			Data pointerMarshaler `river:"data,attr"`
-		}
+		expectKeyExists bool
+		expectKeyValue  value.Value
+		expectKeyType   value.Type
+	}{
+		{
+			name:           "Encode",
+			encodeTarget:   &pointerMarshaler{},
+			expectBodyType: value.TypeString,
+			expectBodyText: "Hello, world!",
+		},
+		{
+			name:            "Struct Encode data Key",
+			encodeTarget:    &Body{},
+			key:             "data",
+			expectBodyType:  value.TypeObject,
+			expectKeyExists: true,
+			expectKeyValue:  value.String("Hello, world!"),
+			expectKeyType:   value.TypeString,
+		},
+		{
+			name:            "Struct Encode Missing Key",
+			encodeTarget:    &Body{},
+			key:             "missing",
+			expectBodyType:  value.TypeObject,
+			expectKeyExists: false,
+			expectKeyValue:  value.Null,
+			expectKeyType:   value.TypeNull,
+		},
+		{
+			name:            "Map Encode data Key",
+			encodeTarget:    map[string]string{"data": "Hello, world!"},
+			key:             "data",
+			expectBodyType:  value.TypeObject,
+			expectKeyExists: true,
+			expectKeyValue:  value.String("Hello, world!"),
+			expectKeyType:   value.TypeString,
+		},
+		{
+			name:            "Map Encode Missing Key",
+			encodeTarget:    map[string]string{"data": "Hello, world!"},
+			key:             "missing",
+			expectBodyType:  value.TypeObject,
+			expectKeyExists: false,
+			expectKeyValue:  value.Null,
+			expectKeyType:   value.TypeNull,
+		},
+	}
 
-		b := &Body{}
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			bodyVal := value.Encode(tc.encodeTarget)
+			require.Equal(t, tc.expectBodyType, bodyVal.Type())
+			if tc.expectBodyText != "" {
+				require.Equal(t, "Hello, world!", bodyVal.Text())
+			}
 
-		bodyVal := value.Encode(b)
-		require.Equal(t, value.TypeObject, bodyVal.Type())
-
-		val, ok := bodyVal.Key("data")
-		require.True(t, ok, "data key did not exist")
-		require.Equal(t, value.TypeString, val.Type())
-		require.Equal(t, "Hello, world!", val.Text())
-
-		val, ok = bodyVal.Key("missing")
-		require.False(t, ok, "missing key should not exist")
-		require.Equal(t, value.Null, val)
-	})
-
-	t.Run("Map Encode Key", func(t *testing.T) {
-		mapVar := map[string]string{"data": "Data"}
-
-		bodyVal := value.Encode(mapVar)
-		require.Equal(t, value.TypeObject, bodyVal.Type())
-
-		val, ok := bodyVal.Key("data")
-		require.True(t, ok, "data key did not exist")
-		require.Equal(t, value.TypeString, val.Type())
-		require.Equal(t, "Data", val.Text())
-
-		val, ok = bodyVal.Key("missing")
-		require.False(t, ok, "missing key should not exist")
-		require.Equal(t, value.Null, val)
-	})
+			if tc.key != "" {
+				val, ok := bodyVal.Key(tc.key)
+				require.Equal(t, tc.expectKeyExists, ok)
+				require.Equal(t, tc.expectKeyType, val.Type())
+				switch val.Type() {
+				case value.TypeString:
+					require.Equal(t, tc.expectKeyValue.Text(), val.Text())
+				case value.TypeNull:
+					require.Equal(t, tc.expectKeyValue, val)
+				default:
+					require.Fail(t, "unexpected value type (this switch can be expanded)")
+				}
+			}
+		})
+	}
 }
 
 type pointerMarshaler struct{}
 
 func (*pointerMarshaler) MarshalText() ([]byte, error) {
 	return []byte("Hello, world!"), nil
+}
+
+type Body struct {
+	Data pointerMarshaler `river:"data,attr"`
 }
 
 func TestValue_Call(t *testing.T) {
