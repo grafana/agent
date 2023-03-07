@@ -10,11 +10,15 @@ internal API changes are not present.
 Unreleased
 ----------
 
+0.8.1 (2023-03-06)
+------------------
+
 ### Enhancements
 
 - Add hostPort specification to extraPorts and extraPort documentation. (@pnathan)
 - Selectively template ClusterIP. (@aglees)
 - Add priorityClassName value. (@aglees)
+- Update Grafana Agent version to v0.32.1. (@erikbaranowski)
 
 0.8.0 (2023-02-28)
 ------------------

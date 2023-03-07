@@ -1,6 +1,6 @@
 # Grafana Agent Helm chart
 
-![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.9.0](https://img.shields.io/badge/Version-0.9.0-informational?style=flat-square) ![AppVersion: v0.32.0](https://img.shields.io/badge/AppVersion-v0.32.0-informational?style=flat-square)
+![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.9.0](https://img.shields.io/badge/Version-0.9.0-informational?style=flat-square) ![AppVersion: v0.32.1](https://img.shields.io/badge/AppVersion-v0.32.1-informational?style=flat-square)
 
 Helm chart for deploying [Grafana Agent][] to Kubernetes.
 
@@ -91,8 +91,8 @@ container. The list of available arguments is documented on [agent run][].
 
 [agent run]: https://grafana.com/docs/agent/latest/flow/reference/cli/run/
 
-
 ### agent.extraPorts
+
 `agent.extraPorts` allows for configuring specific open ports.
 
 The detained specification of ports can be found at the [Kubernetes Pod documents](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#ports).
