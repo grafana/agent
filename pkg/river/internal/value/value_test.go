@@ -62,6 +62,15 @@ func TestEncodeKeyLookup(t *testing.T) {
 			expectKeyValue:  value.Null,
 			expectKeyType:   value.TypeNull,
 		},
+		{
+			name:            "Map Encode empty value Key",
+			encodeTarget:    map[string]string{"data": ""},
+			key:             "data",
+			expectBodyType:  value.TypeObject,
+			expectKeyExists: true,
+			expectKeyValue:  value.String(""),
+			expectKeyType:   value.TypeString,
+		},
 	}
 
 	for _, tc := range tt {
