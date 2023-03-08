@@ -10,9 +10,15 @@ internal API changes are not present.
 Unreleased
 ----------
 
+
+0.9.0 (2023-03-14)
+------------------
+
 ### Enhancements
 
+- Add PodMonitors, ServiceMonitors, and Probes to the agent ClusterRole. (@captncraig)
 - Add podLabels values. (@therealmanny)
+
 
 0.8.1 (2023-03-06)
 ------------------
