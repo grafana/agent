@@ -121,6 +121,8 @@ controller:
 
   # -- Affinity configuration for pods.
   affinity: {}
+  # -- Extra pod labels to add.
+  podLabels: {}
 
   volumes:
     # -- Extra volumes to add to the Grafana Agent pod.
