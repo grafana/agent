@@ -36,6 +36,7 @@ var DefaultConfig = Config{
 	SetClientName:           true,
 	CheckKeyGroupsBatchSize: 10000,
 	MaxDistinctKeyGroups:    100,
+	RedactConfigMetrics:     true,
 }
 
 type Config struct {
