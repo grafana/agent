@@ -20,11 +20,11 @@ func init() {
 }
 
 type Component struct {
-	opts   component.Options
+	mut    sync.Mutex
 	config *Arguments
 
 	onUpdate chan struct{}
-	mut      sync.Mutex
+	opts     component.Options
 }
 
 func New(o component.Options, args component.Arguments) (*Component, error) {

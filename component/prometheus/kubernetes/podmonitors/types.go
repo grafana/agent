@@ -17,7 +17,7 @@ type Arguments struct {
 	Namespaces []string `river:"namespaces,attr,optional"`
 
 	// LabelSelector allows filtering discovered monitor resources by labels
-	LabelSelector string `river:"label_selector,attr,optional"`
+	LabelSelector *config.LabelSelector `river:"label_selector,block,optional"`
 
 	// FieldSelector allows filtering discovered monitor resources by fields
 	FieldSelector string `river:"field_selector,attr,optional"`
@@ -30,6 +30,8 @@ var DefaultArguments = Arguments{
 }
 
 func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+	*args = DefaultArguments
+
 	type arguments Arguments
 	if err := f((*arguments)(args)); err != nil {
 		return err
