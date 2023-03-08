@@ -25,10 +25,10 @@ type Arguments struct {
 	Namespaces []string `river:"namespaces,attr,optional"`
 
 	// LabelSelector allows filtering discovered monitor resources by labels
-	LabelSelector string `river:"label_selector,optional"`
+	LabelSelector string `river:"label_selector,attr,optional"`
 
 	// FieldSelector allows filtering discovered monitor resources by fields
-	FieldSelector string `river:"field_selector,optional"`
+	FieldSelector string `river:"field_selector,attr,optional"`
 }
 
 func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {

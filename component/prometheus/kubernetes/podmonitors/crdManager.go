@@ -12,13 +12,11 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/pkg/errors"
-	promop "github.com/prometheus-operator/prometheus-operator/pkg/client/informers/externalversions"
+	informers "github.com/prometheus-operator/prometheus-operator/pkg/client/informers/externalversions"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/scrape"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 
 	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
@@ -118,11 +116,7 @@ func (c *crdManager) run(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "creating rest config")
 	}
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		return errors.Wrap(err, "creating rest client")
-	}
-	promClientset := versioned.New(clientset.RESTClient())
+	promClientset, err := versioned.NewForConfig(config)
 	if err != nil {
 		return errors.Wrap(err, "creating prometheus clientset")
 	}
@@ -132,10 +126,10 @@ func (c *crdManager) run(ctx context.Context) error {
 	}
 
 	for _, namespace := range c.config.Namespaces {
-		factory := promop.NewSharedInformerFactoryWithOptions(promClientset,
+		factory := informers.NewSharedInformerFactoryWithOptions(promClientset,
 			5*time.Minute,
-			promop.WithNamespace(namespace),
-			promop.WithTweakListOptions(func(opts *metav1.ListOptions) {
+			informers.WithNamespace(namespace),
+			informers.WithTweakListOptions(func(opts *metav1.ListOptions) {
 				if c.config.FieldSelector != "" {
 					opts.FieldSelector = c.config.FieldSelector
 				}
