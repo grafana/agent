@@ -64,7 +64,7 @@ func main() {
 	}
 
 	// After this point we can start using go-kit logging.
-	logger = server.NewLogger(&cfg.Server)
+	logger = server.NewLogger(cfg.Server)
 	util_log.Logger = logger
 
 	ep, err := NewEntrypoint(logger, cfg, reloader)

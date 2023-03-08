@@ -17,23 +17,17 @@ import (
 )
 
 var testLogfmtRiverSingleStageWithoutSource = `
-stage {
-	logfmt {
+stage.logfmt {
 		mapping = { "out" = "message", "app" = "", "duration" = "", "unknown" = "" }
-	}
 }`
 
 var testLogfmtRiverMultiStageWithSource = `
-stage {
-	logfmt {
+stage.logfmt {
 		mapping = { "extra" = "" }
-	}
 }
-stage {
-	logfmt {
+stage.logfmt {
 		mapping = { "user" = "" }
 		source  = "extra"
-	}
 }`
 
 func TestLogfmt(t *testing.T) {

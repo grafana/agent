@@ -77,7 +77,7 @@ type Arguments struct {
 	// scrape to fail.
 	LabelValueLengthLimit uint `river:"label_value_length_limit,attr,optional"`
 
-	HTTPClientConfig component_config.HTTPClientConfig `river:"http_client_config,block,optional"`
+	HTTPClientConfig component_config.HTTPClientConfig `river:",squash"`
 
 	// Scrape Options
 	ExtraMetrics bool `river:"extra_metrics,attr,optional"`
@@ -99,7 +99,13 @@ func (arg *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	*arg = DefaultArguments
 
 	type args Arguments
-	return f((*args)(arg))
+	err := f((*args)(arg))
+	if err != nil {
+		return err
+	}
+
+	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
+	return arg.HTTPClientConfig.Validate()
 }
 
 // Component implements the prometheus.scrape component.

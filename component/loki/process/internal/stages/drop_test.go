@@ -21,38 +21,28 @@ import (
 
 // Not all these are tested but are here to make sure the different types marshal without error
 var testDropRiver = `
-stage {
-	json {
+stage.json {
 		expressions = { "app" = "", "msg" = "" }
-	}
 }
 
-stage {
-	drop {
+stage.drop {
 		source      = "src"
 		expression  = ".*test.*"
 		older_than  = "24h"
 		longer_than = "8KB"
-	}
 }
 
-stage {
-	drop {
+stage.drop {
 		expression = ".*app1.*"
-	}
 }
 
-stage {
-	drop {
+stage.drop {
 		source = "app"
 		value  = "loki"
-	}
 }
 
-stage {
-	drop {
+stage.drop {
 		longer_than = "10000B"
-	}
 }
 `
 

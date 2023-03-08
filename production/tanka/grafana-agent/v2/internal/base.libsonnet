@@ -11,8 +11,8 @@ function(name='grafana-agent', namespace='') {
   local this = self,
 
   _images:: {
-    agent: 'grafana/agent:v0.31.2',
-    agentctl: 'grafana/agentctl:v0.31.2',
+    agent: 'grafana/agent:v0.32.1',
+    agentctl: 'grafana/agentctl:v0.32.1',
   },
   _config:: {
     name: name,

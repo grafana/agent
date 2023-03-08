@@ -205,7 +205,7 @@ func TestScopeWithFailingComponent(t *testing.T) {
 	diags := applyFromContent(t, l, []byte(testFile))
 	require.Error(t, diags.ErrorOrNil())
 	require.Len(t, diags, 1)
-	require.True(t, strings.Contains(diags.Error(), "Failed to build component: decoding River: missing required attribute \"frequency\""))
+	require.True(t, strings.Contains(diags.Error(), `unrecognized attribute name "frequenc"`))
 }
 
 func applyFromContent(t *testing.T, l *controller.Loader, bb []byte) diag.Diagnostics {

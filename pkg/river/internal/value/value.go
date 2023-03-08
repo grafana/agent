@@ -332,7 +332,7 @@ func (v Value) Keys() []string {
 
 		keys := make([]string, v.rv.Len())
 		for i := range keys {
-			keys[i] = reflectutil.FieldWalk(v.rv.Index(i), labelField.Index, false).String()
+			keys[i] = reflectutil.Get(v.rv.Index(i), labelField).String()
 		}
 		return keys
 
@@ -378,7 +378,7 @@ func (v Value) Key(key string) (index Value, ok bool) {
 		for i := 0; i < v.rv.Len(); i++ {
 			elem := v.rv.Index(i)
 
-			label := reflectutil.FieldWalk(elem, labelField.Index, false).String()
+			label := reflectutil.Get(elem, labelField).String()
 			if label == key {
 				// We discard the label since the key here represents the label value.
 				ws := wrapStruct(elem, false)

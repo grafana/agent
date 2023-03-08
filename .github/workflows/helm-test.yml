@@ -14,7 +14,7 @@ jobs:
             -u "$(id -u)" \
             jnorwood/helm-docs
           if ! git diff --exit-code; then
-            echo "Helm chart documentation is not up to date. Please run make generate-helm-docs and commit changes!" >&2
+            echo "Helm chart documentation is not up to date. Please run 'make generate-helm-docs' and commit changes!" >&2
             exit 1
           fi
 
@@ -32,12 +32,9 @@ jobs:
       - name: Regenerate tests
         run: |
           make generate-helm-tests
-          if ! git diff --exit-code; then
-            echo "Helm chart tests are not up to date. Please run make generate-helm-tests and commit changes!" >&2
-            exit 1
-          fi
           if [ ! -z "$(git status --porcelain)" ]; then
-            echo "Unbuilt chart tests found. Please run make generate-helm-tests and commit changes!" >&2
+            echo "Helm chart tests are not up to date. Please run 'make generate-helm-tests' and commit changes!" >&2
+            exit 1
           fi
 
   lint-test:

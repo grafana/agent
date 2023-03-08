@@ -1,6 +1,7 @@
 {{- define "grafana-agent.container" -}}
 - name: grafana-agent
   image: {{ .Values.image.repository }}:{{ include "grafana-agent.imageTag" . }}
+  imagePullPolicy: {{ .Values.image.pullPolicy }}
   args:
     {{- if eq .Values.agent.mode "flow"}}
     - run
@@ -35,6 +36,9 @@
       name: faro
     {{- range $portMap := .Values.agent.extraPorts }}
     - containerPort: {{ $portMap.targetPort }}
+      {{- if $portMap.hostPort }}
+      hostPort: {{ $portMap.hostPort }}
+      {{- end}}
       name: {{ $portMap.name }}
       protocol: {{ coalesce $portMap.protocol "TCP" }}
     {{- end }}

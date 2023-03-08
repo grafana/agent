@@ -15,6 +15,9 @@ spec:
   containers:
     {{- include "grafana-agent.container" . | nindent 6 }}
     {{- include "grafana-agent.watch-container" . | nindent 6 }}
+  {{- if .Values.controller.priorityClassName }}
+  priorityClassName: {{ .Values.controller.priorityClassName }}
+  {{- end }}
   {{- with .Values.tolerations }}
   tolerations:
     {{- toYaml . | nindent 6 }}

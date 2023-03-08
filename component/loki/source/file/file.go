@@ -50,12 +50,13 @@ type Component struct {
 	opts    component.Options
 	metrics *metrics
 
-	mut       sync.RWMutex
-	args      Arguments
-	handler   loki.LogsReceiver
-	receivers []loki.LogsReceiver
-	posFile   positions.Positions
-	readers   map[positions.Entry]reader
+	mut          sync.RWMutex
+	args         Arguments
+	handler      loki.LogsReceiver
+	entryHandler loki.EntryHandler
+	receivers    []loki.LogsReceiver
+	posFile      positions.Positions
+	readers      map[positions.Entry]reader
 }
 
 // New creates a new loki.source.file component.
@@ -98,10 +99,17 @@ func New(o component.Options, args Arguments) (*Component, error) {
 // Update()? Or should it be a responsibility of the discovery component?
 func (c *Component) Run(ctx context.Context) error {
 	defer func() {
-		level.Info(c.opts.Logger).Log("msg", "loki.source.file component shutting down, stopping readers")
+		level.Info(c.opts.Logger).Log("msg", "loki.source.file component shutting down, stopping readers and positions file")
+		c.mut.RLock()
 		for _, r := range c.readers {
 			r.Stop()
 		}
+		c.posFile.Stop()
+		if c.entryHandler != nil {
+			c.entryHandler.Stop()
+		}
+		close(c.handler)
+		c.mut.RUnlock()
 	}()
 
 	for {
@@ -109,9 +117,11 @@ func (c *Component) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case entry := <-c.handler:
+			c.mut.RLock()
 			for _, receiver := range c.receivers {
 				receiver <- entry
 			}
+			c.mut.RUnlock()
 		}
 	}
 }
@@ -146,6 +156,9 @@ func (c *Component) Update(args component.Arguments) error {
 		r.Stop()
 	}
 	c.readers = make(map[positions.Entry]reader)
+	if c.entryHandler != nil {
+		c.entryHandler.Stop()
+	}
 
 	if len(newArgs.Targets) == 0 {
 		level.Debug(c.opts.Logger).Log("msg", "no files targets were passed, nothing will be tailed")
@@ -170,9 +183,9 @@ func (c *Component) Update(args component.Arguments) error {
 		}
 
 		c.reportSize(path, labels.String())
-		handler := loki.AddLabelsMiddleware(labels).Wrap(loki.NewEntryHandler(c.handler, func() {}))
+		c.entryHandler = loki.AddLabelsMiddleware(labels).Wrap(loki.NewEntryHandler(c.handler, func() {}))
 
-		reader, err := c.startTailing(path, labels, handler)
+		reader, err := c.startTailing(path, labels, c.entryHandler)
 		if err != nil {
 			continue
 		}

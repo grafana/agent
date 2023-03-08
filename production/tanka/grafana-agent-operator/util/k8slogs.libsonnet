@@ -25,7 +25,7 @@ local r = pl.spec.relabelings;
         r.withTargetLabel('pod'),
 
         r.withAction('replace') +
-        r.withSourceLabels('__meta_kubernetes_container_name') +
+        r.withSourceLabels('__meta_kubernetes_pod_container_name') +
         r.withTargetLabel('container'),
 
         r.withReplacement('/var/log/pods/*$1/*.log') +

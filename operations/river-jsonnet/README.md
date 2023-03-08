@@ -8,7 +8,7 @@ To manifest a River configuration file, call `river.manifestRiver(value)`.
 Field names from objects are expected to follow one of the three forms:
 
 * `<name>` for River attributes (e.g., `foobar`).
-* `block <name>` for unlabeled River blocks (e.g., `block exporter.node`)
+* `block <name>` for unlabeled River blocks (e.g., `block exporter.unix`)
 * `block <name> <label>` for labeled River blocks (.e.g, `block prometheus.remote_write default`).
 
 Instead of following these naming conventions, helper functions are provided to

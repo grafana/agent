@@ -13,7 +13,8 @@ collect metrics from [Azure Monitor](https://azure.microsoft.com/en-us/products/
 exporter uses [Azure Resource Graph](https://azure.microsoft.com/en-us/get-started/azure-portal/resource-graph/#overview) 
 queries to identify resources for gathering metrics. 
 
-The exporter supports all metrics defined by [Azure Monitor](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/metrics-supported).
+## List of Supported Services and Metrics
+The exporter supports all metrics defined by Azure Monitor. The complete list of available metrics can be found in the [Azure Monitor documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/metrics-supported).
 Metrics for this integration are exposed with the template `azure_{type}_{metric}_{aggregation}_{unit}`. As an example,
 the Egress metric for BlobService would be exported as `azure_microsoft_storage_storageaccounts_blobservices_egress_total_bytes`.
 

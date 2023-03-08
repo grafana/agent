@@ -11,7 +11,7 @@ type Arguments struct {
 	Address              string                  `river:"address,attr"`
 	TenantID             string                  `river:"tenant_id,attr,optional"`
 	UseLegacyRoutes      bool                    `river:"use_legacy_routes,attr,optional"`
-	HTTPClientConfig     config.HTTPClientConfig `river:"http_client_config,block,optional"`
+	HTTPClientConfig     config.HTTPClientConfig `river:",squash"`
 	SyncInterval         time.Duration           `river:"sync_interval,attr,optional"`
 	MimirNameSpacePrefix string                  `river:"mimir_namespace_prefix,attr,optional"`
 
@@ -22,6 +22,7 @@ type Arguments struct {
 var DefaultArguments = Arguments{
 	SyncInterval:         30 * time.Second,
 	MimirNameSpacePrefix: "agent",
+	HTTPClientConfig:     config.DefaultHTTPClientConfig,
 }
 
 func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
@@ -39,7 +40,8 @@ func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 		return fmt.Errorf("mimir_namespace_prefix must not be empty")
 	}
 
-	return nil
+	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
+	return args.HTTPClientConfig.Validate()
 }
 
 type LabelSelector struct {

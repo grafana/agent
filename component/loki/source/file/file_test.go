@@ -13,15 +13,16 @@ import (
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 )
 
 func Test(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
 	// Create opts for component
 	l, err := logging.New(os.Stderr, logging.DefaultOptions)
 	require.NoError(t, err)
-	dataPath, err := os.MkdirTemp("", "loki.source.file")
-	require.NoError(t, err)
-	defer os.RemoveAll(dataPath) // clean up
+	dataPath := t.TempDir()
 
 	opts := component.Options{Logger: l, DataPath: dataPath}
 
@@ -29,7 +30,6 @@ func Test(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer os.Remove(f.Name())
 	defer f.Close()
 
 	ch1, ch2 := make(chan loki.Entry), make(chan loki.Entry)
@@ -40,7 +40,9 @@ func Test(t *testing.T) {
 	c, err := New(opts, args)
 	require.NoError(t, err)
 
-	go c.Run(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go c.Run(ctx)
 	time.Sleep(100 * time.Millisecond)
 
 	_, err = f.Write([]byte("writing some text\n"))
@@ -64,4 +66,64 @@ func Test(t *testing.T) {
 			require.FailNow(t, "failed waiting for log line")
 		}
 	}
+}
+
+func TestTwoTargets(t *testing.T) {
+	// Create opts for component
+	l, err := logging.New(os.Stderr, logging.DefaultOptions)
+	require.NoError(t, err)
+	dataPath := t.TempDir()
+
+	opts := component.Options{Logger: l, DataPath: dataPath}
+
+	f, err := os.CreateTemp(dataPath, "example")
+	if err != nil {
+		log.Fatal(err)
+	}
+	f2, err := os.CreateTemp(dataPath, "example2")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	defer f2.Close()
+
+	ch1 := make(chan loki.Entry)
+	args := Arguments{}
+	args.Targets = []discovery.Target{
+		{"__path__": f.Name(), "foo": "bar"},
+		{"__path__": f2.Name(), "foo": "bar2"},
+	}
+	args.ForwardTo = []loki.LogsReceiver{ch1}
+
+	c, err := New(opts, args)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go c.Run(ctx)
+	time.Sleep(100 * time.Millisecond)
+
+	_, err = f.Write([]byte("text\n"))
+	require.NoError(t, err)
+
+	_, err = f2.Write([]byte("text2\n"))
+	require.NoError(t, err)
+
+	foundF1, foundF2 := false, false
+	for i := 0; i < 2; i++ {
+		select {
+		case logEntry := <-ch1:
+			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
+			if logEntry.Line == "text" {
+				foundF1 = true
+			} else if logEntry.Line == "text2" {
+				foundF2 = true
+			}
+
+		case <-time.After(5 * time.Second):
+			require.FailNow(t, "failed waiting for log line")
+		}
+	}
+	require.True(t, foundF1)
+	require.True(t, foundF2)
 }

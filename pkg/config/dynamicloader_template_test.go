@@ -30,7 +30,7 @@ windows:
   enabled_collectors: {{ (datasource "vars").value }}
   instance: testinstance
 `
-	tDir := generatePath(t)
+	tDir := t.TempDir()
 	writeFile(t, tDir, "vars.yaml", "value: banana")
 	writeFile(t, tDir, "integrations-1.yml", configStr)
 	fileFS := generateFilePath(tDir)
@@ -56,7 +56,7 @@ windows:
   enabled_collectors: {{ (datasource "vars").value }}
   instance: testinstance
 `
-	tDir := generatePath(t)
+	tDir := t.TempDir()
 	writeFile(t, tDir, "vars.yaml", "value: banana")
 	u := pushFilesToFakeS3(t, "integrations-1.yml", configStr)
 	s3Url := "s3://mybucket/?region=us-east-1&disableSSL=true&s3ForcePathStyle=true&endpoint=" + u.Host
@@ -88,7 +88,7 @@ windows:
       replacement: "{{ . }}-value"
     {{ end }}
 `
-	tDir := generatePath(t)
+	tDir := t.TempDir()
 	writeFile(t, tDir, "vars.yaml", "value: [banana,apple,pear]")
 	u := pushFilesToFakeS3(t, "integrations-1.yml", configStr)
 
@@ -140,13 +140,6 @@ func generateFilePath(directory string) string {
 		return fmt.Sprintf("file:///%s", directory)
 	}
 	return fmt.Sprintf("file://%s", directory)
-}
-
-func generatePath(t *testing.T) string {
-	tDir, err := os.MkdirTemp("", "*-test")
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = os.RemoveAll(tDir) })
-	return tDir
 }
 
 func pushFilesToFakeS3(t *testing.T, filename string, filecontents string) *url.URL {

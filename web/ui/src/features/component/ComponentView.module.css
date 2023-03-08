@@ -118,6 +118,50 @@
   font-family: 'Fira Code', monospace;
 }
 
+
+
+.content table {
+  text-align: left;
+  border: 1px solid #e4e5e6;
+  width: 100%;
+  border-radius: 3px;
+  border-spacing: 0;
+}
+
+.content table tr:last-child, .page table td {
+}
+
+.content table thead tr {
+  background-color: #f4f5f5;
+}
+
+.content table tbody tr:nth-child(even) {
+  background-color: #f4f5f5;
+}
+
+.content table th, .content table td {
+  vertical-align: top;
+  padding: 8px;
+}
+
+.content table th {
+  color: rgba(36, 41, 46, 0.75);
+  font-weight: normal;
+}
+
+th.nameColumn {
+  width: 150px;
+}
+
+td.nameColumn {
+  font-family: 'Fira Code', monospace;
+  font-size: 14px;
+}
+
+td.valueColumn {
+  margin: 0px;
+}
+
 .content div.sectionContent {
   background-color: white;
   border: 1px solid #e4e5e6;
@@ -133,19 +177,4 @@
 em.informative {
   color: #555;
   font-size: 14px;
-}
-
-.list {
-  border: 1px solid #e4e5e6;
-  border-radius: 3px;
-
-  box-sizing: border-box;
-  color: rgba(36, 41, 46, 0.75);
-}
-
-td.nameColumn {
-  font-family: 'Fira Code', monospace;
-  font-size: 14px;
-  vertical-align: top;
-  color: black;
 }

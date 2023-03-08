@@ -1,8 +1,17 @@
 // block_comments.in expects that comments within blocks are formatted to
 // remain within the block with the proper indentation.
 
-// Comment is on same line as block header.
+//
+// Unlabeled blocks
+//
+
+// Comment is on same line as empty block header.
 block { // comment
+}
+
+// Comment is on same line as non-empty block header.
+block { // comment
+  attr = 5
 }
 
 // Comment is alone in block body.
@@ -13,11 +22,43 @@ block {
 // Comment is before a statement.
 block {
 // comment
-	attr = 5
+  attr = 5
 }
 
 // Comment is after a statement.
 block {
-	attr = 5
+  attr = 5
 // comment
 }
+
+//
+// Labeled blocks
+//
+
+// Comment is on same line as empty block header.
+block "label" { // comment
+}
+
+// Comment is on same line as non-empty block header.
+block "label" { // comment
+  attr = 5
+}
+
+// Comment is alone in block body.
+block "label" {
+// comment
+}
+
+// Comment is before a statement.
+block "label" {
+// comment
+  attr = 5
+}
+
+// Comment is after a statement.
+block "label" {
+  attr = 5
+// comment
+}
+
+

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # This script builds and pushes windows Docker containers. Maintainers
-# can run this without pushing to a remote repo as long as DOCKER_LOGIN or 
+# can run this without pushing to a remote repo as long as DOCKER_LOGIN or
 # DOCKER_PASSWORD are not set. For pushing to personal repos
 # set those 2 env vars and update the *_IMAGE values below to point to your repos
 #
@@ -16,6 +16,7 @@ set -euxo pipefail
 #
 # If the environment variables are unset, the variables below default to an
 # empty string.
+export TARGET_CONTAINER=${1:-}
 export DRONE_TAG=${DRONE_TAG:-}
 export DRONE_BRANCH=${DRONE_BRANCH:-}
 export DOCKER_LOGIN=${DOCKER_LOGIN:-}
@@ -48,32 +49,51 @@ else
   BRANCH_TAG=$VERSION_TAG
 fi
 
-# Build all of our images
-docker build \
-  -t "$AGENT_IMAGE:$VERSION_TAG" \
-  -t "$AGENT_IMAGE:$BRANCH_TAG" \
-  --build-arg VERSION="$VERSION" \
-  --build-arg RELEASE_BUILD=1 \
-  -f ./cmd/grafana-agent/Dockerfile.windows \
-  .
+case "$TARGET_CONTAINER" in
+  agent)
+    docker build                                \
+      -t "$AGENT_IMAGE:$VERSION_TAG"            \
+      -t "$AGENT_IMAGE:$BRANCH_TAG"             \
+      --build-arg VERSION="$VERSION"            \
+      --build-arg RELEASE_BUILD=1               \
+      -f ./cmd/grafana-agent/Dockerfile.windows \
+      .
+    ;;
 
-docker build \
-  -t "$AGENTCTL_IMAGE:$VERSION_TAG" \
-  -t "$AGENTCTL_IMAGE:$BRANCH_TAG" \
-  --build-arg VERSION="$VERSION" \
-  --build-arg RELEASE_BUILD=1 \
-  -f ./cmd/grafana-agentctl/Dockerfile.windows \
-  .
+  agentctl)
+    docker build                                   \
+      -t "$AGENTCTL_IMAGE:$VERSION_TAG"            \
+      -t "$AGENTCTL_IMAGE:$BRANCH_TAG"             \
+      --build-arg VERSION="$VERSION"               \
+      --build-arg RELEASE_BUILD=1                  \
+      -f ./cmd/grafana-agentctl/Dockerfile.windows \
+      .
+    ;;
+
+  *)
+    echo "Usage: $0 agent|agentctl"
+    exit 1
+    ;;
+esac
 
 # Push images only if we have docker credentials and a drone tag is set
 if [ -n "$DOCKER_LOGIN" ] && [ -n "$DOCKER_PASSWORD" ]; then
   docker login -u "$DOCKER_LOGIN" -p "$DOCKER_PASSWORD"
-  docker push "$AGENT_IMAGE:$VERSION_TAG"
-  docker push "$AGENTCTL_IMAGE:$VERSION_TAG"
 
-  # If BRANCH_TAG never got set to something unique, no need to push it
-  if [[ "$VERSION_TAG" != "$BRANCH_TAG" ]]; then
-    docker push "$AGENT_IMAGE:$BRANCH_TAG"
-    docker push "$AGENTCTL_IMAGE:$BRANCH_TAG"
-  fi
+  case "$TARGET_CONTAINER" in
+    agent)
+      docker push "$AGENT_IMAGE:$VERSION_TAG"
+      docker push "$AGENT_IMAGE:$BRANCH_TAG"
+      ;;
+
+    agentctl)
+      docker push "$AGENTCTL_IMAGE:$VERSION_TAG"
+      docker push "$AGENTCTL_IMAGE:$BRANCH_TAG"
+      ;;
+
+    *)
+      echo "Usage: $0 agent|agentctl"
+      exit 1
+      ;;
+  esac
 fi

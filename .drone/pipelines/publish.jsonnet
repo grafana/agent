@@ -1,8 +1,12 @@
 local build_image = import '../util/build_image.jsonnet';
 local pipelines = import '../util/pipelines.jsonnet';
 
-[
-  pipelines.linux('Publish Linux Docker containers') {
+// job_names gets the list of job names for use in depends_on.
+local job_names = function(jobs) std.map(function(job) job.name, jobs);
+
+local linux_containers = ['agent', 'agentctl', 'agent-operator', 'smoke', 'crow'];
+local linux_containers_jobs = std.map(function(container) (
+  pipelines.linux('Publish Linux %s container' % container) {
     trigger: {
       ref: [
         'refs/heads/main',
@@ -11,7 +15,20 @@ local pipelines = import '../util/pipelines.jsonnet';
       ],
     },
     steps: [{
-      name: 'Build containers',
+      // We only need to run this once per machine, so it's OK if it fails. It
+      // is also likely to fail when run in parallel on the same machine.
+      name: 'Configure QEMU',
+      image: build_image.linux,
+      failure: 'ignore',
+      volumes: [{
+        name: 'docker',
+        path: '/var/run/docker.sock',
+      }],
+      commands: [
+        'docker run --rm --privileged multiarch/qemu-user-static --reset -p yes',
+      ],
+    }, {
+      name: 'Publish container',
       image: build_image.linux,
       volumes: [{
         name: 'docker',
@@ -27,22 +44,55 @@ local pipelines = import '../util/pipelines.jsonnet';
         'printenv GCR_CREDS > $HOME/.docker/config.json',
         'docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD',
 
-        // Create a buildx worker container for multiplatform builds.
-        'docker run --rm --privileged multiarch/qemu-user-static --reset -p yes',
-        'docker buildx create --name multiarch --driver docker-container --use',
+        // Create a buildx worker for our cross platform builds.
+        'docker buildx create --name multiarch-agent-%s-${DRONE_COMMIT_SHA} --driver docker-container --use' % container,
 
-        './tools/ci/docker-containers',
+        './tools/ci/docker-containers %s' % container,
 
-        // Remove the buildx worker container.
-        'docker buildx rm multiarch',
+        'docker buildx rm multiarch-agent-%s-${DRONE_COMMIT_SHA}' % container,
       ],
     }],
     volumes: [{
       name: 'docker',
       host: { path: '/var/run/docker.sock' },
     }],
-  },
+  }
+), linux_containers);
 
+local windows_containers = ['agent', 'agentctl'];
+local windows_containers_jobs = std.map(function(container) (
+  pipelines.windows('Publish Windows %s container' % container) {
+    trigger: {
+      ref: [
+        'refs/heads/main',
+        'refs/tags/v*',
+        'refs/heads/dev.*',
+      ],
+    },
+    steps: [{
+      name: 'Build containers',
+      image: build_image.windows,
+      volumes: [{
+        name: 'docker',
+        path: '//./pipe/docker_engine/',
+      }],
+      environment: {
+        DOCKER_LOGIN: { from_secret: 'DOCKER_LOGIN' },
+        DOCKER_PASSWORD: { from_secret: 'DOCKER_PASSWORD' },
+      },
+      commands: [
+        'git config --global --add safe.directory C:/drone/src/',
+        '& "C:/Program Files/git/bin/bash.exe" ./tools/ci/docker-containers-windows %s' % container,
+      ],
+    }],
+    volumes: [{
+      name: 'docker',
+      host: { path: '//./pipe/docker_engine/' },
+    }],
+  }
+), windows_containers);
+
+linux_containers_jobs + windows_containers_jobs + [
   pipelines.linux('Deploy to deployment_tools') {
     trigger: {
       ref: ['refs/heads/main'],
@@ -91,47 +141,14 @@ local pipelines = import '../util/pipelines.jsonnet';
         },
       },
     ],
-    depends_on: ['Publish Linux Docker containers'],
-  },
-
-  pipelines.windows('Publish Windows Docker containers') {
-    trigger: {
-      ref: [
-        'refs/heads/main',
-        'refs/tags/v*',
-        'refs/heads/dev.*',
-      ],
-    },
-    steps: [{
-      name: 'Build containers',
-      image: build_image.windows,
-      volumes: [{
-        name: 'docker',
-        path: '//./pipe/docker_engine/',
-      }],
-      environment: {
-        DOCKER_LOGIN: { from_secret: 'DOCKER_LOGIN' },
-        DOCKER_PASSWORD: { from_secret: 'DOCKER_PASSWORD' },
-      },
-      commands: [
-        'git config --global --add safe.directory C:/drone/src/',
-        '& "C:/Program Files/git/bin/bash.exe" -c ./tools/ci/docker-containers-windows',
-      ],
-    }],
-    volumes: [{
-      name: 'docker',
-      host: { path: '//./pipe/docker_engine/' },
-    }],
+    depends_on: job_names(linux_containers_jobs),
   },
 
   pipelines.linux('Publish release') {
     trigger: {
       ref: ['refs/tags/v*'],
     },
-    depends_on: [
-      'Publish Linux Docker containers',
-      'Publish Windows Docker containers',
-    ],
+    depends_on: job_names(linux_containers_jobs + windows_containers_jobs),
     steps: [{
       name: 'Publish release',
       image: build_image.linux,

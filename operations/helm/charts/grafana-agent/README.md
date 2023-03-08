@@ -1,6 +1,6 @@
 # Grafana Agent Helm chart
 
-![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.5.0](https://img.shields.io/badge/Version-0.5.0-informational?style=flat-square) ![AppVersion: v0.31.0](https://img.shields.io/badge/AppVersion-v0.31.0-informational?style=flat-square)
+![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.8.1](https://img.shields.io/badge/Version-0.8.1-informational?style=flat-square) ![AppVersion: v0.32.1](https://img.shields.io/badge/AppVersion-v0.32.1-informational?style=flat-square)
 
 Helm chart for deploying [Grafana Agent][] to Kubernetes.
 
@@ -28,7 +28,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| agent.configMap.content | string | `""` | Content to assign to the new ConfigMap. |
+| agent.configMap.content | string | `""` | Content to assign to the new ConfigMap.  This is passed into `tpl` allowing for templating from values. |
 | agent.configMap.create | bool | `true` | Create a new ConfigMap for the config file. |
 | agent.configMap.key | string | `nil` | Key in ConfigMap to get config from. |
 | agent.configMap.name | string | `nil` | Name of existing ConfigMap to use. Used when create is false. |
@@ -51,6 +51,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | configReloader.image.repository | string | `"jimmidyson/configmap-reload"` | Repository to get config reloader image from. |
 | configReloader.image.tag | string | `"v0.8.0"` | Tag of image to use for config reloading. |
 | controller.podAnnotations | object | `{}` | Extra pod annotations to add. |
+| controller.priorityClassName | string | `""` | priorityClassName to apply to Grafana Agent pods. |
 | controller.replicas | int | `1` | Number of pods to deploy. Ignored when controller.type is 'daemonset'. |
 | controller.tolerations | list | `[]` | Tolerations to apply to Grafana Agent pods. |
 | controller.type | string | `"daemonset"` | Type of controller to use for deploying Grafana Agent in the cluster. Must be one of 'daemonset', 'deployment', or 'statefulset'. |
@@ -87,6 +88,21 @@ container. The list of available arguments is documented on [agent run][].
 > break between Chart upgrade if an argument gets added to the template.
 
 [agent run]: https://grafana.com/docs/agent/latest/flow/reference/cli/run/
+
+### agent.extraPorts
+
+`agent.extraPorts` allows for configuring specific open ports.
+
+The detained specification of ports can be found at the [Kubernetes Pod documents](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#ports).
+
+Port numbers specified must be 0 < x < 65535.
+
+| ChartPort | KubePort | Description |
+|-----------|----------|-------------|
+| targetPort | containerPort | Number of port to expose on the pod's IP address. |
+| hostPort | hostPort | (Optional) Number of port to expose on the host. Daemonsets taking traffic might find this useful. |
+| name | name | If specified, this must be an `IANA_SVC_NAME` and unique within the pod. Each named port in a pod must have a unique name. Name for the port that can be referred to by services.
+| protocol | protocol | Must be UDP, TCP, or SCTP. Defaults to "TCP". |
 
 ### agent.listenAddr
 
@@ -130,10 +146,13 @@ the agent is deployed in.
 
 ### Versions >= 0.31.x
 
-The recommended way for collecting container logs on Kubernetes is to make use of
-the [loki.source.kubernetes][] component introduced in 0.31.0. This component
+The [loki.source.kubernetes][] component introduced in 0.31.0 may be used to
+collect logs as an alternative to tailing files from the host. This component
 does not require mounting the hosts filesystem into the Agent, nor requires
 additional security contexts to work correctly.
+
+However, `loki.source.kubernetes` is experimental and may have issues not
+present in the file-based approach.
 
 [loki.source.kubernetes]: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.kubernetes/
 

@@ -1,4 +1,4 @@
-import { AttrStmt, Body as RiverBody } from '../river-js/types';
+import { Body as RiverBody } from '../river-js/types';
 
 /**
  * ComponentInfo is high-level information for a component.
@@ -97,14 +97,4 @@ export interface ComponentDetail extends ComponentInfo {
    * here.
    */
   debugInfo?: RiverBody;
-}
-
-export interface PartitionedBody {
-  /** key is a list of unique identifiers for this partitioned body. */
-  key: string[];
-  /** displayName is a list of friendly identifiers for this partitioned body. */
-  displayName: string[];
-
-  attrs: AttrStmt[];
-  inner: PartitionedBody[];
 }

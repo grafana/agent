@@ -2,6 +2,7 @@ package write
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -18,6 +19,7 @@ import (
 	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/phlare"
 	"github.com/grafana/agent/pkg/build"
+	"github.com/grafana/dskit/backoff"
 	pushv1 "github.com/grafana/phlare/api/gen/proto/go/push/v1"
 	pushv1connect "github.com/grafana/phlare/api/gen/proto/go/push/v1/pushv1connect"
 	typesv1 "github.com/grafana/phlare/api/gen/proto/go/types/v1"
@@ -27,11 +29,6 @@ var (
 	userAgent        = fmt.Sprintf("GrafanaAgent/%s", build.Version)
 	DefaultArguments = func() Arguments {
 		return Arguments{}
-	}
-	DefaultEndpointOptions = func() EndpointOptions {
-		return EndpointOptions{
-			RemoteTimeout: 30 * time.Second,
-		}
 	}
 	_ component.Component = (*Component)(nil)
 )
@@ -65,25 +62,51 @@ func (rc *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 // EndpointOptions describes an individual location for where profiles
 // should be delivered to using the Phlare push API.
 type EndpointOptions struct {
-	Name             string                   `river:"name,attr,optional"`
-	URL              string                   `river:"url,attr"`
-	RemoteTimeout    time.Duration            `river:"remote_timeout,attr,optional"`
-	Headers          map[string]string        `river:"headers,attr,optional"`
-	HTTPClientConfig *config.HTTPClientConfig `river:"http_client_config,block,optional"`
+	Name              string                   `river:"name,attr,optional"`
+	URL               string                   `river:"url,attr"`
+	RemoteTimeout     time.Duration            `river:"remote_timeout,attr,optional"`
+	Headers           map[string]string        `river:"headers,attr,optional"`
+	HTTPClientConfig  *config.HTTPClientConfig `river:",squash"`
+	MinBackoff        time.Duration            `river:"min_backoff_period,attr,optional"`  // start backoff at this level
+	MaxBackoff        time.Duration            `river:"max_backoff_period,attr,optional"`  // increase exponentially to this level
+	MaxBackoffRetries int                      `river:"max_backoff_retries,attr,optional"` // give up after this many; zero means infinite retries
+}
+
+func GetDefaultEndpointOptions() EndpointOptions {
+	defaultEndpointOptions := EndpointOptions{
+		RemoteTimeout:     10 * time.Second,
+		MinBackoff:        500 * time.Millisecond,
+		MaxBackoff:        5 * time.Minute,
+		MaxBackoffRetries: 10,
+		HTTPClientConfig:  config.CloneDefaultHTTPClientConfig(),
+	}
+
+	return defaultEndpointOptions
 }
 
 // UnmarshalRiver implements river.Unmarshaler.
 func (r *EndpointOptions) UnmarshalRiver(f func(v interface{}) error) error {
-	*r = DefaultEndpointOptions()
+	*r = GetDefaultEndpointOptions()
 
 	type arguments EndpointOptions
-	return f((*arguments)(r))
+	err := f((*arguments)(r))
+	if err != nil {
+		return err
+	}
+
+	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
+	if r.HTTPClientConfig != nil {
+		return r.HTTPClientConfig.Validate()
+	}
+
+	return nil
 }
 
 // Component is the phlare.write component.
 type Component struct {
-	opts component.Options
-	cfg  Arguments
+	opts    component.Options
+	cfg     Arguments
+	metrics *metrics
 }
 
 // Exports are the set of fields exposed by the phlare.write component.
@@ -93,7 +116,8 @@ type Exports struct {
 
 // NewComponent creates a new phlare.write component.
 func NewComponent(o component.Options, c Arguments) (*Component, error) {
-	receiver, err := NewFanOut(o, c)
+	metrics := newMetrics(o.Registerer)
+	receiver, err := NewFanOut(o, c, metrics)
 	if err != nil {
 		return nil, err
 	}
@@ -101,8 +125,9 @@ func NewComponent(o component.Options, c Arguments) (*Component, error) {
 	o.OnStateChange(Exports{Receiver: receiver})
 
 	return &Component{
-		cfg:  c,
-		opts: o,
+		cfg:     c,
+		opts:    o,
+		metrics: metrics,
 	}, nil
 }
 
@@ -118,7 +143,7 @@ func (c *Component) Run(ctx context.Context) error {
 func (c *Component) Update(newConfig component.Arguments) error {
 	c.cfg = newConfig.(Arguments)
 	level.Debug(c.opts.Logger).Log("msg", "updating phlare.write config", "old", c.cfg, "new", newConfig)
-	receiver, err := NewFanOut(c.opts, newConfig.(Arguments))
+	receiver, err := NewFanOut(c.opts, newConfig.(Arguments), c.metrics)
 	if err != nil {
 		return err
 	}
@@ -130,12 +155,13 @@ type fanOutClient struct {
 	// The list of push clients to fan out to.
 	clients []pushv1connect.PusherServiceClient
 
-	config Arguments
-	opts   component.Options
+	config  Arguments
+	opts    component.Options
+	metrics *metrics
 }
 
 // NewFanOut creates a new fan out client that will fan out to all endpoints.
-func NewFanOut(opts component.Options, config Arguments) (*fanOutClient, error) {
+func NewFanOut(opts component.Options, config Arguments, metrics *metrics) (*fanOutClient, error) {
 	clients := make([]pushv1connect.PusherServiceClient, 0, len(config.Endpoints))
 	for _, endpoint := range config.Endpoints {
 		httpClient, err := commonconfig.NewClientFromConfig(*endpoint.HTTPClientConfig.Convert(), endpoint.Name)
@@ -148,6 +174,7 @@ func NewFanOut(opts component.Options, config Arguments) (*fanOutClient, error) 
 		clients: clients,
 		config:  config,
 		opts:    opts,
+		metrics: metrics,
 	}, nil
 }
 
@@ -156,24 +183,54 @@ func (f *fanOutClient) Push(ctx context.Context, req *connect.Request[pushv1.Pus
 	// Don't flow the context down to the `run.Group`.
 	// We want to fan out to all even in case of failures to one.
 	var (
-		g    run.Group
-		errs error
+		g                     run.Group
+		errs                  error
+		reqSize, profileCount = requestSize(req)
 	)
 
 	for i, client := range f.clients {
-		client := client
-		i := i
+		var (
+			client  = client
+			i       = i
+			backoff = backoff.New(ctx, backoff.Config{
+				MinBackoff: f.config.Endpoints[i].MinBackoff,
+				MaxBackoff: f.config.Endpoints[i].MaxBackoff,
+				MaxRetries: f.config.Endpoints[i].MaxBackoffRetries,
+			})
+			err error
+		)
 		g.Add(func() error {
-			ctx, cancel := context.WithTimeout(ctx, f.config.Endpoints[i].RemoteTimeout)
-			defer cancel()
-
 			req := connect.NewRequest(req.Msg)
 			for k, v := range f.config.Endpoints[i].Headers {
 				req.Header().Set(k, v)
 			}
-			_, err := client.Push(ctx, req)
+			for {
+				err = func() error {
+					ctx, cancel := context.WithTimeout(ctx, f.config.Endpoints[i].RemoteTimeout)
+					defer cancel()
+
+					_, err := client.Push(ctx, req)
+					return err
+				}()
+				if err == nil {
+					f.metrics.sentBytes.WithLabelValues(f.config.Endpoints[i].URL).Add(float64(reqSize))
+					f.metrics.sentProfiles.WithLabelValues(f.config.Endpoints[i].URL).Add(float64(profileCount))
+					break
+				}
+				level.Warn(f.opts.Logger).Log("msg", "failed to push to endpoint", "endpoint", f.config.Endpoints[i].URL, "err", err)
+				if !shouldRetry(err) {
+					break
+				}
+				backoff.Wait()
+				if !backoff.Ongoing() {
+					break
+				}
+				f.metrics.retries.WithLabelValues(f.config.Endpoints[i].URL).Inc()
+			}
 			if err != nil {
-				f.opts.Logger.Log("msg", "failed to push to endpoint", "endpoint", f.config.Endpoints[i].Name, "err", err)
+				f.metrics.droppedBytes.WithLabelValues(f.config.Endpoints[i].URL).Add(float64(reqSize))
+				f.metrics.droppedProfiles.WithLabelValues(f.config.Endpoints[i].URL).Add(float64(profileCount))
+				level.Warn(f.opts.Logger).Log("msg", "final error sending to profiles to endpoint", "endpoint", f.config.Endpoints[i].URL, "err", err)
 				errs = multierr.Append(errs, err)
 			}
 			return err
@@ -186,6 +243,30 @@ func (f *fanOutClient) Push(ctx context.Context, req *connect.Request[pushv1.Pus
 		return nil, errs
 	}
 	return connect.NewResponse(&pushv1.PushResponse{}), nil
+}
+
+func shouldRetry(err error) bool {
+	if errors.Is(err, context.DeadlineExceeded) {
+		return true
+	}
+	switch connect.CodeOf(err) {
+	case connect.CodeDeadlineExceeded, connect.CodeUnknown,
+		connect.CodeResourceExhausted, connect.CodeInternal,
+		connect.CodeUnavailable, connect.CodeDataLoss, connect.CodeAborted:
+		return true
+	}
+	return false
+}
+
+func requestSize(req *connect.Request[pushv1.PushRequest]) (int64, int64) {
+	var size, profiles int64
+	for _, raw := range req.Msg.Series {
+		for _, sample := range raw.Samples {
+			size += int64(len(sample.RawProfile))
+			profiles++
+		}
+	}
+	return size, profiles
 }
 
 // Append implements the phlare.Appendable interface.

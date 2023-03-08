@@ -16,57 +16,43 @@ import (
 )
 
 var testMetricRiver = `
-stage {
-	json {
+stage.json {
 		expressions = { "app" = "app", "payload" = "payload" }
-	}
 }
-stage {
-	metrics {
-	metric {
-		counter {
+stage.metrics {
+	metric.counter {
 			name = "loki_count"
 			description = "uhhhhhhh"
 			prefix = "my_agent_custom_"
 			source = "app"
 			value = "loki"
 			action = "inc"
-		}
 	}
-	metric {
-		gauge {
+	metric.gauge {
 			name = "bloki_count"
 			description = "blerrrgh"
 			source = "app"
 			value = "bloki"
 			action = "dec"
-		}
 	}
-	metric {
-		counter {
+	metric.counter {
 			name = "total_lines_count"
 			description = "nothing to see here..."
 			match_all = true
 			action = "inc"
-		}
 	}
-	metric {
-		counter {
+	metric.counter {
 			name = "total_bytes_count"
 			description = "nothing to see here..."
 			match_all = true
 			count_entry_bytes = true
 			action = "add"
-		}
 	}
-	metric {
-		histogram {
+	metric.histogram {
 			name = "payload_size_bytes"
 			description = "grrrragh"
 			source = "payload"
 			buckets = [10, 20]
-		}
-	}
 	}
 } `
 
@@ -140,26 +126,18 @@ func TestMetricsPipeline(t *testing.T) {
 func TestNegativeGauge(t *testing.T) {
 	registry := prometheus.NewRegistry()
 	testConfig := `
-stage {
-	regex {
+stage.regex {
 		expression = "vehicle=(?P<vehicle>\\d+) longitude=(?P<longitude>[-]?\\d+\\.\\d+) latitude=(?P<latitude>\\d+\\.\\d+)"
-	}
 }
-stage {
-	labels {
+stage.labels {
 		values = { "vehicle" = "" }
-	}
 }
-stage {
-	metrics {
-		metric {
-			gauge {
+stage.metrics {
+		metric.gauge {
 				name = "longitude"
 				description = "longitude GPS vehicle"
 				action = "set"
-			}
 		}
-	}
 } `
 	pl, err := NewPipeline(util_log.Logger, loadConfig(testConfig), nil, registry)
 	if err != nil {
@@ -194,28 +172,20 @@ func TestPipelineWithMissingKey_Metrics(t *testing.T) {
 }
 
 var testMetricWithDropRiver = `
-stage {
-	json {
+stage.json {
 		expressions = { "app" = "app", "drop" = "drop" }
-	}
 }
-stage {
-	match {
+stage.match {
 		selector = "{drop=\"true\"}"
 		action = "drop"
-	}
 }
-stage {
-	metrics {
-		metric {
-			counter {
+stage.metrics {
+		metric.counter {
 				name = "loki_count"
 				source = "app"
 				description = "should only inc on non dropped labels"
 				action = "inc"
-			}
 		}
-	}
 } `
 
 const expectedDropMetrics = `# HELP loki_process_dropped_lines_total A count of all log lines dropped as a result of a pipeline stage
@@ -254,49 +224,35 @@ func TestMetricsWithDropInPipeline(t *testing.T) {
 }
 
 var testMetricWithNonPromLabel = `
-stage {
-	static_labels {
+stage.static_labels {
 		values = { "good_label" = "1" }
-	}
 }
-stage {
-	metrics {
-		metric {
-			counter {
+stage.metrics {
+		metric.counter {
 				name = "loki_count"
 				source = "app"
 				description = "should count all entries"
 				match_all = true
 				action = "inc"
-			}
 		}
-	}
 } `
 
 func TestNonPrometheusLabelsShouldBeDropped(t *testing.T) {
 	const counterConfig = `
-stage {
-	static_labels {
+stage.static_labels {
 		values = { "good_label" = "1" }
-	}
 }
-stage {
-	tenant {
+stage.tenant {
 		value = "2"
-	}
 }
-stage {
-	metrics {
-		metric {
-			counter {
+stage.metrics {
+		metric.counter {
 				name = "loki_count"
 				source = "app"
 				description = "should count all entries"
 				match_all = true
 				action = "inc"
-			}
 		}
-	}
 } `
 
 	const expectedCounterMetrics = `# HELP loki_process_custom_loki_count should count all entries
@@ -305,26 +261,18 @@ loki_process_custom_loki_count{good_label="1"} 1
 `
 
 	const gaugeConfig = `
-stage {
-	regex {
+stage.regex {
 		expression = "vehicle=(?P<vehicle>\\d+) longitude=(?P<longitude>[-]?\\d+\\.\\d+) latitude=(?P<latitude>\\d+\\.\\d+)"
-	}
 }
-stage {
-	labels {
+stage.labels {
 		values = { "vehicle" = "" }
-	}
 }
-stage {
-	metrics {
-		metric {
-			gauge {
+stage.metrics {
+		metric.gauge {
 				name = "longitude"
 				description = "longitude GPS vehicle"
 				action = "set"
-			}
 		}
-	}
 }`
 
 	const expectedGaugeMetrics = `# HELP loki_process_custom_longitude longitude GPS vehicle
@@ -333,22 +281,16 @@ loki_process_custom_longitude{vehicle="1"} -10.1234
 `
 
 	const histogramConfig = `
-stage {
-	json {
+stage.json {
 		expressions = { "payload" = "payload" }
-	}
 }
-stage {
-	metrics {
-		metric {
-			histogram {
+stage.metrics {
+		metric.histogram {
 				name = "payload_size_bytes"
 				description = "payload size in bytes"
 				source = "payload"
 				buckets = [10, 20]
-			}
 		}
-	}
 }`
 
 	const expectedHistogramMetrics = `# HELP loki_process_custom_payload_size_bytes payload size in bytes

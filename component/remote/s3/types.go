@@ -20,11 +20,11 @@ type Arguments struct {
 	// IsSecret determines if the content should be displayed to the user.
 	IsSecret bool `river:"is_secret,attr,optional"`
 	// Options allows the overriding of default settings.
-	Options ClientOptions `river:"client_options,block,optional"`
+	Options Client `river:"client,block,optional"`
 }
 
-// ClientOptions implements specific AWS configuration options
-type ClientOptions struct {
+// Client implements specific AWS configuration options
+type Client struct {
 	AccessKey    string            `river:"key,attr,optional"`
 	Secret       rivertypes.Secret `river:"secret,attr,optional"`
 	Endpoint     string            `river:"endpoint,attr,optional"`

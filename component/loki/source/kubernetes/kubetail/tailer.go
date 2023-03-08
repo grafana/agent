@@ -79,7 +79,11 @@ func newLabelSet(l labels.Labels) model.LabelSet {
 }
 
 var retailBackoff = backoff.Config{
-	MinBackoff: time.Second,
+	// Since our tailers have a maximum lifetime and are expected to regularly
+	// terminate to refresh their connection to the Kubernetes API, the minimum
+	// backoff starts at zero so there's minimum delay between expected
+	// terminations.
+	MinBackoff: 0,
 	MaxBackoff: time.Minute,
 }
 
@@ -120,7 +124,10 @@ func (t *tailer) Run(ctx context.Context) {
 }
 
 func (t *tailer) tail(ctx context.Context, handler loki.EntryHandler) error {
-	ctx, cancel := context.WithCancel(ctx)
+	// Set a maximum lifetime of the tail to ensure that connections are
+	// reestablished. This avoids an issue where the Kubernetes API server stops
+	// responding with new logs while the connection is kept open.
+	ctx, cancel := context.WithTimeout(ctx, 1*time.Hour)
 	defer cancel()
 
 	var (
@@ -155,6 +162,7 @@ func (t *tailer) tail(ctx context.Context, handler loki.EntryHandler) error {
 		SinceTime:  offsetTime,
 		Timestamps: true, // Should be forced to true so we can parse the original timestamp back out.
 	})
+
 	stream, err := req.Stream(ctx)
 	if err != nil {
 		return err
@@ -206,7 +214,7 @@ func (t *tailer) tail(ctx context.Context, handler loki.EntryHandler) error {
 		// until the tailer is shutdown; EOF being returned doesn't necessarily
 		// indicate that the logs are done, and could point to a brief network
 		// outage.
-		if err != nil && errors.Is(err, io.EOF) {
+		if err != nil && (errors.Is(err, io.EOF) || ctx.Err() != nil) {
 			return nil
 		} else if err != nil {
 			return err

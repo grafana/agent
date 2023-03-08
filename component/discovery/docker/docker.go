@@ -33,7 +33,7 @@ type Arguments struct {
 	HostNetworkingHost string                  `river:"host_networking_host,attr,optional"`
 	RefreshInterval    time.Duration           `river:"refresh_interval,attr,optional"`
 	Filters            []Filter                `river:"filter,block,optional"`
-	HTTPClientConfig   config.HTTPClientConfig `river:"http_client_config,block,optional"`
+	HTTPClientConfig   config.HTTPClientConfig `river:",squash"`
 }
 
 // Filter is used to limit the discovery process to a subset of available

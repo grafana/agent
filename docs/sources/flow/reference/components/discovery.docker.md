@@ -26,6 +26,20 @@ Name | Type | Description | Default | Required
 `port` | `number` | Port to use for collecting metrics when containers don't have any port mappings. | `80` | no
 `host_networking_host` | `string` | Host to use if the container is in host networking mode. | `"localhost"` | no
 `refresh_interval` | `duration` | Frequency to refresh list of containers. | `"1m"` | no
+`bearer_token` | `secret` | Bearer token to authenticate with. | | no
+`bearer_token_file` | `string` | File containing a bearer token to authenticate with. | | no
+`proxy_url` | `string` | HTTP proxy to proxy requests through. | | no
+`follow_redirects` | `bool` | Whether redirects returned by the server should be followed. | `true` | no
+`enable_http2` | `bool` | Whether HTTP2 is supported for requests. | `true` | no
+
+ At most one of the following can be provided:
+ - [`bearer_token` argument](#arguments).
+ - [`bearer_token_file` argument](#arguments). 
+ - [`basic_auth` block][basic_auth].
+ - [`authorization` block][authorization].
+ - [`oauth2` block][oauth2].
+
+[arguments]: #arguments
 
 ## Blocks
 
@@ -35,18 +49,16 @@ The following blocks are supported inside the definition of
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
 filter | [filter][] | Filters discoverable resources. | no
-http_client_config | [http_client_config][] | HTTP client configuration for docker requests. | no
-http_client_config > basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
-http_client_config > authorization | [authorization][] | Configure generic authorization to the endpoint. | no
-http_client_config > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
-http_client_config > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
+authorization | [authorization][] | Configure generic authorization to the endpoint. | no
+oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
+oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
 
 The `>` symbol indicates deeper levels of nesting. For example,
-`http_client_config > basic_auth` refers to a `basic_auth` block defined inside
-an `http_client_config` block.
+`oauth2 > tls_config` refers to a `tls_config` block defined inside
+an `oauth2` block.
 
 [filter]: #filter-block
-[http_client_config]: #http_client_config-block
 [basic_auth]: #basic_auth-block
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
@@ -67,13 +79,6 @@ Refer to [List containers][List containers] from the Docker Engine API
 documentation for the list of supported filters and their meaning.
 
 [List containers]: https://docs.docker.com/engine/api/v1.41/#tag/Container/operation/ContainerList
-
-### http_client_config block
-
-The `http_client_config` block configures settings used to connect to the
-Docker Engine API server.
-
-{{< docs/shared lookup="flow/reference/components/http-client-config-block.md" source="agent" >}}
 
 ### basic_auth block
 

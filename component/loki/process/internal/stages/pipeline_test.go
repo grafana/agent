@@ -25,7 +25,7 @@ import (
 
 // Configs defines multiple StageConfigs as consequent blocks.
 type Configs struct {
-	Stages []StageConfig `river:"stage,block,optional"`
+	Stages []StageConfig `river:"stage,enum,optional"`
 }
 
 func withInboundEntries(entries ...Entry) chan Entry {
@@ -68,58 +68,38 @@ var (
 )
 
 var testMultiStageRiver = `
-stage {
-	match {
+stage.match {
 		selector = "{match=\"true\"}"
-		stage {
-			docker {}
-		}
-		stage {
-			regex {
+		stage.docker {}
+		stage.regex {
 				expression = "^(?P<ip>\\S+) (?P<identd>\\S+) (?P<user>\\S+) \\[(?P<timestamp>[\\w:/]+\\s[+\\-]\\d{4})\\] \"(?P<action>\\S+)\\s?(?P<path>\\S+)?\\s?(?P<protocol>\\S+)?\" (?P<status>\\d{3}|-) (?P<size>\\d+|-)\\s?\"?(?P<referer>[^\"]*)\"?\\s?\"?(?P<useragent>[^\"]*)?\"?$"
-			}
 		}
-		stage {
-			regex {
+		stage.regex {
 				source     = "filename"
 				expression = "(?P<service>[^\\/]+)\\.log"
-			}
 		}
-		stage {
-			timestamp {
+		stage.timestamp {
 				source = "timestamp"
 				format = "02/Jan/2006:15:04:05 -0700"
-			}
 		}
-		stage {
-			labels {
+		stage.labels {
 				values = { "action" = "", "service" = "", "status_code" = "status" }
-			}
 		}
-	}
 }
-stage {
-	match {
+stage.match {
 		selector = "{match=\"false\"}"
 		action   = "drop"
-	}
 }`
 
 var testLabelsFromJSONRiver = `
-stage {
-	json {
+stage.json {
 		expressions = { "app" = "", "message" = "" }
-	}
 }
-stage {
-	labels {
+stage.labels {
 		values = { "app" = "" }
-	}
 }
-stage {
-	output {
+stage.output {
 		source = "message"
-	}
 }`
 
 func TestNewPipeline(t *testing.T) {
@@ -360,52 +340,34 @@ func TestPipeline_Wrap(t *testing.T) {
 func Test_PipelineParallel(t *testing.T) {
 	c := fake.New(func() {})
 	cfg := `
-stage {
-	match {
+stage.match {
 		selector = "{match=~\".*\"}"
-		stage {
-			multiline {
+		stage.multiline {
 				firstline     = "^{"
 				max_wait_time = "3s"
 				max_lines     = 2
-			}
 		}
-		stage {
-			json {
+		stage.json {
 				expressions = { "app" = "", "message" = "" }
-			}
 		}
-		stage {
-			labels {
+		stage.labels {
 				values = { "app" = "" }
-			}
 		}
-		stage {
-			output {
+		stage.output {
 				source = "message"
-			}
 		}
-	}
 }
-stage {
-	match {
+stage.match {
 		selector = "{match=~\".*\"}"
-		stage {
-			json {
+		stage.json {
 				expressions = { "app" = "", "message" = "" }
-			}
 		}
-		stage {
-			labels {
+		stage.labels {
 				values = { "app" = "" }
 			}
-		}
-		stage {
-			output {
+		stage.output {
 				source = "message"
 			}
-		}
-	}
 }
 `
 	p, err := newPipelineFromConfig(cfg, "test")

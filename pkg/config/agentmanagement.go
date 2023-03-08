@@ -1,9 +1,13 @@
 package config
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
+	"math/rand"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -13,6 +17,7 @@ import (
 	"github.com/grafana/agent/pkg/config/instrumentation"
 	"github.com/grafana/agent/pkg/server"
 	"github.com/prometheus/common/config"
+	"gopkg.in/yaml.v2"
 )
 
 const cacheFilename = "remote-config-cache.yaml"
@@ -37,26 +42,81 @@ func newRemoteConfigHTTPProvider(c *Config) (*remoteConfigHTTPProvider, error) {
 	}, nil
 }
 
+type remoteConfigCache struct {
+	InitialConfigHash string `json:"initial_config_hash"`
+	Config            string `json:"config"`
+}
+
+func hashInitialConfig(am AgentManagementConfig) (string, error) {
+	marshalled, err := yaml.Marshal(am)
+	if err != nil {
+		return "", fmt.Errorf("could not marshal initial config: %w", err)
+	}
+	hashed := sha256.Sum256(marshalled)
+	return hex.EncodeToString(hashed[:]), nil
+}
+
+// initialConfigHashCheck checks if the hash of initialConfig matches what is stored in configCache.InitialConfigHash.
+// If an error is encountered while hashing initialConfig or the hashes do not match, initialConfigHashCheck
+// returns an error. Otherwise, it returns nil.
+func initialConfigHashCheck(initialConfig AgentManagementConfig, configCache remoteConfigCache) error {
+	initialConfigHash, err := hashInitialConfig(initialConfig)
+	if err != nil {
+		return err
+	}
+
+	if !(configCache.InitialConfigHash == initialConfigHash) {
+		return errors.New("invalid remote config cache: initial config hashes don't match")
+	}
+	return nil
+}
+
 // GetCachedRemoteConfig retrieves the cached remote config from the location specified
 // in r.AgentManagement.CacheLocation
 func (r remoteConfigHTTPProvider) GetCachedRemoteConfig() ([]byte, error) {
 	cachePath := filepath.Join(r.InitialConfig.CacheLocation, cacheFilename)
+
+	var configCache remoteConfigCache
 	buf, err := os.ReadFile(cachePath)
+
 	if err != nil {
+		return nil, fmt.Errorf("error reading remote config cache: %w", err)
+	}
+
+	if err := json.Unmarshal(buf, &configCache); err != nil {
 		return nil, fmt.Errorf("error trying to load cached remote config from file: %w", err)
 	}
-	return buf, nil
+
+	if err = initialConfigHashCheck(*r.InitialConfig, configCache); err != nil {
+		return nil, err
+	}
+
+	return []byte(configCache.Config), nil
 }
 
 // CacheRemoteConfig caches the remote config to the location specified in
 // r.AgentManagement.CacheLocation
 func (r remoteConfigHTTPProvider) CacheRemoteConfig(remoteConfigBytes []byte) error {
 	cachePath := filepath.Join(r.InitialConfig.CacheLocation, cacheFilename)
-	return os.WriteFile(cachePath, remoteConfigBytes, 0666)
+	initialConfigHash, err := hashInitialConfig(*r.InitialConfig)
+	if err != nil {
+		return err
+	}
+	configCache := remoteConfigCache{
+		InitialConfigHash: initialConfigHash,
+		Config:            string(remoteConfigBytes),
+	}
+	marshalled, err := json.Marshal(configCache)
+	if err != nil {
+		return fmt.Errorf("could not marshal remote config cache: %w", err)
+	}
+	return os.WriteFile(cachePath, marshalled, 0666)
 }
 
 // FetchRemoteConfig fetches the raw bytes of the config from a remote API using
 // the values in r.AgentManagement.
+//
+// Sleeps for a short period of time to apply jitter to API requests.
 func (r remoteConfigHTTPProvider) FetchRemoteConfig() ([]byte, error) {
 	httpClientConfig := &config.HTTPClientConfig{
 		BasicAuth: &r.InitialConfig.BasicAuth,
@@ -100,7 +160,7 @@ type AgentManagementConfig struct {
 	Url             string           `yaml:"api_url"`
 	BasicAuth       config.BasicAuth `yaml:"basic_auth"`
 	Protocol        string           `yaml:"protocol"`
-	PollingInterval string           `yaml:"polling_interval"`
+	PollingInterval time.Duration    `yaml:"polling_interval"`
 	CacheLocation   string           `yaml:"remote_config_cache_location"`
 
 	RemoteConfiguration RemoteConfiguration `yaml:"remote_configuration"`
@@ -200,9 +260,14 @@ func (am *AgentManagementConfig) fullUrl() (string, error) {
 	return u.String(), nil
 }
 
-// SleepTime returns the parsed duration in between config fetches.
-func (am *AgentManagementConfig) SleepTime() (time.Duration, error) {
-	return time.ParseDuration(am.PollingInterval)
+// SleepTime returns the duration in between config fetches.
+func (am *AgentManagementConfig) SleepTime() time.Duration {
+	return am.PollingInterval
+}
+
+// jitterTime returns a random duration in the range [0, am.PollingInterval).
+func (am *AgentManagementConfig) JitterTime() time.Duration {
+	return time.Duration(rand.Int63n(int64(am.PollingInterval)))
 }
 
 // Validate checks that necessary portions of the config have been set.
@@ -211,8 +276,8 @@ func (am *AgentManagementConfig) Validate() error {
 		return errors.New("both username and password_file fields must be specified")
 	}
 
-	if _, err := time.ParseDuration(am.PollingInterval); err != nil {
-		return fmt.Errorf("error trying to parse polling interval: %w", err)
+	if am.PollingInterval <= 0 {
+		return fmt.Errorf("polling interval must be >0")
 	}
 
 	if am.RemoteConfiguration.Namespace == "" {

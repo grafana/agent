@@ -7,17 +7,59 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-Unreleased 
+Unreleased
 ----------
+
+0.8.1 (2023-03-06)
+------------------
+
+### Enhancements
+
+- Add hostPort specification to extraPorts and extraPort documentation. (@pnathan)
+- Selectively template ClusterIP. (@aglees)
+- Add priorityClassName value. (@aglees)
+- Update Grafana Agent version to v0.32.1. (@erikbaranowski)
+
+0.8.0 (2023-02-28)
+------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.32.0. (@rfratto)
+
+0.7.1 (2023-02-27)
+------------------
+
+### Bugfixes
+
+- Fix issue where `.image.pullPolicy` was not being respected. (@rfratto)
+
+0.7.0 (2023-02-24)
+------------------
+
+### Enhancements
+
+- Helm chart: Add support for templates inside of configMap.content (@ts-mini)
+- Add the necessary rbac to support eventhandler integration (@nvanheuverzwijn)
+
+
+0.6.0 (2023-02-13)
+------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.31.3. (@rfratto)
 
 0.5.0 (2023-02-08)
 ------------------
 
 ### Enhancements
+
 - Helm Chart: Add ingress and support for agent-receiver. (@ts-mini)
 
 ### Documentation
-- Update Helm Chart documentation to reference new `loki.source.kubernetes` component. 
+
+- Update Helm Chart documentation to reference new `loki.source.kubernetes` component.
 
 0.4.0 (2023-01-31)
 ------------------

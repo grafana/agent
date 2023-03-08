@@ -13,6 +13,7 @@ set -euxo pipefail
 #
 # If the environment variables are unset, the variables below default to an
 # empty string.
+export TARGET_CONTAINER=${1:-}
 export DRONE_TAG=${DRONE_TAG:-}
 export DRONE_BRANCH=${DRONE_BRANCH:-}
 
@@ -52,49 +53,68 @@ fi
 
 # Build all of our images.
 
-export BUILD_PLATFORMS=linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le
+export BUILD_PLATFORMS=linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le,linux/s390x
 
-docker buildx build --push       \
-  --platform $BUILD_PLATFORMS    \
-  --build-arg RELEASE_BUILD=1    \
-  --build-arg VERSION="$VERSION" \
-  -t "$AGENT_IMAGE:$VERSION"     \
-  -t "$AGENT_IMAGE:$BRANCH_TAG"  \
-  -f cmd/grafana-agent/Dockerfile        \
-  .
 
-docker buildx build --push         \
-  --platform $BUILD_PLATFORMS      \
-  --build-arg RELEASE_BUILD=1      \
-  --build-arg VERSION="$VERSION"   \
-  -t "$AGENTCTL_IMAGE:$VERSION"    \
-  -t "$AGENTCTL_IMAGE:$BRANCH_TAG" \
-  -f cmd/grafana-agentctl/Dockerfile       \
-  .
+case "$TARGET_CONTAINER" in
+  agent)
+    docker buildx build --push        \
+      --platform $BUILD_PLATFORMS     \
+      --build-arg RELEASE_BUILD=1     \
+      --build-arg VERSION="$VERSION"  \
+      -t "$AGENT_IMAGE:$VERSION"      \
+      -t "$AGENT_IMAGE:$BRANCH_TAG"   \
+      -f cmd/grafana-agent/Dockerfile \
+      .
+    ;;
 
-docker buildx build --push             \
-  --platform $BUILD_PLATFORMS          \
-  --build-arg RELEASE_BUILD=1          \
-  --build-arg VERSION="$VERSION"       \
-  -t "$OPERATOR_IMAGE:$VERSION"        \
-  -t "$OPERATOR_IMAGE:$BRANCH_TAG"     \
-  -f cmd/grafana-agent-operator/Dockerfile     \
-  .
+  agentctl)
+    docker buildx build --push           \
+      --platform $BUILD_PLATFORMS        \
+      --build-arg RELEASE_BUILD=1        \
+      --build-arg VERSION="$VERSION"     \
+      -t "$AGENTCTL_IMAGE:$VERSION"      \
+      -t "$AGENTCTL_IMAGE:$BRANCH_TAG"   \
+      -f cmd/grafana-agentctl/Dockerfile \
+      .
+    ;;
 
-docker buildx build --push       \
-  --platform $BUILD_PLATFORMS    \
-  --build-arg RELEASE_BUILD=1    \
-  --build-arg VERSION="$VERSION" \
-  -t "$SMOKE_IMAGE:$VERSION"     \
-  -t "$SMOKE_IMAGE:$BRANCH_TAG"  \
-  -f tools/smoke/Dockerfile      \
-  .
+  agent-operator)
+    docker buildx build --push                 \
+      --platform $BUILD_PLATFORMS              \
+      --build-arg RELEASE_BUILD=1              \
+      --build-arg VERSION="$VERSION"           \
+      -t "$OPERATOR_IMAGE:$VERSION"            \
+      -t "$OPERATOR_IMAGE:$BRANCH_TAG"         \
+      -f cmd/grafana-agent-operator/Dockerfile \
+      .
+    ;;
 
-docker buildx build --push       \
-  --platform $BUILD_PLATFORMS    \
-  --build-arg RELEASE_BUILD=1    \
-  --build-arg VERSION="$VERSION" \
-  -t "$CROW_IMAGE:$VERSION"      \
-  -t "$CROW_IMAGE:$BRANCH_TAG"   \
-  -f tools/crow/Dockerfile       \
-  .
+  smoke)
+    docker buildx build --push       \
+      --platform $BUILD_PLATFORMS    \
+      --build-arg RELEASE_BUILD=1    \
+      --build-arg VERSION="$VERSION" \
+      -t "$SMOKE_IMAGE:$VERSION"     \
+      -t "$SMOKE_IMAGE:$BRANCH_TAG"  \
+      -f tools/smoke/Dockerfile      \
+      .
+    ;;
+
+  crow)
+    docker buildx build --push       \
+      --platform $BUILD_PLATFORMS    \
+      --build-arg RELEASE_BUILD=1    \
+      --build-arg VERSION="$VERSION" \
+      -t "$CROW_IMAGE:$VERSION"      \
+      -t "$CROW_IMAGE:$BRANCH_TAG"   \
+      -f tools/crow/Dockerfile       \
+      .
+    ;;
+
+  *)
+    echo "Usage: $0 agent|agentctl|agent-operator|smoke|crow"
+    exit 1
+    ;;
+esac
+

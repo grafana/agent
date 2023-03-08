@@ -13,11 +13,13 @@ func Test_Get(t *testing.T) {
 	type Struct struct {
 		IgnoreMe bool
 
-		ReqAttr  string   `river:"req_attr,attr"`
-		OptAttr  string   `river:"opt_attr,attr,optional"`
-		ReqBlock struct{} `river:"req_block,block"`
-		OptBlock struct{} `river:"opt_block,block,optional"`
-		Label    string   `river:",label"`
+		ReqAttr  string     `river:"req_attr,attr"`
+		OptAttr  string     `river:"opt_attr,attr,optional"`
+		ReqBlock struct{}   `river:"req_block,block"`
+		OptBlock struct{}   `river:"opt_block,block,optional"`
+		ReqEnum  []struct{} `river:"req_enum,enum"`
+		OptEnum  []struct{} `river:"opt_enum,enum,optional"`
+		Label    string     `river:",label"`
 	}
 
 	fs := rivertags.Get(reflect.TypeOf(Struct{}))
@@ -27,7 +29,9 @@ func Test_Get(t *testing.T) {
 		{[]string{"opt_attr"}, []int{2}, rivertags.FlagAttr | rivertags.FlagOptional},
 		{[]string{"req_block"}, []int{3}, rivertags.FlagBlock},
 		{[]string{"opt_block"}, []int{4}, rivertags.FlagBlock | rivertags.FlagOptional},
-		{[]string{""}, []int{5}, rivertags.FlagLabel},
+		{[]string{"req_enum"}, []int{5}, rivertags.FlagEnum},
+		{[]string{"opt_enum"}, []int{6}, rivertags.FlagEnum | rivertags.FlagOptional},
+		{[]string{""}, []int{7}, rivertags.FlagLabel},
 	}
 
 	require.Equal(t, expect, fs)

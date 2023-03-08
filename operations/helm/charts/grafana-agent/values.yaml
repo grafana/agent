@@ -12,7 +12,7 @@ agent:
   configMap:
     # -- Create a new ConfigMap for the config file.
     create: true
-    # -- Content to assign to the new ConfigMap.
+    # -- Content to assign to the new ConfigMap.  This is passed into `tpl` allowing for templating from values.
     content: ''
 
     # -- Name of existing ConfigMap to use. Used when create is false.
@@ -112,6 +112,9 @@ controller:
 
   # -- Tolerations to apply to Grafana Agent pods.
   tolerations: []
+
+  # -- priorityClassName to apply to Grafana Agent pods.
+  priorityClassName: ''
 
   # -- Extra pod annotations to add.
   podAnnotations: {}

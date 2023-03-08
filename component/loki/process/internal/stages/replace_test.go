@@ -17,71 +17,55 @@ import (
 )
 
 var testReplaceRiverSingleStageWithoutSource = `
-stage {
-	replace {
+stage.replace {
 		expression = "11.11.11.11 - (\\S+) .*"
 		replace    = "dummy"
-	}
 }
 `
 var testReplaceRiverMultiStageWithSource = `
-stage {
-	json {
+stage.json {
 		expressions = { "level" = "", "msg" = "" }
-	}
 }
 
-stage {
-	replace {
+stage.replace {
 		expression = "\\S+ - \"POST (\\S+) .*"
     	source     = "msg"
     	replace    = "/loki/api/v1/push/"
-	}
 }
 `
 
 var testReplaceRiverWithNamedCaputedGroupWithTemplate = `
-stage {
-	replace {
+stage.replace {
 		expression = "^(?P<ip>\\S+) (?P<identd>\\S+) (?P<user>\\S+) \\[(?P<timestamp>[\\w:/]+\\s[+\\-]\\d{4})\\] \"(?P<action>\\S+)\\s?(?P<path>\\S+)?\\s?(?P<protocol>\\S+)?\" (?P<status>\\d{3}|-) (\\d+|-)\\s?\"?(?P<referer>[^\"]*)\"?\\s?\"?(?P<useragent>[^\"]*)?\"?$"
 		replace    = "{{ if eq .Value \"200\" }}{{ Replace .Value \"200\" \"HttpStatusOk\" -1 }}{{ else }}{{ .Value | ToUpper }}{{ end }}"
-	}
 }
 `
 
 var testReplaceRiverWithNestedCapturedGroups = `
-stage {
-	replace {
+stage.replace {
 		expression = "(?P<ip_user>^(?P<ip>\\S+) (?P<identd>\\S+) (?P<user>\\S+)) \\[(?P<timestamp>[\\w:/]+\\s[+\\-]\\d{4})\\] \"(?P<action_path>(?P<action>\\S+)\\s?(?P<path>\\S+)?)\\s?(?P<protocol>\\S+)?\" (?P<status>\\d{3}|-) (\\d+|-)\\s?\"?(?P<referer>[^\"]*)\"?\\s?\"?(?P<useragent>[^\"]*)?\"?$"
 		replace    = "{{ if eq .Value \"200\" }}{{ Replace .Value \"200\" \"HttpStatusOk\" -1 }}{{ else }}{{ .Value | ToUpper }}{{ end }}"
-	}
 }
 `
 
 var testReplaceRiverWithTemplate = `
-stage {
-	replace {
+stage.replace {
 		expression = "^(\\S+) (\\S+) (\\S+) \\[([\\w:/]+\\s[+\\-]\\d{4})\\] \"(\\S+)\\s?(\\S+)?\\s?(\\S+)?\" (\\d{3}|-) (\\d+|-)\\s?\"?([^\"]*)\"?\\s?\"?([^\"]*)?\"?$"
 		replace    = "{{ if eq .Value \"200\" }}{{ Replace .Value \"200\" \"HttpStatusOk\" -1 }}{{ else }}{{ .Value | ToUpper }}{{ end }}"
-	}
 }
 `
 
 var testReplaceRiverWithEmptyReplace = `
-stage {
-	replace {
+stage.replace {
 		expression = "11.11.11.11 - (\\S+\\s)"
 		replace    = ""
-	}
 }
 `
 
 var testReplaceAdjacentCaptureGroups = `
-stage {
-	replace {
+stage.replace {
 		expression = "(a|b|c)"
 		replace    = ""
-	}
 }
 `
 

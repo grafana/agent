@@ -36,6 +36,21 @@ container. The list of available arguments is documented on [agent run][].
 
 [agent run]: https://grafana.com/docs/agent/latest/flow/reference/cli/run/
 
+### agent.extraPorts
+
+`agent.extraPorts` allows for configuring specific open ports.
+
+The detained specification of ports can be found at the [Kubernetes Pod documents](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#ports).
+
+Port numbers specified must be 0 < x < 65535.
+
+| ChartPort | KubePort | Description |
+|-----------|----------|-------------|
+| targetPort | containerPort | Number of port to expose on the pod's IP address. |
+| hostPort | hostPort | (Optional) Number of port to expose on the host. Daemonsets taking traffic might find this useful. |
+| name | name | If specified, this must be an `IANA_SVC_NAME` and unique within the pod. Each named port in a pod must have a unique name. Name for the port that can be referred to by services.
+| protocol | protocol | Must be UDP, TCP, or SCTP. Defaults to "TCP". |
+
 ### agent.listenAddr
 
 `agent.listenAddr` allows for restricting which address the agent listens on
@@ -74,21 +89,24 @@ components like [discovery.kubernetes][] to work properly.
 ## Collecting logs from other containers
 
 There are two ways to collect logs from other containers within the cluster
-the agent is deployed in. 
+the agent is deployed in.
 
 ### Versions >= 0.31.x
 
-The recommended way for collecting container logs on Kubernetes is to make use of 
-the [loki.source.kubernetes][] component introduced in 0.31.0. This component 
+The [loki.source.kubernetes][] component introduced in 0.31.0 may be used to
+collect logs as an alternative to tailing files from the host. This component
 does not require mounting the hosts filesystem into the Agent, nor requires
 additional security contexts to work correctly.
+
+However, `loki.source.kubernetes` is experimental and may have issues not
+present in the file-based approach.
 
 [loki.source.kubernetes]: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.kubernetes/
 
 ### Versions < 0.31.x
 
-For those running the Agent on versions prior to 0.31.0, the only way to collect logs 
-from other containers is to mount `/var/lib/docker/containers` from the host and read 
+For those running the Agent on versions prior to 0.31.0, the only way to collect logs
+from other containers is to mount `/var/lib/docker/containers` from the host and read
 the log files directly.
 
 This capability is disabled by default.

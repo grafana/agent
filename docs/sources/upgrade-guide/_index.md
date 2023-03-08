@@ -8,6 +8,173 @@ weight: 800
 This guide describes all breaking changes that have happened in prior
 releases and how to migrate to newer versions.
 
+## v0.32.1
+
+### Breaking change: `node_exporter` configuration options changed
+
+With the update of the `node_exporter` integration to use v1.5.0, configuration
+options for the `diskstats` collector have changed names:
+
+- `diskstats_ignored_devices` is now `diskstats_device_exclude` in the static
+  mode configuration.
+- `ignored_devices` is now `device_exclude` in the Flow component
+  configuration.
+
+### Breaking change: `http_client_config` Flow blocks merged with parent blocks
+
+This change only impacts Grafana Agent Flow users.
+
+To reduce the amount of typing required to write Flow components, the arguments
+and subblocks found in `http_client_config` have been merged with their parent
+blocks:
+
+- `discovery.docker > http_client_config` is merged into the `discovery.docker` block.
+- `discovery.kubernetes > http_client_config` is merged into the `discovery.kubernetes` block.
+- `loki.source.kubernetes > client > http_client_config` is merged into the `client` block.
+- `loki.source.podlogs > client > http_client_config` is merged into the `client` block.
+- `loki.write > endpoint > http_client_config` is merged into the `endpoint` block.
+- `mimir.rules.kubernetes > http_client_config` is merged into the `mimir.rules.kubernetes` block.
+- `otelcol.receiver.opencensus > grpc` is merged into the `otelcol.receiver.opencensus` block.
+- `otelcol.receiver.zipkin > http` is merged into the `otelcol.receiver.zipkin` block.
+- `phlare.scrape > http_client_config` is merged into the `phlare.scrape` block.
+- `phlare.write > endpoint > http_client_config` is merged into the `endpoint` block.
+- `prometheus.remote_write > endpoint > http_client_config` is merged into the `endpoint` block.
+- `prometheus.scrape > http_client_config` is merged into the `prometheus.scrape` block.
+
+Old configuration example:
+
+```river
+prometheus.remote_write "example" {
+  endpoint {
+    url = URL
+
+    http_client_config {
+      basic_auth {
+        username = BASIC_AUTH_USERNAME
+        password = BASIC_AUTH_PASSWORD
+      }
+    }
+  }
+}
+```
+
+New configuration example:
+
+```river
+prometheus.remote_write "example" {
+  endpoint {
+    url = URL
+
+    basic_auth {
+      username = BASIC_AUTH_USERNAME
+      password = BASIC_AUTH_PASSWORD
+    }
+  }
+}
+```
+
+### Breaking change: `loki.process` stage blocks combined into new blocks
+
+This change only impacts Grafana Agent Flow users.
+
+Previously, to add a stage to `loki.process`, two blocks were needed: a block
+called `stage`, then an inner block for the stage being written. Stage blocks
+are now a single block called `stage.STAGENAME`.
+
+Old configuration example:
+
+```river
+loki.process "example" {
+  forward_to = RECEIVER_LIST
+
+  stage {
+    docker {}
+  }
+
+  stage {
+    json {
+      expressions = { output = "log", extra = "" }
+    }
+  }
+}
+```
+
+New configuration example:
+
+```river
+loki.process "example" {
+  forward_to = RECEIVER_LIST
+
+  stage.docker {}
+
+  stage.json {
+    expressions = { output = "log", extra = "" }
+  }
+}
+```
+
+### Breaking change: `client_options` block renamed in `remote.s3` component
+
+This change only impacts Grafana Agent Flow users.
+
+To synchronize naming conventions between `remote.s3` and `remote.http`, the
+`client_options` block has been renamed `client`.
+
+Old configuration example:
+
+```river
+remote.s3 "example" {
+  path = S3_PATH
+
+  client_options {
+    key    = ACCESS_KEY
+    secret = KEY_SECRET
+  }
+}
+```
+
+New configuration example:
+
+```river
+remote.s3 "example" {
+  path = S3_PATH
+
+  client {
+    key    = ACCESS_KEY
+    secret = KEY_SECRET
+  }
+}
+```
+
+### Breaking change: `prometheus.integration.node_exporter` component name changed
+
+This change only impacts Grafana Agent Flow users.
+
+The `prometheus.integration.node_exporter` component has been renamed to
+`prometheus.exporter.unix`. `unix` was chosen as a name to approximate the
+\*nix-like systems the exporter supports.
+
+Old configuration example:
+
+```river
+prometheus.integration.node_exporter { }
+```
+
+New configuration example:
+
+```river
+prometheus.exporter.unix { }
+```
+
+### Breaking change: support for `EXPERIMENTAL_ENABLE_FLOW` environment variable removed
+
+This change only impacts Grafana Agent Flow users.
+
+As first announced in v0.30.0, support for using the `EXPERIMENTAL_ENABLE_FLOW`
+environment variable to enable Flow mode has been removed.
+
+To enable Flow mode, set the `AGENT_MODE` envrionment variable to `flow`.
+
 ## v0.31.1
 
 ### Breaking change: all Windows executables are now zipped
@@ -44,17 +211,6 @@ the new binary has been added.
 These symbolic links will be removed in v0.33. Custom entrypoints must be
 updated prior to v0.33 to use the new binaries before the symbolic links get
 removed.
-
-### Breaking change: node exporter configuration options changed
-
-With the upgrade of the Node Exporter integration to upstream v1.5.0
-the diskstats collector has new configuration options to configure device selection.
-
-- `diskstats_ignored_devices` is now `diskstats_device_exclude` in agent configuration.
-- `ignored_devices` is now `device_exclude` in flow configuration.
-
-Additionally there's new `diskstats_device_exclude` and `device_include` (flow) option
-to explicitly select devices to include.
 
 ## v0.30.0
 
