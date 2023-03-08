@@ -35,6 +35,8 @@ Main (unreleased)
 - Grafana Agent Docker containers and release binaries are now published for
   s390x. (@rfratto)
 
+- Use Go 1.20.2 for builds. (@rfratto)
+
 v0.32.1 (2023-03-06)
 --------------------
 
