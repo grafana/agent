@@ -40,17 +40,17 @@ type Arguments struct {
 	ForwardTo []loki.LogsReceiver `river:"forward_to,attr"`
 
 	// Client settings to connect to Kubernetes.
-	Client kubernetes.ClientArguments `river:"client,block,optional"`
+	Client config.ClientArguments `river:"client,block,optional"`
 
-	Selector          LabelSelector `river:"selector,block,optional"`
-	NamespaceSelector LabelSelector `river:"namespace_selector,block,optional"`
+	Selector          config.LabelSelector `river:"selector,block,optional"`
+	NamespaceSelector config.LabelSelector `river:"namespace_selector,block,optional"`
 }
 
 var _ river.Unmarshaler = (*Arguments)(nil)
 
 // DefaultArguments holds default settings for loki.source.kubernetes.
 var DefaultArguments = Arguments{
-	Client: kubernetes.ClientArguments{
+	Client: config.ClientArguments{
 		HTTPClientConfig: config.DefaultHTTPClientConfig,
 	},
 }

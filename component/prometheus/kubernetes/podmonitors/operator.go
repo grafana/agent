@@ -6,7 +6,6 @@ import (
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
-	"github.com/prometheus/prometheus/discovery"
 )
 
 func init() {
@@ -49,15 +48,6 @@ func (c *Component) Run(ctx context.Context) error {
 		}
 	}()
 
-	disc := discovery.NewManager(ctx, c.opts.Logger, discovery.Name(c.opts.ID))
-	go func() {
-		err := disc.Run()
-		if err != nil {
-			level.Error(c.opts.Logger).Log("msg", "discovery manager stopped", "err", err)
-			// very unhelathy
-		}
-	}()
-
 	errChan := make(chan error)
 	for {
 		select {
@@ -76,10 +66,9 @@ func (c *Component) Run(ctx context.Context) error {
 			c.mut.Lock()
 			componentCfg := c.config
 			c.mut.Unlock()
-			disc.ApplyConfig(nil)
 			crdMan := newManager(c.opts, c.opts.Logger, componentCfg)
 			go func() {
-				if err := crdMan.run(innerCtx, disc); err != nil {
+				if err := crdMan.run(innerCtx); err != nil {
 					level.Error(c.opts.Logger).Log("msg", "error running crd manager", "err", err)
 				}
 			}()

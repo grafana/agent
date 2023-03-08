@@ -112,7 +112,7 @@ func (c *crdManager) onDeletePodMonitor(obj interface{}) {
 	c.apply()
 }
 
-func (c *crdManager) run(ctx context.Context, disc *discovery.Manager) error {
+func (c *crdManager) run(ctx context.Context) error {
 	config, err := c.config.restConfig()
 	if err != nil {
 		return errors.Wrap(err, "creating rest config")
@@ -125,6 +125,14 @@ func (c *crdManager) run(ctx context.Context, disc *discovery.Manager) error {
 	c.cg = configGenerator{
 		config: c.config,
 	}
+
+	c.discovery = discovery.NewManager(ctx, c.logger, discovery.Name(c.opts.ID))
+	go func() {
+		err := c.discovery.Run()
+		if err != nil {
+			level.Error(c.logger).Log("msg", "discovery manager stopped", "err", err)
+		}
+	}()
 
 	for _, namespace := range c.config.Namespaces {
 		factory := informers.NewSharedInformerFactoryWithOptions(promClientset,
@@ -173,7 +181,7 @@ func (c *crdManager) run(ctx context.Context, disc *discovery.Manager) error {
 		select {
 		case <-ctx.Done():
 			return nil
-		case m := <-disc.SyncCh():
+		case m := <-c.discovery.SyncCh():
 			//TODO: are there cases where we modify targets?
 			targetSetsChan <- m
 		}

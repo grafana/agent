@@ -17,7 +17,6 @@ import (
 	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
-	"github.com/grafana/agent/component/loki/source/kubernetes"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/runner"
 	"github.com/oklog/run"
@@ -47,7 +46,7 @@ type Arguments struct {
 	Namespaces []string `river:"namespaces,attr,optional"`
 
 	// Client settings to connect to Kubernetes.
-	Client kubernetes.ClientArguments `river:"client,block,optional"`
+	Client config.ClientArguments `river:"client,block,optional"`
 }
 
 var _ river.Unmarshaler = (*Arguments)(nil)
@@ -56,7 +55,7 @@ var _ river.Unmarshaler = (*Arguments)(nil)
 var DefaultArguments = Arguments{
 	JobName: "loki.source.kubernetes_events",
 
-	Client: kubernetes.ClientArguments{
+	Client: config.ClientArguments{
 		HTTPClientConfig: config.DefaultHTTPClientConfig,
 	},
 }
