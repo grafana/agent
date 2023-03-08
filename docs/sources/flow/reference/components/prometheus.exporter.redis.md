@@ -41,7 +41,8 @@ Name | Type | Description | Default | Required
 `check_streams`               | `list(string)` | List of stream-patterns to export info about streams, groups, and consumers to search for with SCAN. | | no
 `check_single_streams`        | `list(string)` | List of single streams to export info about streams, groups, and consumers. | | no
 `count_keys`                  | `list(string)` | List of individual keys to export counts for. | | no
-`script_path`                 | `string`       | Comma-separated list of paths to Lua Redis scripts for collecting extra metrics. | | no
+`script_path`                 | `string`       | Path to Lua Redis script for collecting extra metrics. | | no
+`script_paths`                | `list(string)` | List of paths to Lua Redis scripts for collecting extra metrics. | | no
 `connection_timeout`          | `duration`     | Timeout for connection to Redis instance (in Golang duration format). | `"15s"` | no
 `tls_client_key_file`         | `string`       | Name of the client key file (including full path) if the server requires TLS client authentication. | | no
 `tls_client_cert_file`        | `string`       | Name of the client certificate file (including full path) if the server requires TLS client authentication. | | no
@@ -62,7 +63,10 @@ If `redis_password_file` is defined, it will take precedence over `redis_passwor
 
 When `check_key_groups` is not set, no key groups are made.
 
-The `check_key_groups_batch_size` option name reflects key groups for backwards compatibility, but applies to both key and key groups.
+The `check_key_groups_batch_size` argument name reflects key groups for backwards compatibility, but applies to both key and key groups.
+
+The `script_path` argument may also be specified as a comma-separated string of paths, though it is encouraged to use `script_paths` when using
+multiple Lua scripts.
 
 Any leftover key groups beyond `max_distinct_key_groups` are aggregated in the 'overflow' bucket.
 
