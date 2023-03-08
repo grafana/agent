@@ -4,6 +4,8 @@ title: snowflake_config
 
 # snowflake_config (beta)
 
+>**Note:** This config is associated with the [Integrations revamp experimental feature](_index.md) for multi-instance monitoring using a single agent. A GA snowflake_config for single-instance monitoring can be found [here](../snowflake-config.md).
+
 The `snowflake_configs` block configures the `snowflake` integration,
 which is an embedded version of
 [`snowflake-prometheus-exporter`](https://github.com/grafana/snowflake-prometheus-exporter). This allows the collection of [Snowflake](https://www.snowflake.com/) metrics.
