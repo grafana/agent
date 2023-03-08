@@ -48,11 +48,14 @@ Name | Type | Description | Default | Required
 `tls_ca_cert_file`            | `string`       | Name of the CA certificate file (including full path) if the server requires TLS client authentication. | | no
 `set_client_name`             | `bool`         | Whether to set client name to `redis_exporter`. | `true` | no
 `is_tile38`                   | `bool`         | Whether to scrape Tile38-specific metrics. | | no
+`is_cluster`                  | `bool`         | Whether the connection is to a Redis cluster. | | no
 `export_client_list`          | `bool`         | Whether to scrape Client List specific metrics. | | no
 `export_client_port`          | `bool`         | Whether to include the client's port when exporting the client list. | | no
 `redis_metrics_only`          | `bool`         | Whether to just export metrics or to also export go runtime metrics. | | no
 `ping_on_connect`             | `bool`         | Whether to ping the Redis instance after connecting. | | no
 `incl_system_metrics`         | `bool`         | Whether to include system metrics (e.g. `redis_total_system_memory_bytes`). | | no
+`incl_config_metrics`         | `bool`         | Whether to include Redis config values in metrics. | | no
+`redact_config_metrics`       | `bool`         | Whether to redact sensitive elements from Redis config metrics, if `incl_config_metrics` is set. | `true` | no
 `skip_tls_verification`       | `bool`         | Whether to to skip TLS verification. | | no
 
 If `redis_password_file` is defined, it will take precedence over `redis_password`.
@@ -62,6 +65,8 @@ When `check_key_groups` is not set, no key groups are made.
 The `check_key_groups_batch_size` option name reflects key groups for backwards compatibility, but applies to both key and key groups.
 
 Any leftover key groups beyond `max_distinct_key_groups` are aggregated in the 'overflow' bucket.
+
+The `is_cluster` argument should be used when connecting to a Redis cluster and using the `check_keys` and/or `check_single_keys` arguments.
 
 Note that setting `export_client_port` increases the cardinality of all Redis metrics.
 
