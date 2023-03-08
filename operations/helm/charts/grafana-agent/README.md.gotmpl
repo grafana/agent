@@ -19,7 +19,7 @@ helm repo update
 
 To install the chart with the release name my-release:
 
-`helm install my-release grafana/grafana-agent-operator`
+`helm install my-release grafana/grafana-agent`
 
 This chart installs one instance of Grafana Agent into your Kubernetes cluster
 using a specific Kubernetes controller. By default, DaemonSet is used. The
