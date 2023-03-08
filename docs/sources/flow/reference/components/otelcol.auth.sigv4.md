@@ -55,7 +55,7 @@ will be set to the value between the first and second `.` character in the expor
 
 For concrete examples, see the [examples](#examples) section.
 
-The AWS regions are listed [here](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.RegionsAndAvailabilityZones.html).
+A list of valid AWS regions can be found on Amazon's documentation for [Regions, Availability Zones, and Local Zones](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.RegionsAndAvailabilityZones.html).
 
 ## Blocks
 
