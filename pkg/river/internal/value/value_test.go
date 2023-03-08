@@ -9,28 +9,23 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestInterfacePointerReceiver tests various cases where Go values which only
-// implement an interface for a pointer receiver are retained correctly
-// throughout values.
-func TestInterfacePointerReceiver(t *testing.T) {
+// TestEncodeKeyLookup tests where Go values are retained correctly
+// throughout values with a key lookup.
+func TestEncodeKeyLookup(t *testing.T) {
+	type Body struct {
+		Data pointerMarshaler `river:"data,attr"`
+	}
+
 	tt := []struct {
 		name         string
 		encodeTarget any
 		key          string
 
-		expectBodyType value.Type
-		expectBodyText string
-
+		expectBodyType  value.Type
 		expectKeyExists bool
 		expectKeyValue  value.Value
 		expectKeyType   value.Type
 	}{
-		{
-			name:           "Encode",
-			encodeTarget:   &pointerMarshaler{},
-			expectBodyType: value.TypeString,
-			expectBodyText: "Hello, world!",
-		},
 		{
 			name:            "Struct Encode data Key",
 			encodeTarget:    &Body{},
@@ -73,23 +68,46 @@ func TestInterfacePointerReceiver(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			bodyVal := value.Encode(tc.encodeTarget)
 			require.Equal(t, tc.expectBodyType, bodyVal.Type())
-			if tc.expectBodyText != "" {
-				require.Equal(t, "Hello, world!", bodyVal.Text())
-			}
 
-			if tc.key != "" {
-				val, ok := bodyVal.Key(tc.key)
-				require.Equal(t, tc.expectKeyExists, ok)
-				require.Equal(t, tc.expectKeyType, val.Type())
-				switch val.Type() {
-				case value.TypeString:
-					require.Equal(t, tc.expectKeyValue.Text(), val.Text())
-				case value.TypeNull:
-					require.Equal(t, tc.expectKeyValue, val)
-				default:
-					require.Fail(t, "unexpected value type (this switch can be expanded)")
-				}
+			val, ok := bodyVal.Key(tc.key)
+			require.Equal(t, tc.expectKeyExists, ok)
+			require.Equal(t, tc.expectKeyType, val.Type())
+			switch val.Type() {
+			case value.TypeString:
+				require.Equal(t, tc.expectKeyValue.Text(), val.Text())
+			case value.TypeNull:
+				require.Equal(t, tc.expectKeyValue, val)
+			default:
+				require.Fail(t, "unexpected value type (this switch can be expanded)")
 			}
+		})
+	}
+}
+
+// TestEncodeNoKeyLookup tests where Go values are retained correctly
+// throughout values without a key lookup.
+func TestEncodeNoKeyLookup(t *testing.T) {
+	tt := []struct {
+		name         string
+		encodeTarget any
+		key          string
+
+		expectBodyType value.Type
+		expectBodyText string
+	}{
+		{
+			name:           "Encode",
+			encodeTarget:   &pointerMarshaler{},
+			expectBodyType: value.TypeString,
+			expectBodyText: "Hello, world!",
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			bodyVal := value.Encode(tc.encodeTarget)
+			require.Equal(t, tc.expectBodyType, bodyVal.Type())
+			require.Equal(t, "Hello, world!", bodyVal.Text())
 		})
 	}
 }
@@ -98,10 +116,6 @@ type pointerMarshaler struct{}
 
 func (*pointerMarshaler) MarshalText() ([]byte, error) {
 	return []byte("Hello, world!"), nil
-}
-
-type Body struct {
-	Data pointerMarshaler `river:"data,attr"`
 }
 
 func TestValue_Call(t *testing.T) {
