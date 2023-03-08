@@ -116,7 +116,7 @@ Full reference of options:
   # Comma separated list of individual keys to export counts for.
   [count_keys: <string>]
 
-  # Path to Lua Redis script for collecting extra metrics.
+  # Comma-separated list of paths to Lua Redis scripts for collecting extra metrics.
   [script_path: <string>]
 
   # Timeout for connection to Redis instance (in Golang duration format).
