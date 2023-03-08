@@ -1,12 +1,25 @@
 # Grafana Agent Helm chart
 
-![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.8.1](https://img.shields.io/badge/Version-0.8.1-informational?style=flat-square) ![AppVersion: v0.32.1](https://img.shields.io/badge/AppVersion-v0.32.1-informational?style=flat-square)
+![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.8.2](https://img.shields.io/badge/Version-0.8.2-informational?style=flat-square) ![AppVersion: v0.32.1](https://img.shields.io/badge/AppVersion-v0.32.1-informational?style=flat-square)
 
 Helm chart for deploying [Grafana Agent][] to Kubernetes.
 
 [Grafana Agent]: https://grafana.com/docs/agent/latest/
 
 ## Usage
+
+### Setup grafana chart repository
+
+```
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+```
+
+### Install chart
+
+To install the chart with the release name my-release:
+
+`helm install my-release grafana/grafana-agent-operator`
 
 This chart installs one instance of Grafana Agent into your Kubernetes cluster
 using a specific Kubernetes controller. By default, DaemonSet is used. The
