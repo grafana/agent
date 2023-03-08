@@ -10,6 +10,12 @@ internal API changes are not present.
 Unreleased
 ----------
 
+
+0.8.2 (2023-03-14)
+------------------
+- Add PodMonitors, ServiceMonitors, and Probes to the agent ClusterRole. (@captncraig)
+
+
 0.8.1 (2023-03-06)
 ------------------
 
@@ -19,7 +25,7 @@ Unreleased
 - Selectively template ClusterIP. (@aglees)
 - Add priorityClassName value. (@aglees)
 - Update Grafana Agent version to v0.32.1. (@erikbaranowski)
-- Add PodMonitors, ServiceMonitors, and Probes to the agent ClusterRole. (@captncraig)
+
 0.8.0 (2023-02-28)
 ------------------
 
