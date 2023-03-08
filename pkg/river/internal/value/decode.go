@@ -340,7 +340,7 @@ func tryCapsuleConvert(from Value, into reflect.Value, intoType Type) (ok bool, 
 	}
 
 	// Last attempt: allow converting two capsules if the Go types are compatible.
-	if from.Type() == TypeCapsule && intoType == TypeCapsule {
+	if from.Type() == TypeCapsule && intoType == TypeCapsule && into.Kind() == reflect.Interface {
 		if from.Reflect().CanAddr() && from.Reflect().Addr().CanConvert(into.Type()) {
 			val := from.Reflect().Addr().Convert(into.Type())
 			into.Set(val)
