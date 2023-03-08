@@ -7,7 +7,7 @@ weight: 120
 
 Install Grafana Agent and get it up and running on Windows.
 
-### Steps
+## Steps
 
 1.  Navigate to [Releases](https://github.com/grafana/agent/releases).
    
