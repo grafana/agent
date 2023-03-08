@@ -19,7 +19,7 @@ Unreleased
 - Selectively template ClusterIP. (@aglees)
 - Add priorityClassName value. (@aglees)
 - Update Grafana Agent version to v0.32.1. (@erikbaranowski)
-
+- Add PodMonitors, ServiceMonitors, and Probes to the agent ClusterRole. (@captncraig)
 0.8.0 (2023-02-28)
 ------------------
 
