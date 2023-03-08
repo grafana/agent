@@ -37,6 +37,8 @@ Main (unreleased)
 
 - Use Go 1.20.2 for builds. (@rfratto)
 
+- Bring back the Flow UI for 32-bit ARMv6 builds. (@rfratto)
+
 v0.32.1 (2023-03-06)
 --------------------
 
