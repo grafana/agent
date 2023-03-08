@@ -39,6 +39,9 @@ Main (unreleased)
 
 - Bring back the Flow UI for 32-bit ARMv6 builds. (@rfratto)
 
+- Change the Docker base image for Linux containers to `ubuntu:kinetic`.
+  (@rfratto)
+
 v0.32.1 (2023-03-06)
 --------------------
 
