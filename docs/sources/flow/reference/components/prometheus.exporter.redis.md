@@ -41,7 +41,7 @@ Name | Type | Description | Default | Required
 `check_streams`               | `list(string)` | List of stream-patterns to export info about streams, groups, and consumers to search for with SCAN. | | no
 `check_single_streams`        | `list(string)` | List of single streams to export info about streams, groups, and consumers. | | no
 `count_keys`                  | `list(string)` | List of individual keys to export counts for. | | no
-`script_path`                 | `string`       | Path to Lua Redis script for collecting extra metrics. | | no
+`script_path`                 | `string`       | Comma-separated list of paths to Lua Redis scripts for collecting extra metrics. | | no
 `connection_timeout`          | `duration`     | Timeout for connection to Redis instance (in Golang duration format). | `"15s"` | no
 `tls_client_key_file`         | `string`       | Name of the client key file (including full path) if the server requires TLS client authentication. | | no
 `tls_client_cert_file`        | `string`       | Name of the client certificate file (including full path) if the server requires TLS client authentication. | | no
