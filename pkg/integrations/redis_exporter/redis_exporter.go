@@ -59,11 +59,14 @@ type Config struct {
 	TLSCaCertFile           string             `yaml:"tls_ca_cert_file,omitempty"`
 	SetClientName           bool               `yaml:"set_client_name,omitempty"`
 	IsTile38                bool               `yaml:"is_tile38,omitempty"`
+	IsCluster               bool               `yaml:"is_cluster,omitempty"`
 	ExportClientList        bool               `yaml:"export_client_list,omitempty"`
 	ExportClientPort        bool               `yaml:"export_client_port,omitempty"`
 	RedisMetricsOnly        bool               `yaml:"redis_metrics_only,omitempty"`
 	PingOnConnect           bool               `yaml:"ping_on_connect,omitempty"`
 	InclSystemMetrics       bool               `yaml:"incl_system_metrics,omitempty"`
+	InclConfigMetrics       bool               `yaml:"incl_config_metrics,omitempty"`
+	RedactConfigMetrics     bool               `yaml:"redact_config_metrics,omitempty"`
 	SkipTLSVerification     bool               `yaml:"skip_tls_verification,omitempty"`
 }
 
@@ -84,9 +87,12 @@ func (c Config) GetExporterOptions() re.Options {
 		CheckSingleStreams:    c.CheckSingleStreams,
 		CountKeys:             c.CountKeys,
 		InclSystemMetrics:     c.InclSystemMetrics,
+		InclConfigMetrics:     c.InclConfigMetrics,
+		RedactConfigMetrics:   c.RedactConfigMetrics,
 		SkipTLSVerification:   c.SkipTLSVerification,
 		SetClientName:         c.SetClientName,
 		IsTile38:              c.IsTile38,
+		IsCluster:             c.IsCluster,
 		ExportClientList:      c.ExportClientList,
 		ExportClientsInclPort: c.ExportClientPort,
 		ConnectionTimeouts:    c.ConnectionTimeout,
@@ -135,11 +141,15 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 	}
 
 	if c.ScriptPath != "" {
-		ls, err := os.ReadFile(c.ScriptPath)
-		if err != nil {
-			return nil, fmt.Errorf("Error loading script file %s: %w", c.ScriptPath, err)
+		scripts := map[string][]byte{}
+		for _, path := range strings.Split(c.ScriptPath, ",") {
+			ls, err := os.ReadFile(path)
+			if err != nil {
+				return nil, fmt.Errorf("error loading script file %s: %w", c.ScriptPath, err)
+			}
+			scripts[path] = ls
 		}
-		exporterConfig.LuaScript = ls
+		exporterConfig.LuaScript = scripts
 	}
 
 	//new version of the exporter takes the file paths directly, for hot-reloading support (https://github.com/oliver006/redis_exporter/pull/526)
