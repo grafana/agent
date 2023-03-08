@@ -64,8 +64,8 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | configReloader.image.repository | string | `"jimmidyson/configmap-reload"` | Repository to get config reloader image from. |
 | configReloader.image.tag | string | `"v0.8.0"` | Tag of image to use for config reloading. |
 | controller.podAnnotations | object | `{}` | Extra pod annotations to add. |
-| controller.affinity | object | `{}` | Affinity configuration for pods. |
 | controller.podLabels | object | `{}` | Extra pod labels to add. |
+| controller.affinity | object | `{}` | Affinity configuration for pods. |
 | controller.priorityClassName | string | `""` | priorityClassName to apply to Grafana Agent pods. |
 | controller.replicas | int | `1` | Number of pods to deploy. Ignored when controller.type is 'daemonset'. |
 | controller.tolerations | list | `[]` | Tolerations to apply to Grafana Agent pods. |
