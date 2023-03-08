@@ -13,6 +13,9 @@ Unreleased
 
 0.8.2 (2023-03-14)
 ------------------
+
+### Enhancements
+
 - Add PodMonitors, ServiceMonitors, and Probes to the agent ClusterRole. (@captncraig)
 
 
