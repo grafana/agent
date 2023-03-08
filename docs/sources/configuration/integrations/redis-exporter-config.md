@@ -137,6 +137,9 @@ Full reference of options:
   # Whether to scrape Tile38 specific metrics.
   [is_tile38: <bool>]
 
+  # Whether this is a redis cluster (Enable this if you need to fetch key level data on a Redis Cluster).
+  [is_cluster: <bool> | default = false]
+
   # Whether to scrape Client List specific metrics.
   [export_client_list: <bool>]
 
@@ -152,6 +155,12 @@ Full reference of options:
 
   # Whether to include system metrics like e.g. redis_total_system_memory_bytes.
   [incl_system_metrics: <bool>]
+
+  # Whether to include all redis config settings as metrics.
+  [incl_config_metrics: <bool>]
+
+  # Whether to redact redis config settings that include potentially sensitive information like passwords.
+  [redact_config_metrics: <bool> | default = true]
 
   # Whether to to skip TLS verification.
   [skip_tls_verification: <bool>]
