@@ -8,7 +8,7 @@ Helm chart for deploying [Grafana Agent][] to Kubernetes.
 
 ## Usage
 
-### Setup grafana chart repository
+### Setup Grafana chart repository
 
 ```
 helm repo add grafana https://grafana.github.io/helm-charts
