@@ -61,6 +61,7 @@ type Config struct {
 	CheckStreams            []string          `river:"check_streams,attr,optional"`
 	CheckSingleStreams      []string          `river:"check_single_streams,attr,optional"`
 	CountKeys               []string          `river:"count_keys,attr,optional"`
+	ScriptPath              string            `river:"script_path,attr,optional"`
 	ScriptPaths             []string          `river:"script_paths,attr,optional"`
 	ConnectionTimeout       time.Duration     `river:"connection_timeout,attr,optional"`
 	TLSClientKeyFile        string            `river:"tls_client_key_file,attr,optional"`
@@ -105,7 +106,7 @@ func (c *Config) Convert() *redis_exporter.Config {
 		CheckStreams:            strings.Join(c.CheckStreams, ","),
 		CheckSingleStreams:      strings.Join(c.CheckSingleStreams, ","),
 		CountKeys:               strings.Join(c.CountKeys, ","),
-		ScriptPath:              strings.Join(c.ScriptPaths, ","),
+		ScriptPath:              c.ScriptPath,
 		ConnectionTimeout:       c.ConnectionTimeout,
 		TLSClientKeyFile:        c.TLSClientKeyFile,
 		TLSClientCertFile:       c.TLSClientCertFile,

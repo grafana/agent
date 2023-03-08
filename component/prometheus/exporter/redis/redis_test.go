@@ -24,7 +24,7 @@ func TestRiverUnmarshal(t *testing.T) {
 		check_streams               = ["stream1*"]
 		check_single_streams        = ["particular_stream"]
 		count_keys                  = ["count_key1", "count_key2"]
-		script_paths                = ["/tmp/metrics-script.lua", "/tmp/cooler-metrics-script.lua"]
+		script_path                 = "/tmp/metrics-script.lua,/tmp/cooler-metrics-script.lua"
 		connection_timeout          = "7s"
 		tls_client_key_file         = "/tmp/client-key.pem"
 		tls_client_cert_file        = "/tmp/client-cert.pem"
@@ -62,7 +62,7 @@ func TestRiverUnmarshal(t *testing.T) {
 		CheckSingleStreams: []string{"particular_stream"},
 		CountKeys:          []string{"count_key1", "count_key2"},
 
-		ScriptPaths:       []string{"/tmp/metrics-script.lua", "/tmp/cooler-metrics-script.lua"},
+		ScriptPath:        "/tmp/metrics-script.lua,/tmp/cooler-metrics-script.lua",
 		ConnectionTimeout: 7 * time.Second,
 
 		TLSClientKeyFile:  "/tmp/client-key.pem",
@@ -102,7 +102,7 @@ func TestRiverConvert(t *testing.T) {
 		CheckStreams:       []string{"stream1*", "stream2*"},
 		CheckSingleStreams: []string{"particular_stream"},
 
-		ScriptPaths:       []string{"/tmp/metrics-script.lua", "/tmp/cooler-metrics-script.lua"},
+		ScriptPath:        "/tmp/metrics-script.lua,/tmp/cooler-metrics-script.lua",
 		ConnectionTimeout: 7 * time.Second,
 
 		TLSClientKeyFile:  "/tmp/client-key.pem",
