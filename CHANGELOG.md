@@ -30,6 +30,8 @@ Main (unreleased)
 
 - Flow: Add retries with backoff logic to Phlare write component. (@cyriltovena)
 
+- Update Redis Exporter Dependency to v1.48.0. (@spartan0x117)
+
 ### Other changes
 
 - Grafana Agent Docker containers and release binaries are now published for
