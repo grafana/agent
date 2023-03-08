@@ -14,9 +14,9 @@ import (
 	"github.com/grafana/agent/pkg/flow/componenttest"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config/configauth"
-	"gotest.tools/assert"
 )
 
 // Test performs a basic integration test which runs the otelcol.auth.sigv4

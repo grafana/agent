@@ -21,17 +21,6 @@ different labels.
 
 ## Usage
 
-If the exporter URL does not contain enough information about the region and service, 
-the minimum arguments are:
-```river
-otelcol.auth.sigv4 "LABEL" {
-  region  = "REGION"
-  service = "SERVICE"
-}
-```
-
-In some cases the exporter URL does contain enough information about the region and service as 
-described [here](#arguments). In that case there is no need to specify any arguments to this component:
 ```river
 otelcol.auth.sigv4 "LABEL" {
 }
@@ -55,7 +44,8 @@ will be set to the value between the first and second `.` character in the expor
 
 For concrete examples, see the [examples](#examples) section.
 
-A list of valid AWS regions can be found on Amazon's documentation for [Regions, Availability Zones, and Local Zones](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.RegionsAndAvailabilityZones.html).
+A list of valid AWS regions can be found on Amazon's documentation for 
+[Regions, Availability Zones, and Local Zones](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.RegionsAndAvailabilityZones.html).
 
 ## Blocks
 
@@ -102,7 +92,9 @@ configuration.
 
 ## Examples
 
-In the example below the exporter endpoint starts with `aps-workspaces`. Hence `service` is inferred to be `aps`
+### Inferring the "region" and "service" from an "aps-workspaces" exporter endpoint
+
+In this example the exporter endpoint starts with `aps-workspaces`. Hence `service` is inferred to be `aps`
 and `region` is inferred to be `us-east-1`.
 
 ```river
@@ -117,7 +109,9 @@ otelcol.auth.sigv4 "creds" {
 }
 ```
 
-In the example below the exporter endpoint starts with `search-`. Hence `service` is inferred to be `es`
+### Inferring the "region" and "service" from a "search-" exporter endpoint
+
+In this example the exporter endpoint starts with `search-`. Hence `service` is inferred to be `es`
 and `region` is inferred to be `us-east-1`.
 
 ```river
@@ -132,7 +126,9 @@ otelcol.auth.sigv4 "creds" {
 }
 ```
 
-In the example below the exporter endpoint does not begin with `search-` or with `aps-workspaces`.
+### Specifying "region" and "service" explicitly
+
+In this example the exporter endpoint does not begin with `search-` or with `aps-workspaces`.
 Hence, we need to specify `region` and `service` explicitly.
 
 ```river
@@ -149,7 +145,9 @@ otelcol.auth.sigv4 "creds" {
 }
 ```
 
-In the example below we have also specified configuration to assume a role. `sts_region` has not been 
+### Specifying "region" and "service" explicitly and adding a "role" to assume
+
+In this example we have also specified configuration to assume a role. `sts_region` has not been 
 provided, so it will default to the value of `region` which is `example_region`.
 
 ```river

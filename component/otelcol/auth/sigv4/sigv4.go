@@ -3,7 +3,6 @@ package sigv4
 import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol/auth"
-	"github.com/grafana/agent/pkg/river"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/sigv4authextension"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelconfig "go.opentelemetry.io/collector/config"
@@ -59,19 +58,6 @@ type AssumeRole struct {
 	ARN         string `river:"arn,attr,optional"`
 	SessionName string `river:"session_name,attr,optional"`
 	STSRegion   string `river:"sts_region,attr,optional"`
-}
-
-var _ river.Unmarshaler = (*AssumeRole)(nil)
-
-// UnmarshalRiver implements river.Unmarshaler.
-func (h *AssumeRole) UnmarshalRiver(f func(interface{}) error) error {
-	type assumeRole AssumeRole
-
-	if err := f((*assumeRole)(h)); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // Convert converts args into the upstream type.
