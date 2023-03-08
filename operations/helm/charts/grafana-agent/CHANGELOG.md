@@ -10,6 +10,10 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Enhancements
+
+- Add affinity values. (@therealmanny)
+
 0.8.1 (2023-03-06)
 ------------------
 
