@@ -27,6 +27,7 @@ var DefaultConfig = Config{
 	SetClientName:           true,
 	CheckKeyGroupsBatchSize: 10000,
 	MaxDistinctKeyGroups:    100,
+	RedactConfigMetrics:     true,
 }
 
 // Config controls the redis_exporter integration.
