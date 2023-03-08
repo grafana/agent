@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/pkg/integrations/redis_exporter"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/stretchr/testify/require"
 )
@@ -23,7 +24,7 @@ func TestRiverUnmarshal(t *testing.T) {
 		check_streams               = ["stream1*"]
 		check_single_streams        = ["particular_stream"]
 		count_keys                  = ["count_key1", "count_key2"]
-		script_path                 = "/tmp/metrics-script.lua"
+		script_paths                = ["/tmp/metrics-script.lua", "/tmp/cooler-metrics-script.lua"]
 		connection_timeout          = "7s"
 		tls_client_key_file         = "/tmp/client-key.pem"
 		tls_client_cert_file        = "/tmp/client-cert.pem"
@@ -36,43 +37,51 @@ func TestRiverUnmarshal(t *testing.T) {
 		ping_on_connect             = true
 		incl_system_metrics         = true
 		skip_tls_verification       = false
-	
+		incl_config_metrics         = true
+		redact_config_metrics       = false
+		is_cluster                  = true
 	`
 	var cfg Config
 	err := river.Unmarshal([]byte(riverConfig), &cfg)
 
 	require.NoError(t, err)
-	require.Equal(t, "localhost:6379", cfg.RedisAddr)
-	require.Equal(t, "redis_user", cfg.RedisUser)
-	require.Equal(t, "/tmp/pass", cfg.RedisPasswordFile)
-	require.Equal(t, "namespace", cfg.Namespace)
-	require.Equal(t, "TEST_CONFIG", cfg.ConfigCommand)
+	expected := Config{
+		RedisAddr:         "localhost:6379",
+		RedisUser:         "redis_user",
+		RedisPasswordFile: "/tmp/pass",
+		Namespace:         "namespace",
+		ConfigCommand:     "TEST_CONFIG",
 
-	require.Equal(t, []string{"key1*", "cache_*"}, cfg.CheckKeys)
-	require.Equal(t, []string{"other_key%d+"}, cfg.CheckKeyGroups)
-	require.Equal(t, []string{"particular_key"}, cfg.CheckSingleKeys)
-	require.Equal(t, int64(5000), cfg.CheckKeyGroupsBatchSize)
-	require.Equal(t, int64(50), cfg.MaxDistinctKeyGroups)
+		CheckKeys:               []string{"key1*", "cache_*"},
+		CheckKeyGroups:          []string{"other_key%d+"},
+		CheckSingleKeys:         []string{"particular_key"},
+		CheckKeyGroupsBatchSize: int64(5000),
+		MaxDistinctKeyGroups:    int64(50),
 
-	require.Equal(t, []string{"stream1*"}, cfg.CheckStreams)
-	require.Equal(t, []string{"particular_stream"}, cfg.CheckSingleStreams)
-	require.Equal(t, []string{"count_key1", "count_key2"}, cfg.CountKeys)
+		CheckStreams:       []string{"stream1*"},
+		CheckSingleStreams: []string{"particular_stream"},
+		CountKeys:          []string{"count_key1", "count_key2"},
 
-	require.Equal(t, "/tmp/metrics-script.lua", cfg.ScriptPath)
-	require.Equal(t, 7*time.Second, cfg.ConnectionTimeout)
+		ScriptPaths:       []string{"/tmp/metrics-script.lua", "/tmp/cooler-metrics-script.lua"},
+		ConnectionTimeout: 7 * time.Second,
 
-	require.Equal(t, "/tmp/client-key.pem", cfg.TLSClientKeyFile)
-	require.Equal(t, "/tmp/client-cert.pem", cfg.TLSClientCertFile)
-	require.Equal(t, "/tmp/ca-cert.pem", cfg.TLSCaCertFile)
+		TLSClientKeyFile:  "/tmp/client-key.pem",
+		TLSClientCertFile: "/tmp/client-cert.pem",
+		TLSCaCertFile:     "/tmp/ca-cert.pem",
 
-	require.False(t, cfg.SetClientName)
-	require.True(t, cfg.IsTile38)
-	require.False(t, cfg.ExportClientList)
-	require.True(t, cfg.ExportClientPort)
-	require.False(t, cfg.RedisMetricsOnly)
-	require.True(t, cfg.PingOnConnect)
-	require.True(t, cfg.InclSystemMetrics)
-	require.False(t, cfg.SkipTLSVerification)
+		SetClientName:       false,
+		IsTile38:            true,
+		ExportClientList:    false,
+		ExportClientPort:    true,
+		RedisMetricsOnly:    false,
+		PingOnConnect:       true,
+		InclSystemMetrics:   true,
+		SkipTLSVerification: false,
+		InclConfigMetrics:   true,
+		RedactConfigMetrics: false,
+		IsCluster:           true,
+	}
+	require.Equal(t, expected, cfg)
 }
 
 func TestRiverConvert(t *testing.T) {
@@ -93,7 +102,7 @@ func TestRiverConvert(t *testing.T) {
 		CheckStreams:       []string{"stream1*", "stream2*"},
 		CheckSingleStreams: []string{"particular_stream"},
 
-		ScriptPath:        "/tmp/metrics-script.lua",
+		ScriptPaths:       []string{"/tmp/metrics-script.lua", "/tmp/cooler-metrics-script.lua"},
 		ConnectionTimeout: 7 * time.Second,
 
 		TLSClientKeyFile:  "/tmp/client-key.pem",
@@ -110,36 +119,39 @@ func TestRiverConvert(t *testing.T) {
 		SkipTLSVerification: false,
 	}
 	converted := orig.Convert()
+	expected := redis_exporter.Config{
+		RedisAddr:         "localhost:6379",
+		RedisUser:         "redis_user",
+		RedisPasswordFile: "/tmp/pass",
+		Namespace:         "namespace",
+		ConfigCommand:     "TEST_CONFIG",
 
-	require.Equal(t, "localhost:6379", converted.RedisAddr)
-	require.Equal(t, "redis_user", converted.RedisUser)
-	require.Equal(t, "/tmp/pass", converted.RedisPasswordFile)
-	require.Equal(t, "namespace", converted.Namespace)
-	require.Equal(t, "TEST_CONFIG", converted.ConfigCommand)
+		CheckKeys:               "key1*,cache_*",
+		CheckKeyGroups:          "other_key%d+",
+		CheckSingleKeys:         "particular_key",
+		CountKeys:               "count_key1,count_key2",
+		CheckKeyGroupsBatchSize: 5000,
+		MaxDistinctKeyGroups:    50,
 
-	require.Equal(t, "key1*,cache_*", converted.CheckKeys)
-	require.Equal(t, "other_key%d+", converted.CheckKeyGroups)
-	require.Equal(t, "particular_key", converted.CheckSingleKeys)
-	require.Equal(t, "count_key1,count_key2", converted.CountKeys)
-	require.Equal(t, int64(5000), converted.CheckKeyGroupsBatchSize)
-	require.Equal(t, int64(50), converted.MaxDistinctKeyGroups)
+		CheckStreams:       "stream1*,stream2*",
+		CheckSingleStreams: "particular_stream",
 
-	require.Equal(t, "stream1*,stream2*", converted.CheckStreams)
-	require.Equal(t, "particular_stream", converted.CheckSingleStreams)
+		ScriptPath:        "/tmp/metrics-script.lua,/tmp/cooler-metrics-script.lua",
+		ConnectionTimeout: 7 * time.Second,
 
-	require.Equal(t, "/tmp/metrics-script.lua", converted.ScriptPath)
-	require.Equal(t, 7*time.Second, converted.ConnectionTimeout)
+		TLSClientKeyFile:  "/tmp/client-key.pem",
+		TLSClientCertFile: "/tmp/client-cert.pem",
+		TLSCaCertFile:     "/tmp/ca-cert.pem",
 
-	require.Equal(t, "/tmp/client-key.pem", converted.TLSClientKeyFile)
-	require.Equal(t, "/tmp/client-cert.pem", converted.TLSClientCertFile)
-	require.Equal(t, "/tmp/ca-cert.pem", converted.TLSCaCertFile)
+		SetClientName:       false,
+		IsTile38:            true,
+		ExportClientList:    false,
+		ExportClientPort:    true,
+		RedisMetricsOnly:    false,
+		PingOnConnect:       true,
+		InclSystemMetrics:   true,
+		SkipTLSVerification: false,
+	}
 
-	require.False(t, converted.SetClientName)
-	require.True(t, converted.IsTile38)
-	require.False(t, converted.ExportClientList)
-	require.True(t, converted.ExportClientPort)
-	require.False(t, converted.RedisMetricsOnly)
-	require.True(t, converted.PingOnConnect)
-	require.True(t, converted.InclSystemMetrics)
-	require.False(t, converted.SkipTLSVerification)
+	require.Equal(t, expected, *converted)
 }
