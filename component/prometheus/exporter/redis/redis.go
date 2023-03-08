@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -46,7 +47,7 @@ type Config struct {
 	//
 	// The exporter binary config differs to this, but these
 	// are the only fields that are relevant to the exporter struct.
-	RedisAddr               string            `river:"redis_addr,attr,optional"`
+	RedisAddr               string            `river:"redis_addr,attr"`
 	RedisUser               string            `river:"redis_user,attr,optional"`
 	RedisPassword           rivertypes.Secret `river:"redis_password,attr,optional"`
 	RedisPasswordFile       string            `river:"redis_password_file,attr,optional"`
@@ -85,10 +86,27 @@ func (c *Config) UnmarshalRiver(f func(interface{}) error) error {
 	*c = DefaultConfig
 
 	type cfg Config
-	return f((*cfg)(c))
+	if err := f((*cfg)(c)); err != nil {
+		return err
+	}
+	return c.Validate()
+}
+
+func (c *Config) Validate() error {
+	if c.ScriptPath != "" && len(c.ScriptPaths) > 0 {
+		return fmt.Errorf("only one of script_path and script_paths should be specified")
+	}
+	return nil
 }
 
 func (c *Config) Convert() *redis_exporter.Config {
+	var scriptPath string
+	if c.ScriptPath != "" {
+		scriptPath = c.ScriptPath
+	} else if len(c.ScriptPaths) > 0 {
+		scriptPath = strings.Join(c.ScriptPaths, ",")
+	}
+
 	return &redis_exporter.Config{
 		IncludeExporterMetrics:  c.IncludeExporterMetrics,
 		RedisAddr:               c.RedisAddr,
@@ -106,7 +124,7 @@ func (c *Config) Convert() *redis_exporter.Config {
 		CheckStreams:            strings.Join(c.CheckStreams, ","),
 		CheckSingleStreams:      strings.Join(c.CheckSingleStreams, ","),
 		CountKeys:               strings.Join(c.CountKeys, ","),
-		ScriptPath:              c.ScriptPath,
+		ScriptPath:              scriptPath,
 		ConnectionTimeout:       c.ConnectionTimeout,
 		TLSClientKeyFile:        c.TLSClientKeyFile,
 		TLSClientCertFile:       c.TLSClientCertFile,

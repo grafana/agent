@@ -84,6 +84,25 @@ func TestRiverUnmarshal(t *testing.T) {
 	require.Equal(t, expected, cfg)
 }
 
+func TestUnmarshalInvalid(t *testing.T) {
+	validRiverConfig := `
+	redis_addr  = "localhost:1234"
+	script_path = "/tmp/metrics.lua"`
+
+	var cfg Config
+	err := river.Unmarshal([]byte(validRiverConfig), &cfg)
+	require.NoError(t, err)
+
+	invalidRiverConfig := `
+	redis_addr   = "localhost:1234
+	script_path  = "/tmp/metrics.lua"
+	script_paths = ["/tmp/more-metrics.lua", "/tmp/even-more-metrics.lua"]`
+
+	var invalidCfg Config
+	err = river.Unmarshal([]byte(invalidRiverConfig), &invalidCfg)
+	require.Error(t, err)
+}
+
 func TestRiverConvert(t *testing.T) {
 	orig := Config{
 		RedisAddr:         "localhost:6379",
