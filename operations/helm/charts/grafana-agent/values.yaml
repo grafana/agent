@@ -119,7 +119,7 @@ controller:
   # -- Extra pod annotations to add.
   podAnnotations: {}
 
-  # -- Pod labels
+  # -- Extra pod labels to add.
   podLabels: {}
 
   volumes:
