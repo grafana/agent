@@ -112,7 +112,7 @@ func (c *crdManager) onDeletePodMonitor(obj interface{}) {
 	c.apply()
 }
 
-func (c *crdManager) run(ctx context.Context) error {
+func (c *crdManager) run(ctx context.Context, disc *discovery.Manager) error {
 	config, err := c.config.restConfig()
 	if err != nil {
 		return errors.Wrap(err, "creating rest config")
@@ -157,14 +157,6 @@ func (c *crdManager) run(ctx context.Context) error {
 
 	level.Info(c.logger).Log("msg", "informers  started")
 
-	c.discovery = discovery.NewManager(ctx, c.logger, discovery.Name(c.opts.ID))
-	go func() {
-		err := c.discovery.Run()
-		if err != nil {
-			level.Error(c.logger).Log("msg", "discovery manager stopped", "err", err)
-		}
-	}()
-
 	flowAppendable := prometheus.NewFanout(c.config.ForwardTo, c.opts.ID, c.opts.Registerer)
 	opts := &scrape.Options{}
 	c.scraper = scrape.NewManager(opts, c.logger, flowAppendable)
@@ -181,7 +173,7 @@ func (c *crdManager) run(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			return nil
-		case m := <-c.discovery.SyncCh():
+		case m := <-disc.SyncCh():
 			//TODO: are there cases where we modify targets?
 			targetSetsChan <- m
 		}
