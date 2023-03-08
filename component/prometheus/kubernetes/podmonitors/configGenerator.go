@@ -27,13 +27,13 @@ func (cg *configGenerator) generateK8SSDConfig(namespaceSelector v1.NamespaceSel
 	if len(namespaces) != 0 {
 		cfg.NamespaceDiscovery.Names = namespaces
 	}
-	if cg.config.KubeConfig != "" {
-		cfg.KubeConfig = cg.config.KubeConfig
+	client := cg.config.Client
+	if client.KubeConfig != "" {
+		cfg.KubeConfig = client.KubeConfig
 	}
-	if cg.config.ApiServerConfig != nil {
-		apiCfg := cg.config.ApiServerConfig
-		hCfg := apiCfg.HTTPClientConfig
-		cfg.APIServer = apiCfg.Host.Convert()
+	if client.APIServer.URL != nil {
+		hCfg := client.HTTPClientConfig
+		cfg.APIServer = client.APIServer.Convert()
 
 		if hCfg.BasicAuth != nil {
 			cfg.HTTPClientConfig.BasicAuth = hCfg.BasicAuth.Convert()

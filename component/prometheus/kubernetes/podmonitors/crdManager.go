@@ -113,7 +113,7 @@ func (c *crdManager) onDeletePodMonitor(obj interface{}) {
 }
 
 func (c *crdManager) run(ctx context.Context) error {
-	config, err := c.config.restConfig()
+	config, err := c.config.Client.BuildRESTConfig(c.logger)
 	if err != nil {
 		return errors.Wrap(err, "creating rest config")
 	}
