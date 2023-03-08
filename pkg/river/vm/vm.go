@@ -203,7 +203,7 @@ func prepareDecodeValue(v reflect.Value) reflect.Value {
 	return v
 }
 
-func (vm *Evaluator) evaluateExpr(scope *Scope, assoc map[value.Value]ast.Node, expr ast.Expr) (v value.Value, err error) {
+func (vm *Evaluator) evaluateExpr(scope *Scope, assoc map[value.Value]ast.Node, expr ast.Expr) (v value.Value, err *diag.Diagnostic) {
 	defer func() {
 		if v != value.Null {
 			assoc[v] = expr
@@ -212,7 +212,17 @@ func (vm *Evaluator) evaluateExpr(scope *Scope, assoc map[value.Value]ast.Node, 
 
 	switch expr := expr.(type) {
 	case *ast.LiteralExpr:
-		return valueFromLiteral(expr.Value, expr.Kind)
+		val, err := valueFromLiteral(expr.Value, expr.Kind)
+		if err == nil {
+			return val, nil
+		} else {
+			return value.Null, &diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				StartPos: ast.StartPos(expr).Position(),
+				EndPos:   ast.EndPos(expr).Position(),
+				Message:  err.Error(),
+			}
+		}
 
 	case *ast.BinaryExpr:
 		lhs, err := vm.evaluateExpr(scope, assoc, expr.Left)
@@ -223,7 +233,17 @@ func (vm *Evaluator) evaluateExpr(scope *Scope, assoc map[value.Value]ast.Node, 
 		if err != nil {
 			return value.Null, err
 		}
-		return evalBinop(lhs, expr.Kind, rhs)
+		val, plainErr := evalBinop(lhs, expr.Kind, rhs)
+		if plainErr == nil {
+			return val, nil
+		} else {
+			return value.Null, &diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				StartPos: ast.StartPos(expr).Position(),
+				EndPos:   ast.EndPos(expr).Position(),
+				Message:  plainErr.Error(),
+			}
+		}
 
 	case *ast.ArrayExpr:
 		vals := make([]value.Value, len(expr.Elements))
@@ -250,7 +270,7 @@ func (vm *Evaluator) evaluateExpr(scope *Scope, assoc map[value.Value]ast.Node, 
 	case *ast.IdentifierExpr:
 		val, found := scope.Lookup(expr.Ident.Name)
 		if !found {
-			return value.Null, diag.Diagnostic{
+			return value.Null, &diag.Diagnostic{
 				Severity: diag.SeverityLevelError,
 				StartPos: ast.StartPos(expr).Position(),
 				EndPos:   ast.EndPos(expr).Position(),
@@ -269,7 +289,7 @@ func (vm *Evaluator) evaluateExpr(scope *Scope, assoc map[value.Value]ast.Node, 
 		case value.TypeObject:
 			res, ok := val.Key(expr.Name.Name)
 			if !ok {
-				return value.Null, diag.Diagnostic{
+				return value.Null, &diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
 					StartPos: ast.StartPos(expr.Name).Position(),
 					EndPos:   ast.EndPos(expr.Name).Position(),
@@ -278,10 +298,11 @@ func (vm *Evaluator) evaluateExpr(scope *Scope, assoc map[value.Value]ast.Node, 
 			}
 			return res, nil
 		default:
-			//TODO (ptodev): Should we convert value.Error to diagnostic ?
-			return value.Null, value.Error{
-				Value: val,
-				Inner: fmt.Errorf("cannot access field %q on value of type %s", expr.Name.Name, val.Type()),
+			return value.Null, &diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				StartPos: ast.StartPos(expr.Name).Position(),
+				EndPos:   ast.EndPos(expr.Name).Position(),
+				Message:  fmt.Sprintf("cannot access field %q on value of type %s", expr.Name.Name, val.Type()),
 			}
 		}
 
@@ -299,15 +320,21 @@ func (vm *Evaluator) evaluateExpr(scope *Scope, assoc map[value.Value]ast.Node, 
 		case value.TypeArray:
 			// Arrays are indexed with a number.
 			if idx.Type() != value.TypeNumber {
-				return value.Null, value.TypeError{Value: idx, Expected: value.TypeNumber}
+				return value.Null, &diag.Diagnostic{
+					Severity: diag.SeverityLevelError,
+					StartPos: ast.StartPos(expr).Position(),
+					EndPos:   ast.EndPos(expr).Position(),
+					Message:  fmt.Sprintf("Expected value of type 'number', got value of type '%s'", idx.Type()),
+				}
 			}
 			intIndex := int(idx.Int())
 
 			if intIndex < 0 || intIndex >= val.Len() {
-				//TODO (ptodev): Should we convert value.Error to diagnostic ?
-				return value.Null, value.Error{
-					Value: idx,
-					Inner: fmt.Errorf("index %d is out of range of array with length %d", intIndex, val.Len()),
+				return value.Null, &diag.Diagnostic{
+					Severity: diag.SeverityLevelError,
+					StartPos: ast.StartPos(expr).Position(),
+					EndPos:   ast.EndPos(expr).Position(),
+					Message:  fmt.Sprintf("index %d is out of range of array with length %d", intIndex, val.Len()),
 				}
 			}
 			return val.Index(intIndex), nil
@@ -315,12 +342,18 @@ func (vm *Evaluator) evaluateExpr(scope *Scope, assoc map[value.Value]ast.Node, 
 		case value.TypeObject:
 			// Objects are indexed with a string.
 			if idx.Type() != value.TypeString {
-				return value.Null, value.TypeError{Value: idx, Expected: value.TypeNumber}
+				return value.Null, &diag.Diagnostic{
+					Severity: diag.SeverityLevelError,
+					StartPos: ast.StartPos(expr).Position(),
+					EndPos:   ast.EndPos(expr).Position(),
+					//TODO: Should we use ' inside error messages? It's not common in the codebase.
+					Message: fmt.Sprintf("Expected value of type 'string', got value of type '%s'", idx.Type()),
+				}
 			}
 
 			field, ok := val.Key(idx.Text())
 			if !ok {
-				return value.Null, diag.Diagnostic{
+				return value.Null, &diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
 					StartPos: ast.StartPos(expr.Index).Position(),
 					EndPos:   ast.EndPos(expr.Index).Position(),
@@ -330,10 +363,11 @@ func (vm *Evaluator) evaluateExpr(scope *Scope, assoc map[value.Value]ast.Node, 
 			return field, nil
 
 		default:
-			//TODO (ptodev): Should we convert value.Error to diagnostic ?
-			return value.Null, value.Error{
-				Value: val,
-				Inner: fmt.Errorf("expected object or array, got %s", val.Type()),
+			return value.Null, &diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				StartPos: ast.StartPos(expr).Position(),
+				EndPos:   ast.EndPos(expr).Position(),
+				Message:  fmt.Sprintf("expected object or array, got %s", val.Type()),
 			}
 		}
 
@@ -345,7 +379,17 @@ func (vm *Evaluator) evaluateExpr(scope *Scope, assoc map[value.Value]ast.Node, 
 		if err != nil {
 			return value.Null, err
 		}
-		return evalUnaryOp(expr.Kind, val)
+		val, plainErr := evalUnaryOp(expr.Kind, val)
+		if plainErr == nil {
+			return val, nil
+		} else {
+			return value.Null, &diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				StartPos: ast.StartPos(expr).Position(),
+				EndPos:   ast.EndPos(expr).Position(),
+				Message:  err.Error(),
+			}
+		}
 
 	case *ast.CallExpr:
 		funcVal, err := vm.evaluateExpr(scope, assoc, expr.Value)
@@ -353,7 +397,12 @@ func (vm *Evaluator) evaluateExpr(scope *Scope, assoc map[value.Value]ast.Node, 
 			return funcVal, err
 		}
 		if funcVal.Type() != value.TypeFunction {
-			return value.Null, value.TypeError{Value: funcVal, Expected: value.TypeFunction}
+			return value.Null, &diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				StartPos: ast.StartPos(expr).Position(),
+				EndPos:   ast.EndPos(expr).Position(),
+				Message:  fmt.Sprintf("Expected value of type 'function', got value of type '%s'", funcVal.Type()),
+			}
 		}
 
 		args := make([]value.Value, len(expr.Args))
@@ -363,7 +412,17 @@ func (vm *Evaluator) evaluateExpr(scope *Scope, assoc map[value.Value]ast.Node, 
 				return value.Null, err
 			}
 		}
-		return funcVal.Call(args...)
+		val, plainErr := funcVal.Call(args...)
+		if plainErr == nil {
+			return val, nil
+		} else {
+			return value.Null, &diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				StartPos: ast.StartPos(expr).Position(),
+				EndPos:   ast.EndPos(expr).Position(),
+				Message:  err.Error(),
+			}
+		}
 
 	default:
 		panic(fmt.Sprintf("river/vm: unexpected ast.Expr type %T", expr))

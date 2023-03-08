@@ -173,7 +173,6 @@ func (st *structDecoder) decodeAttr(attr *ast.AttributeStmt, rv reflect.Value, s
 	// Decode the attribute.
 	val, err := st.VM.evaluateExpr(st.Scope, st.Assoc, attr.Value)
 	if err != nil {
-		// TODO(ptodev): get error as diagnostics.
 		return err
 	}
 
