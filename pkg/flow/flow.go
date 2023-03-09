@@ -252,7 +252,7 @@ func (c *Flow) LoadFile(file *File, args map[string]any) error {
 
 	// Fill out the values for the scope so that argument.NAME.value can be used
 	// to reference expressions.
-	evalatedArgs := make(map[string]any, len(file.Arguments))
+	evaluatedArgs := make(map[string]any, len(file.Arguments))
 
 	// TODO(rfratto): error on unrecognized args.
 	for _, arg := range file.Arguments {
@@ -264,13 +264,13 @@ func (c *Flow) LoadFile(file *File, args map[string]any) error {
 			val = setVal
 		}
 
-		evalatedArgs[arg.Name] = map[string]any{"value": val}
+		evaluatedArgs[arg.Name] = map[string]any{"value": val}
 	}
 
 	argumentScope := &vm.Scope{
 		Parent: nil,
 		Variables: map[string]interface{}{
-			"argument": evalatedArgs,
+			"argument": evaluatedArgs,
 		},
 	}
 
