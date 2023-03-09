@@ -231,7 +231,7 @@ func TestVM_Evaluate_AccessExpr(t *testing.T) {
 
 	t.Run("Invalid lookup 2", func(t *testing.T) {
 		_, err := parser.ParseExpression(`{ a = 15 }.7`)
-		require.EqualError(t, err, `1:11: did not parse the expression in full - unexpected token of type FLOAT`)
+		require.EqualError(t, err, `1:11: expected TERMINATOR, got FLOAT`)
 	})
 
 	t.Run("Invalid lookup 3", func(t *testing.T) {
@@ -241,7 +241,7 @@ func TestVM_Evaluate_AccessExpr(t *testing.T) {
 
 	t.Run("Invalid lookup 4", func(t *testing.T) {
 		_, err := parser.ParseExpression(`{ a = { b = 12 } }.a.b.7`)
-		require.EqualError(t, err, `1:23: did not parse the expression in full - unexpected token of type FLOAT`)
+		require.EqualError(t, err, `1:23: expected TERMINATOR, got FLOAT`)
 	})
 }
 

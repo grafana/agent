@@ -32,9 +32,7 @@ func ParseExpression(expr string) (ast.Expr, error) {
 
 	e := p.ParseExpression()
 
-	if p.tok != token.TERMINATOR && p.tok != token.EOF {
-		p.addErrorf("did not parse the expression in full - unexpected token of type %s", p.tok.String())
-	}
+	p.expect(token.TERMINATOR)
 
 	if len(p.diags) > 0 {
 		return nil, p.diags
