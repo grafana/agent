@@ -122,6 +122,18 @@ controller:
   # -- Extra pod labels to add.
   podLabels: {}
 
+  autoscaling:
+    # -- Creates a HorizontalPodAutoscaler for controller type deployment.
+    enabled: false
+    # -- The lower limit for the number of replicas to which the autoscaler can scale down.
+    minReplicas: 1
+    # -- The upper limit for the number of replicas to which the autoscaler can scale up.
+    maxReplicas: 5
+    # -- Average CPU utilization across all relevant pods, a percentage of the requested value of the resource for the pods.
+    targetCPUUtilizationPercentage: 80
+    # -- Average Memory utilization across all relevant pods, a percentage of the requested value of the resource for the pods.
+    targetMemoryUtilizationPercentage: 80
+
   volumes:
     # -- Extra volumes to add to the Grafana Agent pod.
     extra: []
