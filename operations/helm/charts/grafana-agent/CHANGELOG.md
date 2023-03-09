@@ -13,6 +13,7 @@ Unreleased
 ### Enhancements
 
 - Add Horizontal Pod Autoscaling for controller type deployment. (@therealmanny)
+- Add affinity values. (@therealmanny)
 
 0.9.0 (2023-03-14)
 ------------------

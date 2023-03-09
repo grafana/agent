@@ -134,6 +134,9 @@ controller:
     # -- Average Memory utilization across all relevant pods, a percentage of the requested value of the resource for the pods.
     targetMemoryUtilizationPercentage: 80
 
+  # -- Affinity configuration for pods.
+  affinity: {}
+
   volumes:
     # -- Extra volumes to add to the Grafana Agent pod.
     extra: []
