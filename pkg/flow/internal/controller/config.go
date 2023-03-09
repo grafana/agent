@@ -20,6 +20,7 @@ const (
 
 	loggingBlockID = "logging"
 	tracingBlockID = "tracing"
+	exportBlockID  = "export"
 )
 
 // ConfigNode is a controller node which manages agent configuration.
@@ -36,28 +37,39 @@ type ConfigNode struct {
 	tracingArgs  tracing.Options
 	tracingBlock *ast.BlockStmt
 	tracingEval  *vm.Evaluator
+	exportBlocks map[string]*ast.BlockStmt
+	exportEvals  map[string]*vm.Evaluator
+
+	onExportsChanged func(map[string]any)
 }
 
 // ConfigBlockID returns the string name for a config block.
 func ConfigBlockID(block *ast.BlockStmt) string {
-	return strings.Join(block.Name, ".")
+	return strings.Join(BlockComponentID(block), ".")
 }
 
 var _ dag.Node = (*ConfigNode)(nil)
 
 // NewConfigNode creates a new ConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.
-func NewConfigNode(blocks []*ast.BlockStmt, l log.Logger, t trace.TracerProvider) (*ConfigNode, diag.Diagnostics) {
+func NewConfigNode(blocks []*ast.BlockStmt, l log.Logger, t trace.TracerProvider, onExportsChanged func(map[string]any)) (*ConfigNode, diag.Diagnostics) {
 	var (
 		blockMap = make(map[string]*ast.BlockStmt, len(blocks))
 		diags    diag.Diagnostics
 
 		loggingBlock ast.BlockStmt
 		tracingBlock ast.BlockStmt
+
+		exportBlocks = make(map[string]*ast.BlockStmt)
+		exportEvals  = make(map[string]*vm.Evaluator)
 	)
 
 	for _, b := range blocks {
-		id := ConfigBlockID(b)
+		var (
+			name = strings.Join(b.Name, ".")
+			id   = strings.Join(BlockComponentID(b), ".")
+		)
+
 		if orig, redefined := blockMap[id]; redefined {
 			diags.Add(diag.Diagnostic{
 				Severity: diag.SeverityLevelError,
@@ -68,11 +80,23 @@ func NewConfigNode(blocks []*ast.BlockStmt, l log.Logger, t trace.TracerProvider
 			continue
 		}
 
-		switch id {
+		switch name {
 		case loggingBlockID:
 			loggingBlock = *b
 		case tracingBlockID:
 			tracingBlock = *b
+		case exportBlockID:
+			if onExportsChanged == nil {
+				diags.Add(diag.Diagnostic{
+					Severity: diag.SeverityLevelError,
+					Message:  "export blocks not allowed when not using modules",
+					StartPos: ast.StartPos(b).Position(),
+					EndPos:   ast.EndPos(b).Position(),
+				})
+			}
+
+			exportBlocks[b.Label] = b
+			exportEvals[b.Label] = vm.New(b.Body)
 		}
 
 		blockMap[id] = b
@@ -95,6 +119,11 @@ func NewConfigNode(blocks []*ast.BlockStmt, l log.Logger, t trace.TracerProvider
 		tracingArgs:  tracerOptions,
 		tracingBlock: &tracingBlock,
 		tracingEval:  vm.New(tracingBlock.Body),
+
+		exportBlocks: exportBlocks,
+		exportEvals:  exportEvals,
+
+		onExportsChanged: onExportsChanged,
 	}, diags
 }
 
@@ -113,6 +142,7 @@ func (cn *ConfigNode) Evaluate(scope *vm.Scope) (*ast.BlockStmt, error) {
 	evals := []func(*vm.Scope) (*ast.BlockStmt, error){
 		cn.evaluateLogging,
 		cn.evaluateTracing,
+		cn.evaluateExports,
 	}
 	for _, eval := range evals {
 		if stmt, err := eval(scope); err != nil {
@@ -154,6 +184,30 @@ func (cn *ConfigNode) evaluateTracing(scope *vm.Scope) (*ast.BlockStmt, error) {
 		if err != nil {
 			return cn.tracingBlock, fmt.Errorf("could not update logger: %v", err)
 		}
+	}
+	return nil, nil
+}
+
+type exportBlock struct {
+	Value any `river:"value,attr"`
+}
+
+func (cn *ConfigNode) evaluateExports(scope *vm.Scope) (*ast.BlockStmt, error) {
+	exports := make(map[string]any, len(cn.exportBlocks))
+
+	for name, block := range cn.exportBlocks {
+		eval := cn.exportEvals[name]
+
+		var export exportBlock
+		if err := eval.Evaluate(scope, &export); err != nil {
+			return block, fmt.Errorf("decoding River: %w", err)
+		}
+
+		exports[name] = export.Value
+	}
+
+	if cn.onExportsChanged != nil {
+		cn.onExportsChanged(exports)
 	}
 	return nil, nil
 }

@@ -70,7 +70,7 @@ func NewLoader(globals ComponentGlobals) *Loader {
 // The provided parentContext can be used to provide global variables and
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
-func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) diag.Diagnostics {
+func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, onExportsChanged func(map[string]any)) diag.Diagnostics {
 	start := time.Now()
 	l.mut.Lock()
 	defer l.mut.Unlock()
@@ -83,7 +83,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlo
 	)
 
 	// Pre-populate graph with a ConfigNode.
-	c, configBlockDiags := NewConfigNode(configBlocks, l.log, l.tracer)
+	c, configBlockDiags := NewConfigNode(configBlocks, l.log, l.tracer, onExportsChanged)
 	diags = append(diags, configBlockDiags...)
 	newGraph.Add(c)
 
@@ -91,7 +91,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlo
 	populateDiags := l.populateGraph(&newGraph, blocks)
 	diags = append(diags, populateDiags...)
 
-	wireDiags := l.wireGraphEdges(&newGraph)
+	wireDiags := l.wireGraphEdges(parentScope, &newGraph)
 	diags = append(diags, wireDiags...)
 
 	// Validate graph to detect cycles
@@ -254,11 +254,11 @@ func (l *Loader) populateGraph(g *dag.Graph, blocks []*ast.BlockStmt) diag.Diagn
 	return diags
 }
 
-func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
+func (l *Loader) wireGraphEdges(parent *vm.Scope, g *dag.Graph) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	for _, n := range g.Nodes() {
-		refs, nodeDiags := ComponentReferences(n, g)
+		refs, nodeDiags := ComponentReferences(parent, n, g)
 		for _, ref := range refs {
 			g.AddEdge(dag.Edge{From: n, To: ref.Target})
 		}

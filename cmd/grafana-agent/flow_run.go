@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path"
 	"sync"
 	"syscall"
 
@@ -141,6 +142,7 @@ func (fr *flowRun) Run(configFile string) error {
 		Tracer:         t,
 		DataPath:       fr.storagePath,
 		Reg:            reg,
+		HTTPPathPrefix: "/api/v0/component/",
 		HTTPListenAddr: fr.httpListenAddr,
 	})
 
@@ -151,7 +153,7 @@ func (fr *flowRun) Run(configFile string) error {
 		if err != nil {
 			return fmt.Errorf("reading config file %q: %w", configFile, err)
 		}
-		if err := f.LoadFile(flowCfg); err != nil {
+		if err := f.LoadFile(flowCfg, nil); err != nil {
 			return fmt.Errorf("error during the initial gragent load: %w", err)
 		}
 
@@ -173,7 +175,7 @@ func (fr *flowRun) Run(configFile string) error {
 
 		r.Handle("/metrics", promhttp.Handler())
 		r.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
-		r.PathPrefix("/component/{id}/").Handler(f.ComponentHandler())
+		r.PathPrefix("/api/v0/component/{id}/").Handler(f.ComponentHandler())
 
 		r.HandleFunc("/-/ready", func(w http.ResponseWriter, _ *http.Request) {
 			if f.Ready() {
@@ -196,7 +198,7 @@ func (fr *flowRun) Run(configFile string) error {
 
 		// Register Routes must be the last
 		fa := api.NewFlowAPI(f, r)
-		fa.RegisterRoutes(fr.uiPrefix, r)
+		fa.RegisterRoutes(path.Join(fr.uiPrefix, "/api/v0/web"), r)
 
 		// NOTE(rfratto): keep this at the bottom of all other routes, otherwise it
 		// will take precedence over anything else mapped in uiPrefix.
