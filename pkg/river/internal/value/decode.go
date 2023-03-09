@@ -345,6 +345,8 @@ func tryCapsuleConvert(from Value, into reflect.Value, intoType Type) (ok bool, 
 	// TODO(rfratto): we may consider expanding this to allowing conversion to
 	// any compatible Go type in the future (not just interfaces).
 	if from.Type() == TypeCapsule && intoType == TypeCapsule && into.Kind() == reflect.Interface {
+		// We try to convert a pointer to from first to avoid making unnecessary
+		// copies.
 		if from.Reflect().CanAddr() && from.Reflect().Addr().CanConvert(into.Type()) {
 			val := from.Reflect().Addr().Convert(into.Type())
 			into.Set(val)
