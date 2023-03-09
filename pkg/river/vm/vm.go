@@ -203,6 +203,8 @@ func prepareDecodeValue(v reflect.Value) reflect.Value {
 	return v
 }
 
+// TODO: Should diag.Diagnostic be returned as a pointer? Or should we make a Diagnostic interface?
+// TODO: For nil diagnostics, should we make a diagn.Null type, like the "var Null = Value{}" in value.go?
 func (vm *Evaluator) evaluateExpr(scope *Scope, assoc map[value.Value]ast.Node, expr ast.Expr) (v value.Value, err *diag.Diagnostic) {
 	defer func() {
 		if v != value.Null {
@@ -387,7 +389,7 @@ func (vm *Evaluator) evaluateExpr(scope *Scope, assoc map[value.Value]ast.Node, 
 				Severity: diag.SeverityLevelError,
 				StartPos: ast.StartPos(expr).Position(),
 				EndPos:   ast.EndPos(expr).Position(),
-				Message:  err.Error(),
+				Message:  plainErr.Error(),
 			}
 		}
 
@@ -420,7 +422,7 @@ func (vm *Evaluator) evaluateExpr(scope *Scope, assoc map[value.Value]ast.Node, 
 				Severity: diag.SeverityLevelError,
 				StartPos: ast.StartPos(expr).Position(),
 				EndPos:   ast.EndPos(expr).Position(),
-				Message:  err.Error(),
+				Message:  plainErr.Error(),
 			}
 		}
 
