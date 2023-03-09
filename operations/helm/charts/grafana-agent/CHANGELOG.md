@@ -10,6 +10,9 @@ internal API changes are not present.
 Unreleased
 ----------
 
+0.10.0 (2023-03-09)
+------------------
+
 ### Enhancements
 
 - Add Horizontal Pod Autoscaling for controller type deployment. (@therealmanny)

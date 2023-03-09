@@ -129,9 +129,9 @@ controller:
     minReplicas: 1
     # -- The upper limit for the number of replicas to which the autoscaler can scale up.
     maxReplicas: 5
-    # -- Average CPU utilization across all relevant pods, a percentage of the requested value of the resource for the pods.
-    targetCPUUtilizationPercentage: 80
-    # -- Average Memory utilization across all relevant pods, a percentage of the requested value of the resource for the pods.
+    # -- Average CPU utilization across all relevant pods, a percentage of the requested value of the resource for the pods. Setting `targetCPUUtilizationPercentage` to 0 will disable CPU scaling.
+    targetCPUUtilizationPercentage: 0
+    # -- Average Memory utilization across all relevant pods, a percentage of the requested value of the resource for the pods. Setting `targetMemoryUtilizationPercentage` to 0 will disable Memory scaling.
     targetMemoryUtilizationPercentage: 80
 
   # -- Affinity configuration for pods.
