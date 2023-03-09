@@ -99,6 +99,11 @@ components like [discovery.kubernetes][] to work properly.
 
 [discovery.kubernetes]: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.kubernetes/
 
+### controller.autoscaling
+
+`controller.autoscaling.enabled` enables the creation of a HorizontalPodAutoscaler for `controller.type` deployment. The use case for `controller.autoscaling` is an [app agent receiver](https://grafana.com/docs/agent/latest/configuration/integrations/integrations-next/app-agent-receiver-config/) configured Grafana Agent.
+> **WARNING**: Using `controller.autoscaling` for any other Grafana Agent configuration could lead to redundant or double telemetry collection.
+
 ## Collecting logs from other containers
 
 There are two ways to collect logs from other containers within the cluster
