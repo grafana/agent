@@ -36,8 +36,8 @@ func init() {
 // Arguments holds values which are used to configure the module.string
 // component.
 type Arguments struct {
-	// Source code to load for the module.
-	Source rivertypes.Secret `river:"source,attr"`
+	// Content to load for the module.
+	Content rivertypes.Secret `river:"content,attr"`
 
 	// Arguments to pass into the module.
 	Arguments map[string]any `river:"arguments,attr,optional"`
@@ -146,7 +146,7 @@ func (c *Component) updateHealth(err error) {
 func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 
-	f, err := flow.ReadFile(c.opts.ID, []byte(newArgs.Source))
+	f, err := flow.ReadFile(c.opts.ID, []byte(newArgs.Content))
 	if err != nil {
 		return err
 	}
