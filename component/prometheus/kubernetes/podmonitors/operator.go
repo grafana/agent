@@ -20,8 +20,9 @@ func init() {
 }
 
 type Component struct {
-	mut    sync.Mutex
-	config *Arguments
+	mut     sync.Mutex
+	config  *Arguments
+	manager *crdManager
 
 	onUpdate chan struct{}
 	opts     component.Options
@@ -65,8 +66,9 @@ func (c *Component) Run(ctx context.Context) error {
 			innerCtx, cancel = context.WithCancel(ctx)
 			c.mut.Lock()
 			componentCfg := c.config
-			c.mut.Unlock()
 			crdMan := newManager(c.opts, c.opts.Logger, componentCfg)
+			c.manager = crdMan
+			c.mut.Unlock()
 			go func() {
 				if err := crdMan.run(innerCtx); err != nil {
 					level.Error(c.opts.Logger).Log("msg", "error running crd manager", "err", err)
@@ -87,4 +89,13 @@ func (c *Component) Update(args component.Arguments) error {
 	default:
 	}
 	return nil
+}
+
+// DebugInfo returns debug information for this component.
+func (c *Component) DebugInfo() interface{} {
+	var info debugInfo
+	for _, pm := range c.manager.debugInfo {
+		info.DiscoveredPodMonitors = append(info.DiscoveredPodMonitors, pm)
+	}
+	return info
 }

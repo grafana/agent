@@ -28,17 +28,17 @@ import (
 // crdManager is all of the fields required to run the component.
 // on update, this entire thing will be recreated and restarted
 type crdManager struct {
+	mut              sync.Mutex
+	discoveryConfigs map[string]discovery.Configs
+	scrapeConfigs    map[string]*config.ScrapeConfig
+	debugInfo        map[string]*discoveredPodMonitor
+	discovery        *discovery.Manager
+	scraper          *scrape.Manager
+
 	opts   component.Options
 	logger log.Logger
 	config *Arguments
-
-	discovery        *discovery.Manager
-	scraper          *scrape.Manager
-	cg               configGenerator
-	discoveryConfigs map[string]discovery.Configs
-	scrapeConfigs    map[string]*config.ScrapeConfig
-
-	mut sync.Mutex
+	cg     configGenerator
 }
 
 func newManager(opts component.Options, logger log.Logger, cfg *Arguments) *crdManager {
@@ -48,69 +48,8 @@ func newManager(opts component.Options, logger log.Logger, cfg *Arguments) *crdM
 		config:           cfg,
 		discoveryConfigs: map[string]discovery.Configs{},
 		scrapeConfigs:    map[string]*config.ScrapeConfig{},
+		debugInfo:        map[string]*discoveredPodMonitor{},
 	}
-}
-
-func (c *crdManager) apply() {
-	c.mut.Lock()
-	defer c.mut.Unlock()
-	err := c.discovery.ApplyConfig(c.discoveryConfigs)
-	if err != nil {
-		level.Error(c.logger).Log("msg", "error applying discovery configs", "err", err)
-	}
-	scs := []*config.ScrapeConfig{}
-	for _, sc := range c.scrapeConfigs {
-		scs = append(scs, sc)
-	}
-	err = c.scraper.ApplyConfig(&config.Config{
-		ScrapeConfigs: scs,
-	})
-	if err != nil {
-		level.Error(c.logger).Log("msg", "error applying scrape configs", "err", err)
-	}
-	level.Debug(c.logger).Log("msg", "scrape config was updated")
-}
-
-func (c *crdManager) clearConfigs(kind string, ns string, name string) {
-	c.mut.Lock()
-	defer c.mut.Unlock()
-	prefix := fmt.Sprintf("%s/%s/%s", kind, ns, name)
-	for k := range c.discoveryConfigs {
-		if strings.HasPrefix(k, prefix) {
-			delete(c.discoveryConfigs, k)
-			delete(c.scrapeConfigs, k)
-		}
-	}
-}
-
-func (c *crdManager) addPodMonitor(pm *v1.PodMonitor) {
-	for i, ep := range pm.Spec.PodMetricsEndpoints {
-		pmc, err := c.cg.generatePodMonitorConfig(pm, ep, i)
-		if err != nil {
-			level.Error(c.logger).Log("name", pm.Name, "err", err, "msg", "error generating scrapeconfig from podmonitor")
-			continue
-		}
-		c.mut.Lock()
-		c.discoveryConfigs[pmc.JobName] = pmc.ServiceDiscoveryConfigs
-		c.scrapeConfigs[pmc.JobName] = pmc
-		c.mut.Unlock()
-	}
-	c.apply()
-}
-func (c *crdManager) onAddPodMonitor(obj interface{}) {
-	pm := obj.(*v1.PodMonitor)
-	level.Info(c.logger).Log("msg", "found pod monitor", "name", pm.Name)
-	c.addPodMonitor(pm)
-}
-func (c *crdManager) onUpdatePodMonitor(oldObj, newObj interface{}) {
-	pm := oldObj.(*v1.PodMonitor)
-	c.clearConfigs("podMonitor", pm.Namespace, pm.Name)
-	c.addPodMonitor(newObj.(*v1.PodMonitor))
-}
-func (c *crdManager) onDeletePodMonitor(obj interface{}) {
-	pm := obj.(*v1.PodMonitor)
-	c.clearConfigs("podMonitor", pm.Namespace, pm.Name)
-	c.apply()
 }
 
 func (c *crdManager) run(ctx context.Context) error {
@@ -236,4 +175,95 @@ func (c *crdManager) configureInformers(ctx context.Context, informers cache.Inf
 		}))
 	}
 	return nil
+}
+
+func (c *crdManager) apply() error {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+	err := c.discovery.ApplyConfig(c.discoveryConfigs)
+	if err != nil {
+		level.Error(c.logger).Log("msg", "error applying discovery configs", "err", err)
+	}
+	scs := []*config.ScrapeConfig{}
+	for _, sc := range c.scrapeConfigs {
+		scs = append(scs, sc)
+	}
+	err = c.scraper.ApplyConfig(&config.Config{
+		ScrapeConfigs: scs,
+	})
+	if err != nil {
+		level.Error(c.logger).Log("msg", "error applying scrape configs", "err", err)
+	}
+	level.Debug(c.logger).Log("msg", "scrape config was updated")
+	return nil
+}
+
+func (c *crdManager) clearConfigs(ns string, name string) {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+	prefix := fmt.Sprintf("podMonitor/%s/%s", ns, name)
+	for k := range c.discoveryConfigs {
+		if strings.HasPrefix(k, prefix) {
+			delete(c.discoveryConfigs, k)
+			delete(c.scrapeConfigs, k)
+		}
+	}
+	delete(c.debugInfo, prefix)
+}
+
+func (c *crdManager) addDebugInfo(ns string, name string, err error) {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+	prefix := fmt.Sprintf("podMonitor/%s/%s", ns, name)
+	if c.debugInfo[prefix] == nil {
+		c.debugInfo[prefix] = &discoveredPodMonitor{}
+	}
+	c.debugInfo[prefix].Namespace = ns
+	c.debugInfo[prefix].Name = name
+	c.debugInfo[prefix].LastReconcile = time.Now()
+	if err != nil {
+		c.debugInfo[prefix].ReconcileError = err.Error()
+	} else {
+		c.debugInfo[prefix].ReconcileError = ""
+	}
+}
+
+func (c *crdManager) addPodMonitor(pm *v1.PodMonitor) {
+	var err error
+	for i, ep := range pm.Spec.PodMetricsEndpoints {
+		var pmc *config.ScrapeConfig
+		pmc, err = c.cg.generatePodMonitorConfig(pm, ep, i)
+		if err != nil {
+			level.Error(c.logger).Log("name", pm.Name, "err", err, "msg", "error generating scrapeconfig from podmonitor")
+			break
+		}
+		c.mut.Lock()
+		c.discoveryConfigs[pmc.JobName] = pmc.ServiceDiscoveryConfigs
+		c.scrapeConfigs[pmc.JobName] = pmc
+		c.mut.Unlock()
+	}
+	if err != nil {
+		c.addDebugInfo(pm.Namespace, pm.Name, err)
+		return
+	}
+	if err = c.apply(); err != nil {
+		level.Error(c.logger).Log("name", pm.Name, "err", err, "msg", "error applying scrapeconfig from podmonitor")
+	}
+	c.addDebugInfo(pm.Namespace, pm.Name, err)
+}
+
+func (c *crdManager) onAddPodMonitor(obj interface{}) {
+	pm := obj.(*v1.PodMonitor)
+	level.Info(c.logger).Log("msg", "found pod monitor", "name", pm.Name)
+	c.addPodMonitor(pm)
+}
+func (c *crdManager) onUpdatePodMonitor(oldObj, newObj interface{}) {
+	pm := oldObj.(*v1.PodMonitor)
+	c.clearConfigs(pm.Namespace, pm.Name)
+	c.addPodMonitor(newObj.(*v1.PodMonitor))
+}
+func (c *crdManager) onDeletePodMonitor(obj interface{}) {
+	pm := obj.(*v1.PodMonitor)
+	c.clearConfigs(pm.Namespace, pm.Name)
+	c.apply()
 }

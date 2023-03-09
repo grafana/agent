@@ -1,6 +1,8 @@
 package podmonitors
 
 import (
+	"time"
+
 	"github.com/grafana/agent/component/common/config"
 	"github.com/prometheus/prometheus/storage"
 	apiv1 "k8s.io/api/core/v1"
@@ -42,4 +44,16 @@ func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	}
 
 	return nil
+}
+
+type debugInfo struct {
+	DiscoveredPodMonitors []*discoveredPodMonitor `river:"pod_monitors,block"`
+	//Targets               []kubernetes.DebugInfoTarget `river:"target,block,optional"`
+}
+
+type discoveredPodMonitor struct {
+	Namespace      string    `river:"namespace,attr"`
+	Name           string    `river:"name,attr"`
+	LastReconcile  time.Time `river:"last_reconcile,attr,optional"`
+	ReconcileError string    `river:"reconcile_error,attr,optional"`
 }
