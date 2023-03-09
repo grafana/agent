@@ -10,7 +10,8 @@ internal API changes are not present.
 Unreleased
 ----------
 
-0.9.0 (2023-03-07)
+
+0.9.0 (2023-03-14)
 ------------------
 
 ### Enhancements
@@ -22,6 +23,9 @@ Unreleased
 
 - Match `values.yaml` with value used on templates. `tolerations` => `controller.tolerations`. (@carlosjgp)
 - Fix indentation for `agent.extraEnv`. (@carlosjgp)
+- Add PodMonitors, ServiceMonitors, and Probes to the agent ClusterRole. (@captncraig)
+- Add podLabels values. (@therealmanny)
+
 
 0.8.1 (2023-03-06)
 ------------------

@@ -125,6 +125,9 @@ controller:
   # -- Extra pod annotations to add.
   podAnnotations: {}
 
+  # -- Extra pod labels to add.
+  podLabels: {}
+
   volumes:
     # -- Extra volumes to add to the Grafana Agent pod.
     extra: []
