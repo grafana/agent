@@ -136,7 +136,8 @@ func Marshal(v interface{}) ([]byte, error) {
 // Structs encode to River objects, using Go struct field tags to determine the
 // resulting structure of the River object. Each exported struct field with a
 // river tag becomes an object field, using the tag name as the field name.
-// Other struct fields are ignored.
+// Other struct fields are ignored. If no struct field has a river tag, the
+// struct encodes to a River capsule instead.
 //
 // Function values encode to River functions, which appear in the resulting
 // text as strings formatted as "function(GO_TYPE)".

@@ -30,6 +30,13 @@ Main (unreleased)
 
 - Flow: Add retries with backoff logic to Phlare write component. (@cyriltovena)
 
+### Bugfixes
+
+- Flow: fix issue where Flow would return an error when trying to access a key
+  of a map whose value was the zero value (`null`, `0`, `false`, `[]`, `{}`).
+  Whether an error was returned dependend on the internal type of the value.
+  (@rfratto)
+
 ### Other changes
 
 - Grafana Agent Docker containers and release binaries are now published for
