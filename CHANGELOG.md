@@ -50,7 +50,7 @@ Main (unreleased)
 
 - Flow: fix issue where Flow would return an error when trying to access a key
   of a map whose value was the zero value (`null`, `0`, `false`, `[]`, `{}`).
-  Whether an error was returned dependend on the internal type of the value.
+  Whether an error was returned depended on the internal type of the value.
   (@rfratto)
 
 - Flow: fix issue where using the `jaeger_remote` sampler for the `tracing`

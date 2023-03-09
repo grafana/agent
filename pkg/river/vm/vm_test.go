@@ -36,6 +36,10 @@ func TestVM_Evaluate_Literals(t *testing.T) {
 		"float to float64": {`3.5`, float64(3.5)},
 		"float to string":  {`3.9`, string("3.9")},
 
+		"float with dot to float32": {`.2`, float32(0.2)},
+		"float with dot to float64": {`.5`, float64(0.5)},
+		"float with dot to string":  {`.9`, string("0.9")},
+
 		"string to string":  {`"Hello, world!"`, string("Hello, world!")},
 		"string to int":     {`"12"`, int(12)},
 		"string to float64": {`"12"`, float64(12)},
@@ -214,7 +218,7 @@ func TestVM_Evaluate_AccessExpr(t *testing.T) {
 		require.Equal(t, "", actual)
 	})
 
-	t.Run("Invalid lookup", func(t *testing.T) {
+	t.Run("Invalid lookup 1", func(t *testing.T) {
 		expr, err := parser.ParseExpression(`{ a = 15 }.b`)
 		require.NoError(t, err)
 
@@ -223,6 +227,21 @@ func TestVM_Evaluate_AccessExpr(t *testing.T) {
 		var v interface{}
 		err = eval.Evaluate(nil, &v)
 		require.EqualError(t, err, `1:12: field "b" does not exist`)
+	})
+
+	t.Run("Invalid lookup 2", func(t *testing.T) {
+		_, err := parser.ParseExpression(`{ a = 15 }.7`)
+		require.EqualError(t, err, `1:11: did not parse the expression in full - unexpected token of type FLOAT`)
+	})
+
+	t.Run("Invalid lookup 3", func(t *testing.T) {
+		_, err := parser.ParseExpression(`{ a = { b = 12 }.7 }.a.b`)
+		require.EqualError(t, err, `1:17: missing ',' in field list`)
+	})
+
+	t.Run("Invalid lookup 4", func(t *testing.T) {
+		_, err := parser.ParseExpression(`{ a = { b = 12 } }.a.b.7`)
+		require.EqualError(t, err, `1:23: did not parse the expression in full - unexpected token of type FLOAT`)
 	})
 }
 
