@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component/common/config"
+	"github.com/grafana/agent/component/prometheus/scrape"
 	"github.com/prometheus/prometheus/storage"
 	apiv1 "k8s.io/api/core/v1"
 )
@@ -48,7 +49,7 @@ func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 
 type debugInfo struct {
 	DiscoveredPodMonitors []*discoveredPodMonitor `river:"pod_monitors,block"`
-	//Targets               []kubernetes.DebugInfoTarget `river:"target,block,optional"`
+	Targets               []scrape.TargetStatus   `river:"targets,block,optional"`
 }
 
 type discoveredPodMonitor struct {

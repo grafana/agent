@@ -271,11 +271,11 @@ type TargetStatus struct {
 	LastScrapeDuration time.Duration     `river:"last_scrape_duration,attr,optional"`
 }
 
-// DebugInfo implements component.DebugComponent
-func (c *Component) DebugInfo() interface{} {
+// BuildTargetStatuses transforms the targets from a scrape manager into our internal status type for debug info.
+func BuildTargetStatuses(targets map[string][]*scrape.Target) []TargetStatus {
 	var res []TargetStatus
 
-	for job, stt := range c.scraper.TargetsActive() {
+	for job, stt := range targets {
 		for _, st := range stt {
 			var lastError string
 			if st.LastError() != nil {
@@ -294,8 +294,15 @@ func (c *Component) DebugInfo() interface{} {
 			}
 		}
 	}
+	return res
+}
 
-	return ScraperStatus{TargetStatus: res}
+// DebugInfo implements component.DebugComponent
+func (c *Component) DebugInfo() interface{} {
+
+	return ScraperStatus{
+		TargetStatus: BuildTargetStatuses(c.scraper.TargetsActive()),
+	}
 }
 
 func (c *Component) componentTargetsToProm(jobName string, tgs []discovery.Target) map[string][]*targetgroup.Group {

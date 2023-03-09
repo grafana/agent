@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/prometheus/scrape"
 )
 
 func init() {
@@ -97,5 +98,6 @@ func (c *Component) DebugInfo() interface{} {
 	for _, pm := range c.manager.debugInfo {
 		info.DiscoveredPodMonitors = append(info.DiscoveredPodMonitors, pm)
 	}
+	info.Targets = scrape.BuildTargetStatuses(c.manager.scraper.TargetsActive())
 	return info
 }
