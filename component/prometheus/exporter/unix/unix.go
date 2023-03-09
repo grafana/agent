@@ -13,7 +13,9 @@ func init() {
 		Args:      Config{},
 		Exports:   exporter.Exports{},
 		Singleton: true,
-		Build:     exporter.New(createExporter, "unix"),
+		// set name to node_exporter instead of unix. This is for backward compatibility
+		// with cloud integrations, dashboards, and other systems that look for `job:integrations/node_exporter`
+		Build: exporter.New(createExporter, "node_exporter"),
 	})
 }
 
