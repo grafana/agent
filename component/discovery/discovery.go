@@ -3,6 +3,7 @@ package discovery
 import (
 	"context"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -24,6 +25,24 @@ func (t Target) Labels() labels.Labels {
 	}
 	sort.Sort(lset)
 	return lset
+}
+
+// RiverString converts Target into its River representation string.
+func (t Target) RiverString() string {
+	lbls := t.Labels()
+	if len(lbls) == 0 {
+		return ""
+	}
+
+	var sb strings.Builder
+	sb.WriteString("{")
+	for _, lb := range lbls {
+		sb.WriteString(lb.Name + " = " + "\"" + lb.Value + "\"" + ", ")
+	}
+	res, _ := strings.CutSuffix(sb.String(), ", ")
+	res += "}"
+
+	return res
 }
 
 // Exports holds values which are exported by all discovery components.
