@@ -1,0 +1,7 @@
+binary = "postgres"
+dsn = [
+    "postgres://postgres:postgres@127.0.0.1:5432/postgres",
+    "host=/var/run/postgresql dbname=postgres user=postgres",
+    "postgres://" + env("USER") + "@127.0.0.1:5432/postgres",
+]
+ext = [".log"]

@@ -68,9 +68,9 @@ func RenderConfig(input templateInput) {
 
 var templateStr = `
 prometheus.scrape "default" {
-  targets    = concat({{if .MetricsExports }}{{range .MetricsExports}}
+  targets = concat({{if .MetricsExports }}{{range .MetricsExports}}
   {{if .}}  {{.}},{{end}}{{end}}{{end}}
-  {{if .MetricsTargets }}  [{{range .MetricsTargets}}
+  {{if .MetricsTargets }} [{{range .MetricsTargets}}
       {{.}},{{end}}
     ],{{end}}
   )
@@ -82,11 +82,30 @@ prometheus.remote_write "default" {
     url = env("GRAFANACLOUD_METRICS_URL")
 
     basic_auth {
-      username = env("GRAFANACLOUD_USER")
-	  password = env("GRAFANACLOUD_APIKEY")
+      username = env("GRAFANACLOUD_METRICS_USER")
+      password = env("GRAFANACLOUD_APIKEY")
     }
   }
 }
+
+loki.source.file "default" {
+  targets = concat( {{if .MetricsTargets }}{{range .MetricsTargets}}
+      {{.}},{{end}}{{end}}
+  )
+
+  forward_to = [loki.write.default.receiver]
+}
+
+loki.write "default" {
+  endpoint {
+    url = env("GRAFANACLOUD_LOGS_URL")
+  }
+  basic_auth {
+    username = env("GRAFANACLOUD_LOGS_USER")
+    password = env("GRAFANACLOUD_APIKEY")
+  }
+}
+
 
 {{ range .Components}} {{if .}}
 {{.}}
