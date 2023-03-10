@@ -43,8 +43,8 @@ type Arguments struct {
 
 // Exports holds values which are exported from the run module.
 type Exports struct {
-	// Values exported from the running module.
-	Values map[string]any `river:"values,attr"`
+	// Exports exported from the running module.
+	Exports map[string]any `river:"exports,attr"`
 }
 
 // Component implements the module.string component.
@@ -89,10 +89,11 @@ func New(o component.Options, args Arguments) (*Component, error) {
 			HTTPListenAddr: o.HTTPListenAddr,
 
 			OnExportsChange: func(exports map[string]any) {
-				o.OnStateChange(Exports{Values: exports})
+				o.OnStateChange(Exports{Exports: exports})
 			},
 		}),
 	}
+
 	if err := c.Update(args); err != nil {
 		return nil, err
 	}
@@ -128,7 +129,6 @@ func (c *Component) updateHealth(err error) {
 
 // Update implements component.Component.
 func (c *Component) Update(args component.Arguments) error {
-	// TODO: Figure out a way for sibling components to have access to exports
 	newArgs := args.(Arguments)
 
 	f, err := flow.ReadFile(c.opts.ID, []byte(newArgs.Content))
