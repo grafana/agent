@@ -8,7 +8,6 @@ import (
 	"sync"
 	"time"
 
->>>>>>> 9d35748c (module.string: new component)
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component"
@@ -128,6 +127,7 @@ func (c *Component) updateHealth(err error) {
 
 // Update implements component.Component.
 func (c *Component) Update(args component.Arguments) error {
+	// TODO: Figure out a way for sibling components to have access to exports
 	newArgs := args.(Arguments)
 
 	f, err := flow.ReadFile(c.opts.ID, []byte(newArgs.Content.Value))
