@@ -116,9 +116,10 @@ type Options struct {
 
 // Flow is the Flow system.
 type Flow struct {
-	log    *logging.Logger
-	tracer *tracing.Tracer
-	opts   Options
+	log     *logging.Logger
+	tracer  *tracing.Tracer
+	opts    Options
+	context context.Context
 
 	updateQueue *controller.Queue
 	sched       *controller.Scheduler
@@ -135,12 +136,6 @@ type Flow struct {
 // New creates and starts a new Flow controller. Call Close to stop
 // the controller.
 func New(o Options) *Flow {
-	c, ctx := newFlow(o)
-	go c.run(ctx)
-	return c
-}
-
-func newFlow(o Options) (*Flow, context.Context) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	var (
@@ -184,9 +179,10 @@ func newFlow(o Options) (*Flow, context.Context) {
 	)
 
 	return &Flow{
-		log:    log,
-		tracer: tracer,
-		opts:   o,
+		log:     log,
+		tracer:  tracer,
+		opts:    o,
+		context: ctx,
 
 		updateQueue: queue,
 		sched:       sched,
@@ -195,7 +191,12 @@ func newFlow(o Options) (*Flow, context.Context) {
 		cancel:       cancel,
 		exited:       make(chan struct{}, 1),
 		loadFinished: make(chan struct{}, 1),
-	}, ctx
+	}
+}
+
+// Starts flow controller as a go routine
+func (c *Flow) Run() {
+	go c.run(c.context)
 }
 
 func (c *Flow) run(ctx context.Context) {

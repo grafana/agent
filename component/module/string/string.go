@@ -8,8 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"go.uber.org/atomic"
-
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component"
@@ -55,10 +53,6 @@ type Component struct {
 	log  log.Logger
 	ctrl *flow.Flow
 
-	moduleArgs        atomic.Pointer[map[string]any]
-	file              atomic.Pointer[flow.File]
-	updateContollerCh chan struct{}
-
 	healthMut sync.RWMutex
 	health    component.Health
 }
@@ -98,8 +92,6 @@ func New(o component.Options, args Arguments) (*Component, error) {
 				o.OnStateChange(Exports{Values: exports})
 			},
 		}),
-
-		updateContollerCh: make(chan struct{}, 1),
 	}
 	if err := c.Update(args); err != nil {
 		return nil, err
@@ -109,17 +101,9 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
-Loop:
-	for {
-		select {
-		case <-ctx.Done():
-			break Loop
-		case <-c.updateContollerCh:
-			err := c.ctrl.LoadFile(c.file.Load(), *c.moduleArgs.Load())
-			c.updateHealth(err)
-		}
-	}
+	c.ctrl.Run()
 
+	<-ctx.Done()
 	return c.ctrl.Close()
 }
 
@@ -144,6 +128,7 @@ func (c *Component) updateHealth(err error) {
 
 // Update implements component.Component.
 func (c *Component) Update(args component.Arguments) error {
+	// TODO: Figure out a way for sibling components to have access to exports
 	newArgs := args.(Arguments)
 
 	f, err := flow.ReadFile(c.opts.ID, []byte(newArgs.Content))
@@ -151,36 +136,8 @@ func (c *Component) Update(args component.Arguments) error {
 		return err
 	}
 
-	// TODO(rfratto): sync exports with current set rather than updating it in
-	// full every time.
-	var emptyExports = map[string]any{}
-
-	for _, b := range f.ConfigBlocks {
-		if b.Name[0] == "export" {
-			emptyExports[b.Label] = nil
-		}
-	}
-
-	// Create an initial exported value which contains all the keys that
-	// correspond with the exports from our module so that sibling components can
-	// properly reference them by name, albeit with the zero value.
-	//
-	// Currently, this runs every time Update is called, so there will always be
-	// two calls to OnStateChange happening every time: once which sets everything
-	// to the zero value, and once where the evaluated concrete values are
-	// exposed (in the callback to OnExportsChange).
-	//
-	// TODO(rfratto): find a way to not override the last evaluated value with
-	// null.
-	c.opts.OnStateChange(Exports{Values: emptyExports})
-
-	c.file.Store(f)
-	c.moduleArgs.Store(&newArgs.Arguments)
-
-	select {
-	case c.updateContollerCh <- struct{}{}:
-	default: // no-op
-	}
+	err = c.ctrl.LoadFile(f, newArgs.Arguments)
+	c.updateHealth(err)
 
 	return nil
 }
