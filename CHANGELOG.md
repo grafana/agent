@@ -38,6 +38,11 @@ Main (unreleased)
   Whether an error was returned dependend on the internal type of the value.
   (@rfratto)
 
+- Flow: fix issue where using the `jaeger_remote` sampler for the `tracing`
+  block would fail to parse the response from the remote sampler server if it
+  used strings for the strategy type. This caused sampling to fall back
+  to the default rate. (@rfratto)
+
 ### Other changes
 
 - Grafana Agent Docker containers and release binaries are now published for
