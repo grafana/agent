@@ -8,6 +8,19 @@ Helm chart for deploying [Grafana Agent][] to Kubernetes.
 
 ## Usage
 
+### Setup Grafana chart repository
+
+```
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+```
+
+### Install chart
+
+To install the chart with the release name my-release:
+
+`helm install my-release grafana/grafana-agent`
+
 This chart installs one instance of Grafana Agent into your Kubernetes cluster
 using a specific Kubernetes controller. By default, DaemonSet is used. The
 `controller.type` value can be used to change the controller to either a

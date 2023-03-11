@@ -25,15 +25,30 @@ Main (unreleased)
     (@marctc).
   - `prometheus.exporter.mysql` collects metrics from a MySQL database.
     (@spartan0x117)
+  - `prometheus.exporter.postgres` collects metrics from a PostgreSQL database. (@spartan0x117)
 
 ### Enhancements
 
 - Flow: Add retries with backoff logic to Phlare write component. (@cyriltovena)
 
+### Bugfixes
+
+- Flow: fix issue where Flow would return an error when trying to access a key
+  of a map whose value was the zero value (`null`, `0`, `false`, `[]`, `{}`).
+  Whether an error was returned dependend on the internal type of the value.
+  (@rfratto)
+
 ### Other changes
 
 - Grafana Agent Docker containers and release binaries are now published for
   s390x. (@rfratto)
+
+- Use Go 1.20.2 for builds. (@rfratto)
+
+- Bring back the Flow UI for 32-bit ARMv6 builds. (@rfratto)
+
+- Change the Docker base image for Linux containers to `ubuntu:kinetic`.
+  (@rfratto)
 
 v0.32.1 (2023-03-06)
 --------------------

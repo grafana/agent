@@ -52,6 +52,7 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/exporter/consul"      // Import prometheus.exporter.consul
 	_ "github.com/grafana/agent/component/prometheus/exporter/github"      // Import prometheus.exporter.github
 	_ "github.com/grafana/agent/component/prometheus/exporter/mysql"       // Import prometheus.exporter.mysql
+	_ "github.com/grafana/agent/component/prometheus/exporter/postgres"    // Import prometheus.exporter.postgres
 	_ "github.com/grafana/agent/component/prometheus/exporter/process"     // Import prometheus.exporter.process
 	_ "github.com/grafana/agent/component/prometheus/exporter/redis"       // Import prometheus.exporter.redis
 	_ "github.com/grafana/agent/component/prometheus/exporter/unix"        // Import prometheus.exporter.unix
