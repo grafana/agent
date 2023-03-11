@@ -14,6 +14,9 @@ func Test(t *testing.T) {
   data_source_name = "user@host"
 }`,
 			MetricsExport: "prometheus.exporter.mysql.default.targets",
+			LogfileTargets: []discovery.Target{
+				{"__path__": "/tmp/logs/mysql.log", "lbl": "mysql"},
+			},
 		},
 		{
 			RiverConfig: `prometheus.exporter.consul "default" {

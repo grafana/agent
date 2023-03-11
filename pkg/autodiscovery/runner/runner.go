@@ -49,7 +49,7 @@ func BuildTemplateInput(input []*autodiscovery.Result) templateInput {
 				res.MetricsTargets = append(res.MetricsTargets, mt.RiverString())
 			}
 		}
-		if len(r.MetricsTargets) > 0 {
+		if len(r.LogfileTargets) > 0 {
 			for _, lt := range r.LogfileTargets {
 				res.LogsTargets = append(res.LogsTargets, lt.RiverString())
 			}
@@ -88,10 +88,11 @@ prometheus.remote_write "default" {
   }
 }
 
+{{if .LogsTargets }}
 loki.source.file "default" {
-  targets = concat( {{if .MetricsTargets }}{{range .MetricsTargets}}
-      {{.}},{{end}}{{end}}
-  )
+  targets = [{{range .LogsTargets}}
+      {{.}},{{end}}
+  ]
 
   forward_to = [loki.write.default.receiver]
 }
@@ -99,13 +100,13 @@ loki.source.file "default" {
 loki.write "default" {
   endpoint {
     url = env("GRAFANACLOUD_LOGS_URL")
-  }
-  basic_auth {
-    username = env("GRAFANACLOUD_LOGS_USER")
-    password = env("GRAFANACLOUD_APIKEY")
+    basic_auth {
+      username = env("GRAFANACLOUD_LOGS_USER")
+      password = env("GRAFANACLOUD_APIKEY")
+    }
   }
 }
-
+{{end}}
 
 {{ range .Components}} {{if .}}
 {{.}}

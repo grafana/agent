@@ -12,15 +12,15 @@ import (
 	"github.com/mitchellh/go-ps"
 )
 
-// Config holds the predefined DSNs we will try to connect to a running MySQL
-// instance with.
+// Config holds the predefined DSNs we will try to connect to a running
+// Postgres instance with.
 type Config struct {
 	Binary     string   `river:"binary,attr"`
 	DSN        []string `river:"dsn,attr,optional"`
 	Extensions []string `river:"ext,attr,optional"`
 }
 
-// Postgres  is an autodiscovery mechanism for a Postgres database.
+// Postgres is an autodiscovery mechanism for a Postgres database.
 type Postgres struct {
 	binary string
 	dsn    []string
@@ -100,8 +100,8 @@ func (pg *Postgres) Run() (*autodiscovery.Result, error) {
 			defer conn.Close(context.Background())
 			fmt.Println("Got the db!", conn)
 			res.RiverConfig = fmt.Sprintf(`prometheus.exporter.postgres "default" {
-  data_source_names = ["%s"]
-}`, dsn)
+	data_source_names = ["%s"]
+	}`, dsn)
 			res.MetricsExport = "prometheus.exporter.postgres.default.targets"
 			return res, nil
 		}
@@ -110,7 +110,7 @@ func (pg *Postgres) Run() (*autodiscovery.Result, error) {
 	// Our predefined configurations didn't work; but Postgres is running.
 	// Let's return a Flow component template for the user to fill out.
 	res.RiverConfig = `prometheus.exporter.postgres "default" {
-  data_source_name = env("AGENT_POSTGRES_DSN")
+  data_source_names = [env("AGENT_POSTGRES_DSN")]
 }`
 	res.MetricsExport = "prometheus.exporter.postgres.default.targets"
 

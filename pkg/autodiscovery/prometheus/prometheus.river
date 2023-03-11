@@ -1,0 +1,4800 @@
+exporter {
+	name           = "node_exporter"
+	url            = "http://localhost:9100/metrics"
+	metrics_prefix = ["node_", "promhttp_", "go_"]
+}
+
+exporter {
+	name           = "grafana-agent"
+	url            = "http://localhost:12345/metrics"
+	metrics_prefix = ["agent_"]
+}
+
+exporter {
+	url = "http://localhost:99999"
+}
+
+exporter {
+	url = "http://localhost:1999"
+}
+
+exporter {
+	url = "http://google.com"
+}
+
+// The following list is generated with Vim macros and the Default port
+// allocations listed in Prometheus' wiki.
+//
+// https://github.com/prometheus/prometheus/wiki/Default-port-allocations
+//
+// Checking all of these takes less than 400ms. 
+
+exporter {
+	name = "Node exporter"
+	url  = "http://localhost:9100"
+}
+
+exporter {
+	name = "HAProxy exporter"
+	url  = "http://localhost:9101"
+}
+
+exporter {
+	name = "StatsD exporter"
+	url  = "http://localhost:9102"
+}
+
+exporter {
+	name = "Collectd exporter"
+	url  = "http://localhost:9103"
+}
+
+exporter {
+	name = "MySQLd exporter"
+	url  = "http://localhost:9104"
+}
+
+exporter {
+	name = "Mesos exporter"
+	url  = "http://localhost:9105"
+}
+
+exporter {
+	name = "CloudWatch exporter"
+	url  = "http://localhost:9106"
+}
+
+exporter {
+	name = "Consul exporter"
+	url  = "http://localhost:9107"
+}
+
+exporter {
+	name = "Graphite exporter"
+	url  = "http://localhost:9108"
+}
+
+exporter {
+	name = "Graphite exporter"
+	url  = "http://localhost:9109"
+}
+
+exporter {
+	name = "Blackbox exporter"
+	url  = "http://localhost:9110"
+}
+
+exporter {
+	name = "Expvar exporter"
+	url  = "http://localhost:9111"
+}
+
+exporter {
+	name = "promacct: pcap-based network traffic accounting"
+	url  = "http://localhost:9112"
+}
+
+exporter {
+	name = "Nginx exporter](/discordianfish/nginx_exporter) [[alternative](/nginxinc/nginx-prometheus-exporter)"
+	url  = "http://localhost:9113"
+}
+
+exporter {
+	name = "Elasticsearch exporter"
+	url  = "http://localhost:9114"
+}
+
+exporter {
+	name = "Blackbox exporter"
+	url  = "http://localhost:9115"
+}
+
+exporter {
+	name = "SNMP exporter"
+	url  = "http://localhost:9116"
+}
+
+exporter {
+	name = "Apache exporter"
+	url  = "http://localhost:9117"
+}
+
+exporter {
+	name = "Jenkins exporter"
+	url  = "http://localhost:9118"
+}
+
+exporter {
+	name = "BIND exporter"
+	url  = "http://localhost:9119"
+}
+
+exporter {
+	name = "PowerDNS exporter"
+	url  = "http://localhost:9120"
+}
+
+exporter {
+	name = "Redis exporter"
+	url  = "http://localhost:9121"
+}
+
+exporter {
+	name = "InfluxDB exporter"
+	url  = "http://localhost:9122"
+}
+
+exporter {
+	name = "RethinkDB exporter"
+	url  = "http://localhost:9123"
+}
+
+exporter {
+	name = "FreeBSD sysctl exporter](https://github.com/freebsd/freebsd-src/tree/main/usr.sbin/prometheus_sysctl_exporter) ([documentation"
+	url  = "http://localhost:9124"
+}
+
+exporter {
+	name = "StatsD exporter"
+	url  = "http://localhost:9125"
+}
+
+exporter {
+	name = "New Relic exporter"
+	url  = "http://localhost:9126"
+}
+
+exporter {
+	name = "Dynatrace Exporter"
+	url  = "http://localhost:9126"
+}
+
+exporter {
+	name = "PgBouncer exporter"
+	url  = "http://localhost:9127"
+}
+
+exporter {
+	name = "Ceph exporter"
+	url  = "http://localhost:9128"
+}
+
+exporter {
+	name = "HAProxy Log exporter"
+	url  = "http://localhost:9129"
+}
+
+exporter {
+	name = "UniFi Poller](https://github.com/unifi-poller/unifi-poller) and [UniFi exporter (archived, use UniFi Poller or SNMP instead)"
+	url  = "http://localhost:9130"
+}
+
+exporter {
+	name = "Varnish exporter"
+	url  = "http://localhost:9131"
+}
+
+exporter {
+	name = "Airflow exporter"
+	url  = "http://localhost:9132"
+}
+
+exporter {
+	name = "Fritz!Box exporter"
+	url  = "http://localhost:9133"
+}
+
+exporter {
+	name = "ZFS exporter](https://github.com/eliothedeman/zfs_exporter) / [ZFS exporter (pdf)"
+	url  = "http://localhost:9134"
+}
+
+exporter {
+	name = "rTorrent exporter"
+	url  = "http://localhost:9135"
+}
+
+exporter {
+	name = "Collins exporter"
+	url  = "http://localhost:9136"
+}
+
+exporter {
+	name = "SiliconDust HDHomeRun exporter"
+	url  = "http://localhost:9137"
+}
+
+exporter {
+	name = "Heka exporter"
+	url  = "http://localhost:9138"
+}
+
+exporter {
+	name = "Azure SQL exporter"
+	url  = "http://localhost:9139"
+}
+
+exporter {
+	name = "Mirth exporter"
+	url  = "http://localhost:9140"
+}
+
+exporter {
+	name = "Zookeeper exporter"
+	url  = "http://localhost:9141"
+}
+
+exporter {
+	name = "BIG-IP exporter"
+	url  = "http://localhost:9142"
+}
+
+exporter {
+	name = "Cloudmonitor exporter"
+	url  = "http://localhost:9143"
+}
+
+exporter {
+	name = "grok_exporter"
+	url  = "http://localhost:9144"
+}
+
+exporter {
+	name = "Aerospike exporter"
+	url  = "http://localhost:9145"
+}
+
+exporter {
+	name = "Icecast exporter"
+	url  = "http://localhost:9146"
+}
+
+exporter {
+	name = "Nginx Request exporter"
+	url  = "http://localhost:9147"
+}
+
+exporter {
+	name = "NATS exporter"
+	url  = "http://localhost:9148"
+}
+
+exporter {
+	name = "Passenger exporter"
+	url  = "http://localhost:9149"
+}
+
+exporter {
+	name = "Memcached exporter"
+	url  = "http://localhost:9150"
+}
+
+exporter {
+	name = "Varnish Request exporter"
+	url  = "http://localhost:9151"
+}
+
+exporter {
+	name = "Command runner exporter"
+	url  = "http://localhost:9152"
+}
+
+exporter {
+	name = "CoreDNS"
+	url  = "http://localhost:9153"
+}
+
+exporter {
+	name = "Postfix Exporter"
+	url  = "http://localhost:9154"
+}
+
+exporter {
+	name = "vSphere Graphite"
+	url  = "http://localhost:9155"
+}
+
+exporter {
+	name = "WebDriver Exporter"
+	url  = "http://localhost:9156"
+}
+
+exporter {
+	name = "IBM MQ exporter"
+	url  = "http://localhost:9157"
+}
+
+exporter {
+	name = "Pingdom Exporter"
+	url  = "http://localhost:9158"
+}
+
+exporter {
+	name = "Syslogstash"
+	url  = "http://localhost:9159"
+}
+
+exporter {
+	name = "Apache Flink Exporter"
+	url  = "http://localhost:9160"
+}
+
+exporter {
+	name = "Oracle DB Exporter"
+	url  = "http://localhost:9161"
+}
+
+exporter {
+	name = "apcupsd exporter"
+	url  = "http://localhost:9162"
+}
+
+exporter {
+	name = "zgres exporter"
+	url  = "http://localhost:9163"
+}
+
+exporter {
+	name = "s6_exporter"
+	url  = "http://localhost:9164"
+}
+
+exporter {
+	name = "AWS instance health exporter"
+	url  = "http://localhost:9165"
+}
+
+exporter {
+	name = "Keepalived Exporter"
+	url  = "http://localhost:9165"
+}
+
+exporter {
+	name = "Dovecot exporter"
+	url  = "http://localhost:9166"
+}
+
+exporter {
+	name = "Unbound exporter"
+	url  = "http://localhost:9167"
+}
+
+exporter {
+	name = "gitlab-monitor"
+	url  = "http://localhost:9168"
+}
+
+exporter {
+	name = "Lustre exporter"
+	url  = "http://localhost:9169"
+}
+
+exporter {
+	name = "Docker Hub Exporter"
+	url  = "http://localhost:9170"
+}
+
+exporter {
+	name = "GitHub Exporter](https://github.com/infinityworksltd/github-exporter) [[alternative](https://github.com/jkroepke/github_exporter)"
+	url  = "http://localhost:9171"
+}
+
+exporter {
+	name = "Script Exporter"
+	url  = "http://localhost:9172"
+}
+
+exporter {
+	name = "Rancher Exporter"
+	url  = "http://localhost:9173"
+}
+
+exporter {
+	name = "Docker-Cloud Exporter"
+	url  = "http://localhost:9174"
+}
+
+exporter {
+	name = "Saltstack exporter"
+	url  = "http://localhost:9175"
+}
+
+exporter {
+	name = "OpenVPN exporter"
+	url  = "http://localhost:9176"
+}
+
+exporter {
+	name = "libvirt exporter"
+	url  = "http://localhost:9177"
+}
+
+exporter {
+	name = "Stream exporter"
+	url  = "http://localhost:9178"
+}
+
+exporter {
+	name = "Shield exporter"
+	url  = "http://localhost:9179"
+}
+
+exporter {
+	name = "ScyllaDB exporter"
+	url  = "http://localhost:9180"
+}
+
+exporter {
+	name = "Openstack Ceilometer exporter"
+	url  = "http://localhost:9181"
+}
+
+exporter {
+	name = "Windows exporter"
+	url  = "http://localhost:9182"
+}
+
+exporter {
+	name = "Openstack exporter"
+	url  = "http://localhost:9183"
+}
+
+exporter {
+	name = "Twitch exporter"
+	url  = "http://localhost:9184"
+}
+
+exporter {
+	name = "Kafka topic exporter"
+	url  = "http://localhost:9185"
+}
+
+exporter {
+	name = "Cloud Foundry Firehose exporter"
+	url  = "http://localhost:9186"
+}
+
+exporter {
+	name = "PostgreSQL exporter"
+	url  = "http://localhost:9187"
+}
+
+exporter {
+	name = "Crypto exporter"
+	url  = "http://localhost:9188"
+}
+
+exporter {
+	name = "Hetzner Cloud CSI Driver (Nodes)"
+	url  = "http://localhost:9189"
+}
+
+exporter {
+	name = "BOSH exporter"
+	url  = "http://localhost:9190"
+}
+
+exporter {
+	name = "netflow exporter"
+	url  = "http://localhost:9191"
+}
+
+exporter {
+	name = "ceph_exporter"
+	url  = "http://localhost:9192"
+}
+
+exporter {
+	name = "Cloud Foundry exporter"
+	url  = "http://localhost:9193"
+}
+
+exporter {
+	name = "BOSH TSDB exporter"
+	url  = "http://localhost:9194"
+}
+
+exporter {
+	name = "MaxScale exporter"
+	url  = "http://localhost:9195"
+}
+
+exporter {
+	name = "UPnP Internet Gateway Device exporter"
+	url  = "http://localhost:9196"
+}
+
+exporter {
+	name = "Google's mtail log data extractor"
+	url  = "http://localhost:9197"
+}
+
+exporter {
+	name = "Logstash exporter"
+	url  = "http://localhost:9198"
+}
+
+exporter {
+	name = "Cloudflare exporter"
+	url  = "http://localhost:9199"
+}
+
+exporter {
+	name = "Pacemaker exporter"
+	url  = "http://localhost:9202"
+}
+
+exporter {
+	name = "Domain Exporter"
+	url  = "http://localhost:9203"
+}
+
+exporter {
+	name = "PCSensor TEMPer exporter"
+	url  = "http://localhost:9204"
+}
+
+exporter {
+	name = "Nextcloud exporter"
+	url  = "http://localhost:9205"
+}
+
+exporter {
+	name = "Elasticsearch exporter"
+	url  = "http://localhost:9206"
+}
+
+exporter {
+	name = "MySQL exporter"
+	url  = "http://localhost:9207"
+}
+
+exporter {
+	name = "Kafka Consumer Group exporter"
+	url  = "http://localhost:9208"
+}
+
+exporter {
+	name = "FastNetMon Advanced exporter"
+	url  = "http://localhost:9209"
+}
+
+exporter {
+	name = "Netatmo exporter"
+	url  = "http://localhost:9210"
+}
+
+exporter {
+	name = "dnsbl-exporter"
+	url  = "http://localhost:9211"
+}
+
+exporter {
+	name = "DigitalOcean Exporter"
+	url  = "http://localhost:9212"
+}
+
+exporter {
+	name = "Custom Exporter"
+	url  = "http://localhost:9213"
+}
+
+exporter {
+	name = "MQTT Blackbox Exporter"
+	url  = "http://localhost:9214"
+}
+
+exporter {
+	name = "Prometheus Graphite Bridge"
+	url  = "http://localhost:9215"
+}
+
+exporter {
+	name = "MongoDB Exporter"
+	url  = "http://localhost:9216"
+}
+
+exporter {
+	name = "Consul agent exporter"
+	url  = "http://localhost:9217"
+}
+
+exporter {
+	name = "promql-guard"
+	url  = "http://localhost:9218"
+}
+
+exporter {
+	name = "SSL Certificate exporter"
+	url  = "http://localhost:9219"
+}
+
+exporter {
+	name = "NetApp Trident exporter"
+	url  = "http://localhost:9220"
+}
+
+exporter {
+	name = "Proxmox VE Exporter"
+	url  = "http://localhost:9221"
+}
+
+exporter {
+	name = "AWS ECS exporter"
+	url  = "http://localhost:9222"
+}
+
+exporter {
+	name = "BladePSGI exporter"
+	url  = "http://localhost:9223"
+}
+
+exporter {
+	name = "fluentd exporter"
+	url  = "http://localhost:9224"
+}
+
+exporter {
+	name = "mailexporter"
+	url  = "http://localhost:9225"
+}
+
+exporter {
+	name = "allas"
+	url  = "http://localhost:9226"
+}
+
+exporter {
+	name = "proc_exporter"
+	url  = "http://localhost:9227"
+}
+
+exporter {
+	name = "Flussonic exporter"
+	url  = "http://localhost:9228"
+}
+
+exporter {
+	name = "gitlab-workhorse"
+	url  = "http://localhost:9229"
+}
+
+exporter {
+	name = "Network UPS Tools exporter"
+	url  = "http://localhost:9230"
+}
+
+exporter {
+	name = "Solr exporter"
+	url  = "http://localhost:9231"
+}
+
+exporter {
+	name = "Osquery exporter"
+	url  = "http://localhost:9232"
+}
+
+exporter {
+	name = "mgmt exporter"
+	url  = "http://localhost:9233"
+}
+
+exporter {
+	name = "mosquitto exporter"
+	url  = "http://localhost:9234"
+}
+
+exporter {
+	name = "gitlab-pages exporter"
+	url  = "http://localhost:9235"
+}
+
+exporter {
+	name = "gitlab gitaly exporter"
+	url  = "http://localhost:9236"
+}
+
+exporter {
+	name = "SQL Exporter"
+	url  = "http://localhost:9237"
+}
+
+exporter {
+	name = "uWSGI Exporter](https://github.com/AndreaGreco/prometeus_uwsgi_exporter) [[alternative](https://github.com/timonwong/uwsgi_exporter)"
+	url  = "http://localhost:9238"
+}
+
+exporter {
+	name = "Surfboard Exporter"
+	url  = "http://localhost:9239"
+}
+
+exporter {
+	name = "Tinyproxy exporter"
+	url  = "http://localhost:9240"
+}
+
+exporter {
+	name = "ArangoDB Exporter"
+	url  = "http://localhost:9241"
+}
+
+exporter {
+	name = "Ceph RADOSGW Usage Exporter"
+	url  = "http://localhost:9242"
+}
+
+exporter {
+	name = "Chef Compliance exporter"
+	url  = "http://localhost:9243"
+}
+
+exporter {
+	name = "Moby Container Exporter"
+	url  = "http://localhost:9244"
+}
+
+exporter {
+	name = "Naemon / Nagios Exporter"
+	url  = "http://localhost:9245"
+}
+
+exporter {
+	name = "SmartPi"
+	url  = "http://localhost:9246"
+}
+
+exporter {
+	name = "Sphinx Exporter"
+	url  = "http://localhost:9247"
+}
+
+exporter {
+	name = "FreeBSD gstat Exporter"
+	url  = "http://localhost:9248"
+}
+
+exporter {
+	name = "Apache Flink Metrics Reporter"
+	url  = "http://localhost:9249"
+}
+
+exporter {
+	name = "OpenTSDB Exporter"
+	url  = "http://localhost:9250"
+}
+
+exporter {
+	name = "Sensu Exporter"
+	url  = "http://localhost:9251"
+}
+
+exporter {
+	name = "GitLab Runner Exporter"
+	url  = "http://localhost:9252"
+}
+
+exporter {
+	name = "PHP-FPM exporter"
+	url  = "http://localhost:9253"
+}
+
+exporter {
+	name = "Kafka Burrow exporter"
+	url  = "http://localhost:9254"
+}
+
+exporter {
+	name = "Google Stackdriver exporter"
+	url  = "http://localhost:9255"
+}
+
+exporter {
+	name = "Process exporter"
+	url  = "http://localhost:9256"
+}
+
+exporter {
+	name = "S.M.A.R.T. exporter"
+	url  = "http://localhost:9257"
+}
+
+exporter {
+	name = "Hello Sense Exporter"
+	url  = "http://localhost:9258"
+}
+
+exporter {
+	name = "Azure Resources Exporter"
+	url  = "http://localhost:9259"
+}
+
+exporter {
+	name = "Buildkite Exporter"
+	url  = "http://localhost:9260"
+}
+
+exporter {
+	name = "Grafana exporter"
+	url  = "http://localhost:9261"
+}
+
+exporter {
+	name = "Bloomsky exporter"
+	url  = "http://localhost:9262"
+}
+
+exporter {
+	name = "VMWare Guest exporter"
+	url  = "http://localhost:9263"
+}
+
+exporter {
+	name = "Nest exporter"
+	url  = "http://localhost:9264"
+}
+
+exporter {
+	name = "Weather exporter"
+	url  = "http://localhost:9265"
+}
+
+exporter {
+	name = "OpenHAB exporter"
+	url  = "http://localhost:9266"
+}
+
+exporter {
+	name = "Nagios Livestatus Exporter"
+	url  = "http://localhost:9267"
+}
+
+exporter {
+	name = "CrateDB remote remote read/write adapter"
+	url  = "http://localhost:9268"
+}
+
+exporter {
+	name = "fluent-agent-lite exporter"
+	url  = "http://localhost:9269"
+}
+
+exporter {
+	name = "Jmeter exporter"
+	url  = "http://localhost:9270"
+}
+
+exporter {
+	name = "Pagespeed exporter"
+	url  = "http://localhost:9271"
+}
+
+exporter {
+	name = "VMWare exporter"
+	url  = "http://localhost:9272"
+}
+
+exporter {
+	name = "Telegraf prometheus_client"
+	url  = "http://localhost:9273"
+}
+
+exporter {
+	name = "Kubernetes PersistentVolume Disk Usage Exporter"
+	url  = "http://localhost:9274"
+}
+
+exporter {
+	name = "NRPE exporter"
+	url  = "http://localhost:9275"
+}
+
+exporter {
+	name = "GitHubQL Exporter"
+	url  = "http://localhost:9276"
+}
+
+exporter {
+	name = "Azure Monitor exporter"
+	url  = "http://localhost:9276"
+}
+
+exporter {
+	name = "Mongo collection exporter"
+	url  = "http://localhost:9277"
+}
+
+exporter {
+	name = "Crypto Miner exporter"
+	url  = "http://localhost:9278"
+}
+
+exporter {
+	name = "InstaClustr Exporter"
+	url  = "http://localhost:9279"
+}
+
+exporter {
+	name = "Citrix NetScaler Exporter"
+	url  = "http://localhost:9280"
+}
+
+exporter {
+	name = "Fastd Exporter"
+	url  = "http://localhost:9281"
+}
+
+exporter {
+	name = "FreeSWITCH Exporter"
+	url  = "http://localhost:9282"
+}
+
+exporter {
+	name = "Ceph ceph-mgr prometheus plugin"
+	url  = "http://localhost:9283"
+}
+
+exporter {
+	name = "Gobetween"
+	url  = "http://localhost:9284"
+}
+
+exporter {
+	name = "Database exporter"
+	url  = "http://localhost:9285"
+}
+
+exporter {
+	name = "VDO Compression and deduplication exporter"
+	url  = "http://localhost:9286"
+}
+
+exporter {
+	name = "Ceph iSCSI Gateway Statistics"
+	url  = "http://localhost:9287"
+}
+
+exporter {
+	name = "Elgato Key Light exporter"
+	url  = "http://localhost:9288"
+}
+
+exporter {
+	name = "consrv"
+	url  = "http://localhost:9288"
+}
+
+exporter {
+	name = "Lovoo's IPMI Exporter"
+	url  = "http://localhost:9289"
+}
+
+exporter {
+	name = "SoundCloud's IPMI Exporter"
+	url  = "http://localhost:9290"
+}
+
+exporter {
+	name = "IBM Z HMC Exporter"
+	url  = "http://localhost:9291"
+}
+
+exporter {
+	name = "Netapp ONTAP API Exporter"
+	url  = "http://localhost:9292"
+}
+
+exporter {
+	name = "Connection Status Exporter"
+	url  = "http://localhost:9293"
+}
+
+exporter {
+	name = "MiFlora / Flower Care Exporter"
+	url  = "http://localhost:9294"
+}
+
+exporter {
+	name = "Freifunk Exporter"
+	url  = "http://localhost:9295"
+}
+
+exporter {
+	name = "ODBC Exporter"
+	url  = "http://localhost:9296"
+}
+
+exporter {
+	name = "Machbase Exporter"
+	url  = "http://localhost:9297"
+}
+
+exporter {
+	name = "Generic Exporter"
+	url  = "http://localhost:9298"
+}
+
+exporter {
+	name = "Exporter Aggregator"
+	url  = "http://localhost:9299"
+}
+
+exporter {
+	name = "Squid Exporter"
+	url  = "http://localhost:9301"
+}
+
+exporter {
+	name = "Faucet SDN Faucet Exporter"
+	url  = "http://localhost:9302"
+}
+
+exporter {
+	name = "Faucet SDN Gauge Exporter"
+	url  = "http://localhost:9303"
+}
+
+exporter {
+	name = "Logstash Exporter"
+	url  = "http://localhost:9304"
+}
+
+exporter {
+	name = "go-ethereum Exporter"
+	url  = "http://localhost:9305"
+}
+
+exporter {
+	name = "Kyototycoon Exporter"
+	url  = "http://localhost:9306"
+}
+
+exporter {
+	name = "Audisto exporter"
+	url  = "http://localhost:9307"
+}
+
+exporter {
+	name = "Kafka Exporter"
+	url  = "http://localhost:9308"
+}
+
+exporter {
+	name = "Fluentd Exporter"
+	url  = "http://localhost:9309"
+}
+
+exporter {
+	name = "Open vSwitch Exporter"
+	url  = "http://localhost:9310"
+}
+
+exporter {
+	name = "IOTA Exporter"
+	url  = "http://localhost:9311"
+}
+
+exporter {
+	name = "Cloudprober Exporter"
+	url  = "http://localhost:9313"
+}
+
+exporter {
+	name = "eris Exporter"
+	url  = "http://localhost:9314"
+}
+
+exporter {
+	name = "Centrifugo Exporter"
+	url  = "http://localhost:9315"
+}
+
+exporter {
+	name = "Tado Exporter"
+	url  = "http://localhost:9316"
+}
+
+exporter {
+	name = "Tellstick Local Exporter"
+	url  = "http://localhost:9317"
+}
+
+exporter {
+	name = "conntrack Exporter"
+	url  = "http://localhost:9318"
+}
+
+exporter {
+	name = "FLEXlm Exporter"
+	url  = "http://localhost:9319"
+}
+
+exporter {
+	name = "Consul Telemetry Exporter"
+	url  = "http://localhost:9320"
+}
+
+exporter {
+	name = "Spring Boot Actuator Exporter"
+	url  = "http://localhost:9321"
+}
+
+exporter {
+	name = "haproxy_abuser_exporter"
+	url  = "http://localhost:9322"
+}
+
+exporter {
+	name = "Docker Prometheus Metrics"
+	url  = "http://localhost:9323"
+}
+
+exporter {
+	name = "Bird Routing Daemon Exporter"
+	url  = "http://localhost:9324"
+}
+
+exporter {
+	name = "oVirt Exporter"
+	url  = "http://localhost:9325"
+}
+
+exporter {
+	name = "JunOS Exporter"
+	url  = "http://localhost:9326"
+}
+
+exporter {
+	name = "S3 Exporter"
+	url  = "http://localhost:9327"
+}
+
+exporter {
+	name = "OpenLDAP syncrepl Exporter"
+	url  = "http://localhost:9328"
+}
+
+exporter {
+	name = "CUPS Exporter"
+	url  = "http://localhost:9329"
+}
+
+exporter {
+	name = "OpenLDAP Metrics Exporter"
+	url  = "http://localhost:9330"
+}
+
+exporter {
+	name = "influx-spout Prometheus Metrics"
+	url  = "http://localhost:9331"
+}
+
+exporter {
+	name = "Network Exporter"
+	url  = "http://localhost:9332"
+}
+
+exporter {
+	name = "Vault PKI Exporter"
+	url  = "http://localhost:9333"
+}
+
+exporter {
+	name = "Ejabberd exporter "
+	url  = "http://localhost:9334"
+}
+
+exporter {
+	name = "nexsan exporter"
+	url  = "http://localhost:9335"
+}
+
+exporter {
+	name = "Mediacom Internet Usage Exporter"
+	url  = "http://localhost:9336"
+}
+
+exporter {
+	name = "mqttgateway"
+	url  = "http://localhost:9337"
+}
+
+exporter {
+	name = "cAdvisor (Container Advisor) alternate port"
+	url  = "http://localhost:9338"
+}
+
+exporter {
+	name = "AWS S3 Exporter"
+	url  = "http://localhost:9339"
+}
+
+exporter {
+	name = "(Financial) Quotes Exporter"
+	url  = "http://localhost:9340"
+}
+
+exporter {
+	name = "slurm exporter"
+	url  = "http://localhost:9341"
+}
+
+exporter {
+	name = "FRR Exporter"
+	url  = "http://localhost:9342"
+}
+
+exporter {
+	name = "GridServer Exporter"
+	url  = "http://localhost:9343"
+}
+
+exporter {
+	name = "MQTT Exporter"
+	url  = "http://localhost:9344"
+}
+
+exporter {
+	name = "Ruckus SmartZone Exporter"
+	url  = "http://localhost:9345"
+}
+
+exporter {
+	name = "Ping Exporter"
+	url  = "http://localhost:9346"
+}
+
+exporter {
+	name = "Junos Exporter"
+	url  = "http://localhost:9347"
+}
+
+exporter {
+	name = "BigQuery Exporter"
+	url  = "http://localhost:9348"
+}
+
+exporter {
+	name = "Configurable Elasticsearch query exporter"
+	url  = "http://localhost:9349"
+}
+
+exporter {
+	name = "ThousandEyes Exporter"
+	url  = "http://localhost:9350"
+}
+
+exporter {
+	name = "Wal-e/wal-g exporter"
+	url  = "http://localhost:9351"
+}
+
+exporter {
+	name = "Nature Remo Exporter"
+	url  = "http://localhost:9352"
+}
+
+exporter {
+	name = "Ceph Exporter"
+	url  = "http://localhost:9353"
+}
+
+exporter {
+	name = "Deluge Exporter"
+	url  = "http://localhost:9354"
+}
+
+exporter {
+	name = "Nightwatch.js Exporter / Redis Sentinel Exporter"
+	url  = "http://localhost:9355"
+}
+
+exporter {
+	name = "Pacemaker Exporter"
+	url  = "http://localhost:9356"
+}
+
+exporter {
+	name = "P1 Exporter"
+	url  = "http://localhost:9357"
+}
+
+exporter {
+	name = "Performance Counters Exporter"
+	url  = "http://localhost:9358"
+}
+
+exporter {
+	name = "Sidekiq Prometheus"
+	url  = "http://localhost:9359"
+}
+
+exporter {
+	name = "PowerShell Exporter"
+	url  = "http://localhost:9360"
+}
+
+exporter {
+	name = "Scaleway SD Exporter"
+	url  = "http://localhost:9361"
+}
+
+exporter {
+	name = "Cisco Exporter"
+	url  = "http://localhost:9362"
+}
+
+exporter {
+	name = "ClickHouse"
+	url  = "http://localhost:9363"
+}
+
+exporter {
+	name = "Continent8 Exporter"
+	url  = "http://localhost:9364"
+}
+
+exporter {
+	name = "Cumulus Linux Exporter"
+	url  = "http://localhost:9365"
+}
+
+exporter {
+	name = "HAProxy Stick Table Exporter"
+	url  = "http://localhost:9366"
+}
+
+exporter {
+	name = "teamspeak3_exporter"
+	url  = "http://localhost:9367"
+}
+
+exporter {
+	name = "Ethereum Client Exporter"
+	url  = "http://localhost:9368"
+}
+
+exporter {
+	name = "Prometheus PushProx"
+	url  = "http://localhost:9369"
+}
+
+exporter {
+	name = "u-bmc"
+	url  = "http://localhost:9370"
+}
+
+exporter {
+	name = "conntrack-stats-exporter"
+	url  = "http://localhost:9371"
+}
+
+exporter {
+	name = "AppMetrics/Prometheus"
+	url  = "http://localhost:9372"
+}
+
+exporter {
+	name = "GCP Service Discovery"
+	url  = "http://localhost:9373"
+}
+
+exporter {
+	name = "Smokeping prober"
+	url  = "http://localhost:9374"
+}
+
+exporter {
+	name = "Particle Exporter"
+	url  = "http://localhost:9375"
+}
+
+exporter {
+	name = "Falco"
+	url  = "http://localhost:9376"
+}
+
+exporter {
+	name = "Cisco ACI Exporter"
+	url  = "http://localhost:9377"
+}
+
+exporter {
+	name = "etcd gRPC Proxy Exporter"
+	url  = "http://localhost:9378"
+}
+
+exporter {
+	name = "etcd Exporter"
+	url  = "http://localhost:9379"
+}
+
+exporter {
+	name = "MythTV Exporter"
+	url  = "http://localhost:9380"
+}
+
+exporter {
+	name = "Kafka ZooKeeper Exporter"
+	url  = "http://localhost:9381"
+}
+
+exporter {
+	name = "FRRouting Exporter "
+	url  = "http://localhost:9382"
+}
+
+exporter {
+	name = "AWS Health Exporter"
+	url  = "http://localhost:9383"
+}
+
+exporter {
+	name = "AWS SQS Exporter"
+	url  = "http://localhost:9384"
+}
+
+exporter {
+	name = "apcupsdexporter"
+	url  = "http://localhost:9385"
+}
+
+exporter {
+	name = "httpd-exporter"
+	url  = "http://localhost:9386"
+}
+
+exporter {
+	name = "Tankerkönig API Exporter"
+	url  = "http://localhost:9386"
+}
+
+exporter {
+	name = "SABnzbd Exporter"
+	url  = "http://localhost:9387"
+}
+
+exporter {
+	name = "Linode Exporter"
+	url  = "http://localhost:9388"
+}
+
+exporter {
+	name = "Scylla-Cluster-Tests Exporter"
+	url  = "http://localhost:9389"
+}
+
+exporter {
+	name = "Kannel Exporter"
+	url  = "http://localhost:9390"
+}
+
+exporter {
+	name = "Concourse Prometheus Metrics"
+	url  = "http://localhost:9391"
+}
+
+exporter {
+	name = "Generic Command Line Output Exporter"
+	url  = "http://localhost:9392"
+}
+
+exporter {
+	name = "Patroni Exporter"
+	url  = "http://localhost:9393"
+}
+
+exporter {
+	name = "Alertmanager Github Webhook Receiver"
+	url  = "http://localhost:9393"
+}
+
+exporter {
+	name = "Ruby Prometheus Exporter"
+	url  = "http://localhost:9394"
+}
+
+exporter {
+	name = "LDAP Exporter"
+	url  = "http://localhost:9395"
+}
+
+exporter {
+	name = "Monerod Exporter"
+	url  = "http://localhost:9396"
+}
+
+exporter {
+	name = "COMAP"
+	url  = "http://localhost:9397"
+}
+
+exporter {
+	name = "Open Hardware Monitor Exporter"
+	url  = "http://localhost:9398"
+}
+
+exporter {
+	name = "Prometheus SQL Exporter"
+	url  = "http://localhost:9399"
+}
+
+exporter {
+	name = "RIPE Atlas Exporter"
+	url  = "http://localhost:9400"
+}
+
+exporter {
+	name = "1-Wire Exporter"
+	url  = "http://localhost:9401"
+}
+
+exporter {
+	name = "Google Cloud Platform Exporter"
+	url  = "http://localhost:9402"
+}
+
+exporter {
+	name = "Zerto Exporter"
+	url  = "http://localhost:9403"
+}
+
+exporter {
+	name = "JMX Exporter"
+	url  = "http://localhost:9404"
+}
+
+exporter {
+	name = "Discourse Exporter"
+	url  = "http://localhost:9405"
+}
+
+exporter {
+	name = "HHVM Exporter"
+	url  = "http://localhost:9406"
+}
+
+exporter {
+	name = "OBS Studio Exporter"
+	url  = "http://localhost:9407"
+}
+
+exporter {
+	name = "RDS Enhanced Monitoring Exporter"
+	url  = "http://localhost:9408"
+}
+
+exporter {
+	name = "ovn-kubernetes Master Exporter"
+	url  = "http://localhost:9409"
+}
+
+exporter {
+	name = "ovn-kubernetes Node Exporter"
+	url  = "http://localhost:9410"
+}
+
+exporter {
+	name = "SoftEther Exporter"
+	url  = "http://localhost:9411"
+}
+
+exporter {
+	name = "Sentry Exporter"
+	url  = "http://localhost:9412"
+}
+
+exporter {
+	name = "MogileFS Exporter"
+	url  = "http://localhost:9413"
+}
+
+exporter {
+	name = "Homey Exporter"
+	url  = "http://localhost:9414"
+}
+
+exporter {
+	name = "cloudwatch_read_adapter"
+	url  = "http://localhost:9415"
+}
+
+exporter {
+	name = "HP iLO Metrics Exporter"
+	url  = "http://localhost:9416"
+}
+
+exporter {
+	name = "Ethtool Exporter"
+	url  = "http://localhost:9417"
+}
+
+exporter {
+	name = "Gearman Exporter"
+	url  = "http://localhost:9418"
+}
+
+exporter {
+	name = "RabbitMQ Exporter"
+	url  = "http://localhost:9419"
+}
+
+exporter {
+	name = "Couchbase Exporter"
+	url  = "http://localhost:9420"
+}
+
+exporter {
+	name = "APIcast"
+	url  = "http://localhost:9421"
+}
+
+exporter {
+	name = "jolokia_exporter"
+	url  = "http://localhost:9422"
+}
+
+exporter {
+	name = "HP RAID Exporter"
+	url  = "http://localhost:9423"
+}
+
+exporter {
+	name = "InfluxDB Stats Exporter"
+	url  = "http://localhost:9424"
+}
+
+exporter {
+	name = "Pachyderm Exporter"
+	url  = "http://localhost:9425"
+}
+
+exporter {
+	name = "Vespa engine exporter"
+	url  = "http://localhost:9426"
+}
+
+exporter {
+	name = "Ping Exporter"
+	url  = "http://localhost:9427"
+}
+
+exporter {
+	name = "SSH Exporter"
+	url  = "http://localhost:9428"
+}
+
+exporter {
+	name = "Uptimerobot Exporter"
+	url  = "http://localhost:9429"
+}
+
+exporter {
+	name = "CoreRAD"
+	url  = "http://localhost:9430"
+}
+
+exporter {
+	name = "Hpfeeds broker Exporter"
+	url  = "http://localhost:9431"
+}
+
+exporter {
+	name = "Windows perflib exporter"
+	url  = "http://localhost:9432"
+}
+
+exporter {
+	name = "Knot exporter"
+	url  = "http://localhost:9433"
+}
+
+exporter {
+	name = "OpenSIPS exporter"
+	url  = "http://localhost:9434"
+}
+
+exporter {
+	name = "eBPF exporter"
+	url  = "http://localhost:9435"
+}
+
+exporter {
+	name = "nshttpd/mikrotik-exporter"
+	url  = "http://localhost:9436"
+}
+
+exporter {
+	name = "Dell EMC Isilon Exporter"
+	url  = "http://localhost:9437"
+}
+
+exporter {
+	name = "Dell EMC ECS Exporter"
+	url  = "http://localhost:9438"
+}
+
+exporter {
+	name = "Bitcoind exporter"
+	url  = "http://localhost:9439"
+}
+
+exporter {
+	name = "RavenDB Exporter"
+	url  = "http://localhost:9440"
+}
+
+exporter {
+	name = "Nomad Exporter"
+	url  = "http://localhost:9441"
+}
+
+exporter {
+	name = "Mcrouter Exporter"
+	url  = "http://localhost:9442"
+}
+
+exporter {
+	name = "Napalm Logs Exporter"
+	url  = "http://localhost:9443"
+}
+
+exporter {
+	name = "FoundationDB Exporter"
+	url  = "http://localhost:9444"
+}
+
+exporter {
+	name = "NVIDIA GPU Exporter"
+	url  = "http://localhost:9445"
+}
+
+exporter {
+	name = "Orange Livebox DSL modem Exporter"
+	url  = "http://localhost:9446"
+}
+
+exporter {
+	name = "Resque Exporter"
+	url  = "http://localhost:9447"
+}
+
+exporter {
+	name = "EventStore Exporter"
+	url  = "http://localhost:9448"
+}
+
+exporter {
+	name = "OMERO.server Exporter "
+	url  = "http://localhost:9449"
+}
+
+exporter {
+	name = "Habitat Exporter"
+	url  = "http://localhost:9450"
+}
+
+exporter {
+	name = "Reindexer Exporter"
+	url  = "http://localhost:9451"
+}
+
+exporter {
+	name = "FreeBSD Jail Exporter"
+	url  = "http://localhost:9452"
+}
+
+exporter {
+	name = "midonet-kubernetes"
+	url  = "http://localhost:9453"
+}
+
+exporter {
+	name = "NVIDIA SMI Exporter"
+	url  = "http://localhost:9454"
+}
+
+exporter {
+	name = "iptables Exporter"
+	url  = "http://localhost:9455"
+}
+
+exporter {
+	name = "AWS Lambda Exporter"
+	url  = "http://localhost:9456"
+}
+
+exporter {
+	name = "Files Content Exporter"
+	url  = "http://localhost:9457"
+}
+
+exporter {
+	name = "Rocket.Chat Exporter"
+	url  = "http://localhost:9458"
+}
+
+exporter {
+	name = "Yarn Exporter"
+	url  = "http://localhost:9459"
+}
+
+exporter {
+	name = "HANA Exporter"
+	url  = "http://localhost:9460"
+}
+
+exporter {
+	name = "AWS Lambda read adapter"
+	url  = "http://localhost:9461"
+}
+
+exporter {
+	name = "PHP OPcache Exporter"
+	url  = "http://localhost:9462"
+}
+
+exporter {
+	name = "Virgin Media/Liberty Global Hub3 Exporter"
+	url  = "http://localhost:9463"
+}
+
+exporter {
+	name = "OpenTelemetry Node.js Prometheus Metric Exporter"
+	url  = "http://localhost:9464"
+}
+
+exporter {
+	name = "Hetzner Cloud k8s Cloud Controller Manager"
+	url  = "http://localhost:9465"
+}
+
+exporter {
+	name = "MQTT push gateway"
+	url  = "http://localhost:9466"
+}
+
+exporter {
+	name = "nginx-prometheus-shiny-exporter"
+	url  = "http://localhost:9467"
+}
+
+exporter {
+	name = "nasa-swpc-exporter"
+	url  = "http://localhost:9468"
+}
+
+exporter {
+	name = "script_exporter"
+	url  = "http://localhost:9469"
+}
+
+exporter {
+	name = "cachet_exporter"
+	url  = "http://localhost:9470"
+}
+
+exporter {
+	name = "lxc-exporter"
+	url  = "http://localhost:9471"
+}
+
+exporter {
+	name = "Hetzner Cloud CSI Driver (Controller)"
+	url  = "http://localhost:9472"
+}
+
+exporter {
+	name = "stellar-core-exporter"
+	url  = "http://localhost:9473"
+}
+
+exporter {
+	name = "libvirtd_exporter"
+	url  = "http://localhost:9474"
+}
+
+exporter {
+	name = "wgipamd"
+	url  = "http://localhost:9475"
+}
+
+exporter {
+	name = "immugw exporter"
+	url  = "http://localhost:9476"
+}
+
+exporter {
+	name = "OVN Metrics Exporter"
+	url  = "http://localhost:9476"
+}
+
+exporter {
+	name = "immuclient exporter"
+	url  = "http://localhost:9477"
+}
+
+exporter {
+	name = "CSP Violation Report exporter"
+	url  = "http://localhost:9477"
+}
+
+exporter {
+	name = "Sentinel exporter"
+	url  = "http://localhost:9478"
+}
+
+exporter {
+	name = "Elasticbeat exporter"
+	url  = "http://localhost:9479"
+}
+
+exporter {
+	name = "Brigade exporter"
+	url  = "http://localhost:9480"
+}
+
+exporter {
+	name = "DRBD9 exporter"
+	url  = "http://localhost:9481"
+}
+
+exporter {
+	name = "Vector Packet Process (VPP) exporter"
+	url  = "http://localhost:9482"
+}
+
+exporter {
+	name = "IBM App Connect Enterprise exporter"
+	url  = "http://localhost:9483"
+}
+
+exporter {
+	name = "kubedex-exporter"
+	url  = "http://localhost:9484"
+}
+
+exporter {
+	name = "Emarsys exporter"
+	url  = "http://localhost:9485"
+}
+
+exporter {
+	name = "Domoticz exporter"
+	url  = "http://localhost:9486"
+}
+
+exporter {
+	name = "Docker Stats exporter"
+	url  = "http://localhost:9487"
+}
+
+exporter {
+	name = "BMW Connected Drive exporter"
+	url  = "http://localhost:9488"
+}
+
+exporter {
+	name = "Tezos node metrics exporter"
+	url  = "http://localhost:9489"
+}
+
+exporter {
+	name = "Exporter for Docker Libnetwork Plugin for OVN"
+	url  = "http://localhost:9490"
+}
+
+exporter {
+	name = "Docker Container Stats exporter (`docker ps`)"
+	url  = "http://localhost:9491"
+}
+
+exporter {
+	name = "Azure Exporter (Monitor and Usage)"
+	url  = "http://localhost:9492"
+}
+
+exporter {
+	name = "ProSAFE Exporter"
+	url  = "http://localhost:9493"
+}
+
+exporter {
+	name = "Kamailio Exporter"
+	url  = "http://localhost:9494"
+}
+
+exporter {
+	name = "Ingestor Exporter"
+	url  = "http://localhost:9495"
+}
+
+exporter {
+	name = "389ds/IPA Exporter"
+	url  = "http://localhost:9496"
+}
+
+exporter {
+	name = "ImmuDB exporter"
+	url  = "http://localhost:9497"
+}
+
+exporter {
+	name = "tp-link HS110 exporter"
+	url  = "http://localhost:9498"
+}
+
+exporter {
+	name = "Smartthings exporter"
+	url  = "http://localhost:9499"
+}
+
+exporter {
+	name = "Cassandra exporter"
+	url  = "http://localhost:9500"
+}
+
+exporter {
+	name = "HetznerCloud exporter"
+	url  = "http://localhost:9501"
+}
+
+exporter {
+	name = "Hetzner exporter"
+	url  = "http://localhost:9502"
+}
+
+exporter {
+	name = "Scaleway exporter"
+	url  = "http://localhost:9503"
+}
+
+exporter {
+	name = "GitHub exporter"
+	url  = "http://localhost:9504"
+}
+
+exporter {
+	name = "DockerHub exporter"
+	url  = "http://localhost:9505"
+}
+
+exporter {
+	name = "Jenkins exporter"
+	url  = "http://localhost:9506"
+}
+
+exporter {
+	name = "ownCloud exporter"
+	url  = "http://localhost:9507"
+}
+
+exporter {
+	name = "ccache exporter"
+	url  = "http://localhost:9508"
+}
+
+exporter {
+	name = "Hetzner Storagebox exporter"
+	url  = "http://localhost:9509"
+}
+
+exporter {
+	name = "Dummy Exporter"
+	url  = "http://localhost:9510"
+}
+
+exporter {
+	name = "IIS Log Exporter"
+	url  = "http://localhost:9511"
+}
+
+exporter {
+	name = "Cloudera exporter"
+	url  = "http://localhost:9512"
+}
+
+exporter {
+	name = "OpenConfig Streaming Telemetry Exporter"
+	url  = "http://localhost:9513"
+}
+
+exporter {
+	name = "App Stores exporter"
+	url  = "http://localhost:9514"
+}
+
+exporter {
+	name = "swarm-exporter"
+	url  = "http://localhost:9515"
+}
+
+exporter {
+	name = "Prometheus Speedtest Exporter"
+	url  = "http://localhost:9516"
+}
+
+exporter {
+	name = "Matroschka Prober"
+	url  = "http://localhost:9517"
+}
+
+exporter {
+	name = "Crypto Stock Exchange's Funds Exporter"
+	url  = "http://localhost:9518"
+}
+
+exporter {
+	name = "Acurite Exporter"
+	url  = "http://localhost:9519"
+}
+
+exporter {
+	name = "Swift Health Exporter"
+	url  = "http://localhost:9520"
+}
+
+exporter {
+	name = "Ruuvi exporter"
+	url  = "http://localhost:9521"
+}
+
+exporter {
+	name = "TFTP Exporter"
+	url  = "http://localhost:9522"
+}
+
+exporter {
+	name = "3CX Exporter"
+	url  = "http://localhost:9523"
+}
+
+exporter {
+	name = "loki_exporter"
+	url  = "http://localhost:9524"
+}
+
+exporter {
+	name = "Alibaba Cloud Exporter"
+	url  = "http://localhost:9525"
+}
+
+exporter {
+	name = "kafka_lag_exporter"
+	url  = "http://localhost:9526"
+}
+
+exporter {
+	name = "Netgear Cable Modem Exporter"
+	url  = "http://localhost:9527"
+}
+
+exporter {
+	name = "Total Connect Comfort Exporter"
+	url  = "http://localhost:9528"
+}
+
+exporter {
+	name = "Octoprint exporter"
+	url  = "http://localhost:9529"
+}
+
+exporter {
+	name = "Custom Prometheus Exporter"
+	url  = "http://localhost:9530"
+}
+
+exporter {
+	name = "JFrog Artifactory Exporter"
+	url  = "http://localhost:9531"
+}
+
+exporter {
+	name = "Snyk exporter"
+	url  = "http://localhost:9532"
+}
+
+exporter {
+	name = "Network Exporter for Cisco API"
+	url  = "http://localhost:9533"
+}
+
+exporter {
+	name = "Humio exporter"
+	url  = "http://localhost:9534"
+}
+
+exporter {
+	name = "Cron Exporter"
+	url  = "http://localhost:9535"
+}
+
+exporter {
+	name = "IPsec exporter"
+	url  = "http://localhost:9536"
+}
+
+exporter {
+	name = "CRI-O"
+	url  = "http://localhost:9537"
+}
+
+exporter {
+	name = "Bull Queue"
+	url  = "http://localhost:9538"
+}
+
+exporter {
+	name = "Dedibox Exporter"
+	url  = "http://localhost:9539"
+}
+
+exporter {
+	name = "ModemManager exporter"
+	url  = "http://localhost:9539"
+}
+
+exporter {
+	name = "EMQ exporter"
+	url  = "http://localhost:9540"
+}
+
+exporter {
+	name = "smartmon_exporter"
+	url  = "http://localhost:9541"
+}
+
+exporter {
+	name = "SakuraCloud exporter"
+	url  = "http://localhost:9542"
+}
+
+exporter {
+	name = "Kube2IAM exporter"
+	url  = "http://localhost:9543"
+}
+
+exporter {
+	name = "pgio exporter"
+	url  = "http://localhost:9544"
+}
+
+exporter {
+	name = "HP iLo4 Exporter"
+	url  = "http://localhost:9545"
+}
+
+exporter {
+	name = "pwrstat-exporter"
+	url  = "http://localhost:9546"
+}
+
+exporter {
+	name = "Patroni exporter Kea Exporter"
+	url  = "http://localhost:9547"
+}
+
+exporter {
+	name = "trafficserver exporter"
+	url  = "http://localhost:9548"
+}
+
+exporter {
+	name = "raspberry exporter"
+	url  = "http://localhost:9549"
+}
+
+exporter {
+	name = "rtl_433 exporter"
+	url  = "http://localhost:9550"
+}
+
+exporter {
+	name = "hostapd exporter"
+	url  = "http://localhost:9551"
+}
+
+exporter {
+	name = "Alpine apk exporter"
+	url  = "http://localhost:9552"
+}
+
+exporter {
+	name = "AWS Elastic Beanstalk Exporter"
+	url  = "http://localhost:9552"
+}
+
+exporter {
+	name = "Apt exporter"
+	url  = "http://localhost:9553"
+}
+
+exporter {
+	name = "ACC Server Manager Exporter"
+	url  = "http://localhost:9554"
+}
+
+exporter {
+	name = "SONA exporter"
+	url  = "http://localhost:9555"
+}
+
+exporter {
+	name = "routinator exporter"
+	url  = "http://localhost:9556"
+}
+
+exporter {
+	name = "mysql count exporter"
+	url  = "http://localhost:9557"
+}
+
+exporter {
+	name = "systemd exporter"
+	url  = "http://localhost:9558"
+}
+
+exporter {
+	name = "ntp exporter"
+	url  = "http://localhost:9559"
+}
+
+exporter {
+	name = "SQL queries exporter"
+	url  = "http://localhost:9560"
+}
+
+exporter {
+	name = "qBittorrent exporter"
+	url  = "http://localhost:9561"
+}
+
+exporter {
+	name = "PTV xServer exporter"
+	url  = "http://localhost:9562"
+}
+
+exporter {
+	name = "Kibana exporter"
+	url  = "http://localhost:9563"
+}
+
+exporter {
+	name = "PurpleAir exporter"
+	url  = "http://localhost:9564"
+}
+
+exporter {
+	name = "Bminer exporter"
+	url  = "http://localhost:9565"
+}
+
+exporter {
+	name = "RabbitMQ CLI Consumer"
+	url  = "http://localhost:9566"
+}
+
+exporter {
+	name = "Alertsnitch"
+	url  = "http://localhost:9567"
+}
+
+exporter {
+	name = "Dell PowerEdge IPMI exporter"
+	url  = "http://localhost:9568"
+}
+
+exporter {
+	name = "HVPA Controller"
+	url  = "http://localhost:9569"
+}
+
+exporter {
+	name = "VPA Exporter"
+	url  = "http://localhost:9570"
+}
+
+exporter {
+	name = "Helm Exporter"
+	url  = "http://localhost:9571"
+}
+
+exporter {
+	name = "ctld exporter"
+	url  = "http://localhost:9572"
+}
+
+exporter {
+	name = "JKStatus Exporter"
+	url  = "http://localhost:9573"
+}
+
+exporter {
+	name = "opentracker Exporter"
+	url  = "http://localhost:9574"
+}
+
+exporter {
+	name = "PowerAdmin Server Monitor Exporter"
+	url  = "http://localhost:9575"
+}
+
+exporter {
+	name = "ExaBGP Exporter"
+	url  = "http://localhost:9576"
+}
+
+exporter {
+	name = "Syslog-NG Exporter"
+	url  = "http://localhost:9577"
+}
+
+exporter {
+	name = "aria2 Exporter"
+	url  = "http://localhost:9578"
+}
+
+exporter {
+	name = "iPerf3 Exporter"
+	url  = "http://localhost:9579"
+}
+
+exporter {
+	name = "Azure Service Bus Exporter"
+	url  = "http://localhost:9580"
+}
+
+exporter {
+	name = "CodeNotary vcn Exporter"
+	url  = "http://localhost:9581"
+}
+
+exporter {
+	name = "Logentries/Rapid7 Exporter"
+	url  = "http://localhost:9582"
+}
+
+exporter {
+	name = "Signatory a remote operation signer for Tezos"
+	url  = "http://localhost:9583"
+}
+
+exporter {
+	name = "BunnyCDN exporter"
+	url  = "http://localhost:9584"
+}
+
+exporter {
+	name = "Opvizor Performance Analyzer process exporter"
+	url  = "http://localhost:9585"
+}
+
+exporter {
+	name = "WireGuard exporter"
+	url  = "http://localhost:9586"
+}
+
+exporter {
+	name = "nfs-ganesha exporter"
+	url  = "http://localhost:9587"
+}
+
+exporter {
+	name = "ltsv-tailer exporter"
+	url  = "http://localhost:9588"
+}
+
+exporter {
+	name = "goflow exporter"
+	url  = "http://localhost:9589"
+}
+
+exporter {
+	name = "Flow Exporter"
+	url  = "http://localhost:9590"
+}
+
+exporter {
+	name = "SRCDS Exporter"
+	url  = "http://localhost:9591"
+}
+
+exporter {
+	name = "GCP Quota Exporter"
+	url  = "http://localhost:9592"
+}
+
+exporter {
+	name = "Lighthouse Exporter"
+	url  = "http://localhost:9593"
+}
+
+exporter {
+	name = "Plex Exporter"
+	url  = "http://localhost:9594"
+}
+
+exporter {
+	name = "Netio Exporter"
+	url  = "http://localhost:9595"
+}
+
+exporter {
+	name = "Azure Elastic SQL Exporter"
+	url  = "http://localhost:9596"
+}
+
+exporter {
+	name = "GitHub Vulnerability Alerts Exporter"
+	url  = "http://localhost:9597"
+}
+
+exporter {
+	name = "Vector Logs & Metrics Router Exporter"
+	url  = "http://localhost:9598"
+}
+
+exporter {
+	name = "Pirograph Exporter "
+	url  = "http://localhost:9599"
+}
+
+exporter {
+	name = "CircleCI Exporter"
+	url  = "http://localhost:9600"
+}
+
+exporter {
+	name = "MessageBird Exporter"
+	url  = "http://localhost:9601"
+}
+
+exporter {
+	name = "Modbus Exporter"
+	url  = "http://localhost:9602"
+}
+
+exporter {
+	name = "Xen Exporter (using xenlight)"
+	url  = "http://localhost:9603"
+}
+
+exporter {
+	name = "XMPP Blackbox Exporter"
+	url  = "http://localhost:9604"
+}
+
+exporter {
+	name = "fping-exporter"
+	url  = "http://localhost:9605"
+}
+
+exporter {
+	name = "ecr-exporter"
+	url  = "http://localhost:9606"
+}
+
+exporter {
+	name = "Raspberry Pi Sense HAT Exporter"
+	url  = "http://localhost:9607"
+}
+
+exporter {
+	name = "Ironic Prometheus Exporter"
+	url  = "http://localhost:9608"
+}
+
+exporter {
+	name = "netapp exporter"
+	url  = "http://localhost:9609"
+}
+
+exporter {
+	name = "kubernetes_exporter"
+	url  = "http://localhost:9610"
+}
+
+exporter {
+	name = "speedport_exporter"
+	url  = "http://localhost:9611"
+}
+
+exporter {
+	name = "GitHub Exporter"
+	url  = "http://localhost:9612"
+}
+
+exporter {
+	name = "Azure Health Exporter"
+	url  = "http://localhost:9613"
+}
+
+exporter {
+	name = "NUT upsc Exporter"
+	url  = "http://localhost:9614"
+}
+
+exporter {
+	name = "Mellanox mlx5 Exporter"
+	url  = "http://localhost:9615"
+}
+
+exporter {
+	name = "Mailgun Exporter"
+	url  = "http://localhost:9616"
+}
+
+exporter {
+	name = "PI-Hole Exporter"
+	url  = "http://localhost:9617"
+}
+
+exporter {
+	name = "stellar-account-exporter"
+	url  = "http://localhost:9618"
+}
+
+exporter {
+	name = "stellar-horizon-exporter"
+	url  = "http://localhost:9619"
+}
+
+exporter {
+	name = "rundeck_exporter"
+	url  = "http://localhost:9620"
+}
+
+exporter {
+	name = "OpenNebula exporter"
+	url  = "http://localhost:9621"
+}
+
+exporter {
+	name = "BMC exporter"
+	url  = "http://localhost:9622"
+}
+
+exporter {
+	name = "TC4400 exporter"
+	url  = "http://localhost:9623"
+}
+
+exporter {
+	name = "Pact Broker Exporter"
+	url  = "http://localhost:9624"
+}
+
+exporter {
+	name = "Bareos Exporter"
+	url  = "http://localhost:9625"
+}
+
+exporter {
+	name = "hockeypuck"
+	url  = "http://localhost:9626"
+}
+
+exporter {
+	name = "Artifactory Exporter"
+	url  = "http://localhost:9627"
+}
+
+exporter {
+	name = "Solace PubSub+ Exporter"
+	url  = "http://localhost:9628"
+}
+
+exporter {
+	name = "Prometheus GitLab notifier"
+	url  = "http://localhost:9629"
+}
+
+exporter {
+	name = "nftables exporter"
+	url  = "http://localhost:9630"
+}
+
+exporter {
+	name = "A OP5 Monitor exporter"
+	url  = "http://localhost:9631"
+}
+
+exporter {
+	name = "Belkin Wemo Insight exporter (WIP)"
+	url  = "http://localhost:9632"
+}
+
+exporter {
+	name = "smartctl exporter"
+	url  = "http://localhost:9633"
+}
+
+exporter {
+	name = "Aerospike ttl exporter"
+	url  = "http://localhost:9634"
+}
+
+exporter {
+	name = "Fail2Ban Exporter"
+	url  = "http://localhost:9635"
+}
+
+exporter {
+	name = "PuppetDB Exporter"
+	url  = "http://localhost:9635"
+}
+
+exporter {
+	name = "Exim4 Exporter"
+	url  = "http://localhost:9636"
+}
+
+exporter {
+	name = "KubeVersion Exporter"
+	url  = "http://localhost:9637"
+}
+
+exporter {
+	name = "A Icinga2 exporter"
+	url  = "http://localhost:9638"
+}
+
+exporter {
+	name = "Tinkerforge Brickd Exporter"
+	url  = "http://localhost:9639"
+}
+
+exporter {
+	name = "Scriptable JMX Exporter"
+	url  = "http://localhost:9639"
+}
+
+exporter {
+	name = "Logstash Output Exporter"
+	url  = "http://localhost:9640"
+}
+
+exporter {
+	name = "MQTT2Prometheus"
+	url  = "http://localhost:9641"
+}
+
+exporter {
+	name = "CoTURN exporter"
+	url  = "http://localhost:9641"
+}
+
+exporter {
+	name = "Bugsnag Exporter"
+	url  = "http://localhost:9642"
+}
+
+exporter {
+	name = "Cisco ACI exporter"
+	url  = "http://localhost:9643"
+}
+
+exporter {
+	name = "Exporter for grouped process"
+	url  = "http://localhost:9644"
+}
+
+exporter {
+	name = "Burp exporter"
+	url  = "http://localhost:9645"
+}
+
+exporter {
+	name = "Locust Exporter"
+	url  = "http://localhost:9646"
+}
+
+exporter {
+	name = "Docker Exporter"
+	url  = "http://localhost:9647"
+}
+
+exporter {
+	name = "NTPmon exporter"
+	url  = "http://localhost:9648"
+}
+
+exporter {
+	name = "Logstash Pipeline Exporter"
+	url  = "http://localhost:9649"
+}
+
+exporter {
+	name = "Keepalived Exporter"
+	url  = "http://localhost:9650"
+}
+
+exporter {
+	name = "Storj Exporter"
+	url  = "http://localhost:9651"
+}
+
+exporter {
+	name = "Praefect Exporter"
+	url  = "http://localhost:9652"
+}
+
+exporter {
+	name = "Jira Issues Exporter"
+	url  = "http://localhost:9653"
+}
+
+exporter {
+	name = "Kuryr-Kubernetes Controller"
+	url  = "http://localhost:9654"
+}
+
+exporter {
+	name = "Ansible Galaxy Exporter"
+	url  = "http://localhost:9654"
+}
+
+exporter {
+	name = "Kuryr-Kubernetes CNI"
+	url  = "http://localhost:9655"
+}
+
+exporter {
+	name = "kube-netc Exporter"
+	url  = "http://localhost:9655"
+}
+
+exporter {
+	name = "Matrix"
+	url  = "http://localhost:9656"
+}
+
+exporter {
+	name = "Krill exporter"
+	url  = "http://localhost:9657"
+}
+
+exporter {
+	name = "SAP Hana SQL Exporter"
+	url  = "http://localhost:9658"
+}
+
+exporter {
+	name = "ECS task metadata exporter"
+	url  = "http://localhost:9659"
+}
+
+exporter {
+	name = "Absent Metrics Operator"
+	url  = "http://localhost:9659"
+}
+
+exporter {
+	name = "Kaiterra Laser Egg Exporter"
+	url  = "http://localhost:9660"
+}
+
+exporter {
+	name = "Hashpipe Exporter"
+	url  = "http://localhost:9661"
+}
+
+exporter {
+	name = "PMS5003 Particulate Matter Sensor Exporter"
+	url  = "http://localhost:9662"
+}
+
+exporter {
+	name = "SAP NWRFC Exporter"
+	url  = "http://localhost:9663"
+}
+
+exporter {
+	name = "Linux HA ClusterLabs exporter"
+	url  = "http://localhost:9664"
+}
+
+exporter {
+	name = "Senderscore Exporter / Juniper Junos Exporter"
+	url  = "http://localhost:9665"
+}
+
+exporter {
+	name = "Alertmanager Silences Exporter"
+	url  = "http://localhost:9666"
+}
+
+exporter {
+	name = "SMTPD Exporter"
+	url  = "http://localhost:9667"
+}
+
+exporter {
+	name = "SUSE's SAP HANA Exporter"
+	url  = "http://localhost:9668"
+}
+
+exporter {
+	name = "panopticon native metrics"
+	url  = "http://localhost:9669"
+}
+
+exporter {
+	name = "flare native metrics"
+	url  = "http://localhost:9670"
+}
+
+exporter {
+	name = "AWS EC2 Spot Exporter"
+	url  = "http://localhost:9671"
+}
+
+exporter {
+	name = "AirControl CO2 Exporter"
+	url  = "http://localhost:9672"
+}
+
+exporter {
+	name = "CO2 Monitor Exporter"
+	url  = "http://localhost:9673"
+}
+
+exporter {
+	name = "Google Analytics Exporter"
+	url  = "http://localhost:9674"
+}
+
+exporter {
+	name = "Docker Swarm Exporter"
+	url  = "http://localhost:9675"
+}
+
+exporter {
+	name = "Hetzner Traffic Exporter"
+	url  = "http://localhost:9676"
+}
+
+exporter {
+	name = "AWS ECS Exporter"
+	url  = "http://localhost:9677"
+}
+
+exporter {
+	name = "IRCd user exporter"
+	url  = "http://localhost:9678"
+}
+
+exporter {
+	name = "AWS Health Exporter "
+	url  = "http://localhost:9679"
+}
+
+exporter {
+	name = "SUSE's SAP Host Exporter"
+	url  = "http://localhost:9680"
+}
+
+exporter {
+	name = "MyFitnessPal Exporter"
+	url  = "http://localhost:9681"
+}
+
+exporter {
+	name = "Powder Monkey"
+	url  = "http://localhost:9682"
+}
+
+exporter {
+	name = "Infiniband Exporter"
+	url  = "http://localhost:9683"
+}
+
+exporter {
+	name = "Kibana Standalone Exporter"
+	url  = "http://localhost:9684"
+}
+
+exporter {
+	name = "Eideticom"
+	url  = "http://localhost:9685"
+}
+
+exporter {
+	name = "AWS EC2 Exporter"
+	url  = "http://localhost:9686"
+}
+
+exporter {
+	name = "Gitaly Blackbox Exporter"
+	url  = "http://localhost:9687"
+}
+
+exporter {
+	name = "BigBlueButton Exporter"
+	url  = "http://localhost:9688"
+}
+
+exporter {
+	name = "LAN Server Modbus Exporter"
+	url  = "http://localhost:9689"
+}
+
+exporter {
+	name = "TCP Longterm Connection Exporter"
+	url  = "http://localhost:9690"
+}
+
+exporter {
+	name = "Celery/Redis Exporter"
+	url  = "http://localhost:9691"
+}
+
+exporter {
+	name = "GCP GCE Exporter"
+	url  = "http://localhost:9692"
+}
+
+exporter {
+	name = "Sigma Air Manager Exporter"
+	url  = "http://localhost:9693"
+}
+
+exporter {
+	name = "Per-User usage Exporter for Cisco XE LNSs"
+	url  = "http://localhost:9694"
+}
+
+exporter {
+	name = "CIFS Exporter"
+	url  = "http://localhost:9695"
+}
+
+exporter {
+	name = "PagerDuty Exporter"
+	url  = "http://localhost:9696"
+}
+
+exporter {
+	name = "Tendermint Blockchain Exporter"
+	url  = "http://localhost:9697"
+}
+
+exporter {
+	name = "Integrated Dell Remote Access Controller (iDRAC) Exporter"
+	url  = "http://localhost:9698"
+}
+
+exporter {
+	name = "Pyncette Exporter"
+	url  = "http://localhost:9699"
+}
+
+exporter {
+	name = "Jitsi Meet Exporter"
+	url  = "http://localhost:9700"
+}
+
+exporter {
+	name = "Workbook exporter"
+	url  = "http://localhost:9701"
+}
+
+exporter {
+	name = "HomePlug PLC exporter"
+	url  = "http://localhost:9702"
+}
+
+exporter {
+	name = "Vircadia"
+	url  = "http://localhost:9703"
+}
+
+exporter {
+	name = "Linux TC exporter"
+	url  = "http://localhost:9704"
+}
+
+exporter {
+	name = "UPC Connect Box Exporter"
+	url  = "http://localhost:9705"
+}
+
+exporter {
+	name = "Postfix exporter"
+	url  = "http://localhost:9706"
+}
+
+exporter {
+	name = "Radarr exporter"
+	url  = "http://localhost:9707"
+}
+
+exporter {
+	name = "Sonarr exporter"
+	url  = "http://localhost:9708"
+}
+
+exporter {
+	name = "float_exporter"
+	url  = "http://localhost:9709"
+}
+
+exporter {
+	name = "Hadoop HDFS FSImage Exporter"
+	url  = "http://localhost:9709"
+}
+
+exporter {
+	name = "fortigate_exporter / nut-exporter"
+	url  = "http://localhost:9710"
+}
+
+exporter {
+	name = "Cloudflare Flan Scan report exporter"
+	url  = "http://localhost:9711"
+}
+
+exporter {
+	name = "Siemens S7 PLC exporter"
+	url  = "http://localhost:9712"
+}
+
+exporter {
+	name = "GlusterFS Exporter"
+	url  = "http://localhost:9713"
+}
+
+exporter {
+	name = "Fritzbox exporter"
+	url  = "http://localhost:9714"
+}
+
+exporter {
+	name = "TwinCAT ADS Web Service exporter"
+	url  = "http://localhost:9715"
+}
+
+exporter {
+	name = "Signald webhook receiver"
+	url  = "http://localhost:9716"
+}
+
+exporter {
+	name = "TPLink EasySmart Switch Exporter"
+	url  = "http://localhost:9717"
+}
+
+exporter {
+	name = "Warp10 Exporter"
+	url  = "http://localhost:9718"
+}
+
+exporter {
+	name = "Pgpool-II Exporter"
+	url  = "http://localhost:9719"
+}
+
+exporter {
+	name = "Moodle DB Exporter"
+	url  = "http://localhost:9720"
+}
+
+exporter {
+	name = "GTP Exporter"
+	url  = "http://localhost:9721"
+}
+
+exporter {
+	name = "Miele Exporter"
+	url  = "http://localhost:9722"
+}
+
+exporter {
+	name = "OpenVPN AAD Authenticator"
+	url  = "http://localhost:9723"
+}
+
+exporter {
+	name = "FreeSWITCH Exporter"
+	url  = "http://localhost:9724"
+}
+
+exporter {
+	name = "sunnyboy_exporter"
+	url  = "http://localhost:9725"
+}
+
+exporter {
+	name = "Python RQ Exporter"
+	url  = "http://localhost:9726"
+}
+
+exporter {
+	name = "CTDB Exporter"
+	url  = "http://localhost:9727"
+}
+
+exporter {
+	name = "NGINX-RTMP Exporter"
+	url  = "http://localhost:9728"
+}
+
+exporter {
+	name = "libvirtd_exporter"
+	url  = "http://localhost:9729"
+}
+
+exporter {
+	name = "lynis_exporter"
+	url  = "http://localhost:9730"
+}
+
+exporter {
+	name = "Nebula Exporter (unified exporter for broadcasters)"
+	url  = "http://localhost:9731"
+}
+
+exporter {
+	name = "nftables_exporter"
+	url  = "http://localhost:9732"
+}
+
+exporter {
+	name = "honeypot_exporter"
+	url  = "http://localhost:9733"
+}
+
+exporter {
+	name = "A10-Networks Prometheus Exporter"
+	url  = "http://localhost:9734"
+}
+
+exporter {
+	name = "WebWeaver"
+	url  = "http://localhost:9735"
+}
+
+exporter {
+	name = "MongoDB Query Exporter"
+	url  = "http://localhost:9736"
+}
+
+exporter {
+	name = "Folding@home Exporter"
+	url  = "http://localhost:9737"
+}
+
+exporter {
+	name = "Processor Counter Monitor Exporter"
+	url  = "http://localhost:9738"
+}
+
+exporter {
+	name = "Kafka Consumer Lag Monitoring"
+	url  = "http://localhost:9739"
+}
+
+exporter {
+	name = "flightdeck"
+	url  = "http://localhost:9740"
+}
+
+exporter {
+	name = "IBM Spectrum Exporter"
+	url  = "http://localhost:9741"
+}
+
+exporter {
+	name = "Nature Remo E series Exporter"
+	url  = "http://localhost:9742"
+}
+
+exporter {
+	name = "transmission-exporter"
+	url  = "http://localhost:9742"
+}
+
+exporter {
+	name = "sma-exporter"
+	url  = "http://localhost:9743"
+}
+
+exporter {
+	name = "NSX-T Exporter"
+	url  = "http://localhost:9744"
+}
+
+exporter {
+	name = "Waveplus Radon Sensor Exporter"
+	url  = "http://localhost:9744"
+}
+
+exporter {
+	name = "Cryptowat Exporter"
+	url  = "http://localhost:9745"
+}
+
+exporter {
+	name = "sma-inverter-exporter"
+	url  = "http://localhost:9756"
+}
+
+exporter {
+	name = "LDAP_exporter.py"
+	url  = "http://localhost:9746"
+}
+
+exporter {
+	name = "supercronic"
+	url  = "http://localhost:9746"
+}
+
+exporter {
+	name = "TED5000 Energy monitor exporter"
+	url  = "http://localhost:9747"
+}
+
+exporter {
+	name = "spectrum_virtualize_exporter"
+	url  = "http://localhost:9747"
+}
+
+exporter {
+	name = "cloudstats_exporter"
+	url  = "http://localhost:9748"
+}
+
+exporter {
+	name = "Maddy Mail Server metrics endpoint"
+	url  = "http://localhost:9749"
+}
+
+exporter {
+	name = "c-lightning prometheus exporter"
+	url  = "http://localhost:9750"
+}
+
+exporter {
+	name = "OpenRCT2 Prometheus Exporter"
+	url  = "http://localhost:9751"
+}
+
+exporter {
+	name = "VMWare VC Exporter"
+	url  = "http://localhost:9752"
+}
+
+exporter {
+	name = "Alertmanager Exporter"
+	url  = "http://localhost:9753"
+}
+
+exporter {
+	name = "Libreswan IPsec Traffic Exporter"
+	url  = "http://localhost:9754"
+}
+
+exporter {
+	name = "OpenWeatherMap Exporter"
+	url  = "http://localhost:9755"
+}
+
+exporter {
+	name = "GitHub API rate limit Exporter"
+	url  = "http://localhost:9756"
+}
+
+exporter {
+	name = "Intel® Optane™ PMCE Exporter (aka. IPMCTL Exporter)"
+	url  = "http://localhost:9757"
+}
+
+exporter {
+	name = "SUSE Saptune exporter"
+	url  = "http://localhost:9758"
+}
+
+exporter {
+	name = "AWS Subnet Exporter"
+	url  = "http://localhost:9759"
+}
+
+exporter {
+	name = "VEEAM AHVProxy Exporter"
+	url  = "http://localhost:9760"
+}
+
+exporter {
+	name = "SML Exporter"
+	url  = "http://localhost:9761"
+}
+
+exporter {
+	name = "Neon Service Standard Exporter"
+	url  = "http://localhost:9762"
+}
+
+exporter {
+	name = "Synology ActiveBackup Exporter"
+	url  = "http://localhost:9763"
+}
+
+exporter {
+	name = "Mercure"
+	url  = "http://localhost:9764"
+}
+
+exporter {
+	name = "SGX exporter"
+	url  = "http://localhost:9765"
+}
+
+exporter {
+	name = "DockerHub Rate-Limit Exporter"
+	url  = "http://localhost:9766"
+}
+
+exporter {
+	name = "FreeBSD RCTL Exporter"
+	url  = "http://localhost:9767"
+}
+
+exporter {
+	name = "DockerHub Ratelimit Exporter"
+	url  = "http://localhost:9768"
+}
+
+exporter {
+	name = "Altaro Backup Exporter"
+	url  = "http://localhost:9769"
+}
+
+exporter {
+	name = "Hilink exporter"
+	url  = "http://localhost:9770"
+}
+
+exporter {
+	name = "Synology Backup Exporter"
+	url  = "http://localhost:9771"
+}
+
+exporter {
+	name = "NJmon Exporter"
+	url  = "http://localhost:9772"
+}
+
+exporter {
+	name = "Philips Hue Exporter"
+	url  = "http://localhost:9773"
+}
+
+exporter {
+	name = "MP707 exporter"
+	url  = "http://localhost:9774"
+}
+
+exporter {
+	name = "GitLab CI Server Exporter"
+	url  = "http://localhost:9775"
+}
+
+exporter {
+	name = "alertmanager-filter"
+	url  = "http://localhost:9776"
+}
+
+exporter {
+	name = "ufiber-exporter"
+	url  = "http://localhost:9777"
+}
+
+exporter {
+	name = "Octopus Energy Exporter"
+	url  = "http://localhost:9778"
+}
+
+exporter {
+	name = "Kubernetes Summary Exporter"
+	url  = "http://localhost:9779"
+}
+
+exporter {
+	name = "Hitron CODA Cable Modem Exporter"
+	url  = "http://localhost:9780"
+}
+
+exporter {
+	name = "TCP traceroute exporter"
+	url  = "http://localhost:9781"
+}
+
+exporter {
+	name = "RabbitMQ cluster operator"
+	url  = "http://localhost:9782"
+}
+
+exporter {
+	name = "ServerTech Exporter"
+	url  = "http://localhost:9783"
+}
+
+exporter {
+	name = "Shelly Exporter"
+	url  = "http://localhost:9784"
+}
+
+exporter {
+	name = "Pathvector"
+	url  = "http://localhost:9785"
+}
+
+exporter {
+	name = "ArvanCloud exporter"
+	url  = "http://localhost:9786"
+}
+
+exporter {
+	name = "fritzbox_exporter"
+	url  = "http://localhost:9787"
+}
+
+exporter {
+	name = "T-Rex NVIDIA GPU Miner Exporter"
+	url  = "http://localhost:9788"
+}
+
+exporter {
+	name = "Lagerist"
+	url  = "http://localhost:9789"
+}
+
+exporter {
+	name = "Sentry Exporter"
+	url  = "http://localhost:9790"
+}
+
+exporter {
+	name = "openhab_exporter"
+	url  = "http://localhost:9791"
+}
+
+exporter {
+	name = "smartrg808ac_exporter"
+	url  = "http://localhost:9792"
+}
+
+exporter {
+	name = "X.509 Certificate Exporter"
+	url  = "http://localhost:9793"
+}
+
+exporter {
+	name = "Lenovo XClarity Exporter"
+	url  = "http://localhost:9794"
+}
+
+exporter {
+	name = "Prometheus Eaton UPS Exporter"
+	url  = "http://localhost:9795"
+}
+
+exporter {
+	name = "alertdog webhook"
+	url  = "http://localhost:9796"
+}
+
+exporter {
+	name = "dmarc-metrics-exporter"
+	url  = "http://localhost:9797"
+}
+
+exporter {
+	name = "slurm-job-exporter"
+	url  = "http://localhost:9798"
+}
+
+exporter {
+	name = "prommsd"
+	url  = "http://localhost:9799"
+}
+
+exporter {
+	name = "Akamai Global Traffic Management Metrics Exporter"
+	url  = "http://localhost:9800"
+}
+
+exporter {
+	name = "Akamai Edge DNS Traffic Exporter"
+	url  = "http://localhost:9801"
+}
+
+exporter {
+	name = "blackbox websocket exporter"
+	url  = "http://localhost:9802"
+}
+
+exporter {
+	name = "site24x7 Exporter"
+	url  = "http://localhost:9803"
+}
+
+exporter {
+	name = "gnmic gNMI CLI Client and Collector"
+	url  = "http://localhost:9804"
+}
+
+exporter {
+	name = "traceroute exporter"
+	url  = "http://localhost:9805"
+}
+
+exporter {
+	name = "mpd exporter"
+	url  = "http://localhost:9806"
+}
+
+exporter {
+	name = "Sunspec Solar Energy Exporter"
+	url  = "http://localhost:9807"
+}
+
+exporter {
+	name = "Celery Exporter"
+	url  = "http://localhost:9808"
+}
+
+exporter {
+	name = "ct-exporter"
+	url  = "http://localhost:9809"
+}
+
+exporter {
+	name = "rtrtr exporter"
+	url  = "http://localhost:9810"
+}
+
+exporter {
+	name = "zrepl internal exporter"
+	url  = "http://localhost:9811"
+}
+
+exporter {
+	name = "FreeRADIUS exporter"
+	url  = "http://localhost:9812"
+}
+
+exporter {
+	name = "IBM MQ Appliance exporter"
+	url  = "http://localhost:9813"
+}
+
+exporter {
+	name = "strongSwan/IPSec/vici Exporter"
+	url  = "http://localhost:9814"
+}
+
+exporter {
+	name = "Asterisk Exporter"
+	url  = "http://localhost:9815"
+}
+
+exporter {
+	name = "openrc-exporter"
+	url  = "http://localhost:9816"
+}
+
+exporter {
+	name = "Starlink Exporter (SpaceX)"
+	url  = "http://localhost:9817"
+}
+
+exporter {
+	name = "Time Exporter"
+	url  = "http://localhost:9818"
+}
+
+exporter {
+	name = "puppet-agent-exporter"
+	url  = "http://localhost:9819"
+}
+
+exporter {
+	name = "Christ Elektronik CLM5IP Exporter"
+	url  = "http://localhost:9820"
+}
+
+exporter {
+	name = "cgroups_exporter"
+	url  = "http://localhost:9821"
+}
+
+exporter {
+	name = "Meraki dashboard data exporter using API"
+	url  = "http://localhost:9822"
+}
+
+exporter {
+	name = "Grafana Alerts Exporter"
+	url  = "http://localhost:9823"
+}
+
+exporter {
+	name = "Chia Node Exporter"
+	url  = "http://localhost:9824"
+}
+
+exporter {
+	name = "Helium miner (validator) exporter"
+	url  = "http://localhost:9825"
+}
+
+exporter {
+	name = "CraftBeerPi exporter"
+	url  = "http://localhost:9826"
+}
+
+exporter {
+	name = "Jenkins node status exporter"
+	url  = "http://localhost:9827"
+}
+
+exporter {
+	name = "4D Server exporter"
+	url  = "http://localhost:9828"
+}
+
+exporter {
+	name = "Helium hotspot exporter"
+	url  = "http://localhost:9829"
+}
+
+exporter {
+	name = "IPTables/NFTables exporter"
+	url  = "http://localhost:9830"
+}
+
+exporter {
+	name = "RctMon - RCT Inverter metrics extractor"
+	url  = "http://localhost:9831"
+}
+
+exporter {
+	name = "P1Exporter - Dutch Electricity Smart Meter Exporter"
+	url  = "http://localhost:9832"
+}
+
+exporter {
+	name = "Graylog Server Exporter"
+	url  = "http://localhost:9833"
+}
+
+exporter {
+	name = "Jarvis Standing Desk Exporter"
+	url  = "http://localhost:9834"
+}
+
+exporter {
+	name = "Nvidia GPU Exporter (utkuozdemir)"
+	url  = "http://localhost:9835"
+}
+
+exporter {
+	name = "JetBrains Floating License Server Exporter"
+	url  = "http://localhost:9836"
+}
+
+exporter {
+	name = "Steam Exporter (A2S_INFO)"
+	url  = "http://localhost:9837"
+}
+
+exporter {
+	name = "Halon exporter"
+	url  = "http://localhost:9838"
+}
+
+exporter {
+	name = "What Active Users Exporter"
+	url  = "http://localhost:9839"
+}
+
+exporter {
+	name = "Kafka Connect exporter"
+	url  = "http://localhost:9840"
+}
+
+exporter {
+	name = "A2S Exporter"
+	url  = "http://localhost:9841"
+}
+
+exporter {
+	name = "Butler SOS (Qlik Sense monitoring tool) Exporter"
+	url  = "http://localhost:9842"
+}
+
+exporter {
+	name = "Butler (Qlik Sense DevOps toolbox) Exporter"
+	url  = "http://localhost:9843"
+}
+
+exporter {
+	name = "Butler CW (Qlik Sense cache warming tool) Exporter"
+	url  = "http://localhost:9843"
+}
+
+exporter {
+	name = "8430FT Exporter"
+	url  = "http://localhost:9844"
+}
+
+exporter {
+	name = "LVM exporter"
+	url  = "http://localhost:9845"
+}
+
+exporter {
+	name = "Cluster Exporter"
+	url  = "http://localhost:9846"
+}
+
+exporter {
+	name = "StayRTR Exporter"
+	url  = "http://localhost:9847"
+}
+
+exporter {
+	name = "Pimoroni Enviro and Enviro+ environmental monitoring sensor exporter"
+	url  = "http://localhost:9848"
+}
+
+exporter {
+	name = "modbusrtu_exporter"
+	url  = "http://localhost:9849"
+}
+
+exporter {
+	name = "Monnit Sensors MQTT Exporter"
+	url  = "http://localhost:9850"
+}
+
+exporter {
+	name = "SCTP Exporter"
+	url  = "http://localhost:9851"
+}
+
+exporter {
+	name = "Starwind vSAN Exporter"
+	url  = "http://localhost:9852"
+}
+
+exporter {
+	name = "JDBC Exporter"
+	url  = "http://localhost:9853"
+}
+
+exporter {
+	name = "pgBackRest Exporter"
+	url  = "http://localhost:9854"
+}
+
+exporter {
+	name = "Prow Exporter"
+	url  = "http://localhost:9855"
+}
+
+exporter {
+	name = "iRODS Exporter"
+	url  = "http://localhost:9856"
+}
+
+exporter {
+	name = "Bobcat Exporter"
+	url  = "http://localhost:9857"
+}
+
+exporter {
+	name = "Sysload Exporter"
+	url  = "http://localhost:9858"
+}
+
+exporter {
+	name = "Tesla Wall Connector Exporter"
+	url  = "http://localhost:9859"
+}
+
+exporter {
+	name = "Noether Exporter"
+	url  = "http://localhost:9860"
+}
+
+exporter {
+	name = "IQair Exporter"
+	url  = "http://localhost:9861"
+}
+
+exporter {
+	name = "sensatronics_exporter"
+	url  = "http://localhost:9862"
+}
+
+exporter {
+	name = "Zulip Exporter"
+	url  = "http://localhost:9863"
+}
+
+exporter {
+	name = "Radio Thermostat Exporter"
+	url  = "http://localhost:9864"
+}
+
+exporter {
+	name = "Alamos FE2 Exporter"
+	url  = "http://localhost:9865"
+}
+
+exporter {
+	name = "rtrmon"
+	url  = "http://localhost:9866"
+}
+
+exporter {
+	name = "nfs-subdir-external-provisioner-exporter"
+	url  = "http://localhost:9867"
+}
+
+exporter {
+	name = "CVMFS exporter"
+	url  = "http://localhost:9868"
+}
+
+exporter {
+	name = "Clash Prometheus Exporter"
+	url  = "http://localhost:9869"
+}
+
+exporter {
+	name = "Siebel Exporter"
+	url  = "http://localhost:9870"
+}
+
+exporter {
+	name = "Tesla Powerwall Exporter"
+	url  = "http://localhost:9871"
+}
+
+exporter {
+	name = "File Exporter"
+	url  = "http://localhost:9872"
+}
+
+exporter {
+	name = "MQ Exporter"
+	url  = "http://localhost:9873"
+}
+
+exporter {
+	name = "Personal Weather Station Exporter"
+	url  = "http://localhost:9874"
+}
+
+exporter {
+	name = "OTRS Exporter"
+	url  = "http://localhost:9875"
+}
+
+exporter {
+	name = "energomera-exporter Energomera's electricity meter exporter"
+	url  = "http://localhost:9876"
+}
+
+exporter {
+	name = "Clash exporter"
+	url  = "http://localhost:9877"
+}
+
+exporter {
+	name = "Prometheus Relay Exporter"
+	url  = "http://localhost:9878"
+}
+
+exporter {
+	name = "Prometheus VMware ESXi exporter"
+	url  = "http://localhost:9879"
+}
+
+exporter {
+	name = "lanstats_exporter"
+	url  = "http://localhost:9880"
+}
+
+exporter {
+	name = "RADIUS exporter"
+	url  = "http://localhost:9881"
+}
+
+exporter {
+	name = "PODMAN exporter"
+	url  = "http://localhost:9882"
+}
+
+exporter {
+	name = "Prometheus HTML exporter"
+	url  = "http://localhost:9883"
+}
+
+exporter {
+	name = "Borg backup exporter"
+	url  = "http://localhost:9884"
+}
+
+exporter {
+	name = "Tesla exporter"
+	url  = "http://localhost:9885"
+}
+
+exporter {
+	name = "RouterOS exporter"
+	url  = "http://localhost:9886"
+}
+
+exporter {
+	name = "Salicru EQX inverter"
+	url  = "http://localhost:9887"
+}
+
+exporter {
+	name = "Volume Exporter"
+	url  = "http://localhost:9888"
+}
+
+exporter {
+	name = "CloudVector MicroSensor Exporter"
+	url  = "http://localhost:9889"
+}
+
+exporter {
+	name = "Weaponry pgSCV"
+	url  = "http://localhost:9890"
+}
+
+exporter {
+	name = "Dell/EMC XtremIO Exporter"
+	url  = "http://localhost:9891"
+}
+
+exporter {
+	name = "Pimoroni Enviro+ Exporter"
+	url  = "http://localhost:9892"
+}
+
+exporter {
+	name = "SONiC Exporter"
+	url  = "http://localhost:9893"
+}
+
+exporter {
+	name = "Opflex-agent Exporter"
+	url  = "http://localhost:9894"
+}
+
+exporter {
+	name = "Opflex-server Exporter"
+	url  = "http://localhost:9895"
+}
+
+exporter {
+	name = "py-air-control Air Quality Exporter"
+	url  = "http://localhost:9896"
+}
+
+exporter {
+	name = "Kubernetes Cloud Cost Exporter"
+	url  = "http://localhost:9897"
+}
+
+exporter {
+	name = "FreeBSD NFS Exporter"
+	url  = "http://localhost:9898"
+}
+
+exporter {
+	name = "Kafka Configs Metrics Exporter"
+	url  = "http://localhost:9899"
+}
+
+exporter {
+	name = "NVMe Exporter"
+	url  = "http://localhost:9900"
+}
+
+exporter {
+	name = "Envoy proxy exporter"
+	url  = "http://localhost:9901"
+}
+
+exporter {
+	name = "Andrews & Arnold line status exporter"
+	url  = "http://localhost:9902"
+}
+
+exporter {
+	name = "strongswan/libreswan IPsec stats exporter"
+	url  = "http://localhost:9903"
+}
+
+exporter {
+	name = "haraka exporter"
+	url  = "http://localhost:9904"
+}
+
+exporter {
+	name = "MongoDB Atlas exporter "
+	url  = "http://localhost:9905"
+}
+
+exporter {
+	name = "ClamAV daemon stats exporter"
+	url  = "http://localhost:9906"
+}
+
+exporter {
+	name = "Postfix stats exporter"
+	url  = "http://localhost:9907"
+}
+
+exporter {
+	name = "BorgBase exporter"
+	url  = "http://localhost:9908"
+}
+
+exporter {
+	name = "Aruba Exporter"
+	url  = "http://localhost:9909"
+}
+
+exporter {
+	name = "NetMeter Exporter"
+	url  = "http://localhost:9909"
+}
+
+exporter {
+	name = "anynode Exporter"
+	url  = "http://localhost:9910"
+}
+
+exporter {
+	name = "Zeek"
+	url  = "http://localhost:9911"
+}
+
+exporter {
+	name = "Azure App Secrets monitor"
+	url  = "http://localhost:9912"
+}
+
+exporter {
+	name = "Nginx VTS Exporter"
+	url  = "http://localhost:9913"
+}
+
+exporter {
+	name = "Chia Exporter"
+	url  = "http://localhost:9914"
+}
+
+exporter {
+	name = "Powerpal Exporter"
+	url  = "http://localhost:9915"
+}
+
+exporter {
+	name = "Dependency-Track Exporter"
+	url  = "http://localhost:9916"
+}
+
+exporter {
+	name = "Suricata Exporter"
+	url  = "http://localhost:9917"
+}
+
+exporter {
+	name = "Shelly Plug Exporter"
+	url  = "http://localhost:9918"
+}
+
+exporter {
+	name = "zedhook"
+	url  = "http://localhost:9919"
+}
+
+exporter {
+	name = "ddwrt-collector"
+	url  = "http://localhost:9920"
+}
+
+exporter {
+	name = "Hasura Exporter"
+	url  = "http://localhost:9921"
+}
+
+exporter {
+	name = "samba_exporter"
+	url  = "http://localhost:9922"
+}
+
+exporter {
+	name = "YOURLS exporter"
+	url  = "http://localhost:9923"
+}
+
+exporter {
+	name = "Systemd Resolved Exporter"
+	url  = "http://localhost:9924"
+}
+
+exporter {
+	name = "Statuspage exporter"
+	url  = "http://localhost:9925"
+}
+
+exporter {
+	name = "Ceph exporter"
+	url  = "http://localhost:9926"
+}
+
+exporter {
+	name = "Nagios exporter"
+	url  = "http://localhost:9927"
+}
+
+exporter {
+	name = "bpftrace exporter"
+	url  = "http://localhost:9928"
+}
+
+exporter {
+	name = "ThirdAI exporter"
+	url  = "http://localhost:9929"
+}
+
+exporter {
+	name = "OpenROADM NETCONF Exporter WIP"
+	url  = "http://localhost:9930"
+}
+
+exporter {
+	name = "VSCode Exporter"
+	url  = "http://localhost:9931"
+}
+
+exporter {
+	name = "Tezos Node Exporter"
+	url  = "http://localhost:9932"
+}
+
+exporter {
+	name = "Patroni Exporter"
+	url  = "http://localhost:9933"
+}
+
+exporter {
+	name = "Zyxel GS1200 Exporter"
+	url  = "http://localhost:9934"
+}
+
+exporter {
+	name = "Onionprobe"
+	url  = "http://localhost:9935"
+}
+
+exporter {
+	name = "LiteSpeed Ingress Controller"
+	url  = "http://localhost:9936"
+}
+
+exporter {
+	name = "Vault Assessment Prometheus Exporter"
+	url  = "http://localhost:9937"
+}
+
+exporter {
+	name = "Hitron CGNV4 exporter"
+	url  = "http://localhost:9938"
+}
+
+exporter {
+	name = "IBM Z CEX Device Plugin Prometheus Exporter"
+	url  = "http://localhost:9939"
+}
+
+exporter {
+	name = "minecraft-prometheus-exporter"
+	url  = "http://localhost:9940"
+}
+
+exporter {
+	name = "huawei-lte-exporter"
+	url  = "http://localhost:9941"
+}
+
+exporter {
+	name = "DRBD exporter"
+	url  = "http://localhost:9942"
+}
+
+exporter {
+	name = "FileStat Exporter"
+	url  = "http://localhost:9943"
+}
+
+exporter {
+	name = "NFSv4 server exporter"
+	url  = "http://localhost:9944"
+}
+
+exporter {
+	name = "jbod - Generic storage enclosure tool"
+	url  = "http://localhost:9945"
+}
+
+exporter {
+	name = "Shelly 3EM Exporter"
+	url  = "http://localhost:9946"
+}
+
+exporter {
+	name = "Emporia Smart Devices Exporter"
+	url  = "http://localhost:9947"
+}
+
+exporter {
+	name = "nextdns-exporter"
+	url  = "http://localhost:9948"
+}
+
+exporter {
+	name = "TACACS Exporter"
+	url  = "http://localhost:9949"
+}
+
+exporter {
+	name = "Raritan PDU Exporter"
+	url  = "http://localhost:9950"
+}
+
+exporter {
+	name = "PVE Node Discovery"
+	url  = "http://localhost:9951"
+}
+
+exporter {
+	name = "Chia Price Exporter"
+	url  = "http://localhost:9952"
+}
+
+exporter {
+	name = "Spacelift Exporter"
+	url  = "http://localhost:9953"
+}
+
+exporter {
+	name = "CMON Exporter"
+	url  = "http://localhost:9954"
+}
+
+exporter {
+	name = "Cloudkeeper metrics exporter"
+	url  = "http://localhost:9955"
+}
+
+exporter {
+	name = "Cloudkeeper worker exporter"
+	url  = "http://localhost:9956"
+}
+
+exporter {
+	name = "Solar logging stick exporter"
+	url  = "http://localhost:9957"
+}
+
+exporter {
+	name = "HDSentinel Exporter"
+	url  = "http://localhost:9958"
+}
+
+exporter {
+	name = "Authelia"
+	url  = "http://localhost:9959"
+}
+
+exporter {
+	name = "Solanteq SOLAR"
+	url  = "http://localhost:9960"
+}
+
+exporter {
+	name = "Speedify Exporter"
+	url  = "http://localhost:9961"
+}
+
+exporter {
+	name = "Cilium Agent"
+	url  = "http://localhost:9962"
+}
+
+exporter {
+	name = "Cilium Operator"
+	url  = "http://localhost:9963"
+}
+
+exporter {
+	name = "Cilium Proxy"
+	url  = "http://localhost:9964"
+}
+
+exporter {
+	name = "Hubble"
+	url  = "http://localhost:9965"
+}
+
+exporter {
+	name = "OpenVAS exporter"
+	url  = "http://localhost:9966"
+}
+
+exporter {
+	name = "clamscan-exporter"
+	url  = "http://localhost:9967"
+}
+
+exporter {
+	name = "vertica-prometheus-exporter"
+	url  = "http://localhost:9968"
+}
+
+exporter {
+	name = "poudriere exporter"
+	url  = "http://localhost:9969"
+}
+
+exporter {
+	name = "UnifiedMetrics"
+	url  = "http://localhost:9970"
+}
+
+exporter {
+	name = "AMD SMI Exporter"
+	url  = "http://localhost:9971"
+}
+
+exporter {
+	name = "SRS"
+	url  = "http://localhost:9972"
+}
+
+exporter {
+	name = "Excel Exporter"
+	url  = "http://localhost:9973"
+}
+
+exporter {
+	name = "Meilisearch Exporter"
+	url  = "http://localhost:9974"
+}
+
+exporter {
+	name = "iowatcher-ng Exporter"
+	url  = "http://localhost:9975"
+}
+
+exporter {
+	name = "Apple Time Machine Exporter"
+	url  = "http://localhost:9976"
+}
+
+exporter {
+	name = "VMware vROps exporter"
+	url  = "http://localhost:9977"
+}
+
+exporter {
+	name = "gpsd exporter"
+	url  = "http://localhost:9978"
+}
+
+exporter {
+	name = "sfptpd exporter"
+	url  = "http://localhost:9979"
+}
+
+exporter {
+	name = "ElastAlert 2"
+	url  = "http://localhost:9979"
+}
+
+exporter {
+	name = "Login Exporter"
+	url  = "http://localhost:9980"
+}
+
+exporter {
+	name = "TP-Link P110 Exporter"
+	url  = "http://localhost:9981"
+}
+
+exporter {
+	name = "Traefik"
+	url  = "http://localhost:9982"
+}
+
+exporter {
+	name = "Sia Exporter"
+	url  = "http://localhost:9983"
+}
+
+exporter {
+	name = "CouchDB exporter"
+	url  = "http://localhost:9984"
+}
+
+exporter {
+	name = "BungeeCord Prometheus Exporter"
+	url  = "http://localhost:9985"
+}
+
+exporter {
+	name = "EOS exporter"
+	url  = "http://localhost:9986"
+}
+
+exporter {
+	name = "NetApp Solidfire Exporter"
+	url  = "http://localhost:9987"
+}
+
+exporter {
+	name = "Ping Identity Exporter"
+	url  = "http://localhost:9988"
+}
+
+exporter {
+	name = "Google Cloud Status Dashboard exporter"
+	url  = "http://localhost:9989"
+}
+
+exporter {
+	name = "Wildfly Exporter"
+	url  = "http://localhost:9990"
+}
+
+exporter {
+	name = "AuthLog Exporter"
+	url  = "http://localhost:9991"
+}
+
+exporter {
+	name = "Homeworks Exporter"
+	url  = "http://localhost:9992"
+}
+
+exporter {
+	name = "Sense Energy exporter"
+	url  = "http://localhost:9993"
+}
+
+exporter {
+	name = "Checkpoint exporter"
+	url  = "http://localhost:9994"
+}
+
+exporter {
+	name = "Disk usage exporter / NUT exporter"
+	url  = "http://localhost:9995"
+}
+
+exporter {
+	name = "NVML exporter"
+	url  = "http://localhost:9996"
+}
+
+exporter {
+	name = "sockstat exporter"
+	url  = "http://localhost:9997"
+}
+
+exporter {
+	name = "ARM HWCPipe Exporter"
+	url  = "http://localhost:9998"
+}
+
+exporter {
+	name = "Exporter exporter"
+	url  = "http://localhost:9999"
+}
+
+exporter {
+	name = "Solis Exporter"
+	url  = "http://localhost:3105"
+}
+
+exporter {
+	name = "mtail"
+	url  = "http://localhost:3903"
+}
+
+exporter {
+	name = "prometheus-nginxlog-exporter"
+	url  = "http://localhost:4040"
+}
+
+exporter {
+	name = "prometheus-jdbc-exporter"
+	url  = "http://localhost:5555"
+}
+
+exporter {
+	name = "Crowdsec Exporter"
+	url  = "http://localhost:6060"
+}
+
+exporter {
+	name = "MidoNet agent"
+	url  = "http://localhost:7300"
+}
+
+exporter {
+	name = "CS:GO Exporter"
+	url  = "http://localhost:7355"
+}
+
+exporter {
+	name = "cAdvisor (Container Advisor) / Traefik"
+	url  = "http://localhost:8080"
+}
+
+exporter {
+	name = "trickster"
+	url  = "http://localhost:8082"
+}
+
+exporter {
+	name = "Fawkes"
+	url  = "http://localhost:8088"
+}
+
+exporter {
+	name = "prom2teams"
+	url  = "http://localhost:8089"
+}
+
+exporter {
+	name = "Phabricator webhook for Alertmanager"
+	url  = "http://localhost:8292"
+}
+
+exporter {
+	name = "HA Proxy (v2+)"
+	url  = "http://localhost:8404"
+}
+
+exporter {
+	name = "freeRouter exporter"
+	url  = "http://localhost:9001"
+}
+
+exporter {
+	name = "rds_exporter"
+	url  = "http://localhost:9042"
+}
+
+exporter {
+	name = "Telegram bot for Alertmanager"
+	url  = "http://localhost:9087"
+}
+
+exporter {
+	name = "JIRAlert"
+	url  = "http://localhost:9097"
+}
+
+exporter {
+	name = "SNMP Trapper"
+	url  = "http://localhost:9099"
+}
+
+exporter {
+	name = "rabbitmq_prometheus"
+	url  = "http://localhost:15692"
+}
+
+exporter {
+	name = "silverpeak-prometheus"
+	url  = "http://localhost:15693"
+}
+
+exporter {
+	name = "Storidge exporter"
+	url  = "http://localhost:16995"
+}
+
+exporter {
+	name = "qBittorrent Exporter"
+	url  = "http://localhost:17871"
+}
+
+exporter {
+	name = "Transmission Exporter"
+	url  = "http://localhost:19091"
+}
+
+exporter {
+	name = "Netdata"
+	url  = "http://localhost:19999"
+}
+
+exporter {
+	name = "Fluent Plugin for Prometheus"
+	url  = "http://localhost:24231"
+}
+
+exporter {
+	name = "Nagios Check Exporter"
+	url  = "http://localhost:28272"
+}
+
+exporter {
+	name = "Simple Transmission Exporter"
+	url  = "http://localhost:29091"
+}
+
+exporter {
+	name = "Homebridge Prometheus Exporter"
+	url  = "http://localhost:36123"
+}
+
+exporter {
+	name = "Prometheus Weathermen"
+	url  = "http://localhost:36333"
+}
+
+exporter {
+	name = "ProxySQL exporter"
+	url  = "http://localhost:42004"
+}
+
+exporter {
+	name = "Performance Co-Pilot exporter"
+	url  = "http://localhost:44322"
+}
+
+exporter {
+	name = "PCP exporter"
+	url  = "http://localhost:44323"
+}
+
+exporter {
+	name = "DCOS exporter"
+	url  = "http://localhost:61091"
+}
