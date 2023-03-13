@@ -2491,6 +2491,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokena
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension v0.61.0/go.mod h1:AlW4Z/pvtLqP0PtLzuh1I5ifJXEsSWTTj0g194BEsQA=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension v0.61.0 h1:JMkOySvXivup4MNLB8FhdxmloQlJoxEm4FqUI+fk0Tg=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension v0.61.0/go.mod h1:+Yjsoz9iiXiPPChQnGCW710kkrMNwApF6s3AwIFVby0=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/jaegerremotesampling v0.63.0 h1:xfuIabNRaB7RGh4C9SeKgn4j5ciUTsKwB5XZPltDeUM=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/jaegerremotesampling v0.63.0/go.mod h1:MvzPhWs5AFwVJ9iUtcwUs2cjeHiGkvegUQUKvEZRiHA=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension v0.63.0 h1:rF8UuIGWZMi0LugBGrPzQCpQiwi96AA0xY5beCEskVA=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension v0.63.0/go.mod h1:cKToSzuvHNDTPH94Y24z3LsNP/f9adbzobUOpfAJ4CI=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage v0.63.0 h1:/VP8ntb3Kjx2v2+vmrZTNAAnJOwCIfHpcPaFem3+NCY=
