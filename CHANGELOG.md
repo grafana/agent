@@ -26,6 +26,7 @@ Main (unreleased)
   - `prometheus.exporter.mysql` collects metrics from a MySQL database.
     (@spartan0x117)
   - `prometheus.exporter.postgres` collects metrics from a PostgreSQL database. (@spartan0x117)
+  - `otelcol.extension.jaegerremotesampling` provides an endpoint from which to pull Jaeger remote sampling documents. (@joe-elliott)
 
 ### Enhancements
 
