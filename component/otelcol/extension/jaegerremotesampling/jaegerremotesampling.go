@@ -28,16 +28,16 @@ func init() {
 // Arguments configures the otelcol.auth.basic component.
 type Arguments struct {
 	// https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/extension/jaegerremotesampling/config.go#L42
-	GRPC otelcol.GRPCServerArguments `river:"grpc,block,optional"`
-	HTTP otelcol.HTTPServerArguments `river:"http,block,optional"`
+	GRPC *otelcol.GRPCServerArguments `river:"grpc,block,optional"`
+	HTTP *otelcol.HTTPServerArguments `river:"http,block,optional"`
 
 	Source ArgumentsSource `river:"source,block"`
 }
 
 type ArgumentsSource struct {
-	Remote         otelcol.GRPCClientArguments `river:"remote,block,optional"`
-	File           string                      `river:"file,attr,optional"`
-	ReloadInterval time.Duration               `river:"reload_interval,attr,optional"`
+	Remote         *otelcol.GRPCClientArguments `river:"remote,block,optional"`
+	File           string                       `river:"file,attr,optional"`
+	ReloadInterval time.Duration                `river:"reload_interval,attr,optional"`
 }
 
 var _ extension.Arguments = Arguments{}
