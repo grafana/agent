@@ -156,12 +156,6 @@ Full reference of options:
   # Whether to include system metrics like e.g. redis_total_system_memory_bytes.
   [incl_system_metrics: <bool>]
 
-  # Whether to include all redis config settings as metrics.
-  [incl_config_metrics: <bool>]
-
-  # Whether to redact redis config settings that include potentially sensitive information like passwords.
-  [redact_config_metrics: <bool> | default = true]
-
   # Whether to to skip TLS verification.
   [skip_tls_verification: <bool>]
 ```

@@ -27,7 +27,6 @@ var DefaultConfig = Config{
 	SetClientName:           true,
 	CheckKeyGroupsBatchSize: 10000,
 	MaxDistinctKeyGroups:    100,
-	RedactConfigMetrics:     true,
 }
 
 // Config controls the redis_exporter integration.
@@ -66,8 +65,6 @@ type Config struct {
 	RedisMetricsOnly        bool               `yaml:"redis_metrics_only,omitempty"`
 	PingOnConnect           bool               `yaml:"ping_on_connect,omitempty"`
 	InclSystemMetrics       bool               `yaml:"incl_system_metrics,omitempty"`
-	InclConfigMetrics       bool               `yaml:"incl_config_metrics,omitempty"`
-	RedactConfigMetrics     bool               `yaml:"redact_config_metrics,omitempty"`
 	SkipTLSVerification     bool               `yaml:"skip_tls_verification,omitempty"`
 }
 
@@ -88,8 +85,8 @@ func (c Config) GetExporterOptions() re.Options {
 		CheckSingleStreams:    c.CheckSingleStreams,
 		CountKeys:             c.CountKeys,
 		InclSystemMetrics:     c.InclSystemMetrics,
-		InclConfigMetrics:     c.InclConfigMetrics,
-		RedactConfigMetrics:   c.RedactConfigMetrics,
+		InclConfigMetrics:     false,
+		RedactConfigMetrics:   true,
 		SkipTLSVerification:   c.SkipTLSVerification,
 		SetClientName:         c.SetClientName,
 		IsTile38:              c.IsTile38,

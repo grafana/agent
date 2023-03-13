@@ -37,7 +37,6 @@ var DefaultConfig = Config{
 	SetClientName:           true,
 	CheckKeyGroupsBatchSize: 10000,
 	MaxDistinctKeyGroups:    100,
-	RedactConfigMetrics:     true,
 }
 
 type Config struct {
@@ -76,8 +75,6 @@ type Config struct {
 	RedisMetricsOnly        bool              `river:"redis_metrics_only,attr,optional"`
 	PingOnConnect           bool              `river:"ping_on_connect,attr,optional"`
 	InclSystemMetrics       bool              `river:"incl_system_metrics,attr,optional"`
-	InclConfigMetrics       bool              `river:"incl_config_metrics,attr,optional"`
-	RedactConfigMetrics     bool              `river:"redact_config_metrics,attr,optional"`
 	SkipTLSVerification     bool              `river:"skip_tls_verification,attr,optional"`
 }
 
@@ -137,8 +134,6 @@ func (c *Config) Convert() *redis_exporter.Config {
 		RedisMetricsOnly:        c.RedisMetricsOnly,
 		PingOnConnect:           c.PingOnConnect,
 		InclSystemMetrics:       c.InclSystemMetrics,
-		InclConfigMetrics:       c.InclConfigMetrics,
-		RedactConfigMetrics:     c.RedactConfigMetrics,
 		SkipTLSVerification:     c.SkipTLSVerification,
 	}
 }

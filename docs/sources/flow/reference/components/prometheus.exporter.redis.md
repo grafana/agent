@@ -55,8 +55,6 @@ Name | Type | Description | Default | Required
 `redis_metrics_only`          | `bool`         | Whether to just export metrics or to also export go runtime metrics. | | no
 `ping_on_connect`             | `bool`         | Whether to ping the Redis instance after connecting. | | no
 `incl_system_metrics`         | `bool`         | Whether to include system metrics (e.g. `redis_total_system_memory_bytes`). | | no
-`incl_config_metrics`         | `bool`         | Whether to include Redis config values in metrics. | | no
-`redact_config_metrics`       | `bool`         | Whether to redact sensitive elements from Redis config metrics, if `incl_config_metrics` is set. | `true` | no
 `skip_tls_verification`       | `bool`         | Whether to to skip TLS verification. | | no
 
 If `redis_password_file` is defined, it will take precedence over `redis_password`.

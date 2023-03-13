@@ -37,8 +37,6 @@ func TestRiverUnmarshal(t *testing.T) {
 		ping_on_connect             = true
 		incl_system_metrics         = true
 		skip_tls_verification       = false
-		incl_config_metrics         = true
-		redact_config_metrics       = false
 		is_cluster                  = true
 	`
 	var cfg Config
@@ -77,8 +75,6 @@ func TestRiverUnmarshal(t *testing.T) {
 		PingOnConnect:       true,
 		InclSystemMetrics:   true,
 		SkipTLSVerification: false,
-		InclConfigMetrics:   true,
-		RedactConfigMetrics: false,
 		IsCluster:           true,
 	}
 	require.Equal(t, expected, cfg)
