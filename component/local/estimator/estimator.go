@@ -2,13 +2,9 @@ package estimator
 
 import (
 	"context"
-	"path/filepath"
-
-	"github.com/go-kit/log"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus"
-	"github.com/grafana/agent/pkg/metrics/wal"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/storage"
 )
@@ -42,21 +38,13 @@ type Exports struct {
 }
 
 func New(o component.Options, args Arguments) (*Component, error) {
-	// Largely gratuitously copy/pasted from prometheus.remote_write
-	var walLogger log.Logger = log.With(o.Logger, "subcomponent", "wal")
-	dataPath := filepath.Join(o.DataPath, "wal", o.ID)
-	walStorage, err := wal.NewStorage(walLogger, o.Registerer, dataPath)
-	if err != nil {
-		return nil, err
-	}
-
 	c := &Component{
 		opts:         o,
 		activeSeries: make(map[storage.SeriesRef]map[uint64]struct{}),
 	}
 
 	interceptor := prometheus.NewInterceptor(
-		walStorage,
+		nil,
 		prometheus.WithAppendHook(func(globalRef storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
 
 			// TODO: Is `prometheus.GlobalRefMapping` required here?
@@ -74,6 +62,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	)
 
 	c.metricsReceiver = interceptor
+	o.OnStateChange(Exports{metricsReceiver: c.metricsReceiver})
 
 	return c, nil
 }
