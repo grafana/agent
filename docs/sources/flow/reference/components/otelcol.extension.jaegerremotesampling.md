@@ -258,12 +258,15 @@ configuration.
 ## Example
 
 This example configures the Jaeger remote sampling extension to load a local json document and
-serve it over http port 5778.
+serve it over http port 5778. It also disables the default GRPC server hosting the sampling document.
 
 ```river
 otelcol.extension.jaegerremotesampling "example" {
   http {
     endpoint = "0.0.0.0:5778"
+  }
+  grpc {
+    endpoint = ""
   }
   source {
     file             = "/path/to/jaeger-sampling.json"
