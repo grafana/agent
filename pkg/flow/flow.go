@@ -116,10 +116,9 @@ type Options struct {
 
 // Flow is the Flow system.
 type Flow struct {
-	log     *logging.Logger
-	tracer  *tracing.Tracer
-	opts    Options
-	context context.Context
+	log    *logging.Logger
+	tracer *tracing.Tracer
+	opts   Options
 
 	updateQueue *controller.Queue
 	sched       *controller.Scheduler
@@ -136,8 +135,6 @@ type Flow struct {
 // New creates and starts a new Flow controller. Call Close to stop
 // the controller.
 func New(o Options) *Flow {
-	ctx, cancel := context.WithCancel(context.Background())
-
 	var (
 		log    = o.Logger
 		tracer = o.Tracer
@@ -179,16 +176,14 @@ func New(o Options) *Flow {
 	)
 
 	return &Flow{
-		log:     log,
-		tracer:  tracer,
-		opts:    o,
-		context: ctx,
+		log:    log,
+		tracer: tracer,
+		opts:   o,
 
 		updateQueue: queue,
 		sched:       sched,
 		loader:      loader,
 
-		cancel:       cancel,
 		exited:       make(chan struct{}, 1),
 		loadFinished: make(chan struct{}, 1),
 	}
@@ -196,15 +191,16 @@ func New(o Options) *Flow {
 
 // Starts flow controller as a go routine
 func (c *Flow) Run() {
-	go c.run(c.context)
+	go c.run()
 }
 
-func (c *Flow) run(ctx context.Context) {
+func (c *Flow) run() {
 	defer close(c.exited)
 	defer level.Debug(c.log).Log("msg", "flow controller exiting")
 
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
+	var ctx context.Context
+	ctx, c.cancel = context.WithCancel(context.Background())
+	defer c.cancel()
 
 	for {
 		select {
