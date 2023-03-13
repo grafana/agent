@@ -16,11 +16,12 @@ import (
 
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
+	config_util "github.com/prometheus/common/config"
 )
 
 // DefaultConfig is the default config for the oracledb v2 integration
 var DefaultConfig = Config{
-	ConnectionString:     os.Getenv("DATA_SOURCE_NAME"),
+	ConnectionString:     config_util.Secret(os.Getenv("DATA_SOURCE_NAME")),
 	MaxOpenConns:         10,
 	MaxIdleConns:         0,
 	QueryTimeout:         5,
@@ -34,11 +35,11 @@ var (
 
 // Config is the configuration for the oracledb v2 integration
 type Config struct {
-	ConnectionString     string        `yaml:"connection_string"`
-	MaxIdleConns         int           `yaml:"max_idle_connections"`
-	MaxOpenConns         int           `yaml:"max_open_connections"`
-	MetricScrapeInterval time.Duration `yaml:"metric_scrape_interval"`
-	QueryTimeout         int           `yaml:"query_timeout"`
+	ConnectionString     config_util.Secret `yaml:"connection_string"`
+	MaxIdleConns         int                `yaml:"max_idle_connections"`
+	MaxOpenConns         int                `yaml:"max_open_connections"`
+	MetricScrapeInterval time.Duration      `yaml:"metric_scrape_interval"`
+	QueryTimeout         int                `yaml:"query_timeout"`
 }
 
 // ValidateConnString attempts to ensure the connection string supplied is valid
@@ -78,7 +79,7 @@ func (c *Config) Name() string {
 
 // InstanceKey returns the addr of the oracle instance.
 func (c *Config) InstanceKey(agentKey string) (string, error) {
-	u, err := url.Parse(c.ConnectionString)
+	u, err := url.Parse(string(c.ConnectionString))
 	if err != nil {
 		return "", err
 	}
@@ -98,12 +99,12 @@ func init() {
 // New creates a new oracledb integration. The integration scrapes metrics
 // from an OracleDB exporter running with the https://github.com/iamseth/oracledb_exporter
 func New(logger log.Logger, c *Config) (integrations.Integration, error) {
-	if err := validateConnString(c.ConnectionString); err != nil {
+	if err := validateConnString(string(c.ConnectionString)); err != nil {
 		return nil, fmt.Errorf("invalid connection string: %w", err)
 	}
 
 	oeExporter, err := oe.NewExporter(logger, &oe.Config{
-		DSN:          c.ConnectionString,
+		DSN:          string(c.ConnectionString),
 		MaxIdleConns: c.MaxIdleConns,
 		MaxOpenConns: c.MaxOpenConns,
 		// no custom metrics file for this integration

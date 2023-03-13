@@ -72,6 +72,13 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
               </Link>
             </li>
           )}
+          {props.component.moduleInfo && (
+            <li>
+              <Link to="#module" target="_top">
+                Module components
+              </Link>
+            </li>
+          )}
         </ul>
       </nav>
 
@@ -113,7 +120,7 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
           <section id="dependencies">
             <h2>Dependencies</h2>
             <div className={styles.sectionContent}>
-              <ComponentList components={referencesTo} />
+              <ComponentList components={referencesTo} parent={props.component.parent} />
             </div>
           </section>
         )}
@@ -122,7 +129,16 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
           <section id="dependants">
             <h2>Dependants</h2>
             <div className={styles.sectionContent}>
-              <ComponentList components={referencedBy} />
+              <ComponentList components={referencedBy} parent={props.component.parent} />
+            </div>
+          </section>
+        )}
+
+        {props.component.moduleInfo && (
+          <section id="module">
+            <h2>Module components</h2>
+            <div className={styles.sectionContent}>
+              <ComponentList components={props.component.moduleInfo} parent={props.component.id} />
             </div>
           </section>
         )}

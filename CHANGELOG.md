@@ -25,6 +25,7 @@ Main (unreleased)
     (@marctc).
   - `prometheus.exporter.mysql` collects metrics from a MySQL database.
     (@spartan0x117)
+  - `prometheus.exporter.postgres` collects metrics from a PostgreSQL database. (@spartan0x117)
 
 ### Enhancements
 
@@ -32,10 +33,29 @@ Main (unreleased)
 
 - Update Redis Exporter Dependency to v1.48.0. (@spartan0x117)
 
+### Bugfixes
+
+- Flow: fix issue where Flow would return an error when trying to access a key
+  of a map whose value was the zero value (`null`, `0`, `false`, `[]`, `{}`).
+  Whether an error was returned dependend on the internal type of the value.
+  (@rfratto)
+
+- Flow: fix issue where using the `jaeger_remote` sampler for the `tracing`
+  block would fail to parse the response from the remote sampler server if it
+  used strings for the strategy type. This caused sampling to fall back
+  to the default rate. (@rfratto)
+
 ### Other changes
 
 - Grafana Agent Docker containers and release binaries are now published for
   s390x. (@rfratto)
+
+- Use Go 1.20.2 for builds. (@rfratto)
+
+- Bring back the Flow UI for 32-bit ARMv6 builds. (@rfratto)
+
+- Change the Docker base image for Linux containers to `ubuntu:kinetic`.
+  (@rfratto)
 
 v0.32.1 (2023-03-06)
 --------------------

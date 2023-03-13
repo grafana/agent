@@ -339,6 +339,25 @@ func tryCapsuleConvert(from Value, into reflect.Value, intoType Type) (ok bool, 
 		}
 	}
 
+	// Last attempt: allow converting two capsules if the Go types are compatible
+	// and the into kind is an interface.
+	//
+	// TODO(rfratto): we may consider expanding this to allowing conversion to
+	// any compatible Go type in the future (not just interfaces).
+	if from.Type() == TypeCapsule && intoType == TypeCapsule && into.Kind() == reflect.Interface {
+		// We try to convert a pointer to from first to avoid making unnecessary
+		// copies.
+		if from.Reflect().CanAddr() && from.Reflect().Addr().CanConvert(into.Type()) {
+			val := from.Reflect().Addr().Convert(into.Type())
+			into.Set(val)
+			return true, nil
+		} else if from.Reflect().CanConvert(into.Type()) {
+			val := from.Reflect().Convert(into.Type())
+			into.Set(val)
+			return true, nil
+		}
+	}
+
 	return false, nil
 }
 
