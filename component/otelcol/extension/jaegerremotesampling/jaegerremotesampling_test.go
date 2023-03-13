@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Test performs a basic integration test which runs the otelcol.auth.basic jpe
+// Test performs a basic integration test which runs the otelcol.extension.jaegerremotesampling
 // component and ensures that it can be used for authentication.
 func Test(t *testing.T) {
 	// write remote sampling config to a temp file
@@ -58,10 +58,13 @@ func Test(t *testing.T) {
 	    http {
 			endpoint = "%s"
 	    }
+		grpc {
+			endpoint = "%s"
+		}
 		source {
 			file = "%s"
 		}
-	`, listenAddr, remoteSamplingConfigFile)
+	`, listenAddr, getFreeAddr(t), remoteSamplingConfigFile)
 	var args jaegerremotesampling.Arguments
 	require.NoError(t, river.Unmarshal([]byte(cfg), &args))
 
@@ -70,9 +73,11 @@ func Test(t *testing.T) {
 		require.NoError(t, err)
 	}()
 
-	require.NoError(t, ctrl.WaitRunning(time.Second), "component never started") // jpe why don't these fail?
+	require.NoError(t, ctrl.WaitRunning(time.Second), "component never started")
 	require.NoError(t, ctrl.WaitExports(time.Second), "component never exported anything")
-	time.Sleep(1 * time.Second) // jpe we need to make the above work
+	// the wrapped jaeger remote sampler starts its http server async: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/extension/jaegerremotesampling/v0.63.0/extension/jaegerremotesampling/internal/http.go#L85
+	// and reports errors back through ReportFatalError. Since we can't wait on this server directly just pause for a bit here while it starts up
+	time.Sleep(time.Second)
 
 	// Get the authentication extension from our component and use it to make a
 	// request to our test server.
@@ -81,7 +86,7 @@ func Test(t *testing.T) {
 
 	// request the remote sampling config above
 	require.NoError(t, err)
-	resp, err := http.Get("http://" + listenAddr + "?service=foo")
+	resp, err := http.Get("http://" + listenAddr + "/sampling?service=foo")
 	require.NoError(t, err, "HTTP request failed")
 	defer resp.Body.Close()
 
