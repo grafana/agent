@@ -125,7 +125,6 @@ type Flow struct {
 	loader      *controller.Loader
 
 	cancel       context.CancelFunc
-	exited       chan struct{}
 	loadFinished chan struct{}
 
 	loadMut    sync.RWMutex
@@ -184,23 +183,15 @@ func New(o Options) *Flow {
 		sched:       sched,
 		loader:      loader,
 
-		exited:       make(chan struct{}, 1),
 		loadFinished: make(chan struct{}, 1),
 	}
 }
 
-// Starts flow controller as a go routine
-func (c *Flow) Run() {
-	go c.run()
-}
-
-func (c *Flow) run() {
-	defer close(c.exited)
+// Run starts the Flow controller, blocking until the provided context is
+// canceled. Run must only be called once.
+func (c *Flow) Run(ctx context.Context) {
+	defer c.sched.Close()
 	defer level.Debug(c.log).Log("msg", "flow controller exiting")
-
-	var ctx context.Context
-	ctx, c.cancel = context.WithCancel(context.Background())
-	defer c.cancel()
 
 	for {
 		select {
@@ -305,13 +296,6 @@ func (c *Flow) ComponentInfos() []*ComponentInfo {
 		infos[i] = nn
 	}
 	return infos
-}
-
-// Close closes the controller and all running components.
-func (c *Flow) Close() error {
-	c.cancel()
-	<-c.exited
-	return c.sched.Close()
 }
 
 func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *ComponentInfo {

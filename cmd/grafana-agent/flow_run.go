@@ -145,7 +145,6 @@ func (fr *flowRun) Run(configFile string) error {
 		HTTPPathPrefix: "/api/v0/component/",
 		HTTPListenAddr: fr.httpListenAddr,
 	})
-	f.Run()
 
 	reload := func() error {
 		flowCfg, err := loadFlowFile(configFile)
@@ -159,6 +158,15 @@ func (fr *flowRun) Run(configFile string) error {
 		}
 
 		return nil
+	}
+
+	// Flow controller
+	{
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			f.Run(ctx)
+		}()
 	}
 
 	// HTTP server
@@ -267,7 +275,7 @@ func (fr *flowRun) Run(configFile string) error {
 	for {
 		select {
 		case <-ctx.Done():
-			return f.Close()
+			return nil
 		case <-reloadSignal:
 			if err := reload(); err != nil {
 				level.Error(l).Log("msg", "failed to reload config", "err", err)

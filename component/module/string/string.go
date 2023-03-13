@@ -102,10 +102,8 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
-	c.ctrl.Run()
-
-	<-ctx.Done()
-	return c.ctrl.Close()
+	c.ctrl.Run(ctx)
+	return nil
 }
 
 func (c *Component) updateHealth(err error) {
