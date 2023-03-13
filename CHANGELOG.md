@@ -30,6 +30,7 @@ Main (unreleased)
 ### Enhancements
 
 - Flow: Add retries with backoff logic to Phlare write component. (@cyriltovena)
+- Operator: Allow setting runtimeClassName on operator-created pods. (@captncraig)
 
 ### Bugfixes
 
