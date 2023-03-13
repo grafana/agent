@@ -13,8 +13,11 @@ import (
 type Controller struct {
 	sink *Sink
 
-	mut sync.RWMutex
-	l   log.Logger
+	parentComponentID string
+
+	mut  sync.RWMutex
+	orig log.Logger // Original logger before the component name was added.
+	log  log.Logger // Logger with component name injected.
 }
 
 // NewControllerLogger creates a controller logger from the provided logging
@@ -27,7 +30,28 @@ func NewControllerLogger(sink *Sink) *Controller {
 
 	return &Controller{
 		sink: sink,
-		l:    sink.l,
+
+		orig: sink.l,
+		log:  wrapWithComponentID(sink.l, sink.parentComponentID, ""),
+	}
+}
+
+func wrapWithComponentID(l log.Logger, parentID, componentID string) log.Logger {
+	id := fullID(parentID, componentID)
+	if id == "" {
+		return l
+	}
+	return log.With(l, "component", id)
+}
+
+func fullID(parentID, componentID string) string {
+	switch {
+	case componentID == "":
+		return parentID
+	case parentID == "":
+		return componentID
+	default:
+		return parentID + "/" + componentID
 	}
 }
 
@@ -35,7 +59,7 @@ func NewControllerLogger(sink *Sink) *Controller {
 func (c *Controller) Log(kvps ...interface{}) error {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
-	return c.l.Log(kvps...)
+	return c.log.Log(kvps...)
 }
 
 // Update reconfigures the options used for the Logger. Update may only be
@@ -50,8 +74,14 @@ func (c *Controller) Update(o SinkOptions) error {
 		return err
 	}
 
+	l := newLogger
+	if c.sink.parentComponentID != "" {
+		l = log.With(l, "component", c.sink.parentComponentID)
+	}
+
 	c.mut.Lock()
 	defer c.mut.Unlock()
-	c.l = newLogger
+	c.orig = newLogger
+	c.log = l
 	return nil
 }

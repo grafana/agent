@@ -9,6 +9,8 @@ import (
 // Component is a logger passed to Grafana Agent Flow components. It implements
 // the [log.Logger] interface.
 type Component struct {
+	componentID string
+
 	orig log.Logger // Original logger before the component name was added.
 	log  log.Logger // Logger with component name injected.
 }
@@ -21,8 +23,10 @@ func NewComponentLogger(sink *Sink, componentID string) *Component {
 	}
 
 	return &Component{
+		componentID: fullID(sink.parentComponentID, componentID),
+
 		orig: sink.l,
-		log:  log.With(sink.l, "component", componentID),
+		log:  wrapWithComponentID(sink.l, sink.parentComponentID, componentID),
 	}
 }
 

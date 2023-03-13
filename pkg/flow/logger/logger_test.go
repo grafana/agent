@@ -24,16 +24,20 @@ func Example() {
 
 	// Create two component loggers. The first component sends logs to the
 	// controller, and the other sends logs to the first component.
-	component1 := logger.NewComponentLogger(logger.ControllerSink(controller), "my-component-1")
-	component2 := logger.NewComponentLogger(logger.ComponentSink(component1), "my-component-2")
+	component1 := logger.NewComponentLogger(logger.ControllerSink(controller), "outer")
+	component2 := logger.NewComponentLogger(logger.ComponentSink(component1), "inner")
+
+	innerController := logger.NewControllerLogger(logger.ComponentSink(component2))
 
 	// Log some log lines.
-	level.Info(controller).Log("msg", "hello from controller!")
-	level.Info(component1).Log("msg", "hello from component 1!")
-	level.Info(component2).Log("msg", "hello from component 2!")
+	level.Info(controller).Log("msg", "hello from the controller!")
+	level.Info(component1).Log("msg", "hello from the outer component!")
+	level.Info(component2).Log("msg", "hello from the inner component!")
+	level.Info(innerController).Log("msg", "hello from the inner controller!")
 
 	// Output:
-	// level=info msg="hello from controller!"
-	// component=my-component-1 level=info msg="hello from component 1!"
-	// component=my-component-2 level=info msg="hello from component 2!"
+	// level=info msg="hello from the controller!"
+	// component=outer level=info msg="hello from the outer component!"
+	// component=outer/inner level=info msg="hello from the inner component!"
+	// component=outer/inner level=info msg="hello from the inner controller!"
 }

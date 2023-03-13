@@ -13,6 +13,8 @@ type Sink struct {
 	w         io.Writer // Raw writer to use
 	updatable bool      // Whether the sink supports being updated.
 
+	parentComponentID string // Whether the sink has a parent component ID associated with it.
+
 	l log.Logger // Constructed logger to use.
 }
 
@@ -38,15 +40,18 @@ func WriterSink(w io.Writer, o SinkOptions) (*Sink, error) {
 // ControllerSink forwards logs to the provided Controller logger.
 func ControllerSink(c *Controller) *Sink {
 	return &Sink{
+		parentComponentID: c.parentComponentID,
+
 		w: io.Discard,
 		l: c,
 	}
 }
 
-// ComponentSink forwards logs to the provided Component logger. The component
-// label from c is dropped.
+// ComponentSink forwards logs to the provided Component logger.
 func ComponentSink(c *Component) *Sink {
 	return &Sink{
+		parentComponentID: c.componentID,
+
 		w: io.Discard,
 
 		// Send logs to the original logger the Component uses so the component ID
