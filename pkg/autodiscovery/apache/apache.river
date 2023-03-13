@@ -1,0 +1,6 @@
+binary = "httpd"
+scrape_uris = [
+    "http://localhost:80/server-status?auto",
+    "http://localhost:8080/server-status?auto",
+]
+ext = ["err", "log"]

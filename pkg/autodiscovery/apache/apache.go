@@ -1,9 +1,11 @@
 package apache
 
 import (
-	"database/sql"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
+	"strings"
 
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/pkg/autodiscovery"
@@ -13,12 +15,14 @@ import (
 
 type Config struct {
 	Binary     string   `river:"binary,attr"`
+	ScrapeURIs []string `river:"scrape_uris,attr,optional"`
 	Extensions []string `river:"ext,attr,optional"`
 }
 
 type Apache struct {
-	binary string
-	ext    []string
+	binary     string
+	scrapeURIs []string
+	ext        []string
 }
 
 func New() (*Apache, error) {
@@ -34,7 +38,9 @@ func New() (*Apache, error) {
 	}
 
 	return &Apache{
-		binary: cfg.Binary,
+		binary:     cfg.Binary,
+		scrapeURIs: cfg.ScrapeURIs,
+		ext:        cfg.Extensions,
 	}, nil
 }
 
@@ -59,40 +65,88 @@ func (m *Apache) Run() (*autodiscovery.Result, error) {
 
 	// Apache is running on the host system, so we'll try to return _something_.
 	res := &autodiscovery.Result{}
-	lsof := autodiscovery.LSOF{}
+	var lsof autodiscovery.LSOF
 
 	fns, err := autodiscovery.GetOpenFilenames(lsof, pid, m.ext...)
 	if err != nil {
 		return nil, err
 	}
-	for _, fn := range fns {
+	for fn, _ := range fns {
 		res.LogfileTargets = append(res.LogfileTargets,
-			discovery.Target{"__path__": fn, "component": "postgres"},
+			discovery.Target{"__path__": fn, "component": "apache"},
 		)
 	}
 
-	// Let's try to use the configuration to connect using predefined DSNs.
-	for _, dsn := range m.dsn {
-		db, err := sql.Open("mysql", dsn)
-		defer db.Close()
+	// Let's try to use the configuration to connect using predefined URIs.
+	for _, uri := range m.scrapeURIs {
+		resp, err := http.Get(uri)
 		if err != nil {
 			continue
-		} else {
-			fmt.Println("Got the db!", db)
-			res.RiverConfig = fmt.Sprintf(`prometheus.exporter.mysql "default" {
-  data_source_name = "%s"
-}`, dsn)
-			res.MetricsExport = "prometheus.exporter.mysql.default.targets"
-			return res, nil
 		}
+		if !isRealServerStatusPage(resp) {
+			continue
+		}
+
+		res.RiverConfig = fmt.Sprintf(`prometheus.exporter.apache "default" {
+  scrape_uri = "%s"
+}`, uri)
+		res.MetricsExport = "prometheus.exporter.apache.default.targets"
+
+		//TODO: This should be logged by the function which calls Run instead?
+		fmt.Println("Found an Apache! Config used:/n", res)
+		return res, nil
 	}
 
 	// Our predefined configurations didn't work; but MySQL is running.
 	// Let's return a Flow component template for the user to fill out.
 	res.RiverConfig = `prometheus.exporter.apache "default" {
-  data_source_name = env("AGENT_MYSQL_DSN")
+  scrape_uri = env("APACHE_SERVER_STATUS_URI")
 }`
 	res.MetricsExport = "prometheus.exporter.apache.default.targets"
 
 	return res, nil
+}
+
+func isRealServerStatusPage(httpResp *http.Response) bool {
+	metrics := []string{"ServerVersion: ",
+		"ServerMPM: ",
+		"Server Built: ",
+		"CurrentTime: ",
+		"RestartTime: ",
+		"ParentServerConfigGeneration: ",
+		"ParentServerMPMGeneration: ",
+		"ServerUptimeSeconds: ",
+		"ServerUptime: ",
+		"Load1: ",
+		"Load5: ",
+		"Load15: ",
+		"Total Accesses: ",
+		"Total kBytes: ",
+		"Total Duration: ",
+		"CPUUser: ",
+		"CPUSystem: ",
+		"CPUChildrenUser: ",
+		"CPUChildrenSystem: ",
+		"CPULoad: ",
+		"Uptime: ",
+		"ReqPerSec: ",
+		"BytesPerSec: ",
+		"BytesPerReq: ",
+		"DurationPerReq: ",
+		"BusyWorkers: ",
+		"IdleWorkers: "}
+
+	respBodyBytes, err := io.ReadAll(httpResp.Body)
+	if err != nil {
+		//TODO: Log the error?
+		return false
+	}
+	respBody := string(respBodyBytes)
+
+	for _, metric := range metrics {
+		if !strings.Contains(respBody, metric) {
+			return false
+		}
+	}
+	return true
 }

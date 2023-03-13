@@ -1,0 +1,5 @@
+binary = "redis-server"
+redis_addresses = [
+    "127.0.0.1:6379",
+]
+ext = ["err", "log"]

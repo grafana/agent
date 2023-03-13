@@ -12,36 +12,18 @@ type ProcessInfo interface {
 	GetOpenConnections(pid int) (string, error)
 }
 
-type LSOF struct {
-	ProcessInfo
-}
-
-func (lsof LSOF) GetOpenFilenames(pid int) (string, error) {
-	cmd := exec.Command("lsof", "-p", fmt.Sprint(pid), "-F", "n")
-	stdout, err := cmd.Output()
-	if err != nil {
-		return "", err
-	}
-	return string(stdout), nil
-}
-
-func (lsof LSOF) GetOpenConnections(pid int) (string, error) {
-	cmd := exec.Command("lsof", "-p", fmt.Sprint(pid), "-a", "-i", "-n", "-P", "-F", "n")
-	stdout, err := cmd.Output()
-	if err != nil {
-		return "", err
-	}
-	return string(stdout), nil
-}
-
 // GetOpenFilenames ???
-func GetOpenFilenames(pi ProcessInfo, pid int, extensions ...string) ([]string, error) {
+func GetOpenFilenames(pi ProcessInfo, pid int, extensions ...string) (map[string]struct{}, error) {
+	if pi == nil {
+		return nil, fmt.Errorf("ProcessInfo must not be null")
+	}
+
 	stdout, err := pi.GetOpenFilenames(pid)
 	if err != nil {
 		return nil, err
 	}
 
-	var res []string
+	res := make(map[string]struct{})
 	for _, line := range strings.Split(stdout, "\n") {
 		s, ok := strings.CutPrefix(line, "n")
 		if !ok {
@@ -49,7 +31,7 @@ func GetOpenFilenames(pi ProcessInfo, pid int, extensions ...string) ([]string, 
 		}
 		for _, ext := range extensions {
 			if strings.HasSuffix(s, ext) {
-				res = append(res, s)
+				res[s] = struct{}{}
 			}
 		}
 	}
@@ -74,4 +56,30 @@ func GetOpenPorts(pi ProcessInfo, pid int) ([]string, error) {
 	}
 
 	return res, nil
+}
+
+type LSOF struct {
+	ProcessInfo
+}
+
+func (lsof LSOF) GetOpenFilenames(pid int) (string, error) {
+	cmd := exec.Command("lsof", "-p", fmt.Sprint(pid), "-F", "n")
+	stdout, err := cmd.Output()
+	if err != nil {
+		//TODO: If the process cannot be found, this error is just "exit status 1".
+		// A common reason not to find the process is that we need to run the agent with root privileges.
+		// Make the error message more clear? Also, somehow "ps.Processes()" finds these processes even
+		// if the agent doesn't run as root.
+		return "", err
+	}
+	return string(stdout), nil
+}
+
+func (lsof LSOF) GetOpenConnections(pid int) (string, error) {
+	cmd := exec.Command("lsof", "-p", fmt.Sprint(pid), "-a", "-i", "-n", "-P", "-F", "n")
+	stdout, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	return string(stdout), nil
 }

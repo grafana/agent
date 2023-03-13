@@ -73,7 +73,7 @@ func (c *Consul) Run() (*autodiscovery.Result, error) {
 	if err != nil {
 		return nil, err
 	}
-	for _, fn := range fns {
+	for fn, _ := range fns {
 		res.LogfileTargets = append(res.LogfileTargets,
 			discovery.Target{"__path__": fn, "component": "consul"},
 		)
