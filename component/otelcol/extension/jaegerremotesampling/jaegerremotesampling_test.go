@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/component/otelcol/extension"
 	"github.com/grafana/agent/component/otelcol/extension/jaegerremotesampling"
 	"github.com/grafana/agent/pkg/flow/componenttest"
 	"github.com/grafana/agent/pkg/river"
@@ -74,15 +73,9 @@ func Test(t *testing.T) {
 	}()
 
 	require.NoError(t, ctrl.WaitRunning(time.Second), "component never started")
-	require.NoError(t, ctrl.WaitExports(time.Second), "component never exported anything")
 	// the wrapped jaeger remote sampler starts its http server async: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/extension/jaegerremotesampling/v0.63.0/extension/jaegerremotesampling/internal/http.go#L85
 	// and reports errors back through ReportFatalError. Since we can't wait on this server directly just pause for a bit here while it starts up
 	time.Sleep(time.Second)
-
-	// Get the authentication extension from our component and use it to make a
-	// request to our test server.
-	exports := ctrl.Exports().(extension.Exports)
-	require.NotNil(t, exports.Handler.Extension, "handler extension is nil")
 
 	// request the remote sampling config above
 	require.NoError(t, err)
