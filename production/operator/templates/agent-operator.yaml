@@ -565,6 +565,37 @@ kind: ServiceMonitor
 metadata:
   labels:
     instance: primary
+  name: cadvisor-monitor
+  namespace: ${NAMESPACE}
+spec:
+  endpoints:
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    honorLabels: true
+    interval: 60s
+    path: /metrics/cadvisor
+    port: https-metrics
+    relabelings:
+    - sourceLabels:
+      - __metrics_path__
+      targetLabel: metrics_path
+    - action: replace
+      replacement: cadvisor
+      targetLabel: job
+    scheme: https
+    tlsConfig:
+      insecureSkipVerify: true
+  namespaceSelector:
+    matchNames:
+    - default
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kubelet
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    instance: primary
   name: ksm-monitor
   namespace: ${NAMESPACE}
 spec:
@@ -610,38 +641,7 @@ spec:
       insecureSkipVerify: true
   namespaceSelector:
     matchNames:
-    - ${NAMESPACE}
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: kubelet
----
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  labels:
-    instance: primary
-  name: cadvisor-monitor
-  namespace: default
-spec:
-  endpoints:
-  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
-    honorLabels: true
-    interval: 60s
-    path: /metrics/cadvisor
-    port: https-metrics
-    relabelings:
-    - sourceLabels:
-      - __metrics_path__
-      targetLabel: metrics_path
-    - action: replace
-      replacement: cadvisor
-      targetLabel: job
-    scheme: https
-    tlsConfig:
-      insecureSkipVerify: true
-  namespaceSelector:
-    matchNames:
-    - ${NAMESPACE}
+    - default
   selector:
     matchLabels:
       app.kubernetes.io/name: kubelet
