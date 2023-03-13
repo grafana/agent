@@ -91,6 +91,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 			OnExportsChange: func(exports map[string]any) {
 				o.OnStateChange(Exports{Exports: exports})
 			},
+			IsModule: true,
 		}),
 	}
 
