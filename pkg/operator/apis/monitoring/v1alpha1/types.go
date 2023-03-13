@@ -152,7 +152,7 @@ type GrafanaAgentSpec struct {
 	// PriorityClassName is the priority class assigned to pods.
 	PriorityClassName string `json:"priorityClassName,omitempty"`
 
-	// RuntimeClassName is the runtim class assigned to pods.
+	// RuntimeClassName is the runtime class assigned to pods.
 	RuntimeClassName *string `json:"runtimeClassName,omitempty"`
 
 	// Port name used for the pods and governing service. This defaults to agent-metrics.
