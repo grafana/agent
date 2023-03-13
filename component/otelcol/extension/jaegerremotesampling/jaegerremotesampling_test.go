@@ -3,8 +3,9 @@ package jaegerremotesampling_test
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -39,7 +40,7 @@ func Test(t *testing.T) {
 	`
 
 	remoteSamplingConfigFile := filepath.Join(t.TempDir(), "remote.json")
-	err := ioutil.WriteFile(remoteSamplingConfigFile, []byte(remoteSamplingConfig), 0644)
+	err := os.WriteFile(remoteSamplingConfigFile, []byte(remoteSamplingConfig), 0644)
 	require.NoError(t, err)
 
 	ctx := componenttest.TestContext(t)
@@ -83,7 +84,7 @@ func Test(t *testing.T) {
 	require.NoError(t, err, "HTTP request failed")
 	defer resp.Body.Close()
 
-	b, err := ioutil.ReadAll(resp.Body)
+	b, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	require.JSONEq(t, string(b), expectedRemoteSamplingConfig)
 }
