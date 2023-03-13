@@ -145,7 +145,6 @@ func (fr *flowRun) Run(configFile string) error {
 		HTTPPathPrefix: "/api/v0/component/",
 		HTTPListenAddr: fr.httpListenAddr,
 	})
-	f.Run()
 
 	reload := func() error {
 		flowCfg, err := loadFlowFile(configFile)
