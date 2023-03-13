@@ -19,6 +19,8 @@ Main (unreleased)
 
   - `discovery.ec2` service discovery for aws ec2. (@captncraig)
   - `discovery.lightsail` service discovery for aws lightsail. (@captncraig)
+  - `module.string` runs a Grafana Agent Flow module passed to the component by
+    an expression containing a string. (@erikbaranowski, @rfratto)
   - `otelcol.auth.oauth2` performs OAuth 2.0 authentication for HTTP and gRPC
     based OpenTelemetry exporters. (@ptodev)
   - `prometheus.exporter.blackbox` collects metrics from Blackbox exporter
