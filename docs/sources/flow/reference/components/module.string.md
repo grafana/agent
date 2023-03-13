@@ -4,7 +4,7 @@ title: module.string
 
 # module.string
 
-`module.string` is a *Module loader* component. A *Module loader* is a Grafana Agent Flow 
+`module.string` is a *module loader* component. A module loader is a Grafana Agent Flow 
 component which retreives a module and runs the components defined inside of it.
 
 *TODO: Add link to module concept page above once merged*
@@ -28,15 +28,15 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`content`   | `secret`    | The contents of the module to load as a secret string. | | yes
+`content`   | `secret` or `string` | The contents of the module to load as a secret string. | | yes
 `arguments` | `map(any)`  | The values for the supported arguments in the module contents. | | no
 
 `content` is a string that contains all the arguments, exports and components for the module. 
 `content` is typically loaded via the exports of another component. For example,
 
-- local.file.[label].content
-- remote.http.[label].content
-- remote.s3.[label].content
+- local.file.LABEL.content
+- remote.http.LABEL.content
+- remote.s3.LABEL.content
 
 `arguments` can contain, but are not limited to strings, components and component exports.
 
@@ -52,11 +52,11 @@ Name | Type | Description
 
 ## Component health
 
-`module.string` will be reported as healthy whenever all of its components have
-been loaded successfully.
+`module.string` is reported as healthy if the most recent load of the module was 
+successful. 
 
-If a component is not loaded successfully, the current health will show as
-unhealthy and the health will include the error from the component.
+If the module is not loaded successfully, the current health displays as
+unhealthy and the health includes the error from loading the module.
 
 ## Debug information
 
