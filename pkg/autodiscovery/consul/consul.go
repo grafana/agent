@@ -82,11 +82,10 @@ func (c *Consul) Run() (*autodiscovery.Result, error) {
 	for _, srv := range c.servers {
 		config := &consul_api.Config{}
 		config.Address = srv
-		client, err := consul_api.NewClient(config)
+		_, err := consul_api.NewClient(config)
 		if err != nil {
 			continue
 		} else {
-			fmt.Println("Got the consul srv!", client)
 			res.RiverConfig = fmt.Sprintf(`// https://grafana.com/docs/agent/next/flow/reference/components/prometheus.exporter.consul/
 prometheus.exporter.consul "default" {
   server = "%s"

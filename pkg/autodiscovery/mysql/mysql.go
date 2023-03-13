@@ -87,7 +87,6 @@ func (m *MySQL) Run() (*autodiscovery.Result, error) {
 		if err != nil {
 			continue
 		} else {
-			fmt.Println("Got the db!", db)
 			res.RiverConfig = fmt.Sprintf(`prometheus.exporter.mysql "default" {
   data_source_name = "%s"
 }`, dsn)

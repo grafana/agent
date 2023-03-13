@@ -81,8 +81,9 @@ func (pg *Postgres) Run() (*autodiscovery.Result, error) {
 
 	// Postgres is running, so we'll try to return _something_.
 	res := &autodiscovery.Result{}
+	lsof := autodiscovery.LSOF{}
 
-	fns, err := autodiscovery.GetOpenFilenames(postgresPID, pg.ext...)
+	fns, err := autodiscovery.GetOpenFilenames(lsof, postgresPID, pg.ext...)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +99,6 @@ func (pg *Postgres) Run() (*autodiscovery.Result, error) {
 			continue
 		} else {
 			defer conn.Close(context.Background())
-			fmt.Println("Got the db!", conn)
 			res.RiverConfig = fmt.Sprintf(`prometheus.exporter.postgres "default" {
 	data_source_names = ["%s"]
 	}`, dsn)
