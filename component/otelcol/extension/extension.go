@@ -42,14 +42,6 @@ type Arguments interface {
 	Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter
 }
 
-// Exports is a common Exports type for Flow components which expose
-// OpenTelemetry Collector extensions.
-type Exports struct {
-	// Handler is the managed component. Handler is updated any time the
-	// extension is updated.
-	Handler Handler `river:"handler,attr"`
-}
-
 // Handler combines an extension with its ID.
 type Handler struct {
 	ID        otelconfig.ComponentID
@@ -82,9 +74,6 @@ var (
 // New creates a new Flow component which encapsulates an OpenTelemetry
 // Collector extension. args must hold a value of the argument
 // type registered with the Flow component.
-//
-// The registered component must be registered to export the Exports type from
-// this package, otherwise New will panic.
 func New(opts component.Options, f otelcomponent.ExtensionFactory, args Arguments) (*Extension, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
