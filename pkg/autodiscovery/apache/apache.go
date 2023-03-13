@@ -59,8 +59,9 @@ func (m *Apache) Run() (*autodiscovery.Result, error) {
 
 	// Apache is running on the host system, so we'll try to return _something_.
 	res := &autodiscovery.Result{}
+	lsof := autodiscovery.LSOF{}
 
-	fns, err := autodiscovery.GetOpenFilenames(pid, m.ext...)
+	fns, err := autodiscovery.GetOpenFilenames(lsof, pid, m.ext...)
 	if err != nil {
 		return nil, err
 	}

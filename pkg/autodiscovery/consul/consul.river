@@ -1,0 +1,3 @@
+binary = "consul"
+servers = ["http://localhost:8500"]
+ext = [".err", ".log"]

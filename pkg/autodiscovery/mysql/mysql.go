@@ -68,8 +68,9 @@ func (m *MySQL) Run() (*autodiscovery.Result, error) {
 
 	// MySQL is running on the host system, so we'll try to return _something_.
 	res := &autodiscovery.Result{}
+	lsof := autodiscovery.LSOF{}
 
-	fns, err := autodiscovery.GetOpenFilenames(mysqlPID, m.ext...)
+	fns, err := autodiscovery.GetOpenFilenames(lsof, mysqlPID, m.ext...)
 	if err != nil {
 		return nil, err
 	}

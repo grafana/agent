@@ -69,6 +69,7 @@ func GetOpenPorts(pi ProcessInfo, pid int) ([]string, error) {
 		if !ok {
 			continue
 		}
+		_ = s
 		//TODO: Split via : and add the port to res
 	}
 
