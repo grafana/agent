@@ -7,7 +7,7 @@ title: module.string
 `module.string` is a *module loader* component. A module loader is a Grafana Agent Flow 
 component which retreives a module and runs the components defined inside of it.
 
-*TODO: Add link to module concept page above once merged*
+*TODO: Add link to modules concept page once merged*
 
 ## Usage
 
@@ -28,17 +28,22 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`content`   | `secret` or `string` | The contents of the module to load as a secret string. | | yes
+`content`   | `secret` or `string` | The contents of the module to load as a secret or string. | | yes
 `arguments` | `map(any)`  | The values for the supported arguments in the module contents. | | no
 
-`content` is a string that contains all the arguments, exports and components for the module. 
+`content` is a string that contains the configuration of the module to load.
 `content` is typically loaded via the exports of another component. For example,
 
 - local.file.LABEL.content
 - remote.http.LABEL.content
 - remote.s3.LABEL.content
 
-`arguments` can contain, but are not limited to strings, components and component exports.
+`arguments` allows us to pass parameterized input into a module.
+An `argument` marked non-optional in the module being loaded is required in the
+`arguments`. It is also not valid to provide an `argument` not defined in the
+module being loaded.
+
+*TODO: Add link to argument config-blocks page once merged*
 
 ## Exported fields
 
@@ -48,7 +53,10 @@ Name | Type | Description
 ---- | ---- | -----------
 `exports` | `map(any)` | The exports of the Module loader.
 
-`exports` can contain, but is not limited to strings, components and component exports.
+`exports` exposes the `export` config block inside a module. It can be accessed from
+the parent river config via `module.string.LABEL.exports.EXPORT_LABEL
+
+*TODO: Add link to export config-blocks page once merged*
 
 ## Component health
 
@@ -68,50 +76,12 @@ unhealthy and the health includes the error from loading the module.
 
 ## Example
 
-This example demonstrates the 3 parts (arguments, exports and components) of
-a Module loader for `module.string`. In this example, we pass credentials from a
-parent river config to a module for a `prometheus.remote_write` flow component.
-We then export that component for use in the parent river config. The export can 
-then be used by `prometheus.scrape.forward_to` to send metrics to the cloud.
+In this example, we pass credentials from a parent river config to a module for
+a `prometheus.remote_write` flow component. We then export that component for use
+in the parent river config. The export can then be used by the parent river config
+as a component.
 
-Here's an example of the module `contents`. This module accepts arguments for `username` and
-`password` then exports `prometheus_remote_write`. `prometheus_remote_write` is an export
-of another flow component which can later be accessed by the parent river config.
-
-```river
-argument "username" { }
-
-argument "password" { }
-
-export "prometheus_remote_write" {
-	value = prometheus.remote_write.grafana_cloud
-}
-
-prometheus.remote_write "grafana_cloud" {
-	endpoint {
-		url = "https://prometheus-us-central1.grafana.net/api/prom/push"
-
-		basic_auth {
-			username = argument.username.value
-			password = argument.password.value
-		}
-	}
-}
-```
-
-Here's an example of the parent river config leveraging a `local.file` component
-to specify the location of the contents for `module.string`. We also access the
-exported component from the module.
-
-The `username` and `password` are set via environment variables before being passed
-to the module. The `prometheus_remote_write` export from the module is accessed via
-`module.string.metrics.exports.prometheus_remote_write` and then we access the
-`prometheus.remote_write` export `receiver` that `prometheus.scrape` is expecting.
-
-For the purpose of this example we have exported the entire `prometheus.remote_write.grafana_cloud`
-component. Alternatively, the module above could have exported 
-`prometheus.remote_write.grafana_cloud.receiver` instead of the entire component
-since that is all we really need in the parent river config.
+Parent:
 
 ```river
 local.file "metrics" {
@@ -134,3 +104,32 @@ prometheus.scrape "local_agent" {
 	scrape_interval = "10s"
 }
 ```
+
+Module:
+
+```river
+argument "username" { }
+
+argument "password" { }
+
+export "prometheus_remote_write" {
+	value = prometheus.remote_write.grafana_cloud
+}
+
+prometheus.remote_write "grafana_cloud" {
+	endpoint {
+		url = "https://prometheus-us-central1.grafana.net/api/prom/push"
+
+		basic_auth {
+			username = argument.username.value
+			password = argument.password.value
+		}
+	}
+}
+```
+
+> **NOTE**: For the purpose of the above example we have exported the entire
+> `prometheus.remote_write.grafana_cloud` component. Alternatively, the module above
+> could have exported `prometheus.remote_write.grafana_cloud.receiver` instead of
+> the entire component since that is the only part of the component we need in the
+> parent river config.
