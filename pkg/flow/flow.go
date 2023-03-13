@@ -124,7 +124,6 @@ type Flow struct {
 	sched       *controller.Scheduler
 	loader      *controller.Loader
 
-	cancel       context.CancelFunc
 	loadFinished chan struct{}
 
 	loadMut    sync.RWMutex
