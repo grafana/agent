@@ -263,11 +263,11 @@ serve it over http port 5778.
 ```river
 otelcol.extension.jaegerremotesampling "example" {
   http {
-    endpoint = "0.0.0.0:5778
+    endpoint = "0.0.0.0:5778"
   }
   source {
     file             = "/path/to/jaeger-sampling.json"
-    reload_interval  = 10s
+    reload_interval  = "10s"
   }
 }
 ```

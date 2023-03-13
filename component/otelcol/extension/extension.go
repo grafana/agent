@@ -162,14 +162,6 @@ func (e *Extension) Update(args component.Arguments) error {
 		components = append(components, ext)
 	}
 
-	// Inform listeners that our handler changed.
-	e.opts.OnStateChange(Exports{
-		Handler: Handler{
-			ID:        otelconfig.NewComponentID(otelconfig.Type(e.opts.ID)),
-			Extension: ext,
-		},
-	})
-
 	// Schedule the components to run once our component is running.
 	e.sched.Schedule(host, components...)
 	return nil
