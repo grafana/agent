@@ -70,7 +70,7 @@ func NewLoader(globals ComponentGlobals) *Loader {
 // The provided parentContext can be used to provide global variables and
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
-func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, onExportsChanged func(map[string]any)) diag.Diagnostics {
+func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, onExportsChanged func(map[string]any), isModule bool) diag.Diagnostics {
 	start := time.Now()
 	l.mut.Lock()
 	defer l.mut.Unlock()
@@ -88,7 +88,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlo
 	newGraph.Add(c)
 
 	// Handle the rest of the graph as ComponentNodes.
-	populateDiags := l.populateGraph(&newGraph, blocks)
+	populateDiags := l.populateGraph(&newGraph, blocks, isModule)
 	diags = append(diags, populateDiags...)
 
 	wireDiags := l.wireGraphEdges(parentScope, &newGraph)
@@ -186,7 +186,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlo
 	return diags
 }
 
-func (l *Loader) populateGraph(g *dag.Graph, blocks []*ast.BlockStmt) diag.Diagnostics {
+func (l *Loader) populateGraph(g *dag.Graph, blocks []*ast.BlockStmt, isModule bool) diag.Diagnostics {
 	// Fill our graph with components.
 	var (
 		diags    diag.Diagnostics
@@ -238,6 +238,16 @@ func (l *Loader) populateGraph(g *dag.Graph, blocks []*ast.BlockStmt) diag.Diagn
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
 					Message:  fmt.Sprintf("Component %q must have a label", componentName),
+					StartPos: block.NamePos.Position(),
+					EndPos:   block.NamePos.Add(len(componentName) - 1).Position(),
+				})
+				continue
+			}
+
+			if registration.Singleton && isModule {
+				diags.Add(diag.Diagnostic{
+					Severity: diag.SeverityLevelError,
+					Message:  fmt.Sprintf("Component %q is a singleton and unsupported inside a module", componentName),
 					StartPos: block.NamePos.Position(),
 					EndPos:   block.NamePos.Add(len(componentName) - 1).Position(),
 				})
