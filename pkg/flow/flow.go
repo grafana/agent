@@ -116,10 +116,9 @@ type Options struct {
 
 // Flow is the Flow system.
 type Flow struct {
-	log     *logging.Logger
-	tracer  *tracing.Tracer
-	opts    Options
-	context context.Context
+	log    *logging.Logger
+	tracer *tracing.Tracer
+	opts   Options
 
 	updateQueue *controller.Queue
 	sched       *controller.Scheduler
@@ -175,10 +174,9 @@ func New(o Options) *Flow {
 	)
 
 	return &Flow{
-		log:     log,
-		tracer:  tracer,
-		opts:    o,
-		context: ctx,
+		log:    log,
+		tracer: tracer,
+		opts:   o,
 
 		updateQueue: queue,
 		sched:       sched,
