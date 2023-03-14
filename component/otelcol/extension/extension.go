@@ -1,5 +1,5 @@
-// Package auth provides utilities to create a Flow component from
-// OpenTelemetry Collector authentication extensions.
+// Package extension provides utilities to create a Flow component from
+// OpenTelemetry Collector extensions.
 //
 // Other OpenTelemetry Collector extensions are better served as generic Flow
 // components rather than being placed in the otelcol namespace.
