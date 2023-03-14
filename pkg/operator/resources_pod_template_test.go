@@ -91,6 +91,5 @@ func Test_generatePodTemplate(t *testing.T) {
 		tmpl, _, err = generatePodTemplate(cfg, "agent", deploy, podTemplateOptions{})
 		require.NoError(t, err)
 		assert.Nil(t, tmpl.Spec.RuntimeClassName)
-
 	})
 }
