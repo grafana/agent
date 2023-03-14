@@ -77,7 +77,10 @@ func Test(t *testing.T) {
 	require.NoError(t, ctrl.WaitRunning(time.Second), "component never started")
 	// the wrapped jaeger remote sampler starts its http server async: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/extension/jaegerremotesampling/v0.63.0/extension/jaegerremotesampling/internal/http.go#L85
 	// and reports errors back through ReportFatalError. Since we can't wait on this server directly just pause for a bit here while it starts up
-	time.Sleep(time.Second)
+	util.Eventually(t, func(t require.TestingT) {
+		_, err := http.Get("http://" + listenAddr + "/sampling?service=foo")
+		require.NoError(t, err)
+	})
 
 	// request the remote sampling config above
 	require.NoError(t, err)
