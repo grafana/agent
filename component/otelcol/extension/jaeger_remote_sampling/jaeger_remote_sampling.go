@@ -99,7 +99,6 @@ func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.Compone
 
 // UnmarshalRiver applies defaults to args before unmarshaling.
 func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
-
 	type args Arguments
 	err := f((*args)(a))
 	if err != nil {
