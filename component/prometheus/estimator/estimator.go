@@ -2,8 +2,13 @@ package estimator
 
 import (
 	"context"
+	"path"
+
+	prom_client "github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/common/model"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/storage"
@@ -11,7 +16,7 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "local.estimator",
+		Name:    "prometheus.estimator",
 		Args:    Arguments{},
 		Exports: Exports{},
 
@@ -22,25 +27,34 @@ func init() {
 }
 
 type Component struct {
-	opts            component.Options
-	metricsReceiver *prometheus.Interceptor
+	opts     component.Options
+	receiver *prometheus.Interceptor
 	// This is maybe a hacky way to track unique combinations of seriesRef (map key), and label hash (map value).
 	// Could consume less memory by combining those two values into a single unique hash, but I'm not sure it's worth the additional effort ¯\_(ツ)_/¯
 	// Also, we may end up storing *actual* values for these, should we wish to report on them individually. I.E. There are x series with y label(s)
-	activeSeries map[storage.SeriesRef]map[uint64]struct{}
+	activeSeries      map[storage.SeriesRef]map[uint64]struct{}
+	activeSeriesGauge prom_client.Gauge
 }
 
 type Arguments struct {
+	Foo string `river:"foo,attr,optional"`
 }
 
 type Exports struct {
-	metricsReceiver *prometheus.Interceptor `river:metrics_reciever,attr`
+	Receiver storage.Appendable `river:"receiver,attr"`
+	Targets  []discovery.Target `river:"targets,attr"`
 }
 
 func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{
 		opts:         o,
 		activeSeries: make(map[storage.SeriesRef]map[uint64]struct{}),
+		activeSeriesGauge: prom_client.NewGauge(
+			prom_client.GaugeOpts{
+				Name: "estimator_active_series",
+				Help: "The last count of active series being sent to the estimator",
+			},
+		),
 	}
 
 	interceptor := prometheus.NewInterceptor(
@@ -57,12 +71,25 @@ func New(o component.Options, args Arguments) (*Component, error) {
 			if !ok {
 				c.activeSeries[globalRef][l.Hash()] = struct{}{}
 			}
+
 			return globalRef, nil
 		}),
 	)
 
-	c.metricsReceiver = interceptor
-	o.OnStateChange(Exports{metricsReceiver: c.metricsReceiver})
+	c.receiver = interceptor
+	o.OnStateChange(
+		Exports{
+			Receiver: c.receiver,
+			Targets: []discovery.Target{
+				{
+					model.AddressLabel:     o.HTTPListenAddr,
+					model.SchemeLabel:      "http",
+					model.MetricsPathLabel: path.Join(o.HTTPPath, "metrics"),
+					"instance":             o.ID,
+					"job":                  "prometheus/estimator",
+				},
+			},
+		})
 
 	return c, nil
 }
@@ -81,3 +108,23 @@ func (c *Component) Update(newConfig component.Arguments) error {
 	c.activeSeries = make(map[storage.SeriesRef]map[uint64]struct{})
 	return nil
 }
+
+func (c *Component) DebugInfo() interface{} {
+	// TODO: Is there a better place to update the gauge?
+	series := 0
+	for _, labels := range c.activeSeries {
+		series = series + len(labels)
+	}
+	// c.activeSeriesGauge.Set(float64(series))
+	return debugInfo{
+		ActiveSeries: uint64(series),
+	}
+}
+
+type debugInfo struct {
+	ActiveSeries uint64 `river:"active_series,attr"`
+}
+
+// func (c *Component) Handler() http.Handler {
+
+// }
