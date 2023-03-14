@@ -185,6 +185,8 @@ Name | Type | Description | Default | Required
 `reload_interval` | `duration` | The interval at which to reload the specified file. Leave at 0 to never reload. | `0` | no
 `content` | `string` | A string containing the Jaeger remote sampling contents directly. | `""` | no
 
+Exactly one of the `file`, `reload_interval`, or `content` arguments must be specified. 
+
 ### remote block
 
 The `remote` block configures the gRPC client used by the component.
