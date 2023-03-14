@@ -13,7 +13,6 @@ import (
 	"github.com/grafana/agent/component/otelcol/internal/lazycollector"
 	"github.com/grafana/agent/component/otelcol/internal/scheduler"
 	"github.com/grafana/agent/pkg/build"
-	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util/zapadapter"
 	"github.com/prometheus/client_golang/prometheus"
 	otelcomponent "go.opentelemetry.io/collector/component"
@@ -41,17 +40,6 @@ type Arguments interface {
 	// component.
 	Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter
 }
-
-// Handler combines an extension with its ID.
-type Handler struct {
-	ID        otelconfig.ComponentID
-	Extension otelcomponent.Extension
-}
-
-var _ river.Capsule = Handler{}
-
-// RiverCapsule marks Handler as a capsule type.
-func (Handler) RiverCapsule() {}
 
 // Extension is a Flow component shim which manages an OpenTelemetry Collector
 // extension.
