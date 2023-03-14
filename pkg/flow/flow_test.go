@@ -8,7 +8,7 @@ import (
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/internal/testcomponents"
-	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/flow/logging/v2"
 	"github.com/stretchr/testify/require"
 )
 
@@ -50,7 +50,7 @@ func TestController_LoadFile_Evaluation(t *testing.T) {
 
 	// Check the config node is present and has the default values applied.
 	opts := getConfigOpts(t, ctrl.loader.Graph())
-	require.Equal(t, logging.DefaultOptions, opts)
+	require.Equal(t, logging.DefaultSinkOptions, opts)
 }
 
 func getFields(t *testing.T, g *dag.Graph, nodeID string) (component.Arguments, component.Exports) {
@@ -63,7 +63,7 @@ func getFields(t *testing.T, g *dag.Graph, nodeID string) (component.Arguments, 
 	return uc.Arguments(), uc.Exports()
 }
 
-func getConfigOpts(t *testing.T, g *dag.Graph) logging.Options {
+func getConfigOpts(t *testing.T, g *dag.Graph) logging.SinkOptions {
 	t.Helper()
 	n := g.GetByID("configNode")
 	require.NotNil(t, n, "couldn't find config node in graph")
@@ -75,11 +75,11 @@ func getConfigOpts(t *testing.T, g *dag.Graph) logging.Options {
 func testOptions(t *testing.T) Options {
 	t.Helper()
 
-	l, err := logging.New(os.Stderr, logging.DefaultOptions)
+	s, err := logging.WriterSink(os.Stderr, logging.DefaultSinkOptions)
 	require.NoError(t, err)
 
 	return Options{
-		Logger:   l,
+		LogSink:  s,
 		DataPath: t.TempDir(),
 		Reg:      nil,
 	}

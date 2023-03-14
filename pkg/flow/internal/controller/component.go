@@ -12,10 +12,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
+	"github.com/grafana/agent/pkg/flow/logging/v2"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/vm"
 	"github.com/prometheus/client_golang/prometheus"
@@ -59,7 +59,8 @@ func (id ComponentID) Equals(other ComponentID) bool {
 // ComponentGlobals are used by ComponentNodes to build managed components. All
 // ComponentNodes should use the same ComponentGlobals.
 type ComponentGlobals struct {
-	Logger          log.Logger              // Logger shared between all managed components.
+	LogSink         *logging.Sink           // Sink used for Logging.
+	Logger          *logging.Logger         // Logger shared between all managed components.
 	TraceProvider   trace.TracerProvider    // Tracer shared between all managed components.
 	DataPath        string                  // Shared directory where component data may be stored
 	OnExportsChange func(cn *ComponentNode) // Invoked when the managed component updated its exports
@@ -173,7 +174,7 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 	cn.register = wrapped
 	return component.Options{
 		ID:     globalID,
-		Logger: log.With(globals.Logger, "component", globalID),
+		Logger: logging.New(logging.LoggerSink(globals.Logger), logging.WithComponentID(cn.nodeID)),
 		Registerer: prometheus.WrapRegistererWith(prometheus.Labels{
 			"component_id": globalID,
 		}, wrapped),

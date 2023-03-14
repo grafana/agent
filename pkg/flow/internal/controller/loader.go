@@ -12,6 +12,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
+	"github.com/grafana/agent/pkg/flow/logging/v2"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/vm"
@@ -25,7 +26,7 @@ import (
 
 // The Loader builds and evaluates ComponentNodes from River blocks.
 type Loader struct {
-	log     log.Logger
+	log     *logging.Logger
 	tracer  trace.TracerProvider
 	globals ComponentGlobals
 
@@ -83,7 +84,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlo
 	)
 
 	// Pre-populate graph with a ConfigNode.
-	c, configBlockDiags := NewConfigNode(configBlocks, l.log, l.tracer, onExportsChanged)
+	c, configBlockDiags := NewConfigNode(configBlocks, l.globals, onExportsChanged)
 	diags = append(diags, configBlockDiags...)
 	newGraph.Add(c)
 
