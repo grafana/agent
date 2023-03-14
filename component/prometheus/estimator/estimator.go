@@ -2,9 +2,11 @@ package estimator
 
 import (
 	"context"
+	"net/http"
 	"path"
 
 	prom_client "github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/model"
 
 	"github.com/grafana/agent/component"
@@ -34,6 +36,7 @@ type Component struct {
 	// Also, we may end up storing *actual* values for these, should we wish to report on them individually. I.E. There are x series with y label(s)
 	activeSeries      map[storage.SeriesRef]map[uint64]struct{}
 	activeSeriesGauge prom_client.Gauge
+	reg               prom_client.Registry
 }
 
 type Arguments struct {
@@ -55,7 +58,10 @@ func New(o component.Options, args Arguments) (*Component, error) {
 				Help: "The last count of active series being sent to the estimator",
 			},
 		),
+		reg: *prom_client.NewRegistry(),
 	}
+
+	c.reg.MustRegister(c.activeSeriesGauge)
 
 	interceptor := prometheus.NewInterceptor(
 		nil,
@@ -109,15 +115,17 @@ func (c *Component) Update(newConfig component.Arguments) error {
 	return nil
 }
 
-func (c *Component) DebugInfo() interface{} {
-	// TODO: Is there a better place to update the gauge?
+func (c *Component) currentActiveSeriesCount() uint64 {
 	series := 0
 	for _, labels := range c.activeSeries {
 		series = series + len(labels)
 	}
-	// c.activeSeriesGauge.Set(float64(series))
+	return uint64(series)
+}
+
+func (c *Component) DebugInfo() interface{} {
 	return debugInfo{
-		ActiveSeries: uint64(series),
+		ActiveSeries: c.currentActiveSeriesCount(),
 	}
 }
 
@@ -125,6 +133,16 @@ type debugInfo struct {
 	ActiveSeries uint64 `river:"active_series,attr"`
 }
 
-// func (c *Component) Handler() http.Handler {
+func (c *Component) Handler() http.Handler {
+	return c
+}
 
-// }
+func (c *Component) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	series := c.currentActiveSeriesCount()
+	c.activeSeriesGauge.Set(float64(series))
+	if req.URL.Path == "/metrics" {
+		promhttp.HandlerFor(&c.reg, promhttp.HandlerOpts{Registry: &c.reg}).ServeHTTP(w, req)
+		return
+	}
+	w.WriteHeader(http.StatusNotFound)
+}
