@@ -127,9 +127,3 @@ prometheus.remote_write "grafana_cloud" {
 	}
 }
 ```
-
-> **NOTE**: For the purpose of the above example we have exported the entire
-> `prometheus.remote_write.grafana_cloud` component. Alternatively, the module above
-> could have exported `prometheus.remote_write.grafana_cloud.receiver` instead of
-> the entire component since that is the only part of the component we need in the
-> parent river config.
