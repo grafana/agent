@@ -19,7 +19,7 @@ document.
 Multiple `otelcol.extension.jaegerremotesampling` components can be specified by giving them
 different labels.
 
-## Usage jpe
+## Usage
 
 ```river
 otelcol.extension.jaegerremotesampling "LABEL" {
