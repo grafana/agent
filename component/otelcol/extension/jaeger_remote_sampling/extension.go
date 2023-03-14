@@ -26,6 +26,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/grafana/agent/component/otelcol/extension/jaeger_remote_sampling/internal"
+	"github.com/grafana/agent/component/otelcol/extension/jaeger_remote_sampling/strategy_store"
 )
 
 var _ component.Extension = (*jrsExtension)(nil)
@@ -54,6 +55,7 @@ func (jrse *jrsExtension) Start(ctx context.Context, host component.Host) error 
 	// source of the sampling config:
 	// - remote (gRPC)
 	// - local file
+	// - contents (string)
 	// we can then use a simplified logic here to assign the appropriate store
 	if jrse.cfg.Source.File != "" {
 		opts := static.Options{
@@ -84,6 +86,14 @@ func (jrse *jrsExtension) Start(ctx context.Context, host component.Host) error 
 		jrse.closers = append(jrse.closers, func() error {
 			return conn.Close()
 		})
+	}
+
+	if jrse.cfg.Source.Contents != "" {
+		ss, err := strategy_store.NewStrategyStore(jrse.cfg.Source.Contents, jrse.telemetry.Logger)
+		if err != nil {
+			return fmt.Errorf("error while setting up the contents sampling source: %w", err)
+		}
+		jrse.samplingStore = ss
 	}
 
 	if jrse.cfg.HTTPServerSettings != nil {

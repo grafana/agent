@@ -64,6 +64,7 @@ func (args Arguments) Convert() otelconfig.Extension {
 			Remote:         args.Source.Remote.Convert(),
 			File:           args.Source.File,
 			ReloadInterval: args.Source.ReloadInterval,
+			Contents:       args.Source.Contents,
 		},
 	}
 }
@@ -86,6 +87,25 @@ func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	err := f((*args)(a))
 	if err != nil {
 		return err
+	}
+
+	// remote config, local file and contents are all mutually exclusive
+	sourcesSet := 0 // jpe test
+	if a.Source.Contents != "" {
+		sourcesSet++
+	}
+	if a.Source.File != "" {
+		sourcesSet++
+	}
+	if a.Source.Remote != nil {
+		sourcesSet++
+	}
+
+	if sourcesSet == 0 {
+		return fmt.Errorf("one of contents, file or remote must be configured")
+	}
+	if sourcesSet > 1 {
+		return fmt.Errorf("only one of contents, file or remote can be configured")
 	}
 
 	if a.GRPC == nil && a.HTTP == nil {
