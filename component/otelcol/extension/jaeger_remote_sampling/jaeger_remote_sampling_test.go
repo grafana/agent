@@ -206,7 +206,7 @@ func TestUnmarshalUsesDefaults(t *testing.T) {
 				Source: jaeger_remote_sampling.ArgumentsSource{File: "remote.json"},
 			},
 		},
-		// defaults grpc as expected
+		// leaves specified values on grpc
 		{
 			cfg: `
 				grpc {
