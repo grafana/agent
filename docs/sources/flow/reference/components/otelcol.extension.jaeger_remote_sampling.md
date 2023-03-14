@@ -279,7 +279,11 @@ otelcol.extension.jaeger_remote_sampling "example" {
 }
 ```
 
-Using river components to manage the contents directly:
+### Serving from another component
+
+
+This example uses the output of a component to determine what sampling
+rules to serve: 
 
 ```river
 local.file "sampling" {
