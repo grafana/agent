@@ -7,11 +7,11 @@ weight: 300
 
 # Modules
 
-_Modules_ are a way to create Grafana Agent Flow configuration files which can
-laoded as a component. Modules are a great way to parameterize configuration
-files to create reusable pipelines.
+_Modules_ are a way to create Grafana Agent Flow configurations which can be
+loaded as a component. Modules are a great way to parameterize a configuration
+to create reusable pipelines.
 
-Modules are Grafana Agent Flow configuration files which have:
+Modules are Grafana Agent Flow configurations which have:
 
 * Arguments: settings which configure a module.
 * Exports: named values which a module exposes to the consumer of the module.
@@ -28,12 +28,12 @@ learn how to define arguments and exports for a module.
 
 ## Module loaders
 
-A _Module loader_ is a Grafana Agent Flow component which retreives a module
+A _Module loader_ is a Grafana Agent Flow component which retrieves a module
 and runs the components defined inside of it.
 
 Module loader components are responsible for:
 
-* Retreiving the module source to run.
+* Retrieving the module source to run.
 * Creating a [Component controller][] for the module to run in.
 * Passing arguments to the loaded module.
 * Exposing exports from the loaded module.
@@ -68,7 +68,7 @@ local.file "my_module" {
 }
 
 module.string "my_module" {
-  source = local.file.my_module.content
+  content = local.file.my_module.content
 
   arguments = {
     MODULE_ARGUMENT_NAME_1 = MODULE_ARGUMENT_VALUE_1,
@@ -121,7 +121,7 @@ loki.source.file "self" {
   targets = LOG_TARGETS
 
   // Forward collected logs to the input of our filter.
-  forward_to = [module.string.filter.values.logs_input]
+  forward_to = [module.string.filter.exports.logs_input]
 }
 
 local.file "log_filter" {
@@ -129,7 +129,7 @@ local.file "log_filter" {
 }
 
 module.string "log_filter" {
-  source = local.file.log_filter.content
+  content = local.file.log_filter.content
 
   arguments = {
     // Configure the filter to forward filtered logs to loki.echo below.
