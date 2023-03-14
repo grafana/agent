@@ -262,12 +262,11 @@ configuration.
 ## Example
 
 This example configures the Jaeger remote sampling extension to load a local json document and
-serve it over http port 5778.
+serve it over the default http port of 5778.
 
 ```river
 otelcol.extension.jaeger_remote_sampling "example" {
   http {
-    endpoint = "0.0.0.0:5778"
   }
   source {
     file             = "/path/to/jaeger-sampling.json"
