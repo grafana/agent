@@ -175,7 +175,7 @@ Name | Type | Description | Default | Required
 ### source block
 
 The `source` block configures the method of retrieving the Jaeger remote sampling document
-that is served from the servers specified by the `grpc` and `http` blocks.
+that is served by the servers specified in the `grpc` and `http` blocks.
 
 The following arguments are supported:
 
