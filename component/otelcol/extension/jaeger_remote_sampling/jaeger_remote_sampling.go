@@ -25,7 +25,7 @@ func init() {
 		Args: Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
-			fact := jaegerremotesampling.NewFactory()
+			fact := NewFactory()
 
 			return extension.New(opts, fact, args.(Arguments))
 		},
@@ -42,6 +42,7 @@ type Arguments struct {
 }
 
 type ArgumentsSource struct {
+	Contents       string                       `river:"contents,attr,optional"`
 	Remote         *otelcol.GRPCClientArguments `river:"remote,block,optional"`
 	File           string                       `river:"file,attr,optional"`
 	ReloadInterval time.Duration                `river:"reload_interval,attr,optional"`

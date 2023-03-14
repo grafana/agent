@@ -4,6 +4,8 @@ label:
   stage: experimental
 ---
 
+jpe add contents option
+
 # otelcol.extension.jaeger_remote_sampling
 
 {{< docs/shared lookup="flow/stability/experimental.md" source="agent" >}}
