@@ -162,7 +162,7 @@ func New(o Options) *Flow {
 			Logger:        log,
 			TraceProvider: tracer,
 			DataPath:      o.DataPath,
-			EnqueueReevaluation: func(cn *controller.ComponentNode) {
+			OnComponentUpdate: func(cn *controller.ComponentNode) {
 				// Changed components should be queued for reevaluation.
 				queue.Enqueue(cn)
 			},

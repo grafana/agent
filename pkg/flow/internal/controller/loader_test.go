@@ -52,11 +52,11 @@ func TestLoader(t *testing.T) {
 
 	newGlobals := func() controller.ComponentGlobals {
 		return controller.ComponentGlobals{
-			Logger:              log.NewNopLogger(),
-			TraceProvider:       trace.NewNoopTracerProvider(),
-			DataPath:            t.TempDir(),
-			EnqueueReevaluation: func(cn *controller.ComponentNode) { /* no-op */ },
-			Registerer:          prometheus.NewRegistry(),
+			Logger:            log.NewNopLogger(),
+			TraceProvider:     trace.NewNoopTracerProvider(),
+			DataPath:          t.TempDir(),
+			OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
+			Registerer:        prometheus.NewRegistry(),
 		}
 	}
 
@@ -193,11 +193,11 @@ func TestScopeWithFailingComponent(t *testing.T) {
 	`
 	newGlobals := func() controller.ComponentGlobals {
 		return controller.ComponentGlobals{
-			Logger:              log.NewNopLogger(),
-			TraceProvider:       trace.NewNoopTracerProvider(),
-			DataPath:            t.TempDir(),
-			EnqueueReevaluation: func(cn *controller.ComponentNode) { /* no-op */ },
-			Registerer:          prometheus.NewRegistry(),
+			Logger:            log.NewNopLogger(),
+			TraceProvider:     trace.NewNoopTracerProvider(),
+			DataPath:          t.TempDir(),
+			OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
+			Registerer:        prometheus.NewRegistry(),
 		}
 	}
 
