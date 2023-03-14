@@ -1,67 +1,74 @@
 package logging
 
 import (
-	"fmt"
 	"io"
-	"sync"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 )
 
-// Logger implements the github.com/go-kit/log.Logger interface. It supports
-// being dynamically updated at runtime.
+// Logger is a logger for Grafana Agent Flow components and controllers. It
+// implements the [log.Logger] interface.
 type Logger struct {
-	w io.Writer
+	sink *Sink
 
-	mut sync.RWMutex
-	l   log.Logger
+	parentComponentID string
+	componentID       string
+
+	orig log.Logger // Original logger before the component name was added.
+	log  log.Logger // Logger with component name injected.
 }
 
-// New creates a New logger with the default log level and format.
-func New(w io.Writer, o Options) (*Logger, error) {
-	inner, err := buildLogger(w, o)
-	if err != nil {
-		return nil, err
+// New creates a new Logger from the provided logging Sink.
+func New(sink *Sink, opts ...LoggerOption) *Logger {
+	if sink == nil {
+		sink, _ = WriterSink(io.Discard, DefaultSinkOptions)
 	}
 
-	return &Logger{w: w, l: inner}, nil
+	l := &Logger{
+		sink:              sink,
+		parentComponentID: sink.parentComponentID,
+		orig:              sink.logger,
+	}
+	for _, opt := range opts {
+		opt(l)
+	}
+
+	// Build the final logger.
+	l.log = wrapWithComponentID(sink.logger, sink.parentComponentID, l.componentID)
+
+	return l
+}
+
+// LoggerOption is passed to New to customize the constructed Logger.
+type LoggerOption func(*Logger)
+
+// WithComponentID provides a component ID to the Logger.
+func WithComponentID(id string) LoggerOption {
+	return func(l *Logger) {
+		l.componentID = id
+	}
 }
 
 // Log implements log.Logger.
-func (l *Logger) Log(kvps ...interface{}) error {
-	l.mut.RLock()
-	defer l.mut.RUnlock()
-	return l.l.Log(kvps...)
+func (c *Logger) Log(kvps ...interface{}) error {
+	return c.log.Log(kvps...)
 }
 
-// Update re-configures the options used for the logger.
-func (l *Logger) Update(o Options) error {
-	newLogger, err := buildLogger(l.w, o)
-	if err != nil {
-		return err
+func wrapWithComponentID(l log.Logger, parentID, componentID string) log.Logger {
+	id := fullID(parentID, componentID)
+	if id == "" {
+		return l
 	}
-
-	l.mut.Lock()
-	defer l.mut.Unlock()
-	l.l = newLogger
-	return nil
+	return log.With(l, "component", id)
 }
 
-func buildLogger(w io.Writer, o Options) (log.Logger, error) {
-	var l log.Logger
-
-	switch o.Format {
-	case FormatLogfmt:
-		l = log.NewLogfmtLogger(log.NewSyncWriter(w))
-	case FormatJSON:
-		l = log.NewJSONLogger(log.NewSyncWriter(w))
+func fullID(parentID, componentID string) string {
+	switch {
+	case componentID == "":
+		return parentID
+	case parentID == "":
+		return componentID
 	default:
-		return nil, fmt.Errorf("unrecognized log format %q", o.Format)
+		return parentID + "/" + componentID
 	}
-
-	l = level.NewFilter(l, o.Level.Filter())
-
-	l = log.With(l, "ts", log.DefaultTimestampUTC)
-	return l, nil
 }

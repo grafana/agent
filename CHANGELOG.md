@@ -9,9 +9,18 @@ internal API changes are not present.
 
 > **NOTE**: As of v0.32.0, builds for 32-bit ARMv6 currently don't support the
 > embedded Flow UI. The Flow UI will return to this target as soon as possible.
+>
+> **NOTE**: The main branch currently doesn't support any 32-bit ARM builds.
+> Support for these builds will return as soon as possible, ideally before
+> v0.33 is released.
 
 Main (unreleased)
 -----------------
+
+### Breaking changes
+
+- Support for 32-bit ARM builds is temporarily removed. We are aiming to bring
+  back support for these builds prior to publishing v0.33.0. (@rfratto)
 
 ### Features
 
@@ -19,8 +28,12 @@ Main (unreleased)
 
   - `discovery.ec2` service discovery for aws ec2. (@captncraig)
   - `discovery.lightsail` service discovery for aws lightsail. (@captncraig)
+  - `module.string` runs a Grafana Agent Flow module passed to the component by
+    an expression containing a string. (@erikbaranowski, @rfratto)
   - `otelcol.auth.oauth2` performs OAuth 2.0 authentication for HTTP and gRPC
     based OpenTelemetry exporters. (@ptodev)
+  - `otelcol.extension.jaeger_remote_sampling` provides an endpoint from which to 
+    pull Jaeger remote sampling documents. (@joe-elliott)
   - `prometheus.exporter.blackbox` collects metrics from Blackbox exporter
     (@marctc).
   - `prometheus.exporter.mysql` collects metrics from a MySQL database.
@@ -43,6 +56,9 @@ Main (unreleased)
   block would fail to parse the response from the remote sampler server if it
   used strings for the strategy type. This caused sampling to fall back
   to the default rate. (@rfratto)
+
+- Flow: fix issue where components with no arguments like `loki.echo` were not
+  viewable in the UI. (@rfratto)
 
 ### Other changes
 
