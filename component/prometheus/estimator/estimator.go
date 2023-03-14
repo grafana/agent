@@ -39,9 +39,7 @@ type Component struct {
 	reg               prom_client.Registry
 }
 
-type Arguments struct {
-	Foo string `river:"foo,attr,optional"`
-}
+type Arguments struct{}
 
 type Exports struct {
 	Receiver storage.Appendable `river:"receiver,attr"`
