@@ -162,9 +162,10 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 	}
 
 	// We need to generate a globally unique component ID to give to the
-	// component and for use with telemetry data. For everything else (HTTP,
-	// data), we can just use the controller-local ID as those values are
-	// guaranteed to be globally unique.
+	// component and for use with telemetry data which doesn't support
+	// reconstructing the global ID. For everything else (HTTP, data), we can
+	// just use the controller-local ID as those values are guaranteed to be
+	// globally unique.
 	globalID := cn.nodeID
 	if globals.ControllerID != "" {
 		globalID = path.Join(globals.ControllerID, cn.nodeID)
