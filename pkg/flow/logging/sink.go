@@ -13,7 +13,9 @@ type Sink struct {
 	w         io.Writer // Raw writer to use
 	updatable bool      // Whether the sink supports being updated.
 
-	parentComponentID string // Whether the sink has a parent component ID associated with it.
+	// parentComponentID is the ID of the parent component which generated the
+	// sink. Empty if the sink is not associated with a component.
+	parentComponentID string
 
 	logger *lazyLogger // Constructed logger to use.
 }
