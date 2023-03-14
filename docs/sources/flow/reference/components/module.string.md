@@ -32,11 +32,11 @@ Name | Type | Description | Default | Required
 `arguments` | `map(any)`  | The values for the supported arguments in the module contents. | | no
 
 `content` is a string that contains the configuration of the module to load.
-`content` is typically loaded via the exports of another component. For example,
+`content` is typically loaded by using the exports of another component. For example,
 
-- local.file.LABEL.content
-- remote.http.LABEL.content
-- remote.s3.LABEL.content
+- `local.file.LABEL.content`
+- `remote.http.LABEL.content`
+- `remote.s3.LABEL.content`
 
 `arguments` allows us to pass parameterized input into a module.
 An `argument` marked non-optional in the module being loaded is required in the
@@ -54,7 +54,7 @@ Name | Type | Description
 `exports` | `map(any)` | The exports of the Module loader.
 
 `exports` exposes the `export` config block inside a module. It can be accessed from
-the parent river config via `module.string.LABEL.exports.EXPORT_LABEL
+the parent config via `module.string.LABEL.exports.EXPORT_LABEL
 
 *TODO: Add link to export config-blocks page once merged*
 
@@ -76,10 +76,10 @@ unhealthy and the health includes the error from loading the module.
 
 ## Example
 
-In this example, we pass credentials from a parent river config to a module for
-a `prometheus.remote_write` flow component. We then export that component for use
-in the parent river config. The export can then be used by the parent river config
-as a component.
+In this example, we pass credentials from a parent config to a module which loads
+a `prometheus.remote_write` component. The exports of the 
+`prometheus.remote_write` component are exposed to parent config, allowing 
+the parent config to pass metrics to it.
 
 Parent:
 
