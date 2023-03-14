@@ -6,10 +6,10 @@ import (
 	"github.com/grafana/agent/component/discovery"
 )
 
-// Autodiscovery is the base interface for an autodiscovery mechanism.
+// Mechanism is the base interface for an autodiscovery mechanism.
 // Implementations may also implement extension interfaces (named
 // <Extension>Autodiscovery) to implement extra known behavior.
-type Autodiscovery interface {
+type Mechanism interface {
 	Run() (*Result, error)
 }
 

@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 	"text/template"
 
@@ -29,39 +30,86 @@ type templateInput struct {
 	LogsTargets    []string
 }
 
-type Discoverer interface {
-	Run() (*autodiscovery.Result, error)
+type AutodiscT string
+
+const (
+	AUTODISC_MYSQL      AutodiscT = "mysql"
+	AUTODISC_POSTGRES   AutodiscT = "postgres"
+	AUTODISC_CONSUL     AutodiscT = "consul"
+	AUTODISC_PROMETHEUS AutodiscT = "prometheus"
+	AUTODISC_KUBERNETES AutodiscT = "kubernetes"
+	AUTODISC_REDIS      AutodiscT = "redis"
+	AUTODISC_APACHE     AutodiscT = "apache"
+)
+
+var allMechanisms = []AutodiscT{
+	AUTODISC_MYSQL,
+	AUTODISC_POSTGRES,
+	AUTODISC_CONSUL,
+	AUTODISC_PROMETHEUS,
+	AUTODISC_KUBERNETES,
+	AUTODISC_REDIS,
+	AUTODISC_APACHE,
 }
 
-func initComponent[T any](v T, err error) T {
-	if err != nil {
-		//TODO: Log a warning? Or panic?
-		panic(err)
+type Autodiscovery struct {
+	// Discoverers which we were explicitly told to ignore, e.g. via Agent Management
+	IgnoreList map[AutodiscT]struct{}
+}
+
+func createMechanism(discovererId AutodiscT) (autodiscovery.Mechanism, error) {
+	switch discovererId {
+	case AUTODISC_MYSQL:
+		return mysql.New()
+	case AUTODISC_POSTGRES:
+		return postgres.New()
+	case AUTODISC_CONSUL:
+		return consul.New()
+	case AUTODISC_PROMETHEUS:
+		return prometheus.New()
+	case AUTODISC_KUBERNETES:
+		return kubernetes.New()
+	case AUTODISC_REDIS:
+		return redis.New()
+	case AUTODISC_APACHE:
+		return apache.New()
 	}
-	return v
+	return nil, fmt.Errorf("unknown discoverer")
 }
 
 // Do do doo do doo.
-func Do(wr io.Writer) {
-	discFuncs := []Discoverer{
-		initComponent(mysql.New()),
-		initComponent(postgres.New()),
-		initComponent(consul.New()),
-		initComponent(prometheus.New()),
-		initComponent(kubernetes.New()),
-		initComponent(redis.New()),
-		initComponent(apache.New()),
+func (a *Autodiscovery) Do(wr io.Writer) []AutodiscT {
+	// "mechanisms" are the discoverers which we need to run.
+	// Usually these are all the available discoverers
+	// bar the ones in the IgnoreList and the ones for exporters
+	// already used in the River config.
+	usedMechanisms := make([]AutodiscT, 0)
+	var mechanisms []autodiscovery.Mechanism
+	for _, mechId := range allMechanisms {
+		if _, ok := a.IgnoreList[mechId]; ok {
+			continue
+		}
+		mech, err := createMechanism(mechId)
+		if err != nil {
+			fmt.Fprintf(os.Stderr,
+				"failed to create a %s auto discovery mechanism: %s", mechId, err)
+			continue
+		}
+		mechanisms = append(mechanisms, mech)
+		//TODO: "usedMechanisms" should not include mechanisms which failed to init or to run
+		usedMechanisms = append(usedMechanisms, mechId)
 	}
 
-	var results []*autodiscovery.Result
-
-	for _, f := range discFuncs {
+	results := make([]*autodiscovery.Result, 0, len(mechanisms))
+	for _, f := range mechanisms {
 		res, err := f.Run()
 		if err != nil {
-			panic(err)
-		} else {
-			results = append(results, res)
+			//TODO: Also print out the name of the mechanism
+			fmt.Fprintf(os.Stderr,
+				"failed to run auto discovery mechanism: %s", err)
+			continue
 		}
+		results = append(results, res)
 	}
 
 	input := BuildTemplateInput(results)
@@ -71,6 +119,13 @@ func Do(wr io.Writer) {
 	RenderConfig(wr, input)
 
 	//TODO: If the agent already has a River config, can we merge this new one and the existing one?
+
+	// Reasons not to use a mechanism:
+	// * in the ignore list
+	// * already in the user's configuration
+	// * failed to create
+	// * failed to run
+	return usedMechanisms
 }
 
 // BuildTemplateInput ...
