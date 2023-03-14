@@ -108,7 +108,6 @@ func TestStrategyStore(t *testing.T) {
 		},
 	}
 	assert.EqualValues(t, expected, *s)
-
 }
 
 func makeResponse(samplerType sampling.SamplingStrategyType, param float64) (resp sampling.SamplingStrategyResponse) {

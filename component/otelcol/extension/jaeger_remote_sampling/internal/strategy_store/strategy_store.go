@@ -15,22 +15,16 @@
 package strategy_store
 
 import (
-	"bytes"
 	"context"
-	"encoding/gob"
 	"encoding/json"
 	"fmt"
-	"sync/atomic"
 
+	"go.uber.org/atomic"
 	"go.uber.org/zap"
 
 	ss "github.com/jaegertracing/jaeger/cmd/collector/app/sampling/strategystore"
 	"github.com/jaegertracing/jaeger/thrift-gen/sampling"
 )
-
-// null represents "null" JSON value and
-// it un-marshals to nil pointer.
-var nullJSON = []byte("null")
 
 type strategyStore struct {
 	storedStrategies atomic.Value // holds *storedStrategies
@@ -105,6 +99,7 @@ func (h *strategyStore) parseStrategies(strategies *strategies) {
 	merge := true
 	if newStore.defaultStrategy.OperationSampling == nil ||
 		newStore.defaultStrategy.OperationSampling.PerOperationStrategies == nil {
+
 		merge = false
 	}
 
@@ -118,6 +113,7 @@ func (h *strategyStore) parseStrategies(strategies *strategies) {
 		if opS == nil {
 			if newStore.defaultStrategy.OperationSampling == nil ||
 				newStore.serviceStrategies[s.Service].ProbabilisticSampling == nil {
+
 				continue
 			}
 			// Service has no per-operation strategies, so just reference the default settings and change default samplingRate.
@@ -139,6 +135,7 @@ func (h *strategyStore) parseStrategies(strategies *strategies) {
 func mergePerOperationSamplingStrategies(
 	a, b []*sampling.OperationSamplingStrategy,
 ) []*sampling.OperationSamplingStrategy {
+
 	m := make(map[string]bool)
 	for _, aOp := range a {
 		m[aOp.Operation] = true
@@ -217,14 +214,4 @@ func (h *strategyStore) parseStrategy(strategy *strategy) *sampling.SamplingStra
 		h.logger.Warn("Failed to parse sampling strategy", zap.Any("strategy", strategy))
 		return defaultStrategyResponse()
 	}
-}
-
-func deepCopy(s *sampling.SamplingStrategyResponse) *sampling.SamplingStrategyResponse {
-	var buf bytes.Buffer
-	enc := gob.NewEncoder(&buf)
-	dec := gob.NewDecoder(&buf)
-	enc.Encode(*s)
-	var copy sampling.SamplingStrategyResponse
-	dec.Decode(&copy)
-	return &copy
 }
