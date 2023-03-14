@@ -53,7 +53,7 @@ func TestFileSource(t *testing.T) {
 			file = "%s"
 		}
 	`, listenAddr, remoteSamplingConfigFile)
-	
+
 	get, cancel := startJaegerRemoteSamplingServer(t, cfg, listenAddr)
 	defer cancel()
 
@@ -61,7 +61,7 @@ func TestFileSource(t *testing.T) {
 	require.JSONEq(t, actual, expectedRemoteSamplingConfig)
 }
 
-func TestContentsSource(t *testing.T) {
+func TestContentSource(t *testing.T) {
 	// write remote sampling config to a temp file
 	remoteSamplingConfig := `{ \"default_strategy\": {\"type\": \"probabilistic\", \"param\": 0.5 } }`
 	expectedRemoteSamplingConfig := `
@@ -78,7 +78,7 @@ func TestContentsSource(t *testing.T) {
 			endpoint = "%s"
 	    }
 		source {
-			contents = "%s"
+			content = "%s"
 		}
 	`, listenAddr, remoteSamplingConfig)
 
@@ -119,10 +119,10 @@ func startJaegerRemoteSamplingServer(t *testing.T, cfg string, listenAddr string
 		resp, err := http.Get("http://" + listenAddr + "/sampling?service=" + svc)
 		require.NoError(t, err, "HTTP request failed")
 		defer resp.Body.Close()
-	
+
 		b, err := io.ReadAll(resp.Body)
 		require.NoError(t, err)
-		return string(b)	
+		return string(b)
 	}, cancel
 }
 
@@ -207,6 +207,39 @@ func TestUnmarshalUsesDefaults(t *testing.T) {
 		err := river.Unmarshal([]byte(tc.cfg), &args)
 		require.NoError(t, err)
 		require.Equal(t, tc.expected, args)
+	}
+}
+
+func TestUnmarshalRequiresExactlyOneSource(t *testing.T) {
+	tcs := []struct {
+		cfg           string
+		expectedError string
+	}{
+		{
+			cfg: `
+				http {}
+				source {}
+			`,
+			expectedError: "one of contents, file or remote must be configured",
+		},
+		{
+			cfg: `
+				http {}
+				source {
+					file = "remote.json"
+					remote {
+						endpoint = "http://localhost:1234"
+					}
+				}
+			`,
+			expectedError: "only one of contents, file or remote can be configured",
+		},
+	}
+
+	for _, tc := range tcs {
+		var args jaeger_remote_sampling.Arguments
+		err := river.Unmarshal([]byte(tc.cfg), &args)
+		require.EqualError(t, err, tc.expectedError)
 	}
 }
 

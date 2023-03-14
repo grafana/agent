@@ -41,7 +41,7 @@ type Arguments struct {
 }
 
 type ArgumentsSource struct {
-	Contents       string                       `river:"contents,attr,optional"`
+	Content        string                       `river:"content,attr,optional"`
 	Remote         *otelcol.GRPCClientArguments `river:"remote,block,optional"`
 	File           string                       `river:"file,attr,optional"`
 	ReloadInterval time.Duration                `river:"reload_interval,attr,optional"`
@@ -64,7 +64,7 @@ func (args Arguments) Convert() otelconfig.Extension {
 			Remote:         args.Source.Remote.Convert(),
 			File:           args.Source.File,
 			ReloadInterval: args.Source.ReloadInterval,
-			Contents:       args.Source.Contents,
+			Contents:       args.Source.Content,
 		},
 	}
 }
@@ -90,8 +90,8 @@ func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	}
 
 	// remote config, local file and contents are all mutually exclusive
-	sourcesSet := 0 // jpe test
-	if a.Source.Contents != "" {
+	sourcesSet := 0
+	if a.Source.Content != "" {
 		sourcesSet++
 	}
 	if a.Source.File != "" {

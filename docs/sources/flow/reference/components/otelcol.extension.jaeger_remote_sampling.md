@@ -4,8 +4,6 @@ label:
   stage: experimental
 ---
 
-jpe add contents option
-
 # otelcol.extension.jaeger_remote_sampling
 
 {{< docs/shared lookup="flow/stability/experimental.md" source="agent" >}}
@@ -185,6 +183,7 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `file` | `string` | A local file containing a Jaeger remote sampling document. | `""` | no
 `reload_interval` | `duration` | The interval at which to reload the specified file. Leave at 0 to never reload. | `0` | no
+`content` | `string` | A string containing the Jaeger remote sampling contents directly. | `""` | no
 
 ### remote block
 
@@ -264,7 +263,8 @@ configuration.
 ## Example
 
 This example configures the Jaeger remote sampling extension to load a local json document and
-serve it over the default http port of 5778.
+serve it over the default http port of 5778. Currently this config style exists for consistency
+with upstream Opentelemetry Collector components and may be removed.
 
 ```river
 otelcol.extension.jaeger_remote_sampling "example" {
@@ -277,3 +277,18 @@ otelcol.extension.jaeger_remote_sampling "example" {
 }
 ```
 
+Using river components to manage the contents directly:
+
+```river
+local.file "sampling" {
+  filename  = "/path/to/jaeger-sampling.json"
+}
+
+otelcol.extension.jaeger_remote_sampling "example" {
+  http {
+  }
+  source {
+    content = local.file.sampling.content
+  }
+}
+```
