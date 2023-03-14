@@ -39,7 +39,7 @@ func TestFileSource(t *testing.T) {
 	}
 	`
 
-	remoteSamplingConfigFile := filepath.Join(t.TempDir(), "remote.json")
+	remoteSamplingConfigFile := filepath.ToSlash(filepath.Join(t.TempDir(), "remote.json"))
 	err := os.WriteFile(remoteSamplingConfigFile, []byte(remoteSamplingConfig), 0644)
 	require.NoError(t, err)
 
