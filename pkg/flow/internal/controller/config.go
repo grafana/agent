@@ -40,7 +40,7 @@ type ConfigNode struct {
 	exportBlocks map[string]*ast.BlockStmt
 	exportEvals  map[string]*vm.Evaluator
 
-	onExportsChanged func(map[string]any)
+	onExportsChange func(map[string]any)
 }
 
 // ConfigBlockID returns the string name for a config block.
@@ -52,7 +52,7 @@ var _ dag.Node = (*ConfigNode)(nil)
 
 // NewConfigNode creates a new ConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.
-func NewConfigNode(blocks []*ast.BlockStmt, l log.Logger, t trace.TracerProvider, onExportsChanged func(map[string]any)) (*ConfigNode, diag.Diagnostics) {
+func NewConfigNode(blocks []*ast.BlockStmt, l log.Logger, t trace.TracerProvider, onExportsChange func(map[string]any), isInModule bool) (*ConfigNode, diag.Diagnostics) {
 	var (
 		blockMap = make(map[string]*ast.BlockStmt, len(blocks))
 		diags    diag.Diagnostics
@@ -86,7 +86,7 @@ func NewConfigNode(blocks []*ast.BlockStmt, l log.Logger, t trace.TracerProvider
 		case tracingBlockID:
 			tracingBlock = *b
 		case exportBlockID:
-			if onExportsChanged == nil {
+			if !isInModule {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
 					Message:  "export blocks not allowed when not using modules",
@@ -123,7 +123,7 @@ func NewConfigNode(blocks []*ast.BlockStmt, l log.Logger, t trace.TracerProvider
 		exportBlocks: exportBlocks,
 		exportEvals:  exportEvals,
 
-		onExportsChanged: onExportsChanged,
+		onExportsChange: onExportsChange,
 	}, diags
 }
 
@@ -206,8 +206,8 @@ func (cn *ConfigNode) evaluateExports(scope *vm.Scope) (*ast.BlockStmt, error) {
 		exports[name] = export.Value
 	}
 
-	if cn.onExportsChanged != nil {
-		cn.onExportsChanged(exports)
+	if cn.onExportsChange != nil {
+		cn.onExportsChange(exports)
 	}
 	return nil, nil
 }

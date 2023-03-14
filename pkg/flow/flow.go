@@ -112,9 +112,6 @@ type Options struct {
 	// OnExportsChange is nil, export configuration blocks are not allowed in the
 	// loaded config file.
 	OnExportsChange func(exports map[string]any)
-
-	// IsModule is set to true if the Flow Controller is a module.
-	IsModule bool
 }
 
 // Flow is the Flow system.
@@ -165,14 +162,15 @@ func New(o Options) *Flow {
 			Logger:        log,
 			TraceProvider: tracer,
 			DataPath:      o.DataPath,
-			OnExportsChange: func(cn *controller.ComponentNode) {
+			EnqueueReevaluation: func(cn *controller.ComponentNode) {
 				// Changed components should be queued for reevaluation.
 				queue.Enqueue(cn)
 			},
-			Registerer:     o.Reg,
-			HTTPPathPrefix: o.HTTPPathPrefix,
-			HTTPListenAddr: o.HTTPListenAddr,
-			ControllerID:   o.ControllerID,
+			OnExportsChange: o.OnExportsChange,
+			Registerer:      o.Reg,
+			HTTPPathPrefix:  o.HTTPPathPrefix,
+			HTTPListenAddr:  o.HTTPListenAddr,
+			ControllerID:    o.ControllerID,
 		})
 	)
 
@@ -264,7 +262,7 @@ func (c *Flow) LoadFile(file *File, args map[string]any) error {
 		},
 	}
 
-	diags := c.loader.Apply(argumentScope, file.Components, file.ConfigBlocks, c.opts.OnExportsChange, c.opts.IsModule)
+	diags := c.loader.Apply(argumentScope, file.Components, file.ConfigBlocks)
 	if !c.loadedOnce.Load() && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.
