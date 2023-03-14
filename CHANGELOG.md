@@ -45,6 +45,9 @@ Main (unreleased)
   used strings for the strategy type. This caused sampling to fall back
   to the default rate. (@rfratto)
 
+- Flow: fix issue where components with no arguments like `loki.echo` were not
+  viewable in the UI. (@rfratto)
+
 ### Other changes
 
 - Grafana Agent Docker containers and release binaries are now published for
