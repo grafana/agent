@@ -1,5 +1,7 @@
 ---
 title: otelcol.extension.jaegerremotesampling
+label:
+  stage: experimental
 ---
 
 # otelcol.extension.jaegerremotesampling
