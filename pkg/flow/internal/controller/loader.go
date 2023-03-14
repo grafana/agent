@@ -71,7 +71,7 @@ func NewLoader(globals ComponentGlobals) *Loader {
 // The provided parentContext can be used to provide global variables and
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
-func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, onExportsChanged func(map[string]any)) diag.Diagnostics {
+func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) diag.Diagnostics {
 	start := time.Now()
 	l.mut.Lock()
 	defer l.mut.Unlock()
@@ -84,7 +84,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlo
 	)
 
 	// Pre-populate graph with a ConfigNode.
-	c, configBlockDiags := NewConfigNode(configBlocks, l.globals, onExportsChanged)
+	c, configBlockDiags := NewConfigNode(configBlocks, l.globals, l.isModule())
 	diags = append(diags, configBlockDiags...)
 	newGraph.Add(c)
 
@@ -239,6 +239,16 @@ func (l *Loader) populateGraph(g *dag.Graph, blocks []*ast.BlockStmt) diag.Diagn
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
 					Message:  fmt.Sprintf("Component %q must have a label", componentName),
+					StartPos: block.NamePos.Position(),
+					EndPos:   block.NamePos.Add(len(componentName) - 1).Position(),
+				})
+				continue
+			}
+
+			if registration.Singleton && l.isModule() {
+				diags.Add(diag.Diagnostic{
+					Severity: diag.SeverityLevelError,
+					Message:  fmt.Sprintf("Component %q is a singleton and unsupported inside a module", componentName),
 					StartPos: block.NamePos.Position(),
 					EndPos:   block.NamePos.Add(len(componentName) - 1).Position(),
 				})
@@ -401,4 +411,10 @@ func multierrToDiags(errors error) diag.Diagnostics {
 		})
 	}
 	return diags
+}
+
+// If the definition of a module ever changes, update this.
+func (l *Loader) isModule() bool {
+	// Either 1 of these checks is technically sufficient but let's be extra careful.
+	return l.globals.OnExportsChange != nil && l.globals.ControllerID != ""
 }

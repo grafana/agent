@@ -40,8 +40,6 @@ type ConfigNode struct {
 
 	// Set to true for configuration blocks that were provided.
 	foundLogging, foundTracing bool
-
-	onExportsChanged func(map[string]any)
 }
 
 // ConfigBlockID returns the string name for a config block.
@@ -53,7 +51,7 @@ var _ dag.Node = (*ConfigNode)(nil)
 
 // NewConfigNode creates a new ConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.
-func NewConfigNode(blocks []*ast.BlockStmt, globals ComponentGlobals, onExportsChanged func(map[string]any)) (*ConfigNode, diag.Diagnostics) {
+func NewConfigNode(blocks []*ast.BlockStmt, globals ComponentGlobals, isInModule bool) (*ConfigNode, diag.Diagnostics) {
 	var (
 		blockMap = make(map[string]*ast.BlockStmt, len(blocks))
 		diags    diag.Diagnostics
@@ -92,7 +90,7 @@ func NewConfigNode(blocks []*ast.BlockStmt, globals ComponentGlobals, onExportsC
 			tracingBlock = *b
 			foundTracing = true
 		case exportBlockID:
-			if onExportsChanged == nil {
+			if !isInModule {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
 					Message:  "export blocks not allowed when not using modules",
@@ -131,8 +129,6 @@ func NewConfigNode(blocks []*ast.BlockStmt, globals ComponentGlobals, onExportsC
 
 		foundLogging: foundLogging,
 		foundTracing: foundTracing,
-
-		onExportsChanged: onExportsChanged,
 	}, diags
 }
 
@@ -221,8 +217,8 @@ func (cn *ConfigNode) evaluateExports(scope *vm.Scope) (*ast.BlockStmt, error) {
 		exports[name] = export.Value
 	}
 
-	if cn.onExportsChanged != nil {
-		cn.onExportsChanged(exports)
+	if cn.globals.OnExportsChange != nil {
+		cn.globals.OnExportsChange(exports)
 	}
 	return nil, nil
 }
