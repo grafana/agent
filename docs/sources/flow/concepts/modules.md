@@ -47,7 +47,7 @@ refer to the documentation for the module loader you are using for more
 information.
 
 [Component controller]: {{< relref "./component_controller.md" >}}
-[Component]: {{< relref "../reference/components/" >}}
+[Components]: {{< relref "../reference/components/" >}}
 
 ## Module sources
 
@@ -84,7 +84,7 @@ This example module manages a pipeline which filters out debug- and info-level
 log lines which are given to it:
 
 ```river
-// argument.write_to is an optional argument which specifies where filtered
+// argument.write_to is a required argument which specifies where filtered
 // log lines should be sent.
 //
 // The value of the argument can be retrieved in this file with

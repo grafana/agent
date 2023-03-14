@@ -6,7 +6,7 @@ title: argument
 
 `argument` is an optional configuration block used to specify parameterized
 input to a [Module][Modules]. `argument` blocks must be given a label which
-determine the name of the argument.
+determines the name of the argument.
 
 The `argument` block may not be specified in the main configuration file given
 to Grafana Agent Flow.
