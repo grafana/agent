@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/grafana/agent/pkg/flow/logging/v2"
+	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/regexp"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/trace"

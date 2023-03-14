@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/flow/logging/v2"
+	"github.com/grafana/agent/pkg/flow/logging"
 )
 
 func Example() {

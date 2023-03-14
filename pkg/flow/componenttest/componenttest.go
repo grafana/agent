@@ -14,7 +14,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/flow/logging/v2"
+	"github.com/grafana/agent/pkg/flow/logging"
 )
 
 // A Controller is a testing controller which controls a single component.
