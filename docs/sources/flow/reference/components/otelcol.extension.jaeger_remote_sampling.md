@@ -264,6 +264,8 @@ configuration.
 
 ## Examples
 
+### Serving from a file
+
 This example configures the Jaeger remote sampling extension to load a local json document and
 serve it over the default http port of 5778. Currently this config style exists for consistency
 with upstream Opentelemetry Collector components and may be removed.
