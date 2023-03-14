@@ -2,6 +2,7 @@ package runner
 
 import (
 	"bytes"
+	"os"
 	"testing"
 
 	"github.com/grafana/agent/component/discovery"
@@ -96,4 +97,8 @@ prometheus.exporter.consul "default" {
 	RenderConfig(buf, BuildTemplateInput(input))
 
 	require.Equal(t, expected, buf.String())
+}
+
+func TestInstallIntegration(t *testing.T) {
+	installIntegration(os.Getenv("GCLOUD_ADMIN_API_KEY"), "jvm", "mysql")
 }

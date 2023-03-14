@@ -2,7 +2,12 @@ package runner
 
 import (
 	"bytes"
+	"encoding/json"
+	"fmt"
 	"io"
+	"io/ioutil"
+	"net/http"
+	"strings"
 	"text/template"
 
 	"github.com/grafana/agent/pkg/autodiscovery"
@@ -165,3 +170,118 @@ loki.write "default" {
 {{.}}
 {{ end }}{{end}}
 `
+
+func installIntegration(apiToken string, integrations ...string) error {
+	client := &http.Client{}
+	baseURL := "https://grafana.com/api"
+	integrationsAPIURL := "https://integrations-api-eu-west.grafana.net"
+
+	// Get stack ID
+	req, err := http.NewRequest("GET", baseURL+"/instances/tpaschalis", nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiToken))
+	req.Header.Set("User-Agent", "deployment_tools:/scripts/gcom")
+	res, _ := client.Do(req)
+	bb, _ := ioutil.ReadAll(res.Body)
+
+	var rsp map[string]interface{}
+	_ = json.Unmarshal(bb, &rsp)
+	instanceID := rsp["id"]
+	grafanaURL := rsp["url"].(string)
+	instanceURL := fmt.Sprintf("%s/instances/%d", baseURL, int(instanceID.(float64)))
+	integrationsInstanceURL := fmt.Sprintf("%s/v2/stacks/%d", integrationsAPIURL, int(instanceID.(float64)))
+
+	// Generate an API Key for the hosted Grafana instance
+	// TODO(@tpaschalis): Remove key afterwards?
+	body := []byte(`{"name": "autodiscovery-install-integrations22", "role": "admin", "secondsToLive": 300}`)
+	req, err = http.NewRequest("POST", instanceURL+"/api/auth/keys", bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiToken))
+	req.Header.Set("User-Agent", "deployment_tools:/scripts/gcom")
+	req.Header.Set("Content-Type", "application/json")
+	res, _ = client.Do(req)
+	bb, _ = ioutil.ReadAll(res.Body)
+	_ = json.Unmarshal(bb, &rsp)
+	grafanaAPIKey := rsp["key"]
+	_ = grafanaAPIKey
+
+	allDashboardData := make([]map[string]interface{}, 0)
+
+	// Get dashboard infos for required integrations.
+	for _, integration := range integrations {
+		req, err = http.NewRequest("GET", integrationsInstanceURL+"/integrations/"+integration+"/dashboards", nil)
+		if err != nil {
+			return err
+		}
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiToken))
+		res, _ = client.Do(req)
+		bb, _ = ioutil.ReadAll(res.Body)
+		_ = json.Unmarshal(bb, &rsp)
+		dashboardData := rsp["data"].([]interface{})
+		for _, dd := range dashboardData {
+			allDashboardData = append(allDashboardData, dd.(map[string]interface{}))
+		}
+	}
+
+	// Create all required folders.
+	for _, dd := range allDashboardData {
+		// folderName := dd["dashboard_folder"].(string)
+		folderName := dd["folder_name"].(string)
+		uid := strings.Replace(folderName, " ", "-", -1)
+
+		body := []byte(fmt.Sprintf(`{"title": "%s", "uid": "%s"}`, folderName, uid))
+		req, err = http.NewRequest("POST", grafanaURL+"/api/folders", bytes.NewReader(body))
+		if err != nil {
+			return err
+		}
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", grafanaAPIKey))
+		req.Header.Set("User-Agent", "deployment_tools:/scripts/gcom")
+		req.Header.Set("Content-Type", "application/json")
+		res, _ = client.Do(req)
+		bb, _ = ioutil.ReadAll(res.Body)
+	}
+
+	// Install all dashboards
+	for _, dd := range allDashboardData {
+		dashboardJSON, err := json.Marshal(dd["dashboard"])
+		if err != nil {
+			return err
+		}
+		folderName := dd["folder_name"].(string)
+		uid := strings.Replace(folderName, " ", "-", -1)
+		overwrite := dd["overwrite"]
+
+		body := []byte(fmt.Sprintf(`{"dashboard": %s, "folderUid": "%s", "overwrite": %t, "message": "creating dashboard from the Cloud Connections plugin"}`, dashboardJSON, uid, overwrite))
+		req, err = http.NewRequest("POST", grafanaURL+"/api/dashboards/db", bytes.NewReader(body))
+		if err != nil {
+			return err
+		}
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", grafanaAPIKey))
+		req.Header.Set("User-Agent", "deployment_tools:/scripts/gcom")
+		req.Header.Set("Content-Type", "application/json")
+		res, _ = client.Do(req)
+		bb, _ = ioutil.ReadAll(res.Body)
+	}
+
+	// Install all integrations
+	for _, integration := range integrations {
+		req, err = http.NewRequest("POST", integrationsInstanceURL+"/integrations/"+integration+"/install", nil)
+		if err != nil {
+			return err
+		}
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiToken))
+		req.Header.Set("User-Agent", "deployment_tools:/scripts/gcom")
+		req.Header.Set("Content-Type", "application/json")
+		res, _ = client.Do(req)
+		bb, _ = ioutil.ReadAll(res.Body)
+	}
+
+	fmt.Println("All done! Navigate to the following link to see your new Grafana Cloud integrations in action! :tada:")
+	fmt.Println(grafanaURL + "/dashboards")
+
+	return nil
+}
