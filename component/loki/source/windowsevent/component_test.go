@@ -4,7 +4,6 @@ package windowsevent
 
 import (
 	"context"
-	"os"
 	"strings"
 	"testing"
 	"time"
