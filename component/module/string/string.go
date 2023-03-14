@@ -4,7 +4,6 @@ package string
 import (
 	"context"
 	"net/http"
-	"os"
 	"sync"
 	"time"
 
@@ -12,7 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow"
-	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/flow/logging/v2"
 	"github.com/grafana/agent/pkg/flow/rivertypes"
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/web/api"
@@ -65,12 +64,8 @@ var (
 
 // New creates a new module.string component.
 func New(o component.Options, args Arguments) (*Component, error) {
-	// TODO(rfratto): replace these with a logger/tracer/registry which properly
+	// TODO(rfratto): replace these with a tracer/registry which properly
 	// propagates data back to the parent.
-	flowLogger, _ := logging.New(os.Stderr, logging.Options{
-		Level:  logging.LevelDebug,
-		Format: logging.FormatLogfmt,
-	})
 	flowTracer, _ := tracing.New(tracing.DefaultOptions)
 	flowRegistry := prometheus.NewRegistry()
 
@@ -80,7 +75,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 		ctrl: flow.New(flow.Options{
 			ControllerID: o.ID,
-			Logger:       flowLogger,
+			LogSink:      logging.LoggerSink(o.Logger),
 			Tracer:       flowTracer,
 			Reg:          flowRegistry,
 

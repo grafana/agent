@@ -22,7 +22,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/config/instrumentation"
 	"github.com/grafana/agent/pkg/flow"
-	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/flow/logging/v2"
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/usagestats"
@@ -104,10 +104,11 @@ func (fr *flowRun) Run(configFile string) error {
 		return fmt.Errorf("file argument not provided")
 	}
 
-	l, err := logging.New(os.Stderr, logging.DefaultOptions)
+	logSink, err := logging.WriterSink(os.Stderr, logging.DefaultSinkOptions)
 	if err != nil {
 		return fmt.Errorf("building logger: %w", err)
 	}
+	l := logging.New(logSink)
 
 	t, err := tracing.New(tracing.DefaultOptions)
 	if err != nil {
@@ -138,7 +139,7 @@ func (fr *flowRun) Run(configFile string) error {
 	reg.MustRegister(newResourcesCollector(l))
 
 	f := flow.New(flow.Options{
-		Logger:         l,
+		LogSink:        logSink,
 		Tracer:         t,
 		DataPath:       fr.storagePath,
 		Reg:            reg,

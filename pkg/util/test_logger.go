@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/pkg/flow/logging/v2"
+	"github.com/stretchr/testify/require"
 )
 
 // TestLogger generates a logger for a test.
@@ -19,6 +21,21 @@ func TestLogger(t *testing.T) log.Logger {
 	)
 
 	return l
+}
+
+// TestFlowLogger generates a Flow-compatible logger for a test.
+func TestFlowLogger(t require.TestingT) *logging.Logger {
+	if t, ok := t.(*testing.T); ok {
+		t.Helper()
+	}
+
+	sink, err := logging.WriterSink(os.Stderr, logging.SinkOptions{
+		Level:  logging.LevelDebug,
+		Format: logging.FormatLogfmt,
+	})
+	require.NoError(t, err)
+
+	return logging.New(sink)
 }
 
 // testTimestamp is a log.Valuer that returns the timestamp
