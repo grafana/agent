@@ -72,8 +72,8 @@ type MetricMapping struct {
 	Action           string            `river:"action,attr,optional"`
 	MatchMetricType  string            `river:"match_metric_type,attr,optional"`
 	Ttl              time.Duration     `river:"ttl,attr,optional"`
-	SummaryOptions   *SummaryOptions   `river:"summary_options,block,optional"`
-	HistogramOptions *HistogramOptions `river:"histogram_options,block,optional"`
+	SummaryOptions   SummaryOptions    `river:"summary_options,block,optional"`
+	HistogramOptions HistogramOptions  `river:"histogram_options,block,optional"`
 }
 
 // DefaultConfig holds non-zero default options for the Config when it is
@@ -146,8 +146,8 @@ func convertMappings(m []MetricMapping) []mapper.MetricMapping {
 			Action:           mapper.ActionType(v.Action),
 			MatchMetricType:  mapper.MetricType(v.MatchMetricType),
 			Ttl:              v.Ttl,
-			SummaryOptions:   convertSummaryOptions(*v.SummaryOptions),
-			HistogramOptions: convertHistogramOptions(*v.HistogramOptions),
+			SummaryOptions:   convertSummaryOptions(v.SummaryOptions),
+			HistogramOptions: convertHistogramOptions(v.HistogramOptions),
 		}
 		out = append(out, mapping)
 	}

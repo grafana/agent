@@ -21,16 +21,14 @@ func TestRiverUnmarshall(t *testing.T) {
 			glob_disable_ordering 		= false
 			ttl							= "1s"
 			summary_options {
-				quantiles = [
-					{
-						quantile		= 0.95
-						error			= 0.05
+				quantiles [{
+						quantile		= 0.95,
+						error			= 0.05,
 					},
 					{
-						quantile		= 0.98
-						error			= 0.02
-					}
-				]
+						quantile		= 0.98,
+						error			= 0.02,
+					}]
 				max_age					= "1s"
 				age_buckets				= 1
 				buf_cap					= 1
@@ -43,48 +41,47 @@ func TestRiverUnmarshall(t *testing.T) {
 		}
 		mappings = [
 			{
-				match					= ""
-				name					= "name1"
-				labels					= ""
-				observer_type			= "summary"
-				timer_type				= "summary"
-				buckets					= [0.25, 0.5, 0.75, 1]
-				quantiles = [
+				match					= "match",
+				name					= "name1",
+				observer_type			= "summary",
+				timer_type				= "summary",
+				buckets					= [0.25, 0.5, 0.75, 1],
+				quantiles [
 					{
 						quantile		= 0.98,
-						error			= 0.005
+						error			= 0.005,
 					},
 					{
 						quantile		= 0.99,
-						error			= 0.005
-					}
-				]
-				match_type				= "regex"
-				help					= "help"
-				action					= "map"
-				match_metric_type		= "glob"
-				ttl						= "1m"
-				summary_options {
+						error			= 0.005,
+					},
+				],
+				match_type				= "regex",
+				help					= "help",
+				action					= "map",
+				match_metric_type		= "glob",
+				ttl						= "1m",
+				summary_options = {
 					quantiles = [
 						{
-							quantile		= 0.95
-							error			= 0.05
+							quantile		= 0.95,
+							error			= 0.05,
 						},
 						{
-							quantile		= 0.98
-							error			= 0.02
-						}
-					]
-					max_age					= "1s"
-					age_buckets				= 1
-					buf_cap					= 1
-				}			
-				histogram_options {
-					buckets					= [0.25, 0.5, 0.75, 1]
-					native_histogram_bucket_factor = 0.1
-					native_histogram_max_buckets = 4
-				}
-			}			
+							quantile		= 0.98,
+							error			= 0.02,
+						},
+					],
+					max_age					= "1s",
+					age_buckets				= 1,
+					buf_cap					= 1,
+				},
+				histogram_options = {
+					buckets					= [0.25, 0.5, 0.75, 1],
+					native_histogram_bucket_factor = 0.1,
+					native_histogram_max_buckets = 4,
+				},
+			},
 		]
 	}
 	`
