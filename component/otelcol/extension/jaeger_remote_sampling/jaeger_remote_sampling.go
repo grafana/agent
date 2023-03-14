@@ -1,6 +1,7 @@
 package jaeger_remote_sampling
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/grafana/agent/component"
@@ -10,6 +11,12 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/jaegerremotesampling"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelconfig "go.opentelemetry.io/collector/config"
+)
+
+const (
+	DefaultHTTPEndpoint   = "0.0.0.0:5778"
+	DefaultGRPCEndpoint   = "0.0.0.0:14250"
+	DefaaultGRPCTransport = "tcp"
 )
 
 func init() {
@@ -46,15 +53,7 @@ var (
 )
 
 // DefaultArguments holds default settings for otelcol.receiver.zipkin.
-var DefaultArguments = Arguments{
-	HTTP: &otelcol.HTTPServerArguments{
-		Endpoint: "0.0.0.0:5778",
-	},
-	GRPC: &otelcol.GRPCServerArguments{
-		Endpoint:  "0.0.0.0:14250",
-		Transport: "tcp",
-	},
-}
+var DefaultArguments = Arguments{}
 
 // Convert implements extension.Arguments.
 func (args Arguments) Convert() otelconfig.Extension {
@@ -80,9 +79,31 @@ func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.Compone
 }
 
 // UnmarshalRiver applies defaults to args before unmarshaling.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
-	*args = DefaultArguments
+func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+	*a = DefaultArguments
 
-	type arguments Arguments
-	return f((*arguments)(args))
+	type args Arguments
+	err := f((*args)(a))
+	if err != nil {
+		return err
+	}
+
+	if a.GRPC == nil && a.HTTP == nil {
+		return fmt.Errorf("http or grpc must be configured to serve the sampling document")
+	}
+
+	// if the block exists but required fields aren't set, use defaults
+	if a.GRPC != nil {
+		if a.GRPC.Endpoint == "" {
+			a.GRPC.Endpoint = DefaultGRPCEndpoint
+		}
+		if a.GRPC.Transport == "" {
+			a.GRPC.Transport = DefaaultGRPCTransport
+		}
+	}
+	if a.HTTP != nil && a.HTTP.Endpoint == "" {
+		a.HTTP.Endpoint = DefaultHTTPEndpoint
+	}
+
+	return nil
 }

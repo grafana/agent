@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/extension/jaeger_remote_sampling"
 	"github.com/grafana/agent/pkg/flow/componenttest"
 	"github.com/grafana/agent/pkg/river"
@@ -87,6 +88,90 @@ func Test(t *testing.T) {
 	b, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	require.JSONEq(t, string(b), expectedRemoteSamplingConfig)
+}
+
+func TestUnmarshalFailsWithNoServerConfig(t *testing.T) {
+	cfg := `
+		source {
+			file = "remote.json"
+		}
+	`
+
+	var args jaeger_remote_sampling.Arguments
+	err := river.Unmarshal([]byte(cfg), &args)
+	require.ErrorContains(t, err, "http or grpc must be configured to serve the sampling document")
+}
+
+func TestUnmarshalUsesDefaults(t *testing.T) {
+	tcs := []struct {
+		cfg      string
+		expected jaeger_remote_sampling.Arguments
+	}{
+		// defaults http as expected
+		{
+			cfg: `
+				http {}
+				source {
+					file = "remote.json"
+				}
+			`,
+			expected: jaeger_remote_sampling.Arguments{
+				HTTP:   &otelcol.HTTPServerArguments{Endpoint: "0.0.0.0:5778"},
+				Source: jaeger_remote_sampling.ArgumentsSource{File: "remote.json"},
+			},
+		},
+		// defaults grpc as expected
+		{
+			cfg: `
+				grpc {}
+				source {
+					file = "remote.json"
+				}
+			`,
+			expected: jaeger_remote_sampling.Arguments{
+				GRPC:   &otelcol.GRPCServerArguments{Endpoint: "0.0.0.0:14250", Transport: "tcp"},
+				Source: jaeger_remote_sampling.ArgumentsSource{File: "remote.json"},
+			},
+		},
+		// leaves specified values on http
+		{
+			cfg: `
+				http {
+					endpoint = "blerg"
+				}
+				source {
+					file = "remote.json"
+				}
+			`,
+			expected: jaeger_remote_sampling.Arguments{
+				HTTP:   &otelcol.HTTPServerArguments{Endpoint: "blerg"},
+				Source: jaeger_remote_sampling.ArgumentsSource{File: "remote.json"},
+			},
+		},
+		// defaults grpc as expected
+		{
+			cfg: `
+				grpc {
+					endpoint = "blerg"
+					transport = "blarg"
+				}
+				source {
+					file = "remote.json"
+				}
+			`,
+			expected: jaeger_remote_sampling.Arguments{
+				GRPC:   &otelcol.GRPCServerArguments{Endpoint: "blerg", Transport: "blarg"},
+				Source: jaeger_remote_sampling.ArgumentsSource{File: "remote.json"},
+			},
+		},
+	}
+
+	for _, tc := range tcs {
+		var args jaeger_remote_sampling.Arguments
+		err := river.Unmarshal([]byte(tc.cfg), &args)
+		require.NoError(t, err)
+		require.Equal(t, tc.expected, args)
+	}
 }
 
 func getFreeAddr(t *testing.T) string {
