@@ -19,12 +19,15 @@ Main (unreleased)
 
   - `discovery.ec2` service discovery for aws ec2. (@captncraig)
   - `discovery.lightsail` service discovery for aws lightsail. (@captncraig)
+  - `module.string` runs a Grafana Agent Flow module passed to the component by
+    an expression containing a string. (@erikbaranowski, @rfratto)
   - `otelcol.auth.oauth2` performs OAuth 2.0 authentication for HTTP and gRPC
     based OpenTelemetry exporters. (@ptodev)
   - `prometheus.exporter.blackbox` collects metrics from Blackbox exporter
     (@marctc).
   - `prometheus.exporter.mysql` collects metrics from a MySQL database.
     (@spartan0x117)
+  - `prometheus.exporter.postgres` collects metrics from a PostgreSQL database. (@spartan0x117)
 
 ### Enhancements
 
@@ -36,6 +39,11 @@ Main (unreleased)
   of a map whose value was the zero value (`null`, `0`, `false`, `[]`, `{}`).
   Whether an error was returned dependend on the internal type of the value.
   (@rfratto)
+
+- Flow: fix issue where using the `jaeger_remote` sampler for the `tracing`
+  block would fail to parse the response from the remote sampler server if it
+  used strings for the strategy type. This caused sampling to fall back
+  to the default rate. (@rfratto)
 
 ### Other changes
 

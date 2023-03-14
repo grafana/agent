@@ -26,6 +26,7 @@ import (
 	_ "github.com/grafana/agent/component/loki/source/windowsevent"        // Import loki.source.windowsevent
 	_ "github.com/grafana/agent/component/loki/write"                      // Import loki.write
 	_ "github.com/grafana/agent/component/mimir/rules/kubernetes"          // Import mimir.rules.kubernetes
+	_ "github.com/grafana/agent/component/module/string"                   // Import module.string
 	_ "github.com/grafana/agent/component/otelcol/auth/basic"              // Import otelcol.auth.basic
 	_ "github.com/grafana/agent/component/otelcol/auth/bearer"             // Import otelcol.auth.bearer
 	_ "github.com/grafana/agent/component/otelcol/auth/headers"            // Import otelcol.auth.headers
@@ -52,6 +53,7 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/exporter/consul"      // Import prometheus.exporter.consul
 	_ "github.com/grafana/agent/component/prometheus/exporter/github"      // Import prometheus.exporter.github
 	_ "github.com/grafana/agent/component/prometheus/exporter/mysql"       // Import prometheus.exporter.mysql
+	_ "github.com/grafana/agent/component/prometheus/exporter/postgres"    // Import prometheus.exporter.postgres
 	_ "github.com/grafana/agent/component/prometheus/exporter/process"     // Import prometheus.exporter.process
 	_ "github.com/grafana/agent/component/prometheus/exporter/redis"       // Import prometheus.exporter.redis
 	_ "github.com/grafana/agent/component/prometheus/exporter/unix"        // Import prometheus.exporter.unix
