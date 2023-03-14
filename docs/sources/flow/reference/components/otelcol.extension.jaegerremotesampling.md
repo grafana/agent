@@ -6,6 +6,9 @@ label:
 
 # otelcol.extension.jaegerremotesampling
 
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" >}}
+
+
 `otelcol.extension.jaegerremotesampling` serves a specified Jaeger remote sampling
 document.
 
