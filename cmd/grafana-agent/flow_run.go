@@ -160,6 +160,15 @@ func (fr *flowRun) Run(configFile string) error {
 		return nil
 	}
 
+	// Flow controller
+	{
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			f.Run(ctx)
+		}()
+	}
+
 	// HTTP server
 	{
 		lis, err := net.Listen("tcp", fr.httpListenAddr)
@@ -266,7 +275,7 @@ func (fr *flowRun) Run(configFile string) error {
 	for {
 		select {
 		case <-ctx.Done():
-			return f.Close()
+			return nil
 		case <-reloadSignal:
 			if err := reload(); err != nil {
 				level.Error(l).Log("msg", "failed to reload config", "err", err)
