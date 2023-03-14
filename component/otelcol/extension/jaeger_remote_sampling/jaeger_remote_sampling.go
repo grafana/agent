@@ -1,4 +1,4 @@
-package jaegerremotesampling
+package jaeger_remote_sampling
 
 import (
 	"time"
@@ -14,7 +14,7 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "otelcol.extension.jaegerremotesampling",
+		Name: "otelcol.extension.jaeger_remote_sampling",
 		Args: Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {

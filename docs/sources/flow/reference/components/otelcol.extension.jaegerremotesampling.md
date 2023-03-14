@@ -1,28 +1,27 @@
 ---
-title: otelcol.extension.jaegerremotesampling
+title: otelcol.extension.jaeger_remote_sampling
 label:
   stage: experimental
 ---
 
-# otelcol.extension.jaegerremotesampling
+# otelcol.extension.jaeger_remote_sampling
 
 {{< docs/shared lookup="flow/stability/experimental.md" source="agent" >}}
 
-
-`otelcol.extension.jaegerremotesampling` serves a specified Jaeger remote sampling
+`otelcol.extension.jaeger_remote_sampling` serves a specified Jaeger remote sampling
 document.
 
-> **NOTE**: `otelcol.extension.jaegerremotesampling` is a wrapper over the upstream OpenTelemetry
+> **NOTE**: `otelcol.extension.jaeger_remote_sampling` is a wrapper over the upstream OpenTelemetry
 > Collector `jaegerremotesampling` extension. Bug reports or feature requests will be
 > redirected to the upstream repository, if necessary.
 
-Multiple `otelcol.extension.jaegerremotesampling` components can be specified by giving them
+Multiple `otelcol.extension.jaeger_remote_sampling` components can be specified by giving them
 different labels.
 
 ## Usage
 
 ```river
-otelcol.extension.jaegerremotesampling "LABEL" {
+otelcol.extension.jaeger_remote_sampling "LABEL" {
   source {
   }
 }
@@ -30,13 +29,13 @@ otelcol.extension.jaegerremotesampling "LABEL" {
 
 ## Arguments
 
-`otelcol.extension.jaegerremotesampling` doesn't support any arguments and is configured fully
+`otelcol.extension.jaeger_remote_sampling` doesn't support any arguments and is configured fully
 through inner blocks.
 
 ## Blocks
 
 The following blocks are supported inside the definition of
-`otelcol.extension.jaegerremotesampling`:
+`otelcol.extension.jaeger_remote_sampling`:
 
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
@@ -225,7 +224,7 @@ that domain and all subdomains. A domain name with a leading "."
 (`.example.com`) matches subdomains only. `NO_PROXY` is only read when
 `HTTPS_PROXY` is set.
 
-Because `otelcol.exporter.jaeger` uses gRPC, the configured proxy server must be
+Because `otelcol.extension.jaeger_remote_sampling` uses gRPC, the configured proxy server must be
 able to handle and proxy HTTP/2 traffic.
 
 [Load balancing]: https://github.com/grpc/grpc-go/blob/master/examples/features/load_balancing/README.md#pick_first
@@ -253,12 +252,12 @@ Name | Type | Description | Default | Required
 
 ## Component health
 
-`otelcol.extension.jaegerremotesampling` is only reported as unhealthy if given an invalid
+`otelcol.extension.jaeger_remote_sampling` is only reported as unhealthy if given an invalid
 configuration.
 
 ## Debug information
 
-`otelcol.extension.jaegerremotesampling` does not expose any component-specific debug information.
+`otelcol.extension.jaeger_remote_sampling` does not expose any component-specific debug information.
 
 ## Example
 
@@ -266,7 +265,7 @@ This example configures the Jaeger remote sampling extension to load a local jso
 serve it over http port 5778. It also disables the default GRPC server hosting the sampling document.
 
 ```river
-otelcol.extension.jaegerremotesampling "example" {
+otelcol.extension.jaeger_remote_sampling "example" {
   http {
     endpoint = "0.0.0.0:5778"
   }

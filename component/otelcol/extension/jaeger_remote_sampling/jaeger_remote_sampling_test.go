@@ -1,4 +1,4 @@
-package jaegerremotesampling_test
+package jaeger_remote_sampling_test
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/component/otelcol/extension/jaegerremotesampling"
+	"github.com/grafana/agent/component/otelcol/extension/jaeger_remote_sampling"
 	"github.com/grafana/agent/pkg/flow/componenttest"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Test performs a basic integration test which runs the otelcol.extension.jaegerremotesampling
+// Test performs a basic integration test which runs the otelcol.extension.jaeger_remote_sampling
 // component and ensures that it can be used for authentication.
 func Test(t *testing.T) {
 	// write remote sampling config to a temp file
@@ -50,7 +50,7 @@ func Test(t *testing.T) {
 	l := util.TestLogger(t)
 
 	// Create and run our component
-	ctrl, err := componenttest.NewControllerFromID(l, "otelcol.extension.jaegerremotesampling")
+	ctrl, err := componenttest.NewControllerFromID(l, "otelcol.extension.jaeger_remote_sampling")
 	require.NoError(t, err)
 
 	listenAddr := getFreeAddr(t)
@@ -65,7 +65,7 @@ func Test(t *testing.T) {
 			file = "%s"
 		}
 	`, listenAddr, getFreeAddr(t), remoteSamplingConfigFile)
-	var args jaegerremotesampling.Arguments
+	var args jaeger_remote_sampling.Arguments
 	require.NoError(t, river.Unmarshal([]byte(cfg), &args))
 
 	go func() {
