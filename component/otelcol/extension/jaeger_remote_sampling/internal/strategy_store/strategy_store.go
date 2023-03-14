@@ -12,9 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// this file is a hacked up fork of the jaeger static sampling strategy store.
-//  https://github.com/jaegertracing/jaeger/blob/v1.38.1/plugin/sampling/strategystore/static/strategy_store.go
-
 package strategy_store
 
 import (

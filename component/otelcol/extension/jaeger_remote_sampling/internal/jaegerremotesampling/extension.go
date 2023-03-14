@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package jaeger_remote_sampling // import "github.com/open-telemetry/opentelemetry-collector-contrib/extension/jaegerremotesampling"
+package jaegerremotesampling
 
 import (
 	"context"
@@ -25,8 +25,8 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
-	"github.com/grafana/agent/component/otelcol/extension/jaeger_remote_sampling/internal"
-	"github.com/grafana/agent/component/otelcol/extension/jaeger_remote_sampling/strategy_store"
+	"github.com/grafana/agent/component/otelcol/extension/jaeger_remote_sampling/internal/jaegerremotesampling/internal"
+	"github.com/grafana/agent/component/otelcol/extension/jaeger_remote_sampling/internal/strategy_store"
 )
 
 var _ component.Extension = (*jrsExtension)(nil)

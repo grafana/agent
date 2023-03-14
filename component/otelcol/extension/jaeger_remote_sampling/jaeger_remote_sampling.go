@@ -7,6 +7,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/extension"
+	"github.com/grafana/agent/component/otelcol/extension/jaeger_remote_sampling/internal/jaegerremotesampling"
 	"github.com/grafana/agent/pkg/river"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelconfig "go.opentelemetry.io/collector/config"
@@ -24,7 +25,7 @@ func init() {
 		Args: Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
-			fact := NewFactory()
+			fact := jaegerremotesampling.NewFactory()
 
 			return extension.New(opts, fact, args.(Arguments))
 		},
@@ -33,7 +34,6 @@ func init() {
 
 // Arguments configures the otelcol.extension.jaegerremotesampling component.
 type Arguments struct {
-	// https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/extension/jaegerremotesampling/config.go#L42
 	GRPC *otelcol.GRPCServerArguments `river:"grpc,block,optional"`
 	HTTP *otelcol.HTTPServerArguments `river:"http,block,optional"`
 
@@ -57,10 +57,10 @@ var DefaultArguments = Arguments{}
 
 // Convert implements extension.Arguments.
 func (args Arguments) Convert() otelconfig.Extension {
-	return &Config{
+	return &jaegerremotesampling.Config{
 		HTTPServerSettings: args.HTTP.Convert(),
 		GRPCServerSettings: args.GRPC.Convert(),
-		Source: Source{
+		Source: jaegerremotesampling.Source{
 			Remote:         args.Source.Remote.Convert(),
 			File:           args.Source.File,
 			ReloadInterval: args.Source.ReloadInterval,

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package jaeger_remote_sampling // import "github.com/open-telemetry/opentelemetry-collector-contrib/extension/jaegerremotesampling"
+package jaegerremotesampling
 
 import (
 	"context"
