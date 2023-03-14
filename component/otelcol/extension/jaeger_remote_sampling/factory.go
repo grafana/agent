@@ -17,7 +17,6 @@ package jaeger_remote_sampling // import "github.com/open-telemetry/opentelemetr
 import (
 	"context"
 
-	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/jaegerremotesampling"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configgrpc"
@@ -41,7 +40,7 @@ func NewFactory() component.ExtensionFactory {
 }
 
 func createDefaultConfig() config.Extension {
-	return &jaegerremotesampling.Config{
+	return &Config{
 		ExtensionSettings: config.NewExtensionSettings(config.NewComponentID(typeStr)),
 		HTTPServerSettings: &confighttp.HTTPServerSettings{
 			Endpoint: ":5778",
@@ -52,10 +51,10 @@ func createDefaultConfig() config.Extension {
 				Transport: "tcp",
 			},
 		},
-		Source: jaegerremotesampling.Source{},
+		Source: Source{},
 	}
 }
 
 func createExtension(_ context.Context, set component.ExtensionCreateSettings, cfg config.Extension) (component.Extension, error) {
-	return newExtension(cfg.(*jaegerremotesampling.Config), set.TelemetrySettings), nil
+	return newExtension(cfg.(*Config), set.TelemetrySettings), nil
 }

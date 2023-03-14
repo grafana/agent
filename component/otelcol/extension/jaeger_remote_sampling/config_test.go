@@ -19,7 +19,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/jaegerremotesampling"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config"
@@ -38,14 +37,14 @@ func TestLoadConfig(t *testing.T) {
 	}{
 		{
 			id: config.NewComponentID(typeStr),
-			expected: &jaegerremotesampling.Config{
+			expected: &Config{
 				ExtensionSettings:  config.NewExtensionSettings(config.NewComponentID(typeStr)),
 				HTTPServerSettings: &confighttp.HTTPServerSettings{Endpoint: ":5778"},
 				GRPCServerSettings: &configgrpc.GRPCServerSettings{NetAddr: confignet.NetAddr{
 					Endpoint:  ":14250",
 					Transport: "tcp",
 				}},
-				Source: jaegerremotesampling.Source{
+				Source: Source{
 					Remote: &configgrpc.GRPCClientSettings{
 						Endpoint: "jaeger-collector:14250",
 					},
@@ -54,14 +53,14 @@ func TestLoadConfig(t *testing.T) {
 		},
 		{
 			id: config.NewComponentIDWithName(typeStr, "1"),
-			expected: &jaegerremotesampling.Config{
+			expected: &Config{
 				ExtensionSettings:  config.NewExtensionSettings(config.NewComponentID(typeStr)),
 				HTTPServerSettings: &confighttp.HTTPServerSettings{Endpoint: ":5778"},
 				GRPCServerSettings: &configgrpc.GRPCServerSettings{NetAddr: confignet.NetAddr{
 					Endpoint:  ":14250",
 					Transport: "tcp",
 				}},
-				Source: jaegerremotesampling.Source{
+				Source: Source{
 					ReloadInterval: time.Second,
 					File:           "/etc/otelcol/sampling_strategies.json",
 				},

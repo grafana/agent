@@ -22,7 +22,6 @@ import (
 	"testing"
 
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/jaegerremotesampling"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
@@ -32,7 +31,7 @@ import (
 
 func TestNewExtension(t *testing.T) {
 	// test
-	cfg := createDefaultConfig().(*jaegerremotesampling.Config)
+	cfg := createDefaultConfig().(*Config)
 	cfg.Source.File = filepath.Join("testdata", "strategy.json")
 	e := newExtension(cfg, componenttest.NewNopTelemetrySettings())
 
@@ -42,7 +41,7 @@ func TestNewExtension(t *testing.T) {
 
 func TestStartAndShutdownLocalFile(t *testing.T) {
 	// prepare
-	cfg := createDefaultConfig().(*jaegerremotesampling.Config)
+	cfg := createDefaultConfig().(*Config)
 	cfg.Source.File = filepath.Join("testdata", "strategy.json")
 
 	e := newExtension(cfg, componenttest.NewNopTelemetrySettings())
@@ -70,7 +69,7 @@ func TestStartAndShutdownRemote(t *testing.T) {
 	}()
 
 	// create the config, pointing to the mock server
-	cfg := createDefaultConfig().(*jaegerremotesampling.Config)
+	cfg := createDefaultConfig().(*Config)
 	cfg.Source.Remote = &configgrpc.GRPCClientSettings{
 		Endpoint:     fmt.Sprintf("localhost:%d", lis.Addr().(*net.TCPAddr).Port),
 		WaitForReady: true,

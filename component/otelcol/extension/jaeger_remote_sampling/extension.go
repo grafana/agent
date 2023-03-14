@@ -21,7 +21,6 @@ import (
 	grpcStore "github.com/jaegertracing/jaeger/cmd/agent/app/configmanager/grpc"
 	"github.com/jaegertracing/jaeger/cmd/collector/app/sampling/strategystore"
 	"github.com/jaegertracing/jaeger/plugin/sampling/strategystore/static"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/jaegerremotesampling"
 	"go.opentelemetry.io/collector/component"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -32,7 +31,7 @@ import (
 var _ component.Extension = (*jrsExtension)(nil)
 
 type jrsExtension struct {
-	cfg       *jaegerremotesampling.Config
+	cfg       *Config
 	telemetry component.TelemetrySettings
 
 	httpServer    component.Component
@@ -42,7 +41,7 @@ type jrsExtension struct {
 	closers []func() error
 }
 
-func newExtension(cfg *jaegerremotesampling.Config, telemetry component.TelemetrySettings) *jrsExtension {
+func newExtension(cfg *Config, telemetry component.TelemetrySettings) *jrsExtension {
 	jrse := &jrsExtension{
 		cfg:       cfg,
 		telemetry: telemetry,

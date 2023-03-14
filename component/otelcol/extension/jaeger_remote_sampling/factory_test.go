@@ -18,7 +18,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/jaegerremotesampling"
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
@@ -30,7 +29,7 @@ import (
 
 func TestCreateDefaultConfig(t *testing.T) {
 	// prepare and test
-	expected := &jaegerremotesampling.Config{
+	expected := &Config{
 		ExtensionSettings:  config.NewExtensionSettings(config.NewComponentID(typeStr)),
 		HTTPServerSettings: &confighttp.HTTPServerSettings{Endpoint: ":5778"},
 		GRPCServerSettings: &configgrpc.GRPCServerSettings{NetAddr: confignet.NetAddr{
@@ -48,7 +47,7 @@ func TestCreateDefaultConfig(t *testing.T) {
 }
 
 func TestCreateExtension(t *testing.T) {
-	cfg := createDefaultConfig().(*jaegerremotesampling.Config)
+	cfg := createDefaultConfig().(*Config)
 
 	ext, err := createExtension(context.Background(), componenttest.NewNopExtensionCreateSettings(), cfg)
 	assert.NoError(t, err)
