@@ -32,6 +32,8 @@ Main (unreleased)
     an expression containing a string. (@erikbaranowski, @rfratto)
   - `otelcol.auth.oauth2` performs OAuth 2.0 authentication for HTTP and gRPC
     based OpenTelemetry exporters. (@ptodev)
+  - `otelcol.extension.jaeger_remote_sampling` provides an endpoint from which to 
+    pull Jaeger remote sampling documents. (@joe-elliott)
   - `prometheus.exporter.blackbox` collects metrics from Blackbox exporter
     (@marctc).
   - `prometheus.exporter.mysql` collects metrics from a MySQL database.
