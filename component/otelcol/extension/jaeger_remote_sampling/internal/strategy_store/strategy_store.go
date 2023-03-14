@@ -180,6 +180,7 @@ func (h *strategyStore) parseOperationStrategy(
 	strategy *operationStrategy,
 	parent *sampling.PerOperationSamplingStrategies,
 ) (s *sampling.SamplingStrategyResponse, ok bool) {
+
 	s = h.parseStrategy(&strategy.strategy)
 	if s.StrategyType == sampling.SamplingStrategyType_RATE_LIMITING {
 		// TODO OperationSamplingStrategy only supports probabilistic sampling
