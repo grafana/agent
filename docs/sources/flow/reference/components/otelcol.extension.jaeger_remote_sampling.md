@@ -262,7 +262,7 @@ configuration.
 
 `otelcol.extension.jaeger_remote_sampling` does not expose any component-specific debug information.
 
-## Example
+## Examples
 
 This example configures the Jaeger remote sampling extension to load a local json document and
 serve it over the default http port of 5778. Currently this config style exists for consistency
