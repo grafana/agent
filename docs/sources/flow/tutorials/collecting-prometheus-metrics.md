@@ -40,7 +40,7 @@ Click the nodes to navigate to the associated component page. There, you can vie
 
 ## Scraping component
 
-The [`prometheus.scrape`]({{< relref "prometheus.scrape.md" >}}) component is responsible for scraping the metrics of a particular endpoint and passing them on to another component.
+The [`prometheus.scrape`]({{< relref "../reference/components/prometheus.scrape.md" >}}) component is responsible for scraping the metrics of a particular endpoint and passing them on to another component.
 
 ```river
 // prometheus.scrape is the name of the component and "default" is its label.
@@ -64,7 +64,7 @@ The `forward_to` attribute is an argument that references the [export]({{< relre
 
 ## Remote Write component
 
-The [`prometheus.remote_write`]({{< relref "prometheus.remote_write.md" >}}) component is responsible for writing the metrics to a Prometheus-compatible endpoint (Mimir).
+The [`prometheus.remote_write`]({{< relref "../reference/components/prometheus.remote_write.md" >}}) component is responsible for writing the metrics to a Prometheus-compatible endpoint (Mimir).
 
 ```river
 prometheus.remote_write "prom" {
