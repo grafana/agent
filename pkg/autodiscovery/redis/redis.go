@@ -105,7 +105,10 @@ func (m *Redis) Run() (*autodiscovery.Result, error) {
 	// Our predefined configurations didn't work; but MySQL is running.
 	// Let's return a Flow component template for the user to fill out.
 	res.RiverConfig = `prometheus.exporter.redis "default" {
-    redis_addr = env("REDIS_SERVER_ADDRESS")
+  // NOTE: Agent Autodiscovery could not automatically configure a Redis exporter.
+  // To set up a Consul exporter, please either set "redis_addr" explicitly
+  // or set up the REDIS_SERVER_ADDRESS environment variable and restart the Agent.
+  redis_addr = env("REDIS_SERVER_ADDRESS")
 }`
 	res.MetricsExport = "prometheus.exporter.redis.default.targets"
 

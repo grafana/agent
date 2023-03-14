@@ -99,6 +99,9 @@ prometheus.exporter.consul "default" {
 	// Let's return a Flow component template for the user to fill out.
 	res.RiverConfig = `// https://grafana.com/docs/agent/next/flow/reference/components/prometheus.exporter.consul/
 prometheus.exporter.consul "default" {
+  // NOTE: Agent Autodiscovery could not automatically configure a Consul exporter.
+  // To set up a Consul exporter, please either set "server" explicitly
+  // or set up the AGENT_CONSUL_SERVER environment variable and restart the Agent.
   server = env("AGENT_CONSUL_SERVER")
 }`
 	res.MetricsExport = "prometheus.exporter.consul.default.targets"

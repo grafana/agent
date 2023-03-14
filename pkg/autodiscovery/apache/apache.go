@@ -100,7 +100,10 @@ func (m *Apache) Run() (*autodiscovery.Result, error) {
 	// Our predefined configurations didn't work; but MySQL is running.
 	// Let's return a Flow component template for the user to fill out.
 	res.RiverConfig = `prometheus.exporter.apache "default" {
-  scrape_uri = env("APACHE_SERVER_STATUS_URI")
+    // NOTE: Agent Autodiscovery could not automatically configure an Apache exporter.
+    // To set up an Apache exporter, please either set "scrape_uri" explicitly
+    // or set up the AGENT_APACHE_SERVER_STATUS_URI environment variable and restart the Agent.
+    scrape_uri = env("AGENT_APACHE_SERVER_STATUS_URI")
 }`
 	res.MetricsExport = "prometheus.exporter.apache.default.targets"
 

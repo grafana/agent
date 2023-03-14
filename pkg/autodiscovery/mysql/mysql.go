@@ -98,6 +98,9 @@ func (m *MySQL) Run() (*autodiscovery.Result, error) {
 	// Our predefined configurations didn't work; but MySQL is running.
 	// Let's return a Flow component template for the user to fill out.
 	res.RiverConfig = `prometheus.exporter.mysql "default" {
+  // NOTE: Agent Autodiscovery could not automatically configure the MySQL DSN.
+  // To set up a MySQL exporter, please either set "data_source_name" explicitly
+  // or set up the AGENT_MYSQL_DSN environment variable and restart the Agent.
   data_source_name = env("AGENT_MYSQL_DSN")
 }`
 	res.MetricsExport = "prometheus.exporter.mysql.default.targets"

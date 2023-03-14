@@ -110,7 +110,10 @@ func (pg *Postgres) Run() (*autodiscovery.Result, error) {
 	// Our predefined configurations didn't work; but Postgres is running.
 	// Let's return a Flow component template for the user to fill out.
 	res.RiverConfig = `prometheus.exporter.postgres "default" {
-  data_source_names = [env("AGENT_POSTGRES_DSN")]
+    // NOTE: Agent Autodiscovery could not automatically configure a Postgres exporter.
+    // To set up a Consul exporter, please either set "data_source_names" explicitly
+    // or set up the AGENT_POSTGRES_DSN environment variable and restart the Agent.
+    data_source_names = [env("AGENT_POSTGRES_DSN")]
 }`
 	res.MetricsExport = "prometheus.exporter.postgres.default.targets"
 
