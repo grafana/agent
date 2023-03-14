@@ -2,6 +2,7 @@
 package all
 
 import (
+	_ "github.com/grafana/agent/component/autodiscovery"                            // Import autodiscovery
 	_ "github.com/grafana/agent/component/discovery/aws"                            // Import discovery.aws.ec2 and discovery.aws.lightsail
 	_ "github.com/grafana/agent/component/discovery/docker"                         // Import discovery.docker
 	_ "github.com/grafana/agent/component/discovery/file"                           // Import discovery.file

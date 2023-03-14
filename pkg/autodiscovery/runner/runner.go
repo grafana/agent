@@ -30,6 +30,7 @@ type templateInput struct {
 	LogsTargets    []string
 }
 
+// TODO: Rename this to something like MechanismT
 type AutodiscT string
 
 const (
@@ -52,9 +53,19 @@ var allMechanisms = []AutodiscT{
 	AUTODISC_APACHE,
 }
 
+// TODO: Add a logger so that the mechanisms don't print to stdout
 type Autodiscovery struct {
 	// Discoverers which we were explicitly told to ignore, e.g. via Agent Management
-	IgnoreList map[AutodiscT]struct{}
+	Enabled  map[AutodiscT]struct{}
+	Disabled map[AutodiscT]struct{}
+}
+
+func ConvertMechanismStringSliceToMap(m []string) map[AutodiscT]struct{} {
+	res := make(map[AutodiscT]struct{})
+	for _, item := range m {
+		res[AutodiscT(item)] = struct{}{}
+	}
+	return res
 }
 
 func createMechanism(discovererId AutodiscT) (autodiscovery.Mechanism, error) {
@@ -84,9 +95,19 @@ func (a *Autodiscovery) Do(wr io.Writer) []AutodiscT {
 	// bar the ones in the IgnoreList and the ones for exporters
 	// already used in the River config.
 	usedMechanisms := make([]AutodiscT, 0)
+
+	enabledMechanisms := &allMechanisms
+	if len(a.Enabled) > 0 {
+		explicitlyEnabled := make([]AutodiscT, 0, len(a.Enabled))
+		for item, _ := range a.Enabled {
+			explicitlyEnabled = append(explicitlyEnabled, item)
+		}
+		enabledMechanisms = &explicitlyEnabled
+	}
+
 	var mechanisms []autodiscovery.Mechanism
-	for _, mechId := range allMechanisms {
-		if _, ok := a.IgnoreList[mechId]; ok {
+	for _, mechId := range *enabledMechanisms {
+		if _, ok := a.Disabled[mechId]; ok {
 			continue
 		}
 		mech, err := createMechanism(mechId)
