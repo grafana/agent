@@ -12,10 +12,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
+	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/vm"
 	"github.com/prometheus/client_golang/prometheus"
@@ -59,7 +59,8 @@ func (id ComponentID) Equals(other ComponentID) bool {
 // ComponentGlobals are used by ComponentNodes to build managed components. All
 // ComponentNodes should use the same ComponentGlobals.
 type ComponentGlobals struct {
-	Logger            log.Logger                   // Logger shared between all managed components.
+	LogSink           *logging.Sink                // Sink used for Logging.
+	Logger            *logging.Logger              // Logger shared between all managed components.
 	TraceProvider     trace.TracerProvider         // Tracer shared between all managed components.
 	DataPath          string                       // Shared directory where component data may be stored
 	OnComponentUpdate func(cn *ComponentNode)      // Informs controller that we need to reevaluate
@@ -162,9 +163,10 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 	}
 
 	// We need to generate a globally unique component ID to give to the
-	// component and for use with telemetry data. For everything else (HTTP,
-	// data), we can just use the controller-local ID as those values are
-	// guaranteed to be globally unique.
+	// component and for use with telemetry data which doesn't support
+	// reconstructing the global ID. For everything else (HTTP, data), we can
+	// just use the controller-local ID as those values are guaranteed to be
+	// globally unique.
 	globalID := cn.nodeID
 	if globals.ControllerID != "" {
 		globalID = path.Join(globals.ControllerID, cn.nodeID)
@@ -174,7 +176,7 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 	cn.register = wrapped
 	return component.Options{
 		ID:     globalID,
-		Logger: log.With(globals.Logger, "component", globalID),
+		Logger: logging.New(logging.LoggerSink(globals.Logger), logging.WithComponentID(cn.nodeID)),
 		Registerer: prometheus.WrapRegistererWith(prometheus.Labels{
 			"component_id": globalID,
 		}, wrapped),

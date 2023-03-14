@@ -49,13 +49,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"sync"
 	"time"
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
+	"github.com/grafana/agent/pkg/flow/internal/stdlib"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/pkg/river/vm"
@@ -74,9 +74,9 @@ type Options struct {
 	// components in telemetry data.
 	ControllerID string
 
-	// Logger for components to use. A no-op logger will be created if this is
-	// nil.
-	Logger *logging.Logger
+	// LogSink to use for controller logs and components. A no-op logger will be
+	// created if this is nil.
+	LogSink *logging.Sink
 
 	// Tracer for components to use. A no-op tracer will be created if this is
 	// nil.
@@ -134,18 +134,10 @@ type Flow struct {
 // the controller.
 func New(o Options) *Flow {
 	var (
-		log    = o.Logger
+		log    = logging.New(o.LogSink)
 		tracer = o.Tracer
 	)
 
-	if log == nil {
-		var err error
-		log, err = logging.New(io.Discard, logging.DefaultOptions)
-		if err != nil {
-			// This shouldn't happen unless there's a bug
-			panic(err)
-		}
-	}
 	if tracer == nil {
 		var err error
 		tracer, err = tracing.New(tracing.DefaultOptions)
@@ -159,6 +151,7 @@ func New(o Options) *Flow {
 		queue  = controller.NewQueue()
 		sched  = controller.NewScheduler()
 		loader = controller.NewLoader(controller.ComponentGlobals{
+			LogSink:       o.LogSink,
 			Logger:        log,
 			TraceProvider: tracer,
 			DataPath:      o.DataPath,
@@ -256,7 +249,10 @@ func (c *Flow) LoadFile(file *File, args map[string]any) error {
 	}
 
 	argumentScope := &vm.Scope{
-		Parent: nil,
+		// The top scope is the Flow-specific stdlib.
+		Parent: &vm.Scope{
+			Variables: stdlib.Identifiers,
+		},
 		Variables: map[string]interface{}{
 			"argument": evaluatedArgs,
 		},

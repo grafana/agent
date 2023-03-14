@@ -53,7 +53,7 @@ fi
 
 # Build all of our images.
 
-export BUILD_PLATFORMS=linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le,linux/s390x
+export BUILD_PLATFORMS=linux/amd64,linux/arm64,linux/ppc64le,linux/s390x
 
 
 case "$TARGET_CONTAINER" in

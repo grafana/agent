@@ -3,7 +3,6 @@ package relabel
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
@@ -11,7 +10,6 @@ import (
 	"github.com/grafana/agent/component/common/loki"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/pkg/flow/componenttest"
-	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/loki/pkg/logproto"
@@ -53,9 +51,11 @@ func TestRelabeling(t *testing.T) {
 	ch1, ch2 := make(loki.LogsReceiver), make(loki.LogsReceiver)
 
 	// Create and run the component, so that it relabels and forwards logs.
-	l, err := logging.New(os.Stderr, logging.DefaultOptions)
-	require.NoError(t, err)
-	opts := component.Options{Logger: l, Registerer: prometheus.NewRegistry(), OnStateChange: func(e component.Exports) {}}
+	opts := component.Options{
+		Logger:        util.TestFlowLogger(t),
+		Registerer:    prometheus.NewRegistry(),
+		OnStateChange: func(e component.Exports) {},
+	}
 	args := Arguments{
 		ForwardTo:      []loki.LogsReceiver{ch1, ch2},
 		RelabelConfigs: relabelConfigs.Rcs,
@@ -112,8 +112,11 @@ func BenchmarkRelabelComponent(b *testing.B) {
 	ch1 := make(loki.LogsReceiver)
 
 	// Create and run the component, so that it relabels and forwards logs.
-	l, _ := logging.New(os.Stderr, logging.DefaultOptions)
-	opts := component.Options{Logger: l, Registerer: prometheus.NewRegistry(), OnStateChange: func(e component.Exports) {}}
+	opts := component.Options{
+		Logger:        util.TestFlowLogger(b),
+		Registerer:    prometheus.NewRegistry(),
+		OnStateChange: func(e component.Exports) {},
+	}
 	args := Arguments{
 		ForwardTo:      []loki.LogsReceiver{ch1},
 		RelabelConfigs: relabelConfigs.Rcs,
@@ -157,9 +160,11 @@ func TestCache(t *testing.T) {
 	ch1 := make(loki.LogsReceiver)
 
 	// Create and run the component, so that it relabels and forwards logs.
-	l, err := logging.New(os.Stderr, logging.DefaultOptions)
-	require.NoError(t, err)
-	opts := component.Options{Logger: l, Registerer: prometheus.NewRegistry(), OnStateChange: func(e component.Exports) {}}
+	opts := component.Options{
+		Logger:        util.TestFlowLogger(t),
+		Registerer:    prometheus.NewRegistry(),
+		OnStateChange: func(e component.Exports) {},
+	}
 	args := Arguments{
 		ForwardTo: []loki.LogsReceiver{ch1},
 		RelabelConfigs: []*flow_relabel.Config{

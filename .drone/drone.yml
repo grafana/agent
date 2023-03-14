@@ -373,38 +373,6 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Build agent (Linux armv6)
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - make generate-ui
-  - GOOS=linux GOARCH=arm GOARM=6 make agent
-  image: grafana/agent-build-image:0.23.0
-  name: Build
-trigger:
-  event:
-  - pull_request
-type: docker
----
-kind: pipeline
-name: Build agent (Linux armv7)
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - make generate-ui
-  - GOOS=linux GOARCH=arm GOARM=7 make agent
-  image: grafana/agent-build-image:0.23.0
-  name: Build
-trigger:
-  event:
-  - pull_request
-type: docker
----
-kind: pipeline
 name: Build agent (Linux ppc64le)
 platform:
   arch: amd64
@@ -533,38 +501,6 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Build agentctl (Linux armv6)
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - make generate-ui
-  - GOOS=linux GOARCH=arm GOARM=6 make agentctl
-  image: grafana/agent-build-image:0.23.0
-  name: Build
-trigger:
-  event:
-  - pull_request
-type: docker
----
-kind: pipeline
-name: Build agentctl (Linux armv7)
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - make generate-ui
-  - GOOS=linux GOARCH=arm GOARM=7 make agentctl
-  image: grafana/agent-build-image:0.23.0
-  name: Build
-trigger:
-  event:
-  - pull_request
-type: docker
----
-kind: pipeline
 name: Build agentctl (Linux ppc64le)
 platform:
   arch: amd64
@@ -685,38 +621,6 @@ steps:
 - commands:
   - make generate-ui
   - GOOS=linux GOARCH=arm64 GOARM= make operator
-  image: grafana/agent-build-image:0.23.0
-  name: Build
-trigger:
-  event:
-  - pull_request
-type: docker
----
-kind: pipeline
-name: Build operator (Linux armv6)
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - make generate-ui
-  - GOOS=linux GOARCH=arm GOARM=6 make operator
-  image: grafana/agent-build-image:0.23.0
-  name: Build
-trigger:
-  event:
-  - pull_request
-type: docker
----
-kind: pipeline
-name: Build operator (Linux armv7)
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - make generate-ui
-  - GOOS=linux GOARCH=arm GOARM=7 make operator
   image: grafana/agent-build-image:0.23.0
   name: Build
 trigger:
@@ -1269,6 +1173,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: ea36b39b4cf7c9075321e7d3ca75c02cac36e962bb951ef9fc3022f710ec9933
+hmac: 5c37f51ea9c0d52177fc2427da1ac150c16833fed7b835160c3cc0c207d73dfa
 
 ...

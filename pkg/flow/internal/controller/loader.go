@@ -12,6 +12,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
+	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/vm"
@@ -25,10 +26,9 @@ import (
 
 // The Loader builds and evaluates ComponentNodes from River blocks.
 type Loader struct {
-	log             log.Logger
-	tracer          trace.TracerProvider
-	globals         ComponentGlobals
-	onExportsChange func(map[string]any)
+	log     *logging.Logger
+	tracer  trace.TracerProvider
+	globals ComponentGlobals
 
 	mut           sync.RWMutex
 	graph         *dag.Graph
@@ -43,10 +43,9 @@ type Loader struct {
 // with co for their options.
 func NewLoader(globals ComponentGlobals) *Loader {
 	l := &Loader{
-		log:             globals.Logger,
-		tracer:          globals.TraceProvider,
-		globals:         globals,
-		onExportsChange: globals.OnExportsChange,
+		log:     globals.Logger,
+		tracer:  globals.TraceProvider,
+		globals: globals,
 
 		graph:         &dag.Graph{},
 		originalGraph: &dag.Graph{},
@@ -85,7 +84,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlo
 	)
 
 	// Pre-populate graph with a ConfigNode.
-	c, configBlockDiags := NewConfigNode(configBlocks, l.log, l.tracer, l.onExportsChange, l.isModule())
+	c, configBlockDiags := NewConfigNode(configBlocks, l.globals, l.isModule())
 	diags = append(diags, configBlockDiags...)
 	newGraph.Add(c)
 
@@ -417,5 +416,5 @@ func multierrToDiags(errors error) diag.Diagnostics {
 // If the definition of a module ever changes, update this.
 func (l *Loader) isModule() bool {
 	// Either 1 of these checks is technically sufficient but let's be extra careful.
-	return l.onExportsChange != nil && l.globals.ControllerID != ""
+	return l.globals.OnExportsChange != nil && l.globals.ControllerID != ""
 }

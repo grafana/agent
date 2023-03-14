@@ -7,13 +7,12 @@ package stages
 import (
 	"bytes"
 	"errors"
-	"io"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/assert"
@@ -112,7 +111,7 @@ func TestPipeline_Regex(t *testing.T) {
 		t.Run(testName, func(t *testing.T) {
 			t.Parallel()
 
-			logger, _ := logging.New(io.Discard, logging.DefaultOptions)
+			logger := util.TestFlowLogger(t)
 			pl, err := NewPipeline(logger, loadConfig(testData.config), nil, prometheus.DefaultRegisterer)
 			if err != nil {
 				t.Fatal(err)
@@ -303,7 +302,7 @@ func TestRegexParser_Parse(t *testing.T) {
 		tt := tt
 		t.Run(tName, func(t *testing.T) {
 			t.Parallel()
-			logger, _ := logging.New(io.Discard, logging.DefaultOptions)
+			logger := util.TestFlowLogger(t)
 			p, err := New(logger, nil, StageConfig{RegexConfig: &tt.config}, nil)
 			if err != nil {
 				t.Fatalf("failed to create regex parser: %s", err)
@@ -328,7 +327,7 @@ func BenchmarkRegexStage(b *testing.B) {
 	}
 	for _, bm := range benchmarks {
 		b.Run(bm.name, func(b *testing.B) {
-			logger, _ := logging.New(io.Discard, logging.DefaultOptions)
+			logger := util.TestFlowLogger(b)
 			stage, err := New(logger, nil, StageConfig{RegexConfig: &bm.config}, nil)
 			if err != nil {
 				panic(err)
