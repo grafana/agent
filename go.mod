@@ -34,12 +34,12 @@ require (
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/github/smimesign v0.2.0
 	github.com/go-kit/log v0.2.1
-	github.com/go-logfmt/logfmt v0.5.1
+	github.com/go-logfmt/logfmt v0.6.0
 	github.com/go-logr/logr v1.2.3
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/gogo/protobuf v1.3.2
-	github.com/golang/protobuf v1.5.2
+	github.com/golang/protobuf v1.5.3
 	github.com/golang/snappy v0.0.4
 	github.com/google/cadvisor v0.44.0
 	github.com/google/dnsmasq_exporter v0.0.0-00010101000000-000000000000
@@ -121,16 +121,15 @@ require (
 	github.com/prometheus/blackbox_exporter v0.22.1-0.20220920154026-3446984d6a6e
 	github.com/prometheus/client_golang v1.14.0
 	github.com/prometheus/client_model v0.3.0
-	github.com/prometheus/common v0.39.0
+	github.com/prometheus/common v0.42.0
 	github.com/prometheus/consul_exporter v0.8.0
 	github.com/prometheus/memcached_exporter v0.10.0
 	github.com/prometheus/mysqld_exporter v0.14.0
 	github.com/prometheus/node_exporter v1.5.0
-	github.com/prometheus/procfs v0.8.0
+	github.com/prometheus/procfs v0.9.0
 	github.com/prometheus/prometheus v1.99.0
 	github.com/prometheus/snmp_exporter v0.20.1-0.20220111173215-83399c23888f
-	github.com/prometheus/statsd_exporter v0.22.8
-	github.com/prometheus/tsdb v0.7.1
+	github.com/prometheus/statsd_exporter v0.23.2
 	github.com/rancher/k3d/v5 v5.2.2
 	github.com/rfratto/ckit v0.0.0-20220401221852-009169323240
 	github.com/rs/cors v1.8.3
@@ -138,13 +137,14 @@ require (
 	github.com/sijms/go-ora/v2 v2.5.24
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	github.com/vincent-petithory/dataurl v1.0.0
 	github.com/weaveworks/common v0.0.0-20221201103051-7c2720a9024d
 	github.com/webdevops/azure-metrics-exporter v0.0.0-20221205214019-9333e682d754
 	github.com/webdevops/go-common v0.0.0-20221205213740-01078f6e07cd
 	github.com/wk8/go-ordered-map v0.2.0
+	github.com/xdg-go/scram v1.1.1
 	go.opencensus.io v0.24.0
 	go.opentelemetry.io/collector v0.63.1
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.63.0
@@ -166,14 +166,14 @@ require (
 	go.uber.org/zap v1.23.0
 	golang.org/x/crypto v0.3.0
 	golang.org/x/exp v0.0.0-20221031165847-c99f073a8326
-	golang.org/x/net v0.5.0
-	golang.org/x/oauth2 v0.4.0
-	golang.org/x/sys v0.4.0
-	golang.org/x/text v0.6.0
+	golang.org/x/net v0.7.0
+	golang.org/x/oauth2 v0.5.0
+	golang.org/x/sys v0.6.0
+	golang.org/x/text v0.7.0
 	golang.org/x/time v0.2.0
 	google.golang.org/api v0.108.0
 	google.golang.org/grpc v1.51.0
-	google.golang.org/protobuf v1.28.1
+	google.golang.org/protobuf v1.29.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -548,7 +548,6 @@ require (
 	github.com/weaveworks/promrus v1.2.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.1 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
-	github.com/xdg-go/scram v1.1.1 // indirect
 	github.com/xdg-go/stringprep v1.0.3 // indirect
 	github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c // indirect
 	github.com/xdg/stringprep v1.0.0 // indirect
@@ -571,7 +570,7 @@ require (
 	gocloud.dev v0.24.0 // indirect
 	golang.org/x/mod v0.7.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/term v0.4.0 // indirect
+	golang.org/x/term v0.5.0 // indirect
 	golang.org/x/tools v0.4.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
@@ -634,7 +633,7 @@ replace (
 	github.com/prometheus-community/windows_exporter => github.com/grafana/windows_exporter v0.15.1-0.20220202211901-871715ba0b43
 	github.com/prometheus/mysqld_exporter => github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a
 	github.com/prometheus/snmp_exporter => github.com/grafana/snmp_exporter v0.20.1-0.20220405135227-49087c510bb1
-	github.com/prometheus/statsd_exporter => github.com/grafana/statsd_exporter v0.18.1-0.20211118164740-8e806158da0b
+	github.com/prometheus/statsd_exporter => github.com/grafana/statsd_exporter v0.23.3
 
 	// To be used until upstream PR of fixes is merged https://github.com/webdevops/azure-metrics-exporter/pull/41
 	github.com/webdevops/azure-metrics-exporter => github.com/kgeckhart/azure-metrics-exporter v0.0.0-20230124174512-16e25d5c8d3b
