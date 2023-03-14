@@ -21,7 +21,7 @@ import (
 
 // Test performs a basic integration test which runs the otelcol.extension.jaeger_remote_sampling
 // component and ensures that it can be used for authentication.
-func Test(t *testing.T) {
+func TestFileSource(t *testing.T) {
 	// write remote sampling config to a temp file
 	remoteSamplingConfig := `
 	{
@@ -44,16 +44,6 @@ func Test(t *testing.T) {
 	err := os.WriteFile(remoteSamplingConfigFile, []byte(remoteSamplingConfig), 0644)
 	require.NoError(t, err)
 
-	ctx := componenttest.TestContext(t)
-	ctx, cancel := context.WithTimeout(ctx, time.Minute)
-	defer cancel()
-
-	l := util.TestLogger(t)
-
-	// Create and run our component
-	ctrl, err := componenttest.NewControllerFromID(l, "otelcol.extension.jaeger_remote_sampling")
-	require.NoError(t, err)
-
 	listenAddr := getFreeAddr(t)
 	cfg := fmt.Sprintf(`
 	    http {
@@ -63,34 +53,15 @@ func Test(t *testing.T) {
 			file = "%s"
 		}
 	`, listenAddr, remoteSamplingConfigFile)
-	var args jaeger_remote_sampling.Arguments
-	require.NoError(t, river.Unmarshal([]byte(cfg), &args))
+	
+	get, cancel := startJaegerRemoteSamplingServer(t, cfg, listenAddr)
+	defer cancel()
 
-	go func() {
-		err := ctrl.Run(ctx, args)
-		require.NoError(t, err)
-	}()
-
-	require.NoError(t, ctrl.WaitRunning(time.Second), "component never started")
-	// the wrapped jaeger remote sampler starts its http server async: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/extension/jaegerremotesampling/v0.63.0/extension/jaegerremotesampling/internal/http.go#L85
-	// and reports errors back through ReportFatalError. Since we can't wait on this server directly just pause for a bit here while it starts up
-	util.Eventually(t, func(t require.TestingT) {
-		_, err := http.Get("http://" + listenAddr + "/sampling?service=foo")
-		require.NoError(t, err)
-	})
-
-	// request the remote sampling config above
-	require.NoError(t, err)
-	resp, err := http.Get("http://" + listenAddr + "/sampling?service=foo")
-	require.NoError(t, err, "HTTP request failed")
-	defer resp.Body.Close()
-
-	b, err := io.ReadAll(resp.Body)
-	require.NoError(t, err)
-	require.JSONEq(t, string(b), expectedRemoteSamplingConfig)
+	actual := get("foo")
+	require.JSONEq(t, actual, expectedRemoteSamplingConfig)
 }
 
-func TestContents(t *testing.T) {
+func TestContentsSource(t *testing.T) {
 	// write remote sampling config to a temp file
 	remoteSamplingConfig := `{ \"default_strategy\": {\"type\": \"probabilistic\", \"param\": 0.5 } }`
 	expectedRemoteSamplingConfig := `
@@ -101,17 +72,6 @@ func TestContents(t *testing.T) {
 		}
 	}
 	`
-
-	ctx := componenttest.TestContext(t)
-	ctx, cancel := context.WithTimeout(ctx, time.Minute)
-	defer cancel()
-
-	l := util.TestLogger(t)
-
-	// Create and run our component
-	ctrl, err := componenttest.NewControllerFromID(l, "otelcol.extension.jaeger_remote_sampling")
-	require.NoError(t, err)
-
 	listenAddr := getFreeAddr(t)
 	cfg := fmt.Sprintf(`
 	    http {
@@ -121,6 +81,24 @@ func TestContents(t *testing.T) {
 			contents = "%s"
 		}
 	`, listenAddr, remoteSamplingConfig)
+
+	get, cancel := startJaegerRemoteSamplingServer(t, cfg, listenAddr)
+	defer cancel()
+
+	actual := get("foo")
+	require.JSONEq(t, actual, expectedRemoteSamplingConfig)
+}
+
+func startJaegerRemoteSamplingServer(t *testing.T, cfg string, listenAddr string) (func(svc string) string, context.CancelFunc) {
+	ctx := componenttest.TestContext(t)
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
+
+	l := util.TestLogger(t)
+
+	// Create and run our component
+	ctrl, err := componenttest.NewControllerFromID(l, "otelcol.extension.jaeger_remote_sampling")
+	require.NoError(t, err)
+
 	var args jaeger_remote_sampling.Arguments
 	require.NoError(t, river.Unmarshal([]byte(cfg), &args))
 
@@ -137,15 +115,15 @@ func TestContents(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	// request the remote sampling config above
-	require.NoError(t, err)
-	resp, err := http.Get("http://" + listenAddr + "/sampling?service=foo")
-	require.NoError(t, err, "HTTP request failed")
-	defer resp.Body.Close()
-
-	b, err := io.ReadAll(resp.Body)
-	require.NoError(t, err)
-	require.JSONEq(t, string(b), expectedRemoteSamplingConfig)
+	return func(svc string) string {
+		resp, err := http.Get("http://" + listenAddr + "/sampling?service=" + svc)
+		require.NoError(t, err, "HTTP request failed")
+		defer resp.Body.Close()
+	
+		b, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+		return string(b)	
+	}, cancel
 }
 
 func TestUnmarshalFailsWithNoServerConfig(t *testing.T) {
