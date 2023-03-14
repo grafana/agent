@@ -5,14 +5,12 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/vm"
-	"go.opentelemetry.io/otel/trace"
 )
 
 const (
@@ -27,18 +25,21 @@ const (
 // The graph will always have _exactly one_ instance of ConfigNode, which will
 // be used to contain the state of all config blocks.
 type ConfigNode struct {
+	globals ComponentGlobals
+
 	mut          sync.RWMutex
-	blocks       []*ast.BlockStmt // Current River blocks to derive config from
-	logger       log.Logger
-	loggingArgs  logging.Options // Evaluated logging arguments for the config
+	blocks       []*ast.BlockStmt    // Current River blocks to derive config from
+	loggingArgs  logging.SinkOptions // Evaluated logging arguments for the config
 	loggingBlock *ast.BlockStmt
 	loggingEval  *vm.Evaluator
-	tracer       trace.TracerProvider
 	tracingArgs  tracing.Options
 	tracingBlock *ast.BlockStmt
 	tracingEval  *vm.Evaluator
 	exportBlocks map[string]*ast.BlockStmt
 	exportEvals  map[string]*vm.Evaluator
+
+	// Set to true for configuration blocks that were provided.
+	foundLogging, foundTracing bool
 
 	onExportsChanged func(map[string]any)
 }
@@ -52,7 +53,7 @@ var _ dag.Node = (*ConfigNode)(nil)
 
 // NewConfigNode creates a new ConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.
-func NewConfigNode(blocks []*ast.BlockStmt, l log.Logger, t trace.TracerProvider, onExportsChanged func(map[string]any)) (*ConfigNode, diag.Diagnostics) {
+func NewConfigNode(blocks []*ast.BlockStmt, globals ComponentGlobals, onExportsChanged func(map[string]any)) (*ConfigNode, diag.Diagnostics) {
 	var (
 		blockMap = make(map[string]*ast.BlockStmt, len(blocks))
 		diags    diag.Diagnostics
@@ -62,6 +63,9 @@ func NewConfigNode(blocks []*ast.BlockStmt, l log.Logger, t trace.TracerProvider
 
 		exportBlocks = make(map[string]*ast.BlockStmt)
 		exportEvals  = make(map[string]*vm.Evaluator)
+
+		foundLogging = false
+		foundTracing = false
 	)
 
 	for _, b := range blocks {
@@ -83,8 +87,10 @@ func NewConfigNode(blocks []*ast.BlockStmt, l log.Logger, t trace.TracerProvider
 		switch name {
 		case loggingBlockID:
 			loggingBlock = *b
+			foundLogging = true
 		case tracingBlockID:
 			tracingBlock = *b
+			foundTracing = true
 		case exportBlockID:
 			if onExportsChanged == nil {
 				diags.Add(diag.Diagnostic{
@@ -104,24 +110,27 @@ func NewConfigNode(blocks []*ast.BlockStmt, l log.Logger, t trace.TracerProvider
 
 	// Pre-populate arguments with their default values.
 	var (
-		loggerOptions = logging.DefaultOptions
+		loggerOptions = logging.DefaultSinkOptions
 		tracerOptions = tracing.DefaultOptions
 	)
 	return &ConfigNode{
+		globals: globals,
+
 		blocks: blocks,
 
-		logger:       l,
 		loggingArgs:  loggerOptions,
 		loggingBlock: &loggingBlock,
 		loggingEval:  vm.New(loggingBlock.Body),
 
-		tracer:       t,
 		tracingArgs:  tracerOptions,
 		tracingBlock: &tracingBlock,
 		tracingEval:  vm.New(tracingBlock.Body),
 
 		exportBlocks: exportBlocks,
 		exportEvals:  exportEvals,
+
+		foundLogging: foundLogging,
+		foundTracing: foundTracing,
 
 		onExportsChanged: onExportsChanged,
 	}, diags
@@ -153,24 +162,30 @@ func (cn *ConfigNode) Evaluate(scope *vm.Scope) (*ast.BlockStmt, error) {
 }
 
 func (cn *ConfigNode) evaluateLogging(scope *vm.Scope) (*ast.BlockStmt, error) {
+	if !cn.foundLogging {
+		// Skip evaluating logging if the logging block wasn't provided.
+		return nil, nil
+	}
+
 	// Evaluate logging block fields and store a copy.
-	args := logging.DefaultOptions
+	args := logging.DefaultSinkOptions
 	if err := cn.loggingEval.Evaluate(scope, &args); err != nil {
 		return cn.loggingBlock, fmt.Errorf("decoding River: %w", err)
 	}
 	cn.loggingArgs = args
 
-	l, ok := cn.logger.(*logging.Logger)
-	if ok {
-		err := l.Update(cn.loggingArgs)
-		if err != nil {
-			return cn.loggingBlock, fmt.Errorf("could not update logger: %v", err)
-		}
+	if err := cn.globals.LogSink.Update(cn.loggingArgs); err != nil {
+		return cn.loggingBlock, fmt.Errorf("could not update logger: %w", err)
 	}
 	return nil, nil
 }
 
 func (cn *ConfigNode) evaluateTracing(scope *vm.Scope) (*ast.BlockStmt, error) {
+	if !cn.foundTracing {
+		// Skip evaluating tracing if the tracing block wasn't provided.
+		return nil, nil
+	}
+
 	// Evaluate logging block fields and store a copy.
 	args := tracing.DefaultOptions
 	if err := cn.tracingEval.Evaluate(scope, &args); err != nil {
@@ -178,7 +193,7 @@ func (cn *ConfigNode) evaluateTracing(scope *vm.Scope) (*ast.BlockStmt, error) {
 	}
 	cn.tracingArgs = args
 
-	t, ok := cn.tracer.(*tracing.Tracer)
+	t, ok := cn.globals.TraceProvider.(*tracing.Tracer)
 	if ok {
 		err := t.Update(cn.tracingArgs)
 		if err != nil {
@@ -213,7 +228,7 @@ func (cn *ConfigNode) evaluateExports(scope *vm.Scope) (*ast.BlockStmt, error) {
 }
 
 // LoggingArgs returns the arguments used to configure the logger.
-func (cn *ConfigNode) LoggingArgs() logging.Options {
+func (cn *ConfigNode) LoggingArgs() logging.SinkOptions {
 	cn.mut.RLock()
 	defer cn.mut.RUnlock()
 	return cn.loggingArgs

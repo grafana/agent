@@ -2,13 +2,11 @@ package relabel
 
 import (
 	"math"
-	"os"
 	"testing"
 	"time"
 
 	"golang.org/x/net/context"
 
-	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/prometheus"
@@ -63,11 +61,10 @@ func TestNil(t *testing.T) {
 		return ref, nil
 	}))
 	relabeller, err := New(component.Options{
-		ID:     "1",
-		Logger: util.TestLogger(t),
-		OnStateChange: func(e component.Exports) {
-		},
-		Registerer: prom.NewRegistry(),
+		ID:            "1",
+		Logger:        util.TestFlowLogger(t),
+		OnStateChange: func(e component.Exports) {},
+		Registerer:    prom.NewRegistry(),
 	}, Arguments{
 		ForwardTo: []storage.Appendable{fanout},
 		MetricRelabelConfigs: []*flow_relabel.Config{
@@ -86,8 +83,6 @@ func TestNil(t *testing.T) {
 }
 
 func BenchmarkCache(b *testing.B) {
-	l := log.NewSyncLogger(log.NewLogfmtLogger(os.Stderr))
-
 	fanout := prometheus.NewInterceptor(nil, prometheus.WithAppendHook(func(ref storage.SeriesRef, l labels.Labels, _ int64, _ float64, _ storage.Appender) (storage.SeriesRef, error) {
 		require.True(b, l.Has("new_label"))
 		return ref, nil
@@ -95,7 +90,7 @@ func BenchmarkCache(b *testing.B) {
 	var entry storage.Appendable
 	_, _ = New(component.Options{
 		ID:     "1",
-		Logger: l,
+		Logger: util.TestFlowLogger(b),
 		OnStateChange: func(e component.Exports) {
 			newE := e.(Exports)
 			entry = newE.Receiver
@@ -129,11 +124,10 @@ func generateRelabel(t *testing.T) *Component {
 		return ref, nil
 	}))
 	relabeller, err := New(component.Options{
-		ID:     "1",
-		Logger: util.TestLogger(t),
-		OnStateChange: func(e component.Exports) {
-		},
-		Registerer: prom.NewRegistry(),
+		ID:            "1",
+		Logger:        util.TestFlowLogger(t),
+		OnStateChange: func(e component.Exports) {},
+		Registerer:    prom.NewRegistry(),
 	}, Arguments{
 		ForwardTo: []storage.Appendable{fanout},
 		MetricRelabelConfigs: []*flow_relabel.Config{
