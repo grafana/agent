@@ -258,7 +258,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.16.19 // indirect
 	github.com/aws/smithy-go v1.13.5 // indirect
 	github.com/beevik/ntp v0.3.0 // indirect
-	github.com/benbjohnson/clock v1.3.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver v3.5.2-0.20180723201105-3c1074078d32+incompatible // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
