@@ -1,6 +1,5 @@
 ---
 title: logging
-weight: 100
 ---
 
 # logging block

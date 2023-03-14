@@ -6,11 +6,10 @@ package stages
 
 import (
 	"fmt"
-	"io"
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 )
@@ -69,7 +68,7 @@ var testMatchLogLineApp2 = `
 func TestMatchStage(t *testing.T) {
 	registry := prometheus.NewRegistry()
 	plName := "test_match_pipeline"
-	logger, _ := logging.New(io.Discard, logging.DefaultOptions)
+	logger := util.TestFlowLogger(t)
 	pl, err := NewPipeline(logger, loadConfig(testMatchRiver), &plName, registry)
 	if err != nil {
 		t.Fatal(err)
@@ -163,7 +162,7 @@ func TestMatcher(t *testing.T) {
 				"",
 				"",
 			}
-			logger, _ := logging.New(io.Discard, logging.DefaultOptions)
+			logger := util.TestFlowLogger(t)
 			s, err := newMatcherStage(logger, nil, matchConfig, prometheus.DefaultRegisterer)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("withMatcher() error = %v, wantErr %v", err, tt.wantErr)

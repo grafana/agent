@@ -214,10 +214,9 @@ func createComponentWithLabels(t *testing.T, dir string, paths []string, exclude
 		}
 		tPaths = append(tPaths, tar)
 	}
-	l := util.TestLogger(t)
 	c, err := New(component.Options{
 		ID:       "test",
-		Logger:   l,
+		Logger:   util.TestFlowLogger(t),
 		DataPath: dir,
 		OnStateChange: func(e component.Exports) {
 
