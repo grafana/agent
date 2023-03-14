@@ -26,7 +26,7 @@ type Apache struct {
 }
 
 func New() (*Apache, error) {
-	bb, err := os.ReadFile("apache.river")
+	bb, err := os.ReadFile("pkg/autodiscovery/apache/apache.river")
 	if err != nil {
 		return nil, err
 	}
@@ -91,9 +91,6 @@ func (m *Apache) Run() (*autodiscovery.Result, error) {
   scrape_uri = "%s"
 }`, uri)
 		res.MetricsExport = "prometheus.exporter.apache.default.targets"
-
-		//TODO: This should be logged by the function which calls Run instead?
-		fmt.Println("Found an Apache! Config used:/n", res)
 		return res, nil
 	}
 

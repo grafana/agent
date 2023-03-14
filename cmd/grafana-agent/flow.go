@@ -22,6 +22,7 @@ func runFlow() {
 	cmd.AddCommand(
 		fmtCommand(),
 		runCommand(),
+		autodiscoverCommand(),
 	)
 
 	if err := cmd.Execute(); err != nil {

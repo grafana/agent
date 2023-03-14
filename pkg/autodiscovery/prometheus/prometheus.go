@@ -43,7 +43,7 @@ type Prometheus struct {
 
 // New creates a new auto-discovery Postgres mechanism instance.
 func New() (*Prometheus, error) {
-	bb, err := os.ReadFile("prometheus.river")
+	bb, err := os.ReadFile("pkg/autodiscovery/prometheus/prometheus.river")
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func (pg *Prometheus) Run() (*autodiscovery.Result, error) {
 		l := promlint.New(bytes.NewReader(bb))
 		problems, err := l.Lint()
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "error while linting:", exp.URL, err)
+			// fmt.Fprintln(os.Stderr, "error while linting:", exp.URL, err)
 			continue
 		}
 
@@ -111,7 +111,6 @@ func (pg *Prometheus) Run() (*autodiscovery.Result, error) {
 				}
 			}
 			if !prefixMatch {
-				fmt.Println("prefix didnt match!", exp.URL)
 				continue
 			}
 		}

@@ -28,7 +28,7 @@ type Consul struct {
 
 // New creates a new auto-discovery Consul mechanism instance.
 func New() (*Consul, error) {
-	bb, err := os.ReadFile("consul.river")
+	bb, err := os.ReadFile("pkg/autodiscovery/consul/consul.river")
 	if err != nil {
 		return nil, err
 	}
@@ -86,8 +86,7 @@ func (c *Consul) Run() (*autodiscovery.Result, error) {
 		if err != nil {
 			continue
 		} else {
-			res.RiverConfig = fmt.Sprintf(`// https://grafana.com/docs/agent/next/flow/reference/components/prometheus.exporter.consul/
-prometheus.exporter.consul "default" {
+			res.RiverConfig = fmt.Sprintf(` prometheus.exporter.consul "default" {
   server = "%s"
 }`, srv)
 			res.MetricsExport = "prometheus.exporter.consul.default.targets"
@@ -97,8 +96,7 @@ prometheus.exporter.consul "default" {
 
 	// Our predefined configurations didn't work; but Postgres is running.
 	// Let's return a Flow component template for the user to fill out.
-	res.RiverConfig = `// https://grafana.com/docs/agent/next/flow/reference/components/prometheus.exporter.consul/
-prometheus.exporter.consul "default" {
+	res.RiverConfig = `prometheus.exporter.consul "default" {
   // NOTE: Agent Autodiscovery could not automatically configure a Consul exporter.
   // To set up a Consul exporter, please either set "server" explicitly
   // or set up the AGENT_CONSUL_SERVER environment variable and restart the Agent.

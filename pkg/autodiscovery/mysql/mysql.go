@@ -29,7 +29,7 @@ type MySQL struct {
 
 // New creates a new auto-discovery MySQL mechanism instance.
 func New() (*MySQL, error) {
-	bb, err := os.ReadFile("mysql.river")
+	bb, err := os.ReadFile("pkg/autodiscovery/mysql/mysql.river")
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func (m *MySQL) Run() (*autodiscovery.Result, error) {
 	}
 	for fn, _ := range fns {
 		res.LogfileTargets = append(res.LogfileTargets,
-			discovery.Target{"__path__": fn, "component": "postgres"},
+			discovery.Target{"__path__": fn, "component": "mysql"},
 		)
 	}
 

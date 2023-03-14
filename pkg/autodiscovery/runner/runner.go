@@ -92,7 +92,7 @@ func (a *Autodiscovery) Do(wr io.Writer) []AutodiscT {
 		mech, err := createMechanism(mechId)
 		if err != nil {
 			fmt.Fprintf(os.Stderr,
-				"failed to create a %s auto discovery mechanism: %s", mechId, err)
+				"failed to create a %s auto discovery mechanism: %s\n", mechId, err)
 			continue
 		}
 		mechanisms = append(mechanisms, mech)
@@ -106,7 +106,7 @@ func (a *Autodiscovery) Do(wr io.Writer) []AutodiscT {
 		if err != nil {
 			//TODO: Also print out the name of the mechanism
 			fmt.Fprintf(os.Stderr,
-				"failed to run auto discovery mechanism: %s", err)
+				"failed to run auto discovery mechanism: %s\n", err)
 			continue
 		}
 		results = append(results, res)
@@ -226,7 +226,7 @@ loki.write "default" {
 {{ end }}{{end}}
 `
 
-func installIntegration(apiToken string, integrations ...string) error {
+func InstallIntegrations(apiToken string, integrations ...string) error {
 	client := &http.Client{}
 	baseURL := "https://grafana.com/api"
 	integrationsAPIURL := "https://integrations-api-eu-west.grafana.net"

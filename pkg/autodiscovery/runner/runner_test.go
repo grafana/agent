@@ -100,5 +100,5 @@ prometheus.exporter.consul "default" {
 }
 
 func TestInstallIntegration(t *testing.T) {
-	installIntegration(os.Getenv("GCLOUD_ADMIN_API_KEY"), "jvm", "mysql")
+	InstallIntegrations(os.Getenv("GCLOUD_ADMIN_API_KEY"), "jvm", "mysql")
 }

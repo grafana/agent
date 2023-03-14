@@ -26,7 +26,7 @@ type Redis struct {
 }
 
 func New() (*Redis, error) {
-	bb, err := os.ReadFile("redis.river")
+	bb, err := os.ReadFile("pkg/autodiscovery/redis/redis.river")
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +88,6 @@ func (m *Redis) Run() (*autodiscovery.Result, error) {
 		redisStatus := rdb.Ping(ctx)
 
 		if redisStatus.Err() != nil {
-			fmt.Printf("Redis ping failed with error %s", redisStatus.Err())
 			continue
 		}
 
@@ -97,8 +96,6 @@ func (m *Redis) Run() (*autodiscovery.Result, error) {
 }`, uri)
 		res.MetricsExport = "prometheus.exporter.redis.default.targets"
 
-		//TODO: This should be logged by the function which calls Run instead?
-		fmt.Println("Found a Redis! Config used:/n", res)
 		return res, nil
 	}
 
