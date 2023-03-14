@@ -10,7 +10,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/extension/jaeger_remote_sampling"
 	"github.com/grafana/agent/pkg/flow/componenttest"
 	"github.com/grafana/agent/pkg/river"
@@ -152,7 +151,7 @@ func TestUnmarshalUsesDefaults(t *testing.T) {
 				}
 			`,
 			expected: jaeger_remote_sampling.Arguments{
-				HTTP:   &otelcol.HTTPServerArguments{Endpoint: "0.0.0.0:5778"},
+				HTTP:   &jaeger_remote_sampling.HTTPServerArguments{Endpoint: "0.0.0.0:5778"},
 				Source: jaeger_remote_sampling.ArgumentsSource{File: "remote.json"},
 			},
 		},
@@ -165,7 +164,7 @@ func TestUnmarshalUsesDefaults(t *testing.T) {
 				}
 			`,
 			expected: jaeger_remote_sampling.Arguments{
-				GRPC:   &otelcol.GRPCServerArguments{Endpoint: "0.0.0.0:14250", Transport: "tcp"},
+				GRPC:   &jaeger_remote_sampling.GRPCServerArguments{Endpoint: "0.0.0.0:14250", Transport: "tcp"},
 				Source: jaeger_remote_sampling.ArgumentsSource{File: "remote.json"},
 			},
 		},
@@ -180,7 +179,7 @@ func TestUnmarshalUsesDefaults(t *testing.T) {
 				}
 			`,
 			expected: jaeger_remote_sampling.Arguments{
-				HTTP:   &otelcol.HTTPServerArguments{Endpoint: "blerg"},
+				HTTP:   &jaeger_remote_sampling.HTTPServerArguments{Endpoint: "blerg"},
 				Source: jaeger_remote_sampling.ArgumentsSource{File: "remote.json"},
 			},
 		},
@@ -196,7 +195,7 @@ func TestUnmarshalUsesDefaults(t *testing.T) {
 				}
 			`,
 			expected: jaeger_remote_sampling.Arguments{
-				GRPC:   &otelcol.GRPCServerArguments{Endpoint: "blerg", Transport: "blarg"},
+				GRPC:   &jaeger_remote_sampling.GRPCServerArguments{Endpoint: "blerg", Transport: "blarg"},
 				Source: jaeger_remote_sampling.ArgumentsSource{File: "remote.json"},
 			},
 		},

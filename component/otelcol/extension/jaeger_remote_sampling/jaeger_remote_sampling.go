@@ -13,12 +13,6 @@ import (
 	otelconfig "go.opentelemetry.io/collector/config"
 )
 
-const (
-	DefaultHTTPEndpoint   = "0.0.0.0:5778"
-	DefaultGRPCEndpoint   = "0.0.0.0:14250"
-	DefaaultGRPCTransport = "tcp"
-)
-
 func init() {
 	component.Register(component.Registration{
 		Name: "otelcol.extension.jaeger_remote_sampling",
@@ -32,10 +26,37 @@ func init() {
 	})
 }
 
+type (
+	// GRPCServerArguments is used to configure otelcol.extension.jaeger_remote_sampling with
+	// component-specific defaults.
+	GRPCServerArguments otelcol.GRPCServerArguments
+
+	// HTTPServerArguments is used to configure otelcol.extension.jaeger_remote_sampling with
+	// component-specific defaults.
+	HTTPServerArguments otelcol.HTTPServerArguments
+)
+
+var (
+	_ river.Unmarshaler = (*GRPCServerArguments)(nil)
+	_ river.Unmarshaler = (*HTTPServerArguments)(nil)
+)
+
+// Default server settings.
+var (
+	DefaultGRPCServerArguments = GRPCServerArguments{
+		Endpoint:  "0.0.0.0:14250",
+		Transport: "tcp",
+	}
+
+	DefaultHTTPServerArguments = HTTPServerArguments{
+		Endpoint: "0.0.0.0:5778",
+	}
+)
+
 // Arguments configures the otelcol.extension.jaegerremotesampling component.
 type Arguments struct {
-	GRPC *otelcol.GRPCServerArguments `river:"grpc,block,optional"`
-	HTTP *otelcol.HTTPServerArguments `river:"http,block,optional"`
+	GRPC *GRPCServerArguments `river:"grpc,block,optional"`
+	HTTP *HTTPServerArguments `river:"http,block,optional"`
 
 	Source ArgumentsSource `river:"source,block"`
 }
@@ -52,14 +73,11 @@ var (
 	_ river.Unmarshaler   = (*Arguments)(nil)
 )
 
-// DefaultArguments holds default settings for otelcol.receiver.zipkin.
-var DefaultArguments = Arguments{}
-
 // Convert implements extension.Arguments.
 func (args Arguments) Convert() otelconfig.Extension {
 	return &jaegerremotesampling.Config{
-		HTTPServerSettings: args.HTTP.Convert(),
-		GRPCServerSettings: args.GRPC.Convert(),
+		HTTPServerSettings: (*otelcol.HTTPServerArguments)(args.HTTP).Convert(),
+		GRPCServerSettings: (*otelcol.GRPCServerArguments)(args.GRPC).Convert(),
 		Source: jaegerremotesampling.Source{
 			Remote:         args.Source.Remote.Convert(),
 			File:           args.Source.File,
@@ -81,7 +99,6 @@ func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.Compone
 
 // UnmarshalRiver applies defaults to args before unmarshaling.
 func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
-	*a = DefaultArguments
 
 	type args Arguments
 	err := f((*args)(a))
@@ -89,15 +106,29 @@ func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 		return err
 	}
 
+	if a.GRPC == nil && a.HTTP == nil {
+		return fmt.Errorf("http or grpc must be configured to serve the sampling document")
+	}
+
+	return nil
+}
+
+func (a *ArgumentsSource) UnmarshalRiver(f func(interface{}) error) error {
+	type args ArgumentsSource
+	err := f((*args)(a))
+	if err != nil {
+		return err
+	}
+
 	// remote config, local file and contents are all mutually exclusive
 	sourcesSet := 0
-	if a.Source.Content != "" {
+	if a.Content != "" {
 		sourcesSet++
 	}
-	if a.Source.File != "" {
+	if a.File != "" {
 		sourcesSet++
 	}
-	if a.Source.Remote != nil {
+	if a.Remote != nil {
 		sourcesSet++
 	}
 
@@ -108,22 +139,19 @@ func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 		return fmt.Errorf("only one of contents, file or remote can be configured")
 	}
 
-	if a.GRPC == nil && a.HTTP == nil {
-		return fmt.Errorf("http or grpc must be configured to serve the sampling document")
-	}
-
-	// if the block exists but required fields aren't set, use defaults
-	if a.GRPC != nil {
-		if a.GRPC.Endpoint == "" {
-			a.GRPC.Endpoint = DefaultGRPCEndpoint
-		}
-		if a.GRPC.Transport == "" {
-			a.GRPC.Transport = DefaaultGRPCTransport
-		}
-	}
-	if a.HTTP != nil && a.HTTP.Endpoint == "" {
-		a.HTTP.Endpoint = DefaultHTTPEndpoint
-	}
-
 	return nil
+}
+
+// UnmarshalRiver implements river.Unmarshaler and supplies defaults.
+func (args *GRPCServerArguments) UnmarshalRiver(f func(interface{}) error) error {
+	*args = DefaultGRPCServerArguments
+	type arguments GRPCServerArguments
+	return f((*arguments)(args))
+}
+
+// UnmarshalRiver implements river.Unmarshaler and supplies defaults.
+func (args *HTTPServerArguments) UnmarshalRiver(f func(interface{}) error) error {
+	*args = DefaultHTTPServerArguments
+	type arguments HTTPServerArguments
+	return f((*arguments)(args))
 }
