@@ -295,7 +295,7 @@ information.
 * `prometheus_remote_storage_exemplars_in_total` (counter): Exemplars read into
   remote storage.
 
-## Example
+## Examples
 
 This example creates a `prometheus.remote_write` component that sends received
 metrics to a local Mimir instance:
