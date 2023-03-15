@@ -80,9 +80,9 @@ var (
 		parse_librato_tags				= false
 		parse_signalfx_tags				= false
 		`
-	duration1s, _ := time.ParseDuration("1s")
-	duration1m, _ := time.ParseDuration("1m")
-	)
+	duration1s, _ = time.ParseDuration("1s")
+	duration1m, _ = time.ParseDuration("1m")
+)
 
 func TestRiverUnmarshall(t *testing.T) {
 
@@ -136,7 +136,6 @@ func TestRiverUnmarshall(t *testing.T) {
 }
 
 func TestConvert(t *testing.T) {
-
 	var args Config
 	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
 	require.NoError(t, err)
@@ -186,5 +185,4 @@ func TestConvert(t *testing.T) {
 	require.Equal(t, false, configStatsd.ParseInfluxDB)
 	require.Equal(t, false, configStatsd.ParseLibrato)
 	require.Equal(t, false, configStatsd.ParseSignalFX)
-
 }
