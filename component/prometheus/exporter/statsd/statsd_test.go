@@ -48,7 +48,7 @@ var (
 				match_type					= "regex"
 				help						= "help"
 				action						= "map"
-				match_metric_type			= "glob"
+				match_metric_type			= "gauge"
 				ttl							= "1m"
 				summary_options {
 					quantiles {
@@ -114,7 +114,7 @@ func TestRiverUnmarshall(t *testing.T) {
 	require.Equal(t, "regex", string(args.MappingConfig.Mappings[0].MatchType))
 	require.Equal(t, "help", string(args.MappingConfig.Mappings[0].HelpText))
 	require.Equal(t, "map", string(args.MappingConfig.Mappings[0].Action))
-	require.Equal(t, "glob", string(args.MappingConfig.Mappings[0].MatchMetricType))
+	require.Equal(t, "gauge", string(args.MappingConfig.Mappings[0].MatchMetricType))
 	require.Equal(t, duration1m, args.MappingConfig.Mappings[0].Ttl)
 	require.Equal(t, []MetricObjective{{Quantile: 0.95, Error: 0.05}, {Quantile: 0.98, Error: 0.02}}, []MetricObjective(args.MappingConfig.Mappings[0].SummaryOptions.Quantiles))
 	require.Equal(t, duration1s, args.MappingConfig.Mappings[0].SummaryOptions.MaxAge)
@@ -161,12 +161,12 @@ func TestConvert(t *testing.T) {
 
 	require.Equal(t, "match", string(configStatsd.MappingConfig.Mappings[0].Match))
 	require.Equal(t, "name1", string(configStatsd.MappingConfig.Mappings[0].Name))
-	require.Equal(t, "summary", string(configStatsd.MappingConfig.Mappings[0].ObserverType))
-	require.Equal(t, "summary", string(configStatsd.MappingConfig.Mappings[0].TimerType))
-	require.Equal(t, "regex", string(configStatsd.MappingConfig.Mappings[0].MatchType))
+	require.Equal(t, mapper.ObserverTypeSummary, configStatsd.MappingConfig.Mappings[0].ObserverType)
+	require.Equal(t, mapper.ObserverTypeSummary, configStatsd.MappingConfig.Mappings[0].TimerType)
+	require.Equal(t, mapper.MatchTypeRegex, configStatsd.MappingConfig.Mappings[0].MatchType)
 	require.Equal(t, "help", string(configStatsd.MappingConfig.Mappings[0].HelpText))
-	require.Equal(t, "map", string(configStatsd.MappingConfig.Mappings[0].Action))
-	require.Equal(t, "glob", string(configStatsd.MappingConfig.Mappings[0].MatchMetricType))
+	require.Equal(t, mapper.ActionTypeMap, configStatsd.MappingConfig.Mappings[0].Action)
+	require.Equal(t, mapper.MetricTypeGauge, configStatsd.MappingConfig.Mappings[0].MatchMetricType)
 	require.Equal(t, duration1m, configStatsd.MappingConfig.Mappings[0].Ttl)
 	require.Equal(t, []mapper.MetricObjective{{Quantile: 0.95, Error: 0.05}, {Quantile: 0.98, Error: 0.02}}, []mapper.MetricObjective(configStatsd.MappingConfig.Mappings[0].SummaryOptions.Quantiles))
 	require.Equal(t, duration1s, configStatsd.MappingConfig.Mappings[0].SummaryOptions.MaxAge)
