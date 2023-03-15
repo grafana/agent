@@ -4,14 +4,13 @@ package windowsevent
 
 import (
 	"context"
-	"os"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sys/windows/svc/eventlog"
@@ -23,13 +22,11 @@ func TestEventLogger(t *testing.T) {
 	_ = eventlog.InstallAsEventCreate(loggerName, eventlog.Info|eventlog.Warning|eventlog.Error)
 	wlog, err := eventlog.Open(loggerName)
 	require.NoError(t, err)
-	l, err := logging.New(os.Stdout, logging.DefaultOptions)
-	require.NoError(t, err)
 	dataPath := t.TempDir()
 	rec := make(loki.LogsReceiver)
 	c, err := New(component.Options{
 		ID:       "loki.source.windowsevent.test",
-		Logger:   l,
+		Logger:   util.TestFlowLogger(t),
 		DataPath: dataPath,
 		OnStateChange: func(e component.Exports) {
 

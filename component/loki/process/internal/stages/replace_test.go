@@ -7,11 +7,10 @@ package stages
 import (
 	"errors"
 	"fmt"
-	"io"
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 )
@@ -75,7 +74,7 @@ var testReplaceLogLineAdjacentCaptureGroups = `abc`
 
 func TestReplace(t *testing.T) {
 	t.Parallel()
-	logger, _ := logging.New(io.Discard, logging.DefaultOptions)
+	logger := util.TestFlowLogger(t)
 
 	tests := map[string]struct {
 		config        string

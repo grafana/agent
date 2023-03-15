@@ -8,9 +8,12 @@ import styles from './ComponentList.module.css';
 
 interface ComponentListProps {
   components: ComponentInfo[];
+  parent?: string;
 }
 
-const ComponentList = ({ components }: ComponentListProps) => {
+const ComponentList = ({ components, parent }: ComponentListProps) => {
+  const pathPrefix = parent ? parent + '/' : '';
+
   return (
     <div className={styles.list}>
       <table className={styles.table}>
@@ -26,7 +29,7 @@ const ComponentList = ({ components }: ComponentListProps) => {
               </td>
               <td>
                 {component.id}
-                <NavLink to={'/component/' + component.id} className={styles.viewButton}>
+                <NavLink to={'/component/' + pathPrefix + component.id} className={styles.viewButton}>
                   View
                 </NavLink>
               </td>

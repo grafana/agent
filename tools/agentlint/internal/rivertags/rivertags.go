@@ -255,8 +255,8 @@ func lintRiverTag(ty *types.Var, tag string) (diagnostics []string) {
 		}
 
 		innerTy := getInnermostType(ty.Type())
-		if _, ok := innerTy.(*types.Struct); !ok {
-			diagnostics = append(diagnostics, "block fields must be a struct or a slice of structs")
+		if !isStructType(innerTy) && !isStringMap(innerTy) && !isEmptyInterface(innerTy) {
+			diagnostics = append(diagnostics, "block fields must be an interface{}, map[string]T, a struct, or a slice of structs")
 		}
 
 	case "enum", "enum,optional":
@@ -324,4 +324,28 @@ func validateFieldName(name string) (diagnostics []string) {
 	}
 
 	return
+}
+
+func isStructType(ty types.Type) bool {
+	_, ok := ty.(*types.Struct)
+	return ok
+}
+
+func isStringMap(ty types.Type) bool {
+	mapType, ok := ty.(*types.Map)
+	if !ok {
+		return false
+	}
+	if basic, ok := mapType.Key().(*types.Basic); ok {
+		return basic.Kind() == types.String
+	}
+	return false
+}
+
+func isEmptyInterface(ty types.Type) bool {
+	ifaceType, ok := ty.(*types.Interface)
+	if !ok {
+		return false
+	}
+	return ifaceType.Empty()
 }

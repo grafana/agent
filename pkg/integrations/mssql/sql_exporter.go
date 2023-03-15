@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/prometheus/client_golang/prometheus"
+	config_util "github.com/prometheus/common/config"
 
 	"github.com/burningalchemist/sql_exporter"
 	"github.com/burningalchemist/sql_exporter/config"
@@ -26,10 +27,10 @@ var DefaultConfig = Config{
 
 // Config is the configuration for the mssql integration
 type Config struct {
-	ConnectionString   string        `yaml:"connection_string,omitempty"`
-	MaxIdleConnections int           `yaml:"max_idle_connections,omitempty"`
-	MaxOpenConnections int           `yaml:"max_open_connections,omitempty"`
-	Timeout            time.Duration `yaml:"timeout,omitempty"`
+	ConnectionString   config_util.Secret `yaml:"connection_string,omitempty"`
+	MaxIdleConnections int                `yaml:"max_idle_connections,omitempty"`
+	MaxOpenConnections int                `yaml:"max_open_connections,omitempty"`
+	Timeout            time.Duration      `yaml:"timeout,omitempty"`
 }
 
 func (c Config) validate() error {
@@ -37,7 +38,7 @@ func (c Config) validate() error {
 		return errors.New("the connection_string parameter is required")
 	}
 
-	url, err := url.Parse(c.ConnectionString)
+	url, err := url.Parse(string(c.ConnectionString))
 	if err != nil {
 		return fmt.Errorf("failed to parse connection_string: %w", err)
 	}
@@ -63,7 +64,7 @@ func (c Config) validate() error {
 
 // Identifier returns a string that identifies the integration.
 func (c *Config) InstanceKey(agentKey string) (string, error) {
-	url, err := url.Parse(c.ConnectionString)
+	url, err := url.Parse(string(c.ConnectionString))
 	if err != nil {
 		return "", fmt.Errorf("failed to parse connection string URL: %w", err)
 	}
@@ -98,7 +99,7 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 	t, err := sql_exporter.NewTarget(
 		"mssqlintegration",
 		"",
-		c.ConnectionString,
+		string(c.ConnectionString),
 		[]*config.CollectorConfig{
 			&collectorConfig,
 		},

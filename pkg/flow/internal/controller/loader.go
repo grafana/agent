@@ -12,6 +12,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
+	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/vm"
@@ -25,7 +26,7 @@ import (
 
 // The Loader builds and evaluates ComponentNodes from River blocks.
 type Loader struct {
-	log     log.Logger
+	log     *logging.Logger
 	tracer  trace.TracerProvider
 	globals ComponentGlobals
 
@@ -83,7 +84,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlo
 	)
 
 	// Pre-populate graph with a ConfigNode.
-	c, configBlockDiags := NewConfigNode(configBlocks, l.log, l.tracer)
+	c, configBlockDiags := NewConfigNode(configBlocks, l.globals, l.isModule())
 	diags = append(diags, configBlockDiags...)
 	newGraph.Add(c)
 
@@ -91,7 +92,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlo
 	populateDiags := l.populateGraph(&newGraph, blocks)
 	diags = append(diags, populateDiags...)
 
-	wireDiags := l.wireGraphEdges(&newGraph)
+	wireDiags := l.wireGraphEdges(parentScope, &newGraph)
 	diags = append(diags, wireDiags...)
 
 	// Validate graph to detect cycles
@@ -244,6 +245,16 @@ func (l *Loader) populateGraph(g *dag.Graph, blocks []*ast.BlockStmt) diag.Diagn
 				continue
 			}
 
+			if registration.Singleton && l.isModule() {
+				diags.Add(diag.Diagnostic{
+					Severity: diag.SeverityLevelError,
+					Message:  fmt.Sprintf("Component %q is a singleton and unsupported inside a module", componentName),
+					StartPos: block.NamePos.Position(),
+					EndPos:   block.NamePos.Add(len(componentName) - 1).Position(),
+				})
+				continue
+			}
+
 			// Create a new component
 			c = NewComponentNode(l.globals, block)
 		}
@@ -254,11 +265,11 @@ func (l *Loader) populateGraph(g *dag.Graph, blocks []*ast.BlockStmt) diag.Diagn
 	return diags
 }
 
-func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
+func (l *Loader) wireGraphEdges(parent *vm.Scope, g *dag.Graph) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	for _, n := range g.Nodes() {
-		refs, nodeDiags := ComponentReferences(n, g)
+		refs, nodeDiags := ComponentReferences(parent, n, g)
 		for _, ref := range refs {
 			g.AddEdge(dag.Edge{From: n, To: ref.Target})
 		}
@@ -400,4 +411,10 @@ func multierrToDiags(errors error) diag.Diagnostics {
 		})
 	}
 	return diags
+}
+
+// If the definition of a module ever changes, update this.
+func (l *Loader) isModule() bool {
+	// Either 1 of these checks is technically sufficient but let's be extra careful.
+	return l.globals.OnExportsChange != nil && l.globals.ControllerID != ""
 }

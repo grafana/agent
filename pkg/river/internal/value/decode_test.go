@@ -161,6 +161,61 @@ func TestDecode_Capsules(t *testing.T) {
 	require.Equal(t, expect, actual)
 }
 
+type ValueInterface interface{ SomeMethod() }
+
+type Value1 struct{ test string }
+
+func (c Value1) SomeMethod() {}
+
+// TestDecode_CapsuleInterface tests that we are able to decode when
+// the target `into` is an interface.
+func TestDecode_CapsuleInterface(t *testing.T) {
+	tt := []struct {
+		name     string
+		value    ValueInterface
+		expected ValueInterface
+	}{
+		{
+			name:     "Capsule to Capsule",
+			value:    Value1{test: "true"},
+			expected: Value1{test: "true"},
+		},
+		{
+			name:     "Capsule Pointer to Capsule",
+			value:    &Value1{test: "true"},
+			expected: &Value1{test: "true"},
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			var actual ValueInterface
+			require.NoError(t, value.Decode(value.Encode(tc.value), &actual))
+
+			// require.Same validates the memory address matches after Decode.
+			if reflect.TypeOf(tc.value).Kind() == reflect.Pointer {
+				require.Same(t, tc.value, actual)
+			}
+
+			// We use tc.expected to validate the properties of actual match the
+			// original tc.value properties (nothing has mutated them during the test).
+			require.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
+// TestDecode_CapsulesError tests that we are unable to decode when
+// the target `into` is not an interface.
+func TestDecode_CapsulesError(t *testing.T) {
+	type Capsule1 struct{ test string }
+	type Capsule2 Capsule1
+
+	v := Capsule1{test: "true"}
+	actual := Capsule2{}
+
+	require.EqualError(t, value.Decode(value.Encode(v), &actual), `expected capsule("value_test.Capsule2"), got capsule("value_test.Capsule1")`)
+}
+
 // TestDecodeCopy_SliceCopy ensures that copies are made during decoding
 // instead of setting values directly.
 func TestDecodeCopy_SliceCopy(t *testing.T) {
@@ -229,7 +284,7 @@ func TestDecode_CustomTypes(t *testing.T) {
 }
 
 type customUnmarshaler struct {
-	Called bool
+	Called bool `river:"called,attr,optional"`
 }
 
 func (cu *customUnmarshaler) UnmarshalRiver(f func(interface{}) error) error {
