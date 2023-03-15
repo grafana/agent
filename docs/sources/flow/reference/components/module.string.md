@@ -70,8 +70,11 @@ source.
 
 ## Component health
 
-`module.string` is reported as unhealthy if given an invalid configuration or if
-it fails to start any of the components defined inside of it.
+`module.string` is reported as healthy if the most recent load of the module was
+successful.
+
+If the module is not loaded successfully, the current health displays as
+unhealthy and the health includes the error from loading the module.
 
 ## Debug information
 
