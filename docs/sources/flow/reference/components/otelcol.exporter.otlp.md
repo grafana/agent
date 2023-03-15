@@ -171,3 +171,20 @@ otelcol.exporter.otlp "tempo" {
     }
 }
 ```
+
+This example creates an exporter to send data to Grafana Cloud with username and password 
+injected through environment variables:
+
+```river
+otelcol.exporter.otlp "grafana_cloud_tempo" {
+	client {
+		endpoint = "https://tempo-xxx.grafana.net/tempo"
+		auth     = otelcol.auth.basic.grafana_cloud_tempo.handler
+	}
+}
+
+otelcol.auth.basic "grafana_cloud_tempo" {
+	username = env("TEMPO_USERNAME")
+	password = env("TEMPO_PASSWORD")
+}
+```
