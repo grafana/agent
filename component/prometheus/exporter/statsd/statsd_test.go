@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/pkg/river"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/statsd_exporter/pkg/mapper"
 	"github.com/stretchr/testify/require"
 )
@@ -43,6 +44,7 @@ var (
 			mappings {
 				match						= "match"
 				name						= "name1"
+				labels						= {"label1"= "value1", "label2" = "value2"}
 				observer_type				= "summary"
 				timer_type					= "summary"
 				match_type					= "regex"
@@ -109,6 +111,7 @@ func TestRiverUnmarshall(t *testing.T) {
 
 	require.Equal(t, "match", string(args.MappingConfig.Mappings[0].Match))
 	require.Equal(t, "name1", string(args.MappingConfig.Mappings[0].Name))
+	require.Equal(t, map[string]string{"label1": "value1", "label2": "value2"}, args.MappingConfig.Mappings[0].Labels)
 	require.Equal(t, "summary", string(args.MappingConfig.Mappings[0].ObserverType))
 	require.Equal(t, "summary", string(args.MappingConfig.Mappings[0].TimerType))
 	require.Equal(t, "regex", string(args.MappingConfig.Mappings[0].MatchType))
@@ -161,6 +164,7 @@ func TestConvert(t *testing.T) {
 
 	require.Equal(t, "match", string(configStatsd.MappingConfig.Mappings[0].Match))
 	require.Equal(t, "name1", string(configStatsd.MappingConfig.Mappings[0].Name))
+	require.Equal(t, prometheus.Labels{"label1": "value1", "label2": "value2"}, configStatsd.MappingConfig.Mappings[0].Labels)
 	require.Equal(t, mapper.ObserverTypeSummary, configStatsd.MappingConfig.Mappings[0].ObserverType)
 	require.Equal(t, mapper.ObserverTypeSummary, configStatsd.MappingConfig.Mappings[0].TimerType)
 	require.Equal(t, mapper.MatchTypeRegex, configStatsd.MappingConfig.Mappings[0].MatchType)
