@@ -146,7 +146,7 @@ require (
 	github.com/wk8/go-ordered-map v0.2.0
 	github.com/xdg-go/scram v1.1.1
 	go.opencensus.io v0.24.0
-	go.opentelemetry.io/collector v0.63.1
+	go.opentelemetry.io/collector v0.73.0
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.63.0
 	go.opentelemetry.io/collector/exporter/otlphttpexporter v0.0.0-00010101000000-000000000000
 	go.opentelemetry.io/collector/pdata v0.63.1
@@ -678,3 +678,6 @@ exclude (
 )
 
 replace github.com/github/smimesign => github.com/grafana/smimesign v0.2.1-0.20220408144937-2a5adf3481d3
+
+// for development
+replace github.com/grafana/agent/component/otelcol/processor/estimator/gcpricingestimatorprocessor => ./component/otelcol/processor/estimator/gcpricingestimatorprocessor
