@@ -4,8 +4,6 @@ package string
 import (
 	"context"
 	"net/http"
-	"sync"
-	"time"
 
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
@@ -51,15 +49,11 @@ type Component struct {
 	opts component.Options
 	log  log.Logger
 	ctrl *flow.Flow
-
-	healthMut sync.RWMutex
-	health    component.Health
 }
 
 var (
-	_ component.Component       = (*Component)(nil)
-	_ component.HealthComponent = (*Component)(nil)
-	_ component.HTTPComponent   = (*Component)(nil)
+	_ component.Component     = (*Component)(nil)
+	_ component.HTTPComponent = (*Component)(nil)
 )
 
 // New creates a new module.string component.
@@ -101,25 +95,6 @@ func (c *Component) Run(ctx context.Context) error {
 	return nil
 }
 
-func (c *Component) updateHealth(err error) {
-	c.healthMut.Lock()
-	defer c.healthMut.Unlock()
-
-	if err == nil {
-		c.health = component.Health{
-			Health:     component.HealthTypeHealthy,
-			Message:    "module updated",
-			UpdateTime: time.Now(),
-		}
-	} else {
-		c.health = component.Health{
-			Health:     component.HealthTypeUnhealthy,
-			Message:    err.Error(),
-			UpdateTime: time.Now(),
-		}
-	}
-}
-
 // Update implements component.Component.
 func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
@@ -129,18 +104,7 @@ func (c *Component) Update(args component.Arguments) error {
 		return err
 	}
 
-	err = c.ctrl.LoadFile(f, newArgs.Arguments)
-	c.updateHealth(err)
-
-	return nil
-}
-
-// CurrentHealth implements component.HealthComponent.
-func (c *Component) CurrentHealth() component.Health {
-	c.healthMut.RLock()
-	defer c.healthMut.RUnlock()
-
-	return c.health
+	return c.ctrl.LoadFile(f, newArgs.Arguments)
 }
 
 // Handler implements component.HTTPComponent.
