@@ -150,6 +150,7 @@ define generate_fpm =
 		--before-remove packaging/$(1)/control/prerm \
 		--config-files /etc/grafana-agent.yaml \
 		--config-files $(ENVIRONMENT_FILE_$(1)) \
+		$(5) \
 		--package $(4) \
 			dist/grafana-agent-linux-$(3)=/usr/bin/grafana-agent \
 			dist/grafana-agentctl-linux-$(3)=/usr/bin/grafana-agentctl \
@@ -175,7 +176,7 @@ ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
 	$(call generate_fpm,deb,amd64,amd64,$(PACKAGE_PREFIX).amd64.deb)
-	$(call generate_fpm,rpm,x86_64,amd64,$(PACKAGE_PREFIX).amd64.rpm)
+	$(call generate_fpm,rpm,x86_64,amd64,$(PACKAGE_PREFIX).amd64.rpm,--rpm-rpmbuild-define "_build_id_links none")
 endif
 
 .PHONY: dist-packages-arm64
