@@ -10,7 +10,8 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/util"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/goleak"
@@ -20,13 +21,14 @@ func Test(t *testing.T) {
 	defer goleak.VerifyNone(t)
 
 	// Create opts for component
-	l, err := logging.New(os.Stderr, logging.DefaultOptions)
-	require.NoError(t, err)
-	dataPath := t.TempDir()
+	opts := component.Options{
+		Logger:        util.TestFlowLogger(t),
+		Registerer:    prometheus.NewRegistry(),
+		OnStateChange: func(e component.Exports) {},
+		DataPath:      t.TempDir(),
+	}
 
-	opts := component.Options{Logger: l, DataPath: dataPath}
-
-	f, err := os.CreateTemp(dataPath, "example")
+	f, err := os.CreateTemp(opts.DataPath, "example")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -70,17 +72,18 @@ func Test(t *testing.T) {
 
 func TestTwoTargets(t *testing.T) {
 	// Create opts for component
-	l, err := logging.New(os.Stderr, logging.DefaultOptions)
-	require.NoError(t, err)
-	dataPath := t.TempDir()
+	opts := component.Options{
+		Logger:        util.TestFlowLogger(t),
+		Registerer:    prometheus.NewRegistry(),
+		OnStateChange: func(e component.Exports) {},
+		DataPath:      t.TempDir(),
+	}
 
-	opts := component.Options{Logger: l, DataPath: dataPath}
-
-	f, err := os.CreateTemp(dataPath, "example")
+	f, err := os.CreateTemp(opts.DataPath, "example")
 	if err != nil {
 		log.Fatal(err)
 	}
-	f2, err := os.CreateTemp(dataPath, "example2")
+	f2, err := os.CreateTemp(opts.DataPath, "example2")
 	if err != nil {
 		log.Fatal(err)
 	}

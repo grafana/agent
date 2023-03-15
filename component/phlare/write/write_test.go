@@ -84,13 +84,13 @@ func Test_Write_FanOut(t *testing.T) {
 		var wg sync.WaitGroup
 		wg.Add(1)
 		c, err := NewComponent(component.Options{
-			ID:     "1",
-			Logger: util.TestLogger(t),
+			ID:         "1",
+			Logger:     util.TestFlowLogger(t),
+			Registerer: prometheus.NewRegistry(),
 			OnStateChange: func(e component.Exports) {
 				defer wg.Done()
 				export = e.(Exports)
 			},
-			Registerer: prometheus.NewRegistry(),
 		}, arg)
 		require.NoError(t, err)
 		ctx, cancel := context.WithCancel(context.Background())
@@ -160,13 +160,13 @@ func Test_Write_Update(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	c, err := NewComponent(component.Options{
-		ID:     "1",
-		Logger: util.TestLogger(t),
+		ID:         "1",
+		Logger:     util.TestFlowLogger(t),
+		Registerer: prometheus.NewRegistry(),
 		OnStateChange: func(e component.Exports) {
 			defer wg.Done()
 			export = e.(Exports)
 		},
-		Registerer: prometheus.NewRegistry(),
 	}, argument)
 	require.NoError(t, err)
 	ctx, cancel := context.WithCancel(context.Background())

@@ -28,7 +28,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     GO_TAGS="builtinassets promtail_journal_enabled" \
     make agent
 
-FROM ubuntu:jammy
+FROM ubuntu:kinetic
 
 LABEL org.opencontainers.image.source="https://github.com/grafana/agent"
 

@@ -8,16 +8,9 @@ import (
 	"github.com/cespare/xxhash/v2"
 	"github.com/grafana/agent/pkg/runner"
 	"github.com/grafana/agent/pkg/util"
-	"github.com/grafana/dskit/backoff"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
 )
-
-var backoffRetry = backoff.Config{
-	MinBackoff: 10 * time.Millisecond,
-	MaxBackoff: 1 * time.Second,
-	MaxRetries: 5,
-}
 
 func TestRunner_ApplyPayloads(t *testing.T) {
 	t.Run("new Workers get scheduled for new tasks", func(t *testing.T) {
@@ -87,7 +80,7 @@ func TestRunner_Stop(t *testing.T) {
 func requireRunners(t *testing.T, expect uint64, actual *atomic.Uint64) {
 	util.Eventually(t, func(t require.TestingT) {
 		require.Equal(t, expect, actual.Load())
-	}, backoffRetry)
+	})
 }
 
 type stringTask string

@@ -17,7 +17,7 @@ const Router = ({ basePath }: Props) => {
       <main>
         <Routes>
           <Route path="/" element={<PageComponentList />} />
-          <Route path="/component/:id" element={<ComponentDetailPage />} />
+          <Route path="/component/*" element={<ComponentDetailPage />} />
           <Route path="/graph" element={<Graph />} />
         </Routes>
       </main>

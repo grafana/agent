@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/go-kit/log"
+	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/regexp"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/trace"
@@ -32,9 +32,9 @@ type Options struct {
 	// components.
 	ID string
 
-	// Logger the component may use for logging. The component ID will always be
-	// set as a field.
-	Logger log.Logger
+	// Logger the component may use for logging. Logs emitted with the logger
+	// always include the component ID as a field.
+	Logger *logging.Logger
 
 	// A path to a directory with this component may use for storage. The path is
 	// guaranteed to be unique across all running components.

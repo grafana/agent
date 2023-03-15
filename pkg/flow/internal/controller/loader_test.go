@@ -2,12 +2,13 @@ package controller_test
 
 import (
 	"errors"
+	"io"
 	"strings"
 	"testing"
 
-	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
+	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/parser"
@@ -52,11 +53,12 @@ func TestLoader(t *testing.T) {
 
 	newGlobals := func() controller.ComponentGlobals {
 		return controller.ComponentGlobals{
-			Logger:          log.NewNopLogger(),
-			TraceProvider:   trace.NewNoopTracerProvider(),
-			DataPath:        t.TempDir(),
-			OnExportsChange: func(cn *controller.ComponentNode) { /* no-op */ },
-			Registerer:      prometheus.NewRegistry(),
+			LogSink:           noOpSink(),
+			Logger:            logging.New(nil),
+			TraceProvider:     trace.NewNoopTracerProvider(),
+			DataPath:          t.TempDir(),
+			OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
+			Registerer:        prometheus.NewRegistry(),
 		}
 	}
 
@@ -193,11 +195,12 @@ func TestScopeWithFailingComponent(t *testing.T) {
 	`
 	newGlobals := func() controller.ComponentGlobals {
 		return controller.ComponentGlobals{
-			Logger:          log.NewNopLogger(),
-			TraceProvider:   trace.NewNoopTracerProvider(),
-			DataPath:        t.TempDir(),
-			OnExportsChange: func(cn *controller.ComponentNode) { /* no-op */ },
-			Registerer:      prometheus.NewRegistry(),
+			LogSink:           noOpSink(),
+			Logger:            logging.New(nil),
+			TraceProvider:     trace.NewNoopTracerProvider(),
+			DataPath:          t.TempDir(),
+			OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
+			Registerer:        prometheus.NewRegistry(),
 		}
 	}
 
@@ -206,6 +209,11 @@ func TestScopeWithFailingComponent(t *testing.T) {
 	require.Error(t, diags.ErrorOrNil())
 	require.Len(t, diags, 1)
 	require.True(t, strings.Contains(diags.Error(), `unrecognized attribute name "frequenc"`))
+}
+
+func noOpSink() *logging.Sink {
+	s, _ := logging.WriterSink(io.Discard, logging.DefaultSinkOptions)
+	return s
 }
 
 func applyFromContent(t *testing.T, l *controller.Loader, bb []byte) diag.Diagnostics {

@@ -5,8 +5,6 @@ local os_arch_tuples = [
   // Linux
   { name: 'Linux amd64', os: 'linux', arch: 'amd64' },
   { name: 'Linux arm64', os: 'linux', arch: 'arm64' },
-  { name: 'Linux armv6', os: 'linux', arch: 'arm', arm: '6' },
-  { name: 'Linux armv7', os: 'linux', arch: 'arm', arm: '7' },
   { name: 'Linux ppc64le', os: 'linux', arch: 'ppc64le' },
   { name: 'Linux s390x', os: 'linux', arch: 's390x' },
 
