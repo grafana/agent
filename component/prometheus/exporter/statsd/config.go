@@ -65,8 +65,6 @@ type MetricMapping struct {
 	Labels           map[string]string `river:"labels,attr,optional"`
 	ObserverType     string            `river:"observer_type,attr,optional"`
 	TimerType        string            `river:"timer_type,attr,optional"`
-	LegacyBuckets    []float64         `river:"buckets,attr,optional"`
-	LegacyQuantiles  []MetricObjective `river:"quantiles,block,optional"`
 	MatchType        string            `river:"match_type,attr,optional"`
 	HelpText         string            `river:"help,attr,optional"`
 	Action           string            `river:"action,attr,optional"`
@@ -139,8 +137,6 @@ func convertMappings(m []MetricMapping) []mapper.MetricMapping {
 			Labels:           v.Labels,
 			ObserverType:     mapper.ObserverType(v.ObserverType),
 			TimerType:        mapper.ObserverType(v.TimerType),
-			LegacyBuckets:    v.LegacyBuckets,
-			LegacyQuantiles:  convertMetricObjective(v.LegacyQuantiles),
 			MatchType:        mapper.MatchType(v.MatchType),
 			HelpText:         v.HelpText,
 			Action:           mapper.ActionType(v.Action),
