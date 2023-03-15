@@ -362,12 +362,9 @@ func (v Value) Key(key string) (index Value, ok bool) {
 		// We return the struct with the label intact.
 		return wrapStruct(v.rv, true).Key(key)
 	case v.rv.Kind() == reflect.Map:
-		// TODO There is a known issue where value.Keys returns an array of keys
-		// but MapIndex does not find the key just returned because it is a nil/zero value.
-		// This is a bug and will be evaluated later when the ramifications are better known.
 		val := v.rv.MapIndex(reflect.ValueOf(key))
-		if !val.IsValid() || val.IsZero() {
-			return
+		if !val.IsValid() {
+			return Null, false
 		}
 		return makeValue(val), true
 

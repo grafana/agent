@@ -26,5 +26,5 @@ for FILEPATH in $TESTS; do
   TESTNAME=${FILENAME%.values.yaml}
 
   echo "Render with file ${FILEPATH}"
-  helm template --namespace default --debug ${CHART_NAME} ${CHART_PATH} -f ${FILEPATH} --output-dir ${OUTPUT_PATH}/${TESTNAME}
+  helm template --namespace default --debug ${CHART_NAME} ${CHART_PATH} -f ${FILEPATH} --output-dir ${OUTPUT_PATH}/${TESTNAME} --set '$chart_tests=true'
 done

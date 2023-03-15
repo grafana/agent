@@ -627,6 +627,102 @@ func TestVM_Block_Unmarshaler(t *testing.T) {
 	require.True(t, actual.Settings.Called, "UnmarshalRiver did not get invoked")
 }
 
+func TestVM_Block_UnmarshalToMap(t *testing.T) {
+	type OuterBlock struct {
+		Settings map[string]interface{} `river:"some.settings,block"`
+	}
+
+	tt := []struct {
+		name        string
+		input       string
+		expect      OuterBlock
+		expectError string
+	}{
+		{
+			name: "decodes successfully",
+			input: `
+				some.settings {
+					field_a = 12345
+					field_b = "helloworld"
+				}
+			`,
+			expect: OuterBlock{
+				Settings: map[string]interface{}{
+					"field_a": 12345,
+					"field_b": "helloworld",
+				},
+			},
+		},
+		{
+			name: "rejects labeled blocks",
+			input: `
+				some.settings "foo" {
+					field_a = 12345
+				}
+			`,
+			expectError: `block "some.settings" requires non-empty label`,
+		},
+
+		{
+			name: "rejects nested maps",
+			input: `
+				some.settings {
+					inner_map {
+						field_a = 12345
+					}
+				}
+			`,
+			expectError: "nested blocks not supported here",
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			file, err := parser.ParseFile(t.Name(), []byte(tc.input))
+			require.NoError(t, err)
+
+			eval := vm.New(file)
+
+			var actual OuterBlock
+			err = eval.Evaluate(nil, &actual)
+
+			if tc.expectError == "" {
+				require.NoError(t, err)
+				require.Equal(t, tc.expect, actual)
+			} else {
+				require.ErrorContains(t, err, tc.expectError)
+			}
+		})
+	}
+}
+
+func TestVM_Block_UnmarshalToAny(t *testing.T) {
+	type OuterBlock struct {
+		Settings any `river:"some.settings,block"`
+	}
+
+	input := `
+		some.settings {
+			field_a = 12345
+			field_b = "helloworld"
+		}
+	`
+
+	file, err := parser.ParseFile(t.Name(), []byte(input))
+	require.NoError(t, err)
+
+	eval := vm.New(file)
+
+	var actual OuterBlock
+	require.NoError(t, eval.Evaluate(nil, &actual))
+
+	expect := map[string]interface{}{
+		"field_a": 12345,
+		"field_b": "helloworld",
+	}
+	require.Equal(t, expect, actual.Settings)
+}
+
 type Setting struct {
 	FieldA string `river:"field_a,attr"`
 	FieldB string `river:"field_b,attr"`

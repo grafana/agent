@@ -2,15 +2,26 @@ package util
 
 import (
 	"context"
+	"time"
 
 	"github.com/grafana/dskit/backoff"
 	"github.com/stretchr/testify/require"
 )
 
+var backoffRetry = backoff.Config{
+	MinBackoff: 10 * time.Millisecond,
+	MaxBackoff: 1 * time.Second,
+	MaxRetries: 5,
+}
+
 // Eventually calls the check function several times until it doesn't report an
 // error. Failing the test in the t provided to check does not fail the test
 // until the provided backoff.Config is out of retries.
-func Eventually(t require.TestingT, check func(t require.TestingT), bc backoff.Config) {
+func Eventually(t require.TestingT, check func(t require.TestingT)) {
+	EventuallyWithBackoff(t, check, backoffRetry)
+}
+
+func EventuallyWithBackoff(t require.TestingT, check func(t require.TestingT), bc backoff.Config) {
 	bo := backoff.New(context.Background(), bc)
 
 	var (

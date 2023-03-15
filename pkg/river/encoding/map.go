@@ -1,7 +1,6 @@
 package encoding
 
 import (
-	"fmt"
 	"sort"
 
 	"github.com/grafana/agent/pkg/river/internal/value"
@@ -42,8 +41,6 @@ func (mf *mapField) convertMap(val value.Value) error {
 
 		kf.Key = key
 		mapVal, found := val.Key(key)
-		// The above val.Key(key) will return false if the value is nil or zero. This is an issue that will be evaluated
-		// later.
 		if !found {
 			continue
 		}
@@ -54,7 +51,7 @@ func (mf *mapField) convertMap(val value.Value) error {
 		if rv.hasValue() {
 			kf.Value = rv
 		} else {
-			return fmt.Errorf("unable to find value for %T in map", val.Interface())
+			kf.Value = &valueField{Type: "null"}
 		}
 		fields = append(fields, kf)
 	}

@@ -7,7 +7,6 @@ package stages
 import (
 	"errors"
 	"fmt"
-	"io"
 	"reflect"
 	"testing"
 	"time"
@@ -15,8 +14,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/agent/pkg/util"
 )
 
 var testJSONRiverSingleStageWithoutSource = `
@@ -50,7 +49,7 @@ var testJSONLogLine = `
 
 func TestPipeline_JSON(t *testing.T) {
 	t.Parallel()
-	logger, _ := logging.New(io.Discard, logging.DefaultOptions)
+	logger := util.TestFlowLogger(t)
 
 	tests := map[string]struct {
 		config          string
@@ -217,7 +216,7 @@ var logFixture = `
 
 func TestJSONParser_Parse(t *testing.T) {
 	t.Parallel()
-	logger, _ := logging.New(io.Discard, logging.DefaultOptions)
+	logger := util.TestFlowLogger(t)
 
 	var logString = "log"
 	tests := map[string]struct {
@@ -356,7 +355,7 @@ func TestJSONParser_Parse(t *testing.T) {
 }
 
 func TestValidateJSONDrop(t *testing.T) {
-	logger, _ := logging.New(io.Discard, logging.DefaultOptions)
+	logger := util.TestFlowLogger(t)
 	labels := map[string]string{"foo": "bar"}
 	matchConfig := &JSONConfig{
 		DropMalformed: true,

@@ -24,6 +24,10 @@ spec:
   {{- if .Values.controller.hostNetwork }}
   hostNetwork: {{ .Values.controller.hostNetwork }}
   {{- end }}
+  {{- with .Values.controller.affinity }}
+  affinity:
+    {{- toYaml . | nindent 6 }}
+  {{- end }}
   {{- with .Values.controller.tolerations }}
   tolerations:
     {{- toYaml . | nindent 4 }}

@@ -8,27 +8,34 @@ import (
 	"github.com/grafana/agent/pkg/river"
 )
 
-// Options is a set of options used to construct and configure a Logger.
-type Options struct {
+// SinkOptions is a set of options used to construct and configure a logging
+// sink.
+type SinkOptions struct {
 	Level  Level  `river:"level,attr,optional"`
 	Format Format `river:"format,attr,optional"`
 
-	// TODO: log sink parameter (e.g., to use the Windows Event logger)
+	// IncludeTimestamps disables timestamps on log lines. It is not exposed as a
+	// river tag as it is only expected to be used during tests.
+	IncludeTimestamps bool
+
+	// TODO: attributes to forward logs to loki.* components.
 }
 
-// DefaultOptions holds defaults for creating a Logger.
-var DefaultOptions = Options{
+// DefaultSinkOptions holds defaults for creating a logging sink.
+var DefaultSinkOptions = SinkOptions{
 	Level:  LevelDefault,
 	Format: FormatDefault,
+
+	IncludeTimestamps: true,
 }
 
-var _ river.Unmarshaler = (*Options)(nil)
+var _ river.Unmarshaler = (*SinkOptions)(nil)
 
 // UnmarshalRiver implements river.Unmarshaler.
-func (o *Options) UnmarshalRiver(f func(interface{}) error) error {
-	*o = DefaultOptions
+func (o *SinkOptions) UnmarshalRiver(f func(interface{}) error) error {
+	*o = DefaultSinkOptions
 
-	type options Options
+	type options SinkOptions
 	return f((*options)(o))
 }
 
