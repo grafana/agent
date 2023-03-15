@@ -86,14 +86,30 @@ func NewConfigNode(blocks []*ast.BlockStmt, globals ComponentGlobals, isInModule
 		case loggingBlockID:
 			loggingBlock = *b
 			foundLogging = true
+			if isInModule {
+				diags.Add(diag.Diagnostic{
+					Severity: diag.SeverityLevelError,
+					Message:  "logging block not allowed inside a module",
+					StartPos: ast.StartPos(b).Position(),
+					EndPos:   ast.EndPos(b).Position(),
+				})
+			}
 		case tracingBlockID:
 			tracingBlock = *b
 			foundTracing = true
+			if isInModule {
+				diags.Add(diag.Diagnostic{
+					Severity: diag.SeverityLevelError,
+					Message:  "tracing block not allowed inside a module",
+					StartPos: ast.StartPos(b).Position(),
+					EndPos:   ast.EndPos(b).Position(),
+				})
+			}
 		case exportBlockID:
 			if !isInModule {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
-					Message:  "export blocks not allowed when not using modules",
+					Message:  "export blocks only allowed inside a module",
 					StartPos: ast.StartPos(b).Position(),
 					EndPos:   ast.EndPos(b).Position(),
 				})
