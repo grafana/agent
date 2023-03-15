@@ -297,6 +297,9 @@ information.
 
 ## Example
 
+This example creates a `prometheus.remote_write` component that sends received
+metrics to a local Mimir instance:
+
 ```river
 prometheus.remote_write "staging" {
   // Send metrics to a locally running Mimir.
@@ -318,5 +321,22 @@ prometheus.scrape "demo" {
     {"__address__" = "127.0.0.1:12345"},
   ]
   forward_to = [prometheus.remote_write.staging.receiver]
+}
+```
+
+
+This example creates a `prometheus.remote_write` component that sends received
+metrics to Grafana Cloud with username and password injected through environment
+variables:
+
+```river
+prometheus.remote_write "default" {
+	endpoint {
+		url = "https://prometheus-xxx.grafana.net/api/prom/push"
+		basic_auth {
+			username = env("PROMETHEUS_USERNAME")
+			password = env("PROMETHEUS_PASSWORD")
+		}
+	}
 }
 ```
