@@ -177,14 +177,14 @@ injected through environment variables:
 
 ```river
 otelcol.exporter.otlp "grafana_cloud_tempo" {
-	client {
-		endpoint = "https://tempo-xxx.grafana.net/tempo"
-		auth     = otelcol.auth.basic.grafana_cloud_tempo.handler
-	}
+    client {
+        endpoint = "https://tempo-xxx.grafana.net/tempo"
+        auth     = otelcol.auth.basic.grafana_cloud_tempo.handler
+    }
 }
 
 otelcol.auth.basic "grafana_cloud_tempo" {
-	username = env("TEMPO_USERNAME")
-	password = env("TEMPO_PASSWORD")
+    username = env("TEMPO_USERNAME")
+    password = env("TEMPO_PASSWORD")
 }
 ```
