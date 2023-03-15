@@ -155,7 +155,7 @@ configuration.
 `otelcol.exporter.otlp` does not expose any component-specific debug
 information.
 
-## Example
+## Examples
 
 This example creates an exporter to send data to a locally running Grafana
 Tempo without TLS:
