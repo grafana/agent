@@ -5,14 +5,14 @@ import (
 	"github.com/go-kit/log/level"
 
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	otelextension "go.opentelemetry.io/collector/extension"
 )
 
 // Host implements otelcomponent.Host for Grafana Agent Flow.
 type Host struct {
 	log log.Logger
 
-	extensions map[otelconfig.ComponentID]otelcomponent.Extension
+	extensions map[otelcomponent.ID]otelextension.Extension
 	exporters  map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter
 }
 

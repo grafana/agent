@@ -10,8 +10,9 @@ import (
 	"github.com/grafana/agent/component/otelcol/exporter"
 	"github.com/grafana/agent/pkg/river"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/configopaque"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
+	otelextension "go.opentelemetry.io/collector/extension"
 )
 
 func init() {
@@ -67,9 +68,8 @@ func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 }
 
 // Convert implements exporter.Arguments.
-func (args Arguments) Convert() otelconfig.Exporter {
+func (args Arguments) Convert() otelcomponent.Config {
 	return &otlphttpexporter.Config{
-		ExporterSettings:   otelconfig.NewExporterSettings(otelconfig.NewComponentID("otlp")),
 		HTTPClientSettings: *(*otelcol.HTTPClientArguments)(&args.Client).Convert(),
 		QueueSettings:      *args.Queue.Convert(),
 		RetrySettings:      *args.Retry.Convert(),
@@ -77,12 +77,12 @@ func (args Arguments) Convert() otelconfig.Exporter {
 }
 
 // Extensions implements exporter.Arguments.
-func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
 	return (*otelcol.HTTPClientArguments)(&args.Client).Extensions()
 }
 
 // Exporters implements exporter.Arguments.
-func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
 }
 
@@ -107,7 +107,7 @@ var (
 		IdleConnTimeout: &DefaultIdleConnTimeout,
 
 		Timeout:         30 * time.Second,
-		Headers:         map[string]string{},
+		Headers:         map[string]configopaque.String{},
 		Compression:     otelcol.CompressionTypeGzip,
 		ReadBufferSize:  0,
 		WriteBufferSize: 512 * 1024,

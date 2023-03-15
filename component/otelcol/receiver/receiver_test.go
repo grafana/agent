@@ -13,9 +13,10 @@ import (
 	"github.com/grafana/agent/pkg/util"
 	"github.com/stretchr/testify/require"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
 	otelconsumer "go.opentelemetry.io/collector/consumer"
+	otelextension "go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/pdata/ptrace"
+	otelreceiver "go.opentelemetry.io/collector/receiver"
 )
 
 func TestReceiver(t *testing.T) {
@@ -72,15 +73,15 @@ func newTestEnvironment(t *testing.T, onTracesConsumer func(t otelconsumer.Trace
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			// Create a factory which always returns our instance of fakeReceiver
 			// defined above.
-			factory := otelcomponent.NewReceiverFactory(
+			factory := otelreceiver.NewFactory(
 				"testcomponent",
-				func() otelconfig.Receiver { return nil },
-				otelcomponent.WithTracesReceiver(func(
-					ctx context.Context,
-					rcs otelcomponent.ReceiverCreateSettings,
-					r otelconfig.Receiver,
+				func() otelcomponent.Config { return nil },
+				otelreceiver.WithTraces(func(
+					_ context.Context,
+					_ otelreceiver.CreateSettings,
+					_ otelcomponent.Config,
 					t otelconsumer.Traces,
-				) (otelcomponent.TracesReceiver, error) {
+				) (otelreceiver.Traces, error) {
 
 					onTracesConsumer(t)
 					return nil, nil
@@ -111,16 +112,15 @@ type fakeReceiverArgs struct {
 
 var _ receiver.Arguments = fakeReceiverArgs{}
 
-func (fa fakeReceiverArgs) Convert() otelconfig.Receiver {
-	settings := otelconfig.NewReceiverSettings(otelconfig.NewComponentID("testcomponent"))
-	return &settings
-}
-
-func (fa fakeReceiverArgs) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+func (fa fakeReceiverArgs) Convert() otelcomponent.Config {
 	return nil
 }
 
-func (fa fakeReceiverArgs) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (fa fakeReceiverArgs) Extensions() map[otelcomponent.ID]otelextension.Extension {
+	return nil
+}
+
+func (fa fakeReceiverArgs) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
 }
 

@@ -14,9 +14,10 @@ import (
 	"github.com/grafana/agent/pkg/util"
 	"github.com/stretchr/testify/require"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
 	otelconsumer "go.opentelemetry.io/collector/consumer"
+	otelextension "go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/pdata/ptrace"
+	otelprocessor "go.opentelemetry.io/collector/processor"
 )
 
 func TestProcessor(t *testing.T) {
@@ -98,7 +99,7 @@ type testEnvironment struct {
 
 func newTestEnvironment(
 	t *testing.T,
-	fp otelcomponent.TracesProcessor,
+	fp otelprocessor.Traces,
 	onTracesConsumer func(t otelconsumer.Traces),
 ) *testEnvironment {
 
@@ -111,17 +112,17 @@ func newTestEnvironment(
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			// Create a factory which always returns our instance of fakeProcessor
 			// defined above.
-			factory := otelcomponent.NewProcessorFactory(
+			factory := otelprocessor.NewFactory(
 				"testcomponent",
-				func() otelconfig.Processor {
+				func() otelcomponent.Config {
 					return fakeProcessorArgs{}.Convert()
 				},
-				otelcomponent.WithTracesProcessor(func(
+				otelprocessor.WithTraces(func(
 					_ context.Context,
-					_ otelcomponent.ProcessorCreateSettings,
-					_ otelconfig.Processor,
+					_ otelprocessor.CreateSettings,
+					_ otelcomponent.Config,
 					t otelconsumer.Traces,
-				) (otelcomponent.TracesProcessor, error) {
+				) (otelprocessor.Traces, error) {
 
 					onTracesConsumer(t)
 					return fp, nil
@@ -152,16 +153,15 @@ type fakeProcessorArgs struct {
 
 var _ processor.Arguments = fakeProcessorArgs{}
 
-func (fa fakeProcessorArgs) Convert() otelconfig.Processor {
-	settings := otelconfig.NewProcessorSettings(otelconfig.NewComponentID("testcomponent"))
-	return &settings
-}
-
-func (fa fakeProcessorArgs) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+func (fa fakeProcessorArgs) Convert() otelcomponent.Config {
 	return nil
 }
 
-func (fa fakeProcessorArgs) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (fa fakeProcessorArgs) Extensions() map[otelcomponent.ID]otelextension.Extension {
+	return nil
+}
+
+func (fa fakeProcessorArgs) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
 }
 
@@ -176,7 +176,7 @@ type fakeProcessor struct {
 	ConsumeTracesFunc func(ctx context.Context, td ptrace.Traces) error
 }
 
-var _ otelcomponent.TracesProcessor = (*fakeProcessor)(nil)
+var _ otelprocessor.Traces = (*fakeProcessor)(nil)
 
 func (fe *fakeProcessor) Start(ctx context.Context, host otelcomponent.Host) error {
 	if fe.StartFunc != nil {

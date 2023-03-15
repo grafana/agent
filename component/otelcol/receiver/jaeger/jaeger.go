@@ -12,7 +12,7 @@ import (
 	"github.com/grafana/agent/pkg/river"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	otelextension "go.opentelemetry.io/collector/extension"
 )
 
 func init() {
@@ -116,9 +116,8 @@ func (args *Arguments) Validate() error {
 }
 
 // Convert implements receiver.Arguments.
-func (args Arguments) Convert() otelconfig.Receiver {
+func (args Arguments) Convert() otelcomponent.Config {
 	return &jaegerreceiver.Config{
-		ReceiverSettings: otelconfig.NewReceiverSettings(otelconfig.NewComponentID("jaeger")),
 		Protocols: jaegerreceiver.Protocols{
 			GRPC:          args.Protocols.GRPC.Convert(),
 			ThriftHTTP:    args.Protocols.ThriftHTTP.Convert(),
@@ -130,7 +129,7 @@ func (args Arguments) Convert() otelconfig.Receiver {
 }
 
 // Extensions implements receiver.Arguments.
-func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
 	if args.RemoteSampling == nil {
 		return nil
 	}
@@ -138,7 +137,7 @@ func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Exte
 }
 
 // Exporters implements receiver.Arguments.
-func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
 }
 

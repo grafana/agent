@@ -9,7 +9,9 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opencensus.io/stats/view"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/extension"
+	"go.opentelemetry.io/collector/otelcol"
+	"go.opentelemetry.io/collector/service"
 	"go.opentelemetry.io/collector/service/extensions"
 	"go.opentelemetry.io/collector/service/external/pipelines"
 	"go.opentelemetry.io/otel/metric"
@@ -32,8 +34,8 @@ type Instance struct {
 	metricViews []*view.View
 
 	extensions *extensions.Extensions
-	pipelines  *pipelines.Pipelines
-	factories  component.Factories
+	pipelines  *service.PipelineConfig
+	factories  otelcol.Factories
 }
 
 var _ component.Host = (*Instance)(nil)
@@ -188,7 +190,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 		BuildInfo: appinfo,
 
 		Factories: factories.Extensions,
-		Configs:   otelConfig.Extensions,
+		Configs:   otelConfig.Exensions,
 	}, otelConfig.Service.Extensions)
 	if err != nil {
 		i.logger.Error(fmt.Sprintf("failed to build extensions: %s", err.Error()))
@@ -230,7 +232,7 @@ func (i *Instance) ReportFatalError(err error) {
 }
 
 // GetFactory implements component.Host
-func (i *Instance) GetFactory(kind component.Kind, componentType config.Type) component.Factory {
+func (i *Instance) GetFactory(kind component.Kind, componentType component.Type) component.Factory {
 	switch kind {
 	case component.KindReceiver:
 		return i.factories.Receivers[componentType]
@@ -240,12 +242,12 @@ func (i *Instance) GetFactory(kind component.Kind, componentType config.Type) co
 }
 
 // GetExtensions implements component.Host
-func (i *Instance) GetExtensions() map[config.ComponentID]component.Extension {
+func (i *Instance) GetExtensions() map[component.ID]extension.Extension {
 	return i.extensions.GetExtensions()
 }
 
 // GetExporters implements component.Host
-func (i *Instance) GetExporters() map[config.DataType]map[config.ComponentID]component.Exporter {
+func (i *Instance) GetExporters() map[component.DataType]map[component.ID]component.Component {
 	// SpanMetricsProcessor needs to get the configured exporters.
 	return i.pipelines.GetExporters()
 }

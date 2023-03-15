@@ -18,7 +18,7 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/storage"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	otelreceiver "go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -102,7 +102,7 @@ func (c *Component) Update(newConfig component.Arguments) error {
 
 		gcInterval = 5 * time.Minute
 	)
-	settings := otelcomponent.ReceiverCreateSettings{
+	settings := otelreceiver.CreateSettings{
 		TelemetrySettings: otelcomponent.TelemetrySettings{
 			Logger: zapadapter.New(c.opts.Logger),
 
@@ -125,7 +125,7 @@ func (c *Component) Update(newConfig component.Arguments) error {
 		gcInterval,
 		useStartTimeMetric,
 		startTimeMetricRegex,
-		otelconfig.NewComponentID(otelconfig.Type(c.opts.ID)),
+		otelcomponent.NewID(otelcomponent.Type(c.opts.ID)),
 		labels.Labels{},
 	)
 	c.appendable = appendable

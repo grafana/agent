@@ -10,7 +10,7 @@ import (
 	"github.com/grafana/agent/component/otelcol/processor"
 	"github.com/grafana/agent/pkg/river"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	otelextension "go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/processor/batchprocessor"
 )
 
@@ -65,22 +65,21 @@ func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 }
 
 // Convert implements processor.Arguments.
-func (args Arguments) Convert() otelconfig.Processor {
+func (args Arguments) Convert() otelcomponent.Config {
 	return &batchprocessor.Config{
-		ProcessorSettings: otelconfig.NewProcessorSettings(otelconfig.NewComponentID("batch")),
-		Timeout:           args.Timeout,
-		SendBatchSize:     args.SendBatchSize,
-		SendBatchMaxSize:  args.SendBatchMaxSize,
+		Timeout:          args.Timeout,
+		SendBatchSize:    args.SendBatchSize,
+		SendBatchMaxSize: args.SendBatchMaxSize,
 	}
 }
 
 // Extensions implements processor.Arguments.
-func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
 	return nil
 }
 
 // Exporters implements processor.Arguments.
-func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
 }
 

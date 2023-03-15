@@ -17,7 +17,8 @@ import (
 	"github.com/grafana/agent/pkg/util/zapadapter"
 	"github.com/prometheus/client_golang/prometheus"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	otelextension "go.opentelemetry.io/collector/extension"
+	otelprocessor "go.opentelemetry.io/collector/processor"
 	sdkprometheus "go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/sdk/metric"
 
@@ -31,15 +32,15 @@ type Arguments interface {
 
 	// Convert converts the Arguments into an OpenTelemetry Collector processor
 	// configuration.
-	Convert() otelconfig.Processor
+	Convert() otelcomponent.Config
 
 	// Extensions returns the set of extensions that the configured component is
 	// allowed to use.
-	Extensions() map[otelconfig.ComponentID]otelcomponent.Extension
+	Extensions() map[otelcomponent.ID]otelextension.Extension
 
 	// Exporters returns the set of exporters that are exposed to the configured
 	// component.
-	Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter
+	Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component
 
 	// NextConsumers returns the set of consumers to send data to.
 	NextConsumers() *otelcol.ConsumerArguments
@@ -52,7 +53,7 @@ type Processor struct {
 	cancel context.CancelFunc
 
 	opts     component.Options
-	factory  otelcomponent.ProcessorFactory
+	factory  otelprocessor.Factory
 	consumer *lazyconsumer.Consumer
 
 	sched     *scheduler.Scheduler
@@ -130,7 +131,7 @@ func (p *Processor) Update(args component.Arguments) error {
 		return err
 	}
 
-	settings := otelcomponent.ProcessorCreateSettings{
+	settings := otelprocessor.CreateSettings{
 		TelemetrySettings: otelcomponent.TelemetrySettings{
 			Logger: zapadapter.New(p.opts.Logger),
 

@@ -9,7 +9,7 @@ import (
 	"github.com/grafana/agent/pkg/river"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/opencensusreceiver"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/extension"
 )
 
 func init() {
@@ -59,9 +59,9 @@ func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 }
 
 // Convert implements receiver.Arguments.
-func (args Arguments) Convert() otelconfig.Receiver {
+func (args Arguments) Convert() otelcomponent.ReceiverConfig {
 	return &opencensusreceiver.Config{
-		ReceiverSettings: otelconfig.NewReceiverSettings(otelconfig.NewComponentID("opencensus")),
+		ReceiverSettings: otelcomponent.NewReceiverConfigSettings(otelcomponent.NewID("opencensus")),
 
 		CorsOrigins:        args.CorsAllowedOrigins,
 		GRPCServerSettings: *args.GRPC.Convert(),
@@ -69,7 +69,7 @@ func (args Arguments) Convert() otelconfig.Receiver {
 }
 
 // Extensions implements receiver.Arguments.
-func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+func (args Arguments) Extensions() map[otelcomponent.ID]extension.Extension {
 	return nil
 }
 
