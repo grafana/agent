@@ -141,7 +141,7 @@ information.
 * `loki_write_batch_retries_total` (counter): Number of times batches have had to be retried.
 * `loki_write_stream_lag_seconds` (gauge): Difference between current time and last batch timestamp for successful sends.
 
-## Example
+## Examples
 
 This example creates a `loki.write` component that sends received entries to a
 local Loki instance:
@@ -153,3 +153,17 @@ loki.write "local" {
     }
 }
 ```
+
+This example creates a `loki.write` component that sends received entries to Grafana Cloud with username and password 
+injected through environment variables:
+
+```river
+loki.write "default" {
+    endpoint {
+        url = "https://logs-xxx.grafana.net"
+        basic_auth {
+			username = env("LOKI_USERNAME")
+			password = env("LOKI_PASSWORD")
+        }
+    }
+}
