@@ -154,8 +154,8 @@ loki.write "local" {
 }
 ```
 
-This example creates a `loki.write` component that sends received entries to Grafana Cloud with username and password 
-injected through environment variables:
+This example creates a `loki.write` component that sends received entries to Grafana Cloud
+with username and password injected through environment variables:
 
 ```river
 loki.write "default" {
