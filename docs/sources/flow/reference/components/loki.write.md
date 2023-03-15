@@ -162,8 +162,8 @@ loki.write "default" {
     endpoint {
         url = "https://logs-xxx.grafana.net"
         basic_auth {
-		username = env("LOKI_USERNAME")
-		password = env("LOKI_PASSWORD")
+            username = env("LOKI_USERNAME")
+            password = env("LOKI_PASSWORD")
         }
     }
 }
