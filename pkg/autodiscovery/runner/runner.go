@@ -11,6 +11,8 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/fatih/color"
+	"github.com/google/uuid"
 	"github.com/grafana/agent/pkg/autodiscovery"
 	"github.com/grafana/agent/pkg/autodiscovery/apache"
 	"github.com/grafana/agent/pkg/autodiscovery/consul"
@@ -40,7 +42,7 @@ const (
 	AUTODISC_PROMETHEUS AutodiscT = "prometheus"
 	AUTODISC_KUBERNETES AutodiscT = "kubernetes"
 	AUTODISC_REDIS      AutodiscT = "redis"
-	AUTODISC_APACHE     AutodiscT = "apache"
+	AUTODISC_APACHE     AutodiscT = "apache-http"
 )
 
 var allMechanisms = []AutodiscT{
@@ -52,6 +54,8 @@ var allMechanisms = []AutodiscT{
 	AUTODISC_REDIS,
 	AUTODISC_APACHE,
 }
+
+var info = color.New(color.FgGreen).SprintFunc()
 
 // TODO: Add a logger so that the mechanisms don't print to stdout
 type Autodiscovery struct {
@@ -105,39 +109,50 @@ func (a *Autodiscovery) Do(wr io.Writer) []AutodiscT {
 		enabledMechanisms = &explicitlyEnabled
 	}
 
+	fmt.Fprintf(os.Stderr, fmt.Sprintf("%s. . .\n", info("Creating Autodiscovery mechanisms")))
 	var mechanisms []autodiscovery.Mechanism
 	for _, mechId := range *enabledMechanisms {
 		if _, ok := a.Disabled[mechId]; ok {
+			fmt.Fprintf(os.Stderr, fmt.Sprintf("   🚫 %s autodiscovery disabled\n", mechId))
 			continue
 		}
 		mech, err := createMechanism(mechId)
 		if err != nil {
-			fmt.Fprintf(os.Stderr,
-				"failed to create a %s auto discovery mechanism: %s\n", mechId, err)
+			fmt.Fprintf(os.Stderr, fmt.Sprintf("   🛑 %s failed to start: %s\n", mechId, err))
+			// fmt.Fprintf(os.Stderr,
+			// "failed to create a %s auto discovery mechanism: %s\n", mechId, err)
 			continue
 		}
+		fmt.Fprintf(os.Stderr, fmt.Sprintf("   ⌛ %s\n", mechId))
 		mechanisms = append(mechanisms, mech)
 		//TODO: "usedMechanisms" should not include mechanisms which failed to init or to run
 		usedMechanisms = append(usedMechanisms, mechId)
 	}
 
+	fmt.Fprintf(os.Stderr, "\n")
+	fmt.Fprintf(os.Stderr, fmt.Sprintf("%s for: %s. . .\n", info("Running Autodiscovery"), strings.Trim(fmt.Sprint(usedMechanisms), "[]")))
 	results := make([]*autodiscovery.Result, 0, len(mechanisms))
 	for _, f := range mechanisms {
 		res, err := f.Run()
 		if err != nil {
 			//TODO: Also print out the name of the mechanism
-			fmt.Fprintf(os.Stderr,
-				"failed to run auto discovery mechanism: %s\n", err)
+			fmt.Fprintf(os.Stderr, fmt.Sprintf("   🛑 failed to run %s: %s\n", f.String(), err))
 			continue
 		}
+		fmt.Fprintf(os.Stderr, fmt.Sprintf("   ✅ %s\n", f.String()))
 		results = append(results, res)
 	}
 
 	input := BuildTemplateInput(results)
 
+	fmt.Fprintf(os.Stderr, fmt.Sprintf("The config file has been generated successfully! 🎉\n"))
+	fmt.Fprintf(os.Stderr, fmt.Sprintf("Run the Agent with `AGENT_MODE=flow ./grafana-agent run /path/to/config.river`\n\n"))
 	//TODO: Check RenderConfig for errors?
 	// We don't have to return it. Maybe log a warning and continue silently?
 	RenderConfig(wr, input)
+
+	fmt.Println("")
+	fmt.Println("")
 
 	//TODO: If the agent already has a River config, can we merge this new one and the existing one?
 
@@ -271,7 +286,8 @@ func InstallIntegrations(apiToken string, integrations ...string) error {
 
 	// Generate an API Key for the hosted Grafana instance
 	// TODO(@tpaschalis): Remove key afterwards?
-	body := []byte(`{"name": "autodiscovery-install-integrations22", "role": "admin", "secondsToLive": 300}`)
+	keyname := uuid.NewString()[:8]
+	body := []byte(fmt.Sprintf(`{"name": "%s", "role": "admin", "secondsToLive": 300}`, keyname))
 	req, err = http.NewRequest("POST", instanceURL+"/api/auth/keys", bytes.NewReader(body))
 	if err != nil {
 		return err
@@ -345,6 +361,7 @@ func InstallIntegrations(apiToken string, integrations ...string) error {
 
 	// Install all integrations
 	for _, integration := range integrations {
+		fmt.Fprintf(os.Stderr, "    📦 %s\n", integration)
 		req, err = http.NewRequest("POST", integrationsInstanceURL+"/integrations/"+integration+"/install", nil)
 		if err != nil {
 			return err
@@ -356,8 +373,8 @@ func InstallIntegrations(apiToken string, integrations ...string) error {
 		bb, _ = ioutil.ReadAll(res.Body)
 	}
 
-	fmt.Println("All done! Navigate to the following link to see your new Grafana Cloud integrations in action! :tada:")
-	fmt.Println(grafanaURL + "/dashboards")
+	fmt.Fprintf(os.Stderr, "\nAll done! Use this link to see your new Grafana Cloud integrations in action! 📈\n")
+	fmt.Fprintf(os.Stderr, "%s\n", grafanaURL+"/dashboards")
 
 	return nil
 }

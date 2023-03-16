@@ -11,6 +11,7 @@ import (
 // <Extension>Autodiscovery) to implement extra known behavior.
 type Mechanism interface {
 	Run() (*Result, error)
+	String() string
 }
 
 // Result ???

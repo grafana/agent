@@ -25,6 +25,10 @@ type Apache struct {
 	ext        []string
 }
 
+func (a *Apache) String() string {
+	return "apache-http"
+}
+
 func New() (*Apache, error) {
 	bb, err := os.ReadFile("pkg/autodiscovery/apache/apache.river")
 	if err != nil {

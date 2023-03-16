@@ -41,6 +41,10 @@ type Prometheus struct {
 	Exporters []Exporter
 }
 
+func (p *Prometheus) String() string {
+	return "prometheus"
+}
+
 // New creates a new auto-discovery Postgres mechanism instance.
 func New() (*Prometheus, error) {
 	bb, err := os.ReadFile("pkg/autodiscovery/prometheus/prometheus.river")

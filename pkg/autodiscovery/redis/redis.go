@@ -25,6 +25,10 @@ type Redis struct {
 	ext            []string
 }
 
+func (r *Redis) String() string {
+	return "redis"
+}
+
 func New() (*Redis, error) {
 	bb, err := os.ReadFile("pkg/autodiscovery/redis/redis.river")
 	if err != nil {

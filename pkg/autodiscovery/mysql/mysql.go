@@ -27,6 +27,10 @@ type MySQL struct {
 	ext    []string
 }
 
+func (m *MySQL) String() string {
+	return "mysql"
+}
+
 // New creates a new auto-discovery MySQL mechanism instance.
 func New() (*MySQL, error) {
 	bb, err := os.ReadFile("pkg/autodiscovery/mysql/mysql.river")

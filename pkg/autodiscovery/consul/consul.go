@@ -26,6 +26,10 @@ type Consul struct {
 	ext     []string
 }
 
+func (c *Consul) String() string {
+	return "consul"
+}
+
 // New creates a new auto-discovery Consul mechanism instance.
 func New() (*Consul, error) {
 	bb, err := os.ReadFile("pkg/autodiscovery/consul/consul.river")

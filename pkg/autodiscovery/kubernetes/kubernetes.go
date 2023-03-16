@@ -20,6 +20,10 @@ type K8S struct {
 	values []string
 }
 
+func (k *K8S) String() string {
+	return "kubernetes"
+}
+
 // New creates a new auto-discovery K8S mechanism instance.
 func New() (*K8S, error) {
 	bb, err := os.ReadFile("pkg/autodiscovery/kubernetes/kubernetes.river")

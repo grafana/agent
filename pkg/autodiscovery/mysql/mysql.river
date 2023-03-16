@@ -1,10 +1,10 @@
 binary = "mysqld"
 dsn = [
+    "root@tcp(127.0.0.1:3306)/",
     "root@unix(/var/run/mysqld/mysqld.sock)/",
     "root@unix(/var/run/mysqld/mysql.sock)/",
     "root@unix(/var/lib/mysql/mysql.sock)/",
     "root@unix(/tmp/mysql.sock)/",
-    "root@tcp(127.0.0.1:3306)/",
     "root@tcp([::1]:3306)/",
     env("MYSQL_USERNAME") + "@" + env("MYSQL_HOST"),
 ]

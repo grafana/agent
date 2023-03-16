@@ -46,13 +46,19 @@ type flowAd struct {
 }
 
 func (fa *flowAd) Run(configFile string) error {
-	ad := runner.Autodiscovery{}
+	ad := runner.Autodiscovery{
+		Disabled: map[runner.AutodiscT]struct{}{
+			"redis": {},
+		},
+	}
 	detected := ad.Do(os.Stdout)
+	_ = detected
 
 	var integrations []string
 	for _, d := range detected {
 		integrations = append(integrations, string(d))
 	}
+	fmt.Fprintf(os.Stderr, "Installing Grafana Cloud integrations:\n")
 	runner.InstallIntegrations(os.Getenv("GCLOUD_ADMIN_API_KEY"), integrations...)
 
 	return nil

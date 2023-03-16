@@ -27,6 +27,10 @@ type Postgres struct {
 	ext    []string
 }
 
+func (p *Postgres) String() string {
+	return "postgres"
+}
+
 // New creates a new auto-discovery Postgres mechanism instance.
 func New() (*Postgres, error) {
 	bb, err := os.ReadFile("pkg/autodiscovery/postgres/postgres.river")
