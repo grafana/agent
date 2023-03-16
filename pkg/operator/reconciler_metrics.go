@@ -78,7 +78,7 @@ func (r *reconciler) createTelemetryConfigurationSecret(
 		return fmt.Errorf("unable to build config: %w", err)
 	}
 
-	const maxUncompressed = 100 * 1000
+	const maxUncompressed = 100 * 1000 // only compress secrets over 100kB
 	rawBytes := []byte(rawConfig)
 	if len(rawBytes) > maxUncompressed {
 		buf := &bytes.Buffer{}

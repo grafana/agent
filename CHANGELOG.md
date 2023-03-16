@@ -44,6 +44,7 @@ Main (unreleased)
 
 - Flow: Add retries with backoff logic to Phlare write component. (@cyriltovena)
 - Operator: Allow setting runtimeClassName on operator-created pods. (@captncraig)
+- Operator: Transparently compress agent configs to stay under size limitations. (@captncraig)
 
 ### Bugfixes
 
