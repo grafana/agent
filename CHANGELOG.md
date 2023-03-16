@@ -32,7 +32,7 @@ Main (unreleased)
     an expression containing a string. (@erikbaranowski, @rfratto)
   - `otelcol.auth.oauth2` performs OAuth 2.0 authentication for HTTP and gRPC
     based OpenTelemetry exporters. (@ptodev)
-  - `otelcol.extension.jaeger_remote_sampling` provides an endpoint from which to 
+  - `otelcol.extension.jaeger_remote_sampling` provides an endpoint from which to
     pull Jaeger remote sampling documents. (@joe-elliott)
   - `prometheus.exporter.blackbox` collects metrics from Blackbox exporter
     (@marctc).
@@ -59,6 +59,10 @@ Main (unreleased)
 
 - Flow: fix issue where components with no arguments like `loki.echo` were not
   viewable in the UI. (@rfratto)
+
+- Flow: fix deadlock in `loki.source.file` where terminating tailers would hang
+  while flushing remaining logs, preventing `loki.source.file` from being able
+  to update. (@rfratto)
 
 ### Other changes
 
