@@ -71,45 +71,21 @@ func NewLoader(globals ComponentGlobals) *Loader {
 // The provided parentContext can be used to provide global variables and
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
-func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) diag.Diagnostics {
+func (l *Loader) Apply(parentScope *vm.Scope, componentNodeBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) diag.Diagnostics {
 	start := time.Now()
 	l.mut.Lock()
 	defer l.mut.Unlock()
 	l.cm.controllerEvaluation.Set(1)
 	defer l.cm.controllerEvaluation.Set(0)
 
-	var (
-		diags    diag.Diagnostics
-		newGraph dag.Graph
-	)
-
-	// Pre-populate graph with a ConfigNode.
-	c, configBlockDiags := NewConfigNode(configBlocks, l.globals, l.isModule())
-	diags = append(diags, configBlockDiags...)
-	newGraph.Add(c)
-
-	// Handle the rest of the graph as ComponentNodes.
-	populateDiags := l.populateGraph(&newGraph, blocks)
-	diags = append(diags, populateDiags...)
-
-	wireDiags := l.wireGraphEdges(parentScope, &newGraph)
-	diags = append(diags, wireDiags...)
-
-	// Validate graph to detect cycles
-	err := dag.Validate(&newGraph)
-	if err != nil {
-		diags = append(diags, multierrToDiags(err)...)
+	newGraph, diags := l.loadNewGraph(parentScope, componentNodeBlocks, configBlocks, l.globals, l.isModule())
+	if diags.HasErrors() {
 		return diags
 	}
-	// Copy the original graph, this is so we can have access to the original graph for things like displaying a UI or
-	// debug information.
-	l.originalGraph = newGraph.Clone()
-	// Perform a transitive reduction of the graph to clean it up.
-	dag.Reduce(&newGraph)
 
 	var (
-		components   = make([]*ComponentNode, 0, len(blocks))
-		componentIDs = make([]ComponentID, 0, len(blocks))
+		components   = make([]*ComponentNode, 0, len(componentNodeBlocks))
+		componentIDs = make([]ComponentID, 0, len(componentNodeBlocks))
 	)
 
 	tracer := l.tracer.Tracer("")
@@ -182,18 +158,53 @@ func (l *Loader) Apply(parentScope *vm.Scope, blocks []*ast.BlockStmt, configBlo
 	l.components = components
 	l.graph = &newGraph
 	l.cache.SyncIDs(componentIDs)
-	l.blocks = blocks
+	l.blocks = componentNodeBlocks
 	l.cm.componentEvaluationTime.Observe(time.Since(start).Seconds())
 	return diags
 }
 
-func (l *Loader) populateGraph(g *dag.Graph, blocks []*ast.BlockStmt) diag.Diagnostics {
+func (l *Loader) loadNewGraph(parentScope *vm.Scope, componentNodeBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, globals ComponentGlobals, isInModule bool) (dag.Graph, diag.Diagnostics) {
+	var g dag.Graph
+	// Fill our graph with config blocks.
+	diags := l.populateConfigBlockNodes(&g, configBlocks, globals, isInModule)
+
 	// Fill our graph with components.
+	componentNodeDiags := l.populateComponentNodes(&g, componentNodeBlocks)
+	diags = append(diags, componentNodeDiags...)
+
+	// Write up the edges of the graph
+	wireDiags := l.wireGraphEdges(parentScope, &g)
+	diags = append(diags, wireDiags...)
+
+	// Validate graph to detect cycles
+	err := dag.Validate(&g)
+	if err != nil {
+		diags = append(diags, multierrToDiags(err)...)
+		return g, diags
+	}
+
+	// Copy the original graph, this is so we can have access to the original graph for things like displaying a UI or
+	// debug information.
+	l.originalGraph = g.Clone()
+	// Perform a transitive reduction of the graph to clean it up.
+	dag.Reduce(&g)
+
+	return g, diags
+}
+
+func (l *Loader) populateConfigBlockNodes(g *dag.Graph, configBlocks []*ast.BlockStmt, globals ComponentGlobals, isInModule bool) diag.Diagnostics {
+	c, diags := NewConfigNode(configBlocks, l.globals, l.isModule())
+	g.Add(c)
+
+	return diags
+}
+
+func (l *Loader) populateComponentNodes(g *dag.Graph, componentNodeBlocks []*ast.BlockStmt) diag.Diagnostics {
 	var (
 		diags    diag.Diagnostics
-		blockMap = make(map[string]*ast.BlockStmt, len(blocks))
+		blockMap = make(map[string]*ast.BlockStmt, len(componentNodeBlocks))
 	)
-	for _, block := range blocks {
+	for _, block := range componentNodeBlocks {
 		var c *ComponentNode
 		id := BlockComponentID(block).String()
 
