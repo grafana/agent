@@ -14,8 +14,6 @@ import (
 )
 
 const (
-	configNodeID = "configNode"
-
 	loggingBlockID = "logging"
 	tracingBlockID = "tracing"
 	exportBlockID  = "export"
@@ -26,9 +24,10 @@ const (
 // be used to contain the state of all config blocks.
 type ConfigNode struct {
 	globals ComponentGlobals
+	id      ComponentID
 
 	mut          sync.RWMutex
-	blocks       []*ast.BlockStmt    // Current River blocks to derive config from
+	block        *ast.BlockStmt      // Current River blocks to derive config from
 	loggingArgs  logging.SinkOptions // Evaluated logging arguments for the config
 	loggingBlock *ast.BlockStmt
 	loggingEval  *vm.Evaluator
@@ -51,10 +50,9 @@ var _ dag.Node = (*ConfigNode)(nil)
 
 // NewConfigNode creates a new ConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.
-func NewConfigNode(blocks []*ast.BlockStmt, globals ComponentGlobals, isInModule bool) (*ConfigNode, diag.Diagnostics) {
+func NewConfigNode(block *ast.BlockStmt, globals ComponentGlobals, isInModule bool) (*ConfigNode, diag.Diagnostics) {
 	var (
-		blockMap = make(map[string]*ast.BlockStmt, len(blocks))
-		diags    diag.Diagnostics
+		diags diag.Diagnostics
 
 		loggingBlock ast.BlockStmt
 		tracingBlock ast.BlockStmt
@@ -66,60 +64,45 @@ func NewConfigNode(blocks []*ast.BlockStmt, globals ComponentGlobals, isInModule
 		foundTracing = false
 	)
 
-	for _, b := range blocks {
-		var (
-			name = strings.Join(b.Name, ".")
-			id   = strings.Join(BlockComponentID(b), ".")
-		)
+	var (
+		name = strings.Join(block.Name, ".")
+	)
 
-		if orig, redefined := blockMap[id]; redefined {
+	switch name {
+	case loggingBlockID:
+		loggingBlock = *block
+		foundLogging = true
+		if isInModule {
 			diags.Add(diag.Diagnostic{
 				Severity: diag.SeverityLevelError,
-				Message:  fmt.Sprintf("Config block %s already declared at %s", id, ast.StartPos(orig).Position()),
-				StartPos: b.NamePos.Position(),
-				EndPos:   b.NamePos.Add(len(id) - 1).Position(),
+				Message:  "logging block not allowed inside a module",
+				StartPos: ast.StartPos(block).Position(),
+				EndPos:   ast.EndPos(block).Position(),
 			})
-			continue
+		}
+	case tracingBlockID:
+		tracingBlock = *block
+		foundTracing = true
+		if isInModule {
+			diags.Add(diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				Message:  "tracing block not allowed inside a module",
+				StartPos: ast.StartPos(block).Position(),
+				EndPos:   ast.EndPos(block).Position(),
+			})
+		}
+	case exportBlockID:
+		if !isInModule {
+			diags.Add(diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				Message:  "export blocks only allowed inside a module",
+				StartPos: ast.StartPos(block).Position(),
+				EndPos:   ast.EndPos(block).Position(),
+			})
 		}
 
-		switch name {
-		case loggingBlockID:
-			loggingBlock = *b
-			foundLogging = true
-			if isInModule {
-				diags.Add(diag.Diagnostic{
-					Severity: diag.SeverityLevelError,
-					Message:  "logging block not allowed inside a module",
-					StartPos: ast.StartPos(b).Position(),
-					EndPos:   ast.EndPos(b).Position(),
-				})
-			}
-		case tracingBlockID:
-			tracingBlock = *b
-			foundTracing = true
-			if isInModule {
-				diags.Add(diag.Diagnostic{
-					Severity: diag.SeverityLevelError,
-					Message:  "tracing block not allowed inside a module",
-					StartPos: ast.StartPos(b).Position(),
-					EndPos:   ast.EndPos(b).Position(),
-				})
-			}
-		case exportBlockID:
-			if !isInModule {
-				diags.Add(diag.Diagnostic{
-					Severity: diag.SeverityLevelError,
-					Message:  "export blocks only allowed inside a module",
-					StartPos: ast.StartPos(b).Position(),
-					EndPos:   ast.EndPos(b).Position(),
-				})
-			}
-
-			exportBlocks[b.Label] = b
-			exportEvals[b.Label] = vm.New(b.Body)
-		}
-
-		blockMap[id] = b
+		exportBlocks[block.Label] = block
+		exportEvals[block.Label] = vm.New(block.Body)
 	}
 
 	// Pre-populate arguments with their default values.
@@ -130,7 +113,8 @@ func NewConfigNode(blocks []*ast.BlockStmt, globals ComponentGlobals, isInModule
 	return &ConfigNode{
 		globals: globals,
 
-		blocks: blocks,
+		block: block,
+		id:    BlockComponentID(block),
 
 		loggingArgs:  loggerOptions,
 		loggingBlock: &loggingBlock,
@@ -149,7 +133,7 @@ func NewConfigNode(blocks []*ast.BlockStmt, globals ComponentGlobals, isInModule
 }
 
 // NodeID implements dag.Node and returns the unique ID for the config node.
-func (cn *ConfigNode) NodeID() string { return configNodeID }
+func (cn *ConfigNode) NodeID() string { return cn.id.String() }
 
 // Evaluate updates the config block by re-evaluating its River block with the
 // provided scope. The config will be built the first time Evaluate is called.

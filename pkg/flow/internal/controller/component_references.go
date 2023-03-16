@@ -69,12 +69,7 @@ func componentTraversals(cn *ComponentNode) []Traversal {
 func configTraversals(cn *ConfigNode) []Traversal {
 	cn.mut.RLock()
 	defer cn.mut.RUnlock()
-
-	var res []Traversal
-	for _, b := range cn.blocks {
-		res = append(res, expressionsFromBody(b.Body)...)
-	}
-	return res
+	return expressionsFromBody(cn.block.Body)
 }
 
 // expressionsFromSyntaxBody recurses through body and finds all variable

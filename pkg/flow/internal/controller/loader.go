@@ -193,8 +193,29 @@ func (l *Loader) loadNewGraph(parentScope *vm.Scope, componentNodeBlocks []*ast.
 }
 
 func (l *Loader) populateConfigBlockNodes(g *dag.Graph, configBlocks []*ast.BlockStmt) diag.Diagnostics {
-	c, diags := NewConfigNode(configBlocks, l.globals, l.isModule())
-	g.Add(c)
+	var (
+		diags    diag.Diagnostics
+		blockMap = make(map[string]*ast.BlockStmt, len(configBlocks))
+	)
+
+	for _, block := range configBlocks {
+		id := BlockComponentID(block).String()
+
+		if orig, redefined := blockMap[id]; redefined {
+			diags.Add(diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				Message:  fmt.Sprintf("Config block %s already declared at %s", id, ast.StartPos(orig).Position()),
+				StartPos: block.NamePos.Position(),
+				EndPos:   block.NamePos.Add(len(id) - 1).Position(),
+			})
+			continue
+		}
+		blockMap[id] = block
+
+		c, newConfigNodeDiags := NewConfigNode(block, l.globals, l.isModule())
+		diags = append(diags, newConfigNodeDiags...)
+		g.Add(c)
+	}
 
 	return diags
 }
