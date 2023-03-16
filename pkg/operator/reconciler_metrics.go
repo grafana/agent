@@ -86,9 +86,6 @@ func (r *reconciler) createTelemetryConfigurationSecret(
 		if _, err = w.Write(rawBytes); err != nil {
 			return fmt.Errorf("unable to compress config: %w", err)
 		}
-		if err = w.Flush(); err != nil {
-			return fmt.Errorf("flushing gzip writer: %w", err)
-		}
 		if err = w.Close(); err != nil {
 			return fmt.Errorf("closing gzip writer: %w", err)
 		}
