@@ -124,15 +124,8 @@ func TestLoader(t *testing.T) {
 		require.Error(t, diags.ErrorOrNil())
 
 		requireGraph(t, l.Graph(), graphDefinition{
-			Nodes: []string{
-				"configNode", // The config node is always present
-				"testcomponents.tick.ticker",
-				"testcomponents.passthrough.valid",
-				"testcomponents.passthrough.invalid",
-			},
-			OutEdges: []edge{
-				{From: "testcomponents.passthrough.valid", To: "testcomponents.tick.ticker"},
-			},
+			Nodes:    nil,
+			OutEdges: nil,
 		})
 	})
 
