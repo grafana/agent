@@ -604,7 +604,7 @@ replace (
 	github.com/satori/go.uuid => github.com/satori/go.uuid v1.2.0
 )
 
-replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20221205191633-7238d25101e5
+replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20230316102527-d56e9071df85
 
 replace gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20211119180816-77389c3526dc
 
