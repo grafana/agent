@@ -78,7 +78,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentNodeBlocks []*ast.BlockSt
 	l.cm.controllerEvaluation.Set(1)
 	defer l.cm.controllerEvaluation.Set(0)
 
-	newGraph, diags := l.loadNewGraph(parentScope, componentNodeBlocks, configBlocks, l.globals, l.isModule())
+	newGraph, diags := l.loadNewGraph(parentScope, componentNodeBlocks, configBlocks)
 	if diags.HasErrors() {
 		return diags
 	}
@@ -163,10 +163,10 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentNodeBlocks []*ast.BlockSt
 	return diags
 }
 
-func (l *Loader) loadNewGraph(parentScope *vm.Scope, componentNodeBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, globals ComponentGlobals, isInModule bool) (dag.Graph, diag.Diagnostics) {
+func (l *Loader) loadNewGraph(parentScope *vm.Scope, componentNodeBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) (dag.Graph, diag.Diagnostics) {
 	var g dag.Graph
 	// Fill our graph with config blocks.
-	diags := l.populateConfigBlockNodes(&g, configBlocks, globals, isInModule)
+	diags := l.populateConfigBlockNodes(&g, configBlocks)
 
 	// Fill our graph with components.
 	componentNodeDiags := l.populateComponentNodes(&g, componentNodeBlocks)
@@ -192,7 +192,7 @@ func (l *Loader) loadNewGraph(parentScope *vm.Scope, componentNodeBlocks []*ast.
 	return g, diags
 }
 
-func (l *Loader) populateConfigBlockNodes(g *dag.Graph, configBlocks []*ast.BlockStmt, globals ComponentGlobals, isInModule bool) diag.Diagnostics {
+func (l *Loader) populateConfigBlockNodes(g *dag.Graph, configBlocks []*ast.BlockStmt) diag.Diagnostics {
 	c, diags := NewConfigNode(configBlocks, l.globals, l.isModule())
 	g.Add(c)
 
