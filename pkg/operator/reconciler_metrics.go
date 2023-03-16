@@ -105,7 +105,7 @@ func (r *reconciler) createTelemetryConfigurationSecret(
 				UID:                d.Agent.UID,
 			}},
 		},
-		Data: map[string][]byte{"agent.yml": []byte(rawBytes)},
+		Data: map[string][]byte{"agent.yml": rawBytes},
 	}
 
 	level.Info(l).Log("msg", "reconciling secret", "secret", secret.Name)
