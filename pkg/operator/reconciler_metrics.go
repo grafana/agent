@@ -78,7 +78,7 @@ func (r *reconciler) createTelemetryConfigurationSecret(
 		return fmt.Errorf("unable to build config: %w", err)
 	}
 
-	const maxUncompressed = 100 * 1000 // only compress secrets over 100kB
+	const maxUncompressed = 100 * 1024 // only compress secrets over 100kB
 	rawBytes := []byte(rawConfig)
 	if len(rawBytes) > maxUncompressed {
 		buf := &bytes.Buffer{}
@@ -88,6 +88,9 @@ func (r *reconciler) createTelemetryConfigurationSecret(
 		}
 		if err = w.Flush(); err != nil {
 			return fmt.Errorf("flushing gzip writer: %w", err)
+		}
+		if err = w.Close(); err != nil {
+			return fmt.Errorf("closing gzip writer: %w", err)
 		}
 		rawBytes = buf.Bytes()
 	}
