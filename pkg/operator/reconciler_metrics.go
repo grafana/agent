@@ -1,6 +1,8 @@
 package operator
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
 	"errors"
 	"fmt"
@@ -76,6 +78,20 @@ func (r *reconciler) createTelemetryConfigurationSecret(
 		return fmt.Errorf("unable to build config: %w", err)
 	}
 
+	const maxUncompressed = 100 * 1000
+	rawBytes := []byte(rawConfig)
+	if len(rawBytes) > maxUncompressed {
+		buf := &bytes.Buffer{}
+		w := gzip.NewWriter(buf)
+		if _, err = w.Write(rawBytes); err != nil {
+			return fmt.Errorf("unable to compress config: %w", err)
+		}
+		if err = w.Flush(); err != nil {
+			return fmt.Errorf("flushing gzip writer: %w", err)
+		}
+		rawBytes = buf.Bytes()
+	}
+
 	secret := core_v1.Secret{
 		ObjectMeta: v1.ObjectMeta{
 			Namespace: key.Namespace,
@@ -89,7 +105,7 @@ func (r *reconciler) createTelemetryConfigurationSecret(
 				UID:                d.Agent.UID,
 			}},
 		},
-		Data: map[string][]byte{"agent.yml": []byte(rawConfig)},
+		Data: map[string][]byte{"agent.yml": []byte(rawBytes)},
 	}
 
 	level.Info(l).Log("msg", "reconciling secret", "secret", secret.Name)
