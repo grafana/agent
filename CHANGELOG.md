@@ -64,6 +64,9 @@ Main (unreleased)
   while flushing remaining logs, preventing `loki.source.file` from being able
   to update. (@rfratto)
 
+- Flow: fix deadlock in `loki.process` where a component with no stages would
+  hang forever on handling logs. (@rfratto)
+
 ### Other changes
 
 - Grafana Agent Docker containers and release binaries are now published for
