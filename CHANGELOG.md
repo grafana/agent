@@ -39,6 +39,8 @@ Main (unreleased)
   - `prometheus.exporter.mysql` collects metrics from a MySQL database.
     (@spartan0x117)
   - `prometheus.exporter.postgres` collects metrics from a PostgreSQL database. (@spartan0x117)
+  - `prometheus.exporter.statsd` collects metrics from a Statsd instance. 
+    (@gaantunes)
 
 ### Enhancements
 

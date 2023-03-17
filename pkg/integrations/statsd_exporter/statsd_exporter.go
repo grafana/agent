@@ -30,8 +30,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// DefaultConfig holds the default settings for the statsd_exporter integration.
 var DefaultConfig = Config{
-	// DefaultConfig holds the default settings for the statsd_exporter integration.
 	ListenUDP:      ":9125",
 	ListenTCP:      ":9125",
 	UnixSocketMode: "755",

@@ -2,7 +2,7 @@ package statsd
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/grafana/agent/pkg/integrations/statsd_exporter"
@@ -53,7 +53,6 @@ var DefaultConfig = Config{
 
 // Convert gives a config suitable for use with github.com/grafana/agent/pkg/integrations/statsd_exporter.
 func (c *Config) Convert() (*statsd_exporter.Config, error) {
-
 	mappingConfig, err := readMappingFromYAML(c.MappingConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert statsd config: %w", err)
@@ -90,17 +89,21 @@ func (c *Config) UnmarshalRiver(f func(interface{}) error) error {
 // this is used to convert the MappingConfig field in to a mapper.MappingConfig
 // which is used by the statsd_exporter
 func readMappingFromYAML(path string) (*mapper.MetricMapper, error) {
-
-	yBytes, err := ioutil.ReadFile(path)
-
+	yfile, err := os.Open(path)
 	if err != nil {
+		return nil, fmt.Errorf("failed to read mapping config file: %w", err)
+	}
+
+	yBytes := make([]byte, 0)
+	count, err2 := yfile.Read(yBytes)
+	if err2 != nil {
 		return nil, fmt.Errorf("failed to read mapping config file: %w", err)
 	}
 
 	statsdMapper := mapper.MetricMapper{}
 
-	err = statsdMapper.InitFromYAMLString(string(yBytes))
-	if err != nil {
+	err3 := statsdMapper.InitFromYAMLString(string(yBytes[:count]))
+	if err3 != nil {
 		return nil, fmt.Errorf("failed to load mapping config: %w", err)
 	}
 
