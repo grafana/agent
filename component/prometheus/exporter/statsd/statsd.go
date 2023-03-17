@@ -1,6 +1,8 @@
 package statsd
 
 import (
+	"fmt"
+
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
@@ -17,5 +19,9 @@ func init() {
 
 func createExporter(opts component.Options, args component.Arguments) (integrations.Integration, error) {
 	cfg := args.(Config)
-	return cfg.Convert().NewIntegration(opts.Logger)
+	statsdConfig, err := cfg.Convert()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create statsd exporter: %w", err)
+	}
+	return statsdConfig.NewIntegration(opts.Logger)
 }
