@@ -150,6 +150,7 @@ define generate_fpm =
 		--before-remove packaging/$(1)/control/prerm \
 		--config-files /etc/grafana-agent.yaml \
 		--config-files $(ENVIRONMENT_FILE_$(1)) \
+		--rpm-rpmbuild-define "_build_id_links none" \
 		--package $(4) \
 			dist/grafana-agent-linux-$(3)=/usr/bin/grafana-agent \
 			dist/grafana-agentctl-linux-$(3)=/usr/bin/grafana-agentctl \
