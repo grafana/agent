@@ -9,7 +9,7 @@
 title: prometheus.exporter.statsd
 ---
 
-# prometheus.exporter.mysql
+# prometheus.exporter.statsd
 The `prometheus.exporter.statsd` component embeds
 [statsd_exporter](https://github.com/prometheus/statsd_exporter) for collecting StatsD-style metrics and exporting them as Prometheus metrics.
 
@@ -20,7 +20,6 @@ prometheus.exporter.statsd "LABEL" {
     
 }
 ```
-
 
 ## Arguments
 The following arguments can be used to configure the exporter's behavior.
@@ -45,8 +44,19 @@ Name | Type | Description | Default | Required
 `parse_signalfx_tags`                             | `string`       | Parse SignalFX style tags. Enabled by default. | `true`| no
 
 At least one of `listen_udp`, `listen_tcp` or `listen_unixgram` should be enabled.
-For details on how to use the mapping config file, please check the official (statsd_exporter docs)[https://github.com/prometheus/statsd_exporter#metric-mapping-and-configuration]
+For details on how to use the mapping config file, please check the official [statsd_exporter docs](https://github.com/prometheus/statsd_exporter#metric-mapping-and-configuration).
 Please make sure the kernel parameter `net.core.rmem_max` is set to a value greater than the value specified in `read_buffer`.
+
+## Exported fields
+The following fields are exported and can be referenced by other components.
+
+Name      | Type                | Description
+--------- | ------------------- | -----------
+`targets` | `list(map(string))` | The targets that can be used to collect `statsd` metrics.
+
+For example, the `targets` could either be passed to a `prometheus.relabel`
+component to rewrite the metrics' label set, or to a `prometheus.scrape`
+component that collects the exposed metrics.
 
 ## Component health
 
@@ -71,21 +81,21 @@ from `prometheus.exporter.statsd`:
 
 ```river
 prometheus.exporter.statsd "example" {
-  listen_udp						= ""
-  listen_tcp						= "9125"
-  listen_unixgram				= ""
-  unix_socket_mode			= "755"
-  mapping_config_path 	= "mapTest.yaml"
-  read_buffer						= 1
-  cache_size						= 1000
-  cache_type						= "lru"
-  event_queue_size			= 10000
+  listen_udp = ""
+  listen_tcp = "9125"
+  listen_unixgram = ""
+  unix_socket_mode = "755"
+  mapping_config_path = "mapTest.yaml"
+  read_buffer = 1
+  cache_size = 1000
+  cache_type = "lru"
+  event_queue_size = 10000
   event_flush_threshold = 1000
-  event_flush_interval	= "200ms"
-  parse_dogstatsd_tags	= true
-  parse_influxdb_tags		= true
-  parse_librato_tags		= true
-  parse_signalfx_tags		= true
+  event_flush_interval = "200ms"
+  parse_dogstatsd_tags = true
+  parse_influxdb_tags = true
+  parse_librato_tags = true
+  parse_signalfx_tags = true
 }
 
 // Configure a prometheus.scrape component to collect statsd metrics.
