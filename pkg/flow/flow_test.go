@@ -47,10 +47,6 @@ func TestController_LoadFile_Evaluation(t *testing.T) {
 	in, out := getFields(t, ctrl.loader.Graph(), "testcomponents.passthrough.static")
 	require.Equal(t, "hello, world!", in.(testcomponents.PassthroughConfig).Input)
 	require.Equal(t, "hello, world!", out.(testcomponents.PassthroughExports).Output)
-
-	// Check the config node is present and has the default values applied.
-	opts := getConfigOpts(t, ctrl.loader.Graph())
-	require.Equal(t, logging.DefaultSinkOptions, opts)
 }
 
 func getFields(t *testing.T, g *dag.Graph, nodeID string) (component.Arguments, component.Exports) {
@@ -61,15 +57,6 @@ func getFields(t *testing.T, g *dag.Graph, nodeID string) (component.Arguments, 
 
 	uc := n.(*controller.ComponentNode)
 	return uc.Arguments(), uc.Exports()
-}
-
-func getConfigOpts(t *testing.T, g *dag.Graph) logging.SinkOptions {
-	t.Helper()
-	n := g.GetByID("configNode")
-	require.NotNil(t, n, "couldn't find config node in graph")
-
-	cn := n.(*controller.ConfigNode)
-	return cn.LoggingArgs()
 }
 
 func testOptions(t *testing.T) Options {

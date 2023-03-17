@@ -120,7 +120,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentNodeBlocks []*ast.BlockSt
 			components = append(components, c)
 			componentIDs = append(componentIDs, c.ID())
 
-			if err = l.evaluate(logger, parentScope, c); err != nil {
+			if err = l.evaluateComponent(logger, parentScope, c); err != nil {
 				var evalDiags diag.Diagnostics
 				if errors.As(err, &evalDiags) {
 					diags = append(diags, evalDiags...)
@@ -134,13 +134,12 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentNodeBlocks []*ast.BlockSt
 				}
 			}
 		case *ConfigNode:
-			var errBlock *ast.BlockStmt
-			if errBlock, err = l.evaluateConfig(logger, parentScope, c); err != nil {
+			if err = l.evaluateConfigBlock(logger, parentScope, c); err != nil {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
-					Message:  fmt.Sprintf("Failed to evaluate node for config blocks: %s", err),
-					StartPos: ast.StartPos(errBlock).Position(),
-					EndPos:   ast.EndPos(errBlock).Position(),
+					Message:  fmt.Sprintf("Failed to evaluate node for config block: %s", err),
+					StartPos: ast.StartPos(n.(*ConfigNode).block).Position(),
+					EndPos:   ast.EndPos(n.(*ConfigNode).block).Position(),
 				})
 			}
 		}
@@ -389,9 +388,9 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 
 		switch n := n.(type) {
 		case *ComponentNode:
-			err = l.evaluate(logger, parentScope, n)
+			err = l.evaluateComponent(logger, parentScope, n)
 		case *ConfigNode:
-			_, err = l.evaluateConfig(logger, parentScope, n)
+			err = l.evaluateConfigBlock(logger, parentScope, n)
 		}
 
 		// We only use the error for updating the span status; we don't return the
@@ -407,7 +406,7 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 
 // evaluate constructs the final context for c and evaluates it. mut must be
 // held when calling evaluate.
-func (l *Loader) evaluate(logger log.Logger, parent *vm.Scope, c *ComponentNode) error {
+func (l *Loader) evaluateComponent(logger log.Logger, parent *vm.Scope, c *ComponentNode) error {
 	ectx := l.cache.BuildContext(parent)
 	err := c.Evaluate(ectx)
 	// Always update the cache both the arguments and exports, since both might
@@ -423,14 +422,14 @@ func (l *Loader) evaluate(logger log.Logger, parent *vm.Scope, c *ComponentNode)
 
 // evaluateConfig constructs the final context for the special config Node and
 // evaluates it. mut must be held when calling evaluateConfig.
-func (l *Loader) evaluateConfig(logger log.Logger, parent *vm.Scope, c *ConfigNode) (*ast.BlockStmt, error) {
+func (l *Loader) evaluateConfigBlock(logger log.Logger, parent *vm.Scope, c *ConfigNode) error {
 	ectx := l.cache.BuildContext(parent)
-	errBlock, err := c.Evaluate(ectx)
+	err := c.Evaluate(ectx)
 	if err != nil {
 		level.Error(logger).Log("msg", "failed to evaluate config", "node", c.NodeID(), "err", err)
-		return errBlock, err
+		return err
 	}
-	return nil, nil
+	return nil
 }
 
 func multierrToDiags(errors error) diag.Diagnostics {

@@ -23,22 +23,14 @@ const (
 // The graph will always have _exactly one_ instance of ConfigNode, which will
 // be used to contain the state of all config blocks.
 type ConfigNode struct {
-	globals ComponentGlobals
-	id      ComponentID
+	label         string
+	nodeID        string
+	componentName string
+	globals       ComponentGlobals
 
-	mut          sync.RWMutex
-	block        *ast.BlockStmt      // Current River blocks to derive config from
-	loggingArgs  logging.SinkOptions // Evaluated logging arguments for the config
-	loggingBlock *ast.BlockStmt
-	loggingEval  *vm.Evaluator
-	tracingArgs  tracing.Options
-	tracingBlock *ast.BlockStmt
-	tracingEval  *vm.Evaluator
-	exportBlocks map[string]*ast.BlockStmt
-	exportEvals  map[string]*vm.Evaluator
-
-	// Set to true for configuration blocks that were provided.
-	foundLogging, foundTracing bool
+	mut   sync.RWMutex
+	block *ast.BlockStmt // Current River blocks to derive config from
+	eval  *vm.Evaluator
 }
 
 // ConfigBlockID returns the string name for a config block.
@@ -54,24 +46,12 @@ func NewConfigNode(block *ast.BlockStmt, globals ComponentGlobals, isInModule bo
 	var (
 		diags diag.Diagnostics
 
-		loggingBlock ast.BlockStmt
-		tracingBlock ast.BlockStmt
-
-		exportBlocks = make(map[string]*ast.BlockStmt)
-		exportEvals  = make(map[string]*vm.Evaluator)
-
-		foundLogging = false
-		foundTracing = false
-	)
-
-	var (
-		name = strings.Join(block.Name, ".")
+		name   = strings.Join(block.Name, ".")
+		nodeID = BlockComponentID(block).String()
 	)
 
 	switch name {
 	case loggingBlockID:
-		loggingBlock = *block
-		foundLogging = true
 		if isInModule {
 			diags.Add(diag.Diagnostic{
 				Severity: diag.SeverityLevelError,
@@ -81,8 +61,6 @@ func NewConfigNode(block *ast.BlockStmt, globals ComponentGlobals, isInModule bo
 			})
 		}
 	case tracingBlockID:
-		tracingBlock = *block
-		foundTracing = true
 		if isInModule {
 			diags.Add(diag.Diagnostic{
 				Severity: diag.SeverityLevelError,
@@ -100,139 +78,88 @@ func NewConfigNode(block *ast.BlockStmt, globals ComponentGlobals, isInModule bo
 				EndPos:   ast.EndPos(block).Position(),
 			})
 		}
-
-		exportBlocks[block.Label] = block
-		exportEvals[block.Label] = vm.New(block.Body)
 	}
 
-	// Pre-populate arguments with their default values.
-	var (
-		loggerOptions = logging.DefaultSinkOptions
-		tracerOptions = tracing.DefaultOptions
-	)
 	return &ConfigNode{
-		globals: globals,
+		label:         block.Label,
+		nodeID:        nodeID,
+		componentName: name,
+		globals:       globals,
 
 		block: block,
-		id:    BlockComponentID(block),
-
-		loggingArgs:  loggerOptions,
-		loggingBlock: &loggingBlock,
-		loggingEval:  vm.New(loggingBlock.Body),
-
-		tracingArgs:  tracerOptions,
-		tracingBlock: &tracingBlock,
-		tracingEval:  vm.New(tracingBlock.Body),
-
-		exportBlocks: exportBlocks,
-		exportEvals:  exportEvals,
-
-		foundLogging: foundLogging,
-		foundTracing: foundTracing,
+		eval:  vm.New(block.Body),
 	}, diags
 }
 
 // NodeID implements dag.Node and returns the unique ID for the config node.
-func (cn *ConfigNode) NodeID() string { return cn.id.String() }
+func (cn *ConfigNode) NodeID() string { return cn.nodeID }
 
 // Evaluate updates the config block by re-evaluating its River block with the
 // provided scope. The config will be built the first time Evaluate is called.
 //
 // Evaluate will return an error if the River block cannot be evaluated or if
 // decoding to arguments fails.
-func (cn *ConfigNode) Evaluate(scope *vm.Scope) (*ast.BlockStmt, error) {
+func (cn *ConfigNode) Evaluate(scope *vm.Scope) error {
 	cn.mut.Lock()
 	defer cn.mut.Unlock()
 
-	evals := []func(*vm.Scope) (*ast.BlockStmt, error){
-		cn.evaluateLogging,
-		cn.evaluateTracing,
-		cn.evaluateExports,
+	switch cn.componentName {
+	case loggingBlockID:
+		return cn.evaluateLogging(scope)
+	case tracingBlockID:
+		return cn.evaluateTracing(scope)
+	case exportBlockID:
+		return cn.evaluateExports(scope)
 	}
-	for _, eval := range evals {
-		if stmt, err := eval(scope); err != nil {
-			return stmt, err
-		}
-	}
-	return nil, nil
+
+	return nil
 }
 
-func (cn *ConfigNode) evaluateLogging(scope *vm.Scope) (*ast.BlockStmt, error) {
-	if !cn.foundLogging {
-		// Skip evaluating logging if the logging block wasn't provided.
-		return nil, nil
-	}
-
-	// Evaluate logging block fields and store a copy.
+func (cn *ConfigNode) evaluateLogging(scope *vm.Scope) error {
 	args := logging.DefaultSinkOptions
-	if err := cn.loggingEval.Evaluate(scope, &args); err != nil {
-		return cn.loggingBlock, fmt.Errorf("decoding River: %w", err)
+	if err := cn.eval.Evaluate(scope, &args); err != nil {
+		return fmt.Errorf("decoding River: %w", err)
 	}
-	cn.loggingArgs = args
 
-	if err := cn.globals.LogSink.Update(cn.loggingArgs); err != nil {
-		return cn.loggingBlock, fmt.Errorf("could not update logger: %w", err)
+	if err := cn.globals.LogSink.Update(args); err != nil {
+		return fmt.Errorf("could not update logger: %w", err)
 	}
-	return nil, nil
+
+	return nil
 }
 
-func (cn *ConfigNode) evaluateTracing(scope *vm.Scope) (*ast.BlockStmt, error) {
-	if !cn.foundTracing {
-		// Skip evaluating tracing if the tracing block wasn't provided.
-		return nil, nil
-	}
-
-	// Evaluate logging block fields and store a copy.
+func (cn *ConfigNode) evaluateTracing(scope *vm.Scope) error {
 	args := tracing.DefaultOptions
-	if err := cn.tracingEval.Evaluate(scope, &args); err != nil {
-		return cn.tracingBlock, fmt.Errorf("decoding River: %w", err)
+	if err := cn.eval.Evaluate(scope, &args); err != nil {
+		return fmt.Errorf("decoding River: %w", err)
 	}
-	cn.tracingArgs = args
 
 	t, ok := cn.globals.TraceProvider.(*tracing.Tracer)
 	if ok {
-		err := t.Update(cn.tracingArgs)
+		err := t.Update(args)
 		if err != nil {
-			return cn.tracingBlock, fmt.Errorf("could not update logger: %v", err)
+			return fmt.Errorf("could not update logger: %v", err)
 		}
 	}
-	return nil, nil
+	return nil
 }
 
 type exportBlock struct {
 	Value any `river:"value,attr"`
 }
 
-func (cn *ConfigNode) evaluateExports(scope *vm.Scope) (*ast.BlockStmt, error) {
-	exports := make(map[string]any, len(cn.exportBlocks))
+func (cn *ConfigNode) evaluateExports(scope *vm.Scope) error {
+	exports := make(map[string]any, 1)
 
-	for name, block := range cn.exportBlocks {
-		eval := cn.exportEvals[name]
-
-		var export exportBlock
-		if err := eval.Evaluate(scope, &export); err != nil {
-			return block, fmt.Errorf("decoding River: %w", err)
-		}
-
-		exports[name] = export.Value
+	var export exportBlock
+	if err := cn.eval.Evaluate(scope, &export); err != nil {
+		return fmt.Errorf("decoding River: %w", err)
 	}
+
+	exports[cn.label] = export.Value
 
 	if cn.globals.OnExportsChange != nil {
 		cn.globals.OnExportsChange(exports)
 	}
-	return nil, nil
-}
-
-// LoggingArgs returns the arguments used to configure the logger.
-func (cn *ConfigNode) LoggingArgs() logging.SinkOptions {
-	cn.mut.RLock()
-	defer cn.mut.RUnlock()
-	return cn.loggingArgs
-}
-
-// TracingArgs returns the arguments used to configure the tracer.
-func (cn *ConfigNode) TracingArgs() tracing.Options {
-	cn.mut.RLock()
-	defer cn.mut.RUnlock()
-	return cn.tracingArgs
+	return nil
 }

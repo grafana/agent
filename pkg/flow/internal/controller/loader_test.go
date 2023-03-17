@@ -39,7 +39,6 @@ func TestLoader(t *testing.T) {
 	// corresponds to testFile
 	testGraphDefinition := graphDefinition{
 		Nodes: []string{
-			"configNode", // The config node is always present
 			"testcomponents.tick.ticker",
 			"testcomponents.passthrough.static",
 			"testcomponents.passthrough.ticker",
