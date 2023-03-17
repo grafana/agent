@@ -1,8 +1,12 @@
 ---
 title: module.string
+labels:
+  stage: beta
 ---
 
 # module.string
+
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
 
 `module.string` is a *module loader* component. A module loader is a Grafana Agent Flow
 component which retreives a [module][] and runs the components defined inside of it.

@@ -32,6 +32,8 @@ Main (unreleased)
     an expression containing a string. (@erikbaranowski, @rfratto)
   - `otelcol.auth.oauth2` performs OAuth 2.0 authentication for HTTP and gRPC
     based OpenTelemetry exporters. (@ptodev)
+  - `otelcol.extension.jaeger_remote_sampling` provides an endpoint from which to
+    pull Jaeger remote sampling documents. (@joe-elliott)
   - `prometheus.exporter.blackbox` collects metrics from Blackbox exporter
     (@marctc).
   - `prometheus.exporter.mysql` collects metrics from a MySQL database.
@@ -41,6 +43,7 @@ Main (unreleased)
 ### Enhancements
 
 - Flow: Add retries with backoff logic to Phlare write component. (@cyriltovena)
+- Operator: Allow setting runtimeClassName on operator-created pods. (@captncraig)
 
 ### Bugfixes
 
@@ -56,6 +59,13 @@ Main (unreleased)
 
 - Flow: fix issue where components with no arguments like `loki.echo` were not
   viewable in the UI. (@rfratto)
+
+- Flow: fix deadlock in `loki.source.file` where terminating tailers would hang
+  while flushing remaining logs, preventing `loki.source.file` from being able
+  to update. (@rfratto)
+
+- Flow: fix deadlock in `loki.process` where a component with no stages would
+  hang forever on handling logs. (@rfratto)
 
 ### Other changes
 

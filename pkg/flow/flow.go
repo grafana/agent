@@ -155,14 +155,15 @@ func New(o Options) *Flow {
 			Logger:        log,
 			TraceProvider: tracer,
 			DataPath:      o.DataPath,
-			OnExportsChange: func(cn *controller.ComponentNode) {
+			OnComponentUpdate: func(cn *controller.ComponentNode) {
 				// Changed components should be queued for reevaluation.
 				queue.Enqueue(cn)
 			},
-			Registerer:     o.Reg,
-			HTTPPathPrefix: o.HTTPPathPrefix,
-			HTTPListenAddr: o.HTTPListenAddr,
-			ControllerID:   o.ControllerID,
+			OnExportsChange: o.OnExportsChange,
+			Registerer:      o.Reg,
+			HTTPPathPrefix:  o.HTTPPathPrefix,
+			HTTPListenAddr:  o.HTTPListenAddr,
+			ControllerID:    o.ControllerID,
 		})
 	)
 
@@ -257,7 +258,7 @@ func (c *Flow) LoadFile(file *File, args map[string]any) error {
 		},
 	}
 
-	diags := c.loader.Apply(argumentScope, file.Components, file.ConfigBlocks, c.opts.OnExportsChange)
+	diags := c.loader.Apply(argumentScope, file.Components, file.ConfigBlocks)
 	if !c.loadedOnce.Load() && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.

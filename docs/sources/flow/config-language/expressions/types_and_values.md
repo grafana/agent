@@ -41,7 +41,7 @@ quotes `""`:
 "Hello, world!"
 ```
 
-A `\\` in a string starts an escape sequence to represent a special character.
+A `\` in a string starts an escape sequence to represent a special character.
 The supported escape sequences are as follows:
 
 | Sequence | Replacement |

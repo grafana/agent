@@ -53,12 +53,12 @@ func TestLoader(t *testing.T) {
 
 	newGlobals := func() controller.ComponentGlobals {
 		return controller.ComponentGlobals{
-			LogSink:         noOpSink(),
-			Logger:          logging.New(nil),
-			TraceProvider:   trace.NewNoopTracerProvider(),
-			DataPath:        t.TempDir(),
-			OnExportsChange: func(cn *controller.ComponentNode) { /* no-op */ },
-			Registerer:      prometheus.NewRegistry(),
+			LogSink:           noOpSink(),
+			Logger:            logging.New(nil),
+			TraceProvider:     trace.NewNoopTracerProvider(),
+			DataPath:          t.TempDir(),
+			OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
+			Registerer:        prometheus.NewRegistry(),
 		}
 	}
 
@@ -195,12 +195,12 @@ func TestScopeWithFailingComponent(t *testing.T) {
 	`
 	newGlobals := func() controller.ComponentGlobals {
 		return controller.ComponentGlobals{
-			LogSink:         noOpSink(),
-			Logger:          logging.New(nil),
-			TraceProvider:   trace.NewNoopTracerProvider(),
-			DataPath:        t.TempDir(),
-			OnExportsChange: func(cn *controller.ComponentNode) { /* no-op */ },
-			Registerer:      prometheus.NewRegistry(),
+			LogSink:           noOpSink(),
+			Logger:            logging.New(nil),
+			TraceProvider:     trace.NewNoopTracerProvider(),
+			DataPath:          t.TempDir(),
+			OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
+			Registerer:        prometheus.NewRegistry(),
 		}
 	}
 
@@ -246,7 +246,7 @@ func applyFromContent(t *testing.T, l *controller.Loader, bb []byte) diag.Diagno
 		return diags
 	}
 
-	applyDiags := l.Apply(nil, blocks, nil, nil)
+	applyDiags := l.Apply(nil, blocks, nil)
 	diags = append(diags, applyDiags...)
 
 	return diags

@@ -50,6 +50,8 @@ type Component struct {
 	opts    component.Options
 	metrics *metrics
 
+	updateMut sync.Mutex
+
 	mut          sync.RWMutex
 	args         Arguments
 	handler      loki.LogsReceiver
@@ -128,6 +130,31 @@ func (c *Component) Run(ctx context.Context) error {
 
 // Update implements component.Component.
 func (c *Component) Update(args component.Arguments) error {
+	c.updateMut.Lock()
+	defer c.updateMut.Unlock()
+
+	// Stop all readers so we can recreate them below. This *must* be done before
+	// c.mut is held to avoid a race condition where stopping a reader is
+	// flushing its data, but the flush never succeeds because the Run goroutine
+	// fails to get a read lock.
+	//
+	// Stopping the readers avoids the issue we saw with stranded wrapped
+	// handlers staying behind until they were GC'ed and sending duplicate
+	// message to the global handler. It also makes sure that we update
+	// everything with the new labels. Simply zeroing out the c.readers map did
+	// not work correctly to shut down the wrapped handlers in time.
+	//
+	// TODO (@tpaschalis) We should be able to optimize this somehow and eg.
+	// cache readers for paths we already know about, and whose labels have not
+	// changed. Once we do that we should:
+	//
+	// * Call to c.pruneStoppedReaders to give cached but errored readers a
+	//   chance to restart.
+	// * Stop tailing any files that were no longer in the new targets
+	//   and conditionally remove their readers only by calling toStopTailing
+	//   and c.stopTailingAndRemovePosition.
+	oldPaths := c.stopReaders()
+
 	newArgs := args.(Arguments)
 
 	c.mut.Lock()
@@ -135,26 +162,6 @@ func (c *Component) Update(args component.Arguments) error {
 	c.args = newArgs
 	c.receivers = newArgs.ForwardTo
 
-	oldPaths := make(map[positions.Entry]struct{})
-
-	// Stop all readers and recreate them below. This avoids the issue we saw
-	// with stranded wrapped handlers staying behind until they were GC'ed and
-	// sending duplicate message to the global handler. It also makes sure that
-	// we update everything with the new labels. Simply zeroing out the
-	// c.readers map did not work correctly to shut down the wrapped handlers
-	// in time.
-	// TODO (@tpaschalis) We should be able to optimize this somehow and eg.
-	// cache readers for paths we already know about, and whose labels have not
-	// changed. Once we do that we should:
-	// a) Call to c.pruneStoppedReaders to give cached but errored readers a
-	// chance to restart.
-	// b) Stop tailing any files that were no longer in the new targets
-	// and conditionally remove their readers only by calling toStopTailing
-	// and c.stopTailingAndRemovePosition.
-	for p, r := range c.readers {
-		oldPaths[p] = struct{}{}
-		r.Stop()
-	}
 	c.readers = make(map[positions.Entry]reader)
 	if c.entryHandler != nil {
 		c.entryHandler.Stop()
@@ -200,6 +207,22 @@ func (c *Component) Update(args component.Arguments) error {
 	}
 
 	return nil
+}
+
+// stopReaders stops existing readers and returns the set of paths which were
+// stopped.
+func (c *Component) stopReaders() map[positions.Entry]struct{} {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+
+	stoppedPaths := make(map[positions.Entry]struct{}, len(c.readers))
+
+	for p, r := range c.readers {
+		stoppedPaths[p] = struct{}{}
+		r.Stop()
+	}
+
+	return stoppedPaths
 }
 
 // DebugInfo returns information about the status of tailed targets.
