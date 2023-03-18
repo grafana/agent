@@ -4,13 +4,11 @@ import (
 	"context"
 	"errors"
 	"io"
+	"os"
 	"path/filepath"
 
-	"github.com/go-git/go-billy/v5/osfs"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
-	"github.com/go-git/go-git/v5/plumbing/cache"
-	"github.com/go-git/go-git/v5/storage/filesystem"
 )
 
 type GitRepoOptions struct {
@@ -36,28 +34,19 @@ type GitRepo struct {
 // GitRepoOptions.
 func NewGitRepo(ctx context.Context, storagePath string, opts GitRepoOptions) (*GitRepo, error) {
 	var (
-		gitFsys  = osfs.New(filepath.Join(storagePath, ".git"))
-		lruCache = cache.NewObjectLRUDefault()
-		storage  = filesystem.NewStorage(gitFsys, lruCache)
-
-		workFsys = osfs.New(storagePath)
-	)
-
-	var (
 		repo *git.Repository
 		err  error
 	)
 
-	// If the .git directory is empty, we need to clone the repository.
-	if fi, readErr := gitFsys.ReadDir(""); readErr != nil || len(fi) == 0 {
-		repo, err = git.CloneContext(ctx, storage, workFsys, &git.CloneOptions{
+	if !isRepoCloned(storagePath) {
+		repo, err = git.PlainCloneContext(ctx, storagePath, false, &git.CloneOptions{
 			URL:               opts.Repository,
 			ReferenceName:     plumbing.HEAD,
 			RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
 			Tags:              git.AllTags,
 		})
 	} else {
-		repo, err = git.Open(storage, workFsys)
+		repo, err = git.PlainOpen(storagePath)
 	}
 	if err != nil {
 		return nil, DownloadFailedError{
@@ -101,6 +90,11 @@ func NewGitRepo(ctx context.Context, storagePath string, opts GitRepoOptions) (*
 		repo:     repo,
 		workTree: workTree,
 	}, nil
+}
+
+func isRepoCloned(dir string) bool {
+	fi, dirError := os.ReadDir(filepath.Join(dir, git.GitDirName))
+	return dirError == nil && len(fi) > 0
 }
 
 // Update updates the repository by fetching new content and re-checking out to

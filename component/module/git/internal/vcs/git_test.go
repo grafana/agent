@@ -2,14 +2,10 @@ package vcs_test
 
 import (
 	"context"
-	"path/filepath"
 	"testing"
 
-	"github.com/go-git/go-billy/v5/osfs"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
-	"github.com/go-git/go-git/v5/plumbing/cache"
-	"github.com/go-git/go-git/v5/storage/filesystem"
 	"github.com/grafana/agent/component/module/git/internal/vcs"
 	"github.com/stretchr/testify/require"
 )
@@ -94,16 +90,7 @@ func initRepository(t *testing.T) *testRepository {
 	t.Helper()
 
 	worktreeDir := t.TempDir()
-	gitDir := filepath.Join(worktreeDir, ".git")
-
-	var (
-		worktreeFS = osfs.New(worktreeDir)
-		gitFS      = osfs.New(gitDir)
-
-		storage = filesystem.NewStorage(gitFS, cache.NewObjectLRUDefault())
-	)
-
-	repo, err := git.Init(storage, worktreeFS)
+	repo, err := git.PlainInit(worktreeDir, false)
 	require.NoError(t, err)
 
 	// Create a placeholder config for the repo.
