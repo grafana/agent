@@ -11,7 +11,7 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "prometheus.kubernetes.podmonitors",
+		Name: "prometheus.operator.podmonitors",
 		Args: Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
