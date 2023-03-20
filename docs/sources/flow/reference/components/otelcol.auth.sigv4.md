@@ -33,13 +33,15 @@ Name | Type | Description | Default | Required
 `region` | `string` | The AWS region to sign with. | "" | no
 `service` | `string` | The AWS service to sign with. | "" | no
 
-`region` and `service` only need to be specified if their values cannot be inferred from the exporter URL.
-If they are left empty, their values may be inferred from the exporter URL based on the following rules:
+If `region` and `service` are left empty, their values are inferred from the URL of the exporter
+using the following rules:
 
 * If the exporter URL starts with `aps-workspaces` and `service` is empty, `service` will be set to `aps`.
 * If the exporter URL starts with `search-` and `service` is empty, `service` will be set to `es`.
 * If the exporter URL starts with either `aps-workspaces` or `search-` and `region` is empty, `region` .
 will be set to the value between the first and second `.` character in the exporter URL.
+
+If none of the above rules apply, then `region` and `service` must be specified.
 
 A list of valid AWS regions can be found on Amazon's documentation for 
 [Regions, Availability Zones, and Local Zones](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.RegionsAndAvailabilityZones.html).
