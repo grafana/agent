@@ -35,7 +35,7 @@ Name | Type | Description | Default | Required
 
 Both `region` and `service` are required for the component to work, but if they are left empty their values 
 may be inferred from the exporter URL based on 
-[these](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.63.0/extension/sigv4authextension/signingroundtripper.go#L121) rules:
+the following rules:
 
 * If the exporter URL starts with `aps-workspaces` and `service` is empty, `service` will be set to `aps`.
 * If the exporter URL starts with `search-` and `service` is empty, `service` will be set to `es`.
