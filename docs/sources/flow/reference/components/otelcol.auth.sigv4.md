@@ -30,8 +30,8 @@ otelcol.auth.sigv4 "LABEL" {
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`region` | `string` | The AWS region for the service you are exporting to for AWS SigV4. | "" | no
-`service` | `string` | The AWS service for AWS SigV4. | "" | no
+`region` | `string` | The AWS region to sign with. | "" | no
+`service` | `string` | The AWS service to sign with. | "" | no
 
 `region` and `service` only need to be specified if their values cannot be inferred from the exporter URL.
 If they are left empty, their values may be inferred from the exporter URL based on the following rules:
