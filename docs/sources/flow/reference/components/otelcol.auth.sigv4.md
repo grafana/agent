@@ -33,16 +33,13 @@ Name | Type | Description | Default | Required
 `region` | `string` | The AWS region for the service you are exporting to for AWS SigV4. | "" | no
 `service` | `string` | The AWS service for AWS SigV4. | "" | no
 
-Both `region` and `service` are required for the component to work, but if they are left empty their values 
-may be inferred from the exporter URL based on 
-the following rules:
+`region` and `service` only need to be specified if their values cannot be inferred from the exporter URL.
+If they are left empty, their values may be inferred from the exporter URL based on the following rules:
 
 * If the exporter URL starts with `aps-workspaces` and `service` is empty, `service` will be set to `aps`.
 * If the exporter URL starts with `search-` and `service` is empty, `service` will be set to `es`.
 * If the exporter URL starts with either `aps-workspaces` or `search-` and `region` is empty, `region` .
 will be set to the value between the first and second `.` character in the exporter URL.
-
-For concrete examples, see the [examples](#examples) section.
 
 A list of valid AWS regions can be found on Amazon's documentation for 
 [Regions, Availability Zones, and Local Zones](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.RegionsAndAvailabilityZones.html).
