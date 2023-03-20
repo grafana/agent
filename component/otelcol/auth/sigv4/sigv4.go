@@ -3,6 +3,7 @@ package sigv4
 import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol/auth"
+	"github.com/grafana/agent/pkg/river"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/sigv4authextension"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelconfig "go.opentelemetry.io/collector/config"
@@ -28,7 +29,10 @@ type Arguments struct {
 	AssumeRole AssumeRole `river:"assume_role,block,optional"`
 }
 
-var _ auth.Arguments = Arguments{}
+var (
+	_ river.Unmarshaler = (*Arguments)(nil)
+	_ auth.Arguments    = Arguments{}
+)
 
 // Convert implements auth.Arguments.
 func (args Arguments) Convert() otelconfig.Extension {
@@ -44,6 +48,15 @@ func (args Arguments) Convert() otelconfig.Extension {
 	return &res
 }
 
+func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+	type arguments Arguments
+	if err := f((*arguments)(args)); err != nil {
+		return err
+	}
+
+	return args.Convert().(*sigv4authextension.Config).Validate()
+}
+
 // Extensions implements auth.Arguments.
 func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
 	return nil
@@ -54,6 +67,7 @@ func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.Compone
 	return nil
 }
 
+// AssumeRole replicates sigv4authextension.Config.AssumeRole
 type AssumeRole struct {
 	ARN         string `river:"arn,attr,optional"`
 	SessionName string `river:"session_name,attr,optional"`

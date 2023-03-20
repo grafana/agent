@@ -144,6 +144,9 @@ func Test(t *testing.T) {
 		}))
 		defer srv.Close()
 
+		t.Setenv("AWS_ACCESS_KEY_ID", tt.awsAccessKeyId)
+		t.Setenv("AWS_SECRET_ACCESS_KEY", tt.awsSecredAccessKey)
+
 		ctx := componenttest.TestContext(t)
 		ctx, cancel := context.WithTimeout(ctx, time.Minute)
 		defer cancel()
@@ -158,9 +161,6 @@ func Test(t *testing.T) {
 		t.Logf("River configuration: %s", cfg)
 		var args sigv4.Arguments
 		require.NoError(t, river.Unmarshal([]byte(cfg), &args))
-
-		t.Setenv("AWS_ACCESS_KEY_ID", tt.awsAccessKeyId)
-		t.Setenv("AWS_SECRET_ACCESS_KEY", tt.awsSecredAccessKey)
 
 		go func() {
 			err := ctrl.Run(ctx, args)

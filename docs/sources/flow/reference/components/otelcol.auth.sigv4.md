@@ -68,10 +68,10 @@ Name | Type | Description | Default | Required
 `session_name` | `string` | The name of a role session. | "" | no
 `sts_region` | `string` | The AWS region where STS is used to assume the configured role. | "" | no
 
-Note that if a role is intended to be assumed and `sts_region` is not provided, then `sts_region`
-will default to the value for `region` if `region` is provided.
+If the `assume_role` block is specified in the config and `sts_region` is not set, then `sts_region` 
+will default to the value for `region`.
 
-`region` can be differentiated from `sts_region` to handle cross region authentication. 
+For cross region authentication, `region` and `sts_region` can be set different to different values.
 
 ## Exported fields
 
