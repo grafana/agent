@@ -145,7 +145,7 @@ func ToYACEConfig(c *Config) (yaceConf.ScrapeConf, error) {
 		APIVersion: "v1alpha1",
 		StsRegion:  c.STSRegion,
 		Discovery: yaceConf.Discovery{
-			ExportedTagsOnMetrics: yaceConf.ExportedTagsOnMetrics(c.Discovery.ExportedTags),
+			ExportedTagsOnMetrics: yaceModel.ExportedTagsOnMetrics(c.Discovery.ExportedTags),
 			Jobs:                  discoveryJobs,
 		},
 		Static: staticJobs,

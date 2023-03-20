@@ -7,7 +7,7 @@ import (
 	"github.com/go-kit/log"
 	yace "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg"
 	yaceConf "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/config"
-	yaceLog "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/logger"
+	yaceLog "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/logging"
 	yaceModel "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/model"
 	yaceSess "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/session"
 	"github.com/prometheus/client_golang/prometheus"
