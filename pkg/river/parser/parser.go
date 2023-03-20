@@ -32,6 +32,8 @@ func ParseExpression(expr string) (ast.Expr, error) {
 
 	e := p.ParseExpression()
 
+	// If the current token is not a TERMINATOR then the parsing did not complete
+	// in full and there are still parts of the string left unparsed.
 	p.expect(token.TERMINATOR)
 
 	if len(p.diags) > 0 {
