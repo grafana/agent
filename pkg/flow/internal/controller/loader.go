@@ -162,6 +162,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentNodeBlocks []*ast.BlockSt
 	return diags
 }
 
+// Load the new graph from the blocks and validate it.
 func (l *Loader) loadNewGraph(parentScope *vm.Scope, componentNodeBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) (dag.Graph, diag.Diagnostics) {
 	var g dag.Graph
 	// Fill our graph with config blocks.
@@ -191,6 +192,7 @@ func (l *Loader) loadNewGraph(parentScope *vm.Scope, componentNodeBlocks []*ast.
 	return g, diags
 }
 
+// Populate the config block nodes if any exist
 func (l *Loader) populateConfigBlockNodes(g *dag.Graph, configBlocks []*ast.BlockStmt) diag.Diagnostics {
 	var (
 		diags    diag.Diagnostics
@@ -219,6 +221,7 @@ func (l *Loader) populateConfigBlockNodes(g *dag.Graph, configBlocks []*ast.Bloc
 	return diags
 }
 
+// Populate the component nodes if any exist
 func (l *Loader) populateComponentNodes(g *dag.Graph, componentNodeBlocks []*ast.BlockStmt) diag.Diagnostics {
 	var (
 		diags    diag.Diagnostics
@@ -296,6 +299,7 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentNodeBlocks []*ast
 	return diags
 }
 
+// Wire up all the related nodes
 func (l *Loader) wireGraphEdges(parent *vm.Scope, g *dag.Graph) diag.Diagnostics {
 	var diags diag.Diagnostics
 
