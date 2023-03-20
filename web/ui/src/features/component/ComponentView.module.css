@@ -157,6 +157,7 @@ td.nameColumn {
   font-family: 'Fira Code', monospace;
   font-size: 14px;
   vertical-align: top;
+  padding: 6px;
   color: black;
 }
 

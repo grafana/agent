@@ -1,9 +1,10 @@
 import React, { Fragment } from 'react';
-import { a11yLight, CodeBlock } from 'react-code-blocks';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 
 import { riverStringify } from '../river-js/stringify';
 import Table from '../widgets/Table';
 
+import { style } from './style';
 import { PartitionedBody } from './types';
 
 import styles from './ComponentView.module.css';
@@ -24,19 +25,9 @@ const ComponentBody = ({ partition }: ComponentBodyProps) => {
           <td className={styles.nameColumn}>{name}</td>
           <td>
             <pre className={styles.pre}>
-              <CodeBlock
-                text={riverStringify(value)}
-                language={'jsx'}
-                showLineNumbers={false}
-                theme={{
-                  ...a11yLight,
-                  backgroundColor: 'none',
-                  textColor: '#030300',
-                  stringColor: 'green',
-                  numberColor: 'blue',
-                }}
-                wrapLongLines={true}
-              />
+              <SyntaxHighlighter language="javascript" style={style}>
+                {riverStringify(value)}
+              </SyntaxHighlighter>
             </pre>
           </td>
         </tr>

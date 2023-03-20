@@ -14,14 +14,14 @@ interface ComponentListProps {
 const TABLEHEADERS = ['Health', 'ID'];
 
 const ComponentList = ({ components }: ComponentListProps) => {
-  const tableStyles = { width: '100px' };
+  const tableStyles = { width: '100px', lineHeight: '2' };
 
   /**
    * Custom renderer for table data
    */
   const renderTableData = () => {
     return components.map(({ health, id }) => (
-      <tr key={id}>
+      <tr key={id} style={{ lineHeight: '2' }}>
         <td>
           <HealthLabel health={health.state} />
         </td>

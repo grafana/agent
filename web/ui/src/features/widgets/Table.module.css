@@ -7,11 +7,7 @@
 .table td,
 .table th {
   border: none;
-  padding: 2px 2px;
-}
-
-.table tr td {
-  height: 20px;
+  padding: 0px 8px;
 }
 
 .table tr:nth-child(odd) {
@@ -27,7 +23,6 @@
 }
 
 .table th {
-  padding: 12px 0px;
   text-align: left;
   background-color: #f4f5f5;
   color: rgba(36, 41, 46, 0.75);
