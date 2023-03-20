@@ -4,6 +4,9 @@ import (
 	"reflect"
 	"sort"
 	"testing"
+
+	"github.com/grafana/agent/pkg/river/ast"
+	"github.com/grafana/agent/pkg/river/vm"
 )
 
 func TestGraphStronglyConnected(t *testing.T) {
@@ -88,3 +91,7 @@ func sortSlice(nodeSets [][]Node) [][]Node {
 type stringNode string
 
 func (s stringNode) NodeID() string { return string(s) }
+
+func (s stringNode) Block() *ast.BlockStmt { return nil }
+
+func (s stringNode) Evaluate(scope *vm.Scope) error { return nil }

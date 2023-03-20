@@ -33,12 +33,7 @@ func ComponentReferences(parent *vm.Scope, cn dag.Node, g *dag.Graph) ([]Referen
 		diags diag.Diagnostics
 	)
 
-	switch cn := cn.(type) {
-	case *ConfigNode:
-		traversals = configTraversals(cn)
-	case *ComponentNode:
-		traversals = componentTraversals(cn)
-	}
+	traversals = expressionsFromBody(cn.Block().Body)
 
 	refs := make([]Reference, 0, len(traversals))
 	for _, t := range traversals {
@@ -56,20 +51,6 @@ func ComponentReferences(parent *vm.Scope, cn dag.Node, g *dag.Graph) ([]Referen
 	}
 
 	return refs, diags
-}
-
-// componentTraversals gets the set of Traverals for a given component.
-func componentTraversals(cn *ComponentNode) []Traversal {
-	cn.mut.RLock()
-	defer cn.mut.RUnlock()
-	return expressionsFromBody(cn.block.Body)
-}
-
-// configTraversals gets the set of Traverals for the config node.
-func configTraversals(cn *ConfigNode) []Traversal {
-	cn.mut.RLock()
-	defer cn.mut.RUnlock()
-	return expressionsFromBody(cn.block.Body)
 }
 
 // expressionsFromSyntaxBody recurses through body and finds all variable

@@ -133,13 +133,13 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentNodeBlocks []*ast.BlockSt
 					})
 				}
 			}
-		case *ConfigNode:
+		default:
 			if err = l.evaluateConfigBlock(logger, parentScope, c); err != nil {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
 					Message:  fmt.Sprintf("Failed to evaluate node for config block: %s", err),
-					StartPos: ast.StartPos(n.(*ConfigNode).Block()).Position(),
-					EndPos:   ast.EndPos(n.(*ConfigNode).Block()).Position(),
+					StartPos: ast.StartPos(n.Block()).Position(),
+					EndPos:   ast.EndPos(n.Block()).Position(),
 				})
 			}
 		}
@@ -389,7 +389,7 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 		switch n := n.(type) {
 		case *ComponentNode:
 			err = l.evaluateComponent(logger, parentScope, n)
-		case *ConfigNode:
+		case dag.Node:
 			err = l.evaluateConfigBlock(logger, parentScope, n)
 		}
 
@@ -422,7 +422,7 @@ func (l *Loader) evaluateComponent(logger log.Logger, parent *vm.Scope, c *Compo
 
 // evaluateConfig constructs the final context for the special config Node and
 // evaluates it. mut must be held when calling evaluateConfig.
-func (l *Loader) evaluateConfigBlock(logger log.Logger, parent *vm.Scope, c *ConfigNode) error {
+func (l *Loader) evaluateConfigBlock(logger log.Logger, parent *vm.Scope, c dag.Node) error {
 	ectx := l.cache.BuildContext(parent)
 	err := c.Evaluate(ectx)
 	if err != nil {
