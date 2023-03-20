@@ -128,8 +128,8 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentNodeBlocks []*ast.BlockSt
 					diags.Add(diag.Diagnostic{
 						Severity: diag.SeverityLevelError,
 						Message:  fmt.Sprintf("Failed to build component: %s", err),
-						StartPos: ast.StartPos(n.(*ComponentNode).block).Position(),
-						EndPos:   ast.EndPos(n.(*ComponentNode).block).Position(),
+						StartPos: ast.StartPos(n.(*ComponentNode).Block()).Position(),
+						EndPos:   ast.EndPos(n.(*ComponentNode).Block()).Position(),
 					})
 				}
 			}
@@ -138,8 +138,8 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentNodeBlocks []*ast.BlockSt
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
 					Message:  fmt.Sprintf("Failed to evaluate node for config block: %s", err),
-					StartPos: ast.StartPos(n.(*ConfigNode).block).Position(),
-					EndPos:   ast.EndPos(n.(*ConfigNode).block).Position(),
+					StartPos: ast.StartPos(n.(*ConfigNode).Block()).Position(),
+					EndPos:   ast.EndPos(n.(*ConfigNode).Block()).Position(),
 				})
 			}
 		}

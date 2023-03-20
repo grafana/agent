@@ -335,6 +335,13 @@ func (cn *ComponentNode) Arguments() component.Arguments {
 	return cn.args
 }
 
+// Block returns the current block of the managed component.
+func (cn *ComponentNode) Block() *ast.BlockStmt {
+	cn.mut.RLock()
+	defer cn.mut.RUnlock()
+	return cn.block
+}
+
 // Exports returns the current set of exports from the managed component.
 // Exports returns nil if the managed component does not have exports.
 func (cn *ComponentNode) Exports() component.Exports {

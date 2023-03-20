@@ -144,6 +144,13 @@ func (cn *ConfigNode) evaluateTracing(scope *vm.Scope) error {
 	return nil
 }
 
+// Block returns the current block of the managed config node.
+func (cn *ConfigNode) Block() *ast.BlockStmt {
+	cn.mut.RLock()
+	defer cn.mut.RUnlock()
+	return cn.block
+}
+
 type exportBlock struct {
 	Value any `river:"value,attr"`
 }
