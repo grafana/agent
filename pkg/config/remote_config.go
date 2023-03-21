@@ -22,14 +22,14 @@ type remoteOpts struct {
 	HTTPClientConfig *config.HTTPClientConfig
 }
 
-// remoteConfigProvider interface should be implemented by config providers
-type remoteConfigProvider interface {
+// remoteProvider interface should be implemented by config providers
+type remoteProvider interface {
 	retrieve() ([]byte, error)
 }
 
 // newRemoteProvider constructs a new remote configuration provider. The rawURL is parsed
 // and a provider is constructed based on the URL's scheme.
-func newRemoteProvider(rawURL string, opts *remoteOpts) (remoteConfigProvider, error) {
+func newRemoteProvider(rawURL string, opts *remoteOpts) (remoteProvider, error) {
 	u, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing rawURL %s: %w", rawURL, err)
