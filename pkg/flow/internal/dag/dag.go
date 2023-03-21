@@ -3,26 +3,12 @@ package dag
 
 import (
 	"fmt"
-
-	"github.com/grafana/agent/pkg/river/ast"
-	"github.com/grafana/agent/pkg/river/vm"
 )
 
 // Node is an individual Vertex in the DAG.
 type Node interface {
-	// Evaluate updates the arguments for the managed component
-	// by re-evaluating its River block with the provided scope. The managed component
-	// will be built the first time Evaluate is called.
-	//
-	// Evaluate will return an error if the River block cannot be evaluated or if
-	// decoding to arguments fails.
-	Evaluate(scope *vm.Scope) error
-
 	// NodeID returns the display name of the Node.
 	NodeID() string
-
-	// Block returns the current block of the managed config node.
-	Block() *ast.BlockStmt
 }
 
 // Edge is a directed connection between two Nodes.

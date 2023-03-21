@@ -3,18 +3,17 @@ package controller
 import (
 	"fmt"
 
-	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/vm"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type TracingConfigNode struct {
-	configNode ConfigNode
+	configNode    sharedBlockNode
+	traceProvider trace.TracerProvider // Tracer shared between all managed components.
 }
-
-var _ dag.Node = (*TracingConfigNode)(nil)
 
 // NewTracingConfigNode creates a new TracingConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.
@@ -31,33 +30,31 @@ func NewTracingConfigNode(block *ast.BlockStmt, globals ComponentGlobals, isInMo
 	}
 
 	return &TracingConfigNode{
-		configNode: ConfigNode{
+		configNode: sharedBlockNode{
 			label:         block.Label,
 			nodeID:        BlockComponentID(block).String(),
-			componentName: GetBlockName(block),
-			globals:       globals,
+			componentName: block.GetBlockName(),
 
 			block: block,
 			eval:  vm.New(block.Body),
 		},
+		traceProvider: globals.TraceProvider,
 	}, diags
 }
 
-// Evaluate implements dag.Node and updates the arguments for the managed config block
+// Evaluate implements BlockNode and updates the arguments for the managed config block
 // by re-evaluating its River block with the provided scope. The managed config block
 // will be built the first time Evaluate is called.
 //
 // Evaluate will return an error if the River block cannot be evaluated or if
 // decoding to arguments fails.
 func (cn *TracingConfigNode) Evaluate(scope *vm.Scope) error {
-	cn.configNode.mut.Lock()
-	defer cn.configNode.mut.Unlock()
 	args := tracing.DefaultOptions
-	if err := cn.configNode.eval.Evaluate(scope, &args); err != nil {
+	if err := cn.configNode.Evaluate(scope, &args); err != nil {
 		return fmt.Errorf("decoding River: %w", err)
 	}
 
-	t, ok := cn.configNode.globals.TraceProvider.(*tracing.Tracer)
+	t, ok := cn.traceProvider.(*tracing.Tracer)
 	if ok {
 		err := t.Update(args)
 		if err != nil {
@@ -67,12 +64,14 @@ func (cn *TracingConfigNode) Evaluate(scope *vm.Scope) error {
 	return nil
 }
 
-// Block implements dag.Node and returns the current block of the managed config node.
-func (cn *TracingConfigNode) Block() *ast.BlockStmt {
-	cn.configNode.mut.RLock()
-	defer cn.configNode.mut.RUnlock()
-	return cn.configNode.block
-}
+// ComponentName implements BlockNode and returns the component's type, i.e. `local.file.test` returns `local.file`.
+func (cn *TracingConfigNode) ComponentName() string { return cn.configNode.componentName }
+
+// Label implements BlockNode and returns the label for the block or "" if none was specified.
+func (cn *TracingConfigNode) Label() string { return cn.configNode.label }
+
+// Block implements BlockNode and returns the current block of the managed config node.
+func (cn *TracingConfigNode) Block() *ast.BlockStmt { return cn.configNode.Block() }
 
 // NodeID implements dag.Node and returns the unique ID for the config node.
 func (cn *TracingConfigNode) NodeID() string { return cn.configNode.nodeID }

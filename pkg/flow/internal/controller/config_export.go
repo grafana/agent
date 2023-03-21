@@ -3,17 +3,17 @@ package controller
 import (
 	"fmt"
 
-	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/vm"
 )
 
 type ExportConfigNode struct {
-	configNode ConfigNode
+	configNode      sharedBlockNode
+	onExportsChange func(exports map[string]any) // Invoked when the managed component updated its exports
 }
 
-var _ dag.Node = (*ExportConfigNode)(nil)
+var _ BlockNode = (*ExportConfigNode)(nil)
 
 // NewExportConfigNode creates a new ExportConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.
@@ -30,15 +30,16 @@ func NewExportConfigNode(block *ast.BlockStmt, globals ComponentGlobals, isInMod
 	}
 
 	return &ExportConfigNode{
-		configNode: ConfigNode{
+		configNode: sharedBlockNode{
 			label:         block.Label,
 			nodeID:        BlockComponentID(block).String(),
-			componentName: GetBlockName(block),
-			globals:       globals,
+			componentName: block.GetBlockName(),
 
 			block: block,
 			eval:  vm.New(block.Body),
 		},
+
+		onExportsChange: globals.OnExportsChange,
 	}, diags
 }
 
@@ -46,36 +47,36 @@ type exportBlock struct {
 	Value any `river:"value,attr"`
 }
 
-// Evaluate implements dag.Node and updates the arguments for the managed config block
+// Evaluate implements BlockNode and updates the arguments for the managed config block
 // by re-evaluating its River block with the provided scope. The managed config block
 // will be built the first time Evaluate is called.
 //
 // Evaluate will return an error if the River block cannot be evaluated or if
 // decoding to arguments fails.
 func (cn *ExportConfigNode) Evaluate(scope *vm.Scope) error {
-	cn.configNode.mut.Lock()
-	defer cn.configNode.mut.Unlock()
-	exports := make(map[string]any, 1)
+	exports := make(map[string]any)
 
 	var export exportBlock
-	if err := cn.configNode.eval.Evaluate(scope, &export); err != nil {
+	if err := cn.configNode.Evaluate(scope, &export); err != nil {
 		return fmt.Errorf("decoding River: %w", err)
 	}
 
-	exports[cn.configNode.label] = export.Value
+	exports[cn.Label()] = export.Value
 
-	if cn.configNode.globals.OnExportsChange != nil {
-		cn.configNode.globals.OnExportsChange(exports)
+	if cn.onExportsChange != nil {
+		cn.onExportsChange(exports)
 	}
 	return nil
 }
 
-// Block implements dag.Node and returns the current block of the managed config node.
-func (cn *ExportConfigNode) Block() *ast.BlockStmt {
-	cn.configNode.mut.RLock()
-	defer cn.configNode.mut.RUnlock()
-	return cn.configNode.block
-}
+// ComponentName implements BlockNode and returns the component's type, i.e. `local.file.test` returns `local.file`.
+func (cn *ExportConfigNode) ComponentName() string { return cn.configNode.componentName }
+
+// Label implements BlockNode and returns the label for the block or "" if none was specified.
+func (cn *ExportConfigNode) Label() string { return cn.configNode.label }
+
+// Block implements BlockNode and returns the current block of the managed config node.
+func (cn *ExportConfigNode) Block() *ast.BlockStmt { return cn.configNode.Block() }
 
 // NodeID implements dag.Node and returns the unique ID for the config node.
 func (cn *ExportConfigNode) NodeID() string { return cn.configNode.nodeID }
