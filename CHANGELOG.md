@@ -21,6 +21,8 @@ Main (unreleased)
 
 - Support for 32-bit ARM builds is temporarily removed. We are aiming to bring
   back support for these builds prior to publishing v0.33.0. (@rfratto)
+- Agent Management: Agent now makes use of the v2 agent API. The config field
+  `api_url` in the `agent_management` block should be updated accordingly. (@jcreixell)
 
 ### Features
 
@@ -32,7 +34,7 @@ Main (unreleased)
     an expression containing a string. (@erikbaranowski, @rfratto)
   - `otelcol.auth.oauth2` performs OAuth 2.0 authentication for HTTP and gRPC
     based OpenTelemetry exporters. (@ptodev)
-  - `otelcol.extension.jaeger_remote_sampling` provides an endpoint from which to 
+  - `otelcol.extension.jaeger_remote_sampling` provides an endpoint from which to
     pull Jaeger remote sampling documents. (@joe-elliott)
   - `prometheus.exporter.blackbox` collects metrics from Blackbox exporter
     (@marctc).
@@ -44,12 +46,13 @@ Main (unreleased)
 
 - Flow: Add retries with backoff logic to Phlare write component. (@cyriltovena)
 - Operator: Allow setting runtimeClassName on operator-created pods. (@captncraig)
+- Operator: Transparently compress agent configs to stay under size limitations. (@captncraig)
 
 ### Bugfixes
 
 - Flow: fix issue where Flow would return an error when trying to access a key
   of a map whose value was the zero value (`null`, `0`, `false`, `[]`, `{}`).
-  Whether an error was returned dependend on the internal type of the value.
+  Whether an error was returned depended on the internal type of the value.
   (@rfratto)
 
 - Flow: fix issue where using the `jaeger_remote` sampler for the `tracing`
@@ -59,6 +62,15 @@ Main (unreleased)
 
 - Flow: fix issue where components with no arguments like `loki.echo` were not
   viewable in the UI. (@rfratto)
+
+- Flow: fix deadlock in `loki.source.file` where terminating tailers would hang
+  while flushing remaining logs, preventing `loki.source.file` from being able
+  to update. (@rfratto)
+
+- Flow: fix deadlock in `loki.process` where a component with no stages would
+  hang forever on handling logs. (@rfratto)
+
+- Fix issue where a DefaultConfig might be mutated during unmarshaling. (@jcreixell)
 
 ### Other changes
 

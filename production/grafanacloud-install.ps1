@@ -35,9 +35,10 @@ Install-Module PowerShell-yaml
 Write-Host "Downloading Grafana agent Windows Installer"
 $DOWLOAD_URL = "https://github.com/grafana/agent/releases/latest/download/grafana-agent-installer.exe.zip"
 $OUTPUT_ZIP_FILE = ".\grafana-agent-installer.exe.zip"
-$OUTPUT_FILE = ".\grafana-agent-installer.exe"
+# $OUTPUT_FILE = "grafana-agent-installer.exe"
+$WORKING_DIR = Get-Location
 Invoke-WebRequest -Uri $DOWLOAD_URL -OutFile $OUTPUT_ZIP_FILE
-Expand-Archive -LiteralPath $OUTPUT_ZIP_FILE -DestinationPath $OUTPUT_FILE
+Expand-Archive -LiteralPath $OUTPUT_ZIP_FILE -DestinationPath $WORKING_DIR.path
 
 # Install Grafana agent in silent mode
 Write-Host "Installing Grafana agent for Windows"
