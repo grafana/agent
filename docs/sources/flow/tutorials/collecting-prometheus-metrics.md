@@ -79,4 +79,4 @@ prometheus.remote_write "prom" {
 To try out the Grafana Agent without using Docker:
 1. Download the Grafana Agent.
 1. Set the environment variable `AGENT_MODE=flow`.
-1. Run the agent with `agent run <path_to_flow_config>`.
+1. Run the agent with `grafana-agent run <path_to_flow_config>`.
