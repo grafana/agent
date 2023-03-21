@@ -216,7 +216,7 @@ func TestGetRemoteConfig_UnmarshallableRemoteConfig(t *testing.T) {
 	assert.False(t, testProvider.didCacheRemoteConfig)
 
 	// check that the returned config is the cached one
-	// Note: Validate is required for the comparison as it mutates the config (probably needs refactor)
+	// Note: Validate is required for the comparison as it mutates the config
 	expected := defaultCfg
 	expected.Validate(fs)
 	assert.True(t, util.CompareYAML(*cfg, expected))
@@ -242,7 +242,7 @@ func TestGetRemoteConfig_RemoteFetchFails(t *testing.T) {
 	assert.False(t, testProvider.didCacheRemoteConfig)
 
 	// check that the returned config is the cached one
-	// Note: Validate is required for the comparison as it mutates the config (probably needs refactor)
+	// Note: Validate is required for the comparison as it mutates the config
 	expected := defaultCfg
 	expected.Validate(fs)
 	assert.True(t, util.CompareYAML(*cfg, expected))
@@ -288,7 +288,7 @@ snippets: []
 	assert.False(t, testProvider.didCacheRemoteConfig)
 
 	// check that the returned config is the cached one
-	// Note: Validate is required for the comparison as it mutates the config (probably needs refactor)
+	// Note: Validate is required for the comparison as it mutates the config
 	expected := defaultCfg
 	expected.Validate(fs)
 	assert.True(t, util.CompareYAML(*cfg, expected))
@@ -327,7 +327,7 @@ snippets:
 	assert.False(t, testProvider.didCacheRemoteConfig)
 
 	// check that the returned config is the cached one
-	// Note: Validate is required for the comparison as it mutates the config (probably needs refactor)
+	// Note: Validate is required for the comparison as it mutates the config
 	expected := defaultCfg
 	expected.Validate(fs)
 	assert.True(t, util.CompareYAML(*cfg, expected))

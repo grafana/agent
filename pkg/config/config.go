@@ -193,6 +193,10 @@ func (c *Config) Validate(fs *flag.FlagSet) error {
 	}
 	c.Metrics.ServiceConfig.Lifecycler.ListenPort = grpcPort
 
+	// TODO(jcreixell): Make this method side-effect free and, if necessary, implement a
+	// method bundling defaults application and validation. Rationale: sometimes (for example
+	// in tests) we want to validate a config without mutating it, or apply all defaults
+	// for comparison.
 	if err := c.Integrations.ApplyDefaults(&c.ServerFlags, &c.Metrics); err != nil {
 		return err
 	}
