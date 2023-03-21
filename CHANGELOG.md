@@ -21,6 +21,8 @@ Main (unreleased)
 
 - Support for 32-bit ARM builds is temporarily removed. We are aiming to bring
   back support for these builds prior to publishing v0.33.0. (@rfratto)
+- Agent Management: Agent now makes use of the v2 agent API. The config field
+  `api_url` in the `agent_management` block should be updated accordingly. (@jcreixell)
 
 ### Features
 
