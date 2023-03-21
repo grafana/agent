@@ -15,7 +15,7 @@ var (
 		listen_tcp = "1011"
 		listen_unixgram = "unix"
 		unix_socket_mode = "prom"
-		mapping_config_path = "testdata/mapTest.yaml"
+		mapping_config_path = "` + filepath.Join("testdata", "mapTest.yaml") + `"
 		read_buffer = 1
 		cache_size = 2
 		cache_type = "random"
