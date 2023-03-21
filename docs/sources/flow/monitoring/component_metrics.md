@@ -33,5 +33,5 @@ component-specific metrics that component exposes. Not all components will
 expose metrics.
 
 [components]: {{< relref "../concepts/components.md" >}}
-[grafna-agent run]: {{< relref "../reference/cli/run.md" >}}
+[grafana-agent run]: {{< relref "../reference/cli/run.md" >}}
 [reference documentation]: {{< relref "../reference/components/_index.md" >}}
