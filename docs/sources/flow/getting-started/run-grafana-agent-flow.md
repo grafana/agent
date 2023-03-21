@@ -19,7 +19,7 @@ To run Grafana Agent Flow, follow these steps:
 
 1. Set the `AGENT_MODE` environment variable on your system to `flow`.
 
-2. Create a configuration file to Grafana Agent Flow to use, saving it to your
+2. Create a configuration file for Grafana Agent Flow to use, saving it to your
    system. For example:
 
    ```river
