@@ -128,8 +128,8 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentNodeBlocks []*ast.BlockSt
 					diags.Add(diag.Diagnostic{
 						Severity: diag.SeverityLevelError,
 						Message:  fmt.Sprintf("Failed to build component: %s", err),
-						StartPos: ast.StartPos(n.(*ComponentNode).Block()).Position(),
-						EndPos:   ast.EndPos(n.(*ComponentNode).Block()).Position(),
+						StartPos: ast.StartPos(c.Block()).Position(),
+						EndPos:   ast.EndPos(c.Block()).Position(),
 					})
 				}
 			}
@@ -162,7 +162,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentNodeBlocks []*ast.BlockSt
 	return diags
 }
 
-// Load the new graph from the blocks and validate it.
+// loadNewGraph creates a new graph from the provided blocks and validates it.
 func (l *Loader) loadNewGraph(parentScope *vm.Scope, componentNodeBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) (dag.Graph, diag.Diagnostics) {
 	var g dag.Graph
 	// Fill our graph with config blocks.
