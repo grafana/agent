@@ -17,11 +17,11 @@ is a separate operating mode available when using the Grafana Agent binary.
 Grafana Agent Flow can be enabled by setting the `AGENT_MODE` environment
 variable to `flow`.
 
-Then, use the `agent run` command to start Grafana Agent Flow, replacing
+Then, use the `grafana-agent run` command to start Grafana Agent Flow, replacing
 `FILE_PATH` with the path of a config file to use:
 
 ```
-AGENT_MODE=flow agent run FILE_PATH
+AGENT_MODE=flow grafana-agent run FILE_PATH
 ```
 
 > Grafana Agent Flow uses a different command-line interface and command line
