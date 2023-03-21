@@ -52,7 +52,8 @@ func main() {
 	}
 
 	// Set up logging using default values before loading the config
-	logger := server.NewLogger(&server.DefaultConfig)
+	defaultCfg := server.DefaultConfig()
+	logger := server.NewLogger(&defaultCfg)
 
 	reloader := func(log *server.Logger) (*config.Config, error) {
 		fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)

@@ -189,15 +189,16 @@ func TestNewRemoteConfigHTTPProvider_InvalidInitialConfig(t *testing.T) {
 }
 
 func TestGetRemoteConfig_UnmarshallableRemoteConfig(t *testing.T) {
+	defaultCfg := DefaultConfig()
 	brokenCfg := `completely invalid config (maybe it got corrupted, maybe it was somehow set this way)`
 
 	invalidCfgBytes := []byte(brokenCfg)
 
 	am := validAgentManagementConfig
-	logger := server.NewLogger(&server.DefaultConfig)
+	logger := server.NewLogger(defaultCfg.Server)
 	testProvider := testRemoteConfigProvider{InitialConfig: &am}
 	testProvider.fetchedConfigBytesToReturn = invalidCfgBytes
-	testProvider.cachedConfigToReturn = &DefaultConfig
+	testProvider.cachedConfigToReturn = &defaultCfg
 
 	// a nil flagset is being used for testing because it should not reach flag validation
 	cfg, err := getRemoteConfig(true, &testProvider, logger, nil, []string{}, "test")
@@ -205,15 +206,17 @@ func TestGetRemoteConfig_UnmarshallableRemoteConfig(t *testing.T) {
 	assert.False(t, testProvider.didCacheRemoteConfig)
 
 	// check that the returned config is the cached one
-	assert.True(t, util.CompareYAML(*cfg, DefaultConfig))
+	assert.True(t, util.CompareYAML(*cfg, defaultCfg))
 }
 
 func TestGetRemoteConfig_RemoteFetchFails(t *testing.T) {
+	defaultCfg := DefaultConfig()
+
 	am := validAgentManagementConfig
-	logger := server.NewLogger(&server.DefaultConfig)
+	logger := server.NewLogger(defaultCfg.Server)
 	testProvider := testRemoteConfigProvider{InitialConfig: &am}
 	testProvider.fetchedConfigErrorToReturn = errors.New("connection refused")
-	testProvider.cachedConfigToReturn = &DefaultConfig
+	testProvider.cachedConfigToReturn = &defaultCfg
 
 	// a nil flagset is being used for testing because it should not reach flag validation
 	cfg, err := getRemoteConfig(true, &testProvider, logger, nil, []string{}, "test")
@@ -221,10 +224,12 @@ func TestGetRemoteConfig_RemoteFetchFails(t *testing.T) {
 	assert.False(t, testProvider.didCacheRemoteConfig)
 
 	// check that the returned config is the cached one
-	assert.True(t, util.CompareYAML(*cfg, DefaultConfig))
+	assert.True(t, util.CompareYAML(*cfg, defaultCfg))
 }
 
 func TestGetRemoteConfig_InvalidRemoteConfig(t *testing.T) {
+	defaultCfg := DefaultConfig()
+
 	// this is invalid because it has two scrape_configs with
 	// the same job_name
 	invalidConfig := `
@@ -255,10 +260,10 @@ metrics:
 	invalidCfgBytes := []byte(invalidConfig)
 
 	am := validAgentManagementConfig
-	logger := server.NewLogger(&server.DefaultConfig)
+	logger := server.NewLogger(defaultCfg.Server)
 	testProvider := testRemoteConfigProvider{InitialConfig: &am}
 	testProvider.fetchedConfigBytesToReturn = invalidCfgBytes
-	testProvider.cachedConfigToReturn = &DefaultConfig
+	testProvider.cachedConfigToReturn = &defaultCfg
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
 	features.Register(fs, allFeatures)
 
@@ -267,5 +272,5 @@ metrics:
 	assert.False(t, testProvider.didCacheRemoteConfig)
 
 	// check that the returned config is the cached one
-	assert.True(t, util.CompareYAML(*cfg, DefaultConfig))
+	assert.True(t, util.CompareYAML(*cfg, defaultCfg))
 }

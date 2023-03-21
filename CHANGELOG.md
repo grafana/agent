@@ -68,6 +68,8 @@ Main (unreleased)
 - Flow: fix deadlock in `loki.process` where a component with no stages would
   hang forever on handling logs. (@rfratto)
 
+- Fix issue where a DefaultConfig might be mutated during unmarshaling. (@jcreixell)
+
 ### Other changes
 
 - Grafana Agent Docker containers and release binaries are now published for
