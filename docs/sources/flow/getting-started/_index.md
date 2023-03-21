@@ -2,7 +2,7 @@
 title: Getting started
 weight: 100
 aliases:
-- getting-started/
+- getting_started/
 ---
 
 # Getting started
