@@ -118,6 +118,17 @@ a string:
 }
 ```
 
+> **NOTE**: Be careful not to confuse objects with blocks.
+>
+> An _object_ is a value assigned to an [Attribute][Attributes], where
+> commas **must** be provided between key-value pairs on separate lines.
+>
+> A [Block][Blocks] is a structural element composed of multiple attributes,
+> where commas **must not** be provided between attributes.
+
+[Attributes]: {{< relref "../syntax.md#Attributes" >}}
+[Blocks]: {{< relref "../syntax.md#Blocks" >}}
+
 ## Functions
 
 Function values cannot be constructed by users, but can be called from the
