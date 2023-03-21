@@ -227,7 +227,7 @@ func (cn *ComponentNode) UpdateBlock(b *ast.BlockStmt) {
 	cn.eval = vm.New(b.Body)
 }
 
-// Evaluate implements dag.Node and updates the arguments for the managed component
+// Evaluate implements BlockNode and updates the arguments for the managed component
 // by re-evaluating its River block with the provided scope. The managed component
 // will be built the first time Evaluate is called.
 //
@@ -334,7 +334,7 @@ func (cn *ComponentNode) Arguments() component.Arguments {
 	return cn.args
 }
 
-// Block implements dag.Node and returns the current block of the managed component.
+// Block implements BlockNode and returns the current block of the managed component.
 func (cn *ComponentNode) Block() *ast.BlockStmt {
 	cn.mut.RLock()
 	defer cn.mut.RUnlock()
