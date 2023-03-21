@@ -59,15 +59,15 @@ prometheus.remote_write "default" {
 
 ## Next steps
 
-* Follow our Grafana Agent Flow [Getting Started][] guides.
 * Learn about the [core concepts][] of Grafana Agent Flow.
+* Follow our Grafana Agent Flow [Getting Started][] guides.
 * Follow our [tutorials][] to get started with Grafana Agent Flow.
 * Learn how to use Grafana Agent Flow's [configuration language][].
 * Check out our [reference documentation][] to find specific information you
   might be looking for.
 
-[Getting Started]: {{< relref "./getting-started/" >}}
 [core concepts]: {{< relref "./concepts/" >}}
+[Getting Started]: {{< relref "./getting-started/" >}}
 [tutorials]: {{< relref "./tutorials/ ">}}
 [configuration language]: {{< relref "./config-language/" >}}
 [reference documentation]: {{< relref "./reference" >}}
