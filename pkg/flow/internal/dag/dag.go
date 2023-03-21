@@ -1,9 +1,7 @@
 // Package dag defines a Directed Acyclic Graph.
 package dag
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // Node is an individual Vertex in the DAG.
 type Node interface {
