@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path"
 	"sync"
 	"syscall"
 
@@ -103,10 +104,11 @@ func (fr *flowRun) Run(configFile string) error {
 		return fmt.Errorf("file argument not provided")
 	}
 
-	l, err := logging.New(os.Stderr, logging.DefaultOptions)
+	logSink, err := logging.WriterSink(os.Stderr, logging.DefaultSinkOptions)
 	if err != nil {
 		return fmt.Errorf("building logger: %w", err)
 	}
+	l := logging.New(logSink)
 
 	t, err := tracing.New(tracing.DefaultOptions)
 	if err != nil {
@@ -137,10 +139,11 @@ func (fr *flowRun) Run(configFile string) error {
 	reg.MustRegister(newResourcesCollector(l))
 
 	f := flow.New(flow.Options{
-		Logger:         l,
+		LogSink:        logSink,
 		Tracer:         t,
 		DataPath:       fr.storagePath,
 		Reg:            reg,
+		HTTPPathPrefix: "/api/v0/component/",
 		HTTPListenAddr: fr.httpListenAddr,
 	})
 
@@ -151,11 +154,20 @@ func (fr *flowRun) Run(configFile string) error {
 		if err != nil {
 			return fmt.Errorf("reading config file %q: %w", configFile, err)
 		}
-		if err := f.LoadFile(flowCfg); err != nil {
+		if err := f.LoadFile(flowCfg, nil); err != nil {
 			return fmt.Errorf("error during the initial gragent load: %w", err)
 		}
 
 		return nil
+	}
+
+	// Flow controller
+	{
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			f.Run(ctx)
+		}()
 	}
 
 	// HTTP server
@@ -173,7 +185,7 @@ func (fr *flowRun) Run(configFile string) error {
 
 		r.Handle("/metrics", promhttp.Handler())
 		r.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
-		r.PathPrefix("/component/{id}/").Handler(f.ComponentHandler())
+		r.PathPrefix("/api/v0/component/{id}/").Handler(f.ComponentHandler())
 
 		r.HandleFunc("/-/ready", func(w http.ResponseWriter, _ *http.Request) {
 			if f.Ready() {
@@ -196,7 +208,7 @@ func (fr *flowRun) Run(configFile string) error {
 
 		// Register Routes must be the last
 		fa := api.NewFlowAPI(f, r)
-		fa.RegisterRoutes(fr.uiPrefix, r)
+		fa.RegisterRoutes(path.Join(fr.uiPrefix, "/api/v0/web"), r)
 
 		// NOTE(rfratto): keep this at the bottom of all other routes, otherwise it
 		// will take precedence over anything else mapped in uiPrefix.
@@ -264,7 +276,7 @@ func (fr *flowRun) Run(configFile string) error {
 	for {
 		select {
 		case <-ctx.Done():
-			return f.Close()
+			return nil
 		case <-reloadSignal:
 			if err := reload(); err != nil {
 				level.Error(l).Log("msg", "failed to reload config", "err", err)

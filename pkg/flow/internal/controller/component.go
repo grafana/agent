@@ -5,16 +5,17 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"path"
 	"path/filepath"
 	"reflect"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
+	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/vm"
 	"github.com/prometheus/client_golang/prometheus"
@@ -58,12 +59,16 @@ func (id ComponentID) Equals(other ComponentID) bool {
 // ComponentGlobals are used by ComponentNodes to build managed components. All
 // ComponentNodes should use the same ComponentGlobals.
 type ComponentGlobals struct {
-	Logger          log.Logger              // Logger shared between all managed components.
-	TraceProvider   trace.TracerProvider    // Tracer shared between all managed components.
-	DataPath        string                  // Shared directory where component data may be stored
-	OnExportsChange func(cn *ComponentNode) // Invoked when the managed component updated its exports
-	Registerer      prometheus.Registerer   // Registerer for serving agent and component metrics
-	HTTPListenAddr  string                  // Base address for server
+	LogSink           *logging.Sink                // Sink used for Logging.
+	Logger            *logging.Logger              // Logger shared between all managed components.
+	TraceProvider     trace.TracerProvider         // Tracer shared between all managed components.
+	DataPath          string                       // Shared directory where component data may be stored
+	OnComponentUpdate func(cn *ComponentNode)      // Informs controller that we need to reevaluate
+	OnExportsChange   func(exports map[string]any) // Invoked when the managed component updated its exports
+	Registerer        prometheus.Registerer        // Registerer for serving agent and component metrics
+	HTTPPathPrefix    string                       // HTTP prefix for components.
+	HTTPListenAddr    string                       // Base address for server
+	ControllerID      string                       // ID of controller.
 }
 
 // ComponentNode is a controller node which manages a user-defined component.
@@ -72,15 +77,15 @@ type ComponentGlobals struct {
 // arguments and exports. ComponentNode manages the arguments for the component
 // from a River block.
 type ComponentNode struct {
-	id              ComponentID
-	label           string
-	componentName   string
-	nodeID          string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
-	reg             component.Registration
-	managedOpts     component.Options
-	register        *wrappedRegisterer
-	exportsType     reflect.Type
-	onExportsChange func(cn *ComponentNode) // Informs controller that we changed our exports
+	id                ComponentID
+	label             string
+	componentName     string
+	nodeID            string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
+	reg               component.Registration
+	managedOpts       component.Options
+	register          *wrappedRegisterer
+	exportsType       reflect.Type
+	OnComponentUpdate func(cn *ComponentNode) // Informs controller that we need to reevaluate
 
 	mut     sync.RWMutex
 	block   *ast.BlockStmt // Current River block to derive args from
@@ -127,13 +132,13 @@ func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode
 	}
 
 	cn := &ComponentNode{
-		id:              id,
-		label:           b.Label,
-		nodeID:          nodeID,
-		componentName:   strings.Join(b.Name, "."),
-		reg:             reg,
-		exportsType:     getExportsType(reg),
-		onExportsChange: globals.OnExportsChange,
+		id:                id,
+		label:             b.Label,
+		nodeID:            nodeID,
+		componentName:     strings.Join(b.Name, "."),
+		reg:               reg,
+		exportsType:       getExportsType(reg),
+		OnComponentUpdate: globals.OnComponentUpdate,
 
 		block: b,
 		eval:  vm.New(b.Body),
@@ -151,19 +156,37 @@ func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode
 }
 
 func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Options {
+	// Make sure the prefix is always absolute.
+	prefix := globals.HTTPPathPrefix
+	if !strings.HasPrefix(prefix, "/") {
+		prefix = "/" + prefix
+	}
+
+	// We need to generate a globally unique component ID to give to the
+	// component and for use with telemetry data which doesn't support
+	// reconstructing the global ID. For everything else (HTTP, data), we can
+	// just use the controller-local ID as those values are guaranteed to be
+	// globally unique.
+	globalID := cn.nodeID
+	if globals.ControllerID != "" {
+		globalID = path.Join(globals.ControllerID, cn.nodeID)
+	}
+
 	wrapped := newWrappedRegisterer()
 	cn.register = wrapped
 	return component.Options{
-		ID:            cn.nodeID,
-		Logger:        log.With(globals.Logger, "component", cn.nodeID),
-		DataPath:      filepath.Join(globals.DataPath, cn.nodeID),
-		OnStateChange: cn.setExports,
+		ID:     globalID,
+		Logger: logging.New(logging.LoggerSink(globals.Logger), logging.WithComponentID(cn.nodeID)),
 		Registerer: prometheus.WrapRegistererWith(prometheus.Labels{
-			"component_id": cn.nodeID,
+			"component_id": globalID,
 		}, wrapped),
-		Tracer:         wrapTracer(globals.TraceProvider, cn.nodeID),
+		Tracer: wrapTracer(globals.TraceProvider, globalID),
+
+		DataPath:       filepath.Join(globals.DataPath, cn.nodeID),
 		HTTPListenAddr: globals.HTTPListenAddr,
-		HTTPPath:       fmt.Sprintf("/component/%s/", cn.nodeID),
+		HTTPPath:       path.Join(prefix, cn.nodeID) + "/",
+
+		OnStateChange: cn.setExports,
 	}
 }
 
@@ -358,7 +381,7 @@ func (cn *ComponentNode) setExports(e component.Exports) {
 
 	if changed {
 		// Inform the controller that we have new exports.
-		cn.onExportsChange(cn)
+		cn.OnComponentUpdate(cn)
 	}
 }
 

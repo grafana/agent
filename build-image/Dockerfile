@@ -12,14 +12,18 @@
 
 # Dependency: golangci-lint (for linting)
 FROM alpine as golangci
-RUN wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.50.1
+RUN wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.51.2
 
 # Dependency: docker (for building images)
-FROM alpine:3.16 as docker
+FROM alpine:3.17 as docker
 RUN apk add --no-cache docker-cli docker-cli-buildx
 
+# Dependency: helm
+FROM alpine:3.17 as helm
+RUN apk add --no-cache helm
+
 # Dependency: Go and Go dependencies
-FROM golang:1.20.0-bullseye as golang
+FROM golang:1.20.2-bullseye as golang
 
 # Keep in sync with cmd/grafana-agent-operator/DEVELOPERS.md
 ENV CONTROLLER_GEN_VERSION v0.9.2
@@ -42,7 +46,7 @@ RUN go install sigs.k8s.io/controller-tools/cmd/controller-gen@$CONTROLLER_GEN_V
 
 # rfratto/viceroy contains C cross compilers can be used for our Cgo
 # dependencies.
-FROM rfratto/viceroy:v0.2.1
+FROM rfratto/viceroy:v0.3.0
 
 # Install NodeJS LTS. This is needed because the most recent version of NodeJS
 # from official Debian packages is v12, and we need LTS version v16.
@@ -79,6 +83,7 @@ RUN apt-get update                                \
 COPY --from=golangci /bin/golangci-lint              /usr/local/bin
 COPY --from=docker   /usr/bin/docker                 /usr/bin/docker
 COPY --from=docker   /usr/libexec/docker/cli-plugins /usr/libexec/docker/cli-plugins
+COPY --from=helm     /usr/bin/helm                   /usr/bin/helm
 COPY --from=golang   /usr/local/go                   /usr/local/go
 COPY --from=golang   /go/bin                         /go/bin
 

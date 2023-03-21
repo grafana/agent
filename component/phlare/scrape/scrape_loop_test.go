@@ -185,7 +185,7 @@ func TestScrapeLoop(t *testing.T) {
 			return nil
 		}),
 		200*time.Millisecond, 30*time.Second, util.TestLogger(t))
-	defer loop.stop()
+	defer loop.stop(true)
 
 	require.Equal(t, HealthUnknown, loop.Health())
 	loop.start()

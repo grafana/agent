@@ -17,7 +17,8 @@ func TestLogger_DefaultParameters(t *testing.T) {
 		require.Equal(t, "logfmt", cfg.LogFormat.String())
 		return l, nil
 	}
-	newLogger(&DefaultConfig, makeLogger).makeLogger(&DefaultConfig)
+	defaultCfg := DefaultConfig()
+	newLogger(&defaultCfg, makeLogger).makeLogger(&defaultCfg)
 }
 
 func TestLogger_ApplyConfig(t *testing.T) {

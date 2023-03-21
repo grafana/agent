@@ -2,7 +2,7 @@
 aliases:
 - ../concepts/
 title: Concepts
-weight: 100
+weight: 200
 ---
 
 # Concepts

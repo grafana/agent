@@ -5,14 +5,13 @@ package stages
 // new code without being able to slowly review, examine and test them.
 
 import (
-	"io"
 	"testing"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/util"
 	util_log "github.com/grafana/loki/pkg/util/log"
 )
 
@@ -133,7 +132,7 @@ var testLogfmtLogFixture = `
 
 func TestLogfmtParser_Parse(t *testing.T) {
 	t.Parallel()
-	logger, _ := logging.New(io.Discard, logging.DefaultOptions)
+	logger := util.TestFlowLogger(t)
 	tests := map[string]struct {
 		config          LogfmtConfig
 		extracted       map[string]interface{}

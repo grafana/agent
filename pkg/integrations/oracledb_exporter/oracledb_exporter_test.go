@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	config_util "github.com/prometheus/common/config"
 	go_ora "github.com/sijms/go-ora/v2"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
@@ -51,7 +52,7 @@ func TestConfigValidate(t *testing.T) {
 			name: "go_ora built connection string",
 			getConfig: func() Config {
 				c := DefaultConfig
-				c.ConnectionString = go_ora.BuildUrl("localhost", 1521, "service", "user", "pass", nil)
+				c.ConnectionString = config_util.Secret(go_ora.BuildUrl("localhost", 1521, "service", "user", "pass", nil))
 				return c
 			},
 		},
@@ -59,7 +60,7 @@ func TestConfigValidate(t *testing.T) {
 			name: "no hostname",
 			getConfig: func() Config {
 				c := DefaultConfig
-				c.ConnectionString = go_ora.BuildUrl("", 1521, "service", "user", "pass", nil)
+				c.ConnectionString = config_util.Secret(go_ora.BuildUrl("", 1521, "service", "user", "pass", nil))
 				return c
 			},
 			expectedErr: errNoHostname,
@@ -95,10 +96,10 @@ func TestConfigValidate(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			cfg := tc.getConfig()
 			if tc.expectedErr == nil {
-				require.NoError(t, validateConnString(cfg.ConnectionString))
+				require.NoError(t, validateConnString(string(cfg.ConnectionString)))
 				return
 			}
-			require.ErrorContains(t, validateConnString(cfg.ConnectionString), tc.expectedErr.Error())
+			require.ErrorContains(t, validateConnString(string(cfg.ConnectionString)), tc.expectedErr.Error())
 		})
 	}
 }

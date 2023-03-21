@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	pc "github.com/prometheus/common/config"
 	"github.com/stretchr/testify/require"
@@ -156,4 +157,19 @@ func TestConfig_ApplyDefaults_Defaults(t *testing.T) {
 // will insert tabs into strings by default.
 func untab(s string) string {
 	return strings.ReplaceAll(s, "\t", "  ")
+}
+
+func TestInstanceConfig_Initialize(t *testing.T) {
+	cfgText := `
+name: config-c
+`
+	var cfg InstanceConfig
+	err := yaml.UnmarshalStrict([]byte(cfgText), &cfg)
+	require.NoError(t, err)
+
+	// Make sure the default values from flags are applied
+	require.Equal(t, 10*time.Second, cfg.PositionsConfig.SyncPeriod)
+	require.Equal(t, "", cfg.PositionsConfig.PositionsFile)
+	require.Equal(t, false, cfg.PositionsConfig.IgnoreInvalidYaml)
+	require.Equal(t, false, cfg.TargetConfig.Stdin)
 }

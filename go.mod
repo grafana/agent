@@ -130,7 +130,6 @@ require (
 	github.com/prometheus/prometheus v1.99.0
 	github.com/prometheus/snmp_exporter v0.20.1-0.20220111173215-83399c23888f
 	github.com/prometheus/statsd_exporter v0.22.8
-	github.com/prometheus/tsdb v0.7.1
 	github.com/rancher/k3d/v5 v5.2.2
 	github.com/rfratto/ckit v0.0.0-20220401221852-009169323240
 	github.com/rs/cors v1.8.3
@@ -145,6 +144,7 @@ require (
 	github.com/webdevops/azure-metrics-exporter v0.0.0-20221205214019-9333e682d754
 	github.com/webdevops/go-common v0.0.0-20221205213740-01078f6e07cd
 	github.com/wk8/go-ordered-map v0.2.0
+	github.com/xdg-go/scram v1.1.1
 	go.opencensus.io v0.24.0
 	go.opentelemetry.io/collector v0.63.1
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.63.0
@@ -548,7 +548,6 @@ require (
 	github.com/weaveworks/promrus v1.2.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.1 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
-	github.com/xdg-go/scram v1.1.1 // indirect
 	github.com/xdg-go/stringprep v1.0.3 // indirect
 	github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c // indirect
 	github.com/xdg/stringprep v1.0.0 // indirect
