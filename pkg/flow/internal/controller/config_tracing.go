@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/pkg/river/ast"
@@ -11,8 +12,14 @@ import (
 )
 
 type TracingConfigNode struct {
-	configNode    sharedBlockNode
+	label         string
+	nodeID        string
+	componentName string
 	traceProvider trace.TracerProvider // Tracer shared between all managed components.
+
+	mut   sync.RWMutex
+	block *ast.BlockStmt // Current River blocks to derive config from
+	eval  *vm.Evaluator
 }
 
 // NewTracingConfigNode creates a new TracingConfigNode from an initial ast.BlockStmt.
@@ -27,18 +34,18 @@ func NewTracingConfigNode(block *ast.BlockStmt, globals ComponentGlobals, isInMo
 			StartPos: ast.StartPos(block).Position(),
 			EndPos:   ast.EndPos(block).Position(),
 		})
+
+		return nil, diags
 	}
 
 	return &TracingConfigNode{
-		configNode: sharedBlockNode{
-			label:         block.Label,
-			nodeID:        BlockComponentID(block).String(),
-			componentName: block.GetBlockName(),
-
-			block: block,
-			eval:  vm.New(block.Body),
-		},
+		label:         block.Label,
+		nodeID:        BlockComponentID(block).String(),
+		componentName: block.GetBlockName(),
 		traceProvider: globals.TraceProvider,
+
+		block: block,
+		eval:  vm.New(block.Body),
 	}, diags
 }
 
@@ -49,8 +56,10 @@ func NewTracingConfigNode(block *ast.BlockStmt, globals ComponentGlobals, isInMo
 // Evaluate will return an error if the River block cannot be evaluated or if
 // decoding to arguments fails.
 func (cn *TracingConfigNode) Evaluate(scope *vm.Scope) error {
+	cn.mut.RLock()
+	defer cn.mut.RUnlock()
 	args := tracing.DefaultOptions
-	if err := cn.configNode.Evaluate(scope, &args); err != nil {
+	if err := cn.eval.Evaluate(scope, &args); err != nil {
 		return fmt.Errorf("decoding River: %w", err)
 	}
 
@@ -64,14 +73,12 @@ func (cn *TracingConfigNode) Evaluate(scope *vm.Scope) error {
 	return nil
 }
 
-// ComponentName implements BlockNode and returns the component's type, i.e. `local.file.test` returns `local.file`.
-func (cn *TracingConfigNode) ComponentName() string { return cn.configNode.componentName }
-
-// Label implements BlockNode and returns the label for the block or "" if none was specified.
-func (cn *TracingConfigNode) Label() string { return cn.configNode.label }
-
 // Block implements BlockNode and returns the current block of the managed config node.
-func (cn *TracingConfigNode) Block() *ast.BlockStmt { return cn.configNode.Block() }
+func (cn *TracingConfigNode) Block() *ast.BlockStmt {
+	cn.mut.RLock()
+	defer cn.mut.RUnlock()
+	return cn.block
+}
 
 // NodeID implements dag.Node and returns the unique ID for the config node.
-func (cn *TracingConfigNode) NodeID() string { return cn.configNode.nodeID }
+func (cn *TracingConfigNode) NodeID() string { return cn.nodeID }

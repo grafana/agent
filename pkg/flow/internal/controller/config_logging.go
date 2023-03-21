@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river/ast"
@@ -10,8 +11,14 @@ import (
 )
 
 type LoggingConfigNode struct {
-	configNode sharedBlockNode
-	logSink    *logging.Sink // Sink used for Logging.
+	label         string
+	nodeID        string
+	componentName string
+	logSink       *logging.Sink // Sink used for Logging.
+
+	mut   sync.RWMutex
+	block *ast.BlockStmt // Current River blocks to derive config from
+	eval  *vm.Evaluator
 }
 
 // NewLoggingConfigNode creates a new LoggingConfigNode from an initial ast.BlockStmt.
@@ -26,18 +33,18 @@ func NewLoggingConfigNode(block *ast.BlockStmt, globals ComponentGlobals, isInMo
 			StartPos: ast.StartPos(block).Position(),
 			EndPos:   ast.EndPos(block).Position(),
 		})
+
+		return nil, diags
 	}
 
 	return &LoggingConfigNode{
-		configNode: sharedBlockNode{
-			label:         block.Label,
-			nodeID:        BlockComponentID(block).String(),
-			componentName: block.GetBlockName(),
+		label:         block.Label,
+		nodeID:        BlockComponentID(block).String(),
+		componentName: block.GetBlockName(),
+		logSink:       globals.LogSink,
 
-			block: block,
-			eval:  vm.New(block.Body),
-		},
-		logSink: globals.LogSink,
+		block: block,
+		eval:  vm.New(block.Body),
 	}, diags
 }
 
@@ -48,8 +55,10 @@ func NewLoggingConfigNode(block *ast.BlockStmt, globals ComponentGlobals, isInMo
 // Evaluate will return an error if the River block cannot be evaluated or if
 // decoding to arguments fails.
 func (cn *LoggingConfigNode) Evaluate(scope *vm.Scope) error {
+	cn.mut.RLock()
+	defer cn.mut.RUnlock()
 	args := logging.DefaultSinkOptions
-	if err := cn.configNode.Evaluate(scope, &args); err != nil {
+	if err := cn.eval.Evaluate(scope, &args); err != nil {
 		return fmt.Errorf("decoding River: %w", err)
 	}
 
@@ -60,14 +69,12 @@ func (cn *LoggingConfigNode) Evaluate(scope *vm.Scope) error {
 	return nil
 }
 
-// ComponentName implements BlockNode and returns the component's type, i.e. `local.file.test` returns `local.file`.
-func (cn *LoggingConfigNode) ComponentName() string { return cn.configNode.componentName }
-
-// Label implements BlockNode and returns the label for the block or "" if none was specified.
-func (cn *LoggingConfigNode) Label() string { return cn.configNode.label }
-
 // Block implements BlockNode and returns the current block of the managed config node.
-func (cn *LoggingConfigNode) Block() *ast.BlockStmt { return cn.configNode.Block() }
+func (cn *LoggingConfigNode) Block() *ast.BlockStmt {
+	cn.mut.RLock()
+	defer cn.mut.RUnlock()
+	return cn.block
+}
 
 // NodeID implements dag.Node and returns the unique ID for the config node.
-func (cn *LoggingConfigNode) NodeID() string { return cn.configNode.nodeID }
+func (cn *LoggingConfigNode) NodeID() string { return cn.nodeID }
