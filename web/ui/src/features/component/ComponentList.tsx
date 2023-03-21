@@ -14,7 +14,7 @@ interface ComponentListProps {
 const TABLEHEADERS = ['Health', 'ID'];
 
 const ComponentList = ({ components }: ComponentListProps) => {
-  const tableStyles = { width: '100px', lineHeight: '2' };
+  const tableStyles = { width: '100px' };
 
   /**
    * Custom renderer for table data
