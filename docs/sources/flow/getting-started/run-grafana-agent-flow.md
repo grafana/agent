@@ -39,4 +39,7 @@ To run Grafana Agent Flow, follow these steps:
 4. To confirm Grafana Agent Flow is running, visit http://localhost:12345 in a
    web browser to view the [Grafana Agent Flow UI][ui].
 
+For more information on the `grafana-agent run` command, see the [`agent run`
+command]({{< relref "../reference/cli/run.md" >}}).
+
 [ui]: {{< relref "../monitoring/debugging.md#grafana-agent-flow-ui" >}}
