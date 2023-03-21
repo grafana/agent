@@ -44,7 +44,10 @@ func (args Arguments) Convert() otelconfig.Extension {
 	}
 	// sigv4authextension.Config has a private member called "credsProvider" which gets initialized when we call Validate().
 	// If we don't call validate, the unit tests for this component will fail.
-	res.Validate()
+	err := res.Validate()
+	if err != nil {
+		panic(err)
+	}
 	return &res
 }
 
