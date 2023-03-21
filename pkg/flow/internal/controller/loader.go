@@ -137,8 +137,8 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentBlocks []*ast.BlockStmt, 
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
 					Message:  fmt.Sprintf("Failed to evaluate node for config block: %s", err),
-					StartPos: ast.StartPos(n.(BlockNode).Block()).Position(),
-					EndPos:   ast.EndPos(n.(BlockNode).Block()).Position(),
+					StartPos: ast.StartPos(c.Block()).Position(),
+					EndPos:   ast.EndPos(c.Block()).Position(),
 				})
 			}
 		}
