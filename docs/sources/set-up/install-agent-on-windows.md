@@ -7,15 +7,15 @@ weight: 120
 
 Install Grafana Agent and get it up and running on Windows.
 
-### Steps
+## Steps
 
 1.  Navigate to [Releases](https://github.com/grafana/agent/releases).
    
     This page includes instructions for downloading static binaries that are published with every release. These releases contain the plain binary alongside system packages for Windows, Red Hat, and Debian Linux.
 1. Scroll down to the **Assets** section.
-1. Download `grafana-agent-installer.exe`.
+1. Download `grafana-agent-installer.exe.zip`.
    
-   You can also download the `grafana-agent-installer.exe` asset directly from https://github.com/grafana/agent/releases/latest/download/grafana-agent-installer.exe.
+   You can also download the `grafana-agent-installer.exe.zip` asset directly from https://github.com/grafana/agent/releases/latest/download/grafana-agent-installer.exe.zip
 
     Grafana Agent is installed into the default directory `C:\Program Files\Grafana Agent`.
     The [windows_exporter integration](https://github.com/prometheus-community/windows_exporter)

@@ -8,7 +8,7 @@ weight: 800
 This guide describes all breaking changes that have happened in prior
 releases and how to migrate to newer versions.
 
-## v0.32.0
+## v0.32.1
 
 ### Breaking change: `node_exporter` configuration options changed
 

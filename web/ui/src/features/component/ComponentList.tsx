@@ -9,6 +9,7 @@ import styles from './ComponentList.module.css';
 
 interface ComponentListProps {
   components: ComponentInfo[];
+  parent?: string;
 }
 
 const TABLEHEADERS = ['Health', 'ID'];

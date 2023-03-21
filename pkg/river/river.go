@@ -136,7 +136,8 @@ func Marshal(v interface{}) ([]byte, error) {
 // Structs encode to River objects, using Go struct field tags to determine the
 // resulting structure of the River object. Each exported struct field with a
 // river tag becomes an object field, using the tag name as the field name.
-// Other struct fields are ignored.
+// Other struct fields are ignored. If no struct field has a river tag, the
+// struct encodes to a River capsule instead.
 //
 // Function values encode to River functions, which appear in the resulting
 // text as strings formatted as "function(GO_TYPE)".
@@ -211,6 +212,11 @@ func (enc *Encoder) EncodeValue(v interface{}) error {
 //
 // Unmarshal uses the inverse of the encoding rules that Marshal uses,
 // allocating maps, slices, and pointers as necessary.
+//
+// To unmarshal a River body into a map[string]T, Unmarshal assigns each
+// attribute to a key in the map, and decodes the attribute's value as the
+// value for the map entry. Only attribute statements are allowed when
+// unmarshaling into a map.
 //
 // To unmarshal a River body into a struct, Unmarshal matches incoming
 // attributes and blocks to the river struct tags specified by v. Incoming

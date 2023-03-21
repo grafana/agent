@@ -97,6 +97,16 @@ export interface ComponentDetail extends ComponentInfo {
    * here.
    */
   debugInfo?: RiverBody;
+
+  /**
+   * If a component is loaded from a module, this is the parent ID.
+   */
+  parent?: string;
+
+  /**
+   * If a component is a module loader, the loaded components from the module are included here.
+   */
+  moduleInfo?: ComponentInfo[];
 }
 
 export interface PartitionedBody {

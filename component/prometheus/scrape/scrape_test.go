@@ -2,14 +2,13 @@ package scrape
 
 import (
 	"context"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus"
-	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/agent/pkg/util"
 	prometheus_client "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/storage"
@@ -64,10 +63,8 @@ func TestBadRiverConfig(t *testing.T) {
 }
 
 func TestForwardingToAppendable(t *testing.T) {
-	l, err := logging.New(os.Stderr, logging.DefaultOptions)
-	require.NoError(t, err)
 	opts := component.Options{
-		Logger:     l,
+		Logger:     util.TestFlowLogger(t),
 		Registerer: prometheus_client.NewRegistry(),
 	}
 

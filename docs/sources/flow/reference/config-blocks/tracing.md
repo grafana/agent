@@ -1,6 +1,5 @@
 ---
 title: tracing
-weight: 100
 ---
 
 # tracing block

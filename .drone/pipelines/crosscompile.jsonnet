@@ -5,9 +5,8 @@ local os_arch_tuples = [
   // Linux
   { name: 'Linux amd64', os: 'linux', arch: 'amd64' },
   { name: 'Linux arm64', os: 'linux', arch: 'arm64' },
-  { name: 'Linux armv6', os: 'linux', arch: 'arm', arm: '6', tags: 'promtail_journal_enabled' },
-  { name: 'Linux armv7', os: 'linux', arch: 'arm', arm: '7' },
   { name: 'Linux ppc64le', os: 'linux', arch: 'ppc64le' },
+  { name: 'Linux s390x', os: 'linux', arch: 's390x' },
 
   // Darwin
   { name: 'macOS Intel', os: 'darwin', arch: 'amd64' },
@@ -29,18 +28,12 @@ local targets = [
 std.flatMap(function(target) (
   std.map(function(platform) (
     pipelines.linux('Build %s (%s)' % [target, platform.name]) {
-      local build_tags = (
-        if 'tags' in platform then platform.tags
-        else 'builtinassets promtail_journal_enabled'
-      ),
-
       local env = {
         GOOS: platform.os,
         GOARCH: platform.arch,
         GOARM: if 'arm' in platform then platform.arm else '',
 
         target: target,
-        tags: build_tags,
       },
 
       trigger: {
@@ -51,7 +44,7 @@ std.flatMap(function(target) (
         image: build_image.linux,
         commands: [
           'make generate-ui',
-          'GOOS=%(GOOS)s GOARCH=%(GOARCH)s GOARM=%(GOARM)s GO_TAGS="%(tags)s" make %(target)s' % env,
+          'GOOS=%(GOOS)s GOARCH=%(GOARCH)s GOARM=%(GOARM)s make %(target)s' % env,
         ],
       }],
     }

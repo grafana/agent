@@ -263,6 +263,7 @@ func generatePodTemplate(
 			ServiceAccountName:            d.Agent.Spec.ServiceAccountName,
 			NodeSelector:                  d.Agent.Spec.NodeSelector,
 			PriorityClassName:             d.Agent.Spec.PriorityClassName,
+			RuntimeClassName:              d.Agent.Spec.RuntimeClassName,
 			TerminationGracePeriodSeconds: pointer.Int64(4800),
 			Volumes:                       volumes,
 			Tolerations:                   d.Agent.Spec.Tolerations,
