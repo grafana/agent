@@ -214,18 +214,17 @@ func (c *crdManager) clearConfigs(ns string, name string) {
 func (c *crdManager) addDebugInfo(ns string, name string, err error) {
 	c.mut.Lock()
 	defer c.mut.Unlock()
-	prefix := fmt.Sprintf("podMonitor/%s/%s", ns, name)
-	if c.debugInfo[prefix] == nil {
-		c.debugInfo[prefix] = &discoveredPodMonitor{}
-	}
-	c.debugInfo[prefix].Namespace = ns
-	c.debugInfo[prefix].Name = name
-	c.debugInfo[prefix].LastReconcile = time.Now()
+	debug := &discoveredPodMonitor{}
+	debug.Namespace = ns
+	debug.Name = name
+	debug.LastReconcile = time.Now()
 	if err != nil {
-		c.debugInfo[prefix].ReconcileError = err.Error()
+		debug.ReconcileError = err.Error()
 	} else {
-		c.debugInfo[prefix].ReconcileError = ""
+		debug.ReconcileError = ""
 	}
+	prefix := fmt.Sprintf("podMonitor/%s/%s", ns, name)
+	c.debugInfo[prefix] = debug
 }
 
 func (c *crdManager) addPodMonitor(pm *v1.PodMonitor) {
