@@ -28,7 +28,7 @@ All arguments are optional. Omitted fields take their default values.
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `listen_udp`                                      | `string`       | The UDP address on which to receive statsd metric lines. Use "" to disable it. | `9125` | no
-`listen_tcp`                                      | `string`       | The UDP address on which to receive statsd metric lines. Use "" to disable it. | `9125` | no
+`listen_tcp`                                      | `string`       | The TCP address on which to receive statsd metric lines. Use "" to disable it. | `9125` | no
 `listen_unixgram`                                 | `string`       | The Unixgram socket path to receive statsd metric lines in datagram. Use "" to disable it. | | no
 `unix_socket_mode`                                | `string`       | The permission mode of the unix socket. | `755` | no
 `mapping_config_path`                             | `string`       | The path to a YAML mapping file used to translate specific dot-separated StatsD metrics into labeled Prometheus metrics. | | no
@@ -38,14 +38,21 @@ Name | Type | Description | Default | Required
 `event_queue_size`                                | `int`          | Size of internal queue for processing events. | `10000` | no
 `event_flush_threshold`                           | `int`          | Number of events to hold in queue before flushing. | `1000`| no
 `event_flush_interval`                            | `string`       | Maximum time between event queue flushes. | `200ms`| no
-`parse_dogstatsd_tags`                            | `string`       | Parse DogStatsd style tags. Enabled by default. | `true`| no
-`parse_influxdb_tags`                             | `string`       | Parse InfluxDB style tags. Enabled by default. | `true`| no
-`parse_librato_tags`                              | `string`       | Parse Librato style tags. Enabled by default. | `true`| no
-`parse_signalfx_tags`                             | `string`       | Parse SignalFX style tags. Enabled by default. | `true`| no
+`parse_dogstatsd_tags`                            | `string`       | Parse DogStatsd style tags. | `true`| no
+`parse_influxdb_tags`                             | `string`       | Parse InfluxDB style tags. | `true`| no
+`parse_librato_tags`                              | `string`       | Parse Librato style tags. | `true`| no
+`parse_signalfx_tags`                             | `string`       | Parse SignalFX style tags. | `true`| no
 
-At least one of `listen_udp`, `listen_tcp` or `listen_unixgram` should be enabled.
-For details on how to use the mapping config file, please check the official [statsd_exporter docs](https://github.com/prometheus/statsd_exporter#metric-mapping-and-configuration).
-Please make sure the kernel parameter `net.core.rmem_max` is set to a value greater than the value specified in `read_buffer`.
+At least one of `listen_udp`, `listen_tcp`, or `listen_unixgram` should be enabled.
+For details on how to use the mapping config file, please check the official 
+[statsd_exporter docs](https://github.com/prometheus/statsd_exporter#metric-mapping-and-configuration).
+Please make sure the kernel parameter `net.core.rmem_max` is set to a value greater 
+than the value specified in `read_buffer`.
+
+### Blocks
+
+The `prometheus.exporter.statsd` component does not support any blocks, and is configured 
+fully through arguments.
 
 ## Exported fields
 The following fields are exported and can be referenced by other components.
