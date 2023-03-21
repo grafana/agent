@@ -35,7 +35,7 @@ compiling and testing your changes do:
 ```bash
 # For building:
 go build ./cmd/grafana-agent/
-./agent -config.file=<config-file>
+./grafana-agent -config.file=<config-file>
 
 # For testing:
 make lint test # Make sure all the tests pass before you commit and push :)
@@ -63,7 +63,7 @@ To build Grafana Agent from source code, please install the following tools:
 You can directly use the go tool to download and install the agent binary into your GOPATH:
 
     $ GO111MODULE=on go install github.com/grafana/agent/cmd/grafana-agent
-    $ agent -config.file=your_config.yml
+    $ grafana-agent -config.file=your_config.yml
 
 An example of the above configuration file can be found [here][example-config].
 
@@ -74,7 +74,7 @@ You can also clone the repository yourself and build using `make agent`:
     $ git clone https://github.com/grafana/agent.git
     $ cd agent
     $ make agent
-    $ ./agent -config.file=your_config.yml
+    $ ./build/grafana-agent -config.file=your_config.yml
 
 The Makefile provides several targets:
 
