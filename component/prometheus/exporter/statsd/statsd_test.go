@@ -55,8 +55,8 @@ func TestConvert(t *testing.T) {
 	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
 	require.NoError(t, err)
 
-	configStatsd, err2 := args.Convert()
-	require.NoError(t, err2)
+	configStatsd, err := args.Convert()
+	require.NoError(t, err)
 
 	require.Equal(t, "1010", args.ListenUDP)
 	require.Equal(t, "1011", args.ListenTCP)
