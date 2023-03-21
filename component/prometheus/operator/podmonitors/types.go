@@ -21,9 +21,6 @@ type Arguments struct {
 
 	// LabelSelector allows filtering discovered monitor resources by labels
 	LabelSelector *config.LabelSelector `river:"label_selector,block,optional"`
-
-	// FieldSelector allows filtering discovered monitor resources by fields
-	FieldSelector string `river:"field_selector,attr,optional"`
 }
 
 var DefaultArguments = Arguments{
