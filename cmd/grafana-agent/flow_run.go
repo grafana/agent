@@ -104,10 +104,11 @@ func (fr *flowRun) Run(configFile string) error {
 		return fmt.Errorf("file argument not provided")
 	}
 
-	l, err := logging.New(os.Stderr, logging.DefaultOptions)
+	logSink, err := logging.WriterSink(os.Stderr, logging.DefaultSinkOptions)
 	if err != nil {
 		return fmt.Errorf("building logger: %w", err)
 	}
+	l := logging.New(logSink)
 
 	t, err := tracing.New(tracing.DefaultOptions)
 	if err != nil {
@@ -138,7 +139,7 @@ func (fr *flowRun) Run(configFile string) error {
 	reg.MustRegister(newResourcesCollector(l))
 
 	f := flow.New(flow.Options{
-		Logger:         l,
+		LogSink:        logSink,
 		Tracer:         t,
 		DataPath:       fr.storagePath,
 		Reg:            reg,
@@ -158,6 +159,15 @@ func (fr *flowRun) Run(configFile string) error {
 		}
 
 		return nil
+	}
+
+	// Flow controller
+	{
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			f.Run(ctx)
+		}()
 	}
 
 	// HTTP server
@@ -266,7 +276,7 @@ func (fr *flowRun) Run(configFile string) error {
 	for {
 		select {
 		case <-ctx.Done():
-			return f.Close()
+			return nil
 		case <-reloadSignal:
 			if err := reload(); err != nil {
 				level.Error(l).Log("msg", "failed to reload config", "err", err)

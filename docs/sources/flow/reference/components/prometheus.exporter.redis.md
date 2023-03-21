@@ -17,6 +17,7 @@ The `prometheus.exporter.redis` component embeds
 
 ```river
 prometheus.exporter.redis "LABEL" {
+    redis_addr = "REDIS_ADDRESS"
 }
 ```
 

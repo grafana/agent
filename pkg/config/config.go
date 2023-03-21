@@ -50,15 +50,18 @@ var (
 )
 
 // DefaultConfig holds default settings for all the subsystems.
-var DefaultConfig = Config{
-	// All subsystems with a DefaultConfig should be listed here.
-	Server:                &server.DefaultConfig,
-	ServerFlags:           server.DefaultFlags,
-	Metrics:               metrics.DefaultConfig,
-	Integrations:          DefaultVersionedIntegrations,
-	DisableSupportBundle:  false,
-	EnableConfigEndpoints: false,
-	EnableUsageReport:     true,
+func DefaultConfig() Config {
+	defaultServerCfg := server.DefaultConfig()
+	return Config{
+		// All subsystems with a DefaultConfig should be listed here.
+		Server:                &defaultServerCfg,
+		ServerFlags:           server.DefaultFlags,
+		Metrics:               metrics.DefaultConfig,
+		Integrations:          DefaultVersionedIntegrations,
+		DisableSupportBundle:  false,
+		EnableConfigEndpoints: false,
+		EnableUsageReport:     true,
+	}
 }
 
 // Config contains underlying configurations for the agent
@@ -95,7 +98,7 @@ type Config struct {
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	// Apply defaults to the config from our struct and any defaults inherited
 	// from flags before unmarshaling.
-	*c = DefaultConfig
+	*c = DefaultConfig()
 	util.DefaultConfigFromFlags(c)
 
 	type baseConfig Config
@@ -455,7 +458,7 @@ func applyIntegrationValuesFromFlagset(fs *flag.FlagSet, args []string, path str
 // doesn't require having a literal file on disk.
 func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
 	var (
-		cfg = DefaultConfig
+		cfg = DefaultConfig()
 
 		printVersion          bool
 		file                  string

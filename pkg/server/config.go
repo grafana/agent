@@ -26,7 +26,7 @@ type Config struct {
 
 // UnmarshalYAML unmarshals the server config with defaults applied.
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*c = DefaultConfig
+	*c = DefaultConfig()
 
 	type config Config
 	return unmarshal((*config)(c))
@@ -44,21 +44,6 @@ type GRPCConfig struct {
 
 // Default configuration structs.
 var (
-	DefaultConfig = Config{
-		GRPC:      DefaultGRPCConfig,
-		HTTP:      DefaultHTTPConfig,
-		LogLevel:  DefaultLogLevel,
-		LogFormat: DefaultLogFormat,
-	}
-
-	DefaultHTTPConfig = HTTPConfig{
-		// No non-zero defaults yet
-	}
-
-	DefaultGRPCConfig = GRPCConfig{
-		// No non-zero defaults yet
-	}
-
 	emptyFlagSet    = flag.NewFlagSet("", flag.ExitOnError)
 	DefaultLogLevel = func() LogLevel {
 		var lvl LogLevel
@@ -71,3 +56,20 @@ var (
 		return fmt
 	}()
 )
+
+func DefaultConfig() Config {
+	DefaultHTTPConfig := HTTPConfig{
+		// No non-zero defaults yet
+	}
+
+	DefaultGRPCConfig := GRPCConfig{
+		// No non-zero defaults yet
+	}
+
+	return Config{
+		GRPC:      DefaultGRPCConfig,
+		HTTP:      DefaultHTTPConfig,
+		LogLevel:  DefaultLogLevel,
+		LogFormat: DefaultLogFormat,
+	}
+}

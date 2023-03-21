@@ -6,13 +6,12 @@ package stages
 
 import (
 	"bytes"
-	"io"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -48,7 +47,7 @@ var testOutputLogLineWithMissingKey = `
 `
 
 func TestPipeline_Output(t *testing.T) {
-	logger, _ := logging.New(io.Discard, logging.DefaultOptions)
+	logger := util.TestFlowLogger(t)
 	pl, err := NewPipeline(logger, loadConfig(testOutputRiver), nil, prometheus.DefaultRegisterer)
 	require.NoError(t, err)
 

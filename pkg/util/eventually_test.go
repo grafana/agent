@@ -16,7 +16,7 @@ func TestEventually(t *testing.T) {
 	}
 
 	t.Run("No errors", func(t *testing.T) {
-		Eventually(t, func(t require.TestingT) {
+		EventuallyWithBackoff(t, func(t require.TestingT) {
 			require.True(t, true)
 		}, bcfg)
 	})
@@ -24,7 +24,7 @@ func TestEventually(t *testing.T) {
 	t.Run("Fails once", func(t *testing.T) {
 		var runs int
 
-		Eventually(t, func(t require.TestingT) {
+		EventuallyWithBackoff(t, func(t require.TestingT) {
 			if runs > 0 {
 				return
 			}
@@ -51,7 +51,7 @@ func TestEventually(t *testing.T) {
 			require.Len(t, et.errors, 1)
 		}()
 
-		Eventually(&et, func(t require.TestingT) {
+		EventuallyWithBackoff(&et, func(t require.TestingT) {
 			require.True(t, false)
 		}, bcfg)
 	})

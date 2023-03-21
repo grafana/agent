@@ -44,7 +44,7 @@ func NewRemoteConfig(buf []byte) (*RemoteConfig, error) {
 
 // BuildAgentConfig builds an agent configuration from a base config and a list of snippets
 func (rc *RemoteConfig) BuildAgentConfig() (*Config, error) {
-	c := DefaultConfig
+	c := DefaultConfig()
 	err := yaml.Unmarshal([]byte(rc.BaseConfig), &c)
 	if err != nil {
 		return nil, err

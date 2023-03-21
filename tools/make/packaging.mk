@@ -22,8 +22,6 @@ PACKAGING_VARS = RELEASE_BUILD=1 GO_TAGS="$(GO_TAGS)" GOOS=$(GOOS) GOARCH=$(GOAR
 
 dist-agent-binaries: dist/grafana-agent-linux-amd64       \
                      dist/grafana-agent-linux-arm64       \
-                     dist/grafana-agent-linux-armv6       \
-                     dist/grafana-agent-linux-armv7       \
                      dist/grafana-agent-linux-ppc64le     \
                      dist/grafana-agent-linux-s390x       \
                      dist/grafana-agent-darwin-amd64      \
@@ -41,20 +39,6 @@ dist/grafana-agent-linux-arm64: GO_TAGS += builtinassets promtail_journal_enable
 dist/grafana-agent-linux-arm64: GOOS    := linux
 dist/grafana-agent-linux-arm64: GOARCH  := arm64
 dist/grafana-agent-linux-arm64: generate-ui
-	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
-
-dist/grafana-agent-linux-armv6: GO_TAGS += builtinassets promtail_journal_enabled
-dist/grafana-agent-linux-armv6: GOOS    := linux
-dist/grafana-agent-linux-armv6: GOARCH  := arm
-dist/grafana-agent-linux-armv6: GOARM   := 6
-dist/grafana-agent-linux-armv6: generate-ui
-	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
-
-dist/grafana-agent-linux-armv7: GO_TAGS += builtinassets promtail_journal_enabled
-dist/grafana-agent-linux-armv7: GOOS    := linux
-dist/grafana-agent-linux-armv7: GOARCH  := arm
-dist/grafana-agent-linux-armv7: GOARM   := 7
-dist/grafana-agent-linux-armv7: generate-ui
 	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
 dist/grafana-agent-linux-ppc64le: GO_TAGS += builtinassets promtail_journal_enabled
@@ -99,8 +83,6 @@ dist/grafana-agent-freebsd-amd64: generate-ui
 
 dist-agentctl-binaries: dist/grafana-agentctl-linux-amd64       \
                         dist/grafana-agentctl-linux-arm64       \
-                        dist/grafana-agentctl-linux-armv6       \
-                        dist/grafana-agentctl-linux-armv7       \
                         dist/grafana-agentctl-linux-ppc64le     \
                         dist/grafana-agentctl-linux-s390x       \
                         dist/grafana-agentctl-darwin-amd64      \
@@ -116,18 +98,6 @@ dist/grafana-agentctl-linux-amd64:
 dist/grafana-agentctl-linux-arm64: GOOS   := linux
 dist/grafana-agentctl-linux-arm64: GOARCH := arm64
 dist/grafana-agentctl-linux-arm64:
-	$(PACKAGING_VARS) AGENTCTL_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agentctl
-
-dist/grafana-agentctl-linux-armv6: GOOS   := linux
-dist/grafana-agentctl-linux-armv6: GOARCH := arm
-dist/grafana-agentctl-linux-armv6: GOARM  := 6
-dist/grafana-agentctl-linux-armv6:
-	$(PACKAGING_VARS) AGENTCTL_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agentctl
-
-dist/grafana-agentctl-linux-armv7: GOOS   := linux
-dist/grafana-agentctl-linux-armv7: GOARCH := arm
-dist/grafana-agentctl-linux-armv7: GOARM  := 7
-dist/grafana-agentctl-linux-armv7:
 	$(PACKAGING_VARS) AGENTCTL_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agentctl
 
 dist/grafana-agentctl-linux-ppc64le: GOOS   := linux
@@ -180,6 +150,7 @@ define generate_fpm =
 		--before-remove packaging/$(1)/control/prerm \
 		--config-files /etc/grafana-agent.yaml \
 		--config-files $(ENVIRONMENT_FILE_$(1)) \
+		--rpm-rpmbuild-define "_build_id_links none" \
 		--package $(4) \
 			dist/grafana-agent-linux-$(3)=/usr/bin/grafana-agent \
 			dist/grafana-agentctl-linux-$(3)=/usr/bin/grafana-agentctl \
@@ -195,8 +166,6 @@ PACKAGE_PREFIX  := dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE)
 .PHONY: dist-packages
 dist-packages: dist-packages-amd64   \
                dist-packages-arm64   \
-               dist-packages-armv6   \
-               dist-packages-armv7   \
                dist-packages-arm64   \
                dist-packages-ppc64le \
                dist-packages-s390x
@@ -217,24 +186,6 @@ ifeq ($(USE_CONTAINER),1)
 else
 	$(call generate_fpm,deb,arm64,arm64,$(PACKAGE_PREFIX).arm64.deb)
 	$(call generate_fpm,rpm,aarch64,arm64,$(PACKAGE_PREFIX).arm64.rpm)
-endif
-
-# There's no RPM for armv6 so only debs are produced.
-.PHONY: dist-packages-armv6
-dist-packages-armv6: dist/grafana-agent-linux-armv6 dist/grafana-agentctl-linux-armv6
-ifeq ($(USE_CONTAINER),1)
-	$(RERUN_IN_CONTAINER)
-else
-	$(call generate_fpm,deb,armhf,armv6,$(PACKAGE_PREFIX).armv6.deb)
-endif
-
-.PHONY: dist-packages-armv7
-dist-packages-armv7: dist/grafana-agent-linux-armv7 dist/grafana-agentctl-linux-armv7
-ifeq ($(USE_CONTAINER),1)
-	$(RERUN_IN_CONTAINER)
-else
-	$(call generate_fpm,deb,armhf,armv7,$(PACKAGE_PREFIX).armv7.deb)
-	$(call generate_fpm,rpm,armhfp,armv7,$(PACKAGE_PREFIX).armv7.rpm)
 endif
 
 .PHONY: dist-packages-ppc64le

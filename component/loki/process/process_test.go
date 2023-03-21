@@ -2,15 +2,14 @@ package process
 
 import (
 	"context"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/loki/process/internal/stages"
-	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
@@ -67,9 +66,11 @@ func TestJSONLabelsStage(t *testing.T) {
 	ch1, ch2 := make(loki.LogsReceiver), make(loki.LogsReceiver)
 
 	// Create and run the component, so that it can process and forwards logs.
-	l, err := logging.New(os.Stderr, logging.DefaultOptions)
-	require.NoError(t, err)
-	opts := component.Options{Logger: l, Registerer: prometheus.NewRegistry(), OnStateChange: func(e component.Exports) {}}
+	opts := component.Options{
+		Logger:        util.TestFlowLogger(t),
+		Registerer:    prometheus.NewRegistry(),
+		OnStateChange: func(e component.Exports) {},
+	}
 	args := Arguments{
 		ForwardTo: []loki.LogsReceiver{ch1, ch2},
 		Stages:    stagesCfg.Stages,
@@ -152,9 +153,11 @@ stage.label_keep {
 	ch1, ch2 := make(loki.LogsReceiver), make(loki.LogsReceiver)
 
 	// Create and run the component, so that it can process and forwards logs.
-	l, err := logging.New(os.Stderr, logging.DefaultOptions)
-	require.NoError(t, err)
-	opts := component.Options{Logger: l, Registerer: prometheus.NewRegistry(), OnStateChange: func(e component.Exports) {}}
+	opts := component.Options{
+		Logger:        util.TestFlowLogger(t),
+		Registerer:    prometheus.NewRegistry(),
+		OnStateChange: func(e component.Exports) {},
+	}
 	args := Arguments{
 		ForwardTo: []loki.LogsReceiver{ch1, ch2},
 		Stages:    stagesCfg.Stages,
@@ -245,9 +248,11 @@ stage.labels {
 	ch1, ch2 := make(loki.LogsReceiver), make(loki.LogsReceiver)
 
 	// Create and run the component, so that it can process and forwards logs.
-	l, err := logging.New(os.Stderr, logging.DefaultOptions)
-	require.NoError(t, err)
-	opts := component.Options{Logger: l, Registerer: prometheus.NewRegistry(), OnStateChange: func(e component.Exports) {}}
+	opts := component.Options{
+		Logger:        util.TestFlowLogger(t),
+		Registerer:    prometheus.NewRegistry(),
+		OnStateChange: func(e component.Exports) {},
+	}
 	args := Arguments{
 		ForwardTo: []loki.LogsReceiver{ch1, ch2},
 		Stages:    stagesCfg.Stages,

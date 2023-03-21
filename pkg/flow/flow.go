@@ -49,13 +49,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"sync"
 	"time"
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
+	"github.com/grafana/agent/pkg/flow/internal/stdlib"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/pkg/river/vm"
@@ -74,9 +74,9 @@ type Options struct {
 	// components in telemetry data.
 	ControllerID string
 
-	// Logger for components to use. A no-op logger will be created if this is
-	// nil.
-	Logger *logging.Logger
+	// LogSink to use for controller logs and components. A no-op logger will be
+	// created if this is nil.
+	LogSink *logging.Sink
 
 	// Tracer for components to use. A no-op tracer will be created if this is
 	// nil.
@@ -124,8 +124,6 @@ type Flow struct {
 	sched       *controller.Scheduler
 	loader      *controller.Loader
 
-	cancel       context.CancelFunc
-	exited       chan struct{}
 	loadFinished chan struct{}
 
 	loadMut    sync.RWMutex
@@ -135,27 +133,11 @@ type Flow struct {
 // New creates and starts a new Flow controller. Call Close to stop
 // the controller.
 func New(o Options) *Flow {
-	c, ctx := newFlow(o)
-	go c.run(ctx)
-	return c
-}
-
-func newFlow(o Options) (*Flow, context.Context) {
-	ctx, cancel := context.WithCancel(context.Background())
-
 	var (
-		log    = o.Logger
+		log    = logging.New(o.LogSink)
 		tracer = o.Tracer
 	)
 
-	if log == nil {
-		var err error
-		log, err = logging.New(io.Discard, logging.DefaultOptions)
-		if err != nil {
-			// This shouldn't happen unless there's a bug
-			panic(err)
-		}
-	}
 	if tracer == nil {
 		var err error
 		tracer, err = tracing.New(tracing.DefaultOptions)
@@ -169,17 +151,19 @@ func newFlow(o Options) (*Flow, context.Context) {
 		queue  = controller.NewQueue()
 		sched  = controller.NewScheduler()
 		loader = controller.NewLoader(controller.ComponentGlobals{
+			LogSink:       o.LogSink,
 			Logger:        log,
 			TraceProvider: tracer,
 			DataPath:      o.DataPath,
-			OnExportsChange: func(cn *controller.ComponentNode) {
+			OnComponentUpdate: func(cn *controller.ComponentNode) {
 				// Changed components should be queued for reevaluation.
 				queue.Enqueue(cn)
 			},
-			Registerer:     o.Reg,
-			HTTPPathPrefix: o.HTTPPathPrefix,
-			HTTPListenAddr: o.HTTPListenAddr,
-			ControllerID:   o.ControllerID,
+			OnExportsChange: o.OnExportsChange,
+			Registerer:      o.Reg,
+			HTTPPathPrefix:  o.HTTPPathPrefix,
+			HTTPListenAddr:  o.HTTPListenAddr,
+			ControllerID:    o.ControllerID,
 		})
 	)
 
@@ -192,18 +176,15 @@ func newFlow(o Options) (*Flow, context.Context) {
 		sched:       sched,
 		loader:      loader,
 
-		cancel:       cancel,
-		exited:       make(chan struct{}, 1),
 		loadFinished: make(chan struct{}, 1),
-	}, ctx
+	}
 }
 
-func (c *Flow) run(ctx context.Context) {
-	defer close(c.exited)
+// Run starts the Flow controller, blocking until the provided context is
+// canceled. Run must only be called once.
+func (c *Flow) Run(ctx context.Context) {
+	defer c.sched.Close()
 	defer level.Debug(c.log).Log("msg", "flow controller exiting")
-
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
 
 	for {
 		select {
@@ -268,13 +249,16 @@ func (c *Flow) LoadFile(file *File, args map[string]any) error {
 	}
 
 	argumentScope := &vm.Scope{
-		Parent: nil,
+		// The top scope is the Flow-specific stdlib.
+		Parent: &vm.Scope{
+			Variables: stdlib.Identifiers,
+		},
 		Variables: map[string]interface{}{
 			"argument": evaluatedArgs,
 		},
 	}
 
-	diags := c.loader.Apply(argumentScope, file.Components, file.ConfigBlocks, c.opts.OnExportsChange)
+	diags := c.loader.Apply(argumentScope, file.Components, file.ConfigBlocks)
 	if !c.loadedOnce.Load() && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.
@@ -308,13 +292,6 @@ func (c *Flow) ComponentInfos() []*ComponentInfo {
 		infos[i] = nn
 	}
 	return infos
-}
-
-// Close closes the controller and all running components.
-func (c *Flow) Close() error {
-	c.cancel()
-	<-c.exited
-	return c.sched.Close()
 }
 
 func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *ComponentInfo {
