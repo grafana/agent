@@ -45,7 +45,7 @@ type Config struct {
 	//
 	// The exporter binary config differs to this, but these
 	// are the only fields that are relevant to the exporter struct.
-	RedisAddr               string            `river:"redis_addr,attr,optional"`
+	RedisAddr               string            `river:"redis_addr,attr"`
 	RedisUser               string            `river:"redis_user,attr,optional"`
 	RedisPassword           rivertypes.Secret `river:"redis_password,attr,optional"`
 	RedisPasswordFile       string            `river:"redis_password_file,attr,optional"`

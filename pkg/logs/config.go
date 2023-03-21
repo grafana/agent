@@ -89,8 +89,7 @@ type InstanceConfig struct {
 	TargetConfig    file.Config           `yaml:"target_config,omitempty"`
 }
 
-// UnmarshalYAML implements yaml.Unmarshaler.
-func (c *InstanceConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (c *InstanceConfig) Initialize() {
 	// Defaults for Promtail are hidden behind flags. Register flags to a fake flagset
 	// just to set the defaults in the configs.
 	fs := flag.NewFlagSet("temp", flag.PanicOnError)
@@ -99,7 +98,11 @@ func (c *InstanceConfig) UnmarshalYAML(unmarshal func(interface{}) error) error 
 
 	// Blank out the positions file since we set our own default for that.
 	c.PositionsConfig.PositionsFile = ""
+}
 
+// UnmarshalYAML implements yaml.Unmarshaler.
+func (c *InstanceConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	c.Initialize()
 	type instanceConfig InstanceConfig
 	return unmarshal((*instanceConfig)(c))
 }

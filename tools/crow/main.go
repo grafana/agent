@@ -28,7 +28,7 @@ func main() {
 	var (
 		fs = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 
-		serverCfg   = server.DefaultConfig
+		serverCfg   = server.DefaultConfig()
 		serverFlags = server.DefaultFlags
 
 		crowCfg     = crow.DefaultConfig
