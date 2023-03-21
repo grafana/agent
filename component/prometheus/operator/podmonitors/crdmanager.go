@@ -2,6 +2,7 @@ package podmonitors
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"sync"
@@ -11,7 +12,6 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus"
-	"github.com/pkg/errors"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
@@ -53,7 +53,6 @@ func newManager(opts component.Options, logger log.Logger, cfg *Arguments) *crdM
 }
 
 func (c *crdManager) run(ctx context.Context) error {
-
 	c.cg = configGenerator{
 		config: c.config,
 	}
@@ -97,7 +96,7 @@ func (c *crdManager) run(ctx context.Context) error {
 func (c *crdManager) runInformers(ctx context.Context) error {
 	config, err := c.config.Client.BuildRESTConfig(c.logger)
 	if err != nil {
-		return errors.Wrap(err, "creating rest config")
+		return fmt.Errorf("creating rest config: %w", err)
 	}
 
 	scheme := runtime.NewScheme()
@@ -111,7 +110,7 @@ func (c *crdManager) runInformers(ctx context.Context) error {
 
 	ls, err := c.config.LabelSelector.BuildSelector()
 	if err != nil {
-		return errors.Wrap(err, "building label selector")
+		return fmt.Errorf("building label selector: %w", err)
 	}
 	for _, ns := range c.config.Namespaces {
 		opts := cache.Options{
@@ -168,11 +167,14 @@ func (c *crdManager) configureInformers(ctx context.Context, informers cache.Inf
 
 			return err
 		}
-		informer.AddEventHandler((toolscache.ResourceEventHandlerFuncs{
+		_, err = informer.AddEventHandler((toolscache.ResourceEventHandlerFuncs{
 			AddFunc:    c.onAddPodMonitor,
 			UpdateFunc: c.onUpdatePodMonitor,
 			DeleteFunc: c.onDeletePodMonitor,
 		}))
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -183,6 +185,7 @@ func (c *crdManager) apply() error {
 	err := c.discovery.ApplyConfig(c.discoveryConfigs)
 	if err != nil {
 		level.Error(c.logger).Log("msg", "error applying discovery configs", "err", err)
+		return err
 	}
 	scs := []*config.ScrapeConfig{}
 	for _, sc := range c.scrapeConfigs {
@@ -193,6 +196,7 @@ func (c *crdManager) apply() error {
 	})
 	if err != nil {
 		level.Error(c.logger).Log("msg", "error applying scrape configs", "err", err)
+		return err
 	}
 	level.Debug(c.logger).Log("msg", "scrape config was updated")
 	return nil
@@ -246,7 +250,7 @@ func (c *crdManager) addPodMonitor(pm *v1.PodMonitor) {
 		return
 	}
 	if err = c.apply(); err != nil {
-		level.Error(c.logger).Log("name", pm.Name, "err", err, "msg", "error applying scrapeconfig from podmonitor")
+		level.Error(c.logger).Log("name", pm.Name, "err", err, "msg", "error applying scrape configs from podmonitor")
 	}
 	c.addDebugInfo(pm.Namespace, pm.Name, err)
 }
@@ -264,5 +268,7 @@ func (c *crdManager) onUpdatePodMonitor(oldObj, newObj interface{}) {
 func (c *crdManager) onDeletePodMonitor(obj interface{}) {
 	pm := obj.(*v1.PodMonitor)
 	c.clearConfigs(pm.Namespace, pm.Name)
-	c.apply()
+	if err := c.apply(); err != nil {
+		level.Error(c.logger).Log("name", pm.Name, "err", err, "msg", "error applying scrape configs after podmonitor deletion")
+	}
 }

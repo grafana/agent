@@ -199,10 +199,13 @@ func (c *Component) startup(ctx context.Context) error {
 	c.queue = workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "mimir.rules.kubernetes")
 	c.informerStopChan = make(chan struct{})
 
-	c.startNamespaceInformer()
-	c.startRuleInformer()
-	err := c.syncMimir(ctx)
-	if err != nil {
+	if err := c.startNamespaceInformer(); err != nil {
+		return err
+	}
+	if err := c.startRuleInformer(); err != nil {
+		return err
+	}
+	if err := c.syncMimir(ctx); err != nil {
 		return err
 	}
 	go c.eventLoop(ctx)
@@ -286,7 +289,7 @@ func convertSelectorToListOptions(selector LabelSelector) (labels.Selector, erro
 	})
 }
 
-func (c *Component) startNamespaceInformer() {
+func (c *Component) startNamespaceInformer() error {
 	factory := informers.NewSharedInformerFactoryWithOptions(
 		c.k8sClient,
 		24*time.Hour,
@@ -298,13 +301,16 @@ func (c *Component) startNamespaceInformer() {
 	namespaces := factory.Core().V1().Namespaces()
 	c.namespaceLister = namespaces.Lister()
 	c.namespaceInformer = namespaces.Informer()
-	c.namespaceInformer.AddEventHandler(newQueuedEventHandler(c.log, c.queue))
+	if _, err := c.namespaceInformer.AddEventHandler(newQueuedEventHandler(c.log, c.queue)); err != nil {
+		return err
+	}
 
 	factory.Start(c.informerStopChan)
 	factory.WaitForCacheSync(c.informerStopChan)
+	return nil
 }
 
-func (c *Component) startRuleInformer() {
+func (c *Component) startRuleInformer() error {
 	factory := promExternalVersions.NewSharedInformerFactoryWithOptions(
 		c.promClient,
 		24*time.Hour,
@@ -316,8 +322,11 @@ func (c *Component) startRuleInformer() {
 	promRules := factory.Monitoring().V1().PrometheusRules()
 	c.ruleLister = promRules.Lister()
 	c.ruleInformer = promRules.Informer()
-	c.ruleInformer.AddEventHandler(newQueuedEventHandler(c.log, c.queue))
+	if _, err := c.ruleInformer.AddEventHandler(newQueuedEventHandler(c.log, c.queue)); err != nil {
+		return err
+	}
 
 	factory.Start(c.informerStopChan)
 	factory.WaitForCacheSync(c.informerStopChan)
+	return nil
 }

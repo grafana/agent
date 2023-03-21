@@ -114,18 +114,22 @@ func newEventHandler(l log.Logger, globals integrations.Globals, c *Config) (int
 		extraLabels:   c.ExtraLabels,
 	}
 	// set the resource handler fns
-	eh.initInformer(eventInformer)
+	err = eh.initInformer(eventInformer)
+	if err != nil {
+		return nil, err
+	}
 	eh.ticker = time.NewTicker(time.Duration(c.FlushInterval) * time.Second)
 	return eh, nil
 }
 
 // Initialize informer by setting event handler fns
-func (eh *EventHandler) initInformer(eventsInformer cache.SharedIndexInformer) {
-	eventsInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+func (eh *EventHandler) initInformer(eventsInformer cache.SharedIndexInformer) error {
+	_, err := eventsInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    eh.addEvent,
 		UpdateFunc: eh.updateEvent,
 		DeleteFunc: eh.deleteEvent,
 	})
+	return err
 }
 
 // Handles new event objects

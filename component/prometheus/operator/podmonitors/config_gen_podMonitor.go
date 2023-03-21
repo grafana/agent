@@ -8,8 +8,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/pkg/errors"
-
 	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	namespacelabeler "github.com/prometheus-operator/prometheus-operator/pkg/namespace-labeler"
 	commonConfig "github.com/prometheus/common/config"
@@ -41,12 +39,12 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 
 	if ep.Interval != "" {
 		if cfg.ScrapeInterval, err = model.ParseDuration(string(ep.Interval)); err != nil {
-			return nil, errors.Wrap(err, "parsing interval from podMonitor")
+			return nil, fmt.Errorf("parsing interval from podMonitor: %w", err)
 		}
 	}
 	if ep.ScrapeTimeout != "" {
 		if cfg.ScrapeTimeout, err = model.ParseDuration(string(ep.ScrapeTimeout)); err != nil {
-			return nil, errors.Wrap(err, "parsing timeout from podMonitor")
+			return nil, fmt.Errorf("parsing timeout from podMonitor: %w", err)
 		}
 	}
 	if ep.Path != "" {
@@ -54,7 +52,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 	}
 	if ep.ProxyURL != nil {
 		if u, err := url.Parse(*ep.ProxyURL); err != nil {
-			return nil, errors.Wrap(err, "parsing ProxyURL from podMonitor")
+			return nil, fmt.Errorf("parsing ProxyURL from podMonitor: %w", err)
 		} else {
 			cfg.HTTPClientConfig.ProxyURL = commonConfig.URL{URL: u}
 		}
@@ -77,10 +75,10 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 		}
 	}
 	if ep.BearerTokenSecret.Name != "" {
-		return nil, fmt.Errorf("bearer tokens in podmonitors not supported yet")
+		return nil, fmt.Errorf("bearer tokens in podmonitors not supported yet: %w", err)
 	}
 	if ep.BasicAuth != nil {
-		return nil, fmt.Errorf("basic auth in podmonitors not supported yet")
+		return nil, fmt.Errorf("basic auth in podmonitors not supported yet: %w", err)
 	}
 	if cfg.HTTPClientConfig.OAuth2, err = cg.GenerateOAuth2(ep.OAuth2, m.Namespace); err != nil {
 		return nil, err
@@ -109,7 +107,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 	for _, k := range labelKeys {
 		regex, err := relabel.NewRegexp(fmt.Sprintf("(%s);true", m.Spec.Selector.MatchLabels[k]))
 		if err != nil {
-			return nil, errors.Wrap(err, "parsing MatchLabels regex")
+			return nil, fmt.Errorf("parsing MatchLabels regex: %w", err)
 		}
 		relabels.Add(&relabel.Config{
 			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_label_" + sanitizeLabelName(k), "__meta_kubernetes_pod_labelpresent_" + sanitizeLabelName(k)},
@@ -125,7 +123,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 		case metav1.LabelSelectorOpIn:
 			regex, err := relabel.NewRegexp(fmt.Sprintf("(%s);true", strings.Join(exp.Values, "|")))
 			if err != nil {
-				return nil, errors.Wrap(err, "parsing MatchExpressions regex")
+				return nil, fmt.Errorf("parsing MatchExpressions regex: %w", err)
 			}
 			relabels.Add(&relabel.Config{
 				SourceLabels: model.LabelNames{"__meta_kubernetes_pod_label_" + sanitizeLabelName(exp.Key), "__meta_kubernetes_pod_labelpresent_" + sanitizeLabelName(exp.Key)},
@@ -135,7 +133,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 		case metav1.LabelSelectorOpNotIn:
 			regex, err := relabel.NewRegexp(fmt.Sprintf("(%s);true", strings.Join(exp.Values, "|")))
 			if err != nil {
-				return nil, errors.Wrap(err, "parsing MatchExpressions regex")
+				return nil, fmt.Errorf("parsing MatchExpressions regex: %w", err)
 			}
 			relabels.Add(&relabel.Config{
 				SourceLabels: model.LabelNames{"__meta_kubernetes_pod_label_" + sanitizeLabelName(exp.Key), "__meta_kubernetes_pod_labelpresent_" + sanitizeLabelName(exp.Key)},
@@ -161,7 +159,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 	if ep.Port != "" {
 		regex, err := relabel.NewRegexp(ep.Port)
 		if err != nil {
-			return nil, errors.Wrap(err, "parsing Port as regex")
+			return nil, fmt.Errorf("parsing Port as regex: %w", err)
 		}
 		relabels.Add(&relabel.Config{
 			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_container_port_name"},
@@ -172,9 +170,9 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 		//nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
 		regex, err := relabel.NewRegexp(ep.TargetPort.String())
 		if err != nil {
-			return nil, errors.Wrap(err, "parsing TargetPort as regex")
+			return nil, fmt.Errorf("parsing TargetPort as regex: %w", err)
 		}
-		if ep.TargetPort.StrVal != "" {
+		if ep.TargetPort.StrVal != "" { //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
 			relabels.Add(&relabel.Config{
 				SourceLabels: model.LabelNames{"__meta_kubernetes_pod_container_port_name"},
 				Action:       "keep",
@@ -182,9 +180,9 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 			})
 		}
 	} else if ep.TargetPort.IntVal != 0 { //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
-		regex, err := relabel.NewRegexp(ep.TargetPort.String())
+		regex, err := relabel.NewRegexp(ep.TargetPort.String()) //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
 		if err != nil {
-			return nil, errors.Wrap(err, "parsing TargetPort as regex")
+			return nil, fmt.Errorf("parsing TargetPort as regex: %w", err)
 		}
 		relabels.Add(&relabel.Config{
 			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_container_port_number"},
@@ -248,14 +246,14 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 
 	labeler := namespacelabeler.New("", nil, false)
 	if err = relabels.addFromV1(labeler.GetRelabelingConfigs(m.TypeMeta, m.ObjectMeta, ep.RelabelConfigs)...); err != nil {
-		return nil, errors.Wrap(err, "Parsing relabel configs")
+		return nil, fmt.Errorf("parsing relabel configs: %w", err)
 	}
 
 	cfg.RelabelConfigs = relabels.configs
 
 	metricRelabels := relabeler{}
 	if err = metricRelabels.addFromV1(labeler.GetRelabelingConfigs(m.TypeMeta, m.ObjectMeta, ep.MetricRelabelConfigs)...); err != nil {
-		return nil, errors.Wrap(err, "Parsing metric relabel configs")
+		return nil, fmt.Errorf("parsing metric relabel configs: %w", err)
 	}
 	cfg.MetricRelabelConfigs = metricRelabels.configs
 
