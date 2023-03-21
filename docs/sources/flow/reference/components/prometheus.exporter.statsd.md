@@ -27,7 +27,7 @@ All arguments are optional. Omitted fields take their default values.
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`listen_udp`                                      | `string`       | The UDP address on which to receive statsd metric lines. Use "" to disable it. | `9125` | mo
+`listen_udp`                                      | `string`       | The UDP address on which to receive statsd metric lines. Use "" to disable it. | `9125` | no
 `listen_tcp`                                      | `string`       | The UDP address on which to receive statsd metric lines. Use "" to disable it. | `9125` | no
 `listen_unixgram`                                 | `string`       | The Unixgram socket path to receive statsd metric lines in datagram. Use "" to disable it. | | no
 `unix_socket_mode`                                | `string`       | The permission mode of the unix socket. | `755` | no
@@ -100,7 +100,7 @@ prometheus.exporter.statsd "example" {
 
 // Configure a prometheus.scrape component to collect statsd metrics.
 prometheus.scrape "demo" {
-  targets    = prometheus.exporter.statsd.statsd.targets
+  targets    = prometheus.exporter.statsd.example.targets
   forward_to = [ /* ... */ ]
 }
 ```

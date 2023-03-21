@@ -95,15 +95,15 @@ func readMappingFromYAML(path string) (*mapper.MetricMapper, error) {
 	}
 
 	yBytes := make([]byte, 0)
-	count, err2 := yfile.Read(yBytes)
-	if err2 != nil {
+	count, err := yfile.Read(yBytes)
+	if err != nil {
 		return nil, fmt.Errorf("failed to read mapping config file: %w", err)
 	}
 
 	statsdMapper := mapper.MetricMapper{}
 
-	err3 := statsdMapper.InitFromYAMLString(string(yBytes[:count]))
-	if err3 != nil {
+	err = statsdMapper.InitFromYAMLString(string(yBytes[:count]))
+	if err != nil {
 		return nil, fmt.Errorf("failed to load mapping config: %w", err)
 	}
 
