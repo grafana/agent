@@ -261,3 +261,7 @@ prometheus.remote_write "default" {
   }
 }
 ```
+
+For more information on configuring Kubernetes service delivery and collecting
+metrics, refer to [discovery.kubernetes][] and [prometheus.scrape][].
+
