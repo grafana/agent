@@ -51,6 +51,8 @@ Main (unreleased)
 - Operator: Allow setting runtimeClassName on operator-created pods. (@captncraig)
 - Operator: Transparently compress agent configs to stay under size limitations. (@captncraig)
 
+- Update Redis Exporter Dependency to v1.48.0. (@spartan0x117)
+
 ### Bugfixes
 
 - Flow: fix issue where Flow would return an error when trying to access a key
