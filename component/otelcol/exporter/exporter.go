@@ -30,7 +30,7 @@ type Arguments interface {
 
 	// Convert converts the Arguments into an OpenTelemetry Collector exporter
 	// configuration.
-	Convert() otelconfig.Exporter
+	Convert() (otelconfig.Exporter, error)
 
 	// Extensions returns the set of extensions that the configured component is
 	// allowed to use.
@@ -141,7 +141,10 @@ func (e *Exporter) Update(args component.Arguments) error {
 		},
 	}
 
-	exporterConfig := eargs.Convert()
+	exporterConfig, err := eargs.Convert()
+	if err != nil {
+		return err
+	}
 
 	// Create instances of the exporter from our factory for each of our
 	// supported telemetry signals.

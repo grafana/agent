@@ -58,7 +58,7 @@ func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 }
 
 // Convert implements exporter.Arguments.
-func (args Arguments) Convert() otelconfig.Exporter {
+func (args Arguments) Convert() (otelconfig.Exporter, error) {
 	return &otlpexporter.Config{
 		ExporterSettings: otelconfig.NewExporterSettings(otelconfig.NewComponentID("otlp")),
 		TimeoutSettings: otelpexporterhelper.TimeoutSettings{
@@ -67,7 +67,7 @@ func (args Arguments) Convert() otelconfig.Exporter {
 		QueueSettings:      *args.Queue.Convert(),
 		RetrySettings:      *args.Retry.Convert(),
 		GRPCClientSettings: *(*otelcol.GRPCClientArguments)(&args.Client).Convert(),
-	}
+	}, nil
 }
 
 // Extensions implements exporter.Arguments.

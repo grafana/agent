@@ -96,7 +96,7 @@ func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 }
 
 // Convert implements processor.Arguments.
-func (args Arguments) Convert() otelconfig.Processor {
+func (args Arguments) Convert() (otelconfig.Processor, error) {
 	return &memorylimiterprocessor.Config{
 		ProcessorSettings: otelconfig.NewProcessorSettings(otelconfig.NewComponentID("memory_limiter")),
 
@@ -105,7 +105,7 @@ func (args Arguments) Convert() otelconfig.Processor {
 		MemorySpikeLimitMiB:   uint32(args.MemorySpikeLimit / units.Mebibyte),
 		MemoryLimitPercentage: args.MemoryLimitPercentage,
 		MemorySpikePercentage: args.MemorySpikePercentage,
-	}
+	}, nil
 }
 
 // Extensions implements processor.Arguments.
