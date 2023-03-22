@@ -24,12 +24,13 @@ This topic describes how to:
 
 ## Before you begin
 
-* Ensure that you basic familiarity with instrumenting applications with
+* Ensure that you have basic familiarity with instrumenting applications with
   Prometheus.
 * Have a set of Prometheus exports or applications exposing Prometheus metrics
   that you want to collect metrics from.
-* Identify where you will write collected metrics, such as Prometheus, Grafana
-  Mimir, Grafana Cloud, or Grafana Enterprise Metrics.
+* Identify where you will write collected metrics. Metrics may be written to
+  Prometheus or Prometheus-compatible endpoints such as Grafana Mimir, Grafana
+  Cloud, or Grafana Enterprise Metrics.
 * Be familiar with the concept of [Components][] in Grafana Agent Flow.
 
 [Components]: {{< relref "../concepts/components.md" >}}
