@@ -36,6 +36,9 @@ This topic describes how to:
 
 ## Configure metrics delivery
 
+Before components can collect Prometheus metrics, you must have a component
+responsible for writing those metrics somewhere.
+
 The [prometheus.remote_write][] component is responsible for delivering
 Prometheus metrics to one or Prometheus-compatible endpoints. Once a
 `prometheus.remote_write` component is defined, other Grafana Agent Flow
