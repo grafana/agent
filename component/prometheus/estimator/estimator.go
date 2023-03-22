@@ -112,10 +112,8 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 func (c *Component) Run(ctx context.Context) error {
 	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		}
+		<-ctx.Done()
+		return nil
 	}
 }
 
