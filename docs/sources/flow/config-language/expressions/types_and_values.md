@@ -123,7 +123,7 @@ a string:
 > An _object_ is a value assigned to an [Attribute][Attributes], where
 > commas **must** be provided between key-value pairs on separate lines.
 >
-> A [Block][Blocks] is a structural element composed of multiple attributes,
+> A [Block][Blocks] is a named structural element composed of multiple attributes,
 > where commas **must not** be provided between attributes.
 
 [Attributes]: {{< relref "../syntax.md#Attributes" >}}
