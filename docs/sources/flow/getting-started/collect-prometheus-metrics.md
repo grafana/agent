@@ -76,7 +76,7 @@ complete the following steps:
     2. Replace `USERNAME` with the basic authentication username to use.
 
     3. Replace `PASSWORD_FILE` with a path to a file containing the basic
-       authentication password.
+       authentication password or API key.
 
 5. If you have more than one endpoint to write metrics to, repeat the
    `endpoint` block for additional endpoints.
