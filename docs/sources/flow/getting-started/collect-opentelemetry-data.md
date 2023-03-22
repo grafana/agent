@@ -237,7 +237,7 @@ otelcol.exporter.otlp "default" {
 For more information on configuring OpenTelemetry data batching, refer to
 [otelcol.processor.batch][].
 
-## Receive OpenTelemetry data over OTLP
+## Configure an OpenTelemetry receiver
 
 Grafana Agent Flow can be configured to receive OpenTelemetry metrics, logs,
 and traces. An OpenTelemetry _receiver_ component is responsible for receiving
@@ -268,9 +268,6 @@ data, complete the following steps:
 
    ```river
    otelcol.receiver.otlp "LABEL" {
-     grpc {}
-     http {}
-
      output {
        metrics = [COMPONENT_INPUT_LIST]
        logs    = [COMPONENT_INPUT_LIST]
@@ -290,9 +287,11 @@ data, complete the following steps:
        to an existing exporter component, use
        `otelcol.exporter.otlp.EXPORTER_LABEL.input`.
 
-    3. To disable receiving OTLP data over gRPC, remove the `grpc` block.
+    3. To enable receiving OTLP data over gRPC on port `4317`, add `grpc {}` to
+       your `otelcol.receiver.otlp` component.
 
-    4. To disable receiving OTLP data over HTTP, remove the `http` block.
+    4. To enable receiving OTLP data over HTTP on port `4318`, add `http {}` to
+       your `otelcol.receiver.otlp` component.
 
     5. To disable one of the telemetry types, set the relevant type in the
        `output` block to the empty list, such as `metrics = []`.
