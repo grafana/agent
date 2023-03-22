@@ -35,10 +35,10 @@ This topic describes how to:
 
 [Components]: {{< relref "../concepts/components.md" >}}
 
-## Configure an OpenTelemtry exporter
+## Configure an OpenTelemetry exporter
 
 Before components can receive OpenTelemetry data, you must have a component
-responsible for exporting the OpenTelemtry data somewhere. An OpenTelemetry
+responsible for exporting the OpenTelemetry data somewhere. An OpenTelemetry
 _exporter component_ is responsible for writing (that is, exporting)
 OpenTelemetry data to an external system.
 
@@ -71,7 +71,7 @@ data, complete the following steps:
    components in the same configuration file.
 
 3. Replace `HOST` with the hostname or IP address of the server to send
-   OpenTelemtry data to.
+   OpenTelemetry data to.
 
 4. Replace `PORT` with the port of the server to send OpenTelemetry data to.
 
