@@ -41,12 +41,17 @@ Main (unreleased)
   - `prometheus.exporter.mysql` collects metrics from a MySQL database.
     (@spartan0x117)
   - `prometheus.exporter.postgres` collects metrics from a PostgreSQL database. (@spartan0x117)
+  - `otelcol.auth.sigv4` performs AWS Signature Version 4 (SigV4) authentication 
+    for making requests to AWS services via `otelcol` components that support
+    authentication extensions. (@ptodev)
 
 ### Enhancements
 
 - Flow: Add retries with backoff logic to Phlare write component. (@cyriltovena)
 - Operator: Allow setting runtimeClassName on operator-created pods. (@captncraig)
 - Operator: Transparently compress agent configs to stay under size limitations. (@captncraig)
+
+- Update Redis Exporter Dependency to v1.48.0. (@spartan0x117)
 
 ### Bugfixes
 
