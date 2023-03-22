@@ -58,31 +58,30 @@ complete the following steps:
    }
    ```
 
-2. Replace `LABEL` with a label to use for the component, such as `default`.
-   The label chosen must be unique across all `prometheus.remote_write`
-   components in the same configuration file.
+    1. Replace `LABEL` with a label to use for the component, such as `default`.
+       The label chosen must be unique across all `prometheus.remote_write`
+       components in the same configuration file.
 
-3. Replace `PROMETHEUS_URL` with the full URL of the Prometheus-compatible
-   endpoint where metrics will be sent, such as
-   `https://prometheus-us-central1.grafana.net/api/prom/push`.
+    2. Replace `PROMETHEUS_URL` with the full URL of the Prometheus-compatible
+       endpoint where metrics will be sent, such as
+       `https://prometheus-us-central1.grafana.net/api/prom/push`.
 
-4. If your endpoint requires basic authentication, complete the following:
+2. If your endpoint requires basic authentication, paste the following inside
+   of the `endpoint` block:
 
-    1. Paste the following inside of the `endpoint` block:
+   ```river
+   basic_auth {
+     username = "USERNAME"
+     password = "PASSWORD"
+   }
+   ```
 
-       ```river
-       basic_auth {
-         username = "USERNAME"
-         password = "PASSWORD"
-       }
-       ```
+    1. Replace `USERNAME` with the basic authentication username to use.
 
-    2. Replace `USERNAME` with the basic authentication username to use.
-
-    3. Replace `PASSWORD` with the basic authentication password or API key to
+    2. Replace `PASSWORD` with the basic authentication password or API key to
        use.
 
-5. If you have more than one endpoint to write metrics to, repeat the
+3. If you have more than one endpoint to write metrics to, repeat the
    `endpoint` block for additional endpoints.
 
 The following example demonstrates configuring `prometheus.remote_write` with
