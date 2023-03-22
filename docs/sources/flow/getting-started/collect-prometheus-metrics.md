@@ -71,15 +71,15 @@ complete the following steps:
 
        ```river
        basic_auth {
-         username      = "USERNAME"
-         password_file = "PASSWORD_FILE"
+         username = "USERNAME"
+         password = "PASSWORD"
        }
        ```
 
     2. Replace `USERNAME` with the basic authentication username to use.
 
-    3. Replace `PASSWORD_FILE` with a path to a file containing the basic
-       authentication password or API key.
+    3. Replace `PASSWORD` with the basic authentication password or API key to
+       use.
 
 5. If you have more than one endpoint to write metrics to, repeat the
    `endpoint` block for additional endpoints.
@@ -97,16 +97,18 @@ prometheus.remote_write "default" {
   endpoint {
     url = "https://prometheus-us-central1.grafana.net/api/prom/push"
 
+    // Get basic authentication based on environment variables.
     basic_auth {
-      username      = env("REMOTE_WRITE_USERNAME")
-      password_file = "/etc/secrets/api-key"
+      username = env("REMOTE_WRITE_USERNAME")
+      password = env("REMOTE_WRITE_PASSWORD")
     }
   }
 }
 
 prometheus.scrape "example" {
+  // Collect metrics from Grafana Agent's default listen address.
   targets = [{
-    __address__ = "my-application:80",
+    __address__ = "127.0.0.1:12345",
   }]
 
   forward_to = [prometheus.remote_write.default.receiver]
