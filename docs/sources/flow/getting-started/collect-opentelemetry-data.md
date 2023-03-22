@@ -6,7 +6,7 @@ weight: 300
 # Collect OpenTelemetry data
 
 Grafana Agent Flow can be configured to collect [OpenTelemetry][] data and
-forward it to any OpenTelemetry-compatible database.
+forward it to any OpenTelemetry-compatible endpoint.
 
 This topic describes how to:
 
@@ -26,7 +26,7 @@ This topic describes how to:
 
 ## Before you begin
 
-* Ensure that you basic familiarity with instrumenting applications with
+* Ensure that you have basic familiarity with instrumenting applications with
   OpenTelemetry.
 * Have a set of OpenTelemetry applications ready to push telemetry data to
   Grafana Agent Flow.
@@ -38,9 +38,9 @@ This topic describes how to:
 ## Configure an OpenTelemetry exporter
 
 Before components can receive OpenTelemetry data, you must have a component
-responsible for exporting the OpenTelemetry data somewhere. An OpenTelemetry
-_exporter component_ is responsible for writing (that is, exporting)
-OpenTelemetry data to an external system.
+responsible for exporting the OpenTelemetry data. An OpenTelemetry _exporter
+component_ is responsible for writing (that is, exporting) OpenTelemetry data
+to an external system.
 
 In this task, we will use the [otelcol.exporter.otlp][] component to send
 OpenTelemetry data to a server using the OpenTelemetry Protocol (OTLP). Once an
@@ -52,7 +52,7 @@ to forward data to it.
 >
 > [Components]: {{< relref "../reference/components/" >}}
 
-To configure a `otelcol.exporter.otlp` component for exporting OpenTelemetry
+To configure an `otelcol.exporter.otlp` component for exporting OpenTelemetry
 data, complete the following steps:
 
 1. Add the following `otelcol.exporter.otlp` component to your configuration
@@ -103,7 +103,7 @@ data, complete the following steps:
        ```
 
     6. Replace `BASIC_AUTH_LABEL` with the label used for the
-       `otelcol.auth.basic` component in step 2.
+       `otelcol.auth.basic` component in step 5.2.
 
 6. If you have more than one server to export metrics to, create a new
    `otelcol.exporter.otlp` component for each additional server.
