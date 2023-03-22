@@ -11,6 +11,8 @@ forward it to any OpenTelemetry-compatible endpoint.
 This topic describes how to:
 
 * Configure OpenTelemetry data delivery
+* Configure batching
+* Receive OpenTelemetry data over OTLP
 
 [OpenTelemetry]: https://opentelemetry.io
 
@@ -19,10 +21,14 @@ This topic describes how to:
 * [otelcol.auth.basic][]
 * [otelcol.exporter.otlp][]
 * [otelcol.exporter.otlphttp][]
+* [otelcol.processor.batch][]
+* [otelcol.receiver.otlp][]
 
 [otelcol.auth.basic]: {{< relref "../reference/components/otelcol.auth.basic.md" >}}
 [otelcol.exporter.otlp]: {{< relref "../reference/components/otelcol.exporter.otlp.md" >}}
 [otelcol.exporter.otlphttp]: {{< relref "../reference/components/otelcol.exporter.otlphttp.md" >}}
+[otelcol.processor.batch]: {{< relref "../reference/components/otelcol.processor.batch.md" >}}
+[otelcol.receiver.otlp]: {{< relref "../reference/components/otelcol.receiver.otlp.md" >}}
 
 ## Before you begin
 
@@ -59,16 +65,16 @@ data, complete the following steps:
    file:
 
    ```river
-   otelcol.exporter.otlp "LABEL" {
+   otelcol.exporter.otlp "EXPORTER_LABEL" {
      client {
        url = "HOST:PORT"
      }
    }
    ```
 
-    1. Replace `LABEL` with a label to use for the component, such as `default`.
-       The label chosen must be unique across all `otelcol.exporter.otlp`
-       components in the same configuration file.
+    1. Replace `EXPORTER_LABEL` with a label to use for the component, such as
+       `default`. The label chosen must be unique across all
+       `otelcol.exporter.otlp` components in the same configuration file.
 
     2. Replace `HOST` with the hostname or IP address of the server to send
        OpenTelemetry data to.
@@ -144,3 +150,182 @@ otelcol.receiver.otlp "example" {
 
 For more information on configuring OpenTelemetry data delivery using OTLP,
 refer to [otelcol.exporter.otlp][].
+
+## Configure batching
+
+Production-ready Grafana Agent Flow components will not send OpenTelemetry data
+directly to an exporter for delivery. Instead, data is usually sent to one or
+more _processor components_ that perform various transformations on the data.
+
+Ensuring data is batched is a production-readiness step to improve the
+compression of data and reduce the number of outgoing network requests to
+external systems.
+
+In this task, we will configure an [otelcol.processor.batch][] component to
+batch data before sending it to our exporter.
+
+> Refer to the list of available [Components][] for the full list of
+> `otelcol.processor` components that can be used to process OpenTelemetry
+> data. You can chain processors by having one processor send data to another
+> processor.
+>
+> [Components]: {{< relref "../reference/components/" >}}
+
+To configure an `otelcol.processor.batch` component, complete the following
+steps:
+
+1. Follow [Configure an OpenTelemetry
+   exporter](#configure-an-opentelemetry-exporter) to ensure received data can
+   be written to an external system.
+
+2. Add the following `otelcol.processor.batch` component into your
+   configuration file:
+
+   ```river
+   otelcol.processor.batch "LABEL" {
+     output {
+       metrics = [otelcol.exporter.otlp.EXPORTER_LABEL.input]
+       logs    = [otelcol.exporter.otlp.EXPORTER_LABEL.input]
+       traces  = [otelcol.exporter.otlp.EXPORTER_LABEL.input]
+     }
+   }
+   ```
+
+    1. Replace `LABEL` with a label to use for the component, such as
+       `default`. The label chosen must be unique across all
+       `otelcol.processor.batch` components in the same configuration file.
+
+    2. Replace `EXPORTER_LABEL` with the label for your existing
+       `otelcol.exporter.otlp` component.
+
+    3. To disable one of the telemetry types, set the relevant type in the
+       `output` block to the empty list, such as `metrics = []`.
+
+    4. To send batched data to another processor, replace the components in the
+       `output` list with the processor components to use.
+
+The following example demonstrates configuring a sequence of
+`otelcol.processor` components before ultimately being exported:
+
+```river
+otelcol.processor.memory_limiter "default" {
+  check_interval = "1s"
+  limit          = "1GiB"
+
+  output {
+    metrics = [otelcol.processor.batch.default.input]
+    logs    = [otelcol.processor.batch.default.input]
+    traces  = [otelcol.processor.batch.default.input]
+  }
+}
+
+otelcol.processor.batch "default" {
+  output {
+    metrics = [otelcol.exporter.otlp.default.input]
+    logs    = [otelcol.exporter.otlp.default.input]
+    traces  = [otelcol.exporter.otlp.default.input]
+  }
+}
+
+otelcol.exporter.otlp "default" {
+  client {
+    endpoint = "my-otlp-grpc-server:4317"
+  }
+}
+```
+
+For more information on configuring OpenTelemetry data batching, refer to
+[otelcol.processor.batch][].
+
+## Receive OpenTelemetry data over OTLP
+
+Grafana Agent Flow can be configured to receive OpenTelemetry metrics, logs,
+and traces. An OpenTelemetry _receiver_ component is responsible for receiving
+OpenTelemetry data from an external system.
+
+In this task, we will use the [otelcol.receiver.otlp][] component to receive
+OpenTelemetry data over the network using the OpenTelemetry Protocol (OTLP). A
+receiver component can be configured to forward received data to other Grafana
+Agent Flow components.
+
+> Refer to the list of available [Components][] for the full list of
+> `otelcol.receiver` components that can be used to receive OpenTelemetry data.
+>
+> [Components]: {{< relref "../reference/components/" >}}
+
+To configure an `otelcol.receiver.otlp` component for receiving OpenTelemetry
+data, complete the following steps:
+
+1. Follow [Configure an OpenTelemetry
+   exporter](#configure-an-opentelemetry-exporter) to ensure received data can
+   be written to an external system.
+
+2. Optional: Follow [Configure batching](#configure-batching) to improve
+   compression and reduce the total amount of network requests.
+
+3. Add the following `otelcol.receiver.otlp` component to your configuration
+   file:
+
+   ```river
+   otelcol.receiver.otlp "LABEL" {
+     grpc {}
+     http {}
+
+     output {
+       metrics = [COMPONENT_INPUT_LIST]
+       logs    = [COMPONENT_INPUT_LIST]
+       traces  = [COMPONENT_INPUT_LIST]
+     }
+   }
+   ```
+
+    1. Replace `LABEL` with a label to use for the component, such as
+       `default`. The label chosen must be unique across all
+       `otelcol.receiver.otlp` components in the same configuration file.
+
+    2. Replace `COMPONENT_INPUT_LIST` with a comma-delimited list of component
+       inputs to forward received data to. For example, to send data to an
+       existing batch processor component, use
+       `otelcol.processor.batch.PROCESSOR_LABEL.input`. To send data directly
+       to an existing exporter component, use
+       `otelcol.exporter.otlp.EXPORTER_LABEL.input`.
+
+    3. To disable receiving OTLP data over gRPC, remove the `grpc` block.
+
+    4. To disable receiving OTLP data over HTTP, remove the `http` block.
+
+    5. To disable one of the telemetry types, set the relevant type in the
+       `output` block to the empty list, such as `metrics = []`.
+
+The following example demonstrates configuring `otelcol.receiver.otlp` and
+sending it to an exporter:
+
+```river
+otelcol.receiver.otlp "example" {
+  http {}
+  grpc {}
+
+  output {
+    metrics = [otelcol.processor.batch.example.input]
+    logs    = [otelcol.processor.batch.example.input]
+    traces  = [otelcol.processor.batch.example.input]
+  }
+}
+
+otelcol.processor.batch "example" {
+  output {
+    metrics = [otelcol.exporter.otlp.default.input]
+    logs    = [otelcol.exporter.otlp.default.input]
+    traces  = [otelcol.exporter.otlp.default.input]
+  }
+}
+
+otelcol.exporter.otlp "default" {
+  client {
+    endpoint = "my-otlp-grpc-server:4317"
+  }
+}
+```
+
+For more information on configuring OpenTelemetry data delivery using OTLP,
+refer to [otelcol.receiver.otlp][].
