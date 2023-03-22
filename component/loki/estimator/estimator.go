@@ -37,7 +37,7 @@ type Component struct {
 type Arguments struct{}
 
 type Exports struct {
-	Reciever loki.LogsReceiver  `river:"receiver,attr"`
+	Receiver loki.LogsReceiver  `river:"receiver,attr"`
 	Targets  []discovery.Target `river:"targets,attr"`
 }
 
@@ -58,7 +58,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 	o.OnStateChange(
 		Exports{
-			Reciever: c.receiver,
+			Receiver: c.receiver,
 			Targets: []discovery.Target{
 				{
 					model.AddressLabel:     o.HTTPListenAddr,
