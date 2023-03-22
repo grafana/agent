@@ -66,16 +66,16 @@ data, complete the following steps:
    }
    ```
 
-2. Replace `LABEL` with a label to use for the component, such as `default`.
-   The label chosen must be unique across all `otelcol.exporter.otlp`
-   components in the same configuration file.
+    1. Replace `LABEL` with a label to use for the component, such as `default`.
+       The label chosen must be unique across all `otelcol.exporter.otlp`
+       components in the same configuration file.
 
-3. Replace `HOST` with the hostname or IP address of the server to send
-   OpenTelemetry data to.
+    2. Replace `HOST` with the hostname or IP address of the server to send
+       OpenTelemetry data to.
 
-4. Replace `PORT` with the port of the server to send OpenTelemetry data to.
+    3. Replace `PORT` with the port of the server to send OpenTelemetry data to.
 
-5. If your server requires basic authentication, complete the following:
+2. If your server requires basic authentication, complete the following:
 
     1. Add the following `otelcol.auth.basic` component to your configuration file:
 
@@ -86,26 +86,26 @@ data, complete the following steps:
        }
        ```
 
-    2. Replace `BASIC_AUTH_LABEL` with a label to use for the component, such
-       as `default`. The label chosen must be unique across all
-       `otelcol.auth.basic` components in the same configuration file.
+        1. Replace `BASIC_AUTH_LABEL` with a label to use for the component, such
+           as `default`. The label chosen must be unique across all
+           `otelcol.auth.basic` components in the same configuration file.
 
-    3. Replace `USERNAME` with the basic authentication username to use.
+        2. Replace `USERNAME` with the basic authentication username to use.
 
-    4. Replace `PASSWORD` with the basic authentication password or API key to
-       use.
+        3. Replace `PASSWORD` with the basic authentication password or API key to
+           use.
 
-    5. Add the following line inside of the `client` block of your
+    2. Add the following line inside of the `client` block of your
        `otelcol.exporter.otlp` component:
 
        ```
        auth = otelcol.auth.basic.BASIC_AUTH_LABEL.handler
        ```
 
-    6. Replace `BASIC_AUTH_LABEL` with the label used for the
-       `otelcol.auth.basic` component in step 5.2.
+        1. Replace `BASIC_AUTH_LABEL` with the label used for the
+           `otelcol.auth.basic` component in step 2.1.1.
 
-6. If you have more than one server to export metrics to, create a new
+3. If you have more than one server to export metrics to, create a new
    `otelcol.exporter.otlp` component for each additional server.
 
 > `otelcol.exporter.otlp` sends data using OTLP over gRPC (HTTP/2). To send to
