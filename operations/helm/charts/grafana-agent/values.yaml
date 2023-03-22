@@ -137,6 +137,8 @@ service:
   type: ClusterIP
   # -- Cluster IP, can be set to None, empty "" or an IP address
   clusterIP: ''
+  annotations: {}
+    # cloud.google.com/load-balancer-type: Internal
 
 ingress:
   # -- Enables ingress for the agent (faro port)
