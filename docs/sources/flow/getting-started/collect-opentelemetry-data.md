@@ -90,22 +90,22 @@ data, complete the following steps:
        as `default`. The label chosen must be unique across all
        `otelcol.auth.basic` components in the same configuration file.
 
-    2. Replace `USERNAME` with the basic authentication username to use.
+    3. Replace `USERNAME` with the basic authentication username to use.
 
-    3. Replace `PASSWORD` with the basic authentication password or API key to
+    4. Replace `PASSWORD` with the basic authentication password or API key to
        use.
 
-    4. Add the following line inside of the `client` block of your
+    5. Add the following line inside of the `client` block of your
        `otelcol.exporter.otlp` component:
 
        ```
        auth = otelcol.auth.basic.BASIC_AUTH_LABEL.handler
        ```
 
-    5. Replace `BASIC_AUTH_LABEL` with the label used for the
+    6. Replace `BASIC_AUTH_LABEL` with the label used for the
        `otelcol.auth.basic` component in step 2.
 
-5. If you have more than one server to export metrics to, create a new
+6. If you have more than one server to export metrics to, create a new
    `otelcol.exporter.otlp` component for each additional server.
 
 > `otelcol.exporter.otlp` sends data using OTLP over gRPC (HTTP/2). To send to
