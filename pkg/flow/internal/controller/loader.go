@@ -119,7 +119,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentBlocks []*ast.BlockStmt, 
 			components = append(components, c)
 			componentIDs = append(componentIDs, c.ID())
 
-			if err = l.evaluateComponent(logger, parentScope, c); err != nil {
+			if err = l.evaluate(logger, parentScope, c); err != nil {
 				var evalDiags diag.Diagnostics
 				if errors.As(err, &evalDiags) {
 					diags = append(diags, evalDiags...)
@@ -133,7 +133,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentBlocks []*ast.BlockStmt, 
 				}
 			}
 		case BlockNode:
-			if err = l.evaluateConfigBlock(logger, parentScope, c); err != nil {
+			if err = l.evaluate(logger, parentScope, c); err != nil {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
 					Message:  fmt.Sprintf("Failed to evaluate node for config block: %s", err),
@@ -390,10 +390,8 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 		var err error
 
 		switch n := n.(type) {
-		case *ComponentNode:
-			err = l.evaluateComponent(logger, parentScope, n)
 		case BlockNode:
-			err = l.evaluateConfigBlock(logger, parentScope, n)
+			err = l.evaluate(logger, parentScope, n)
 		}
 
 		// We only use the error for updating the span status; we don't return the
@@ -407,29 +405,22 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 	})
 }
 
-// evaluate constructs the final context for c and evaluates it. mut must be
-// held when calling evaluate.
-func (l *Loader) evaluateComponent(logger log.Logger, parent *vm.Scope, c *ComponentNode) error {
+// evaluate constructs the final context for the special config Node and
+// evaluates it. mut must be held when calling evaluate.
+func (l *Loader) evaluate(logger log.Logger, parent *vm.Scope, bn BlockNode) error {
 	ectx := l.cache.BuildContext(parent)
-	err := c.Evaluate(ectx)
-	// Always update the cache both the arguments and exports, since both might
-	// change when a component gets re-evaluated. We also want to cache the arguments and exports in case of an error
-	l.cache.CacheArguments(c.ID(), c.Arguments())
-	l.cache.CacheExports(c.ID(), c.Exports())
-	if err != nil {
-		level.Error(logger).Log("msg", "failed to evaluate component", "component", c.NodeID(), "err", err)
-		return err
-	}
-	return nil
-}
+	err := bn.Evaluate(ectx)
 
-// evaluateConfig constructs the final context for the special config Node and
-// evaluates it. mut must be held when calling evaluateConfig.
-func (l *Loader) evaluateConfigBlock(logger log.Logger, parent *vm.Scope, c BlockNode) error {
-	ectx := l.cache.BuildContext(parent)
-	err := c.Evaluate(ectx)
+	switch c := bn.(type) {
+	case *ComponentNode:
+		// Always update the cache both the arguments and exports, since both might
+		// change when a component gets re-evaluated. We also want to cache the arguments and exports in case of an error
+		l.cache.CacheArguments(c.ID(), c.Arguments())
+		l.cache.CacheExports(c.ID(), c.Exports())
+	}
+
 	if err != nil {
-		level.Error(logger).Log("msg", "failed to evaluate config", "node", c.NodeID(), "err", err)
+		level.Error(logger).Log("msg", "failed to evaluate config", "node", bn.NodeID(), "err", err)
 		return err
 	}
 	return nil
