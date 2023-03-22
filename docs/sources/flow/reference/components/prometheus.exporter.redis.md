@@ -68,7 +68,7 @@ multiple Lua scripts.
 
 Any leftover key groups beyond `max_distinct_key_groups` are aggregated in the 'overflow' bucket.
 
-The `is_cluster` argument should be used when connecting to a Redis cluster and using the `check_keys` and/or `check_single_keys` arguments.
+The `is_cluster` argument must be set to `true` when connecting to a Redis cluster and using either of the `check_keys` and `check_single_keys` arguments.
 
 Note that setting `export_client_port` increases the cardinality of all Redis metrics.
 
