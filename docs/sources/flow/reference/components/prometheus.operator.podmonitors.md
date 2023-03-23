@@ -4,7 +4,7 @@ title: prometheus.operator.podmonitors
 
 # prometheus.operator.podmonitors
 
-`prometheus.operator.podmonitors` discovers [podMonitor]() resources in your kubernetes cluster and scrape the targets they reference.
+`prometheus.operator.podmonitors` discovers [podMonitor]() resources in your kubernetes cluster and scrape the targets they reference. 
 
 
 ## Usage
@@ -20,14 +20,8 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`kubeconfig_file` | `string` | Path of the file on disk to a kubernetes config  | | no
 `forward_to` | `list(MetricsReceiver)` | List of receivers to send scraped metrics to. | | yes
 `namespaces` | `list(string)` | List of namespaces to search for PodMonitor resources. If not specified, all namespaces will be searched. || no
-`label_selector` | string | [LabelSelector][] to filter which PodMonitor resources are discovered. || no
-`field_selector` | string | [FieldSelector][] to filter which PodMonitor resources are discovered. || no
-
-[LabelSelector]: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors
-[FieldSelector]: https://kubernetes.io/docs/concepts/overview/working-with-objects/field-selectors/
 
 ## Blocks
 
@@ -35,19 +29,101 @@ The following blocks are supported inside the definition of `prometheus.operator
 
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
-api_server | [api_server][] | Configure how to connect to the kubernetes api server. | no
+client | [client][] | Configures Kubernetes client used to find podmonitors. | no
+client > basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
+client > authorization | [authorization][] | Configure generic authorization to the endpoint. | no
+client > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
+client > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+client > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+selector | [selector][] | Label selector for which `PodMonitors` to discover. | no
+selector > match_expression | [match_expression][] | Label selector expression for which `PodMonitors` to discover. | no
 
-### api_server block
+The `>` symbol indicates deeper levels of nesting. For example, `client >
+basic_auth` refers to a `basic_auth` block defined
+inside a `client` block.
 
-The `api_server` block configures the profiling settings when scraping
-targets.
+[client]: #client-block
+[basic_auth]: #basic_auth-block
+[authorization]: #authorization-block
+[oauth2]: #oauth2-block
+[tls_config]: #tls_config-block
+[selector]: #selector-block
+[match_expression]: #match_expression-block
 
-The block contains the following attributes:
+### client block
+
+The `client` block configures the Kubernetes client used discover PodMonitors. If the `client` block isn't provided, the default in-cluster
+configuration with the service account of the running Grafana Agent pod is
+used.
+
+The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`host` | `string` | A valid string consisting of a hostname or IP followed by an optional port number. | | yes
+`api_server` | `string` | URL of the Kubernetes API server. | | no
+`kubeconfig_file` | `string` | Path of the `kubeconfig` file to use for connecting to Kubernetes. | | no
+`bearer_token_file` | `string` | File containing a bearer token to authenticate with. | | no
+`proxy_url` | `string` | HTTP proxy to proxy requests through. | | no
+`follow_redirects` | `bool` | Whether redirects returned by the server should be followed. | `true` | no
+`enable_http2` | `bool` | Whether HTTP2 is supported for requests. | `true` | no
 
+ At most one of the following can be provided:
+ - [`bearer_token` argument][client].
+ - [`bearer_token_file` argument][client].
+ - [`basic_auth` block][basic_auth].
+ - [`authorization` block][authorization].
+ - [`oauth2` block][oauth2].
+
+### basic_auth block
+
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" >}}
+
+### authorization block
+
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" >}}
+
+### oauth2 block
+
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" >}}
+
+### tls_config block
+
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
+
+### selector block
+
+The `selector` block describes a Kubernetes label selector for `PodMonitors`.
+
+The following arguments are supported:
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`match_labels` | `map(string)` | Label keys and values used to discover resources. | `{}` | no
+
+When the `match_labels` argument is empty, all resources will be matched.
+
+### match_expression block
+
+The `match_expression` block describes a Kubernetes label match expression for
+`PodMonitors` discovery.
+
+The following arguments are supported:
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`key` | `string` | The label name to match against. | | yes
+`operator` | `string` | The operator to use when matching. | | yes
+`values`| `list(string)` | The values used when matching. | | no
+
+The `operator` argument must be one of the following strings:
+
+* `"In"`
+* `"NotIn"`
+* `"Exists"`
+* `"DoesNotExist"`
+
+Both `selector` and `namespace_selector` can make use of multiple
+`match_expression` inner blocks which are treated as AND clauses.
 
 ## Exported fields
 

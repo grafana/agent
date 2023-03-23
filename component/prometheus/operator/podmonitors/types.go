@@ -20,7 +20,7 @@ type Arguments struct {
 	Namespaces []string `river:"namespaces,attr,optional"`
 
 	// LabelSelector allows filtering discovered monitor resources by labels
-	LabelSelector *config.LabelSelector `river:"label_selector,block,optional"`
+	LabelSelector *config.LabelSelector `river:"selector,block,optional"`
 }
 
 var DefaultArguments = Arguments{
