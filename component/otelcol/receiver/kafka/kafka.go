@@ -87,7 +87,7 @@ func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 }
 
 // Convert implements receiver.Arguments.
-func (args Arguments) Convert() otelconfig.Receiver {
+func (args Arguments) Convert() (otelconfig.Receiver, error) {
 	return &kafkareceiver.Config{
 		ReceiverSettings: otelconfig.NewReceiverSettings(otelconfig.NewComponentID("kafka")),
 
@@ -102,7 +102,7 @@ func (args Arguments) Convert() otelconfig.Receiver {
 		Metadata:       args.Metadata.Convert(),
 		AutoCommit:     args.AutoCommit.Convert(),
 		MessageMarking: args.MessageMarking.Convert(),
-	}
+	}, nil
 }
 
 // Extensions implements receiver.Arguments.

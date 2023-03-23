@@ -35,7 +35,7 @@ var (
 )
 
 // Convert implements auth.Arguments.
-func (args Arguments) Convert() otelconfig.Extension {
+func (args Arguments) Convert() (otelconfig.Extension, error) {
 	res := sigv4authextension.Config{
 		ExtensionSettings: otelconfig.NewExtensionSettings(otelconfig.NewComponentID("sigv4")),
 		Region:            args.Region,
@@ -44,8 +44,10 @@ func (args Arguments) Convert() otelconfig.Extension {
 	}
 	// sigv4authextension.Config has a private member called "credsProvider" which gets initialized when we call Validate().
 	// If we don't call validate, the unit tests for this component will fail.
-	_ = res.Validate()
-	return &res
+	if err := res.Validate(); err != nil {
+		return nil, err
+	}
+	return &res, nil
 }
 
 func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
@@ -54,7 +56,8 @@ func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 		return err
 	}
 
-	return args.Convert().(*sigv4authextension.Config).Validate()
+	_, err := args.Convert()
+	return err
 }
 
 // Extensions implements auth.Arguments.
