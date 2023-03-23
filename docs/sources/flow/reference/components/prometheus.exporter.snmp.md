@@ -128,37 +128,41 @@ This example uses a [`prometheus.scrape` component][scrape] to collect metrics
 from `prometheus.exporter.snmp`:
 
 ```river
-prometheus.exporter.snmp "example" { 
+prometheus.exporter.snmp "example" {
 	config_file = "snmp_modules.yml"
-	
-		target "network_switch_1" {
-			address = "192.168.1.2"
-			module = "if_mib"
-			walk_params = "public"
-		}
-		target "network_router_2" {
-			address = "192.168.1.3"
-			module = "mikrotik"
-			walk_params = "private"
-		}
-		walk_param "private" {
-			version = "2"
-			auth {
-				community = "secret"
-			}
-		}
-		walk_param "public" {
-			version = "2"
-			auth {
-				community = "public"
-			}
-		}
-}
 
+	target "network_switch_1" {
+		address     = "192.168.1.2"
+		module      = "if_mib"
+		walk_params = "public"
+	}
+
+	target "network_router_2" {
+		address     = "192.168.1.3"
+		module      = "mikrotik"
+		walk_params = "private"
+	}
+
+	walk_param "private" {
+		version = "2"
+
+		auth {
+			community = "secret"
+		}
+	}
+
+	walk_param "public" {
+		version = "2"
+
+		auth {
+			community = "public"
+		}
+	}
+}
 // Configure a prometheus.scrape component to collect SNMP metrics.
 prometheus.scrape "demo" {
-  targets    = prometheus.exporter.snmp.example.targets
-  forward_to = [ /* ... */ ]
+	targets    = prometheus.exporter.snmp.example.targets
+	forward_to = [ /* ... */ ]
 }
 ```
 
