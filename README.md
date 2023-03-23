@@ -120,11 +120,8 @@ To engage with the Grafana Agent community:
 * Chat with us on our community Slack channel. To invite yourself to the
   Grafana Slack, visit <https://slack.grafana.com/> and join the `#agent`
   channel.
-
 * Ask questions on the [Discussions page][].
-
 * [File an issue][] for bugs, issues, and feature suggestions.
-
 * Attend the monthly [community call][].
 
 [Discussions page]: https://github.com/grafana/agent/discussions
