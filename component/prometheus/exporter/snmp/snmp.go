@@ -52,12 +52,6 @@ func buildSNMPTargets(baseTarget discovery.Target, args component.Arguments) []d
 	return targets
 }
 
-// DefaultConfig holds non-zero default options for the Config when it is
-// unmarshaled from river.
-// var DefaultConfig = Config{
-// 	ProbeTimeoutOffset: 500 * time.Millisecond,
-// }
-
 // SNMPTarget defines a target to be used by the exporter.
 type SNMPTarget struct {
 	Name       string `river:",label"`
@@ -143,8 +137,6 @@ type Config struct {
 
 // UnmarshalRiver implements River unmarshalling for Config.
 func (c *Config) UnmarshalRiver(f func(interface{}) error) error {
-	//*c = DefaultConfig
-
 	type cfg Config
 	return f((*cfg)(c))
 }
