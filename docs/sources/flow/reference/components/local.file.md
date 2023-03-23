@@ -34,6 +34,8 @@ Name | Type | Description | Default | Required
 `poll_frequency` | `duration` | How often to poll for file changes | `"1m"` | no
 `is_secret` | `bool` | Marks the file as containing a [secret][] | `false` | no
 
+[secret]: {{< relref "../../config-language/expressions/types_and_values.md#secrets" >}}
+
 ### File change detectors
 
 File change detectors are used for detecting when the file needs to be re-read
@@ -92,8 +94,6 @@ component.
 
 * `agent_local_file_timestamp_last_accessed_unix_seconds` (gauge): The
   timestamp, in Unix seconds, that the file was last sucessfully accessed.
-
-[secret]: ../secrets.md#is_secret-argument-in-components
 
 ## Example
 
