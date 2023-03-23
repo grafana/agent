@@ -111,6 +111,8 @@ future minor releases do not change if one minor release is moved.
 
 Patch and security releases may be created at any time.
 
+[Milestones]: https://github.com/grafana/agent/milestones
+
 ## Community
 
 To engage with the Grafana Agent community:
