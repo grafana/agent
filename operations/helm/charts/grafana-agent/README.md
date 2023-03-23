@@ -70,7 +70,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | controller.autoscaling.minReplicas | int | `1` | The lower limit for the number of replicas to which the autoscaler can scale down. |
 | controller.autoscaling.targetCPUUtilizationPercentage | int | `0` | Average CPU utilization across all relevant pods, a percentage of the requested value of the resource for the pods. Setting `targetCPUUtilizationPercentage` to 0 will disable CPU scaling. |
 | controller.autoscaling.targetMemoryUtilizationPercentage | int | `80` | Average Memory utilization across all relevant pods, a percentage of the requested value of the resource for the pods. Setting `targetMemoryUtilizationPercentage` to 0 will disable Memory scaling. |
-| controller.hostNetwork | bool | `false` | Host networking requested for this pod. Use the host's network namespace. If this option is set, the ports that will be used must be specified. Default to false. |
+| controller.hostNetwork | bool | `false` | Configures Pods to use the host network. When set to true, the ports that will be used must be specified. |
 | controller.podAnnotations | object | `{}` | Extra pod annotations to add. |
 | controller.podLabels | object | `{}` | Extra pod labels to add. |
 | controller.priorityClassName | string | `""` | priorityClassName to apply to Grafana Agent pods. |
