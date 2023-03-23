@@ -13,7 +13,7 @@ Unreleased
 ### Enhancements
 
 - Add affinity values. (@therealmanny)
-- Add support for adding Annotations to Service
+- Add support for adding Annotations to Service (@ofirshtrull)
 
 0.9.0 (2023-03-14)
 ------------------
