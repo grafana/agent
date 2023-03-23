@@ -29,6 +29,7 @@ Main (unreleased)
 - New Grafana Agent Flow components:
 
   - `discovery.ec2` service discovery for aws ec2. (@captncraig)
+  - `discovery.http` service discovery via http. (@captncraig)
   - `discovery.lightsail` service discovery for aws lightsail. (@captncraig)
   - `module.string` runs a Grafana Agent Flow module passed to the component by
     an expression containing a string. (@erikbaranowski, @rfratto)
