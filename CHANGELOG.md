@@ -21,6 +21,8 @@ Main (unreleased)
 
 - Support for 32-bit ARM builds is temporarily removed. We are aiming to bring
   back support for these builds prior to publishing v0.33.0. (@rfratto)
+- Agent Management: Agent now makes use of the v2 agent API. The config field
+  `api_url` in the `agent_management` block should be updated accordingly. (@jcreixell)
 
 ### Features
 
@@ -38,17 +40,23 @@ Main (unreleased)
   - `prometheus.exporter.mysql` collects metrics from a MySQL database. (@spartan0x117)
   - `prometheus.exporter.postgres` collects metrics from a PostgreSQL database. (@spartan0x117)
   - `prometheus.exporter.snmp` collects metrics from SNMP exporter (@marctc).
+  - `otelcol.auth.sigv4` performs AWS Signature Version 4 (SigV4) authentication 
+    for making requests to AWS services via `otelcol` components that support
+    authentication extensions. (@ptodev)
 
 ### Enhancements
 
 - Flow: Add retries with backoff logic to Phlare write component. (@cyriltovena)
 - Operator: Allow setting runtimeClassName on operator-created pods. (@captncraig)
+- Operator: Transparently compress agent configs to stay under size limitations. (@captncraig)
+
+- Update Redis Exporter Dependency to v1.48.0. (@spartan0x117)
 
 ### Bugfixes
 
 - Flow: fix issue where Flow would return an error when trying to access a key
   of a map whose value was the zero value (`null`, `0`, `false`, `[]`, `{}`).
-  Whether an error was returned dependend on the internal type of the value.
+  Whether an error was returned depended on the internal type of the value.
   (@rfratto)
 
 - Flow: fix issue where using the `jaeger_remote` sampler for the `tracing`
@@ -65,6 +73,8 @@ Main (unreleased)
 
 - Flow: fix deadlock in `loki.process` where a component with no stages would
   hang forever on handling logs. (@rfratto)
+
+- Fix issue where a DefaultConfig might be mutated during unmarshaling. (@jcreixell)
 
 ### Other changes
 

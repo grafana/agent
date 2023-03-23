@@ -50,15 +50,18 @@ var (
 )
 
 // DefaultConfig holds default settings for all the subsystems.
-var DefaultConfig = Config{
-	// All subsystems with a DefaultConfig should be listed here.
-	Server:                &server.DefaultConfig,
-	ServerFlags:           server.DefaultFlags,
-	Metrics:               metrics.DefaultConfig,
-	Integrations:          DefaultVersionedIntegrations,
-	DisableSupportBundle:  false,
-	EnableConfigEndpoints: false,
-	EnableUsageReport:     true,
+func DefaultConfig() Config {
+	defaultServerCfg := server.DefaultConfig()
+	return Config{
+		// All subsystems with a DefaultConfig should be listed here.
+		Server:                &defaultServerCfg,
+		ServerFlags:           server.DefaultFlags,
+		Metrics:               metrics.DefaultConfig,
+		Integrations:          DefaultVersionedIntegrations,
+		DisableSupportBundle:  false,
+		EnableConfigEndpoints: false,
+		EnableUsageReport:     true,
+	}
 }
 
 // Config contains underlying configurations for the agent
@@ -95,7 +98,7 @@ type Config struct {
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	// Apply defaults to the config from our struct and any defaults inherited
 	// from flags before unmarshaling.
-	*c = DefaultConfig
+	*c = DefaultConfig()
 	util.DefaultConfigFromFlags(c)
 
 	type baseConfig Config
@@ -190,6 +193,10 @@ func (c *Config) Validate(fs *flag.FlagSet) error {
 	}
 	c.Metrics.ServiceConfig.Lifecycler.ListenPort = grpcPort
 
+	// TODO(jcreixell): Make this method side-effect free and, if necessary, implement a
+	// method bundling defaults application and validation. Rationale: sometimes (for example
+	// in tests) we want to validate a config without mutating it, or apply all defaults
+	// for comparison.
 	if err := c.Integrations.ApplyDefaults(&c.ServerFlags, &c.Metrics); err != nil {
 		return err
 	}
@@ -312,7 +319,7 @@ func LoadRemote(url string, expandEnvVars bool, c *Config) error {
 		remoteOpts.HTTPClientConfig.SetDirectory(dir)
 	}
 
-	rc, err := newRemoteConfig(url, remoteOpts)
+	rc, err := newRemoteProvider(url, remoteOpts)
 	if err != nil {
 		return fmt.Errorf("error reading remote config: %w", err)
 	}
@@ -352,20 +359,28 @@ func LoadDynamicConfiguration(url string, expandvar bool, c *Config) error {
 	return nil
 }
 
-// LoadBytes unmarshals a config from a buffer. Defaults are not
-// applied to the file and must be done manually if LoadBytes
-// is called directly.
-func LoadBytes(buf []byte, expandEnvVars bool, c *Config) error {
+func performEnvVarExpansion(buf []byte, expandEnvVars bool) ([]byte, error) {
 	// (Optionally) expand with environment variables
 	if expandEnvVars {
 		s, err := envsubst.Eval(string(buf), getenv)
 		if err != nil {
-			return fmt.Errorf("unable to substitute config with environment variables: %w", err)
+			return nil, fmt.Errorf("unable to substitute config with environment variables: %w", err)
 		}
-		buf = []byte(s)
+		return []byte(s), nil
+	}
+	return buf, nil
+}
+
+// LoadBytes unmarshals a config from a buffer. Defaults are not
+// applied to the file and must be done manually if LoadBytes
+// is called directly.
+func LoadBytes(buf []byte, expandEnvVars bool, c *Config) error {
+	expandedBuf, err := performEnvVarExpansion(buf, expandEnvVars)
+	if err != nil {
+		return err
 	}
 	// Unmarshal yaml config
-	return yaml.UnmarshalStrict(buf, c)
+	return yaml.UnmarshalStrict(expandedBuf, c)
 }
 
 // getenv is a wrapper around os.Getenv that ignores patterns that are numeric
@@ -447,7 +462,7 @@ func applyIntegrationValuesFromFlagset(fs *flag.FlagSet, args []string, path str
 // doesn't require having a literal file on disk.
 func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
 	var (
-		cfg = DefaultConfig
+		cfg = DefaultConfig()
 
 		printVersion          bool
 		file                  string
