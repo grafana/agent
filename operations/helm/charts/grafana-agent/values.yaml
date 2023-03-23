@@ -40,6 +40,9 @@ agent:
   # -- Extra environment variables to pass to the agent container.
   extraEnv: []
 
+  # -- Maps all the keys on a ConfigMap or Secret as environement variables. https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#envfromsource-v1-core
+  envFrom: []
+
   # -- Extra args to pass to `agent run`: https://grafana.com/docs/agent/latest/flow/reference/cli/run/
   extraArgs: []
 
@@ -106,6 +109,9 @@ controller:
 
   # -- Number of pods to deploy. Ignored when controller.type is 'daemonset'.
   replicas: 1
+
+  # -- Host networking requested for this pod. Use the host's network namespace. If this option is set, the ports that will be used must be specified. Default to false.
+  hostNetwork: false
 
   # -- Update strategy for updating deployed Pods.
   updateStrategy: {}
