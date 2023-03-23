@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"path"
 	"sync"
 	"time"
 
@@ -221,7 +222,14 @@ func (c *Component) Handler() http.Handler {
 	fa := api.NewFlowAPI(c.ctrl, r)
 	fa.RegisterRoutes("/", r)
 
-	r.PathPrefix("/{id}/").Handler(c.ctrl.ComponentHandler())
+	r.PathPrefix("/{id}/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Re-add the full path to ensure that nested controllers propagate
+		// requests properly.
+		r.URL.Path = path.Join(c.opts.HTTPPath, r.URL.Path)
+
+		c.ctrl.ComponentHandler().ServeHTTP(w, r)
+	})
+
 	return r
 }
 
