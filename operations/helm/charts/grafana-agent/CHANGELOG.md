@@ -17,7 +17,7 @@ Unreleased
 
 ### Bugfixes
 
-- Match `values.yaml` with value used on templates. `tolerations` => `controller.tolerations`. (@carlosjgp)
+- Fix issue where `controller.tolerations` setting was ignored. (@carlosjgp)
 
 0.10.0 (2023-03-09)
 -------------------

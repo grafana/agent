@@ -110,7 +110,7 @@ controller:
   # -- Number of pods to deploy. Ignored when controller.type is 'daemonset'.
   replicas: 1
 
-  # -- Host networking requested for this pod. Use the host's network namespace. If this option is set, the ports that will be used must be specified. Default to false.
+  # -- Configures Pods to use the host network. When set to true, the ports that will be used must be specified.
   hostNetwork: false
 
   # -- Update strategy for updating deployed Pods.
