@@ -137,7 +137,7 @@ To collect metrics from Kubernetes Pods, complete the following steps:
 2. Discover Kubernetes Pods:
 
     1. Add the following `discovery.kubernetes` component to your configuration
-       file:
+       file to discover every Pod in the cluster across all Namespaces:
 
        ```river
        discovery.kubernetes "DISCOVERY_LABEL" {
@@ -152,7 +152,7 @@ To collect metrics from Kubernetes Pods, complete the following steps:
            `pods`. The label chosen must be unique across all
            `discovery.kubernetes` components in the same configuration file.
 
-    2. To limit the namespaces that Pods are discovered in, add the following
+    2. To limit the Namespaces that Pods are discovered in, add the following
        block inside of the `discovery.kubernetes` component:
 
        ```river
@@ -162,11 +162,11 @@ To collect metrics from Kubernetes Pods, complete the following steps:
        }
        ```
 
-        1. If you do not want to search for Pods in the the namespace Grafana
+        1. If you do not want to search for Pods in the the Namespace Grafana
            Agent is running in, set `own_namespace` to `false`.
 
         2. Replace `NAMESPACE_NAMES` with a comma-delimited list of strings
-           representing namespaces to search. Each string must be wrapped in
+           representing Namespaces to search. Each string must be wrapped in
            double quotes. For example, `"default","kube-system"`.
 
     3. To use a field selector to limit the number of discovered Pods, add the
@@ -232,7 +232,7 @@ To collect metrics from Kubernetes Pods, complete the following steps:
 [Labels and Selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#set-based-requirement
 
 The following example demonstrates configuring Grafana Agent to collect metrics
-from running production Kubernetes Pods in the `default` namespace:
+from running production Kubernetes Pods in the `default` Namespace:
 
 ```river
 discovery.kubernetes "pods" {
