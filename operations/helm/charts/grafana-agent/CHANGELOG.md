@@ -10,6 +10,16 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Enhancements
+
+- Add support for adding Annotations to Service (@ofirshtrull)
+- Add `agent.envFrom` value. (@carlosjgp)
+- Add `controller.hostNetwork` value. (@carlosjgp)
+
+### Bugfixes
+
+- Fix issue where `controller.tolerations` setting was ignored. (@carlosjgp)
+
 0.10.0 (2023-03-09)
 -------------------
 

@@ -198,6 +198,9 @@ func (fr *flowRun) Run(configFile string) error {
 		})
 
 		r.HandleFunc("/-/reload", func(w http.ResponseWriter, _ *http.Request) {
+			level.Info(l).Log("msg", "reload requested via /-/reload endpoint")
+			defer level.Info(l).Log("msg", "config reloaded")
+
 			err := reload()
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)

@@ -40,6 +40,9 @@ agent:
   # -- Extra environment variables to pass to the agent container.
   extraEnv: []
 
+  # -- Maps all the keys on a ConfigMap or Secret as environement variables. https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#envfromsource-v1-core
+  envFrom: []
+
   # -- Extra args to pass to `agent run`: https://grafana.com/docs/agent/latest/flow/reference/cli/run/
   extraArgs: []
 
@@ -107,6 +110,9 @@ controller:
   # -- Number of pods to deploy. Ignored when controller.type is 'daemonset'.
   replicas: 1
 
+  # -- Configures Pods to use the host network. When set to true, the ports that will be used must be specified.
+  hostNetwork: false
+
   # -- Update strategy for updating deployed Pods.
   updateStrategy: {}
 
@@ -149,6 +155,8 @@ service:
   type: ClusterIP
   # -- Cluster IP, can be set to None, empty "" or an IP address
   clusterIP: ''
+  annotations: {}
+    # cloud.google.com/load-balancer-type: Internal
 
 ingress:
   # -- Enables ingress for the agent (faro port)

@@ -34,7 +34,7 @@ type Arguments struct {
 var _ auth.Arguments = Arguments{}
 
 // Convert implements auth.Arguments.
-func (args Arguments) Convert() otelconfig.Extension {
+func (args Arguments) Convert() (otelconfig.Extension, error) {
 	var upstreamHeaders []headerssetterextension.HeaderConfig
 	for _, h := range args.Headers {
 		upstreamHeader := headerssetterextension.HeaderConfig{
@@ -54,7 +54,7 @@ func (args Arguments) Convert() otelconfig.Extension {
 	return &headerssetterextension.Config{
 		ExtensionSettings: otelconfig.NewExtensionSettings(otelconfig.NewComponentID("headers")),
 		HeadersConfig:     upstreamHeaders,
-	}
+	}, nil
 }
 
 // Extensions implements auth.Arguments.

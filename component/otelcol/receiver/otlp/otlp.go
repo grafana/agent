@@ -36,14 +36,14 @@ type Arguments struct {
 var _ receiver.Arguments = Arguments{}
 
 // Convert implements receiver.Arguments.
-func (args Arguments) Convert() otelconfig.Receiver {
+func (args Arguments) Convert() (otelconfig.Receiver, error) {
 	return &otlpreceiver.Config{
 		ReceiverSettings: otelconfig.NewReceiverSettings(otelconfig.NewComponentID("otlp")),
 		Protocols: otlpreceiver.Protocols{
 			GRPC: (*otelcol.GRPCServerArguments)(args.GRPC).Convert(),
 			HTTP: (*otelcol.HTTPServerArguments)(args.HTTP).Convert(),
 		},
-	}
+	}, nil
 }
 
 // Extensions implements receiver.Arguments.
