@@ -5,6 +5,7 @@ import (
 	_ "github.com/grafana/agent/component/discovery/aws"                            // Import discovery.aws.ec2 and discovery.aws.lightsail
 	_ "github.com/grafana/agent/component/discovery/docker"                         // Import discovery.docker
 	_ "github.com/grafana/agent/component/discovery/file"                           // Import discovery.file
+	_ "github.com/grafana/agent/component/discovery/http"                           // Import discovery.http
 	_ "github.com/grafana/agent/component/discovery/kubernetes"                     // Import discovery.kubernetes
 	_ "github.com/grafana/agent/component/discovery/relabel"                        // Import discovery.relabel
 	_ "github.com/grafana/agent/component/local/file"                               // Import local.file
