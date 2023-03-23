@@ -26,7 +26,7 @@ func createExporter(opts component.Options, args component.Arguments) (integrati
 	return cfg.Convert().NewIntegration(opts.Logger)
 }
 
-// buildSNMPTargets creates the exporter's discovery targets based on the defined blackbox targets.
+// buildSNMPTargets creates the exporter's discovery targets based on the defined SNMP targets.
 func buildSNMPTargets(baseTarget discovery.Target, args component.Arguments) []discovery.Target {
 	var targets []discovery.Target
 
