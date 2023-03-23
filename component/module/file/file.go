@@ -3,8 +3,10 @@ package file
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
@@ -69,13 +71,15 @@ type Component struct {
 	mut     sync.RWMutex
 	args    Arguments
 	content rivertypes.OptionalSecret
+	health  component.Health
 
 	managedLocalFile *file.Component
 }
 
 var (
-	_ component.Component     = (*Component)(nil)
-	_ component.HTTPComponent = (*Component)(nil)
+	_ component.Component       = (*Component)(nil)
+	_ component.HealthComponent = (*Component)(nil)
+	_ component.HTTPComponent   = (*Component)(nil)
 )
 
 // New creates a new module.file component.
@@ -120,9 +124,24 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
-	go c.managedLocalFile.Run(ctx)
+	ch := make(chan error, 1)
+	go func() {
+		err := c.managedLocalFile.Run(ctx)
+		if err != nil {
+			ch <- err
+		}
+	}()
+
 	c.ctrl.Run(ctx)
-	return nil
+
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case err := <-ch:
+			return err
+		}
+	}
 }
 
 // Update implements component.Component.
@@ -133,7 +152,15 @@ func (c *Component) Update(args component.Arguments) error {
 	c.args = newArgs
 	c.mut.Unlock()
 
-	c.managedLocalFile.Update(newArgs.LocalFileArguments)
+	err := c.managedLocalFile.Update(newArgs.LocalFileArguments)
+	if err != nil {
+		c.setHealth(component.Health{
+			Health:     component.HealthTypeUnhealthy,
+			Message:    fmt.Sprintf("failed to update the managed local.file component: %s", err),
+			UpdateTime: time.Now(),
+		})
+		return err
+	}
 
 	return c.LoadFlowContent()
 }
@@ -145,7 +172,8 @@ func (c *Component) NewManagedLocalFileComponent(o component.Options, args Argum
 		c.mut.Lock()
 		c.content = e.(file.Exports).Content
 		c.mut.Unlock()
-		c.LoadFlowContent()
+
+		_ = c.LoadFlowContent()
 	}
 
 	return file.New(localFileOpts, args.LocalFileArguments)
@@ -154,13 +182,36 @@ func (c *Component) NewManagedLocalFileComponent(o component.Options, args Argum
 // LoadFlowContent loads the flow controller with the current component content.
 func (c *Component) LoadFlowContent() error {
 	c.mut.RLock()
-	defer c.mut.RUnlock()
 	f, err := flow.ReadFile(c.opts.ID, []byte(c.content.Value))
+	c.mut.RUnlock()
 	if err != nil {
+		c.setHealth(component.Health{
+			Health:     component.HealthTypeUnhealthy,
+			Message:    fmt.Sprintf("failed to parse module content: %s", err),
+			UpdateTime: time.Now(),
+		})
+	} else {
+		c.mut.RLock()
+		err = c.ctrl.LoadFile(f, c.args.Arguments)
+		c.mut.RUnlock()
+		if err != nil {
+			c.setHealth(component.Health{
+				Health:     component.HealthTypeUnhealthy,
+				Message:    fmt.Sprintf("failed to load module content: %s", err),
+				UpdateTime: time.Now(),
+			})
+		} else {
+			c.setHealth(component.Health{
+				Health:     component.HealthTypeHealthy,
+				Message:    "module content loaded",
+				UpdateTime: time.Now(),
+			})
+		}
+
 		return err
 	}
 
-	return c.ctrl.LoadFile(f, c.args.Arguments)
+	return nil
 }
 
 // Handler implements component.HTTPComponent.
@@ -172,4 +223,17 @@ func (c *Component) Handler() http.Handler {
 
 	r.PathPrefix("/{id}/").Handler(c.ctrl.ComponentHandler())
 	return r
+}
+
+// CurrentHealth implements component.HealthComponent.
+func (c *Component) CurrentHealth() component.Health {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+	return c.health
+}
+
+func (c *Component) setHealth(h component.Health) {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+	c.health = h
 }
