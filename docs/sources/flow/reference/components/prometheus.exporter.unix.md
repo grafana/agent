@@ -225,7 +225,7 @@ name | type | description | default | required
 ### textfile block
 name | type | description | default | required
 ---- | ---- | ----------- | ------- | --------
-`textfile_directory` | `string` | Directory to read `*.prom` files from for the textfile collector. |  | no
+`directory` | `string` | Directory to read `*.prom` files from for the textfile collector. |  | no
 
 ### vmstat block
 name | type | description | default | required
