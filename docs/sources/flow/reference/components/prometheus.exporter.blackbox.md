@@ -45,11 +45,11 @@ The following blocks are supported inside the definition of
 
 Hierarchy | Name | Description | Required
 --------- | ---- | ----------- | --------
-blackbox_target | [blackbox_target][] | Configures a blackbox target. | yes
+target | [target][] | Configures a blackbox target. | yes
 
-[blackbox_target]: #blackbox_target-block
+[target]: #target-block
 
-### blackbox_target block
+### target block
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `name` | `string` | Name of the target. | | yes
