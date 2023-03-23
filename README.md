@@ -96,7 +96,7 @@ prometheus.remote_write "default" {
 We maintain an example [Docker Compose environment][] that can be used to
 launch dependencies to play with Grafana Agent locally.
 
-[Docker Compose environment]: https://github.com/grafana/agent/blob/main/example/docker-compose
+[Docker Compose environment]: ./example/docker-compose/
 
 ## Release cadence
 
