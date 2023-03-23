@@ -1,7 +1,7 @@
-import { faCubes, faLink } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { FC, Fragment, ReactElement } from 'react';
 import { Link } from 'react-router-dom';
+import { faCubes, faLink } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { RiverValue } from '../../features/river-js/RiverValue';
 import { AttrStmt, Body, StmtType } from '../../features/river-js/types';
