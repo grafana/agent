@@ -4,8 +4,11 @@ title: prometheus.operator.podmonitors
 
 # prometheus.operator.podmonitors
 
-`prometheus.operator.podmonitors` discovers [podMonitor]() resources in your kubernetes cluster and scrape the targets they reference. 
+`prometheus.operator.podmonitors` discovers [podMonitor]() resources in your kubernetes cluster and scrape the targets they reference. This component performs three main functions:
 
+1. Discover `PodMonitor` resources from your kubernetes cluster.
+2. Discover `Pods` in your cluster that match those `PodMonitors`.
+3. Scrape metrics from those `Pods`, and forward them to a receiver.
 
 ## Usage
 
@@ -122,7 +125,7 @@ The `operator` argument must be one of the following strings:
 * `"Exists"`
 * `"DoesNotExist"`
 
-Both `selector` and `namespace_selector` can make use of multiple
+`selector` can make use of multiple
 `match_expression` inner blocks which are treated as AND clauses.
 
 ## Exported fields
@@ -135,8 +138,49 @@ Both `selector` and `namespace_selector` can make use of multiple
 
 ## Debug information
 
+`prometheus.operator.podmonitors` reports the status of the last scrape for each configured
+scrape job on the component's debug endpoint, including discovered labels, and the last scrape time.
+
+It also exposes some debug information for each `PodMonitor` it has discovered, including any errors found while reconciling the scrape configuration from the `PodMonitor`.
 
 ### Debug metrics
 
 
 ## Example
+
+This example discovers all `PodMonitors` in your cluster, and forwards collected logs to a
+`prometheus.remote_write` component.
+
+```river
+prometheus.remote_write "staging" {
+  // Send metrics to a locally running Mimir.
+  endpoint {
+    url = "http://mimir:9009/api/v1/push"
+
+    basic_auth {
+      username = "example-user"
+      password = "example-password"
+    }
+  }
+}
+
+prometheus.operator.podmonitors "pods" {
+    forward_to = [prometheus.remote_write.staging.receiver]
+}
+```
+
+This example will limit discovered `PodMonitors` to ones with the label `team=ops` in a specific namespace: `my-app`.
+
+```river
+prometheus.operator.podmonitors "pods" {
+    forward_to = [prometheus.remote_write.staging.receiver]
+    namespaces = ["my-app"]
+    selector {
+        match_labels = {
+            key = "team"
+            operator = "In"
+            values = ["ops"]
+        }
+    }
+}
+```
