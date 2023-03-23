@@ -16,7 +16,6 @@ import (
 )
 
 func TestModule(t *testing.T) {
-
 	tempDir := t.TempDir()
 	debugLevelFile := filepath.Join(tempDir, "debug_level.txt")
 	os.WriteFile(debugLevelFile, []byte("info"), 0664)
