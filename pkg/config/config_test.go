@@ -522,7 +522,8 @@ agent_management:
 func TestConfig_EmptyServerConfigFails(t *testing.T) {
 	// Since we are testing defaults via config.Load, we need a file instead of a string.
 	// This test file has an empty server stanza, we expect default values out.
-	logger := server.NewLogger(&server.DefaultConfig)
+	defaultServerCfg := server.DefaultConfig()
+	logger := server.NewLogger(&defaultServerCfg)
 	fs := flag.NewFlagSet("", flag.ExitOnError)
 	_, err := Load(fs, []string{"--config.file", "./testdata/server_empty.yml"}, logger)
 	require.Error(t, err)

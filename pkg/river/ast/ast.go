@@ -6,6 +6,7 @@ package ast
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/grafana/agent/pkg/river/token"
 )
@@ -318,4 +319,9 @@ func EndPos(n Node) token.Pos {
 	default:
 		panic(fmt.Sprintf("Unhandled Node type %T", n))
 	}
+}
+
+// GetBlockName retrieves the "." delimited block name.
+func (block *BlockStmt) GetBlockName() string {
+	return strings.Join(block.Name, ".")
 }
