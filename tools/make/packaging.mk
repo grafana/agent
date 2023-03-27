@@ -3,10 +3,10 @@
 PARENT_MAKEFILE := $(firstword $(MAKEFILE_LIST))
 
 .PHONY: dist clean-dist
-dist: dist-agent-binaries dist-agentctl-binaries dist-packages dist-agent-installer
+dist: dist-agent-binaries dist-agent-flow-binaries dist-agentctl-binaries dist-packages dist-agent-installer
 
 clean-dist:
-	rm -rf dist
+	rm -rf dist dist.temp
 
 # Used for passing through environment variables to sub-makes.
 #
@@ -75,7 +75,7 @@ dist/grafana-agent-freebsd-amd64: GO_TAGS += builtinassets
 dist/grafana-agent-freebsd-amd64: GOOS    := freebsd
 dist/grafana-agent-freebsd-amd64: GOARCH  := amd64
 dist/grafana-agent-freebsd-amd64: generate-ui
-	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
+	$(PACKAGING_VARS) AGEAGENT_BINARYNT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
 #
 # agentctl release binaries.
@@ -129,6 +129,52 @@ dist/grafana-agentctl-freebsd-amd64: GOOS    := freebsd
 dist/grafana-agentctl-freebsd-amd64: GOARCH  := amd64
 dist/grafana-agentctl-freebsd-amd64:
 	$(PACKAGING_VARS) AGENTCTL_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agentctl
+
+#
+# agent-flow release binaries
+#
+# agent-flow release binaries are intermediate build assets used for producing
+# Flow-specific system packages. As such, they are built in a dist.temp
+# directory instead of the normal dist directory.
+#
+# Only targets needed for system packages are used here.
+#
+
+dist-agent-flow-binaries: dist.temp/grafana-agent-flow-linux-amd64       \
+                          dist.temp/grafana-agent-flow-linux-arm64       \
+                          dist.temp/grafana-agent-flow-linux-ppc64le     \
+                          dist.temp/grafana-agent-flow-linux-s390x       \
+                          dist.temp/grafana-agent-flow-windows-amd64.exe
+
+dist.temp/grafana-agent-flow-linux-amd64: GO_TAGS += builtinassets promtail_journal_enabled
+dist.temp/grafana-agent-flow-linux-amd64: GOOS    := linux
+dist.temp/grafana-agent-flow-linux-amd64: GOARCH  := amd64
+dist.temp/grafana-agent-flow-linux-amd64: generate-ui
+	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
+
+dist.temp/grafana-agent-flow-linux-arm64: GO_TAGS += builtinassets promtail_journal_enabled
+dist.temp/grafana-agent-flow-linux-arm64: GOOS    := linux
+dist.temp/grafana-agent-flow-linux-arm64: GOARCH  := arm64
+dist.temp/grafana-agent-flow-linux-arm64: generate-ui
+	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
+
+dist.temp/grafana-agent-flow-linux-ppc64le: GO_TAGS += builtinassets promtail_journal_enabled
+dist.temp/grafana-agent-flow-linux-ppc64le: GOOS    := linux
+dist.temp/grafana-agent-flow-linux-ppc64le: GOARCH  := ppc64le
+dist.temp/grafana-agent-flow-linux-ppc64le: generate-ui
+	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
+
+dist.temp/grafana-agent-flow-linux-s390x: GO_TAGS += builtinassets promtail_journal_enabled
+dist.temp/grafana-agent-flow-linux-s390x: GOOS    := linux
+dist.temp/grafana-agent-flow-linux-s390x: GOARCH  := ppc64le
+dist.temp/grafana-agent-flow-linux-s390x: generate-ui
+	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
+
+dist.temp/grafana-agent-flow-windows-amd64.exe: GO_TAGS += builtinassets
+dist.temp/grafana-agent-flow-windows-amd64.exe: GOOS    := windows
+dist.temp/grafana-agent-flow-windows-amd64.exe: GOARCH  := amd64
+dist.temp/grafana-agent-flow-windows-amd64.exe: generate-ui
+	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
 #
 # DEB and RPM packages.

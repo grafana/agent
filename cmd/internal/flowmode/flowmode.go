@@ -1,15 +1,19 @@
-package main
+// Package flowmode is the entrypoint for Grafana Agent Flow.
+package flowmode
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/prometheus/common/version"
 	"github.com/spf13/cobra"
 )
 
-func runFlow() {
+// Run is the entrypoint to Flow mode. It is expected to be called
+// directly from the main function.
+func Run() {
 	var cmd = &cobra.Command{
-		Use:     "agent [global options] <subcommand>",
+		Use:     fmt.Sprintf("%s [global options] <subcommand>", os.Args[0]),
 		Short:   "Grafana Agent Flow",
 		Version: version.Print("agent"),
 
