@@ -58,10 +58,10 @@ func buildPackages(t *testing.T) {
 
 	wd, err := os.Getwd()
 	require.NoError(t, err)
-	root, err := filepath.Abs(filepath.Join(wd, ".."))
+	root, err := filepath.Abs(filepath.Join(wd, "..", ".."))
 	require.NoError(t, err)
 
-	cmd := exec.Command("make", fmt.Sprintf("dist-packages-%s", runtime.GOARCH))
+	cmd := exec.Command("make", fmt.Sprintf("dist-agent-packages-%s", runtime.GOARCH))
 	cmd.Env = append(
 		os.Environ(),
 		"VERSION=v0.0.0",
@@ -138,9 +138,9 @@ func RPMEnvironment(t *testing.T, pool *dockertest.Pool) Environment {
 	container := environmentContainer(
 		t,
 		pool,
-		"./testdata/centos-systemd.Dockerfile",
+		"../testdata/centos-systemd.Dockerfile",
 		"agent-test-centos-systemd",
-		fmt.Sprintf("../dist/grafana-agent-0.0.0-1.%s.rpm", runtime.GOARCH),
+		fmt.Sprintf("../../dist/grafana-agent-0.0.0-1.%s.rpm", runtime.GOARCH),
 	)
 
 	return Environment{
@@ -164,9 +164,9 @@ func DEBEnvironment(t *testing.T, pool *dockertest.Pool) Environment {
 	container := environmentContainer(
 		t,
 		pool,
-		"./testdata/debian-systemd.Dockerfile",
+		"../testdata/debian-systemd.Dockerfile",
 		"agent-test-debian-systemd",
-		fmt.Sprintf("../dist/grafana-agent-0.0.0-1.%s.deb", runtime.GOARCH),
+		fmt.Sprintf("../../dist/grafana-agent-0.0.0-1.%s.deb", runtime.GOARCH),
 	)
 
 	return Environment{
