@@ -47,7 +47,7 @@ The following blocks are supported inside the definition of
 
 Hierarchy | Name | Description | Required
 --------- | ---- | ----------- | --------
-target | [target][] | Configures a SNMP target. | yes
+target | [target][] | Configures an SNMP target. | yes
 walk_param | [walk_param][] | SNMP connection profiles that can be used to override default SNMP settings. | no
 walk_param > auth | [auth][] | Configure auth for authenticating to the endpoint. | no
 
