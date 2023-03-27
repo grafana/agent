@@ -179,6 +179,15 @@ else
 	$(GO_ENV) go build $(GO_FLAGS) -o $(AGENT_BINARY) ./cmd/grafana-agent
 endif
 
+# Run with GO_TAGS=fips make agent-fips
+agent-fips:
+ifeq ($(USE_CONTAINER),1)
+	$(RERUN_IN_CONTAINER)
+else 
+	$(GO_ENV) GOEXPERIMENT=boringcrypto go build $(GO_FLAGS) -o $(AGENT_BINARY) ./cmd/grafana-agent
+endif
+
+
 agentctl:
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
