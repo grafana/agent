@@ -187,20 +187,20 @@ func TestTranslateConfigToYACEConfig(t *testing.T) {
 	err := yaml.Unmarshal([]byte(configString), &c)
 	require.NoError(t, err, "failed to unmarshall config")
 
-	yaceConf, fips, err := ToYACEConfig(&c)
+	yaceConf, fipsEnabled, err := ToYACEConfig(&c)
 	require.NoError(t, err, "failed to translate to YACE configuration")
 
 	require.EqualValues(t, expectedConfig, yaceConf)
-	require.EqualValues(t, truePtr, fips)
+	require.EqualValues(t, truePtr, fipsEnabled)
 
 	err = yaml.Unmarshal([]byte(configString2), &c)
 	require.NoError(t, err, "failed to unmarshall config")
 
-	yaceConf, fips2, err := ToYACEConfig(&c)
+	yaceConf, fipsEnabled2, err := ToYACEConfig(&c)
 	require.NoError(t, err, "failed to translate to YACE configuration")
 
 	require.EqualValues(t, expectedConfig, yaceConf)
-	require.EqualValues(t, falsePtr, fips2)
+	require.EqualValues(t, falsePtr, fipsEnabled2)
 }
 
 func TestCloudwatchExporterConfigInstanceKey(t *testing.T) {

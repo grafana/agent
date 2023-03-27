@@ -114,11 +114,11 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 
 // NewIntegration creates a new integration from the config.
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
-	exporterConfig, fips, err := ToYACEConfig(c)
+	exporterConfig, fipsEnabled, err := ToYACEConfig(c)
 	if err != nil {
 		return nil, fmt.Errorf("invalid cloudwatch exporter configuration: %w", err)
 	}
-	return newCloudwatchExporter(c.Name(), l, exporterConfig, fips), nil
+	return newCloudwatchExporter(c.Name(), l, exporterConfig, fipsEnabled), nil
 }
 
 // getHash calculates the MD5 hash of the yaml representation of the config
@@ -153,16 +153,16 @@ func ToYACEConfig(c *Config) (yaceConf.ScrapeConf, bool, error) {
 	}
 
 	// yaceSess expects a default value of True
-	fips := !(c.FIPSDisabled)
+	fipsEnabled := !(c.FIPSDisabled)
 
 	// Run the exporter's config validation. Between other things, it will check that the service for which a discovery
 	// job is instantiated, it's supported.
 	if err := conf.Validate(); err != nil {
-		return conf, fips, err
+		return conf, fipsEnabled, err
 	}
 	patchYACEDefaults(&conf)
 
-	return conf, fips, nil
+	return conf, fipsEnabled, nil
 }
 
 // patchYACEDefaults overrides some default values YACE applies after validation.
