@@ -62,7 +62,6 @@ func TestUnmarshalRiver(t *testing.T) {
 
 	require.Contains(t, "public", cfg.WalkParams[1].Name)
 	require.Contains(t, "public", cfg.WalkParams[1].Auth.Community)
-
 }
 
 func TestConvertConfig(t *testing.T) {
@@ -98,7 +97,7 @@ func TestConvertWalkParams(t *testing.T) {
 		Version:                 2,
 		MaxRepetitions:          uint32(10),
 		Retries:                 3,
-		Timeout:                 time.Duration(5 * time.Second),
+		Timeout:                 time.Duration(5),
 		UseUnconnectedUDPSocket: true,
 	}}
 
@@ -107,7 +106,7 @@ func TestConvertWalkParams(t *testing.T) {
 	require.Equal(t, 2, res["public"].Version)
 	require.Equal(t, uint32(10), res["public"].MaxRepetitions)
 	require.Equal(t, 3, res["public"].Retries)
-	require.Equal(t, time.Duration(5*time.Second), res["public"].Timeout)
+	require.Equal(t, time.Duration(5), res["public"].Timeout)
 	require.Equal(t, true, res["public"].UseUnconnectedUDPSocket)
 }
 

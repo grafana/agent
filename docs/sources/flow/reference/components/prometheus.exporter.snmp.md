@@ -56,6 +56,10 @@ walk_param > auth | [auth][] | Configure auth for authenticating to the endpoint
 [auth]: #auth-block
 
 ### target block
+
+The `target` block defines an individual SNMP target.
+The `target` block may be specified multiple times to define multiple targets.
+
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `name` | `string` | Name of a snmp_target. | | yes
@@ -64,6 +68,10 @@ Name | Type | Description | Default | Required
 `walk_params`| `string` | Config to use for this target. | `""` | no
 
 ### walk_param block
+
+The `walk_param` block defines an individual SNMP connection profile that can be used to override default SNMP settings.
+The `walk_param` block may be specified multiple times to define multiple SNMP connection profiles.
+
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `name` | `string` | Name of the module to override. | | no
@@ -76,6 +84,9 @@ Name | Type | Description | Default | Required
 `version` 1 will use GETNEXT, 2 and 3 use GETBULK.
 
 ### auth block
+
+The `auth` block defines an individual SNMP authentication profile that can be used to override default SNMP auth settings.
+
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `community` | `secret` | Community string is used with SNMP v1 and v2. | `"public"` | no

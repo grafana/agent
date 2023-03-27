@@ -50,6 +50,10 @@ target | [target][] | Configures a blackbox target. | yes
 [target]: #target-block
 
 ### target block
+
+The `target` block defines an individual blackbox target.
+The `target` block may be specified multiple times to define multiple targets.
+
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `name` | `string` | Name of the target. | | yes
