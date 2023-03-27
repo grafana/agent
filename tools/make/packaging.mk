@@ -150,31 +150,31 @@ dist.temp/grafana-agent-flow-linux-amd64: GO_TAGS += builtinassets promtail_jour
 dist.temp/grafana-agent-flow-linux-amd64: GOOS    := linux
 dist.temp/grafana-agent-flow-linux-amd64: GOARCH  := amd64
 dist.temp/grafana-agent-flow-linux-amd64: generate-ui
-	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
+	$(PACKAGING_VARS) FLOW_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent-flow
 
 dist.temp/grafana-agent-flow-linux-arm64: GO_TAGS += builtinassets promtail_journal_enabled
 dist.temp/grafana-agent-flow-linux-arm64: GOOS    := linux
 dist.temp/grafana-agent-flow-linux-arm64: GOARCH  := arm64
 dist.temp/grafana-agent-flow-linux-arm64: generate-ui
-	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
+	$(PACKAGING_VARS) FLOW_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent-flow
 
 dist.temp/grafana-agent-flow-linux-ppc64le: GO_TAGS += builtinassets promtail_journal_enabled
 dist.temp/grafana-agent-flow-linux-ppc64le: GOOS    := linux
 dist.temp/grafana-agent-flow-linux-ppc64le: GOARCH  := ppc64le
 dist.temp/grafana-agent-flow-linux-ppc64le: generate-ui
-	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
+	$(PACKAGING_VARS) FLOW_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent-flow
 
 dist.temp/grafana-agent-flow-linux-s390x: GO_TAGS += builtinassets promtail_journal_enabled
 dist.temp/grafana-agent-flow-linux-s390x: GOOS    := linux
 dist.temp/grafana-agent-flow-linux-s390x: GOARCH  := ppc64le
 dist.temp/grafana-agent-flow-linux-s390x: generate-ui
-	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
+	$(PACKAGING_VARS) FLOW_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent-flow
 
 dist.temp/grafana-agent-flow-windows-amd64.exe: GO_TAGS += builtinassets
 dist.temp/grafana-agent-flow-windows-amd64.exe: GOOS    := windows
 dist.temp/grafana-agent-flow-windows-amd64.exe: GOARCH  := amd64
 dist.temp/grafana-agent-flow-windows-amd64.exe: generate-ui
-	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
+	$(PACKAGING_VARS) FLOW_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent-flow
 
 #
 # DEB and RPM packages.
