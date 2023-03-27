@@ -126,8 +126,8 @@ For more information on configuring metrics delivery, refer to
 Grafana Agent Flow can be configured to collect metrics from Kubernetes Pods
 by:
 
-1. Discovering Kubernetes Pods to collect metrics from
-2. Collecting metrics from those discovered Pods
+1. Discovering Kubernetes Pods to collect metrics from.
+2. Collecting metrics from those discovered Pods.
 
 To collect metrics from Kubernetes Pods, complete the following steps:
 
@@ -270,8 +270,8 @@ metrics, refer to [discovery.kubernetes][] and [prometheus.scrape][].
 Grafana Agent Flow can be configured to collect metrics from Kubernetes Services
 by:
 
-1. Discovering Kubernetes Services to collect metrics from
-2. Collecting metrics from those discovered Services
+1. Discovering Kubernetes Services to collect metrics from.
+2. Collecting metrics from those discovered Services.
 
 To collect metrics from Kubernetes Services, complete the following steps:
 
