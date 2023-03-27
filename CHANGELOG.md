@@ -36,11 +36,10 @@ Main (unreleased)
     based OpenTelemetry exporters. (@ptodev)
   - `otelcol.extension.jaeger_remote_sampling` provides an endpoint from which to
     pull Jaeger remote sampling documents. (@joe-elliott)
-  - `prometheus.exporter.blackbox` collects metrics from Blackbox exporter
-    (@marctc).
-  - `prometheus.exporter.mysql` collects metrics from a MySQL database.
-    (@spartan0x117)
+  - `prometheus.exporter.blackbox` collects metrics from Blackbox exporter (@marctc).
+  - `prometheus.exporter.mysql` collects metrics from a MySQL database. (@spartan0x117)
   - `prometheus.exporter.postgres` collects metrics from a PostgreSQL database. (@spartan0x117)
+  - `prometheus.exporter.snmp` collects metrics from SNMP exporter (@marctc).
   - `otelcol.auth.sigv4` performs AWS Signature Version 4 (SigV4) authentication 
     for making requests to AWS services via `otelcol` components that support
     authentication extensions. (@ptodev)
