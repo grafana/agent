@@ -153,9 +153,10 @@ refer to [otelcol.exporter.otlp][].
 
 ## Configure batching
 
-Production-ready Grafana Agent Flow components will not send OpenTelemetry data
-directly to an exporter for delivery. Instead, data is usually sent to one or
-more _processor components_ that perform various transformations on the data.
+Production-ready Grafana Agent Flow configurations should not send
+OpenTelemetry data directly to an exporter for delivery. Instead, data is
+usually sent to one or more _processor components_ that perform various
+transformations on the data.
 
 Ensuring data is batched is a production-readiness step to improve the
 compression of data and reduce the number of outgoing network requests to
@@ -182,7 +183,7 @@ steps:
    configuration file:
 
    ```river
-   otelcol.processor.batch "LABEL" {
+   otelcol.processor.batch "PROCESSOR_LABEL" {
      output {
        metrics = [otelcol.exporter.otlp.EXPORTER_LABEL.input]
        logs    = [otelcol.exporter.otlp.EXPORTER_LABEL.input]
@@ -191,7 +192,7 @@ steps:
    }
    ```
 
-    1. Replace `LABEL` with a label to use for the component, such as
+    1. Replace `PROCESSOR_LABEL` with a label to use for the component, such as
        `default`. The label chosen must be unique across all
        `otelcol.processor.batch` components in the same configuration file.
 
@@ -287,11 +288,11 @@ data, complete the following steps:
        to an existing exporter component, use
        `otelcol.exporter.otlp.EXPORTER_LABEL.input`.
 
-    3. To enable receiving OTLP data over gRPC on port `4317`, add `grpc {}` to
-       your `otelcol.receiver.otlp` component.
+    3. To allow applications to send OTLP data over gRPC on port `4317`, add
+       `grpc {}` to your `otelcol.receiver.otlp` component.
 
-    4. To enable receiving OTLP data over HTTP on port `4318`, add `http {}` to
-       your `otelcol.receiver.otlp` component.
+    4. To allow applications to send OTLP data over HTTP/1.1 on port `4318`,
+       add `http {}` to your `otelcol.receiver.otlp` component.
 
     5. To disable one of the telemetry types, set the relevant type in the
        `output` block to the empty list, such as `metrics = []`.
