@@ -3,7 +3,8 @@ import { NavLink } from 'react-router-dom';
 
 import { HealthLabel } from '../component/HealthLabel';
 import { ComponentInfo } from '../component/types';
-import Table from '../widgets/Table';
+
+import Table from './Table';
 
 import styles from './ComponentList.module.css';
 

@@ -2,9 +2,9 @@ import React, { Fragment } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 
 import { riverStringify } from '../river-js/stringify';
-import Table from '../widgets/Table';
 
 import { style } from './style';
+import Table from './Table';
 import { PartitionedBody } from './types';
 
 import styles from './ComponentView.module.css';
