@@ -166,7 +166,7 @@ test:
 
 test-packages:
 	docker pull $(BUILD_IMAGE)
-	go test -tags=packaging  ./packaging/grafana-agent
+	go test -tags=packaging  ./packaging/grafana-agent ./packaging/grafana-agent-flow
 
 #
 # Targets for building binaries

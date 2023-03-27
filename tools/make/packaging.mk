@@ -3,7 +3,7 @@
 PARENT_MAKEFILE := $(firstword $(MAKEFILE_LIST))
 
 .PHONY: dist clean-dist
-dist: dist-agent-binaries dist-agent-flow-binaries dist-agentctl-binaries dist-agent-packages dist-agent-installer
+dist: dist-agent-binaries dist-agent-flow-binaries dist-agentctl-binaries dist-agent-packages dist-agent-flow-packages dist-agent-installer
 
 clean-dist:
 	rm -rf dist dist.temp
@@ -248,8 +248,83 @@ dist-agent-packages-s390x: dist/grafana-agent-linux-s390x dist/grafana-agentctl-
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
-	$(call generate_agent_fpm,deb,s390x,s390x,$(PACKAGE_PREFIX).s390x.deb)
-	$(call generate_agent_fpm,rpm,s390x,s390x,$(PACKAGE_PREFIX).s390x.rpm)
+	$(call generate_agent_fpm,deb,s390x,s390x,$(AGENT_PACKAGE_PREFIX).s390x.deb)
+	$(call generate_agent_fpm,rpm,s390x,s390x,$(AGENT_PACKAGE_PREFIX).s390x.rpm)
+endif
+
+#
+# DEB and RPM grafana-agent-flow packages.
+#
+
+FLOW_ENVIRONMENT_FILE_rpm := /etc/sysconfig/grafana-agent-flow
+FLOW_ENVIRONMENT_FILE_deb := /etc/default/grafana-agent-flow
+
+# generate_flow_fpm(deb|rpm, package arch, agent arch, output file)
+define generate_flow_fpm =
+	fpm -s dir -v $(FLOW_PACKAGE_VERSION) -a $(2) \
+		-n grafana-agent-flow --iteration $(FLOW_PACKAGE_RELEASE) -f \
+		--log error \
+		--license "Apache 2.0" \
+		--vendor "Grafana Labs" \
+		--url "https://github.com/grafana/agent" \
+		-t $(1) \
+		--after-install packaging/grafana-agent-flow/$(1)/control/postinst \
+		--before-remove packaging/grafana-agent-flow/$(1)/control/prerm \
+		--config-files /etc/grafana-agent-flow.river \
+		--config-files $(FLOW_ENVIRONMENT_FILE_$(1)) \
+		--rpm-rpmbuild-define "_build_id_links none" \
+		--package $(4) \
+			dist.temp/grafana-agent-flow-linux-$(3)=/usr/bin/grafana-agent-flow \
+			packaging/grafana-agent-flow/grafana-agent-flow.river=/etc/grafana-agent-flow.river \
+			packaging/grafana-agent-flow/environment-file=$(FLOW_ENVIRONMENT_FILE_$(1)) \
+			packaging/grafana-agent-flow/$(1)/grafana-agent-flow.service=/usr/lib/systemd/system/grafana-agent-flow.service
+endef
+
+FLOW_PACKAGE_VERSION := $(patsubst v%,%,$(VERSION))
+FLOW_PACKAGE_RELEASE := 1
+FLOW_PACKAGE_PREFIX  := dist/grafana-agent-flow-$(AGENT_PACKAGE_VERSION)-$(AGENT_PACKAGE_RELEASE)
+
+.PHONY: dist-agent-flow-packages
+dist-agent-flow-packages: dist-agent-flow-packages-amd64   \
+                          dist-agent-flow-packages-arm64   \
+                          dist-agent-flow-packages-arm64   \
+                          dist-agent-flow-packages-ppc64le \
+                          dist-agent-flow-packages-s390x
+
+.PHONY: dist-agent-flow-packages-amd64
+dist-agent-flow-packages-amd64: dist.temp/grafana-agent-flow-linux-amd64
+ifeq ($(USE_CONTAINER),1)
+	$(RERUN_IN_CONTAINER)
+else
+	$(call generate_flow_fpm,deb,amd64,amd64,$(FLOW_PACKAGE_PREFIX).amd64.deb)
+	$(call generate_flow_fpm,rpm,x86_64,amd64,$(FLOW_PACKAGE_PREFIX).amd64.rpm)
+endif
+
+.PHONY: dist-agent-flow-packages-arm64
+dist-agent-flow-packages-arm64: dist.temp/grafana-agent-flow-linux-arm64
+ifeq ($(USE_CONTAINER),1)
+	$(RERUN_IN_CONTAINER)
+else
+	$(call generate_flow_fpm,deb,arm64,arm64,$(FLOW_PACKAGE_PREFIX).arm64.deb)
+	$(call generate_flow_fpm,rpm,aarch64,arm64,$(FLOW_PACKAGE_PREFIX).arm64.rpm)
+endif
+
+.PHONY: dist-agent-flow-packages-ppc64le
+dist-agent-flow-packages-ppc64le: dist.temp/grafana-agent-flow-linux-ppc64le
+ifeq ($(USE_CONTAINER),1)
+	$(RERUN_IN_CONTAINER)
+else
+	$(call generate_flow_fpm,deb,ppc64el,ppc64le,$(FLOW_PACKAGE_PREFIX).ppc64el.deb)
+	$(call generate_flow_fpm,rpm,ppc64le,ppc64le,$(FLOW_PACKAGE_PREFIX).ppc64le.rpm)
+endif
+
+.PHONY: dist-agent-flow-packages-s390x
+dist-agent-flow-packages-s390x: dist.temp/grafana-agent-flow-linux-s390x
+ifeq ($(USE_CONTAINER),1)
+	$(RERUN_IN_CONTAINER)
+else
+	$(call generate_flow_fpm,deb,s390x,s390x,$(FLOW_PACKAGE_PREFIX).s390x.deb)
+	$(call generate_flow_fpm,rpm,s390x,s390x,$(FLOW_PACKAGE_PREFIX).s390x.rpm)
 endif
 
 #
