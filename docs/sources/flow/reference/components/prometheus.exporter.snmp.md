@@ -36,7 +36,7 @@ Omitted fields take their default values.
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`config_file` | `string`       | SNMP configuration file with custom modules. | | yes
+`config_file` | `string`       | SNMP configuration file defining custom modules. | | yes
 
 The `config_file` argument points to a YAML file defining which snmp_exporter modules to use. See [snmp_exporter](https://github.com/prometheus/snmp_exporter#generating-configuration) for details on how to generate a config file.
 
