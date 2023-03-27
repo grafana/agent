@@ -7,6 +7,7 @@ import (
 
 	util_log "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/cmd/internal/flowmode"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/server"
 
@@ -47,7 +48,7 @@ func main() {
 	// If flow is enabled go into that working mode
 	// TODO allow flow to run as a windows service
 	if runMode == runModeFlow {
-		runFlow()
+		flowmode.Run()
 		return
 	}
 
