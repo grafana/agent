@@ -77,6 +77,8 @@ Main (unreleased)
 
 - Fix issue where a DefaultConfig might be mutated during unmarshaling. (@jcreixell)
 
+- Fix issues where CloudWatch Exporter cannot use FIPS Endpoints outside of USA regions (@aglees)
+
 ### Other changes
 
 - Grafana Agent Docker containers and release binaries are now published for
