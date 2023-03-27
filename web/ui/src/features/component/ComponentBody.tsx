@@ -47,7 +47,7 @@ const ComponentBody = ({ partition }: ComponentBodyProps) => {
             <h3>
               {partition.displayName.map((val, idx) => {
                 return (
-                  <Fragment key={idx.toString()}>
+                  <Fragment key={val}>
                     <span>{val}</span>
                     {idx + 1 < partition.key.length && <span> / </span>}
                   </Fragment>

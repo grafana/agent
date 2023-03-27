@@ -55,13 +55,13 @@ function riverStringifyImpl(v: Value, indent: number): string {
         const keyLength = partitionKeyLength(partition);
 
         return partition.forEach((element) => {
-          result += getLinePrefix(indent + 1);
+          result += indentLine(indent + 1);
           result += `${partitionKey(element, keyLength)} = ${riverStringifyImpl(element.value, indent + 1)}`;
           result += ',\n';
         });
       });
 
-      result += getLinePrefix(indent) + '}';
+      result += indentLine(indent) + '}';
       return result;
     }
 
@@ -111,7 +111,7 @@ function escapeString(input: string): string {
   });
 }
 
-function getLinePrefix(indentLevel: number): string {
+function indentLine(indentLevel: number): string {
   if (indentLevel === 0) {
     return '';
   }
