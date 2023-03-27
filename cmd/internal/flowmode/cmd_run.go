@@ -24,6 +24,7 @@ import (
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
+	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/usagestats"
 	"github.com/prometheus/client_golang/prometheus"
@@ -37,10 +38,16 @@ import (
 
 func runCommand() *cobra.Command {
 	r := &flowRun{
-		httpListenAddr:   "127.0.0.1:12345",
-		storagePath:      "data-agent/",
-		uiPrefix:         "/",
-		disableReporting: false,
+		Server: flowRunServer{
+			HTTP: flowRunServerHTTP{
+				ListenAddr: "127.0.0.1:12345",
+				UIPrefix:   "/",
+			},
+		},
+		Storage: flowRunStorage{
+			Path: "data-agent/",
+		},
+		DisableReporting: false,
 	}
 
 	cmd := &cobra.Command{
@@ -73,24 +80,51 @@ depending on the nature of the reload error.
 		SilenceUsage: true,
 
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if r.RunConfigPath != "" {
+				bb, err := os.ReadFile(r.RunConfigPath)
+				if err != nil {
+					return fmt.Errorf("reading flags-config-file: %w", err)
+				}
+
+				if err := river.Unmarshal(bb, r); err != nil {
+					return fmt.Errorf("parsing flags-config-file: %w", err)
+				}
+			}
+
 			return r.Run(args[0])
 		},
 	}
 
 	cmd.Flags().
-		StringVar(&r.httpListenAddr, "server.http.listen-addr", r.httpListenAddr, "address to listen for HTTP traffic on")
-	cmd.Flags().StringVar(&r.storagePath, "storage.path", r.storagePath, "Base directory where components can store data")
-	cmd.Flags().StringVar(&r.uiPrefix, "server.http.ui-path-prefix", r.uiPrefix, "Prefix to serve the HTTP UI at")
+		StringVar(&r.RunConfigPath, "flags-config-file", "", "Optional path to a River file containing values for flags.")
 	cmd.Flags().
-		BoolVar(&r.disableReporting, "disable-reporting", r.disableReporting, "Disable reporting of enabled components to Grafana.")
+		StringVar(&r.Server.HTTP.ListenAddr, "server.http.listen-addr", r.Server.HTTP.ListenAddr, "address to listen for HTTP traffic on")
+	cmd.Flags().StringVar(&r.Server.HTTP.UIPrefix, "server.http.ui-path-prefix", r.Server.HTTP.UIPrefix, "Prefix to serve the HTTP UI at")
+	cmd.Flags().StringVar(&r.Storage.Path, "storage.path", r.Storage.Path, "Base directory where components can store data")
+	cmd.Flags().
+		BoolVar(&r.DisableReporting, "disable-reporting", r.DisableReporting, "Disable reporting of enabled components to Grafana.")
 	return cmd
 }
 
 type flowRun struct {
-	httpListenAddr   string
-	storagePath      string
-	uiPrefix         string
-	disableReporting bool
+	RunConfigPath string
+
+	Server           flowRunServer  `river:"server,block,optional"`
+	Storage          flowRunStorage `river:"storage,block,optional"`
+	DisableReporting bool           `river:"disable_reporting,attr,optional"`
+}
+
+type flowRunServer struct {
+	HTTP flowRunServerHTTP `river:"http,block,optional"`
+}
+
+type flowRunServerHTTP struct {
+	ListenAddr string `river:"listen_addr,attr,optional"`
+	UIPrefix   string `river:"ui_prefix,attr,optional"`
+}
+
+type flowRunStorage struct {
+	Path string `river:"path,attr,optional"`
 }
 
 func (fr *flowRun) Run(configFile string) error {
@@ -141,10 +175,10 @@ func (fr *flowRun) Run(configFile string) error {
 	f := flow.New(flow.Options{
 		LogSink:        logSink,
 		Tracer:         t,
-		DataPath:       fr.storagePath,
+		DataPath:       fr.Storage.Path,
 		Reg:            reg,
 		HTTPPathPrefix: "/api/v0/component/",
-		HTTPListenAddr: fr.httpListenAddr,
+		HTTPListenAddr: fr.Server.HTTP.ListenAddr,
 	})
 
 	reload := func() error {
@@ -172,9 +206,9 @@ func (fr *flowRun) Run(configFile string) error {
 
 	// HTTP server
 	{
-		lis, err := net.Listen("tcp", fr.httpListenAddr)
+		lis, err := net.Listen("tcp", fr.Server.HTTP.ListenAddr)
 		if err != nil {
-			return fmt.Errorf("failed to listen on %s: %w", fr.httpListenAddr, err)
+			return fmt.Errorf("failed to listen on %s: %w", fr.Server.HTTP.ListenAddr, err)
 		}
 
 		r := mux.NewRouter()
@@ -211,11 +245,11 @@ func (fr *flowRun) Run(configFile string) error {
 
 		// Register Routes must be the last
 		fa := api.NewFlowAPI(f, r)
-		fa.RegisterRoutes(path.Join(fr.uiPrefix, "/api/v0/web"), r)
+		fa.RegisterRoutes(path.Join(fr.Server.HTTP.UIPrefix, "/api/v0/web"), r)
 
 		// NOTE(rfratto): keep this at the bottom of all other routes, otherwise it
 		// will take precedence over anything else mapped in uiPrefix.
-		ui.RegisterRoutes(fr.uiPrefix, r)
+		ui.RegisterRoutes(fr.Server.HTTP.UIPrefix, r)
 
 		srv := &http.Server{Handler: r}
 
@@ -224,7 +258,7 @@ func (fr *flowRun) Run(configFile string) error {
 			defer wg.Done()
 			defer cancel()
 
-			level.Info(l).Log("msg", "now listening for http traffic", "addr", fr.httpListenAddr)
+			level.Info(l).Log("msg", "now listening for http traffic", "addr", fr.Server.HTTP.ListenAddr)
 			if err := srv.Serve(lis); err != nil {
 				level.Info(l).Log("msg", "http server closed", "err", err)
 			}
@@ -234,7 +268,7 @@ func (fr *flowRun) Run(configFile string) error {
 	}
 
 	// Report usage of enabled components
-	if !fr.disableReporting {
+	if !fr.DisableReporting {
 		reporter, err := usagestats.NewReporter(l)
 		if err != nil {
 			return fmt.Errorf("failed to create reporter: %w", err)
