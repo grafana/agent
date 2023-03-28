@@ -31,7 +31,7 @@ var DefaultArguments = Arguments{
 
 // Arguments configures the prometheus.exporter.memcached component.
 type Arguments struct {
-	// Address is the address of the memcached server to connect to.
+	// Address is the address of the memcached server to connect to (host:port).
 	Address string `river:"address,attr,optional"`
 
 	// Timeout is the timeout for the memcached exporter to use when connecting to the
