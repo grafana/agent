@@ -11,7 +11,7 @@ title: prometheus.exporter.memcached
 
 # COMPONENT_NAME
 The `prometheus.exporter.memcached` component embeds
-[memcached_exporter](https://github.com/prometheus/memcached_exporter) for collecting metrics from a memcached server.
+[memcached_exporter](https://github.com/prometheus/memcached_exporter) for collecting metrics from a Memcached server.
 
 ## Usage
 ```river
@@ -24,8 +24,8 @@ The following arguments are supported:
 
 Name             | Type       | Description                                         | Default               | Required |
 ---------------- | ---------- | --------------------------------------------------- | --------------------- | -------- |
-`address`        | `string`   | The memcached server address.                       | `"localhost:11211"`   | no       |
-`timeout`        | `duration` | The timeout for connecting to the memcached server. | `"1s"`                | no       |
+`address`        | `string`   | The Memcached server address.                       | `"localhost:11211"`   | no       |
+`timeout`        | `duration` | The timeout for connecting to the Memcached server. | `"1s"`                | no       |
 
 ## Blocks
 The `prometheus.exporter.memcached` component does not support any blocks, and is configured 
@@ -56,7 +56,7 @@ debug information.
 debug metrics.
 
 ## Examples
-This minimal example uses a `prometheus.exporter.memcached` component to collect metrics from a memcached
+This minimal example uses a `prometheus.exporter.memcached` component to collect metrics from a Memcached
 server running locally, and scrapes the metrics using a [prometheus.scrape][scrape] component:
 
 ```river
