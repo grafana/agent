@@ -5,8 +5,8 @@ weight: 300
 
 # Collect OpenTelemetry data
 
-Grafana Agent Flow can be configured to collect [OpenTelemetry][] data and
-forward it to any OpenTelemetry-compatible endpoint.
+Grafana Agent Flow can be configured to collect [OpenTelemetry][]-compatible
+data and forward it to any OpenTelemetry-compatible endpoint.
 
 This topic describes how to:
 
@@ -41,7 +41,7 @@ This topic describes how to:
 
 [Components]: {{< relref "../concepts/components.md" >}}
 
-## Configure an OpenTelemetry exporter
+## Configure an OpenTelemetry Protocol exporter
 
 Before components can receive OpenTelemetry data, you must have a component
 responsible for exporting the OpenTelemetry data. An OpenTelemetry _exporter
@@ -59,7 +59,7 @@ to forward data to it.
 > [Components]: {{< relref "../reference/components/" >}}
 
 To configure an `otelcol.exporter.otlp` component for exporting OpenTelemetry
-data, complete the following steps:
+data using OTLP, complete the following steps:
 
 1. Add the following `otelcol.exporter.otlp` component to your configuration
    file:
@@ -77,9 +77,9 @@ data, complete the following steps:
        `otelcol.exporter.otlp` components in the same configuration file.
 
     2. Replace `HOST` with the hostname or IP address of the server to send
-       OpenTelemetry data to.
+       OTLP requests to.
 
-    3. Replace `PORT` with the port of the server to send OpenTelemetry data to.
+    3. Replace `PORT` with the port of the server to send OTLP requests to.
 
 2. If your server requires basic authentication, complete the following:
 
@@ -137,8 +137,13 @@ otelcol.auth.basic "credentials" {
 }
 
 otelcol.receiver.otlp "example" {
-  http {}
-  grpc {}
+  grpc {
+    endpoint = "127.0.0.1:4317"
+  }
+
+  http {
+    endpoint = "127.0.0.1:4318"
+  }
 
   output {
     metrics = [otelcol.exporter.otlp.default.input]
@@ -148,8 +153,8 @@ otelcol.receiver.otlp "example" {
 }
 ```
 
-For more information on configuring OpenTelemetry data delivery using OTLP,
-refer to [otelcol.exporter.otlp][].
+For more information writing OpenTelemetry data using the OpenTelemetry
+Protocol, refer to [otelcol.exporter.otlp][].
 
 ## Configure batching
 
@@ -175,9 +180,9 @@ batch data before sending it to our exporter.
 To configure an `otelcol.processor.batch` component, complete the following
 steps:
 
-1. Follow [Configure an OpenTelemetry
-   exporter](#configure-an-opentelemetry-exporter) to ensure received data can
-   be written to an external system.
+1. Follow [Configure an OpenTelemetry Protocol
+   exporter](#configure-an-opentelemetry-protocol-exporter) to ensure received
+   data can be written to an external system.
 
 2. Add the following `otelcol.processor.batch` component into your
    configuration file:
@@ -238,7 +243,7 @@ otelcol.exporter.otlp "default" {
 For more information on configuring OpenTelemetry data batching, refer to
 [otelcol.processor.batch][].
 
-## Configure an OpenTelemetry receiver
+## Configure an OpenTelemetry Protocol receiver
 
 Grafana Agent Flow can be configured to receive OpenTelemetry metrics, logs,
 and traces. An OpenTelemetry _receiver_ component is responsible for receiving
@@ -250,16 +255,17 @@ receiver component can be configured to forward received data to other Grafana
 Agent Flow components.
 
 > Refer to the list of available [Components][] for the full list of
-> `otelcol.receiver` components that can be used to receive OpenTelemetry data.
+> `otelcol.receiver` components that can be used to receive
+> OpenTelemetry-compatible data.
 >
 > [Components]: {{< relref "../reference/components/" >}}
 
-To configure an `otelcol.receiver.otlp` component for receiving OpenTelemetry
-data, complete the following steps:
+To configure an `otelcol.receiver.otlp` component for receiving OTLP data,
+complete the following steps:
 
-1. Follow [Configure an OpenTelemetry
-   exporter](#configure-an-opentelemetry-exporter) to ensure received data can
-   be written to an external system.
+1. Follow [Configure an OpenTelemetry Protocol
+   exporter](#configure-an-opentelemetry-protocol-exporter) to ensure received
+   data can be written to an external system.
 
 2. Optional: Follow [Configure batching](#configure-batching) to improve
    compression and reduce the total amount of network requests.
@@ -289,10 +295,32 @@ data, complete the following steps:
        `otelcol.exporter.otlp.EXPORTER_LABEL.input`.
 
     3. To allow applications to send OTLP data over gRPC on port `4317`, add
-       `grpc {}` to your `otelcol.receiver.otlp` component.
+       the following to your `otelcol.receiver.otlp` component:
+
+       ```river
+       grpc {
+         endpoint = "HOST:4317"
+       }
+       ```
+
+        1. Replace `HOST` with a host to listen to traffic on. It is
+           recommended to use a narrowly-scoped listen address whenever
+           possible. To listen on all network interfaces, replace `HOST` with
+           `0.0.0.0`.
 
     4. To allow applications to send OTLP data over HTTP/1.1 on port `4318`,
-       add `http {}` to your `otelcol.receiver.otlp` component.
+       add the following to your `otelcol.receiver.otlp` component:
+
+       ```river
+       http {
+         endpoint = "HOST:4318"
+       }
+       ```
+
+        1. Replace `HOST` with a host to listen to traffic on. It is
+           recommended to use a narrowly-scoped listen address whenever
+           possible. To listen on all network interfaces, replace `HOST` with
+           `0.0.0.0`.
 
     5. To disable one of the telemetry types, set the relevant type in the
        `output` block to the empty list, such as `metrics = []`.
@@ -302,8 +330,13 @@ sending it to an exporter:
 
 ```river
 otelcol.receiver.otlp "example" {
-  http {}
-  grpc {}
+  grpc {
+    endpoint = "127.0.0.1:4317"
+  }
+
+  http {
+    endpoint = "127.0.0.1:4318"
+  }
 
   output {
     metrics = [otelcol.processor.batch.example.input]
@@ -327,5 +360,5 @@ otelcol.exporter.otlp "default" {
 }
 ```
 
-For more information on configuring OpenTelemetry data delivery using OTLP,
-refer to [otelcol.receiver.otlp][].
+For more information on receiving OpenTelemetry data using the OpenTelemetry
+Protocol, refer to [otelcol.receiver.otlp][].
