@@ -181,7 +181,6 @@ func (i *Instance) ApplyConfig(c *InstanceConfig, dryRun bool) error {
 		ScrapeConfig:    c.ScrapeConfig,
 		TargetConfig:    c.TargetConfig,
 		LimitsConfig:    c.LimitsConfig,
-		Options:         c.Options,
 		Tracing:         tracing.Config{Enabled: false},
 		WAL:             wal.Config{Enabled: false},
 	}, nil, clientMetrics, dryRun, promtail.WithLogger(i.log), promtail.WithRegisterer(i.reg))

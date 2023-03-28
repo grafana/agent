@@ -80,8 +80,6 @@ scrape_configs:
 [target_config: <promtail.target_config>]
 
 [limits_config: <promtail.limits_config>]
-
-[options: <promtail.options_config>]
 ```
 > **Note:** More information on the following types can be found on the
 > documentation for Promtail:
@@ -90,7 +88,6 @@ scrape_configs:
 > * [`promtail.scrape_config`](https://grafana.com/docs/loki/latest/clients/promtail/configuration/#scrape_configs)
 > * [`promtail.target_config`](https://grafana.com/docs/loki/latest/clients/promtail/configuration/#target_config)
 > * [`promtail.limits_config`](https://grafana.com/docs/loki/latest/clients/promtail/configuration/#limits_config)
-> * [`promtail.options_config`](https://grafana.com/docs/loki/latest/clients/promtail/configuration/#options_config)
 
 > **Note:** Backticks in values are not supported.
 
