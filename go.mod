@@ -683,3 +683,7 @@ exclude (
 )
 
 replace github.com/github/smimesign => github.com/grafana/smimesign v0.2.1-0.20220408144937-2a5adf3481d3
+
+// TODO(rfratto): remove once a new version of node_exporter is available that
+// uses a newer version of procfs.
+replace github.com/prometheus/procfs => github.com/prometheus/procfs v0.8.0
