@@ -146,6 +146,9 @@ func buildTar(path string) (io.Reader, error) {
 	}
 
 	_, err = io.Copy(w, f)
+	if err != nil {
+		return nil, err
+	}
 	return &buf, err
 }
 

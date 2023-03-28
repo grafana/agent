@@ -212,7 +212,6 @@ AGENT_PACKAGE_PREFIX  := dist/grafana-agent-$(AGENT_PACKAGE_VERSION)-$(AGENT_PAC
 .PHONY: dist-agent-packages
 dist-agent-packages: dist-agent-packages-amd64   \
                      dist-agent-packages-arm64   \
-                     dist-agent-packages-arm64   \
                      dist-agent-packages-ppc64le \
                      dist-agent-packages-s390x
 
@@ -286,7 +285,6 @@ FLOW_PACKAGE_PREFIX  := dist/grafana-agent-flow-$(AGENT_PACKAGE_VERSION)-$(AGENT
 
 .PHONY: dist-agent-flow-packages
 dist-agent-flow-packages: dist-agent-flow-packages-amd64   \
-                          dist-agent-flow-packages-arm64   \
                           dist-agent-flow-packages-arm64   \
                           dist-agent-flow-packages-ppc64le \
                           dist-agent-flow-packages-s390x
