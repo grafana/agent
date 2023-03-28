@@ -1,7 +1,6 @@
 package statsd
 
 import (
-	"path/filepath"
 	"testing"
 	"time"
 
@@ -15,7 +14,7 @@ var (
 		listen_tcp = "1011"
 		listen_unixgram = "unix"
 		unix_socket_mode = "prom"
-		mapping_config_path = "` + filepath.Join("testdata", "mapTest.yaml") + `"
+		mapping_config_path = "./testdata/mapTest.yaml"
 		read_buffer = 1
 		cache_size = 2
 		cache_type = "random"
@@ -29,8 +28,8 @@ var (
 	duration1m, _ = time.ParseDuration("1m")
 )
 
-func TestRiverUnmarshall(t *testing.T) {
-	var args Config
+func TestRiverUnmarshal(t *testing.T) {
+	var args Arguments
 	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
 	require.NoError(t, err)
 
@@ -47,11 +46,11 @@ func TestRiverUnmarshall(t *testing.T) {
 	require.Equal(t, false, args.ParseInfluxDB)
 	require.Equal(t, false, args.ParseLibrato)
 	require.Equal(t, false, args.ParseSignalFX)
-	require.Equal(t, filepath.Join("testdata", "mapTest.yaml"), args.MappingConfig)
+	require.Equal(t, `./testdata/mapTest.yaml`, args.MappingConfig)
 }
 
 func TestConvert(t *testing.T) {
-	var args Config
+	var args Arguments
 	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
 	require.NoError(t, err)
 

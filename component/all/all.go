@@ -58,8 +58,8 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/exporter/postgres"             // Import prometheus.exporter.postgres
 	_ "github.com/grafana/agent/component/prometheus/exporter/process"              // Import prometheus.exporter.process
 	_ "github.com/grafana/agent/component/prometheus/exporter/redis"                // Import prometheus.exporter.redis
-	_ "github.com/grafana/agent/component/prometheus/exporter/statsd"               // Import prometheus.exporter.statsd
 	_ "github.com/grafana/agent/component/prometheus/exporter/snmp"                 // Import prometheus.exporter.snmp
+	_ "github.com/grafana/agent/component/prometheus/exporter/statsd"               // Import prometheus.exporter.statsd
 	_ "github.com/grafana/agent/component/prometheus/exporter/unix"                 // Import prometheus.exporter.unix
 	_ "github.com/grafana/agent/component/prometheus/relabel"                       // Import prometheus.relabel
 	_ "github.com/grafana/agent/component/prometheus/remotewrite"                   // Import prometheus.remote_write

@@ -9,7 +9,7 @@ import (
 	"github.com/prometheus/statsd_exporter/pkg/mapper"
 )
 
-type Config struct {
+type Arguments struct {
 	ListenUDP      string `river:"listen_udp,attr,optional"`
 	ListenTCP      string `river:"listen_tcp,attr,optional"`
 	ListenUnixgram string `river:"listen_unixgram,attr,optional"`
@@ -33,7 +33,7 @@ type Config struct {
 // unmarshaled from YAML.
 //
 // Some defaults are populated from init functions in the github.com/grafana/agent/pkg/integrations/statsd_exporter package.
-var DefaultConfig = Config{
+var DefaultConfig = Arguments{
 
 	ListenUDP:      statsd_exporter.DefaultConfig.ListenUDP,
 	ListenTCP:      statsd_exporter.DefaultConfig.ListenTCP,
@@ -52,7 +52,7 @@ var DefaultConfig = Config{
 }
 
 // Convert gives a config suitable for use with github.com/grafana/agent/pkg/integrations/statsd_exporter.
-func (c *Config) Convert() (*statsd_exporter.Config, error) {
+func (c *Arguments) Convert() (*statsd_exporter.Config, error) {
 	mappingConfig, err := readMappingFromYAML(c.MappingConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert statsd config: %w", err)
@@ -78,10 +78,10 @@ func (c *Config) Convert() (*statsd_exporter.Config, error) {
 }
 
 // UnmarshalRiver implements River unmarshalling for Config.
-func (c *Config) UnmarshalRiver(f func(interface{}) error) error {
+func (c *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	*c = DefaultConfig
 
-	type cfg Config
+	type cfg Arguments
 	return f((*cfg)(c))
 }
 

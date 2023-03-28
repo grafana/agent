@@ -11,14 +11,14 @@ import (
 func init() {
 	component.Register(component.Registration{
 		Name:    "prometheus.exporter.statsd",
-		Args:    Config{},
+		Args:    Arguments{},
 		Exports: exporter.Exports{},
 		Build:   exporter.New(createExporter, "statsd"),
 	})
 }
 
 func createExporter(opts component.Options, args component.Arguments) (integrations.Integration, error) {
-	cfg := args.(Config)
+	cfg := args.(Arguments)
 	statsdConfig, err := cfg.Convert()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create statsd exporter: %w", err)
