@@ -1,4 +1,4 @@
-package podmonitors
+package config_gen
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	k8sConfig "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/pkg/util"
 	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	commonConfig "github.com/prometheus/common/config"
@@ -26,7 +27,6 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 		name                   string
 		m                      *v1.PodMonitor
 		ep                     v1.PodMetricsEndpoint
-		args                   Arguments
 		expectedRelabels       string
 		expectedMetricRelabels string
 		expected               *config.ScrapeConfig
@@ -194,10 +194,8 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 	}
 	for i, tc := range suite {
 		t.Run(tc.name, func(t *testing.T) {
-			cg := &configGenerator{
-				config: &tc.args,
-			}
-			cfg, err := cg.generatePodMonitorConfig(tc.m, tc.ep, i)
+			cg := &ConfigGenerator{Client: &k8sConfig.ClientArguments{}}
+			cfg, err := cg.GeneratePodMonitorConfig(tc.m, tc.ep, i)
 			require.NoError(t, err)
 			// check relabel configs separately
 			rlcs := cfg.RelabelConfigs

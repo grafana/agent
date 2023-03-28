@@ -73,6 +73,7 @@ func (c *Component) Run(ctx context.Context) error {
 			go func() {
 				if err := manager.Run(innerCtx); err != nil {
 					level.Error(c.opts.Logger).Log("msg", "error running crd manager", "err", err)
+					// TODO: anything else we need to do here? (component unhealthy?)
 				}
 			}()
 		}

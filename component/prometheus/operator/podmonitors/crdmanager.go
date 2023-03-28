@@ -12,6 +12,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus"
+	"github.com/grafana/agent/component/prometheus/operator/podmonitors/config_gen"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
@@ -25,8 +26,12 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
+// Generous timeout period for configuring all informers
+const informerSyncTimeout = 10 * time.Second
+
 // CRDManager is all of the fields required to run the component.
 // on update, this entire thing will be recreated and restarted
+// TODO: make fields public
 type CRDManager struct {
 	mut              sync.Mutex
 	discoveryConfigs map[string]discovery.Configs
@@ -38,7 +43,7 @@ type CRDManager struct {
 	opts   component.Options
 	logger log.Logger
 	config *Arguments
-	cg     configGenerator
+	cg     config_gen.ConfigGenerator
 }
 
 func NewCRDManager(opts component.Options, logger log.Logger, cfg *Arguments) *CRDManager {
@@ -53,10 +58,11 @@ func NewCRDManager(opts component.Options, logger log.Logger, cfg *Arguments) *C
 }
 
 func (c *CRDManager) Run(ctx context.Context) error {
-	c.cg = configGenerator{
-		config: c.config,
+	c.cg = config_gen.ConfigGenerator{
+		Client: &c.config.Client,
 	}
 
+	// Start prometheus discovery manager (service discovery)
 	c.discovery = discovery.NewManager(ctx, c.logger, discovery.Name(c.opts.ID))
 	go func() {
 		err := c.discovery.Run()
@@ -70,6 +76,7 @@ func (c *CRDManager) Run(ctx context.Context) error {
 	}
 	level.Info(c.logger).Log("msg", "informers  started")
 
+	// Start prometheus scrape manager
 	flowAppendable := prometheus.NewFanout(c.config.ForwardTo, c.opts.ID, c.opts.Registerer)
 	opts := &scrape.Options{}
 	c.scraper = scrape.NewManager(opts, c.logger, flowAppendable)
@@ -121,7 +128,7 @@ func (c *CRDManager) runInformers(ctx context.Context) error {
 		if ls != labels.Nothing() {
 			opts.DefaultSelector.Label = ls
 		}
-		// TODO: field selector needs to be cloned into config
+		// TODO: field selector needs to be cloned into config (ask Craig about this)
 		cache, err := cache.New(config, opts)
 		if err != nil {
 			return err
@@ -146,23 +153,21 @@ func (c *CRDManager) runInformers(ctx context.Context) error {
 	return nil
 }
 
-// Generous timeout period for configuring all informers
-const informerSyncTimeout = 10 * time.Second
-
+// configureInformers configures the informers for the CRDManager to watch for PodMonitors changes.
 func (c *CRDManager) configureInformers(ctx context.Context, informers cache.Informers) error {
-	types := []client.Object{
+	objects := []client.Object{
 		&v1.PodMonitor{},
 	}
 
 	informerCtx, cancel := context.WithTimeout(ctx, informerSyncTimeout)
 	defer cancel()
 
-	for _, ty := range types {
-		informer, err := informers.GetInformer(informerCtx, ty)
+	for _, obj := range objects {
+		informer, err := informers.GetInformer(informerCtx, obj)
 		if err != nil {
 			if errors.Is(informerCtx.Err(), context.DeadlineExceeded) { // Check the context to prevent GetInformer returning a fake timeout
 				return fmt.Errorf("Timeout exceeded while configuring informers. Check the connection"+
-					" to the Kubernetes API is stable and that the Agent has appropriate RBAC permissions for %v", ty)
+					" to the Kubernetes API is stable and that the Agent has appropriate RBAC permissions for %v", obj)
 			}
 
 			return err
@@ -179,6 +184,7 @@ func (c *CRDManager) configureInformers(ctx context.Context, informers cache.Inf
 	return nil
 }
 
+// apply applies the current state of the CRDManager to the Prometheus discovery manager and scrape manager.
 func (c *CRDManager) apply() error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
@@ -235,7 +241,7 @@ func (c *CRDManager) addPodMonitor(pm *v1.PodMonitor) {
 	var err error
 	for i, ep := range pm.Spec.PodMetricsEndpoints {
 		var pmc *config.ScrapeConfig
-		pmc, err = c.cg.generatePodMonitorConfig(pm, ep, i)
+		pmc, err = c.cg.GeneratePodMonitorConfig(pm, ep, i)
 		if err != nil {
 			level.Error(c.logger).Log("name", pm.Name, "err", err, "msg", "error generating scrapeconfig from podmonitor")
 			break

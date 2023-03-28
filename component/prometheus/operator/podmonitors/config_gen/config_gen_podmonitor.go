@@ -1,4 +1,4 @@
-package podmonitors
+package config_gen
 
 // SEE https://github.com/prometheus-operator/prometheus-operator/blob/main/pkg/prometheus/promcfg.go
 
@@ -24,7 +24,7 @@ var (
 	regexAnything      = relabel.MustNewRegexp("(.+)")
 )
 
-func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodMetricsEndpoint, i int) (cfg *config.ScrapeConfig, err error) {
+func (cg *ConfigGenerator) GeneratePodMonitorConfig(m *v1.PodMonitor, ep v1.PodMetricsEndpoint, i int) (cfg *config.ScrapeConfig, err error) {
 	c := config.DefaultScrapeConfig
 	cfg = &c
 	cfg.ScrapeInterval = config.DefaultGlobalConfig.ScrapeInterval
@@ -70,7 +70,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 		cfg.HTTPClientConfig.EnableHTTP2 = *ep.EnableHttp2
 	}
 	if ep.TLSConfig != nil {
-		if cfg.HTTPClientConfig.TLSConfig, err = cg.GenerateSafeTLS(m.Namespace, ep.TLSConfig.SafeTLSConfig); err != nil {
+		if cfg.HTTPClientConfig.TLSConfig, err = cg.generateSafeTLS(m.Namespace, ep.TLSConfig.SafeTLSConfig); err != nil {
 			return nil, err
 		}
 	}
@@ -80,16 +80,16 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 	if ep.BasicAuth != nil {
 		return nil, fmt.Errorf("basic auth in podmonitors not supported yet: %w", err)
 	}
-	if cfg.HTTPClientConfig.OAuth2, err = cg.GenerateOAuth2(ep.OAuth2, m.Namespace); err != nil {
+	if cfg.HTTPClientConfig.OAuth2, err = cg.generateOAuth2(ep.OAuth2, m.Namespace); err != nil {
 		return nil, err
 	}
-	if cfg.HTTPClientConfig.Authorization, err = cg.GenerateSafeAuthorization(ep.Authorization, m.Namespace); err != nil {
+	if cfg.HTTPClientConfig.Authorization, err = cg.generateSafeAuthorization(ep.Authorization, m.Namespace); err != nil {
 		return nil, err
 	}
 
 	relabels := cg.initRelabelings()
 	if ep.FilterRunning == nil || *ep.FilterRunning {
-		relabels.Add(&relabel.Config{
+		relabels.add(&relabel.Config{
 			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_phase"},
 			Action:       "drop",
 			Regex:        regexFilterRunning,
@@ -109,7 +109,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 		if err != nil {
 			return nil, fmt.Errorf("parsing MatchLabels regex: %w", err)
 		}
-		relabels.Add(&relabel.Config{
+		relabels.add(&relabel.Config{
 			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_label_" + sanitizeLabelName(k), "__meta_kubernetes_pod_labelpresent_" + sanitizeLabelName(k)},
 			Action:       "keep",
 			Regex:        regex,
@@ -125,7 +125,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 			if err != nil {
 				return nil, fmt.Errorf("parsing MatchExpressions regex: %w", err)
 			}
-			relabels.Add(&relabel.Config{
+			relabels.add(&relabel.Config{
 				SourceLabels: model.LabelNames{"__meta_kubernetes_pod_label_" + sanitizeLabelName(exp.Key), "__meta_kubernetes_pod_labelpresent_" + sanitizeLabelName(exp.Key)},
 				Action:       "keep",
 				Regex:        regex,
@@ -135,19 +135,19 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 			if err != nil {
 				return nil, fmt.Errorf("parsing MatchExpressions regex: %w", err)
 			}
-			relabels.Add(&relabel.Config{
+			relabels.add(&relabel.Config{
 				SourceLabels: model.LabelNames{"__meta_kubernetes_pod_label_" + sanitizeLabelName(exp.Key), "__meta_kubernetes_pod_labelpresent_" + sanitizeLabelName(exp.Key)},
 				Action:       "drop",
 				Regex:        regex,
 			})
 		case metav1.LabelSelectorOpExists:
-			relabels.Add(&relabel.Config{
+			relabels.add(&relabel.Config{
 				SourceLabels: model.LabelNames{"__meta_kubernetes_pod_labelpresent_" + sanitizeLabelName(exp.Key)},
 				Action:       "keep",
 				Regex:        regexTrue,
 			})
 		case metav1.LabelSelectorOpDoesNotExist:
-			relabels.Add(&relabel.Config{
+			relabels.add(&relabel.Config{
 				SourceLabels: model.LabelNames{"__meta_kubernetes_pod_labelpresent_" + sanitizeLabelName(exp.Key)},
 				Action:       "drop",
 				Regex:        regexTrue,
@@ -161,7 +161,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 		if err != nil {
 			return nil, fmt.Errorf("parsing Port as regex: %w", err)
 		}
-		relabels.Add(&relabel.Config{
+		relabels.add(&relabel.Config{
 			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_container_port_name"},
 			Action:       "keep",
 			Regex:        regex,
@@ -173,7 +173,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 			return nil, fmt.Errorf("parsing TargetPort as regex: %w", err)
 		}
 		if ep.TargetPort.StrVal != "" { //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
-			relabels.Add(&relabel.Config{
+			relabels.add(&relabel.Config{
 				SourceLabels: model.LabelNames{"__meta_kubernetes_pod_container_port_name"},
 				Action:       "keep",
 				Regex:        regex,
@@ -184,7 +184,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 		if err != nil {
 			return nil, fmt.Errorf("parsing TargetPort as regex: %w", err)
 		}
-		relabels.Add(&relabel.Config{
+		relabels.add(&relabel.Config{
 			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_container_port_number"},
 			Action:       "keep",
 			Regex:        regex,
@@ -192,7 +192,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 	}
 
 	// Relabel namespace and pod and service labels into proper labels.
-	relabels.Add(&relabel.Config{
+	relabels.add(&relabel.Config{
 		SourceLabels: model.LabelNames{"__meta_kubernetes_namespace"},
 		TargetLabel:  "namespace",
 	}, &relabel.Config{
@@ -205,7 +205,7 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 
 	// Relabel targetLabels from Pod onto target.
 	for _, l := range m.Spec.PodTargetLabels {
-		relabels.Add(&relabel.Config{
+		relabels.add(&relabel.Config{
 			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_label_" + sanitizeLabelName(l)},
 			Replacement:  "${1}",
 			Regex:        regexAnything,
@@ -219,12 +219,12 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 	// endpoints, therefore the endpoints labels is filled with the ports name or
 	// as a fallback the port number.
 
-	relabels.Add(&relabel.Config{
+	relabels.add(&relabel.Config{
 		Replacement: fmt.Sprintf("%s/%s", m.GetNamespace(), m.GetName()),
 		TargetLabel: "job",
 	})
 	if m.Spec.JobLabel != "" {
-		relabels.Add(&relabel.Config{
+		relabels.add(&relabel.Config{
 			Replacement:  "${1}",
 			TargetLabel:  "job",
 			Regex:        regexAnything,
@@ -233,12 +233,12 @@ func (cg *configGenerator) generatePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 	}
 
 	if ep.Port != "" {
-		relabels.Add(&relabel.Config{
+		relabels.add(&relabel.Config{
 			Replacement: ep.Port,
 			TargetLabel: "endpoint",
 		})
 	} else if ep.TargetPort != nil && ep.TargetPort.String() != "" { //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
-		relabels.Add(&relabel.Config{
+		relabels.add(&relabel.Config{
 			TargetLabel: "endpoint",
 			Replacement: ep.TargetPort.String(), //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
 		})

@@ -1,4 +1,4 @@
-package podmonitors
+package config_gen
 
 // SEE https://github.com/prometheus-operator/prometheus-operator/blob/main/pkg/prometheus/promcfg.go
 
@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"regexp"
 
+	k8sConfig "github.com/grafana/agent/component/common/config"
 	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	commonConfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
@@ -13,13 +14,17 @@ import (
 	"github.com/prometheus/prometheus/model/relabel"
 )
 
-type configGenerator struct {
-	config *Arguments
+type ConfigGenerator struct {
+	Client *k8sConfig.ClientArguments
 }
+
+var (
+	invalidLabelCharRE = regexp.MustCompile(`[^a-zA-Z0-9_]`)
+)
 
 // the k8s sd config is mostly dependent on our local config for accessing the kubernetes cluster.
 // if undefined it will default to an in-cluster config
-func (cg *configGenerator) generateK8SSDConfig(namespaceSelector v1.NamespaceSelector, namespace string, role promk8s.Role, attachMetadata *v1.AttachMetadata) *promk8s.SDConfig {
+func (cg *ConfigGenerator) generateK8SSDConfig(namespaceSelector v1.NamespaceSelector, namespace string, role promk8s.Role, attachMetadata *v1.AttachMetadata) *promk8s.SDConfig {
 	cfg := &promk8s.SDConfig{
 		Role: role,
 	}
@@ -27,7 +32,7 @@ func (cg *configGenerator) generateK8SSDConfig(namespaceSelector v1.NamespaceSel
 	if len(namespaces) != 0 {
 		cfg.NamespaceDiscovery.Names = namespaces
 	}
-	client := cg.config.Client
+	client := cg.Client
 	if client.KubeConfig != "" {
 		cfg.KubeConfig = client.KubeConfig
 	}
@@ -59,7 +64,7 @@ func (cg *configGenerator) generateK8SSDConfig(namespaceSelector v1.NamespaceSel
 	return cfg
 }
 
-func (cg *configGenerator) GenerateSafeTLS(namespace string, tls v1.SafeTLSConfig) (commonConfig.TLSConfig, error) {
+func (cg *ConfigGenerator) generateSafeTLS(namespace string, tls v1.SafeTLSConfig) (commonConfig.TLSConfig, error) {
 	tc := commonConfig.TLSConfig{}
 	tc.InsecureSkipVerify = tls.InsecureSkipVerify
 
@@ -82,7 +87,7 @@ type relabeler struct {
 	configs []*relabel.Config
 }
 
-func (r *relabeler) Add(cfgs ...*relabel.Config) {
+func (r *relabeler) add(cfgs ...*relabel.Config) {
 	for _, cfg := range cfgs {
 		// set defaults from prom defaults.
 		if cfg.Action == "" {
@@ -134,25 +139,21 @@ func (r *relabeler) addFromV1(cfgs ...*v1.RelabelConfig) (err error) {
 	return nil
 }
 
-func (cg *configGenerator) initRelabelings() relabeler {
+func (cg *ConfigGenerator) initRelabelings() relabeler {
 	r := relabeler{}
 	// Relabel prometheus job name into a meta label
-	r.Add(&relabel.Config{
+	r.add(&relabel.Config{
 		SourceLabels: model.LabelNames{"job"},
 		TargetLabel:  "__tmp_prometheus_job_name",
 	})
 	return r
 }
 
-var (
-	invalidLabelCharRE = regexp.MustCompile(`[^a-zA-Z0-9_]`)
-)
-
 func sanitizeLabelName(name string) model.LabelName {
 	return model.LabelName(invalidLabelCharRE.ReplaceAllString(name, "_"))
 }
 
-func (cg *configGenerator) getNamespacesFromNamespaceSelector(nsel v1.NamespaceSelector, namespace string) []string {
+func (cg *ConfigGenerator) getNamespacesFromNamespaceSelector(nsel v1.NamespaceSelector, namespace string) []string {
 	if nsel.Any {
 		return []string{}
 	} else if len(nsel.MatchNames) == 0 {
@@ -161,14 +162,14 @@ func (cg *configGenerator) getNamespacesFromNamespaceSelector(nsel v1.NamespaceS
 	return nsel.MatchNames
 }
 
-func (cg *configGenerator) GenerateOAuth2(oauth2 *v1.OAuth2, namespace string) (*commonConfig.OAuth2, error) {
+func (cg *ConfigGenerator) generateOAuth2(oauth2 *v1.OAuth2, namespace string) (*commonConfig.OAuth2, error) {
 	if oauth2 == nil {
 		return nil, nil
 	}
 	return nil, fmt.Errorf("oauth2 not supported yet")
 }
 
-func (cg *configGenerator) GenerateSafeAuthorization(auth *v1.SafeAuthorization, ns string) (*commonConfig.Authorization, error) {
+func (cg *ConfigGenerator) generateSafeAuthorization(auth *v1.SafeAuthorization, ns string) (*commonConfig.Authorization, error) {
 	if auth == nil {
 		return nil, nil
 	}
