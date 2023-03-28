@@ -23,7 +23,7 @@ func init() {
 type Component struct {
 	mut     sync.Mutex
 	config  *Arguments
-	manager *crdManager
+	manager *CRDManager
 
 	onUpdate chan struct{}
 	opts     component.Options
@@ -59,7 +59,7 @@ func (c *Component) Run(ctx context.Context) error {
 			}
 			return nil
 		case <-errChan:
-
+			// TODO(jcreixell): Mark component as unhealthy here?
 		case <-c.onUpdate:
 			if cancel != nil {
 				cancel()
@@ -67,11 +67,11 @@ func (c *Component) Run(ctx context.Context) error {
 			innerCtx, cancel = context.WithCancel(ctx)
 			c.mut.Lock()
 			componentCfg := c.config
-			crdMan := newManager(c.opts, c.opts.Logger, componentCfg)
-			c.manager = crdMan
+			manager := NewCRDManager(c.opts, c.opts.Logger, componentCfg)
+			c.manager = manager
 			c.mut.Unlock()
 			go func() {
-				if err := crdMan.run(innerCtx); err != nil {
+				if err := manager.Run(innerCtx); err != nil {
 					level.Error(c.opts.Logger).Log("msg", "error running crd manager", "err", err)
 				}
 			}()
@@ -79,7 +79,7 @@ func (c *Component) Run(ctx context.Context) error {
 	}
 }
 
-// Update implements component.Compnoent.
+// Update implements component.Component.
 func (c *Component) Update(args component.Arguments) error {
 	c.mut.Lock()
 	cfg := args.(Arguments)

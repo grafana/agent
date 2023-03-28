@@ -25,9 +25,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// crdManager is all of the fields required to run the component.
+// CRDManager is all of the fields required to run the component.
 // on update, this entire thing will be recreated and restarted
-type crdManager struct {
+type CRDManager struct {
 	mut              sync.Mutex
 	discoveryConfigs map[string]discovery.Configs
 	scrapeConfigs    map[string]*config.ScrapeConfig
@@ -41,8 +41,8 @@ type crdManager struct {
 	cg     configGenerator
 }
 
-func newManager(opts component.Options, logger log.Logger, cfg *Arguments) *crdManager {
-	return &crdManager{
+func NewCRDManager(opts component.Options, logger log.Logger, cfg *Arguments) *CRDManager {
+	return &CRDManager{
 		opts:             opts,
 		logger:           logger,
 		config:           cfg,
@@ -52,7 +52,7 @@ func newManager(opts component.Options, logger log.Logger, cfg *Arguments) *crdM
 	}
 }
 
-func (c *crdManager) run(ctx context.Context) error {
+func (c *CRDManager) Run(ctx context.Context) error {
 	c.cg = configGenerator{
 		config: c.config,
 	}
@@ -93,7 +93,7 @@ func (c *crdManager) run(ctx context.Context) error {
 	}
 }
 
-func (c *crdManager) runInformers(ctx context.Context) error {
+func (c *CRDManager) runInformers(ctx context.Context) error {
 	config, err := c.config.Client.BuildRESTConfig(c.logger)
 	if err != nil {
 		return fmt.Errorf("creating rest config: %w", err)
@@ -149,7 +149,7 @@ func (c *crdManager) runInformers(ctx context.Context) error {
 // Generous timeout period for configuring all informers
 const informerSyncTimeout = 10 * time.Second
 
-func (c *crdManager) configureInformers(ctx context.Context, informers cache.Informers) error {
+func (c *CRDManager) configureInformers(ctx context.Context, informers cache.Informers) error {
 	types := []client.Object{
 		&v1.PodMonitor{},
 	}
@@ -179,7 +179,7 @@ func (c *crdManager) configureInformers(ctx context.Context, informers cache.Inf
 	return nil
 }
 
-func (c *crdManager) apply() error {
+func (c *CRDManager) apply() error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 	err := c.discovery.ApplyConfig(c.discoveryConfigs)
@@ -202,7 +202,7 @@ func (c *crdManager) apply() error {
 	return nil
 }
 
-func (c *crdManager) clearConfigs(ns string, name string) {
+func (c *CRDManager) clearConfigs(ns string, name string) {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 	prefix := fmt.Sprintf("podMonitor/%s/%s", ns, name)
@@ -215,7 +215,7 @@ func (c *crdManager) clearConfigs(ns string, name string) {
 	delete(c.debugInfo, prefix)
 }
 
-func (c *crdManager) addDebugInfo(ns string, name string, err error) {
+func (c *CRDManager) addDebugInfo(ns string, name string, err error) {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 	debug := &discoveredPodMonitor{}
@@ -231,7 +231,7 @@ func (c *crdManager) addDebugInfo(ns string, name string, err error) {
 	c.debugInfo[prefix] = debug
 }
 
-func (c *crdManager) addPodMonitor(pm *v1.PodMonitor) {
+func (c *CRDManager) addPodMonitor(pm *v1.PodMonitor) {
 	var err error
 	for i, ep := range pm.Spec.PodMetricsEndpoints {
 		var pmc *config.ScrapeConfig
@@ -255,17 +255,17 @@ func (c *crdManager) addPodMonitor(pm *v1.PodMonitor) {
 	c.addDebugInfo(pm.Namespace, pm.Name, err)
 }
 
-func (c *crdManager) onAddPodMonitor(obj interface{}) {
+func (c *CRDManager) onAddPodMonitor(obj interface{}) {
 	pm := obj.(*v1.PodMonitor)
 	level.Info(c.logger).Log("msg", "found pod monitor", "name", pm.Name)
 	c.addPodMonitor(pm)
 }
-func (c *crdManager) onUpdatePodMonitor(oldObj, newObj interface{}) {
+func (c *CRDManager) onUpdatePodMonitor(oldObj, newObj interface{}) {
 	pm := oldObj.(*v1.PodMonitor)
 	c.clearConfigs(pm.Namespace, pm.Name)
 	c.addPodMonitor(newObj.(*v1.PodMonitor))
 }
-func (c *crdManager) onDeletePodMonitor(obj interface{}) {
+func (c *CRDManager) onDeletePodMonitor(obj interface{}) {
 	pm := obj.(*v1.PodMonitor)
 	c.clearConfigs(pm.Namespace, pm.Name)
 	if err := c.apply(); err != nil {
