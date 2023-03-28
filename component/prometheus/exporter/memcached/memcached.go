@@ -25,14 +25,14 @@ func createExporter(opts component.Options, args component.Arguments) (integrati
 
 // DefaultArguments holds the default arguments for the prometheus.exporter.memcached component.
 var DefaultArguments = Arguments{
-	MemcachedAddress: "localhost:11211",
-	Timeout:          time.Second,
+	Address: "localhost:11211",
+	Timeout: time.Second,
 }
 
 // Arguments configures the prometheus.exporter.memcached component.
 type Arguments struct {
-	// MemcachedAddress is the address of the memcached server to connect to.
-	MemcachedAddress string `river:"memcached_address,attr,optional"`
+	// Address is the address of the memcached server to connect to.
+	Address string `river:"address,attr,optional"`
 
 	// Timeout is the timeout for the memcached exporter to use when connecting to the
 	// memcached server.
@@ -49,7 +49,7 @@ func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 
 func (a Arguments) Convert() *memcached_exporter.Config {
 	return &memcached_exporter.Config{
-		MemcachedAddress: a.MemcachedAddress,
+		MemcachedAddress: a.Address,
 		Timeout:          a.Timeout,
 	}
 }

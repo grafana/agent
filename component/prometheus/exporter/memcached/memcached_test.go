@@ -11,7 +11,7 @@ import (
 
 func TestRiverUnmarshal(t *testing.T) {
 	var exampleRiverConfig = `
-memcached_address = "localhost:99"
+address = "localhost:99"
 timeout = "5s"`
 
 	var args Arguments
@@ -19,8 +19,8 @@ timeout = "5s"`
 	assert.NoError(t, err)
 
 	expected := Arguments{
-		MemcachedAddress: "localhost:99",
-		Timeout:          5 * time.Second,
+		Address: "localhost:99",
+		Timeout: 5 * time.Second,
 	}
 
 	assert.Equal(t, expected, args)
@@ -40,8 +40,8 @@ func TestRiverUnmarshalDefaults(t *testing.T) {
 
 func TestRiverConvert(t *testing.T) {
 	riverArguments := Arguments{
-		MemcachedAddress: "localhost:99",
-		Timeout:          5 * time.Second,
+		Address: "localhost:99",
+		Timeout: 5 * time.Second,
 	}
 
 	expected := &memcached_exporter.Config{
