@@ -22,8 +22,9 @@ var (
 	invalidLabelCharRE = regexp.MustCompile(`[^a-zA-Z0-9_]`)
 )
 
-// the k8s sd config is mostly dependent on our local config for accessing the kubernetes cluster.
-// if undefined it will default to an in-cluster config
+// generateK8SSDConfig generates a kubernetes service discovery config based on the given namespace selector.
+// The k8s sd config is mostly dependent on our local config for accessing the kubernetes cluster.
+// If undefined it will default to an in-cluster config
 func (cg *ConfigGenerator) generateK8SSDConfig(namespaceSelector v1.NamespaceSelector, namespace string, role promk8s.Role, attachMetadata *v1.AttachMetadata) *promk8s.SDConfig {
 	cfg := &promk8s.SDConfig{
 		Role: role,
