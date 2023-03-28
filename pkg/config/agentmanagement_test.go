@@ -471,3 +471,21 @@ snippets:
 	assert.Equal(t, "15s", cfg.Metrics.Configs[0].ScrapeConfigs[0].ScrapeInterval.String())
 	assert.Equal(t, "json", cfg.Server.LogFormat.String())
 }
+
+func TestGetCachedConfig_DefaultConfigFallback(t *testing.T) {
+	defaultCfg := DefaultConfig()
+	am := validAgentManagementConfig
+	logger := server.NewLogger(defaultCfg.Server)
+	testProvider := testRemoteConfigProvider{InitialConfig: &am}
+	testProvider.cachedConfigErrorToReturn = errors.New("no cached config")
+
+	fs := flag.NewFlagSet("test", flag.ExitOnError)
+	features.Register(fs, allFeatures)
+	defaultCfg.RegisterFlags(fs)
+
+	cfg, err := getCachedRemoteConfig(true, &testProvider, fs, []string{}, "test", logger)
+	assert.NoError(t, err)
+
+	// check that the returned config is the default one
+	assert.True(t, util.CompareYAML(*cfg, defaultCfg))
+}
