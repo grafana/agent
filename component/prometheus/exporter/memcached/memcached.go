@@ -11,7 +11,7 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "memcached_exporter",
+		Name:    "prometheus.exporter.memcached",
 		Args:    Arguments{},
 		Exports: exporter.Exports{},
 		Build:   exporter.New(createExporter, "memcached"),
