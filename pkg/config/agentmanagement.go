@@ -22,6 +22,8 @@ import (
 
 const cacheFilename = "remote-config-cache.yaml"
 
+var defaultConfigBytes, _ = yaml.Marshal(DefaultConfig())
+
 type remoteConfigProvider interface {
 	GetCachedRemoteConfig() ([]byte, error)
 	CacheRemoteConfig(remoteConfigBytes []byte) error
@@ -199,10 +201,7 @@ func getCachedRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvid
 	rc, err = configProvider.GetCachedRemoteConfig()
 	if err != nil {
 		level.Error(log).Log("msg", "could not get cached remote config, falling back to DefaultConfig", "err", err)
-		rc, err = yaml.Marshal(DefaultConfig())
-		if err != nil {
-			return nil, fmt.Errorf("could not marshal default config: %w", err)
-		}
+		rc = defaultConfigBytes
 	}
 	return loadRemoteConfig(rc, expandEnvVars, fs, args, configPath)
 }
