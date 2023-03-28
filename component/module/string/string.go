@@ -5,6 +5,7 @@ import (
 	"context"
 	"net/http"
 	"path"
+	"sync"
 
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
@@ -50,6 +51,9 @@ type Component struct {
 	opts component.Options
 	log  log.Logger
 	ctrl *flow.Flow
+
+	exportsMut sync.Mutex
+	exports    map[string]any
 }
 
 var (
@@ -65,24 +69,36 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	flowRegistry := prometheus.NewRegistry()
 
 	c := &Component{
-		opts: o,
-		log:  o.Logger,
-
-		ctrl: flow.New(flow.Options{
-			ControllerID: o.ID,
-			LogSink:      logging.LoggerSink(o.Logger),
-			Tracer:       flowTracer,
-			Reg:          flowRegistry,
-
-			DataPath:       o.DataPath,
-			HTTPPathPrefix: o.HTTPPath,
-			HTTPListenAddr: o.HTTPListenAddr,
-
-			OnExportsChange: func(exports map[string]any) {
-				o.OnStateChange(Exports{Exports: exports})
-			},
-		}),
+		opts:    o,
+		log:     o.Logger,
+		exports: make(map[string]any),
 	}
+	c.ctrl = flow.New(flow.Options{
+		ControllerID: o.ID,
+		LogSink:      logging.LoggerSink(o.Logger),
+		Tracer:       flowTracer,
+		Reg:          flowRegistry,
+
+		DataPath:       o.DataPath,
+		HTTPPathPrefix: o.HTTPPath,
+		HTTPListenAddr: o.HTTPListenAddr,
+
+		OnExportsChange: func(exports map[string]any) {
+			c.exportsMut.Lock()
+			defer c.exportsMut.Unlock()
+
+			// Update our primary export map with all the values.
+			for k, v := range exports {
+				c.exports[k] = v
+			}
+			// This is to prevent any access to our primary export map. So we create a copy for other usages.
+			exportable := make(map[string]any)
+			for k, v := range c.exports {
+				exportable[k] = v
+			}
+			o.OnStateChange(Exports{Exports: exportable})
+		},
+	})
 
 	if err := c.Update(args); err != nil {
 		return nil, err
@@ -104,6 +120,10 @@ func (c *Component) Update(args component.Arguments) error {
 	if err != nil {
 		return err
 	}
+	// Unsure of our exports so we should refresh those.
+	c.exportsMut.Lock()
+	c.exports = make(map[string]any)
+	c.exportsMut.Unlock()
 
 	return c.ctrl.LoadFile(f, newArgs.Arguments)
 }
