@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 
 	"github.com/grafana/loki/clients/pkg/promtail/client"
+	promtail_config "github.com/grafana/loki/clients/pkg/promtail/config"
+	"github.com/grafana/loki/clients/pkg/promtail/limit"
 	"github.com/grafana/loki/clients/pkg/promtail/positions"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/file"
@@ -83,10 +85,12 @@ func (c *Config) ApplyDefaults() error {
 type InstanceConfig struct {
 	Name string `yaml:"name,omitempty"`
 
-	ClientConfigs   []client.Config       `yaml:"clients,omitempty"`
-	PositionsConfig positions.Config      `yaml:"positions,omitempty"`
-	ScrapeConfig    []scrapeconfig.Config `yaml:"scrape_configs,omitempty"`
-	TargetConfig    file.Config           `yaml:"target_config,omitempty"`
+	ClientConfigs   []client.Config         `yaml:"clients,omitempty"`
+	PositionsConfig positions.Config        `yaml:"positions,omitempty"`
+	ScrapeConfig    []scrapeconfig.Config   `yaml:"scrape_configs,omitempty"`
+	TargetConfig    file.Config             `yaml:"target_config,omitempty"`
+	LimitsConfig    limit.Config            `yaml:"limits_config,omitempty"`
+	Options         promtail_config.Options `yaml:"options,omitempty"`
 }
 
 func (c *InstanceConfig) Initialize() {
