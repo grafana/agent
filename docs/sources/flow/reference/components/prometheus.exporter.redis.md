@@ -43,12 +43,14 @@ Name | Type | Description | Default | Required
 `check_single_streams`        | `list(string)` | List of single streams to export info about streams, groups, and consumers. | | no
 `count_keys`                  | `list(string)` | List of individual keys to export counts for. | | no
 `script_path`                 | `string`       | Path to Lua Redis script for collecting extra metrics. | | no
+`script_paths`                | `list(string)` | List of paths to Lua Redis scripts for collecting extra metrics. | | no
 `connection_timeout`          | `duration`     | Timeout for connection to Redis instance (in Golang duration format). | `"15s"` | no
 `tls_client_key_file`         | `string`       | Name of the client key file (including full path) if the server requires TLS client authentication. | | no
 `tls_client_cert_file`        | `string`       | Name of the client certificate file (including full path) if the server requires TLS client authentication. | | no
 `tls_ca_cert_file`            | `string`       | Name of the CA certificate file (including full path) if the server requires TLS client authentication. | | no
 `set_client_name`             | `bool`         | Whether to set client name to `redis_exporter`. | `true` | no
 `is_tile38`                   | `bool`         | Whether to scrape Tile38-specific metrics. | | no
+`is_cluster`                  | `bool`         | Whether the connection is to a Redis cluster. | | no
 `export_client_list`          | `bool`         | Whether to scrape Client List specific metrics. | | no
 `export_client_port`          | `bool`         | Whether to include the client's port when exporting the client list. | | no
 `redis_metrics_only`          | `bool`         | Whether to just export metrics or to also export go runtime metrics. | | no
@@ -60,9 +62,14 @@ If `redis_password_file` is defined, it will take precedence over `redis_passwor
 
 When `check_key_groups` is not set, no key groups are made.
 
-The `check_key_groups_batch_size` option name reflects key groups for backwards compatibility, but applies to both key and key groups.
+The `check_key_groups_batch_size` argument name reflects key groups for backwards compatibility, but applies to both key and key groups.
+
+The `script_path` argument may also be specified as a comma-separated string of paths, though it is encouraged to use `script_paths` when using
+multiple Lua scripts.
 
 Any leftover key groups beyond `max_distinct_key_groups` are aggregated in the 'overflow' bucket.
+
+The `is_cluster` argument must be set to `true` when connecting to a Redis cluster and using either of the `check_keys` and `check_single_keys` arguments.
 
 Note that setting `export_client_port` increases the cardinality of all Redis metrics.
 

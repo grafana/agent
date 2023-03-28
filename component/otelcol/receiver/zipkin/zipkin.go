@@ -54,13 +54,13 @@ func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 }
 
 // Convert implements receiver.Arguments.
-func (args Arguments) Convert() otelconfig.Receiver {
+func (args Arguments) Convert() (otelconfig.Receiver, error) {
 	return &zipkinreceiver.Config{
 		ReceiverSettings: otelconfig.NewReceiverSettings(otelconfig.NewComponentID("zipkin")),
 
 		ParseStringTags:    args.ParseStringTags,
 		HTTPServerSettings: *args.HTTPServer.Convert(),
-	}
+	}, nil
 }
 
 // Extensions implements receiver.Arguments.

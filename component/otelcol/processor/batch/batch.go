@@ -65,13 +65,13 @@ func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 }
 
 // Convert implements processor.Arguments.
-func (args Arguments) Convert() otelconfig.Processor {
+func (args Arguments) Convert() (otelconfig.Processor, error) {
 	return &batchprocessor.Config{
 		ProcessorSettings: otelconfig.NewProcessorSettings(otelconfig.NewComponentID("batch")),
 		Timeout:           args.Timeout,
 		SendBatchSize:     args.SendBatchSize,
 		SendBatchMaxSize:  args.SendBatchMaxSize,
-	}
+	}, nil
 }
 
 // Extensions implements processor.Arguments.

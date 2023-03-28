@@ -74,7 +74,7 @@ var (
 )
 
 // Convert implements extension.Arguments.
-func (args Arguments) Convert() otelconfig.Extension {
+func (args Arguments) Convert() (otelconfig.Extension, error) {
 	return &jaegerremotesampling.Config{
 		HTTPServerSettings: (*otelcol.HTTPServerArguments)(args.HTTP).Convert(),
 		GRPCServerSettings: (*otelcol.GRPCServerArguments)(args.GRPC).Convert(),
@@ -84,7 +84,7 @@ func (args Arguments) Convert() otelconfig.Extension {
 			ReloadInterval: args.Source.ReloadInterval,
 			Contents:       args.Source.Content,
 		},
-	}
+	}, nil
 }
 
 // Extensions implements extension.Arguments.

@@ -19,6 +19,7 @@ export interface ComponentViewProps {
 
 export const ComponentView: FC<ComponentViewProps> = (props) => {
   // TODO(rfratto): expand/collapse icon for sections (treat it like Row in grafana dashboard)
+  console.log(props.component);
 
   const referencedBy = props.component.referencedBy.filter((id) => props.info[id] !== undefined).map((id) => props.info[id]);
   const referencesTo = props.component.referencesTo.filter((id) => props.info[id] !== undefined).map((id) => props.info[id]);
@@ -138,7 +139,10 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
           <section id="module">
             <h2>Module components</h2>
             <div className={styles.sectionContent}>
-              <ComponentList components={props.component.moduleInfo} parent={props.component.id} />
+              <ComponentList
+                components={props.component.moduleInfo}
+                parent={pathJoin([props.component.parent, props.component.id])}
+              />
             </div>
           </section>
         )}
@@ -146,6 +150,10 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
     </div>
   );
 };
+
+function pathJoin(paths: (string | undefined)[]): string {
+  return paths.filter((p) => p && p !== '').join('/');
+}
 
 /**
  * partitionBody groups a body by attributes and inner blocks, assigning unique

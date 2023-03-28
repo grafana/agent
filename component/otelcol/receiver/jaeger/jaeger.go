@@ -116,7 +116,7 @@ func (args *Arguments) Validate() error {
 }
 
 // Convert implements receiver.Arguments.
-func (args Arguments) Convert() otelconfig.Receiver {
+func (args Arguments) Convert() (otelconfig.Receiver, error) {
 	return &jaegerreceiver.Config{
 		ReceiverSettings: otelconfig.NewReceiverSettings(otelconfig.NewComponentID("jaeger")),
 		Protocols: jaegerreceiver.Protocols{
@@ -126,7 +126,7 @@ func (args Arguments) Convert() otelconfig.Receiver {
 			ThriftCompact: args.Protocols.ThriftCompact.Convert(),
 		},
 		RemoteSampling: args.RemoteSampling.Convert(),
-	}
+	}, nil
 }
 
 // Extensions implements receiver.Arguments.

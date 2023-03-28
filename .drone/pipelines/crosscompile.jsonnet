@@ -21,6 +21,7 @@ local os_arch_tuples = [
 
 local targets = [
   'agent',
+  'agent-flow',
   'agentctl',
   'operator',
 ];
