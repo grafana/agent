@@ -25,7 +25,7 @@ func createExporter(opts component.Options, args component.Arguments) (integrati
 
 // DefaultArguments holds the default arguments for the prometheus.exporter.memcached component.
 var DefaultArguments = Arguments{
-	MemcachedAddress: "localhost:53",
+	MemcachedAddress: "localhost:11211",
 	Timeout:          time.Second,
 }
 

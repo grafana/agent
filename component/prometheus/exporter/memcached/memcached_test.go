@@ -33,10 +33,7 @@ func TestRiverUnmarshalDefaults(t *testing.T) {
 	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
 	assert.NoError(t, err)
 
-	expected := Arguments{
-		MemcachedAddress: "localhost:53",
-		Timeout:          time.Second,
-	}
+	expected := DefaultArguments
 
 	assert.Equal(t, expected, args)
 }
