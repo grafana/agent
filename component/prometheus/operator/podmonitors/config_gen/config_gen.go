@@ -64,7 +64,7 @@ func (cg *ConfigGenerator) generateK8SSDConfig(namespaceSelector v1.NamespaceSel
 	return cfg
 }
 
-func (cg *ConfigGenerator) generateSafeTLS(namespace string, tls v1.SafeTLSConfig) (commonConfig.TLSConfig, error) {
+func (cg *ConfigGenerator) generateSafeTLS(tls v1.SafeTLSConfig) (commonConfig.TLSConfig, error) {
 	tc := commonConfig.TLSConfig{}
 	tc.InsecureSkipVerify = tls.InsecureSkipVerify
 
