@@ -193,7 +193,7 @@ func (a *appender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m meta
 	return ref, multiErr
 }
 
-func (a *appender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram) (storage.SeriesRef, error) {
+func (a *appender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram) (storage.SeriesRef, error) {
 	if a.start.IsZero() {
 		a.start = time.Now()
 	}
@@ -202,7 +202,7 @@ func (a *appender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int
 	}
 	var multiErr error
 	for _, x := range a.children {
-		_, err := x.AppendHistogram(ref, l, t, h)
+		_, err := x.AppendHistogram(ref, l, t, h, fh)
 		if err != nil {
 			multiErr = multierror.Append(multiErr, err)
 		}

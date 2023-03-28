@@ -180,6 +180,6 @@ func (a *mockAppender) UpdateMetadata(_ storage.SeriesRef, _ labels.Labels, _ me
 	return 0, nil
 }
 
-func (a *mockAppender) AppendHistogram(_ storage.SeriesRef, _ labels.Labels, _ int64, _ *histogram.Histogram) (storage.SeriesRef, error) {
+func (a *mockAppender) AppendHistogram(_ storage.SeriesRef, _ labels.Labels, _ int64, _ *histogram.Histogram, _ *histogram.FloatHistogram) (storage.SeriesRef, error) {
 	return 0, nil
 }

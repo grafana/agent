@@ -171,7 +171,7 @@ func (i *Instance) ApplyConfig(c *InstanceConfig, dryRun bool) error {
 		return nil
 	}
 
-	clientMetrics := client.NewMetrics(i.reg, nil)
+	clientMetrics := client.NewMetrics(i.reg)
 	p, err := promtail.New(config.Config{
 		ServerConfig:    server.Config{Disable: true},
 		ClientConfigs:   c.ClientConfigs,
