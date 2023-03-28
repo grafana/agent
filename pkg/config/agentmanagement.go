@@ -173,13 +173,13 @@ func getRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, lo
 	remoteConfigBytes, err := configProvider.FetchRemoteConfig()
 	if err != nil {
 		level.Error(log).Log("msg", "could not fetch from API, falling back to cache", "err", err)
-		return getCachedRemoteConfig(expandEnvVars, configProvider, fs, args, configPath)
+		return getCachedRemoteConfig(expandEnvVars, configProvider, fs, args, configPath, log)
 	}
 
 	config, err := loadRemoteConfig(remoteConfigBytes, expandEnvVars, fs, args, configPath)
 	if err != nil {
 		level.Error(log).Log("msg", "could not load remote config, falling back to cache", "err", err)
-		return getCachedRemoteConfig(expandEnvVars, configProvider, fs, args, configPath)
+		return getCachedRemoteConfig(expandEnvVars, configProvider, fs, args, configPath, log)
 	}
 
 	level.Info(log).Log("msg", "fetched and loaded remote config from API")
@@ -190,10 +190,19 @@ func getRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, lo
 	return config, nil
 }
 
-func getCachedRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, fs *flag.FlagSet, args []string, configPath string) (*Config, error) {
-	rc, err := configProvider.GetCachedRemoteConfig()
+// getCachedRemoteConfig gets the cached remote config, falling back to the default config if the cache is invalid or not found.
+func getCachedRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, fs *flag.FlagSet, args []string, configPath string, log *server.Logger) (*Config, error) {
+	var (
+		rc  []byte
+		err error
+	)
+	rc, err = configProvider.GetCachedRemoteConfig()
 	if err != nil {
-		return nil, fmt.Errorf("could not load cached config: %w", err)
+		level.Error(log).Log("msg", "could not get cached remote config, falling back to DefaultConfig", "err", err)
+		rc, err = yaml.Marshal(DefaultConfig())
+		if err != nil {
+			return nil, fmt.Errorf("could not marshal default config: %w", err)
+		}
 	}
 	return loadRemoteConfig(rc, expandEnvVars, fs, args, configPath)
 }
