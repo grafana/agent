@@ -64,4 +64,5 @@ Use the Grafana Agent [Kubernetes quickstarts](https://grafana.com/docs/grafana-
 
 ### Tanka
 
+Delete
 For more information, refer to the [Tanka](https://tanka.dev) configurations in our [`production/`](https://github.com/grafana/agent/tree/main/production/tanka/grafana-agent) directory.
