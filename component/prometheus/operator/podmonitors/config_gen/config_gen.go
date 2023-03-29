@@ -162,17 +162,3 @@ func (cg *ConfigGenerator) getNamespacesFromNamespaceSelector(nsel v1.NamespaceS
 	}
 	return nsel.MatchNames
 }
-
-func (cg *ConfigGenerator) generateOAuth2(oauth2 *v1.OAuth2) (*commonConfig.OAuth2, error) {
-	if oauth2 == nil {
-		return nil, nil
-	}
-	return nil, fmt.Errorf("oauth2 not supported yet")
-}
-
-func (cg *ConfigGenerator) generateSafeAuthorization(auth *v1.SafeAuthorization) (*commonConfig.Authorization, error) {
-	if auth == nil {
-		return nil, nil
-	}
-	return nil, fmt.Errorf("authorization not supported yet")
-}
