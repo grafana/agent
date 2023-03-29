@@ -3,6 +3,7 @@ package podmonitors
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
@@ -25,8 +26,16 @@ type Component struct {
 	config  *Arguments
 	manager *CRDManager
 
-	onUpdate chan struct{}
-	opts     component.Options
+	onUpdate  chan struct{}
+	opts      component.Options
+	healthMut sync.RWMutex
+	health    component.Health
+}
+
+func (c *Component) CurrentHealth() component.Health {
+	c.healthMut.RLock()
+	defer c.healthMut.RUnlock()
+	return c.health
 }
 
 func New(o component.Options, args component.Arguments) (*Component, error) {
@@ -50,6 +59,7 @@ func (c *Component) Run(ctx context.Context) error {
 		}
 	}()
 
+	c.reportHealthy()
 	errChan := make(chan error)
 	for {
 		select {
@@ -58,8 +68,8 @@ func (c *Component) Run(ctx context.Context) error {
 				cancel()
 			}
 			return nil
-		case <-errChan:
-			// TODO(jcreixell): Mark component as unhealthy here?
+		case err := <-errChan:
+			c.reportUnhealthy(err)
 		case <-c.onUpdate:
 			if cancel != nil {
 				cancel()
@@ -73,7 +83,7 @@ func (c *Component) Run(ctx context.Context) error {
 			go func() {
 				if err := manager.Run(innerCtx); err != nil {
 					level.Error(c.opts.Logger).Log("msg", "error running crd manager", "err", err)
-					// TODO: anything else we need to do here? (component unhealthy?)
+					errChan <- err
 				}
 			}()
 		}
@@ -101,4 +111,23 @@ func (c *Component) DebugInfo() interface{} {
 	}
 	info.Targets = scrape.BuildTargetStatuses(c.manager.ScrapeManager.TargetsActive())
 	return info
+}
+
+func (c *Component) reportUnhealthy(err error) {
+	c.healthMut.Lock()
+	defer c.healthMut.Unlock()
+	c.health = component.Health{
+		Health:     component.HealthTypeUnhealthy,
+		Message:    err.Error(),
+		UpdateTime: time.Now(),
+	}
+}
+
+func (c *Component) reportHealthy() {
+	c.healthMut.Lock()
+	defer c.healthMut.Unlock()
+	c.health = component.Health{
+		Health:     component.HealthTypeHealthy,
+		UpdateTime: time.Now(),
+	}
 }

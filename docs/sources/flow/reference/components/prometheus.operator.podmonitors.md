@@ -141,7 +141,7 @@ The `operator` argument must be one of the following strings:
 
 ## Component health
 
-
+`prometheus.operator.podmonitors` is reported as unhealthy if any of its critical components fails during initialization (discovery manager, informers).
 
 ## Debug information
 
