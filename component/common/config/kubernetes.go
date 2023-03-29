@@ -19,8 +19,15 @@ type ClientArguments struct {
 	HTTPClientConfig HTTPClientConfig `river:",squash"`
 }
 
+// DefaultClientArguments holds default values for Arguments.
+var DefaultClientArguments = ClientArguments{
+	HTTPClientConfig: DefaultHTTPClientConfig,
+}
+
 // UnmarshalRiver unmarshals ClientArguments and performs validations.
 func (args *ClientArguments) UnmarshalRiver(f func(interface{}) error) error {
+	*args = DefaultClientArguments
+
 	type arguments ClientArguments
 	if err := f((*arguments)(args)); err != nil {
 		return err
@@ -63,7 +70,7 @@ func (args *ClientArguments) BuildRESTConfig(l log.Logger) (*rest.Config, error)
 		level.Info(l).Log("msg", "Using pod service account via in-cluster config")
 
 	default:
-		rt, err := promconfig.NewRoundTripperFromConfig(*args.HTTPClientConfig.Convert(), "loki.source.kubernetes")
+		rt, err := promconfig.NewRoundTripperFromConfig(*args.HTTPClientConfig.Convert(), "component.common.kubernetes")
 		if err != nil {
 			return nil, err
 		}
