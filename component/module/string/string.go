@@ -120,7 +120,7 @@ func (c *Component) Update(args component.Arguments) error {
 	if err != nil {
 		return err
 	}
-	// Its possible our exports so we should refresh those.
+	// Its possible our exports change so we should refresh those.
 	c.exportsMut.Lock()
 	c.exports = make(map[string]any)
 	c.exportsMut.Unlock()
