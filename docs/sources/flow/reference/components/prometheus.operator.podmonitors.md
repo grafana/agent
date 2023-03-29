@@ -1,8 +1,12 @@
 ---
 title: prometheus.operator.podmonitors
+labels:
+  stage: beta
 ---
 
 # prometheus.operator.podmonitors
+
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
 
 `prometheus.operator.podmonitors` discovers [podMonitor]() resources in your kubernetes cluster and scrape the targets they reference. This component performs three main functions:
 
