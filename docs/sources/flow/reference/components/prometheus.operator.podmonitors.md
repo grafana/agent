@@ -8,7 +8,7 @@ labels:
 
 {{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
 
-`prometheus.operator.podmonitors` discovers [podMonitor]() resources in your kubernetes cluster and scrape the targets they reference. This component performs three main functions:
+`prometheus.operator.podmonitors` discovers [PodMonitor](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.PodMonitor) resources in your kubernetes cluster and scrape the targets they reference. This component performs three main functions:
 
 1. Discover `PodMonitor` resources from your kubernetes cluster.
 2. Discover `Pods` in your cluster that match those `PodMonitors`.
@@ -183,9 +183,9 @@ prometheus.operator.podmonitors "pods" {
     forward_to = [prometheus.remote_write.staging.receiver]
     namespaces = ["my-app"]
     selector {
-        match_expression = {
-            key = "team",
-            operator = "In",
+        match_expression {
+            key = "team"
+            operator = "In"
             values = ["ops"]
         }
     }
