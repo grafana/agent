@@ -8,6 +8,7 @@ import (
 	k8sConfig "github.com/grafana/agent/component/common/config"
 	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	promConfig "github.com/prometheus/common/config"
+	"github.com/prometheus/common/model"
 	promk8s "github.com/prometheus/prometheus/discovery/kubernetes"
 	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/stretchr/testify/assert"
@@ -222,9 +223,45 @@ func TestRelabelerAdd(t *testing.T) {
 		Replacement: relabel.DefaultRelabelConfig.Replacement,
 	}
 	relabeler.add(cfgs...)
+	cfg := cfgs[0]
 
-	assert.Equal(t, expected.Action, cfgs[0].Action)
-	assert.Equal(t, expected.Separator, cfgs[0].Separator)
-	assert.Equal(t, expected.Regex, cfgs[0].Regex)
-	assert.Equal(t, expected.Replacement, cfgs[0].Replacement)
+	assert.Equal(t, expected.Action, cfg.Action)
+	assert.Equal(t, expected.Separator, cfg.Separator)
+	assert.Equal(t, expected.Regex, cfg.Regex)
+	assert.Equal(t, expected.Replacement, cfg.Replacement)
+}
+
+func TestRelabelerAddFromV1(t *testing.T) {
+	relabeler := &relabeler{}
+
+	cfgs := []*v1.RelabelConfig{
+		{
+			SourceLabels: []v1.LabelName{"__meta_kubernetes_pod_label_app"},
+			Separator:    ";",
+			TargetLabel:  "app",
+			Regex:        "(.*)",
+			Modulus:      1,
+			Replacement:  "$1",
+			Action:       "replace",
+		},
+	}
+	expected := relabel.Config{
+		SourceLabels: model.LabelNames{"__meta_kubernetes_pod_label_app"},
+		Separator:    ";",
+		TargetLabel:  "app",
+		Regex:        relabel.MustNewRegexp("(.*)"),
+		Modulus:      1,
+		Replacement:  "$1",
+		Action:       relabel.Replace,
+	}
+	relabeler.addFromV1(cfgs...)
+	cfg := relabeler.configs[0]
+
+	assert.Equal(t, expected.SourceLabels, cfg.SourceLabels)
+	assert.Equal(t, expected.Separator, cfg.Separator)
+	assert.Equal(t, expected.TargetLabel, cfg.TargetLabel)
+	assert.Equal(t, expected.Regex, cfg.Regex)
+	assert.Equal(t, expected.Modulus, cfg.Modulus)
+	assert.Equal(t, expected.Replacement, cfg.Replacement)
+	assert.Equal(t, expected.Action, cfg.Action)
 }
