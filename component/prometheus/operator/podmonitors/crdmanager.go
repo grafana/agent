@@ -95,7 +95,6 @@ func (c *CRDManager) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case m := <-c.DiscoveryManager.SyncCh():
-			//TODO: are there cases where we modify targets?
 			targetSetsChan <- m
 		}
 	}
@@ -130,7 +129,6 @@ func (c *CRDManager) runInformers(ctx context.Context) error {
 		if ls != labels.Nothing() {
 			opts.DefaultSelector.Label = ls
 		}
-		// TODO: field selector needs to be cloned into config (ask Craig about this)
 		cache, err := cache.New(config, opts)
 		if err != nil {
 			return err
