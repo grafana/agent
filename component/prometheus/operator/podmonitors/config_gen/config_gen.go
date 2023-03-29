@@ -88,9 +88,9 @@ type relabeler struct {
 	configs []*relabel.Config
 }
 
+// add adds a relabel config to the relabeler. It sets defaults from prometheus defaults.
 func (r *relabeler) add(cfgs ...*relabel.Config) {
 	for _, cfg := range cfgs {
-		// set defaults from prom defaults.
 		if cfg.Action == "" {
 			cfg.Action = relabel.DefaultRelabelConfig.Action
 		}

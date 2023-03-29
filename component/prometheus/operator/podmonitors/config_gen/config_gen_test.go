@@ -9,6 +9,7 @@ import (
 	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	promConfig "github.com/prometheus/common/config"
 	promk8s "github.com/prometheus/prometheus/discovery/kubernetes"
+	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/stretchr/testify/assert"
 	k8sv1 "k8s.io/api/core/v1"
 )
@@ -201,4 +202,29 @@ func TestGenerateSafeTLSConfig(t *testing.T) {
 			assert.Equal(t, tt.serverName, got.ServerName)
 		})
 	}
+}
+
+func TestRelabelerAdd(t *testing.T) {
+	relabeler := &relabeler{}
+
+	cfgs := []*relabel.Config{
+		{
+			Action:      "",
+			Separator:   "",
+			Regex:       relabel.Regexp{},
+			Replacement: "",
+		},
+	}
+	expected := relabel.Config{
+		Action:      relabel.DefaultRelabelConfig.Action,
+		Separator:   relabel.DefaultRelabelConfig.Separator,
+		Regex:       relabel.DefaultRelabelConfig.Regex,
+		Replacement: relabel.DefaultRelabelConfig.Replacement,
+	}
+	relabeler.add(cfgs...)
+
+	assert.Equal(t, expected.Action, cfgs[0].Action)
+	assert.Equal(t, expected.Separator, cfgs[0].Separator)
+	assert.Equal(t, expected.Regex, cfgs[0].Regex)
+	assert.Equal(t, expected.Replacement, cfgs[0].Replacement)
 }
