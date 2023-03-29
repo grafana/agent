@@ -8,15 +8,15 @@ metadata:
 data:
   {{- if eq .Values.agent.mode "flow" }}
   {{- if .Values.agent.configMap.content }}
-  config.river: {{ toYaml (tpl  .Values.agent.configMap.content .) | indent 2 }}
+  config.river: |- {{- toYaml (tpl  .Values.agent.configMap.content .) | nindent 4 }}
   {{- else }}
-  config.river: |- {{ .Files.Get "config/example.river" | nindent 4 }}
+  config.river: |- {{- .Files.Get "config/example.river" | trim | nindent 4 }}
   {{- end }}
   {{- else if eq .Values.agent.mode "static" }}
   {{- if .Values.agent.configMap.content }}
-  config.yaml: {{ toYaml (tpl .Values.agent.configMap.content .) | indent 2 }}
+  config.yaml: |- {{- toYaml (tpl .Values.agent.configMap.content .) | nindent 4 }}
   {{- else }}
-  config.yaml: |- {{ .Files.Get "config/example.yaml" | nindent 4 }}
+  config.yaml: |- {{- .Files.Get "config/example.yaml" | trim | nindent 4 }}
   {{- end }}
   {{- end }}
 {{- end }}
