@@ -80,10 +80,10 @@ func (cg *ConfigGenerator) GeneratePodMonitorConfig(m *v1.PodMonitor, ep v1.PodM
 	if ep.BasicAuth != nil {
 		return nil, fmt.Errorf("basic auth in podmonitors not supported yet: %w", err)
 	}
-	if cfg.HTTPClientConfig.OAuth2, err = cg.generateOAuth2(ep.OAuth2, m.Namespace); err != nil {
+	if cfg.HTTPClientConfig.OAuth2, err = cg.generateOAuth2(ep.OAuth2); err != nil {
 		return nil, err
 	}
-	if cfg.HTTPClientConfig.Authorization, err = cg.generateSafeAuthorization(ep.Authorization, m.Namespace); err != nil {
+	if cfg.HTTPClientConfig.Authorization, err = cg.generateSafeAuthorization(ep.Authorization); err != nil {
 		return nil, err
 	}
 
