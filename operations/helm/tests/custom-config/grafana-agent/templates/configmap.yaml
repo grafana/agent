@@ -12,11 +12,10 @@ metadata:
     app.kubernetes.io/managed-by: Helm
 data:
   config.river: |-
-    |-
-      logging {
-        level  = "warn"
-        format = "logfmt"
-      }
-      discovery.kubernetes "custom_pods" {
-        role = "pod"
-      }
+    logging {
+      level  = "warn"
+      format = "logfmt"
+    }
+    discovery.kubernetes "custom_pods" {
+      role = "pod"
+    }
