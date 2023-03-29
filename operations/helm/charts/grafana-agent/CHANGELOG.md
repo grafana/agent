@@ -15,10 +15,13 @@ Unreleased
 - Add support for adding Annotations to Service (@ofirshtrull)
 - Add `agent.envFrom` value. (@carlosjgp)
 - Add `controller.hostNetwork` value. (@carlosjgp)
+- Move and rename tests to make use of Helm chart-testing. (@carlosjgp)
+- Lint the YAML output of the tests. (@carlosjgp)
 
 ### Bugfixes
 
 - Fix issue where `controller.tolerations` setting was ignored. (@carlosjgp)
+- Fix YAML indentation of some resources. (@carlosjgp)
 
 0.10.0 (2023-03-09)
 -------------------
