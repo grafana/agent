@@ -31,7 +31,6 @@ const informerSyncTimeout = 10 * time.Second
 
 // CRDManager is all of the fields required to run the component.
 // on update, this entire thing will be recreated and restarted
-// TODO: make fields public
 type CRDManager struct {
 	Mut              sync.Mutex
 	DiscoveryConfigs map[string]discovery.Configs
