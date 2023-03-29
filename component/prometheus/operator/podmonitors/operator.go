@@ -96,9 +96,9 @@ func (c *Component) Update(args component.Arguments) error {
 // DebugInfo returns debug information for this component.
 func (c *Component) DebugInfo() interface{} {
 	var info DebugInfo
-	for _, pm := range c.manager.debugInfo {
+	for _, pm := range c.manager.DebugInfo {
 		info.DiscoveredPodMonitors = append(info.DiscoveredPodMonitors, pm)
 	}
-	info.Targets = scrape.BuildTargetStatuses(c.manager.scraper.TargetsActive())
+	info.Targets = scrape.BuildTargetStatuses(c.manager.ScrapeManager.TargetsActive())
 	return info
 }
