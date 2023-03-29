@@ -66,7 +66,7 @@ prometheus.exporter.memcached "example" {
 }
 
 prometheus.scrape "example" {
-    targets = [prometheus.exporter.memcached.example.targets]
+    targets    = [prometheus.exporter.memcached.example.targets]
     forward_to = [prometheus.remote_write.default.receiver]
 }
 
