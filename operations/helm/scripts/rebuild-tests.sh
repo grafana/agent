@@ -9,10 +9,10 @@ for chart_file in $(find * -name Chart.yaml -print | sort); do
   # Find chart 
   CHART_DIR=$(dirname ${chart_file})
   CHART_NAME=$(basename ${CHART_DIR})
+  TEST_DIR="${CHART_DIR}/../../tests" # We should append "/${CHART_NAME}" if we ever have more charts here
 
   if [ -d "${CHART_DIR}/ci" ]; then
     # tests directory is outside of the `charts` folder
-    TEST_DIR="${CHART_DIR}/../../tests/${CHART_NAME}"
     rm -rf ${TEST_DIR}
     mkdir -p ${TEST_DIR}
     for FILE_PATH in $(find ${CHART_DIR}/ci -name "*-values.yaml" -type f); do
