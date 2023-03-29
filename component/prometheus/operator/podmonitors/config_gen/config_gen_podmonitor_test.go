@@ -2,6 +2,7 @@ package config_gen
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"testing"
 	"time"
@@ -23,6 +24,7 @@ import (
 
 func TestGeneratePodMonitorConfig(t *testing.T) {
 	var falseVal = false
+	var proxyURL = "https://proxy:8080"
 	suite := []struct {
 		name                   string
 		m                      *v1.PodMonitor
@@ -97,7 +99,26 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 					PodTargetLabels: []string{"label_a", "label_b"},
 					Selector: meta_v1.LabelSelector{
 						MatchLabels: map[string]string{"foo": "bar"},
-						// TODO: test a variety of matchexpressions
+						MatchExpressions: []meta_v1.LabelSelectorRequirement{
+							{
+								Key:      "key",
+								Operator: meta_v1.LabelSelectorOpIn,
+								Values:   []string{"val0", "val1"},
+							},
+							{
+								Key:      "key",
+								Operator: meta_v1.LabelSelectorOpNotIn,
+								Values:   []string{"val0", "val1"},
+							},
+							{
+								Key:      "key",
+								Operator: meta_v1.LabelSelectorOpExists,
+							},
+							{
+								Key:      "key",
+								Operator: meta_v1.LabelSelectorOpDoesNotExist,
+							},
+						},
 					},
 					NamespaceSelector:     v1.NamespaceSelector{Any: false, MatchNames: []string{"ns_a", "ns_b"}},
 					SampleLimit:           101,
@@ -112,6 +133,9 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 				Port:            "metrics",
 				EnableHttp2:     &falseVal,
 				Path:            "/foo",
+				Params:          map[string][]string{"a": {"b"}},
+				FollowRedirects: &falseVal,
+				ProxyURL:        &proxyURL,
 				Scheme:          "https",
 				ScrapeTimeout:   "17m",
 				Interval:        "1s",
@@ -130,7 +154,27 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 				  target_label: __tmp_prometheus_job_name
 				- action: keep
 				  regex: (bar);true
-				  source_labels: [__meta_kubernetes_pod_label_foo,__meta_kubernetes_pod_labelpresent_foo]		
+				  source_labels: [__meta_kubernetes_pod_label_foo,__meta_kubernetes_pod_labelpresent_foo]
+				- source_labels: [__meta_kubernetes_pod_label_key,__meta_kubernetes_pod_labelpresent_key]
+				  regex: "(val0|val1);true"
+				  action: keep
+				  replacement: "$1"
+				  separator: ";"
+				- source_labels: [__meta_kubernetes_pod_label_key,__meta_kubernetes_pod_labelpresent_key]
+				  regex: "(val0|val1);true"
+				  replacement: "$1"
+				  action: drop
+				  separator: ";"
+				- source_labels: [__meta_kubernetes_pod_labelpresent_key]
+				  regex: true
+				  action: keep
+				  replacement: "$1"
+				  separator: ";"
+				- source_labels: [__meta_kubernetes_pod_labelpresent_key]
+				  regex: true
+				  action: drop
+				  replacement: "$1"
+				  separator: ";"
 				- source_labels: [__meta_kubernetes_pod_container_port_name]
 				  regex: metrics
 				  action: keep
@@ -166,9 +210,13 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 				ScrapeTimeout:   model.Duration(17 * time.Minute),
 				MetricsPath:     "/foo",
 				Scheme:          "https",
+				Params: url.Values{
+					"a": []string{"b"},
+				},
 				HTTPClientConfig: commonConfig.HTTPClientConfig{
-					FollowRedirects: true,
+					FollowRedirects: falseVal,
 					EnableHTTP2:     false,
+					ProxyURL:        commonConfig.URL{URL: &url.URL{Scheme: "https", Host: "proxy:8080"}},
 					TLSConfig: commonConfig.TLSConfig{
 						ServerName:         "foo.com",
 						InsecureSkipVerify: true,
@@ -220,6 +268,7 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 
 				if !assert.YAMLEq(t, expected, string(y)) {
 					fmt.Fprintln(os.Stderr, string(y))
+					fmt.Fprintln(os.Stderr, expected)
 				}
 			}
 			checkRelabels(rlcs, tc.expectedRelabels)
