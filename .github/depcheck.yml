@@ -28,6 +28,6 @@ github_repos:
   - github.com/prometheus-community/windows_exporter v0.16.0
   - github.com/percona/mongodb_exporter v0.20.7
   - project: github.com/prometheus/prometheus
-    version: v2.39.1
+    version: v2.42.0
     # Ignore release candidates
     ignore_version_pattern: '-rc\.\d+$'

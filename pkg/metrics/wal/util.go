@@ -95,11 +95,12 @@ func (r walReplayer) replayWAL(reader *wlog.Reader) error {
 }
 
 type walDataCollector struct {
-	mut        sync.Mutex
-	samples    []record.RefSample
-	series     []record.RefSeries
-	exemplars  []record.RefExemplar
-	histograms []record.RefHistogramSample
+	mut             sync.Mutex
+	samples         []record.RefSample
+	series          []record.RefSeries
+	exemplars       []record.RefExemplar
+	histograms      []record.RefHistogramSample
+	floatHistograms []record.RefFloatHistogramSample
 }
 
 func (c *walDataCollector) AppendExemplars(exemplars []record.RefExemplar) bool {
@@ -123,6 +124,14 @@ func (c *walDataCollector) AppendHistograms(histograms []record.RefHistogramSamp
 	defer c.mut.Unlock()
 
 	c.histograms = append(c.histograms, histograms...)
+	return true
+}
+
+func (c *walDataCollector) AppendFloatHistograms(histograms []record.RefFloatHistogramSample) bool {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+
+	c.floatHistograms = append(c.floatHistograms, histograms...)
 	return true
 }
 
