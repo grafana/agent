@@ -17,9 +17,9 @@ func TestRiverUnmarshal(t *testing.T) {
             operator = "In"
             values = ["ops"]
         }
-		match_labels = {
-			team = "ops",
-		}
+        match_labels = {
+            team = "ops",
+        }
     }
 `
 
