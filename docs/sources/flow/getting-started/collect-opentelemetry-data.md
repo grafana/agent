@@ -153,7 +153,7 @@ otelcol.receiver.otlp "example" {
 }
 ```
 
-For more information writing OpenTelemetry data using the OpenTelemetry
+For more information on writing OpenTelemetry data using the OpenTelemetry
 Protocol, refer to [otelcol.exporter.otlp][].
 
 ## Configure batching
