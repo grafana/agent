@@ -67,6 +67,18 @@ prometheus.exporter.memcached "example" {
 
 prometheus.scrape "example" {
     targets = [prometheus.exporter.memcached.example.targets]
+    forward_to = [prometheus.remote_write.default.receiver]
+}
+
+prometheus.remote_write "default" {
+  endpoint {
+    url = "prometheus.example.com/api/v1/write"
+
+    basic_auth {
+      username = "user"
+      password = "pass"
+    }
+  }
 }
 ```
 
