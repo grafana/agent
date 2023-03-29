@@ -29,6 +29,10 @@
     {{- range .Values.agent.extraEnv }}
     - {{- toYaml . | nindent 6 }}
     {{- end }}
+  {{- if .Values.agent.envFrom }}
+  envFrom:
+    {{- toYaml .Values.agent.envFrom | nindent 4 }}
+  {{- end }}
   ports:
     - containerPort: {{ .Values.agent.listenPort }}
       name: http-metrics

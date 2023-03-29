@@ -31,6 +31,7 @@ import (
 	_ "github.com/grafana/agent/component/otelcol/auth/bearer"                      // Import otelcol.auth.bearer
 	_ "github.com/grafana/agent/component/otelcol/auth/headers"                     // Import otelcol.auth.headers
 	_ "github.com/grafana/agent/component/otelcol/auth/oauth2"                      // Import otelcol.auth.oauth2
+	_ "github.com/grafana/agent/component/otelcol/auth/sigv4"                       // Import otelcol.auth.sigv4
 	_ "github.com/grafana/agent/component/otelcol/exporter/jaeger"                  // Import otelcol.exporter.jaeger
 	_ "github.com/grafana/agent/component/otelcol/exporter/loki"                    // Import otelcol.exporter.loki
 	_ "github.com/grafana/agent/component/otelcol/exporter/otlp"                    // Import otelcol.exporter.otlp
@@ -57,6 +58,7 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/exporter/postgres"             // Import prometheus.exporter.postgres
 	_ "github.com/grafana/agent/component/prometheus/exporter/process"              // Import prometheus.exporter.process
 	_ "github.com/grafana/agent/component/prometheus/exporter/redis"                // Import prometheus.exporter.redis
+	_ "github.com/grafana/agent/component/prometheus/exporter/snmp"                 // Import prometheus.exporter.snmp
 	_ "github.com/grafana/agent/component/prometheus/exporter/unix"                 // Import prometheus.exporter.unix
 	_ "github.com/grafana/agent/component/prometheus/operator/podmonitors"          // Import prometheus.operator.podmonitors
 	_ "github.com/grafana/agent/component/prometheus/relabel"                       // Import prometheus.relabel

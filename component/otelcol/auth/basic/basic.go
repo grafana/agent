@@ -34,14 +34,14 @@ type Arguments struct {
 var _ auth.Arguments = Arguments{}
 
 // Convert implements auth.Arguments.
-func (args Arguments) Convert() otelconfig.Extension {
+func (args Arguments) Convert() (otelconfig.Extension, error) {
 	return &basicauthextension.Config{
 		ExtensionSettings: otelconfig.NewExtensionSettings(otelconfig.NewComponentID("basic")),
 		ClientAuth: &basicauthextension.ClientAuthSettings{
 			Username: args.Username,
 			Password: string(args.Password),
 		},
-	}
+	}, nil
 }
 
 // Extensions implements auth.Arguments.

@@ -114,7 +114,9 @@ func newTestEnvironment(
 			factory := otelcomponent.NewProcessorFactory(
 				"testcomponent",
 				func() otelconfig.Processor {
-					return fakeProcessorArgs{}.Convert()
+					res, err := fakeProcessorArgs{}.Convert()
+					require.NoError(t, err)
+					return res
 				},
 				otelcomponent.WithTracesProcessor(func(
 					_ context.Context,
@@ -152,9 +154,9 @@ type fakeProcessorArgs struct {
 
 var _ processor.Arguments = fakeProcessorArgs{}
 
-func (fa fakeProcessorArgs) Convert() otelconfig.Processor {
+func (fa fakeProcessorArgs) Convert() (otelconfig.Processor, error) {
 	settings := otelconfig.NewProcessorSettings(otelconfig.NewComponentID("testcomponent"))
-	return &settings
+	return &settings, nil
 }
 
 func (fa fakeProcessorArgs) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {

@@ -59,13 +59,13 @@ func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 }
 
 // Convert implements receiver.Arguments.
-func (args Arguments) Convert() otelconfig.Receiver {
+func (args Arguments) Convert() (otelconfig.Receiver, error) {
 	return &opencensusreceiver.Config{
 		ReceiverSettings: otelconfig.NewReceiverSettings(otelconfig.NewComponentID("opencensus")),
 
 		CorsOrigins:        args.CorsAllowedOrigins,
 		GRPCServerSettings: *args.GRPC.Convert(),
-	}
+	}, nil
 }
 
 // Extensions implements receiver.Arguments.

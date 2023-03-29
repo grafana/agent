@@ -187,7 +187,7 @@ func (st *structDecoder) decodeAttr(attr *ast.AttributeStmt, rv reflect.Value, s
 }
 
 func (st *structDecoder) decodeBlock(block *ast.BlockStmt, rv reflect.Value, state *decodeOptions) error {
-	fullName := strings.Join(block.Name, ".")
+	fullName := block.GetBlockName()
 
 	if _, isEnum := state.EnumBlocks[fullName]; isEnum {
 		return st.decodeEnumBlock(fullName, block, rv, state)
