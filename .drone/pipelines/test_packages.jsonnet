@@ -20,6 +20,7 @@ local pipelines = import '../util/pipelines.jsonnet';
       commands: [
         'DOCKER_OPTS="" make dist/grafana-agent-linux-amd64',
         'DOCKER_OPTS="" make dist/grafana-agentctl-linux-amd64',
+        'DOCKER_OPTS="" make dist.temp/grafana-agent-flow-linux-amd64',
         'DOCKER_OPTS="" make test-packages',
       ],
     }],
