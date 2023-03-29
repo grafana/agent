@@ -36,7 +36,7 @@ type CRDManager struct {
 	mut              sync.Mutex
 	discoveryConfigs map[string]discovery.Configs
 	scrapeConfigs    map[string]*config.ScrapeConfig
-	debugInfo        map[string]*discoveredPodMonitor
+	debugInfo        map[string]*DiscoveredPodMonitor
 	discovery        *discovery.Manager
 	scraper          *scrape.Manager
 
@@ -53,7 +53,7 @@ func NewCRDManager(opts component.Options, logger log.Logger, cfg *Arguments) *C
 		config:           cfg,
 		discoveryConfigs: map[string]discovery.Configs{},
 		scrapeConfigs:    map[string]*config.ScrapeConfig{},
-		debugInfo:        map[string]*discoveredPodMonitor{},
+		debugInfo:        map[string]*DiscoveredPodMonitor{},
 	}
 }
 
@@ -224,7 +224,7 @@ func (c *CRDManager) clearConfigs(ns string, name string) {
 func (c *CRDManager) addDebugInfo(ns string, name string, err error) {
 	c.mut.Lock()
 	defer c.mut.Unlock()
-	debug := &discoveredPodMonitor{}
+	debug := &DiscoveredPodMonitor{}
 	debug.Namespace = ns
 	debug.Name = name
 	debug.LastReconcile = time.Now()

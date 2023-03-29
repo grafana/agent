@@ -179,9 +179,9 @@ prometheus.operator.podmonitors "pods" {
     forward_to = [prometheus.remote_write.staging.receiver]
     namespaces = ["my-app"]
     selector {
-        match_labels = {
-            key = "team"
-            operator = "In"
+        match_expression = {
+            key = "team",
+            operator = "In",
             values = ["ops"]
         }
     }

@@ -95,7 +95,7 @@ func (c *Component) Update(args component.Arguments) error {
 
 // DebugInfo returns debug information for this component.
 func (c *Component) DebugInfo() interface{} {
-	var info debugInfo
+	var info DebugInfo
 	for _, pm := range c.manager.debugInfo {
 		info.DiscoveredPodMonitors = append(info.DiscoveredPodMonitors, pm)
 	}

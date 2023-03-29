@@ -44,12 +44,12 @@ func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	return nil
 }
 
-type debugInfo struct {
-	DiscoveredPodMonitors []*discoveredPodMonitor `river:"pod_monitors,block"`
+type DebugInfo struct {
+	DiscoveredPodMonitors []*DiscoveredPodMonitor `river:"pod_monitors,block"`
 	Targets               []scrape.TargetStatus   `river:"targets,block,optional"`
 }
 
-type discoveredPodMonitor struct {
+type DiscoveredPodMonitor struct {
 	Namespace      string    `river:"namespace,attr"`
 	Name           string    `river:"name,attr"`
 	LastReconcile  time.Time `river:"last_reconcile,attr,optional"`
