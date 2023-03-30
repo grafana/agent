@@ -44,7 +44,7 @@ client > basic_auth | [basic_auth][] | Configure basic authentication to the Kub
 client > authorization | [authorization][] | Configure generic authorization to the Kubernetes API. | no
 client > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the Kubernetes API. | no
 client > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
-client > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+client > tls_config | [tls_config][] | Configure TLS settings for connecting to the Kubernetes API. | no
 selector | [selector][] | Label selector for which `PodMonitors` to discover. | no
 selector > match_expression | [match_expression][] | Label selector expression for which `PodMonitors` to discover. | no
 
