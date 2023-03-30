@@ -151,7 +151,8 @@ func (c *crdManager) runInformers(ctx context.Context) error {
 
 		go func() {
 			err := informers.Start(ctx)
-			if err != nil && ctx.Err() != nil {
+			// If the context was canceled, we don't want to log an error.
+			if err != nil && ctx.Err() == nil {
 				level.Error(c.logger).Log("msg", "failed to start informers", "err", err)
 			}
 		}()
