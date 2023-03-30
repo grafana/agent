@@ -62,7 +62,7 @@ inside a `client` block.
 
 ### client block
 
-The `client` block configures the Kubernetes client used discover PodMonitors. If the `client` block isn't provided, the default in-cluster
+The `client` block configures the Kubernetes client used to discover PodMonitors. If the `client` block isn't provided, the default in-cluster
 configuration with the service account of the running Grafana Agent pod is
 used.
 
