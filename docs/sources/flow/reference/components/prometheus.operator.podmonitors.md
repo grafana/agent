@@ -114,7 +114,7 @@ When the `match_labels` argument is empty, all resources will be matched.
 
 ### match_expression block
 
-The `match_expression` block describes a Kubernetes label match expression for
+The `match_expression` block describes a Kubernetes label matcher expression for
 `PodMonitors` discovery.
 
 The following arguments are supported:
