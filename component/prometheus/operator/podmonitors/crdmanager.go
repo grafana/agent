@@ -12,7 +12,6 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus"
-	"github.com/grafana/agent/component/prometheus/operator/podmonitors/config_gen"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
@@ -21,6 +20,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/grafana/agent/component/prometheus/operator/podmonitors/configgen"
 	compscrape "github.com/grafana/agent/component/prometheus/scrape"
 	promopv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -43,7 +43,7 @@ type CRDManager struct {
 	Opts      component.Options
 	Logger    log.Logger
 	Args      *Arguments
-	ConfigGen config_gen.ConfigGenerator
+	ConfigGen configgen.ConfigGenerator
 }
 
 func NewCRDManager(opts component.Options, logger log.Logger, args *Arguments) *CRDManager {
@@ -58,7 +58,7 @@ func NewCRDManager(opts component.Options, logger log.Logger, args *Arguments) *
 }
 
 func (c *CRDManager) Run(ctx context.Context) error {
-	c.ConfigGen = config_gen.ConfigGenerator{
+	c.ConfigGen = configgen.ConfigGenerator{
 		Client: &c.Args.Client,
 	}
 

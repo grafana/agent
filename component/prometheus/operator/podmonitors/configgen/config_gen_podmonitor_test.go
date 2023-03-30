@@ -1,4 +1,4 @@
-package config_gen
+package configgen
 
 import (
 	"fmt"
