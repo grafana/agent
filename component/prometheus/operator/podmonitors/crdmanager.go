@@ -222,19 +222,6 @@ func (c *CRDManager) apply() error {
 	return nil
 }
 
-func (c *CRDManager) clearConfigs(ns string, name string) {
-	c.Mut.Lock()
-	defer c.Mut.Unlock()
-	prefix := fmt.Sprintf("podMonitor/%s/%s", ns, name)
-	for k := range c.DiscoveryConfigs {
-		if strings.HasPrefix(k, prefix) {
-			delete(c.DiscoveryConfigs, k)
-			delete(c.ScrapeConfigs, k)
-		}
-	}
-	delete(c.debugInfo, prefix)
-}
-
 func (c *CRDManager) addDebugInfo(ns string, name string, err error) {
 	c.Mut.Lock()
 	defer c.Mut.Unlock()
@@ -292,4 +279,17 @@ func (c *CRDManager) onDeletePodMonitor(obj interface{}) {
 	if err := c.apply(); err != nil {
 		level.Error(c.Logger).Log("name", pm.Name, "err", err, "msg", "error applying scrape configs after podmonitor deletion")
 	}
+}
+
+func (c *CRDManager) clearConfigs(ns string, name string) {
+	c.Mut.Lock()
+	defer c.Mut.Unlock()
+	prefix := fmt.Sprintf("podMonitor/%s/%s", ns, name)
+	for k := range c.DiscoveryConfigs {
+		if strings.HasPrefix(k, prefix) {
+			delete(c.DiscoveryConfigs, k)
+			delete(c.ScrapeConfigs, k)
+		}
+	}
+	delete(c.debugInfo, prefix)
 }
