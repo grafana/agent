@@ -90,6 +90,8 @@ func (c *Component) Run(ctx context.Context) error {
 }
 
 // Update implements component.Component.
+// TODO(jcreixell): Initialize manager here so we can return errors back early to the caller.
+// See https://github.com/grafana/agent/pull/2688#discussion_r1152384425
 func (c *Component) Update(args component.Arguments) error {
 	c.mut.Lock()
 	cfg := args.(Arguments)
