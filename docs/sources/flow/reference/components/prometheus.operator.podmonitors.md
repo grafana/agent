@@ -132,8 +132,7 @@ The `operator` argument must be one of the following strings:
 * `"Exists"`
 * `"DoesNotExist"`
 
-`selector` can make use of multiple
-`match_expression` inner blocks which are treated as AND clauses.
+If there are multiple `match_expressions` blocks inside of a `selector` block, they are combined together with AND clauses. 
 
 ## Exported fields
 
