@@ -110,7 +110,7 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `match_labels` | `map(string)` | Label keys and values used to discover resources. | `{}` | no
 
-When the `match_labels` argument is empty, all resources will be matched.
+When the `match_labels` argument is empty, all PodMonitor resources will be matched.
 
 ### match_expression block
 
