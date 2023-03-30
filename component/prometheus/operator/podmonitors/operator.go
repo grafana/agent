@@ -59,7 +59,7 @@ func (c *Component) Run(ctx context.Context) error {
 		}
 	}()
 
-	c.reportHealthy()
+	c.reportHealth(nil)
 	errChan := make(chan error)
 	for {
 		select {
@@ -69,7 +69,7 @@ func (c *Component) Run(ctx context.Context) error {
 			}
 			return nil
 		case err := <-errChan:
-			c.reportUnhealthy(err)
+			c.reportHealth(err)
 		case <-c.onUpdate:
 			if cancel != nil {
 				cancel()
@@ -113,21 +113,21 @@ func (c *Component) DebugInfo() interface{} {
 	return info
 }
 
-func (c *Component) reportUnhealthy(err error) {
+func (c *Component) reportHealth(err error) {
 	c.healthMut.Lock()
 	defer c.healthMut.Unlock()
-	c.health = component.Health{
-		Health:     component.HealthTypeUnhealthy,
-		Message:    err.Error(),
-		UpdateTime: time.Now(),
-	}
-}
 
-func (c *Component) reportHealthy() {
-	c.healthMut.Lock()
-	defer c.healthMut.Unlock()
-	c.health = component.Health{
-		Health:     component.HealthTypeHealthy,
-		UpdateTime: time.Now(),
+	if err != nil {
+		c.health = component.Health{
+			Health:     component.HealthTypeUnhealthy,
+			Message:    err.Error(),
+			UpdateTime: time.Now(),
+		}
+		return
+	} else {
+		c.health = component.Health{
+			Health:     component.HealthTypeHealthy,
+			UpdateTime: time.Now(),
+		}
 	}
 }
