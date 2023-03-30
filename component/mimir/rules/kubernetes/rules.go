@@ -205,7 +205,8 @@ func (c *Component) startup(ctx context.Context) error {
 	if err := c.startRuleInformer(); err != nil {
 		return err
 	}
-	if err := c.syncMimir(ctx); err != nil {
+	err := c.syncMimir(ctx)
+	if err != nil {
 		return err
 	}
 	go c.eventLoop(ctx)
@@ -301,7 +302,8 @@ func (c *Component) startNamespaceInformer() error {
 	namespaces := factory.Core().V1().Namespaces()
 	c.namespaceLister = namespaces.Lister()
 	c.namespaceInformer = namespaces.Informer()
-	if _, err := c.namespaceInformer.AddEventHandler(newQueuedEventHandler(c.log, c.queue)); err != nil {
+	_, err := c.namespaceInformer.AddEventHandler(newQueuedEventHandler(c.log, c.queue))
+	if err != nil {
 		return err
 	}
 
@@ -322,7 +324,10 @@ func (c *Component) startRuleInformer() error {
 	promRules := factory.Monitoring().V1().PrometheusRules()
 	c.ruleLister = promRules.Lister()
 	c.ruleInformer = promRules.Informer()
-	c.ruleInformer.AddEventHandler(newQueuedEventHandler(c.log, c.queue))
+	_, err := c.ruleInformer.AddEventHandler(newQueuedEventHandler(c.log, c.queue))
+	if err != nil {
+		return err
+	}
 
 	factory.Start(c.informerStopChan)
 	factory.WaitForCacheSync(c.informerStopChan)
