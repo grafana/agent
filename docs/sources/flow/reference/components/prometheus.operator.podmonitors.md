@@ -41,7 +41,7 @@ Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
 client | [client][] | Configures Kubernetes client used to find podmonitors. | no
 client > basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
-client > authorization | [authorization][] | Configure generic authorization to the endpoint. | no
+client > authorization | [authorization][] | Configure generic authorization to the Kubernetes API. | no
 client > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
 client > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
 client > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
