@@ -69,13 +69,13 @@ Name | Type | Description | Default | Required
 `endpoint`           | `string`      | `host:port` to send telemetry data to. | | yes
 `read_buffer_size`   | `string`      | Size of the read buffer the HTTP client uses for reading server responses. | `0` | no
 `write_buffer_size`  | `string`      | Size of the write buffer the HTTP client uses for writing requests. | `"512KiB"` | no
-`timeout`            | `duration`    | Time to wait before marking a request as failed. | `"30s"` | no
-`headers`            | `map(string)` | Additional headers to send with the request. | `{}` | no
+`timeout`            | `string`    | Time to wait before marking a request as failed. | `"30s"` | no
+`headers`            | `object` | Additional headers to send with the request. | `{}` | no
 `compression`        | `string`      | Compression mechanism to use for requests. | `"gzip"` | no
 `max_idle_conns`     | `int`         | Limits the number of idle HTTP connections the client can keep open. | `100` | no
 `max_idle_conns_per_host` | `int`    | Limits the number of idle HTTP connections the host can keep open. | `0` | no
 `max_conns_per_host` | `int`         | Limits the total (dialing,active, and idle) number of connections per host. | `0` | no
-`idle_conn_timeout`  | `duration`    | Time to wait before an idle connection closes itself. | `"90s"` | no
+`idle_conn_timeout`  | `string`    | Time to wait before an idle connection closes itself. | `"90s"` | no
 `auth`               | `capsule(otelcol.Handler)` | Handler from an `otelcol.auth` component to use for authenticating requests. | | no
 
 {{< docs/shared lookup="flow/reference/components/otelcol-compression-field.md" source="agent" >}}
