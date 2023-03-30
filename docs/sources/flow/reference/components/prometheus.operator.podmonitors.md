@@ -137,7 +137,7 @@ The `operator` argument must be one of the following strings:
 
 ## Exported fields
 
-`prometheus.operator.podmonitors` does not export any fields. It will forward all metrics it scrapes to the receiver configures with the `forward_to` argument.
+`prometheus.operator.podmonitors` does not export any fields. It forwards all metrics it scrapes to the receiver configures with the `forward_to` argument.
 
 ## Component health
 
