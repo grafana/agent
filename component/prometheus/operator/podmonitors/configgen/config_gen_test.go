@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/component/common/config"
+	"github.com/grafana/agent/component/common/kubernetes"
 	promopv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	promConfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
@@ -25,13 +26,13 @@ func TestGenerateK8SSDConfig(t *testing.T) {
 
 	tests := []struct {
 		name           string
-		client         *config.ClientArguments
+		client         *kubernetes.ClientArguments
 		attachMetadata *promopv1.AttachMetadata
 		expected       *promk8s.SDConfig
 	}{
 		{
 			name: "empty",
-			client: &config.ClientArguments{
+			client: &kubernetes.ClientArguments{
 				APIServer: config.URL{},
 			},
 			attachMetadata: nil,
@@ -42,7 +43,7 @@ func TestGenerateK8SSDConfig(t *testing.T) {
 		},
 		{
 			name: "kubeconfig",
-			client: &config.ClientArguments{
+			client: &kubernetes.ClientArguments{
 				KubeConfig: "kubeconfig",
 				APIServer:  config.URL{},
 			},
@@ -55,7 +56,7 @@ func TestGenerateK8SSDConfig(t *testing.T) {
 		},
 		{
 			name: "attach metadata",
-			client: &config.ClientArguments{
+			client: &kubernetes.ClientArguments{
 				APIServer: config.URL{},
 			},
 			attachMetadata: &promopv1.AttachMetadata{
@@ -69,7 +70,7 @@ func TestGenerateK8SSDConfig(t *testing.T) {
 		},
 		{
 			name: "http client config",
-			client: &config.ClientArguments{
+			client: &kubernetes.ClientArguments{
 				APIServer: config.URL{
 					URL: &url.URL{
 						Scheme: "https",
