@@ -244,7 +244,7 @@ func (c *crdManager) addPodMonitor(pm *promopv1.PodMonitor) {
 		var pmc *config.ScrapeConfig
 		pmc, err = c.configGen.GeneratePodMonitorConfig(pm, ep, i)
 		if err != nil {
-			// TODO(jcreixell): Generate Kubernetes event to inform of this error when runing `kubectl get <podmonitor>`.
+			// TODO(jcreixell): Generate Kubernetes event to inform of this error when running `kubectl get <podmonitor>`.
 			level.Error(c.logger).Log("name", pm.Name, "err", err, "msg", "error generating scrapeconfig from podmonitor")
 			break
 		}
