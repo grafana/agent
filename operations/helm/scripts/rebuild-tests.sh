@@ -4,7 +4,7 @@ set +x
 
 # Find `ci` directories
 for chart_file in $(find * -name Chart.yaml -print | sort); do
-  # Find chart 
+  # Find chart
   CHART_DIR=$(dirname ${chart_file})
   CHART_NAME=$(basename ${CHART_DIR})
   TEST_DIR="${CHART_DIR}/../../tests" # We should append "/${CHART_NAME}" if we ever have more charts here
