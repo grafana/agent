@@ -37,6 +37,9 @@ rules:
   new-line-at-end-of-file: enable
   new-lines:
     type: unix
-  trailing-spaces: enable
+  trailing-spaces:
+    # becuase river file has new lines and those are indented too. See https://github.com/helm/helm/issues/11955
+    ignore: |
+      configmap.yaml
   truthy:
     level: warning
