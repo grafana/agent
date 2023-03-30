@@ -137,7 +137,7 @@ require (
 	github.com/sijms/go-ora/v2 v2.5.24
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	github.com/vincent-petithory/dataurl v1.0.0
 	github.com/weaveworks/common v0.0.0-20221201103051-7c2720a9024d
@@ -150,7 +150,7 @@ require (
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.63.0
 	go.opentelemetry.io/collector/exporter/otlphttpexporter v0.0.0-00010101000000-000000000000
 	go.opentelemetry.io/collector/pdata v0.63.1
-	go.opentelemetry.io/collector/semconv v0.63.1
+	go.opentelemetry.io/collector/semconv v0.74.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux v0.36.4
 	go.opentelemetry.io/otel v1.11.2
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.11.2
