@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	promopv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	namespacelabeler "github.com/prometheus-operator/prometheus-operator/pkg/namespace-labeler"
 	commonConfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
@@ -24,7 +24,7 @@ var (
 	regexAnything      = relabel.MustNewRegexp("(.+)")
 )
 
-func (cg *ConfigGenerator) GeneratePodMonitorConfig(m *v1.PodMonitor, ep v1.PodMetricsEndpoint, i int) (cfg *config.ScrapeConfig, err error) {
+func (cg *ConfigGenerator) GeneratePodMonitorConfig(m *promopv1.PodMonitor, ep promopv1.PodMetricsEndpoint, i int) (cfg *config.ScrapeConfig, err error) {
 	c := config.DefaultScrapeConfig
 	cfg = &c
 	cfg.ScrapeInterval = config.DefaultGlobalConfig.ScrapeInterval

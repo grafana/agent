@@ -22,7 +22,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	compscrape "github.com/grafana/agent/component/prometheus/scrape"
-	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	promopv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -123,7 +123,7 @@ func (c *CRDManager) runInformers(ctx context.Context) error {
 
 	scheme := runtime.NewScheme()
 	for _, add := range []func(*runtime.Scheme) error{
-		v1.AddToScheme,
+		promopv1.AddToScheme,
 	} {
 		if err := add(scheme); err != nil {
 			return fmt.Errorf("unable to register scheme: %w", err)
@@ -170,7 +170,7 @@ func (c *CRDManager) runInformers(ctx context.Context) error {
 // configureInformers configures the informers for the CRDManager to watch for PodMonitors changes.
 func (c *CRDManager) configureInformers(ctx context.Context, informers cache.Informers) error {
 	objects := []client.Object{
-		&v1.PodMonitor{},
+		&promopv1.PodMonitor{},
 	}
 
 	informerCtx, cancel := context.WithTimeout(ctx, informerSyncTimeout)
@@ -238,7 +238,7 @@ func (c *CRDManager) addDebugInfo(ns string, name string, err error) {
 	c.debugInfo[prefix] = debug
 }
 
-func (c *CRDManager) addPodMonitor(pm *v1.PodMonitor) {
+func (c *CRDManager) addPodMonitor(pm *promopv1.PodMonitor) {
 	var err error
 	for i, ep := range pm.Spec.PodMetricsEndpoints {
 		var pmc *config.ScrapeConfig
@@ -264,17 +264,17 @@ func (c *CRDManager) addPodMonitor(pm *v1.PodMonitor) {
 }
 
 func (c *CRDManager) onAddPodMonitor(obj interface{}) {
-	pm := obj.(*v1.PodMonitor)
+	pm := obj.(*promopv1.PodMonitor)
 	level.Info(c.Logger).Log("msg", "found pod monitor", "name", pm.Name)
 	c.addPodMonitor(pm)
 }
 func (c *CRDManager) onUpdatePodMonitor(oldObj, newObj interface{}) {
-	pm := oldObj.(*v1.PodMonitor)
+	pm := oldObj.(*promopv1.PodMonitor)
 	c.clearConfigs(pm.Namespace, pm.Name)
-	c.addPodMonitor(newObj.(*v1.PodMonitor))
+	c.addPodMonitor(newObj.(*promopv1.PodMonitor))
 }
 func (c *CRDManager) onDeletePodMonitor(obj interface{}) {
-	pm := obj.(*v1.PodMonitor)
+	pm := obj.(*promopv1.PodMonitor)
 	c.clearConfigs(pm.Namespace, pm.Name)
 	if err := c.apply(); err != nil {
 		level.Error(c.Logger).Log("name", pm.Name, "err", err, "msg", "error applying scrape configs after podmonitor deletion")

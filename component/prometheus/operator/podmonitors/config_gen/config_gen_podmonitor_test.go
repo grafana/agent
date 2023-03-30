@@ -9,7 +9,7 @@ import (
 
 	k8sConfig "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/pkg/util"
-	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	promopv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	commonConfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
@@ -19,7 +19,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
-	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestGeneratePodMonitorConfig(t *testing.T) {
@@ -27,21 +27,21 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 	var proxyURL = "https://proxy:8080"
 	suite := []struct {
 		name                   string
-		m                      *v1.PodMonitor
-		ep                     v1.PodMetricsEndpoint
+		m                      *promopv1.PodMonitor
+		ep                     promopv1.PodMetricsEndpoint
 		expectedRelabels       string
 		expectedMetricRelabels string
 		expected               *config.ScrapeConfig
 	}{
 		{
 			name: "default",
-			m: &v1.PodMonitor{
-				ObjectMeta: meta_v1.ObjectMeta{
+			m: &promopv1.PodMonitor{
+				ObjectMeta: metav1.ObjectMeta{
 					Namespace: "operator",
 					Name:      "podmonitor",
 				},
 			},
-			ep: v1.PodMetricsEndpoint{
+			ep: promopv1.PodMetricsEndpoint{
 				Port: "metrics",
 			},
 			expectedRelabels: util.Untab(`
@@ -89,47 +89,47 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 		},
 		{
 			name: "everything",
-			m: &v1.PodMonitor{
-				ObjectMeta: meta_v1.ObjectMeta{
+			m: &promopv1.PodMonitor{
+				ObjectMeta: metav1.ObjectMeta{
 					Namespace: "operator",
 					Name:      "podmonitor",
 				},
-				Spec: v1.PodMonitorSpec{
+				Spec: promopv1.PodMonitorSpec{
 					JobLabel:        "abc",
 					PodTargetLabels: []string{"label_a", "label_b"},
-					Selector: meta_v1.LabelSelector{
+					Selector: metav1.LabelSelector{
 						MatchLabels: map[string]string{"foo": "bar"},
-						MatchExpressions: []meta_v1.LabelSelectorRequirement{
+						MatchExpressions: []metav1.LabelSelectorRequirement{
 							{
 								Key:      "key",
-								Operator: meta_v1.LabelSelectorOpIn,
+								Operator: metav1.LabelSelectorOpIn,
 								Values:   []string{"val0", "val1"},
 							},
 							{
 								Key:      "key",
-								Operator: meta_v1.LabelSelectorOpNotIn,
+								Operator: metav1.LabelSelectorOpNotIn,
 								Values:   []string{"val0", "val1"},
 							},
 							{
 								Key:      "key",
-								Operator: meta_v1.LabelSelectorOpExists,
+								Operator: metav1.LabelSelectorOpExists,
 							},
 							{
 								Key:      "key",
-								Operator: meta_v1.LabelSelectorOpDoesNotExist,
+								Operator: metav1.LabelSelectorOpDoesNotExist,
 							},
 						},
 					},
-					NamespaceSelector:     v1.NamespaceSelector{Any: false, MatchNames: []string{"ns_a", "ns_b"}},
+					NamespaceSelector:     promopv1.NamespaceSelector{Any: false, MatchNames: []string{"ns_a", "ns_b"}},
 					SampleLimit:           101,
 					TargetLimit:           102,
 					LabelLimit:            103,
 					LabelNameLengthLimit:  104,
 					LabelValueLengthLimit: 105,
-					AttachMetadata:        &v1.AttachMetadata{Node: true},
+					AttachMetadata:        &promopv1.AttachMetadata{Node: true},
 				},
 			},
-			ep: v1.PodMetricsEndpoint{
+			ep: promopv1.PodMetricsEndpoint{
 				Port:            "metrics",
 				EnableHttp2:     &falseVal,
 				Path:            "/foo",
@@ -142,8 +142,8 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 				HonorLabels:     true,
 				HonorTimestamps: &falseVal,
 				FilterRunning:   &falseVal,
-				TLSConfig: &v1.PodMetricsEndpointTLSConfig{
-					SafeTLSConfig: v1.SafeTLSConfig{
+				TLSConfig: &promopv1.PodMetricsEndpointTLSConfig{
+					SafeTLSConfig: promopv1.SafeTLSConfig{
 						ServerName:         "foo.com",
 						InsecureSkipVerify: true,
 					},
