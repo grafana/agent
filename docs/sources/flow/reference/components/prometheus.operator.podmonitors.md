@@ -10,9 +10,9 @@ labels:
 
 `prometheus.operator.podmonitors` discovers [PodMonitor](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.PodMonitor) resources in your kubernetes cluster and scrape the targets they reference. This component performs three main functions:
 
-1. Discover `PodMonitor` resources from your Kubernetes cluster.
-2. Discover `Pods` in your cluster that match those `PodMonitors`.
-3. Scrape metrics from those `Pods`, and forward them to a receiver.
+1. Discover PodMonitor resources from your Kubernetes cluster.
+2. Discover Pods in your cluster that match those PodMonitors.
+3. Scrape metrics from those Pods, and forward them to a receiver.
 
 The default configuration assumes the agent is running inside a Kubernetes cluster, and uses the in-cluster config to access the Kubernetes API. It can be run from outside the cluster by supplying connection info in the `client` block, but network level access to pods is required to scrape metrics from them.
 
@@ -45,8 +45,8 @@ client > authorization | [authorization][] | Configure generic authorization to 
 client > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the Kubernetes API. | no
 client > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the Kubernetes API. | no
 client > tls_config | [tls_config][] | Configure TLS settings for connecting to the Kubernetes API. | no
-selector | [selector][] | Label selector for which `PodMonitors` to discover. | no
-selector > match_expression | [match_expression][] | Label selector expression for which `PodMonitors` to discover. | no
+selector | [selector][] | Label selector for which PodMonitors to discover. | no
+selector > match_expression | [match_expression][] | Label selector expression for which PodMonitors to discover. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `client >
 basic_auth` refers to a `basic_auth` block defined
@@ -102,7 +102,7 @@ Name | Type | Description | Default | Required
 
 ### selector block
 
-The `selector` block describes a Kubernetes label selector for `PodMonitors`.
+The `selector` block describes a Kubernetes label selector for PodMonitors.
 
 The following arguments are supported:
 
@@ -115,7 +115,7 @@ When the `match_labels` argument is empty, all PodMonitor resources will be matc
 ### match_expression block
 
 The `match_expression` block describes a Kubernetes label matcher expression for
-`PodMonitors` discovery.
+PodMonitors discovery.
 
 The following arguments are supported:
 
@@ -147,14 +147,14 @@ If there are multiple `match_expressions` blocks inside of a `selector` block, t
 `prometheus.operator.podmonitors` reports the status of the last scrape for each configured
 scrape job on the component's debug endpoint, including discovered labels, and the last scrape time.
 
-It also exposes some debug information for each `PodMonitor` it has discovered, including any errors found while reconciling the scrape configuration from the `PodMonitor`.
+It also exposes some debug information for each PodMonitor it has discovered, including any errors found while reconciling the scrape configuration from the PodMonitor.
 
 ### Debug metrics
 
 
 ## Example
 
-This example discovers all `PodMonitors` in your cluster, and forwards collected logs to a
+This example discovers all PodMonitors in your cluster, and forwards collected logs to a
 `prometheus.remote_write` component.
 
 ```river
@@ -175,7 +175,7 @@ prometheus.operator.podmonitors "pods" {
 }
 ```
 
-This example will limit discovered `PodMonitors` to ones with the label `team=ops` in a specific namespace: `my-app`.
+This example will limit discovered PodMonitors to ones with the label `team=ops` in a specific namespace: `my-app`.
 
 ```river
 prometheus.operator.podmonitors "pods" {
