@@ -151,7 +151,7 @@ func FilterGroups(in DiscoveredGroups, host string, configs []*relabel.Config) D
 
 			for _, target := range group.Targets {
 				allLabels := mergeSets(target, group.Labels)
-				processedLabels := relabel.Process(toLabelSlice(allLabels), configs...)
+				processedLabels, _ := relabel.Process(toLabelSlice(allLabels), configs...)
 
 				if !shouldFilterTarget(processedLabels, host) {
 					newGroup.Targets = append(newGroup.Targets, target)

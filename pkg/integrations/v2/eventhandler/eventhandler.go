@@ -114,8 +114,7 @@ func newEventHandler(l log.Logger, globals integrations.Globals, c *Config) (int
 		extraLabels:   c.ExtraLabels,
 	}
 	// set the resource handler fns
-	err = eh.initInformer(eventInformer)
-	if err != nil {
+	if err := eh.initInformer(eventInformer); err != nil {
 		return nil, err
 	}
 	eh.ticker = time.NewTicker(time.Duration(c.FlushInterval) * time.Second)

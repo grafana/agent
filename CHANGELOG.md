@@ -52,10 +52,14 @@ Main (unreleased)
 ### Enhancements
 
 - Flow: Add retries with backoff logic to Phlare write component. (@cyriltovena)
+
 - Operator: Allow setting runtimeClassName on operator-created pods. (@captncraig)
+
 - Operator: Transparently compress agent configs to stay under size limitations. (@captncraig)
 
 - Update Redis Exporter Dependency to v1.48.0. (@spartan0x117)
+
+- Update Loki dependency to the k142 branch. (@rfratto)
 
 ### Bugfixes
 
@@ -80,6 +84,9 @@ Main (unreleased)
   hang forever on handling logs. (@rfratto)
 
 - Fix issue where a DefaultConfig might be mutated during unmarshaling. (@jcreixell)
+
+- Fix issue where scraping native Prometheus histograms would leak memory.
+  (@rfratto)
 
 ### Other changes
 

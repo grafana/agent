@@ -322,9 +322,7 @@ func (c *Component) startRuleInformer() error {
 	promRules := factory.Monitoring().V1().PrometheusRules()
 	c.ruleLister = promRules.Lister()
 	c.ruleInformer = promRules.Informer()
-	if _, err := c.ruleInformer.AddEventHandler(newQueuedEventHandler(c.log, c.queue)); err != nil {
-		return err
-	}
+	c.ruleInformer.AddEventHandler(newQueuedEventHandler(c.log, c.queue))
 
 	factory.Start(c.informerStopChan)
 	factory.WaitForCacheSync(c.informerStopChan)

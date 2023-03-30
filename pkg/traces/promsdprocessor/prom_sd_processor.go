@@ -264,9 +264,9 @@ func (p *promServiceDiscoProcessor) syncTargets(jobName string, group *targetgro
 		for k, v := range discoveredLabels.Clone() {
 			labelMap[string(k)] = string(v)
 		}
-		processedLabels := relabel.Process(labels.FromMap(labelMap), relabelConfig...)
+		processedLabels, keep := relabel.Process(labels.FromMap(labelMap), relabelConfig...)
 		level.Debug(p.logger).Log("processedLabels", processedLabels)
-		if processedLabels == nil { // dropped
+		if !keep {
 			continue
 		}
 
