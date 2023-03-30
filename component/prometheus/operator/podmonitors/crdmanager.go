@@ -21,6 +21,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	compscrape "github.com/grafana/agent/component/prometheus/scrape"
 	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -35,7 +36,7 @@ type CRDManager struct {
 	Mut              sync.Mutex
 	DiscoveryConfigs map[string]discovery.Configs
 	ScrapeConfigs    map[string]*config.ScrapeConfig
-	DebugInfo        map[string]*DiscoveredPodMonitor
+	debugInfo        map[string]*DiscoveredPodMonitor
 	DiscoveryManager *discovery.Manager
 	ScrapeManager    *scrape.Manager
 
@@ -52,7 +53,7 @@ func NewCRDManager(opts component.Options, logger log.Logger, args *Arguments) *
 		Args:             args,
 		DiscoveryConfigs: map[string]discovery.Configs{},
 		ScrapeConfigs:    map[string]*config.ScrapeConfig{},
-		DebugInfo:        map[string]*DiscoveredPodMonitor{},
+		debugInfo:        map[string]*DiscoveredPodMonitor{},
 	}
 }
 
@@ -98,6 +99,19 @@ func (c *CRDManager) Run(ctx context.Context) error {
 			targetSetsChan <- m
 		}
 	}
+}
+
+// DebugInfo returns debug information for the CRDManager.
+func (c *CRDManager) DebugInfo() interface{} {
+	c.Mut.Lock()
+	defer c.Mut.Unlock()
+
+	var info DebugInfo
+	for _, pm := range c.debugInfo {
+		info.DiscoveredPodMonitors = append(info.DiscoveredPodMonitors, pm)
+	}
+	info.Targets = compscrape.BuildTargetStatuses(c.ScrapeManager.TargetsActive())
+	return info
 }
 
 // runInformers starts all the informers that are required to discover PodMonitors.
@@ -218,7 +232,7 @@ func (c *CRDManager) clearConfigs(ns string, name string) {
 			delete(c.ScrapeConfigs, k)
 		}
 	}
-	delete(c.DebugInfo, prefix)
+	delete(c.debugInfo, prefix)
 }
 
 func (c *CRDManager) addDebugInfo(ns string, name string, err error) {
@@ -234,7 +248,7 @@ func (c *CRDManager) addDebugInfo(ns string, name string, err error) {
 		debug.ReconcileError = ""
 	}
 	prefix := fmt.Sprintf("podMonitor/%s/%s", ns, name)
-	c.DebugInfo[prefix] = debug
+	c.debugInfo[prefix] = debug
 }
 
 func (c *CRDManager) addPodMonitor(pm *v1.PodMonitor) {

@@ -7,7 +7,6 @@ import (
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/prometheus/scrape"
 )
 
 func init() {
@@ -105,12 +104,7 @@ func (c *Component) Update(args component.Arguments) error {
 
 // DebugInfo returns debug information for this component.
 func (c *Component) DebugInfo() interface{} {
-	var info DebugInfo
-	for _, pm := range c.manager.DebugInfo {
-		info.DiscoveredPodMonitors = append(info.DiscoveredPodMonitors, pm)
-	}
-	info.Targets = scrape.BuildTargetStatuses(c.manager.ScrapeManager.TargetsActive())
-	return info
+	return c.manager.DebugInfo()
 }
 
 func (c *Component) reportHealth(err error) {
