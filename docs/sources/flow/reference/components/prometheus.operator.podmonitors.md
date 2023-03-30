@@ -14,7 +14,7 @@ labels:
 2. Discover `Pods` in your cluster that match those `PodMonitors`.
 3. Scrape metrics from those `Pods`, and forward them to a receiver.
 
-The default configuration assumes the agent is running inside a kubernetes cluster, and uses the in-cluster config to access the kubernetes api. It can be run from outside the cluster by supplying connection info in the `client` block, but network level access to pods is required to scrape metrics from them.
+The default configuration assumes the agent is running inside a Kubernetes cluster, and uses the in-cluster config to access the Kubernetes API. It can be run from outside the cluster by supplying connection info in the `client` block, but network level access to pods is required to scrape metrics from them.
 
 ## Usage
 
