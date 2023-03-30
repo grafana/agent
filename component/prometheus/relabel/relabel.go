@@ -195,10 +195,10 @@ func (c *Component) relabel(val float64, lbls labels.Labels) labels.Labels {
 	} else {
 		// Relabel against a copy of the labels to prevent modifying the original
 		// slice.
-		relabelled = relabel.Process(lbls.Copy(), c.mrc...)
+		relabelled, keep := relabel.Process(lbls.Copy(), c.mrc...)
 		c.cacheMisses.Inc()
 		c.cacheSize.Inc()
-		c.addToCache(globalRef, relabelled)
+		c.addToCache(globalRef, relabelled, keep)
 	}
 
 	// If stale remove from the cache, the reason we don't exit early is so the stale value can propagate.
@@ -236,11 +236,11 @@ func (c *Component) clearCache() {
 	c.cache = make(map[uint64]*labelAndID)
 }
 
-func (c *Component) addToCache(originalID uint64, lbls labels.Labels) {
+func (c *Component) addToCache(originalID uint64, lbls labels.Labels, keep bool) {
 	c.cacheMut.Lock()
 	defer c.cacheMut.Unlock()
 
-	if lbls == nil {
+	if !keep {
 		c.cache[originalID] = nil
 		return
 	}

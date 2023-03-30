@@ -134,11 +134,14 @@ func (ctrl *eventController) configureInformers(ctx context.Context, informers c
 			return err
 		}
 
-		informer.AddEventHandler(cachetools.ResourceEventHandlerFuncs{
+		_, err = informer.AddEventHandler(cachetools.ResourceEventHandlerFuncs{
 			AddFunc:    func(obj interface{}) { ctrl.onAdd(ctx, obj) },
 			UpdateFunc: func(oldObj, newObj interface{}) { ctrl.onUpdate(ctx, oldObj, newObj) },
 			DeleteFunc: func(obj interface{}) { ctrl.onDelete(ctx, obj) },
 		})
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

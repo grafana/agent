@@ -151,7 +151,7 @@ func (app *Appender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m me
 
 // AppendHistogram implements storage.Appendable, but always returns an error
 // as native histograms are not supported.
-func (app *Appender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram) (storage.SeriesRef, error) {
+func (app *Appender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram) (storage.SeriesRef, error) {
 	return 0, fmt.Errorf("native histograms are not supported")
 }
 

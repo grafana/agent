@@ -36,11 +36,13 @@ Main (unreleased)
     based OpenTelemetry exporters. (@ptodev)
   - `otelcol.extension.jaeger_remote_sampling` provides an endpoint from which to
     pull Jaeger remote sampling documents. (@joe-elliott)
-  - `prometheus.exporter.blackbox` collects metrics from Blackbox exporter (@marctc).
+  - `prometheus.exporter.blackbox` collects metrics from Blackbox exporter. (@marctc)
   - `prometheus.exporter.mysql` collects metrics from a MySQL database. (@spartan0x117)
   - `prometheus.exporter.postgres` collects metrics from a PostgreSQL database. (@spartan0x117)
   - `prometheus.exporter.statsd` collects metrics from a Statsd instance. (@gaantunes)
   - `prometheus.exporter.snmp` collects metrics from SNMP exporter (@marctc).
+  - `prometheus.operator.podmonitors` discovers PodMonitor resources in your Kubernetes cluster and scrape 
+    the targets they reference. (@captncraig, @marctc, @jcreixell)
   - `otelcol.auth.sigv4` performs AWS Signature Version 4 (SigV4) authentication
     for making requests to AWS services via `otelcol` components that support
     authentication extensions. (@ptodev)
@@ -51,10 +53,14 @@ Main (unreleased)
 ### Enhancements
 
 - Flow: Add retries with backoff logic to Phlare write component. (@cyriltovena)
+
 - Operator: Allow setting runtimeClassName on operator-created pods. (@captncraig)
+
 - Operator: Transparently compress agent configs to stay under size limitations. (@captncraig)
 
 - Update Redis Exporter Dependency to v1.48.0. (@spartan0x117)
+
+- Update Loki dependency to the k142 branch. (@rfratto)
 
 ### Bugfixes
 
@@ -79,6 +85,9 @@ Main (unreleased)
   hang forever on handling logs. (@rfratto)
 
 - Fix issue where a DefaultConfig might be mutated during unmarshaling. (@jcreixell)
+
+- Fix issue where scraping native Prometheus histograms would leak memory.
+  (@rfratto)
 
 ### Other changes
 
