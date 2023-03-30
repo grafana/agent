@@ -23,7 +23,7 @@ func init() {
 type Component struct {
 	mut     sync.Mutex
 	config  *Arguments
-	manager *CRDManager
+	manager *crdManager
 
 	onUpdate  chan struct{}
 	opts      component.Options
