@@ -60,7 +60,7 @@ func (c *Component) Run(ctx context.Context) error {
 	}()
 
 	c.reportHealth(nil)
-	errChan := make(chan error)
+	errChan := make(chan error, 1)
 	for {
 		select {
 		case <-ctx.Done():
