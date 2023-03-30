@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -17,8 +18,8 @@ import (
 
 func TestModule(t *testing.T) {
 	tempDir := t.TempDir()
-	debugLevelFile := filepath.Join(tempDir, "debug_level.txt")
-	os.WriteFile(debugLevelFile, []byte("info"), 0664)
+	debugLevelFilePath := filepath.Join(tempDir, "debug_level.txt")
+	os.WriteFile(debugLevelFilePath, []byte("info"), 0664)
 
 	tt := []struct {
 		name                              string
@@ -30,8 +31,9 @@ func TestModule(t *testing.T) {
 	}{
 		{
 			name: "Good Module",
+
 			moduleContents: `local.file "log_level" {
-				filename  = "` + debugLevelFile + `"
+				filename  = "` + riverEscape(debugLevelFilePath) + `"
 			}`,
 			expectedHealthType:          component.HealthTypeHealthy,
 			expectedHealthMessagePrefix: "module content loaded",
@@ -52,8 +54,8 @@ func TestModule(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			moduleFile := filepath.Join(tempDir, "module.river")
-			os.WriteFile(moduleFile, []byte(tc.moduleContents), 0664)
+			moduleFilePath := filepath.Join(tempDir, "module.river")
+			os.WriteFile(moduleFilePath, []byte(tc.moduleContents), 0664)
 
 			opts := component.Options{
 				ID:            "module.file.test",
@@ -63,7 +65,7 @@ func TestModule(t *testing.T) {
 				DataPath:      t.TempDir(),
 			}
 
-			moduleFileConfig := `filename = "` + moduleFile + `"`
+			moduleFileConfig := `filename = "` + riverEscape(moduleFilePath) + `"`
 
 			var args Arguments
 			require.NoError(t, river.Unmarshal([]byte(moduleFileConfig), &args))
@@ -93,12 +95,20 @@ func TestMissingFile(t *testing.T) {
 		DataPath:      t.TempDir(),
 	}
 
-	cfg := `
-		filename = "` + filepath.Join(t.TempDir(), "module.river") + `"
-	`
+	filePath := filepath.Join(t.TempDir(), "module.river")
+	cfg := `filename = "` + riverEscape(filePath) + `"`
+
 	var args Arguments
 	require.NoError(t, river.Unmarshal([]byte(cfg), &args))
 
 	_, err := New(opts, args)
 	require.ErrorContains(t, err, "failed to read file:")
+}
+
+func riverEscape(filePath string) string {
+	if runtime.GOOS == "windows" {
+		return strings.Replace(filePath, `\`, `\\`, -1)
+	}
+
+	return filePath
 }
