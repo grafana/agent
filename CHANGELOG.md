@@ -36,22 +36,28 @@ Main (unreleased)
     based OpenTelemetry exporters. (@ptodev)
   - `otelcol.extension.jaeger_remote_sampling` provides an endpoint from which to
     pull Jaeger remote sampling documents. (@joe-elliott)
-  - `prometheus.exporter.blackbox` collects metrics from Blackbox exporter
-    (@marctc).
-  - `prometheus.exporter.mysql` collects metrics from a MySQL database.
-    (@spartan0x117)
+  - `prometheus.exporter.blackbox` collects metrics from Blackbox exporter (@marctc).
+  - `prometheus.exporter.mysql` collects metrics from a MySQL database. (@spartan0x117)
   - `prometheus.exporter.postgres` collects metrics from a PostgreSQL database. (@spartan0x117)
-  - `otelcol.auth.sigv4` performs AWS Signature Version 4 (SigV4) authentication 
+  - `prometheus.exporter.snmp` collects metrics from SNMP exporter (@marctc).
+  - `otelcol.auth.sigv4` performs AWS Signature Version 4 (SigV4) authentication
     for making requests to AWS services via `otelcol` components that support
     authentication extensions. (@ptodev)
+
+- Add support for Flow-specific DEB and RPM system packages. This allows users
+  to install Grafana Agent Flow alongside Grafana Agent. (@rfratto, @robigan)
 
 ### Enhancements
 
 - Flow: Add retries with backoff logic to Phlare write component. (@cyriltovena)
+
 - Operator: Allow setting runtimeClassName on operator-created pods. (@captncraig)
+
 - Operator: Transparently compress agent configs to stay under size limitations. (@captncraig)
 
 - Update Redis Exporter Dependency to v1.48.0. (@spartan0x117)
+
+- Update Loki dependency to the k142 branch. (@rfratto)
 
 ### Bugfixes
 
@@ -78,6 +84,9 @@ Main (unreleased)
 - Fix issue where a DefaultConfig might be mutated during unmarshaling. (@jcreixell)
 
 - Fix issues where CloudWatch Exporter cannot use FIPS Endpoints outside of USA regions (@aglees)
+
+- Fix issue where scraping native Prometheus histograms would leak memory.
+  (@rfratto)
 
 ### Other changes
 

@@ -261,10 +261,10 @@ func populateLabels(lset labels.Labels, cfg Arguments) (res, orig labels.Labels,
 	preRelabelLabels := lb.Labels(nil)
 	// todo(ctovena): add relabeling after pprof discovery.
 	// lset = relabel.Process(preRelabelLabels, cfg.RelabelConfigs...)
-	lset = relabel.Process(preRelabelLabels)
+	lset, keep := relabel.Process(preRelabelLabels)
 
 	// Check if the target was dropped.
-	if lset == nil {
+	if !keep {
 		return nil, preRelabelLabels, nil
 	}
 	if v := lset.Get(model.AddressLabel); v == "" {

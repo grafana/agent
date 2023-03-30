@@ -126,8 +126,8 @@ For more information on configuring metrics delivery, refer to
 Grafana Agent Flow can be configured to collect metrics from Kubernetes Pods
 by:
 
-1. Discovering Kubernetes Pods to collect metrics from
-2. Collecting metrics from those discovered Pods
+1. Discovering Kubernetes Pods to collect metrics from.
+2. Collecting metrics from those discovered Pods.
 
 To collect metrics from Kubernetes Pods, complete the following steps:
 
@@ -252,6 +252,150 @@ discovery.kubernetes "pods" {
 
 prometheus.scrape "pods" {
   targets    = discovery.kubernetes.pods.targets
+  forward_to = [prometheus.remote_write.default.receiver]
+}
+
+prometheus.remote_write "default" {
+  endpoint {
+    url = "http://localhost:9090/api/prom/push"
+  }
+}
+```
+
+For more information on configuring Kubernetes service delivery and collecting
+metrics, refer to [discovery.kubernetes][] and [prometheus.scrape][].
+
+## Collect metrics from Kubernetes Services
+
+Grafana Agent Flow can be configured to collect metrics from Kubernetes Services
+by:
+
+1. Discovering Kubernetes Services to collect metrics from.
+2. Collecting metrics from those discovered Services.
+
+To collect metrics from Kubernetes Services, complete the following steps:
+
+1. Follow [Configure metrics delivery](#configure-metrics-delivery) to ensure
+   collected metrics can be written somewhere.
+
+2. Discover Kubernetes Services:
+
+    1. Add the following `discovery.kubernetes` component to your configuration
+       file to discover every Services in the cluster across all Namespaces:
+
+       ```river
+       discovery.kubernetes "DISCOVERY_LABEL" {
+         role = "service"
+       }
+       ```
+
+       This will generate one Prometheus target for every exposed port on every
+       discovered Service.
+
+        1. Replace `DISCOVERY_LABEL` with a label to use for the component, such as
+           `services`. The label chosen must be unique across all
+           `discovery.kubernetes` components in the same configuration file.
+
+    2. To limit the Namespaces that Services are discovered in, add the following
+       block inside of the `discovery.kubernetes` component:
+
+       ```river
+       namespaces {
+         own_namespace = true
+         names         = [NAMESPACE_NAMES]
+       }
+       ```
+
+        1. If you do not want to search for Services in the the Namespace Grafana
+           Agent is running in, set `own_namespace` to `false`.
+
+        2. Replace `NAMESPACE_NAMES` with a comma-delimited list of strings
+           representing Namespaces to search. Each string must be wrapped in
+           double quotes. For example, `"default","kube-system"`.
+
+    3. To use a field selector to limit the number of discovered Services, add the
+       following block inside of the `discovery.kubernetes` component:
+
+       ```river
+       selectors {
+         role  = "service"
+         field = "FIELD_SELECTOR"
+       }
+       ```
+
+        1. Replace `FIELD_SELECTOR` with the Kubernetes field selector to use,
+           such as `metadata.name=my-service`. For more information on field
+           selectors, refer to the Kubernetes documentation on [Field
+           Selectors][].
+
+        2. Create additional `selectors` blocks for each field selector you
+           want to apply.
+
+    4. To use a label selector to limit the number of discovered Services, add the
+       following block inside of the `discovery.kubernetes` component:
+
+       ```river
+       selectors {
+         role  = "service"
+         label = "LABEL_SELECTOR"
+       }
+       ```
+
+        1. Replace `LABEL_SELECTOR` with the Kubernetes label selector to use,
+           such as `environment in (production, qa)`. For more information on
+           label selectors, refer to the Kubernetes documentation on [Labels
+           and Selectors][].
+
+        2. Create additional `selectors` blocks for each label selector you
+           want to apply.
+
+3. Collect metrics from discovered Services:
+
+    1. Add the following `prometheus.scrape` component to your configuration
+       file:
+
+       ```river
+       prometheus.scrape "SCRAPE_LABEL" {
+         targets    = discovery.kubernetes.DISCOVERY_LABEL.targets
+         forward_to = [prometheus.remote_write.REMOTE_WRITE_LABEL.receiver]
+       }
+       ```
+
+        1. Replace `SCRAPE_LABEL` with a label to use for the component, such
+           as `services`. The label chosen must be unique across all
+           `prometeus.scrape` components in the same configuration file.
+
+        2. Replace `DISCOVERY_LABEL` with the label chosen for the
+           `discovery.kubernetes` component in step 2.1.1.
+
+        3. Replace `REMOTE_WRITE_LABEL` with the label chosen for your existing
+           `prometheus.remote_write` component.
+
+
+[Field Selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/field-selectors/
+[Labels and Selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#set-based-requirement
+
+The following example demonstrates configuring Grafana Agent to collect metrics
+from running production Kubernetes Services in the `default` Namespace:
+
+```river
+discovery.kubernetes "services" {
+  role = "service"
+
+  namespaces {
+    own_namespace = false
+
+    names = ["default"]
+  }
+
+  selectors {
+    role  = "service"
+    label = "environment in (production)"
+  }
+}
+
+prometheus.scrape "services" {
+  targets    = discovery.kubernetes.services.targets
   forward_to = [prometheus.remote_write.default.receiver]
 }
 

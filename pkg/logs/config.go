@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/grafana/loki/clients/pkg/promtail/client"
+	"github.com/grafana/loki/clients/pkg/promtail/limit"
 	"github.com/grafana/loki/clients/pkg/promtail/positions"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/file"
@@ -87,6 +88,7 @@ type InstanceConfig struct {
 	PositionsConfig positions.Config      `yaml:"positions,omitempty"`
 	ScrapeConfig    []scrapeconfig.Config `yaml:"scrape_configs,omitempty"`
 	TargetConfig    file.Config           `yaml:"target_config,omitempty"`
+	LimitsConfig    limit.Config          `yaml:"limits_config,omitempty"`
 }
 
 func (c *InstanceConfig) Initialize() {
