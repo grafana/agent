@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component/common/config"
+	"github.com/grafana/agent/component/common/kubernetes"
 	"github.com/grafana/agent/component/prometheus/scrape"
 	"github.com/prometheus/prometheus/storage"
 	apiv1 "k8s.io/api/core/v1"
@@ -12,7 +13,7 @@ import (
 type Arguments struct {
 
 	// Client settings to connect to Kubernetes.
-	Client config.ClientArguments `river:"client,block,optional"`
+	Client kubernetes.ClientArguments `river:"client,block,optional"`
 
 	ForwardTo []storage.Appendable `river:"forward_to,attr"`
 
@@ -24,7 +25,7 @@ type Arguments struct {
 }
 
 var DefaultArguments = Arguments{
-	Client: config.ClientArguments{
+	Client: kubernetes.ClientArguments{
 		HTTPClientConfig: config.DefaultHTTPClientConfig,
 	},
 }

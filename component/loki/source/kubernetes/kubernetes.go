@@ -14,6 +14,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/config"
+	commonk8s "github.com/grafana/agent/component/common/kubernetes"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
 	"github.com/grafana/agent/component/discovery"
@@ -40,14 +41,14 @@ type Arguments struct {
 	ForwardTo []loki.LogsReceiver `river:"forward_to,attr"`
 
 	// Client settings to connect to Kubernetes.
-	Client config.ClientArguments `river:"client,block,optional"`
+	Client commonk8s.ClientArguments `river:"client,block,optional"`
 }
 
 var _ river.Unmarshaler = (*Arguments)(nil)
 
 // DefaultArguments holds default settings for loki.source.kubernetes.
 var DefaultArguments = Arguments{
-	Client: config.ClientArguments{
+	Client: commonk8s.ClientArguments{
 		HTTPClientConfig: config.DefaultHTTPClientConfig,
 	},
 }

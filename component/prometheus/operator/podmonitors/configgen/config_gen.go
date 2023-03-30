@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"regexp"
 
-	k8sConfig "github.com/grafana/agent/component/common/config"
+	k8sConfig "github.com/grafana/agent/component/common/kubernetes"
 	promopv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	commonConfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"

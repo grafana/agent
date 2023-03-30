@@ -1,4 +1,4 @@
-package config
+package kubernetes
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	commoncfg "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/pkg/build"
 	promconfig "github.com/prometheus/common/config"
 	"k8s.io/client-go/rest"
@@ -14,14 +15,14 @@ import (
 
 // ClientArguments controls how to connect to a Kubernetes cluster.
 type ClientArguments struct {
-	APIServer        URL              `river:"api_server,attr,optional"`
-	KubeConfig       string           `river:"kubeconfig_file,attr,optional"`
-	HTTPClientConfig HTTPClientConfig `river:",squash"`
+	APIServer        commoncfg.URL              `river:"api_server,attr,optional"`
+	KubeConfig       string                     `river:"kubeconfig_file,attr,optional"`
+	HTTPClientConfig commoncfg.HTTPClientConfig `river:",squash"`
 }
 
 // DefaultClientArguments holds default values for Arguments.
 var DefaultClientArguments = ClientArguments{
-	HTTPClientConfig: DefaultHTTPClientConfig,
+	HTTPClientConfig: commoncfg.DefaultHTTPClientConfig,
 }
 
 // UnmarshalRiver unmarshals ClientArguments and performs validations.
@@ -36,10 +37,10 @@ func (args *ClientArguments) UnmarshalRiver(f func(interface{}) error) error {
 	if args.APIServer.URL != nil && args.KubeConfig != "" {
 		return fmt.Errorf("only one of api_server and kubeconfig_file can be set")
 	}
-	if args.KubeConfig != "" && !reflect.DeepEqual(args.HTTPClientConfig, DefaultHTTPClientConfig) {
+	if args.KubeConfig != "" && !reflect.DeepEqual(args.HTTPClientConfig, commoncfg.DefaultHTTPClientConfig) {
 		return fmt.Errorf("custom HTTP client configuration is not allowed when kubeconfig_file is set")
 	}
-	if args.APIServer.URL == nil && !reflect.DeepEqual(args.HTTPClientConfig, DefaultHTTPClientConfig) {
+	if args.APIServer.URL == nil && !reflect.DeepEqual(args.HTTPClientConfig, commoncfg.DefaultHTTPClientConfig) {
 		return fmt.Errorf("api_server must be set when custom HTTP client configuration is provided")
 	}
 
