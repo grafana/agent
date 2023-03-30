@@ -18,7 +18,6 @@ import (
 	"github.com/prometheus/prometheus/scrape"
 	toolscache "k8s.io/client-go/tools/cache"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/grafana/agent/component/prometheus/operator/podmonitors/configgen"
 	compscrape "github.com/grafana/agent/component/prometheus/scrape"
@@ -169,31 +168,27 @@ func (c *crdManager) runInformers(ctx context.Context) error {
 
 // configureInformers configures the informers for the CRDManager to watch for PodMonitors changes.
 func (c *crdManager) configureInformers(ctx context.Context, informers cache.Informers) error {
-	objects := []client.Object{
-		&promopv1.PodMonitor{},
-	}
+	podMonitor := &promopv1.PodMonitor{}
 
 	informerCtx, cancel := context.WithTimeout(ctx, informerSyncTimeout)
 	defer cancel()
 
-	for _, obj := range objects {
-		informer, err := informers.GetInformer(informerCtx, obj)
-		if err != nil {
-			if errors.Is(informerCtx.Err(), context.DeadlineExceeded) { // Check the context to prevent GetInformer returning a fake timeout
-				return fmt.Errorf("timeout exceeded while configuring informers. Check the connection"+
-					" to the Kubernetes API is stable and that the Agent has appropriate RBAC permissions for %v", obj)
-			}
+	informer, err := informers.GetInformer(informerCtx, podMonitor)
+	if err != nil {
+		if errors.Is(informerCtx.Err(), context.DeadlineExceeded) { // Check the context to prevent GetInformer returning a fake timeout
+			return fmt.Errorf("timeout exceeded while configuring informers. Check the connection"+
+				" to the Kubernetes API is stable and that the Agent has appropriate RBAC permissions for %v", podMonitor)
+		}
 
-			return err
-		}
-		_, err = informer.AddEventHandler((toolscache.ResourceEventHandlerFuncs{
-			AddFunc:    c.onAddPodMonitor,
-			UpdateFunc: c.onUpdatePodMonitor,
-			DeleteFunc: c.onDeletePodMonitor,
-		}))
-		if err != nil {
-			return err
-		}
+		return err
+	}
+	_, err = informer.AddEventHandler((toolscache.ResourceEventHandlerFuncs{
+		AddFunc:    c.onAddPodMonitor,
+		UpdateFunc: c.onUpdatePodMonitor,
+		DeleteFunc: c.onDeletePodMonitor,
+	}))
+	if err != nil {
+		return err
 	}
 	return nil
 }
