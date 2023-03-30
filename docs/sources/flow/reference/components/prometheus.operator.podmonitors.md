@@ -10,7 +10,7 @@ labels:
 
 `prometheus.operator.podmonitors` discovers [PodMonitor](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.PodMonitor) resources in your kubernetes cluster and scrape the targets they reference. This component performs three main functions:
 
-1. Discover `PodMonitor` resources from your kubernetes cluster.
+1. Discover `PodMonitor` resources from your Kubernetes cluster.
 2. Discover `Pods` in your cluster that match those `PodMonitors`.
 3. Scrape metrics from those `Pods`, and forward them to a receiver.
 
