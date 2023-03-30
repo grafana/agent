@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	k8sConfig "github.com/grafana/agent/component/common/config"
+	"github.com/grafana/agent/component/common/kubernetes"
 	"github.com/grafana/agent/pkg/util"
 	promopv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	commonConfig "github.com/prometheus/common/config"
@@ -242,7 +242,7 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 	}
 	for i, tc := range suite {
 		t.Run(tc.name, func(t *testing.T) {
-			cg := &ConfigGenerator{Client: &k8sConfig.ClientArguments{}}
+			cg := &ConfigGenerator{Client: &kubernetes.ClientArguments{}}
 			cfg, err := cg.GeneratePodMonitorConfig(tc.m, tc.ep, i)
 			require.NoError(t, err)
 			// check relabel configs separately
