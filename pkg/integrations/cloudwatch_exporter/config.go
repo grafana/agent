@@ -133,6 +133,7 @@ func getHash(c *Config) (string, error) {
 
 // ToYACEConfig converts a Config into YACE's config model. Note that the conversion is not direct, some values
 // have been opinionated to simplify the config model the agent exposes for this integration.
+// The returned boolean is whether or not AWS FIPS endpoints will be enable.
 func ToYACEConfig(c *Config) (yaceConf.ScrapeConf, bool, error) {
 	discoveryJobs := []*yaceConf.Job{}
 	for _, job := range c.Discovery.Jobs {
@@ -153,7 +154,7 @@ func ToYACEConfig(c *Config) (yaceConf.ScrapeConf, bool, error) {
 	}
 
 	// yaceSess expects a default value of True
-	fipsEnabled := !(c.FIPSDisabled)
+	fipsEnabled := !c.FIPSDisabled
 
 	// Run the exporter's config validation. Between other things, it will check that the service for which a discovery
 	// job is instantiated, it's supported.
