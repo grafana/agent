@@ -85,6 +85,8 @@ Main (unreleased)
 
 - Fix issue where a DefaultConfig might be mutated during unmarshaling. (@jcreixell)
 
+- Fix issues where CloudWatch Exporter cannot use FIPS Endpoints outside of USA regions (@aglees)
+
 - Fix issue where scraping native Prometheus histograms would leak memory.
   (@rfratto)
 
