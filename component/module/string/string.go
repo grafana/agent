@@ -67,6 +67,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{
 		opts: o,
 		log:  o.Logger,
+
 		ctrl: flow.New(flow.Options{
 			ControllerID: o.ID,
 			LogSink:      logging.LoggerSink(o.Logger),
