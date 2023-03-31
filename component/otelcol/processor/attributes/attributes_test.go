@@ -270,7 +270,7 @@ func TestDecode_ExcludeMulti(t *testing.T) {
 	svc := &otelObj.Exclude.Services[0]
 	require.Equal(t, "svcA", *svc)
 	svc = &otelObj.Exclude.Services[1]
-	require.Equal(t, "svcB", string(*svc))
+	require.Equal(t, "svcB", *svc)
 
 	attr := &otelObj.Exclude.Attributes[0]
 	require.Equal(t, "env", attr.Key)

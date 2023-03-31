@@ -25,25 +25,23 @@ func TestConvertAttrAction(t *testing.T) {
 		},
 	}
 
-	expectedActions := []interface{}(
-		[]interface{}{
-			map[string]interface{}{
-				"action": "insert",
-				"key":    "attribute1",
-				"value":  123,
-			},
-			map[string]interface{}{
-				"action": "delete",
-				"key":    "attribute2",
-				"value":  interface{}(nil),
-			},
-			map[string]interface{}{
-				"action": "upsert",
-				"key":    "attribute3",
-				"value":  true,
-			},
+	expectedActions := []interface{}{
+		map[string]interface{}{
+			"action": "insert",
+			"key":    "attribute1",
+			"value":  123,
 		},
-	)
+		map[string]interface{}{
+			"action": "delete",
+			"key":    "attribute2",
+			"value":  interface{}(nil),
+		},
+		map[string]interface{}{
+			"action": "upsert",
+			"key":    "attribute3",
+			"value":  true,
+		},
+	}
 
 	result := inputActions.Convert()
 	require.Equal(t, expectedActions, result)
