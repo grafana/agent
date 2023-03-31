@@ -91,6 +91,8 @@ Main (unreleased)
 - Fix issue where scraping native Prometheus histograms would leak memory.
   (@rfratto)
 
+- Fix issue where loki.source.docker component could deadlock. (@tpaschalis)
+
 ### Other changes
 
 - Grafana Agent Docker containers and release binaries are now published for
