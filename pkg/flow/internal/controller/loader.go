@@ -219,7 +219,13 @@ func (l *Loader) populateConfigBlockNodes(g *dag.Graph, configBlocks []*ast.Bloc
 
 	// If a logging config block is not provided, use the defaults.
 	if _, ok := blockMap[loggingBlockID]; !ok && !l.isModule() {
-		l.globals.LogSink.Update(logging.DefaultSinkOptions)
+		err := l.globals.LogSink.Update(logging.DefaultSinkOptions)
+		if err != nil {
+			diags.Add(diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				Message:  err.Error(),
+			})
+		}
 	}
 
 	return diags
