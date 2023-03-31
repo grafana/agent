@@ -60,8 +60,8 @@ type exportBlock struct {
 // Evaluate will return an error if the River block cannot be evaluated or if
 // decoding to arguments fails.
 func (cn *ExportConfigNode) Evaluate(scope *vm.Scope) error {
-	cn.mut.RLock()
-	defer cn.mut.RUnlock()
+	cn.mut.Lock()
+	defer cn.mut.Unlock()
 
 	var export exportBlock
 	if err := cn.eval.Evaluate(scope, &export); err != nil {
