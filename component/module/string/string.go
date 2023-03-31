@@ -67,21 +67,21 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{
 		opts: o,
 		log:  o.Logger,
+		ctrl: flow.New(flow.Options{
+			ControllerID: o.ID,
+			LogSink:      logging.LoggerSink(o.Logger),
+			Tracer:       flowTracer,
+			Reg:          flowRegistry,
+
+			DataPath:       o.DataPath,
+			HTTPPathPrefix: o.HTTPPath,
+			HTTPListenAddr: o.HTTPListenAddr,
+
+			OnExportsChange: func(exports map[string]any) {
+				o.OnStateChange(Exports{Exports: exports})
+			},
+		}),
 	}
-	c.ctrl = flow.New(flow.Options{
-		ControllerID: o.ID,
-		LogSink:      logging.LoggerSink(o.Logger),
-		Tracer:       flowTracer,
-		Reg:          flowRegistry,
-
-		DataPath:       o.DataPath,
-		HTTPPathPrefix: o.HTTPPath,
-		HTTPListenAddr: o.HTTPListenAddr,
-
-		OnExportsChange: func(exports map[string]any) {
-			o.OnStateChange(Exports{Exports: exports})
-		},
-	})
 
 	if err := c.Update(args); err != nil {
 		return nil, err
