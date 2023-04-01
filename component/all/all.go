@@ -11,6 +11,7 @@ import (
 	_ "github.com/grafana/agent/component/loki/echo"                                // Import loki.echo
 	_ "github.com/grafana/agent/component/loki/process"                             // Import loki.process
 	_ "github.com/grafana/agent/component/loki/relabel"                             // Import loki.relabel
+	_ "github.com/grafana/agent/component/loki/source/azureeventhubs"               // Import loki.source.azureeventhubs
 	_ "github.com/grafana/agent/component/loki/source/cloudflare"                   // Import loki.source.cloudflare
 	_ "github.com/grafana/agent/component/loki/source/docker"                       // Import loki.source.docker
 	_ "github.com/grafana/agent/component/loki/source/file"                         // Import loki.source.file

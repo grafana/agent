@@ -52,7 +52,9 @@ Main (unreleased)
     for making requests to AWS services via `otelcol` components that support
     authentication extensions. (@ptodev)
   - `prometheus.exporter.memcached` collects metrics from a Memcached server. (@spartan0x117)
-
+  - `loki.source.azure_event_hubs` read messages from Azure Event Hub using Kafka and forwards them to other `loki`
+    components. (@akselleirv)
+  
 - Add support for Flow-specific system packages:
 
   - Flow-specific DEB packages. (@rfratto, @robigan)
@@ -76,6 +78,8 @@ Main (unreleased)
 - Update Redis Exporter Dependency to v1.49.0. (@spartan0x117)
 
 - Update Loki dependency to the k142 branch. (@rfratto)
+
+- Flow: Add OAUTHBEARER mechanism to `loki.source.kafka` using Azure as provider. (@akselleirv)
 
 ### Bugfixes
 
