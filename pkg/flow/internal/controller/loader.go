@@ -164,7 +164,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentBlocks []*ast.BlockStmt, 
 	l.cache.SyncIDs(componentIDs)
 	l.blocks = componentBlocks
 	l.cm.componentEvaluationTime.Observe(time.Since(start).Seconds())
-	if l.globals.OnExportsChange != nil && l.cache.HasModulesChanged(l.moduleExportIndex) {
+	if l.globals.OnExportsChange != nil && l.cache.ExportChangeIndex() != l.moduleExportIndex {
 		l.moduleExportIndex = l.cache.ExportChangeIndex()
 		l.globals.OnExportsChange(l.cache.CreateModuleExports())
 	}
@@ -418,7 +418,7 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 		return nil
 	})
 
-	if l.globals.OnExportsChange != nil && l.cache.HasModulesChanged(l.moduleExportIndex) {
+	if l.globals.OnExportsChange != nil && l.cache.ExportChangeIndex() != l.moduleExportIndex {
 		l.globals.OnExportsChange(l.cache.CreateModuleExports())
 		l.moduleExportIndex = l.cache.ExportChangeIndex()
 	}

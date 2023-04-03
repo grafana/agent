@@ -84,23 +84,23 @@ func TestExportValueCache(t *testing.T) {
 	vc := newValueCache()
 	vc.CacheModuleExportValue("t1", 1)
 	index := 0
-	require.True(t, vc.HasModulesChanged(index))
+	require.True(t, vc.ExportChangeIndex() != index)
 	index = vc.ExportChangeIndex()
-	require.False(t, vc.HasModulesChanged(index))
+	require.False(t, vc.ExportChangeIndex() != index)
 
 	vc.CacheModuleExportValue("t1", 2)
-	require.True(t, vc.HasModulesChanged(index))
+	require.True(t, vc.ExportChangeIndex() != index)
 	index = vc.ExportChangeIndex()
-	require.False(t, vc.HasModulesChanged(index))
+	require.False(t, vc.ExportChangeIndex() != index)
 
 	vc.CacheModuleExportValue("t1", 2)
-	require.False(t, vc.HasModulesChanged(index))
+	require.False(t, vc.ExportChangeIndex() != index)
 
 	index = vc.ExportChangeIndex()
 	vc.CacheModuleExportValue("t2", "test")
-	require.True(t, vc.HasModulesChanged(index))
+	require.True(t, vc.ExportChangeIndex() != index)
 
 	index = vc.ExportChangeIndex()
 	vc.ClearModuleExports()
-	require.True(t, vc.HasModulesChanged(index))
+	require.True(t, vc.ExportChangeIndex() != index)
 }

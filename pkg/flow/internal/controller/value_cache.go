@@ -101,14 +101,6 @@ func (vc *valueCache) ClearModuleExports() {
 	vc.moduleExports = make(map[string]any)
 }
 
-// HasModulesChanged returns true if the module exports index is different from changeIndex.
-func (vc *valueCache) HasModulesChanged(changeIndex int) bool {
-	vc.mut.RLock()
-	defer vc.mut.RUnlock()
-
-	return vc.moduleChangedIndex != changeIndex
-}
-
 // ExportChangeIndex return the change index.
 func (vc *valueCache) ExportChangeIndex() int {
 	vc.mut.RLock()
