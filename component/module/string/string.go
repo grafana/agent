@@ -64,7 +64,7 @@ func (c *Component) Run(ctx context.Context) error {
 func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 
-	return c.mod.LoadFlowContent(newArgs.Arguments, []byte(newArgs.Content.Value))
+	return c.mod.LoadFlowContent(newArgs.Arguments, newArgs.Content.Value)
 }
 
 // Handler implements component.HTTPComponent.

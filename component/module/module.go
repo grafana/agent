@@ -17,7 +17,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-// ModuleComponent implements the module.file component.
 type ModuleComponent struct {
 	opts component.Options
 	ctrl *flow.Flow
@@ -58,7 +57,7 @@ func NewComponent(o component.Options) ModuleComponent {
 }
 
 // LoadFlowContent loads the flow controller with the current component content.
-func (c *ModuleComponent) LoadFlowContent(arguments map[string]any, contentValue []byte) error {
+func (c *ModuleComponent) LoadFlowContent(arguments map[string]any, contentValue string) error {
 	c.mut.RLock()
 	f, err := flow.ReadFile(c.opts.ID, []byte(contentValue))
 	c.mut.RUnlock()

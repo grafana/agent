@@ -134,7 +134,7 @@ func (c *Component) NewManagedLocalComponent(o component.Options) (*file.Compone
 		c.mut.RLock()
 		defer c.mut.RUnlock()
 
-		_ = c.mod.LoadFlowContent(c.args.Arguments, []byte(e.(file.Exports).Content.Value))
+		_ = c.mod.LoadFlowContent(c.args.Arguments, e.(file.Exports).Content.Value)
 	}
 
 	c.mut.RLock()
