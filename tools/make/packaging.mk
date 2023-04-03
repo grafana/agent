@@ -3,7 +3,7 @@
 PARENT_MAKEFILE := $(firstword $(MAKEFILE_LIST))
 
 .PHONY: dist clean-dist
-dist: dist-agent-binaries dist-agent-flow-binaries dist-agentctl-binaries dist-agent-packages dist-agent-flow-packages dist-agent-installer
+dist: dist-agent-binaries dist-agent-flow-binaries dist-agentctl-binaries dist-agent-packages dist-agent-flow-packages dist-agent-installer dist-agent-flow-installer
 
 clean-dist:
 	rm -rf dist dist.temp
@@ -177,6 +177,25 @@ dist.temp/grafana-agent-flow-windows-amd64.exe: generate-ui
 	$(PACKAGING_VARS) FLOW_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent-flow
 
 #
+# agent-service release binaries.
+#
+# agent-service release binaries are intermediate build assets used for
+# producing Flow-specific system packages. As such, they are built in a
+# dist.temp directory instead of the normal dist directory.
+#
+# Only targets needed for system packages are used here.
+#
+
+dist-agent-service-binaries: dist.temp/grafana-agent-service-windows-amd64.exe
+
+dist.temp/grafana-agent-service-windows-amd64.exe: GO_TAGS += builtinassets
+dist.temp/grafana-agent-service-windows-amd64.exe: GOOS    := windows
+dist.temp/grafana-agent-service-windows-amd64.exe: GOARCH  := amd64
+dist.temp/grafana-agent-service-windows-amd64.exe: generate-ui
+	$(PACKAGING_VARS) SERVICE_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent-service
+
+
+#
 # DEB and RPM grafana-agent packages.
 #
 
@@ -339,4 +358,12 @@ else
 	cp ./dist/grafana-agent-windows-amd64.exe ./packaging/grafana-agent/windows
 	cp LICENSE ./packaging/grafana-agent/windows
 	makensis -V4 -DVERSION=$(VERSION) -DOUT="../../../dist/grafana-agent-installer.exe" ./packaging/grafana-agent/windows/install_script.nsis
+endif
+
+.PHONY: dist-agent-flow-installer
+dist-agent-flow-installer: dist.temp/grafana-agent-flow-windows-amd64.exe dist.temp/grafana-agent-service-windows-amd64.exe
+ifeq ($(USE_CONTAINER),1)
+	$(RERUN_IN_CONTAINER)
+else
+	makensis -V4 -DVERSION=$(VERSION) -DOUT="../../../dist/grafana-agent-flow-installer.exe" ./packaging/grafana-agent-flow/windows/install_script.nsis
 endif
