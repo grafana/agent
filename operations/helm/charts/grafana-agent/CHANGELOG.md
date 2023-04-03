@@ -19,6 +19,7 @@ Unreleased
 ### Bugfixes
 
 - Fix issue where `controller.tolerations` setting was ignored. (@carlosjgp)
+- Fix YAML indentation of some resources. (@carlosjgp)
 
 0.10.0 (2023-03-09)
 -------------------

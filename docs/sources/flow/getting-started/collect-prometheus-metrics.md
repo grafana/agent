@@ -409,3 +409,86 @@ prometheus.remote_write "default" {
 For more information on configuring Kubernetes service delivery and collecting
 metrics, refer to [discovery.kubernetes][] and [prometheus.scrape][].
 
+## Collect metrics from custom targets
+
+Grafana Agent Flow can be configured to collect metrics from a custom set of
+targets without the need for service discovery.
+
+To collect metrics from a custom set of targets, complete the following steps:
+
+1. Follow [Configure metrics delivery](#configure-metrics-delivery) to ensure
+   collected metrics can be written somewhere.
+
+2. Add the following `prometheus.scrape` component to your configuration file:
+
+   ```river
+   prometheus.scrape "SCRAPE_LABEL" {
+     targets    = [TARGET_LIST]
+     forward_to = [prometheus.remote_write.REMOTE_WRITE_LABEL.receiver]
+   }
+   ```
+
+     1. Replace `SCRAPE_LABEL` with a label to use for the component, such as
+        `custom_targets`. The label chosen must be unique across all
+        `prometheus.scrape` components in the same configuration file.
+
+     2. Replace `TARGET_LIST` with a comma-delimited list of [Objects][]
+        denoting the Prometheus target. Each object must conform to the
+        following rules:
+
+        * There must be an `__address__` key denoting the `HOST:PORT` of the
+          target to collect metrics from.
+
+        * To explicitly specify which protocol to use, set the `__scheme__` key
+          to `"http"` or `"https"`. If the `__scheme__` key is not provided,
+          the protocol to use is inherited by the settings of the
+          `prometheus.scrape` component (default `"http"`).
+
+        * To explicitly specify which HTTP path to collect metrics from, set
+          the `__metrics_path__` key to the HTTP path to use. If the
+          `__metrics_path__` key is not provided, the protocol to use is
+          inherited by the settings of the `prometheus.scrape` component
+          (default `"/metrics"`).
+
+        * Add additional keys as desired to inject extra labels to collected
+          metrics. Any label starting with two underscores (`__`) will be
+          dropped prior to scraping.
+
+     3. Replace `REMOTE_WRITE_LABEL` with the label chosen for your existing
+        `prometheus.remote_write` component.
+
+The following example demonstrates configuring `prometheus.scrape` to collect
+metrics from a custom set of endpoints:
+
+```river
+prometheus.scrape "custom_targets" {
+  targets = [
+    {
+      __address__ = "prometheus:9090",
+    },
+    {
+      __address__ = "mimir:8080",
+      __scheme__  = "https",
+    },
+    {
+      __address__      = "custom-application:80",
+      __metrics_path__ = "/custom-metrics–path",
+    },
+    {
+      __address__ = "grafana-agent:12345",
+      application = "grafana-agent",
+      environment = "production",
+    },
+  ]
+
+  forward_to = [prometheus.remote_write.default.receiver]
+}
+
+prometheus.remote_write "default" {
+  endpoint {
+    url = "http://localhost:9090/api/prom/push"
+  }
+}
+```
+
+[Objects]: {{< relref "../config-language/expressions/types_and_values.md#objects" >}}

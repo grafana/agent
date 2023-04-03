@@ -133,7 +133,7 @@ func (h *HerokuTarget) drain(w http.ResponseWriter, r *http.Request) {
 			lb.Set(ReservedLabelTenantID, tenantIDHeaderValue)
 		}
 
-		processed := relabel.Process(lb.Labels(nil), h.relabelConfigs...)
+		processed, _ := relabel.Process(lb.Labels(nil), h.relabelConfigs...)
 
 		// Start with the set of labels fixed in the configuration
 		filtered := h.Labels().Clone()

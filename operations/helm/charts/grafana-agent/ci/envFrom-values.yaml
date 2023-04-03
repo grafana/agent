@@ -2,4 +2,4 @@
 agent:
   envFrom:
     - configMapRef:
-          name: special-config
+        name: special-config
