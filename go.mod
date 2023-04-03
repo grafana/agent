@@ -11,7 +11,7 @@ require (
 	github.com/PuerkitoBio/rehttp v1.1.0
 	github.com/Shopify/sarama v1.38.1
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137
-	github.com/aws/aws-sdk-go v1.44.187
+	github.com/aws/aws-sdk-go v1.44.234
 	github.com/aws/aws-sdk-go-v2 v1.17.2
 	github.com/aws/aws-sdk-go-v2/config v1.17.10
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.11
@@ -612,7 +612,6 @@ require github.com/efficientgo/tools/core v0.0.0-20220817170617-6c25e3b627dd // 
 // If upstream is unresponsive, you should consider making a hard fork
 // (i.e., creating a new Go module with the same source) or picking a different
 // dependency.
-
 
 // Replace directives from Prometheus
 replace (
