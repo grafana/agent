@@ -101,6 +101,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentBlocks []*ast.BlockStmt, 
 		l.cm.componentEvaluationTime.Observe(duration.Seconds())
 	}()
 
+	l.cache.ClearModuleExports()
 	// Evaluate all of the components.
 	_ = dag.WalkTopological(&newGraph, newGraph.Leaves(), func(n dag.Node) error {
 		_, span := tracer.Start(spanCtx, "EvaluateNode", trace.WithSpanKind(trace.SpanKindInternal))
@@ -141,6 +142,10 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentBlocks []*ast.BlockStmt, 
 					EndPos:   ast.EndPos(c.Block()).Position(),
 				})
 			}
+			if exp, ok := n.(*ExportConfigNode); ok {
+				name, val := exp.NameAndValue()
+				l.cache.CacheModuleExportValue(name, val)
+			}
 		}
 
 		// We only use the error for updating the span status; we don't return the
@@ -158,6 +163,9 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentBlocks []*ast.BlockStmt, 
 	l.cache.SyncIDs(componentIDs)
 	l.blocks = componentBlocks
 	l.cm.componentEvaluationTime.Observe(time.Since(start).Seconds())
+	if l.globals.OnExportsChange != nil {
+		l.globals.OnExportsChange(l.cache.CreateModuleExports())
+	}
 	return diags
 }
 
@@ -392,6 +400,10 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 		switch n := n.(type) {
 		case BlockNode:
 			err = l.evaluate(logger, parentScope, n)
+			if exp, ok := n.(*ExportConfigNode); ok {
+				name, val := exp.NameAndValue()
+				l.cache.CacheModuleExportValue(name, val)
+			}
 		}
 
 		// We only use the error for updating the span status; we don't return the
@@ -403,9 +415,13 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 		}
 		return nil
 	})
+
+	if l.globals.OnExportsChange != nil {
+		l.globals.OnExportsChange(l.cache.CreateModuleExports())
+	}
 }
 
-// evaluate constructs the final context for the special config Node and
+// evaluate constructs the final context for the BlockNode and
 // evaluates it. mut must be held when calling evaluate.
 func (l *Loader) evaluate(logger log.Logger, parent *vm.Scope, bn BlockNode) error {
 	ectx := l.cache.BuildContext(parent)
