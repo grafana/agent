@@ -100,8 +100,8 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentBlocks []*ast.BlockStmt, 
 		level.Info(logger).Log("msg", "finished complete graph evaluation", "duration", duration)
 		l.cm.componentEvaluationTime.Observe(duration.Seconds())
 	}()
-	exports := make(map[string]any)
 
+	l.cache.ClearModuleExports()
 	// Evaluate all of the components.
 	_ = dag.WalkTopological(&newGraph, newGraph.Leaves(), func(n dag.Node) error {
 		_, span := tracer.Start(spanCtx, "EvaluateNode", trace.WithSpanKind(trace.SpanKindInternal))
@@ -144,7 +144,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentBlocks []*ast.BlockStmt, 
 			}
 			if exp, ok := n.(*ExportConfigNode); ok {
 				name, val := exp.NameAndValue()
-				exports[name] = val
+				l.cache.CacheModuleExportValue(name, val)
 			}
 		}
 
@@ -164,7 +164,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentBlocks []*ast.BlockStmt, 
 	l.blocks = componentBlocks
 	l.cm.componentEvaluationTime.Observe(time.Since(start).Seconds())
 	if l.globals.OnExportsChange != nil {
-		l.globals.OnExportsChange(exports)
+		l.globals.OnExportsChange(l.cache.CreateModuleExports())
 	}
 	return diags
 }
@@ -383,8 +383,6 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 	// Make sure we're in-sync with the current exports of c.
 	l.cache.CacheExports(c.ID(), c.Exports())
 
-	exports := make(map[string]any)
-
 	_ = dag.WalkReverse(l.graph, []dag.Node{c}, func(n dag.Node) error {
 		if n == c {
 			// Skip over the starting component; the starting component passed to
@@ -404,7 +402,7 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 			err = l.evaluate(logger, parentScope, n)
 			if exp, ok := n.(*ExportConfigNode); ok {
 				name, val := exp.NameAndValue()
-				exports[name] = val
+				l.cache.CacheModuleExportValue(name, val)
 			}
 		}
 
@@ -419,11 +417,11 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 	})
 
 	if l.globals.OnExportsChange != nil {
-		l.globals.OnExportsChange(exports)
+		l.globals.OnExportsChange(l.cache.CreateModuleExports())
 	}
 }
 
-// evaluate constructs the final context for the special config Node and
+// evaluate constructs the final context for the BlockNode and
 // evaluates it. mut must be held when calling evaluate.
 func (l *Loader) evaluate(logger log.Logger, parent *vm.Scope, bn BlockNode) error {
 	ectx := l.cache.BuildContext(parent)
