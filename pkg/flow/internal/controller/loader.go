@@ -163,7 +163,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentBlocks []*ast.BlockStmt, 
 	l.cache.SyncIDs(componentIDs)
 	l.blocks = componentBlocks
 	l.cm.componentEvaluationTime.Observe(time.Since(start).Seconds())
-	if l.globals.OnExportsChange != nil {
+	if l.globals.OnExportsChange != nil && l.cache.HasModuleExportsChangedSinceLastCall() {
 		l.globals.OnExportsChange(l.cache.CreateModuleExports())
 	}
 	return diags
@@ -416,7 +416,7 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 		return nil
 	})
 
-	if l.globals.OnExportsChange != nil {
+	if l.globals.OnExportsChange != nil && l.cache.HasModuleExportsChangedSinceLastCall() {
 		l.globals.OnExportsChange(l.cache.CreateModuleExports())
 	}
 }

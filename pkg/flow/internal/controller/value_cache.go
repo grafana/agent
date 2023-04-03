@@ -13,11 +13,12 @@ import (
 // The current state of valueCache can then be built into a *vm.Scope for other
 // components to be evaluated.
 type valueCache struct {
-	mut           sync.RWMutex
-	components    map[string]ComponentID // NodeID -> ComponentID
-	args          map[string]interface{} // NodeID -> component arguments value
-	exports       map[string]interface{} // NodeID -> component exports value
-	moduleExports map[string]any         // name -> value for the value of module exports
+	mut                  sync.RWMutex
+	components           map[string]ComponentID // NodeID -> ComponentID
+	args                 map[string]interface{} // NodeID -> component arguments value
+	exports              map[string]interface{} // NodeID -> component exports value
+	moduleExports        map[string]any         // name -> value for the value of module exports
+	moduleExportsChanged bool                   // Flag that specifies if exports were changed
 }
 
 // newValueCache cretes a new ValueCache.
@@ -67,6 +68,15 @@ func (vc *valueCache) CacheModuleExportValue(name string, value any) {
 	vc.mut.Lock()
 	defer vc.mut.Unlock()
 
+	// Need to see if the module exports have changed.
+	v, found := vc.moduleExports[name]
+	if !found {
+		vc.moduleExportsChanged = true
+	}
+	if v != value {
+		vc.moduleExportsChanged = true
+	}
+
 	vc.moduleExports[name] = value
 }
 
@@ -82,11 +92,23 @@ func (vc *valueCache) CreateModuleExports() map[string]any {
 	return exports
 }
 
+// ClearModuleExports empties the map and notifies that the exports have changed.
 func (vc *valueCache) ClearModuleExports() {
 	vc.mut.Lock()
 	defer vc.mut.Unlock()
 
+	vc.moduleExportsChanged = true
 	vc.moduleExports = make(map[string]any)
+}
+
+// HasModuleExportsChangedSinceLastCall returns true if the module exports changed since the last call to HasModuleExportsChangedSinceLastCall.
+func (vc *valueCache) HasModuleExportsChangedSinceLastCall() bool {
+	vc.mut.Lock()
+	defer vc.mut.Unlock()
+
+	changed := vc.moduleExportsChanged
+	vc.moduleExportsChanged = false
+	return changed
 }
 
 // SyncIDs will removed any cached values for any Component ID which is not in
