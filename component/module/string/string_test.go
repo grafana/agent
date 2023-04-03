@@ -101,7 +101,6 @@ func TestUpdatingExports(t *testing.T) {
 	writeFile(t, exportPath, exportContent)
 	fmtFile := strings.Replace(loaderContent, "%exports%", exportPath, 1)
 	testFile(t, fmtFile, "module.string.loadexport", []string{"address", "dummy"})
-
 }
 
 func testFile(t *testing.T, fmtFile string, componentToFind string, searchable []string) {
