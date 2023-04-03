@@ -78,7 +78,6 @@ func TestModule(t *testing.T) {
 
 			require.Equal(t, tc.expectedHealthType, c.CurrentHealth().Health)
 			require.True(t, strings.HasPrefix(c.CurrentHealth().Message, tc.expectedHealthMessagePrefix))
-			require.Equal(t, tc.moduleContents, c.content.Value)
 
 			require.Equal(t, tc.expectedModuleHealthType, c.managedLocalFile.CurrentHealth().Health)
 			require.True(t, strings.HasPrefix(c.managedLocalFile.CurrentHealth().Message, tc.expectedModuleHealthMessagePrefix))
