@@ -29,13 +29,14 @@ type Loader struct {
 	tracer  trace.TracerProvider
 	globals ComponentGlobals
 
-	mut           sync.RWMutex
-	graph         *dag.Graph
-	originalGraph *dag.Graph
-	components    []*ComponentNode
-	cache         *valueCache
-	blocks        []*ast.BlockStmt // Most recently loaded blocks, used for writing
-	cm            *controllerMetrics
+	mut               sync.RWMutex
+	graph             *dag.Graph
+	originalGraph     *dag.Graph
+	components        []*ComponentNode
+	cache             *valueCache
+	blocks            []*ast.BlockStmt // Most recently loaded blocks, used for writing
+	cm                *controllerMetrics
+	moduleExportIndex int
 }
 
 // NewLoader creates a new Loader. Components built by the Loader will be built
@@ -102,7 +103,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentBlocks []*ast.BlockStmt, 
 	}()
 
 	l.cache.ClearModuleExports()
-	// Evaluate all of the components.
+	// Evaluate all the components.
 	_ = dag.WalkTopological(&newGraph, newGraph.Leaves(), func(n dag.Node) error {
 		_, span := tracer.Start(spanCtx, "EvaluateNode", trace.WithSpanKind(trace.SpanKindInternal))
 		span.SetAttributes(attribute.String("node_id", n.NodeID()))
@@ -163,7 +164,8 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentBlocks []*ast.BlockStmt, 
 	l.cache.SyncIDs(componentIDs)
 	l.blocks = componentBlocks
 	l.cm.componentEvaluationTime.Observe(time.Since(start).Seconds())
-	if l.globals.OnExportsChange != nil && l.cache.HasModuleExportsChangedSinceLastCall() {
+	if l.globals.OnExportsChange != nil && l.cache.HasModulesChanged(l.moduleExportIndex) {
+		l.moduleExportIndex = l.cache.ExportChangeIndex()
 		l.globals.OnExportsChange(l.cache.CreateModuleExports())
 	}
 	return diags
@@ -416,8 +418,9 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 		return nil
 	})
 
-	if l.globals.OnExportsChange != nil && l.cache.HasModuleExportsChangedSinceLastCall() {
+	if l.globals.OnExportsChange != nil && l.cache.HasModulesChanged(l.moduleExportIndex) {
 		l.globals.OnExportsChange(l.cache.CreateModuleExports())
+		l.moduleExportIndex = l.cache.ExportChangeIndex()
 	}
 }
 

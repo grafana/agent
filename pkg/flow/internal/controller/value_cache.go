@@ -13,12 +13,12 @@ import (
 // The current state of valueCache can then be built into a *vm.Scope for other
 // components to be evaluated.
 type valueCache struct {
-	mut                  sync.RWMutex
-	components           map[string]ComponentID // NodeID -> ComponentID
-	args                 map[string]interface{} // NodeID -> component arguments value
-	exports              map[string]interface{} // NodeID -> component exports value
-	moduleExports        map[string]any         // name -> value for the value of module exports
-	moduleExportsChanged bool                   // Flag that specifies if exports were changed
+	mut                sync.RWMutex
+	components         map[string]ComponentID // NodeID -> ComponentID
+	args               map[string]interface{} // NodeID -> component arguments value
+	exports            map[string]interface{} // NodeID -> component exports value
+	moduleExports      map[string]any         // name -> value for the value of module exports
+	moduleChangedIndex int                    // Everytime a change occurs this is incremented
 }
 
 // newValueCache cretes a new ValueCache.
@@ -71,10 +71,10 @@ func (vc *valueCache) CacheModuleExportValue(name string, value any) {
 	// Need to see if the module exports have changed.
 	v, found := vc.moduleExports[name]
 	if !found {
-		vc.moduleExportsChanged = true
+		vc.moduleChangedIndex++
 	}
 	if v != value {
-		vc.moduleExportsChanged = true
+		vc.moduleChangedIndex++
 	}
 
 	vc.moduleExports[name] = value
@@ -97,18 +97,24 @@ func (vc *valueCache) ClearModuleExports() {
 	vc.mut.Lock()
 	defer vc.mut.Unlock()
 
-	vc.moduleExportsChanged = true
+	vc.moduleChangedIndex++
 	vc.moduleExports = make(map[string]any)
 }
 
-// HasModuleExportsChangedSinceLastCall returns true if the module exports changed since the last call to HasModuleExportsChangedSinceLastCall.
-func (vc *valueCache) HasModuleExportsChangedSinceLastCall() bool {
-	vc.mut.Lock()
-	defer vc.mut.Unlock()
+// HasModulesChanged returns true if the module exports index is different from changeIndex.
+func (vc *valueCache) HasModulesChanged(changeIndex int) bool {
+	vc.mut.RLock()
+	defer vc.mut.RUnlock()
 
-	changed := vc.moduleExportsChanged
-	vc.moduleExportsChanged = false
-	return changed
+	return vc.moduleChangedIndex != changeIndex
+}
+
+// ExportChangeIndex return the change index.
+func (vc *valueCache) ExportChangeIndex() int {
+	vc.mut.RLock()
+	defer vc.mut.RUnlock()
+
+	return vc.moduleChangedIndex
 }
 
 // SyncIDs will removed any cached values for any Component ID which is not in

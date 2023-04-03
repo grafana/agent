@@ -83,20 +83,24 @@ func TestValueCache(t *testing.T) {
 func TestExportValueCache(t *testing.T) {
 	vc := newValueCache()
 	vc.CacheModuleExportValue("t1", 1)
-	require.True(t, vc.HasModuleExportsChangedSinceLastCall())
-	// The call to HasModuleExportsChangedSinceLastCall sets the value to false.
-	require.False(t, vc.HasModuleExportsChangedSinceLastCall())
+	index := 0
+	require.True(t, vc.HasModulesChanged(index))
+	index = vc.ExportChangeIndex()
+	require.False(t, vc.HasModulesChanged(index))
 
 	vc.CacheModuleExportValue("t1", 2)
-	require.True(t, vc.HasModuleExportsChangedSinceLastCall())
-	require.False(t, vc.HasModuleExportsChangedSinceLastCall())
+	require.True(t, vc.HasModulesChanged(index))
+	index = vc.ExportChangeIndex()
+	require.False(t, vc.HasModulesChanged(index))
 
 	vc.CacheModuleExportValue("t1", 2)
-	require.False(t, vc.HasModuleExportsChangedSinceLastCall())
+	require.False(t, vc.HasModulesChanged(index))
 
+	index = vc.ExportChangeIndex()
 	vc.CacheModuleExportValue("t2", "test")
-	require.True(t, vc.HasModuleExportsChangedSinceLastCall())
+	require.True(t, vc.HasModulesChanged(index))
 
+	index = vc.ExportChangeIndex()
 	vc.ClearModuleExports()
-	require.True(t, vc.HasModuleExportsChangedSinceLastCall())
+	require.True(t, vc.HasModulesChanged(index))
 }
