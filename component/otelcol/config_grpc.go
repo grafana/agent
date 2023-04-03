@@ -6,10 +6,11 @@ import (
 	"github.com/alecthomas/units"
 	"github.com/grafana/agent/component/otelcol/auth"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
 	otelconfigauth "go.opentelemetry.io/collector/config/configauth"
 	otelconfiggrpc "go.opentelemetry.io/collector/config/configgrpc"
 	"go.opentelemetry.io/collector/config/confignet"
+	"go.opentelemetry.io/collector/config/configopaque"
+	otelextension "go.opentelemetry.io/collector/extension"
 )
 
 // GRPCServerArguments holds shared gRPC settings for components which launch
@@ -136,11 +137,11 @@ type GRPCClientArguments struct {
 	TLS       TLSClientArguments        `river:"tls,block,optional"`
 	Keepalive *KeepaliveClientArguments `river:"keepalive,block,optional"`
 
-	ReadBufferSize  units.Base2Bytes  `river:"read_buffer_size,attr,optional"`
-	WriteBufferSize units.Base2Bytes  `river:"write_buffer_size,attr,optional"`
-	WaitForReady    bool              `river:"wait_for_ready,attr,optional"`
-	Headers         map[string]string `river:"headers,attr,optional"`
-	BalancerName    string            `river:"balancer_name,attr,optional"`
+	ReadBufferSize  units.Base2Bytes               `river:"read_buffer_size,attr,optional"`
+	WriteBufferSize units.Base2Bytes               `river:"write_buffer_size,attr,optional"`
+	WaitForReady    bool                           `river:"wait_for_ready,attr,optional"`
+	Headers         map[string]configopaque.String `river:"headers,attr,optional"`
+	BalancerName    string                         `river:"balancer_name,attr,optional"`
 
 	// Auth is a binding to an otelcol.auth.* component extension which handles
 	// authentication.
@@ -178,8 +179,8 @@ func (args *GRPCClientArguments) Convert() *otelconfiggrpc.GRPCClientSettings {
 }
 
 // Extensions exposes extensions used by args.
-func (args *GRPCClientArguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
-	m := make(map[otelconfig.ComponentID]otelcomponent.Extension)
+func (args *GRPCClientArguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
+	m := make(map[otelcomponent.ID]otelextension.Extension)
 	if args.Auth != nil {
 		m[args.Auth.ID] = args.Auth.Extension
 	}

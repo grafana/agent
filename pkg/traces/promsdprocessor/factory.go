@@ -6,8 +6,8 @@ import (
 
 	prom_config "github.com/prometheus/prometheus/config"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/processor"
 	"gopkg.in/yaml.v2"
 )
 
@@ -31,33 +31,31 @@ const (
 
 // Config holds the configuration for the Prometheus SD processor.
 type Config struct {
-	config.ProcessorSettings `mapstructure:",squash"`
-	ScrapeConfigs            []interface{} `mapstructure:"scrape_configs"`
-	OperationType            string        `mapstructure:"operation_type"`
-	PodAssociations          []string      `mapstructure:"pod_associations"`
+	component.Config `mapstructure:",squash"`
+	ScrapeConfigs    []interface{} `mapstructure:"scrape_configs"`
+	OperationType    string        `mapstructure:"operation_type"`
+	PodAssociations  []string      `mapstructure:"pod_associations"`
 }
 
 // NewFactory returns a new factory for the Attributes processor.
-func NewFactory() component.ProcessorFactory {
-	return component.NewProcessorFactory(
+func NewFactory() processor.Factory {
+	return processor.NewFactory(
 		TypeStr,
 		createDefaultConfig,
-		component.WithTracesProcessor(createTraceProcessor, component.StabilityLevelUndefined),
+		processor.WithTraces(createTraceProcessor, component.StabilityLevelUndefined),
 	)
 }
 
-func createDefaultConfig() config.Processor {
-	return &Config{
-		ProcessorSettings: config.NewProcessorSettings(config.NewComponentIDWithName(TypeStr, TypeStr)),
-	}
+func createDefaultConfig() component.Config {
+	return &Config{}
 }
 
 func createTraceProcessor(
 	_ context.Context,
-	cp component.ProcessorCreateSettings,
-	cfg config.Processor,
+	cp processor.CreateSettings,
+	cfg component.Config,
 	nextConsumer consumer.Traces,
-) (component.TracesProcessor, error) {
+) (processor.Traces, error) {
 
 	oCfg := cfg.(*Config)
 	out, err := yaml.Marshal(oCfg.ScrapeConfigs)

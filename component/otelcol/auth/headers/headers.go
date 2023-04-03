@@ -10,7 +10,7 @@ import (
 	"github.com/grafana/agent/pkg/river"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	otelextension "go.opentelemetry.io/collector/extension"
 )
 
 func init() {
@@ -34,7 +34,7 @@ type Arguments struct {
 var _ auth.Arguments = Arguments{}
 
 // Convert implements auth.Arguments.
-func (args Arguments) Convert() (otelconfig.Extension, error) {
+func (args Arguments) Convert() (otelcomponent.Config, error) {
 	var upstreamHeaders []headerssetterextension.HeaderConfig
 	for _, h := range args.Headers {
 		upstreamHeader := headerssetterextension.HeaderConfig{
@@ -52,18 +52,17 @@ func (args Arguments) Convert() (otelconfig.Extension, error) {
 	}
 
 	return &headerssetterextension.Config{
-		ExtensionSettings: otelconfig.NewExtensionSettings(otelconfig.NewComponentID("headers")),
-		HeadersConfig:     upstreamHeaders,
+		HeadersConfig: upstreamHeaders,
 	}, nil
 }
 
 // Extensions implements auth.Arguments.
-func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
 	return nil
 }
 
 // Exporters implements auth.Arguments.
-func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
 }
 

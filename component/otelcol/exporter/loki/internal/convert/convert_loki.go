@@ -130,7 +130,7 @@ func removeAttributes(attrs pcommon.Map, labels model.LabelSet) {
 }
 
 func convertLogToJSONEntry(lr plog.LogRecord, res pcommon.Resource) (*logproto.Entry, error) {
-	line, err := loki.Encode(lr, res)
+	line, err := loki.Encode(lr, res, pcommon.NewInstrumentationScope())
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +141,7 @@ func convertLogToJSONEntry(lr plog.LogRecord, res pcommon.Resource) (*logproto.E
 }
 
 func convertLogToLogfmtEntry(lr plog.LogRecord, res pcommon.Resource) (*logproto.Entry, error) {
-	line, err := loki.EncodeLogfmt(lr, res)
+	line, err := loki.EncodeLogfmt(lr, res, pcommon.NewInstrumentationScope())
 	if err != nil {
 		return nil, err
 	}

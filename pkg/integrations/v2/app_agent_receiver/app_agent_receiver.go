@@ -86,7 +86,7 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 			if factory == nil {
 				return nil, fmt.Errorf("push receiver factory not found for traces instance \"%s\"", c.TracesInstance)
 			}
-			consumer := factory.(*pushreceiver.Factory).Consumer
+			consumer := factory.(*pushreceiver.Factory).Config.Consumer
 			if consumer == nil {
 				return nil, fmt.Errorf("consumer not set for push receiver factory on traces instance \"%s\"", c.TracesInstance)
 			}

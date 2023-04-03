@@ -159,7 +159,11 @@ func (conv *Converter) getOrCreateResource(res pcommon.Resource) *memorySeries {
 	targetInfoLabels := labels.FromStrings(model.MetricNameLabel, "target_info")
 
 	var (
-		attrs = res.Attributes().Sort()
+		//TODO: Is the sorting truly essential here? See:
+		// https://github.com/open-telemetry/opentelemetry-collector/pull/6989
+		// If it's important, can we sort the prometheus labels instead?
+		// attrs = res.Attributes().Sort()
+		attrs = res.Attributes()
 
 		jobLabel      string
 		instanceLabel string
@@ -243,7 +247,11 @@ func (conv *Converter) getOrCreateScope(res *memorySeries, scope pcommon.Instrum
 	)
 
 	lb := labels.NewBuilder(scopeInfoLabels)
-	scope.Attributes().Sort().Range(func(k string, v pcommon.Value) bool {
+	//TODO: Is the sorting truly essential here? See:
+	// https://github.com/open-telemetry/opentelemetry-collector/pull/6989
+	// If it's important, can we sort the prometheus labels instead?
+	// scope.Attributes().Sort().Range(func(k string, v pcommon.Value) bool {
+	scope.Attributes().Range(func(k string, v pcommon.Value) bool {
 		lb.Set(prometheus.NormalizeLabel(k), v.AsString())
 		return true
 	})
@@ -339,7 +347,11 @@ func (conv *Converter) getOrCreateSeries(res *memorySeries, scope *memorySeries,
 		lb.Set("otel_scope_version", scope.metadata[scopeVersionLabel])
 	}
 
-	attrs.Sort().Range(func(k string, v pcommon.Value) bool {
+	//TODO: Is the sorting truly essential here? See:
+	// https://github.com/open-telemetry/opentelemetry-collector/pull/6989
+	// If it's important, can we sort the prometheus labels instead?
+	// attrs.Sort().Range(func(k string, v pcommon.Value) bool {
+	attrs.Range(func(k string, v pcommon.Value) bool {
 		lb.Set(prometheus.NormalizeLabel(k), v.AsString())
 		return true
 	})

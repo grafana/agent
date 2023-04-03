@@ -28,5 +28,5 @@ func (m *mockCfgMgr) GetSamplingStrategy(ctx context.Context, serviceName string
 	if m.getSamplingStrategyFunc != nil {
 		return m.getSamplingStrategyFunc(ctx, serviceName)
 	}
-	return sampling.NewSamplingStrategyResponse(), nil
+	return &sampling.SamplingStrategyResponse{}, nil
 }

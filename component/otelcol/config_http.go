@@ -6,9 +6,10 @@ import (
 	"github.com/alecthomas/units"
 	"github.com/grafana/agent/component/otelcol/auth"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
 	otelconfigauth "go.opentelemetry.io/collector/config/configauth"
 	otelconfighttp "go.opentelemetry.io/collector/config/confighttp"
+	otelconfigopaque "go.opentelemetry.io/collector/config/configopaque"
+	otelextension "go.opentelemetry.io/collector/extension"
 )
 
 // HTTPServerArguments holds shared settings for components which launch HTTP
@@ -79,10 +80,10 @@ type HTTPClientArguments struct {
 
 	TLS TLSClientArguments `river:"tls,block,optional"`
 
-	ReadBufferSize  units.Base2Bytes  `river:"read_buffer_size,attr,optional"`
-	WriteBufferSize units.Base2Bytes  `river:"write_buffer_size,attr,optional"`
-	Timeout         time.Duration     `river:"timeout,attr,optional"`
-	Headers         map[string]string `river:"headers,attr,optional"`
+	ReadBufferSize  units.Base2Bytes                   `river:"read_buffer_size,attr,optional"`
+	WriteBufferSize units.Base2Bytes                   `river:"write_buffer_size,attr,optional"`
+	Timeout         time.Duration                      `river:"timeout,attr,optional"`
+	Headers         map[string]otelconfigopaque.String `river:"headers,attr,optional"`
 	// CustomRoundTripper  func(next http.RoundTripper) (http.RoundTripper, error) TODO (@tpaschalis)
 	MaxIdleConns        *int           `river:"max_idle_conns,attr,optional"`
 	MaxIdleConnsPerHost *int           `river:"max_idle_conns_per_host,attr,optional"`
@@ -128,8 +129,8 @@ func (args *HTTPClientArguments) Convert() *otelconfighttp.HTTPClientSettings {
 }
 
 // Extensions exposes extensions used by args.
-func (args *HTTPClientArguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
-	m := make(map[otelconfig.ComponentID]otelcomponent.Extension)
+func (args *HTTPClientArguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
+	m := make(map[otelcomponent.ID]otelextension.Extension)
 	if args.Auth != nil {
 		m[args.Auth.ID] = args.Auth.Extension
 	}

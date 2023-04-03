@@ -2,6 +2,7 @@ package servicegraphprocessor
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"time"
@@ -14,6 +15,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/ptrace"
+	otelprocessor "go.opentelemetry.io/collector/processor"
 	semconv "go.opentelemetry.io/collector/semconv/v1.6.1"
 	"google.golang.org/grpc/codes"
 )
@@ -59,7 +61,7 @@ func (e *edge) isExpired() bool {
 	return time.Now().Unix() >= e.expiration
 }
 
-var _ component.TracesProcessor = (*processor)(nil)
+var _ otelprocessor.Traces = (*processor)(nil)
 
 type processor struct {
 	nextConsumer consumer.Traces
@@ -283,7 +285,7 @@ func (p *processor) consume(trace ptrace.Traces) error {
 
 				switch span.Kind() {
 				case ptrace.SpanKindClient:
-					k := key(span.TraceID().HexString(), span.SpanID().HexString())
+					k := key(hex.EncodeToString([]byte(span.TraceID().String())), hex.EncodeToString([]byte(span.SpanID().String())))
 
 					edge, err := p.store.upsertEdge(k, func(e *edge) {
 						e.clientService = svc.Str()
@@ -306,7 +308,7 @@ func (p *processor) consume(trace ptrace.Traces) error {
 					}
 
 				case ptrace.SpanKindServer:
-					k := key(span.TraceID().HexString(), span.ParentSpanID().HexString())
+					k := key(hex.EncodeToString([]byte(span.TraceID().String())), hex.EncodeToString([]byte(span.ParentSpanID().String())))
 
 					edge, err := p.store.upsertEdge(k, func(e *edge) {
 						e.serverService = svc.Str()

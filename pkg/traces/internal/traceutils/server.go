@@ -4,31 +4,21 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
-	"strings"
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/pkg/util"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor/mocks"
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/pdata/ptrace"
-	"go.opentelemetry.io/collector/receiver/otlpreceiver"
-	"go.opentelemetry.io/collector/service/external/configunmarshaler"
-	"go.opentelemetry.io/collector/service/external/pipelines"
-	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/trace"
-	"go.uber.org/zap"
-	"gopkg.in/yaml.v3"
+	"go.opentelemetry.io/collector/processor"
 )
 
 // Server is a Tracing testing server that invokes a function every time a span
 // is received.
 type Server struct {
-	pipelines *pipelines.Pipelines
+	// pipelines *pipelines.Pipelines
 }
 
 // NewTestServer creates a new Server for testing, where received traces will
@@ -73,101 +63,129 @@ func NewServerWithRandomPort(callback func(ptrace.Traces)) (srv *Server, addr st
 // NewServer creates an OTLP-accepting server that calls a function when a
 // trace is received. This is primarily useful for testing.
 func NewServer(addr string, callback func(ptrace.Traces)) (*Server, error) {
-	conf := util.Untab(fmt.Sprintf(`
-processors:
-	func_processor:
-receivers:
-  otlp:
-		protocols:
-			grpc:
-				endpoint: %s
-exporters:
-  noop:
-service:
-	pipelines:
-		traces:
-			receivers: [otlp]
-			processors: [func_processor]
-			exporters: [noop]
-	`, addr))
+	// 	conf := util.Untab(fmt.Sprintf(`
+	// processors:
+	// 	func_processor:
+	// receivers:
+	//   otlp:
+	// 		protocols:
+	// 			grpc:
+	// 				endpoint: %s
+	// exporters:
+	//   noop:
+	// service:
+	// 	pipelines:
+	// 		traces:
+	// 			receivers: [otlp]
+	// 			processors: [func_processor]
+	// 			exporters: [noop]
+	// 	`, addr))
 
-	var cfg map[string]interface{}
-	if err := yaml.NewDecoder(strings.NewReader(conf)).Decode(&cfg); err != nil {
-		panic("could not decode config: " + err.Error())
-	}
+	// 	var cfg map[string]interface{}
+	// 	if err := yaml.NewDecoder(strings.NewReader(conf)).Decode(&cfg); err != nil {
+	// 		panic("could not decode config: " + err.Error())
+	// 	}
 
-	extensionsFactory, err := component.MakeExtensionFactoryMap()
-	if err != nil {
-		return nil, fmt.Errorf("failed to make extension factory map: %w", err)
-	}
+	// 	extensionsFactory, err := extension.MakeFactoryMap()
+	// 	if err != nil {
+	// 		return nil, fmt.Errorf("failed to make extension factory map: %w", err)
+	// 	}
 
-	receiversFactory, err := component.MakeReceiverFactoryMap(otlpreceiver.NewFactory())
-	if err != nil {
-		return nil, fmt.Errorf("failed to make receiver factory map: %w", err)
-	}
+	// 	receiversFactory, err := receiver.MakeFactoryMap(otlpreceiver.NewFactory())
+	// 	if err != nil {
+	// 		return nil, fmt.Errorf("failed to make receiver factory map: %w", err)
+	// 	}
 
-	exportersFactory, err := component.MakeExporterFactoryMap(newNoopExporterFactory())
-	if err != nil {
-		return nil, fmt.Errorf("failed to make exporter factory map: %w", err)
-	}
+	// 	exportersFactory, err := exporter.MakeFactoryMap(newNoopExporterFactory())
+	// 	if err != nil {
+	// 		return nil, fmt.Errorf("failed to make exporter factory map: %w", err)
+	// 	}
 
-	processorsFactory, err := component.MakeProcessorFactoryMap(
-		newFuncProcessorFactory(callback),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to make processor factory map: %w", err)
-	}
+	// 	processorsFactory, err := processor.MakeFactoryMap(
+	// 		newFuncProcessorFactory(callback),
+	// 	)
+	// 	if err != nil {
+	// 		return nil, fmt.Errorf("failed to make processor factory map: %w", err)
+	// 	}
 
-	factories := component.Factories{
-		Extensions: extensionsFactory,
-		Receivers:  receiversFactory,
-		Processors: processorsFactory,
-		Exporters:  exportersFactory,
-	}
+	// 	factories := otelcol.Factories{
+	// 		Extensions: extensionsFactory,
+	// 		Receivers:  receiversFactory,
+	// 		Processors: processorsFactory,
+	// 		Exporters:  exportersFactory,
+	// 	}
 
-	configMap := confmap.NewFromStringMap(cfg)
-	otelCfg, err := configunmarshaler.Unmarshal(configMap, factories)
-	if err != nil {
-		return nil, fmt.Errorf("failed to make otel config: %w", err)
-	}
+	// 	configMap := confmap.NewFromStringMap(cfg)
+	// 	//TODO: Check for err
+	// 	otelCfg, err := configunmarshaler.Unmarshal(configMap, factories)
+	// 	if err != nil {
+	// 		return nil, fmt.Errorf("failed to make otel config: %w", err)
+	// 	}
 
-	var (
-		logger    = zap.NewNop()
-		startInfo component.BuildInfo
-	)
+	// 	var (
+	// 		logger    = zap.NewNop()
+	// 		startInfo component.BuildInfo
+	// 	)
 
-	settings := component.TelemetrySettings{
-		Logger:         logger,
-		TracerProvider: trace.NewNoopTracerProvider(),
-		MeterProvider:  metric.NewNoopMeterProvider(),
-	}
+	// 	settings := component.TelemetrySettings{
+	// 		Logger:         logger,
+	// 		TracerProvider: trace.NewNoopTracerProvider(),
+	// 		MeterProvider:  metric.NewNoopMeterProvider(),
+	// 	}
 
-	pipelines, err := pipelines.Build(context.Background(), pipelines.Settings{
-		Telemetry: settings,
-		BuildInfo: startInfo,
+	// 	service.New(context.Background(), service.Settings{
+	// 		BuildInfo: component.BuildInfo{
+	// 			Command:     "",
+	// 			Description: "",
+	// 			Version:     "",
+	// 		},
+	// 		Receivers:         &receiver.Builder{},
+	// 		Processors:        &processor.Builder{},
+	// 		Exporters:         &exporter.Builder{},
+	// 		Connectors:        &connector.Builder{},
+	// 		Extensions:        &extension.Builder{},
+	// 		AsyncErrorChannel: make(chan error),
+	// 		LoggingOptions:    []zap.Option{},
+	// 	}, service.Config{
+	// 		Telemetry: telemetry.Config{
+	// 			Logs:     telemetry.LogsConfig{},
+	// 			Metrics:  telemetry.MetricsConfig{},
+	// 			Traces:   telemetry.TracesConfig{},
+	// 			Resource: map[string]*string{},
+	// 		},
+	// 		Extensions: []component.ID{},
+	// 		Pipelines:  map[component.ID]*service.PipelineConfig{},
+	// 	})
 
-		ReceiverFactories:  factories.Receivers,
-		ReceiverConfigs:    otelCfg.Receivers,
-		ProcessorFactories: factories.Processors,
-		ProcessorConfigs:   otelCfg.Processors,
-		ExporterFactories:  factories.Exporters,
-		ExporterConfigs:    otelCfg.Exporters,
+	// pipelines, err := pipelines.Build(context.Background(), pipelines.Settings{
+	// 	Telemetry: settings,
+	// 	BuildInfo: startInfo,
 
-		PipelineConfigs: otelCfg.Pipelines,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to build pipelines: %w", err)
-	}
+	// 	ReceiverFactories:  factories.Receivers,
+	// 	ReceiverConfigs:    otelCfg.Receivers,
+	// 	ProcessorFactories: factories.Processors,
+	// 	ProcessorConfigs:   otelCfg.Processors,
+	// 	ExporterFactories:  factories.Exporters,
+	// 	ExporterConfigs:    otelCfg.Exporters,
 
-	h := &mocks.Host{}
-	h.On("GetExtensions").Return(nil)
-	if err := pipelines.StartAll(context.Background(), h); err != nil {
-		return nil, fmt.Errorf("failed to start receivers: %w", err)
-	}
+	// 	PipelineConfigs: otelCfg.Pipelines,
+	// })
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to build pipelines: %w", err)
+	// }
 
-	return &Server{
-		pipelines: pipelines,
-	}, nil
+	// h := &mocks.Host{}
+	// h.On("GetExtensions").Return(nil)
+	// if err := pipelines.StartAll(context.Background(), h); err != nil {
+	// 	return nil, fmt.Errorf("failed to start receivers: %w", err)
+	// }
+
+	// return &Server{
+	// 	pipelines: pipelines,
+	// }, nil
+
+	//TODO: Fix this later
+	return nil, nil
 }
 
 // Stop stops the testing server.
@@ -178,19 +196,19 @@ func (s *Server) Stop() error {
 	return s.pipelines.ShutdownAll(shutdownCtx)
 }
 
-func newFuncProcessorFactory(callback func(ptrace.Traces)) component.ProcessorFactory {
-	return component.NewProcessorFactory(
+func newFuncProcessorFactory(callback func(ptrace.Traces)) processor.Factory {
+	return processor.NewFactory(
 		"func_processor",
-		func() config.Processor {
-			processorSettings := config.NewProcessorSettings(config.NewComponentIDWithName("func_processor", "func_processor"))
-			return &processorSettings
+		func() component.Config {
+			//TODO: WHat if there is no default? Can we return nil?
+			return nil
 		},
-		component.WithTracesProcessor(func(
+		processor.WithTraces(func(
 			_ context.Context,
-			_ component.ProcessorCreateSettings,
-			_ config.Processor,
+			_ processor.CreateSettings,
+			_ component.Config,
 			next consumer.Traces,
-		) (component.TracesProcessor, error) {
+		) (processor.Traces, error) {
 
 			return &funcProcessor{
 				Callback: callback,
@@ -219,18 +237,18 @@ func (p *funcProcessor) Capabilities() consumer.Capabilities {
 func (p *funcProcessor) Start(context.Context, component.Host) error { return nil }
 func (p *funcProcessor) Shutdown(context.Context) error              { return nil }
 
-func newNoopExporterFactory() component.ExporterFactory {
-	return component.NewExporterFactory(
+func newNoopExporterFactory() exporter.Factory {
+	return exporter.NewFactory(
 		"noop",
-		func() config.Exporter {
-			exporterSettings := config.NewExporterSettings(config.NewComponentIDWithName("noop", "noop"))
-			return &exporterSettings
+		func() component.Config {
+			//TODO: WHat if there is no default? Can we return nil?
+			return nil
 		},
-		component.WithTracesExporter(func(
+		exporter.WithTraces(func(
 			context.Context,
-			component.ExporterCreateSettings,
-			config.Exporter) (
-			component.TracesExporter,
+			exporter.CreateSettings,
+			component.Config) (
+			exporter.Traces,
 			error) {
 
 			return &noopExporter{}, nil

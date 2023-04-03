@@ -116,10 +116,12 @@ func (h *HTTPClientConfig) Convert() *config.HTTPClientConfig {
 		OAuth2:          h.OAuth2.Convert(),
 		BearerToken:     config.Secret(h.BearerToken),
 		BearerTokenFile: h.BearerTokenFile,
-		ProxyURL:        h.ProxyURL.Convert(),
 		TLSConfig:       *h.TLSConfig.Convert(),
 		FollowRedirects: h.FollowRedirects,
 		EnableHTTP2:     h.EnableHTTP2,
+		ProxyConfig: config.ProxyConfig{
+			ProxyURL: h.ProxyURL.Convert(),
+		},
 	}
 }
 
@@ -278,7 +280,9 @@ func (o *OAuth2Config) Convert() *config.OAuth2 {
 		Scopes:           o.Scopes,
 		TokenURL:         o.TokenURL,
 		EndpointParams:   o.EndpointParams,
-		ProxyURL:         o.ProxyURL.Convert(),
 		TLSConfig:        *o.TLSConfig.Convert(),
+		ProxyConfig: config.ProxyConfig{
+			ProxyURL: o.ProxyURL.Convert(),
+		},
 	}
 }

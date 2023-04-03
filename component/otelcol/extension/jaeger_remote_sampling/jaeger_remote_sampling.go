@@ -10,7 +10,7 @@ import (
 	"github.com/grafana/agent/component/otelcol/extension/jaeger_remote_sampling/internal/jaegerremotesampling"
 	"github.com/grafana/agent/pkg/river"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	otelextension "go.opentelemetry.io/collector/extension"
 )
 
 func init() {
@@ -74,7 +74,7 @@ var (
 )
 
 // Convert implements extension.Arguments.
-func (args Arguments) Convert() (otelconfig.Extension, error) {
+func (args Arguments) Convert() (otelcomponent.Config, error) {
 	return &jaegerremotesampling.Config{
 		HTTPServerSettings: (*otelcol.HTTPServerArguments)(args.HTTP).Convert(),
 		GRPCServerSettings: (*otelcol.GRPCServerArguments)(args.GRPC).Convert(),
@@ -88,12 +88,12 @@ func (args Arguments) Convert() (otelconfig.Extension, error) {
 }
 
 // Extensions implements extension.Arguments.
-func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
 	return nil
 }
 
 // Exporters implements extension.Arguments.
-func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
 }
 

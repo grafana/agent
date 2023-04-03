@@ -164,7 +164,10 @@ func TestProcessKeyVals(t *testing.T) {
 		require.NoError(t, err)
 
 		process := pcommon.NewResource()
-		process.Attributes().Sort().FromRaw(tc.processAttrs)
+		//TODO: Sort this later? See:
+		// https://github.com/open-telemetry/opentelemetry-collector/pull/6989
+		// https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.75.0/pkg/pdatatest/ptracetest/traces.go
+		process.Attributes().FromRaw(tc.processAttrs)
 
 		actual := p.(*automaticLoggingProcessor).processKeyVals(process, tc.svc)
 		assert.Equal(t, tc.expected, actual)

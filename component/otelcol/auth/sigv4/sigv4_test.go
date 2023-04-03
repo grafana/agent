@@ -16,7 +16,7 @@ import (
 	"github.com/grafana/agent/pkg/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config/configauth"
+	extauth "go.opentelemetry.io/collector/extension/auth"
 )
 
 // Test performs a basic integration test which runs the otelcol.auth.sigv4
@@ -175,7 +175,7 @@ func Test(t *testing.T) {
 		exports := ctrl.Exports().(auth.Exports)
 		require.NotNil(t, exports.Handler.Extension, "handler extension is nil")
 
-		clientAuth, ok := exports.Handler.Extension.(configauth.ClientAuthenticator)
+		clientAuth, ok := exports.Handler.Extension.(extauth.Client)
 		require.True(t, ok, "handler does not implement configauth.ClientAuthenticator")
 
 		rt, err := clientAuth.RoundTripper(http.DefaultTransport)

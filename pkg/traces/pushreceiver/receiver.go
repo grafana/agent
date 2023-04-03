@@ -15,7 +15,3 @@ func (r *receiver) Start(_ context.Context, _ component.Host) error {
 func (r *receiver) Shutdown(_ context.Context) error {
 	return nil
 }
-
-func newPushReceiver() (component.TracesReceiver, error) {
-	return &receiver{}, nil
-}

@@ -12,7 +12,7 @@ import (
 	"github.com/grafana/agent/pkg/util"
 	"github.com/stretchr/testify/require"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	otelextension "go.opentelemetry.io/collector/extension"
 )
 
 func TestAuth(t *testing.T) {
@@ -45,14 +45,14 @@ func newTestEnvironment(t *testing.T, onCreated func()) *testEnvironment {
 		Args:    fakeAuthArgs{},
 		Exports: otelcol.ConsumerExports{},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
-			factory := otelcomponent.NewExtensionFactory(
+			factory := otelextension.NewFactory(
 				"testcomponent",
-				func() otelconfig.Extension { return nil },
+				func() otelcomponent.Config { return nil },
 				func(
 					_ context.Context,
-					_ otelcomponent.ExtensionCreateSettings,
-					_ otelconfig.Extension,
-				) (otelcomponent.Extension, error) {
+					_ otelextension.CreateSettings,
+					_ otelcomponent.Config,
+				) (otelcomponent.Component, error) {
 
 					onCreated()
 					return nil, nil
@@ -82,15 +82,14 @@ type fakeAuthArgs struct {
 
 var _ auth.Arguments = fakeAuthArgs{}
 
-func (fa fakeAuthArgs) Convert() (otelconfig.Extension, error) {
-	settings := otelconfig.NewExtensionSettings(otelconfig.NewComponentID("testcomponent"))
-	return &settings, nil
+func (fa fakeAuthArgs) Convert() (otelcomponent.Config, error) {
+	return nil, nil
 }
 
-func (fa fakeAuthArgs) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+func (fa fakeAuthArgs) Extensions() map[otelcomponent.ID]otelextension.Extension {
 	return nil
 }
 
-func (fa fakeAuthArgs) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (fa fakeAuthArgs) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
 }

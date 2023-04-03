@@ -7,13 +7,14 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"go.opencensus.io/stats/view"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/service/extensions"
-	"go.opentelemetry.io/collector/service/external/pipelines"
-	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/collector/connector"
+	otelexporter "go.opentelemetry.io/collector/exporter"
+	"go.opentelemetry.io/collector/extension"
+	"go.opentelemetry.io/collector/otelcol"
+	"go.opentelemetry.io/collector/processor"
+	"go.opentelemetry.io/collector/receiver"
+	"go.opentelemetry.io/collector/service"
 	"go.uber.org/zap"
 
 	"github.com/grafana/agent/pkg/build"
@@ -26,28 +27,28 @@ import (
 
 // Instance wraps the OpenTelemetry collector to enable tracing pipelines
 type Instance struct {
-	mut         sync.Mutex
-	cfg         InstanceConfig
-	logger      *zap.Logger
-	metricViews []*view.View
+	mut    sync.Mutex
+	cfg    InstanceConfig
+	logger *zap.Logger
+	// metricViews []*view.View
 
-	extensions *extensions.Extensions
-	pipelines  *pipelines.Pipelines
-	factories  component.Factories
+	factories otelcol.Factories
+	service   *service.Service
 }
 
-var _ component.Host = (*Instance)(nil)
+//TODO: Do we need this?
+// var _ component.Host = (*Instance)(nil)
 
 // NewInstance creates and starts an instance of tracing pipelines.
 func NewInstance(logsSubsystem *logs.Logs, reg prometheus.Registerer, cfg InstanceConfig, logger *zap.Logger, promInstanceManager instance.Manager) (*Instance, error) {
-	var err error
+	// var err error
 
 	instance := &Instance{}
 	instance.logger = logger
-	instance.metricViews, err = newMetricViews(reg)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create metric views: %w", err)
-	}
+	// instance.metricViews, err = newMetricViews(reg)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to create metric views: %w", err)
+	// }
 
 	if err := instance.ApplyConfig(logsSubsystem, promInstanceManager, reg, cfg); err != nil {
 		return nil, err
@@ -83,53 +84,14 @@ func (i *Instance) Stop() {
 	defer i.mut.Unlock()
 
 	i.stop()
-	view.Unregister(i.metricViews...)
+	// view.Unregister(i.metricViews...)
 }
 
 func (i *Instance) stop() {
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	if i.extensions != nil {
-		err := i.extensions.NotifyPipelineNotReady()
-		if err != nil {
-			i.logger.Error("failed to notify extension of pipeline shutdown", zap.Error(err))
-		}
-	}
-
-	dependencies := []struct {
-		name     string
-		shutdown func() error
-	}{
-		{
-			name: "pipelines",
-			shutdown: func() error {
-				if i.pipelines == nil {
-					return nil
-				}
-				return i.pipelines.ShutdownAll(shutdownCtx)
-			},
-		},
-		{
-			name: "extensions",
-			shutdown: func() error {
-				if i.extensions == nil {
-					return nil
-				}
-				return i.extensions.Shutdown(shutdownCtx)
-			},
-		},
-	}
-
-	for _, dep := range dependencies {
-		i.logger.Info(fmt.Sprintf("shutting down %s", dep.name))
-		if err := dep.shutdown(); err != nil {
-			i.logger.Error(fmt.Sprintf("failed to shutdown %s", dep.name), zap.Error(err))
-		}
-	}
-
-	i.pipelines = nil
-	i.extensions = nil
+	i.service.Shutdown(shutdownCtx)
 }
 
 func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig, logs *logs.Logs, instManager instance.Manager, reg prometheus.Registerer) error {
@@ -168,7 +130,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	if err != nil {
 		return fmt.Errorf("failed to load tracing factories: %w", err)
 	}
-	i.factories = factories
+	// i.factories = factories
 
 	appinfo := component.BuildInfo{
 		Command:     "agent",
@@ -176,52 +138,70 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 		Version:     build.Version,
 	}
 
-	settings := component.TelemetrySettings{
-		Logger:         i.logger,
-		TracerProvider: trace.NewNoopTracerProvider(),
-		MeterProvider:  metric.NewNoopMeterProvider(),
-	}
+	// settings := component.TelemetrySettings{
+	// 	Logger:         i.logger,
+	// 	TracerProvider: trace.NewNoopTracerProvider(),
+	// 	MeterProvider:  metric.NewNoopMeterProvider(),
+	// }
 
 	// start extensions
-	i.extensions, err = extensions.New(ctx, extensions.Settings{
-		Telemetry: settings,
-		BuildInfo: appinfo,
+	// i.extensions, err = extensions.New(ctx, extensions.Settings{
+	// 	Telemetry: settings,
+	// 	BuildInfo: appinfo,
 
-		Factories: factories.Extensions,
-		Configs:   otelConfig.Extensions,
-	}, otelConfig.Service.Extensions)
+	// 	Factories: factories.Extensions,
+	// 	Configs:   otelConfig,
+	// }, otelConfig.Extensions)
+	// if err != nil {
+	// 	i.logger.Error(fmt.Sprintf("failed to build extensions: %s", err.Error()))
+	// 	return fmt.Errorf("failed to create extensions builder: %w", err)
+	// }
+	// err = i.extensions.Start(ctx, i)
+	// if err != nil {
+	// 	i.logger.Error(fmt.Sprintf("failed to start extensions: %s", err.Error()))
+	// 	return fmt.Errorf("failed to start extensions: %w", err)
+	// }
+
+	// i.pipelines, err = pipelines.Build(ctx, pipelines.Settings{
+	// 	Telemetry: settings,
+	// 	BuildInfo: appinfo,
+
+	// 	ReceiverFactories:  factories.Receivers,
+	// 	ReceiverConfigs:    otelConfig.Receivers,
+	// 	ProcessorFactories: factories.Processors,
+	// 	ProcessorConfigs:   otelConfig.Processors,
+	// 	ExporterFactories:  factories.Exporters,
+	// 	ExporterConfigs:    otelConfig.Exporters,
+
+	// 	PipelineConfigs: otelConfig.Pipelines,
+	// })
+	// if err != nil {
+	// 	return fmt.Errorf("failed to create pipelines: %w", err)
+	// }
+	// if err := i.pipelines.StartAll(ctx, i); err != nil {
+	// 	i.logger.Error(fmt.Sprintf("failed to start pipelines: %s", err.Error()))
+	// 	return fmt.Errorf("failed to start pipelines: %w", err)
+	// }
+
+	// return i.extensions.NotifyPipelineReady()
+
+	i.service, err = service.New(ctx, service.Settings{
+		BuildInfo:  appinfo,
+		Receivers:  receiver.NewBuilder(otelConfig.Receivers, factories.Receivers),
+		Processors: processor.NewBuilder(otelConfig.Processors, factories.Processors),
+		Exporters:  otelexporter.NewBuilder(otelConfig.Exporters, factories.Exporters),
+		Connectors: connector.NewBuilder(otelConfig.Connectors, factories.Connectors),
+		Extensions: extension.NewBuilder(otelConfig.Extensions, factories.Extensions),
+		//TODO: Fill these later?
+		// AsyncErrorChannel: col.asyncErrorChannel,
+		// LoggingOptions:    col.set.LoggingOptions,
+	}, otelConfig.Service)
 	if err != nil {
-		i.logger.Error(fmt.Sprintf("failed to build extensions: %s", err.Error()))
-		return fmt.Errorf("failed to create extensions builder: %w", err)
+		//TODO: Log the error?
+		return err
 	}
-	err = i.extensions.Start(ctx, i)
-	if err != nil {
-		i.logger.Error(fmt.Sprintf("failed to start extensions: %s", err.Error()))
-		return fmt.Errorf("failed to start extensions: %w", err)
-	}
-
-	i.pipelines, err = pipelines.Build(ctx, pipelines.Settings{
-		Telemetry: settings,
-		BuildInfo: appinfo,
-
-		ReceiverFactories:  factories.Receivers,
-		ReceiverConfigs:    otelConfig.Receivers,
-		ProcessorFactories: factories.Processors,
-		ProcessorConfigs:   otelConfig.Processors,
-		ExporterFactories:  factories.Exporters,
-		ExporterConfigs:    otelConfig.Exporters,
-
-		PipelineConfigs: otelConfig.Pipelines,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to create pipelines: %w", err)
-	}
-	if err := i.pipelines.StartAll(ctx, i); err != nil {
-		i.logger.Error(fmt.Sprintf("failed to start pipelines: %s", err.Error()))
-		return fmt.Errorf("failed to start pipelines: %w", err)
-	}
-
-	return i.extensions.NotifyPipelineReady()
+	//TODO: Log the error?
+	return i.service.Start(ctx)
 }
 
 // ReportFatalError implements component.Host
@@ -230,7 +210,7 @@ func (i *Instance) ReportFatalError(err error) {
 }
 
 // GetFactory implements component.Host
-func (i *Instance) GetFactory(kind component.Kind, componentType config.Type) component.Factory {
+func (i *Instance) GetFactory(kind component.Kind, componentType component.Type) component.Factory {
 	switch kind {
 	case component.KindReceiver:
 		return i.factories.Receivers[componentType]
@@ -239,13 +219,15 @@ func (i *Instance) GetFactory(kind component.Kind, componentType config.Type) co
 	}
 }
 
-// GetExtensions implements component.Host
-func (i *Instance) GetExtensions() map[config.ComponentID]component.Extension {
-	return i.extensions.GetExtensions()
-}
+//TODO: Do we need this?
+// // GetExtensions implements component.Host
+// func (i *Instance) GetExtensions() map[component.ID]extension.Extension {
+// 	return i.extensions.GetExtensions()
+// }
 
-// GetExporters implements component.Host
-func (i *Instance) GetExporters() map[config.DataType]map[config.ComponentID]component.Exporter {
-	// SpanMetricsProcessor needs to get the configured exporters.
-	return i.pipelines.GetExporters()
-}
+//TODO: Do we need this?
+// // GetExporters implements component.Host
+// func (i *Instance) GetExporters() map[component.DataType]map[component.ID]component.Component {
+// 	// SpanMetricsProcessor needs to get the configured exporters.
+// 	return i.pipelines.GetExporters()
+// }

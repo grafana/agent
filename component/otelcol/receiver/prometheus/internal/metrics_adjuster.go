@@ -132,7 +132,10 @@ func (tsm *timeseriesMap) get(metric pmetric.Metric, kv pcommon.Map) (*timeserie
 // Create a unique timeseries signature consisting of the metric name and label values.
 func getAttributesSignature(kv pcommon.Map) string {
 	labelValues := make([]string, 0, kv.Len())
-	kv.Sort().Range(func(_ string, attrValue pcommon.Value) bool {
+	//TODO: Is the sorting truly essential here? See:
+	// https://github.com/open-telemetry/opentelemetry-collector/pull/6989
+	// If it's important, can we sort the labelValues []string instead?
+	kv.Range(func(_ string, attrValue pcommon.Value) bool {
 		value := attrValue.Str()
 		if value != "" {
 			labelValues = append(labelValues, value)
