@@ -35,7 +35,9 @@ func ComponentReferences(parent *vm.Scope, cn dag.Node, g *dag.Graph) ([]Referen
 
 	switch cn := cn.(type) {
 	case BlockNode:
-		traversals = expressionsFromBody(cn.Block().Body)
+		if cn.Block() != nil {
+			traversals = expressionsFromBody(cn.Block().Body)
+		}
 	}
 
 	refs := make([]Reference, 0, len(traversals))

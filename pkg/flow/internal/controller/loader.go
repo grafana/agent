@@ -225,15 +225,16 @@ func (l *Loader) populateConfigBlockNodes(g *dag.Graph, configBlocks []*ast.Bloc
 		g.Add(c)
 	}
 
-	// If a logging config block is not provided, use the defaults.
+	// If a logging config block is not provided, we create an empty node which uses defaults.
 	if _, ok := blockMap[loggingBlockID]; !ok && !l.isModule() {
-		err := l.globals.LogSink.Update(logging.DefaultSinkOptions)
-		if err != nil {
-			diags.Add(diag.Diagnostic{
-				Severity: diag.SeverityLevelError,
-				Message:  err.Error(),
-			})
-		}
+		c := NewDefaultLoggingConfigNode(l.globals)
+		g.Add(c)
+	}
+
+	// If a tracing config block is not provided, we create an empty node which uses defaults.
+	if _, ok := blockMap[tracingBlockID]; !ok && !l.isModule() {
+		c := NewDefaulTracingConfigNode(l.globals)
+		g.Add(c)
 	}
 
 	return diags
