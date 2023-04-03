@@ -187,8 +187,8 @@ PRs which add `replace` directives in go.mod to change a module to point to a
 fork will only be accepted once an upstream PR is opened to officially move the
 changes to the official module.
 
-Contributors should work with upstream to make their changes acceptable, and
-remove the `replace` directive as soon as possible.
+Contributors are expected to work with upstream to make their changes
+acceptable, and remove the `replace` directive as soon as possible.
 
 If upstream is unresponsive, consider choosing a different dependency or making
 a hard fork (i.e., creating a new Go module with the same source).

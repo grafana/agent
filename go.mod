@@ -606,6 +606,9 @@ require github.com/efficientgo/tools/core v0.0.0-20220817170617-6c25e3b627dd // 
 // only be accepted when a PR upstream has been opened to accept the new
 // change.
 //
+// Contributors are expected to work with upstream to make their changes
+// acceptable, and remove the `replace` directive as soon as possible.
+//
 // If upstream is unresponsive, you should consider making a hard fork
 // (i.e., creating a new Go module with the same source) or picking a different
 // dependency.
