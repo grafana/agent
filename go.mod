@@ -600,6 +600,20 @@ require (
 
 require github.com/efficientgo/tools/core v0.0.0-20220817170617-6c25e3b627dd // indirect
 
+// NOTE: replace directives below must always be *temporary*.
+//
+// Adding a replace directive to change a module to a fork of a module will
+// only be accepted when a PR upstream has been opened to accept the new
+// change.
+//
+// Contributors are expected to work with upstream to make their changes
+// acceptable, and remove the `replace` directive as soon as possible.
+//
+// If upstream is unresponsive, you should consider making a hard fork
+// (i.e., creating a new Go module with the same source) or picking a different
+// dependency.
+
+
 // Replace directives from Prometheus
 replace (
 	k8s.io/klog => github.com/simonpasquier/klog-gokit v0.3.0

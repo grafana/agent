@@ -32,6 +32,8 @@ Main (unreleased)
   - `discovery.lightsail` service discovery for aws lightsail. (@captncraig)
   - `module.string` runs a Grafana Agent Flow module passed to the component by
     an expression containing a string. (@erikbaranowski, @rfratto)
+  - `module.file` runs a Grafana Agent Flow module passed to the component by
+    an expression containing a file. (@erikbaranowski)
   - `otelcol.auth.oauth2` performs OAuth 2.0 authentication for HTTP and gRPC
     based OpenTelemetry exporters. (@ptodev)
   - `otelcol.extension.jaeger_remote_sampling` provides an endpoint from which to
@@ -90,6 +92,8 @@ Main (unreleased)
 
 - Fix issue where scraping native Prometheus histograms would leak memory.
   (@rfratto)
+
+- Fix issue where loki.source.docker component could deadlock. (@tpaschalis)
 
 ### Other changes
 
