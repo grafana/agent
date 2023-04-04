@@ -10,6 +10,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/local/file"
 	"github.com/grafana/agent/component/module"
+	"github.com/grafana/agent/pkg/flow/rivertypes"
 	"github.com/grafana/agent/pkg/river"
 )
 
@@ -52,8 +53,9 @@ func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 type Component struct {
 	mod module.ModuleComponent
 
-	mut  sync.RWMutex
-	args Arguments
+	mut     sync.RWMutex
+	args    Arguments
+	content rivertypes.OptionalSecret
 
 	managedLocalFile *file.Component
 }
@@ -109,9 +111,7 @@ func (c *Component) Run(ctx context.Context) error {
 func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 
-	c.mut.Lock()
-	c.args = newArgs
-	c.mut.Unlock()
+	c.setArgs(newArgs)
 
 	err := c.managedLocalFile.Update(newArgs.LocalFileArguments)
 	if err != nil {
@@ -123,22 +123,22 @@ func (c *Component) Update(args component.Arguments) error {
 		return err
 	}
 
-	return nil
+	// Force a content load here and bubble up any error. This will catch problems
+	// on initial load.
+	return c.mod.LoadFlowContent(newArgs.Arguments, c.getContent().Value)
 }
 
 // NewManagedLocalComponent creates the new local.file managed component.
 func (c *Component) NewManagedLocalComponent(o component.Options) (*file.Component, error) {
 	localFileOpts := o
 	localFileOpts.OnStateChange = func(e component.Exports) {
-		c.mut.RLock()
-		defer c.mut.RUnlock()
+		c.setContent(e.(file.Exports).Content)
 
-		_ = c.mod.LoadFlowContent(c.args.Arguments, e.(file.Exports).Content.Value)
+		// Any errors found here are reported via component health
+		_ = c.mod.LoadFlowContent(c.getArgs().Arguments, c.getContent().Value)
 	}
 
-	c.mut.RLock()
-	defer c.mut.RUnlock()
-	return file.New(localFileOpts, c.args.LocalFileArguments)
+	return file.New(localFileOpts, c.getArgs().LocalFileArguments)
 }
 
 // Handler implements component.HTTPComponent.
@@ -154,4 +154,32 @@ func (c *Component) CurrentHealth() component.Health {
 // setHealth updates the component health.
 func (c *Component) setHealth(h component.Health) {
 	c.mod.SetHealth(h)
+}
+
+// getArgs is a goroutine safe way to get args
+func (c *Component) getArgs() Arguments {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+	return c.args
+}
+
+// setArgs is a goroutine safe way to set args
+func (c *Component) setArgs(args Arguments) {
+	c.mut.Lock()
+	c.args = args
+	c.mut.Unlock()
+}
+
+// getContent is a goroutine safe way to get content
+func (c *Component) getContent() rivertypes.OptionalSecret {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+	return c.content
+}
+
+// setContent is a goroutine safe way to set content
+func (c *Component) setContent(content rivertypes.OptionalSecret) {
+	c.mut.Lock()
+	c.content = content
+	c.mut.Unlock()
 }

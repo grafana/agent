@@ -58,7 +58,9 @@ func NewModuleComponent(o component.Options) ModuleComponent {
 	}
 }
 
-// LoadFlowContent loads the flow controller with the current component content.
+// LoadFlowContent loads the flow controller with the current component content. It
+// will set the component health in addition to return the error so that the consumer
+// can rely on either or both.
 func (c *ModuleComponent) LoadFlowContent(arguments map[string]any, contentValue string) error {
 	f, err := flow.ReadFile(c.opts.ID, []byte(contentValue))
 	if err != nil {
@@ -67,25 +69,26 @@ func (c *ModuleComponent) LoadFlowContent(arguments map[string]any, contentValue
 			Message:    fmt.Sprintf("failed to parse module content: %s", err),
 			UpdateTime: time.Now(),
 		})
-	} else {
-		err = c.ctrl.LoadFile(f, arguments)
-		if err != nil {
-			c.SetHealth(component.Health{
-				Health:     component.HealthTypeUnhealthy,
-				Message:    fmt.Sprintf("failed to load module content: %s", err),
-				UpdateTime: time.Now(),
-			})
-		} else {
-			c.SetHealth(component.Health{
-				Health:     component.HealthTypeHealthy,
-				Message:    "module content loaded",
-				UpdateTime: time.Now(),
-			})
-		}
 
 		return err
 	}
 
+	err = c.ctrl.LoadFile(f, arguments)
+	if err != nil {
+		c.SetHealth(component.Health{
+			Health:     component.HealthTypeUnhealthy,
+			Message:    fmt.Sprintf("failed to load module content: %s", err),
+			UpdateTime: time.Now(),
+		})
+
+		return err
+	}
+
+	c.SetHealth(component.Health{
+		Health:     component.HealthTypeHealthy,
+		Message:    "module content loaded",
+		UpdateTime: time.Now(),
+	})
 	return nil
 }
 
