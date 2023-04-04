@@ -41,15 +41,6 @@ func TestModule(t *testing.T) {
 			expectedModuleHealthType:          component.HealthTypeHealthy,
 			expectedModuleHealthMessagePrefix: "read file",
 		},
-		{
-			name:                        "Bad Module",
-			moduleContents:              `this isn't a valid module config`,
-			expectedHealthType:          component.HealthTypeUnhealthy,
-			expectedHealthMessagePrefix: "failed to parse module content",
-
-			expectedModuleHealthType:          component.HealthTypeHealthy,
-			expectedModuleHealthMessagePrefix: "read file",
-		},
 	}
 
 	for _, tc := range tt {
@@ -78,7 +69,6 @@ func TestModule(t *testing.T) {
 
 			require.Equal(t, tc.expectedHealthType, c.CurrentHealth().Health)
 			require.True(t, strings.HasPrefix(c.CurrentHealth().Message, tc.expectedHealthMessagePrefix))
-			require.Equal(t, tc.moduleContents, c.content.Value)
 
 			require.Equal(t, tc.expectedModuleHealthType, c.managedLocalFile.CurrentHealth().Health)
 			require.True(t, strings.HasPrefix(c.managedLocalFile.CurrentHealth().Message, tc.expectedModuleHealthMessagePrefix))
@@ -86,23 +76,53 @@ func TestModule(t *testing.T) {
 	}
 }
 
-func TestMissingFile(t *testing.T) {
-	opts := component.Options{
-		ID:            "module.file.test",
-		Logger:        util.TestFlowLogger(t),
-		Registerer:    prometheus.NewRegistry(),
-		OnStateChange: func(e component.Exports) {},
-		DataPath:      t.TempDir(),
+func TestBadFile(t *testing.T) {
+	tt := []struct {
+		name                  string
+		moduleContents        string
+		expectedErrorContains string
+	}{
+		{
+			name:                  "Bad Module",
+			moduleContents:        `this isn't a valid module config`,
+			expectedErrorContains: `expected block label, got IDENT`,
+		},
+		{
+			name:                  "Bad Component",
+			moduleContents:        `local.fake "fake" {}`,
+			expectedErrorContains: `Unrecognized component name "local.fake"`,
+		},
+		{
+			name:                  "Missing Module",
+			moduleContents:        "",
+			expectedErrorContains: `failed to read file:`,
+		},
 	}
 
-	filePath := filepath.Join(t.TempDir(), "module.river")
-	cfg := `filename = "` + riverEscape(filePath) + `"`
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			moduleFilePath := filepath.Join(t.TempDir(), "module.river")
+			if tc.moduleContents != "" {
+				os.WriteFile(moduleFilePath, []byte(tc.moduleContents), 0664)
+			}
 
-	var args Arguments
-	require.NoError(t, river.Unmarshal([]byte(cfg), &args))
+			moduleFileConfig := `filename = "` + riverEscape(moduleFilePath) + `"`
 
-	_, err := New(opts, args)
-	require.ErrorContains(t, err, "failed to read file:")
+			var args Arguments
+			require.NoError(t, river.Unmarshal([]byte(moduleFileConfig), &args))
+
+			opts := component.Options{
+				ID:            "module.file.test",
+				Logger:        util.TestFlowLogger(t),
+				Registerer:    prometheus.NewRegistry(),
+				OnStateChange: func(e component.Exports) {},
+				DataPath:      t.TempDir(),
+			}
+
+			_, err := New(opts, args)
+			require.ErrorContains(t, err, tc.expectedErrorContains)
+		})
+	}
 }
 
 func riverEscape(filePath string) string {
