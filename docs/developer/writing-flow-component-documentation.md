@@ -105,7 +105,7 @@ If your component supports labels, add the following as the last paragraph of
 the Title section:
 
 ```markdown
-Multiple `COMPONENT_NAME` components can be specified by giving them different 
+Multiple `COMPONENT_NAME` components can be specified by giving them different
 labels.
 ```
 
@@ -154,7 +154,7 @@ If the component does not support any arguments, and is only configured through
 blocks, the content of the section should be the following paragraph:
 
 ```markdown
-The `COMPONENT_NAME` component does not support any arguments, and is configured 
+The `COMPONENT_NAME` component does not support any arguments, and is configured
 fully through child blocks.
 ```
 
@@ -240,7 +240,7 @@ If the component does not support any blocks, the content of the section should
 be the following paragraph:
 
 ```markdown
-The `COMPONENT_NAME` component does not support any blocks, and is configured 
+The `COMPONENT_NAME` component does not support any blocks, and is configured
 fully through arguments.
 ```
 
@@ -277,7 +277,7 @@ Values for the Block column should contain a link to the header in the same
 documentation page which describes the block. **Do not** link to another
 component page that happens to have the same block; prefer re-documenting
 blocks and being explicit instead of having users jump around. Use the
-[`docs/shared` shortcode][docs-shared] to deduplicate block definitions across
+[`docs/shared` shortcode][docs-shared] to de-duplicate block definitions across
 multiple components.
 
 Values for the Description column should be kept as short as possible to keep
@@ -328,7 +328,7 @@ Block sections are similar to Arguments section, where it is composed of:
 3. Detailed description for how that block impacts component behavior, and how
    the block's arguments can be used to modify that behavior.
 
-See [Arugments](#arguments) for a description of how to write the arguments
+See [Arguments](#arguments) for a description of how to write the arguments
 table and block-level descriptions following that table.
 
 For example:
@@ -428,7 +428,7 @@ section should be the following paragraph:
 ```
 
 Otherwise, write a high-level description for what debug information the
-component provides. Do not document the attributes or blocks which is exposed
+component provides. Do not document the attributes or blocks which are exposed
 through the debug information.
 
 ### Debug metrics
@@ -463,7 +463,7 @@ should always prefix the metrics table.
 ### Examples
 
 The Examples section provides copy-and-paste River pipelines which use the
-River component. The section starts with an `h2` header called Examples. If
+Flow component. The section starts with an `h2` header called Examples. If
 there is only one example, call the section Example instead.
 
 The Examples section should be composed of a brief description of each example,
@@ -493,6 +493,12 @@ prometheus.remote_write "default" {
 
 Each example should be a full pipeline when possible, rather than just the
 individual component being documented.
+
+If an example includes clarifying comments, make sure that the relevant
+Arguments or block header includes sufficient explanation to be the official
+source for the clarifying comment. Clarifying comments must only be used be
+supplementary information to reenforce knowledge, and not as the primary source
+of information.
 
 ## Exceptions
 
