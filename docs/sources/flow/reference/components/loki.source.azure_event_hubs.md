@@ -35,18 +35,18 @@ loki.source.azure_event_hubs "LABEL" {
 
 `loki.source.azure_event_hubs` supports the following arguments:
 
- Name                        | Type                 | Description                                                                                                                                                                                       | Default                          | Required 
------------------------------|----------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------|----------
- `fully_qualified_namespace` | `string`             | Event hub namespace. Typically, it looks like <your-namespace>.servicebus.windows.net:9093                                                                                                        |                                  | yes      
- `event_hubs`                | `list(string)`       | Event Hubs to consume.                                                                                                                                                                            |                                  | yes      
- `group_id`                  | `string`             | The Kafka consumer group id.                                                                                                                                                                      | `"loki.source.azure_event_hubs"` | no       
- `assignor`                  | `string`             | The consumer group rebalancing strategy to use.                                                                                                                                                   | `"range"`                        | no       
- `use_incoming_timestamp`    | `bool`               | Whether or not to use the timestamp received from Azure Event Hub.                                                                                                                                | `false`                          | no       
- `labels`                    | `map(string)`        | The labels to associate with each received event.                                                                                                                                                 | `{}`                             | no       
- `forward_to`                | `list(LogsReceiver)` | List of receivers to send log entries to.                                                                                                                                                         |                                  | yes      
- `relabel_rules`             | `RelabelRules`       | Relabeling rules to apply on log entries.                                                                                                                                                         | `{}`                             | no       
+ Name                        | Type                 | Description                                                                                                                                                             | Default                          | Required 
+-----------------------------|----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------|----------
+ `fully_qualified_namespace` | `string`             | Event hub namespace. Typically, it looks like <your-namespace>.servicebus.windows.net:9093                                                                              |                                  | yes      
+ `event_hubs`                | `list(string)`       | Event Hubs to consume.                                                                                                                                                  |                                  | yes      
+ `group_id`                  | `string`             | The Kafka consumer group id.                                                                                                                                            | `"loki.source.azure_event_hubs"` | no       
+ `assignor`                  | `string`             | The consumer group rebalancing strategy to use.                                                                                                                         | `"range"`                        | no       
+ `use_incoming_timestamp`    | `bool`               | Whether or not to use the timestamp received from Azure Event Hub.                                                                                                      | `false`                          | no       
+ `labels`                    | `map(string)`        | The labels to associate with each received event.                                                                                                                       | `{}`                             | no       
+ `forward_to`                | `list(LogsReceiver)` | List of receivers to send log entries to.                                                                                                                               |                                  | yes      
+ `relabel_rules`             | `RelabelRules`       | Relabeling rules to apply on log entries.                                                                                                                               | `{}`                             | no       
  `disallow_custom_messages`  | `bool`               | Whether to ignore messages that don't match the [schema](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/resource-logs-schema) for Azure resource logs | `false`                          | no       
- `relabel_rules`             | `RelabelRules`       | Relabeling rules to apply on log entries.                                                                                                                                                         | `{}`                             | no       
+ `relabel_rules`             | `RelabelRules`       | Relabeling rules to apply on log entries.                                                                                                                               | `{}`                             | no       
 
 `assignor` values can be either `"range"`, `"roundrobin"`, or `"sticky"`.
 
@@ -91,6 +91,7 @@ The following internal labels prefixed with `__` are available but are discarded
 - `__meta_kafka_partition`
 - `__meta_kafka_member_id`
 - `__meta_kafka_group_id`
+- `__azure_event_hubs_category`
 
 ## Exported fields
 
