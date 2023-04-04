@@ -52,7 +52,7 @@ Main (unreleased)
     for making requests to AWS services via `otelcol` components that support
     authentication extensions. (@ptodev)
   - `prometheus.exporter.memcached` collects metrics from a Memcached server. (@spartan0x117)
-  - `loki.source.azure_event_hubs` read messages from Azure Event Hub using Kafka and forwards them to other `loki`
+  - `loki.source.azure_event_hubs` reads messages from Azure Event Hub using Kafka and forwards them to other `loki`
     components. (@akselleirv)
   
 - Add support for Flow-specific system packages:
