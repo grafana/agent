@@ -1,4 +1,4 @@
-package azureeventhubs
+package azure_event_hubs
 
 import (
 	"testing"

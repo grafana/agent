@@ -1,4 +1,4 @@
-package azureeventhubs
+package azure_event_hubs
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
-	"github.com/grafana/agent/component/loki/source/azureeventhubs/internal/parser"
+	"github.com/grafana/agent/component/loki/source/azure_event_hubs/internal/parser"
 	kt "github.com/grafana/agent/component/loki/source/internal/kafkatarget"
 	"github.com/grafana/dskit/flagext"
 
