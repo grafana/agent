@@ -151,7 +151,7 @@ Name | Type | Description | Default | Required
 `metric_names` | `list(string)` | A list of strings to match the metric name against. | `[]` | no
 `span_kinds` | `list(string)` | A list of items to match the span kind against. | `[]` | no
 
-`match_type` is required and can be set to either `"regexp"` or `"strict"`.
+`match_type` is required and must be set to either `"regexp"` or `"strict"`.
 
 One of the following is also required:
 * For spans, one of `services`, `span_names`, `span_kinds`, [attribute], [resource], or [library] must be specified with a non-empty value for a valid configuration. The `log_bodies`, `log_severity_texts`, `resource_attributes` and `metric_names` fields are invalid.
