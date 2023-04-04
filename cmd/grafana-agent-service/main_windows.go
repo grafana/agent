@@ -57,22 +57,24 @@ func (as *agentService) Execute(args []string, r <-chan svc.ChangeRequest, s cha
 		s <- svc.Status{State: svc.Stopped}
 	}()
 
+	var workers sync.WaitGroup
+	defer workers.Wait()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	s <- svc.Status{State: svc.StartPending}
 
-	// Run the serviceManager. When the service is exiting, wait until the
-	// serviceManager exits completely.
+	// Run the serviceManager.
 	{
 		sm := newServiceManager(as.logger, as.cfg)
 
-		var wg sync.WaitGroup
-		wg.Add(1)
-		defer wg.Wait()
-
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
-
+		workers.Add(1)
 		go func() {
-			defer wg.Done()
+			// In case the service manager exits on its own, we cancel our context to
+			// signal to the parent goroutine to exit.
+			defer cancel()
+			defer workers.Done()
 			sm.Run(ctx)
 		}()
 	}
@@ -83,15 +85,20 @@ func (as *agentService) Execute(args []string, r <-chan svc.ChangeRequest, s cha
 	}()
 
 	for {
-		req := <-r
-		switch req.Cmd {
-		case svc.Interrogate:
-			s <- req.CurrentStatus
-		case svc.Pause, svc.Continue:
-			// no-op
-		default:
-			// Every other command should terminate the service.
+		select {
+		case <-ctx.Done():
+			// Our managed service exited; shut down the service.
 			return false, 0
+		case req := <-r:
+			switch req.Cmd {
+			case svc.Interrogate:
+				s <- req.CurrentStatus
+			case svc.Pause, svc.Continue:
+				// no-op
+			default:
+				// Every other command should terminate the service.
+				return false, 0
+			}
 		}
 	}
 }
