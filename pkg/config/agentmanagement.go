@@ -21,6 +21,7 @@ import (
 )
 
 const cacheFilename = "remote-config-cache.yaml"
+const apiPath = "/agent-management/api/agent/v2"
 
 type remoteConfigProvider interface {
 	GetCachedRemoteConfig() ([]byte, error)
@@ -157,7 +158,7 @@ type RemoteConfiguration struct {
 
 type AgentManagementConfig struct {
 	Enabled         bool             `yaml:"-"` // Derived from enable-features=agent-management
-	Url             string           `yaml:"api_url"`
+	Host            string           `yaml:"host"`
 	BasicAuth       config.BasicAuth `yaml:"basic_auth"`
 	Protocol        string           `yaml:"protocol"`
 	PollingInterval time.Duration    `yaml:"polling_interval"`
@@ -234,7 +235,7 @@ func loadRemoteConfig(remoteConfigBytes []byte, expandEnvVars bool, fs *flag.Fla
 // specified in c.AgentManagement
 func newRemoteConfigProvider(c *Config) (*remoteConfigHTTPProvider, error) {
 	switch p := c.AgentManagement.Protocol; {
-	case p == "http":
+	case p == "https" || p == "http":
 		return newRemoteConfigHTTPProvider(c)
 	default:
 		return nil, fmt.Errorf("unsupported protocol for agent management api: %s", p)
@@ -244,7 +245,7 @@ func newRemoteConfigProvider(c *Config) (*remoteConfigHTTPProvider, error) {
 // fullUrl creates and returns the URL that should be used when querying the Agent Management API,
 // including the namespace, base config id, and any labels that have been specified.
 func (am *AgentManagementConfig) fullUrl() (string, error) {
-	fullPath, err := url.JoinPath(am.Url, "namespace", am.RemoteConfiguration.Namespace, "remote_config")
+	fullPath, err := url.JoinPath(am.Protocol+"://", am.Host, apiPath, "namespace", am.RemoteConfiguration.Namespace, "remote_config")
 	if err != nil {
 		return "", fmt.Errorf("error trying to join url: %w", err)
 	}
