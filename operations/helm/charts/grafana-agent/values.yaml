@@ -113,6 +113,9 @@ controller:
   # -- Configures Pods to use the host network. When set to true, the ports that will be used must be specified.
   hostNetwork: false
 
+  # -- Configures the DNS policy for the pod. https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-dns-policy
+  dnsPolicy: ClusterFirst
+
   # -- Update strategy for updating deployed Pods.
   updateStrategy: {}
 
