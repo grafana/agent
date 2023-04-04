@@ -52,7 +52,52 @@ static:
           - Average
 `
 
+// for testing fips_disabled behaviour
+const configString2 = `
+sts_region: us-east-2
+fips_disabled: true
+discovery:
+  exported_tags:
+    AWS/EC2:
+      - name
+      - type
+  jobs:
+    - type: AWS/EC2
+      search_tags:
+        - key: instance_type
+          value: spot
+      regions:
+        - us-east-2
+      roles:
+        - role_arn: arn:aws:iam::878167871295:role/yace_testing
+      custom_tags:
+        - key: alias
+          value: tesis
+      metrics:
+        - name: CPUUtilization
+          period: 5m
+          statistics:
+            - Maximum
+            - Average
+static:
+  - regions:
+      - us-east-2
+    name: custom_tesis_metrics
+    namespace: CoolApp
+    dimensions:
+      - name: PURCHASES_SERVICE
+        value: CoolService
+      - name: APP_VERSION
+        value: 1.0
+    metrics:
+      - name: KPIs
+        period: 5m
+        statistics:
+          - Average
+`
+
 var falsePtr = false
+var truePtr = true
 
 var expectedConfig = yaceConf.ScrapeConf{
 	APIVersion: "v1alpha1",
@@ -142,10 +187,20 @@ func TestTranslateConfigToYACEConfig(t *testing.T) {
 	err := yaml.Unmarshal([]byte(configString), &c)
 	require.NoError(t, err, "failed to unmarshall config")
 
-	yaceConf, err := ToYACEConfig(&c)
+	yaceConf, fipsEnabled, err := ToYACEConfig(&c)
 	require.NoError(t, err, "failed to translate to YACE configuration")
 
 	require.EqualValues(t, expectedConfig, yaceConf)
+	require.EqualValues(t, truePtr, fipsEnabled)
+
+	err = yaml.Unmarshal([]byte(configString2), &c)
+	require.NoError(t, err, "failed to unmarshall config")
+
+	yaceConf, fipsEnabled2, err := ToYACEConfig(&c)
+	require.NoError(t, err, "failed to translate to YACE configuration")
+
+	require.EqualValues(t, expectedConfig, yaceConf)
+	require.EqualValues(t, falsePtr, fipsEnabled2)
 }
 
 func TestCloudwatchExporterConfigInstanceKey(t *testing.T) {

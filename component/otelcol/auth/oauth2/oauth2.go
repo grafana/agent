@@ -39,7 +39,7 @@ type Arguments struct {
 var _ auth.Arguments = Arguments{}
 
 // Convert implements auth.Arguments.
-func (args Arguments) Convert() otelconfig.Extension {
+func (args Arguments) Convert() (otelconfig.Extension, error) {
 	return &oauth2clientauthextension.Config{
 		ExtensionSettings: otelconfig.NewExtensionSettings(otelconfig.NewComponentID("oauth2")),
 		ClientID:          args.ClientID,
@@ -49,7 +49,7 @@ func (args Arguments) Convert() otelconfig.Extension {
 		Scopes:            args.Scopes,
 		TLSSetting:        *args.TLSSetting.Convert(),
 		Timeout:           args.Timeout,
-	}
+	}, nil
 }
 
 // Extensions implements auth.Arguments.

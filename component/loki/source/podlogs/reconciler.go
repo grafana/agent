@@ -171,7 +171,7 @@ func (r *reconciler) reconcilePodLogs(ctx context.Context, cli client.Client, po
 				Container:     container,
 				InitContainer: initContainer,
 			})
-			processedLabels := relabel.Process(targetLabels.Copy(), relabelRules...)
+			processedLabels, _ := relabel.Process(targetLabels.Copy(), relabelRules...)
 
 			defaultJob := fmt.Sprintf("%s/%s:%s", podLogs.Namespace, podLogs.Name, container.Name)
 			finalLabels, err := kubetail.PrepareLabels(processedLabels, defaultJob)

@@ -31,7 +31,7 @@ type Arguments interface {
 
 	// Convert converts the Arguments into an OpenTelemetry Collector processor
 	// configuration.
-	Convert() otelconfig.Processor
+	Convert() (otelconfig.Processor, error)
 
 	// Extensions returns the set of extensions that the configured component is
 	// allowed to use.
@@ -145,7 +145,10 @@ func (p *Processor) Update(args component.Arguments) error {
 		},
 	}
 
-	processorConfig := pargs.Convert()
+	processorConfig, err := pargs.Convert()
+	if err != nil {
+		return err
+	}
 
 	var (
 		next        = pargs.NextConsumers()

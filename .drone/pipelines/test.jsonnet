@@ -84,9 +84,6 @@ local pipelines = import '../util/pipelines.jsonnet';
     steps: [{
       name: 'Run Go tests',
       image: build_image.windows,
-      environment: {
-        ASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH: 'go1.20',
-      },
       commands: ['go test -tags="nodocker,nonetwork" ./...'],
     }],
   },

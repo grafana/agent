@@ -1,7 +1,7 @@
-import { FC, Fragment, ReactElement } from 'react';
-import { Link } from 'react-router-dom';
 import { faCubes, faLink } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { FC, Fragment, ReactElement } from 'react';
+import { Link } from 'react-router-dom';
 
 import { partitionBody } from '../../utils/partition';
 
@@ -138,7 +138,10 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
           <section id="module">
             <h2>Module components</h2>
             <div className={styles.sectionContent}>
-              <ComponentList components={props.component.moduleInfo} parent={props.component.id} />
+              <ComponentList
+                components={props.component.moduleInfo}
+                parent={pathJoin([props.component.parent, props.component.id])}
+              />
             </div>
           </section>
         )}
@@ -146,3 +149,7 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
     </div>
   );
 };
+
+function pathJoin(paths: (string | undefined)[]): string {
+  return paths.filter((p) => p && p !== '').join('/');
+}

@@ -3,10 +3,10 @@
 PARENT_MAKEFILE := $(firstword $(MAKEFILE_LIST))
 
 .PHONY: dist clean-dist
-dist: dist-agent-binaries dist-agentctl-binaries dist-packages dist-agent-installer
+dist: dist-agent-binaries dist-agent-flow-binaries dist-agentctl-binaries dist-agent-packages dist-agent-flow-packages dist-agent-installer dist-agent-flow-installer
 
 clean-dist:
-	rm -rf dist
+	rm -rf dist dist.temp
 
 # Used for passing through environment variables to sub-makes.
 #
@@ -75,7 +75,7 @@ dist/grafana-agent-freebsd-amd64: GO_TAGS += builtinassets
 dist/grafana-agent-freebsd-amd64: GOOS    := freebsd
 dist/grafana-agent-freebsd-amd64: GOARCH  := amd64
 dist/grafana-agent-freebsd-amd64: generate-ui
-	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
+	$(PACKAGING_VARS) AGEAGENT_BINARYNT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
 #
 # agentctl release binaries.
@@ -131,79 +131,217 @@ dist/grafana-agentctl-freebsd-amd64:
 	$(PACKAGING_VARS) AGENTCTL_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agentctl
 
 #
-# DEB and RPM packages.
+# agent-flow release binaries
+#
+# agent-flow release binaries are intermediate build assets used for producing
+# Flow-specific system packages. As such, they are built in a dist.temp
+# directory instead of the normal dist directory.
+#
+# Only targets needed for system packages are used here.
 #
 
-ENVIRONMENT_FILE_rpm := /etc/sysconfig/grafana-agent
-ENVIRONMENT_FILE_deb := /etc/default/grafana-agent
+dist-agent-flow-binaries: dist.temp/grafana-agent-flow-linux-amd64       \
+                          dist.temp/grafana-agent-flow-linux-arm64       \
+                          dist.temp/grafana-agent-flow-linux-ppc64le     \
+                          dist.temp/grafana-agent-flow-linux-s390x       \
+                          dist.temp/grafana-agent-flow-windows-amd64.exe
 
-# generate_fpm(deb|rpm, package arch, agent arch, output file)
-define generate_fpm =
-	fpm -s dir -v $(PACKAGE_VERSION) -a $(2) \
-		-n grafana-agent --iteration $(PACKAGE_RELEASE) -f \
+dist.temp/grafana-agent-flow-linux-amd64: GO_TAGS += builtinassets promtail_journal_enabled
+dist.temp/grafana-agent-flow-linux-amd64: GOOS    := linux
+dist.temp/grafana-agent-flow-linux-amd64: GOARCH  := amd64
+dist.temp/grafana-agent-flow-linux-amd64: generate-ui
+	$(PACKAGING_VARS) FLOW_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent-flow
+
+dist.temp/grafana-agent-flow-linux-arm64: GO_TAGS += builtinassets promtail_journal_enabled
+dist.temp/grafana-agent-flow-linux-arm64: GOOS    := linux
+dist.temp/grafana-agent-flow-linux-arm64: GOARCH  := arm64
+dist.temp/grafana-agent-flow-linux-arm64: generate-ui
+	$(PACKAGING_VARS) FLOW_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent-flow
+
+dist.temp/grafana-agent-flow-linux-ppc64le: GO_TAGS += builtinassets promtail_journal_enabled
+dist.temp/grafana-agent-flow-linux-ppc64le: GOOS    := linux
+dist.temp/grafana-agent-flow-linux-ppc64le: GOARCH  := ppc64le
+dist.temp/grafana-agent-flow-linux-ppc64le: generate-ui
+	$(PACKAGING_VARS) FLOW_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent-flow
+
+dist.temp/grafana-agent-flow-linux-s390x: GO_TAGS += builtinassets promtail_journal_enabled
+dist.temp/grafana-agent-flow-linux-s390x: GOOS    := linux
+dist.temp/grafana-agent-flow-linux-s390x: GOARCH  := ppc64le
+dist.temp/grafana-agent-flow-linux-s390x: generate-ui
+	$(PACKAGING_VARS) FLOW_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent-flow
+
+dist.temp/grafana-agent-flow-windows-amd64.exe: GO_TAGS += builtinassets
+dist.temp/grafana-agent-flow-windows-amd64.exe: GOOS    := windows
+dist.temp/grafana-agent-flow-windows-amd64.exe: GOARCH  := amd64
+dist.temp/grafana-agent-flow-windows-amd64.exe: generate-ui
+	$(PACKAGING_VARS) FLOW_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent-flow
+
+#
+# agent-service release binaries.
+#
+# agent-service release binaries are intermediate build assets used for
+# producing Flow-specific system packages. As such, they are built in a
+# dist.temp directory instead of the normal dist directory.
+#
+# Only targets needed for system packages are used here.
+#
+
+dist-agent-service-binaries: dist.temp/grafana-agent-service-windows-amd64.exe
+
+dist.temp/grafana-agent-service-windows-amd64.exe: GO_TAGS += builtinassets
+dist.temp/grafana-agent-service-windows-amd64.exe: GOOS    := windows
+dist.temp/grafana-agent-service-windows-amd64.exe: GOARCH  := amd64
+dist.temp/grafana-agent-service-windows-amd64.exe: generate-ui
+	$(PACKAGING_VARS) SERVICE_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent-service
+
+
+#
+# DEB and RPM grafana-agent packages.
+#
+
+AGENT_ENVIRONMENT_FILE_rpm := /etc/sysconfig/grafana-agent
+AGENT_ENVIRONMENT_FILE_deb := /etc/default/grafana-agent
+
+# generate_agent_fpm(deb|rpm, package arch, agent arch, output file)
+define generate_agent_fpm =
+	fpm -s dir -v $(AGENT_PACKAGE_VERSION) -a $(2) \
+		-n grafana-agent --iteration $(AGENT_PACKAGE_RELEASE) -f \
 		--log error \
 		--license "Apache 2.0" \
 		--vendor "Grafana Labs" \
 		--url "https://github.com/grafana/agent" \
 		-t $(1) \
-		--after-install packaging/$(1)/control/postinst \
-		--before-remove packaging/$(1)/control/prerm \
+		--after-install packaging/grafana-agent/$(1)/control/postinst \
+		--before-remove packaging/grafana-agent/$(1)/control/prerm \
 		--config-files /etc/grafana-agent.yaml \
-		--config-files $(ENVIRONMENT_FILE_$(1)) \
+		--config-files $(AGENT_ENVIRONMENT_FILE_$(1)) \
 		--rpm-rpmbuild-define "_build_id_links none" \
 		--package $(4) \
 			dist/grafana-agent-linux-$(3)=/usr/bin/grafana-agent \
 			dist/grafana-agentctl-linux-$(3)=/usr/bin/grafana-agentctl \
-			packaging/grafana-agent.yaml=/etc/grafana-agent.yaml \
-			packaging/environment-file=$(ENVIRONMENT_FILE_$(1)) \
-			packaging/$(1)/grafana-agent.service=/usr/lib/systemd/system/grafana-agent.service
+			packaging/grafana-agent/grafana-agent.yaml=/etc/grafana-agent.yaml \
+			packaging/grafana-agent/environment-file=$(AGENT_ENVIRONMENT_FILE_$(1)) \
+			packaging/grafana-agent/$(1)/grafana-agent.service=/usr/lib/systemd/system/grafana-agent.service
 endef
 
-PACKAGE_VERSION := $(patsubst v%,%,$(VERSION))
-PACKAGE_RELEASE := 1
-PACKAGE_PREFIX  := dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE)
+AGENT_PACKAGE_VERSION := $(patsubst v%,%,$(VERSION))
+AGENT_PACKAGE_RELEASE := 1
+AGENT_PACKAGE_PREFIX  := dist/grafana-agent-$(AGENT_PACKAGE_VERSION)-$(AGENT_PACKAGE_RELEASE)
 
-.PHONY: dist-packages
-dist-packages: dist-packages-amd64   \
-               dist-packages-arm64   \
-               dist-packages-arm64   \
-               dist-packages-ppc64le \
-               dist-packages-s390x
+.PHONY: dist-agent-packages
+dist-agent-packages: dist-agent-packages-amd64   \
+                     dist-agent-packages-arm64   \
+                     dist-agent-packages-ppc64le \
+                     dist-agent-packages-s390x
 
-.PHONY: dist-packages-amd64
-dist-packages-amd64: dist/grafana-agent-linux-amd64 dist/grafana-agentctl-linux-amd64
+.PHONY: dist-agent-packages-amd64
+dist-agent-packages-amd64: dist/grafana-agent-linux-amd64 dist/grafana-agentctl-linux-amd64
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
-	$(call generate_fpm,deb,amd64,amd64,$(PACKAGE_PREFIX).amd64.deb)
-	$(call generate_fpm,rpm,x86_64,amd64,$(PACKAGE_PREFIX).amd64.rpm)
+	$(call generate_agent_fpm,deb,amd64,amd64,$(AGENT_PACKAGE_PREFIX).amd64.deb)
+	$(call generate_agent_fpm,rpm,x86_64,amd64,$(AGENT_PACKAGE_PREFIX).amd64.rpm)
 endif
 
-.PHONY: dist-packages-arm64
-dist-packages-arm64: dist/grafana-agent-linux-arm64 dist/grafana-agentctl-linux-arm64
+.PHONY: dist-agent-packages-arm64
+dist-agent-packages-arm64: dist/grafana-agent-linux-arm64 dist/grafana-agentctl-linux-arm64
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
-	$(call generate_fpm,deb,arm64,arm64,$(PACKAGE_PREFIX).arm64.deb)
-	$(call generate_fpm,rpm,aarch64,arm64,$(PACKAGE_PREFIX).arm64.rpm)
+	$(call generate_agent_fpm,deb,arm64,arm64,$(AGENT_PACKAGE_PREFIX).arm64.deb)
+	$(call generate_agent_fpm,rpm,aarch64,arm64,$(AGENT_PACKAGE_PREFIX).arm64.rpm)
 endif
 
-.PHONY: dist-packages-ppc64le
-dist-packages-ppc64le: dist/grafana-agent-linux-ppc64le dist/grafana-agentctl-linux-ppc64le
+.PHONY: dist-agent-packages-ppc64le
+dist-agent-packages-ppc64le: dist/grafana-agent-linux-ppc64le dist/grafana-agentctl-linux-ppc64le
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
-	$(call generate_fpm,deb,ppc64el,ppc64le,$(PACKAGE_PREFIX).ppc64el.deb)
-	$(call generate_fpm,rpm,ppc64le,ppc64le,$(PACKAGE_PREFIX).ppc64le.rpm)
+	$(call generate_agent_fpm,deb,ppc64el,ppc64le,$(AGENT_PACKAGE_PREFIX).ppc64el.deb)
+	$(call generate_agent_fpm,rpm,ppc64le,ppc64le,$(AGENT_PACKAGE_PREFIX).ppc64le.rpm)
 endif
 
-.PHONY: dist-packages-s390x
-dist-packages-s390x: dist/grafana-agent-linux-s390x dist/grafana-agentctl-linux-s390x
+.PHONY: dist-agent-packages-s390x
+dist-agent-packages-s390x: dist/grafana-agent-linux-s390x dist/grafana-agentctl-linux-s390x
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
-	$(call generate_fpm,deb,s390x,s390x,$(PACKAGE_PREFIX).s390x.deb)
-	$(call generate_fpm,rpm,s390x,s390x,$(PACKAGE_PREFIX).s390x.rpm)
+	$(call generate_agent_fpm,deb,s390x,s390x,$(AGENT_PACKAGE_PREFIX).s390x.deb)
+	$(call generate_agent_fpm,rpm,s390x,s390x,$(AGENT_PACKAGE_PREFIX).s390x.rpm)
+endif
+
+#
+# DEB and RPM grafana-agent-flow packages.
+#
+
+FLOW_ENVIRONMENT_FILE_rpm := /etc/sysconfig/grafana-agent-flow
+FLOW_ENVIRONMENT_FILE_deb := /etc/default/grafana-agent-flow
+
+# generate_flow_fpm(deb|rpm, package arch, agent arch, output file)
+define generate_flow_fpm =
+	fpm -s dir -v $(FLOW_PACKAGE_VERSION) -a $(2) \
+		-n grafana-agent-flow --iteration $(FLOW_PACKAGE_RELEASE) -f \
+		--log error \
+		--license "Apache 2.0" \
+		--vendor "Grafana Labs" \
+		--url "https://github.com/grafana/agent" \
+		-t $(1) \
+		--after-install packaging/grafana-agent-flow/$(1)/control/postinst \
+		--before-remove packaging/grafana-agent-flow/$(1)/control/prerm \
+		--config-files /etc/grafana-agent-flow.river \
+		--config-files $(FLOW_ENVIRONMENT_FILE_$(1)) \
+		--rpm-rpmbuild-define "_build_id_links none" \
+		--package $(4) \
+			dist.temp/grafana-agent-flow-linux-$(3)=/usr/bin/grafana-agent-flow \
+			packaging/grafana-agent-flow/grafana-agent-flow.river=/etc/grafana-agent-flow.river \
+			packaging/grafana-agent-flow/environment-file=$(FLOW_ENVIRONMENT_FILE_$(1)) \
+			packaging/grafana-agent-flow/$(1)/grafana-agent-flow.service=/usr/lib/systemd/system/grafana-agent-flow.service
+endef
+
+FLOW_PACKAGE_VERSION := $(patsubst v%,%,$(VERSION))
+FLOW_PACKAGE_RELEASE := 1
+FLOW_PACKAGE_PREFIX  := dist/grafana-agent-flow-$(AGENT_PACKAGE_VERSION)-$(AGENT_PACKAGE_RELEASE)
+
+.PHONY: dist-agent-flow-packages
+dist-agent-flow-packages: dist-agent-flow-packages-amd64   \
+                          dist-agent-flow-packages-arm64   \
+                          dist-agent-flow-packages-ppc64le \
+                          dist-agent-flow-packages-s390x
+
+.PHONY: dist-agent-flow-packages-amd64
+dist-agent-flow-packages-amd64: dist.temp/grafana-agent-flow-linux-amd64
+ifeq ($(USE_CONTAINER),1)
+	$(RERUN_IN_CONTAINER)
+else
+	$(call generate_flow_fpm,deb,amd64,amd64,$(FLOW_PACKAGE_PREFIX).amd64.deb)
+	$(call generate_flow_fpm,rpm,x86_64,amd64,$(FLOW_PACKAGE_PREFIX).amd64.rpm)
+endif
+
+.PHONY: dist-agent-flow-packages-arm64
+dist-agent-flow-packages-arm64: dist.temp/grafana-agent-flow-linux-arm64
+ifeq ($(USE_CONTAINER),1)
+	$(RERUN_IN_CONTAINER)
+else
+	$(call generate_flow_fpm,deb,arm64,arm64,$(FLOW_PACKAGE_PREFIX).arm64.deb)
+	$(call generate_flow_fpm,rpm,aarch64,arm64,$(FLOW_PACKAGE_PREFIX).arm64.rpm)
+endif
+
+.PHONY: dist-agent-flow-packages-ppc64le
+dist-agent-flow-packages-ppc64le: dist.temp/grafana-agent-flow-linux-ppc64le
+ifeq ($(USE_CONTAINER),1)
+	$(RERUN_IN_CONTAINER)
+else
+	$(call generate_flow_fpm,deb,ppc64el,ppc64le,$(FLOW_PACKAGE_PREFIX).ppc64el.deb)
+	$(call generate_flow_fpm,rpm,ppc64le,ppc64le,$(FLOW_PACKAGE_PREFIX).ppc64le.rpm)
+endif
+
+.PHONY: dist-agent-flow-packages-s390x
+dist-agent-flow-packages-s390x: dist.temp/grafana-agent-flow-linux-s390x
+ifeq ($(USE_CONTAINER),1)
+	$(RERUN_IN_CONTAINER)
+else
+	$(call generate_flow_fpm,deb,s390x,s390x,$(FLOW_PACKAGE_PREFIX).s390x.deb)
+	$(call generate_flow_fpm,rpm,s390x,s390x,$(FLOW_PACKAGE_PREFIX).s390x.rpm)
 endif
 
 #
@@ -217,7 +355,15 @@ dist-agent-installer: dist/grafana-agent-windows-amd64.exe
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
-	cp ./dist/grafana-agent-windows-amd64.exe ./packaging/windows
-	cp LICENSE ./packaging/windows
-	makensis -V4 -DVERSION=$(VERSION) -DOUT="../../dist/grafana-agent-installer.exe" ./packaging/windows/install_script.nsis
+	cp ./dist/grafana-agent-windows-amd64.exe ./packaging/grafana-agent/windows
+	cp LICENSE ./packaging/grafana-agent/windows
+	makensis -V4 -DVERSION=$(VERSION) -DOUT="../../../dist/grafana-agent-installer.exe" ./packaging/grafana-agent/windows/install_script.nsis
+endif
+
+.PHONY: dist-agent-flow-installer
+dist-agent-flow-installer: dist.temp/grafana-agent-flow-windows-amd64.exe dist.temp/grafana-agent-service-windows-amd64.exe
+ifeq ($(USE_CONTAINER),1)
+	$(RERUN_IN_CONTAINER)
+else
+	makensis -V4 -DVERSION=$(VERSION) -DOUT="../../../dist/grafana-agent-flow-installer.exe" ./packaging/grafana-agent-flow/windows/install_script.nsis
 endif

@@ -128,10 +128,10 @@ metrics fails.
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`capacity` | `number` | Number of samples to buffer per shard. | `2500` | no
+`capacity` | `number` | Number of samples to buffer per shard. | `10000` | no
 `min_shards` | `number` | Minimum amount of concurrent shards sending samples to the endpoint. | `1` | no
-`max_shards` | `number` | Maximum number of concurrent shards sending samples to the endpoint. | `200` | no
-`max_samples_per_send` | `number` | Maximum number of samples per send. | `500` | no
+`max_shards` | `number` | Maximum number of concurrent shards sending samples to the endpoint. | `50` | no
+`max_samples_per_send` | `number` | Maximum number of samples per send. | `2000` | no
 `batch_send_deadline` | `duration` | Maximum time samples will wait in the buffer before sending. | `"5s"` | no
 `min_backoff` | `duration` | Initial retry delay. The backoff time gets doubled for each retry. | `"30ms"` | no
 `max_backoff` | `duration` | Maximum retry delay. | `"5s"` | no
@@ -168,7 +168,7 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `send` | `bool` | Controls whether metric metadata is sent to the endpoint. | `true` | no
 `send_interval` | `duration` | How frequently metric metadata is sent to the endpoint. | `"1m"` | no
-`max_samples_per_send` | `number` | Maximum number of metadata samples to send to the endpoint at once. | `500` | no
+`max_samples_per_send` | `number` | Maximum number of metadata samples to send to the endpoint at once. | `2000` | no
 
 ### wal block
 

@@ -6,6 +6,7 @@ weight: 200
 ---
 
 # Syntax
+
 The River syntax is designed to be easy to read and write. Essentially, there
 are just two high-level elements to it: _Attributes_ and _Blocks_.
 
@@ -15,16 +16,20 @@ file is not important; the language will consider all direct and indirect
 dependencies between elements to determine their relationships.
 
 ## Comments
+
 River configuration files support single-line `//` as well as block `/* */`
 comments.
 
 ## Identifiers
+
 River considers an identifier as valid if it consists of one or more UTF-8
-letters, digits or underscores, but doesn't start with a digit.
+letters (A through Z, both upper- and lower-case), digits or underscores, but
+doesn't start with a digit.
 
 ## Attributes and Blocks
 
 ### Attributes
+
 _Attributes_ are used to configure individual settings. They always take the
 form of `ATTRIBUTE_NAME = ATTRIBUTE_VALUE`. They can appear either as
 top-level elements or nested within blocks.
@@ -43,6 +48,7 @@ boolean, number) or an [_expression_]({{< relref "./expressions/_index.md" >}})
 to represent or compute more complex attribute values.
 
 ### Blocks
+
 _Blocks_ are used to configure the Agent behavior as well as Flow components by
 grouping any number of attributes or nested blocks using curly braces.
 Blocks have a _name_, an optional _label_ and a body that contains any number
@@ -97,8 +103,10 @@ local.file "token" {
 ```
 
 ## Terminators
+
 All block and attribute definitions are followed by a newline, which River
 calls a _terminator_, as it terminates the current statement.
+
 A newline is treated as terminator when it follows any expression, `]`,
 `)` or `}`. Other newlines are ignored by River and and a user can enter as many
 newlines as they want.

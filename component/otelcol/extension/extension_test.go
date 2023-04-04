@@ -82,9 +82,9 @@ type fakeExtensionArgs struct {
 
 var _ extension.Arguments = fakeExtensionArgs{}
 
-func (fa fakeExtensionArgs) Convert() otelconfig.Extension {
+func (fa fakeExtensionArgs) Convert() (otelconfig.Extension, error) {
 	settings := otelconfig.NewExtensionSettings(otelconfig.NewComponentID("testcomponent"))
-	return &settings
+	return &settings, nil
 }
 
 func (fa fakeExtensionArgs) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
