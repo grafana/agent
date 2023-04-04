@@ -21,8 +21,11 @@ Main (unreleased)
 
 - Support for 32-bit ARM builds is temporarily removed. We are aiming to bring
   back support for these builds prior to publishing v0.33.0. (@rfratto)
-- Agent Management: Agent now makes use of the v2 agent API. The config field
-  `api_url` in the `agent_management` block should be updated accordingly. (@jcreixell)
+
+- Agent Management: `agent_management.api_url` config field has been replaced by
+`agent_management.host`. The API path and version is now defined by the Agent. (@jcreixell)
+
+- Agent Management: `agent_management.protocol` config field now allows defining "http" and "https" explicitly. Previously, "http" was previously used for both, with the actual protocol used inferred from the api url, which led to confusion. When upgrading, make sure to set to "https" when replacing `api_url` with `host`. (@jcreixell)
 
 ### Features
 
