@@ -725,8 +725,9 @@ github.com/aws/aws-sdk-go v1.40.34/go.mod h1:585smgzpB/KqRA+K3y/NL/oYRqQvpNJYvLm
 github.com/aws/aws-sdk-go v1.40.45/go.mod h1:585smgzpB/KqRA+K3y/NL/oYRqQvpNJYvLm+LY1U59Q=
 github.com/aws/aws-sdk-go v1.42.8/go.mod h1:585smgzpB/KqRA+K3y/NL/oYRqQvpNJYvLm+LY1U59Q=
 github.com/aws/aws-sdk-go v1.44.156/go.mod h1:aVsgQcEevwlmQ7qHE9I3h+dtQgpqhFB+i8Phjh7fkwI=
-github.com/aws/aws-sdk-go v1.44.187 h1:D5CsRomPnlwDHJCanL2mtaLIcbhjiWxNh5j8zvaWdJA=
 github.com/aws/aws-sdk-go v1.44.187/go.mod h1:aVsgQcEevwlmQ7qHE9I3h+dtQgpqhFB+i8Phjh7fkwI=
+github.com/aws/aws-sdk-go v1.44.235 h1:5MS1ZW1Pr27mmHFqqjuXYwGMlNTW/g6DqU5ekamPMeU=
+github.com/aws/aws-sdk-go v1.44.235/go.mod h1:aVsgQcEevwlmQ7qHE9I3h+dtQgpqhFB+i8Phjh7fkwI=
 github.com/aws/aws-sdk-go-v2 v0.18.0/go.mod h1:JWVYvqSMppoMJC0x5wdwiImzgXTI9FuZwxzkQq9wy+g=
 github.com/aws/aws-sdk-go-v2 v1.7.0/go.mod h1:tb9wi5s61kTDA5qCkcDbt3KRVV74GGslQkl/DRdX/P4=
 github.com/aws/aws-sdk-go-v2 v1.9.0/go.mod h1:cK/D0BBs0b/oWPIcX/Z/obahJK1TT7IPVjy53i/mX/4=
@@ -1863,10 +1864,6 @@ github.com/grafana/snmp_exporter v0.20.1-0.20220405135227-49087c510bb1 h1:NrBQ7O
 github.com/grafana/snmp_exporter v0.20.1-0.20220405135227-49087c510bb1/go.mod h1:tN0QNzW5uuq81pX41VmfWI+/lfeEuYYaQ6y4kCNPhPA=
 github.com/grafana/snowflake-prometheus-exporter v0.0.0-20221213150626-862cad8e9538 h1:tkT0yha3JzB5S5VNjfY4lT0cJAe20pU8XGt3Nuq73rM=
 github.com/grafana/snowflake-prometheus-exporter v0.0.0-20221213150626-862cad8e9538/go.mod h1:VxVydRyq8f6w1qmX/5MSYIdSbgujre8rdFRLgU6u/RI=
-github.com/grafana/statsd_exporter v0.18.1-0.20211118164740-8e806158da0b h1:eFIcZ12/3lY1Ot3PJswIhfKTOQTAZzYA1eN+XR8Ijho=
-github.com/grafana/statsd_exporter v0.18.1-0.20211118164740-8e806158da0b/go.mod h1:N4Z1+iSqc9rnxlT1N8Qn3l65Vzb5t4Uq0jpg8nxyhio=
-github.com/grafana/tail v0.0.0-20220426200921-98e8eb28ea4c h1:qIsCzNln5YzuXfXbJgXhpfM+4gY7qi3mED3eYQS4Fls=
-github.com/grafana/tail v0.0.0-20220426200921-98e8eb28ea4c/go.mod h1:GIMXMPB/lRAllP5rVDvcGif87ryO2hgD7tCtHMdHrho=
 github.com/grafana/tail v0.0.0-20230328181249-aa6682d7843a h1:ypBalFlWhbqP+60je3ZRse1I0iRB2fwkvGsZW7j8i7M=
 github.com/grafana/tail v0.0.0-20230328181249-aa6682d7843a/go.mod h1:7t5XR+2IA8P2qggOAHTj/GCZfoLBle3OvNSYh1VkRBU=
 github.com/grafana/vmware_exporter v0.0.4-beta h1:Tb8Edm/wDYh0Lvhm38HLNTlkflUrlPGB+jD+/hW4xHI=
@@ -2585,8 +2582,6 @@ github.com/olekukonko/tablewriter v0.0.1/go.mod h1:vsDQFd/mU46D+Z4whnwzcISnGGzXW
 github.com/olekukonko/tablewriter v0.0.2/go.mod h1:rSAaSIOAGT9odnlyGlUfAJaoc5w2fSBUmeGDbRWPxyQ=
 github.com/olekukonko/tablewriter v0.0.5 h1:P2Ga83D34wi1o9J6Wh1mRuqd4mF/x/lgBS7N7AbDhec=
 github.com/olekukonko/tablewriter v0.0.5/go.mod h1:hPp6KlRPjbx+hW8ykQs1w3UBbZlj6HuIJcUGPhkA7kY=
-github.com/oliver006/redis_exporter v1.48.0 h1:mpE6AyD2bG9I1/4hJLQZySanwFA6FyKb7Vwn83aukD8=
-github.com/oliver006/redis_exporter v1.48.0/go.mod h1:O7UOQ4okTayrwJ07AZO6/qz0go+RBRu+Y9EgApY9hj8=
 github.com/oliver006/redis_exporter v1.49.0 h1:ks5t4rYvauBqJpxzPhbDwzOIlUSmYznCEaU2191x3TE=
 github.com/oliver006/redis_exporter v1.49.0/go.mod h1:O7UOQ4okTayrwJ07AZO6/qz0go+RBRu+Y9EgApY9hj8=
 github.com/onsi/ginkgo v0.0.0-20151202141238-7f8ab55aaf3b/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
