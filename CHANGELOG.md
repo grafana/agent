@@ -60,7 +60,7 @@ Main (unreleased)
 
 - Operator: Transparently compress agent configs to stay under size limitations. (@captncraig)
 
-- Update Redis Exporter Dependency to v1.48.0. (@spartan0x117)
+- Update Redis Exporter Dependency to v1.49.0. (@spartan0x117)
 
 - Update Loki dependency to the k142 branch. (@rfratto)
 
