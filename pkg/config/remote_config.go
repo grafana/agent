@@ -62,7 +62,7 @@ type httpProvider struct {
 	httpClient *http.Client
 }
 
-// newHTTPProvider constructs an new httpProvider
+// newHTTPProvider constructs a new httpProvider
 func newHTTPProvider(opts *remoteOpts) (*httpProvider, error) {
 	httpClientConfig := config.HTTPClientConfig{}
 	if opts.HTTPClientConfig != nil {

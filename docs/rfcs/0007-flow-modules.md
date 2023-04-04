@@ -129,7 +129,7 @@ prometheus.scrape "scraper" {
 
 Add the ability to load `modules` as subgraphs to the primary `graph`. Modules may call other modules within a reasonable stack size depth. Modules are represented as a river string that is interpreted with a defined set of arguments and exports.
 
-The initial component will be `module.string` that will load a single module. Internally these modules will be namespaced so they cannot affect children or parent graphs except via arguments and exports.
+The initial component will be `module.string` that will load a single module. Internally these modules will be namespaced, so they cannot affect children or parent graphs except via arguments and exports.
 
 Modules will have access to any standard function and any other component exempting singletons. Internally each component in the module will have an `id` that is prepended with the parent's `id` for identification purposes outside of the module. Within the module a component can reference another sibling component normally. There are no known limits on the datatype that a module can use as an argument or export.
 
@@ -229,4 +229,3 @@ The following fields are exported and can be referenced by other components:
 Name | Type | Description
 ---- | ---- | -----------
 `exports` | `map(string)` | The set of exports where the key is the name of an export and the value is it's value
-

@@ -43,7 +43,7 @@ func (s Secret) ConvertInto(dst interface{}) error {
 }
 
 // ConvertFrom converts the src value and stores it into the Secret s.
-// OptionalSecrets and strings can be converted into a Secret. In other casees,
+// OptionalSecrets and strings can be converted into a Secret. In other cases,
 // this method will return river.ErrNoConversion.
 func (s *Secret) ConvertFrom(src interface{}) error {
 	switch src := src.(type) {

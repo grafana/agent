@@ -13,7 +13,7 @@ import (
 
 // Config configures behavior of the printer.
 type Config struct {
-	Indent int // Identation to apply to all emitted code. Default 0.
+	Indent int // Indentation to apply to all emitted code. Default 0.
 }
 
 // Fprint pretty-prints the specified node to w. The Node type must be an

@@ -4,7 +4,7 @@ draft: "True"
 
 <p align="center"><img src="assets/logo_and_name.png" alt="Grafana Agent logo"></p>
 
-Grafana Agent is an telemetry collector for sending metrics, logs,
+Grafana Agent is a telemetry collector for sending metrics, logs,
 and trace data to the opinionated Grafana observability stack. It works best
 with:
 

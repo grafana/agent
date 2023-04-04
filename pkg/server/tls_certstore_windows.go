@@ -84,7 +84,7 @@ func (l *tlsListener) applyWindowsCertificateStore(c TLSConfig) error {
 				Certificate: [][]byte{cn.serverCert.Raw},
 				PrivateKey:  cn.serverSigner,
 				Leaf:        cn.serverCert,
-				// These seem to the be safest to use, tested on Win10, Server 2016, 2019, 2022
+				// These seem to be the safest to use, tested on Win10, Server 2016, 2019, 2022
 				SupportedSignatureAlgorithms: []tls.SignatureScheme{
 					tls.PKCS1WithSHA512,
 					tls.PKCS1WithSHA384,

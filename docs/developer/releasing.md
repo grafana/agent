@@ -90,7 +90,7 @@ For a **new release candidate**, the release shepherd will:
 
 6. [Create a tag](#create-a-tag).
 
-7. [Publish the release candidate on Github](#publishing-the-release)
+7. [Publish the release candidate on GitHub](#publishing-the-release)
 
 8. Announce the release candidate on the community Slack channel.
 
@@ -126,7 +126,7 @@ creating a **stable release**:
     2. The "[latest](https://grafana.com/docs/agent/latest/)" one should be identical to the latest version.
     3. Check the "Upgrade guide" to see if it includes the latest version.
 
-6. [Publish the release on Github](#publishing-the-release)
+6. [Publish the release on GitHub](#publishing-the-release)
 
 7. [Update Agent Operator Helm chart version](#update-agent-operator-helm-chart-version)
 

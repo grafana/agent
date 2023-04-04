@@ -1,4 +1,4 @@
-// Comand grafana-agent-crow is a correctness checker tool that validates that
+// Command grafana-agent-crow is a correctness checker tool that validates that
 // scraped metrics are delivered to a remote_write endpoint. Inspired by Loki
 // Canary and Cortex test-exporter.
 package main

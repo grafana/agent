@@ -39,7 +39,7 @@ type GroupManager struct {
 
 // groupedConfigs holds a set of grouped configs, keyed by the config name.
 // They are stored in a map rather than a slice to make overriding an existing
-// config within the group less error prone.
+// config within the group less error-prone.
 type groupedConfigs map[string]Config
 
 // Copy returns a shallow copy of the groupedConfigs.
@@ -331,7 +331,7 @@ func groupConfigs(groupName string, grouped groupedConfigs) (Config, error) {
 	// If the grouped configs are coming from the scraping service, defaults will have
 	// been applied and the remote names will be prefixed with the old instance config name.
 	for _, rwc := range combined.RemoteWrite {
-		// Blank out the existing name before getting the hash so it is doesn't take into
+		// Blank out the existing name before getting the hash so it doesn't take into
 		// account any existing name.
 		rwc.Name = ""
 

@@ -108,7 +108,7 @@ func (a *interceptappender) Commit() error {
 	return a.child.Commit()
 }
 
-// Rollback satisifies the Appender interface.
+// Rollback satisfies the Appender interface.
 func (a *interceptappender) Rollback() error {
 	if a.child == nil {
 		return nil
@@ -133,7 +133,7 @@ func (a *interceptappender) AppendExemplar(
 	return a.child.AppendExemplar(ref, l, e)
 }
 
-// UpdateMetadata satisifies the Appender interface.
+// UpdateMetadata satisfies the Appender interface.
 func (a *interceptappender) UpdateMetadata(
 	ref storage.SeriesRef,
 	l labels.Labels,

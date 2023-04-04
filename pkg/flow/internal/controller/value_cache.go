@@ -21,7 +21,7 @@ type valueCache struct {
 	moduleChangedIndex int                    // Everytime a change occurs this is incremented
 }
 
-// newValueCache cretes a new ValueCache.
+// newValueCache creates a new ValueCache.
 func newValueCache() *valueCache {
 	return &valueCache{
 		components:    make(map[string]ComponentID),
@@ -109,7 +109,7 @@ func (vc *valueCache) ExportChangeIndex() int {
 	return vc.moduleChangedIndex
 }
 
-// SyncIDs will removed any cached values for any Component ID which is not in
+// SyncIDs will remove any cached values for any Component ID which is not in
 // ids. SyncIDs should be called with the current set of components after the
 // graph is updated.
 func (vc *valueCache) SyncIDs(ids []ComponentID) {

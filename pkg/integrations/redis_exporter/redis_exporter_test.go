@@ -99,7 +99,7 @@ func TestRedisCases(t *testing.T) {
 				return c
 			})(),
 		},
-		// Test exporter construction fails when password file is defined and doesnt
+		// Test exporter construction fails when password file is defined and doesn't
 		// exist
 		{
 			name: "invalid password file",
