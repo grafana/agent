@@ -87,6 +87,13 @@ COPY --from=helm     /usr/bin/helm                   /usr/bin/helm
 COPY --from=golang   /usr/local/go                   /usr/local/go
 COPY --from=golang   /go/bin                         /go/bin
 
+# Git tries to prevent misuse of repositories (CVE-2022-24765), but we don't
+# care about this for build containers, where it's expected that the repository
+# will be accessed by other users (the root user of the build container).
+#
+# Disable that safety check.
+RUN git config --global --add safe.directory \*
+
 # Set CC to viceroycc to ensure that the cross compilers are used for all C
 # compilation.
 ENV CC viceroycc

@@ -3,6 +3,7 @@ package logging
 import (
 	"fmt"
 	"io"
+	"reflect"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -18,6 +19,7 @@ type Sink struct {
 	parentComponentID string
 
 	logger *lazyLogger // Constructed logger to use.
+	opts   SinkOptions
 }
 
 // WriterSink forwards logs to the provided [io.Writer]. WriterSinks support
@@ -37,6 +39,7 @@ func WriterSink(w io.Writer, o SinkOptions) (*Sink, error) {
 		updatable: true,
 
 		logger: &lazyLogger{inner: l},
+		opts:   o,
 	}, nil
 }
 
@@ -60,7 +63,13 @@ func (s *Sink) Update(o SinkOptions) error {
 		return fmt.Errorf("logging options cannot be updated in this context")
 	}
 
-	l, err := writerSinkLogger(s.w, o)
+	// Nothing to do if the options didn't change
+	if reflect.DeepEqual(s.opts, o) {
+		return nil
+	}
+
+	s.opts = o
+	l, err := writerSinkLogger(s.w, s.opts)
 	if err != nil {
 		return err
 	}

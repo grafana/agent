@@ -15,6 +15,7 @@ Unreleased
 - Add support for adding Annotations to Service (@ofirshtrull)
 - Add `agent.envFrom` value. (@carlosjgp)
 - Add `controller.hostNetwork` value. (@carlosjgp)
+- Add `controller.dnsPolicy` value. (@carlosjgp)
 
 ### Bugfixes
 

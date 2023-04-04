@@ -179,6 +179,20 @@ GO111MODULE=on go mod tidy
 You have to commit the changes to `go.mod` and `go.sum` before submitting the
 pull request.
 
+### Using forks
+
+Using a fork to pull in custom changes must always be temporary.
+
+PRs which add `replace` directives in go.mod to change a module to point to a
+fork will only be accepted once an upstream PR is opened to officially move the
+changes to the official module.
+
+Contributors are expected to work with upstream to make their changes
+acceptable, and remove the `replace` directive as soon as possible.
+
+If upstream is unresponsive, consider choosing a different dependency or making
+a hard fork (i.e., creating a new Go module with the same source).
+
 [new-issue]: https://github.com/grafana/agent/issues/new
 [RFC]: ../rfcs/0001-designing-in-the-open.md
 [code-review-comments]: https://code.google.com/p/go-wiki/wiki/CodeReviewComments

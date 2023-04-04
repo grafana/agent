@@ -46,9 +46,20 @@ Name                     | Type                   | Description          | Defau
 
 `assignor` values can be either `"range"`, `"roundrobin"`, or `"sticky"`.
 
+Labels from the `labels` argument are applied to every message that the component reads.
+
 The `relabel_rules` field can make use of the `rules` export value from a
 `loki.relabel` component to apply one or more relabeling rules to log entries
 before they're forwarded to the list of receivers in `forward_to`.
+
+In addition to custom labels, the following internal labels prefixed with `__` are available 
+but are discarded if not relabeled using the `relabel_rules` argument:
+
+- `__meta_kafka_message_key`
+- `__meta_kafka_topic`
+- `__meta_kafka_partition`
+- `__meta_kafka_member_id`
+- `__meta_kafka_group_id`
 
 ## Blocks
 
@@ -91,17 +102,6 @@ Name                     | Type          | Description | Default | Required
 `user`      | `string` | The user name to use for SASL authentication. | `""` | no
 `password`  | `string` | The password to use for SASL authentication. | `""` | no
 `use_tls`   | `bool`   | If true, SASL authentication is executed over TLS. | `false` | no
-
-## Labels
-
-The `labels` map is applied to every message that the component reads.
-
-The following internal labels prefixed with `__` are available but are discarded if not relabeled:
-- `__meta_kafka_message_key`
-- `__meta_kafka_topic`
-- `__meta_kafka_partition`
-- `__meta_kafka_member_id`
-- `__meta_kafka_group_id`
 
 ## Exported fields
 

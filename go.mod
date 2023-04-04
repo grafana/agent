@@ -83,7 +83,7 @@ require (
 	github.com/nerdswords/yet-another-cloudwatch-exporter v0.44.0-alpha
 	github.com/oklog/run v1.1.0
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/oliver006/redis_exporter v1.48.0
+	github.com/oliver006/redis_exporter v1.49.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/jaegerexporter v0.63.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.63.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter v0.63.0
@@ -599,6 +599,19 @@ require (
 )
 
 require github.com/efficientgo/tools/core v0.0.0-20220817170617-6c25e3b627dd // indirect
+
+// NOTE: replace directives below must always be *temporary*.
+//
+// Adding a replace directive to change a module to a fork of a module will
+// only be accepted when a PR upstream has been opened to accept the new
+// change.
+//
+// Contributors are expected to work with upstream to make their changes
+// acceptable, and remove the `replace` directive as soon as possible.
+//
+// If upstream is unresponsive, you should consider making a hard fork
+// (i.e., creating a new Go module with the same source) or picking a different
+// dependency.
 
 // Replace directives from Prometheus
 replace (
