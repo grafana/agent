@@ -65,7 +65,10 @@ func getDefault() Arguments {
 func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	*a = getDefault()
 	type arguments Arguments
-	return f((*arguments)(a))
+	if err := f((*arguments)(a)); err != nil {
+		return err
+	}
+	return a.validateAssignor()
 }
 
 // New creates a new loki.source.azure_event_hubs component.
@@ -207,4 +210,14 @@ func (a *Arguments) Convert() (kt.Config, error) {
 		return kt.Config{}, fmt.Errorf("authentication mechanism %s is unsupported", a.Authentication.Mechanism)
 	}
 	return cfg, nil
+}
+
+func (a *Arguments) validateAssignor() error {
+	validAssignors := []string{sarama.StickyBalanceStrategyName, sarama.RoundRobinBalanceStrategyName, sarama.RangeBalanceStrategyName}
+	for _, validAssignor := range validAssignors {
+		if a.Assignor == validAssignor {
+			return nil
+		}
+	}
+	return fmt.Errorf("assignor value %s is invalid, must be one of: %v", a.Assignor, validAssignors)
 }
