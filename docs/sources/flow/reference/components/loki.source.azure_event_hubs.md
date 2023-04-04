@@ -49,7 +49,7 @@ loki.source.azure_event_hubs "LABEL" {
  `relabel_rules`             | `RelabelRules`       | Relabeling rules to apply on log entries.                                                                                                                               | `{}`                             | no       
 
 The `fully_qualified_namespace` argument must refer to a full `HOST:PORT` that points to your event hub, such as `NAMESPACE.servicebus.windows.net:9093`.
-`assignor` values can be either `"range"`, `"roundrobin"`, or `"sticky"`.
+The `assignor` argument must be set to one of `"range"`, `"roundrobin"`, or `"sticky"`.
 
 The `relabel_rules` field can make use of the `rules` export value from a
 `loki.relabel` component to apply one or more relabeling rules to log entries
