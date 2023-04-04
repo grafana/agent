@@ -4,7 +4,6 @@ import (
 	"context"
 	"io"
 	"os/exec"
-	"time"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -14,9 +13,6 @@ import (
 type serviceManager struct {
 	log log.Logger
 	cfg serviceManagerConfig
-
-	minRestartBackoff time.Duration
-	maxRestartBackoff time.Duration
 }
 
 // serviceManagerConfig configures a service.
@@ -51,66 +47,33 @@ func newServiceManager(l log.Logger, cfg serviceManagerConfig) *serviceManager {
 	return &serviceManager{
 		log: l,
 		cfg: cfg,
-
-		minRestartBackoff: time.Second,
-		maxRestartBackoff: time.Minute,
 	}
 }
 
 // Run starts the serviceManager. The binary associated with the serviceManager
-// will be run until the provided context is canceled. The binary will be
-// restarted if it exits before the provided context is canceled.
+// will be run until the provided context is canceled or the binary exits.
 //
 // Intermediate restarts will increase with an exponential backoff, which
 // resets if the binary has been running for longer than the maximum
 // exponential backoff period.
 func (svc *serviceManager) Run(ctx context.Context) {
-	var (
-		restartBackoff = svc.minRestartBackoff
-		lastRestart    = time.Now()
-	)
+	cmd := svc.buildCommand(ctx)
 
-	for {
-		cmd := svc.buildCommand(ctx)
+	level.Info(svc.log).Log("msg", "starting program", "command", cmd.String())
+	err := cmd.Run()
 
-		level.Info(svc.log).Log("msg", "starting program", "command", cmd.String())
-		err := cmd.Run()
+	// Handle the context being canceled before processing whether cmd.Run
+	// exited with an error.
+	if ctx.Err() != nil {
+		return
+	}
 
-		// Handle the context being canceled before processing whether cmd.Run
-		// exited with an error.
-		if ctx.Err() != nil {
-			return
-		}
+	exitCode := cmd.ProcessState.ExitCode()
 
-		exitCode := cmd.ProcessState.ExitCode()
-
-		if err != nil {
-			level.Error(svc.log).Log("msg", "service exited with error; re-starting after wait period", "err", err, "exit_code", exitCode)
-		} else {
-			level.Info(svc.log).Log("msg", "service exited; re-starting after wait period", "exit_code", exitCode)
-		}
-
-		// Reset the backoff period if the process has been alive for at least
-		// twice the maximumRestartBackoff period.
-		now := time.Now()
-		if now.Sub(lastRestart) > 2*svc.maxRestartBackoff {
-			restartBackoff = svc.minRestartBackoff
-		}
-
-		level.Info(svc.log).Log("msg", "waiting before next restart", "restart_wait", restartBackoff)
-
-		// Wait for the backoff period.
-		select {
-		case <-ctx.Done():
-			return
-		case <-time.After(restartBackoff):
-		}
-
-		// Increase the backoff period for the next iteration of the loop.
-		restartBackoff = restartBackoff * 2
-		if restartBackoff > svc.maxRestartBackoff {
-			restartBackoff = svc.maxRestartBackoff
-		}
+	if err != nil {
+		level.Error(svc.log).Log("msg", "service exited with error", "err", err, "exit_code", exitCode)
+	} else {
+		level.Info(svc.log).Log("msg", "service exited", "exit_code", exitCode)
 	}
 }
 

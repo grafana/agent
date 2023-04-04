@@ -11,7 +11,6 @@ import (
 	"runtime"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/flow/componenttest"
@@ -128,43 +127,6 @@ func Test_serviceManager(t *testing.T) {
 
 		util.Eventually(t, func(t require.TestingT) {
 			require.Equal(t, []byte("Hello, world!"), buf.Bytes())
-		})
-	})
-
-	t.Run("gets restarted", func(t *testing.T) {
-		listenHost := getListenHost(t)
-
-		mgr := newServiceManager(l, serviceManagerConfig{
-			Path:   serviceBinary,
-			Args:   []string{"-listen-addr", listenHost},
-			Stdout: log.NewStdlibAdapter(l),
-			Stderr: log.NewStdlibAdapter(l),
-		})
-
-		// Set an aggressive restart backoff so the test doesn't take too long to
-		// run.
-		mgr.minRestartBackoff = 10 * time.Millisecond
-		mgr.maxRestartBackoff = 500 * time.Millisecond
-
-		ctx, cancel := context.WithCancel(componenttest.TestContext(t))
-		defer cancel()
-		go mgr.Run(ctx)
-
-		// Terminate the service, which should cause the manager to restart it.
-		util.Eventually(t, func(t require.TestingT) {
-			_, err := makeServiceRequest(listenHost, "/shutdown", []byte("Hello, world!"))
-
-			if runtime.GOOS == goosWindows {
-				require.ErrorContains(t, err, "An existing connection was forcibly closed")
-			} else {
-				require.ErrorContains(t, err, "EOF")
-			}
-		})
-
-		util.Eventually(t, func(t require.TestingT) {
-			resp, err := makeServiceRequest(listenHost, "/echo/response", []byte("Hello, world!"))
-			require.NoError(t, err)
-			require.Equal(t, []byte("Hello, world!"), resp)
 		})
 	})
 }

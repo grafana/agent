@@ -47,11 +47,6 @@ func run() error {
 		_, _ = io.Copy(w, r.Body)
 	})
 
-	mux.HandleFunc("/shutdown", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		os.Exit(0)
-	})
-
 	srv := &http.Server{Handler: mux}
 	_ = srv.Serve(lis)
 	return nil
