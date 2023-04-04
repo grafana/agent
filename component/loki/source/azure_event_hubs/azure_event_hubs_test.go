@@ -32,8 +32,8 @@ func TestRiverConfigConnectionString(t *testing.T) {
 	forward_to                = []
 
 	authentication {
-		mechanism = "connection_string"
-        connection_string = "my-conn-string"
+		mechanism         = "connection_string"
+		connection_string = "my-conn-string"
 	}
 `
 
