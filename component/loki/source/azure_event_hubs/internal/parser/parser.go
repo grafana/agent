@@ -1,5 +1,9 @@
 package parser
 
+// This code is copied from Promtail. The parser package is used to
+// enable parsing entries from Azure Event Hubs  entries and forward them
+// to other loki components.
+
 import (
 	"bytes"
 	"encoding/json"
