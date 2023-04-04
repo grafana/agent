@@ -81,7 +81,6 @@ local windows_containers_jobs = std.map(function(container) (
         DOCKER_PASSWORD: { from_secret: 'DOCKER_PASSWORD' },
       },
       commands: [
-        'git config --global --add safe.directory C:/drone/src/',
         '& "C:/Program Files/git/bin/bash.exe" ./tools/ci/docker-containers-windows %s' % container,
       ],
     }],

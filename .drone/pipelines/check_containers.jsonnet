@@ -48,7 +48,6 @@ local windows_containers = [
         path: '//./pipe/docker_engine/',
       }],
       commands: [
-        'git config --global --add safe.directory C:/drone/src/',
         '& "C:/Program Files/git/bin/bash.exe" ./tools/ci/docker-containers-windows %s' % container.argument,
       ],
     }],
