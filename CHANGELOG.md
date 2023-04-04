@@ -112,6 +112,9 @@ Main (unreleased)
 - Change the Docker base image for Linux containers to `ubuntu:kinetic`.
   (@rfratto)
 
+- Update prometheus.remote_write defaults to match new prometheus
+  remote-write defaults. (@erikbaranowski)
+
 v0.32.1 (2023-03-06)
 --------------------
 
