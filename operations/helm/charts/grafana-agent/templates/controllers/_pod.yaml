@@ -22,7 +22,7 @@ spec:
   priorityClassName: {{ .Values.controller.priorityClassName }}
   {{- end }}
   {{- if .Values.controller.hostNetwork }}
-  hostNetwork:  {{ .Values.controller.hostNetwork }}
+  hostNetwork: {{ .Values.controller.hostNetwork }}
   {{- end }}
   dnsPolicy: {{ .Values.controller.dnsPolicy }}
   {{- with .Values.controller.affinity }}
