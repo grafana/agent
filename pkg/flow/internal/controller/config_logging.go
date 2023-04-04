@@ -11,7 +11,6 @@ import (
 )
 
 type LoggingConfigNode struct {
-	label         string
 	nodeID        string
 	componentName string
 	logSink       *logging.Sink // Sink used for Logging.
@@ -38,7 +37,6 @@ func NewLoggingConfigNode(block *ast.BlockStmt, globals ComponentGlobals, isInMo
 	}
 
 	return &LoggingConfigNode{
-		label:         block.Label,
 		nodeID:        BlockComponentID(block).String(),
 		componentName: block.GetBlockName(),
 		logSink:       globals.LogSink,
@@ -46,6 +44,19 @@ func NewLoggingConfigNode(block *ast.BlockStmt, globals ComponentGlobals, isInMo
 		block: block,
 		eval:  vm.New(block.Body),
 	}, diags
+}
+
+// NewDefaultLoggingConfigNode creates a new LoggingConfigNode with nil block and eval.
+// This will force evaluate to use the default logging options for this node.
+func NewDefaultLoggingConfigNode(globals ComponentGlobals) *LoggingConfigNode {
+	return &LoggingConfigNode{
+		nodeID:        loggingBlockID,
+		componentName: loggingBlockID,
+		logSink:       globals.LogSink,
+
+		block: nil,
+		eval:  nil,
+	}
 }
 
 // Evaluate implements BlockNode and updates the arguments for the managed config block
@@ -58,8 +69,10 @@ func (cn *LoggingConfigNode) Evaluate(scope *vm.Scope) error {
 	cn.mut.RLock()
 	defer cn.mut.RUnlock()
 	args := logging.DefaultSinkOptions
-	if err := cn.eval.Evaluate(scope, &args); err != nil {
-		return fmt.Errorf("decoding River: %w", err)
+	if cn.eval != nil {
+		if err := cn.eval.Evaluate(scope, &args); err != nil {
+			return fmt.Errorf("decoding River: %w", err)
+		}
 	}
 
 	if err := cn.logSink.Update(args); err != nil {
