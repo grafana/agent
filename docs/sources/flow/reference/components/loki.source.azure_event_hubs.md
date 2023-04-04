@@ -4,9 +4,8 @@ title: loki.source.azure_event_hubs
 
 # loki.source.azure_event_hubs
 
-The `azure_event_hubs` block configures how Grafana Agent receives Azure Event Hubs messages. Grafana Agent uses an
-Apache Kafka
-endpoint on Event Hubs to receive messages. For more information, see
+`loki.source.azure_event_hubs` receives Azure Event Hubs messages by making use of an Apache Kafka
+endpoint on Event Hubs. For more information, see
 the [Azure Event Hubs documentation](https://learn.microsoft.com/en-us/azure/event-hubs/azure-event-hubs-kafka-overview).
 
 To learn more about streaming Azure logs to an Azure Event Hubs, you can see
