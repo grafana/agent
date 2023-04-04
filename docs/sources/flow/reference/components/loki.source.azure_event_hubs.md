@@ -48,6 +48,7 @@ loki.source.azure_event_hubs "LABEL" {
  `disallow_custom_messages`  | `bool`               | Whether to ignore messages that don't match the [schema](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/resource-logs-schema) for Azure resource logs | `false`                          | no       
  `relabel_rules`             | `RelabelRules`       | Relabeling rules to apply on log entries.                                                                                                                               | `{}`                             | no       
 
+The `fully_qualified_namespace` argument must refer to a full `HOST:PORT` that points to your event hub, such as `NAMESPACE.servicebus.windows.net:9093`.
 `assignor` values can be either `"range"`, `"roundrobin"`, or `"sticky"`.
 
 The `relabel_rules` field can make use of the `rules` export value from a
