@@ -50,7 +50,7 @@ PACKAGE_SYSTEM=${PACKAGE_SYSTEM:=}
 #
 # Global constants.
 #
-RELEASE_VERSION="v0.32.0"
+RELEASE_VERSION="v0.32.1"
 
 # The DEB and RPM urls don't include the `v` version prefix in the file names,
 # so we trim it out using ${RELEASE_VERSION#v} below.

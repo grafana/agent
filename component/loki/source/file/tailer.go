@@ -1,7 +1,7 @@
 package file
 
 // This code is copied from Promtail. tailer implements the reader interface by
-// using the github.com/hpcloud/tail package to tail files.
+// using the github.com/grafana/tail package to tail files.
 
 import (
 	"fmt"
@@ -15,7 +15,7 @@ import (
 	"github.com/grafana/agent/component/common/loki/positions"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/grafana/loki/pkg/util"
-	"github.com/hpcloud/tail"
+	"github.com/grafana/tail"
 	"github.com/prometheus/common/model"
 	"go.uber.org/atomic"
 	"golang.org/x/text/encoding"

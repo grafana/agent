@@ -13,18 +13,21 @@ import (
 // The current state of valueCache can then be built into a *vm.Scope for other
 // components to be evaluated.
 type valueCache struct {
-	mut        sync.RWMutex
-	components map[string]ComponentID // NodeID -> ComponentID
-	args       map[string]interface{} // NodeID -> component arguments value
-	exports    map[string]interface{} // NodeID -> component exports value
+	mut                sync.RWMutex
+	components         map[string]ComponentID // NodeID -> ComponentID
+	args               map[string]interface{} // NodeID -> component arguments value
+	exports            map[string]interface{} // NodeID -> component exports value
+	moduleExports      map[string]any         // name -> value for the value of module exports
+	moduleChangedIndex int                    // Everytime a change occurs this is incremented
 }
 
 // newValueCache cretes a new ValueCache.
 func newValueCache() *valueCache {
 	return &valueCache{
-		components: make(map[string]ComponentID),
-		args:       make(map[string]interface{}),
-		exports:    make(map[string]interface{}),
+		components:    make(map[string]ComponentID),
+		args:          make(map[string]interface{}),
+		exports:       make(map[string]interface{}),
+		moduleExports: make(map[string]any),
 	}
 }
 
@@ -58,6 +61,52 @@ func (vc *valueCache) CacheExports(id ComponentID, exports component.Exports) {
 		exportsVal = exports
 	}
 	vc.exports[nodeID] = exportsVal
+}
+
+// CacheModuleExportValue saves the value to the map
+func (vc *valueCache) CacheModuleExportValue(name string, value any) {
+	vc.mut.Lock()
+	defer vc.mut.Unlock()
+
+	// Need to see if the module exports have changed.
+	v, found := vc.moduleExports[name]
+	if !found {
+		vc.moduleChangedIndex++
+	}
+	if v != value {
+		vc.moduleChangedIndex++
+	}
+
+	vc.moduleExports[name] = value
+}
+
+// CreateModuleExports creates a map for usage on OnExportsChanged
+func (vc *valueCache) CreateModuleExports() map[string]any {
+	vc.mut.RLock()
+	defer vc.mut.RUnlock()
+
+	exports := make(map[string]any)
+	for k, v := range vc.moduleExports {
+		exports[k] = v
+	}
+	return exports
+}
+
+// ClearModuleExports empties the map and notifies that the exports have changed.
+func (vc *valueCache) ClearModuleExports() {
+	vc.mut.Lock()
+	defer vc.mut.Unlock()
+
+	vc.moduleChangedIndex++
+	vc.moduleExports = make(map[string]any)
+}
+
+// ExportChangeIndex return the change index.
+func (vc *valueCache) ExportChangeIndex() int {
+	vc.mut.RLock()
+	defer vc.mut.RUnlock()
+
+	return vc.moduleChangedIndex
 }
 
 // SyncIDs will removed any cached values for any Component ID which is not in

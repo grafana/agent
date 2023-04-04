@@ -12,7 +12,41 @@ Unreleased
 
 ### Enhancements
 
+- Add support for adding Annotations to Service (@ofirshtrull)
+- Add `agent.envFrom` value. (@carlosjgp)
+- Add `controller.hostNetwork` value. (@carlosjgp)
+
+### Bugfixes
+
+- Fix issue where `controller.tolerations` setting was ignored. (@carlosjgp)
+- Fix YAML indentation of some resources. (@carlosjgp)
+
+0.10.0 (2023-03-09)
+-------------------
+
+### Enhancements
+
+- Add Horizontal Pod Autoscaling for controller type deployment. (@therealmanny)
+- Add affinity values. (@therealmanny)
+
+0.9.0 (2023-03-14)
+------------------
+
+### Enhancements
+
+- Add PodMonitors, ServiceMonitors, and Probes to the agent ClusterRole. (@captncraig)
+- Add podLabels values. (@therealmanny)
+
+
+0.8.1 (2023-03-06)
+------------------
+
+### Enhancements
+
+- Add hostPort specification to extraPorts and extraPort documentation. (@pnathan)
+- Selectively template ClusterIP. (@aglees)
 - Add priorityClassName value. (@aglees)
+- Update Grafana Agent version to v0.32.1. (@erikbaranowski)
 
 0.8.0 (2023-02-28)
 ------------------

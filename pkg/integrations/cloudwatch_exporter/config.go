@@ -37,9 +37,10 @@ func init() {
 
 // Config is the configuration for the CloudWatch metrics integration
 type Config struct {
-	STSRegion string          `yaml:"sts_region"`
-	Discovery DiscoveryConfig `yaml:"discovery"`
-	Static    []StaticJob     `yaml:"static"`
+	STSRegion    string          `yaml:"sts_region"`
+	FIPSDisabled bool            `yaml:"fips_disabled"`
+	Discovery    DiscoveryConfig `yaml:"discovery"`
+	Static       []StaticJob     `yaml:"static"`
 }
 
 // DiscoveryConfig configures scraping jobs that will auto-discover metrics dimensions for a given service.
@@ -113,11 +114,11 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 
 // NewIntegration creates a new integration from the config.
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
-	exporterConfig, err := ToYACEConfig(c)
+	exporterConfig, fipsEnabled, err := ToYACEConfig(c)
 	if err != nil {
 		return nil, fmt.Errorf("invalid cloudwatch exporter configuration: %w", err)
 	}
-	return newCloudwatchExporter(c.Name(), l, exporterConfig), nil
+	return newCloudwatchExporter(c.Name(), l, exporterConfig, fipsEnabled), nil
 }
 
 // getHash calculates the MD5 hash of the yaml representation of the config
@@ -132,7 +133,8 @@ func getHash(c *Config) (string, error) {
 
 // ToYACEConfig converts a Config into YACE's config model. Note that the conversion is not direct, some values
 // have been opinionated to simplify the config model the agent exposes for this integration.
-func ToYACEConfig(c *Config) (yaceConf.ScrapeConf, error) {
+// The returned boolean is whether or not AWS FIPS endpoints will be enable.
+func ToYACEConfig(c *Config) (yaceConf.ScrapeConf, bool, error) {
 	discoveryJobs := []*yaceConf.Job{}
 	for _, job := range c.Discovery.Jobs {
 		discoveryJobs = append(discoveryJobs, toYACEDiscoveryJob(job))
@@ -150,14 +152,18 @@ func ToYACEConfig(c *Config) (yaceConf.ScrapeConf, error) {
 		},
 		Static: staticJobs,
 	}
+
+	// yaceSess expects a default value of True
+	fipsEnabled := !c.FIPSDisabled
+
 	// Run the exporter's config validation. Between other things, it will check that the service for which a discovery
 	// job is instantiated, it's supported.
 	if err := conf.Validate(); err != nil {
-		return conf, err
+		return conf, fipsEnabled, err
 	}
 	patchYACEDefaults(&conf)
 
-	return conf, nil
+	return conf, fipsEnabled, nil
 }
 
 // patchYACEDefaults overrides some default values YACE applies after validation.

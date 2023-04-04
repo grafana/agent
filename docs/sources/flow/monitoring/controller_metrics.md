@@ -14,8 +14,9 @@ Metrics for the controller are exposed at the `/metrics` HTTP endpoint of the
 Grafana Agent HTTP server, which defaults to listening on
 `http://localhost:12345`.
 
-> The documentation for the [`agent run`][agent run] command describes how to
-> modify the address Grafana Agent listens on for HTTP traffic.
+> The documentation for the [`grafana-agent run`][grafana-agent run] command
+> describes how to modify the address Grafana Agent listens on for HTTP
+> traffic.
 
 The controller exposes the following metrics:
 
@@ -31,4 +32,4 @@ The controller exposes the following metrics:
   took.
 
 [component controller]: {{< relref "../concepts/component_controller.md" >}}
-[agent run]: {{< relref "../reference/cli/run.md" >}}
+[grafana-agent run]: {{< relref "../reference/cli/run.md" >}}

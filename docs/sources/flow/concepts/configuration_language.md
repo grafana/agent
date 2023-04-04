@@ -2,7 +2,7 @@
 aliases:
 - ../../concepts/configuration-language/
 title: Configuration language
-weight: 300
+weight: 400
 ---
 
 # Configuration language

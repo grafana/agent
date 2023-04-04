@@ -3,6 +3,7 @@ package parser
 
 import (
 	"github.com/grafana/agent/pkg/river/ast"
+	"github.com/grafana/agent/pkg/river/token"
 )
 
 // ParseFile parses an entire River configuration file. The data parameter
@@ -30,6 +31,11 @@ func ParseExpression(expr string) (ast.Expr, error) {
 	p := newParser("", []byte(expr))
 
 	e := p.ParseExpression()
+
+	// If the current token is not a TERMINATOR then the parsing did not complete
+	// in full and there are still parts of the string left unparsed.
+	p.expect(token.TERMINATOR)
+
 	if len(p.diags) > 0 {
 		return nil, p.diags
 	}

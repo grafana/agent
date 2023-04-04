@@ -56,10 +56,11 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 
 		var args zipkin.Arguments
 		require.NoError(t, river.Unmarshal([]byte(in), &args))
-		args.Convert()
-		otelArgs, err := (args.Convert()).(*zipkinreceiver.Config)
+		ext, err := args.Convert()
+		require.NoError(t, err)
+		otelArgs, ok := (ext).(*zipkinreceiver.Config)
 
-		require.True(t, err)
+		require.True(t, ok)
 
 		// Check the arguments
 		require.Equal(t, otelArgs.HTTPServerSettings.Endpoint, httpAddr)

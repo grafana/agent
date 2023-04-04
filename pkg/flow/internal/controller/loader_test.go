@@ -2,12 +2,13 @@ package controller_test
 
 import (
 	"errors"
+	"io"
 	"strings"
 	"testing"
 
-	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
+	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/parser"
@@ -35,14 +36,26 @@ func TestLoader(t *testing.T) {
 		}
 	`
 
+	testConfig := `
+		logging {
+			level = "debug"
+			format = "logfmt"
+		}
+		
+		tracing {
+			sampling_fraction = 1
+		}
+	`
+
 	// corresponds to testFile
 	testGraphDefinition := graphDefinition{
 		Nodes: []string{
-			"configNode", // The config node is always present
 			"testcomponents.tick.ticker",
 			"testcomponents.passthrough.static",
 			"testcomponents.passthrough.ticker",
 			"testcomponents.passthrough.forwarded",
+			"logging",
+			"tracing",
 		},
 		OutEdges: []edge{
 			{From: "testcomponents.passthrough.ticker", To: "testcomponents.tick.ticker"},
@@ -52,17 +65,18 @@ func TestLoader(t *testing.T) {
 
 	newGlobals := func() controller.ComponentGlobals {
 		return controller.ComponentGlobals{
-			Logger:          log.NewNopLogger(),
-			TraceProvider:   trace.NewNoopTracerProvider(),
-			DataPath:        t.TempDir(),
-			OnExportsChange: func(cn *controller.ComponentNode) { /* no-op */ },
-			Registerer:      prometheus.NewRegistry(),
+			LogSink:           noOpSink(),
+			Logger:            logging.New(nil),
+			TraceProvider:     trace.NewNoopTracerProvider(),
+			DataPath:          t.TempDir(),
+			OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
+			Registerer:        prometheus.NewRegistry(),
 		}
 	}
 
 	t.Run("New Graph", func(t *testing.T) {
 		l := controller.NewLoader(newGlobals())
-		diags := applyFromContent(t, l, []byte(testFile))
+		diags := applyFromContent(t, l, []byte(testFile), []byte(testConfig))
 		require.NoError(t, diags.ErrorOrNil())
 		requireGraph(t, l.Graph(), testGraphDefinition)
 	})
@@ -80,11 +94,11 @@ func TestLoader(t *testing.T) {
 			}
 		`
 		l := controller.NewLoader(newGlobals())
-		diags := applyFromContent(t, l, []byte(startFile))
+		diags := applyFromContent(t, l, []byte(startFile), []byte(testConfig))
 		origGraph := l.Graph()
 		require.NoError(t, diags.ErrorOrNil())
 
-		diags = applyFromContent(t, l, []byte(testFile))
+		diags = applyFromContent(t, l, []byte(testFile), []byte(testConfig))
 		require.NoError(t, diags.ErrorOrNil())
 		newGraph := l.Graph()
 
@@ -99,7 +113,7 @@ func TestLoader(t *testing.T) {
 			}
 		`
 		l := controller.NewLoader(newGlobals())
-		diags := applyFromContent(t, l, []byte(invalidFile))
+		diags := applyFromContent(t, l, []byte(invalidFile), nil)
 		require.ErrorContains(t, diags.ErrorOrNil(), `Unrecognized component name "doesnotexist`)
 	})
 
@@ -118,19 +132,12 @@ func TestLoader(t *testing.T) {
 			}
 		`
 		l := controller.NewLoader(newGlobals())
-		diags := applyFromContent(t, l, []byte(invalidFile))
+		diags := applyFromContent(t, l, []byte(invalidFile), nil)
 		require.Error(t, diags.ErrorOrNil())
 
 		requireGraph(t, l.Graph(), graphDefinition{
-			Nodes: []string{
-				"configNode", // The config node is always present
-				"testcomponents.tick.ticker",
-				"testcomponents.passthrough.valid",
-				"testcomponents.passthrough.invalid",
-			},
-			OutEdges: []edge{
-				{From: "testcomponents.passthrough.valid", To: "testcomponents.tick.ticker"},
-			},
+			Nodes:    nil,
+			OutEdges: nil,
 		})
 	})
 
@@ -153,7 +160,7 @@ func TestLoader(t *testing.T) {
 			}
 		`
 		l := controller.NewLoader(newGlobals())
-		diags := applyFromContent(t, l, []byte(invalidFile))
+		diags := applyFromContent(t, l, []byte(invalidFile), nil)
 		require.Error(t, diags.ErrorOrNil())
 	})
 
@@ -165,7 +172,7 @@ func TestLoader(t *testing.T) {
 			}
 		`
 		l := controller.NewLoader(newGlobals())
-		diags := applyFromContent(t, l, []byte(invalidFile))
+		diags := applyFromContent(t, l, []byte(invalidFile), nil)
 		require.ErrorContains(t, diags[0], `Component "testcomponents.tick" must have a label`)
 		require.ErrorContains(t, diags[1], `Component "testcomponents.singleton" does not support labels`)
 	})
@@ -193,31 +200,61 @@ func TestScopeWithFailingComponent(t *testing.T) {
 	`
 	newGlobals := func() controller.ComponentGlobals {
 		return controller.ComponentGlobals{
-			Logger:          log.NewNopLogger(),
-			TraceProvider:   trace.NewNoopTracerProvider(),
-			DataPath:        t.TempDir(),
-			OnExportsChange: func(cn *controller.ComponentNode) { /* no-op */ },
-			Registerer:      prometheus.NewRegistry(),
+			LogSink:           noOpSink(),
+			Logger:            logging.New(nil),
+			TraceProvider:     trace.NewNoopTracerProvider(),
+			DataPath:          t.TempDir(),
+			OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
+			Registerer:        prometheus.NewRegistry(),
 		}
 	}
 
 	l := controller.NewLoader(newGlobals())
-	diags := applyFromContent(t, l, []byte(testFile))
+	diags := applyFromContent(t, l, []byte(testFile), nil)
 	require.Error(t, diags.ErrorOrNil())
 	require.Len(t, diags, 1)
 	require.True(t, strings.Contains(diags.Error(), `unrecognized attribute name "frequenc"`))
 }
 
-func applyFromContent(t *testing.T, l *controller.Loader, bb []byte) diag.Diagnostics {
+func noOpSink() *logging.Sink {
+	s, _ := logging.WriterSink(io.Discard, logging.DefaultSinkOptions)
+	return s
+}
+
+func applyFromContent(t *testing.T, l *controller.Loader, componentBytes []byte, configBytes []byte) diag.Diagnostics {
 	t.Helper()
 
-	var diags diag.Diagnostics
+	var (
+		diags           diag.Diagnostics
+		componentBlocks []*ast.BlockStmt
+		configBlocks    []*ast.BlockStmt = nil
+	)
 
-	file, err := parser.ParseFile(t.Name(), bb)
+	componentBlocks, diags = fileToBlock(t, componentBytes)
+	if diags.HasErrors() {
+		return diags
+	}
+
+	if string(configBytes) != "" {
+		configBlocks, diags = fileToBlock(t, configBytes)
+		if diags.HasErrors() {
+			return diags
+		}
+	}
+
+	applyDiags := l.Apply(nil, componentBlocks, configBlocks)
+	diags = append(diags, applyDiags...)
+
+	return diags
+}
+
+func fileToBlock(t *testing.T, bytes []byte) ([]*ast.BlockStmt, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	file, err := parser.ParseFile(t.Name(), bytes)
 
 	var parseDiags diag.Diagnostics
 	if errors.As(err, &parseDiags); parseDiags.HasErrors() {
-		return parseDiags
+		return nil, parseDiags
 	}
 
 	var blocks []*ast.BlockStmt
@@ -234,14 +271,8 @@ func applyFromContent(t *testing.T, l *controller.Loader, bb []byte) diag.Diagno
 			})
 		}
 	}
-	if diags.HasErrors() {
-		return diags
-	}
 
-	applyDiags := l.Apply(nil, blocks, nil)
-	diags = append(diags, applyDiags...)
-
-	return diags
+	return blocks, diags
 }
 
 type graphDefinition struct {

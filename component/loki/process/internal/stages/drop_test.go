@@ -6,12 +6,11 @@ package stages
 
 import (
 	"fmt"
-	"io"
 	"testing"
 	"time"
 
 	"github.com/alecthomas/units"
-	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/assert"
@@ -277,7 +276,7 @@ func TestDropStage(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
-			logger, _ := logging.New(io.Discard, logging.DefaultOptions)
+			logger := util.TestFlowLogger(t)
 			m, err := newDropStage(logger, *tt.config, prometheus.DefaultRegisterer)
 			require.NoError(t, err)
 			out := processEntries(m, newEntry(tt.extracted, tt.labels, tt.entry, tt.t))
@@ -293,7 +292,7 @@ func TestDropStage(t *testing.T) {
 func TestDropPipeline(t *testing.T) {
 	registry := prometheus.NewRegistry()
 	plName := "test_drop_pipeline"
-	logger, _ := logging.New(io.Discard, logging.DefaultOptions)
+	logger := util.TestFlowLogger(t)
 	pl, err := NewPipeline(logger, loadConfig(testDropRiver), &plName, registry)
 	require.NoError(t, err)
 	out := processEntries(pl,

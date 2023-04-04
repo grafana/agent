@@ -9,9 +9,20 @@ internal API changes are not present.
 
 > **NOTE**: As of v0.32.0, builds for 32-bit ARMv6 currently don't support the
 > embedded Flow UI. The Flow UI will return to this target as soon as possible.
+>
+> **NOTE**: The main branch currently doesn't support any 32-bit ARM builds.
+> Support for these builds will return as soon as possible, ideally before
+> v0.33 is released.
 
 Main (unreleased)
 -----------------
+
+### Breaking changes
+
+- Support for 32-bit ARM builds is temporarily removed. We are aiming to bring
+  back support for these builds prior to publishing v0.33.0. (@rfratto)
+- Agent Management: Agent now makes use of the v2 agent API. The config field
+  `api_url` in the `agent_management` block should be updated accordingly. (@jcreixell)
 
 ### Features
 
@@ -19,14 +30,89 @@ Main (unreleased)
 
   - `discovery.ec2` service discovery for aws ec2. (@captncraig)
   - `discovery.lightsail` service discovery for aws lightsail. (@captncraig)
+  - `module.string` runs a Grafana Agent Flow module passed to the component by
+    an expression containing a string. (@erikbaranowski, @rfratto)
+  - `module.file` runs a Grafana Agent Flow module passed to the component by
+    an expression containing a file. (@erikbaranowski)
+  - `otelcol.auth.oauth2` performs OAuth 2.0 authentication for HTTP and gRPC
+    based OpenTelemetry exporters. (@ptodev)
+  - `otelcol.extension.jaeger_remote_sampling` provides an endpoint from which to
+    pull Jaeger remote sampling documents. (@joe-elliott)
+  - `prometheus.exporter.blackbox` collects metrics from Blackbox exporter. (@marctc)
   - `prometheus.exporter.mysql` collects metrics from a MySQL database. (@spartan0x117)
-  - `prometheus.exporter.blackbox` collects metrics from Blackbox exporter (@marctc).
+  - `prometheus.exporter.postgres` collects metrics from a PostgreSQL database. (@spartan0x117)
+  - `prometheus.exporter.statsd` collects metrics from a Statsd instance. (@gaantunes)
+  - `prometheus.exporter.snmp` collects metrics from SNMP exporter. (@marctc)
+  - `prometheus.operator.podmonitors` discovers PodMonitor resources in your Kubernetes cluster and scrape 
+    the targets they reference. (@captncraig, @marctc, @jcreixell)
+  - `otelcol.auth.sigv4` performs AWS Signature Version 4 (SigV4) authentication
+    for making requests to AWS services via `otelcol` components that support
+    authentication extensions. (@ptodev)
+
+- Add support for Flow-specific DEB and RPM system packages. This allows users
+  to install Grafana Agent Flow alongside Grafana Agent. (@rfratto, @robigan)
 
 ### Enhancements
 
-- Flow: Add retries with backoff logic to Phlare write component. (@ctovena)
+- Flow: Add retries with backoff logic to Phlare write component. (@cyriltovena)
+
+- Operator: Allow setting runtimeClassName on operator-created pods. (@captncraig)
+
+- Operator: Transparently compress agent configs to stay under size limitations. (@captncraig)
+
+- Update Redis Exporter Dependency to v1.49.0. (@spartan0x117)
+
+- Update Loki dependency to the k142 branch. (@rfratto)
 
 ### Bugfixes
+
+- Flow: fix issue where Flow would return an error when trying to access a key
+  of a map whose value was the zero value (`null`, `0`, `false`, `[]`, `{}`).
+  Whether an error was returned depended on the internal type of the value.
+  (@rfratto)
+
+- Flow: fix issue where using the `jaeger_remote` sampler for the `tracing`
+  block would fail to parse the response from the remote sampler server if it
+  used strings for the strategy type. This caused sampling to fall back
+  to the default rate. (@rfratto)
+
+- Flow: fix issue where components with no arguments like `loki.echo` were not
+  viewable in the UI. (@rfratto)
+
+- Flow: fix deadlock in `loki.source.file` where terminating tailers would hang
+  while flushing remaining logs, preventing `loki.source.file` from being able
+  to update. (@rfratto)
+
+- Flow: fix deadlock in `loki.process` where a component with no stages would
+  hang forever on handling logs. (@rfratto)
+
+- Fix issue where a DefaultConfig might be mutated during unmarshaling. (@jcreixell)
+
+- Fix issues where CloudWatch Exporter cannot use FIPS Endpoints outside of USA regions (@aglees)
+
+- Fix issue where scraping native Prometheus histograms would leak memory.
+  (@rfratto)
+
+- Fix issue where loki.source.docker component could deadlock. (@tpaschalis)
+
+### Other changes
+
+- Grafana Agent Docker containers and release binaries are now published for
+  s390x. (@rfratto)
+
+- Use Go 1.20.2 for builds. (@rfratto)
+
+- Bring back the Flow UI for 32-bit ARMv6 builds. (@rfratto)
+
+- Change the Docker base image for Linux containers to `ubuntu:kinetic`.
+  (@rfratto)
+
+v0.32.1 (2023-03-06)
+--------------------
+
+### Bugfixes
+
+- Flow: Fixes slow reloading of targets in `phlare.scrape` component. (@cyriltovena)
 
 - Flow: add a maximum connection lifetime of one hour when tailing logs from
   `loki.source.kubernetes` and `loki.source.podlogs` to recover from an issue
@@ -113,7 +199,7 @@ v0.32.0 (2023-02-28)
 
 ### Enhancements
 
-- Flow: Support `keepequal` and `dropequal` actions for relabeling. (@ctovena)
+- Flow: Support `keepequal` and `dropequal` actions for relabeling. (@cyriltovena)
 
 - Update Prometheus Node Exporter integration to v1.5.0. (@Thor77)
 

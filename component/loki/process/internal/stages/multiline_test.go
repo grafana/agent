@@ -5,21 +5,20 @@ package stages
 // new code without being able to slowly review, examine and test them.
 
 import (
-	"io"
 	"sort"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
 )
 
 func TestMultilineStageProcess(t *testing.T) {
-	logger, _ := logging.New(io.Discard, logging.DefaultOptions)
+	logger := util.TestFlowLogger(t)
 	mcfg := MultilineConfig{Expression: "^START", MaxWaitTime: 3 * time.Second}
 	err := validateMultilineConfig(&mcfg)
 	require.NoError(t, err)
@@ -46,7 +45,7 @@ func TestMultilineStageProcess(t *testing.T) {
 }
 
 func TestMultilineStageMultiStreams(t *testing.T) {
-	logger, _ := logging.New(io.Discard, logging.DefaultOptions)
+	logger := util.TestFlowLogger(t)
 	mcfg := MultilineConfig{Expression: "^START", MaxWaitTime: 3 * time.Second}
 	err := validateMultilineConfig(&mcfg)
 	require.NoError(t, err)
@@ -86,7 +85,7 @@ func TestMultilineStageMultiStreams(t *testing.T) {
 }
 
 func TestMultilineStageMaxWaitTime(t *testing.T) {
-	logger, _ := logging.New(io.Discard, logging.DefaultOptions)
+	logger := util.TestFlowLogger(t)
 	mcfg := MultilineConfig{Expression: "^START", MaxWaitTime: 100 * time.Millisecond}
 	err := validateMultilineConfig(&mcfg)
 	require.NoError(t, err)
