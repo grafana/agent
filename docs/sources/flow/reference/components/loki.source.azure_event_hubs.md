@@ -8,8 +8,8 @@ title: loki.source.azure_event_hubs
 endpoint on Event Hubs. For more information, see
 the [Azure Event Hubs documentation](https://learn.microsoft.com/en-us/azure/event-hubs/azure-event-hubs-kafka-overview).
 
-To learn more about streaming Azure logs to an Azure Event Hubs, you can see
-this [tutorial](https://learn.microsoft.com/en-us/azure/active-directory/reports-monitoring/tutorial-azure-monitor-stream-logs-to-event-hub).
+To learn more about streaming Azure logs to an Azure Event Hubs, refer to 
+Microsoft's tutorial on how to [Stream Azure Active Directory logs to an Azure event hub](https://learn.microsoft.com/en-us/azure/active-directory/reports-monitoring/tutorial-azure-monitor-stream-logs-to-event-hub).
 
 Note that an Apache Kafka endpoint is not available within the `Basic` pricing plan. For more information, see
 the [Event Hubs pricing page](https://azure.microsoft.com/en-us/pricing/details/event-hubs/).
