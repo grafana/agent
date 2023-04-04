@@ -51,6 +51,7 @@ Main (unreleased)
   - `otelcol.auth.sigv4` performs AWS Signature Version 4 (SigV4) authentication
     for making requests to AWS services via `otelcol` components that support
     authentication extensions. (@ptodev)
+  - `prometheus.exporter.memcached` collects metrics from a Memcached server. (@spartan0x117)
 
 - Add support for Flow-specific DEB and RPM system packages. This allows users
   to install Grafana Agent Flow alongside Grafana Agent. (@rfratto, @robigan)
