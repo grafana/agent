@@ -17,6 +17,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
+// ModuleComponent holds the common properties for module components.
 type ModuleComponent struct {
 	opts component.Options
 	ctrl *flow.Flow
@@ -31,7 +32,8 @@ type Exports struct {
 	Exports map[string]any `river:"exports,attr"`
 }
 
-func NewComponent(o component.Options) ModuleComponent {
+// NewModuleComponent initializes a new ModuleComponent.
+func NewModuleComponent(o component.Options) ModuleComponent {
 	// TODO(rfratto): replace these with a tracer/registry which properly
 	// propagates data back to the parent.
 	flowTracer, _ := tracing.New(tracing.DefaultOptions)
@@ -91,24 +93,26 @@ func (c *ModuleComponent) LoadFlowContent(arguments map[string]any, contentValue
 	return nil
 }
 
+// RunFlowController runs the flow controller that all module components start.
 func (c *ModuleComponent) RunFlowController(ctx context.Context) {
 	c.ctrl.Run(ctx)
 }
 
-// CurrentHealth implements component.HealthComponent.
+// CurrentHealth contains the implementation details for CurrentHealth in a module component.
 func (c *ModuleComponent) CurrentHealth() component.Health {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
 	return c.health
 }
 
+// SetHealth contains the implementation details for setHealth in a module component.
 func (c *ModuleComponent) SetHealth(h component.Health) {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 	c.health = h
 }
 
-// Handler implements component.HTTPComponent.
+// Handler contains the implementation details for Handler in a module component.
 func (c *ModuleComponent) Handler() http.Handler {
 	r := mux.NewRouter()
 

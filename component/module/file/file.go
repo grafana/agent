@@ -67,16 +67,15 @@ var (
 // New creates a new module.file component.
 func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{
-		mod:  module.NewComponent(o),
+		mod:  module.NewModuleComponent(o),
 		args: args,
 	}
 
-	localFile, err := c.NewManagedLocalComponent(o)
+	var err error
+	c.managedLocalFile, err = c.NewManagedLocalComponent(o)
 	if err != nil {
 		return nil, err
 	}
-
-	c.managedLocalFile = localFile
 
 	if err := c.Update(args); err != nil {
 		return nil, err
@@ -152,7 +151,7 @@ func (c *Component) CurrentHealth() component.Health {
 	return c.mod.CurrentHealth()
 }
 
-// CurrentHealth implements component.HealthComponent.
+// setHealth updates the component health.
 func (c *Component) setHealth(h component.Health) {
 	c.mod.SetHealth(h)
 }
