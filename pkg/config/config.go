@@ -57,7 +57,7 @@ func DefaultConfig() Config {
 		Server:                &defaultServerCfg,
 		ServerFlags:           server.DefaultFlags,
 		Metrics:               metrics.DefaultConfig,
-		Integrations:          DefaultVersionedIntegrations,
+		Integrations:          DefaultVersionedIntegrations(),
 		DisableSupportBundle:  false,
 		EnableConfigEndpoints: false,
 		EnableUsageReport:     true,

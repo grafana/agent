@@ -180,7 +180,7 @@ func TestConfig_Defaults(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, metrics.DefaultConfig, c.Metrics)
-	require.Equal(t, DefaultVersionedIntegrations, c.Integrations)
+	require.Equal(t, DefaultVersionedIntegrations(), c.Integrations)
 }
 
 func TestConfig_TracesLokiValidates(t *testing.T) {

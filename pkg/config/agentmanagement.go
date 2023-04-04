@@ -218,11 +218,6 @@ func loadRemoteConfig(remoteConfigBytes []byte, expandEnvVars bool, fs *flag.Fla
 		return nil, fmt.Errorf("could not build agent config: %w", err)
 	}
 
-	// this is done in order to validate the config semantically
-	if err = applyIntegrationValuesFromFlagset(fs, args, configPath, config); err != nil {
-		instrumentation.InstrumentInvalidRemoteConfig("invalid_integrations_config")
-		return nil, fmt.Errorf("could not load integrations from config: %w", err)
-	}
 	if err = config.Validate(fs); err != nil {
 		instrumentation.InstrumentInvalidRemoteConfig("semantically_invalid_agent_config")
 		return nil, fmt.Errorf("semantically invalid config received from the API: %w", err)
