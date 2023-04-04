@@ -91,6 +91,8 @@ Main (unreleased)
 - Fix issue where scraping native Prometheus histograms would leak memory.
   (@rfratto)
 
+- Operator: fix for running multiple operators with different `--agent-selector` flags. (@captncraig)
+
 ### Other changes
 
 - Grafana Agent Docker containers and release binaries are now published for
