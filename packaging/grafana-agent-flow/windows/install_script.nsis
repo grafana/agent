@@ -14,7 +14,7 @@ Unicode true
 
 !define APPNAME     "Grafana Agent Flow"
 !define DESCRIPTION "Vendor-neutral programmable observability pipelines."
-!define HELPURL     "https://github.com/grafana/agent/discussions"
+!define HELPURL     "https://grafana.com/docs/agent/latest/flow/"
 !define UPDATEURL   "https://github.com/grafana/agent/releases"
 !define ABOUTURL    "https://github.com/grafana/agent"
 
