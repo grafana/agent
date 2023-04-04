@@ -55,6 +55,19 @@ The `relabel_rules` field can make use of the `rules` export value from a
 `loki.relabel` component to apply one or more relabeling rules to log entries
 before they're forwarded to the list of receivers in `forward_to`.
 
+### Labels
+
+The `labels` map is applied to every message that the component reads.
+
+The following internal labels prefixed with `__` are available but are discarded if not relabeled:
+
+- `__meta_kafka_message_key`
+- `__meta_kafka_topic`
+- `__meta_kafka_partition`
+- `__meta_kafka_member_id`
+- `__meta_kafka_group_id`
+- `__azure_event_hubs_category`
+
 ## Blocks
 
 The following blocks are supported inside the definition of `loki.source.azure_event_hubs`:
@@ -80,19 +93,6 @@ you must set the `connection_string` attribute. If `"oauth"` is used, you must c
 types as documented
 here: https://github.com/Azure/azure-sdk-for-go/blob/main/sdk/azidentity/README.md#credential-types via environment
 variables or Azure CLI.
-
-## Labels
-
-The `labels` map is applied to every message that the component reads.
-
-The following internal labels prefixed with `__` are available but are discarded if not relabeled:
-
-- `__meta_kafka_message_key`
-- `__meta_kafka_topic`
-- `__meta_kafka_partition`
-- `__meta_kafka_member_id`
-- `__meta_kafka_group_id`
-- `__azure_event_hubs_category`
 
 ## Exported fields
 
