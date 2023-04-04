@@ -63,6 +63,7 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /etc/agent
+      dnsPolicy: ClusterFirst
       volumes:
         - name: config
           configMap:

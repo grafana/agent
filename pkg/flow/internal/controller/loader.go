@@ -29,13 +29,14 @@ type Loader struct {
 	tracer  trace.TracerProvider
 	globals ComponentGlobals
 
-	mut           sync.RWMutex
-	graph         *dag.Graph
-	originalGraph *dag.Graph
-	components    []*ComponentNode
-	cache         *valueCache
-	blocks        []*ast.BlockStmt // Most recently loaded blocks, used for writing
-	cm            *controllerMetrics
+	mut               sync.RWMutex
+	graph             *dag.Graph
+	originalGraph     *dag.Graph
+	components        []*ComponentNode
+	cache             *valueCache
+	blocks            []*ast.BlockStmt // Most recently loaded blocks, used for writing
+	cm                *controllerMetrics
+	moduleExportIndex int
 }
 
 // NewLoader creates a new Loader. Components built by the Loader will be built
@@ -101,7 +102,8 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentBlocks []*ast.BlockStmt, 
 		l.cm.componentEvaluationTime.Observe(duration.Seconds())
 	}()
 
-	// Evaluate all of the components.
+	l.cache.ClearModuleExports()
+	// Evaluate all the components.
 	_ = dag.WalkTopological(&newGraph, newGraph.Leaves(), func(n dag.Node) error {
 		_, span := tracer.Start(spanCtx, "EvaluateNode", trace.WithSpanKind(trace.SpanKindInternal))
 		span.SetAttributes(attribute.String("node_id", n.NodeID()))
@@ -141,6 +143,10 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentBlocks []*ast.BlockStmt, 
 					EndPos:   ast.EndPos(c.Block()).Position(),
 				})
 			}
+			if exp, ok := n.(*ExportConfigNode); ok {
+				name, val := exp.NameAndValue()
+				l.cache.CacheModuleExportValue(name, val)
+			}
 		}
 
 		// We only use the error for updating the span status; we don't return the
@@ -158,6 +164,10 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentBlocks []*ast.BlockStmt, 
 	l.cache.SyncIDs(componentIDs)
 	l.blocks = componentBlocks
 	l.cm.componentEvaluationTime.Observe(time.Since(start).Seconds())
+	if l.globals.OnExportsChange != nil && l.cache.ExportChangeIndex() != l.moduleExportIndex {
+		l.moduleExportIndex = l.cache.ExportChangeIndex()
+		l.globals.OnExportsChange(l.cache.CreateModuleExports())
+	}
 	return diags
 }
 
@@ -392,6 +402,10 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 		switch n := n.(type) {
 		case BlockNode:
 			err = l.evaluate(logger, parentScope, n)
+			if exp, ok := n.(*ExportConfigNode); ok {
+				name, val := exp.NameAndValue()
+				l.cache.CacheModuleExportValue(name, val)
+			}
 		}
 
 		// We only use the error for updating the span status; we don't return the
@@ -403,9 +417,14 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 		}
 		return nil
 	})
+
+	if l.globals.OnExportsChange != nil && l.cache.ExportChangeIndex() != l.moduleExportIndex {
+		l.globals.OnExportsChange(l.cache.CreateModuleExports())
+		l.moduleExportIndex = l.cache.ExportChangeIndex()
+	}
 }
 
-// evaluate constructs the final context for the special config Node and
+// evaluate constructs the final context for the BlockNode and
 // evaluates it. mut must be held when calling evaluate.
 func (l *Loader) evaluate(logger log.Logger, parent *vm.Scope, bn BlockNode) error {
 	ectx := l.cache.BuildContext(parent)
