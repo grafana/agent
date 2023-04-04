@@ -14,6 +14,9 @@ this [tutorial](https://learn.microsoft.com/en-us/azure/active-directory/reports
 Note that an Apache Kafka endpoint is not available within the `Basic` pricing plan. For more information, see
 the [Event Hubs pricing page](https://azure.microsoft.com/en-us/pricing/details/event-hubs/).
 
+Multiple `loki.source.azure_event_hubs` components can be specified by giving them
+different labels.
+
 ## Usage
 
 ```river
