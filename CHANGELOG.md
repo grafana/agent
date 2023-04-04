@@ -51,6 +51,7 @@ Main (unreleased)
 
 - Add support for Flow-specific DEB and RPM system packages. This allows users
   to install Grafana Agent Flow alongside Grafana Agent. (@rfratto, @robigan)
+- Agent Management: Add support for integration snippets. (@jcreixell)
 
 ### Enhancements
 
