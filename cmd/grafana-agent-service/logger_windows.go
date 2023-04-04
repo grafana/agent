@@ -69,6 +69,11 @@ func (l *logger) Write(data []byte) (n int, err error) {
 		msg           = string(data)
 	)
 
+	// TODO(rfratto): Find a way to reduce the amount of false positives where
+	// log lines get incorrectly flagged as warning/error log lines.
+	//
+	// A longer-term solution would need to consider that logs may be emitted as
+	// either logfmt or JSON.
 	switch {
 	case strings.Contains(msg, warnText):
 		leveledLogger = l.el.Warning
