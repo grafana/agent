@@ -106,7 +106,10 @@ Main (unreleased)
 - Fix issue where scraping native Prometheus histograms would leak memory.
   (@rfratto)
 
-- Fix issue where loki.source.docker component could deadlock. (@tpaschalis)
+- Flow: fix issue where `loki.source.docker` component could deadlock. (@tpaschalis)
+
+- Flow: fix issue where `prometheus.remote_write` created unnecessary extra
+  child directories to store the WAL in. (@rfratto)
 
 ### Other changes
 
