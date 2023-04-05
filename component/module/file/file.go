@@ -51,7 +51,7 @@ func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 
 // Component implements the module.file component.
 type Component struct {
-	mod module.ModuleComponent
+	mod *module.ModuleComponent
 
 	mut     sync.RWMutex
 	args    Arguments
@@ -68,12 +68,15 @@ var (
 
 // New creates a new module.file component.
 func New(o component.Options, args Arguments) (*Component, error) {
+	moduleComponent, err := module.NewModuleComponent(o)
+	if err != nil {
+		return nil, err
+	}
 	c := &Component{
-		mod:  module.NewModuleComponent(o),
+		mod:  moduleComponent,
 		args: args,
 	}
 
-	var err error
 	c.managedLocalFile, err = c.NewManagedLocalComponent(o)
 	if err != nil {
 		return nil, err

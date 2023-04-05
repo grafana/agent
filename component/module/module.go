@@ -32,14 +32,20 @@ type Exports struct {
 	Exports map[string]any `river:"exports,attr"`
 }
 
+const maxDepth uint8 = 10
+
 // NewModuleComponent initializes a new ModuleComponent.
-func NewModuleComponent(o component.Options) ModuleComponent {
+func NewModuleComponent(o component.Options) (*ModuleComponent, error) {
 	// TODO(rfratto): replace these with a tracer/registry which properly
 	// propagates data back to the parent.
 	flowTracer, _ := tracing.New(tracing.DefaultOptions)
 	flowRegistry := prometheus.NewRegistry()
+	newModuleDepth := o.ModuleDepth + 1
+	if newModuleDepth > maxDepth {
+		return nil, fmt.Errorf("unable to exceed module depth of %d", maxDepth)
+	}
 
-	return ModuleComponent{
+	return &ModuleComponent{
 		opts: o,
 		ctrl: flow.New(flow.Options{
 			ControllerID: o.ID,
@@ -54,8 +60,9 @@ func NewModuleComponent(o component.Options) ModuleComponent {
 			OnExportsChange: func(exports map[string]any) {
 				o.OnStateChange(Exports{Exports: exports})
 			},
+			ModuleDepth: newModuleDepth,
 		}),
-	}
+	}, nil
 }
 
 // LoadFlowContent loads the flow controller with the current component content. It

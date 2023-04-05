@@ -471,6 +471,5 @@ func multierrToDiags(errors error) diag.Diagnostics {
 
 // If the definition of a module ever changes, update this.
 func (l *Loader) isModule() bool {
-	// Either 1 of these checks is technically sufficient but let's be extra careful.
-	return l.globals.OnExportsChange != nil && l.globals.ControllerID != ""
+	return l.globals.ModuleDepth > 0
 }

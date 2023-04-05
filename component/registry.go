@@ -67,6 +67,10 @@ type Options struct {
 	// HTTPPath is the base path that requests need in order to route to this component.
 	// Requests received by a component handler will have this already trimmed off.
 	HTTPPath string
+
+	// ModuleDepth is the depth of the current module level for the component.
+	// The top level flow controller will have depth 0.
+	ModuleDepth uint8
 }
 
 // Registration describes a single component.

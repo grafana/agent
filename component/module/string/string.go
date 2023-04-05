@@ -33,7 +33,7 @@ type Arguments struct {
 
 // Component implements the module.string component.
 type Component struct {
-	mod module.ModuleComponent
+	mod *module.ModuleComponent
 }
 
 var (
@@ -44,11 +44,15 @@ var (
 
 // New creates a new module.string component.
 func New(o component.Options, args Arguments) (*Component, error) {
+	moduleComponent, err := module.NewModuleComponent(o)
+	if err != nil {
+		return nil, err
+	}
 	c := &Component{
-		mod: module.NewModuleComponent(o),
+		mod: moduleComponent,
 	}
 
-	if err := c.Update(args); err != nil {
+	if err = c.Update(args); err != nil {
 		return nil, err
 	}
 	return c, nil

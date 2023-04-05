@@ -107,6 +107,10 @@ type Options struct {
 	// need to know this to set the correct targets.
 	HTTPListenAddr string
 
+	// ModuleDepth is the depth of the current module level for the flow
+	// controller. The top level flow controller will have depth 0.
+	ModuleDepth uint8
+
 	// OnExportsChange is called when the exports of the controller change.
 	// Exports are controlled by "export" configuration blocks. If
 	// OnExportsChange is nil, export configuration blocks are not allowed in the
@@ -164,6 +168,7 @@ func New(o Options) *Flow {
 			HTTPPathPrefix:  o.HTTPPathPrefix,
 			HTTPListenAddr:  o.HTTPListenAddr,
 			ControllerID:    o.ControllerID,
+			ModuleDepth:     o.ModuleDepth,
 		})
 	)
 
