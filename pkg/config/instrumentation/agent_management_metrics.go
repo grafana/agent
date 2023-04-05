@@ -24,7 +24,7 @@ func newAgentManagementMetrics() *agentManagementMetrics {
 	agentManagementMetrics.fallbacks = promauto.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "agent_management_fallbacks_total",
-			Help: "Number of fallbacks and what was fallen back to.",
+			Help: "Number of fallbacks by fallback destination.",
 		},
 		[]string{"destination"},
 	)
