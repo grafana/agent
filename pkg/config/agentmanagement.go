@@ -197,8 +197,10 @@ func getCachedRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvid
 	if err != nil {
 		level.Error(log).Log("msg", "could not get cached remote config, falling back to DefaultConfig", "err", err)
 		d := DefaultConfig()
+		instrumentation.InstrumentAgentManagementFallback("default")
 		return &d, nil
 	}
+	instrumentation.InstrumentAgentManagementFallback("cache")
 	return loadRemoteConfig(rc, expandEnvVars, fs)
 }
 
