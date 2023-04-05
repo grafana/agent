@@ -2,7 +2,7 @@
 
 This guide will walk you through the process of creating a new Prometheus exporter Flow component and best practices for implementing it. 
 
-It is required that the exporter has an existing integration in order to wrap it as a Flow component. In the future, we will drop this requirement and Flow components will expose the logic of the exporter directly.
+It is required that the exporter has an existing [Agent integration](../sources/configuration/integrations/_index.md) in order to wrap it as a Flow component. In the future, we will drop this requirement and Flow components will expose the logic of the exporter directly.
 
 Use the following exporters as a reference:
 - [process_exporter](../../component/prometheus/exporter/process/process.go) - [documentation](../sources/flow/reference/components/prometheus.exporter.process.md)
@@ -11,7 +11,7 @@ Use the following exporters as a reference:
 
 ## Arguments (Configuration)
 
-`Arguments` struct defines the arguments that can be passed to the component. In most cases, this would be exactly the same as the arguments that the integration for this exporter the uses. Some recommendations:
+`Arguments` struct defines the arguments that can be passed to the component. In most cases, this would be exactly the same as the arguments that the integration for this exporter uses. Some recommendations:
 
 - Use `attr` tag for representing values. Use `attr,optional` tag for optional arguments.
 - Use `rivertypes.Secret` type for sensitive arguments (e.g. API keys, passwords, etc). The original integration should have a similar field type called `Secret` from Prometheus.
