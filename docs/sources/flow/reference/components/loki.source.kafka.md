@@ -22,9 +22,9 @@ different labels.
 
 ```river
 loki.source.kafka "LABEL" {
-	brokers    = BROKER_LIST
-	topics     = TOPIC_LIST
-	forward_to = RECEIVER_LIST
+  brokers    = BROKER_LIST
+  topics     = TOPIC_LIST
+  forward_to = RECEIVER_LIST
 }
 ```
 
@@ -49,17 +49,22 @@ Name                     | Type                   | Description          | Defau
 Labels from the `labels` argument are applied to every message that the component reads.
 
 The `relabel_rules` field can make use of the `rules` export value from a
-`loki.relabel` component to apply one or more relabeling rules to log entries
+[loki.relabel][] component to apply one or more relabeling rules to log entries
 before they're forwarded to the list of receivers in `forward_to`.
 
-In addition to custom labels, the following internal labels prefixed with `__` are available 
-but are discarded if not relabeled using the `relabel_rules` argument:
+In addition to custom labels, the following internal labels prefixed with `__` are available:
 
 - `__meta_kafka_message_key`
 - `__meta_kafka_topic`
 - `__meta_kafka_partition`
 - `__meta_kafka_member_id`
 - `__meta_kafka_group_id`
+
+All labels starting with `__` are removed prior to forwarding log entries. To
+keep these labels, relabel them using a [loki.relabel][] component and pass its
+`rules` export to the `relabel_rules` argument.
+
+[loki.relabel]: {{< relref "./loki.relabel.md" >}}
 
 ## Blocks
 
@@ -122,18 +127,27 @@ This example consumes Kafka events from the specified brokers and topics
 then forwards them to a `loki.write` component using the Kafka timestamp.
 
 ```river
+loki.relabel "kafka" {
+  rule {
+    source_labels = ["__meta_kafka_topic"]
+    target_label  = "topic"
+  }
+}
+
+
 loki.source.kafka "local" {
-	brokers                = ["localhost:9092"]
-	topics                 = ["quickstart-events"]
-	labels                 = {component = "loki.source.kafka"}
-	forward_to             = [loki.write.loki.receiver]
-	use_incoming_timestamp = true
+  brokers                = ["localhost:9092"]
+  topics                 = ["quickstart-events"]
+  labels                 = {component = "loki.source.kafka"}
+  forward_to             = [loki.write.loki.receiver]
+  use_incoming_timestamp = true
+  relabel_rules          = loki.relabel.kafka.rules
 }
 
 loki.write "local" {
-	endpoint {
-		url = "loki:3100/api/v1/push"
-	}
+  endpoint {
+    url = "loki:3100/api/v1/push"
+  }
 }
 ```
 

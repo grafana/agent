@@ -43,8 +43,8 @@ entry.
 When the `path` argument is empty, `/var/log/journal` and `/run/log/journal`
 will be used for discovering journal entries.
 
-The `relabel_rules` field can make use of the `rules` export value from a
-`loki.relabel` component to apply one or more relabeling rules to log entries
+The `relabel_rules` argument can make use of the `rules` export value from a
+[loki.relabel][] component to apply one or more relabeling rules to log entries
 before they're forwarded to the list of receivers in `forward_to`.
 
 All messages read from the journal include internal labels following the
@@ -56,6 +56,8 @@ of receivers specified in `forward_to`. To keep these labels, use the
 > `_systemd_unit`. The final internal label name would be
 > `__journal__systemd_unit`, with _two_ underscores between `__journal` and
 > `systemd_unit`.
+
+[loki.relabel]: {{< relref "./loki.relabel.md" >}}
 
 ## Component health
 
