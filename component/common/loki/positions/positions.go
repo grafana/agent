@@ -56,7 +56,7 @@ type positions struct {
 	done      chan struct{}
 }
 
-// Entry desribes a positions file entry consisting of an absolute file path and
+// Entry describes a positions file entry consisting of an absolute file path and
 // the matching label set.
 // An entry expects the string representation of a LabelSet or a Labels slice
 // so that it can be utilized as a YAML key. The caller should make sure that

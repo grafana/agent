@@ -111,9 +111,9 @@ type fakeReceiverArgs struct {
 
 var _ receiver.Arguments = fakeReceiverArgs{}
 
-func (fa fakeReceiverArgs) Convert() otelconfig.Receiver {
+func (fa fakeReceiverArgs) Convert() (otelconfig.Receiver, error) {
 	settings := otelconfig.NewReceiverSettings(otelconfig.NewComponentID("testcomponent"))
-	return &settings
+	return &settings, nil
 }
 
 func (fa fakeReceiverArgs) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {

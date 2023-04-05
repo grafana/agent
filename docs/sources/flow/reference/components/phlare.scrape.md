@@ -334,7 +334,7 @@ phlare.scrape "local" {
 }
 ```
 
-Here are the the endpoints that are being scraped every 15 seconds:
+Here are the endpoints that are being scraped every 15 seconds:
 
 ```
 http://localhost:4100/debug/pprof/allocs

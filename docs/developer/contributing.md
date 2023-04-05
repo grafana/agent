@@ -35,7 +35,7 @@ compiling and testing your changes do:
 ```bash
 # For building:
 go build ./cmd/grafana-agent/
-./agent -config.file=<config-file>
+./grafana-agent -config.file=<config-file>
 
 # For testing:
 make lint test # Make sure all the tests pass before you commit and push :)
@@ -63,7 +63,7 @@ To build Grafana Agent from source code, please install the following tools:
 You can directly use the go tool to download and install the agent binary into your GOPATH:
 
     $ GO111MODULE=on go install github.com/grafana/agent/cmd/grafana-agent
-    $ agent -config.file=your_config.yml
+    $ grafana-agent -config.file=your_config.yml
 
 An example of the above configuration file can be found [here][example-config].
 
@@ -74,7 +74,7 @@ You can also clone the repository yourself and build using `make agent`:
     $ git clone https://github.com/grafana/agent.git
     $ cd agent
     $ make agent
-    $ ./agent -config.file=your_config.yml
+    $ ./build/grafana-agent -config.file=your_config.yml
 
 The Makefile provides several targets:
 
@@ -140,10 +140,10 @@ When in doubt, look at a previous release for style and ordering examples.
 
 Change entries in the changelog should:
 
-1. Be complete sentences, ending in a period. It is acceptible to use multiple
+1. Be complete sentences, ending in a period. It is acceptable to use multiple
    complete sentences if one sentence can't accurately describe the change.
 2. Describe the impact on the user which is reading the changelog.
-3. Include credit to the Github user that opened the PR following the sentence.
+3. Include credit to the GitHub user that opened the PR following the sentence.
 
 For example:
 `- Config file reading is now 1500% faster. (@torvalds)`
@@ -179,6 +179,20 @@ GO111MODULE=on go mod tidy
 You have to commit the changes to `go.mod` and `go.sum` before submitting the
 pull request.
 
+### Using forks
+
+Using a fork to pull in custom changes must always be temporary.
+
+PRs which add `replace` directives in go.mod to change a module to point to a
+fork will only be accepted once an upstream PR is opened to officially move the
+changes to the official module.
+
+Contributors are expected to work with upstream to make their changes
+acceptable, and remove the `replace` directive as soon as possible.
+
+If upstream is unresponsive, consider choosing a different dependency or making
+a hard fork (i.e., creating a new Go module with the same source).
+
 [new-issue]: https://github.com/grafana/agent/issues/new
 [RFC]: ../rfcs/0001-designing-in-the-open.md
 [code-review-comments]: https://code.google.com/p/go-wiki/wiki/CodeReviewComments
@@ -189,4 +203,3 @@ pull request.
 [community-slack]: https://slack.grafana.com/
 [example-config]: ../../cmd/grafana-agent/agent-local-config.yaml
 [go-modules]: https://golang.org/cmd/go/#hdr-Modules__module_versions__and_more
-

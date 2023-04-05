@@ -166,7 +166,7 @@ Full reference of options:
   [max_repetitions: <int> | default = 25]
 
   # How many times to retry a failed request, defaults to 3.
-  [retries: <int> | default = 25]
+  [retries: <int> | default = 3]
 
   # Timeout for each SNMP request, defaults to 5s.
   [timeout: <duration> | default = 5s]

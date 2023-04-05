@@ -256,7 +256,7 @@ func TestStorage_Truncate(t *testing.T) {
 
 	require.NoError(t, app.Commit())
 
-	// Forefully create a bunch of new segments so when we truncate
+	// Forcefully create a bunch of new segments so when we truncate
 	// there's enough segments to be considered for truncation.
 	for i := 0; i < 5; i++ {
 		_, err := s.wal.NextSegmentSync()

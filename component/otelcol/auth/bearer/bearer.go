@@ -31,11 +31,11 @@ type Arguments struct {
 var _ auth.Arguments = Arguments{}
 
 // Convert implements auth.Arguments.
-func (args Arguments) Convert() otelconfig.Extension {
+func (args Arguments) Convert() (otelconfig.Extension, error) {
 	return &bearertokenauthextension.Config{
 		ExtensionSettings: otelconfig.NewExtensionSettings(otelconfig.NewComponentID("bearer")),
 		BearerToken:       string(args.Token),
-	}
+	}, nil
 }
 
 // Extensions implements auth.Arguments.

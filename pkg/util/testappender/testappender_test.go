@@ -131,7 +131,7 @@ func TestAppender_Types(t *testing.T) {
 	t.Run("Summary", func(t *testing.T) {
 		var app testappender.Appender
 
-		// Summaries have quantilies from 0 to 1, counts, and sums. Append the
+		// Summaries have quantiles from 0 to 1, counts, and sums. Append the
 		// metadata first and then append all the various samples.
 		app.UpdateMetadata(0, labels.FromStrings("__name__", "example_metric"), metadata.Metadata{
 			Type: textparse.MetricTypeSummary,
@@ -188,7 +188,7 @@ func TestAppender_Types(t *testing.T) {
 }
 
 func TestAppender_Exemplars(t *testing.T) {
-	// These tests are the only tests where we expliclty test the OpenMetrics
+	// These tests are the only tests where we explicitly test the OpenMetrics
 	// exposition format since OpenMetrics is the only text exposition format
 	// that supports exemplars.
 
@@ -228,7 +228,7 @@ func TestAppender_Exemplars(t *testing.T) {
 		app.Append(0, labels.FromStrings("__name__", "example_metric_count", "foo", "bar"), 10, 4)
 		app.Append(0, labels.FromStrings("__name__", "example_metric_sum", "foo", "bar"), 10, 100)
 
-		// Examplars must be attached to a specific bucket.
+		// Exemplars must be attached to a specific bucket.
 		app.AppendExemplar(0, labels.FromStrings("__name__", "example_metric_bucket", "foo", "bar", "le", "0.75"), exemplar.Exemplar{
 			Labels: labels.FromStrings("hello", "world"),
 			Value:  1337,

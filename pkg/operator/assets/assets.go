@@ -47,7 +47,7 @@ func KeyForConfigMap(namespace string, sel *v1.ConfigMapKeySelector) Key {
 	return Key(fmt.Sprintf("/configMaps/%s/%s/%s", namespace, sel.Name, sel.Key))
 }
 
-// KeyForSelector retrives the key for a SecretOrConfigMap.
+// KeyForSelector retrieves the key for a SecretOrConfigMap.
 func KeyForSelector(namespace string, sel *prom_v1.SecretOrConfigMap) Key {
 	switch {
 	case sel.ConfigMap != nil:

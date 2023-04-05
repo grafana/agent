@@ -1,4 +1,4 @@
-[Drone](https://www.drone.io/) is a CI tool integrated with github that we use for automated testing and building/publishing docker images.
+[Drone](https://www.drone.io/) is a CI tool integrated with GitHub that we use for automated testing and building/publishing docker images.
 
 # Table of Contents
 1. [Release Preparation](#release-preparation)
@@ -12,7 +12,7 @@ be regenerated and re-signed using `make drone`. Signing the drone
 configuration is limited to Grafana employees for security reasons.
 
 1. [Install Drone](https://docs.drone.io/cli/install/).
-2. Setup the Drone environment variables. Their contents are on
+2. Set up the Drone environment variables. Their contents are on
 [your profile](https://drone.grafana.net/account) in the Grafana Drone web page.
     ```
     export DRONE_SERVER=<url>
@@ -54,7 +54,7 @@ Run the Drone stack locally following the drone documentation
 1. Fork the repo.
 2. Start ngrok to get the public endpoint.
 3. Create and update the drone config files with the public endpoint.
-4. Configure an oath2 app in github with the public endpoint.
+4. Configure an oath2 app in GitHub with the public endpoint.
 5. Activate the repo in the drone server and configure it to point to `.drone/drone.yml`.
 
 Pros

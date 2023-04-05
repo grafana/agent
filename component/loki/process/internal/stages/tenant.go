@@ -70,7 +70,7 @@ func (s *tenantStage) Process(labels model.LabelSet, extracted map[string]interf
 		tenantID = s.cfg.Value
 	}
 
-	// Skip an empty tenant ID (ie. failed to get the tenant from the source)
+	// Skip an empty tenant ID (i.e. failed to get the tenant from the source)
 	if tenantID == "" {
 		return
 	}

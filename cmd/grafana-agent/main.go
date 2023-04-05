@@ -7,6 +7,7 @@ import (
 
 	util_log "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/cmd/internal/flowmode"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/server"
 
@@ -47,12 +48,13 @@ func main() {
 	// If flow is enabled go into that working mode
 	// TODO allow flow to run as a windows service
 	if runMode == runModeFlow {
-		runFlow()
+		flowmode.Run()
 		return
 	}
 
 	// Set up logging using default values before loading the config
-	logger := server.NewLogger(&server.DefaultConfig)
+	defaultCfg := server.DefaultConfig()
+	logger := server.NewLogger(&defaultCfg)
 
 	reloader := func(log *server.Logger) (*config.Config, error) {
 		fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)

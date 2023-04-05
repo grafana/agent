@@ -125,6 +125,9 @@ Configuration reference:
   # account information.
   # Ex: us-east-2
   sts_region: <string>
+  
+  # Optional: Disable use of FIPS endpoints. Set 'true' when running outside of USA regions.
+  [fips_disabled: <boolean> | default = false]
 
   discovery:
 

@@ -1,12 +1,11 @@
 package stages
 
 import (
-	"io"
 	"testing"
 	"time"
 
 	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/grafana/loki/pkg/logqlmodel"
 	json "github.com/json-iterator/go"
@@ -38,7 +37,7 @@ stage.match {
 func TestPackPipeline(t *testing.T) {
 	registry := prometheus.NewRegistry()
 	plName := "test_pack_pipeline"
-	logger, _ := logging.New(io.Discard, logging.DefaultOptions)
+	logger := util.TestFlowLogger(t)
 	pl, err := NewPipeline(logger, loadConfig(testPackRiver), &plName, registry)
 	require.NoError(t, err)
 
@@ -336,7 +335,7 @@ func TestPackStage(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			logger, _ := logging.New(io.Discard, logging.DefaultOptions)
+			logger := util.TestFlowLogger(t)
 			m := newPackStage(logger, *tt.config, prometheus.DefaultRegisterer)
 			// Normal pipeline operation will put all the labels into the extracted map
 			// replicate that here.

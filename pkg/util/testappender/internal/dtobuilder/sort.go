@@ -55,7 +55,7 @@ func labelsLess(a, b []*dto.LabelPair) bool {
 		}
 	}
 
-	// Either they're fully equal or a < b, so we return true either way..
+	// Either they're fully equal or a < b, so we return true either way.
 	return true
 }
 

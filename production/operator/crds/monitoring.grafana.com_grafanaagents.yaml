@@ -1125,7 +1125,7 @@ spec:
                         for escaping the $(VAR_NAME) syntax: i.e. "$$(VAR_NAME)" will
                         produce the string literal "$(VAR_NAME)". Escaped references
                         will never be expanded, regardless of whether the variable
-                        exists or not. Cannot be updated. More info: https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/#running-a-command-in-a-shell'
+                        exists or not. Cannot be updated. More info: https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/#run-a-command-in-a-shell'
                       items:
                         type: string
                       type: array
@@ -1139,7 +1139,7 @@ spec:
                         i.e. "$$(VAR_NAME)" will produce the string literal "$(VAR_NAME)".
                         Escaped references will never be expanded, regardless of whether
                         the variable exists or not. Cannot be updated. More info:
-                        https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/#running-a-command-in-a-shell'
+                        https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/#run-a-command-in-a-shell'
                       items:
                         type: string
                       type: array
@@ -2357,7 +2357,7 @@ spec:
               imagePullSecrets:
                 description: 'ImagePullSecrets holds an optional list of references
                   to Secrets within the same namespace used for pulling the Grafana
-                  Agent image from registries. More info: https://kubernetes.io/docs/user-guide/images#specifying-imagepullsecrets-on-a-pod'
+                  Agent image from registries. More info: https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod'
                 items:
                   description: LocalObjectReference contains enough information to
                     let you locate the referenced object inside the same namespace.
@@ -2392,7 +2392,7 @@ spec:
                         for escaping the $(VAR_NAME) syntax: i.e. "$$(VAR_NAME)" will
                         produce the string literal "$(VAR_NAME)". Escaped references
                         will never be expanded, regardless of whether the variable
-                        exists or not. Cannot be updated. More info: https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/#running-a-command-in-a-shell'
+                        exists or not. Cannot be updated. More info: https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/#run-a-command-in-a-shell'
                       items:
                         type: string
                       type: array
@@ -2406,7 +2406,7 @@ spec:
                         i.e. "$$(VAR_NAME)" will produce the string literal "$(VAR_NAME)".
                         Escaped references will never be expanded, regardless of whether
                         the variable exists or not. Cannot be updated. More info:
-                        https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/#running-a-command-in-a-shell'
+                        https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/#run-a-command-in-a-shell'
                       items:
                         type: string
                       type: array
@@ -4790,7 +4790,7 @@ spec:
                     description: 'Annotations is an unstructured key value map stored
                       with a resource that may be set by external tools to store and
                       retrieve arbitrary metadata. They are not queryable and should
-                      be preserved when modifying objects. More info: http://kubernetes.io/docs/user-guide/annotations'
+                      be preserved when modifying objects. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/'
                     type: object
                   labels:
                     additionalProperties:
@@ -4798,14 +4798,14 @@ spec:
                     description: 'Map of string keys and values that can be used to
                       organize and categorize (scope and select) objects. May match
                       selectors of replication controllers and services. More info:
-                      http://kubernetes.io/docs/user-guide/labels'
+                      https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/'
                     type: object
                   name:
                     description: 'Name must be unique within a namespace. Is required
                       when creating resources, although some resources may allow a
                       client to request the generation of an appropriate name automatically.
                       Name is primarily intended for creation idempotence and configuration
-                      definition. Cannot be updated. More info: http://kubernetes.io/docs/user-guide/identifiers#names'
+                      definition. Cannot be updated. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names'
                     type: string
                 type: object
               portName:
@@ -5046,7 +5046,7 @@ spec:
                           medium EmptyDir would be the minimum value between the SizeLimit
                           specified here and the sum of memory limits of all containers
                           in a pod. The default is nil which means that the limit
-                          is undefined. More info: http://kubernetes.io/docs/user-guide/volumes#emptydir'
+                          is undefined. More info: https://kubernetes.io/docs/concepts/storage/volumes#emptydir'
                         pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                         x-kubernetes-int-or-string: true
                     type: object
@@ -5295,7 +5295,7 @@ spec:
                               map stored with a resource that may be set by external
                               tools to store and retrieve arbitrary metadata. They
                               are not queryable and should be preserved when modifying
-                              objects. More info: http://kubernetes.io/docs/user-guide/annotations'
+                              objects. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/'
                             type: object
                           labels:
                             additionalProperties:
@@ -5303,7 +5303,7 @@ spec:
                             description: 'Map of string keys and values that can be
                               used to organize and categorize (scope and select) objects.
                               May match selectors of replication controllers and services.
-                              More info: http://kubernetes.io/docs/user-guide/labels'
+                              More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/'
                             type: object
                           name:
                             description: 'Name must be unique within a namespace.
@@ -5311,7 +5311,7 @@ spec:
                               may allow a client to request the generation of an appropriate
                               name automatically. Name is primarily intended for creation
                               idempotence and configuration definition. Cannot be
-                              updated. More info: http://kubernetes.io/docs/user-guide/identifiers#names'
+                              updated. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names'
                             type: string
                         type: object
                       spec:
@@ -6221,7 +6221,7 @@ spec:
                             medium EmptyDir would be the minimum value between the
                             SizeLimit specified here and the sum of memory limits
                             of all containers in a pod. The default is nil which means
-                            that the limit is undefined. More info: http://kubernetes.io/docs/user-guide/volumes#emptydir'
+                            that the limit is undefined. More info: https://kubernetes.io/docs/concepts/storage/volumes/#emptydir'
                           pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                           x-kubernetes-int-or-string: true
                       type: object

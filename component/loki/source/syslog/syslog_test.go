@@ -5,26 +5,26 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
-	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/regexp"
 	"github.com/phayes/freeport"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
 )
 
 func Test(t *testing.T) {
-	// Create opts for component
-	l, err := logging.New(os.Stderr, logging.DefaultOptions)
-	require.NoError(t, err)
-
-	opts := component.Options{Logger: l}
+	opts := component.Options{
+		Logger:        util.TestFlowLogger(t),
+		Registerer:    prometheus.NewRegistry(),
+		OnStateChange: func(e component.Exports) {},
+	}
 
 	ch1, ch2 := make(chan loki.Entry), make(chan loki.Entry)
 	args := Arguments{}
@@ -102,11 +102,11 @@ func Test(t *testing.T) {
 }
 
 func TestWithRelabelRules(t *testing.T) {
-	// Create opts for component.
-	l, err := logging.New(os.Stderr, logging.DefaultOptions)
-	require.NoError(t, err)
-
-	opts := component.Options{Logger: l}
+	opts := component.Options{
+		Logger:        util.TestFlowLogger(t),
+		Registerer:    prometheus.NewRegistry(),
+		OnStateChange: func(e component.Exports) {},
+	}
 
 	ch1 := make(chan loki.Entry)
 	args := Arguments{}

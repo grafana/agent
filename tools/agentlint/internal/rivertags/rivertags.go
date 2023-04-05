@@ -18,7 +18,12 @@ var Analyzer = &analysis.Analyzer{
 }
 
 var noLintRegex = regexp.MustCompile(`//\s*nolint:(\S+)`)
-var riverTagRegex = regexp.MustCompile(`river:"([^"]*)"`)
+
+var (
+	riverTagRegex = regexp.MustCompile(`river:"([^"]*)"`)
+	jsonTagRegex  = regexp.MustCompile(`json:"([^"]*)"`)
+	yamlTagRegex  = regexp.MustCompile(`yaml:"([^"]*)"`)
+)
 
 // Rules for river tag linting:
 //
@@ -48,6 +53,16 @@ func run(p *analysis.Pass) (interface{}, error) {
 		sNode := sInfo.Node
 		s := sInfo.Type
 
+		var hasRiverTags bool
+
+		for i := 0; i < s.NumFields(); i++ {
+			matches := riverTagRegex.FindAllStringSubmatch(s.Tag(i), -1)
+			if len(matches) > 0 {
+				hasRiverTags = true
+				break
+			}
+		}
+
 	NextField:
 		for i := 0; i < s.NumFields(); i++ {
 			field := s.Field(i)
@@ -63,7 +78,22 @@ func run(p *analysis.Pass) (interface{}, error) {
 			}
 
 			matches := riverTagRegex.FindAllStringSubmatch(s.Tag(i), -1)
-			if len(matches) == 0 {
+			if len(matches) == 0 && hasRiverTags {
+				// If this struct has River tags, but this field only has json/yaml
+				// tags, emit an error.
+				jsonMatches := jsonTagRegex.FindAllStringSubmatch(s.Tag(i), -1)
+				yamlMatches := yamlTagRegex.FindAllStringSubmatch(s.Tag(i), -1)
+
+				if len(jsonMatches) > 0 || len(yamlMatches) > 0 {
+					p.Report(analysis.Diagnostic{
+						Pos:      field.Pos(),
+						Category: "rivertags",
+						Message:  "field has yaml or json tags, but no river tags",
+					})
+				}
+
+				continue
+			} else if len(matches) == 0 {
 				continue
 			} else if len(matches) > 1 {
 				p.Report(analysis.Diagnostic{
@@ -225,8 +255,8 @@ func lintRiverTag(ty *types.Var, tag string) (diagnostics []string) {
 		}
 
 		innerTy := getInnermostType(ty.Type())
-		if _, ok := innerTy.(*types.Struct); !ok {
-			diagnostics = append(diagnostics, "block fields must be a struct or a slice of structs")
+		if !isStructType(innerTy) && !isStringMap(innerTy) && !isEmptyInterface(innerTy) {
+			diagnostics = append(diagnostics, "block fields must be an interface{}, map[string]T, a struct, or a slice of structs")
 		}
 
 	case "enum", "enum,optional":
@@ -294,4 +324,28 @@ func validateFieldName(name string) (diagnostics []string) {
 	}
 
 	return
+}
+
+func isStructType(ty types.Type) bool {
+	_, ok := ty.(*types.Struct)
+	return ok
+}
+
+func isStringMap(ty types.Type) bool {
+	mapType, ok := ty.(*types.Map)
+	if !ok {
+		return false
+	}
+	if basic, ok := mapType.Key().(*types.Basic); ok {
+		return basic.Kind() == types.String
+	}
+	return false
+}
+
+func isEmptyInterface(ty types.Type) bool {
+	ifaceType, ok := ty.(*types.Interface)
+	if !ok {
+		return false
+	}
+	return ifaceType.Empty()
 }

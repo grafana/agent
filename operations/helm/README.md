@@ -14,5 +14,5 @@ folder, call `make generate-helm-tests` from the root of the repository.
 `charts/grafana-agent/tests` and generate each one as a separate directory.
 
 When modifying the Helm charts, `make generate-helm-tests` must be run before
-submitting a PR, as a linter check will ensure that this directory is up to
-date.
+submitting a PR, as a linter check will ensure that this directory is
+up-to-date.
