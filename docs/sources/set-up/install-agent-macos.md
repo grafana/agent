@@ -33,8 +33,13 @@ Use Homebrew to install the most recent released version of Grafana using the Ho
     ```
 
 1. Modify `config.yml` with your configuration requirements. 
+    
+    ```
+    vi $(brew --prefix)/etc/grafana-agent/config.yml
+    ```
 
     See [Configure Grafana Agent for details]({{< relref "../configuration/" >}}). 
+    
   
 1. Start Grafana Agent using the command:
 
