@@ -1,6 +1,13 @@
 # Create Prometheus Exporter Flow Components
 
-This guide will walk you through the process of creating a new Prometheus exporter Flow component and best practices for implementing it. It is required that the exporter has an existing integration in order to wrap it as a Flow component.
+This guide will walk you through the process of creating a new Prometheus exporter Flow component and best practices for implementing it. 
+
+It is required that the exporter has an existing integration in order to wrap it as a Flow component. In the future, we will drop this requirement and Flow components will expose the logic of the exporter directly.
+
+Use the following exporters as a reference:
+- [process_exporter](../../component/prometheus/exporter/process/process.go) - [documentation](../sources/flow/reference/components/prometheus.exporter.process.md)
+- [blackbox_exporter](../../component/prometheus/exporter/blackbox/blackbox.go) - [documentation](../sources/flow/reference/components/prometheus.exporter.blackbox.md)
+- [node_exporter](../../component/prometheus/exporter/unix/unix.go) - [documentation](../sources/flow/reference/components/prometheus.exporter.unix.md)
 
 ## Arguments (Configuration)
 
@@ -54,6 +61,9 @@ prometheus.exporter.blackbox "example" {
 
 - Define a `Convert` function to convert nested structs to the ones that the integration uses. Please, also add a test to validate the conversion covering as many cases as possible.
 
+## Registering the component
+
+In order to make the component visible for Agent Flow, it needs to be added to [all.go](../../component/all/all.go) file.
 
 ## Documentation
 
