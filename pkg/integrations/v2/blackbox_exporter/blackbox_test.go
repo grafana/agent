@@ -32,10 +32,10 @@ func TestBlackbox(t *testing.T) {
 				Module: "icmp_ipv4",
 			}},
 		}
-		integation, err := c.NewIntegration(nil, integrations_v2.Globals{})
+		integration, err := c.NewIntegration(nil, integrations_v2.Globals{})
 		require.NoError(t, err)
 
-		i := integation.(integrations.MetricsIntegration)
+		i := integration.(integrations.MetricsIntegration)
 		actual := i.Targets(integrations.Endpoint{Host: "test", Prefix: "/test/"})
 		expect := []*targetgroup.Group{{
 			Source: "blackbox/blackbox",

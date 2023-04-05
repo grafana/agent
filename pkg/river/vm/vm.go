@@ -255,7 +255,7 @@ func (vm *Evaluator) evaluateBlockLabel(node *ast.BlockStmt, tfs []rivertags.Fie
 }
 
 // prepareDecodeValue prepares v for decoding. Pointers will be fully
-// deferenced until finding a non-pointer value. nil pointers will be
+// dereferenced until finding a non-pointer value. nil pointers will be
 // allocated.
 func prepareDecodeValue(v reflect.Value) reflect.Value {
 	for v.Kind() == reflect.Pointer {
@@ -441,7 +441,7 @@ type Scope struct {
 	// Variables holds the list of available variable names that can be used when
 	// evaluating a node.
 	//
-	// Values in the Variables map should considered immutable after passed to
+	// Values in the Variables map should be considered immutable after passed to
 	// Evaluate; maps and slices will be copied by reference for performance
 	// optimizations.
 	Variables map[string]interface{}

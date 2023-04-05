@@ -59,7 +59,7 @@ local _config = config._config;
             },
             annotations: {
               message: |||
-                Load balacing is experiencing {{ printf "%.2f" $value }}% errors.
+                Load balancing is experiencing {{ printf "%.2f" $value }}% errors.
               |||,
             },
           },
@@ -358,7 +358,7 @@ local _config = config._config;
             },
             annotations: {
               message: |||
-                 Instance {{ $labels.instance }} failed to succesfully reload the config.
+                 Instance {{ $labels.instance }} failed to successfully reload the config.
               |||,
             },
           },
@@ -373,7 +373,7 @@ local _config = config._config;
             },
             annotations: {
               message: |||
-                 Instance {{ $labels.instance }} failed to succesfully reload the config.
+                 Instance {{ $labels.instance }} failed to successfully reload the config.
               |||,
             },
           },

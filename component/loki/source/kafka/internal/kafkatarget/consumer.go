@@ -71,7 +71,7 @@ func (c *consumer) start(ctx context.Context, topics []string) {
 				if backoff.Ongoing() {
 					continue
 				}
-				level.Error(c.logger).Log("msg", "maximun error from the consumer reached", "last_err", err)
+				level.Error(c.logger).Log("msg", "maximum error from the consumer reached", "last_err", err)
 				return
 			}
 			if c.ctx.Err() != nil || err == context.Canceled {

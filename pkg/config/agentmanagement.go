@@ -21,6 +21,7 @@ import (
 )
 
 const cacheFilename = "remote-config-cache.yaml"
+const apiPath = "/agent-management/api/agent/v2"
 
 type remoteConfigProvider interface {
 	GetCachedRemoteConfig() ([]byte, error)
@@ -157,7 +158,7 @@ type RemoteConfiguration struct {
 
 type AgentManagementConfig struct {
 	Enabled         bool             `yaml:"-"` // Derived from enable-features=agent-management
-	Url             string           `yaml:"api_url"`
+	Host            string           `yaml:"host"`
 	BasicAuth       config.BasicAuth `yaml:"basic_auth"`
 	Protocol        string           `yaml:"protocol"`
 	PollingInterval time.Duration    `yaml:"polling_interval"`
@@ -169,17 +170,17 @@ type AgentManagementConfig struct {
 // getRemoteConfig gets the remote config specified in the initial config, falling back to a local, cached copy
 // of the remote config if the request to the remote fails. If both fail, an empty config and an
 // error will be returned.
-func getRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, log *server.Logger, fs *flag.FlagSet, args []string, configPath string) (*Config, error) {
+func getRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, log *server.Logger, fs *flag.FlagSet) (*Config, error) {
 	remoteConfigBytes, err := configProvider.FetchRemoteConfig()
 	if err != nil {
 		level.Error(log).Log("msg", "could not fetch from API, falling back to cache", "err", err)
-		return getCachedRemoteConfig(expandEnvVars, configProvider, fs, args, configPath, log)
+		return getCachedRemoteConfig(expandEnvVars, configProvider, fs, log)
 	}
 
-	config, err := loadRemoteConfig(remoteConfigBytes, expandEnvVars, fs, args, configPath)
+	config, err := loadRemoteConfig(remoteConfigBytes, expandEnvVars, fs)
 	if err != nil {
 		level.Error(log).Log("msg", "could not load remote config, falling back to cache", "err", err)
-		return getCachedRemoteConfig(expandEnvVars, configProvider, fs, args, configPath, log)
+		return getCachedRemoteConfig(expandEnvVars, configProvider, fs, log)
 	}
 
 	level.Info(log).Log("msg", "fetched and loaded remote config from API")
@@ -191,18 +192,18 @@ func getRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, lo
 }
 
 // getCachedRemoteConfig gets the cached remote config, falling back to the default config if the cache is invalid or not found.
-func getCachedRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, fs *flag.FlagSet, args []string, configPath string, log *server.Logger) (*Config, error) {
+func getCachedRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, fs *flag.FlagSet, log *server.Logger) (*Config, error) {
 	rc, err := configProvider.GetCachedRemoteConfig()
 	if err != nil {
 		level.Error(log).Log("msg", "could not get cached remote config, falling back to DefaultConfig", "err", err)
 		d := DefaultConfig()
 		return &d, nil
 	}
-	return loadRemoteConfig(rc, expandEnvVars, fs, args, configPath)
+	return loadRemoteConfig(rc, expandEnvVars, fs)
 }
 
 // loadRemoteConfig parses and validates the remote config, both syntactically and semantically.
-func loadRemoteConfig(remoteConfigBytes []byte, expandEnvVars bool, fs *flag.FlagSet, args []string, configPath string) (*Config, error) {
+func loadRemoteConfig(remoteConfigBytes []byte, expandEnvVars bool, fs *flag.FlagSet) (*Config, error) {
 	expandedRemoteConfigBytes, err := performEnvVarExpansion(remoteConfigBytes, expandEnvVars)
 	if err != nil {
 		instrumentation.InstrumentInvalidRemoteConfig("env_var_expansion")
@@ -221,11 +222,6 @@ func loadRemoteConfig(remoteConfigBytes []byte, expandEnvVars bool, fs *flag.Fla
 		return nil, fmt.Errorf("could not build agent config: %w", err)
 	}
 
-	// this is done in order to validate the config semantically
-	if err = applyIntegrationValuesFromFlagset(fs, args, configPath, config); err != nil {
-		instrumentation.InstrumentInvalidRemoteConfig("invalid_integrations_config")
-		return nil, fmt.Errorf("could not load integrations from config: %w", err)
-	}
 	if err = config.Validate(fs); err != nil {
 		instrumentation.InstrumentInvalidRemoteConfig("semantically_invalid_agent_config")
 		return nil, fmt.Errorf("semantically invalid config received from the API: %w", err)
@@ -237,7 +233,7 @@ func loadRemoteConfig(remoteConfigBytes []byte, expandEnvVars bool, fs *flag.Fla
 // specified in c.AgentManagement
 func newRemoteConfigProvider(c *Config) (*remoteConfigHTTPProvider, error) {
 	switch p := c.AgentManagement.Protocol; {
-	case p == "http":
+	case p == "https" || p == "http":
 		return newRemoteConfigHTTPProvider(c)
 	default:
 		return nil, fmt.Errorf("unsupported protocol for agent management api: %s", p)
@@ -247,7 +243,7 @@ func newRemoteConfigProvider(c *Config) (*remoteConfigHTTPProvider, error) {
 // fullUrl creates and returns the URL that should be used when querying the Agent Management API,
 // including the namespace, base config id, and any labels that have been specified.
 func (am *AgentManagementConfig) fullUrl() (string, error) {
-	fullPath, err := url.JoinPath(am.Url, "namespace", am.RemoteConfiguration.Namespace, "remote_config")
+	fullPath, err := url.JoinPath(am.Protocol+"://", am.Host, apiPath, "namespace", am.RemoteConfiguration.Namespace, "remote_config")
 	if err != nil {
 		return "", fmt.Errorf("error trying to join url: %w", err)
 	}

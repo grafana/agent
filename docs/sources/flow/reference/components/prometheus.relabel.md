@@ -143,7 +143,7 @@ metric_a{host = "cluster_b/production",  __address__ = "cluster_a", instance = "
 
 On the second relabeling rule, the `keep` action only keeps the metrics whose
 `app` label matches `regex`, dropping everything else, so the list of metrics
-is be trimmed down to:
+is trimmed down to:
 
 ```
 metric_a{host = "localhost/development", __address__ = "localhost", instance = "development", app = "backend"}  2

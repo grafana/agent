@@ -175,7 +175,7 @@ func WaitReady(ctx context.Context, cli client.Client, obj client.Object, bc bac
 	return bo.Err()
 }
 
-// Wait calls done until ctx is caneled or check returns nil. Returns an error
+// Wait calls done until ctx is canceled or check returns nil. Returns an error
 // if ctx is canceled.
 func Wait(ctx context.Context, l log.Logger, check func() error) error {
 	bo := backoff.New(ctx, DefaultBackoff)

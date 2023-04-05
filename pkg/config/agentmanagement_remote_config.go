@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
@@ -30,6 +31,9 @@ type (
 
 		// LogsScrapeConfigs is a YAML containing list of logs scrape configs.
 		LogsScrapeConfigs []scrapeconfig.Config `yaml:"logs_scrape_configs,omitempty"`
+
+		// IntegrationConfigs is a YAML containing list of integrations.
+		IntegrationConfigs integrations.ManagerConfig `yaml:"integration_configs,omitempty"`
 	}
 )
 
@@ -49,6 +53,12 @@ func (rc *RemoteConfig) BuildAgentConfig() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// For now Agent Management only supports integrations v1
+	if err := c.Integrations.setVersion(integrationsVersion1); err != nil {
+		return nil, err
+	}
+
 	err = appendSnippets(&c, rc.Snippets)
 	if err != nil {
 		return nil, err
@@ -58,12 +68,13 @@ func (rc *RemoteConfig) BuildAgentConfig() (*Config, error) {
 
 func appendSnippets(c *Config, snippets []Snippet) error {
 	metricsConfigs := instance.DefaultConfig
-	metricsConfigs.Name = "Metrics Snippets"
+	metricsConfigs.Name = "snippets"
 	logsConfigs := logs.InstanceConfig{
-		Name:         "Logs Snippets",
+		Name:         "snippets",
 		ScrapeConfig: []scrapeconfig.Config{},
 	}
 	logsConfigs.Initialize()
+	integrationConfigs := integrations.DefaultManagerConfig()
 
 	for _, snippet := range snippets {
 		var snippetContent SnippetContent
@@ -73,6 +84,7 @@ func appendSnippets(c *Config, snippets []Snippet) error {
 		}
 		metricsConfigs.ScrapeConfigs = append(metricsConfigs.ScrapeConfigs, snippetContent.MetricsScrapeConfigs...)
 		logsConfigs.ScrapeConfig = append(logsConfigs.ScrapeConfig, snippetContent.LogsScrapeConfigs...)
+		integrationConfigs.Integrations = append(integrationConfigs.Integrations, snippetContent.IntegrationConfigs.Integrations...)
 	}
 	if len(metricsConfigs.ScrapeConfigs) > 0 {
 		c.Metrics.Configs = append(c.Metrics.Configs, metricsConfigs)
@@ -87,5 +99,7 @@ func appendSnippets(c *Config, snippets []Snippet) error {
 		}
 		c.Logs.Configs = append(c.Logs.Configs, &logsConfigs)
 	}
+
+	c.Integrations.configV1.Integrations = append(c.Integrations.configV1.Integrations, integrationConfigs.Integrations...)
 	return nil
 }

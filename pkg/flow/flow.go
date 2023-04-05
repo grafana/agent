@@ -299,7 +299,7 @@ func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *ComponentInfo 
 	referencedBy := make([]string, 0)
 	for _, e := range edges {
 		// Skip over any edge which isn't between two component nodes. This is a
-		// temporary workaround needed until there's the conept of configuration
+		// temporary workaround needed until there's the concept of configuration
 		// blocks from the API.
 		//
 		// Without this change, the graph fails to render when a configuration

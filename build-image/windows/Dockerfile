@@ -38,3 +38,10 @@ RUN choco install git --version 2.39.0 -y
 # yarn - installs node dependencies
 RUN choco install nodejs.install --version 19.2.0 -y
 RUN choco install yarn --version 1.22.19 -y
+
+# Git tries to prevent misuse of repositories (CVE-2022-24765), but we don't
+# care about this for build containers, where it's expected that the repository
+# will be accessed by other users (the root user of the build container).
+#
+# Disable that safety check.
+RUN git config --global --add safe.directory \*

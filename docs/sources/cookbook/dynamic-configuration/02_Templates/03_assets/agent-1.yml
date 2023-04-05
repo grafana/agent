@@ -11,7 +11,7 @@ metrics:
           password: secretpassword
   configs:
     - name: default
-      # Check for length so that if it is 0, we dont write any scrape configs
+      # Check for length so that if it is 0, we don't write any scrape configs
   {{ if $length := len (datasource "computers") }}
   {{ if gt $length 0 }}
       scrape_configs:

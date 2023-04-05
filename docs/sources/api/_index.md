@@ -42,7 +42,7 @@ properly:
 ```
 
 Status will be either `success` or `error`. All 2xx responses will be
-accompanied with a `success` value for the status field. 4xx and 5xx
+accompanied by a `success` value for the status field. 4xx and 5xx
 responses will provide a value of `error`. All requests may potentially
 return 500 on an internal error. Other non-500 responses will be documented
 per API.
@@ -356,7 +356,7 @@ GET /-/config
 
 This endpoint prints out the currently loaded configuration the Agent is using.
 The returned YAML has defaults applied, and only shows changes to the state that
-validated successfuly, so the results will not identically match the
+validated successfully, so the results will not identically match the
 configuration file on disk.
 
 Status code: 200 on success.

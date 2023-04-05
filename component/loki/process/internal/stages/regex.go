@@ -82,7 +82,7 @@ func parseRegexConfig(config interface{}) (*RegexConfig, error) {
 // Process implements Stage
 func (r *regexStage) Process(labels model.LabelSet, extracted map[string]interface{}, t *time.Time, entry *string) {
 	// If a source key is provided, the regex stage should process it
-	// from the extracted map, otherwise should fallback to the entry
+	// from the extracted map, otherwise should fall back to the entry
 	input := entry
 
 	if r.config.Source != nil {

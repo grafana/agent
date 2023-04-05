@@ -55,7 +55,7 @@ of conflicts, it takes precedence over `enable_collectors`.
 
 ## Blocks
 
-The following blocks are supported inside the definiton of
+The following blocks are supported inside the definition of
 `prometheus.exporter.unix` to configure collector-specific options:
 
 Hierarchy | Name | Description | Required

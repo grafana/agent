@@ -25,7 +25,7 @@ import (
 	"go.uber.org/atomic"
 )
 
-// The minimun window size is 1 minute.
+// The minimum window size is 1 minute.
 const minDelay = time.Minute
 
 var cloudflareTooEarlyError = regexp.MustCompile(`too early: logs older than \S+ are not available`)
@@ -116,8 +116,8 @@ func (t *Target) start() {
 			}
 			start := end.Add(-time.Duration(t.config.PullRange))
 			requests := splitRequests(start, end, t.config.Workers)
-			// Use background context for workers as we don't want to cancel half way through.
-			// In case of errors we stop the target, each worker has it's own retry logic.
+			// Use background context for workers as we don't want to cancel halfway through.
+			// In case of errors we stop the target, each worker has its own retry logic.
 			if err := concurrency.ForEachJob(context.Background(), len(requests), t.config.Workers, func(ctx context.Context, idx int) error {
 				request := requests[idx]
 				return t.pull(ctx, request.start, request.end)

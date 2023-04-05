@@ -2,29 +2,31 @@
 
 set +x
 
-CHART_PATH="charts/grafana-agent"
-OUTPUT_PATH="tests"
+# Find `ci` directories
+for chart_file in $(find * -name Chart.yaml -print | sort); do
+  # Find chart
+  CHART_DIR=$(dirname ${chart_file})
+  CHART_NAME=$(basename ${CHART_DIR})
+  TEST_DIR="${CHART_DIR}/../../tests" # We should append "/${CHART_NAME}" if we ever have more charts here
 
-CHART_PATH_FROM_REPO_ROOT="operations/helm/${CHART_PATH}"
-OUTPUT_PATH_FROM_REPO_ROOT="operations/helm/${OUTPUT_PATH}"
+  if [ -d "${CHART_DIR}/ci" ]; then
+    # tests directory is outside of the `charts` folder
+    rm -rf ${TEST_DIR}
+    mkdir -p ${TEST_DIR}
+    for FILE_PATH in $(find ${CHART_DIR}/ci -name "*-values.yaml" -type f); do
+      FILENAME=$(basename ${FILE_PATH})
+      TESTNAME=${FILENAME%-values.yaml}
+      # Render chart
+      helm template --namespace default --debug ${CHART_NAME} ${CHART_DIR} -f ${FILE_PATH} --output-dir ${TEST_DIR}/${TESTNAME} --set '$chart_tests=true'
+    done
+  fi
+done
 
 CURRENT_DIR_NAME=${PWD##*/}
+HELM_DIR="operations/helm"
 
-if [ $CURRENT_DIR_NAME != "helm" ]
+if [ "${CURRENT_DIR_NAME}" == "helm" ]
 then
-  CHART_PATH=$CHART_PATH_FROM_REPO_ROOT
-  OUTPUT_PATH=$OUTPUT_PATH_FROM_REPO_ROOT
+  HELM_DIR="."
 fi
-
-rm -rf $OUTPUT_PATH
-
-CHART_NAME=$(basename $CHART_PATH)
-TESTS=$(find "${CHART_PATH}/tests" -name "*.values.yaml")
-
-for FILEPATH in $TESTS; do
-  FILENAME=$(basename $FILEPATH)
-  TESTNAME=${FILENAME%.values.yaml}
-
-  echo "Render with file ${FILEPATH}"
-  helm template --namespace default --debug ${CHART_NAME} ${CHART_PATH} -f ${FILEPATH} --output-dir ${OUTPUT_PATH}/${TESTNAME} --set '$chart_tests=true'
-done
+  yamllint --config-file=${HELM_DIR}/lintconf.yaml ${HELM_DIR}/tests

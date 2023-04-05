@@ -36,7 +36,7 @@ func (f *fakeTarget) Labels() model.LabelSet           { return f.lbs }
 func (f *fakeTarget) Ready() bool                      { return true }
 func (f *fakeTarget) Details() interface{}             { return nil }
 
-func Test_ComsumerConsume(t *testing.T) {
+func Test_ConsumerConsume(t *testing.T) {
 	var (
 		group       = &testConsumerGroupHandler{}
 		session     = &testSession{}
@@ -87,7 +87,7 @@ func Test_ComsumerConsume(t *testing.T) {
 	c.stop()
 }
 
-func Test_ComsumerRetry(t *testing.T) {
+func Test_ConsumerRetry(t *testing.T) {
 	var (
 		group = &testConsumerGroupHandler{
 			returnErr: errors.New("foo"),

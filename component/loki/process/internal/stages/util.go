@@ -135,7 +135,7 @@ func convertDateLayout(predef string, location *time.Location) parser {
 
 // parseTimestampWithoutYear parses the input timestamp without the year component,
 // assuming the timestamp is related to a point in time close to "now", and correctly
-// handling the edge cases around new year's eve
+// handling the edge cases around New Year's Eve
 func parseTimestampWithoutYear(layout string, location *time.Location, timestamp string, now time.Time) (time.Time, error) {
 	var parsedTime time.Time
 	var err error
@@ -154,7 +154,7 @@ func parseTimestampWithoutYear(layout string, location *time.Location, timestamp
 		return parsedTime, fmt.Errorf(ErrTimestampContainsYear, timestamp)
 	}
 
-	// Handle the case we're crossing the new year's eve midnight
+	// Handle the case we're crossing the New Year's Eve midnight
 	if parsedTime.Month() == 12 && now.Month() == 1 {
 		parsedTime = parsedTime.AddDate(now.Year()-1, 0, 0)
 	} else if parsedTime.Month() == 1 && now.Month() == 12 {

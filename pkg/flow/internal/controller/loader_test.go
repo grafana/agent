@@ -41,7 +41,7 @@ func TestLoader(t *testing.T) {
 			level = "debug"
 			format = "logfmt"
 		}
-		
+
 		tracing {
 			sampling_fraction = 1
 		}
@@ -77,6 +77,13 @@ func TestLoader(t *testing.T) {
 	t.Run("New Graph", func(t *testing.T) {
 		l := controller.NewLoader(newGlobals())
 		diags := applyFromContent(t, l, []byte(testFile), []byte(testConfig))
+		require.NoError(t, diags.ErrorOrNil())
+		requireGraph(t, l.Graph(), testGraphDefinition)
+	})
+
+	t.Run("New Graph No Config", func(t *testing.T) {
+		l := controller.NewLoader(newGlobals())
+		diags := applyFromContent(t, l, []byte(testFile), nil)
 		require.NoError(t, diags.ErrorOrNil())
 		requireGraph(t, l.Graph(), testGraphDefinition)
 	})

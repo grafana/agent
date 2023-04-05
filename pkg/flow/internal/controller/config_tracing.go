@@ -12,7 +12,6 @@ import (
 )
 
 type TracingConfigNode struct {
-	label         string
 	nodeID        string
 	componentName string
 	traceProvider trace.TracerProvider // Tracer shared between all managed components.
@@ -39,7 +38,6 @@ func NewTracingConfigNode(block *ast.BlockStmt, globals ComponentGlobals, isInMo
 	}
 
 	return &TracingConfigNode{
-		label:         block.Label,
 		nodeID:        BlockComponentID(block).String(),
 		componentName: block.GetBlockName(),
 		traceProvider: globals.TraceProvider,
@@ -47,6 +45,19 @@ func NewTracingConfigNode(block *ast.BlockStmt, globals ComponentGlobals, isInMo
 		block: block,
 		eval:  vm.New(block.Body),
 	}, diags
+}
+
+// NewDefaulTracingConfigNode creates a new TracingConfigNode with nil block and eval.
+// This will force evaluate to use the default tracing options for this node.
+func NewDefaulTracingConfigNode(globals ComponentGlobals) *TracingConfigNode {
+	return &TracingConfigNode{
+		nodeID:        tracingBlockID,
+		componentName: tracingBlockID,
+		traceProvider: globals.TraceProvider,
+
+		block: nil,
+		eval:  nil,
+	}
 }
 
 // Evaluate implements BlockNode and updates the arguments for the managed config block
@@ -59,8 +70,10 @@ func (cn *TracingConfigNode) Evaluate(scope *vm.Scope) error {
 	cn.mut.RLock()
 	defer cn.mut.RUnlock()
 	args := tracing.DefaultOptions
-	if err := cn.eval.Evaluate(scope, &args); err != nil {
-		return fmt.Errorf("decoding River: %w", err)
+	if cn.eval != nil {
+		if err := cn.eval.Evaluate(scope, &args); err != nil {
+			return fmt.Errorf("decoding River: %w", err)
+		}
 	}
 
 	t, ok := cn.traceProvider.(*tracing.Tracer)
@@ -70,6 +83,7 @@ func (cn *TracingConfigNode) Evaluate(scope *vm.Scope) error {
 			return fmt.Errorf("could not update tracer: %v", err)
 		}
 	}
+
 	return nil
 }
 

@@ -190,7 +190,7 @@ func TestPushTarget(t *testing.T) {
 
 			waitForMessages(eh)
 
-			// Make sure we didn't timeout
+			// Make sure we didn't time out
 			require.Equal(t, 1, len(eh.Received()))
 
 			require.Equal(t, len(eh.Received()), len(tc.expectedEntries), "expected to receive equal amount of expected label sets")
@@ -250,7 +250,7 @@ func TestPushTarget_UseIncomingTimestamp(t *testing.T) {
 
 	waitForMessages(eh)
 
-	// Make sure we didn't timeout
+	// Make sure we didn't time out
 	require.Equal(t, 1, len(eh.Received()))
 
 	expectedTs, err := time.Parse(time.RFC3339Nano, "2022-09-06T18:07:42.363113Z")
@@ -304,7 +304,7 @@ func TestPushTarget_UseTenantIDHeaderIfPresent(t *testing.T) {
 
 	waitForMessages(eh)
 
-	// Make sure we didn't timeout
+	// Make sure we didn't time out
 	require.Equal(t, 1, len(eh.Received()))
 
 	require.Equal(t, model.LabelValue("42"), eh.Received()[0].Labels[ReservedLabelTenantID])

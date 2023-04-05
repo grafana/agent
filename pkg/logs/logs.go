@@ -17,6 +17,8 @@ import (
 	"github.com/grafana/loki/clients/pkg/promtail/client"
 	"github.com/grafana/loki/clients/pkg/promtail/config"
 	"github.com/grafana/loki/clients/pkg/promtail/server"
+	"github.com/grafana/loki/clients/pkg/promtail/wal"
+	"github.com/grafana/loki/pkg/tracing"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/version"
 )
@@ -171,13 +173,16 @@ func (i *Instance) ApplyConfig(c *InstanceConfig, dryRun bool) error {
 		return nil
 	}
 
-	clientMetrics := client.NewMetrics(i.reg, nil)
+	clientMetrics := client.NewMetrics(i.reg)
 	p, err := promtail.New(config.Config{
 		ServerConfig:    server.Config{Disable: true},
 		ClientConfigs:   c.ClientConfigs,
 		PositionsConfig: c.PositionsConfig,
 		ScrapeConfig:    c.ScrapeConfig,
 		TargetConfig:    c.TargetConfig,
+		LimitsConfig:    c.LimitsConfig,
+		Tracing:         tracing.Config{Enabled: false},
+		WAL:             wal.Config{Enabled: false},
 	}, nil, clientMetrics, dryRun, promtail.WithLogger(i.log), promtail.WithRegisterer(i.reg))
 	if err != nil {
 		return fmt.Errorf("unable to create logs instance: %w", err)
