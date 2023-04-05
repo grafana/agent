@@ -1,4 +1,4 @@
-package podmonitors
+package common
 
 import (
 	"context"
@@ -19,7 +19,8 @@ import (
 	toolscache "k8s.io/client-go/tools/cache"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 
-	"github.com/grafana/agent/component/prometheus/operator/podmonitors/configgen"
+	"github.com/grafana/agent/component/prometheus/operator"
+	"github.com/grafana/agent/component/prometheus/operator/configgen"
 	compscrape "github.com/grafana/agent/component/prometheus/scrape"
 	promopv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -29,30 +30,30 @@ import (
 // Generous timeout period for configuring all informers
 const informerSyncTimeout = 10 * time.Second
 
-// crdManager is all of the fields required to run the component.
-// on update, this entire thing will be recreated and restarted
+// Manager is all of the fields required to run a crd based component.
+// on update, this entire thing should be recreated and restarted
 type crdManager struct {
 	mut              sync.Mutex
 	discoveryConfigs map[string]discovery.Configs
 	scrapeConfigs    map[string]*config.ScrapeConfig
-	debugInfo        map[string]*DiscoveredPodMonitor
+	debugInfo        map[string]*operator.DiscoveredPodMonitor
 	discoveryManager *discovery.Manager
 	scrapeManager    *scrape.Manager
 
 	opts      component.Options
 	logger    log.Logger
-	args      *Arguments
+	args      *operator.Arguments
 	configGen configgen.ConfigGenerator
 }
 
-func NewCRDManager(opts component.Options, logger log.Logger, args *Arguments) *crdManager {
+func newCrdManager(opts component.Options, logger log.Logger, args *operator.Arguments) *crdManager {
 	return &crdManager{
 		opts:             opts,
 		logger:           logger,
 		args:             args,
 		discoveryConfigs: map[string]discovery.Configs{},
 		scrapeConfigs:    map[string]*config.ScrapeConfig{},
-		debugInfo:        map[string]*DiscoveredPodMonitor{},
+		debugInfo:        map[string]*operator.DiscoveredPodMonitor{},
 	}
 }
 
@@ -105,7 +106,7 @@ func (c *crdManager) DebugInfo() interface{} {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 
-	var info DebugInfo
+	var info operator.DebugInfo
 	for _, pm := range c.debugInfo {
 		info.DiscoveredPodMonitors = append(info.DiscoveredPodMonitors, pm)
 	}
@@ -194,7 +195,7 @@ func (c *crdManager) configureInformers(ctx context.Context, informers cache.Inf
 	return nil
 }
 
-// apply applies the current state of the CRDManager to the Prometheus discovery manager and scrape manager.
+// apply applies the current state of the Manager to the Prometheus discovery manager and scrape manager.
 func (c *crdManager) apply() error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
@@ -221,7 +222,7 @@ func (c *crdManager) apply() error {
 func (c *crdManager) addDebugInfo(ns string, name string, err error) {
 	c.mut.Lock()
 	defer c.mut.Unlock()
-	debug := &DiscoveredPodMonitor{}
+	debug := &operator.DiscoveredPodMonitor{}
 	debug.Namespace = ns
 	debug.Name = name
 	debug.LastReconcile = time.Now()

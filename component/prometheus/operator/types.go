@@ -1,4 +1,4 @@
-package podmonitors
+package operator
 
 import (
 	"time"
