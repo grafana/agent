@@ -15,7 +15,7 @@ func TestUnmarshalRiver(t *testing.T) {
 		users = ["jcreixell"]
 		api_url = "https://some-other-api.github.com"
 `
-	var cfg Config
+	var cfg Arguments
 	err := river.Unmarshal([]byte(riverCfg), &cfg)
 	require.NoError(t, err)
 	require.Equal(t, "/etc/github-api-token", cfg.APITokenFile)
@@ -27,7 +27,7 @@ func TestUnmarshalRiver(t *testing.T) {
 }
 
 func TestConvert(t *testing.T) {
-	cfg := Config{
+	cfg := Arguments{
 		APITokenFile:  "/etc/github-api-token",
 		Repositories:  []string{"grafana/agent"},
 		Organizations: []string{"grafana", "prometheus"},

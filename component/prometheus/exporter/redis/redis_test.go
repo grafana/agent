@@ -39,11 +39,11 @@ func TestRiverUnmarshal(t *testing.T) {
 		skip_tls_verification       = false
 		is_cluster                  = true
 	`
-	var cfg Config
+	var cfg Arguments
 	err := river.Unmarshal([]byte(riverConfig), &cfg)
 
 	require.NoError(t, err)
-	expected := Config{
+	expected := Arguments{
 		RedisAddr:         "localhost:6379",
 		RedisUser:         "redis_user",
 		RedisPasswordFile: "/tmp/pass",
@@ -85,7 +85,7 @@ func TestUnmarshalInvalid(t *testing.T) {
 	redis_addr  = "localhost:1234"
 	script_path = "/tmp/metrics.lua"`
 
-	var cfg Config
+	var cfg Arguments
 	err := river.Unmarshal([]byte(validRiverConfig), &cfg)
 	require.NoError(t, err)
 
@@ -94,13 +94,13 @@ func TestUnmarshalInvalid(t *testing.T) {
 	script_path  = "/tmp/metrics.lua"
 	script_paths = ["/tmp/more-metrics.lua", "/tmp/even-more-metrics.lua"]`
 
-	var invalidCfg Config
+	var invalidCfg Arguments
 	err = river.Unmarshal([]byte(invalidRiverConfig), &invalidCfg)
 	require.Error(t, err)
 }
 
 func TestRiverConvert(t *testing.T) {
-	orig := Config{
+	orig := Arguments{
 		RedisAddr:         "localhost:6379",
 		RedisUser:         "redis_user",
 		RedisPasswordFile: "/tmp/pass",

@@ -24,7 +24,7 @@ func TestUnmarshalRiver(t *testing.T) {
 		}
 		probe_timeout_offset = "0.5s"
 `
-	var cfg Config
+	var cfg Arguments
 	err := river.Unmarshal([]byte(riverCfg), &cfg)
 	require.NoError(t, err)
 	require.Equal(t, "modules.yml", cfg.ConfigFile)
@@ -39,7 +39,7 @@ func TestUnmarshalRiver(t *testing.T) {
 }
 
 func TestConvertConfig(t *testing.T) {
-	cfg := Config{
+	cfg := Arguments{
 		ConfigFile:         "modules.yml",
 		Targets:            TargetBlock{{Name: "target_a", Target: "http://example.com", Module: "http_2xx"}},
 		ProbeTimeoutOffset: 1 * time.Second,
@@ -69,7 +69,7 @@ func TestConvertTargets(t *testing.T) {
 }
 
 func TestBuildBlackboxTargets(t *testing.T) {
-	cfg := Config{
+	cfg := Arguments{
 		ConfigFile:         "modules.yml",
 		Targets:            TargetBlock{{Name: "target_a", Target: "http://example.com", Module: "http_2xx"}},
 		ProbeTimeoutOffset: 1.0,

@@ -19,8 +19,8 @@ func init() {
 }
 
 func createExporter(opts component.Options, args component.Arguments) (integrations.Integration, error) {
-	cfg := args.(Arguments)
-	return cfg.Convert().NewIntegration(opts.Logger)
+	a := args.(Arguments)
+	return a.Convert().NewIntegration(opts.Logger)
 }
 
 // DefaultArguments holds the default settings for the mysqld_exporter integration.
@@ -115,8 +115,8 @@ type MySQLUser struct {
 func (c *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	*c = DefaultArguments
 
-	type cfg Arguments
-	return f((*cfg)(c))
+	type args Arguments
+	return f((*args)(c))
 }
 
 func (a *Arguments) Convert() *mysqld_exporter.Config {

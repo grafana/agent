@@ -39,7 +39,7 @@ func TestUnmarshalRiver(t *testing.T) {
 			}
 		}		
 `
-	var cfg Config
+	var cfg Arguments
 	err := river.Unmarshal([]byte(riverCfg), &cfg)
 	require.NoError(t, err)
 	require.Equal(t, "modules.yml", cfg.ConfigFile)
@@ -65,7 +65,7 @@ func TestUnmarshalRiver(t *testing.T) {
 }
 
 func TestConvertConfig(t *testing.T) {
-	cfg := Config{
+	cfg := Arguments{
 		ConfigFile: "modules.yml",
 		Targets:    TargetBlock{{Name: "network_switch_1", Target: "192.168.1.2", Module: "if_mib"}},
 		WalkParams: WalkParams{{Name: "public", Version: 2, Auth: Auth{Community: "public"}}},
@@ -133,7 +133,7 @@ func TestConvertAuth(t *testing.T) {
 }
 
 func TestBuildSNMPTargets(t *testing.T) {
-	cfg := Config{
+	cfg := Arguments{
 		ConfigFile: "modules.yml",
 		Targets:    TargetBlock{{Name: "network_switch_1", Target: "192.168.1.2", Module: "if_mib", WalkParams: "public"}},
 		WalkParams: WalkParams{{Name: "public", Version: 2, Auth: Auth{Community: "public"}}},
