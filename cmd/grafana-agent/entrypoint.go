@@ -105,7 +105,7 @@ func NewEntrypoint(logger *server.Logger, cfg *config.Config, reloader Reloader)
 
 	ep.wire(ep.srv.HTTP, ep.srv.GRPC)
 
-	// Mostly everything should be up to date except for the server, which hasn't
+	// Mostly everything should be up-to-date except for the server, which hasn't
 	// been created yet.
 	if err := ep.ApplyConfig(*cfg); err != nil {
 		return nil, err

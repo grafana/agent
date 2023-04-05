@@ -94,7 +94,7 @@ func (env *AgentEnvironment) TestInstall(t *testing.T) {
 	res = env.ExecScript(`[ -f /usr/bin/grafana-agentctl ]`)
 	require.Equal(t, 1, res.ExitCode, "expected grafana-agentctl to be uninstalled")
 	// NOTE(rfratto): we don't check for what happens to the config file here,
-	// sicne the behavior is inconsistent: rpm uninstalls it, but deb doesn't.
+	// since the behavior is inconsistent: rpm uninstalls it, but deb doesn't.
 }
 
 func (env *AgentEnvironment) TestConfigPersistence(t *testing.T) {

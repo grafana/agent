@@ -25,7 +25,7 @@ require (
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/cortexproject/cortex v1.11.0
 	github.com/davidmparrott/kafka_exporter/v2 v2.0.1
-	github.com/docker/docker v20.10.23+incompatible
+	github.com/docker/docker v20.10.24+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/drone/envsubst/v2 v2.0.0-20210730161058-179042472c46
 	github.com/fatih/color v1.14.1
@@ -345,7 +345,6 @@ require (
 	github.com/golang-sql/civil v0.0.0-20190719163853-cb61b32ac6fe // indirect
 	github.com/golang-sql/sqlexp v0.1.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
-	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/google/btree v1.1.2 // indirect
 	github.com/google/flatbuffers v2.0.8+incompatible // indirect
 	github.com/google/gnostic v0.6.9 // indirect
@@ -598,7 +597,10 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 )
 
-require github.com/efficientgo/tools/core v0.0.0-20220817170617-6c25e3b627dd // indirect
+require (
+	github.com/efficientgo/tools/core v0.0.0-20220817170617-6c25e3b627dd // indirect
+	github.com/gomodule/redigo v1.8.9 // indirect
+)
 
 // NOTE: replace directives below must always be *temporary*.
 //
@@ -657,9 +659,6 @@ replace (
 	// To be used until upstream PR of fixes is merged https://github.com/webdevops/azure-metrics-exporter/pull/41
 	github.com/webdevops/azure-metrics-exporter => github.com/kgeckhart/azure-metrics-exporter v0.0.0-20230124174512-16e25d5c8d3b
 )
-
-// Required for redis_exporter, which is incompatible with v2.0.0+incompatible.
-replace github.com/gomodule/redigo => github.com/gomodule/redigo v1.8.2
 
 // Excluding fixes a conflict in test packages and allows "go mod tidy" to run.
 exclude google.golang.org/grpc/examples v0.0.0-20200728065043-dfc0c05b2da9

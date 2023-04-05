@@ -162,7 +162,7 @@ To collect metrics from Kubernetes Pods, complete the following steps:
        }
        ```
 
-        1. If you do not want to search for Pods in the the Namespace Grafana
+        1. If you do not want to search for Pods in the Namespace Grafana
            Agent is running in, set `own_namespace` to `false`.
 
         2. Replace `NAMESPACE_NAMES` with a comma-delimited list of strings
@@ -306,7 +306,7 @@ To collect metrics from Kubernetes Services, complete the following steps:
        }
        ```
 
-        1. If you do not want to search for Services in the the Namespace Grafana
+        1. If you do not want to search for Services in the Namespace Grafana
            Agent is running in, set `own_namespace` to `false`.
 
         2. Replace `NAMESPACE_NAMES` with a comma-delimited list of strings

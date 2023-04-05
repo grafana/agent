@@ -1,5 +1,5 @@
 // Package config contains types from github.com/prometheus/common/config,
-// but modifiys them to be serializable with River.
+// but modifies them to be serializable with River.
 package config
 
 import (

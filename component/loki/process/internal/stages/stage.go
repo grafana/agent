@@ -211,7 +211,7 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 			return nil, err
 		}
 	default:
-		panic("unreacheable; should have decoded into one of the StageConfig fields")
+		panic("unreachable; should have decoded into one of the StageConfig fields")
 	}
 	return s, nil
 }

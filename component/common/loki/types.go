@@ -40,7 +40,7 @@ type InstrumentedEntryHandler interface {
 }
 
 // EntryHandler is something that can "handle" entries via a channel.
-// Stop must be called to gracefully shutdown the EntryHandler
+// Stop must be called to gracefully shut down the EntryHandler
 type EntryHandler interface {
 	Chan() chan<- Entry
 	Stop()
@@ -77,7 +77,7 @@ func (e entryHandler) Stop() {
 	e.stop()
 }
 
-// NewEntryHandler creates a new EntryHandler using a input channel and a stop function.
+// NewEntryHandler creates a new EntryHandler using an input channel and a stop function.
 func NewEntryHandler(entries chan<- Entry, stop func()) EntryHandler {
 	return entryHandler{
 		stop:    stop,

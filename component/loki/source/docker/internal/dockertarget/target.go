@@ -229,7 +229,7 @@ func (t *Target) process(r io.Reader, logStream string) {
 		// filtered labels, but with the default label set, as this is the one
 		// used to find the original read offset from the client. This might be
 		// problematic if we have the same container with a different set of
-		// labels (eg. duplicated and relabeled), but this shouldn't be the
+		// labels (e.g. duplicated and relabeled), but this shouldn't be the
 		// case anyway.
 		t.positions.Put(positions.CursorKey(t.containerName), t.labels.String(), ts.Unix())
 	}

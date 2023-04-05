@@ -66,7 +66,7 @@ configs:
 The `scraping_service` block configures the
 [scraping service]({{< relref "scraping-service/" >}}), an operational
 mode where configurations are stored centrally in a KV store and a cluster of
-agents distribute discovery and scrape load between nodes.
+agents distributes discovery and scrape load between nodes.
 
 ```yaml
 # Whether to enable scraping service mode. When enabled, local configs

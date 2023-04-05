@@ -28,7 +28,7 @@ type Arguments struct {
 	// Targets contains the input 'targets' passed by a service discovery component.
 	Targets []discovery.Target `river:"targets,attr"`
 
-	// The relabelling rules to apply to the each target's label set.
+	// The relabelling rules to apply to each target's label set.
 	RelabelConfigs []*flow_relabel.Config `river:"rule,block,optional"`
 }
 

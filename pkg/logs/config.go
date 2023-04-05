@@ -27,7 +27,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		return err
 	}
 
-	return c.ApplyDefaults()
+	return nil
 }
 
 // ApplyDefaults applies defaults to the Config and ensures that it is valid.

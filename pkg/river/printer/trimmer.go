@@ -52,7 +52,7 @@ func (t *trimmer) Write(data []byte) (n int, err error) {
 			case '\t', ' ':
 				t.space = append(t.space, b)
 			case '\n', '\f':
-				// Disard all unwritten whitespace before the end of the line and write
+				// Discard all unwritten whitespace before the end of the line and write
 				// a newline.
 				t.discardWhitespace()
 				_, err = t.next.Write([]byte("\n"))

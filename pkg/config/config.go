@@ -186,6 +186,12 @@ func (c *Config) Validate(fs *flag.FlagSet) error {
 		return err
 	}
 
+	if c.Logs != nil {
+		if err := c.Logs.ApplyDefaults(); err != nil {
+			return err
+		}
+	}
+
 	// Need to propagate the listen address to the host and grpcPort
 	_, grpcPort, err := c.ServerFlags.GRPC.ListenHostPort()
 	if err != nil {

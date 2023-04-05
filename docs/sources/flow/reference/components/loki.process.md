@@ -68,7 +68,7 @@ stage.tenant       | [stage.tenant][]        | Configures a `tenant` processing 
 stage.timestamp    | [stage.timestamp][]     | Configures a `timestamp` processing stage. | no
 
 A user can provide any number of these stage blocks nested inside
-`loki.process`; these will run in order of appearence in the configuration
+`loki.process`; these will run in order of appearance in the configuration
 file.
 
 [stage.cri]: #stagecri-block
@@ -1399,4 +1399,3 @@ loki.process "local" {
   }
 }
 ```
-

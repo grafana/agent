@@ -53,7 +53,7 @@ type Config struct {
 }
 
 // NewConfig creates a new Config and initializes default values.
-// Flags will be regsitered against f if it is non-nil.
+// Flags will be registered against f if it is non-nil.
 func NewConfig(f *flag.FlagSet) (*Config, error) {
 	if f == nil {
 		f = flag.NewFlagSet("temp", flag.PanicOnError)

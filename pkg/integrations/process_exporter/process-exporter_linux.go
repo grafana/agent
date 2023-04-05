@@ -23,7 +23,7 @@ type Integration struct {
 	collector *collector.NamedProcessCollector
 }
 
-// New creaets a new instance of the process_exporter integration.
+// New creates a new instance of the process_exporter integration.
 func New(logger log.Logger, c *Config) (*Integration, error) {
 	cfg, err := c.ProcessExporter.ToConfig()
 	if err != nil {

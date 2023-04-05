@@ -80,7 +80,7 @@ func (ht HealthType) MarshalText() (text []byte, err error) {
 	return []byte(ht.String()), nil
 }
 
-// UnmarshalText implments encoding.TextUnmarshaler.
+// UnmarshalText implements encoding.TextUnmarshaler.
 func (ht *HealthType) UnmarshalText(text []byte) error {
 	switch string(text) {
 	case "healthy":

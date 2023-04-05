@@ -17,7 +17,7 @@ type Node interface {
 	astNode()
 }
 
-// Stmt is a type of statement wthin the body of a file or block.
+// Stmt is a type of statement within the body of a file or block.
 type Stmt interface {
 	Node
 	astStmt()
@@ -148,7 +148,7 @@ type BinaryExpr struct {
 	Left, Right Expr
 }
 
-// ParenExpr represents an expression wrapped in parenthesis.
+// ParenExpr represents an expression wrapped in parentheses.
 type ParenExpr struct {
 	Inner                Expr
 	LParenPos, RParenPos token.Pos

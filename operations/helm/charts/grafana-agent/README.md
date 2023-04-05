@@ -46,7 +46,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | agent.configMap.key | string | `nil` | Key in ConfigMap to get config from. |
 | agent.configMap.name | string | `nil` | Name of existing ConfigMap to use. Used when create is false. |
 | agent.enableReporting | bool | `true` | Enables sending Grafana Labs anonymous usage stats to help improve Grafana Agent. |
-| agent.envFrom | list | `[]` | Maps all the keys on a ConfigMap or Secret as environement variables. https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#envfromsource-v1-core |
+| agent.envFrom | list | `[]` | Maps all the keys on a ConfigMap or Secret as environment variables. https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#envfromsource-v1-core |
 | agent.extraArgs | list | `[]` | Extra args to pass to `agent run`: https://grafana.com/docs/agent/latest/flow/reference/cli/run/ |
 | agent.extraEnv | list | `[]` | Extra environment variables to pass to the agent container. |
 | agent.extraPorts | list | `[]` | Extra ports to expose on the Agent |

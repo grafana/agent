@@ -106,7 +106,10 @@ Main (unreleased)
 - Fix issue where scraping native Prometheus histograms would leak memory.
   (@rfratto)
 
-- Fix issue where loki.source.docker component could deadlock. (@tpaschalis)
+- Flow: fix issue where `loki.source.docker` component could deadlock. (@tpaschalis)
+
+- Flow: fix issue where `prometheus.remote_write` created unnecessary extra
+  child directories to store the WAL in. (@rfratto)
 
 ### Other changes
 
@@ -1415,7 +1418,7 @@ v0.19.0 (2021-09-29)
 
 ### Features
 
-- Added [Github exporter](https://github.com/infinityworks/github-exporter)
+- Added [GitHub exporter](https://github.com/infinityworks/github-exporter)
   integration. (@rgeyer)
 
 - Add TLS config options for tempo `remote_write`s. (@mapno)
@@ -1535,7 +1538,7 @@ v0.18.0 (2021-07-29)
 
 ### Features
 
-- Added [Github exporter](https://github.com/infinityworks/github-exporter)
+- Added [GitHub exporter](https://github.com/infinityworks/github-exporter)
   integration. (@rgeyer)
 
 - Add support for OTLP HTTP trace exporting. (@mapno)
@@ -1621,7 +1624,7 @@ v0.15.0 (2021-06-03)
 - Update Loki dependency to d88f3996eaa2. This is a non-release build, and was
   needed to support exemplars. (@mapno)
 
-- Update Cortex dependency to to d382e1d80eaf. This is a non-release build, and
+- Update Cortex dependency to d382e1d80eaf. This is a non-release build, and
   was needed to support exemplars. (@mapno)
 
 ### Bugfixes
@@ -2078,7 +2081,7 @@ v0.7.0 (2020-10-23)
 - The instance label written from replace_instance_label can now be overwritten
   with relabel_configs. This bugfix slightly modifies the behavior of what data
   is stored. The final instance label will now be stored in the WAL rather than
-  computed by remote_write. This change should not negatively effect existing
+  computed by remote_write. This change should not negatively affect existing
   users. (@rfratto)
 
 v0.6.1 (2020-04-11)

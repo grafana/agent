@@ -1,6 +1,6 @@
 package file
 
-// This code is copied from Promtail to test their decompresser implementation
+// This code is copied from Promtail to test their decompressor implementation
 // of the reader interface.
 
 import (
@@ -97,7 +97,7 @@ func (c *fakeClient) Name() string {
 	return "fake"
 }
 
-// Clear is used to cleanup the buffered received entries, so the same client can be re-used between
+// Clear is used to clean up the buffered received entries, so the same client can be re-used between
 // test cases.
 func (c *fakeClient) Clear() {
 	c.mtx.Lock()

@@ -2,7 +2,7 @@ package river
 
 import "github.com/grafana/agent/pkg/river/internal/value"
 
-// Our types in this file are re-impelemntations of interfaces from
+// Our types in this file are re-implementations of interfaces from
 // value.Capsule. They are *not* defined as type aliases, since pkg.go.dev
 // would show the type alias instead of the contents of that type (which IMO is
 // a frustrating user experience).
@@ -64,7 +64,7 @@ type ConvertibleFromCapsule interface {
 }
 
 // ConvertibleIntoCapsule is a Capsule which supports custom conversion into
-// into any Go type which is not the same as the capsule type.
+// any Go type which is not the same as the capsule type.
 type ConvertibleIntoCapsule interface {
 	Capsule
 
