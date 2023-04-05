@@ -190,7 +190,7 @@ func (c *Component) readFile() error {
 	return nil
 }
 
-// Update implements component.Compnoent.
+// Update implements component.Component.
 func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 

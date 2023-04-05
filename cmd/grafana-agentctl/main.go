@@ -402,7 +402,7 @@ func operatorDetachCmd() *cobra.Command {
 						continue
 					}
 
-					level.Info(logger).Log("msg", "detatching ownerreferences for object", "resource", gvk.Kind, "namespace", obj.GetNamespace(), "name", obj.GetName())
+					level.Info(logger).Log("msg", "detaching ownerreferences for object", "resource", gvk.Kind, "namespace", obj.GetNamespace(), "name", obj.GetName())
 					obj.SetOwnerReferences(filtered)
 
 					if err := cli.Update(context.Background(), obj); err != nil {

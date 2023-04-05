@@ -174,7 +174,7 @@ func (c *Component) Run(ctx context.Context) error {
 
 			// The timestamp ts is used to determine which series are not receiving
 			// samples and may be deleted from the WAL. Their most recent append
-			// timestamp is compared to ts, and if that timestamp is older then ts,
+			// timestamp is compared to ts, and if that timestamp is older than ts,
 			// they are considered inactive and may be deleted.
 			//
 			// Subtracting a duration from ts will delay when it will be considered

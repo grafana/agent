@@ -40,7 +40,7 @@ agent:
   # -- Extra environment variables to pass to the agent container.
   extraEnv: []
 
-  # -- Maps all the keys on a ConfigMap or Secret as environement variables. https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#envfromsource-v1-core
+  # -- Maps all the keys on a ConfigMap or Secret as environment variables. https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#envfromsource-v1-core
   envFrom: []
 
   # -- Extra args to pass to `agent run`: https://grafana.com/docs/agent/latest/flow/reference/cli/run/
@@ -90,7 +90,7 @@ serviceAccount:
   # serviceAccount.create is false.
   name: null
 
-# Options for the extra controler used for config reloading.
+# Options for the extra controller used for config reloading.
 configReloader:
   # -- Enables automatically reloading when the agent config changes.
   enabled: true

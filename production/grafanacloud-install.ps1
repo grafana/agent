@@ -33,11 +33,11 @@ Write-Host "Checking and installing required Powershell-yaml module"
 Install-Module PowerShell-yaml
 
 Write-Host "Downloading Grafana agent Windows Installer"
-$DOWLOAD_URL = "https://github.com/grafana/agent/releases/latest/download/grafana-agent-installer.exe.zip"
+$DOWNLOAD_URL = "https://github.com/grafana/agent/releases/latest/download/grafana-agent-installer.exe.zip"
 $OUTPUT_ZIP_FILE = ".\grafana-agent-installer.exe.zip"
 # $OUTPUT_FILE = "grafana-agent-installer.exe"
 $WORKING_DIR = Get-Location
-Invoke-WebRequest -Uri $DOWLOAD_URL -OutFile $OUTPUT_ZIP_FILE
+Invoke-WebRequest -Uri $DOWNLOAD_URL -OutFile $OUTPUT_ZIP_FILE
 Expand-Archive -LiteralPath $OUTPUT_ZIP_FILE -DestinationPath $WORKING_DIR.path
 
 # Install Grafana agent in silent mode

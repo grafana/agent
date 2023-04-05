@@ -65,7 +65,7 @@ component.
 ### Debug metrics
 
 * `agent_local_file_timestamp_last_accessed_unix_seconds` (gauge): The
-  timestamp, in Unix seconds, that the file was last sucessfully accessed.
+  timestamp, in Unix seconds, that the file was last successfully accessed.
 
 ## Example
 

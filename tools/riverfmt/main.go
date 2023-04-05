@@ -84,7 +84,7 @@ func format(filename string, fi os.FileInfo, r io.Reader, write bool) error {
 		return err
 	}
 
-	// Add a newline at the endi
+	// Add a newline at the end
 	_, _ = buf.Write([]byte{'\n'})
 
 	if !write {

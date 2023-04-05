@@ -173,7 +173,7 @@ This change only impacts Grafana Agent Flow users.
 As first announced in v0.30.0, support for using the `EXPERIMENTAL_ENABLE_FLOW`
 environment variable to enable Flow mode has been removed.
 
-To enable Flow mode, set the `AGENT_MODE` envrionment variable to `flow`.
+To enable Flow mode, set the `AGENT_MODE` environment variable to `flow`.
 
 ## v0.31.1
 
@@ -529,7 +529,7 @@ will be logged if using the old field names when the integration is enabled.
 
 ## v0.21.2, v0.20.1
 
-### Disabling of config retrieval enpoints
+### Disabling of config retrieval endpoints
 
 These two patch releases, as part of a fix for
 [CVE-2021-41090](https://github.com/grafana/agent/security/advisories/GHSA-9c4x-5hgq-q3wh),
@@ -555,7 +555,7 @@ configuring the `instance` field on the integration. This can also be useful if
 two agents infer the same value for instance for the same integration.
 
 As part of this change, the `agent_hostname` label is permanently affixed to
-self-scraped integrations and cannot be disabled. This disambigutates multiple
+self-scraped integrations and cannot be disabled. This disambiguates multiple
 agents using the same instance label for an integration, and allows users to
 identify which agents need to be updated with an override for `instance`.
 

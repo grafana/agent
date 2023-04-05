@@ -203,5 +203,5 @@ configs:
 	_, err = os.Stat(filepath.Join(positionsDir, "positions"))
 	require.NoError(t, err, "default shared positions directory did not get created")
 	_, err = os.Stat(filepath.Join(positionsDir, "other-positions"))
-	require.NoError(t, err, "instance-specific positions directory did not get creatd")
+	require.NoError(t, err, "instance-specific positions directory did not get created")
 }

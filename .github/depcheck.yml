@@ -14,7 +14,7 @@ go_modules:
   - go.opentelemetry.io/collector
   - sigs.k8s.io/controller-runtime
 
-# List of Github repos to check for newer tags. Only repos that are not listed
+# List of GitHub repos to check for newer tags. Only repos that are not listed
 # explicitly in go.mod *OR* are in go.mod but replaced with a fork should be
 # added here.
 #

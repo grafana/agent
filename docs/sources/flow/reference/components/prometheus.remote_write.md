@@ -145,7 +145,7 @@ quickly enough. The range of permitted shards can be configured with the
 
 Each shard has a buffer of samples it will keep in memory, controlled with the
 `capacity` argument. New metrics aren't read from the WAL unless there is at
-least one shard that is not at maximum capcity.
+least one shard that is not at maximum capacity.
 
 The buffer of a shard is flushed and sent to the endpoint either after the
 shard reaches the number of samples specified by `max_samples_per_send` or the

@@ -134,8 +134,8 @@ type Agent struct {
 	logger log.Logger
 	reg    prometheus.Registerer
 
-	// Store both the basic manager and the modal manager so we can update their
-	// settings indepedently. Only the ModalManager should be used for mutating
+	// Store both the basic manager and the modal manager, so we can update their
+	// settings independently. Only the ModalManager should be used for mutating
 	// configs.
 	bm      *instance.BasicManager
 	mm      *instance.ModalManager
@@ -365,7 +365,7 @@ func (a *Agent) Stop() {
 		a.cleaner.Stop()
 	}
 
-	// Only need to stop the ModalManager, which will passthrough everything to the
+	// Only need to stop the ModalManager, which will pass through everything to the
 	// BasicManager.
 	a.mm.Stop()
 

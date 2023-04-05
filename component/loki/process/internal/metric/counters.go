@@ -63,7 +63,7 @@ func (c *CounterConfig) UnmarshalRiver(f func(v interface{}) error) error {
 	return nil
 }
 
-// Counters is a vec tor of counters for a each log stream.
+// Counters is a vector of counters for a log stream.
 type Counters struct {
 	*metricVec
 	Cfg *CounterConfig

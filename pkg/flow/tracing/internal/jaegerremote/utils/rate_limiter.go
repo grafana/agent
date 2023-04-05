@@ -100,7 +100,7 @@ func (rl *RateLimiter) Update(creditsPerSecond, maxBalance float64) {
 	rl.lock.Lock()
 	defer rl.lock.Unlock()
 
-	rl.updateBalance() // get up to date balance
+	rl.updateBalance() // get up-to-date balance
 	rl.balance = rl.balance * maxBalance / rl.maxBalance
 	rl.creditsPerSecond = creditsPerSecond
 	rl.maxBalance = maxBalance
