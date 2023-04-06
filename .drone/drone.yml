@@ -373,42 +373,6 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Build agent (Linux armv6)
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - go version
-  - make generate-ui
-  - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=arm GOARM=6
-    make agent
-  image: grafana/agent-build-image:0.24.0
-  name: Build
-trigger:
-  event:
-  - pull_request
-type: docker
----
-kind: pipeline
-name: Build agent (Linux armv7)
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - go version
-  - make generate-ui
-  - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=arm GOARM=7
-    make agent
-  image: grafana/agent-build-image:0.24.0
-  name: Build
-trigger:
-  event:
-  - pull_request
-type: docker
----
-kind: pipeline
 name: Build agent (Linux ppc64le)
 platform:
   arch: amd64
@@ -540,42 +504,6 @@ steps:
   - go version
   - make generate-ui
   - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=arm64 GOARM=
-    make agent-flow
-  image: grafana/agent-build-image:0.24.0
-  name: Build
-trigger:
-  event:
-  - pull_request
-type: docker
----
-kind: pipeline
-name: Build agent-flow (Linux armv6)
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - go version
-  - make generate-ui
-  - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=arm GOARM=6
-    make agent-flow
-  image: grafana/agent-build-image:0.24.0
-  name: Build
-trigger:
-  event:
-  - pull_request
-type: docker
----
-kind: pipeline
-name: Build agent-flow (Linux armv7)
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - go version
-  - make generate-ui
-  - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=arm GOARM=7
     make agent-flow
   image: grafana/agent-build-image:0.24.0
   name: Build
@@ -725,42 +653,6 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Build agentctl (Linux armv6)
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - go version
-  - make generate-ui
-  - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=arm GOARM=6
-    make agentctl
-  image: grafana/agent-build-image:0.24.0
-  name: Build
-trigger:
-  event:
-  - pull_request
-type: docker
----
-kind: pipeline
-name: Build agentctl (Linux armv7)
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - go version
-  - make generate-ui
-  - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=arm GOARM=7
-    make agentctl
-  image: grafana/agent-build-image:0.24.0
-  name: Build
-trigger:
-  event:
-  - pull_request
-type: docker
----
-kind: pipeline
 name: Build agentctl (Linux ppc64le)
 platform:
   arch: amd64
@@ -892,42 +784,6 @@ steps:
   - go version
   - make generate-ui
   - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=arm64 GOARM=
-    make operator
-  image: grafana/agent-build-image:0.24.0
-  name: Build
-trigger:
-  event:
-  - pull_request
-type: docker
----
-kind: pipeline
-name: Build operator (Linux armv6)
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - go version
-  - make generate-ui
-  - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=arm GOARM=6
-    make operator
-  image: grafana/agent-build-image:0.24.0
-  name: Build
-trigger:
-  event:
-  - pull_request
-type: docker
----
-kind: pipeline
-name: Build operator (Linux armv7)
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - go version
-  - make generate-ui
-  - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=arm GOARM=7
     make operator
   image: grafana/agent-build-image:0.24.0
   name: Build
@@ -1488,6 +1344,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: 6e90c1419b510c45a1bc375c22bb47da4309faeb6b0520c6db0aa9e9696bf8ff
+hmac: 97ed46cf3ce37dc265b8ce5106e4733ccb1af2a6f7d9a43cb709b376b1d2fe6a
 
 ...
