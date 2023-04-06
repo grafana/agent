@@ -37,7 +37,7 @@ type Arguments struct {
 var DefaultArguments = Arguments{
 	Port:            80,
 	TagSeparator:    ",",
-	RefreshInterval: time.Duration(60 * time.Second),
+	RefreshInterval: 60 * time.Second,
 }
 
 var _ river.Unmarshaler = (*Arguments)(nil)
@@ -64,7 +64,6 @@ func (args Arguments) Convert() gce.SDConfig {
 		Port:            args.Port,
 		TagSeparator:    args.TagSeparator,
 	}
-
 }
 
 // New returns a new instance of a discovery.gce component.
