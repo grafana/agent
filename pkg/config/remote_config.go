@@ -83,12 +83,12 @@ func newHTTPProvider(opts *remoteOpts) (*httpProvider, error) {
 	}, nil
 }
 
-type retryAfterError struct {
-	retryAfter time.Duration
+type RetryAfterError struct {
+	RetryAfter time.Duration
 }
 
-func (r retryAfterError) Error() string {
-	return fmt.Sprintf("server indicated to retry after %s", r.retryAfter)
+func (r RetryAfterError) Error() string {
+	return fmt.Sprintf("server indicated to retry after %s", r.RetryAfter)
 }
 
 // retrieve implements remoteProvider and fetches the config
@@ -111,7 +111,7 @@ func (p httpProvider) retrieve() ([]byte, error) {
 		if err != nil {
 			return nil, fmt.Errorf("server indicated to retry, but Retry-After header was not a valid duration: %w", err)
 		}
-		return nil, retryAfterError{retryAfter: retryAfterDuration}
+		return nil, RetryAfterError{RetryAfter: retryAfterDuration}
 	}
 
 	if response.StatusCode/100 != 2 {

@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -239,8 +240,8 @@ func (ep *Entrypoint) wire(mux *mux.Router, grpc *grpc.Server) {
 }
 
 func (ep *Entrypoint) reloadHandler(rw http.ResponseWriter, r *http.Request) {
-	success := ep.TriggerReload()
-	if success {
+	err := ep.TriggerReload()
+	if err == nil {
 		rw.WriteHeader(http.StatusOK)
 	} else {
 		rw.WriteHeader(http.StatusBadRequest)
@@ -331,25 +332,25 @@ func (ep *Entrypoint) supportHandler(rw http.ResponseWriter, r *http.Request) {
 }
 
 // TriggerReload will cause the Entrypoint to re-request the config file and
-// apply the latest config. TriggerReload returns true if the reload was
+// apply the latest config. TriggerReload returns nil if the reload was
 // successful.
-func (ep *Entrypoint) TriggerReload() bool {
+func (ep *Entrypoint) TriggerReload() error {
 	level.Info(ep.log).Log("msg", "reload of config file requested")
 
 	cfg, err := ep.reloader(ep.log)
 	if err != nil {
 		level.Error(ep.log).Log("msg", "failed to reload config file", "err", err)
-		return false
+		return err
 	}
 	cfg.LogDeprecations(ep.log)
 
 	err = ep.ApplyConfig(*cfg)
 	if err != nil {
 		level.Error(ep.log).Log("msg", "failed to reload config file", "err", err)
-		return false
+		return err
 	}
 
-	return true
+	return nil
 }
 
 // pollConfig triggers a reload of the config on each tick of the ticker until the context
@@ -364,9 +365,16 @@ func (ep *Entrypoint) pollConfig(ctx context.Context, sleepTime time.Duration) e
 		case <-ctx.Done():
 			return nil
 		case <-t.C:
-			ok := ep.TriggerReload()
-			if !ok {
-				level.Error(ep.log).Log("msg", "config reload did not succeed")
+			err := ep.TriggerReload()
+			if err != nil {
+				var retryAfterErr config.RetryAfterError
+				if errors.As(err, &retryAfterErr) {
+					level.Info(ep.log).Log("msg", "received retry-after, sleeping for", "retry_after", retryAfterErr.RetryAfter)
+					time.Sleep(retryAfterErr.RetryAfter)
+					t.Reset(sleepTime)
+				} else {
+					level.Error(ep.log).Log("msg", "config reload did not succeed", "err", err)
+				}
 			}
 		}
 	}
