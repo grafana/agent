@@ -6,6 +6,14 @@ title: discovery.gce
 
 `discovery.gce` allows retrieving scrape targets from [Google Compute Engine](https://cloud.google.com/compute) (GCE) instances. The private IP address is used by default, but may be changed to the public IP address with relabeling.
 
+Credentials are discovered by the Google Cloud SDK default client by looking in the following places, preferring the first location found:
+
+1. a JSON file specified by the `GOOGLE_APPLICATION_CREDENTIALS` environment variable.
+2. a JSON file in the well-known path `$HOME/.config/gcloud/application_default_credentials.json`.
+3. fetched from the GCE metadata server.
+
+If the Agent is running within GCE, the service account associated with the instance it is running on should have at least read-only permissions to the compute resources. If running outside of GCE make sure to create an appropriate service account and place the credential file in one of the expected locations.
+
 
 ## Usage
 
