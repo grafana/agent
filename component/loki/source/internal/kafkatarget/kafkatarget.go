@@ -8,15 +8,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/prometheus/prometheus/model/labels"
-	"github.com/prometheus/prometheus/model/relabel"
-
 	"github.com/Shopify/sarama"
-	"github.com/prometheus/common/model"
-
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
-	"github.com/grafana/loki/pkg/logproto"
+	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/model/relabel"
 )
 
 type runnableDroppedTarget struct {
@@ -29,6 +28,7 @@ func (d *runnableDroppedTarget) run() {
 }
 
 type KafkaTarget struct {
+	logger               log.Logger
 	discoveredLabels     model.LabelSet
 	lbs                  model.LabelSet
 	details              ConsumerDetails
@@ -37,18 +37,22 @@ type KafkaTarget struct {
 	client               loki.EntryHandler
 	relabelConfig        []*relabel.Config
 	useIncomingTimestamp bool
+	messageParser        MessageParser
 }
 
 func NewKafkaTarget(
+	logger log.Logger,
 	session sarama.ConsumerGroupSession,
 	claim sarama.ConsumerGroupClaim,
 	discoveredLabels, lbs model.LabelSet,
 	relabelConfig []*relabel.Config,
 	client loki.EntryHandler,
 	useIncomingTimestamp bool,
+	messageParser MessageParser,
 ) *KafkaTarget {
 
 	return &KafkaTarget{
+		logger:               logger,
 		discoveredLabels:     discoveredLabels,
 		lbs:                  lbs,
 		details:              newDetails(session, claim),
@@ -57,6 +61,7 @@ func NewKafkaTarget(
 		client:               client,
 		relabelConfig:        relabelConfig,
 		useIncomingTimestamp: useIncomingTimestamp,
+		messageParser:        messageParser,
 	}
 }
 
@@ -84,13 +89,15 @@ func (t *KafkaTarget) run() {
 		if len(lbs) > 0 {
 			out = out.Merge(lbs)
 		}
-		t.client.Chan() <- loki.Entry{
-			Entry: logproto.Entry{
-				Line:      string(message.Value),
-				Timestamp: timestamp(t.useIncomingTimestamp, message.Timestamp),
-			},
-			Labels: out,
+		entries, err := t.messageParser.Parse(message, out, t.relabelConfig, t.useIncomingTimestamp)
+		if err != nil {
+			level.Error(t.logger).Log("msg", "message parsing error", "err", err)
+		} else {
+			for _, entry := range entries {
+				t.client.Chan() <- entry
+			}
 		}
+
 		t.session.MarkMessage(message, "")
 	}
 }

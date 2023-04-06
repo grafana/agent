@@ -52,8 +52,10 @@ Main (unreleased)
     for making requests to AWS services via `otelcol` components that support
     authentication extensions. (@ptodev)
   - `prometheus.exporter.memcached` collects metrics from a Memcached server. (@spartan0x117)
-  - `discovery.gce` service discovery for GCE. (@marctc)  
-
+  - `loki.source.azure_event_hubs` reads messages from Azure Event Hub using Kafka and forwards them to other `loki`
+    components. (@akselleirv)
+  - `discovery.gce` service discovery for GCE. (@marctc)
+  
 - Add support for Flow-specific system packages:
 
   - Flow-specific DEB packages. (@rfratto, @robigan)
@@ -77,6 +79,8 @@ Main (unreleased)
 - Update Redis Exporter Dependency to v1.49.0. (@spartan0x117)
 
 - Update Loki dependency to the k142 branch. (@rfratto)
+
+- Flow: Add OAUTHBEARER mechanism to `loki.source.kafka` using Azure as provider. (@akselleirv)
 
 ### Bugfixes
 
@@ -107,7 +111,10 @@ Main (unreleased)
 - Fix issue where scraping native Prometheus histograms would leak memory.
   (@rfratto)
 
-- Fix issue where loki.source.docker component could deadlock. (@tpaschalis)
+- Flow: fix issue where `loki.source.docker` component could deadlock. (@tpaschalis)
+
+- Flow: fix issue where `prometheus.remote_write` created unnecessary extra
+  child directories to store the WAL in. (@rfratto)
 
 ### Other changes
 

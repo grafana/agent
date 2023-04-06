@@ -24,28 +24,28 @@ func TestUnmarshalRiver(t *testing.T) {
 		}
 		probe_timeout_offset = "0.5s"
 `
-	var cfg Config
-	err := river.Unmarshal([]byte(riverCfg), &cfg)
+	var args Arguments
+	err := river.Unmarshal([]byte(riverCfg), &args)
 	require.NoError(t, err)
-	require.Equal(t, "modules.yml", cfg.ConfigFile)
-	require.Equal(t, 2, len(cfg.Targets))
-	require.Equal(t, 500*time.Millisecond, cfg.ProbeTimeoutOffset)
-	require.Contains(t, "target_a", cfg.Targets[0].Name)
-	require.Contains(t, "http://example.com", cfg.Targets[0].Target)
-	require.Contains(t, "http_2xx", cfg.Targets[0].Module)
-	require.Contains(t, "target_b", cfg.Targets[1].Name)
-	require.Contains(t, "http://grafana.com", cfg.Targets[1].Target)
-	require.Contains(t, "http_2xx", cfg.Targets[1].Module)
+	require.Equal(t, "modules.yml", args.ConfigFile)
+	require.Equal(t, 2, len(args.Targets))
+	require.Equal(t, 500*time.Millisecond, args.ProbeTimeoutOffset)
+	require.Contains(t, "target_a", args.Targets[0].Name)
+	require.Contains(t, "http://example.com", args.Targets[0].Target)
+	require.Contains(t, "http_2xx", args.Targets[0].Module)
+	require.Contains(t, "target_b", args.Targets[1].Name)
+	require.Contains(t, "http://grafana.com", args.Targets[1].Target)
+	require.Contains(t, "http_2xx", args.Targets[1].Module)
 }
 
 func TestConvertConfig(t *testing.T) {
-	cfg := Config{
+	args := Arguments{
 		ConfigFile:         "modules.yml",
 		Targets:            TargetBlock{{Name: "target_a", Target: "http://example.com", Module: "http_2xx"}},
 		ProbeTimeoutOffset: 1 * time.Second,
 	}
 
-	res := cfg.Convert()
+	res := args.Convert()
 	require.Equal(t, "modules.yml", res.BlackboxConfigFile)
 	require.Equal(t, 1, len(res.BlackboxTargets))
 	require.Contains(t, "target_a", res.BlackboxTargets[0].Name)
@@ -69,7 +69,7 @@ func TestConvertTargets(t *testing.T) {
 }
 
 func TestBuildBlackboxTargets(t *testing.T) {
-	cfg := Config{
+	baseArgs := Arguments{
 		ConfigFile:         "modules.yml",
 		Targets:            TargetBlock{{Name: "target_a", Target: "http://example.com", Module: "http_2xx"}},
 		ProbeTimeoutOffset: 1.0,
@@ -82,7 +82,7 @@ func TestBuildBlackboxTargets(t *testing.T) {
 		"__meta_agent_integration_name":     "blackbox",
 		"__meta_agent_integration_instance": "prometheus.exporter.blackbox.default",
 	}
-	args := component.Arguments(cfg)
+	args := component.Arguments(baseArgs)
 	targets := buildBlackboxTargets(baseTarget, args)
 	require.Equal(t, 1, len(targets))
 	require.Equal(t, "integrations/blackbox/target_a", targets[0]["job"])
