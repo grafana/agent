@@ -12,6 +12,10 @@ Main (unreleased)
 
 ### Breaking changes
 
+- Support for 32-bit ARM builds is removed for the foreseeable future due to Go
+  compiler issues. We will consider bringing back 32-bit ARM support once our Go
+  compiler issues are resolved and 32-bit ARM builds are stable. (@rfratto)
+
 - Agent Management: `agent_management.api_url` config field has been replaced by
 `agent_management.host`. The API path and version is now defined by the Agent. (@jcreixell)
 
@@ -45,7 +49,7 @@ Main (unreleased)
   - `loki.source.azure_event_hubs` reads messages from Azure Event Hub using Kafka and forwards them to other `loki`
     components. (@akselleirv)
   - `discovery.gce` discovers resources on Google Compute Engine (GCE). (@marctc)
-  
+
 
 - Add support for Flow-specific system packages:
 
@@ -113,8 +117,6 @@ Main (unreleased)
   s390x. (@rfratto)
 
 - Use Go 1.20.3 for builds. (@rfratto)
-
-- Bring back the Flow UI for 32-bit ARMv6 builds. (@rfratto)
 
 - Change the Docker base image for Linux containers to `ubuntu:kinetic`.
   (@rfratto)
