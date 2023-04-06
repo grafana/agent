@@ -19,12 +19,15 @@ type Component struct {
 	opts      component.Options
 	healthMut sync.RWMutex
 	health    component.Health
+
+	kind string
 }
 
-func New(o component.Options, args component.Arguments) (*Component, error) {
+func New(o component.Options, args component.Arguments, kind string) (*Component, error) {
 	c := &Component{
 		opts:     o,
 		onUpdate: make(chan struct{}, 1),
+		kind:     kind,
 	}
 	return c, c.Update(args)
 }
@@ -66,7 +69,7 @@ func (c *Component) Run(ctx context.Context) error {
 			innerCtx, cancel = context.WithCancel(ctx)
 			c.mut.Lock()
 			componentCfg := c.config
-			manager := newCrdManager(c.opts, c.opts.Logger, componentCfg)
+			manager := newCrdManager(c.opts, c.opts.Logger, componentCfg, c.kind)
 			c.manager = manager
 			c.mut.Unlock()
 			go func() {

@@ -12,7 +12,7 @@ func init() {
 		Args: operator.Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
-			return common.New(opts, args)
+			return common.New(opts, args, common.KindPodMonitor)
 		},
 	})
 }
