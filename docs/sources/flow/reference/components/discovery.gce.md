@@ -25,7 +25,7 @@ Name | Type | Description | Default | Required
 `project` | `string` | The GCP Project.| | yes
 `zone` | `string` | The zone of the scrape targets. | | yes
 `filter` | `string` | Filter can be used optionally to filter the instance list by other criteria. | | no
-`refresh_interval` | `duration` | Refresh interval to re-read the instance list. | `60s`| no
+`refresh_interval` | `duration` | Refresh interval to re-read the instance list. | `"60s"`| no
 `port` | `int` | The port to scrape metrics from. If using the public IP address, this must instead be specified in the relabeling rule. | `80`| no
 `tag_separator` | `string` | The tag separator is used to separate the tags on concatenation. | `","`| no
 
