@@ -54,7 +54,7 @@ Main (unreleased)
   - `prometheus.exporter.memcached` collects metrics from a Memcached server. (@spartan0x117)
   - `loki.source.azure_event_hubs` reads messages from Azure Event Hub using Kafka and forwards them to other `loki`
     components. (@akselleirv)
-  
+
 - Add support for Flow-specific system packages:
 
   - Flow-specific DEB packages. (@rfratto, @robigan)
@@ -120,7 +120,7 @@ Main (unreleased)
 - Grafana Agent Docker containers and release binaries are now published for
   s390x. (@rfratto)
 
-- Use Go 1.20.2 for builds. (@rfratto)
+- Use Go 1.20.3 for builds. (@rfratto)
 
 - Bring back the Flow UI for 32-bit ARMv6 builds. (@rfratto)
 
