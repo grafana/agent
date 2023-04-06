@@ -7,10 +7,20 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+> **NOTE**: As of v0.32.0, builds for 32-bit ARMv6 currently don't support the
+> embedded Flow UI. The Flow UI will return to this target as soon as possible.
+>
+> **NOTE**: The main branch currently doesn't support any 32-bit ARM builds.
+> Support for these builds will return as soon as possible, ideally before
+> v0.33 is released.
+
 Main (unreleased)
 -----------------
 
 ### Breaking changes
+
+- Support for 32-bit ARM builds is temporarily removed. We are aiming to bring
+  back support for these builds prior to publishing v0.33.0. (@rfratto)
 
 - Agent Management: `agent_management.api_url` config field has been replaced by
 `agent_management.host`. The API path and version is now defined by the Agent. (@jcreixell)
