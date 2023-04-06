@@ -13,23 +13,23 @@ import (
 func init() {
 	component.Register(component.Registration{
 		Name:    "prometheus.exporter.blackbox",
-		Args:    Config{},
+		Args:    Arguments{},
 		Exports: exporter.Exports{},
 		Build:   exporter.NewMultiTarget(createExporter, "blackbox", buildBlackboxTargets),
 	})
 }
 
 func createExporter(opts component.Options, args component.Arguments) (integrations.Integration, error) {
-	cfg := args.(Config)
-	return cfg.Convert().NewIntegration(opts.Logger)
+	a := args.(Arguments)
+	return a.Convert().NewIntegration(opts.Logger)
 }
 
 // buildBlackboxTargets creates the exporter's discovery targets based on the defined blackbox targets.
 func buildBlackboxTargets(baseTarget discovery.Target, args component.Arguments) []discovery.Target {
 	var targets []discovery.Target
 
-	cfg := args.(Config)
-	for _, tgt := range cfg.Targets {
+	a := args.(Arguments)
+	for _, tgt := range a.Targets {
 		target := make(discovery.Target)
 		for k, v := range baseTarget {
 			target[k] = v
@@ -47,9 +47,9 @@ func buildBlackboxTargets(baseTarget discovery.Target, args component.Arguments)
 	return targets
 }
 
-// DefaultConfig holds non-zero default options for the Config when it is
+// DefaultArguments holds non-zero default options for Arguments when it is
 // unmarshaled from river.
-var DefaultConfig = Config{
+var DefaultArguments = Arguments{
 	ProbeTimeoutOffset: 500 * time.Millisecond,
 }
 
@@ -75,25 +75,25 @@ func (t TargetBlock) Convert() []blackbox_exporter.BlackboxTarget {
 	return targets
 }
 
-type Config struct {
+type Arguments struct {
 	ConfigFile         string        `river:"config_file,attr"`
 	Targets            TargetBlock   `river:"target,block"`
 	ProbeTimeoutOffset time.Duration `river:"probe_timeout_offset,attr,optional"`
 }
 
-// UnmarshalRiver implements River unmarshalling for Config.
-func (c *Config) UnmarshalRiver(f func(interface{}) error) error {
-	*c = DefaultConfig
+// UnmarshalRiver implements River unmarshalling for Arguments.
+func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+	*a = DefaultArguments
 
-	type cfg Config
-	return f((*cfg)(c))
+	type args Arguments
+	return f((*args)(a))
 }
 
-// Convert converts the component's Config to the integration's Config.
-func (c *Config) Convert() *blackbox_exporter.Config {
+// Convert converts the component's Arguments to the integration's Config.
+func (a *Arguments) Convert() *blackbox_exporter.Config {
 	return &blackbox_exporter.Config{
-		BlackboxConfigFile: c.ConfigFile,
-		BlackboxTargets:    c.Targets.Convert(),
-		ProbeTimeoutOffset: c.ProbeTimeoutOffset.Seconds(),
+		BlackboxConfigFile: a.ConfigFile,
+		BlackboxTargets:    a.Targets.Convert(),
+		ProbeTimeoutOffset: a.ProbeTimeoutOffset.Seconds(),
 	}
 }
