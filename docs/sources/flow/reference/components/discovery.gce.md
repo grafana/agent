@@ -4,7 +4,7 @@ title: discovery.gce
 
 # discovery.gce
 
-`discovery.gce` allows retrieving scrape targets from [GCP GCE](https://cloud.google.com/compute) instances. The private IP address is used by default, but may be changed to the public IP address with relabeling.
+`discovery.gce` allows retrieving scrape targets from [Google Compute Engine](https://cloud.google.com/compute) (GCE) instances. The private IP address is used by default, but may be changed to the public IP address with relabeling.
 
 
 ## Usage
