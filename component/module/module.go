@@ -32,8 +32,6 @@ type Exports struct {
 	Exports map[string]any `river:"exports,attr"`
 }
 
-const maxDepth uint8 = 10
-
 // NewModuleComponent initializes a new ModuleComponent.
 func NewModuleComponent(o component.Options) (*ModuleComponent, error) {
 	// TODO(rfratto): replace these with a tracer/registry which properly
@@ -41,9 +39,6 @@ func NewModuleComponent(o component.Options) (*ModuleComponent, error) {
 	flowTracer, _ := tracing.New(tracing.DefaultOptions)
 	flowRegistry := prometheus.NewRegistry()
 	newModuleDepth := o.ModuleDepth + 1
-	if newModuleDepth > maxDepth {
-		return nil, fmt.Errorf("unable to exceed module depth of %d", maxDepth)
-	}
 
 	return &ModuleComponent{
 		opts: o,

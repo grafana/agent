@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"reflect"
 	"sync"
 	"time"
 
@@ -53,9 +54,11 @@ func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 type Component struct {
 	mod *module.ModuleComponent
 
-	mut     sync.RWMutex
-	args    Arguments
-	content rivertypes.OptionalSecret
+	mut      sync.RWMutex
+	args     Arguments
+	content  rivertypes.OptionalSecret
+	loadErr  error
+	loadDone bool
 
 	managedLocalFile *file.Component
 }
@@ -114,6 +117,7 @@ func (c *Component) Run(ctx context.Context) error {
 func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 
+	c.setLoadDone(false)
 	c.setArgs(newArgs)
 
 	err := c.managedLocalFile.Update(newArgs.LocalFileArguments)
@@ -126,19 +130,27 @@ func (c *Component) Update(args component.Arguments) error {
 		return err
 	}
 
-	// Force a content load here and bubble up any error. This will catch problems
-	// on initial load.
-	return c.mod.LoadFlowContent(newArgs.Arguments, c.getContent().Value)
+	// Waiting for the local.file OnStateChange call to complete so we can return the result.
+	// TODO - This is probably not done the best way.
+	for !c.getLoadDone() {
+	}
+
+	return c.getLoadErr()
 }
 
 // NewManagedLocalComponent creates the new local.file managed component.
 func (c *Component) NewManagedLocalComponent(o component.Options) (*file.Component, error) {
 	localFileOpts := o
 	localFileOpts.OnStateChange = func(e component.Exports) {
-		c.setContent(e.(file.Exports).Content)
+		currentContent := c.getContent()
+		if !reflect.DeepEqual(currentContent, e.(file.Exports).Content) {
+			c.setContent(e.(file.Exports).Content)
 
-		// Any errors found here are reported via component health
-		_ = c.mod.LoadFlowContent(c.getArgs().Arguments, c.getContent().Value)
+			err := c.mod.LoadFlowContent(c.getArgs().Arguments, c.getContent().Value)
+			c.setLoadErr(err)
+		}
+
+		c.setLoadDone(true)
 	}
 
 	return file.New(localFileOpts, c.getArgs().LocalFileArguments)
@@ -170,6 +182,34 @@ func (c *Component) getArgs() Arguments {
 func (c *Component) setArgs(args Arguments) {
 	c.mut.Lock()
 	c.args = args
+	c.mut.Unlock()
+}
+
+// getLoadErr is a goroutine safe way to get loadErr
+func (c *Component) getLoadErr() error {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+	return c.loadErr
+}
+
+// setLoadErr is a goroutine safe way to set loadErr
+func (c *Component) setLoadErr(loadErr error) {
+	c.mut.Lock()
+	c.loadErr = loadErr
+	c.mut.Unlock()
+}
+
+// getLoadDone is a goroutine safe way to get loadDone
+func (c *Component) getLoadDone() bool {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+	return c.loadDone
+}
+
+// setLoadDone is a goroutine safe way to set loadDone
+func (c *Component) setLoadDone(loadDone bool) {
+	c.mut.Lock()
+	c.loadDone = loadDone
 	c.mut.Unlock()
 }
 

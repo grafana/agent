@@ -137,6 +137,8 @@ type Flow struct {
 // New creates and starts a new Flow controller. Call Close to stop
 // the controller.
 func New(o Options) *Flow {
+	// TODO remove before merge
+	fmt.Println("new flow controller: " + o.ControllerID)
 	var (
 		log    = logging.New(o.LogSink)
 		tracer = o.Tracer
@@ -226,6 +228,8 @@ func (c *Flow) Run(ctx context.Context) {
 	}
 }
 
+const maxDepth uint8 = 10
+
 // LoadFile synchronizes the state of the controller with the current config
 // file. Components in the graph will be marked as unhealthy if there was an
 // error encountered during Load.
@@ -233,6 +237,10 @@ func (c *Flow) Run(ctx context.Context) {
 // The controller will only start running components after Load is called once
 // without any configuration errors.
 func (c *Flow) LoadFile(file *File, args map[string]any) error {
+	if c.opts.ModuleDepth > maxDepth {
+		return fmt.Errorf("exceeded maximum module depth of %d", maxDepth)
+	}
+
 	c.loadMut.Lock()
 	defer c.loadMut.Unlock()
 
