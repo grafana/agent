@@ -11,6 +11,8 @@ title: discovery.gce
 
 ```river
 discovery.gce "LABEL" {
+  project = "PROJECT_NAME" 
+  zone    = "ZONE_NAME"
 }
 ```
 
