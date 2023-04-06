@@ -24,15 +24,15 @@ func newAgentManagementMetrics() *agentManagementMetrics {
 	agentManagementMetrics.configFallbacks = promauto.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "agent_management_config_fallbacks_total",
-			Help: "Number of config fallbacks by fallback destination.",
+			Help: "Number of config fallbacks by fallback source.",
 		},
-		[]string{"destination"},
+		[]string{"source"},
 	)
 
 	return &agentManagementMetrics
 }
 
-func InstrumentAgentManagementConfigFallback(destination string) {
+func InstrumentAgentManagementConfigFallback(source string) {
 	amMetricsInitializer.Do(initializeAgentManagementMetrics)
-	amMetrics.configFallbacks.WithLabelValues(destination).Inc()
+	amMetrics.configFallbacks.WithLabelValues(source).Inc()
 }
