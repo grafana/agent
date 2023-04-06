@@ -174,13 +174,13 @@ func getRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, lo
 	remoteConfigBytes, err := configProvider.FetchRemoteConfig()
 	if err != nil {
 		level.Error(log).Log("msg", "could not fetch from API, falling back to cache", "err", err)
-		return getCachedRemoteConfig(expandEnvVars, configProvider, fs)
+		return getCachedRemoteConfig(expandEnvVars, configProvider, fs, log)
 	}
 
 	config, err := loadRemoteConfig(remoteConfigBytes, expandEnvVars, fs)
 	if err != nil {
 		level.Error(log).Log("msg", "could not load remote config, falling back to cache", "err", err)
-		return getCachedRemoteConfig(expandEnvVars, configProvider, fs)
+		return getCachedRemoteConfig(expandEnvVars, configProvider, fs, log)
 	}
 
 	level.Info(log).Log("msg", "fetched and loaded remote config from API")
@@ -191,11 +191,16 @@ func getRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, lo
 	return config, nil
 }
 
-func getCachedRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, fs *flag.FlagSet) (*Config, error) {
+// getCachedRemoteConfig gets the cached remote config, falling back to the default config if the cache is invalid or not found.
+func getCachedRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, fs *flag.FlagSet, log *server.Logger) (*Config, error) {
 	rc, err := configProvider.GetCachedRemoteConfig()
 	if err != nil {
-		return nil, fmt.Errorf("could not load cached config: %w", err)
+		level.Error(log).Log("msg", "could not get cached remote config, falling back to default (empty) config", "err", err)
+		d := DefaultConfig()
+		instrumentation.InstrumentAgentManagementConfigFallback("empty_config")
+		return &d, nil
 	}
+	instrumentation.InstrumentAgentManagementConfigFallback("cache")
 	return loadRemoteConfig(rc, expandEnvVars, fs)
 }
 

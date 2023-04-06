@@ -43,6 +43,7 @@ type TargetSyncer struct {
 	cancel         context.CancelFunc
 	wg             sync.WaitGroup
 	previousTopics []string
+	messageParser  MessageParser
 }
 
 func NewSyncer(
@@ -50,6 +51,7 @@ func NewSyncer(
 	logger log.Logger,
 	cfg Config,
 	pushClient loki.EntryHandler,
+	messageParser MessageParser,
 ) (*TargetSyncer, error) {
 
 	if err := validateConfig(&cfg); err != nil {
@@ -110,6 +112,7 @@ func NewSyncer(
 			ConsumerGroup: group,
 			logger:        logger,
 		},
+		messageParser: messageParser,
 	}
 	t.discoverer = t
 	t.loop()
@@ -154,6 +157,7 @@ func withSASLAuthentication(cfg sarama.Config, authCfg Authentication) (*sarama.
 		sarama.SASLTypeSCRAMSHA512,
 		sarama.SASLTypeSCRAMSHA256,
 		sarama.SASLTypePlaintext,
+		sarama.SASLTypeOAuth,
 	}
 	if !StringsContain(supportedMechanism, string(authCfg.SASLConfig.Mechanism)) {
 		return nil, fmt.Errorf("error unsupported sasl mechanism: %s", authCfg.SASLConfig.Mechanism)
@@ -173,6 +177,15 @@ func withSASLAuthentication(cfg sarama.Config, authCfg Authentication) (*sarama.
 			}
 		}
 	}
+
+	if cfg.Net.SASL.Mechanism == sarama.SASLTypeOAuth {
+		accessTokenProvider, err := NewOAuthProvider(authCfg.SASLConfig.OAuthConfig)
+		if err != nil {
+			return nil, fmt.Errorf("unable to create new access token provider: %w", err)
+		}
+		cfg.Net.SASL.TokenProvider = accessTokenProvider
+	}
+
 	if authCfg.SASLConfig.UseTLS {
 		tc, err := createTLSConfig(authCfg.SASLConfig.TLSConfig)
 		if err != nil {
@@ -282,6 +295,7 @@ func (ts *TargetSyncer) NewTarget(session sarama.ConsumerGroupSession, claim sar
 		}, nil
 	}
 	t := NewKafkaTarget(
+		ts.logger,
 		session,
 		claim,
 		discoveredLabels,
@@ -289,6 +303,7 @@ func (ts *TargetSyncer) NewTarget(session sarama.ConsumerGroupSession, claim sar
 		ts.cfg.RelabelConfigs,
 		ts.client,
 		ts.cfg.KafkaConfig.UseIncomingTimestamp,
+		ts.messageParser,
 	)
 
 	return t, nil
