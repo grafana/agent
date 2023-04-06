@@ -75,6 +75,5 @@ values.
 ```river
 discovery.gce "gce" {
   project = "agent"
-  zone = "us-east1-a"
+  zone    = "us-east1-a"
 }
-```
