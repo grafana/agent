@@ -8,23 +8,23 @@ import (
 )
 
 type agentManagementMetrics struct {
-	fallbacks *prometheus.CounterVec
+	configFallbacks *prometheus.CounterVec
 }
 
 var amMetrics *agentManagementMetrics
 var amMetricsInitializer sync.Once
 
-func initializeagentManagementMetrics() {
+func initializeAgentManagementMetrics() {
 	amMetrics = newAgentManagementMetrics()
 }
 
 func newAgentManagementMetrics() *agentManagementMetrics {
 	var agentManagementMetrics agentManagementMetrics
 
-	agentManagementMetrics.fallbacks = promauto.NewCounterVec(
+	agentManagementMetrics.configFallbacks = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "agent_management_fallbacks_total",
-			Help: "Number of fallbacks by fallback destination.",
+			Name: "agent_management_config_fallbacks_total",
+			Help: "Number of config fallbacks by fallback destination.",
 		},
 		[]string{"destination"},
 	)
@@ -32,7 +32,7 @@ func newAgentManagementMetrics() *agentManagementMetrics {
 	return &agentManagementMetrics
 }
 
-func InstrumentAgentManagementFallback(destination string) {
-	amMetricsInitializer.Do(initializeagentManagementMetrics)
-	amMetrics.fallbacks.WithLabelValues(destination).Inc()
+func InstrumentAgentManagementConfigFallback(destination string) {
+	amMetricsInitializer.Do(initializeAgentManagementMetrics)
+	amMetrics.configFallbacks.WithLabelValues(destination).Inc()
 }
