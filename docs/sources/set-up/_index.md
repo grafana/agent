@@ -22,7 +22,7 @@ The following architectures receive active support.
 
  - macOS: Intel Mac or Apple Silicon
  - Windows: A x64 machine
- - Linux: AMD64, ARM64, ARMv7, or ARMv7 machines
+ - Linux: AMD64, ARM64, ARMv6, or ARMv7 machines
  - FreeBSD: A AMD64 machine
 
 In addition, best-effort support is provided for Linux: ppc64le.
