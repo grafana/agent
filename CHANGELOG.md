@@ -54,7 +54,7 @@ Main (unreleased)
   - `prometheus.exporter.memcached` collects metrics from a Memcached server. (@spartan0x117)
   - `loki.source.azure_event_hubs` reads messages from Azure Event Hub using Kafka and forwards them to other `loki`
     components. (@akselleirv)
-  - `discovery.gce` service discovery for GCE. (@marctc)
+  - `discovery.gce` discovers resources on Google Compute Engine (GCE). (@marctc)
   
 - Add support for Flow-specific system packages:
 
