@@ -53,7 +53,6 @@ std.flatMap(function(target) (
         name: 'Build',
         image: build_image.linux,
         commands: [
-          'go version',
           'make generate-ui',
           'GO_TAGS="%(tags)s" GOOS=%(GOOS)s GOARCH=%(GOARCH)s GOARM=%(GOARM)s make %(target)s' % env,
         ],

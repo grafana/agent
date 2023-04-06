@@ -343,7 +343,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=amd64 GOARM=
     make agent
@@ -361,7 +360,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=arm64 GOARM=
     make agent
@@ -379,7 +377,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=ppc64le GOARM=
     make agent
@@ -397,7 +394,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=s390x GOARM=
     make agent
@@ -415,7 +411,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets" GOOS=darwin GOARCH=amd64 GOARM= make agent
   image: grafana/agent-build-image:0.24.0
@@ -432,7 +427,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets" GOOS=darwin GOARCH=arm64 GOARM= make agent
   image: grafana/agent-build-image:0.24.0
@@ -449,7 +443,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets" GOOS=windows GOARCH=amd64 GOARM= make agent
   image: grafana/agent-build-image:0.24.0
@@ -466,7 +459,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets" GOOS=freebsd GOARCH=amd64 GOARM= make agent
   image: grafana/agent-build-image:0.24.0
@@ -483,7 +475,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=amd64 GOARM=
     make agent-flow
@@ -501,7 +492,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=arm64 GOARM=
     make agent-flow
@@ -519,7 +509,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=ppc64le GOARM=
     make agent-flow
@@ -537,7 +526,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=s390x GOARM=
     make agent-flow
@@ -555,7 +543,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets" GOOS=darwin GOARCH=amd64 GOARM= make agent-flow
   image: grafana/agent-build-image:0.24.0
@@ -572,7 +559,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets" GOOS=darwin GOARCH=arm64 GOARM= make agent-flow
   image: grafana/agent-build-image:0.24.0
@@ -589,7 +575,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets" GOOS=windows GOARCH=amd64 GOARM= make agent-flow
   image: grafana/agent-build-image:0.24.0
@@ -606,7 +591,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets" GOOS=freebsd GOARCH=amd64 GOARM= make agent-flow
   image: grafana/agent-build-image:0.24.0
@@ -623,7 +607,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=amd64 GOARM=
     make agentctl
@@ -641,7 +624,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=arm64 GOARM=
     make agentctl
@@ -659,7 +641,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=ppc64le GOARM=
     make agentctl
@@ -677,7 +658,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=s390x GOARM=
     make agentctl
@@ -695,7 +675,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets" GOOS=darwin GOARCH=amd64 GOARM= make agentctl
   image: grafana/agent-build-image:0.24.0
@@ -712,7 +691,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets" GOOS=darwin GOARCH=arm64 GOARM= make agentctl
   image: grafana/agent-build-image:0.24.0
@@ -729,7 +707,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets" GOOS=windows GOARCH=amd64 GOARM= make agentctl
   image: grafana/agent-build-image:0.24.0
@@ -746,7 +723,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets" GOOS=freebsd GOARCH=amd64 GOARM= make agentctl
   image: grafana/agent-build-image:0.24.0
@@ -763,7 +739,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=amd64 GOARM=
     make operator
@@ -781,7 +756,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=arm64 GOARM=
     make operator
@@ -799,7 +773,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=ppc64le GOARM=
     make operator
@@ -817,7 +790,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=s390x GOARM=
     make operator
@@ -835,7 +807,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets" GOOS=darwin GOARCH=amd64 GOARM= make operator
   image: grafana/agent-build-image:0.24.0
@@ -852,7 +823,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets" GOOS=darwin GOARCH=arm64 GOARM= make operator
   image: grafana/agent-build-image:0.24.0
@@ -869,7 +839,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets" GOOS=windows GOARCH=amd64 GOARM= make operator
   image: grafana/agent-build-image:0.24.0
@@ -886,7 +855,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - go version
   - make generate-ui
   - GO_TAGS="builtinassets" GOOS=freebsd GOARCH=amd64 GOARM= make operator
   image: grafana/agent-build-image:0.24.0
@@ -1344,6 +1312,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: 97ed46cf3ce37dc265b8ce5106e4733ccb1af2a6f7d9a43cb709b376b1d2fe6a
+hmac: 87903c0d6a95eeeceadf071d21a18984c8daf1b02f39feaf1fe51ca5aba1349b
 
 ...
