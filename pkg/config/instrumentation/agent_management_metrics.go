@@ -26,13 +26,13 @@ func newAgentManagementMetrics() *agentManagementMetrics {
 			Name: "agent_management_config_fallbacks_total",
 			Help: "Number of config fallbacks by fallback source.",
 		},
-		[]string{"source"},
+		[]string{"fallback_to"},
 	)
 
 	return &agentManagementMetrics
 }
 
-func InstrumentAgentManagementConfigFallback(source string) {
+func InstrumentAgentManagementConfigFallback(fallbackTo string) {
 	amMetricsInitializer.Do(initializeAgentManagementMetrics)
-	amMetrics.configFallbacks.WithLabelValues(source).Inc()
+	amMetrics.configFallbacks.WithLabelValues(fallbackTo).Inc()
 }
