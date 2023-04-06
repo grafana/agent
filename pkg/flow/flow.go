@@ -137,8 +137,6 @@ type Flow struct {
 // New creates and starts a new Flow controller. Call Close to stop
 // the controller.
 func New(o Options) *Flow {
-	// TODO remove before merge
-	fmt.Println("new flow controller: " + o.ControllerID)
 	var (
 		log    = logging.New(o.LogSink)
 		tracer = o.Tracer
