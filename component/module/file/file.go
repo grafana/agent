@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
-	"sync/atomic"
 	"time"
+
+	"go.uber.org/atomic"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/local/file"
