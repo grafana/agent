@@ -48,8 +48,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		mod: module.NewModuleComponent(o),
 	}
 
-	var err error
-	if err = c.Update(args); err != nil {
+	if err := c.Update(args); err != nil {
 		return nil, err
 	}
 	return c, nil

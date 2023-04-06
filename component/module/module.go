@@ -38,7 +38,6 @@ func NewModuleComponent(o component.Options) *ModuleComponent {
 	// propagates data back to the parent.
 	flowTracer, _ := tracing.New(tracing.DefaultOptions)
 	flowRegistry := prometheus.NewRegistry()
-	newModuleDepth := o.ModuleDepth + 1
 
 	return &ModuleComponent{
 		opts: o,
@@ -55,7 +54,7 @@ func NewModuleComponent(o component.Options) *ModuleComponent {
 			OnExportsChange: func(exports map[string]any) {
 				o.OnStateChange(Exports{Exports: exports})
 			},
-			ModuleDepth: newModuleDepth,
+			ModuleDepth: o.ModuleDepth + 1,
 		}),
 	}
 }

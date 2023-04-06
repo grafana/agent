@@ -139,8 +139,7 @@ func (c *Component) Update(args component.Arguments) error {
 func (c *Component) NewManagedLocalComponent(o component.Options) (*file.Component, error) {
 	localFileOpts := o
 	localFileOpts.OnStateChange = func(e component.Exports) {
-		currentContent := c.getContent()
-		if !reflect.DeepEqual(currentContent, e.(file.Exports).Content) {
+		if !reflect.DeepEqual(c.getContent(), e.(file.Exports).Content) {
 			c.setContent(e.(file.Exports).Content)
 
 			err := c.mod.LoadFlowContent(c.getArgs().Arguments, c.getContent().Value)
