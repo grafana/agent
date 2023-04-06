@@ -27,7 +27,7 @@ Name | Type | Description | Default | Required
 `port` | `int` | The port to scrape metrics from. If using the public IP address, this must instead be specified in the relabeling rule. | `80`| no
 `tag_separator` | `string` | The tag separator is used to separate the tags on concatenation. | `","`| no
 
-Syntax of `filter` is described [here](https://cloud.google.com/compute/docs/reference/latest/instances/list).
+For more information on the syntax of the `filter` argument, refer to Google's `filter` documentation for [Method: instances.list](https://cloud.google.com/compute/docs/reference/latest/instances/list).
 
 ## Exported fields
 
