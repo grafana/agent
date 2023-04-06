@@ -52,6 +52,7 @@ Main (unreleased)
     for making requests to AWS services via `otelcol` components that support
     authentication extensions. (@ptodev)
   - `prometheus.exporter.memcached` collects metrics from a Memcached server. (@spartan0x117)
+  - `discovery.gce` service discovery for GCE. (@marctc)  
 
 - Add support for Flow-specific system packages:
 
