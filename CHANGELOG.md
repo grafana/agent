@@ -69,7 +69,7 @@ Main (unreleased)
 
 - Update Redis Exporter Dependency to v1.49.0. (@spartan0x117)
 
-- Update Loki dependency to the k142 branch. (@rfratto)
+- Update Loki dependency to the k144 branch. (@andriikushch)
 
 - Flow: Add OAUTHBEARER mechanism to `loki.source.kafka` using Azure as provider. (@akselleirv)
 
