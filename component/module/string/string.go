@@ -44,14 +44,11 @@ var (
 
 // New creates a new module.string component.
 func New(o component.Options, args Arguments) (*Component, error) {
-	moduleComponent, err := module.NewModuleComponent(o)
-	if err != nil {
-		return nil, err
-	}
 	c := &Component{
-		mod: moduleComponent,
+		mod: module.NewModuleComponent(o),
 	}
 
+	var err error
 	if err = c.Update(args); err != nil {
 		return nil, err
 	}

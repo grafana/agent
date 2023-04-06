@@ -33,7 +33,7 @@ type Exports struct {
 }
 
 // NewModuleComponent initializes a new ModuleComponent.
-func NewModuleComponent(o component.Options) (*ModuleComponent, error) {
+func NewModuleComponent(o component.Options) *ModuleComponent {
 	// TODO(rfratto): replace these with a tracer/registry which properly
 	// propagates data back to the parent.
 	flowTracer, _ := tracing.New(tracing.DefaultOptions)
@@ -57,7 +57,7 @@ func NewModuleComponent(o component.Options) (*ModuleComponent, error) {
 			},
 			ModuleDepth: newModuleDepth,
 		}),
-	}, nil
+	}
 }
 
 // LoadFlowContent loads the flow controller with the current component content. It
