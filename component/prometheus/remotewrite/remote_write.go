@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"os"
 	"path/filepath"
 	"sync"
 	"time"
@@ -62,15 +63,23 @@ type Component struct {
 
 // NewComponent creates a new prometheus.remote_write component.
 func NewComponent(o component.Options, c Arguments) (*Component, error) {
+	// Older versions of prometheus.remote_write used the subpath below, which
+	// added in too many extra unnecessary directories (since o.DataPath is
+	// already unique).
+	//
+	// We best-effort attempt to delete the old path if it already exists to not
+	// leak storage space.
+	oldDataPath := filepath.Join(o.DataPath, "wal", o.ID)
+	_ = os.RemoveAll(oldDataPath)
+
 	walLogger := log.With(o.Logger, "subcomponent", "wal")
-	dataPath := filepath.Join(o.DataPath, "wal", o.ID)
-	walStorage, err := wal.NewStorage(walLogger, o.Registerer, dataPath)
+	walStorage, err := wal.NewStorage(walLogger, o.Registerer, o.DataPath)
 	if err != nil {
 		return nil, err
 	}
 
 	remoteLogger := log.With(o.Logger, "subcomponent", "rw")
-	remoteStore := remote.NewStorage(remoteLogger, o.Registerer, startTime, dataPath, remoteFlushDeadline, nil)
+	remoteStore := remote.NewStorage(remoteLogger, o.Registerer, startTime, o.DataPath, remoteFlushDeadline, nil)
 
 	res := &Component{
 		log:         o.Logger,
