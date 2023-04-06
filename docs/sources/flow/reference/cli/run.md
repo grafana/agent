@@ -31,6 +31,7 @@ The following flags are supported:
 * `--server.http.ui-path-prefix`: Base path where the UI will be exposed (default `/`).
 * `--storage.path`: Base directory where components can store data (default `data-agent/`).
 * `--disable-reporting`: Disable [usage reporting][] of enabled [components][] to Grafana (default `false`).
+* `--max-module-depth`: The maximum nested module depth. `0` removes the limit. (default `10`).
 
 [usage reporting]: {{< relref "../../../configuration/flags.md/#report-information-usage" >}}
 [components]: {{< relref "../../concepts/components.md" >}}

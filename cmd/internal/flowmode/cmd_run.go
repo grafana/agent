@@ -41,6 +41,7 @@ func runCommand() *cobra.Command {
 		storagePath:      "data-agent/",
 		uiPrefix:         "/",
 		disableReporting: false,
+		maxModuleDepth:   10,
 	}
 
 	cmd := &cobra.Command{
@@ -83,6 +84,7 @@ depending on the nature of the reload error.
 	cmd.Flags().StringVar(&r.uiPrefix, "server.http.ui-path-prefix", r.uiPrefix, "Prefix to serve the HTTP UI at")
 	cmd.Flags().
 		BoolVar(&r.disableReporting, "disable-reporting", r.disableReporting, "Disable reporting of enabled components to Grafana.")
+	cmd.Flags().Uint8Var(&r.maxModuleDepth, "max-module-depth", r.maxModuleDepth, "The maximum depth of nested modules (default 10).")
 	return cmd
 }
 
@@ -91,6 +93,7 @@ type flowRun struct {
 	storagePath      string
 	uiPrefix         string
 	disableReporting bool
+	maxModuleDepth   uint8
 }
 
 func (fr *flowRun) Run(configFile string) error {
@@ -145,6 +148,7 @@ func (fr *flowRun) Run(configFile string) error {
 		Reg:            reg,
 		HTTPPathPrefix: "/api/v0/component/",
 		HTTPListenAddr: fr.httpListenAddr,
+		MaxModuleDepth: fr.maxModuleDepth,
 	})
 
 	reload := func() error {

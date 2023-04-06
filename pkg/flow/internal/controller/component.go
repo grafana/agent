@@ -68,7 +68,8 @@ type ComponentGlobals struct {
 	HTTPPathPrefix    string                       // HTTP prefix for components.
 	HTTPListenAddr    string                       // Base address for server
 	ControllerID      string                       // ID of controller.
-	ModuleDepth       uint8                        // The depth of the component in a module (0 means not in a module).
+	ModuleDepth       uint8                        // Depth of the component in a module (0 means not in a module).
+	MaxModuleDepth    uint8                        // Maximum allowable depth of the for modules.
 }
 
 // ComponentNode is a controller node which manages a user-defined component.
@@ -186,6 +187,7 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 		HTTPListenAddr: globals.HTTPListenAddr,
 		HTTPPath:       path.Join(prefix, cn.nodeID) + "/",
 		ModuleDepth:    globals.ModuleDepth,
+		MaxModuleDepth: globals.MaxModuleDepth,
 
 		OnStateChange: cn.setExports,
 	}

@@ -71,6 +71,9 @@ type Options struct {
 	// ModuleDepth is the depth of the current module level for the component.
 	// The top level flow controller will have depth 0.
 	ModuleDepth uint8
+
+	// MaxModuleDepth is the maximum allowable depth of the for modules.
+	MaxModuleDepth uint8
 }
 
 // Registration describes a single component.

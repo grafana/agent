@@ -111,6 +111,9 @@ type Options struct {
 	// controller. The top level flow controller will have depth 0.
 	ModuleDepth uint8
 
+	// MaxModuleDepth is the maximum allowable depth of the for modules.
+	MaxModuleDepth uint8
+
 	// OnExportsChange is called when the exports of the controller change.
 	// Exports are controlled by "export" configuration blocks. If
 	// OnExportsChange is nil, export configuration blocks are not allowed in the
@@ -169,6 +172,7 @@ func New(o Options) *Flow {
 			HTTPListenAddr:  o.HTTPListenAddr,
 			ControllerID:    o.ControllerID,
 			ModuleDepth:     o.ModuleDepth,
+			MaxModuleDepth:  o.MaxModuleDepth,
 		})
 	)
 
@@ -226,8 +230,6 @@ func (c *Flow) Run(ctx context.Context) {
 	}
 }
 
-const maxDepth uint8 = 10
-
 // LoadFile synchronizes the state of the controller with the current config
 // file. Components in the graph will be marked as unhealthy if there was an
 // error encountered during Load.
@@ -235,8 +237,8 @@ const maxDepth uint8 = 10
 // The controller will only start running components after Load is called once
 // without any configuration errors.
 func (c *Flow) LoadFile(file *File, args map[string]any) error {
-	if c.opts.ModuleDepth > maxDepth {
-		return fmt.Errorf("exceeded maximum module depth of %d", maxDepth)
+	if c.opts.MaxModuleDepth != 0 && c.opts.ModuleDepth > c.opts.MaxModuleDepth {
+		return fmt.Errorf("exceeded maximum module depth of %d", c.opts.MaxModuleDepth)
 	}
 
 	c.loadMut.Lock()

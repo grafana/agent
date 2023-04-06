@@ -54,7 +54,8 @@ func NewModuleComponent(o component.Options) *ModuleComponent {
 			OnExportsChange: func(exports map[string]any) {
 				o.OnStateChange(Exports{Exports: exports})
 			},
-			ModuleDepth: o.ModuleDepth + 1,
+			ModuleDepth:    o.ModuleDepth + 1,
+			MaxModuleDepth: o.MaxModuleDepth,
 		}),
 	}
 }
