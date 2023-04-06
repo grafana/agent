@@ -31,7 +31,7 @@ import (
 // Generous timeout period for configuring all informers
 const informerSyncTimeout = 10 * time.Second
 
-// Manager is all of the fields required to run a crd based component.
+// crdManager is all of the fields required to run a crd based component.
 // on update, this entire thing should be recreated and restarted
 type crdManager struct {
 	mut              sync.Mutex
@@ -50,12 +50,13 @@ type crdManager struct {
 }
 
 const (
-	KindPodMonitor string = "podMonitor"
+	KindPodMonitor     string = "podMonitor"
+	KindServiceMonitor string = "serviceMonitor"
 )
 
 func newCrdManager(opts component.Options, logger log.Logger, args *operator.Arguments, kind string) *crdManager {
 	switch kind {
-	case KindPodMonitor:
+	case KindPodMonitor, KindServiceMonitor:
 	default:
 		panic(fmt.Sprintf("Unkown kind for crdManager: %s", kind))
 	}
@@ -187,8 +188,10 @@ func (c *crdManager) configureInformers(ctx context.Context, informers cache.Inf
 	switch c.kind {
 	case KindPodMonitor:
 		proto = &promopv1.PodMonitor{}
+	case KindServiceMonitor:
+		proto = &promopv1.ServiceMonitor{}
 	default:
-		return fmt.Errorf("Unknown kind for configureInformers: %s", c.kind)
+		return fmt.Errorf("unknown kind to configure Informers: %s", c.kind)
 	}
 
 	informerCtx, cancel := context.WithTimeout(ctx, informerSyncTimeout)
@@ -210,8 +213,14 @@ func (c *crdManager) configureInformers(ctx context.Context, informers cache.Inf
 			UpdateFunc: c.onUpdatePodMonitor,
 			DeleteFunc: c.onDeletePodMonitor,
 		}))
+	case KindServiceMonitor:
+		_, err = informer.AddEventHandler((toolscache.ResourceEventHandlerFuncs{
+			AddFunc:    c.onAddServiceMonitor,
+			UpdateFunc: c.onUpdateServiceMonitor,
+			DeleteFunc: c.onDeleteServiceMonitor,
+		}))
 	default:
-		return fmt.Errorf("Unknown kind for configureInformers: %s", c.kind)
+		return fmt.Errorf("unknown kind to configure Informers: %s", c.kind)
 	}
 
 	if err != nil {
@@ -299,6 +308,50 @@ func (c *crdManager) onUpdatePodMonitor(oldObj, newObj interface{}) {
 func (c *crdManager) onDeletePodMonitor(obj interface{}) {
 	pm := obj.(*promopv1.PodMonitor)
 	c.clearConfigs("podMonitor", pm.Namespace, pm.Name)
+	if err := c.apply(); err != nil {
+		level.Error(c.logger).Log("name", pm.Name, "err", err, "msg", "error applying scrape configs after deleting "+c.kind)
+	}
+}
+
+func (c *crdManager) addServiceMonitor(sm *promopv1.ServiceMonitor) {
+	var err error
+	for i, ep := range sm.Spec.Endpoints {
+		var pmc *config.ScrapeConfig
+		pmc, err = c.configGen.GenerateServiceMonitorConfig(sm, ep, i)
+		if err != nil {
+			// TODO(jcreixell): Generate Kubernetes event to inform of this error when running `kubectl get <servicemonitor>`.
+			level.Error(c.logger).Log("name", sm.Name, "err", err, "msg", "error generating scrapeconfig from serviceMonitor")
+			break
+		}
+		c.mut.Lock()
+		c.discoveryConfigs[pmc.JobName] = pmc.ServiceDiscoveryConfigs
+		c.scrapeConfigs[pmc.JobName] = pmc
+		c.mut.Unlock()
+	}
+	if err != nil {
+		c.addDebugInfo(sm.Namespace, sm.Name, err)
+		return
+	}
+	if err = c.apply(); err != nil {
+		level.Error(c.logger).Log("name", sm.Name, "err", err, "msg", "error applying scrape configs from "+c.kind)
+	}
+	c.addDebugInfo(sm.Namespace, sm.Name, err)
+}
+
+func (c *crdManager) onAddServiceMonitor(obj interface{}) {
+	pm := obj.(*promopv1.ServiceMonitor)
+	level.Info(c.logger).Log("msg", "found pod monitor", "name", pm.Name)
+	c.addServiceMonitor(pm)
+}
+func (c *crdManager) onUpdateServiceMonitor(oldObj, newObj interface{}) {
+	pm := oldObj.(*promopv1.ServiceMonitor)
+	c.clearConfigs("serviceMonitor", pm.Namespace, pm.Name)
+	c.addServiceMonitor(newObj.(*promopv1.ServiceMonitor))
+}
+
+func (c *crdManager) onDeleteServiceMonitor(obj interface{}) {
+	pm := obj.(*promopv1.ServiceMonitor)
+	c.clearConfigs("serviceMonitor", pm.Namespace, pm.Name)
 	if err := c.apply(); err != nil {
 		level.Error(c.logger).Log("name", pm.Name, "err", err, "msg", "error applying scrape configs after deleting "+c.kind)
 	}
