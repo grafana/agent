@@ -173,7 +173,13 @@ type AgentManagementConfig struct {
 func getRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, log *server.Logger, fs *flag.FlagSet) (*Config, error) {
 	remoteConfigBytes, err := configProvider.FetchRemoteConfig()
 	if err != nil {
-		level.Error(log).Log("msg", "could not fetch from API, falling back to cache", "err", err)
+		var retryAfterErr retryAfterError
+		if errors.As(err, &retryAfterErr) {
+			level.Error(log).Log("msg", "received retry-after from API, sleeping and falling back to cache", "retry-after", retryAfterErr.retryAfter)
+			time.Sleep(retryAfterErr.retryAfter)
+		} else {
+			level.Error(log).Log("msg", "could not fetch from API, falling back to cache", "err", err)
+		}
 		return getCachedRemoteConfig(expandEnvVars, configProvider, fs, log)
 	}
 
