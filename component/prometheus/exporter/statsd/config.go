@@ -81,8 +81,8 @@ func (c *Arguments) Convert() (*statsd_exporter.Config, error) {
 func (c *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	*c = DefaultConfig
 
-	type cfg Arguments
-	return f((*cfg)(c))
+	type args Arguments
+	return f((*args)(c))
 }
 
 // function to read a yaml file from a path and convert it to a mapper.MappingConfig

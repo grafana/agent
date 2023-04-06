@@ -1,4 +1,4 @@
-package fake
+package kafkafake
 
 // This code is copied from Promtail. The fake package is used to configure
 // fake client that can be used in testing.

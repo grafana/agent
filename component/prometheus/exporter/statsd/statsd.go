@@ -18,8 +18,8 @@ func init() {
 }
 
 func createExporter(opts component.Options, args component.Arguments) (integrations.Integration, error) {
-	cfg := args.(Arguments)
-	statsdConfig, err := cfg.Convert()
+	a := args.(Arguments)
+	statsdConfig, err := a.Convert()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create statsd exporter: %w", err)
 	}

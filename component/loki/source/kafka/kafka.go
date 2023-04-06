@@ -6,14 +6,12 @@ import (
 
 	"github.com/Shopify/sarama"
 	"github.com/go-kit/log/level"
-
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/common/loki"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
-	kt "github.com/grafana/agent/component/loki/source/kafka/internal/kafkatarget"
+	kt "github.com/grafana/agent/component/loki/source/internal/kafkatarget"
 	"github.com/grafana/dskit/flagext"
-
 	"github.com/prometheus/common/model"
 )
 
@@ -53,11 +51,17 @@ type KafkaAuthentication struct {
 
 // KafkaSASLConfig describe the SASL configuration for authentication with Kafka brokers
 type KafkaSASLConfig struct {
-	Mechanism string           `river:"mechanism,attr,optional"`
-	User      string           `river:"user,attr"`
-	Password  string           `river:"password,attr"`
-	UseTLS    bool             `river:"use_tls,attr,optional"`
-	TLSConfig config.TLSConfig `river:"tls_config,block,optional"`
+	Mechanism   string            `river:"mechanism,attr,optional"`
+	User        string            `river:"user,attr,optional"`
+	Password    string            `river:"password,attr,optional"`
+	UseTLS      bool              `river:"use_tls,attr,optional"`
+	TLSConfig   config.TLSConfig  `river:"tls_config,block,optional"`
+	OAuthConfig OAuthConfigConfig `river:"oauth_config,block,optional"`
+}
+
+type OAuthConfigConfig struct {
+	TokenProvider string   `river:"token_provider,attr"`
+	Scopes        []string `river:"scopes,attr"`
 }
 
 // DefaultArguments provides the default arguments for a kafka component.
@@ -162,7 +166,7 @@ func (c *Component) Update(args component.Arguments) error {
 	}
 
 	entryHandler := loki.NewEntryHandler(c.handler, func() {})
-	t, err := kt.NewSyncer(c.opts.Registerer, c.opts.Logger, newArgs.Convert(), entryHandler)
+	t, err := kt.NewSyncer(c.opts.Registerer, c.opts.Logger, newArgs.Convert(), entryHandler, &kt.KafkaTargetMessageParser{})
 	if err != nil {
 		level.Error(c.opts.Logger).Log("msg", "failed to create kafka client with provided config", "err", err)
 		return err
@@ -213,6 +217,10 @@ func (auth KafkaAuthentication) Convert() kt.Authentication {
 			Password:  secret,
 			UseTLS:    auth.SASLConfig.UseTLS,
 			TLSConfig: *auth.SASLConfig.TLSConfig.Convert(),
+			OAuthConfig: kt.OAuthConfig{
+				TokenProvider: kt.TokenProviderType(auth.SASLConfig.OAuthConfig.TokenProvider),
+				Scopes:        auth.SASLConfig.OAuthConfig.Scopes,
+			},
 		},
 	}
 }

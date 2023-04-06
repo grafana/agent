@@ -12,12 +12,11 @@ import (
 	"time"
 
 	"github.com/Shopify/sarama"
+	"github.com/grafana/agent/component/loki/source/internal/kafkafake"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
-
-	"github.com/grafana/agent/component/loki/source/kafka/internal/fake"
 )
 
 // Consumergroup handler
@@ -169,13 +168,13 @@ func Test_TargetRun(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			session, claim := &testSession{}, newTestClaim("footopic", 10, 12)
 			var closed bool
-			fc := fake.New(
+			fc := kafkafake.New(
 				func() {
 					closed = true
 				},
 			)
 
-			tg := NewKafkaTarget(session, claim, tt.inDiscoveredLS, tt.inLS, tt.relabels, fc, true)
+			tg := NewKafkaTarget(nil, session, claim, tt.inDiscoveredLS, tt.inLS, tt.relabels, fc, true, &KafkaTargetMessageParser{})
 
 			var wg sync.WaitGroup
 			wg.Add(1)

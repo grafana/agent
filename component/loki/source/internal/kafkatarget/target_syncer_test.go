@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/grafana/agent/component/loki/source/kafka/internal/fake"
+	"github.com/grafana/agent/component/loki/source/internal/kafkafake"
 )
 
 func Test_TopicDiscovery(t *testing.T) {
@@ -87,7 +87,7 @@ func Test_NewTarget(t *testing.T) {
 	ts := &TargetSyncer{
 		logger: log.NewNopLogger(),
 		reg:    prometheus.DefaultRegisterer,
-		client: fake.New(func() {}),
+		client: kafkafake.New(func() {}),
 		cfg: Config{
 			RelabelConfigs: []*relabel.Config{
 				{
