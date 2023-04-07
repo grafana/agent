@@ -134,7 +134,7 @@ function partitionFields(fields: ObjectField[]): ObjectField[][] {
   return partitions;
 }
 
-/** multilinedValue returns true if value recrusively crosses multiple lines. */
+/** multilinedValue returns true if value recursively crosses multiple lines. */
 function multilinedValue(value: Value): boolean {
   switch (value.type) {
     case ValueType.OBJECT:

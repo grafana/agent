@@ -21,7 +21,7 @@ func NewWindowsEventLogger(cfg *Config) *Logger {
 }
 
 func makeWindowsEventLogger(cfg *Config) (log.Logger, error) {
-	// Setup the log in windows events
+	// Set up the log in windows events
 	err := el.InstallAsEventCreate(ServiceName, el.Error|el.Info|el.Warning)
 
 	// Agent should expect an error of 'already exists' if the Event Log sink has already previously been installed
@@ -38,8 +38,8 @@ func makeWindowsEventLogger(cfg *Config) (log.Logger, error) {
 		l.Close()
 	})
 
-	// These are setup to be writers for each Windows log level
-	// Setup this way so we can utilize all the benefits of logformatter
+	// These are set up to be writers for each Windows log level
+	// Set up this way so we can utilize all the benefits of logformatter
 	infoLogger := newWinLogWrapper(cfg.LogFormat, func(p []byte) error {
 		return il.Info(1, string(p))
 	})

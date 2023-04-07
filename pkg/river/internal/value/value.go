@@ -109,7 +109,7 @@ func Encode(v interface{}) Value {
 }
 
 // FromRaw converts a reflect.Value into a River Value. It is useful to prevent
-// downcasting a interface into an any.
+// downcasting an interface into an any.
 func FromRaw(v reflect.Value) Value {
 	return makeValue(v)
 }
@@ -259,7 +259,7 @@ func (v Value) Interface() interface{} {
 // Reflect returns the raw reflection value backing v.
 func (v Value) Reflect() reflect.Value { return v.rv }
 
-// makeValue converts a reflect value into a Value, deferencing any pointers or
+// makeValue converts a reflect value into a Value, dereferencing any pointers or
 // interface{} values.
 func makeValue(v reflect.Value) Value {
 	// Early check: if v is interface{}, we need to deference it to get the
@@ -299,7 +299,7 @@ func makeValue(v reflect.Value) Value {
 }
 
 // OrderedKeys reports if v represents an object with consistently ordered
-// keys. If panics if v is not an object.
+// keys. It panics if v is not an object.
 func (v Value) OrderedKeys() bool {
 	if v.ty != TypeObject {
 		panic("river/value: OrderedKeys called on non-object value")

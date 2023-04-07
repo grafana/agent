@@ -6,7 +6,7 @@ title: github_exporter_config
 
 The `github_exporter_config` block configures the `github_exporter` integration,
 which is an embedded version of
-[`github_exporter`](https://github.com/infinityworks/github-exporter). This allows for the collection of metrics from the github api.
+[`github_exporter`](https://github.com/infinityworks/github-exporter). This allows for the collection of metrics from the GitHub api.
 
 We strongly recommend that you configure a separate authentication token for the Agent, and give it only the strictly mandatory
 security privileges necessary for monitoring your repositories, as per the [official documentation](https://docs.github.com/en/rest/reference/permissions-required-for-github-apps).
@@ -16,7 +16,7 @@ Full reference of options:
 
 ```yaml
   # Enables the github_exporter integration, allowing the Agent to automatically
-  # collect metrics for the specified github objects.
+  # collect metrics for the specified GitHub objects.
   [enabled: <boolean> | default = false]
 
   # Sets an explicit value for the instance label when the integration is
@@ -57,27 +57,27 @@ Full reference of options:
   # Exporter-specific configuration options
   #
 
-  # The full URI of the github API.
+  # The full URI of the GitHub API.
   [api_url: <string> | default = "https://api.github.com"]
 
-  # A list of github repositories for which to collect metrics.
+  # A list of GitHub repositories for which to collect metrics.
   repositories:
     [ - <string> ]
 
-  # A list of github organizations for which to collect metrics.
+  # A list of GitHub organizations for which to collect metrics.
   organizations:
     [ - <string> ]
 
-  # A list of github users for which to collect metrics.
+  # A list of GitHub users for which to collect metrics.
   users:
     [ - <string> ]
 
-  # A github authentication token that allows the API to be queried more often.
+  # A GitHub authentication token that allows the API to be queried more often.
   # Optional, but recommended.
   [api_token: <string>]
 
-  # A path to a file containing a github authentication token that allows the
-  # API to be queried more often. If supplied, this supercedes `api_token`
+  # A path to a file containing a GitHub authentication token that allows the
+  # API to be queried more often. If supplied, this supersedes `api_token`
   # Optional, but recommended.
   [api_token_file: <string>]
 ```

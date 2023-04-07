@@ -29,7 +29,7 @@ presented below.
 The scrape job name defaults to the component's unique identifier.
 
 Any omitted fields take on their default values. In case that conflicting
-attributes are being passed (eg. defining both a BearerToken and
+attributes are being passed (e.g. defining both a BearerToken and
 BearerTokenFile or configuring both Basic Authorization and OAuth2 at the same
 time), the component reports an error.
 
@@ -210,10 +210,8 @@ prometheus.scrape "blackbox_scraper" {
 }
 ```
 
-Here's the the endpoints that are being scraped every 10 seconds:
+Here's the endpoints that are being scraped every 10 seconds:
 ```
 http://blackbox-exporter:9115/probe?target=grafana.com&module=http_2xx
 http://blackbox-exporter:9116/probe?target=grafana.com&module=http_2xx
 ```
-
-

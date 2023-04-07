@@ -2,6 +2,7 @@ package kafkatarget
 
 import (
 	"github.com/Shopify/sarama"
+	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/dskit/flagext"
 	promconfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
@@ -35,11 +36,13 @@ type TargetConfig struct {
 	// Kafka version. Default to 2.2.1
 	Version string `yaml:"version"`
 
-	// Rebalancing strategy to use. (e.g sticky, roundrobin or range)
+	// Rebalancing strategy to use. (e.g. sticky, roundrobin or range)
 	Assignor string `yaml:"assignor"`
 
 	// Authentication strategy with Kafka brokers
 	Authentication Authentication `yaml:"authentication"`
+
+	MessageParser MessageParser
 }
 
 // AuthenticationType specifies method to authenticate with Kafka brokers
@@ -67,6 +70,14 @@ type Authentication struct {
 	SASLConfig SASLConfig `yaml:"sasl_config,omitempty"`
 }
 
+// TokenProviderType specifies the provider used for resolving the access token
+type TokenProviderType string
+
+const (
+	// TokenProviderTypeAzure represents using the Azure as the token provider
+	TokenProviderTypeAzure TokenProviderType = "azure"
+)
+
 // KafkaSASLConfig describe the SASL configuration for authentication with Kafka brokers
 type SASLConfig struct {
 	// SASL mechanism. Supports PLAIN, SCRAM-SHA-256 and SCRAM-SHA-512
@@ -83,4 +94,19 @@ type SASLConfig struct {
 
 	// TLSConfig is used for SASL over TLS. It is used only when UseTLS is true
 	TLSConfig promconfig.TLSConfig `yaml:",inline"`
+
+	// OAuthConfig is used for configuring the token provider
+	OAuthConfig OAuthConfig `yaml:"oauth_provider_config,omitempty"`
+}
+
+type OAuthConfig struct {
+	// TokenProvider is used for resolving the OAuth access token
+	TokenProvider TokenProviderType `yaml:"token_provider,omitempty"`
+
+	Scopes []string
+}
+
+// MessageParser defines parsing for each incoming message
+type MessageParser interface {
+	Parse(message *sarama.ConsumerMessage, labels model.LabelSet, relabels []*relabel.Config, useIncomingTimestamp bool) ([]loki.Entry, error)
 }

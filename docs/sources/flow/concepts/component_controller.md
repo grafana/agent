@@ -89,7 +89,7 @@ The overall health of a component is determined by combining the
 controller-reported health of the component with the component-specific health
 information.
 
-An individual component's health is independent from the health of any other
+An individual component's health is independent of the health of any other
 components it references: a component can be marked as healthy even if it
 references an exported field of an unhealthy component.
 

@@ -251,7 +251,7 @@ func (c *Component) addToCache(originalID uint64, lbls labels.Labels, keep bool)
 	}
 }
 
-// labelAndID stores both the globalrefid for the label and the id itself. We store the id so that it doesnt have
+// labelAndID stores both the globalrefid for the label and the id itself. We store the id so that it doesn't have
 // to be recalculated again.
 type labelAndID struct {
 	labels labels.Labels
