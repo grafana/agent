@@ -131,7 +131,7 @@ require (
 	github.com/prometheus/snmp_exporter v0.20.1-0.20220111173215-83399c23888f
 	github.com/prometheus/statsd_exporter v0.22.8
 	github.com/rancher/k3d/v5 v5.2.2
-	github.com/rfratto/ckit v0.0.0-20220401221852-009169323240
+	github.com/rfratto/ckit v0.0.0-20230407094334-439cbde2a5cf
 	github.com/rs/cors v1.8.3
 	github.com/shirou/gopsutil/v3 v3.22.9
 	github.com/sijms/go-ora/v2 v2.5.24
