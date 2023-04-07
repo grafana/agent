@@ -1841,6 +1841,8 @@ github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a h1:D5NS
 github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a/go.mod h1:rjb/swXiCWLlC3gWlyugy/xEOZioF5PclbB8sf/9p/Q=
 github.com/grafana/opentelemetry-collector v0.4.1-0.20221101113646-2be4b341c150 h1:plF+xoA8rp0y0+NZEvmAdwUv69Hvl4LKurnvG4vSMVw=
 github.com/grafana/opentelemetry-collector v0.4.1-0.20221101113646-2be4b341c150/go.mod h1:FZC9Px2N5CRiOG1VWH4XvkDeFx+Bu5tO8+gaqDSfXAA=
+github.com/grafana/opentelemetry-collector/exporter/loggingexporter v0.0.0-20221101113646-2be4b341c150 h1:246dwxQ8Ka5XJyt7+IBYTIM8AH6uNZe7A0iLDtnIx/s=
+github.com/grafana/opentelemetry-collector/exporter/loggingexporter v0.0.0-20221101113646-2be4b341c150/go.mod h1:6oJfuPkBexwG3jm4FcGLL7LgPjdLLdsI87Q+Q3RKEfY=
 github.com/grafana/opentelemetry-collector/exporter/otlpexporter v0.0.0-20221101113646-2be4b341c150 h1:37E+F/mnzQ5HtRyB2/xCnyXKO7VI1IsTpCJUtOYiq+Y=
 github.com/grafana/opentelemetry-collector/exporter/otlpexporter v0.0.0-20221101113646-2be4b341c150/go.mod h1:GmcFit55Pd4dck4KHIp2TZfJzx5RHLYvbhWrREz+UhY=
 github.com/grafana/opentelemetry-collector/exporter/otlphttpexporter v0.0.0-20221101113646-2be4b341c150 h1:LIjrSbUaEZ3mKcHcorD6qXLA34fgn3bIcmlyRxX8OPw=
