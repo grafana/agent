@@ -1,12 +1,15 @@
 ---
 title: Install Grafana Agent on macOS
 weight: 130
+aliases:
+- ../../set-up/install-agent-macos/
 ---
+
 ## Install Grafana Agent on macOS
 
-Install Grafana Agent and get it up and running on macOS. 
+Install Grafana Agent and get it up and running on macOS.
 
-> **Note:** If you intend to ship your data to Grafana Cloud, you can set up Grafana Agent using a Grafana Cloud integration. See [how to install an integration](/docs/grafana-cloud/data-configuration/integrations/install-and-manage-integrations/) and details about the [macOS integration](/docs/grafana-cloud/data-configuration/integrations/integration-reference/integration-macos-node/). 
+> **Note:** If you intend to ship your data to Grafana Cloud, you can set up Grafana Agent using a Grafana Cloud integration. See [how to install an integration](/docs/grafana-cloud/data-configuration/integrations/install-and-manage-integrations/) and details about the [macOS integration](/docs/grafana-cloud/data-configuration/integrations/integration-reference/integration-macos-node/).
 
 ### Overview
 Use Homebrew to install the most recent released version of Grafana using the Homebrew package. You can also install Grafana Agent on macOS using the macOS binary.
@@ -14,12 +17,12 @@ Use Homebrew to install the most recent released version of Grafana using the Ho
 ### Steps
 
 1. Open a terminal and enter:
-   
+
    ```
    brew update
    brew install grafana-agent
    ```
-   
+
     The brew page downloads and enters the files into:
     - /usr/local/Cellar/grafana-agent/[version] (Homebrew v2)
     - /opt/homebrew/Cellar/grafana-agent/[version] (Homebrew v3)
@@ -32,10 +35,10 @@ Use Homebrew to install the most recent released version of Grafana using the Ho
     touch $(brew --prefix)/etc/grafana-agent/config.yml
     ```
 
-1. Modify `config.yml` with your configuration requirements. 
+1. Modify `config.yml` with your configuration requirements.
 
-    See [Configure Grafana Agent for details]({{< relref "../configuration/" >}}). 
-  
+    See [Configure Grafana Agent for details]({{< relref "../configuration/" >}}).
+
 1. Start Grafana Agent using the command:
 
     ` brew services start grafana-agent`
@@ -50,7 +53,7 @@ Use Homebrew to install the most recent released version of Grafana using the Ho
 
 
 
-    
 
 
-   
+
+

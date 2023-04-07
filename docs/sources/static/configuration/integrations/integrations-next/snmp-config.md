@@ -1,5 +1,7 @@
 ---
 title: snmp_exporter_config
+aliases:
+- ../../../../configuration/integrations/integrations-next/snmp-config/
 ---
 
 # snmp config

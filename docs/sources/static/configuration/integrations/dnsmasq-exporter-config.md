@@ -1,5 +1,7 @@
 ---
 title: dnsmasq_exporter_config
+aliases:
+- ../../../configuration/integrations/dnsmasq-exporter-config/
 ---
 
 # dnsmasq_exporter_config

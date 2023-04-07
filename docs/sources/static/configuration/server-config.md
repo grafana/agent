@@ -1,6 +1,8 @@
 ---
 title: server_config
 weight: 100
+aliases:
+- ../../configuration/server-config/
 ---
 
 # server_config
@@ -65,7 +67,7 @@ The `windows_certificate_filter_config` configures the use of the Windows Certif
 ```yaml
 # Client configuration, optional. If nothing specific will use the default client ca root
 [client: <windows_client_config>]
-  
+
 # Name of the store to look for the Client Certificate ex My, CA
 server: <windows_server_config>
 ```

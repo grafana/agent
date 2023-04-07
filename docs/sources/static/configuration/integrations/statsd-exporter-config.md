@@ -1,5 +1,7 @@
 ---
 title: statsd_exporter_config
+aliases:
+- ../../../configuration/integrations/statsd-exporter-config/
 ---
 
 # statsd_exporter_config

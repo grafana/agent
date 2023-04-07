@@ -1,5 +1,7 @@
 ---
 title: vsphere_config
+aliases:
+- ../../../../configuration/integrations/integrations-next/vsphere-config/
 ---
 
 # vsphere config (beta)

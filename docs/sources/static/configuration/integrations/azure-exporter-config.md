@@ -1,7 +1,7 @@
 ---
-aliases:
-- /docs/agent/latest/configuration/integrations/azure-exporter-config/
 title: azure_exporter_config
+aliases:
+- ../../../configuration/integrations/azure-exporter-config/
 ---
 
 # azure_exporter_config
@@ -10,8 +10,8 @@ title: azure_exporter_config
 The `azure_exporter_config` block configures the `azure_exporter` integration, an embedded version of
 [`azure-metrics-exporter`](https://github.com/webdevops/azure-metrics-exporter), used to
 collect metrics from [Azure Monitor](https://azure.microsoft.com/en-us/products/monitor). The
-exporter uses [Azure Resource Graph](https://azure.microsoft.com/en-us/get-started/azure-portal/resource-graph/#overview) 
-queries to identify resources for gathering metrics. 
+exporter uses [Azure Resource Graph](https://azure.microsoft.com/en-us/get-started/azure-portal/resource-graph/#overview)
+queries to identify resources for gathering metrics.
 
 ## List of Supported Services and Metrics
 The exporter supports all metrics defined by Azure Monitor. The complete list of available metrics can be found in the [Azure Monitor documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/metrics-supported).
@@ -34,16 +34,16 @@ The account used by Grafana Agent needs:
   #
   # Common Integration Settings
   #
-  
-  # Enables the azure_exporter integration, allowing the Agent to automatically collect metrics or expose azure metrics 
+
+  # Enables the azure_exporter integration, allowing the Agent to automatically collect metrics or expose azure metrics
   [enabled: <boolean> | default = false]
 
   # Sets an explicit value for the instance label when the integration is self-scraped. Default will be
   # based on subscriptions and ResourceType being monitored
   [instance: <string>]
 
-  # Automatically collect metrics from this integration. If disabled, the exporter integration will be run but not 
-  # scraped and thus not. remote-written. Metrics for the integration will be exposed at 
+  # Automatically collect metrics from this integration. If disabled, the exporter integration will be run but not
+  # scraped and thus not. remote-written. Metrics for the integration will be exposed at
   # /integrations/azure_exporter/metrics and can be scraped by an external process.
   [scrape_integration: <boolean> | default = <integrations_config.scrape_integrations>]
 
@@ -70,11 +70,11 @@ The account used by Grafana Agent needs:
   #
   # Exporter specific configuration
   #
-  
+
   # Required: The azure subscription(s) to scrape metrics from
   subscriptions:
     [ - <string> ... ]
-  
+
   # Required: The Azure Resource Type to scrape metrics for
   # Valid values can be found as the heading names on this page https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/metrics-supported
   # Ex: Microsoft.Cache/redis
@@ -82,8 +82,8 @@ The account used by Grafana Agent needs:
 
   # Required: The metrics to scrape from resources
   # Valid values can be found in the `Metric` column for the`resource_type` https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/metrics-supported
-  # Example: 
-  #   resource_type: Microsoft.Cache/redis 
+  # Example:
+  #   resource_type: Microsoft.Cache/redis
   #   metrics:
   #     - allcachehits
   metrics:
@@ -92,21 +92,21 @@ The account used by Grafana Agent needs:
   # Optional: The [kusto query](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/) filter to apply when searching for resources
   # This value will be embedded in to a template query of the form `Resources | where type =~ "<resource_type>" <resource_graph_query_filter> | project id, tags`
   [resource_graph_query_filter: <string>]
-  
+
   # Optional: Aggregation to apply for the metrics produced. Valid values are minimum, maximum, average, total, and count
-  # If no aggregation is specified the value for `Aggregation Type` on the `Metric` is used from https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/metrics-supported 
+  # If no aggregation is specified the value for `Aggregation Type` on the `Metric` is used from https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/metrics-supported
   metric_aggregations:
     [ - <string> ... ]
 
-  # Optional: An [ISO8601 Duration](https://en.wikipedia.org/wiki/ISO_8601#Durations) used when querying the metric value  
+  # Optional: An [ISO8601 Duration](https://en.wikipedia.org/wiki/ISO_8601#Durations) used when querying the metric value
   [timespan: <string> | default = "PT1M"]
-  
+
   # Optional: Used to include `Dimensions` available to a `Metric` definition https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/metrics-supported
   # These will appear as labels on the metrics,
   #   If a single dimension is requested it will have the name `dimension`
   #   If multiple dimensions are requested they will have the name `dimension<dimension_name>`
-  # Example: 
-  #   resource_type: Microsoft.Cache/redis 
+  # Example:
+  #   resource_type: Microsoft.Cache/redis
   #   metrics:
   #     - allcachehits
   #   included_dimensions:
@@ -115,7 +115,7 @@ The account used by Grafana Agent needs:
   #     - Primary
   included_dimensions:
     [ - <string> ... ]
-  
+
   # Optional: A list of resource tags to include on the final metrics
   # These are added as labels with the name `tag_<tag_name>`
   included_resource_tags:
@@ -133,7 +133,7 @@ The account used by Grafana Agent needs:
   #   metric_namespace = Microsoft.Storage/storageAccounts/blobServices
   [metric_namespace: <string>]
 
-  # Optional: Which azure cloud environment to connect to, azurecloud, azurechinacloud, azuregovernmentcloud, or azurepprivatecloud 
+  # Optional: Which azure cloud environment to connect to, azurecloud, azurechinacloud, azuregovernmentcloud, or azurepprivatecloud
   [azure_cloud_environment: <string> | default = "azurecloud"]
 ```
 
@@ -192,12 +192,12 @@ The account used by Grafana Agent needs:
 ### Multiple Azure Services in a single config
 
 The Azure Metrics API has rather strict limitations on the number of parameters which can be supplied. Due to this, you cannot
-gather metrics from multiple `resource_types` in the same `azure_exporter` instance. If you need metrics from multiple resources, 
-you can enable `integration-next` or configure Agent to expose the exporter via the `azure_exporter` config with data configured through metrics scrape_configs. The following example configuration combines the two examples above in a single Agent configuration. 
+gather metrics from multiple `resource_types` in the same `azure_exporter` instance. If you need metrics from multiple resources,
+you can enable `integration-next` or configure Agent to expose the exporter via the `azure_exporter` config with data configured through metrics scrape_configs. The following example configuration combines the two examples above in a single Agent configuration.
 
 > **Note**: This is not a complete configuration; blocks have been removed for simplicity.
 
-```yaml 
+```yaml
 integrations:
   azure_exporter:
     enabled: true

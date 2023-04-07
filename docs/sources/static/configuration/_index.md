@@ -1,6 +1,8 @@
 ---
 title: Configure Grafana Agent
 weight: 300
+aliases:
+- ../configuration/
 ---
 
 # Configure Grafana Agent

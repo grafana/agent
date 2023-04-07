@@ -1,5 +1,7 @@
 ---
 title: blackbox_config
+aliases:
+- ../../../configuration/integrations/blackbox-config/
 ---
 
 # blackbox_config
@@ -33,7 +35,7 @@ integrations:
             headers:
               Content-Type: application/json
             body: '{}'
-            preferred_ip_protocol: "ip4" 
+            preferred_ip_protocol: "ip4"
 ```
 
 Full reference of options:

@@ -1,5 +1,7 @@
 ---
 title: github_exporter_config
+aliases:
+- ../../../configuration/integrations/github-exporter-config/
 ---
 
 # github_exporter_config

@@ -1,6 +1,8 @@
 ---
 title: Set up Grafana Agent
 weight: 100
+aliases:
+- ../set-up/
 ---
 
 # Set up Grafana Agent

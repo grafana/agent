@@ -1,6 +1,8 @@
 ---
 title: Run Grafana Agent on Docker
 weight: 110
+aliases:
+- ../../set-up/install-agent-docker/
 ---
 
 ## Run Grafana Agent on Docker

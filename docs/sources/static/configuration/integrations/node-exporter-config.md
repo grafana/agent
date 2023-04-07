@@ -1,5 +1,7 @@
 ---
 title: node_exporter_config
+aliases:
+- ../../../configuration/integrations/node-exporter-config/
 ---
 
 # node_exporter_config

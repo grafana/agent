@@ -1,5 +1,7 @@
 ---
 title: blackbox_config
+aliases:
+- ../../../../configuration/integrations/integrations-next/blackbox-config/
 ---
 
 # blackbox_config
@@ -17,7 +19,7 @@ To get started, define Blackbox targets in Grafana Agent's integration block:
 metrics:
   wal_directory: /tmp/wal
   configs:
-    - name: default  
+    - name: default
 integrations:
   blackbox:
     blackbox_targets:
@@ -34,7 +36,7 @@ integrations:
             headers:
               Content-Type: application/json
             body: '{}'
-            preferred_ip_protocol: "ip4" 
+            preferred_ip_protocol: "ip4"
 ```
 
 Full reference of options:

@@ -1,8 +1,10 @@
 ---
 aliases:
-- ../dynamic-configuration/
 title: Dynamic Configuration
 weight: 100
+aliases:
+  - ../../dynamic-configuration/
+  - ../../cookbook/dynamic-configuration/
 ---
 
 # Dynamic Configuration Cookbook

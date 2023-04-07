@@ -1,8 +1,9 @@
 ---
-aliases:
-- ../scraping-service/
 title: Scraping Service Mode
 weight: 600
+aliases:
+- ../../scraping-service/
+- ../../configuration/scraping-service/
 ---
 
 # Scraping Service Mode (Beta)

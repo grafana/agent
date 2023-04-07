@@ -1,5 +1,7 @@
 ---
 title: consul_exporter_config
+aliases:
+- ../../../configuration/integrations/consul-exporter-config/
 ---
 
 # consul_exporter_config

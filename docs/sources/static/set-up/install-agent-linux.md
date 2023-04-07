@@ -1,6 +1,8 @@
 ---
 title: Install Grafana Agent on Linux
 weight: 115
+aliases:
+- ../../set-up/install-agent-linux/
 ---
 
 ## Install Grafana Agent on Linux
@@ -42,7 +44,7 @@ gpgcheck=1
 gpgkey=https://rpm.grafana.com/gpg.key
 sslverify=1
 sslcacert=/etc/pki/tls/certs/ca-bundle.crt
-``` 
+```
 2. Verify that the repository is properly configured using `yum-config-manager`:
 ```shell
 yum-config-manager grafana

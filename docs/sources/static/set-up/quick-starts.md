@@ -1,7 +1,10 @@
 ---
 title: Grafana Agent quick starts
 weight: 150
+aliases:
+- ../../set-up/quick-starts/
 ---
+
 ## Grafana Agent quick starts
 
 The following quick starts help you get up and running with Grafana Agent. You’ll learn how to send your metrics, logs, and traces to the Grafana Stack or Grafana Cloud.

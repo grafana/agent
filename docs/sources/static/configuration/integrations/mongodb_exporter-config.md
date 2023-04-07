@@ -1,5 +1,7 @@
 ---
 title: mongodb_exporter_config
+aliases:
+- ../../../configuration/integrations/mongodb_exporter-config/
 ---
 
 # mongodb_exporter_config

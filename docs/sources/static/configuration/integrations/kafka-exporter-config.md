@@ -1,5 +1,7 @@
 ---
 title: kafka_exporter_config
+aliases:
+- ../../../configuration/integrations/kafka-exporter-config/
 ---
 
 # kafka_exporter_config

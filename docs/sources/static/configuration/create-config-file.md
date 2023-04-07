@@ -1,8 +1,9 @@
 ---
-aliases:
-- ../set-up/create-config-file/
 title: Create a config file
 weight: 50
+aliases:
+- ../../set-up/create-config-file/
+- ../../configuration/create-config-file/
 ---
 
 # Create a configuration file

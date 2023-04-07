@@ -1,8 +1,11 @@
 ---
-aliases:
-- ../../../dynamic-configuration/instances/
 title: Instances
 weight: 110
+aliases:
+  - ../../../../dynamic-configuration/instances/
+  - ../../../../cookbook/dynamic-configuration/instances/
+  - ../../../../dynamic-configuration/01_basics/02_instances/
+  - ../../../../cookbook/dynamic-configuration/01_basics/02_instances/
 ---
 
 # 02 Instances

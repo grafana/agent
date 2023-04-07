@@ -1,5 +1,7 @@
 ---
 title: eventhandler_config
+aliases:
+- ../../../../configuration/integrations/integrations-next/eventhandler-config/
 ---
 
 # eventhandler_config

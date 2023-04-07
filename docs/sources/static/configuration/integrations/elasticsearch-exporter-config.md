@@ -1,5 +1,7 @@
 ---
 title: elasticsearch_exporter_config
+aliases:
+- ../../../configuration/integrations/elasticsearch-exporter-config/
 ---
 
 # elasticsearch_exporter_config

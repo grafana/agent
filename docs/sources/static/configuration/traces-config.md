@@ -1,8 +1,9 @@
 ---
-aliases:
-- tempo-config/
 title: traces_config
 weight: 400
+aliases:
+- ../../configuration/tempo-config/
+- ../../configuration/traces-config/
 ---
 
 # traces_config

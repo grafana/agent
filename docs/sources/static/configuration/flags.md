@@ -1,6 +1,8 @@
 ---
 title: Command-line flags
 weight: 100
+aliases:
+- ../../configuration/flags/
 ---
 
 # Command-line flags

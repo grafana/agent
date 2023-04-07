@@ -1,5 +1,7 @@
 ---
 title: windows_exporter_config
+aliases:
+- ../../../configuration/integrations/windows-exporter-config/
 ---
 
 # windows_exporter_config

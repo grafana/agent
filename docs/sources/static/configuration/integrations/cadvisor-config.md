@@ -1,5 +1,7 @@
 ---
 title: cadvisor_config
+aliases:
+- ../../../configuration/integrations/cadvisor-config/
 ---
 
 # cadvisor_config

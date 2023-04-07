@@ -1,8 +1,9 @@
 ---
-aliases:
-- loki-config/
 title: logs_config
 weight: 300
+aliases:
+- ../../configuration/loki-config/
+- ../../configuration/logs-config/
 ---
 
 # logs_config

@@ -1,5 +1,7 @@
 ---
 title: mysqld_exporter_config
+aliases:
+- ../../../configuration/integrations/mysqld-exporter-config/
 ---
 
 # mysqld_exporter_config

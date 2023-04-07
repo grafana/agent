@@ -1,8 +1,11 @@
 ---
-aliases:
-- ../../../dynamic-configuration/integrations/
 title: Integrations
 weight: 120
+aliases:
+  - ../../../../dynamic-configuration/integrations/
+  - ../../../../cookbook/dynamic-configuration/integrations/
+  - ../../../../dynamic-configuration/01_basics/03_integrations/
+  - ../../../../cookbook/dynamic-configuration/01_basics/03_integrations/
 ---
 
 # 03 Integrations

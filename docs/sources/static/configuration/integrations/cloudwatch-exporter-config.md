@@ -1,5 +1,7 @@
 ---
 title: cloudwatch_exporter_config
+aliases:
+- ../../../configuration/integrations/cloudwatch-exporter-config/
 ---
 
 # cloudwatch_exporter_config
@@ -9,7 +11,7 @@ title: cloudwatch_exporter_config
 The `cloudwatch_exporter_config` block configures the `cloudwatch_exporter` integration, which is an embedded version of
 [`YACE`](https://github.com/nerdswords/yet-another-cloudwatch-exporter/). Use the `cloudwatch_exporter` to collect  [AWS CloudWatch](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/WhatIsCloudWatch.html) metrics.
 
-This integration lets you scrape CloudWatch metrics in a set of configurations that we will call *jobs*. There are 
+This integration lets you scrape CloudWatch metrics in a set of configurations that we will call *jobs*. There are
 two kind of jobs: [`discovery`](#discovery_job) and [`static`](#static_job).
 
 ## Authentication
@@ -79,7 +81,7 @@ Configuration reference:
   #
   # Common Integration Settings
   #
-    
+
   # Enables the cloudwatch_exporter integration, allowing the Agent to automatically
   # collect CloudWatch metrics as configured.
   [enabled: <boolean> | default = false]
@@ -125,7 +127,7 @@ Configuration reference:
   # account information.
   # Ex: us-east-2
   sts_region: <string>
-  
+
   # Optional: Disable use of FIPS endpoints. Set 'true' when running outside of USA regions.
   [fips_disabled: <boolean> | default = false]
 
@@ -181,7 +183,7 @@ Configuration reference:
   # Optional: List of IAM roles to assume. Defaults to the role on the environment configured AWS role.
   roles: [ <aws_role> ]
 
-  # Required: Cloudwatch service alias ("alb", "ec2", etc) or namespace name ("AWS/EC2", "AWS/S3", etc). See section below for all 
+  # Required: Cloudwatch service alias ("alb", "ec2", etc) or namespace name ("AWS/EC2", "AWS/S3", etc). See section below for all
   # supported.
   type: <string>
 
@@ -193,7 +195,7 @@ Configuration reference:
   custom_tags: [ <aws_tag> ]
 
   # Required: List of metric definitions to scrape.
-  metrics: [ <metric> ] 
+  metrics: [ <metric> ]
 ```
 
 ### static_job
@@ -253,13 +255,13 @@ Configuration reference:
   custom_tags: [ <aws_tag> ]
 
   # Required: List of metric definitions to scrape.
-  metrics: [ <metric> ] 
+  metrics: [ <metric> ]
 ```
 
 ### aws_role
 
 Represents an [AWS IAM Role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html). Required when configuring a job. If omitted
-the AWS role that the credentials configured in the environment posses will be used. 
+the AWS role that the credentials configured in the environment posses will be used.
 
 This is useful when scraping metrics from different AWS accounts with a single pair of credentials. In this case, a different role
 is configured for the agent to assume prior to calling AWS APIs, therefore, the credentials configured in the system need
@@ -300,17 +302,17 @@ pick the ones you need.
 ```yaml
   # Required: CloudWatch metric name.
   name: <string>
-  
+
   # Required: List of statistic types, e.g. "Minimum", "Maximum", etc.
   statistics: [ <string> ]
-  
+
   # Optional: See the `Period` section below.
   period: [ <duration> | default = 5m ]
 ```
 
 ### Period
 
-Period controls how far back in time CloudWatch metrics are considered, during each agent scrape. We can split how these 
+Period controls how far back in time CloudWatch metrics are considered, during each agent scrape. We can split how these
 settings affects the produced values in two different scenarios.
 
 If all metrics within a job (discovery or static) have the same `Period` value configured, CloudWatch APIs will be requested
@@ -319,7 +321,7 @@ for metrics from the scrape time, to `Periods` seconds in the past. The values o
 ![](https://grafana.com/media/docs/agent/cloudwatch-single-period-time-model.png)
 
 On the other hand, if metrics with different `Periods` are configured under an individual job, this works differently.
-First, two variables are calculated aggregating all periods: `length`, taking the maximum value of all periods, and 
+First, two variables are calculated aggregating all periods: `length`, taking the maximum value of all periods, and
 the new `period` value, taking the minimum of all periods. Then, CloudWatch APIs will be requested for metrics from
 `now - length` to `now`, aggregating each in samples for `period` seconds. For each metrics, the most recent sample
 is exported to CloudWatch.

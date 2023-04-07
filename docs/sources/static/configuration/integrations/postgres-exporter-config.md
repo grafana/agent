@@ -1,5 +1,7 @@
 ---
 title: postgres_exporter_config
+aliases:
+- ../../../configuration/integrations/postgres-exporter-config/
 ---
 
 # postgres_exporter_config

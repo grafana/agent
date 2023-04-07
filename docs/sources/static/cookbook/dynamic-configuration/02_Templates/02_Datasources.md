@@ -1,8 +1,11 @@
 ---
-aliases:
-- ../../../dynamic-configuration/datasources/
 title: Datasources
 weight: 210
+aliases:
+  - ../../../../dynamic-configuration/datasources/
+  - ../../../../cookbook/dynamic-configuration/datasources/
+  - ../../../../dynamic-configuration/02_templates/02_datasources/
+  - ../../../../cookbook/dynamic-configuration/02_templates/02_datasources/
 ---
 
 # 02 Datasources

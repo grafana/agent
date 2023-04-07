@@ -1,5 +1,7 @@
 ---
 title: memcached_exporter_config
+aliases:
+- ../../../configuration/integrations/memcached-exporter-config/
 ---
 
 # memcached_exporter_config

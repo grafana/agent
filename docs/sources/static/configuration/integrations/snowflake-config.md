@@ -1,5 +1,7 @@
 ---
 title: snowflake_config
+aliases:
+- ../../../configuration/integrations/snowflake-config/
 ---
 
 # snowflake_config
@@ -51,7 +53,7 @@ Full reference of options:
   #
   # Exporter-specific configuration options
   #
-     
+
   # The account name of the snowflake account to monitor.
   account_name: <string>
 
@@ -61,7 +63,7 @@ Full reference of options:
   # Password for the database user used to scrape metrics.
   password: <string>
 
-  # The warehouse to use when querying metrics. 
+  # The warehouse to use when querying metrics.
   warehouse: <string>
 
   # The role to use when connecting to the database. The ACCOUNTADMIN role is used by default.

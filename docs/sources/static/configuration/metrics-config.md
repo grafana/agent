@@ -1,8 +1,9 @@
 ---
-aliases:
-- prometheus-config/
 title: metrics_config
 weight: 200
+aliases:
+- ../../configuration/prometheus-config/
+- ../../configuration/metrics-config/
 ---
 
 # metrics_config

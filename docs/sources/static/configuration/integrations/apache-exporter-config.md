@@ -1,5 +1,7 @@
 ---
 title: apache_http_config
+aliases:
+- ../../../configuration/integrations/apache-exporter-config/
 ---
 
 # apache_http_config
@@ -52,7 +54,7 @@ Full reference of options:
   #
   # Exporter-specific configuration options
   #
-     
+
   # URI to apache stub status page.
   # If your server-status page is secured by http auth, add the credentials to the scrape URL following this example:
   # http://user:password@localhost/server-status?auto .

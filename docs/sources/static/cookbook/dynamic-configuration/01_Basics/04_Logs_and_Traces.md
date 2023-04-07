@@ -1,8 +1,11 @@
 ---
-aliases:
-- ../../../dynamic-configuration/logs-traces/
 title: Logs and Traces
 weight: 130
+aliases:
+  - ../../../../dynamic-configuration/logs-traces/
+  - ../../../../cookbook/dynamic-configuration/logs-traces/
+  - ../../../../dynamic-configuration/01_basics/04_logs_and_traces/
+  - ../../../../cookbook/dynamic-configuration/01_basics/04_logs_and_traces/
 ---
 # 04 Logs and Traces
 

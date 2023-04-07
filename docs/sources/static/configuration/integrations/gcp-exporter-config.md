@@ -1,17 +1,17 @@
 ---
-aliases:
-- /docs/agent/latest/configuration/integrations/gcp-exporter-config/
 title: gcp_exporter_config
+aliases:
+- ../../../configuration/integrations/gcp-exporter-config/
 ---
 
 # gcp_exporter_config
 
 ## Overview
 The `gcp_exporter_config` block configures the `gcp_exporter` integration, which is an embedded version of
-[`stackdriver_exporter`](https://github.com/prometheus-community/stackdriver_exporter). This allows for the collection of 
+[`stackdriver_exporter`](https://github.com/prometheus-community/stackdriver_exporter). This allows for the collection of
 metrics data from [GCP Cloud Monitoring (formerly stackdriver)](https://cloud.google.com/monitoring/docs).
 
-The exporter supports all metrics available via [GCP's monitoring API](https://cloud.google.com/monitoring/api/metrics_gcp). `gcp_exporter` follows the template `stackdriver_<monitored_resource>_<metric_type_prefix>_<metric_type>`. 
+The exporter supports all metrics available via [GCP's monitoring API](https://cloud.google.com/monitoring/api/metrics_gcp). `gcp_exporter` follows the template `stackdriver_<monitored_resource>_<metric_type_prefix>_<metric_type>`.
 
 The following example shows a load balancing metric:
 
@@ -39,7 +39,7 @@ Since the exporter gathers all of its data from [GCP monitoring APIs](https://cl
   #
   # Common Integration Settings
   #
-  
+
   # Enables the gcp_exporter integration, allowing Agent to automatically collect metrics or expose gcp metrics.
   [enabled: <boolean> | default = false]
 
@@ -47,8 +47,8 @@ Since the exporter gathers all of its data from [GCP monitoring APIs](https://cl
   # based on subscriptions and ResourceType being monitored.
   [instance: <string>]
 
-  # Automatically collect metrics from this integration. If disabled, the exporter integration is run but not 
-  # scraped and thus not remote-written. Metrics for the integration are exposed at 
+  # Automatically collect metrics from this integration. If disabled, the exporter integration is run but not
+  # scraped and thus not remote-written. Metrics for the integration are exposed at
   # /integrations/gcp_exporter/metrics and can be scraped by an external process.
   [scrape_integration: <boolean> | default = <integrations_config.scrape_integrations>]
 
@@ -85,7 +85,7 @@ Since the exporter gathers all of its data from [GCP monitoring APIs](https://cl
   # Using pubsub metrics (https://cloud.google.com/monitoring/api/metrics_gcp#gcp-pubsub) as an example
   # all metrics.
   #   - pubsub.googleapis.com/
-  # all snapshot specific metrics 
+  # all snapshot specific metrics
   #   - pubsub.googleapis.com/snapshot
   # all snapshot specific metrics and a few subscription metrics
   #   - pubsub.googleapis.com/snapshot
@@ -99,7 +99,7 @@ Since the exporter gathers all of its data from [GCP monitoring APIs](https://cl
   # The `targeted_metric_prefix` is used to ensure the filter is only applied to the metric_prefix(es) where it makes sense.
   #   It does not explicitly have to match a value from `metric_prefixes` but the `targeted_metric_prefix` must be at least a
   #   prefix to one or more `metric_prefixes`.
-  #   Example: 
+  #   Example:
   #     metrics_prefixes = pubsub.googleapis.com/snapshot, pubsub.googleapis.com/subscription/num_undelivered_messages
   #     targeted_metric_prefix options would be:
   #       pubsub.googleapis.com (apply to all defined prefixes)
@@ -114,14 +114,14 @@ Since the exporter gathers all of its data from [GCP monitoring APIs](https://cl
     [ - <string> ... ]
 
   # Optional: The time range used when querying for metrics.
-  # Most of the time the default works perfectly fine. Most documented metrics include a comments of the form 
+  # Most of the time the default works perfectly fine. Most documented metrics include a comments of the form
   #   `Sampled every X seconds. After sampling, data is not visible for up to Y seconds.`
   #   As longs as your `request_interval` is >= `Y` you should have no issues.
   #   Consider using `ingest_delay` if you would like this to be done programmatically or are gathering slower moving metrics.
   [request_interval: <duration> | default = "5m"]
 
   # Optional: When enabled this automatically adjusts the time range used when querying for metrics backwards based on
-  #   the metadata GCP has published for how long the data can take to be ingested. You can see the values for this in 
+  #   the metadata GCP has published for how long the data can take to be ingested. You can see the values for this in
   #   documented metrics as `After sampling, data is not visible for up to Y seconds.`
   # Since GCPs ingestion delay is an "at worst," this is off by default to ensure data is gathered as soon as it's available.
   [ingest_delay:  <boolean> | default = false]
@@ -139,7 +139,7 @@ Since the exporter gathers all of its data from [GCP monitoring APIs](https://cl
 
 ## Configuration Examples
 
-The following examples show working configurations. See the [Configuration Reference](#config-reference) for a full 
+The following examples show working configurations. See the [Configuration Reference](#config-reference) for a full
 overview of the configuration options and what they do.
 
 ### Multiple prefixes
@@ -175,7 +175,7 @@ overview of the configuration options and what they do.
 ```yaml
   gcp_exporter:
     enabled: true
-    project_ids: 
+    project_ids:
       - <project_id>
     metrics_prefixes:
       - loadbalancing.googleapis.com/https/request_bytes_count

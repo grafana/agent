@@ -1,5 +1,7 @@
 ---
 title: mssql_config
+aliases:
+- ../../../configuration/integrations/mssql-config/
 ---
 
 # mssql_config
@@ -57,7 +59,7 @@ Full reference of options:
   #
   # Exporter-specific configuration options
   #
-     
+
   # The connection_string to use to connect to the mssql instance.
   # It is specified in the form of: "sqlserver://<USERNAME>:<PASSWORD>@<HOST>:<PORT>"
   connection_string: <string>

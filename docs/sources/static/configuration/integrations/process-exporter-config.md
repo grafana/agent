@@ -1,5 +1,7 @@
 ---
 title: process_exporter_config
+aliases:
+- ../../../configuration/integrations/process-exporter-config/
 ---
 
 # process_exporter_config

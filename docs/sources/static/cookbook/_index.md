@@ -1,9 +1,11 @@
 ---
 title: Cookbook
 weight: 900
+aliases:
+  - ../cookbook/
 ---
 
-## Cookbook 
+## Cookbook
 
 The cookbook section aims to provide small guides for more advanced use cases, experimental features, or certain concepts around Grafana Agent.
 

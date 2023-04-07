@@ -1,6 +1,8 @@
 ---
 title: integrations_config
 weight: 500
+aliases:
+- ../../configuration/integrations/
 ---
 
 # integrations_config

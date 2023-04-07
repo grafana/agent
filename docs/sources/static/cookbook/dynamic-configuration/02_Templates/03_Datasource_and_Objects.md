@@ -1,8 +1,11 @@
 ---
-aliases:
-- ../../../dynamic-configuration/objects/
 title: Objects
 weight: 220
+aliases:
+  - ../../../../dynamic-configuration/objects/
+  - ../../../../cookbook/dynamic-configuration/objects/
+  - ../../../../dynamic-configuration/02_templates/03_datasource_and_objects/
+  - ../../../../cookbook/dynamic-configuration/02_templates/03_datasource_and_objects/
 ---
 
 # 02 Datasources

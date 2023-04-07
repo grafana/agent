@@ -1,6 +1,8 @@
 ---
 title: Integrations Revamp
 weight: 100
+aliases:
+- ../../../configuration/integrations/integrations-next/
 ---
 
 # Integrations Revamp (Experimental)
@@ -109,7 +111,7 @@ integrations:
 
   mysql_configs:
     [- <mysqld_exporter_config> ...]
-  
+
   oracledb_configs:
     [ - <oracledb_exporter_config> ...]
 

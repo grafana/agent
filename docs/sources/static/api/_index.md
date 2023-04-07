@@ -1,6 +1,8 @@
 ---
 title: Grafana Agent API
 weight: 400
+aliases:
+- ../api/
 ---
 
 # Grafana Agent APIs (Stable)
@@ -229,7 +231,7 @@ POST /agent/api/v1/metrics/instance/{instance}/write
 ```
 
 This endpoint accepts Prometheus-compatible remote_write POST requests, and
-appends their contents into an instance's WAL. 
+appends their contents into an instance's WAL.
 
 Replace `{instance}` with the name of the metrics instance from your config
 file. For example, this block defines the "dev" and "prod" instances:
@@ -271,8 +273,8 @@ Response on success:
 GET /agent/api/v1/logs/targets
 ```
 
-This endpoint collects all logs subsystem targets known to the Agent across 
-all running instances. Only targets being scraped from Promtail will be returned. 
+This endpoint collects all logs subsystem targets known to the Agent across
+all running instances. Only targets being scraped from Promtail will be returned.
 
 The `labels` fields shows the labels that will be added to metrics from the
 target, while the `discovered_labels` field shows all labels found during

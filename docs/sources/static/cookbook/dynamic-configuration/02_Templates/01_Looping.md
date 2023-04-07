@@ -3,6 +3,11 @@ aliases:
 - ../../../dynamic-configuration/looping/
 title: Looping
 weight: 200
+aliases:
+  - ../../../../dynamic-configuration/looping/
+  - ../../../../cookbook/dynamic-configuration/looping/
+  - ../../../../dynamic-configuration/02_templates/01_looping/
+  - ../../../../cookbook/dynamic-configuration/02_templates/01_looping/
 ---
 
 # 01 Basics of Templating

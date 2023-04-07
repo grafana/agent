@@ -1,6 +1,8 @@
 ---
 title: dynamic_config
 weight: 500
+aliases:
+- ../../configuration/dynamic-config/
 ---
 
 # Dynamic Configuration - Experimental

@@ -1,8 +1,11 @@
 ---
-aliases:
-- ../../../dynamic-configuration/aws/
 title: Querying AWS
 weight: 300
+aliases:
+  - ../../../../dynamic-configuration/aws/
+  - ../../../../cookbook/dynamic-configuration/aws/
+  - ../../../../dynamic-configuration/03_advanced_datasources/01_aws/
+  - ../../../../cookbook/dynamic-configuration/03_advanced_datasources/01_aws/
 ---
 
 # 01 AWS

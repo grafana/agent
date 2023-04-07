@@ -1,7 +1,7 @@
 ---
-aliases:
-- /docs/agent/latest/configuration/integrations/oracledb-config/
 title: oracledb_config
+aliases:
+- ../../../configuration/integrations/oracledb-config/
 ---
 
 # oracledb_config
@@ -53,8 +53,8 @@ Full reference of options:
   #
   # Exporter-specific configuration options
   #
-     
-  # The connection string used to connect to the OracleDB instance in the format 
+
+  # The connection string used to connect to the OracleDB instance in the format
   # of oracle://<MONITOR_USER>:<PASSWORD>@<HOST>:<PORT>/<SERVICE>.
   # i.e. "oracle://user:password@localhost:1521/orcl.localnet"
   [connection_string: <string>]
@@ -64,9 +64,9 @@ Full reference of options:
   # The maximum amount of connections allowed to be open by the exporter.
   [max_open_connections: <int>]
 
-  # This is the interval between each scrape. Default of 0 is to scrape on collect requests. 
+  # This is the interval between each scrape. Default of 0 is to scrape on collect requests.
   [metric_scrape_interval: <duration> | default = "0"]
-  
+
   # The number of seconds that will act as the query timeout when the exporter is querying against
   # the OracleDB instance.
   [query_timeout: <int> | default = 5]

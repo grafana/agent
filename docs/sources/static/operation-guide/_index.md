@@ -1,6 +1,8 @@
 ---
 title: Operation guide
 weight: 700
+aliases:
+- ../operation-guide/
 ---
 
 # Operation guide

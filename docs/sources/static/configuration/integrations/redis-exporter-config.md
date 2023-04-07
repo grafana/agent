@@ -1,5 +1,7 @@
 ---
 title: redis_exporter_config
+aliases:
+- ../../../configuration/integrations/redis-exporter-config/
 ---
 
 # redis_exporter_config

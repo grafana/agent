@@ -1,5 +1,7 @@
 ---
 title: app_agent_config
+aliases:
+- ../../../../configuration/integrations/integrations-next/app-agent-receiver-config/
 ---
 
 # app_agent_receiver_config
@@ -44,7 +46,7 @@ These are the options you have for configuring the app_agent_receiver integratio
   server:
     [host: <string> | default = "127.0.0.1"]
     [port: <number> | default = 12347]
-    
+
     # Domains in which the agent is sending data from. For example "https://myapp.com"
     cors_allowed_origins:
       [- <string>]
@@ -56,7 +58,7 @@ These are the options you have for configuring the app_agent_receiver integratio
       [enabled: <boolean> | default = false]
       [rps: <number> | default = 100]
       [burstiness: <number> | default = 50]
-    
+
     # If configured, incoming requests will be required to specify this key in "x-api-key" header
     [api_key: <string>]
 
@@ -64,7 +66,7 @@ These are the options you have for configuring the app_agent_receiver integratio
     # Content-Length header is used to make this check
     [max_allowed_payload_size: <number> | default = 0]
 
-  # Labels to set for the log entry. 
+  # Labels to set for the log entry.
   # If value is specified, it will be used.
   # If value is empty and key exists in data, it's value will be used from data
   logs_labels:
@@ -108,9 +110,9 @@ filesystem:
 # Then given source url "https://my-app.dev/static/foo.js"
 # it will look for sourcemap at "/var/app/static/foo.js.map"
 
-minified_path_prefix: <string> 
+minified_path_prefix: <string>
 
-# Directory on file system that contains source maps. 
+# Directory on file system that contains source maps.
 # See above for more detailed explanation.
 # It is parsed as a Go template. You can use "{{.Release }}" which will be replaced with
 # app.release meta property.

@@ -1,8 +1,12 @@
 ---
 aliases:
-- ../../../dynamic-configuration/structure/
 title: Structure
 weight: 100
+aliases:
+  - ../../../../dynamic-configuration/structure/
+  - ../../../../cookbook/dynamic-configuration/structure/
+  - ../../../../dynamic-configuration/01_basics/01_structure/
+  - ../../../../cookbook/dynamic-configuration/01_basics/01_structure/
 ---
 
 # 01 Structure
