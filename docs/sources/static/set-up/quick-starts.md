@@ -1,5 +1,5 @@
 ---
-title: Grafana Agent quick starts
+title: Static mode quick starts
 weight: 150
 aliases:
 - ../../set-up/quick-starts/

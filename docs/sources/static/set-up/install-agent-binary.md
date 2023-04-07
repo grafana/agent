@@ -1,11 +1,11 @@
 ---
-title: Install the Grafana Agent binary
+title: Install static mode on other systems
 weight: 140
 aliases:
 - ../../set-up/install-agent-binary/
 ---
 
-## Install the Grafana Agent binary
+## Install static mode on other systems
 
 Install Grafana Agent and get it up and running using a binary file.
 

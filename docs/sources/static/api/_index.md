@@ -1,13 +1,13 @@
 ---
-title: Grafana Agent API
+title: Static mode API
 weight: 400
 aliases:
 - ../api/
 ---
 
-# Grafana Agent APIs (Stable)
+# Static mode APIs (Stable)
 
-The API is divided into several parts:
+The API for static mode is divided into several parts:
 
 - [Config Management API](#config-management-api)
 - [Agent API](#agent-api)

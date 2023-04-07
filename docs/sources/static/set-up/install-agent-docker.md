@@ -1,11 +1,11 @@
 ---
-title: Run Grafana Agent on Docker
+title: Run static mode on Docker
 weight: 110
 aliases:
 - ../../set-up/install-agent-docker/
 ---
 
-## Run Grafana Agent on Docker
+## Run static mode on Docker
 
 Install Grafana Agent and get it up and running on Docker.
 

@@ -1,11 +1,11 @@
 ---
-title: Set up Grafana Agent
+title: Install static mode
 weight: 100
 aliases:
 - ../set-up/
 ---
 
-# Set up Grafana Agent
+# Install Grafana Agent in static mode
 
 ## Overview
 

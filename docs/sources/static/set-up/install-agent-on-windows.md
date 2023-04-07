@@ -1,11 +1,11 @@
 ---
-title: Install Grafana Agent on Windows
+title: Install static mode on Windows
 weight: 120
 aliases:
 - ../../set-up/install-agent-on-windows/
 ---
 
-# Install Grafana Agent on Windows
+# Install static mode on Windows
 
 Install Grafana Agent and get it up and running on Windows.
 

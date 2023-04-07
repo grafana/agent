@@ -1,13 +1,13 @@
 ---
-title: Configure Grafana Agent
+title: Configure static mode
 weight: 300
 aliases:
 - ../configuration/
 ---
 
-# Configure Grafana Agent
+# Configure static mode
 
-Grafana Agent is configured across two places:
+The configuration of static mode is configured across two places:
 
 * A YAML file
 * [Command-line flags]({{< relref "./flags.md" >}})
