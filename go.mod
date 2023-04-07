@@ -51,7 +51,7 @@ require (
 	github.com/grafana/cloudflare-go v0.0.0-20230110200409-c627cf6792f2
 	github.com/grafana/dskit v0.0.0-20230201083518-528d8a7d52f2
 	github.com/grafana/go-gelf/v2 v2.0.1
-	github.com/grafana/loki v1.6.2-0.20230323092517-38203f870999 // k142 branch
+	github.com/grafana/loki v1.6.2-0.20230331204151-e2c4454a2d7d // k144 branch
 	github.com/grafana/phlare/api v0.1.2
 	github.com/grafana/regexp v0.0.0-20221122212121-6b5c0a4cb7fd
 	github.com/grafana/snowflake-prometheus-exporter v0.0.0-20221213150626-862cad8e9538
@@ -567,7 +567,7 @@ require (
 	go.etcd.io/etcd/api/v3 v3.5.5 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.5 // indirect
 	go.etcd.io/etcd/client/v3 v3.5.5 // indirect
-	go.mongodb.org/mongo-driver v1.11.0 // indirect
+	go.mongodb.org/mongo-driver v1.11.2 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.36.4 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.37.0 // indirect
 	go4.org/intern v0.0.0-20211027215823-ae77deb06f29 // indirect
@@ -600,6 +600,9 @@ require (
 require (
 	github.com/efficientgo/tools/core v0.0.0-20220817170617-6c25e3b627dd // indirect
 	github.com/gomodule/redigo v1.8.9 // indirect
+	github.com/spaolacci/murmur3 v1.1.0 // indirect
+	github.com/willf/bitset v1.1.11 // indirect
+	github.com/willf/bloom v2.0.3+incompatible // indirect
 )
 
 // NOTE: replace directives below must always be *temporary*.

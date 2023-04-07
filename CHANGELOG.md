@@ -7,20 +7,14 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-> **NOTE**: As of v0.32.0, builds for 32-bit ARMv6 currently don't support the
-> embedded Flow UI. The Flow UI will return to this target as soon as possible.
->
-> **NOTE**: The main branch currently doesn't support any 32-bit ARM builds.
-> Support for these builds will return as soon as possible, ideally before
-> v0.33 is released.
-
 Main (unreleased)
 -----------------
 
 ### Breaking changes
 
-- Support for 32-bit ARM builds is temporarily removed. We are aiming to bring
-  back support for these builds prior to publishing v0.33.0. (@rfratto)
+- Support for 32-bit ARM builds is removed for the foreseeable future due to Go
+  compiler issues. We will consider bringing back 32-bit ARM support once our Go
+  compiler issues are resolved and 32-bit ARM builds are stable. (@rfratto)
 
 - Agent Management: `agent_management.api_url` config field has been replaced by
 `agent_management.host`. The API path and version is now defined by the Agent. (@jcreixell)
@@ -54,7 +48,9 @@ Main (unreleased)
   - `prometheus.exporter.memcached` collects metrics from a Memcached server. (@spartan0x117)
   - `loki.source.azure_event_hubs` reads messages from Azure Event Hub using Kafka and forwards them to other `loki`
     components. (@akselleirv)
-  
+  - `discovery.gce` discovers resources on Google Compute Engine (GCE). (@marctc)
+
+
 - Add support for Flow-specific system packages:
 
   - Flow-specific DEB packages. (@rfratto, @robigan)
@@ -77,7 +73,7 @@ Main (unreleased)
 
 - Update Redis Exporter Dependency to v1.49.0. (@spartan0x117)
 
-- Update Loki dependency to the k142 branch. (@rfratto)
+- Update Loki dependency to the k144 branch. (@andriikushch)
 
 - Flow: Add OAUTHBEARER mechanism to `loki.source.kafka` using Azure as provider. (@akselleirv)
 
@@ -122,9 +118,7 @@ Main (unreleased)
 - Grafana Agent Docker containers and release binaries are now published for
   s390x. (@rfratto)
 
-- Use Go 1.20.2 for builds. (@rfratto)
-
-- Bring back the Flow UI for 32-bit ARMv6 builds. (@rfratto)
+- Use Go 1.20.3 for builds. (@rfratto)
 
 - Change the Docker base image for Linux containers to `ubuntu:kinetic`.
   (@rfratto)
