@@ -34,6 +34,7 @@ import (
 	_ "github.com/grafana/agent/component/otelcol/auth/oauth2"                      // Import otelcol.auth.oauth2
 	_ "github.com/grafana/agent/component/otelcol/auth/sigv4"                       // Import otelcol.auth.sigv4
 	_ "github.com/grafana/agent/component/otelcol/exporter/jaeger"                  // Import otelcol.exporter.jaeger
+	_ "github.com/grafana/agent/component/otelcol/exporter/logging"                 // Import otelcol.exporter.logging
 	_ "github.com/grafana/agent/component/otelcol/exporter/loki"                    // Import otelcol.exporter.loki
 	_ "github.com/grafana/agent/component/otelcol/exporter/otlp"                    // Import otelcol.exporter.otlp
 	_ "github.com/grafana/agent/component/otelcol/exporter/otlphttp"                // Import otelcol.exporter.otlphttp
