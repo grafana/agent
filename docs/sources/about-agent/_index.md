@@ -9,11 +9,11 @@ Grafana Agent is a telemetry collector for sending metrics, logs, and traces to 
 
 - Grafana Cloud
 - Grafana Enterprise Stack
-- OSS deployments of Grafana Loki, Grafana Mimir, Grafana Tempo, and Prometheus 
+- OSS deployments of Grafana Loki, Grafana Mimir, Grafana Tempo, and Prometheus
 
 This topic helps you to think about what you're trying to accomplish and how to use Grafana Agent to meet your goals.
 
-You can [set up]({{< relref "../set-up/" >}}) and [configure Grafana]({{< relref "../configuration/" >}}) manually or you can follow the common workflows described in this topic.
+You can [set up]({{< relref "../static/set-up/" >}}) and [configure Grafana]({{< relref "../static/configuration/" >}}) manually or you can follow the common workflows described in this topic.
 
 ## Grafana Agent for Grafana Cloud integrations
 
@@ -22,7 +22,7 @@ There are different ways for you to set up Grafana Agent to scrape data&mdash;th
 | Topic | Description |
 |---|---|
 | [Get started with monitoring using an integration](/docs/grafana-cloud/data-configuration/get-started-integration/) | Walk through installing a Linux integration using Grafana Agent in the Grafana Cloud interface. |
-| [Install and manage integrations](/docs/grafana-cloud/data-configuration/integrations/install-and-manage-integrations/)  | View general steps for using Grafana Cloud integrations to install Grafana Agent to collect data. See [supported integrations](/docs/grafana-cloud/data-configuration/integrations/integration-reference/).  
+| [Install and manage integrations](/docs/grafana-cloud/data-configuration/integrations/install-and-manage-integrations/)  | View general steps for using Grafana Cloud integrations to install Grafana Agent to collect data. See [supported integrations](/docs/grafana-cloud/data-configuration/integrations/integration-reference/).
 | [Ship your metrics to Grafana Cloud without an integration](/docs/grafana-cloud/data-configuration/metrics/agent-config-exporter/) | If you want to ship your Prometheus metrics to Grafana Cloud but there isn’t an integration available, you can use a Prometheus exporter and deploy Grafana Agent to scrape your local machine or service. |
 | [Change your metrics scrape interval](/docs/grafana-cloud/billing-and-usage/control-prometheus-metrics-usage/changing-scrape-interval/) | Learn about reducing your total data points per minute (DPM) by adjusting your scrape interval. |
 
@@ -65,7 +65,7 @@ Logs are included when you [set up a Cloud integration](/docs/grafana-cloud/data
 
 | Topic | Description |
 |---|---|
-| [Collect logs with Grafana Agent](/docs/grafana-cloud/data-configuration/logs/collect-logs-with-agent/) |  Install Grafana Agent to collect logs for use with Grafana Loki, included with your [Grafana Cloud account](/docs/grafana-cloud/account-management/cloud-portal/). | 
+| [Collect logs with Grafana Agent](/docs/grafana-cloud/data-configuration/logs/collect-logs-with-agent/) |  Install Grafana Agent to collect logs for use with Grafana Loki, included with your [Grafana Cloud account](/docs/grafana-cloud/account-management/cloud-portal/). |
 
 ## Use Grafana Agent to send traces to Grafana Tempo
 

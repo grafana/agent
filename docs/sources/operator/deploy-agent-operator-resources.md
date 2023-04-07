@@ -146,11 +146,11 @@ To deploy the `GrafanaAgent` resource:
 
 ### Disable feature flags reporting
 
-To disable the [reporting]({{< relref "../configuration/flags.md/#report-information-usage" >}}) usage of feature flags to Grafana, set `disableReporting` field to `true`.
+To disable the [reporting]({{< relref "../static/configuration/flags.md#report-information-usage" >}}) usage of feature flags to Grafana, set `disableReporting` field to `true`.
 
 ### Disable support bundle generation
 
-To disable the [support bundles functionality]({{< relref "../configuration/flags.md/#support-bundles" >}}), set the `disableSupportBundle` field to `true`.
+To disable the [support bundles functionality]({{< relref "../static/configuration/flags.md#support-bundles" >}}), set the `disableSupportBundle` field to `true`.
 
 ## Deploy a MetricsInstance resource
 

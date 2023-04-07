@@ -8,4 +8,4 @@ headless: true
 > components are subject to frequent breaking changes, and may be removed with
 > no equivalent replacement.
 
-[experimental]: {{< relref "../../../operation-guide/_index.md#stability" >}}
+[experimental]: {{< relref "../../../static/operation-guide/_index.md#stability" >}}

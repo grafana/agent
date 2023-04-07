@@ -35,13 +35,13 @@ its own mini Prometheus agent with its own `scrape_configs` section and
 `remote_write` rules. More than one instance is useful when you want to have
 separate configurations that write to two different locations without
 needing to consider advanced metric relabeling rules. Multiple instances also
-come into play for the [Scraping Service Mode]({{< relref "configuration/scraping-service/" >}}).
+come into play for the [Scraping Service Mode]({{< relref "./static/configuration/scraping-service/" >}}).
 
 Grafana Agent for collecting metrics can be deployed in three modes:
 
 - Prometheus `remote_write` drop-in
 - [Host Filtering mode](#host-filtering)
-- [Scraping Service mode]({{< relref "configuration/scraping-service/" >}})
+- [Scraping Service mode]({{< relref "./static/configuration/scraping-service/" >}})
 
 ### Prometheus `remote_write` drop-in
 
@@ -76,7 +76,7 @@ semantics of failure detection, and alerts would have to be configured to catch
 agents not reporting in.
 
 For more information on the host filtering mode, refer to the [operation
-guide]({{< relref "./operation-guide#host-filtering" >}}).
+guide]({{< relref "./static/operation-guide#host-filtering" >}}).
 
 ### Scraping service
 
@@ -85,7 +85,7 @@ for the drop-in mode (which does no automatic sharding) and `host_filter` mode
 (which forces sharding by node). The Scraping Service Mode clusters a set of
 agents with a set of shared configurations and distributes the scrape load
 automatically between them. For more information on Scraping Service, see
-[Scraping Service]({{< relref "configuration/scraping-service/" >}}).
+[Scraping Service]({{< relref "./static/configuration/scraping-service/" >}}).
 
 ## Logs
 
@@ -100,7 +100,7 @@ developer team.
 Grafana Agent collects traces and forwards them to Tempo using its
 `traces` subsystem. This is done using the upstream [OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector).
 Grafana Agent can ingest OpenTelemetry, OpenCensus, Jaeger, Zipkin, or Kafka spans.
-For more information on how to configure, refer to [receivers]({{< relref "./configuration/traces-config.md" >}}).
+For more information on how to configure, refer to [receivers]({{< relref "./static/configuration/traces-config.md" >}}).
 The Grafana Agent is also capable of exporting to any OpenTelemetry GRPC compatible system.
 
 ## Supported platforms

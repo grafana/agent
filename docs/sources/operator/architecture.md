@@ -79,7 +79,7 @@ deployment will also be deleted.
 Reconciling creates the following cluster resources:
 
 1. A Secret that holds the Grafana Agent
-   [configuration]({{< relref "../configuration/_index.md" >}}) is generated.
+   [configuration]({{< relref "../static/configuration/_index.md" >}}) is generated.
 2. A Secret that holds all referenced Secrets or ConfigMaps from
    the resource hierarchy is generated. This ensures that Secrets referenced from a custom
    resource in another namespace can still be read.

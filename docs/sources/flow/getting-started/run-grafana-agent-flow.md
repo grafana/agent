@@ -11,7 +11,7 @@ This topic describes how to run Grafana Agent Flow.
 
 * [Install Grafana Agent][]
 
-[Install Grafana Agent]: {{< relref "../../set-up" >}}
+[Install Grafana Agent]: {{< relref "../../static/set-up/" >}}
 
 ## Steps
 
