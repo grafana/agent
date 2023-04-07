@@ -36,6 +36,7 @@ Main (unreleased)
   - `otelcol.extension.jaeger_remote_sampling` provides an endpoint from which to
     pull Jaeger remote sampling documents. (@joe-elliott)
   - `prometheus.exporter.blackbox` collects metrics from Blackbox exporter. (@marctc)
+  - `prometheus.exporter.logging` accepts otel data and writes it to the console. (@erikbaranowski)
   - `prometheus.exporter.mysql` collects metrics from a MySQL database. (@spartan0x117)
   - `prometheus.exporter.postgres` collects metrics from a PostgreSQL database. (@spartan0x117)
   - `prometheus.exporter.statsd` collects metrics from a Statsd instance. (@gaantunes)
