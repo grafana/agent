@@ -63,9 +63,17 @@ information.
 This example creates an exporter to write traces directly to the console:
 
 ```river
-tracing {
-	sampling_fraction = 1
-	write_to          = [otelcol.exporter.logging.default.input]
+prometheus.exporter.unix { }
+
+prometheus.scrape "default" {
+	targets    = prometheus.exporter.unix.targets
+	forward_to = [otelcol.receiver.prometheus.default.receiver]
+}
+
+otelcol.receiver.prometheus "default" {
+	output {
+		metrics = [otelcol.exporter.logging.default.input]
+	}
 }
 
 otelcol.exporter.logging "default" {
