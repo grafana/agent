@@ -5,7 +5,7 @@ title: otelcol.exporter.logging
 # otelcol.exporter.logging
 
 `otelcol.exporter.logging` accepts telemetry data from other `otelcol` components
-and writes them to the console via Zap.
+and writes them to the console.
 
 This component writes logs at the info level. The [logging config block][] must be
 configured to write logs at the info level.
@@ -31,9 +31,11 @@ otelcol.exporter.logging "LABEL" { }
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`verbosity`           | `string` | The verbosity of the logging export (detailed|normal|basic). | `"normal"` | no
+`verbosity`           | `string` | Verbosity of the generated logs. | `"normal"` | no
 `sampling_initial`    | `int`    | Number of messages initially logged each second. | `2` | no
 `sampling_thereafter` | `int`    | Sampling rate after the initial messages are logged. | `500` | no
+
+The `verbosity` argument must be one of `"basic"`, `"normal"`, or `"detailed"`. 
 
 ## Exported fields
 
