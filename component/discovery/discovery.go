@@ -7,14 +7,51 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/cluster"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/model/labels"
+	"github.com/rfratto/ckit/shard"
 )
 
 // Target refers to a singular discovered endpoint found by a discovery
 // component.
 type Target map[string]string
+
+// DistributedTargets uses the node's Lookup method to distribute discovery
+// targets when a Flow component runs in a cluster.
+type DistributedTargets struct {
+	node    cluster.Node
+	targets []Target
+}
+
+// NewDistributedTargets creates the abstraction that allows components to
+// dynamically shard targets between components.
+func NewDistributedTargets(s cluster.Node, t []Target) DistributedTargets {
+	return DistributedTargets{s, t}
+}
+
+// Get distributes discovery targets a clustered environment.
+//
+// If a cluster size is 1, then all targets will be returned.
+func (t *DistributedTargets) Get() []Target {
+	res := make([]Target, 0, (len(t.targets)+1)/len(t.node.Peers()))
+
+	for _, tgt := range t.targets {
+		peers, err := t.node.Lookup(shard.StringKey(tgt.Labels().String()), 1, shard.OpReadWrite)
+		if err != nil {
+			// This can only fail in case we ask for more owners than the
+			// available peers. This will never happen, but in any case we fall
+			// back to owning the target ourselves.
+			res = append(res, tgt)
+		}
+		if peers[0].Self {
+			res = append(res, tgt)
+		}
+	}
+
+	return res
+}
 
 // Labels converts Target into a set of sorted labels.
 func (t Target) Labels() labels.Labels {
