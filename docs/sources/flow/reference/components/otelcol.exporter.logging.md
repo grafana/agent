@@ -60,7 +60,7 @@ information.
 
 ## Example
 
-This example creates an exporter to write traces directly to the console:
+This example scrapes prometheus unix metrics and writes them to the console:
 
 ```river
 prometheus.exporter.unix { }
