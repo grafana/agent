@@ -14,6 +14,7 @@ import (
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/vm"
@@ -61,6 +62,7 @@ type ComponentGlobals struct {
 	LogSink           *logging.Sink                // Sink used for Logging.
 	Logger            *logging.Logger              // Logger shared between all managed components.
 	TraceProvider     trace.TracerProvider         // Tracer shared between all managed components.
+	Clusterer         *cluster.Clusterer           // Clusterer shared between all managed components.
 	DataPath          string                       // Shared directory where component data may be stored
 	OnComponentUpdate func(cn *ComponentNode)      // Informs controller that we need to reevaluate
 	OnExportsChange   func(exports map[string]any) // Invoked when the managed component updated its exports
@@ -179,7 +181,8 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 		Registerer: prometheus.WrapRegistererWith(prometheus.Labels{
 			"component_id": globalID,
 		}, wrapped),
-		Tracer: wrapTracer(globals.TraceProvider, globalID),
+		Tracer:    wrapTracer(globals.TraceProvider, globalID),
+		Clusterer: globals.Clusterer,
 
 		DataPath:       filepath.Join(globals.DataPath, cn.nodeID),
 		HTTPListenAddr: globals.HTTPListenAddr,
