@@ -9,33 +9,6 @@ aliases:
 
 This guide helps you operate the Grafana Agent.
 
-## Stability
-
-The core of Grafana Agent is considered stable and suitable for production use.
-Individual features of Grafana Agent may have stability falling under one of
-the three categories:
-
-* Experimental: we are exploring a new use case and would like feedback.
-  Experimental features are subject to frequent breaking changes. Experimental
-  features may be removed with no equivalent replacement. Experimental features
-  may be hidden behind feature flags. Unless removed, experimental features
-  will eventually graduate to beta.
-
-* Beta: we are working on maturing a specific feature. Beta features may be
-  subject to some breaking changes. Beta features may be replaced by equivalent
-  functionality that covers that same use case. Beta features can be used
-  without a feature flag being set. Unless replaced with equivalent
-  functionality, beta features will eventually graduate to stable.
-
-* Stable: we believe this functionality is stable, and breaking changes to
-  configuration will be rare and well-documented. We will communicate
-  deprecation and removal timeline if a stable feature is chosen to be
-  removed or replaced. Stable features can be used without feature flags.
-
-There is a best-effort attempt to mark features as one of these three in
-documentation; open an issue if it's not clear what the stability of a specific
-feature is.
-
 ## Horizontal Scaling
 
 There are three options to horizontally scale your deployment of Grafana Agents:
