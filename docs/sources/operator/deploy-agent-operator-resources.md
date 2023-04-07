@@ -1,10 +1,10 @@
 ---
 aliases:
 - custom-resource-quickstart/
-title: Deploy the Agent Operator resources
+title: Deploy Operator resources
 weight: 120
 ---
-# Deploy the Grafana Agent Operator resources
+# Deploy Operator resources
 
 To start collecting telemetry data, you need to roll out Grafana Agent Operator custom resources into your Kubernetes cluster. Before you can create the custom resources, you must first apply the Agent Custom Resource Definitions (CRDs) and install Agent Operator, with or without Helm. If you haven't yet taken these steps, follow the instructions in one of the following topics:
 

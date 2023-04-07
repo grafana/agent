@@ -1,9 +1,9 @@
 ---
-title: Agent Operator architecture
+title: Architecture
 weight: 300
 ---
 
-# Grafana Agent Operator architecture
+# Architecture
 
 Grafana Agent Operator works by watching for Kubernetes [custom resources](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) that specify how to collect telemetry data from your Kubernetes cluster and where to send it. Agent Operator manages corresponding Grafana Agent deployments in your cluster by watching for changes against the custom resources.
 

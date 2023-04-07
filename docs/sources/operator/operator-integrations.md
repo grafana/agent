@@ -1,10 +1,10 @@
 ---
-title: Set up Agent Operator integrations
+title: Set up integrations
 weight: 350
 ---
-# Set up Agent Operator integrations
+# Set up integrations
 
-This topic provides examples of setting up Agent Operator integrations, including [node_exporter](#set-up-an-agent-operator-node_exporter-integration) and [mysqld_exporter](#set-up-an-agent-operator-mysqld_exporter-integration).
+This topic provides examples of setting up Grafana Agent Operator integrations, including [node_exporter](#set-up-an-agent-operator-node_exporter-integration) and [mysqld_exporter](#set-up-an-agent-operator-mysqld_exporter-integration).
 
 ## Before you begin
 
