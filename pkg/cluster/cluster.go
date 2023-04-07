@@ -83,8 +83,14 @@ type Clusterer struct {
 func New(log log.Logger, clusterEnabled bool, addr, joinAddr string) (*Clusterer, error) {
 	// Standalone node.
 	if !clusterEnabled {
+		mux := http.NewServeMux()
+		mux.HandleFunc("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte("clustering is disabled"))
+			w.WriteHeader(http.StatusBadRequest)
+		}))
 		return &Clusterer{
 			Node: NewLocalNode(addr),
+			Mux:  mux,
 		}, nil
 	}
 
