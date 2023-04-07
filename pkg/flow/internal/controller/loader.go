@@ -16,6 +16,8 @@ import (
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/vm"
 	"github.com/hashicorp/go-multierror"
+	"github.com/rfratto/ckit"
+	"github.com/rfratto/ckit/peer"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
@@ -56,6 +58,19 @@ func NewLoader(globals ComponentGlobals) *Loader {
 	if globals.Registerer != nil {
 		globals.Registerer.MustRegister(cc)
 	}
+
+	globals.Clusterer.Node.Observe(ckit.FuncObserver(func(peers []peer.Peer) (reregister bool) {
+		for _, cmp := range l.Components() {
+			if globals.Clusterer.IsRegistered(cmp.ID().String()) {
+				err := cmp.Revisit()
+				if err != nil {
+					level.Error(globals.Logger).Log("msg", "failed to revisit component", "componentID", cmp.NodeID(), "err", err)
+				}
+			}
+		}
+		return true
+	}))
+
 	return l
 }
 

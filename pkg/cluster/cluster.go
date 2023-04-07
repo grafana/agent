@@ -77,6 +77,8 @@ func (ln *localNode) Peers() []peer.Peer {
 type Clusterer struct {
 	Node Node
 	Mux  *http.ServeMux
+
+	RegisteredComponents map[string]struct{}
 }
 
 // New creates a Clusterer.
@@ -91,6 +93,8 @@ func New(log log.Logger, clusterEnabled bool, addr, joinAddr string) (*Clusterer
 		return &Clusterer{
 			Node: NewLocalNode(addr),
 			Mux:  mux,
+
+			RegisteredComponents: make(map[string]struct{}),
 		}, nil
 	}
 
@@ -143,6 +147,8 @@ func New(log log.Logger, clusterEnabled bool, addr, joinAddr string) (*Clusterer
 	res := &Clusterer{
 		Node: gossipNode,
 		Mux:  mux,
+
+		RegisteredComponents: make(map[string]struct{}),
 	}
 
 	gossipNode.Observe(ckit.FuncObserver(func(peers []peer.Peer) (reregister bool) {
@@ -155,4 +161,21 @@ func New(log log.Logger, clusterEnabled bool, addr, joinAddr string) (*Clusterer
 	}))
 
 	return res, nil
+}
+
+// Registration starts and stops keeping track of a nodeID so its Update method
+// can be called whenever the cluster state changes.
+func (c *Clusterer) Registration(nodeID string, watch bool) {
+	if watch {
+		c.RegisteredComponents[nodeID] = struct{}{}
+	} else {
+		delete(c.RegisteredComponents, nodeID)
+	}
+}
+
+// IsRegistered reports whether a nodeID is scheduled to have its Update method
+// called whenever the cluster state changes.
+func (c *Clusterer) IsRegistered(nodeID string) bool {
+	_, ok := c.RegisteredComponents[nodeID]
+	return ok
 }
