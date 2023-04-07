@@ -6,6 +6,7 @@ import (
 	"io"
 	stdlog "log"
 	"net"
+	"net/http"
 	"os"
 
 	"github.com/go-kit/log"
@@ -18,7 +19,6 @@ import (
 	"github.com/rfratto/ckit/peer"
 	"github.com/rfratto/ckit/shard"
 	"go.uber.org/atomic"
-	"google.golang.org/grpc"
 )
 
 // extraDiscoverProviders used in tests.
@@ -167,11 +167,11 @@ type GossipNode struct {
 }
 
 // NewGossipNode creates an unstarted GossipNode. The GossipNode will register
-// itself as a gRPC service to srv. GossipConfig is expected to be valid and
-// have already had ApplyDefaults called on it.
+// HTTP endpoints to communicate with other nodes over HTTP/2. GossipConfig is
+// expected to be valid and have already had ApplyDefaults called on it.
 //
 // GossipNode operations are unavailable until the node is started.
-func NewGossipNode(l log.Logger, srv *grpc.Server, c *GossipConfig) (*GossipNode, error) {
+func NewGossipNode(l log.Logger, mux *http.ServeMux, c *GossipConfig) (*GossipNode, error) {
 	if l == nil {
 		l = log.NewNopLogger()
 	}
@@ -186,7 +186,7 @@ func NewGossipNode(l log.Logger, srv *grpc.Server, c *GossipConfig) (*GossipNode
 		Pool:          c.Pool,
 	}
 
-	inner, err := ckit.NewNode(srv, ckitConfig)
+	inner, err := ckit.NewHTTPNode(mux, ckitConfig)
 	if err != nil {
 		return nil, err
 	}

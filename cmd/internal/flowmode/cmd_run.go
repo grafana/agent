@@ -16,10 +16,13 @@ import (
 	"github.com/grafana/agent/web/ui"
 	"go.opentelemetry.io/otel"
 	"golang.org/x/exp/maps"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 
 	"github.com/fatih/color"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
+	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/config/instrumentation"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -78,9 +81,13 @@ depending on the nature of the reload error.
 	}
 
 	cmd.Flags().
-		StringVar(&r.httpListenAddr, "server.http.listen-addr", r.httpListenAddr, "address to listen for HTTP traffic on")
+		StringVar(&r.httpListenAddr, "server.http.listen-addr", r.httpListenAddr, "Address to listen for HTTP traffic on")
 	cmd.Flags().StringVar(&r.storagePath, "storage.path", r.storagePath, "Base directory where components can store data")
 	cmd.Flags().StringVar(&r.uiPrefix, "server.http.ui-path-prefix", r.uiPrefix, "Prefix to serve the HTTP UI at")
+	cmd.Flags().
+		BoolVar(&r.clusterEnabled, "cluster.enabled", r.clusterEnabled, "Start in clustered mode")
+	cmd.Flags().
+		StringVar(&r.clusterJoinAddr, "cluster.join-address", r.clusterJoinAddr, "Address to join the cluster at")
 	cmd.Flags().
 		BoolVar(&r.disableReporting, "disable-reporting", r.disableReporting, "Disable reporting of enabled components to Grafana.")
 	return cmd
@@ -91,6 +98,8 @@ type flowRun struct {
 	storagePath      string
 	uiPrefix         string
 	disableReporting bool
+	clusterEnabled   bool
+	clusterJoinAddr  string
 }
 
 func (fr *flowRun) Run(configFile string) error {
@@ -138,9 +147,15 @@ func (fr *flowRun) Run(configFile string) error {
 	reg := prometheus.DefaultRegisterer
 	reg.MustRegister(newResourcesCollector(l))
 
+	clusterer, err := cluster.New(l, fr.clusterEnabled, fr.httpListenAddr, fr.clusterJoinAddr)
+	if err != nil {
+		return fmt.Errorf("building clusterer: %w", err)
+	}
+
 	f := flow.New(flow.Options{
 		LogSink:        logSink,
 		Tracer:         t,
+		Clusterer:      clusterer,
 		DataPath:       fr.storagePath,
 		Reg:            reg,
 		HTTPPathPrefix: "/api/v0/component/",
@@ -186,6 +201,7 @@ func (fr *flowRun) Run(configFile string) error {
 		r.Handle("/metrics", promhttp.Handler())
 		r.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
 		r.PathPrefix("/api/v0/component/{id}/").Handler(f.ComponentHandler())
+		r.PathPrefix("/api/v1/ckit/transport").Handler(clusterer.Mux)
 
 		r.HandleFunc("/-/ready", func(w http.ResponseWriter, _ *http.Request) {
 			if f.Ready() {
@@ -217,7 +233,7 @@ func (fr *flowRun) Run(configFile string) error {
 		// will take precedence over anything else mapped in uiPrefix.
 		ui.RegisterRoutes(fr.uiPrefix, r)
 
-		srv := &http.Server{Handler: r}
+		srv := &http.Server{Handler: h2c.NewHandler(r, &http2.Server{})}
 
 		wg.Add(1)
 		go func() {
