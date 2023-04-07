@@ -1,6 +1,6 @@
 ---
 title: Grafana Agent Flow
-weight: 900
+weight: 400
 ---
 
 # Grafana Agent Flow

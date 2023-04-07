@@ -1,6 +1,6 @@
 ---
 title: About Grafana Agent
-weight: 50
+weight: 100
 ---
 
 # About Grafana Agent
