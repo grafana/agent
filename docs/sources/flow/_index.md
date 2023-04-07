@@ -59,6 +59,7 @@ prometheus.remote_write "default" {
 
 ## Next steps
 
+* [Install][] Grafana Agent Flow.
 * Learn about the core [Concepts][] of Grafana Agent Flow.
 * Follow our Grafana Agent Flow [Getting started][] guides.
 * Follow our [Tutorials][] to get started with Grafana Agent Flow.
@@ -66,6 +67,7 @@ prometheus.remote_write "default" {
 * Check out our [Reference][] documentation to find specific information you
   might be looking for.
 
+[Install]: {{< relref "./install/" >}}
 [Concepts]: {{< relref "./concepts/" >}}
 [Getting started]: {{< relref "./getting-started/" >}}
 [Tutorials]: {{< relref "./tutorials/ ">}}
