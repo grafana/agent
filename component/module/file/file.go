@@ -79,7 +79,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	defer c.isCreated.Store(true)
 
 	var err error
-	c.managedLocalFile, err = c.NewManagedLocalComponent(o)
+	c.managedLocalFile, err = c.newManagedLocalComponent(o)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +90,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 }
 
 // NewManagedLocalComponent creates the new local.file managed component.
-func (c *Component) NewManagedLocalComponent(o component.Options) (*file.Component, error) {
+func (c *Component) newManagedLocalComponent(o component.Options) (*file.Component, error) {
 	localFileOpts := o
 	localFileOpts.OnStateChange = func(e component.Exports) {
 		c.setContent(e.(file.Exports).Content)
