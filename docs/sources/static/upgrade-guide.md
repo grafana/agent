@@ -1,12 +1,23 @@
 ---
 title: Upgrade guide
-weight: 500
+weight: 999
+aliases:
+- ../upgrade-guide/
 ---
 
 # Upgrade guide
 
-This guide describes all breaking changes that have happened in prior
-releases and how to migrate to newer versions.
+This guide describes required steps when upgrading from older versions of
+static mode.
+
+> **NOTE**: This upgrade guide is specific to static mode. Other upgrade guides
+> for the different Grafana Agent variants are contained on separate pages:
+>
+> * [Static mode Kubernetes operator upgrade guide][upgrade-guide-operator]
+> * [Flow mode upgrade guide][upgrade-guide-flow]
+>
+> [upgrade-guide-operator]: {{< relref "../operator/upgrade-guide.md" >}}
+> [upgrade-guide-flow]: {{< relref "../flow/upgrade-guide.md" >}}
 
 ## v0.32.1
 
@@ -19,161 +30,6 @@ options for the `diskstats` collector have changed names:
   mode configuration.
 - `ignored_devices` is now `device_exclude` in the Flow component
   configuration.
-
-### Breaking change: `http_client_config` Flow blocks merged with parent blocks
-
-This change only impacts Grafana Agent Flow users.
-
-To reduce the amount of typing required to write Flow components, the arguments
-and subblocks found in `http_client_config` have been merged with their parent
-blocks:
-
-- `discovery.docker > http_client_config` is merged into the `discovery.docker` block.
-- `discovery.kubernetes > http_client_config` is merged into the `discovery.kubernetes` block.
-- `loki.source.kubernetes > client > http_client_config` is merged into the `client` block.
-- `loki.source.podlogs > client > http_client_config` is merged into the `client` block.
-- `loki.write > endpoint > http_client_config` is merged into the `endpoint` block.
-- `mimir.rules.kubernetes > http_client_config` is merged into the `mimir.rules.kubernetes` block.
-- `otelcol.receiver.opencensus > grpc` is merged into the `otelcol.receiver.opencensus` block.
-- `otelcol.receiver.zipkin > http` is merged into the `otelcol.receiver.zipkin` block.
-- `phlare.scrape > http_client_config` is merged into the `phlare.scrape` block.
-- `phlare.write > endpoint > http_client_config` is merged into the `endpoint` block.
-- `prometheus.remote_write > endpoint > http_client_config` is merged into the `endpoint` block.
-- `prometheus.scrape > http_client_config` is merged into the `prometheus.scrape` block.
-
-Old configuration example:
-
-```river
-prometheus.remote_write "example" {
-  endpoint {
-    url = URL
-
-    http_client_config {
-      basic_auth {
-        username = BASIC_AUTH_USERNAME
-        password = BASIC_AUTH_PASSWORD
-      }
-    }
-  }
-}
-```
-
-New configuration example:
-
-```river
-prometheus.remote_write "example" {
-  endpoint {
-    url = URL
-
-    basic_auth {
-      username = BASIC_AUTH_USERNAME
-      password = BASIC_AUTH_PASSWORD
-    }
-  }
-}
-```
-
-### Breaking change: `loki.process` stage blocks combined into new blocks
-
-This change only impacts Grafana Agent Flow users.
-
-Previously, to add a stage to `loki.process`, two blocks were needed: a block
-called `stage`, then an inner block for the stage being written. Stage blocks
-are now a single block called `stage.STAGENAME`.
-
-Old configuration example:
-
-```river
-loki.process "example" {
-  forward_to = RECEIVER_LIST
-
-  stage {
-    docker {}
-  }
-
-  stage {
-    json {
-      expressions = { output = "log", extra = "" }
-    }
-  }
-}
-```
-
-New configuration example:
-
-```river
-loki.process "example" {
-  forward_to = RECEIVER_LIST
-
-  stage.docker {}
-
-  stage.json {
-    expressions = { output = "log", extra = "" }
-  }
-}
-```
-
-### Breaking change: `client_options` block renamed in `remote.s3` component
-
-This change only impacts Grafana Agent Flow users.
-
-To synchronize naming conventions between `remote.s3` and `remote.http`, the
-`client_options` block has been renamed `client`.
-
-Old configuration example:
-
-```river
-remote.s3 "example" {
-  path = S3_PATH
-
-  client_options {
-    key    = ACCESS_KEY
-    secret = KEY_SECRET
-  }
-}
-```
-
-New configuration example:
-
-```river
-remote.s3 "example" {
-  path = S3_PATH
-
-  client {
-    key    = ACCESS_KEY
-    secret = KEY_SECRET
-  }
-}
-```
-
-### Breaking change: `prometheus.integration.node_exporter` component name changed
-
-This change only impacts Grafana Agent Flow users.
-
-The `prometheus.integration.node_exporter` component has been renamed to
-`prometheus.exporter.unix`. `unix` was chosen as a name to approximate the
-\*nix-like systems the exporter supports.
-
-Old configuration example:
-
-```river
-prometheus.integration.node_exporter { }
-```
-
-New configuration example:
-
-```river
-prometheus.exporter.unix { }
-```
-
-### Breaking change: support for `EXPERIMENTAL_ENABLE_FLOW` environment variable removed
-
-This change only impacts Grafana Agent Flow users.
-
-As first announced in v0.30.0, support for using the `EXPERIMENTAL_ENABLE_FLOW`
-environment variable to enable Flow mode has been removed.
-
-To enable Flow mode, set the `AGENT_MODE` environment variable to `flow`.
 
 ## v0.31.1
 
@@ -194,7 +50,6 @@ As first announced in v0.29, release binary names are now prefixed with
 
 - `agent` is now `grafana-agent`.
 - `agentctl` is now `grafana-agentctl`.
-- `agent-operator` is now `grafana-agent-operator`.
 
 For the `grafana/agent` Docker container, the entrypoint is now
 `/bin/grafana-agent`. A symbolic link from `/bin/agent` to the new binary has
@@ -203,10 +58,6 @@ been added.
 For the `grafana/agentctl` Docker container, the entrypoint is now
 `/bin/grafana-agentctl`. A symbolic link from `/bin/agentctl` to the new binary
 has been added.
-
-For the `grafana/agent-operator` Docker container, the entrypoint is now
-`/bin/grafana-agent-operator`. A symbolic link from `/bin/agent-operator` to
-the new binary has been added.
 
 These symbolic links will be removed in v0.33. Custom entrypoints must be
 updated prior to v0.33 to use the new binaries before the symbolic links get
@@ -228,15 +79,6 @@ configuration errors. To continue using the same configuration file, remove the
 
 [bcc]: https://github.com/iovisor/bcc
 
-### Deprecation: `EXPERIMENTAL_ENABLE_FLOW` environment variable changed
-
-As part of graduating Grafana Agent Flow to beta, the
-`EXPERIMENTAL_ENABLE_FLOW` environment variable is replaced by setting
-`AGENT_MODE` to `flow`.
-
-Setting `EXPERIMENTAL_ENABLE_FLOW` to `1` or `true` is now deprecated and
-support for it will be removed for the v0.32 release.
-
 ## v0.29.0
 
 ### Breaking change: JSON-encoded traces from OTLP versions below 0.16.0 are no longer supported
@@ -253,9 +95,9 @@ update your OTLP protocol version to v0.16.0 or newer.
 
 ### Deprecation: binary names will be prefixed with `grafana-` in v0.31.0
 
-The binary names `agent`, `agentctl`, and `agent-operator` have been deprecated
-and will be renamed to `grafana-agent`, `grafana-agentctl`, and
-`grafana-agent-operator` respectively in the v0.31.0 release.
+The binary names `agent` and `agentctl` have been deprecated
+and will be renamed to `grafana-agent` and `grafana-agentctl` respectively in
+the v0.31.0 release.
 
 As part of this change, the Docker containers for the v0.31.0 release will
 include symbolic links from the old binary names to the new binary names.
@@ -352,11 +194,6 @@ same name.
 
 This change propagates to the label values generated by these integrations. For
 example, `job="integrations/redis_exporter` will now be `job="redis"`.
-
-### Breaking change: Grafana Agent Operator supported Agent versions
-
-The v0.24.0 release of Grafana Agent Operator can no longer deploy versions of
-Grafana Agent prior to v0.24.0.
 
 ### Change: Separating YAML and command line flags
 
@@ -688,75 +525,6 @@ load_balancing:
   receiver_port: 4318
 ```
 
-### Operator: Rename of Prometheus to Metrics (Breaking change)
-
-As a part of the deprecation of "Prometheus," all Operator CRDs and fields with
-"Prometheus" in the name have changed to "Metrics."
-
-This includes:
-
-- The `PrometheusInstance` CRD is now `MetricsInstance` (referenced by
-  `metricsinstances` and not `metrics-instances` within ClusterRoles).
-- The `Prometheus` field of the `GrafanaAgent` resource is now `Metrics`
-- `PrometheusExternalLabelName` is now `MetricsExternalLabelName`
-
-This is a hard breaking change, and all fields must change accordingly for the
-operator to continue working.
-
-Note that old CRDs with the old hyphenated names must be deleted (`kubectl
-delete crds/{grafana-agents,prometheus-instances}`) for ClusterRoles to work
-correctly.
-
-To do a zero-downtime upgrade of the Operator when there is a breaking change,
-refer to the new `agentctl operator-detatch` command: this will iterate through
-all of your objects and remove any OwnerReferences to a CRD, allowing you to
-delete your Operator CRDs or CRs.
-
-### Operator: Rename of CRD paths (Breaking change)
-
-`prometheus-instances` and `grafana-agents` have been renamed to
-`metricsinstances` and `grafanaagents` respectively. This is to remain
-consistent with how Kubernetes names multi-word objects.
-
-As a result, you will need to update your ClusterRoles to change the path of
-resources.
-
-To do a zero-downtime upgrade of the Operator when there is a breaking change,
-refer to the new `agentctl operator-detatch` command: this will iterate through
-all of your objects and remove any OwnerReferences to a CRD, allowing you to
-delete your Operator CRDs or CRs.
-
-
-Example old ClusterRole:
-
-```yaml
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: grafana-agent-operator
-rules:
-- apiGroups: [monitoring.grafana.com]
-  resources:
-  - grafana-agents
-  - prometheus-instances
-  verbs: [get, list, watch]
-```
-
-Example new ClusterRole:
-
-```yaml
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: grafana-agent-operator
-rules:
-- apiGroups: [monitoring.grafana.com]
-  resources:
-  - grafanaagents
-  - metricsinstances
-  verbs: [get, list, watch]
-```
-
 ### Metrics: Deprecation of "prometheus" in config. (Deprecation)
 
 The term `prometheus` in the config has been deprecated of favor of `metrics`. This
@@ -873,7 +641,7 @@ logs:
           __path__: /var/log/*log
 ```
 
-#### Tempo: Deprecation of "loki" in config. (Deprecation)
+### Tempo: Deprecation of "loki" in config. (Deprecation)
 
 As part of the `loki` to `logs` rename, parts of the automatic_logging component
 in Tempo have been updated to refer to `logs_instance` instead.
