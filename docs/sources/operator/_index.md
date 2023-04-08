@@ -39,6 +39,7 @@ The following sections describe how to use Grafana Agent Operator:
 
 | Topic | Describes |
 |---|---|
+| [Configure Kubernetes Monitoring using Agent Operator](/docs/grafana-cloud/kubernetes-monitoring/configuration/config-k8s-agent-operator-guide/) | Use the Kubernetes Monitoring solution to set up monitoring of your Kubernetes cluster and to install preconfigured dashboards and alerts. |
 | [Install Grafana Agent Operator with Helm]({{< relref "./helm-getting-started/" >}}) | How to deploy the Grafana Agent Operator into your Kubernetes cluster using the grafana-agent-operator Helm chart. |
 | [Install Grafana Agent Operator]({{< relref "./getting-started/" >}}) | How to deploy the Grafana Agent Operator into your Kubernetes cluster without using Helm. |
 | [Deploy the Grafana Agent Operator resources]({{< relref "./deploy-agent-operator-resources/" >}}) | How to roll out the Grafana Agent Operator custom resources, needed to begin monitoring your cluster. Complete this procedure *after* installing Grafana Agent Operator&mdash;either with or without Helm. |
