@@ -53,7 +53,6 @@ Main (unreleased)
   - `discovery.digitalocean` provides service discovery for DigitalOcean. (@spartan0x117)
 
 
-
 - Add support for Flow-specific system packages:
 
   - Flow-specific DEB packages. (@rfratto, @robigan)
