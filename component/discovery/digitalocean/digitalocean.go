@@ -1,6 +1,7 @@
 package digitalocean
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/grafana/agent/component"
@@ -41,7 +42,15 @@ func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	if err != nil {
 		return err
 	}
-	return a.HTTPClientConfig.Validate()
+	return a.Validate()
+}
+
+func (a *Arguments) Validate() error {
+	httpClientConfig := a.HTTPClientConfig
+	if httpClientConfig.BearerToken == "" && httpClientConfig.BearerTokenFile == "" {
+		return fmt.Errorf("digitalocean uses bearer tokens to authenticate with the API, bearer token or bearer token file must be specified")
+	}
+	return httpClientConfig.Validate()
 }
 
 func (a *Arguments) Convert() *prom_discovery.SDConfig {
