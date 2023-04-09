@@ -39,39 +39,39 @@ func TestUnmarshalRiver(t *testing.T) {
 			}
 		}		
 `
-	var cfg Config
-	err := river.Unmarshal([]byte(riverCfg), &cfg)
+	var args Arguments
+	err := river.Unmarshal([]byte(riverCfg), &args)
 	require.NoError(t, err)
-	require.Equal(t, "modules.yml", cfg.ConfigFile)
-	require.Equal(t, 2, len(cfg.Targets))
+	require.Equal(t, "modules.yml", args.ConfigFile)
+	require.Equal(t, 2, len(args.Targets))
 
-	require.Contains(t, "network_switch_1", cfg.Targets[0].Name)
-	require.Contains(t, "192.168.1.2", cfg.Targets[0].Target)
-	require.Contains(t, "if_mib", cfg.Targets[0].Module)
-	require.Contains(t, "public", cfg.Targets[0].WalkParams)
+	require.Contains(t, "network_switch_1", args.Targets[0].Name)
+	require.Contains(t, "192.168.1.2", args.Targets[0].Target)
+	require.Contains(t, "if_mib", args.Targets[0].Module)
+	require.Contains(t, "public", args.Targets[0].WalkParams)
 
-	require.Contains(t, "network_router_2", cfg.Targets[1].Name)
-	require.Contains(t, "192.168.1.3", cfg.Targets[1].Target)
-	require.Contains(t, "mikrotik", cfg.Targets[1].Module)
-	require.Contains(t, "private", cfg.Targets[1].WalkParams)
+	require.Contains(t, "network_router_2", args.Targets[1].Name)
+	require.Contains(t, "192.168.1.3", args.Targets[1].Target)
+	require.Contains(t, "mikrotik", args.Targets[1].Module)
+	require.Contains(t, "private", args.Targets[1].WalkParams)
 
-	require.Equal(t, 2, len(cfg.WalkParams))
+	require.Equal(t, 2, len(args.WalkParams))
 
-	require.Contains(t, "private", cfg.WalkParams[0].Name)
-	require.Contains(t, "secret", cfg.WalkParams[0].Auth.Community)
+	require.Contains(t, "private", args.WalkParams[0].Name)
+	require.Contains(t, "secret", args.WalkParams[0].Auth.Community)
 
-	require.Contains(t, "public", cfg.WalkParams[1].Name)
-	require.Contains(t, "public", cfg.WalkParams[1].Auth.Community)
+	require.Contains(t, "public", args.WalkParams[1].Name)
+	require.Contains(t, "public", args.WalkParams[1].Auth.Community)
 }
 
 func TestConvertConfig(t *testing.T) {
-	cfg := Config{
+	args := Arguments{
 		ConfigFile: "modules.yml",
 		Targets:    TargetBlock{{Name: "network_switch_1", Target: "192.168.1.2", Module: "if_mib"}},
 		WalkParams: WalkParams{{Name: "public", Version: 2, Auth: Auth{Community: "public"}}},
 	}
 
-	res := cfg.Convert()
+	res := args.Convert()
 	require.Equal(t, "modules.yml", res.SnmpConfigFile)
 	require.Equal(t, 1, len(res.SnmpTargets))
 	require.Equal(t, "network_switch_1", res.SnmpTargets[0].Name)
@@ -133,7 +133,7 @@ func TestConvertAuth(t *testing.T) {
 }
 
 func TestBuildSNMPTargets(t *testing.T) {
-	cfg := Config{
+	baseArgs := Arguments{
 		ConfigFile: "modules.yml",
 		Targets:    TargetBlock{{Name: "network_switch_1", Target: "192.168.1.2", Module: "if_mib", WalkParams: "public"}},
 		WalkParams: WalkParams{{Name: "public", Version: 2, Auth: Auth{Community: "public"}}},
@@ -146,7 +146,7 @@ func TestBuildSNMPTargets(t *testing.T) {
 		"__meta_agent_integration_name":     "snmp",
 		"__meta_agent_integration_instance": "prometheus.exporter.snmp.default",
 	}
-	args := component.Arguments(cfg)
+	args := component.Arguments(baseArgs)
 	targets := buildSNMPTargets(baseTarget, args)
 	require.Equal(t, 1, len(targets))
 	require.Equal(t, "integrations/snmp/network_switch_1", targets[0]["job"])

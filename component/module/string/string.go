@@ -33,7 +33,7 @@ type Arguments struct {
 
 // Component implements the module.string component.
 type Component struct {
-	mod module.ModuleComponent
+	mod *module.ModuleComponent
 }
 
 var (

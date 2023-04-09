@@ -7,11 +7,11 @@ import (
 	"github.com/grafana/dskit/flagext"
 )
 
-// DefaultConfig holds non-zero default options for the Config when it is
+// DefaultArguments holds non-zero default options for Arguments when it is
 // unmarshaled from YAML.
 //
 // Some defaults are populated from init functions in the github.com/grafana/agent/pkg/integrations/node_exporter package.
-var DefaultConfig = Config{
+var DefaultArguments = Arguments{
 	ProcFSPath: node_integration.DefaultConfig.ProcFSPath,
 	RootFSPath: node_integration.DefaultConfig.RootFSPath,
 	SysFSPath:  node_integration.DefaultConfig.SysFSPath,
@@ -60,8 +60,8 @@ var DefaultConfig = Config{
 	},
 }
 
-// Config is the base config for this exporter.
-type Config struct {
+// Arguments is used for controlling for this exporter.
+type Arguments struct {
 	IncludeExporterMetrics bool   `river:"include_exporter_metrics,attr,optional"`
 	ProcFSPath             string `river:"procfs_path,attr,optional"`
 	SysFSPath              string `river:"sysfs_path,attr,optional"`
@@ -100,65 +100,65 @@ type Config struct {
 }
 
 // Convert gives a config suitable for use with github.com/grafana/agent/pkg/integrations/node_exporter.
-func (c *Config) Convert() *node_integration.Config {
+func (a *Arguments) Convert() *node_integration.Config {
 	return &node_integration.Config{
-		IncludeExporterMetrics:           c.IncludeExporterMetrics,
-		ProcFSPath:                       c.ProcFSPath,
-		SysFSPath:                        c.SysFSPath,
-		RootFSPath:                       c.RootFSPath,
-		EnableCollectors:                 c.EnableCollectors,
-		DisableCollectors:                c.DisableCollectors,
-		SetCollectors:                    c.SetCollectors,
-		BcachePriorityStats:              c.BCache.PriorityStats,
-		CPUBugsInclude:                   c.CPU.BugsInclude,
-		CPUEnableCPUGuest:                c.CPU.EnableCPUGuest,
-		CPUEnableCPUInfo:                 c.CPU.EnableCPUInfo,
-		CPUFlagsInclude:                  c.CPU.FlagsInclude,
-		DiskStatsDeviceExclude:           c.Disk.DeviceExclude,
-		DiskStatsDeviceInclude:           c.Disk.DeviceInclude,
-		EthtoolDeviceExclude:             c.EthTool.DeviceExclude,
-		EthtoolDeviceInclude:             c.EthTool.DeviceInclude,
-		EthtoolMetricsInclude:            c.EthTool.MetricsInclude,
-		FilesystemFSTypesExclude:         c.Filesystem.FSTypesExclude,
-		FilesystemMountPointsExclude:     c.Filesystem.MountPointsExclude,
-		FilesystemMountTimeout:           c.Filesystem.MountTimeout,
-		IPVSBackendLabels:                c.IPVS.BackendLabels,
-		NTPIPTTL:                         c.NTP.IPTTL,
-		NTPLocalOffsetTolerance:          c.NTP.LocalOffsetTolerance,
-		NTPMaxDistance:                   c.NTP.MaxDistance,
-		NTPProtocolVersion:               c.NTP.ProtocolVersion,
-		NTPServer:                        c.NTP.Server,
-		NTPServerIsLocal:                 c.NTP.ServerIsLocal,
-		NetclassIgnoreInvalidSpeedDevice: c.Netclass.IgnoreInvalidSpeedDevice,
-		NetclassIgnoredDevices:           c.Netclass.IgnoredDevices,
-		NetdevAddressInfo:                c.Netdev.AddressInfo,
-		NetdevDeviceExclude:              c.Netdev.DeviceExclude,
-		NetdevDeviceInclude:              c.Netdev.DeviceInclude,
-		NetstatFields:                    c.Netstat.Fields,
-		PerfCPUS:                         c.Perf.CPUS,
-		PerfTracepoint:                   c.Perf.Tracepoint,
-		PowersupplyIgnoredSupplies:       c.Powersupply.IgnoredSupplies,
-		RunitServiceDir:                  c.Runit.ServiceDir,
-		SupervisordURL:                   c.Supervisord.URL,
-		SysctlInclude:                    c.Sysctl.Include,
-		SysctlIncludeInfo:                c.Sysctl.IncludeInfo,
-		SystemdEnableRestartsMetrics:     c.Systemd.EnableRestartsMetrics,
-		SystemdEnableStartTimeMetrics:    c.Systemd.EnableStartTimeMetrics,
-		SystemdEnableTaskMetrics:         c.Systemd.EnableTaskMetrics,
-		SystemdUnitExclude:               c.Systemd.UnitExclude,
-		SystemdUnitInclude:               c.Systemd.UnitInclude,
-		TapestatsIgnoredDevices:          c.Tapestats.IgnoredDevices,
-		TextfileDirectory:                c.Textfile.Directory,
-		VMStatFields:                     c.VMStat.Fields,
+		IncludeExporterMetrics:           a.IncludeExporterMetrics,
+		ProcFSPath:                       a.ProcFSPath,
+		SysFSPath:                        a.SysFSPath,
+		RootFSPath:                       a.RootFSPath,
+		EnableCollectors:                 a.EnableCollectors,
+		DisableCollectors:                a.DisableCollectors,
+		SetCollectors:                    a.SetCollectors,
+		BcachePriorityStats:              a.BCache.PriorityStats,
+		CPUBugsInclude:                   a.CPU.BugsInclude,
+		CPUEnableCPUGuest:                a.CPU.EnableCPUGuest,
+		CPUEnableCPUInfo:                 a.CPU.EnableCPUInfo,
+		CPUFlagsInclude:                  a.CPU.FlagsInclude,
+		DiskStatsDeviceExclude:           a.Disk.DeviceExclude,
+		DiskStatsDeviceInclude:           a.Disk.DeviceInclude,
+		EthtoolDeviceExclude:             a.EthTool.DeviceExclude,
+		EthtoolDeviceInclude:             a.EthTool.DeviceInclude,
+		EthtoolMetricsInclude:            a.EthTool.MetricsInclude,
+		FilesystemFSTypesExclude:         a.Filesystem.FSTypesExclude,
+		FilesystemMountPointsExclude:     a.Filesystem.MountPointsExclude,
+		FilesystemMountTimeout:           a.Filesystem.MountTimeout,
+		IPVSBackendLabels:                a.IPVS.BackendLabels,
+		NTPIPTTL:                         a.NTP.IPTTL,
+		NTPLocalOffsetTolerance:          a.NTP.LocalOffsetTolerance,
+		NTPMaxDistance:                   a.NTP.MaxDistance,
+		NTPProtocolVersion:               a.NTP.ProtocolVersion,
+		NTPServer:                        a.NTP.Server,
+		NTPServerIsLocal:                 a.NTP.ServerIsLocal,
+		NetclassIgnoreInvalidSpeedDevice: a.Netclass.IgnoreInvalidSpeedDevice,
+		NetclassIgnoredDevices:           a.Netclass.IgnoredDevices,
+		NetdevAddressInfo:                a.Netdev.AddressInfo,
+		NetdevDeviceExclude:              a.Netdev.DeviceExclude,
+		NetdevDeviceInclude:              a.Netdev.DeviceInclude,
+		NetstatFields:                    a.Netstat.Fields,
+		PerfCPUS:                         a.Perf.CPUS,
+		PerfTracepoint:                   a.Perf.Tracepoint,
+		PowersupplyIgnoredSupplies:       a.Powersupply.IgnoredSupplies,
+		RunitServiceDir:                  a.Runit.ServiceDir,
+		SupervisordURL:                   a.Supervisord.URL,
+		SysctlInclude:                    a.Sysctl.Include,
+		SysctlIncludeInfo:                a.Sysctl.IncludeInfo,
+		SystemdEnableRestartsMetrics:     a.Systemd.EnableRestartsMetrics,
+		SystemdEnableStartTimeMetrics:    a.Systemd.EnableStartTimeMetrics,
+		SystemdEnableTaskMetrics:         a.Systemd.EnableTaskMetrics,
+		SystemdUnitExclude:               a.Systemd.UnitExclude,
+		SystemdUnitInclude:               a.Systemd.UnitInclude,
+		TapestatsIgnoredDevices:          a.Tapestats.IgnoredDevices,
+		TextfileDirectory:                a.Textfile.Directory,
+		VMStatFields:                     a.VMStat.Fields,
 	}
 }
 
 // UnmarshalRiver implements River unmarshalling for Config.
-func (c *Config) UnmarshalRiver(f func(interface{}) error) error {
-	*c = DefaultConfig
+func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+	*a = DefaultArguments
 
-	type cfg Config
-	return f((*cfg)(c))
+	type args Arguments
+	return f((*args)(a))
 }
 
 // PowersupplyConfig contains config specific to the powersupply collector.

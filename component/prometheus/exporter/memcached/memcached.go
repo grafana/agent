@@ -19,8 +19,8 @@ func init() {
 }
 
 func createExporter(opts component.Options, args component.Arguments) (integrations.Integration, error) {
-	cfg := args.(Arguments)
-	return cfg.Convert().NewIntegration(opts.Logger)
+	a := args.(Arguments)
+	return a.Convert().NewIntegration(opts.Logger)
 }
 
 // DefaultArguments holds the default arguments for the prometheus.exporter.memcached component.
