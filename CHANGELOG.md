@@ -113,6 +113,8 @@ Main (unreleased)
 - Flow: fix issue where `prometheus.remote_write` created unnecessary extra
   child directories to store the WAL in. (@rfratto)
 
+- Fix internal metrics reported as invalid by promtool's linter. (@tpaschalis)
+
 ### Other changes
 
 - Grafana Agent Docker containers and release binaries are now published for

@@ -50,7 +50,7 @@ type ModalManager struct {
 	mode    Mode
 	configs map[string]Config
 
-	changedConfigs       *prometheus.GaugeVec
+	changedConfigs       *prometheus.CounterVec
 	currentActiveConfigs prometheus.Gauge
 
 	log log.Logger
@@ -70,7 +70,7 @@ type ModalManager struct {
 
 // NewModalManager creates a new ModalManager.
 func NewModalManager(reg prometheus.Registerer, l log.Logger, next Manager, mode Mode) (*ModalManager, error) {
-	changedConfigs := promauto.With(reg).NewGaugeVec(prometheus.GaugeOpts{
+	changedConfigs := promauto.With(reg).NewCounterVec(prometheus.CounterOpts{
 		Name: "agent_metrics_configs_changed_total",
 		Help: "Total number of dynamically updated configs",
 	}, []string{"event"})
