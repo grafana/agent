@@ -43,7 +43,7 @@ responsible for ownership of the following workflows:
 4. [Tag Release](./4-tag-release.md)
 5. [Update Release Branch](./5-update-release-branch.md)
 6. [Publish Release](./6-publish-release.md)
-7. [Update Deployment Tools](./7-update-deployment-tools.md)
+7. [Test Release](./7-test-release.md)
 8. [Update Helm Charts](./8-update-helm-charts.md)
 9. [Announce Release](./9-announce-release.md)
 

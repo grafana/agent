@@ -21,8 +21,7 @@ For a major version we jump up the first number as shown in the examples below.
 
 ## Steps
 
-1. Gather consensus on which commit should be used as a base for the release
-   branch.
+1. Determine which commit should be used as a base for the release branch.
 
 2. Create and push the release branch from the selected base commit:
 
