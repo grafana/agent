@@ -50,6 +50,7 @@ Main (unreleased)
   - `loki.source.azure_event_hubs` reads messages from Azure Event Hub using Kafka and forwards them to other `loki`
     components. (@akselleirv)
   - `discovery.gce` discovers resources on Google Compute Engine (GCE). (@marctc)
+  - `discovery.digitalocean` provides service discovery for DigitalOcean. (@spartan0x117)
 
 
 - Add support for Flow-specific system packages:
