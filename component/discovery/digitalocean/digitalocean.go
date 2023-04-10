@@ -45,6 +45,9 @@ func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	return a.Validate()
 }
 
+// Validate validates the arguments. Specifically, it checks that a BearerToken or
+// BearerTokenFile is specified, as the DigitalOcean API requires a Bearer Token for
+// authentication.
 func (a *Arguments) Validate() error {
 	httpClientConfig := a.HTTPClientConfig
 	if httpClientConfig.BearerToken == "" && httpClientConfig.BearerTokenFile == "" {

@@ -12,6 +12,9 @@ title: discovery.digitalocean
 
 ```river
 discovery.digitalocean "LABEL" {
+    // Use one of:
+    // bearer_token      = "BEARER_TOKEN"
+    // bearer_token_file = "PATH_TO_BEARER_TOKEN_FILE"
 }
 ```
 
@@ -31,9 +34,7 @@ Name                | Type       | Description                                  
 
 The DigitalOcean API uses bearer tokens for authentication, see more about it in the [DigitalOcean API documentation](https://docs.digitalocean.com/reference/api/api-reference/#section/Authentication).
 
-At most one of the following can be provided:
- - [`bearer_token` argument](#arguments).
- - [`bearer_token_file` argument](#arguments). 
+At most one of the [`bearer_token`](#arguments) or [`bearer_token_file`](#arguments) arguments can be provided, but one of them is required.
 
 [arguments]: #arguments
 
@@ -84,9 +85,10 @@ values.
 
 ## Examples
 
+This would result in targets with `__address__` labels like: `192.0.2.1:8080`:
 ```river
 discovery.digitalocean "example" {
-    port             = 6379
+    port             = 8080
     refresh_interval = "5m"
     bearer_token     = "BEARER_TOKEN"
 }
