@@ -18,8 +18,8 @@ will be reported.
 
 ## Standard library functions
 River contains a [standard library][] of useful functions. Some enable
-interaction with the host system (eg. reading from an environment variable), or
-allow for more complex expressions (eg. concatenating arrays or decoding JSON
+interaction with the host system (e.g. reading from an environment variable), or
+allow for more complex expressions (e.g. concatenating arrays or decoding JSON
 strings into objects).
 ```river
 env("HOME")

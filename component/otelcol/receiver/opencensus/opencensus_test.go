@@ -47,10 +47,11 @@ func TestDefaultArguments_UnmarshalRiver(t *testing.T) {
 
 	var args opencensus.Arguments
 	require.NoError(t, river.Unmarshal([]byte(in), &args))
-	args.Convert()
-	otelArgs, err := (args.Convert()).(*opencensusreceiver.Config)
+	ext, err := args.Convert()
+	require.NoError(t, err)
+	otelArgs, ok := (ext).(*opencensusreceiver.Config)
 
-	require.True(t, err)
+	require.True(t, ok)
 
 	// Check the gRPC arguments
 	require.Equal(t, opencensus.DefaultArguments.GRPC.Endpoint, otelArgs.NetAddr.Endpoint)
@@ -72,9 +73,11 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 	var args opencensus.Arguments
 	require.NoError(t, river.Unmarshal([]byte(in), &args))
 	args.Convert()
-	otelArgs, err := (args.Convert()).(*opencensusreceiver.Config)
+	ext, err := args.Convert()
+	require.NoError(t, err)
+	otelArgs, ok := (ext).(*opencensusreceiver.Config)
 
-	require.True(t, err)
+	require.True(t, ok)
 
 	// Check the gRPC arguments
 	require.Equal(t, otelArgs.NetAddr.Endpoint, httpAddr)

@@ -14,7 +14,7 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
-// writePositionFile is a fall back for Windows because renameio does not support Windows.
+// writePositionFile is a fallback for Windows because renameio does not support Windows.
 // See https://github.com/google/renameio#windows-support
 func writePositionFile(filename string, positions map[Entry]string) error {
 	buf, err := yaml.Marshal(File{

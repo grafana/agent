@@ -7,11 +7,10 @@ package stages
 import (
 	"errors"
 	"fmt"
-	"io"
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 )
@@ -34,7 +33,7 @@ stage.replace {
 }
 `
 
-var testReplaceRiverWithNamedCaputedGroupWithTemplate = `
+var testReplaceRiverWithNamedCapturedGroupWithTemplate = `
 stage.replace {
 		expression = "^(?P<ip>\\S+) (?P<identd>\\S+) (?P<user>\\S+) \\[(?P<timestamp>[\\w:/]+\\s[+\\-]\\d{4})\\] \"(?P<action>\\S+)\\s?(?P<path>\\S+)?\\s?(?P<protocol>\\S+)?\" (?P<status>\\d{3}|-) (\\d+|-)\\s?\"?(?P<referer>[^\"]*)\"?\\s?\"?(?P<useragent>[^\"]*)?\"?$"
 		replace    = "{{ if eq .Value \"200\" }}{{ Replace .Value \"200\" \"HttpStatusOk\" -1 }}{{ else }}{{ .Value | ToUpper }}{{ end }}"
@@ -75,7 +74,7 @@ var testReplaceLogLineAdjacentCaptureGroups = `abc`
 
 func TestReplace(t *testing.T) {
 	t.Parallel()
-	logger, _ := logging.New(io.Discard, logging.DefaultOptions)
+	logger := util.TestFlowLogger(t)
 
 	tests := map[string]struct {
 		config        string
@@ -99,7 +98,7 @@ func TestReplace(t *testing.T) {
 			`{"time":"2019-01-01T01:00:00.000000001Z", "level": "info", "msg": "11.11.11.11 - \"POST /loki/api/push/ HTTP/1.1\" 200 932 \"-\" \"Mozilla/5.0 (Windows; U; Windows NT 5.1; de; rv:1.9.1.7) Gecko/20091221 Firefox/3.5.7 GTB6\""}`,
 		},
 		"successfully run a pipeline with 1 regex stage with named captured group and with template and without source": {
-			testReplaceRiverWithNamedCaputedGroupWithTemplate,
+			testReplaceRiverWithNamedCapturedGroupWithTemplate,
 			testReplaceLogLine,
 			map[string]interface{}{
 				"ip":        "11.11.11.11",

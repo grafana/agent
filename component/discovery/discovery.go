@@ -88,7 +88,7 @@ func (c *Component) Run(ctx context.Context) error {
 	}
 }
 
-// Update implements component.Compnoent.
+// Update implements component.Component.
 func (c *Component) Update(args component.Arguments) error {
 	disc, err := c.creator(args)
 	if err != nil {

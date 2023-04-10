@@ -98,7 +98,10 @@ func (c *Component) Update(args component.Arguments) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 
-	if stagesChanged(c.stages, newArgs.Stages) {
+	// We want to create a new pipeline if the config changed or if this is the
+	// first load. This will allow a component with no stages to function
+	// properly.
+	if stagesChanged(c.stages, newArgs.Stages) || c.stages == nil {
 		if c.entryHandler != nil {
 			c.entryHandler.Stop()
 		}

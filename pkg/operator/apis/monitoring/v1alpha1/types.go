@@ -92,7 +92,7 @@ type GrafanaAgentSpec struct {
 	// ImagePullSecrets holds an optional list of references to Secrets within
 	// the same namespace used for pulling the Grafana Agent image from
 	// registries.
-	// More info: https://kubernetes.io/docs/user-guide/images#specifying-imagepullsecrets-on-a-pod
+	// More info: https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod
 	ImagePullSecrets []v1.LocalObjectReference `json:"imagePullSecrets,omitempty"`
 	// Storage spec to specify how storage will be used.
 	Storage *prom_v1.StorageSpec `json:"storage,omitempty"`
@@ -151,6 +151,10 @@ type GrafanaAgentSpec struct {
 	InitContainers []v1.Container `json:"initContainers,omitempty"`
 	// PriorityClassName is the priority class assigned to pods.
 	PriorityClassName string `json:"priorityClassName,omitempty"`
+
+	// RuntimeClassName is the runtime class assigned to pods.
+	RuntimeClassName *string `json:"runtimeClassName,omitempty"`
+
 	// Port name used for the pods and governing service. This defaults to agent-metrics.
 	PortName string `json:"portName,omitempty"`
 

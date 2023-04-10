@@ -1,12 +1,25 @@
 # Grafana Agent Helm chart
 
-![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.7.1](https://img.shields.io/badge/Version-0.7.1-informational?style=flat-square) ![AppVersion: v0.31.3](https://img.shields.io/badge/AppVersion-v0.31.3-informational?style=flat-square)
+![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.10.0](https://img.shields.io/badge/Version-0.10.0-informational?style=flat-square) ![AppVersion: v0.32.1](https://img.shields.io/badge/AppVersion-v0.32.1-informational?style=flat-square)
 
 Helm chart for deploying [Grafana Agent][] to Kubernetes.
 
 [Grafana Agent]: https://grafana.com/docs/agent/latest/
 
 ## Usage
+
+### Setup Grafana chart repository
+
+```
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+```
+
+### Install chart
+
+To install the chart with the release name my-release:
+
+`helm install my-release grafana/grafana-agent`
 
 This chart installs one instance of Grafana Agent into your Kubernetes cluster
 using a specific Kubernetes controller. By default, DaemonSet is used. The
@@ -33,6 +46,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | agent.configMap.key | string | `nil` | Key in ConfigMap to get config from. |
 | agent.configMap.name | string | `nil` | Name of existing ConfigMap to use. Used when create is false. |
 | agent.enableReporting | bool | `true` | Enables sending Grafana Labs anonymous usage stats to help improve Grafana Agent. |
+| agent.envFrom | list | `[]` | Maps all the keys on a ConfigMap or Secret as environment variables. https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#envfromsource-v1-core |
 | agent.extraArgs | list | `[]` | Extra args to pass to `agent run`: https://grafana.com/docs/agent/latest/flow/reference/cli/run/ |
 | agent.extraEnv | list | `[]` | Extra environment variables to pass to the agent container. |
 | agent.extraPorts | list | `[]` | Extra ports to expose on the Agent |
@@ -50,7 +64,17 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | configReloader.enabled | bool | `true` | Enables automatically reloading when the agent config changes. |
 | configReloader.image.repository | string | `"jimmidyson/configmap-reload"` | Repository to get config reloader image from. |
 | configReloader.image.tag | string | `"v0.8.0"` | Tag of image to use for config reloading. |
+| controller.affinity | object | `{}` | Affinity configuration for pods. |
+| controller.autoscaling.enabled | bool | `false` | Creates a HorizontalPodAutoscaler for controller type deployment. |
+| controller.autoscaling.maxReplicas | int | `5` | The upper limit for the number of replicas to which the autoscaler can scale up. |
+| controller.autoscaling.minReplicas | int | `1` | The lower limit for the number of replicas to which the autoscaler can scale down. |
+| controller.autoscaling.targetCPUUtilizationPercentage | int | `0` | Average CPU utilization across all relevant pods, a percentage of the requested value of the resource for the pods. Setting `targetCPUUtilizationPercentage` to 0 will disable CPU scaling. |
+| controller.autoscaling.targetMemoryUtilizationPercentage | int | `80` | Average Memory utilization across all relevant pods, a percentage of the requested value of the resource for the pods. Setting `targetMemoryUtilizationPercentage` to 0 will disable Memory scaling. |
+| controller.dnsPolicy | string | `"ClusterFirst"` | Configures the DNS policy for the pod. https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-dns-policy |
+| controller.hostNetwork | bool | `false` | Configures Pods to use the host network. When set to true, the ports that will be used must be specified. |
 | controller.podAnnotations | object | `{}` | Extra pod annotations to add. |
+| controller.podLabels | object | `{}` | Extra pod labels to add. |
+| controller.priorityClassName | string | `""` | priorityClassName to apply to Grafana Agent pods. |
 | controller.replicas | int | `1` | Number of pods to deploy. Ignored when controller.type is 'daemonset'. |
 | controller.tolerations | list | `[]` | Tolerations to apply to Grafana Agent pods. |
 | controller.type | string | `"daemonset"` | Type of controller to use for deploying Grafana Agent in the cluster. Must be one of 'daemonset', 'deployment', or 'statefulset'. |
@@ -72,6 +96,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | ingress.tls | list | `[]` |  |
 | nameOverride | string | `nil` | Overrides the chart's name. Used to change the infix in the resource names. |
 | rbac.create | bool | `true` | Whether to create RBAC resources for the agent. |
+| service.annotations | object | `{}` |  |
 | service.clusterIP | string | `""` | Cluster IP, can be set to None, empty "" or an IP address |
 | service.type | string | `"ClusterIP"` | Service type |
 | serviceAccount.annotations | object | `{}` | Annotations to add to the created service account. |
@@ -87,6 +112,21 @@ container. The list of available arguments is documented on [agent run][].
 > break between Chart upgrade if an argument gets added to the template.
 
 [agent run]: https://grafana.com/docs/agent/latest/flow/reference/cli/run/
+
+### agent.extraPorts
+
+`agent.extraPorts` allows for configuring specific open ports.
+
+The detained specification of ports can be found at the [Kubernetes Pod documents](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#ports).
+
+Port numbers specified must be 0 < x < 65535.
+
+| ChartPort | KubePort | Description |
+|-----------|----------|-------------|
+| targetPort | containerPort | Number of port to expose on the pod's IP address. |
+| hostPort | hostPort | (Optional) Number of port to expose on the host. Daemonsets taking traffic might find this useful. |
+| name | name | If specified, this must be an `IANA_SVC_NAME` and unique within the pod. Each named port in a pod must have a unique name. Name for the port that can be referred to by services.
+| protocol | protocol | Must be UDP, TCP, or SCTP. Defaults to "TCP". |
 
 ### agent.listenAddr
 
@@ -122,6 +162,18 @@ the Grafana Agent containers to use. The default permission set allows Flow
 components like [discovery.kubernetes][] to work properly.
 
 [discovery.kubernetes]: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.kubernetes/
+
+### controller.autoscaling
+
+`controller.autoscaling.enabled` enables the creation of a HorizontalPodAutoscaler. It is only used when `controller.type` is set to `deployment`.
+
+`controller.autoscaling` is intended to be used with an
+[app_agent_receiver-configured][app_agent_receiver] Grafana Agent.
+
+> **WARNING**: Using `controller.autoscaling` for any other Grafana Agent
+> configuration could lead to redundant or double telemetry collection.
+
+[app_agent_receiver]: https://grafana.com/docs/agent/latest/configuration/integrations/integrations-next/app-agent-receiver-config/
 
 ## Collecting logs from other containers
 

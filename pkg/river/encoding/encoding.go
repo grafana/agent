@@ -26,6 +26,10 @@ func ConvertRiverBodyToJSON(input interface{}) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	if fields == nil {
+		// Make sure that the list of fields is never null.
+		fields = make([]interface{}, 0)
+	}
 	bb, err := json.Marshal(fields)
 	if err != nil {
 		return nil, err

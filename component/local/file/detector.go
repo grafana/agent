@@ -134,7 +134,7 @@ func (fsn *fsNotify) wait(ctx context.Context) {
 
 		case err := <-fsn.watcher.Errors:
 			// The fsnotify watcher can generate errors for OS-level reasons (watched
-			// failed, failed when closing the file, etc). We don't know if the error
+			// failed, failed when closing the file, etc.). We don't know if the error
 			// is related to the file, so we always treat it as if the file updated.
 			//
 			// This will force the component to reload the file and report the error

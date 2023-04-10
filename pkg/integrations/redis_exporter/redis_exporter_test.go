@@ -2,6 +2,7 @@ package redis_exporter //nolint:golint
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -17,6 +18,7 @@ import (
 
 const addr string = "localhost:6379"
 const redisExporterFile string = "./redis_exporter.go"
+const redisPasswordMapFile string = "./testdata/password_map_file.json"
 
 func TestRedisCases(t *testing.T) {
 	tt := []struct {
@@ -60,6 +62,16 @@ func TestRedisCases(t *testing.T) {
 				return c
 			})(),
 		},
+		// Test that multiple lua scripts in a csv doesn't cause errors.
+		{
+			name: "Multiple Lua scripts read OK",
+			cfg: (func() Config {
+				c := DefaultConfig
+				c.RedisAddr = addr
+				c.ScriptPath = fmt.Sprintf("%s,%s", redisExporterFile, redisPasswordMapFile) // file contents are irrelevant
+				return c
+			})(),
+		},
 		// Test that some invalid pre-constructor config logic causes an error.
 		{
 			name: "Lua script read fail",
@@ -87,7 +99,7 @@ func TestRedisCases(t *testing.T) {
 				return c
 			})(),
 		},
-		// Test exporter construction fails when password file is defined and doesnt
+		// Test exporter construction fails when password file is defined and doesn't
 		// exist
 		{
 			name: "invalid password file",
@@ -105,7 +117,7 @@ func TestRedisCases(t *testing.T) {
 			cfg: (func() Config {
 				c := DefaultConfig
 				c.RedisAddr = addr
-				c.RedisPasswordMapFile = "./testdata/password_map_file.json"
+				c.RedisPasswordMapFile = redisPasswordMapFile
 				return c
 			})(),
 		},

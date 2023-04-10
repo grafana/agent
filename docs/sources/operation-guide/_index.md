@@ -207,7 +207,7 @@ your config file.
 
 Shared instances are completely transparent to the user with the exception of
 exposed metrics. With `instance_mode: shared`, metrics for Prometheus components
-(WAL, service discovery, remote_write, etc) have a `instance_group_name` label,
+(WAL, service discovery, remote_write, etc.) have a `instance_group_name` label,
 which is the hash of all settings used to determine the shared instance. When
 `instance_mode: distinct` is set, the metrics for Prometheus components will
 instead have an `instance_name` label, which matches the name set on the

@@ -169,7 +169,7 @@ func (s *rateLimitingSampler) Description() string {
 // every operation is sampled at least once in a time interval defined by the lowerBound. ie a lowerBound
 // of 1.0 / (60 * 10) will sample an operation at least once every 10 minutes.
 //
-// The probabilisticSampler is given higher priority when tags are emitted, ie. if IsSampled() for both
+// The probabilisticSampler is given higher priority when tags are emitted, i.e. if IsSampled() for both
 // samplers return true, the tags for probabilisticSampler will be used.
 type guaranteedThroughputProbabilisticSampler struct {
 	probabilisticSampler *probabilisticSampler

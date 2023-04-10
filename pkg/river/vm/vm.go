@@ -103,9 +103,18 @@ func (vm *Evaluator) evaluateBlockOrBody(scope *Scope, assoc map[value.Value]ast
 		rv = rv.Elem()
 	}
 
-	// TODO(rfratto): potentially loosen this restriction and allow decoding into
-	// an interface{} or map[string]interface{}.
-	if rv.Kind() != reflect.Struct {
+	if rv.Kind() == reflect.Interface {
+		var anyMap map[string]interface{}
+		into := reflect.MakeMap(reflect.TypeOf(anyMap))
+		if err := vm.evaluateMap(scope, assoc, node, into); err != nil {
+			return err
+		}
+
+		rv.Set(into)
+		return nil
+	} else if rv.Kind() == reflect.Map {
+		return vm.evaluateMap(scope, assoc, node, rv)
+	} else if rv.Kind() != reflect.Struct {
 		panic(fmt.Sprintf("river/vm: can only evaluate blocks into structs, got %s", rv.Kind()))
 	}
 
@@ -132,6 +141,65 @@ func (vm *Evaluator) evaluateBlockOrBody(scope *Scope, assoc map[value.Value]ast
 		TagInfo: ti,
 	}
 	return sd.Decode(stmts, rv)
+}
+
+// evaluateMap evaluates a block or a body into a map.
+func (vm *Evaluator) evaluateMap(scope *Scope, assoc map[value.Value]ast.Node, node ast.Node, rv reflect.Value) error {
+	var stmts ast.Body
+
+	switch node := node.(type) {
+	case *ast.BlockStmt:
+		if node.Label != "" {
+			return diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				StartPos: node.NamePos.Position(),
+				EndPos:   node.LCurlyPos.Position(),
+				Message:  fmt.Sprintf("block %q requires non-empty label", strings.Join(node.Name, ".")),
+			}
+		}
+		stmts = node.Body
+	case ast.Body:
+		stmts = node
+	default:
+		panic(fmt.Sprintf("river/vm: unrecognized node type %T", node))
+	}
+
+	if rv.IsNil() {
+		rv.Set(reflect.MakeMap(rv.Type()))
+	}
+
+	for _, stmt := range stmts {
+		switch stmt := stmt.(type) {
+		case *ast.AttributeStmt:
+			val, err := vm.evaluateExpr(scope, assoc, stmt.Value)
+			if err != nil {
+				// TODO(rfratto): get error as diagnostics.
+				return err
+			}
+
+			target := reflect.New(rv.Type().Elem()).Elem()
+			if err := value.Decode(val, target.Addr().Interface()); err != nil {
+				// TODO(rfratto): get error as diagnostics.
+				return err
+			}
+			rv.SetMapIndex(reflect.ValueOf(stmt.Name.Name), target)
+
+		case *ast.BlockStmt:
+			// TODO(rfratto): potentially relax this restriction where nested blocks
+			// are permitted when decoding to a map.
+			return diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				StartPos: ast.StartPos(stmt).Position(),
+				EndPos:   ast.EndPos(stmt).Position(),
+				Message:  "nested blocks not supported here",
+			}
+
+		default:
+			panic(fmt.Sprintf("river/vm: unrecognized node type %T", stmt))
+		}
+	}
+
+	return nil
 }
 
 func (vm *Evaluator) evaluateBlockLabel(node *ast.BlockStmt, tfs []rivertags.Field, rv reflect.Value) error {
@@ -187,7 +255,7 @@ func (vm *Evaluator) evaluateBlockLabel(node *ast.BlockStmt, tfs []rivertags.Fie
 }
 
 // prepareDecodeValue prepares v for decoding. Pointers will be fully
-// deferenced until finding a non-pointer value. nil pointers will be
+// dereferenced until finding a non-pointer value. nil pointers will be
 // allocated.
 func prepareDecodeValue(v reflect.Value) reflect.Value {
 	for v.Kind() == reflect.Pointer {
@@ -373,7 +441,7 @@ type Scope struct {
 	// Variables holds the list of available variable names that can be used when
 	// evaluating a node.
 	//
-	// Values in the Variables map should considered immutable after passed to
+	// Values in the Variables map should be considered immutable after passed to
 	// Evaluate; maps and slices will be copied by reference for performance
 	// optimizations.
 	Variables map[string]interface{}

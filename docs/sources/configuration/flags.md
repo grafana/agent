@@ -8,7 +8,7 @@ weight: 100
 Command-line flags are used to configure settings of Grafana Agent which cannot
 be updated at runtime.
 
-All flags may be prefixed with either one hypen or two (i.e., both
+All flags may be prefixed with either one hyphen or two (i.e., both
 `-config.file` and `--config.file` are valid).
 
 > Note: There may be flags returned by `-help` which are not listed here; this
@@ -117,7 +117,7 @@ The `dynamic-config` and `integrations-next` features must be enabled when
 * `-server.grpc.enable-tls`: Enable TLS for the gRPC server
 * `-server.grpc.conn-limit`: Maximum number of simultaneous gRPC connections
 * `-server.grpc.keepalive.max-connection-age` Maximum age for any gRPC connection for a graceful shutdown
-* `-server.grpc.keepalive.max-connection-age-grace` Grace period to forceibly close connections after a graceful shutdown starts
+* `-server.grpc.keepalive.max-connection-age-grace` Grace period to forcibly close connections after a graceful shutdown starts
 * `-server.grpc.keepalive.max-connection-idle` Time to wait before closing idle gRPC connections
 * `-server.grpc.keepalive.min-time-between-pings` Maximum frequency that clients may send pings at
 * `-server.grpc.keepalive.ping-without-stream-allowed` Allow clients to send pings without having a gRPC stream

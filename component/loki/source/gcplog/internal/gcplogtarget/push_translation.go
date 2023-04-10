@@ -47,7 +47,7 @@ func (pm PushMessage) Validate() error {
 	return nil
 }
 
-// translate converts a GCP PushMessage into a loki loki.Entry. It parses the
+// translate converts a GCP PushMessage into a loki.Entry. It parses the
 // push-specific labels and delegates the rest to parseGCPLogsEntry.
 func translate(m PushMessage, other model.LabelSet, useIncomingTimestamp bool, relabelConfigs []*relabel.Config, xScopeOrgID string) (loki.Entry, error) {
 	// Collect all push-specific labels. Every one of them is first configured

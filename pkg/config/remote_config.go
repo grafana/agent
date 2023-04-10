@@ -27,9 +27,9 @@ type remoteProvider interface {
 	retrieve() ([]byte, error)
 }
 
-// newRemoteConfig constructs a new remote configuration provider. The rawURL is parsed
+// newRemoteProvider constructs a new remote configuration provider. The rawURL is parsed
 // and a provider is constructed based on the URL's scheme.
-func newRemoteConfig(rawURL string, opts *remoteOpts) (remoteProvider, error) {
+func newRemoteProvider(rawURL string, opts *remoteOpts) (remoteProvider, error) {
 	u, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing rawURL %s: %w", rawURL, err)
@@ -62,7 +62,7 @@ type httpProvider struct {
 	httpClient *http.Client
 }
 
-// newHTTPProvider constructs an new httpProvider
+// newHTTPProvider constructs a new httpProvider
 func newHTTPProvider(opts *remoteOpts) (*httpProvider, error) {
 	httpClientConfig := config.HTTPClientConfig{}
 	if opts.HTTPClientConfig != nil {

@@ -54,6 +54,16 @@ rules:
       - /metrics
     verbs:
       - get
+  # Rules for prometheus.kubernetes.*
+  - apiGroups: ["monitoring.coreos.com"]
+    resources:
+      - podmonitors
+      - servicemonitors
+      - probes
+    verbs:
+      - get
+      - list
+      - watch
   # Rules which allow eventhandler to work.
   - apiGroups:
       - ""

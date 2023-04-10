@@ -80,8 +80,8 @@ func (d *decoder) decode(val Value, into reflect.Value) error {
 
 	// Fully deference into and allocate pointers as necessary.
 	for into.Kind() == reflect.Pointer {
-		// Check for direct assignments before allocating pointers and deferencing.
-		// This preservs pointer addresses when decoding an *int into an *int.
+		// Check for direct assignments before allocating pointers and dereferencing.
+		// This preserves pointer addresses when decoding an *int into an *int.
 		switch {
 		case into.CanSet() && val.Type() == TypeNull:
 			into.Set(reflect.Zero(into.Type()))
@@ -231,7 +231,7 @@ func (d *decoder) canDirectlyAssign(from reflect.Type, into reflect.Type) bool {
 	return !containsAny(into)
 }
 
-// containsAny recrusively traverses through into, returning true if it
+// containsAny recursively traverses through into, returning true if it
 // contains an interface{} value anywhere in its structure.
 func containsAny(into reflect.Type) bool {
 	// TODO(rfratto): cache result of this function?
@@ -339,6 +339,25 @@ func tryCapsuleConvert(from Value, into reflect.Value, intoType Type) (ok bool, 
 		}
 	}
 
+	// Last attempt: allow converting two capsules if the Go types are compatible
+	// and the into kind is an interface.
+	//
+	// TODO(rfratto): we may consider expanding this to allowing conversion to
+	// any compatible Go type in the future (not just interfaces).
+	if from.Type() == TypeCapsule && intoType == TypeCapsule && into.Kind() == reflect.Interface {
+		// We try to convert a pointer to from first to avoid making unnecessary
+		// copies.
+		if from.Reflect().CanAddr() && from.Reflect().Addr().CanConvert(into.Type()) {
+			val := from.Reflect().Addr().Convert(into.Type())
+			into.Set(val)
+			return true, nil
+		} else if from.Reflect().CanConvert(into.Type()) {
+			val := from.Reflect().Convert(into.Type())
+			into.Set(val)
+			return true, nil
+		}
+	}
+
 	return false, nil
 }
 
@@ -355,8 +374,8 @@ func tryCapsuleConvert(from Value, into reflect.Value, intoType Type) (ok bool, 
 //	Function:      Passthrough of the underlying function value
 //	Capsule:       Passthrough of the underlying capsule value
 //
-// In the cases where we do not passthrough the underlying value, we create a
-// value of that type, recrusively call decode to populate that new value, and
+// In the cases where we do not pass through the underlying value, we create a
+// value of that type, recursively call decode to populate that new value, and
 // then store that value into the interface{}.
 func (d *decoder) decodeAny(val Value, into reflect.Value) error {
 	var ptr reflect.Value

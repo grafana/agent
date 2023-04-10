@@ -1,4 +1,4 @@
-// Comand grafana-agent-crow is a correctness checker tool that validates that
+// Command grafana-agent-crow is a correctness checker tool that validates that
 // scraped metrics are delivered to a remote_write endpoint. Inspired by Loki
 // Canary and Cortex test-exporter.
 package main
@@ -28,7 +28,7 @@ func main() {
 	var (
 		fs = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 
-		serverCfg   = server.DefaultConfig
+		serverCfg   = server.DefaultConfig()
 		serverFlags = server.DefaultFlags
 
 		crowCfg     = crow.DefaultConfig

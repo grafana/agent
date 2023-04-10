@@ -136,7 +136,8 @@ func Marshal(v interface{}) ([]byte, error) {
 // Structs encode to River objects, using Go struct field tags to determine the
 // resulting structure of the River object. Each exported struct field with a
 // river tag becomes an object field, using the tag name as the field name.
-// Other struct fields are ignored.
+// Other struct fields are ignored. If no struct field has a river tag, the
+// struct encodes to a River capsule instead.
 //
 // Function values encode to River functions, which appear in the resulting
 // text as strings formatted as "function(GO_TYPE)".
@@ -148,7 +149,7 @@ func Marshal(v interface{}) ([]byte, error) {
 // comma-separated list of options. The following provides examples for all
 // supported struct field tags with their meanings:
 //
-//	// Field appears as a object field named "my_name". It will always
+//	// Field appears as an object field named "my_name". It will always
 //	// appear in the resulting encoding. When decoding, "my_name" is treated
 //	// as a required attribute and must be present in the source text.
 //	Field bool `river:"my_name,attr"`
@@ -211,6 +212,11 @@ func (enc *Encoder) EncodeValue(v interface{}) error {
 //
 // Unmarshal uses the inverse of the encoding rules that Marshal uses,
 // allocating maps, slices, and pointers as necessary.
+//
+// To unmarshal a River body into a map[string]T, Unmarshal assigns each
+// attribute to a key in the map, and decodes the attribute's value as the
+// value for the map entry. Only attribute statements are allowed when
+// unmarshaling into a map.
 //
 // To unmarshal a River body into a struct, Unmarshal matches incoming
 // attributes and blocks to the river struct tags specified by v. Incoming
@@ -298,7 +304,7 @@ func NewDecoder(r io.Reader) *Decoder {
 // in the value pointed to by v. Data will be read from the Decoder's input
 // until EOF is reached.
 //
-// See the documentation for Unmarshal for details about the converion of River
+// See the documentation for Unmarshal for details about the conversion of River
 // configuration into Go values.
 func (dec *Decoder) Decode(v interface{}) error {
 	bb, err := io.ReadAll(dec.r)
@@ -319,7 +325,7 @@ func (dec *Decoder) Decode(v interface{}) error {
 // stores it in the value pointed to by v. Data will be read from the Decoder's
 // input until EOF is reached.
 //
-// See the documentation for UnmarshalValue for details about the converion of
+// See the documentation for UnmarshalValue for details about the conversion of
 // River values into Go values.
 func (dec *Decoder) DecodeValue(v interface{}) error {
 	bb, err := io.ReadAll(dec.r)

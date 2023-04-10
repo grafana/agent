@@ -67,13 +67,13 @@ func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 }
 
 // Convert implements exporter.Arguments.
-func (args Arguments) Convert() otelconfig.Exporter {
+func (args Arguments) Convert() (otelconfig.Exporter, error) {
 	return &otlphttpexporter.Config{
 		ExporterSettings:   otelconfig.NewExporterSettings(otelconfig.NewComponentID("otlp")),
 		HTTPClientSettings: *(*otelcol.HTTPClientArguments)(&args.Client).Convert(),
 		QueueSettings:      *args.Queue.Convert(),
 		RetrySettings:      *args.Retry.Convert(),
-	}
+	}, nil
 }
 
 // Extensions implements exporter.Arguments.

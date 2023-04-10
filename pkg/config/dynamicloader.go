@@ -88,7 +88,7 @@ func (c *DynamicLoader) LoadConfigByPath(path string) error {
 	var err error
 	switch {
 	case strings.HasPrefix(path, "file://"):
-		// It takes some work arounds to parse all windows paths as url so treating it differently now is easier
+		// It takes some workarounds to parse all windows paths as url so treating it differently now is easier
 		// otherwise we could parse path and then pivot
 		stripPath := strings.ReplaceAll(path, "file://", "")
 		buf, err = os.ReadFile(stripPath)
@@ -179,7 +179,7 @@ func (c *DynamicLoader) processAgent(cfg *Config) error {
 	if found > 1 {
 		returnError = errorAppend(returnError, fmt.Errorf("found %d agent templates; expected 0 or 1", found))
 	}
-	// If we didnt find anything we still want to unmarshal the cfg to get defaults
+	// If we didn't find anything we still want to unmarshal the cfg to get defaults
 	if found == 0 {
 		_ = LoadBytes([]byte("{}"), false, cfg)
 	}

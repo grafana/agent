@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"path"
 	"strings"
 
 	"github.com/grafana/agent/pkg/river/encoding"
@@ -38,8 +39,9 @@ func (f *Flow) ComponentHandler() http.HandlerFunc {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-		// remove /component/{id} from front of path, so each component can handle paths from their own root path
-		r.URL.Path = strings.TrimPrefix(r.URL.Path, "/component/"+id)
+		// Remove prefix from path, so each component can handle paths from their
+		// own root path.
+		r.URL.Path = strings.TrimPrefix(r.URL.Path, path.Join(f.opts.HTTPPathPrefix, id))
 		handler.ServeHTTP(w, r)
 	}
 }

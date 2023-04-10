@@ -26,7 +26,7 @@ type Reference struct {
 
 // ComponentReferences returns the list of references a component is making to
 // other components.
-func ComponentReferences(cn dag.Node, g *dag.Graph) ([]Reference, diag.Diagnostics) {
+func ComponentReferences(parent *vm.Scope, cn dag.Node, g *dag.Graph) ([]Reference, diag.Diagnostics) {
 	var (
 		traversals []Traversal
 
@@ -34,21 +34,16 @@ func ComponentReferences(cn dag.Node, g *dag.Graph) ([]Reference, diag.Diagnosti
 	)
 
 	switch cn := cn.(type) {
-	case *ConfigNode:
-		traversals = configTraversals(cn)
-	case *ComponentNode:
-		traversals = componentTraversals(cn)
+	case BlockNode:
+		if cn.Block() != nil {
+			traversals = expressionsFromBody(cn.Block().Body)
+		}
 	}
 
 	refs := make([]Reference, 0, len(traversals))
 	for _, t := range traversals {
-		// We use an empty scope to determine if a reference refers to something in
-		// the stdlib, since vm.Scope.Lookup will search the scope tree + the
-		// stdlib.
-		//
-		// Any call to an stdlib function is ignored.
-		var emptyScope vm.Scope
-		if _, ok := emptyScope.Lookup(t[0].Name); ok {
+		// Determine if a reference refers to something existing.
+		if _, ok := parent.Lookup(t[0].Name); ok {
 			continue
 		}
 
@@ -61,25 +56,6 @@ func ComponentReferences(cn dag.Node, g *dag.Graph) ([]Reference, diag.Diagnosti
 	}
 
 	return refs, diags
-}
-
-// componentTraversals gets the set of Traverals for a given component.
-func componentTraversals(cn *ComponentNode) []Traversal {
-	cn.mut.RLock()
-	defer cn.mut.RUnlock()
-	return expressionsFromBody(cn.block.Body)
-}
-
-// configTraversals gets the set of Traverals for the config node.
-func configTraversals(cn *ConfigNode) []Traversal {
-	cn.mut.RLock()
-	defer cn.mut.RUnlock()
-
-	var res []Traversal
-	for _, b := range cn.blocks {
-		res = append(res, expressionsFromBody(b.Body)...)
-	}
-	return res
 }
 
 // expressionsFromSyntaxBody recurses through body and finds all variable
