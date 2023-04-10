@@ -7,6 +7,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/discovery"
+	"github.com/grafana/agent/pkg/flow/rivertypes"
 	"github.com/prometheus/common/model"
 	prom_discovery "github.com/prometheus/prometheus/discovery/digitalocean"
 )
@@ -24,15 +25,20 @@ func init() {
 }
 
 type Arguments struct {
-	RefreshInterval  time.Duration           `river:"refresh_interval,attr,optional"`
-	Port             int                     `river:"port,attr,optional"`
-	HTTPClientConfig config.HTTPClientConfig `river:",squash"`
+	RefreshInterval time.Duration `river:"refresh_interval,attr,optional"`
+	Port            int           `river:"port,attr,optional"`
+
+	BearerToken     rivertypes.Secret `river:"bearer_token,attr,optional"`
+	BearerTokenFile string            `river:"bearer_token_file,attr,optional"`
+
+	ProxyURL        config.URL `river:"proxy_url,attr,optional"`
+	FollowRedirects bool       `river:"follow_redirects,attr,optional"`
+	EnableHTTP2     bool       `river:"enable_http2,attr,optional"`
 }
 
 var DefaultArguments = Arguments{
-	Port:             80,
-	RefreshInterval:  time.Minute,
-	HTTPClientConfig: config.DefaultHTTPClientConfig,
+	Port:            80,
+	RefreshInterval: time.Minute,
 }
 
 func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
@@ -49,18 +55,27 @@ func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 // BearerTokenFile is specified, as the DigitalOcean API requires a Bearer Token for
 // authentication.
 func (a *Arguments) Validate() error {
-	httpClientConfig := a.HTTPClientConfig
-	if httpClientConfig.BearerToken == "" && httpClientConfig.BearerTokenFile == "" {
+	if (a.BearerToken == "" && a.BearerTokenFile == "") ||
+		(len(a.BearerToken) > 0 && len(a.BearerTokenFile) > 0) {
+
 		return fmt.Errorf("exactly one of bearer_token or bearer_token_file must be specified")
 	}
-	return httpClientConfig.Validate()
+
+	return nil
 }
 
 func (a *Arguments) Convert() *prom_discovery.SDConfig {
+	httpClientConfig := config.DefaultHTTPClientConfig
+	httpClientConfig.BearerToken = a.BearerToken
+	httpClientConfig.BearerTokenFile = a.BearerTokenFile
+	httpClientConfig.ProxyURL = a.ProxyURL
+	httpClientConfig.FollowRedirects = a.FollowRedirects
+	httpClientConfig.EnableHTTP2 = a.EnableHTTP2
+
 	return &prom_discovery.SDConfig{
 		RefreshInterval:  model.Duration(a.RefreshInterval),
 		Port:             a.Port,
-		HTTPClientConfig: *a.HTTPClientConfig.Convert(),
+		HTTPClientConfig: *httpClientConfig.Convert(),
 	}
 }
 
