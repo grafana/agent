@@ -95,7 +95,7 @@ func (rc *resourcesCollector) Collect(ch chan<- prometheus.Metric) {
 
 		ch <- prometheus.MustNewConstMetric(
 			rc.processStartTime,
-			prometheus.CounterValue,
+			prometheus.GaugeValue,
 			dur.Seconds(),
 		)
 	}
