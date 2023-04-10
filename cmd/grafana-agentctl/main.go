@@ -5,19 +5,15 @@ package main
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
-	goruntime "runtime"
 	"sort"
 	"strings"
 	"syscall"
-	"time"
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/grafana/agent/pkg/client/grafanacloud"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/olekukonko/tablewriter"
@@ -55,7 +51,7 @@ import (
 )
 
 func main() {
-	var cmd = &cobra.Command{
+	cmd := &cobra.Command{
 		Use:     "agentctl",
 		Short:   "Tools for interacting with the Grafana Agent",
 		Version: version.Print("agentctl"),
@@ -69,7 +65,6 @@ func main() {
 		targetStatsCmd(),
 		samplesCmd(),
 		operatorDetachCmd(),
-		cloudConfigCmd(),
 		templateDryRunCmd(),
 		testLogs(),
 	)
@@ -434,59 +429,6 @@ func filterAgentOwners(refs []meta_v1.OwnerReference) (filtered []meta_v1.OwnerR
 		filtered = append(filtered, ref)
 	}
 	return
-}
-
-func cloudConfigCmd() *cobra.Command {
-	var (
-		stackID   string
-		apiURL    string
-		apiKey    string
-		platforms string
-	)
-
-	cmd := &cobra.Command{
-		Use:   "cloud-config",
-		Short: "Retrieves the cloud config for the Grafana Agent",
-		Long: `cloud-config connects to Grafana Cloud and retrieves the generated
-config that may be used with this agent.`,
-		Args: cobra.ExactArgs(0),
-
-		// Hidden, this is only expected to be used by scripts.
-		Hidden: true,
-
-		RunE: func(_ *cobra.Command, args []string) error {
-			if stackID == "" {
-				return fmt.Errorf("--stack must be provided")
-			}
-			if apiKey == "" {
-				return fmt.Errorf("--api-key must be provided")
-			}
-
-			// setting timeout 2x as the default HTTP transport timeout (30s)
-			httpClient := &http.Client{
-				Timeout: time.Minute,
-			}
-			cli := grafanacloud.NewClient(httpClient, apiKey, apiURL)
-
-			cfg, err := cli.AgentConfig(context.Background(), stackID, platforms)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "could not retrieve agent cloud config: %s\n", err)
-				os.Exit(1)
-			}
-
-			fmt.Println(cfg)
-			return nil
-		},
-	}
-
-	cmd.Flags().StringVarP(&stackID, "stack", "u", "", "stack ID to get a config for")
-	cmd.Flags().StringVarP(&apiKey, "api-key", "p", "", "API key to authenticate against Grafana Cloud's API with")
-	cmd.Flags().StringVarP(&apiURL, "api-url", "e", "", "Grafana Cloud's API url")
-	cmd.Flags().StringVar(&platforms, "platforms", goruntime.GOOS, "comma-separated list of Platforms/OSes")
-	must(cmd.MarkFlagRequired("stack"))
-	must(cmd.MarkFlagRequired("api-key"))
-
-	return cmd
 }
 
 func templateDryRunCmd() *cobra.Command {

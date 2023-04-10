@@ -33,13 +33,13 @@ type Exports struct {
 }
 
 // NewModuleComponent initializes a new ModuleComponent.
-func NewModuleComponent(o component.Options) ModuleComponent {
+func NewModuleComponent(o component.Options) *ModuleComponent {
 	// TODO(rfratto): replace these with a tracer/registry which properly
 	// propagates data back to the parent.
 	flowTracer, _ := tracing.New(tracing.DefaultOptions)
 	flowRegistry := prometheus.NewRegistry()
 
-	return ModuleComponent{
+	return &ModuleComponent{
 		opts: o,
 		ctrl: flow.New(flow.Options{
 			ControllerID: o.ID,
@@ -64,7 +64,7 @@ func NewModuleComponent(o component.Options) ModuleComponent {
 func (c *ModuleComponent) LoadFlowContent(arguments map[string]any, contentValue string) error {
 	f, err := flow.ReadFile(c.opts.ID, []byte(contentValue))
 	if err != nil {
-		c.SetHealth(component.Health{
+		c.setHealth(component.Health{
 			Health:     component.HealthTypeUnhealthy,
 			Message:    fmt.Sprintf("failed to parse module content: %s", err),
 			UpdateTime: time.Now(),
@@ -75,7 +75,7 @@ func (c *ModuleComponent) LoadFlowContent(arguments map[string]any, contentValue
 
 	err = c.ctrl.LoadFile(f, arguments)
 	if err != nil {
-		c.SetHealth(component.Health{
+		c.setHealth(component.Health{
 			Health:     component.HealthTypeUnhealthy,
 			Message:    fmt.Sprintf("failed to load module content: %s", err),
 			UpdateTime: time.Now(),
@@ -84,7 +84,7 @@ func (c *ModuleComponent) LoadFlowContent(arguments map[string]any, contentValue
 		return err
 	}
 
-	c.SetHealth(component.Health{
+	c.setHealth(component.Health{
 		Health:     component.HealthTypeHealthy,
 		Message:    "module content loaded",
 		UpdateTime: time.Now(),
@@ -105,7 +105,7 @@ func (c *ModuleComponent) CurrentHealth() component.Health {
 }
 
 // SetHealth contains the implementation details for setHealth in a module component.
-func (c *ModuleComponent) SetHealth(h component.Health) {
+func (c *ModuleComponent) setHealth(h component.Health) {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 	c.health = h
