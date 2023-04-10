@@ -4,15 +4,11 @@ Before performing a release, make sure that you have completed the following.
 
 ## Steps
 
-1. Install [helm-docs](https://github.com/norwoodj/helm-docs) on mac/linux.
-
-    This will be used when updating helm charts.
+1. Install [helm-docs](https://github.com/norwoodj/helm-docs) on macOS/Linux. This will be used when updating Helm charts.
 
 2. Follow the GitHub [instructions](https://docs.github.com/en/authentication/managing-commit-signature-verification) to set up GPG for signature verification.
 
-*NOTE: This is required for creating tags on the release branch.*
-
-3. (Optional) Configure git to always sign on commit or tag.
+3. Optional: Configure git to always sign on commit or tag.
 
 ```bash
 git config --global commit.gpgSign true

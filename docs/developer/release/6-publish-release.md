@@ -10,11 +10,13 @@ This is how to publish the release in GitHub.
 
 3. Add any additional changes that you think are notable to the list.
 
-4. Add a footer to the `Notable Changes` section.
+4. Add a footer to the `Notable Changes` section:
 
-    `For a full list of changes, please refer to the [CHANGELOG](https://github.com/grafana/agent/blob/[release version]/CHANGELOG.md)!`
+    `For a full list of changes, please refer to the [CHANGELOG](https://github.com/grafana/agent/blob/RELEASE_VERSION/CHANGELOG.md)!`
+    
+    Do not substitute the value for `CHANGELOG`.  
 
-5. At the bottom of the release page
+5. At the bottom of the release page, perform the following:
     - Tick the check box to "add a discussion" under the category for "announcements".
     - For a RCV, tick the checkbox to "pre-release".
     - For a SRV or PRV, tick the checkbox to "set as the latest release".
