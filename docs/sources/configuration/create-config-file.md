@@ -41,7 +41,7 @@ integrations:
 ```
 
 In this example, we first must configure the `wal_directory` which is used to
-store metrics in a Write-Ahead Log. This is required, but ensures that samples
+store metrics in a Write-Ahead Log. This is optional, but ensures that samples
 will be redelivered in case of failure (e.g., network issues, machine reboot). We
 also configure `remote_write`, which is where all metrics should be sent by
 default.
