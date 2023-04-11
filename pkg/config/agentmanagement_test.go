@@ -259,7 +259,7 @@ func TestGetRemoteConfig_UnmarshallableRemoteConfig(t *testing.T) {
 	features.Register(fs, allFeatures)
 	defaultCfg.RegisterFlags(fs)
 
-	cfg, err := getRemoteConfig(true, &testProvider, logger, fs)
+	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, false)
 	assert.NoError(t, err)
 	assert.False(t, testProvider.didCacheRemoteConfig)
 
@@ -285,7 +285,7 @@ func TestGetRemoteConfig_RemoteFetchFails(t *testing.T) {
 	features.Register(fs, allFeatures)
 	defaultCfg.RegisterFlags(fs)
 
-	cfg, err := getRemoteConfig(true, &testProvider, logger, fs)
+	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, false)
 	assert.NoError(t, err)
 	assert.False(t, testProvider.didCacheRemoteConfig)
 
@@ -331,7 +331,7 @@ snippets: []
 	features.Register(fs, allFeatures)
 	defaultCfg.RegisterFlags(fs)
 
-	cfg, err := getRemoteConfig(true, &testProvider, logger, fs)
+	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, false)
 	assert.NoError(t, err)
 	assert.False(t, testProvider.didCacheRemoteConfig)
 
@@ -370,7 +370,7 @@ snippets:
 	features.Register(fs, allFeatures)
 	defaultCfg.RegisterFlags(fs)
 
-	cfg, err := getRemoteConfig(true, &testProvider, logger, fs)
+	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, false)
 	assert.NoError(t, err)
 	assert.False(t, testProvider.didCacheRemoteConfig)
 
@@ -399,7 +399,7 @@ snippets: []
 	features.Register(fs, allFeatures)
 	defaultCfg.RegisterFlags(fs)
 
-	cfg, err := getRemoteConfig(true, &testProvider, logger, fs)
+	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, false)
 	assert.NoError(t, err)
 	assert.True(t, testProvider.didCacheRemoteConfig)
 
@@ -454,7 +454,7 @@ snippets:
 	features.Register(fs, allFeatures)
 	defaultCfg.RegisterFlags(fs)
 
-	cfg, err := getRemoteConfig(true, &testProvider, logger, fs)
+	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, false)
 	assert.NoError(t, err)
 	assert.True(t, testProvider.didCacheRemoteConfig)
 
@@ -514,7 +514,7 @@ snippets:
 	features.Register(fs, allFeatures)
 	defaultCfg.RegisterFlags(fs)
 
-	cfg, err := getRemoteConfig(true, &testProvider, logger, fs)
+	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, false)
 	assert.NoError(t, err)
 	assert.Equal(t, "15s", cfg.Metrics.Configs[0].ScrapeConfigs[0].ScrapeInterval.String())
 	assert.Equal(t, "json", cfg.Server.LogFormat.String())

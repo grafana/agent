@@ -170,13 +170,14 @@ type AgentManagementConfig struct {
 // getRemoteConfig gets the remote config specified in the initial config, falling back to a local, cached copy
 // of the remote config if the request to the remote fails. If both fail, an empty config and an
 // error will be returned.
-func getRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, log *server.Logger, fs *flag.FlagSet) (*Config, error) {
+func getRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, log *server.Logger, fs *flag.FlagSet, retry bool) (*Config, error) {
 	remoteConfigBytes, err := configProvider.FetchRemoteConfig()
 	if err != nil {
 		var retryAfterErr retryAfterError
-		if errors.As(err, &retryAfterErr) {
+		if errors.As(err, &retryAfterErr) && retry {
 			level.Error(log).Log("msg", "received retry-after from API, sleeping and falling back to cache", "retry-after", retryAfterErr.retryAfter)
 			time.Sleep(retryAfterErr.retryAfter)
+			return getRemoteConfig(expandEnvVars, configProvider, log, fs, false)
 		} else {
 			level.Error(log).Log("msg", "could not fetch from API, falling back to cache", "err", err)
 		}
