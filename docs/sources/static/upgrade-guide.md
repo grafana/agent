@@ -19,6 +19,13 @@ static mode.
 > [upgrade-guide-operator]: {{< relref "../operator/upgrade-guide.md" >}}
 > [upgrade-guide-flow]: {{< relref "../flow/upgrade-guide.md" >}}
 
+## v0.33
+
+### Deprecation of Dynamic Configuration
+
+[Dynamic Configuration](https://grafana.com/docs/agent/latest/cookbook/dynamic-configuration/) will be removed in v0.34. 
+The use case of dynamic configuration will be replaced with Modules in Grafana Agent Flow.
+
 ## v0.32.1
 
 ### Breaking change: `node_exporter` configuration options changed
