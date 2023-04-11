@@ -13,7 +13,7 @@ releases and how to migrate to newer versions.
 ### Deprecation of Dynamic Configuration
 
 [Dynamic Configuration](https://grafana.com/docs/agent/latest/cookbook/dynamic-configuration/) will be removed in v0.34. 
-The use case of dynamic configuration will be replaced with Flow Modules.
+The use case of dynamic configuration will be replaced with Modules in Grafana Agent Flow.
 
 ## v0.32.1
 
