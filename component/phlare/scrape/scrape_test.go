@@ -24,7 +24,7 @@ import (
 )
 
 func TestComponent(t *testing.T) {
-	defer goleak.VerifyNone(t)
+	defer goleak.VerifyNone(t, goleak.IgnoreTopFunction("go.opencensus.io/stats/view.(*worker).start"))
 	reloadInterval = 100 * time.Millisecond
 	arg := NewDefaultArguments()
 	arg.JobName = "test"

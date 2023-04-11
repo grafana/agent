@@ -79,7 +79,7 @@ func (ln *localNode) Peers() []peer.Peer {
 func (ln *localNode) Handler() (string, http.Handler) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("clustering is disabled"))
+		_, _ = w.Write([]byte("clustering is disabled"))
 		w.WriteHeader(http.StatusBadRequest)
 	}))
 
@@ -111,7 +111,10 @@ func New(log log.Logger, clusterEnabled bool, addr, joinAddr string) (*Clusterer
 	gossipConfig := DefaultGossipConfig
 	gossipConfig.NodeName = uuid.NewString()
 	gossipConfig.AdvertiseAddr = host
-	gossipConfig.ApplyDefaults(port)
+	err = gossipConfig.ApplyDefaults(port)
+	if err != nil {
+		return nil, err
+	}
 
 	if joinAddr != "" {
 		gossipConfig.JoinPeers = strings.Split(joinAddr, ",")
