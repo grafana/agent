@@ -25,17 +25,21 @@ type testRemoteConfigProvider struct {
 
 	fetchedConfigBytesToReturn []byte
 	fetchedConfigErrorToReturn error
+	fetchRemoteConfigCallCount int
 
 	cachedConfigToReturn      []byte
 	cachedConfigErrorToReturn error
+	getCachedConfigCallCount  int
 	didCacheRemoteConfig      bool
 }
 
 func (t *testRemoteConfigProvider) GetCachedRemoteConfig() ([]byte, error) {
+	t.getCachedConfigCallCount += 1
 	return t.cachedConfigToReturn, t.cachedConfigErrorToReturn
 }
 
 func (t *testRemoteConfigProvider) FetchRemoteConfig() ([]byte, error) {
+	t.fetchRemoteConfigCallCount += 1
 	return t.fetchedConfigBytesToReturn, t.fetchedConfigErrorToReturn
 }
 
@@ -536,4 +540,29 @@ func TestGetCachedConfig_DefaultConfigFallback(t *testing.T) {
 
 	// check that the returned config is the default one
 	assert.True(t, util.CompareYAML(*cfg, defaultCfg))
+}
+
+func TestGetCachedConfig_RetryAfter(t *testing.T) {
+	defaultCfg := DefaultConfig()
+	am := validAgentManagementConfig
+	logger := server.NewLogger(defaultCfg.Server)
+	testProvider := testRemoteConfigProvider{InitialConfig: &am}
+	testProvider.fetchedConfigErrorToReturn = retryAfterError{retryAfter: time.Duration(0)}
+	testProvider.cachedConfigToReturn = cachedConfig
+
+	fs := flag.NewFlagSet("test", flag.ExitOnError)
+	features.Register(fs, allFeatures)
+	defaultCfg.RegisterFlags(fs)
+
+	_, err := getRemoteConfig(true, &testProvider, logger, fs, true)
+	assert.NoError(t, err)
+	assert.False(t, testProvider.didCacheRemoteConfig)
+
+	// check that FetchRemoteConfig was called twice on the TestProvider:
+	// 1 call for the initial attempt, a second for the retry
+	assert.Equal(t, 2, testProvider.fetchRemoteConfigCallCount)
+
+	// the cached config should have been retrieved once, on the second
+	// attempt to fetch the remote config
+	assert.Equal(t, 1, testProvider.getCachedConfigCallCount)
 }

@@ -178,9 +178,8 @@ func getRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, lo
 			level.Error(log).Log("msg", "received retry-after from API, sleeping and falling back to cache", "retry-after", retryAfterErr.retryAfter)
 			time.Sleep(retryAfterErr.retryAfter)
 			return getRemoteConfig(expandEnvVars, configProvider, log, fs, false)
-		} else {
-			level.Error(log).Log("msg", "could not fetch from API, falling back to cache", "err", err)
 		}
+		level.Error(log).Log("msg", "could not fetch from API, falling back to cache", "err", err)
 		return getCachedRemoteConfig(expandEnvVars, configProvider, fs, log)
 	}
 
