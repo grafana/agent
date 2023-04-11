@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
@@ -51,6 +52,7 @@ func TestModule(t *testing.T) {
 			opts := component.Options{
 				ID:            "module.file.test",
 				Logger:        util.TestFlowLogger(t),
+				Clusterer:     noOpClusterer(),
 				Registerer:    prometheus.NewRegistry(),
 				OnStateChange: func(e component.Exports) {},
 				DataPath:      t.TempDir(),
@@ -122,6 +124,7 @@ func TestBadFile(t *testing.T) {
 			opts := component.Options{
 				ID:            "module.file.test",
 				Logger:        util.TestFlowLogger(t),
+				Clusterer:     noOpClusterer(),
 				Registerer:    prometheus.NewRegistry(),
 				OnStateChange: func(e component.Exports) {},
 				DataPath:      t.TempDir(),
@@ -149,4 +152,8 @@ func requirePrefix(t *testing.T, s string, prefix string) {
 		s,
 		prefix,
 	)
+}
+
+func noOpClusterer() *cluster.Clusterer {
+	return &cluster.Clusterer{Node: cluster.NewLocalNode("")}
 }

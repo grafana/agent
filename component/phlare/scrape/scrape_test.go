@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/phlare"
 	"github.com/grafana/agent/component/prometheus/scrape"
+	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
@@ -31,6 +32,7 @@ func TestComponent(t *testing.T) {
 		Logger:        util.TestFlowLogger(t),
 		Registerer:    prometheus.NewRegistry(),
 		OnStateChange: func(e component.Exports) {},
+		Clusterer:     &cluster.Clusterer{Node: cluster.NewLocalNode("")},
 	}, arg)
 	require.NoError(t, err)
 	ctx, cancel := context.WithCancel(context.Background())
