@@ -1,41 +1,28 @@
 #Requires -RunAsAdministrator
 
 # Script to install Grafana agent for Windows
-param ($GCLOUD_HOSTED_METRICS_URL, $GCLOUD_HOSTED_METRICS_ID, $GCLOUD_SCRAPE_INTERVAL, $GCLOUD_HOSTED_LOGS_URL, $GCLOUD_HOSTED_LOGS_ID, $GCLOUD_RW_API_KEY)
+[CmdletBinding()]
+param (
+    [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName)]
+    [string] $GCLOUD_HOSTED_METRICS_URL,
+
+    [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName)]
+    [string] $GCLOUD_HOSTED_METRICS_ID,
+
+    [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName)]
+    [string] $GCLOUD_SCRAPE_INTERVAL,
+
+    [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName)]
+    [string] $GCLOUD_HOSTED_LOGS_URL,
+
+    [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName)]
+    [string] $GCLOUD_HOSTED_LOGS_ID,
+
+    [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName)]
+    [string] $GCLOUD_RW_API_KEY
+)
 
 Write-Host "Setting up Grafana agent"
-
-# Check if required parameters are present
-if ($GCLOUD_HOSTED_METRICS_URL -eq "") {
-	Write-Host "ERROR: Required argument GCLOUD_HOSTED_METRICS_URL missing"
-	exit
-}
-
-if ($GCLOUD_HOSTED_METRICS_ID -eq "") {
-	Write-Host "ERROR: Required argument GCLOUD_HOSTED_METRICS_ID missing"
-	exit
-}
-
-if ($GCLOUD_SCRAPE_INTERVAL -eq "") {
-	Write-Host "ERROR: Required argument GCLOUD_SCRAPE_INTERVAL missing"
-	exit
-}
-
-if ($GCLOUD_HOSTED_LOGS_URL -eq "") {
-	Write-Host "ERROR: Required argument GCLOUD_HOSTED_LOGS_URL missing"
-	exit
-}
-
-if ($GCLOUD_HOSTED_LOGS_ID -eq "") {
-	Write-Host "ERROR: Required argument GCLOUD_HOSTED_LOGS_ID missing"
-	exit
-}
-
-if ($GCLOUD_RW_API_KEY -eq "") {
-	Write-Host "ERROR: Required argument GCLOUD_RW_API_KEY missing"
-	exit
-}
-
 Write-Host "GCLOUD_HOSTED_METRICS_URL:" $GCLOUD_HOSTED_METRICS_URL
 Write-Host "GCLOUD_HOSTED_METRICS_ID:" $GCLOUD_HOSTED_METRICS_ID
 Write-Host "GCLOUD_SCRAPE_INTERVAL:" $GCLOUD_SCRAPE_INTERVAL
@@ -73,7 +60,7 @@ Move-Item $config_file "C:\Program Files\Grafana Agent\agent-config.yaml" -force
 
 # Wait for service to initialize after first install
 Write-Host "Wait for Grafana agent service to initialize"
-Start-Sleep -s 5
+Start-Sleep -Seconds 5
 
 # Restart Grafana agent to load new configuration
 Write-Host "Restarting Grafana agent service"
@@ -82,7 +69,7 @@ Start-Service "Grafana Agent"
 
 # Wait for service to startup after restart
 Write-Host "Wait for Grafana service to initialize after restart"
-Start-Sleep -s 10
+Start-Sleep -Seconds 10
 
 # Show Grafana agent service status
 Get-Service "Grafana Agent"
