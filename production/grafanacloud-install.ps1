@@ -4,21 +4,27 @@
 [CmdletBinding()]
 param (
     [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName)]
+    [ValidateNotNull()]
     [string] $GCLOUD_HOSTED_METRICS_URL,
 
     [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName)]
+    [ValidateNotNull()]
     [string] $GCLOUD_HOSTED_METRICS_ID,
 
     [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName)]
+    [ValidateNotNull()]
     [string] $GCLOUD_SCRAPE_INTERVAL,
 
     [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName)]
+    [ValidateNotNull()]
     [string] $GCLOUD_HOSTED_LOGS_URL,
 
     [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName)]
+    [ValidateNotNull()]
     [string] $GCLOUD_HOSTED_LOGS_ID,
 
     [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName)]
+    [ValidateNotNull()]
     [string] $GCLOUD_RW_API_KEY
 )
 
