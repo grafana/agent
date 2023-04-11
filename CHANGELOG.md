@@ -12,6 +12,10 @@ Main (unreleased)
 
 ### Breaking changes
 
+- Support for 32-bit ARM builds is removed for the foreseeable future due to Go
+  compiler issues. We will consider bringing back 32-bit ARM support once our Go
+  compiler issues are resolved and 32-bit ARM builds are stable. (@rfratto)
+
 - Agent Management: `agent_management.api_url` config field has been replaced by
 `agent_management.host`. The API path and version is now defined by the Agent. (@jcreixell)
 
@@ -32,6 +36,7 @@ Main (unreleased)
   - `otelcol.extension.jaeger_remote_sampling` provides an endpoint from which to
     pull Jaeger remote sampling documents. (@joe-elliott)
   - `prometheus.exporter.blackbox` collects metrics from Blackbox exporter. (@marctc)
+  - `prometheus.exporter.logging` accepts OpenTelemetry data from other `otelcol` components and writes it to the console. (@erikbaranowski)
   - `prometheus.exporter.mysql` collects metrics from a MySQL database. (@spartan0x117)
   - `prometheus.exporter.postgres` collects metrics from a PostgreSQL database. (@spartan0x117)
   - `prometheus.exporter.statsd` collects metrics from a Statsd instance. (@gaantunes)
@@ -45,7 +50,7 @@ Main (unreleased)
   - `loki.source.azure_event_hubs` reads messages from Azure Event Hub using Kafka and forwards them to other `loki`
     components. (@akselleirv)
   - `discovery.gce` discovers resources on Google Compute Engine (GCE). (@marctc)
-  
+
 
 - Add support for Flow-specific system packages:
 
@@ -107,14 +112,14 @@ Main (unreleased)
 - Flow: fix issue where `prometheus.remote_write` created unnecessary extra
   child directories to store the WAL in. (@rfratto)
 
+- Fix internal metrics reported as invalid by promtool's linter. (@tpaschalis)
+
 ### Other changes
 
 - Grafana Agent Docker containers and release binaries are now published for
   s390x. (@rfratto)
 
 - Use Go 1.20.3 for builds. (@rfratto)
-
-- Bring back the Flow UI for 32-bit ARMv6 builds. (@rfratto)
 
 - Change the Docker base image for Linux containers to `ubuntu:kinetic`.
   (@rfratto)
