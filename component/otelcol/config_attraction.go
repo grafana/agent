@@ -10,7 +10,7 @@ func (actions AttrActionKeyValueSlice) Convert() []interface{} {
 	}
 
 	for _, action := range actions {
-		res = append(res, action.Convert())
+		res = append(res, action.convert())
 	}
 	return res
 }
@@ -76,7 +76,7 @@ type AttrActionKeyValue struct {
 }
 
 // Convert converts args into the upstream type.
-func (args *AttrActionKeyValue) Convert() map[string]interface{} {
+func (args *AttrActionKeyValue) convert() map[string]interface{} {
 	res := make(map[string]interface{})
 
 	// Mandatory attributes - always set those

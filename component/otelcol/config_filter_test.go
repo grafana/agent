@@ -5,11 +5,10 @@ import (
 
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/stretchr/testify/require"
+	"k8s.io/utils/pointer"
 )
 
 func TestConvertMatchProperties(t *testing.T) {
-	version := "3.8.0"
-
 	inputMatchProps := otelcol.MatchProperties{
 		MatchType: "strict",
 		RegexpConfig: &otelcol.RegexpConfig{
@@ -48,7 +47,7 @@ func TestConvertMatchProperties(t *testing.T) {
 		Libraries: []otelcol.InstrumentationLibrary{
 			{
 				Name:    "mongo-java-driver",
-				Version: &version,
+				Version: pointer.String("3.8.0"),
 			},
 		},
 		SpanKinds: []string{"span1"},

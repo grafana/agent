@@ -78,7 +78,7 @@ func (args *MatchProperties) Convert() map[string]interface{} {
 	res["match_type"] = args.MatchType
 
 	if args.RegexpConfig != nil {
-		res["regexp"] = args.RegexpConfig.Convert()
+		res["regexp"] = args.RegexpConfig.convert()
 	}
 
 	if len(args.Services) > 0 {
@@ -98,7 +98,7 @@ func (args *MatchProperties) Convert() map[string]interface{} {
 	}
 
 	if args.LogSeverityNumber != nil {
-		res["log_severity_number"] = args.LogSeverityNumber.Convert()
+		res["log_severity_number"] = args.LogSeverityNumber.convert()
 	}
 
 	if len(args.MetricNames) > 0 {
@@ -128,7 +128,7 @@ func (args *MatchProperties) Convert() map[string]interface{} {
 func convertAttributeSlice(attrs []Attribute) []interface{} {
 	attrArr := make([]interface{}, 0, len(attrs))
 	for _, attr := range attrs {
-		attrArr = append(attrArr, attr.Convert())
+		attrArr = append(attrArr, attr.convert())
 	}
 	return attrArr
 }
@@ -137,7 +137,7 @@ func convertAttributeSlice(attrs []Attribute) []interface{} {
 func convertInstrumentationLibrariesSlice(libs []InstrumentationLibrary) []interface{} {
 	libsArr := make([]interface{}, 0, len(libs))
 	for _, lib := range libs {
-		libsArr = append(libsArr, lib.Convert())
+		libsArr = append(libsArr, lib.convert())
 	}
 	return libsArr
 }
@@ -151,7 +151,7 @@ type RegexpConfig struct {
 	CacheMaxNumEntries int `river:"cachemaxnumentries,attr,optional"`
 }
 
-func (args RegexpConfig) Convert() map[string]interface{} {
+func (args RegexpConfig) convert() map[string]interface{} {
 	return map[string]interface{}{
 		"cacheenabled":       args.CacheEnabled,
 		"cachemaxnumentries": args.CacheMaxNumEntries,
@@ -168,7 +168,7 @@ type Attribute struct {
 	Value interface{} `river:"value,attr,optional"`
 }
 
-func (args Attribute) Convert() map[string]interface{} {
+func (args Attribute) convert() map[string]interface{} {
 	return map[string]interface{}{
 		"key":   args.Key,
 		"value": args.Value,
@@ -186,14 +186,18 @@ type InstrumentationLibrary struct {
 	//  <blank>  1       no
 	//  1        <blank> no
 	//  1        1       yes
-	Version *string `river:"version,attr"`
+	Version *string `river:"version,attr,optional"`
 }
 
-func (args InstrumentationLibrary) Convert() map[string]interface{} {
-	return map[string]interface{}{
-		"name":    args.Name,
-		"version": strings.Clone(*args.Version),
+func (args InstrumentationLibrary) convert() map[string]interface{} {
+	res := map[string]interface{}{
+		"name": args.Name,
 	}
+
+	if args.Version != nil {
+		res["version"] = strings.Clone(*args.Version)
+	}
+	return res
 }
 
 // LogSeverityNumberMatchProperties defines how to match based on a log record's SeverityNumber field.
@@ -207,7 +211,7 @@ type LogSeverityNumberMatchProperties struct {
 	MatchUndefined bool `river:"match_undefined,attr"`
 }
 
-func (args LogSeverityNumberMatchProperties) Convert() map[string]interface{} {
+func (args LogSeverityNumberMatchProperties) convert() map[string]interface{} {
 	return map[string]interface{}{
 		"min":             args.Min,
 		"match_undefined": args.MatchUndefined,

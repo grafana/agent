@@ -41,22 +41,28 @@ Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
 output | [output][] | Configures where to send received telemetry data. | yes
 action | [action][] | Actions to take on the attributes of incoming metrics/logs/traces. | no
-include | [include/exclude] | Filter for data to be included to this processor's actions. | no
-include > regexp | [regexp] | Regex cache settings. | no
-include > attribute | [attribute] | A list of attributes to match against. | no
-include > resource | [resource] | A list of items to match the resources against. | no
-include > library | [library] | A list of items to match the implementation library against. | no
-include > log_severity_number | [library] | How to match against a log record's SeverityNumber, if defined. | no
-exclude | [include/exclude] | Filter for data to be excluded from this processor's actions | no
-exclude > regexp | [regexp] | Regex cache settings. | no
-exclude > attribute | [attribute] | A list of attributes to match against. | no
-exclude > resource | [resource] | A list of items to match the resources against. | no
-exclude > library | [library] | A list of items to match the implementation library against. | no
-exclude > log_severity_number | [library] | How to match against a log record's SeverityNumber, if defined. | no
+include | [include/exclude][] | Filter for data to be included to this processor's actions. | no
+include > regexp | [regexp][] | Regex cache settings. | no
+include > attribute | [attribute][] | A list of attributes to match against. | no
+include > resource | [resource][] | A list of items to match the resources against. | no
+include > library | [library][] | A list of items to match the implementation library against. | no
+include > log_severity_number | [library][] | How to match against a log record's SeverityNumber, if defined. | no
+exclude | [include/exclude][] | Filter for data to be excluded from this processor's actions | no
+exclude > regexp | [regexp][] | Regex cache settings. | no
+exclude > attribute | [attribute][] | A list of attributes to match against. | no
+exclude > resource | [resource][] | A list of items to match the resources against. | no
+exclude > library | [library][] | A list of items to match the implementation library against. | no
+exclude > log_severity_number | [log_severity_number][] | How to match against a log record's SeverityNumber, if defined. | no
+
+The `>` symbol indicates deeper levels of nesting. For example, `include > attribute`
+refers to an `attribute` block defined inside an `include` block.
+
+If both and `include` block and an `exclude`block are specified, the `include` properties are checked before the `exclude` properties.
 
 [output]: #output-block
 [action]: #action-block
-[include/exclude]: #include/exclude-blocks
+[include]: #include-block
+[exclude]: #exclude-block
 [regexp]: #regexp-block
 [attribute]: #attribute-block
 [resource]: #resource-block
@@ -79,26 +85,24 @@ Name | Type | Description | Default | Required
 `from_context` | `string` | The context value to use to populate the attribute value.  | `""` | no
 `converted_type` | `string` | The type to convert the attribute value to. | `""` | no
 
-The type of `value` could be a number, a string or a boolean.
+The type of `value` must be either a number, string, or boolean.
 
 The supported values for `action` are:
 
 * `insert`: Inserts a new attribute in input data where the key does not already exist.
 
-    * `key` is required. It specifies the attribute to act upon.
-    * One of `value`, `from_attribute` or `from_context` is required.
-    * `action = "insert"` is required.
+    * The `key` attribute is required. It specifies the attribute to act upon.
+    * One of the `value`, `from_attribute` or `from_context` attributes is required.
 
 * `update`: Updates an attribute in input data where the key does exist.
 
-    * `key` is required. It specifies the attribute to act upon.
-    * One of `value`, `from_attribute` or `from_context` is required.
-    * `action = "update"` is required.
+    * The `key`attribute is required. It specifies the attribute to act upon.
+    * One of the `value`, `from_attribute` or `from_context` attributes is required.
 
-* `upsert`: Performs insert or update. Inserts a new attribute in input data where the key does not already exist and updates an attribute in input data where the key does exist.
+* `upsert`: Either inserts a new attribute in input data where the key does not already exist, or updates an attribute in input data where the key does exist.
 
-    * `key` is required. It specifies the attribute to act upon.
-    * One of `value`, `from_attribute` or `from_context` is required:
+    * The `key`attribute is required. It specifies the attribute to act upon.
+    * One of the `value`, `from_attribute` or `from_context`attributes is required:
         * `value` specifies the value to populate for the key.
         * `from_attribute` specifies the attribute from the input data to use to populate
         the value. If the attribute doesn't exist, no action is performed.
@@ -111,57 +115,52 @@ The supported values for `action` are:
         for more information about which attributes are available.
         If the key doesn't exist, no action is performed.
         If the key has multiple values the values will be joined with `;` separator.
-    * `action = "upsert"` is required.
 
 * `hash`: Hashes (SHA1) an existing attribute value.
 
-    * `key` and/or `pattern` is required.
-    * `action = "hash"` is required.
+    * The `key` attribute and/or the `pattern` attributes is required.
 
 * `extract`: Extracts values using a regular expression rule from the input key to target keys specified in the rule. If a target key already exists, it will be overridden. Note: It behaves similar to the Span Processor `to_attributes` setting with the existing attribute as the source.
 
-    * `key` is required. It specifies the attribute to extract values from. The value of `key` is NOT altered.
-    * `pattern` is required. It is the regex pattern used to extract attributes from the value of `key`. The submatchers must be named. If attributes already exist, they will be overwritten.
-    * `action = "extract"` is required.
+    * The `key` attribute is required. It specifies the attribute to extract values from. The value of `key` is NOT altered.
+    * The `pattern` attribute is required. It is the regex pattern used to extract attributes from the value of `key`. The submatchers must be named. If attributes already exist, they will be overwritten.
 
 * `convert`: Converts an existing attribute to a specified type.
 
-    * `key` is required. It specifies the attribute to act upon.
-    * `action = "convert"` is required.
-    * `converted_type` is required and must be one of int, double or string.
+    * The `key` attribute is required. It specifies the attribute to act upon.
+    * The `converted_type` attribute is required and must be one of int, double or string.
 
 * `delete`: Deletes an attribute from the input data.
 
-    * `key` and/or `pattern` is required. It specifies the attribute to act upon.
-    * `action = "delete"` is required.
+    * The `key` attribute and/or the `pattern` attribute is required. It specifies the attribute to act upon.
 
-### include/exclude blocks
+### include block
 
-The `include` and `exclude` blocks provide an option to include or exclude data from being fed into the [action] blocks, based on the properties of a span, log, or metric records.
+The `include` block provides an option to include data being fed into the [action] blocks, based on the properties of a span, log, or metric records.
 
-The following arguments are supported:
-
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`match_type` | `string` | Controls how items in "services" and "span_names" arrays are interpreted. | | yes
-`services` | `list(string)` | A list of items to match the service name against. | `[]` | no
-`span_names` | `list(string)` | A list of items to match the span name against. | `[]` | no
-`log_bodies` | `list(string)` | A list of strings that the LogRecord's body field must match against. | `[]` | no
-`log_severity_texts` | `list(string)` | A list of strings that the LogRecord's severity text field must match against. | `[]` | no
-`metric_names` | `list(string)` | A list of strings to match the metric name against. | `[]` | no
-`span_kinds` | `list(string)` | A list of items to match the span kind against. | `[]` | no
-
-`match_type` is required and must be set to either `"regexp"` or `"strict"`.
+{{< docs/shared lookup="flow/reference/components/match-properties-block.md" source="agent" >}}
 
 One of the following is also required:
-* For spans, one of `services`, `span_names`, `span_kinds`, [attribute], [resource], or [library] must be specified with a non-empty value for a valid configuration. The `log_bodies`, `log_severity_texts`, `resource_attributes` and `metric_names` fields are invalid.
-* For logs, one of `log_bodies`, `log_severity_texts`, [attribute], [resource], or [library] must be specified with a non-empty value for a valid configuration. The `span_names`, `span_kinds`, `metric_names`, `resource_attributes`, and `services` fields are invalid.
-* For metrics, one of `metric_names`, [resource] must be specified with a valid non-empty value for a valid configuration. The `span_names`, `span_kinds`, `log_bodies`, `log_severity_texts` and `services` fields are invalid.
+* For spans, one of `services`, `span_names`, `span_kinds`, [attribute][], [resource][], or [library][] must be specified with a non-empty value for a valid configuration. The `log_bodies`, `log_severity_texts`, `log_severity_number`, `resource_attributes` and `metric_names` attributes are invalid.
+* For logs, one of `log_bodies`, `log_severity_texts`, `log_severity_number`, [attribute][], [resource][], or [library][] must be specified with a non-empty value for a valid configuration. The `span_names`, `span_kinds`, `metric_names`, `resource_attributes`, and `services` attributes are invalid.
+* For metrics, one of `metric_names`, [resource][] must be specified with a valid non-empty value for a valid configuration. The `span_names`, `span_kinds`, `log_bodies`, `log_severity_texts`, `log_severity_number` and `services` attributes are invalid.
 
 For `metric_names`, a match occurs if the metric name matches at least one item in the list.
 For `span_kinds`, a match occurs if the span's span kind matches at least one item in this list.
 
-Note: If both `include` and `exclude` are specified, the include properties are checked before the exclude properties.
+### exclude block
+
+The `exclude` blocks provides an option to exclude data from being fed into the [action] blocks, based on the properties of a span, log, or metric records.
+
+{{< docs/shared lookup="flow/reference/components/match-properties-block.md" source="agent" >}}
+
+One of the following is also required:
+* For spans, one of `services`, `span_names`, `span_kinds`, [attribute][], [resource][], or [library][] must be specified with a non-empty value for a valid configuration. The `log_bodies`, `log_severity_texts`, `log_severity_number`, `resource_attributes` and `metric_names` attributes are invalid.
+* For logs, one of `log_bodies`, `log_severity_texts`, `log_severity_number`, [attribute][], [resource][], or [library][] must be specified with a non-empty value for a valid configuration. The `span_names`, `span_kinds`, `metric_names`, `resource_attributes`, and `services` attributes are invalid.
+* For metrics, one of `metric_names`, [resource][] must be specified with a valid non-empty value for a valid configuration. The `span_names`, `span_kinds`, `log_bodies`, `log_severity_texts`, `log_severity_number` and `services` attributes are invalid.
+
+For `metric_names`, a match occurs if the metric name matches at least one item in the list.
+For `span_kinds`, a match occurs if the span's span kind matches at least one item in this list.
 
 ### regexp block
 
@@ -220,6 +219,22 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `name` | `string` | The attribute key. | | yes
 `version` | | The value to match against. | | yes
+
+### log_severity_number block
+
+This block defines how to match based on a log record's SeverityNumber field.
+
+The following arguments are supported:
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`min` | `int` | The lowest severity that may be matched. | | yes
+`match_undefined` | `bool` | Whether logs with "undefined" severity matches. | | yes
+
+For example, if `min` is plog.SeverityNumberInfo, 
+INFO, WARN, ERROR, and FATAL logs will match.
+
+If `match_undefined` is true, entries with undefined severity will match.
 
 ### output block
 

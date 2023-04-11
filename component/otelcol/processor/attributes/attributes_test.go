@@ -379,6 +379,95 @@ func TestDecode_ExcludeLibrary(t *testing.T) {
 	require.Equal(t, "delete", string(action.Action))
 }
 
+func TestDecode_ExcludeLibraryAnyVersion(t *testing.T) {
+	cfg := `
+	exclude {
+		match_type = "strict"
+		library {
+			name = "mongo-java-driver"
+		}
+	}
+	action {
+		key = "credit_card"
+		action = "delete"
+	}
+	action {
+		key = "duplicate_key"
+		action = "delete"
+	}
+
+	output {
+		// no-op: will be overridden by test code.
+	}
+	`
+	var args attributes.Arguments
+	require.NoError(t, river.Unmarshal([]byte(cfg), &args))
+
+	convertedArgs, err := args.Convert()
+	require.NoError(t, err)
+	otelObj := (convertedArgs).(*attributesprocessor.Config)
+
+	require.NotNil(t, otelObj.Exclude)
+	require.Equal(t, "strict", string(otelObj.Exclude.MatchType))
+
+	lib := &otelObj.Exclude.Libraries[0]
+	require.Equal(t, "mongo-java-driver", lib.Name)
+	require.Nil(t, lib.Version)
+
+	action := &otelObj.Actions[0]
+	require.Equal(t, "credit_card", action.Key)
+	require.Equal(t, "delete", string(action.Action))
+
+	action = &otelObj.Actions[1]
+	require.Equal(t, "duplicate_key", action.Key)
+	require.Equal(t, "delete", string(action.Action))
+}
+
+func TestDecode_ExcludeLibraryBlankVersion(t *testing.T) {
+	cfg := `
+	exclude {
+		match_type = "strict"
+		library {
+			name = "mongo-java-driver"
+			version = ""
+		}
+	}
+	action {
+		key = "credit_card"
+		action = "delete"
+	}
+	action {
+		key = "duplicate_key"
+		action = "delete"
+	}
+
+	output {
+		// no-op: will be overridden by test code.
+	}
+	`
+	var args attributes.Arguments
+	require.NoError(t, river.Unmarshal([]byte(cfg), &args))
+
+	convertedArgs, err := args.Convert()
+	require.NoError(t, err)
+	otelObj := (convertedArgs).(*attributesprocessor.Config)
+
+	require.NotNil(t, otelObj.Exclude)
+	require.Equal(t, "strict", string(otelObj.Exclude.MatchType))
+
+	lib := &otelObj.Exclude.Libraries[0]
+	require.Equal(t, "mongo-java-driver", lib.Name)
+	require.Equal(t, "", *lib.Version)
+
+	action := &otelObj.Actions[0]
+	require.Equal(t, "credit_card", action.Key)
+	require.Equal(t, "delete", string(action.Action))
+
+	action = &otelObj.Actions[1]
+	require.Equal(t, "duplicate_key", action.Key)
+	require.Equal(t, "delete", string(action.Action))
+}
+
 func TestDecode_ExcludeServices(t *testing.T) {
 	cfg := `
 	exclude {
