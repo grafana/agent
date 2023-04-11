@@ -5,6 +5,8 @@ weight: 500
 
 # Dynamic Configuration - Experimental
 
+## NOTE: Dynamic configuration will be removed in v0.34 and functionality replaced with Modules in Grafana Agent Flow.
+
 **This is experimental and subject to change at anytime, feedback is much appreciated. This is a feature that MAY NOT make it production.**
 
 Dynamic Configuration is the combination of two things:

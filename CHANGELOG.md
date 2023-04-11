@@ -21,6 +21,10 @@ Main (unreleased)
 
 - Agent Management: `agent_management.protocol` config field now allows defining "http" and "https" explicitly. Previously, "http" was previously used for both, with the actual protocol used inferred from the api url, which led to confusion. When upgrading, make sure to set to "https" when replacing `api_url` with `host`. (@jcreixell)
 
+### Deprecations
+
+- [Dynamic Configuration](https://grafana.com/docs/agent/latest/cookbook/dynamic-configuration/) will be removed in v0.34. Grafana Agent Flow supersedes this functionality. (@mattdurham)
+
 ### Features
 
 - New Grafana Agent Flow components:
@@ -32,7 +36,7 @@ Main (unreleased)
   - `module.file` runs a Grafana Agent Flow module passed to the component by
     an expression containing a file. (@erikbaranowski)
   - `otelcol.auth.oauth2` performs OAuth 2.0 authentication for HTTP and gRPC
-    based OpenTelemetry exporters. (@ptodev)
+    based OpenTelemetry exporters. (@ptodev) 
   - `otelcol.extension.jaeger_remote_sampling` provides an endpoint from which to
     pull Jaeger remote sampling documents. (@joe-elliott)
   - `prometheus.exporter.blackbox` collects metrics from Blackbox exporter. (@marctc)
