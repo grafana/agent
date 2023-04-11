@@ -1,11 +1,12 @@
 ---
 title: Linux systems
-weight: 115
+weight: 300
 ---
 
 # Install Grafana Agent Flow on Linux systems
 
-Grafana Agent Flow can be installed on various AMD64 and ARM64 Linux systems:
+Grafana Agent Flow can be installed as a systemd service on various AMD64 and
+ARM64 Linux systems:
 
 * [Debian-based systems](#install-on-debian-based-systems)
 * [RedHat-based systems](#install-on-redhat-based-systems)

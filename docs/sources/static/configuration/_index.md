@@ -7,7 +7,7 @@ aliases:
 
 # Configure static mode
 
-The configuration of static mode is configured across two places:
+The configuration of static mode is split across two places:
 
 * A YAML file
 * [Command-line flags]({{< relref "./flags.md" >}})

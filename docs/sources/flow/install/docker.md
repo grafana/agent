@@ -5,8 +5,7 @@ weight: 200
 
 # Install Grafana Agent Flow on Docker
 
-Grafana Agent Flow is available as Docker containers on the following
-platforms:
+Grafana Agent Flow is available as Docker images on the following platforms:
 
 * [Linux containers][] for AMD64 and ARM64 machines.
 * [Windows containers][] for AMD64 machines.
@@ -43,7 +42,7 @@ steps:
      -v CONFIG_FILE_PATH:/etc/agent/config.river \
      -p 12345:12345 \
      grafana/agent:latest \
-       run --server.http.listen-addr=0.0.0.0:12345 --config.file=/etc/agent/config.river
+       run --server.http.listen-addr=0.0.0.0:12345 /etc/agent/config.river
    ```
 
    Replace `CONFIG_FILE_PATH` with the path of the configuration file to use on
@@ -68,7 +67,7 @@ steps:
      -v CONFIG_FILE_PATH:C:\etc\grafana-agent\config.river \
      -p 12345:12345 \
      grafana/agent:latest-windows \
-       run --server.http.listen-addr=0.0.0.0:12345 --config.file=C:\etc\grafana-agent\config.river
+       run --server.http.listen-addr=0.0.0.0:12345 C:\etc\grafana-agent\config.river
    ```
 
    Replace `CONFIG_FILE_PATH` with the path of the configuration file to use on

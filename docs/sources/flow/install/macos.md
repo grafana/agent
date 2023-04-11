@@ -1,6 +1,6 @@
 ---
 title: macOS
-weight: 400
+weight: 500
 ---
 
 # Install Grafana Agent Flow on macOS
@@ -24,7 +24,7 @@ To install Grafana Agent Flow on macOS, perform the following steps:
    brew tap grafana/grafana
    ```
 
-2. Install the Grafana Agent Flow formula by running the folloing command in a
+2. Install the Grafana Agent Flow formula by running the following command in a
    terminal window:
 
    ```shell
@@ -101,7 +101,7 @@ steps:
    brew reinstall grafana-agent-flow
    ```
 
-4. Reatart the Grafana Agent Flow service by running the command in a terminal:
+4. Restart the Grafana Agent Flow service by running the command in a terminal:
 
    ```shell
    brew services restart grafana-agent-flow
@@ -110,7 +110,7 @@ steps:
 ### Viewing Grafana Agent Flow logs
 
 By default, logs are written to `$(brew --prefix)/var/log/grafana-agent.log` and
-`$(brew --preifx)/var/log/grafana-agent-flow.err.log`.
+`$(brew --prefix)/var/log/grafana-agent-flow.err.log`.
 
 If you followed [Configuring the Grafana Agent Flow service](#configuring-the-grafana-agent-flow-service)
 and changed the path where logs are written, refer to your current copy of the

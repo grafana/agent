@@ -1,6 +1,6 @@
 ---
 title: Windows
-weight: 300
+weight: 400
 ---
 
 # Install Grafana Agent Flow on Windows

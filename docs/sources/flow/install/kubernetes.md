@@ -19,8 +19,11 @@ Grafana Agent Flow.
 
 ## Steps
 
-> **NOTE**: These instructions install the generic Helm chart for Grafana
-> Agent, which installs Grafana Agent Flow by default.
+> **NOTE**: These instructions install the generic [Helm chart][] for Grafana
+> Agent, which can deploy Grafana Agent either in static mode or Flow mode.
+> The Helm chart deploys Grafana Agent in Flow mode by default.
+>
+> [Helm chart]: https://github.com/grafana/agent/tree/main/operations/helm/charts/grafana-agent
 
 To install Grafana Agent Flow on Kubernetes using Helm, perform the following
 steps in a terminal:

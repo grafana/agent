@@ -15,7 +15,7 @@ Grafana Agent is available in three different variants:
 
 * [Static mode][]: The default, original variant of Grafana Agent.
 * [Static mode Kubernetes operator][]: Variant which manages agents running in Static mode.
-* [Flow mode][]: The newer, configuration-as-code re-imagining variant of Grafana Agent.
+* [Flow mode][]: The newer, more flexible re-imagining variant of Grafana Agent.
 
 [Static mode]: {{< relref "./static/" >}}
 [Static mode Kubernetes operator]: {{< relref "./operator/" >}}
@@ -82,10 +82,17 @@ You should run Flow mode when:
 
 * You need functionality unique to Flow mode:
 
-  * **Full OpenTelemetry support**: Support for collecting OpenTelemetry metrics, logs, and traces.
+  * **Debuggability**: You need to more easily debug configuration issues using
+    a UI.
+
+  * **Full OpenTelemetry support**: Support for collecting OpenTelemetry
+    metrics, logs, and traces.
 
   * **PrometheusRule support**: Support for the PrometheusRule resource from
     the Prometheus Operator project for configuring Grafana Mimir.
+
+  * **Ecosystem transformation**: You need to be able to convert Prometheus and
+    Loki pipelines to and from OpenTelmetry Collector pipelines.
 
   * **Grafana Phlare support**: Support for collecting profiles for Grafana
     Phlare.

@@ -9,7 +9,7 @@ Static mode is the original mode of Grafana Agent, and is the most mature.
 Static mode is composed of different _subsystems_:
 
 * The _metrics subsystem_ wraps around Prometheus for collecting Prometheus
-  metrics and forarding them over the Prometheus `remote_write` protocol.
+  metrics and forwarding them over the Prometheus `remote_write` protocol.
 
 * The _logs subsystem_ wraps around Grafana Promtail for collecting logs and
   forwarding them to Grafana Loki.
@@ -17,6 +17,8 @@ Static mode is composed of different _subsystems_:
 * The _traces subsystem_ wraps around OpenTelemetry Collector for collecting
   traces and forwarding them to Grafana Tempo or any OpenTelemetry-compatible
   endpoint.
+
+Static mode is [configured][] with a YAML file.
 
 Static mode works with:
 
@@ -53,7 +55,7 @@ Grafana Kubernetes Monitoring provides a simplified approach to monitoring your 
 | Topic | Description |
 |---|---|
 | [Configure Kubernetes Monitoring using Agent](/docs/grafana-cloud/kubernetes-monitoring/configuration/config-k8s-agent-guide/) | Use the Kubernetes Monitoring solution to set up monitoring of your Kubernetes cluster and to install preconfigured dashboards and alerts. |
-| [Ship Kubernetes metrics using Grafana Agent directly](/docs/grafana-cloud/kubernetes-monitoring/other-methods/k8s-agent-metrics/) |  Take a more hands-on approach and directly deploy Grafana Agent into a Kubernetes cluster without using the Kubernetes Monitoring interface. Use this guide to configure Agent to scrape the kubelet and cadvisor endpoints on your cluster Nodes. If you use this method, you still have access to the Kubernetes Monitoring preconfigured dashboards and alerts. |
+| [Ship Kubernetes metrics using Grafana Agent directly](/docs/grafana-cloud/kubernetes-monitoring/other-methods/k8s-agent-metrics/) |  Take a more hands-on approach and directly deploy Grafana Agent into a Kubernetes cluster without using the Kubernetes Monitoring interface. Use this guide to configure Agent to scrape the Kubelet and cAdvisor endpoints on your cluster Nodes. If you use this method, you still have access to the Kubernetes Monitoring preconfigured dashboards and alerts. |
 | [Ship Kubernetes logs using Grafana Agent directly](/docs/grafana-cloud/kubernetes-monitoring/other-methods/k8s-agent-logs/) | Deploy Grafana Agent into your Kubernetes cluster as a DaemonSet and configure it to collect logs for your Kubernetes workloads.  |
 | [Ship Kubernetes traces using Grafana Agent directly](/docs/grafana-cloud/kubernetes-monitoring/other-methods/k8s-agent-traces/) | Deploy Grafana Agent into your Kubernetes cluster as a deployment and configure it to collect traces for your Kubernetes workloads.  |
 
