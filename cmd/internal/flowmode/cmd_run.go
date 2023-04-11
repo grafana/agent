@@ -201,7 +201,10 @@ func (fr *flowRun) Run(configFile string) error {
 		r.Handle("/metrics", promhttp.Handler())
 		r.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
 		r.PathPrefix("/api/v0/component/{id}/").Handler(f.ComponentHandler())
-		r.PathPrefix("/api/v1/ckit/transport").Handler(clusterer.Mux)
+
+		// Register routes for the clusterer.
+		cr, ch := clusterer.Node.Handler()
+		r.PathPrefix(cr).Handler(ch)
 
 		r.HandleFunc("/-/ready", func(w http.ResponseWriter, _ *http.Request) {
 			if f.Ready() {

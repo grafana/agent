@@ -4,6 +4,7 @@ package cluster
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"net"
 	"net/http"
@@ -16,6 +17,7 @@ import (
 	"github.com/rfratto/ckit"
 	"github.com/rfratto/ckit/peer"
 	"github.com/rfratto/ckit/shard"
+	"golang.org/x/net/http2"
 )
 
 // Node is a read-only view of a cluster node.
@@ -35,6 +37,8 @@ type Node interface {
 
 	// Peers returns the current set of peers for a Node.
 	Peers() []peer.Peer
+
+	Handler() (string, http.Handler)
 }
 
 // NewLocalNode returns a Node which forms a single-node cluster and never
@@ -72,30 +76,27 @@ func (ln *localNode) Peers() []peer.Peer {
 	return []peer.Peer{ln.self}
 }
 
+func (ln *localNode) Handler() (string, http.Handler) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("clustering is disabled"))
+		w.WriteHeader(http.StatusBadRequest)
+	}))
+
+	return "/api/v1/ckit/transport/", mux
+}
+
 // Clusterer implements the behavior required for operating Flow controllers
 // in a distributed fashion.
 type Clusterer struct {
 	Node Node
-	Mux  *http.ServeMux
-
-	RegisteredComponents map[string]struct{}
 }
 
 // New creates a Clusterer.
 func New(log log.Logger, clusterEnabled bool, addr, joinAddr string) (*Clusterer, error) {
 	// Standalone node.
 	if !clusterEnabled {
-		mux := http.NewServeMux()
-		mux.HandleFunc("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Write([]byte("clustering is disabled"))
-			w.WriteHeader(http.StatusBadRequest)
-		}))
-		return &Clusterer{
-			Node: NewLocalNode(addr),
-			Mux:  mux,
-
-			RegisteredComponents: make(map[string]struct{}),
-		}, nil
+		return &Clusterer{Node: NewLocalNode(addr)}, nil
 	}
 
 	host, portStr, err := net.SplitHostPort(addr)
@@ -107,8 +108,6 @@ func New(log log.Logger, clusterEnabled bool, addr, joinAddr string) (*Clusterer
 		return nil, err
 	}
 
-	mux := http.NewServeMux()
-
 	gossipConfig := DefaultGossipConfig
 	gossipConfig.NodeName = uuid.NewString()
 	gossipConfig.AdvertiseAddr = host
@@ -118,7 +117,19 @@ func New(log log.Logger, clusterEnabled bool, addr, joinAddr string) (*Clusterer
 		gossipConfig.JoinPeers = strings.Split(joinAddr, ",")
 	}
 
-	gossipNode, err := NewGossipNode(log, mux, &gossipConfig)
+	cli := &http.Client{
+		Transport: &http2.Transport{
+			AllowHTTP: true,
+			DialTLS: func(network, addr string, _ *tls.Config) (net.Conn, error) {
+				return net.Dial(network, addr)
+			},
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
+	}
+
+	gossipNode, err := NewGossipNode(log, cli, &gossipConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -144,13 +155,9 @@ func New(log log.Logger, clusterEnabled bool, addr, joinAddr string) (*Clusterer
 		return nil, err
 	}
 
-	res := &Clusterer{
-		Node: gossipNode,
-		Mux:  mux,
+	res := &Clusterer{Node: gossipNode}
 
-		RegisteredComponents: make(map[string]struct{}),
-	}
-
+	fmt.Println("Observer A called")
 	gossipNode.Observe(ckit.FuncObserver(func(peers []peer.Peer) (reregister bool) {
 		names := make([]string, len(peers))
 		for i, p := range peers {
@@ -161,21 +168,4 @@ func New(log log.Logger, clusterEnabled bool, addr, joinAddr string) (*Clusterer
 	}))
 
 	return res, nil
-}
-
-// Registration starts and stops keeping track of a nodeID so its Update method
-// can be called whenever the cluster state changes.
-func (c *Clusterer) Registration(nodeID string, watch bool) {
-	if watch {
-		c.RegisteredComponents[nodeID] = struct{}{}
-	} else {
-		delete(c.RegisteredComponents, nodeID)
-	}
-}
-
-// IsRegistered reports whether a nodeID is scheduled to have its Update method
-// called whenever the cluster state changes.
-func (c *Clusterer) IsRegistered(nodeID string) bool {
-	_, ok := c.RegisteredComponents[nodeID]
-	return ok
 }

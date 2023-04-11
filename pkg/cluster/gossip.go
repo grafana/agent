@@ -166,12 +166,13 @@ type GossipNode struct {
 	started atomic.Bool
 }
 
-// NewGossipNode creates an unstarted GossipNode. The GossipNode will register
-// HTTP endpoints to communicate with other nodes over HTTP/2. GossipConfig is
-// expected to be valid and have already had ApplyDefaults called on it.
+// NewGossipNode creates an unstarted GossipNode. The GossipNode will use the
+// passed http.Client to create a new HTTP/2-compatible Transport that can
+// communicate with other nodes over HTTP/2. GossipConfig is expected to be
+// valid and have already had ApplyDefaults called on it.
 //
 // GossipNode operations are unavailable until the node is started.
-func NewGossipNode(l log.Logger, mux *http.ServeMux, c *GossipConfig) (*GossipNode, error) {
+func NewGossipNode(l log.Logger, cli *http.Client, c *GossipConfig) (*GossipNode, error) {
 	if l == nil {
 		l = log.NewNopLogger()
 	}
@@ -186,7 +187,7 @@ func NewGossipNode(l log.Logger, mux *http.ServeMux, c *GossipConfig) (*GossipNo
 		Pool:          c.Pool,
 	}
 
-	inner, err := ckit.NewHTTPNode(mux, ckitConfig)
+	inner, err := ckit.NewHTTPNode(cli, ckitConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -241,6 +242,11 @@ func (n *GossipNode) Observe(o ckit.Observer) {
 // Peers returns the current set of Peers.
 func (n *GossipNode) Peers() []peer.Peer {
 	return n.innerNode.Peers()
+}
+
+// Handler returns the base route and HTTP handlers to register for this node.
+func (n *GossipNode) Handler() (string, http.Handler) {
+	return n.innerNode.Handler()
 }
 
 // Start starts the node. Start will connect to peers if configured to do so.
