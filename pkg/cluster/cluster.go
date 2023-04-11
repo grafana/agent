@@ -157,7 +157,6 @@ func New(log log.Logger, clusterEnabled bool, addr, joinAddr string) (*Clusterer
 
 	res := &Clusterer{Node: gossipNode}
 
-	fmt.Println("Observer A called")
 	gossipNode.Observe(ckit.FuncObserver(func(peers []peer.Peer) (reregister bool) {
 		names := make([]string, len(peers))
 		for i, p := range peers {

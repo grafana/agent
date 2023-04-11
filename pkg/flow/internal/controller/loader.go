@@ -61,10 +61,12 @@ func NewLoader(globals ComponentGlobals) *Loader {
 
 	globals.Clusterer.Node.Observe(ckit.FuncObserver(func(peers []peer.Peer) (reregister bool) {
 		for _, cmp := range l.Components() {
-			if globals.Clusterer.IsRegistered(cmp.ID().String()) {
-				err := cmp.Revisit()
-				if err != nil {
-					level.Error(globals.Logger).Log("msg", "failed to revisit component", "componentID", cmp.NodeID(), "err", err)
+			if cc, ok := cmp.managed.(component.ClusteredComponent); ok {
+				if cc.ClusterUpdatesRegistration() {
+					err := cmp.Reevaluate()
+					if err != nil {
+						level.Error(globals.Logger).Log("msg", "failed to revisit component", "componentID", cmp.NodeID(), "err", err)
+					}
 				}
 			}
 		}

@@ -179,6 +179,7 @@ func (c *Component) Run(ctx context.Context) error {
 			var (
 				tgs     = c.args.Targets
 				jobName = c.opts.ID
+				cl      = c.args.ClusteringEnabled
 			)
 			if c.args.JobName != "" {
 				jobName = c.args.JobName
@@ -187,7 +188,7 @@ func (c *Component) Run(ctx context.Context) error {
 
 			// NOTE(@tpaschalis) First approach, manually building the
 			// 'clustered' targets implementation every time.
-			ct := discovery.NewDistributedTargets(c.opts.Clusterer.Node, tgs)
+			ct := discovery.NewDistributedTargets(cl, c.opts.Clusterer.Node, tgs)
 			promTargets := c.componentTargetsToProm(jobName, ct.Get())
 
 			select {
@@ -206,10 +207,6 @@ func (c *Component) Update(args component.Arguments) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 	c.args = newArgs
-
-	if c.opts.Clusterer != nil {
-		c.opts.Clusterer.Registration(c.opts.ID, newArgs.ClusteringEnabled)
-	}
 
 	c.appendable.UpdateChildren(newArgs.ForwardTo)
 
@@ -311,6 +308,13 @@ func (c *Component) DebugInfo() interface{} {
 	return ScraperStatus{
 		TargetStatus: BuildTargetStatuses(c.scraper.TargetsActive()),
 	}
+}
+
+// ClusterUpdatesRegistration implements component.ClusterComponent.
+func (c *Component) ClusterUpdatesRegistration() bool {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+	return c.args.ClusteringEnabled
 }
 
 func (c *Component) componentTargetsToProm(jobName string, tgs []discovery.Target) map[string][]*targetgroup.Group {

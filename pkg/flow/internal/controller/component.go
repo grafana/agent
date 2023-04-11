@@ -250,12 +250,12 @@ func (cn *ComponentNode) Evaluate(scope *vm.Scope) error {
 	return err
 }
 
-// Revisit calls Update on the managed component with its last used arguments.
-// Revisit does not build the component if it is not already built and does not
-// re-evaluate the River block.
+// Reevaluate calls Update on the managed component with its last used
+// arguments.Reevaluate does not build the component if it is not already built
+// and does not re-evaluate the River block itself.
 // Its only use case is for components opting-in to clustering where calling
 // Update with the same Arguments may result in different functionality.
-func (cn *ComponentNode) Revisit() error {
+func (cn *ComponentNode) Reevaluate() error {
 	cn.mut.Lock()
 	defer cn.mut.Unlock()
 
