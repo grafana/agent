@@ -32,7 +32,7 @@ The following flags are supported:
 * `--storage.path`: Base directory where components can store data (default `data-agent/`).
 * `--disable-reporting`: Disable [usage reporting][] of enabled [components][] to Grafana (default `false`).
 
-[usage reporting]: {{< relref "../../../configuration/flags.md/#report-information-usage" >}}
+[usage reporting]: {{< relref "../../../static/configuration/flags.md#report-information-usage" >}}
 [components]: {{< relref "../../concepts/components.md" >}}
 
 ## Updating the config file
