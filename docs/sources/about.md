@@ -31,7 +31,7 @@ Grafana Agent is available in three different variants:
 
 ## Choose which variant of Grafana Agent to run
 
-> **NOTE**: You do not have to pick just variant; it is possible to
+> **NOTE**: You do not have to pick just one variant; it is possible to
 > mix-and-match installations of Grafana Agent.
 
 ### Static mode
