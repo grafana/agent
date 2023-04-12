@@ -11,7 +11,6 @@ local linux_containers_jobs = std.map(function(container) (
       ref: [
         'refs/heads/main',
         'refs/tags/v*',
-        'refs/heads/dev.*',
       ],
     },
     steps: [{
@@ -66,7 +65,6 @@ local windows_containers_jobs = std.map(function(container) (
       ref: [
         'refs/heads/main',
         'refs/tags/v*',
-        'refs/heads/dev.*',
       ],
     },
     steps: [{

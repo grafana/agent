@@ -57,6 +57,20 @@ local pipelines = import '../util/pipelines.jsonnet';
     steps: [{
       name: 'Run Go tests',
       image: build_image.linux,
+
+      commands: [
+        'make GO_TAGS="nodocker" test',
+      ],
+    }],
+  },
+
+  pipelines.linux('Test (Full)') {
+    trigger: {
+      ref: ['refs/heads/main'],
+    },
+    steps: [{
+      name: 'Run Go tests',
+      image: build_image.linux,
       volumes: [{
         name: 'docker',
         path: '/var/run/docker.sock',
