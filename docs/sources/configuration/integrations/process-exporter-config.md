@@ -146,6 +146,11 @@ Full reference of options:
 #                   first executable found.
 # - {{.StartTime}}: The start time of the process. This is useful when combined
 #                   with PID as PIDS get reused over time.
+# - `{{.Cgroups}}`: The cgroups, if supported, of the process (`/proc/self/cgroup`). This is particularly useful for identifying to which container a process belongs.
+# 
+# **NOTE**: Using `PID` or `StartTime` is discouraged, as it is almost never what you want, and is likely to result in high cardinality metrics.
+
+
 [name: <string> | default = "{{.ExeBase}}"]
 
 # A list of strings that match the base executable name for a process, truncated

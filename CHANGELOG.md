@@ -83,6 +83,8 @@ Main (unreleased)
 
 - Flow: Add OAUTHBEARER mechanism to `loki.source.kafka` using Azure as provider. (@akselleirv)
 
+- Update Process Exporter dependency to v0.7.10. (@spartan0x117)
+
 ### Bugfixes
 
 - Flow: fix issue where Flow would return an error when trying to access a key
