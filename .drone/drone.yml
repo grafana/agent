@@ -915,7 +915,6 @@ trigger:
   ref:
   - refs/heads/main
   - refs/tags/v*
-  - refs/heads/dev.*
 type: docker
 volumes:
 - host:
@@ -960,7 +959,6 @@ trigger:
   ref:
   - refs/heads/main
   - refs/tags/v*
-  - refs/heads/dev.*
 type: docker
 volumes:
 - host:
@@ -1005,7 +1003,6 @@ trigger:
   ref:
   - refs/heads/main
   - refs/tags/v*
-  - refs/heads/dev.*
 type: docker
 volumes:
 - host:
@@ -1050,7 +1047,6 @@ trigger:
   ref:
   - refs/heads/main
   - refs/tags/v*
-  - refs/heads/dev.*
 type: docker
 volumes:
 - host:
@@ -1095,7 +1091,6 @@ trigger:
   ref:
   - refs/heads/main
   - refs/tags/v*
-  - refs/heads/dev.*
 type: docker
 volumes:
 - host:
@@ -1125,7 +1120,6 @@ trigger:
   ref:
   - refs/heads/main
   - refs/tags/v*
-  - refs/heads/dev.*
 type: docker
 volumes:
 - host:
@@ -1155,7 +1149,6 @@ trigger:
   ref:
   - refs/heads/main
   - refs/tags/v*
-  - refs/heads/dev.*
 type: docker
 volumes:
 - host:
@@ -1325,6 +1318,6 @@ kind: secret
 name: gpg_passphrase
 ---
 kind: signature
-hmac: b6dde7c72a550d8fea1778471ffd8c8cfeb255124427a2f5e8d0bca691590805
+hmac: fcb2db578d46920304124037a3ffb63024492007b274d134e3ab9810e5bb9499
 
 ...
