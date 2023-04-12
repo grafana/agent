@@ -109,3 +109,76 @@ Using backticks produces the error:
 ```
 invalid match stage config: invalid selector syntax for match stage: parse error at line 1, col 51: syntax error: unexpected IDENTIFIER, expecting STRING"
 ```
+
+I feel this page could use a little bit of a revamp. It talks a lot about the "template" to be used in a Grafana agent configuration file for the logs section but does not actually has examples of a configuration file with a logs section.
+
+On top of that, it feels a little misleading, when it says "logs_config" whereas in the configuration file, there is only the "logs" block. Simple stuff like this, is what we get asked in the field. Because many folks are using this technology for the first time and they are not super hands-on. This comment would be applicable for metrics and traces blocks too.
+
+As per examples, including something like we have on this page - https://grafana.com/docs/grafana-cloud/data-configuration/logs/collect-logs-with-agent/ - would be really helpful.
+
+Or I actually created a sample Grafana Agent config focusing on the logs block, see below -
+
+# Sample config for Grafana Agent
+# For a full configuration reference, see: https://grafana.com/docs/agent/latest/configuration/.
+server:
+  log_level: warn
+
+metrics:
+  global:
+    scrape_interval: 1m
+  wal_directory: '/var/lib/grafana-agent'
+  configs:
+    # Example Prometheus scrape configuration to scrape the agent itself for metrics.
+    # This is not needed if the agent integration is enabled.
+    # - name: agent
+    #   host_filter: false
+    #   scrape_configs:
+    #     - job_name: agent
+    #       static_configs:
+    #         - targets: ['127.0.0.1:9090']
+
+logs:
+  configs:
+  - name: nb-td-example
+    positions:
+      filename: /tmp/positions.yaml
+    scrape_configs:
+    - job_name: dmesg-example
+      static_configs:
+        - targets: [localhost]
+          labels:
+            job: dmesg
+            __path__: /var/log/dmesg
+    - job_name: varlogs-example
+      static_configs:
+        - targets: [localhost]
+          labels:
+            job: varlogs
+            __path__: /var/log/*.log
+    - job_name: nb-log-file-example
+      static_configs:
+        - targets: [localhost]
+          labels:
+            job: nb-sample
+            __path__: /home/navish_bahl_grafana_com/sample-log/nb*
+    clients:
+      - url: <Your Grafana logs endpoint>
+        basic_auth:
+            username: <Your Grafana logs username>
+            password: <API-Key-With-Metrics-Publisher-Role>
+
+integrations:
+  agent:
+    enabled: true
+  node_exporter:
+    enabled: true
+    include_exporter_metrics: true
+    disable_collectors:
+      - "mdadm"
+  prometheus_remote_write:
+  - url: <<Your Grafana metricss endpoint>>
+    basic_auth:
+      username: <Your Grafana metrics username>
+      password: <API-Key-With-Metrics-Publisher-Role>
+
+Something like this would make the docs much more practical to use for the end customer.
