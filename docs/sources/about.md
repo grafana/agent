@@ -29,12 +29,10 @@ Grafana Agent is available in three different variants:
 | Static mode Kubernetes operator | Beta |
 | Flow mode | Stable |
 
-## Choosing which variant of Grafana Agent to run
+## Choose which variant of Grafana Agent to run
 
-This section describes how to choose which variant of Grafana Agent to run.
-
-> **NOTE**: You do not have to pick just one; it is possible to mix-and-match
-> installations of Grafana Agent.
+> **NOTE**: You do not have to pick just variant; it is possible to
+> mix-and-match installations of Grafana Agent.
 
 ### Static mode
 

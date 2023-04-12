@@ -39,7 +39,9 @@ you can follow the common workflows described in this topic.
 
 ### Static mode Grafana Agent for Grafana Cloud integrations
 
-There are different ways for you to set up Grafana Agent to scrape data&mdash;through Grafana's integration platform or directly.  Select a guide to get started:
+There are different ways for you to set up Grafana Agent to scrape
+data&mdash;through Grafana's integration platform or directly. Select a guide
+to get started:
 
 | Topic | Description |
 |---|---|
