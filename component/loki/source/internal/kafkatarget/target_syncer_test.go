@@ -217,7 +217,7 @@ func Test_withAuthentication(t *testing.T) {
 			ServerName:         "example.com",
 			InsecureSkipVerify: true,
 		}
-		expectedTLSConf, _ = createTLSConfig(config.TLSConfig{
+		expectedTLSConf, _ = config.NewTLSConfig(&config.TLSConfig{
 			CAFile:             "testdata/example.com.ca.pem",
 			CertFile:           "testdata/example.com.pem",
 			KeyFile:            "testdata/example.com-key.pem",
