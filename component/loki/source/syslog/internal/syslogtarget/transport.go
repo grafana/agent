@@ -22,6 +22,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/influxdata/go-syslog/v3"
+	"github.com/prometheus/common/config"
 	"github.com/prometheus/prometheus/model/labels"
 
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
@@ -179,9 +180,18 @@ func (t *TCPTransport) Run() error {
 		return fmt.Errorf("error setting up syslog target: %w", err)
 	}
 
-	tlsEnabled := t.config.TLSConfig.CertFile != "" || t.config.TLSConfig.KeyFile != "" || t.config.TLSConfig.CAFile != ""
+	var (
+		tlsConfig = t.config.TLSConfig
+
+		configuredCA   = len(tlsConfig.CA) > 0 || len(tlsConfig.CAFile) > 0
+		configuredCert = len(tlsConfig.Cert) > 0 || len(tlsConfig.CertFile) > 0
+		configuredKey  = len(tlsConfig.Key) > 0 || len(tlsConfig.KeyFile) > 0
+
+		tlsEnabled = configuredCA || configuredCert || configuredKey
+	)
+
 	if tlsEnabled {
-		tlsConfig, err := newTLSConfig(t.config.TLSConfig.CertFile, t.config.TLSConfig.KeyFile, t.config.TLSConfig.CAFile)
+		tlsConfig, err := newTLSConfig(tlsConfig)
 		if err != nil {
 			return fmt.Errorf("error setting up syslog target: %w", err)
 		}
@@ -197,12 +207,42 @@ func (t *TCPTransport) Run() error {
 	return nil
 }
 
-func newTLSConfig(certFile string, keyFile string, caFile string) (*tls.Config, error) {
-	if certFile == "" || keyFile == "" {
-		return nil, fmt.Errorf("certificate and key files are required")
+// newTLSConfig creates TLS server settings from a [config.TLSConfig]. Use this
+// function to create TLS server settings, and [config.NewTLSConfig] to create
+// TLS client settings.
+func newTLSConfig(config config.TLSConfig) (*tls.Config, error) {
+	var (
+		configuredCert = len(config.Cert) > 0 || len(config.CertFile) > 0
+		configuredKey  = len(config.Key) > 0 || len(config.KeyFile) > 0
+	)
+
+	if !configuredCert || !configuredKey {
+		return nil, fmt.Errorf("certificate and key must be configured")
 	}
 
-	certs, err := tls.LoadX509KeyPair(certFile, keyFile)
+	var certBytes, keyBytes []byte
+
+	if len(config.CertFile) > 0 {
+		bb, err := os.ReadFile(config.CertFile)
+		if err != nil {
+			return nil, fmt.Errorf("unable to load server certificate: %w", err)
+		}
+		certBytes = bb
+	} else if len(config.Cert) > 0 {
+		certBytes = []byte(config.Cert)
+	}
+
+	if len(config.KeyFile) > 0 {
+		bb, err := os.ReadFile(config.KeyFile)
+		if err != nil {
+			return nil, fmt.Errorf("unable to load server key: %w", err)
+		}
+		keyBytes = bb
+	} else if len(config.Key) > 0 {
+		keyBytes = []byte(config.Key)
+	}
+
+	certs, err := tls.X509KeyPair(certBytes, keyBytes)
 	if err != nil {
 		return nil, fmt.Errorf("unable to load server certificate or key: %w", err)
 	}
@@ -211,14 +251,21 @@ func newTLSConfig(certFile string, keyFile string, caFile string) (*tls.Config, 
 		Certificates: []tls.Certificate{certs},
 	}
 
-	if caFile != "" {
-		caCert, err := os.ReadFile(caFile)
+	var caBytes []byte
+
+	if len(config.CAFile) > 0 {
+		bb, err := os.ReadFile(config.CAFile)
 		if err != nil {
 			return nil, fmt.Errorf("unable to load client CA certificate: %w", err)
 		}
+		caBytes = bb
+	} else if len(config.CA) > 0 {
+		caBytes = []byte(config.CA)
+	}
 
+	if len(caBytes) > 0 {
 		caCertPool := x509.NewCertPool()
-		if ok := caCertPool.AppendCertsFromPEM(caCert); !ok {
+		if ok := caCertPool.AppendCertsFromPEM(caBytes); !ok {
 			return nil, fmt.Errorf("unable to parse client CA certificate")
 		}
 
