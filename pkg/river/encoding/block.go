@@ -44,7 +44,7 @@ func (bf *blockField) convertBlock(namePrefix []string, reflectValue reflect.Val
 		bf.Type = "block"
 		bf.Label = getBlockLabel(reflectValue)
 
-		fields, err := getFieldsForBlock(namePrefix, reflectValue.Interface())
+		fields, err := getFieldsForBlockStruct(namePrefix, reflectValue.Interface())
 		if err != nil {
 			return err
 		}
@@ -59,21 +59,11 @@ func (bf *blockField) convertBlock(namePrefix []string, reflectValue reflect.Val
 		bf.Name = strings.Join(mergeStringSlices(namePrefix, f.Name), ".")
 		bf.Type = "block"
 
-		it := reflectValue.MapRange()
-		for it.Next() {
-			// Make a fake field so newAttribute works properly.
-			field := rivertags.Field{
-				Name:  []string{it.Key().String()},
-				Flags: rivertags.FlagAttr,
-			}
-			attr, err := newAttribute(value.FromRaw(it.Value()), field)
-			if err != nil {
-				return err
-			}
-
-			bf.Body = append(bf.Body, attr)
+		fields, err := getFieldsForBlockMap(reflectValue)
+		if err != nil {
+			return err
 		}
-
+		bf.Body = fields
 		return nil
 
 	default:
@@ -93,7 +83,7 @@ func getBlockLabel(rv reflect.Value) string {
 	return ""
 }
 
-func getFieldsForBlock(namePrefix []string, input interface{}) ([]interface{}, error) {
+func getFieldsForBlockStruct(namePrefix []string, input interface{}) ([]interface{}, error) {
 	val := value.Encode(input)
 	reflectVal := val.Reflect()
 	rt := rivertags.Get(reflectVal.Type())
@@ -147,6 +137,27 @@ func getFieldsForBlock(namePrefix []string, input interface{}) ([]interface{}, e
 			panic(fmt.Sprintf("river/encoding: unrecognized field %#v", t))
 		}
 	}
+	return fields, nil
+}
+
+func getFieldsForBlockMap(val reflect.Value) ([]interface{}, error) {
+	var fields []interface{}
+
+	it := val.MapRange()
+	for it.Next() {
+		// Make a fake field so newAttribute works properly.
+		field := rivertags.Field{
+			Name:  []string{it.Key().String()},
+			Flags: rivertags.FlagAttr,
+		}
+		attr, err := newAttribute(value.FromRaw(it.Value()), field)
+		if err != nil {
+			return nil, err
+		}
+
+		fields = append(fields, attr)
+	}
+
 	return fields, nil
 }
 
