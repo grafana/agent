@@ -126,7 +126,7 @@ type HTTPComponent interface {
 	Handler() http.Handler
 }
 
-// ClusteredComponent is an extension interface for componens which implement
+// ClusteredComponent is an extension interface for components which implement
 // clustering-specific behavior.
 type ClusteredComponent interface {
 	Component

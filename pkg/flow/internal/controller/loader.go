@@ -65,7 +65,7 @@ func NewLoader(globals ComponentGlobals) *Loader {
 				if cc.ClusterUpdatesRegistration() {
 					err := cmp.Reevaluate()
 					if err != nil {
-						level.Error(globals.Logger).Log("msg", "failed to revisit component", "componentID", cmp.NodeID(), "err", err)
+						level.Error(globals.Logger).Log("msg", "failed to reevaluate component", "componentID", cmp.NodeID(), "err", err)
 					}
 				}
 			}

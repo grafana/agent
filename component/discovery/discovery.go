@@ -36,6 +36,7 @@ func NewDistributedTargets(e bool, n cluster.Node, t []Target) DistributedTarget
 //
 // If a cluster size is 1, then all targets will be returned.
 func (t *DistributedTargets) Get() []Target {
+	// TODO(@tpaschalis): Make this into a single code-path to simplify logic.
 	if !t.useClustering || t.node == nil {
 		return t.targets
 	}
