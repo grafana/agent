@@ -12,6 +12,7 @@ import (
 	"time"
 
 	_ "github.com/grafana/agent/component/local/file"
+	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/stretchr/testify/require"
