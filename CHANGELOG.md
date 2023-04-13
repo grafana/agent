@@ -85,6 +85,9 @@ Main (unreleased)
 
 - Update Process Exporter dependency to v0.7.10. (@spartan0x117)
 
+- Agent Management: Introduces backpressure mechanism for remote config fetching (obeys 429 request
+  `Retry-After` header). (@spartan0x117)
+
 ### Bugfixes
 
 - Flow: fix issue where Flow would return an error when trying to access a key
