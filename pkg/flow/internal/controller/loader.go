@@ -60,6 +60,8 @@ func NewLoader(globals ComponentGlobals) *Loader {
 	}
 
 	globals.Clusterer.Node.Observe(ckit.FuncObserver(func(peers []peer.Peer) (reregister bool) {
+		_, span := l.tracer.Tracer("").Start(context.Background(), "ClusterStateChange", trace.WithSpanKind(trace.SpanKindInternal))
+		defer span.End()
 		for _, cmp := range l.Components() {
 			if cc, ok := cmp.managed.(component.ClusteredComponent); ok {
 				if cc.ClusterUpdatesRegistration() {
