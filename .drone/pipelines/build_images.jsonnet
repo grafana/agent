@@ -1,5 +1,5 @@
 local pipelines = import '../util/pipelines.jsonnet';
-local secrets = import './secrets.jsonnet';
+local secrets = import '../util/secrets.jsonnet';
 
 local locals = {
   on_merge: {

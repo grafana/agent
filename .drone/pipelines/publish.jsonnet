@@ -1,6 +1,6 @@
 local build_image = import '../util/build_image.jsonnet';
 local pipelines = import '../util/pipelines.jsonnet';
-local secrets = import './secrets.jsonnet';
+local secrets = import '../util/secrets.jsonnet';
 
 // job_names gets the list of job names for use in depends_on.
 local job_names = function(jobs) std.map(function(job) job.name, jobs);
