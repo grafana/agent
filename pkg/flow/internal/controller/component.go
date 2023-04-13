@@ -393,42 +393,27 @@ func (cn *ComponentNode) setExports(e component.Exports) {
 
 // CurrentHealth returns the current health of the ComponentNode.
 //
-// The health of a ComponentNode is tracked from three parts, in descending
-// precedence order:
+// The health of a ComponentNode is determined by combining:
 //
-//  1. Exited health from a call to Run()
-//  2. Unhealthy status from last call to Evaluate
-//  3. Health reported by the managed component (if any)
-//  4. Latest health from Run() or Evaluate(), if the managed component does not
-//     report health.
+//  1. Health from the call to Run().
+//  2. Health from the last call to Evaluate().
+//  3. Health reported from the component.
 func (cn *ComponentNode) CurrentHealth() component.Health {
 	cn.healthMut.RLock()
 	defer cn.healthMut.RUnlock()
 
-	// A component which stopped running takes precedence over all other health
-	// states
-	if cn.runHealth.Health == component.HealthTypeExited {
-		return cn.runHealth
+	var (
+		runHealth  = cn.runHealth
+		evalHealth = cn.evalHealth
+
+		componentHealth component.Health
+	)
+
+	if hc, ok := cn.managed.(component.HealthComponent); ok {
+		componentHealth = hc.CurrentHealth()
 	}
 
-	// Next, an unhealthy evaluate takes precedence over the real health of a
-	// component.
-	if cn.evalHealth.Health != component.HealthTypeHealthy {
-		return cn.evalHealth
-	}
-
-	// Then, the health of a managed component takes precedence if it is exposed.
-	hc, _ := cn.managed.(component.HealthComponent)
-	if hc != nil {
-		return hc.CurrentHealth()
-	}
-
-	// Finally, we return the newer health between eval and run
-	latestHealth := cn.evalHealth
-	if cn.runHealth.UpdateTime.After(latestHealth.UpdateTime) {
-		latestHealth = cn.runHealth
-	}
-	return latestHealth
+	return component.LeastHealthy(runHealth, evalHealth, componentHealth)
 }
 
 // DebugInfo returns debugging information from the managed component (if any).
