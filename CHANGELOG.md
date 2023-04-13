@@ -91,26 +91,6 @@ Main (unreleased)
 - Flow: support client TLS settings (CA, client certificate, client key) being
   provided from other components for the following components:
 
-  - `otelcol.auth.oauth2`
-  - `otelcol.exporter.jaeger`
-  - `otelcol.exporter.otlp`
-  - `otelcol.exporter.otlphttp`
-  - `otelcol.extension.jaeger_remote_sampling`
-  - `otelcol.receiver.jaeger`
-  - `otelcol.receiver.kafka`
-
-- Flow: support server TLS settings (client CA, server certificate, server key)
-  being provided from other components for the following components:
-
-  - `otelcol.exporter.otlp`
-  - `otelcol.extension.jaeger_remote_sampling`
-  - `otelcol.receiver.jaeger`
-  - `otelcol.receiver.opencensus`
-  - `otelcol.receiver.zipkin`
-
-- Flow: support client TLS settings (CA, client certificate, client key) being
-  provided from other components for the following components:
-
   - `discovery.docker`
   - `discovery.kubernetes`
   - `loki.source.kafka`
@@ -118,6 +98,13 @@ Main (unreleased)
   - `loki.source.podlogs`
   - `loki.write`
   - `mimir.rules.kubernetes`
+  - `otelcol.auth.oauth2`
+  - `otelcol.exporter.jaeger`
+  - `otelcol.exporter.otlp`
+  - `otelcol.exporter.otlphttp`
+  - `otelcol.extension.jaeger_remote_sampling`
+  - `otelcol.receiver.jaeger`
+  - `otelcol.receiver.kafka`
   - `phlare.scrape`
   - `phlare.write`
   - `prometheus.remote_write`
@@ -128,6 +115,11 @@ Main (unreleased)
   being provided from other components for the following components:
 
   - `loki.source.syslog`
+  - `otelcol.exporter.otlp`
+  - `otelcol.extension.jaeger_remote_sampling`
+  - `otelcol.receiver.jaeger`
+  - `otelcol.receiver.opencensus`
+  - `otelcol.receiver.zipkin`
 
 ### Bugfixes
 
