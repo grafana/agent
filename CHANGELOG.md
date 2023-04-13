@@ -85,6 +85,26 @@ Main (unreleased)
 
 - Update Process Exporter dependency to v0.7.10. (@spartan0x117)
 
+- Flow: support client TLS settings (CA, client certificate, client key) being
+  provided from other components for the following components:
+
+  - `otelcol.auth.oauth2`
+  - `otelcol.exporter.jaeger`
+  - `otelcol.exporter.otlp`
+  - `otelcol.exporter.otlphttp`
+  - `otelcol.extension.jaeger_remote_sampling`
+  - `otelcol.receiver.jaeger`
+  - `otelcol.receiver.kafka`
+
+- Flow: support server TLS settings (client CA, server certificate, server key)
+  being provided from other components for the following components:
+
+  - `otelcol.exporter.otlp`
+  - `otelcol.extension.jaeger_remote_sampling`
+  - `otelcol.receiver.jaeger`
+  - `otelcol.receiver.opencensus`
+  - `otelcol.receiver.zipkin`
+
 ### Bugfixes
 
 - Flow: fix issue where Flow would return an error when trying to access a key
