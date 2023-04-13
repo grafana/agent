@@ -54,7 +54,7 @@ arguments | [arguments][] | Arguments to pass to the module. | no
 
 ### arguments block
 
-The `arguments` block specifies the list of arguments to pass to the loaded
+The `arguments` block specifies the list of values to pass to the loaded
 module.
 
 The attributes provided in the `arguments` block are validated based on the
