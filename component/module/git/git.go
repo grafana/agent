@@ -32,7 +32,7 @@ func init() {
 // Arguments configures the module.git component.
 type Arguments struct {
 	Repository string `river:"repository,attr"`
-	Revision   string `river:"revision,attr"`
+	Revision   string `river:"revision,attr,optional"`
 	Path       string `river:"path,attr"`
 
 	PullFrequency time.Duration `river:"pull_frequency,attr,optional"`
@@ -42,6 +42,7 @@ type Arguments struct {
 
 // DefaultArguments holds default settings for Arguments.
 var DefaultArguments = Arguments{
+	Revision:      "HEAD",
 	PullFrequency: time.Minute,
 }
 

@@ -20,7 +20,6 @@ component which retrieves a [module][] and runs the components defined inside of
 ```river
 module. "LABEL" {
   repository = "GIT_REPOSTORY"
-  revision   = "GIT_REVISION"
   path       = "PATH_TO_MODULE"
 
   arguments {
@@ -38,7 +37,7 @@ The following arguments are supported:
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `repository` | `string` | The Git repository address to retrieve the module from. | | yes
-`revision` | `string` | The Git revision to retrieve the module from. | | yes
+`revision` | `string` | The Git revision to retrieve the module from. | `"HEAD"` | no
 `path` | `string` | The path in the repository where the module is stored. | | yes
 `pull_frequency` | `duration` | The frequency to pull the repository for updates. | | `"60s"`
 
@@ -46,8 +45,8 @@ The `repository` attribute must be set to a repository address that would be
 recognized by Git with a `git clone REPOSITORY_ADDRESS` command, such as
 `htts://github.com/grafana/agent.git`.
 
-The `revision` attribute must be set to a valid branch, tag, or commit SHA
-within the repository.
+The `revision` attribute, when provided, must be set to a valid branch, tag, or
+commit SHA within the repository.
 
 The `path` attribute must be set to a path which is accessible from the root of
 the repository, such as `FILE_NAME.river` or `FOLDER_NAME/FILE_NAME.river`.
