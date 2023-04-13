@@ -37,20 +37,48 @@ func (bf *blockField) convertBlock(namePrefix []string, reflectValue reflect.Val
 		}
 		reflectValue = reflectValue.Elem()
 	}
-	if reflectValue.Kind() != reflect.Struct {
-		return fmt.Errorf("convertBlock can only be called on struct kinds, got %s", reflectValue.Kind())
-	}
 
-	bf.Name = strings.Join(mergeStringSlices(namePrefix, f.Name), ".")
-	bf.Type = "block"
-	bf.Label = getBlockLabel(reflectValue)
+	switch reflectValue.Kind() {
+	case reflect.Struct:
+		bf.Name = strings.Join(mergeStringSlices(namePrefix, f.Name), ".")
+		bf.Type = "block"
+		bf.Label = getBlockLabel(reflectValue)
 
-	fields, err := getFieldsForBlock(namePrefix, reflectValue.Interface())
-	if err != nil {
-		return err
+		fields, err := getFieldsForBlock(namePrefix, reflectValue.Interface())
+		if err != nil {
+			return err
+		}
+		bf.Body = fields
+		return nil
+
+	case reflect.Map:
+		if reflectValue.Type().Key().Kind() != reflect.String {
+			return fmt.Errorf("convertBlock given unsupported map type; expected map[string]T, got %s", reflectValue.Type())
+		}
+
+		bf.Name = strings.Join(mergeStringSlices(namePrefix, f.Name), ".")
+		bf.Type = "block"
+
+		it := reflectValue.MapRange()
+		for it.Next() {
+			// Make a fake field so newAttribute works properly.
+			field := rivertags.Field{
+				Name:  []string{it.Key().String()},
+				Flags: rivertags.FlagAttr,
+			}
+			attr, err := newAttribute(value.FromRaw(it.Value()), field)
+			if err != nil {
+				return err
+			}
+
+			bf.Body = append(bf.Body, attr)
+		}
+
+		return nil
+
+	default:
+		return fmt.Errorf("convertBlock can only be called on struct or map kinds, got %s", reflectValue.Kind())
 	}
-	bf.Body = fields
-	return nil
 }
 
 // getBlockLabel returns the label for a given block.

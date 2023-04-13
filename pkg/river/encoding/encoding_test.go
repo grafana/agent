@@ -144,3 +144,28 @@ func TestConvertRiverBodyToJSON_Enum_Block(t *testing.T) {
 
 	require.JSONEq(t, expect, string(actual))
 }
+
+func TestMapBlocks(t *testing.T) {
+	type Body struct {
+		Block map[string]string `river:"some_block,block,optional"`
+	}
+
+	val := Body{
+		Block: map[string]string{"key": "value"},
+	}
+
+	actual, err := encoding.ConvertRiverBodyToJSON(val)
+	require.NoError(t, err)
+
+	expect := `[{
+		"name": "some_block",
+		"type": "block",
+		"body": [{
+			"name": "key",
+			"type": "attr",
+			"value": { "type": "string", "value": "value" }
+		}]
+	}]`
+
+	require.JSONEq(t, expect, string(actual))
+}
