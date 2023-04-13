@@ -1,6 +1,6 @@
 ## Build, test, and generate code for various parts of Grafana Agent.
 ##
-## At least Go 1.18, git, and a moderately recent version of Docker is required
+## At least Go 1.19, git, and a moderately recent version of Docker is required
 ## to be able to use the Makefile. This list isn't exhaustive and there are other
 ## dependencies for the generate-* targets. If you do not have the full list of
 ## build dependencies, you may set USE_CONTAINER=1 to proxy build commands to a
