@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-discover/provider/k8s"
 	"github.com/rfratto/ckit"
 	"github.com/rfratto/ckit/advertise"
-	"github.com/rfratto/ckit/clientpool"
 	"github.com/rfratto/ckit/peer"
 	"github.com/rfratto/ckit/shard"
 	"go.uber.org/atomic"
@@ -67,9 +66,6 @@ type GossipConfig struct {
 	// Discover peers to connect to using go-discover. Mutually exclusive with
 	// JoinPeers.
 	DiscoverPeers string
-
-	// Client pool to use for connecting to peers.
-	Pool *clientpool.Pool
 }
 
 // DefaultGossipConfig holds default GossipConfig options.
@@ -184,10 +180,9 @@ func NewGossipNode(l log.Logger, cli *http.Client, c *GossipConfig) (*GossipNode
 		AdvertiseAddr: c.AdvertiseAddr,
 		Sharder:       sharder,
 		Log:           l,
-		Pool:          c.Pool,
 	}
 
-	inner, err := ckit.NewHTTPNode(cli, ckitConfig)
+	inner, err := ckit.NewNode(cli, ckitConfig)
 	if err != nil {
 		return nil, err
 	}

@@ -13,7 +13,6 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/google/uuid"
 	"github.com/rfratto/ckit"
 	"github.com/rfratto/ckit/peer"
 	"github.com/rfratto/ckit/shard"
@@ -109,7 +108,6 @@ func New(log log.Logger, clusterEnabled bool, addr, joinAddr string) (*Clusterer
 	}
 
 	gossipConfig := DefaultGossipConfig
-	gossipConfig.NodeName = uuid.NewString()
 	gossipConfig.AdvertiseAddr = host
 	err = gossipConfig.ApplyDefaults(port)
 	if err != nil {
