@@ -15,6 +15,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
+	promconfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 
@@ -136,7 +137,7 @@ func withAuthentication(cfg sarama.Config, authCfg Authentication) (*sarama.Conf
 
 func withSSLAuthentication(cfg sarama.Config, authCfg Authentication) (*sarama.Config, error) {
 	cfg.Net.TLS.Enable = true
-	tc, err := createTLSConfig(authCfg.TLSConfig)
+	tc, err := promconfig.NewTLSConfig(&authCfg.TLSConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -187,7 +188,7 @@ func withSASLAuthentication(cfg sarama.Config, authCfg Authentication) (*sarama.
 	}
 
 	if authCfg.SASLConfig.UseTLS {
-		tc, err := createTLSConfig(authCfg.SASLConfig.TLSConfig)
+		tc, err := promconfig.NewTLSConfig(&authCfg.SASLConfig.TLSConfig)
 		if err != nil {
 			return nil, err
 		}
