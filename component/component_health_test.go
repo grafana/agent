@@ -52,12 +52,12 @@ func TestMergeHealth(t *testing.T) {
 			expectIndex: 1,
 		},
 		{
-			name: "healthy > unknown",
+			name: "unknown > healthy",
 			healths: []component.Health{{
-				Health:     component.HealthTypeUnknown,
+				Health:     component.HealthTypeHealthy,
 				UpdateTime: jan1,
 			}, {
-				Health:     component.HealthTypeHealthy,
+				Health:     component.HealthTypeUnknown,
 				UpdateTime: jan1,
 			}},
 			expectIndex: 1,
@@ -101,5 +101,4 @@ func TestMergeHealth(t *testing.T) {
 			require.Equal(t, expect, actual)
 		})
 	}
-
 }

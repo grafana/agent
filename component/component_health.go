@@ -101,7 +101,7 @@ func (ht *HealthType) UnmarshalText(text []byte) error {
 // considered to be the least healthy.
 //
 // Health types are first prioritized by [HealthTypeExited], followed by
-// [HealthTypeUnhealthy], [HealthTypeHealthy], and [HealthTypeUnknown].
+// [HealthTypeUnhealthy], [HealthTypeUnknown], and [HealthTypeHealthy].
 //
 // If multiple arguments have the same Health type, the Health with the most
 // recent timestamp is returned.
@@ -117,7 +117,7 @@ func LeastHealthy(h Health, hh ...Health) Health {
 
 	for _, compareHealth := range hh {
 		switch {
-		case compareHealth.Health > leastHealthy.Health:
+		case healthPriority[compareHealth.Health] > healthPriority[leastHealthy.Health]:
 			// Higher health precedence.
 			leastHealthy = compareHealth
 		case compareHealth.Health == leastHealthy.Health:
@@ -129,4 +129,13 @@ func LeastHealthy(h Health, hh ...Health) Health {
 	}
 
 	return leastHealthy
+}
+
+// healthPriority maps a HealthType to its priority; higher numbers means "less
+// healthy."
+var healthPriority = [...]int{
+	HealthTypeHealthy:   0,
+	HealthTypeUnknown:   1,
+	HealthTypeUnhealthy: 2,
+	HealthTypeExited:    3,
 }
