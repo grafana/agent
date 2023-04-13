@@ -3,6 +3,7 @@ package stdlib
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 
 	"github.com/grafana/agent/pkg/river/internal/value"
@@ -18,7 +19,22 @@ var Identifiers = map[string]interface{}{
 	// See constants.go for the definition.
 	"constants": constants,
 
-	"env": os.Getenv,
+	"env": func(args ...string) (string, error) {
+		if len(args) == 0 || len(args) > 2 {
+			return "", errors.New("1 or 2 arguments required")
+		}
+
+		if env, ok := os.LookupEnv(args[0]); ok {
+			return env, nil
+		}
+		def := ""
+
+		if len(args) == 2 {
+			def = args[1]
+		}
+
+		return def, nil
+	},
 
 	// concat is implemented as a raw function so it can bypass allocations
 	// converting arguments into []interface{}. concat is optimized to allow it
