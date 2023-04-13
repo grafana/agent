@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -19,7 +20,7 @@ import (
 	prom_config "github.com/prometheus/common/config"
 )
 
-var userAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
+var userAgent = fmt.Sprintf("GrafanaAgent/%s OS/%s", build.Version, runtime.GOOS)
 
 func init() {
 	component.Register(component.Registration{
