@@ -6,4 +6,4 @@ local pipelines = import './pipelines.jsonnet';
 (import 'pipelines/crosscompile.jsonnet') +
 (import 'pipelines/publish.jsonnet') +
 (import 'pipelines/test_packages.jsonnet') +
-(import 'secrets.jsonnet')
+(import 'pipelines/secrets.jsonnet').asList
