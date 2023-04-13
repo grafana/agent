@@ -39,7 +39,7 @@ type WALStats struct {
 	// is defined by two ref IDs.
 	//
 	// For the Grafana Agent, a hash collision has no negative side effects
-	// on data sent to the remote_write endpoint but may have a noticeable inpact
+	// on data sent to the remote_write endpoint but may have a noticeable impact
 	// on memory while the collision exists.
 	HashCollisions int
 
@@ -201,7 +201,7 @@ func (c *walStatsCalculator) readWAL(r *wlog.Reader) error {
 
 				// Every time we get a new series, we want to increment the series
 				// count for the specific job/instance pair, store the ref ID so
-				// samples can mofidy the stats, and then store the hash of our
+				// samples can modify the stats, and then store the hash of our
 				// labels to detect collisions (or flapping series).
 				stats.Series++
 				c.statsLookup[s.Ref] = stats

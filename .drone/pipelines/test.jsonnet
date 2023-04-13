@@ -57,6 +57,20 @@ local pipelines = import '../util/pipelines.jsonnet';
     steps: [{
       name: 'Run Go tests',
       image: build_image.linux,
+
+      commands: [
+        'make GO_TAGS="nodocker" test',
+      ],
+    }],
+  },
+
+  pipelines.linux('Test (Full)') {
+    trigger: {
+      ref: ['refs/heads/main'],
+    },
+    steps: [{
+      name: 'Run Go tests',
+      image: build_image.linux,
       volumes: [{
         name: 'docker',
         path: '/var/run/docker.sock',
@@ -84,9 +98,6 @@ local pipelines = import '../util/pipelines.jsonnet';
     steps: [{
       name: 'Run Go tests',
       image: build_image.windows,
-      environment: {
-        ASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH: 'go1.20',
-      },
       commands: ['go test -tags="nodocker,nonetwork" ./...'],
     }],
   },

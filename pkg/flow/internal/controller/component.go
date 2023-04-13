@@ -14,7 +14,6 @@ import (
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/vm"
@@ -107,7 +106,7 @@ type ComponentNode struct {
 	exports    component.Exports // Evaluated exports for the managed component
 }
 
-var _ dag.Node = (*ComponentNode)(nil)
+var _ BlockNode = (*ComponentNode)(nil)
 
 // NewComponentNode creates a new ComponentNode from an initial ast.BlockStmt.
 // The underlying managed component isn't created until Evaluate is called.
@@ -228,9 +227,9 @@ func (cn *ComponentNode) UpdateBlock(b *ast.BlockStmt) {
 	cn.eval = vm.New(b.Body)
 }
 
-// Evaluate updates the arguments for the managed component by re-evaluating
-// its River block with the provided scope. The managed component will be built
-// the first time Evaluate is called.
+// Evaluate implements BlockNode and updates the arguments for the managed component
+// by re-evaluating its River block with the provided scope. The managed component
+// will be built the first time Evaluate is called.
 //
 // Evaluate will return an error if the River block cannot be evaluated or if
 // decoding to arguments fails.
@@ -333,6 +332,13 @@ func (cn *ComponentNode) Arguments() component.Arguments {
 	cn.mut.RLock()
 	defer cn.mut.RUnlock()
 	return cn.args
+}
+
+// Block implements BlockNode and returns the current block of the managed component.
+func (cn *ComponentNode) Block() *ast.BlockStmt {
+	cn.mut.RLock()
+	defer cn.mut.RUnlock()
+	return cn.block
 }
 
 // Exports returns the current set of exports from the managed component.

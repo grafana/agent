@@ -22,7 +22,7 @@ func ConvertRiverBodyToJSON(input interface{}) ([]byte, error) {
 	if input == nil {
 		return nil, nil
 	}
-	fields, err := getFieldsForBlock(nil, input)
+	fields, err := getFieldsForBlockStruct(nil, input)
 	if err != nil {
 		return nil, err
 	}

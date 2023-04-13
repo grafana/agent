@@ -165,7 +165,7 @@ Name | Type | Description | Default | Required
 `username` | `string` | Kerberos username to authenticate as. | | yes
 `password` | `secret` | Kerberos password to authenticate with. | | no
 `config_file` | `string` | Path to Kerberos location (for example, `/etc/krb5.conf`). | | no
-`keytab_file` | `string` | Path to keytab file (for eaxmple, `/etc/security/kafka.keytab`). | | no
+`keytab_file` | `string` | Path to keytab file (for example, `/etc/security/kafka.keytab`). | | no
 
 When `use_keytab` is `false`, the `password` argument is required. When
 `use_keytab` is `true`, the file pointed to by the `keytab_file` argument is

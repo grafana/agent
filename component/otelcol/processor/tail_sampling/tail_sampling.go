@@ -71,7 +71,7 @@ func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 }
 
 // Convert implements processor.Arguments.
-func (args Arguments) Convert() otelconfig.Processor {
+func (args Arguments) Convert() (otelconfig.Processor, error) {
 	// TODO: Get rid of mapstructure once tailsamplingprocessor.Config has all public types
 	var otelConfig tsp.Config
 
@@ -89,7 +89,7 @@ func (args Arguments) Convert() otelconfig.Processor {
 
 	otelConfig.ProcessorSettings = otelconfig.NewProcessorSettings(otelconfig.NewComponentID("tail_sampling"))
 
-	return &otelConfig
+	return &otelConfig, nil
 }
 
 // Extensions implements processor.Arguments.

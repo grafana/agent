@@ -93,7 +93,9 @@ func newTestEnvironment(t *testing.T, fe *fakeExporter) *testEnvironment {
 			factory := otelcomponent.NewExporterFactory(
 				"testcomponent",
 				func() otelconfig.Exporter {
-					return fakeExporterArgs{}.Convert()
+					res, err := fakeExporterArgs{}.Convert()
+					require.NoError(t, err)
+					return res
 				},
 				otelcomponent.WithTracesExporter(func(ctx context.Context, ecs otelcomponent.ExporterCreateSettings, e otelconfig.Exporter) (otelcomponent.TracesExporter, error) {
 					return fe, nil
@@ -123,9 +125,9 @@ type fakeExporterArgs struct {
 
 var _ exporter.Arguments = fakeExporterArgs{}
 
-func (fa fakeExporterArgs) Convert() otelconfig.Exporter {
+func (fa fakeExporterArgs) Convert() (otelconfig.Exporter, error) {
 	settings := otelconfig.NewExporterSettings(otelconfig.NewComponentID("testcomponent"))
-	return &settings
+	return &settings, nil
 }
 
 func (fa fakeExporterArgs) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {

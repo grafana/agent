@@ -1,13 +1,13 @@
 ---
-title: Grafana Agent Flow
-weight: 900
+title: Flow mode
+weight: 400
 ---
 
-# Grafana Agent Flow
+# Flow mode
 
-Grafana Agent Flow is a _component-based_ revision of Grafana Agent with a
-focus on ease-of-use, debuggability, and ability to adapt to the needs of power
-users.
+The Flow mode of Grafana Agent (also called Grafana Agent Flow) is a
+_component-based_ revision of Grafana Agent with a focus on ease-of-use,
+debuggability, and ability to adapt to the needs of power users.
 
 Components allow for reusability, composability, and focus on a single task.
 
@@ -59,16 +59,18 @@ prometheus.remote_write "default" {
 
 ## Next steps
 
-* Read about how to [install and run][] Grafana Agent Flow.
-* Learn about the [core concepts][] of Grafana Agent Flow.
-* Follow our [tutorials][] to get started with Grafana Agent Flow.
-* Learn how to use Grafana Agent Flow's [configuration language][].
-* Check out our [reference documentation][] to find specific information you
+* [Install][] Grafana Agent Flow.
+* Learn about the core [Concepts][] of Grafana Agent Flow.
+* Follow our Grafana Agent Flow [Getting started][] guides.
+* Follow our [Tutorials][] to get started with Grafana Agent Flow.
+* Learn how to use Grafana Agent Flow's [Configuration language][].
+* Check out our [Reference][] documentation to find specific information you
   might be looking for.
 
-[install and run]: {{< relref "./getting_started" >}}
-[core concepts]: {{< relref "./concepts/" >}}
-[tutorials]: {{< relref "./tutorials/ ">}}
-[configuration language]: {{< relref "./config-language/" >}}
-[reference documentation]: {{< relref "./reference" >}}
+[Install]: {{< relref "./install/" >}}
+[Concepts]: {{< relref "./concepts/" >}}
+[Getting started]: {{< relref "./getting-started/" >}}
+[Tutorials]: {{< relref "./tutorials/ ">}}
+[Configuration language]: {{< relref "./config-language/" >}}
+[Reference]: {{< relref "./reference" >}}
 

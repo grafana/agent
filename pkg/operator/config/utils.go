@@ -64,7 +64,7 @@ func trimSlice(s []interface{}) []interface{} {
 	return res
 }
 
-// intoStages converts the a yaml slice of stages into a Jsonnet array.
+// intoStages converts a yaml slice of stages into a Jsonnet array.
 func intoStages(i []interface{}) (interface{}, error) {
 	text, ok := i[0].(string)
 	if !ok {

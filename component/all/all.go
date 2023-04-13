@@ -3,14 +3,17 @@ package all
 
 import (
 	_ "github.com/grafana/agent/component/discovery/aws"                            // Import discovery.aws.ec2 and discovery.aws.lightsail
+	_ "github.com/grafana/agent/component/discovery/digitalocean"                   // Import discovery.digitalocean
 	_ "github.com/grafana/agent/component/discovery/docker"                         // Import discovery.docker
 	_ "github.com/grafana/agent/component/discovery/file"                           // Import discovery.file
+	_ "github.com/grafana/agent/component/discovery/gce"                            // Import discovery.gce
 	_ "github.com/grafana/agent/component/discovery/kubernetes"                     // Import discovery.kubernetes
 	_ "github.com/grafana/agent/component/discovery/relabel"                        // Import discovery.relabel
 	_ "github.com/grafana/agent/component/local/file"                               // Import local.file
 	_ "github.com/grafana/agent/component/loki/echo"                                // Import loki.echo
 	_ "github.com/grafana/agent/component/loki/process"                             // Import loki.process
 	_ "github.com/grafana/agent/component/loki/relabel"                             // Import loki.relabel
+	_ "github.com/grafana/agent/component/loki/source/azure_event_hubs"             // Import loki.source.azure_event_hubs
 	_ "github.com/grafana/agent/component/loki/source/cloudflare"                   // Import loki.source.cloudflare
 	_ "github.com/grafana/agent/component/loki/source/docker"                       // Import loki.source.docker
 	_ "github.com/grafana/agent/component/loki/source/file"                         // Import loki.source.file
@@ -26,13 +29,16 @@ import (
 	_ "github.com/grafana/agent/component/loki/source/windowsevent"                 // Import loki.source.windowsevent
 	_ "github.com/grafana/agent/component/loki/write"                               // Import loki.write
 	_ "github.com/grafana/agent/component/mimir/rules/kubernetes"                   // Import mimir.rules.kubernetes
+	_ "github.com/grafana/agent/component/module/file"                              // Import module.file
 	_ "github.com/grafana/agent/component/module/git"                               // Import module.git
 	_ "github.com/grafana/agent/component/module/string"                            // Import module.string
 	_ "github.com/grafana/agent/component/otelcol/auth/basic"                       // Import otelcol.auth.basic
 	_ "github.com/grafana/agent/component/otelcol/auth/bearer"                      // Import otelcol.auth.bearer
 	_ "github.com/grafana/agent/component/otelcol/auth/headers"                     // Import otelcol.auth.headers
 	_ "github.com/grafana/agent/component/otelcol/auth/oauth2"                      // Import otelcol.auth.oauth2
+	_ "github.com/grafana/agent/component/otelcol/auth/sigv4"                       // Import otelcol.auth.sigv4
 	_ "github.com/grafana/agent/component/otelcol/exporter/jaeger"                  // Import otelcol.exporter.jaeger
+	_ "github.com/grafana/agent/component/otelcol/exporter/logging"                 // Import otelcol.exporter.logging
 	_ "github.com/grafana/agent/component/otelcol/exporter/loki"                    // Import otelcol.exporter.loki
 	_ "github.com/grafana/agent/component/otelcol/exporter/otlp"                    // Import otelcol.exporter.otlp
 	_ "github.com/grafana/agent/component/otelcol/exporter/otlphttp"                // Import otelcol.exporter.otlphttp
@@ -54,11 +60,15 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/exporter/blackbox"             // Import prometheus.exporter.blackbox
 	_ "github.com/grafana/agent/component/prometheus/exporter/consul"               // Import prometheus.exporter.consul
 	_ "github.com/grafana/agent/component/prometheus/exporter/github"               // Import prometheus.exporter.github
+	_ "github.com/grafana/agent/component/prometheus/exporter/memcached"            // Import prometheus.exporter.memcached
 	_ "github.com/grafana/agent/component/prometheus/exporter/mysql"                // Import prometheus.exporter.mysql
 	_ "github.com/grafana/agent/component/prometheus/exporter/postgres"             // Import prometheus.exporter.postgres
 	_ "github.com/grafana/agent/component/prometheus/exporter/process"              // Import prometheus.exporter.process
 	_ "github.com/grafana/agent/component/prometheus/exporter/redis"                // Import prometheus.exporter.redis
+	_ "github.com/grafana/agent/component/prometheus/exporter/snmp"                 // Import prometheus.exporter.snmp
+	_ "github.com/grafana/agent/component/prometheus/exporter/statsd"               // Import prometheus.exporter.statsd
 	_ "github.com/grafana/agent/component/prometheus/exporter/unix"                 // Import prometheus.exporter.unix
+	_ "github.com/grafana/agent/component/prometheus/operator/podmonitors"          // Import prometheus.operator.podmonitors
 	_ "github.com/grafana/agent/component/prometheus/relabel"                       // Import prometheus.relabel
 	_ "github.com/grafana/agent/component/prometheus/remotewrite"                   // Import prometheus.remote_write
 	_ "github.com/grafana/agent/component/prometheus/scrape"                        // Import prometheus.scrape

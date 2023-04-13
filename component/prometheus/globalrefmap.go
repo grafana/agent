@@ -148,7 +148,7 @@ func (g *GlobalRefMap) CheckStaleMarkers() {
 	curr := time.Now()
 	idsToBeGCed := make([]*staleMarker, 0)
 	for _, stale := range g.staleGlobals {
-		// If the difference between now and the last time the stale was marked doesnt exceed stale then let it stay
+		// If the difference between now and the last time the stale was marked doesn't exceed stale then let it stay
 		if curr.Sub(stale.lastMarkedStale) < staleDuration {
 			continue
 		}

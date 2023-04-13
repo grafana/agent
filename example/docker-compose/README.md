@@ -50,7 +50,7 @@ dashboards:
 * The `Agent Prometheus Remote Write` dashboard visualizes the current state of
   writing metrics to Cortex.
 
-* The `Agent Tracing Pipeline` dashbaord visualizes the current state of the
+* The `Agent Tracing Pipeline` dashboard visualizes the current state of the
   tracing pipeline (if spans are being processed).
 
 * The `Agent Operational` dashboard shows resource consumption of Grafana

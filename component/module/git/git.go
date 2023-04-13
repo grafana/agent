@@ -11,22 +11,17 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/module"
 	"github.com/grafana/agent/component/module/git/internal/vcs"
-	"github.com/grafana/agent/pkg/flow"
-	"github.com/grafana/agent/pkg/flow/logging"
-	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/pkg/river"
-	"github.com/grafana/agent/web/api"
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 func init() {
 	component.Register(component.Registration{
 		Name:    "module.git",
 		Args:    Arguments{},
-		Exports: Exports{},
+		Exports: module.Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
@@ -42,7 +37,7 @@ type Arguments struct {
 
 	PullFrequency time.Duration `river:"pull_frequency,attr,optional"`
 
-	Arguments map[string]any `river:"arguments,attr,optional"`
+	Arguments map[string]any `river:"arguments,block,optional"`
 }
 
 // DefaultArguments holds default settings for Arguments.
@@ -61,16 +56,11 @@ func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	return f((*arguments)(args))
 }
 
-// Exports are emitted by the module.git component.
-type Exports struct {
-	Exports map[string]any `river:"exports,attr"`
-}
-
 // Component implements the module.git component.
 type Component struct {
 	opts component.Options
 	log  log.Logger
-	ctrl *flow.Flow
+	mod  *module.ModuleComponent
 
 	mut      sync.RWMutex
 	repo     *vcs.GitRepo
@@ -91,29 +81,11 @@ var (
 
 // New creates a new module.git component.
 func New(o component.Options, args Arguments) (*Component, error) {
-	// TODO(rfratto): replace these with a tracer/registry which properly
-	// propagates data back to the parent.
-	flowTracer, _ := tracing.New(tracing.DefaultOptions)
-	flowRegistry := prometheus.NewRegistry()
-
 	c := &Component{
 		opts: o,
 		log:  o.Logger,
 
-		ctrl: flow.New(flow.Options{
-			ControllerID: o.ID,
-			LogSink:      logging.LoggerSink(o.Logger),
-			Tracer:       flowTracer,
-			Reg:          flowRegistry,
-
-			DataPath:       o.DataPath,
-			HTTPPathPrefix: o.HTTPPath,
-			HTTPListenAddr: o.HTTPListenAddr,
-
-			OnExportsChange: func(exports map[string]any) {
-				o.OnStateChange(Exports{Exports: exports})
-			},
-		}),
+		mod: module.NewModuleComponent(o),
 
 		argsChanged: make(chan struct{}, 1),
 	}
@@ -129,7 +101,7 @@ func (c *Component) Run(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	go c.ctrl.Run(ctx)
+	go c.mod.RunFlowController(ctx)
 
 	var (
 		ticker  *time.Ticker
@@ -209,7 +181,8 @@ func (c *Component) Update(args component.Arguments) (err error) {
 	newArgs := args.(Arguments)
 
 	// TODO(rfratto): store in a repo-specific directory so changing repositories
-	// doesn't break the module loader.
+	// doesn't risk break the module loader if there's a SHA collision between
+	// the two different repositories.
 	repoPath := filepath.Join(c.opts.DataPath, "repo")
 
 	repoOpts := vcs.GitRepoOptions{
@@ -255,12 +228,7 @@ func (c *Component) pollFile(ctx context.Context, args Arguments) error {
 		return err
 	}
 
-	f, err := flow.ReadFile(c.opts.ID, bb)
-	if err != nil {
-		return err
-	}
-
-	return c.ctrl.LoadFile(f, args.Arguments)
+	return c.mod.LoadFlowContent(args.Arguments, string(bb))
 }
 
 // CurrentHealth implements component.HealthComponent.
@@ -268,18 +236,17 @@ func (c *Component) CurrentHealth() component.Health {
 	c.healthMut.RLock()
 	defer c.healthMut.RUnlock()
 
-	return c.health
+	// Report local health if it's unhealthy, otherwise fall back to the module's
+	// representation of health.
+	if c.health.Health == component.HealthTypeUnhealthy {
+		return c.health
+	}
+	return c.mod.CurrentHealth()
 }
 
 // Handler implements component.HTTPComponent.
 func (c *Component) Handler() http.Handler {
-	r := mux.NewRouter()
-
-	fa := api.NewFlowAPI(c.ctrl, r)
-	fa.RegisterRoutes("/", r)
-
-	r.PathPrefix("/{id}/").Handler(c.ctrl.ComponentHandler())
-	return r
+	return c.mod.Handler()
 }
 
 // DebugInfo implements component.DebugComponent.

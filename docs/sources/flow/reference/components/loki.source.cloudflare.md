@@ -5,7 +5,7 @@ title: loki.source.cloudflare
 # loki.source.cloudflare
 
 `loki.source.cloudflare` pulls logs from the Cloudflare Logpull API and
-forwards them to other `loki.*` components. 
+forwards them to other `loki.*` components.
 
 These logs contain data related to the connecting client, the request path
 through the Cloudflare network, and the response from the origin web server and
@@ -79,74 +79,74 @@ The last timestamp fetched by the component is recorded in the
 `loki_source_cloudflare_target_last_requested_end_timestamp` debug metric.
 
 All incoming Cloudflare log entries are in JSON format. You can make use of the
-`loki.process` component and a JSON procssing stage to extract more labels or
+`loki.process` component and a JSON processing stage to extract more labels or
 change the log line format. A sample log looks like this:
-```
+```json
 {
-	"CacheCacheStatus": "miss",
-	"CacheResponseBytes": 8377,
-	"CacheResponseStatus": 200,
-	"CacheTieredFill": false,
-	"ClientASN": 786,
-	"ClientCountry": "gb",
-	"ClientDeviceType": "desktop",
-	"ClientIP": "100.100.5.5",
-	"ClientIPClass": "noRecord",
-	"ClientRequestBytes": 2691,
-	"ClientRequestHost": "www.foo.com",
-	"ClientRequestMethod": "GET",
-	"ClientRequestPath": "/comments/foo/",
-	"ClientRequestProtocol": "HTTP/1.0",
-	"ClientRequestReferer": "https://www.foo.com/foo/168855/?offset=8625",
-	"ClientRequestURI": "/foo/15248108/",
-	"ClientRequestUserAgent": "some bot",
-	"ClientSSLCipher": "ECDHE-ECDSA-AES128-GCM-SHA256",
-	"ClientSSLProtocol": "TLSv1.2",
-	"ClientSrcPort": 39816,
-	"ClientXRequestedWith": "",
-	"EdgeColoCode": "MAN",
-	"EdgeColoID": 341,
-	"EdgeEndTimestamp": 1637336610671000000,
-	"EdgePathingOp": "wl",
-	"EdgePathingSrc": "macro",
-	"EdgePathingStatus": "nr",
-	"EdgeRateLimitAction": "",
-	"EdgeRateLimitID": 0,
-	"EdgeRequestHost": "www.foo.com",
-	"EdgeResponseBytes": 14878,
-	"EdgeResponseCompressionRatio": 1,
-	"EdgeResponseContentType": "text/html",
-	"EdgeResponseStatus": 200,
-	"EdgeServerIP": "8.8.8.8",
-	"EdgeStartTimestamp": 1637336610517000000,
-	"FirewallMatchesActions": [],
-	"FirewallMatchesRuleIDs": [],
-	"FirewallMatchesSources": [],
-	"OriginIP": "8.8.8.8",
-	"OriginResponseBytes": 0,
-	"OriginResponseHTTPExpires": "",
-	"OriginResponseHTTPLastModified": "",
-	"OriginResponseStatus": 200,
-	"OriginResponseTime": 123000000,
-	"OriginSSLProtocol": "TLSv1.2",
-	"ParentRayID": "00",
-	"RayID": "6b0a...",
+    "CacheCacheStatus": "miss",
+    "CacheResponseBytes": 8377,
+    "CacheResponseStatus": 200,
+    "CacheTieredFill": false,
+    "ClientASN": 786,
+    "ClientCountry": "gb",
+    "ClientDeviceType": "desktop",
+    "ClientIP": "100.100.5.5",
+    "ClientIPClass": "noRecord",
+    "ClientRequestBytes": 2691,
+    "ClientRequestHost": "www.foo.com",
+    "ClientRequestMethod": "GET",
+    "ClientRequestPath": "/comments/foo/",
+    "ClientRequestProtocol": "HTTP/1.0",
+    "ClientRequestReferer": "https://www.foo.com/foo/168855/?offset=8625",
+    "ClientRequestURI": "/foo/15248108/",
+    "ClientRequestUserAgent": "some bot",
+    "ClientSSLCipher": "ECDHE-ECDSA-AES128-GCM-SHA256",
+    "ClientSSLProtocol": "TLSv1.2",
+    "ClientSrcPort": 39816,
+    "ClientXRequestedWith": "",
+    "EdgeColoCode": "MAN",
+    "EdgeColoID": 341,
+    "EdgeEndTimestamp": 1637336610671000000,
+    "EdgePathingOp": "wl",
+    "EdgePathingSrc": "macro",
+    "EdgePathingStatus": "nr",
+    "EdgeRateLimitAction": "",
+    "EdgeRateLimitID": 0,
+    "EdgeRequestHost": "www.foo.com",
+    "EdgeResponseBytes": 14878,
+    "EdgeResponseCompressionRatio": 1,
+    "EdgeResponseContentType": "text/html",
+    "EdgeResponseStatus": 200,
+    "EdgeServerIP": "8.8.8.8",
+    "EdgeStartTimestamp": 1637336610517000000,
+    "FirewallMatchesActions": [],
+    "FirewallMatchesRuleIDs": [],
+    "FirewallMatchesSources": [],
+    "OriginIP": "8.8.8.8",
+    "OriginResponseBytes": 0,
+    "OriginResponseHTTPExpires": "",
+    "OriginResponseHTTPLastModified": "",
+    "OriginResponseStatus": 200,
+    "OriginResponseTime": 123000000,
+    "OriginSSLProtocol": "TLSv1.2",
+    "ParentRayID": "00",
+    "RayID": "6b0a...",
   "RequestHeaders": [],
   "ResponseHeaders": [
     "x-foo": "bar"
   ],
-	"SecurityLevel": "med",
-	"WAFAction": "unknown",
-	"WAFFlags": "0",
-	"WAFMatchedVar": "",
-	"WAFProfile": "unknown",
-	"WAFRuleID": "",
-	"WAFRuleMessage": "",
-	"WorkerCPUTime": 0,
-	"WorkerStatus": "unknown",
-	"WorkerSubrequest": false,
-	"WorkerSubrequestCount": 0,
-	"ZoneID": 1234
+    "SecurityLevel": "med",
+    "WAFAction": "unknown",
+    "WAFFlags": "0",
+    "WAFMatchedVar": "",
+    "WAFProfile": "unknown",
+    "WAFRuleID": "",
+    "WAFRuleMessage": "",
+    "WorkerCPUTime": 0,
+    "WorkerStatus": "unknown",
+    "WorkerSubrequest": false,
+    "WorkerSubrequestCount": 0,
+    "ZoneID": 1234
 }
 ```
 
@@ -194,4 +194,3 @@ loki.write "local" {
   }
 }
 ```
-

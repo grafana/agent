@@ -425,7 +425,7 @@ func (c *controller) ScrapeConfigs(prefix string, sdConfig *http_sd.SDConfig) []
 	var cfgs []*autoscrape.ScrapeConfig
 	for _, mi := range mm {
 		// sdConfig will be pointing to the targets API. By default, this returns absolutely everything.
-		// We want to use the query parmaeters to inform the API to only return
+		// We want to use the query parameters to inform the API to only return
 		// specific targets.
 		opts := TargetOptions{
 			Integrations: []string{mi.id.Name},

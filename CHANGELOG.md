@@ -7,20 +7,23 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-> **NOTE**: As of v0.32.0, builds for 32-bit ARMv6 currently don't support the
-> embedded Flow UI. The Flow UI will return to this target as soon as possible.
->
-> **NOTE**: The main branch currently doesn't support any 32-bit ARM builds.
-> Support for these builds will return as soon as possible, ideally before
-> v0.33 is released.
-
 Main (unreleased)
 -----------------
 
 ### Breaking changes
 
-- Support for 32-bit ARM builds is temporarily removed. We are aiming to bring
-  back support for these builds prior to publishing v0.33.0. (@rfratto)
+- Support for 32-bit ARM builds is removed for the foreseeable future due to Go
+  compiler issues. We will consider bringing back 32-bit ARM support once our Go
+  compiler issues are resolved and 32-bit ARM builds are stable. (@rfratto)
+
+- Agent Management: `agent_management.api_url` config field has been replaced by
+`agent_management.host`. The API path and version is now defined by the Agent. (@jcreixell)
+
+- Agent Management: `agent_management.protocol` config field now allows defining "http" and "https" explicitly. Previously, "http" was previously used for both, with the actual protocol used inferred from the api url, which led to confusion. When upgrading, make sure to set to "https" when replacing `api_url` with `host`. (@jcreixell)
+
+### Deprecations
+
+- [Dynamic Configuration](https://grafana.com/docs/agent/latest/cookbook/dynamic-configuration/) will be removed in v0.34. Grafana Agent Flow supersedes this functionality. (@mattdurham)
 
 ### Features
 
@@ -30,26 +33,87 @@ Main (unreleased)
   - `discovery.lightsail` service discovery for aws lightsail. (@captncraig)
   - `module.string` runs a Grafana Agent Flow module passed to the component by
     an expression containing a string. (@erikbaranowski, @rfratto)
+  - `module.file` runs a Grafana Agent Flow module passed to the component by
+    an expression containing a file. (@erikbaranowski)
   - `otelcol.auth.oauth2` performs OAuth 2.0 authentication for HTTP and gRPC
     based OpenTelemetry exporters. (@ptodev)
   - `otelcol.extension.jaeger_remote_sampling` provides an endpoint from which to
     pull Jaeger remote sampling documents. (@joe-elliott)
-  - `prometheus.exporter.blackbox` collects metrics from Blackbox exporter
-    (@marctc).
-  - `prometheus.exporter.mysql` collects metrics from a MySQL database.
-    (@spartan0x117)
+  - `prometheus.exporter.blackbox` collects metrics from Blackbox exporter. (@marctc)
+  - `prometheus.exporter.logging` accepts OpenTelemetry data from other `otelcol` components and writes it to the console. (@erikbaranowski)
+  - `prometheus.exporter.mysql` collects metrics from a MySQL database. (@spartan0x117)
   - `prometheus.exporter.postgres` collects metrics from a PostgreSQL database. (@spartan0x117)
+  - `prometheus.exporter.statsd` collects metrics from a Statsd instance. (@gaantunes)
+  - `prometheus.exporter.snmp` collects metrics from SNMP exporter. (@marctc)
+  - `prometheus.operator.podmonitors` discovers PodMonitor resources in your Kubernetes cluster and scrape
+    the targets they reference. (@captncraig, @marctc, @jcreixell)
+  - `otelcol.auth.sigv4` performs AWS Signature Version 4 (SigV4) authentication
+    for making requests to AWS services via `otelcol` components that support
+    authentication extensions. (@ptodev)
+  - `prometheus.exporter.memcached` collects metrics from a Memcached server. (@spartan0x117)
+  - `loki.source.azure_event_hubs` reads messages from Azure Event Hub using Kafka and forwards them to other `loki`
+    components. (@akselleirv)
+  - `discovery.gce` discovers resources on Google Compute Engine (GCE). (@marctc)
+  - `discovery.digitalocean` provides service discovery for DigitalOcean. (@spartan0x117)
+
+
+- Add support for Flow-specific system packages:
+
+  - Flow-specific DEB packages. (@rfratto, @robigan)
+  - Flow-specific RPM packages. (@rfratto, @robigan)
+  - Flow-specific macOS Homebrew Formula. (@rfratto)
+  - Flow-specific Windows installer. (@rfratto)
+
+  The Flow-specific packages allow users to install and run Grafana Agent Flow
+  alongside an existing installation of Grafana Agent.
+
+- Agent Management: Add support for integration snippets. (@jcreixell)
 
 ### Enhancements
 
 - Flow: Add retries with backoff logic to Phlare write component. (@cyriltovena)
+
 - Operator: Allow setting runtimeClassName on operator-created pods. (@captncraig)
+
+- Operator: Transparently compress agent configs to stay under size limitations. (@captncraig)
+
+- Update Redis Exporter Dependency to v1.49.0. (@spartan0x117)
+
+- Update Loki dependency to the k144 branch. (@andriikushch)
+
+- Flow: Add OAUTHBEARER mechanism to `loki.source.kafka` using Azure as provider. (@akselleirv)
+
+- Update Process Exporter dependency to v0.7.10. (@spartan0x117)
+
+- Agent Management: Introduces backpressure mechanism for remote config fetching (obeys 429 request
+  `Retry-After` header). (@spartan0x117)
+
+- Flow: support client TLS settings (CA, client certificate, client key) being
+  provided from other components for the following components:
+
+  - `discovery.docker`
+  - `discovery.kubernetes`
+  - `loki.source.kafka`
+  - `loki.source.kubernetes`
+  - `loki.source.podlogs`
+  - `loki.write`
+  - `mimir.rules.kubernetes`
+  - `phlare.scrape`
+  - `phlare.write`
+  - `prometheus.remote_write`
+  - `prometheus.scrape`
+  - `remote.http`
+
+- Flow: support server TLS settings (client CA, server certificate, server key)
+  being provided from other components for the following components:
+
+  - `loki.source.syslog`
 
 ### Bugfixes
 
 - Flow: fix issue where Flow would return an error when trying to access a key
   of a map whose value was the zero value (`null`, `0`, `false`, `[]`, `{}`).
-  Whether an error was returned dependend on the internal type of the value.
+  Whether an error was returned depended on the internal type of the value.
   (@rfratto)
 
 - Flow: fix issue where using the `jaeger_remote` sampler for the `tracing`
@@ -67,17 +131,32 @@ Main (unreleased)
 - Flow: fix deadlock in `loki.process` where a component with no stages would
   hang forever on handling logs. (@rfratto)
 
+- Fix issue where a DefaultConfig might be mutated during unmarshaling. (@jcreixell)
+
+- Fix issues where CloudWatch Exporter cannot use FIPS Endpoints outside of USA regions (@aglees)
+
+- Fix issue where scraping native Prometheus histograms would leak memory.
+  (@rfratto)
+
+- Flow: fix issue where `loki.source.docker` component could deadlock. (@tpaschalis)
+
+- Flow: fix issue where `prometheus.remote_write` created unnecessary extra
+  child directories to store the WAL in. (@rfratto)
+
+- Fix internal metrics reported as invalid by promtool's linter. (@tpaschalis)
+
 ### Other changes
 
 - Grafana Agent Docker containers and release binaries are now published for
   s390x. (@rfratto)
 
-- Use Go 1.20.2 for builds. (@rfratto)
-
-- Bring back the Flow UI for 32-bit ARMv6 builds. (@rfratto)
+- Use Go 1.20.3 for builds. (@rfratto)
 
 - Change the Docker base image for Linux containers to `ubuntu:kinetic`.
   (@rfratto)
+
+- Update prometheus.remote_write defaults to match new prometheus
+  remote-write defaults. (@erikbaranowski)
 
 v0.32.1 (2023-03-06)
 --------------------
@@ -1371,7 +1450,7 @@ v0.19.0 (2021-09-29)
 
 ### Features
 
-- Added [Github exporter](https://github.com/infinityworks/github-exporter)
+- Added [GitHub exporter](https://github.com/infinityworks/github-exporter)
   integration. (@rgeyer)
 
 - Add TLS config options for tempo `remote_write`s. (@mapno)
@@ -1491,7 +1570,7 @@ v0.18.0 (2021-07-29)
 
 ### Features
 
-- Added [Github exporter](https://github.com/infinityworks/github-exporter)
+- Added [GitHub exporter](https://github.com/infinityworks/github-exporter)
   integration. (@rgeyer)
 
 - Add support for OTLP HTTP trace exporting. (@mapno)
@@ -1577,7 +1656,7 @@ v0.15.0 (2021-06-03)
 - Update Loki dependency to d88f3996eaa2. This is a non-release build, and was
   needed to support exemplars. (@mapno)
 
-- Update Cortex dependency to to d382e1d80eaf. This is a non-release build, and
+- Update Cortex dependency to d382e1d80eaf. This is a non-release build, and
   was needed to support exemplars. (@mapno)
 
 ### Bugfixes
@@ -2034,7 +2113,7 @@ v0.7.0 (2020-10-23)
 - The instance label written from replace_instance_label can now be overwritten
   with relabel_configs. This bugfix slightly modifies the behavior of what data
   is stored. The final instance label will now be stored in the WAL rather than
-  computed by remote_write. This change should not negatively effect existing
+  computed by remote_write. This change should not negatively affect existing
   users. (@rfratto)
 
 v0.6.1 (2020-04-11)
