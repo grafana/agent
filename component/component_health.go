@@ -96,3 +96,37 @@ func (ht *HealthType) UnmarshalText(text []byte) error {
 	}
 	return nil
 }
+
+// LeastHealthy returns the Health from the provided arguments which is
+// considered to be the least healthy.
+//
+// Health types are first prioritized by [HealthTypeExited], followed by
+// [HealthTypeUnhealthy], [HealthTypeHealthy], and [HealthTypeUnknown].
+//
+// If multiple arguments have the same Health type, the Health with the most
+// recent timestamp is returned.
+//
+// Finally, if multiple arguments have the same Health type and the same
+// timestamp, the earlier argument is chosen.
+func LeastHealthy(h Health, hh ...Health) Health {
+	if len(hh) == 0 {
+		return h
+	}
+
+	leastHealthy := h
+
+	for _, compareHealth := range hh {
+		switch {
+		case compareHealth.Health > leastHealthy.Health:
+			// Higher health precedence.
+			leastHealthy = compareHealth
+		case compareHealth.Health == leastHealthy.Health:
+			// Same health precedence; check timestamp.
+			if compareHealth.UpdateTime.After(leastHealthy.UpdateTime) {
+				leastHealthy = compareHealth
+			}
+		}
+	}
+
+	return leastHealthy
+}
