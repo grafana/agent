@@ -16,7 +16,7 @@ The `prometheus.exporter.consul` component embeds
 ## Usage
 
 ```river
-prometheus.exporter.consul "LABEL"{
+prometheus.exporter.consul "LABEL" {
 }
 ```
 
