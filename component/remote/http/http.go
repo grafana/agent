@@ -37,6 +37,7 @@ type Arguments struct {
 	URL           string        `river:"url,attr"`
 	PollFrequency time.Duration `river:"poll_frequency,attr,optional"`
 	PollTimeout   time.Duration `river:"poll_timeout,attr,optional"`
+	FailOnError   bool          `river:"fail_on_error,attr,optional"`
 	IsSecret      bool          `river:"is_secret,attr,optional"`
 
 	Client common_config.HTTPClientConfig `river:"client,block,optional"`
@@ -47,6 +48,7 @@ var DefaultArguments = Arguments{
 	PollFrequency: 1 * time.Minute,
 	PollTimeout:   10 * time.Second,
 	Client:        common_config.DefaultHTTPClientConfig,
+	FailOnError:   false,
 }
 
 var _ river.Unmarshaler = (*Arguments)(nil)
@@ -129,7 +131,7 @@ func (c *Component) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case <-time.After(c.nextPoll()):
-			c.poll()
+			return c.poll()
 		case <-c.updated:
 			// no-op; force the next wait to be reread.
 		}
@@ -155,7 +157,7 @@ func (c *Component) nextPoll() time.Duration {
 // poll performs a HTTP GET for the component's configured URL. c.mut must
 // not be held when calling. After polling, the component's health is updated
 // with the success or failure status.
-func (c *Component) poll() {
+func (c *Component) poll() error {
 	startTime := time.Now()
 	err := c.pollError()
 
@@ -176,7 +178,11 @@ func (c *Component) poll() {
 			Message:    fmt.Sprintf("polling failed: %s", err),
 			UpdateTime: startTime,
 		}
+
+		return err
 	}
+
+	return nil
 }
 
 // pollError is like poll but returns an error if one occurred.
@@ -236,7 +242,9 @@ func (c *Component) Update(args component.Arguments) (err error) {
 		if err != nil {
 			return
 		}
-		c.poll()
+		if err = c.poll(); err != nil && !c.args.FailOnError {
+			err = nil
+		}
 	}()
 
 	c.mut.Lock()

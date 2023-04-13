@@ -3,6 +3,8 @@ package http_test
 import (
 	"context"
 	"fmt"
+	"github.com/grafana/agent/component"
+	"github.com/prometheus/client_golang/prometheus"
 	"net/http"
 	"net/http/httptest"
 	"sync"
@@ -78,6 +80,58 @@ func Test(t *testing.T) {
 			Value:    "Testing!",
 		},
 	})
+}
+func TestFailOnError(t *testing.T) {
+	var tests = []struct {
+		testname      string
+		cfg           http_component.Arguments
+		expectedError string
+	}{
+		{
+			"default",
+			http_component.Arguments{
+				URL:         "http://0.0.0.1",
+				PollTimeout: 10 * time.Millisecond,
+			},
+			``,
+		},
+		{
+			"fail_on_error = true",
+			http_component.Arguments{
+				URL:         "http://0.0.0.1",
+				PollTimeout: 10 * time.Millisecond,
+				FailOnError: true,
+			},
+			`performing request: Get "http://0.0.0.1": dial tcp 0.0.0.1:80: connect: no route to host`,
+		},
+		{
+			"fail_on_error = false",
+			http_component.Arguments{
+				URL:         "http://0.0.0.1",
+				PollTimeout: 10 * time.Millisecond,
+				FailOnError: false,
+			},
+			``,
+		},
+	}
+	for _, _tt := range tests {
+		tt := _tt
+		t.Run(tt.testname, func(t *testing.T) {
+			o := component.Options{
+				ID:            "t1",
+				OnStateChange: func(_ component.Exports) {},
+				Registerer:    prometheus.NewRegistry(),
+			}
+			httpComponent, err := http_component.New(o, tt.cfg)
+			if tt.expectedError == "" {
+				require.NoError(t, err)
+				require.NotNil(t, httpComponent)
+			} else {
+				require.EqualError(t, err, tt.expectedError)
+				require.Nil(t, httpComponent)
+			}
+		})
+	}
 }
 
 func eventually(t *testing.T, min, max time.Duration, retries int, f func() error) {

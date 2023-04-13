@@ -31,6 +31,7 @@ Name | Type | Description | Default | Required
 `poll_frequency` | `duration` | Frequency to poll the URL. | `"1m"` | no
 `poll_timeout` | `duration` | Timeout when polling the URL. | `"10s"` | no
 `is_secret` | `bool` | Whether the response body should be treated as a secret. | false | no
+`fail_on_error` | `bool` | Throw an error, if http connection is not successful | false | no
 
 When `remote.http` performs a poll operation, an HTTP `GET` request is made
 against the URL specified by the `url` argument. A poll is triggered by the
