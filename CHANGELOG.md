@@ -87,7 +87,7 @@ Main (unreleased)
 
 - Agent Management: Introduces backpressure mechanism for remote config fetching (obeys 429 request
   `Retry-After` header). (@spartan0x117)
-
+  
 - Flow: support client TLS settings (CA, client certificate, client key) being
   provided from other components for the following components:
 
@@ -98,6 +98,13 @@ Main (unreleased)
   - `loki.source.podlogs`
   - `loki.write`
   - `mimir.rules.kubernetes`
+  - `otelcol.auth.oauth2`
+  - `otelcol.exporter.jaeger`
+  - `otelcol.exporter.otlp`
+  - `otelcol.exporter.otlphttp`
+  - `otelcol.extension.jaeger_remote_sampling`
+  - `otelcol.receiver.jaeger`
+  - `otelcol.receiver.kafka`
   - `phlare.scrape`
   - `phlare.write`
   - `prometheus.remote_write`
@@ -108,6 +115,11 @@ Main (unreleased)
   being provided from other components for the following components:
 
   - `loki.source.syslog`
+  - `otelcol.exporter.otlp`
+  - `otelcol.extension.jaeger_remote_sampling`
+  - `otelcol.receiver.jaeger`
+  - `otelcol.receiver.opencensus`
+  - `otelcol.receiver.zipkin`
 
 ### Bugfixes
 
