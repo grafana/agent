@@ -37,20 +37,38 @@ func (bf *blockField) convertBlock(namePrefix []string, reflectValue reflect.Val
 		}
 		reflectValue = reflectValue.Elem()
 	}
-	if reflectValue.Kind() != reflect.Struct {
-		return fmt.Errorf("convertBlock can only be called on struct kinds, got %s", reflectValue.Kind())
-	}
 
-	bf.Name = strings.Join(mergeStringSlices(namePrefix, f.Name), ".")
-	bf.Type = "block"
-	bf.Label = getBlockLabel(reflectValue)
+	switch reflectValue.Kind() {
+	case reflect.Struct:
+		bf.Name = strings.Join(mergeStringSlices(namePrefix, f.Name), ".")
+		bf.Type = "block"
+		bf.Label = getBlockLabel(reflectValue)
 
-	fields, err := getFieldsForBlock(namePrefix, reflectValue.Interface())
-	if err != nil {
-		return err
+		fields, err := getFieldsForBlockStruct(namePrefix, reflectValue.Interface())
+		if err != nil {
+			return err
+		}
+		bf.Body = fields
+		return nil
+
+	case reflect.Map:
+		if reflectValue.Type().Key().Kind() != reflect.String {
+			return fmt.Errorf("convertBlock given unsupported map type; expected map[string]T, got %s", reflectValue.Type())
+		}
+
+		bf.Name = strings.Join(mergeStringSlices(namePrefix, f.Name), ".")
+		bf.Type = "block"
+
+		fields, err := getFieldsForBlockMap(reflectValue)
+		if err != nil {
+			return err
+		}
+		bf.Body = fields
+		return nil
+
+	default:
+		return fmt.Errorf("convertBlock can only be called on struct or map kinds, got %s", reflectValue.Kind())
 	}
-	bf.Body = fields
-	return nil
 }
 
 // getBlockLabel returns the label for a given block.
@@ -65,7 +83,7 @@ func getBlockLabel(rv reflect.Value) string {
 	return ""
 }
 
-func getFieldsForBlock(namePrefix []string, input interface{}) ([]interface{}, error) {
+func getFieldsForBlockStruct(namePrefix []string, input interface{}) ([]interface{}, error) {
 	val := value.Encode(input)
 	reflectVal := val.Reflect()
 	rt := rivertags.Get(reflectVal.Type())
@@ -119,6 +137,27 @@ func getFieldsForBlock(namePrefix []string, input interface{}) ([]interface{}, e
 			panic(fmt.Sprintf("river/encoding: unrecognized field %#v", t))
 		}
 	}
+	return fields, nil
+}
+
+func getFieldsForBlockMap(val reflect.Value) ([]interface{}, error) {
+	var fields []interface{}
+
+	it := val.MapRange()
+	for it.Next() {
+		// Make a fake field so newAttribute works properly.
+		field := rivertags.Field{
+			Name:  []string{it.Key().String()},
+			Flags: rivertags.FlagAttr,
+		}
+		attr, err := newAttribute(value.FromRaw(it.Value()), field)
+		if err != nil {
+			return nil, err
+		}
+
+		fields = append(fields, attr)
+	}
+
 	return fields, nil
 }
 

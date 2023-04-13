@@ -56,7 +56,7 @@ down the issues involving the components you want to work on.
 To build Grafana Agent from source code, please install the following tools:
 
 1. [Git](https://git-scm.com/)
-2. [Go](https://golang.org/) (version 1.18 and up)
+2. [Go](https://golang.org/) (version 1.19 and up)
 3. [Make](https://www.gnu.org/software/make/)
 4. [Docker](https://www.docker.com/)
 
@@ -163,17 +163,16 @@ To add or update a new dependency, use the `go get` command:
 
 ```bash
 # Pick the latest tagged release.
-go install example.com/some/module/pkg@latest
+go get example.com/some/module/pkg@latest
 
 # Pick a specific version.
-go install example.com/some/module/pkg@vX.Y.Z
+go get example.com/some/module/pkg@vX.Y.Z
 ```
 
 Tidy up the `go.mod` and `go.sum` files:
 
 ```bash
-# The GO111MODULE variable can be omitted when the code isn't located in GOPATH.
-GO111MODULE=on go mod tidy
+go mod tidy
 ```
 
 You have to commit the changes to `go.mod` and `go.sum` before submitting the

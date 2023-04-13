@@ -4,7 +4,7 @@ local pipelines = import '../util/pipelines.jsonnet';
 [
   pipelines.linux('Test Linux system packages') {
     trigger: {
-      event: ['pull_request'],
+      ref: ['refs/heads/main'],
       paths: [
         'packaging/**',
         'Makefile',

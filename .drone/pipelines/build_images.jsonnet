@@ -1,8 +1,8 @@
 local pipelines = import '../util/pipelines.jsonnet';
 
 local locals = {
-  on_pr: {
-    event: { include: ['pull_request'] },
+  on_merge: {
+    ref: ['refs/heads/main'],
     paths: { include: ['build-image/**'] },
   },
   on_build_image_tag: {
@@ -17,7 +17,7 @@ local locals = {
 
 [
   pipelines.linux('Check Linux build image') {
-    trigger: locals.on_pr,
+    trigger: locals.on_merge,
     steps: [{
       name: 'Build',
       image: 'docker',
@@ -60,7 +60,7 @@ local locals = {
   },
 
   pipelines.windows('Check Windows build image') {
-    trigger: locals.on_pr,
+    trigger: locals.on_merge,
     steps: [{
       name: 'Build',
       image: 'docker:windowsservercore-1809',
