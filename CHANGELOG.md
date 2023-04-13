@@ -85,6 +85,9 @@ Main (unreleased)
 
 - Update Process Exporter dependency to v0.7.10. (@spartan0x117)
 
+- Agent Management: Introduces backpressure mechanism for remote config fetching (obeys 429 request
+  `Retry-After` header). (@spartan0x117)
+  
 - Flow: support client TLS settings (CA, client certificate, client key) being
   provided from other components for the following components:
 
