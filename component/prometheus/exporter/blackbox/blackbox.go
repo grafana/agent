@@ -1,6 +1,8 @@
 package blackbox
 
 import (
+	blackbox_config "github.com/prometheus/blackbox_exporter/config"
+	"gopkg.in/yaml.v2"
 	"time"
 
 	"github.com/grafana/agent/component"
@@ -76,9 +78,11 @@ func (t TargetBlock) Convert() []blackbox_exporter.BlackboxTarget {
 }
 
 type Arguments struct {
-	ConfigFile         string        `river:"config_file,attr"`
+	ConfigFile         string        `river:"config_file,attr,optional"`
+	Config             string        `river:"config,attr,optional"`
 	Targets            TargetBlock   `river:"target,block"`
 	ProbeTimeoutOffset time.Duration `river:"probe_timeout_offset,attr,optional"`
+	ConfigStruct       blackbox_config.Config
 }
 
 // UnmarshalRiver implements River unmarshalling for Arguments.
@@ -86,13 +90,23 @@ func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	*a = DefaultArguments
 
 	type args Arguments
-	return f((*args)(a))
+	if err := f((*args)(a)); err != nil {
+		return err
+	}
+
+	err := yaml.UnmarshalStrict([]byte(a.Config), &a.ConfigStruct)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Convert converts the component's Arguments to the integration's Config.
 func (a *Arguments) Convert() *blackbox_exporter.Config {
 	return &blackbox_exporter.Config{
 		BlackboxConfigFile: a.ConfigFile,
+		BlackboxConfig:     a.ConfigStruct,
 		BlackboxTargets:    a.Targets.Convert(),
 		ProbeTimeoutOffset: a.ProbeTimeoutOffset.Seconds(),
 	}

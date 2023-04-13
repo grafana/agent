@@ -38,6 +38,36 @@ func TestUnmarshalRiver(t *testing.T) {
 	require.Contains(t, "http_2xx", args.Targets[1].Module)
 }
 
+func TestUnmarshalRiverWithInlineConfig(t *testing.T) {
+	riverCfg := `
+		config = "{ modules: { http_2xx: { prober: http, timeout: 5s } } }"
+
+		target "target_a" {
+			address = "http://example.com"
+			module = "http_2xx"
+		}
+		target "target_b" {
+			address = "http://grafana.com"
+			module = "http_2xx"
+		}
+		probe_timeout_offset = "0.5s"
+`
+	var args Arguments
+	err := river.Unmarshal([]byte(riverCfg), &args)
+	require.NoError(t, err)
+	require.Equal(t, "", args.ConfigFile)
+	require.Equal(t, args.ConfigStruct.Modules["http_2xx"].Prober, "http")
+	require.Equal(t, args.ConfigStruct.Modules["http_2xx"].Timeout, 5*time.Second)
+	require.Equal(t, 2, len(args.Targets))
+	require.Equal(t, 500*time.Millisecond, args.ProbeTimeoutOffset)
+	require.Contains(t, "target_a", args.Targets[0].Name)
+	require.Contains(t, "http://example.com", args.Targets[0].Target)
+	require.Contains(t, "http_2xx", args.Targets[0].Module)
+	require.Contains(t, "target_b", args.Targets[1].Name)
+	require.Contains(t, "http://grafana.com", args.Targets[1].Target)
+	require.Contains(t, "http_2xx", args.Targets[1].Module)
+}
+
 func TestConvertConfig(t *testing.T) {
 	args := Arguments{
 		ConfigFile:         "modules.yml",
