@@ -237,12 +237,7 @@ func (c *Component) CurrentHealth() component.Health {
 	c.healthMut.RLock()
 	defer c.healthMut.RUnlock()
 
-	// Report local health if it's unhealthy, otherwise fall back to the module's
-	// representation of health.
-	if c.health.Health == component.HealthTypeUnhealthy {
-		return c.health
-	}
-	return c.mod.CurrentHealth()
+	return component.LeastHealthy(c.health, c.mod.CurrentHealth())
 }
 
 // Handler implements component.HTTPComponent.

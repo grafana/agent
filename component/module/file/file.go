@@ -154,7 +154,10 @@ func (c *Component) Handler() http.Handler {
 
 // CurrentHealth implements component.HealthComponent.
 func (c *Component) CurrentHealth() component.Health {
-	return c.mod.CurrentHealth()
+	return component.LeastHealthy(
+		c.managedLocalFile.CurrentHealth(),
+		c.mod.CurrentHealth(),
+	)
 }
 
 // getArgs is a goroutine safe way to get args
