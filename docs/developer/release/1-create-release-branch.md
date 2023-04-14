@@ -2,22 +2,11 @@
 
 A single release branch is created for every major or minor release. That release
 branch is then used for all Release Candidates, the Stable Release, and all
-Patch Releases.
+Patch Releases for that minor [version](concepts/version.md) of the agent.
 
-## Release Version Prefix
+## Before you begin
 
-The `RELEASE_VERSION_PREFIX` can be determined by looking at the last release
-version and adding 1 to it. Also, drop off the third number as shown in the examples below:
-
-- v0.30.0 -> v0.31
-- v0.30.3 -> v0.31
-
-For a major version we jump up the first number as shown in the examples below:
-
-- v0.10.0 -> v1.0
-- v0.31.0 -> v1.0
-
-*NOTE: This value will be referred to as `RELEASE_VERSION_PREFIX` in this documentation*
+1. Determine the [VERSION_PREFIX](concepts/version.md).
 
 ## Steps
 
@@ -25,10 +14,10 @@ For a major version we jump up the first number as shown in the examples below:
 
 2. Create and push the release branch from the selected base commit:
 
-    The name of the release branch should be `release-RELEASE_VERSION_PREFIX`
+    The name of the release branch should be `release-VERSION_PREFIX`
     defined above, such as `release-v0.31`.
 
-        > **NOTE**: Branches are only made for RELEASE_VERSION_PREFIX; do not create branches for the full RELEASE_VERSION such as `release-v0.31-rc.0` or `release-v0.31.0`.
+        > **NOTE**: Branches are only made for VERSION_PREFIX; do not create branches for the full VERSION such as `release-v0.31-rc.0` or `release-v0.31.0`.
 
     - If the consensus commit is the latest commit from main you can branch from main.
     - If the consensus commit is not the latest commit from main, branch from that instead.

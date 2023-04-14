@@ -6,36 +6,58 @@ the repository, including Grafana Agent and Grafana Agent Operator.
 
 The processes described here are for v0.24.0 and above.
 
-# Prerequisites
-
-These [Prerequisites](./prerequisites.md) should be done by the release shepherd 
-before taking any actions.
-
 # Workflows
 
 Once a release is scheduled, a release shepherd is determined. This person will be 
 responsible for ownership of the following workflows:
 
-- Release Candidate Publish
-  - [Actions] 1-4,6-7,9
-- Additional Release Candidate[s] Publish
-  - [Actions] 2-4,6-7,9
-- Stable Release Publish
-  - [Actions] 2-9
-- Patch Release Publish (latest version)
-  - [Actions] 2-6,8-9
-- Patch Release Publish (older version)
-  - Not documented yet (but here are some hints)
-      - somewhat similar to Patch Release Publish (latest version)
-      - find the old release branch
-      - cherry-pick commit[s] into it
-      - don't update the version in the project on main
-      - changes go into the changelog under the patch release version plus stay in unreleased
-      - don't update the `release` branch
-      - don't publish in github as latest release
-      - don't update deployment tools or helm charts
+## Release Candidate Publish
+1. [Create Release Branch](./1-create-release-branch.md)
+2. [Cherry Pick Commits](./2-cherry-pick-commits.md)
+3. [Update Version in Code](./3-update-version-in-code.md)
+4. [Tag Release](./4-tag-release.md)
+5. [Publish Release](./6-publish-release.md)
+6. [Update Deployment Tools](./7-update-deployment-tools.md)
+7. [Announce Release](./9-announce-release.md)
 
-# Actions
+## Additional Release Candidate[s] Publish
+1. [Cherry Pick Commits](./2-cherry-pick-commits.md)
+2. [Update Version in Code](./3-update-version-in-code.md)
+3. [Tag Release](./4-tag-release.md)
+4. [Publish Release](./6-publish-release.md)
+5. [Update Deployment Tools](./7-update-deployment-tools.md)
+6. [Announce Release](./9-announce-release.md)
+
+## Stable Release Publish
+1. [Cherry Pick Commits](./2-cherry-pick-commits.md)
+2. [Update Version in Code](./3-update-version-in-code.md)
+3. [Tag Release](./4-tag-release.md)
+4. [Update Release Branch](./5-update-release-branch.md)
+5. [Publish Release](./6-publish-release.md)
+6. [Update Deployment Tools](./7-update-deployment-tools.md)
+7. [Update Helm Charts](./8-update-helm-charts.md)
+8. [Announce Release](./9-announce-release.md)
+
+## Patch Release Publish (latest version)
+1. [Cherry Pick Commits](./2-cherry-pick-commits.md)
+2. [Update Version in Code](./3-update-version-in-code.md)
+3. [Tag Release](./4-tag-release.md)
+4. [Update Release Branch](./5-update-release-branch.md)
+5. [Publish Release](./6-publish-release.md)
+6. [Update Helm Charts](./8-update-helm-charts.md)
+7. [Announce Release](./9-announce-release.md)
+## Patch Release Publish (older version)
+- Not documented yet (but here are some hints)
+  - somewhat similar to Patch Release Publish (latest version)
+  - find the old release branch
+  - cherry-pick commit[s] into it
+  - don't update the version in the project on main
+  - changes go into the changelog under the patch release version plus stay in unreleased
+  - don't update the `release` branch
+  - don't publish in github as latest release
+  - don't update deployment tools or helm charts
+
+# Task Index
 
 1. [Create Release Branch](./1-create-release-branch.md)
 2. [Cherry Pick Commits](./2-cherry-pick-commits.md)
@@ -47,7 +69,7 @@ responsible for ownership of the following workflows:
 8. [Update Helm Charts](./8-update-helm-charts.md)
 9. [Announce Release](./9-announce-release.md)
 
-[Actions]: #Actions
+[Tasks]: #Tasks
 
 # Release Cycle
 

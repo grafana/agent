@@ -2,6 +2,10 @@
 
 Our Helm charts require some version updates as well.
 
+## Before you begin
+
+1. Install [helm-docs](https://github.com/norwoodj/helm-docs) on macOS/Linux.
+
 ## Steps
 
 1. Create a branch from `main` for [grafana/helm-charts](https://github.com/grafana/helm-charts).

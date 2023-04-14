@@ -2,6 +2,10 @@
 
 The `release` branch is a special branch that is used for grafana cloud to point at our install scripts and example kubernetes manifests. This is not to be confused with `release-RELEASE_VERSION_PREFIX` created in [Create Release Branch](./1-create-release-branch.md)
 
+## Before you begin
+
+1. The release tag should exist from [Tag Release](./4-tag-release.md)
+
 ## Steps
 
 1. Force push the release tag to the `release` branch
@@ -9,7 +13,7 @@ The `release` branch is a special branch that is used for grafana cloud to point
     ```
     git fetch
     git checkout main
-    git branch -f release RELEASE_VERSION
+    git branch -f release VERSION
     git push -f origin refs/heads/release
     ```
 

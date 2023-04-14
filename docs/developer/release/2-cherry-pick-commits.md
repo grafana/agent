@@ -1,7 +1,10 @@
 # Cherry Pick Commits
 
-Any commits not on the release branch need to be cherry-picked over to it. If the release branch
-has all code changes on it, skip this step.
+Any commits not on the release branch need to be cherry-picked over to it.
+
+## Before you begin
+
+1. If the release branch already has all code changes on it, skip this step.
 
 ## Steps
 
