@@ -1,10 +1,10 @@
 # Update Release Branch
 
-The `release` branch is a special branch that is used for grafana cloud to point at our install scripts and example kubernetes manifests. This is not to be confused with `release-RELEASE_VERSION_PREFIX` created in [Create Release Branch](./1-create-release-branch.md)
+The `release` branch is a special branch that is used for grafana cloud to point at our install scripts and example kubernetes manifests. This is not to be confused with `release-VERSION_PREFIX` created in [Create Release Branch](./1-create-release-branch.md)
 
 ## Before you begin
 
-1. The release tag should exist from [Tag Release](./4-tag-release.md)
+1. The release tag should exist from completing [Tag Release](./4-tag-release.md)
 
 ## Steps
 

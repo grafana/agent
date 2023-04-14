@@ -46,6 +46,7 @@ responsible for ownership of the following workflows:
 5. [Publish Release](./6-publish-release.md)
 6. [Update Helm Charts](./8-update-helm-charts.md)
 7. [Announce Release](./9-announce-release.md)
+
 ## Patch Release Publish (older version)
 - Not documented yet (but here are some hints)
   - somewhat similar to Patch Release Publish (latest version)
@@ -57,37 +58,8 @@ responsible for ownership of the following workflows:
   - don't publish in github as latest release
   - don't update deployment tools or helm charts
 
-# Task Index
-
-1. [Create Release Branch](./1-create-release-branch.md)
-2. [Cherry Pick Commits](./2-cherry-pick-commits.md)
-3. [Update Version in Code](./3-update-version-in-code.md)
-4. [Tag Release](./4-tag-release.md)
-5. [Update Release Branch](./5-update-release-branch.md)
-6. [Publish Release](./6-publish-release.md)
-7. [Test Release](./7-test-release.md)
-8. [Update Helm Charts](./8-update-helm-charts.md)
-9. [Announce Release](./9-announce-release.md)
-
-[Tasks]: #Tasks
-
 # Release Cycle
 
 A typical release cycle is to have a Release Candidate published for at least 48 
 hours followed by a Stable Release. 0 or more Patch Releases may occur between the Stable Release
 and the creation of the next Release Candidate.
-
-```mermaid
-flowchart LR
-    A(RCV) -->|>48 hours| B(SRV)
-    B --> C(PRV 1)
-    C --> D(PRV 2)
-    D --> E(...)
-    E --> F(New RCV)
-```
-
-RCV = Release Candidate Version
-
-SRV = Stable Release Version
-
-PRV = Patch Release Version

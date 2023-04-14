@@ -15,10 +15,10 @@ The project must be updated to reference the upcoming release tag whenever a new
 2. Update the `CHANGELOG.md`:
 
     1. `CHANGELOG.md` Header
-        - First RCV or a PRV
+        - First Release Candidate or a Patch Release
             - Add a new header under `Main (unreleased)` for `VERSION (YYYY-MM-DD)`.
         - Additional RCV or SRV
-            - Update the header `[previous Release Candidate version] (YYYY-MM-DD)` to `VERSION (YYYY-MM-DD)`. The date may need updating.
+            - Update the header `PREVIOUS_RELEASE_CANDIDATE_VERSION (YYYY-MM-DD)` to `VERSION (YYYY-MM-DD)`. The date may need updating.
 
     2. Move the unreleased changes we want to add to the release branch from `Main (unreleased)` to `VERSION (YYYY-MM-DD)`.
 

@@ -20,8 +20,8 @@ This is how to publish the release in GitHub.
 
 4. At the bottom of the release page, perform the following:
     - Tick the check box to "add a discussion" under the category for "announcements".
-    - For a RCV, tick the checkbox to "pre-release".
-    - For a SRV or PRV, tick the checkbox to "set as the latest release".
+    - For a Release Candidate, tick the checkbox to "pre-release".
+    - For a Stable Release or Patch Release, tick the checkbox to "set as the latest release".
 
 5. Optionally, have other team members review the release draft if you wish
    to feel more comfortable with it.

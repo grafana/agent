@@ -15,7 +15,7 @@ You made it! This is the last step for any release.
     We'll be publishing STABLE_RELEASE_VERSION on STABLE_RELEASE_DATE if we haven't heard about any major issues.
     ```
 
-    - Example SRV or PRV message:
+    - Example Stable Release or Patch Release message:
 
     ```
     :grafana-agent: Grafana Agent RELEASE_VERSION is now available! :grafana-agent:
