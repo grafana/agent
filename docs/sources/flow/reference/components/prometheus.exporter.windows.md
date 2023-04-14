@@ -69,63 +69,94 @@ logical_disk | [logical_disk][] | Configures the logical_disk collector. | no
 ### exchange block
 Name | Type     | Description | Default | Required
 ---- |----------| ----------- | ------- | --------
-`enabled_list` | `string` | Comma-separated list of collectors to use, for example:`AvailabilityService,OutlookWebAccess`. Matching is case-sensetive |  | no
+`enabled_list` | `string` | Comma-separated list of collectors to use. | | no
+
+The collectors specified by `enabled_list` can include the following:
+
+- `ADAccessProcesses`
+- `TransportQueues`
+- `HttpProxy`
+- `ActiveSync`
+- `AvailabilityService`
+- `OutlookWebAccess`
+- `Autodiscover`
+- `WorkloadManagement`
+- `RpcClientAccess` 
+
+For example, `enabled_list` may be set to `"AvailabilityService,OutlookWebAccess"`. 
+
 
 ### iis block
 Name | Type     | Description | Default | Required
 ---- |----------| ----------- | ------- | --------
-`app_blacklist` | `string` | If given, an application needs to not match the blacklist regexp in order for the corresponding metrics to be reported. |  | no
-`app_whitelist` | `string` | If given, an application needs to match the whitelist regexp in order for the corresponding metrics to be reported. |  | no
-`site_blacklist` | `string` | If given, a site needs to not match the blacklist regexp in order for the corresponding metrics to be reported. |  | no
-`site_whitelist` | `string` | If given, a site needs to match the whitelist regexp in order for the corresponding metrics to be reported. |  | no
+`app_blacklist` | `string` | Regular expression of applications to ignore. |  | no
+`app_whitelist` | `string` | Regular expression of applications to report on. |  | no
+`site_blacklist` | `string` | Regular expression of sites to ignore. |  | no
+`site_whitelist` | `string` | Regular expression of sites to report on. |  | no
 
 ### text_file block
 Name | Type     | Description | Default | Required
 ---- |----------| ----------- | ------- | --------
-`text_file_directory` | `string` | The directory containing the files to be ingested. Only files with the extension .prom are read. The .prom file must end with an empty line feed to work properly. |  | no
+`text_file_directory` | `string` | The directory containing the files to be ingested. |  | no
+
+When `text_file_directory` is set, only files with the extension `.prom` inside the specified directory are read. Each `.prom` file found must end with an empty line feed to work properly.  
+
 
 ### smtp block
 Name | Type     | Description | Default | Required
 ---- |----------| ----------- | ------- | --------
-`blacklist` | `string` | Regexp of virtual servers to blacklist. Server name must both match whitelist and not match blacklist to be included. |  | no
-`whitelist` | `string` | Regexp of virtual servers to whitelist. Server name must both match whitelist and not match blacklist to be included. |  | no
+`blacklist` | `string` | Regexp of virtual servers to ignore. |  | no
+`whitelist` | `string` | Regexp of virtual servers to include. | `".+"` | no
+
+For a server name to be included, it must match the regular expression specified by `whitelist` and must _not_ match the regular expression specified by `blacklist`. 
 
 ### service block
 Name | Type     | Description | Default | Required
 ---- |----------| ----------- | ------- | --------
-`where_clause` | `string` | WQL 'where' clause to use in WMI metrics query. Limits the response to the services you specify and reduces the size of the response. |  | no
+`where_clause` | `string` | WQL 'where' clause to use in WMI metrics query. |  | no
+
+The `where_clause` argument can be used to limit the response to the services you specify, reducing the size of the response.
+
 
 ### process block
 Name | Type     | Description | Default | Required
 ---- |----------| ----------- | ------- | --------
-`blacklist` | `string` | WQL 'where' clause to use in WMI metrics query. Limits the response to the services you specify and reduces the size of the response. |  | no
-`whitelist` | `string` | WQL 'where' clause to use in WMI metrics query. Limits the response to the services you specify and reduces the size of the response. |  | no
+`blacklist` | `string` | Regular expression of processes to exclude. |  | no
+`whitelist` | `string` | Regular expression of processes to include. | `".+"` | no
+
+Processes must match the regular expression specified by `whitelist` and must _not_ match the regular expression specified by `blacklist` to be included.
 
 ### network block
 Name | Type     | Description | Default | Required
 ---- |----------| ----------- | ------- | --------
-`blacklist` | `string` | Regexp of NIC:s to whitelist. NIC name must both match whitelist and not match blacklist to be included. |  | no
-`whitelist` | `string` | Regexp of NIC:s to blacklist. NIC name must both match whitelist and not match blacklist to be included. |  | no
+`blacklist` | `string` | Regular expression of NIC:s to exclude. |  | no
+`whitelist` | `string` | Regular expression of NIC:s to include. |  | no
+
+NIC names must match the regular expression specified by `whitelist` and must _not_ match the regular expression specified by `blacklist` to be included.
 
 ### mssql block
 Name | Type     | Description | Default | Required
 ---- |----------| ----------- | ------- | --------
-`enabled_classes` | `string` | Comma-separated list of mssql WMI classes to use. |  | no
+`enabled_classes` | `string` | Comma-separated list of MSSQL WMI classes to use. |  | no
 
 ### msmq block
 Name | Type     | Description | Default | Required
 ---- |----------| ----------- | ------- | --------
-`enabled_classes` | `string` | WQL 'where' clause to use in WMI metrics query. Limits the response to the msmqs you specify and reduces the size of the response. |  | no
+`enabled_classes` | `string` | WQL 'where' clause to use in WMI metrics query. |  | no
+
+Specifying `enabled_classes` is useful to limit the response to the MSMQs you specify, reducing the size of the response. 
 
 
 ### logical_disk block
 Name | Type     | Description | Default | Required
 ---- |----------| ----------- | ------- | --------
-`blacklist` | `string` | Regexp of volumes to blacklist. Volume name must both match whitelist and not match blacklist to be included. |  | no
-`whitelist` | `string` | Regexp of volumes to whitelist. Volume name must both match whitelist and not match blacklist to be included. |  | no
+`blacklist` | `string` | Regular expression of volumes to exclude. |  | no
+`whitelist` | `string` | Regular expression of volumes to include. |  | no
+
+Volume names must match the regular expression specified by `whitelist` and must _not_ match the regular expression specified by `blacklist` to be included.
 
 ## Exported fields
-The following fields are exported and can be referenced by other components.
+The following fields are exported and can be referenced by other components:
 
 Name      | Type                | Description
 --------- | ------------------- | -----------
@@ -161,7 +192,6 @@ Users can choose to enable a subset of collectors to limit the amount of
 metrics exposed by the `prometheus.exporter.windows` component,
 or disable collectors that are expensive to run.
 
-## Collectors
 
 Name     | Description | Enabled by default
 ---------|-------------|--------------------
@@ -210,11 +240,11 @@ This example uses a [`prometheus.scrape` component][scrape] to collect metrics
 from `prometheus.exporter.windows`:
 
 ```river
-prometheus.exporter.windows "this" {
+prometheus.exporter.windows "default" {
 }
 
 // Configure a prometheus.scrape component to collect windows metrics.
-prometheus.scrape "demo" {
+prometheus.scrape "example" {
   targets    = prometheus.exporter.windows.this.targets
   forward_to = [ /* ... */ ]
 }
