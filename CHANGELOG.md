@@ -121,6 +121,8 @@ Main (unreleased)
   - `otelcol.receiver.opencensus`
   - `otelcol.receiver.zipkin`
 
+- Flow: Define custom http method and headers in `remote.http` component (@jkroepke)
+
 ### Bugfixes
 
 - Flow: fix issue where Flow would return an error when trying to access a key
