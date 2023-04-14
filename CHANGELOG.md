@@ -159,6 +159,8 @@ Main (unreleased)
 
 - Fix internal metrics reported as invalid by promtool's linter. (@tpaschalis)
 
+- Fix issues with cri-stage which treats partial line coming from any stream as same. (@kavirajk @aglees)
+
 ### Other changes
 
 - Grafana Agent Docker containers and release binaries are now published for
