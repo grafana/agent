@@ -1,8 +1,9 @@
 package windows
 
 import (
-	windows_integration "github.com/grafana/agent/pkg/integrations/windows_exporter"
 	"strings"
+
+	windows_integration "github.com/grafana/agent/pkg/integrations/windows_exporter"
 )
 
 // DefaultArguments holds non-zero default options for Arguments when it is

@@ -1,9 +1,10 @@
 package windows
 
 import (
+	"testing"
+
 	"github.com/grafana/agent/pkg/river"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 var (
