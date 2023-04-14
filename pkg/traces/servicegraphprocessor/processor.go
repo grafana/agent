@@ -10,13 +10,15 @@ import (
 	util "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/traces/contextkeys"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	otelprocessor "go.opentelemetry.io/collector/processor"
 	semconv "go.opentelemetry.io/collector/semconv/v1.6.1"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/metric/instrument"
 	"google.golang.org/grpc/codes"
 )
 
@@ -75,12 +77,12 @@ type processor struct {
 	// completed edges are pushed through this channel to be processed.
 	collectCh chan string
 
-	serviceGraphRequestTotal           *prometheus.CounterVec
-	serviceGraphRequestFailedTotal     *prometheus.CounterVec
-	serviceGraphRequestServerHistogram *prometheus.HistogramVec
-	serviceGraphRequestClientHistogram *prometheus.HistogramVec
-	serviceGraphUnpairedSpansTotal     *prometheus.CounterVec
-	serviceGraphDroppedSpansTotal      *prometheus.CounterVec
+	serviceGraphRequestTotal           instrument.Float64Counter
+	serviceGraphRequestFailedTotal     instrument.Float64Counter
+	serviceGraphRequestServerHistogram instrument.Float64Histogram
+	serviceGraphRequestClientHistogram instrument.Float64Histogram
+	serviceGraphUnpairedSpansTotal     instrument.Float64Counter
+	serviceGraphDroppedSpansTotal      instrument.Float64Counter
 
 	httpSuccessCodeMap map[int]struct{}
 	grpcSuccessCodeMap map[int]struct{}
@@ -89,7 +91,7 @@ type processor struct {
 	closeCh chan struct{}
 }
 
-func newProcessor(nextConsumer consumer.Traces, cfg *Config) *processor {
+func newProcessor(nextConsumer consumer.Traces, cfg *Config, set otelprocessor.CreateSettings) *processor {
 	logger := log.With(util.Logger, "component", "service graphs")
 
 	if cfg.Wait == 0 {
@@ -143,6 +145,8 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) *processor {
 		}()
 	}
 
+	p.registerMetrics(set.MeterProvider, set.BuildInfo.Command+"/servicegraphprocessor")
+
 	return p
 }
 
@@ -150,84 +154,108 @@ func (p *processor) Start(ctx context.Context, _ component.Host) error {
 	// initialize store
 	p.store = newStore(p.wait, p.maxItems, p.collectEdge)
 
-	reg, ok := ctx.Value(contextkeys.PrometheusRegisterer).(prometheus.Registerer)
-	if !ok || reg == nil {
-		return fmt.Errorf("key does not contain a prometheus registerer")
-	}
-	p.reg = reg
-	return p.registerMetrics()
+	//TODO: Check if the metrics are nil and error if they are?
+
+	return nil
 }
 
-func (p *processor) registerMetrics() error {
-	p.serviceGraphRequestTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "traces",
-		Name:      "service_graph_request_total",
-		Help:      "Total count of requests between two nodes",
-	}, []string{"client", "server"})
-	p.serviceGraphRequestFailedTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "traces",
-		Name:      "service_graph_request_failed_total",
-		Help:      "Total count of failed requests between two nodes",
-	}, []string{"client", "server"})
-	p.serviceGraphRequestServerHistogram = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Namespace: "traces",
-		Name:      "service_graph_request_server_seconds",
-		Help:      "Time for a request between two nodes as seen from the server",
-		Buckets:   prometheus.ExponentialBuckets(0.01, 2, 12),
-	}, []string{"client", "server"})
-	p.serviceGraphRequestClientHistogram = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Namespace: "traces",
-		Name:      "service_graph_request_client_seconds",
-		Help:      "Time for a request between two nodes as seen from the client",
-		Buckets:   prometheus.ExponentialBuckets(0.01, 2, 12),
-	}, []string{"client", "server"})
-	p.serviceGraphUnpairedSpansTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "traces",
-		Name:      "service_graph_unpaired_spans_total",
-		Help:      "Total count of unpaired spans",
-	}, []string{"client", "server"})
-	p.serviceGraphDroppedSpansTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "traces",
-		Name:      "service_graph_dropped_spans_total",
-		Help:      "Total count of dropped spans",
-	}, []string{"client", "server"})
+func (p *processor) registerMetrics(mp metric.MeterProvider, meterId string) error {
 
-	cs := []prometheus.Collector{
-		p.serviceGraphRequestTotal,
-		p.serviceGraphRequestFailedTotal,
-		p.serviceGraphRequestServerHistogram,
-		p.serviceGraphRequestClientHistogram,
-		p.serviceGraphUnpairedSpansTotal,
-		p.serviceGraphDroppedSpansTotal,
+	//TODO: What is a good meter name?
+	meter := mp.Meter(meterId)
+
+	var err error = nil
+	//TODO: How to add a namespace of "traces"?
+	p.serviceGraphRequestTotal, err = meter.Float64Counter(
+		"service_graph_request_total",
+		instrument.WithDescription("Total count of requests between two nodes"),
+	)
+	if err != nil {
+		return err
 	}
 
-	for _, c := range cs {
-		if err := p.reg.Register(c); err != nil {
-			return err
-		}
+	p.serviceGraphRequestFailedTotal, err = meter.Float64Counter(
+		"service_graph_request_failed_total",
+		instrument.WithDescription("Total count of failed requests between two nodes"),
+	)
+	if err != nil {
+		return err
 	}
 
+	p.serviceGraphRequestServerHistogram, err = meter.Float64Histogram(
+		"service_graph_request_server_seconds",
+		instrument.WithDescription("Time for a request between two nodes as seen from the server"),
+	)
+	if err != nil {
+		return err
+	}
+
+	p.serviceGraphRequestClientHistogram, err = meter.Float64Histogram(
+		"service_graph_request_client_seconds",
+		instrument.WithDescription("Time for a request between two nodes as seen from the client"),
+	)
+	if err != nil {
+		return err
+	}
+
+	p.serviceGraphUnpairedSpansTotal, err = meter.Float64Counter(
+		"service_graph_unpaired_spans_total",
+		instrument.WithDescription("Total count of unpaired spans"),
+	)
+	if err != nil {
+		return err
+	}
+
+	p.serviceGraphDroppedSpansTotal, err = meter.Float64Counter(
+		"service_graph_dropped_spans_total",
+		instrument.WithDescription("Total count of dropped spans"),
+	)
+	if err != nil {
+		return err
+	}
+
+	//TODO: Delete this later
+
+	// p.serviceGraphRequestTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
+	// 	Namespace: "traces",
+	// 	Name:      "service_graph_request_total",
+	// 	Help:      "Total count of requests between two nodes",
+	// }, []string{"client", "server"})
+	// p.serviceGraphRequestFailedTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
+	// 	Namespace: "traces",
+	// 	Name:      "service_graph_request_failed_total",
+	// 	Help:      "Total count of failed requests between two nodes",
+	// }, []string{"client", "server"})
+	// p.serviceGraphRequestServerHistogram = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+	// 	Namespace: "traces",
+	// 	Name:      "service_graph_request_server_seconds",
+	// 	Help:      "Time for a request between two nodes as seen from the server",
+	// 	Buckets:   prometheus.ExponentialBuckets(0.01, 2, 12),
+	// }, []string{"client", "server"})
+	// p.serviceGraphRequestClientHistogram = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+	// 	Namespace: "traces",
+	// 	Name:      "service_graph_request_client_seconds",
+	// 	Help:      "Time for a request between two nodes as seen from the client",
+	// 	Buckets:   prometheus.ExponentialBuckets(0.01, 2, 12),
+	// }, []string{"client", "server"})
+	// p.serviceGraphUnpairedSpansTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
+	// 	Namespace: "traces",
+	// 	Name:      "service_graph_unpaired_spans_total",
+	// 	Help:      "Total count of unpaired spans",
+	// }, []string{"client", "server"})
+	// p.serviceGraphDroppedSpansTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
+	// 	Namespace: "traces",
+	// 	Name:      "service_graph_dropped_spans_total",
+	// 	Help:      "Total count of dropped spans",
+	// }, []string{"client", "server"})
+
+	//TODO: Do we have to unregister the metrics at any point?
 	return nil
 }
 
 func (p *processor) Shutdown(context.Context) error {
 	close(p.closeCh)
-	p.unregisterMetrics()
 	return nil
-}
-
-func (p *processor) unregisterMetrics() {
-	cs := []prometheus.Collector{
-		p.serviceGraphRequestTotal,
-		p.serviceGraphRequestFailedTotal,
-		p.serviceGraphRequestServerHistogram,
-		p.serviceGraphRequestClientHistogram,
-		p.serviceGraphUnpairedSpansTotal,
-	}
-
-	for _, c := range cs {
-		p.reg.Unregister(c)
-	}
 }
 
 func (p *processor) Capabilities() consumer.Capabilities {
@@ -253,15 +281,22 @@ func (p *processor) ConsumeTraces(ctx context.Context, td ptrace.Traces) error {
 // collectEdge records the metrics for the given edge.
 // Returns true if the edge is completed or expired and should be deleted.
 func (p *processor) collectEdge(e *edge) {
+	//TODO: What is a good context to use?
+	ctx := context.Background()
+	attrs := []attribute.KeyValue{
+		attribute.Key("client").String(e.clientService),
+		attribute.Key("server").String(e.serverService),
+	}
+
 	if e.isCompleted() {
-		p.serviceGraphRequestTotal.WithLabelValues(e.clientService, e.serverService).Inc()
+		p.serviceGraphRequestTotal.Add(ctx, 1, attrs...)
 		if e.failed {
-			p.serviceGraphRequestFailedTotal.WithLabelValues(e.clientService, e.serverService).Inc()
+			p.serviceGraphRequestFailedTotal.Add(ctx, 1, attrs...)
 		}
-		p.serviceGraphRequestServerHistogram.WithLabelValues(e.clientService, e.serverService).Observe(e.serverLatency.Seconds())
-		p.serviceGraphRequestClientHistogram.WithLabelValues(e.clientService, e.serverService).Observe(e.clientLatency.Seconds())
+		p.serviceGraphRequestServerHistogram.Record(ctx, e.serverLatency.Seconds(), attrs...)
+		p.serviceGraphRequestClientHistogram.Record(ctx, e.clientLatency.Seconds(), attrs...)
 	} else if e.isExpired() {
-		p.serviceGraphUnpairedSpansTotal.WithLabelValues(e.clientService, e.serverService).Inc()
+		p.serviceGraphUnpairedSpansTotal.Add(ctx, 1, attrs...)
 	}
 }
 
@@ -274,6 +309,17 @@ func (p *processor) consume(trace ptrace.Traces) error {
 		svc, ok := rSpan.Resource().Attributes().Get(semconv.AttributeServiceName)
 		if !ok || svc.Str() == "" {
 			continue
+		}
+
+		ctx := context.Background()
+		//TODO: Do we really have to set the server/client to an empty string?
+		attrsClient := []attribute.KeyValue{
+			attribute.Key("client").String(svc.Str()),
+			attribute.Key("server").String(""),
+		}
+		attrsServer := []attribute.KeyValue{
+			attribute.Key("client").String(""),
+			attribute.Key("server").String(svc.Str()),
 		}
 
 		ssSlice := rSpan.ScopeSpans()
@@ -295,7 +341,7 @@ func (p *processor) consume(trace ptrace.Traces) error {
 
 					if errors.Is(err, errTooManyItems) {
 						totalDroppedSpans++
-						p.serviceGraphDroppedSpansTotal.WithLabelValues(svc.Str(), "").Inc()
+						p.serviceGraphDroppedSpansTotal.Add(ctx, 1, attrsClient...)
 						continue
 					}
 					// upsertEdge will only return this errTooManyItems
@@ -318,7 +364,7 @@ func (p *processor) consume(trace ptrace.Traces) error {
 
 					if errors.Is(err, errTooManyItems) {
 						totalDroppedSpans++
-						p.serviceGraphDroppedSpansTotal.WithLabelValues("", svc.Str()).Inc()
+						p.serviceGraphDroppedSpansTotal.Add(ctx, 1, attrsServer...)
 						continue
 					}
 					// upsertEdge will only return this errTooManyItems

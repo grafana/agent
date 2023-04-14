@@ -132,11 +132,14 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	}
 	// i.factories = factories
 
+	componentId := "grafana-agent/" + cfg.Name
 	appinfo := component.BuildInfo{
-		Command:     "agent",
-		Description: "agent",
+		Command:     componentId,
+		Description: componentId,
 		Version:     build.Version,
 	}
+
+	//TODO: Delete this later
 
 	// settings := component.TelemetrySettings{
 	// 	Logger:         i.logger,
@@ -184,6 +187,33 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	// }
 
 	// return i.extensions.NotifyPipelineReady()
+
+	// var resAttrs []attribute.KeyValue
+	// for k, v := range attrs {
+	// 	resAttrs = append(resAttrs, attribute.String(k, v))
+	// }
+
+	// res, err := resource.New(context.Background(), resource.WithAttributes(resAttrs...))
+	// if err != nil {
+	// 	return fmt.Errorf("error creating otel resources: %w", err)
+	// }
+
+	// ----------------------------
+	// wrappedRegisterer := prometheus.WrapRegistererWithPrefix("otelcol_", reg)
+	// exporter, err := otelprom.New(
+	// 	otelprom.WithRegisterer(wrappedRegisterer),
+	// 	otelprom.WithoutUnits(),
+	// 	// Disabled for the moment until this becomes stable, and we are ready to break backwards compatibility.
+	// 	otelprom.WithoutScopeInfo())
+	// if err != nil {
+	// 	return fmt.Errorf("error creating otel prometheus exporter: %w", err)
+	// }
+	// mp = sdkmetric.NewMeterProvider(
+	// 	// sdkmetric.WithResource(res),
+	// 	sdkmetric.WithReader(exporter),
+	// 	// sdkmetric.WithView(batchViews()...),
+	// )
+	// ----------------------------
 
 	i.service, err = service.New(ctx, service.Settings{
 		BuildInfo:  appinfo,

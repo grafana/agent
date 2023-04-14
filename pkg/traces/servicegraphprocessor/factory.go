@@ -53,11 +53,11 @@ func createDefaultConfig() component.Config {
 
 func createTracesProcessor(
 	_ context.Context,
-	_ otelprocessor.CreateSettings,
+	set otelprocessor.CreateSettings,
 	cfg component.Config,
 	nextConsumer consumer.Traces,
 ) (otelprocessor.Traces, error) {
 
 	eCfg := cfg.(*Config)
-	return newProcessor(nextConsumer, eCfg), nil
+	return newProcessor(nextConsumer, eCfg, set), nil
 }
