@@ -10,7 +10,6 @@ import (
 	util "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/ptrace"
@@ -19,8 +18,21 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/metric/instrument"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/metric/aggregation"
 	"google.golang.org/grpc/codes"
 )
+
+// TODO: Do we need the component name in the metric name?
+// TODO: Should the metric name be unique if there are multiple service graph processors?
+// TODO: Make these const?
+// TODO: Not sure what are good variable names for this?
+var serviceGraphRequestTotal_name = "service_graph_request_total"
+var serviceGraphRequestFailedTotal_name = "service_graph_request_failed_total"
+var serviceGraphRequestServerHistogram_name = "service_graph_request_server_seconds"
+var serviceGraphRequestClientHistogram_name = "service_graph_request_client_seconds"
+var serviceGraphUnpairedSpansTotal_name = "service_graph_unpaired_spans_total"
+var serviceGraphDroppedSpansTotal_name = "service_graph_dropped_spans_total"
 
 type tooManySpansError struct {
 	droppedSpans int
@@ -67,7 +79,6 @@ var _ otelprocessor.Traces = (*processor)(nil)
 
 type processor struct {
 	nextConsumer consumer.Traces
-	reg          prometheus.Registerer
 
 	store *store
 
@@ -89,6 +100,8 @@ type processor struct {
 
 	logger  log.Logger
 	closeCh chan struct{}
+
+	meterId string
 }
 
 func newProcessor(nextConsumer consumer.Traces, cfg *Config, set otelprocessor.CreateSettings) *processor {
@@ -129,6 +142,9 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config, set otelprocessor.C
 		collectCh: make(chan string, cfg.Workers),
 
 		closeCh: make(chan struct{}, 1),
+
+		//TODO: Use this ot prefix the metric names?
+		meterId: set.ID.String(),
 	}
 
 	for i := 0; i < cfg.Workers; i++ {
@@ -145,12 +161,12 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config, set otelprocessor.C
 		}()
 	}
 
-	p.registerMetrics(set.MeterProvider, set.BuildInfo.Command+"/servicegraphprocessor")
+	p.registerMetrics(set.MeterProvider)
 
 	return p
 }
 
-func (p *processor) Start(ctx context.Context, _ component.Host) error {
+func (p *processor) Start(_ context.Context, _ component.Host) error {
 	// initialize store
 	p.store = newStore(p.wait, p.maxItems, p.collectEdge)
 
@@ -159,15 +175,35 @@ func (p *processor) Start(ctx context.Context, _ component.Host) error {
 	return nil
 }
 
-func (p *processor) registerMetrics(mp metric.MeterProvider, meterId string) error {
+// TODO: This function needs to have a prefix to attach to the metric name?
+func OtelMetricViews() []sdkmetric.View {
+	return []sdkmetric.View{
+		sdkmetric.NewView(
+			sdkmetric.Instrument{Name: serviceGraphRequestServerHistogram_name},
+			sdkmetric.Stream{Aggregation: aggregation.ExplicitBucketHistogram{
+				//TODO: Are these buckets the same as the Prometheus ExponentialBuckets?
+				Boundaries: []float64{0.01, 2, 12},
+			}},
+		),
+		sdkmetric.NewView(
+			sdkmetric.Instrument{Name: serviceGraphRequestClientHistogram_name},
+			sdkmetric.Stream{Aggregation: aggregation.ExplicitBucketHistogram{
+				//TODO: Are these buckets the same as the Prometheus ExponentialBuckets?
+				Boundaries: []float64{0.01, 2, 12},
+			}},
+		),
+	}
+}
+
+func (p *processor) registerMetrics(mp metric.MeterProvider) error {
 
 	//TODO: What is a good meter name?
-	meter := mp.Meter(meterId)
+	meter := mp.Meter(p.meterId)
 
 	var err error = nil
 	//TODO: How to add a namespace of "traces"?
 	p.serviceGraphRequestTotal, err = meter.Float64Counter(
-		"service_graph_request_total",
+		serviceGraphRequestTotal_name,
 		instrument.WithDescription("Total count of requests between two nodes"),
 	)
 	if err != nil {
@@ -175,7 +211,7 @@ func (p *processor) registerMetrics(mp metric.MeterProvider, meterId string) err
 	}
 
 	p.serviceGraphRequestFailedTotal, err = meter.Float64Counter(
-		"service_graph_request_failed_total",
+		serviceGraphRequestFailedTotal_name,
 		instrument.WithDescription("Total count of failed requests between two nodes"),
 	)
 	if err != nil {
@@ -183,7 +219,7 @@ func (p *processor) registerMetrics(mp metric.MeterProvider, meterId string) err
 	}
 
 	p.serviceGraphRequestServerHistogram, err = meter.Float64Histogram(
-		"service_graph_request_server_seconds",
+		serviceGraphRequestServerHistogram_name,
 		instrument.WithDescription("Time for a request between two nodes as seen from the server"),
 	)
 	if err != nil {
@@ -191,7 +227,7 @@ func (p *processor) registerMetrics(mp metric.MeterProvider, meterId string) err
 	}
 
 	p.serviceGraphRequestClientHistogram, err = meter.Float64Histogram(
-		"service_graph_request_client_seconds",
+		serviceGraphRequestClientHistogram_name,
 		instrument.WithDescription("Time for a request between two nodes as seen from the client"),
 	)
 	if err != nil {
@@ -199,7 +235,7 @@ func (p *processor) registerMetrics(mp metric.MeterProvider, meterId string) err
 	}
 
 	p.serviceGraphUnpairedSpansTotal, err = meter.Float64Counter(
-		"service_graph_unpaired_spans_total",
+		serviceGraphUnpairedSpansTotal_name,
 		instrument.WithDescription("Total count of unpaired spans"),
 	)
 	if err != nil {
@@ -207,7 +243,7 @@ func (p *processor) registerMetrics(mp metric.MeterProvider, meterId string) err
 	}
 
 	p.serviceGraphDroppedSpansTotal, err = meter.Float64Counter(
-		"service_graph_dropped_spans_total",
+		serviceGraphDroppedSpansTotal_name,
 		instrument.WithDescription("Total count of dropped spans"),
 	)
 	if err != nil {

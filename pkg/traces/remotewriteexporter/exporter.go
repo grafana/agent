@@ -34,7 +34,8 @@ const (
 type datapoint struct {
 	ts int64
 	v  float64
-	l  labels.Labels
+	//TODO: We should not be using prometheus labels?
+	l labels.Labels
 }
 
 type remoteWriteExporter struct {

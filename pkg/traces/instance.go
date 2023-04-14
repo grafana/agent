@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/connector"
 	otelexporter "go.opentelemetry.io/collector/exporter"
@@ -22,6 +21,7 @@ import (
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/traces/automaticloggingprocessor"
 	"github.com/grafana/agent/pkg/traces/contextkeys"
+	"github.com/grafana/agent/pkg/traces/servicegraphprocessor"
 	"github.com/grafana/agent/pkg/util"
 )
 
@@ -40,7 +40,7 @@ type Instance struct {
 // var _ component.Host = (*Instance)(nil)
 
 // NewInstance creates and starts an instance of tracing pipelines.
-func NewInstance(logsSubsystem *logs.Logs, reg prometheus.Registerer, cfg InstanceConfig, logger *zap.Logger, promInstanceManager instance.Manager) (*Instance, error) {
+func NewInstance(logsSubsystem *logs.Logs, cfg InstanceConfig, logger *zap.Logger, promInstanceManager instance.Manager) (*Instance, error) {
 	// var err error
 
 	instance := &Instance{}
@@ -50,14 +50,14 @@ func NewInstance(logsSubsystem *logs.Logs, reg prometheus.Registerer, cfg Instan
 	// 	return nil, fmt.Errorf("failed to create metric views: %w", err)
 	// }
 
-	if err := instance.ApplyConfig(logsSubsystem, promInstanceManager, reg, cfg); err != nil {
+	if err := instance.ApplyConfig(logsSubsystem, promInstanceManager, cfg); err != nil {
 		return nil, err
 	}
 	return instance, nil
 }
 
 // ApplyConfig updates the configuration of the Instance.
-func (i *Instance) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, reg prometheus.Registerer, cfg InstanceConfig) error {
+func (i *Instance) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, cfg InstanceConfig) error {
 	i.mut.Lock()
 	defer i.mut.Unlock()
 
@@ -70,7 +70,7 @@ func (i *Instance) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager ins
 	// Shut down any existing pipeline
 	i.stop()
 
-	err := i.buildAndStartPipeline(context.Background(), cfg, logsSubsystem, promInstanceManager, reg)
+	err := i.buildAndStartPipeline(context.Background(), cfg, logsSubsystem, promInstanceManager)
 	if err != nil {
 		return fmt.Errorf("failed to create pipeline: %w", err)
 	}
@@ -94,7 +94,7 @@ func (i *Instance) stop() {
 	i.service.Shutdown(shutdownCtx)
 }
 
-func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig, logs *logs.Logs, instManager instance.Manager, reg prometheus.Registerer) error {
+func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig, logs *logs.Logs, instManager instance.Manager) error {
 	// create component factories
 	otelConfig, err := cfg.otelConfig()
 	if err != nil {
@@ -120,10 +120,6 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 
 	if cfg.AutomaticLogging != nil && cfg.AutomaticLogging.Backend != automaticloggingprocessor.BackendStdout {
 		ctx = context.WithValue(ctx, contextkeys.Logs, logs)
-	}
-
-	if cfg.ServiceGraphs != nil {
-		ctx = context.WithValue(ctx, contextkeys.PrometheusRegisterer, reg)
 	}
 
 	factories, err := tracingFactories()
@@ -222,6 +218,8 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 		Exporters:  otelexporter.NewBuilder(otelConfig.Exporters, factories.Exporters),
 		Connectors: connector.NewBuilder(otelConfig.Connectors, factories.Connectors),
 		Extensions: extension.NewBuilder(otelConfig.Extensions, factories.Extensions),
+		//TODO: Maybe we should make this more generic so that we pull views from all processors?
+		OtelMetricViews: servicegraphprocessor.OtelMetricViews(),
 		//TODO: Fill these later?
 		// AsyncErrorChannel: col.asyncErrorChannel,
 		// LoggingOptions:    col.set.LoggingOptions,
