@@ -1,19 +1,17 @@
 package windows
 
 import (
-	"testing"
-	"time"
-
 	"github.com/grafana/agent/pkg/river"
 	"github.com/stretchr/testify/require"
+	"testing"
 )
 
 var (
 	exampleRiverConfig = `
-		enabled_collectors = "textfile"
+		enabled_collectors = ["textfile","cpu"]
 		
 		exchange {
-			enabled_list = "example"
+			enabled_list = ["example"]
 		}
 		
 		iis {
@@ -47,7 +45,7 @@ var (
 		}
 		
 		mssql {
-			enabled_classes = "accessmethods"
+			enabled_classes = ["accessmethods"]
 		}
 		
 		msmq {
@@ -55,11 +53,9 @@ var (
 		}
 		
 		logical_disk {
-			whitelist = ".+"
 			blacklist = ""
 		}
 		`
-	duration1m, _ = time.ParseDuration("1m")
 )
 
 func TestRiverUnmarshal(t *testing.T) {
@@ -67,8 +63,8 @@ func TestRiverUnmarshal(t *testing.T) {
 	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
 	require.NoError(t, err)
 
-	require.Equal(t, "textfile", args.EnabledCollectors)
-	require.Equal(t, "example", args.Exchange.EnabledList)
+	require.Equal(t, []string{"textfile", "cpu"}, args.EnabledCollectors)
+	require.Equal(t, []string{"example"}, args.Exchange.EnabledList)
 	require.Equal(t, "", args.IIS.SiteBlackList)
 	require.Equal(t, ".+", args.IIS.SiteWhiteList)
 	require.Equal(t, "", args.IIS.AppBlackList)
@@ -81,7 +77,7 @@ func TestRiverUnmarshal(t *testing.T) {
 	require.Equal(t, ".+", args.Process.WhiteList)
 	require.Equal(t, "", args.Network.BlackList)
 	require.Equal(t, ".+", args.Network.WhiteList)
-	require.Equal(t, "accessmethods", args.MSSQL.EnabledClasses)
+	require.Equal(t, []string{"accessmethods"}, args.MSSQL.EnabledClasses)
 	require.Equal(t, "where", args.MSMQ.Where)
 	require.Equal(t, "", args.LogicalDisk.BlackList)
 	require.Equal(t, ".+", args.LogicalDisk.WhiteList)
@@ -94,7 +90,7 @@ func TestConvert(t *testing.T) {
 
 	conf := args.Convert()
 
-	require.Equal(t, "textfile", conf.EnabledCollectors)
+	require.Equal(t, "textfile,cpu", conf.EnabledCollectors)
 	require.Equal(t, "example", conf.Exchange.EnabledList)
 	require.Equal(t, "", conf.IIS.SiteBlackList)
 	require.Equal(t, ".+", conf.IIS.SiteWhiteList)

@@ -2,6 +2,7 @@ package windows
 
 import (
 	windows_integration "github.com/grafana/agent/pkg/integrations/windows_exporter"
+	"strings"
 )
 
 // DefaultArguments holds non-zero default options for Arguments when it is
@@ -9,13 +10,20 @@ import (
 //
 // Some defaults are populated from init functions in the github.com/grafana/agent/pkg/integrations/node_exporter package.
 var DefaultArguments = Arguments{
-	EnabledCollectors: "cpu,cs,logical_disk,net,os,service,system",
+	EnabledCollectors: []string{"cpu", "cs", "logical_disk", "net", "os", "service", "system"},
+	IIS:               IISConfig{AppWhiteList: ".+", SiteWhiteList: ".+"},
+	TextFile:          TextFileConfig{TextFileDirectory: "C:\\Program Files\\windows_exporter\\textfile_inputs"},
+	SMTP:              SMTPConfig{WhiteList: ".+"},
+	Process:           ProcessConfig{WhiteList: ".*"},
+	Network:           NetworkConfig{WhiteList: ".*"},
+	MSSQL:             MSSQLConfig{EnabledClasses: []string{"accessmethods", "availreplica", "bufman", "databases", "dbreplica", "genstats", "locks", "memmgr", "sqlstats", "sqlerrorstransactions"}},
+	LogicalDisk:       LogicalDiskConfig{WhiteList: ".+"},
 }
 
 // Arguments is used for controlling for this exporter.
 type Arguments struct {
 	// Collectors to mark as enabled
-	EnabledCollectors string `river:"enabled_collectors,attr,optional"`
+	EnabledCollectors []string `river:"enabled_collectors,attr,optional"`
 
 	// Collector-specific config options
 	Exchange    ExchangeConfig    `river:"exchange,block,optional"`
@@ -41,7 +49,7 @@ func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 // Convert converts the component's Arguments to the integration's Config.
 func (a *Arguments) Convert() *windows_integration.Config {
 	return &windows_integration.Config{
-		EnabledCollectors: a.EnabledCollectors,
+		EnabledCollectors: strings.Join(a.EnabledCollectors, ","),
 		Exchange:          a.Exchange.Convert(),
 		IIS:               a.IIS.Convert(),
 		TextFile:          a.TextFile.Convert(),
@@ -57,13 +65,13 @@ func (a *Arguments) Convert() *windows_integration.Config {
 
 // ExchangeConfig handles settings for the windows_exporter Exchange collector
 type ExchangeConfig struct {
-	EnabledList string `river:"enabled_list,attr,optional"`
+	EnabledList []string `river:"enabled_list,attr,optional"`
 }
 
 // Convert converts the component's ExchangeConfig to the integration's ExchangeConfig.
 func (t ExchangeConfig) Convert() windows_integration.ExchangeConfig {
 	return windows_integration.ExchangeConfig{
-		EnabledList: t.EnabledList,
+		EnabledList: strings.Join(t.EnabledList, ","),
 	}
 }
 
@@ -153,13 +161,13 @@ func (t NetworkConfig) Convert() windows_integration.NetworkConfig {
 
 // MSSQLConfig handles settings for the windows_exporter SQL server collector
 type MSSQLConfig struct {
-	EnabledClasses string `river:"enabled_classes,attr,optional"`
+	EnabledClasses []string `river:"enabled_classes,attr,optional"`
 }
 
 // Convert converts the component's MSSQLConfig to the integration's MSSQLConfig.
 func (t MSSQLConfig) Convert() windows_integration.MSSQLConfig {
 	return windows_integration.MSSQLConfig{
-		EnabledClasses: t.EnabledClasses,
+		EnabledClasses: strings.Join(t.EnabledClasses, ","),
 	}
 }
 
