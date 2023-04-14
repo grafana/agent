@@ -69,7 +69,7 @@ logical_disk | [logical_disk][] | Configures the logical_disk collector. | no
 ### exchange block
 Name | Type     | Description | Default | Required
 ---- |----------| ----------- | ------- | --------
-`enabled_list` | `string` | Comma-separated list of collectors to use. | | no
+`enabled_list` | `list(string)` | Comma-separated list of collectors to use. | `["cpu", "cs", "logical_disk", "net", "os", "service", "system"]` | no
 
 The collectors specified by `enabled_list` can include the following:
 
@@ -97,7 +97,7 @@ Name | Type     | Description | Default | Required
 ### text_file block
 Name | Type     | Description | Default | Required
 ---- |----------| ----------- | ------- | --------
-`text_file_directory` | `string` | The directory containing the files to be ingested. |  | no
+`text_file_directory` | `string` | The directory containing the files to be ingested. | `C:\Program Files\windows_exporter\textfile_inputs` | no
 
 When `text_file_directory` is set, only files with the extension `.prom` inside the specified directory are read. Each `.prom` file found must end with an empty line feed to work properly.  
 
@@ -122,7 +122,7 @@ The `where_clause` argument can be used to limit the response to the services yo
 Name | Type     | Description | Default | Required
 ---- |----------| ----------- | ------- | --------
 `blacklist` | `string` | Regular expression of processes to exclude. |  | no
-`whitelist` | `string` | Regular expression of processes to include. | `".+"` | no
+`whitelist` | `string` | Regular expression of processes to include. | `".*"` | no
 
 Processes must match the regular expression specified by `whitelist` and must _not_ match the regular expression specified by `blacklist` to be included.
 
@@ -130,19 +130,19 @@ Processes must match the regular expression specified by `whitelist` and must _n
 Name | Type     | Description | Default | Required
 ---- |----------| ----------- | ------- | --------
 `blacklist` | `string` | Regular expression of NIC:s to exclude. |  | no
-`whitelist` | `string` | Regular expression of NIC:s to include. |  | no
+`whitelist` | `string` | Regular expression of NIC:s to include. | `".*"` | no
 
 NIC names must match the regular expression specified by `whitelist` and must _not_ match the regular expression specified by `blacklist` to be included.
 
 ### mssql block
 Name | Type     | Description | Default | Required
 ---- |----------| ----------- | ------- | --------
-`enabled_classes` | `string` | Comma-separated list of MSSQL WMI classes to use. |  | no
+`enabled_classes` | `list(string)` | Comma-separated list of MSSQL WMI classes to use. | `["accessmethods", "availreplica", "bufman", "databases", "dbreplica", "genstats", "locks", "memmgr", "sqlstats", "sqlerrorstransactions"]` | no
 
 ### msmq block
 Name | Type     | Description | Default | Required
 ---- |----------| ----------- | ------- | --------
-`enabled_classes` | `string` | WQL 'where' clause to use in WMI metrics query. |  | no
+`where_clause` | `string` | WQL 'where' clause to use in WMI metrics query. |  | no
 
 Specifying `enabled_classes` is useful to limit the response to the MSMQs you specify, reducing the size of the response. 
 
@@ -151,7 +151,7 @@ Specifying `enabled_classes` is useful to limit the response to the MSMQs you sp
 Name | Type     | Description | Default | Required
 ---- |----------| ----------- | ------- | --------
 `blacklist` | `string` | Regular expression of volumes to exclude. |  | no
-`whitelist` | `string` | Regular expression of volumes to include. |  | no
+`whitelist` | `string` | Regular expression of volumes to include. | `".+"` | no
 
 Volume names must match the regular expression specified by `whitelist` and must _not_ match the regular expression specified by `blacklist` to be included.
 
@@ -195,42 +195,46 @@ or disable collectors that are expensive to run.
 
 Name     | Description | Enabled by default
 ---------|-------------|--------------------
-[ad](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.ad.md) | Active Directory Domain Services |
-[adfs](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.adfs.md) | Active Directory Federation Services |
-[cpu](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.cpu.md) | CPU usage | &#10003;
-[cs](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.cs.md) | "Computer System" metrics (system properties, num cpus/total memory) | &#10003;
-[container](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.container.md) | Container metrics |
-[dhcp](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.dhcp.md) | DHCP Server |
-[dns](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.dns.md) | DNS Server |
-[exchange](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.exchange.md) | Exchange metrics |
-[fsrmquota](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.fsrmquota.md) | Microsoft File Server Resource Manager (FSRM) Quotas collector |
-[hyperv](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.hyperv.md) | Hyper-V hosts |
-[iis](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.iis.md) | IIS sites and applications |
-[logical_disk](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.logical_disk.md) | Logical disks, disk I/O | &#10003;
-[logon](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.logon.md) | User logon sessions |
-[memory](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.memory.md) | Memory usage metrics |
-[msmq](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.msmq.md) | MSMQ queues |
-[mssql](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.mssql.md) | [SQL Server Performance Objects](https://docs.microsoft.com/en-us/sql/relational-databases/performance-monitor/use-sql-server-objects#SQLServerPOs) metrics  |
-[netframework_clrexceptions](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.netframework_clrexceptions.md) | .NET Framework CLR Exceptions |
-[netframework_clrinterop](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.netframework_clrinterop.md) | .NET Framework Interop Metrics |
-[netframework_clrjit](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.netframework_clrjit.md) | .NET Framework JIT metrics |
-[netframework_clrloading](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.netframework_clrloading.md) | .NET Framework CLR Loading metrics |
-[netframework_clrlocksandthreads](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.netframework_clrlocksandthreads.md) | .NET Framework locks and metrics threads |
-[netframework_clrmemory](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.netframework_clrmemory.md) |  .NET Framework Memory metrics |
-[netframework_clrremoting](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.netframework_clrremoting.md) | .NET Framework Remoting metrics |
-[netframework_clrsecurity](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.netframework_clrsecurity.md) | .NET Framework Security Check metrics |
-[net](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.net.md) | Network interface I/O | &#10003;
-[os](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.os.md) | OS metrics (memory, processes, users) | &#10003;
-[process](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.process.md) | Per-process metrics |
-[remote_fx](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.remote_fx.md) | RemoteFX protocol (RDP) metrics |
-[service](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.service.md) | Service state metrics | &#10003;
-[system](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.system.md) | System calls | &#10003;
-[tcp](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.tcp.md) | TCP connections |
-[time](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.time.md) | Windows Time Service |
-[thermalzone](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.thermalzone.md) | Thermal information
-[terminal_services](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.terminal_services.md) | Terminal services (RDS)
-[textfile](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.textfile.md) | Read prometheus metrics from a text file | &#10003;
-[vmware](https://github.com/grafana/windows_exporter/blob/v0.15.0/docs/collector.vmware.md) | Performance counters installed by the Vmware Guest agent |
+[ad](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.ad.md) | Active Directory Domain Services |
+[adfs](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.adfs.md) | Active Directory Federation Services |
+[cache](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.cache.md) | Cache metrics |
+[cpu](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.cpu.md) | CPU usage | &#10003;
+[cpu_info](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.cpu_info.md) | CPU Information |
+[cs](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.cs.md) | "Computer System" metrics (system properties, num cpus/total memory) | &#10003;
+[container](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.container.md) | Container metrics |
+[dfsr](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.dfsr.md) | DFSR metrics |
+[dhcp](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.dhcp.md) | DHCP Server |
+[dns](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.dns.md) | DNS Server |
+[exchange](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.exchange.md) | Exchange metrics |
+[fsrmquota](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.fsrmquota.md) | Microsoft File Server Resource Manager (FSRM) Quotas collector |
+[hyperv](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.hyperv.md) | Hyper-V hosts |
+[iis](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.iis.md) | IIS sites and applications |
+[logical_disk](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.logical_disk.md) | Logical disks, disk I/O | &#10003;
+[logon](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.logon.md) | User logon sessions |
+[memory](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.memory.md) | Memory usage metrics |
+[msmq](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.msmq.md) | MSMQ queues |
+[mssql](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.mssql.md) | [SQL Server Performance Objects](https://docs.microsoft.com/en-us/sql/relational-databases/performance-monitor/use-sql-server-objects#SQLServerPOs) metrics  |
+[netframework_clrexceptions](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.netframework_clrexceptions.md) | .NET Framework CLR Exceptions |
+[netframework_clrinterop](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.netframework_clrinterop.md) | .NET Framework Interop Metrics |
+[netframework_clrjit](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.netframework_clrjit.md) | .NET Framework JIT metrics |
+[netframework_clrloading](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.netframework_clrloading.md) | .NET Framework CLR Loading metrics |
+[netframework_clrlocksandthreads](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.netframework_clrlocksandthreads.md) | .NET Framework locks and metrics threads |
+[netframework_clrmemory](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.netframework_clrmemory.md) |  .NET Framework Memory metrics |
+[netframework_clrremoting](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.netframework_clrremoting.md) | .NET Framework Remoting metrics |
+[netframework_clrsecurity](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.netframework_clrsecurity.md) | .NET Framework Security Check metrics |
+[net](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.net.md) | Network interface I/O | &#10003;
+[os](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.os.md) | OS metrics (memory, processes, users) | &#10003;
+[process](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.process.md) | Per-process metrics |
+[remote_fx](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.remote_fx.md) | RemoteFX protocol (RDP) metrics |
+[service](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.service.md) | Service state metrics | &#10003;
+[smtp](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.smtp.md) | IIS SMTP Server |
+[system](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.system.md) | System calls | &#10003;
+[tcp](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.tcp.md) | TCP connections |
+[time](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.time.md) | Windows Time Service |
+[thermalzone](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.thermalzone.md) | Thermal information
+[terminal_services](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.terminal_services.md) | Terminal services (RDS)
+[textfile](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.textfile.md) | Read prometheus metrics from a text file |
+[vmware](https://github.com/grafana/windows_exporter/blob/871715ba0b43c640257fb5ff6491b7420f23dcdd/docs/collector.vmware.md) | Performance counters installed by the Vmware Guest agent |
 
 See the linked documentation on each collector for more information on reported metrics, configuration settings and usage examples.
 
