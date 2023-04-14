@@ -67,6 +67,57 @@ func TestUnmarshalRiverWithInlineConfig(t *testing.T) {
 	require.Contains(t, "http://grafana.com", args.Targets[1].Target)
 	require.Contains(t, "http_2xx", args.Targets[1].Module)
 }
+func TestUnmarshalRiverWithInvalidInlineConfig(t *testing.T) {
+	var tests = []struct {
+		testname      string
+		cfg           string
+		expectedError string
+	}{
+		{
+			"Invalid YAML",
+			`
+			config = "{ modules: { http_2xx: { prober: http, timeout: 5s }"
+
+			target "target_a" {
+				address = "http://example.com"
+				module = "http_2xx"
+			}
+			`,
+			`invalid config: yaml: line 1: did not find expected ',' or '}'`,
+		},
+		{
+			"Invalid property",
+			`
+			config = "{ module: { http_2xx: { prober: http, timeout: 5s } } }"
+
+			target "target_a" {
+				address = "http://example.com"
+				module = "http_2xx"
+			}
+			`,
+			"invalid config: yaml: unmarshal errors:\n  line 1: field module not found in type config.plain",
+		},
+		{
+			"Define config and config_file",
+			`
+			config_file = "config"
+			config = "{ modules: { http_2xx: { prober: http, timeout: 5s } } }"
+
+			target "target_a" {
+				address = "http://example.com"
+				module = "http_2xx"
+			}
+			`,
+			`config and config_file are mutually exclusive`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.testname, func(t *testing.T) {
+			var args Arguments
+			require.EqualError(t, river.Unmarshal([]byte(tt.cfg), &args), tt.expectedError)
+		})
+	}
+}
 
 func TestConvertConfig(t *testing.T) {
 	args := Arguments{

@@ -1,9 +1,12 @@
 package blackbox
 
 import (
+	"errors"
+	"fmt"
+	"time"
+
 	blackbox_config "github.com/prometheus/blackbox_exporter/config"
 	"gopkg.in/yaml.v2"
-	"time"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
@@ -94,9 +97,13 @@ func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 		return err
 	}
 
+	if a.ConfigFile != "" && a.Config != "" {
+		return errors.New("config and config_file are mutually exclusive")
+	}
+
 	err := yaml.UnmarshalStrict([]byte(a.Config), &a.ConfigStruct)
 	if err != nil {
-		return err
+		return fmt.Errorf("invalid config: %s", err)
 	}
 
 	return nil
