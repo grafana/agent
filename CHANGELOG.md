@@ -36,7 +36,7 @@ Main (unreleased)
   - `module.file` runs a Grafana Agent Flow module passed to the component by
     an expression containing a file. (@erikbaranowski)
   - `otelcol.auth.oauth2` performs OAuth 2.0 authentication for HTTP and gRPC
-    based OpenTelemetry exporters. (@ptodev) 
+    based OpenTelemetry exporters. (@ptodev)
   - `otelcol.extension.jaeger_remote_sampling` provides an endpoint from which to
     pull Jaeger remote sampling documents. (@joe-elliott)
   - `prometheus.exporter.blackbox` collects metrics from Blackbox exporter. (@marctc)
@@ -87,6 +87,39 @@ Main (unreleased)
 
 - Agent Management: Introduces backpressure mechanism for remote config fetching (obeys 429 request
   `Retry-After` header). (@spartan0x117)
+  
+- Flow: support client TLS settings (CA, client certificate, client key) being
+  provided from other components for the following components:
+
+  - `discovery.docker`
+  - `discovery.kubernetes`
+  - `loki.source.kafka`
+  - `loki.source.kubernetes`
+  - `loki.source.podlogs`
+  - `loki.write`
+  - `mimir.rules.kubernetes`
+  - `otelcol.auth.oauth2`
+  - `otelcol.exporter.jaeger`
+  - `otelcol.exporter.otlp`
+  - `otelcol.exporter.otlphttp`
+  - `otelcol.extension.jaeger_remote_sampling`
+  - `otelcol.receiver.jaeger`
+  - `otelcol.receiver.kafka`
+  - `phlare.scrape`
+  - `phlare.write`
+  - `prometheus.remote_write`
+  - `prometheus.scrape`
+  - `remote.http`
+
+- Flow: support server TLS settings (client CA, server certificate, server key)
+  being provided from other components for the following components:
+
+  - `loki.source.syslog`
+  - `otelcol.exporter.otlp`
+  - `otelcol.extension.jaeger_remote_sampling`
+  - `otelcol.receiver.jaeger`
+  - `otelcol.receiver.opencensus`
+  - `otelcol.receiver.zipkin`
 
 ### Bugfixes
 

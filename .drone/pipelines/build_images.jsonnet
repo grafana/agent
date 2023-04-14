@@ -1,4 +1,5 @@
 local pipelines = import '../util/pipelines.jsonnet';
+local secrets = import '../util/secrets.jsonnet';
 
 local locals = {
   on_merge: {
@@ -10,8 +11,8 @@ local locals = {
     ref: ['refs/tags/build-image/v*'],
   },
   docker_environment: {
-    DOCKER_LOGIN: { from_secret: 'DOCKER_LOGIN' },
-    DOCKER_PASSWORD: { from_secret: 'DOCKER_PASSWORD' },
+    DOCKER_LOGIN: secrets.docker_login.fromSecret,
+    DOCKER_PASSWORD: secrets.docker_password.fromSecret,
   },
 };
 

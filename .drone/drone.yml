@@ -39,9 +39,9 @@ steps:
     ./build-image
   environment:
     DOCKER_LOGIN:
-      from_secret: DOCKER_LOGIN
+      from_secret: docker_login
     DOCKER_PASSWORD:
-      from_secret: DOCKER_PASSWORD
+      from_secret: docker_password
   image: docker
   name: Build
   volumes:
@@ -98,9 +98,9 @@ steps:
   - docker push grafana/agent-build-image:$IMAGE_TAG
   environment:
     DOCKER_LOGIN:
-      from_secret: DOCKER_LOGIN
+      from_secret: docker_login
     DOCKER_PASSWORD:
-      from_secret: DOCKER_PASSWORD
+      from_secret: docker_password
   image: docker:windowsservercore-1809
   name: Build
   volumes:
@@ -901,9 +901,9 @@ steps:
   - docker buildx rm multiarch-agent-agent-${DRONE_COMMIT_SHA}
   environment:
     DOCKER_LOGIN:
-      from_secret: DOCKER_LOGIN
+      from_secret: docker_login
     DOCKER_PASSWORD:
-      from_secret: DOCKER_PASSWORD
+      from_secret: docker_password
     GCR_CREDS:
       from_secret: gcr_admin
   image: grafana/agent-build-image:0.24.0
@@ -945,9 +945,9 @@ steps:
   - docker buildx rm multiarch-agent-agentctl-${DRONE_COMMIT_SHA}
   environment:
     DOCKER_LOGIN:
-      from_secret: DOCKER_LOGIN
+      from_secret: docker_login
     DOCKER_PASSWORD:
-      from_secret: DOCKER_PASSWORD
+      from_secret: docker_password
     GCR_CREDS:
       from_secret: gcr_admin
   image: grafana/agent-build-image:0.24.0
@@ -989,9 +989,9 @@ steps:
   - docker buildx rm multiarch-agent-agent-operator-${DRONE_COMMIT_SHA}
   environment:
     DOCKER_LOGIN:
-      from_secret: DOCKER_LOGIN
+      from_secret: docker_login
     DOCKER_PASSWORD:
-      from_secret: DOCKER_PASSWORD
+      from_secret: docker_password
     GCR_CREDS:
       from_secret: gcr_admin
   image: grafana/agent-build-image:0.24.0
@@ -1033,9 +1033,9 @@ steps:
   - docker buildx rm multiarch-agent-smoke-${DRONE_COMMIT_SHA}
   environment:
     DOCKER_LOGIN:
-      from_secret: DOCKER_LOGIN
+      from_secret: docker_login
     DOCKER_PASSWORD:
-      from_secret: DOCKER_PASSWORD
+      from_secret: docker_password
     GCR_CREDS:
       from_secret: gcr_admin
   image: grafana/agent-build-image:0.24.0
@@ -1077,9 +1077,9 @@ steps:
   - docker buildx rm multiarch-agent-crow-${DRONE_COMMIT_SHA}
   environment:
     DOCKER_LOGIN:
-      from_secret: DOCKER_LOGIN
+      from_secret: docker_login
     DOCKER_PASSWORD:
-      from_secret: DOCKER_PASSWORD
+      from_secret: docker_password
     GCR_CREDS:
       from_secret: gcr_admin
   image: grafana/agent-build-image:0.24.0
@@ -1108,9 +1108,9 @@ steps:
   - '& "C:/Program Files/git/bin/bash.exe" ./tools/ci/docker-containers-windows agent'
   environment:
     DOCKER_LOGIN:
-      from_secret: DOCKER_LOGIN
+      from_secret: docker_login
     DOCKER_PASSWORD:
-      from_secret: DOCKER_PASSWORD
+      from_secret: docker_password
   image: grafana/agent-build-image:0.24.0-windows
   name: Build containers
   volumes:
@@ -1137,9 +1137,9 @@ steps:
   - '& "C:/Program Files/git/bin/bash.exe" ./tools/ci/docker-containers-windows agentctl'
   environment:
     DOCKER_LOGIN:
-      from_secret: DOCKER_LOGIN
+      from_secret: docker_login
     DOCKER_PASSWORD:
-      from_secret: DOCKER_PASSWORD
+      from_secret: docker_password
   image: grafana/agent-build-image:0.24.0-windows
   name: Build containers
   volumes:
@@ -1228,11 +1228,11 @@ steps:
     VERSION=${DRONE_TAG} RELEASE_DOC_TAG=$(echo ${DRONE_TAG} | awk -F '.' '{print $1"."$2}') ./tools/release
   environment:
     DOCKER_LOGIN:
-      from_secret: DOCKER_LOGIN
+      from_secret: docker_login
     DOCKER_PASSWORD:
-      from_secret: DOCKER_PASSWORD
+      from_secret: docker_password
     GITHUB_TOKEN:
-      from_secret: GITHUB_KEY
+      from_secret: gh_token
     GPG_PASSPHRASE:
       from_secret: gpg_passphrase
     GPG_PRIVATE_KEY:
@@ -1282,6 +1282,18 @@ volumes:
   name: docker
 ---
 get:
+  name: username
+  path: infra/data/ci/docker_hub
+kind: secret
+name: docker_login
+---
+get:
+  name: password
+  path: infra/data/ci/docker_hub
+kind: secret
+name: docker_password
+---
+get:
   name: .dockerconfigjson
   path: secret/data/common/gcr
 kind: secret
@@ -1300,10 +1312,10 @@ kind: secret
 name: gh_token
 ---
 get:
-  name: public-key
+  name: passphrase
   path: infra/data/ci/packages-publish/gpg
 kind: secret
-name: gpg_public_key
+name: gpg_passphrase
 ---
 get:
   name: private-key
@@ -1312,12 +1324,12 @@ kind: secret
 name: gpg_private_key
 ---
 get:
-  name: passphrase
+  name: public-key
   path: infra/data/ci/packages-publish/gpg
 kind: secret
-name: gpg_passphrase
+name: gpg_public_key
 ---
 kind: signature
-hmac: fcb2db578d46920304124037a3ffb63024492007b274d134e3ab9810e5bb9499
+hmac: 4012653de455ff05a36c98cf059b21ca823e38cb5742a0175c04088df9210a58
 
 ...

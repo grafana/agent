@@ -19,17 +19,15 @@ import (
 
 func TestExports(t *testing.T) {
 	exportContent := `
-			export "username" {
-                value = "bob"
-            }
-            export "password" {
-                value = "password1"
-            }`
-	argumentContent := `
-		argument "username" {
-		} 
-		argument "password" {
+		export "username" {
+			value = "bob"
+		}
+		export "password" {
+			value = "password1"
 		}`
+	argumentContent := `
+		argument "username" {} 
+		argument "password" {}`
 
 	tmpDir := t.TempDir()
 	exportPath := filepath.Join(tmpDir, "export.river")
@@ -41,16 +39,15 @@ func TestExports(t *testing.T) {
 		local.file "exporter" { filename = "%exp" }
 		local.file "args"     { filename = "%arg" }
 		
-		
 		module.string "exporter" {
 			content = local.file.exporter.content
 		}
 		
 		module.string "importer" {
 			content = local.file.args.content
-			arguments = {
-				username = module.string.exporter.exports.username,
-				password = module.string.exporter.exports.password,
+			arguments {
+				username = module.string.exporter.exports.username
+				password = module.string.exporter.exports.password
 			}
 		}`
 	fmtFile := strings.Replace(riverFile, "%exp", exportPath, 1)
@@ -87,12 +84,11 @@ func TestUpdatingExports(t *testing.T) {
 			content = local.file.load_export.content
 		}
 		
-		
 		module.string "easy_load" {
 			content = ""
-			arguments = {
-				address = module.string.loadexport.exports.address,
-				username = module.string.loadexport.exports.username,
+			arguments {
+				address = module.string.loadexport.exports.address
+				username = module.string.loadexport.exports.username
 			}
 		}`
 

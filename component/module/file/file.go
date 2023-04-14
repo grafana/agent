@@ -31,7 +31,7 @@ type Arguments struct {
 	LocalFileArguments file.Arguments `river:",squash"`
 
 	// Arguments to pass into the module.
-	Arguments map[string]any `river:"arguments,attr,optional"`
+	Arguments map[string]any `river:"arguments,block,optional"`
 }
 
 var _ river.Unmarshaler = (*Arguments)(nil)
