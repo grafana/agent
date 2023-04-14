@@ -7,39 +7,9 @@ package kafkatarget
 import (
 	"crypto/sha256"
 	"crypto/sha512"
-	"crypto/tls"
-	"crypto/x509"
-	"os"
 
-	promconfig "github.com/prometheus/common/config"
 	"github.com/xdg-go/scram"
 )
-
-func createTLSConfig(cfg promconfig.TLSConfig) (*tls.Config, error) {
-	tc := &tls.Config{
-		InsecureSkipVerify: cfg.InsecureSkipVerify,
-		ServerName:         cfg.ServerName,
-	}
-	// load ca cert
-	if len(cfg.CAFile) > 0 {
-		caCert, err := os.ReadFile(cfg.CAFile)
-		if err != nil {
-			return nil, err
-		}
-		caCertPool := x509.NewCertPool()
-		caCertPool.AppendCertsFromPEM(caCert)
-		tc.RootCAs = caCertPool
-	}
-	// load client cert
-	if len(cfg.CertFile) > 0 && len(cfg.KeyFile) > 0 {
-		cert, err := tls.LoadX509KeyPair(cfg.CertFile, cfg.KeyFile)
-		if err != nil {
-			return nil, err
-		}
-		tc.Certificates = []tls.Certificate{cert}
-	}
-	return tc, nil
-}
 
 // copied from https://github.com/Shopify/sarama/blob/44627b731c60bb90efe25573e7ef2b3f8df3fa23/examples/sasl_scram_client/scram_client.go
 var (

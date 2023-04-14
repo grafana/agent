@@ -16,7 +16,7 @@ Multiple `phlare.scrape` components can be specified by giving them different la
 
 ## Usage
 
-```
+```river
 phlare.scrape "LABEL" {
   targets    = TARGET_LIST
   forward_to = RECEIVER_LIST

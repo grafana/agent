@@ -39,6 +39,9 @@ type Arguments struct {
 	PollTimeout   time.Duration `river:"poll_timeout,attr,optional"`
 	IsSecret      bool          `river:"is_secret,attr,optional"`
 
+	Method  string            `river:"method,attr,optional"`
+	Headers map[string]string `river:"headers,attr,optional"`
+
 	Client common_config.HTTPClientConfig `river:"client,block,optional"`
 }
 
@@ -47,6 +50,7 @@ var DefaultArguments = Arguments{
 	PollFrequency: 1 * time.Minute,
 	PollTimeout:   10 * time.Second,
 	Client:        common_config.DefaultHTTPClientConfig,
+	Method:        http.MethodGet,
 }
 
 var _ river.Unmarshaler = (*Arguments)(nil)
@@ -68,6 +72,10 @@ func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	}
 	if args.PollTimeout >= args.PollFrequency {
 		return fmt.Errorf("poll_timeout must be less than poll_frequency")
+	}
+
+	if _, err := http.NewRequest(args.Method, args.URL, nil); err != nil {
+		return err
 	}
 
 	return nil
@@ -189,9 +197,12 @@ func (c *Component) pollError() error {
 	ctx, cancel := context.WithTimeout(context.Background(), c.args.PollTimeout)
 	defer cancel()
 
-	req, err := http.NewRequest(http.MethodGet, c.args.URL, nil)
+	req, err := http.NewRequest(c.args.Method, c.args.URL, nil)
 	if err != nil {
 		return fmt.Errorf("building request: %w", err)
+	}
+	for name, value := range c.args.Headers {
+		req.Header.Set(name, value)
 	}
 	req = req.WithContext(ctx)
 

@@ -12,7 +12,7 @@ block and fans out incoming entries to the list of receivers in `forward_to`.
 
 Before using `loki.source.heroku`, Heroku should be configured with the URL where the Agent will be listening. Follow the steps in [Heroku HTTPS Drain docs](https://devcenter.heroku.com/articles/log-drains#https-drains) for using the Heroku CLI with a command like the following:
 
-```
+```shell
 heroku drains:add [http|https]://HOSTNAME:PORT/heroku/api/v1/drain -a HEROKU_APP_NAME
 ```
 

@@ -216,10 +216,12 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 				HTTPClientConfig: commonConfig.HTTPClientConfig{
 					FollowRedirects: falseVal,
 					EnableHTTP2:     false,
-					ProxyURL:        commonConfig.URL{URL: &url.URL{Scheme: "https", Host: "proxy:8080"}},
 					TLSConfig: commonConfig.TLSConfig{
 						ServerName:         "foo.com",
 						InsecureSkipVerify: true,
+					},
+					ProxyConfig: commonConfig.ProxyConfig{
+						ProxyURL: commonConfig.URL{URL: &url.URL{Scheme: "https", Host: "proxy:8080"}},
 					},
 				},
 				ServiceDiscoveryConfigs: discovery.Configs{
