@@ -1,4 +1,4 @@
-# Update Release Branch
+# Update Helm Charts
 
 Our Helm charts require some version updates as well.
 
@@ -17,7 +17,7 @@ Our Helm charts require some version updates as well.
         Copy the contents from agent repo `production/operator/crds/` to replace the contents of helm-charts repo `charts/agent-operator/crds`
         
     2. Update references of agent-operator app version in helm-charts pointing to release version.
-    
+
     3. Bump up the helm chart version.
     
     > **NOTE**: Do not update the README.md manually. Running the 

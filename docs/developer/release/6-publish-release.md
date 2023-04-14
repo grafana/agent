@@ -1,4 +1,4 @@
-# Publish Release Candidate
+# Publish Release
 
 This is how to publish the release in GitHub.
 

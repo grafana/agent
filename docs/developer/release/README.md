@@ -6,6 +6,12 @@ the repository, including Grafana Agent and Grafana Agent Operator.
 
 The processes described here are for v0.24.0 and above.
 
+# Release Cycle
+
+A typical release cycle is to have a Release Candidate published for at least 48 
+hours followed by a Stable Release. 0 or more Patch Releases may occur between the Stable Release
+and the creation of the next Release Candidate.
+
 # Workflows
 
 Once a release is scheduled, a release shepherd is determined. This person will be 
@@ -17,7 +23,7 @@ responsible for ownership of the following workflows:
 3. [Update Version in Code](./3-update-version-in-code.md)
 4. [Tag Release](./4-tag-release.md)
 5. [Publish Release](./6-publish-release.md)
-6. [Update Deployment Tools](./7-update-deployment-tools.md)
+6. [Test Release](./7-test-release.md)
 7. [Announce Release](./9-announce-release.md)
 
 ## Additional Release Candidate[s] Publish
@@ -25,7 +31,7 @@ responsible for ownership of the following workflows:
 2. [Update Version in Code](./3-update-version-in-code.md)
 3. [Tag Release](./4-tag-release.md)
 4. [Publish Release](./6-publish-release.md)
-5. [Update Deployment Tools](./7-update-deployment-tools.md)
+5. [Test Release](./7-test-release.md)
 6. [Announce Release](./9-announce-release.md)
 
 ## Stable Release Publish
@@ -34,7 +40,7 @@ responsible for ownership of the following workflows:
 3. [Tag Release](./4-tag-release.md)
 4. [Update Release Branch](./5-update-release-branch.md)
 5. [Publish Release](./6-publish-release.md)
-6. [Update Deployment Tools](./7-update-deployment-tools.md)
+6. [Test Release](./7-test-release.md)
 7. [Update Helm Charts](./8-update-helm-charts.md)
 8. [Announce Release](./9-announce-release.md)
 
@@ -57,9 +63,3 @@ responsible for ownership of the following workflows:
   - don't update the `release` branch
   - don't publish in github as latest release
   - don't update deployment tools or helm charts
-
-# Release Cycle
-
-A typical release cycle is to have a Release Candidate published for at least 48 
-hours followed by a Stable Release. 0 or more Patch Releases may occur between the Stable Release
-and the creation of the next Release Candidate.
