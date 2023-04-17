@@ -96,6 +96,8 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			var cfg Config
 			err := yaml.UnmarshalStrict([]byte(tc.cfg), &cfg)
+			require.NoError(t, err)
+			err = cfg.ApplyDefaults()
 			if tc.err == nil {
 				require.NoError(t, err)
 			} else {
@@ -128,6 +130,8 @@ func TestConfig_ApplyDefaults_Defaults(t *testing.T) {
   `)
 	var cfg Config
 	err := yaml.UnmarshalStrict([]byte(cfgText), &cfg)
+	require.NoError(t, err)
+	err = cfg.ApplyDefaults()
 	require.NoError(t, err)
 
 	var (

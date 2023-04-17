@@ -82,16 +82,16 @@ func validateTimestampConfig(cfg TimestampConfig) (parser, error) {
 
 	if len(cfg.FallbackFormats) > 0 {
 		multiConvertDateLayout := func(input string) (time.Time, error) {
-			orignalTime, originalErr := convertDateLayout(cfg.Format, loc)(input)
+			originalTime, originalErr := convertDateLayout(cfg.Format, loc)(input)
 			if originalErr == nil {
-				return orignalTime, originalErr
+				return originalTime, originalErr
 			}
 			for i := 0; i < len(cfg.FallbackFormats); i++ {
 				if t, err := convertDateLayout(cfg.FallbackFormats[i], loc)(input); err == nil {
 					return t, err
 				}
 			}
-			return orignalTime, originalErr
+			return originalTime, originalErr
 		}
 		return multiConvertDateLayout, nil
 	}
@@ -198,7 +198,7 @@ func (ts *timestampStage) processActionOnFailureFudge(labels model.LabelSet, t *
 	labelsStr := labels.String()
 	lastTimestamp, ok := ts.lastKnownTimestamps.Get(labelsStr)
 
-	// If the last known timestamp is unknown (ie. has not been successfully parsed yet)
+	// If the last known timestamp is unknown (i.e. has not been successfully parsed yet)
 	// there's nothing we can do, so we're going to keep the current timestamp
 	if !ok {
 		return

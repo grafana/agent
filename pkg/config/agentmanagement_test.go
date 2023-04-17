@@ -25,17 +25,21 @@ type testRemoteConfigProvider struct {
 
 	fetchedConfigBytesToReturn []byte
 	fetchedConfigErrorToReturn error
+	fetchRemoteConfigCallCount int
 
 	cachedConfigToReturn      []byte
 	cachedConfigErrorToReturn error
+	getCachedConfigCallCount  int
 	didCacheRemoteConfig      bool
 }
 
 func (t *testRemoteConfigProvider) GetCachedRemoteConfig() ([]byte, error) {
+	t.getCachedConfigCallCount += 1
 	return t.cachedConfigToReturn, t.cachedConfigErrorToReturn
 }
 
 func (t *testRemoteConfigProvider) FetchRemoteConfig() ([]byte, error) {
+	t.fetchRemoteConfigCallCount += 1
 	return t.fetchedConfigBytesToReturn, t.fetchedConfigErrorToReturn
 }
 
@@ -259,7 +263,7 @@ func TestGetRemoteConfig_UnmarshallableRemoteConfig(t *testing.T) {
 	features.Register(fs, allFeatures)
 	defaultCfg.RegisterFlags(fs)
 
-	cfg, err := getRemoteConfig(true, &testProvider, logger, fs)
+	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, false)
 	assert.NoError(t, err)
 	assert.False(t, testProvider.didCacheRemoteConfig)
 
@@ -285,7 +289,7 @@ func TestGetRemoteConfig_RemoteFetchFails(t *testing.T) {
 	features.Register(fs, allFeatures)
 	defaultCfg.RegisterFlags(fs)
 
-	cfg, err := getRemoteConfig(true, &testProvider, logger, fs)
+	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, false)
 	assert.NoError(t, err)
 	assert.False(t, testProvider.didCacheRemoteConfig)
 
@@ -331,7 +335,7 @@ snippets: []
 	features.Register(fs, allFeatures)
 	defaultCfg.RegisterFlags(fs)
 
-	cfg, err := getRemoteConfig(true, &testProvider, logger, fs)
+	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, false)
 	assert.NoError(t, err)
 	assert.False(t, testProvider.didCacheRemoteConfig)
 
@@ -370,7 +374,7 @@ snippets:
 	features.Register(fs, allFeatures)
 	defaultCfg.RegisterFlags(fs)
 
-	cfg, err := getRemoteConfig(true, &testProvider, logger, fs)
+	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, false)
 	assert.NoError(t, err)
 	assert.False(t, testProvider.didCacheRemoteConfig)
 
@@ -399,7 +403,7 @@ snippets: []
 	features.Register(fs, allFeatures)
 	defaultCfg.RegisterFlags(fs)
 
-	cfg, err := getRemoteConfig(true, &testProvider, logger, fs)
+	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, false)
 	assert.NoError(t, err)
 	assert.True(t, testProvider.didCacheRemoteConfig)
 
@@ -454,7 +458,7 @@ snippets:
 	features.Register(fs, allFeatures)
 	defaultCfg.RegisterFlags(fs)
 
-	cfg, err := getRemoteConfig(true, &testProvider, logger, fs)
+	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, false)
 	assert.NoError(t, err)
 	assert.True(t, testProvider.didCacheRemoteConfig)
 
@@ -514,8 +518,51 @@ snippets:
 	features.Register(fs, allFeatures)
 	defaultCfg.RegisterFlags(fs)
 
-	cfg, err := getRemoteConfig(true, &testProvider, logger, fs)
+	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, false)
 	assert.NoError(t, err)
 	assert.Equal(t, "15s", cfg.Metrics.Configs[0].ScrapeConfigs[0].ScrapeInterval.String())
 	assert.Equal(t, "json", cfg.Server.LogFormat.String())
+}
+
+func TestGetCachedConfig_DefaultConfigFallback(t *testing.T) {
+	defaultCfg := DefaultConfig()
+	am := validAgentManagementConfig
+	logger := server.NewLogger(defaultCfg.Server)
+	testProvider := testRemoteConfigProvider{InitialConfig: &am}
+	testProvider.cachedConfigErrorToReturn = errors.New("no cached config")
+
+	fs := flag.NewFlagSet("test", flag.ExitOnError)
+	features.Register(fs, allFeatures)
+	defaultCfg.RegisterFlags(fs)
+
+	cfg, err := getCachedRemoteConfig(true, &testProvider, fs, logger)
+	assert.NoError(t, err)
+
+	// check that the returned config is the default one
+	assert.True(t, util.CompareYAML(*cfg, defaultCfg))
+}
+
+func TestGetCachedConfig_RetryAfter(t *testing.T) {
+	defaultCfg := DefaultConfig()
+	am := validAgentManagementConfig
+	logger := server.NewLogger(defaultCfg.Server)
+	testProvider := testRemoteConfigProvider{InitialConfig: &am}
+	testProvider.fetchedConfigErrorToReturn = retryAfterError{retryAfter: time.Duration(0)}
+	testProvider.cachedConfigToReturn = cachedConfig
+
+	fs := flag.NewFlagSet("test", flag.ExitOnError)
+	features.Register(fs, allFeatures)
+	defaultCfg.RegisterFlags(fs)
+
+	_, err := getRemoteConfig(true, &testProvider, logger, fs, true)
+	assert.NoError(t, err)
+	assert.False(t, testProvider.didCacheRemoteConfig)
+
+	// check that FetchRemoteConfig was called twice on the TestProvider:
+	// 1 call for the initial attempt, a second for the retry
+	assert.Equal(t, 2, testProvider.fetchRemoteConfigCallCount)
+
+	// the cached config should have been retrieved once, on the second
+	// attempt to fetch the remote config
+	assert.Equal(t, 1, testProvider.getCachedConfigCallCount)
 }

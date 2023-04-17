@@ -110,7 +110,7 @@ func (c *VersionedIntegrations) setVersion(v integrationsVersion) error {
 		return yaml.UnmarshalStrict(c.raw, c.configV1)
 	case integrationsVersion2:
 		cfg := v2.DefaultSubsystemOptions
-		// this is needed for dynamic configuration, the unmarshal doesnt work correctly if
+		// this is needed for dynamic configuration, the unmarshal doesn't work correctly if
 		// this is not nil.
 		c.configV1 = nil
 		c.configV2 = &cfg

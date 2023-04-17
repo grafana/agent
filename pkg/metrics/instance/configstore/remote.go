@@ -104,7 +104,7 @@ func (r *Remote) ApplyConfig(cfg kv.Config, enable bool) error {
 	}
 
 	cli, err := kv.NewClient(cfg, GetCodec(), kv.RegistererWithKVName(r.reg, "agent_configs"), r.log)
-	// This is a hack to get a consul client, the client above has it embedded but its not exposed
+	// This is a hack to get a consul client, the client above has it embedded but it's not exposed
 	var consulClient *api.Client
 	if cfg.Store == "consul" {
 		consulClient, err = api.NewClient(&api.Config{

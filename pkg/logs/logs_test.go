@@ -87,7 +87,7 @@ configs:
 	dec := yaml.NewDecoder(strings.NewReader(cfgText))
 	dec.SetStrict(true)
 	require.NoError(t, dec.Decode(&cfg))
-
+	require.NoError(t, cfg.ApplyDefaults())
 	logger := log.NewSyncLogger(log.NewNopLogger())
 	l, err := New(prometheus.NewRegistry(), &cfg, logger, false)
 	require.NoError(t, err)
@@ -128,7 +128,7 @@ configs:
 	dec = yaml.NewDecoder(strings.NewReader(cfgText))
 	dec.SetStrict(true)
 	require.NoError(t, dec.Decode(&newCfg))
-
+	require.NoError(t, newCfg.ApplyDefaults())
 	require.NoError(t, l.ApplyConfig(&newCfg, false))
 
 	fmt.Fprintf(tmpFile, "Hello again!\n")
@@ -155,7 +155,7 @@ configs:
 		dec = yaml.NewDecoder(strings.NewReader(cfgText))
 		dec.SetStrict(true)
 		require.NoError(t, dec.Decode(&newCfg))
-
+		require.NoError(t, newCfg.ApplyDefaults())
 		require.NoError(t, l.ApplyConfig(&newCfg, false))
 
 		fmt.Fprintf(tmpFile, "Hello again!\n")
@@ -194,7 +194,7 @@ configs:
 	dec := yaml.NewDecoder(strings.NewReader(cfgText))
 	dec.SetStrict(true)
 	require.NoError(t, dec.Decode(&cfg))
-
+	require.NoError(t, cfg.ApplyDefaults())
 	logger := util.TestLogger(t)
 	l, err := New(prometheus.NewRegistry(), &cfg, logger, false)
 	require.NoError(t, err)
@@ -203,5 +203,5 @@ configs:
 	_, err = os.Stat(filepath.Join(positionsDir, "positions"))
 	require.NoError(t, err, "default shared positions directory did not get created")
 	_, err = os.Stat(filepath.Join(positionsDir, "other-positions"))
-	require.NoError(t, err, "instance-specific positions directory did not get creatd")
+	require.NoError(t, err, "instance-specific positions directory did not get created")
 }

@@ -583,8 +583,8 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 	}
 
 	// add a hacky push receiver for when an integration
-	// wants to push traces directly, eg app agent receiver.
-	// it can only accept traces programatically from inside the agent
+	// wants to push traces directly, e.g. app agent receiver.
+	// it can only accept traces programmatically from inside the agent
 	c.Receivers[pushreceiver.TypeStr] = nil
 
 	extensions, err := c.extensions()

@@ -5,7 +5,7 @@ title: loki.source.journal
 # loki.source.journal
 
 `loki.source.journal` reads from the systemd journal and forwards them to other
-`loki.*` components. 
+`loki.*` components.
 
 Multiple `loki.source.journal` components can be specified by giving them
 different labels.
@@ -24,43 +24,40 @@ log entries to the list of receivers passed in `forward_to`.
 
 `loki.source.journal` supports the following arguments:
 
-Name         | Type   | Description                                                                                                                                                                                                                                | Default | Required
------------- |--------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------| --------
-`format_as_json`    | `bool` | When true, log messages from the journal are passed through the pipeline as a JSON message with all of the journal entries' original  fields. When false, the log message is the text content of the MESSAGE field from the journal entry. | `false` | no
-`max_age`    | `duration` | The oldest relative time from process start that will be read                                                                                                                                                                              | `"7h"` | no
-`path` | `string` | Path to a directory to read entries from. Defaults to system paths (/var/log/journal and /run/log/journal) when empty.                                                                                                                     | `""` | no
-`matches` | `string` | Journal matches to filter. Character (+) is not supported, only logical AND matches will be added. | `""` | no
-`forward_to` | `list(LogsReceiver)` | List of receivers to send log entries to.                                                                                                                                                                                                  | | yes
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`format_as_json` | `bool` | Whether to forward the original journal entry as JSON. | `false` | no
+`max_age` | `duration` | The oldest relative time from process start that will be read. | `"7h"` | no
+`path` | `string` | Path to a directory to read entries from. | `""` | no
+`matches` | `string` | Journal matches to filter. The `+` character is not supported, only logical AND matches will be added. | `""` | no
+`forward_to` | `list(LogsReceiver)` | List of receivers to send log entries to. | | yes
+`relabel_rules` | `RelabelRules` | Relabeling rules to apply on log entries. | `{}` | no
 
-> **NOTE**:  A `job` label is added with the full name of the component `loki.source.journal.LABEL`. 
+> **NOTE**:  A `job` label is added with the full name of the component `loki.source.journal.LABEL`.
 
-## Blocks
+When the `format_as_json` argument is true, log messages are passed through as
+JSON with all of the original fields from the journal entry. Otherwise, the log
+message is taken from the content of the `MESSAGE` field from the journal
+entry.
 
-The following blocks are supported inside the definition of `loki.source.journal`:
+When the `path` argument is empty, `/var/log/journal` and `/run/log/journal`
+will be used for discovering journal entries.
 
-Hierarchy | Name | Description | Required
---------- | ---- | ----------- | --------
-relabel_rules | [relabel_rules][] | Relabeling rules to apply to received log entries. | no
+The `relabel_rules` argument can make use of the `rules` export value from a
+[loki.relabel][] component to apply one or more relabeling rules to log entries
+before they're forwarded to the list of receivers in `forward_to`.
 
-[relabel_rules]: #relabel_rules
+All messages read from the journal include internal labels following the
+pattern of `__journal_FIELDNAME` and will be dropped before sending to the list
+of receivers specified in `forward_to`. To keep these labels, use the
+`relabel_rules` argument and relabel them to not be prefixed with `__`.
 
-### relabel_rules block
+> **NOTE**: many field names from journald start with an `_`, such as
+> `_systemd_unit`. The final internal label name would be
+> `__journal__systemd_unit`, with _two_ underscores between `__journal` and
+> `systemd_unit`.
 
-{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" >}}
-
-Incoming messages have labels from the journal following the patten `__journal_FIELDNAME`
-
-These labels are stripped unless a rule is created to retain the labels. An example rule is 
-below.
-
-```river
-rule {
-		action      = "labelmap"
-		regex       = "__journal_(.*)"
-		replacement = "journal_${1}"
-	}
-```
-
+[loki.relabel]: {{< relref "./loki.relabel.md" >}}
 
 ## Component health
 
@@ -75,13 +72,21 @@ configuration.
 ## Example
 
 ```river
+loki.relabel "journal" {
+  rule {
+    source_labels = ["__journal__systemd_unit"]
+    target_label  = "unit"
+  }
+}
+
 loki.source.journal "read"  {
-    forward_to = [loki.write.endpoint.receiver]
+  forward_to    = [loki.write.endpoint.receiver]
+  relabel_rules = loki.relabel.journal.rules
 }
 
 loki.write "endpoint" {
-    endpoint {
-        url ="loki:3100/api/v1/push"
-    }  
+  endpoint {
+    url ="loki:3100/api/v1/push"
+  }
 }
 ```

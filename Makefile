@@ -1,6 +1,6 @@
 ## Build, test, and generate code for various parts of Grafana Agent.
 ##
-## At least Go 1.18, git, and a moderately recent version of Docker is required
+## At least Go 1.19, git, and a moderately recent version of Docker is required
 ## to be able to use the Makefile. This list isn't exhaustive and there are other
 ## dependencies for the generate-* targets. If you do not have the full list of
 ## build dependencies, you may set USE_CONTAINER=1 to proxy build commands to a
@@ -20,13 +20,14 @@
 ##
 ## Targets for building binaries:
 ##
-##   binaries    Compiles all binaries.
-##   agent       Compiles cmd/grafana-agent to $(AGENT_BINARY)
-##   agent-flow  Compiles cmd/grafana-agent-flow to $(FLOW_BINARY)
-##   agentctl    Compiles cmd/grafana-agentctl to $(AGENTCTL_BINARY)
-##   operator    Compiles cmd/grafana-agent-operator to $(OPERATOR_BINARY)
-##   crow        Compiles tools/crow to $(CROW_BINARY)
-##   smoke       Compiles tools/smoke to $(SMOKE_BINARY)
+##   binaries       Compiles all binaries.
+##   agent          Compiles cmd/grafana-agent to $(AGENT_BINARY)
+##   agent-flow     Compiles cmd/grafana-agent-flow to $(FLOW_BINARY)
+##   agent-service  Compiles cmd/grafana-agent-service to $(SERVICE_BINARY)
+##   agentctl       Compiles cmd/grafana-agentctl to $(AGENTCTL_BINARY)
+##   operator       Compiles cmd/grafana-agent-operator to $(OPERATOR_BINARY)
+##   crow           Compiles tools/crow to $(CROW_BINARY)
+##   smoke          Compiles tools/smoke to $(SMOKE_BINARY)
 ##
 ## Targets for building Docker images:
 ##
@@ -78,6 +79,7 @@
 ##   BUILD_IMAGE      Image name:tag used by USE_CONTAINER=1
 ##   AGENT_BINARY     Output path of `make agent` (default build/grafana-agent)
 ##   FLOW_BINARY      Output path of `make agent-flow` (default build/grafana-agent-flow)
+##   SERVICE_BINARY   Output path of `make agent-service` (default build/grafana-agent-service)
 ##   AGENTCTL_BINARY  Output path of `make agentctl` (default build/grafana-agentctl)
 ##   OPERATOR_BINARY  Output path of `make operator` (default build/grafana-agent-operator)
 ##   CROW_BINARY      Output path of `make crow` (default build/grafana-agent-crow)
@@ -100,6 +102,7 @@ CROW_IMAGE       ?= us.gcr.io/kubernetes-dev/grafana/agent-crow:latest
 SMOKE_IMAGE      ?= us.gcr.io/kubernetes-dev/grafana/agent-smoke:latest
 AGENT_BINARY     ?= build/grafana-agent
 FLOW_BINARY      ?= build/grafana-agent-flow
+SERVICE_BINARY   ?= build/grafana-agent-service
 AGENTCTL_BINARY  ?= build/grafana-agentctl
 OPERATOR_BINARY  ?= build/grafana-agent-operator
 CROW_BINARY      ?= build/agent-crow
@@ -187,6 +190,14 @@ ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
 	$(GO_ENV) go build $(GO_FLAGS) -o $(FLOW_BINARY) ./cmd/grafana-agent-flow
+endif
+
+# agent-service is not included in binaries since it's Windows-only.
+agent-service:
+ifeq ($(USE_CONTAINER),1)
+	$(RERUN_IN_CONTAINER)
+else
+	$(GO_ENV) go build $(GO_FLAGS) -o $(SERVICE_BINARY) ./cmd/grafana-agent-service
 endif
 
 agentctl:

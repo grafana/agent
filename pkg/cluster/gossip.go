@@ -136,7 +136,7 @@ func (c *GossipConfig) ApplyDefaults(defaultPort int) error {
 	for i := range c.JoinPeers {
 		// Default to using the same advertise port as the local node. This may
 		// break in some cases, so the user should make sure the port numbers
-		// align on as much nodes as possible.
+		// align on as many nodes as possible.
 		c.JoinPeers[i] = appendDefaultPort(c.JoinPeers[i], defaultPort)
 	}
 
@@ -200,7 +200,7 @@ func NewGossipNode(l log.Logger, srv *grpc.Server, c *GossipConfig) (*GossipNode
 }
 
 // ChangeState changes the state of n. ChangeState will block until the state
-// change has been receieved by another node; cancel the context to stop
+// change has been received by another node; cancel the context to stop
 // waiting. ChangeState will fail if the current state cannot move to the
 // target state.
 //
@@ -230,7 +230,7 @@ func (n *GossipNode) Lookup(key shard.Key, numOwners int, op shard.Op) ([]peer.P
 }
 
 // Observe registers o to be informed when the cluster changes, including peers
-// appearing, disapearing, or changing state.
+// appearing, disappearing, or changing state.
 //
 // Calls will have to filter events if they are only interested in a subset of
 // changes.
@@ -259,7 +259,7 @@ func (n *GossipNode) Start() (err error) {
 // Stop leaves the cluster and terminates n. n cannot be re-used after
 // stopping.
 //
-// It is advisble to ChangeState to StateTerminating and StateGone before
+// It is advisable to ChangeState to StateTerminating and StateGone before
 // stopping so the local node has an opportunity to move work to other nodes.
 func (n *GossipNode) Stop() error {
 	return n.innerNode.Stop()

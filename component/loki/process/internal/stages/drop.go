@@ -139,7 +139,7 @@ func (m *dropStage) shouldDrop(e Entry) bool {
 				}
 			}
 		} else {
-			// Not found in extact map, don't drop
+			// Not found in extracted map, don't drop
 			level.Debug(m.logger).Log("msg", "line will not be dropped, the provided source was not found in the extracted map")
 			return false
 		}
@@ -162,7 +162,7 @@ func (m *dropStage) shouldDrop(e Entry) bool {
 				// regex match, will be dropped
 				level.Debug(m.logger).Log("msg", "line met drop criteria, regex matched the value in the extracted map source key")
 			} else {
-				// Not found in extact map, don't drop
+				// Not found in extracted map, don't drop
 				level.Debug(m.logger).Log("msg", "line will not be dropped, the provided source was not found in the extracted map")
 				return false
 			}

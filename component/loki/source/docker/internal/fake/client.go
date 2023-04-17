@@ -64,7 +64,7 @@ func (c *Client) Name() string {
 	return "fake"
 }
 
-// Clear is used to cleanup the buffered received entries, so the same client can be re-used between
+// Clear is used to clean up the buffered received entries, so the same client can be re-used between
 // test cases.
 func (c *Client) Clear() {
 	c.mtx.Lock()

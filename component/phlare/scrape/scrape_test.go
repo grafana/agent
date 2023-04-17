@@ -40,7 +40,7 @@ func TestComponent(t *testing.T) {
 		require.NoError(t, err)
 	}()
 
-	// triger an update
+	// trigger an update
 	require.Empty(t, c.appendable.Children())
 	require.Empty(t, c.DebugInfo().(scrape.ScraperStatus).TargetStatus)
 

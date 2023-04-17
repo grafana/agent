@@ -25,13 +25,13 @@ local stackedPanelMixin = {
     dashboard.withUID(std.md5(filename)) +
     dashboard.withTemplateVariablesMixin([
       dashboard.newTemplateVariable('cluster', |||
-        label_values(agent_component_controller_running_components_total, cluster)
+        label_values(agent_component_controller_running_components, cluster)
       |||),
       dashboard.newTemplateVariable('namespace', |||
-        label_values(agent_component_controller_running_components_total{cluster="$cluster"}, namespace)
+        label_values(agent_component_controller_running_components{cluster="$cluster"}, namespace)
       |||),
       dashboard.newMultiTemplateVariable('instance', |||
-        label_values(agent_component_controller_running_components_total{cluster="$cluster", namespace="$namespace"}, instance)
+        label_values(agent_component_controller_running_components{cluster="$cluster", namespace="$namespace"}, instance)
       |||),
       dashboard.newMultiTemplateVariable('component', |||
         label_values(agent_wal_samples_appended_total{cluster="$cluster", namespace="$namespace", instance=~"$instance", component_id=~"prometheus\\.remote_write\\..*"}, component_id)

@@ -1,32 +1,24 @@
-// Package string defines the module.file component.
 package file
 
 import (
 	"context"
-	"fmt"
 	"net/http"
-	"path"
 	"sync"
-	"time"
 
-	"github.com/go-kit/log"
-	"github.com/gorilla/mux"
+	"go.uber.org/atomic"
+
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/local/file"
-	"github.com/grafana/agent/pkg/flow"
-	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/component/module"
 	"github.com/grafana/agent/pkg/flow/rivertypes"
-	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/pkg/river"
-	"github.com/grafana/agent/web/api"
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 func init() {
 	component.Register(component.Registration{
 		Name:    "module.file",
 		Args:    Arguments{},
-		Exports: Exports{},
+		Exports: module.Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
@@ -39,7 +31,7 @@ type Arguments struct {
 	LocalFileArguments file.Arguments `river:",squash"`
 
 	// Arguments to pass into the module.
-	Arguments map[string]any `river:"arguments,attr,optional"`
+	Arguments map[string]any `river:"arguments,block,optional"`
 }
 
 var _ river.Unmarshaler = (*Arguments)(nil)
@@ -57,24 +49,18 @@ func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	return nil
 }
 
-// Exports holds values which are exported from the run module.
-type Exports struct {
-	// Exports exported from the running module.
-	Exports map[string]any `river:"exports,attr"`
-}
-
 // Component implements the module.file component.
 type Component struct {
 	opts component.Options
-	log  log.Logger
-	ctrl *flow.Flow
+	mod  *module.ModuleComponent
 
 	mut     sync.RWMutex
 	args    Arguments
 	content rivertypes.OptionalSecret
-	health  component.Health
 
 	managedLocalFile *file.Component
+	inUpdate         atomic.Bool
+	isCreated        atomic.Bool
 }
 
 var (
@@ -85,46 +71,44 @@ var (
 
 // New creates a new module.file component.
 func New(o component.Options, args Arguments) (*Component, error) {
-	// TODO(rfratto): replace these with a tracer/registry which properly
-	// propagates data back to the parent.
-	flowTracer, _ := tracing.New(tracing.DefaultOptions)
-	flowRegistry := prometheus.NewRegistry()
-
 	c := &Component{
 		opts: o,
-		log:  o.Logger,
-
-		ctrl: flow.New(flow.Options{
-			ControllerID: o.ID,
-			LogSink:      logging.LoggerSink(o.Logger),
-			Tracer:       flowTracer,
-			Reg:          flowRegistry,
-
-			DataPath:       o.DataPath,
-			HTTPPathPrefix: o.HTTPPath,
-			HTTPListenAddr: o.HTTPListenAddr,
-
-			OnExportsChange: func(exports map[string]any) {
-				o.OnStateChange(Exports{Exports: exports})
-			},
-		}),
+		mod:  module.NewModuleComponent(o),
+		args: args,
 	}
+	defer c.isCreated.Store(true)
 
-	localFile, err := c.NewManagedLocalFileComponent(o, args)
+	var err error
+	c.managedLocalFile, err = c.newManagedLocalComponent(o)
 	if err != nil {
 		return nil, err
 	}
-
-	c.managedLocalFile = localFile
-
 	if err := c.Update(args); err != nil {
 		return nil, err
 	}
 	return c, nil
 }
 
+// NewManagedLocalComponent creates the new local.file managed component.
+func (c *Component) newManagedLocalComponent(o component.Options) (*file.Component, error) {
+	localFileOpts := o
+	localFileOpts.OnStateChange = func(e component.Exports) {
+		c.setContent(e.(file.Exports).Content)
+
+		if !c.inUpdate.Load() && c.isCreated.Load() {
+			// Any errors found here are reported via component health
+			_ = c.mod.LoadFlowContent(c.getArgs().Arguments, c.getContent().Value)
+		}
+	}
+
+	return file.New(localFileOpts, c.getArgs().LocalFileArguments)
+}
+
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	ch := make(chan error, 1)
 	go func() {
 		err := c.managedLocalFile.Run(ctx)
@@ -133,7 +117,7 @@ func (c *Component) Run(ctx context.Context) error {
 		}
 	}()
 
-	c.ctrl.Run(ctx)
+	go c.mod.RunFlowController(ctx)
 
 	for {
 		select {
@@ -147,101 +131,59 @@ func (c *Component) Run(ctx context.Context) error {
 
 // Update implements component.Component.
 func (c *Component) Update(args component.Arguments) error {
-	newArgs := args.(Arguments)
+	c.inUpdate.Store(true)
+	defer c.inUpdate.Store(false)
 
-	c.mut.Lock()
-	c.args = newArgs
-	c.mut.Unlock()
+	newArgs := args.(Arguments)
+	c.setArgs(newArgs)
 
 	err := c.managedLocalFile.Update(newArgs.LocalFileArguments)
 	if err != nil {
-		c.setHealth(component.Health{
-			Health:     component.HealthTypeUnhealthy,
-			Message:    fmt.Sprintf("failed to update the managed local.file component: %s", err),
-			UpdateTime: time.Now(),
-		})
 		return err
 	}
 
-	return c.LoadFlowContent()
-}
-
-// NewManagedLocalFileComponent creates the new local.file managed component.
-func (c *Component) NewManagedLocalFileComponent(o component.Options, args Arguments) (*file.Component, error) {
-	localFileOpts := o
-	localFileOpts.OnStateChange = func(e component.Exports) {
-		c.mut.Lock()
-		c.content = e.(file.Exports).Content
-		c.mut.Unlock()
-
-		_ = c.LoadFlowContent()
-	}
-
-	return file.New(localFileOpts, args.LocalFileArguments)
-}
-
-// LoadFlowContent loads the flow controller with the current component content.
-func (c *Component) LoadFlowContent() error {
-	c.mut.RLock()
-	f, err := flow.ReadFile(c.opts.ID, []byte(c.content.Value))
-	c.mut.RUnlock()
-	if err != nil {
-		c.setHealth(component.Health{
-			Health:     component.HealthTypeUnhealthy,
-			Message:    fmt.Sprintf("failed to parse module content: %s", err),
-			UpdateTime: time.Now(),
-		})
-	} else {
-		c.mut.RLock()
-		err = c.ctrl.LoadFile(f, c.args.Arguments)
-		c.mut.RUnlock()
-		if err != nil {
-			c.setHealth(component.Health{
-				Health:     component.HealthTypeUnhealthy,
-				Message:    fmt.Sprintf("failed to load module content: %s", err),
-				UpdateTime: time.Now(),
-			})
-		} else {
-			c.setHealth(component.Health{
-				Health:     component.HealthTypeHealthy,
-				Message:    "module content loaded",
-				UpdateTime: time.Now(),
-			})
-		}
-
-		return err
-	}
-
-	return nil
+	// Force a content load here and bubble up any error. This will catch problems
+	// on initial load.
+	return c.mod.LoadFlowContent(newArgs.Arguments, c.getContent().Value)
 }
 
 // Handler implements component.HTTPComponent.
 func (c *Component) Handler() http.Handler {
-	r := mux.NewRouter()
-
-	fa := api.NewFlowAPI(c.ctrl, r)
-	fa.RegisterRoutes("/", r)
-
-	r.PathPrefix("/{id}/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Re-add the full path to ensure that nested controllers propagate
-		// requests properly.
-		r.URL.Path = path.Join(c.opts.HTTPPath, r.URL.Path)
-
-		c.ctrl.ComponentHandler().ServeHTTP(w, r)
-	})
-
-	return r
+	return c.mod.Handler()
 }
 
 // CurrentHealth implements component.HealthComponent.
 func (c *Component) CurrentHealth() component.Health {
-	c.mut.RLock()
-	defer c.mut.RUnlock()
-	return c.health
+	return component.LeastHealthy(
+		c.managedLocalFile.CurrentHealth(),
+		c.mod.CurrentHealth(),
+	)
 }
 
-func (c *Component) setHealth(h component.Health) {
+// getArgs is a goroutine safe way to get args
+func (c *Component) getArgs() Arguments {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+	return c.args
+}
+
+// setArgs is a goroutine safe way to set args
+func (c *Component) setArgs(args Arguments) {
 	c.mut.Lock()
-	defer c.mut.Unlock()
-	c.health = h
+	c.args = args
+	c.mut.Unlock()
+}
+
+// getContent is a goroutine safe way to get content
+func (c *Component) getContent() rivertypes.OptionalSecret {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+	return c.content
+}
+
+// setContent is a goroutine safe way to set content
+func (c *Component) setContent(content rivertypes.OptionalSecret) {
+	c.mut.Lock()
+	c.content = content
+	c.mut.Unlock()
 }

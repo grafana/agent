@@ -99,7 +99,7 @@ func (j *jsonStage) Run(in chan Entry) chan Entry {
 
 func (j *jsonStage) processEntry(extracted map[string]interface{}, entry *string) error {
 	// If a source key is provided, the json stage should process it
-	// from the extracted map, otherwise should fallback to the entry
+	// from the extracted map, otherwise should fall back to the entry
 	input := entry
 
 	if j.cfg.Source != nil {

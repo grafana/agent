@@ -68,9 +68,9 @@ func (rc *RemoteConfig) BuildAgentConfig() (*Config, error) {
 
 func appendSnippets(c *Config, snippets []Snippet) error {
 	metricsConfigs := instance.DefaultConfig
-	metricsConfigs.Name = "Metrics Snippets"
+	metricsConfigs.Name = "snippets"
 	logsConfigs := logs.InstanceConfig{
-		Name:         "Logs Snippets",
+		Name:         "snippets",
 		ScrapeConfig: []scrapeconfig.Config{},
 	}
 	logsConfigs.Initialize()

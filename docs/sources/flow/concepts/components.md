@@ -24,7 +24,7 @@ Components are specified in the config file by first providing the component's
 name with a user-specified label, and then by providing arguments to configure
 the component:
 
-```
+```river
 discovery.kubernetes "pods" {
   role = "pod"
 }

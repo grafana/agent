@@ -17,7 +17,7 @@ The `prometheus.exporter.mysql` component embeds
 
 ```river
 prometheus.exporter.mysql "LABEL" {
-    data_source_name = "DATA SOURCE NAME"
+    data_source_name = "DATA_SOURCE_NAME"
 }
 ```
 
@@ -45,7 +45,7 @@ Set a `lock_wait_timeout` on the connection to avoid potentially long wait times
 
 ## Blocks
 
-The following blocks are supported inside the definiton of
+The following blocks are supported inside the definition of
 `prometheus.exporter.mysql` to configure collector-specific options:
 
 Hierarchy | Name | Description | Required

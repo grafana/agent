@@ -59,7 +59,7 @@ var _ component.Component = (*Component)(nil)
 // NewComponent creates a new otelcol.receiver.loki component.
 func NewComponent(o component.Options, c Arguments) (*Component, error) {
 	// TODO(@tpaschalis) Create a metrics struct to count
-	// total/succcessful/errored log entries?
+	// total/successful/errored log entries?
 	res := &Component{
 		log:  o.Logger,
 		opts: o,

@@ -1,0 +1,29 @@
+server:
+  log_level: debug
+metrics:
+  wal_directory: /tmp/grafana-agent-normal
+  global:
+    scrape_interval: 60s
+    remote_write:
+      - url: https://prometheus-us-central1.grafana.net/api/prom/push
+        basic_auth:
+          username: xyz
+          password: secretpassword
+  configs:
+    - name: default
+      # Check for length so that if it is 0, we don't write any scrape configs
+  {{ if $length := len (datasource "computers") }}
+  {{ if gt $length 0 }}
+      scrape_configs:
+  {{ end }}
+  {{ end }}
+  {{ range (datasource "computers") }}
+    # Only add if the computers are enabled
+    # the . references our current object
+    {{ if eq .enabled true }}
+        - job_name: {{ .name }}
+          static_configs:
+            - targets:
+                - {{ .ip }}
+    {{ end }}
+  {{ end }}

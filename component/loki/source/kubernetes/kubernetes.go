@@ -248,7 +248,7 @@ func (c *Component) DebugInfo() interface{} {
 	return info
 }
 
-// DebugInfo represents debug information for loki.source.kubernets.
+// DebugInfo represents debug information for loki.source.kubernetes.
 type DebugInfo struct {
 	Targets []DebugInfoTarget `river:"target,block,optional"`
 }
