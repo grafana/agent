@@ -103,7 +103,7 @@ func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 
 	err := yaml.UnmarshalStrict([]byte(a.Config), &a.ConfigStruct)
 	if err != nil {
-		return fmt.Errorf("invalid config: %s", err)
+		return fmt.Errorf("invalid backbox_exporter config: %s", err)
 	}
 
 	return nil

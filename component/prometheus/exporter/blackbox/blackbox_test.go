@@ -83,7 +83,7 @@ func TestUnmarshalRiverWithInvalidInlineConfig(t *testing.T) {
 				module = "http_2xx"
 			}
 			`,
-			`invalid config: yaml: line 1: did not find expected ',' or '}'`,
+			`invalid backbox_exporter config: yaml: line 1: did not find expected ',' or '}'`,
 		},
 		{
 			"Invalid property",
@@ -95,7 +95,7 @@ func TestUnmarshalRiverWithInvalidInlineConfig(t *testing.T) {
 				module = "http_2xx"
 			}
 			`,
-			"invalid config: yaml: unmarshal errors:\n  line 1: field module not found in type config.plain",
+			"invalid backbox_exporter config: yaml: unmarshal errors:\n  line 1: field module not found in type config.plain",
 		},
 		{
 			"Define config and config_file",
