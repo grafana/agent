@@ -123,6 +123,9 @@ Main (unreleased)
 
 - Flow: Define custom http method and headers in `remote.http` component (@jkroepke)
 
+- Update Loki Dependency to k146. (@mattdurham)
+
+
 ### Bugfixes
 
 - Flow: fix issue where Flow would return an error when trying to access a key
