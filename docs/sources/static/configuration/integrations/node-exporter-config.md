@@ -225,7 +225,7 @@ the Agent is running on is a no-op.
   # Monitor the exporter itself and include those metrics in the results.
   [include_exporter_metrics: <boolean> | default = false]
 
-  # Optionally defines the the list of enabled-by-default collectors.
+  # Optionally defines the list of enabled-by-default collectors.
   # Anything not provided in the list below will be disabled by default,
   # but requires at least one element to be treated as defined.
   #

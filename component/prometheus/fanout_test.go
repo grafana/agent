@@ -7,8 +7,8 @@ import (
 
 	"github.com/prometheus/prometheus/storage"
 
+	"context"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 func TestRollback(t *testing.T) {

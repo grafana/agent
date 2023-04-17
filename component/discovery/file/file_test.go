@@ -12,7 +12,7 @@ import (
 
 	"github.com/grafana/agent/component/discovery"
 
-	"golang.org/x/net/context"
+	"context"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/util"
