@@ -411,6 +411,8 @@ func (cn *ComponentNode) CurrentHealth() component.Health {
 
 	if hc, ok := cn.managed.(component.HealthComponent); ok {
 		componentHealth = hc.CurrentHealth()
+	} else {
+		componentHealth = component.DefaultHealth()
 	}
 
 	return component.LeastHealthy(runHealth, evalHealth, componentHealth)
