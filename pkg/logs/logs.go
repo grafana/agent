@@ -3,7 +3,6 @@ package logs
 
 import (
 	"fmt"
-	"github.com/grafana/loki/clients/pkg/promtail/targets/file"
 	"os"
 	"path/filepath"
 	"sync"
@@ -18,6 +17,7 @@ import (
 	"github.com/grafana/loki/clients/pkg/promtail/client"
 	"github.com/grafana/loki/clients/pkg/promtail/config"
 	"github.com/grafana/loki/clients/pkg/promtail/server"
+	"github.com/grafana/loki/clients/pkg/promtail/targets/file"
 	"github.com/grafana/loki/clients/pkg/promtail/wal"
 	"github.com/grafana/loki/pkg/tracing"
 	"github.com/prometheus/client_golang/prometheus"
