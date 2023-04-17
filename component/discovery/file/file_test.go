@@ -30,7 +30,8 @@ func TestFile(t *testing.T) {
 	})
 	c := createComponent(t, dir, []string{path.Join(dir, "*.txt")}, nil)
 	ct := context.Background()
-	ct, _ = context.WithTimeout(ct, 5*time.Second)
+	ct, ccl := context.WithTimeout(ct, 5*time.Second)
+	defer ccl()
 	c.args.SyncPeriod = 10 * time.Millisecond
 	go c.Run(ct)
 	time.Sleep(20 * time.Millisecond)
@@ -51,7 +52,8 @@ func TestDirectoryFile(t *testing.T) {
 	})
 	c := createComponent(t, dir, []string{path.Join(dir, "**/")}, nil)
 	ct := context.Background()
-	ct, _ = context.WithTimeout(ct, 5*time.Second)
+	ct, ccl := context.WithTimeout(ct, 5*time.Second)
+	defer ccl()
 	c.args.SyncPeriod = 10 * time.Millisecond
 	go c.Run(ct)
 	time.Sleep(20 * time.Millisecond)
@@ -72,7 +74,8 @@ func TestAddingFile(t *testing.T) {
 	c := createComponent(t, dir, []string{path.Join(dir, "*.txt")}, nil)
 
 	ct := context.Background()
-	ct, _ = context.WithTimeout(ct, 40*time.Second)
+	ct, ccl := context.WithTimeout(ct, 40*time.Second)
+	defer ccl()
 	c.args.SyncPeriod = 10 * time.Millisecond
 	go c.Run(ct)
 	time.Sleep(20 * time.Millisecond)
@@ -93,7 +96,8 @@ func TestAddingFileInSubDir(t *testing.T) {
 	})
 	c := createComponent(t, dir, []string{path.Join(dir, "**", "*.txt")}, nil)
 	ct := context.Background()
-	ct, _ = context.WithTimeout(ct, 40*time.Second)
+	ct, ccl := context.WithTimeout(ct, 40*time.Second)
+	defer ccl()
 	c.args.SyncPeriod = 10 * time.Millisecond
 	go c.Run(ct)
 	time.Sleep(20 * time.Millisecond)
@@ -122,7 +126,8 @@ func TestAddingRemovingFileInSubDir(t *testing.T) {
 	c := createComponent(t, dir, []string{path.Join(dir, "**", "*.txt")}, nil)
 
 	ct := context.Background()
-	ct, _ = context.WithTimeout(ct, 40*time.Second)
+	ct, ccl := context.WithTimeout(ct, 40*time.Second)
+	defer ccl()
 	c.args.SyncPeriod = 10 * time.Millisecond
 	go c.Run(ct)
 	time.Sleep(20 * time.Millisecond)
@@ -157,7 +162,8 @@ func TestExclude(t *testing.T) {
 	})
 	c := createComponent(t, dir, []string{path.Join(dir, "**", "*.txt")}, []string{path.Join(dir, "**", "*.bad")})
 	ct := context.Background()
-	ct, _ = context.WithTimeout(ct, 40*time.Second)
+	ct, ccl := context.WithTimeout(ct, 40*time.Second)
+	defer ccl()
 	c.args.SyncPeriod = 10 * time.Millisecond
 	go c.Run(ct)
 	time.Sleep(100 * time.Millisecond)
@@ -184,7 +190,8 @@ func TestMultiLabels(t *testing.T) {
 	})
 	c.args.PathTargets[0]["newlabel"] = "test"
 	ct := context.Background()
-	ct, _ = context.WithTimeout(ct, 40*time.Second)
+	ct, ccl := context.WithTimeout(ct, 40*time.Second)
+	defer ccl()
 	c.args.SyncPeriod = 10 * time.Millisecond
 	go c.Run(ct)
 	time.Sleep(100 * time.Millisecond)
