@@ -31,7 +31,7 @@ type Arguments struct {
 	LocalFileArguments file.Arguments `river:",squash"`
 
 	// Arguments to pass into the module.
-	Arguments map[string]any `river:"arguments,attr,optional"`
+	Arguments map[string]any `river:"arguments,block,optional"`
 }
 
 var _ river.Unmarshaler = (*Arguments)(nil)
@@ -154,7 +154,10 @@ func (c *Component) Handler() http.Handler {
 
 // CurrentHealth implements component.HealthComponent.
 func (c *Component) CurrentHealth() component.Health {
-	return c.mod.CurrentHealth()
+	return component.LeastHealthy(
+		c.managedLocalFile.CurrentHealth(),
+		c.mod.CurrentHealth(),
+	)
 }
 
 // getArgs is a goroutine safe way to get args

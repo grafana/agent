@@ -1,5 +1,6 @@
 local build_image = import '../util/build_image.jsonnet';
 local pipelines = import '../util/pipelines.jsonnet';
+local secrets = import '../util/secrets.jsonnet';
 
 // job_names gets the list of job names for use in depends_on.
 local job_names = function(jobs) std.map(function(job) job.name, jobs);
@@ -34,9 +35,9 @@ local linux_containers_jobs = std.map(function(container) (
         path: '/var/run/docker.sock',
       }],
       environment: {
-        DOCKER_LOGIN: { from_secret: 'DOCKER_LOGIN' },
-        DOCKER_PASSWORD: { from_secret: 'DOCKER_PASSWORD' },
-        GCR_CREDS: { from_secret: 'gcr_admin' },
+        DOCKER_LOGIN: secrets.docker_login.fromSecret,
+        DOCKER_PASSWORD: secrets.docker_password.fromSecret,
+        GCR_CREDS: secrets.gcr_admin.fromSecret,
       },
       commands: [
         'mkdir -p $HOME/.docker',
@@ -75,8 +76,8 @@ local windows_containers_jobs = std.map(function(container) (
         path: '//./pipe/docker_engine/',
       }],
       environment: {
-        DOCKER_LOGIN: { from_secret: 'DOCKER_LOGIN' },
-        DOCKER_PASSWORD: { from_secret: 'DOCKER_PASSWORD' },
+        DOCKER_LOGIN: secrets.docker_login.fromSecret,
+        DOCKER_PASSWORD: secrets.docker_password.fromSecret,
       },
       commands: [
         '& "C:/Program Files/git/bin/bash.exe" ./tools/ci/docker-containers-windows %s' % container,
@@ -132,9 +133,7 @@ linux_containers_jobs + windows_containers_jobs + [
               ]
             }
           |||,
-          github_token: {
-            from_secret: 'gh_token',
-          },
+          github_token: secrets.gh_token.fromSecret,
         },
       },
     ],
@@ -154,12 +153,12 @@ linux_containers_jobs + windows_containers_jobs + [
         path: '/var/run/docker.sock',
       }],
       environment: {
-        DOCKER_LOGIN: { from_secret: 'DOCKER_LOGIN' },
-        DOCKER_PASSWORD: { from_secret: 'DOCKER_PASSWORD' },
-        GITHUB_TOKEN: { from_secret: 'GITHUB_KEY' },
-        GPG_PRIVATE_KEY: { from_secret: 'gpg_private_key' },
-        GPG_PUBLIC_KEY: { from_secret: 'gpg_public_key' },
-        GPG_PASSPHRASE: { from_secret: 'gpg_passphrase' },
+        DOCKER_LOGIN: secrets.docker_login.fromSecret,
+        DOCKER_PASSWORD: secrets.docker_password.fromSecret,
+        GITHUB_TOKEN: secrets.gh_token.fromSecret,
+        GPG_PRIVATE_KEY: secrets.gpg_private_key.fromSecret,
+        GPG_PUBLIC_KEY: secrets.gpg_public_key.fromSecret,
+        GPG_PASSPHRASE: secrets.gpg_passphrase.fromSecret,
       },
       commands: [
         'docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD',

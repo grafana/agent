@@ -670,11 +670,12 @@ exclude google.golang.org/grpc/examples v0.0.0-20200728065043-dfc0c05b2da9
 // Some funtionalities of the collector have been made internal and it's more difficult to build and configure pipelines in the newer versions.
 // This is a temporary solution while a new configuration design is discussed for the collector (ref: https://github.com/open-telemetry/opentelemetry-collector/issues/3482).
 replace (
-	go.opentelemetry.io/collector => github.com/grafana/opentelemetry-collector v0.4.1-0.20221101113646-2be4b341c150
-	go.opentelemetry.io/collector/exporter/loggingexporter => github.com/grafana/opentelemetry-collector/exporter/loggingexporter v0.0.0-20221101113646-2be4b341c150
-	go.opentelemetry.io/collector/exporter/otlpexporter => github.com/grafana/opentelemetry-collector/exporter/otlpexporter v0.0.0-20221101113646-2be4b341c150
-	go.opentelemetry.io/collector/exporter/otlphttpexporter => github.com/grafana/opentelemetry-collector/exporter/otlphttpexporter v0.0.0-20221101113646-2be4b341c150
-	go.opentelemetry.io/collector/pdata => github.com/grafana/opentelemetry-collector/pdata v0.0.0-20221101113646-2be4b341c150
+	go.opentelemetry.io/collector => github.com/grafana/opentelemetry-collector v0.4.1-0.20230412190723-62ec42799a7d
+	go.opentelemetry.io/collector/config/configtls => github.com/grafana/opentelemetry-collector/config/configtls v0.4.1-0.20230412190723-62ec42799a7d
+	go.opentelemetry.io/collector/exporter/loggingexporter => github.com/grafana/opentelemetry-collector/exporter/loggingexporter v0.0.0-20230412190723-62ec42799a7d
+	go.opentelemetry.io/collector/exporter/otlpexporter => github.com/grafana/opentelemetry-collector/exporter/otlpexporter v0.0.0-20230412190723-62ec42799a7d
+	go.opentelemetry.io/collector/exporter/otlphttpexporter => github.com/grafana/opentelemetry-collector/exporter/otlphttpexporter v0.0.0-20230412190723-62ec42799a7d
+	go.opentelemetry.io/collector/pdata => github.com/grafana/opentelemetry-collector/pdata v0.0.0-20230412190723-62ec42799a7d
 )
 
 // Replacement necessary for windows_exporter so that we can use gokit logging and not the old prometheus logging
@@ -704,3 +705,6 @@ replace github.com/github/smimesign => github.com/grafana/smimesign v0.2.1-0.202
 // TODO(rfratto): remove once a new version of node_exporter is available that
 // uses a newer version of procfs.
 replace github.com/prometheus/procfs => github.com/prometheus/procfs v0.8.0
+
+// TODO(rfratto): remove once prometheus/common#472 is merged.
+replace github.com/prometheus/common => github.com/grafana/prometheus-common v0.39.1-0.20230411174203-bcb00f1c26d7

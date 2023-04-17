@@ -280,7 +280,7 @@ func loadFromAgentManagementAPI(path string, expandEnvVars bool, c *Config, log 
 	if err != nil {
 		return err
 	}
-	remoteConfig, err := getRemoteConfig(expandEnvVars, configProvider, log, fs)
+	remoteConfig, err := getRemoteConfig(expandEnvVars, configProvider, log, fs, true)
 	if err != nil {
 		return err
 	}
