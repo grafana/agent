@@ -1,7 +1,9 @@
 package logs
 
 import (
+	"github.com/grafana/loki/clients/pkg/promtail/targets/file"
 	"reflect"
+	"time"
 
 	"github.com/grafana/loki/clients/pkg/promtail/client"
 )
@@ -9,11 +11,16 @@ import (
 // DefaultGlobalConfig holds default global settings to be used across all instances.
 var DefaultGlobalConfig = GlobalConfig{
 	ClientConfigs: []client.Config{},
+	FileWatch: file.WatchConfig{
+		MinPollFrequency: 250 * time.Millisecond,
+		MaxPollFrequency: 250 * time.Millisecond,
+	},
 }
 
 // GlobalConfig holds global settings that apply to all instances by default.
 type GlobalConfig struct {
-	ClientConfigs []client.Config `yaml:"clients,omitempty"`
+	FileWatch     file.WatchConfig `yaml:"file_watch_config,omitempty"`
+	ClientConfigs []client.Config  `yaml:"clients,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
