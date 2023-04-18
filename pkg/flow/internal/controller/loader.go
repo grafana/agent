@@ -60,11 +60,16 @@ func NewLoader(globals ComponentGlobals) *Loader {
 	}
 
 	globals.Clusterer.Node.Observe(ckit.FuncObserver(func(peers []peer.Peer) (reregister bool) {
-		_, span := l.tracer.Tracer("").Start(context.Background(), "ClusterStateChange", trace.WithSpanKind(trace.SpanKindInternal))
+		tracer := l.tracer.Tracer("")
+		spanCtx, span := tracer.Start(context.Background(), "ClusterStateChange", trace.WithSpanKind(trace.SpanKindInternal))
 		defer span.End()
 		for _, cmp := range l.Components() {
 			if cc, ok := cmp.managed.(component.ClusteredComponent); ok {
 				if cc.ClusterUpdatesRegistration() {
+					_, span := tracer.Start(spanCtx, "ClusteredComponentReevaluation", trace.WithSpanKind(trace.SpanKindInternal))
+					span.SetAttributes(attribute.String("node_id", cmp.NodeID()))
+					defer span.End()
+
 					err := cmp.Reevaluate()
 					if err != nil {
 						level.Error(globals.Logger).Log("msg", "failed to reevaluate component", "componentID", cmp.NodeID(), "err", err)
