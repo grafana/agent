@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -68,6 +69,7 @@ func TestLoader(t *testing.T) {
 			LogSink:           noOpSink(),
 			Logger:            logging.New(nil),
 			TraceProvider:     trace.NewNoopTracerProvider(),
+			Clusterer:         noOpClusterer(),
 			DataPath:          t.TempDir(),
 			OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
 			Registerer:        prometheus.NewRegistry(),
@@ -213,6 +215,7 @@ func TestScopeWithFailingComponent(t *testing.T) {
 			DataPath:          t.TempDir(),
 			OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
 			Registerer:        prometheus.NewRegistry(),
+			Clusterer:         noOpClusterer(),
 		}
 	}
 
@@ -226,6 +229,10 @@ func TestScopeWithFailingComponent(t *testing.T) {
 func noOpSink() *logging.Sink {
 	s, _ := logging.WriterSink(io.Discard, logging.DefaultSinkOptions)
 	return s
+}
+
+func noOpClusterer() *cluster.Clusterer {
+	return &cluster.Clusterer{Node: cluster.NewLocalNode("")}
 }
 
 func applyFromContent(t *testing.T, l *controller.Loader, componentBytes []byte, configBytes []byte) diag.Diagnostics {

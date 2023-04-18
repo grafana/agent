@@ -20,7 +20,7 @@ import (
 )
 
 func Test(t *testing.T) {
-	defer goleak.VerifyNone(t)
+	defer goleak.VerifyNone(t, goleak.IgnoreTopFunction("go.opencensus.io/stats/view.(*worker).start"))
 
 	// Create opts for component
 	opts := component.Options{
