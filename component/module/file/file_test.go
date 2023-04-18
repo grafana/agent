@@ -65,7 +65,7 @@ func TestModule(t *testing.T) {
 			require.NoError(t, err)
 
 			go c.Run(context.Background())
-			time.Sleep(2 * time.Second)
+			time.Sleep(200 * time.Millisecond)
 
 			require.Equal(t, tc.expectedHealthType, c.CurrentHealth().Health)
 			require.True(t, strings.HasPrefix(c.CurrentHealth().Message, tc.expectedHealthMessagePrefix))
