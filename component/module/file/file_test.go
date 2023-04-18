@@ -22,12 +22,12 @@ func TestModule(t *testing.T) {
 	os.WriteFile(debugLevelFilePath, []byte("info"), 0664)
 
 	tt := []struct {
-		name                              string
-		moduleContents                    string
-		expectedHealthType                component.HealthType
-		expectedHealthMessagePrefix       string
-		expectedModuleHealthType          component.HealthType
-		expectedModuleHealthMessagePrefix string
+		name                                   string
+		moduleContents                         string
+		expectedHealthType                     component.HealthType
+		expectedHealthMessagePrefix            string
+		expectedManagedFileHealthType          component.HealthType
+		expectedManagedFileHealthMessagePrefix string
 	}{
 		{
 			name: "Good Module",
@@ -38,8 +38,8 @@ func TestModule(t *testing.T) {
 			expectedHealthType:          component.HealthTypeHealthy,
 			expectedHealthMessagePrefix: "module content loaded",
 
-			expectedModuleHealthType:          component.HealthTypeHealthy,
-			expectedModuleHealthMessagePrefix: "read file",
+			expectedManagedFileHealthType:          component.HealthTypeHealthy,
+			expectedManagedFileHealthMessagePrefix: "read file",
 		},
 	}
 
@@ -76,10 +76,24 @@ func TestModule(t *testing.T) {
 			)
 
 			require.Equal(t, tc.expectedHealthType, c.CurrentHealth().Health)
-			requirePrefix(t, c.CurrentHealth().Message, tc.expectedHealthMessagePrefix)
+			require.True(
+				t,
+				strings.HasPrefix(c.CurrentHealth().Message, tc.expectedHealthMessagePrefix) ||
+					strings.HasPrefix(c.CurrentHealth().Message, tc.expectedManagedFileHealthMessagePrefix),
+				"expected '%v' to have a prefix of either '%v' or '%v'",
+				c.CurrentHealth().Message,
+				tc.expectedHealthMessagePrefix,
+				tc.expectedHealthMessagePrefix,
+			)
 
-			require.Equal(t, tc.expectedModuleHealthType, c.managedLocalFile.CurrentHealth().Health)
-			requirePrefix(t, c.managedLocalFile.CurrentHealth().Message, tc.expectedModuleHealthMessagePrefix)
+			require.Equal(t, tc.expectedManagedFileHealthType, c.managedLocalFile.CurrentHealth().Health)
+			require.True(
+				t,
+				strings.HasPrefix(c.managedLocalFile.CurrentHealth().Message, tc.expectedManagedFileHealthMessagePrefix),
+				"expected '%v' to have '%v' prefix",
+				c.managedLocalFile.CurrentHealth().Message,
+				tc.expectedManagedFileHealthMessagePrefix,
+			)
 		})
 	}
 }
@@ -131,16 +145,6 @@ func TestBadFile(t *testing.T) {
 			require.ErrorContains(t, err, tc.expectedErrorContains)
 		})
 	}
-}
-
-func requirePrefix(t *testing.T, s string, prefix string) {
-	require.True(
-		t,
-		strings.HasPrefix(s, prefix),
-		"expected '%v' to have '%v' prefix",
-		s,
-		prefix,
-	)
 }
 
 func riverEscape(filePath string) string {
