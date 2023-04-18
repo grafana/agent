@@ -1831,6 +1831,8 @@ github.com/grafana/dskit v0.0.0-20210908150159-fcf48cb19aa4/go.mod h1:m3eHzwe5IT
 github.com/grafana/dskit v0.0.0-20211021180445-3bd016e9d7f1/go.mod h1:uPG2nyK4CtgNDmWv7qyzYcdI+S90kHHRWvHnBtEMBXM=
 github.com/grafana/dskit v0.0.0-20230201083518-528d8a7d52f2 h1:IOks+FXJ6iO/pfbaVEf4efNw+YzYBYNCkCabyrbkFTM=
 github.com/grafana/dskit v0.0.0-20230201083518-528d8a7d52f2/go.mod h1:zj+5BNZAVmQafV583uLTAOzRr963KPdEm4d6NPmtbwg=
+github.com/grafana/github-exporter v0.0.0-20230418063919-fa34e926116a h1:pvi8kX3TWSQcdHNFDxUOyItgUqebu3vtbA2L/tMYX7w=
+github.com/grafana/github-exporter v0.0.0-20230418063919-fa34e926116a/go.mod h1:6XoOvFDTfk3aqGaOLHLxoWiZNx4zHobApOhKc3oHF/g=
 github.com/grafana/go-gelf/v2 v2.0.1 h1:BOChP0h/jLeD+7F9mL7tq10xVkDG15he3T1zHuQaWak=
 github.com/grafana/go-gelf/v2 v2.0.1/go.mod h1:lexHie0xzYGwCgiRGcvZ723bSNyNI8ZRD4s0CLobh90=
 github.com/grafana/gocql v0.0.0-20200605141915-ba5dc39ece85/go.mod h1:crI9WX6p0IhrqB+DqIUHulRW853PaNFf7o4UprV//3I=
@@ -2906,8 +2908,6 @@ github.com/rfratto/ckit v0.0.0-20220401221852-009169323240 h1:aWVSpqwdAr+e0IU+zY
 github.com/rfratto/ckit v0.0.0-20220401221852-009169323240/go.mod h1:kr0K+4DiLWPdO8eSEQ9W0XZ6Y/WhVzAHWOZyIG3BTkI=
 github.com/rfratto/go-yaml v0.0.0-20211119180816-77389c3526dc h1:g196Usc63pWDzWallipxVhsEjDdh/+RLc/Oz7q3ihW4=
 github.com/rfratto/go-yaml v0.0.0-20211119180816-77389c3526dc/go.mod h1:rMzeXFmWpS5JnfDANtpzbklRJY4pqZMJNN9/SJHAXPA=
-github.com/rgeyer/github-exporter v0.0.0-20210722215637-d0cec2ee0dc8 h1:wNuNGrFzFmZlhrtz1Q8EiK1Ob6yWli8lX7D2AGmSGzE=
-github.com/rgeyer/github-exporter v0.0.0-20210722215637-d0cec2ee0dc8/go.mod h1:6XoOvFDTfk3aqGaOLHLxoWiZNx4zHobApOhKc3oHF/g=
 github.com/rhnvrm/simples3 v0.6.1/go.mod h1:Y+3vYm2V7Y4VijFoJHHTrja6OgPrJ2cBti8dPGkC3sA=
 github.com/rivo/tview v0.0.0-20200219210816-cd38d7432498/go.mod h1:6lkG1x+13OShEf0EaOCaTQYyB7d5nSbb181KtjlS+84=
 github.com/rivo/uniseg v0.1.0/go.mod h1:J6wj4VEh+S6ZtnVlnTBMWIodfgj8LQOQFoIToxlJtxc=

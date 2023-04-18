@@ -163,6 +163,8 @@ Main (unreleased)
 
 - Operator: respect FilterRunning on PodMonitor and ServiceMonitor resources to only scrape running pods. (@captncraig)
 
+- Fixes a bug where the github exporter would get stuck in an infinite loop under certain conditions. (@jcreixell)
+
 ### Other changes
 
 - Grafana Agent Docker containers and release binaries are now published for
