@@ -123,6 +123,12 @@ Main (unreleased)
   - `otelcol.receiver.opencensus`
   - `otelcol.receiver.zipkin`
 
+- Flow: Define custom http method and headers in `remote.http` component (@jkroepke)
+
+- Flow: Add config property to `prometheus.exporter.blackbox` to define the config inline (@jkroepke)
+
+- Update Loki Dependency to k146 which includes configurable file watchers (@mattdurham)
+
 ### Bugfixes
 
 - Flow: fix issue where Flow would return an error when trying to access a key
@@ -158,6 +164,10 @@ Main (unreleased)
   child directories to store the WAL in. (@rfratto)
 
 - Fix internal metrics reported as invalid by promtool's linter. (@tpaschalis)
+
+- Operator: respect FilterRunning on PodMonitor and ServiceMonitor resources to only scrape running pods. (@captncraig)
+
+- Fixes a bug where the github exporter would get stuck in an infinite loop under certain conditions. (@jcreixell)
 
 ### Other changes
 

@@ -18,7 +18,7 @@ import (
 )
 
 func TestJSONLabelsStage(t *testing.T) {
-	defer goleak.VerifyNone(t)
+	defer goleak.VerifyNone(t, goleak.IgnoreTopFunction("go.opencensus.io/stats/view.(*worker).start"))
 
 	// The following stages will attempt to parse input lines as JSON.
 	// The first stage _extract_ any fields found with the correct names:
@@ -122,7 +122,7 @@ func TestJSONLabelsStage(t *testing.T) {
 }
 
 func TestStaticLabelsLabelAllowLabelDrop(t *testing.T) {
-	defer goleak.VerifyNone(t)
+	defer goleak.VerifyNone(t, goleak.IgnoreTopFunction("go.opencensus.io/stats/view.(*worker).start"))
 
 	// The following stages manipulate the label set of a log entry.
 	// The first stage will define a static set of labels (foo, bar, baz, qux)
@@ -206,7 +206,7 @@ stage.label_keep {
 }
 
 func TestRegexTimestampOutput(t *testing.T) {
-	defer goleak.VerifyNone(t)
+	defer goleak.VerifyNone(t, goleak.IgnoreTopFunction("go.opencensus.io/stats/view.(*worker).start"))
 
 	// The first stage will attempt to parse the input line using a regular
 	// expression with named capture groups. The three capture groups (time,
