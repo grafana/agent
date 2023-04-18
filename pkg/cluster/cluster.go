@@ -21,6 +21,10 @@ import (
 
 // Node is a read-only view of a cluster node.
 type Node interface {
+	// Start runs the Node with the configures list of peers.
+	// Start may not be called after the Node has been stopped.
+	Start() error
+
 	// Lookup determines the set of replicationFactor owners for a given key.
 	// peer.Peer.Self can be used to determine if the local node is the owner,
 	// allowing for short-circuiting logic to connect directly to the local node
@@ -37,13 +41,23 @@ type Node interface {
 	// Peers returns the current set of peers for a Node.
 	Peers() []peer.Peer
 
+	// ChangeState changes the state of the node. ChangeState will block until
+	// the state change has been received by another node; cancel the context
+	// to stop waiting. ChangeState will fail if the current state cannot move
+	// to the target state.
+	//
+	// Nodes must be a StateParticipant to receive writes.
+	ChangeState(ctx context.Context, to peer.State) error
+
+	// Handler returns the base route where the node's HTTP/2 handler should
+	// be registered on, as well as the handler itself.
 	Handler() (string, http.Handler)
 }
 
 // NewLocalNode returns a Node which forms a single-node cluster and never
 // connects to other nodes.
 //
-// selfAddr is the address for a Node to use to connect to itself over gRPC.
+// selfAddr is the address for a Node to use to connect to itself over HTTP/2.
 func NewLocalNode(selfAddr string) Node {
 	p := peer.Peer{
 		Name:  "local",
@@ -56,6 +70,10 @@ func NewLocalNode(selfAddr string) Node {
 }
 
 type localNode struct{ self peer.Peer }
+
+func (ln *localNode) Start() error {
+	return nil
+}
 
 func (ln *localNode) Lookup(key shard.Key, replicationFactor int, op shard.Op) ([]peer.Peer, error) {
 	if replicationFactor == 0 {
@@ -73,6 +91,10 @@ func (ln *localNode) Observe(ckit.Observer) {
 
 func (ln *localNode) Peers() []peer.Peer {
 	return []peer.Peer{ln.self}
+}
+
+func (ln *localNode) ChangeState(ctx context.Context, to peer.State) error {
+	return nil
 }
 
 func (ln *localNode) Handler() (string, http.Handler) {
@@ -131,27 +153,6 @@ func New(log log.Logger, clusterEnabled bool, addr, joinAddr string) (*Clusterer
 	}
 
 	gossipNode, err := NewGossipNode(log, cli, &gossipConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	// Attempt to start the Node by connecting to the peers in gossipConfig.
-	// If we cannot connect to any peers, fall back to bootstrapping a new
-	// cluster by ourselves.
-	err = gossipNode.Start()
-	if err != nil {
-		level.Debug(log).Log("msg", "failed to connect to peers; bootstrapping a new cluster")
-		gossipConfig.JoinPeers = nil
-		err = gossipNode.Start()
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	// Nodes initially join the cluster in the Viewer state. We can move to the
-	// Participant state to signal that we wish to participate in reading or
-	// writing data.
-	err = gossipNode.ChangeState(context.Background(), peer.StateParticipant)
 	if err != nil {
 		return nil, err
 	}

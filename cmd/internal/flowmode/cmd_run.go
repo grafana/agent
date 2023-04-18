@@ -14,6 +14,7 @@ import (
 
 	"github.com/grafana/agent/web/api"
 	"github.com/grafana/agent/web/ui"
+	"github.com/rfratto/ckit/peer"
 	"go.opentelemetry.io/otel"
 	"golang.org/x/exp/maps"
 	"golang.org/x/net/http2"
@@ -250,6 +251,21 @@ func (fr *flowRun) Run(configFile string) error {
 		}()
 
 		defer func() { _ = srv.Shutdown(ctx) }()
+	}
+
+	// Start the clusterer after having started the HTTP server.
+	err = clusterer.Node.Start()
+	if err != nil {
+		level.Error(l).Log("msg", "failed to connect to any peers; including ourselves to bootstrap a new cluster", "err", err)
+		return err
+	}
+
+	// Nodes initially join the cluster in the Viewer state. We can move to the
+	// Participant state to signal that we wish to participate in reading or
+	// writing data.
+	err = clusterer.Node.ChangeState(context.Background(), peer.StateParticipant)
+	if err != nil {
+		return err
 	}
 
 	// Report usage of enabled components
