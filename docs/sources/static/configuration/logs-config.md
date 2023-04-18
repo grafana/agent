@@ -44,12 +44,33 @@ instances.
 ```yaml
 clients:
   - [<promtail.client_config>]
+# Configure how frequently log files from disk get polled for changes.
+[file_watch_config: <file_watch_config>]
+
 ```
 
 > **Note:** More information on the following types can be found on the
 > documentation for Promtail:
 >
 > * [`promtail.client_config`](https://grafana.com/docs/loki/latest/clients/promtail/configuration/#clients)
+
+
+## file_watch_config
+
+The `file_watch_config` block configures how often to poll log files from disk
+for changes:
+
+```yaml
+# Minimum frequency to poll for files. Any time file changes are detected, the
+# poll frequency gets reset to this duration.
+  [min_poll_frequency: <duration> | default = "250ms"]
+  # Maximum frequency to poll for files. Any time no file changes are detected,
+  # the poll frequency doubles in value up to the maximum duration specified by
+  # this value.
+  #
+  # The default is set to the same as min_poll_frequency.
+  [max_poll_frequency: <duration> | default = "250ms"]
+```
 
 ## logs_instance_config
 

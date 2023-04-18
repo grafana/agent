@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/regexp"
 	"github.com/prometheus/client_golang/prometheus"
@@ -60,6 +61,11 @@ type Options struct {
 	// Tracer allows components to record spans. The tracer will include an
 	// attribute denoting the component ID.
 	Tracer trace.TracerProvider
+
+	// Clusterer allows components to work in a clustered fashion. The
+	// clusterer is shared between all components initialized by a Flow
+	// controller.
+	Clusterer *cluster.Clusterer
 
 	// HTTPListenAddr is the address the server is configured to listen on.
 	HTTPListenAddr string

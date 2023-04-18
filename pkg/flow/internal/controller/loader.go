@@ -16,6 +16,8 @@ import (
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/vm"
 	"github.com/hashicorp/go-multierror"
+	"github.com/rfratto/ckit"
+	"github.com/rfratto/ckit/peer"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
@@ -56,6 +58,28 @@ func NewLoader(globals ComponentGlobals) *Loader {
 	if globals.Registerer != nil {
 		globals.Registerer.MustRegister(cc)
 	}
+
+	globals.Clusterer.Node.Observe(ckit.FuncObserver(func(peers []peer.Peer) (reregister bool) {
+		tracer := l.tracer.Tracer("")
+		spanCtx, span := tracer.Start(context.Background(), "ClusterStateChange", trace.WithSpanKind(trace.SpanKindInternal))
+		defer span.End()
+		for _, cmp := range l.Components() {
+			if cc, ok := cmp.managed.(component.ClusteredComponent); ok {
+				if cc.ClusterUpdatesRegistration() {
+					_, span := tracer.Start(spanCtx, "ClusteredComponentReevaluation", trace.WithSpanKind(trace.SpanKindInternal))
+					span.SetAttributes(attribute.String("node_id", cmp.NodeID()))
+					defer span.End()
+
+					err := cmp.Reevaluate()
+					if err != nil {
+						level.Error(globals.Logger).Log("msg", "failed to reevaluate component", "componentID", cmp.NodeID(), "err", err)
+					}
+				}
+			}
+		}
+		return true
+	}))
+
 	return l
 }
 
