@@ -87,6 +87,8 @@ depending on the nature of the reload error.
 	cmd.Flags().
 		BoolVar(&r.clusterEnabled, "cluster.enabled", r.clusterEnabled, "Start in clustered mode")
 	cmd.Flags().
+		StringVar(&r.clusterJoinAddr, "cluster.advertise-address", r.clusterAdvAddr, "Address to advertise to the cluster")
+	cmd.Flags().
 		StringVar(&r.clusterJoinAddr, "cluster.join-address", r.clusterJoinAddr, "Address to join the cluster at")
 	cmd.Flags().
 		BoolVar(&r.disableReporting, "disable-reporting", r.disableReporting, "Disable reporting of enabled components to Grafana.")
@@ -99,6 +101,7 @@ type flowRun struct {
 	uiPrefix         string
 	disableReporting bool
 	clusterEnabled   bool
+	clusterAdvAddr   string
 	clusterJoinAddr  string
 }
 
@@ -147,7 +150,7 @@ func (fr *flowRun) Run(configFile string) error {
 	reg := prometheus.DefaultRegisterer
 	reg.MustRegister(newResourcesCollector(l))
 
-	clusterer, err := cluster.New(l, fr.clusterEnabled, fr.httpListenAddr, fr.clusterJoinAddr)
+	clusterer, err := cluster.New(l, fr.clusterEnabled, fr.clusterAdvAddr, fr.clusterJoinAddr)
 	if err != nil {
 		return fmt.Errorf("building clusterer: %w", err)
 	}

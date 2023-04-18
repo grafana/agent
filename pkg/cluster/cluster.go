@@ -119,18 +119,22 @@ func New(log log.Logger, clusterEnabled bool, addr, joinAddr string) (*Clusterer
 		return &Clusterer{Node: NewLocalNode(addr)}, nil
 	}
 
-	host, portStr, err := net.SplitHostPort(addr)
-	if err != nil {
-		return nil, err
-	}
-	port, err := strconv.Atoi(portStr)
-	if err != nil {
-		return nil, err
+	gossipConfig := DefaultGossipConfig
+
+	defaultPort := 80
+	if addr != "" {
+		host, portStr, err := net.SplitHostPort(addr)
+		if err != nil {
+			return nil, err
+		}
+		defaultPort, err = strconv.Atoi(portStr)
+		if err != nil {
+			return nil, err
+		}
+		gossipConfig.AdvertiseAddr = host
 	}
 
-	gossipConfig := DefaultGossipConfig
-	gossipConfig.AdvertiseAddr = host
-	err = gossipConfig.ApplyDefaults(port)
+	err := gossipConfig.ApplyDefaults(defaultPort)
 	if err != nil {
 		return nil, err
 	}
