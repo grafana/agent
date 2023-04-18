@@ -123,8 +123,9 @@ Main (unreleased)
 
 - Flow: Define custom http method and headers in `remote.http` component (@jkroepke)
 
-- Update Loki Dependency to k146. (@mattdurham)
+- Flow: Add config property to `prometheus.exporter.blackbox` to define the config inline (@jkroepke)
 
+- Update Loki Dependency to k146. (@mattdurham)
 
 ### Bugfixes
 
@@ -161,6 +162,8 @@ Main (unreleased)
   child directories to store the WAL in. (@rfratto)
 
 - Fix internal metrics reported as invalid by promtool's linter. (@tpaschalis)
+
+- Operator: respect FilterRunning on PodMonitor and ServiceMonitor resources to only scrape running pods. (@captncraig)
 
 ### Other changes
 
