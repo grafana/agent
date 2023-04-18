@@ -159,6 +159,8 @@ Main (unreleased)
 
 - Fix internal metrics reported as invalid by promtool's linter. (@tpaschalis)
 
+- Fixes a bug where the github exporter would get stuck in an infinite loop under certain conditions. (@jcreixell)
+
 ### Other changes
 
 - Grafana Agent Docker containers and release binaries are now published for
