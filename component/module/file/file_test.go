@@ -76,24 +76,10 @@ func TestModule(t *testing.T) {
 			)
 
 			require.Equal(t, tc.expectedHealthType, c.CurrentHealth().Health)
-			require.True(
-				t,
-				strings.HasPrefix(c.CurrentHealth().Message, tc.expectedHealthMessagePrefix) ||
-					strings.HasPrefix(c.CurrentHealth().Message, tc.expectedManagedFileHealthMessagePrefix),
-				"expected '%v' to have a prefix of either '%v' or '%v'",
-				c.CurrentHealth().Message,
-				tc.expectedHealthMessagePrefix,
-				tc.expectedHealthMessagePrefix,
-			)
+			requirePrefix(t, c.CurrentHealth().Message, tc.expectedHealthMessagePrefix)
 
 			require.Equal(t, tc.expectedManagedFileHealthType, c.managedLocalFile.CurrentHealth().Health)
-			require.True(
-				t,
-				strings.HasPrefix(c.managedLocalFile.CurrentHealth().Message, tc.expectedManagedFileHealthMessagePrefix),
-				"expected '%v' to have '%v' prefix",
-				c.managedLocalFile.CurrentHealth().Message,
-				tc.expectedManagedFileHealthMessagePrefix,
-			)
+			requirePrefix(t, c.managedLocalFile.CurrentHealth().Message, tc.expectedManagedFileHealthMessagePrefix)
 		})
 	}
 }
@@ -153,4 +139,14 @@ func riverEscape(filePath string) string {
 	}
 
 	return filePath
+}
+
+func requirePrefix(t *testing.T, s string, prefix string) {
+	require.True(
+		t,
+		strings.HasPrefix(s, prefix),
+		"expected '%v' to have '%v' prefix",
+		s,
+		prefix,
+	)
 }
