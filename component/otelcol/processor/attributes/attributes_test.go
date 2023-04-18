@@ -724,7 +724,7 @@ func TestDecode_Regexp2(t *testing.T) {
 	include {
 		match_type = "regexp"
 		attribute {
-			key = "env"
+			key = "db.statement"
 			value = "SELECT \\* FROM USERS.*"
 		}
 	}

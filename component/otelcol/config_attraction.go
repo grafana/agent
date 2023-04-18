@@ -77,27 +77,17 @@ type AttrActionKeyValue struct {
 
 // Convert converts args into the upstream type.
 func (args *AttrActionKeyValue) convert() map[string]interface{} {
-	res := make(map[string]interface{})
+	if args == nil {
+		return nil
+	}
 
-	// Mandatory attributes - always set those
-	res["key"] = args.Key
-	res["action"] = args.Action
-
-	// Optional attributes
-	if args.Value != "" {
-		res["value"] = args.Value
+	return map[string]interface{}{
+		"key":            args.Key,
+		"action":         args.Action,
+		"value":          args.Value,
+		"pattern":        args.RegexPattern,
+		"from_attribute": args.FromAttribute,
+		"from_context":   args.FromContext,
+		"converted_type": args.ConvertedType,
 	}
-	if args.RegexPattern != "" {
-		res["pattern"] = args.RegexPattern
-	}
-	if args.FromAttribute != "" {
-		res["from_attribute"] = args.FromAttribute
-	}
-	if args.FromContext != "" {
-		res["from_context"] = args.FromContext
-	}
-	if args.ConvertedType != "" {
-		res["converted_type"] = args.ConvertedType
-	}
-	return res
 }

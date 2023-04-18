@@ -1,6 +1,12 @@
 package otelcol
 
-import "strings"
+import (
+	"encoding"
+	"fmt"
+	"strings"
+
+	"go.opentelemetry.io/collector/pdata/plog"
+)
 
 // MatchConfig has two optional MatchProperties:
 //  1. 'include': to define what is processed by the processor.
@@ -204,7 +210,7 @@ func (args InstrumentationLibrary) convert() map[string]interface{} {
 type LogSeverityNumberMatchProperties struct {
 	// Min is the lowest severity that may be matched.
 	// e.g. if this is plog.SeverityNumberInfo, INFO, WARN, ERROR, and FATAL logs will match.
-	Min int32 `river:"min,attr"`
+	Min SeverityLevel `river:"min,attr"`
 
 	// MatchUndefined controls whether logs with "undefined" severity matches.
 	// If this is true, entries with undefined severity will match.
@@ -212,8 +218,61 @@ type LogSeverityNumberMatchProperties struct {
 }
 
 func (args LogSeverityNumberMatchProperties) convert() map[string]interface{} {
+	numVal, exists := severityLevels[args.Min]
+	if !exists {
+		panic(fmt.Sprintf("No severity value for %q", args.Min))
+	}
+
 	return map[string]interface{}{
-		"min":             args.Min,
+		"min":             numVal,
 		"match_undefined": args.MatchUndefined,
 	}
+}
+
+type SeverityLevel string
+
+var (
+	_ encoding.TextUnmarshaler = (*SeverityLevel)(nil)
+)
+
+// The severity levels should be in sync with "opentelemetry-collector/pdata/plog/logs.go"
+var severityLevels = map[SeverityLevel]int32{
+	"TRACE":  1,
+	"TRACE2": 2,
+	"TRACE3": 3,
+	"TRACE4": 4,
+	"DEBUG":  5,
+	"DEBUG2": 6,
+	"DEBUG3": 7,
+	"DEBUG4": 8,
+	"INFO":   9,
+	"INFO2":  10,
+	"INFO3":  11,
+	"INFO4":  12,
+	"WARN":   13,
+	"WARN2":  14,
+	"WARN3":  15,
+	"WARN4":  16,
+	"ERROR":  17,
+	"ERROR2": 18,
+	"ERROR3": 19,
+	"ERROR4": 20,
+	"FATAL":  21,
+	"FATAL2": 22,
+	"FATAL3": 23,
+	"FATAL4": 24,
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler for SeverityLevel.
+func (sl *SeverityLevel) UnmarshalText(text []byte) error {
+	if numVal, exists := severityLevels[SeverityLevel(text)]; exists {
+		// Check if this is a valid plog severity number
+		plogInt := plog.SeverityNumber(numVal)
+		plogStr := plogInt.String()
+		if plogStr == "SEVERITY_NUMBER_"+string(text) {
+			*sl = SeverityLevel(text)
+			return nil
+		}
+	}
+	return fmt.Errorf("unrecognized severity level %q", string(text))
 }

@@ -41,13 +41,13 @@ Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
 output | [output][] | Configures where to send received telemetry data. | yes
 action | [action][] | Actions to take on the attributes of incoming metrics/logs/traces. | no
-include | [include/exclude][] | Filter for data to be included to this processor's actions. | no
+include | [include][] | Filter for data to be included to this processor's actions. | no
 include > regexp | [regexp][] | Regex cache settings. | no
 include > attribute | [attribute][] | A list of attributes to match against. | no
 include > resource | [resource][] | A list of items to match the resources against. | no
 include > library | [library][] | A list of items to match the implementation library against. | no
 include > log_severity_number | [library][] | How to match against a log record's SeverityNumber, if defined. | no
-exclude | [include/exclude][] | Filter for data to be excluded from this processor's actions | no
+exclude | [exclude][] | Filter for data to be excluded from this processor's actions | no
 exclude > regexp | [regexp][] | Regex cache settings. | no
 exclude > attribute | [attribute][] | A list of attributes to match against. | no
 exclude > resource | [resource][] | A list of items to match the resources against. | no
@@ -180,45 +180,55 @@ Cache size is unlimited unless `cachemaxnumentries` is also specified.
 
 ### attribute block
 
-This block specifies a list of attributes to match against.
-Only `match_type = "strict"` is allowed if `attribute` is specified.
+This block specifies an attribute to match against:
+
+* More than one `attribute` block can be defined.
+* Only `match_type = "strict"` is allowed if `attribute` is specified.
+* All `attribute` blocks must match exactly for a match to occur.
 
 The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `key` | `string` | The attribute key. | | yes
-`value` | `any` | The value to match against. | | no
+`value` | `any` | The attribute value to match against. | | no
 
 If `value` is not set, any value will match.
 The type of `value` could be a number, a string or a boolean.
 
 ### resource block
 
-This block specifies items to match the resources against.
-A match occurs if the input data resources matches at least one `resource` block.
+This block specifies items to match the resources against:
+
+* More than one `resource` block can be defined.
+* A match occurs if the input data resources matches at least one `resource` block.
 
 The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`key` | `string` | The attribute key. | | yes
-`value` | `any` | The value to match against. | | no
+`key` | `string` | The resource key. | | yes
+`value` | `any` | The resource value to match against. | | no
 
 If `value` is not set, any value will match.
 The type of `value` could be a number, a string or a boolean.
 
 ### library block
 
-This block specifies items to match the implementation library against.
-A match occurs if the span's implementation library matches at least one `library` block.
+This block specifies properties to match the implementation library against:
+
+* More than one `library` block can be defined.
+* A match occurs if the span's implementation library matches at least one `library` block.
 
 The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `name` | `string` | The attribute key. | | yes
-`version` | | The value to match against. | | yes
+`version` | `string` | The version to match against. | null | no
+
+If `version` is unset, any version will match. If `version` is set to an empty string, it will only match 
+a library version which is also an empty string.
 
 ### log_severity_number block
 
@@ -228,13 +238,42 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`min` | `int` | The lowest severity that may be matched. | | yes
-`match_undefined` | `bool` | Whether logs with "undefined" severity matches. | | yes
-
-For example, if `min` is plog.SeverityNumberInfo, 
-INFO, WARN, ERROR, and FATAL logs will match.
+`min` | `string` | The lowest severity that may be matched. | | yes
+`match_undefined` | `bool` | Whether logs with "undefined" severity match. | | yes
 
 If `match_undefined` is true, entries with undefined severity will match.
+
+The severity numbers supported by Otel are listed in the table below.
+
+Log Severity | Severity number
+------------ | ---------------
+TRACE        | 1
+TRACE2       | 2
+TRACE3       | 3
+TRACE4       | 4
+DEBUG        | 5
+DEBUG2       | 6
+DEBUG3       | 7
+DEBUG4       | 8
+INFO         | 9
+INFO2        | 10
+INFO3        | 11
+INFO4        | 12
+WARN         | 13
+WARN2        | 14
+WARN3        | 15
+WARN4        | 16
+ERROR        | 17
+ERROR2       | 18
+ERROR3       | 19
+ERROR4       | 20
+FATAL        | 21
+FATAL2       | 22
+FATAL3       | 23
+FATAL4       | 24
+
+For example, if the `min` attribute in the `log_severity_number` block is "INFO", then
+INFO, WARN, ERROR, and FATAL logs will match.
 
 ### output block
 
@@ -518,7 +557,7 @@ otelcol.processor.attributes "default" {
         // This attribute ('db.statement') must exist in the span and match 
         // the regex ('SELECT \* FROM USERS.*') for a match.
         attribute {
-            key = "env"
+            key = "db.statement"
             value = "SELECT \* FROM USERS.*"
         }
     }
