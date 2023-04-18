@@ -244,6 +244,7 @@ func TestKubeSDConfig(t *testing.T) {
 
 func TestPodMonitor(t *testing.T) {
 	var falseVal = false
+	var trueVal = true
 	tt := []struct {
 		name   string
 		input  map[string]interface{}
@@ -260,8 +261,9 @@ func TestPodMonitor(t *testing.T) {
 					},
 				},
 				"endpoint": prom_v1.PodMetricsEndpoint{
-					Port:        "metrics",
-					EnableHttp2: &falseVal,
+					Port:          "metrics",
+					EnableHttp2:   &falseVal,
+					FilterRunning: &trueVal,
 				},
 				"index":                    0,
 				"apiServer":                prom_v1.APIServerConfig{},
@@ -284,6 +286,9 @@ func TestPodMonitor(t *testing.T) {
 				relabel_configs:
 				- source_labels: [job]
 					target_label: __tmp_prometheus_job_name
+				- source_labels: [__meta_kubernetes_pod_phase]
+				  regex: (Failed|Succeeded)
+				  action: drop
 				- source_labels: [__meta_kubernetes_pod_container_port_name]
 					regex: metrics
 					action: keep
@@ -822,6 +827,7 @@ func TestSafeTLSConfig(t *testing.T) {
 }
 
 func TestServiceMonitor(t *testing.T) {
+	trueVal := true
 	tt := []struct {
 		name   string
 		input  map[string]interface{}
@@ -838,7 +844,8 @@ func TestServiceMonitor(t *testing.T) {
 					},
 				},
 				"endpoint": prom_v1.Endpoint{
-					Port: "metrics",
+					Port:          "metrics",
+					FilterRunning: &trueVal,
 				},
 				"index":                    0,
 				"apiServer":                prom_v1.APIServerConfig{},
@@ -891,6 +898,9 @@ func TestServiceMonitor(t *testing.T) {
 				- source_labels:
 					- __meta_kubernetes_pod_container_name
 					target_label: container
+				- source_labels: [__meta_kubernetes_pod_phase]
+					regex: (Failed|Succeeded)
+					action: drop
 				- replacement: $1
 					source_labels:
 					- __meta_kubernetes_service_name

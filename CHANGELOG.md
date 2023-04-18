@@ -161,6 +161,8 @@ Main (unreleased)
 
 - Fix internal metrics reported as invalid by promtool's linter. (@tpaschalis)
 
+- Operator: respect FilterRunning on PodMonitor and ServiceMonitor resources to only scrape running pods. (@captncraig)
+
 ### Other changes
 
 - Grafana Agent Docker containers and release binaries are now published for
