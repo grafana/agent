@@ -125,7 +125,7 @@ Main (unreleased)
 
 - Flow: Add config property to `prometheus.exporter.blackbox` to define the config inline (@jkroepke)
 
-- Update Loki Dependency to k146. (@mattdurham)
+- Update Loki Dependency to k146 which includes configurable file watchers. (@mattdurham)
 
 ### Bugfixes
 
