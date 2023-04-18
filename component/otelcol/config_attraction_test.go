@@ -27,19 +27,31 @@ func TestConvertAttrAction(t *testing.T) {
 
 	expectedActions := []interface{}{
 		map[string]interface{}{
-			"action": "insert",
-			"key":    "attribute1",
-			"value":  123,
+			"action":         "insert",
+			"converted_type": "",
+			"from_attribute": "",
+			"from_context":   "",
+			"key":            "attribute1",
+			"pattern":        "",
+			"value":          123,
 		},
 		map[string]interface{}{
-			"action": "delete",
-			"key":    "attribute2",
-			"value":  interface{}(nil),
+			"action":         "delete",
+			"converted_type": "",
+			"from_attribute": "",
+			"from_context":   "",
+			"key":            "attribute2",
+			"pattern":        "",
+			"value":          interface{}(nil),
 		},
 		map[string]interface{}{
-			"action": "upsert",
-			"key":    "attribute3",
-			"value":  true,
+			"action":         "upsert",
+			"converted_type": "",
+			"from_attribute": "",
+			"from_context":   "",
+			"key":            "attribute3",
+			"pattern":        "",
+			"value":          true,
 		},
 	}
 

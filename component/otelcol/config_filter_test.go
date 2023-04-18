@@ -20,7 +20,7 @@ func TestConvertMatchProperties(t *testing.T) {
 		SpanNames:        []string{"login.*"},
 		LogBodies:        []string{"AUTH.*"},
 		LogSeverityTexts: []string{"debug.*"},
-		LogSeverityNumber: &otelcol.LogSeverityNumberMatchProperties{
+		LogSeverity: &otelcol.LogSeverityNumberMatchProperties{
 			Min:            "TRACE2",
 			MatchUndefined: true,
 		},

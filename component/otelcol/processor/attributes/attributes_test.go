@@ -749,7 +749,7 @@ func TestDecode_Regexp2(t *testing.T) {
 	require.Equal(t, "regexp", string(otelObj.Include.MatchType))
 
 	attr := &otelObj.Include.Attributes[0]
-	require.Equal(t, "env", attr.Key)
+	require.Equal(t, "db.statement", attr.Key)
 	require.Equal(t, "SELECT \\* FROM USERS.*", attr.Value)
 
 	action := &otelObj.Actions[0]
@@ -806,7 +806,7 @@ func TestDecode_LogSeverityRegexp(t *testing.T) {
 		match_type = "regexp"
 		log_severity_texts = ["debug.*"]
 		log_severity {
-			min = 5
+			min = "DEBUG"
 			match_undefined = true
 		}
 	}

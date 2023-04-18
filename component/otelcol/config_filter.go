@@ -48,8 +48,8 @@ type MatchProperties struct {
 	// LogSeverityTexts is a list of strings that the LogRecord's severity text field must match against.
 	LogSeverityTexts []string `river:"log_severity_texts,attr,optional"`
 
-	// LogSeverityNumber defines how to match against a log record's SeverityNumber, if defined.
-	LogSeverityNumber *LogSeverityNumberMatchProperties `river:"log_severity,block,optional"`
+	// LogSeverity defines how to match against a log record's SeverityNumber, if defined.
+	LogSeverity *LogSeverityNumberMatchProperties `river:"log_severity,block,optional"`
 
 	// MetricNames is a list of strings to match metric name against.
 	// A match occurs if metric name matches at least one item in the list.
@@ -103,8 +103,11 @@ func (args *MatchProperties) Convert() map[string]interface{} {
 		res["log_severity_texts"] = args.LogSeverityTexts
 	}
 
-	if args.LogSeverityNumber != nil {
-		res["log_severity"] = args.LogSeverityNumber.convert()
+	if args.LogSeverity != nil {
+		// The Otel config's field is called "log_severity_number" because it uses a number.
+		// The River config's field is called just "log_severity" because it uses a a textual
+		// representation of the log severity instead of a number.
+		res["log_severity_number"] = args.LogSeverity.convert()
 	}
 
 	if len(args.MetricNames) > 0 {
