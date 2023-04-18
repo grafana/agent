@@ -138,7 +138,7 @@ func testOptions(t *testing.T) flow.Options {
 	s, err := logging.WriterSink(os.Stderr, logging.DefaultSinkOptions)
 	require.NoError(t, err)
 
-	c := &clusterer.Clusterer{Node: clusterer.NewLocalNode("")}
+	c := &cluster.Clusterer{Node: cluster.NewLocalNode("")}
 
 	return flow.Options{
 		LogSink:   s,
