@@ -91,6 +91,27 @@ type Clusterer struct {
 	Node Node
 }
 
+func getJoinAddr(addrs []string, in string) []string {
+	_, _, err := net.SplitHostPort(in)
+	if err == nil {
+		addrs = append(addrs, in)
+	}
+
+	ip := net.ParseIP(in)
+	if ip != nil {
+		addrs = append(addrs, ip.String())
+	}
+
+	_, srvs, err := net.LookupSRV("", "", in)
+	if err == nil {
+		for _, srv := range srvs {
+			addrs = append(addrs, fmt.Sprintf("%s:%d", srv.Target, srv.Port))
+		}
+	}
+
+	return addrs
+}
+
 // New creates a Clusterer.
 func New(log log.Logger, clusterEnabled bool, addr, joinAddr string) (*Clusterer, error) {
 	// Standalone node.
@@ -115,7 +136,11 @@ func New(log log.Logger, clusterEnabled bool, addr, joinAddr string) (*Clusterer
 	}
 
 	if joinAddr != "" {
-		gossipConfig.JoinPeers = strings.Split(joinAddr, ",")
+		gossipConfig.JoinPeers = []string{}
+		jaddrs := strings.Split(joinAddr, ",")
+		for _, jaddr := range jaddrs {
+			gossipConfig.JoinPeers = getJoinAddr(gossipConfig.JoinPeers, jaddr)
+		}
 	}
 
 	cli := &http.Client{
