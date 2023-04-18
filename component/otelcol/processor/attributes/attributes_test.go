@@ -805,7 +805,7 @@ func TestDecode_LogSeverityRegexp(t *testing.T) {
 	include {
 		match_type = "regexp"
 		log_severity_texts = ["debug.*"]
-		log_severity_number {
+		log_severity {
 			min = 5
 			match_undefined = true
 		}

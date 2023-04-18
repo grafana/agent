@@ -46,13 +46,13 @@ include > regexp | [regexp][] | Regex cache settings. | no
 include > attribute | [attribute][] | A list of attributes to match against. | no
 include > resource | [resource][] | A list of items to match the resources against. | no
 include > library | [library][] | A list of items to match the implementation library against. | no
-include > log_severity_number | [library][] | How to match against a log record's SeverityNumber, if defined. | no
+include > log_severity | [library][] | How to match against a log record's SeverityNumber, if defined. | no
 exclude | [exclude][] | Filter for data to be excluded from this processor's actions | no
 exclude > regexp | [regexp][] | Regex cache settings. | no
 exclude > attribute | [attribute][] | A list of attributes to match against. | no
 exclude > resource | [resource][] | A list of items to match the resources against. | no
 exclude > library | [library][] | A list of items to match the implementation library against. | no
-exclude > log_severity_number | [log_severity_number][] | How to match against a log record's SeverityNumber, if defined. | no
+exclude > log_severity | [log_severity][] | How to match against a log record's SeverityNumber, if defined. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `include > attribute`
 refers to an `attribute` block defined inside an `include` block.
@@ -67,7 +67,7 @@ If both and `include` block and an `exclude`block are specified, the `include` p
 [attribute]: #attribute-block
 [resource]: #resource-block
 [library]: #library-block
-[log_severity_number]: #log_severity_number-block
+[log_severity]: #log_severity-block
 
 ### action block
 
@@ -141,9 +141,9 @@ The `include` block provides an option to include data being fed into the [actio
 {{< docs/shared lookup="flow/reference/components/match-properties-block.md" source="agent" >}}
 
 One of the following is also required:
-* For spans, one of `services`, `span_names`, `span_kinds`, [attribute][], [resource][], or [library][] must be specified with a non-empty value for a valid configuration. The `log_bodies`, `log_severity_texts`, `log_severity_number`, `resource_attributes` and `metric_names` attributes are invalid.
-* For logs, one of `log_bodies`, `log_severity_texts`, `log_severity_number`, [attribute][], [resource][], or [library][] must be specified with a non-empty value for a valid configuration. The `span_names`, `span_kinds`, `metric_names`, `resource_attributes`, and `services` attributes are invalid.
-* For metrics, one of `metric_names`, [resource][] must be specified with a valid non-empty value for a valid configuration. The `span_names`, `span_kinds`, `log_bodies`, `log_severity_texts`, `log_severity_number` and `services` attributes are invalid.
+* For spans, one of `services`, `span_names`, `span_kinds`, [attribute][], [resource][] or [library][] must be specified with a non-empty value for a valid configuration. The `log_bodies`, `log_severity_texts`, `log_severity` and `metric_names` attributes are invalid.
+* For logs, one of `log_bodies`, `log_severity_texts`, `log_severity`, [attribute][], [resource][] or [library][] must be specified with a non-empty value for a valid configuration. The `span_names`, `span_kinds`, `metric_names`, and `services` attributes are invalid.
+* For metrics, one of `metric_names` or [resource][] must be specified with a valid non-empty value for a valid configuration. The `span_names`, `span_kinds`, `log_bodies`, `log_severity_texts`, `log_severity`, `services`, [attribute][] and [library][] attributes are invalid.
 
 For `metric_names`, a match occurs if the metric name matches at least one item in the list.
 For `span_kinds`, a match occurs if the span's span kind matches at least one item in this list.
@@ -155,9 +155,9 @@ The `exclude` blocks provides an option to exclude data from being fed into the 
 {{< docs/shared lookup="flow/reference/components/match-properties-block.md" source="agent" >}}
 
 One of the following is also required:
-* For spans, one of `services`, `span_names`, `span_kinds`, [attribute][], [resource][], or [library][] must be specified with a non-empty value for a valid configuration. The `log_bodies`, `log_severity_texts`, `log_severity_number`, `resource_attributes` and `metric_names` attributes are invalid.
-* For logs, one of `log_bodies`, `log_severity_texts`, `log_severity_number`, [attribute][], [resource][], or [library][] must be specified with a non-empty value for a valid configuration. The `span_names`, `span_kinds`, `metric_names`, `resource_attributes`, and `services` attributes are invalid.
-* For metrics, one of `metric_names`, [resource][] must be specified with a valid non-empty value for a valid configuration. The `span_names`, `span_kinds`, `log_bodies`, `log_severity_texts`, `log_severity_number` and `services` attributes are invalid.
+* For spans, one of `services`, `span_names`, `span_kinds`, [attribute][], [resource][] or [library][] must be specified with a non-empty value for a valid configuration. The `log_bodies`, `log_severity_texts`, `log_severity` and `metric_names` attributes are invalid.
+* For logs, one of `log_bodies`, `log_severity_texts`, `log_severity`, [attribute][], [resource][] or [library][] must be specified with a non-empty value for a valid configuration. The `span_names`, `span_kinds`, `metric_names`, and `services` attributes are invalid.
+* For metrics, one of `metric_names` or [resource][] must be specified with a valid non-empty value for a valid configuration. The `span_names`, `span_kinds`, `log_bodies`, `log_severity_texts`, `log_severity`, `services`, [attribute][] and [library][] attributes are invalid.
 
 For `metric_names`, a match occurs if the metric name matches at least one item in the list.
 For `span_kinds`, a match occurs if the span's span kind matches at least one item in this list.
@@ -230,7 +230,7 @@ Name | Type | Description | Default | Required
 If `version` is unset, any version will match. If `version` is set to an empty string, it will only match 
 a library version which is also an empty string.
 
-### log_severity_number block
+### log_severity block
 
 This block defines how to match based on a log record's SeverityNumber field.
 
@@ -243,7 +243,8 @@ Name | Type | Description | Default | Required
 
 If `match_undefined` is true, entries with undefined severity will match.
 
-The severity numbers supported by Otel are listed in the table below.
+The severities supported by Otel are listed in the table below. 
+The value for `min` should be one of the values in the "Log Severity" column.
 
 Log Severity | Severity number
 ------------ | ---------------
@@ -272,7 +273,7 @@ FATAL2       | 22
 FATAL3       | 23
 FATAL4       | 24
 
-For example, if the `min` attribute in the `log_severity_number` block is "INFO", then
+For example, if the `min` attribute in the `log_severity` block is "INFO", then
 INFO, WARN, ERROR, and FATAL logs will match.
 
 ### output block

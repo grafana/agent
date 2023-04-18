@@ -49,7 +49,7 @@ type MatchProperties struct {
 	LogSeverityTexts []string `river:"log_severity_texts,attr,optional"`
 
 	// LogSeverityNumber defines how to match against a log record's SeverityNumber, if defined.
-	LogSeverityNumber *LogSeverityNumberMatchProperties `river:"log_severity_number,block,optional"`
+	LogSeverityNumber *LogSeverityNumberMatchProperties `river:"log_severity,block,optional"`
 
 	// MetricNames is a list of strings to match metric name against.
 	// A match occurs if metric name matches at least one item in the list.
@@ -104,7 +104,7 @@ func (args *MatchProperties) Convert() map[string]interface{} {
 	}
 
 	if args.LogSeverityNumber != nil {
-		res["log_severity_number"] = args.LogSeverityNumber.convert()
+		res["log_severity"] = args.LogSeverityNumber.convert()
 	}
 
 	if len(args.MetricNames) > 0 {
