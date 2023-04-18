@@ -146,7 +146,7 @@ One of the following is also required:
 * For metrics, one of `metric_names` or [resource][] must be specified with a valid non-empty value for a valid configuration. The `span_names`, `span_kinds`, `log_bodies`, `log_severity_texts`, `log_severity`, `services`, [attribute][] and [library][] attributes are invalid.
 
 For `metric_names`, a match occurs if the metric name matches at least one item in the list.
-For `span_kinds`, a match occurs if the span's span kind matches at least one item in this list.
+For `span_kinds`, a match occurs if the span's span kind matches at least one item in the list.
 
 ### exclude block
 
@@ -160,7 +160,7 @@ One of the following is also required:
 * For metrics, one of `metric_names` or [resource][] must be specified with a valid non-empty value for a valid configuration. The `span_names`, `span_kinds`, `log_bodies`, `log_severity_texts`, `log_severity`, `services`, [attribute][] and [library][] attributes are invalid.
 
 For `metric_names`, a match occurs if the metric name matches at least one item in the list.
-For `span_kinds`, a match occurs if the span's span kind matches at least one item in this list.
+For `span_kinds`, a match occurs if the span's span kind matches at least one item in the list.
 
 ### regexp block
 
