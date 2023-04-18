@@ -154,10 +154,10 @@ func convertInstrumentationLibrariesSlice(libs []InstrumentationLibrary) []inter
 type RegexpConfig struct {
 	// CacheEnabled determines whether match results are LRU cached to make subsequent matches faster.
 	// Cache size is unlimited unless CacheMaxNumEntries is also specified.
-	CacheEnabled bool `river:"cacheenabled,attr,optional"`
+	CacheEnabled bool `river:"cache_enabled,attr,optional"`
 	// CacheMaxNumEntries is the max number of entries of the LRU cache that stores match results.
 	// CacheMaxNumEntries is ignored if CacheEnabled is false.
-	CacheMaxNumEntries int `river:"cachemaxnumentries,attr,optional"`
+	CacheMaxNumEntries int `river:"cache_max_num_entries,attr,optional"`
 }
 
 func (args RegexpConfig) convert() map[string]interface{} {

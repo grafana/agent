@@ -76,7 +76,7 @@ func TestConvertMatchProperties(t *testing.T) {
 			},
 		},
 		"log_bodies": []string{"AUTH.*"},
-		"log_severity": map[string]interface{}{
+		"log_severity_number": map[string]interface{}{
 			"min":             int32(2),
 			"match_undefined": true,
 		},

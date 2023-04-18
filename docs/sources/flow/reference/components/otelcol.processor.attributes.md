@@ -165,18 +165,19 @@ For `span_kinds`, a match occurs if the span's span kind matches at least one it
 ### regexp block
 
 This block is optional configuration for the `match_type` of `"regexp"`.
+It configures a Least Recently Used (LRU) cache.
 
 The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`cacheenabled` | `bool` | Determines whether match results are LRU cached. | `false` | no
-`cachemaxnumentries` | `int` | The max number of entries of the LRU cache that stores match results. | `0` | no
+`cache_enabled` | `bool` | Determines whether match results are LRU cached. | `false` | no
+`cache_max_num_entries` | `int` | The max number of entries of the LRU cache that stores match results. | `0` | no
 
-Enabling `cacheenabled` could make subsequent matches faster.
-Cache size is unlimited unless `cachemaxnumentries` is also specified.
+Enabling `cache_enabled` could make subsequent matches faster.
+Cache size is unlimited unless `cache_max_num_entries` is also specified.
 
-`cachemaxnumentries` is ignored if `cacheenabled` is false.
+`cache_max_num_entries` is ignored if `cache_enabled` is false.
 
 ### attribute block
 
