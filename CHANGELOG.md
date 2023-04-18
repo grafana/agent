@@ -123,6 +123,8 @@ Main (unreleased)
 
 - Flow: Define custom http method and headers in `remote.http` component (@jkroepke)
 
+- Flow: Add config property to `prometheus.exporter.blackbox` to define the config inline (@jkroepke)
+
 ### Bugfixes
 
 - Flow: fix issue where Flow would return an error when trying to access a key
