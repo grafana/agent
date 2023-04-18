@@ -81,7 +81,13 @@ type Arguments struct {
 	// Scrape Options
 	ExtraMetrics bool `river:"extra_metrics,attr,optional"`
 
-	ClusteringEnabled bool `river:"clustering_enabled,attr,optional"`
+	Clustering Clustering `river:"clustering,block,optional"`
+}
+
+// Clustering holds values that configure clustering-specific behavior.
+type Clustering struct {
+	// TODO(@tpaschalis) Move this block to a shared place for all components using clustering.
+	Enabled bool `river:"enabled,attr"`
 }
 
 // DefaultArguments defines the default settings for a scrape job.
@@ -179,7 +185,7 @@ func (c *Component) Run(ctx context.Context) error {
 			var (
 				tgs     = c.args.Targets
 				jobName = c.opts.ID
-				cl      = c.args.ClusteringEnabled
+				cl      = c.args.Clustering.Enabled
 			)
 			if c.args.JobName != "" {
 				jobName = c.args.JobName
@@ -314,7 +320,7 @@ func (c *Component) DebugInfo() interface{} {
 func (c *Component) ClusterUpdatesRegistration() bool {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
-	return c.args.ClusteringEnabled
+	return c.args.Clustering.Enabled
 }
 
 func (c *Component) componentTargetsToProm(jobName string, tgs []discovery.Target) map[string][]*targetgroup.Group {
