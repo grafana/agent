@@ -154,10 +154,16 @@ func (c *Component) Handler() http.Handler {
 
 // CurrentHealth implements component.HealthComponent.
 func (c *Component) CurrentHealth() component.Health {
-	return component.LeastHealthy(
+	leastHealthy := component.LeastHealthy(
 		c.managedLocalFile.CurrentHealth(),
 		c.mod.CurrentHealth(),
 	)
+
+	// if both components are healthy - return c.mod's health, so we can have a stable Health.Message.
+	if leastHealthy.Health == component.HealthTypeHealthy {
+		return c.mod.CurrentHealth()
+	}
+	return leastHealthy
 }
 
 // getArgs is a goroutine safe way to get args
