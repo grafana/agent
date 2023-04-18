@@ -95,11 +95,13 @@ func getJoinAddr(addrs []string, in string) []string {
 	_, _, err := net.SplitHostPort(in)
 	if err == nil {
 		addrs = append(addrs, in)
+		return addrs
 	}
 
 	ip := net.ParseIP(in)
 	if ip != nil {
 		addrs = append(addrs, ip.String())
+		return addrs
 	}
 
 	_, srvs, err := net.LookupSRV("", "", in)
@@ -152,9 +154,6 @@ func New(log log.Logger, clusterEnabled bool, addr, joinAddr string) (*Clusterer
 			AllowHTTP: true,
 			DialTLS: func(network, addr string, _ *tls.Config) (net.Conn, error) {
 				return net.Dial(network, addr)
-			},
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true,
 			},
 		},
 	}
