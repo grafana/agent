@@ -269,7 +269,7 @@ omitted, all namespaces are searched.
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `own_namespace` | `bool`   | Include the namespace the agent is running in. | | no
-`names` | `[]string` | List of namespaces to search. | | no
+`names` | `list(string)` | List of namespaces to search. | | no
 
 ### selectors block
 

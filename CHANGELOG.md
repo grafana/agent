@@ -57,6 +57,8 @@ Main (unreleased)
     components. (@akselleirv)
   - `discovery.gce` discovers resources on Google Compute Engine (GCE). (@marctc)
   - `discovery.digitalocean` provides service discovery for DigitalOcean. (@spartan0x117)
+  - `otelcol.processor.attributes` accepts telemetry data from other `otelcol`
+    components and modifies attributes of a span, log, or metric. (@ptodev)
 
 
 - Add support for Flow-specific system packages:
