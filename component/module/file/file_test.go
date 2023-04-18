@@ -65,13 +65,21 @@ func TestModule(t *testing.T) {
 			require.NoError(t, err)
 
 			go c.Run(context.Background())
-			time.Sleep(200 * time.Millisecond)
+			require.Eventually(
+				t,
+				func() bool { return tc.expectedHealthType == c.CurrentHealth().Health },
+				5*time.Second,
+				50*time.Millisecond,
+				"did not reach required health status before timeout: %v != %v",
+				tc.expectedHealthType,
+				c.CurrentHealth().Health,
+			)
 
 			require.Equal(t, tc.expectedHealthType, c.CurrentHealth().Health)
-			require.True(t, strings.HasPrefix(c.CurrentHealth().Message, tc.expectedHealthMessagePrefix))
+			requirePrefix(t, c.CurrentHealth().Message, tc.expectedHealthMessagePrefix)
 
 			require.Equal(t, tc.expectedModuleHealthType, c.managedLocalFile.CurrentHealth().Health)
-			require.True(t, strings.HasPrefix(c.managedLocalFile.CurrentHealth().Message, tc.expectedModuleHealthMessagePrefix))
+			requirePrefix(t, c.managedLocalFile.CurrentHealth().Message, tc.expectedModuleHealthMessagePrefix)
 		})
 	}
 }
@@ -123,6 +131,16 @@ func TestBadFile(t *testing.T) {
 			require.ErrorContains(t, err, tc.expectedErrorContains)
 		})
 	}
+}
+
+func requirePrefix(t *testing.T, s string, prefix string) {
+	require.True(
+		t,
+		strings.HasPrefix(s, prefix),
+		"expected '%v' to have '%v' prefix",
+		s,
+		prefix,
+	)
 }
 
 func riverEscape(filePath string) string {
