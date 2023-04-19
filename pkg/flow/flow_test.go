@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/internal/testcomponents"
@@ -65,9 +66,12 @@ func testOptions(t *testing.T) Options {
 	s, err := logging.WriterSink(os.Stderr, logging.DefaultSinkOptions)
 	require.NoError(t, err)
 
+	c := &cluster.Clusterer{Node: cluster.NewLocalNode("")}
+
 	return Options{
-		LogSink:  s,
-		DataPath: t.TempDir(),
-		Reg:      nil,
+		LogSink:   s,
+		DataPath:  t.TempDir(),
+		Reg:       nil,
+		Clusterer: c,
 	}
 }
