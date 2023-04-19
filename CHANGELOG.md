@@ -29,6 +29,7 @@ Main (unreleased)
 
 - New Grafana Agent Flow components:
 
+  - `discovery.dns` DNS service discovery. (@captncraig)
   - `discovery.ec2` service discovery for aws ec2. (@captncraig)
   - `discovery.lightsail` service discovery for aws lightsail. (@captncraig)
   - `module.file` runs a Grafana Agent Flow module loaded from a file on disk.
