@@ -10,6 +10,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/weaveworks/common/logging"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	controller "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -40,6 +41,8 @@ type Config struct {
 	Controller          controller.Options
 	AgentSelector       string
 	KubelsetServiceName string
+
+	agentLabelSelector labels.Selector
 
 	// RestConfig used to connect to cluster. One will be generated based on the
 	// environment if not set.
@@ -146,6 +149,10 @@ func New(l log.Logger, c *Config) (*Operator, error) {
 	// Initialize agentPredicates if an GrafanaAgent selector is configured.
 	if c.AgentSelector != "" {
 		sel, err := meta_v1.ParseToLabelSelector(c.AgentSelector)
+		if err != nil {
+			return nil, fmt.Errorf("unable to create predicate for selecting GrafanaAgent CRs: %w", err)
+		}
+		c.agentLabelSelector, err = meta_v1.LabelSelectorAsSelector(sel)
 		if err != nil {
 			return nil, fmt.Errorf("unable to create predicate for selecting GrafanaAgent CRs: %w", err)
 		}
