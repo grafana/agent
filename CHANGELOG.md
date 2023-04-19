@@ -55,7 +55,7 @@ Main (unreleased)
     components. (@akselleirv)
   - `discovery.gce` discovers resources on Google Compute Engine (GCE). (@marctc)
   - `discovery.digitalocean` provides service discovery for DigitalOcean. (@spartan0x117)
-
+  - `discovery.consul` service discovery for Consul. (@jcreixell)
 
 - Add support for Flow-specific system packages:
 
