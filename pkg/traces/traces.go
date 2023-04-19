@@ -53,15 +53,14 @@ func (t *Traces) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager insta
 	newInstances := make(map[string]*Instance, len(cfg.Configs))
 
 	for _, c := range cfg.Configs {
-		//TODO: Do we need to wrap the prometheus registerer inside otel with anything?
-		// var (
-		// 	instReg = prom_client.WrapRegistererWith(prom_client.Labels{"traces_config": c.Name}, t.reg)
-		// )
+		var (
+			instReg = prom_client.WrapRegistererWith(prom_client.Labels{"traces_config": c.Name}, t.reg)
+		)
 
 		// If an old instance exists, update it and move it to the new map.
 		if old, ok := t.instances[c.Name]; ok {
 			//TODO: Make sure we test this code path
-			err := old.ApplyConfig(logsSubsystem, promInstanceManager, c)
+			err := old.ApplyConfig(logsSubsystem, promInstanceManager, c, instReg)
 			if err != nil {
 				return err
 			}
@@ -74,7 +73,7 @@ func (t *Traces) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager insta
 			instLogger = t.logger.With(zap.String("traces_config", c.Name))
 		)
 
-		inst, err := NewInstance(logsSubsystem, c, instLogger, t.promInstanceManager)
+		inst, err := NewInstance(logsSubsystem, c, instLogger, t.promInstanceManager, instReg)
 		if err != nil {
 			return fmt.Errorf("failed to create tracing instance %s: %w", c.Name, err)
 		}
