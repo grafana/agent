@@ -88,7 +88,7 @@ func (app *Appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v f
 	return 0, nil
 }
 
-// AppendExemplar adds an exemplar for a given metric, identified by lablels. l
+// AppendExemplar adds an exemplar for a given metric, identified by labels. l
 // must not be empty.
 //
 // Upon calling Commit, exemplars are injected into the resulting Metrics for
@@ -151,15 +151,15 @@ func (app *Appender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m me
 
 // AppendHistogram implements storage.Appendable, but always returns an error
 // as native histograms are not supported.
-func (app *Appender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram) (storage.SeriesRef, error) {
+func (app *Appender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram) (storage.SeriesRef, error) {
 	return 0, fmt.Errorf("native histograms are not supported")
 }
 
 // Commit commits pending samples, exemplars, and metadata, converting them
-// into a slice of *dto.MetricsFamily. Call MetricFamlies to get the resulting
+// into a slice of *dto.MetricsFamily. Call MetricFamilies to get the resulting
 // data.
 //
-// After calling Commit, no other methods except MetricFamlies may be called.
+// After calling Commit, no other methods except MetricFamilies may be called.
 func (app *Appender) Commit() error {
 	if app.commitCalled || app.rollbackCalled {
 		return fmt.Errorf("appender is closed")

@@ -125,3 +125,11 @@ type HTTPComponent interface {
 	// will receive a request to just `/metrics`.
 	Handler() http.Handler
 }
+
+// ClusteredComponent is an extension interface for components which implement
+// clustering-specific behavior.
+type ClusteredComponent interface {
+	Component
+
+	ClusterUpdatesRegistration() bool
+}

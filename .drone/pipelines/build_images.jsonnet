@@ -1,8 +1,9 @@
 local pipelines = import '../util/pipelines.jsonnet';
+local secrets = import '../util/secrets.jsonnet';
 
 local locals = {
-  on_pr: {
-    event: { include: ['pull_request'] },
+  on_merge: {
+    ref: ['refs/heads/main'],
     paths: { include: ['build-image/**'] },
   },
   on_build_image_tag: {
@@ -10,14 +11,14 @@ local locals = {
     ref: ['refs/tags/build-image/v*'],
   },
   docker_environment: {
-    DOCKER_LOGIN: { from_secret: 'DOCKER_LOGIN' },
-    DOCKER_PASSWORD: { from_secret: 'DOCKER_PASSWORD' },
+    DOCKER_LOGIN: secrets.docker_login.fromSecret,
+    DOCKER_PASSWORD: secrets.docker_password.fromSecret,
   },
 };
 
 [
   pipelines.linux('Check Linux build image') {
-    trigger: locals.on_pr,
+    trigger: locals.on_merge,
     steps: [{
       name: 'Build',
       image: 'docker',
@@ -60,7 +61,7 @@ local locals = {
   },
 
   pipelines.windows('Check Windows build image') {
-    trigger: locals.on_pr,
+    trigger: locals.on_merge,
     steps: [{
       name: 'Build',
       image: 'docker:windowsservercore-1809',

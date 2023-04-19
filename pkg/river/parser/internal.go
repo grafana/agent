@@ -16,7 +16,7 @@ import (
 // parsing.
 //
 // Each Parse* and parse* method will describe the EBNF grammar being used for
-// parsing that nonterminal. The EBNF grammar will be written as LL(1) and
+// parsing that non-terminal. The EBNF grammar will be written as LL(1) and
 // should directly represent the code.
 //
 // The parser will continue on encountering errors to allow a more complete
@@ -340,7 +340,7 @@ func (p *parser) parseBlockName() *blockName {
 	// [ string ]
 	if p.tok != token.ASSIGN && p.tok != token.LCURLY {
 		if p.tok == token.STRING {
-			// Strip the quotes if it's non empty. We then require any non-empty
+			// Strip the quotes if it's non-empty. We then require any non-empty
 			// label to be a valid identifier.
 			if len(p.lit) > 2 {
 				bn.Label = p.lit[1 : len(p.lit)-1]
@@ -389,7 +389,7 @@ func (p *parser) ParseExpression() ast.Expr {
 //	AddExpr   = MulExpr { add_op MulExpr }
 //	MulExpr   = PowExpr { mul_op PowExpr }
 //
-// parseBinOp avoids the need for multiple nonterminal functions by providing
+// parseBinOp avoids the need for multiple non-terminal functions by providing
 // context for operator precedence in recursive calls. inPrec specifies the
 // incoming operator precedence. On the first call to parseBinOp, inPrec should
 // be 1.

@@ -100,7 +100,7 @@ func Test(t *testing.T) {
 func Benchmark(b *testing.B) {
 	// Benchmark various fields that may be commonly printed.
 	//
-	// NOTE(rfratto): Array and Object are skipped as bencmharks since they
+	// NOTE(rfratto): Array and Object are skipped as benchmarks since they
 	// currently only print placeholder text in place of actual values.
 
 	runBenchmark(b, "No fields")

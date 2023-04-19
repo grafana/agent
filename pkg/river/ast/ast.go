@@ -6,6 +6,8 @@ package ast
 
 import (
 	"fmt"
+	"reflect"
+	"strings"
 
 	"github.com/grafana/agent/pkg/river/token"
 )
@@ -15,7 +17,7 @@ type Node interface {
 	astNode()
 }
 
-// Stmt is a type of statement wthin the body of a file or block.
+// Stmt is a type of statement within the body of a file or block.
 type Stmt interface {
 	Node
 	astStmt()
@@ -146,7 +148,7 @@ type BinaryExpr struct {
 	Left, Right Expr
 }
 
-// ParenExpr represents an expression wrapped in parenthesis.
+// ParenExpr represents an expression wrapped in parentheses.
 type ParenExpr struct {
 	Inner                Expr
 	LParenPos, RParenPos token.Pos
@@ -220,7 +222,7 @@ func (n *ParenExpr) astExpr()      {}
 
 // StartPos returns the position of the first character belonging to a Node.
 func StartPos(n Node) token.Pos {
-	if n == nil {
+	if n == nil || reflect.ValueOf(n).IsZero() {
 		return token.NoPos
 	}
 	switch n := n.(type) {
@@ -271,7 +273,7 @@ func StartPos(n Node) token.Pos {
 
 // EndPos returns the position of the final character in a Node.
 func EndPos(n Node) token.Pos {
-	if n == nil {
+	if n == nil || reflect.ValueOf(n).IsZero() {
 		return token.NoPos
 	}
 	switch n := n.(type) {
@@ -318,4 +320,9 @@ func EndPos(n Node) token.Pos {
 	default:
 		panic(fmt.Sprintf("Unhandled Node type %T", n))
 	}
+}
+
+// GetBlockName retrieves the "." delimited block name.
+func (block *BlockStmt) GetBlockName() string {
+	return strings.Join(block.Name, ".")
 }

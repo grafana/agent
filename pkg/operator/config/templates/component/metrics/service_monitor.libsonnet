@@ -176,6 +176,12 @@ function(
       target_label: 'container',
     }] +
 
+    (if endpoint.FilterRunning then [{
+      source_labels: ['__meta_kubernetes_pod_phase'],
+			regex: '(Failed|Succeeded)',
+			action: 'drop',
+    }] else [] ) +
+
     // Relabel targetLabels from the service onto the target.
     std.map(
       function(l) {

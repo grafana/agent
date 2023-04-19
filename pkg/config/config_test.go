@@ -180,7 +180,7 @@ func TestConfig_Defaults(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, metrics.DefaultConfig, c.Metrics)
-	require.Equal(t, DefaultVersionedIntegrations, c.Integrations)
+	require.Equal(t, DefaultVersionedIntegrations(), c.Integrations)
 }
 
 func TestConfig_TracesLokiValidates(t *testing.T) {
@@ -468,7 +468,7 @@ server:
 logs:
   positions_directory: /tmp
 agent_management:
-  api_url: "http://localhost"
+  host: "localhost"
   basic_auth:
     username: "initial_user"
   protocol: "http"
@@ -488,7 +488,7 @@ integrations:
   scrape_integrations: true
 
 agent_management:
-  api_url: "http://localhost:80"
+  host: "localhost:80"
   basic_auth:
     username: "new_user"
   protocol: "http"
@@ -522,7 +522,8 @@ agent_management:
 func TestConfig_EmptyServerConfigFails(t *testing.T) {
 	// Since we are testing defaults via config.Load, we need a file instead of a string.
 	// This test file has an empty server stanza, we expect default values out.
-	logger := server.NewLogger(&server.DefaultConfig)
+	defaultServerCfg := server.DefaultConfig()
+	logger := server.NewLogger(&defaultServerCfg)
 	fs := flag.NewFlagSet("", flag.ExitOnError)
 	_, err := Load(fs, []string{"--config.file", "./testdata/server_empty.yml"}, logger)
 	require.Error(t, err)

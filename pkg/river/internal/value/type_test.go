@@ -38,7 +38,8 @@ var typeTests = []struct {
 	{[...]int{0, 1, 2}, value.TypeArray},
 	{[]int{0, 1, 2}, value.TypeArray},
 
-	{struct{}{}, value.TypeObject},
+	// Struct with no River tags is a capsule.
+	{struct{}{}, value.TypeCapsule},
 
 	// A slice of labeled blocks should be an object.
 	{[]struct {

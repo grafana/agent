@@ -84,6 +84,8 @@ func (m *Manager) reloader() {
 
 func (m *Manager) reload() {
 	m.mtxScrape.Lock()
+	defer m.mtxScrape.Unlock()
+
 	var wg sync.WaitGroup
 	for setName, groups := range m.targetSets {
 		if _, ok := m.targetsGroups[setName]; !ok {
@@ -102,7 +104,6 @@ func (m *Manager) reload() {
 			wg.Done()
 		}(m.targetsGroups[setName], groups)
 	}
-	m.mtxScrape.Unlock()
 	wg.Wait()
 }
 
@@ -188,8 +189,14 @@ func (m *Manager) Stop() {
 	m.mtxScrape.Lock()
 	defer m.mtxScrape.Unlock()
 
+	wg := sync.WaitGroup{}
 	for _, sp := range m.targetsGroups {
-		sp.stop()
+		wg.Add(1)
+		go func(sp *scrapePool) {
+			defer wg.Done()
+			sp.stop()
+		}(sp)
 	}
+	wg.Wait()
 	close(m.graceShut)
 }

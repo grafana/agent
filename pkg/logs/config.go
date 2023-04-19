@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/grafana/loki/clients/pkg/promtail/client"
+	"github.com/grafana/loki/clients/pkg/promtail/limit"
 	"github.com/grafana/loki/clients/pkg/promtail/positions"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/file"
@@ -26,7 +27,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		return err
 	}
 
-	return c.ApplyDefaults()
+	return nil
 }
 
 // ApplyDefaults applies defaults to the Config and ensures that it is valid.
@@ -87,10 +88,10 @@ type InstanceConfig struct {
 	PositionsConfig positions.Config      `yaml:"positions,omitempty"`
 	ScrapeConfig    []scrapeconfig.Config `yaml:"scrape_configs,omitempty"`
 	TargetConfig    file.Config           `yaml:"target_config,omitempty"`
+	LimitsConfig    limit.Config          `yaml:"limits_config,omitempty"`
 }
 
-// UnmarshalYAML implements yaml.Unmarshaler.
-func (c *InstanceConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (c *InstanceConfig) Initialize() {
 	// Defaults for Promtail are hidden behind flags. Register flags to a fake flagset
 	// just to set the defaults in the configs.
 	fs := flag.NewFlagSet("temp", flag.PanicOnError)
@@ -99,7 +100,11 @@ func (c *InstanceConfig) UnmarshalYAML(unmarshal func(interface{}) error) error 
 
 	// Blank out the positions file since we set our own default for that.
 	c.PositionsConfig.PositionsFile = ""
+}
 
+// UnmarshalYAML implements yaml.Unmarshaler.
+func (c *InstanceConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	c.Initialize()
 	type instanceConfig InstanceConfig
 	return unmarshal((*instanceConfig)(c))
 }

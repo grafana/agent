@@ -1,6 +1,6 @@
 package file
 
-// This code is copied from Promtail. decompresser implements the reader
+// This code is copied from Promtail. decompressor implements the reader
 // interface and is used to read compressed log files. It uses the Go stdlib's
 // compress/* packages for decoding.
 
@@ -163,7 +163,7 @@ func (d *decompressor) updatePosition() {
 
 // readLines read all existing lines of the given compressed file.
 //
-// It first decompress the file as a whole using a reader and then it will iterate
+// It first decompresses the file as a whole using a reader and then it will iterate
 // over its chunks, separated by '\n'.
 // During each iteration, the parsed and decoded log line is then sent to the API with the current timestamp.
 func (d *decompressor) readLines() {

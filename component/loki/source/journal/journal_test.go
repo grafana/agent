@@ -1,5 +1,4 @@
 //go:build linux && cgo && promtail_journal_enabled
-// +build linux,cgo,promtail_journal_enabled
 
 package journal
 
@@ -13,24 +12,18 @@ import (
 	"github.com/coreos/go-systemd/v22/journal"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 )
 
 func TestJournal(t *testing.T) {
 	// Create opts for component
-	l, err := logging.New(os.Stderr, logging.DefaultOptions)
-	require.NoError(t, err)
-	tmp, err := os.MkdirTemp("", "testjrnl")
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		_ = os.RemoveAll(tmp)
-	})
+	tmp := t.TempDir()
 	lr := make(loki.LogsReceiver)
 	c, err := New(component.Options{
 		ID:         "loki.source.journal.test",
-		Logger:     l,
+		Logger:     util.TestFlowLogger(t),
 		DataPath:   tmp,
 		Registerer: prometheus.DefaultRegisterer,
 	}, Arguments{

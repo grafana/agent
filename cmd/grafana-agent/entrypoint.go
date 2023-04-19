@@ -105,7 +105,7 @@ func NewEntrypoint(logger *server.Logger, cfg *config.Config, reloader Reloader)
 
 	ep.wire(ep.srv.HTTP, ep.srv.GRPC)
 
-	// Mostly everything should be up to date except for the server, which hasn't
+	// Mostly everything should be up-to-date except for the server, which hasn't
 	// been created yet.
 	if err := ep.ApplyConfig(*cfg); err != nil {
 		return nil, err
@@ -354,7 +354,11 @@ func (ep *Entrypoint) TriggerReload() bool {
 
 // pollConfig triggers a reload of the config on each tick of the ticker until the context
 // completes.
-func (ep *Entrypoint) pollConfig(ctx context.Context, t *time.Ticker) error {
+func (ep *Entrypoint) pollConfig(ctx context.Context, sleepTime time.Duration) error {
+	// Add an initial jitter to requests
+	time.Sleep(ep.cfg.AgentManagement.JitterTime())
+
+	t := time.NewTicker(sleepTime)
 	for {
 		select {
 		case <-ctx.Done():
@@ -420,11 +424,9 @@ func (ep *Entrypoint) Start() error {
 		managementContext, managementCancel := context.WithCancel(context.Background())
 		defer managementCancel()
 
-		// By this point ep.cfg.Validate() has already been called, so the configured time must be valid
-		sleepTime, _ := ep.cfg.AgentManagement.SleepTime()
-		t := time.NewTicker(sleepTime)
+		sleepTime := ep.cfg.AgentManagement.SleepTime()
 		g.Add(func() error {
-			return ep.pollConfig(managementContext, t)
+			return ep.pollConfig(managementContext, sleepTime)
 		}, func(e error) {
 			managementCancel()
 		})

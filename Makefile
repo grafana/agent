@@ -1,6 +1,6 @@
 ## Build, test, and generate code for various parts of Grafana Agent.
 ##
-## At least Go 1.18, git, and a moderately recent version of Docker is required
+## At least Go 1.19, git, and a moderately recent version of Docker is required
 ## to be able to use the Makefile. This list isn't exhaustive and there are other
 ## dependencies for the generate-* targets. If you do not have the full list of
 ## build dependencies, you may set USE_CONTAINER=1 to proxy build commands to a
@@ -20,12 +20,14 @@
 ##
 ## Targets for building binaries:
 ##
-##   binaries  Compiles all binaries.
-##   agent     Compiles cmd/grafana-agent to $(AGENT_BINARY)
-##   agentctl  Compiles cmd/grafana-agentctl to $(AGENTCTL_BINARY)
-##   operator  Compiles cmd/grafana-agent-operator to $(OPERATOR_BINARY)
-##   crow      Compiles tools/crow to $(CROW_BINARY)
-##   smoke     Compiles tools/smoke to $(SMOKE_BINARY)
+##   binaries       Compiles all binaries.
+##   agent          Compiles cmd/grafana-agent to $(AGENT_BINARY)
+##   agent-flow     Compiles cmd/grafana-agent-flow to $(FLOW_BINARY)
+##   agent-service  Compiles cmd/grafana-agent-service to $(SERVICE_BINARY)
+##   agentctl       Compiles cmd/grafana-agentctl to $(AGENTCTL_BINARY)
+##   operator       Compiles cmd/grafana-agent-operator to $(OPERATOR_BINARY)
+##   crow           Compiles tools/crow to $(CROW_BINARY)
+##   smoke          Compiles tools/smoke to $(SMOKE_BINARY)
 ##
 ## Targets for building Docker images:
 ##
@@ -76,6 +78,8 @@
 ##   SMOKE_IMAGE      Image name:tag built by `make smoke-image`
 ##   BUILD_IMAGE      Image name:tag used by USE_CONTAINER=1
 ##   AGENT_BINARY     Output path of `make agent` (default build/grafana-agent)
+##   FLOW_BINARY      Output path of `make agent-flow` (default build/grafana-agent-flow)
+##   SERVICE_BINARY   Output path of `make agent-service` (default build/grafana-agent-service)
 ##   AGENTCTL_BINARY  Output path of `make agentctl` (default build/grafana-agentctl)
 ##   OPERATOR_BINARY  Output path of `make operator` (default build/grafana-agent-operator)
 ##   CROW_BINARY      Output path of `make crow` (default build/grafana-agent-crow)
@@ -97,6 +101,8 @@ OPERATOR_IMAGE   ?= grafana/agent-operator:latest
 CROW_IMAGE       ?= us.gcr.io/kubernetes-dev/grafana/agent-crow:latest
 SMOKE_IMAGE      ?= us.gcr.io/kubernetes-dev/grafana/agent-smoke:latest
 AGENT_BINARY     ?= build/grafana-agent
+FLOW_BINARY      ?= build/grafana-agent-flow
+SERVICE_BINARY   ?= build/grafana-agent-service
 AGENTCTL_BINARY  ?= build/grafana-agentctl
 OPERATOR_BINARY  ?= build/grafana-agent-operator
 CROW_BINARY      ?= build/agent-crow
@@ -113,7 +119,7 @@ RELEASE_BUILD    ?= 0
 PROPAGATE_VARS := \
 	AGENT_IMAGE AGENTCTL_IMAGE OPERATOR_IMAGE CROW_IMAGE SMOKE_IMAGE \
 	BUILD_IMAGE GOOS GOARCH GOARM CGO_ENABLED RELEASE_BUILD \
-	AGENT_BINARY AGENTCTL_BINARY OPERATOR_BINARY CROW_BINARY SMOKE_BINARY \
+	AGENT_BINARY FLOW_BINARY AGENTCTL_BINARY OPERATOR_BINARY CROW_BINARY SMOKE_BINARY \
 	VERSION GO_TAGS
 
 #
@@ -121,15 +127,6 @@ PROPAGATE_VARS := \
 #
 
 GO_ENV := GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CGO_ENABLED=$(CGO_ENABLED)
-
-# Selectively pass -mlong-calls when building for 32-bit ARM targets (armv6,
-# armv7). This works around an issue where the text segment has gotten big
-# enough (>32MB) that "relocation truncated to fit" errors occur.
-ifeq ($(GOARCH),arm)
-ifeq ($(GOOS),linux)
-GO_ENV += CGO_CFLAGS="$(CGO_CFLAGS) -mlong-calls"
-endif
-endif
 
 VERSION      ?= $(shell ./tools/image-tag)
 GIT_REVISION := $(shell git rev-parse --short HEAD)
@@ -178,14 +175,29 @@ test-packages:
 # Targets for building binaries
 #
 
-.PHONY: binaries agent agentctl operator crow smoke
-binaries: agent agentctl operator crow smoke
+.PHONY: binaries agent agent-flow agentctl operator crow smoke
+binaries: agent agent-flow agentctl operator crow smoke
 
 agent:
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
 	$(GO_ENV) go build $(GO_FLAGS) -o $(AGENT_BINARY) ./cmd/grafana-agent
+endif
+
+agent-flow:
+ifeq ($(USE_CONTAINER),1)
+	$(RERUN_IN_CONTAINER)
+else
+	$(GO_ENV) go build $(GO_FLAGS) -o $(FLOW_BINARY) ./cmd/grafana-agent-flow
+endif
+
+# agent-service is not included in binaries since it's Windows-only.
+agent-service:
+ifeq ($(USE_CONTAINER),1)
+	$(RERUN_IN_CONTAINER)
+else
+	$(GO_ENV) go build $(GO_FLAGS) -o $(SERVICE_BINARY) ./cmd/grafana-agent-service
 endif
 
 agentctl:

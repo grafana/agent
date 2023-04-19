@@ -12,9 +12,9 @@ const (
 	// for ratelimiting
 	DefaultRateLimitingRPS = 100
 	// DefaultRateLimitingBurstiness is the default burstiness factor of the
-	// token bucket algorigthm
+	// token bucket algorithm
 	DefaultRateLimitingBurstiness = 50
-	// DefaultMaxPayloadSize is the max paylad size in bytes
+	// DefaultMaxPayloadSize is the max payload size in bytes
 	DefaultMaxPayloadSize = 5e6
 )
 

@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/grafana/agent/pkg/config/instrumentation"
 	"github.com/prometheus/common/config"
@@ -27,9 +28,9 @@ type remoteProvider interface {
 	retrieve() ([]byte, error)
 }
 
-// newRemoteConfig constructs a new remote configuration provider. The rawURL is parsed
+// newRemoteProvider constructs a new remote configuration provider. The rawURL is parsed
 // and a provider is constructed based on the URL's scheme.
-func newRemoteConfig(rawURL string, opts *remoteOpts) (remoteProvider, error) {
+func newRemoteProvider(rawURL string, opts *remoteOpts) (remoteProvider, error) {
 	u, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing rawURL %s: %w", rawURL, err)
@@ -62,7 +63,7 @@ type httpProvider struct {
 	httpClient *http.Client
 }
 
-// newHTTPProvider constructs an new httpProvider
+// newHTTPProvider constructs a new httpProvider
 func newHTTPProvider(opts *remoteOpts) (*httpProvider, error) {
 	httpClientConfig := config.HTTPClientConfig{}
 	if opts.HTTPClientConfig != nil {
@@ -82,6 +83,14 @@ func newHTTPProvider(opts *remoteOpts) (*httpProvider, error) {
 	}, nil
 }
 
+type retryAfterError struct {
+	retryAfter time.Duration
+}
+
+func (r retryAfterError) Error() string {
+	return fmt.Sprintf("server indicated to retry after %s", r.retryAfter)
+}
+
 // retrieve implements remoteProvider and fetches the config
 func (p httpProvider) retrieve() ([]byte, error) {
 	response, err := p.httpClient.Get(p.myURL.String())
@@ -92,6 +101,18 @@ func (p httpProvider) retrieve() ([]byte, error) {
 	defer response.Body.Close()
 
 	instrumentation.InstrumentRemoteConfigFetch(response.StatusCode)
+
+	if response.StatusCode == http.StatusTooManyRequests {
+		retryAfter := response.Header.Get("Retry-After")
+		if retryAfter == "" {
+			return nil, fmt.Errorf("server indicated to retry, but no Retry-After header was provided")
+		}
+		retryAfterDuration, err := time.ParseDuration(retryAfter)
+		if err != nil {
+			return nil, fmt.Errorf("server indicated to retry, but Retry-After header was not a valid duration: %w", err)
+		}
+		return nil, retryAfterError{retryAfter: retryAfterDuration}
+	}
 
 	if response.StatusCode/100 != 2 {
 		return nil, fmt.Errorf("error fetching config: status code: %d", response.StatusCode)

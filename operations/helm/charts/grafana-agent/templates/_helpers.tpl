@@ -27,7 +27,11 @@ If release name contains chart name it will be used as a full name.
 Create chart name and version as used by the chart label.
 */}}
 {{- define "grafana-agent.chart" -}}
+{{- if index .Values "$chart_tests" }}
+{{- printf "%s" .Chart.Name | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{- else }}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{- end }}
 {{- end }}
 
 {{/*
@@ -47,10 +51,15 @@ Common labels
 {{- define "grafana-agent.labels" -}}
 helm.sh/chart: {{ include "grafana-agent.chart" . }}
 {{ include "grafana-agent.selectorLabels" . }}
+{{- if index .Values "$chart_tests" }}
+app.kubernetes.io/version: "vX.Y.Z"
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- else }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
 {{- end }}
 
 {{/*

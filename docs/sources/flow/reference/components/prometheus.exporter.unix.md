@@ -55,7 +55,7 @@ of conflicts, it takes precedence over `enable_collectors`.
 
 ## Blocks
 
-The following blocks are supported inside the definiton of
+The following blocks are supported inside the definition of
 `prometheus.exporter.unix` to configure collector-specific options:
 
 Hierarchy | Name | Description | Required
@@ -225,7 +225,7 @@ name | type | description | default | required
 ### textfile block
 name | type | description | default | required
 ---- | ---- | ----------- | ------- | --------
-`textfile_directory` | `string` | Directory to read `*.prom` files from for the textfile collector. |  | no
+`directory` | `string` | Directory to read `*.prom` files from for the textfile collector. |  | no
 
 ### vmstat block
 name | type | description | default | required

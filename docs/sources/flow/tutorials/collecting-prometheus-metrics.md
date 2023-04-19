@@ -38,7 +38,7 @@ Click the nodes to navigate to the associated component page. There, you can vie
 
 ## Scraping component
 
-The [`prometheus.scrape`]({{< relref "prometheus.scrape.md" >}}) component is responsible for scraping the metrics of a particular endpoint and passing them on to another component.
+The [`prometheus.scrape`]({{< relref "../reference/components/prometheus.scrape.md" >}}) component is responsible for scraping the metrics of a particular endpoint and passing them on to another component.
 
 ```river
 // prometheus.scrape is the name of the component and "default" is its label.
@@ -56,13 +56,13 @@ prometheus.scrape "default" {
 
 The `prometheus.scrape "default"` annotation indicates the name of the component, `prometheus.scrape`, and its label, `default`. All components must have a unique combination of name and if applicable label.
 
-The `targets` [attribute]({{< relref "configuration_language.md#Attributes" >}}) is an [argument]({{< relref "../concepts/components.md">}}). `targets` is a list of labels that specify the target via the special key `__address__`. The scraper is targeting the Agent's `/metrics` endpoint. Both `http` and `/metrics` are implied but can be overridden.
+The `targets` [attribute]({{< relref "../concepts/configuration_language/#attributes" >}}) is an [argument]({{< relref "../concepts/components.md">}}). `targets` is a list of labels that specify the target via the special key `__address__`. The scraper is targeting the Agent's `/metrics` endpoint. Both `http` and `/metrics` are implied but can be overridden.
 
 The `forward_to` attribute is an argument that references the [export]({{< relref "../concepts/components.md">}}) of the `prometheus.remote_write.prom` component. This is where the scraper will send the metrics for further processing.
 
 ## Remote Write component
 
-The [`prometheus.remote_write`]({{< relref "prometheus.remote_write.md" >}}) component is responsible for writing the metrics to a Prometheus-compatible endpoint (Mimir).
+The [`prometheus.remote_write`]({{< relref "../reference/components/prometheus.remote_write.md" >}}) component is responsible for writing the metrics to a Prometheus-compatible endpoint (Mimir).
 
 ```river
 prometheus.remote_write "prom" {
@@ -77,4 +77,4 @@ prometheus.remote_write "prom" {
 To try out the Grafana Agent without using Docker:
 1. Download the Grafana Agent.
 1. Set the environment variable `AGENT_MODE=flow`.
-1. Run the agent with `agent run <path_to_flow_config>`.
+1. Run the agent with `grafana-agent run <path_to_flow_config>`.

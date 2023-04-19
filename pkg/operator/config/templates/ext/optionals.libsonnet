@@ -14,7 +14,7 @@
       assert std.isNumber(value) : 'number must only be called with numbers';
       if value == 0 then null else value,
 
-  // bool returns a value only if the value is present, and not equal to the defaut. otherwise returns null.
+  // bool returns a value only if the value is present, and not equal to the default. otherwise returns null.
   bool(value, defaultValue = false)::
     if value == null then null
     else
@@ -35,7 +35,7 @@
       assert std.isArray(value) : 'array must only be called with arrays';
       if std.length(value) == 0 then null else value,
 
-  // trim will recrusively traverse through value and remove all fields
+  // trim will recursively traverse through value and remove all fields
   // from value that have a value of null.
   trim(value):: std.native('trimOptional')(value),
 }

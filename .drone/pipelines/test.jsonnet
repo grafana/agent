@@ -8,10 +8,7 @@ local pipelines = import '../util/pipelines.jsonnet';
     },
     steps: [{
       name: 'Lint',
-      // TODO(rfratto): the build image is swapped out for golangci-lint while
-      // we're waiting for golangci-lint to support Go 1.20. Replace back with
-      // build_image.linux when it works again.
-      image: 'golangci/golangci-lint:v1.50.1',
+      image: build_image.linux,
       commands: [
         'apt-get update -y && apt-get install -y libsystemd-dev',
         'make lint',
@@ -60,6 +57,20 @@ local pipelines = import '../util/pipelines.jsonnet';
     steps: [{
       name: 'Run Go tests',
       image: build_image.linux,
+
+      commands: [
+        'make GO_TAGS="nodocker" test',
+      ],
+    }],
+  },
+
+  pipelines.linux('Test (Full)') {
+    trigger: {
+      ref: ['refs/heads/main'],
+    },
+    steps: [{
+      name: 'Run Go tests',
+      image: build_image.linux,
       volumes: [{
         name: 'docker',
         path: '/var/run/docker.sock',
@@ -87,9 +98,6 @@ local pipelines = import '../util/pipelines.jsonnet';
     steps: [{
       name: 'Run Go tests',
       image: build_image.windows,
-      environment: {
-        ASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH: 'go1.20',
-      },
       commands: ['go test -tags="nodocker,nonetwork" ./...'],
     }],
   },

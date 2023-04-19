@@ -12,6 +12,9 @@ contributors around things like how to update the changelog.
 
 #### Which issue(s) this PR fixes
 
+<!-- Uncomment the following line if you want that GitHub issue gets automatically closed after merging the PR -->
+<!-- Fixes #issue_id -->
+
 #### Notes to the Reviewer
 
 #### PR Checklist

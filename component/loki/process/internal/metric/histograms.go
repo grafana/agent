@@ -46,7 +46,7 @@ func (h *HistogramConfig) UnmarshalRiver(f func(v interface{}) error) error {
 	return nil
 }
 
-// Histograms is a vector of histograms for a each log stream.
+// Histograms is a vector of histograms for a log stream.
 type Histograms struct {
 	*metricVec
 	Cfg *HistogramConfig

@@ -6,7 +6,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-// ReceiverMetricsExporter is a app agent receiver exporter that will capture metrics
+// ReceiverMetricsExporter is an app agent receiver exporter that will capture metrics
 // about counts of logs, exceptions, measurements, traces being ingested
 type ReceiverMetricsExporter struct {
 	totalLogs         prometheus.Counter

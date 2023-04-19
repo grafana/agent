@@ -12,7 +12,7 @@ targets matching the exports of `discovery.*` components.
 The string must match the JSON format used by Prometheus' HTTP and file service
 discovery:
 
-```
+```json
 [
   {
     "targets": [ "<host:ip>", ... ],

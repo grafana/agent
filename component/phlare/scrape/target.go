@@ -47,7 +47,7 @@ type Target struct {
 	discoveredLabels labels.Labels
 	// Any labels that are added to this target and its metrics.
 	labels labels.Labels
-	// Additional URL parmeters that are part of the target URL.
+	// Additional URL parameters that are part of the target URL.
 	params url.Values
 
 	mtx                sync.RWMutex
@@ -118,8 +118,8 @@ func (t *Target) Labels() labels.Labels {
 
 // DiscoveredLabels returns a copy of the target's labels before any processing.
 func (t *Target) DiscoveredLabels() labels.Labels {
-	t.mtx.Lock()
-	defer t.mtx.Unlock()
+	t.mtx.RLock()
+	defer t.mtx.RUnlock()
 	lset := make(labels.Labels, len(t.discoveredLabels))
 	copy(lset, t.discoveredLabels)
 	return lset
@@ -261,10 +261,10 @@ func populateLabels(lset labels.Labels, cfg Arguments) (res, orig labels.Labels,
 	preRelabelLabels := lb.Labels(nil)
 	// todo(ctovena): add relabeling after pprof discovery.
 	// lset = relabel.Process(preRelabelLabels, cfg.RelabelConfigs...)
-	lset = relabel.Process(preRelabelLabels)
+	lset, keep := relabel.Process(preRelabelLabels)
 
 	// Check if the target was dropped.
-	if lset == nil {
+	if !keep {
 		return nil, preRelabelLabels, nil
 	}
 	if v := lset.Get(model.AddressLabel); v == "" {

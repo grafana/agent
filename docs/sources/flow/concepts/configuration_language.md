@@ -2,7 +2,7 @@
 aliases:
 - ../../concepts/configuration-language/
 title: Configuration language
-weight: 300
+weight: 400
 ---
 
 # Configuration language
@@ -90,7 +90,7 @@ This file has two blocks:
 * `prometheus.remote_write "default"`: A labeled block which instantiates a
   `prometheus.remote_write` component. The label is the string `"default"`.
 
-* `remote_write`: An unlabeled block inside the component which configures an
+* `endpoint`: An unlabeled block inside the component which configures an
   endpoint to send metrics to. This block sets the `url` attribute to specify
   what the endpoint is.
 

@@ -72,4 +72,24 @@ func Test_generatePodTemplate(t *testing.T) {
 			*tmpl.Spec.Containers[1].SecurityContext.Privileged,
 			"privileged is needed if pod options say so.")
 	})
+
+	t.Run("runtimeclassname set if passed in", func(t *testing.T) {
+		name := "test123"
+		deploy := gragent.Deployment{
+			Agent: &gragent.GrafanaAgent{
+				ObjectMeta: v1.ObjectMeta{Name: name, Namespace: name},
+				Spec: gragent.GrafanaAgentSpec{
+					RuntimeClassName: &name,
+				},
+			},
+		}
+		tmpl, _, err := generatePodTemplate(cfg, "agent", deploy, podTemplateOptions{})
+		require.NoError(t, err)
+		assert.Equal(t, name, *tmpl.Spec.RuntimeClassName)
+
+		deploy.Agent.Spec.RuntimeClassName = nil
+		tmpl, _, err = generatePodTemplate(cfg, "agent", deploy, podTemplateOptions{})
+		require.NoError(t, err)
+		assert.Nil(t, tmpl.Spec.RuntimeClassName)
+	})
 }

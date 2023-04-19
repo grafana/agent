@@ -1,5 +1,4 @@
 //go:build linux && cgo && promtail_journal_enabled
-// +build linux,cgo,promtail_journal_enabled
 
 package target
 
@@ -314,7 +313,7 @@ func (t *JournalTarget) formatter(entry *sdjournal.JournalEntry) (string, error)
 		entryLabels[string(k)] = string(v)
 	}
 
-	processedLabels := relabel.Process(labels.FromMap(entryLabels), t.relabelConfig...)
+	processedLabels, _ := relabel.Process(labels.FromMap(entryLabels), t.relabelConfig...)
 
 	processedLabelsMap := processedLabels.Map()
 	lbls := make(model.LabelSet, len(processedLabelsMap))

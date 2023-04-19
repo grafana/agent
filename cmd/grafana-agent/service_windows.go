@@ -1,5 +1,4 @@
 //go:build windows
-// +build windows
 
 package main
 
@@ -30,7 +29,8 @@ func (m *AgentService) Execute(args []string, serviceRequests <-chan svc.ChangeR
 	// oddly enough args is blank
 
 	// Set up logging using default values before loading the config
-	logger := server.NewWindowsEventLogger(&server.DefaultConfig)
+	defaultServerCfg := server.DefaultConfig()
+	logger := server.NewWindowsEventLogger(&defaultServerCfg)
 
 	reloader := func(log *server.Logger) (*config.Config, error) {
 		fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)

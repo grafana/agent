@@ -2,37 +2,38 @@ package file
 
 import (
 	"context"
+	"errors"
 	"log"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/util"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/goleak"
 )
 
 func Test(t *testing.T) {
-	defer goleak.VerifyNone(t)
+	defer goleak.VerifyNone(t, goleak.IgnoreTopFunction("go.opencensus.io/stats/view.(*worker).start"))
 
 	// Create opts for component
-	l, err := logging.New(os.Stderr, logging.DefaultOptions)
-	require.NoError(t, err)
-	dataPath, err := os.MkdirTemp("", "loki.source.file")
-	require.NoError(t, err)
-	defer os.RemoveAll(dataPath) // clean up
+	opts := component.Options{
+		Logger:        util.TestFlowLogger(t),
+		Registerer:    prometheus.NewRegistry(),
+		OnStateChange: func(e component.Exports) {},
+		DataPath:      t.TempDir(),
+	}
 
-	opts := component.Options{Logger: l, DataPath: dataPath}
-
-	f, err := os.CreateTemp(dataPath, "example")
+	f, err := os.CreateTemp(opts.DataPath, "example")
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer os.Remove(f.Name())
 	defer f.Close()
 
 	ch1, ch2 := make(chan loki.Entry), make(chan loki.Entry)
@@ -73,24 +74,21 @@ func Test(t *testing.T) {
 
 func TestTwoTargets(t *testing.T) {
 	// Create opts for component
-	l, err := logging.New(os.Stderr, logging.DefaultOptions)
-	require.NoError(t, err)
-	dataPath, err := os.MkdirTemp("", "loki.source.file")
-	require.NoError(t, err)
-	defer os.RemoveAll(dataPath) // clean up
+	opts := component.Options{
+		Logger:        util.TestFlowLogger(t),
+		Registerer:    prometheus.NewRegistry(),
+		OnStateChange: func(e component.Exports) {},
+		DataPath:      t.TempDir(),
+	}
 
-	opts := component.Options{Logger: l, DataPath: dataPath}
-
-	f, err := os.CreateTemp(dataPath, "example")
+	f, err := os.CreateTemp(opts.DataPath, "example")
 	if err != nil {
 		log.Fatal(err)
 	}
-	f2, err := os.CreateTemp(dataPath, "example2")
+	f2, err := os.CreateTemp(opts.DataPath, "example2")
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer os.Remove(f.Name())
-	defer os.Remove(f2.Name())
 	defer f.Close()
 	defer f2.Close()
 
@@ -106,7 +104,6 @@ func TestTwoTargets(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 	go c.Run(ctx)
 	time.Sleep(100 * time.Millisecond)
 
@@ -133,4 +130,19 @@ func TestTwoTargets(t *testing.T) {
 	}
 	require.True(t, foundF1)
 	require.True(t, foundF2)
+	cancel()
+	// Verify that positions.yml is written. NOTE: if we didn't wait for it, there would be a race condition between
+	// temporary directory being cleaned up and this file being created.
+	require.Eventually(
+		t,
+		func() bool {
+			if _, err := os.Stat(filepath.Join(opts.DataPath, "positions.yml")); errors.Is(err, os.ErrNotExist) {
+				return false
+			}
+			return true
+		},
+		5*time.Second,
+		10*time.Millisecond,
+		"expected positions.yml file to be written eventually",
+	)
 }
