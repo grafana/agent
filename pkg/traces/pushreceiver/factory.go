@@ -29,7 +29,7 @@ type Config struct {
 func NewFactory() otelreceiver.Factory {
 	return otelreceiver.NewFactory(
 		TypeStr,
-		func() component.Config { return nil },
+		func() component.Config { return &Config{} },
 		//TODO: Delete the WithMetrics and WithLogs? They are not supported and throw errors anyway.
 		otelreceiver.WithMetrics(createMetricsReceiver, component.StabilityLevelUndefined),
 		otelreceiver.WithLogs(createLogsReceiver, component.StabilityLevelUndefined),

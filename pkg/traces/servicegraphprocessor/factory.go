@@ -23,8 +23,6 @@ const (
 
 // Config holds the configuration for the Prometheus service graph processor.
 type Config struct {
-	component.Config `mapstructure:",squash"`
-
 	Wait     time.Duration `mapstructure:"wait"`
 	MaxItems int           `mapstructure:"max_items"`
 

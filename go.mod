@@ -117,7 +117,7 @@ require (
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.63.0
 	github.com/prometheus-operator/prometheus-operator/pkg/client v0.63.0
 	github.com/prometheus/blackbox_exporter v0.22.1-0.20220920154026-3446984d6a6e
-	github.com/prometheus/client_golang v1.14.0
+	github.com/prometheus/client_golang v1.15.0
 	github.com/prometheus/client_model v0.3.0
 	github.com/prometheus/common v0.42.0
 	github.com/prometheus/consul_exporter v0.8.0
@@ -130,11 +130,11 @@ require (
 	github.com/prometheus/statsd_exporter v0.22.8
 	github.com/rancher/k3d/v5 v5.2.2
 	github.com/rfratto/ckit v0.0.0-20220401221852-009169323240
-	github.com/rs/cors v1.8.3
-	github.com/shirou/gopsutil/v3 v3.23.2
+	github.com/rs/cors v1.9.0
+	github.com/shirou/gopsutil/v3 v3.23.3
 	github.com/sijms/go-ora/v2 v2.5.24
 	github.com/sirupsen/logrus v1.9.0
-	github.com/spf13/cobra v1.6.1
+	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.2
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	github.com/vincent-petithory/dataurl v1.0.0
@@ -163,10 +163,10 @@ require (
 	go.uber.org/zap v1.24.0
 	golang.org/x/crypto v0.7.0
 	golang.org/x/exp v0.0.0-20230307190834-24139beb5833
-	golang.org/x/net v0.8.0
+	golang.org/x/net v0.9.0
 	golang.org/x/oauth2 v0.6.0
-	golang.org/x/sys v0.6.0
-	golang.org/x/text v0.8.0
+	golang.org/x/sys v0.7.0
+	golang.org/x/text v0.9.0
 	golang.org/x/time v0.3.0
 	google.golang.org/api v0.114.0
 	google.golang.org/grpc v1.54.0
@@ -260,7 +260,7 @@ require (
 	github.com/blang/semver/v4 v4.0.0 // indirect
 	github.com/c2h5oh/datasize v0.0.0-20200112174442-28bbd4740fee // indirect
 	github.com/cenkalti/backoff/v3 v3.2.2 // indirect
-	github.com/cenkalti/backoff/v4 v4.2.0 // indirect
+	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.4.1 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/checkpoint-restore/go-criu/v5 v5.3.0 // indirect
@@ -421,7 +421,7 @@ require (
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/karrick/godirwalk v1.16.1 // indirect
 	github.com/kevinburke/ssh_config v1.1.0 // indirect
-	github.com/klauspost/compress v1.16.3 // indirect
+	github.com/klauspost/compress v1.16.5 // indirect
 	github.com/knadh/koanf v1.5.0 // indirect
 	github.com/kolo/xmlrpc v0.0.0-20220921171641-a4b6fa1dd06b // indirect
 	github.com/krallistic/kazoo-go v0.0.0-20170526135507-a15279744f4e // indirect
@@ -581,7 +581,7 @@ require (
 	gocloud.dev v0.24.0 // indirect
 	golang.org/x/mod v0.9.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/term v0.6.0 // indirect
+	golang.org/x/term v0.7.0 // indirect
 	golang.org/x/tools v0.7.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
@@ -612,6 +612,8 @@ require (
 	github.com/moby/sys/sequential v0.5.0 // indirect
 	github.com/oschwald/geoip2-golang v1.8.0 // indirect
 	github.com/oschwald/maxminddb-golang v1.10.0 // indirect
+	github.com/shoenig/go-m1cpu v0.1.4 // indirect
+	go.opentelemetry.io/otel/bridge/opencensus v0.37.0 // indirect
 )
 
 // NOTE: replace directives below must always be *temporary*.
@@ -682,6 +684,7 @@ replace (
 	go.opentelemetry.io/collector => /Users/paulintodev/Documents/GitHub/opentelemetry-collector-paulin-f
 	go.opentelemetry.io/collector/exporter/otlpexporter => /Users/paulintodev/Documents/GitHub/opentelemetry-collector-paulin-f/exporter/otlpexporter
 	go.opentelemetry.io/collector/exporter/otlphttpexporter => /Users/paulintodev/Documents/GitHub/opentelemetry-collector-paulin-f/exporter/otlphttpexporter
+	go.opentelemetry.io/collector/featuregate => /Users/paulintodev/Documents/GitHub/opentelemetry-collector-paulin-f/featuregate
 	go.opentelemetry.io/collector/pdata => /Users/paulintodev/Documents/GitHub/opentelemetry-collector-paulin-f/pdata
 
 // go.opentelemetry.io/collector => /Users/paulintodev/Documents/GitHub/opentelemetry-collector-paulin

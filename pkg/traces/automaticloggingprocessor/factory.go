@@ -16,9 +16,6 @@ const TypeStr = "automatic_logging"
 
 // Config holds the configuration for the Automatic Logging processor.
 type Config struct {
-	//TODO: Does this make sense? Try debugging, or running an example Agent?
-	component.Config `mapstructure:",squash"`
-
 	LoggingConfig *AutomaticLoggingConfig `mapstructure:"automatic_logging"`
 }
 

@@ -10,11 +10,13 @@ import (
 	"go.opentelemetry.io/collector/connector"
 	otelexporter "go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/extension"
+	"go.opentelemetry.io/collector/featuregate"
 	"go.opentelemetry.io/collector/otelcol"
 	"go.opentelemetry.io/collector/processor"
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/service"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/logs"
@@ -91,7 +93,10 @@ func (i *Instance) stop() {
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	i.service.Shutdown(shutdownCtx)
+	if i.service != nil {
+		//TODO: Should we discard the error? At least log it?
+		_ = i.service.Shutdown(shutdownCtx)
+	}
 }
 
 func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig, logs *logs.Logs, instManager instance.Manager) error {
@@ -210,6 +215,13 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	// 	// sdkmetric.WithView(batchViews()...),
 	// )
 	// ----------------------------
+
+	//TODO: Remove this later. How should we set the otel logging level via config?
+	otelConfig.Service.Telemetry.Logs.Level = zapcore.DebugLevel
+
+	//TODO: Can this feature gate remain enabled?
+	fgReg := featuregate.GlobalRegistry()
+	fgReg.Set("telemetry.useOtelForInternalMetrics", true)
 
 	i.service, err = service.New(ctx, service.Settings{
 		BuildInfo:  appinfo,

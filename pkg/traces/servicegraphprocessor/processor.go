@@ -161,7 +161,18 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config, set otelprocessor.C
 		}()
 	}
 
-	p.registerMetrics(set.MeterProvider)
+	err := p.registerMetrics(set.MeterProvider)
+	if err != nil {
+		panic(err)
+		//TODO: Should we panic?
+		// level.Error(logger).Log("msg", "failed to register Otel metrics", "err", err)
+		// return nil
+	} else {
+		//TODO: Do we want to log this?
+		level.Info(logger).Log("msg", "successfully registered Otel metrics")
+		//TODO: The logger doesn't include the config name?
+		// ts=2023-04-17T17:15:11.772899Z caller=processor.go:171 level=info component="service graphs" msg="successfully registered Otel metrics"
+	}
 
 	return p
 }

@@ -24,7 +24,6 @@ func NewFactory() receiver.Factory {
 
 // Config defines configuration for noop receiver.
 type Config struct {
-	component.Config `mapstructure:",squash"` // squash ensures fields are correctly decoded in embedded struct.
 }
 
 func createDefaultConfig() component.Config {
