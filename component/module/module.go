@@ -46,6 +46,7 @@ func NewModuleComponent(o component.Options) *ModuleComponent {
 			LogSink:      logging.LoggerSink(o.Logger),
 			Tracer:       flowTracer,
 			Reg:          flowRegistry,
+			Clusterer:    o.Clusterer,
 
 			DataPath:       o.DataPath,
 			HTTPPathPrefix: o.HTTPPath,

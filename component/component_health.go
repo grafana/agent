@@ -45,6 +45,16 @@ var (
 	_ encoding.TextUnmarshaler = (*HealthType)(nil)
 )
 
+// Default Health returns a copy of the default health for use when a component
+// does not implement HealthComponent.
+func DefaultHealth() Health {
+	return Health{
+		Health:     HealthTypeHealthy,
+		Message:    "default health",
+		UpdateTime: time.Now(),
+	}
+}
+
 const (
 	// HealthTypeUnknown is the initial health of components, set when they're
 	// first created.
