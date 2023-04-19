@@ -23,6 +23,7 @@ import (
 	_ "github.com/grafana/agent/component/loki/source/gcplog"                       // Import loki.source.gcplog
 	_ "github.com/grafana/agent/component/loki/source/gelf"                         // Import loki.source.gelf
 	_ "github.com/grafana/agent/component/loki/source/heroku"                       // Import loki.source.heroku
+	_ "github.com/grafana/agent/component/loki/source/http"                         // Import loki.source.http
 	_ "github.com/grafana/agent/component/loki/source/journal"                      // Import loki.source.journal
 	_ "github.com/grafana/agent/component/loki/source/kafka"                        // Import loki.source.kafka
 	_ "github.com/grafana/agent/component/loki/source/kubernetes"                   // Import loki.source.kubernetes
