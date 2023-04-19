@@ -22,7 +22,7 @@ prometheus.scrape "LABEL" {
 
 ## Arguments
 
-The component configures and starts a new scrape job to scrape all of the
+The component configures and starts a new scrape job to scrape all the
 input targets. The list of arguments that can be used to configure the block is
 presented below.
 
@@ -210,7 +210,7 @@ prometheus.scrape "blackbox_scraper" {
 }
 ```
 
-Here's the endpoints that are being scraped every 10 seconds:
+Here are the endpoints that are being scraped every 10 seconds:
 ```
 http://blackbox-exporter:9115/probe?target=grafana.com&module=http_2xx
 http://blackbox-exporter:9116/probe?target=grafana.com&module=http_2xx
