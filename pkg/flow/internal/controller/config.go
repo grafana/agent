@@ -8,15 +8,18 @@ import (
 )
 
 const (
-	exportBlockID  = "export"
-	loggingBlockID = "logging"
-	tracingBlockID = "tracing"
+	argumentBlockID = "argument"
+	exportBlockID   = "export"
+	loggingBlockID  = "logging"
+	tracingBlockID  = "tracing"
 )
 
 // NewConfigNode creates a new ConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.
 func NewConfigNode(block *ast.BlockStmt, globals ComponentGlobals, isInModule bool) (BlockNode, diag.Diagnostics) {
 	switch block.GetBlockName() {
+	case argumentBlockID:
+		return NewArgumentConfigNode(block, globals, isInModule)
 	case exportBlockID:
 		return NewExportConfigNode(block, globals, isInModule)
 	case loggingBlockID:
