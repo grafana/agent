@@ -24,7 +24,7 @@ Name                | Type       | Description                                  
 `environment`       | `string`   | Azure environment.                                                     | `"AzurePublicCloud"` | no
 `port`              | `number`   | Port to be appended to the `__address__` label for each target.        | `80`                 | no
 `subscription_id`   | `string`   | Azure subscription ID.                                                 |                      | no
-`refresh_interval`  | `duration` | Interval at which to refresh the list of targets.                      | `1m`                 | no
+`refresh_interval`  | `duration` | Interval at which to refresh the list of targets.                      | `5m`                 | no
 `proxy_url`         | `string`   | HTTP proxy to proxy requests through.                                  |                      | no
 `follow_redirects`  | `bool`     | Whether redirects returned by the server should be followed.           | `true`               | no
 `enable_http2`      | `bool`     | Whether HTTP2 is supported for requests.                               | `true`               | no
