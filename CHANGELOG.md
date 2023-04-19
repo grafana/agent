@@ -131,6 +131,9 @@ Main (unreleased)
 
 - Update Loki Dependency to k146 which includes configurable file watchers (@mattdurham)
 
+- Flow: Allow the `logging` configuration block to tee the Agent's logs to one
+  or more loki components. (@tpaschalis)
+
 ### Bugfixes
 
 - Flow: fix issue where Flow would return an error when trying to access a key
