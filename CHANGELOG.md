@@ -62,6 +62,7 @@ Main (unreleased)
     components and modifies attributes of a span, log, or metric. (@ptodev)
   - `prometheus.exporter.windows` collects metrics from a Windows instance. (@jkroepke)
   - `discovery.consul` service discovery for Consul. (@jcreixell)
+  - `discovery.azure` provides service discovery for Azure. (@spartan0x117)
 
 - Add support for Flow-specific system packages:
 
