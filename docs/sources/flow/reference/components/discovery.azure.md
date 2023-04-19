@@ -37,11 +37,13 @@ Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
 oauth | [oauth][] | OAuth configuration for Azure API. | no
 managed_identity | [managed_identity][] | Managed Identity configuration for Azure API. | no
+tls_config | [tls_config][] | TLS configuration for requests to the Azure API. | no
 
 Exactly one of the `oauth` or `managed_identity` blocks must be specified.
 
 [oauth]: #oauth-block
 [managed_identity]: #managed_identity-block
+[tls_config]: #tls_config-block
 
 ### oauth block
 The `oauth` block configures OAuth authentication for the Azure API.
@@ -59,6 +61,9 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `client_id` | `string` | Managed Identity client ID. | | yes
 
+### tls_config block
+
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
 
 ## Exported fields
 

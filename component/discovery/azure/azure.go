@@ -35,9 +35,10 @@ type Arguments struct {
 	RefreshInterval time.Duration    `river:"refresh_interval,attr,optional"`
 	ResourceGroup   string           `river:"resource_group,attr,optional"`
 
-	ProxyURL        config.URL `river:"proxy_url,attr,optional"`
-	FollowRedirects bool       `river:"follow_redirects,attr,optional"`
-	EnableHTTP2     bool       `river:"enable_http2,attr,optional"`
+	ProxyURL        config.URL       `river:"proxy_url,attr,optional"`
+	FollowRedirects bool             `river:"follow_redirects,attr,optional"`
+	EnableHTTP2     bool             `river:"enable_http2,attr,optional"`
+	TLSConfig       config.TLSConfig `river:"tls_config,block,optional"`
 }
 
 type OAuth struct {
@@ -70,7 +71,7 @@ func (a *Arguments) Validate() error {
 	if a.OAuth == nil && a.ManagedIdentity == nil || a.OAuth != nil && a.ManagedIdentity != nil {
 		return fmt.Errorf("exactly one of oauth or managed_identity must be specified")
 	}
-	return nil
+	return a.TLSConfig.Validate()
 }
 
 func (a *Arguments) Convert() *prom_discovery.SDConfig {
@@ -94,6 +95,7 @@ func (a *Arguments) Convert() *prom_discovery.SDConfig {
 	httpClientConfig.ProxyURL = a.ProxyURL
 	httpClientConfig.FollowRedirects = a.FollowRedirects
 	httpClientConfig.EnableHTTP2 = a.EnableHTTP2
+	httpClientConfig.TLSConfig = a.TLSConfig
 
 	return &prom_discovery.SDConfig{
 		Environment:          a.Environment,

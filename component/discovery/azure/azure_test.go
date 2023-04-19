@@ -89,6 +89,23 @@ func TestValidate(t *testing.T) {
 	var args2 Arguments
 	err = river.Unmarshal([]byte(bothAuth), &args2)
 	require.ErrorContains(t, err, "exactly one of oauth or managed_identity must be specified")
+
+	invalidTLS := `
+		environment = "AzureTestCloud"
+		port = 8080
+		subscription_id = "subid"
+		refresh_interval = "10m"
+		resource_group = "test"
+		managed_identity {
+			client_id = "clientid"
+		}
+		tls_config {
+			cert_file = "certfile"
+			cert_pem = "certpem"
+		}`
+	var args3 Arguments
+	err = river.Unmarshal([]byte(invalidTLS), &args3)
+	require.ErrorContains(t, err, "at most one of cert_pem and cert_file must be configured")
 }
 
 func TestConvert(t *testing.T) {
