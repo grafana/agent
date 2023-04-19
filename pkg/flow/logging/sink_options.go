@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/pkg/river"
 )
 
@@ -14,11 +15,12 @@ type SinkOptions struct {
 	Level  Level  `river:"level,attr,optional"`
 	Format Format `river:"format,attr,optional"`
 
+	// Fanout enables the Sink to forward logs to loki.* components.
+	Fanout []loki.LogsReceiver `river:"write_to,attr,optional"`
+
 	// IncludeTimestamps disables timestamps on log lines. It is not exposed as a
 	// river tag as it is only expected to be used during tests.
 	IncludeTimestamps bool
-
-	// TODO: attributes to forward logs to loki.* components.
 }
 
 // DefaultSinkOptions holds defaults for creating a logging sink.

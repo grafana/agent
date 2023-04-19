@@ -4,9 +4,13 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"time"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/loki/pkg/logproto"
+	"github.com/prometheus/common/model"
 )
 
 // Sink is where a Controller logger will send log lines to.
@@ -81,6 +85,10 @@ func (s *Sink) Update(o SinkOptions) error {
 func writerSinkLogger(w io.Writer, o SinkOptions) (log.Logger, error) {
 	var l log.Logger
 
+	if len(o.Fanout) > 0 {
+		w = &fanoutWriter{w: w, f: o.Fanout}
+	}
+
 	switch o.Format {
 	case FormatLogfmt:
 		l = log.NewLogfmtLogger(log.NewSyncWriter(w))
@@ -95,5 +103,33 @@ func writerSinkLogger(w io.Writer, o SinkOptions) (log.Logger, error) {
 	if o.IncludeTimestamps {
 		l = log.With(l, "ts", log.DefaultTimestampUTC)
 	}
+
 	return l, nil
+}
+
+type fanoutWriter struct {
+	w io.Writer
+	f []loki.LogsReceiver
+}
+
+func (fw *fanoutWriter) Write(p []byte) (int, error) {
+	n, err := fw.w.Write(p)
+	if err != nil {
+		return n, err
+	}
+
+	for _, receiver := range fw.f {
+		select {
+		case receiver <- loki.Entry{
+			Labels: model.LabelSet{"component": "agent"},
+			Entry: logproto.Entry{
+				Timestamp: time.Now(),
+				Line:      string(p),
+			},
+		}:
+		default:
+		}
+	}
+
+	return n, nil
 }
