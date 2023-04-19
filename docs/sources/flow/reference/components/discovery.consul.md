@@ -4,7 +4,7 @@ title: discovery.consul
 
 # discovery.consul
 
-`discovery.consul` allow retrieving scrape targets from [Consul's Catalog API][].
+`discovery.consul` allows retrieving scrape targets from [Consul's Catalog API][].
 
 [Consul's Catalog API]: https://www.consul.io/use-cases/discover-services
 
@@ -133,7 +133,7 @@ This example discovers targets from Consul for the specified list of services:
 
 ```river
 discovery.consul "example" {
-  server = "CONSUL_SERVER"
+  server = "localhost:8500"
   services = [
     "service1",
     "service2",
