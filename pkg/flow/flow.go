@@ -53,6 +53,7 @@ import (
 	"time"
 
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
@@ -117,6 +118,9 @@ type Options struct {
 	// OnExportsChange is nil, export configuration blocks are not allowed in the
 	// loaded config file.
 	OnExportsChange func(exports map[string]any)
+
+	// Controller is used to instantiate new module controllers.
+	Controller component.Controller
 }
 
 // Flow is the Flow system.

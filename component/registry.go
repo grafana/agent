@@ -1,7 +1,9 @@
 package component
 
 import (
+	"context"
 	"fmt"
+	"net/http"
 	"reflect"
 	"strings"
 
@@ -26,9 +28,36 @@ var (
 	parsedNames = map[string]parsedName{}
 )
 
+// A Controller is a mechanism responsible for running components. It can
+// generate controllers for Modules.
+type Controller interface {
+	// NewModuleController creates a new, unstarted ModuleController.
+	NewModuleController() (ModuleController, error)
+}
+
+// A ModuleController is a controller for running components within a Module.
+type ModuleController interface {
+	// LoadConfig parses River config and loads it into the ModuleController.
+	// LoadConfig can be called multiple times, and called prior to
+	// [ModuleController.Run].
+	LoadConfig(config []byte, args map[string]any) error
+
+	// Run starts the ModuleController. No components within the ModuleController
+	// will be run until Run is called.
+	//
+	// Run blocks until the provided context is canceled.
+	Run(context.Context)
+
+	// ComponentHandler returns an HTTP handler which exposes endpoints of
+	// components managed by the ModuleController.
+	ComponentHandler() http.Handler
+}
+
 // Options are provided to a component when it is being constructed. Options
 // are static for the lifetime of a component.
 type Options struct {
+	// Controller which is running this component.
+	Controller Controller
 	// ID of the component. Guaranteed to be globally unique across all running
 	// components.
 	ID string

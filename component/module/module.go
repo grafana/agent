@@ -3,17 +3,13 @@ package module
 import (
 	"context"
 	"fmt"
-	"net/http"
-	"path"
 	"sync"
 	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
-	"github.com/grafana/agent/web/api"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -110,22 +106,4 @@ func (c *ModuleComponent) setHealth(h component.Health) {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 	c.health = h
-}
-
-// Handler contains the implementation details for Handler in a module component.
-func (c *ModuleComponent) Handler() http.Handler {
-	r := mux.NewRouter()
-
-	fa := api.NewFlowAPI(c.ctrl, r)
-	fa.RegisterRoutes("/", r)
-
-	r.PathPrefix("/{id}/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Re-add the full path to ensure that nested controllers propagate
-		// requests properly.
-		r.URL.Path = path.Join(c.opts.HTTPPath, r.URL.Path)
-
-		c.ctrl.ComponentHandler().ServeHTTP(w, r)
-	})
-
-	return r
 }
