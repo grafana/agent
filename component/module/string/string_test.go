@@ -12,6 +12,7 @@ import (
 	"time"
 
 	_ "github.com/grafana/agent/component/local/file"
+	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/stretchr/testify/require"
@@ -137,9 +138,12 @@ func testOptions(t *testing.T) flow.Options {
 	s, err := logging.WriterSink(os.Stderr, logging.DefaultSinkOptions)
 	require.NoError(t, err)
 
+	c := &cluster.Clusterer{Node: cluster.NewLocalNode("")}
+
 	return flow.Options{
-		LogSink:  s,
-		DataPath: t.TempDir(),
-		Reg:      nil,
+		LogSink:   s,
+		DataPath:  t.TempDir(),
+		Reg:       nil,
+		Clusterer: c,
 	}
 }

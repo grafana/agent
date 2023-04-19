@@ -2,8 +2,10 @@ package file
 
 import (
 	"context"
+	"errors"
 	"log"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -18,7 +20,7 @@ import (
 )
 
 func Test(t *testing.T) {
-	defer goleak.VerifyNone(t)
+	defer goleak.VerifyNone(t, goleak.IgnoreTopFunction("go.opencensus.io/stats/view.(*worker).start"))
 
 	// Create opts for component
 	opts := component.Options{
@@ -102,7 +104,6 @@ func TestTwoTargets(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 	go c.Run(ctx)
 	time.Sleep(100 * time.Millisecond)
 
@@ -129,4 +130,19 @@ func TestTwoTargets(t *testing.T) {
 	}
 	require.True(t, foundF1)
 	require.True(t, foundF2)
+	cancel()
+	// Verify that positions.yml is written. NOTE: if we didn't wait for it, there would be a race condition between
+	// temporary directory being cleaned up and this file being created.
+	require.Eventually(
+		t,
+		func() bool {
+			if _, err := os.Stat(filepath.Join(opts.DataPath, "positions.yml")); errors.Is(err, os.ErrNotExist) {
+				return false
+			}
+			return true
+		},
+		5*time.Second,
+		10*time.Millisecond,
+		"expected positions.yml file to be written eventually",
+	)
 }

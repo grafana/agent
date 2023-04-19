@@ -53,6 +53,7 @@ import (
 	"time"
 
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/internal/stdlib"
@@ -81,6 +82,10 @@ type Options struct {
 	// Tracer for components to use. A no-op tracer will be created if this is
 	// nil.
 	Tracer *tracing.Tracer
+
+	// Clusterer for implementing distributed behavior among components running
+	// on different nodes.
+	Clusterer *cluster.Clusterer
 
 	// Directory where components can write data. Constructed components will be
 	// given a subdirectory of DataPath using the local ID of the component.
@@ -116,9 +121,10 @@ type Options struct {
 
 // Flow is the Flow system.
 type Flow struct {
-	log    *logging.Logger
-	tracer *tracing.Tracer
-	opts   Options
+	log       *logging.Logger
+	tracer    *tracing.Tracer
+	clusterer *cluster.Clusterer
+	opts      Options
 
 	updateQueue *controller.Queue
 	sched       *controller.Scheduler
@@ -134,8 +140,9 @@ type Flow struct {
 // the controller.
 func New(o Options) *Flow {
 	var (
-		log    = logging.New(o.LogSink)
-		tracer = o.Tracer
+		log       = logging.New(o.LogSink)
+		tracer    = o.Tracer
+		clusterer = o.Clusterer
 	)
 
 	if tracer == nil {
@@ -154,6 +161,7 @@ func New(o Options) *Flow {
 			LogSink:       o.LogSink,
 			Logger:        log,
 			TraceProvider: tracer,
+			Clusterer:     clusterer,
 			DataPath:      o.DataPath,
 			OnComponentUpdate: func(cn *controller.ComponentNode) {
 				// Changed components should be queued for reevaluation.
@@ -166,12 +174,12 @@ func New(o Options) *Flow {
 			ControllerID:    o.ControllerID,
 		})
 	)
-
 	return &Flow{
 		log:    log,
 		tracer: tracer,
 		opts:   o,
 
+		clusterer:   clusterer,
 		updateQueue: queue,
 		sched:       sched,
 		loader:      loader,

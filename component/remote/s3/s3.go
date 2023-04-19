@@ -8,13 +8,14 @@ import (
 	"sync"
 	"time"
 
+	"context"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	aws_config "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/rivertypes"
 	"github.com/prometheus/client_golang/prometheus"
-	"golang.org/x/net/context"
 )
 
 func init() {

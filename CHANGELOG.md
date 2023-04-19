@@ -31,10 +31,12 @@ Main (unreleased)
 
   - `discovery.ec2` service discovery for aws ec2. (@captncraig)
   - `discovery.lightsail` service discovery for aws lightsail. (@captncraig)
+  - `module.file` runs a Grafana Agent Flow module loaded from a file on disk.
+    (@erikbaranowski)
+  - `module.git` runs a Grafana Agent Flow module loaded from a file within a
+    Git repository. (@rfratto)
   - `module.string` runs a Grafana Agent Flow module passed to the component by
     an expression containing a string. (@erikbaranowski, @rfratto)
-  - `module.file` runs a Grafana Agent Flow module passed to the component by
-    an expression containing a file. (@erikbaranowski)
   - `otelcol.auth.oauth2` performs OAuth 2.0 authentication for HTTP and gRPC
     based OpenTelemetry exporters. (@ptodev)
   - `otelcol.extension.jaeger_remote_sampling` provides an endpoint from which to
@@ -55,6 +57,9 @@ Main (unreleased)
     components. (@akselleirv)
   - `discovery.gce` discovers resources on Google Compute Engine (GCE). (@marctc)
   - `discovery.digitalocean` provides service discovery for DigitalOcean. (@spartan0x117)
+  - `otelcol.processor.attributes` accepts telemetry data from other `otelcol`
+    components and modifies attributes of a span, log, or metric. (@ptodev)
+  - `prometheus.exporter.windows` collects metrics from a Windows instance. (@jkroepke)
 
 
 - Add support for Flow-specific system packages:
@@ -123,6 +128,10 @@ Main (unreleased)
 
 - Flow: Define custom http method and headers in `remote.http` component (@jkroepke)
 
+- Flow: Add config property to `prometheus.exporter.blackbox` to define the config inline (@jkroepke)
+
+- Update Loki Dependency to k146 which includes configurable file watchers (@mattdurham)
+
 ### Bugfixes
 
 - Flow: fix issue where Flow would return an error when trying to access a key
@@ -160,6 +169,11 @@ Main (unreleased)
 - Fix internal metrics reported as invalid by promtool's linter. (@tpaschalis)
 
 - Operator: fix for running multiple operators with different `--agent-selector` flags. (@captncraig)
+
+- Operator: respect FilterRunning on PodMonitor and ServiceMonitor resources to only scrape running pods. (@captncraig)
+
+- Fixes a bug where the github exporter would get stuck in an infinite loop under certain conditions. (@jcreixell)
+
 
 ### Other changes
 

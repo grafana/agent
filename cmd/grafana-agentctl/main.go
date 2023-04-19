@@ -82,7 +82,7 @@ func configSyncCmd() *cobra.Command {
 		Use:   "config-sync [directory]",
 		Short: "Sync config files from a directory to an Agent's config management API",
 		Long: `config-sync loads all files ending with .yml or .yaml from the specified
-directory and uploads them the the config management API. The name of the config
+directory and uploads them through the config management API. The name of the config
 uploaded will be the base name of the file (e.g., the name of the file without
 its extension).
 

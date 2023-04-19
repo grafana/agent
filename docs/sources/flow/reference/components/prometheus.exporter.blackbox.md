@@ -33,10 +33,20 @@ Omitted fields take their default values.
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`config_file`                 | `string`       | Blackbox configuration file with custom modules. | | yes
+`config_file`                 | `string`       | blackbox_exporter configuration file path. | | no
+`config`                      | `string`       | blackbox_exporter configuration as inline string.  | |no
 `probe_timeout_offset`        | `duration`     | Offset in seconds to subtract from timeout when probing targets.  | `"0.5s"` | no
 
-The `config_file` argument points to a YAML file defining which blackbox_exporter modules to use. See [blackbox_exporter]( https://github.com/prometheus/blackbox_exporter/blob/master/example.yml) for details on how to generate a config file.
+The `config_file` argument points to a YAML file defining which blackbox_exporter modules to use. 
+The `config` argument must be a YAML document as string defining which blackbox_exporter modules to use.
+`config` is typically loaded by using the exports of another component. For example,
+
+- `local.file.LABEL.content`
+- `remote.http.LABEL.content`
+- `remote.s3.LABEL.content`
+
+
+See [blackbox_exporter]( https://github.com/prometheus/blackbox_exporter/blob/master/example.yml) for details on how to generate a config file.
 
 ## Blocks
 
@@ -95,6 +105,30 @@ from `prometheus.exporter.blackbox`:
 ```river
 prometheus.exporter.blackbox "example" { 
 	config_file = "blackbox_modules.yml"
+	
+	target "example" {
+		address = "http://example.com"
+		module  = "http_2xx"
+	}
+	
+	target "grafana" {
+		address = "http://grafana.com"
+		module  = "http_2xx"
+	}	
+}
+
+// Configure a prometheus.scrape component to collect Blackbox metrics.
+prometheus.scrape "demo" {
+  targets    = prometheus.exporter.blackbox.example.targets
+  forward_to = [ /* ... */ ]
+}
+```
+
+This example is the same above with using an embedded configuration:
+
+```river
+prometheus.exporter.blackbox "example" { 
+	config = "{ modules: { http_2xx: { prober: http, timeout: 5s } } }"
 	
 	target "example" {
 		address = "http://example.com"
