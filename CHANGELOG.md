@@ -59,6 +59,7 @@ Main (unreleased)
   - `discovery.digitalocean` provides service discovery for DigitalOcean. (@spartan0x117)
   - `otelcol.processor.attributes` accepts telemetry data from other `otelcol`
     components and modifies attributes of a span, log, or metric. (@ptodev)
+  - `prometheus.exporter.windows` collects metrics from a Windows instance. (@jkroepke)
 
 
 - Add support for Flow-specific system packages:
