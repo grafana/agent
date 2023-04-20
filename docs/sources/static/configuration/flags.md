@@ -33,6 +33,8 @@ Valid feature names are:
 * `integrations-next`: Enable [revamp]({{< relref "./integrations/integrations-next/" >}}) of the integrations subsystem
 * `dynamic-config`: Enable support for [dynamic configuration]({{< relref "./dynamic-config" >}})
 * `extra-scrape-metrics`: When enabled, additional time series  are exposed for each metrics instance scrape. See [Extra scrape metrics](https://prometheus.io/docs/prometheus/latest/feature_flags/#extra-scrape-metrics).
+* `extra-scrape-metrics`: When enabled, additional time series  are exposed for each metrics instance scrape. See [Extra scrape metrics](https://prometheus.io/docs/prometheus/latest/feature_flags/#extra-scrape-metrics).
+* `agent-management`: Enable support for [agent management]({{< relref "./agent-management" >}}).
 
 ## Report information usage
 
