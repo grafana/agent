@@ -10,6 +10,9 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+v0.33.0-rc.0 (2023-04-20)
+-------------------------
+
 ### Breaking changes
 
 - Support for 32-bit ARM builds is removed for the foreseeable future due to Go
