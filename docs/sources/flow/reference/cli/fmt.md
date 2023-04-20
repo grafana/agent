@@ -1,5 +1,5 @@
 ---
-title: agent fmt
+title: grafana-agent fmt
 weight: 100
 ---
 
