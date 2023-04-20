@@ -28,7 +28,7 @@ func TestTargetServer(t *testing.T) {
 	cfg, port, err := getServerConfigWithAvailablePort()
 	require.NoError(t, err)
 
-	ts, err := NewTargetServer(logger, "test", "test_namespace", reg, &Config{
+	ts, err := NewTargetServer(logger, "test_namespace", reg, Config{
 		Server: cfg,
 	})
 	require.NoError(t, err)

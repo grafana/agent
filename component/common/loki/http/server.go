@@ -19,21 +19,19 @@ import (
 // are left to the consumer.
 type TargetServer struct {
 	logger           log.Logger
-	config           *Config
-	componentName    string
+	config           Config
 	metricsNamespace string
 	server           *server.Server
 }
 
 // NewTargetServer creates a new TargetServer, applying some defaults to the server configuration.
-func NewTargetServer(logger log.Logger, componentName, metricsNamespace string, reg prometheus.Registerer, config *Config) (*TargetServer, error) {
+func NewTargetServer(logger log.Logger, metricsNamespace string, reg prometheus.Registerer, config Config) (*TargetServer, error) {
 	if !model.IsValidMetricName(model.LabelValue(metricsNamespace)) {
 		return nil, fmt.Errorf("metrics namespace is not prometheus compatiible: %s", metricsNamespace)
 	}
 
 	t := &TargetServer{
 		logger:           logger,
-		componentName:    componentName,
 		metricsNamespace: metricsNamespace,
 		config:           config,
 	}
