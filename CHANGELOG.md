@@ -79,6 +79,10 @@ Main (unreleased)
 
 - Agent Management: Add support for integration snippets. (@jcreixell)
 
+- Flow: Introduce a gossip-over-HTTP/2 _clustered mode_. `prometheus.scrape`
+  component instances can opt-in to distributing scrape load between cluster
+  peers. (@tpaschalis)
+
 ### Enhancements
 
 - Flow: Add retries with backoff logic to Phlare write component. (@cyriltovena)
