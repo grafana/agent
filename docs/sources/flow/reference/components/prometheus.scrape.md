@@ -89,7 +89,7 @@ an `oauth2` block.
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
 [tls_config]: #tls_config-block
-[clustering]: #clustering
+[clustering]: #clustering-experimental
 
 ### basic_auth block
 
@@ -107,7 +107,7 @@ an `oauth2` block.
 
 {{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
 
-### clustering
+### clustering (experimental)
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
@@ -135,7 +135,7 @@ re-distributed, as only 1/N of the targets ownership is transferred.
 If the agent is _not_ running in clustered mode, then the block is a no-op and
 `prometheus.scrape` scrapes every target it receives in its arguments.
 
-[clustered mode]: {{< relref "../cli/run.md#clustered-mode" >}}
+[clustered mode]: {{< relref "../cli/run.md#clustered-mode-experimental" >}}
 
 ## Exported fields
 

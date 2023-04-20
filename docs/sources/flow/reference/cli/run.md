@@ -56,7 +56,7 @@ reloading.
 
 [component controller]: {{< relref "../../concepts/component_controller.md" >}}
 
-## Clustered mode
+## Clustered mode (experimental)
 
 When the `--cluster.enabled` command-line argument is provided, Grafana Agent will
 start in _clustered mode_.
