@@ -29,6 +29,7 @@ Main (unreleased)
 
 - New Grafana Agent Flow components:
 
+  - `discovery.dns` DNS service discovery. (@captncraig)
   - `discovery.ec2` service discovery for aws ec2. (@captncraig)
   - `discovery.lightsail` service discovery for aws lightsail. (@captncraig)
   - `module.file` runs a Grafana Agent Flow module loaded from a file on disk.
@@ -59,7 +60,9 @@ Main (unreleased)
   - `discovery.digitalocean` provides service discovery for DigitalOcean. (@spartan0x117)
   - `otelcol.processor.attributes` accepts telemetry data from other `otelcol`
     components and modifies attributes of a span, log, or metric. (@ptodev)
-
+  - `prometheus.exporter.windows` collects metrics from a Windows instance. (@jkroepke)
+  - `discovery.consul` service discovery for Consul. (@jcreixell)
+  - `discovery.azure` provides service discovery for Azure. (@spartan0x117)
 
 - Add support for Flow-specific system packages:
 
@@ -72,6 +75,10 @@ Main (unreleased)
   alongside an existing installation of Grafana Agent.
 
 - Agent Management: Add support for integration snippets. (@jcreixell)
+
+- Flow: Introduce a gossip-over-HTTP/2 _clustered mode_. `prometheus.scrape`
+  component instances can opt-in to distributing scrape load between cluster
+  peers. (@tpaschalis)
 
 ### Enhancements
 
@@ -169,9 +176,12 @@ Main (unreleased)
 
 - Fix issues with cri stage which treats partial line coming from any stream as same. (@kavirajk @aglees)
 
+- Operator: fix for running multiple operators with different `--agent-selector` flags. (@captncraig)
+
 - Operator: respect FilterRunning on PodMonitor and ServiceMonitor resources to only scrape running pods. (@captncraig)
 
 - Fixes a bug where the github exporter would get stuck in an infinite loop under certain conditions. (@jcreixell)
+
 
 ### Other changes
 

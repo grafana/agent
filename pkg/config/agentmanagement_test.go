@@ -64,10 +64,7 @@ var validAgentManagementConfig = AgentManagementConfig{
 	},
 }
 
-var cachedConfig = []byte(`
-base_config: |
-snippets: []
-`)
+var cachedConfig = []byte(`{"base_config":"","snippets":[]}`)
 
 func TestValidateValidConfig(t *testing.T) {
 	assert.NoError(t, validAgentManagementConfig.Validate())
@@ -306,21 +303,10 @@ func TestGetRemoteConfig_SemanticallyInvalidBaseConfig(t *testing.T) {
 	// this is semantically invalid because it has two scrape_configs with
 	// the same job_name
 	invalidConfig := `
-base_config: |
-  metrics:
-    configs:
-    - name: Metrics Snippets
-      scrape_configs:
-      - job_name: 'prometheus'
-        scrape_interval: 15s
-        static_configs:
-        - targets: ['localhost:12345']
-      - job_name: 'prometheus'
-        scrape_interval: 15s
-        static_configs:
-        - targets: ['localhost:12345']
-snippets: []
-`
+{
+  "base_config": "metrics:\n  configs:\n  - name: Metrics Snippets\n    scrape_configs:\n    - job_name: 'prometheus'\n      scrape_interval: 15s\n      static_configs:\n      - targets: ['localhost:12345']\n    - job_name: 'prometheus'\n      scrape_interval: 15s\n      static_configs:\n      - targets: ['localhost:12345']\n",
+  "snippets": []
+}`
 	invalidCfgBytes := []byte(invalidConfig)
 
 	am := validAgentManagementConfig
@@ -349,17 +335,17 @@ snippets: []
 func TestGetRemoteConfig_InvalidSnippet(t *testing.T) {
 	defaultCfg := DefaultConfig()
 
+	// this is semantically invalid because it has two scrape_configs with
+	// the same job_name
 	invalidConfig := `
-base_config: |
-  server:
-    log_level: info
-    log_format: logfmt
-snippets:
-- config: |
-    metrics_scrape_configs:
-    #bad indentation
-  - job_name: 'prometheus'
-`
+{
+  "base_config": "server:\n  log_level: info\n  log_format: logfmt\n",
+  "snippets": [
+    {
+      "config": "metrics_scrape_configs:\n- job_name: 'prometheus'\n- job_name: 'prometheus'\n"
+    }
+  ]
+}`
 	invalidCfgBytes := []byte(invalidConfig)
 
 	am := validAgentManagementConfig
@@ -389,9 +375,10 @@ func TestGetRemoteConfig_EmptyBaseConfig(t *testing.T) {
 	defaultCfg := DefaultConfig()
 
 	validConfig := `
-base_config: ""
-snippets: []
-`
+{
+  "base_config": "",
+  "snippets": []
+}`
 	cfgBytes := []byte(validConfig)
 	am := validAgentManagementConfig
 	logger := server.NewLogger(defaultCfg.Server)
@@ -414,39 +401,18 @@ snippets: []
 func TestGetRemoteConfig_ValidBaseConfig(t *testing.T) {
 	defaultCfg := DefaultConfig()
 	validConfig := `
-base_config: |
-  server:
-    log_level: debug
-    log_format: logfmt
-  logs:
-    positions_directory: /tmp
-    global:
-      clients:
-        - basic_auth:
-            password_file: key.txt
-            username: 278220
-          url: https://logs-prod-eu-west-0.grafana.net/loki/api/v1/push
-  integrations:
-    agent:
-      enabled: false
-snippets:
-- config: |
-    metrics_scrape_configs:
-    - job_name: 'prometheus'
-      scrape_interval: 15s
-      static_configs:
-      - targets: ['localhost:12345']
-    logs_scrape_configs:
-    - job_name: yologs
-      static_configs:
-        - targets: [localhost]
-          labels:
-            job: yologs
-            __path__: /tmp/yo.log
-  selector:
-    hostname: machine-1
-    team: team-a
-`
+{
+  "base_config": "server:\n  log_level: debug\n  log_format: logfmt\nlogs:\n  positions_directory: /tmp\n  global:\n    clients:\n      - basic_auth:\n          password_file: key.txt\n          username: 278220\n        url: https://logs-prod-eu-west-0.grafana.net/loki/api/v1/push\nintegrations:\n  agent:\n    enabled: false\n",
+  "snippets": [
+    {
+      "config": "metrics_scrape_configs:\n- job_name: 'prometheus'\n  scrape_interval: 15s\n  static_configs:\n  - targets: ['localhost:12345']\nlogs_scrape_configs:\n- job_name: yologs\n  static_configs:\n    - targets: [localhost]\n      labels:\n        job: yologs\n        __path__: /tmp/yo.log\n",
+      "selector": {
+        "hostname": "machine-1",
+        "team": "team-a"
+      }
+    }
+  ]
+}`
 	cfgBytes := []byte(validConfig)
 	am := validAgentManagementConfig
 	logger := server.NewLogger(defaultCfg.Server)
@@ -476,32 +442,18 @@ snippets:
 func TestGetRemoteConfig_ExpandsEnvVars(t *testing.T) {
 	defaultCfg := DefaultConfig()
 	validConfig := `
-base_config: |
-  server:
-    log_level: info
-    log_format: ${LOG_FORMAT}
-  logs:
-    positions_directory: /tmp
-    global:
-      clients:
-        - basic_auth:
-            password_file: key.txt
-            username: 278220
-          url: https://logs-prod-eu-west-0.grafana.net/loki/api/v1/push
-  integrations:
-    agent:
-      enabled: false
-snippets:
-- config: |
-    metrics_scrape_configs:
-    - job_name: 'prometheus'
-      scrape_interval: ${SCRAPE_INTERVAL}
-      static_configs:
-      - targets: ['localhost:12345']
-  selector:
-    hostname: machine-1
-    team: team-a
-`
+{
+  "base_config": "server:\n  log_level: info\n  log_format: ${LOG_FORMAT}\nlogs:\n  positions_directory: /tmp\n  global:\n    clients:\n      - basic_auth:\n          password_file: key.txt\n          username: 278220\n        url: https://logs-prod-eu-west-0.grafana.net/loki/api/v1/push\nintegrations:\n  agent:\n    enabled: false\n",
+  "snippets": [
+    {
+      "config": "metrics_scrape_configs:\n- job_name: 'prometheus'\n  scrape_interval: ${SCRAPE_INTERVAL}\n  static_configs:\n  - targets: ['localhost:12345']\n",
+      "selector": {
+        "hostname": "machine-1",
+        "team": "team-a"
+      }
+    }
+  ]
+}`
 	t.Setenv("SCRAPE_INTERVAL", "15s")
 	t.Setenv("LOG_FORMAT", "json")
 
