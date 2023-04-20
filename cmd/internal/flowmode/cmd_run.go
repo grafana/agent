@@ -89,7 +89,7 @@ depending on the nature of the reload error.
 	cmd.Flags().
 		StringVar(&r.clusterJoinAddr, "cluster.advertise-address", r.clusterAdvAddr, "Address to advertise to the cluster")
 	cmd.Flags().
-		StringVar(&r.clusterJoinAddr, "cluster.join-address", r.clusterJoinAddr, "Address to join the cluster at")
+		StringVar(&r.clusterJoinAddr, "cluster.join-addresses", r.clusterJoinAddr, "Comma-separated list of addresses to join the cluster at")
 	cmd.Flags().
 		BoolVar(&r.disableReporting, "disable-reporting", r.disableReporting, "Disable reporting of enabled components to Grafana.")
 	return cmd
