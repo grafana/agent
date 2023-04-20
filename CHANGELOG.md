@@ -174,6 +174,8 @@ Main (unreleased)
 
 - Fix internal metrics reported as invalid by promtool's linter. (@tpaschalis)
 
+- Fix issues with cri stage which treats partial line coming from any stream as same. (@kavirajk @aglees)
+
 - Operator: fix for running multiple operators with different `--agent-selector` flags. (@captncraig)
 
 - Operator: respect FilterRunning on PodMonitor and ServiceMonitor resources to only scrape running pods. (@captncraig)
