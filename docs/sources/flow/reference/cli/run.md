@@ -68,6 +68,6 @@ bootstrapping a new cluster of its own.
 
 The agent will advertise its own address as `--cluster.advertise-address` to
 other agent nodes; if this is empty it will attempt to find a suitable address
-to advertise from a list of default network interface. The agent must be
+to advertise from a list of default network interfaces. The agent must be
 reachable over HTTP on this address as communication happens over the agent's
 HTTP server.

@@ -119,15 +119,15 @@ the cluster to distribute scrape load between all cluster nodes.
 
 Clustering assumes that all cluster nodes are running with the same
 configuration file, have access to the same service discovery APIs and that all
-`prometheus.scrape` components that have opted-in to using clustering are
-receiving the _exact same_ target set from upstream components in their
-`targets` argument.
+`prometheus.scrape` components that have opted-in to using clustering, over
+the course of a scrape interval, are converging on the same target set from
+upstream components in their `targets` argument.
 
 All `prometheus.scrape` components instances opting in to clustering use target
 labels and a consistent hashing algorithm to determine ownership for each of
 the targets between the cluster peers. Then, each peer only scrapes the subset
 of targets that it is responsible for, so that the scrape load is distributed. 
-When a node joins or leaves the cluster, every peer re-calculates ownership and
+When a node joins or leaves the cluster, every peer recalculates ownership and
 continues scraping with the new target set. This performs better than hashmod
 sharding where _all_ nodes have to be re-distributed, as only 1/N of the
 targets ownership is transferred, but is eventually consistent (rather than
