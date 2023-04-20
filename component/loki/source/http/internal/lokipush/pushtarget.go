@@ -6,7 +6,6 @@ package lokipush
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"net/http"
 	"sort"
@@ -15,7 +14,6 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/relabel"
@@ -24,30 +22,36 @@ import (
 
 	"github.com/grafana/dskit/tenant"
 
-	"github.com/grafana/loki/clients/pkg/promtail/api"
-	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
-	"github.com/grafana/loki/clients/pkg/promtail/targets/serverutils"
-	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
+	"github.com/grafana/agent/component/common/loki"
 
 	"github.com/grafana/loki/pkg/loghttp/push"
 	"github.com/grafana/loki/pkg/logproto"
 	util_log "github.com/grafana/loki/pkg/util/log"
 )
 
+type PushTargetConfig struct {
+	// Server is the weaveworks server config for listening connections
+	Server server.Config
+	// Labels optionally holds labels to associate with each record received on the push api.
+	Labels model.LabelSet
+	// If promtail should maintain the incoming log timestamp or replace it with the current time.
+	KeepTimestamp bool
+}
+
 type PushTarget struct {
 	logger        log.Logger
-	handler       api.EntryHandler
-	config        *scrapeconfig.PushTargetConfig
+	handler       loki.EntryHandler
+	config        *PushTargetConfig
 	relabelConfig []*relabel.Config
 	jobName       string
 	server        *server.Server
 }
 
 func NewPushTarget(logger log.Logger,
-	handler api.EntryHandler,
+	handler loki.EntryHandler,
 	relabel []*relabel.Config,
 	jobName string,
-	config *scrapeconfig.PushTargetConfig,
+	config *PushTargetConfig,
 ) (*PushTarget, error) {
 
 	pt := &PushTarget{
@@ -58,15 +62,7 @@ func NewPushTarget(logger log.Logger,
 		config:        config,
 	}
 
-	mergedServerConfigs, err := serverutils.MergeWithDefaults(config.Server)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse configs and override defaults when configuring loki push target: %w", err)
-	}
-	// Set the config to the new combined config.
-	config.Server = mergedServerConfigs
-
-	err = pt.run()
-	if err != nil {
+	if err := pt.run(); err != nil {
 		return nil, err
 	}
 
@@ -75,15 +71,6 @@ func NewPushTarget(logger log.Logger,
 
 func (t *PushTarget) run() error {
 	level.Info(t.logger).Log("msg", "starting push server", "job", t.jobName)
-	// To prevent metric collisions because all metrics are going to be registered in the global Prometheus registry.
-	t.config.Server.MetricsNamespace = "promtail_" + t.jobName
-
-	// We don't want the /debug and /metrics endpoints running
-	t.config.Server.RegisterInstrumentation = false
-
-	// The logger registers a metric which will cause a duplicate registry panic unless we provide an empty registry
-	// The metric created is for counting log lines and isn't likely to be missed.
-	util_log.InitLogger(&t.config.Server, prometheus.NewRegistry(), true, false)
 
 	srv, err := server.New(t.config.Server)
 	if err != nil {
@@ -147,7 +134,7 @@ func (t *PushTarget) handleLoki(w http.ResponseWriter, r *http.Request) {
 		}
 
 		for _, entry := range stream.Entries {
-			e := api.Entry{
+			e := loki.Entry{
 				Labels: filtered.Clone(),
 				Entry: logproto.Entry{
 					Line: entry.Line,
@@ -190,7 +177,7 @@ func (t *PushTarget) handlePlaintext(w http.ResponseWriter, r *http.Request) {
 			}
 			continue
 		}
-		entries <- api.Entry{
+		entries <- loki.Entry{
 			Labels: t.Labels().Clone(),
 			Entry: logproto.Entry{
 				Timestamp: time.Now(),
@@ -205,31 +192,10 @@ func (t *PushTarget) handlePlaintext(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// Type returns PushTargetType.
-func (t *PushTarget) Type() target.TargetType {
-	return target.PushTargetType
-}
-
-// Ready indicates whether or not the PushTarget target is ready to be read from.
-func (t *PushTarget) Ready() bool {
-	return true
-}
-
-// DiscoveredLabels returns the set of labels discovered by the PushTarget, which
-// is always nil. Implements Target.
-func (t *PushTarget) DiscoveredLabels() model.LabelSet {
-	return nil
-}
-
 // Labels returns the set of labels that statically apply to all log entries
 // produced by the PushTarget.
 func (t *PushTarget) Labels() model.LabelSet {
 	return t.config.Labels
-}
-
-// Details returns target-specific details.
-func (t *PushTarget) Details() interface{} {
-	return map[string]string{}
 }
 
 // Stop shuts down the PushTarget.

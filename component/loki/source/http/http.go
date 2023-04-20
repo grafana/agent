@@ -3,29 +3,32 @@ package http
 import (
 	"context"
 	"fmt"
+
 	"github.com/efficientgo/core/errors"
+	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/loki/source/http/internal/lokipush"
-	"github.com/grafana/loki/clients/pkg/promtail/api"
-	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	"github.com/prometheus/common/model"
+	"github.com/weaveworks/common/logging"
 	"github.com/weaveworks/common/server"
 )
 
+// TODO: this component also supports GRPC, so we may want to call it `loki.source.push_api` or something else.
+const componentName = "loki.source.http"
+
 type Arguments struct {
-	HttpAddress string              `river:"http_address,attr"`
-	HttpPort    int                 `river:"http_port,attr"`
-	ForwardTo   []loki.LogsReceiver `river:"forward_to,attr"`
+	HTTPAddress string `river:"http_address,attr"`
+	HTTPPort    int    `river:"http_port,attr"`
+
+	ForwardTo []loki.LogsReceiver `river:"forward_to,attr"`
 
 	Labels               map[string]string `river:"labels,attr,optional"`
 	RelabelRules         relabel.Rules     `river:"relabel_rules,attr,optional"`
 	UseIncomingTimestamp bool              `river:"use_incoming_timestamp,attr,optional"`
-
-	//TODO: add support for http_server_read_timeout like in https://grafana.com/docs/loki/next/clients/promtail/configuration/#loki_push_api
-	//TODO: add support for http_server_write_timeout like in https://grafana.com/docs/loki/next/clients/promtail/configuration/#loki_push_api
-	//TODO: add support for http_server_idle_timeout like in https://grafana.com/docs/loki/next/clients/promtail/configuration/#loki_push_api
+	// TODO: allow to configure other Server fields in a dedicated block, to match promtail's
+	//       https://grafana.com/docs/loki/next/clients/promtail/configuration/#server
 }
 
 type Component struct {
@@ -35,7 +38,7 @@ type Component struct {
 
 func init() {
 	component.Register(component.Registration{
-		Name: "loki.source.http",
+		Name: componentName,
 		Args: Arguments{},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments)), nil
@@ -53,8 +56,8 @@ func New(opts component.Options, args Arguments) component.Component {
 func (c *Component) Run(ctx context.Context) error {
 	c.opts.Logger.Log("msg", "starting component")
 
-	entriesChan := make(chan api.Entry)
-	entryHandler := api.NewEntryHandler(
+	entriesChan := make(chan loki.Entry)
+	entryHandler := loki.NewEntryHandler(
 		entriesChan,
 		func() {
 			c.opts.Logger.Log("msg", "entry handler stopped")
@@ -64,9 +67,9 @@ func (c *Component) Run(ctx context.Context) error {
 		c.opts.Logger,
 		entryHandler,
 		relabel.ComponentToPromRelabelConfigs(c.args.RelabelRules),
-		// TODO: pick correct metric names
-		"loki_source_http",
-		c.args.toPushTargetConfig(),
+		// TODO: pick correct metric names - avoid collisions!
+		c.opts.ID,
+		c.pushTargetConfig(),
 	)
 
 	if err != nil {
@@ -96,14 +99,18 @@ func (c *Component) Update(args component.Arguments) error {
 	return nil
 }
 
-func (a *Arguments) toPushTargetConfig() *scrapeconfig.PushTargetConfig {
-	return &scrapeconfig.PushTargetConfig{
+func (c *Component) pushTargetConfig() *lokipush.PushTargetConfig {
+	return &lokipush.PushTargetConfig{
 		Server: server.Config{
-			HTTPListenPort:    a.HttpPort,
-			HTTPListenAddress: a.HttpAddress,
+			HTTPListenPort:          c.args.HTTPPort,
+			HTTPListenAddress:       c.args.HTTPAddress,
+			Registerer:              c.opts.Registerer,
+			MetricsNamespace:        "loki_source_http",
+			RegisterInstrumentation: false,
+			Log:                     logging.GoKit(log.With(c.opts.Logger, "component", componentName)),
 		},
-		Labels:        a.labelSet(),
-		KeepTimestamp: a.UseIncomingTimestamp,
+		Labels:        c.args.labelSet(),
+		KeepTimestamp: c.args.UseIncomingTimestamp,
 	}
 }
 
