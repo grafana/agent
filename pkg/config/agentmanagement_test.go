@@ -57,10 +57,10 @@ var validAgentManagementConfig = AgentManagementConfig{
 	},
 	Protocol:        "https",
 	PollingInterval: time.Minute,
-	CacheLocation:   "/test/path/",
 	RemoteConfiguration: RemoteConfiguration{
-		Labels:    labelMap{"b": "B", "a": "A"},
-		Namespace: "test_namespace",
+		Labels:        labelMap{"b": "B", "a": "A"},
+		Namespace:     "test_namespace",
+		CacheLocation: "/test/path/",
 	},
 }
 
@@ -77,9 +77,9 @@ func TestValidateInvalidBasicAuth(t *testing.T) {
 		BasicAuth:       config.BasicAuth{},
 		Protocol:        "https",
 		PollingInterval: time.Minute,
-		CacheLocation:   "/test/path/",
 		RemoteConfiguration: RemoteConfiguration{
-			Namespace: "test_namespace",
+			Namespace:     "test_namespace",
+			CacheLocation: "/test/path/",
 		},
 	}
 	assert.Error(t, invalidConfig.Validate())
@@ -116,9 +116,9 @@ basic_auth:
   username: "initial_user"
 protocol: "http"
 polling_interval: "1m"
-remote_config_cache_location: "/etc"
 remote_configuration:
-  namespace: "new_namespace"`
+  namespace: "new_namespace"
+  cache_location:  "/etc"`
 
 	var am AgentManagementConfig
 	yaml.Unmarshal([]byte(cfg), &am)
@@ -180,10 +180,10 @@ func TestNewRemoteConfigProvider_ValidInitialConfig(t *testing.T) {
 		},
 		Protocol:        "https",
 		PollingInterval: time.Minute,
-		CacheLocation:   "/test/path/",
 		RemoteConfiguration: RemoteConfiguration{
-			Labels:    labelMap{"b": "B", "a": "A"},
-			Namespace: "test_namespace",
+			Labels:        labelMap{"b": "B", "a": "A"},
+			Namespace:     "test_namespace",
+			CacheLocation: "/test/path/",
 		},
 	}
 
@@ -204,10 +204,10 @@ func TestNewRemoteConfigProvider_InvalidProtocol(t *testing.T) {
 		},
 		Protocol:        "ws",
 		PollingInterval: time.Minute,
-		CacheLocation:   "/test/path/",
 		RemoteConfiguration: RemoteConfiguration{
-			Labels:    labelMap{"b": "B", "a": "A"},
-			Namespace: "test_namespace",
+			Labels:        labelMap{"b": "B", "a": "A"},
+			Namespace:     "test_namespace",
+			CacheLocation: "/test/path/",
 		},
 	}
 
@@ -228,10 +228,10 @@ func TestNewRemoteConfigHTTPProvider_InvalidInitialConfig(t *testing.T) {
 		},
 		Protocol:        "https",
 		PollingInterval: time.Minute,
-		CacheLocation:   "/test/path/",
 		RemoteConfiguration: RemoteConfiguration{
-			Labels:    labelMap{"b": "B", "a": "A"},
-			Namespace: "test_namespace",
+			Labels:        labelMap{"b": "B", "a": "A"},
+			Namespace:     "test_namespace",
+			CacheLocation: "/test/path/",
 		},
 	}
 
