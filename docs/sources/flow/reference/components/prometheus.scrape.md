@@ -123,14 +123,15 @@ configuration file, have access to the same service discovery APIs and that all
 receiving the _exact same_ target set from upstream components in their
 `targets` argument.
 
-What happens is that all participating `prometheus.scrape` components use
-target labels and a consistent hashing algorithm to determine ownership for
-each of the targets between the cluster peers. Then, each peer only scrapes the
-subset of targets that it is responsible for, so that the scrape load is
-(nearly) evenly split. When a node joins or leaves the cluster, every peer
-re-calculates ownership and continues scraping with the new target set. This
-performs better than hashmod sharding where _all_ nodes have to be
-re-distributed, as only 1/N of the targets ownership is transferred.
+All `prometheus.scrape` components instances opting in to clustering use target
+labels and a consistent hashing algorithm to determine ownership for each of
+the targets between the cluster peers. Then, each peer only scrapes the subset
+of targets that it is responsible for, so that the scrape load is distributed. 
+When a node joins or leaves the cluster, every peer re-calculates ownership and
+continues scraping with the new target set. This performs better than hashmod
+sharding where _all_ nodes have to be re-distributed, as only 1/N of the
+targets ownership is transferred, but is eventually consistent (rather than
+fully consistent like hashmod sharding is).
 
 If the agent is _not_ running in clustered mode, then the block is a no-op and
 `prometheus.scrape` scrapes every target it receives in its arguments.

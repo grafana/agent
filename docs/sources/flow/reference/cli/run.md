@@ -32,7 +32,7 @@ The following flags are supported:
 * `--storage.path`: Base directory where components can store data (default `data-agent/`).
 * `--disable-reporting`: Disable [usage reporting][] of enabled [components][] to Grafana (default `false`).
 * `--cluster.enabled`: Start the Agent in clustered mode (default `false`).
-* `--cluster.join-address string`: Address to join the cluster at (default `""`).
+* `--cluster.join-address`: Address to join the cluster at (default `""`).
 * `--cluster.advertise-address`: Address to advertise to other cluster nodes (default `""`).
 
 [usage reporting]: {{< relref "../../../static/configuration/flags.md#report-information-usage" >}}
@@ -62,10 +62,12 @@ When the `--cluster.enabled` command-line argument is provided, Grafana Agent wi
 start in _clustered mode_.
 
 The agent tries to connect over HTTP/2 to one or more peers provided in the
-comma-separated `--cluster.join-address` list to join an existing cluster,
-otherwise it falls back to bootstrapping a new cluster on its own.
+comma-separated `--cluster.join-address` list to join an existing cluster.
+If no connection can be made or the argument is empty, the agent falls back to
+bootstrapping a new cluster of its own.
 
-The agent will advertise its address as `--cluster.advertise-address` to other
-nodes; if this is empty it will attempt to find a suitable address to advertise
-from a list of default network interface. Communication happens over the
-agent's HTTP server that is configured via `--server.http.listen-addr`.
+The agent will advertise its own address as `--cluster.advertise-address` to
+other agent nodes; if this is empty it will attempt to find a suitable address
+to advertise from a list of default network interface. The agent must be
+reachable over HTTP on this address as communication happens over the agent's
+HTTP server.
