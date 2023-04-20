@@ -17,31 +17,29 @@ import (
 // that expose an HTTP server. It just handles configuration and initialization, the handlers implementation are left to
 // the consumer.
 type TargetServer struct {
-	logger        log.Logger
-	config        *Config
-	componentName string
-	metricSuffix  string
-	jobName       string
-	server        *server.Server
+	logger           log.Logger
+	config           *Config
+	componentName    string
+	metricsNamespace string
+	server           *server.Server
 }
 
 // NewTargetServer creates a new TargetServer, applying some defaults to the server configuration.
-func NewTargetServer(
-	logger log.Logger,
-	jobName, componentName, metricSuffix string,
-	config *Config,
-) (*TargetServer, error) {
+func NewTargetServer(logger log.Logger, componentName, metricsNamespace string, config *Config) (*TargetServer, error) {
+	if !model.IsValidMetricName(model.LabelValue(metricsNamespace)) {
+		return nil, fmt.Errorf("metrics namespace is not prometheus compatiible: %s", metricsNamespace)
+	}
+
 	t := &TargetServer{
-		logger:        logger,
-		componentName: componentName,
-		metricSuffix:  metricSuffix,
-		jobName:       jobName,
-		config:        config,
+		logger:           logger,
+		componentName:    componentName,
+		metricsNamespace: metricsNamespace,
+		config:           config,
 	}
 
 	mergedServerConfigs, err := serverutils.MergeWithDefaults(config.Server)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse configs and override defaults when configuring %s: %w", componentName, err)
+		return nil, fmt.Errorf("failed to parse server configs and override defaults: %w", err)
 	}
 	// Set the config to the new combined config.
 	config.Server = mergedServerConfigs
@@ -53,15 +51,10 @@ func NewTargetServer(
 
 // MountAndRun does some final configuration of the WeaveWorks server, before mounting the handlers and starting the server.
 func (ts *TargetServer) MountAndRun(mountRoute func(router *mux.Router)) error {
-	level.Info(ts.logger).Log("msg", fmt.Sprintf("starting %s target", ts.componentName), "job", ts.jobName)
+	level.Info(ts.logger).Log("msg", "starting server")
 
 	// To prevent metric collisions because all metrics are going to be registered in the global Prometheus registry.
-
-	tentativeServerMetricNamespace := fmt.Sprintf("%s_%s", ts.jobName, ts.metricSuffix)
-	if !model.IsValidMetricName(model.LabelValue(tentativeServerMetricNamespace)) {
-		return fmt.Errorf("invalid prometheus-compatible job name: %s", ts.jobName)
-	}
-	ts.config.Server.MetricsNamespace = tentativeServerMetricNamespace
+	ts.config.Server.MetricsNamespace = ts.metricsNamespace
 
 	// We don't want the /debug and /metrics endpoints running, since this is not the main promtail HTTP server.
 	// We want this target to expose the least surface area possible, hence disabling WeaveWorks HTTP server metrics
@@ -80,17 +73,19 @@ func (ts *TargetServer) MountAndRun(mountRoute func(router *mux.Router)) error {
 	go func() {
 		err := srv.Run()
 		if err != nil {
-			level.Error(ts.logger).Log("msg", fmt.Sprintf("%s server shutdown with error", ts.componentName), "err", err)
+			level.Error(ts.logger).Log("msg", "server shutdown with error", "err", err)
 		}
 	}()
 
 	return nil
 }
 
+// HTTPListenAddr returns the listen address of the HTTP server, if configured.
 func (ts *TargetServer) HTTPListenAddr() string {
 	return ts.server.HTTPListenAddr().String()
 }
 
+// GRPCListenAddr returns the listen address of the gRPC server, if configured.
 func (ts *TargetServer) GRPCListenAddr() string {
 	return ts.server.GRPCListenAddr().String()
 }

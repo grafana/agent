@@ -39,6 +39,7 @@ type PushTarget struct {
 
 // NewPushTarget constructs a PushTarget.
 func NewPushTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandler, jobName string, config *PushConfig, relabel []*relabel.Config, reg prometheus.Registerer) (*PushTarget, error) {
+	wrappedLogger := log.With(logger, "component", "gcp_push")
 	lcfg := &lhttp.Config{Server: server.Config{
 		HTTPListenPort:    config.HTTPListenPort,
 		HTTPListenAddress: config.HTTPListenAddress,
@@ -46,13 +47,13 @@ func NewPushTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandle
 		// Avoid logging entire received request on failures
 		ExcludeRequestInLog: true,
 	}}
-	srv, err := lhttp.NewTargetServer(logger, jobName, "loki.source.gcp", "gcp_push", lcfg)
+	srv, err := lhttp.NewTargetServer(wrappedLogger, "loki.source.gcp", jobName+"_push_target", lcfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create loki http server: %w", err)
 	}
 	pt := &PushTarget{
 		server:         srv,
-		logger:         logger,
+		logger:         wrappedLogger,
 		jobName:        jobName,
 		metrics:        metrics,
 		config:         config,
