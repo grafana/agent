@@ -2,8 +2,6 @@ package http
 
 import (
 	"context"
-	"fmt"
-
 	"github.com/efficientgo/core/errors"
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
@@ -32,8 +30,9 @@ type Arguments struct {
 }
 
 type Component struct {
-	opts component.Options
-	args Arguments
+	opts        component.Options
+	args        Arguments
+	entriesChan chan loki.Entry
 }
 
 func init() {
@@ -48,26 +47,18 @@ func init() {
 
 func New(opts component.Options, args Arguments) component.Component {
 	return &Component{
-		opts: opts,
-		args: args,
+		opts:        opts,
+		args:        args,
+		entriesChan: make(chan loki.Entry),
 	}
 }
 
 func (c *Component) Run(ctx context.Context) error {
-	c.opts.Logger.Log("msg", "starting component")
-
-	entriesChan := make(chan loki.Entry)
-	entryHandler := loki.NewEntryHandler(
-		entriesChan,
-		func() {
-			c.opts.Logger.Log("msg", "entry handler stopped")
-		})
-
 	pushTarget, err := lokipush.NewPushTarget(
 		c.opts.Logger,
-		entryHandler,
+		// When PushTarget is stopped, it will also Stop() the entry handler.
+		loki.NewEntryHandler(c.entriesChan, func() {}),
 		relabel.ComponentToPromRelabelConfigs(c.args.RelabelRules),
-		// TODO: pick correct metric names - avoid collisions!
 		c.opts.ID,
 		c.pushTargetConfig(),
 	)
@@ -78,13 +69,12 @@ func (c *Component) Run(ctx context.Context) error {
 
 	for {
 		select {
+		case entry := <-c.entriesChan:
+			for _, receiver := range c.args.ForwardTo {
+				receiver <- entry
+			}
 		case <-ctx.Done():
-			c.opts.Logger.Log("msg", "finishing due to context done")
-			// When PushTarget is stopped, it will also Stop() the entry handler.
 			return pushTarget.Stop()
-		case entry := <-entriesChan:
-			// TODO: fan out
-			c.opts.Logger.Log("msg", fmt.Sprintf("got log message ====> %v", entry))
 		}
 	}
 }
