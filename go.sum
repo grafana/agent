@@ -2903,8 +2903,6 @@ github.com/remeh/sizedwaitgroup v1.0.0/go.mod h1:3j2R4OIe/SeS6YDhICBy22RWjJC5eNC
 github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
 github.com/renier/xmlrpc v0.0.0-20170708154548-ce4a1a486c03 h1:Wdi9nwnhFNAlseAOekn6B5G/+GMtks9UKbvRU/CMM/o=
 github.com/renier/xmlrpc v0.0.0-20170708154548-ce4a1a486c03/go.mod h1:gRAiPF5C5Nd0eyyRdqIu9qTiFSoZzpTq727b5B8fkkU=
-github.com/rfratto/ckit v0.0.0-20230410121755-15c17e2c0d9b h1:/xBe/W3pG3t9A0qtS1+OTsZheTgQMmPWNNifY8PRFac=
-github.com/rfratto/ckit v0.0.0-20230410121755-15c17e2c0d9b/go.mod h1:759U3a/8xE3OO/uSYy72K/XKH3wnDnGU5KSUS7g0Jx0=
 github.com/rfratto/ckit v0.0.0-20230413073832-e0725e49faea h1:nYh9V3NKy2rOsIZl7jEWxKJPNvFveGhIK8wbgJ3ZJgc=
 github.com/rfratto/ckit v0.0.0-20230413073832-e0725e49faea/go.mod h1:9DKdYk48N1SdIXVsk/MStJHv3Xm0M2Tcvgbp+UCnreY=
 github.com/rfratto/go-yaml v0.0.0-20211119180816-77389c3526dc h1:g196Usc63pWDzWallipxVhsEjDdh/+RLc/Oz7q3ihW4=
