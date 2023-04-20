@@ -292,7 +292,7 @@ func (am *AgentManagementConfig) Validate() error {
 	}
 
 	if am.RemoteConfiguration.CacheLocation == "" {
-		return errors.New("path to cache must be specified in 'remote_configuration.cache_location'")
+		return errors.New("path to cache must be specified in 'agent_management.remote_configuration.cache_location'")
 	}
 
 	return nil
