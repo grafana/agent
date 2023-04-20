@@ -47,7 +47,7 @@ func NewPushTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandle
 		// Avoid logging entire received request on failures
 		ExcludeRequestInLog: true,
 	}}
-	srv, err := lhttp.NewTargetServer(wrappedLogger, "loki.source.gcp", jobName+"_push_target", lcfg)
+	srv, err := lhttp.NewTargetServer(wrappedLogger, "loki.source.gcp", jobName+"_push_target", reg, lcfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create loki http server: %w", err)
 	}

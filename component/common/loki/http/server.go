@@ -2,6 +2,7 @@ package http
 
 import (
 	"fmt"
+	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -13,9 +14,9 @@ import (
 	"github.com/grafana/loki/clients/pkg/promtail/targets/serverutils"
 )
 
-// TargetServer is wrapper around WeaveWorks Server that handled some common configuration used in all Promtail targets
-// that expose an HTTP server. It just handles configuration and initialization, the handlers implementation are left to
-// the consumer.
+// TargetServer is wrapper around WeaveWorks Server that handled some common configuration used in all flow source
+// components that expose a network server. It just handles configuration and initialization, the handlers implementation
+// are left to the consumer.
 type TargetServer struct {
 	logger           log.Logger
 	config           *Config
@@ -25,7 +26,7 @@ type TargetServer struct {
 }
 
 // NewTargetServer creates a new TargetServer, applying some defaults to the server configuration.
-func NewTargetServer(logger log.Logger, componentName, metricsNamespace string, config *Config) (*TargetServer, error) {
+func NewTargetServer(logger log.Logger, componentName, metricsNamespace string, reg prometheus.Registerer, config *Config) (*TargetServer, error) {
 	if !model.IsValidMetricName(model.LabelValue(metricsNamespace)) {
 		return nil, fmt.Errorf("metrics namespace is not prometheus compatiible: %s", metricsNamespace)
 	}
@@ -45,6 +46,8 @@ func NewTargetServer(logger log.Logger, componentName, metricsNamespace string, 
 	config.Server = mergedServerConfigs
 	// Avoid logging entire received request on failures
 	config.Server.ExcludeRequestInLog = true
+	// Configure dedicated metrics registerer
+	config.Server.Registerer = reg
 
 	return t, nil
 }
