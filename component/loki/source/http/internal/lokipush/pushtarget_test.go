@@ -18,16 +18,14 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/dskit/flagext"
+	"github.com/grafana/loki/clients/pkg/promtail/api"
+	"github.com/grafana/loki/clients/pkg/promtail/client"
+	"github.com/grafana/loki/clients/pkg/promtail/client/fake"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/common/server"
-
-	"github.com/grafana/loki/clients/pkg/promtail/api"
-	"github.com/grafana/loki/clients/pkg/promtail/client"
-	"github.com/grafana/loki/clients/pkg/promtail/client/fake"
-	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 
 	"github.com/grafana/loki/pkg/logproto"
 )
@@ -59,7 +57,7 @@ func TestLokiPushTarget(t *testing.T) {
 	defaults.GRPCListenAddress = localhost
 	defaults.GRPCListenPort = 0 // Not testing GRPC, a random port will be assigned
 
-	config := &scrapeconfig.PushTargetConfig{
+	config := &PushTargetConfig{
 		Server: defaults,
 		Labels: model.LabelSet{
 			"pushserver": "pushserver1",
@@ -159,7 +157,7 @@ func TestPlaintextPushTarget(t *testing.T) {
 	defaults.GRPCListenAddress = localhost
 	defaults.GRPCListenPort = 0 // Not testing GRPC, a random port will be assigned
 
-	config := &scrapeconfig.PushTargetConfig{
+	config := &PushTargetConfig{
 		Server: defaults,
 		Labels: model.LabelSet{
 			"pushserver": "pushserver2",
@@ -231,7 +229,7 @@ func TestReady(t *testing.T) {
 	defaults.GRPCListenAddress = localhost
 	defaults.GRPCListenPort = 0 // Not testing GRPC, a random port will be assigned
 
-	config := &scrapeconfig.PushTargetConfig{
+	config := &PushTargetConfig{
 		Server: defaults,
 		Labels: model.LabelSet{
 			"pushserver": "pushserver2",

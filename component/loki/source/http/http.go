@@ -3,7 +3,6 @@ package http
 import (
 	"context"
 	"github.com/efficientgo/core/errors"
-	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/relabel"
@@ -11,6 +10,7 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/weaveworks/common/logging"
 	"github.com/weaveworks/common/server"
+	"sync"
 )
 
 // TODO: this component also supports GRPC, so we may want to call it `loki.source.push_api` or something else.
@@ -31,8 +31,10 @@ type Arguments struct {
 
 type Component struct {
 	opts        component.Options
-	args        Arguments
 	entriesChan chan loki.Entry
+	lock        sync.RWMutex
+	args        Arguments    // guarded by lock
+	cleanUp     func() error // guarded by lock
 }
 
 func init() {
@@ -40,32 +42,29 @@ func init() {
 		Name: componentName,
 		Args: Arguments{},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
-			return New(opts, args.(Arguments)), nil
+			return New(opts, args.(Arguments))
 		},
 	})
 }
 
-func New(opts component.Options, args Arguments) component.Component {
-	return &Component{
+func New(opts component.Options, args Arguments) (component.Component, error) {
+	c := &Component{
 		opts:        opts,
 		args:        args,
 		entriesChan: make(chan loki.Entry),
+		cleanUp:     func() error { return nil },
 	}
+	err := c.Update(args)
+	if err != nil {
+		return nil, err
+	}
+	return c, nil
 }
 
-func (c *Component) Run(ctx context.Context) error {
-	pushTarget, err := lokipush.NewPushTarget(
-		c.opts.Logger,
-		// When PushTarget is stopped, it will also Stop() the entry handler.
-		loki.NewEntryHandler(c.entriesChan, func() {}),
-		relabel.ComponentToPromRelabelConfigs(c.args.RelabelRules),
-		c.opts.ID,
-		c.pushTargetConfig(),
-	)
-
-	if err != nil {
-		return errors.Wrapf(err, "failed to create loki push API server: %v", err)
-	}
+func (c *Component) Run(ctx context.Context) (err error) {
+	defer func() {
+		err = c.cleanUp()
+	}()
 
 	for {
 		select {
@@ -74,34 +73,48 @@ func (c *Component) Run(ctx context.Context) error {
 				receiver <- entry
 			}
 		case <-ctx.Done():
-			return pushTarget.Stop()
+			return
 		}
 	}
 }
 
 func (c *Component) Update(args component.Arguments) error {
-	if newArgs, ok := args.(Arguments); !ok {
+	newArgs, ok := args.(Arguments)
+	if !ok {
 		return errors.Newf("invalid type of arguments: %T", args)
-	} else {
-		c.args = newArgs
 	}
-	// TODO: implement update properly...
-	return nil
-}
 
-func (c *Component) pushTargetConfig() *lokipush.PushTargetConfig {
-	return &lokipush.PushTargetConfig{
+	pushTargetConfig := &lokipush.PushTargetConfig{
 		Server: server.Config{
-			HTTPListenPort:          c.args.HTTPPort,
-			HTTPListenAddress:       c.args.HTTPAddress,
+			HTTPListenPort:          newArgs.HTTPPort,
+			HTTPListenAddress:       newArgs.HTTPAddress,
 			Registerer:              c.opts.Registerer,
 			MetricsNamespace:        "loki_source_http",
 			RegisterInstrumentation: false,
-			Log:                     logging.GoKit(log.With(c.opts.Logger, "component", componentName)),
+			Log:                     logging.GoKit(c.opts.Logger),
 		},
-		Labels:        c.args.labelSet(),
-		KeepTimestamp: c.args.UseIncomingTimestamp,
+		Labels:        newArgs.labelSet(),
+		KeepTimestamp: newArgs.UseIncomingTimestamp,
 	}
+	pushTarget, err := lokipush.NewPushTarget(
+		c.opts.Logger,
+		// When PushTarget is stopped, it will also Stop() the entry handler.
+		loki.NewEntryHandler(c.entriesChan, func() {}),
+		relabel.ComponentToPromRelabelConfigs(newArgs.RelabelRules),
+		c.opts.ID,
+		pushTargetConfig,
+	)
+	if err != nil {
+		return errors.Wrapf(err, "failed to create loki push API server: %v", err)
+	}
+
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.args = newArgs
+	c.cleanUp = func() error {
+		return pushTarget.Stop()
+	}
+	return nil
 }
 
 func (a *Arguments) labelSet() model.LabelSet {

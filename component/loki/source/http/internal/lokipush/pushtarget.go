@@ -6,6 +6,7 @@ package lokipush
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"net/http"
 	"sort"
@@ -203,7 +204,7 @@ func (t *PushTarget) Stop() error {
 	level.Info(t.logger).Log("msg", "stopping push server", "job", t.jobName)
 	t.server.Shutdown()
 	t.handler.Stop()
-	return nil
+	return fmt.Errorf("yolo teeest kabookm")
 }
 
 // ready function serves the ready endpoint
