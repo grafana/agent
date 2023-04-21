@@ -918,6 +918,87 @@ func TestServiceMonitor(t *testing.T) {
 					- __tmp_hash
 			`),
 		},
+		{
+			name: "no_filter_running",
+			input: map[string]interface{}{
+				"agentNamespace": "operator",
+				"monitor": prom_v1.ServiceMonitor{
+					ObjectMeta: meta_v1.ObjectMeta{
+						Namespace: "operator",
+						Name:      "servicemonitor",
+					},
+				},
+				"endpoint": prom_v1.Endpoint{
+					Port: "metrics",
+				},
+				"index":                    0,
+				"apiServer":                prom_v1.APIServerConfig{},
+				"overrideHonorLabels":      false,
+				"overrideHonorTimestamps":  false,
+				"ignoreNamespaceSelectors": false,
+				"enforcedNamespaceLabel":   "",
+				"enforcedSampleLimit":      nil,
+				"enforcedTargetLimit":      nil,
+				"shards":                   1,
+			},
+			expect: util.Untab(`
+				job_name: serviceMonitor/operator/servicemonitor/0
+				honor_labels: false
+				kubernetes_sd_configs:
+				- role: endpoints
+				  namespaces:
+						names: [operator]
+				relabel_configs:
+				- source_labels:
+					- job
+					target_label: __tmp_prometheus_job_name
+				- action: keep
+					regex: metrics
+					source_labels:
+					- __meta_kubernetes_endpoint_port_name
+				- regex: Node;(.*)
+					replacement: $1
+					separator: ;
+					source_labels:
+					- __meta_kubernetes_endpoint_address_target_kind
+					- __meta_kubernetes_endpoint_address_target_name
+					target_label: node
+				- regex: Pod;(.*)
+					replacement: $1
+					separator: ;
+					source_labels:
+					- __meta_kubernetes_endpoint_address_target_kind
+					- __meta_kubernetes_endpoint_address_target_name
+					target_label: pod
+				- source_labels:
+					- __meta_kubernetes_namespace
+					target_label: namespace
+				- source_labels:
+					- __meta_kubernetes_service_name
+					target_label: service
+				- source_labels:
+					- __meta_kubernetes_pod_name
+					target_label: pod
+				- source_labels:
+					- __meta_kubernetes_pod_container_name
+					target_label: container
+				- replacement: $1
+					source_labels:
+					- __meta_kubernetes_service_name
+					target_label: job
+				- replacement: metrics
+					target_label: endpoint
+				- action: hashmod
+					modulus: 1
+					source_labels:
+					- __address__
+					target_label: __tmp_hash
+				- action: keep
+					regex: $(SHARD)
+					source_labels:
+					- __tmp_hash
+			`),
+		},
 	}
 
 	for _, tc := range tt {
