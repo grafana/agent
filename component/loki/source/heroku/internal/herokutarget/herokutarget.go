@@ -54,7 +54,7 @@ type HerokuTarget struct {
 func NewHerokuTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandler, relabel []*relabel.Config, config *HerokuDrainTargetConfig, reg prometheus.Registerer) (*HerokuTarget, error) {
 	wrappedLogger := log.With(logger, "component", "heroku_drain")
 
-	srv, err := lhttp.NewTargetServer(wrappedLogger, "loki_source_heroku_drain_target", reg, lhttp.Config{Server: config.Server})
+	srv, err := lhttp.NewTargetServer(wrappedLogger, "loki_source_heroku_drain_target", reg, lhttp.ServerConfig{Server: config.Server})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create loki http server: %w", err)
 	}
