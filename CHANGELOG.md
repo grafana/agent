@@ -38,6 +38,10 @@ v0.33.0-rc.0 (2023-04-20)
   - `discovery.dns` DNS service discovery. (@captncraig)
   - `discovery.ec2` service discovery for aws ec2. (@captncraig)
   - `discovery.lightsail` service discovery for aws lightsail. (@captncraig)
+  - `discovery.gce` discovers resources on Google Compute Engine (GCE). (@marctc)
+  - `discovery.digitalocean` provides service discovery for DigitalOcean. (@spartan0x117)
+  - `discovery.consul` service discovery for Consul. (@jcreixell)
+  - `discovery.azure` provides service discovery for Azure. (@spartan0x117)
   - `module.file` runs a Grafana Agent Flow module loaded from a file on disk.
     (@erikbaranowski)
   - `module.git` runs a Grafana Agent Flow module loaded from a file within a
@@ -48,27 +52,23 @@ v0.33.0-rc.0 (2023-04-20)
     based OpenTelemetry exporters. (@ptodev)
   - `otelcol.extension.jaeger_remote_sampling` provides an endpoint from which to
     pull Jaeger remote sampling documents. (@joe-elliott)
-  - `prometheus.exporter.blackbox` collects metrics from Blackbox exporter. (@marctc)
   - `otelcol.exporter.logging` accepts OpenTelemetry data from other `otelcol` components and writes it to the console. (@erikbaranowski)
+  - `otelcol.auth.sigv4` performs AWS Signature Version 4 (SigV4) authentication
+    for making requests to AWS services via `otelcol` components that support
+    authentication extensions. (@ptodev)
+  - `otelcol.processor.attributes` accepts telemetry data from other `otelcol`
+    components and modifies attributes of a span, log, or metric. (@ptodev)
+  - `prometheus.exporter.blackbox` collects metrics from Blackbox exporter. (@marctc)
   - `prometheus.exporter.mysql` collects metrics from a MySQL database. (@spartan0x117)
   - `prometheus.exporter.postgres` collects metrics from a PostgreSQL database. (@spartan0x117)
   - `prometheus.exporter.statsd` collects metrics from a Statsd instance. (@gaantunes)
   - `prometheus.exporter.snmp` collects metrics from SNMP exporter. (@marctc)
   - `prometheus.operator.podmonitors` discovers PodMonitor resources in your Kubernetes cluster and scrape
     the targets they reference. (@captncraig, @marctc, @jcreixell)
-  - `otelcol.auth.sigv4` performs AWS Signature Version 4 (SigV4) authentication
-    for making requests to AWS services via `otelcol` components that support
-    authentication extensions. (@ptodev)
-  - `prometheus.exporter.memcached` collects metrics from a Memcached server. (@spartan0x117)
-  - `loki.source.azure_event_hubs` reads messages from Azure Event Hub using Kafka and forwards them to other `loki`
-    components. (@akselleirv)
-  - `discovery.gce` discovers resources on Google Compute Engine (GCE). (@marctc)
-  - `discovery.digitalocean` provides service discovery for DigitalOcean. (@spartan0x117)
-  - `otelcol.processor.attributes` accepts telemetry data from other `otelcol`
-    components and modifies attributes of a span, log, or metric. (@ptodev)
   - `prometheus.exporter.windows` collects metrics from a Windows instance. (@jkroepke)
-  - `discovery.consul` service discovery for Consul. (@jcreixell)
-  - `discovery.azure` provides service discovery for Azure. (@spartan0x117)
+  - `prometheus.exporter.memcached` collects metrics from a Memcached server. (@spartan0x117)
+  - `loki.source.azure_event_hubs` reads messages from Azure Event Hub using Kafka and forwards them to other   `loki` components. (@akselleirv)
+
 
 - Add support for Flow-specific system packages:
 
