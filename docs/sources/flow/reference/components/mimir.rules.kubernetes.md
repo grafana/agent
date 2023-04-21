@@ -120,11 +120,11 @@ The `match_expression` block describes a Kubernetes label match expression for r
 
 The following arguments are supported:
 
-Name       | Type       | Description                                        | Default | Required
------------|------------|----------------------------------------------------|---------|---------
-`key`      | `string`   | The label name to match against.                   |         | yes
-`operator` | `string`   | The operator to use when matching. |         | yes
-`values`   | `[]string` | The values used when matching.                     |         | no
+Name       | Type           | Description                                        | Default | Required
+-----------|----------------|----------------------------------------------------|---------|---------
+`key`      | `string`       | The label name to match against.                   |         | yes
+`operator` | `string`       | The operator to use when matching.                 |         | yes
+`values`   | `list(string)` | The values used when matching.                     |         | no
 
 The `operator` argument should be one of the following strings:
 
