@@ -464,10 +464,12 @@ func (s *Scope) Lookup(name string) (interface{}, bool) {
 }
 
 func (s *Scope) Arguments() *map[string]any {
-	if args, ok := s.Variables["argument"]; ok {
-		switch args := args.(type) {
-		case map[string]any:
-			return &args
+	if s != nil && s.Variables != nil {
+		if args, ok := s.Variables["argument"]; ok {
+			switch args := args.(type) {
+			case map[string]any:
+				return &args
+			}
 		}
 	}
 
