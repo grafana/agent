@@ -8,6 +8,14 @@ changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
 
+v0.33.0-rc.1 (2023-04-21)
+-------------------------
+### Bugfixes
+- Fix bug introduced to operator when FilterRunning not specified in PodMonitors. (@captncraig)
+
+- Remove `otelcol.processor.attributes`. (@ptodev)
+
+
 v0.33.0-rc.0 (2023-04-20)
 -------------------------
 
