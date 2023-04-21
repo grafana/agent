@@ -9,7 +9,7 @@ labels:
 {{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
 
 `module.file` is a *module loader* component. A module loader is a Grafana Agent Flow
-component which retreives a [module][] and runs the components defined inside of it.
+component which retrieves a [module][] and runs the components defined inside of it.
 
 `module.file` simplifies the configurations for modules loaded from a file by embedding
 a [local.file][] component. This allows a single module loader to do the equivalence of
