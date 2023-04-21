@@ -20,7 +20,6 @@ import (
 	"github.com/grafana/dskit/flagext"
 	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/grafana/loki/clients/pkg/promtail/client"
-	"github.com/grafana/loki/clients/pkg/promtail/client/fake"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"
@@ -32,12 +31,16 @@ import (
 
 const localhost = "127.0.0.1"
 
+func TestConfigurationChanged(t *testing.T) {
+
+}
+
 func TestLokiPushTarget(t *testing.T) {
 	w := log.NewSyncWriter(os.Stderr)
 	logger := log.NewLogfmtLogger(w)
 
 	//Create PushTarget
-	eh := fake.New(func() {})
+	eh := NewFakeClient(func() {})
 	defer eh.Stop()
 
 	// Get a randomly available port by open and closing a TCP socket
@@ -49,13 +52,14 @@ func TestLokiPushTarget(t *testing.T) {
 	err = l.Close()
 	require.NoError(t, err)
 
-	// Adjust some of the defaults
+	// Adjust some defaults
 	defaults := server.Config{}
 	defaults.RegisterFlags(flag.NewFlagSet("empty", flag.ContinueOnError))
 	defaults.HTTPListenAddress = localhost
 	defaults.HTTPListenPort = port
 	defaults.GRPCListenAddress = localhost
 	defaults.GRPCListenPort = 0 // Not testing GRPC, a random port will be assigned
+	defaults.Registerer = prometheus.NewRegistry()
 
 	config := &PushTargetConfig{
 		Server: defaults,
@@ -137,7 +141,7 @@ func TestPlaintextPushTarget(t *testing.T) {
 	logger := log.NewLogfmtLogger(w)
 
 	//Create PushTarget
-	eh := fake.New(func() {})
+	eh := NewFakeClient(func() {})
 	defer eh.Stop()
 
 	// Get a randomly available port by open and closing a TCP socket
@@ -156,6 +160,7 @@ func TestPlaintextPushTarget(t *testing.T) {
 	defaults.HTTPListenPort = port
 	defaults.GRPCListenAddress = localhost
 	defaults.GRPCListenPort = 0 // Not testing GRPC, a random port will be assigned
+	defaults.Registerer = prometheus.NewRegistry()
 
 	config := &PushTargetConfig{
 		Server: defaults,
@@ -209,7 +214,7 @@ func TestReady(t *testing.T) {
 	logger := log.NewLogfmtLogger(w)
 
 	//Create PushTarget
-	eh := fake.New(func() {})
+	eh := NewFakeClient(func() {})
 	defer eh.Stop()
 
 	// Get a randomly available port by open and closing a TCP socket
@@ -228,6 +233,7 @@ func TestReady(t *testing.T) {
 	defaults.HTTPListenPort = port
 	defaults.GRPCListenAddress = localhost
 	defaults.GRPCListenPort = 0 // Not testing GRPC, a random port will be assigned
+	defaults.Registerer = prometheus.NewRegistry()
 
 	config := &PushTargetConfig{
 		Server: defaults,

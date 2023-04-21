@@ -37,30 +37,29 @@ type PushTargetConfig struct {
 	Labels model.LabelSet
 	// If promtail should maintain the incoming log timestamp or replace it with the current time.
 	KeepTimestamp bool
+	// RelabelConfig used to relabel incoming entries.
+	RelabelConfig []*relabel.Config
 }
 
 type PushTarget struct {
-	logger        log.Logger
-	handler       loki.EntryHandler
-	config        *PushTargetConfig
-	relabelConfig []*relabel.Config
-	jobName       string
-	server        *server.Server
+	logger  log.Logger
+	handler loki.EntryHandler
+	config  *PushTargetConfig
+	jobName string
+	server  *server.Server
 }
 
 func NewPushTarget(logger log.Logger,
 	handler loki.EntryHandler,
-	relabel []*relabel.Config,
 	jobName string,
 	config *PushTargetConfig,
 ) (*PushTarget, error) {
 
 	pt := &PushTarget{
-		logger:        logger,
-		handler:       handler,
-		relabelConfig: relabel,
-		jobName:       jobName,
-		config:        config,
+		logger:  logger,
+		handler: handler,
+		jobName: jobName,
+		config:  config,
 	}
 
 	if err := pt.run(); err != nil {
@@ -119,7 +118,7 @@ func (t *PushTarget) handleLoki(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Apply relabeling
-		processed, keep := relabel.Process(lb.Labels(nil), t.relabelConfig...)
+		processed, keep := relabel.Process(lb.Labels(nil), t.config.RelabelConfig...)
 		if !keep || len(processed) == 0 {
 			w.WriteHeader(http.StatusNoContent)
 			return
@@ -205,6 +204,10 @@ func (t *PushTarget) Stop() error {
 	t.server.Shutdown()
 	t.handler.Stop()
 	return fmt.Errorf("yolo teeest kabookm")
+}
+
+func (t *PushTarget) CurrentConfig() PushTargetConfig {
+	return *t.config
 }
 
 // ready function serves the ready endpoint

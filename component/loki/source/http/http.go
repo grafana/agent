@@ -2,6 +2,9 @@ package http
 
 import (
 	"context"
+	"reflect"
+	"sync"
+
 	"github.com/efficientgo/core/errors"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
@@ -10,31 +13,38 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/weaveworks/common/logging"
 	"github.com/weaveworks/common/server"
-	"sync"
 )
 
 // TODO: this component also supports GRPC, so we may want to call it `loki.source.push_api` or something else.
 const componentName = "loki.source.http"
 
 type Arguments struct {
-	HTTPAddress string `river:"http_address,attr"`
-	HTTPPort    int    `river:"http_port,attr"`
-
-	ForwardTo []loki.LogsReceiver `river:"forward_to,attr"`
-
-	Labels               map[string]string `river:"labels,attr,optional"`
-	RelabelRules         relabel.Rules     `river:"relabel_rules,attr,optional"`
-	UseIncomingTimestamp bool              `river:"use_incoming_timestamp,attr,optional"`
+	HTTPAddress          string              `river:"http_address,attr"`
+	HTTPPort             int                 `river:"http_port,attr"`
+	ForwardTo            []loki.LogsReceiver `river:"forward_to,attr"`
+	Labels               map[string]string   `river:"labels,attr,optional"`
+	RelabelRules         relabel.Rules       `river:"relabel_rules,attr,optional"`
+	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`
 	// TODO: allow to configure other Server fields in a dedicated block, to match promtail's
 	//       https://grafana.com/docs/loki/next/clients/promtail/configuration/#server
+}
+
+func (a *Arguments) labelSet() model.LabelSet {
+	labelSet := make(model.LabelSet, len(a.Labels))
+	for k, v := range a.Labels {
+		labelSet[model.LabelName(k)] = model.LabelValue(v)
+	}
+	return labelSet
 }
 
 type Component struct {
 	opts        component.Options
 	entriesChan chan loki.Entry
-	lock        sync.RWMutex
-	args        Arguments    // guarded by lock
-	cleanUp     func() error // guarded by lock
+	rwLock      sync.RWMutex
+
+	// The following fields must be guarded by the rwLock
+	args       Arguments
+	pushTarget *lokipush.PushTarget
 }
 
 func init() {
@@ -52,7 +62,6 @@ func New(opts component.Options, args Arguments) (component.Component, error) {
 		opts:        opts,
 		args:        args,
 		entriesChan: make(chan loki.Entry),
-		cleanUp:     func() error { return nil },
 	}
 	err := c.Update(args)
 	if err != nil {
@@ -63,13 +72,17 @@ func New(opts component.Options, args Arguments) (component.Component, error) {
 
 func (c *Component) Run(ctx context.Context) (err error) {
 	defer func() {
-		err = c.cleanUp()
+		err = c.stop()
 	}()
 
 	for {
 		select {
 		case entry := <-c.entriesChan:
-			for _, receiver := range c.args.ForwardTo {
+			c.rwLock.RLock()
+			forwardTo := c.args.ForwardTo
+			c.rwLock.RUnlock()
+
+			for _, receiver := range forwardTo {
 				receiver <- entry
 			}
 		case <-ctx.Done():
@@ -84,7 +97,7 @@ func (c *Component) Update(args component.Arguments) error {
 		return errors.Newf("invalid type of arguments: %T", args)
 	}
 
-	pushTargetConfig := &lokipush.PushTargetConfig{
+	newPushTargetConfig := &lokipush.PushTargetConfig{
 		Server: server.Config{
 			HTTPListenPort:          newArgs.HTTPPort,
 			HTTPListenAddress:       newArgs.HTTPAddress,
@@ -95,32 +108,47 @@ func (c *Component) Update(args component.Arguments) error {
 		},
 		Labels:        newArgs.labelSet(),
 		KeepTimestamp: newArgs.UseIncomingTimestamp,
+		RelabelConfig: relabel.ComponentToPromRelabelConfigs(newArgs.RelabelRules),
 	}
-	pushTarget, err := lokipush.NewPushTarget(
+
+	if !c.pushTargetNeedsUpdate(newPushTargetConfig) {
+		return c.commitUpdate(newArgs, nil)
+	}
+
+	newPushTarget, err := lokipush.NewPushTarget(
 		c.opts.Logger,
-		// When PushTarget is stopped, it will also Stop() the entry handler.
 		loki.NewEntryHandler(c.entriesChan, func() {}),
-		relabel.ComponentToPromRelabelConfigs(newArgs.RelabelRules),
 		c.opts.ID,
-		pushTargetConfig,
+		newPushTargetConfig,
 	)
 	if err != nil {
 		return errors.Wrapf(err, "failed to create loki push API server: %v", err)
 	}
 
-	c.lock.Lock()
-	defer c.lock.Unlock()
+	return c.commitUpdate(newArgs, newPushTarget)
+}
+
+func (c *Component) commitUpdate(newArgs Arguments, newPushTarget *lokipush.PushTarget) error {
+	c.rwLock.Lock()
+	defer c.rwLock.Unlock()
 	c.args = newArgs
-	c.cleanUp = func() error {
-		return pushTarget.Stop()
+	if newPushTarget != nil {
+		c.pushTarget = newPushTarget
 	}
 	return nil
 }
 
-func (a *Arguments) labelSet() model.LabelSet {
-	labelSet := make(model.LabelSet, len(a.Labels))
-	for k, v := range a.Labels {
-		labelSet[model.LabelName(k)] = model.LabelValue(v)
+func (c *Component) pushTargetNeedsUpdate(newPushTargetConfig *lokipush.PushTargetConfig) bool {
+	c.rwLock.RLock()
+	defer c.rwLock.RUnlock()
+	return c.pushTarget == nil || !reflect.DeepEqual(c.pushTarget.CurrentConfig(), *newPushTargetConfig)
+}
+
+func (c *Component) stop() error {
+	c.rwLock.RLock()
+	defer c.rwLock.RUnlock()
+	if c.pushTarget != nil {
+		return c.pushTarget.Stop()
 	}
-	return labelSet
+	return nil
 }
