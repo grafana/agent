@@ -112,6 +112,7 @@ otelcol.exporter.otlp "production" {
     endpoint = env("OTLP_SERVER_ENDPOINT")
   }
 }
+
 ```
 
 [otelcol.exporter.otlp]: {{< relref "./otelcol.exporter.otlp.md" >}}
