@@ -161,25 +161,34 @@ func (p *Processor) Update(args component.Arguments) error {
 	// supported telemetry signals.
 	var components []otelcomponent.Component
 
-	tracesProcessor, err := p.factory.CreateTracesProcessor(p.ctx, settings, processorConfig, nextTraces)
-	if err != nil && !errors.Is(err, otelcomponent.ErrDataTypeIsNotSupported) {
-		return err
-	} else if tracesProcessor != nil {
-		components = append(components, tracesProcessor)
+	var tracesProcessor otelcomponent.TracesProcessor
+	if len(next.Traces) > 0 {
+		tracesProcessor, err = p.factory.CreateTracesProcessor(p.ctx, settings, processorConfig, nextTraces)
+		if err != nil && !errors.Is(err, otelcomponent.ErrDataTypeIsNotSupported) {
+			return err
+		} else if tracesProcessor != nil {
+			components = append(components, tracesProcessor)
+		}
 	}
 
-	metricsProcessor, err := p.factory.CreateMetricsProcessor(p.ctx, settings, processorConfig, nextMetrics)
-	if err != nil && !errors.Is(err, otelcomponent.ErrDataTypeIsNotSupported) {
-		return err
-	} else if metricsProcessor != nil {
-		components = append(components, metricsProcessor)
+	var metricsProcessor otelcomponent.MetricsProcessor
+	if len(next.Metrics) > 0 {
+		metricsProcessor, err = p.factory.CreateMetricsProcessor(p.ctx, settings, processorConfig, nextMetrics)
+		if err != nil && !errors.Is(err, otelcomponent.ErrDataTypeIsNotSupported) {
+			return err
+		} else if metricsProcessor != nil {
+			components = append(components, metricsProcessor)
+		}
 	}
 
-	logsProcessor, err := p.factory.CreateLogsProcessor(p.ctx, settings, processorConfig, nextLogs)
-	if err != nil && !errors.Is(err, otelcomponent.ErrDataTypeIsNotSupported) {
-		return err
-	} else if logsProcessor != nil {
-		components = append(components, logsProcessor)
+	var logsProcessor otelcomponent.LogsProcessor
+	if len(next.Logs) > 0 {
+		logsProcessor, err = p.factory.CreateLogsProcessor(p.ctx, settings, processorConfig, nextLogs)
+		if err != nil && !errors.Is(err, otelcomponent.ErrDataTypeIsNotSupported) {
+			return err
+		} else if logsProcessor != nil {
+			components = append(components, logsProcessor)
+		}
 	}
 
 	// Schedule the components to run once our component is running.
