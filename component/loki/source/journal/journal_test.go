@@ -4,7 +4,6 @@ package journal
 
 import (
 	"context"
-	"os"
 	"strings"
 	"testing"
 	"time"
