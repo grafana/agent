@@ -154,8 +154,7 @@ It also exposes some debug information for each PodMonitor it has discovered, in
 
 ## Example
 
-This example discovers all PodMonitors in your cluster, and forwards collected logs to a
-`prometheus.remote_write` component.
+This example discovers all PodMonitors in your cluster, and forwards collected metrics to a `prometheus.remote_write` component.
 
 ```river
 prometheus.remote_write "staging" {
