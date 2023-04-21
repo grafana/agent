@@ -18,7 +18,6 @@ type ExportConfigNode struct {
 	block *ast.BlockStmt // Current River blocks to derive config from
 	eval  *vm.Evaluator
 	value any
-	name  string
 }
 
 var _ BlockNode = (*ExportConfigNode)(nil)
@@ -68,16 +67,20 @@ func (cn *ExportConfigNode) Evaluate(scope *vm.Scope) error {
 		return fmt.Errorf("decoding River: %w", err)
 	}
 	cn.value = export.Value
-	cn.name = cn.label
 	return nil
 }
 
-// NameAndValue returns the name and value of the export.
-func (cn *ExportConfigNode) NameAndValue() (string, any) {
+func (cn *ExportConfigNode) Label() string {
 	cn.mut.RLock()
 	defer cn.mut.RUnlock()
+	return cn.label
+}
 
-	return cn.name, cn.value
+// Value returns the value of the export.
+func (cn *ExportConfigNode) Value() any {
+	cn.mut.RLock()
+	defer cn.mut.RUnlock()
+	return cn.value
 }
 
 // Block implements BlockNode and returns the current block of the managed config node.

@@ -17,8 +17,6 @@ type ArgumentConfigNode struct {
 	mut   sync.RWMutex
 	block *ast.BlockStmt // Current River blocks to derive config from
 	eval  *vm.Evaluator
-	value any
-	name  string
 }
 
 var _ BlockNode = (*ArgumentConfigNode)(nil)
@@ -50,7 +48,8 @@ func NewArgumentConfigNode(block *ast.BlockStmt, globals ComponentGlobals, isInM
 }
 
 type argumentBlock struct {
-	Value any `river:"value,attr"`
+	Optional bool `river:"optional,attr,optional"`
+	Default  any  `river:"default,attr,optional"`
 }
 
 // Evaluate implements BlockNode and updates the arguments for the managed config block
@@ -67,17 +66,24 @@ func (cn *ArgumentConfigNode) Evaluate(scope *vm.Scope) error {
 	if err := cn.eval.Evaluate(scope, &argument); err != nil {
 		return fmt.Errorf("decoding River: %w", err)
 	}
-	cn.value = argument.Value
-	cn.name = cn.label
+
+	parentArgs := scope.Parent.Arguments()
+	if _, ok := (*parentArgs)[cn.label]; !ok {
+		if argument.Optional {
+			// TODO: this bit doesn't work here.
+			scope.ApplyArgument(cn.label, map[string]any{"value": argument.Default})
+		} else {
+			return fmt.Errorf("missing required argument \"%s\" to module", cn.label)
+		}
+	}
+
 	return nil
 }
 
-// NameAndValue returns the name and value of the argument.
-func (cn *ArgumentConfigNode) NameAndValue() (string, any) {
+func (cn *ArgumentConfigNode) Label() string {
 	cn.mut.RLock()
 	defer cn.mut.RUnlock()
-
-	return cn.name, cn.value
+	return cn.label
 }
 
 // Block implements BlockNode and returns the current block of the managed config node.

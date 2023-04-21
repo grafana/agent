@@ -55,8 +55,10 @@ import (
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
+	"github.com/grafana/agent/pkg/flow/internal/stdlib"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
+	"github.com/grafana/agent/pkg/river/vm"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/atomic"
 )
@@ -236,7 +238,18 @@ func (c *Flow) LoadFile(file *File, args map[string]any) error {
 	c.loadMut.Lock()
 	defer c.loadMut.Unlock()
 
-	diags := c.loader.Apply(nil, file.Components, file.ConfigBlocks)
+	argumentScope := &vm.Scope{
+		// The top scope is the Flow-specific stdlib.
+		Parent: &vm.Scope{
+			Variables: stdlib.Identifiers,
+		},
+	}
+
+	for key, arg := range args {
+		argumentScope.ApplyArgument(key, map[string]any{"value": arg})
+	}
+
+	diags := c.loader.Apply(argumentScope, file.Components, file.ConfigBlocks)
 	if !c.loadedOnce.Load() && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.

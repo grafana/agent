@@ -168,8 +168,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentBlocks []*ast.BlockStmt, 
 				})
 			}
 			if exp, ok := n.(*ExportConfigNode); ok {
-				name, val := exp.NameAndValue()
-				l.cache.CacheModuleExportValue(name, val)
+				l.cache.CacheModuleExportValue(exp.Label(), exp.Value())
 			}
 		}
 
@@ -199,7 +198,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentBlocks []*ast.BlockStmt, 
 func (l *Loader) loadNewGraph(parentScope *vm.Scope, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) (dag.Graph, diag.Diagnostics) {
 	var g dag.Graph
 	// Fill our graph with config blocks.
-	diags := l.populateConfigBlockNodes(&g, configBlocks)
+	diags := l.populateConfigBlockNodes(&g, configBlocks, parentScope)
 
 	// Fill our graph with components.
 	componentNodeDiags := l.populateComponentNodes(&g, componentBlocks)
@@ -226,39 +225,37 @@ func (l *Loader) loadNewGraph(parentScope *vm.Scope, componentBlocks []*ast.Bloc
 }
 
 // populateConfigBlockNodes adds any config blocks to the graph.
-func (l *Loader) populateConfigBlockNodes(g *dag.Graph, configBlocks []*ast.BlockStmt) diag.Diagnostics {
+func (l *Loader) populateConfigBlockNodes(g *dag.Graph, configBlocks []*ast.BlockStmt, parentScope *vm.Scope) diag.Diagnostics {
 	var (
-		diags    diag.Diagnostics
-		blockMap = make(map[string]*ast.BlockStmt, len(configBlocks))
+		diags   diag.Diagnostics
+		nodeMap = NewConfigNodeMap()
 	)
 
 	for _, block := range configBlocks {
-		id := BlockComponentID(block).String()
+		node, newConfigNodeDiags := NewConfigNode(block, l.globals, l.isModule())
+		diags = append(diags, newConfigNodeDiags...)
 
-		if orig, redefined := blockMap[id]; redefined {
-			diags.Add(diag.Diagnostic{
-				Severity: diag.SeverityLevelError,
-				Message:  fmt.Sprintf("Config block %s already declared at %s", id, ast.StartPos(orig).Position()),
-				StartPos: block.NamePos.Position(),
-				EndPos:   block.NamePos.Add(len(id) - 1).Position(),
-			})
+		nodeMapDiags := nodeMap.Append(node)
+		diags = append(diags, nodeMapDiags...)
+		if diags.HasErrors() {
 			continue
 		}
-		blockMap[id] = block
 
-		c, newConfigNodeDiags := NewConfigNode(block, l.globals, l.isModule())
-		diags = append(diags, newConfigNodeDiags...)
-		g.Add(c)
+		g.Add(node)
 	}
 
+	// If argument values were passed in, validate them.
+	validateDiags := nodeMap.ValidateArguments(parentScope)
+	diags = append(diags, validateDiags...)
+
 	// If a logging config block is not provided, we create an empty node which uses defaults.
-	if _, ok := blockMap[loggingBlockID]; !ok && !l.isModule() {
+	if nodeMap.logging == nil && !l.isModule() {
 		c := NewDefaultLoggingConfigNode(l.globals)
 		g.Add(c)
 	}
 
 	// If a tracing config block is not provided, we create an empty node which uses defaults.
-	if _, ok := blockMap[tracingBlockID]; !ok && !l.isModule() {
+	if nodeMap.tracing == nil && !l.isModule() {
 		c := NewDefaulTracingConfigNode(l.globals)
 		g.Add(c)
 	}
@@ -439,8 +436,7 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 		case BlockNode:
 			err = l.evaluate(logger, parentScope, n)
 			if exp, ok := n.(*ExportConfigNode); ok {
-				name, val := exp.NameAndValue()
-				l.cache.CacheModuleExportValue(name, val)
+				l.cache.CacheModuleExportValue(exp.Label(), exp.Value())
 			}
 		}
 
