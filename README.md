@@ -55,9 +55,9 @@ Check out our [documentation][] to see:
 * The list of Grafana Agent Flow [Components][]
 
 [documentation]: https://grafana.com/docs/agent/latest/
-[Installation instructions]: https://grafana.com/docs/agent/latest/set-up/
+[Installation instructions]: https://grafana.com/docs/agent/latest/flow/install/
 [Grafana Agent Flow]: https://grafana.com/docs/agent/latest/flow/
-[Getting started]: https://grafana.com/docs/agent/latest/flow/getting_started/
+[Getting started]: https://grafana.com/docs/agent/latest/flow/getting-started/
 [Components]: https://grafana.com/docs/agent/latest/flow/reference/components/
 
 ## Example
