@@ -87,10 +87,6 @@ func TestUpdatingExports(t *testing.T) {
 		
 		module.string "easy_load" {
 			content = ""
-			arguments {
-				address = module.string.loadexport.exports.address
-				username = module.string.loadexport.exports.username
-			}
 		}`
 
 	tmpDir := t.TempDir()
