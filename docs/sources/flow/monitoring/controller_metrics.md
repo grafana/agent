@@ -24,7 +24,7 @@ The controller exposes the following metrics:
   component controller is currently evaluating components. Note that this value
   may be misrepresented depending on how fast evaluations complete or how often
   evaluations occur.
-* `agent_component_controller_running_components_total` (Gauge): The current
+* `agent_component_controller_running_components` (Gauge): The current
   number of running components by health. The health is represented in the
   `health_type` label.
 * `agent_component_evaluation_seconds` (Histogram): The number of completed

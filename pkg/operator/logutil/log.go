@@ -4,10 +4,12 @@ package logutil
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/go-logr/logr"
+	"k8s.io/klog/v2"
 	clog "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -49,6 +51,12 @@ func (l *goKitLogger) Error(err error, msg string, keysAndValues ...interface{})
 }
 
 func (l *goKitLogger) WithValues(keysAndValues ...interface{}) logr.LogSink {
+	// fix for logs showing "unsupported value type for object references"
+	if len(keysAndValues) == 2 {
+		if v, ok := keysAndValues[1].(klog.ObjectRef); ok {
+			keysAndValues[1] = fmt.Sprintf("%s/%s", v.Namespace, v.Name)
+		}
+	}
 	return &goKitLogger{name: l.name, l: l.l, kvps: append(l.kvps, keysAndValues...)}
 }
 

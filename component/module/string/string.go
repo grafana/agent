@@ -28,12 +28,12 @@ type Arguments struct {
 	Content rivertypes.OptionalSecret `river:"content,attr"`
 
 	// Arguments to pass into the module.
-	Arguments map[string]any `river:"arguments,attr,optional"`
+	Arguments map[string]any `river:"arguments,block,optional"`
 }
 
 // Component implements the module.string component.
 type Component struct {
-	mod module.ModuleComponent
+	mod *module.ModuleComponent
 }
 
 var (

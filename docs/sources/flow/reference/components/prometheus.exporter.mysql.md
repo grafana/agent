@@ -17,7 +17,7 @@ The `prometheus.exporter.mysql` component embeds
 
 ```river
 prometheus.exporter.mysql "LABEL" {
-    data_source_name = "DATA SOURCE NAME"
+    data_source_name = "DATA_SOURCE_NAME"
 }
 ```
 

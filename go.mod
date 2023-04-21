@@ -25,7 +25,7 @@ require (
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/cortexproject/cortex v1.11.0
 	github.com/davidmparrott/kafka_exporter/v2 v2.0.1
-	github.com/docker/docker v20.10.24+incompatible
+	github.com/docker/docker v23.0.3+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/drone/envsubst/v2 v2.0.0-20210730161058-179042472c46
 	github.com/fatih/color v1.14.1
@@ -51,7 +51,7 @@ require (
 	github.com/grafana/cloudflare-go v0.0.0-20230110200409-c627cf6792f2
 	github.com/grafana/dskit v0.0.0-20230201083518-528d8a7d52f2
 	github.com/grafana/go-gelf/v2 v2.0.1
-	github.com/grafana/loki v1.6.2-0.20230331204151-e2c4454a2d7d // k144 branch
+	github.com/grafana/loki v1.6.2-0.20230414223651-220cbdd4f172 // k146 branch
 	github.com/grafana/phlare/api v0.1.2
 	github.com/grafana/regexp v0.0.0-20221122212121-6b5c0a4cb7fd
 	github.com/grafana/snowflake-prometheus-exporter v0.0.0-20221213150626-862cad8e9538
@@ -131,7 +131,7 @@ require (
 	github.com/prometheus/snmp_exporter v0.20.1-0.20220111173215-83399c23888f
 	github.com/prometheus/statsd_exporter v0.22.8
 	github.com/rancher/k3d/v5 v5.2.2
-	github.com/rfratto/ckit v0.0.0-20220401221852-009169323240
+	github.com/rfratto/ckit v0.0.0-20230413073832-e0725e49faea
 	github.com/rs/cors v1.8.3
 	github.com/shirou/gopsutil/v3 v3.22.9
 	github.com/sijms/go-ora/v2 v2.5.24
@@ -147,6 +147,7 @@ require (
 	github.com/xdg-go/scram v1.1.2
 	go.opencensus.io v0.24.0
 	go.opentelemetry.io/collector v0.63.1
+	go.opentelemetry.io/collector/exporter/loggingexporter v0.75.0
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.63.0
 	go.opentelemetry.io/collector/exporter/otlphttpexporter v0.0.0-00010101000000-000000000000
 	go.opentelemetry.io/collector/pdata v0.63.1
@@ -457,7 +458,6 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/mna/redisc v1.3.2 // indirect
-	github.com/moby/sys/mount v0.3.0 // indirect
 	github.com/moby/sys/mountinfo v0.5.0 // indirect
 	github.com/moby/term v0.0.0-20220808134915-39b0c02b01ae // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
@@ -600,6 +600,7 @@ require (
 require (
 	github.com/efficientgo/tools/core v0.0.0-20220817170617-6c25e3b627dd // indirect
 	github.com/gomodule/redigo v1.8.9 // indirect
+	github.com/moby/sys/mount v0.3.0 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/willf/bitset v1.1.11 // indirect
 	github.com/willf/bloom v2.0.3+incompatible // indirect
@@ -640,6 +641,7 @@ replace (
 	github.com/Azure/azure-storage-blob-go => github.com/MasslessParticle/azure-storage-blob-go v0.14.1-0.20220216145902-b5e698eff68e
 	github.com/bradfitz/gomemcache => github.com/themihai/gomemcache v0.0.0-20180902122335-24332e2d58ab
 	github.com/cloudflare/cloudflare-go => github.com/cyriltovena/cloudflare-go v0.27.1-0.20211118103540-ff77400bcb93
+	github.com/docker/docker v23.0.3+incompatible => github.com/docker/docker v20.10.24+incompatible
 	github.com/go-kit/log => github.com/dannykopping/go-kit-log v0.2.2-0.20221002180827-5591c1641b6b
 	github.com/gocql/gocql => github.com/grafana/gocql v0.0.0-20200605141915-ba5dc39ece85
 	github.com/hashicorp/consul => github.com/hashicorp/consul v1.5.1
@@ -652,8 +654,8 @@ replace (
 replace (
 	github.com/google/dnsmasq_exporter => github.com/grafana/dnsmasq_exporter v0.2.1-0.20211118155541-751b01d21de9
 	github.com/iamseth/oracledb_exporter => github.com/observiq/oracledb_exporter v0.0.0-20230123144034-6896822027ad
-	github.com/infinityworks/github-exporter => github.com/rgeyer/github-exporter v0.0.0-20210722215637-d0cec2ee0dc8
-	github.com/ncabatoff/process-exporter => github.com/grafana/process-exporter v0.7.3-0.20210106202358-831154072e2a
+	// Upstream seems to be inactive, see https://github.com/grafana/agent/issues/1845
+	github.com/infinityworks/github-exporter => github.com/grafana/github-exporter v0.0.0-20230418063919-fa34e926116a
 	github.com/prometheus-community/postgres_exporter => github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520
 	github.com/prometheus-community/windows_exporter => github.com/grafana/windows_exporter v0.15.1-0.20220202211901-871715ba0b43
 	github.com/prometheus/mysqld_exporter => github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a
@@ -670,10 +672,12 @@ exclude google.golang.org/grpc/examples v0.0.0-20200728065043-dfc0c05b2da9
 // Some funtionalities of the collector have been made internal and it's more difficult to build and configure pipelines in the newer versions.
 // This is a temporary solution while a new configuration design is discussed for the collector (ref: https://github.com/open-telemetry/opentelemetry-collector/issues/3482).
 replace (
-	go.opentelemetry.io/collector => github.com/grafana/opentelemetry-collector v0.4.1-0.20221101113646-2be4b341c150
-	go.opentelemetry.io/collector/exporter/otlpexporter => github.com/grafana/opentelemetry-collector/exporter/otlpexporter v0.0.0-20221101113646-2be4b341c150
-	go.opentelemetry.io/collector/exporter/otlphttpexporter => github.com/grafana/opentelemetry-collector/exporter/otlphttpexporter v0.0.0-20221101113646-2be4b341c150
-	go.opentelemetry.io/collector/pdata => github.com/grafana/opentelemetry-collector/pdata v0.0.0-20221101113646-2be4b341c150
+	go.opentelemetry.io/collector => github.com/grafana/opentelemetry-collector v0.4.1-0.20230412190723-62ec42799a7d
+	go.opentelemetry.io/collector/config/configtls => github.com/grafana/opentelemetry-collector/config/configtls v0.4.1-0.20230412190723-62ec42799a7d
+	go.opentelemetry.io/collector/exporter/loggingexporter => github.com/grafana/opentelemetry-collector/exporter/loggingexporter v0.0.0-20230412190723-62ec42799a7d
+	go.opentelemetry.io/collector/exporter/otlpexporter => github.com/grafana/opentelemetry-collector/exporter/otlpexporter v0.0.0-20230412190723-62ec42799a7d
+	go.opentelemetry.io/collector/exporter/otlphttpexporter => github.com/grafana/opentelemetry-collector/exporter/otlphttpexporter v0.0.0-20230412190723-62ec42799a7d
+	go.opentelemetry.io/collector/pdata => github.com/grafana/opentelemetry-collector/pdata v0.0.0-20230412190723-62ec42799a7d
 )
 
 // Replacement necessary for windows_exporter so that we can use gokit logging and not the old prometheus logging
@@ -703,3 +707,6 @@ replace github.com/github/smimesign => github.com/grafana/smimesign v0.2.1-0.202
 // TODO(rfratto): remove once a new version of node_exporter is available that
 // uses a newer version of procfs.
 replace github.com/prometheus/procfs => github.com/prometheus/procfs v0.8.0
+
+// TODO(rfratto): remove once prometheus/common#472 is merged.
+replace github.com/prometheus/common => github.com/grafana/prometheus-common v0.39.1-0.20230411174203-bcb00f1c26d7

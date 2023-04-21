@@ -82,17 +82,7 @@ refers to a `tls` block defined inside a `grpc` block.
 The `tls` block configures TLS settings used for a server. If the `tls` block
 isn't provided, TLS won't be used for connections to the server.
 
-The following arguments are supported:
-
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`ca_file` | `string` | Path to the CA file. | | no
-`cert_file` | `string` | Path to the TLS certificate. | | no
-`key_file` | `string` | Path to the TLS certificate key. | | no
-`min_version` | `string` | Minimum acceptable TLS version for connections. | `"TLS 1.2"` | no
-`max_version` | `string` | Maximum acceptable TLS version for connections. | `"TLS 1.3"` | no
-`reload_interval` | `duration` | Frequency to reload the certificates. | | no
-`client_ca_file` | `string` | Path to the CA file used to authenticate client certificates. | | no
+{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" >}}
 
 ### keepalive block
 

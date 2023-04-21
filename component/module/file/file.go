@@ -2,10 +2,10 @@ package file
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"sync"
-	"time"
+
+	"go.uber.org/atomic"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/local/file"
@@ -31,7 +31,7 @@ type Arguments struct {
 	LocalFileArguments file.Arguments `river:",squash"`
 
 	// Arguments to pass into the module.
-	Arguments map[string]any `river:"arguments,attr,optional"`
+	Arguments map[string]any `river:"arguments,block,optional"`
 }
 
 var _ river.Unmarshaler = (*Arguments)(nil)
@@ -51,13 +51,16 @@ func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 
 // Component implements the module.file component.
 type Component struct {
-	mod module.ModuleComponent
+	opts component.Options
+	mod  *module.ModuleComponent
 
 	mut     sync.RWMutex
 	args    Arguments
 	content rivertypes.OptionalSecret
 
 	managedLocalFile *file.Component
+	inUpdate         atomic.Bool
+	isCreated        atomic.Bool
 }
 
 var (
@@ -69,24 +72,43 @@ var (
 // New creates a new module.file component.
 func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{
+		opts: o,
 		mod:  module.NewModuleComponent(o),
 		args: args,
 	}
+	defer c.isCreated.Store(true)
 
 	var err error
-	c.managedLocalFile, err = c.NewManagedLocalComponent(o)
+	c.managedLocalFile, err = c.newManagedLocalComponent(o)
 	if err != nil {
 		return nil, err
 	}
-
 	if err := c.Update(args); err != nil {
 		return nil, err
 	}
 	return c, nil
 }
 
+// NewManagedLocalComponent creates the new local.file managed component.
+func (c *Component) newManagedLocalComponent(o component.Options) (*file.Component, error) {
+	localFileOpts := o
+	localFileOpts.OnStateChange = func(e component.Exports) {
+		c.setContent(e.(file.Exports).Content)
+
+		if !c.inUpdate.Load() && c.isCreated.Load() {
+			// Any errors found here are reported via component health
+			_ = c.mod.LoadFlowContent(c.getArgs().Arguments, c.getContent().Value)
+		}
+	}
+
+	return file.New(localFileOpts, c.getArgs().LocalFileArguments)
+}
+
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	ch := make(chan error, 1)
 	go func() {
 		err := c.managedLocalFile.Run(ctx)
@@ -95,7 +117,7 @@ func (c *Component) Run(ctx context.Context) error {
 		}
 	}()
 
-	c.mod.RunFlowController(ctx)
+	go c.mod.RunFlowController(ctx)
 
 	for {
 		select {
@@ -109,36 +131,20 @@ func (c *Component) Run(ctx context.Context) error {
 
 // Update implements component.Component.
 func (c *Component) Update(args component.Arguments) error {
-	newArgs := args.(Arguments)
+	c.inUpdate.Store(true)
+	defer c.inUpdate.Store(false)
 
+	newArgs := args.(Arguments)
 	c.setArgs(newArgs)
 
 	err := c.managedLocalFile.Update(newArgs.LocalFileArguments)
 	if err != nil {
-		c.setHealth(component.Health{
-			Health:     component.HealthTypeUnhealthy,
-			Message:    fmt.Sprintf("failed to update the managed local.file component: %s", err),
-			UpdateTime: time.Now(),
-		})
 		return err
 	}
 
 	// Force a content load here and bubble up any error. This will catch problems
 	// on initial load.
 	return c.mod.LoadFlowContent(newArgs.Arguments, c.getContent().Value)
-}
-
-// NewManagedLocalComponent creates the new local.file managed component.
-func (c *Component) NewManagedLocalComponent(o component.Options) (*file.Component, error) {
-	localFileOpts := o
-	localFileOpts.OnStateChange = func(e component.Exports) {
-		c.setContent(e.(file.Exports).Content)
-
-		// Any errors found here are reported via component health
-		_ = c.mod.LoadFlowContent(c.getArgs().Arguments, c.getContent().Value)
-	}
-
-	return file.New(localFileOpts, c.getArgs().LocalFileArguments)
 }
 
 // Handler implements component.HTTPComponent.
@@ -148,12 +154,16 @@ func (c *Component) Handler() http.Handler {
 
 // CurrentHealth implements component.HealthComponent.
 func (c *Component) CurrentHealth() component.Health {
-	return c.mod.CurrentHealth()
-}
+	leastHealthy := component.LeastHealthy(
+		c.managedLocalFile.CurrentHealth(),
+		c.mod.CurrentHealth(),
+	)
 
-// setHealth updates the component health.
-func (c *Component) setHealth(h component.Health) {
-	c.mod.SetHealth(h)
+	// if both components are healthy - return c.mod's health, so we can have a stable Health.Message.
+	if leastHealthy.Health == component.HealthTypeHealthy {
+		return c.mod.CurrentHealth()
+	}
+	return leastHealthy
 }
 
 // getArgs is a goroutine safe way to get args

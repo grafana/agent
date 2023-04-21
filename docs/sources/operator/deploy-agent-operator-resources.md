@@ -1,10 +1,10 @@
 ---
 aliases:
 - custom-resource-quickstart/
-title: Deploy the Agent Operator resources
+title: Deploy Operator resources
 weight: 120
 ---
-# Deploy the Grafana Agent Operator resources
+# Deploy Operator resources
 
 To start collecting telemetry data, you need to roll out Grafana Agent Operator custom resources into your Kubernetes cluster. Before you can create the custom resources, you must first apply the Agent Custom Resource Definitions (CRDs) and install Agent Operator, with or without Helm. If you haven't yet taken these steps, follow the instructions in one of the following topics:
 
@@ -53,12 +53,12 @@ To deploy the `GrafanaAgent` resource:
       labels:
         app: grafana-agent
     spec:
-      image: grafana/agent:v0.32.1
+      image: grafana/agent:v0.33.0-rc.0
       integrations:
         selector:
           matchLabels:
               agent: grafana-agent-integrations
-      image: grafana/agent:v0.32.1
+      image: grafana/agent:v0.33.0-rc.0
       logLevel: info
       serviceAccountName: grafana-agent
       metrics:
@@ -146,11 +146,11 @@ To deploy the `GrafanaAgent` resource:
 
 ### Disable feature flags reporting
 
-To disable the [reporting]({{< relref "../configuration/flags.md/#report-information-usage" >}}) usage of feature flags to Grafana, set `disableReporting` field to `true`.
+To disable the [reporting]({{< relref "../static/configuration/flags.md#report-information-usage" >}}) usage of feature flags to Grafana, set `disableReporting` field to `true`.
 
 ### Disable support bundle generation
 
-To disable the [support bundles functionality]({{< relref "../configuration/flags.md/#support-bundles" >}}), set the `disableSupportBundle` field to `true`.
+To disable the [support bundles functionality]({{< relref "../static/configuration/flags.md#support-bundles" >}}), set the `disableSupportBundle` field to `true`.
 
 ## Deploy a MetricsInstance resource
 

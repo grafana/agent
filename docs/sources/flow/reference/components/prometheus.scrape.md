@@ -22,7 +22,7 @@ prometheus.scrape "LABEL" {
 
 ## Arguments
 
-The component configures and starts a new scrape job to scrape all of the
+The component configures and starts a new scrape job to scrape all the
 input targets. The list of arguments that can be used to configure the block is
 presented below.
 
@@ -78,6 +78,7 @@ authorization | [authorization][] | Configure generic authorization to targets. 
 oauth2 | [oauth2][] | Configure OAuth2 for authenticating to targets. | no
 oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to targets via OAuth2. | no
 tls_config | [tls_config][] | Configure TLS settings for connecting to targets. | no
+clustering | [clustering][] | Configure the component for when the Agent is running in clustered mode. | no
 
 The `>` symbol indicates deeper levels of nesting. For example,
 `oauth2 > tls_config` refers to a `tls_config` block defined inside
@@ -88,6 +89,7 @@ an `oauth2` block.
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
 [tls_config]: #tls_config-block
+[clustering]: #clustering-experimental
 
 ### basic_auth block
 
@@ -104,6 +106,37 @@ an `oauth2` block.
 ### tls_config block
 
 {{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
+
+### clustering (experimental)
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`enabled` | `bool` | Enables sharing targets with other cluster nodes. | `false` | yes
+
+When the agent is running in [clustered mode][], and `enabled` is set to true,
+then this `prometheus.scrape` component instance opts-in to participating in
+the cluster to distribute scrape load between all cluster nodes.
+
+Clustering assumes that all cluster nodes are running with the same
+configuration file, have access to the same service discovery APIs and that all
+`prometheus.scrape` components that have opted-in to using clustering, over
+the course of a scrape interval, are converging on the same target set from
+upstream components in their `targets` argument.
+
+All `prometheus.scrape` components instances opting in to clustering use target
+labels and a consistent hashing algorithm to determine ownership for each of
+the targets between the cluster peers. Then, each peer only scrapes the subset
+of targets that it is responsible for, so that the scrape load is distributed. 
+When a node joins or leaves the cluster, every peer recalculates ownership and
+continues scraping with the new target set. This performs better than hashmod
+sharding where _all_ nodes have to be re-distributed, as only 1/N of the
+targets ownership is transferred, but is eventually consistent (rather than
+fully consistent like hashmod sharding is).
+
+If the agent is _not_ running in clustered mode, then the block is a no-op and
+`prometheus.scrape` scrapes every target it receives in its arguments.
+
+[clustered mode]: {{< relref "../cli/run.md#clustered-mode-experimental" >}}
 
 ## Exported fields
 
@@ -210,7 +243,7 @@ prometheus.scrape "blackbox_scraper" {
 }
 ```
 
-Here's the endpoints that are being scraped every 10 seconds:
+Here are the endpoints that are being scraped every 10 seconds:
 ```
 http://blackbox-exporter:9115/probe?target=grafana.com&module=http_2xx
 http://blackbox-exporter:9116/probe?target=grafana.com&module=http_2xx

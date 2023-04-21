@@ -9,7 +9,7 @@ labels:
 {{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
 
 `module.file` is a *module loader* component. A module loader is a Grafana Agent Flow
-component which retreives a [module][] and runs the components defined inside of it.
+component which retrieves a [module][] and runs the components defined inside of it.
 
 `module.file` simplifies the configurations for modules loaded from a file by embedding
 a [local.file][] component. This allows a single module loader to do the equivalence of
@@ -23,10 +23,11 @@ using the more generic [module.string][] paired with a [local.file][] component.
 
 ```river
 module.file "LABEL" {
-  filename  = FILENAME
-  arguments = {
-    argument1 = ARGUMENT1,
-    argument2 = ARGUMENT2,
+  filename = FILENAME
+
+  arguments {
+    MODULE_ARGUMENT_1 = VALUE_1
+    MODULE_ARGUMENT_2 = VALUE_2
     ...
   }
 }
@@ -42,19 +43,34 @@ Name | Type | Description | Default | Required
 `detector`       | `string`   | Which file change detector to use (fsnotify, poll) | `"fsnotify"` | no
 `poll_frequency` | `duration` | How often to poll for file changes | `"1m"` | no
 `is_secret`      | `bool`     | Marks the file as containing a [secret][] | `false` | no
-`arguments`      | `map(any)` | The values for the supported arguments in the module contents. | | no
-
-`arguments` allows us to pass parameterized input into a module. The values
-passed in `arguments` correspond to [argument blocks][] defined in the module
-source.
-
-An `argument` marked non-optional in the module being loaded is required in the
-`arguments`. It is also not valid to provide an `argument` not defined in the
-module being loaded.
 
 [secret]: {{< relref "../../config-language/expressions/types_and_values.md#secrets" >}}
 
 {{< docs/shared lookup="flow/reference/components/local-file-arguments-text.md" source="agent" >}}
+
+## Blocks
+
+The following blocks are supported inside the definition of `module.file`:
+
+Hierarchy        | Block      | Description | Required
+---------------- | ---------- | ----------- | --------
+arguments | [arguments][] | Arguments to pass to the module. | no
+
+[arguments]: #arguments-block
+
+### arguments block
+
+The `arguments` block specifies the list of values to pass to the loaded
+module.
+
+The attributes provided in the `arguments` block are validated based on the
+[argument blocks][] defined in the module source:
+
+* If a module source marks one of its arguments as required, it must be
+  provided as an attribute in the `arguments` block of the module loader.
+
+* Attributes in the `argument` block of the module loader will be rejected if
+  they are not defined in the module source.
 
 [argument blocks]: {{< relref "../config-blocks/argument.md" >}}
 
@@ -102,9 +118,10 @@ Parent:
 ```river
 module.file "metrics" {
   filename = "/path/to/prometheus_remote_write_module.river"
-  arguments = {
-    username = env("PROMETHEUS_USERNAME"),
-    password = env("PROMETHEUS_PASSWORD"),
+
+  arguments {
+    username = env("PROMETHEUS_USERNAME")
+    password = env("PROMETHEUS_PASSWORD")
   }
 }
 
