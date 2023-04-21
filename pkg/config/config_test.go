@@ -473,9 +473,9 @@ agent_management:
     username: "initial_user"
   protocol: "http"
   polling_interval: "1m"
-  remote_config_cache_location: "/etc"
   remote_configuration:
-    namespace: "new_namespace"`
+    namespace: "new_namespace"
+    cache_location: "/etc"`
 
 	remoteCfg := `
 server:
@@ -493,9 +493,9 @@ agent_management:
     username: "new_user"
   protocol: "http"
   polling_interval: "10s"
-  remote_config_cache_location: "/etc"
   remote_configuration:
-    namespace: "new_namespace"`
+    namespace: "new_namespace"
+    cache_location: "/etc"`
 
 	var ic, rc Config
 	err := LoadBytes([]byte(initialCfg), false, &ic)

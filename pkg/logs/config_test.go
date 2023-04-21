@@ -90,6 +90,20 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 				- name: config-b
 		  `),
 		},
+		{
+			name: "global filewatcher",
+			err:  nil,
+			cfg: untab(`
+				global:
+    				file_watch_config:
+      					min_poll_frequency: 1s
+      					max_poll_frequency: 20s
+				positions_directory: /tmp
+				configs:
+				- name: config-a
+				- name: config-b
+		  `),
+		},
 	}
 
 	for _, tc := range tt {
