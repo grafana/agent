@@ -16,6 +16,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/component/loki/internal/fake"
+
 	"github.com/go-kit/log"
 	"github.com/grafana/dskit/flagext"
 	"github.com/grafana/loki/clients/pkg/promtail/api"
@@ -40,7 +42,7 @@ func TestLokiPushTarget(t *testing.T) {
 	logger := log.NewLogfmtLogger(w)
 
 	//Create PushTarget
-	eh := NewFakeClient(func() {})
+	eh := fake.NewClient(func() {})
 	defer eh.Stop()
 
 	// Get a randomly available port by open and closing a TCP socket
@@ -68,16 +70,15 @@ func TestLokiPushTarget(t *testing.T) {
 			"dropme":     "label",
 		},
 		KeepTimestamp: true,
-	}
-
-	rlbl := []*relabel.Config{
-		{
-			Action: relabel.LabelDrop,
-			Regex:  relabel.MustNewRegexp("dropme"),
+		RelabelConfig: []*relabel.Config{
+			{
+				Action: relabel.LabelDrop,
+				Regex:  relabel.MustNewRegexp("dropme"),
+			},
 		},
 	}
 
-	pt, err := NewPushTarget(logger, eh, rlbl, "job1", config)
+	pt, err := NewPushTarget(logger, eh, "job1", config)
 	require.NoError(t, err)
 
 	// Build a client to send logs
@@ -141,7 +142,7 @@ func TestPlaintextPushTarget(t *testing.T) {
 	logger := log.NewLogfmtLogger(w)
 
 	//Create PushTarget
-	eh := NewFakeClient(func() {})
+	eh := fake.NewClient(func() {})
 	defer eh.Stop()
 
 	// Get a randomly available port by open and closing a TCP socket
@@ -171,7 +172,7 @@ func TestPlaintextPushTarget(t *testing.T) {
 		KeepTimestamp: true,
 	}
 
-	pt, err := NewPushTarget(logger, eh, []*relabel.Config{}, "job2", config)
+	pt, err := NewPushTarget(logger, eh, "job2", config)
 	require.NoError(t, err)
 
 	// Send some logs
@@ -214,7 +215,7 @@ func TestReady(t *testing.T) {
 	logger := log.NewLogfmtLogger(w)
 
 	//Create PushTarget
-	eh := NewFakeClient(func() {})
+	eh := fake.NewClient(func() {})
 	defer eh.Stop()
 
 	// Get a randomly available port by open and closing a TCP socket
@@ -244,7 +245,7 @@ func TestReady(t *testing.T) {
 		KeepTimestamp: true,
 	}
 
-	pt, err := NewPushTarget(logger, eh, []*relabel.Config{}, "job3", config)
+	pt, err := NewPushTarget(logger, eh, "job3", config)
 	require.NoError(t, err)
 
 	url := fmt.Sprintf("http://%s:%d/ready", localhost, port)

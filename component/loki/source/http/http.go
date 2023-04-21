@@ -83,7 +83,11 @@ func (c *Component) Run(ctx context.Context) (err error) {
 			c.rwLock.RUnlock()
 
 			for _, receiver := range forwardTo {
-				receiver <- entry
+				select {
+				case receiver <- entry:
+				case <-ctx.Done():
+					return
+				}
 			}
 		case <-ctx.Done():
 			return
