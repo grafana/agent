@@ -2,6 +2,7 @@ package attributes_test
 
 import (
 	"context"
+	"net"
 	"testing"
 	"time"
 
@@ -15,17 +16,20 @@ import (
 	"github.com/grafana/dskit/backoff"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/client"
+	"go.opentelemetry.io/collector/pdata/plog"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 )
 
 // A lot of the TestDecode tests were inspired by tests in the Otel repo:
 // https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.63.0/processor/attributesprocessor/testdata/config.yaml
 
-func TestDecode_Insert(t *testing.T) {
+func Test_Insert(t *testing.T) {
 	cfg := `
 		action {
 			key = "attribute1"
-			value = 123
+			value = 111111
 			action = "insert"
 		}
 		action {
@@ -47,20 +51,60 @@ func TestDecode_Insert(t *testing.T) {
 
 	action := &otelObj.Actions[0]
 	require.Equal(t, "attribute1", action.Key)
-	require.Equal(t, 123, action.Value)
+	require.Equal(t, 111111, action.Value)
 	require.Equal(t, "insert", string(action.Action))
 
 	action = &otelObj.Actions[1]
 	require.Equal(t, "string key", action.Key)
 	require.Equal(t, "anotherkey", action.Value)
 	require.Equal(t, "insert", string(action.Action))
+
+	var inputTrace = `{
+		"resourceSpans": [{
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan",
+					"attributes": [{
+						"key": "attribute1",
+						"value": { "intValue": "0" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	expectedOutputTrace := `{
+		"resourceSpans": [{
+			"resource": {},
+			"scopeSpans": [{
+				"scope": {},
+				"spans": [{
+						"traceId": "",
+						"spanId": "",
+						"parentSpanId": "",
+						"name": "TestSpan",
+						"attributes": [{
+							"key": "attribute1",
+							"value": { "intValue": "0" }
+						},
+						{
+							"key": "string key",
+							"value": { "stringValue": "anotherkey" }
+						}],
+						"status": {}
+					}]
+				}]
+			}]
+	}`
+
+	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
-func TestDecode_RegexExtract(t *testing.T) {
+func Test_RegexExtract(t *testing.T) {
 	cfg := `
 		action {
-			key = "http.url"
-			pattern = "^(?P<http_protocol>.*):\\/\\/(?P<http_domain>.*)\\/(?P<http_path>.*)(\\?|\\&)(?P<http_query_params>.*)"
+			key = "user_key"
+			pattern = "\\/api\\/v1\\/document\\/(?P<new_user_key>.*)\\/update\\/(?P<version>.*)$"
 			action = "extract"
 		}
 
@@ -76,12 +120,50 @@ func TestDecode_RegexExtract(t *testing.T) {
 	otelObj := (convertedArgs).(*attributesprocessor.Config)
 
 	action := &otelObj.Actions[0]
-	require.Equal(t, "http.url", action.Key)
-	require.Equal(t, "^(?P<http_protocol>.*):\\/\\/(?P<http_domain>.*)\\/(?P<http_path>.*)(\\?|\\&)(?P<http_query_params>.*)", action.RegexPattern)
+	require.Equal(t, "user_key", action.Key)
+	require.Equal(t, `\/api\/v1\/document\/(?P<new_user_key>.*)\/update\/(?P<version>.*)$`, action.RegexPattern)
 	require.Equal(t, "extract", string(action.Action))
+
+	var inputTrace = `{
+		"resourceSpans": [{
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan",
+					"attributes": [{
+						"key": "user_key",
+						"value": { "stringValue": "/api/v1/document/12345678/update/v1" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	expectedOutputTrace := `{
+		"resourceSpans": [{
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan",
+					"attributes": [{
+						"key": "user_key",
+						"value": { "stringValue": "/api/v1/document/12345678/update/v1" }
+					},
+					{
+						"key": "new_user_key",
+						"value": { "stringValue": "12345678" }
+					},
+					{
+						"key": "version",
+						"value": { "stringValue": "v1" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
-func TestDecode_Update(t *testing.T) {
+func Test_Update(t *testing.T) {
 	cfg := `
 		action {
 			key = "boo"
@@ -114,9 +196,55 @@ func TestDecode_Update(t *testing.T) {
 	require.Equal(t, "db.secret", action.Key)
 	require.Equal(t, "redacted", action.Value)
 	require.Equal(t, "update", string(action.Action))
+
+	var inputTrace = `{
+		"resourceSpans": [{
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan",
+					"attributes": [{
+						"key": "foo",
+						"value": { "intValue": "11111" }
+					},
+					{
+						"key": "boo",
+						"value": { "intValue": "22222" }
+					},
+					{
+						"key": "db.secret",
+						"value": { "stringValue": "top_secret" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	expectedOutputTrace := `{
+		"resourceSpans": [{
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan",
+					"attributes": [{
+						"key": "foo",
+						"value": { "intValue": "11111" }
+					},
+					{
+						"key": "boo",
+						"value": { "intValue": "11111" }
+					},
+					{
+						"key": "db.secret",
+						"value": { "stringValue": "redacted" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
-func TestDecode_Upsert(t *testing.T) {
+func Test_Upsert(t *testing.T) {
 	cfg := `
 		action {
 			key = "region"
@@ -149,9 +277,47 @@ func TestDecode_Upsert(t *testing.T) {
 	require.Equal(t, "new_user_key", action.Key)
 	require.Equal(t, "user_key", action.FromAttribute)
 	require.Equal(t, "upsert", string(action.Action))
+
+	var inputTrace = `{
+		"resourceSpans": [{
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan",
+					"attributes": [{
+						"key": "user_key",
+						"value": { "intValue": "11111" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	expectedOutputTrace := `{
+		"resourceSpans": [{
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan",
+					"attributes": [{
+						"key": "user_key",
+						"value": { "intValue": "11111" }
+					},
+					{
+						"key": "region",
+						"value": { "stringValue": "planet-earth" }
+					},
+					{
+						"key": "new_user_key",
+						"value": { "intValue": "11111" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
-func TestDecode_Delete(t *testing.T) {
+func Test_Delete(t *testing.T) {
 	cfg := `
 		action {
 			key = "credit_card"
@@ -180,9 +346,47 @@ func TestDecode_Delete(t *testing.T) {
 	action = &otelObj.Actions[1]
 	require.Equal(t, "duplicate_key", action.Key)
 	require.Equal(t, "delete", string(action.Action))
+
+	var inputTrace = `{
+		"resourceSpans": [{
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan",
+					"attributes": [{
+						"key": "credit_card",
+						"value": { "intValue": "11111" }
+					},
+					{
+						"key": "duplicate_key",
+						"value": { "intValue": "22222" }
+					},
+					{
+						"key": "db.secret",
+						"value": { "stringValue": "top_secret" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	expectedOutputTrace := `{
+		"resourceSpans": [{
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan",
+					"attributes": [{
+						"key": "db.secret",
+						"value": { "stringValue": "top_secret" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
-func TestDecode_Hash(t *testing.T) {
+func Test_Hash(t *testing.T) {
 	cfg := `
 		action {
 			key = "user.email"
@@ -203,9 +407,55 @@ func TestDecode_Hash(t *testing.T) {
 	action := &otelObj.Actions[0]
 	require.Equal(t, "user.email", action.Key)
 	require.Equal(t, "hash", string(action.Action))
+
+	var inputTrace = `{
+		"resourceSpans": [{
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan",
+					"attributes": [{
+						"key": "foo",
+						"value": { "intValue": "11111" }
+					},
+					{
+						"key": "boo",
+						"value": { "intValue": "22222" }
+					},
+					{
+						"key": "user.email",
+						"value": { "stringValue": "user@email.com" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	expectedOutputTrace := `{
+		"resourceSpans": [{
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan",
+					"attributes": [{
+						"key": "foo",
+						"value": { "intValue": "11111" }
+					},
+					{
+						"key": "boo",
+						"value": { "intValue": "22222" }
+					},
+					{
+						"key": "user.email",
+						"value": { "stringValue": "36687c352204c27d9e228a9b34d00c8a1d36a000" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
-func TestDecode_Convert(t *testing.T) {
+func Test_Convert(t *testing.T) {
 	cfg := `
 		action {
 			key = "http.status_code"
@@ -228,9 +478,39 @@ func TestDecode_Convert(t *testing.T) {
 	require.Equal(t, "http.status_code", action.Key)
 	require.Equal(t, "int", action.ConvertedType)
 	require.Equal(t, "convert", string(action.Action))
+
+	var inputTrace = `{
+		"resourceSpans": [{
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan",
+					"attributes": [{
+						"key": "http.status_code",
+						"value": { "stringValue": "500" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	expectedOutputTrace := `{
+		"resourceSpans": [{
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan",
+					"attributes": [{
+						"key": "http.status_code",
+						"value": { "intValue": "500" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
-func TestDecode_ExcludeMulti(t *testing.T) {
+func Test_ExcludeMulti(t *testing.T) {
 	cfg := `
 	exclude {
 		match_type = "strict"
@@ -286,9 +566,183 @@ func TestDecode_ExcludeMulti(t *testing.T) {
 	action = &otelObj.Actions[1]
 	require.Equal(t, "duplicate_key", action.Key)
 	require.Equal(t, "delete", string(action.Action))
+
+	var inputTrace = `{
+		"resourceSpans": [{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "svcA" }
+				}]
+			},
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "test_request",
+						"value": { "stringValue": "req_body" }
+					},
+					{
+						"key": "credit_card",
+						"value": { "stringValue": "0000-00000-00000" }
+					},
+					{
+						"key": "duplicate_key",
+						"value": { "stringValue": "deuplicateduplicatekey" }
+					}]
+				}]
+			}]
+		},
+		{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "svcB" }
+				}]
+			},
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "test_request",
+						"value": { "stringValue": "req_body" }
+					},
+					{
+						"key": "credit_card",
+						"value": { "stringValue": "0000-00000-00000" }
+					},
+					{
+						"key": "duplicate_key",
+						"value": { "stringValue": "deuplicateduplicatekey" }
+					}]
+				}]
+			}]
+		},
+		{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "svcC" }
+				}]
+			},
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "test_request",
+						"value": { "stringValue": "req_body" }
+					},
+					{
+						"key": "credit_card",
+						"value": { "stringValue": "0000-00000-00000" }
+					},
+					{
+						"key": "duplicate_key",
+						"value": { "stringValue": "deuplicateduplicatekey" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	expectedOutputTrace := `{
+		"resourceSpans": [{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "svcA" }
+				}]
+			},
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "test_request",
+						"value": { "stringValue": "req_body" }
+					},
+					{
+						"key": "credit_card",
+						"value": { "stringValue": "0000-00000-00000" }
+					},
+					{
+						"key": "duplicate_key",
+						"value": { "stringValue": "deuplicateduplicatekey" }
+					}]
+				}]
+			}]
+		},
+		{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "svcB" }
+				}]
+			},
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "test_request",
+						"value": { "stringValue": "req_body" }
+					},
+					{
+						"key": "credit_card",
+						"value": { "stringValue": "0000-00000-00000" }
+					},
+					{
+						"key": "duplicate_key",
+						"value": { "stringValue": "deuplicateduplicatekey" }
+					}]
+				}]
+			}]
+		},
+		{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "svcC" }
+				}]
+			},
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "test_request",
+						"value": { "stringValue": "req_body" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
-func TestDecode_ExcludeResources(t *testing.T) {
+func Test_ExcludeResources(t *testing.T) {
 	cfg := `
 	exclude {
 		match_type = "strict"
@@ -332,9 +786,125 @@ func TestDecode_ExcludeResources(t *testing.T) {
 	action = &otelObj.Actions[1]
 	require.Equal(t, "duplicate_key", action.Key)
 	require.Equal(t, "delete", string(action.Action))
+
+	var inputTrace = `{
+		"resourceSpans": [{
+			"resource": {
+				"attributes": [{
+					"key": "host.type",
+					"value": { "stringValue": "n1-standard-1" }
+				}]
+			},
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "test_request",
+						"value": { "stringValue": "req_body" }
+					},
+					{
+						"key": "credit_card",
+						"value": { "stringValue": "0000-00000-00000" }
+					},
+					{
+						"key": "duplicate_key",
+						"value": { "stringValue": "deuplicateduplicatekey" }
+					}]
+				}]
+			}]
+		},
+		{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "svcB" }
+				}]
+			},
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "test_request",
+						"value": { "stringValue": "req_body" }
+					},
+					{
+						"key": "credit_card",
+						"value": { "stringValue": "0000-00000-00000" }
+					},
+					{
+						"key": "duplicate_key",
+						"value": { "stringValue": "deuplicateduplicatekey" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	expectedOutputTrace := `{
+		"resourceSpans": [{
+			"resource": {
+				"attributes": [{
+					"key": "host.type",
+					"value": { "stringValue": "n1-standard-1" }
+				}]
+			},
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "test_request",
+						"value": { "stringValue": "req_body" }
+					},
+					{
+						"key": "credit_card",
+						"value": { "stringValue": "0000-00000-00000" }
+					},
+					{
+						"key": "duplicate_key",
+						"value": { "stringValue": "deuplicateduplicatekey" }
+					}]
+				}]
+			}]
+		},
+		{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "svcB" }
+				}]
+			},
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "test_request",
+						"value": { "stringValue": "req_body" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
-func TestDecode_ExcludeLibrary(t *testing.T) {
+func Test_ExcludeLibrary(t *testing.T) {
 	cfg := `
 	exclude {
 		match_type = "strict"
@@ -377,9 +947,141 @@ func TestDecode_ExcludeLibrary(t *testing.T) {
 	action = &otelObj.Actions[1]
 	require.Equal(t, "duplicate_key", action.Key)
 	require.Equal(t, "delete", string(action.Action))
+
+	var inputTrace = `{
+		"resourceSpans": [{
+			"resource": {
+				"attributes": [{
+					"key": "host.type",
+					"value": { "stringValue": "n1-standard-1" }
+				}]
+			},
+			"scopeSpans": [{
+				"scope": {
+					"name": "mongo-java-driver",
+					"version": "3.8.0"
+				},
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "test_request",
+						"value": { "stringValue": "req_body" }
+					},
+					{
+						"key": "credit_card",
+						"value": { "stringValue": "0000-00000-00000" }
+					},
+					{
+						"key": "duplicate_key",
+						"value": { "stringValue": "deuplicateduplicatekey" }
+					}]
+				}]
+			}]
+		},
+		{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "svcB" }
+				}]
+			},
+			"scopeSpans": [{
+				"scope": {
+					"name": "dummy-driver",
+					"version": "1.1.0"
+				},
+				"spans": [{
+					"name": "TestSpan2",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "test_request",
+						"value": { "stringValue": "req_body" }
+					},
+					{
+						"key": "credit_card",
+						"value": { "stringValue": "0000-00000-00000" }
+					},
+					{
+						"key": "duplicate_key",
+						"value": { "stringValue": "deuplicateduplicatekey" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	expectedOutputTrace := `{
+		"resourceSpans": [{
+			"resource": {
+				"attributes": [{
+					"key": "host.type",
+					"value": { "stringValue": "n1-standard-1" }
+				}]
+			},
+			"scopeSpans": [{
+				"scope": {
+					"name": "mongo-java-driver",
+					"version": "3.8.0"
+				},
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "test_request",
+						"value": { "stringValue": "req_body" }
+					},
+					{
+						"key": "credit_card",
+						"value": { "stringValue": "0000-00000-00000" }
+					},
+					{
+						"key": "duplicate_key",
+						"value": { "stringValue": "deuplicateduplicatekey" }
+					}]
+				}]
+			}]
+		},
+		{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "svcB" }
+				}]
+			},
+			"scopeSpans": [{
+				"scope": {
+					"name": "dummy-driver",
+					"version": "1.1.0"
+				},
+				"spans": [{
+					"name": "TestSpan2",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "test_request",
+						"value": { "stringValue": "req_body" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
-func TestDecode_ExcludeLibraryAnyVersion(t *testing.T) {
+func Test_ExcludeLibraryAnyVersion(t *testing.T) {
 	cfg := `
 	exclude {
 		match_type = "strict"
@@ -421,9 +1123,141 @@ func TestDecode_ExcludeLibraryAnyVersion(t *testing.T) {
 	action = &otelObj.Actions[1]
 	require.Equal(t, "duplicate_key", action.Key)
 	require.Equal(t, "delete", string(action.Action))
+
+	var inputTrace = `{
+		"resourceSpans": [{
+			"resource": {
+				"attributes": [{
+					"key": "host.type",
+					"value": { "stringValue": "n1-standard-1" }
+				}]
+			},
+			"scopeSpans": [{
+				"scope": {
+					"name": "mongo-java-driver",
+					"version": "3.8.0"
+				},
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "test_request",
+						"value": { "stringValue": "req_body" }
+					},
+					{
+						"key": "credit_card",
+						"value": { "stringValue": "0000-00000-00000" }
+					},
+					{
+						"key": "duplicate_key",
+						"value": { "stringValue": "deuplicateduplicatekey" }
+					}]
+				}]
+			}]
+		},
+		{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "svcB" }
+				}]
+			},
+			"scopeSpans": [{
+				"scope": {
+					"name": "dummy-driver",
+					"version": "1.1.0"
+				},
+				"spans": [{
+					"name": "TestSpan2",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "test_request",
+						"value": { "stringValue": "req_body" }
+					},
+					{
+						"key": "credit_card",
+						"value": { "stringValue": "0000-00000-00000" }
+					},
+					{
+						"key": "duplicate_key",
+						"value": { "stringValue": "deuplicateduplicatekey" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	expectedOutputTrace := `{
+		"resourceSpans": [{
+			"resource": {
+				"attributes": [{
+					"key": "host.type",
+					"value": { "stringValue": "n1-standard-1" }
+				}]
+			},
+			"scopeSpans": [{
+				"scope": {
+					"name": "mongo-java-driver",
+					"version": "3.8.0"
+				},
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "test_request",
+						"value": { "stringValue": "req_body" }
+					},
+					{
+						"key": "credit_card",
+						"value": { "stringValue": "0000-00000-00000" }
+					},
+					{
+						"key": "duplicate_key",
+						"value": { "stringValue": "deuplicateduplicatekey" }
+					}]
+				}]
+			}]
+		},
+		{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "svcB" }
+				}]
+			},
+			"scopeSpans": [{
+				"scope": {
+					"name": "dummy-driver",
+					"version": "1.1.0"
+				},
+				"spans": [{
+					"name": "TestSpan2",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "test_request",
+						"value": { "stringValue": "req_body" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
-func TestDecode_ExcludeLibraryBlankVersion(t *testing.T) {
+func Test_ExcludeLibraryBlankVersion(t *testing.T) {
 	cfg := `
 	exclude {
 		match_type = "strict"
@@ -466,9 +1300,199 @@ func TestDecode_ExcludeLibraryBlankVersion(t *testing.T) {
 	action = &otelObj.Actions[1]
 	require.Equal(t, "duplicate_key", action.Key)
 	require.Equal(t, "delete", string(action.Action))
+
+	var inputTrace = `{
+		"resourceSpans": [{
+			"resource": {
+				"attributes": [{
+					"key": "host.type",
+					"value": { "stringValue": "n1-standard-1" }
+				}]
+			},
+			"scopeSpans": [{
+				"scope": {
+					"name": "mongo-java-driver",
+					"version": "3.8.0"
+				},
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "test_request",
+						"value": { "stringValue": "req_body" }
+					},
+					{
+						"key": "credit_card",
+						"value": { "stringValue": "0000-00000-00000" }
+					},
+					{
+						"key": "duplicate_key",
+						"value": { "stringValue": "deuplicateduplicatekey" }
+					}]
+				}]
+			}]
+		},
+		{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "svcB" }
+				}]
+			},
+			"scopeSpans": [{
+				"scope": {
+					"name": "mongo-java-driver",
+					"version": ""
+				},
+				"spans": [{
+					"name": "TestSpan2",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "test_request",
+						"value": { "stringValue": "req_body" }
+					},
+					{
+						"key": "credit_card",
+						"value": { "stringValue": "0000-00000-00000" }
+					},
+					{
+						"key": "duplicate_key",
+						"value": { "stringValue": "deuplicateduplicatekey" }
+					}]
+				}]
+			}]
+		},
+		{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "svcB" }
+				}]
+			},
+			"scopeSpans": [{
+				"scope": {
+					"name": "dummy-driver",
+					"version": "1.1.0"
+				},
+				"spans": [{
+					"name": "TestSpan2",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "test_request",
+						"value": { "stringValue": "req_body" }
+					},
+					{
+						"key": "credit_card",
+						"value": { "stringValue": "0000-00000-00000" }
+					},
+					{
+						"key": "duplicate_key",
+						"value": { "stringValue": "deuplicateduplicatekey" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	expectedOutputTrace := `{
+		"resourceSpans": [{
+			"resource": {
+				"attributes": [{
+					"key": "host.type",
+					"value": { "stringValue": "n1-standard-1" }
+				}]
+			},
+			"scopeSpans": [{
+				"scope": {
+					"name": "mongo-java-driver",
+					"version": "3.8.0"
+				},
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "test_request",
+						"value": { "stringValue": "req_body" }
+					}]
+				}]
+			}]
+		},
+		{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "svcB" }
+				}]
+			},
+			"scopeSpans": [{
+				"scope": {
+					"name": "mongo-java-driver",
+					"version": ""
+				},
+				"spans": [{
+					"name": "TestSpan2",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "test_request",
+						"value": { "stringValue": "req_body" }
+					},
+					{
+						"key": "credit_card",
+						"value": { "stringValue": "0000-00000-00000" }
+					},
+					{
+						"key": "duplicate_key",
+						"value": { "stringValue": "deuplicateduplicatekey" }
+					}]
+				}]
+			}]
+		},
+		{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "svcB" }
+				}]
+			},
+			"scopeSpans": [{
+				"scope": {
+					"name": "dummy-driver",
+					"version": "1.1.0"
+				},
+				"spans": [{
+					"name": "TestSpan2",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "test_request",
+						"value": { "stringValue": "req_body" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
-func TestDecode_ExcludeServices(t *testing.T) {
+func Test_ExcludeServices(t *testing.T) {
 	cfg := `
 	exclude {
 		match_type = "regexp"
@@ -508,9 +1532,183 @@ func TestDecode_ExcludeServices(t *testing.T) {
 	action = &otelObj.Actions[1]
 	require.Equal(t, "duplicate_key", action.Key)
 	require.Equal(t, "delete", string(action.Action))
+
+	var inputTrace = `{
+		"resourceSpans": [{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "auth.basic" }
+				}]
+			},
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "test_request",
+						"value": { "stringValue": "req_body" }
+					},
+					{
+						"key": "credit_card",
+						"value": { "stringValue": "0000-00000-00000" }
+					},
+					{
+						"key": "duplicate_key",
+						"value": { "stringValue": "deuplicateduplicatekey" }
+					}]
+				}]
+			}]
+		},
+		{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "login.user" }
+				}]
+			},
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "test_request",
+						"value": { "stringValue": "req_body" }
+					},
+					{
+						"key": "credit_card",
+						"value": { "stringValue": "0000-00000-00000" }
+					},
+					{
+						"key": "duplicate_key",
+						"value": { "stringValue": "deuplicateduplicatekey" }
+					}]
+				}]
+			}]
+		},
+		{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "svcC" }
+				}]
+			},
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "test_request",
+						"value": { "stringValue": "req_body" }
+					},
+					{
+						"key": "credit_card",
+						"value": { "stringValue": "0000-00000-00000" }
+					},
+					{
+						"key": "duplicate_key",
+						"value": { "stringValue": "deuplicateduplicatekey" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	expectedOutputTrace := `{
+		"resourceSpans": [{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "auth.basic" }
+				}]
+			},
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "test_request",
+						"value": { "stringValue": "req_body" }
+					},
+					{
+						"key": "credit_card",
+						"value": { "stringValue": "0000-00000-00000" }
+					},
+					{
+						"key": "duplicate_key",
+						"value": { "stringValue": "deuplicateduplicatekey" }
+					}]
+				}]
+			}]
+		},
+		{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "login.user" }
+				}]
+			},
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "test_request",
+						"value": { "stringValue": "req_body" }
+					},
+					{
+						"key": "credit_card",
+						"value": { "stringValue": "0000-00000-00000" }
+					},
+					{
+						"key": "duplicate_key",
+						"value": { "stringValue": "deuplicateduplicatekey" }
+					}]
+				}]
+			}]
+		},
+		{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "svcC" }
+				}]
+			},
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "test_request",
+						"value": { "stringValue": "req_body" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
-func TestDecode_SelectiveProcessing(t *testing.T) {
+func Test_SelectiveProcessing(t *testing.T) {
 	cfg := `
 	include {
 		match_type = "strict"
@@ -564,9 +1762,125 @@ func TestDecode_SelectiveProcessing(t *testing.T) {
 	action = &otelObj.Actions[1]
 	require.Equal(t, "duplicate_key", action.Key)
 	require.Equal(t, "delete", string(action.Action))
+
+	var inputTrace = `{
+		"resourceSpans": [{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "svcA" }
+				}]
+			},
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "redact_trace",
+						"value": { "boolValue": true }
+					},
+					{
+						"key": "credit_card",
+						"value": { "stringValue": "0000-00000-00000" }
+					},
+					{
+						"key": "duplicate_key",
+						"value": { "stringValue": "deuplicateduplicatekey" }
+					}]
+				}]
+			}]
+		},
+		{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "login.user" }
+				}]
+			},
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "redact_trace",
+						"value": { "boolValue": true }
+					},
+					{
+						"key": "credit_card",
+						"value": { "stringValue": "0000-00000-00000" }
+					},
+					{
+						"key": "duplicate_key",
+						"value": { "stringValue": "deuplicateduplicatekey" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	expectedOutputTrace := `{
+		"resourceSpans": [{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "svcA" }
+				}]
+			},
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "redact_trace",
+						"value": { "boolValue": true }
+					}]
+				}]
+			}]
+		},
+		{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "login.user" }
+				}]
+			},
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "redact_trace",
+						"value": { "boolValue": true }
+					},
+					{
+						"key": "credit_card",
+						"value": { "stringValue": "0000-00000-00000" }
+					},
+					{
+						"key": "duplicate_key",
+						"value": { "stringValue": "deuplicateduplicatekey" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
-func TestDecode_Complex(t *testing.T) {
+func Test_Complex(t *testing.T) {
 	cfg := `
 	action {
 		key = "operation"
@@ -607,9 +1921,75 @@ func TestDecode_Complex(t *testing.T) {
 	action = &otelObj.Actions[2]
 	require.Equal(t, "operation", action.Key)
 	require.Equal(t, "delete", string(action.Action))
+
+	var inputTrace = `{
+		"resourceSpans": [{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "svcA" }
+				}]
+			},
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "svc.operation",
+						"value": { "stringValue": "old_operation" }
+					},
+					{
+						"key": "credit_card",
+						"value": { "stringValue": "0000-00000-00000" }
+					},
+					{
+						"key": "duplicate_key",
+						"value": { "stringValue": "deuplicateduplicatekey" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	expectedOutputTrace := `{
+		"resourceSpans": [{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "svcA" }
+				}]
+			},
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "env",
+						"value": { "stringValue": "dev" }
+					},
+					{
+						"key": "svc.operation",
+						"value": { "stringValue": "operation" }
+					},
+					{
+						"key": "credit_card",
+						"value": { "stringValue": "0000-00000-00000" }
+					},
+					{
+						"key": "duplicate_key",
+						"value": { "stringValue": "deuplicateduplicatekey" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
-func TestDecode_ExampleActions(t *testing.T) {
+func Test_ExampleActions(t *testing.T) {
 	cfg := `
 	action {
 		key = "db.table"
@@ -668,9 +2048,63 @@ func TestDecode_ExampleActions(t *testing.T) {
 	action = &otelObj.Actions[4]
 	require.Equal(t, "account_password", action.Key)
 	require.Equal(t, "delete", string(action.Action))
+
+	var inputTrace = `{
+		"resourceSpans": [{
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "db.table",
+						"value": { "stringValue": "users" }
+					},
+					{
+						"key": "key_original",
+						"value": { "stringValue": "original_data" }
+					},
+					{
+						"key": "copy_key",
+						"value": { "stringValue": "non_original_data" }
+					},
+					{
+						"key": "account_password",
+						"value": { "stringValue": "12345" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	expectedOutputTrace := `{
+		"resourceSpans": [{
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "account_id",
+						"value": { "intValue": "2245" }
+					},
+					{
+						"key": "key_original",
+						"value": { "stringValue": "original_data" }
+					},
+					{
+						"key": "copy_key",
+						"value": { "stringValue": "original_data" }
+					},
+					{
+						"key": "redacted_span",
+						"value": { "boolValue": true }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
-func TestDecode_Regexp(t *testing.T) {
+func Test_Regexp(t *testing.T) {
 	cfg := `
 	include {
 		match_type = "regexp"
@@ -717,9 +2151,97 @@ func TestDecode_Regexp(t *testing.T) {
 	action = &otelObj.Actions[1]
 	require.Equal(t, "token", action.Key)
 	require.Equal(t, "delete", string(action.Action))
+
+	var inputTrace = `{
+		"resourceSpans": [{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "auth.basic" }
+				}]
+			},
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "password",
+						"value": { "stringValue": "12345" }
+					},
+					{
+						"key": "token",
+						"value": { "stringValue": "secret_token" }
+					}]
+				}]
+			}]
+		},
+		{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "login.user" }
+				}]
+			},
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan2",
+					"attributes": [{
+						"key": "password",
+						"value": { "stringValue": "12345" }
+					},
+					{
+						"key": "token",
+						"value": { "stringValue": "secret_token" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	expectedOutputTrace := `{
+		"resourceSpans": [{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "auth.basic" }
+				}]
+			},
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "password",
+						"value": { "stringValue": "obfuscated" }
+					}]
+				}]
+			}]
+		},
+		{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "login.user" }
+				}]
+			},
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan2",
+					"attributes": [{
+						"key": "password",
+						"value": { "stringValue": "12345" }
+					},
+					{
+						"key": "token",
+						"value": { "stringValue": "secret_token" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
-func TestDecode_Regexp2(t *testing.T) {
+func Test_Regexp2(t *testing.T) {
 	cfg := `
 	include {
 		match_type = "regexp"
@@ -756,9 +2278,61 @@ func TestDecode_Regexp2(t *testing.T) {
 	require.Equal(t, "db.statement", action.Key)
 	require.Equal(t, "SELECT * FROM USERS [obfuscated]", action.Value)
 	require.Equal(t, "update", string(action.Action))
+
+	var inputTrace = `{
+		"resourceSpans": [{
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "db.statement",
+						"value": { "stringValue": "SELECT * FROM USERS_SECRETS" }
+					}]
+				}]
+			}]
+		},
+		{
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan2",
+					"attributes": [{
+						"key": "db.statement",
+						"value": { "stringValue": "SELECT * FROM PRODUCTS" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	expectedOutputTrace := `{
+		"resourceSpans": [{
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan1",
+					"attributes": [{
+						"key": "db.statement",
+						"value": { "stringValue": "SELECT * FROM USERS [obfuscated]" }
+					}]
+				}]
+			}]
+		},
+		{
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan2",
+					"attributes": [{
+						"key": "db.statement",
+						"value": { "stringValue": "SELECT * FROM PRODUCTS" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
-func TestDecode_LogBodyRegexp(t *testing.T) {
+func Test_LogBodyRegexp(t *testing.T) {
 	cfg := `
 	include {
 		match_type = "regexp"
@@ -798,15 +2372,216 @@ func TestDecode_LogBodyRegexp(t *testing.T) {
 	action = &otelObj.Actions[1]
 	require.Equal(t, "token", otelObj.Actions[1].Key)
 	require.Equal(t, "delete", string(action.Action))
+
+	var inputLog = `{
+		"resourceLogs": [{
+			"scopeLogs": [{
+				"log_records": [{
+					"timeUnixNano": "1581452773000000111",
+					"severityNumber": 9,
+					"severityText": "Info",
+					"name": "logA",
+					"body": { "stringValue": "AUTH log message" },
+					"attributes": [{
+						"key": "password",
+						"value": { "stringValue": "12345" }
+					},
+					{
+						"key": "token",
+						"value": { "stringValue": "fake_token" }
+					}]
+				}]
+			}]
+		},
+		{
+			"scopeLogs": [{
+				"log_records": [{
+					"timeUnixNano": "1581452773000000999",
+					"severityNumber": 9,
+					"severityText": "Info",
+					"name": "logA",
+					"body": { "stringValue": "This is a log message" },
+					"attributes": [{
+						"key": "password",
+						"value": { "stringValue": "12345" }
+					},
+					{
+						"key": "token",
+						"value": { "stringValue": "fake_token" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	expectedOutputLog := `{
+		"resourceLogs": [{
+			"scopeLogs": [{
+				"log_records": [{
+					"timeUnixNano": "1581452773000000111",
+					"severityNumber": 9,
+					"severityText": "Info",
+					"name": "logA",
+					"body": { "stringValue": "AUTH log message" },
+					"attributes": [{
+						"key": "password",
+						"value": { "stringValue": "obfuscated" }
+					}]
+				}]
+			}]
+		},
+		{
+			"scopeLogs": [{
+				"log_records": [{
+					"timeUnixNano": "1581452773000000999",
+					"severityNumber": 9,
+					"severityText": "Info",
+					"name": "logA",
+					"body": { "stringValue": "This is a log message" },
+					"attributes": [{
+						"key": "password",
+						"value": { "stringValue": "12345" }
+					},
+					{
+						"key": "token",
+						"value": { "stringValue": "fake_token" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	testRunProcessor(t, cfg, NewLogSignal(inputLog, expectedOutputLog))
 }
 
-func TestDecode_LogSeverityRegexp(t *testing.T) {
+func Test_LogSeverityTextsRegexp(t *testing.T) {
 	cfg := `
 	include {
 		match_type = "regexp"
-		log_severity_texts = ["debug.*"]
+		log_severity_texts = ["info.*"]
+	}
+	action {
+		key = "password"
+		action = "update"
+		value = "obfuscated"
+	}
+	action {
+		key = "token"
+		action = "delete"
+	}
+
+	output {
+		// no-op: will be overridden by test code.
+	}
+	`
+	var args attributes.Arguments
+	require.NoError(t, river.Unmarshal([]byte(cfg), &args))
+
+	convertedArgs, err := args.Convert()
+	require.NoError(t, err)
+	otelObj := (convertedArgs).(*attributesprocessor.Config)
+
+	require.NotNil(t, otelObj.Include)
+	require.Equal(t, "regexp", string(otelObj.Include.MatchType))
+
+	require.Equal(t, "info.*", otelObj.Include.LogSeverityTexts[0])
+
+	action := &otelObj.Actions[0]
+	require.Equal(t, "password", action.Key)
+	require.Equal(t, "obfuscated", action.Value)
+	require.Equal(t, "update", string(action.Action))
+
+	action = &otelObj.Actions[1]
+	require.Equal(t, "token", otelObj.Actions[1].Key)
+	require.Equal(t, "delete", string(action.Action))
+
+	var inputLog = `{
+		"resourceLogs": [{
+			"scopeLogs": [{
+				"log_records": [{
+					"timeUnixNano": "1581452773000000111",
+					"severityNumber": 9,
+					"severityText": "info",
+					"name": "logA",
+					"body": { "stringValue": "AUTH log message" },
+					"attributes": [{
+						"key": "password",
+						"value": { "stringValue": "12345" }
+					},
+					{
+						"key": "token",
+						"value": { "stringValue": "12345" }
+					}]
+				}]
+			}]
+		},
+		{
+			"scopeLogs": [{
+				"log_records": [{
+					"timeUnixNano": "1581452773000000999",
+					"severityNumber": 5,
+					"severityText": "debug",
+					"name": "logA",
+					"body": { "stringValue": "AUTH log message" },
+					"attributes": [{
+						"key": "password",
+						"value": { "stringValue": "12345" }
+					},
+					{
+						"key": "token",
+						"value": { "stringValue": "12345" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	expectedOutputLog := `{
+		"resourceLogs": [{
+			"scopeLogs": [{
+				"log_records": [{
+					"timeUnixNano": "1581452773000000111",
+					"severityNumber": 9,
+					"severityText": "info",
+					"name": "logA",
+					"body": { "stringValue": "AUTH log message" },
+					"attributes": [{
+						"key": "password",
+						"value": { "stringValue": "obfuscated" }
+					}]
+				}]
+			}]
+		},
+		{
+			"scopeLogs": [{
+				"log_records": [{
+					"timeUnixNano": "1581452773000000999",
+					"severityNumber": 5,
+					"severityText": "debug",
+					"name": "logA",
+					"body": { "stringValue": "AUTH log message" },
+					"attributes": [{
+						"key": "password",
+						"value": { "stringValue": "12345" }
+					},
+					{
+						"key": "token",
+						"value": { "stringValue": "12345" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	testRunProcessor(t, cfg, NewLogSignal(inputLog, expectedOutputLog))
+}
+
+func Test_LogSeverity(t *testing.T) {
+	cfg := `
+	include {
+		match_type = "regexp"
 		log_severity {
-			min = "DEBUG"
+			min = "INFO"
 			match_undefined = true
 		}
 	}
@@ -834,9 +2609,7 @@ func TestDecode_LogSeverityRegexp(t *testing.T) {
 	require.NotNil(t, otelObj.Include)
 	require.Equal(t, "regexp", string(otelObj.Include.MatchType))
 
-	require.Equal(t, "debug.*", otelObj.Include.LogSeverityTexts[0])
-
-	require.Equal(t, int32(5), int32(otelObj.Include.LogSeverityNumber.Min))
+	require.Equal(t, int32(9), int32(otelObj.Include.LogSeverityNumber.Min))
 	require.Equal(t, true, otelObj.Include.LogSeverityNumber.MatchUndefined)
 
 	action := &otelObj.Actions[0]
@@ -847,9 +2620,89 @@ func TestDecode_LogSeverityRegexp(t *testing.T) {
 	action = &otelObj.Actions[1]
 	require.Equal(t, "token", otelObj.Actions[1].Key)
 	require.Equal(t, "delete", string(action.Action))
+
+	var inputLog = `{
+		"resourceLogs": [{
+			"scopeLogs": [{
+				"log_records": [{
+					"timeUnixNano": "1581452773000000111",
+					"severityNumber": 9,
+					"severityText": "info",
+					"name": "logA",
+					"body": { "stringValue": "AUTH log message" },
+					"attributes": [{
+						"key": "password",
+						"value": { "stringValue": "12345" }
+					},
+					{
+						"key": "token",
+						"value": { "stringValue": "12345" }
+					}]
+				}]
+			}]
+		},
+		{
+			"scopeLogs": [{
+				"log_records": [{
+					"timeUnixNano": "1581452773000000999",
+					"severityNumber": 5,
+					"severityText": "debug",
+					"name": "logA",
+					"body": { "stringValue": "AUTH log message" },
+					"attributes": [{
+						"key": "password",
+						"value": { "stringValue": "12345" }
+					},
+					{
+						"key": "token",
+						"value": { "stringValue": "12345" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	expectedOutputLog := `{
+		"resourceLogs": [{
+			"scopeLogs": [{
+				"log_records": [{
+					"timeUnixNano": "1581452773000000111",
+					"severityNumber": 9,
+					"severityText": "info",
+					"name": "logA",
+					"body": { "stringValue": "AUTH log message" },
+					"attributes": [{
+						"key": "password",
+						"value": { "stringValue": "obfuscated" }
+					}]
+				}]
+			}]
+		},
+		{
+			"scopeLogs": [{
+				"log_records": [{
+					"timeUnixNano": "1581452773000000999",
+					"severityNumber": 5,
+					"severityText": "debug",
+					"name": "logA",
+					"body": { "stringValue": "AUTH log message" },
+					"attributes": [{
+						"key": "password",
+						"value": { "stringValue": "12345" }
+					},
+					{
+						"key": "token",
+						"value": { "stringValue": "12345" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	testRunProcessor(t, cfg, NewLogSignal(inputLog, expectedOutputLog))
 }
 
-func TestDecode_FromContext(t *testing.T) {
+func Test_FromContext(t *testing.T) {
 	cfg := `
 	action {
 		key = "origin"
@@ -883,25 +2736,84 @@ func TestDecode_FromContext(t *testing.T) {
 	require.Equal(t, "enduser.id", action.Key)
 	require.Equal(t, "auth.subject", action.FromContext)
 	require.Equal(t, "insert", string(action.Action))
+
+	var inputLog = `{
+		"resourceLogs": [{
+			"scopeLogs": [{
+				"log_records": [{
+					"timeUnixNano": "1581452773000000111",
+					"severityNumber": 9,
+					"severityText": "info",
+					"name": "logA",
+					"body": { "stringValue": "AUTH log message" },
+					"attributes": [{
+						"key": "password",
+						"value": { "stringValue": "12345" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	expectedOutputLog := `{
+		"resourceLogs": [{
+			"scopeLogs": [{
+				"log_records": [{
+					"timeUnixNano": "1581452773000000111",
+					"severityNumber": 9,
+					"severityText": "info",
+					"name": "logA",
+					"body": { "stringValue": "AUTH log message" },
+					"attributes": [{
+						"key": "password",
+						"value": { "stringValue": "12345" }
+					},
+					{
+						"key": "origin",
+						"value": { "stringValue": "fake_origin" }
+					},
+					{
+						"key": "enduser.id",
+						"value": { "stringValue": "fake_subject" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	ctx := componenttest.TestContext(t)
+	ctx = client.NewContext(ctx, client.Info{
+		Addr: &net.IPAddr{
+			IP: net.ParseIP(net.ParseIP("0.0.0.0").String()),
+		},
+		Auth:     fakeAuthData{},
+		Metadata: client.NewMetadata(map[string][]string{"origin": {"fake_origin"}}),
+	})
+	testRunProcessorWithContext(ctx, t, cfg, NewLogSignal(inputLog, expectedOutputLog))
 }
 
-func TestRun(t *testing.T) {
-	ctx := componenttest.TestContext(t)
-	l := util.TestLogger(t)
+var _ client.AuthData = (*fakeAuthData)(nil)
 
-	ctrl, err := componenttest.NewControllerFromID(l, "otelcol.processor.attributes")
-	require.NoError(t, err)
+type fakeAuthData struct{}
 
+func (fakeAuthData) GetAttribute(name string) interface{} {
+	return "fake_subject"
+}
+
+func (fakeAuthData) GetAttributeNames() []string {
+	return []string{"subject"}
+}
+
+func Test_MetricNames(t *testing.T) {
 	cfg := `
-	action {
-		key = "attribute1"
-		value = 123
-		action = "insert"
+	include {
+		match_type = "regexp"
+		metric_names = ["counter.*"]
 	}
 	action {
-		key = "string key"
-		value = "anotherkey"
-		action = "insert"
+		key = "important_label"
+		action = "upsert"
+		value = "label_val"
 	}
 
 	output {
@@ -911,9 +2823,257 @@ func TestRun(t *testing.T) {
 	var args attributes.Arguments
 	require.NoError(t, river.Unmarshal([]byte(cfg), &args))
 
-	// Override our arguments so traces get forwarded to traceCh.
-	traceCh := make(chan ptrace.Traces)
-	args.Output = makeTracesOutput(traceCh)
+	convertedArgs, err := args.Convert()
+	require.NoError(t, err)
+	otelObj := (convertedArgs).(*attributesprocessor.Config)
+
+	require.NotNil(t, otelObj.Include)
+	require.Equal(t, "regexp", string(otelObj.Include.MatchType))
+
+	require.Equal(t, "counter.*", otelObj.Include.MetricNames[0])
+
+	action := &otelObj.Actions[0]
+	require.Equal(t, "important_label", action.Key)
+	require.Equal(t, "label_val", action.Value)
+	require.Equal(t, "upsert", string(action.Action))
+
+	var inputMetric = `{
+		"resourceMetrics": [{
+			"scopeMetrics": [{
+				"metrics": [{
+					"name": "counter-int",
+					"unit": "1",
+					"sum": {
+						"dataPoints": [{
+							"attributes": [{
+								"key": "label-1",
+								"value": { "stringValue": "label-value-1" }
+							},
+							{
+								"key": "label2",
+								"value": { "stringValue": "label-value-2" }
+							}],
+							"startTimeUnixNano": "1581452773000000789",
+							"timeUnixNano": "1581452773000000789",
+							"asInt": "123"
+						}],
+						"aggregationTemporality": 2,
+						"isMonotonic": true
+					}
+				}]
+			}]
+		},
+		{
+			"scopeMetrics": [{
+				"metrics": [{
+					"name": "c-int",
+					"unit": "1",
+					"sum": {
+						"dataPoints": [{
+							"attributes": [{
+								"key": "label-1",
+								"value": { "stringValue": "label-value-1" }
+							},
+							{
+								"key": "label2",
+								"value": { "stringValue": "label-value-2" }
+							}],
+							"startTimeUnixNano": "1581452772000000321",
+							"timeUnixNano": "1581452773000000789",
+							"asInt": "456"
+						}],
+						"aggregationTemporality": 2,
+						"isMonotonic": true
+					}
+				}]
+			}]
+		}]
+	}`
+
+	expectedOutputMetric := `{
+		"resourceMetrics": [{
+			"scopeMetrics": [{
+				"metrics": [{
+					"name": "counter-int",
+					"unit": "1",
+					"sum": {
+						"dataPoints": [{
+							"attributes": [{
+								"key": "label-1",
+								"value": { "stringValue": "label-value-1" }
+							},
+							{
+								"key": "label2",
+								"value": { "stringValue": "label-value-2" }
+							},
+							{
+								"key": "important_label",
+								"value": { "stringValue": "label_val" }
+							}],
+							"startTimeUnixNano": "1581452773000000789",
+							"timeUnixNano": "1581452773000000789",
+							"asInt": "123"
+						}],
+						"aggregationTemporality": 2,
+						"isMonotonic": true
+					}
+				}]
+			}]
+		},
+		{
+			"scopeMetrics": [{
+				"metrics": [{
+					"name": "c-int",
+					"unit": "1",
+					"sum": {
+						"dataPoints": [{
+							"attributes": [{
+								"key": "label-1",
+								"value": { "stringValue": "label-value-1" }
+							},
+							{
+								"key": "label2",
+								"value": { "stringValue": "label-value-2" }
+							}],
+							"startTimeUnixNano": "1581452772000000321",
+							"timeUnixNano": "1581452773000000789",
+							"asInt": "456"
+						}],
+						"aggregationTemporality": 2,
+						"isMonotonic": true
+					}
+				}]
+			}]
+		}]
+	}`
+
+	testRunProcessor(t, cfg, NewMetricSignal(inputMetric, expectedOutputMetric))
+}
+
+type signal interface {
+	MakeOutput() *otelcol.ConsumerArguments
+	ConsumeInput(ctx context.Context, consumer otelcol.Consumer) error
+	CheckOutput(t *testing.T)
+}
+
+type traceSignal struct {
+	traceCh              chan ptrace.Traces
+	inputTrace           ptrace.Traces
+	expectedOuutputTrace ptrace.Traces
+}
+
+func NewTraceSignal(inputJson string, expectedOutputJson string) signal {
+	return &traceSignal{
+		traceCh:              make(chan ptrace.Traces),
+		inputTrace:           createTestTraces(inputJson),
+		expectedOuutputTrace: createTestTraces(expectedOutputJson),
+	}
+}
+
+func (s traceSignal) MakeOutput() *otelcol.ConsumerArguments {
+	return makeTracesOutput(s.traceCh)
+}
+
+func (s traceSignal) ConsumeInput(ctx context.Context, consumer otelcol.Consumer) error {
+	return consumer.ConsumeTraces(ctx, s.inputTrace)
+}
+
+func (s traceSignal) CheckOutput(t *testing.T) {
+	// Wait for our processor to finish and forward data to traceCh.
+	select {
+	case <-time.After(time.Second):
+		require.FailNow(t, "failed waiting for traces")
+	case tr := <-s.traceCh:
+		trStr := marshalTraces(tr)
+		expStr := marshalTraces(s.expectedOuutputTrace)
+		require.JSONEq(t, expStr, trStr)
+	}
+}
+
+type logSignal struct {
+	logCh              chan plog.Logs
+	inputLog           plog.Logs
+	expectedOuutputLog plog.Logs
+}
+
+func NewLogSignal(inputJson string, expectedOutputJson string) signal {
+	return &logSignal{
+		logCh:              make(chan plog.Logs),
+		inputLog:           createTestLogs(inputJson),
+		expectedOuutputLog: createTestLogs(expectedOutputJson),
+	}
+}
+
+func (s logSignal) MakeOutput() *otelcol.ConsumerArguments {
+	return makeLogsOutput(s.logCh)
+}
+
+func (s logSignal) ConsumeInput(ctx context.Context, consumer otelcol.Consumer) error {
+	return consumer.ConsumeLogs(ctx, s.inputLog)
+}
+
+func (s logSignal) CheckOutput(t *testing.T) {
+	// Wait for our processor to finish and forward data to logCh.
+	select {
+	case <-time.After(time.Second):
+		require.FailNow(t, "failed waiting for logs")
+	case tr := <-s.logCh:
+		trStr := marshalLogs(tr)
+		expStr := marshalLogs(s.expectedOuutputLog)
+		require.JSONEq(t, expStr, trStr)
+	}
+}
+
+type metricSignal struct {
+	metricCh              chan pmetric.Metrics
+	inputMetric           pmetric.Metrics
+	expectedOuutputMetric pmetric.Metrics
+}
+
+func NewMetricSignal(inputJson string, expectedOutputJson string) signal {
+	return &metricSignal{
+		metricCh:              make(chan pmetric.Metrics),
+		inputMetric:           createTestMetrics(inputJson),
+		expectedOuutputMetric: createTestMetrics(expectedOutputJson),
+	}
+}
+
+func (s metricSignal) MakeOutput() *otelcol.ConsumerArguments {
+	return makeMetricsOutput(s.metricCh)
+}
+
+func (s metricSignal) ConsumeInput(ctx context.Context, consumer otelcol.Consumer) error {
+	return consumer.ConsumeMetrics(ctx, s.inputMetric)
+}
+
+func (s metricSignal) CheckOutput(t *testing.T) {
+	// Wait for our processor to finish and forward data to logCh.
+	select {
+	case <-time.After(time.Second):
+		require.FailNow(t, "failed waiting for logs")
+	case tr := <-s.metricCh:
+		trStr := marshalMetrics(tr)
+		expStr := marshalMetrics(s.expectedOuutputMetric)
+		require.JSONEq(t, expStr, trStr)
+	}
+}
+
+func testRunProcessor(t *testing.T, processorConfig string, testSignal signal) {
+	ctx := componenttest.TestContext(t)
+	testRunProcessorWithContext(ctx, t, processorConfig, testSignal)
+}
+
+func testRunProcessorWithContext(ctx context.Context, t *testing.T, processorConfig string, testSignal signal) {
+	l := util.TestLogger(t)
+
+	ctrl, err := componenttest.NewControllerFromID(l, "otelcol.processor.attributes")
+	require.NoError(t, err)
+
+	var args attributes.Arguments
+	require.NoError(t, river.Unmarshal([]byte(processorConfig), &args))
+
+	// Override the arguments so signals get forwarded to the test channel.
+	args.Output = testSignal.MakeOutput()
 
 	go func() {
 		err := ctrl.Run(ctx, args)
@@ -923,7 +3083,7 @@ func TestRun(t *testing.T) {
 	require.NoError(t, ctrl.WaitRunning(time.Second), "component never started")
 	require.NoError(t, ctrl.WaitExports(time.Second), "component never exported anything")
 
-	// Send traces in the background to our processor.
+	// Send signals in the background to our processor.
 	go func() {
 		exports := ctrl.Exports().(otelcol.ConsumerExports)
 
@@ -932,7 +3092,7 @@ func TestRun(t *testing.T) {
 			MaxBackoff: 100 * time.Millisecond,
 		})
 		for bo.Ongoing() {
-			err := exports.Input.ConsumeTraces(ctx, createTestTraces())
+			err := testSignal.ConsumeInput(ctx, exports.Input)
 			if err != nil {
 				level.Error(l).Log("msg", "failed to send traces", "err", err)
 				bo.Wait()
@@ -943,19 +3103,8 @@ func TestRun(t *testing.T) {
 		}
 	}()
 
-	//TODO: Try changing actual attributes, just to sanity checks that everything works?
-
-	// Wait for our processor to finish and forward data to traceCh.
-	select {
-	case <-time.After(time.Second):
-		require.FailNow(t, "failed waiting for traces")
-	case tr := <-traceCh:
-		require.Equal(t, 1, tr.SpanCount())
-	}
+	testSignal.CheckOutput(t)
 }
-
-//TODO: makeTracesOutput and createTestTraces were copied from other tests.
-//      Import them from a common go file?
 
 // makeTracesOutput returns ConsumerArguments which will forward traces to the
 // provided channel.
@@ -976,23 +3125,100 @@ func makeTracesOutput(ch chan ptrace.Traces) *otelcol.ConsumerArguments {
 	}
 }
 
-func createTestTraces() ptrace.Traces {
-	// Matches format from the protobuf definition:
-	// https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto
-	var bb = `{
-		"resource_spans": [{
-			"scope_spans": [{
-				"spans": [{
-					"name": "TestSpan"
-				}]
-			}]
-		}]
-	}`
-
+// traceJson should match format from the protobuf definition:
+// https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto
+func createTestTraces(traceJson string) ptrace.Traces {
 	decoder := &ptrace.JSONUnmarshaler{}
-	data, err := decoder.UnmarshalTraces([]byte(bb))
+	data, err := decoder.UnmarshalTraces([]byte(traceJson))
 	if err != nil {
 		panic(err)
 	}
 	return data
+}
+
+func marshalTraces(trace ptrace.Traces) string {
+	marshaler := &ptrace.JSONMarshaler{}
+	data, err := marshaler.MarshalTraces(trace)
+	if err != nil {
+		panic(err)
+	}
+	return string(data)
+}
+
+// makeLogsOutput returns ConsumerArguments which will forward logs to the
+// provided channel.
+func makeLogsOutput(ch chan plog.Logs) *otelcol.ConsumerArguments {
+	logConsumer := fakeconsumer.Consumer{
+		ConsumeLogsFunc: func(ctx context.Context, t plog.Logs) error {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case ch <- t:
+				return nil
+			}
+		},
+	}
+
+	return &otelcol.ConsumerArguments{
+		Logs: []otelcol.Consumer{&logConsumer},
+	}
+}
+
+// logJson should match format from the protobuf definition:
+// https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/logs/v1/logs.proto
+func createTestLogs(logJson string) plog.Logs {
+	decoder := &plog.JSONUnmarshaler{}
+	data, err := decoder.UnmarshalLogs([]byte(logJson))
+	if err != nil {
+		panic(err)
+	}
+	return data
+}
+
+func marshalLogs(log plog.Logs) string {
+	marshaler := &plog.JSONMarshaler{}
+	data, err := marshaler.MarshalLogs(log)
+	if err != nil {
+		panic(err)
+	}
+	return string(data)
+}
+
+// makeMetricsOutput returns ConsumerArguments which will forward metrics to the
+// provided channel.
+func makeMetricsOutput(ch chan pmetric.Metrics) *otelcol.ConsumerArguments {
+	metricConsumer := fakeconsumer.Consumer{
+		ConsumeMetricsFunc: func(ctx context.Context, t pmetric.Metrics) error {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case ch <- t:
+				return nil
+			}
+		},
+	}
+
+	return &otelcol.ConsumerArguments{
+		Metrics: []otelcol.Consumer{&metricConsumer},
+	}
+}
+
+// metricJson should match format from the protobuf definition:
+// https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/metrics/v1/metrics.proto
+func createTestMetrics(metricJson string) pmetric.Metrics {
+	decoder := &pmetric.JSONUnmarshaler{}
+	data, err := decoder.UnmarshalMetrics([]byte(metricJson))
+	if err != nil {
+		panic(err)
+	}
+	return data
+}
+
+func marshalMetrics(metrics pmetric.Metrics) string {
+	marshaler := &pmetric.JSONMarshaler{}
+	data, err := marshaler.MarshalMetrics(metrics)
+	if err != nil {
+		panic(err)
+	}
+	return string(data)
 }

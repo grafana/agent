@@ -17,3 +17,6 @@ Name | Type | Description | Default | Required
 `span_kinds` | `list(string)` | A list of items to match the span kind against. | `[]` | no
 
 `match_type` is required and must be set to either `"regexp"` or `"strict"`.
+
+For `metric_names`, a match occurs if the metric name matches at least one item in the list.
+For `span_kinds`, a match occurs if the span's span kind matches at least one item in the list.

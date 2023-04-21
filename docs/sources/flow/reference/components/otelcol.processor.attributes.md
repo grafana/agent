@@ -143,10 +143,10 @@ The `include` block provides an option to include data being fed into the [actio
 One of the following is also required:
 * For spans, one of `services`, `span_names`, `span_kinds`, [attribute][], [resource][] or [library][] must be specified with a non-empty value for a valid configuration. The `log_bodies`, `log_severity_texts`, `log_severity` and `metric_names` attributes are invalid.
 * For logs, one of `log_bodies`, `log_severity_texts`, `log_severity`, [attribute][], [resource][] or [library][] must be specified with a non-empty value for a valid configuration. The `span_names`, `span_kinds`, `metric_names`, and `services` attributes are invalid.
-* For metrics, one of `metric_names` or [resource][] must be specified with a valid non-empty value for a valid configuration. The `span_names`, `span_kinds`, `log_bodies`, `log_severity_texts`, `log_severity`, `services`, [attribute][] and [library][] attributes are invalid.
+* For metrics, `metric_names` must be specified with a valid non-empty value for a valid configuration. The `span_names`, `span_kinds`, `log_bodies`, `log_severity_texts`, `log_severity`, `services`, [attribute][], [resource][] and [library][] attributes are invalid.
 
-For `metric_names`, a match occurs if the metric name matches at least one item in the list.
-For `span_kinds`, a match occurs if the span's span kind matches at least one item in the list.
+If the configuration includes filters which are specific to a particular signal type, it is best to include only that signal type in the component's output.
+For example, adding a `span_names` filter could cause the component to error if logs are configured in the component's outputs.
 
 ### exclude block
 
@@ -157,10 +157,10 @@ The `exclude` blocks provides an option to exclude data from being fed into the 
 One of the following is also required:
 * For spans, one of `services`, `span_names`, `span_kinds`, [attribute][], [resource][] or [library][] must be specified with a non-empty value for a valid configuration. The `log_bodies`, `log_severity_texts`, `log_severity` and `metric_names` attributes are invalid.
 * For logs, one of `log_bodies`, `log_severity_texts`, `log_severity`, [attribute][], [resource][] or [library][] must be specified with a non-empty value for a valid configuration. The `span_names`, `span_kinds`, `metric_names`, and `services` attributes are invalid.
-* For metrics, one of `metric_names` or [resource][] must be specified with a valid non-empty value for a valid configuration. The `span_names`, `span_kinds`, `log_bodies`, `log_severity_texts`, `log_severity`, `services`, [attribute][] and [library][] attributes are invalid.
+* For metrics, `metric_names` must be specified with a valid non-empty value for a valid configuration. The `span_names`, `span_kinds`, `log_bodies`, `log_severity_texts`, `log_severity`, `services`, [attribute][], [resource][] and [library][] attributes are invalid.
 
-For `metric_names`, a match occurs if the metric name matches at least one item in the list.
-For `span_kinds`, a match occurs if the span's span kind matches at least one item in the list.
+If the configuration includes filters which are specific to a particular signal type, it is best to include only that signal type in the component's output.
+For example, adding a `span_names` filter could cause the component to error if logs are configured in the component's outputs.
 
 ### regexp block
 
@@ -360,21 +360,18 @@ otelcol.processor.attributes "default" {
         action = "hash"
     }
 
-    // Uses the value from `key:http.url` to upsert attributes
+    // Uses the value from key `example_user_key` to upsert attributes
     // to the target keys specified in the `pattern`.
     // (Insert attributes for target keys that do not exist and update keys that exist.)
-    // Given http.url = http://example.com/path?queryParam1=value1,queryParam2=value2
+    // Given example_user_key = /api/v1/document/12345678/update/v1
     // then the following attributes will be inserted:
-    // http_protocol: http
-    // http_domain: example.com
-    // http_path: path
-    // http_query_params=queryParam1=value1,queryParam2=value2
-    // http.url value does NOT change.
+    // new_example_user_key: 12345678
+    // version: v1
     // Note: Similar to the Span Processor, if a target key already exists,
     // it will be updated.
     action {
-        key = "http.url"
-        pattern = "^(?P<http_protocol>.*):\\/\\/(?P<http_domain>.*)\\/(?P<http_path>.*)(\\?|\\&)(?P<http_query_params>.*)"
+        key = "example_user_key"
+        pattern = "\\/api\\/v1\\/document\\/(?P<new_example_user_key>.*)\\/update\\/(?P<version>.*)$"
         action = "extract"
     }
 
@@ -415,6 +412,9 @@ The following spans do not match the properties and the processor actions are ap
 * Span3 Name: "svcB", Attributes: {env: 1, test_request: "dev", credit_card: 1234}
 * Span4 Name: "svcC", Attributes: {env: "dev", test_request: false}
 
+Note that due to the presence of the `services` attribute, this configuration works only for
+trace signals. This is why only traces are configured in the `output` block.
+
 ```river
 otelcol.processor.attributes "default" {
     exclude {
@@ -437,8 +437,6 @@ otelcol.processor.attributes "default" {
         action = "delete"
     }
     output {
-        metrics = [otelcol.exporter.otlp.default.input]
-        logs    = [otelcol.exporter.otlp.default.input]
         traces  = [otelcol.exporter.otlp.default.input]
     }
 }
@@ -447,6 +445,9 @@ otelcol.processor.attributes "default" {
 ### Excluding spans based on resources
 
 A "strict" `match_type` means that we must match the `resource` key/value pairs strictly.
+
+Note that the `resource` attribute is not used for metrics, which is why metrics are not configured
+in the component output.
 
 ```river
 otelcol.processor.attributes "default" {
@@ -466,16 +467,18 @@ otelcol.processor.attributes "default" {
         action = "delete"
     }
     output {
-        metrics = [otelcol.exporter.otlp.default.input]
         logs    = [otelcol.exporter.otlp.default.input]
         traces  = [otelcol.exporter.otlp.default.input]
     }
 }
 ```
 
-### Excluding spans based on resources
+### Excluding spans based on a specific library version
 
 A "strict" `match_type` means that we must match the `library` key/value pairs strictly.
+
+Note that the `library` attribute is not used for metrics, which is why metrics are not configured
+in the component output.
 
 ```river
 otelcol.processor.attributes "default" {
@@ -495,7 +498,6 @@ otelcol.processor.attributes "default" {
         action = "delete"
     }
     output {
-        metrics = [otelcol.exporter.otlp.default.input]
         logs    = [otelcol.exporter.otlp.default.input]
         traces  = [otelcol.exporter.otlp.default.input]
     }
@@ -506,6 +508,9 @@ otelcol.processor.attributes "default" {
 
 This processor will remove the "token" attribute and will obfuscate the "password" attribute 
 in spans where the service name matches `"auth.*"` and where the span name does not match `"login.*"`.
+
+Note that due to the presence of the `services` and `span_names` attributes, this configuration 
+works only for trace signals. This is why only traces are configured in the `output` block.
 
 ```river
 otelcol.processor.attributes "default" {
@@ -536,8 +541,6 @@ otelcol.processor.attributes "default" {
     }
 
     output {
-        metrics = [otelcol.exporter.otlp.default.input]
-        logs    = [otelcol.exporter.otlp.default.input]
         traces  = [otelcol.exporter.otlp.default.input]
     }
 }
@@ -583,6 +586,9 @@ otelcol.processor.attributes "default" {
 This processor will remove "token" attribute and will obfuscate "password"
 attribute in spans where the log body matches "AUTH.*".
 
+Note that due to the presence of the `log_bodies` attribute, this configuration works only for
+log signals. This is why only logs are configured in the `output` block.
+
 ```river
 otelcol.processor.attributes "default" {
     include {
@@ -600,24 +606,28 @@ otelcol.processor.attributes "default" {
     }
 
     output {
-        metrics = [otelcol.exporter.otlp.default.input]
         logs    = [otelcol.exporter.otlp.default.input]
-        traces  = [otelcol.exporter.otlp.default.input]
     }
 }
 ```
 
 ### Including spans based on regex of log severity
 
-The following demonstrates how to process logs that have a severity text that match regexp
-patterns. This processor will remove "token" attribute and will obfuscate "password"
-attribute in spans where severity matches "debug".
+The following demonstrates how to process logs that have a severity level which is equal or higher to 
+the level specified in the `log_severity` block. This processor will remove the "token" attribute and will 
+obfuscate the "password" attribute in logs where the severity is at least "INFO".
+
+Note that due to the presence of the `log_severity` attribute, this configuration works only for
+log signals. This is why only logs are configured in the `output` block.
 
 ```river
 otelcol.processor.attributes "default" {
     include {
         match_type = "regexp"
-        log_severity_texts = ["debug.*"]
+		log_severity {
+			min = "INFO"
+			match_undefined = true
+		}
     }
     action {
         key = "password"
@@ -630,9 +640,65 @@ otelcol.processor.attributes "default" {
     }
 
     output {
-        metrics = [otelcol.exporter.otlp.default.input]
         logs    = [otelcol.exporter.otlp.default.input]
-        traces  = [otelcol.exporter.otlp.default.input]
+    }
+}
+```
+
+### Including spans based on regex of log severity text
+
+The following demonstrates how to process logs that have a severity text that match regexp
+patterns. This processor will remove "token" attribute and will obfuscate "password"
+attribute in logs where severity matches "info".
+
+Note that due to the presence of the `log_severity_texts` attribute, this configuration works only for
+log signals. This is why only logs are configured in the `output` block.
+
+```river
+otelcol.processor.attributes "default" {
+    include {
+        match_type = "regexp"
+        log_severity_texts = ["info.*"]
+    }
+    action {
+        key = "password"
+        action = "update"
+        value = "obfuscated"
+    }
+    action {
+        key = "token"
+        action = "delete"
+    }
+
+    output {
+        logs    = [otelcol.exporter.otlp.default.input]
+    }
+}
+```
+
+### Including metrics based on metric names
+
+The following demonstrates how to process metrics that have a name starting with "counter".
+This processor will add a label called "important_label" with a value of "label_val" to the metric.
+If the label already exists, its value will be updated.
+
+Note that due to the presence of the `metric_names` attribute, this configuration works only for
+metric signals. This is why only metrics are configured in the `output` block.
+
+```river
+otelcol.processor.attributes "default" {
+	include {
+		match_type = "regexp"
+		metric_names = ["counter.*"]
+	}
+	action {
+		key = "important_label"
+		action = "upsert"
+		value = "label_val"
+	}
+
+    output {
+        metrics = [otelcol.exporter.otlp.default.input]
     }
 }
 ```
