@@ -15,9 +15,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/component/loki/internal/fake"
+
 	"github.com/go-kit/log"
 	"github.com/google/uuid"
-	"github.com/grafana/agent/component/loki/source/heroku/internal/fake"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"
@@ -269,7 +270,7 @@ func TestHerokuDrainTarget(t *testing.T) {
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			// Create fake promtail client
-			eh := fake.New(func() {})
+			eh := fake.NewClient(func() {})
 			defer eh.Stop()
 
 			serverConfig, port, err := getServerConfigWithAvailablePort()
@@ -330,7 +331,7 @@ func TestHerokuDrainTarget_UseIncomingTimestamp(t *testing.T) {
 	logger := log.NewLogfmtLogger(w)
 
 	// Create fake promtail client
-	eh := fake.New(func() {})
+	eh := fake.NewClient(func() {})
 	defer eh.Stop()
 
 	serverConfig, port, err := getServerConfigWithAvailablePort()
@@ -373,7 +374,7 @@ func TestHerokuDrainTarget_UseTenantIDHeaderIfPresent(t *testing.T) {
 	logger := log.NewLogfmtLogger(w)
 
 	// Create fake promtail client
-	eh := fake.New(func() {})
+	eh := fake.NewClient(func() {})
 	defer eh.Stop()
 
 	serverConfig, port, err := getServerConfigWithAvailablePort()
