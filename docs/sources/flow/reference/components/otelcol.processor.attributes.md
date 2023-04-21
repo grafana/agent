@@ -143,7 +143,7 @@ The `include` block provides an option to include data being fed into the [actio
 One of the following is also required:
 * For spans, one of `services`, `span_names`, `span_kinds`, [attribute][], [resource][] or [library][] must be specified with a non-empty value for a valid configuration. The `log_bodies`, `log_severity_texts`, `log_severity` and `metric_names` attributes are invalid.
 * For logs, one of `log_bodies`, `log_severity_texts`, `log_severity`, [attribute][], [resource][] or [library][] must be specified with a non-empty value for a valid configuration. The `span_names`, `span_kinds`, `metric_names`, and `services` attributes are invalid.
-* For metrics, one of `metric_names` or [resource][] must be specified with a valid non-empty value for a valid configuration. The `span_names`, `span_kinds`, `log_bodies`, `log_severity_texts`, `log_severity`, `services`, [attribute][] and [library][] attributes are invalid.
+* For metrics, `metric_names` must be specified with a valid non-empty value for a valid configuration. The `span_names`, `span_kinds`, `log_bodies`, `log_severity_texts`, `log_severity`, `services`, [attribute][], [resource][] and [library][] attributes are invalid.
 
 For `metric_names`, a match occurs if the metric name matches at least one item in the list.
 For `span_kinds`, a match occurs if the span's span kind matches at least one item in the list.
@@ -157,7 +157,7 @@ The `exclude` blocks provides an option to exclude data from being fed into the 
 One of the following is also required:
 * For spans, one of `services`, `span_names`, `span_kinds`, [attribute][], [resource][] or [library][] must be specified with a non-empty value for a valid configuration. The `log_bodies`, `log_severity_texts`, `log_severity` and `metric_names` attributes are invalid.
 * For logs, one of `log_bodies`, `log_severity_texts`, `log_severity`, [attribute][], [resource][] or [library][] must be specified with a non-empty value for a valid configuration. The `span_names`, `span_kinds`, `metric_names`, and `services` attributes are invalid.
-* For metrics, one of `metric_names` or [resource][] must be specified with a valid non-empty value for a valid configuration. The `span_names`, `span_kinds`, `log_bodies`, `log_severity_texts`, `log_severity`, `services`, [attribute][] and [library][] attributes are invalid.
+* For metrics, `metric_names` must be specified with a valid non-empty value for a valid configuration. The `span_names`, `span_kinds`, `log_bodies`, `log_severity_texts`, `log_severity`, `services`, [attribute][], [resource][] and [library][] attributes are invalid.
 
 For `metric_names`, a match occurs if the metric name matches at least one item in the list.
 For `span_kinds`, a match occurs if the span's span kind matches at least one item in the list.
@@ -628,6 +628,32 @@ otelcol.processor.attributes "default" {
         key = "token"
         action = "delete"
     }
+
+    output {
+        metrics = [otelcol.exporter.otlp.default.input]
+        logs    = [otelcol.exporter.otlp.default.input]
+        traces  = [otelcol.exporter.otlp.default.input]
+    }
+}
+```
+
+### Including metrics based on metric names
+
+The following demonstrates how to process metrics that have a name starting with "counter".
+This processor will add a label called "important_label" with a value of "label_val" to the metric.
+If the label already exists, its value will be updated.
+
+```river
+otelcol.processor.attributes "default" {
+	include {
+		match_type = "regexp"
+		metric_names = ["counter.*"]
+	}
+	action {
+		key = "important_label"
+		action = "upsert"
+		value = "label_val"
+	}
 
     output {
         metrics = [otelcol.exporter.otlp.default.input]
