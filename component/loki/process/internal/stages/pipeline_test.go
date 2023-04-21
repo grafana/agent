@@ -10,10 +10,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/component/loki/internal/fake"
+
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/agent/component/loki/process/internal/fake"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/loki/pkg/logproto"
 	util_log "github.com/grafana/loki/pkg/util/log"
@@ -314,7 +315,7 @@ func TestPipeline_Wrap(t *testing.T) {
 		tt := tt
 		t.Run(tName, func(t *testing.T) {
 			t.Parallel()
-			c := fake.New(func() {})
+			c := fake.NewClient(func() {})
 			handler := p.Wrap(c)
 
 			handler.Chan() <- loki.Entry{
@@ -338,7 +339,7 @@ func TestPipeline_Wrap(t *testing.T) {
 }
 
 func Test_PipelineParallel(t *testing.T) {
-	c := fake.New(func() {})
+	c := fake.NewClient(func() {})
 	cfg := `
 stage.match {
 		selector = "{match=~\".*\"}"

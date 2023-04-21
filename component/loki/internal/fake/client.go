@@ -1,7 +1,7 @@
 package fake
 
-// This code is copied from Promtail. The client package is used to configure
-// and run the clients that can send log entries to a Loki instance.
+// This code is copied from Promtail. The fake package is used to configure
+// fake client that can be used in testing.
 
 import (
 	"sync"
@@ -19,7 +19,7 @@ type Client struct {
 	OnStop   func()
 }
 
-func New(stop func()) *Client {
+func NewClient(stop func()) *Client {
 	c := &Client{
 		OnStop:  stop,
 		entries: make(loki.LogsReceiver),
