@@ -81,7 +81,7 @@ function(
   relabel_configs: (
     [{ source_labels: ['job'], target_label: '__tmp_prometheus_job_name' }] +
 
-    (if endpoint.FilterRunning then [{
+    (if endpoint.FilterRunning != null && endpoint.FilterRunning then [{
       source_labels: ['__meta_kubernetes_pod_phase'],
 			regex: '(Failed|Succeeded)',
 			action: 'drop',
