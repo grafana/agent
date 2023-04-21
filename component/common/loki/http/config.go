@@ -50,6 +50,16 @@ func (g *GRPCConfig) Config(c *server.Config) {
 }
 
 func (c *ServerConfig) UnmarshalRiver(f func(v interface{}) error) error {
+	*c = ServerConfig{
+		HTTP: &HTTPConfig{
+			// Opting by default 0, which used in net.Listen assigns a random port
+			ListenPort: 0,
+		},
+		GRPC: &GRPCConfig{
+			// Opting by default 0, which used in net.Listen assigns a random port
+			ListenPort: 0,
+		},
+	}
 	type config ServerConfig
 	if err := f((*config)(c)); err != nil {
 		return err

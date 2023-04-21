@@ -13,15 +13,13 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/component/common/loki"
+	lhttp "github.com/grafana/agent/component/common/loki/http"
 	herokuEncoding "github.com/heroku/x/logplex/encoding"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/relabel"
-	"github.com/weaveworks/common/server"
-
-	"github.com/grafana/agent/component/common/loki"
-	lhttp "github.com/grafana/agent/component/common/loki/http"
 
 	"github.com/grafana/loki/pkg/logproto"
 )
@@ -30,8 +28,7 @@ const ReservedLabelTenantID = "__tenant_id__"
 
 // HerokuDrainTargetConfig describes a scrape config to listen and consume heroku logs, in the HTTPS drain manner.
 type HerokuDrainTargetConfig struct {
-	// Server is the weaveworks server config for listening connections
-	Server server.Config
+	Server *lhttp.ServerConfig
 
 	// Labels optionally holds labels to associate with each record received on the push api.
 	Labels model.LabelSet
@@ -54,7 +51,7 @@ type HerokuTarget struct {
 func NewHerokuTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandler, relabel []*relabel.Config, config *HerokuDrainTargetConfig, reg prometheus.Registerer) (*HerokuTarget, error) {
 	wrappedLogger := log.With(logger, "component", "heroku_drain")
 
-	srv, err := lhttp.NewTargetServer(wrappedLogger, "loki_source_heroku_drain_target", reg, lhttp.ServerConfig{Server: config.Server})
+	srv, err := lhttp.NewTargetServer(wrappedLogger, "loki_source_heroku_drain_target", reg, config.Server)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create loki http server: %w", err)
 	}
@@ -67,8 +64,6 @@ func NewHerokuTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHand
 		config:         config,
 		relabelConfigs: relabel,
 	}
-
-	config.Server.Registerer = reg
 
 	err = ht.server.MountAndRun(func(router *mux.Router) {
 		router.Path(ht.DrainEndpoint()).Methods("POST").Handler(http.HandlerFunc(ht.drain))
@@ -149,12 +144,8 @@ func (h *HerokuTarget) Labels() model.LabelSet {
 	return h.config.Labels
 }
 
-func (h *HerokuTarget) ListenAddress() string {
-	return h.config.Server.HTTPListenAddress
-}
-
-func (h *HerokuTarget) ListenPort() int {
-	return h.config.Server.HTTPListenPort
+func (h *HerokuTarget) HTTPListenAddress() string {
+	return h.server.HTTPListenAddr()
 }
 
 func (h *HerokuTarget) DrainEndpoint() string {
@@ -166,7 +157,7 @@ func (h *HerokuTarget) HealthyEndpoint() string {
 }
 
 func (h *HerokuTarget) Ready() bool {
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s:%d%s", h.ListenAddress(), h.ListenPort(), h.HealthyEndpoint()), nil)
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s%s", h.HTTPListenAddress(), h.HealthyEndpoint()), nil)
 	if err != nil {
 		return false
 	}
