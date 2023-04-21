@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"github.com/go-kit/log/level"
 	"reflect"
 	"sync"
 
@@ -136,7 +137,14 @@ func (c *Component) commitUpdate(newArgs Arguments, newPushTarget *lokipush.Push
 	c.rwLock.Lock()
 	defer c.rwLock.Unlock()
 	c.args = newArgs
+
 	if newPushTarget != nil {
+		if c.pushTarget != nil {
+			err := c.pushTarget.Stop()
+			if err != nil {
+				level.Warn(c.opts.Logger).Log("msg", "push API server failed to stop while updating configuration", "err", err)
+			}
+		}
 		c.pushTarget = newPushTarget
 	}
 	return nil

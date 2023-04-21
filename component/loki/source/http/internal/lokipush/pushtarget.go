@@ -201,6 +201,7 @@ func (t *PushTarget) Labels() model.LabelSet {
 func (t *PushTarget) Stop() error {
 	level.Info(t.logger).Log("msg", "stopping push server", "job", t.jobName)
 	t.server.Shutdown()
+	t.server.Stop() // Required to stop signal handler.
 	t.handler.Stop()
 	return nil
 }
