@@ -10,13 +10,24 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Enhancements
+
+- Support in-memory HTTP traffic for Flow components. `prometheus.exporter`
+  components will now export a target containing an internal HTTP address.
+  `prometheus.scrape`, when given that internal HTTP address, will connect to
+  the server in-memory, bypassing the network stack. Use the new
+  `--server.http.memory-address` flag to customize which address is used for
+  in-memory traffic. (@rfratto)
+
+
 v0.33.0-rc.1 (2023-04-21)
 -------------------------
+
 ### Bugfixes
+
 - Fix bug introduced to operator when FilterRunning not specified in PodMonitors. (@captncraig)
 
 - Remove `otelcol.processor.attributes`. (@ptodev)
-
 
 v0.33.0-rc.0 (2023-04-20)
 -------------------------
@@ -112,7 +123,7 @@ v0.33.0-rc.0 (2023-04-20)
 
 - Agent Management: Introduces backpressure mechanism for remote config fetching (obeys 429 request
   `Retry-After` header). (@spartan0x117)
-  
+
 - Flow: support client TLS settings (CA, client certificate, client key) being
   provided from other components for the following components:
 
