@@ -40,6 +40,42 @@ func TestVM_Stdlib(t *testing.T) {
 	}
 }
 
+func TestStdlibCoalesce(t *testing.T) {
+	t.Setenv("TEST_VAR2", "Hello!")
+
+	tt := []struct {
+		name   string
+		input  string
+		expect interface{}
+	}{
+		{"coalesce(string)", `coalesce("Hello!")`, string("Hello!")},
+		{"coalesce(string, string)", `coalesce(env("TEST_VAR2"), "World!")`, string("Hello!")},
+		{"(string, string) with fallback", `coalesce(env("NON_DEFINED"), "World!")`, string("World!")},
+		{"coalesce(list, list)", `coalesce([], ["fallback"])`, []string{"fallback"}},
+		{"coalesce(list, list) with fallback", `coalesce(concat(["item"]), ["fallback"])`, []string{"item"}},
+		{"coalesce(int, int, int)", `coalesce(0, 1, 2)`, 1},
+		{"coalesce(bool, int, int)", `coalesce(false, 1, 2)`, 1},
+		{"coalesce(bool, bool)", `coalesce(false, true)`, true},
+		{"coalesce(list, bool)", `coalesce(json_decode("[]"), true)`, true},
+		{"coalesce(object, bool) and return nil", `coalesce(json_decode("{}"), true)`, true},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			expr, err := parser.ParseExpression(tc.input)
+			require.NoError(t, err)
+
+			eval := vm.New(expr)
+
+			if tc.expect != nil {
+				rv := reflect.New(reflect.TypeOf(tc.expect))
+				require.NoError(t, eval.Evaluate(nil, rv.Interface()))
+				require.Equal(t, tc.expect, rv.Elem().Interface())
+			}
+		})
+	}
+}
+
 func BenchmarkConcat(b *testing.B) {
 	// There's a bit of setup work to do here: we want to create a scope holding
 	// a slice of the Person type, which has a fair amount of data in it.

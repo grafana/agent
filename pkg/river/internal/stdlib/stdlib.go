@@ -73,4 +73,18 @@ var Identifiers = map[string]interface{}{
 		}
 		return res, nil
 	},
+
+	"coalesce": value.RawFunction(func(funcValue value.Value, args ...value.Value) (value.Value, error) {
+		for _, arg := range args {
+			if !arg.Reflect().IsZero() {
+				if argType := value.RiverType(arg.Reflect().Type()); (argType == value.TypeArray || argType == value.TypeObject) && arg.Len() == 0 {
+					continue
+				}
+
+				return arg, nil
+			}
+		}
+
+		return value.Null, nil
+	}),
 }
