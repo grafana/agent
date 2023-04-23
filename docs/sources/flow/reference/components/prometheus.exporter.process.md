@@ -51,7 +51,7 @@ Name | Type | Description | Default | Required
 `exe`        | `list(string)`  | A list of strings that match `argv[0]` for a process. | | no
 `cmdline`    | `list(string)`  | A list of regular expressions applied to the `argv` of the process. | | no
 
-The `name` argument can use the following template variables. By default it uses the base path of the executable: 
+The `name` argument can use the following template variables. By default it uses the base path of the executable:
 - `{{.Comm}}`:      Basename of the original executable from /proc/\<pid\>/stat.
 - `{{.ExeBase}}`:   Basename of the executable from argv[0].
 - `{{.ExeFull}}`:   Fully qualified path of the executable.
@@ -79,6 +79,12 @@ Name      | Type                | Description
 For example, the `targets` can either be passed to a `prometheus.relabel`
 component to rewrite the metric's label set, or to a `prometheus.scrape`
 component that collects the exposed metrics.
+
+The exported targets will use the configured [in-memory traffic][] address
+specified by the [run command][].
+
+[in-memory traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
+[run command]: {{< relref "../cli/run.md" >}}
 
 ## Component health
 
