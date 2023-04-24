@@ -11,8 +11,10 @@ import (
 
 	"github.com/grafana/agent/component/loki/internal/fake"
 
-	"github.com/go-kit/log"
 	"github.com/grafana/agent/component/common/loki"
+	lhttp "github.com/grafana/agent/component/common/loki/http"
+
+	"github.com/go-kit/log"
 	"github.com/phayes/freeport"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
@@ -165,8 +167,12 @@ func TestPushTarget(t *testing.T) {
 			config := &PushConfig{
 				Labels:               lbls,
 				UseIncomingTimestamp: false,
-				HTTPListenAddress:    "localhost",
-				HTTPListenPort:       port,
+				Server: &lhttp.ServerConfig{
+					HTTP: &lhttp.HTTPConfig{
+						ListenAddress: "localhost",
+						ListenPort:    port,
+					},
+				},
 			}
 
 			prometheus.DefaultRegisterer = prometheus.NewRegistry()
@@ -228,8 +234,12 @@ func TestPushTarget_UseIncomingTimestamp(t *testing.T) {
 	config := &PushConfig{
 		Labels:               nil,
 		UseIncomingTimestamp: true,
-		HTTPListenAddress:    "localhost",
-		HTTPListenPort:       port,
+		Server: &lhttp.ServerConfig{
+			HTTP: &lhttp.HTTPConfig{
+				ListenAddress: "localhost",
+				ListenPort:    port,
+			},
+		},
 	}
 
 	prometheus.DefaultRegisterer = prometheus.NewRegistry()
@@ -272,8 +282,12 @@ func TestPushTarget_UseTenantIDHeaderIfPresent(t *testing.T) {
 	config := &PushConfig{
 		Labels:               nil,
 		UseIncomingTimestamp: true,
-		HTTPListenAddress:    "localhost",
-		HTTPListenPort:       port,
+		Server: &lhttp.ServerConfig{
+			HTTP: &lhttp.HTTPConfig{
+				ListenAddress: "localhost",
+				ListenPort:    port,
+			},
+		},
 	}
 
 	prometheus.DefaultRegisterer = prometheus.NewRegistry()
@@ -323,9 +337,13 @@ func TestPushTarget_ErroneousPayloadsAreRejected(t *testing.T) {
 	port, err := freeport.GetFreePort()
 	require.NoError(t, err)
 	config := &PushConfig{
-		Labels:            nil,
-		HTTPListenAddress: "localhost",
-		HTTPListenPort:    port,
+		Labels: nil,
+		Server: &lhttp.ServerConfig{
+			HTTP: &lhttp.HTTPConfig{
+				ListenAddress: "localhost",
+				ListenPort:    port,
+			},
+		},
 	}
 
 	prometheus.DefaultRegisterer = prometheus.NewRegistry()
@@ -406,8 +424,12 @@ func TestPushTarget_UsePushTimeout(t *testing.T) {
 		Labels:               nil,
 		UseIncomingTimestamp: true,
 		PushTimeout:          time.Second,
-		HTTPListenAddress:    "localhost",
-		HTTPListenPort:       port,
+		Server: &lhttp.ServerConfig{
+			HTTP: &lhttp.HTTPConfig{
+				ListenAddress: "localhost",
+				ListenPort:    port,
+			},
+		},
 	}
 
 	prometheus.DefaultRegisterer = prometheus.NewRegistry()

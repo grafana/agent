@@ -10,8 +10,10 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
+	lhttp "github.com/grafana/agent/component/common/loki/http"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	gt "github.com/grafana/agent/component/loki/source/gcplog/internal/gcplogtarget"
+
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/regexp"
 	"github.com/phayes/freeport"
@@ -37,8 +39,12 @@ func TestPush(t *testing.T) {
 	port, err := freeport.GetFreePort()
 	require.NoError(t, err)
 	args.PushTarget = &gt.PushConfig{
-		HTTPListenAddress: "localhost",
-		HTTPListenPort:    port,
+		Server: &lhttp.ServerConfig{
+			HTTP: &lhttp.HTTPConfig{
+				ListenAddress: "localhost",
+				ListenPort:    port,
+			},
+		},
 		Labels: map[string]string{
 			"foo": "bar",
 		},
