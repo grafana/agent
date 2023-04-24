@@ -4,33 +4,38 @@ package http
 
 import (
 	"flag"
-	"github.com/weaveworks/common/server"
 	"time"
+
+	"github.com/weaveworks/common/server"
 )
 
-// ServerConfig is a wrapper around server.ServerConfig.
+// ServerConfig is a River configuration that allows one to configure a server.Server. It
+// exposes a subset of the available configurations.
 type ServerConfig struct {
-	// HTTP configures the HTTP server. Note that despite the blog being present or not,
+	// HTTP configures the HTTP server. Note that despite the block being present or not,
 	// the server is always started.
 	HTTP *HTTPConfig `river:"http,block,optional"`
 
-	// GRPC configures the gRPC server. Note that despite the blog being present or not,
+	// GRPC configures the gRPC server. Note that despite the block being present or not,
 	// the server is always started.
 	GRPC *GRPCConfig `river:"grpc,block,optional"`
 }
 
+// HTTPConfig configures the HTTP server started by server.Server.
 type HTTPConfig struct {
 	ListenAddress string `river:"listen_address,attr,optional"`
 	ListenPort    int    `river:"listen_port,attr,optional"`
 	ConnLimit     int    `river:"conn_limit,attr,optional"`
 }
 
+// Config applies the configs from HTTPConfig into a server.Config.
 func (h *HTTPConfig) Config(c *server.Config) {
 	c.HTTPListenAddress = h.ListenAddress
 	c.HTTPListenPort = h.ListenPort
 	c.HTTPConnLimit = h.ConnLimit
 }
 
+// GRPCConfig configures the gRPC server started by server.Server.
 type GRPCConfig struct {
 	ListenAddress         string        `river:"listen_address,attr,optional"`
 	ListenPort            int           `river:"listen_port,attr,optional"`
@@ -40,6 +45,7 @@ type GRPCConfig struct {
 	MaxConnectionIdle     time.Duration `river:"max_connection_idle,attr,optional"`
 }
 
+// Config applies the configs from GRPCConfig into a server.Config.
 func (g *GRPCConfig) Config(c *server.Config) {
 	c.GRPCListenAddress = g.ListenAddress
 	c.GRPCListenPort = g.ListenPort
@@ -50,16 +56,6 @@ func (g *GRPCConfig) Config(c *server.Config) {
 }
 
 func (c *ServerConfig) UnmarshalRiver(f func(v interface{}) error) error {
-	*c = ServerConfig{
-		HTTP: &HTTPConfig{
-			// Opting by default 0, which used in net.Listen assigns a random port
-			ListenPort: 0,
-		},
-		GRPC: &GRPCConfig{
-			// Opting by default 0, which used in net.Listen assigns a random port
-			ListenPort: 0,
-		},
-	}
 	type config ServerConfig
 	if err := f((*config)(c)); err != nil {
 		return err
@@ -68,6 +64,7 @@ func (c *ServerConfig) UnmarshalRiver(f func(v interface{}) error) error {
 	return nil
 }
 
+// Convert converts the River-based ServerConfig into a server.Config object.
 func (c *ServerConfig) Convert() server.Config {
 	cfg := newDefaultConfig()
 	if c.HTTP != nil {
@@ -79,8 +76,12 @@ func (c *ServerConfig) Convert() server.Config {
 	return cfg
 }
 
+// newDefaultConfig creates a new server.Config object with some overridden defaults.
 func newDefaultConfig() server.Config {
 	c := server.Config{}
 	c.RegisterFlags(flag.NewFlagSet("empty", flag.ContinueOnError))
+	// Opting by default 0, which used in net.Listen assigns a random port
+	c.HTTPListenPort = 0
+	c.GRPCListenPort = 0
 	return c
 }
