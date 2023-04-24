@@ -19,6 +19,9 @@ Main (unreleased)
   `--server.http.memory-addr` flag to customize which address is used for
   in-memory traffic. (@rfratto)
 
+### Bugfixes
+
+- Fix bug where `loki.source.docker` always failed to start. (@rfratto)
 
 v0.33.0-rc.1 (2023-04-21)
 -------------------------
