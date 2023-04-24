@@ -150,7 +150,7 @@ func (fr *flowRun) Run(configFile string) error {
 	reg := prometheus.DefaultRegisterer
 	reg.MustRegister(newResourcesCollector(l))
 
-	clusterer, err := cluster.New(l, fr.clusterEnabled, fr.clusterAdvAddr, fr.clusterJoinAddr)
+	clusterer, err := cluster.New(l, fr.clusterEnabled, fr.httpListenAddr, fr.clusterAdvAddr, fr.clusterJoinAddr)
 	if err != nil {
 		return fmt.Errorf("building clusterer: %w", err)
 	}
