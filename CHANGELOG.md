@@ -12,7 +12,7 @@ Main (unreleased)
 
 ### Bugfixes
 
-- Fix bug where `loki.source.docker` never started. (@rfratto)
+- Fix bug where `loki.source.docker` always failed to start. (@rfratto)
 
 v0.33.0-rc.1 (2023-04-21)
 -------------------------
