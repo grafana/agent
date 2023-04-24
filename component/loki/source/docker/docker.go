@@ -221,7 +221,7 @@ func (c *Component) getManagerOptions(args Arguments) (*options, error) {
 	}
 
 	opts := []client.Opt{
-		client.WithHost(c.args.Host),
+		client.WithHost(args.Host),
 		client.WithAPIVersionNegotiation(),
 	}
 	client, err := client.NewClientWithOpts(opts...)
