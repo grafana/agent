@@ -269,7 +269,7 @@ func (fr *flowRun) Run(configFile string) error {
 				defer cancel()
 
 				if err := srv.Serve(lis); err != nil {
-					level.Info(l).Log("msg", "http server closed", "err", err)
+					level.Info(l).Log("msg", "http server closed", "addr", lis.Addr(), "err", err)
 				}
 			}(lis)
 		}
