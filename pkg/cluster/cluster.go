@@ -127,6 +127,9 @@ func New(log log.Logger, clusterEnabled bool, listenAddr, advertiseAddr, joinAdd
 	_, portStr, err := net.SplitHostPort(listenAddr)
 	if err == nil { // there was a port
 		defaultPort, err = strconv.Atoi(portStr)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if advertiseAddr != "" {
