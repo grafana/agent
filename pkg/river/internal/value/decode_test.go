@@ -641,3 +641,39 @@ func TestDecode_SquashedSlice_Pointer(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, expect, out)
 }
+
+func TestPointerToValue(t *testing.T) {
+	type fss struct{}
+	f := &fss{}
+	mm := make(map[string]any)
+	mm["t"] = f
+	out := make(map[string]any)
+	err := value.Decode(value.Encode(mm), &out)
+	require.NoError(t, err)
+	require.True(t, mm["t"] == out["t"])
+}
+
+func TestPointerToValueSpecific(t *testing.T) {
+	type fss struct{}
+	f := &fss{}
+	mm := make(map[string]*fss)
+	mm["t"] = f
+	out := make(map[string]*fss)
+	err := value.Decode(value.Encode(mm), &out)
+	require.NoError(t, err)
+	require.True(t, mm["t"] == out["t"])
+}
+
+func TestMapIntoNumber(t *testing.T) {
+	mm := make(map[string]any)
+	mm["t"] = int8(1)
+	mm["f"] = int16(2)
+	mm["float"] = float32(8.2)
+
+	out := make(map[string]any)
+	err := value.Decode(value.Encode(mm), &out)
+	require.NoError(t, err)
+	require.True(t, mm["t"] == out["t"])
+	require.True(t, mm["f"] == out["f"])
+	require.True(t, mm["float"] == out["float"])
+}

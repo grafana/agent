@@ -77,7 +77,6 @@ func (d *decoder) decode(val Value, into reflect.Value) error {
 	if rawValue.CanAddr() {
 		rawValue = rawValue.Addr()
 	}
-
 	// Fully deference into and allocate pointers as necessary.
 	for into.Kind() == reflect.Pointer {
 		// Check for direct assignments before allocating pointers and dereferencing.
@@ -99,7 +98,6 @@ func (d *decoder) decode(val Value, into reflect.Value) error {
 		}
 		into = into.Elem()
 	}
-
 	// Ww need to preform the same switch statement as above after the loop to
 	// check for direct assignment one more time on the fully deferenced types.
 	//
@@ -108,6 +106,11 @@ func (d *decoder) decode(val Value, into reflect.Value) error {
 	switch {
 	case into.CanSet() && val.Type() == TypeNull:
 		into.Set(reflect.Zero(into.Type()))
+		return nil
+	// This handles the case of map[string]any, which fails on canDirectlyAssign.
+	// This is not great because it is a bespoke solution.
+	case into.CanSet() && into.Kind() == reflect.Map && reflect.TypeOf(into.Interface()).Elem() == goAny && d.canDirectlyAssignWithMap(val.rv.Type(), into.Type()):
+		into.Set(val.rv)
 		return nil
 	case into.CanSet() && d.canDirectlyAssign(val.rv.Type(), into.Type()):
 		into.Set(val.rv)
@@ -229,6 +232,20 @@ func (d *decoder) canDirectlyAssign(from reflect.Type, into reflect.Type) bool {
 		return false
 	}
 	return !containsAny(into)
+}
+
+// canDirectlyAssign returns true if the `from` type can be directly asssigned
+// to the `into` type. This always returns false if the decoder is set to make
+// copies or into contains an interface{} type anywhere in its type definition
+// to allow for decoding interfaces{} into a set of known types.
+func (d *decoder) canDirectlyAssignWithMap(from reflect.Type, into reflect.Type) bool {
+	if d.makeCopy {
+		return false
+	}
+	if from != into {
+		return false
+	}
+	return true
 }
 
 // containsAny recursively traverses through into, returning true if it
