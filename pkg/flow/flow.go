@@ -238,18 +238,18 @@ func (c *Flow) LoadFile(file *File, args map[string]any) error {
 	c.loadMut.Lock()
 	defer c.loadMut.Unlock()
 
-	argumentScope := &vm.Scope{
+	parentScope := &vm.Scope{
 		// The top scope is the Flow-specific stdlib.
 		Parent: &vm.Scope{
 			Variables: stdlib.Identifiers,
 		},
 	}
 
-	for key, arg := range args {
-		argumentScope.ApplyArgument(key, map[string]any{"value": arg})
+	for key, value := range args {
+		controller.ApplyArgument(parentScope, key, value)
 	}
 
-	diags := c.loader.Apply(argumentScope, file.Components, file.ConfigBlocks)
+	diags := c.loader.Apply(parentScope, file.Components, file.ConfigBlocks)
 	if !c.loadedOnce.Load() && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.

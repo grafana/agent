@@ -5,7 +5,6 @@ import (
 
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/diag"
-	"github.com/grafana/agent/pkg/river/vm"
 )
 
 const (
@@ -114,26 +113,6 @@ func (nodeMap *ConfigNodeMap) Append(configNode BlockNode) diag.Diagnostics {
 			StartPos: ast.StartPos(n.Block()).Position(),
 			EndPos:   ast.EndPos(n.Block()).Position(),
 		})
-	}
-
-	return diags
-}
-
-// ValidateArguments will compare the passed in arguments to the config
-// arguments to make sure everything is valid.
-func (nodeMap *ConfigNodeMap) ValidateArguments(parentScope *vm.Scope) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	if args := parentScope.Arguments(); args != nil {
-		// Check each provided argument to make sure it is supported in the config.
-		for argName := range *args {
-			if _, ok := nodeMap.argumentMap[argName]; !ok {
-				diags.Add(diag.Diagnostic{
-					Severity: diag.SeverityLevelError,
-					Message:  fmt.Sprintf("Unsupported argument \"%s\" was provided to a module.", argName),
-				})
-			}
-		}
 	}
 
 	return diags

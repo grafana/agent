@@ -462,29 +462,3 @@ func (s *Scope) Lookup(name string) (interface{}, bool) {
 	}
 	return nil, false
 }
-
-func (s *Scope) Arguments() *map[string]any {
-	if s != nil && s.Variables != nil {
-		if args, ok := s.Variables["argument"]; ok {
-			switch args := args.(type) {
-			case map[string]any:
-				return &args
-			}
-		}
-	}
-
-	return nil
-}
-
-func (s *Scope) ApplyArgument(key string, value any) {
-	args := s.Arguments()
-	if args == nil {
-		s.Variables = map[string]interface{}{
-			"argument": map[string]any{
-				key: value,
-			},
-		}
-	} else {
-		(*args)[key] = value
-	}
-}

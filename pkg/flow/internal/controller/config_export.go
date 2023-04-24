@@ -70,11 +70,7 @@ func (cn *ExportConfigNode) Evaluate(scope *vm.Scope) error {
 	return nil
 }
 
-func (cn *ExportConfigNode) Label() string {
-	cn.mut.RLock()
-	defer cn.mut.RUnlock()
-	return cn.label
-}
+func (cn *ExportConfigNode) Label() string { return cn.label }
 
 // Value returns the value of the export.
 func (cn *ExportConfigNode) Value() any {

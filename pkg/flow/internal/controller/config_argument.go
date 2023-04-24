@@ -67,24 +67,23 @@ func (cn *ArgumentConfigNode) Evaluate(scope *vm.Scope) error {
 		return fmt.Errorf("decoding River: %w", err)
 	}
 
-	parentArgs := scope.Parent.Arguments()
+	parentArgs := Arguments(scope.Parent)
 	if _, ok := (*parentArgs)[cn.label]; !ok {
 		if argument.Optional {
 			// TODO: this bit doesn't work here.
-			scope.ApplyArgument(cn.label, map[string]any{"value": argument.Default})
+			ApplyArgument(scope, cn.label, argument.Default)
+
+			// TODO: this doesn't work either
+			ApplyArgument(scope.Parent, cn.label, argument.Default)
 		} else {
-			return fmt.Errorf("missing required argument \"%s\" to module", cn.label)
+			return fmt.Errorf("missing required argument %q to module", cn.label)
 		}
 	}
 
 	return nil
 }
 
-func (cn *ArgumentConfigNode) Label() string {
-	cn.mut.RLock()
-	defer cn.mut.RUnlock()
-	return cn.label
-}
+func (cn *ArgumentConfigNode) Label() string { return cn.label }
 
 // Block implements BlockNode and returns the current block of the managed config node.
 func (cn *ArgumentConfigNode) Block() *ast.BlockStmt {
@@ -95,3 +94,49 @@ func (cn *ArgumentConfigNode) Block() *ast.BlockStmt {
 
 // NodeID implements dag.Node and returns the unique ID for the config node.
 func (cn *ArgumentConfigNode) NodeID() string { return cn.nodeID }
+
+// ValidateArguments will compare the passed in arguments to the config
+// arguments to make sure everything is valid.
+func ValidateArguments(s *vm.Scope, nodeMap *ConfigNodeMap) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	if args := Arguments(s); args != nil {
+		// Check each provided argument to make sure it is supported in the config.
+		for argName := range *args {
+			if _, ok := nodeMap.argumentMap[argName]; !ok {
+				diags.Add(diag.Diagnostic{
+					Severity: diag.SeverityLevelError,
+					Message:  fmt.Sprintf("Unsupported argument \"%s\" was provided to a module.", argName),
+				})
+			}
+		}
+	}
+
+	return diags
+}
+
+func Arguments(s *vm.Scope) *map[string]any {
+	if s != nil && s.Variables != nil {
+		if args, ok := s.Variables["argument"]; ok {
+			switch args := args.(type) {
+			case map[string]any:
+				return &args
+			}
+		}
+	}
+
+	return nil
+}
+
+func ApplyArgument(s *vm.Scope, key string, value any) {
+	args := Arguments(s)
+	if args == nil {
+		s.Variables = map[string]interface{}{
+			"argument": map[string]any{
+				key: map[string]any{"value": value},
+			},
+		}
+	} else {
+		(*args)[key] = map[string]any{"value": value}
+	}
+}

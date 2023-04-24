@@ -245,7 +245,7 @@ func (l *Loader) populateConfigBlockNodes(g *dag.Graph, configBlocks []*ast.Bloc
 	}
 
 	// If argument values were passed in, validate them.
-	validateDiags := nodeMap.ValidateArguments(parentScope)
+	validateDiags := ValidateArguments(parentScope, nodeMap)
 	diags = append(diags, validateDiags...)
 
 	// If a logging config block is not provided, we create an empty node which uses defaults.
