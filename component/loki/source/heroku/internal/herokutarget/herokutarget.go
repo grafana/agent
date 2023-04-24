@@ -6,20 +6,21 @@ package herokutarget
 
 import (
 	"fmt"
-	"github.com/gorilla/mux"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/component/common/loki"
-	lhttp "github.com/grafana/agent/component/common/loki/http"
+	"github.com/gorilla/mux"
 	herokuEncoding "github.com/heroku/x/logplex/encoding"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/relabel"
+
+	"github.com/grafana/agent/component/common/loki"
+	lhttp "github.com/grafana/agent/component/common/loki/http"
 
 	"github.com/grafana/loki/pkg/logproto"
 )

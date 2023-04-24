@@ -2,8 +2,9 @@ package gcplogtarget
 
 import (
 	"fmt"
-	lhttp "github.com/grafana/agent/component/common/loki/http"
 	"time"
+
+	lhttp "github.com/grafana/agent/component/common/loki/http"
 )
 
 // Target is a common interface implemented by both GCPLog targets.

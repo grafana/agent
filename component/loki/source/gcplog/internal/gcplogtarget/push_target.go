@@ -9,18 +9,19 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
 	"io"
 	"net/http"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/component/common/loki"
-	lhttp "github.com/grafana/agent/component/common/loki/http"
+	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/weaveworks/common/server"
+
+	"github.com/grafana/agent/component/common/loki"
+	lhttp "github.com/grafana/agent/component/common/loki/http"
 )
 
 // PushTarget defines a server for receiving messages from a GCP PubSub push
