@@ -115,28 +115,25 @@ func getJoinAddr(addrs []string, in string) []string {
 }
 
 // New creates a Clusterer.
-func New(log log.Logger, clusterEnabled bool, addr, joinAddr string) (*Clusterer, error) {
+func New(log log.Logger, clusterEnabled bool, listenAddr, advertiseAddr, joinAddr string) (*Clusterer, error) {
 	// Standalone node.
 	if !clusterEnabled {
-		return &Clusterer{Node: NewLocalNode(addr)}, nil
+		return &Clusterer{Node: NewLocalNode(listenAddr)}, nil
 	}
 
 	gossipConfig := DefaultGossipConfig
 
 	defaultPort := 80
-	if addr != "" {
-		host, portStr, err := net.SplitHostPort(addr)
-		if err != nil {
-			return nil, err
-		}
+	_, portStr, err := net.SplitHostPort(listenAddr)
+	if err == nil { // there was a port
 		defaultPort, err = strconv.Atoi(portStr)
-		if err != nil {
-			return nil, err
-		}
-		gossipConfig.AdvertiseAddr = host
 	}
 
-	err := gossipConfig.ApplyDefaults(defaultPort)
+	if advertiseAddr != "" {
+		gossipConfig.AdvertiseAddr = advertiseAddr
+	}
+
+	err = gossipConfig.ApplyDefaults(defaultPort)
 	if err != nil {
 		return nil, err
 	}
