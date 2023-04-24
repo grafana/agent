@@ -16,7 +16,7 @@ Main (unreleased)
   components will now export a target containing an internal HTTP address.
   `prometheus.scrape`, when given that internal HTTP address, will connect to
   the server in-memory, bypassing the network stack. Use the new
-  `--server.http.memory-address` flag to customize which address is used for
+  `--server.http.memory-addr` flag to customize which address is used for
   in-memory traffic. (@rfratto)
 
 
