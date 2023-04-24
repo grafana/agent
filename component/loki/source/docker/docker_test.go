@@ -12,8 +12,9 @@ import (
 )
 
 func Test(t *testing.T) {
+	// Use host that works on all platforms (including Windows).
 	var cfg = `
-		host       = "unix:///var/run/docker.sock"
+		host       = "tcp://127.0.0.1:9375"
 		targets    = []
 		forward_to = []
 	`
