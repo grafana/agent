@@ -18,7 +18,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"
-	"github.com/weaveworks/common/server"
 
 	"github.com/grafana/agent/component/common/loki"
 	lhttp "github.com/grafana/agent/component/common/loki/http"
@@ -34,7 +33,6 @@ type PushTarget struct {
 	entries        chan<- loki.Entry
 	handler        loki.EntryHandler
 	relabelConfigs []*relabel.Config
-	serverConfig   server.Config
 	server         *lhttp.TargetServer
 }
 
