@@ -7,6 +7,8 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+v0.33.0-rc.2 (2023-04-24)
+-------------------------
 
 ### Bugfixes
 
