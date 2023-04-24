@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/grafana/agent/pkg/river/internal/value"
 	"github.com/grafana/agent/pkg/river/parser"
 	"github.com/grafana/agent/pkg/river/vm"
 	"github.com/stretchr/testify/require"
@@ -48,6 +49,7 @@ func TestStdlibCoalesce(t *testing.T) {
 		input  string
 		expect interface{}
 	}{
+		{"coalesce()", `coalesce()`, value.Null},
 		{"coalesce(string)", `coalesce("Hello!")`, string("Hello!")},
 		{"coalesce(string, string)", `coalesce(env("TEST_VAR2"), "World!")`, string("Hello!")},
 		{"(string, string) with fallback", `coalesce(env("NON_DEFINED"), "World!")`, string("World!")},
@@ -57,7 +59,9 @@ func TestStdlibCoalesce(t *testing.T) {
 		{"coalesce(bool, int, int)", `coalesce(false, 1, 2)`, 1},
 		{"coalesce(bool, bool)", `coalesce(false, true)`, true},
 		{"coalesce(list, bool)", `coalesce(json_decode("[]"), true)`, true},
-		{"coalesce(object, bool) and return nil", `coalesce(json_decode("{}"), true)`, true},
+		{"coalesce(object, true) and return true", `coalesce(json_decode("{}"), true)`, true},
+		{"coalesce(object, false) and return false", `coalesce(json_decode("{}"), false)`, false},
+		{"coalesce(list, nil)", `coalesce([],null)`, value.Null},
 	}
 
 	for _, tc := range tt {
@@ -67,11 +71,9 @@ func TestStdlibCoalesce(t *testing.T) {
 
 			eval := vm.New(expr)
 
-			if tc.expect != nil {
-				rv := reflect.New(reflect.TypeOf(tc.expect))
-				require.NoError(t, eval.Evaluate(nil, rv.Interface()))
-				require.Equal(t, tc.expect, rv.Elem().Interface())
-			}
+			rv := reflect.New(reflect.TypeOf(tc.expect))
+			require.NoError(t, eval.Evaluate(nil, rv.Interface()))
+			require.Equal(t, tc.expect, rv.Elem().Interface())
 		})
 	}
 }

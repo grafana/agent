@@ -75,7 +75,15 @@ var Identifiers = map[string]interface{}{
 	},
 
 	"coalesce": value.RawFunction(func(funcValue value.Value, args ...value.Value) (value.Value, error) {
+		if len(args) == 0 {
+			return value.Null, nil
+		}
+
 		for _, arg := range args {
+			if arg.Type() == value.TypeNull {
+				continue
+			}
+
 			if !arg.Reflect().IsZero() {
 				if argType := value.RiverType(arg.Reflect().Type()); (argType == value.TypeArray || argType == value.TypeObject) && arg.Len() == 0 {
 					continue
@@ -85,6 +93,6 @@ var Identifiers = map[string]interface{}{
 			}
 		}
 
-		return value.Null, nil
+		return args[len(args)-1], nil
 	}),
 }
