@@ -49,6 +49,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net"
 	"sync"
 	"time"
 
@@ -107,9 +108,8 @@ type Options struct {
 	// different value for HTTPPathPrefix to prevent components from colliding.
 	HTTPPathPrefix string
 
-	// HTTPListenAddr is the base address that the server is listening on.
-	// The controller does not itself listen here, but some components
-	// need to know this to set the correct targets.
+	// HTTPListenAddr is the base address (host:port) where component APIs are
+	// exposed to other components.
 	HTTPListenAddr string
 
 	// OnExportsChange is called when the exports of the controller change.
@@ -117,6 +117,10 @@ type Options struct {
 	// OnExportsChange is nil, export configuration blocks are not allowed in the
 	// loaded config file.
 	OnExportsChange func(exports map[string]any)
+
+	// DialFunc is a function to use for components to properly connect to
+	// HTTPListenAddr. If nil, DialFunc defaults to (&net.Dialer{}).DialContext.
+	DialFunc func(ctx context.Context, network, address string) (net.Conn, error)
 }
 
 // Flow is the Flow system.
@@ -154,6 +158,11 @@ func New(o Options) *Flow {
 		}
 	}
 
+	dialFunc := o.DialFunc
+	if dialFunc == nil {
+		dialFunc = (&net.Dialer{}).DialContext
+	}
+
 	var (
 		queue  = controller.NewQueue()
 		sched  = controller.NewScheduler()
@@ -171,6 +180,7 @@ func New(o Options) *Flow {
 			Registerer:      o.Reg,
 			HTTPPathPrefix:  o.HTTPPathPrefix,
 			HTTPListenAddr:  o.HTTPListenAddr,
+			DialFunc:        dialFunc,
 			ControllerID:    o.ControllerID,
 		})
 	)

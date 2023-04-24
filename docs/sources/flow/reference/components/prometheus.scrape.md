@@ -62,7 +62,7 @@ Name | Type | Description | Default | Required
 
  At most one of the following can be provided:
  - [`bearer_token` argument](#arguments).
- - [`bearer_token_file` argument](#arguments). 
+ - [`bearer_token_file` argument](#arguments).
  - [`basic_auth` block][basic_auth].
  - [`authorization` block][authorization].
  - [`oauth2` block][oauth2].
@@ -126,7 +126,7 @@ upstream components in their `targets` argument.
 All `prometheus.scrape` components instances opting in to clustering use target
 labels and a consistent hashing algorithm to determine ownership for each of
 the targets between the cluster peers. Then, each peer only scrapes the subset
-of targets that it is responsible for, so that the scrape load is distributed. 
+of targets that it is responsible for, so that the scrape load is distributed.
 When a node joins or leaves the cluster, every peer recalculates ownership and
 continues scraping with the new target set. This performs better than hashmod
 sharding where _all_ nodes have to be re-distributed, as only 1/N of the
@@ -176,6 +176,10 @@ endpoints using HTTP, with a scrape interval of 1 minute and scrape timeout of
 query parameters, as well as any other settings can be configured using the
 component's arguments.
 
+If a target is hosted at the [in-memory traffic][] address specified by the
+[run command][], `prometheus.scrape` will scrape the metrics in-memory,
+bypassing the network.
+
 The scrape job expects the metrics exposed by the endpoint to follow the
 [OpenMetrics](https://openmetrics.io/) format. All metrics are then propagated
 to each receiver listed in the component's `forward_to` argument.
@@ -219,6 +223,9 @@ scrape target, either because it is not reachable, because the connection
 times out while scraping, or because the samples from the target could not be
 processed. When the target is behaving normally, the `up` metric is set to
 `1`.
+
+[in-memory traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
+[run command]: {{< relref "../cli/run.md" >}}
 
 ## Example
 
