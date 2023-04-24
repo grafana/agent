@@ -112,6 +112,9 @@ func (d *decoder) decode(val Value, into reflect.Value) error {
 	case into.CanSet() && into.Kind() == reflect.Map && reflect.TypeOf(into.Interface()).Elem() == goAny && d.canDirectlyAssignWithMap(val.rv.Type(), into.Type()):
 		into.Set(val.rv)
 		return nil
+	case into.CanSet() && (into.Kind() == reflect.Array || into.Kind() == reflect.Slice) && d.canDirectlyAssignWithMap(val.rv.Type(), into.Type()):
+		into.Set(val.rv)
+		return nil
 	case into.CanSet() && d.canDirectlyAssign(val.rv.Type(), into.Type()):
 		into.Set(val.rv)
 		return nil

@@ -57,6 +57,10 @@ func newNumberValue(v reflect.Value) Number {
 		nk   NumberKind
 	)
 
+	// Get underying value.
+	for v.Kind() == reflect.Pointer {
+		v = v.Elem()
+	}
 	switch v.Kind() {
 	case reflect.Int:
 		val, bits, nk = uint64(v.Int()), nativeIntBits, NumberKindInt

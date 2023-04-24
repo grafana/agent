@@ -159,6 +159,14 @@ func (v Value) Int() int64 {
 	panic("river/value: unreachable")
 }
 
+func (v Value) GetValue() reflect.Value {
+	tempV := v.rv
+	for tempV.Kind() == reflect.Pointer {
+		tempV = tempV.Elem()
+	}
+	return tempV
+}
+
 // Uint returns an uint value for v. It panics if v is not a number.
 func (v Value) Uint() uint64 {
 	if v.ty != TypeNumber {
@@ -225,15 +233,16 @@ func (v Value) Len() int {
 	case TypeArray:
 		return v.rv.Len()
 	case TypeObject:
+		rv := v.GetValue()
 		switch {
-		case v.rv.Type() == goStructWrapper:
-			return v.rv.Interface().(structWrapper).Len()
-		case v.rv.Kind() == reflect.Array, v.rv.Kind() == reflect.Slice: // Array of labeled blocks
-			return v.rv.Len()
-		case v.rv.Kind() == reflect.Struct:
-			return getCachedTags(v.rv.Type()).Len()
-		case v.rv.Kind() == reflect.Map:
-			return v.rv.Len()
+		case rv.Type() == goStructWrapper:
+			return rv.Interface().(structWrapper).Len()
+		case rv.Kind() == reflect.Array, rv.Kind() == reflect.Slice: // Array of labeled blocks
+			return rv.Len()
+		case rv.Kind() == reflect.Struct:
+			return getCachedTags(rv.Type()).Len()
+		case rv.Kind() == reflect.Map:
+			return rv.Len()
 		}
 	}
 	panic("river/value: Len called on non-array and non-object value")
@@ -289,11 +298,11 @@ func makeValue(v reflect.Value) Value {
 	riverType := RiverType(v.Type())
 
 	// Finally, deference the pointer fully and use the type we detected.
-	for v.Kind() == reflect.Pointer {
+	if v.Kind() == reflect.Pointer {
 		if v.IsNil() {
 			return Null
 		}
-		v = v.Elem()
+		_ = v.Elem()
 	}
 	return Value{rv: v, ty: riverType}
 }
@@ -319,25 +328,28 @@ func (v Value) Keys() []string {
 		panic("river/value: Keys called on non-object value")
 	}
 
-	switch {
-	case v.rv.Type() == goStructWrapper:
+	if v.rv.Type() == goStructWrapper {
 		return v.rv.Interface().(structWrapper).Keys()
+	}
+	elem := v.GetValue()
 
-	case v.rv.Kind() == reflect.Struct:
-		return wrapStruct(v.rv, true).Keys()
+	switch {
 
-	case v.rv.Kind() == reflect.Array, v.rv.Kind() == reflect.Slice:
+	case elem.Kind() == reflect.Struct:
+		return wrapStruct(elem, true).Keys()
+
+	case elem.Kind() == reflect.Array, elem.Kind() == reflect.Slice:
 		// List of labeled blocks.
-		labelField, _ := getCachedTags(v.rv.Type().Elem()).LabelField()
+		labelField, _ := getCachedTags(elem.Type().Elem()).LabelField()
 
-		keys := make([]string, v.rv.Len())
+		keys := make([]string, elem.Len())
 		for i := range keys {
-			keys[i] = reflectutil.Get(v.rv.Index(i), labelField).String()
+			keys[i] = reflectutil.Get(elem.Index(i), labelField).String()
 		}
 		return keys
 
-	case v.rv.Kind() == reflect.Map:
-		reflectKeys := v.rv.MapKeys()
+	case elem.Kind() == reflect.Map:
+		reflectKeys := elem.MapKeys()
 		res := make([]string, len(reflectKeys))
 		for i, rk := range reflectKeys {
 			res[i] = rk.String()
@@ -355,25 +367,26 @@ func (v Value) Key(key string) (index Value, ok bool) {
 		panic("river/value: Key called on non-object value")
 	}
 
+	elem := v.GetValue()
 	switch {
-	case v.rv.Type() == goStructWrapper:
-		return v.rv.Interface().(structWrapper).Key(key)
-	case v.rv.Kind() == reflect.Struct:
+	case elem.Type() == goStructWrapper:
+		return elem.Interface().(structWrapper).Key(key)
+	case elem.Kind() == reflect.Struct:
 		// We return the struct with the label intact.
-		return wrapStruct(v.rv, true).Key(key)
-	case v.rv.Kind() == reflect.Map:
-		val := v.rv.MapIndex(reflect.ValueOf(key))
+		return wrapStruct(elem, true).Key(key)
+	case elem.Kind() == reflect.Map:
+		val := elem.MapIndex(reflect.ValueOf(key))
 		if !val.IsValid() {
 			return Null, false
 		}
 		return makeValue(val), true
 
-	case v.rv.Kind() == reflect.Slice, v.rv.Kind() == reflect.Array:
+	case elem.Kind() == reflect.Slice, elem.Kind() == reflect.Array:
 		// List of labeled blocks.
-		labelField, _ := getCachedTags(v.rv.Type().Elem()).LabelField()
+		labelField, _ := getCachedTags(elem.Type().Elem()).LabelField()
 
-		for i := 0; i < v.rv.Len(); i++ {
-			elem := v.rv.Index(i)
+		for i := 0; i < elem.Len(); i++ {
+			elem := elem.Index(i)
 
 			label := reflectutil.Get(elem, labelField).String()
 			if label == key {

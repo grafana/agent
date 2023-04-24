@@ -19,7 +19,7 @@ func TestSimple(t *testing.T) {
 	}
 	reqString := `{"name":"age","type":"attr","value":{"type":"number","value":1}}`
 	val := value.Encode(obj)
-	tags := rivertags.Get(val.Reflect().Type())
+	tags := rivertags.Get(val.GetValue().Type())
 	require.Len(t, tags, 1)
 
 	af, err := newAttribute(value.Encode(obj.Age), tags[0])
@@ -38,7 +38,7 @@ func TestSimpleZeroVal(t *testing.T) {
 	}
 	reqString := `{"name":"age","type":"attr","value":{"type":"number","value":0}}`
 	val := value.Encode(obj)
-	tags := rivertags.Get(val.Reflect().Type())
+	tags := rivertags.Get(val.GetValue().Type())
 	require.Len(t, tags, 1)
 
 	af, err := newAttribute(value.Encode(obj.Age), tags[0])
@@ -59,7 +59,7 @@ func TestNested(t *testing.T) {
 
 	obj := &parent{Person: &t1{Age: 1}}
 	val := value.Encode(obj)
-	tags := rivertags.Get(val.Reflect().Type())
+	tags := rivertags.Get(val.GetValue().Type())
 	require.Len(t, tags, 1)
 
 	af, err := newAttribute(value.Encode(obj.Person), tags[0])
@@ -80,7 +80,7 @@ func TestNestedZeroVal(t *testing.T) {
 
 	obj := &parent{Person: &t1{Age: 0}}
 	val := value.Encode(obj)
-	tags := rivertags.Get(val.Reflect().Type())
+	tags := rivertags.Get(val.GetValue().Type())
 	require.Len(t, tags, 1)
 
 	af, err := newAttribute(value.Encode(obj.Person), tags[0])
@@ -99,7 +99,7 @@ func TestDiscovery(t *testing.T) {
 	}
 	testObj.Targets = append(testObj.Targets, discovery.Target{"t": "test"})
 	val := value.Encode(testObj)
-	tags := rivertags.Get(val.Reflect().Type())
+	tags := rivertags.Get(val.GetValue().Type())
 	attr, err := newAttribute(value.Encode(testObj.Targets), tags[0])
 	require.NoError(t, err)
 	require.True(t, attr.Name == "targets")
@@ -114,7 +114,7 @@ func TestDiscoveryNil(t *testing.T) {
 		Targets: make([]discovery.Target, 0),
 	}
 	val := value.Encode(testObj)
-	tags := rivertags.Get(val.Reflect().Type())
+	tags := rivertags.Get(val.GetValue().Type())
 	attr, err := newAttribute(value.Encode(testObj.Targets), tags[0])
 	require.NoError(t, err)
 	require.True(t, attr.Name == "targets")

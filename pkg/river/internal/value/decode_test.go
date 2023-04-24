@@ -653,6 +653,17 @@ func TestPointerToValue(t *testing.T) {
 	require.True(t, mm["t"] == out["t"])
 }
 
+func TestPointerToValueArray(t *testing.T) {
+	type fss struct{}
+	f := &fss{}
+	mm := make([]any, 0)
+	mm = append(mm, f)
+	out := make([]any, 0)
+	err := value.Decode(value.Encode(mm), &out)
+	require.NoError(t, err)
+	require.True(t, mm[0] == out[0])
+}
+
 func TestPointerToValueSpecific(t *testing.T) {
 	type fss struct{}
 	f := &fss{}
