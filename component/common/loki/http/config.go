@@ -28,8 +28,8 @@ type HTTPConfig struct {
 	ConnLimit     int    `river:"conn_limit,attr,optional"`
 }
 
-// Config applies the configs from HTTPConfig into a server.Config.
-func (h *HTTPConfig) Config(c *server.Config) {
+// Into applies the configs from HTTPConfig into a server.Into.
+func (h *HTTPConfig) Into(c *server.Config) {
 	c.HTTPListenAddress = h.ListenAddress
 	c.HTTPListenPort = h.ListenPort
 	c.HTTPConnLimit = h.ConnLimit
@@ -45,8 +45,8 @@ type GRPCConfig struct {
 	MaxConnectionIdle     time.Duration `river:"max_connection_idle,attr,optional"`
 }
 
-// Config applies the configs from GRPCConfig into a server.Config.
-func (g *GRPCConfig) Config(c *server.Config) {
+// Into applies the configs from GRPCConfig into a server.Into.
+func (g *GRPCConfig) Into(c *server.Config) {
 	c.GRPCListenAddress = g.ListenAddress
 	c.GRPCListenPort = g.ListenPort
 	c.GRPCConnLimit = g.ConnLimit
@@ -68,10 +68,10 @@ func (c *ServerConfig) UnmarshalRiver(f func(v interface{}) error) error {
 func (c *ServerConfig) Convert() server.Config {
 	cfg := newDefaultConfig()
 	if c.HTTP != nil {
-		c.HTTP.Config(&cfg)
+		c.HTTP.Into(&cfg)
 	}
 	if c.GRPC != nil {
-		c.GRPC.Config(&cfg)
+		c.GRPC.Into(&cfg)
 	}
 	return cfg
 }

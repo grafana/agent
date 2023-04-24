@@ -23,7 +23,7 @@ type PullConfig struct {
 
 // PushConfig configures a GCPLog target with the 'push' strategy.
 type PushConfig struct {
-	Server               *lhttp.ServerConfig `river:"server,block,optional"`
+	Server               *lhttp.ServerConfig `river:",squash"`
 	PushTimeout          time.Duration       `river:"push_timeout,attr,optional"`
 	Labels               map[string]string   `river:"labels,attr,optional"`
 	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`

@@ -32,7 +32,7 @@ func init() {
 // Arguments holds values which are used to configure the loki.source.heroku
 // component.
 type Arguments struct {
-	Server               *lhttp.ServerConfig `river:"server,block,optional"`
+	Server               *lhttp.ServerConfig `river:",squash"`
 	Labels               map[string]string   `river:"labels,attr,optional"`
 	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`
 	ForwardTo            []loki.LogsReceiver `river:"forward_to,attr"`
