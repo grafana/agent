@@ -14,7 +14,6 @@ import (
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/diag"
-	"github.com/grafana/agent/pkg/river/vm"
 	"github.com/hashicorp/go-multierror"
 	"github.com/rfratto/ckit"
 	"github.com/rfratto/ckit/peer"
@@ -95,14 +94,23 @@ func NewLoader(globals ComponentGlobals) *Loader {
 // The provided parentContext can be used to provide global variables and
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
-func (l *Loader) Apply(parentScope *vm.Scope, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) diag.Diagnostics {
+func (l *Loader) Apply(args *map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) diag.Diagnostics {
 	start := time.Now()
 	l.mut.Lock()
 	defer l.mut.Unlock()
 	l.cm.controllerEvaluation.Set(1)
 	defer l.cm.controllerEvaluation.Set(0)
 
-	newGraph, diags := l.loadNewGraph(parentScope, componentBlocks, configBlocks)
+	if args != nil {
+		for key, value := range *args {
+			l.cache.CacheExports(
+				ComponentID{"argument", key, "value"},
+				value,
+			)
+		}
+	}
+
+	newGraph, diags := l.loadNewGraph(args, componentBlocks, configBlocks)
 	if diags.HasErrors() {
 		return diags
 	}
@@ -145,7 +153,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentBlocks []*ast.BlockStmt, 
 			components = append(components, c)
 			componentIDs = append(componentIDs, c.ID())
 
-			if err = l.evaluate(logger, parentScope, c); err != nil {
+			if err = l.evaluate(logger, c); err != nil {
 				var evalDiags diag.Diagnostics
 				if errors.As(err, &evalDiags) {
 					diags = append(diags, evalDiags...)
@@ -159,7 +167,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentBlocks []*ast.BlockStmt, 
 				}
 			}
 		case BlockNode:
-			if err = l.evaluate(logger, parentScope, c); err != nil {
+			if err = l.evaluate(logger, c); err != nil {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
 					Message:  fmt.Sprintf("Failed to evaluate node for config block: %s", err),
@@ -195,17 +203,17 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentBlocks []*ast.BlockStmt, 
 }
 
 // loadNewGraph creates a new graph from the provided blocks and validates it.
-func (l *Loader) loadNewGraph(parentScope *vm.Scope, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) (dag.Graph, diag.Diagnostics) {
+func (l *Loader) loadNewGraph(args *map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) (dag.Graph, diag.Diagnostics) {
 	var g dag.Graph
 	// Fill our graph with config blocks.
-	diags := l.populateConfigBlockNodes(&g, configBlocks, parentScope)
+	diags := l.populateConfigBlockNodes(args, &g, configBlocks)
 
 	// Fill our graph with components.
 	componentNodeDiags := l.populateComponentNodes(&g, componentBlocks)
 	diags = append(diags, componentNodeDiags...)
 
 	// Write up the edges of the graph
-	wireDiags := l.wireGraphEdges(parentScope, &g)
+	wireDiags := l.wireGraphEdges(&g)
 	diags = append(diags, wireDiags...)
 
 	// Validate graph to detect cycles
@@ -225,7 +233,7 @@ func (l *Loader) loadNewGraph(parentScope *vm.Scope, componentBlocks []*ast.Bloc
 }
 
 // populateConfigBlockNodes adds any config blocks to the graph.
-func (l *Loader) populateConfigBlockNodes(g *dag.Graph, configBlocks []*ast.BlockStmt, parentScope *vm.Scope) diag.Diagnostics {
+func (l *Loader) populateConfigBlockNodes(args *map[string]any, g *dag.Graph, configBlocks []*ast.BlockStmt) diag.Diagnostics {
 	var (
 		diags   diag.Diagnostics
 		nodeMap = NewConfigNodeMap()
@@ -245,7 +253,7 @@ func (l *Loader) populateConfigBlockNodes(g *dag.Graph, configBlocks []*ast.Bloc
 	}
 
 	// If argument values were passed in, validate them.
-	validateDiags := ValidateArguments(parentScope, nodeMap)
+	validateDiags := ValidateArguments(args, nodeMap)
 	diags = append(diags, validateDiags...)
 
 	// If a logging config block is not provided, we create an empty node which uses defaults.
@@ -342,11 +350,11 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 }
 
 // Wire up all the related nodes
-func (l *Loader) wireGraphEdges(parent *vm.Scope, g *dag.Graph) diag.Diagnostics {
+func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	for _, n := range g.Nodes() {
-		refs, nodeDiags := ComponentReferences(parent, n, g)
+		refs, nodeDiags := ComponentReferences(n, g)
 		for _, ref := range refs {
 			g.AddEdge(dag.Edge{From: n, To: ref.Target})
 		}
@@ -359,7 +367,7 @@ func (l *Loader) wireGraphEdges(parent *vm.Scope, g *dag.Graph) diag.Diagnostics
 // Variables returns the Variables the Loader exposes for other Flow components
 // to reference.
 func (l *Loader) Variables() map[string]interface{} {
-	return l.cache.BuildContext(nil).Variables
+	return l.cache.BuildContext().Variables
 }
 
 // Components returns the current set of loaded components.
@@ -391,7 +399,7 @@ func (l *Loader) OriginalGraph() *dag.Graph {
 // The provided parentContext can be used to provide global variables and
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
-func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
+func (l *Loader) EvaluateDependencies(c *ComponentNode) {
 	tracer := l.tracer.Tracer("")
 
 	l.mut.RLock()
@@ -434,7 +442,7 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 
 		switch n := n.(type) {
 		case BlockNode:
-			err = l.evaluate(logger, parentScope, n)
+			err = l.evaluate(logger, n)
 			if exp, ok := n.(*ExportConfigNode); ok {
 				l.cache.CacheModuleExportValue(exp.Label(), exp.Value())
 			}
@@ -458,8 +466,8 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 
 // evaluate constructs the final context for the BlockNode and
 // evaluates it. mut must be held when calling evaluate.
-func (l *Loader) evaluate(logger log.Logger, parent *vm.Scope, bn BlockNode) error {
-	ectx := l.cache.BuildContext(parent)
+func (l *Loader) evaluate(logger log.Logger, bn BlockNode) error {
+	ectx := l.cache.BuildContext()
 	err := bn.Evaluate(ectx)
 
 	switch c := bn.(type) {

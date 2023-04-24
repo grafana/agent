@@ -64,7 +64,7 @@ func (nodeMap *ConfigNodeMap) Append(configNode BlockNode) diag.Diagnostics {
 		if _, exists := nodeMap.argumentMap[n.Label()]; exists {
 			diags.Add(diag.Diagnostic{
 				Severity: diag.SeverityLevelError,
-				Message:  fmt.Sprintf("argument config block \"%s\" already declared at %s", n.Label(), ast.StartPos(nodeMap.argumentMap[n.Label()].Block()).Position()),
+				Message:  fmt.Sprintf("argument config block %q already declared at %s", n.Label(), ast.StartPos(nodeMap.argumentMap[n.Label()].Block()).Position()),
 				StartPos: ast.StartPos(n.Block()).Position(),
 				EndPos:   ast.EndPos(n.Block()).Position(),
 			})
@@ -79,7 +79,7 @@ func (nodeMap *ConfigNodeMap) Append(configNode BlockNode) diag.Diagnostics {
 		} else {
 			diags.Add(diag.Diagnostic{
 				Severity: diag.SeverityLevelError,
-				Message:  fmt.Sprintf("export config block \"%s\" already declared at %s", n.Label(), ast.StartPos(nodeMap.exportMap[n.Label()].Block()).Position()),
+				Message:  fmt.Sprintf("export config block %q already declared at %s", n.Label(), ast.StartPos(nodeMap.exportMap[n.Label()].Block()).Position()),
 				StartPos: ast.StartPos(n.Block()).Position(),
 				EndPos:   ast.EndPos(n.Block()).Position(),
 			})
@@ -90,7 +90,7 @@ func (nodeMap *ConfigNodeMap) Append(configNode BlockNode) diag.Diagnostics {
 		} else {
 			diags.Add(diag.Diagnostic{
 				Severity: diag.SeverityLevelError,
-				Message:  fmt.Sprintf("logging config block \"%s\" already declared at %s", loggingBlockID, ast.StartPos(nodeMap.logging.Block()).Position()),
+				Message:  fmt.Sprintf("logging config block %q already declared at %s", loggingBlockID, ast.StartPos(nodeMap.logging.Block()).Position()),
 				StartPos: ast.StartPos(n.Block()).Position(),
 				EndPos:   ast.EndPos(n.Block()).Position(),
 			})
@@ -101,7 +101,7 @@ func (nodeMap *ConfigNodeMap) Append(configNode BlockNode) diag.Diagnostics {
 		} else {
 			diags.Add(diag.Diagnostic{
 				Severity: diag.SeverityLevelError,
-				Message:  fmt.Sprintf("tracing config block \"%s\" already declared at %s", tracingBlockID, ast.StartPos(nodeMap.tracing.Block()).Position()),
+				Message:  fmt.Sprintf("tracing config block %q already declared at %s", tracingBlockID, ast.StartPos(nodeMap.tracing.Block()).Position()),
 				StartPos: ast.StartPos(n.Block()).Position(),
 				EndPos:   ast.EndPos(n.Block()).Position(),
 			})
@@ -109,7 +109,7 @@ func (nodeMap *ConfigNodeMap) Append(configNode BlockNode) diag.Diagnostics {
 	default:
 		diags.Add(diag.Diagnostic{
 			Severity: diag.SeverityLevelError,
-			Message:  fmt.Sprintf("unsupported config node type found \"%s\"", n.Block().Name),
+			Message:  fmt.Sprintf("unsupported config node type found %q", n.Block().Name),
 			StartPos: ast.StartPos(n.Block()).Position(),
 			EndPos:   ast.EndPos(n.Block()).Position(),
 		})

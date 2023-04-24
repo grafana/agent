@@ -58,7 +58,7 @@ func TestValueCache(t *testing.T) {
 	vc.CacheArguments(ComponentID{"bar", "label_a"}, barArgs{Number: 12})
 	vc.CacheArguments(ComponentID{"bar", "label_b"}, barArgs{Number: 34})
 
-	res := vc.BuildContext(nil)
+	res := vc.BuildContext()
 
 	var (
 		expectKeys = []string{"foo", "bar"}

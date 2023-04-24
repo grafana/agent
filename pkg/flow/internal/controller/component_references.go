@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/grafana/agent/pkg/flow/internal/dag"
+	"github.com/grafana/agent/pkg/flow/internal/stdlib"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/vm"
@@ -17,7 +18,7 @@ type Traversal []*ast.Ident
 
 // Reference describes an River expression reference to a ComponentNode.
 type Reference struct {
-	Target *ComponentNode // Component being referenced
+	Target BlockNode // Component being referenced
 
 	// Traversal describes which nested field relative to Target is being
 	// accessed.
@@ -26,7 +27,7 @@ type Reference struct {
 
 // ComponentReferences returns the list of references a component is making to
 // other components.
-func ComponentReferences(parent *vm.Scope, cn dag.Node, g *dag.Graph) ([]Reference, diag.Diagnostics) {
+func ComponentReferences(cn dag.Node, g *dag.Graph) ([]Reference, diag.Diagnostics) {
 	var (
 		traversals []Traversal
 
@@ -42,8 +43,16 @@ func ComponentReferences(parent *vm.Scope, cn dag.Node, g *dag.Graph) ([]Referen
 
 	refs := make([]Reference, 0, len(traversals))
 	for _, t := range traversals {
+
+		parentScope := &vm.Scope{
+			// The top scope is the Flow-specific stdlib.
+			Parent: &vm.Scope{
+				Variables: stdlib.Identifiers,
+			},
+		}
+
 		// Determine if a reference refers to something existing.
-		if _, ok := parent.Lookup(t[0].Name); ok {
+		if _, ok := parentScope.Lookup(t[0].Name); ok {
 			continue
 		}
 
@@ -135,7 +144,7 @@ func resolveTraversal(t Traversal, g *dag.Graph) (Reference, diag.Diagnostics) {
 	for {
 		if n := g.GetByID(partial.String()); n != nil {
 			return Reference{
-				Target:    n.(*ComponentNode),
+				Target:    n.(BlockNode),
 				Traversal: rem,
 			}, nil
 		}

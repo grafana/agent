@@ -55,10 +55,8 @@ import (
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
-	"github.com/grafana/agent/pkg/flow/internal/stdlib"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
-	"github.com/grafana/agent/pkg/river/vm"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/atomic"
 )
@@ -209,7 +207,7 @@ func (c *Flow) Run(ctx context.Context) {
 				}
 
 				level.Debug(c.log).Log("msg", "handling component with updated state", "node_id", updated.NodeID())
-				c.loader.EvaluateDependencies(nil, updated)
+				c.loader.EvaluateDependencies(updated)
 			}
 
 		case <-c.loadFinished:
@@ -234,22 +232,11 @@ func (c *Flow) Run(ctx context.Context) {
 //
 // The controller will only start running components after Load is called once
 // without any configuration errors.
-func (c *Flow) LoadFile(file *File, args map[string]any) error {
+func (c *Flow) LoadFile(file *File, args *map[string]any) error {
 	c.loadMut.Lock()
 	defer c.loadMut.Unlock()
 
-	parentScope := &vm.Scope{
-		// The top scope is the Flow-specific stdlib.
-		Parent: &vm.Scope{
-			Variables: stdlib.Identifiers,
-		},
-	}
-
-	for key, value := range args {
-		controller.ApplyArgument(parentScope, key, value)
-	}
-
-	diags := c.loader.Apply(parentScope, file.Components, file.ConfigBlocks)
+	diags := c.loader.Apply(args, file.Components, file.ConfigBlocks)
 	if !c.loadedOnce.Load() && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.

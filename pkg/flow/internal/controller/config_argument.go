@@ -14,9 +14,11 @@ type ArgumentConfigNode struct {
 	nodeID        string
 	componentName string
 
-	mut   sync.RWMutex
-	block *ast.BlockStmt // Current River blocks to derive config from
-	eval  *vm.Evaluator
+	mut          sync.RWMutex
+	block        *ast.BlockStmt // Current River blocks to derive config from
+	eval         *vm.Evaluator
+	defaultValue any
+	optional     bool
 }
 
 var _ BlockNode = (*ArgumentConfigNode)(nil)
@@ -67,20 +69,23 @@ func (cn *ArgumentConfigNode) Evaluate(scope *vm.Scope) error {
 		return fmt.Errorf("decoding River: %w", err)
 	}
 
-	parentArgs := Arguments(scope.Parent)
-	if _, ok := (*parentArgs)[cn.label]; !ok {
-		if argument.Optional {
-			// TODO: this bit doesn't work here.
-			ApplyArgument(scope, cn.label, argument.Default)
+	cn.defaultValue = argument.Default
+	cn.optional = argument.Optional
 
-			// TODO: this doesn't work either
-			ApplyArgument(scope.Parent, cn.label, argument.Default)
-		} else {
+	args := Arguments(scope)
+	if _, ok := (*args)[cn.label]; !ok {
+		if !argument.Optional {
 			return fmt.Errorf("missing required argument %q to module", cn.label)
 		}
 	}
 
 	return nil
+}
+
+func (cn *ArgumentConfigNode) Default() any {
+	cn.mut.RLock()
+	defer cn.mut.RUnlock()
+	return cn.defaultValue
 }
 
 func (cn *ArgumentConfigNode) Label() string { return cn.label }
@@ -97,16 +102,16 @@ func (cn *ArgumentConfigNode) NodeID() string { return cn.nodeID }
 
 // ValidateArguments will compare the passed in arguments to the config
 // arguments to make sure everything is valid.
-func ValidateArguments(s *vm.Scope, nodeMap *ConfigNodeMap) diag.Diagnostics {
+func ValidateArguments(args *map[string]any, nodeMap *ConfigNodeMap) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if args := Arguments(s); args != nil {
+	if args != nil {
 		// Check each provided argument to make sure it is supported in the config.
 		for argName := range *args {
 			if _, ok := nodeMap.argumentMap[argName]; !ok {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
-					Message:  fmt.Sprintf("Unsupported argument \"%s\" was provided to a module.", argName),
+					Message:  fmt.Sprintf("Unsupported argument %q was provided to a module.", argName),
 				})
 			}
 		}
@@ -126,17 +131,4 @@ func Arguments(s *vm.Scope) *map[string]any {
 	}
 
 	return nil
-}
-
-func ApplyArgument(s *vm.Scope, key string, value any) {
-	args := Arguments(s)
-	if args == nil {
-		s.Variables = map[string]interface{}{
-			"argument": map[string]any{
-				key: map[string]any{"value": value},
-			},
-		}
-	} else {
-		(*args)[key] = map[string]any{"value": value}
-	}
 }
