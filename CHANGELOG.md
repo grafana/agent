@@ -19,6 +19,11 @@ Main (unreleased)
   `--server.http.memory-addr` flag to customize which address is used for
   in-memory traffic. (@rfratto)
 
+### Bugfixes
+
+- Fix bug where some capsule values (such as Prometheus receivers) could not
+  properly be used as an argument to a module. (@rfratto)
+
 v0.33.0-rc.2 (2023-04-24)
 -------------------------
 
