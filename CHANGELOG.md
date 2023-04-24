@@ -8,6 +8,10 @@ changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
 
+### Bugfixes
+
+- Fix bug where `loki.source.docker` always failed to start. (@rfratto)
+
 v0.33.0-rc.1 (2023-04-21)
 -------------------------
 ### Bugfixes
@@ -110,7 +114,7 @@ v0.33.0-rc.0 (2023-04-20)
 
 - Agent Management: Introduces backpressure mechanism for remote config fetching (obeys 429 request
   `Retry-After` header). (@spartan0x117)
-  
+
 - Flow: support client TLS settings (CA, client certificate, client key) being
   provided from other components for the following components:
 
