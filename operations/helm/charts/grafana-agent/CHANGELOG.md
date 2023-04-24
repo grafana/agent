@@ -10,6 +10,9 @@ internal API changes are not present.
 Unreleased
 ----------
 
+0.11.0 (2023-04-24)
+-------------------
+
 ### Enhancements
 
 - Add support for adding Annotations to Service (@ofirshtrull)
