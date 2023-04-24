@@ -14,7 +14,7 @@ Read the relevant upgrade guides for specific instructions on upgrading from old
 
 ### Installation
 
-Refer to our installation guides for how to install one of the variants of Grafana Agent:
+Refer to our installation guides for how to install the variants of Grafana Agent:
 
 * [Install static mode](https://grafana.com/docs/agent/${RELEASE_DOC_TAG}/static/set-up/)
 * [Install the static mode Kubernetes operator](https://grafana.com/docs/agent/${RELEASE_DOC_TAG}/operator/helm-getting-started/)
