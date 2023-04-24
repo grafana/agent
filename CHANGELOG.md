@@ -23,6 +23,10 @@ v0.33.0-rc.2 (2023-04-24)
 
 - Fix bug where `loki.source.docker` always failed to start. (@rfratto)
 
+### Other changes
+
+- Add metrics when clustering mode is enabled. (@rfratto)
+
 v0.33.0-rc.1 (2023-04-21)
 -------------------------
 
