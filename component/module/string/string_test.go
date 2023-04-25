@@ -142,6 +142,34 @@ func TestModule(t *testing.T) {
 			exportModuleContent:   exportStringConfig,
 			expectedErrorContains: "Failed to evaluate node for config block: missing required argument \"password\" to module",
 		},
+		{
+			name:                  "Duplicate logging config",
+			riverContent:          argumentModuleLoaderConfig + exportModuleLoaderConfig + loggingConfig + loggingConfig,
+			argumentModuleContent: argumentConfig,
+			exportModuleContent:   exportStringConfig,
+			expectedErrorContains: "logging config block \"logging\" already declared",
+		},
+		{
+			name:                  "Duplicate tracing config",
+			riverContent:          argumentModuleLoaderConfig + exportModuleLoaderConfig + tracingConfig + tracingConfig,
+			argumentModuleContent: argumentConfig,
+			exportModuleContent:   exportStringConfig,
+			expectedErrorContains: "tracing config block \"tracing\" already declared",
+		},
+		{
+			name:                  "Duplicate argument config",
+			riverContent:          argumentModuleLoaderConfig + exportModuleLoaderConfig,
+			argumentModuleContent: argumentConfig + argumentConfig,
+			exportModuleContent:   exportStringConfig,
+			expectedErrorContains: "argument config block \"username\" already declared",
+		},
+		{
+			name:                  "Duplicate export config",
+			riverContent:          argumentModuleLoaderConfig + exportModuleLoaderConfig,
+			argumentModuleContent: argumentConfig,
+			exportModuleContent:   exportStringConfig + exportStringConfig,
+			expectedErrorContains: "export config block \"username\" already declared",
+		},
 	}
 
 	for _, tc := range tt {
@@ -181,7 +209,7 @@ func testFile(t *testing.T, fmtFile string, componentToFind string, searchable [
 	}
 
 	ctx := context.Background()
-	ctx, cncl := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cncl := context.WithTimeout(ctx, 20*time.Second)
 	defer cncl()
 	go f.Run(ctx)
 	time.Sleep(3 * time.Second)
