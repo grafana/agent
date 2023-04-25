@@ -7,23 +7,38 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-v0.33.0-rc.2 (2023-04-24)
--------------------------
+Main (unreleased)
+-----------------
+
+### Features
+
+- Added coalesce function to river stdlib. (@jkroepke)
+
+### Enhancements
+
+- Support in-memory HTTP traffic for Flow components. `prometheus.exporter`
+  components will now export a target containing an internal HTTP address.
+  `prometheus.scrape`, when given that internal HTTP address, will connect to
+  the server in-memory, bypassing the network stack. Use the new
+  `--server.http.memory-addr` flag to customize which address is used for
+  in-memory traffic. (@rfratto)
 
 ### Bugfixes
 
-- Fix bug where `loki.source.docker` always failed to start. (@rfratto)
+- Fix spelling of the `frequency` argument on the `local.file` component.
+  (@tpaschalis)
 
-v0.33.0-rc.1 (2023-04-21)
--------------------------
-### Bugfixes
-- Fix bug introduced to operator when FilterRunning not specified in PodMonitors. (@captncraig)
+- Fix bug where some capsule values (such as Prometheus receivers) could not
+  properly be used as an argument to a module. (@rfratto)
 
-- Remove `otelcol.processor.attributes`. (@ptodev)
+### Other changes
 
+- Add metrics when clustering mode is enabled. (@rfratto)
 
-v0.33.0-rc.0 (2023-04-20)
--------------------------
+- Support Bundles report the status of discovered log targets. (@tpaschalis)
+
+v0.33.0 (2023-04-25)
+--------------------
 
 ### Breaking changes
 
@@ -71,8 +86,6 @@ v0.33.0-rc.0 (2023-04-20)
   - `otelcol.auth.sigv4` performs AWS Signature Version 4 (SigV4) authentication
     for making requests to AWS services via `otelcol` components that support
     authentication extensions. (@ptodev)
-  - `otelcol.processor.attributes` accepts telemetry data from other `otelcol`
-    components and modifies attributes of a span, log, or metric. (@ptodev)
   - `prometheus.exporter.blackbox` collects metrics from Blackbox exporter. (@marctc)
   - `prometheus.exporter.mysql` collects metrics from a MySQL database. (@spartan0x117)
   - `prometheus.exporter.postgres` collects metrics from a PostgreSQL database. (@spartan0x117)
@@ -203,6 +216,7 @@ v0.33.0-rc.0 (2023-04-20)
 
 - Fixes a bug where the github exporter would get stuck in an infinite loop under certain conditions. (@jcreixell)
 
+- Fix bug where `loki.source.docker` always failed to start. (@rfratto)
 
 ### Other changes
 
