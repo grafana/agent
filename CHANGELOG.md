@@ -28,6 +28,9 @@ Main (unreleased)
 - Fix spelling of the `frequency` argument on the `local.file` component.
   (@tpaschalis)
 
+- Fix bug where some capsule values (such as Prometheus receivers) could not
+  properly be used as an argument to a module. (@rfratto)
+
 ### Other changes
 
 - Add metrics when clustering mode is enabled. (@rfratto)
