@@ -8,6 +8,7 @@ import (
 	"unsafe"
 
 	"github.com/grafana/agent/pkg/river/internal/value"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -640,4 +641,73 @@ func TestDecode_SquashedSlice_Pointer(t *testing.T) {
 	err := value.Decode(value.Encode(in), &out)
 	require.NoError(t, err)
 	require.Equal(t, expect, out)
+}
+
+// TestDecode_KnownTypes_Any asserts that decoding River values into an
+// any/interface{} results in known types.
+func TestDecode_KnownTypes_Any(t *testing.T) {
+	tt := []struct {
+		input  any
+		expect any
+	}{
+		// All numbers must decode to float64.
+		{int(15), float64(15)},
+		{int8(15), float64(15)},
+		{int16(15), float64(15)},
+		{int32(15), float64(15)},
+		{int64(15), float64(15)},
+		{uint(15), float64(15)},
+		{uint8(15), float64(15)},
+		{uint16(15), float64(15)},
+		{uint32(15), float64(15)},
+		{uint64(15), float64(15)},
+
+		{bool(true), bool(true)},
+		{string("Hello"), string("Hello")},
+
+		{
+			input:  []int{1, 2, 3},
+			expect: []any{float64(1), float64(2), float64(3)},
+		},
+
+		{
+			input:  map[string]int{"number": 15},
+			expect: map[string]any{"number": float64(15)},
+		},
+		{
+			input: struct {
+				Name string `river:"name,attr"`
+			}{Name: "John"},
+
+			expect: map[string]any{"name": "John"},
+		},
+	}
+
+	t.Run("basic types", func(t *testing.T) {
+		for _, tc := range tt {
+			var actual any
+			err := value.Decode(value.Encode(tc.input), &actual)
+
+			if assert.NoError(t, err) {
+				assert.Equal(t, tc.expect, actual,
+					"Expected %[1]v (%[1]T) to transcode to %[2]v (%[2]T)", tc.input, tc.expect)
+			}
+		}
+	})
+
+	t.Run("inside maps", func(t *testing.T) {
+		for _, tc := range tt {
+			input := map[string]any{
+				"key": tc.input,
+			}
+
+			var actual map[string]any
+			err := value.Decode(value.Encode(input), &actual)
+
+			if assert.NoError(t, err) {
+				assert.Equal(t, tc.expect, actual["key"],
+					"Expected %[1]v (%[1]T) to transcode to %[2]v (%[2]T) inside a map", tc.input, tc.expect)
+			}
+		}
+	})
 }
