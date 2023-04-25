@@ -35,5 +35,4 @@ RUN <<EOF
 EOF
 
 COPY --from=build /src/agent/build/grafana-agentctl /bin/grafana-agentctl
-RUN ln -sv /bin/grafana-agentctl /bin/agentctl
-ENTRYPOINT ["/bin/agentctl"]
+ENTRYPOINT ["/bin/grafana-agentctl"]

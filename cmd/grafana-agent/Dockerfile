@@ -43,7 +43,6 @@ EOF
 COPY --from=build /src/agent/build/grafana-agent /bin/grafana-agent
 COPY cmd/grafana-agent/agent-local-config.yaml /etc/agent/agent.yaml
 
-RUN ln -sv /bin/grafana-agent /bin/agent
 
 ENTRYPOINT ["/bin/grafana-agent"]
 CMD ["--config.file=/etc/agent/agent.yaml", "--metrics.wal-directory=/etc/agent/data"]

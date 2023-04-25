@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rfratto/ckit"
 	"github.com/rfratto/ckit/peer"
 	"github.com/rfratto/ckit/shard"
@@ -115,7 +116,7 @@ func getJoinAddr(addrs []string, in string) []string {
 }
 
 // New creates a Clusterer.
-func New(log log.Logger, clusterEnabled bool, listenAddr, advertiseAddr, joinAddr string) (*Clusterer, error) {
+func New(log log.Logger, reg prometheus.Registerer, clusterEnabled bool, listenAddr, advertiseAddr, joinAddr string) (*Clusterer, error) {
 	// Standalone node.
 	if !clusterEnabled {
 		return &Clusterer{Node: NewLocalNode(listenAddr)}, nil
@@ -158,7 +159,7 @@ func New(log log.Logger, clusterEnabled bool, listenAddr, advertiseAddr, joinAdd
 		},
 	}
 
-	gossipNode, err := NewGossipNode(log, cli, &gossipConfig)
+	gossipNode, err := NewGossipNode(log, reg, cli, &gossipConfig)
 	if err != nil {
 		return nil, err
 	}

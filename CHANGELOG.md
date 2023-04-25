@@ -10,6 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Features
+
+- Added coalesce function to river stdlib. (@jkroepke)
+
 ### Enhancements
 
 - Support in-memory HTTP traffic for Flow components. `prometheus.exporter`
@@ -21,8 +25,17 @@ Main (unreleased)
 
 ### Bugfixes
 
+- Fix spelling of the `frequency` argument on the `local.file` component.
+  (@tpaschalis)
+
 - Fix bug where some capsule values (such as Prometheus receivers) could not
   properly be used as an argument to a module. (@rfratto)
+
+### Other changes
+
+- Add metrics when clustering mode is enabled. (@rfratto)
+
+- Support Bundles report the status of discovered log targets. (@tpaschalis)
 
 v0.33.0-rc.2 (2023-04-24)
 -------------------------
@@ -56,6 +69,9 @@ v0.33.0-rc.0 (2023-04-20)
 
 - Agent Management: `agent_management.remote_config_cache_location` config field has been replaced by
 `agent_management.remote_configuration.cache_location`. (@jcreixell)
+
+- Remove deprecated symbolic links to to `/bin/agent*` in Docker containers,
+  as planned in v0.31. (@tpaschalis)
 
 ### Deprecations
 
