@@ -19,6 +19,11 @@ Main (unreleased)
   `--server.http.memory-addr` flag to customize which address is used for
   in-memory traffic. (@rfratto)
 
+### Bugfixes
+
+- Fix spelling of the `frequency` argument on the `local.file` component.
+  (@tpaschalis)
+
 ### Other changes
 
 - Add metrics when clustering mode is enabled. (@rfratto)
