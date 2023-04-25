@@ -23,6 +23,8 @@ Main (unreleased)
 
 - Add metrics when clustering mode is enabled. (@rfratto)
 
+- Support Bundles report the status of discovered log targets. (@tpaschalis)
+
 v0.33.0-rc.2 (2023-04-24)
 -------------------------
 
