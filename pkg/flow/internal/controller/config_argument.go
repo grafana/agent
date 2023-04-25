@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/grafana/agent/pkg/river/ast"
-	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/vm"
 )
 
@@ -25,20 +24,7 @@ var _ BlockNode = (*ArgumentConfigNode)(nil)
 
 // NewArgumentConfigNode creates a new ArgumentConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.
-func NewArgumentConfigNode(block *ast.BlockStmt, globals ComponentGlobals, isInModule bool) (*ArgumentConfigNode, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	if !isInModule {
-		diags.Add(diag.Diagnostic{
-			Severity: diag.SeverityLevelError,
-			Message:  "argument blocks only allowed inside a module",
-			StartPos: ast.StartPos(block).Position(),
-			EndPos:   ast.EndPos(block).Position(),
-		})
-
-		return nil, diags
-	}
-
+func NewArgumentConfigNode(block *ast.BlockStmt, globals ComponentGlobals) *ArgumentConfigNode {
 	return &ArgumentConfigNode{
 		label:         block.Label,
 		nodeID:        BlockComponentID(block).String(),
@@ -46,7 +32,7 @@ func NewArgumentConfigNode(block *ast.BlockStmt, globals ComponentGlobals, isInM
 
 		block: block,
 		eval:  vm.New(block.Body),
-	}, diags
+	}
 }
 
 type argumentBlock struct {
@@ -105,26 +91,6 @@ func (cn *ArgumentConfigNode) Block() *ast.BlockStmt {
 
 // NodeID implements dag.Node and returns the unique ID for the config node.
 func (cn *ArgumentConfigNode) NodeID() string { return cn.nodeID }
-
-// ValidateArguments will compare the passed in arguments to the config
-// arguments to make sure everything is valid.
-func ValidateArguments(args *map[string]any, nodeMap *ConfigNodeMap) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	if args != nil {
-		// Check each provided argument to make sure it is supported in the config.
-		for argName := range *args {
-			if _, ok := nodeMap.argumentMap[argName]; !ok {
-				diags.Add(diag.Diagnostic{
-					Severity: diag.SeverityLevelError,
-					Message:  fmt.Sprintf("Unsupported argument %q was provided to a module.", argName),
-				})
-			}
-		}
-	}
-
-	return diags
-}
 
 func Arguments(s *vm.Scope) *map[string]any {
 	if s != nil && s.Variables != nil {

@@ -6,7 +6,6 @@ import (
 
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river/ast"
-	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/vm"
 )
 
@@ -22,20 +21,7 @@ type LoggingConfigNode struct {
 
 // NewLoggingConfigNode creates a new LoggingConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.
-func NewLoggingConfigNode(block *ast.BlockStmt, globals ComponentGlobals, isInModule bool) (*LoggingConfigNode, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	if isInModule {
-		diags.Add(diag.Diagnostic{
-			Severity: diag.SeverityLevelError,
-			Message:  "logging block not allowed inside a module",
-			StartPos: ast.StartPos(block).Position(),
-			EndPos:   ast.EndPos(block).Position(),
-		})
-
-		return nil, diags
-	}
-
+func NewLoggingConfigNode(block *ast.BlockStmt, globals ComponentGlobals) *LoggingConfigNode {
 	return &LoggingConfigNode{
 		nodeID:        BlockComponentID(block).String(),
 		componentName: block.GetBlockName(),
@@ -43,7 +29,7 @@ func NewLoggingConfigNode(block *ast.BlockStmt, globals ComponentGlobals, isInMo
 
 		block: block,
 		eval:  vm.New(block.Body),
-	}, diags
+	}
 }
 
 // NewDefaultLoggingConfigNode creates a new LoggingConfigNode with nil block and eval.

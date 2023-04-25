@@ -16,9 +16,9 @@ import (
 // will be (field_a, field_b, field_c).
 type Traversal []*ast.Ident
 
-// Reference describes an River expression reference to a ComponentNode.
+// Reference describes an River expression reference to a BlockNode.
 type Reference struct {
-	Target BlockNode // Component being referenced
+	Target BlockNode // BlockNode being referenced
 
 	// Traversal describes which nested field relative to Target is being
 	// accessed.
@@ -44,15 +44,9 @@ func ComponentReferences(cn dag.Node, g *dag.Graph) ([]Reference, diag.Diagnosti
 	refs := make([]Reference, 0, len(traversals))
 	for _, t := range traversals {
 
-		parentScope := &vm.Scope{
-			// The top scope is the Flow-specific stdlib.
-			Parent: &vm.Scope{
-				Variables: stdlib.Identifiers,
-			},
-		}
-
-		// Determine if a reference refers to something existing.
-		if _, ok := parentScope.Lookup(t[0].Name); ok {
+		// Determine if a reference refers to something in stdlib.
+		scope := &vm.Scope{Variables: stdlib.Identifiers}
+		if _, ok := scope.Lookup(t[0].Name); ok {
 			continue
 		}
 

@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/grafana/agent/pkg/river/ast"
-	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/vm"
 )
 
@@ -24,20 +23,7 @@ var _ BlockNode = (*ExportConfigNode)(nil)
 
 // NewExportConfigNode creates a new ExportConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.
-func NewExportConfigNode(block *ast.BlockStmt, globals ComponentGlobals, isInModule bool) (*ExportConfigNode, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	if !isInModule {
-		diags.Add(diag.Diagnostic{
-			Severity: diag.SeverityLevelError,
-			Message:  "export blocks only allowed inside a module",
-			StartPos: ast.StartPos(block).Position(),
-			EndPos:   ast.EndPos(block).Position(),
-		})
-
-		return nil, diags
-	}
-
+func NewExportConfigNode(block *ast.BlockStmt, globals ComponentGlobals) *ExportConfigNode {
 	return &ExportConfigNode{
 		label:         block.Label,
 		nodeID:        BlockComponentID(block).String(),
@@ -45,7 +31,7 @@ func NewExportConfigNode(block *ast.BlockStmt, globals ComponentGlobals, isInMod
 
 		block: block,
 		eval:  vm.New(block.Body),
-	}, diags
+	}
 }
 
 type exportBlock struct {

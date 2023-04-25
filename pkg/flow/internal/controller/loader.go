@@ -240,7 +240,7 @@ func (l *Loader) populateConfigBlockNodes(args *map[string]any, g *dag.Graph, co
 	)
 
 	for _, block := range configBlocks {
-		node, newConfigNodeDiags := NewConfigNode(block, l.globals, l.isModule())
+		node, newConfigNodeDiags := NewConfigNode(block, l.globals)
 		diags = append(diags, newConfigNodeDiags...)
 
 		nodeMapDiags := nodeMap.Append(node)
@@ -252,8 +252,7 @@ func (l *Loader) populateConfigBlockNodes(args *map[string]any, g *dag.Graph, co
 		g.Add(node)
 	}
 
-	// If argument values were passed in, validate them.
-	validateDiags := ValidateArguments(args, nodeMap)
+	validateDiags := nodeMap.Validate(l.isModule(), args)
 	diags = append(diags, validateDiags...)
 
 	// If a logging config block is not provided, we create an empty node which uses defaults.
