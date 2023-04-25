@@ -10,6 +10,9 @@ internal API changes are not present.
 v0.33.1 (2023-04-28)
 --------------------
 
+- Fix bug where some capsule values (such as Prometheus receivers) could not
+  properly be used as an argument to a module. (@rfratto)
+
 ### Other changes
 
 - Support Bundles report the status of discovered log targets. (@tpaschalis)
