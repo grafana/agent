@@ -43,7 +43,6 @@ func ComponentReferences(cn dag.Node, g *dag.Graph) ([]Reference, diag.Diagnosti
 
 	refs := make([]Reference, 0, len(traversals))
 	for _, t := range traversals {
-
 		// Determine if a reference refers to something in stdlib.
 		scope := &vm.Scope{Variables: stdlib.Identifiers}
 		if _, ok := scope.Lookup(t[0].Name); ok {
