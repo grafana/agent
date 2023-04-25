@@ -2,6 +2,7 @@ package configgen
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"testing"
 	"time"
@@ -22,8 +23,8 @@ import (
 )
 
 func TestGenerateServiceMonitorConfig(t *testing.T) {
-	//var falseVal = false
-	//var proxyURL = "https://proxy:8080"
+	var falseVal = false
+	var proxyURL = "https://proxy:8080"
 	suite := []struct {
 		name                   string
 		m                      *promopv1.ServiceMonitor
@@ -110,14 +111,76 @@ func TestGenerateServiceMonitorConfig(t *testing.T) {
 					JobLabel:        "joblabelispecify",
 					TargetLabels:    []string{"a", "b"},
 					PodTargetLabels: []string{"c", "d"},
+					Selector: metav1.LabelSelector{
+						MatchLabels: map[string]string{"foo": "bar"},
+						MatchExpressions: []metav1.LabelSelectorRequirement{
+							{
+								Key:      "key",
+								Operator: metav1.LabelSelectorOpIn,
+								Values:   []string{"val0", "val1"},
+							},
+							{
+								Key:      "key",
+								Operator: metav1.LabelSelectorOpNotIn,
+								Values:   []string{"val2", "val3"},
+							},
+							{
+								Key:      "key",
+								Operator: metav1.LabelSelectorOpExists,
+							},
+							{
+								Key:      "key2",
+								Operator: metav1.LabelSelectorOpDoesNotExist,
+							},
+						},
+					},
+					NamespaceSelector:     promopv1.NamespaceSelector{Any: false, MatchNames: []string{"ns_a", "ns_b"}},
+					SampleLimit:           101,
+					TargetLimit:           102,
+					LabelLimit:            103,
+					LabelNameLengthLimit:  104,
+					LabelValueLengthLimit: 105,
+					AttachMetadata:        &promopv1.AttachMetadata{Node: true},
 				},
 			},
 			ep: promopv1.Endpoint{
-				Port: "metrics",
+				Port:            "metrics",
+				EnableHttp2:     &falseVal,
+				Path:            "/foo",
+				Params:          map[string][]string{"a": {"b"}},
+				FollowRedirects: &falseVal,
+				ProxyURL:        &proxyURL,
+				Scheme:          "https",
+				ScrapeTimeout:   "17m",
+				Interval:        "1s",
+				HonorLabels:     true,
+				HonorTimestamps: &falseVal,
+				FilterRunning:   &falseVal,
+				TLSConfig: &promopv1.TLSConfig{
+					SafeTLSConfig: promopv1.SafeTLSConfig{
+						ServerName:         "foo.com",
+						InsecureSkipVerify: true,
+					},
+				},
 			},
 			expectedRelabels: util.Untab(`
 				- source_labels: [job]
 				  target_label: __tmp_prometheus_job_name
+				- source_labels: [__meta_kubernetes_service_label_foo, __meta_kubernetes_service_labelpresent_foo]
+				  action: keep
+				  regex: (bar);true
+				- source_labels: [__meta_kubernetes_service_label_key, __meta_kubernetes_service_labelpresent_key]
+				  action: keep
+				  regex: (val0|val1);true
+				- source_labels: [__meta_kubernetes_service_label_key, __meta_kubernetes_service_labelpresent_key]
+				  action: drop
+				  regex: (val2|val3);true
+				- source_labels: [__meta_kubernetes_service_labelpresent_key]
+				  action: keep
+				  regex: true
+				- source_labels: [__meta_kubernetes_service_labelpresent_key2]
+				  action: drop
+				  regex: true
 				- source_labels: [__meta_kubernetes_endpoint_port_name]
 				  regex: metrics
 				  action: keep
@@ -138,9 +201,6 @@ func TestGenerateServiceMonitorConfig(t *testing.T) {
 				  target_label: container
 				- source_labels: [__meta_kubernetes_pod_name]
 				  target_label: pod
-				- source_labels: [__meta_kubernetes_pod_phase]
-				  regex: (Failed|Succeeded)
-				  action: drop
 				- regex: "(.+)"
 				  replacement: ${1}
 				  source_labels: [__meta_kubernetes_service_label_a]
@@ -170,25 +230,41 @@ func TestGenerateServiceMonitorConfig(t *testing.T) {
 			`),
 			expected: &config.ScrapeConfig{
 				JobName:         "serviceMonitor/operator/svcmonitor/1",
-				HonorTimestamps: true,
-				ScrapeInterval:  model.Duration(time.Minute),
-				ScrapeTimeout:   model.Duration(10 * time.Second),
-				MetricsPath:     "/metrics",
-				Scheme:          "http",
+				HonorLabels:     true,
+				HonorTimestamps: false,
+				Params: url.Values{
+					"a": []string{"b"},
+				},
+				ScrapeInterval: model.Duration(time.Second),
+				ScrapeTimeout:  model.Duration(17 * time.Minute),
+				MetricsPath:    "/foo",
+				Scheme:         "https",
 				HTTPClientConfig: commonConfig.HTTPClientConfig{
-					FollowRedirects: true,
-					EnableHTTP2:     true,
+					FollowRedirects: falseVal,
+					EnableHTTP2:     false,
+					TLSConfig: commonConfig.TLSConfig{
+						ServerName:         "foo.com",
+						InsecureSkipVerify: true,
+					},
+					ProxyConfig: commonConfig.ProxyConfig{
+						ProxyURL: commonConfig.URL{URL: &url.URL{Scheme: "https", Host: "proxy:8080"}},
+					},
 				},
 				ServiceDiscoveryConfigs: discovery.Configs{
 					&promk8s.SDConfig{
-						Role: "endpoints",
-
+						Role:           "endpoints",
+						AttachMetadata: promk8s.AttachMetadataConfig{Node: true},
 						NamespaceDiscovery: promk8s.NamespaceDiscovery{
 							IncludeOwnNamespace: false,
-							Names:               []string{"operator"},
+							Names:               []string{"ns_a", "ns_b"},
 						},
 					},
 				},
+				SampleLimit:           101,
+				TargetLimit:           102,
+				LabelLimit:            103,
+				LabelNameLengthLimit:  104,
+				LabelValueLengthLimit: 105,
 			},
 		},
 	}
