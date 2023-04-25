@@ -10,6 +10,13 @@ internal API changes are not present.
 Unreleased
 ----------
 
+0.12.0 (2023-04-25)
+-------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.33.0. (@rfratto)
+
 0.11.0 (2023-04-24)
 -------------------
 
