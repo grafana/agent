@@ -31,6 +31,9 @@ Main (unreleased)
 - Fix bug where some capsule values (such as Prometheus receivers) could not
   properly be used as an argument to a module. (@rfratto)
 
+- Return an error message rather than go panic when putting a logging config
+  block inside a module. (@erikbaranowski)
+
 ### Other changes
 
 - Add metrics when clustering mode is enabled. (@rfratto)
