@@ -20,6 +20,8 @@ Grafana Agent Flow.
 
 ## v0.33.0 
 
+### Symbolic links in Docker containers removed
+
 We've removed the deprecated symbolic links to `/bin/agent*` in Docker
 containers, as planned in v0.31. In case you're setting a custom entrypoint,
 use the new binaries that are prefixed with `/bin/grafana*`.
