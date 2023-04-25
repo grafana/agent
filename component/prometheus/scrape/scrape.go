@@ -15,6 +15,7 @@ import (
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/build"
 	client_prometheus "github.com/prometheus/client_golang/prometheus"
+	config_util "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
@@ -135,7 +136,12 @@ var (
 // New creates a new prometheus.scrape component.
 func New(o component.Options, args Arguments) (*Component, error) {
 	flowAppendable := prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer)
-	scrapeOptions := &scrape.Options{ExtraMetrics: args.ExtraMetrics}
+	scrapeOptions := &scrape.Options{
+		ExtraMetrics: args.ExtraMetrics,
+		HTTPClientOptions: []config_util.HTTPClientOption{
+			config_util.WithDialContextFunc(o.DialFunc),
+		},
+	}
 	scraper := scrape.NewManager(scrapeOptions, o.Logger, flowAppendable)
 
 	targetsGauge := client_prometheus.NewGauge(client_prometheus.GaugeOpts{

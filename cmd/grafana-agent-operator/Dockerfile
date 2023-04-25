@@ -34,5 +34,4 @@ RUN <<EOF
 EOF
 
 COPY --from=build /src/agent/build/grafana-agent-operator /bin/grafana-agent-operator
-RUN ln -sv /bin/grafana-agent-operator /bin/agent-operator
 ENTRYPOINT ["/bin/grafana-agent-operator"]

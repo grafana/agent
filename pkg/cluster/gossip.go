@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/dskit/flagext"
 	"github.com/hashicorp/go-discover"
 	"github.com/hashicorp/go-discover/provider/k8s"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rfratto/ckit"
 	"github.com/rfratto/ckit/advertise"
 	"github.com/rfratto/ckit/peer"
@@ -168,7 +169,7 @@ type GossipNode struct {
 // valid and have already had ApplyDefaults called on it.
 //
 // GossipNode operations are unavailable until the node is started.
-func NewGossipNode(l log.Logger, cli *http.Client, c *GossipConfig) (*GossipNode, error) {
+func NewGossipNode(l log.Logger, reg prometheus.Registerer, cli *http.Client, c *GossipConfig) (*GossipNode, error) {
 	if l == nil {
 		l = log.NewNopLogger()
 	}
@@ -186,6 +187,7 @@ func NewGossipNode(l log.Logger, cli *http.Client, c *GossipConfig) (*GossipNode
 	if err != nil {
 		return nil, err
 	}
+	reg.MustRegister(inner.Metrics())
 
 	return &GossipNode{
 		cfg:       c,
