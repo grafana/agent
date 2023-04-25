@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/component/loki/internal/fake"
+
 	"github.com/grafana/dskit/flagext"
 	"github.com/prometheus/common/config"
 
@@ -17,8 +19,6 @@ import (
 	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/grafana/agent/component/loki/source/internal/kafkafake"
 )
 
 func Test_TopicDiscovery(t *testing.T) {
@@ -87,7 +87,7 @@ func Test_NewTarget(t *testing.T) {
 	ts := &TargetSyncer{
 		logger: log.NewNopLogger(),
 		reg:    prometheus.DefaultRegisterer,
-		client: kafkafake.New(func() {}),
+		client: fake.NewClient(func() {}),
 		cfg: Config{
 			RelabelConfigs: []*relabel.Config{
 				{

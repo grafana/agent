@@ -15,7 +15,7 @@ labels:
 The `prometheus.exporter.postgres` component embeds
 [postgres_exporter](https://github.com/prometheus-community/postgres_exporter) for collecting metrics from a postgres database.
 
-Multiple `prometheus.exporter.postgres` components can be specified by giving them different 
+Multiple `prometheus.exporter.postgres` components can be specified by giving them different
 labels.
 
 ## Usage
@@ -77,6 +77,12 @@ For example, `targets` can either be passed to a `prometheus.relabel`
 component to rewrite the metrics' label set, or to a `prometheus.scrape`
 component that collects the exposed metrics.
 
+The exported targets will use the configured [in-memory traffic][] address
+specified by the [run command][].
+
+[in-memory traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
+[run command]: {{< relref "../cli/run.md" >}}
+
 ## Component health
 
 `prometheus.exporter.postgres` is only reported as unhealthy if given
@@ -130,7 +136,7 @@ prometheus.exporter.postgres "example" {
     enabled = true
     database_allowlist = ["frontend_app", "backend_app"]
   }
-  
+
   disable_default_metrics = true
   custom_queries_path     = "/etc/agent/custom-postgres-metrics.yaml"
 }
@@ -153,7 +159,7 @@ for the `secrets` database.
 prometheus.exporter.postgres "example" {
   data_source_names       = ["postgresql://username:password@localhost:5432/database_name?sslmode=disable"]
 
-  // The database_denylist field will filter out those databases from the list of databases to scrape, 
+  // The database_denylist field will filter out those databases from the list of databases to scrape,
   // meaning that all databases *except* these will be scraped.
   //
   // In this example it will scrape all databases except for the one named 'secrets'.
