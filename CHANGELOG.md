@@ -7,6 +7,13 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+v0.33.1 (2023-04-28)
+--------------------
+
+### Bugfixes
+
+- Fix spelling of the `frequency` argument on the `local.file` component.
+  (@tpaschalis)
 
 v0.33.0 (2023-04-25)
 --------------------
