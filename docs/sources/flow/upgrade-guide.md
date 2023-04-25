@@ -18,6 +18,12 @@ Grafana Agent Flow.
 > [upgrade-guide-static]: {{< relref "../static/upgrade-guide.md" >}}
 > [upgrade-guide-operator]: {{< relref "../operator/upgrade-guide.md" >}}
 
+## v0.33.0 
+
+We've removed the deprecated symbolic links to `/bin/agent*` in Docker
+containers, as planned in v0.31. In case you're setting a custom entrypoint,
+use the new binaries that are prefixed with `/bin/grafana*`.
+
 ## v0.32.0
 
 ### Breaking change: `http_client_config` Flow blocks merged with parent blocks

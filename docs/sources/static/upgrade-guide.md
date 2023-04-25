@@ -21,6 +21,10 @@ static mode.
 
 ## v0.33
 
+We've removed the deprecated symbolic links to `/bin/agent*` in Docker
+containers, as planned in v0.31. In case you're setting a custom entrypoint,
+use the new binaries that are prefixed with `/bin/grafana*`.
+
 ### Deprecation of Dynamic Configuration
 
 [Dynamic Configuration](https://grafana.com/docs/agent/latest/cookbook/dynamic-configuration/) will be removed in v0.34. 
