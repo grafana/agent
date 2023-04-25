@@ -102,20 +102,7 @@ func (c *Component) Update(args component.Arguments) error {
 		return errors.Newf("invalid type of arguments: %T", args)
 	}
 
-	newPushTargetConfig := &lokipush.PushTargetConfig{
-		Server: server.Config{
-			HTTPListenPort:          newArgs.HTTPPort,
-			HTTPListenAddress:       newArgs.HTTPAddress,
-			Registerer:              c.opts.Registerer,
-			MetricsNamespace:        "loki_source_http",
-			RegisterInstrumentation: false,
-			Log:                     logging.GoKit(c.opts.Logger),
-		},
-		Labels:        newArgs.labelSet(),
-		KeepTimestamp: newArgs.UseIncomingTimestamp,
-		RelabelConfig: relabel.ComponentToPromRelabelConfigs(newArgs.RelabelRules),
-	}
-
+	newPushTargetConfig := c.pushTargetConfigForArgs(newArgs)
 	if !c.pushTargetNeedsUpdate(newPushTargetConfig) {
 		return c.commitUpdate(newArgs, nil)
 	}
@@ -142,7 +129,7 @@ func (c *Component) commitUpdate(newArgs Arguments, newPushTarget *lokipush.Push
 		if c.pushTarget != nil {
 			err := c.pushTarget.Stop()
 			if err != nil {
-				level.Warn(c.opts.Logger).Log("msg", "push API server failed to stop while updating configuration", "err", err)
+				level.Warn(c.opts.Logger).Log("msg", "push API server failed to stop on update", "err", err)
 			}
 		}
 		c.pushTarget = newPushTarget
@@ -154,6 +141,22 @@ func (c *Component) pushTargetNeedsUpdate(newPushTargetConfig *lokipush.PushTarg
 	c.rwLock.RLock()
 	defer c.rwLock.RUnlock()
 	return c.pushTarget == nil || !reflect.DeepEqual(c.pushTarget.CurrentConfig(), *newPushTargetConfig)
+}
+
+func (c *Component) pushTargetConfigForArgs(newArgs Arguments) *lokipush.PushTargetConfig {
+	return &lokipush.PushTargetConfig{
+		Server: server.Config{
+			HTTPListenPort:          newArgs.HTTPPort,
+			HTTPListenAddress:       newArgs.HTTPAddress,
+			Registerer:              c.opts.Registerer,
+			MetricsNamespace:        "loki_source_http",
+			RegisterInstrumentation: false,
+			Log:                     logging.GoKit(c.opts.Logger),
+		},
+		Labels:        newArgs.labelSet(),
+		KeepTimestamp: newArgs.UseIncomingTimestamp,
+		RelabelConfig: relabel.ComponentToPromRelabelConfigs(newArgs.RelabelRules),
+	}
 }
 
 func (c *Component) stop() error {

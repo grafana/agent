@@ -33,10 +33,6 @@ import (
 
 const localhost = "127.0.0.1"
 
-func TestConfigurationChanged(t *testing.T) {
-
-}
-
 func TestLokiPushTarget(t *testing.T) {
 	w := log.NewSyncWriter(os.Stderr)
 	logger := log.NewLogfmtLogger(w)
