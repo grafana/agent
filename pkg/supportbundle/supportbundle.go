@@ -28,6 +28,7 @@ type Bundle struct {
 	agentMetricsInstances []byte
 	agentMetricsTargets   []byte
 	agentLogsInstances    []byte
+	agentLogsTargets      []byte
 	heapBuf               *bytes.Buffer
 	goroutineBuf          *bytes.Buffer
 	blockBuf              *bytes.Buffer
@@ -117,16 +118,15 @@ func Export(ctx context.Context, enabledFeatures []string, cfg []byte, srvAddres
 	if err != nil {
 		return nil, fmt.Errorf("failed to read Agent logs instances: %s", err)
 	}
-	// TODO(@tpaschalis) Add back after grafana/agent@2175 is resolved, as it
-	// currently results in a panic.
-	// resp, err = http.DefaultClient.Get("http://" + srvAddress + "/agent/api/v1/logs/targets")
-	// if err != nil {
-	// 	return fmt.Errorf("failed to get  Agent logs targets: %s", err)
-	// }
-	// agentLogsTargets, err := io.ReadAll(resp.Body)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to read internal Agent metrics: %s", err)
-	// }
+
+	resp, err = http.DefaultClient.Get("http://" + srvAddress + "/agent/api/v1/logs/targets")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get Agent logs targets: %s", err)
+	}
+	agentLogsTargets, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read Agent logs targets: %s", err)
+	}
 
 	// Export pprof data.
 	var (
@@ -172,12 +172,12 @@ func Export(ctx context.Context, enabledFeatures []string, cfg []byte, srvAddres
 		agentMetricsInstances: agentMetricsInstances,
 		agentMetricsTargets:   agentMetricsTargets,
 		agentLogsInstances:    agentLogsInstances,
+		agentLogsTargets:      agentLogsTargets,
 		heapBuf:               &heapBuf,
 		goroutineBuf:          &goroutineBuf,
 		blockBuf:              &blockBuf,
 		mutexBuf:              &mutexBuf,
 		cpuBuf:                &cpuBuf,
-		// agentLogsTargets:   agentLogsTargets,
 	}
 
 	return bundle, nil
@@ -197,6 +197,7 @@ func Serve(rw http.ResponseWriter, b *Bundle, logsBuf *bytes.Buffer) error {
 		"agent-metrics-instances.json": b.agentMetricsInstances,
 		"agent-metrics-targets.json":   b.agentMetricsTargets,
 		"agent-logs-instances.json":    b.agentLogsInstances,
+		"agent-logs-targets.json":      b.agentLogsTargets,
 		"agent-logs.txt":               logsBuf.Bytes(),
 		"pprof/cpu.pprof":              b.cpuBuf.Bytes(),
 		"pprof/heap.pprof":             b.heapBuf.Bytes(),
