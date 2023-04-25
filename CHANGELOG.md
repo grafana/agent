@@ -7,35 +7,6 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-Main (unreleased)
------------------
-
-### Features
-
-- Added coalesce function to river stdlib. (@jkroepke)
-
-### Enhancements
-
-- Support in-memory HTTP traffic for Flow components. `prometheus.exporter`
-  components will now export a target containing an internal HTTP address.
-  `prometheus.scrape`, when given that internal HTTP address, will connect to
-  the server in-memory, bypassing the network stack. Use the new
-  `--server.http.memory-addr` flag to customize which address is used for
-  in-memory traffic. (@rfratto)
-
-### Bugfixes
-
-- Fix spelling of the `frequency` argument on the `local.file` component.
-  (@tpaschalis)
-
-- Fix bug where some capsule values (such as Prometheus receivers) could not
-  properly be used as an argument to a module. (@rfratto)
-
-### Other changes
-
-- Add metrics when clustering mode is enabled. (@rfratto)
-
-- Support Bundles report the status of discovered log targets. (@tpaschalis)
 
 v0.33.0 (2023-04-25)
 --------------------
