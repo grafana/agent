@@ -10,6 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Features
+
+- Added coalesce function to river stdlib. (@jkroepke)
+
 ### Enhancements
 
 - Support in-memory HTTP traffic for Flow components. `prometheus.exporter`
