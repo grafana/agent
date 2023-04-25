@@ -264,12 +264,17 @@ func (cg *ConfigGenerator) GenerateServiceMonitorConfig(m *promopv1.ServiceMonit
 	}
 
 	labeler := namespacelabeler.New("", nil, false)
-	relabels.addFromV1(labeler.GetRelabelingConfigs(m.TypeMeta, m.ObjectMeta, ep.RelabelConfigs)...)
-
+	err = relabels.addFromV1(labeler.GetRelabelingConfigs(m.TypeMeta, m.ObjectMeta, ep.RelabelConfigs)...)
+	if err != nil {
+		return nil, err
+	}
 	cfg.RelabelConfigs = relabels.configs
 
 	metricRelabels := relabeler{}
-	metricRelabels.addFromV1(labeler.GetRelabelingConfigs(m.TypeMeta, m.ObjectMeta, ep.MetricRelabelConfigs)...)
+	err = metricRelabels.addFromV1(labeler.GetRelabelingConfigs(m.TypeMeta, m.ObjectMeta, ep.MetricRelabelConfigs)...)
+	if err != nil {
+		return nil, err
+	}
 	cfg.MetricRelabelConfigs = metricRelabels.configs
 
 	cfg.SampleLimit = uint(m.Spec.SampleLimit)

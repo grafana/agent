@@ -58,7 +58,7 @@ func newCrdManager(opts component.Options, logger log.Logger, args *operator.Arg
 	switch kind {
 	case KindPodMonitor, KindServiceMonitor:
 	default:
-		panic(fmt.Sprintf("Unkown kind for crdManager: %s", kind))
+		panic(fmt.Sprintf("Unknown kind for crdManager: %s", kind))
 	}
 	return &crdManager{
 		opts:             opts,
