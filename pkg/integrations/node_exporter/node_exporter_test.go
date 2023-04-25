@@ -1,4 +1,4 @@
-//go:build !race
+//go:build !race && !windows
 
 package node_exporter //nolint:golint
 

@@ -23,6 +23,8 @@ Main (unreleased)
   `--server.http.memory-addr` flag to customize which address is used for
   in-memory traffic. (@rfratto)
 
+- Disable node_exporter on Windows systems (@jkroepke)
+
 ### Bugfixes
 
 - Fix spelling of the `frequency` argument on the `local.file` component.
