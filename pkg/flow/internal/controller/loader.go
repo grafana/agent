@@ -476,6 +476,11 @@ func (l *Loader) evaluate(logger log.Logger, bn BlockNode) error {
 		// change when a component gets re-evaluated. We also want to cache the arguments and exports in case of an error
 		l.cache.CacheArguments(c.ID(), c.Arguments())
 		l.cache.CacheExports(c.ID(), c.Exports())
+	case *ArgumentConfigNode:
+		componentId := ComponentID{"argument", c.Label(), "value"}
+		if _, ok := l.cache.exports[componentId.String()]; !ok && c.Optional() {
+			l.cache.CacheExports(componentId, c.Default())
+		}
 	}
 
 	if err != nil {
