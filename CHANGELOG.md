@@ -23,6 +23,9 @@ Main (unreleased)
 
 - Add metrics when clustering mode is enabled. (@rfratto)
 
+- Fix spelling of the `frequency` argument on the `local.file` component.
+  (@tpaschalis)
+
 v0.33.0-rc.2 (2023-04-24)
 -------------------------
 
