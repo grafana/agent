@@ -192,7 +192,7 @@ func (nodeMap *ConfigNodeMap) ValidateUnsupportedArguments(args *map[string]any)
 			if _, ok := nodeMap.argumentMap[argName]; !ok {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
-					Message:  fmt.Sprintf("Unsupported argument %q was provided to a module.", argName),
+					Message:  fmt.Sprintf("Unsupported argument %q was provided to a module", argName),
 				})
 			}
 		}

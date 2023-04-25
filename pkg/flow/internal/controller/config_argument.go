@@ -59,9 +59,11 @@ func (cn *ArgumentConfigNode) Evaluate(scope *vm.Scope) error {
 	cn.optional = argument.Optional
 
 	args := Arguments(scope)
-	if _, ok := (*args)[cn.label]; !ok {
-		if !argument.Optional {
-			return fmt.Errorf("missing required argument %q to module", cn.label)
+	if args != nil {
+		if _, ok := (*args)[cn.label]; !ok {
+			if !argument.Optional {
+				return fmt.Errorf("missing required argument %q to module", cn.label)
+			}
 		}
 	}
 
