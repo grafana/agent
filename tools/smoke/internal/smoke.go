@@ -86,7 +86,7 @@ func New(logger log.Logger, cfg Config) (*Smoke, error) {
 			w.WriteHeader(http.StatusOK)
 		}
 		if cfg.SimulateErrors {
-			rand.Seed(time.Now().UnixNano())
+			rand.New(rand.NewSource(1)).Seed(time.Now().UnixNano())
 			s.fakeRemoteWriteHandler = func(w http.ResponseWriter, _ *http.Request) {
 				if rnd := rand.Float64(); cfg.ErrorPercentage > rnd {
 					w.WriteHeader(http.StatusInternalServerError)

@@ -10,6 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Breaking changes
+
+- Removal of dynamic configuration. (@mattdurham)
+
 ### Features
 
 - Added coalesce function to river stdlib. (@jkroepke)
