@@ -62,7 +62,7 @@ base_config: |
   <grafana_agent_config>
 # A set of snippets to be conditionally merged into the base configuration.
 snippets:
-  [ <snippet_name>: <snippet_content>]
+  [ <snippet_name>: <snippet_content> ... ]
 ```
 
 ### grafana_agent_config
@@ -77,11 +77,11 @@ The snippet content is a YAML document which conforms to the following schema:
 # Config provides the actual snippet configuration.
 config: |
   [metrics_scrape_configs]:
-  - [<scrape_config>]
+  - [<scrape_config> ... ]
   [logs_scrape_configs]:
-  - [<promtail.scrape_config>]
+  - [<promtail.scrape_config> ... ]
   [integration_configs]:
-    [<integrations_config>]
+    [<integrations_config> ... ]
 # Selector is a set of labels used to decide which snippets to apply to the final configuration.
 selector:
   [ <labelname>: <labelvalue> ... ]
