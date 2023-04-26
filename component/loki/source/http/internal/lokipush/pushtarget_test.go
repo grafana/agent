@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"github.com/grafana/agent/component/common/loki/client/fake"
 	"io"
 	"net"
 	"net/http"
@@ -16,6 +15,8 @@ import (
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/grafana/agent/component/common/loki/client/fake"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/dskit/flagext"

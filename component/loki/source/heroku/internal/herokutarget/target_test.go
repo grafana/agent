@@ -7,7 +7,6 @@ package herokutarget
 import (
 	"flag"
 	"fmt"
-	"github.com/grafana/agent/component/common/loki/client/fake"
 	"net"
 	"net/http"
 	"net/url"
@@ -15,6 +14,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/grafana/agent/component/common/loki/client/fake"
 
 	"github.com/go-kit/log"
 	"github.com/google/uuid"

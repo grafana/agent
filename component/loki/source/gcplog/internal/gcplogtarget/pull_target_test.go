@@ -3,10 +3,11 @@ package gcplogtarget
 import (
 	"context"
 	"errors"
-	"github.com/grafana/agent/component/common/loki/client/fake"
 	"io"
 	"testing"
 	"time"
+
+	"github.com/grafana/agent/component/common/loki/client/fake"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/go-kit/log"

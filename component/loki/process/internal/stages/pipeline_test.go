@@ -6,10 +6,11 @@ package stages
 
 import (
 	"fmt"
-	"github.com/grafana/agent/component/common/loki/client/fake"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/grafana/agent/component/common/loki/client/fake"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"

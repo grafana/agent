@@ -7,11 +7,12 @@ package cloudflaretarget
 import (
 	"context"
 	"errors"
-	"github.com/grafana/agent/component/common/loki/client/fake"
 	"os"
 	"sort"
 	"testing"
 	"time"
+
+	"github.com/grafana/agent/component/common/loki/client/fake"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component/common/loki/positions"

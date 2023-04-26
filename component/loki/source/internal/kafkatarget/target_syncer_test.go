@@ -3,10 +3,11 @@ package kafkatarget
 import (
 	"context"
 	"fmt"
-	"github.com/grafana/agent/component/common/loki/client/fake"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/grafana/agent/component/common/loki/client/fake"
 
 	"github.com/grafana/dskit/flagext"
 	"github.com/prometheus/common/config"

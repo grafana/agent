@@ -3,10 +3,11 @@ package http
 import (
 	"context"
 	"fmt"
-	client2 "github.com/grafana/agent/component/common/loki/client"
-	"github.com/grafana/agent/component/common/loki/client/fake"
 	"testing"
 	"time"
+
+	client2 "github.com/grafana/agent/component/common/loki/client"
+	"github.com/grafana/agent/component/common/loki/client/fake"
 
 	"github.com/grafana/dskit/flagext"
 	"github.com/grafana/loki/pkg/logproto"

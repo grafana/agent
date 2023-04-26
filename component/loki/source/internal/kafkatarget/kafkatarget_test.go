@@ -7,10 +7,11 @@ package kafkatarget
 import (
 	"context"
 	"fmt"
-	"github.com/grafana/agent/component/common/loki/client/fake"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/grafana/agent/component/common/loki/client/fake"
 
 	"github.com/Shopify/sarama"
 	"github.com/prometheus/common/model"

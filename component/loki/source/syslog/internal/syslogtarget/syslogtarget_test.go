@@ -8,13 +8,14 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"github.com/grafana/agent/component/common/loki/client/fake"
 	"io"
 	"net"
 	"os"
 	"testing"
 	"time"
 	"unicode/utf8"
+
+	"github.com/grafana/agent/component/common/loki/client/fake"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"

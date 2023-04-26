@@ -2,13 +2,14 @@ package gcplogtarget
 
 import (
 	"fmt"
-	"github.com/grafana/agent/component/common/loki/client/fake"
 	"net/http"
 	"os"
 	"strings"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/grafana/agent/component/common/loki/client/fake"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component/common/loki"
