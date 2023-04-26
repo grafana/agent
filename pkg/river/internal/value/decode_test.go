@@ -661,6 +661,8 @@ func TestDecode_KnownTypes_Any(t *testing.T) {
 		{uint16(15), float64(15)},
 		{uint32(15), float64(15)},
 		{uint64(15), float64(15)},
+		{float32(2.5), float64(2.5)},
+		{float64(2.5), float64(2.5)},
 
 		{bool(true), bool(true)},
 		{string("Hello"), string("Hello")},
