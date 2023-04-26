@@ -19,6 +19,11 @@ static mode.
 > [upgrade-guide-operator]: {{< relref "../operator/upgrade-guide.md" >}}
 > [upgrade-guide-flow]: {{< relref "../flow/upgrade-guide.md" >}}
 
+### Removal of Dynamic Configuration
+
+The experimental feature Dynamic Configuration has been removed. The use case of dynamic configuration will be replaced 
+with Modules in Grafana Agent Flow.
+
 ## v0.33.0
 
 ### Symbolic links in Docker containers removed
