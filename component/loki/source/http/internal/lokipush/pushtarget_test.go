@@ -130,7 +130,6 @@ func TestLokiPushTarget(t *testing.T) {
 	require.Equal(t, time.Unix(99, 0).Unix(), eh.Received()[99].Timestamp.Unix())
 
 	_ = pt.Stop()
-
 }
 
 func TestPlaintextPushTarget(t *testing.T) {
@@ -203,7 +202,6 @@ func TestPlaintextPushTarget(t *testing.T) {
 	require.GreaterOrEqual(t, eh.Received()[99].Timestamp.Unix(), ts.Unix())
 
 	_ = pt.Stop()
-
 }
 
 func TestReady(t *testing.T) {

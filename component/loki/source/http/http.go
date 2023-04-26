@@ -2,9 +2,12 @@ package http
 
 import (
 	"context"
-	"github.com/go-kit/log/level"
 	"reflect"
 	"sync"
+
+	"github.com/grafana/agent/pkg/util"
+
+	"github.com/go-kit/log/level"
 
 	"github.com/efficientgo/core/errors"
 	"github.com/grafana/agent/component"
@@ -39,9 +42,10 @@ func (a *Arguments) labelSet() model.LabelSet {
 }
 
 type Component struct {
-	opts        component.Options
-	entriesChan chan loki.Entry
-	rwLock      sync.RWMutex
+	opts         component.Options
+	entriesChan  chan loki.Entry
+	unregisterer *util.Unregisterer
+	rwLock       sync.RWMutex
 
 	// The following fields must be guarded by the rwLock
 	args       Arguments
@@ -60,9 +64,10 @@ func init() {
 
 func New(opts component.Options, args Arguments) (component.Component, error) {
 	c := &Component{
-		opts:        opts,
-		args:        args,
-		entriesChan: make(chan loki.Entry),
+		opts:         opts,
+		args:         args,
+		entriesChan:  make(chan loki.Entry),
+		unregisterer: util.WrapWithUnregisterer(opts.Registerer),
 	}
 	err := c.Update(args)
 	if err != nil {
@@ -103,8 +108,23 @@ func (c *Component) Update(args component.Arguments) error {
 	}
 
 	newPushTargetConfig := c.pushTargetConfigForArgs(newArgs)
-	if !c.pushTargetNeedsUpdate(newPushTargetConfig) {
-		return c.commitUpdate(newArgs, nil)
+
+	c.rwLock.Lock()
+	defer c.rwLock.Unlock()
+
+	pushTargetNeedsUpdate := c.pushTarget == nil || !reflect.DeepEqual(c.pushTarget.CurrentConfig(), *newPushTargetConfig)
+	if !pushTargetNeedsUpdate {
+		c.args = newArgs
+		return nil
+	}
+
+	if c.pushTarget != nil {
+		err := c.pushTarget.Stop()
+		if err != nil {
+			level.Warn(c.opts.Logger).Log("msg", "push API server failed to stop on update", "err", err)
+		}
+		c.pushTarget = nil
+		c.unregisterer.UnregisterAll()
 	}
 
 	newPushTarget, err := lokipush.NewPushTarget(
@@ -117,30 +137,9 @@ func (c *Component) Update(args component.Arguments) error {
 		return errors.Wrapf(err, "failed to create loki push API server: %v", err)
 	}
 
-	return c.commitUpdate(newArgs, newPushTarget)
-}
-
-func (c *Component) commitUpdate(newArgs Arguments, newPushTarget *lokipush.PushTarget) error {
-	c.rwLock.Lock()
-	defer c.rwLock.Unlock()
+	c.pushTarget = newPushTarget
 	c.args = newArgs
-
-	if newPushTarget != nil {
-		if c.pushTarget != nil {
-			err := c.pushTarget.Stop()
-			if err != nil {
-				level.Warn(c.opts.Logger).Log("msg", "push API server failed to stop on update", "err", err)
-			}
-		}
-		c.pushTarget = newPushTarget
-	}
 	return nil
-}
-
-func (c *Component) pushTargetNeedsUpdate(newPushTargetConfig *lokipush.PushTargetConfig) bool {
-	c.rwLock.RLock()
-	defer c.rwLock.RUnlock()
-	return c.pushTarget == nil || !reflect.DeepEqual(c.pushTarget.CurrentConfig(), *newPushTargetConfig)
 }
 
 func (c *Component) pushTargetConfigForArgs(newArgs Arguments) *lokipush.PushTargetConfig {
@@ -148,7 +147,7 @@ func (c *Component) pushTargetConfigForArgs(newArgs Arguments) *lokipush.PushTar
 		Server: server.Config{
 			HTTPListenPort:          newArgs.HTTPPort,
 			HTTPListenAddress:       newArgs.HTTPAddress,
-			Registerer:              c.opts.Registerer,
+			Registerer:              c.unregisterer,
 			MetricsNamespace:        "loki_source_http",
 			RegisterInstrumentation: false,
 			Log:                     logging.GoKit(c.opts.Logger),
@@ -163,7 +162,9 @@ func (c *Component) stop() error {
 	c.rwLock.RLock()
 	defer c.rwLock.RUnlock()
 	if c.pushTarget != nil {
-		return c.pushTarget.Stop()
+		err := c.pushTarget.Stop()
+		c.unregisterer.UnregisterAll()
+		return err
 	}
 	return nil
 }
