@@ -3,11 +3,11 @@ package http
 import (
 	"context"
 	"fmt"
+	client2 "github.com/grafana/agent/component/common/loki/client"
+	"github.com/grafana/agent/component/common/loki/client/fake"
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/component/loki/internal/client"
-	"github.com/grafana/agent/component/loki/internal/fake"
 	"github.com/grafana/dskit/flagext"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/prometheus/common/model"
@@ -306,14 +306,14 @@ func mapToChannels(clients []*fake.Client) []loki.LogsReceiver {
 	return channels
 }
 
-func newTestLokiClient(t *testing.T, args Arguments, opts component.Options) client.Client {
+func newTestLokiClient(t *testing.T, args Arguments, opts component.Options) client2.Client {
 	url := flagext.URLValue{}
 	err := url.Set(fmt.Sprintf("http://%s:%d/api/v1/push", args.HTTPAddress, args.HTTPPort))
 	require.NoError(t, err)
 
-	lokiClient, err := client.New(
-		client.NewMetrics(nil, nil),
-		client.Config{
+	lokiClient, err := client2.New(
+		client2.NewMetrics(nil, nil),
+		client2.Config{
 			URL:     url,
 			Timeout: 5 * time.Second,
 		},

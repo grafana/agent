@@ -2,10 +2,9 @@ package write
 
 import (
 	"fmt"
+	"github.com/grafana/agent/component/common/loki/client"
 	"net/url"
 	"time"
-
-	"github.com/grafana/agent/component/loki/internal/client"
 
 	"github.com/alecthomas/units"
 	types "github.com/grafana/agent/component/common/config"

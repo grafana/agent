@@ -4,12 +4,11 @@ package file
 // of the reader interface.
 
 import (
+	"github.com/grafana/agent/component/common/loki/client/fake"
 	"os"
 	"sync"
 	"testing"
 	"time"
-
-	"github.com/grafana/agent/component/loki/internal/fake"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component/common/loki"

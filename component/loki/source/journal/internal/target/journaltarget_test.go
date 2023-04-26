@@ -7,13 +7,12 @@ package target
 // to other loki components.
 
 import (
+	"github.com/grafana/agent/component/common/loki/client/fake"
 	"io"
 	"os"
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/grafana/agent/component/loki/internal/fake"
 
 	"github.com/coreos/go-systemd/sdjournal"
 	"github.com/go-kit/log"

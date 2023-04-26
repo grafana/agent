@@ -6,6 +6,7 @@ package dockertarget
 
 import (
 	"encoding/json"
+	"github.com/grafana/agent/component/common/loki/client/fake"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -13,8 +14,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/grafana/agent/component/loki/internal/fake"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"

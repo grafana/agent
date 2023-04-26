@@ -3,9 +3,8 @@ package write
 import (
 	"context"
 	"fmt"
+	"github.com/grafana/agent/component/common/loki/client"
 	"sync"
-
-	"github.com/grafana/agent/component/loki/internal/client"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
