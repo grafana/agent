@@ -408,6 +408,14 @@ func (d *decoder) decodeAny(val Value, into reflect.Value) error {
 	case TypeFunction, TypeCapsule:
 		// Functions and capsules must be directly assigned since there's no
 		// "generic" representation for either.
+		//
+		// We retain the pointer if we were given a pointer.
+
+		if val.rv.CanAddr() {
+			into.Set(val.rv.Addr())
+			return nil
+		}
+
 		into.Set(val.rv)
 		return nil
 
