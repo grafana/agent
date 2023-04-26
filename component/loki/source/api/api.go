@@ -1,4 +1,4 @@
-package http
+package api
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/relabel"
-	"github.com/grafana/agent/component/loki/source/http/internal/lokipush"
+	"github.com/grafana/agent/component/loki/source/api/internal/lokipush"
 	"github.com/prometheus/common/model"
 	"github.com/weaveworks/common/logging"
 	"github.com/weaveworks/common/server"
@@ -21,7 +21,7 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "loki.source.http",
+		Name: "loki.source.api",
 		Args: Arguments{},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
@@ -154,7 +154,7 @@ func (c *Component) pushTargetConfigForArgs(newArgs Arguments) *lokipush.PushTar
 			HTTPListenPort:          newArgs.HTTPPort,
 			HTTPListenAddress:       newArgs.HTTPAddress,
 			Registerer:              c.unregisterer,
-			MetricsNamespace:        "loki_source_http",
+			MetricsNamespace:        "loki_source_api",
 			RegisterInstrumentation: false,
 			Log:                     logging.GoKit(c.opts.Logger),
 		},

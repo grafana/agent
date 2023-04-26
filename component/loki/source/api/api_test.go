@@ -1,4 +1,4 @@
-package http
+package api
 
 import (
 	"context"
@@ -23,7 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestLokiSourceHTTP_Simple(t *testing.T) {
+func TestLokiSourceAPI_Simple(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -68,7 +68,7 @@ func TestLokiSourceHTTP_Simple(t *testing.T) {
 	})
 }
 
-func TestLokiSourceHTTP_Update(t *testing.T) {
+func TestLokiSourceAPI_Update(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -142,7 +142,7 @@ func TestLokiSourceHTTP_Update(t *testing.T) {
 	})
 }
 
-func TestLokiSourceHTTP_FanOut(t *testing.T) {
+func TestLokiSourceAPI_FanOut(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -328,7 +328,7 @@ func newTestLokiClient(t *testing.T, args Arguments, opts component.Options) cli
 
 func defaultOptions(t *testing.T) component.Options {
 	return component.Options{
-		ID:         "loki.source.http.test",
+		ID:         "loki.source.api.test",
 		Logger:     util.TestFlowLogger(t),
 		Registerer: prometheus.NewRegistry(),
 	}

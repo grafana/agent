@@ -16,6 +16,7 @@ import (
 	_ "github.com/grafana/agent/component/loki/echo"                                // Import loki.echo
 	_ "github.com/grafana/agent/component/loki/process"                             // Import loki.process
 	_ "github.com/grafana/agent/component/loki/relabel"                             // Import loki.relabel
+	_ "github.com/grafana/agent/component/loki/source/api"                          // Import loki.source.api
 	_ "github.com/grafana/agent/component/loki/source/azure_event_hubs"             // Import loki.source.azure_event_hubs
 	_ "github.com/grafana/agent/component/loki/source/cloudflare"                   // Import loki.source.cloudflare
 	_ "github.com/grafana/agent/component/loki/source/docker"                       // Import loki.source.docker
@@ -23,7 +24,6 @@ import (
 	_ "github.com/grafana/agent/component/loki/source/gcplog"                       // Import loki.source.gcplog
 	_ "github.com/grafana/agent/component/loki/source/gelf"                         // Import loki.source.gelf
 	_ "github.com/grafana/agent/component/loki/source/heroku"                       // Import loki.source.heroku
-	_ "github.com/grafana/agent/component/loki/source/http"                         // Import loki.source.http
 	_ "github.com/grafana/agent/component/loki/source/journal"                      // Import loki.source.journal
 	_ "github.com/grafana/agent/component/loki/source/kafka"                        // Import loki.source.kafka
 	_ "github.com/grafana/agent/component/loki/source/kubernetes"                   // Import loki.source.kubernetes

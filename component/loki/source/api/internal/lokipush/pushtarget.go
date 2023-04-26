@@ -84,7 +84,7 @@ func (t *PushTarget) run() error {
 	go func() {
 		err := srv.Run()
 		if err != nil {
-			level.Error(t.logger).Log("msg", "loki.source.http server shutdown with error", "err", err)
+			level.Error(t.logger).Log("msg", "loki.source.api server shutdown with error", "err", err)
 		}
 	}()
 
