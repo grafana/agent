@@ -308,7 +308,7 @@ func mapToChannels(clients []*fake.Client) []loki.LogsReceiver {
 
 func newTestLokiClient(t *testing.T, args Arguments, opts component.Options) client.Client {
 	url := flagext.URLValue{}
-	err := url.Set(fmt.Sprintf("http://%s:%d/loki/api/v1/push", args.HTTPAddress, args.HTTPPort))
+	err := url.Set(fmt.Sprintf("http://%s:%d/api/v1/push", args.HTTPAddress, args.HTTPPort))
 	require.NoError(t, err)
 
 	lokiClient, err := client.New(

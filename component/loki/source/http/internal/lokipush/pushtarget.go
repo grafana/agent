@@ -77,14 +77,14 @@ func (t *PushTarget) run() error {
 	}
 
 	t.server = srv
-	t.server.HTTP.Path("/loki/api/v1/push").Methods("POST").Handler(http.HandlerFunc(t.handleLoki))
-	t.server.HTTP.Path("/promtail/api/v1/raw").Methods("POST").Handler(http.HandlerFunc(t.handlePlaintext))
+	t.server.HTTP.Path("/api/v1/push").Methods("POST").Handler(http.HandlerFunc(t.handleLoki))
+	t.server.HTTP.Path("/api/v1/raw").Methods("POST").Handler(http.HandlerFunc(t.handlePlaintext))
 	t.server.HTTP.Path("/ready").Methods("GET").Handler(http.HandlerFunc(t.ready))
 
 	go func() {
 		err := srv.Run()
 		if err != nil {
-			level.Error(t.logger).Log("msg", "Loki push server shutdown with error", "err", err)
+			level.Error(t.logger).Log("msg", "loki.source.http server shutdown with error", "err", err)
 		}
 	}()
 

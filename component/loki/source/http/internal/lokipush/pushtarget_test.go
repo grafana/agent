@@ -79,7 +79,7 @@ func TestLokiPushTarget(t *testing.T) {
 
 	// Build a client to send logs
 	serverURL := flagext.URLValue{}
-	err = serverURL.Set("http://" + localhost + ":" + strconv.Itoa(port) + "/loki/api/v1/push")
+	err = serverURL.Set("http://" + localhost + ":" + strconv.Itoa(port) + "/api/v1/push")
 	require.NoError(t, err)
 
 	ccfg := client.Config{
@@ -175,7 +175,7 @@ func TestPlaintextPushTarget(t *testing.T) {
 	body := new(bytes.Buffer)
 	for i := 0; i < 100; i++ {
 		body.WriteString("line" + strconv.Itoa(i))
-		_, err := http.Post(fmt.Sprintf("http://%s:%d/promtail/api/v1/raw", localhost, port), "text/json", body)
+		_, err := http.Post(fmt.Sprintf("http://%s:%d/api/v1/raw", localhost, port), "text/json", body)
 		require.NoError(t, err)
 		body.Reset()
 	}

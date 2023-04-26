@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"sync"
 
@@ -9,7 +10,6 @@ import (
 
 	"github.com/go-kit/log/level"
 
-	"github.com/efficientgo/core/errors"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/relabel"
@@ -19,8 +19,15 @@ import (
 	"github.com/weaveworks/common/server"
 )
 
-// TODO: this component also supports GRPC, so we may want to call it `loki.source.push_api` or something else.
-const componentName = "loki.source.http"
+func init() {
+	component.Register(component.Registration{
+		Name: "loki.source.http",
+		Args: Arguments{},
+		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
+			return New(opts, args.(Arguments))
+		},
+	})
+}
 
 type Arguments struct {
 	HTTPAddress          string              `river:"http_address,attr"`
@@ -45,21 +52,15 @@ type Component struct {
 	opts         component.Options
 	entriesChan  chan loki.Entry
 	unregisterer *util.Unregisterer
-	rwLock       sync.RWMutex
 
-	// The following fields must be guarded by the rwLock
+	rwMut      sync.RWMutex
 	args       Arguments
 	pushTarget *lokipush.PushTarget
-}
 
-func init() {
-	component.Register(component.Registration{
-		Name: componentName,
-		Args: Arguments{},
-		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
-			return New(opts, args.(Arguments))
-		},
-	})
+	// Use separate receivers mutex to address potential deadlock when Update drains the current server.
+	// e.g. https://github.com/grafana/agent/issues/3391
+	receiversMut sync.RWMutex
+	receivers    []loki.LogsReceiver
 }
 
 func New(opts component.Options, args Arguments) (component.Component, error) {
@@ -67,6 +68,7 @@ func New(opts component.Options, args Arguments) (component.Component, error) {
 		opts:         opts,
 		args:         args,
 		entriesChan:  make(chan loki.Entry),
+		receivers:    args.ForwardTo,
 		unregisterer: util.WrapWithUnregisterer(opts.Registerer),
 	}
 	err := c.Update(args)
@@ -84,11 +86,11 @@ func (c *Component) Run(ctx context.Context) (err error) {
 	for {
 		select {
 		case entry := <-c.entriesChan:
-			c.rwLock.RLock()
-			forwardTo := c.args.ForwardTo
-			c.rwLock.RUnlock()
+			c.receiversMut.RLock()
+			receivers := c.receivers
+			c.receiversMut.RUnlock()
 
-			for _, receiver := range forwardTo {
+			for _, receiver := range receivers {
 				select {
 				case receiver <- entry:
 				case <-ctx.Done():
@@ -104,13 +106,17 @@ func (c *Component) Run(ctx context.Context) (err error) {
 func (c *Component) Update(args component.Arguments) error {
 	newArgs, ok := args.(Arguments)
 	if !ok {
-		return errors.Newf("invalid type of arguments: %T", args)
+		return fmt.Errorf("invalid type of arguments: %T", args)
 	}
+
+	c.receiversMut.Lock()
+	c.receivers = newArgs.ForwardTo
+	c.receiversMut.Unlock()
 
 	newPushTargetConfig := c.pushTargetConfigForArgs(newArgs)
 
-	c.rwLock.Lock()
-	defer c.rwLock.Unlock()
+	c.rwMut.Lock()
+	defer c.rwMut.Unlock()
 
 	pushTargetNeedsUpdate := c.pushTarget == nil || !reflect.DeepEqual(c.pushTarget.CurrentConfig(), *newPushTargetConfig)
 	if !pushTargetNeedsUpdate {
@@ -134,7 +140,7 @@ func (c *Component) Update(args component.Arguments) error {
 		newPushTargetConfig,
 	)
 	if err != nil {
-		return errors.Wrapf(err, "failed to create loki push API server: %v", err)
+		return fmt.Errorf("failed to create loki push API server: %v", err)
 	}
 
 	c.pushTarget = newPushTarget
@@ -159,8 +165,8 @@ func (c *Component) pushTargetConfigForArgs(newArgs Arguments) *lokipush.PushTar
 }
 
 func (c *Component) stop() error {
-	c.rwLock.RLock()
-	defer c.rwLock.RUnlock()
+	c.rwMut.RLock()
+	defer c.rwMut.RUnlock()
 	if c.pushTarget != nil {
 		err := c.pushTarget.Stop()
 		c.unregisterer.UnregisterAll()
