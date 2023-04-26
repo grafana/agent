@@ -31,6 +31,8 @@ Main (unreleased)
 - Fix bug where some capsule values (such as Prometheus receivers) could not
   properly be used as an argument to a module. (@rfratto)
 
+- Fix version information. (@rfratto)
+
 ### Other changes
 
 - Add metrics when clustering mode is enabled. (@rfratto)
