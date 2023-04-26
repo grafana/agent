@@ -44,7 +44,7 @@ agent_management:
     # A path to a directory where the remote configuration will be cached. The directory must be writeable.
     cache_location: <string>
 
-    # The namespace to use
+    # The namespace to use.
     namespace: <string>
 
     # Set of self-identifying labels used for snippet selection.
@@ -89,7 +89,7 @@ selector:
 
 > **Note:** More information on the following types can be found in their respective documentation pages:
 >
-> * [`scrape_config`](https://prometheus.io/docs/prometheus/2.34/configuration/configuration/#scrape_config)
+> * [`scrape_config`](https://prometheus.io/docs/prometheus/2.37/configuration/configuration/#scrape_config)
 > * [`promtail.scrape_config`](https://grafana.com/docs/loki/latest/clients/promtail/configuration/#scrape_configs)
 > * [`integrations_config`](https://grafana.com/docs/agent/latest/static/configuration/integrations)
 
