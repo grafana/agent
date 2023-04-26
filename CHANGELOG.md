@@ -12,7 +12,7 @@ Main (unreleased)
 
 ### Breaking changes
 
-- Removal of dynamic configuration. (@mattdurham)
+- The experimental dynamic configuration feature has been removed in favor of Flow mode. (@mattdurham)
 
 ### Features
 
