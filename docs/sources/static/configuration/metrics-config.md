@@ -331,6 +331,6 @@ remote_write:
 > **Note:** More information on the following types can be found on the Prometheus
 > website:
 >
-> * [`relabel_config`](https://prometheus.io/docs/prometheus/2.34/configuration/configuration/#relabel_config)
-> * [`scrape_config`](https://prometheus.io/docs/prometheus/2.34/configuration/configuration/#scrape_config)
-> * [`remote_write`](https://prometheus.io/docs/prometheus/2.34/configuration/configuration/#remote_write)
+> * [`relabel_config`](https://prometheus.io/docs/prometheus/2.37/configuration/configuration/#relabel_config)
+> * [`scrape_config`](https://prometheus.io/docs/prometheus/2.37/configuration/configuration/#scrape_config)
+> * [`remote_write`](https://prometheus.io/docs/prometheus/2.37/configuration/configuration/#remote_write)
