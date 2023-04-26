@@ -21,7 +21,7 @@ enabled and disabled at will. For more information on collectors, refer to the
 ## Usage
 
 ```river
-prometheus.exporter.windows "LABEL" { 
+prometheus.exporter.windows "LABEL" {
 }
 ```
 
@@ -42,18 +42,18 @@ default. See the [Collectors list](#collectors-list) for the default set.
 The following blocks are supported inside the definition of
 `prometheus.exporter.windows` to configure collector-specific options:
 
-Hierarchy    | Name             | Description                            | Required 
+Hierarchy    | Name             | Description                            | Required
 -------------|------------------|----------------------------------------|----------
-exchange     | [exchange][]     | Configures the exchange collector.     | no       
-iis          | [iis][]          | Configures the iis collector.          | no       
-text_file    | [text_file][]    | Configures the text_file collector.    | no       
-smtp         | [smtp][]         | Configures the smtp collector.         | no       
-service      | [service][]      | Configures the service collector.      | no       
-process      | [process][]      | Configures the process collector.      | no       
-network      | [network][]      | Configures the network collector.      | no       
-mssql        | [mssql][]        | Configures the mssql collector.        | no       
-msmq         | [msmq][]         | Configures the msmq collector.         | no       
-logical_disk | [logical_disk][] | Configures the logical_disk collector. | no       
+exchange     | [exchange][]     | Configures the exchange collector.     | no
+iis          | [iis][]          | Configures the iis collector.          | no
+text_file    | [text_file][]    | Configures the text_file collector.    | no
+smtp         | [smtp][]         | Configures the smtp collector.         | no
+service      | [service][]      | Configures the service collector.      | no
+process      | [process][]      | Configures the process collector.      | no
+network      | [network][]      | Configures the network collector.      | no
+mssql        | [mssql][]        | Configures the mssql collector.        | no
+msmq         | [msmq][]         | Configures the msmq collector.         | no
+logical_disk | [logical_disk][] | Configures the logical_disk collector. | no
 
 [exchange]: #exchange-block
 [iis]: #iis-block
@@ -81,9 +81,9 @@ The collectors specified by `enabled_list` can include the following:
 - `OutlookWebAccess`
 - `Autodiscover`
 - `WorkloadManagement`
-- `RpcClientAccess` 
+- `RpcClientAccess`
 
-For example, `enabled_list` may be set to `"AvailabilityService,OutlookWebAccess"`. 
+For example, `enabled_list` may be set to `"AvailabilityService,OutlookWebAccess"`.
 
 
 ### iis block
@@ -99,7 +99,7 @@ Name | Type     | Description | Default | Required
 ---- |----------| ----------- | ------- | --------
 `text_file_directory` | `string` | The directory containing the files to be ingested. | `C:\Program Files\windows_exporter\textfile_inputs` | no
 
-When `text_file_directory` is set, only files with the extension `.prom` inside the specified directory are read. Each `.prom` file found must end with an empty line feed to work properly.  
+When `text_file_directory` is set, only files with the extension `.prom` inside the specified directory are read. Each `.prom` file found must end with an empty line feed to work properly.
 
 
 ### smtp block
@@ -108,7 +108,7 @@ Name | Type     | Description | Default | Required
 `blacklist` | `string` | Regexp of virtual servers to ignore. |  | no
 `whitelist` | `string` | Regexp of virtual servers to include. | `".+"` | no
 
-For a server name to be included, it must match the regular expression specified by `whitelist` and must _not_ match the regular expression specified by `blacklist`. 
+For a server name to be included, it must match the regular expression specified by `whitelist` and must _not_ match the regular expression specified by `blacklist`.
 
 ### service block
 Name | Type     | Description | Default | Required
@@ -144,7 +144,7 @@ Name | Type     | Description | Default | Required
 ---- |----------| ----------- | ------- | --------
 `where_clause` | `string` | WQL 'where' clause to use in WMI metrics query. |  | no
 
-Specifying `enabled_classes` is useful to limit the response to the MSMQs you specify, reducing the size of the response. 
+Specifying `enabled_classes` is useful to limit the response to the MSMQs you specify, reducing the size of the response.
 
 
 ### logical_disk block
@@ -165,6 +165,12 @@ Name      | Type                | Description
 For example, the `targets` could either be passed to a `prometheus.relabel`
 component to rewrite the metrics' label set, or to a `prometheus.scrape`
 component that collects the exposed metrics.
+
+The exported targets will use the configured [in-memory traffic][] address
+specified by the [run command][].
+
+[in-memory traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
+[run command]: {{< relref "../cli/run.md" >}}
 
 ## Component health
 

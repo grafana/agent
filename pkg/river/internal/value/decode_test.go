@@ -641,3 +641,24 @@ func TestDecode_SquashedSlice_Pointer(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, expect, out)
 }
+
+func TestRetainCapsulePointer(t *testing.T) {
+	capsuleVal := &capsule{}
+
+	in := map[string]any{
+		"foo": capsuleVal,
+	}
+
+	var actual map[string]any
+	err := value.Decode(value.Encode(in), &actual)
+	require.NoError(t, err)
+
+	expect := map[string]any{
+		"foo": capsuleVal,
+	}
+	require.Equal(t, expect, actual)
+}
+
+type capsule struct{}
+
+func (*capsule) RiverCapsule() {}

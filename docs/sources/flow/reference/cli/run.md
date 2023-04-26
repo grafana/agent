@@ -27,6 +27,8 @@ running components.
 
 The following flags are supported:
 
+* `--server.http.memory-addr`: Address to listen for [in-memory HTTP traffic][] on
+  (default `agent.internal:12345`).
 * `--server.http.listen-addr`: Address to listen for HTTP traffic on (default `127.0.0.1:12345`).
 * `--server.http.ui-path-prefix`: Base path where the UI will be exposed (default `/`).
 * `--storage.path`: Base directory where components can store data (default `data-agent/`).
@@ -35,6 +37,7 @@ The following flags are supported:
 * `--cluster.join-addresses`: Comma-separated list of addresses to join the cluster at (default `""`).
 * `--cluster.advertise-address`: Address to advertise to other cluster nodes (default `""`).
 
+[in-memory HTTP traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
 [usage reporting]: {{< relref "../../../static/configuration/flags.md#report-information-usage" >}}
 [components]: {{< relref "../../concepts/components.md" >}}
 

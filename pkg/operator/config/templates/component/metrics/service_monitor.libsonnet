@@ -176,7 +176,7 @@ function(
       target_label: 'container',
     }] +
 
-    (if endpoint.FilterRunning then [{
+    (if endpoint.FilterRunning != null && endpoint.FilterRunning then [{
       source_labels: ['__meta_kubernetes_pod_phase'],
 			regex: '(Failed|Succeeded)',
 			action: 'drop',
