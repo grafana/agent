@@ -137,17 +137,17 @@ func New(log log.Logger, reg prometheus.Registerer, clusterEnabled bool, listenA
 		gossipConfig.AdvertiseAddr = advertiseAddr
 	}
 
-	err = gossipConfig.ApplyDefaults(defaultPort)
-	if err != nil {
-		return nil, err
-	}
-
 	if joinAddr != "" {
 		gossipConfig.JoinPeers = []string{}
 		jaddrs := strings.Split(joinAddr, ",")
 		for _, jaddr := range jaddrs {
 			gossipConfig.JoinPeers = getJoinAddr(gossipConfig.JoinPeers, jaddr)
 		}
+	}
+
+	err = gossipConfig.ApplyDefaults(defaultPort)
+	if err != nil {
+		return nil, err
 	}
 
 	cli := &http.Client{
