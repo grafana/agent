@@ -94,7 +94,7 @@ selector:
 > * [`integrations_config`](https://grafana.com/docs/agent/latest/static/configuration/integrations)
 
 
-### Example Response
+### Example response body
 
 ```yaml
 base_config: |
