@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/configuration/integrations/mongodb_exporter-config/
 title: mongodb_exporter_config
 ---
 
