@@ -108,7 +108,7 @@ func getJoinAddr(addrs []string, in string) []string {
 	_, srvs, err := net.LookupSRV("", "", in)
 	if err == nil {
 		for _, srv := range srvs {
-			addrs = append(addrs, fmt.Sprintf("%s:%d", srv.Target, srv.Port))
+			addrs = append(addrs, srv.Target)
 		}
 	}
 
@@ -137,17 +137,17 @@ func New(log log.Logger, reg prometheus.Registerer, clusterEnabled bool, listenA
 		gossipConfig.AdvertiseAddr = advertiseAddr
 	}
 
-	err = gossipConfig.ApplyDefaults(defaultPort)
-	if err != nil {
-		return nil, err
-	}
-
 	if joinAddr != "" {
 		gossipConfig.JoinPeers = []string{}
 		jaddrs := strings.Split(joinAddr, ",")
 		for _, jaddr := range jaddrs {
 			gossipConfig.JoinPeers = getJoinAddr(gossipConfig.JoinPeers, jaddr)
 		}
+	}
+
+	err = gossipConfig.ApplyDefaults(defaultPort)
+	if err != nil {
+		return nil, err
 	}
 
 	cli := &http.Client{
@@ -158,6 +158,8 @@ func New(log log.Logger, reg prometheus.Registerer, clusterEnabled bool, listenA
 			},
 		},
 	}
+
+	level.Info(log).Log("msg", "starting a new gossip node", "join-peers", gossipConfig.JoinPeers)
 
 	gossipNode, err := NewGossipNode(log, reg, cli, &gossipConfig)
 	if err != nil {
