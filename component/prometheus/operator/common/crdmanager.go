@@ -1,4 +1,4 @@
-package podmonitors
+package common
 
 import (
 	"context"
@@ -18,8 +18,10 @@ import (
 	"github.com/prometheus/prometheus/scrape"
 	toolscache "k8s.io/client-go/tools/cache"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/grafana/agent/component/prometheus/operator/podmonitors/configgen"
+	"github.com/grafana/agent/component/prometheus/operator"
+	"github.com/grafana/agent/component/prometheus/operator/configgen"
 	compscrape "github.com/grafana/agent/component/prometheus/scrape"
 	promopv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -29,30 +31,43 @@ import (
 // Generous timeout period for configuring all informers
 const informerSyncTimeout = 10 * time.Second
 
-// crdManager is all of the fields required to run the component.
-// on update, this entire thing will be recreated and restarted
+// crdManager is all of the fields required to run a crd based component.
+// on update, this entire thing should be recreated and restarted
 type crdManager struct {
 	mut              sync.Mutex
 	discoveryConfigs map[string]discovery.Configs
 	scrapeConfigs    map[string]*config.ScrapeConfig
-	debugInfo        map[string]*DiscoveredPodMonitor
+	debugInfo        map[string]*operator.DiscoveredResource
 	discoveryManager *discovery.Manager
 	scrapeManager    *scrape.Manager
 
 	opts      component.Options
 	logger    log.Logger
-	args      *Arguments
+	args      *operator.Arguments
 	configGen configgen.ConfigGenerator
+
+	kind string
 }
 
-func NewCRDManager(opts component.Options, logger log.Logger, args *Arguments) *crdManager {
+const (
+	KindPodMonitor     string = "podMonitor"
+	KindServiceMonitor string = "serviceMonitor"
+)
+
+func newCrdManager(opts component.Options, logger log.Logger, args *operator.Arguments, kind string) *crdManager {
+	switch kind {
+	case KindPodMonitor, KindServiceMonitor:
+	default:
+		panic(fmt.Sprintf("Unknown kind for crdManager: %s", kind))
+	}
 	return &crdManager{
 		opts:             opts,
 		logger:           logger,
 		args:             args,
 		discoveryConfigs: map[string]discovery.Configs{},
 		scrapeConfigs:    map[string]*config.ScrapeConfig{},
-		debugInfo:        map[string]*DiscoveredPodMonitor{},
+		debugInfo:        map[string]*operator.DiscoveredResource{},
+		kind:             kind,
 	}
 }
 
@@ -105,15 +120,15 @@ func (c *crdManager) DebugInfo() interface{} {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 
-	var info DebugInfo
+	var info operator.DebugInfo
 	for _, pm := range c.debugInfo {
-		info.DiscoveredPodMonitors = append(info.DiscoveredPodMonitors, pm)
+		info.DiscoveredCRDs = append(info.DiscoveredCRDs, pm)
 	}
 	info.Targets = compscrape.BuildTargetStatuses(c.scrapeManager.TargetsActive())
 	return info
 }
 
-// runInformers starts all the informers that are required to discover PodMonitors.
+// runInformers starts all the informers that are required to discover CRDs.
 func (c *crdManager) runInformers(ctx context.Context) error {
 	config, err := c.args.Client.BuildRESTConfig(c.logger)
 	if err != nil {
@@ -167,34 +182,54 @@ func (c *crdManager) runInformers(ctx context.Context) error {
 	return nil
 }
 
-// configureInformers configures the informers for the CRDManager to watch for PodMonitors changes.
+// configureInformers configures the informers for the CRDManager to watch for crd changes.
 func (c *crdManager) configureInformers(ctx context.Context, informers cache.Informers) error {
-	podMonitor := &promopv1.PodMonitor{}
+	var prototype client.Object
+	switch c.kind {
+	case KindPodMonitor:
+		prototype = &promopv1.PodMonitor{}
+	case KindServiceMonitor:
+		prototype = &promopv1.ServiceMonitor{}
+	default:
+		return fmt.Errorf("unknown kind to configure Informers: %s", c.kind)
+	}
 
 	informerCtx, cancel := context.WithTimeout(ctx, informerSyncTimeout)
 	defer cancel()
 
-	informer, err := informers.GetInformer(informerCtx, podMonitor)
+	informer, err := informers.GetInformer(informerCtx, prototype)
 	if err != nil {
 		if errors.Is(informerCtx.Err(), context.DeadlineExceeded) { // Check the context to prevent GetInformer returning a fake timeout
 			return fmt.Errorf("timeout exceeded while configuring informers. Check the connection"+
-				" to the Kubernetes API is stable and that the Agent has appropriate RBAC permissions for %v", podMonitor)
+				" to the Kubernetes API is stable and that the Agent has appropriate RBAC permissions for %v", prototype)
 		}
 
 		return err
 	}
-	_, err = informer.AddEventHandler((toolscache.ResourceEventHandlerFuncs{
-		AddFunc:    c.onAddPodMonitor,
-		UpdateFunc: c.onUpdatePodMonitor,
-		DeleteFunc: c.onDeletePodMonitor,
-	}))
+	switch c.kind {
+	case KindPodMonitor:
+		_, err = informer.AddEventHandler((toolscache.ResourceEventHandlerFuncs{
+			AddFunc:    c.onAddPodMonitor,
+			UpdateFunc: c.onUpdatePodMonitor,
+			DeleteFunc: c.onDeletePodMonitor,
+		}))
+	case KindServiceMonitor:
+		_, err = informer.AddEventHandler((toolscache.ResourceEventHandlerFuncs{
+			AddFunc:    c.onAddServiceMonitor,
+			UpdateFunc: c.onUpdateServiceMonitor,
+			DeleteFunc: c.onDeleteServiceMonitor,
+		}))
+	default:
+		return fmt.Errorf("unknown kind to configure Informers: %s", c.kind)
+	}
+
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-// apply applies the current state of the CRDManager to the Prometheus discovery manager and scrape manager.
+// apply applies the current state of the Manager to the Prometheus discovery manager and scrape manager.
 func (c *crdManager) apply() error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
@@ -221,7 +256,7 @@ func (c *crdManager) apply() error {
 func (c *crdManager) addDebugInfo(ns string, name string, err error) {
 	c.mut.Lock()
 	defer c.mut.Unlock()
-	debug := &DiscoveredPodMonitor{}
+	debug := &operator.DiscoveredResource{}
 	debug.Namespace = ns
 	debug.Name = name
 	debug.LastReconcile = time.Now()
@@ -230,7 +265,7 @@ func (c *crdManager) addDebugInfo(ns string, name string, err error) {
 	} else {
 		debug.ReconcileError = ""
 	}
-	prefix := fmt.Sprintf("podMonitor/%s/%s", ns, name)
+	prefix := fmt.Sprintf("%s/%s/%s", c.kind, ns, name)
 	c.debugInfo[prefix] = debug
 }
 
@@ -254,7 +289,7 @@ func (c *crdManager) addPodMonitor(pm *promopv1.PodMonitor) {
 		return
 	}
 	if err = c.apply(); err != nil {
-		level.Error(c.logger).Log("name", pm.Name, "err", err, "msg", "error applying scrape configs from podmonitor")
+		level.Error(c.logger).Log("name", pm.Name, "err", err, "msg", "error applying scrape configs from "+c.kind)
 	}
 	c.addDebugInfo(pm.Namespace, pm.Name, err)
 }
@@ -266,21 +301,66 @@ func (c *crdManager) onAddPodMonitor(obj interface{}) {
 }
 func (c *crdManager) onUpdatePodMonitor(oldObj, newObj interface{}) {
 	pm := oldObj.(*promopv1.PodMonitor)
-	c.clearConfigs(pm.Namespace, pm.Name)
+	c.clearConfigs("podMonitor", pm.Namespace, pm.Name)
 	c.addPodMonitor(newObj.(*promopv1.PodMonitor))
 }
+
 func (c *crdManager) onDeletePodMonitor(obj interface{}) {
 	pm := obj.(*promopv1.PodMonitor)
-	c.clearConfigs(pm.Namespace, pm.Name)
+	c.clearConfigs("podMonitor", pm.Namespace, pm.Name)
 	if err := c.apply(); err != nil {
-		level.Error(c.logger).Log("name", pm.Name, "err", err, "msg", "error applying scrape configs after podmonitor deletion")
+		level.Error(c.logger).Log("name", pm.Name, "err", err, "msg", "error applying scrape configs after deleting "+c.kind)
 	}
 }
 
-func (c *crdManager) clearConfigs(ns string, name string) {
+func (c *crdManager) addServiceMonitor(sm *promopv1.ServiceMonitor) {
+	var err error
+	for i, ep := range sm.Spec.Endpoints {
+		var pmc *config.ScrapeConfig
+		pmc, err = c.configGen.GenerateServiceMonitorConfig(sm, ep, i)
+		if err != nil {
+			// TODO(jcreixell): Generate Kubernetes event to inform of this error when running `kubectl get <servicemonitor>`.
+			level.Error(c.logger).Log("name", sm.Name, "err", err, "msg", "error generating scrapeconfig from serviceMonitor")
+			break
+		}
+		c.mut.Lock()
+		c.discoveryConfigs[pmc.JobName] = pmc.ServiceDiscoveryConfigs
+		c.scrapeConfigs[pmc.JobName] = pmc
+		c.mut.Unlock()
+	}
+	if err != nil {
+		c.addDebugInfo(sm.Namespace, sm.Name, err)
+		return
+	}
+	if err = c.apply(); err != nil {
+		level.Error(c.logger).Log("name", sm.Name, "err", err, "msg", "error applying scrape configs from "+c.kind)
+	}
+	c.addDebugInfo(sm.Namespace, sm.Name, err)
+}
+
+func (c *crdManager) onAddServiceMonitor(obj interface{}) {
+	pm := obj.(*promopv1.ServiceMonitor)
+	level.Info(c.logger).Log("msg", "found pod monitor", "name", pm.Name)
+	c.addServiceMonitor(pm)
+}
+func (c *crdManager) onUpdateServiceMonitor(oldObj, newObj interface{}) {
+	pm := oldObj.(*promopv1.ServiceMonitor)
+	c.clearConfigs("serviceMonitor", pm.Namespace, pm.Name)
+	c.addServiceMonitor(newObj.(*promopv1.ServiceMonitor))
+}
+
+func (c *crdManager) onDeleteServiceMonitor(obj interface{}) {
+	pm := obj.(*promopv1.ServiceMonitor)
+	c.clearConfigs("serviceMonitor", pm.Namespace, pm.Name)
+	if err := c.apply(); err != nil {
+		level.Error(c.logger).Log("name", pm.Name, "err", err, "msg", "error applying scrape configs after deleting "+c.kind)
+	}
+}
+
+func (c *crdManager) clearConfigs(kind, ns, name string) {
 	c.mut.Lock()
 	defer c.mut.Unlock()
-	prefix := fmt.Sprintf("podMonitor/%s/%s", ns, name)
+	prefix := fmt.Sprintf("%s/%s/%s", kind, ns, name)
 	for k := range c.discoveryConfigs {
 		if strings.HasPrefix(k, prefix) {
 			delete(c.discoveryConfigs, k)

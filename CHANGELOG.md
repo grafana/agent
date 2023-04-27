@@ -15,6 +15,9 @@ Main (unreleased)
 - The experimental dynamic configuration feature has been removed in favor of Flow mode. (@mattdurham)
 
 ### Features
+- New Grafana Agent Flow components:
+  - `prometheus.operator.servicemonitors` discovers ServiceMonitor resources in your Kubernetes cluster and scrape
+    the targets they reference. (@captncraig, @marctc, @jcreixell)
 
 - Added coalesce function to river stdlib. (@jkroepke)
 
