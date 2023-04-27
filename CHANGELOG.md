@@ -17,6 +17,9 @@ v0.33.1 (2023-04-28)
 
 - Fix spelling of the `frequency` argument on the `local.file` component.
   (@tpaschalis)
+  
+- Fix version information not displaying correctly when passing the `--version`
+  flag or in the `agent_build_info` metric. (@rfratto)
 
 ### Other changes
 
