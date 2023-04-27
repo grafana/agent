@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/flow/reference/config-blocks
 title: Configuration blocks
 weight: 200
 ---

@@ -1,6 +1,6 @@
 ---
 aliases:
-- /docs/agent/latest/concepts/component-controller
+- ../../concepts/component-controller/
 title: Component controller
 weight: 200
 ---
