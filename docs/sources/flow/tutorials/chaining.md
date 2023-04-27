@@ -68,3 +68,9 @@ In the above Flow block, `prometheus.relabel.service` is being forwarded metrics
 In `multiple-input.river` add a new `prometheus.relabel` component that adds a `version` label with the value of `v2` to all metrics after the `prometheus.relabel.service`.
 
 ![](../assets/scrape_v2.png)
+
+> **NOTE**: NOTE: Please note that the default port for Grafana Agent may vary depending on how it
+> is installed. While the default port is traditionally 12345, system packages may override this
+> and set the default to a different port. Additionally, certain installations may have different
+> default ports. Please refer to your specific installation documentation for the correct default
+> port.
