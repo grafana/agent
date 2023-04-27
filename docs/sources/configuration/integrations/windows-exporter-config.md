@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/configuration/integrations/windows-exporter-config/
 title: windows_exporter_config
 ---
 

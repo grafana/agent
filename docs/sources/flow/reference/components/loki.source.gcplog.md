@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/flow/reference/components/loki.source.gcplog
 title: loki.source.gcplog
 ---
 

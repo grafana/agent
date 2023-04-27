@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/operator/architecture/
 title: Agent Operator architecture
 weight: 300
 ---

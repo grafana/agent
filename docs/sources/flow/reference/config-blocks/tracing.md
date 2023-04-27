@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/flow/reference/config-blocks/tracing
 title: tracing
 weight: 100
 ---

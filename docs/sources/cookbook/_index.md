@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/cookbook
 title: Cookbook
 weight: 900
 ---
