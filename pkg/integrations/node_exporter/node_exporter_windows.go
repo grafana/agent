@@ -16,7 +16,7 @@ type Integration struct {
 
 // New creates a fake node_exporter integration.
 func New(logger log.Logger, _ *Config) (*Integration, error) {
-	level.Warn(logger).Log("msg", "the node_exporter does not works on Windows; enabling it otherwise will do nothing")
+	level.Warn(logger).Log("msg", "the node_exporter does not work on Windows; enabling it otherwise will do nothing")
 	return &Integration{}, nil
 }
 
