@@ -12,11 +12,11 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/olekukonko/tablewriter"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/version"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -43,16 +43,13 @@ import (
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	kconfig "sigs.k8s.io/controller-runtime/pkg/client/config"
-
-	// Adds version information
-	_ "github.com/grafana/agent/pkg/build"
 )
 
 func main() {
 	cmd := &cobra.Command{
 		Use:     "agentctl",
 		Short:   "Tools for interacting with the Grafana Agent",
-		Version: version.Print("agentctl"),
+		Version: build.Print("agentctl"),
 	}
 	cmd.SetVersionTemplate("{{ .Version }}\n")
 

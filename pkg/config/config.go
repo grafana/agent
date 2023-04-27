@@ -12,6 +12,7 @@ import (
 	"github.com/drone/envsubst/v2"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/config/features"
 	"github.com/grafana/agent/pkg/config/instrumentation"
 	"github.com/grafana/agent/pkg/logs"
@@ -20,7 +21,6 @@ import (
 	"github.com/grafana/agent/pkg/traces"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/common/config"
-	"github.com/prometheus/common/version"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )
@@ -457,7 +457,7 @@ func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
 	}
 
 	if printVersion {
-		fmt.Println(version.Print("agent"))
+		fmt.Println(build.Print("agent"))
 		os.Exit(0)
 	}
 
