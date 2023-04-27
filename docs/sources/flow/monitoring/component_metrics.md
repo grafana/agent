@@ -35,3 +35,9 @@ expose metrics.
 [components]: {{< relref "../concepts/components.md" >}}
 [grafana-agent run]: {{< relref "../reference/cli/run.md" >}}
 [reference documentation]: {{< relref "../reference/components/_index.md" >}}
+
+> **NOTE**: NOTE: Please note that the default port for Grafana Agent may vary depending on how it
+> is installed. While the default port is traditionally 12345, system packages may override this
+> and set the default to a different port. Additionally, certain installations may have different
+> default ports. Please refer to your specific installation documentation for the correct default
+> port.
