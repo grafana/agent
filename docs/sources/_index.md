@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/
 title: Grafana Agent
 weight: 1
 ---

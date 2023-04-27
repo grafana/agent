@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/configuration/integrations/integrations-next/eventhandler-config/
 title: eventhandler_config
 ---
 
