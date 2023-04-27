@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/configuration/integrations/apache-exporter-config/
 title: apache_http_config
 ---
 

@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/configuration/integrations/dnsmasq-exporter-config/
 title: dnsmasq_exporter_config
 ---
 
