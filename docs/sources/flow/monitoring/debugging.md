@@ -77,3 +77,9 @@ Refer to the [`logging block`][logging] page to see how to find logs for your
 system.
 
 [logging]: {{< relref "../reference/config-blocks/logging.md" >}}
+
+> **NOTE**: NOTE: Please note that the default port for Grafana Agent may vary depending on how it
+> is installed. While the default port is traditionally 12345, system packages may override this
+> and set the default to a different port. Additionally, certain installations may have different
+> default ports. Please refer to your specific installation documentation for the correct default
+> port.
