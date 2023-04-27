@@ -11,7 +11,8 @@ import (
 // A walker walks an AST and sends lexical tokens and formatting information to
 // a printer.
 type walker struct {
-	p *printer
+	p           *printer
+	escapeQuote int // How much escaping of quotes to do.
 }
 
 func (w *walker) Walk(node ast.Node) error {
@@ -136,7 +137,7 @@ func (w *walker) walkBlockStmt(s *ast.BlockStmt) {
 func (w *walker) walkExpr(e ast.Expr) {
 	switch e := e.(type) {
 	case *ast.LiteralExpr:
-		w.p.Write(e.ValuePos, e)
+		w.walkLiteralExpr(e)
 
 	case *ast.InterpStringExpr:
 		w.walkInterpString(e)
@@ -185,20 +186,52 @@ func (w *walker) walkExpr(e ast.Expr) {
 	}
 }
 
+func (w *walker) walkLiteralExpr(e *ast.LiteralExpr) {
+	if w.escapeQuote > 0 && e.Kind == token.STRING {
+		escape := w.quote()
+
+		w.p.Write(e.ValuePos, &ast.LiteralExpr{
+			Kind:     e.Kind,
+			ValuePos: e.ValuePos,
+			Value:    strings.ReplaceAll(e.Value, `"`, escape),
+		})
+	} else {
+		w.p.Write(e.ValuePos, e)
+	}
+}
+
+// quote returns the current quote (`"`) character based on how deeply escaped
+// quotes should be.
+//
+// The quote escaping level is increased when walking through interpolated
+// strings.
+func (w *walker) quote() string {
+	if w.escapeQuote == 0 {
+		return `"`
+	}
+
+	return strings.Repeat(`\\`, w.escapeQuote-1) + `\"`
+}
+
 func (w *walker) walkInterpString(e *ast.InterpStringExpr) {
 	w.p.Write(
 		e.LQuotePos,
-		&ast.LiteralExpr{Kind: token.STRING, Value: `"`},
+		&ast.LiteralExpr{Kind: token.STRING, Value: w.quote()},
 	)
 
 	for _, frag := range e.Fragments {
+		// Every fragment inside the interplated string should have its quotes
+		// escaped by 1 additional level.
+		w.escapeQuote++
+
 		switch {
 		case frag.Raw != nil:
-			w.p.Write(
-				frag.StartPos,
-				&ast.LiteralExpr{Kind: token.STRING, Value: *frag.Raw},
-				frag.EndPos,
-			)
+			w.p.Write(frag.StartPos)
+			w.walkLiteralExpr(&ast.LiteralExpr{
+				Kind:  token.STRING,
+				Value: *frag.Raw,
+			})
+			w.p.Write(frag.EndPos)
 
 		case frag.Expr != nil:
 			w.p.Write(
@@ -206,6 +239,7 @@ func (w *walker) walkInterpString(e *ast.InterpStringExpr) {
 				&ast.LiteralExpr{Kind: token.STRING, Value: `${`},
 			)
 
+			// Enable quote escaping for inner strings.
 			w.walkExpr(frag.Expr)
 
 			w.p.Write(
@@ -213,10 +247,12 @@ func (w *walker) walkInterpString(e *ast.InterpStringExpr) {
 				frag.EndPos,
 			)
 		}
+
+		w.escapeQuote--
 	}
 
 	w.p.Write(
-		&ast.LiteralExpr{Kind: token.STRING, Value: `"`},
+		&ast.LiteralExpr{Kind: token.STRING, Value: w.quote()},
 		e.RQuotePos,
 	)
 }

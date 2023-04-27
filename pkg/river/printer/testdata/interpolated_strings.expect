@@ -1,2 +1,6 @@
 interp_string = "Hello, world! 1 + 2 is: ${1 + 2}!"
 escape_string = "Hello, world! 1 + 2 is: \${1  +  2}!"
+
+nested_quotes = "Home \"is\": ${env(\"HOME\")}"
+
+deeply_nested_quotes = "${\"Home is: ${env(\\\"HOME\\\")}\"}"
