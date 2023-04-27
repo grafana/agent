@@ -1,6 +1,6 @@
 ---
 aliases:
-- /docs/agent/latest/dynamic-configuration/datasources
+- ../../../dynamic-configuration/datasources/
 title: Datasources
 weight: 210
 ---
