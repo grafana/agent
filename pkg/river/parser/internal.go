@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/grafana/agent/pkg/river/ast"
@@ -23,10 +24,11 @@ import (
 // list of errors to be returned to the user. The resulting AST should be
 // discarded if errors were encountered during parsing.
 type parser struct {
-	file     *token.File
-	diags    diag.Diagnostics
-	scanner  *scanner.Scanner
-	comments []ast.CommentGroup
+	file      *token.File
+	diags     diag.Diagnostics
+	scanner   *scanner.Scanner
+	comments  []ast.CommentGroup
+	posOffset int // Offset to add to any position information.
 
 	pos token.Pos   // Current token position
 	tok token.Token // Current token
@@ -57,6 +59,24 @@ func newParser(filename string, src []byte) *parser {
 	return p
 }
 
+func newParserWithOffset(f *token.File, src []byte, off int) *parser {
+	p := &parser{
+		file:      f,
+		posOffset: off,
+	}
+
+	p.scanner = scanner.New(f, src, func(pos token.Pos, msg string) {
+		p.diags.Add(diag.Diagnostic{
+			Severity: diag.SeverityLevelError,
+			StartPos: f.PositionFor(pos.Add(off)),
+			Message:  msg,
+		})
+	}, scanner.IncludeComments)
+
+	p.next()
+	return p
+}
+
 // next advances the parser to the next non-comment token.
 func (p *parser) next() {
 	p.next0()
@@ -68,7 +88,10 @@ func (p *parser) next() {
 
 // next0 advances the parser to the next token. next0 should not be used
 // directly by parse methods; call next instead.
-func (p *parser) next0() { p.pos, p.tok, p.lit = p.scanner.Scan() }
+func (p *parser) next0() {
+	p.pos, p.tok, p.lit = p.scanner.Scan()
+	p.pos = p.pos.Add(p.posOffset)
+}
 
 // consumeCommentGroup consumes a group of adjacent comments, adding it to p's
 // comment list.
@@ -583,7 +606,11 @@ func (p *parser) parsePrimaryExpr() ast.Expr {
 		p.next()
 		return res
 
-	case token.STRING, token.NUMBER, token.FLOAT, token.BOOL, token.NULL:
+	case token.STRING:
+		res := p.parseInterpString()
+		return res
+
+	case token.NUMBER, token.FLOAT, token.BOOL, token.NULL:
 		res := &ast.LiteralExpr{
 			Kind:     p.tok,
 			Value:    p.lit,
@@ -636,6 +663,91 @@ var statementEnd = map[token.Token]struct{}{
 	token.RCURLY:     {},
 	token.RBRACK:     {},
 	token.COMMA:      {},
+}
+
+// parseInterpString parses an interpolated string sequence.
+func (p *parser) parseInterpString() ast.Expr {
+	pos, tok, lit := p.expect(token.STRING)
+	if tok != token.STRING {
+		return &ast.LiteralExpr{Kind: token.NULL, Value: "null", ValuePos: pos}
+	}
+
+	rawText, _ := strconv.Unquote(lit)
+	rawOff := pos.Offset() + 1 // Add 1 for unquoted "
+
+	s := newInterpStringScanner(p.file, []byte(rawText), func(pos token.Pos, msg string) {
+		p.diags.Add(diag.Diagnostic{
+			Severity: diag.SeverityLevelError,
+			StartPos: p.file.PositionFor(pos),
+			Message:  msg,
+		})
+	}, rawOff)
+
+	var fragments []*ast.InterpStringFragment
+
+	for {
+		fragPos, fragTok, fragLit := s.Scan()
+		if fragTok == interpStringTokenEOF {
+			break
+		}
+
+		var lastFrag *ast.InterpStringFragment
+		if len(fragments) > 0 {
+			lastFrag = fragments[len(fragments)-1]
+		}
+
+		if lastFrag != nil && lastFrag.Raw != nil && fragTok == interpStringTokenRaw {
+			(*lastFrag.Raw) += fragLit
+			continue
+		}
+
+		switch fragTok {
+		case interpStringTokenRaw:
+			fragments = append(fragments, &ast.InterpStringFragment{
+				Raw: &fragLit,
+
+				StartPos: fragPos,
+				EndPos:   fragPos.Add(len(fragLit) - 1),
+			})
+
+		case interpStringTokenExpr:
+			// Create a nested parser to handle our fragment.
+			innerExpr := fragLit[2 : len(fragLit)-1] // Trim off ${ and }
+			innerParser := newParserWithOffset(p.file, []byte(innerExpr), rawOff+fragPos.Offset()+1)
+			fragmentExpr := innerParser.ParseExpression()
+			innerParser.expect(token.TERMINATOR)
+
+			fragments = append(fragments, &ast.InterpStringFragment{
+				Expr: fragmentExpr,
+
+				StartPos: fragPos,
+				EndPos:   fragPos.Add(len(fragLit) - 1),
+			})
+
+			p.diags = append(p.diags, innerParser.diags...)
+		}
+	}
+
+	if len(fragments) == 0 {
+		return &ast.LiteralExpr{
+			Kind:     tok,
+			Value:    lit,
+			ValuePos: pos,
+		}
+	} else if len(fragments) == 1 && fragments[0].Raw != nil {
+		return &ast.LiteralExpr{
+			Kind:     tok,
+			Value:    lit,
+			ValuePos: pos,
+		}
+	}
+
+	return &ast.InterpStringExpr{
+		Fragments: fragments,
+
+		LQuotePos: pos,
+		RQuotePos: pos.Add(len(lit) - 1),
+	}
 }
 
 // parseExpressionList parses a list of expressions.

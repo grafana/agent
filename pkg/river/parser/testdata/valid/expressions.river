@@ -7,6 +7,10 @@ lit_null   = null
 lit_true   = true
 lit_false  = false
 
+// Interpolated strings.
+interp_string        = "1 + 3 is: ${1 + 3}"
+interp_string_escape = "1 + 3 is: \${1 + 3}"
+
 //  Arrays
 array_expr_empty       = []
 array_expr_one_element = [0]
