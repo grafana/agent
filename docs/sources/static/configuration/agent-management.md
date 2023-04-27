@@ -67,7 +67,7 @@ snippets:
 
 ### grafana_agent_config
 
-This is a standard Grafana Agent [static mode configuration](https://grafana.com/docs/agent/latest/static/configuration/). Typically used to configure the server, remote_writes and other global configuration.
+This is a standard Grafana Agent [static mode configuration](https://grafana.com/docs/agent/latest/static/configuration/). Typically used to configure the server, remote_writes, and other global configuration.
 
 ### snippet_content
 
