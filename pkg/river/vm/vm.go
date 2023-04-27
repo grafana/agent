@@ -278,6 +278,31 @@ func (vm *Evaluator) evaluateExpr(scope *Scope, assoc map[value.Value]ast.Node, 
 	case *ast.LiteralExpr:
 		return valueFromLiteral(expr.Value, expr.Kind)
 
+	case *ast.InterpStringExpr:
+		var interpolatedString string
+
+		for _, frag := range expr.Fragments {
+			switch {
+			case frag.Raw != nil:
+				interpolatedString += *frag.Raw
+
+			case frag.Expr != nil:
+				val, err := vm.evaluateExpr(scope, assoc, frag.Expr)
+				if err != nil {
+					return value.Null, err
+				}
+
+				text, err := stringify(val)
+				if err != nil {
+					return value.Null, err
+				}
+
+				interpolatedString += text
+			}
+		}
+
+		return value.String(interpolatedString), nil
+
 	case *ast.BinaryExpr:
 		lhs, err := vm.evaluateExpr(scope, assoc, expr.Left)
 		if err != nil {

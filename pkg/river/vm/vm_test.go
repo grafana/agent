@@ -135,6 +135,12 @@ func TestVM_Evaluate(t *testing.T) {
 		{`!true`, bool(false)},
 		{`!false`, bool(true)},
 		{`-15`, int(-15)},
+
+		// String interpolation of various values.
+		{`"${null}"`, "null"},                     // Null
+		{`"1 + 2: ${1 + 2}"`, string("1 + 2: 3")}, // Number
+		{`"Here's some text: ${\"Hello, world!\"}"`, string("Here's some text: Hello, world!")}, // String
+		{`"false || true is: ${false || true}"`, string("false || true is: true")},              // Bool
 	}
 
 	for _, tc := range tt {
