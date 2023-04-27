@@ -138,6 +138,9 @@ func (w *walker) walkExpr(e ast.Expr) {
 	case *ast.LiteralExpr:
 		w.p.Write(e.ValuePos, e)
 
+	case *ast.InterpStringExpr:
+		w.walkInterpString(e)
+
 	case *ast.ArrayExpr:
 		w.walkArrayExpr(e)
 
@@ -180,6 +183,42 @@ func (w *walker) walkExpr(e ast.Expr) {
 		w.walkExpr(e.Inner)
 		w.p.Write(token.RPAREN)
 	}
+}
+
+func (w *walker) walkInterpString(e *ast.InterpStringExpr) {
+	w.p.Write(
+		e.LQuotePos,
+		&ast.LiteralExpr{Kind: token.STRING, Value: `"`},
+	)
+
+	for _, frag := range e.Fragments {
+		switch {
+		case frag.Raw != nil:
+			w.p.Write(
+				frag.StartPos,
+				&ast.LiteralExpr{Kind: token.STRING, Value: *frag.Raw},
+				frag.EndPos,
+			)
+
+		case frag.Expr != nil:
+			w.p.Write(
+				frag.StartPos,
+				&ast.LiteralExpr{Kind: token.STRING, Value: `${`},
+			)
+
+			w.walkExpr(frag.Expr)
+
+			w.p.Write(
+				&ast.LiteralExpr{Kind: token.STRING, Value: `}`},
+				frag.EndPos,
+			)
+		}
+	}
+
+	w.p.Write(
+		&ast.LiteralExpr{Kind: token.STRING, Value: `"`},
+		e.RQuotePos,
+	)
 }
 
 func (w *walker) walkArrayExpr(e *ast.ArrayExpr) {
