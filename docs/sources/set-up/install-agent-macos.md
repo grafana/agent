@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/set-up/install-agent-macos/
 title: Install Grafana Agent on macOS
 weight: 130
 ---
