@@ -1,6 +1,6 @@
 ---
 aliases:
-- /docs/agent/latest/operator/crd/
+- crd/
 title: Custom Resource Definition Reference
 weight: 500
 ---

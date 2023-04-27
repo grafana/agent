@@ -6,8 +6,6 @@
 # Ideally, in the future, we can fix the overflow issue with css rather than
 # injecting special characters.
 
-aliases:
-- /docs/agent/latest/flow/reference/components/otelcol.processor.memory_limiter
 title: otelcol.​processor.​memory_limiter
 ---
 

@@ -1,6 +1,6 @@
 ---
 aliases:
-- /docs/agent/latest/dynamic-configuration/objects
+- ../../../dynamic-configuration/objects/
 title: Objects
 weight: 220
 ---
