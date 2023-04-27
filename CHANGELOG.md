@@ -12,7 +12,7 @@ Main (unreleased)
 
 ### Features
 
-- New Grafana Agent Flow components:
+- Added new Grafana Agent Flow components:
   - `loki.source.api` - receive Loki log entries over HTTP (e.g. from other agents). (@thampiotr)
 - Added coalesce function to river stdlib. (@jkroepke)
 

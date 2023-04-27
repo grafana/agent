@@ -73,9 +73,7 @@ loki.echo "print" {}
 loki.source.api "loki_push_api" {
     http_address = "localhost"
     http_port = 9999
-    forward_to = [
-        loki.echo.print.receiver,
-    ]
+    forward_to = [loki.echo.print.receiver]
     labels = {
         forwarded = "true",
     }
