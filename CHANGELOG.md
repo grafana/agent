@@ -10,6 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Breaking changes
+
+- The experimental dynamic configuration feature has been removed in favor of Flow mode. (@mattdurham)
+
 ### Features
 
 - Added coalesce function to river stdlib. (@jkroepke)
