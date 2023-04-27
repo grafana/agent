@@ -2,6 +2,7 @@ package net
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -19,21 +20,31 @@ func TestConfig(t *testing.T) {
 		"empty config applies defaults": {
 			raw: ``,
 			assert: func(t *testing.T, config weaveworks.Config) {
+				// custom defaults
+				require.Equal(t, DefaultHTTPPort, config.HTTPListenPort)
+				require.Equal(t, DefaultGRPCPort, config.GRPCListenPort)
+				// defaults inherited from weaveworks
 				require.Equal(t, "", config.HTTPListenAddress)
-				require.Equal(t, 0, config.HTTPListenPort)
 				require.Equal(t, "", config.GRPCListenAddress)
-				require.Equal(t, 0, config.GRPCListenPort)
+				require.False(t, config.RegisterInstrumentation)
 			},
 		},
 		"overriding defaults": {
 			raw: `
+			graceful_shutdown_timeout = "1m"
 			http {
 				listen_port = 8080
 				listen_address = "0.0.0.0"
+				conn_limit = 10
+				server_write_timeout = "10s"
 			}`,
 			assert: func(t *testing.T, config weaveworks.Config) {
 				require.Equal(t, 8080, config.HTTPListenPort)
 				require.Equal(t, "0.0.0.0", config.HTTPListenAddress)
+				require.Equal(t, 10, config.HTTPConnLimit)
+				require.Equal(t, time.Second*10, config.HTTPServerWriteTimeout)
+
+				require.Equal(t, time.Minute, config.ServerGracefulShutdownTimeout)
 			},
 		},
 	}
