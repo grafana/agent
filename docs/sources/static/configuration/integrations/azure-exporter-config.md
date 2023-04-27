@@ -263,3 +263,9 @@ metrics:
 
 In this example, all `azure_exporter`-specific configuration settings have been moved to the `scrape_config`. This method supports all available configuration options except `azure_cloud_environment`, which must be configured on the `azure_exporter`. For this method, if a field supports a singular value like `resource_graph_query_filter`, you
 must be put it into an array, for example, `resource_graph_query_filter: ["where location == 'westeurope'"]`.
+
+> **NOTE**: NOTE: Please note that the default port for Grafana Agent may vary depending on how it
+> is installed. While the default port is traditionally 12345, system packages may override this
+> and set the default to a different port. Additionally, certain installations may have different
+> default ports. Please refer to your specific installation documentation for the correct default
+> port.
