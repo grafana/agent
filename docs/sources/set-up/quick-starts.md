@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/set-up/quick-starts/
 title: Grafana Agent quick starts
 weight: 150
 ---

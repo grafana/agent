@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/configuration/integrations/kafka-exporter-config/
 title: kafka_exporter_config
 ---
 
