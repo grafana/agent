@@ -2,13 +2,13 @@ package http
 
 import (
 	"fmt"
+	"github.com/weaveworks/common/logging"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
-	"github.com/weaveworks/common/logging"
 	"github.com/weaveworks/common/server"
 )
 
@@ -28,7 +28,7 @@ func NewTargetServer(logger log.Logger, metricsNamespace string, reg prometheus.
 		return nil, fmt.Errorf("metrics namespace is not prometheus compatiible: %s", metricsNamespace)
 	}
 
-	t := &TargetServer{
+	ts := &TargetServer{
 		logger:           logger,
 		metricsNamespace: metricsNamespace,
 	}
@@ -41,24 +41,22 @@ func NewTargetServer(logger log.Logger, metricsNamespace string, reg prometheus.
 	// Configure dedicated metrics registerer
 	serverCfg.Registerer = reg
 	// Persist crafter config in server
-	t.config = &serverCfg
+	ts.config = &serverCfg
+	// To prevent metric collisions because all metrics are going to be registered in the global Prometheus registry.
+	ts.config.MetricsNamespace = ts.metricsNamespace
+	// We don't want the /debug and /metrics endpoints running, since this is not the main promtail HTTP server.
+	// We want this target to expose the least surface area possible, hence disabling WeaveWorks HTTP server metrics
+	// and debugging functionality.
+	ts.config.RegisterInstrumentation = false
+	// Add logger to weaveworks
+	ts.config.Log = logging.GoKit(ts.logger)
 
-	return t, nil
+	return ts, nil
 }
 
 // MountAndRun does some final configuration of the WeaveWorks server, before mounting the handlers and starting the server.
 func (ts *TargetServer) MountAndRun(mountRoute func(router *mux.Router)) error {
 	level.Info(ts.logger).Log("msg", "starting server")
-
-	// To prevent metric collisions because all metrics are going to be registered in the global Prometheus registry.
-	ts.config.MetricsNamespace = ts.metricsNamespace
-
-	// We don't want the /debug and /metrics endpoints running, since this is not the main promtail HTTP server.
-	// We want this target to expose the least surface area possible, hence disabling WeaveWorks HTTP server metrics
-	// and debugging functionality.
-	ts.config.RegisterInstrumentation = false
-
-	ts.config.Log = logging.GoKit(ts.logger)
 	srv, err := server.New(*ts.config)
 	if err != nil {
 		return err
