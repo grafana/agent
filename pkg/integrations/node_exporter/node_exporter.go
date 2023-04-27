@@ -1,3 +1,5 @@
+//go:build !windows
+
 package node_exporter //nolint:golint
 
 import (
