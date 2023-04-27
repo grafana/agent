@@ -12,7 +12,7 @@ import (
 	"github.com/grafana/agent/component/loki/internal/fake"
 
 	"github.com/grafana/agent/component/common/loki"
-	lhttp "github.com/grafana/agent/component/common/loki/http"
+	lnet "github.com/grafana/agent/component/common/loki/net"
 
 	"github.com/go-kit/log"
 	"github.com/phayes/freeport"
@@ -167,8 +167,8 @@ func TestPushTarget(t *testing.T) {
 			config := &PushConfig{
 				Labels:               lbls,
 				UseIncomingTimestamp: false,
-				Server: &lhttp.ServerConfig{
-					HTTP: &lhttp.HTTPConfig{
+				Server: &lnet.ServerConfig{
+					HTTP: &lnet.HTTPConfig{
 						ListenAddress: "localhost",
 						ListenPort:    port,
 					},
@@ -234,8 +234,8 @@ func TestPushTarget_UseIncomingTimestamp(t *testing.T) {
 	config := &PushConfig{
 		Labels:               nil,
 		UseIncomingTimestamp: true,
-		Server: &lhttp.ServerConfig{
-			HTTP: &lhttp.HTTPConfig{
+		Server: &lnet.ServerConfig{
+			HTTP: &lnet.HTTPConfig{
 				ListenAddress: "localhost",
 				ListenPort:    port,
 			},
@@ -282,8 +282,8 @@ func TestPushTarget_UseTenantIDHeaderIfPresent(t *testing.T) {
 	config := &PushConfig{
 		Labels:               nil,
 		UseIncomingTimestamp: true,
-		Server: &lhttp.ServerConfig{
-			HTTP: &lhttp.HTTPConfig{
+		Server: &lnet.ServerConfig{
+			HTTP: &lnet.HTTPConfig{
 				ListenAddress: "localhost",
 				ListenPort:    port,
 			},
@@ -338,8 +338,8 @@ func TestPushTarget_ErroneousPayloadsAreRejected(t *testing.T) {
 	require.NoError(t, err)
 	config := &PushConfig{
 		Labels: nil,
-		Server: &lhttp.ServerConfig{
-			HTTP: &lhttp.HTTPConfig{
+		Server: &lnet.ServerConfig{
+			HTTP: &lnet.HTTPConfig{
 				ListenAddress: "localhost",
 				ListenPort:    port,
 			},
@@ -424,8 +424,8 @@ func TestPushTarget_UsePushTimeout(t *testing.T) {
 		Labels:               nil,
 		UseIncomingTimestamp: true,
 		PushTimeout:          time.Second,
-		Server: &lhttp.ServerConfig{
-			HTTP: &lhttp.HTTPConfig{
+		Server: &lnet.ServerConfig{
+			HTTP: &lnet.HTTPConfig{
 				ListenAddress: "localhost",
 				ListenPort:    port,
 			},

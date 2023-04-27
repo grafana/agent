@@ -23,7 +23,7 @@ import (
 	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/stretchr/testify/require"
 
-	lhttp "github.com/grafana/agent/component/common/loki/http"
+	lnet "github.com/grafana/agent/component/common/loki/net"
 )
 
 const localhost = "127.0.0.1"
@@ -429,7 +429,7 @@ func waitForMessages(eh *fake.Client) {
 	}
 }
 
-func getServerConfigWithAvailablePort() (cfg *lhttp.ServerConfig, port int, err error) {
+func getServerConfigWithAvailablePort() (cfg *lnet.ServerConfig, port int, err error) {
 	// Get a randomly available port by open and closing a TCP socket
 	addr, err := net.ResolveTCPAddr("tcp", localhost+":0")
 	if err != nil {
@@ -445,8 +445,8 @@ func getServerConfigWithAvailablePort() (cfg *lhttp.ServerConfig, port int, err 
 		return
 	}
 
-	cfg = &lhttp.ServerConfig{
-		HTTP: &lhttp.HTTPConfig{
+	cfg = &lnet.ServerConfig{
+		HTTP: &lnet.HTTPConfig{
 			ListenAddress: localhost,
 			ListenPort:    port,
 		},

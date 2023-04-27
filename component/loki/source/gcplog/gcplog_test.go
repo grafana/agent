@@ -10,7 +10,7 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
-	lhttp "github.com/grafana/agent/component/common/loki/http"
+	lnet "github.com/grafana/agent/component/common/loki/net"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	gt "github.com/grafana/agent/component/loki/source/gcplog/internal/gcplogtarget"
 
@@ -39,8 +39,8 @@ func TestPush(t *testing.T) {
 	port, err := freeport.GetFreePort()
 	require.NoError(t, err)
 	args.PushTarget = &gt.PushConfig{
-		Server: &lhttp.ServerConfig{
-			HTTP: &lhttp.HTTPConfig{
+		Server: &lnet.ServerConfig{
+			HTTP: &lnet.HTTPConfig{
 				ListenAddress: "localhost",
 				ListenPort:    port,
 			},

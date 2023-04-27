@@ -10,7 +10,7 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
-	lhttp "github.com/grafana/agent/component/common/loki/http"
+	lnet "github.com/grafana/agent/component/common/loki/net"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/loki/source/heroku/internal/herokutarget"
 	"github.com/grafana/agent/pkg/util"
@@ -29,8 +29,8 @@ func TestPush(t *testing.T) {
 
 	ch1, ch2 := make(chan loki.Entry), make(chan loki.Entry)
 	args := Arguments{
-		Server: &lhttp.ServerConfig{
-			HTTP: &lhttp.HTTPConfig{
+		Server: &lnet.ServerConfig{
+			HTTP: &lnet.HTTPConfig{
 				ListenAddress: address,
 				ListenPort:    port,
 			},

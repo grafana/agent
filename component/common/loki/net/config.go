@@ -1,6 +1,6 @@
 // Package http contains a River serializable definition of the weaveworks weaveworks config in
 // https://github.com/weaveworks/common/blob/master/server/server.go#L62.
-package http
+package net
 
 import (
 	"flag"

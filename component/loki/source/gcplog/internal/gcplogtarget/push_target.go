@@ -20,7 +20,7 @@ import (
 	"github.com/prometheus/prometheus/model/relabel"
 
 	"github.com/grafana/agent/component/common/loki"
-	lhttp "github.com/grafana/agent/component/common/loki/http"
+	lnet "github.com/grafana/agent/component/common/loki/net"
 )
 
 // PushTarget defines a server for receiving messages from a GCP PubSub push
@@ -33,13 +33,13 @@ type PushTarget struct {
 	entries        chan<- loki.Entry
 	handler        loki.EntryHandler
 	relabelConfigs []*relabel.Config
-	server         *lhttp.TargetServer
+	server         *lnet.TargetServer
 }
 
 // NewPushTarget constructs a PushTarget.
 func NewPushTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandler, jobName string, config *PushConfig, relabel []*relabel.Config, reg prometheus.Registerer) (*PushTarget, error) {
 	wrappedLogger := log.With(logger, "component", "gcp_push")
-	srv, err := lhttp.NewTargetServer(wrappedLogger, jobName+"_push_target", reg, config.Server)
+	srv, err := lnet.NewTargetServer(wrappedLogger, jobName+"_push_target", reg, config.Server)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create loki http server: %w", err)
 	}
