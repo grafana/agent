@@ -34,6 +34,7 @@ you can follow the common workflows described in this topic.
 
 [set up]: {{< relref "./set-up" >}}
 [configure]: {{< relref "./configuration/" >}}
+[configured]: {{< relref "./configuration/" >}}
 
 ## Topics
 
