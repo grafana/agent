@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/configuration/integrations/integrations-next/snmp-config/
 title: snmp_exporter_config
 ---
 
