@@ -38,6 +38,12 @@ func Walk(v Visitor, node Node) {
 		Walk(v, n.Ident)
 	case *LiteralExpr:
 		// Nothing to do
+	case *InterpStringExpr:
+		for _, f := range n.Fragments {
+			if f.Expr != nil {
+				Walk(v, f.Expr)
+			}
+		}
 	case *ArrayExpr:
 		for _, e := range n.Elements {
 			Walk(v, e)

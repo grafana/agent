@@ -94,6 +94,31 @@ type LiteralExpr struct {
 	Value string
 }
 
+// InterpStringExpr is an interpolated string.
+type InterpStringExpr struct {
+	Fragments            []*InterpStringFragment
+	LQuotePos, RQuotePos token.Pos
+}
+
+// InterpStringFragment is an individual fragment within an interpolated
+// string.
+type InterpStringFragment struct {
+	// Expr is set when the interpolated string refers to an interpolated expr
+	// ${EXPR}.
+	//
+	// If Expr is nil, Raw will be set to a non-nil string.
+	Expr Expr
+
+	// Raw is set when the interpolated string refers to a string fragment within
+	// the interpolated string. Raw will not contain any of the original
+	// surrounding quotes from the string.
+	//
+	// If Raw is nil, Expr will be set to a non-nil expression.
+	Raw *string
+
+	StartPos, EndPos token.Pos
+}
+
 // ArrayExpr is an array of values.
 type ArrayExpr struct {
 	Elements             []Expr
@@ -188,37 +213,39 @@ var (
 	_ Expr = (*ParenExpr)(nil)
 )
 
-func (n *File) astNode()           {}
-func (n Body) astNode()            {}
-func (n CommentGroup) astNode()    {}
-func (n *Comment) astNode()        {}
-func (n *AttributeStmt) astNode()  {}
-func (n *BlockStmt) astNode()      {}
-func (n *Ident) astNode()          {}
-func (n *IdentifierExpr) astNode() {}
-func (n *LiteralExpr) astNode()    {}
-func (n *ArrayExpr) astNode()      {}
-func (n *ObjectExpr) astNode()     {}
-func (n *AccessExpr) astNode()     {}
-func (n *IndexExpr) astNode()      {}
-func (n *CallExpr) astNode()       {}
-func (n *UnaryExpr) astNode()      {}
-func (n *BinaryExpr) astNode()     {}
-func (n *ParenExpr) astNode()      {}
+func (n *File) astNode()             {}
+func (n Body) astNode()              {}
+func (n CommentGroup) astNode()      {}
+func (n *Comment) astNode()          {}
+func (n *AttributeStmt) astNode()    {}
+func (n *BlockStmt) astNode()        {}
+func (n *Ident) astNode()            {}
+func (n *IdentifierExpr) astNode()   {}
+func (n *LiteralExpr) astNode()      {}
+func (n *InterpStringExpr) astNode() {}
+func (n *ArrayExpr) astNode()        {}
+func (n *ObjectExpr) astNode()       {}
+func (n *AccessExpr) astNode()       {}
+func (n *IndexExpr) astNode()        {}
+func (n *CallExpr) astNode()         {}
+func (n *UnaryExpr) astNode()        {}
+func (n *BinaryExpr) astNode()       {}
+func (n *ParenExpr) astNode()        {}
 
 func (n *AttributeStmt) astStmt() {}
 func (n *BlockStmt) astStmt()     {}
 
-func (n *IdentifierExpr) astExpr() {}
-func (n *LiteralExpr) astExpr()    {}
-func (n *ArrayExpr) astExpr()      {}
-func (n *ObjectExpr) astExpr()     {}
-func (n *AccessExpr) astExpr()     {}
-func (n *IndexExpr) astExpr()      {}
-func (n *CallExpr) astExpr()       {}
-func (n *UnaryExpr) astExpr()      {}
-func (n *BinaryExpr) astExpr()     {}
-func (n *ParenExpr) astExpr()      {}
+func (n *IdentifierExpr) astExpr()   {}
+func (n *LiteralExpr) astExpr()      {}
+func (n *InterpStringExpr) astExpr() {}
+func (n *ArrayExpr) astExpr()        {}
+func (n *ObjectExpr) astExpr()       {}
+func (n *AccessExpr) astExpr()       {}
+func (n *IndexExpr) astExpr()        {}
+func (n *CallExpr) astExpr()         {}
+func (n *UnaryExpr) astExpr()        {}
+func (n *BinaryExpr) astExpr()       {}
+func (n *ParenExpr) astExpr()        {}
 
 // StartPos returns the position of the first character belonging to a Node.
 func StartPos(n Node) token.Pos {
@@ -250,6 +277,8 @@ func StartPos(n Node) token.Pos {
 		return StartPos(n.Ident)
 	case *LiteralExpr:
 		return n.ValuePos
+	case *InterpStringExpr:
+		return n.LQuotePos
 	case *ArrayExpr:
 		return n.LBrackPos
 	case *ObjectExpr:
@@ -301,6 +330,8 @@ func EndPos(n Node) token.Pos {
 		return EndPos(n.Ident)
 	case *LiteralExpr:
 		return n.ValuePos.Add(len(n.Value) - 1)
+	case *InterpStringExpr:
+		return n.RQuotePos
 	case *ArrayExpr:
 		return n.RBrackPos
 	case *ObjectExpr:
