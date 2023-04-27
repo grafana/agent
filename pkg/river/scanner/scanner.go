@@ -503,7 +503,7 @@ func (s *Scanner) scanEscape() {
 	)
 
 	switch s.ch {
-	case 'a', 'b', 'f', 'n', 'r', 't', 'v', '\\', '"':
+	case 'a', 'b', 'f', 'n', 'r', 't', 'v', '\\', '"', '$':
 		s.next()
 		return
 	case '0', '1', '2', '3', '4', '5', '6', '7':

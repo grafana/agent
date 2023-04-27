@@ -41,6 +41,8 @@ var tokens = []tokenExample{
 	{token.FLOAT, "1e-100"},
 	{token.FLOAT, "2.71828e-1000"},
 	{token.STRING, `"Hello, world!"`},
+	{token.STRING, `"The Matrix came out in ${1999}."`},
+	{token.STRING, `"The Matrix came out in \${1999}."`},
 
 	// Operators and delimiters
 	{token.ADD, "+"},
