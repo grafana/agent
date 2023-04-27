@@ -1,6 +1,6 @@
 ---
 aliases:
-- /docs/agent/latest/dynamic-configuration
+- ../dynamic-configuration/
 title: Dynamic Configuration
 weight: 100
 ---

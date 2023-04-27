@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/flow/reference/components/loki.source.heroku
 title: loki.source.heroku
 ---
 

@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/flow/reference/components/phlare.write
 title: phlare.write
 ---
 

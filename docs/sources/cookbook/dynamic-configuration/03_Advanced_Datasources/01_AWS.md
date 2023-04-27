@@ -1,6 +1,6 @@
 ---
 aliases:
-- /docs/agent/latest/dynamic-configuration/aws
+- ../../../dynamic-configuration/aws/
 title: Querying AWS
 weight: 300
 ---
