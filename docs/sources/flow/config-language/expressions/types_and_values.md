@@ -58,10 +58,41 @@ The supported escape sequences are as follows:
 | `\v` | The vertical tab character `U+000B` |
 | `\'` | The `'` character `U+0027` |
 | `\"` | The `"` character `U+0022`, which prevents terminating the string |
+| `\$` | The `$` character, which escapes [string interpolation][] |
 | `\NNN` | A literal byte (NNN is three octal digits) |
 | `\xNN` | A literal byte (NN is two hexadecimal digits) |
 | `\uNNNN` | A Unicode character from the basic multilingual plane (NNNN is four hexadecimal digits) |
 | `\UNNNNNNNN` | A Unicode character from supplementary planes (NNNNNNNN is eight hexadecimal digits) |
+
+[string interpolation]: #string-interpolation
+
+### String interpolation
+
+Sequences of `${EXPR}` within strings are evaluated as expressions, and their
+results are placed back into the surrounding string.
+
+The string:
+
+```river
+"1 + 2 is: ${1 + 2}"
+```
+
+Evaluates to the following:
+
+```river
+"1 + 2 is: 3"
+```
+
+String interpolation fails if the expression can not be converted into a
+string. String interpolation is compatible with the following types:
+
+* Nulls (`"${null}`)
+* Strings (`"${env("HOME")}`)
+* Numbers (`"${1 + 2}`)
+* Booleans (`${true || false}`)
+
+String interpolation can be escaped by escaping the dollar sign: `"\${EXPR}"`
+will produce the literal string `"${EXPR}"`.
 
 ## Bools
 

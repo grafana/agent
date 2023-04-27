@@ -14,6 +14,9 @@ Main (unreleased)
 
 - Added coalesce function to river stdlib. (@jkroepke)
 
+- Add support for interpolated strings in River. The string `"1 + 2 is ${1 +
+  2}"` will evaluate to `"1 + 2 is 3"`. (@rfratto)
+
 ### Enhancements
 
 - Support in-memory HTTP traffic for Flow components. `prometheus.exporter`
