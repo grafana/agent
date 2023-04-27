@@ -1,8 +1,0 @@
-redis_configs:
-  - redis_addr: localhost:6379
-    autoscrape:
-      metric_relabel_configs:
-        - source_labels: [__address__]
-          target_label: "banana"
-          replacement: "apple"
-  - redis_addr: localhost:6380

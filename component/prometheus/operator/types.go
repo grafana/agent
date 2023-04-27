@@ -1,4 +1,4 @@
-package podmonitors
+package operator
 
 import (
 	"time"
@@ -46,11 +46,11 @@ func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 }
 
 type DebugInfo struct {
-	DiscoveredPodMonitors []*DiscoveredPodMonitor `river:"pod_monitors,block"`
-	Targets               []scrape.TargetStatus   `river:"targets,block,optional"`
+	DiscoveredCRDs []*DiscoveredResource `river:"crds,block"`
+	Targets        []scrape.TargetStatus `river:"targets,block,optional"`
 }
 
-type DiscoveredPodMonitor struct {
+type DiscoveredResource struct {
 	Namespace      string    `river:"namespace,attr"`
 	Name           string    `river:"name,attr"`
 	LastReconcile  time.Time `river:"last_reconcile,attr,optional"`
