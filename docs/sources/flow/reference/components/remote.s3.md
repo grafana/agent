@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/flow/reference/components/remote.s3
 title: remote.s3
 ---
 

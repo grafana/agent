@@ -1,7 +1,7 @@
 ---
-headless: true
 aliases:
-  - /docs/agent/latest/shared/flow/otelcol/output-block/
+- ../../otelcol/output-block/
+headless: true
 ---
 
 The `output` block configures a set of components to forward resulting
