@@ -1,6 +1,4 @@
 ---
-aliases:
-- /docs/agent/latest/configuration/integrations/node-exporter-config/
 title: node_exporter_config
 ---
 

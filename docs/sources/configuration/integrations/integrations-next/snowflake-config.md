@@ -1,6 +1,4 @@
 ---
-aliases:
-  - /docs/agent/latest/configuration/integrations/integrations-next/snowflake-config/
 title: snowflake_config
 ---
 
