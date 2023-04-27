@@ -9,19 +9,16 @@ import (
 	"fmt"
 	"os"
 
-	// Adds version information
-	_ "github.com/grafana/agent/pkg/build"
-	"github.com/grafana/agent/pkg/server"
-
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/crow"
+	"github.com/grafana/agent/pkg/server"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/prometheus/common/version"
 )
 
 func init() {
-	prometheus.MustRegister(version.NewCollector("grafana_agent_crow"))
+	prometheus.MustRegister(build.NewCollector("grafana_agent_crow"))
 }
 
 func main() {
@@ -44,7 +41,7 @@ func main() {
 		os.Exit(1)
 	}
 	if showVersion {
-		fmt.Println(version.Print(os.Args[0]))
+		fmt.Println(build.Print(os.Args[0]))
 		os.Exit(0)
 	}
 
