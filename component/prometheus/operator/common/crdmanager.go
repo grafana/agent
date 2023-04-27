@@ -128,7 +128,7 @@ func (c *crdManager) DebugInfo() interface{} {
 	return info
 }
 
-// runInformers starts all the informers that are required to discover crds.
+// runInformers starts all the informers that are required to discover CRDs.
 func (c *crdManager) runInformers(ctx context.Context) error {
 	config, err := c.args.Client.BuildRESTConfig(c.logger)
 	if err != nil {
@@ -184,12 +184,12 @@ func (c *crdManager) runInformers(ctx context.Context) error {
 
 // configureInformers configures the informers for the CRDManager to watch for crd changes.
 func (c *crdManager) configureInformers(ctx context.Context, informers cache.Informers) error {
-	var proto client.Object
+	var prototype client.Object
 	switch c.kind {
 	case KindPodMonitor:
-		proto = &promopv1.PodMonitor{}
+		prototype = &promopv1.PodMonitor{}
 	case KindServiceMonitor:
-		proto = &promopv1.ServiceMonitor{}
+		prototype = &promopv1.ServiceMonitor{}
 	default:
 		return fmt.Errorf("unknown kind to configure Informers: %s", c.kind)
 	}
@@ -197,11 +197,11 @@ func (c *crdManager) configureInformers(ctx context.Context, informers cache.Inf
 	informerCtx, cancel := context.WithTimeout(ctx, informerSyncTimeout)
 	defer cancel()
 
-	informer, err := informers.GetInformer(informerCtx, proto)
+	informer, err := informers.GetInformer(informerCtx, prototype)
 	if err != nil {
 		if errors.Is(informerCtx.Err(), context.DeadlineExceeded) { // Check the context to prevent GetInformer returning a fake timeout
 			return fmt.Errorf("timeout exceeded while configuring informers. Check the connection"+
-				" to the Kubernetes API is stable and that the Agent has appropriate RBAC permissions for %v", proto)
+				" to the Kubernetes API is stable and that the Agent has appropriate RBAC permissions for %v", prototype)
 		}
 
 		return err
