@@ -155,11 +155,11 @@ func (c *Component) Update(args component.Arguments) error {
 		// avoid issues with re-registering metrics with the same name, we create a
 		// new registry for the target every time we create one, and pass it to an
 		// unchecked collector to bypass uniqueness checking.
-		serverMetrics := prometheus.NewRegistry()
+		registry := prometheus.NewRegistry()
 		c.serverMetrics.SetCollector(serverMetrics)
 
 		entryHandler := loki.NewEntryHandler(c.handler, func() {})
-		t, err := ht.NewHerokuTarget(c.metrics, c.opts.Logger, entryHandler, rcs, newArgs.Convert(), serverMetrics)
+		t, err := ht.NewHerokuTarget(c.metrics, c.opts.Logger, entryHandler, rcs, newArgs.Convert(), registry)
 		if err != nil {
 			level.Error(c.opts.Logger).Log("msg", "failed to create heroku listener with provided config", "err", err)
 			return err
