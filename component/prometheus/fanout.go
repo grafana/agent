@@ -205,28 +205,3 @@ func (a *appender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int
 	}
 	return ref, multiErr
 }
-
-// SimpleMetadataStore implements the MetricMetadataStore interface.
-type SimpleMetadataStore struct {
-	m map[string]scrape.MetricMetadata
-}
-
-// GetMetadata implements the MetricMetadataStore interface.
-func (ms *SimpleMetadataStore) GetMetadata(familyName string) (scrape.MetricMetadata, bool) {
-	return ms.m[familyName], false
-}
-
-// ListMetadata implements the MetricMetadataStore interface.
-func (ms *SimpleMetadataStore) ListMetadata() []scrape.MetricMetadata {
-	arr := make([]scrape.MetricMetadata, 0)
-	for _, m := range ms.m {
-		arr = append(arr, m)
-	}
-	return arr
-}
-
-// SizeMetadata implements the MetricMetadataStore interface.
-func (ms *SimpleMetadataStore) SizeMetadata() int { return len(ms.m) }
-
-// LengthMetadata implements the MetricMetadataStore interface.
-func (ms *SimpleMetadataStore) LengthMetadata() int { return len(ms.m) }
