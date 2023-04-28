@@ -137,7 +137,8 @@ var (
 func New(o component.Options, args Arguments) (*Component, error) {
 	flowAppendable := prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer)
 	scrapeOptions := &scrape.Options{
-		ExtraMetrics: args.ExtraMetrics,
+		PassMetadataInContext: true,
+		ExtraMetrics:          args.ExtraMetrics,
 		HTTPClientOptions: []config_util.HTTPClientOption{
 			config_util.WithDialContextFunc(o.DialFunc),
 		},

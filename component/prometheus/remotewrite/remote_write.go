@@ -3,6 +3,11 @@ package remotewrite
 import (
 	"context"
 	"fmt"
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/snappy"
+	"github.com/prometheus/prometheus/prompb"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"math"
 	"os"
 	"path/filepath"
@@ -57,8 +62,9 @@ type Component struct {
 
 	mut sync.RWMutex
 	cfg Arguments
+	c   remote.WriteClient
 
-	receiver *prometheus.Interceptor
+	receiver *Interceptor
 }
 
 // NewComponent creates a new prometheus.remote_write component.
@@ -88,8 +94,19 @@ func NewComponent(o component.Options, c Arguments) (*Component, error) {
 		remoteStore: remoteStore,
 		storage:     storage.NewFanout(o.Logger, walStorage, remoteStore),
 	}
-	res.receiver = prometheus.NewInterceptor(
+	convertedConfig, _ := convertConfigs(c)
+	rwCfg := convertedConfig.RemoteWriteConfigs[0]
+	res.c, _ = remote.NewWriteClient("metadata", &remote.ClientConfig{
+		URL:              rwCfg.URL,
+		Timeout:          rwCfg.RemoteTimeout,
+		HTTPClientConfig: rwCfg.HTTPClientConfig,
+		SigV4Config:      rwCfg.SigV4Config,
+		Headers:          rwCfg.Headers,
+		RetryOnRateLimit: true,
+	})
+	res.receiver = NewInterceptor(
 		res.storage,
+		res.sendMetadataWithBackoff,
 
 		// In the methods below, conversion is needed because remote_writes assume
 		// they are responsible for generating ref IDs. This means two
@@ -97,7 +114,7 @@ func NewComponent(o component.Options, c Arguments) (*Component, error) {
 		// treat the remote_write ID as a "local ID" and translate it to a "global
 		// ID" to ensure Flow compatibility.
 
-		prometheus.WithAppendHook(func(globalRef storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
+		WithAppendHook(func(globalRef storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
 			if res.exited.Load() {
 				return 0, fmt.Errorf("%s has exited", o.ID)
 			}
@@ -107,21 +124,23 @@ func NewComponent(o component.Options, c Arguments) (*Component, error) {
 			if localID == 0 {
 				prometheus.GlobalRefMapping.GetOrAddLink(res.opts.ID, uint64(newRef), l)
 			}
+
 			return globalRef, nextErr
 		}),
-		prometheus.WithMetadataHook(func(globalRef storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error) {
+		WithMetadataHook(func(globalRef storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error) {
 			if res.exited.Load() {
 				return 0, fmt.Errorf("%s has exited", o.ID)
 			}
 
 			localID := prometheus.GlobalRefMapping.GetLocalRefID(res.opts.ID, uint64(globalRef))
 			newRef, nextErr := next.UpdateMetadata(storage.SeriesRef(localID), l, m)
+
 			if localID == 0 {
 				prometheus.GlobalRefMapping.GetOrAddLink(res.opts.ID, uint64(newRef), l)
 			}
 			return globalRef, nextErr
 		}),
-		prometheus.WithExemplarHook(func(globalRef storage.SeriesRef, l labels.Labels, e exemplar.Exemplar, next storage.Appender) (storage.SeriesRef, error) {
+		WithExemplarHook(func(globalRef storage.SeriesRef, l labels.Labels, e exemplar.Exemplar, next storage.Appender) (storage.SeriesRef, error) {
 			if res.exited.Load() {
 				return 0, fmt.Errorf("%s has exited", o.ID)
 			}
@@ -242,4 +261,70 @@ func (c *Component) Update(newConfig component.Arguments) error {
 
 	c.cfg = cfg
 	return nil
+}
+
+func (c *Component) sendMetadataWithBackoff(ctx context.Context, metadata []prompb.MetricMetadata, pBuf *proto.Buffer) error {
+	// Build the WriteRequest with no samples.
+	req, _, err := buildWriteRequest(nil, metadata, pBuf, nil)
+	if err != nil {
+		return err
+	}
+
+	metadataCount := len(metadata)
+
+	ctx, span := otel.Tracer("").Start(ctx, "Remote Metadata Send Batch")
+	defer span.End()
+
+	span.SetAttributes(
+		attribute.Int("metadata", metadataCount),
+		attribute.Int("try", 1),
+		attribute.String("remote_name", c.c.Name()),
+		attribute.String("remote_url", c.c.Endpoint()),
+	)
+
+	err = c.c.Store(ctx, req)
+
+	if err != nil {
+		span.RecordError(err)
+	}
+	return err
+}
+
+func buildWriteRequest(samples []prompb.TimeSeries, metadata []prompb.MetricMetadata, pBuf *proto.Buffer, buf []byte) ([]byte, int64, error) {
+	var highest int64
+	for _, ts := range samples {
+		// At the moment we only ever append a TimeSeries with a single sample or exemplar in it.
+		if len(ts.Samples) > 0 && ts.Samples[0].Timestamp > highest {
+			highest = ts.Samples[0].Timestamp
+		}
+		if len(ts.Exemplars) > 0 && ts.Exemplars[0].Timestamp > highest {
+			highest = ts.Exemplars[0].Timestamp
+		}
+		if len(ts.Histograms) > 0 && ts.Histograms[0].Timestamp > highest {
+			highest = ts.Histograms[0].Timestamp
+		}
+	}
+
+	req := &prompb.WriteRequest{
+		Timeseries: samples,
+		Metadata:   metadata,
+	}
+
+	if pBuf == nil {
+		pBuf = proto.NewBuffer(nil) // For convenience in tests. Not efficient.
+	} else {
+		pBuf.Reset()
+	}
+	err := pBuf.Marshal(req)
+	if err != nil {
+		return nil, highest, err
+	}
+
+	// snappy uses len() to see if it needs to allocate a new slice. Make the
+	// buffer as long as possible.
+	if buf != nil {
+		buf = buf[0:cap(buf)]
+	}
+	compressed := snappy.Encode(buf, pBuf.Bytes())
+	return compressed, highest, nil
 }

@@ -1,7 +1,13 @@
-package prometheus
+package remotewrite
 
 import (
 	"context"
+	"github.com/golang/protobuf/proto"
+	"github.com/grafana/agent/component/prometheus"
+	"github.com/prometheus/prometheus/model/textparse"
+	"github.com/prometheus/prometheus/prompb"
+	"github.com/prometheus/prometheus/scrape"
+	"strings"
 
 	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/histogram"
@@ -20,14 +26,15 @@ type Interceptor struct {
 	onAppendHistogram func(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram, next storage.Appender) (storage.SeriesRef, error)
 	// next is the next appendable to pass in the chain.
 	next storage.Appendable
+	send func(ctx context.Context, metadata []prompb.MetricMetadata, pBuf *proto.Buffer) error
 }
 
 var _ storage.Appendable = (*Interceptor)(nil)
 
 // NewInterceptor creates a new Interceptor storage.Appendable. Options can be
 // provided to NewInterceptor to install custom hooks for different methods.
-func NewInterceptor(next storage.Appendable, opts ...InterceptorOption) *Interceptor {
-	i := &Interceptor{next: next}
+func NewInterceptor(next storage.Appendable, send func(ctx context.Context, metadata []prompb.MetricMetadata, pBuf *proto.Buffer) error, opts ...InterceptorOption) *Interceptor {
+	i := &Interceptor{next: next, send: send}
 	for _, opt := range opts {
 		opt(i)
 	}
@@ -73,6 +80,9 @@ func WithAppendHistogram(f func(ref storage.SeriesRef, l labels.Labels, t int64,
 func (f *Interceptor) Appender(ctx context.Context) storage.Appender {
 	app := &interceptappender{
 		interceptor: f,
+		ctx:         ctx,
+		lbls:        make([]labels.Labels, 0),
+		send:        f.send,
 	}
 	if f.next != nil {
 		app.child = f.next.Appender(ctx)
@@ -82,7 +92,10 @@ func (f *Interceptor) Appender(ctx context.Context) storage.Appender {
 
 type interceptappender struct {
 	interceptor *Interceptor
+	lbls        []labels.Labels
 	child       storage.Appender
+	ctx         context.Context
+	send        func(ctx context.Context, metadata []prompb.MetricMetadata, pBuf *proto.Buffer) error
 }
 
 var _ storage.Appender = (*interceptappender)(nil)
@@ -90,8 +103,9 @@ var _ storage.Appender = (*interceptappender)(nil)
 // Append satisfies the Appender interface.
 func (a *interceptappender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, error) {
 	if ref == 0 {
-		ref = storage.SeriesRef(GlobalRefMapping.GetOrAddGlobalRefID(l))
+		ref = storage.SeriesRef(prometheus.GlobalRefMapping.GetOrAddGlobalRefID(l))
 	}
+	a.lbls = append(a.lbls, l)
 
 	if a.interceptor.onAppend != nil {
 		return a.interceptor.onAppend(ref, l, t, v, a.child)
@@ -103,6 +117,22 @@ func (a *interceptappender) Append(ref storage.SeriesRef, l labels.Labels, t int
 func (a *interceptappender) Commit() error {
 	if a.child == nil {
 		return nil
+	}
+	if meta, found := scrape.MetricMetadataStoreFromContext(a.ctx); found {
+		allmeta := make([]prompb.MetricMetadata, 0)
+		for _, l := range a.lbls {
+			name := l.Get("__name__")
+			if arr, metaFound := meta.GetMetadata(name); metaFound {
+				allmeta = append(allmeta, prompb.MetricMetadata{
+					Type:             metricTypeToMetricTypeProto(arr.Type),
+					Unit:             arr.Unit,
+					Help:             arr.Help,
+					MetricFamilyName: name,
+				})
+			}
+		}
+		pBuf := proto.NewBuffer(nil)
+		a.send(a.ctx, allmeta, pBuf)
 	}
 	return a.child.Commit()
 }
@@ -123,7 +153,7 @@ func (a *interceptappender) AppendExemplar(
 ) (storage.SeriesRef, error) {
 
 	if ref == 0 {
-		ref = storage.SeriesRef(GlobalRefMapping.GetOrAddGlobalRefID(l))
+		ref = storage.SeriesRef(prometheus.GlobalRefMapping.GetOrAddGlobalRefID(l))
 	}
 
 	if a.interceptor.onAppendExemplar != nil {
@@ -140,7 +170,7 @@ func (a *interceptappender) UpdateMetadata(
 ) (storage.SeriesRef, error) {
 
 	if ref == 0 {
-		ref = storage.SeriesRef(GlobalRefMapping.GetOrAddGlobalRefID(l))
+		ref = storage.SeriesRef(prometheus.GlobalRefMapping.GetOrAddGlobalRefID(l))
 	}
 
 	if a.interceptor.onUpdateMetadata != nil {
@@ -158,11 +188,22 @@ func (a *interceptappender) AppendHistogram(
 ) (storage.SeriesRef, error) {
 
 	if ref == 0 {
-		ref = storage.SeriesRef(GlobalRefMapping.GetOrAddGlobalRefID(l))
+		ref = storage.SeriesRef(prometheus.GlobalRefMapping.GetOrAddGlobalRefID(l))
 	}
 
 	if a.interceptor.onAppendHistogram != nil {
 		return a.interceptor.onAppendHistogram(ref, l, t, h, fh, a.child)
 	}
 	return a.child.AppendHistogram(ref, l, t, h, fh)
+}
+
+// metricTypeToMetricTypeProto transforms a Prometheus metricType into prompb metricType. Since the former is a string we need to transform it to an enum.
+func metricTypeToMetricTypeProto(t textparse.MetricType) prompb.MetricMetadata_MetricType {
+	mt := strings.ToUpper(string(t))
+	v, ok := prompb.MetricMetadata_MetricType_value[mt]
+	if !ok {
+		return prompb.MetricMetadata_UNKNOWN
+	}
+
+	return prompb.MetricMetadata_MetricType(v)
 }

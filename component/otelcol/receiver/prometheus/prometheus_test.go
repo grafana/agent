@@ -64,7 +64,7 @@ func Test(t *testing.T) {
 		v := 100.
 
 		ctx := context.Background()
-		ctx = scrape.ContextWithMetricMetadataStore(ctx, flowprometheus.NoopMetadataStore{})
+		ctx = scrape.ContextWithMetricMetadataStore(ctx, flowprometheus.SimpleMetadataStore{})
 		ctx = scrape.ContextWithTarget(ctx, &scrape.Target{})
 		app := exports.Receiver.Appender(ctx)
 		_, err := app.Append(0, l, ts, v)
