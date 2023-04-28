@@ -1,8 +1,6 @@
 ---
 title: Agent Management
 weight: 700
-aliases:
-- ../../configuration/agent-management/
 ---
 
 # Agent Management - Experimental
