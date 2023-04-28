@@ -118,4 +118,4 @@ snippets:
       app: app1
 ```
 
-Note: both json and yaml responses are supported.
+Note: both JSON and YAML responses are supported.
