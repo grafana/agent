@@ -8,14 +8,11 @@ import (
 	util_log "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/cmd/internal/flowmode"
+	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/server"
 
-	// Adds version information
-	_ "github.com/grafana/agent/pkg/build"
-
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/version"
 
 	// Register Prometheus SD components
 	_ "github.com/grafana/loki/clients/pkg/promtail/discovery/consulagent"
@@ -26,7 +23,7 @@ import (
 )
 
 func init() {
-	prometheus.MustRegister(version.NewCollector("agent"))
+	prometheus.MustRegister(build.NewCollector("agent"))
 }
 
 func main() {

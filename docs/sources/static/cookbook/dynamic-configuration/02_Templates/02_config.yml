@@ -1,5 +1,0 @@
-template_paths:
-  - "file:///etc/grafana/02_assets"
-sources:
-  - name: fruit
-    url: "file:///etc/grafana/02_assets/fruit.json"
