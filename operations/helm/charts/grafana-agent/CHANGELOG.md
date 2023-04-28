@@ -10,6 +10,10 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Enhancements
+
+- Update RBAC rules to permit `node/metrics`. (@yurii-kryvosheia)
+
 0.12.0 (2023-04-25)
 -------------------
 
