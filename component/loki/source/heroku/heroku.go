@@ -156,7 +156,7 @@ func (c *Component) Update(args component.Arguments) error {
 		// new registry for the target every time we create one, and pass it to an
 		// unchecked collector to bypass uniqueness checking.
 		registry := prometheus.NewRegistry()
-		c.serverMetrics.SetCollector(serverMetrics)
+		c.serverMetrics.SetCollector(registry)
 
 		entryHandler := loki.NewEntryHandler(c.handler, func() {})
 		t, err := ht.NewHerokuTarget(c.metrics, c.opts.Logger, entryHandler, rcs, newArgs.Convert(), registry)
