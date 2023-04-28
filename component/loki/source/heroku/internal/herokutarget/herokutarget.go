@@ -156,11 +156,11 @@ func (h *HerokuTarget) drain(w http.ResponseWriter, r *http.Request) {
 				Line:      message.Message,
 			},
 		}
-		h.metrics.herokuEntries.WithLabelValues().Inc()
+		h.metrics.herokuEntries.Inc()
 	}
 	err := herokuScanner.Err()
 	if err != nil {
-		h.metrics.herokuErrors.WithLabelValues().Inc()
+		h.metrics.herokuErrors.Inc()
 		level.Warn(h.logger).Log("msg", "failed to read incoming heroku request", "err", err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

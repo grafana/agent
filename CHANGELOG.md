@@ -21,6 +21,10 @@ v0.33.1 (2023-04-28)
 - Fix version information not displaying correctly when passing the `--version`
   flag or in the `agent_build_info` metric. (@rfratto)
 
+- Fix issue in `loki.source.heroku` and `loki.source.gcplog` where updating the
+  component would cause Grafana Agent Flow's Prometheus metrics endpoint to
+  return an error until the process is restarted. (@rfratto)
+
 ### Other changes
 
 - Support Bundles report the status of discovered log targets. (@tpaschalis)
