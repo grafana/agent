@@ -80,19 +80,22 @@ a service account key.
 
 ### push block
 
-The `push` block defines the configuration of the HTTP server that receives
+The `push` block defines the configuration of the server that receives
 push requests from GCP's Pub/Sub servers.
 
 The following arguments can be used to configure the `push` block. Any omitted
 fields take their default values.
 
-Name                     | Type          | Description | Default | Required
------------------------- | ------------- | ----------- | ------- | --------
-`http_listen_address`    | `string`      | The address the server listens to.  | `"0.0.0.0"` | no
-`http_listen_port`       | `int`         | The port the server listens to.     |  `8080`     | no
+Name                     | Type          | Description                                                     | Default | Required
+------------------------ |---------------|-----------------------------------------------------------------| ------- | --------
+`http`    | [HTTP][]      | Configures the HTTP server that receives requests.              |  | no
+`grpc`    | [GRPC][]      | Configures the gRPC server that receives requests.              |  | no
 `push_timeout`           | `duration`    | Sets a maximum processing time for each incoming GCP log entry. |  `"0s"`  | no
-`labels`                 | `map(string)` | Additional labels to associate with incoming entries. | `"{}"`  | no
-`use_incoming_timestamp` | `bool`        | Whether to use the incoming entry timestamp.          | `false` | no
+`labels`                 | `map(string)` | Additional labels to associate with incoming entries.           | `"{}"`  | no
+`use_incoming_timestamp` | `bool`        | Whether to use the incoming entry timestamp.                    | `false` | no
+
+[HTTP]: {{<relref "./loki.server.md">}}
+[GRPC]: {{<relref "./loki.server.md">}}
 
 The server listens for POST requests from GCP's Push subscriptions on
 `HOST:PORT/gcp/api/v1/push`.
@@ -102,7 +105,6 @@ as the time it was processed, except if `use_incoming_timestamp` is set to
 true.
 
 The `labels` map is applied to every entry that passes through the component.
-
 
 ## Exported fields
 
@@ -136,7 +138,7 @@ metrics:
 
 ## Example
 
-This example listens for GCP Pub/Sub PushRequests on `0.0.0.0:8080` and
+This example listens for GCP Pub/Sub PushRequests on `0.0.0.0:9090` and
 forwards them to a `loki.write` component.
 
 ```river
@@ -153,3 +155,23 @@ loki.write "local" {
 }
 ```
 
+On the other hand, if we need the server to listen on `0.0.0.0:4040`, and forwards them
+to a `loki.write` component.
+
+```river
+loki.source.gcplog "local" {
+  push {
+    http {
+        listen_port = 4040
+    }
+  }
+
+  forward_to = [loki.write.local.receiver]
+}
+
+loki.write "local" {
+  endpoint {
+    url = "loki:3100/api/v1/push"
+  }
+}
+```
