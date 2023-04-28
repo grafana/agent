@@ -43,6 +43,10 @@ Main (unreleased)
 - Fix version information not displaying correctly when passing the `--version`
   flag or in the `agent_build_info` metric. (@rfratto)
 
+- Fix issue in `loki.source.heroku` and `loki.source.gcplog` where updating the
+  component would cause Grafana Agent Flow's Prometheus metrics endpoint to
+  return an error until the process is restarted. (@rfratto)
+
 ### Other changes
 
 - Add metrics when clustering mode is enabled. (@rfratto)
