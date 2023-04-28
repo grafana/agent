@@ -91,6 +91,8 @@ selector:
 > * [`promtail.scrape_config`](https://grafana.com/docs/loki/latest/clients/promtail/configuration/#scrape_configs)
 > * [`integrations_config`](https://grafana.com/docs/agent/latest/static/configuration/integrations)
 
+> **Note:** Snippet selection is currently done in the API server. This behaviour is subject to change in the future.
+
 
 ### Example response body
 
