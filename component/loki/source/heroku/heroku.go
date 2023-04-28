@@ -66,14 +66,14 @@ func (lc *ListenerConfig) UnmarshalRiver(f func(interface{}) error) error {
 
 // Component implements the loki.source.heroku component.
 type Component struct {
-	opts    component.Options
-	metrics *ht.Metrics
+	opts          component.Options
+	metrics       *ht.Metrics              // Metrics about Heroku entries.
+	serverMetrics *util.UncheckedCollector // Metircs about the HTTP server managed by the component.
 
-	mut           sync.RWMutex
-	args          Arguments
-	fanout        []loki.LogsReceiver
-	target        *ht.HerokuTarget
-	serverMetrics *util.UncheckedCollector
+	mut    sync.RWMutex
+	args   Arguments
+	fanout []loki.LogsReceiver
+	target *ht.HerokuTarget
 
 	handler loki.LogsReceiver
 }
