@@ -16,6 +16,7 @@ Unreleased
 ### Enhancements
 
 - Update Grafana Agent version to v0.33.0. (@rfratto)
+- Update RBAC rules to permit `node/metrics`. (@yurii-kryvosheia)
 
 0.11.0 (2023-04-24)
 -------------------
