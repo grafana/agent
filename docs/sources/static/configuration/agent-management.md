@@ -17,7 +17,7 @@ Remote Configurations are composed of a base configuration and a set of snippets
 
 Agent Management can be used by passing the flag `-enable-features=agent-management`. When enabled, the file referred to `-config.file` will be loaded as an agent management configuration file.
 
-Agent Management configuration files are YAML which conform the following schema:
+Agent Management configuration files are YAML documents which conform the following schema:
 
 ```yaml
 # Agent Management configuration.
