@@ -29,10 +29,11 @@ func (uc *UncheckedCollector) SetCollector(inner prometheus.Collector) {
 	uc.inner = inner
 }
 
-// Describe implements [prometheus.Collector]. Because UncheckedCollector is
-// unchecked, nothing is written to the provided ch.
+// Describe implements [prometheus.Collector], but is a no-op to be considered
+// an "unchecked" collector by Prometheus. See [prometheus.Collector] for more
+// information.
 func (uc *UncheckedCollector) Describe(_ chan<- *prometheus.Desc) {
-	// no-op: do not send any descriptions of metrics to avoid having them be
+	// No-op: do not send any descriptions of metrics to avoid having them be
 	// checked.
 }
 
