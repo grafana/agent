@@ -32,6 +32,7 @@ Valid feature names are:
 * `remote-configs`: Enable [retrieving]({{< relref "./_index.md#remote-configuration-experimental" >}}) config files over HTTP/HTTPS
 * `integrations-next`: Enable [revamp]({{< relref "./integrations/integrations-next/" >}}) of the integrations subsystem
 * `extra-scrape-metrics`: When enabled, additional time series  are exposed for each metrics instance scrape. See [Extra scrape metrics](https://prometheus.io/docs/prometheus/latest/feature_flags/#extra-scrape-metrics).
+* `agent-management`: Enable support for [agent management]({{< relref "./agent-management" >}}).
 
 ## Report information usage
 
