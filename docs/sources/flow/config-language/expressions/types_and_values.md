@@ -49,6 +49,7 @@ The supported escape sequences are as follows:
 
 | Sequence | Replacement |
 | -------- | ----------- |
+| `\\` | The `\` character `U+005C` |
 | `\a` | The alert or bell character `U+0007` |
 | `\b` | The backspace character `U+0008` |
 | `\f` | The formfeed character `U+000C` |
