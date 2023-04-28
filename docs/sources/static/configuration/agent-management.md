@@ -52,7 +52,7 @@ agent_management:
 
 ## API (v2)
 
-Grafana Agents with Agent Management enabled continuously poll the API server for an up-to-date configuration. The API server is expected to return an HTTP response with the following body format:
+Grafana Agents with Agent Management enabled continuously poll the API server for an up-to-date configuration. The API server is expected to implement a `GET /agent-management/api/agent/v2` HTTP endpoint returning a successful response with the following body format:
 
 ```yaml
 # The base configuration for the Agent.
@@ -97,7 +97,22 @@ selector:
 ```yaml
 base_config: |
   server:
-    log_level: debug
+    log_level: info
+  metrics:
+    global:
+      remote_write:
+        - basic_auth:
+            password_file: key.txt
+            username: 123
+          url: https://myserver.com/api/prom/push
+  logs:
+    positions_directory: /var/lib/grafana-agent
+    global:
+      clients:
+        - basic_auth:
+            password_file: key.txt
+            username: 456
+          url: https://myserver.com/loki/api/v1/push
 snippets:
   snip1:
     config: |
@@ -118,4 +133,4 @@ snippets:
       app: app1
 ```
 
-Note: both JSON and YAML responses are supported.
+Note: This example uses YAML. However, both JSON and YAML responses are supported . The choice of serialization format is left to the server-side implementation. Grafana Agent does not send nor reads `Content-Type` or `Accept` headers.
