@@ -82,3 +82,28 @@ perform the following steps:
    2. Replace `VALUES_PATH` with the path to your copy of `values.yaml` to use.
 
 [values.yaml]: https://raw.githubusercontent.com/grafana/agent/main/operations/helm/charts/grafana-agent/values.yaml
+
+### Kustomize considerations
+
+If using [Kustomize][] to inflate and install the [Helm chart][], be careful
+when using a `configMapGenerator` to generate the ConfigMap containing the
+configuration. By default, the generator appends a hash to the name and patches
+the resource mentioning it, triggering a rolling update.
+
+In the case of Grafana Agent Flow, this behavior is undesirable, as the startup
+time can be significant depending on the size of the Write-Ahead Log. Instead,
+the [Helm chart][] provides a sidecar container that will watch the ConfigMap
+and trigger a dynamic reload.
+
+Here is an example snippet of a `kustomization` that disables this behavior:
+
+```yaml
+configMapGenerator:
+  - name: grafana-agent
+    files:
+      - config.river
+    options:
+      disableNameSuffixHash: true
+```
+
+[Kustomize]: https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/

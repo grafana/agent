@@ -31,8 +31,8 @@ Valid feature names are:
 
 * `remote-configs`: Enable [retrieving]({{< relref "./_index.md#remote-configuration-experimental" >}}) config files over HTTP/HTTPS
 * `integrations-next`: Enable [revamp]({{< relref "./integrations/integrations-next/" >}}) of the integrations subsystem
-* `dynamic-config`: Enable support for [dynamic configuration]({{< relref "./dynamic-config" >}})
 * `extra-scrape-metrics`: When enabled, additional time series  are exposed for each metrics instance scrape. See [Extra scrape metrics](https://prometheus.io/docs/prometheus/latest/feature_flags/#extra-scrape-metrics).
+* `agent-management`: Enable support for [agent management]({{< relref "./agent-management" >}}).
 
 ## Report information usage
 
@@ -91,11 +91,6 @@ These flags require the `remote-configs` feature to be enabled:
 
 `-config.url.basic-auth-user`: Basic Authentication username to use when fetching the remote configuration file
 `-config.url.basic-auth-password-file`: File containing a Basic Authentication password to use when fetching the remote configuration file
-
-### Dynamic Configuration
-
-The `dynamic-config` and `integrations-next` features must be enabled when
-`-config.file.type` is set to `dynamic`.
 
 ## Server
 

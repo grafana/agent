@@ -66,20 +66,20 @@ func TestBlockRepresentation(t *testing.T) {
 			"attr_1": "value_1",
 			"attr_2": "value_2",
 			"unlabeled": object{
-				"a": object{"value": 1},
-				"b": object{"value": 2},
+				"a": object{"value": float64(1)},
+				"b": object{"value": float64(2)},
 			},
-			"other_unlabeled": object{"value": 3},
+			"other_unlabeled": object{"value": float64(3)},
 			"labeled": object{
 				"a": object{
-					"label_a": object{"value": 4},
+					"label_a": object{"value": float64(4)},
 				},
 				"b": object{
-					"label_b": object{"value": 5},
+					"label_b": object{"value": float64(5)},
 				},
 			},
 			"other_labeled": object{
-				"label_c": object{"value": 6},
+				"label_c": object{"value": float64(6)},
 			},
 		}
 
@@ -179,14 +179,14 @@ func TestSliceOfBlocks(t *testing.T) {
 			"attr_1": "value_1",
 			"attr_2": "value_2",
 			"unlabeled": list{
-				object{"value": 1},
-				object{"value": 2},
-				object{"value": 3},
+				object{"value": float64(1)},
+				object{"value": float64(2)},
+				object{"value": float64(3)},
 			},
 			"labeled": object{
-				"label_a": object{"value": 4},
-				"label_b": object{"value": 5},
-				"label_c": object{"value": 6},
+				"label_a": object{"value": float64(4)},
+				"label_b": object{"value": float64(5)},
+				"label_c": object{"value": float64(6)},
 			},
 		}
 

@@ -10,7 +10,14 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Breaking changes
+
+- The experimental dynamic configuration feature has been removed in favor of Flow mode. (@mattdurham)
+
 ### Features
+- New Grafana Agent Flow components:
+  - `prometheus.operator.servicemonitors` discovers ServiceMonitor resources in your Kubernetes cluster and scrape
+    the targets they reference. (@captncraig, @marctc, @jcreixell)
 
 - Added coalesce function to river stdlib. (@jkroepke)
 
@@ -22,7 +29,7 @@ Main (unreleased)
   the server in-memory, bypassing the network stack. Use the new
   `--server.http.memory-addr` flag to customize which address is used for
   in-memory traffic. (@rfratto)
-
+- Disable node_exporter on Windows systems (@jkroepke)
 - Operator support for OAuth 2.0 Client in LogsClientSpec (@DavidSpek)
 
 ### Bugfixes
@@ -32,6 +39,9 @@ Main (unreleased)
 
 - Fix bug where some capsule values (such as Prometheus receivers) could not
   properly be used as an argument to a module. (@rfratto)
+
+- Fix version information not displaying correctly when passing the `--version`
+  flag or in the `agent_build_info` metric. (@rfratto)
 
 ### Other changes
 

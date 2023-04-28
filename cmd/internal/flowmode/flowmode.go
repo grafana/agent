@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/prometheus/common/version"
+	"github.com/grafana/agent/pkg/build"
 	"github.com/spf13/cobra"
 )
 
@@ -15,7 +15,7 @@ func Run() {
 	var cmd = &cobra.Command{
 		Use:     fmt.Sprintf("%s [global options] <subcommand>", os.Args[0]),
 		Short:   "Grafana Agent Flow",
-		Version: version.Print("agent"),
+		Version: build.Print("agent"),
 
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return cmd.Usage()
