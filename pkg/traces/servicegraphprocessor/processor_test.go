@@ -7,19 +7,31 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/pkg/traces/contextkeys"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/ptrace"
+	otelprocessor "go.opentelemetry.io/collector/processor"
+	otelprom "go.opentelemetry.io/otel/exporters/prometheus"
+	otelmetric "go.opentelemetry.io/otel/metric"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 )
 
 const (
 	traceSamplePath         = "testdata/trace-sample.json"
 	unpairedTraceSamplePath = "testdata/unpaired-trace-sample.json"
 )
+
+type FakeMeterProvider struct{}
+
+func (mp *FakeMeterProvider) Meter(name string, opts ...otelmetric.MeterOption) otelmetric.Meter {
+	return otelmetric.NewNoopMeter()
+}
+
+// var _ FakeMeterProvider = (*otelmetric.MeterProvider)(nil)
 
 func TestConsumeMetrics(t *testing.T) {
 	for _, tc := range []struct {
@@ -43,12 +55,12 @@ func TestConsumeMetrics(t *testing.T) {
 				Wait: -time.Millisecond,
 			},
 			expectedMetrics: `
-				# HELP traces_service_graph_unpaired_spans_total Total count of unpaired spans
-				# TYPE traces_service_graph_unpaired_spans_total counter
-				traces_service_graph_unpaired_spans_total{client="",server="db"} 2
-				traces_service_graph_unpaired_spans_total{client="app",server=""} 3
-				traces_service_graph_unpaired_spans_total{client="lb",server=""} 3
-`,
+						# HELP traces_service_graph_unpaired_spans_total Total count of unpaired spans
+						# TYPE traces_service_graph_unpaired_spans_total counter
+						traces_service_graph_unpaired_spans_total{client="",server="db"} 2
+						traces_service_graph_unpaired_spans_total{client="app",server=""} 3
+						traces_service_graph_unpaired_spans_total{client="lb",server=""} 3
+		`,
 		},
 		{
 			name:           "max items in storeMap is reached",
@@ -72,13 +84,19 @@ func TestConsumeMetrics(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			p := newProcessor(&mockConsumer{}, tc.cfg)
+			reg := prometheus.NewRegistry()
+
+			processorSettings := otelprocessor.CreateSettings{
+				ID: component.NewID("FakeID"),
+				TelemetrySettings: component.TelemetrySettings{
+					MeterProvider: getFakeMeterProvider(t, reg),
+				},
+				BuildInfo: component.BuildInfo{},
+			}
+			p := newProcessor(&mockConsumer{}, tc.cfg, processorSettings)
 			close(p.closeCh) // Don't collect any edges, leave that to the test.
 
-			reg := prometheus.NewRegistry()
-			ctx := context.WithValue(context.Background(), contextkeys.PrometheusRegisterer, reg)
-
-			err := p.Start(ctx, nil)
+			err := p.Start(context.Background(), nil)
 			require.NoError(t, err)
 
 			traces := traceSamples(t, tc.sampleDataPath)
@@ -96,6 +114,24 @@ func TestConsumeMetrics(t *testing.T) {
 	}
 }
 
+func getFakeMeterProvider(t *testing.T, reg *prometheus.Registry) *sdkmetric.MeterProvider {
+	//TODO: This is copied from instance.go. Reuse the same code?
+	otelExporter, err := otelprom.New(
+		otelprom.WithRegisterer(reg),
+		otelprom.WithoutUnits(),
+		// Disabled for the moment until this becomes stable, and we are ready to break backwards compatibility.
+		otelprom.WithoutScopeInfo(),
+		otelprom.WithoutTargetInfo())
+	//TODO: WithoutTargetInfo() is not in instance.go
+	require.NoError(t, err)
+
+	mp := sdkmetric.NewMeterProvider(
+		sdkmetric.WithReader(otelExporter),
+		sdkmetric.WithView(OtelMetricViews()...),
+	)
+
+	return mp
+}
 func traceSamples(t *testing.T, path string) ptrace.Traces {
 	b, err := os.ReadFile(path)
 	require.NoError(t, err)

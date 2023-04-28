@@ -29,7 +29,7 @@ func init() {
 // Arguments configures the otelcol.auth.oauth2 component.
 type Arguments struct {
 	ClientID       string                     `river:"client_id,attr"`
-	ClientSecret   configopaque.String        `river:"client_secret,attr"`
+	ClientSecret   string                     `river:"client_secret,attr"`
 	TokenURL       string                     `river:"token_url,attr"`
 	EndpointParams url.Values                 `river:"endpoint_params,attr,optional"`
 	Scopes         []string                   `river:"scopes,attr,optional"`
@@ -43,7 +43,7 @@ var _ auth.Arguments = Arguments{}
 func (args Arguments) Convert() (otelcomponent.Config, error) {
 	return &oauth2clientauthextension.Config{
 		ClientID:       args.ClientID,
-		ClientSecret:   args.ClientSecret,
+		ClientSecret:   configopaque.String(args.ClientSecret),
 		TokenURL:       args.TokenURL,
 		EndpointParams: args.EndpointParams,
 		Scopes:         args.Scopes,

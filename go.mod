@@ -92,7 +92,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension v0.75.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension v0.75.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension v0.75.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/loki v0.75.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/loki v0.75.1-0.20230417231817-a3c554aea399
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.75.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.75.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.75.0

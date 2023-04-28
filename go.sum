@@ -2667,8 +2667,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/pkg/resourcetotelemetr
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/resourcetotelemetry v0.75.0/go.mod h1:Zx+/9iSrxOX8yI5pq1yQjLkTW/mQRs8kw4t0w4Ro820=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.75.0 h1:Nkgu/m+1/TpjAH7V6rM+KF0V5V7AhRBobQkCo4IAW44=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.75.0/go.mod h1:uhFoCFpVzBkG6ZW+bwjyFTuwJcbvgeoIEGd7nqJZR5o=
-github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/loki v0.75.0 h1:OWBGAofvfM+HH7TN2kjSjekO7psCQQOIGg+9ln2o9qg=
-github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/loki v0.75.0/go.mod h1:fU4UOK5u8ZUe7K9K0FpoqjpUaG2AK8+ES8qttUYApeU=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/loki v0.75.1-0.20230417231817-a3c554aea399 h1:HlD6+nhl2AINh/0fEOwqdCwD2YCSXA2phnZs6qHKDy4=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/loki v0.75.1-0.20230417231817-a3c554aea399/go.mod h1:4ugLGG8bkuaAc5W7fJFbJfDFg2YlTuebi70H+h7Xynw=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/opencensus v0.75.0 h1:JjvPnMUo5mQ0Gbth7poLk4dMFMG+ZwR6xzUgwCXzKVw=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/opencensus v0.75.0/go.mod h1:sXwNApQSrGNbQQp8ltJW2r3GWnpDN1NtYvGeFeI3DZo=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.75.0 h1:u/wsa7XjcQQMvO6deLfaz5B49DiQO1HCcNNuQgZCeqQ=

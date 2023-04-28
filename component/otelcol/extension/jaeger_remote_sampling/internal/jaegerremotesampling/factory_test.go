@@ -19,7 +19,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config/configgrpc"
 	"go.opentelemetry.io/collector/config/confighttp"
@@ -30,7 +29,6 @@ import (
 func TestCreateDefaultConfig(t *testing.T) {
 	// prepare and test
 	expected := &Config{
-		ID:                 component.NewID(typeStr),
 		HTTPServerSettings: &confighttp.HTTPServerSettings{Endpoint: ":5778"},
 		GRPCServerSettings: &configgrpc.GRPCServerSettings{NetAddr: confignet.NetAddr{
 			Endpoint:  ":14250",

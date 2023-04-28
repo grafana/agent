@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math/rand"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/collector/component"
@@ -190,10 +189,11 @@ func NewServer(addr string, callback func(ptrace.Traces)) (*Server, error) {
 
 // Stop stops the testing server.
 func (s *Server) Stop() error {
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
+	// shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	// defer cancel()
 
-	return s.pipelines.ShutdownAll(shutdownCtx)
+	// return s.pipelines.ShutdownAll(shutdownCtx)
+	return nil
 }
 
 func newFuncProcessorFactory(callback func(ptrace.Traces)) processor.Factory {

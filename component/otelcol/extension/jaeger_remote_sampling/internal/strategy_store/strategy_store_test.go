@@ -19,11 +19,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/jaegertracing/jaeger/thrift-gen/sampling"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
-
-	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 )
 
 // strategiesJSON returns the strategy with
@@ -76,32 +75,32 @@ func TestStrategyStore(t *testing.T) {
 	require.NoError(t, err)
 	s, err := store.GetSamplingStrategy(context.Background(), "foo")
 	require.NoError(t, err)
-	assert.EqualValues(t, makeResponse(api_v2.SamplingStrategyType_PROBABILISTIC, 0.8), *s)
+	assert.EqualValues(t, makeResponse(sampling.SamplingStrategyType_PROBABILISTIC, 0.8), *s)
 
 	s, err = store.GetSamplingStrategy(context.Background(), "bar")
 	require.NoError(t, err)
-	assert.EqualValues(t, makeResponse(api_v2.SamplingStrategyType_RATE_LIMITING, 5), *s)
+	assert.EqualValues(t, makeResponse(sampling.SamplingStrategyType_RATE_LIMITING, 5), *s)
 
 	s, err = store.GetSamplingStrategy(context.Background(), "default")
 	require.NoError(t, err)
-	assert.EqualValues(t, makeResponse(api_v2.SamplingStrategyType_PROBABILISTIC, 0.5), *s)
+	assert.EqualValues(t, makeResponse(sampling.SamplingStrategyType_PROBABILISTIC, 0.5), *s)
 
 	s, err = store.GetSamplingStrategy(context.Background(), "foo-per-op")
 	require.NoError(t, err)
-	expected := makeResponse(api_v2.SamplingStrategyType_PROBABILISTIC, 0.8)
-	expected.OperationSampling = &api_v2.PerOperationSamplingStrategies{
+	expected := makeResponse(sampling.SamplingStrategyType_PROBABILISTIC, 0.8)
+	expected.OperationSampling = &sampling.PerOperationSamplingStrategies{
 		DefaultSamplingProbability:       0.8,
 		DefaultLowerBoundTracesPerSecond: 0,
-		PerOperationStrategies: []*api_v2.OperationSamplingStrategy{
+		PerOperationStrategies: []*sampling.OperationSamplingStrategy{
 			{
 				Operation: "op1",
-				ProbabilisticSampling: &api_v2.ProbabilisticSamplingStrategy{
+				ProbabilisticSampling: &sampling.ProbabilisticSamplingStrategy{
 					SamplingRate: 0.2,
 				},
 			},
 			{
 				Operation: "op2",
-				ProbabilisticSampling: &api_v2.ProbabilisticSamplingStrategy{
+				ProbabilisticSampling: &sampling.ProbabilisticSamplingStrategy{
 					SamplingRate: 0.4,
 				},
 			},
@@ -110,15 +109,15 @@ func TestStrategyStore(t *testing.T) {
 	assert.EqualValues(t, expected, *s)
 }
 
-func makeResponse(samplerType api_v2.SamplingStrategyType, param float64) (resp api_v2.SamplingStrategyResponse) {
+func makeResponse(samplerType sampling.SamplingStrategyType, param float64) (resp sampling.SamplingStrategyResponse) {
 	resp.StrategyType = samplerType
-	if samplerType == api_v2.SamplingStrategyType_PROBABILISTIC {
-		resp.ProbabilisticSampling = &api_v2.ProbabilisticSamplingStrategy{
+	if samplerType == sampling.SamplingStrategyType_PROBABILISTIC {
+		resp.ProbabilisticSampling = &sampling.ProbabilisticSamplingStrategy{
 			SamplingRate: param,
 		}
-	} else if samplerType == api_v2.SamplingStrategyType_RATE_LIMITING {
-		resp.RateLimitingSampling = &api_v2.RateLimitingSamplingStrategy{
-			MaxTracesPerSecond: int32(param),
+	} else if samplerType == sampling.SamplingStrategyType_RATE_LIMITING {
+		resp.RateLimitingSampling = &sampling.RateLimitingSamplingStrategy{
+			MaxTracesPerSecond: int16(param),
 		}
 	}
 	return resp

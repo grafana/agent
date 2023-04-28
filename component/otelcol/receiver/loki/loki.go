@@ -3,6 +3,8 @@ package loki
 
 import (
 	"context"
+	"path"
+	"strings"
 	"sync"
 
 	"github.com/go-kit/log"
@@ -11,6 +13,7 @@ import (
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/internal/fanoutconsumer"
+	loki_translator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/loki"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/plog"
 )
@@ -27,6 +30,7 @@ func init() {
 	})
 }
 
+// TODO: Remove this? It;'s unused?
 var hintAttributes = "loki.attribute.labels"
 
 // Arguments configures the otelcol.receiver.loki component.
@@ -80,10 +84,11 @@ func (c *Component) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case entry := <-c.receiver:
-			plogEntry := parsePromtailEntry(entry)
+
+			logs := convertLokiEntryToPlog(entry)
 
 			// TODO(@tpaschalis) Is there any more handling to be done here?
-			err := c.logsSink.ConsumeLogs(ctx, plogEntry)
+			err := c.logsSink.ConsumeLogs(ctx, logs)
 			if err != nil {
 				level.Error(c.opts.Logger).Log("msg", "failed to consume log entries", "err", err)
 			}
@@ -103,47 +108,47 @@ func (c *Component) Update(newConfig component.Arguments) error {
 }
 
 // parsePromtailEntry creates new plog.Logs from promtail entry
-// TODO: Should this return a pointer or a value
-func parsePromtailEntry(inputEntry loki.Entry) plog.Logs {
-	outputEntry := plog.NewLogs()
-	//TODO: Implement this later
-	return outputEntry
+// TODO: Should this return a pointer or a value?
+func convertLokiEntryToPlog(lokiEntry loki.Entry) plog.Logs {
+	logs := plog.NewLogs()
 
-	// outputEntry := entry.New()
-	// outputEntry.Body = inputEntry.Entry.Line
-	// outputEntry.Timestamp = inputEntry.Entry.Timestamp
+	rls := logs.ResourceLogs().AppendEmpty().ScopeLogs().AppendEmpty().LogRecords()
+	logSlice := rls
 
-	// var lbls []string
-	// for key, val := range inputEntry.Labels {
-	// 	valStr := string(val)
-	// 	keyStr := string(key)
-	// 	switch key {
-	// 	case "filename":
-	// 		outputEntry.AddAttribute("filename", valStr)
-	// 		lbls = append(lbls, "filename")
-	// 		// The `promtailreceiver` from the opentelemetry-collector-contrib
-	// 		// repo adds these two labels based on these "semantic conventions
-	// 		// for log media".
-	// 		// https://opentelemetry.io/docs/reference/specification/logs/semantic_conventions/media/
-	// 		// We're keeping them as well, but we're also adding the `filename`
-	// 		// attribute so that it can be used from the
-	// 		// `loki.attribute.labels` hint for when the opposite OTel -> Loki
-	// 		// transformation happens.
-	// 		outputEntry.AddAttribute("log.file.path", valStr)
-	// 		outputEntry.AddAttribute("log.file.name", path.Base(valStr))
-	// 	default:
-	// 		lbls = append(lbls, keyStr)
-	// 		outputEntry.AddAttribute(keyStr, valStr)
-	// 	}
-	// }
+	lr := logSlice.AppendEmpty()
 
-	// if len(lbls) > 0 {
-	// 	// This hint is defined in the pkg/translator/loki package and the
-	// 	// opentelemetry-collector-contrib repo, but is not exported so we
-	// 	// re-define it.
-	// 	// It is used to detect which attributes should be promoted to labels
-	// 	// when transforming back from OTel -> Loki.
-	// 	outputEntry.AddAttribute(hintAttributes, strings.Join(lbls, ","))
-	// }
-	// return outputEntry
+	//TODO: Adding all these special labels should be done by the OTEL Collector translator?
+
+	if filename, exists := lokiEntry.Labels["filename"]; exists {
+		filenameStr := string(filename)
+		// The `promtailreceiver` from the opentelemetry-collector-contrib
+		// repo adds these two labels based on these "semantic conventions
+		// for log media".
+		// https://opentelemetry.io/docs/reference/specification/logs/semantic_conventions/media/
+		// We're keeping them as well, but we're also adding the `filename`
+		// attribute so that it can be used from the
+		// `loki.attribute.labels` hint for when the opposite OTel -> Loki
+		// transformation happens.
+		lr.Attributes().PutStr("log.file.path", filenameStr)
+		lr.Attributes().PutStr("log.file.name", path.Base(filenameStr))
+	}
+
+	var lbls []string
+	for key, _ := range lokiEntry.Labels {
+		keyStr := string(key)
+		lbls = append(lbls, keyStr)
+	}
+
+	if len(lbls) > 0 {
+		// This hint is defined in the pkg/translator/loki package and the
+		// opentelemetry-collector-contrib repo, but is not exported so we
+		// re-define it.
+		// It is used to detect which attributes should be promoted to labels
+		// when transforming back from OTel -> Loki.
+		lr.Attributes().PutStr(hintAttributes, strings.Join(lbls, ","))
+	}
+
+	loki_translator.ConvertEntryToLogRecord(&lokiEntry.Entry, &lr, lokiEntry.Labels, true)
+
+	return logs
 }

@@ -27,12 +27,22 @@ import (
 // TODO: Should the metric name be unique if there are multiple service graph processors?
 // TODO: Make these const?
 // TODO: Not sure what are good variable names for this?
-var serviceGraphRequestTotal_name = "service_graph_request_total"
-var serviceGraphRequestFailedTotal_name = "service_graph_request_failed_total"
-var serviceGraphRequestServerHistogram_name = "service_graph_request_server_seconds"
-var serviceGraphRequestClientHistogram_name = "service_graph_request_client_seconds"
-var serviceGraphUnpairedSpansTotal_name = "service_graph_unpaired_spans_total"
-var serviceGraphDroppedSpansTotal_name = "service_graph_dropped_spans_total"
+// TODO: There used to be a <Namespace: "traces">. Is there an Otel equivalent of it?
+// TODO: If there is no namespace equivalent, should  we make "traces" a global variable that we reference from everywhere?
+// TODO: Otel adds a "_total" automatically, so I had to remove it. Can er disable this in otel?
+var serviceGraphRequestTotal_name = "traces_service_graph_request"
+var serviceGraphRequestFailedTotal_name = "traces_service_graph_request_failed"
+var serviceGraphRequestServerHistogram_name = "traces_service_graph_request_server_seconds"
+var serviceGraphRequestClientHistogram_name = "traces_service_graph_request_client_seconds"
+var serviceGraphUnpairedSpansTotal_name = "traces_service_graph_unpaired_spans"
+var serviceGraphDroppedSpansTotal_name = "traces_service_graph_dropped_spans"
+
+// var serviceGraphRequestTotal_name = "traces_service_graph_request_total"
+// var serviceGraphRequestFailedTotal_name = "traces_service_graph_request_failed_total"
+// var serviceGraphRequestServerHistogram_name = "traces_service_graph_request_server_seconds"
+// var serviceGraphRequestClientHistogram_name = "traces_service_graph_request_client_seconds"
+// var serviceGraphUnpairedSpansTotal_name = "traces_service_graph_unpaired_spans_total"
+// var serviceGraphDroppedSpansTotal_name = "traces_service_graph_dropped_spans_total"
 
 type tooManySpansError struct {
 	droppedSpans int
@@ -193,14 +203,14 @@ func OtelMetricViews() []sdkmetric.View {
 			sdkmetric.Instrument{Name: serviceGraphRequestServerHistogram_name},
 			sdkmetric.Stream{Aggregation: aggregation.ExplicitBucketHistogram{
 				//TODO: Are these buckets the same as the Prometheus ExponentialBuckets?
-				Boundaries: []float64{0.01, 2, 12},
+				Boundaries: []float64{0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64, 1.28, 2.56, 5.12, 10.24, 20.48},
 			}},
 		),
 		sdkmetric.NewView(
 			sdkmetric.Instrument{Name: serviceGraphRequestClientHistogram_name},
 			sdkmetric.Stream{Aggregation: aggregation.ExplicitBucketHistogram{
 				//TODO: Are these buckets the same as the Prometheus ExponentialBuckets?
-				Boundaries: []float64{0.01, 2, 12},
+				Boundaries: []float64{0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64, 1.28, 2.56, 5.12, 10.24, 20.48},
 			}},
 		),
 	}

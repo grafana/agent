@@ -32,7 +32,6 @@ var (
 // Config has the configuration for the extension enabling the health check
 // extension, used to report the health status of the service.
 type Config struct {
-	otelcomponent.ID               `mapstructure:",squash"`
 	*confighttp.HTTPServerSettings `mapstructure:"http"`
 	*configgrpc.GRPCServerSettings `mapstructure:"grpc"`
 
