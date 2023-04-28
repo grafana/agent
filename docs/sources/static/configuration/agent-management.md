@@ -52,7 +52,7 @@ agent_management:
 
 ## API (v2)
 
-Grafana Agents with Agent Management enabled continuously poll the API server for an up-to-date configuration. The API server is expected to implement a `GET /agent-management/api/agent/v2` HTTP endpoint returning a successful response with the following body format:
+Grafana Agents with Agent Management enabled continuously poll the API server for an up-to-date configuration. The API server is expected to implement a `GET /agent-management/api/agent/v2/namespace/:namespace/remote_config` HTTP endpoint returning a successful response with the following body format:
 
 ```yaml
 # The base configuration for the Agent.
