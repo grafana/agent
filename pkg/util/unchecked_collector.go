@@ -31,7 +31,7 @@ func (uc *UncheckedCollector) SetCollector(inner prometheus.Collector) {
 
 // Describe implements [prometheus.Collector]. Because UncheckedCollector is
 // unchecked, nothing is written to the provided ch.
-func (uc *UncheckedCollector) Describe(ch chan<- *prometheus.Desc) {
+func (uc *UncheckedCollector) Describe(_ chan<- *prometheus.Desc) {
 	// no-op: do not send any descriptions of metrics to avoid having them be
 	// checked.
 }
