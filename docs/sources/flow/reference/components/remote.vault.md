@@ -34,10 +34,9 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`server` | `string` | The Vault server to connect to | | yes
-`namespace` | `string` | The Vault namespace to connect to (Vault Enterprise only) | | no
-`path` | `string` | The path to retrieve a secret from | | yes
-`data` | `object(secret)` | Extra to pass when retrieving the secret (write method only) | | no
+`server` | `string` | The Vault server to connect to. | | yes
+`namespace` | `string` | The Vault namespace to connect to (Vault Enterprise only). | | no
+`path` | `string` | The path to retrieve a secret from. | | yes
 `reread_frequency` | `duration` | Rate to re-read keys. | `"0s"` | no
 
 Tokens with a lease will be automatically renewed roughly two-thirds through
@@ -85,10 +84,21 @@ The `client_options` block customizes the connection to vault.
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`min_retry_wait` | `duration` | Minimum time to wait before retrying after a 5xx error | `"1000ms"` | no
-`max_retry_wait` | `duration` | Maximum time to wait before retrying after a 5xx error | `"1500ms"` | no
-`max_retries` | `int` | Maximum number of times to retry after a 5xx error (0 = none) | `2` | no
-`timeout` | `duration` | Maximum time to wait before a request times out | `"60s"` | no
+`min_retry_wait` | `duration` | Minimum time to wait before retrying failed requests. | `"1000ms"` | no
+`max_retry_wait` | `duration` | Maximum time to wait before retrying failed requests. | `"1500ms"` | no
+`max_retries` | `int` | Maximum number of times to retry after a 5xx error. | `2` | no
+`timeout` | `duration` | Maximum time to wait before a request times out. | `"60s"` | no
+
+Requests which fail due to server errors (HTTP 5xx error codes) can be retried.
+The `max_retries` argument specifies how many times to retry failed requests.
+The `min_retry_wait` and `max_retry_wait` arguments specify how long to wait
+before retrying. The wait period starts at `min_retry_wait` and exponentially
+increases up to `max_retry_wait`.
+
+Other types of failed requests, including HTTP 4xx error codes, are not
+retried.
+
+If the `max_retries` argument is set to `0`, failed requests are not retried.
 
 ### auth.token block
 
@@ -97,7 +107,7 @@ token.
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`token` | `secret` | Authentication token to use | | yes
+`token` | `secret` | Authentication token to use. | | yes
 
 ### auth.approle block
 
@@ -108,8 +118,8 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `role_id` | `string` | Role ID to authenticate as. | | yes
 `secret` | `secret` | Secret to authenticate with. | | yes
-`wrapping_token` | `bool` | Whether to [unwrap][] the token | `false` | no
-`mount_path` | `string` | Mount path for the login | `"approle"` | no
+`wrapping_token` | `bool` | Whether to [unwrap][] the token. | `false` | no
+`mount_path` | `string` | Mount path for the login. | `"approle"` | no
 
 [AppRole]: https://www.vaultproject.io/docs/auth/approle
 [unwrap]: https://www.vaultproject.io/docs/concepts/response-wrapping
@@ -125,12 +135,21 @@ credentials file instead.
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`type` | `string` | Mechanism to authenticate against AWS with (ec2, iam) | | yes
-`region` | `string` | AWS region to connect to | | no
-`role` | `string` | Overrides the role name inferred from EC2 or IAM | `""` | no
-`iam_server_id_header` | `string` | Configures a required `X-Vault-AWS-IAM-Server-ID` header (iam type only) | `""` | no
-`ec2_signature_type` | `string` | Signature to use when authenticating against EC2 (identity, pkcs7; ec2 type only) | `"pkcs7"` | no
-`mount_path` | `string` | Mount path for the login | `"aws"` | no
+`type` | `string` | Mechanism to authenticate against AWS with. | | yes
+`region` | `string` | AWS region to connect to. | | no
+`role` | `string` | Overrides the inferred role name inferred. | `""` | no
+`iam_server_id_header` | `string` | Configures a `X-Vault-AWS-IAM-Server-ID` header. | `""` | no
+`ec2_signature_type` | `string` | Signature to use when authenticating against EC2. | `"pkcs7"` | no
+`mount_path` | `string` | Mount path for the login. | `"aws"` | no
+
+The `type` argument must be set to one of `"ec2"` or `"iam"`.
+
+The `iam_server_id_header` argument is required used when `type` is set to
+`"iam"`.
+
+The `ec2_signature_type` argument configures the signature to use when
+authenticating against EC2. It only applies when `type` is set to `"ec2"`.
+`ec2_signature_type` must be set to either `"identity"` or `"pkcs7"`.
 
 [AWS]: https://www.vaultproject.io/docs/auth/aws
 
@@ -144,9 +163,9 @@ Azure Resources.
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`role` | `string` | Role name to authenticate as | | yes
-`resource_url` | `string` | Resource URL to include with authentication request | | no
-`mount_path` | `string` | Mount path for the login | `"azure"` | no
+`role` | `string` | Role name to authenticate as. | | yes
+`resource_url` | `string` | Resource URL to include with authentication request. | | no
+`mount_path` | `string` | Mount path for the login. | `"azure"` | no
 
 [Azure]: https://www.vaultproject.io/docs/auth/azure
 
@@ -156,14 +175,18 @@ The `auth.gcp` block authenticates to Vault using the [GCP auth method][GCP].
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`role` | `string` | Role name to authenticate as | | yes
-`type` | `string` | Mechanism to authenticate against GCP with (gce, iam) | | yes
-`iam_service_account` | `string` | IAM service account name to use (iam type only) | | no
-`mount_path` | `string` | Mount path for the login | `"gcp"` | no
+`role` | `string` | Role name to authenticate as. | | yes
+`type` | `string` | Mechanism to authenticate against GCP with | | yes
+`iam_service_account` | `string` | IAM service account name to use. | | no
+`mount_path` | `string` | Mount path for the login. | `"gcp"` | no
 
-When `type` is `"gce"`, credentials are retrieved using the metadata service on
-GCE VMs. When `type` is `"iam"`, credentials are retrieved from the file that
-the `GOOGLE_APPLICATION_CREDENTIALS` environment variable points to.
+The `type` argument must be set to `"gce"` or `"iam"`. When `type` is `"gce"`,
+credentials are retrieved using the metadata service on GCE VMs. When `type` is
+`"iam"`, credentials are retrieved from the file that the
+`GOOGLE_APPLICATION_CREDENTIALS` environment variable points to.
+
+When `type` is `"iam"`, the `iam_service_account` argument determines what
+service account name to use.
 
 [GCP]: https://www.vaultproject.io/docs/auth/gcp
 
@@ -174,9 +197,9 @@ method][Kubernetes].
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`role` | `string` | Role name to authenticate as | | yes
-`service_account_file` | `string` | Override service account token file to use | | no
-`mount_path` | `string` | Mount path for the login | `"kubernetes"` | no
+`role` | `string` | Role name to authenticate as. | | yes
+`service_account_file` | `string` | Override service account token file to use. | | no
+`mount_path` | `string` | Mount path for the login. | `"kubernetes"` | no
 
 When `service_account_file` is not specified, the JWT token to authenticate
 with is retrieved from `/var/run/secrets/kubernetes.io/serviceaccount/token`.
@@ -190,9 +213,9 @@ method][LDAP].
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`username` | `string` | LDAP username to authenticate as | | yes
-`password` | `secret` | LDAP passsword for the user | | yes
-`mount_path` | `string` | Mount path for the login | `"ldap"` | no
+`username` | `string` | LDAP username to authenticate as. | | yes
+`password` | `secret` | LDAP passsword for the user. | | yes
+`mount_path` | `string` | Mount path for the login. | `"ldap"` | no
 
 [LDAP]: https://www.vaultproject.io/docs/auth/ldap
 
@@ -203,9 +226,9 @@ method][UserPass].
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`username` | `string` | Username to authenticate as | | yes
-`password` | `secret` | Passsword for the user | | yes
-`mount_path` | `string` | Mount path for the login | `"userpass"` | no
+`username` | `string` | Username to authenticate as. | | yes
+`password` | `secret` | Passsword for the user. | | yes
+`mount_path` | `string` | Mount path for the login. | `"userpass"` | no
 
 [UserPass]: https://www.vaultproject.io/docs/auth/userpass
 
@@ -231,7 +254,7 @@ The following fields are exported and can be referenced by other components:
 
 Name | Type | Description
 ---- | ---- | -----------
-`data` | `object(secret)` | The secrets obtained from the Vault path
+`data` | `object(secret)` | Data from the secret obtained from Vault.
 
 Note that Vault permits secret engines to store arbitrary data within the
 key-value pairs for a secret. The `remote.vault` component is only able to use

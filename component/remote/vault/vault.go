@@ -31,8 +31,7 @@ type Arguments struct {
 	Server    string `river:"server,attr"`
 	Namespace string `river:"namespace,attr,optional"`
 
-	Path string                       `river:"path,attr"`
-	Data map[string]rivertypes.Secret `river:"data,attr,optional"`
+	Path string `river:"path,attr"`
 
 	RereadFrequency time.Duration `river:"reread_frequency,attr,optional"`
 
