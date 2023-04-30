@@ -186,6 +186,10 @@ func (tm *tokenManager) updateLifecycleWatcher(ctx context.Context) {
 	go func() {
 		for {
 			select {
+			case <-ctx.Done():
+				lw.Stop()
+				return
+
 			case <-lw.DoneCh():
 				if ctx.Err() != nil {
 					return
