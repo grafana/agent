@@ -18,7 +18,7 @@ Grafana Agent Flow.
 > [upgrade-guide-static]: {{< relref "../static/upgrade-guide.md" >}}
 > [upgrade-guide-operator]: {{< relref "../operator/upgrade-guide.md" >}}
 
-## v0.33.0 
+## v0.33.1 
 
 ### Symbolic links in Docker containers removed
 
