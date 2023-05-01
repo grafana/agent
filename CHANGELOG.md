@@ -59,8 +59,6 @@ v0.33.1 (2023-05-01)
 
 ### Other changes
 
-- Add metrics when clustering mode is enabled. (@rfratto)
-
 - Support Bundles report the status of discovered log targets. (@tpaschalis)
 
 v0.33.0 (2023-04-25)
