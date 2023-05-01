@@ -4,7 +4,7 @@
 # default when running `docker buildx build` or when DOCKER_BUILDKIT=1 is set
 # in environment variables.
 
-FROM --platform=$BUILDPLATFORM grafana/agent-build-image:0.24.0 as build
+FROM --platform=$BUILDPLATFORM grafana/agent-build-image:0.25.0 as build
 ARG BUILDPLATFORM
 ARG TARGETPLATFORM
 ARG TARGETOS
@@ -43,7 +43,6 @@ EOF
 COPY --from=build /src/agent/build/grafana-agent /bin/grafana-agent
 COPY cmd/grafana-agent/agent-local-config.yaml /etc/agent/agent.yaml
 
-RUN ln -sv /bin/grafana-agent /bin/agent
 
 ENTRYPOINT ["/bin/grafana-agent"]
 CMD ["--config.file=/etc/agent/agent.yaml", "--metrics.wal-directory=/etc/agent/data"]

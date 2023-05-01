@@ -12,6 +12,20 @@ Unreleased
 
 ### Enhancements
 
+- Update RBAC rules to permit `node/metrics`. (@yurii-kryvosheia)
+
+0.12.0 (2023-04-25)
+-------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.33.0. (@rfratto)
+
+0.11.0 (2023-04-24)
+-------------------
+
+### Enhancements
+
 - Add support for adding Annotations to Service (@ofirshtrull)
 - Add `agent.envFrom` value. (@carlosjgp)
 - Add `controller.hostNetwork` value. (@carlosjgp)

@@ -41,6 +41,12 @@ For example, the `targets` can either be passed to a `prometheus.relabel`
 component to rewrite the metric's label set, or to a `prometheus.scrape`
 component that collects the exposed metrics.
 
+The exported targets will use the configured [in-memory traffic][] address
+specified by the [run command][].
+
+[in-memory traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
+[run command]: {{< relref "../cli/run.md" >}}
+
 ## Component health
 
 `prometheus.exporter.apache` is only reported as unhealthy if given

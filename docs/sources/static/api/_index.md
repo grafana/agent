@@ -387,8 +387,8 @@ A support bundle contains the following data:
 * `agent-config.yaml` contains the current agent configuration (when the `-config.enable-read-api` flag is passed).
 * `agent-logs.txt` contains the agent logs during the bundle generation.
 * `agent-metadata.yaml` contains the agent's build version, operating system, architecture, uptime, plus a string payload defining which extra agent features have been enabled via command-line flags.
-* `agent-metrics-instances.json` and `agent-metrics-targets.json` contain the active metric subsystem instances, and the discovered scraped targets for each one.
-* `agent-logs-instances.json` contains the active logs subsystem instances.
+* `agent-metrics-instances.json` and `agent-metrics-targets.json` contain the active metric subsystem instances and the discovered scrape targets for each one.
+* `agent-logs-instances.json` and `agent-logs-targets.json` contains the active logs subsystem instances and the discovered log targets for each one.
 * `agent-metrics.txt` contains a snapshot of the agent's internal metrics.
 * The `pprof/` directory contains Go runtime profiling data (CPU, heap, goroutine, mutex, block profiles) as exported by the pprof package.
 

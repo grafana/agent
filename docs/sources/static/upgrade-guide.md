@@ -19,7 +19,18 @@ static mode.
 > [upgrade-guide-operator]: {{< relref "../operator/upgrade-guide.md" >}}
 > [upgrade-guide-flow]: {{< relref "../flow/upgrade-guide.md" >}}
 
-## v0.33
+### Removal of Dynamic Configuration
+
+The experimental feature Dynamic Configuration has been removed. The use case of dynamic configuration will be replaced 
+with [Modules](../../concepts/modules/) in Grafana Agent Flow.
+
+## v0.33.0
+
+### Symbolic links in Docker containers removed
+
+We've removed the deprecated symbolic links to `/bin/agent*` in Docker
+containers, as planned in v0.31. In case you're setting a custom entrypoint,
+use the new binaries that are prefixed with `/bin/grafana*`.
 
 ### Deprecation of Dynamic Configuration
 

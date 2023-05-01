@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net"
 	"reflect"
 	"strings"
 
@@ -99,8 +100,14 @@ type Options struct {
 	// HTTPListenAddr is the address the server is configured to listen on.
 	HTTPListenAddr string
 
-	// HTTPPath is the base path that requests need in order to route to this component.
-	// Requests received by a component handler will have this already trimmed off.
+	// DialFunc is a function for components to use to properly communicate to
+	// HTTPListenAddr. If set, components which send HTTP requests to
+	// HTTPListenAddr must use this function to establish connections.
+	DialFunc func(ctx context.Context, network, address string) (net.Conn, error)
+
+	// HTTPPath is the base path that requests need in order to route to this
+	// component. Requests received by a component handler will have this already
+	// trimmed off.
 	HTTPPath string
 }
 

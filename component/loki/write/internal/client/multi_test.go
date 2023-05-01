@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/component/loki/internal/fake"
+
 	"github.com/go-kit/log"
 	"github.com/grafana/dskit/backoff"
 	"github.com/grafana/dskit/flagext"
@@ -17,7 +19,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/agent/component/loki/write/internal/client/fake"
 
 	"github.com/grafana/loki/pkg/logproto"
 	lokiflag "github.com/grafana/loki/pkg/util/flagext"
@@ -116,7 +117,7 @@ func TestMultiClient_Stop(t *testing.T) {
 	stopping := func() {
 		stopped++
 	}
-	fc := fake.New(stopping)
+	fc := fake.NewClient(stopping)
 	clients := []Client{fc, fc, fc, fc}
 	m := &MultiClient{
 		clients: clients,
@@ -131,7 +132,7 @@ func TestMultiClient_Stop(t *testing.T) {
 }
 
 func TestMultiClient_Handle(t *testing.T) {
-	f := fake.New(func() {})
+	f := fake.NewClient(func() {})
 	clients := []Client{f, f, f, f, f, f}
 	m := &MultiClient{
 		clients: clients,

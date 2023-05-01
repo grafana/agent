@@ -9,9 +9,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/component/loki/internal/fake"
+
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/agent/component/loki/source/gcplog/internal/fake"
 	"github.com/phayes/freeport"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
@@ -152,7 +153,7 @@ func TestPushTarget(t *testing.T) {
 		outerName := t.Name()
 		t.Run(name, func(t *testing.T) {
 			// Create fake promtail client
-			eh := fake.New(func() {})
+			eh := fake.NewClient(func() {})
 			defer eh.Stop()
 
 			port, err := freeport.GetFreePort()
@@ -218,7 +219,7 @@ func TestPushTarget_UseIncomingTimestamp(t *testing.T) {
 	logger := log.NewLogfmtLogger(w)
 
 	// Create fake promtail client
-	eh := fake.New(func() {})
+	eh := fake.NewClient(func() {})
 	defer eh.Stop()
 
 	port, err := freeport.GetFreePort()
@@ -263,7 +264,7 @@ func TestPushTarget_UseTenantIDHeaderIfPresent(t *testing.T) {
 	logger := log.NewLogfmtLogger(w)
 
 	// Create fake promtail client
-	eh := fake.New(func() {})
+	eh := fake.NewClient(func() {})
 	defer eh.Stop()
 
 	port, err := freeport.GetFreePort()
@@ -316,7 +317,7 @@ func TestPushTarget_ErroneousPayloadsAreRejected(t *testing.T) {
 	logger := log.NewLogfmtLogger(w)
 
 	// Create fake promtail client
-	eh := fake.New(func() {})
+	eh := fake.NewClient(func() {})
 	defer eh.Stop()
 
 	port, err := freeport.GetFreePort()

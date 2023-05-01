@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/traces"
+	"net"
 	"net/http"
 	"path"
 	"path/filepath"
@@ -58,6 +59,9 @@ func (id ComponentID) Equals(other ComponentID) bool {
 	return true
 }
 
+// DialFunc is a function to establish a network connection.
+type DialFunc func(ctx context.Context, network, address string) (net.Conn, error)
+
 // ComponentGlobals are used by ComponentNodes to build managed components. All
 // ComponentNodes should use the same ComponentGlobals.
 type ComponentGlobals struct {
@@ -71,6 +75,7 @@ type ComponentGlobals struct {
 	Registerer        prometheus.Registerer        // Registerer for serving agent and component metrics
 	HTTPPathPrefix    string                       // HTTP prefix for components.
 	HTTPListenAddr    string                       // Base address for server
+	DialFunc          DialFunc                     // Function to connect to HTTPListenAddr.
 	ControllerID      string                       // ID of controller.
 	Controller        component.Controller         // Used to instantiate module controllers.
 }
@@ -189,6 +194,7 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 
 		DataPath:       filepath.Join(globals.DataPath, cn.nodeID),
 		HTTPListenAddr: globals.HTTPListenAddr,
+		DialFunc:       globals.DialFunc,
 		HTTPPath:       path.Join(prefix, cn.nodeID) + "/",
 
 		OnStateChange: cn.setExports,

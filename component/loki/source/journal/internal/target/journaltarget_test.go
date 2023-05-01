@@ -1,5 +1,4 @@
 //go:build linux && cgo && promtail_journal_enabled
-// +build linux,cgo,promtail_journal_enabled
 
 package target
 
@@ -11,13 +10,13 @@ import (
 	"io"
 	"os"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/component/loki/internal/fake"
+
 	"github.com/coreos/go-systemd/sdjournal"
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/testutil"
@@ -89,7 +88,7 @@ func TestJournalTarget(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	client := New(func() {})
+	client := fake.NewClient(func() {})
 
 	relabelCfg := `
 - source_labels: ['__journal_code_file']
@@ -151,7 +150,7 @@ func TestJournalTargetParsingErrors(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	client := New(func() {})
+	client := fake.NewClient(func() {})
 
 	// We specify no relabel rules, so that we end up with an empty labelset
 	var relabels []*relabel.Config
@@ -219,7 +218,7 @@ func TestJournalTarget_JSON(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	client := New(func() {})
+	client := fake.NewClient(func() {})
 
 	relabelCfg := `
 - source_labels: ['__journal_code_file']
@@ -279,7 +278,7 @@ func TestJournalTarget_Since(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	client := New(func() {})
+	client := fake.NewClient(func() {})
 
 	cfg := scrapeconfig.JournalTargetConfig{
 		MaxAge: "4h",
@@ -314,7 +313,7 @@ func TestJournalTarget_Cursor_TooOld(t *testing.T) {
 	}
 	ps.PutString("journal-test", "", "foobar")
 
-	client := New(func() {})
+	client := fake.NewClient(func() {})
 
 	cfg := scrapeconfig.JournalTargetConfig{}
 
@@ -354,7 +353,7 @@ func TestJournalTarget_Cursor_NotTooOld(t *testing.T) {
 	}
 	ps.PutString(positions.CursorKey("test"), "", "foobar")
 
-	client := New(func() {})
+	client := fake.NewClient(func() {})
 
 	cfg := scrapeconfig.JournalTargetConfig{}
 
@@ -410,7 +409,7 @@ func TestJournalTarget_Matches(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	client := New(func() {})
+	client := fake.NewClient(func() {})
 
 	cfg := scrapeconfig.JournalTargetConfig{
 		Matches: "UNIT=foo.service PRIORITY=1",
@@ -424,67 +423,4 @@ func TestJournalTarget_Matches(t *testing.T) {
 	matches := []sdjournal.Match{{Field: "UNIT", Value: "foo.service"}, {Field: "PRIORITY", Value: "1"}}
 	require.Equal(t, r.config.Matches, matches)
 	client.Stop()
-}
-
-// Client is a fake client used for testing.
-type Client struct {
-	entries  chan loki.Entry
-	received []loki.Entry
-	once     sync.Once
-	mtx      sync.Mutex
-	wg       sync.WaitGroup
-	OnStop   func()
-}
-
-func New(stop func()) *Client {
-	c := &Client{
-		OnStop:  stop,
-		entries: make(chan loki.Entry),
-	}
-	c.wg.Add(1)
-	go func() {
-		defer c.wg.Done()
-		for e := range c.entries {
-			c.mtx.Lock()
-			c.received = append(c.received, e)
-			c.mtx.Unlock()
-		}
-	}()
-	return c
-}
-
-// Stop implements client.Client
-func (c *Client) Stop() {
-	c.once.Do(func() { close(c.entries) })
-	c.wg.Wait()
-	c.OnStop()
-}
-
-func (c *Client) Chan() chan<- loki.Entry {
-	return c.entries
-}
-
-func (c *Client) Received() []loki.Entry {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
-	cpy := make([]loki.Entry, len(c.received))
-	copy(cpy, c.received)
-	return cpy
-}
-
-// StopNow implements client.Client
-func (c *Client) StopNow() {
-	c.Stop()
-}
-
-func (c *Client) Name() string {
-	return "fake"
-}
-
-// Clear is used to clean up the buffered received entries, so the same client can be re-used between
-// test cases.
-func (c *Client) Clear() {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
-	c.received = []loki.Entry{}
 }

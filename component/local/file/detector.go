@@ -76,10 +76,10 @@ type fsNotify struct {
 }
 
 type fsNotifyOptions struct {
-	Logger       log.Logger
-	Filename     string
-	ReloadFile   func()        // Callback to request file reload.
-	PollFreqency time.Duration // How often to do fallback polling
+	Logger        log.Logger
+	Filename      string
+	ReloadFile    func()        // Callback to request file reload.
+	PollFrequency time.Duration // How often to do fallback polling
 }
 
 // newFSNotify creates a new fsnotify detector which uses filesystem events to
@@ -109,7 +109,7 @@ func newFSNotify(opts fsNotifyOptions) (*fsNotify, error) {
 }
 
 func (fsn *fsNotify) wait(ctx context.Context) {
-	pollTick := time.NewTicker(fsn.opts.PollFreqency)
+	pollTick := time.NewTicker(fsn.opts.PollFrequency)
 	defer pollTick.Stop()
 
 	for {

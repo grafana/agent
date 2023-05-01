@@ -28,7 +28,7 @@ docker run \
   -v "/proc:/host/proc:ro,rslave" \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
-  grafana/agent:v0.32.1 \
+  grafana/agent:v0.33.0 \
   --config.file=/etc/agent-config/agent.yaml
 ```
 
@@ -67,7 +67,7 @@ metadata:
   name: agent
 spec:
   containers:
-  - image: grafana/agent:v0.32.1
+  - image: grafana/agent:v0.33.0
     name: agent
     args:
     - --config.file=/etc/agent-config/agent.yaml
@@ -225,7 +225,7 @@ the Agent is running on is a no-op.
   # Monitor the exporter itself and include those metrics in the results.
   [include_exporter_metrics: <boolean> | default = false]
 
-  # Optionally defines the the list of enabled-by-default collectors.
+  # Optionally defines the list of enabled-by-default collectors.
   # Anything not provided in the list below will be disabled by default,
   # but requires at least one element to be treated as defined.
   #

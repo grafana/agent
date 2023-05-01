@@ -4,7 +4,7 @@
 # default when running `docker buildx build` or when DOCKER_BUILDKIT=1 is set
 # in environment variables.
 
-FROM --platform=$BUILDPLATFORM grafana/agent-build-image:0.24.0 as build
+FROM --platform=$BUILDPLATFORM grafana/agent-build-image:0.25.0 as build
 ARG BUILDPLATFORM
 ARG TARGETPLATFORM
 ARG TARGETOS
@@ -35,5 +35,4 @@ RUN <<EOF
 EOF
 
 COPY --from=build /src/agent/build/grafana-agentctl /bin/grafana-agentctl
-RUN ln -sv /bin/grafana-agentctl /bin/agentctl
-ENTRYPOINT ["/bin/agentctl"]
+ENTRYPOINT ["/bin/grafana-agentctl"]

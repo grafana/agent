@@ -15,6 +15,7 @@ import (
 
 	"github.com/grafana/agent/web/api"
 	"github.com/grafana/agent/web/ui"
+	"github.com/rfratto/ckit/memconn"
 	"go.opentelemetry.io/otel"
 	"golang.org/x/exp/maps"
 	"golang.org/x/net/http2"
@@ -41,6 +42,7 @@ import (
 
 func runCommand() *cobra.Command {
 	r := &flowRun{
+		inMemoryAddr:     "agent.internal:12345",
 		httpListenAddr:   "127.0.0.1:12345",
 		storagePath:      "data-agent/",
 		uiPrefix:         "/",
@@ -83,6 +85,7 @@ depending on the nature of the reload error.
 
 	cmd.Flags().
 		StringVar(&r.httpListenAddr, "server.http.listen-addr", r.httpListenAddr, "Address to listen for HTTP traffic on")
+	cmd.Flags().StringVar(&r.inMemoryAddr, "server.http.memory-addr", r.inMemoryAddr, "Address to listen for in-memory HTTP traffic on. Change if it collides with a real address")
 	cmd.Flags().StringVar(&r.storagePath, "storage.path", r.storagePath, "Base directory where components can store data")
 	cmd.Flags().StringVar(&r.uiPrefix, "server.http.ui-path-prefix", r.uiPrefix, "Prefix to serve the HTTP UI at")
 	cmd.Flags().
@@ -90,13 +93,14 @@ depending on the nature of the reload error.
 	cmd.Flags().
 		StringVar(&r.clusterJoinAddr, "cluster.advertise-address", r.clusterAdvAddr, "Address to advertise to the cluster")
 	cmd.Flags().
-		StringVar(&r.clusterJoinAddr, "cluster.join-address", r.clusterJoinAddr, "Address to join the cluster at")
+		StringVar(&r.clusterJoinAddr, "cluster.join-addresses", r.clusterJoinAddr, "Comma-separated list of addresses to join the cluster at")
 	cmd.Flags().
 		BoolVar(&r.disableReporting, "disable-reporting", r.disableReporting, "Disable reporting of enabled components to Grafana.")
 	return cmd
 }
 
 type flowRun struct {
+	inMemoryAddr     string
 	httpListenAddr   string
 	storagePath      string
 	uiPrefix         string
@@ -151,10 +155,13 @@ func (fr *flowRun) Run(configFile string) error {
 	reg := prometheus.DefaultRegisterer
 	reg.MustRegister(newResourcesCollector(l))
 
-	clusterer, err := cluster.New(l, fr.clusterEnabled, fr.clusterAdvAddr, fr.clusterJoinAddr)
+	clusterer, err := cluster.New(l, reg, fr.clusterEnabled, fr.httpListenAddr, fr.clusterAdvAddr, fr.clusterJoinAddr)
 	if err != nil {
 		return fmt.Errorf("building clusterer: %w", err)
 	}
+
+	// In-memory listener, used for inner HTTP traffic without the network.
+	memLis := memconn.NewListener(nil)
 
 	f := flow.New(flow.Options{
 		LogSink:        logSink,
@@ -163,7 +170,17 @@ func (fr *flowRun) Run(configFile string) error {
 		DataPath:       fr.storagePath,
 		Reg:            reg,
 		HTTPPathPrefix: "/api/v0/component/",
-		HTTPListenAddr: fr.httpListenAddr,
+		HTTPListenAddr: fr.inMemoryAddr,
+
+		// Send requests to fr.inMemoryAddr directly to our in-memory listener.
+		DialFunc: func(ctx context.Context, network, address string) (net.Conn, error) {
+			switch address {
+			case fr.inMemoryAddr:
+				return memLis.DialContext(ctx)
+			default:
+				return (&net.Dialer{}).DialContext(ctx, network, address)
+			}
+		},
 		Controller: module.NewModule(&module.Options{
 			LogSink:   logSink,
 			Tracer:    t,
@@ -197,7 +214,8 @@ func (fr *flowRun) Run(configFile string) error {
 
 	// HTTP server
 	{
-		lis, err := net.Listen("tcp", fr.httpListenAddr)
+		// Network listener.
+		netLis, err := net.Listen("tcp", fr.httpListenAddr)
 		if err != nil {
 			return fmt.Errorf("failed to listen on %s: %w", fr.httpListenAddr, err)
 		}
@@ -248,16 +266,20 @@ func (fr *flowRun) Run(configFile string) error {
 
 		srv := &http.Server{Handler: h2c.NewHandler(r, &http2.Server{})}
 
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			defer cancel()
+		level.Info(l).Log("msg", "now listening for http traffic", "addr", fr.httpListenAddr)
 
-			level.Info(l).Log("msg", "now listening for http traffic", "addr", fr.httpListenAddr)
-			if err := srv.Serve(lis); err != nil {
-				level.Info(l).Log("msg", "http server closed", "err", err)
-			}
-		}()
+		listeners := []net.Listener{netLis, memLis}
+		for _, lis := range listeners {
+			wg.Add(1)
+			go func(lis net.Listener) {
+				defer wg.Done()
+				defer cancel()
+
+				if err := srv.Serve(lis); err != nil {
+					level.Info(l).Log("msg", "http server closed", "addr", lis.Addr(), "err", err)
+				}
+			}(lis)
+		}
 
 		defer func() { _ = srv.Shutdown(ctx) }()
 	}

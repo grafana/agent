@@ -1,5 +1,0 @@
-template_paths:
-  - "file:///etc/grafana/03_assets"
-datasources:
-  - name: computers
-    url: "file:///etc/grafana/03_assets/computers.json"

@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rfratto/ckit"
 	"github.com/rfratto/ckit/peer"
 	"github.com/rfratto/ckit/shard"
@@ -107,7 +108,7 @@ func getJoinAddr(addrs []string, in string) []string {
 	_, srvs, err := net.LookupSRV("", "", in)
 	if err == nil {
 		for _, srv := range srvs {
-			addrs = append(addrs, fmt.Sprintf("%s:%d", srv.Target, srv.Port))
+			addrs = append(addrs, srv.Target)
 		}
 	}
 
@@ -115,30 +116,25 @@ func getJoinAddr(addrs []string, in string) []string {
 }
 
 // New creates a Clusterer.
-func New(log log.Logger, clusterEnabled bool, addr, joinAddr string) (*Clusterer, error) {
+func New(log log.Logger, reg prometheus.Registerer, clusterEnabled bool, listenAddr, advertiseAddr, joinAddr string) (*Clusterer, error) {
 	// Standalone node.
 	if !clusterEnabled {
-		return &Clusterer{Node: NewLocalNode(addr)}, nil
+		return &Clusterer{Node: NewLocalNode(listenAddr)}, nil
 	}
 
 	gossipConfig := DefaultGossipConfig
 
 	defaultPort := 80
-	if addr != "" {
-		host, portStr, err := net.SplitHostPort(addr)
-		if err != nil {
-			return nil, err
-		}
+	_, portStr, err := net.SplitHostPort(listenAddr)
+	if err == nil { // there was a port
 		defaultPort, err = strconv.Atoi(portStr)
 		if err != nil {
 			return nil, err
 		}
-		gossipConfig.AdvertiseAddr = host
 	}
 
-	err := gossipConfig.ApplyDefaults(defaultPort)
-	if err != nil {
-		return nil, err
+	if advertiseAddr != "" {
+		gossipConfig.AdvertiseAddr = advertiseAddr
 	}
 
 	if joinAddr != "" {
@@ -147,6 +143,11 @@ func New(log log.Logger, clusterEnabled bool, addr, joinAddr string) (*Clusterer
 		for _, jaddr := range jaddrs {
 			gossipConfig.JoinPeers = getJoinAddr(gossipConfig.JoinPeers, jaddr)
 		}
+	}
+
+	err = gossipConfig.ApplyDefaults(defaultPort)
+	if err != nil {
+		return nil, err
 	}
 
 	cli := &http.Client{
@@ -158,7 +159,9 @@ func New(log log.Logger, clusterEnabled bool, addr, joinAddr string) (*Clusterer
 		},
 	}
 
-	gossipNode, err := NewGossipNode(log, cli, &gossipConfig)
+	level.Info(log).Log("msg", "starting a new gossip node", "join-peers", gossipConfig.JoinPeers)
+
+	gossipNode, err := NewGossipNode(log, reg, cli, &gossipConfig)
 	if err != nil {
 		return nil, err
 	}

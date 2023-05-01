@@ -18,14 +18,14 @@ The `prometheus.exporter.snmp` component embeds
 ```river
 prometheus.exporter.snmp "LABEL" {
   config_file = "PATH_SNMP_CONFIG_FILE"
-  
+
   target "TARGET_NAME" {
-    address = "TARGET_ADDRESS" 
+    address = "TARGET_ADDRESS"
   }
 
   walk_param "PARAM_NAME" {
   }
-  
+
   ...
 }
 ```
@@ -117,6 +117,12 @@ For example, `targets` can either be passed to a `prometheus.relabel`
 component to rewrite the metrics' label set, or to a `prometheus.scrape`
 component that collects the exposed metrics.
 
+The exported targets will use the configured [in-memory traffic][] address
+specified by the [run command][].
+
+[in-memory traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
+[run command]: {{< relref "../cli/run.md" >}}
+
 ## Component health
 
 `prometheus.exporter.snmp` is only reported as unhealthy if given
@@ -140,40 +146,40 @@ from `prometheus.exporter.snmp`:
 
 ```river
 prometheus.exporter.snmp "example" {
-	config_file = "snmp_modules.yml"
+    config_file = "snmp_modules.yml"
 
-	target "network_switch_1" {
-		address     = "192.168.1.2"
-		module      = "if_mib"
-		walk_params = "public"
-	}
+    target "network_switch_1" {
+        address     = "192.168.1.2"
+        module      = "if_mib"
+        walk_params = "public"
+    }
 
-	target "network_router_2" {
-		address     = "192.168.1.3"
-		module      = "mikrotik"
-		walk_params = "private"
-	}
+    target "network_router_2" {
+        address     = "192.168.1.3"
+        module      = "mikrotik"
+        walk_params = "private"
+    }
 
-	walk_param "private" {
-		version = "2"
+    walk_param "private" {
+        version = "2"
 
-		auth {
-			community = "secret"
-		}
-	}
+        auth {
+            community = "secret"
+        }
+    }
 
-	walk_param "public" {
-		version = "2"
+    walk_param "public" {
+        version = "2"
 
-		auth {
-			community = "public"
-		}
-	}
+        auth {
+            community = "public"
+        }
+    }
 }
 // Configure a prometheus.scrape component to collect SNMP metrics.
 prometheus.scrape "demo" {
-	targets    = prometheus.exporter.snmp.example.targets
-	forward_to = [ /* ... */ ]
+    targets    = prometheus.exporter.snmp.example.targets
+    forward_to = [ /* ... */ ]
 }
 ```
 
