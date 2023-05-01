@@ -47,6 +47,9 @@ Main (unreleased)
   component would cause Grafana Agent Flow's Prometheus metrics endpoint to
   return an error until the process is restarted. (@rfratto)
 
+- Fix issue in `loki.source.file` where updating the component caused
+  goroutines to leak. (@rfratto)
+
 ### Other changes
 
 - Add metrics when clustering mode is enabled. (@rfratto)
