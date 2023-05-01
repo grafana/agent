@@ -4,7 +4,6 @@ import (
 	"sync"
 
 	"github.com/prometheus/prometheus/model/exemplar"
-	"github.com/prometheus/prometheus/model/intern"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/tsdb/chunks"
 )
@@ -58,8 +57,6 @@ func (m seriesHashmap) get(hash uint64, lset labels.Labels) *memSeries {
 }
 
 func (m seriesHashmap) set(hash uint64, s *memSeries) {
-	intern.Intern(intern.Global, s.lset)
-
 	l := m[hash]
 	for i, prev := range l {
 		if labels.Equal(prev.lset, s.lset) {
@@ -75,8 +72,6 @@ func (m seriesHashmap) del(hash uint64, ref chunks.HeadSeriesRef) {
 	for _, s := range m[hash] {
 		if s.ref != ref {
 			rem = append(rem, s)
-		} else {
-			intern.Release(intern.Global, s.lset)
 		}
 	}
 	if len(rem) == 0 {
