@@ -134,5 +134,3 @@ snippets:
       os: linux
       app: app1
 ```
-
-> **Note:** This example uses YAML. However, both JSON and YAML responses are supported. The choice of serialization format is left to the server-side implementation. Grafana Agent does not send nor reads `Content-Type` or `Accept` headers.

@@ -42,8 +42,9 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	// If flow is enabled go into that working mode
-	// TODO allow flow to run as a windows service
+	// NOTE(rfratto): Flow when run through the primary Grafana Agent binary does
+	// not support being run as a Windows service. To run Flow mode as a Windows
+	// service, use cmd/grafana-agent-service and cmd/grafana-agent-flow instead.
 	if runMode == runModeFlow {
 		flowmode.Run()
 		return

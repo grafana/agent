@@ -24,6 +24,5 @@ func init() {
 }
 
 func main() {
-	// TODO: Allow Flow to run as a Windows service.
 	flowmode.Run()
 }
