@@ -10,12 +10,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/pkg/util"
+
 	"github.com/grafana/agent/component/discovery"
 
 	"context"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 )

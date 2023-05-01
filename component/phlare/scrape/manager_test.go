@@ -18,7 +18,7 @@ func TestManager(t *testing.T) {
 
 	m := NewManager(phlare.AppendableFunc(func(ctx context.Context, labels labels.Labels, samples []*phlare.RawSample) error {
 		return nil
-	}), util.TestLogger(t))
+	}), util.TestFlowLogger(t))
 
 	defer m.Stop()
 	targetSetsChan := make(chan map[string][]*targetgroup.Group)

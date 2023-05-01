@@ -79,9 +79,9 @@ type Options struct {
 	// components in telemetry data.
 	ControllerID string
 
-	// LogSink to use for controller logs and components. A no-op logger will be
+	// Logger to use for controller logs and components. A no-op logger will be
 	// created if this is nil.
-	LogSink *logging.Sink
+	Logger *logging.Logger
 
 	// Tracer for components to use. A no-op tracer will be created if this is
 	// nil.
@@ -122,7 +122,7 @@ type Options struct {
 	OnExportsChange func(exports map[string]any)
 
 	// Controller is used to instantiate new module controllers.
-	Controller component.Controller
+	Controller component.ModuleSystem
 
 	// DialFunc is a function to use for components to properly connect to
 	// HTTPListenAddr. If nil, DialFunc defaults to (&net.Dialer{}).DialContext.
@@ -148,9 +148,9 @@ type Flow struct {
 
 // New creates and starts a new Flow controller. Call Close to stop
 // the controller.
-func New(o Options) *Flow {
+func New(o Options, id string) *Flow {
 	var (
-		log       = logging.New(o.LogSink)
+		log       = o.Logger
 		tracer    = o.Tracer
 		clusterer = o.Clusterer
 	)
@@ -173,7 +173,6 @@ func New(o Options) *Flow {
 		queue  = controller.NewQueue()
 		sched  = controller.NewScheduler()
 		loader = controller.NewLoader(controller.ComponentGlobals{
-			LogSink:       o.LogSink,
 			Logger:        log,
 			TraceProvider: tracer,
 			Clusterer:     clusterer,
@@ -188,8 +187,8 @@ func New(o Options) *Flow {
 			HTTPListenAddr:  o.HTTPListenAddr,
 			DialFunc:        dialFunc,
 			ControllerID:    o.ControllerID,
-			Controller:      o.Controller,
-		})
+			ModuleSystem:    o.Controller,
+		}, id)
 	)
 	return &Flow{
 		log:    log,

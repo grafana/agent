@@ -1,7 +1,6 @@
 package flow
 
 import (
-	"os"
 	"testing"
 
 	"github.com/grafana/agent/component"
@@ -9,7 +8,7 @@ import (
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/internal/testcomponents"
-	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/stretchr/testify/require"
 )
 
@@ -32,7 +31,7 @@ var testFile = `
 `
 
 func TestController_LoadFile_Evaluation(t *testing.T) {
-	ctrl := New(testOptions(t))
+	ctrl := New(testOptions(t), "")
 
 	// Use testFile from graph_builder_test.go.
 	f, err := ReadFile(t.Name(), []byte(testFile))
@@ -63,13 +62,11 @@ func getFields(t *testing.T, g *dag.Graph, nodeID string) (component.Arguments, 
 func testOptions(t *testing.T) Options {
 	t.Helper()
 
-	s, err := logging.WriterSink(os.Stderr, logging.DefaultSinkOptions)
-	require.NoError(t, err)
-
+	s := util.TestFlowLogger(t)
 	c := &cluster.Clusterer{Node: cluster.NewLocalNode("")}
 
 	return Options{
-		LogSink:   s,
+		Logger:    s,
 		DataPath:  t.TempDir(),
 		Reg:       nil,
 		Clusterer: c,

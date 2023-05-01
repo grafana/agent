@@ -23,7 +23,7 @@ func Test(t *testing.T) {
 	err := river.Unmarshal([]byte(cfg), &args)
 	require.NoError(t, err)
 
-	ctrl, err := componenttest.NewControllerFromID(util.TestLogger(t), "loki.source.docker")
+	ctrl, err := componenttest.NewControllerFromID(util.TestFlowLogger(t), "loki.source.docker")
 	require.NoError(t, err)
 
 	go func() {

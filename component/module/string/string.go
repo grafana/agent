@@ -2,6 +2,7 @@ package string
 
 import (
 	"context"
+
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/module"
 	"github.com/grafana/agent/pkg/flow/rivertypes"

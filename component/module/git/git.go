@@ -3,7 +3,6 @@ package git
 
 import (
 	"context"
-	"net/http"
 	"path/filepath"
 	"reflect"
 	"sync"
@@ -77,7 +76,6 @@ type Component struct {
 var (
 	_ component.Component       = (*Component)(nil)
 	_ component.HealthComponent = (*Component)(nil)
-	_ component.HTTPComponent   = (*Component)(nil)
 )
 
 // New creates a new module.git component.
@@ -238,11 +236,6 @@ func (c *Component) CurrentHealth() component.Health {
 	defer c.healthMut.RUnlock()
 
 	return component.LeastHealthy(c.health, c.mod.CurrentHealth())
-}
-
-// Handler implements component.HTTPComponent.
-func (c *Component) Handler() http.Handler {
-	return c.mod.Handler()
 }
 
 // DebugInfo implements component.DebugComponent.

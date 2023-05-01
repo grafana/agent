@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/grafana/agent/pkg/module"
 	"net"
 	"net/http"
 	"os"
@@ -12,14 +11,6 @@ import (
 	"path"
 	"sync"
 	"syscall"
-
-	"github.com/grafana/agent/web/api"
-	"github.com/grafana/agent/web/ui"
-	"github.com/rfratto/ckit/memconn"
-	"go.opentelemetry.io/otel"
-	"golang.org/x/exp/maps"
-	"golang.org/x/net/http2"
-	"golang.org/x/net/http2/h2c"
 
 	"github.com/fatih/color"
 	"github.com/go-kit/log/level"
@@ -29,12 +20,20 @@ import (
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
+	"github.com/grafana/agent/pkg/module"
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/usagestats"
+	"github.com/grafana/agent/web/api"
+	"github.com/grafana/agent/web/ui"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/rfratto/ckit/memconn"
 	"github.com/spf13/cobra"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
+	"go.opentelemetry.io/otel"
+	"golang.org/x/exp/maps"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 
 	// Install Components
 	_ "github.com/grafana/agent/component/all"
@@ -121,11 +120,10 @@ func (fr *flowRun) Run(configFile string) error {
 		return fmt.Errorf("file argument not provided")
 	}
 
-	logSink, err := logging.WriterSink(os.Stderr, logging.DefaultSinkOptions)
+	l, err := logging.New(os.Stderr, logging.DefaultOptions)
 	if err != nil {
 		return fmt.Errorf("building logger: %w", err)
 	}
-	l := logging.New(logSink)
 
 	t, err := tracing.New(tracing.DefaultOptions)
 	if err != nil {
@@ -164,7 +162,7 @@ func (fr *flowRun) Run(configFile string) error {
 	memLis := memconn.NewListener(nil)
 
 	f := flow.New(flow.Options{
-		LogSink:        logSink,
+		Logger:         l,
 		Tracer:         t,
 		Clusterer:      clusterer,
 		DataPath:       fr.storagePath,
@@ -182,12 +180,12 @@ func (fr *flowRun) Run(configFile string) error {
 			}
 		},
 		Controller: module.NewModule(&module.Options{
-			LogSink:   logSink,
+			Logger:    l,
 			Tracer:    t,
 			Clusterer: clusterer,
 			Reg:       reg,
 		}),
-	})
+	}, "root")
 
 	reload := func() error {
 		flowCfg, err := loadFlowFile(configFile)

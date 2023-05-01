@@ -12,11 +12,9 @@ func NewModule(o *Options) *Module {
 	return &Module{
 		o: o,
 	}
-
 }
 
-// NewModuleController creates a new, unstarted ModuleController.
-func (m *Module) NewModuleController(id string) component.ModuleController {
+// NewModuleController creates a new, unstarted ModuleDelegate.
+func (m *Module) NewModuleController(id string) component.ModuleDelegate {
 	return NewController(id, m.o)
-
 }

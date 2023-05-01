@@ -11,10 +11,12 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/cluster"
+	"github.com/grafana/agent/pkg/module"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/otel/trace"
 )
 
 func TestModule(t *testing.T) {
@@ -43,7 +45,9 @@ func TestModule(t *testing.T) {
 			expectedManagedFileHealthMessagePrefix: "read file",
 		},
 	}
-
+	l := util.TestFlowLogger(t)
+	cl, err := cluster.New(l, prometheus.DefaultRegisterer, false, "", "", "")
+	require.NoError(t, err)
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			moduleFilePath := filepath.Join(tempDir, "module.river")
@@ -56,6 +60,12 @@ func TestModule(t *testing.T) {
 				Registerer:    prometheus.NewRegistry(),
 				OnStateChange: func(e component.Exports) {},
 				DataPath:      t.TempDir(),
+				ModuleSystem: module.NewModule(&module.Options{
+					Logger:    l,
+					Tracer:    trace.NewNoopTracerProvider(),
+					Clusterer: cl,
+					Reg:       prometheus.DefaultRegisterer,
+				}),
 			}
 
 			moduleFileConfig := `filename = "` + riverEscape(moduleFilePath) + `"`
@@ -108,7 +118,9 @@ func TestBadFile(t *testing.T) {
 			expectedErrorContains: `failed to read file:`,
 		},
 	}
-
+	l := util.TestFlowLogger(t)
+	cl, err := cluster.New(l, prometheus.DefaultRegisterer, false, "", "", "")
+	require.NoError(t, err)
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			moduleFilePath := filepath.Join(t.TempDir(), "module.river")
@@ -128,7 +140,12 @@ func TestBadFile(t *testing.T) {
 				Registerer:    prometheus.NewRegistry(),
 				OnStateChange: func(e component.Exports) {},
 				DataPath:      t.TempDir(),
-			}
+				ModuleSystem: module.NewModule(&module.Options{
+					Logger:    l,
+					Tracer:    trace.NewNoopTracerProvider(),
+					Clusterer: cl,
+					Reg:       prometheus.NewRegistry(),
+				})}
 
 			_, err := New(opts, args)
 			require.ErrorContains(t, err, tc.expectedErrorContains)

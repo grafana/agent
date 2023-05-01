@@ -5,9 +5,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/pkg/util"
+
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/otelcol/exporter/loki/internal/convert"
-	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/plog"
@@ -455,7 +456,7 @@ func TestConverter(t *testing.T) {
 			payload, err := decoder.UnmarshalLogs([]byte(tc.input))
 			require.NoError(t, err)
 
-			l := util.TestLogger(t)
+			l := util.TestFlowLogger(t)
 			ch1, ch2 := make(loki.LogsReceiver), make(loki.LogsReceiver)
 			conv := convert.New(l, prometheus.NewRegistry(), []loki.LogsReceiver{ch1, ch2})
 			go func() {

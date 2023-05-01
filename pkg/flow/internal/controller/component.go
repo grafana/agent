@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/grafana/agent/pkg/metrics"
-	"github.com/grafana/agent/pkg/traces"
 	"net"
 	"net/http"
 	"path"
@@ -15,12 +13,15 @@ import (
 	"sync"
 	"time"
 
+	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/vm"
+	"github.com/grafana/agent/pkg/traces"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/atomic"
@@ -65,7 +66,6 @@ type DialFunc func(ctx context.Context, network, address string) (net.Conn, erro
 // ComponentGlobals are used by ComponentNodes to build managed components. All
 // ComponentNodes should use the same ComponentGlobals.
 type ComponentGlobals struct {
-	LogSink           *logging.Sink                // Sink used for Logging.
 	Logger            *logging.Logger              // Logger shared between all managed components.
 	TraceProvider     trace.TracerProvider         // Tracer shared between all managed components.
 	Clusterer         *cluster.Clusterer           // Clusterer shared between all managed components.
@@ -77,7 +77,7 @@ type ComponentGlobals struct {
 	HTTPListenAddr    string                       // Base address for server
 	DialFunc          DialFunc                     // Function to connect to HTTPListenAddr.
 	ControllerID      string                       // ID of controller.
-	Controller        component.Controller         // Used to instantiate module controllers.
+	ModuleSystem      component.ModuleSystem       // Used to instantiate module controllers.
 }
 
 // ComponentNode is a controller node which manages a user-defined component.
@@ -185,7 +185,7 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 	cn.register = wrapped
 	return component.Options{
 		ID:     globalID,
-		Logger: logging.New(logging.LoggerSink(globals.Logger), logging.WithComponentID(cn.nodeID)),
+		Logger: log.With(globals.Logger, "component", globalID),
 		Registerer: prometheus.WrapRegistererWith(prometheus.Labels{
 			"component_id": globalID,
 		}, wrapped),
@@ -198,7 +198,7 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 		HTTPPath:       path.Join(prefix, cn.nodeID) + "/",
 
 		OnStateChange: cn.setExports,
-		Controller:    globals.Controller,
+		ModuleSystem:  globals.ModuleSystem,
 	}
 }
 

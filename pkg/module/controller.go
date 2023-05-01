@@ -2,14 +2,13 @@ package module
 
 import (
 	"context"
-	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/traces"
-	"github.com/prometheus/client_golang/prometheus"
 	"net/http"
 	"path"
 
 	"github.com/gorilla/mux"
+	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow"
+	"github.com/grafana/agent/pkg/traces"
 	"github.com/grafana/agent/web/api"
 )
 
@@ -25,7 +24,6 @@ func NewController(id string, o *Options) *controller {
 		o:  o,
 		id: id,
 	}
-
 }
 
 // LoadConfig parses River config and loads it.
@@ -34,20 +32,20 @@ func (c *controller) LoadConfig(config []byte, o component.Options, args map[str
 		c.httppath = o.HTTPPath
 		f := flow.New(flow.Options{
 			ControllerID: c.id,
-			LogSink:      c.o.LogSink,
+			Logger:       c.o.Logger,
 			Tracer:       traces.WrapTracer(c.o.Tracer, c.id),
 			Clusterer:    c.o.Clusterer,
-			Reg: prometheus.WrapRegistererWith(prometheus.Labels{
-				"controller_id": o.ID,
-			}, o.Registerer),
+			Reg:          c.o.Reg,
+			// Use the component options here since they
+			// are tied to this specific component.
 			DataPath:       o.DataPath,
 			HTTPPathPrefix: o.HTTPPath,
 			HTTPListenAddr: o.HTTPListenAddr,
 			OnExportsChange: func(exports map[string]any) {
 				onExport(exports)
 			},
-			Controller: o.Controller,
-		})
+			Controller: o.ModuleSystem,
+		}, c.id)
 		c.f = f
 	}
 
@@ -58,7 +56,7 @@ func (c *controller) LoadConfig(config []byte, o component.Options, args map[str
 	return c.f.LoadFile(ff, args)
 }
 
-// Run starts the ModuleController. No components within the ModuleController
+// Run starts the ModuleDelegate. No components within the ModuleDelegate
 // will be run until Run is called.
 //
 // Run blocks until the provided context is canceled.
@@ -83,5 +81,4 @@ func (c *controller) ComponentHandler() (_ http.Handler) {
 	})
 
 	return r
-
 }

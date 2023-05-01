@@ -185,7 +185,7 @@ func TestScrapeLoop(t *testing.T) {
 			require.Equal(t, []byte("ok"), samples[0].RawProfile)
 			return nil
 		}),
-		200*time.Millisecond, 30*time.Second, util.TestLogger(t))
+		200*time.Millisecond, 30*time.Second, util.TestFlowLogger(t))
 	defer loop.stop(true)
 
 	require.Equal(t, HealthUnknown, loop.Health())

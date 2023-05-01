@@ -43,7 +43,7 @@ type Loader struct {
 
 // NewLoader creates a new Loader. Components built by the Loader will be built
 // with co for their options.
-func NewLoader(globals ComponentGlobals) *Loader {
+func NewLoader(globals ComponentGlobals, id string) *Loader {
 	l := &Loader{
 		log:     globals.Logger,
 		tracer:  globals.TraceProvider,
@@ -52,9 +52,9 @@ func NewLoader(globals ComponentGlobals) *Loader {
 		graph:         &dag.Graph{},
 		originalGraph: &dag.Graph{},
 		cache:         newValueCache(),
-		cm:            newControllerMetrics(globals.Registerer),
+		cm:            newControllerMetrics(globals.Registerer, id),
 	}
-	cc := newControllerCollector(l)
+	cc := newControllerCollector(l, id)
 	if globals.Registerer != nil {
 		globals.Registerer.MustRegister(cc)
 	}

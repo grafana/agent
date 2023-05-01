@@ -4,8 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/grafana/agent/component/otelcol/exporter/prometheus/internal/convert"
 	"github.com/grafana/agent/pkg/util"
+
+	"github.com/grafana/agent/component/otelcol/exporter/prometheus/internal/convert"
 	"github.com/grafana/agent/pkg/util/testappender"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/stretchr/testify/require"
@@ -327,7 +328,7 @@ func TestConverter(t *testing.T) {
 			var app testappender.Appender
 			app.HideTimestamps = !tc.showTimestamps
 
-			l := util.TestLogger(t)
+			l := util.TestFlowLogger(t)
 			conv := convert.New(l, appenderAppendable{Inner: &app}, convert.Options{
 				IncludeTargetInfo: tc.includeTargetInfo,
 				IncludeScopeInfo:  tc.includeScopeInfo,

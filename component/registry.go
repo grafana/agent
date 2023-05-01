@@ -3,13 +3,13 @@ package component
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"net"
+	"net/http"
 	"reflect"
 	"strings"
 
+	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/cluster"
-	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/regexp"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/trace"
@@ -29,43 +29,44 @@ var (
 	parsedNames = map[string]parsedName{}
 )
 
-// A Controller is a mechanism responsible for running components. It can
-// generate controllers for Modules.
-type Controller interface {
-	// NewModuleController creates a new, unstarted ModuleController.
-	NewModuleController(id string) ModuleController
+// ModuleSystem is a mechanism responsible for allowing components to create other components, or
+// flow systems.
+type ModuleSystem interface {
+	// NewModuleController creates a new, un-started ModuleDelegate.
+	NewModuleController(id string) ModuleDelegate
 }
 
-// A ModuleController is a controller for running components within a Module.
-type ModuleController interface {
-	// LoadConfig parses River config and loads it into the ModuleController.
+// ModuleDelegate is a controller for running components within a Module.
+type ModuleDelegate interface {
+	// LoadConfig parses River config and loads it into the ModuleDelegate.
 	// LoadConfig can be called multiple times, and called prior to
-	// [ModuleController.Run].
+	// [ModuleDelegate.Run].
 	LoadConfig(config []byte, o Options, args map[string]any, onExport func(exports map[string]any)) error
 
-	// Run starts the ModuleController. No components within the ModuleController
+	// Run starts the ModuleDelegate. No components within the ModuleDelegate
 	// will be run until Run is called.
 	//
 	// Run blocks until the provided context is canceled.
 	Run(context.Context)
 
 	// ComponentHandler returns an HTTP handler which exposes endpoints of
-	// components managed by the ModuleController.
+	// components managed by the ModuleDelegate.
 	ComponentHandler() http.Handler
 }
 
 // Options are provided to a component when it is being constructed. Options
 // are static for the lifetime of a component.
 type Options struct {
-	// Controller which is running this component.
-	Controller Controller
+	// ModuleSystem allows for the creation of module controllers.
+	ModuleSystem ModuleSystem
+
 	// ID of the component. Guaranteed to be globally unique across all running
 	// components.
 	ID string
 
 	// Logger the component may use for logging. Logs emitted with the logger
 	// always include the component ID as a field.
-	Logger *logging.Logger
+	Logger log.Logger
 
 	// A path to a directory with this component may use for storage. The path is
 	// guaranteed to be unique across all running components.

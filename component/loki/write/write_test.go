@@ -79,7 +79,7 @@ func Test(t *testing.T) {
 	require.NoError(t, river.Unmarshal([]byte(cfg), &args))
 
 	// Set up and start the component.
-	tc, err := componenttest.NewControllerFromID(util.TestLogger(t), "loki.write")
+	tc, err := componenttest.NewControllerFromID(util.TestFlowLogger(t), "loki.write")
 	require.NoError(t, err)
 	go func() {
 		err = tc.Run(componenttest.TestContext(t), args)

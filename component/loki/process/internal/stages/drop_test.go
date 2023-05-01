@@ -9,8 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/alecthomas/units"
 	"github.com/grafana/agent/pkg/util"
+
+	"github.com/alecthomas/units"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/assert"

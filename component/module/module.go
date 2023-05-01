@@ -15,7 +15,7 @@ type ModuleComponent struct {
 
 	mut    sync.RWMutex
 	health component.Health
-	mod    component.ModuleController
+	mod    component.ModuleDelegate
 }
 
 // Exports holds values which are exported from the run module.
@@ -28,7 +28,7 @@ type Exports struct {
 func NewModuleComponent(o component.Options) *ModuleComponent {
 	return &ModuleComponent{
 		opts: o,
-		mod:  o.Controller.NewModuleController(o.ID),
+		mod:  o.ModuleSystem.NewModuleController(o.ID),
 	}
 }
 
