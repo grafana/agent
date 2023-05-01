@@ -3,6 +3,7 @@ package module
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"sync"
 	"time"
 
@@ -67,6 +68,11 @@ func (c *ModuleComponent) CurrentHealth() component.Health {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
 	return c.health
+}
+
+// Handler returns the handler for http.
+func (c *ModuleComponent) Handler() http.Handler {
+	return c.mod.ComponentHandler()
 }
 
 // SetHealth contains the implementation details for setHealth in a module component.

@@ -2,6 +2,7 @@ package string
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/module"
@@ -38,6 +39,7 @@ type Component struct {
 var (
 	_ component.Component       = (*Component)(nil)
 	_ component.HealthComponent = (*Component)(nil)
+	_ component.HTTPComponent   = (*Component)(nil)
 )
 
 // New creates a new module.string component.
@@ -68,4 +70,9 @@ func (c *Component) Update(args component.Arguments) error {
 // CurrentHealth implements component.HealthComponent.
 func (c *Component) CurrentHealth() component.Health {
 	return c.mod.CurrentHealth()
+}
+
+// Handler returns the http handler.
+func (c *Component) Handler() http.Handler {
+	return c.mod.Handler()
 }

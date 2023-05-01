@@ -32,6 +32,8 @@ Main (unreleased)
 
 - Disable node_exporter on Windows systems (@jkroepke)
 
+- Allow propagation of logs and traces from modules. (@mattdurham)
+
 ### Bugfixes
 
 - Fix spelling of the `frequency` argument on the `local.file` component.

@@ -2,6 +2,7 @@ package file
 
 import (
 	"context"
+	"net/http"
 	"sync"
 
 	"go.uber.org/atomic"
@@ -65,6 +66,7 @@ type Component struct {
 var (
 	_ component.Component       = (*Component)(nil)
 	_ component.HealthComponent = (*Component)(nil)
+	_ component.HTTPComponent   = (*Component)(nil)
 )
 
 // New creates a new module.file component.
@@ -157,6 +159,11 @@ func (c *Component) CurrentHealth() component.Health {
 		return c.mod.CurrentHealth()
 	}
 	return leastHealthy
+}
+
+// Handler returns the http handler.
+func (c *Component) Handler() http.Handler {
+	return c.mod.Handler()
 }
 
 // getArgs is a goroutine safe way to get args
