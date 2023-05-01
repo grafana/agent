@@ -445,15 +445,14 @@ func (cn *ComponentNode) CurrentHealth() component.Health {
 	var (
 		runHealth  = cn.runHealth
 		evalHealth = cn.evalHealth
-
-		componentHealth component.Health
 	)
 
 	if hc, ok := cn.managed.(component.HealthComponent); ok {
-		componentHealth = hc.CurrentHealth()
+		componentHealth := hc.CurrentHealth()
+		return component.LeastHealthy(runHealth, evalHealth, componentHealth)
 	}
 
-	return component.LeastHealthy(runHealth, evalHealth, componentHealth)
+	return component.LeastHealthy(runHealth, evalHealth)
 }
 
 // DebugInfo returns debugging information from the managed component (if any).

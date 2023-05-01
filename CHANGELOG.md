@@ -32,6 +32,11 @@ Main (unreleased)
 
 - Disable node_exporter on Windows systems (@jkroepke)
 
+### Bugfixes
+
+- Fix issue where component evaluation time was overridden by a "default
+  health" message. (@rfratto)
+
 ### Other changes
 
 - Add metrics when clustering mode is enabled. (@rfratto)
