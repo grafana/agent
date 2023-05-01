@@ -7,6 +7,14 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+Main (unreleased)
+-----------------
+
+### Bugfixes
+
+- Fix issue where component evaluation time was overridden by a "default
+  health" message. (@rfratto)
+
 v0.33.1 (2023-05-01)
 --------------------
 
