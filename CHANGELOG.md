@@ -7,17 +7,17 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-v0.33.1 (2023-04-28)
+v0.33.1 (2023-05-01)
 --------------------
 
 ### Bugfixes
 
+- Fix spelling of the `frequency` argument on the `local.file` component.
+  (@tpaschalis)
+
 - Fix bug where some capsule values (such as Prometheus receivers) could not
   properly be used as an argument to a module. (@rfratto)
 
-- Fix spelling of the `frequency` argument on the `local.file` component.
-  (@tpaschalis)
-  
 - Fix version information not displaying correctly when passing the `--version`
   flag or in the `agent_build_info` metric. (@rfratto)
 
