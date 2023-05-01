@@ -32,7 +32,7 @@ var (
 // generate controllers for Modules.
 type Controller interface {
 	// NewModuleController creates a new, unstarted ModuleController.
-	NewModuleController() (ModuleController, error)
+	NewModuleController(id string) ModuleController
 }
 
 // A ModuleController is a controller for running components within a Module.
@@ -40,7 +40,7 @@ type ModuleController interface {
 	// LoadConfig parses River config and loads it into the ModuleController.
 	// LoadConfig can be called multiple times, and called prior to
 	// [ModuleController.Run].
-	LoadConfig(config []byte, args map[string]any) error
+	LoadConfig(config []byte, o Options, args map[string]any, onExport func(exports map[string]any)) error
 
 	// Run starts the ModuleController. No components within the ModuleController
 	// will be run until Run is called.

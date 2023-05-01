@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/grafana/agent/pkg/module"
 	"net"
 	"net/http"
 	"os"
@@ -163,6 +164,12 @@ func (fr *flowRun) Run(configFile string) error {
 		Reg:            reg,
 		HTTPPathPrefix: "/api/v0/component/",
 		HTTPListenAddr: fr.httpListenAddr,
+		Controller: module.NewModule(&module.Options{
+			LogSink:   logSink,
+			Tracer:    t,
+			Clusterer: clusterer,
+			Reg:       reg,
+		}),
 	})
 
 	reload := func() error {

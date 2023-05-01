@@ -62,6 +62,8 @@ import (
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/pkg/river/vm"
 	"github.com/prometheus/client_golang/prometheus"
+	oteltrace "go.opentelemetry.io/otel/trace"
+
 	"go.uber.org/atomic"
 )
 
@@ -82,7 +84,7 @@ type Options struct {
 
 	// Tracer for components to use. A no-op tracer will be created if this is
 	// nil.
-	Tracer *tracing.Tracer
+	Tracer oteltrace.TracerProvider
 
 	// Clusterer for implementing distributed behavior among components running
 	// on different nodes.
@@ -126,7 +128,7 @@ type Options struct {
 // Flow is the Flow system.
 type Flow struct {
 	log       *logging.Logger
-	tracer    *tracing.Tracer
+	tracer    oteltrace.TracerProvider
 	clusterer *cluster.Clusterer
 	opts      Options
 
@@ -176,6 +178,7 @@ func New(o Options) *Flow {
 			HTTPPathPrefix:  o.HTTPPathPrefix,
 			HTTPListenAddr:  o.HTTPListenAddr,
 			ControllerID:    o.ControllerID,
+			Controller:      o.Controller,
 		})
 	)
 	return &Flow{

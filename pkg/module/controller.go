@@ -2,6 +2,9 @@ package module
 
 import (
 	"context"
+	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/traces"
+	"github.com/prometheus/client_golang/prometheus"
 	"net/http"
 	"path"
 
@@ -11,37 +14,39 @@ import (
 )
 
 type controller struct {
-	f      *flow.Flow
-	o      *Options
-	id     string
-	parent *Module
+	f        *flow.Flow
+	o        *Options
+	httppath string
+	id       string
 }
 
-func NewController(id string, o *Options, parent *Module) *controller {
+func NewController(id string, o *Options) *controller {
 	return &controller{
-		o:      o,
-		id:     id,
-		parent: parent,
+		o:  o,
+		id: id,
 	}
 
 }
 
 // LoadConfig parses River config and loads it.
-func (c *controller) LoadConfig(config []byte, args map[string]any, onExport func(exports map[string]any)) error {
+func (c *controller) LoadConfig(config []byte, o component.Options, args map[string]any, onExport func(exports map[string]any)) error {
 	if c.f == nil {
+		c.httppath = o.HTTPPath
 		f := flow.New(flow.Options{
-			ControllerID:   c.id,
-			LogSink:        c.o.LogSink,
-			Tracer:         c.o.Tracer,
-			Clusterer:      c.o.Clusterer,
-			DataPath:       c.o.DataPath,
-			Reg:            c.o.Reg,
-			HTTPPathPrefix: c.o.HTTPPathPrefix,
-			HTTPListenAddr: c.o.HTTPListenAddr,
+			ControllerID: c.id,
+			LogSink:      c.o.LogSink,
+			Tracer:       traces.WrapTracer(c.o.Tracer, c.id),
+			Clusterer:    c.o.Clusterer,
+			Reg: prometheus.WrapRegistererWith(prometheus.Labels{
+				"controller_id": o.ID,
+			}, o.Registerer),
+			DataPath:       o.DataPath,
+			HTTPPathPrefix: o.HTTPPath,
+			HTTPListenAddr: o.HTTPListenAddr,
 			OnExportsChange: func(exports map[string]any) {
 				onExport(exports)
 			},
-			Controller: c.parent,
+			Controller: o.Controller,
 		})
 		c.f = f
 	}
@@ -72,7 +77,7 @@ func (c *controller) ComponentHandler() (_ http.Handler) {
 	r.PathPrefix("/{id}/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Re-add the full path to ensure that nested controllers propagate
 		// requests properly.
-		r.URL.Path = path.Join(c.o.HTTPPathPrefix, r.URL.Path)
+		r.URL.Path = path.Join(c.httppath, r.URL.Path)
 
 		c.f.ComponentHandler().ServeHTTP(w, r)
 	})

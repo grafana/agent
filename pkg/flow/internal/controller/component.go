@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/grafana/agent/pkg/metrics"
+	"github.com/grafana/agent/pkg/traces"
 	"net/http"
 	"path"
 	"path/filepath"
@@ -70,6 +72,7 @@ type ComponentGlobals struct {
 	HTTPPathPrefix    string                       // HTTP prefix for components.
 	HTTPListenAddr    string                       // Base address for server
 	ControllerID      string                       // ID of controller.
+	Controller        component.Controller         // Used to instantiate module controllers.
 }
 
 // ComponentNode is a controller node which manages a user-defined component.
@@ -84,7 +87,7 @@ type ComponentNode struct {
 	nodeID            string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
 	reg               component.Registration
 	managedOpts       component.Options
-	register          *wrappedRegisterer
+	register          *metrics.WrappedRegisterer
 	exportsType       reflect.Type
 	OnComponentUpdate func(cn *ComponentNode) // Informs controller that we need to reevaluate
 
@@ -173,7 +176,7 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 		globalID = path.Join(globals.ControllerID, cn.nodeID)
 	}
 
-	wrapped := newWrappedRegisterer()
+	wrapped := metrics.NewWrappedRegisterer()
 	cn.register = wrapped
 	return component.Options{
 		ID:     globalID,
@@ -181,7 +184,7 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 		Registerer: prometheus.WrapRegistererWith(prometheus.Labels{
 			"component_id": globalID,
 		}, wrapped),
-		Tracer:    wrapTracer(globals.TraceProvider, globalID),
+		Tracer:    traces.WrapTracer(globals.TraceProvider, globalID),
 		Clusterer: globals.Clusterer,
 
 		DataPath:       filepath.Join(globals.DataPath, cn.nodeID),
@@ -189,6 +192,7 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 		HTTPPath:       path.Join(prefix, cn.nodeID) + "/",
 
 		OnStateChange: cn.setExports,
+		Controller:    globals.Controller,
 	}
 }
 

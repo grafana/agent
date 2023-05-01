@@ -2,8 +2,6 @@ package string
 
 import (
 	"context"
-	"net/http"
-
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/module"
 	"github.com/grafana/agent/pkg/flow/rivertypes"
@@ -39,7 +37,6 @@ type Component struct {
 var (
 	_ component.Component       = (*Component)(nil)
 	_ component.HealthComponent = (*Component)(nil)
-	_ component.HTTPComponent   = (*Component)(nil)
 )
 
 // New creates a new module.string component.
@@ -65,11 +62,6 @@ func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 
 	return c.mod.LoadFlowContent(newArgs.Arguments, newArgs.Content.Value)
-}
-
-// Handler implements component.HTTPComponent.
-func (c *Component) Handler() http.Handler {
-	return c.mod.Handler()
 }
 
 // CurrentHealth implements component.HealthComponent.

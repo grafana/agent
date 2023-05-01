@@ -9,10 +9,14 @@ type Module struct {
 }
 
 func NewModule(o *Options) *Module {
+	return &Module{
+		o: o,
+	}
 
 }
 
 // NewModuleController creates a new, unstarted ModuleController.
-func (m *Module) NewModuleController() (_ component.ModuleController, _ error) {
+func (m *Module) NewModuleController(id string) component.ModuleController {
+	return NewController(id, m.o)
 
 }
