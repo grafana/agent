@@ -10,7 +10,13 @@ internal API changes are not present.
 Unreleased
 ----------
 
+
+0.13.0 (2023-05-01)
+-------------------
+
 ### Enhancements
+
+- Update Grafana Agent version to v0.33.1. (@spartan0x117)
 
 - Update RBAC rules to permit `node/metrics`. (@yurii-kryvosheia)
 
