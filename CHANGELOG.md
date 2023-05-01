@@ -25,6 +25,9 @@ v0.33.1 (2023-04-28)
   component would cause Grafana Agent Flow's Prometheus metrics endpoint to
   return an error until the process is restarted. (@rfratto)
 
+- Fix issue in `loki.source.file` where updating the component caused
+  goroutines to leak. (@rfratto)
+
 ### Other changes
 
 - Support Bundles report the status of discovered log targets. (@tpaschalis)
