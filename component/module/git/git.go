@@ -3,6 +3,7 @@ package git
 
 import (
 	"context"
+	"net/http"
 	"path/filepath"
 	"reflect"
 	"sync"
@@ -76,6 +77,7 @@ type Component struct {
 var (
 	_ component.Component       = (*Component)(nil)
 	_ component.HealthComponent = (*Component)(nil)
+	_ component.HTTPComponent   = (*Component)(nil)
 )
 
 // New creates a new module.git component.
@@ -254,4 +256,9 @@ func (c *Component) DebugInfo() interface{} {
 	} else {
 		return DebugInfo{SHA: rev}
 	}
+}
+
+// Handler handles the http.
+func (c *Component) Handler() http.Handler {
+	return c.mod.Handler()
 }
