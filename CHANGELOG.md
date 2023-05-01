@@ -32,6 +32,13 @@ Main (unreleased)
 
 - Disable node_exporter on Windows systems (@jkroepke)
 
+### Other changes
+
+- Add metrics when clustering mode is enabled. (@rfratto)
+
+v0.33.1 (2023-05-01)
+--------------------
+
 ### Bugfixes
 
 - Fix spelling of the `frequency` argument on the `local.file` component.
