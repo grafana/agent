@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/grafana/agent/pkg/flow/internal/dag"
-	"github.com/grafana/agent/pkg/flow/internal/stdlib"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/vm"
@@ -43,9 +42,13 @@ func ComponentReferences(cn dag.Node, g *dag.Graph) ([]Reference, diag.Diagnosti
 
 	refs := make([]Reference, 0, len(traversals))
 	for _, t := range traversals {
-		// Determine if a reference refers to something in stdlib.
-		scope := &vm.Scope{Variables: stdlib.Identifiers}
-		if _, ok := scope.Lookup(t[0].Name); ok {
+		// We use an empty scope to determine if a reference refers to something in
+		// the stdlib, since vm.Scope.Lookup will search the scope tree + the
+		// stdlib.
+		//
+		// Any call to an stdlib function is ignored.
+		var emptyScope vm.Scope
+		if _, ok := emptyScope.Lookup(t[0].Name); ok {
 			continue
 		}
 

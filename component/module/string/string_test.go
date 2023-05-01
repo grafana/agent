@@ -125,11 +125,11 @@ func TestModule(t *testing.T) {
 			expectedErrorContains: "tracing block not allowed inside a module",
 		},
 		{
-			name:                  "Unsupported argument validation",
+			name:                  "Argument not defined in module source",
 			riverContent:          argumentModuleLoaderConfig + exportModuleLoaderConfig,
 			argumentModuleContent: `argument "different_argument" {}`,
 			exportModuleContent:   exportStringConfig,
-			expectedErrorContains: "Unsupported argument \"username\" was provided to a module",
+			expectedErrorContains: "Argument \"username\" is not defined in module source",
 		},
 		{
 			name: "Missing required argument",
@@ -147,28 +147,28 @@ func TestModule(t *testing.T) {
 			riverContent:          argumentModuleLoaderConfig + exportModuleLoaderConfig + loggingConfig + loggingConfig,
 			argumentModuleContent: argumentConfig,
 			exportModuleContent:   exportStringConfig,
-			expectedErrorContains: "logging config block \"logging\" already declared",
+			expectedErrorContains: "\"logging\" block already declared",
 		},
 		{
 			name:                  "Duplicate tracing config",
 			riverContent:          argumentModuleLoaderConfig + exportModuleLoaderConfig + tracingConfig + tracingConfig,
 			argumentModuleContent: argumentConfig,
 			exportModuleContent:   exportStringConfig,
-			expectedErrorContains: "tracing config block \"tracing\" already declared",
+			expectedErrorContains: "\"tracing\" block already declared",
 		},
 		{
 			name:                  "Duplicate argument config",
 			riverContent:          argumentModuleLoaderConfig + exportModuleLoaderConfig,
 			argumentModuleContent: argumentConfig + argumentConfig,
 			exportModuleContent:   exportStringConfig,
-			expectedErrorContains: "argument config block \"username\" already declared",
+			expectedErrorContains: "\"argument.username\" block already declared",
 		},
 		{
 			name:                  "Duplicate export config",
 			riverContent:          argumentModuleLoaderConfig + exportModuleLoaderConfig,
 			argumentModuleContent: argumentConfig,
 			exportModuleContent:   exportStringConfig + exportStringConfig,
-			expectedErrorContains: "export config block \"username\" already declared",
+			expectedErrorContains: "\"export.username\" block already declared",
 		},
 	}
 

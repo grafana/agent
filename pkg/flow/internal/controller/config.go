@@ -59,58 +59,20 @@ func NewConfigNodeMap() *ConfigNodeMap {
 	}
 }
 
-// Append will add a config node to the ConfigNodeMap unless it already exists
-// in which case it will return a diag specifying the problem.
+// Append will add a config node to the ConfigNodeMap. This will overwrite
+// values on the ConfigNodeMap that are matched and previously set.
 func (nodeMap *ConfigNodeMap) Append(configNode BlockNode) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	switch n := configNode.(type) {
 	case *ArgumentConfigNode:
-		if _, exists := nodeMap.argumentMap[n.Label()]; exists {
-			diags.Add(diag.Diagnostic{
-				Severity: diag.SeverityLevelError,
-				Message:  fmt.Sprintf("argument config block %q already declared at %s", n.Label(), ast.StartPos(nodeMap.argumentMap[n.Label()].Block()).Position()),
-				StartPos: ast.StartPos(n.Block()).Position(),
-				EndPos:   ast.EndPos(n.Block()).Position(),
-			})
-
-			return diags
-		}
-
 		nodeMap.argumentMap[n.Label()] = n
 	case *ExportConfigNode:
-		if _, exists := nodeMap.exportMap[n.Label()]; !exists {
-			nodeMap.exportMap[n.Label()] = n
-		} else {
-			diags.Add(diag.Diagnostic{
-				Severity: diag.SeverityLevelError,
-				Message:  fmt.Sprintf("export config block %q already declared at %s", n.Label(), ast.StartPos(nodeMap.exportMap[n.Label()].Block()).Position()),
-				StartPos: ast.StartPos(n.Block()).Position(),
-				EndPos:   ast.EndPos(n.Block()).Position(),
-			})
-		}
+		nodeMap.exportMap[n.Label()] = n
 	case *LoggingConfigNode:
-		if nodeMap.logging == nil {
-			nodeMap.logging = n
-		} else {
-			diags.Add(diag.Diagnostic{
-				Severity: diag.SeverityLevelError,
-				Message:  fmt.Sprintf("logging config block %q already declared at %s", loggingBlockID, ast.StartPos(nodeMap.logging.Block()).Position()),
-				StartPos: ast.StartPos(n.Block()).Position(),
-				EndPos:   ast.EndPos(n.Block()).Position(),
-			})
-		}
+		nodeMap.logging = n
 	case *TracingConfigNode:
-		if nodeMap.tracing == nil {
-			nodeMap.tracing = n
-		} else {
-			diags.Add(diag.Diagnostic{
-				Severity: diag.SeverityLevelError,
-				Message:  fmt.Sprintf("tracing config block %q already declared at %s", tracingBlockID, ast.StartPos(nodeMap.tracing.Block()).Position()),
-				StartPos: ast.StartPos(n.Block()).Position(),
-				EndPos:   ast.EndPos(n.Block()).Position(),
-			})
-		}
+		nodeMap.tracing = n
 	default:
 		diags.Add(diag.Diagnostic{
 			Severity: diag.SeverityLevelError,
@@ -124,7 +86,7 @@ func (nodeMap *ConfigNodeMap) Append(configNode BlockNode) diag.Diagnostics {
 }
 
 // Validate wraps all validators for ConfigNodeMap.
-func (nodeMap *ConfigNodeMap) Validate(isInModule bool, args *map[string]any) diag.Diagnostics {
+func (nodeMap *ConfigNodeMap) Validate(isInModule bool, args map[string]any) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	newDiags := nodeMap.ValidateModuleConstraints(isInModule)
@@ -184,18 +146,17 @@ func (nodeMap *ConfigNodeMap) ValidateModuleConstraints(isInModule bool) diag.Di
 
 // ValidateUnsupportedArguments will validate each provided argument is
 // supported in the config.
-func (nodeMap *ConfigNodeMap) ValidateUnsupportedArguments(args *map[string]any) diag.Diagnostics {
+func (nodeMap *ConfigNodeMap) ValidateUnsupportedArguments(args map[string]any) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if args != nil {
-		for argName := range *args {
-			if _, ok := nodeMap.argumentMap[argName]; !ok {
-				diags.Add(diag.Diagnostic{
-					Severity: diag.SeverityLevelError,
-					Message:  fmt.Sprintf("Unsupported argument %q was provided to a module", argName),
-				})
-			}
+	for argName := range args {
+		if _, found := nodeMap.argumentMap[argName]; found {
+			continue
 		}
+		diags.Add(diag.Diagnostic{
+			Severity: diag.SeverityLevelError,
+			Message:  fmt.Sprintf("Argument %q is not defined in module source", argName),
+		})
 	}
 
 	return diags

@@ -94,20 +94,18 @@ func NewLoader(globals ComponentGlobals) *Loader {
 // The provided parentContext can be used to provide global variables and
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
-func (l *Loader) Apply(args *map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) diag.Diagnostics {
+func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) diag.Diagnostics {
 	start := time.Now()
 	l.mut.Lock()
 	defer l.mut.Unlock()
 	l.cm.controllerEvaluation.Set(1)
 	defer l.cm.controllerEvaluation.Set(0)
 
-	if args != nil {
-		for key, value := range *args {
-			l.cache.CacheExports(
-				ComponentID{"argument", key, "value"},
-				value,
-			)
-		}
+	for key, value := range args {
+		l.cache.CacheExports(
+			ComponentID{"argument", key, "value"},
+			value,
+		)
 	}
 
 	newGraph, diags := l.loadNewGraph(args, componentBlocks, configBlocks)
@@ -203,7 +201,7 @@ func (l *Loader) Apply(args *map[string]any, componentBlocks []*ast.BlockStmt, c
 }
 
 // loadNewGraph creates a new graph from the provided blocks and validates it.
-func (l *Loader) loadNewGraph(args *map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) (dag.Graph, diag.Diagnostics) {
+func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) (dag.Graph, diag.Diagnostics) {
 	var g dag.Graph
 	// Fill our graph with config blocks.
 	diags := l.populateConfigBlockNodes(args, &g, configBlocks)
@@ -233,7 +231,7 @@ func (l *Loader) loadNewGraph(args *map[string]any, componentBlocks []*ast.Block
 }
 
 // populateConfigBlockNodes adds any config blocks to the graph.
-func (l *Loader) populateConfigBlockNodes(args *map[string]any, g *dag.Graph, configBlocks []*ast.BlockStmt) diag.Diagnostics {
+func (l *Loader) populateConfigBlockNodes(args map[string]any, g *dag.Graph, configBlocks []*ast.BlockStmt) diag.Diagnostics {
 	var (
 		diags   diag.Diagnostics
 		nodeMap = NewConfigNodeMap()
@@ -242,6 +240,17 @@ func (l *Loader) populateConfigBlockNodes(args *map[string]any, g *dag.Graph, co
 	for _, block := range configBlocks {
 		node, newConfigNodeDiags := NewConfigNode(block, l.globals)
 		diags = append(diags, newConfigNodeDiags...)
+
+		if g.GetByID(node.NodeID()) != nil {
+			diags.Add(diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				Message:  fmt.Sprintf("%q block already declared", node.NodeID()),
+				StartPos: ast.StartPos(block).Position(),
+				EndPos:   ast.EndPos(block).Position(),
+			})
+
+			continue
+		}
 
 		nodeMapDiags := nodeMap.Append(node)
 		diags = append(diags, nodeMapDiags...)

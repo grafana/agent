@@ -58,16 +58,18 @@ func (cn *ArgumentConfigNode) Evaluate(scope *vm.Scope) error {
 	cn.defaultValue = argument.Default
 	cn.optional = argument.Optional
 
+	if argument.Optional {
+		return nil
+	}
+
 	args := Arguments(scope)
 	if args != nil {
-		if _, ok := (*args)[cn.label]; !ok {
-			if !argument.Optional {
-				return fmt.Errorf("missing required argument %q to module", cn.label)
-			}
+		if _, found := (args)[cn.label]; found {
+			return nil
 		}
 	}
 
-	return nil
+	return fmt.Errorf("missing required argument %q to module", cn.label)
 }
 
 func (cn *ArgumentConfigNode) Optional() bool {
@@ -94,15 +96,20 @@ func (cn *ArgumentConfigNode) Block() *ast.BlockStmt {
 // NodeID implements dag.Node and returns the unique ID for the config node.
 func (cn *ArgumentConfigNode) NodeID() string { return cn.nodeID }
 
-func Arguments(s *vm.Scope) *map[string]any {
-	if s != nil && s.Variables != nil {
-		if args, ok := s.Variables["argument"]; ok {
-			switch args := args.(type) {
-			case map[string]any:
-				return &args
-			}
-		}
+func Arguments(s *vm.Scope) map[string]any {
+	if s == nil || s.Variables == nil {
+		return nil
 	}
 
-	return nil
+	args, ok := s.Variables["argument"]
+	if !ok {
+		return nil
+	}
+
+	switch args := args.(type) {
+	case map[string]any:
+		return args
+	default:
+		return nil
+	}
 }

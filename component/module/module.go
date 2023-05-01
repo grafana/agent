@@ -74,7 +74,7 @@ func (c *ModuleComponent) LoadFlowContent(args map[string]any, contentValue stri
 		return err
 	}
 
-	err = c.ctrl.LoadFile(f, &args)
+	err = c.ctrl.LoadFile(f, args)
 	if err != nil {
 		c.setHealth(component.Health{
 			Health:     component.HealthTypeUnhealthy,
