@@ -32,6 +32,13 @@ Main (unreleased)
 
 - Disable node_exporter on Windows systems (@jkroepke)
 
+### Other changes
+
+- Add metrics when clustering mode is enabled. (@rfratto)
+
+v0.33.1 (2023-05-01)
+--------------------
+
 ### Bugfixes
 
 - Fix spelling of the `frequency` argument on the `local.file` component.
@@ -43,9 +50,14 @@ Main (unreleased)
 - Fix version information not displaying correctly when passing the `--version`
   flag or in the `agent_build_info` metric. (@rfratto)
 
-### Other changes
+- Fix issue in `loki.source.heroku` and `loki.source.gcplog` where updating the
+  component would cause Grafana Agent Flow's Prometheus metrics endpoint to
+  return an error until the process is restarted. (@rfratto)
 
-- Add metrics when clustering mode is enabled. (@rfratto)
+- Fix issue in `loki.source.file` where updating the component caused
+  goroutines to leak. (@rfratto)
+
+### Other changes
 
 - Support Bundles report the status of discovered log targets. (@tpaschalis)
 
