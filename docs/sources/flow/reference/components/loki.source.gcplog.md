@@ -89,13 +89,14 @@ fields take their default values.
 Name                     | Type          | Description                                                     | Default | Required
 ------------------------ |---------------|-----------------------------------------------------------------| ------- | --------
 `http`    | [HTTP][]      | Configures the HTTP server that receives requests.              |  | no
-`grpc`    | [GRPC][]      | Configures the gRPC server that receives requests.              |  | no
+`grpc`    | [gRPC][]      | Configures the gRPC server that receives requests.              |  | no
+ `graceful_shutdown_timeout` | `duration` | Timeout for server's graceful shutdown. | "30s"    | no
 `push_timeout`           | `duration`    | Sets a maximum processing time for each incoming GCP log entry. |  `"0s"`  | no
 `labels`                 | `map(string)` | Additional labels to associate with incoming entries.           | `"{}"`  | no
 `use_incoming_timestamp` | `bool`        | Whether to use the incoming entry timestamp.                    | `false` | no
 
-[HTTP]: {{<relref "./loki.server.md">}}
-[GRPC]: {{<relref "./loki.server.md">}}
+[http]: #http
+[grpc]: #grpc
 
 The server listens for POST requests from GCP's Push subscriptions on
 `HOST:PORT/gcp/api/v1/push`.
@@ -105,6 +106,14 @@ as the time it was processed, except if `use_incoming_timestamp` is set to
 true.
 
 The `labels` map is applied to every entry that passes through the component.
+
+### http
+
+{{< docs/shared lookup="flow/reference/components/loki-server-grpc.md" source="agent" >}}
+
+### grpc
+
+{{< docs/shared lookup="flow/reference/components/loki-server-grpc.md" source="agent" >}}
 
 ## Exported fields
 
