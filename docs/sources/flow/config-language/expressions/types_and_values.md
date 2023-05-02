@@ -26,7 +26,7 @@ River uses the following types for its values:
 ### Naming convention
 
 In addition to the types above, [component reference][] documentation will use
-the following conventions for refering to types:
+the following conventions for referring to types:
 
 * `any`: A value of any type.
 * `map(T)`: an `object` where the value type is `T`. For example, `map(string)`
