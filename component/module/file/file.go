@@ -147,6 +147,11 @@ func (c *Component) Update(args component.Arguments) error {
 	return c.mod.LoadFlowContent(newArgs.Arguments, c.getContent().Value)
 }
 
+// Handler implements component.HTTPComponent.
+func (c *Component) Handler() http.Handler {
+	return c.mod.Handler()
+}
+
 // CurrentHealth implements component.HealthComponent.
 func (c *Component) CurrentHealth() component.Health {
 	leastHealthy := component.LeastHealthy(
@@ -159,11 +164,6 @@ func (c *Component) CurrentHealth() component.Health {
 		return c.mod.CurrentHealth()
 	}
 	return leastHealthy
-}
-
-// Handler implements component.HTTPComponent.
-func (c *Component) Handler() http.Handler {
-	return c.mod.Handler()
 }
 
 // getArgs is a goroutine safe way to get args
