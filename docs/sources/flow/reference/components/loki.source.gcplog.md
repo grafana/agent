@@ -90,7 +90,7 @@ Name                     | Type          | Description                          
 ------------------------ |---------------|-----------------------------------------------------------------| ------- | --------
 `http`    | [HTTP][]      | Configures the HTTP server that receives requests.              |  | no
 `grpc`    | [gRPC][]      | Configures the gRPC server that receives requests.              |  | no
- `graceful_shutdown_timeout` | `duration` | Timeout for servers graceful shutdown. | "30s"    | no
+`graceful_shutdown_timeout` | `duration` | Timeout for servers graceful shutdown. | "30s"    | no
 `push_timeout`           | `duration`    | Sets a maximum processing time for each incoming GCP log entry. |  `"0s"`  | no
 `labels`                 | `map(string)` | Additional labels to associate with incoming entries.           | `"{}"`  | no
 `use_incoming_timestamp` | `bool`        | Whether to use the incoming entry timestamp.                    | `false` | no
@@ -109,7 +109,7 @@ The `labels` map is applied to every entry that passes through the component.
 
 ### http
 
-{{< docs/shared lookup="flow/reference/components/loki-server-grpc.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/loki-server-http.md" source="agent" >}}
 
 ### grpc
 

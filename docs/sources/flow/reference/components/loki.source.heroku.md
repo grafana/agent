@@ -61,7 +61,7 @@ Hierarchy | Name | Description | Required
 
 ### http
 
-{{< docs/shared lookup="flow/reference/components/loki-server-grpc.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/loki-server-http.md" source="agent" >}}
 
 ### grpc
 

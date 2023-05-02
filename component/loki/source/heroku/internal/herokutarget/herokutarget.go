@@ -54,7 +54,7 @@ func NewHerokuTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHand
 
 	srv, err := lnet.NewTargetServer(wrappedLogger, "loki_source_heroku_drain_target", reg, config.Server)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create loki http server: %w", err)
+		return nil, fmt.Errorf("failed to create loki server: %w", err)
 	}
 
 	ht := &HerokuTarget{

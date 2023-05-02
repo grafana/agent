@@ -9,17 +9,17 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
-	"github.com/weaveworks/common/server"
+	weaveworks "github.com/weaveworks/common/server"
 )
 
-// TargetServer is wrapper around WeaveWorks Server that handled some common configuration used in all flow source
+// TargetServer is wrapper around weaveworks.Server that handles some common configuration used in all flow loki source
 // components that expose a network server. It just handles configuration and initialization, the handlers implementation
 // are left to the consumer.
 type TargetServer struct {
 	logger           log.Logger
-	config           *server.Config
+	config           *weaveworks.Config
 	metricsNamespace string
-	server           *server.Server
+	server           *weaveworks.Server
 }
 
 // NewTargetServer creates a new TargetServer, applying some defaults to the server configuration.
@@ -54,10 +54,10 @@ func NewTargetServer(logger log.Logger, metricsNamespace string, reg prometheus.
 	return ts, nil
 }
 
-// MountAndRun does some final configuration of the WeaveWorks server, before mounting the handlers and starting the server.
+// MountAndRun mounts the handlers and starting the server.
 func (ts *TargetServer) MountAndRun(mountRoute func(router *mux.Router)) error {
 	level.Info(ts.logger).Log("msg", "starting server")
-	srv, err := server.New(*ts.config)
+	srv, err := weaveworks.New(*ts.config)
 	if err != nil {
 		return err
 	}
@@ -75,12 +75,12 @@ func (ts *TargetServer) MountAndRun(mountRoute func(router *mux.Router)) error {
 	return nil
 }
 
-// HTTPListenAddr returns the listen address of the HTTP server, if configured.
+// HTTPListenAddr returns the listen address of the HTTP server.
 func (ts *TargetServer) HTTPListenAddr() string {
 	return ts.server.HTTPListenAddr().String()
 }
 
-// GRPCListenAddr returns the listen address of the gRPC server, if configured.
+// GRPCListenAddr returns the listen address of the gRPC server.
 func (ts *TargetServer) GRPCListenAddr() string {
 	return ts.server.GRPCListenAddr().String()
 }
