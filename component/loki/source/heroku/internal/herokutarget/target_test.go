@@ -450,6 +450,8 @@ func getServerConfigWithAvailablePort() (cfg *lnet.ServerConfig, port int, err e
 			ListenAddress: localhost,
 			ListenPort:    port,
 		},
+		// assign random grpc port
+		GRPC: &lnet.GRPCConfig{ListenPort: 0},
 	}
 
 	return

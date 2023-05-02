@@ -44,6 +44,8 @@ func TestPush(t *testing.T) {
 				ListenAddress: "localhost",
 				ListenPort:    port,
 			},
+			// assign random grpc port
+			GRPC: &lnet.GRPCConfig{ListenPort: 0},
 		},
 		Labels: map[string]string{
 			"foo": "bar",

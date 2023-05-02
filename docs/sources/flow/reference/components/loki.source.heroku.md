@@ -35,13 +35,13 @@ loki.source.heroku "LABEL" {
 
 `loki.source.heroku` supports the following arguments:
 
-Name                     | Type                   | Description          | Default | Required
------------------------- | ---------------------- | -------------------- | ------- | --------
-`use_incoming_timestamp` | `bool`                 | Whether or not to use the timestamp received from Heroku. | `false` | no
-`labels`                 | `map(string)`          | The labels to associate with each received Heroku record. | `{}`    | no
-`forward_to`             | `list(LogsReceiver)`   | List of receivers to send log entries to.                 |         | yes
-`relabel_rules`          | `RelabelRules`         | Relabeling rules to apply on log entries.                 | `{}`    | no
-`graceful_shutdown_timeout` | `duration` | Timeout for servers graceful shutdown. | "30s"    | no
+Name                     | Type                   | Description                                                                        | Default | Required
+------------------------ | ---------------------- |------------------------------------------------------------------------------------| ------- | --------
+`use_incoming_timestamp` | `bool`                 | Whether or not to use the timestamp received from Heroku.                          | `false` | no
+`labels`                 | `map(string)`          | The labels to associate with each received Heroku record.                          | `{}`    | no
+`forward_to`             | `list(LogsReceiver)`   | List of receivers to send log entries to.                                          |         | yes
+`relabel_rules`          | `RelabelRules`         | Relabeling rules to apply on log entries.                                          | `{}`    | no
+`graceful_shutdown_timeout` | `duration` | Timeout for servers graceful shutdown. If configured, should be greater than zero. | "30s"    | no
 
 The `relabel_rules` field can make use of the `rules` export value from a
 `loki.relabel` component to apply one or more relabeling rules to log entries

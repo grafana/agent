@@ -27,6 +27,7 @@ func TestConfig(t *testing.T) {
 				require.Equal(t, "", config.HTTPListenAddress)
 				require.Equal(t, "", config.GRPCListenAddress)
 				require.False(t, config.RegisterInstrumentation)
+				require.Equal(t, time.Second*30, config.ServerGracefulShutdownTimeout)
 			},
 		},
 		"overriding defaults": {

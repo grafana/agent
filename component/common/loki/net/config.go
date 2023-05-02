@@ -25,7 +25,7 @@ type ServerConfig struct {
 	// the weaveworks is always started.
 	GRPC *GRPCConfig `river:"grpc,block,optional"`
 
-	// GracefulShutdownTimeout
+	// GracefulShutdownTimeout configures a timeout to gracefully shut down the server.
 	GracefulShutdownTimeout time.Duration `river:"graceful_shutdown_timeout,attr,optional"`
 }
 
@@ -93,7 +93,11 @@ func (c *ServerConfig) Convert() weaveworks.Config {
 	if c.GRPC != nil {
 		c.GRPC.Into(&cfg)
 	}
-	cfg.ServerGracefulShutdownTimeout = c.GracefulShutdownTimeout
+	// If set, override. Don't allow a zero-value since it configure a context.WithTimeout, so the user should at least
+	// give a >0 value to it
+	if c.GracefulShutdownTimeout != 0 {
+		cfg.ServerGracefulShutdownTimeout = c.GracefulShutdownTimeout
+	}
 	return cfg
 }
 

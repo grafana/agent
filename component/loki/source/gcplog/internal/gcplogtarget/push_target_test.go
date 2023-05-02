@@ -172,6 +172,8 @@ func TestPushTarget(t *testing.T) {
 						ListenAddress: "localhost",
 						ListenPort:    port,
 					},
+					// assign random grpc port
+					GRPC: &lnet.GRPCConfig{ListenPort: 0},
 				},
 			}
 
@@ -239,6 +241,8 @@ func TestPushTarget_UseIncomingTimestamp(t *testing.T) {
 				ListenAddress: "localhost",
 				ListenPort:    port,
 			},
+			// assign random grpc port
+			GRPC: &lnet.GRPCConfig{ListenPort: 0},
 		},
 	}
 
@@ -287,6 +291,8 @@ func TestPushTarget_UseTenantIDHeaderIfPresent(t *testing.T) {
 				ListenAddress: "localhost",
 				ListenPort:    port,
 			},
+			// assign random grpc port
+			GRPC: &lnet.GRPCConfig{ListenPort: 0},
 		},
 	}
 
@@ -343,6 +349,8 @@ func TestPushTarget_ErroneousPayloadsAreRejected(t *testing.T) {
 				ListenAddress: "localhost",
 				ListenPort:    port,
 			},
+			// assign random grpc port
+			GRPC: &lnet.GRPCConfig{ListenPort: 0},
 		},
 	}
 
@@ -429,6 +437,8 @@ func TestPushTarget_UsePushTimeout(t *testing.T) {
 				ListenAddress: "localhost",
 				ListenPort:    port,
 			},
+			// assign random grpc port
+			GRPC: &lnet.GRPCConfig{ListenPort: 0},
 		},
 	}
 
