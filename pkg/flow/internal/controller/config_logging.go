@@ -16,9 +16,10 @@ type LoggingConfigNode struct {
 	componentName string
 	logger        *logging.Logger
 	opts          logging.Options
-	mut           sync.RWMutex
-	block         *ast.BlockStmt // Current River blocks to derive config from
-	eval          *vm.Evaluator
+
+	mut   sync.RWMutex
+	block *ast.BlockStmt // Current River blocks to derive config from
+	eval  *vm.Evaluator
 }
 
 // NewLoggingConfigNode creates a new LoggingConfigNode from an initial ast.BlockStmt.

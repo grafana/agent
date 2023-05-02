@@ -11,10 +11,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/pkg/river"
-	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/agent/pkg/util"
 )
 
 var testJSONRiverSingleStageWithoutSource = `
