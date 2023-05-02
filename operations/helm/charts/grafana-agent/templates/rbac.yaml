@@ -17,6 +17,7 @@ rules:
       - ingresses
       - nodes
       - nodes/proxy
+      - nodes/metrics
       - pods
       - services
     verbs:

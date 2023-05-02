@@ -11,6 +11,8 @@ import (
 	"github.com/grafana/agent/component/common/loki"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	gt "github.com/grafana/agent/component/loki/source/gcplog/internal/gcplogtarget"
+	"github.com/grafana/agent/pkg/util"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/relabel"
 )
 
@@ -54,8 +56,9 @@ func (a *Arguments) UnmarshalRiver(f func(v interface{}) error) error {
 
 // Component implements the loki.source.gcplog component.
 type Component struct {
-	opts    component.Options
-	metrics *gt.Metrics
+	opts          component.Options
+	metrics       *gt.Metrics
+	serverMetrics *util.UncheckedCollector
 
 	mut    sync.RWMutex
 	fanout []loki.LogsReceiver
@@ -67,11 +70,14 @@ type Component struct {
 // New creates a new loki.source.gcplog component.
 func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{
-		opts:    o,
-		metrics: gt.NewMetrics(o.Registerer),
-		handler: make(loki.LogsReceiver),
-		fanout:  args.ForwardTo,
+		opts:          o,
+		metrics:       gt.NewMetrics(o.Registerer),
+		handler:       make(loki.LogsReceiver),
+		fanout:        args.ForwardTo,
+		serverMetrics: util.NewUncheckedCollector(nil),
 	}
+
+	o.Registerer.MustRegister(c.serverMetrics)
 
 	// Call to Update() to start readers and set receivers once at the start.
 	if err := c.Update(args); err != nil {
@@ -140,7 +146,14 @@ func (c *Component) Update(args component.Arguments) error {
 		c.target = t
 	}
 	if newArgs.PushTarget != nil {
-		t, err := gt.NewPushTarget(c.metrics, c.opts.Logger, entryHandler, jobName, newArgs.PushTarget, rcs, c.opts.Registerer)
+		// [gt.NewPushTarget] registers new metrics every time it is called. To
+		// avoid issues with re-registering metrics with the same name, we create a
+		// new registry for the target every time we create one, and pass it to an
+		// unchecked collector to bypass uniqueness checking.
+		registry := prometheus.NewRegistry()
+		c.serverMetrics.SetCollector(registry)
+
+		t, err := gt.NewPushTarget(c.metrics, c.opts.Logger, entryHandler, jobName, newArgs.PushTarget, rcs, registry)
 		if err != nil {
 			level.Error(c.opts.Logger).Log("msg", "failed to create gcplog target with provided config", "err", err)
 			return err

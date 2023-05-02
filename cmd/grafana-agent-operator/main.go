@@ -8,9 +8,9 @@ import (
 	cortex_log "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/operator"
 	"github.com/grafana/agent/pkg/operator/logutil"
-	"github.com/prometheus/common/version"
 	controller "sigs.k8s.io/controller-runtime"
 
 	// Needed for clients.
@@ -64,7 +64,7 @@ func loadConfig(l log.Logger) *operator.Config {
 	}
 
 	if printVersion {
-		fmt.Println(version.Print("agent-operator"))
+		fmt.Println(build.Print("agent-operator"))
 		os.Exit(0)
 	}
 
