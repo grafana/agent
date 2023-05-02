@@ -32,8 +32,8 @@ the following conventions for referring to types:
 * `map(T)`: an `object` where the value type is `T`. For example, `map(string)`
   is an object where all the values are strings. The key type of an object is
   always a string, or an identifier which is converted into a string.
-* `list(T)`: an `array` where the value type is `T`. For example, `list(string`
-  is an array where all the values are strings).
+* `list(T)`: an `array` where the value type is `T`. For example, `list(string)`
+  is an array where all the values are strings.
 * `duration`: a `string` denoting a duration of time, such as `"1d"`, `"1h30m"`,
   `"10s"`. Valid units are `d` (for days), `h` (for hours), `m` (for minutes),
   `s` (for seconds), `ms` (for milliseconds), `ns` (for nanoseconds). Values of
