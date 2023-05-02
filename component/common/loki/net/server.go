@@ -2,13 +2,13 @@ package net
 
 import (
 	"fmt"
-	"github.com/weaveworks/common/logging"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
+	"github.com/weaveworks/common/logging"
 	weaveworks "github.com/weaveworks/common/server"
 )
 
