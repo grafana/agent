@@ -32,8 +32,8 @@ var (
 // ModuleSystem is a mechanism responsible for allowing components to create other components, or
 // flow systems.
 type ModuleSystem interface {
-	// NewModuleController creates a new, un-started ModuleDelegate.
-	NewModuleController(id string) ModuleDelegate
+	// NewModuleDelegate creates a new, un-started ModuleDelegate.
+	NewModuleDelegate(id string) ModuleDelegate
 }
 
 // ModuleDelegate is a controller for running components within a Module.

@@ -29,7 +29,7 @@ type Exports struct {
 func NewModuleComponent(o component.Options) *ModuleComponent {
 	return &ModuleComponent{
 		opts: o,
-		mod:  o.ModuleSystem.NewModuleController(o.ID),
+		mod:  o.ModuleSystem.NewModuleDelegate(o.ID),
 	}
 }
 

@@ -15,6 +15,6 @@ func NewModule(o *Options) *Module {
 }
 
 // NewModuleController creates a new, unstarted ModuleDelegate.
-func (m *Module) NewModuleController(id string) component.ModuleDelegate {
+func (m *Module) NewModuleDelegate(id string) component.ModuleDelegate {
 	return newDelegate(id, m.o)
 }
