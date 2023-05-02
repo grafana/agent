@@ -161,7 +161,7 @@ func (c *Component) CurrentHealth() component.Health {
 	return leastHealthy
 }
 
-// Handler returns the http handler.
+// Handler implements component.HTTPComponent.
 func (c *Component) Handler() http.Handler {
 	return c.mod.Handler()
 }

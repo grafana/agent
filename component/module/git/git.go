@@ -258,7 +258,7 @@ func (c *Component) DebugInfo() interface{} {
 	}
 }
 
-// Handler handles the http.
+// Handler implements component.HTTPComponent.
 func (c *Component) Handler() http.Handler {
 	return c.mod.Handler()
 }
