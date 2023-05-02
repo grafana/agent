@@ -129,7 +129,7 @@ func TestModule(t *testing.T) {
 			riverContent:          argumentModuleLoaderConfig + exportModuleLoaderConfig,
 			argumentModuleContent: `argument "different_argument" {}`,
 			exportModuleContent:   exportStringConfig,
-			expectedErrorContains: "Argument \"username\" is not defined in module source",
+			expectedErrorContains: "Provided argument \"username\" is not defined in the module",
 		},
 		{
 			name: "Missing required argument",

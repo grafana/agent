@@ -96,16 +96,23 @@ func (cn *ArgumentConfigNode) Block() *ast.BlockStmt {
 // NodeID implements dag.Node and returns the unique ID for the config node.
 func (cn *ArgumentConfigNode) NodeID() string { return cn.nodeID }
 
+// Arguments looks at the arguments from the scope and returns them as a map.
+// If the scope, variables or arguments are not set yet this returns nil.
+// If the arguments are not a map[string]any this will also return nil.
 func Arguments(s *vm.Scope) map[string]any {
+	// If scope or Variables are not set we return nil.
 	if s == nil || s.Variables == nil {
 		return nil
 	}
 
+	// If the argument key is not set on Variables return nil.
 	args, ok := s.Variables["argument"]
 	if !ok {
 		return nil
 	}
 
+	// The arguments should be of type map[string]any. We return them
+	// as map[string]any or if not return nil.
 	switch args := args.(type) {
 	case map[string]any:
 		return args

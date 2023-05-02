@@ -121,24 +121,25 @@ func (nodeMap *ConfigNodeMap) ValidateModuleConstraints(isInModule bool) diag.Di
 				EndPos:   ast.EndPos(nodeMap.tracing.Block()).Position(),
 			})
 		}
-	} else {
-		for key := range nodeMap.argumentMap {
-			diags.Add(diag.Diagnostic{
-				Severity: diag.SeverityLevelError,
-				Message:  "argument blocks only allowed inside a module",
-				StartPos: ast.StartPos(nodeMap.argumentMap[key].Block()).Position(),
-				EndPos:   ast.EndPos(nodeMap.argumentMap[key].Block()).Position(),
-			})
-		}
+		return diags
+	}
 
-		for key := range nodeMap.exportMap {
-			diags.Add(diag.Diagnostic{
-				Severity: diag.SeverityLevelError,
-				Message:  "export blocks only allowed inside a module",
-				StartPos: ast.StartPos(nodeMap.exportMap[key].Block()).Position(),
-				EndPos:   ast.EndPos(nodeMap.exportMap[key].Block()).Position(),
-			})
-		}
+	for key := range nodeMap.argumentMap {
+		diags.Add(diag.Diagnostic{
+			Severity: diag.SeverityLevelError,
+			Message:  "argument blocks only allowed inside a module",
+			StartPos: ast.StartPos(nodeMap.argumentMap[key].Block()).Position(),
+			EndPos:   ast.EndPos(nodeMap.argumentMap[key].Block()).Position(),
+		})
+	}
+
+	for key := range nodeMap.exportMap {
+		diags.Add(diag.Diagnostic{
+			Severity: diag.SeverityLevelError,
+			Message:  "export blocks only allowed inside a module",
+			StartPos: ast.StartPos(nodeMap.exportMap[key].Block()).Position(),
+			EndPos:   ast.EndPos(nodeMap.exportMap[key].Block()).Position(),
+		})
 	}
 
 	return diags
@@ -155,7 +156,7 @@ func (nodeMap *ConfigNodeMap) ValidateUnsupportedArguments(args map[string]any) 
 		}
 		diags.Add(diag.Diagnostic{
 			Severity: diag.SeverityLevelError,
-			Message:  fmt.Sprintf("Argument %q is not defined in module source", argName),
+			Message:  fmt.Sprintf("Provided argument %q is not defined in the module", argName),
 		})
 	}
 

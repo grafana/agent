@@ -102,11 +102,9 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	defer l.cm.controllerEvaluation.Set(0)
 
 	for key, value := range args {
-		l.cache.CacheExports(
-			ComponentID{"argument", key, "value"},
-			value,
-		)
+		l.cache.CacheModuleArgument(key, value)
 	}
+	l.cache.SyncModuleArgs(args)
 
 	newGraph, diags := l.loadNewGraph(args, componentBlocks, configBlocks)
 	if diags.HasErrors() {
@@ -485,9 +483,8 @@ func (l *Loader) evaluate(logger log.Logger, bn BlockNode) error {
 		l.cache.CacheArguments(c.ID(), c.Arguments())
 		l.cache.CacheExports(c.ID(), c.Exports())
 	case *ArgumentConfigNode:
-		componentId := ComponentID{"argument", c.Label(), "value"}
-		if _, ok := l.cache.exports[componentId.String()]; !ok && c.Optional() {
-			l.cache.CacheExports(componentId, c.Default())
+		if _, ok := l.cache.moduleArguments[c.Label()]; !ok && c.Optional() {
+			l.cache.CacheModuleArgument(c.Label(), c.Default())
 		}
 	}
 
