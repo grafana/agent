@@ -145,7 +145,7 @@ func testOptions(t *testing.T) flow.Options {
 		DataPath:  t.TempDir(),
 		Reg:       nil,
 		Clusterer: c,
-		Controller: module.NewModule(&module.Options{
+		Modules: module.NewModule(&module.Options{
 			Logger:    l,
 			Tracer:    trace.NewNoopTracerProvider(),
 			Clusterer: c,

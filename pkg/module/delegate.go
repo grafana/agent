@@ -12,22 +12,23 @@ import (
 	"github.com/grafana/agent/web/api"
 )
 
-type controller struct {
+type delegate struct {
 	f        *flow.Flow
 	o        *Options
 	httppath string
 	id       string
 }
 
-func NewController(id string, o *Options) *controller {
-	return &controller{
+// newDelegate creates a module delegate for a specific component.
+func newDelegate(id string, o *Options) *delegate {
+	return &delegate{
 		o:  o,
 		id: id,
 	}
 }
 
 // LoadConfig parses River config and loads it.
-func (c *controller) LoadConfig(config []byte, o component.Options, args map[string]any, onExport func(exports map[string]any)) error {
+func (c *delegate) LoadConfig(config []byte, o component.Options, args map[string]any, onExport component.Export) error {
 	if c.f == nil {
 		c.httppath = o.HTTPPath
 		f := flow.New(flow.Options{
@@ -44,7 +45,7 @@ func (c *controller) LoadConfig(config []byte, o component.Options, args map[str
 			OnExportsChange: func(exports map[string]any) {
 				onExport(exports)
 			},
-			Controller: o.ModuleSystem,
+			Modules: o.ModuleSystem,
 		}, c.id)
 		c.f = f
 	}
@@ -60,13 +61,13 @@ func (c *controller) LoadConfig(config []byte, o component.Options, args map[str
 // will be run until Run is called.
 //
 // Run blocks until the provided context is canceled.
-func (c *controller) Run(ctx context.Context) {
+func (c *delegate) Run(ctx context.Context) {
 	c.f.Run(ctx)
 }
 
 // ComponentHandler returns an HTTP handler which exposes endpoints of
-// components managed by the c *controllerController.
-func (c *controller) ComponentHandler() (_ http.Handler) {
+// components managed by the underlying flow system.
+func (c *delegate) ComponentHandler() (_ http.Handler) {
 	r := mux.NewRouter()
 
 	fa := api.NewFlowAPI(c.f, r)

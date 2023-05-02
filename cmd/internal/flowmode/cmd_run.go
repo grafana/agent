@@ -179,7 +179,7 @@ func (fr *flowRun) Run(configFile string) error {
 				return (&net.Dialer{}).DialContext(ctx, network, address)
 			}
 		},
-		Controller: module.NewModule(&module.Options{
+		Modules: module.NewModule(&module.Options{
 			Logger:    l,
 			Tracer:    t,
 			Clusterer: clusterer,

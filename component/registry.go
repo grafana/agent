@@ -41,7 +41,7 @@ type ModuleDelegate interface {
 	// LoadConfig parses River config and loads it into the ModuleDelegate.
 	// LoadConfig can be called multiple times, and called prior to
 	// [ModuleDelegate.Run].
-	LoadConfig(config []byte, o Options, args map[string]any, onExport func(exports map[string]any)) error
+	LoadConfig(config []byte, o Options, args map[string]any, onExport Export) error
 
 	// Run starts the ModuleDelegate. No components within the ModuleDelegate
 	// will be run until Run is called.
@@ -53,6 +53,9 @@ type ModuleDelegate interface {
 	// components managed by the ModuleDelegate.
 	ComponentHandler() http.Handler
 }
+
+// Export is used for onExport of the ModuleDelegate
+type Export func(exports map[string]any)
 
 // Options are provided to a component when it is being constructed. Options
 // are static for the lifetime of a component.

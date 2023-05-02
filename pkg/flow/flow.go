@@ -121,8 +121,8 @@ type Options struct {
 	// loaded config file.
 	OnExportsChange func(exports map[string]any)
 
-	// Controller is used to instantiate new module controllers.
-	Controller component.ModuleSystem
+	// Modules are used to instantiate new module delegates.
+	Modules component.ModuleSystem
 
 	// DialFunc is a function to use for components to properly connect to
 	// HTTPListenAddr. If nil, DialFunc defaults to (&net.Dialer{}).DialContext.
@@ -187,7 +187,7 @@ func New(o Options, id string) *Flow {
 			HTTPListenAddr:  o.HTTPListenAddr,
 			DialFunc:        dialFunc,
 			ControllerID:    o.ControllerID,
-			ModuleSystem:    o.Controller,
+			ModuleSystem:    o.Modules,
 		}, id)
 	)
 	return &Flow{
