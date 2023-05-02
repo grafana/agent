@@ -43,7 +43,6 @@ local mixin = import './mixin.libsonnet';
         folder: $.folder.metadata.name,
         name: std.split(file, '.')[0],
         namespace: std.split(file, '.')[0],
-
       },
       spec: mixin.prometheusAlerts[file],
     }

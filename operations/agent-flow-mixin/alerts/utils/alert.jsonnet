@@ -11,7 +11,6 @@
     annotations: {
       message: message,
     },
-
   }),
 
   withForTime(forTime=''):: { 'for': forTime },
