@@ -70,7 +70,7 @@ func (c *ModuleComponent) CurrentHealth() component.Health {
 	return c.health
 }
 
-// Handler returns the handler for http.
+// Handler contains the implementation details for Handler in a module component.
 func (c *ModuleComponent) Handler() http.Handler {
 	return c.mod.ComponentHandler()
 }

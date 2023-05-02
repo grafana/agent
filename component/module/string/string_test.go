@@ -14,11 +14,8 @@ import (
 	_ "github.com/grafana/agent/component/local/file"
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow"
-	"github.com/grafana/agent/pkg/module"
 	"github.com/grafana/agent/pkg/util"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/otel/trace"
 )
 
 func TestExports(t *testing.T) {
@@ -145,11 +142,5 @@ func testOptions(t *testing.T) flow.Options {
 		DataPath:  t.TempDir(),
 		Reg:       nil,
 		Clusterer: c,
-		Modules: module.NewModule(&module.Options{
-			Logger:    l,
-			Tracer:    trace.NewNoopTracerProvider(),
-			Clusterer: c,
-			Reg:       prometheus.DefaultRegisterer,
-		}),
 	}
 }

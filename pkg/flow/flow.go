@@ -47,11 +47,9 @@ package flow
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net"
 	"sync"
-	"time"
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
@@ -64,7 +62,6 @@ import (
 	"github.com/grafana/agent/pkg/river/vm"
 	"github.com/prometheus/client_golang/prometheus"
 	oteltrace "go.opentelemetry.io/otel/trace"
-
 	"go.uber.org/atomic"
 )
 
@@ -121,9 +118,6 @@ type Options struct {
 	// loaded config file.
 	OnExportsChange func(exports map[string]any)
 
-	// Modules are used to instantiate new module delegates.
-	Modules component.ModuleSystem
-
 	// DialFunc is a function to use for components to properly connect to
 	// HTTPListenAddr. If nil, DialFunc defaults to (&net.Dialer{}).DialContext.
 	DialFunc func(ctx context.Context, network, address string) (net.Conn, error)
@@ -170,6 +164,12 @@ func New(o Options) *Flow {
 	}
 
 	var (
+		modules = NewModuleSystem(&ModuleOptions{
+			Logger:    log,
+			Tracer:    tracer,
+			Clusterer: clusterer,
+			Reg:       o.Reg,
+		})
 		queue  = controller.NewQueue()
 		sched  = controller.NewScheduler()
 		loader = controller.NewLoader(controller.ComponentGlobals{
@@ -187,7 +187,7 @@ func New(o Options) *Flow {
 			HTTPListenAddr:  o.HTTPListenAddr,
 			DialFunc:        dialFunc,
 			ControllerID:    o.ControllerID,
-			ModuleSystem:    o.Modules,
+			ModuleSystem:    modules,
 		}, o.ControllerID)
 	)
 	return &Flow{
@@ -304,12 +304,12 @@ func (c *Flow) Ready() bool {
 }
 
 // ComponentInfos returns the component infos.
-func (c *Flow) ComponentInfos() []*ComponentInfo {
+func (c *Flow) ComponentInfos() []*component.ComponentInfo {
 	c.loadMut.RLock()
 	defer c.loadMut.RUnlock()
 
 	cns := c.loader.Components()
-	infos := make([]*ComponentInfo, len(cns))
+	infos := make([]*component.ComponentInfo, len(cns))
 	edges := c.loader.OriginalGraph().Edges()
 	for i, com := range cns {
 		nn := newFromNode(com, edges)
@@ -318,7 +318,7 @@ func (c *Flow) ComponentInfos() []*ComponentInfo {
 	return infos
 }
 
-func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *ComponentInfo {
+func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *component.ComponentInfo {
 	references := make([]string, 0)
 	referencedBy := make([]string, 0)
 	for _, e := range edges {
@@ -341,14 +341,14 @@ func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *ComponentInfo 
 		}
 	}
 	h := cn.CurrentHealth()
-	ci := &ComponentInfo{
+	ci := &component.ComponentInfo{
 		Label:        cn.Label(),
 		ID:           cn.NodeID(),
 		Name:         cn.ComponentName(),
 		Type:         "block",
 		References:   references,
 		ReferencedBy: referencedBy,
-		Health: &ComponentHealth{
+		Health: &component.ComponentHealth{
 			State:       h.Health.String(),
 			Message:     h.Message,
 			UpdatedTime: h.UpdateTime,
@@ -360,26 +360,4 @@ func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *ComponentInfo 
 func isComponentNode(n dag.Node) bool {
 	_, ok := n.(*controller.ComponentNode)
 	return ok
-}
-
-// ComponentInfo represents a component in flow.
-type ComponentInfo struct {
-	Name         string           `json:"name,omitempty"`
-	Type         string           `json:"type,omitempty"`
-	ID           string           `json:"id,omitempty"`
-	Label        string           `json:"label,omitempty"`
-	References   []string         `json:"referencesTo"`
-	ReferencedBy []string         `json:"referencedBy"`
-	Health       *ComponentHealth `json:"health"`
-	Original     string           `json:"original"`
-	Arguments    json.RawMessage  `json:"arguments,omitempty"`
-	Exports      json.RawMessage  `json:"exports,omitempty"`
-	DebugInfo    json.RawMessage  `json:"debugInfo,omitempty"`
-}
-
-// ComponentHealth represents the health of a component.
-type ComponentHealth struct {
-	State       string    `json:"state"`
-	Message     string    `json:"message"`
-	UpdatedTime time.Time `json:"updatedTime"`
 }

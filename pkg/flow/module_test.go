@@ -1,4 +1,4 @@
-package module
+package flow
 
 import (
 	"testing"
@@ -17,11 +17,11 @@ func TestLoadConfig(t *testing.T) {
 	require.Error(t, err)
 }
 
-func createOptions(t *testing.T) *Options {
+func createOptions(t *testing.T) *ModuleOptions {
 	l := util.TestFlowLogger(t)
 	cl, err := cluster.New(l, prometheus.DefaultRegisterer, false, "", "", "")
 	require.NoError(t, err)
-	return &Options{
+	return &ModuleOptions{
 		Logger:    l,
 		Tracer:    trace.NewNoopTracerProvider(),
 		Clusterer: cl,

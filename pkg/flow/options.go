@@ -1,4 +1,4 @@
-package module
+package flow
 
 import (
 	"github.com/grafana/agent/pkg/cluster"
@@ -7,8 +7,8 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-// Options holds static options for module.
-type Options struct {
+// ModuleOptions holds static options for module.
+type ModuleOptions struct {
 
 	// Logger to use for controller logs and components. A no-op logger will be
 	// created if this is nil.

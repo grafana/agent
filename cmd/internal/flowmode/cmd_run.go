@@ -20,7 +20,6 @@ import (
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
-	"github.com/grafana/agent/pkg/module"
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/usagestats"
 	"github.com/grafana/agent/web/api"
@@ -180,12 +179,6 @@ func (fr *flowRun) Run(configFile string) error {
 				return (&net.Dialer{}).DialContext(ctx, network, address)
 			}
 		},
-		Modules: module.NewModule(&module.Options{
-			Logger:    l,
-			Tracer:    t,
-			Clusterer: clusterer,
-			Reg:       reg,
-		}),
 	})
 
 	reload := func() error {
@@ -256,7 +249,7 @@ func (fr *flowRun) Run(configFile string) error {
 		}).Methods(http.MethodGet, http.MethodPost)
 
 		// Register Routes must be the last
-		fa := api.NewFlowAPI(f, r)
+		fa := api.NewFlowAPI(f)
 		fa.RegisterRoutes(path.Join(fr.uiPrefix, "/api/v0/web"), r)
 
 		// NOTE(rfratto): keep this at the bottom of all other routes, otherwise it

@@ -1,4 +1,4 @@
-package module
+package flow
 
 import (
 	"context"
@@ -7,20 +7,19 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/traces"
 	"github.com/grafana/agent/web/api"
 )
 
 type delegate struct {
-	f        *flow.Flow
-	o        *Options
+	f        *Flow
+	o        *ModuleOptions
 	httppath string
 	id       string
 }
 
 // newDelegate creates a module delegate for a specific component.
-func newDelegate(id string, o *Options) *delegate {
+func newDelegate(id string, o *ModuleOptions) *delegate {
 	return &delegate{
 		o:  o,
 		id: id,
@@ -31,7 +30,7 @@ func newDelegate(id string, o *Options) *delegate {
 func (c *delegate) LoadConfig(config []byte, o component.Options, args map[string]any, onExport component.Export) error {
 	if c.f == nil {
 		c.httppath = o.HTTPPath
-		f := flow.New(flow.Options{
+		f := New(Options{
 			ControllerID: c.id,
 			Logger:       c.o.Logger,
 			Tracer:       traces.WrapTracer(c.o.Tracer, c.id),
@@ -45,12 +44,11 @@ func (c *delegate) LoadConfig(config []byte, o component.Options, args map[strin
 			OnExportsChange: func(exports map[string]any) {
 				onExport(exports)
 			},
-			Modules: o.ModuleSystem,
 		})
 		c.f = f
 	}
 
-	ff, err := flow.ReadFile(c.id, config)
+	ff, err := ReadFile(c.id, config)
 	if err != nil {
 		return err
 	}
@@ -70,7 +68,7 @@ func (c *delegate) Run(ctx context.Context) {
 func (c *delegate) ComponentHandler() (_ http.Handler) {
 	r := mux.NewRouter()
 
-	fa := api.NewFlowAPI(c.f, r)
+	fa := api.NewFlowAPI(c.f)
 	fa.RegisterRoutes("/", r)
 
 	r.PathPrefix("/{id}/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

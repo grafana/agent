@@ -11,7 +11,7 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/cluster"
-	"github.com/grafana/agent/pkg/module"
+	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
@@ -60,7 +60,7 @@ func TestModule(t *testing.T) {
 				Registerer:    prometheus.NewRegistry(),
 				OnStateChange: func(e component.Exports) {},
 				DataPath:      t.TempDir(),
-				ModuleSystem: module.NewModule(&module.Options{
+				ModuleSystem: flow.NewModuleSystem(&flow.ModuleOptions{
 					Logger:    l,
 					Tracer:    trace.NewNoopTracerProvider(),
 					Clusterer: cl,
@@ -140,7 +140,7 @@ func TestBadFile(t *testing.T) {
 				Registerer:    prometheus.NewRegistry(),
 				OnStateChange: func(e component.Exports) {},
 				DataPath:      t.TempDir(),
-				ModuleSystem: module.NewModule(&module.Options{
+				ModuleSystem: flow.NewModuleSystem(&flow.ModuleOptions{
 					Logger:    l,
 					Tracer:    trace.NewNoopTracerProvider(),
 					Clusterer: cl,
