@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	client2 "github.com/grafana/agent/component/common/loki/client"
+	"github.com/grafana/agent/component/common/loki/client"
 	"github.com/grafana/agent/component/common/loki/client/fake"
 
 	"github.com/grafana/dskit/flagext"
@@ -307,14 +307,14 @@ func mapToChannels(clients []*fake.Client) []loki.LogsReceiver {
 	return channels
 }
 
-func newTestLokiClient(t *testing.T, args Arguments, opts component.Options) client2.Client {
+func newTestLokiClient(t *testing.T, args Arguments, opts component.Options) client.Client {
 	url := flagext.URLValue{}
 	err := url.Set(fmt.Sprintf("http://%s:%d/api/v1/push", args.HTTPAddress, args.HTTPPort))
 	require.NoError(t, err)
 
-	lokiClient, err := client2.New(
-		client2.NewMetrics(nil, nil),
-		client2.Config{
+	lokiClient, err := client.New(
+		client.NewMetrics(nil, nil),
+		client.Config{
 			URL:     url,
 			Timeout: 5 * time.Second,
 		},

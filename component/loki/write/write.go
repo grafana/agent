@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/grafana/agent/component/common/loki/client"
-
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/component/common/loki/client"
 	"github.com/grafana/agent/pkg/build"
 )
 
