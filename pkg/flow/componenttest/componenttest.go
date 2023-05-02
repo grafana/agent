@@ -15,7 +15,6 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/flow/logging"
 )
 
 // A Controller is a testing controller which controls a single component.
@@ -142,15 +141,9 @@ func (c *Controller) buildComponent(dataPath string, args component.Arguments) (
 	c.innerMut.Lock()
 	defer c.innerMut.Unlock()
 
-	writerAdapter := log.NewStdlibAdapter(c.log)
-	l, err := logging.New(writerAdapter, logging.DefaultOptions)
-	if err != nil {
-		return nil, err
-	}
-
 	opts := component.Options{
 		ID:            c.reg.Name + ".test",
-		Logger:        l,
+		Logger:        c.log,
 		Tracer:        trace.NewNoopTracerProvider(),
 		DataPath:      dataPath,
 		OnStateChange: c.onStateChange,

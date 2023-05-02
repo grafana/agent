@@ -148,7 +148,7 @@ type Flow struct {
 
 // New creates and starts a new Flow controller. Call Close to stop
 // the controller.
-func New(o Options, id string) *Flow {
+func New(o Options) *Flow {
 	var (
 		log       = o.Logger
 		tracer    = o.Tracer
@@ -188,7 +188,7 @@ func New(o Options, id string) *Flow {
 			DialFunc:        dialFunc,
 			ControllerID:    o.ControllerID,
 			ModuleSystem:    o.Modules,
-		}, id)
+		}, o.ControllerID)
 	)
 	return &Flow{
 		log:    log,

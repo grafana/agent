@@ -46,7 +46,7 @@ func (c *delegate) LoadConfig(config []byte, o component.Options, args map[strin
 				onExport(exports)
 			},
 			Modules: o.ModuleSystem,
-		}, c.id)
+		})
 		c.f = f
 	}
 

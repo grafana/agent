@@ -162,6 +162,7 @@ func (fr *flowRun) Run(configFile string) error {
 	memLis := memconn.NewListener(nil)
 
 	f := flow.New(flow.Options{
+		ControllerID:   "root",
 		Logger:         l,
 		Tracer:         t,
 		Clusterer:      clusterer,
@@ -185,7 +186,7 @@ func (fr *flowRun) Run(configFile string) error {
 			Clusterer: clusterer,
 			Reg:       reg,
 		}),
-	}, "root")
+	})
 
 	reload := func() error {
 		flowCfg, err := loadFlowFile(configFile)

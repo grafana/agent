@@ -104,7 +104,7 @@ func TestUpdatingExports(t *testing.T) {
 }
 
 func testFile(t *testing.T, fmtFile string, componentToFind string, searchable []string) {
-	f := flow.New(testOptions(t), "")
+	f := flow.New(testOptions(t))
 	ff, err := flow.ReadFile("test", []byte(fmtFile))
 	require.NoError(t, err)
 	err = f.LoadFile(ff, nil)
