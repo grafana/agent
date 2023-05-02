@@ -2,11 +2,10 @@ package string
 
 import (
 	"context"
-	"net/http"
-
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/module"
 	"github.com/grafana/agent/pkg/flow/rivertypes"
+	"net/http"
 )
 
 func init() {
@@ -67,12 +66,12 @@ func (c *Component) Update(args component.Arguments) error {
 	return c.mod.LoadFlowContent(newArgs.Arguments, newArgs.Content.Value)
 }
 
-// CurrentHealth implements component.HealthComponent.
-func (c *Component) CurrentHealth() component.Health {
-	return c.mod.CurrentHealth()
-}
-
 // Handler implements component.HTTPComponent.
 func (c *Component) Handler() http.Handler {
 	return c.mod.Handler()
+}
+
+// CurrentHealth implements component.HealthComponent.
+func (c *Component) CurrentHealth() component.Health {
+	return c.mod.CurrentHealth()
 }
