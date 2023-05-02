@@ -9,8 +9,8 @@ import (
 // HealthComponent is an optional extension interface for Components which
 // report health information.
 //
-// Health information is exposed to the end user_ for informational purposes and
-// cannot be referened in a River expression.
+// Health information is exposed to the end user for informational purposes and
+// cannot be referenced in a River expression.
 type HealthComponent interface {
 	Component
 
