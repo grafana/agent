@@ -30,8 +30,8 @@ loki.source.api LABEL {
 
  Name                     | Type                 | Description                                                | Default | Required 
 --------------------------|----------------------|------------------------------------------------------------|---------|----------
- `http_port`              | `int`                | The host port for the HTTP server to listen on.            | `0`     | yes      
- `http_address`           | `string`             | The host address for the HTTP server to listen on.         | `""`    | yes      
+ `http_port`              | `int`                | The host port for the HTTP server to listen on.            |         | yes      
+ `http_address`           | `string`             | The host address for the HTTP server to listen on.         |         | yes      
  `forward_to`             | `list(LogsReceiver)` | List of receivers to send log entries to.                  |         | yes      
  `use_incoming_timestamp` | `bool`               | Whether or not to use the timestamp received from request. | `false` | no       
  `labels`                 | `map(string)`        | The labels to associate with each received logs record.    | `{}`    | no       
@@ -51,15 +51,15 @@ before they're forwarded to the list of receivers in `forward_to`.
 
 `loki.source.api` is only reported as unhealthy if given an invalid configuration.
 
-## Metrics
+## Debug Metrics
 
 The following are some of the metrics that are exposed when this component is used. Note that the metrics include labels
 such as `status_code` where relevant, which can be used to measure request success rates.
 
-* `loki_source_api_request_duration_seconds` - Time (in seconds) spent serving HTTP requests (histogram).
-* `loki_source_api_request_message_bytes` - Size (in bytes) of messages received in the request (histogram).
-* `loki_source_api_response_message_bytes` - Size (in bytes) of messages sent in response (histogram).
-* `loki_source_api_tcp_connections` - Current number of accepted TCP connections (gauge).
+* `loki_source_api_request_duration_seconds` (histogram): Time (in seconds) spent serving HTTP requests.
+* `loki_source_api_request_message_bytes` (histogram): Size (in bytes) of messages received in the request.
+* `loki_source_api_response_message_bytes` (histogram): Size (in bytes) of messages sent in response.
+* `loki_source_api_tcp_connections` (gauge): Current number of accepted TCP connections.
 
 ## Example
 
@@ -71,7 +71,7 @@ adding a `forwarded="true"` label.
 loki.echo "print" {}
 
 loki.source.api "loki_push_api" {
-    http_address = "localhost"
+    http_address = "0.0.0.0"
     http_port = 9999
     forward_to = [loki.echo.print.receiver]
     labels = {
