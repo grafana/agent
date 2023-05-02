@@ -64,8 +64,7 @@ such as `status_code` where relevant, which can be used to measure request succe
 ## Example
 
 This example starts an HTTP server on `localhost` address and port `9999`. The server receives log entries and forwards
-them to a `loki.echo` component while
-adding a `forwarded="true"` label.
+them to a `loki.echo` component while adding a `forwarded="true"` label.
 
 ```river
 loki.echo "print" {}
