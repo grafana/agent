@@ -12,35 +12,37 @@ import (
 )
 
 type delegate struct {
-	f        *Flow
-	o        *ModuleOptions
-	httppath string
-	id       string
+	f *Flow
+	o *delegateOptions
+}
+
+type delegateOptions struct {
+	ID string
+	*ModuleOptions
 }
 
 // newDelegate creates a module delegate for a specific component.
 func newDelegate(id string, o *ModuleOptions) *delegate {
 	return &delegate{
-		o:  o,
-		id: id,
+		o: &delegateOptions{
+			ID:            id,
+			ModuleOptions: o,
+		},
 	}
 }
 
 // LoadConfig parses River config and loads it.
-func (c *delegate) LoadConfig(config []byte, o component.Options, args map[string]any, onExport component.Export) error {
+func (c *delegate) LoadConfig(config []byte, args map[string]any, onExport component.Export) error {
 	if c.f == nil {
-		c.httppath = o.HTTPPath
 		f := New(Options{
-			ControllerID: c.id,
-			Logger:       c.o.Logger,
-			Tracer:       traces.WrapTracer(c.o.Tracer, c.id),
-			Clusterer:    c.o.Clusterer,
-			Reg:          c.o.Reg,
-			// Use the component options here since they
-			// are tied to this specific component.
-			DataPath:       o.DataPath,
-			HTTPPathPrefix: o.HTTPPath,
-			HTTPListenAddr: o.HTTPListenAddr,
+			ControllerID:   c.o.ID,
+			Logger:         c.o.Logger,
+			Tracer:         traces.WrapTracer(c.o.Tracer, c.o.ID),
+			Clusterer:      c.o.Clusterer,
+			Reg:            c.o.Reg,
+			DataPath:       c.o.DataPath,
+			HTTPPathPrefix: c.o.HTTPPath,
+			HTTPListenAddr: c.o.HTTPListenAddr,
 			OnExportsChange: func(exports map[string]any) {
 				onExport(exports)
 			},
@@ -48,7 +50,7 @@ func (c *delegate) LoadConfig(config []byte, o component.Options, args map[strin
 		c.f = f
 	}
 
-	ff, err := ReadFile(c.id, config)
+	ff, err := ReadFile(c.o.ID, config)
 	if err != nil {
 		return err
 	}
@@ -74,7 +76,7 @@ func (c *delegate) ComponentHandler() (_ http.Handler) {
 	r.PathPrefix("/{id}/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Re-add the full path to ensure that nested controllers propagate
 		// requests properly.
-		r.URL.Path = path.Join(c.httppath, r.URL.Path)
+		r.URL.Path = path.Join(c.o.HTTPPath, r.URL.Path)
 
 		c.f.ComponentHandler().ServeHTTP(w, r)
 	})

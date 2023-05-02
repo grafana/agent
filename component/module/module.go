@@ -37,7 +37,7 @@ func NewModuleComponent(o component.Options) *ModuleComponent {
 // will set the component health in addition to return the error so that the consumer
 // can rely on either or both.
 func (c *ModuleComponent) LoadFlowContent(arguments map[string]any, contentValue string) error {
-	err := c.mod.LoadConfig([]byte(contentValue), c.opts, arguments, func(exports map[string]any) {
+	err := c.mod.LoadConfig([]byte(contentValue), arguments, func(exports map[string]any) {
 		c.opts.OnStateChange(Exports{Exports: exports})
 	})
 	if err != nil {

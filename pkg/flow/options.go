@@ -24,4 +24,19 @@ type ModuleOptions struct {
 
 	// Reg is the prometheus register to use
 	Reg prometheus.Registerer
+
+	// A path to a directory with this component may use for storage. The path is
+	// guaranteed to be unique across all running components.
+	//
+	// The directory may not exist when the component is created; components
+	// should create the directory if needed.
+	DataPath string
+
+	// HTTPListenAddr is the address the server is configured to listen on.
+	HTTPListenAddr string
+
+	// HTTPPath is the base path that requests need in order to route to this
+	// component. Requests received by a component handler will have this already
+	// trimmed off.
+	HTTPPath string
 }

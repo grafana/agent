@@ -3,7 +3,6 @@ package flow
 import (
 	"testing"
 
-	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
@@ -13,7 +12,7 @@ import (
 
 func TestLoadConfig(t *testing.T) {
 	controller := newDelegate("test", createOptions(t))
-	err := controller.LoadConfig([]byte("bad config"), component.Options{}, nil, func(exports map[string]any) {})
+	err := controller.LoadConfig([]byte("bad config"), nil, func(exports map[string]any) {})
 	require.Error(t, err)
 }
 

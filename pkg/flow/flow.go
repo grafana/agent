@@ -164,7 +164,7 @@ func New(o Options) *Flow {
 	}
 
 	var (
-		modules = NewModuleSystem(&ModuleOptions{
+		modules = newModuleSystem(&ModuleOptions{
 			Logger:    log,
 			Tracer:    tracer,
 			Clusterer: clusterer,

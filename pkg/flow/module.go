@@ -8,8 +8,8 @@ type module struct {
 	o *ModuleOptions
 }
 
-// NewModuleSystem is the entrypoint into creating module delegates.
-func NewModuleSystem(o *ModuleOptions) component.ModuleSystem {
+// newModuleSystem is the entrypoint into creating module delegates.
+func newModuleSystem(o *ModuleOptions) component.ModuleSystem {
 	return &module{
 		o: o,
 	}

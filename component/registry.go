@@ -41,7 +41,7 @@ type ModuleDelegate interface {
 	// LoadConfig parses River config and loads it into the ModuleDelegate.
 	// LoadConfig can be called multiple times, and called prior to
 	// [ModuleDelegate.Run].
-	LoadConfig(config []byte, o Options, args map[string]any, onExport Export) error
+	LoadConfig(config []byte, args map[string]any, onExport Export) error
 
 	// Run starts the ModuleDelegate. No components within the ModuleDelegate
 	// will be run until Run is called.

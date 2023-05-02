@@ -2,10 +2,11 @@ package string
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/module"
 	"github.com/grafana/agent/pkg/flow/rivertypes"
-	"net/http"
 )
 
 func init() {
