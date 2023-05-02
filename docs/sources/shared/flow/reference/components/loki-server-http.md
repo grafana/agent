@@ -4,7 +4,7 @@ aliases:
 headless: true
 ---
 
-The `http` configures the HTTP server.
+The `http` block configures the HTTP server.
 
 The following arguments can be used to configure the `http` block. Any omitted
 fields take their default values.

@@ -4,7 +4,7 @@ aliases:
 headless: true
 ---
 
-The `grpc` configures the gRPC server.
+The `grpc` block configures the gRPC server.
 
 The following arguments can be used to configure the `grpc` block. Any omitted
 fields take their default values.
