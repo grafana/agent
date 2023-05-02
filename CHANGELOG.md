@@ -34,6 +34,19 @@ Main (unreleased)
 
 ### Bugfixes
 
+- Fix issue where component evaluation time was overridden by a "default
+  health" message. (@rfratto)
+
+### Other changes
+
+- Add metrics when clustering mode is enabled. (@rfratto)
+- Document debug metric `loki_process_dropped_lines_by_label_total` in loki.process. (@akselleirv)
+
+v0.33.1 (2023-05-01)
+--------------------
+
+### Bugfixes
+
 - Fix spelling of the `frequency` argument on the `local.file` component.
   (@tpaschalis)
 
@@ -47,9 +60,10 @@ Main (unreleased)
   component would cause Grafana Agent Flow's Prometheus metrics endpoint to
   return an error until the process is restarted. (@rfratto)
 
-### Other changes
+- Fix issue in `loki.source.file` where updating the component caused
+  goroutines to leak. (@rfratto)
 
-- Add metrics when clustering mode is enabled. (@rfratto)
+### Other changes
 
 - Support Bundles report the status of discovered log targets. (@tpaschalis)
 
