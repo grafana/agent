@@ -30,7 +30,7 @@ the following conventions for referring to types:
 
 * `any`: A value of any type.
 * `map(T)`: an `object` where the value type is `T`. For example, `map(string)`
-  is an object where all the values are strings). The key type of an object is
+  is an object where all the values are strings. The key type of an object is
   always a string, or an identifier which is converted into a string.
 * `list(T)`: an `array` where the value type is `T`. For example, `list(string`
   is an array where all the values are strings).
