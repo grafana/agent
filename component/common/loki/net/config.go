@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	DefaultHTTPPort = 9090
-	DefaultGRPCPort = 9091
+	DefaultHTTPPort = 8080
+	DefaultGRPCPort = 8081
 )
 
 // ServerConfig is a River configuration that allows one to configure a weaveworks.Server. It
