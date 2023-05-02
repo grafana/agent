@@ -124,12 +124,8 @@ loki.source.file "self" {
   forward_to = [module.string.filter.exports.logs_input]
 }
 
-local.file "log_filter" {
-  filename = "/path/to/modules/log_filter.river"
-}
-
 module.file "log_filter" {
-  content = local.file.log_filter.content
+  filename = "/path/to/modules/log_filter.river"
 
   arguments {
     // Configure the filter to forward filtered logs to loki.echo below.
