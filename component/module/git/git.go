@@ -240,6 +240,11 @@ func (c *Component) CurrentHealth() component.Health {
 	return component.LeastHealthy(c.health, c.mod.CurrentHealth())
 }
 
+// Handler implements component.HTTPComponent.
+func (c *Component) Handler() http.Handler {
+	return c.mod.Handler()
+}
+
 // DebugInfo implements component.DebugComponent.
 func (c *Component) DebugInfo() interface{} {
 	type DebugInfo struct {
@@ -256,9 +261,4 @@ func (c *Component) DebugInfo() interface{} {
 	} else {
 		return DebugInfo{SHA: rev}
 	}
-}
-
-// Handler implements component.HTTPComponent.
-func (c *Component) Handler() http.Handler {
-	return c.mod.Handler()
 }
