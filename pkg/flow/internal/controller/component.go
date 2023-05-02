@@ -18,7 +18,6 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/logging"
-	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/vm"
 	"github.com/grafana/agent/pkg/traces"
@@ -92,7 +91,7 @@ type ComponentNode struct {
 	nodeID            string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
 	reg               component.Registration
 	managedOpts       component.Options
-	register          *metrics.WrappedRegisterer
+	register          *wrappedRegisterer
 	exportsType       reflect.Type
 	OnComponentUpdate func(cn *ComponentNode) // Informs controller that we need to reevaluate
 
@@ -181,7 +180,7 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 		globalID = path.Join(globals.ControllerID, cn.nodeID)
 	}
 
-	wrapped := metrics.NewWrappedRegisterer()
+	wrapped := newWrappedRegisterer()
 	cn.register = wrapped
 	return component.Options{
 		ID:     globalID,

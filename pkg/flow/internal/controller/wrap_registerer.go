@@ -1,4 +1,4 @@
-package metrics
+package controller
 
 import (
 	"sync"
@@ -6,18 +6,18 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-type WrappedRegisterer struct {
+type wrappedRegisterer struct {
 	mut                sync.RWMutex
 	internalCollectors map[prometheus.Collector]struct{}
 }
 
-// NewWrappedRegisterer creates a wrapped register
-func NewWrappedRegisterer() *WrappedRegisterer {
-	return &WrappedRegisterer{internalCollectors: make(map[prometheus.Collector]struct{})}
+// newWrappedRegisterer creates a wrapped register
+func newWrappedRegisterer() *wrappedRegisterer {
+	return &wrappedRegisterer{internalCollectors: make(map[prometheus.Collector]struct{})}
 }
 
 // Describe implements the interface
-func (w *WrappedRegisterer) Describe(descs chan<- *prometheus.Desc) {
+func (w *wrappedRegisterer) Describe(descs chan<- *prometheus.Desc) {
 	w.mut.RLock()
 	defer w.mut.RUnlock()
 
@@ -27,7 +27,7 @@ func (w *WrappedRegisterer) Describe(descs chan<- *prometheus.Desc) {
 }
 
 // Collect implements the interface
-func (w *WrappedRegisterer) Collect(metrics chan<- prometheus.Metric) {
+func (w *wrappedRegisterer) Collect(metrics chan<- prometheus.Metric) {
 	w.mut.RLock()
 	defer w.mut.RUnlock()
 
@@ -37,7 +37,7 @@ func (w *WrappedRegisterer) Collect(metrics chan<- prometheus.Metric) {
 }
 
 // Register implements the interface
-func (w *WrappedRegisterer) Register(collector prometheus.Collector) error {
+func (w *wrappedRegisterer) Register(collector prometheus.Collector) error {
 	w.mut.Lock()
 	defer w.mut.Unlock()
 
@@ -46,7 +46,7 @@ func (w *WrappedRegisterer) Register(collector prometheus.Collector) error {
 }
 
 // MustRegister implements the interface
-func (w *WrappedRegisterer) MustRegister(collector ...prometheus.Collector) {
+func (w *wrappedRegisterer) MustRegister(collector ...prometheus.Collector) {
 	w.mut.Lock()
 	defer w.mut.Unlock()
 
@@ -56,7 +56,7 @@ func (w *WrappedRegisterer) MustRegister(collector ...prometheus.Collector) {
 }
 
 // Unregister implements the interface
-func (w *WrappedRegisterer) Unregister(collector prometheus.Collector) bool {
+func (w *wrappedRegisterer) Unregister(collector prometheus.Collector) bool {
 	w.mut.Lock()
 	defer w.mut.Unlock()
 
