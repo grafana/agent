@@ -76,7 +76,7 @@ RUN apt-get update                                \
       build-essential file zip unzip gettext git  \
       musl libsystemd-dev nsis                    \
       rpm ruby ruby-dev rubygems                  \
-      protobuf-compiler libprotobuf-dev           \
+      protobuf-compiler libprotobuf-dev yamllint  \
  && gem install --no-document fpm                 \
  && rm -rf /var/lib/apt/lists/*
 

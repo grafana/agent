@@ -10,7 +10,14 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Breaking changes
+
+- The experimental dynamic configuration feature has been removed in favor of Flow mode. (@mattdurham)
+
 ### Features
+- New Grafana Agent Flow components:
+  - `prometheus.operator.servicemonitors` discovers ServiceMonitor resources in your Kubernetes cluster and scrape
+    the targets they reference. (@captncraig, @marctc, @jcreixell)
 
 - Added coalesce function to river stdlib. (@jkroepke)
 
@@ -23,6 +30,21 @@ Main (unreleased)
   `--server.http.memory-addr` flag to customize which address is used for
   in-memory traffic. (@rfratto)
 
+- Disable node_exporter on Windows systems (@jkroepke)
+
+### Bugfixes
+
+- Fix issue where component evaluation time was overridden by a "default
+  health" message. (@rfratto)
+
+### Other changes
+
+- Add metrics when clustering mode is enabled. (@rfratto)
+- Document debug metric `loki_process_dropped_lines_by_label_total` in loki.process. (@akselleirv)
+
+v0.33.1 (2023-05-01)
+--------------------
+
 ### Bugfixes
 
 - Fix spelling of the `frequency` argument on the `local.file` component.
@@ -34,9 +56,17 @@ Main (unreleased)
 - Return an error message rather than go panic when putting a logging config
   block inside a module. (@erikbaranowski)
 
-### Other changes
+- Fix version information not displaying correctly when passing the `--version`
+  flag or in the `agent_build_info` metric. (@rfratto)
 
-- Add metrics when clustering mode is enabled. (@rfratto)
+- Fix issue in `loki.source.heroku` and `loki.source.gcplog` where updating the
+  component would cause Grafana Agent Flow's Prometheus metrics endpoint to
+  return an error until the process is restarted. (@rfratto)
+
+- Fix issue in `loki.source.file` where updating the component caused
+  goroutines to leak. (@rfratto)
+
+### Other changes
 
 - Support Bundles report the status of discovered log targets. (@tpaschalis)
 
