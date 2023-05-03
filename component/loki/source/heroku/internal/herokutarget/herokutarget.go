@@ -20,7 +20,7 @@ import (
 	"github.com/prometheus/prometheus/model/relabel"
 
 	"github.com/grafana/agent/component/common/loki"
-	lnet "github.com/grafana/agent/component/common/loki/net"
+	fnet "github.com/grafana/agent/component/common/net"
 
 	"github.com/grafana/loki/pkg/logproto"
 )
@@ -29,7 +29,7 @@ const ReservedLabelTenantID = "__tenant_id__"
 
 // HerokuDrainTargetConfig describes a scrape config to listen and consume heroku logs, in the HTTPS drain manner.
 type HerokuDrainTargetConfig struct {
-	Server *lnet.ServerConfig
+	Server *fnet.ServerConfig
 
 	// Labels optionally holds labels to associate with each record received on the push api.
 	Labels model.LabelSet
@@ -45,14 +45,14 @@ type HerokuTarget struct {
 	config         *HerokuDrainTargetConfig
 	metrics        *Metrics
 	relabelConfigs []*relabel.Config
-	server         *lnet.TargetServer
+	server         *fnet.TargetServer
 }
 
 // NewTarget creates a brand new Heroku Drain target, capable of receiving logs from a Heroku application through an HTTP drain.
 func NewHerokuTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandler, relabel []*relabel.Config, config *HerokuDrainTargetConfig, reg prometheus.Registerer) (*HerokuTarget, error) {
 	wrappedLogger := log.With(logger, "component", "heroku_drain")
 
-	srv, err := lnet.NewTargetServer(wrappedLogger, "loki_source_heroku_drain_target", reg, config.Server)
+	srv, err := fnet.NewTargetServer(wrappedLogger, "loki_source_heroku_drain_target", reg, config.Server)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create loki server: %w", err)
 	}

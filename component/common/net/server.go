@@ -12,9 +12,9 @@ import (
 	weaveworks "github.com/weaveworks/common/server"
 )
 
-// TargetServer is wrapper around weaveworks.Server that handles some common configuration used in all flow loki source
-// components that expose a network server. It just handles configuration and initialization, the handlers implementation
-// are left to the consumer.
+// TargetServer is wrapper around weaveworks.Server that handles some common configuration used in all flow components
+// that expose a network server. It just handles configuration and initialization, the handlers implementation are left
+// to the consumer.
 type TargetServer struct {
 	logger           log.Logger
 	config           *weaveworks.Config

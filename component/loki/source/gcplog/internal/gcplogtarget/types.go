@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	lnet "github.com/grafana/agent/component/common/loki/net"
+	fnet "github.com/grafana/agent/component/common/net"
 )
 
 // Target is a common interface implemented by both GCPLog targets.
@@ -23,7 +23,7 @@ type PullConfig struct {
 
 // PushConfig configures a GCPLog target with the 'push' strategy.
 type PushConfig struct {
-	Server               *lnet.ServerConfig `river:",squash"`
+	Server               *fnet.ServerConfig `river:",squash"`
 	PushTimeout          time.Duration      `river:"push_timeout,attr,optional"`
 	Labels               map[string]string  `river:"labels,attr,optional"`
 	UseIncomingTimestamp bool               `river:"use_incoming_timestamp,attr,optional"`

@@ -12,7 +12,7 @@ import (
 	"github.com/grafana/agent/component/loki/internal/fake"
 
 	"github.com/grafana/agent/component/common/loki"
-	lnet "github.com/grafana/agent/component/common/loki/net"
+	fnet "github.com/grafana/agent/component/common/net"
 
 	"github.com/go-kit/log"
 	"github.com/phayes/freeport"
@@ -167,13 +167,13 @@ func TestPushTarget(t *testing.T) {
 			config := &PushConfig{
 				Labels:               lbls,
 				UseIncomingTimestamp: false,
-				Server: &lnet.ServerConfig{
-					HTTP: &lnet.HTTPConfig{
+				Server: &fnet.ServerConfig{
+					HTTP: &fnet.HTTPConfig{
 						ListenAddress: "localhost",
 						ListenPort:    port,
 					},
 					// assign random grpc port
-					GRPC: &lnet.GRPCConfig{ListenPort: 0},
+					GRPC: &fnet.GRPCConfig{ListenPort: 0},
 				},
 			}
 
@@ -236,13 +236,13 @@ func TestPushTarget_UseIncomingTimestamp(t *testing.T) {
 	config := &PushConfig{
 		Labels:               nil,
 		UseIncomingTimestamp: true,
-		Server: &lnet.ServerConfig{
-			HTTP: &lnet.HTTPConfig{
+		Server: &fnet.ServerConfig{
+			HTTP: &fnet.HTTPConfig{
 				ListenAddress: "localhost",
 				ListenPort:    port,
 			},
 			// assign random grpc port
-			GRPC: &lnet.GRPCConfig{ListenPort: 0},
+			GRPC: &fnet.GRPCConfig{ListenPort: 0},
 		},
 	}
 
@@ -286,13 +286,13 @@ func TestPushTarget_UseTenantIDHeaderIfPresent(t *testing.T) {
 	config := &PushConfig{
 		Labels:               nil,
 		UseIncomingTimestamp: true,
-		Server: &lnet.ServerConfig{
-			HTTP: &lnet.HTTPConfig{
+		Server: &fnet.ServerConfig{
+			HTTP: &fnet.HTTPConfig{
 				ListenAddress: "localhost",
 				ListenPort:    port,
 			},
 			// assign random grpc port
-			GRPC: &lnet.GRPCConfig{ListenPort: 0},
+			GRPC: &fnet.GRPCConfig{ListenPort: 0},
 		},
 	}
 
@@ -344,13 +344,13 @@ func TestPushTarget_ErroneousPayloadsAreRejected(t *testing.T) {
 	require.NoError(t, err)
 	config := &PushConfig{
 		Labels: nil,
-		Server: &lnet.ServerConfig{
-			HTTP: &lnet.HTTPConfig{
+		Server: &fnet.ServerConfig{
+			HTTP: &fnet.HTTPConfig{
 				ListenAddress: "localhost",
 				ListenPort:    port,
 			},
 			// assign random grpc port
-			GRPC: &lnet.GRPCConfig{ListenPort: 0},
+			GRPC: &fnet.GRPCConfig{ListenPort: 0},
 		},
 	}
 
@@ -432,13 +432,13 @@ func TestPushTarget_UsePushTimeout(t *testing.T) {
 		Labels:               nil,
 		UseIncomingTimestamp: true,
 		PushTimeout:          time.Second,
-		Server: &lnet.ServerConfig{
-			HTTP: &lnet.HTTPConfig{
+		Server: &fnet.ServerConfig{
+			HTTP: &fnet.HTTPConfig{
 				ListenAddress: "localhost",
 				ListenPort:    port,
 			},
 			// assign random grpc port
-			GRPC: &lnet.GRPCConfig{ListenPort: 0},
+			GRPC: &fnet.GRPCConfig{ListenPort: 0},
 		},
 	}
 

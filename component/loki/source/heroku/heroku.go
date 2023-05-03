@@ -12,7 +12,7 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
-	lnet "github.com/grafana/agent/component/common/loki/net"
+	fnet "github.com/grafana/agent/component/common/net"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	ht "github.com/grafana/agent/component/loki/source/heroku/internal/herokutarget"
 	"github.com/grafana/agent/pkg/util"
@@ -32,7 +32,7 @@ func init() {
 // Arguments holds values which are used to configure the loki.source.heroku
 // component.
 type Arguments struct {
-	Server               *lnet.ServerConfig  `river:",squash"`
+	Server               *fnet.ServerConfig  `river:",squash"`
 	Labels               map[string]string   `river:"labels,attr,optional"`
 	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`
 	ForwardTo            []loki.LogsReceiver `river:"forward_to,attr"`
@@ -179,7 +179,7 @@ type readerDebugInfo struct {
 	Address string `river:"address,attr"`
 }
 
-func listenerChanged(prev, next *lnet.ServerConfig) bool {
+func listenerChanged(prev, next *fnet.ServerConfig) bool {
 	return !reflect.DeepEqual(prev, next)
 }
 func relabelRulesChanged(prev, next flow_relabel.Rules) bool {
