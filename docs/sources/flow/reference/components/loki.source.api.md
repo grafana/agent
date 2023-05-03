@@ -4,12 +4,9 @@ title: loki.source.api
 
 # loki.source.api
 
-`loki.source.api` listens for HTTP requests containing Loki log entries and forwards them to other components capable
-of receiving log entries.
+`loki.source.api` listens for HTTP requests containing Loki log entries and forwards them to other components capable of receiving log entries.
 
-The HTTP API exposed is compatible with [Loki push API][loki-push-api], using Loki's `logproto` format. This means that
-other [`loki.write`][loki.write] components can be used as a client and send requests to `loki.source.api`. This enables
-Grafana Agents to send log entries over the network to other Grafana Agents.
+The HTTP API exposed is compatible with [Loki push API][loki-push-api], using Loki's `logproto` format. This means that other [`loki.write`][loki.write] components can be used as a client and send requests to `loki.source.api`. This enables Grafana Agents to send log entries over the network to other Grafana Agents.
 
 [loki.write]: {{< relref "./loki.write.md" >}}
 [loki-push-api]: https://grafana.com/docs/loki/latest/api/#push-log-entries-to-loki
@@ -38,8 +35,7 @@ loki.source.api LABEL {
  `relabel_rules`          | `RelabelRules`       | Relabeling rules to apply on log entries.                  | `{}`    | no       
 
 The `relabel_rules` field can make use of the `rules` export value from a
-[`loki.relabel`][loki.relabel] component to apply one or more relabeling rules to log entries
-before they're forwarded to the list of receivers in `forward_to`.
+[`loki.relabel`][loki.relabel] component to apply one or more relabeling rules to log entries before they're forwarded to the list of receivers in `forward_to`.
 
 [loki.relabel]: {{< relref "./loki.relabel.md" >}}
 
@@ -53,8 +49,7 @@ before they're forwarded to the list of receivers in `forward_to`.
 
 ## Debug metrics
 
-The following are some of the metrics that are exposed when this component is used. Note that the metrics include labels
-such as `status_code` where relevant, which can be used to measure request success rates.
+The following are some of the metrics that are exposed when this component is used. Note that the metrics include labels such as `status_code` where relevant, which can be used to measure request success rates.
 
 * `agent_loki_source_api_request_duration_seconds` (histogram): Time (in seconds) spent serving HTTP requests.
 * `agent_loki_source_api_request_message_bytes` (histogram): Size (in bytes) of messages received in the request.
@@ -63,8 +58,7 @@ such as `status_code` where relevant, which can be used to measure request succe
 
 ## Example
 
-This example starts an HTTP server on `0.0.0.0` address and port `9999`. The server receives log entries and forwards
-them to a `loki.echo` component while adding a `forwarded="true"` label.
+This example starts an HTTP server on `0.0.0.0` address and port `9999`. The server receives log entries and forwards them to a `loki.echo` component while adding a `forwarded="true"` label.
 
 ```river
 loki.echo "print" {}
