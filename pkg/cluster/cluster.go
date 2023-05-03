@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -153,7 +154,14 @@ func New(log log.Logger, reg prometheus.Registerer, clusterEnabled bool, listenA
 	cli := &http.Client{
 		Transport: &http2.Transport{
 			AllowHTTP: true,
-			DialTLS: func(network, addr string, _ *tls.Config) (net.Conn, error) {
+			DialTLSContext: func(ctx context.Context, network, addr string, _ *tls.Config) (net.Conn, error) {
+				if deadline, ok := ctx.Deadline(); ok {
+					return net.DialTimeout(network, addr, time.Until(deadline))
+				}
+
+				// TODO(rfratto): should we use a default timeout if one isn't set from
+				// the context? [http.DefaultTransport] configures a net.Dialer with a
+				// timeout of 30 seconds by default.
 				return net.Dial(network, addr)
 			},
 		},
