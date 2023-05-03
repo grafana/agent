@@ -25,7 +25,7 @@ local filename = 'agent-cluster-node.json';
     // TODO(@tpaschalis) Make the annotation optional.
     dashboard.withAnnotations([
       dashboard.newLokiAnnotation('Deployments', '{cluster="$cluster", container="kube-diff-logger"} | json | namespace_extracted="grafana-agent" | name_extracted=~"grafana-agent.*"', 'rgba(0, 211, 255, 1)'),
-    ]) +  
+    ]) +
     dashboard.withPanelsMixin([
       // Node Info row
       (
@@ -98,20 +98,7 @@ local filename = 'agent-cluster-node.json';
             expr='rate(cluster_node_gossip_received_events_total{instance="$instance"}[$__rate_interval])',
             legendFormat='{{event}}'
           ),
-        ]) +
-
-        panel.withOptions({
-          legend: {
-            calcs: [],
-            displayMode: 'list',
-            placement: 'bottom',
-            showLegend: true,
-          },
-          tooltip: {
-            mode: 'single',
-            sort: 'none',
-          },
-        })
+        ])
       ),
       // Known peers
       (
@@ -125,11 +112,7 @@ local filename = 'agent-cluster-node.json';
             expr='sum(cluster_node_peers{instance="$instance"})',
           ),
         ]) +
-        panel.withFieldConfigs({
-          defaults: {
-            unit: 'suffix:peers',
-          },
-        })
+        panel.withUnit('suffix:peers')
       ),
       // Peers by state
       (
@@ -144,11 +127,7 @@ local filename = 'agent-cluster-node.json';
             legendFormat='{{state}}',
           ),
         ]) +
-        panel.withFieldConfigs({
-          defaults: {
-            unit: 'suffix:nodes',
-          },
-        })
+        panel.withUnit('suffix:nodes')
       ),
       // Gossip Transport row
       (
@@ -172,12 +151,7 @@ local filename = 'agent-cluster-node.json';
             expr='-1 * rate(cluster_transport_tx_bytes_total{instance="$instance"}[$__rate_interval])'
           ),
         ]) +
-        panel.withFieldConfigs({
-          defaults: {
-            unit: 'Bps',
-          },
-          overrides: [],
-        })
+        panel.withUnit('Bps')
       ),
       // Packet write success rate
       (
@@ -198,12 +172,7 @@ local filename = 'agent-cluster-node.json';
             legendFormat='Rx success %',
           ),
         ]) +
-        panel.withFieldConfigs({
-          defaults: {
-            unit: 'percentunit',
-          },
-          overrides: [],
-        })
+        panel.withUnit('percentunit')
       ),
       // Pending packet queue
       (
@@ -224,12 +193,7 @@ local filename = 'agent-cluster-node.json';
             legendFormat='rx queue',
           ),
         ]) +
-        panel.withFieldConfigs({
-          defaults: {
-            unit: 'pkts',
-          },
-          overrides: [],
-        })
+        panel.withUnit('pkts')
       ),
       // Stream bandwidth
       (
@@ -250,12 +214,7 @@ local filename = 'agent-cluster-node.json';
             legendFormat='tx',
           ),
         ]) +
-        panel.withFieldConfigs({
-          defaults: {
-            unit: 'Bps',
-          },
-          overrides: [],
-        })
+        panel.withUnit('Bps')
       ),
       // Stream write success rate
       (
@@ -276,12 +235,7 @@ local filename = 'agent-cluster-node.json';
             legendFormat='Rx success %'
           ),
         ]) +
-        panel.withFieldConfigs({
-          defaults: {
-            unit: 'percentunit',
-          },
-          overrides: [],
-        })
+        panel.withUnit('percentunit')
       ),
       // Open transport streams
       (

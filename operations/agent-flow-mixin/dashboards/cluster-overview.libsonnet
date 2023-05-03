@@ -19,6 +19,10 @@ local filename = 'agent-cluster-overview.json';
         label_values(agent_component_controller_running_components{cluster="$cluster"}, namespace)
       |||),
     ]) +
+    // TODO(@tpaschalis) Make the annotation optional.
+    dashboard.withAnnotations([
+      dashboard.newLokiAnnotation('Deployments', '{cluster="$cluster", container="kube-diff-logger"} | json | namespace_extracted="grafana-agent" | name_extracted=~"grafana-agent.*"', 'rgba(0, 211, 255, 1)'),
+    ]) +
     dashboard.withPanelsMixin([
       // Nodes
       (
@@ -67,8 +71,8 @@ local filename = 'agent-cluster-overview.json';
             },
           },
         ]) +
-        panel.withFieldConfigs({
-          overrides: [
+        panel.withOverrides(
+          [
             {
               matcher: {
                 id: 'byName',
@@ -102,7 +106,7 @@ local filename = 'agent-cluster-overview.json';
               ],
             },
           ],
-        })
+        )
       ),
       // Convergance state
       (
@@ -140,49 +144,30 @@ local filename = 'agent-cluster-overview.json';
             textMode: 'auto',
           }
         ) +
-        panel.withFieldConfigs(
+        panel.withMappings([
           {
-            defaults: {
-              color: {
-                mode: 'thresholds',
+            options: {
+              '1': {
+                color: 'red',
+                index: 1,
+                text: 'Not converged',
               },
-              mappings: [
-                {
-                  options: {
-                    '1': {
-                      color: 'red',
-                      index: 1,
-                      text: 'Not converged',
-                    },
-                  },
-                  type: 'value',
-                },
-                {
-                  options: {
-                    match: 'null',
-                    result: {
-                      color: 'green',
-                      index: 0,
-                      text: 'Converged',
-                    },
-                  },
-                  type: 'special',
-                },
-              ],
-              thresholds: {
-                mode: 'absolute',
-                steps: [
-                  {
-                    color: 'green',
-                    value: null,
-                  },
-                ],
-              },
-              unit: 'suffix:nodes',
             },
-            overrides: [],
-          }
-        )
+            type: 'value',
+          },
+          {
+            options: {
+              match: 'null',
+              result: {
+                color: 'green',
+                index: 0,
+                text: 'Converged',
+              },
+            },
+            type: 'special',
+          },
+        ]) +
+        panel.withUnit('suffix:nodes')
       ),
     ]),
 }

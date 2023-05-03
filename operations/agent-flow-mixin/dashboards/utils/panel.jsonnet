@@ -72,11 +72,24 @@
     },
   },
 
+  withOverrides(overrides):: {
+    fieldConfig+: {
+      overrides: overrides,
+    },
+  },
+
+  withMappings(mappings):: {
+    fieldConfig+: {
+      defaults+: {
+        mappings: mappings,
+      },
+    },
+  },
+
   withPosition(pos):: { gridPos: pos },
   withDescription(desc):: { description: desc },
   withOptions(options):: { options: options },
   withTransformations(transformations):: { transformations: transformations },
-  withFieldConfigs(fieldConfig):: { fieldConfig: fieldConfig },
 
   withQueries(queries):: { targets: queries },
 
