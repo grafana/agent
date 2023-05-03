@@ -27,7 +27,9 @@ dist-agent-binaries: dist/grafana-agent-linux-amd64       \
                      dist/grafana-agent-darwin-amd64      \
                      dist/grafana-agent-darwin-arm64      \
                      dist/grafana-agent-windows-amd64.exe \
-                     dist/grafana-agent-freebsd-amd64
+                     dist/grafana-agent-freebsd-amd64     \
+                     dist/grafana-agent-linux-amd64-fips  \
+                     dist/grafana-agent-linux-arm64-fips
 
 dist/grafana-agent-linux-amd64: GO_TAGS += builtinassets promtail_journal_enabled
 dist/grafana-agent-linux-amd64: GOOS    := linux
@@ -76,6 +78,21 @@ dist/grafana-agent-freebsd-amd64: GOOS    := freebsd
 dist/grafana-agent-freebsd-amd64: GOARCH  := amd64
 dist/grafana-agent-freebsd-amd64: generate-ui
 	$(PACKAGING_VARS) AGEAGENT_BINARYNT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
+
+
+dist/grafana-agent-linux-amd64-fips: GO_TAGS += builtinassets promtail_journal_enabled
+dist/grafana-agent-linux-amd64-fips: GOOS    := linux
+dist/grafana-agent-linux-amd64-fips: GOARCH  := amd64
+dist/grafana-agent-linux-amd64-fips: GOEXPERIMENT=boringcrypto
+dist/grafana-agent-linux-amd64-fips: generate-ui
+	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
+
+dist/grafana-agent-linux-arm64-fips: GO_TAGS += builtinassets promtail_journal_enabled
+dist/grafana-agent-linux-arm64-fips: GOOS    := linux
+dist/grafana-agent-linux-arm64-fips: GOARCH  := arm64
+dist/grafana-agent-linux-arm64-fips: GOEXPERIMENT=boringcrypto
+dist/grafana-agent-linux-arm64-fips: generate-ui
+	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
 #
 # agentctl release binaries.

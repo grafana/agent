@@ -24,6 +24,7 @@
 ##   agent          Compiles cmd/grafana-agent to $(AGENT_BINARY)
 ##   agent-flow     Compiles cmd/grafana-agent-flow to $(FLOW_BINARY)
 ##   agent-service  Compiles cmd/grafana-agent-service to $(SERVICE_BINARY)
+##   agent-fips     Compiles cmd/grafana-agent-fips to $(AGENT_BINARY)-fips
 ##   agentctl       Compiles cmd/grafana-agentctl to $(AGENTCTL_BINARY)
 ##   operator       Compiles cmd/grafana-agent-operator to $(OPERATOR_BINARY)
 ##   crow           Compiles tools/crow to $(CROW_BINARY)
@@ -205,7 +206,7 @@ agent-fips:
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
-	$(GO_ENV) GOEXPERIMENT=boringcrypto go build $(GO_FLAGS) -o $(AGENT_BINARY) ./cmd/grafana-agent
+	$(GO_ENV) GOEXPERIMENT=boringcrypto go build $(GO_FLAGS) -o $(AGENT_BINARY)-fips ./cmd/grafana-agent
 endif
 
 
