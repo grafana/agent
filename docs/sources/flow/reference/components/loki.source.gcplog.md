@@ -147,7 +147,7 @@ metrics:
 
 ## Example
 
-This example listens for GCP Pub/Sub PushRequests on `0.0.0.0:9090` and
+This example listens for GCP Pub/Sub PushRequests on `0.0.0.0:8080` and
 forwards them to a `loki.write` component.
 
 ```river
