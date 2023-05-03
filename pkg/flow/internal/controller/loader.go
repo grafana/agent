@@ -231,7 +231,8 @@ func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockS
 // populateConfigBlockNodes adds any config blocks to the graph.
 func (l *Loader) populateConfigBlockNodes(args map[string]any, g *dag.Graph, configBlocks []*ast.BlockStmt) diag.Diagnostics {
 	var (
-		diags diag.Diagnostics
+		diags   diag.Diagnostics
+		nodeMap = NewConfigNodeMap()
 	)
 
 	for _, block := range configBlocks {
@@ -249,22 +250,28 @@ func (l *Loader) populateConfigBlockNodes(args map[string]any, g *dag.Graph, con
 			continue
 		}
 
+		nodeMapDiags := nodeMap.Append(node)
+		diags = append(diags, nodeMapDiags...)
+		if diags.HasErrors() {
+			continue
+		}
+
 		g.Add(node)
 	}
 
-	validateDiags := validateConfigNodes(g, l.isModule(), args)
+	validateDiags := nodeMap.Validate(l.isModule(), args)
 	diags = append(diags, validateDiags...)
 
 	// If a logging config block is not provided, we create an empty node which uses defaults.
-	if getLoggingNode(g) == nil && !l.isModule() {
-		node := NewDefaultLoggingConfigNode(l.globals)
-		g.Add(node)
+	if nodeMap.logging == nil && !l.isModule() {
+		c := NewDefaultLoggingConfigNode(l.globals)
+		g.Add(c)
 	}
 
 	// If a tracing config block is not provided, we create an empty node which uses defaults.
-	if getTracingNode(g) == nil && !l.isModule() {
-		node := NewDefaulTracingConfigNode(l.globals)
-		g.Add(node)
+	if nodeMap.tracing == nil && !l.isModule() {
+		c := NewDefaulTracingConfigNode(l.globals)
+		g.Add(c)
 	}
 
 	return diags
@@ -476,12 +483,8 @@ func (l *Loader) evaluate(logger log.Logger, bn BlockNode) error {
 		l.cache.CacheArguments(c.ID(), c.Arguments())
 		l.cache.CacheExports(c.ID(), c.Exports())
 	case *ArgumentConfigNode:
-		if _, found := l.cache.moduleArguments[c.Label()]; !found {
-			if c.Optional() {
-				l.cache.CacheModuleArgument(c.Label(), c.Default())
-			} else {
-				err = fmt.Errorf("missing required argument %q to module", c.Label())
-			}
+		if _, ok := l.cache.moduleArguments[c.Label()]; !ok && c.Optional() {
+			l.cache.CacheModuleArgument(c.Label(), c.Default())
 		}
 	}
 

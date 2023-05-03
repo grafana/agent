@@ -3,7 +3,6 @@ package controller
 import (
 	"fmt"
 
-	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/diag"
 )
@@ -39,139 +38,120 @@ func NewConfigNode(block *ast.BlockStmt, globals ComponentGlobals) (BlockNode, d
 	}
 }
 
-// getLoggingNode returns the logging node on the graph or nil if it doesn't exist.
-func getLoggingNode(g *dag.Graph) *LoggingConfigNode {
-	node := g.GetByID(loggingBlockID)
-	if node == nil {
-		return nil
-	}
+// ConfigNodeMap represents the config BlockNodes in their explicit types.
+// This is helpful when validating node conditions specific to config node
+// types.
+type ConfigNodeMap struct {
+	logging     *LoggingConfigNode
+	tracing     *TracingConfigNode
+	argumentMap map[string]*ArgumentConfigNode
+	exportMap   map[string]*ExportConfigNode
+}
 
-	switch n := node.(type) {
+// NewConfigNodeMap will create an initial ConfigNodeMap. Append must be called
+// to populate NewConfigNodeMap.
+func NewConfigNodeMap() *ConfigNodeMap {
+	return &ConfigNodeMap{
+		logging:     nil,
+		tracing:     nil,
+		argumentMap: map[string]*ArgumentConfigNode{},
+		exportMap:   map[string]*ExportConfigNode{},
+	}
+}
+
+// Append will add a config node to the ConfigNodeMap. This will overwrite
+// values on the ConfigNodeMap that are matched and previously set.
+func (nodeMap *ConfigNodeMap) Append(configNode BlockNode) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	switch n := configNode.(type) {
+	case *ArgumentConfigNode:
+		nodeMap.argumentMap[n.Label()] = n
+	case *ExportConfigNode:
+		nodeMap.exportMap[n.Label()] = n
 	case *LoggingConfigNode:
-		return n
-	default:
-		panic("Invalid logging node in the graph")
-	}
-}
-
-// getTracingNode returns the tracing node on the graph or nil if it doesn't exist.
-func getTracingNode(g *dag.Graph) *TracingConfigNode {
-	node := g.GetByID(tracingBlockID)
-	if node == nil {
-		return nil
-	}
-
-	switch n := node.(type) {
+		nodeMap.logging = n
 	case *TracingConfigNode:
-		return n
+		nodeMap.tracing = n
 	default:
-		panic("Invalid tracing node in the graph")
-	}
-}
-
-// getArgumentNodes returns a slice of all argument config nodes on the graph.
-func getArgumentNodes(g *dag.Graph) []*ArgumentConfigNode {
-	nodes := g.GetByIDPrefix(argumentBlockID + ".")
-	argumentNodes := make([]*ArgumentConfigNode, 0)
-
-	for _, node := range nodes {
-		switch n := node.(type) {
-		case *ArgumentConfigNode:
-			argumentNodes = append(argumentNodes, n)
-		default:
-			panic("Invalid argument node in the graph")
-		}
+		diags.Add(diag.Diagnostic{
+			Severity: diag.SeverityLevelError,
+			Message:  fmt.Sprintf("unsupported config node type found %q", n.Block().Name),
+			StartPos: ast.StartPos(n.Block()).Position(),
+			EndPos:   ast.EndPos(n.Block()).Position(),
+		})
 	}
 
-	return argumentNodes
-}
-
-// getExportNodes returns a slice of all export config nodes on the graph.
-func getExportNodes(g *dag.Graph) []*ExportConfigNode {
-	nodes := g.GetByIDPrefix(exportBlockID + ".")
-	exportNodes := make([]*ExportConfigNode, 0)
-
-	for _, node := range nodes {
-		switch n := node.(type) {
-		case *ExportConfigNode:
-			exportNodes = append(exportNodes, n)
-		default:
-			panic("Invalid export node in the graph")
-		}
-	}
-
-	return exportNodes
+	return diags
 }
 
 // Validate wraps all validators for ConfigNodeMap.
-func validateConfigNodes(g *dag.Graph, isInModule bool, args map[string]any) diag.Diagnostics {
+func (nodeMap *ConfigNodeMap) Validate(isInModule bool, args map[string]any) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	newDiags := validateModuleConstraints(g, isInModule)
+	newDiags := nodeMap.ValidateModuleConstraints(isInModule)
 	diags = append(diags, newDiags...)
 
-	newDiags = validateUnsupportedArguments(g, args)
+	newDiags = nodeMap.ValidateUnsupportedArguments(args)
 	diags = append(diags, newDiags...)
 
 	return diags
 }
 
-// validateModuleConstraints will make sure config blocks with module
+// ValidateModuleConstraints will make sure config blocks with module
 // constraints get followed.
-func validateModuleConstraints(g *dag.Graph, isInModule bool) diag.Diagnostics {
+func (nodeMap *ConfigNodeMap) ValidateModuleConstraints(isInModule bool) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	if isInModule {
-		loggingNode := getLoggingNode(g)
-		if loggingNode != nil {
+		if nodeMap.logging != nil {
 			diags.Add(diag.Diagnostic{
 				Severity: diag.SeverityLevelError,
 				Message:  "logging block not allowed inside a module",
-				StartPos: ast.StartPos(loggingNode.Block()).Position(),
-				EndPos:   ast.EndPos(loggingNode.Block()).Position(),
+				StartPos: ast.StartPos(nodeMap.logging.Block()).Position(),
+				EndPos:   ast.EndPos(nodeMap.logging.Block()).Position(),
 			})
 		}
 
-		tracingNode := getTracingNode(g)
-		if tracingNode != nil {
+		if nodeMap.tracing != nil {
 			diags.Add(diag.Diagnostic{
 				Severity: diag.SeverityLevelError,
 				Message:  "tracing block not allowed inside a module",
-				StartPos: ast.StartPos(tracingNode.Block()).Position(),
-				EndPos:   ast.EndPos(tracingNode.Block()).Position(),
+				StartPos: ast.StartPos(nodeMap.tracing.Block()).Position(),
+				EndPos:   ast.EndPos(nodeMap.tracing.Block()).Position(),
 			})
 		}
 		return diags
 	}
 
-	for _, node := range getArgumentNodes(g) {
+	for key := range nodeMap.argumentMap {
 		diags.Add(diag.Diagnostic{
 			Severity: diag.SeverityLevelError,
 			Message:  "argument blocks only allowed inside a module",
-			StartPos: ast.StartPos(node.Block()).Position(),
-			EndPos:   ast.EndPos(node.Block()).Position(),
+			StartPos: ast.StartPos(nodeMap.argumentMap[key].Block()).Position(),
+			EndPos:   ast.EndPos(nodeMap.argumentMap[key].Block()).Position(),
 		})
 	}
 
-	for _, node := range getExportNodes(g) {
+	for key := range nodeMap.exportMap {
 		diags.Add(diag.Diagnostic{
 			Severity: diag.SeverityLevelError,
 			Message:  "export blocks only allowed inside a module",
-			StartPos: ast.StartPos(node.Block()).Position(),
-			EndPos:   ast.EndPos(node.Block()).Position(),
+			StartPos: ast.StartPos(nodeMap.exportMap[key].Block()).Position(),
+			EndPos:   ast.EndPos(nodeMap.exportMap[key].Block()).Position(),
 		})
 	}
 
 	return diags
 }
 
-// validateUnsupportedArguments will validate each provided argument is
+// ValidateUnsupportedArguments will validate each provided argument is
 // supported in the config.
-func validateUnsupportedArguments(g *dag.Graph, args map[string]any) diag.Diagnostics {
+func (nodeMap *ConfigNodeMap) ValidateUnsupportedArguments(args map[string]any) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	for argName := range args {
-		if g.GetByID("argument."+argName) != nil {
+		if _, found := nodeMap.argumentMap[argName]; found {
 			continue
 		}
 		diags.Add(diag.Diagnostic{

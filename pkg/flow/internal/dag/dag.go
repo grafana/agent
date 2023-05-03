@@ -1,10 +1,7 @@
 // Package dag defines a Directed Acyclic Graph.
 package dag
 
-import (
-	"fmt"
-	"strings"
-)
+import "fmt"
 
 // Node is an individual Vertex in the DAG.
 type Node interface {
@@ -79,18 +76,6 @@ func (g *Graph) Add(n Node) {
 // GetByID returns a node from an ID. Returns nil if the ID does not exist in
 // the graph.
 func (g *Graph) GetByID(id string) Node { return g.nodeByID[id] }
-
-// GetByIDPrefix returns a slice of nodes with an ID Prefix.
-func (g *Graph) GetByIDPrefix(idPrefix string) []Node {
-	nodes := make([]Node, 0)
-	for node := range g.nodes {
-		if strings.HasPrefix(node.NodeID(), idPrefix) {
-			nodes = append(nodes, node)
-		}
-	}
-
-	return nodes
-}
 
 // Remove removes a Node from g. Remove is a no-op if n does not exist in g.
 //
