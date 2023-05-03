@@ -14,13 +14,13 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/loki/clients/pkg/promtail/targets/serverutils"
+	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"
-	"github.com/weaveworks/common/logging"
-	"github.com/weaveworks/common/server"
+
+	"github.com/grafana/agent/component/common/loki"
+	fnet "github.com/grafana/agent/component/common/net"
 )
 
 // PushTarget defines a server for receiving messages from a GCP PubSub push
@@ -33,14 +33,19 @@ type PushTarget struct {
 	entries        chan<- loki.Entry
 	handler        loki.EntryHandler
 	relabelConfigs []*relabel.Config
-	server         *server.Server
-	serverConfig   server.Config
+	server         *fnet.TargetServer
 }
 
 // NewPushTarget constructs a PushTarget.
 func NewPushTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandler, jobName string, config *PushConfig, relabel []*relabel.Config, reg prometheus.Registerer) (*PushTarget, error) {
+	wrappedLogger := log.With(logger, "component", "gcp_push")
+	srv, err := fnet.NewTargetServer(wrappedLogger, jobName+"_push_target", reg, config.Server)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create loki http server: %w", err)
+	}
 	pt := &PushTarget{
-		logger:         logger,
+		server:         srv,
+		logger:         wrappedLogger,
 		jobName:        jobName,
 		metrics:        metrics,
 		config:         config,
@@ -49,62 +54,14 @@ func NewPushTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandle
 		relabelConfigs: relabel,
 	}
 
-	srvCfg := server.Config{
-		HTTPListenPort:    config.HTTPListenPort,
-		HTTPListenAddress: config.HTTPListenAddress,
-
-		// Avoid logging entire received request on failures
-		ExcludeRequestInLog: true,
-	}
-	mergedServerConfigs, err := serverutils.MergeWithDefaults(srvCfg)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse configs and override defaults when configuring gcp push target: %w", err)
-	}
-
-	pt.serverConfig = mergedServerConfigs
-	pt.serverConfig.Registerer = reg
-
-	err = pt.run()
+	err = pt.server.MountAndRun(func(router *mux.Router) {
+		router.Path("/gcp/api/v1/push").Methods("POST").Handler(http.HandlerFunc(pt.push))
+	})
 	if err != nil {
 		return nil, err
 	}
 
 	return pt, nil
-}
-
-func (p *PushTarget) run() error {
-	level.Info(p.logger).Log("msg", "starting gcp push target", "job", p.jobName)
-
-	// To prevent metric collisions registering in the global Prometheus registry.
-	tentativeServerMetricNamespace := p.jobName + "_push_target"
-	if !model.IsValidMetricName(model.LabelValue(tentativeServerMetricNamespace)) {
-		return fmt.Errorf("invalid prometheus-compatible job name: %s", p.jobName)
-	}
-	p.serverConfig.MetricsNamespace = tentativeServerMetricNamespace
-
-	// We don't want the /debug and /metrics endpoints running, since this is
-	// not the main Flow HTTP server. We want this target to expose the least
-	// surface area possible, hence disabling WeaveWorks HTTP server metrics
-	// and debugging functionality.
-	p.serverConfig.RegisterInstrumentation = false
-
-	p.serverConfig.Log = logging.GoKit(p.logger)
-	srv, err := server.New(p.serverConfig)
-	if err != nil {
-		return err
-	}
-	p.server = srv
-
-	p.server.HTTP.Path("/gcp/api/v1/push").Methods("POST").Handler(http.HandlerFunc(p.push))
-
-	go func() {
-		err := srv.Run()
-		if err != nil {
-			level.Error(p.logger).Log("msg", "loki.source.gcplog push target shutdown with error", "err", err)
-		}
-	}()
-
-	return nil
 }
 
 func (p *PushTarget) push(w http.ResponseWriter, r *http.Request) {
@@ -187,15 +144,14 @@ func (p *PushTarget) Details() map[string]string {
 	return map[string]string{
 		"strategy":       "push",
 		"labels":         p.Labels().String(),
-		"server_address": p.server.HTTPListenAddr().String(),
+		"server_address": p.server.HTTPListenAddr(),
 	}
 }
 
 // Stop shuts down the push target.
 func (p *PushTarget) Stop() error {
 	level.Info(p.logger).Log("msg", "stopping gcp push target", "job", p.jobName)
-	p.server.Stop()
-	p.server.Shutdown()
+	p.server.StopAndShutdown()
 	p.handler.Stop()
 	return nil
 }

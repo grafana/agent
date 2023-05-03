@@ -34,14 +34,18 @@ var (
 	}, []string{"integration_name"})
 )
 
-// DefaultManagerConfig holds the default settings for integrations.
-var DefaultManagerConfig = ManagerConfig{
-	ScrapeIntegrations:        true,
-	IntegrationRestartBackoff: 5 * time.Second,
+var CurrentManagerConfig ManagerConfig = DefaultManagerConfig()
 
-	// Deprecated fields which keep their previous defaults:
-	UseHostnameLabel:     true,
-	ReplaceInstanceLabel: true,
+// DefaultManagerConfig holds the default settings for integrations.
+func DefaultManagerConfig() ManagerConfig {
+	return ManagerConfig{
+		ScrapeIntegrations:        true,
+		IntegrationRestartBackoff: 5 * time.Second,
+
+		// Deprecated fields which keep their previous defaults:
+		UseHostnameLabel:     true,
+		ReplaceInstanceLabel: true,
+	}
 }
 
 // ManagerConfig holds the configuration for all integrations.
@@ -94,7 +98,7 @@ func (c ManagerConfig) MarshalYAML() (interface{}, error) {
 
 // UnmarshalYAML implements yaml.Unmarshaler for ManagerConfig.
 func (c *ManagerConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*c = DefaultManagerConfig
+	*c = DefaultManagerConfig()
 	return UnmarshalYAML(c, unmarshal)
 }
 

@@ -70,9 +70,9 @@ local.file "my_module" {
 module.string "my_module" {
   content = local.file.my_module.content
 
-  arguments = {
-    MODULE_ARGUMENT_NAME_1 = MODULE_ARGUMENT_VALUE_1,
-    MODULE_ARGUMENT_NAME_2 = MODULE_ARGUMENT_VALUE_2,
+  arguments {
+    MODULE_ARGUMENT_NAME_1 = MODULE_ARGUMENT_VALUE_1
+    MODULE_ARGUMENT_NAME_2 = MODULE_ARGUMENT_VALUE_2
     // ...
   }
 }
@@ -124,14 +124,10 @@ loki.source.file "self" {
   forward_to = [module.string.filter.exports.logs_input]
 }
 
-local.file "log_filter" {
+module.file "log_filter" {
   filename = "/path/to/modules/log_filter.river"
-}
 
-module.string "log_filter" {
-  content = local.file.log_filter.content
-
-  arguments = {
+  arguments {
     // Configure the filter to forward filtered logs to loki.echo below.
     logs_output = [loki.write.default.receiver],
   }

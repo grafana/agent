@@ -10,14 +10,15 @@ import (
 )
 
 type ExportConfigNode struct {
-	label           string
-	nodeID          string
-	componentName   string
-	onExportsChange func(exports map[string]any) // Invoked when the managed component updated its exports
+	label         string
+	nodeID        string
+	componentName string
 
 	mut   sync.RWMutex
 	block *ast.BlockStmt // Current River blocks to derive config from
 	eval  *vm.Evaluator
+	value any
+	name  string
 }
 
 var _ BlockNode = (*ExportConfigNode)(nil)
@@ -39,10 +40,9 @@ func NewExportConfigNode(block *ast.BlockStmt, globals ComponentGlobals, isInMod
 	}
 
 	return &ExportConfigNode{
-		label:           block.Label,
-		nodeID:          BlockComponentID(block).String(),
-		componentName:   block.GetBlockName(),
-		onExportsChange: globals.OnExportsChange,
+		label:         block.Label,
+		nodeID:        BlockComponentID(block).String(),
+		componentName: block.GetBlockName(),
 
 		block: block,
 		eval:  vm.New(block.Body),
@@ -60,21 +60,24 @@ type exportBlock struct {
 // Evaluate will return an error if the River block cannot be evaluated or if
 // decoding to arguments fails.
 func (cn *ExportConfigNode) Evaluate(scope *vm.Scope) error {
-	cn.mut.RLock()
-	defer cn.mut.RUnlock()
-	exports := make(map[string]any)
+	cn.mut.Lock()
+	defer cn.mut.Unlock()
 
 	var export exportBlock
 	if err := cn.eval.Evaluate(scope, &export); err != nil {
 		return fmt.Errorf("decoding River: %w", err)
 	}
-
-	exports[cn.label] = export.Value
-
-	if cn.onExportsChange != nil {
-		cn.onExportsChange(exports)
-	}
+	cn.value = export.Value
+	cn.name = cn.label
 	return nil
+}
+
+// NameAndValue returns the name and value of the export.
+func (cn *ExportConfigNode) NameAndValue() (string, any) {
+	cn.mut.RLock()
+	defer cn.mut.RUnlock()
+
+	return cn.name, cn.value
 }
 
 // Block implements BlockNode and returns the current block of the managed config node.

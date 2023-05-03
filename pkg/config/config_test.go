@@ -180,7 +180,7 @@ func TestConfig_Defaults(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, metrics.DefaultConfig, c.Metrics)
-	require.Equal(t, DefaultVersionedIntegrations, c.Integrations)
+	require.Equal(t, DefaultVersionedIntegrations(), c.Integrations)
 }
 
 func TestConfig_TracesLokiValidates(t *testing.T) {
@@ -448,12 +448,6 @@ metrics:
 	require.True(t, c.Metrics.Global.RemoteWrite[0].SendExemplars)
 }
 
-func TestLoadDynamicConfigurationExpandError(t *testing.T) {
-	err := LoadDynamicConfiguration("", true, nil)
-	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "expand var is not supported when using dynamic configuration, use gomplate env instead"))
-}
-
 func TestAgent_OmitEmptyFields(t *testing.T) {
 	var cfg Config
 	yml, err := yaml.Marshal(&cfg)
@@ -468,14 +462,14 @@ server:
 logs:
   positions_directory: /tmp
 agent_management:
-  api_url: "http://localhost"
+  host: "localhost"
   basic_auth:
     username: "initial_user"
   protocol: "http"
   polling_interval: "1m"
-  remote_config_cache_location: "/etc"
   remote_configuration:
-    namespace: "new_namespace"`
+    namespace: "new_namespace"
+    cache_location: "/etc"`
 
 	remoteCfg := `
 server:
@@ -488,14 +482,14 @@ integrations:
   scrape_integrations: true
 
 agent_management:
-  api_url: "http://localhost:80"
+  host: "localhost:80"
   basic_auth:
     username: "new_user"
   protocol: "http"
   polling_interval: "10s"
-  remote_config_cache_location: "/etc"
   remote_configuration:
-    namespace: "new_namespace"`
+    namespace: "new_namespace"
+    cache_location: "/etc"`
 
 	var ic, rc Config
 	err := LoadBytes([]byte(initialCfg), false, &ic)

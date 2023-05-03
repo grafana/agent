@@ -7,14 +7,12 @@ import (
 
 	util_log "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/cmd/internal/flowmode"
+	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/server"
 
-	// Adds version information
-	_ "github.com/grafana/agent/pkg/build"
-
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/version"
 
 	// Register Prometheus SD components
 	_ "github.com/grafana/loki/clients/pkg/promtail/discovery/consulagent"
@@ -25,7 +23,7 @@ import (
 )
 
 func init() {
-	prometheus.MustRegister(version.NewCollector("agent"))
+	prometheus.MustRegister(build.NewCollector("agent"))
 }
 
 func main() {
@@ -44,10 +42,11 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	// If flow is enabled go into that working mode
-	// TODO allow flow to run as a windows service
+	// NOTE(rfratto): Flow when run through the primary Grafana Agent binary does
+	// not support being run as a Windows service. To run Flow mode as a Windows
+	// service, use cmd/grafana-agent-service and cmd/grafana-agent-flow instead.
 	if runMode == runModeFlow {
-		runFlow()
+		flowmode.Run()
 		return
 	}
 

@@ -24,9 +24,12 @@ const (
 )
 
 // DefaultVersionedIntegrations is the default config for integrations.
-var DefaultVersionedIntegrations = VersionedIntegrations{
-	version:  integrationsVersion1,
-	configV1: &v1.DefaultManagerConfig,
+func DefaultVersionedIntegrations() VersionedIntegrations {
+	configV1 := v1.DefaultManagerConfig()
+	return VersionedIntegrations{
+		version:  integrationsVersion1,
+		configV1: &configV1,
+	}
 }
 
 // VersionedIntegrations abstracts the subsystem configs for integrations v1
@@ -95,12 +98,19 @@ func (c *VersionedIntegrations) setVersion(v integrationsVersion) error {
 
 	switch c.version {
 	case integrationsVersion1:
-		cfg := v1.DefaultManagerConfig
+		// Do not overwrite the config if it's already been set. This is relevant for
+		// cases where the config has already been loaded via other means (example: Agent
+		// Management snippets).
+		if c.configV1 != nil {
+			return nil
+		}
+
+		cfg := v1.DefaultManagerConfig()
 		c.configV1 = &cfg
 		return yaml.UnmarshalStrict(c.raw, c.configV1)
 	case integrationsVersion2:
 		cfg := v2.DefaultSubsystemOptions
-		// this is needed for dynamic configuration, the unmarshal doesnt work correctly if
+		// this is needed for dynamic configuration, the unmarshal doesn't work correctly if
 		// this is not nil.
 		c.configV1 = nil
 		c.configV2 = &cfg

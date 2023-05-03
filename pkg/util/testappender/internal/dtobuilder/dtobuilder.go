@@ -100,7 +100,7 @@ func (b *builder) Build() []*dto.MetricFamily {
 // metadata known to the dtoBuilder. familyLookup will be updated for all
 // metrics which map to the same family.
 //
-// In the case of summaries and instograms, multiple metrics map to the same
+// In the case of summaries and histograms, multiple metrics map to the same
 // family (the bucket/quantile, the _sum, and the _count metrics).
 func (b *builder) buildFamiliesFromMetadata() {
 	for familyName, m := range b.Metadata {

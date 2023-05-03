@@ -288,7 +288,7 @@ type Meta struct {
 	View    View    `json:"view,omitempty"`
 }
 
-// KeyVal produces key->value representation of the app event metadatga
+// KeyVal produces key->value representation of the app event metadata
 func (m Meta) KeyVal() *KeyVal {
 	kv := NewKeyVal()
 	MergeKeyValWithPrefix(kv, m.SDK.KeyVal(), "sdk_")

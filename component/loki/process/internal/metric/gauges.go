@@ -62,7 +62,7 @@ func (g *GaugeConfig) UnmarshalRiver(f func(v interface{}) error) error {
 	return nil
 }
 
-// Gauges is a vector of gauges for a each log stream.
+// Gauges is a vector of gauges for a log stream.
 type Gauges struct {
 	*metricVec
 	Cfg *GaugeConfig

@@ -80,7 +80,7 @@ func (ht HealthType) MarshalText() (text []byte, err error) {
 	return []byte(ht.String()), nil
 }
 
-// UnmarshalText implments encoding.TextUnmarshaler.
+// UnmarshalText implements encoding.TextUnmarshaler.
 func (ht *HealthType) UnmarshalText(text []byte) error {
 	switch string(text) {
 	case "healthy":
@@ -95,4 +95,47 @@ func (ht *HealthType) UnmarshalText(text []byte) error {
 		return fmt.Errorf("invalid health type %q", string(text))
 	}
 	return nil
+}
+
+// LeastHealthy returns the Health from the provided arguments which is
+// considered to be the least healthy.
+//
+// Health types are first prioritized by [HealthTypeExited], followed by
+// [HealthTypeUnhealthy], [HealthTypeUnknown], and [HealthTypeHealthy].
+//
+// If multiple arguments have the same Health type, the Health with the most
+// recent timestamp is returned.
+//
+// Finally, if multiple arguments have the same Health type and the same
+// timestamp, the earlier argument is chosen.
+func LeastHealthy(h Health, hh ...Health) Health {
+	if len(hh) == 0 {
+		return h
+	}
+
+	leastHealthy := h
+
+	for _, compareHealth := range hh {
+		switch {
+		case healthPriority[compareHealth.Health] > healthPriority[leastHealthy.Health]:
+			// Higher health precedence.
+			leastHealthy = compareHealth
+		case compareHealth.Health == leastHealthy.Health:
+			// Same health precedence; check timestamp.
+			if compareHealth.UpdateTime.After(leastHealthy.UpdateTime) {
+				leastHealthy = compareHealth
+			}
+		}
+	}
+
+	return leastHealthy
+}
+
+// healthPriority maps a HealthType to its priority; higher numbers means "less
+// healthy."
+var healthPriority = [...]int{
+	HealthTypeHealthy:   0,
+	HealthTypeUnknown:   1,
+	HealthTypeUnhealthy: 2,
+	HealthTypeExited:    3,
 }

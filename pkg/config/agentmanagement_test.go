@@ -25,17 +25,21 @@ type testRemoteConfigProvider struct {
 
 	fetchedConfigBytesToReturn []byte
 	fetchedConfigErrorToReturn error
+	fetchRemoteConfigCallCount int
 
 	cachedConfigToReturn      []byte
 	cachedConfigErrorToReturn error
+	getCachedConfigCallCount  int
 	didCacheRemoteConfig      bool
 }
 
 func (t *testRemoteConfigProvider) GetCachedRemoteConfig() ([]byte, error) {
+	t.getCachedConfigCallCount += 1
 	return t.cachedConfigToReturn, t.cachedConfigErrorToReturn
 }
 
 func (t *testRemoteConfigProvider) FetchRemoteConfig() ([]byte, error) {
+	t.fetchRemoteConfigCallCount += 1
 	return t.fetchedConfigBytesToReturn, t.fetchedConfigErrorToReturn
 }
 
@@ -46,24 +50,21 @@ func (t *testRemoteConfigProvider) CacheRemoteConfig(r []byte) error {
 
 var validAgentManagementConfig = AgentManagementConfig{
 	Enabled: true,
-	Url:     "https://localhost:1234/example/api",
+	Host:    "localhost:1234",
 	BasicAuth: config.BasicAuth{
 		Username:     "test",
 		PasswordFile: "/test/path",
 	},
 	Protocol:        "https",
 	PollingInterval: time.Minute,
-	CacheLocation:   "/test/path/",
 	RemoteConfiguration: RemoteConfiguration{
-		Labels:    labelMap{"b": "B", "a": "A"},
-		Namespace: "test_namespace",
+		Labels:        labelMap{"b": "B", "a": "A"},
+		Namespace:     "test_namespace",
+		CacheLocation: "/test/path/",
 	},
 }
 
-var cachedConfig = []byte(`
-base_config: |
-snippets: []
-`)
+var cachedConfig = []byte(`{"base_config":"","snippets":[]}`)
 
 func TestValidateValidConfig(t *testing.T) {
 	assert.NoError(t, validAgentManagementConfig.Validate())
@@ -72,13 +73,13 @@ func TestValidateValidConfig(t *testing.T) {
 func TestValidateInvalidBasicAuth(t *testing.T) {
 	invalidConfig := &AgentManagementConfig{
 		Enabled:         true,
-		Url:             "https://localhost:1234",
+		Host:            "localhost:1234",
 		BasicAuth:       config.BasicAuth{},
 		Protocol:        "https",
 		PollingInterval: time.Minute,
-		CacheLocation:   "/test/path/",
 		RemoteConfiguration: RemoteConfiguration{
-			Namespace: "test_namespace",
+			Namespace:     "test_namespace",
+			CacheLocation: "/test/path/",
 		},
 	}
 	assert.Error(t, invalidConfig.Validate())
@@ -94,7 +95,7 @@ func TestValidateInvalidBasicAuth(t *testing.T) {
 func TestMissingCacheLocation(t *testing.T) {
 	invalidConfig := &AgentManagementConfig{
 		Enabled: true,
-		Url:     "https://localhost:1234",
+		Host:    "localhost:1234",
 		BasicAuth: config.BasicAuth{
 			Username:     "test",
 			PasswordFile: "/test/path",
@@ -115,9 +116,9 @@ basic_auth:
   username: "initial_user"
 protocol: "http"
 polling_interval: "1m"
-remote_config_cache_location: "/etc"
 remote_configuration:
-  namespace: "new_namespace"`
+  namespace: "new_namespace"
+  cache_location:  "/etc"`
 
 	var am AgentManagementConfig
 	yaml.Unmarshal([]byte(cfg), &am)
@@ -142,7 +143,7 @@ func TestFullUrl(t *testing.T) {
 	c := validAgentManagementConfig
 	actual, err := c.fullUrl()
 	assert.NoError(t, err)
-	assert.Equal(t, "https://localhost:1234/example/api/namespace/test_namespace/remote_config?a=A&b=B", actual)
+	assert.Equal(t, "https://localhost:1234/agent-management/api/agent/v2/namespace/test_namespace/remote_config?a=A&b=B", actual)
 }
 
 func TestRemoteConfigHashCheck(t *testing.T) {
@@ -169,20 +170,68 @@ func TestRemoteConfigHashCheck(t *testing.T) {
 	require.Error(t, initialConfigHashCheck(differentIc, rcCache))
 }
 
+func TestNewRemoteConfigProvider_ValidInitialConfig(t *testing.T) {
+	invalidAgentManagementConfig := &AgentManagementConfig{
+		Enabled: true,
+		Host:    "localhost:1234",
+		BasicAuth: config.BasicAuth{
+			Username:     "test",
+			PasswordFile: "/test/path",
+		},
+		Protocol:        "https",
+		PollingInterval: time.Minute,
+		RemoteConfiguration: RemoteConfiguration{
+			Labels:        labelMap{"b": "B", "a": "A"},
+			Namespace:     "test_namespace",
+			CacheLocation: "/test/path/",
+		},
+	}
+
+	cfg := Config{
+		AgentManagement: *invalidAgentManagementConfig,
+	}
+	_, err := newRemoteConfigProvider(&cfg)
+	assert.NoError(t, err)
+}
+
+func TestNewRemoteConfigProvider_InvalidProtocol(t *testing.T) {
+	invalidAgentManagementConfig := &AgentManagementConfig{
+		Enabled: true,
+		Host:    "localhost:1234",
+		BasicAuth: config.BasicAuth{
+			Username:     "test",
+			PasswordFile: "/test/path",
+		},
+		Protocol:        "ws",
+		PollingInterval: time.Minute,
+		RemoteConfiguration: RemoteConfiguration{
+			Labels:        labelMap{"b": "B", "a": "A"},
+			Namespace:     "test_namespace",
+			CacheLocation: "/test/path/",
+		},
+	}
+
+	cfg := Config{
+		AgentManagement: *invalidAgentManagementConfig,
+	}
+	_, err := newRemoteConfigProvider(&cfg)
+	assert.Error(t, err)
+}
+
 func TestNewRemoteConfigHTTPProvider_InvalidInitialConfig(t *testing.T) {
 	// this is invalid because it is missing the password file
 	invalidAgentManagementConfig := &AgentManagementConfig{
 		Enabled: true,
-		Url:     "https://localhost:1234/example/api",
+		Host:    "localhost:1234",
 		BasicAuth: config.BasicAuth{
 			Username: "test",
 		},
 		Protocol:        "https",
 		PollingInterval: time.Minute,
-		CacheLocation:   "/test/path/",
 		RemoteConfiguration: RemoteConfiguration{
-			Labels:    labelMap{"b": "B", "a": "A"},
-			Namespace: "test_namespace",
+			Labels:        labelMap{"b": "B", "a": "A"},
+			Namespace:     "test_namespace",
+			CacheLocation: "/test/path/",
 		},
 	}
 
@@ -211,7 +260,7 @@ func TestGetRemoteConfig_UnmarshallableRemoteConfig(t *testing.T) {
 	features.Register(fs, allFeatures)
 	defaultCfg.RegisterFlags(fs)
 
-	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, []string{}, "test")
+	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, false)
 	assert.NoError(t, err)
 	assert.False(t, testProvider.didCacheRemoteConfig)
 
@@ -237,7 +286,7 @@ func TestGetRemoteConfig_RemoteFetchFails(t *testing.T) {
 	features.Register(fs, allFeatures)
 	defaultCfg.RegisterFlags(fs)
 
-	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, []string{}, "test")
+	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, false)
 	assert.NoError(t, err)
 	assert.False(t, testProvider.didCacheRemoteConfig)
 
@@ -254,21 +303,10 @@ func TestGetRemoteConfig_SemanticallyInvalidBaseConfig(t *testing.T) {
 	// this is semantically invalid because it has two scrape_configs with
 	// the same job_name
 	invalidConfig := `
-base_config: |
-  metrics:
-    configs:
-    - name: Metrics Snippets
-      scrape_configs:
-      - job_name: 'prometheus'
-        scrape_interval: 15s
-        static_configs:
-        - targets: ['localhost:12345']
-      - job_name: 'prometheus'
-        scrape_interval: 15s
-        static_configs:
-        - targets: ['localhost:12345']
-snippets: []
-`
+{
+  "base_config": "metrics:\n  configs:\n  - name: Metrics Snippets\n    scrape_configs:\n    - job_name: 'prometheus'\n      scrape_interval: 15s\n      static_configs:\n      - targets: ['localhost:12345']\n    - job_name: 'prometheus'\n      scrape_interval: 15s\n      static_configs:\n      - targets: ['localhost:12345']\n",
+  "snippets": []
+}`
 	invalidCfgBytes := []byte(invalidConfig)
 
 	am := validAgentManagementConfig
@@ -283,7 +321,7 @@ snippets: []
 	features.Register(fs, allFeatures)
 	defaultCfg.RegisterFlags(fs)
 
-	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, []string{}, "test")
+	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, false)
 	assert.NoError(t, err)
 	assert.False(t, testProvider.didCacheRemoteConfig)
 
@@ -297,17 +335,17 @@ snippets: []
 func TestGetRemoteConfig_InvalidSnippet(t *testing.T) {
 	defaultCfg := DefaultConfig()
 
+	// this is semantically invalid because it has two scrape_configs with
+	// the same job_name
 	invalidConfig := `
-base_config: |
-  server:
-    log_level: info
-    log_format: logfmt
-snippets:
-- config: |
-    metrics_scrape_configs:
-    #bad indentation
-  - job_name: 'prometheus'
-`
+{
+  "base_config": "server:\n  log_level: info\n  log_format: logfmt\n",
+  "snippets": [
+    {
+      "config": "metrics_scrape_configs:\n- job_name: 'prometheus'\n- job_name: 'prometheus'\n"
+    }
+  ]
+}`
 	invalidCfgBytes := []byte(invalidConfig)
 
 	am := validAgentManagementConfig
@@ -322,7 +360,7 @@ snippets:
 	features.Register(fs, allFeatures)
 	defaultCfg.RegisterFlags(fs)
 
-	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, []string{}, "test")
+	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, false)
 	assert.NoError(t, err)
 	assert.False(t, testProvider.didCacheRemoteConfig)
 
@@ -337,9 +375,10 @@ func TestGetRemoteConfig_EmptyBaseConfig(t *testing.T) {
 	defaultCfg := DefaultConfig()
 
 	validConfig := `
-base_config: ""
-snippets: []
-`
+{
+  "base_config": "",
+  "snippets": []
+}`
 	cfgBytes := []byte(validConfig)
 	am := validAgentManagementConfig
 	logger := server.NewLogger(defaultCfg.Server)
@@ -351,7 +390,7 @@ snippets: []
 	features.Register(fs, allFeatures)
 	defaultCfg.RegisterFlags(fs)
 
-	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, []string{}, "test")
+	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, false)
 	assert.NoError(t, err)
 	assert.True(t, testProvider.didCacheRemoteConfig)
 
@@ -362,39 +401,18 @@ snippets: []
 func TestGetRemoteConfig_ValidBaseConfig(t *testing.T) {
 	defaultCfg := DefaultConfig()
 	validConfig := `
-base_config: |
-  server:
-    log_level: debug
-    log_format: logfmt
-  logs:
-    positions_directory: /tmp
-    global:
-      clients:
-        - basic_auth:
-            password_file: key.txt
-            username: 278220
-          url: https://logs-prod-eu-west-0.grafana.net/loki/api/v1/push
-  integrations:
-    agent:
-      enabled: false
-snippets:
-- config: |
-    metrics_scrape_configs:
-    - job_name: 'prometheus'
-      scrape_interval: 15s
-      static_configs:
-      - targets: ['localhost:12345']
-    logs_scrape_configs:
-    - job_name: yologs
-      static_configs:
-        - targets: [localhost]
-          labels:
-            job: yologs
-            __path__: /tmp/yo.log
-  selector:
-    hostname: machine-1
-    team: team-a
-`
+{
+  "base_config": "server:\n  log_level: debug\n  log_format: logfmt\nlogs:\n  positions_directory: /tmp\n  global:\n    clients:\n      - basic_auth:\n          password_file: key.txt\n          username: 278220\n        url: https://logs-prod-eu-west-0.grafana.net/loki/api/v1/push\nintegrations:\n  agent:\n    enabled: false\n",
+  "snippets": [
+    {
+      "config": "metrics_scrape_configs:\n- job_name: 'prometheus'\n  scrape_interval: 15s\n  static_configs:\n  - targets: ['localhost:12345']\nlogs_scrape_configs:\n- job_name: yologs\n  static_configs:\n    - targets: [localhost]\n      labels:\n        job: yologs\n        __path__: /tmp/yo.log\n",
+      "selector": {
+        "hostname": "machine-1",
+        "team": "team-a"
+      }
+    }
+  ]
+}`
 	cfgBytes := []byte(validConfig)
 	am := validAgentManagementConfig
 	logger := server.NewLogger(defaultCfg.Server)
@@ -406,7 +424,7 @@ snippets:
 	features.Register(fs, allFeatures)
 	defaultCfg.RegisterFlags(fs)
 
-	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, []string{}, "test")
+	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, false)
 	assert.NoError(t, err)
 	assert.True(t, testProvider.didCacheRemoteConfig)
 
@@ -424,32 +442,18 @@ snippets:
 func TestGetRemoteConfig_ExpandsEnvVars(t *testing.T) {
 	defaultCfg := DefaultConfig()
 	validConfig := `
-base_config: |
-  server:
-    log_level: info
-    log_format: ${LOG_FORMAT}
-  logs:
-    positions_directory: /tmp
-    global:
-      clients:
-        - basic_auth:
-            password_file: key.txt
-            username: 278220
-          url: https://logs-prod-eu-west-0.grafana.net/loki/api/v1/push
-  integrations:
-    agent:
-      enabled: false
-snippets:
-- config: |
-    metrics_scrape_configs:
-    - job_name: 'prometheus'
-      scrape_interval: ${SCRAPE_INTERVAL}
-      static_configs:
-      - targets: ['localhost:12345']
-  selector:
-    hostname: machine-1
-    team: team-a
-`
+{
+  "base_config": "server:\n  log_level: info\n  log_format: ${LOG_FORMAT}\nlogs:\n  positions_directory: /tmp\n  global:\n    clients:\n      - basic_auth:\n          password_file: key.txt\n          username: 278220\n        url: https://logs-prod-eu-west-0.grafana.net/loki/api/v1/push\nintegrations:\n  agent:\n    enabled: false\n",
+  "snippets": [
+    {
+      "config": "metrics_scrape_configs:\n- job_name: 'prometheus'\n  scrape_interval: ${SCRAPE_INTERVAL}\n  static_configs:\n  - targets: ['localhost:12345']\n",
+      "selector": {
+        "hostname": "machine-1",
+        "team": "team-a"
+      }
+    }
+  ]
+}`
 	t.Setenv("SCRAPE_INTERVAL", "15s")
 	t.Setenv("LOG_FORMAT", "json")
 
@@ -466,8 +470,51 @@ snippets:
 	features.Register(fs, allFeatures)
 	defaultCfg.RegisterFlags(fs)
 
-	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, []string{"-config.expand-env"}, "test")
+	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, false)
 	assert.NoError(t, err)
 	assert.Equal(t, "15s", cfg.Metrics.Configs[0].ScrapeConfigs[0].ScrapeInterval.String())
 	assert.Equal(t, "json", cfg.Server.LogFormat.String())
+}
+
+func TestGetCachedConfig_DefaultConfigFallback(t *testing.T) {
+	defaultCfg := DefaultConfig()
+	am := validAgentManagementConfig
+	logger := server.NewLogger(defaultCfg.Server)
+	testProvider := testRemoteConfigProvider{InitialConfig: &am}
+	testProvider.cachedConfigErrorToReturn = errors.New("no cached config")
+
+	fs := flag.NewFlagSet("test", flag.ExitOnError)
+	features.Register(fs, allFeatures)
+	defaultCfg.RegisterFlags(fs)
+
+	cfg, err := getCachedRemoteConfig(true, &testProvider, fs, logger)
+	assert.NoError(t, err)
+
+	// check that the returned config is the default one
+	assert.True(t, util.CompareYAML(*cfg, defaultCfg))
+}
+
+func TestGetCachedConfig_RetryAfter(t *testing.T) {
+	defaultCfg := DefaultConfig()
+	am := validAgentManagementConfig
+	logger := server.NewLogger(defaultCfg.Server)
+	testProvider := testRemoteConfigProvider{InitialConfig: &am}
+	testProvider.fetchedConfigErrorToReturn = retryAfterError{retryAfter: time.Duration(0)}
+	testProvider.cachedConfigToReturn = cachedConfig
+
+	fs := flag.NewFlagSet("test", flag.ExitOnError)
+	features.Register(fs, allFeatures)
+	defaultCfg.RegisterFlags(fs)
+
+	_, err := getRemoteConfig(true, &testProvider, logger, fs, true)
+	assert.NoError(t, err)
+	assert.False(t, testProvider.didCacheRemoteConfig)
+
+	// check that FetchRemoteConfig was called twice on the TestProvider:
+	// 1 call for the initial attempt, a second for the retry
+	assert.Equal(t, 2, testProvider.fetchRemoteConfigCallCount)
+
+	// the cached config should have been retrieved once, on the second
+	// attempt to fetch the remote config
+	assert.Equal(t, 1, testProvider.getCachedConfigCallCount)
 }

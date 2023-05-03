@@ -73,7 +73,7 @@ func newReplaceStage(logger log.Logger, config ReplaceConfig) (Stage, error) {
 // Process implements Stage
 func (r *replaceStage) Process(labels model.LabelSet, extracted map[string]interface{}, t *time.Time, entry *string) {
 	// If a source key is provided, the replace stage should process it
-	// from the extracted map, otherwise should fallback to the entry
+	// from the extracted map, otherwise should fall back to the entry
 	input := entry
 
 	if r.cfg.Source != "" {

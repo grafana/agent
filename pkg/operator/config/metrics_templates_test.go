@@ -244,6 +244,7 @@ func TestKubeSDConfig(t *testing.T) {
 
 func TestPodMonitor(t *testing.T) {
 	var falseVal = false
+	var trueVal = true
 	tt := []struct {
 		name   string
 		input  map[string]interface{}
@@ -260,8 +261,9 @@ func TestPodMonitor(t *testing.T) {
 					},
 				},
 				"endpoint": prom_v1.PodMetricsEndpoint{
-					Port:        "metrics",
-					EnableHttp2: &falseVal,
+					Port:          "metrics",
+					EnableHttp2:   &falseVal,
+					FilterRunning: &trueVal,
 				},
 				"index":                    0,
 				"apiServer":                prom_v1.APIServerConfig{},
@@ -284,6 +286,9 @@ func TestPodMonitor(t *testing.T) {
 				relabel_configs:
 				- source_labels: [job]
 					target_label: __tmp_prometheus_job_name
+				- source_labels: [__meta_kubernetes_pod_phase]
+				  regex: (Failed|Succeeded)
+				  action: drop
 				- source_labels: [__meta_kubernetes_pod_container_port_name]
 					regex: metrics
 					action: keep
@@ -822,6 +827,7 @@ func TestSafeTLSConfig(t *testing.T) {
 }
 
 func TestServiceMonitor(t *testing.T) {
+	trueVal := true
 	tt := []struct {
 		name   string
 		input  map[string]interface{}
@@ -829,6 +835,91 @@ func TestServiceMonitor(t *testing.T) {
 	}{
 		{
 			name: "default",
+			input: map[string]interface{}{
+				"agentNamespace": "operator",
+				"monitor": prom_v1.ServiceMonitor{
+					ObjectMeta: meta_v1.ObjectMeta{
+						Namespace: "operator",
+						Name:      "servicemonitor",
+					},
+				},
+				"endpoint": prom_v1.Endpoint{
+					Port:          "metrics",
+					FilterRunning: &trueVal,
+				},
+				"index":                    0,
+				"apiServer":                prom_v1.APIServerConfig{},
+				"overrideHonorLabels":      false,
+				"overrideHonorTimestamps":  false,
+				"ignoreNamespaceSelectors": false,
+				"enforcedNamespaceLabel":   "",
+				"enforcedSampleLimit":      nil,
+				"enforcedTargetLimit":      nil,
+				"shards":                   1,
+			},
+			expect: util.Untab(`
+				job_name: serviceMonitor/operator/servicemonitor/0
+				honor_labels: false
+				kubernetes_sd_configs:
+				- role: endpoints
+				  namespaces:
+						names: [operator]
+				relabel_configs:
+				- source_labels:
+					- job
+					target_label: __tmp_prometheus_job_name
+				- action: keep
+					regex: metrics
+					source_labels:
+					- __meta_kubernetes_endpoint_port_name
+				- regex: Node;(.*)
+					replacement: $1
+					separator: ;
+					source_labels:
+					- __meta_kubernetes_endpoint_address_target_kind
+					- __meta_kubernetes_endpoint_address_target_name
+					target_label: node
+				- regex: Pod;(.*)
+					replacement: $1
+					separator: ;
+					source_labels:
+					- __meta_kubernetes_endpoint_address_target_kind
+					- __meta_kubernetes_endpoint_address_target_name
+					target_label: pod
+				- source_labels:
+					- __meta_kubernetes_namespace
+					target_label: namespace
+				- source_labels:
+					- __meta_kubernetes_service_name
+					target_label: service
+				- source_labels:
+					- __meta_kubernetes_pod_name
+					target_label: pod
+				- source_labels:
+					- __meta_kubernetes_pod_container_name
+					target_label: container
+				- source_labels: [__meta_kubernetes_pod_phase]
+					regex: (Failed|Succeeded)
+					action: drop
+				- replacement: $1
+					source_labels:
+					- __meta_kubernetes_service_name
+					target_label: job
+				- replacement: metrics
+					target_label: endpoint
+				- action: hashmod
+					modulus: 1
+					source_labels:
+					- __address__
+					target_label: __tmp_hash
+				- action: keep
+					regex: $(SHARD)
+					source_labels:
+					- __tmp_hash
+			`),
+		},
+		{
+			name: "no_filter_running",
 			input: map[string]interface{}{
 				"agentNamespace": "operator",
 				"monitor": prom_v1.ServiceMonitor{

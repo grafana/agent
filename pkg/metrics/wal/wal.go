@@ -577,11 +577,12 @@ func (w *Storage) Close() error {
 }
 
 type appender struct {
-	w          *Storage
-	series     []record.RefSeries
-	samples    []record.RefSample
-	exemplars  []record.RefExemplar
-	histograms []record.RefHistogramSample
+	w               *Storage
+	series          []record.RefSeries
+	samples         []record.RefSample
+	exemplars       []record.RefExemplar
+	histograms      []record.RefHistogramSample
+	floatHistograms []record.RefFloatHistogramSample
 }
 
 var _ storage.Appender = (*appender)(nil)
@@ -630,7 +631,7 @@ func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v flo
 	return storage.SeriesRef(series.ref), nil
 }
 
-func (a *appender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram) (storage.SeriesRef, error) {
+func (a *appender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram) (storage.SeriesRef, error) {
 	series := a.w.series.getByID(chunks.HeadSeriesRef(ref))
 	if series == nil {
 		// Ensure no empty or duplicate labels have gotten through. This mirrors the
@@ -664,11 +665,20 @@ func (a *appender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int
 	// series is stale.
 	series.updateTs(t)
 
-	a.histograms = append(a.histograms, record.RefHistogramSample{
-		Ref: series.ref,
-		T:   t,
-		H:   h,
-	})
+	if h != nil {
+		a.histograms = append(a.histograms, record.RefHistogramSample{
+			Ref: series.ref,
+			T:   t,
+			H:   h,
+		})
+	}
+	if fh != nil {
+		a.floatHistograms = append(a.floatHistograms, record.RefFloatHistogramSample{
+			Ref: series.ref,
+			T:   t,
+			FH:  fh,
+		})
+	}
 
 	a.w.metrics.totalAppendedSamples.Inc()
 	return storage.SeriesRef(series.ref), nil
@@ -784,6 +794,14 @@ func (a *appender) Commit() error {
 		buf = buf[:0]
 	}
 
+	if len(a.floatHistograms) > 0 {
+		buf = encoder.FloatHistogramSamples(a.floatHistograms, buf)
+		if err := a.w.wal.Log(buf); err != nil {
+			return err
+		}
+		buf = buf[:0]
+	}
+
 	//nolint:staticcheck
 	a.w.bufPool.Put(buf)
 
@@ -803,6 +821,8 @@ func (a *appender) Rollback() error {
 	a.series = a.series[:0]
 	a.samples = a.samples[:0]
 	a.exemplars = a.exemplars[:0]
+	a.histograms = a.histograms[:0]
+	a.floatHistograms = a.floatHistograms[:0]
 	a.w.appenderPool.Put(a)
 	return nil
 }

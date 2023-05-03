@@ -55,7 +55,7 @@ of conflicts, it takes precedence over `enable_collectors`.
 
 ## Blocks
 
-The following blocks are supported inside the definiton of
+The following blocks are supported inside the definition of
 `prometheus.exporter.unix` to configure collector-specific options:
 
 Hierarchy | Name | Description | Required
@@ -242,6 +242,12 @@ Name      | Type                | Description
 For example, the `targets` could either be passed to a `prometheus.relabel`
 component to rewrite the metrics' label set, or to a `prometheus.scrape`
 component that collects the exposed metrics.
+
+The exported targets will use the configured [in-memory traffic][] address
+specified by the [run command][].
+
+[in-memory traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
+[run command]: {{< relref "../cli/run.md" >}}
 
 ## Component health
 

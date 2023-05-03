@@ -80,8 +80,8 @@ type TextFileConfig struct {
 
 // SMTPConfig handles settings for the windows_exporter SMTP collector
 type SMTPConfig struct {
-	WhiteList string `yaml:"whitelist,omitempty"`
 	BlackList string `yaml:"blacklist,omitempty"`
+	WhiteList string `yaml:"whitelist,omitempty"`
 }
 
 // ServiceConfig handles settings for the windows_exporter service collector
@@ -91,14 +91,14 @@ type ServiceConfig struct {
 
 // ProcessConfig handles settings for the windows_exporter process collector
 type ProcessConfig struct {
-	WhiteList string `yaml:"whitelist,omitempty"`
 	BlackList string `yaml:"blacklist,omitempty"`
+	WhiteList string `yaml:"whitelist,omitempty"`
 }
 
 // NetworkConfig handles settings for the windows_exporter network collector
 type NetworkConfig struct {
-	WhiteList string `yaml:"whitelist,omitempty"`
 	BlackList string `yaml:"blacklist,omitempty"`
+	WhiteList string `yaml:"whitelist,omitempty"`
 }
 
 // MSSQLConfig handles settings for the windows_exporter SQL server collector
@@ -113,6 +113,6 @@ type MSMQConfig struct {
 
 // LogicalDiskConfig handles settings for the windows_exporter logical disk collector
 type LogicalDiskConfig struct {
-	WhiteList string `yaml:"whitelist,omitempty"`
 	BlackList string `yaml:"blacklist,omitempty"`
+	WhiteList string `yaml:"whitelist,omitempty"`
 }

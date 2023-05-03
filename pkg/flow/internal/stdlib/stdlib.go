@@ -12,7 +12,7 @@ import (
 // Identifiers holds a list of stdlib identifiers by name. All interface{}
 // values are River-compatible values.
 //
-// Function identifiers are Go functions with exactly one one non-error return
+// Function identifiers are Go functions with exactly one non-error return
 // value, with an optionally supported error return value as the second return
 // value.
 var Identifiers = map[string]interface{}{

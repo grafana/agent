@@ -27,7 +27,7 @@ scrape_configs:
 }
 
 // TestCodec_Decode_Nil makes sure that if Decode is called with an empty value,
-// which may happen when a key is deleted, that no error occurs and instead an
+// which may happen when a key is deleted, that no error occurs and instead a
 // nil value is returned.
 func TestCodec_Decode_Nil(t *testing.T) {
 	c := &yamlCodec{}

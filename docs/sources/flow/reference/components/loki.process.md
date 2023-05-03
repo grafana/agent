@@ -68,7 +68,7 @@ stage.tenant       | [stage.tenant][]        | Configures a `tenant` processing 
 stage.timestamp    | [stage.timestamp][]     | Configures a `timestamp` processing stage. | no
 
 A user can provide any number of these stage blocks nested inside
-`loki.process`; these will run in order of appearence in the configuration
+`loki.process`; these will run in order of appearance in the configuration
 file.
 
 [stage.cri]: #stagecri-block
@@ -186,7 +186,7 @@ provide a custom label using the `drop_counter_reason` argument.
 The following stage drops log entries that contain the word `debug` _and_ are
 longer than 1KB.
 
-```
+```river
 stage.drop {
     expression  = ".*debug.*"
     longer_than = "1KB"
@@ -197,7 +197,7 @@ On the following example, we define multiple `drop` blocks so `loki.process`
 drops entries that are either 24h or older, are longer than 8KB, _or_ the
 extracted value of 'app' is equal to foo.
 
-```
+```river
 stage.drop {
     older_than  = "24h"
     drop_reason = "too old"
@@ -1355,7 +1355,7 @@ The supported actions are:
 The following stage fetches the `time` value from the shared values map, parses
 it as a RFC3339 format, and sets it as the log entry's timestamp.
 
-```
+```river
 stage.timestamp {
     source = "time"
     format = "RFC3339"
@@ -1380,6 +1380,7 @@ Name | Type | Description
 
 ## Debug metrics
 * `loki_process_dropped_lines_total` (counter): Number of lines dropped as part of a processing stage.
+* `loki_process_dropped_lines_by_label_total` (counter):  Number of lines dropped when `by_label_name` is non-empty in [stage.limit][]. 
 
 ## Example
 
@@ -1399,4 +1400,3 @@ loki.process "local" {
   }
 }
 ```
-

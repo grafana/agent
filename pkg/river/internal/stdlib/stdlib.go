@@ -11,7 +11,7 @@ import (
 // Identifiers holds a list of stdlib identifiers by name. All interface{}
 // values are River-compatible values.
 //
-// Function identifiers are Go functions with exactly one one non-error return
+// Function identifiers are Go functions with exactly one non-error return
 // value, with an optionally supported error return value as the second return
 // value.
 var Identifiers = map[string]interface{}{
@@ -73,4 +73,26 @@ var Identifiers = map[string]interface{}{
 		}
 		return res, nil
 	},
+
+	"coalesce": value.RawFunction(func(funcValue value.Value, args ...value.Value) (value.Value, error) {
+		if len(args) == 0 {
+			return value.Null, nil
+		}
+
+		for _, arg := range args {
+			if arg.Type() == value.TypeNull {
+				continue
+			}
+
+			if !arg.Reflect().IsZero() {
+				if argType := value.RiverType(arg.Reflect().Type()); (argType == value.TypeArray || argType == value.TypeObject) && arg.Len() == 0 {
+					continue
+				}
+
+				return arg, nil
+			}
+		}
+
+		return args[len(args)-1], nil
+	}),
 }

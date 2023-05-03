@@ -742,7 +742,7 @@ func TestMetricBuilderHistogram(t *testing.T) {
 			},
 		},
 		{
-			// this won't likely happen in real env, as prometheus wont generate histogram with less than 3 buckets
+			// this won't likely happen in real env, as prometheus won't generate histogram with less than 3 buckets
 			name: "only-one-bucket",
 			inputs: []*testScrapedPage{
 				{
@@ -772,7 +772,7 @@ func TestMetricBuilderHistogram(t *testing.T) {
 			},
 		},
 		{
-			// this won't likely happen in real env, as prometheus wont generate histogram with less than 3 buckets
+			// this won't likely happen in real env, as prometheus won't generate histogram with less than 3 buckets
 			name: "only-one-bucket-noninf",
 			inputs: []*testScrapedPage{
 				{

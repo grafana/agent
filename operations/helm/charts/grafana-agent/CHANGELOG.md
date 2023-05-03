@@ -10,15 +10,37 @@ internal API changes are not present.
 Unreleased
 ----------
 
+
+0.13.0 (2023-05-01)
+-------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.33.1. (@spartan0x117)
+
+- Update RBAC rules to permit `node/metrics`. (@yurii-kryvosheia)
+
+0.12.0 (2023-04-25)
+-------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.33.0. (@rfratto)
+
+0.11.0 (2023-04-24)
+-------------------
+
 ### Enhancements
 
 - Add support for adding Annotations to Service (@ofirshtrull)
 - Add `agent.envFrom` value. (@carlosjgp)
 - Add `controller.hostNetwork` value. (@carlosjgp)
+- Add `controller.dnsPolicy` value. (@carlosjgp)
 
 ### Bugfixes
 
 - Fix issue where `controller.tolerations` setting was ignored. (@carlosjgp)
+- Fix YAML indentation of some resources. (@carlosjgp)
 
 0.10.0 (2023-03-09)
 -------------------

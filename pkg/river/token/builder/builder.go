@@ -107,7 +107,7 @@ func (b *Body) Tokens() []Token {
 	return rawToks
 }
 
-// AppendTokens appens raw tokens to the Body.
+// AppendTokens appends raw tokens to the Body.
 func (b *Body) AppendTokens(tokens []Token) {
 	b.nodes = append(b.nodes, tokensSlice(tokens))
 }
@@ -195,7 +195,7 @@ func (b *Body) encodeField(prefix []string, field rivertags.Field, fieldValue re
 				elem := fieldValue.Index(i)
 
 				// Recursively call encodeField for each element in the slice/array.
-				// The recurisve call will hit the case below and add a new block for
+				// The recursive call will hit the case below and add a new block for
 				// each field encountered.
 				b.encodeField(prefix, field, elem)
 			}

@@ -49,10 +49,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net"
 	"sync"
 	"time"
 
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/internal/stdlib"
@@ -82,6 +84,10 @@ type Options struct {
 	// nil.
 	Tracer *tracing.Tracer
 
+	// Clusterer for implementing distributed behavior among components running
+	// on different nodes.
+	Clusterer *cluster.Clusterer
+
 	// Directory where components can write data. Constructed components will be
 	// given a subdirectory of DataPath using the local ID of the component.
 	//
@@ -102,9 +108,8 @@ type Options struct {
 	// different value for HTTPPathPrefix to prevent components from colliding.
 	HTTPPathPrefix string
 
-	// HTTPListenAddr is the base address that the server is listening on.
-	// The controller does not itself listen here, but some components
-	// need to know this to set the correct targets.
+	// HTTPListenAddr is the base address (host:port) where component APIs are
+	// exposed to other components.
 	HTTPListenAddr string
 
 	// OnExportsChange is called when the exports of the controller change.
@@ -112,13 +117,18 @@ type Options struct {
 	// OnExportsChange is nil, export configuration blocks are not allowed in the
 	// loaded config file.
 	OnExportsChange func(exports map[string]any)
+
+	// DialFunc is a function to use for components to properly connect to
+	// HTTPListenAddr. If nil, DialFunc defaults to (&net.Dialer{}).DialContext.
+	DialFunc func(ctx context.Context, network, address string) (net.Conn, error)
 }
 
 // Flow is the Flow system.
 type Flow struct {
-	log    *logging.Logger
-	tracer *tracing.Tracer
-	opts   Options
+	log       *logging.Logger
+	tracer    *tracing.Tracer
+	clusterer *cluster.Clusterer
+	opts      Options
 
 	updateQueue *controller.Queue
 	sched       *controller.Scheduler
@@ -134,8 +144,9 @@ type Flow struct {
 // the controller.
 func New(o Options) *Flow {
 	var (
-		log    = logging.New(o.LogSink)
-		tracer = o.Tracer
+		log       = logging.New(o.LogSink)
+		tracer    = o.Tracer
+		clusterer = o.Clusterer
 	)
 
 	if tracer == nil {
@@ -147,6 +158,11 @@ func New(o Options) *Flow {
 		}
 	}
 
+	dialFunc := o.DialFunc
+	if dialFunc == nil {
+		dialFunc = (&net.Dialer{}).DialContext
+	}
+
 	var (
 		queue  = controller.NewQueue()
 		sched  = controller.NewScheduler()
@@ -154,6 +170,7 @@ func New(o Options) *Flow {
 			LogSink:       o.LogSink,
 			Logger:        log,
 			TraceProvider: tracer,
+			Clusterer:     clusterer,
 			DataPath:      o.DataPath,
 			OnComponentUpdate: func(cn *controller.ComponentNode) {
 				// Changed components should be queued for reevaluation.
@@ -163,15 +180,16 @@ func New(o Options) *Flow {
 			Registerer:      o.Reg,
 			HTTPPathPrefix:  o.HTTPPathPrefix,
 			HTTPListenAddr:  o.HTTPListenAddr,
+			DialFunc:        dialFunc,
 			ControllerID:    o.ControllerID,
 		})
 	)
-
 	return &Flow{
 		log:    log,
 		tracer: tracer,
 		opts:   o,
 
+		clusterer:   clusterer,
 		updateQueue: queue,
 		sched:       sched,
 		loader:      loader,
@@ -299,7 +317,7 @@ func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *ComponentInfo 
 	referencedBy := make([]string, 0)
 	for _, e := range edges {
 		// Skip over any edge which isn't between two component nodes. This is a
-		// temporary workaround needed until there's the conept of configuration
+		// temporary workaround needed until there's the concept of configuration
 		// blocks from the API.
 		//
 		// Without this change, the graph fails to render when a configuration

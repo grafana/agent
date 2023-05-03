@@ -1,5 +1,4 @@
-//go:build !race
-// +build !race
+//go:build !race && !windows
 
 package node_exporter //nolint:golint
 
@@ -41,7 +40,7 @@ func TestNodeExporter(t *testing.T) {
 	}
 	cfg.DisableCollectors = []string{CollectorPerf, CollectorBuddyInfo}
 
-	// Check that the flags convert and the integration initiailizes
+	// Check that the flags convert and the integration initializes
 	logger := log.NewNopLogger()
 	integration, err := New(logger, &cfg)
 	require.NoError(t, err, "failed to setup node_exporter")

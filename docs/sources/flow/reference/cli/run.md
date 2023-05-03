@@ -27,12 +27,18 @@ running components.
 
 The following flags are supported:
 
+* `--server.http.memory-addr`: Address to listen for [in-memory HTTP traffic][] on
+  (default `agent.internal:12345`).
 * `--server.http.listen-addr`: Address to listen for HTTP traffic on (default `127.0.0.1:12345`).
 * `--server.http.ui-path-prefix`: Base path where the UI will be exposed (default `/`).
 * `--storage.path`: Base directory where components can store data (default `data-agent/`).
 * `--disable-reporting`: Disable [usage reporting][] of enabled [components][] to Grafana (default `false`).
+* `--cluster.enabled`: Start the Agent in clustered mode (default `false`).
+* `--cluster.join-addresses`: Comma-separated list of addresses to join the cluster at (default `""`).
+* `--cluster.advertise-address`: Address to advertise to other cluster nodes (default `""`).
 
-[usage reporting]: {{< relref "../../../configuration/flags.md/#report-information-usage" >}}
+[in-memory HTTP traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
+[usage reporting]: {{< relref "../../../static/configuration/flags.md#report-information-usage" >}}
 [components]: {{< relref "../../concepts/components.md" >}}
 
 ## Updating the config file
@@ -52,3 +58,19 @@ All components managed by the component controller are reevaluated after
 reloading.
 
 [component controller]: {{< relref "../../concepts/component_controller.md" >}}
+
+## Clustered mode (experimental)
+
+When the `--cluster.enabled` command-line argument is provided, Grafana Agent will
+start in _clustered mode_.
+
+The agent tries to connect over HTTP/2 to one or more peers provided in the
+comma-separated `--cluster.join-addresses` list to join an existing cluster.
+If no connection can be made or the argument is empty, the agent falls back to
+bootstrapping a new cluster of its own.
+
+The agent will advertise its own address as `--cluster.advertise-address` to
+other agent nodes; if this is empty it will attempt to find a suitable address
+to advertise from a list of default network interfaces. The agent must be
+reachable over HTTP on this address as communication happens over the agent's
+HTTP server.

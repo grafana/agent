@@ -1,5 +1,5 @@
 ---
-title: agent fmt
+title: grafana-agent fmt
 weight: 100
 ---
 
@@ -19,7 +19,7 @@ The `--write` flag can be specified to replace the contents of the original
 file on disk with the formatted results. `--write` can only be provided when
 `agent fmt` is not reading from standard input.
 
-The command fails if the file being formatted has syntatically incorrect River
+The command fails if the file being formatted has syntactically incorrect River
 configuration, but does not validate whether Flow components are configured
 properly.
 

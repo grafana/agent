@@ -30,8 +30,23 @@ logs_scrape_configs:
     - targets: ['localhost:3100']
 `,
 	}}
+	integrationSnippets := []Snippet{{
+		Config: `
+integration_configs:
+  agent:
+    enabled: true
+    relabel_configs:
+      - action: replace
+        source_labels:
+          - agent_hostname
+        target_label: instance
+`,
+	}}
 
-	bothSnippets := append(metricsSnippets, logsSnippets...)
+	allSnippets := []Snippet{}
+	allSnippets = append(allSnippets, metricsSnippets...)
+	allSnippets = append(allSnippets, logsSnippets...)
+	allSnippets = append(allSnippets, integrationSnippets...)
 
 	t.Run("only metrics snippets provided", func(t *testing.T) {
 		rc := RemoteConfig{
@@ -42,6 +57,7 @@ logs_scrape_configs:
 		require.NoError(t, err)
 		require.Equal(t, len(c.Metrics.Configs), 1)
 		require.Empty(t, c.Logs)
+		require.Empty(t, c.Integrations.configV1.Integrations)
 	})
 
 	t.Run("only log snippets provided", func(t *testing.T) {
@@ -53,9 +69,22 @@ logs_scrape_configs:
 		require.NoError(t, err)
 		require.Equal(t, len(c.Logs.Configs), 1)
 		require.Empty(t, c.Metrics.Configs)
+		require.Empty(t, c.Integrations.configV1.Integrations)
 	})
 
-	t.Run("base with already logs and metrics provided", func(t *testing.T) {
+	t.Run("only integration snippets provided", func(t *testing.T) {
+		rc := RemoteConfig{
+			BaseConfig: BaseConfigContent(baseConfig),
+			Snippets:   integrationSnippets,
+		}
+		c, err := rc.BuildAgentConfig()
+		require.NoError(t, err)
+		require.Empty(t, c.Metrics.Configs)
+		require.Empty(t, c.Logs)
+		require.Equal(t, 1, len(c.Integrations.configV1.Integrations))
+	})
+
+	t.Run("base with already logs, metrics and integrations provided", func(t *testing.T) {
 		fullConfig := `
 metrics:
   configs:
@@ -74,30 +103,36 @@ logs:
       static_configs:
       - targets:
         - localhost:3100
+integrations:
+  node_exporter:
+    enabled: true
 `
 		rc := RemoteConfig{
 			BaseConfig: BaseConfigContent(fullConfig),
-			Snippets:   bothSnippets,
+			Snippets:   allSnippets,
 		}
 		c, err := rc.BuildAgentConfig()
 		require.NoError(t, err)
 		require.Equal(t, len(c.Logs.Configs), 2)
 		require.Equal(t, len(c.Metrics.Configs), 2)
+		require.Equal(t, 2, len(c.Integrations.configV1.Integrations))
 	})
 
-	t.Run("both snippets provided", func(t *testing.T) {
+	t.Run("all snippets provided", func(t *testing.T) {
 		rc := RemoteConfig{
 			BaseConfig: BaseConfigContent(baseConfig),
-			Snippets:   bothSnippets,
+			Snippets:   allSnippets,
 		}
 		c, err := rc.BuildAgentConfig()
 		require.NoError(t, err)
-		require.Equal(t, len(c.Logs.Configs), 1)
-		require.Equal(t, len(c.Metrics.Configs), 1)
+		require.Equal(t, 1, len(c.Logs.Configs))
+		require.Equal(t, 1, len(c.Metrics.Configs))
+		require.Equal(t, 1, len(c.Integrations.configV1.Integrations))
 
 		// check some fields to make sure the config was parsed correctly
 		require.Equal(t, "prometheus", c.Metrics.Configs[0].ScrapeConfigs[0].JobName)
 		require.Equal(t, "loki", c.Logs.Configs[0].ScrapeConfig[0].JobName)
+		require.Equal(t, "agent", c.Integrations.configV1.Integrations[0].Name())
 
 		// make sure defaults for metric snippets are applied
 		require.Equal(t, instance.DefaultConfig.WALTruncateFrequency, c.Metrics.Configs[0].WALTruncateFrequency)
@@ -113,5 +148,11 @@ logs:
 		require.Equal(t, "", c.Logs.Configs[0].PositionsConfig.PositionsFile)
 		require.Equal(t, false, c.Logs.Configs[0].PositionsConfig.IgnoreInvalidYaml)
 		require.Equal(t, false, c.Logs.Configs[0].TargetConfig.Stdin)
+
+		// make sure defaults for integration snippets are applied
+		require.Equal(t, true, c.Integrations.configV1.ScrapeIntegrations)
+		require.Equal(t, true, c.Integrations.configV1.UseHostnameLabel)
+		require.Equal(t, true, c.Integrations.configV1.ReplaceInstanceLabel)
+		require.Equal(t, 5*time.Second, c.Integrations.configV1.IntegrationRestartBackoff)
 	})
 }
