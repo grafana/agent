@@ -53,8 +53,8 @@ The following blocks are supported inside the definition of `loki.source.heroku`
 
 Hierarchy | Name | Description | Required
 --------- | ---- | ----------- | --------
-`http`    | [HTTP][]      | Configures the HTTP server that receives requests.              |  | no
-`grpc`    | [gRPC][]      | Configures the gRPC server that receives requests.              |  | no
+`http`    | [http][]      | Configures the HTTP server that receives requests.              |  | no
+`grpc`    | [grpc][]      | Configures the gRPC server that receives requests.              |  | no
 
 [http]: #http
 [grpc]: #grpc
