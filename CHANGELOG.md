@@ -37,6 +37,10 @@ Main (unreleased)
 - Fix issue where component evaluation time was overridden by a "default
   health" message. (@rfratto)
 
+- Fix issue where the the `node_exporter` integration and
+  `prometheus.exporter.unix` `diskstat_device_include` component could not set
+  the allowlist field for the diskstat collector. (@tpaschalis)
+
 ### Other changes
 
 - Add metrics when clustering mode is enabled. (@rfratto)
