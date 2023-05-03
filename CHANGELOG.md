@@ -37,6 +37,9 @@ Main (unreleased)
 - Fix issue where component evaluation time was overridden by a "default
   health" message. (@rfratto)
 
+- Fix an issue where defining `logging` or `tracing` blocks inside of a module 
+  would generate a panic instead of returning an error. (@erikbaranowski)
+
 ### Other changes
 
 - Add metrics when clustering mode is enabled. (@rfratto)
