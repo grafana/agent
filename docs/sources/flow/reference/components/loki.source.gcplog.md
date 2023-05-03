@@ -41,16 +41,21 @@ Name            | Type                 | Description          | Default | Requir
 The following blocks are supported inside the definition of
 `loki.source.gcplog`:
 
-Hierarchy | Name | Description | Required
---------- | ---- | ----------- | --------
-pull      | [pull][] | Configures a target to pull logs from a GCP Pub/Sub subscription. | no
-push      | [push][] | Configures a server to receive logs as GCP Pub/Sub push requests. | no
+Hierarchy | Name     | Description                                                                   | Required
+--------- |----------|-------------------------------------------------------------------------------| --------
+pull      | [pull][] | Configures a target to pull logs from a GCP Pub/Sub subscription.             | no
+push      | [push][] | Configures a server to receive logs as GCP Pub/Sub push requests.             | no
+push > http    | [http][] | Configures the HTTP server that receives requests when using the `push` mode.   | no
+push > grpc    | [grpc][] | Configures the gRPC server that receives requests when using the `push` mode. | no
 
 The `pull` and `push` inner blocks are mutually exclusive; a component must
-contain exactly one of the two in its definition.
+contain exactly one of the two in its definition. The `http` and `grpc` block
+are just used when the `push` block is configured.
 
 [pull]: #pull-block
 [push]: #push-block
+[http]: #http
+[grpc]: #grpc
 
 ### pull block
 
@@ -88,15 +93,10 @@ fields take their default values.
 
 Name                     | Type          | Description                                                     | Default | Required
 ------------------------ |---------------|-----------------------------------------------------------------| ------- | --------
-`http`    | [HTTP][]      | Configures the HTTP server that receives requests.              |  | no
-`grpc`    | [gRPC][]      | Configures the gRPC server that receives requests.              |  | no
 `graceful_shutdown_timeout` | `duration` | Timeout for servers graceful shutdown. If configured, should be greater than zero. | "30s"    | no
 `push_timeout`           | `duration`    | Sets a maximum processing time for each incoming GCP log entry. |  `"0s"`  | no
 `labels`                 | `map(string)` | Additional labels to associate with incoming entries.           | `"{}"`  | no
 `use_incoming_timestamp` | `bool`        | Whether to use the incoming entry timestamp.                    | `false` | no
-
-[http]: #http
-[grpc]: #grpc
 
 The server listens for POST requests from GCP's Push subscriptions on
 `HOST:PORT/gcp/api/v1/push`.

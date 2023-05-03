@@ -105,7 +105,6 @@ func (c *ServerConfig) Convert() weaveworks.Config {
 func newDefaultConfig() weaveworks.Config {
 	c := weaveworks.Config{}
 	c.RegisterFlags(flag.NewFlagSet("empty", flag.ContinueOnError))
-	// Opting by default 0, which used in net.Listen assigns a random port
 	c.HTTPListenPort = DefaultHTTPPort
 	c.GRPCListenPort = DefaultGRPCPort
 	// By default, do not register instrumentation since every metric is later registered
