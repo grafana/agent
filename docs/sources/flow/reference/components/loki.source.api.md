@@ -51,19 +51,19 @@ before they're forwarded to the list of receivers in `forward_to`.
 
 `loki.source.api` is only reported as unhealthy if given an invalid configuration.
 
-## Debug Metrics
+## Debug metrics
 
 The following are some of the metrics that are exposed when this component is used. Note that the metrics include labels
 such as `status_code` where relevant, which can be used to measure request success rates.
 
-* `loki_source_api_request_duration_seconds` (histogram): Time (in seconds) spent serving HTTP requests.
-* `loki_source_api_request_message_bytes` (histogram): Size (in bytes) of messages received in the request.
-* `loki_source_api_response_message_bytes` (histogram): Size (in bytes) of messages sent in response.
-* `loki_source_api_tcp_connections` (gauge): Current number of accepted TCP connections.
+* `agent_loki_source_api_request_duration_seconds` (histogram): Time (in seconds) spent serving HTTP requests.
+* `agent_loki_source_api_request_message_bytes` (histogram): Size (in bytes) of messages received in the request.
+* `agent_loki_source_api_response_message_bytes` (histogram): Size (in bytes) of messages sent in response.
+* `agent_loki_source_api_tcp_connections` (gauge): Current number of accepted TCP connections.
 
 ## Example
 
-This example starts an HTTP server on `localhost` address and port `9999`. The server receives log entries and forwards
+This example starts an HTTP server on `0.0.0.0` address and port `9999`. The server receives log entries and forwards
 them to a `loki.echo` component while adding a `forwarded="true"` label.
 
 ```river

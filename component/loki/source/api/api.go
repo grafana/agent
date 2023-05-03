@@ -154,7 +154,7 @@ func (c *Component) pushTargetConfigForArgs(newArgs Arguments) *lokipush.PushTar
 			HTTPListenPort:          newArgs.HTTPPort,
 			HTTPListenAddress:       newArgs.HTTPAddress,
 			Registerer:              c.unregisterer,
-			MetricsNamespace:        "loki_source_api",
+			MetricsNamespace:        "agent_loki_source_api",
 			RegisterInstrumentation: false,
 			Log:                     logging.GoKit(c.opts.Logger),
 		},
