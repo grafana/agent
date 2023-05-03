@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/grafana/agent/pkg/flow/internal/dag"
-	"github.com/grafana/agent/pkg/flow/internal/stdlib"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/vm"
@@ -48,7 +47,7 @@ func ComponentReferences(cn dag.Node, g *dag.Graph) ([]Reference, diag.Diagnosti
 		// stdlib.
 		//
 		// Any call to an stdlib function is ignored.
-		emptyScope := &vm.Scope{Variables: stdlib.Identifiers}
+		var emptyScope vm.Scope
 		if _, ok := emptyScope.Lookup(t[0].Name); ok {
 			continue
 		}

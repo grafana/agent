@@ -483,8 +483,12 @@ func (l *Loader) evaluate(logger log.Logger, bn BlockNode) error {
 		l.cache.CacheArguments(c.ID(), c.Arguments())
 		l.cache.CacheExports(c.ID(), c.Exports())
 	case *ArgumentConfigNode:
-		if _, ok := l.cache.moduleArguments[c.Label()]; !ok && c.Optional() {
-			l.cache.CacheModuleArgument(c.Label(), c.Default())
+		if _, found := l.cache.moduleArguments[c.Label()]; !found {
+			if c.Optional() {
+				l.cache.CacheModuleArgument(c.Label(), c.Default())
+			} else {
+				err = fmt.Errorf("missing required argument %q to module", c.Label())
+			}
 		}
 	}
 
