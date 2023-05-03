@@ -27,9 +27,6 @@ local filename = 'agent-cluster-overview.json';
       // Nodes
       (
         panel.new('Nodes', 'stat') +
-        panel.withDescription(|||
-          Node count.
-        |||) +
         panel.withPosition({ h: 9, w: 8, x: 0, y: 0 }) +
         panel.withQueries([
           panel.newInstantQuery(
@@ -124,7 +121,14 @@ local filename = 'agent-cluster-overview.json';
         panel.withPosition({ h: 9, w: 8, x: 0, y: 9 }) +
         panel.withQueries([
           panel.newInstantQuery(
-            expr='clamp((\r\n  sum(stddev by (state) (cluster_node_peers) != 0) or \r\n  (sum(abs(sum without (state) (cluster_node_peers)) - scalar(count(cluster_node_info)) != 0))\r\n), 1, 1)',
+            expr = ||| 
+              clamp((
+                sum(stddev by (state) (cluster_node_peers) != 0) or 
+                (sum(abs(sum without (state) (cluster_node_peers)) - scalar(count(cluster_node_info)) != 0))
+                ), 
+                1, 1
+              )
+|||,
             format='time_series'
           ),
         ]) +
