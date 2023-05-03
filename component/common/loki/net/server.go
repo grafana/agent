@@ -44,7 +44,7 @@ func NewTargetServer(logger log.Logger, metricsNamespace string, reg prometheus.
 	ts.config = &serverCfg
 	// To prevent metric collisions because all metrics are going to be registered in the global Prometheus registry.
 	ts.config.MetricsNamespace = ts.metricsNamespace
-	// We don't want the /debug and /metrics endpoints running, since this is not the main promtail HTTP server.
+	// We don't want the /debug and /metrics endpoints running, since this is not the main Flow HTTP server.
 	// We want this target to expose the least surface area possible, hence disabling WeaveWorks HTTP server metrics
 	// and debugging functionality.
 	ts.config.RegisterInstrumentation = false
