@@ -38,13 +38,13 @@ local filename = 'agent-cluster-node.json';
         panel.withDescription(|||
           Information about a specific cluster node.
 
-          Lamport clock time: The observed Lamport time on the specific node's clock used to provide partial ordering around gossip messages. Nodes should ideally be observing roughly the same time, meaning they are up-to-date on the cluster state. If a node is falling behind, it means that it has not recently processed the same number of messages and may have an outdated view of its peers.
+          * Lamport clock time: The observed Lamport time on the specific node's clock used to provide partial ordering around gossip messages. Nodes should ideally be observing roughly the same time, meaning they are up-to-date on the cluster state. If a node is falling behind, it means that it has not recently processed the same number of messages and may have an outdated view of its peers.
 
-          Internal cluster state observers: The number of Observer functions that are registered to run whenever the node detects a cluster change.
+          * Internal cluster state observers: The number of Observer functions that are registered to run whenever the node detects a cluster change.
 
-          Gossip health score: A health score assigned to this node by the memberlist implementation. The lower, the better.
+          * Gossip health score: A health score assigned to this node by the memberlist implementation. The lower, the better.
 
-          Gossip protocol version: The protocol version used by nodes to communicate with one another. It should match across all nodes.
+          * Gossip protocol version: The protocol version used by nodes to communicate with one another. It should match across all nodes.
         |||) +
         panel.withPosition({ x: 0, y: 1, w: 12, h: 8 }) +
         panel.withQueries([
@@ -273,7 +273,7 @@ local filename = 'agent-cluster-node.json';
         panel.withDescription(|||
           The number of open connections from this node to its peers.
 
-          Each node picks up a subset of its peers to continuously gossip messages around cluster status using streaming HTTP/2 connections. In case there are networking errors, 
+          Each node picks up a subset of its peers to continuously gossip messages around cluster status using streaming HTTP/2 connections. This panel can be used to detect networking failures that result in cluster communication being disrupted and convergence taking longer than expected or outright failing.
         |||) +
         panel.withPosition({
           h: 8,
