@@ -37,6 +37,9 @@ Main (unreleased)
 - Fix issue where component evaluation time was overridden by a "default
   health" message. (@rfratto)
 
+- Fix an issue where defining `logging` or `tracing` blocks inside of a module 
+  would generate a panic instead of returning an error. (@erikbaranowski)
+
 ### Other changes
 
 - Add metrics when clustering mode is enabled. (@rfratto)
@@ -52,9 +55,6 @@ v0.33.1 (2023-05-01)
 
 - Fix bug where some capsule values (such as Prometheus receivers) could not
   properly be used as an argument to a module. (@rfratto)
-
-- Return an error message rather than go panic when putting a logging config
-  block inside a module. (@erikbaranowski)
 
 - Fix version information not displaying correctly when passing the `--version`
   flag or in the `agent_build_info` metric. (@rfratto)
