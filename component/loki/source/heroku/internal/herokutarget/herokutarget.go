@@ -12,26 +12,24 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/gorilla/mux"
 	herokuEncoding "github.com/heroku/x/logplex/encoding"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/relabel"
-	"github.com/weaveworks/common/logging"
-	"github.com/weaveworks/common/server"
 
 	"github.com/grafana/agent/component/common/loki"
+	fnet "github.com/grafana/agent/component/common/net"
 
 	"github.com/grafana/loki/pkg/logproto"
-	util_log "github.com/grafana/loki/pkg/util/log"
 )
 
 const ReservedLabelTenantID = "__tenant_id__"
 
 // HerokuDrainTargetConfig describes a scrape config to listen and consume heroku logs, in the HTTPS drain manner.
 type HerokuDrainTargetConfig struct {
-	// Server is the weaveworks server config for listening connections
-	Server server.Config
+	Server *fnet.ServerConfig
 
 	// Labels optionally holds labels to associate with each record received on the push api.
 	Labels model.LabelSet
@@ -45,16 +43,22 @@ type HerokuTarget struct {
 	logger         log.Logger
 	handler        loki.EntryHandler
 	config         *HerokuDrainTargetConfig
-	server         *server.Server
 	metrics        *Metrics
 	relabelConfigs []*relabel.Config
+	server         *fnet.TargetServer
 }
 
 // NewTarget creates a brand new Heroku Drain target, capable of receiving logs from a Heroku application through an HTTP drain.
 func NewHerokuTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandler, relabel []*relabel.Config, config *HerokuDrainTargetConfig, reg prometheus.Registerer) (*HerokuTarget, error) {
 	wrappedLogger := log.With(logger, "component", "heroku_drain")
 
+	srv, err := fnet.NewTargetServer(wrappedLogger, "loki_source_heroku_drain_target", reg, config.Server)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create loki server: %w", err)
+	}
+
 	ht := &HerokuTarget{
+		server:         srv,
 		metrics:        metrics,
 		logger:         wrappedLogger,
 		handler:        handler,
@@ -62,46 +66,15 @@ func NewHerokuTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHand
 		relabelConfigs: relabel,
 	}
 
-	config.Server.Registerer = reg
-
-	err := ht.run()
+	err = ht.server.MountAndRun(func(router *mux.Router) {
+		router.Path(ht.DrainEndpoint()).Methods("POST").Handler(http.HandlerFunc(ht.drain))
+		router.Path(ht.HealthyEndpoint()).Methods("GET").Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) }))
+	})
 	if err != nil {
 		return nil, err
 	}
 
 	return ht, nil
-}
-
-func (h *HerokuTarget) run() error {
-	level.Info(h.logger).Log("msg", "starting heroku drain target")
-
-	h.config.Server.MetricsNamespace = "loki_source_heroku_drain_target"
-
-	// We don't want the /debug and /metrics endpoints running, since this is not the main promtail HTTP server.
-	// We want this target to expose the least surface area possible, hence disabling WeaveWorks HTTP server metrics
-	// and debugging functionality.
-	h.config.Server.RegisterInstrumentation = false
-
-	// Wrapping util logger with component-specific key vals, and the expected GoKit logging interface
-	h.config.Server.Log = logging.GoKit(log.With(util_log.Logger, "component", "heroku_drain"))
-
-	srv, err := server.New(h.config.Server)
-	if err != nil {
-		return err
-	}
-
-	h.server = srv
-	h.server.HTTP.Path(h.DrainEndpoint()).Methods("POST").Handler(http.HandlerFunc(h.drain))
-	h.server.HTTP.Path(h.HealthyEndpoint()).Methods("GET").Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) }))
-
-	go func() {
-		err := srv.Run()
-		if err != nil {
-			level.Error(h.logger).Log("msg", "heroku drain target shutdown with error", "err", err)
-		}
-	}()
-
-	return nil
 }
 
 func (h *HerokuTarget) drain(w http.ResponseWriter, r *http.Request) {
@@ -172,12 +145,8 @@ func (h *HerokuTarget) Labels() model.LabelSet {
 	return h.config.Labels
 }
 
-func (h *HerokuTarget) ListenAddress() string {
-	return h.config.Server.HTTPListenAddress
-}
-
-func (h *HerokuTarget) ListenPort() int {
-	return h.config.Server.HTTPListenPort
+func (h *HerokuTarget) HTTPListenAddress() string {
+	return h.server.HTTPListenAddr()
 }
 
 func (h *HerokuTarget) DrainEndpoint() string {
@@ -189,7 +158,7 @@ func (h *HerokuTarget) HealthyEndpoint() string {
 }
 
 func (h *HerokuTarget) Ready() bool {
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s:%d%s", h.ListenAddress(), h.ListenPort(), h.HealthyEndpoint()), nil)
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s%s", h.HTTPListenAddress(), h.HealthyEndpoint()), nil)
 	if err != nil {
 		return false
 	}
@@ -208,7 +177,7 @@ func (h *HerokuTarget) Details() interface{} {
 
 func (h *HerokuTarget) Stop() error {
 	level.Info(h.logger).Log("msg", "stopping heroku drain target")
-	h.server.Shutdown()
+	h.server.StopAndShutdown()
 	h.handler.Stop()
 	return nil
 }

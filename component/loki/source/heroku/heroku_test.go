@@ -10,6 +10,7 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
+	fnet "github.com/grafana/agent/component/common/net"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/loki/source/heroku/internal/herokutarget"
 	"github.com/grafana/agent/pkg/util"
@@ -28,9 +29,13 @@ func TestPush(t *testing.T) {
 
 	ch1, ch2 := make(chan loki.Entry), make(chan loki.Entry)
 	args := Arguments{
-		HerokuListener: ListenerConfig{
-			ListenAddress: address,
-			ListenPort:    port,
+		Server: &fnet.ServerConfig{
+			HTTP: &fnet.HTTPConfig{
+				ListenAddress: address,
+				ListenPort:    port,
+			},
+			// assign random grpc port
+			GRPC: &fnet.GRPCConfig{ListenPort: 0},
 		},
 		UseIncomingTimestamp: false,
 		Labels:               map[string]string{"foo": "bar"},
