@@ -67,50 +67,7 @@ local filename = 'agent-cluster-overview.json';
             },
           },
         ]) +
-        panel.withOptions({
-          footer: {
-            countRows: false,
-            fields: '',
-            reducer: [
-              'sum',
-            ],
-            show: false,
-          },
-          showHeader: true,
-          sortBy: [
-            {
-              desc: true,
-              displayName: 'instance',
-            },
-          ],
-        }) +
         panel.withFieldConfigs({
-          defaults: {
-            color: {
-              mode: 'thresholds',
-            },
-            custom: {
-              align: 'auto',
-              cellOptions: {
-                type: 'auto',
-              },
-              inspect: false,
-            },
-            mappings: [],
-            thresholds: {
-              mode: 'absolute',
-              steps: [
-                {
-                  color: 'green',
-                  value: null,
-                },
-                {
-                  color: 'red',
-                  value: 80,
-                },
-              ],
-            },
-          },
           overrides: [
             {
               matcher: {
@@ -138,7 +95,7 @@ local filename = 'agent-cluster-overview.json';
                     {
                       targetBlank: false,
                       title: 'Detail dashboard for node',
-                      url: '/d/cluster-node/grafana-agent-flow-cluster-node?var-instance=${__data.fields.instance}&var-datasource=${datasource}&var-loki_datasource=${loki_datasource}&var-cluster=${cluster}&var-namespace=${namespace}',
+                      url: '/d/agent-cluster-node/grafana-agent-flow-cluster-node?var-instance=${__data.fields.instance}&var-datasource=${datasource}&var-loki_datasource=${loki_datasource}&var-cluster=${cluster}&var-namespace=${namespace}',
                     },
                   ],
                 },

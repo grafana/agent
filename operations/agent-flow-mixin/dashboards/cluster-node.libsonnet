@@ -57,47 +57,6 @@ local filename = 'agent-cluster-node.json';
             format='table',
           ),
         ]) +
-        panel.withOptions({
-          footer: {
-            countRows: false,
-            fields: '',
-            reducer: [
-              'sum',
-            ],
-            show: false,
-          },
-          frameIndex: 0,
-          showHeader: true,
-        }) +
-        panel.withFieldConfigs({
-          defaults: {
-            color: {
-              mode: 'thresholds',
-            },
-            custom: {
-              align: 'auto',
-              cellOptions: {
-                type: 'auto',
-              },
-              inspect: false,
-            },
-            mappings: [],
-            thresholds: {
-              mode: 'absolute',
-              steps: [
-                {
-                  color: 'green',
-                  value: null,
-                },
-                {
-                  color: 'red',
-                  value: 80,
-                },
-              ],
-            },
-          },
-          overrides: [],
-        }) +
         panel.withTransformations([
           {
             id: 'renameByRegex',
@@ -136,59 +95,7 @@ local filename = 'agent-cluster-node.json';
             legendFormat='{{event}}'
           ),
         ]) +
-        panel.withFieldConfigs({
-          defaults: {
-            color: {
-              mode: 'palette-classic',
-            },
-            custom: {
-              axisCenteredZero: false,
-              axisColorMode: 'text',
-              axisLabel: '',
-              axisPlacement: 'auto',
-              barAlignment: 0,
-              drawStyle: 'line',
-              fillOpacity: 0,
-              gradientMode: 'none',
-              hideFrom: {
-                legend: false,
-                tooltip: false,
-                viz: false,
-              },
-              lineInterpolation: 'linear',
-              lineWidth: 1,
-              pointSize: 5,
-              scaleDistribution: {
-                type: 'linear',
-              },
-              showPoints: 'auto',
-              spanNulls: false,
-              stacking: {
-                group: 'A',
-                mode: 'none',
-              },
-              thresholdsStyle: {
-                mode: 'off',
-              },
-            },
-            mappings: [],
-            thresholds: {
-              mode: 'absolute',
-              steps: [
-                {
-                  color: 'green',
-                  value: null,
-                },
-                {
-                  color: 'red',
-                  value: 80,
-                },
-              ],
-            },
-            unit: 'ops',
-          },
-          overrides: [],
-        }) +
+
         panel.withOptions({
           legend: {
             calcs: [],
@@ -216,22 +123,8 @@ local filename = 'agent-cluster-node.json';
         ]) +
         panel.withFieldConfigs({
           defaults: {
-            color: {
-              mode: 'thresholds',
-            },
-            mappings: [],
-            thresholds: {
-              mode: 'absolute',
-              steps: [
-                {
-                  color: 'green',
-                  value: null,
-                },
-              ],
-            },
             unit: 'suffix:peers',
           },
-          overrides: [],
         })
       ),
       // Peers by state
@@ -249,56 +142,8 @@ local filename = 'agent-cluster-node.json';
         ]) +
         panel.withFieldConfigs({
           defaults: {
-            color: {
-              mode: 'palette-classic',
-            },
-            custom: {
-              axisCenteredZero: false,
-              axisColorMode: 'text',
-              axisLabel: '',
-              axisPlacement: 'auto',
-              barAlignment: 0,
-              drawStyle: 'line',
-              fillOpacity: 0,
-              gradientMode: 'none',
-              hideFrom: {
-                legend: false,
-                tooltip: false,
-                viz: false,
-              },
-              lineInterpolation: 'linear',
-              lineWidth: 1,
-              pointSize: 5,
-              scaleDistribution: {
-                type: 'linear',
-              },
-              showPoints: 'auto',
-              spanNulls: false,
-              stacking: {
-                group: 'A',
-                mode: 'none',
-              },
-              thresholdsStyle: {
-                mode: 'off',
-              },
-            },
-            mappings: [],
-            thresholds: {
-              mode: 'absolute',
-              steps: [
-                {
-                  color: 'green',
-                  value: null,
-                },
-                {
-                  color: 'red',
-                  value: 80,
-                },
-              ],
-            },
             unit: 'suffix:nodes',
           },
-          overrides: [],
         })
       ),
       // Gossip Transport row
@@ -325,56 +170,6 @@ local filename = 'agent-cluster-node.json';
         ]) +
         panel.withFieldConfigs({
           defaults: {
-            color: {
-              mode: 'palette-classic',
-            },
-            custom: {
-              axisCenteredZero: false,
-              axisColorMode: 'text',
-              axisLabel: '',
-              axisPlacement: 'auto',
-              barAlignment: 0,
-              drawStyle: 'line',
-              fillOpacity: 15,
-              gradientMode: 'hue',
-              hideFrom: {
-                legend: false,
-                tooltip: false,
-                viz: false,
-              },
-              lineInterpolation: 'smooth',
-              lineStyle: {
-                fill: 'solid',
-              },
-              lineWidth: 1,
-              pointSize: 5,
-              scaleDistribution: {
-                type: 'linear',
-              },
-              showPoints: 'auto',
-              spanNulls: false,
-              stacking: {
-                group: 'A',
-                mode: 'none',
-              },
-              thresholdsStyle: {
-                mode: 'off',
-              },
-            },
-            mappings: [],
-            thresholds: {
-              mode: 'absolute',
-              steps: [
-                {
-                  color: 'green',
-                  value: null,
-                },
-                {
-                  color: 'red',
-                  value: 80,
-                },
-              ],
-            },
             unit: 'Bps',
           },
           overrides: [],
@@ -401,57 +196,6 @@ local filename = 'agent-cluster-node.json';
         ]) +
         panel.withFieldConfigs({
           defaults: {
-            color: {
-              mode: 'palette-classic',
-            },
-            custom: {
-              axisCenteredZero: false,
-              axisColorMode: 'text',
-              axisLabel: '',
-              axisPlacement: 'auto',
-              barAlignment: 0,
-              drawStyle: 'line',
-              fillOpacity: 15,
-              gradientMode: 'hue',
-              hideFrom: {
-                legend: false,
-                tooltip: false,
-                viz: false,
-              },
-              lineInterpolation: 'smooth',
-              lineStyle: {
-                fill: 'solid',
-              },
-              lineWidth: 1,
-              pointSize: 5,
-              scaleDistribution: {
-                type: 'linear',
-              },
-              showPoints: 'auto',
-              spanNulls: true,
-              stacking: {
-                group: 'A',
-                mode: 'none',
-              },
-              thresholdsStyle: {
-                mode: 'off',
-              },
-            },
-            mappings: [],
-            noValue: '1',
-            thresholds: {
-              mode: 'absolute',
-              steps: [
-                {
-                  color: 'green',
-                  value: null,
-                },
-                {
-                  color: 'red',
-                  value: 80,
-                },
-              ],
-            },
             unit: 'percentunit',
           },
           overrides: [],
@@ -478,56 +222,6 @@ local filename = 'agent-cluster-node.json';
         ]) +
         panel.withFieldConfigs({
           defaults: {
-            color: {
-              mode: 'palette-classic',
-            },
-            custom: {
-              axisCenteredZero: false,
-              axisColorMode: 'text',
-              axisLabel: '',
-              axisPlacement: 'auto',
-              barAlignment: 0,
-              drawStyle: 'line',
-              fillOpacity: 15,
-              gradientMode: 'hue',
-              hideFrom: {
-                legend: false,
-                tooltip: false,
-                viz: false,
-              },
-              lineInterpolation: 'smooth',
-              lineStyle: {
-                fill: 'solid',
-              },
-              lineWidth: 1,
-              pointSize: 5,
-              scaleDistribution: {
-                type: 'linear',
-              },
-              showPoints: 'auto',
-              spanNulls: false,
-              stacking: {
-                group: 'A',
-                mode: 'none',
-              },
-              thresholdsStyle: {
-                mode: 'off',
-              },
-            },
-            mappings: [],
-            thresholds: {
-              mode: 'absolute',
-              steps: [
-                {
-                  color: 'green',
-                  value: null,
-                },
-                {
-                  color: 'red',
-                  value: 80,
-                },
-              ],
-            },
             unit: 'pkts',
           },
           overrides: [],
@@ -554,55 +248,6 @@ local filename = 'agent-cluster-node.json';
         ]) +
         panel.withFieldConfigs({
           defaults: {
-            color: {
-              mode: 'palette-classic',
-            },
-            custom: {
-              axisCenteredZero: false,
-              axisColorMode: 'text',
-              axisLabel: '',
-              axisPlacement: 'auto',
-              barAlignment: 0,
-              drawStyle: 'line',
-              fillOpacity: 15,
-              gradientMode: 'hue',
-              hideFrom: {
-                legend: false,
-                tooltip: false,
-                viz: false,
-              },
-              lineInterpolation: 'smooth',
-              lineStyle: {
-                fill: 'solid',
-              },
-              lineWidth: 1,
-              pointSize: 5,
-              scaleDistribution: {
-                type: 'linear',
-              },
-              showPoints: 'auto',
-              spanNulls: false,
-              stacking: {
-                group: 'A',
-                mode: 'none',
-              },
-              thresholdsStyle: {
-                mode: 'off',
-              },
-            },
-            mappings: [],
-            thresholds: {
-              mode: 'absolute',
-              steps: [
-                {
-                  color: 'green',
-                },
-                {
-                  color: 'red',
-                  value: 80,
-                },
-              ],
-            },
             unit: 'Bps',
           },
           overrides: [],
@@ -629,56 +274,6 @@ local filename = 'agent-cluster-node.json';
         ]) +
         panel.withFieldConfigs({
           defaults: {
-            color: {
-              mode: 'palette-classic',
-            },
-            custom: {
-              axisCenteredZero: false,
-              axisColorMode: 'text',
-              axisLabel: '',
-              axisPlacement: 'auto',
-              barAlignment: 0,
-              drawStyle: 'line',
-              fillOpacity: 15,
-              gradientMode: 'hue',
-              hideFrom: {
-                legend: false,
-                tooltip: false,
-                viz: false,
-              },
-              lineInterpolation: 'smooth',
-              lineStyle: {
-                fill: 'solid',
-              },
-              lineWidth: 1,
-              pointSize: 5,
-              scaleDistribution: {
-                type: 'linear',
-              },
-              showPoints: 'auto',
-              spanNulls: true,
-              stacking: {
-                group: 'A',
-                mode: 'none',
-              },
-              thresholdsStyle: {
-                mode: 'off',
-              },
-            },
-            mappings: [],
-            noValue: '1',
-            thresholds: {
-              mode: 'absolute',
-              steps: [
-                {
-                  color: 'green',
-                },
-                {
-                  color: 'red',
-                  value: 80,
-                },
-              ],
-            },
             unit: 'percentunit',
           },
           overrides: [],
