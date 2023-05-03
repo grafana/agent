@@ -18,7 +18,7 @@ component which retrieves a [module][] and runs the components defined inside of
 ## Usage
 
 ```river
-module. "LABEL" {
+module.git "LABEL" {
   repository = "GIT_REPOSTORY"
   path       = "PATH_TO_MODULE"
 
