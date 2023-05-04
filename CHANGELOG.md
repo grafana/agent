@@ -15,6 +15,9 @@ Main (unreleased)
 - Fix issue where component evaluation time was overridden by a "default
   health" message. (@rfratto)
 
+- Honor timeout when trying to establish a connection to another agent in Flow
+  clustering mode. (@rfratto)
+
 v0.33.1 (2023-05-01)
 --------------------
 
