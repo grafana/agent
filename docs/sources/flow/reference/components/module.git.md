@@ -18,7 +18,7 @@ component which retrieves a [module][] and runs the components defined inside of
 ## Usage
 
 ```river
-module. "LABEL" {
+module.git "LABEL" {
   repository = "GIT_REPOSTORY"
   path       = "PATH_TO_MODULE"
 
@@ -39,7 +39,7 @@ Name | Type | Description | Default | Required
 `repository` | `string` | The Git repository address to retrieve the module from. | | yes
 `revision` | `string` | The Git revision to retrieve the module from. | `"HEAD"` | no
 `path` | `string` | The path in the repository where the module is stored. | | yes
-`pull_frequency` | `duration` | The frequency to pull the repository for updates. | | `"60s"`
+`pull_frequency` | `duration` | The frequency to pull the repository for updates. | `"60s"` | no
 
 The `repository` attribute must be set to a repository address that would be
 recognized by Git with a `git clone REPOSITORY_ADDRESS` command, such as

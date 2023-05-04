@@ -72,8 +72,34 @@
     },
   },
 
+  withOverrides(overrides):: {
+    fieldConfig+: {
+      overrides: overrides,
+    },
+  },
+
+  withMappings(mappings):: {
+    fieldConfig+: {
+      defaults+: {
+        mappings: mappings,
+      },
+    },
+  },
+
+  withCenteredAxis():: {
+    fieldConfig +: {
+      defaults +: {
+        custom +: {
+          axisCenteredZero: true,
+        }
+      }
+    }
+  },
+
   withPosition(pos):: { gridPos: pos },
   withDescription(desc):: { description: desc },
+  withOptions(options):: { options: options },
+  withTransformations(transformations):: { transformations: transformations },
 
   withQueries(queries):: { targets: queries },
 
@@ -90,6 +116,14 @@
     $.newQuery(expr, format, legendFormat) {
       range: false,
       instant: true,
+    }
+  ),
+
+  newNamedInstantQuery(expr='', refId='', format=null, legendFormat='__auto'):: std.prune(
+    $.newQuery(expr, format, legendFormat) {
+      range: false,
+      instant: true,
+      refId: refId,
     }
   ),
 }

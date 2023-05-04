@@ -48,7 +48,6 @@ package flow
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net"
 	"sync"
 	"time"
@@ -57,10 +56,8 @@ import (
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
-	"github.com/grafana/agent/pkg/flow/internal/stdlib"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
-	"github.com/grafana/agent/pkg/river/vm"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/atomic"
 )
@@ -220,7 +217,7 @@ func (c *Flow) Run(ctx context.Context) {
 				}
 
 				level.Debug(c.log).Log("msg", "handling component with updated state", "node_id", updated.NodeID())
-				c.loader.EvaluateDependencies(nil, updated)
+				c.loader.EvaluateDependencies(updated)
 			}
 
 		case <-c.loadFinished:
@@ -249,34 +246,7 @@ func (c *Flow) LoadFile(file *File, args map[string]any) error {
 	c.loadMut.Lock()
 	defer c.loadMut.Unlock()
 
-	// Fill out the values for the scope so that argument.NAME.value can be used
-	// to reference expressions.
-	evaluatedArgs := make(map[string]any, len(file.Arguments))
-
-	// TODO(rfratto): error on unrecognized args.
-	for _, arg := range file.Arguments {
-		val := arg.Default
-
-		if setVal, ok := args[arg.Name]; !ok && !arg.Optional {
-			return fmt.Errorf("required argument %q not set", arg.Name)
-		} else if ok {
-			val = setVal
-		}
-
-		evaluatedArgs[arg.Name] = map[string]any{"value": val}
-	}
-
-	argumentScope := &vm.Scope{
-		// The top scope is the Flow-specific stdlib.
-		Parent: &vm.Scope{
-			Variables: stdlib.Identifiers,
-		},
-		Variables: map[string]interface{}{
-			"argument": evaluatedArgs,
-		},
-	}
-
-	diags := c.loader.Apply(argumentScope, file.Components, file.ConfigBlocks)
+	diags := c.loader.Apply(args, file.Components, file.ConfigBlocks)
 	if !c.loadedOnce.Load() && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.
