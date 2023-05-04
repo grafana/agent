@@ -1,0 +1,30 @@
+go:
+    cgo: false
+    version: 1.19
+repository:
+    path: github.com/burningalchemist/sql_exporter
+build:
+    binaries:
+        - name: sql_exporter
+          path: ./cmd/sql_exporter
+    flags: -a -tags netgo
+    ldflags: |
+      -X github.com/prometheus/common/version.Version={{.Version}}
+      -X github.com/prometheus/common/version.Revision={{.Revision}}
+      -X github.com/prometheus/common/version.Branch={{.Branch}}
+      -X github.com/prometheus/common/version.BuildUser={{user}}@{{host}}
+      -X github.com/prometheus/common/version.BuildDate={{date "20060102-15:04:05"}}
+tarball:
+    files:
+      - LICENSE
+      - README.md
+      - examples/sql_exporter.yml
+      - examples/mssql_standard.collector.yml
+crossbuild:
+    platforms:
+        - linux/amd64
+        - darwin/amd64
+        - windows/amd64
+        - linux/armv7
+        - linux/arm64
+        - darwin/arm64

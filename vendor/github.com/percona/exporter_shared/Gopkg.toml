@@ -1,0 +1,17 @@
+[[constraint]]
+  name = "github.com/prometheus/client_model"
+  branch = "master"
+
+[[constraint]]
+  # v1.2.0 uses github.com/cespare/xxhash/v2 module, but dep can't handle v2+ modules
+  name = "github.com/prometheus/client_golang"
+  version = "=1.1.0"
+
+[[constraint]]
+  name = "github.com/prometheus/common"
+  version = "0.8.0"
+
+[prune]
+  go-tests = true
+  non-go = true
+  unused-packages = true

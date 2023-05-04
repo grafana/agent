@@ -1,0 +1,14 @@
+Copyright 2022 Grafana Labs
+Licensed under the Apache License, Version 2.0 (the "License");
+
+Some code and components for this project have been derived from the following:
+
+Telegraf
+https://github.com/influxdata/telegraf
+Copyright (c) 2015-2020 InfluxData Inc.
+Licensed under the MIT License
+
+govmomi
+https://github.com/vmware/govmomi
+Copyright (c) 2014-2021 VMware, Inc. All Rights Reserved.
+Licensed under the Apache License, Version 2.0

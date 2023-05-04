@@ -139,8 +139,8 @@ GO_LDFLAGS   := -X $(VPREFIX).Branch=$(GIT_BRANCH)                        \
                 -X $(VPREFIX).BuildDate=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 DEFAULT_FLAGS    := $(GO_FLAGS)
-DEBUG_GO_FLAGS   := -ldflags "$(GO_LDFLAGS)" -tags "netgo $(GO_TAGS)"
-RELEASE_GO_FLAGS := -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo $(GO_TAGS)"
+DEBUG_GO_FLAGS   := -ldflags "$(GO_LDFLAGS)" -tags "netgo $(GO_TAGS)" -mod=vendor
+RELEASE_GO_FLAGS := -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo $(GO_TAGS)" -mod=vendor
 
 ifeq ($(RELEASE_BUILD),1)
 GO_FLAGS := $(DEFAULT_FLAGS) $(RELEASE_GO_FLAGS)
@@ -157,7 +157,7 @@ endif
 
 .PHONY: lint
 lint: agentlint
-	golangci-lint run -v --timeout=10m
+	golangci-lint run --modules-download-mode=vendor -v --timeout=10m
 	$(AGENTLINT_BINARY) ./...
 
 .PHONY: test
@@ -232,7 +232,7 @@ agentlint:
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
-	cd ./tools/agentlint && $(GO_ENV) go build $(GO_FLAGS) -o ../../$(AGENTLINT_BINARY) .
+	cd ./tools/agentlint && $(GO_ENV) go build $(GO_FLAGS) -mod=mod -o ../../$(AGENTLINT_BINARY) .
 endif
 
 #
