@@ -150,12 +150,15 @@ local filename = 'agent-cluster-node.json';
         }) +
         panel.withQueries([
           panel.newQuery(
-            expr='rate(cluster_transport_rx_bytes_total{instance="$instance"}[$__rate_interval])'
+            expr='rate(cluster_transport_rx_bytes_total{instance="$instance"}[$__rate_interval])',
+            legendFormat='rx',
           ),
           panel.newQuery(
-            expr='-1 * rate(cluster_transport_tx_bytes_total{instance="$instance"}[$__rate_interval])'
+            expr='-1 * rate(cluster_transport_tx_bytes_total{instance="$instance"}[$__rate_interval])',
+            legendFormat='tx',
           ),
         ]) +
+        panel.withCenteredAxis() +
         panel.withUnit('Bps')
       ),
       // Packet write success rate
@@ -234,6 +237,7 @@ local filename = 'agent-cluster-node.json';
             legendFormat='tx',
           ),
         ]) +
+        panel.withCenteredAxis() +
         panel.withUnit('Bps')
       ),
       // Stream write success rate
