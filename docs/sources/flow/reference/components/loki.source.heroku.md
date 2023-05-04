@@ -51,10 +51,10 @@ before they're forwarded to the list of receivers in `forward_to`.
 
 The following blocks are supported inside the definition of `loki.source.heroku`:
 
-Hierarchy | Name | Description | Required
---------- | ---- | ----------- | --------
-`http`    | [http][]      | Configures the HTTP server that receives requests.              |  | no
-`grpc`    | [grpc][]      | Configures the gRPC server that receives requests.              |  | no
+ Hierarchy | Name     | Description                                        | Required 
+-----------|----------|----------------------------------------------------|----------
+ `http`    | [http][] | Configures the HTTP server that receives requests. | no       
+ `grpc`    | [grpc][] | Configures the gRPC server that receives requests. | no       
 
 [http]: #http
 [grpc]: #grpc
