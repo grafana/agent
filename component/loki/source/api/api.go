@@ -104,6 +104,14 @@ func (c *Component) Update(args component.Arguments) error {
 	if newArgs.Server == nil {
 		newArgs.Server = &fnet.ServerConfig{}
 	}
+	// to avoid port conflicts, if no GRPC is configured, make sure we use a random port
+	// also, use localhost IP, so we don't require root to run.
+	if newArgs.Server.GRPC == nil {
+		newArgs.Server.GRPC = &fnet.GRPCConfig{
+			ListenPort:    0,
+			ListenAddress: "127.0.0.1",
+		}
+	}
 
 	c.receiversMut.Lock()
 	c.receivers = newArgs.ForwardTo

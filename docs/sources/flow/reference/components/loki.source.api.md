@@ -15,8 +15,10 @@ The HTTP API exposed is compatible with [Loki push API][loki-push-api], using Lo
 
 ```river
 loki.source.api LABEL {
-    http_address = "LISTEN_ADDRESS"
-    http_port = PORT
+    http {
+        listen_address = "LISTEN_ADDRESS"
+        listen_port = PORT 
+    }
     forward_to = RECEIVER_LIST
 }
 ```
@@ -27,8 +29,6 @@ loki.source.api LABEL {
 
  Name                     | Type                 | Description                                                | Default | Required 
 --------------------------|----------------------|------------------------------------------------------------|---------|----------
- `http_port`              | `int`                | The host port for the HTTP server to listen on.            |         | yes      
- `http_address`           | `string`             | The host address for the HTTP server to listen on.         |         | yes      
  `forward_to`             | `list(LogsReceiver)` | List of receivers to send log entries to.                  |         | yes      
  `use_incoming_timestamp` | `bool`               | Whether or not to use the timestamp received from request. | `false` | no       
  `labels`                 | `map(string)`        | The labels to associate with each received logs record.    | `{}`    | no       
@@ -38,6 +38,20 @@ The `relabel_rules` field can make use of the `rules` export value from a
 [`loki.relabel`][loki.relabel] component to apply one or more relabeling rules to log entries before they're forwarded to the list of receivers in `forward_to`.
 
 [loki.relabel]: {{< relref "./loki.relabel.md" >}}
+
+## Blocks
+
+The following blocks are supported inside the definition of `loki.source.heroku`:
+
+ Hierarchy | Name     | Description                                        | Required 
+-----------|----------|----------------------------------------------------|----------
+ `http`    | [http][] | Configures the HTTP server that receives requests. | no       
+
+[http]: #http
+
+### http
+
+{{< docs/shared lookup="flow/reference/components/loki-server-http.md" source="agent" >}}
 
 ## Exported fields
 
@@ -64,9 +78,13 @@ This example starts an HTTP server on `0.0.0.0` address and port `9999`. The ser
 loki.echo "print" {}
 
 loki.source.api "loki_push_api" {
-    http_address = "0.0.0.0"
-    http_port = 9999
-    forward_to = [loki.echo.print.receiver]
+    http {
+        listen_address = "0.0.0.0"
+        listen_port = 9999
+    }
+    forward_to = [
+        loki.echo.print.receiver,
+    ]
     labels = {
         forwarded = "true",
     }
