@@ -17,7 +17,7 @@ labels.
 ## Usage
 
 ```river
-remote.vault "example" {
+remote.vault "LABEL" {
   server = "VAULT_SERVER"
   path   = "VAULT_PATH"
 
