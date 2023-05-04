@@ -56,6 +56,8 @@ Main (unreleased)
 
 - Add metrics when clustering mode is enabled. (@rfratto)
 - Document debug metric `loki_process_dropped_lines_by_label_total` in loki.process. (@akselleirv)
+- Update Flow documentation for `prometheus.exporter.postgres` to reference the correct
+  `custom_queries_config_path` argument. (@virtualtam)
 
 v0.33.1 (2023-05-01)
 --------------------
