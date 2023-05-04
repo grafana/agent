@@ -5,13 +5,12 @@
     rules: rules,
   },
 
-  newRule(name='', expr='', message=''):: std.prune({
+  newRule(name='', expr='', message='', forT=''):: std.prune({
     alert: name,
     expr: expr,
     annotations: {
       message: message,
     },
+    'for': forT,
   }),
-
-  withForTime(forTime=''):: { 'for': forTime },
 }

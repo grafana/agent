@@ -34,4 +34,19 @@ local mixin = import './mixin.libsonnet';
     }
     for file in std.objectFields(mixin.grafanaDashboards)
   },
+
+
+  prometheus_rules: {
+    [file]: {
+      apiVersion: 'grizzly.grafana.com/v1alpha1',
+      kind: 'PrometheusRuleGroup',
+      metadata: {
+        folder: $.folder.metadata.name,
+        namespace: 'agent-flow',
+        name: std.split(file, '.')[0],
+      },
+      spec: mixin.prometheusAlerts[file],
+    }
+    for file in std.objectFields(mixin.prometheusAlerts)
+  },
 }
