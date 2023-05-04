@@ -76,7 +76,6 @@ func NewWithDefaults(logger log.Logger, metricsNamespace string, reg prometheus.
 		config.RegisterInstrumentation = false
 		// Add logger to weaveworks
 		config.Log = logging.GoKit(logger)
-
 	}
 
 	// Apply some defaults if nothing provided
@@ -238,7 +237,7 @@ func New(cfg ServerConfig) (*Server, error) {
 			InflightRequests: inflightRequests,
 		},
 	}
-	httpMiddleware := []middleware.Interface{}
+	var httpMiddleware []middleware.Interface
 	if cfg.DoNotAddDefaultHTTPMiddleware {
 		httpMiddleware = cfg.HTTPMiddleware
 	} else {
@@ -316,7 +315,6 @@ func (s *Server) Run() error {
 // HTTPListenAddr exposes `net.Addr` that `Server` is listening to for HTTP connections.
 func (s *Server) HTTPListenAddr() net.Addr {
 	return s.httpListener.Addr()
-
 }
 
 // Stop unblocks Run().
