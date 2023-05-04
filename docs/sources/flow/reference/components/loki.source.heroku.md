@@ -50,9 +50,16 @@ before they're forwarded to the list of receivers in `forward_to`.
 
 The following blocks are supported inside the definition of `loki.source.heroku`:
 
+<<<<<<< HEAD
 Hierarchy | Name | Description | Required
 --------- | ---- | ----------- | --------
 listener | [listener] | Configures a listener for Heroku messages. | yes
+=======
+ Hierarchy | Name     | Description                                        | Required 
+-----------|----------|----------------------------------------------------|----------
+ `http`    | [http][] | Configures the HTTP server that receives requests. | no       
+ `grpc`    | [grpc][] | Configures the gRPC server that receives requests. | no       
+>>>>>>> 0308a3270... Fix panic when config not provided for `loki.source.(heroku|gcplog)` (#3776)
 
 [listener]: #listener-block
 
