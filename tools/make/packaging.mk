@@ -77,7 +77,7 @@ dist/grafana-agent-freebsd-amd64: GO_TAGS += builtinassets
 dist/grafana-agent-freebsd-amd64: GOOS    := freebsd
 dist/grafana-agent-freebsd-amd64: GOARCH  := amd64
 dist/grafana-agent-freebsd-amd64: generate-ui
-	$(PACKAGING_VARS) AGEAGENT_BINARYNT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
+	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
 
 dist/grafana-agent-linux-amd64-fips: GO_TAGS      += builtinassets promtail_journal_enabled
