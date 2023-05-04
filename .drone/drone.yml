@@ -227,7 +227,7 @@ type: docker
 volumes:
 - host:
     create: true
-    path: C:/grafana-agent/gomod-cache/
+    path: C:/grafana-agent-gomod-cache/
   name: gomod
 ---
 kind: pipeline
@@ -1338,6 +1338,6 @@ kind: secret
 name: gpg_public_key
 ---
 kind: signature
-hmac: 26aa996ed2ec46c6e7f16752150f5ba345dabdb28e7fe774c06152fda4614344
+hmac: d56132c21b4b3378181fa9aaf9d75aa37614a75e55e23d96f36821a5f93aafb6
 
 ...
