@@ -171,7 +171,7 @@ func (c *Component) Run(ctx context.Context) error {
 	})
 
 	rg.Add(func() error {
-		c.secretManager.Run(ctx)
+		c.authManager.Run(ctx)
 		return nil
 	}, func(_ error) {
 		cancel()
