@@ -11,40 +11,29 @@ import (
 type memSeries struct {
 	sync.Mutex
 
-	ref    chunks.HeadSeriesRef
-	lset   labels.Labels
+	ref  chunks.HeadSeriesRef
+	lset labels.Labels
+
+	// Last recorded timestamp. Used by gc to determine if a series is stale.
 	lastTs int64
-
-	// TODO(rfratto): this solution below isn't perfect, and there's still
-	// the possibility for a series to be deleted before it's
-	// completely gone from the WAL. Rather, we should have gc return
-	// a "should delete" map and be given a "deleted" map.
-	// If a series that is going to be marked for deletion is in the
-	// "deleted" map, then it should be deleted instead.
-	//
-	// The "deleted" map will be populated by the Truncate function.
-	// It will be cleared with every call to gc.
-
-	// willDelete marks a series as to be deleted on the next garbage
-	// collection. If it receives a write, willDelete is disabled.
-	willDelete bool
-
-	// Whether this series has samples waiting to be committed to the WAL
-	pendingCommit bool
 }
 
-func (s *memSeries) updateTs(ts int64) {
-	s.lastTs = ts
-	s.willDelete = false
-	s.pendingCommit = true
+// updateTimestamp obtains the lock on s and will attempt to update lastTs.
+// fails if newTs < lastTs.
+func (m *memSeries) updateTimestamp(newTs int64) bool {
+	m.Lock()
+	defer m.Unlock()
+	if newTs >= m.lastTs {
+		m.lastTs = newTs
+		return true
+	}
+	return false
 }
 
-// seriesHashmap is a simple hashmap for memSeries by their label set. It is
-// built on top of a regular hashmap and holds a slice of series to resolve
-// hash collisions. Its methods require the hash to be submitted with it to
-// avoid re-computations throughout the code.
-//
-// This code is copied from the Prometheus TSDB.
+// seriesHashmap is a simple hashmap for memSeries by their label set.
+// It is built on top of a regular hashmap and holds a slice of series to
+// resolve hash collisions. Its methods require the hash to be submitted
+// with the label set to avoid re-computing hash throughout the code.
 type seriesHashmap map[uint64][]*memSeries
 
 func (m seriesHashmap) get(hash uint64, lset labels.Labels) *memSeries {
@@ -81,24 +70,18 @@ func (m seriesHashmap) del(hash uint64, ref chunks.HeadSeriesRef) {
 	}
 }
 
-const (
-	// defaultStripeSize is the default number of entries to allocate in the
-	// stripeSeries hash map.
-	defaultStripeSize = 1 << 14
-)
-
-// stripeSeries locks modulo ranges of IDs and hashes to reduce lock contention.
-// The locks are padded to not be on the same cache line. Filling the padded space
-// with the maps was profiled to be slower – likely due to the additional pointer
-// dereferences.
-//
-// This code is copied from the Prometheus TSDB.
+// stripeSeries locks modulo ranges of IDs and hashes to reduce lock
+// contention. The locks are padded to not be on the same cache line.
+// Filling the padded space with the maps was profiled to be slower -
+// likely due to the additional pointer dereferences.
 type stripeSeries struct {
 	size      int
 	series    []map[chunks.HeadSeriesRef]*memSeries
 	hashes    []seriesHashmap
 	exemplars []map[chunks.HeadSeriesRef]*exemplar.Exemplar
 	locks     []stripeLock
+
+	gcMut sync.Mutex
 }
 
 type stripeLock struct {
@@ -107,8 +90,7 @@ type stripeLock struct {
 	_ [40]byte
 }
 
-func newStripeSeries() *stripeSeries {
-	stripeSize := defaultStripeSize
+func newStripeSeries(stripeSize int) *stripeSeries {
 	s := &stripeSeries{
 		size:      stripeSize,
 		series:    make([]map[chunks.HeadSeriesRef]*memSeries, stripeSize),
@@ -116,7 +98,6 @@ func newStripeSeries() *stripeSeries {
 		exemplars: make([]map[chunks.HeadSeriesRef]*exemplar.Exemplar, stripeSize),
 		locks:     make([]stripeLock, stripeSize),
 	}
-
 	for i := range s.series {
 		s.series[i] = map[chunks.HeadSeriesRef]*memSeries{}
 	}
@@ -132,113 +113,106 @@ func newStripeSeries() *stripeSeries {
 // gc garbage collects old chunks that are strictly before mint and removes
 // series entirely that have no chunks left.
 func (s *stripeSeries) gc(mint int64) map[chunks.HeadSeriesRef]struct{} {
-	var (
-		deleted = map[chunks.HeadSeriesRef]struct{}{}
-	)
+	// NOTE(rfratto): GC will grab two locks, one for the hash and the other for
+	// series. It's not valid for any other function to grab both locks,
+	// otherwise a deadlock might occur when running GC in parallel with
+	// appending.
+	s.gcMut.Lock()
+	defer s.gcMut.Unlock()
 
-	// Run through all series and find series that haven't been written to
-	// since mint. Mark those series as deleted and store their ID.
-	for i := 0; i < s.size; i++ {
-		s.locks[i].Lock()
+	deleted := map[chunks.HeadSeriesRef]struct{}{}
+	for hashLock := 0; hashLock < s.size; hashLock++ {
+		s.locks[hashLock].Lock()
 
-		for _, series := range s.series[i] {
-			series.Lock()
-			seriesHash := series.lset.Hash()
+		for hash, all := range s.hashes[hashLock] {
+			for _, series := range all {
+				series.Lock()
 
-			// If the series has received a write after mint, there's still
-			// data and it's not completely gone yet.
-			if series.lastTs >= mint || series.pendingCommit {
-				series.willDelete = false
+				// Any series that has received a write since mint is still alive.
+				if series.lastTs >= mint {
+					series.Unlock()
+					continue
+				}
+
+				// The series is stale. We need to obtain a second lock for the
+				// ref if it's different than the hash lock.
+				refLock := int(series.ref) & (s.size - 1)
+				if hashLock != refLock {
+					s.locks[refLock].Lock()
+				}
+
+				deleted[series.ref] = struct{}{}
+				delete(s.series[refLock], series.ref)
+				s.hashes[hashLock].del(hash, series.ref)
+
+				// Since the series is gone, we'll also delete
+				// the latest stored exemplar.
+				delete(s.exemplars[refLock], series.ref)
+
+				if hashLock != refLock {
+					s.locks[refLock].Unlock()
+				}
 				series.Unlock()
-				continue
 			}
-
-			// The series hasn't received any data and *might* be gone, but
-			// we want to give it an opportunity to come back before marking
-			// it as deleted, so we wait one more GC cycle.
-			if !series.willDelete {
-				series.willDelete = true
-				series.Unlock()
-				continue
-			}
-
-			// The series is gone entirely. We'll need to delete the label
-			// hash (if one exists) so we'll obtain a lock for that too.
-			j := int(seriesHash) & (s.size - 1)
-			if i != j {
-				s.locks[j].Lock()
-			}
-
-			deleted[series.ref] = struct{}{}
-			delete(s.series[i], series.ref)
-			s.hashes[j].del(seriesHash, series.ref)
-
-			// Since the series is gone, we'll also delete
-			// the latest stored exemplar.
-			delete(s.exemplars[i], series.ref)
-
-			if i != j {
-				s.locks[j].Unlock()
-			}
-
-			series.Unlock()
 		}
 
-		s.locks[i].Unlock()
+		s.locks[hashLock].Unlock()
 	}
 
 	return deleted
 }
 
 func (s *stripeSeries) getByID(id chunks.HeadSeriesRef) *memSeries {
-	i := id & chunks.HeadSeriesRef(s.size-1)
-
-	s.locks[i].RLock()
-	series := s.series[i][id]
-	s.locks[i].RUnlock()
-
-	return series
+	refLock := uint64(id) & uint64(s.size-1)
+	s.locks[refLock].RLock()
+	defer s.locks[refLock].RUnlock()
+	return s.series[refLock][id]
 }
 
 func (s *stripeSeries) getByHash(hash uint64, lset labels.Labels) *memSeries {
-	i := hash & uint64(s.size-1)
-
-	s.locks[i].RLock()
-	series := s.hashes[i].get(hash, lset)
-	s.locks[i].RUnlock()
-
-	return series
+	hashLock := hash & uint64(s.size-1)
+	s.locks[hashLock].RLock()
+	defer s.locks[hashLock].RUnlock()
+	return s.hashes[hashLock].get(hash, lset)
 }
 
 func (s *stripeSeries) set(hash uint64, series *memSeries) {
-	i := hash & uint64(s.size-1)
-	s.locks[i].Lock()
-	s.hashes[i].set(hash, series)
-	s.locks[i].Unlock()
+	var (
+		hashLock = hash & uint64(s.size-1)
+		refLock  = uint64(series.ref) & uint64(s.size-1)
+	)
 
-	i = uint64(series.ref) & uint64(s.size-1)
-	s.locks[i].Lock()
-	s.series[i][series.ref] = series
-	s.locks[i].Unlock()
+	// We can't hold both locks at once otherwise we might deadlock with a
+	// simultaneous call to GC.
+	//
+	// We update s.series first because GC expects anything in s.hashes to
+	// already exist in s.series.
+	s.locks[refLock].Lock()
+	s.series[refLock][series.ref] = series
+	s.locks[refLock].Unlock()
+
+	s.locks[hashLock].Lock()
+	s.hashes[hashLock].set(hash, series)
+	s.locks[hashLock].Unlock()
 }
 
-func (s *stripeSeries) getLatestExemplar(id chunks.HeadSeriesRef) *exemplar.Exemplar {
-	i := id & chunks.HeadSeriesRef(s.size-1)
+func (s *stripeSeries) getLatestExemplar(ref chunks.HeadSeriesRef) *exemplar.Exemplar {
+	i := uint64(ref) & uint64(s.size-1)
 
 	s.locks[i].RLock()
-	exemplar := s.exemplars[i][id]
+	exemplar := s.exemplars[i][ref]
 	s.locks[i].RUnlock()
 
 	return exemplar
 }
 
-func (s *stripeSeries) setLatestExemplar(id chunks.HeadSeriesRef, exemplar *exemplar.Exemplar) {
-	i := id & chunks.HeadSeriesRef(s.size-1)
+func (s *stripeSeries) setLatestExemplar(ref chunks.HeadSeriesRef, exemplar *exemplar.Exemplar) {
+	i := uint64(ref) & uint64(s.size-1)
 
 	// Make sure that's a valid series id and record its latest exemplar
 	s.locks[i].Lock()
-	if s.series[i][id] != nil {
-		s.exemplars[i][id] = exemplar
+	if s.series[i][ref] != nil {
+		s.exemplars[i][ref] = exemplar
 	}
 	s.locks[i].Unlock()
 }
