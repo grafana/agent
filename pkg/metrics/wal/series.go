@@ -8,6 +8,7 @@ import (
 	"github.com/prometheus/prometheus/tsdb/chunks"
 )
 
+// memSeries is a chunkless version of tsdb.memSeries.
 type memSeries struct {
 	sync.Mutex
 
@@ -36,7 +37,7 @@ func (m *memSeries) updateTimestamp(newTs int64) bool {
 // with the label set to avoid re-computing hash throughout the code.
 type seriesHashmap map[uint64][]*memSeries
 
-func (m seriesHashmap) get(hash uint64, lset labels.Labels) *memSeries {
+func (m seriesHashmap) Get(hash uint64, lset labels.Labels) *memSeries {
 	for _, s := range m[hash] {
 		if labels.Equal(s.lset, lset) {
 			return s
@@ -45,18 +46,18 @@ func (m seriesHashmap) get(hash uint64, lset labels.Labels) *memSeries {
 	return nil
 }
 
-func (m seriesHashmap) set(hash uint64, s *memSeries) {
-	l := m[hash]
-	for i, prev := range l {
+func (m seriesHashmap) Set(hash uint64, s *memSeries) {
+	seriesSet := m[hash]
+	for i, prev := range seriesSet {
 		if labels.Equal(prev.lset, s.lset) {
-			l[i] = s
+			seriesSet[i] = s
 			return
 		}
 	}
-	m[hash] = append(l, s)
+	m[hash] = append(seriesSet, s)
 }
 
-func (m seriesHashmap) del(hash uint64, ref chunks.HeadSeriesRef) {
+func (m seriesHashmap) Delete(hash uint64, ref chunks.HeadSeriesRef) {
 	var rem []*memSeries
 	for _, s := range m[hash] {
 		if s.ref != ref {
@@ -143,7 +144,7 @@ func (s *stripeSeries) gc(mint int64) map[chunks.HeadSeriesRef]struct{} {
 
 				deleted[series.ref] = struct{}{}
 				delete(s.series[refLock], series.ref)
-				s.hashes[hashLock].del(hash, series.ref)
+				s.hashes[hashLock].Delete(hash, series.ref)
 
 				// Since the series is gone, we'll also delete
 				// the latest stored exemplar.
@@ -162,21 +163,22 @@ func (s *stripeSeries) gc(mint int64) map[chunks.HeadSeriesRef]struct{} {
 	return deleted
 }
 
-func (s *stripeSeries) getByID(id chunks.HeadSeriesRef) *memSeries {
+func (s *stripeSeries) GetByID(id chunks.HeadSeriesRef) *memSeries {
 	refLock := uint64(id) & uint64(s.size-1)
 	s.locks[refLock].RLock()
 	defer s.locks[refLock].RUnlock()
 	return s.series[refLock][id]
 }
 
-func (s *stripeSeries) getByHash(hash uint64, lset labels.Labels) *memSeries {
+func (s *stripeSeries) GetByHash(hash uint64, lset labels.Labels) *memSeries {
 	hashLock := hash & uint64(s.size-1)
+
 	s.locks[hashLock].RLock()
 	defer s.locks[hashLock].RUnlock()
-	return s.hashes[hashLock].get(hash, lset)
+	return s.hashes[hashLock].Get(hash, lset)
 }
 
-func (s *stripeSeries) set(hash uint64, series *memSeries) {
+func (s *stripeSeries) Set(hash uint64, series *memSeries) {
 	var (
 		hashLock = hash & uint64(s.size-1)
 		refLock  = uint64(series.ref) & uint64(s.size-1)
@@ -192,11 +194,11 @@ func (s *stripeSeries) set(hash uint64, series *memSeries) {
 	s.locks[refLock].Unlock()
 
 	s.locks[hashLock].Lock()
-	s.hashes[hashLock].set(hash, series)
+	s.hashes[hashLock].Set(hash, series)
 	s.locks[hashLock].Unlock()
 }
 
-func (s *stripeSeries) getLatestExemplar(ref chunks.HeadSeriesRef) *exemplar.Exemplar {
+func (s *stripeSeries) GetLatestExemplar(ref chunks.HeadSeriesRef) *exemplar.Exemplar {
 	i := uint64(ref) & uint64(s.size-1)
 
 	s.locks[i].RLock()
@@ -206,7 +208,7 @@ func (s *stripeSeries) getLatestExemplar(ref chunks.HeadSeriesRef) *exemplar.Exe
 	return exemplar
 }
 
-func (s *stripeSeries) setLatestExemplar(ref chunks.HeadSeriesRef, exemplar *exemplar.Exemplar) {
+func (s *stripeSeries) SetLatestExemplar(ref chunks.HeadSeriesRef, exemplar *exemplar.Exemplar) {
 	i := uint64(ref) & uint64(s.size-1)
 
 	// Make sure that's a valid series id and record its latest exemplar

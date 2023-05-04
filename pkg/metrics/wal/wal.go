@@ -366,9 +366,9 @@ func (w *Storage) loadWAL(r *wlog.Reader, multiRef map[chunks.HeadSeriesRef]chun
 				// If we read in a sample for it, we'll use the timestamp of the latest
 				// sample. Otherwise, the series is stale and will be deleted once
 				// the truncation is performed.
-				if w.series.getByID(s.Ref) == nil {
+				if w.series.GetByID(s.Ref) == nil {
 					series := &memSeries{ref: s.Ref, lset: s.Labels, lastTs: 0}
-					w.series.set(s.Labels.Hash(), series)
+					w.series.Set(s.Labels.Hash(), series)
 					multiRef[s.Ref] = series.ref
 
 					w.metrics.numActiveSeries.Inc()
@@ -391,7 +391,7 @@ func (w *Storage) loadWAL(r *wlog.Reader, multiRef map[chunks.HeadSeriesRef]chun
 					continue
 				}
 
-				series := w.series.getByID(ref)
+				series := w.series.GetByID(ref)
 				if s.T > series.lastTs {
 					series.lastTs = s.T
 				}
@@ -407,7 +407,7 @@ func (w *Storage) loadWAL(r *wlog.Reader, multiRef map[chunks.HeadSeriesRef]chun
 					nonExistentSeriesRefs.Inc()
 					continue
 				}
-				series := w.series.getByID(ref)
+				series := w.series.GetByID(ref)
 				if entry.T > series.lastTs {
 					series.lastTs = entry.T
 				}
@@ -423,7 +423,7 @@ func (w *Storage) loadWAL(r *wlog.Reader, multiRef map[chunks.HeadSeriesRef]chun
 					nonExistentSeriesRefs.Inc()
 					continue
 				}
-				series := w.series.getByID(ref)
+				series := w.series.GetByID(ref)
 				if entry.T > series.lastTs {
 					series.lastTs = entry.T
 				}
@@ -510,7 +510,7 @@ func (w *Storage) Truncate(mint int64) error {
 	}
 
 	keep := func(id chunks.HeadSeriesRef) bool {
-		if w.series.getByID(id) != nil {
+		if w.series.GetByID(id) != nil {
 			return true
 		}
 
@@ -666,7 +666,7 @@ type appender struct {
 var _ storage.Appender = (*appender)(nil)
 
 func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, error) {
-	series := a.w.series.getByID(chunks.HeadSeriesRef(ref))
+	series := a.w.series.GetByID(chunks.HeadSeriesRef(ref))
 	if series == nil {
 		// Ensure no empty or duplicate labels have gotten through. This mirrors the
 		// equivalent validation code in the TSDB's headAppender.
@@ -715,21 +715,21 @@ func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v flo
 func (a *appender) getOrCreate(l labels.Labels) (series *memSeries, created bool) {
 	hash := l.Hash()
 
-	series = a.w.series.getByHash(hash, l)
+	series = a.w.series.GetByHash(hash, l)
 	if series != nil {
 		return series, false
 	}
 
 	ref := chunks.HeadSeriesRef(a.w.nextRef.Inc())
 	series = &memSeries{ref: ref, lset: l, lastTs: math.MinInt64}
-	a.w.series.set(l.Hash(), series)
+	a.w.series.Set(l.Hash(), series)
 	return series, true
 }
 
 func (a *appender) AppendExemplar(ref storage.SeriesRef, _ labels.Labels, e exemplar.Exemplar) (storage.SeriesRef, error) {
 	readRef := chunks.HeadSeriesRef(ref)
 
-	s := a.w.series.getByID(readRef)
+	s := a.w.series.GetByID(readRef)
 	if s == nil {
 		return 0, fmt.Errorf("unknown series ref when trying to add exemplar: %d", readRef)
 	}
@@ -760,12 +760,12 @@ func (a *appender) AppendExemplar(ref storage.SeriesRef, _ labels.Labels, e exem
 	// Check for duplicate vs last stored exemplar for this series, and discard those.
 	// Otherwise, record the current exemplar as the latest.
 	// Prometheus' TSDB returns 0 when encountering duplicates, so we do the same here.
-	prevExemplar := a.w.series.getLatestExemplar(s.ref)
+	prevExemplar := a.w.series.GetLatestExemplar(s.ref)
 	if prevExemplar != nil && prevExemplar.Equals(e) {
 		// Duplicate, don't return an error but don't accept the exemplar.
 		return 0, nil
 	}
-	a.w.series.setLatestExemplar(s.ref, &e)
+	a.w.series.SetLatestExemplar(s.ref, &e)
 
 	a.pendingExamplars = append(a.pendingExamplars, record.RefExemplar{
 		Ref:    readRef,
@@ -791,7 +791,7 @@ func (a *appender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int
 		}
 	}
 
-	series := a.w.series.getByID(chunks.HeadSeriesRef(ref))
+	series := a.w.series.GetByID(chunks.HeadSeriesRef(ref))
 	if series == nil {
 		// Ensure no empty or duplicate labels have gotten through. This mirrors the
 		// equivalent validation code in the TSDB's headAppender.
