@@ -26,7 +26,6 @@ const tracingConfig = `
 
 const argumentConfig = `
 	argument "username" {} 
-	argument "password" {}
 	argument "defaulted" {
 		optional = true
 		default = "default_value"
@@ -38,16 +37,12 @@ const argumentModuleLoaderConfig = `
 		content = local.file.args.content
 		arguments {
 			username = module.string.exporter.exports.username
-			password = module.string.exporter.exports.password
 		}
 	}`
 
 const exportStringConfig = `
 	export "username" {
 		value = "bob"
-	}
-	export "password" {
-		value = "password1"
 	}`
 
 const exportComponentConfig = `
@@ -82,7 +77,7 @@ func TestModule(t *testing.T) {
 			argumentModuleContent: argumentConfig,
 			exportModuleContent:   exportStringConfig,
 			expectedComponentId:   "module.string.importer",
-			expectedExports:       []string{"password1", "bob"},
+			expectedExports:       []string{"bob"},
 		},
 		{
 			name:                  "Export Component",
@@ -90,7 +85,7 @@ func TestModule(t *testing.T) {
 			argumentModuleContent: argumentConfig,
 			exportModuleContent:   exportStringConfig + exportComponentConfig,
 			expectedComponentId:   "module.string.exporter",
-			expectedExports:       []string{"username", "password", "dummy"},
+			expectedExports:       []string{"username", "dummy"},
 		},
 		{
 			name:         "Empty Content Allowed",
@@ -129,7 +124,7 @@ func TestModule(t *testing.T) {
 			riverContent:          argumentModuleLoaderConfig + exportModuleLoaderConfig,
 			argumentModuleContent: `argument "different_argument" {}`,
 			exportModuleContent:   exportStringConfig,
-			expectedErrorContains: "is not defined in the module",
+			expectedErrorContains: "Provided argument \"username\" is not defined in the module",
 		},
 		{
 			name: "Missing required argument",
@@ -140,7 +135,7 @@ func TestModule(t *testing.T) {
 				}`,
 			argumentModuleContent: argumentConfig,
 			exportModuleContent:   exportStringConfig,
-			expectedErrorContains: "Failed to evaluate node for config block: missing required argument \"password\" to module",
+			expectedErrorContains: "Failed to evaluate node for config block: missing required argument \"username\" to module",
 		},
 		{
 			name:                  "Duplicate logging config",
