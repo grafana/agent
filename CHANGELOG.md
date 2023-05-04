@@ -46,6 +46,9 @@ Main (unreleased)
 - Honor timeout when trying to establish a connection to another agent in Flow
   clustering mode. (@rfratto)
 
+- Fix an issue where not specifying either `http` nor `grpc` blocks could result
+  in a panic for `loki.source.heroku` and `loki.source.gcplog` components. (@thampiotr)
+
 ### Other changes
 
 - Add metrics when clustering mode is enabled. (@rfratto)
