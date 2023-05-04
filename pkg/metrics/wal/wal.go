@@ -134,9 +134,7 @@ type Storage struct {
 
 	nextRef *atomic.Uint64
 	series  *stripeSeries
-
-	deletedMtx sync.Mutex
-	deleted    map[chunks.HeadSeriesRef]int // Deleted series, and what WAL segment they must be kept until.
+	deleted map[chunks.HeadSeriesRef]int // Deleted series, and what WAL segment they must be kept until.
 
 	metrics *storageMetrics
 }
