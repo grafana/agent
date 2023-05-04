@@ -97,11 +97,7 @@ local cluster_node_filename = 'agent-cluster-node.json';
                     {
                       targetBlank: false,
                       title: 'Detail dashboard for node',
-                      // Use this URL for development with Grizzly where links are not replaced with a UID.
-                      // url: '/d/agent-cluster-node/grafana-agent-flow-cluster-node?var-instance=${__data.fields.instance}&var-datasource=${datasource}&var-loki_datasource=${loki_datasource}&var-cluster=${cluster}&var-namespace=${namespace}',
-
-                      // Use this URL to render and deploy the mixin.
-                      url: '/d/%(uid)s/grafana-agent-flow-cluster-node?var-instance=${__data.fields.instance}&var-datasource=${datasource}&var-loki_datasource=${loki_datasource}&var-cluster=${cluster}&var-namespace=${namespace}' % { uid: std.md5(cluster_node_filename) },
+                      url: '/d/%(uid)s/grafana-agent-flow-cluster-node?var-instance=${__data.fields.instance}&var-datasource=${datasource}&var-loki_datasource=${loki_datasource}&var-cluster=${cluster}&var-namespace=${namespace}' % {uid: std.md5(cluster_node_filename)},
                     },
                   ],
                 },
