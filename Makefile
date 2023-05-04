@@ -24,7 +24,6 @@
 ##   agent          Compiles cmd/grafana-agent to $(AGENT_BINARY)
 ##   agent-flow     Compiles cmd/grafana-agent-flow to $(FLOW_BINARY)
 ##   agent-service  Compiles cmd/grafana-agent-service to $(SERVICE_BINARY)
-##   agent-fips     Compiles cmd/grafana-agent-fips to $(AGENT_BINARY)-fips
 ##   agentctl       Compiles cmd/grafana-agentctl to $(AGENTCTL_BINARY)
 ##   operator       Compiles cmd/grafana-agent-operator to $(OPERATOR_BINARY)
 ##   crow           Compiles tools/crow to $(CROW_BINARY)
@@ -93,7 +92,7 @@
 ##   VERSION          Version to inject into built binaries.
 ##   GO_TAGS          Extra tags to use when building.
 ##   DOCKER_PLATFORM  Overrides platform to build Docker images for (defaults to host platform).
-##   GOEXPERIMENT     Used to enable features, most likely FIPS (boringcrypt).
+##   GOEXPERIMENT     Used to enable features, most likely FIPS via GOEXPERIMENT=boringcrypt.
 
 include tools/make/*.mk
 
