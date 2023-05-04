@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/loki/source/api/internal/lokipush"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 )
 
@@ -42,9 +43,9 @@ func (a *Arguments) labelSet() model.LabelSet {
 }
 
 type Component struct {
-	opts         component.Options
-	entriesChan  chan loki.Entry
-	unregisterer *util.Unregisterer
+	opts               component.Options
+	entriesChan        chan loki.Entry
+	uncheckedCollector *util.UncheckedCollector
 
 	serverMut sync.Mutex
 	server    *lokipush.PushAPIServer
@@ -57,11 +58,12 @@ type Component struct {
 
 func New(opts component.Options, args Arguments) (component.Component, error) {
 	c := &Component{
-		opts:         opts,
-		entriesChan:  make(chan loki.Entry),
-		receivers:    args.ForwardTo,
-		unregisterer: util.WrapWithUnregisterer(opts.Registerer),
+		opts:               opts,
+		entriesChan:        make(chan loki.Entry),
+		receivers:          args.ForwardTo,
+		uncheckedCollector: util.NewUncheckedCollector(nil),
 	}
+	opts.Registerer.MustRegister(c.uncheckedCollector)
 	err := c.Update(args)
 	if err != nil {
 		return nil, err
@@ -108,16 +110,17 @@ func (c *Component) Update(args component.Arguments) error {
 	if serverNeedsRestarting {
 		if c.server != nil {
 			c.server.Shutdown()
-			c.unregisterer.UnregisterAll()
 		}
-		// TODO: fix the metrics stuff re-registration issue
+
+		// [server.Server] registers new metrics every time it is created. To
+		// avoid issues with re-registering metrics with the same name, we create a
+		// new registry for the server every time we create one, and pass it to an
+		// unchecked collector to bypass uniqueness checking.
+		serverRegistry := prometheus.NewRegistry()
+		c.uncheckedCollector.SetCollector(serverRegistry)
+
 		var err error
-		c.server, err = lokipush.NewPushAPIServer(
-			c.opts.Logger,
-			newArgs.Server,
-			loki.NewEntryHandler(c.entriesChan, func() {}),
-			c.unregisterer,
-		)
+		c.server, err = lokipush.NewPushAPIServer(c.opts.Logger, newArgs.Server, loki.NewEntryHandler(c.entriesChan, func() {}), serverRegistry)
 		if err != nil {
 			return fmt.Errorf("failed to create embedded server: %v", err)
 		}
@@ -139,7 +142,6 @@ func (c *Component) stop() {
 	defer c.serverMut.Unlock()
 	if c.server != nil {
 		c.server.Shutdown()
-		c.unregisterer.UnregisterAll()
 		c.server = nil
 	}
 }
