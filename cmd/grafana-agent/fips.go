@@ -1,4 +1,4 @@
-//go:build fips
+//go:build fips || boringcrypto
 
 package main
 
