@@ -58,6 +58,8 @@ Main (unreleased)
 
 - Add metrics when clustering mode is enabled. (@rfratto)
 - Document debug metric `loki_process_dropped_lines_by_label_total` in loki.process. (@akselleirv)
+- Add `agent_wal_out_of_order_samples_total` metric to track samples received
+  out of order. (@rfratto)
 
 v0.33.1 (2023-05-01)
 --------------------

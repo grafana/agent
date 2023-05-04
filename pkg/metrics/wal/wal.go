@@ -35,6 +35,7 @@ type storageMetrics struct {
 
 	numActiveSeries        prometheus.Gauge
 	numDeletedSeries       prometheus.Gauge
+	totalOutOfOrderSamples prometheus.Counter
 	totalCreatedSeries     prometheus.Counter
 	totalRemovedSeries     prometheus.Counter
 	totalAppendedSamples   prometheus.Counter
@@ -51,6 +52,11 @@ func newStorageMetrics(r prometheus.Registerer) *storageMetrics {
 	m.numDeletedSeries = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: "agent_wal_storage_deleted_series",
 		Help: "Current number of series marked for deletion from memory",
+	})
+
+	m.totalOutOfOrderSamples = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "agent_wal_out_of_order_samples_total",
+		Help: "Total number of out of order samples ingestion failed attempts.",
 	})
 
 	m.totalCreatedSeries = prometheus.NewCounter(prometheus.CounterOpts{
@@ -77,6 +83,7 @@ func newStorageMetrics(r prometheus.Registerer) *storageMetrics {
 		r.MustRegister(
 			m.numActiveSeries,
 			m.numDeletedSeries,
+			m.totalOutOfOrderSamples,
 			m.totalCreatedSeries,
 			m.totalRemovedSeries,
 			m.totalAppendedSamples,
@@ -94,6 +101,7 @@ func (m *storageMetrics) Unregister() {
 	cs := []prometheus.Collector{
 		m.numActiveSeries,
 		m.numDeletedSeries,
+		m.totalOutOfOrderSamples,
 		m.totalCreatedSeries,
 		m.totalRemovedSeries,
 		m.totalAppendedSamples,
@@ -690,6 +698,7 @@ func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v flo
 	defer series.Unlock()
 
 	if t < series.lastTs {
+		a.w.metrics.totalOutOfOrderSamples.Inc()
 		return 0, storage.ErrOutOfOrderSample
 	}
 
@@ -814,6 +823,7 @@ func (a *appender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int
 	defer series.Unlock()
 
 	if t < series.lastTs {
+		a.w.metrics.totalOutOfOrderSamples.Inc()
 		return 0, storage.ErrOutOfOrderSample
 	}
 
@@ -902,15 +912,21 @@ func (a *appender) Commit() error {
 	var series *memSeries
 	for i, s := range a.pendingSamples {
 		series = a.sampleSeries[i]
-		series.updateTimestamp(s.T)
+		if !series.updateTimestamp(s.T) {
+			a.w.metrics.totalOutOfOrderSamples.Inc()
+		}
 	}
 	for i, s := range a.pendingHistograms {
 		series = a.histogramSeries[i]
-		series.updateTimestamp(s.T)
+		if !series.updateTimestamp(s.T) {
+			a.w.metrics.totalOutOfOrderSamples.Inc()
+		}
 	}
 	for i, s := range a.pendingFloatHistograms {
 		series = a.floatHistogramSeries[i]
-		series.updateTimestamp(s.T)
+		if !series.updateTimestamp(s.T) {
+			a.w.metrics.totalOutOfOrderSamples.Inc()
+		}
 	}
 
 	//nolint:staticcheck
