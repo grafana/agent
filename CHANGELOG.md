@@ -46,6 +46,9 @@ Main (unreleased)
 - Honor timeout when trying to establish a connection to another agent in Flow
   clustering mode. (@rfratto)
 
+- Fix an issue where not specifying either `http` nor `grpc` blocks could result
+  in a panic for `loki.source.heroku` and `loki.source.gcplog` components. (@thampiotr)
+
 - Fix an issue with the grafana/agent windows docker image entrypoint
   not targeting the right location for the config. (@erikbaranowski)
 
