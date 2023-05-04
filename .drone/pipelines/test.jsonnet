@@ -107,7 +107,8 @@ local pipelines = import '../util/pipelines.jsonnet';
     volumes: [{
       name: 'gomod',
       host: {
-        path: 'C:/drone/grafana-agent-gomod-cache',
+        path: 'C:/grafana-agent-gomod-cache',
+        read_only: false,
         create: true,
       },
     }],
