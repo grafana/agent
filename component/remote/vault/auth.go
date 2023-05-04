@@ -124,7 +124,7 @@ func (a *AuthAWS) vaultAuthenticate(ctx context.Context, cli *vault.Client) (*va
 
 	switch a.Type {
 	case "":
-		return nil, fmt.Errorf("auth.aws: role must not be empty")
+		return nil, fmt.Errorf("auth.aws: type must not be empty")
 	case "ec2":
 		opts = append(opts, aws.WithEC2Auth())
 	case "iam":
@@ -136,7 +136,7 @@ func (a *AuthAWS) vaultAuthenticate(ctx context.Context, cli *vault.Client) (*va
 		opts = append(opts, aws.WithRegion(a.Region))
 	}
 	if a.Role != "" {
-		opts = append(opts, aws.WithRegion(a.Role))
+		opts = append(opts, aws.WithRole(a.Role))
 	}
 	if a.IAMServerIDHeader != "" {
 		opts = append(opts, aws.WithIAMServerIDHeader(a.IAMServerIDHeader))
@@ -192,7 +192,7 @@ func (a *AuthAzure) vaultAuthenticate(ctx context.Context, cli *vault.Client) (*
 	return s, nil
 }
 
-// AuthAzure authenticates against Vault with GCP.
+// AuthGCP authenticates against Vault with GCP.
 type AuthGCP struct {
 	Role string `river:"role,attr"`
 	// Type specifies the mechanism used to authenticate with GCS. Should be
@@ -232,7 +232,7 @@ func (a *AuthGCP) vaultAuthenticate(ctx context.Context, cli *vault.Client) (*va
 	return s, nil
 }
 
-// AuthAzure authenticates against Vault with Kubernetes.
+// AuthKubernetes authenticates against Vault with Kubernetes.
 type AuthKubernetes struct {
 	Role                    string `river:"role,attr"`
 	ServiceAccountTokenFile string `river:"service_account_file,attr,optional"`
