@@ -6,17 +6,13 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/grafana/agent/pkg/util"
-
-	"github.com/go-kit/log/level"
-
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
+	fnet "github.com/grafana/agent/component/common/net"
 	"github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/loki/source/api/internal/lokipush"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/common/model"
-	"github.com/weaveworks/common/logging"
-	"github.com/weaveworks/common/server"
 )
 
 func init() {
@@ -30,14 +26,11 @@ func init() {
 }
 
 type Arguments struct {
-	HTTPAddress          string              `river:"http_address,attr"`
-	HTTPPort             int                 `river:"http_port,attr"`
+	Server               *fnet.ServerConfig  `river:",squash"`
 	ForwardTo            []loki.LogsReceiver `river:"forward_to,attr"`
 	Labels               map[string]string   `river:"labels,attr,optional"`
 	RelabelRules         relabel.Rules       `river:"relabel_rules,attr,optional"`
 	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`
-	// TODO: allow to configure other Server fields in a dedicated block, to match promtail's
-	//       https://grafana.com/docs/loki/next/clients/promtail/configuration/#server
 }
 
 func (a *Arguments) labelSet() model.LabelSet {
@@ -53,9 +46,8 @@ type Component struct {
 	entriesChan  chan loki.Entry
 	unregisterer *util.Unregisterer
 
-	rwMut      sync.RWMutex
-	args       Arguments
-	pushTarget *lokipush.PushTarget
+	serverMut sync.Mutex
+	server    *lokipush.PushAPIServer
 
 	// Use separate receivers mutex to address potential deadlock when Update drains the current server.
 	// e.g. https://github.com/grafana/agent/issues/3391
@@ -66,7 +58,6 @@ type Component struct {
 func New(opts component.Options, args Arguments) (component.Component, error) {
 	c := &Component{
 		opts:         opts,
-		args:         args,
 		entriesChan:  make(chan loki.Entry),
 		receivers:    args.ForwardTo,
 		unregisterer: util.WrapWithUnregisterer(opts.Registerer),
@@ -79,9 +70,7 @@ func New(opts component.Options, args Arguments) (component.Component, error) {
 }
 
 func (c *Component) Run(ctx context.Context) (err error) {
-	defer func() {
-		err = c.stop()
-	}()
+	defer c.stop()
 
 	for {
 		select {
@@ -113,64 +102,44 @@ func (c *Component) Update(args component.Arguments) error {
 	c.receivers = newArgs.ForwardTo
 	c.receiversMut.Unlock()
 
-	newPushTargetConfig := c.pushTargetConfigForArgs(newArgs)
-
-	c.rwMut.Lock()
-	defer c.rwMut.Unlock()
-
-	pushTargetNeedsUpdate := c.pushTarget == nil || !reflect.DeepEqual(c.pushTarget.CurrentConfig(), *newPushTargetConfig)
-	if !pushTargetNeedsUpdate {
-		c.args = newArgs
-		return nil
-	}
-
-	if c.pushTarget != nil {
-		err := c.pushTarget.Stop()
-		if err != nil {
-			level.Warn(c.opts.Logger).Log("msg", "push API server failed to stop on update", "err", err)
+	c.serverMut.Lock()
+	defer c.serverMut.Unlock()
+	serverNeedsRestarting := c.server == nil || !reflect.DeepEqual(c.server.ServerConfig(), *newArgs.Server)
+	if serverNeedsRestarting {
+		if c.server != nil {
+			c.server.Shutdown()
+			c.unregisterer.UnregisterAll()
 		}
-		c.pushTarget = nil
-		c.unregisterer.UnregisterAll()
+		// TODO: fix the metrics stuff re-registration issue
+		var err error
+		c.server, err = lokipush.NewPushAPIServer(
+			c.opts.Logger,
+			newArgs.Server,
+			loki.NewEntryHandler(c.entriesChan, func() {}),
+			c.unregisterer,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to create embedded server: %v", err)
+		}
+		err = c.server.Run()
+		if err != nil {
+			return fmt.Errorf("failed to run embedded server: %v", err)
+		}
 	}
 
-	newPushTarget, err := lokipush.NewPushTarget(
-		c.opts.Logger,
-		loki.NewEntryHandler(c.entriesChan, func() {}),
-		c.opts.ID,
-		newPushTargetConfig,
-	)
-	if err != nil {
-		return fmt.Errorf("failed to create loki push API server: %v", err)
-	}
+	c.server.SetLabels(newArgs.labelSet())
+	c.server.SetRelabelRules(newArgs.RelabelRules)
+	c.server.SetKeepTimestamp(newArgs.UseIncomingTimestamp)
 
-	c.pushTarget = newPushTarget
-	c.args = newArgs
 	return nil
 }
 
-func (c *Component) pushTargetConfigForArgs(newArgs Arguments) *lokipush.PushTargetConfig {
-	return &lokipush.PushTargetConfig{
-		Server: server.Config{
-			HTTPListenPort:          newArgs.HTTPPort,
-			HTTPListenAddress:       newArgs.HTTPAddress,
-			Registerer:              c.unregisterer,
-			MetricsNamespace:        "agent_loki_source_api",
-			RegisterInstrumentation: false,
-			Log:                     logging.GoKit(c.opts.Logger),
-		},
-		Labels:        newArgs.labelSet(),
-		KeepTimestamp: newArgs.UseIncomingTimestamp,
-		RelabelConfig: relabel.ComponentToPromRelabelConfigs(newArgs.RelabelRules),
-	}
-}
-
-func (c *Component) stop() error {
-	c.rwMut.RLock()
-	defer c.rwMut.RUnlock()
-	if c.pushTarget != nil {
-		err := c.pushTarget.Stop()
+func (c *Component) stop() {
+	c.serverMut.Lock()
+	defer c.serverMut.Unlock()
+	if c.server != nil {
+		c.server.Shutdown()
 		c.unregisterer.UnregisterAll()
-		return err
+		c.server = nil
 	}
-	return nil
 }

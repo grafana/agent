@@ -3,22 +3,23 @@ package api
 import (
 	"context"
 	"fmt"
+	"github.com/phayes/freeport"
+	"net/http"
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/component/common/loki/client"
-	"github.com/grafana/agent/component/common/loki/client/fake"
-
-	"github.com/grafana/dskit/flagext"
-	"github.com/grafana/loki/pkg/logproto"
-	"github.com/prometheus/common/model"
-
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/component/common/loki/client"
+	"github.com/grafana/agent/component/common/loki/client/fake"
+	"github.com/grafana/agent/component/common/net"
 	"github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/dskit/flagext"
+	"github.com/grafana/loki/pkg/logproto"
 	"github.com/grafana/regexp"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -30,13 +31,14 @@ func TestLokiSourceAPI_Simple(t *testing.T) {
 	receiver := fake.NewClient(func() {})
 	defer receiver.Stop()
 
-	args := defaultTestArgsWith(func(a *Arguments) {
-		a.HTTPPort = 8532
+	args := testArgsWith(t, func(a *Arguments) {
+		a.Server.HTTP.ListenPort = 8532
 		a.ForwardTo = []loki.LogsReceiver{receiver.LogsReceiver()}
 		a.UseIncomingTimestamp = true
 	})
 	opts := defaultOptions(t)
-	startTestComponent(t, opts, args, ctx)
+	_, shutdown := startTestComponent(t, opts, args, ctx)
+	defer shutdown()
 
 	lokiClient := newTestLokiClient(t, args, opts)
 	defer lokiClient.Stop()
@@ -75,14 +77,15 @@ func TestLokiSourceAPI_Update(t *testing.T) {
 	receiver := fake.NewClient(func() {})
 	defer receiver.Stop()
 
-	args := defaultTestArgsWith(func(a *Arguments) {
-		a.HTTPPort = 8583
+	args := testArgsWith(t, func(a *Arguments) {
+		a.Server.HTTP.ListenPort = 8583
 		a.ForwardTo = []loki.LogsReceiver{receiver.LogsReceiver()}
 		a.UseIncomingTimestamp = true
 		a.Labels = map[string]string{"test_label": "before"}
 	})
 	opts := defaultOptions(t)
-	c := startTestComponent(t, opts, args, ctx)
+	c, shutdown := startTestComponent(t, opts, args, ctx)
+	defer shutdown()
 
 	lokiClient := newTestLokiClient(t, args, opts)
 	defer lokiClient.Stop()
@@ -152,8 +155,8 @@ func TestLokiSourceAPI_FanOut(t *testing.T) {
 		receivers[i] = fake.NewClient(func() {})
 	}
 
-	args := defaultTestArgsWith(func(a *Arguments) {
-		a.HTTPPort = 8537
+	args := testArgsWith(t, func(a *Arguments) {
+		a.Server.HTTP.ListenPort = 8537
 		a.ForwardTo = mapToChannels(receivers)
 	})
 	opts := defaultOptions(t)
@@ -198,6 +201,8 @@ func TestLokiSourceAPI_FanOut(t *testing.T) {
 }
 
 func TestComponent_detectsWhenUpdateRequiresARestart(t *testing.T) {
+	httpPort := getFreePort(t)
+	grpcPort := getFreePort(t)
 	tests := []struct {
 		name            string
 		args            Arguments
@@ -206,65 +211,65 @@ func TestComponent_detectsWhenUpdateRequiresARestart(t *testing.T) {
 	}{
 		{
 			name:            "identical args don't require server restart",
-			args:            defaultTestArgs(),
-			newArgs:         defaultTestArgs(),
+			args:            testArgsWithPorts(httpPort, grpcPort),
+			newArgs:         testArgsWithPorts(httpPort, grpcPort),
 			restartRequired: false,
 		},
 		{
 			name: "change in address requires server restart",
-			args: defaultTestArgs(),
-			newArgs: defaultTestArgsWith(func(args *Arguments) {
-				args.HTTPAddress = "localhost"
+			args: testArgsWithPorts(httpPort, grpcPort),
+			newArgs: testArgsWith(t, func(args *Arguments) {
+				args.Server.HTTP.ListenAddress = "localhost"
+				args.Server.HTTP.ListenPort = httpPort
+				args.Server.GRPC.ListenPort = grpcPort
 			}),
 			restartRequired: true,
 		},
 		{
-			name: "change in port requires server restart",
-			args: defaultTestArgs(),
-			newArgs: defaultTestArgsWith(func(args *Arguments) {
-				args.HTTPPort = 7777
-			}),
+			name:            "change in port requires server restart",
+			args:            testArgsWithPorts(httpPort, grpcPort),
+			newArgs:         testArgsWithPorts(getFreePort(t), grpcPort),
 			restartRequired: true,
 		},
 		{
-			name: "change in forwardTo does NOT requires server restart",
-			args: defaultTestArgs(),
-			newArgs: defaultTestArgsWith(func(args *Arguments) {
+			name: "change in forwardTo does not require server restart",
+			args: testArgsWithPorts(httpPort, grpcPort),
+			newArgs: testArgsWith(t, func(args *Arguments) {
 				args.ForwardTo = []loki.LogsReceiver{}
+				args.Server.HTTP.ListenPort = httpPort
+				args.Server.GRPC.ListenPort = grpcPort
 			}),
 			restartRequired: false,
 		},
 		{
-			name: "change in labels requires server restart",
-			args: defaultTestArgs(),
-			newArgs: defaultTestArgsWith(func(args *Arguments) {
+			name: "change in labels does not require server restart",
+			args: testArgsWithPorts(httpPort, grpcPort),
+			newArgs: testArgsWith(t, func(args *Arguments) {
 				args.Labels = map[string]string{"some": "label"}
+				args.Server.HTTP.ListenPort = httpPort
+				args.Server.GRPC.ListenPort = grpcPort
 			}),
-			restartRequired: true,
+			restartRequired: false,
 		},
 		{
-			name: "change in labels requires server restart",
-			args: defaultTestArgs(),
-			newArgs: defaultTestArgsWith(func(args *Arguments) {
-				args.Labels = map[string]string{"some": "label"}
-			}),
-			restartRequired: true,
-		},
-		{
-			name: "change in relabel rules requires server restart",
-			args: defaultTestArgs(),
-			newArgs: defaultTestArgsWith(func(args *Arguments) {
+			name: "change in relabel rules does not require server restart",
+			args: testArgsWithPorts(httpPort, grpcPort),
+			newArgs: testArgsWith(t, func(args *Arguments) {
 				args.RelabelRules = relabel.Rules{}
+				args.Server.HTTP.ListenPort = httpPort
+				args.Server.GRPC.ListenPort = grpcPort
 			}),
-			restartRequired: true,
+			restartRequired: false,
 		},
 		{
-			name: "change in use incoming timestamp requires server restart",
-			args: defaultTestArgs(),
-			newArgs: defaultTestArgsWith(func(args *Arguments) {
+			name: "change in use incoming timestamp does not require server restart",
+			args: testArgsWithPorts(httpPort, grpcPort),
+			newArgs: testArgsWith(t, func(args *Arguments) {
 				args.UseIncomingTimestamp = !args.UseIncomingTimestamp
+				args.Server.HTTP.ListenPort = httpPort
+				args.Server.GRPC.ListenPort = grpcPort
 			}),
-			restartRequired: true,
+			restartRequired: false,
 		},
 	}
 	for _, tc := range tests {
@@ -278,25 +283,55 @@ func TestComponent_detectsWhenUpdateRequiresARestart(t *testing.T) {
 			c, ok := comp.(*Component)
 			require.True(t, ok)
 
-			pushTargetBefore := c.pushTarget
+			// in order to cleanly update, we want to make sure the server is running first.
+			waitForServerToBeReady(t, c)
 
+			serverBefore := c.server
 			err = c.Update(tc.newArgs)
 			require.NoError(t, err)
 
-			restarted := pushTargetBefore != c.pushTarget
+			restarted := serverBefore != c.server
 			assert.Equal(t, restarted, tc.restartRequired)
+
+			// in order to cleanly shutdown, we want to make sure the server is running first.
+			waitForServerToBeReady(t, c)
+			c.stop()
 		})
 	}
 }
 
-func startTestComponent(t *testing.T, opts component.Options, args Arguments, ctx context.Context) component.Component {
+func startTestComponent(
+	t *testing.T,
+	opts component.Options,
+	args Arguments,
+	ctx context.Context,
+) (component.Component, func()) {
 	comp, err := New(opts, args)
 	require.NoError(t, err)
 	go func() {
 		err := comp.Run(ctx)
 		require.NoError(t, err)
 	}()
-	return comp
+
+	c, ok := comp.(*Component)
+	require.True(t, ok)
+
+	return comp, func() {
+		// in order to cleanly shutdown, we want to make sure the server is running first.
+		waitForServerToBeReady(t, c)
+		c.stop()
+	}
+}
+
+func waitForServerToBeReady(t *testing.T, comp *Component) {
+	require.Eventuallyf(t, func() bool {
+		resp, err := http.Get(fmt.Sprintf(
+			"http://%v:%d/wrong/url",
+			comp.server.ServerConfig().HTTP.ListenAddress,
+			comp.server.ServerConfig().HTTP.ListenPort,
+		))
+		return err == nil && resp.StatusCode == 404
+	}, 5*time.Second, 20*time.Millisecond, "server failed to start before timeout")
 }
 
 func mapToChannels(clients []*fake.Client) []loki.LogsReceiver {
@@ -309,7 +344,11 @@ func mapToChannels(clients []*fake.Client) []loki.LogsReceiver {
 
 func newTestLokiClient(t *testing.T, args Arguments, opts component.Options) client.Client {
 	url := flagext.URLValue{}
-	err := url.Set(fmt.Sprintf("http://%s:%d/api/v1/push", args.HTTPAddress, args.HTTPPort))
+	err := url.Set(fmt.Sprintf(
+		"http://%s:%d/api/v1/push",
+		args.Server.HTTP.ListenAddress,
+		args.Server.HTTP.ListenPort,
+	))
 	require.NoError(t, err)
 
 	lokiClient, err := client.New(
@@ -334,18 +373,30 @@ func defaultOptions(t *testing.T) component.Options {
 	}
 }
 
-func defaultTestArgsWith(mutator func(arguments *Arguments)) Arguments {
-	a := defaultTestArgs()
+func testArgsWith(t *testing.T, mutator func(arguments *Arguments)) Arguments {
+	a := testArgs(t)
 	mutator(&a)
 	return a
 }
 
-func defaultTestArgs() Arguments {
+func testArgs(t *testing.T) Arguments {
+	return testArgsWithPorts(getFreePort(t), getFreePort(t))
+}
+
+func testArgsWithPorts(httpPort int, grpcPort int) Arguments {
 	return Arguments{
-		HTTPAddress: "127.0.0.1",
-		HTTPPort:    0,
-		ForwardTo:   []loki.LogsReceiver{make(chan loki.Entry), make(chan loki.Entry)},
-		Labels:      map[string]string{"foo": "bar", "fizz": "buzz"},
+		Server: &net.ServerConfig{
+			HTTP: &net.HTTPConfig{
+				ListenAddress: "127.0.0.1",
+				ListenPort:    httpPort,
+			},
+			GRPC: &net.GRPCConfig{
+				ListenAddress: "127.0.0.1",
+				ListenPort:    grpcPort,
+			},
+		},
+		ForwardTo: []loki.LogsReceiver{make(chan loki.Entry), make(chan loki.Entry)},
+		Labels:    map[string]string{"foo": "bar", "fizz": "buzz"},
 		RelabelRules: relabel.Rules{
 			{
 				SourceLabels: []string{"tag"},
@@ -355,4 +406,10 @@ func defaultTestArgs() Arguments {
 		},
 		UseIncomingTimestamp: false,
 	}
+}
+
+func getFreePort(t *testing.T) int {
+	port, err := freeport.GetFreePort()
+	require.NoError(t, err)
+	return port
 }

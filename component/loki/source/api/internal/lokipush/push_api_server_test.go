@@ -1,12 +1,11 @@
 package lokipush
 
-// This code is copied from Promtail (52655706b8fc9393983d8709c20aab5a851c222d) with changes kept to the minimum.
+// This code is copied from Promtail (3478e180211c17bfe2f3f3305f668d5520f40481) with changes kept to the minimum.
 // The lokipush package is used to configure and run the HTTP server that can receive loki push API requests and
 // forward them to other loki components.
 
 import (
 	"bytes"
-	"flag"
 	"fmt"
 	"io"
 	"net"
@@ -16,19 +15,19 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/component/common/loki/client/fake"
-
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/component/common/loki/client/fake"
+	fnet "github.com/grafana/agent/component/common/net"
+	frelabel "github.com/grafana/agent/component/common/relabel"
+	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/dskit/flagext"
 	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/grafana/loki/clients/pkg/promtail/client"
+	"github.com/grafana/loki/pkg/logproto"
+	"github.com/phayes/freeport"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
-	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/stretchr/testify/require"
-	"github.com/weaveworks/common/server"
-
-	"github.com/grafana/loki/pkg/logproto"
 )
 
 const localhost = "127.0.0.1"
@@ -37,45 +36,41 @@ func TestLokiPushTarget(t *testing.T) {
 	w := log.NewSyncWriter(os.Stderr)
 	logger := log.NewLogfmtLogger(w)
 
-	//Create PushTarget
+	//Create PushAPIServerOld
 	eh := fake.NewClient(func() {})
 	defer eh.Stop()
 
 	// Get a randomly available port by open and closing a TCP socket
-	addr, err := net.ResolveTCPAddr("tcp", localhost+":0")
-	require.NoError(t, err)
-	l, err := net.ListenTCP("tcp", addr)
-	require.NoError(t, err)
-	port := l.Addr().(*net.TCPAddr).Port
-	err = l.Close()
-	require.NoError(t, err)
+	port := getFreePort(t)
 
-	// Adjust some defaults
-	defaults := server.Config{}
-	defaults.RegisterFlags(flag.NewFlagSet("empty", flag.ContinueOnError))
-	defaults.HTTPListenAddress = localhost
-	defaults.HTTPListenPort = port
-	defaults.GRPCListenAddress = localhost
-	defaults.GRPCListenPort = 0 // Not testing GRPC, a random port will be assigned
-	defaults.Registerer = prometheus.NewRegistry()
-
-	config := &PushTargetConfig{
-		Server: defaults,
-		Labels: model.LabelSet{
-			"pushserver": "pushserver1",
-			"dropme":     "label",
+	serverConfig := &fnet.ServerConfig{
+		HTTP: &fnet.HTTPConfig{
+			ListenAddress: localhost,
+			ListenPort:    port,
 		},
-		KeepTimestamp: true,
-		RelabelConfig: []*relabel.Config{
-			{
-				Action: relabel.LabelDrop,
-				Regex:  relabel.MustNewRegexp("dropme"),
-			},
-		},
+		GRPC: &fnet.GRPCConfig{ListenPort: getFreePort(t)},
 	}
 
-	pt, err := NewPushTarget(logger, eh, "job1", config)
+	pt, err := NewPushAPIServer(logger, serverConfig, eh, prometheus.NewRegistry())
 	require.NoError(t, err)
+
+	err = pt.Run()
+	require.NoError(t, err)
+
+	pt.SetLabels(model.LabelSet{
+		"pushserver": "pushserver1",
+		"dropme":     "label",
+	})
+	pt.SetKeepTimestamp(true)
+
+	relabelRule := frelabel.Config{}
+	relabelStr := `
+action = "labeldrop"
+regex = "dropme"
+`
+	err = river.Unmarshal([]byte(relabelStr), &relabelRule)
+	require.NoError(t, err)
+	pt.SetRelabelRules(frelabel.Rules{&relabelRule})
 
 	// Build a client to send logs
 	serverURL := flagext.URLValue{}
@@ -129,14 +124,14 @@ func TestLokiPushTarget(t *testing.T) {
 	// With keep timestamp enabled, verify timestamp
 	require.Equal(t, time.Unix(99, 0).Unix(), eh.Received()[99].Timestamp.Unix())
 
-	_ = pt.Stop()
+	pt.Shutdown()
 }
 
 func TestPlaintextPushTarget(t *testing.T) {
 	w := log.NewSyncWriter(os.Stderr)
 	logger := log.NewLogfmtLogger(w)
 
-	//Create PushTarget
+	//Create PushAPIServerOld
 	eh := fake.NewClient(func() {})
 	defer eh.Stop()
 
@@ -149,26 +144,25 @@ func TestPlaintextPushTarget(t *testing.T) {
 	err = l.Close()
 	require.NoError(t, err)
 
-	// Adjust some of the defaults
-	defaults := server.Config{}
-	defaults.RegisterFlags(flag.NewFlagSet("empty", flag.ContinueOnError))
-	defaults.HTTPListenAddress = localhost
-	defaults.HTTPListenPort = port
-	defaults.GRPCListenAddress = localhost
-	defaults.GRPCListenPort = 0 // Not testing GRPC, a random port will be assigned
-	defaults.Registerer = prometheus.NewRegistry()
-
-	config := &PushTargetConfig{
-		Server: defaults,
-		Labels: model.LabelSet{
-			"pushserver": "pushserver2",
-			"keepme":     "label",
+	serverConfig := &fnet.ServerConfig{
+		HTTP: &fnet.HTTPConfig{
+			ListenAddress: localhost,
+			ListenPort:    port,
 		},
-		KeepTimestamp: true,
+		GRPC: &fnet.GRPCConfig{ListenPort: getFreePort(t)},
 	}
 
-	pt, err := NewPushTarget(logger, eh, "job2", config)
+	pt, err := NewPushAPIServer(logger, serverConfig, eh, prometheus.NewRegistry())
 	require.NoError(t, err)
+
+	err = pt.Run()
+	require.NoError(t, err)
+
+	pt.SetLabels(model.LabelSet{
+		"pushserver": "pushserver2",
+		"keepme":     "label",
+	})
+	pt.SetKeepTimestamp(true)
 
 	// Send some logs
 	ts := time.Now()
@@ -201,14 +195,14 @@ func TestPlaintextPushTarget(t *testing.T) {
 	// Timestamp is always set in the handler, we expect received timestamps to be slightly higher than the timestamp when we started sending logs.
 	require.GreaterOrEqual(t, eh.Received()[99].Timestamp.Unix(), ts.Unix())
 
-	_ = pt.Stop()
+	pt.Shutdown()
 }
 
 func TestReady(t *testing.T) {
 	w := log.NewSyncWriter(os.Stderr)
 	logger := log.NewLogfmtLogger(w)
 
-	//Create PushTarget
+	//Create PushAPIServerOld
 	eh := fake.NewClient(func() {})
 	defer eh.Stop()
 
@@ -221,26 +215,25 @@ func TestReady(t *testing.T) {
 	err = l.Close()
 	require.NoError(t, err)
 
-	// Adjust some of the defaults
-	defaults := server.Config{}
-	defaults.RegisterFlags(flag.NewFlagSet("empty", flag.ContinueOnError))
-	defaults.HTTPListenAddress = localhost
-	defaults.HTTPListenPort = port
-	defaults.GRPCListenAddress = localhost
-	defaults.GRPCListenPort = 0 // Not testing GRPC, a random port will be assigned
-	defaults.Registerer = prometheus.NewRegistry()
-
-	config := &PushTargetConfig{
-		Server: defaults,
-		Labels: model.LabelSet{
-			"pushserver": "pushserver2",
-			"keepme":     "label",
+	serverConfig := &fnet.ServerConfig{
+		HTTP: &fnet.HTTPConfig{
+			ListenAddress: localhost,
+			ListenPort:    port,
 		},
-		KeepTimestamp: true,
+		GRPC: &fnet.GRPCConfig{ListenPort: getFreePort(t)},
 	}
 
-	pt, err := NewPushTarget(logger, eh, "job3", config)
+	pt, err := NewPushAPIServer(logger, serverConfig, eh, prometheus.NewRegistry())
 	require.NoError(t, err)
+
+	err = pt.Run()
+	require.NoError(t, err)
+
+	pt.SetLabels(model.LabelSet{
+		"pushserver": "pushserver2",
+		"keepme":     "label",
+	})
+	pt.SetKeepTimestamp(true)
 
 	url := fmt.Sprintf("http://%s:%d/ready", localhost, port)
 	response, err := http.Get(url)
@@ -264,7 +257,11 @@ func TestReady(t *testing.T) {
 		t.Errorf("Got the response code %q, want %q", responseCode, wantedCode)
 	}
 
-	t.Cleanup(func() {
-		_ = pt.Stop()
-	})
+	t.Cleanup(pt.Shutdown)
+}
+
+func getFreePort(t *testing.T) int {
+	port, err := freeport.GetFreePort()
+	require.NoError(t, err)
+	return port
 }
