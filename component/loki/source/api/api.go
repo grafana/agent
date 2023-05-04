@@ -100,6 +100,11 @@ func (c *Component) Update(args component.Arguments) error {
 		return fmt.Errorf("invalid type of arguments: %T", args)
 	}
 
+	// if no server config provided, we'll use defaults
+	if newArgs.Server == nil {
+		newArgs.Server = &fnet.ServerConfig{}
+	}
+
 	c.receiversMut.Lock()
 	c.receivers = newArgs.ForwardTo
 	c.receiversMut.Unlock()
