@@ -18,7 +18,7 @@ Main (unreleased)
 - New Grafana Agent Flow components:
   - `prometheus.operator.servicemonitors` discovers ServiceMonitor resources in your Kubernetes cluster and scrape
     the targets they reference. (@captncraig, @marctc, @jcreixell)
-  - `remote.vault` retrieves secrets from Vault. (@rfratto)
+  - `remote.vault` retrieves a secret from Vault. (@rfratto)
 
 - Added coalesce function to river stdlib. (@jkroepke)
 
