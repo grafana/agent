@@ -98,7 +98,18 @@ local pipelines = import '../util/pipelines.jsonnet';
     steps: [{
       name: 'Run Go tests',
       image: build_image.windows,
+      volumes: [{
+        name: 'gomod',
+        path: 'C:/go/pkg/mod/',
+      }],
       commands: ['go test -tags="nodocker,nonetwork" ./...'],
     }],
+    volumes: [{
+      name: 'gomod',
+      host: {
+        path: 'C:/grafana-agent/gomod-cache/',
+      },
+    }],
+
   },
 ]
