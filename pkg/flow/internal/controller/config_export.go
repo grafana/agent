@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/grafana/agent/pkg/river/ast"
-	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/vm"
 )
 
@@ -18,27 +17,13 @@ type ExportConfigNode struct {
 	block *ast.BlockStmt // Current River blocks to derive config from
 	eval  *vm.Evaluator
 	value any
-	name  string
 }
 
 var _ BlockNode = (*ExportConfigNode)(nil)
 
 // NewExportConfigNode creates a new ExportConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.
-func NewExportConfigNode(block *ast.BlockStmt, globals ComponentGlobals, isInModule bool) (*ExportConfigNode, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	if !isInModule {
-		diags.Add(diag.Diagnostic{
-			Severity: diag.SeverityLevelError,
-			Message:  "export blocks only allowed inside a module",
-			StartPos: ast.StartPos(block).Position(),
-			EndPos:   ast.EndPos(block).Position(),
-		})
-
-		return nil, diags
-	}
-
+func NewExportConfigNode(block *ast.BlockStmt, globals ComponentGlobals) *ExportConfigNode {
 	return &ExportConfigNode{
 		label:         block.Label,
 		nodeID:        BlockComponentID(block).String(),
@@ -46,7 +31,7 @@ func NewExportConfigNode(block *ast.BlockStmt, globals ComponentGlobals, isInMod
 
 		block: block,
 		eval:  vm.New(block.Body),
-	}, diags
+	}
 }
 
 type exportBlock struct {
@@ -68,16 +53,16 @@ func (cn *ExportConfigNode) Evaluate(scope *vm.Scope) error {
 		return fmt.Errorf("decoding River: %w", err)
 	}
 	cn.value = export.Value
-	cn.name = cn.label
 	return nil
 }
 
-// NameAndValue returns the name and value of the export.
-func (cn *ExportConfigNode) NameAndValue() (string, any) {
+func (cn *ExportConfigNode) Label() string { return cn.label }
+
+// Value returns the value of the export.
+func (cn *ExportConfigNode) Value() any {
 	cn.mut.RLock()
 	defer cn.mut.RUnlock()
-
-	return cn.name, cn.value
+	return cn.value
 }
 
 // Block implements BlockNode and returns the current block of the managed config node.
