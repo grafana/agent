@@ -219,7 +219,7 @@ steps:
   name: Run Go tests
   volumes:
   - name: gomod
-    path: C:/go/pkg/mod/
+    path: C:\go\pkg\mod\
 trigger:
   event:
   - pull_request
@@ -227,7 +227,7 @@ type: docker
 volumes:
 - host:
     create: true
-    path: C:/grafana-agent-gomod-cache/
+    path: \grafana-agent-gomod-cache\
   name: gomod
 ---
 kind: pipeline
@@ -1338,6 +1338,6 @@ kind: secret
 name: gpg_public_key
 ---
 kind: signature
-hmac: d56132c21b4b3378181fa9aaf9d75aa37614a75e55e23d96f36821a5f93aafb6
+hmac: df80b73d69de1e53ffbcef77a5a3c9ea0eedd83d6a66b7a4d2d2ce4b6af87a10
 
 ...

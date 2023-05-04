@@ -100,14 +100,14 @@ local pipelines = import '../util/pipelines.jsonnet';
       image: build_image.windows,
       volumes: [{
         name: 'gomod',
-        path: 'C:/go/pkg/mod/',
+        path: 'C:\\go\\pkg\\mod\\',
       }],
       commands: ['go test -tags="nodocker,nonetwork" ./...'],
     }],
     volumes: [{
       name: 'gomod',
       host: {
-        path: 'C:/grafana-agent-gomod-cache/',
+        path: '\\grafana-agent-gomod-cache\\',
         create: true,
       },
     }],
