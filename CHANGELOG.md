@@ -49,6 +49,9 @@ Main (unreleased)
 - Fix an issue where not specifying either `http` nor `grpc` blocks could result
   in a panic for `loki.source.heroku` and `loki.source.gcplog` components. (@thampiotr)
 
+- Fix an issue with the grafana/agent windows docker image entrypoint
+  not targeting the right location for the config. (@erikbaranowski)
+
 ### Other changes
 
 - Add metrics when clustering mode is enabled. (@rfratto)
