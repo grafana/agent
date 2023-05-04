@@ -18,6 +18,9 @@ Main (unreleased)
 - Honor timeout when trying to establish a connection to another agent in Flow
   clustering mode. (@rfratto)
 
+- Fix an issue with the grafana/agent windows docker image entrypoint
+  not targeting the right location for the config. (@erikbaranowski)
+
 v0.33.1 (2023-05-01)
 --------------------
 
