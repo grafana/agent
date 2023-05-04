@@ -155,14 +155,17 @@ func New(log log.Logger, reg prometheus.Registerer, clusterEnabled bool, listenA
 		Transport: &http2.Transport{
 			AllowHTTP: true,
 			DialTLSContext: func(ctx context.Context, network, addr string, _ *tls.Config) (net.Conn, error) {
-				if deadline, ok := ctx.Deadline(); ok {
-					return net.DialTimeout(network, addr, time.Until(deadline))
+				// Set a maximum timeout for establishing the connection. If our
+				// context has a deadline earlier than our timeout, we shrink the
+				// timeout to it.
+				//
+				// TODO(rfratto): consider making the max timeout configurable.
+				timeout := 30 * time.Second
+				if dur, ok := deadlineDuration(ctx); ok && dur < timeout {
+					timeout = dur
 				}
 
-				// TODO(rfratto): should we use a default timeout if one isn't set from
-				// the context? [http.DefaultTransport] configures a net.Dialer with a
-				// timeout of 30 seconds by default.
-				return net.Dial(network, addr)
+				return net.DialTimeout(network, addr, timeout)
 			},
 		},
 	}
@@ -207,4 +210,11 @@ func New(log log.Logger, reg prometheus.Registerer, clusterEnabled bool, listenA
 	}))
 
 	return res, nil
+}
+
+func deadlineDuration(ctx context.Context) (d time.Duration, ok bool) {
+	if t, ok := ctx.Deadline(); ok {
+		return time.Until(t), true
+	}
+	return 0, false
 }
