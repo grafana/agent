@@ -6,7 +6,7 @@ title: remote.vault
 
 # `remote.vault`
 
-`remote.vault` connect to Vault to retrieve secrets. It can retrieve secrets
+`remote.vault` connect to Vault to retrieve secrets. It can retrieve a secret
 using the [KV v2][] secrets engine.
 
 Multiple `remote.vault` components can be specified by giving them different
@@ -254,7 +254,10 @@ The following fields are exported and can be referenced by other components:
 
 Name | Type | Description
 ---- | ---- | -----------
-`data` | `object(secret)` | Data from the secret obtained from Vault.
+`data` | `map(secret)` | Data from the secret obtained from Vault.
+
+The `data` field contains a mapping from data field names to values. There will
+be one mapping for each string-like field stored in the Vault secret.
 
 Note that Vault permits secret engines to store arbitrary data within the
 key-value pairs for a secret. The `remote.vault` component is only able to use
