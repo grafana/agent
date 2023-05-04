@@ -7,7 +7,7 @@ local filename = 'clustering.json';
       // Cluster not converging.
       alert.newRule(
         'ClusterNotConverged',
-        'stddev((sum without (state) (cluster_node_peers))) != 0',
+        'stddev by (cluster, namespace) ((sum without (state) (cluster_node_peers))) != 0',
         'Cluster is not converging.',
         '2m',
       ),
