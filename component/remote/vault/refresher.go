@@ -137,7 +137,7 @@ func (tm *tokenManager) updateToken(ctx context.Context) {
 		})
 	} else {
 		tm.updateHealth(component.Health{
-			Health:     component.HealthTypeUnhealthy,
+			Health:     component.HealthTypeHealthy,
 			Message:    "retrieved token",
 			UpdateTime: time.Now(),
 		})
