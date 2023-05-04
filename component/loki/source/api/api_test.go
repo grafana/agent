@@ -300,6 +300,31 @@ func TestComponent_detectsWhenUpdateRequiresARestart(t *testing.T) {
 	}
 }
 
+func TestDefaultServerConfig(t *testing.T) {
+	args := testArgs(t)
+	args.Server = nil // user did not define server options
+
+	comp, err := New(
+		defaultOptions(t),
+		args,
+	)
+	require.NoError(t, err)
+
+	c, ok := comp.(*Component)
+	require.True(t, ok)
+
+	require.Eventuallyf(t, func() bool {
+		resp, err := http.Get(fmt.Sprintf(
+			"http://%v:%d/wrong/url",
+			"localhost",
+			net.DefaultHTTPPort,
+		))
+		return err == nil && resp.StatusCode == 404
+	}, 5*time.Second, 20*time.Millisecond, "server failed to start before timeout")
+
+	c.stop()
+}
+
 func startTestComponent(
 	t *testing.T,
 	opts component.Options,
