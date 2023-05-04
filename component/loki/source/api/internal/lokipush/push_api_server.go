@@ -43,6 +43,7 @@ func NewPushAPIServer(logger log.Logger,
 	handler loki.EntryHandler,
 	registerer prometheus.Registerer,
 ) (*PushAPIServer, error) {
+
 	s := &PushAPIServer{
 		logger:       logger,
 		serverConfig: serverConfig,

@@ -332,6 +332,7 @@ func startTestComponent(
 	args Arguments,
 	ctx context.Context,
 ) (component.Component, func()) {
+
 	comp, err := New(opts, args)
 	require.NoError(t, err)
 	go func() {
